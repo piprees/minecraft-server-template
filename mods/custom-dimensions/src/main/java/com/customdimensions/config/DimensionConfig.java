@@ -444,6 +444,7 @@ public class DimensionConfig {
         appendFingerprintField(sb, "defaultBlock", so.defaultBlock);
         appendFingerprintField(sb, "defaultFluid", so.defaultFluid);
         appendFingerprintField(sb, "disableMobGeneration", so.disableMobGeneration);
+        appendFingerprintField(sb, "endIsland", so.endIsland);
         return sb.length() > 0 ? sb.toString() : null;
     }
 
@@ -793,6 +794,14 @@ public class DimensionConfig {
         public String defaultFluid;
         @SerializedName("disableMobGeneration")
         public Boolean disableMobGeneration;
+        /**
+         * False removes the End's origin-anchored island term, so the terrain
+         * around world origin is whatever this dimension generates everywhere
+         * else. Only end-family generators carry the term; elsewhere it is a
+         * no-op. Null leaves it as the generator ships it.
+         */
+        @SerializedName("endIsland")
+        public Boolean endIsland;
     }
 
     /** One superflat layer, bottom-up like vanilla: height = thickness in blocks. */

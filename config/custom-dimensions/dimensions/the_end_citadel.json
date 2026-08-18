@@ -124,5 +124,7 @@
     64,
     0
   ],
-  "noiseSettings": "adventure:end_open"
+  "settingsOverrides": {
+    "endIsland": false
+  }
 }

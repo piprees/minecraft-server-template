@@ -108,5 +108,7 @@
       "settlements": "dense"
     }
   },
-  "noiseSettings": "adventure:end_open"
+  "settingsOverrides": {
+    "endIsland": false
+  }
 }

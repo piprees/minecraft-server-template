@@ -995,9 +995,14 @@ public class DimensionManager {
         boolean disableMobGen = so.disableMobGeneration != null
                 ? so.disableMobGeneration : base.mobGenerationDisabled();
 
+        net.minecraft.world.gen.noise.NoiseRouter router =
+                Boolean.FALSE.equals(so.endIsland)
+                        ? withoutEndIsland(base.noiseRouter(), def.getName())
+                        : base.noiseRouter();
+
         ChunkGeneratorSettings swapped = new ChunkGeneratorSettings(
                 base.generationShapeConfig(), defaultBlock, defaultFluid,
-                base.noiseRouter(), base.surfaceRule(), base.spawnTarget(),
+                router, base.surfaceRule(), base.spawnTarget(),
                 seaLevel, disableMobGen, base.aquifers(), base.oreVeins(),
                 base.usesLegacyRandom());
         MultiverseServer.LOGGER.info("Dimension {}: settingsOverrides applied ({})",
@@ -1007,6 +1012,125 @@ public class DimensionManager {
         NoiseChunkGenerator swappedGen = new NoiseChunkGenerator(
                 noiseGen.getBiomeSource(), swappedEntry);
         return new DimensionOptions(built.dimensionTypeEntry(), swappedGen);
+    }
+
+    /**
+     * The island term's replacement, as an offset and amplitude on a plain
+     * noise.
+     *
+     * <p>{@code minecraft:end_islands} measures -0.84375 across the open plane
+     * and +0.5625 at world origin, where the type special-cases the centre
+     * cell. A CONSTANT cannot stand in for it: the End's void ring is the same
+     * field reading its floor, so a constant leaves the ring with no island in
+     * it — measured at 0 of 24 columns inside 700 blocks. A noise of the same
+     * amplitude scatters islands across the whole plane instead, which is what
+     * "this dimension never had a centre island" looks like.
+     */
+    private static final double END_ISLANDS_OFFSET = 0.0;
+    private static final double END_ISLANDS_AMPLITUDE = 1.2;
+    private static final double END_ISLANDS_XZ_SCALE = 0.5;
+
+    /**
+     * The registered codec for {@code minecraft:end_islands}. Yarn declares the
+     * type itself protected, so identity on its codec is how a node is
+     * recognised — and it stays correct under remapping, which a class-name
+     * test would not. Read per call, not into a static: a registry lookup at
+     * class-init fails wherever the game is not bootstrapped.
+     */
+    private static com.mojang.serialization.MapCodec<? extends
+            net.minecraft.world.gen.densityfunction.DensityFunction> endIslandsCodec() {
+        return Registries.DENSITY_FUNCTION_TYPE.get(Identifier.ofVanilla("end_islands"));
+    }
+
+    /**
+     * Whether a node is the End island term.
+     *
+     * <p>A registry-entry wrapper throws {@code UnsupportedOperationException}
+     * rather than answering for the function it holds; the visitor recurses
+     * through it either way, so refusing to answer is a no, not a failure.
+     */
+    private static boolean isEndIslands(
+            net.minecraft.world.gen.densityfunction.DensityFunction function) {
+        try {
+            return function.getCodecHolder().codec() == endIslandsCodec();
+        } catch (UnsupportedOperationException e) {
+            return false;
+        }
+    }
+
+    /**
+     * The router with every End island term replaced by the open plane.
+     *
+     * <p>Rewrites whatever graph the dimension resolved to, so a pack whose End
+     * is overhauled keeps its own terrain and loses only the origin bump.
+     * A generator carrying no island term is returned unchanged, which is every
+     * non-end family.
+     */
+    private net.minecraft.world.gen.noise.NoiseRouter withoutEndIsland(
+            net.minecraft.world.gen.noise.NoiseRouter router, String dimName) {
+        final net.minecraft.world.gen.densityfunction.DensityFunction replacement =
+                scatteredIslands();
+        if (replacement == null) {
+            MultiverseServer.LOGGER.warn(
+                    "Dimension {}: cannot remove the End origin island — the noise it would "
+                    + "be replaced by is not in the registry", dimName);
+            return router;
+        }
+        final int[] replaced = {0};
+        net.minecraft.world.gen.densityfunction.DensityFunction.DensityFunctionVisitor visitor =
+                new net.minecraft.world.gen.densityfunction.DensityFunction.DensityFunctionVisitor() {
+            @Override
+            public net.minecraft.world.gen.densityfunction.DensityFunction apply(
+                    net.minecraft.world.gen.densityfunction.DensityFunction function) {
+                if (isEndIslands(function)) {
+                    replaced[0]++;
+                    return replacement;
+                }
+                return function;
+            }
+
+            @Override
+            public net.minecraft.world.gen.densityfunction.DensityFunction.Noise apply(
+                    net.minecraft.world.gen.densityfunction.DensityFunction.Noise noise) {
+                return noise;
+            }
+        };
+        net.minecraft.world.gen.noise.NoiseRouter out = router.apply(visitor);
+        if (replaced[0] == 0) {
+            MultiverseServer.LOGGER.warn(
+                    "Dimension {}: settingsOverrides.endIsland is false but this generator "
+                    + "carries no End island term — nothing to remove", dimName);
+            return router;
+        }
+        MultiverseServer.LOGGER.info(
+                "Dimension {}: End origin island removed ({} island term(s) -> scattered noise, "
+                + "offset {} amplitude {})",
+                dimName, replaced[0], END_ISLANDS_OFFSET, END_ISLANDS_AMPLITUDE);
+        return out;
+    }
+
+    /**
+     * An origin-free stand-in for the End island term: a plain noise scaled to
+     * the range that term was measured at. Null when the noise is unavailable.
+     */
+    private net.minecraft.world.gen.densityfunction.DensityFunction scatteredIslands() {
+        if (this.server == null) {
+            return null;
+        }
+        var noiseRegistry = this.server.getRegistryManager().get(RegistryKeys.NOISE_PARAMETERS);
+        var params = noiseRegistry.getEntry(
+                net.minecraft.world.gen.noise.NoiseParametersKeys.CONTINENTALNESS);
+        if (params.isEmpty()) {
+            return null;
+        }
+        return net.minecraft.world.gen.densityfunction.DensityFunctionTypes.add(
+                net.minecraft.world.gen.densityfunction.DensityFunctionTypes
+                        .constant(END_ISLANDS_OFFSET),
+                net.minecraft.world.gen.densityfunction.DensityFunctionTypes.mul(
+                        net.minecraft.world.gen.densityfunction.DensityFunctionTypes
+                                .constant(END_ISLANDS_AMPLITUDE),
+                        net.minecraft.world.gen.densityfunction.DensityFunctionTypes.noise(
+                                params.get(), END_ISLANDS_XZ_SCALE, 0.0)));
     }
 
     private static net.minecraft.block.BlockState resolveOverrideBlock(

@@ -1,42 +1,60 @@
 {
   "type": "end",
-  "description": "Lonely pillars in the void. Spires, a dragon's skeleton, nothing else — the endermen's oldest construction, predating even the tiled expanse. Whatever they built here, they built it for a dragon. The dragon is dead.",
+  "description": "Lonely pillars in the void. Spires, a dragon's skeleton, nothing else \u2014 the endermen's oldest construction, predating even the tiled expanse. Whatever they built here, they built it for a dragon. The dragon is dead.",
   "seed": 9223110004402776460,
   "biomes": [
     {
       "id": "nullscape:void_barrens",
       "parameters": {
-        "continentalness": [0.177, 0.3015]
+        "continentalness": [
+          0.177,
+          0.3015
+        ]
       }
     },
     {
       "id": "minecraft:end_barrens",
       "parameters": {
-        "continentalness": [-0.1771, -0.0546]
+        "continentalness": [
+          -0.1771,
+          -0.0546
+        ]
       }
     },
     {
       "id": "minecraft:the_end",
       "parameters": {
-        "continentalness": [-0.0546, 0.0636]
+        "continentalness": [
+          -0.0546,
+          0.0636
+        ]
       }
     },
     {
       "id": "minecraft:small_end_islands",
       "parameters": {
-        "continentalness": [-2.0, -0.1771]
+        "continentalness": [
+          -2.0,
+          -0.1771
+        ]
       }
     },
     {
       "id": "minecraft:end_highlands",
       "parameters": {
-        "continentalness": [0.0636, 0.177]
+        "continentalness": [
+          0.0636,
+          0.177
+        ]
       }
     },
     {
       "id": "nullscape:crystal_peaks",
       "parameters": {
-        "continentalness": [0.3015, 2.0]
+        "continentalness": [
+          0.3015,
+          2.0
+        ]
       }
     }
   ],
@@ -78,7 +96,9 @@
   "seedRoll": {
     "mood": "desolate",
     "allowHazardousSpawn": true,
-    "spawnFilter": ["minecraft:end_highlands"],
+    "spawnFilter": [
+      "minecraft:end_highlands"
+    ],
     "wants": {
       "ender_spire": "spread",
       "ruined_pillar": "near_spawn",
@@ -92,12 +112,15 @@
       "phantom_citadel",
       "enderkeep"
     ],
-    "description": "Lonely pillars in the void. Spires, a dragon's skeleton, nothing else — the endermen's oldest construction, predating even the tiled expanse. Whatever they built here, they built it for a dragon. The dragon is dead.",
+    "description": "Lonely pillars in the void. Spires, a dragon's skeleton, nothing else \u2014 the endermen's oldest construction, predating even the tiled expanse. Whatever they built here, they built it for a dragon. The dragon is dead.",
     "terrain": "void"
   },
   "spawn": [
     0,
     64,
     0
-  ]
+  ],
+  "settingsOverrides": {
+    "endIsland": false
+  }
 }
