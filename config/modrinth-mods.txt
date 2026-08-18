@@ -61,6 +61,9 @@ subsurface:JdF0yLTy
 # Hard-depends on terralith >=2.0.0 despite Modrinth declaring no dependency —
 # a consumer removing terralith must remove this too or the boot dies.
 terralith-restoned:9wwdRqkT
+# 2.1.2 ships loot tables using set_nbt, removed in 1.20.5, and a trailing
+# comma in forbidden_knowledge. config/datapacks/stoneholm-loot/ overrides the
+# four affected tables; drop it if a later build fixes them upstream.
 stoneholm:4nZqBkRD
 underground-worlds:nQP9l4bd
 underground-bunkers:IOxi2RHE
