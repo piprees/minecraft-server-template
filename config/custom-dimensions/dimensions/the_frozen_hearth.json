@@ -1,6 +1,6 @@
 {
   "type": "multi_biome",
-  "description": "The warm hearth in a frozen world. Snowy villages and taigas where villagers adapted to the cold — igloos, outposts, campsites. The dungeons out in the ice are older than the settlements.",
+  "description": "The warm hearth in a frozen world. Snowy villages and taigas where villagers adapted to the cold \u2014 igloos, outposts, campsites. The dungeons out in the ice are older than the settlements.",
   "seed": -1692870054349687441,
   "noiseSettings": "adventure:wide",
   "biomes": [
@@ -17,17 +17,32 @@
     {
       "id": "minecraft:river",
       "parameters": {
-        "temperature": [-0.45, 0.55],
-        "weirdness": [-0.1299, -0.0783]
+        "temperature": [
+          -0.45,
+          0.55
+        ],
+        "weirdness": [
+          -0.1299,
+          -0.0783
+        ]
       }
     },
     "minecraft:stony_shore",
     {
       "id": "terralith:alpine_grove",
       "parameters": {
-        "temperature": [-1.0047, 0.2],
-        "humidity": [-0.585, 1.0],
-        "weirdness": [0.0763, 0.1251]
+        "temperature": [
+          -1.0047,
+          0.2
+        ],
+        "humidity": [
+          -0.585,
+          1.0
+        ],
+        "weirdness": [
+          0.0763,
+          0.1251
+        ]
       }
     },
     "terralith:birch_taiga",
@@ -35,25 +50,88 @@
     {
       "id": "natures_spirit:tundra",
       "parameters": {
-        "temperature": [-1.0, 0.2],
-        "humidity": [-1.0, 0.1],
-        "weirdness": [-0.0783, -0.0282]
+        "temperature": [
+          -1.0,
+          0.2
+        ],
+        "humidity": [
+          -1.0,
+          0.1
+        ],
+        "weirdness": [
+          -0.0783,
+          -0.0282
+        ]
       }
     },
     {
       "id": "natures_spirit:snowy_fir_forest",
       "parameters": {
-        "temperature": [-1.0, -0.15],
-        "humidity": [-0.1, 1.0],
-        "weirdness": [-0.0282, 0.0269]
+        "temperature": [
+          -1.0,
+          -0.15
+        ],
+        "humidity": [
+          -0.1,
+          1.0
+        ],
+        "weirdness": [
+          -0.0282,
+          0.0269
+        ]
       }
     },
     {
       "id": "terralith:wintry_forest",
       "parameters": {
-        "temperature": [-1.0047, -0.7273],
-        "humidity": [-0.1, 1.0],
-        "weirdness": [0.0269, 0.0763]
+        "temperature": [
+          -1.0047,
+          -0.7273
+        ],
+        "humidity": [
+          -0.1,
+          1.0
+        ],
+        "weirdness": [
+          0.0269,
+          0.0763
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:frozen_pine_taiga",
+      "parameters": {
+        "weirdness": [
+          -0.2,
+          -0.1299
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:cold_boreal_taiga",
+      "parameters": {
+        "weirdness": [
+          0.1251,
+          0.165
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:golden_boreal_taiga",
+      "parameters": {
+        "weirdness": [
+          0.165,
+          0.2
+        ]
+      }
+    },
+    {
+      "id": "wilderwild:snowy_old_growth_pine_taiga",
+      "parameters": {
+        "weirdness": [
+          -0.19,
+          0.1
+        ]
       }
     }
   ],
@@ -80,7 +158,9 @@
   },
   "seedRoll": {
     "mood": "pastoral",
-    "spawnFilter": ["terralith:alpine_grove"],
+    "spawnFilter": [
+      "terralith:alpine_grove"
+    ],
     "wants": {
       "village": "near_spawn",
       "igloo": "near_spawn",
@@ -96,7 +176,7 @@
       "monument",
       "coliseum"
     ],
-    "description": "The warm hearth in a frozen world. Snowy villages and taigas where villagers adapted to the cold — igloos, outposts, campsites. The dungeons out in the ice are older than the settlements."
+    "description": "The warm hearth in a frozen world. Snowy villages and taigas where villagers adapted to the cold \u2014 igloos, outposts, campsites. The dungeons out in the ice are older than the settlements."
   },
   "spawn": [
     0,

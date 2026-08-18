@@ -6,7 +6,13 @@
     "minecraft:soul_sand_valley",
     "incendium:ash_barrens",
     "minecraft:basalt_deltas",
-    "incendium:withered_forest"
+    "incendium:withered_forest",
+    {
+      "id": "regions_unexplored:ancient_delta",
+      "parameters": {
+        "temperature": [0.5, 1.0]
+      }
+    }
   ],
   "borders": {
     "player": 1024,

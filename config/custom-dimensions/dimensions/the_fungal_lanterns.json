@@ -7,7 +7,13 @@
     "minecraft:warped_forest",
     "incendium:inverted_forest",
     "minecraft:nether_wastes",
-    "incendium:quartz_flats"
+    "incendium:quartz_flats",
+    {
+      "id": "regions_unexplored:infernal_holt",
+      "parameters": {
+        "temperature": [-0.5, 0.0]
+      }
+    }
   ],
   "borders": {
     "player": 1024,

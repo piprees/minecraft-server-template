@@ -21,7 +21,10 @@
     "terralith:white_cliffs",
     "terralith:scarlet_mountains",
     "minecraft:eroded_badlands",
-    "terralith:windswept_spires"
+    "terralith:windswept_spires",
+    { "id": "regions_unexplored:towering_cliffs", "parameters": { "weirdness": [-0.19, -0.10] } },
+    { "id": "regions_unexplored:spires", "parameters": { "weirdness": [-0.10, -0.02] } },
+    { "id": "regions_unexplored:icy_heights", "parameters": { "weirdness": [-0.02, 0.10] } }
   ],
   "borders": {
     "player": 2048,

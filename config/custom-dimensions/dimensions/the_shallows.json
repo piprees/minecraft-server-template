@@ -1,43 +1,88 @@
 {
   "type": "multi_biome",
-  "description": "Broad warm shallows and mirage isles. Wrecks and drowned ruins under clear water — ships that tried to cross and didn't make it. The ocean doesn't care about civilisation; it just collects the debris.",
+  "description": "Broad warm shallows and mirage isles. Wrecks and drowned ruins under clear water \u2014 ships that tried to cross and didn't make it. The ocean doesn't care about civilisation; it just collects the debris.",
   "seed": 9197150989084124586,
   "noiseSettings": "adventure:wide",
   "biomes": [
     {
       "id": "terralith:mirage_isles",
       "parameters": {
-        "weirdness": [-0.1028, -0.0628]
+        "weirdness": [
+          -0.1028,
+          -0.0628
+        ]
       }
     },
     {
       "id": "minecraft:warm_ocean",
       "parameters": {
-        "weirdness": [-0.0628, -0.0245]
+        "weirdness": [
+          -0.0628,
+          -0.0245
+        ]
       }
     },
     {
       "id": "minecraft:lukewarm_ocean",
       "parameters": {
-        "weirdness": [-0.1461, -0.1028]
+        "weirdness": [
+          -0.1461,
+          -0.1028
+        ]
       }
     },
     {
       "id": "natures_spirit:tropical_shores",
       "parameters": {
-        "weirdness": [-2.0, -0.1461]
+        "weirdness": [
+          -2.0,
+          -0.1461
+        ]
       }
     },
     {
       "id": "terralith:deep_warm_ocean",
       "parameters": {
-        "weirdness": [-0.0245, 0.0147]
+        "weirdness": [
+          -0.0245,
+          0.0147
+        ]
       }
     },
     {
       "id": "minecraft:beach",
       "parameters": {
-        "weirdness": [0.0147, 2.0]
+        "weirdness": [
+          0.0147,
+          2.0
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:tropical_river",
+      "parameters": {
+        "weirdness": [
+          -0.19,
+          -0.0933
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:rocky_reef",
+      "parameters": {
+        "weirdness": [
+          -0.0933,
+          0.0033
+        ]
+      }
+    },
+    {
+      "id": "wilderwild:warm_beach",
+      "parameters": {
+        "weirdness": [
+          0.0033,
+          0.1
+        ]
       }
     }
   ],
@@ -73,7 +118,9 @@
   },
   "seedRoll": {
     "mood": "serene",
-    "spawnFilter": ["minecraft:beach"],
+    "spawnFilter": [
+      "minecraft:beach"
+    ],
     "water": "sea",
     "wants": {
       "shipwreck": "near_spawn",
@@ -90,7 +137,7 @@
       "ancient_city",
       "trial_chambers"
     ],
-    "description": "Broad warm shallows and mirage isles. Wrecks and drowned ruins under clear water — ships that tried to cross and didn't make it. The ocean doesn't care about civilisation; it just collects the debris."
+    "description": "Broad warm shallows and mirage isles. Wrecks and drowned ruins under clear water \u2014 ships that tried to cross and didn't make it. The ocean doesn't care about civilisation; it just collects the debris."
   },
   "spawn": [
     0,

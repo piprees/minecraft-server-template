@@ -1,6 +1,6 @@
 {
   "type": "multi_biome",
-  "description": "Serene oasis pools glowing at dusk. A hermit's paradise — desert shrines mark where travellers stopped to rest, but nobody built a town. The pools are older than the shrines.",
+  "description": "Serene oasis pools glowing at dusk. A hermit's paradise \u2014 desert shrines mark where travellers stopped to rest, but nobody built a town. The pools are older than the shrines.",
   "seed": 8598640343340391518,
   "biomes": [
     "terralith:desert_oasis",
@@ -10,7 +10,34 @@
     "terralith:lush_valley",
     "minecraft:jungle",
     "minecraft:sparse_jungle",
-    "terralith:orchid_swamp"
+    "terralith:orchid_swamp",
+    {
+      "id": "wilderwild:oasis",
+      "parameters": {
+        "weirdness": [
+          -2.0,
+          -0.08
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:tropics",
+      "parameters": {
+        "weirdness": [
+          -0.08,
+          2.0
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:glistering_meadow",
+      "parameters": {
+        "weirdness": [
+          -0.19,
+          0.1
+        ]
+      }
+    }
   ],
   "borders": {
     "player": 512,
@@ -70,7 +97,7 @@
       "ancient_city",
       "trial_chambers"
     ],
-    "description": "Serene oasis pools glowing at dusk. A hermit's paradise — desert shrines mark where travellers stopped to rest, but nobody built a town. The pools are older than the shrines."
+    "description": "Serene oasis pools glowing at dusk. A hermit's paradise \u2014 desert shrines mark where travellers stopped to rest, but nobody built a town. The pools are older than the shrines."
   },
   "spawn": [
     0,

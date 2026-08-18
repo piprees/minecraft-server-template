@@ -1,12 +1,44 @@
 {
   "type": "nether",
-  "description": "Warped groves and a greatsword in the fog — the nether's strange, quiet corner. The piglins avoided this place; the fungus here is older than their civilisation. The greatsword belongs to someone who came looking and never left.",
+  "description": "Warped groves and a greatsword in the fog \u2014 the nether's strange, quiet corner. The piglins avoided this place; the fungus here is older than their civilisation. The greatsword belongs to someone who came looking and never left.",
   "seed": 8276490801986154035,
   "biomes": [
-    "minecraft:warped_forest",
-    "incendium:inverted_forest",
-    "minecraft:nether_wastes",
-    "minecraft:crimson_forest"
+    {
+      "id": "minecraft:warped_forest",
+      "parameters": {
+        "temperature": [
+          -0.6,
+          -0.225
+        ]
+      }
+    },
+    {
+      "id": "incendium:inverted_forest",
+      "parameters": {
+        "temperature": [
+          -0.225,
+          0.15
+        ]
+      }
+    },
+    {
+      "id": "minecraft:nether_wastes",
+      "parameters": {
+        "temperature": [
+          0.15,
+          0.525
+        ]
+      }
+    },
+    {
+      "id": "minecraft:crimson_forest",
+      "parameters": {
+        "temperature": [
+          0.525,
+          0.9
+        ]
+      }
+    }
   ],
   "borders": {
     "player": 1024,
@@ -48,7 +80,7 @@
       "fortress",
       "sanctum"
     ],
-    "description": "Warped groves and a greatsword in the fog — the nether's strange, quiet corner. The piglins avoided this place; the fungus here is older than their civilisation. The greatsword belongs to someone who came looking and never left."
+    "description": "Warped groves and a greatsword in the fog \u2014 the nether's strange, quiet corner. The piglins avoided this place; the fungus here is older than their civilisation. The greatsword belongs to someone who came looking and never left."
   },
   "spawn": [
     0,

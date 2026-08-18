@@ -1,6 +1,6 @@
 {
   "type": "multi_biome",
-  "description": "Untouched wilds that whisper. Redwoods, moon groves, abandoned camps of those who didn't stay — the forest was here before anyone arrived and it'll be here after everyone leaves. The whisper is the wind in old growth that's never been cut.",
+  "description": "Untouched wilds that whisper. Redwoods, moon groves, abandoned camps of those who didn't stay \u2014 the forest was here before anyone arrived and it'll be here after everyone leaves. The whisper is the wind in old growth that's never been cut.",
   "seed": 3367832196571995414,
   "biomes": [
     "minecraft:dark_forest",
@@ -16,18 +16,36 @@
     {
       "id": "terralith:moonlight_grove",
       "parameters": {
-        "temperature": [-0.45, -0.155],
-        "humidity": [0.565, 1.0],
-        "weirdness": [-0.0915, -0.0463]
+        "temperature": [
+          -0.45,
+          -0.155
+        ],
+        "humidity": [
+          0.565,
+          1.0
+        ],
+        "weirdness": [
+          -0.0915,
+          -0.0463
+        ]
       }
     },
     "terralith:moonlight_valley",
     {
       "id": "terralith:cloud_forest",
       "parameters": {
-        "temperature": [-0.45, -0.155],
-        "humidity": [0.1, 1.0],
-        "weirdness": [-0.1401, -0.0915]
+        "temperature": [
+          -0.45,
+          -0.155
+        ],
+        "humidity": [
+          0.1,
+          1.0
+        ],
+        "weirdness": [
+          -0.1401,
+          -0.0915
+        ]
       }
     },
     "terralith:orchid_swamp",
@@ -35,34 +53,115 @@
     {
       "id": "terralith:shield_clearing",
       "parameters": {
-        "temperature": [-0.45, -0.155],
-        "humidity": [-0.35, -0.1],
-        "weirdness": [0.0896, 0.1357]
+        "temperature": [
+          -0.45,
+          -0.155
+        ],
+        "humidity": [
+          -0.35,
+          -0.1
+        ],
+        "weirdness": [
+          0.0896,
+          0.1357
+        ]
       }
     },
     "terralith:birch_taiga",
     {
       "id": "natures_spirit:aspen_forest",
       "parameters": {
-        "temperature": [-0.45, 0.55],
-        "humidity": [-1.0, 0.1],
-        "weirdness": [-0.0463, -0.0021]
+        "temperature": [
+          -0.45,
+          0.55
+        ],
+        "humidity": [
+          -1.0,
+          0.1
+        ],
+        "weirdness": [
+          -0.0463,
+          -0.0021
+        ]
       }
     },
     {
       "id": "natures_spirit:redwood_forest",
       "parameters": {
-        "temperature": [-0.45, 0.55],
-        "humidity": [-0.1, 1.0],
-        "weirdness": [-0.0021, 0.0455]
+        "temperature": [
+          -0.45,
+          0.55
+        ],
+        "humidity": [
+          -0.1,
+          1.0
+        ],
+        "weirdness": [
+          -0.0021,
+          0.0455
+        ]
       }
     },
     {
       "id": "natures_spirit:cedar_thicket",
       "parameters": {
-        "temperature": [0.2, 1.0],
-        "humidity": [-1.0, 0.1],
-        "weirdness": [0.0455, 0.0896]
+        "temperature": [
+          0.2,
+          1.0
+        ],
+        "humidity": [
+          -1.0,
+          0.1
+        ],
+        "weirdness": [
+          0.0455,
+          0.0896
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:redwoods",
+      "parameters": {
+        "weirdness": [
+          -0.19,
+          -0.1401
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:old_growth_forest",
+      "parameters": {
+        "weirdness": [
+          0.1357,
+          0.165
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:silver_birch_forest",
+      "parameters": {
+        "weirdness": [
+          0.165,
+          0.19
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:sparse_redwoods",
+      "parameters": {
+        "weirdness": [
+          -0.19,
+          -0.045
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:alpha_grove",
+      "parameters": {
+        "weirdness": [
+          -0.045,
+          0.1
+        ]
       }
     }
   ],
@@ -101,7 +200,9 @@
   },
   "seedRoll": {
     "mood": "desolate",
-    "spawnFilter": ["natures_spirit:aspen_forest"],
+    "spawnFilter": [
+      "natures_spirit:aspen_forest"
+    ],
     "wants": {
       "abandoned_camp": "near_spawn",
       "forest_ruin": "spread",
@@ -118,7 +219,7 @@
       "mansion",
       "coliseum"
     ],
-    "description": "Untouched wilds that whisper. Redwoods, moon groves, abandoned camps of those who didn't stay — the forest was here before anyone arrived and it'll be here after everyone leaves. The whisper is the wind in old growth that's never been cut."
+    "description": "Untouched wilds that whisper. Redwoods, moon groves, abandoned camps of those who didn't stay \u2014 the forest was here before anyone arrived and it'll be here after everyone leaves. The whisper is the wind in old growth that's never been cut."
   },
   "spawn": [
     0,

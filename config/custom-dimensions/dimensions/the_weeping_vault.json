@@ -1,13 +1,53 @@
 {
   "type": "nether",
-  "description": "A vault of crying obsidian — castle dungeons and a sanctum at the edge of a small dense world. The piglins sealed something in here; the crying obsidian is the lock. Whatever it is, it's still inside.",
+  "description": "A vault of crying obsidian \u2014 castle dungeons and a sanctum at the edge of a small dense world. The piglins sealed something in here; the crying obsidian is the lock. Whatever it is, it's still inside.",
   "seed": 8939242886241437506,
   "biomes": [
-    "incendium:weeping_valley",
-    "minecraft:crimson_forest",
-    "minecraft:basalt_deltas",
-    "minecraft:soul_sand_valley",
-    "incendium:withered_forest"
+    {
+      "id": "incendium:weeping_valley",
+      "parameters": {
+        "temperature": [
+          -0.6,
+          -0.3
+        ]
+      }
+    },
+    {
+      "id": "minecraft:crimson_forest",
+      "parameters": {
+        "temperature": [
+          -0.3,
+          0.0
+        ]
+      }
+    },
+    {
+      "id": "minecraft:basalt_deltas",
+      "parameters": {
+        "temperature": [
+          0.0,
+          0.3
+        ]
+      }
+    },
+    {
+      "id": "minecraft:soul_sand_valley",
+      "parameters": {
+        "temperature": [
+          0.3,
+          0.6
+        ]
+      }
+    },
+    {
+      "id": "incendium:withered_forest",
+      "parameters": {
+        "temperature": [
+          0.6,
+          0.9
+        ]
+      }
+    }
   ],
   "borders": {
     "player": 1024,
@@ -65,7 +105,7 @@
       "crimson_fungus",
       "warped_outpost"
     ],
-    "description": "A vault of crying obsidian — castle dungeons and a sanctum at the edge of a small dense world. The piglins sealed something in here; the crying obsidian is the lock. Whatever it is, it's still inside."
+    "description": "A vault of crying obsidian \u2014 castle dungeons and a sanctum at the edge of a small dense world. The piglins sealed something in here; the crying obsidian is the lock. Whatever it is, it's still inside."
   },
   "spawn": [
     0,

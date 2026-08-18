@@ -1,55 +1,97 @@
 {
   "type": "multi_biome",
-  "description": "Where the villagers who listened too long to the endermen withdrew. Moonlit spruce dark, graveyards, manors — the woods keep their own counsel. The witches came from here: students who couldn't stop learning.",
+  "description": "Where the villagers who listened too long to the endermen withdrew. Moonlit spruce dark, graveyards, manors \u2014 the woods keep their own counsel. The witches came from here: students who couldn't stop learning.",
   "seed": 9155801355435215650,
   "noiseSettings": "adventure:compressed",
   "biomes": [
     {
       "id": "terralith:moonlight_grove",
       "parameters": {
-        "weirdness": [-0.0825, -0.0398]
+        "weirdness": [
+          -0.0825,
+          -0.0398
+        ]
       }
     },
     {
       "id": "minecraft:old_growth_spruce_taiga",
       "parameters": {
-        "weirdness": [-0.0398, 0.0053]
+        "weirdness": [
+          -0.0398,
+          0.0053
+        ]
       }
     },
     {
       "id": "natures_spirit:snowy_fir_forest",
       "parameters": {
-        "weirdness": [-0.1308, -0.0825]
+        "weirdness": [
+          -0.1308,
+          -0.0825
+        ]
       }
     },
     {
       "id": "minecraft:dark_forest",
       "parameters": {
-        "weirdness": [0.0053, 0.0498]
+        "weirdness": [
+          0.0053,
+          0.0498
+        ]
       }
     },
     {
       "id": "minecraft:taiga",
       "parameters": {
-        "weirdness": [-0.1868, -0.1308]
+        "weirdness": [
+          -0.1868,
+          -0.1308
+        ]
       }
     },
     {
       "id": "natures_spirit:fir_forest",
       "parameters": {
-        "weirdness": [0.0498, 0.0948]
+        "weirdness": [
+          0.0498,
+          0.0948
+        ]
       }
     },
     {
       "id": "minecraft:old_growth_pine_taiga",
       "parameters": {
-        "weirdness": [-2.0, -0.1868]
+        "weirdness": [
+          -2.0,
+          -0.1868
+        ]
       }
     },
     {
       "id": "terralith:birch_taiga",
       "parameters": {
-        "weirdness": [0.0948, 2.0]
+        "weirdness": [
+          0.0948,
+          2.0
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:blackwood_taiga",
+      "parameters": {
+        "weirdness": [
+          -0.19,
+          -0.045
+        ]
+      }
+    },
+    {
+      "id": "wilderwild:dark_taiga",
+      "parameters": {
+        "weirdness": [
+          -0.045,
+          0.1
+        ]
       }
     }
   ],
@@ -81,7 +123,9 @@
   },
   "seedRoll": {
     "mood": "adventurous",
-    "spawnFilter": ["minecraft:taiga"],
+    "spawnFilter": [
+      "minecraft:taiga"
+    ],
     "wants": {
       "graveyard": "near_spawn",
       "old_manor": "spread",
@@ -96,7 +140,7 @@
       "monument",
       "coliseum"
     ],
-    "description": "Where the villagers who listened too long to the endermen withdrew. Moonlit spruce dark, graveyards, manors — the woods keep their own counsel. The witches came from here: students who couldn't stop learning."
+    "description": "Where the villagers who listened too long to the endermen withdrew. Moonlit spruce dark, graveyards, manors \u2014 the woods keep their own counsel. The witches came from here: students who couldn't stop learning."
   },
   "spawn": [
     0,

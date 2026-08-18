@@ -1,42 +1,78 @@
 {
   "type": "multi_biome",
-  "description": "Outpost country gone feral. Pillager lookouts, bandit towers, campsites — the military infrastructure of a kingdom that collapsed. The soldiers stayed after the kingdom fell and became the threat they were meant to guard against.",
+  "description": "Outpost country gone feral. Pillager lookouts, bandit towers, campsites \u2014 the military infrastructure of a kingdom that collapsed. The soldiers stayed after the kingdom fell and became the threat they were meant to guard against.",
   "seed": -4857143333049984274,
   "biomes": [
     {
       "id": "natures_spirit:oak_savanna",
       "parameters": {
-        "weirdness": [-0.1461, -0.1028]
+        "weirdness": [
+          -0.1461,
+          -0.1028
+        ]
       }
     },
     {
       "id": "natures_spirit:golden_wilds",
       "parameters": {
-        "weirdness": [-0.0245, 0.0147]
+        "weirdness": [
+          -0.0245,
+          0.0147
+        ]
       }
     },
     {
       "id": "minecraft:savanna",
       "parameters": {
-        "weirdness": [-2.0, -0.1461]
+        "weirdness": [
+          -2.0,
+          -0.1461
+        ]
       }
     },
     {
       "id": "terralith:fractured_savanna",
       "parameters": {
-        "weirdness": [-0.1028, -0.0628]
+        "weirdness": [
+          -0.1028,
+          -0.0628
+        ]
       }
     },
     {
       "id": "terralith:savanna_slopes",
       "parameters": {
-        "weirdness": [0.0147, 2.0]
+        "weirdness": [
+          0.0147,
+          2.0
+        ]
       }
     },
     {
       "id": "minecraft:windswept_savanna",
       "parameters": {
-        "weirdness": [-0.0628, -0.0245]
+        "weirdness": [
+          -0.0628,
+          -0.0245
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:shrubland",
+      "parameters": {
+        "weirdness": [
+          -0.19,
+          -0.045
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:deciduous_forest",
+      "parameters": {
+        "weirdness": [
+          -0.045,
+          0.1
+        ]
       }
     }
   ],
@@ -64,7 +100,9 @@
   },
   "seedRoll": {
     "mood": "adventurous",
-    "spawnFilter": ["minecraft:savanna"],
+    "spawnFilter": [
+      "minecraft:savanna"
+    ],
     "wants": {
       "pillager_outpost": "near_spawn",
       "pillager_lookout": "near_spawn",
@@ -77,7 +115,7 @@
     "shuns": [
       "monument"
     ],
-    "description": "Outpost country gone feral. Pillager lookouts, bandit towers, campsites — the military infrastructure of a kingdom that collapsed. The soldiers stayed after the kingdom fell and became the threat they were meant to guard against."
+    "description": "Outpost country gone feral. Pillager lookouts, bandit towers, campsites \u2014 the military infrastructure of a kingdom that collapsed. The soldiers stayed after the kingdom fell and became the threat they were meant to guard against."
   },
   "spawn": [
     0,

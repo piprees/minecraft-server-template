@@ -1,6 +1,6 @@
 {
   "type": "multi_biome",
-  "description": "Craggy quarry country — bare spires, engineers' towers, and old workings in the stone. The humans' industrial heartland, where they mined the raw materials for the sun kingdoms and the highland crossing. The deeper shafts are harder.",
+  "description": "Craggy quarry country \u2014 bare spires, engineers' towers, and old workings in the stone. The humans' industrial heartland, where they mined the raw materials for the sun kingdoms and the highland crossing. The deeper shafts are harder.",
   "seed": 9192136150769168028,
   "noiseSettings": "adventure:compressed",
   "biomes": [
@@ -11,7 +11,52 @@
     "minecraft:windswept_gravelly_hills",
     "terralith:basalt_cliffs",
     "terralith:scarlet_mountains",
-    "terralith:volcanic_peaks"
+    "terralith:volcanic_peaks",
+    {
+      "id": "regions_unexplored:towering_cliffs",
+      "parameters": {
+        "weirdness": [
+          -2.0,
+          -0.13
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:spires",
+      "parameters": {
+        "weirdness": [
+          -0.13,
+          -0.09
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:mountains",
+      "parameters": {
+        "weirdness": [
+          -0.09,
+          -0.05
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:pine_slopes",
+      "parameters": {
+        "weirdness": [
+          -0.05,
+          2.0
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:mauve_hills",
+      "parameters": {
+        "weirdness": [
+          -0.19,
+          0.1
+        ]
+      }
+    }
   ],
   "borders": {
     "player": 1024,
@@ -69,7 +114,7 @@
       "village",
       "monument"
     ],
-    "description": "Craggy quarry country — bare spires, engineers' towers, and old workings in the stone. The humans' industrial heartland, where they mined the raw materials for the sun kingdoms and the highland crossing. The deeper shafts are harder."
+    "description": "Craggy quarry country \u2014 bare spires, engineers' towers, and old workings in the stone. The humans' industrial heartland, where they mined the raw materials for the sun kingdoms and the highland crossing. The deeper shafts are harder."
   },
   "spawn": [
     0,
@@ -77,7 +122,9 @@
     0
   ],
   "structures": {
-    "terrainAdaptation": {"landmarks": "platform_skirt"},
+    "terrainAdaptation": {
+      "landmarks": "platform_skirt"
+    },
     "radial": {
       "dungeons": [
         1.0,

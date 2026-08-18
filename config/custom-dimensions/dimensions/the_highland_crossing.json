@@ -1,6 +1,6 @@
 {
   "type": "multi_biome",
-  "description": "The mountain crossing — guide posts and fire towers marking passes between dramatic highlands. The human-villager trade route, built to connect the sun kingdoms to the frozen hearth. The keeps at the border guarded the passes.",
+  "description": "The mountain crossing \u2014 guide posts and fire towers marking passes between dramatic highlands. The human-villager trade route, built to connect the sun kingdoms to the frozen hearth. The keeps at the border guarded the passes.",
   "seed": -6748313849734002813,
   "noiseSettings": "adventure:compressed",
   "biomes": [
@@ -13,16 +13,31 @@
     {
       "id": "minecraft:forest",
       "parameters": {
-        "temperature": [-0.45, 0.55],
-        "humidity": [-0.1, 0.1],
-        "weirdness": [0.0619, 0.1009]
+        "temperature": [
+          -0.45,
+          0.55
+        ],
+        "humidity": [
+          -0.1,
+          0.1
+        ],
+        "weirdness": [
+          0.0619,
+          0.1009
+        ]
       }
     },
     {
       "id": "minecraft:river",
       "parameters": {
-        "temperature": [-0.45, 0.55],
-        "weirdness": [-0.1491, -0.107]
+        "temperature": [
+          -0.45,
+          0.55
+        ],
+        "weirdness": [
+          -0.1491,
+          -0.107
+        ]
       }
     },
     "minecraft:stony_shore",
@@ -35,16 +50,31 @@
     {
       "id": "terralith:granite_cliffs",
       "parameters": {
-        "temperature": [0.2, 1.0],
-        "weirdness": [-0.0245, 0.0221]
+        "temperature": [
+          0.2,
+          1.0
+        ],
+        "weirdness": [
+          -0.0245,
+          0.0221
+        ]
       }
     },
     {
       "id": "terralith:basalt_cliffs",
       "parameters": {
-        "temperature": [0.2, 0.55],
-        "humidity": [-1.0, 0.565],
-        "weirdness": [0.0221, 0.0619]
+        "temperature": [
+          0.2,
+          0.55
+        ],
+        "humidity": [
+          -1.0,
+          0.565
+        ],
+        "weirdness": [
+          0.0221,
+          0.0619
+        ]
       }
     },
     "terralith:caldera",
@@ -52,24 +82,102 @@
     {
       "id": "natures_spirit:red_peaks",
       "parameters": {
-        "temperature": [0.2, 1.0],
-        "humidity": [-1.0, -0.1],
-        "weirdness": [0.1009, 0.1457]
+        "temperature": [
+          0.2,
+          1.0
+        ],
+        "humidity": [
+          -1.0,
+          -0.1
+        ],
+        "weirdness": [
+          0.1009,
+          0.1457
+        ]
       }
     },
     {
       "id": "terralith:yosemite_cliffs",
       "parameters": {
-        "temperature": [-0.45, 0.2],
-        "humidity": [-1.0, -0.35],
-        "weirdness": [-0.107, -0.0646]
+        "temperature": [
+          -0.45,
+          0.2
+        ],
+        "humidity": [
+          -1.0,
+          -0.35
+        ],
+        "weirdness": [
+          -0.107,
+          -0.0646
+        ]
       }
     },
     {
       "id": "terralith:windswept_spires",
       "parameters": {
-        "temperature": [-0.45, -0.155],
-        "weirdness": [-0.0646, -0.0245]
+        "temperature": [
+          -0.45,
+          -0.155
+        ],
+        "weirdness": [
+          -0.0646,
+          -0.0245
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:pine_slopes",
+      "parameters": {
+        "weirdness": [
+          -0.19,
+          -0.1491
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:mauve_hills",
+      "parameters": {
+        "weirdness": [
+          0.1457,
+          0.17
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:mountains",
+      "parameters": {
+        "weirdness": [
+          0.17,
+          0.19
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:towering_cliffs",
+      "parameters": {
+        "weirdness": [
+          -0.19,
+          -0.0933
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:highland_fields",
+      "parameters": {
+        "weirdness": [
+          -0.0933,
+          0.0033
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:spires",
+      "parameters": {
+        "weirdness": [
+          0.0033,
+          0.1
+        ]
       }
     }
   ],
@@ -102,11 +210,15 @@
     }
   },
   "structures": {
-    "terrainAdaptation": {"landmarks": "platform_skirt"}
+    "terrainAdaptation": {
+      "landmarks": "platform_skirt"
+    }
   },
   "seedRoll": {
     "mood": "dramatic",
-    "spawnFilter": ["minecraft:forest"],
+    "spawnFilter": [
+      "minecraft:forest"
+    ],
     "wants": {
       "guide_post_cold": "near_spawn",
       "taiga_outpost": "near_spawn",
@@ -121,7 +233,7 @@
     "shuns": [
       "monument"
     ],
-    "description": "The mountain crossing — guide posts and fire towers marking passes between dramatic highlands. The human-villager trade route, built to connect the sun kingdoms to the frozen hearth. The keeps at the border guarded the passes."
+    "description": "The mountain crossing \u2014 guide posts and fire towers marking passes between dramatic highlands. The human-villager trade route, built to connect the sun kingdoms to the frozen hearth. The keeps at the border guarded the passes."
   },
   "spawn": [
     0,

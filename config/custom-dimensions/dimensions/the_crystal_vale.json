@@ -1,6 +1,6 @@
 {
   "type": "multi_biome",
-  "description": "Where the endermen first taught the villagers. Amethyst rainforest and emerald peaks — wizard towers mark where the lessons happened. No war was ever fought here; this place was too beautiful to ruin.",
+  "description": "Where the endermen first taught the villagers. Amethyst rainforest and emerald peaks \u2014 wizard towers mark where the lessons happened. No war was ever fought here; this place was too beautiful to ruin.",
   "seed": 7030276223102451156,
   "noiseSettings": "adventure:compressed",
   "biomes": [
@@ -9,7 +9,52 @@
     "terralith:emerald_peaks",
     "minecraft:grove",
     "minecraft:meadow",
-    "terralith:moonlight_grove"
+    "terralith:moonlight_grove",
+    {
+      "id": "regions_unexplored:alpha_grove",
+      "parameters": {
+        "weirdness": [
+          -2.0,
+          -0.1
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:rocky_meadow",
+      "parameters": {
+        "weirdness": [
+          -0.1,
+          -0.06
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:temperate_grove",
+      "parameters": {
+        "weirdness": [
+          -0.06,
+          2.0
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:prismachasm",
+      "parameters": {
+        "weirdness": [
+          -0.19,
+          -0.045
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:hyacinth_deeps",
+      "parameters": {
+        "weirdness": [
+          -0.045,
+          0.1
+        ]
+      }
+    }
   ],
   "borders": {
     "player": 1024,
@@ -67,7 +112,7 @@
       "trial_chambers",
       "ancient_city"
     ],
-    "description": "Where the endermen first taught the villagers. Amethyst rainforest and emerald peaks — wizard towers mark where the lessons happened. No war was ever fought here; this place was too beautiful to ruin."
+    "description": "Where the endermen first taught the villagers. Amethyst rainforest and emerald peaks \u2014 wizard towers mark where the lessons happened. No war was ever fought here; this place was too beautiful to ruin."
   },
   "spawn": [
     0,

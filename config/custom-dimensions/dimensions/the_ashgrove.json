@@ -1,6 +1,6 @@
 {
   "type": "multi_biome",
-  "description": "Ash-grey savanna under a volcanic sky. A settlement burned here once — abandoned camps and scorched tombs are all that remain. The grove remembers the fire, but not who set it.",
+  "description": "Ash-grey savanna under a volcanic sky. A settlement burned here once \u2014 abandoned camps and scorched tombs are all that remain. The grove remembers the fire, but not who set it.",
   "seed": -4745410978042438563,
   "biomes": [
     "terralith:ashen_savanna",
@@ -10,7 +10,61 @@
     "terralith:savanna_badlands",
     "minecraft:badlands",
     "minecraft:eroded_badlands",
-    "terralith:basalt_cliffs"
+    "terralith:basalt_cliffs",
+    {
+      "id": "regions_unexplored:saguaro_desert",
+      "parameters": {
+        "weirdness": [
+          -2.0,
+          -0.13
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:joshua_desert",
+      "parameters": {
+        "weirdness": [
+          -0.13,
+          -0.09
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:dry_bushland",
+      "parameters": {
+        "weirdness": [
+          -0.09,
+          -0.05
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:arid_mountains",
+      "parameters": {
+        "weirdness": [
+          -0.05,
+          2.0
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:ashen_woodland",
+      "parameters": {
+        "weirdness": [
+          -0.19,
+          -0.045
+        ]
+      }
+    },
+    {
+      "id": "wilderwild:arid_savanna",
+      "parameters": {
+        "weirdness": [
+          -0.045,
+          0.1
+        ]
+      }
+    }
   ],
   "borders": {
     "player": 1024,
@@ -66,7 +120,7 @@
       "tavern",
       "monument"
     ],
-    "description": "Ash-grey savanna under a volcanic sky. A settlement burned here once — abandoned camps and scorched tombs are all that remain. The grove remembers the fire, but not who set it.",
+    "description": "Ash-grey savanna under a volcanic sky. A settlement burned here once \u2014 abandoned camps and scorched tombs are all that remain. The grove remembers the fire, but not who set it.",
     "water": "none"
   },
   "spawn": [

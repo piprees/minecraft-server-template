@@ -1,55 +1,100 @@
 {
   "type": "multi_biome",
-  "description": "The empty deep mire. Sunken ruins and a mausoleum in the murk — whoever built these, the swamp took them generations ago. Too wet for roads, too quiet for company. The marsh doesn't remember their names.",
+  "description": "The empty deep mire. Sunken ruins and a mausoleum in the murk \u2014 whoever built these, the swamp took them generations ago. Too wet for roads, too quiet for company. The marsh doesn't remember their names.",
   "seed": 8614947220682105760,
   "biomes": [
     {
       "id": "terralith:orchid_swamp",
       "parameters": {
-        "weirdness": [-0.0825, -0.0398]
+        "weirdness": [
+          -0.0825,
+          -0.0398
+        ]
       }
     },
     {
       "id": "minecraft:mangrove_swamp",
       "parameters": {
-        "weirdness": [-0.0398, 0.0053]
+        "weirdness": [
+          -0.0398,
+          0.0053
+        ]
       }
     },
     {
       "id": "natures_spirit:marsh",
       "parameters": {
-        "weirdness": [-0.1308, -0.0825]
+        "weirdness": [
+          -0.1308,
+          -0.0825
+        ]
       }
     },
     {
       "id": "minecraft:swamp",
       "parameters": {
-        "weirdness": [0.0053, 0.0498]
+        "weirdness": [
+          0.0053,
+          0.0498
+        ]
       }
     },
     {
       "id": "minecraft:river",
       "parameters": {
-        "weirdness": [-0.1868, -0.1308]
+        "weirdness": [
+          -0.1868,
+          -0.1308
+        ]
       }
     },
     {
       "id": "minecraft:dark_forest",
       "parameters": {
-        "weirdness": [0.0948, 2.0]
+        "weirdness": [
+          0.0948,
+          2.0
+        ]
       }
     },
     {
       "id": "minecraft:beach",
       "parameters": {
-        "continentalness": [-0.6, -0.05],
-        "weirdness": [0.0498, 0.0948]
+        "continentalness": [
+          -0.6,
+          -0.05
+        ],
+        "weirdness": [
+          0.0498,
+          0.0948
+        ]
       }
     },
     {
       "id": "terralith:moonlight_valley",
       "parameters": {
-        "weirdness": [-2.0, -0.1868]
+        "weirdness": [
+          -2.0,
+          -0.1868
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:bayou",
+      "parameters": {
+        "weirdness": [
+          -0.19,
+          -0.045
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:old_growth_bayou",
+      "parameters": {
+        "weirdness": [
+          -0.045,
+          0.1
+        ]
       }
     }
   ],
@@ -76,7 +121,10 @@
     }
   },
   "structures": {
-    "terrainAdaptation": {"dungeons": "drain", "loot": "drain"},
+    "terrainAdaptation": {
+      "dungeons": "drain",
+      "loot": "drain"
+    },
     "clearSpawnRadius": 80
   },
   "environment": {
@@ -84,7 +132,9 @@
   },
   "seedRoll": {
     "mood": "desolate",
-    "spawnFilter": ["natures_spirit:marsh"],
+    "spawnFilter": [
+      "natures_spirit:marsh"
+    ],
     "water": "high",
     "wants": {
       "swamp_ruin": "spread",
@@ -102,7 +152,7 @@
       "monument",
       "coliseum"
     ],
-    "description": "The empty deep mire. Sunken ruins and a mausoleum in the murk — whoever built these, the swamp took them generations ago. Too wet for roads, too quiet for company. The marsh doesn't remember their names."
+    "description": "The empty deep mire. Sunken ruins and a mausoleum in the murk \u2014 whoever built these, the swamp took them generations ago. Too wet for roads, too quiet for company. The marsh doesn't remember their names."
   },
   "spawn": [
     0,

@@ -7,7 +7,13 @@
     "incendium:weeping_valley",
     "incendium:inverted_forest",
     "minecraft:nether_wastes",
-    "minecraft:basalt_deltas"
+    "minecraft:basalt_deltas",
+    {
+      "id": "regions_unexplored:infernal_holt",
+      "parameters": {
+        "temperature": [-0.5, 0.0]
+      }
+    }
   ],
   "borders": {
     "player": 1024,

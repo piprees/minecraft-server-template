@@ -63,6 +63,33 @@
           2.0
         ]
       }
+    },
+    {
+      "id": "regions_unexplored:redstone_abyss",
+      "parameters": {
+        "temperature": [
+          -0.6,
+          -0.1
+        ]
+      }
+    },
+    {
+      "id": "undergroundworlds:underground_jungle",
+      "parameters": {
+        "temperature": [
+          -0.1,
+          0.4
+        ]
+      }
+    },
+    {
+      "id": "yungscavebiomes:lost_caves",
+      "parameters": {
+        "temperature": [
+          0.4,
+          0.9
+        ]
+      }
     }
   ],
   "borders": {

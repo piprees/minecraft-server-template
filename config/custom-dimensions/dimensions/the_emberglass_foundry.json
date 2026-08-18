@@ -1,6 +1,6 @@
 {
   "type": "cave",
-  "description": "A pocket foundry burrowed in glassy rock. Basalt columns, thermal vents, quartz light in the dark — piglin engineers built this as a proving ground. Small, self-contained, still warm.",
+  "description": "A pocket foundry burrowed in glassy rock. Basalt columns, thermal vents, quartz light in the dark \u2014 piglin engineers built this as a proving ground. Small, self-contained, still warm.",
   "seed": 9181733818447442817,
   "biomes": [
     "terralith:cave/thermal_caves",
@@ -40,6 +40,15 @@
         "temperature": [
           0.55,
           2.0
+        ]
+      }
+    },
+    {
+      "id": "wilderwild:magmatic_caves",
+      "parameters": {
+        "temperature": [
+          -0.6,
+          0.9
         ]
       }
     }
@@ -96,6 +105,6 @@
       "terralith:cave/thermal_caves",
       "terralith:cave/granite_caves"
     ],
-    "description": "A pocket foundry burrowed in glassy rock. Basalt columns, thermal vents, quartz light in the dark — piglin engineers built this as a proving ground. Small, self-contained, still warm."
+    "description": "A pocket foundry burrowed in glassy rock. Basalt columns, thermal vents, quartz light in the dark \u2014 piglin engineers built this as a proving ground. Small, self-contained, still warm."
   }
 }

@@ -1,13 +1,53 @@
 {
   "type": "nether",
-  "description": "Soul-sand meadows and grave fields — the piglin memorial dimension. The dead are the crop. Giant skulls and nether graveyards mark where the fallen from the boneyard war were brought to rest. Nothing living is welcome.",
+  "description": "Soul-sand meadows and grave fields \u2014 the piglin memorial dimension. The dead are the crop. Giant skulls and nether graveyards mark where the fallen from the boneyard war were brought to rest. Nothing living is welcome.",
   "seed": 8788869748950071596,
   "biomes": [
-    "minecraft:soul_sand_valley",
-    "incendium:ash_barrens",
-    "minecraft:nether_wastes",
-    "incendium:weeping_valley",
-    "incendium:withered_forest"
+    {
+      "id": "minecraft:soul_sand_valley",
+      "parameters": {
+        "temperature": [
+          -0.6,
+          -0.3
+        ]
+      }
+    },
+    {
+      "id": "incendium:ash_barrens",
+      "parameters": {
+        "temperature": [
+          -0.3,
+          0.0
+        ]
+      }
+    },
+    {
+      "id": "minecraft:nether_wastes",
+      "parameters": {
+        "temperature": [
+          0.0,
+          0.3
+        ]
+      }
+    },
+    {
+      "id": "incendium:weeping_valley",
+      "parameters": {
+        "temperature": [
+          0.3,
+          0.6
+        ]
+      }
+    },
+    {
+      "id": "incendium:withered_forest",
+      "parameters": {
+        "temperature": [
+          0.6,
+          0.9
+        ]
+      }
+    }
   ],
   "borders": {
     "player": 1024,
@@ -59,7 +99,7 @@
       "warped_outpost",
       "bastion"
     ],
-    "description": "Soul-sand meadows and grave fields — the piglin memorial dimension. The dead are the crop. Giant skulls and nether graveyards mark where the fallen from the boneyard war were brought to rest. Nothing living is welcome."
+    "description": "Soul-sand meadows and grave fields \u2014 the piglin memorial dimension. The dead are the crop. Giant skulls and nether graveyards mark where the fallen from the boneyard war were brought to rest. Nothing living is welcome."
   },
   "spawn": [
     0,

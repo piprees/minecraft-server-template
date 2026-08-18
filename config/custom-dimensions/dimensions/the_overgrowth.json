@@ -7,49 +7,91 @@
     {
       "id": "terralith:rocky_jungle",
       "parameters": {
-        "weirdness": [0.0948, 2.0]
+        "weirdness": [
+          0.0948,
+          2.0
+        ]
       }
     },
     {
       "id": "terralith:jungle_mountains",
       "parameters": {
-        "weirdness": [-0.0825, -0.0398]
+        "weirdness": [
+          -0.0825,
+          -0.0398
+        ]
       }
     },
     {
       "id": "natures_spirit:tropical_basin",
       "parameters": {
-        "weirdness": [-0.0398, 0.0053]
+        "weirdness": [
+          -0.0398,
+          0.0053
+        ]
       }
     },
     {
       "id": "terralith:cloud_forest",
       "parameters": {
-        "weirdness": [-0.1308, -0.0825]
+        "weirdness": [
+          -0.1308,
+          -0.0825
+        ]
       }
     },
     {
       "id": "minecraft:jungle",
       "parameters": {
-        "weirdness": [0.0053, 0.0498]
+        "weirdness": [
+          0.0053,
+          0.0498
+        ]
       }
     },
     {
       "id": "minecraft:sparse_jungle",
       "parameters": {
-        "weirdness": [-0.1868, -0.1308]
+        "weirdness": [
+          -0.1868,
+          -0.1308
+        ]
       }
     },
     {
       "id": "minecraft:bamboo_jungle",
       "parameters": {
-        "weirdness": [0.0498, 0.0948]
+        "weirdness": [
+          0.0498,
+          0.0948
+        ]
       }
     },
     {
       "id": "minecraft:dark_forest",
       "parameters": {
-        "weirdness": [-2.0, -0.1868]
+        "weirdness": [
+          -2.0,
+          -0.1868
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:rainforest",
+      "parameters": {
+        "weirdness": [
+          -0.19,
+          -0.045
+        ]
+      }
+    },
+    {
+      "id": "wilderwild:rainforest",
+      "parameters": {
+        "weirdness": [
+          -0.045,
+          0.1
+        ]
       }
     }
   ],
@@ -86,7 +128,9 @@
   },
   "seedRoll": {
     "mood": "dramatic",
-    "spawnFilter": ["minecraft:sparse_jungle"],
+    "spawnFilter": [
+      "minecraft:sparse_jungle"
+    ],
     "wants": {
       "jungle_ruin": "near_spawn",
       "infested_temple": "spread",

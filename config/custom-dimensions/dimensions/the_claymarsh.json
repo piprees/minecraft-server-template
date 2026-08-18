@@ -6,56 +6,122 @@
     {
       "id": "natures_spirit:marsh",
       "parameters": {
-        "weirdness": [-0.0597, -0.0187]
+        "weirdness": [
+          -0.0597,
+          -0.0187
+        ]
       }
     },
     {
       "id": "minecraft:swamp",
       "parameters": {
-        "weirdness": [-0.0187, 0.017]
+        "weirdness": [
+          -0.0187,
+          0.017
+        ]
       }
     },
     {
       "id": "minecraft:mangrove_swamp",
       "parameters": {
-        "weirdness": [-0.0951, -0.0597]
+        "weirdness": [
+          -0.0951,
+          -0.0597
+        ]
       }
     },
     {
       "id": "terralith:orchid_swamp",
       "parameters": {
-        "weirdness": [0.017, 0.0571]
+        "weirdness": [
+          0.017,
+          0.0571
+        ]
       }
     },
     {
       "id": "natures_spirit:bamboo_wetlands",
       "parameters": {
-        "weirdness": [-0.1404, -0.0951]
+        "weirdness": [
+          -0.1404,
+          -0.0951
+        ]
       }
     },
     {
       "id": "minecraft:river",
       "parameters": {
-        "weirdness": [0.0571, 0.0996]
+        "weirdness": [
+          0.0571,
+          0.0996
+        ]
       }
     },
     {
       "id": "minecraft:beach",
       "parameters": {
-        "continentalness": [-0.6, -0.05],
-        "weirdness": [-0.1933, -0.1404]
+        "continentalness": [
+          -0.6,
+          -0.05
+        ],
+        "weirdness": [
+          -0.1933,
+          -0.1404
+        ]
       }
     },
     {
       "id": "minecraft:dark_forest",
       "parameters": {
-        "weirdness": [-2.0, -0.1933]
+        "weirdness": [
+          -2.0,
+          -0.1933
+        ]
       }
     },
     {
       "id": "terralith:moonlight_valley",
       "parameters": {
-        "weirdness": [0.0996, 2.0]
+        "weirdness": [
+          0.0996,
+          2.0
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:marsh",
+      "parameters": {
+        "weirdness": [
+          -0.19,
+          -0.1175
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:fen",
+      "parameters": {
+        "weirdness": [
+          -0.1175,
+          -0.045
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:muddy_river",
+      "parameters": {
+        "weirdness": [
+          -0.045,
+          0.0275
+        ]
+      }
+    },
+    {
+      "id": "wilderwild:cypress_wetlands",
+      "parameters": {
+        "weirdness": [
+          0.0275,
+          0.1
+        ]
       }
     }
   ],
@@ -86,7 +152,9 @@
   },
   "seedRoll": {
     "mood": "serene",
-    "spawnFilter": ["natures_spirit:marsh"],
+    "spawnFilter": [
+      "natures_spirit:marsh"
+    ],
     "water": "high",
     "wants": {
       "swamp_ruin": "spread",

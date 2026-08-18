@@ -11,7 +11,10 @@
     "minecraft:windswept_gravelly_hills",
     "minecraft:stony_shore",
     "terralith:rocky_shrubland",
-    "terralith:cold_shrubland"
+    "terralith:cold_shrubland",
+    { "id": "regions_unexplored:outback", "parameters": { "weirdness": [-2.0, -0.10] } },
+    { "id": "regions_unexplored:mauve_hills", "parameters": { "weirdness": [-0.10, -0.06] } },
+    { "id": "regions_unexplored:chalk_cliffs", "parameters": { "weirdness": [-0.06, 2.0] } }
   ],
   "borders": {
     "player": 1024,

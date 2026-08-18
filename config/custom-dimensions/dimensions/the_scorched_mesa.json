@@ -1,61 +1,115 @@
 {
   "type": "multi_biome",
-  "description": "Painted canyon country baked to the bone. Dramatic tiered mesas, tomb-riddled badlands — the desert peoples buried their dead in the rock and the living moved on. The pyramids and spirals are all that's left.",
+  "description": "Painted canyon country baked to the bone. Dramatic tiered mesas, tomb-riddled badlands \u2014 the desert peoples buried their dead in the rock and the living moved on. The pyramids and spirals are all that's left.",
   "seed": -8777423045116236165,
   "noiseSettings": "adventure:compressed",
   "biomes": [
     {
       "id": "terralith:painted_mountains",
       "parameters": {
-        "weirdness": [-2.0, -0.1933]
+        "weirdness": [
+          -2.0,
+          -0.1933
+        ]
       }
     },
     {
       "id": "terralith:bryce_canyon",
       "parameters": {
-        "weirdness": [0.017, 0.0571]
+        "weirdness": [
+          0.017,
+          0.0571
+        ]
       }
     },
     {
       "id": "minecraft:eroded_badlands",
       "parameters": {
-        "weirdness": [-0.1404, -0.0951]
+        "weirdness": [
+          -0.1404,
+          -0.0951
+        ]
       }
     },
     {
       "id": "natures_spirit:stratified_desert",
       "parameters": {
-        "weirdness": [0.0571, 0.0996]
+        "weirdness": [
+          0.0571,
+          0.0996
+        ]
       }
     },
     {
       "id": "terralith:desert_canyon",
       "parameters": {
-        "weirdness": [-0.0597, -0.0187]
+        "weirdness": [
+          -0.0597,
+          -0.0187
+        ]
       }
     },
     {
       "id": "minecraft:badlands",
       "parameters": {
-        "weirdness": [-0.1933, -0.1404]
+        "weirdness": [
+          -0.1933,
+          -0.1404
+        ]
       }
     },
     {
       "id": "minecraft:wooded_badlands",
       "parameters": {
-        "weirdness": [0.0996, 2.0]
+        "weirdness": [
+          0.0996,
+          2.0
+        ]
       }
     },
     {
       "id": "terralith:savanna_badlands",
       "parameters": {
-        "weirdness": [-0.0187, 0.017]
+        "weirdness": [
+          -0.0187,
+          0.017
+        ]
       }
     },
     {
       "id": "minecraft:savanna",
       "parameters": {
-        "weirdness": [-0.0951, -0.0597]
+        "weirdness": [
+          -0.0951,
+          -0.0597
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:saguaro_desert",
+      "parameters": {
+        "weirdness": [
+          -0.19,
+          -0.0933
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:joshua_desert",
+      "parameters": {
+        "weirdness": [
+          -0.0933,
+          0.0033
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:arid_mountains",
+      "parameters": {
+        "weirdness": [
+          0.0033,
+          0.1
+        ]
       }
     }
   ],
@@ -89,7 +143,9 @@
   },
   "seedRoll": {
     "mood": "dramatic",
-    "spawnFilter": ["minecraft:savanna"],
+    "spawnFilter": [
+      "minecraft:savanna"
+    ],
     "water": "none",
     "wants": {
       "badlands_ruins": "spread",
@@ -103,7 +159,7 @@
       "mansion",
       "monument"
     ],
-    "description": "Painted canyon country baked to the bone. Dramatic tiered mesas, tomb-riddled badlands — the desert peoples buried their dead in the rock and the living moved on. The pyramids and spirals are all that's left."
+    "description": "Painted canyon country baked to the bone. Dramatic tiered mesas, tomb-riddled badlands \u2014 the desert peoples buried their dead in the rock and the living moved on. The pyramids and spirals are all that's left."
   },
   "spawn": [
     0,

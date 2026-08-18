@@ -12,7 +12,10 @@
     "terralith:ashen_savanna",
     "minecraft:eroded_badlands",
     "minecraft:badlands",
-    "terralith:yellowstone"
+    "terralith:yellowstone",
+    { "id": "regions_unexplored:redstone_abyss", "parameters": { "weirdness": [-0.19, -0.10] } },
+    { "id": "regions_unexplored:arid_mountains", "parameters": { "weirdness": [-0.10, -0.03] } },
+    { "id": "regions_unexplored:outback", "parameters": { "weirdness": [-0.03, 0.10] } }
   ],
   "borders": {
     "player": 8192,

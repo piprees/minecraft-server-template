@@ -11,7 +11,11 @@
     "terralith:basalt_cliffs",
     "terralith:moonlight_grove",
     "minecraft:deep_dark",
-    "terralith:white_cliffs"
+    "terralith:white_cliffs",
+    { "id": "regions_unexplored:redstone_abyss", "parameters": { "weirdness": [-0.19, -0.10] } },
+    { "id": "regions_unexplored:mycotoxic_undergrowth", "parameters": { "weirdness": [-0.10, -0.02] } },
+    { "id": "regions_unexplored:redstone_caves", "parameters": { "weirdness": [-0.02, 0.06] } },
+    { "id": "regions_unexplored:prismachasm", "parameters": { "weirdness": [0.06, 0.19] } }
   ],
   "borders": {
     "player": 8192,

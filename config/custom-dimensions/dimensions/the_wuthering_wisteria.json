@@ -1,16 +1,79 @@
 {
   "type": "multi_biome",
-  "description": "A broken torii gate opens onto a pocket grove of wisteria. Someone sealed this place deliberately — sweet blossom on the breeze, a stream winding beneath the canopy. Whatever they were protecting, the gate is the only way in, and it's still standing.",
+  "description": "A broken torii gate opens onto a pocket grove of wisteria. Someone sealed this place deliberately \u2014 sweet blossom on the breeze, a stream winding beneath the canopy. Whatever they were protecting, the gate is the only way in, and it's still standing.",
   "seed": 9136558242665021692,
-  "spawn": [0, 64, 0],
-  "settingsOverrides": { "seaLevel": 66 },
+  "spawn": [
+    0,
+    64,
+    0
+  ],
+  "settingsOverrides": {
+    "seaLevel": 66
+  },
   "biomes": [
-    { "id": "natures_spirit:wisteria_forest", "parameters": { "weirdness": [-2.0, -0.2] } },
-    { "id": "terralith:moonlight_valley", "parameters": { "weirdness": [-0.2, -0.08] } },
-    { "id": "terralith:sakura_grove", "parameters": { "weirdness": [-0.08, 0.02] } },
-    { "id": "minecraft:cherry_grove", "parameters": { "weirdness": [0.02, 0.12] } },
-    { "id": "terralith:sakura_valley", "parameters": { "weirdness": [0.12, 0.22] } },
-    { "id": "minecraft:meadow", "parameters": { "weirdness": [0.22, 2.0] } }
+    {
+      "id": "natures_spirit:wisteria_forest",
+      "parameters": {
+        "weirdness": [
+          -2.0,
+          -0.2
+        ]
+      }
+    },
+    {
+      "id": "terralith:moonlight_valley",
+      "parameters": {
+        "weirdness": [
+          -0.2,
+          -0.08
+        ]
+      }
+    },
+    {
+      "id": "terralith:sakura_grove",
+      "parameters": {
+        "weirdness": [
+          -0.08,
+          0.02
+        ]
+      }
+    },
+    {
+      "id": "minecraft:cherry_grove",
+      "parameters": {
+        "weirdness": [
+          0.02,
+          0.12
+        ]
+      }
+    },
+    {
+      "id": "terralith:sakura_valley",
+      "parameters": {
+        "weirdness": [
+          0.12,
+          0.22
+        ]
+      }
+    },
+    {
+      "id": "minecraft:meadow",
+      "parameters": {
+        "weirdness": [
+          0.22,
+          2.0
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:wisteria_grove",
+      "parameters": {
+        "weirdness": [
+          -0.19,
+          0.1
+        ]
+      }
+    }
   ],
   "borders": {
     "player": 512,
@@ -77,7 +140,9 @@
   "seedRoll": {
     "mood": "serene",
     "water": "high",
-    "spawnFilter": ["minecraft:meadow"],
-    "description": "A broken torii gate opens onto a pocket grove of wisteria. Someone sealed this place deliberately — sweet blossom on the breeze, a stream winding beneath the canopy. Whatever they were protecting, the gate is the only way in, and it's still standing."
+    "spawnFilter": [
+      "minecraft:meadow"
+    ],
+    "description": "A broken torii gate opens onto a pocket grove of wisteria. Someone sealed this place deliberately \u2014 sweet blossom on the breeze, a stream winding beneath the canopy. Whatever they were protecting, the gate is the only way in, and it's still standing."
   }
 }

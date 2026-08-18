@@ -7,7 +7,13 @@
     "minecraft:nether_wastes",
     "minecraft:crimson_forest",
     "minecraft:soul_sand_valley",
-    "incendium:ash_barrens"
+    "incendium:ash_barrens",
+    {
+      "id": "regions_unexplored:blackstone_basin",
+      "parameters": {
+        "temperature": [-1.0, -0.5]
+      }
+    }
   ],
   "borders": {
     "player": 1024,

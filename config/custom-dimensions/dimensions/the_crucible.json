@@ -1,6 +1,6 @@
 {
   "type": "multi_biome",
-  "description": "A compressed jungle gauntlet where the wild reclaimed everything. Infested temples and webbed dungeons in terrain that fights back. Whatever was built here was consumed long ago — the jungle doesn't negotiate.",
+  "description": "A compressed jungle gauntlet where the wild reclaimed everything. Infested temples and webbed dungeons in terrain that fights back. Whatever was built here was consumed long ago \u2014 the jungle doesn't negotiate.",
   "seed": 9202718971865095650,
   "noiseSettings": "adventure:compressed",
   "biomes": [
@@ -20,7 +20,52 @@
     "terralith:moonlight_valley",
     "terralith:rocky_jungle",
     "terralith:cave/underground_jungle",
-    "terralith:tropical_jungle"
+    "terralith:tropical_jungle",
+    {
+      "id": "wilderwild:rainforest",
+      "parameters": {
+        "weirdness": [
+          -0.19,
+          -0.1
+        ]
+      }
+    },
+    {
+      "id": "wilderwild:birch_jungle",
+      "parameters": {
+        "weirdness": [
+          -0.1,
+          -0.03
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:tropics",
+      "parameters": {
+        "weirdness": [
+          -0.03,
+          0.04
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:tropical_river",
+      "parameters": {
+        "weirdness": [
+          0.04,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:sparse_rainforest",
+      "parameters": {
+        "weirdness": [
+          -0.19,
+          0.1
+        ]
+      }
+    }
   ],
   "borders": {
     "player": 2048,
@@ -82,7 +127,7 @@
       "tavern",
       "farmstead"
     ],
-    "description": "A compressed jungle gauntlet where the wild reclaimed everything. Infested temples and webbed dungeons in terrain that fights back. Whatever was built here was consumed long ago — the jungle doesn't negotiate."
+    "description": "A compressed jungle gauntlet where the wild reclaimed everything. Infested temples and webbed dungeons in terrain that fights back. Whatever was built here was consumed long ago \u2014 the jungle doesn't negotiate."
   },
   "spawn": [
     0,

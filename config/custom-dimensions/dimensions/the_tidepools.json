@@ -1,12 +1,39 @@
 {
   "type": "multi_biome",
-  "description": "A pocket of tidal shallows — rock pools, gull-grey cliffs and a drowned wreck glinting under clear water. No civilisation ever claimed this; the animals have always had it. The wreck is the only evidence anyone else was ever here.",
+  "description": "A pocket of tidal shallows \u2014 rock pools, gull-grey cliffs and a drowned wreck glinting under clear water. No civilisation ever claimed this; the animals have always had it. The wreck is the only evidence anyone else was ever here.",
   "seed": 9220205183867437739,
   "biomes": [
     "minecraft:beach",
     "minecraft:stony_shore",
     "terralith:granite_cliffs",
-    "minecraft:lukewarm_ocean"
+    "minecraft:lukewarm_ocean",
+    {
+      "id": "regions_unexplored:rocky_reef",
+      "parameters": {
+        "weirdness": [
+          -2.0,
+          -0.08
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:gravel_beach",
+      "parameters": {
+        "weirdness": [
+          -0.08,
+          2.0
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:grassy_beach",
+      "parameters": {
+        "weirdness": [
+          -0.19,
+          0.1
+        ]
+      }
+    }
   ],
   "borders": {
     "player": 256,
@@ -76,6 +103,6 @@
       "minecraft:beach",
       "minecraft:stony_shore"
     ],
-    "description": "A pocket of tidal shallows — rock pools, gull-grey cliffs and a drowned wreck glinting under clear water. No civilisation ever claimed this; the animals have always had it. The wreck is the only evidence anyone else was ever here."
+    "description": "A pocket of tidal shallows \u2014 rock pools, gull-grey cliffs and a drowned wreck glinting under clear water. No civilisation ever claimed this; the animals have always had it. The wreck is the only evidence anyone else was ever here."
   }
 }

@@ -1,6 +1,6 @@
 {
   "type": "multi_biome",
-  "description": "The breadbasket. Rolling prairie and sunflowers where villagers and humans built the first joint settlements. Taverns close to spawn, honest mineshafts — a place to live, not to fight.",
+  "description": "The breadbasket. Rolling prairie and sunflowers where villagers and humans built the first joint settlements. Taverns close to spawn, honest mineshafts \u2014 a place to live, not to fight.",
   "seed": 948538165005714500,
   "noiseSettings": "adventure:wide",
   "biomes": [
@@ -11,7 +11,61 @@
     "terralith:steppe",
     "minecraft:savanna",
     "terralith:shield_clearing",
-    "terralith:highlands"
+    "terralith:highlands",
+    {
+      "id": "regions_unexplored:clover_plains",
+      "parameters": {
+        "weirdness": [
+          -2.0,
+          -0.1
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:barley_fields",
+      "parameters": {
+        "weirdness": [
+          -0.1,
+          -0.06
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:poppy_fields",
+      "parameters": {
+        "weirdness": [
+          -0.06,
+          2.0
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:prairie",
+      "parameters": {
+        "weirdness": [
+          -0.19,
+          -0.0933
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:grassland",
+      "parameters": {
+        "weirdness": [
+          -0.0933,
+          0.0033
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:pumpkin_fields",
+      "parameters": {
+        "weirdness": [
+          0.0033,
+          0.1
+        ]
+      }
+    }
   ],
   "borders": {
     "player": 1024,
@@ -60,8 +114,16 @@
       "campsite": "near_spawn",
       "lighthouse": "near_border"
     },
-    "shuns": ["ancient_city", "coliseum", "mansion"],
-    "description": "The breadbasket. Rolling prairie and sunflowers where villagers and humans built the first joint settlements. Taverns close to spawn, honest mineshafts — a place to live, not to fight."
+    "shuns": [
+      "ancient_city",
+      "coliseum",
+      "mansion"
+    ],
+    "description": "The breadbasket. Rolling prairie and sunflowers where villagers and humans built the first joint settlements. Taverns close to spawn, honest mineshafts \u2014 a place to live, not to fight."
   },
-  "spawn": [0, 64, 0]
+  "spawn": [
+    0,
+    64,
+    0
+  ]
 }

@@ -1,42 +1,78 @@
 {
   "type": "multi_biome",
-  "description": "Autumn woods strewn with ruins. Every clearing has bones of something older — temples, crypts, pumpkin ruins from a harvest festival that was never finished. Rich pickings, no living towns. Whoever these people were, they left in a hurry.",
+  "description": "Autumn woods strewn with ruins. Every clearing has bones of something older \u2014 temples, crypts, pumpkin ruins from a harvest festival that was never finished. Rich pickings, no living towns. Whoever these people were, they left in a hurry.",
   "seed": 9135545649734435741,
   "biomes": [
     {
       "id": "natures_spirit:aspen_forest",
       "parameters": {
-        "weirdness": [-0.0398, 0.017]
+        "weirdness": [
+          -0.0398,
+          0.017
+        ]
       }
     },
     {
       "id": "natures_spirit:maple_woodlands",
       "parameters": {
-        "weirdness": [-0.1649, -0.0951]
+        "weirdness": [
+          -0.1649,
+          -0.0951
+        ]
       }
     },
     {
       "id": "minecraft:dark_forest",
       "parameters": {
-        "weirdness": [0.017, 0.0777]
+        "weirdness": [
+          0.017,
+          0.0777
+        ]
       }
     },
     {
       "id": "minecraft:forest",
       "parameters": {
-        "weirdness": [-2.0, -0.1649]
+        "weirdness": [
+          -2.0,
+          -0.1649
+        ]
       }
     },
     {
       "id": "terralith:moonlight_grove",
       "parameters": {
-        "weirdness": [0.0777, 2.0]
+        "weirdness": [
+          0.0777,
+          2.0
+        ]
       }
     },
     {
       "id": "minecraft:birch_forest",
       "parameters": {
-        "weirdness": [-0.0951, -0.0398]
+        "weirdness": [
+          -0.0951,
+          -0.0398
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:autumnal_maple_forest",
+      "parameters": {
+        "weirdness": [
+          -0.19,
+          -0.045
+        ]
+      }
+    },
+    {
+      "id": "wilderwild:maple_forest",
+      "parameters": {
+        "weirdness": [
+          -0.045,
+          0.1
+        ]
       }
     }
   ],
@@ -64,7 +100,9 @@
   },
   "seedRoll": {
     "mood": "adventurous",
-    "spawnFilter": ["minecraft:forest"],
+    "spawnFilter": [
+      "minecraft:forest"
+    ],
     "wants": {
       "ruins_standard": "near_spawn",
       "forest_ruin": "near_spawn",
@@ -80,7 +118,7 @@
       "village",
       "tavern"
     ],
-    "description": "Autumn woods strewn with ruins. Every clearing has bones of something older — temples, crypts, pumpkin ruins from a harvest festival that was never finished. Rich pickings, no living towns. Whoever these people were, they left in a hurry."
+    "description": "Autumn woods strewn with ruins. Every clearing has bones of something older \u2014 temples, crypts, pumpkin ruins from a harvest festival that was never finished. Rich pickings, no living towns. Whoever these people were, they left in a hurry."
   },
   "spawn": [
     0,
