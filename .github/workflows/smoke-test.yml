@@ -31,7 +31,7 @@ jobs:
   boot-test:
     name: Boot server and verify (${{ matrix.variant }})
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 75
     strategy:
       fail-fast: false
       matrix:
@@ -626,13 +626,15 @@ jobs:
             echo "--- render-check-headless $DIM $SEED"
             docker exec mc rcon-cli "customdim render-check-headless $DIM $SEED 512" >/dev/null 2>&1 || true
             OUT=""
-            # 200 x 3s. render-check is tick-budget-bound, not CPU-bound, so
+            # 400 x 3s. render-check is tick-budget-bound, not CPU-bound, so
             # its wall time scales with the dimension's size and the runner's
             # speed rather than with anything this job controls — a ceilinged
             # cave walks its columns exactly and is the slowest shape there is.
+            # the_catalyst_maw needs 380s on a developer laptop, so the ceiling
+            # has to clear several times that for a shared runner.
             # The loop breaks the moment a dimension answers, so headroom is
             # free on every dimension that is not the slow one.
-            for _ in $(seq 1 200); do
+            for _ in $(seq 1 400); do
               OUT=$(docker exec mc rcon-cli "customdim render-check-headless $DIM $SEED 512" 2>&1 || true)
               case "$OUT" in
                 *"columns disagree"*|*FAILED*) break ;;
