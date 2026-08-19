@@ -1,44 +1,336 @@
 {
   "type": "multi_biome",
-  "description": "The mountain crossing — guide posts and fire towers marking passes between dramatic highlands. The human-villager trade route, built to connect the sun kingdoms to the frozen hearth. The keeps at the border guarded the passes.",
-  "seed": -6748313849734002813,
+  "description": "The mountain crossing \u2014 guide posts and fire towers marking passes between dramatic highlands. The human-villager trade route, built to connect the sun kingdoms to the frozen hearth. The keeps at the border guarded the passes.",
+  "seed": 8672352925064690356,
   "noiseSettings": "adventure:compressed",
   "biomes": [
-    { "id": "minecraft:windswept_hills", "parameters": { "weirdness": [-2.0, -1.9111] } },
-    { "id": "minecraft:windswept_forest", "parameters": { "weirdness": [-1.9111, -1.8222] } },
-    { "id": "minecraft:windswept_gravelly_hills", "parameters": { "weirdness": [-1.8222, -1.7333] } },
-    { "id": "minecraft:stony_peaks", "parameters": { "weirdness": [-1.7333, -1.6444] } },
-    { "id": "minecraft:meadow", "parameters": { "weirdness": [-1.6444, -1.5555] } },
-    { "id": "minecraft:plains", "parameters": { "weirdness": [-1.5555, -1.4666] } },
-    { "id": "minecraft:stony_shore", "parameters": { "weirdness": [-1.4666, -1.3777] } },
-    { "id": "terralith:highlands", "parameters": { "weirdness": [-1.3777, -1.2888] } },
-    { "id": "terralith:temperate_highlands", "parameters": { "weirdness": [-1.2888, -1.1999] } },
-    { "id": "terralith:forested_highlands", "parameters": { "weirdness": [-1.1999, -1.111] } },
-    { "id": "terralith:rocky_mountains", "parameters": { "weirdness": [-1.111, -1.0221] } },
-    { "id": "terralith:haze_mountain", "parameters": { "weirdness": [-1.0221, -0.9332] } },
-    { "id": "terralith:white_cliffs", "parameters": { "weirdness": [-0.9332, -0.8443] } },
-    { "id": "terralith:caldera", "parameters": { "weirdness": [-0.8443, -0.7554] } },
-    { "id": "terralith:blooming_plateau", "parameters": { "weirdness": [-0.7554, -0.6665] } },
-    { "id": "minecraft:river", "parameters": { "temperature": [-0.45, 0.55], "weirdness": [-0.6665, -0.5776] } },
-    { "id": "terralith:granite_cliffs", "parameters": { "temperature": [0.2, 1.0], "weirdness": [-0.5776, -0.4887] } },
-    { "id": "terralith:basalt_cliffs", "parameters": { "temperature": [0.2, 0.55], "humidity": [-1.0, 0.565], "weirdness": [-0.4887, -0.3998] } },
-    { "id": "natures_spirit:red_peaks", "parameters": { "temperature": [0.2, 1.0], "humidity": [-1.0, -0.1], "weirdness": [-0.3998, -0.3109] } },
-    { "id": "terralith:yosemite_cliffs", "parameters": { "temperature": [-0.45, 0.2], "humidity": [-1.0, -0.35], "weirdness": [-0.3109, -0.222] } },
-    { "id": "terralith:windswept_spires", "parameters": { "temperature": [-0.45, -0.155], "weirdness": [-0.222, -0.1331] } },
-    { "id": "regions_unexplored:pine_slopes", "parameters": { "weirdness": [-0.1331, -0.0442] } },
-    { "id": "regions_unexplored:mauve_hills", "parameters": { "weirdness": [-0.0442, 0.0447] } },
-    { "id": "regions_unexplored:mountains", "parameters": { "weirdness": [0.0447, 0.1336] } },
-    { "id": "regions_unexplored:towering_cliffs", "parameters": { "weirdness": [0.1336, 0.2225] } },
-    { "id": "regions_unexplored:highland_fields", "parameters": { "weirdness": [0.2225, 0.3114] } },
-    { "id": "regions_unexplored:spires", "parameters": { "weirdness": [0.3114, 0.4003] } },
-    { "id": "regions_unexplored:fen", "parameters": { "weirdness": [0.4003, 0.9] } },
-    { "id": "natures_spirit:heather_fields", "parameters": { "weirdness": [0.9, 1.4] } },
-    { "id": "minecraft:forest", "parameters": { "temperature": [-0.45, 0.55], "humidity": [-0.1, 0.1], "weirdness": [1.4, 1.8575] } },
-    { "id": "minecraft:windswept_hills", "parameters": { "weirdness": [1.8575, 2.0] } }
+    {
+      "id": "minecraft:windswept_hills",
+      "parameters": {
+        "weirdness": [
+          -2.0,
+          -1.9111
+        ]
+      }
+    },
+    {
+      "id": "minecraft:windswept_forest",
+      "parameters": {
+        "weirdness": [
+          -1.9111,
+          -1.8222
+        ]
+      }
+    },
+    {
+      "id": "minecraft:windswept_gravelly_hills",
+      "parameters": {
+        "weirdness": [
+          -1.8222,
+          -1.7333
+        ]
+      }
+    },
+    {
+      "id": "minecraft:stony_peaks",
+      "parameters": {
+        "weirdness": [
+          -1.7333,
+          -1.6444
+        ]
+      }
+    },
+    {
+      "id": "minecraft:meadow",
+      "parameters": {
+        "weirdness": [
+          -1.6444,
+          -1.5555
+        ]
+      }
+    },
+    {
+      "id": "minecraft:plains",
+      "parameters": {
+        "weirdness": [
+          -1.5555,
+          -1.4666
+        ]
+      }
+    },
+    {
+      "id": "minecraft:stony_shore",
+      "parameters": {
+        "weirdness": [
+          -1.4666,
+          -1.3777
+        ]
+      }
+    },
+    {
+      "id": "terralith:highlands",
+      "parameters": {
+        "weirdness": [
+          -1.3777,
+          -1.2888
+        ]
+      }
+    },
+    {
+      "id": "terralith:temperate_highlands",
+      "parameters": {
+        "weirdness": [
+          -1.2888,
+          -1.1999
+        ]
+      }
+    },
+    {
+      "id": "terralith:forested_highlands",
+      "parameters": {
+        "weirdness": [
+          -1.1999,
+          -1.111
+        ]
+      }
+    },
+    {
+      "id": "terralith:rocky_mountains",
+      "parameters": {
+        "weirdness": [
+          -1.111,
+          -1.0221
+        ]
+      }
+    },
+    {
+      "id": "terralith:haze_mountain",
+      "parameters": {
+        "weirdness": [
+          -1.0221,
+          -0.9332
+        ]
+      }
+    },
+    {
+      "id": "terralith:white_cliffs",
+      "parameters": {
+        "weirdness": [
+          -0.9332,
+          -0.8443
+        ]
+      }
+    },
+    {
+      "id": "terralith:caldera",
+      "parameters": {
+        "weirdness": [
+          -0.8443,
+          -0.7554
+        ]
+      }
+    },
+    {
+      "id": "terralith:blooming_plateau",
+      "parameters": {
+        "weirdness": [
+          -0.7554,
+          -0.6665
+        ]
+      }
+    },
+    {
+      "id": "minecraft:river",
+      "parameters": {
+        "temperature": [
+          -0.45,
+          0.55
+        ],
+        "weirdness": [
+          -0.6665,
+          -0.5776
+        ]
+      }
+    },
+    {
+      "id": "terralith:granite_cliffs",
+      "parameters": {
+        "temperature": [
+          0.2,
+          1.0
+        ],
+        "weirdness": [
+          -0.5776,
+          -0.4887
+        ]
+      }
+    },
+    {
+      "id": "terralith:basalt_cliffs",
+      "parameters": {
+        "temperature": [
+          0.2,
+          0.55
+        ],
+        "humidity": [
+          -1.0,
+          0.565
+        ],
+        "weirdness": [
+          -0.4887,
+          -0.3998
+        ]
+      }
+    },
+    {
+      "id": "natures_spirit:red_peaks",
+      "parameters": {
+        "temperature": [
+          0.2,
+          1.0
+        ],
+        "humidity": [
+          -1.0,
+          -0.1
+        ],
+        "weirdness": [
+          -0.3998,
+          -0.3109
+        ]
+      }
+    },
+    {
+      "id": "terralith:yosemite_cliffs",
+      "parameters": {
+        "temperature": [
+          -0.45,
+          0.2
+        ],
+        "humidity": [
+          -1.0,
+          -0.35
+        ],
+        "weirdness": [
+          -0.3109,
+          -0.222
+        ]
+      }
+    },
+    {
+      "id": "terralith:windswept_spires",
+      "parameters": {
+        "temperature": [
+          -0.45,
+          -0.155
+        ],
+        "weirdness": [
+          -0.222,
+          -0.1331
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:pine_slopes",
+      "parameters": {
+        "weirdness": [
+          -0.1331,
+          -0.0442
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:mauve_hills",
+      "parameters": {
+        "weirdness": [
+          -0.0442,
+          0.0447
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:mountains",
+      "parameters": {
+        "weirdness": [
+          0.0447,
+          0.1336
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:towering_cliffs",
+      "parameters": {
+        "weirdness": [
+          0.1336,
+          0.2225
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:highland_fields",
+      "parameters": {
+        "weirdness": [
+          0.2225,
+          0.3114
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:spires",
+      "parameters": {
+        "weirdness": [
+          0.3114,
+          0.4003
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:fen",
+      "parameters": {
+        "weirdness": [
+          0.4003,
+          0.9
+        ]
+      }
+    },
+    {
+      "id": "natures_spirit:heather_fields",
+      "parameters": {
+        "weirdness": [
+          0.9,
+          1.4
+        ]
+      }
+    },
+    {
+      "id": "minecraft:forest",
+      "parameters": {
+        "temperature": [
+          -0.45,
+          0.55
+        ],
+        "humidity": [
+          -0.1,
+          0.1
+        ],
+        "weirdness": [
+          1.4,
+          1.8575
+        ]
+      }
+    },
+    {
+      "id": "minecraft:windswept_hills",
+      "parameters": {
+        "weirdness": [
+          1.8575,
+          2.0
+        ]
+      }
+    }
   ],
   "borders": {
-    "player": 8192,
-    "generation": 8192
+    "player": 4096,
+    "generation": 4096
   },
   "difficulty": {
     "mobMultiplier": 1.5,
@@ -56,7 +348,7 @@
     "igniterItem": "minecraft:amethyst_shard",
     "color": "B08B5B",
     "lightLevel": 11,
-    "scale": 1.0,
+    "scale": 2.0,
     "cooldown": 40,
     "sounds": {
       "ignite": "block.portal.trigger",
@@ -91,11 +383,11 @@
     "shuns": [
       "monument"
     ],
-    "description": "The mountain crossing — guide posts and fire towers marking passes between dramatic highlands. The human-villager trade route, built to connect the sun kingdoms to the frozen hearth. The keeps at the border guarded the passes."
+    "description": "The mountain crossing \u2014 guide posts and fire towers marking passes between dramatic highlands. The human-villager trade route, built to connect the sun kingdoms to the frozen hearth. The keeps at the border guarded the passes."
   },
   "spawn": [
-    0,
-    64,
-    0
+    -384,
+    73,
+    256
   ]
 }

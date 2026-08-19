@@ -1,7 +1,7 @@
 {
   "type": "end",
-  "description": "Fractured halls — endermen gate fortresses and enderkeeps in broken crystal country. No cities survived whatever happened here; only the military architecture endured.",
-  "seed": 9185324862121826233,
+  "description": "Fractured halls \u2014 endermen gate fortresses and enderkeeps in broken crystal country. No cities survived whatever happened here; only the military architecture endured, and moonlight groves have taken the sheltered ground between the ridges.",
+  "seed": 7730851934023930298,
   "biomes": [
     {
       "id": "nullscape:shadowlands",
@@ -86,20 +86,20 @@
     }
   ],
   "borders": {
-    "player": 8192,
-    "generation": 8192
+    "player": 4096,
+    "generation": 4096
   },
   "difficulty": {
-    "mobMultiplier": 2.0,
+    "mobMultiplier": 1.8,
     "playerLuck": 1.8
   },
-  "structureDensity": "dense",
+  "structureDensity": "normal",
   "portal": {
     "frameBlock": "minecraft:cracked_stone_bricks",
     "igniterItem": "minecraft:ender_eye",
     "color": "8B8B7B",
     "lightLevel": 11,
-    "scale": 1.0,
+    "scale": 2.0,
     "cooldown": 40,
     "particleType": "minecraft:end_rod",
     "shape": "doorway",
@@ -132,11 +132,12 @@
       "phantom_citadel",
       "monolith"
     ],
-    "description": "Fractured halls — endermen gate fortresses and enderkeeps in broken crystal country. No cities survived whatever happened here; only the military architecture endured."
+    "description": "Fractured halls \u2014 endermen gate fortresses and enderkeeps in broken crystal country. No cities survived whatever happened here; only the military architecture endured, and moonlight groves have taken the sheltered ground between the ridges.",
+    "terrain": "islands"
   },
   "spawn": [
-    0,
     64,
+    0,
     0
   ],
   "structures": {

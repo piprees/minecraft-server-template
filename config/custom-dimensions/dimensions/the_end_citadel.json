@@ -1,7 +1,7 @@
 {
   "type": "end",
-  "description": "Citadel country — where the endermen built their densest urban centres. End cities and phantom citadels saturate the highlands. No ruins here; this is still maintained.",
-  "seed": 9063126249592024391,
+  "description": "Citadel country \u2014 where the endermen built their densest urban centres. End cities and phantom citadels saturate the highlands. No ruins here; this is still maintained.",
+  "seed": 4259649439410997754,
   "biomes": [
     {
       "id": "minecraft:end_highlands",
@@ -68,8 +68,8 @@
     }
   ],
   "borders": {
-    "player": 8192,
-    "generation": 8192
+    "player": 4096,
+    "generation": 4096
   },
   "difficulty": {
     "mobMultiplier": 2.0,
@@ -86,7 +86,7 @@
     "igniterItem": "minecraft:ender_eye",
     "color": "D8DF90",
     "lightLevel": 11,
-    "scale": 1.0,
+    "scale": 2.0,
     "cooldown": 40,
     "particleType": "minecraft:end_rod",
     "shape": "doorway",
@@ -97,6 +97,10 @@
     },
     "aura": {
       "subsume": "everything"
+    },
+    "anchor": {
+      "pos": "spawn",
+      "exit": "bed"
     }
   },
   "seedRoll": {
@@ -117,14 +121,28 @@
       "ruined_pillar",
       "end_ruins"
     ],
-    "description": "Citadel country — where the endermen built their densest urban centres. End cities and phantom citadels saturate the highlands. No ruins here; this is still maintained."
+    "description": "Citadel country \u2014 where the endermen built their densest urban centres. End cities and phantom citadels saturate the highlands. No ruins here; this is still maintained."
   },
   "spawn": [
     0,
-    64,
-    0
+    48,
+    64
   ],
   "settingsOverrides": {
     "endIsland": false
+  },
+  "exitPortal": {
+    "enabled": true,
+    "pos": "spawn",
+    "target": "bed"
+  },
+  "exits": {
+    "death": {
+      "action": "respawnAt",
+      "target": {
+        "dimension": "adventure:the_end_citadel",
+        "arrival": "spawn"
+      }
+    }
   }
 }

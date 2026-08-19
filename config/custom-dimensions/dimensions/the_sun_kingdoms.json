@@ -1,41 +1,349 @@
 {
   "type": "multi_biome",
-  "description": "Vast desert kingdoms — what humans and villagers built together at their peak. Walled villages, sand dungeons, desert shrines, and a keep on the horizon. The civilisation here still stands; the bandits at its edges are the only threat.",
-  "seed": -4889960454287639919,
+  "description": "Vast desert kingdoms \u2014 what humans and villagers built together at their peak. Walled villages, sand dungeons, desert shrines, and a keep on the horizon. The civilisation here still stands; the bandits at its edges are the only threat.",
+  "seed": 1690750470779810726,
   "noiseSettings": "adventure:wide",
   "biomes": [
-    { "id": "minecraft:savanna", "parameters": { "weirdness": [-2.0, -1.953] } },
-    { "id": "minecraft:savanna_plateau", "parameters": { "weirdness": [-1.953, -1.906] } },
-    { "id": "minecraft:wooded_badlands", "parameters": { "weirdness": [-1.906, -1.859] } },
-    { "id": "terralith:arid_highlands", "parameters": { "weirdness": [-1.859, -1.812] } },
-    { "id": "terralith:hot_shrubland", "parameters": { "weirdness": [-1.812, -1.765] } },
-    { "id": "terralith:fractured_savanna", "parameters": { "weirdness": [-1.765, -1.718] } },
-    { "id": "terralith:savanna_badlands", "parameters": { "weirdness": [-1.718, -1.671] } },
-    { "id": "terralith:brushland", "parameters": { "weirdness": [-1.671, -1.624] } },
-    { "id": "terralith:steppe", "parameters": { "weirdness": [-1.624, -1.577] } },
-    { "id": "terralith:shrubland", "parameters": { "weirdness": [-1.577, -1.53] } },
-    { "id": "minecraft:badlands", "parameters": { "temperature": [0.55, 1.0], "weirdness": [-1.53, -1.483] } },
-    { "id": "minecraft:eroded_badlands", "parameters": { "temperature": [0.55, 1.0], "humidity": [-1.0, -0.1], "weirdness": [-1.483, -1.436] } },
-    { "id": "terralith:lush_desert", "parameters": { "temperature": [0.55, 1.0], "humidity": [-0.1, 0.565], "weirdness": [-1.436, -1.389] } },
-    { "id": "terralith:desert_oasis", "parameters": { "temperature": [0.55, 1.0], "humidity": [-0.1, 1.0], "weirdness": [-1.389, -1.342] } },
-    { "id": "terralith:desert_canyon", "parameters": { "temperature": [0.55, 1.0], "humidity": [-0.35, 0.565], "weirdness": [-1.342, -1.295] } },
-    { "id": "terralith:red_oasis", "parameters": { "temperature": [0.55, 1.0], "weirdness": [-1.295, -1.248] } },
-    { "id": "terralith:savanna_slopes", "parameters": { "temperature": [0.2, 0.55], "humidity": [-0.585, -0.1], "weirdness": [-1.248, -1.201] } },
-    { "id": "natures_spirit:stratified_desert", "parameters": { "temperature": [0.2, 1.0], "humidity": [-1.0, -0.1], "weirdness": [-1.201, -1.154] } },
-    { "id": "natures_spirit:oak_savanna", "parameters": { "temperature": [0.2, 1.0], "humidity": [-1.0, -0.1], "weirdness": [-1.154, -1.107] } },
-    { "id": "terralith:ancient_sands", "parameters": { "temperature": [0.55, 1.0], "humidity": [-1.0, -0.35], "weirdness": [-1.107, -1.06] } },
-    { "id": "wilderwild:oasis", "parameters": { "weirdness": [-1.06, -1.013] } },
-    { "id": "wilderwild:parched_forest", "parameters": { "weirdness": [-1.013, -0.966] } },
-    { "id": "regions_unexplored:baobab_savanna", "parameters": { "weirdness": [-0.966, -0.919] } },
-    { "id": "minecraft:plains", "parameters": { "temperature": [-0.45, 0.2], "humidity": [-1.0, -0.1], "weirdness": [-0.919, -0.4] } },
-    { "id": "regions_unexplored:joshua_desert", "parameters": { "weirdness": [-0.4, -0.1] } },
-    { "id": "terralith:desert_spires", "parameters": { "weirdness": [-0.1, 0.2] } },
-    { "id": "natures_spirit:scorched_dunes", "parameters": { "weirdness": [0.2, 0.5] } },
-    { "id": "minecraft:desert", "parameters": { "temperature": [0.55, 1.0], "weirdness": [0.5, 2.0] } }
+    {
+      "id": "minecraft:savanna",
+      "parameters": {
+        "weirdness": [
+          -2.0,
+          -1.953
+        ]
+      }
+    },
+    {
+      "id": "minecraft:savanna_plateau",
+      "parameters": {
+        "weirdness": [
+          -1.953,
+          -1.906
+        ]
+      }
+    },
+    {
+      "id": "minecraft:wooded_badlands",
+      "parameters": {
+        "weirdness": [
+          -1.906,
+          -1.859
+        ]
+      }
+    },
+    {
+      "id": "terralith:arid_highlands",
+      "parameters": {
+        "weirdness": [
+          -1.859,
+          -1.812
+        ]
+      }
+    },
+    {
+      "id": "terralith:hot_shrubland",
+      "parameters": {
+        "weirdness": [
+          -1.812,
+          -1.765
+        ]
+      }
+    },
+    {
+      "id": "terralith:fractured_savanna",
+      "parameters": {
+        "weirdness": [
+          -1.765,
+          -1.718
+        ]
+      }
+    },
+    {
+      "id": "terralith:savanna_badlands",
+      "parameters": {
+        "weirdness": [
+          -1.718,
+          -1.671
+        ]
+      }
+    },
+    {
+      "id": "terralith:brushland",
+      "parameters": {
+        "weirdness": [
+          -1.671,
+          -1.624
+        ]
+      }
+    },
+    {
+      "id": "terralith:steppe",
+      "parameters": {
+        "weirdness": [
+          -1.624,
+          -1.577
+        ]
+      }
+    },
+    {
+      "id": "terralith:shrubland",
+      "parameters": {
+        "weirdness": [
+          -1.577,
+          -1.53
+        ]
+      }
+    },
+    {
+      "id": "minecraft:badlands",
+      "parameters": {
+        "temperature": [
+          0.55,
+          1.0
+        ],
+        "weirdness": [
+          -1.53,
+          -1.483
+        ]
+      }
+    },
+    {
+      "id": "minecraft:eroded_badlands",
+      "parameters": {
+        "temperature": [
+          0.55,
+          1.0
+        ],
+        "humidity": [
+          -1.0,
+          -0.1
+        ],
+        "weirdness": [
+          -1.483,
+          -1.436
+        ]
+      }
+    },
+    {
+      "id": "terralith:lush_desert",
+      "parameters": {
+        "temperature": [
+          0.55,
+          1.0
+        ],
+        "humidity": [
+          -0.1,
+          0.565
+        ],
+        "weirdness": [
+          -1.436,
+          -1.389
+        ]
+      }
+    },
+    {
+      "id": "terralith:desert_oasis",
+      "parameters": {
+        "temperature": [
+          0.55,
+          1.0
+        ],
+        "humidity": [
+          -0.1,
+          1.0
+        ],
+        "weirdness": [
+          -1.389,
+          -1.342
+        ]
+      }
+    },
+    {
+      "id": "terralith:desert_canyon",
+      "parameters": {
+        "temperature": [
+          0.55,
+          1.0
+        ],
+        "humidity": [
+          -0.35,
+          0.565
+        ],
+        "weirdness": [
+          -1.342,
+          -1.295
+        ]
+      }
+    },
+    {
+      "id": "terralith:red_oasis",
+      "parameters": {
+        "temperature": [
+          0.55,
+          1.0
+        ],
+        "weirdness": [
+          -1.295,
+          -1.248
+        ]
+      }
+    },
+    {
+      "id": "terralith:savanna_slopes",
+      "parameters": {
+        "temperature": [
+          0.2,
+          0.55
+        ],
+        "humidity": [
+          -0.585,
+          -0.1
+        ],
+        "weirdness": [
+          -1.248,
+          -1.201
+        ]
+      }
+    },
+    {
+      "id": "natures_spirit:stratified_desert",
+      "parameters": {
+        "temperature": [
+          0.2,
+          1.0
+        ],
+        "humidity": [
+          -1.0,
+          -0.1
+        ],
+        "weirdness": [
+          -1.201,
+          -1.154
+        ]
+      }
+    },
+    {
+      "id": "natures_spirit:oak_savanna",
+      "parameters": {
+        "temperature": [
+          0.2,
+          1.0
+        ],
+        "humidity": [
+          -1.0,
+          -0.1
+        ],
+        "weirdness": [
+          -1.154,
+          -1.107
+        ]
+      }
+    },
+    {
+      "id": "terralith:ancient_sands",
+      "parameters": {
+        "temperature": [
+          0.55,
+          1.0
+        ],
+        "humidity": [
+          -1.0,
+          -0.35
+        ],
+        "weirdness": [
+          -1.107,
+          -1.06
+        ]
+      }
+    },
+    {
+      "id": "wilderwild:oasis",
+      "parameters": {
+        "weirdness": [
+          -1.06,
+          -1.013
+        ]
+      }
+    },
+    {
+      "id": "wilderwild:parched_forest",
+      "parameters": {
+        "weirdness": [
+          -1.013,
+          -0.966
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:baobab_savanna",
+      "parameters": {
+        "weirdness": [
+          -0.966,
+          -0.919
+        ]
+      }
+    },
+    {
+      "id": "minecraft:plains",
+      "parameters": {
+        "temperature": [
+          -0.45,
+          0.2
+        ],
+        "humidity": [
+          -1.0,
+          -0.1
+        ],
+        "weirdness": [
+          -0.919,
+          -0.4
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:joshua_desert",
+      "parameters": {
+        "weirdness": [
+          -0.4,
+          -0.1
+        ]
+      }
+    },
+    {
+      "id": "terralith:desert_spires",
+      "parameters": {
+        "weirdness": [
+          -0.1,
+          0.2
+        ]
+      }
+    },
+    {
+      "id": "natures_spirit:scorched_dunes",
+      "parameters": {
+        "weirdness": [
+          0.2,
+          0.5
+        ]
+      }
+    },
+    {
+      "id": "minecraft:desert",
+      "parameters": {
+        "temperature": [
+          0.55,
+          1.0
+        ],
+        "weirdness": [
+          0.5,
+          2.0
+        ]
+      }
+    }
   ],
   "borders": {
-    "player": 8192,
-    "generation": 8192
+    "player": 4096,
+    "generation": 4096
   },
   "difficulty": {
     "mobMultiplier": 1.0,
@@ -46,7 +354,7 @@
     "igniterItem": "minecraft:amethyst_shard",
     "color": "D4B050",
     "lightLevel": 11,
-    "scale": 1.0,
+    "scale": 2.0,
     "cooldown": 40,
     "shape": "doorway",
     "sounds": {
@@ -81,11 +389,11 @@
     "shuns": [
       "monument"
     ],
-    "description": "Vast desert kingdoms — what humans and villagers built together at their peak. Walled villages, sand dungeons, desert shrines, and a keep on the horizon. The civilisation here still stands; the bandits at its edges are the only threat."
+    "description": "Vast desert kingdoms \u2014 what humans and villagers built together at their peak. Walled villages, sand dungeons, desert shrines, and a keep on the horizon. The civilisation here still stands; the bandits at its edges are the only threat."
   },
   "spawn": [
-    0,
-    64,
-    0
+    640,
+    58,
+    -768
   ]
 }

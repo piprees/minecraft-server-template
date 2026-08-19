@@ -1,7 +1,7 @@
 {
   "type": "multi_biome",
-  "description": "Wide river country crossed at white cliffs — the ford where the villager trade routes converged. Lighthouses and farms along the water, built where the crossing was easy and the fish were good.",
-  "seed": 8552618426369524335,
+  "description": "Wide river country crossed at white cliffs \u2014 the ford where the villager trade routes converged. Lighthouses and farms along the water, built where the crossing was easy and the fish were good.",
+  "seed": -5632527573971670830,
   "noiseSettings": "adventure:wide",
   "biomes": [
     {
@@ -173,6 +173,11 @@
     },
     "orientation": "horizontal"
   },
+  "exitPortal": {
+    "enabled": true,
+    "pos": "spawn",
+    "target": "bed"
+  },
   "structures": {
     "terrainAdaptation": {
       "landmarks": "moat"
@@ -197,11 +202,11 @@
       "coliseum",
       "ancient_city"
     ],
-    "description": "Wide river country crossed at white cliffs — the ford where the villager trade routes converged. Lighthouses and farms along the water, built where the crossing was easy and the fish were good."
+    "description": "Wide river country crossed at white cliffs \u2014 the ford where the villager trade routes converged. Lighthouses and farms along the water, built where the crossing was easy and the fish were good."
   },
   "spawn": [
-    0,
-    64,
-    0
+    128,
+    94,
+    -576
   ]
 }

@@ -1,7 +1,7 @@
 {
   "type": "multi_biome",
   "description": "Quiet wetland wilderness. Reed beds, drowned ruins, things half-sunk in the clay. Nobody settles here; the marsh keeps what it takes. Whatever civilisation these ruins belonged to, the swamp claimed it centuries ago.",
-  "seed": -8973129246890378784,
+  "seed": -1396019242766099038,
   "biomes": [
     {
       "id": "natures_spirit:marsh",
@@ -251,8 +251,8 @@
     "description": "Quiet wetland wilderness. Reed beds, drowned ruins, things half-sunk in the clay. Nobody settles here; the marsh keeps what it takes. Whatever civilisation these ruins belonged to, the swamp claimed it centuries ago."
   },
   "spawn": [
-    0,
-    64,
-    0
+    -640,
+    47,
+    128
   ]
 }

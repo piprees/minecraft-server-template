@@ -1,7 +1,7 @@
 {
   "type": "nether",
-  "description": "Classic nether halls — fortress corridors that defined piglin military power. A mega-fortress anchors the far end, built when the piglin empire was at its height. Brick and fire all the way down.",
-  "seed": 9038274477995635546,
+  "description": "Classic nether halls \u2014 fortress corridors that defined piglin military power. A mega-fortress anchors the far end, built when the piglin empire was at its height. Brick and fire all the way down.",
+  "seed": 4351514330785692966,
   "biomes": [
     "minecraft:nether_wastes",
     "minecraft:basalt_deltas",
@@ -65,11 +65,11 @@
       "piglin_village",
       "warped_outpost"
     ],
-    "description": "Classic nether halls — fortress corridors that defined piglin military power. A mega-fortress anchors the far end, built when the piglin empire was at its height. Brick and fire all the way down."
+    "description": "Classic nether halls \u2014 fortress corridors that defined piglin military power. A mega-fortress anchors the far end, built when the piglin empire was at its height. Brick and fire all the way down."
   },
   "spawn": [
-    0,
-    64,
-    0
+    128,
+    81,
+    -128
   ]
 }

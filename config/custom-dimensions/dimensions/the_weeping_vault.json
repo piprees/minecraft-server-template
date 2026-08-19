@@ -1,7 +1,7 @@
 {
-  "type": "nether",
-  "description": "A vault of crying obsidian — castle dungeons and a sanctum at the edge of a small dense world. The piglins sealed something in here; the crying obsidian is the lock. Whatever it is, it's still inside.",
-  "seed": 8939242886241437506,
+  "type": "cave",
+  "description": "A vault of crying obsidian under a stone lid \u2014 castle dungeons and a sanctum in a small dense world with no sky. The piglins sealed something in here; the crying obsidian is the lock, and it re-engages behind you. Whatever it is, it's still inside.",
+  "seed": 2934143097558451073,
   "biomes": [
     {
       "id": "incendium:weeping_valley",
@@ -50,18 +50,57 @@
     }
   ],
   "borders": {
-    "player": 1024,
+    "player": 683,
     "generation": 1024
   },
   "difficulty": {
-    "mobMultiplier": 2.0,
-    "playerLuck": 1.5
+    "mobMultiplier": 2.2,
+    "playerLuck": 2.0
   },
   "structureDensity": "dense",
   "structures": {
     "terrainAdaptation": {
       "incendium:forbidden_castle": "pedestal",
       "incendium:abandoned_tower": "pedestal"
+    },
+    "noise": {
+      "endgame": "none"
+    },
+    "force": [
+      {
+        "structure": "incendium:forbidden_castle",
+        "x": 0,
+        "z": 0
+      },
+      {
+        "structure": "incendium:sanctum",
+        "x": -560,
+        "z": 380
+      }
+    ],
+    "radial": {
+      "dungeons": [
+        0.3,
+        0.5,
+        0.9,
+        1.3,
+        1.7,
+        2.0,
+        2.2,
+        2.2,
+        2.0,
+        1.7
+      ]
+    },
+    "wants": {
+      "nether_dungeon": {
+        "min": 0,
+        "max": 102
+      },
+      "bastion": {
+        "min": 68,
+        "max": 512
+      }
     }
   },
   "portal": {
@@ -69,7 +108,7 @@
     "igniterItem": "minecraft:flint_and_steel",
     "color": "6B3B8B",
     "lightLevel": 11,
-    "scale": 8.0,
+    "scale": 12.0,
     "cooldown": 40,
     "shape": "door",
     "sounds": {
@@ -79,11 +118,22 @@
     },
     "aura": {
       "subsume": "everything"
+    },
+    "singleUse": {
+      "enabled": true,
+      "delaySeconds": 12,
+      "breakMode": "partial"
     }
+  },
+  "exitPortal": {
+    "enabled": true,
+    "pos": "spawn",
+    "target": "bed"
   },
   "environment": {
     "fogColor": "#3B1B4B",
-    "ambientLight": 0.06
+    "ambientLight": 0.06,
+    "hasCeiling": true
   },
   "seedRoll": {
     "mood": "hard",
@@ -105,11 +155,24 @@
       "crimson_fungus",
       "warped_outpost"
     ],
-    "description": "A vault of crying obsidian — castle dungeons and a sanctum at the edge of a small dense world. The piglins sealed something in here; the crying obsidian is the lock. Whatever it is, it's still inside."
+    "description": "A vault of crying obsidian under a stone lid \u2014 castle dungeons and a sanctum in a small dense world with no sky. The piglins sealed something in here; the crying obsidian is the lock, and it re-engages behind you. Whatever it is, it's still inside.",
+    "heightRange": [
+      -40,
+      70
+    ]
   },
   "spawn": [
-    0,
     64,
-    0
-  ]
+    9,
+    192
+  ],
+  "settingsOverrides": {
+    "defaultBlock": "minecraft:blackstone",
+    "defaultFluid": "minecraft:lava",
+    "seaLevel": 20
+  },
+  "exitShrines": {
+    "enabled": true,
+    "target": "bed"
+  }
 }

@@ -251,7 +251,7 @@ class NoiseRegressionTest {
                 NoisePoolBuilder.forcedExclusiveStructureIds(config));
     }
 
-    // --- the_end_citadel: end + dense, the largest border we ship -----------
+    // --- the_end_citadel: end + dense, at the 4096 border most large dims use
 
     @Test
     void theEndCitadelEnablesDecoDungeonsAndEndgame() {
@@ -262,10 +262,10 @@ class NoiseRegressionTest {
     }
 
     @Test
-    void theEndCitadelPlacesAtLeastTenThousandPositions() {
+    void theEndCitadelPlacesSeveralThousandPositions() {
         DimensionConfig config = dim("the_end_citadel");
         NoiseGroupPlan plan = NoiseGroupPlan.resolve(config);
-        assertTrue(totalPositions(config, plan) >= 10_000,
+        assertTrue(totalPositions(config, plan) >= 3_000,
                 "got " + totalPositions(config, plan));
     }
 

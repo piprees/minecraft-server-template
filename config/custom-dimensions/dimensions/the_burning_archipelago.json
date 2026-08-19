@@ -1,7 +1,7 @@
 {
   "type": "nether_islands",
-  "description": "Burning islands in a void sea — nether terrain on end-island bones. The piglins and endermen fought across these straits; the islands that survived still smoulder.",
-  "seed": 5613206028346317650,
+  "description": "Burning islands in a void sea \u2014 nether terrain on end-island bones. The piglins and endermen fought across these straits; the islands that survived still smoulder.",
+  "seed": -5469211821957251725,
   "biomes": [
     "minecraft:crimson_forest",
     "minecraft:warped_forest",
@@ -16,13 +16,16 @@
     {
       "id": "regions_unexplored:inferno",
       "parameters": {
-        "temperature": [1.3, 2.0]
+        "temperature": [
+          1.3,
+          2.0
+        ]
       }
     }
   ],
   "borders": {
-    "player": 8192,
-    "generation": 8192
+    "player": 4096,
+    "generation": 4096
   },
   "difficulty": {
     "mobMultiplier": 2.0,
@@ -33,7 +36,7 @@
     "igniterItem": "minecraft:flint_and_steel",
     "color": "DF4B2B",
     "lightLevel": 11,
-    "scale": 1.0,
+    "scale": 2.0,
     "cooldown": 40,
     "sounds": {
       "ignite": "block.portal.trigger",
@@ -69,11 +72,20 @@
     "shuns": [
       "piglin_village"
     ],
-    "description": "Burning islands in a void sea — nether terrain on end-island bones. The piglins and endermen fought across these straits; the islands that survived still smoulder."
+    "description": "Burning islands in a void sea \u2014 nether terrain on end-island bones. The piglins and endermen fought across these straits; the islands that survived still smoulder."
   },
   "spawn": [
-    0,
+    256,
     64,
-    0
-  ]
+    448
+  ],
+  "settingsOverrides": {
+    "defaultBlock": "minecraft:netherrack",
+    "defaultFluid": "minecraft:lava",
+    "seaLevel": -60
+  },
+  "environment": {
+    "fogColor": "#3B2B4B",
+    "ambientLight": 0.1
+  }
 }

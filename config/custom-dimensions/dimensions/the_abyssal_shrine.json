@@ -1,48 +1,69 @@
 {
   "type": "paradise_lost:paradise_lost",
-  "description": "A shrine over the abyss — plateau islands ringing deep drowned hollows. Something is worshipped here, or was. Guardians circle below; the sky above is indifferent.",
-  "seed": 801303553111466439,
+  "description": "A shrine over the abyss \u2014 plateau islands ringing deep drowned hollows. Something is worshipped here, or was. Guardians circle below; the sky above is indifferent.",
+  "seed": 218940947777718728,
   "biomes": [
     {
       "id": "paradise_lost:continental_plateau",
       "parameters": {
-        "continentalness": [-0.0488, -0.024]
+        "continentalness": [
+          -0.0488,
+          -0.024
+        ]
       }
     },
     {
       "id": "paradise_lost:highlands_grand_glade",
       "parameters": {
-        "continentalness": [-0.024, -0.0062]
+        "continentalness": [
+          -0.024,
+          -0.0062
+        ]
       }
     },
     {
       "id": "paradise_lost:calcite_craglands",
       "parameters": {
-        "continentalness": [0.0404, 2.0]
+        "continentalness": [
+          0.0404,
+          2.0
+        ]
       }
     },
     {
       "id": "minecraft:deep_ocean",
       "parameters": {
-        "continentalness": [-2.0, -0.0766]
+        "continentalness": [
+          -2.0,
+          -0.0766
+        ]
       }
     },
     {
       "id": "minecraft:deep_cold_ocean",
       "parameters": {
-        "continentalness": [-0.0766, -0.0488]
+        "continentalness": [
+          -0.0766,
+          -0.0488
+        ]
       }
     },
     {
       "id": "minecraft:deep_dark",
       "parameters": {
-        "continentalness": [-0.0062, 0.0171]
+        "continentalness": [
+          -0.0062,
+          0.0171
+        ]
       }
     },
     {
       "id": "minecraft:dripstone_caves",
       "parameters": {
-        "continentalness": [0.0171, 0.0404]
+        "continentalness": [
+          0.0171,
+          0.0404
+        ]
       }
     }
   ],
@@ -60,7 +81,7 @@
   },
   "portal": {
     "frameBlock": "minecraft:dark_prismarine",
-    "igniterItem": "minecraft:netherite_scrap",
+    "igniterItem": "minecraft:gold_ingot",
     "color": "1B3B6B",
     "lightLevel": 11,
     "scale": 16.0,
@@ -91,19 +112,26 @@
       "village",
       "tavern"
     ],
-    "description": "A shrine over the abyss — plateau islands ringing deep drowned hollows. Something is worshipped here, or was. Guardians circle below; the sky above is indifferent.",
+    "description": "A shrine over the abyss \u2014 plateau islands ringing deep drowned hollows. Something is worshipped here, or was. Guardians circle below; the sky above is indifferent.",
     "family": "overworld",
     "terrain": "islands"
   },
   "spawn": [
-    0,
     64,
-    0
+    133,
+    -192
   ],
   "structures": {
     "noise": {
       "dungeons": "dense",
       "maritime": "dense"
-    }
+    },
+    "force": [
+      {
+        "structure": "paradise_lost:vault",
+        "x": 180,
+        "z": -140
+      }
+    ]
   }
 }

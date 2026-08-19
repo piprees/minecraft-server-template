@@ -1,7 +1,7 @@
 {
   "type": "multi_biome",
-  "description": "Broad green valleys with hamlets in the folds. Villager country at its gentlest — pastoral, generous, a little whimsical. The giant mushrooms and campsites suggest people who enjoyed living here, not just surviving.",
-  "seed": 9207382997821124202,
+  "description": "Broad green valleys with hamlets in the folds. Villager country at its gentlest \u2014 pastoral, generous, a little whimsical. The giant mushrooms and campsites suggest people who enjoyed living here, not just surviving.",
+  "seed": 2095672374431070400,
   "noiseSettings": "adventure:wide",
   "biomes": [
     {
@@ -227,6 +227,11 @@
     },
     "orientation": "horizontal"
   },
+  "exitPortal": {
+    "enabled": true,
+    "pos": "spawn",
+    "target": "bed"
+  },
   "seedRoll": {
     "mood": "pastoral",
     "spawnFilter": [
@@ -251,11 +256,11 @@
       "ancient_city",
       "coliseum"
     ],
-    "description": "Broad green valleys with hamlets in the folds. Villager country at its gentlest — pastoral, generous, a little whimsical. The giant mushrooms and campsites suggest people who enjoyed living here, not just surviving."
+    "description": "Broad green valleys with hamlets in the folds. Villager country at its gentlest \u2014 pastoral, generous, a little whimsical. The giant mushrooms and campsites suggest people who enjoyed living here, not just surviving."
   },
   "spawn": [
-    0,
+    192,
     64,
-    0
+    -192
   ]
 }

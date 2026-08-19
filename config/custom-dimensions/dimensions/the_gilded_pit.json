@@ -1,7 +1,7 @@
 {
   "type": "nether",
-  "description": "The piglin capital. Every portal drops you at the same ledge overlooking what remains: a bastion, a forge, a palace, a forbidden castle — gold in every wall, treasure in every ruin. Nothing within arm's reach of the landing. Greed pays and costs.",
-  "seed": 9194906980739314006,
+  "description": "The piglin capital. Every portal drops you at the same ledge overlooking what remains: a bastion, a forge, a palace, a forbidden castle \u2014 gold in every wall, treasure in every ruin. Nothing within arm's reach of the landing. Greed pays and costs.",
+  "seed": -4513818485560389167,
   "biomes": [
     "minecraft:nether_wastes",
     "minecraft:basalt_deltas",
@@ -9,7 +9,10 @@
     {
       "id": "regions_unexplored:inferno",
       "parameters": {
-        "temperature": [1.3, 2.0]
+        "temperature": [
+          1.3,
+          2.0
+        ]
       }
     }
   ],
@@ -19,7 +22,14 @@
   },
   "difficulty": {
     "mobMultiplier": 2.5,
-    "playerLuck": 3.0
+    "playerLuck": 3.0,
+    "depthScaling": {
+      "enabled": true,
+      "startY": 64,
+      "endY": -10,
+      "minMultiplier": 1.0,
+      "maxMultiplier": 1.6
+    }
   },
   "structureDensity": "dense",
   "portal": {
@@ -51,6 +61,11 @@
         "minecraft:gold_block"
       ]
     }
+  },
+  "exitPortal": {
+    "enabled": true,
+    "pos": "spawn",
+    "target": "bed"
   },
   "structures": {
     "terrainAdaptation": {
@@ -122,11 +137,11 @@
       "forbidden_castle": "near_border",
       "nether_tower": "near_border"
     },
-    "description": "The piglin capital. Every portal drops you at the same ledge overlooking what remains: a bastion, a forge, a palace, a forbidden castle — gold in every wall, treasure in every ruin. Nothing within arm's reach of the landing. Greed pays and costs."
+    "description": "The piglin capital. Every portal drops you at the same ledge overlooking what remains: a bastion, a forge, a palace, a forbidden castle \u2014 gold in every wall, treasure in every ruin. Nothing within arm's reach of the landing. Greed pays and costs."
   },
   "spawn": [
     0,
-    64,
-    0
+    45,
+    -128
   ]
 }

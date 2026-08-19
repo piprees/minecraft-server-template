@@ -98,9 +98,6 @@ public class DimensionConfig {
     /** Fixed circular biome patches over the generated layout (precision placement). */
     @SerializedName("biomePatches")
     private List<BiomePatch> biomePatches;
-    /** Reserved-dimension travel-scale metadata (worlds[].scale) — tooling only. */
-    @SerializedName("scale")
-    private Double scale;
 
     @SerializedName("borders")
     private Borders borders;
@@ -476,11 +473,8 @@ public class DimensionConfig {
         return sb.toString();
     }
 
-    /** Reserved-dimension travel scale (tooling metadata); custom dims use portal.scale. */
+    /** Travel scale for every dimension: portal.scale, defaulting to 1.0. */
     public double getScale() {
-        if (this.scale != null) {
-            return this.scale;
-        }
         return this.portal != null && this.portal.scale != null ? this.portal.scale : 1.0;
     }
 

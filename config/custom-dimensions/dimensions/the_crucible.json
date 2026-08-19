@@ -1,31 +1,207 @@
 {
   "type": "multi_biome",
-  "description": "A compressed jungle gauntlet where the wild reclaimed everything. Infested temples and webbed dungeons in terrain that fights back. Whatever was built here was consumed long ago — the jungle doesn't negotiate.",
-  "seed": 9202718971865095650,
+  "description": "A compressed jungle gauntlet where the wild reclaimed everything. Infested temples and webbed dungeons in terrain that fights back. Whatever was built here was consumed long ago \u2014 the jungle doesn't negotiate.",
+  "seed": -1767073148463684069,
   "noiseSettings": "adventure:compressed",
   "biomes": [
-    { "id": "minecraft:dark_forest", "parameters": { "weirdness": [-2.0, -1.9306] } },
-    { "id": "minecraft:mangrove_swamp", "parameters": { "weirdness": [-1.9306, -1.8612] } },
-    { "id": "minecraft:swamp", "parameters": { "weirdness": [-1.8612, -1.7918] } },
-    { "id": "minecraft:sparse_jungle", "parameters": { "weirdness": [-1.7918, -1.7224] } },
-    { "id": "minecraft:river", "parameters": { "weirdness": [-1.7224, -1.653] } },
-    { "id": "minecraft:beach", "parameters": { "weirdness": [-1.653, -1.5836] } },
-    { "id": "minecraft:lush_caves", "parameters": { "weirdness": [-1.5836, -1.5142] } },
-    { "id": "terralith:orchid_swamp", "parameters": { "weirdness": [-1.5142, -1.4448] } },
-    { "id": "terralith:moonlight_grove", "parameters": { "weirdness": [-1.4448, -1.3754] } },
-    { "id": "terralith:mirage_isles", "parameters": { "weirdness": [-1.3754, -1.306] } },
-    { "id": "terralith:moonlight_valley", "parameters": { "weirdness": [-1.306, -1.2366] } },
-    { "id": "terralith:rocky_jungle", "parameters": { "weirdness": [-1.2366, -1.1672] } },
-    { "id": "terralith:cave/underground_jungle", "parameters": { "weirdness": [-1.1672, -1.0978] } },
-    { "id": "wilderwild:rainforest", "parameters": { "weirdness": [-1.0978, -1.0284] } },
-    { "id": "wilderwild:birch_jungle", "parameters": { "weirdness": [-1.0284, -0.959] } },
-    { "id": "regions_unexplored:tropical_river", "parameters": { "weirdness": [-0.959, -0.8896] } },
-    { "id": "regions_unexplored:sparse_rainforest", "parameters": { "weirdness": [-0.8896, -0.8202] } },
-    { "id": "minecraft:jungle", "parameters": { "weirdness": [-0.8202, -0.4902] } },
-    { "id": "minecraft:bamboo_jungle", "parameters": { "weirdness": [-0.4902, -0.1602] } },
-    { "id": "terralith:cloud_forest", "parameters": { "weirdness": [-0.1602, 0.1698] } },
-    { "id": "terralith:tropical_jungle", "parameters": { "weirdness": [0.1698, 0.4998] } },
-    { "id": "regions_unexplored:tropics", "parameters": { "weirdness": [0.4998, 2.0] } }
+    {
+      "id": "minecraft:dark_forest",
+      "parameters": {
+        "weirdness": [
+          -2.0,
+          -1.9306
+        ]
+      }
+    },
+    {
+      "id": "minecraft:mangrove_swamp",
+      "parameters": {
+        "weirdness": [
+          -1.9306,
+          -1.8612
+        ]
+      }
+    },
+    {
+      "id": "minecraft:swamp",
+      "parameters": {
+        "weirdness": [
+          -1.8612,
+          -1.7918
+        ]
+      }
+    },
+    {
+      "id": "minecraft:sparse_jungle",
+      "parameters": {
+        "weirdness": [
+          -1.7918,
+          -1.7224
+        ]
+      }
+    },
+    {
+      "id": "minecraft:river",
+      "parameters": {
+        "weirdness": [
+          -1.7224,
+          -1.653
+        ]
+      }
+    },
+    {
+      "id": "minecraft:beach",
+      "parameters": {
+        "weirdness": [
+          -1.653,
+          -1.5836
+        ]
+      }
+    },
+    {
+      "id": "minecraft:lush_caves",
+      "parameters": {
+        "weirdness": [
+          -1.5836,
+          -1.5142
+        ]
+      }
+    },
+    {
+      "id": "terralith:orchid_swamp",
+      "parameters": {
+        "weirdness": [
+          -1.5142,
+          -1.4448
+        ]
+      }
+    },
+    {
+      "id": "terralith:moonlight_grove",
+      "parameters": {
+        "weirdness": [
+          -1.4448,
+          -1.3754
+        ]
+      }
+    },
+    {
+      "id": "terralith:mirage_isles",
+      "parameters": {
+        "weirdness": [
+          -1.3754,
+          -1.306
+        ]
+      }
+    },
+    {
+      "id": "terralith:moonlight_valley",
+      "parameters": {
+        "weirdness": [
+          -1.306,
+          -1.2366
+        ]
+      }
+    },
+    {
+      "id": "terralith:rocky_jungle",
+      "parameters": {
+        "weirdness": [
+          -1.2366,
+          -1.1672
+        ]
+      }
+    },
+    {
+      "id": "terralith:cave/underground_jungle",
+      "parameters": {
+        "weirdness": [
+          -1.1672,
+          -1.0978
+        ]
+      }
+    },
+    {
+      "id": "wilderwild:rainforest",
+      "parameters": {
+        "weirdness": [
+          -1.0978,
+          -1.0284
+        ]
+      }
+    },
+    {
+      "id": "wilderwild:birch_jungle",
+      "parameters": {
+        "weirdness": [
+          -1.0284,
+          -0.959
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:tropical_river",
+      "parameters": {
+        "weirdness": [
+          -0.959,
+          -0.8896
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:sparse_rainforest",
+      "parameters": {
+        "weirdness": [
+          -0.8896,
+          -0.8202
+        ]
+      }
+    },
+    {
+      "id": "minecraft:jungle",
+      "parameters": {
+        "weirdness": [
+          -0.8202,
+          -0.4902
+        ]
+      }
+    },
+    {
+      "id": "minecraft:bamboo_jungle",
+      "parameters": {
+        "weirdness": [
+          -0.4902,
+          -0.1602
+        ]
+      }
+    },
+    {
+      "id": "terralith:cloud_forest",
+      "parameters": {
+        "weirdness": [
+          -0.1602,
+          0.1698
+        ]
+      }
+    },
+    {
+      "id": "terralith:tropical_jungle",
+      "parameters": {
+        "weirdness": [
+          0.1698,
+          0.4998
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:tropics",
+      "parameters": {
+        "weirdness": [
+          0.4998,
+          2.0
+        ]
+      }
+    }
   ],
   "borders": {
     "player": 2048,
@@ -87,11 +263,11 @@
       "tavern",
       "farmstead"
     ],
-    "description": "A compressed jungle gauntlet where the wild reclaimed everything. Infested temples and webbed dungeons in terrain that fights back. Whatever was built here was consumed long ago — the jungle doesn't negotiate."
+    "description": "A compressed jungle gauntlet where the wild reclaimed everything. Infested temples and webbed dungeons in terrain that fights back. Whatever was built here was consumed long ago \u2014 the jungle doesn't negotiate."
   },
   "spawn": [
-    0,
-    64,
-    0
+    320,
+    92,
+    -192
   ]
 }

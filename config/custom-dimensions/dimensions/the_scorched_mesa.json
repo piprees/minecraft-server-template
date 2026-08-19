@@ -1,7 +1,7 @@
 {
   "type": "multi_biome",
-  "description": "Painted canyon country baked to the bone. Dramatic tiered mesas, tomb-riddled badlands — the desert peoples buried their dead in the rock and the living moved on. The pyramids and spirals are all that's left.",
-  "seed": -8777423045116236165,
+  "description": "Painted canyon country baked to the bone. Dramatic tiered mesas, tomb-riddled badlands \u2014 the desert peoples buried their dead in the rock and the living moved on. The pyramids and spirals are all that's left.",
+  "seed": -9203105536941907182,
   "noiseSettings": "adventure:compressed",
   "biomes": [
     {
@@ -233,11 +233,11 @@
       "mansion",
       "monument"
     ],
-    "description": "Painted canyon country baked to the bone. Dramatic tiered mesas, tomb-riddled badlands — the desert peoples buried their dead in the rock and the living moved on. The pyramids and spirals are all that's left."
+    "description": "Painted canyon country baked to the bone. Dramatic tiered mesas, tomb-riddled badlands \u2014 the desert peoples buried their dead in the rock and the living moved on. The pyramids and spirals are all that's left."
   },
   "spawn": [
-    0,
-    64,
-    0
+    448,
+    43,
+    64
   ]
 }

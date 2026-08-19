@@ -1,7 +1,7 @@
 {
   "type": "nether",
-  "description": "The sanctum is the point. Incendium's cathedral dungeons in a small, dark world — altars and forbidden castles saturating the space. The piglins built their holiest places here, and the obsidian remembers every prayer.",
-  "seed": 9026703353164040970,
+  "description": "The sanctum is the point. Incendium's cathedral dungeons in a small, dark world \u2014 altars and forbidden castles saturating the space. The piglins built their holiest places here, and the obsidian remembers every prayer.",
+  "seed": 3690668525932992774,
   "biomes": [
     "minecraft:soul_sand_valley",
     "minecraft:nether_wastes",
@@ -55,11 +55,11 @@
       "warped_outpost",
       "bastion"
     ],
-    "description": "The sanctum is the point. Incendium's cathedral dungeons in a small, dark world — altars and forbidden castles saturating the space. The piglins built their holiest places here, and the obsidian remembers every prayer."
+    "description": "The sanctum is the point. Incendium's cathedral dungeons in a small, dark world \u2014 altars and forbidden castles saturating the space. The piglins built their holiest places here, and the obsidian remembers every prayer."
   },
   "spawn": [
     0,
-    64,
-    0
+    93,
+    128
   ]
 }

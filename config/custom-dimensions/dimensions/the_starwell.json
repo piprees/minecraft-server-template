@@ -1,6 +1,6 @@
 {
   "type": "sky_islands",
-  "description": "A well of night sky — a few silvered islands adrift around a monolith. The endermen's last gift: a pocket of void where nothing hunts, falling sends you home, and the stars are close enough to touch.",
+  "description": "A well of night sky \u2014 a few silvered islands adrift around a monolith. The endermen's last gift: a pocket of void where nothing hunts, falling sends you home, and the stars are close enough to touch.",
   "biomes": [
     "terralith:mirage_isles",
     "terralith:skylands_winter",
@@ -86,6 +86,16 @@
       "terralith:skylands_winter",
       "terralith:alpha_islands"
     ],
-    "description": "A well of night sky — a few silvered islands adrift around a monolith. The endermen's last gift: a pocket of void where nothing hunts, falling sends you home, and the stars are close enough to touch."
+    "description": "A well of night sky \u2014 a few silvered islands adrift around a monolith. The endermen's last gift: a pocket of void where nothing hunts, falling sends you home, and the stars are close enough to touch."
+  },
+  "seed": -119982518568878782,
+  "spawn": [
+    128,
+    -64,
+    -192
+  ],
+  "settingsOverrides": {
+    "defaultBlock": "minecraft:deepslate",
+    "seaLevel": -64
   }
 }

@@ -1,8 +1,8 @@
 {
-  "type": "end",
+  "type": "void",
   "noiseSettings": "adventure:void",
-  "description": "The red monument — a single monolith hanging in nothing, bleeding scarlet into the void. The endermen's temple, their holiest site. Manuscript shrines and a mythic garden ring it at a fixed distance; there is no other ground in the world, and nothing here hunts you. The monument does not kill trespassers. It declines them.",
-  "seed": 847731309170024191,
+  "description": "The red monument \u2014 a single monolith hanging in nothing, bleeding scarlet into the void. The endermen's temple, their holiest site. Manuscript shrines and a mythic garden ring it at a fixed distance; there is no other ground in the world, and nothing here hunts you. The monument does not kill trespassers. It declines them.",
+  "seed": -923060891120986341,
   "biomes": [
     {
       "id": "minecraft:end_barrens",
@@ -60,26 +60,60 @@
     }
   ],
   "borders": {
-    "player": 8192,
-    "generation": 8192
+    "player": 512,
+    "generation": 1024
   },
   "difficulty": {
     "mobMultiplier": 0.0,
     "hostileSpawning": false,
-    "playerLuck": 2.5
+    "playerLuck": 3.0
   },
   "structureDensity": "none",
   "structures": {
     "terrainAdaptation": {
       "mes:monolith": "pedestal"
-    }
+    },
+    "mode": "none",
+    "force": [
+      {
+        "structure": "mes:monolith",
+        "x": 0,
+        "y": 96,
+        "z": 0
+      },
+      {
+        "structure": "mes:manuscript_shrine",
+        "x": 168,
+        "y": 88,
+        "z": 96
+      },
+      {
+        "structure": "mes:mythic_garden",
+        "x": -96,
+        "y": 84,
+        "z": 168
+      },
+      {
+        "structure": "mes:manuscript_shrine",
+        "x": -168,
+        "y": 88,
+        "z": -96
+      },
+      {
+        "structure": "mes:mystical_archway",
+        "x": 96,
+        "y": 92,
+        "z": -168
+      }
+    ],
+    "wants": {}
   },
   "portal": {
     "frameBlock": "minecraft:red_sandstone",
     "igniterItem": "minecraft:ender_eye",
     "color": "C87040",
     "lightLevel": 11,
-    "scale": 1.0,
+    "scale": 16.0,
     "cooldown": 40,
     "particleType": "minecraft:end_rod",
     "shape": "end_exit",
@@ -90,15 +124,25 @@
     },
     "aura": {
       "subsume": "none"
+    },
+    "immersive": false,
+    "anchor": {
+      "pos": [
+        0,
+        96,
+        240
+      ],
+      "exit": "bed"
     }
   },
   "environment": {
     "skyColor": "#5C0F0F",
     "fogColor": "#120404",
-    "ambientLight": 0.2
+    "ambientLight": 0.2,
+    "effects": "minecraft:the_end"
   },
   "seedRoll": {
-    "mood": "dramatic",
+    "mood": "desolate",
     "terrain": "void",
     "allowHazardousSpawn": true,
     "spawnFilter": [
@@ -114,11 +158,22 @@
       "ruined_pillar",
       "end_ruins"
     ],
-    "description": "The red monument — a single monolith hanging in nothing, bleeding scarlet into the void. The endermen's temple, their holiest site. Manuscript shrines and a mythic garden ring it at a fixed distance; there is no other ground in the world, and nothing here hunts you. The monument does not kill trespassers. It declines them."
+    "description": "The red monument \u2014 a single monolith hanging in nothing, bleeding scarlet into the void. The endermen's temple, their holiest site. Manuscript shrines and a mythic garden ring it at a fixed distance; there is no other ground in the world, and nothing here hunts you. The monument does not kill trespassers. It declines them."
   },
   "spawn": [
-    0,
-    64,
-    0
-  ]
+    384,
+    -64,
+    -192
+  ],
+  "exitPortal": {
+    "enabled": true,
+    "pos": "spawn",
+    "target": "bed"
+  },
+  "exits": {
+    "void": {
+      "action": "teleport",
+      "target": "origin"
+    }
+  }
 }

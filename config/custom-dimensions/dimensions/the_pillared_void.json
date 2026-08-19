@@ -1,7 +1,7 @@
 {
   "type": "end",
-  "description": "Lonely pillars in the void. Spires, a dragon's skeleton, nothing else — the endermen's oldest construction, predating even the tiled expanse. Whatever they built here, they built it for a dragon. The dragon is dead.",
-  "seed": 9223110004402776460,
+  "description": "Lonely pillars in the void. Spires, a dragon's skeleton, nothing else \u2014 the endermen's oldest construction, predating even the tiled expanse. Whatever they built here, they built it for a dragon. The dragon is dead.",
+  "seed": -3103642800501381071,
   "biomes": [
     {
       "id": "nullscape:void_barrens",
@@ -59,8 +59,8 @@
     }
   ],
   "borders": {
-    "player": 8192,
-    "generation": 8192
+    "player": 4096,
+    "generation": 4096
   },
   "difficulty": {
     "mobMultiplier": 2.0,
@@ -68,14 +68,34 @@
   },
   "structureDensity": "sparse",
   "structures": {
-    "clearSpawnRadius": 128
+    "clearSpawnRadius": 128,
+    "terrainAdaptation": {
+      "minecraft:bastion_remnant": "pedestal"
+    },
+    "force": [
+      {
+        "structure": "nullscape:dragon_skeleton",
+        "x": 2300,
+        "z": -3100
+      },
+      {
+        "structure": "minecraft:bastion_remnant",
+        "x": -1180,
+        "z": 2240
+      },
+      {
+        "structure": "minecraft:ruined_portal_nether",
+        "x": -1240,
+        "z": 2300
+      }
+    ]
   },
   "portal": {
     "frameBlock": "minecraft:polished_basalt",
     "igniterItem": "minecraft:ender_eye",
     "color": "4B4B5B",
     "lightLevel": 11,
-    "scale": 1.0,
+    "scale": 2.0,
     "cooldown": 40,
     "particleType": "minecraft:end_rod",
     "shape": "end_gateway",
@@ -112,15 +132,27 @@
       "phantom_citadel",
       "enderkeep"
     ],
-    "description": "Lonely pillars in the void. Spires, a dragon's skeleton, nothing else — the endermen's oldest construction, predating even the tiled expanse. Whatever they built here, they built it for a dragon. The dragon is dead.",
+    "description": "Lonely pillars in the void. Spires, a dragon's skeleton, nothing else \u2014 the endermen's oldest construction, predating even the tiled expanse. Whatever they built here, they built it for a dragon. The dragon is dead.",
     "terrain": "void"
   },
   "spawn": [
-    0,
-    64,
-    0
+    128,
+    50,
+    -448
   ],
   "settingsOverrides": {
     "endIsland": false
+  },
+  "exits": {
+    "enderPearl": {
+      "action": "teleport",
+      "target": {
+        "dimension": "adventure:the_tiled_expanse",
+        "arrival": "spawn"
+      }
+    },
+    "void": {
+      "action": "kill"
+    }
   }
 }

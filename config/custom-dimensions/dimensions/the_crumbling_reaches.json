@@ -1,7 +1,7 @@
 {
   "type": "end",
-  "description": "What happens when the endermen leave and nobody maintains the infrastructure. Crystal peaks shearing into shadow, crashed ships in the rubble. Everything intact is already gone — only wreckage tells the story.",
-  "seed": 9222271493615113425,
+  "description": "What happens when the endermen leave and nobody maintains the infrastructure. Crystal peaks shearing into shadow, crashed ships in the rubble. Everything intact is already gone \u2014 only wreckage tells the story.",
+  "seed": 3742608075213267787,
   "biomes": [
     {
       "id": "nullscape:crystal_peaks",
@@ -68,12 +68,12 @@
     }
   ],
   "borders": {
-    "player": 8192,
-    "generation": 8192
+    "player": 2048,
+    "generation": 2048
   },
   "difficulty": {
-    "mobMultiplier": 2.0,
-    "playerLuck": 1.8
+    "mobMultiplier": 2.2,
+    "playerLuck": 2.0
   },
   "structureDensity": "dense",
   "portal": {
@@ -81,7 +81,7 @@
     "igniterItem": "minecraft:ender_eye",
     "color": "8B7050",
     "lightLevel": 11,
-    "scale": 1.0,
+    "scale": 4.0,
     "cooldown": 40,
     "particleType": "minecraft:end_rod",
     "shape": "end_gateway",
@@ -112,14 +112,19 @@
       "phantom_citadel",
       "enderkeep"
     ],
-    "description": "What happens when the endermen leave and nobody maintains the infrastructure. Crystal peaks shearing into shadow, crashed ships in the rubble. Everything intact is already gone — only wreckage tells the story."
+    "description": "What happens when the endermen leave and nobody maintains the infrastructure. Crystal peaks shearing into shadow, crashed ships in the rubble. Everything intact is already gone \u2014 only wreckage tells the story."
   },
   "spawn": [
-    0,
-    64,
-    0
+    -192,
+    38,
+    -768
   ],
   "settingsOverrides": {
     "endIsland": false
+  },
+  "structures": {
+    "rarity": {
+      "mes:mega_ship_crashed": "common"
+    }
   }
 }

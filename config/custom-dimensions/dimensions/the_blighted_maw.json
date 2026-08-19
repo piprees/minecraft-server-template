@@ -1,7 +1,7 @@
 {
-  "type": "nether",
-  "description": "A toxic, dense little hell. Piglin scientists built labs and reactors here to study the sculk infection from the boneyard. The labs are ruins now; the blight won. Loot escalates with the danger.",
-  "seed": 9209138044254743191,
+  "type": "nether_islands",
+  "description": "A toxic little hell that came apart. Piglin scientists built labs and reactors here to study the sculk infection from the boneyard; the blight won, and took the ground with it. What is left is a tight cluster of floating islands with a long fall between them. Fall off and the blight rejects you rather than killing you. Loot escalates with the danger.",
+  "seed": 7091646800703270989,
   "biomes": [
     "incendium:toxic_heap",
     "minecraft:soul_sand_valley",
@@ -11,7 +11,7 @@
   ],
   "borders": {
     "player": 1024,
-    "generation": 1024
+    "generation": 2048
   },
   "difficulty": {
     "mobMultiplier": 1.8,
@@ -64,11 +64,41 @@
       "crimson_fungus",
       "warped_outpost"
     ],
-    "description": "A toxic, dense little hell. Piglin scientists built labs and reactors here to study the sculk infection from the boneyard. The labs are ruins now; the blight won. Loot escalates with the danger."
+    "description": "A toxic little hell that came apart. Piglin scientists built labs and reactors here to study the sculk infection from the boneyard; the blight won, and took the ground with it. What is left is a tight cluster of floating islands with a long fall between them. Fall off and the blight rejects you rather than killing you. Loot escalates with the danger.",
+    "terrain": "islands",
+    "water": "none"
   },
   "spawn": [
     0,
     64,
-    0
-  ]
+    256
+  ],
+  "settingsOverrides": {
+    "defaultBlock": "minecraft:netherrack",
+    "defaultFluid": "minecraft:lava",
+    "seaLevel": -60
+  },
+  "exits": {
+    "void": {
+      "action": "teleport",
+      "target": "origin"
+    }
+  },
+  "structures": {
+    "terrainAdaptation": {
+      "incendium:nether_reactor": "platform_skirt"
+    },
+    "force": [
+      {
+        "structure": "incendium:nether_reactor",
+        "x": -380,
+        "z": 290
+      },
+      {
+        "structure": "philipsruins:sculk_dungeon",
+        "x": -364,
+        "z": 274
+      }
+    ]
+  }
 }

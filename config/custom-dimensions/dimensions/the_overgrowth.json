@@ -1,7 +1,7 @@
 {
   "type": "multi_biome",
   "description": "Nature won. Jungle-swallowed ruins and infested temples in compressed, tangled terrain. Villager settlements once stood here; the wild reclaimed every wall. The jungle doesn't negotiate.",
-  "seed": 88447297175691575,
+  "seed": -8087945941450082945,
   "noiseSettings": "adventure:compressed",
   "biomes": [
     {
@@ -216,8 +216,8 @@
     "description": "Nature won. Jungle-swallowed ruins and infested temples in compressed, tangled terrain. Villager settlements once stood here; the wild reclaimed every wall. The jungle doesn't negotiate."
   },
   "spawn": [
-    0,
-    64,
+    -64,
+    65,
     0
   ]
 }

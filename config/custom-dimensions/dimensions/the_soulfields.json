@@ -1,7 +1,7 @@
 {
-  "type": "nether",
-  "description": "Soul-sand meadows and grave fields — the piglin memorial dimension. The dead are the crop. Giant skulls and nether graveyards mark where the fallen from the boneyard war were brought to rest. Nothing living is welcome.",
-  "seed": 8788869748950071596,
+  "type": "multi_biome",
+  "description": "Soul-sand meadows and grave fields without end \u2014 the piglin memorial dimension, always at midnight. The dead are the crop. You arrive in an empty plain and the graves begin some way out and thicken all the way to the edge. Nothing living is welcome.",
+  "seed": -8528435044459613360,
   "biomes": [
     {
       "id": "minecraft:soul_sand_valley",
@@ -50,19 +50,19 @@
     }
   ],
   "borders": {
-    "player": 1024,
-    "generation": 1024
+    "player": 4096,
+    "generation": 4096
   },
   "difficulty": {
-    "mobMultiplier": 1.5,
-    "playerLuck": 1.5
+    "mobMultiplier": 1.2,
+    "playerLuck": 1.8
   },
   "portal": {
     "frameBlock": "minecraft:soul_soil",
     "igniterItem": "minecraft:flint_and_steel",
     "color": "3BAFCF",
     "lightLevel": 11,
-    "scale": 8.0,
+    "scale": 2.0,
     "cooldown": 40,
     "particleType": "minecraft:soul_fire_flame",
     "sounds": {
@@ -75,10 +75,67 @@
     "terrainAdaptation": {
       "mns:giant_skull": "pedestal"
     },
-    "clearSpawnRadius": 80
+    "clearSpawnRadius": 80,
+    "noise": {
+      "settlements": "none",
+      "maritime": "none",
+      "endgame": "none"
+    },
+    "radial": {
+      "deco": [
+        0.0,
+        0.0,
+        0.2,
+        0.5,
+        0.8,
+        1.0,
+        1.2,
+        1.4,
+        1.6,
+        1.8
+      ],
+      "landmarks": [
+        0.0,
+        0.0,
+        0.3,
+        0.6,
+        0.9,
+        1.1,
+        1.3,
+        1.5,
+        1.7,
+        2.0
+      ],
+      "dungeons": [
+        0.0,
+        0.0,
+        0.2,
+        0.4,
+        0.7,
+        0.9,
+        1.1,
+        1.3,
+        1.5,
+        1.7
+      ],
+      "loot": [
+        0.0,
+        0.0,
+        0.2,
+        0.4,
+        0.6,
+        0.8,
+        1.0,
+        1.2,
+        1.4,
+        1.6
+      ]
+    }
   },
   "environment": {
-    "fogColor": "#3B5B7B"
+    "fogColor": "#3B5B7B",
+    "ambientLight": 0.22,
+    "fixedTime": 18000
   },
   "seedRoll": {
     "mood": "desolate",
@@ -99,11 +156,17 @@
       "warped_outpost",
       "bastion"
     ],
-    "description": "Soul-sand meadows and grave fields — the piglin memorial dimension. The dead are the crop. Giant skulls and nether graveyards mark where the fallen from the boneyard war were brought to rest. Nothing living is welcome."
+    "description": "Soul-sand meadows and grave fields without end \u2014 the piglin memorial dimension, always at midnight. The dead are the crop. You arrive in an empty plain and the graves begin some way out and thicken all the way to the edge. Nothing living is welcome.",
+    "terrain": "flat"
   },
   "spawn": [
-    0,
-    64,
+    -64,
+    159,
     0
-  ]
+  ],
+  "settingsOverrides": {
+    "defaultBlock": "minecraft:soul_soil",
+    "seaLevel": -60
+  },
+  "structureDensity": "sparse"
 }

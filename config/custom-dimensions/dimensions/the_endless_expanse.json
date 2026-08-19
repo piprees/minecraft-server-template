@@ -1,10 +1,10 @@
 {
   "type": "large_biomes",
-  "description": "The endless expanse — what humans and villagers built when they had room. Large biomes, big civilisation, a coliseum and a mansion at the far edge. The scale is the point.",
-  "seed": 8301660540697123312,
+  "description": "The endless expanse \u2014 what humans and villagers built when they had room. Large biomes, big civilisation, a coliseum and a mansion at the far edge. The scale is the point.",
+  "seed": -8783528528533420090,
   "borders": {
-    "player": 8192,
-    "generation": 8192
+    "player": 4096,
+    "generation": 4096
   },
   "difficulty": {
     "mobMultiplier": 1.0,
@@ -15,7 +15,7 @@
     "igniterItem": "minecraft:amethyst_shard",
     "color": "9B9BAF",
     "lightLevel": 11,
-    "scale": 1.0,
+    "scale": 2.0,
     "cooldown": 40,
     "shape": "doorway",
     "sounds": {
@@ -48,12 +48,12 @@
       "desert_pyramid": "spread",
       "ruined_portal": "near_spawn"
     },
-    "description": "The endless expanse — what humans and villagers built when they had room. Large biomes, big civilisation, a coliseum and a mansion at the far edge. The scale is the point."
+    "description": "The endless expanse \u2014 what humans and villagers built when they had room. Large biomes, big civilisation, a coliseum and a mansion at the far edge. The scale is the point."
   },
   "spawn": [
-    0,
-    64,
-    0
+    256,
+    70,
+    256
   ],
   "structures": {
     "radial": {

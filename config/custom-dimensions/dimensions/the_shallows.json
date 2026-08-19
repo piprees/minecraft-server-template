@@ -1,7 +1,7 @@
 {
   "type": "multi_biome",
-  "description": "Broad warm shallows and mirage isles. Wrecks and drowned ruins under clear water — ships that tried to cross and didn't make it. The ocean doesn't care about civilisation; it just collects the debris.",
-  "seed": 9197150989084124586,
+  "description": "Broad warm shallows and mirage isles. Wrecks and drowned ruins under clear water \u2014 ships that tried to cross and didn't make it. The ocean doesn't care about civilisation; it just collects the debris.",
+  "seed": -225263123829053194,
   "noiseSettings": "adventure:wide",
   "biomes": [
     {
@@ -158,7 +158,7 @@
   },
   "portal": {
     "frameBlock": "minecraft:prismarine",
-    "igniterItem": "minecraft:netherite_scrap",
+    "igniterItem": "minecraft:nautilus_shell",
     "color": "3BAFAF",
     "lightLevel": 11,
     "scale": 16.0,
@@ -177,6 +177,11 @@
       "exit": "block.portal.travel"
     },
     "orientation": "horizontal"
+  },
+  "exitPortal": {
+    "enabled": true,
+    "pos": "spawn",
+    "target": "bed"
   },
   "seedRoll": {
     "mood": "serene",
@@ -199,11 +204,11 @@
       "ancient_city",
       "trial_chambers"
     ],
-    "description": "Broad warm shallows and mirage isles. Wrecks and drowned ruins under clear water — ships that tried to cross and didn't make it. The ocean doesn't care about civilisation; it just collects the debris."
+    "description": "Broad warm shallows and mirage isles. Wrecks and drowned ruins under clear water \u2014 ships that tried to cross and didn't make it. The ocean doesn't care about civilisation; it just collects the debris."
   },
   "spawn": [
-    0,
     64,
-    0
+    39,
+    -256
   ]
 }

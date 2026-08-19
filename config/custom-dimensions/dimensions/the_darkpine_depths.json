@@ -1,7 +1,7 @@
 {
   "type": "multi_biome",
-  "description": "Where the villagers who listened too long to the endermen withdrew. Moonlit spruce dark, graveyards, manors — the woods keep their own counsel. The witches came from here: students who couldn't stop learning.",
-  "seed": 9155801355435215650,
+  "description": "Where the villagers who listened too long to the endermen withdrew. Moonlit spruce dark, graveyards, manors \u2014 the woods keep their own counsel. The witches came from here: students who couldn't stop learning.",
+  "seed": -3677614258839321952,
   "noiseSettings": "adventure:compressed",
   "biomes": [
     {
@@ -206,11 +206,11 @@
       "monument",
       "coliseum"
     ],
-    "description": "Where the villagers who listened too long to the endermen withdrew. Moonlit spruce dark, graveyards, manors — the woods keep their own counsel. The witches came from here: students who couldn't stop learning."
+    "description": "Where the villagers who listened too long to the endermen withdrew. Moonlit spruce dark, graveyards, manors \u2014 the woods keep their own counsel. The witches came from here: students who couldn't stop learning."
   },
   "spawn": [
     0,
-    64,
-    0
+    69,
+    64
   ]
 }

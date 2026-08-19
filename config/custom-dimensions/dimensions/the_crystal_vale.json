@@ -1,7 +1,7 @@
 {
   "type": "multi_biome",
-  "description": "Where the endermen first taught the villagers. Amethyst rainforest and emerald peaks — wizard towers mark where the lessons happened. No war was ever fought here; this place was too beautiful to ruin.",
-  "seed": 7030276223102451156,
+  "description": "Where the endermen first taught the villagers. Amethyst rainforest and emerald peaks \u2014 wizard towers mark where the lessons happened. No war was ever fought here; this place was too beautiful to ruin.",
+  "seed": -5737558752956127404,
   "noiseSettings": "adventure:compressed",
   "biomes": [
     {
@@ -186,7 +186,14 @@
   "structures": {
     "terrainAdaptation": {
       "structory_towers:wizard_tower": "pedestal"
-    }
+    },
+    "force": [
+      {
+        "structure": "structory_towers:wizard_tower",
+        "x": 120,
+        "z": -90
+      }
+    ]
   },
   "portal": {
     "frameBlock": "minecraft:amethyst_block",
@@ -230,11 +237,20 @@
       "trial_chambers",
       "ancient_city"
     ],
-    "description": "Where the endermen first taught the villagers. Amethyst rainforest and emerald peaks — wizard towers mark where the lessons happened. No war was ever fought here; this place was too beautiful to ruin."
+    "description": "Where the endermen first taught the villagers. Amethyst rainforest and emerald peaks \u2014 wizard towers mark where the lessons happened. No war was ever fought here; this place was too beautiful to ruin."
   },
   "spawn": [
-    0,
-    64,
-    0
+    192,
+    72,
+    -448
+  ],
+  "biomePatches": [
+    {
+      "biome": "terralith:moonlight_grove",
+      "x": 120,
+      "z": -90,
+      "radius": 96,
+      "blend": 24
+    }
   ]
 }

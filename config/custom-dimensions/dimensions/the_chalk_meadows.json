@@ -1,7 +1,7 @@
 {
   "type": "multi_biome",
-  "description": "Rolling chalk downs in heather and carnation. Villager country — settlements in the hollows, nothing sinister for miles. The people here never went looking for ancient cities, and the ancient cities never found them.",
-  "seed": 7979793790560277687,
+  "description": "Rolling chalk downs in heather and carnation. Villager country \u2014 settlements in the hollows, nothing sinister for miles. The people here never went looking for ancient cities, and the ancient cities never found them.",
+  "seed": -2086923626932675969,
   "biomes": [
     {
       "id": "natures_spirit:heather_fields",
@@ -190,6 +190,11 @@
     },
     "orientation": "horizontal"
   },
+  "exitPortal": {
+    "enabled": true,
+    "pos": "spawn",
+    "target": "bed"
+  },
   "structures": {
     "terrainAdaptation": {
       "landmarks": "moat"
@@ -213,11 +218,11 @@
       "mansion",
       "coliseum"
     ],
-    "description": "Rolling chalk downs in heather and carnation. Villager country — settlements in the hollows, nothing sinister for miles. The people here never went looking for ancient cities, and the ancient cities never found them."
+    "description": "Rolling chalk downs in heather and carnation. Villager country \u2014 settlements in the hollows, nothing sinister for miles. The people here never went looking for ancient cities, and the ancient cities never found them."
   },
   "spawn": [
-    0,
-    64,
-    0
+    -192,
+    69,
+    320
   ]
 }

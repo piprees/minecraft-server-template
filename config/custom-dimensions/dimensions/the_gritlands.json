@@ -1,7 +1,7 @@
 {
   "type": "multi_biome",
-  "description": "Gravel, basalt, and ash where it all went wrong. A ruined portal near the border, stone ruins, a dead mineshaft — the remains of something that tried to exist here and couldn't. Nobody could live here. Nothing organised survives.",
-  "seed": 5190387473893419670,
+  "description": "Gravel, basalt, and ash where it all went wrong. A ruined portal near the border, stone ruins, a dead mineshaft \u2014 the remains of something that tried to exist here and couldn't. Nobody could live here. Nothing organised survives.",
+  "seed": 6109191243100809656,
   "noiseSettings": "adventure:compressed",
   "biomes": [
     {
@@ -218,7 +218,8 @@
   },
   "environment": {
     "fogColor": "#8B7B6B",
-    "ambientLight": 0.18
+    "ambientLight": 0.18,
+    "bedWorks": false
   },
   "seedRoll": {
     "mood": "desolate",
@@ -242,11 +243,20 @@
       "monument",
       "coliseum"
     ],
-    "description": "Gravel, basalt, and ash where it all went wrong. A ruined portal near the border, stone ruins, a dead mineshaft — the remains of something that tried to exist here and couldn't. Nobody could live here. Nothing organised survives."
+    "description": "Gravel, basalt, and ash where it all went wrong. A ruined portal near the border, stone ruins, a dead mineshaft \u2014 the remains of something that tried to exist here and couldn't. Nobody could live here. Nothing organised survives."
   },
   "spawn": [
-    0,
-    64,
-    0
+    448,
+    128,
+    448
+  ],
+  "biomePatches": [
+    {
+      "biome": "minecraft:eroded_badlands",
+      "x": 678,
+      "z": -412,
+      "radius": 96,
+      "blend": 24
+    }
   ]
 }

@@ -1,7 +1,7 @@
 {
   "type": "multi_biome",
-  "description": "Serene oasis pools glowing at dusk. A hermit's paradise — desert shrines mark where travellers stopped to rest, but nobody built a town. The pools are older than the shrines.",
-  "seed": 8598640343340391518,
+  "description": "Serene oasis pools glowing at dusk. A hermit's paradise \u2014 desert shrines mark where travellers stopped to rest, but nobody built a town. The pools are older than the shrines.",
+  "seed": -8938623597306300190,
   "biomes": [
     {
       "id": "terralith:desert_oasis",
@@ -184,7 +184,7 @@
   "structureDensity": "sparse",
   "portal": {
     "frameBlock": "minecraft:sea_lantern",
-    "igniterItem": "minecraft:netherite_scrap",
+    "igniterItem": "minecraft:nautilus_shell",
     "color": "4BCFCF",
     "lightLevel": 11,
     "scale": 16.0,
@@ -203,6 +203,11 @@
       "enter": "block.portal.travel",
       "exit": "block.portal.travel"
     }
+  },
+  "exitPortal": {
+    "enabled": true,
+    "pos": "spawn",
+    "target": "bed"
   },
   "seedRoll": {
     "mood": "serene",
@@ -231,11 +236,11 @@
       "ancient_city",
       "trial_chambers"
     ],
-    "description": "Serene oasis pools glowing at dusk. A hermit's paradise — desert shrines mark where travellers stopped to rest, but nobody built a town. The pools are older than the shrines."
+    "description": "Serene oasis pools glowing at dusk. A hermit's paradise \u2014 desert shrines mark where travellers stopped to rest, but nobody built a town. The pools are older than the shrines."
   },
   "spawn": [
-    0,
-    64,
-    0
+    320,
+    46,
+    64
   ]
 }

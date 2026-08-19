@@ -1,48 +1,69 @@
 {
   "type": "paradise_lost:paradise_lost",
-  "description": "The pale desolate reach — calcite crags floating in white silence. The skylands' frozen edge, where even the animal kingdoms thin out. Remains and birdcages drift in the whiteness, built by hands that left no other trace.",
-  "seed": -458653036088005852,
+  "description": "The pale desolate reach \u2014 calcite crags floating in white silence. The skylands' frozen edge, where even the animal kingdoms thin out. Remains and birdcages drift in the whiteness, built by hands that left no other trace.",
+  "seed": 1082668033493567880,
   "biomes": [
     {
       "id": "paradise_lost:calcite_craglands",
       "parameters": {
-        "continentalness": [0.0008, 0.0304]
+        "continentalness": [
+          0.0008,
+          0.0304
+        ]
       }
     },
     {
       "id": "terralith:frozen_cliffs",
       "parameters": {
-        "continentalness": [-0.095, -0.0627]
+        "continentalness": [
+          -0.095,
+          -0.0627
+        ]
       }
     },
     {
       "id": "terralith:wintry_lowlands",
       "parameters": {
-        "continentalness": [-0.0627, -0.0318]
+        "continentalness": [
+          -0.0627,
+          -0.0318
+        ]
       }
     },
     {
       "id": "minecraft:ice_spikes",
       "parameters": {
-        "continentalness": [-0.0318, 0.0008]
+        "continentalness": [
+          -0.0318,
+          0.0008
+        ]
       }
     },
     {
       "id": "minecraft:snowy_slopes",
       "parameters": {
-        "continentalness": [0.0304, 0.0613]
+        "continentalness": [
+          0.0304,
+          0.0613
+        ]
       }
     },
     {
       "id": "minecraft:frozen_peaks",
       "parameters": {
-        "continentalness": [0.0613, 2.0]
+        "continentalness": [
+          0.0613,
+          2.0
+        ]
       }
     },
     {
       "id": "terralith:skylands_winter",
       "parameters": {
-        "continentalness": [-2.0, -0.095]
+        "continentalness": [
+          -2.0,
+          -0.095
+        ]
       }
     }
   ],
@@ -63,7 +84,7 @@
   },
   "portal": {
     "frameBlock": "minecraft:end_stone",
-    "igniterItem": "minecraft:diamond",
+    "igniterItem": "minecraft:gold_ingot",
     "color": "E0D8C0",
     "lightLevel": 11,
     "scale": 12.0,
@@ -81,7 +102,9 @@
   },
   "seedRoll": {
     "mood": "desolate",
-    "spawnFilter": ["minecraft:snowy_slopes"],
+    "spawnFilter": [
+      "minecraft:snowy_slopes"
+    ],
     "wants": {
       "para_remains": "spread",
       "birdcage": "spread",
@@ -93,13 +116,13 @@
       "tavern",
       "monument"
     ],
-    "description": "The pale desolate reach — calcite crags floating in white silence. The skylands' frozen edge, where even the animal kingdoms thin out. Remains and birdcages drift in the whiteness, built by hands that left no other trace.",
+    "description": "The pale desolate reach \u2014 calcite crags floating in white silence. The skylands' frozen edge, where even the animal kingdoms thin out. Remains and birdcages drift in the whiteness, built by hands that left no other trace.",
     "family": "overworld",
     "terrain": "islands"
   },
   "spawn": [
-    0,
-    64,
-    0
+    128,
+    136,
+    -192
   ]
 }
