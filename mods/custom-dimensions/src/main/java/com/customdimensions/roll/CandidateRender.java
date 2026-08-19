@@ -302,17 +302,6 @@ public final class CandidateRender {
      */
     public static HeightModel heightModel(MinecraftServer server, SpikeSampler.Base base,
                                           long seed, int coverage) {
-        return heightModel(server, base, seed, coverage, "unknown");
-    }
-
-    // TEMPORARY — marker-probe diagnostic for the missing-interpolated-marker
-    // investigation (the_red_monument reads 0 markers where the_starwell
-    // reads 8, from settings that trace to the same minecraft:end entry).
-    // Remove this overload, the dimensionLabel/rootClass/visitedClasses
-    // fields on MarkerCounts, and the marker-probe: log line in report()
-    // once that divergence is explained.
-    public static HeightModel heightModel(MinecraftServer server, SpikeSampler.Base base,
-                                          long seed, int coverage, String dimensionLabel) {
         int floorY = base.heightLimit().getBottomY();
         int topY = base.heightLimit().getTopY() - 1;
 
@@ -337,10 +326,8 @@ public final class CandidateRender {
         int cellHorizontal = shape == null ? 4 : shape.horizontalCellBlockCount();
         int shapeMinimumY = shape == null ? floorY : shape.minimumY();
 
-        DensityFunction rootDensity = raw == null ? null : raw.noiseRouter().finalDensity();
-        String rootClass = rootDensity == null ? "null" : rootDensity.getClass().getName();
-        boolean trivialDensity = rootDensity != null && isConstant(rootDensity);
-        MarkerCounts counts = new MarkerCounts(trivialDensity, dimensionLabel, rootClass);
+        boolean trivialDensity = raw != null && isConstant(raw.noiseRouter().finalDensity());
+        MarkerCounts counts = new MarkerCounts(trivialDensity);
         ChunkGeneratorSettings shapeSettings = climateAndShape(raw,
                 new WrapperRewrite(counts, cellHorizontal, band.cellHeight(), shapeMinimumY));
         TerrainShape.Calibration calibration = new TerrainShape.Calibration(0, 0, true);
@@ -411,15 +398,9 @@ public final class CandidateRender {
                 new java.util.concurrent.atomic.AtomicInteger();
         /** Whether the whole final density is a bare constant — nothing can ever interpolate across it. */
         final boolean trivialDensity;
-        // TEMPORARY — marker-probe diagnostic, see heightModel's overload.
-        final String dimensionLabel;
-        final String rootClass;
-        final java.util.Set<String> visitedClasses = new java.util.LinkedHashSet<>();
 
-        MarkerCounts(boolean trivialDensity, String dimensionLabel, String rootClass) {
+        MarkerCounts(boolean trivialDensity) {
             this.trivialDensity = trivialDensity;
-            this.dimensionLabel = dimensionLabel;
-            this.rootClass = rootClass;
         }
 
         /** Says what the rewrite found, once the first seeding has resolved it. */
@@ -464,15 +445,6 @@ public final class CandidateRender {
                     + "marker(s) and left {} uncached for reading y",
                     this.interpolated.get(), this.columnCached.get(),
                     this.columnRefused.get());
-            // TEMPORARY — marker-probe: dim/root class plus which non-Wrapper
-            // classes the traversal actually reached, greppable by the
-            // "marker-probe:" prefix. Remove with the rest of this diagnostic.
-            com.customdimensions.MultiverseServer.LOGGER.info(
-                    "marker-probe: dim={} root={} interpolated={} unrecognisedById={} "
-                    + "visitedNonWrapperClasses={} sample={}",
-                    this.dimensionLabel, this.rootClass, this.interpolated.get(),
-                    this.unrecognisedMarker.get(), this.visitedClasses.size(),
-                    this.visitedClasses);
         }
     }
 
@@ -566,9 +538,6 @@ public final class CandidateRender {
         @Override
         public DensityFunction apply(DensityFunction function) {
             if (!(function instanceof DensityFunctionTypes.Wrapper wrapper)) {
-                // TEMPORARY — marker-probe: records which classes the
-                // traversal actually reaches. Remove with the rest of it.
-                this.counts.visitedClasses.add(function.getClass().getName());
                 if (isMarkerByRegistryId(function)) {
                     this.counts.unrecognisedMarker.incrementAndGet();
                 }
@@ -1004,9 +973,7 @@ public final class CandidateRender {
         // The shape half of the router, kept beside the climate half so one
         // NoiseConfig answers both the biome and where the ground is.
         long modelStart = System.nanoTime();
-        // TEMPORARY: dimensionId.toString() feeds the marker-probe diagnostic
-        // in heightModel's overload — see the removal note there.
-        final HeightModel model = heightModel(server, base, seed, coverage, dimensionId.toString());
+        final HeightModel model = heightModel(server, base, seed, coverage);
         long modelNanos = System.nanoTime() - modelStart;
         final Integer seaLevel = model.seaLevel();
         com.customdimensions.MultiverseServer.LOGGER.debug(
