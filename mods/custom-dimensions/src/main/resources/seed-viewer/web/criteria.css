@@ -8,8 +8,7 @@
 
 /* dartboard.js builds this button in JS; the design system only positions the
  * two that are authored in the template, so it lands wherever the flow leaves
- * it without this. Same corner and same size as .lb-structs-toggle, which
- * sits along the bottom edge beside it. */
+ * it without this. */
 #lightbox .lb-image .lb-dart-toggle {
   position: absolute;
   left: 0.6rem;

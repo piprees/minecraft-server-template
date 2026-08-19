@@ -343,6 +343,25 @@ public final class SeedBank {
                         Instant.now().toString()));
     }
 
+    /**
+     * How many seeds the dimension's most recent tier-1 screen measured, from
+     * {@code screened.json} — overwritten each screen, so this is the last
+     * pass's size, not a lifetime total. Zero when the dimension has never
+     * been screened, or the file is unreadable.
+     */
+    public static int screenedCount(String inputHash, String dimension) {
+        Path p = screenedPath(inputHash, dimension);
+        if (!Files.isRegularFile(p)) {
+            return 0;
+        }
+        try {
+            JsonObject root = JsonParser.parseString(Files.readString(p)).getAsJsonObject();
+            return root.has("screened") ? root.get("screened").getAsInt() : 0;
+        } catch (IOException | RuntimeException e) {
+            return 0;
+        }
+    }
+
     static String screenedJson(String dimension, Map<Long, Double> scores,
                                String stackVersion, String generatedAt) {
         StringBuilder b = new StringBuilder("{\n \"kind\": \"seed-screened\",\n");

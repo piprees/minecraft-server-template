@@ -47,7 +47,7 @@ public final class BankView {
     public record DimensionView(String slug, Identifier id, DimensionConfig config, String inputHash,
                                 boolean rollable, List<CandidateView> candidates, int rejected,
                                 List<Long> frontierSeeds, Long currentSeed, Long startingSeed,
-                                int banked, boolean picked) {
+                                int banked, boolean picked, int screened) {
     }
 
     /** One card, with the scorecard's own per-criterion entries and the role it is shown for. */
@@ -165,7 +165,8 @@ public final class BankView {
         }
         return new DimensionView(id.getPath(), id, def, inputHash, Roller.rollable(def),
                 candidates, SeedBank.rejectedSeeds(inputHash, dimension).size(), frontierSeeds,
-                current, starting, ranked.size(), picked != null);
+                current, starting, ranked.size(), picked != null,
+                SeedBank.screenedCount(inputHash, dimension));
     }
 
     /**

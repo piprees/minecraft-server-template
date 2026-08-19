@@ -1616,27 +1616,6 @@ body.show-borders .img-wrap img {
   image-rendering: pixelated;
   display: block;
 }
-#lightbox .lb-structs-toggle {
-  position: absolute;
-  left: 5.6rem;
-  bottom: 0.6rem;
-  z-index: 6;
-  font-size: 0.75rem;
-  font-family: inherit;
-  padding: 0.25rem 0.55rem;
-  border-radius: 4px;
-  border: 1px solid var(--edge);
-  cursor: pointer;
-  background: rgba(16, 18, 22, 0.8);
-  color: var(--text);
-}
-#lightbox .lb-structs-toggle[aria-pressed='false'] {
-  opacity: 0.5;
-}
-#lightbox .lb-structs-toggle:focus-visible {
-  outline: 2px solid var(--action);
-  outline-offset: 2px;
-}
 #lightbox .lb-res-toggle {
   position: absolute;
   right: 0.6rem;
@@ -2143,10 +2122,6 @@ details.incidental .mrow {
   opacity: 0.7;
   font-variant-numeric: tabular-nums;
 }
-#lightbox .lb-structs-toggle:disabled {
-  opacity: 0.45;
-  cursor: default;
-}
 .sr-only {
   position: absolute;
   width: 1px;
@@ -2191,7 +2166,7 @@ details.incidental .mrow {
   flex: none;
   white-space: nowrap;
 }
-.roller-group, .view-toggles {
+.roller-group, .render-group, .view-toggles {
   display: flex;
   align-items: center;
   gap: 0.3rem;
@@ -2219,6 +2194,10 @@ details.incidental .mrow {
 .icon-btn.running {
   color: var(--score-red);
   border-color: #6b3030;
+}
+.icon-btn.paused {
+  color: var(--score-amber);
+  border-color: #6b5a2a;
 }
 .icon-toggle {
   position: relative;

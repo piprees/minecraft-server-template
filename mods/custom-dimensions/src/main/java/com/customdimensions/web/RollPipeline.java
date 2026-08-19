@@ -630,7 +630,7 @@ public final class RollPipeline {
      * what the config names right now ({@link SeedRoster.Role#CURRENT}), and
      * every seed kept by hand ({@link com.customdimensions.roll.Shortlist}).
      */
-    private static java.util.Set<Long> protectedSeeds(DimensionConfig def, String dimension) {
+    static java.util.Set<Long> protectedSeeds(DimensionConfig def, String dimension) {
         java.util.Set<Long> out = new java.util.LinkedHashSet<>(
                 com.customdimensions.roll.Shortlist.of(dimension));
         Long starting = def.getSeed();
@@ -888,6 +888,8 @@ public final class RollPipeline {
         // Split out because the two are not interchangeable: thumbnails are
         // what makes the page reviewable, and a detail render yields to them.
         b.append(", \"thumbnails_pending\": ").append(RenderQueue.thumbnailsPending());
+        b.append(", \"render_paused_low\": ").append(RenderQueue.lowPaused());
+        b.append(", \"render_paused_high\": ").append(RenderQueue.highPaused());
         b.append(", \"rendering_low\": [").append(RenderQueue.current().isEmpty()
                 ? "" : Json.quote(RenderQueue.current())).append("]");
         // The one candidate whose detail map is being drawn, spelled exactly

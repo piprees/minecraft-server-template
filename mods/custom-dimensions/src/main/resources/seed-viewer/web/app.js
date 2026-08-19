@@ -6,8 +6,8 @@
  * every block was already an IIFE reading elements declared above it, so
  * that is strictly safer than it was.
  *
- * `openConfigDialog` is still assigned to window: the New dimension
- * button carries an inline onclick.
+ * `openConfigDialog` opens the fork/configure dialog; only this file
+ * calls it, via the create-dim/configure action buttons below.
  */
 
 ;(function () {
@@ -774,6 +774,33 @@
     el.hidden = visibleCount > 0
   }
 
+  // Recomputed off visibleDimensions() every filter change narrows it, so it
+  // agrees with grouped AND ungrouped view alike — ungrouped mode never sets
+  // .dim-card.hidden, only its own clones in #ungrouped-grid, so that class
+  // alone cannot answer "what is shown" in both modes. Reads data-cands and
+  // data-screened (SeedBank totals) off each dimension's card rather than
+  // roster-limited counts; "shortlisted" counts .cand[data-shortlisted]
+  // directly, since every shortlisted seed is always drawn as its own card.
+  var summaryStatsEl = document.getElementById('summary-stats')
+  function updateSummaryStats() {
+    if (!summaryStatsEl) return
+    var names = visibleDimensions()
+    var rolled = 0, seeds = 0, candidates = 0, shortlisted = 0, flagged = 0
+    names.forEach(function (name) {
+      var card = document.querySelector('.dim-card[data-name="' + CSS.escape(name) + '"]')
+      if (!card) return
+      var cands = parseInt(card.dataset.cands || '0', 10)
+      if (cands > 0) rolled++
+      candidates += cands
+      seeds += parseInt(card.dataset.screened || '0', 10)
+      shortlisted += card.querySelectorAll('.cand[data-shortlisted]').length
+      if (card.dataset.flagged === '1') flagged++
+    })
+    summaryStatsEl.innerHTML = '<b>' + rolled + '/' + names.length + '</b> dimensions rolled &middot; <b>'
+      + seeds + '</b> seeds checked &middot; <b>' + candidates + '</b> candidates &middot; <b>'
+      + shortlisted + '</b> shortlisted &middot; <b>' + flagged + '</b> flagged'
+  }
+
   function applyState() {
     document.querySelectorAll('.family-btn').forEach(function (b) {
       var active = b.dataset.family === state.family
@@ -842,6 +869,7 @@
       updateEmptyState(visible.length)
     }
     if (state.ungrouped) updateEmptyState(ugGrid.children.length)
+    updateSummaryStats()
     // The scatter honours the same filters; a scatter showing everything
     // while the grid shows one family answers a different question.
     if (window.refreshScatter) window.refreshScatter()
@@ -1639,17 +1667,14 @@
     $id('cd-parent-dim').value = mode === 'fork' ? dim : ''
     $id('cd-seed').value = seed || ''
     $id('cd-title').textContent =
-      mode === 'fork' ? 'Fork "' + dim + '" as new dimension' : mode === 'edit' ? 'Configure "' + dim + '"' : 'New dimension'
-    $id('cd-name').value = mode === 'fork' ? dim + '_fork' : mode === 'edit' ? dim : ''
+      mode === 'fork' ? 'Fork "' + dim + '" as new dimension' : 'Configure "' + dim + '"'
+    $id('cd-name').value = mode === 'fork' ? dim + '_fork' : dim
     $id('cd-name').readOnly = mode === 'edit'
     $id('cd-create').disabled = false
     $id('cd-create').textContent = mode === 'edit' ? 'Save' : 'Create'
-    var configPromise =
-      mode === 'create'
-        ? Promise.resolve({ config: {} })
-        : fetch('/dim-config?dim=' + encodeURIComponent(dim)).then(function (r) {
-            return r.json()
-          })
+    var configPromise = fetch('/dim-config?dim=' + encodeURIComponent(dim)).then(function (r) {
+      return r.json()
+    })
     Promise.all([fetchSchema(), configPromise]).then(function (results) {
       var cfg = (results[1] && results[1].config) || {}
       $id('cd-desc').value = mode === 'edit' ? cfg.description || '' : ''
@@ -1775,7 +1800,25 @@
   var textEl = document.getElementById('rp-text')
   var dimEl = document.getElementById('roll-dim')
   var statusEl = document.getElementById('roll-status')
+  var renderLowBtn = document.getElementById('render-low-toggle')
+  var renderHighBtn = document.getElementById('render-high-toggle')
   if (!toggleBtn) return
+
+  // The two render queues pause independently of the roller and of each
+  // other — a stuck detail render must not block thumbnails, or the reverse.
+  function toggleRenderPause (kind, btn) {
+    var paused = btn.classList.contains('paused')
+    btn.disabled = true
+    post('/render/' + kind + '/' + (paused ? 'resume' : 'pause')).then(function () {
+      btn.disabled = false
+    })
+  }
+  if (renderLowBtn) renderLowBtn.addEventListener('click', function () {
+    toggleRenderPause('low', renderLowBtn)
+  })
+  if (renderHighBtn) renderHighBtn.addEventListener('click', function () {
+    toggleRenderPause('high', renderHighBtn)
+  })
 
   var lastGeneration = -1
   var running = false
@@ -1887,6 +1930,18 @@
             : st.surveyed + '/' + st.dimensions + ' dims · '
               + st.rolled + '/' + st.target + ' seeds · ' + doing
         }
+        if (renderLowBtn) {
+          renderLowBtn.classList.toggle('paused', !!st.render_paused_low)
+          renderLowBtn.textContent = (st.render_paused_low ? '▶' : '⏸') + ' low'
+          renderLowBtn.title = renderLowBtn.ariaLabel =
+            (st.render_paused_low ? 'Resume' : 'Pause') + ' low-res renders'
+        }
+        if (renderHighBtn) {
+          renderHighBtn.classList.toggle('paused', !!st.render_paused_high)
+          renderHighBtn.textContent = (st.render_paused_high ? '▶' : '⏸') + ' high'
+          renderHighBtn.title = renderHighBtn.ariaLabel =
+            (st.render_paused_high ? 'Resume' : 'Pause') + ' high-res renders'
+        }
         // Everything else that used to crowd the bar lives on the status
         // line under it, where it can wrap without reflowing the nav.
         var bits = []
@@ -1906,6 +1961,8 @@
         var lo = (st.rendering_low || [])[0]
         if (lo) bits.push('rendering ' + lo)
         if (st.render_pending) bits.push(st.render_pending + ' images queued')
+        if (st.render_paused_low) bits.push('low-res renders paused')
+        if (st.render_paused_high) bits.push('high-res renders paused')
         if (st.error) bits.push('error: ' + st.error)
         var detail = bits.join(' · ')
         // Second line under the counter, inside the nav group, so the

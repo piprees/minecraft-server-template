@@ -21,11 +21,13 @@
         if (r.error) {
           btn.textContent = r.error
           btn.disabled = false
+          delete btn.dataset.busy
           return
         }
         if (r.ready) {
           btn.textContent = 'Flying — fly around, then pick'
           btn.disabled = false
+          delete btn.dataset.busy
           return
         }
         // World creation is one per tick and generates its first chunks on
@@ -33,6 +35,7 @@
         if (attempt > 12) {
           btn.textContent = 'Still building — press again'
           btn.disabled = false
+          delete btn.dataset.busy
           return
         }
         btn.textContent = 'Building the world…'
@@ -41,6 +44,7 @@
       .catch(function () {
         btn.textContent = 'Could not reach the server'
         btn.disabled = false
+        delete btn.dataset.busy
       })
   }
 
@@ -48,6 +52,7 @@
     var go = e.target.closest('.action-btn.tryout')
     if (go) {
       go.disabled = true
+      go.dataset.busy = '1'
       go.textContent = 'Building the world…'
       enter(go, go.dataset.dim, go.dataset.seed, 0)
       return
@@ -55,11 +60,32 @@
     var back = e.target.closest('.action-btn.tryout-back')
     if (back) {
       back.disabled = true
+      back.dataset.busy = '1'
       back.textContent = 'Returning…'
       post('/tryout/back').then(function () {
         back.disabled = false
+        delete back.dataset.busy
         back.textContent = 'Back to spawn'
       })
     }
   })
+
+  // Both buttons need a player online to do anything — a try-out is a place
+  // you fly around in. The server bakes the initial state in; this corrects
+  // it as players join or leave without a page reload. /tryout/status
+  // already reports the online count for the "who is driving" question.
+  function applyOnlineState (online) {
+    document.querySelectorAll('.action-btn.tryout, .action-btn.tryout-back').forEach(function (btn) {
+      if (btn.dataset.busy === '1') return
+      btn.disabled = !online
+      btn.title = online ? '' : 'Join the server first — a try-out is a place you fly around in'
+    })
+  }
+  function pollOnline () {
+    fetch('/tryout/status').then(function (r) { return r.json() })
+      .then(function (d) { applyOnlineState((d.online || 0) > 0) })
+      .catch(function () {})
+      .then(function () { setTimeout(pollOnline, 5000) })
+  }
+  pollOnline()
 })()

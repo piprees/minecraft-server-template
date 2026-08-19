@@ -39,13 +39,15 @@ import java.util.stream.Stream;
  * maps while the rest show nothing is not. A roster that moves mid-roll puts a
  * new thumbnail straight to the front, ahead of high-res work already queued.
  *
- * <p>This queue draws thumbnails and nothing else. A detail map covers the
- * whole playable border rather than the 512 blocks around spawn — a grid
- * hundreds of times larger and minutes of work for ONE candidate — so it is
- * never queued speculatively. Queued for every candidate of every dimension it
- * only ever burned its share of the machine and finished none, and eighty-odd
- * of them are drawn for boards nobody opens. A detail map is drawn when
- * somebody opens the card that shows it, through {@code POST /render}.
+ * <p>Thumbnails for every roster seed, plus detail maps for the seeds the
+ * board protects from culling — current, starting, every shortlisted seed
+ * ({@link RollPipeline#protectedSeeds}). Those are the seeds a person keeps
+ * coming back to, so their whole-world map is worth having ready rather than
+ * drawn on demand. A detail map covers the whole playable border rather than
+ * the 512 blocks around spawn — a grid hundreds of times larger and minutes
+ * of work — so every OTHER candidate's is drawn only when somebody opens the
+ * card that shows it, through {@code POST /render}, never queued
+ * speculatively for a board nobody has looked at.
  *
  * <p>A seed pushed off the roster has its files deleted, so the bank never
  * accumulates maps nobody will open. A named seed is never pushed off — that
@@ -79,8 +81,31 @@ public final class RenderQueue {
      * is what the viewer sends to {@code /focus} and what
      * {@link com.customdimensions.web.RollPipeline} matches a roll target on,
      * so comparing a focus against anything else silently never matches.
+     * {@code thumbnail} is which of the two independent pause switches this
+     * job answers to.
      */
-    private record Job(int priority, long sequence, String key, String slug, Runnable work) {
+    private record Job(int priority, long sequence, String key, String slug, boolean thumbnail,
+                       Runnable work) {
+    }
+
+    /** Independent play/pause per resolution — a stuck detail render must not block thumbnails, or the reverse. */
+    private static final AtomicBoolean PAUSED_LOW = new AtomicBoolean();
+    private static final AtomicBoolean PAUSED_HIGH = new AtomicBoolean();
+
+    public static boolean lowPaused() {
+        return PAUSED_LOW.get();
+    }
+
+    public static boolean highPaused() {
+        return PAUSED_HIGH.get();
+    }
+
+    public static void setLowPaused(boolean paused) {
+        PAUSED_LOW.set(paused);
+    }
+
+    public static void setHighPaused(boolean paused) {
+        PAUSED_HIGH.set(paused);
     }
 
     /**
@@ -149,12 +174,11 @@ public final class RenderQueue {
 
     /**
      * Brings one dimension's renders in line with its roster: deletes what has
-     * dropped off it and queues the thumbnails that are missing.
-     *
-     * <p>Thumbnails only. A detail map is minutes of work for one candidate
-     * and is drawn when somebody opens that candidate's card, through
-     * {@code POST /render} — never queued speculatively for a board nobody has
-     * looked at.
+     * dropped off it, queues the thumbnails that are missing, and queues detail
+     * maps for the seeds {@link RollPipeline#protectedSeeds} names. Every other
+     * candidate's detail map is drawn only when somebody opens that candidate's
+     * card, through {@code POST /render} — never queued speculatively for a
+     * board nobody has looked at.
      */
     public static void reconcile(MinecraftServer server, DimensionConfig def) {
         ensureWorker();
@@ -171,6 +195,10 @@ public final class RenderQueue {
         for (SeedRoster.Slot slot : roster) {
             enqueue(server, def, id, hash, dimension, slot.seed(),
                     CandidateRender.Resolution.LOWRES, slot.role().pinned());
+        }
+        for (Long seed : RollPipeline.protectedSeeds(def, dimension)) {
+            enqueue(server, def, id, hash, dimension, seed,
+                    CandidateRender.Resolution.HIGHRES, true);
         }
     }
 
@@ -280,7 +308,7 @@ public final class RenderQueue {
                         // Still QUEUED and still PENDING — it is deferred, not
                         // dropped, and the counters must not say otherwise.
                         QUEUE.add(new Job(PRIORITY_HIGHRES, SEQUENCE.incrementAndGet(),
-                                key, slug, this));
+                                key, slug, false, this));
                     } else {
                         QUEUED.remove(key);
                         PENDING.decrementAndGet();
@@ -291,7 +319,7 @@ public final class RenderQueue {
                 }
             }
         };
-        QUEUE.add(new Job(priority, SEQUENCE.incrementAndGet(), key, slug, work));
+        QUEUE.add(new Job(priority, SEQUENCE.incrementAndGet(), key, slug, thumbnail, work));
     }
 
     /**
@@ -305,7 +333,12 @@ public final class RenderQueue {
         Thread worker = new Thread(() -> {
             while (true) {
                 try {
-                    QUEUE.take().work().run();
+                    Job job = takeRunnable();
+                    if (job == null) {
+                        Thread.sleep(500);
+                        continue;
+                    }
+                    job.work().run();
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                     return;
@@ -316,6 +349,35 @@ public final class RenderQueue {
         }, "customdim-render-queue");
         worker.setDaemon(true);
         worker.start();
+    }
+
+    /**
+     * The next job whose resolution is not paused, or null when everything
+     * currently queued is. Jobs of the paused kind are put straight back
+     * rather than dropped — pausing defers work, it never discards it.
+     */
+    private static Job takeRunnable() throws InterruptedException {
+        Job first = QUEUE.take();
+        if (!isPaused(first)) {
+            return first;
+        }
+        List<Job> skipped = new ArrayList<>();
+        skipped.add(first);
+        Job found = null;
+        Job j;
+        while ((j = QUEUE.poll()) != null) {
+            if (!isPaused(j)) {
+                found = j;
+                break;
+            }
+            skipped.add(j);
+        }
+        QUEUE.addAll(skipped);
+        return found;
+    }
+
+    private static boolean isPaused(Job job) {
+        return job.thumbnail() ? PAUSED_LOW.get() : PAUSED_HIGH.get();
     }
 
     /**

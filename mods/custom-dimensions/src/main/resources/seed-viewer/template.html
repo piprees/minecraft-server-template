@@ -117,13 +117,16 @@
       >
     </span>
 
-    <button type="button" class="action-btn nav-right" id="new-dim-btn" onclick="openConfigDialog('create', '', '')">
-      New dimension
-    </button>
+    <span class="nav-sep" aria-hidden="true"></span>
+
+    <span class="render-group">
+      <button type="button" id="render-low-toggle" class="icon-btn" aria-label="Pause low-res renders" title="Pause low-res renders">⏸ low</button>
+      <button type="button" id="render-high-toggle" class="icon-btn" aria-label="Pause high-res renders" title="Pause high-res renders">⏸ high</button>
+    </span>
   </div>
 
   <h1 class="sr-only">Dimension seed candidates</h1>
-  <p class="summary">{{SUMMARY_STATS}}</p>
+  <p class="summary" id="summary-stats">{{SUMMARY_STATS}}</p>
   <p class="summary" id="roll-status" aria-live="polite"></p>
 
   <!-- Grouped mode: dimension cards -->
@@ -288,9 +291,6 @@
              draws the criteria annotating them. Both carry .lb-layer, which
              is what window.alignLbOverlay() measures and positions. -->
         <svg id="lb-overlay" class="lb-layer" viewBox="0 0 100 100" preserveAspectRatio="none"></svg>
-        <button type="button" class="lb-structs-toggle" aria-pressed="true" title="Toggle structure markers">
-          Structures
-        </button>
         <!-- Two jobs, one button. When this candidate's whole-world render
              already exists it swaps between that and the 512-block spawn view
              (see lbMapCoverage in app.js for why the two are not
