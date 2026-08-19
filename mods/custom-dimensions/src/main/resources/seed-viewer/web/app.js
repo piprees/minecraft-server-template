@@ -765,28 +765,6 @@
     })
   }
 
-  // --- Review progress: dims with a pinned winner, shortlisted seed, or hidden ---
-  function updateProgress() {
-    var cards = document.querySelectorAll('.dim-card')
-    var total = cards.length,
-      done = 0
-    cards.forEach(function (c) {
-      if (c.dataset.pinned === '1' || c.dataset.shortlisted === '1' || c.dataset.hidden === '1') done++
-    })
-    var el = document.getElementById('review-progress')
-    if (!el) return
-    // A bar, not a sentence. This is the one number that answers "how much of
-    // this job is left" across a session measured in hours, and it was
-    // previously a long clause nobody would re-read on every filter change.
-    var pct = total ? Math.round((done / total) * 100) : 0
-    el.innerHTML =
-      '<span class="review-meter" role="img" aria-label="' +
-      done + ' of ' + total + ' dimensions reviewed">' +
-      '<span class="review-meter-fill" style="width:' + pct + '%"></span></span>' +
-      '<b>' + done + '</b> of <b>' + total + '</b> dimensions reviewed' +
-      '<span class="review-note"> — pinned, shortlisted or hidden counts as reviewed</span>'
-  }
-
   // The filtered set going empty used to render as blank space under a stats
   // line that still claimed "81 dimensions", so a typo'd search was
   // indistinguishable from a broken page.
@@ -864,7 +842,6 @@
       updateEmptyState(visible.length)
     }
     if (state.ungrouped) updateEmptyState(ugGrid.children.length)
-    updateProgress()
     // The scatter honours the same filters; a scatter showing everything
     // while the grid shows one family answers a different question.
     if (window.refreshScatter) window.refreshScatter()
@@ -1331,8 +1308,7 @@
           if (cardEl) {
             cardEl.dataset.shortlisted = cardEl.querySelector('.cand[data-shortlisted]') ? '1' : '0'
           }
-          updateProgress()
-        })
+              })
       return
     }
   }
@@ -1839,10 +1815,10 @@
           : running ? 'Stop rolling' : 'Start rolling'
         dimEl.disabled = running
         if (running && st.dimensions) {
-          // Measured in DIMENSIONS, not seeds. Seeds are a budget a run is
-          // meant to come in under — a dimension stops at ten candidates —
-          // so a bar reading rolled/target would sit near empty and then
-          // jump, reporting a finished run as barely started.
+          // The BAR is dimensions, the text is seeds. A screen spends its
+          // whole seed budget unless cancelled or told to yield, so the two
+          // agree; the seed count is the live one, since a dimension mid-sweep
+          // moves no dimension counter at all.
           // Rolling finishes long before rendering does; a bar pinned at
           // 100% for that tail would read as done, so it goes indeterminate
           // once there is nothing left to count.
@@ -1850,9 +1826,19 @@
           fillEl.classList.toggle('indeterminate', doneRolling)
           fillEl.style.width = doneRolling
             ? '' : Math.min(100, st.surveyed / st.dimensions * 100) + '%'
+          // Tier 1 sweeps the seed budget; tier 2 then measures the ten it
+          // shortlisted, one at a time, and moves no counter at all. Naming
+          // the phase is the difference between "stuck" and "working".
+          var phase = (st.stage || '').split(' ')[0]
+          var doing = phase === 'rolling' ? 'measuring shortlist'
+            : phase === 'scoring' ? 'scoring named seeds'
+            : phase
+          var pend = (st.render_pending || 0) + (st.thumbnails_pending || 0)
+          if (pend) doing += ' · ' + pend + ' render' + (pend === 1 ? '' : 's') + ' queued'
           textEl.textContent = doneRolling
             ? st.stage.replace('_', ' ')
-            : st.surveyed + '/' + st.dimensions + ' dims · ' + st.rolled + ' seeds'
+            : st.surveyed + '/' + st.dimensions + ' dims · '
+              + st.rolled + '/' + st.target + ' seeds · ' + doing
         }
         // Everything else that used to crowd the bar lives on the status
         // line under it, where it can wrap without reflowing the nav.

@@ -65,19 +65,24 @@ public final class RollPipeline {
     public static final double SCORE_THRESHOLD = 80.0;
 
     /**
-     * Scored candidates a dimension needs before a roll leaves it alone,
-     * matched to {@link RenderQueue#KEEP} — a dimension shows only that many
-     * ranked seeds beside its named ones, so a sixth costs seeds and shows
-     * nobody anything.
-     *
-     * <p>Rank decides what counts, not an absolute score: {@link #banked}
-     * returns every seed that cleared this dimension's gates, ranked
-     * descending by {@link com.customdimensions.roll.SeedBank#leaderboard}, so
-     * a roll stops once it holds its best {@code WANTED} rather than spending
-     * its whole per-dimension seed budget chasing {@link #SCORE_THRESHOLD} on
-     * every roll.
+     * How many candidates a healthy board should hold, matched to {@link
+     * RenderQueue#KEEP} — a dimension shows only that many ranked seeds
+     * beside its named ones. Gates nothing: every roll asks for {@code count}
+     * MORE candidates for every dimension it targets, whatever it already
+     * holds. Only read afterwards, to report a dimension that ended below
+     * this via {@link #STARVED} — its gates reject too much to fill it, not
+     * that nothing was asked of it.
      */
     private static final int WANTED = RenderQueue.KEEP;
+
+    /**
+     * How many candidates a dimension's bank keeps on disk. A roll that
+     * measures new seeds re-ranks the whole bank afterwards and deletes
+     * anything beyond this — matched to {@link Roller#SHORTLIST}, since a
+     * board is never asked to hold more than tier 1 could shortlist in one
+     * pass. {@link #protectedSeeds} survive regardless of rank.
+     */
+    private static final int BOARD_LIMIT = Roller.SHORTLIST;
 
     /** Dimensions that spent their seeds without reaching {@link #WANTED}. */
     private static final java.util.Set<String> STARVED =
@@ -106,6 +111,7 @@ public final class RollPipeline {
     private static final AtomicInteger TARGET = new AtomicInteger();
     /** Dimensions this run will visit — what progress is actually measured against. */
     private static final AtomicInteger DIMENSIONS = new AtomicInteger();
+    /** Seeds measured so far, counted as each one lands rather than per dimension. */
     private static final AtomicInteger ROLLED = new AtomicInteger();
     private static final AtomicInteger SURVEYED = new AtomicInteger();
     private static final AtomicInteger GENERATION = new AtomicInteger();
@@ -164,21 +170,15 @@ public final class RollPipeline {
         FOCUS.set("");
         UNSERVED_FOCUS.set("");
         STARVED.clear();
-        // A ceiling, not a plan: a full sweep skips a dimension that already
-        // holds WANTED candidates, so it rolls far fewer seeds than this. A
-        // top-up rolls every dimension it was given and comes closer.
+        // count MORE seeds per targeted dimension: every dimension in
+        // targets is rolled, whatever its board already holds.
         TARGET.set(count * targets.size());
         DIMENSIONS.set(targets.size());
         ROLLED.set(0);
         SURVEYED.set(0);
         STAGE.set("rolling");
         com.customdimensions.roll.CandidateRender.rolling(true);
-        // Naming dimensions — one, or a filtered list of them — is a request
-        // for MORE candidates, so each rolls whatever it already holds. A
-        // sweep over the whole pack is a resume, and skips the boards that
-        // are already full.
-        boolean topUp = ordered || (dimension != null && !dimension.isBlank());
-        Thread worker = new Thread(() -> run(server, targets, count, topUp), "customdim-roll");
+        Thread worker = new Thread(() -> run(server, targets, count), "customdim-roll");
         worker.setDaemon(true);
         worker.start();
         return null;
@@ -341,8 +341,7 @@ public final class RollPipeline {
                 - com.customdimensions.roll.CandidateRender.renderCores());
     }
 
-    private static void run(MinecraftServer server, List<DimensionConfig> targets, int count,
-                            boolean topUp) {
+    private static void run(MinecraftServer server, List<DimensionConfig> targets, int count) {
         int budget = workers();
         // One thread per target dimension. These threads mostly block on
         // measurePool below rather than doing CPU work themselves, so their
@@ -376,7 +375,7 @@ public final class RollPipeline {
                 futures.add(pool.submit(() -> {
                     DimensionConfig def;
                     while ((def = nextTarget(pending)) != null) {
-                        rollOne(server, def, count, topUp, measurePool, budget);
+                        rollOne(server, def, count, measurePool, budget);
                     }
                 }));
             }
@@ -505,8 +504,10 @@ public final class RollPipeline {
     }
 
     /**
-     * Rolls one dimension until it holds {@link #WANTED} candidates, or its
-     * pool of seeds is spent.
+     * Rolls one dimension for {@code count} MORE seeds, until its pool is
+     * spent. Never skipped for already holding candidates — asking for a
+     * roll means N more for every targeted dimension, whatever its board
+     * already holds.
      *
      * <p>Two tiers, not a flat search. {@link Roller#screenShortlist} sweeps
      * {@code count} seeds cheaply — no per-seed terrain router — and ranks
@@ -515,36 +516,32 @@ public final class RollPipeline {
      * other dimension currently screening — see {@link #run}); the loop
      * below, over the shortlist alone, calls {@link Roller#measureOne} — a
      * full measurement, ~a hundred core-seconds on a modded dimension — one
-     * at a time, exactly as a roll always has, and stops the moment
-     * {@link #WANTED} is banked rather than spending the rest of the
-     * shortlist. A dimension that already has enough is skipped before
-     * either tier runs.
+     * at a time for EVERY shortlisted seed, never stopping early: tier 1's
+     * cheap rank is not the final score, so stopping early would bank the
+     * first few of the shortlist rather than its best few. The bank is
+     * culled to {@link #BOARD_LIMIT} afterwards, and its new best is
+     * promoted to current (see {@link #promoteBest}).
      *
      * <p>{@code count} is now the tier-1 POOL size, not a ceiling that never
      * bound: the sweep is a search over the whole pool, not a stream that
      * stopped at the first few survivors, so a dimension whose gates reject
      * nearly everything still gets a fair shortlist to draw from.
-     * {@link #STARVED} records a dimension that fell short even so.
+     * {@link #STARVED} records a dimension that fell short of {@link #WANTED}
+     * even so.
      */
     private static void rollOne(MinecraftServer server, DimensionConfig def, int count,
-                                boolean topUp, java.util.concurrent.ExecutorService measurePool,
+                                java.util.concurrent.ExecutorService measurePool,
                                 int measureParallelism) {
         Identifier id = def.getDimensionIdentifier();
         String hash = com.customdimensions.command.InputHash.of(def, server);
         String dimension = id.toString();
-        // The seeds this dimension already has, before any it might get. They
-        // are what the rest of the board is compared against, so an unscored
-        // one makes the whole comparison unavailable — and a full board is no
-        // reason to skip it, since the configured seed is not a candidate and
-        // never counted toward WANTED.
+        // The seeds this dimension already has, before any it might get —
+        // what the rest of the board is compared against, so an unscored one
+        // makes the whole comparison unavailable. The configured seed itself
+        // is never a candidate and never counts toward WANTED.
         CURRENT.set(id.getPath());
         STAGE.set("scoring the named seeds for " + id.getPath());
         measureNamed(server, def);
-        if (!topUp && banked(hash, dimension) >= WANTED) {
-            RenderQueue.reconcile(server, def);
-            SURVEYED.incrementAndGet();
-            return;
-        }
         STAGE.set("screening " + id.getPath());
         long tier1Start = System.nanoTime();
         java.util.List<Long> shortlist;
@@ -555,7 +552,7 @@ public final class RollPipeline {
         java.util.function.BooleanSupplier abandonScreen = () -> CANCEL.get() || yieldTo(def);
         try {
             Roller.Screen screen = Roller.screenShortlist(server, id, def, count, abandonScreen,
-                    measurePool, measureParallelism);
+                    measurePool, measureParallelism, ROLLED::incrementAndGet);
             shortlist = screen.shortlist();
             screened = screen.screened();
         } catch (RuntimeException e) {
@@ -582,7 +579,6 @@ public final class RollPipeline {
             YIELDED.offer(def);
             return;
         }
-        ROLLED.addAndGet(count);
         STAGE.set("rolling " + id.getPath());
         long tier2Start = System.nanoTime();
         int measured = 0;
@@ -627,6 +623,15 @@ public final class RollPipeline {
                 "roll: {} tier 2 measured {} of {} shortlisted seed(s) in {} ms ({} ms/seed)",
                 id.getPath(), measured, shortlist.size(), tier2Ms,
                 measured == 0 ? 0 : tier2Ms / (double) measured);
+        // The new seeds are already written (Roller.measureOne banks as it
+        // goes), so this leaderboard read is the CURRENT bank interleaved
+        // with what this roll just added — culling it to BOARD_LIMIT is
+        // exactly "top N of new, merged with current, trimmed" in one step.
+        if (measured > 0) {
+            com.customdimensions.roll.SeedBank.cullToTop(hash, dimension, BOARD_LIMIT,
+                    protectedSeeds(def, dimension));
+            promoteBest(server, id, hash, dimension);
+        }
         int got = banked(hash, dimension);
         if (got < WANTED && !CANCEL.get()) {
             STARVED.add(id.getPath() + " (" + got + "/" + WANTED + " from " + count
@@ -652,6 +657,89 @@ public final class RollPipeline {
      */
     private static int banked(String hash, String dimension) {
         return com.customdimensions.roll.SeedBank.leaderboard(hash, dimension).size();
+    }
+
+    /**
+     * Seeds {@link #BOARD_LIMIT} must never cull, whatever their rank: the
+     * world the server actually booted with ({@link SeedRoster.Role#STARTING}),
+     * what the config names right now ({@link SeedRoster.Role#CURRENT}), and
+     * every seed kept by hand ({@link com.customdimensions.roll.Shortlist}).
+     */
+    private static java.util.Set<Long> protectedSeeds(DimensionConfig def, String dimension) {
+        java.util.Set<Long> out = new java.util.LinkedHashSet<>(
+                com.customdimensions.roll.Shortlist.of(dimension));
+        Long starting = def.getSeed();
+        if (starting != null) {
+            out.add(starting);
+        }
+        Long current = BankView.currentSeed(def, starting);
+        if (current != null) {
+            out.add(current);
+        }
+        return out;
+    }
+
+    /**
+     * Writes this roll's best banked candidate into the overlay as the
+     * dimension's current seed, with the SPAWN THAT CANDIDATE ITSELF
+     * MEASURED — never a try-out position (nobody is standing anywhere
+     * during an unattended roll) and never the previous overlay's spawn,
+     * which would describe a different seed's terrain. Uses {@link
+     * Picker#pickWithSpawn}, the same overlay write {@link Picker#pick}
+     * ("Use this seed") uses, so it persists across a restart and is what
+     * {@link BankView#currentSeed} then reports. Overwrites unconditionally,
+     * a manual pick included: the straightforward reading of "the best seed
+     * is current" rather than one that has to know how the previous current
+     * seed was chosen. Never throws: a failed promote must not take the roll
+     * down with it.
+     */
+    private static void promoteBest(MinecraftServer server, Identifier id, String hash, String dimension) {
+        Long best = bestToPromote(com.customdimensions.roll.SeedBank.leaderboard(hash, dimension));
+        if (best == null) {
+            return;
+        }
+        int[] spawn = spawnToPromote(
+                com.customdimensions.roll.SeedBank.candidateFacts(hash, dimension, best));
+        if (spawn == null) {
+            MultiverseServer.LOGGER.info(
+                    "roll: {} promoting seed {} to current with no spawn — none was recorded for it",
+                    id.getPath(), best);
+        }
+        Picker.Result result = Picker.pickWithSpawn(server, id.getPath(), best, spawn);
+        if (!result.ok()) {
+            MultiverseServer.LOGGER.warn("Could not auto-promote seed {} for {}: {}",
+                    best, id.getPath(), result.message());
+        }
+    }
+
+    /**
+     * The seed a roll should promote to current, given what it banked — the
+     * top of the leaderboard, or nothing when the bank is empty. Pure, so
+     * the decision is pinned with no server or filesystem.
+     */
+    static Long bestToPromote(List<com.customdimensions.roll.SeedBank.CandidateSummary> ranked) {
+        return ranked.isEmpty() ? null : ranked.get(0).seed();
+    }
+
+    /**
+     * The spawn a promoted candidate's own measurement recorded, as
+     * {@code [x, y, z]} — {@code surfaceHeight} IS the player's feet, not
+     * the ground beneath them ({@code FactsEngine}'s own hazard check reads
+     * it that way). Null when the candidate is unreadable or either half is
+     * unmeasured: an auto-promote must never write half a spawn, or one
+     * built from something other than this seed's own facts. Pure, so the
+     * decision is pinned with no server or filesystem.
+     */
+    static int[] spawnToPromote(com.customdimensions.facts.SeedFacts facts) {
+        if (facts == null) {
+            return null;
+        }
+        com.customdimensions.facts.SeedFacts.SpawnFacts spawn = facts.spawn();
+        if (!spawn.column().isPresent() || !spawn.surfaceHeight().isPresent()) {
+            return null;
+        }
+        com.customdimensions.facts.SeedFacts.Column column = spawn.column().value();
+        return new int[]{column.x(), spawn.surfaceHeight().value(), column.z()};
     }
 
     /**

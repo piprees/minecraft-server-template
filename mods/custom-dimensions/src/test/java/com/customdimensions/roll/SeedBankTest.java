@@ -17,10 +17,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * The candidate file's shape (round-trips through {@code parseSummary}), the
- * leaderboard's ranking and corruption-tolerance, and the rejected-seed set —
- * the properties {@code SeedBank} exists to hold. None of this touches a
- * filesystem: {@code writeCandidate}/{@code appendRejected}/{@code leaderboard}/
- * {@code rejectedSeeds} are the IO seam and are exercised live, not here.
+ * leaderboard's ranking and corruption-tolerance, the rejected-seed set, and
+ * which seeds a cull names — the properties {@code SeedBank} exists to hold.
+ * None of this touches a filesystem: {@code writeCandidate}/
+ * {@code appendRejected}/{@code leaderboard}/{@code rejectedSeeds}/
+ * {@code cullToTop} are the IO seam and are exercised live, not here.
  */
 class SeedBankTest {
 
@@ -186,6 +187,53 @@ class SeedBankTest {
         String body = SeedBank.rejectedJson("adventure:the_boneyard",
                 new java.util.LinkedHashMap<>(), "v1.2.3", "2026-08-10T00:00:00Z");
         assertTrue(SeedBank.parseRejectedSeeds(body).isEmpty());
+    }
+
+    // ---------------------------------------------------------------- cull
+
+    private static SeedBank.CandidateSummary summary(long seed, double percentage) {
+        return new SeedBank.CandidateSummary(seed, percentage / 10, 10.0, percentage, "SCORED");
+    }
+
+    @Test
+    void cullableKeepsTheTopNAndNamesTheRest() {
+        List<SeedBank.CandidateSummary> ranked = List.of(
+                summary(1L, 90.0), summary(2L, 80.0), summary(3L, 70.0));
+
+        List<Long> doomed = SeedBank.cullable(ranked, 2, Set.of());
+
+        assertEquals(List.of(3L), doomed, "only the seed ranked beyond keep=2 is named");
+    }
+
+    @Test
+    void cullableNeverNamesAProtectedSeedWhateverItsRank() {
+        List<SeedBank.CandidateSummary> ranked = List.of(
+                summary(1L, 90.0), summary(2L, 80.0), summary(3L, 70.0));
+
+        List<Long> doomed = SeedBank.cullable(ranked, 1, Set.of(2L, 3L));
+
+        assertTrue(doomed.isEmpty(), "2 and 3 rank beyond keep=1 but are protected");
+    }
+
+    @Test
+    void cullableIsANoOpWhenTheBankIsAtOrUnderTheLimit() {
+        List<SeedBank.CandidateSummary> ranked = List.of(summary(1L, 90.0), summary(2L, 80.0));
+
+        assertTrue(SeedBank.cullable(ranked, 10, Set.of()).isEmpty());
+    }
+
+    @Test
+    void cullableDoesNotTrimToTheDisplayCountOnlyToTheBoardLimit() {
+        // RollPipeline.WANTED (5, the display/starved threshold) must never
+        // leak into the bank's own retention ceiling — a dimension holding
+        // more than 5 is not trimmed back down to 5, only beyond BOARD_LIMIT
+        // (10, passed here as keep).
+        List<SeedBank.CandidateSummary> eightBanked = List.of(
+                summary(1L, 98.0), summary(2L, 95.0), summary(3L, 92.0), summary(4L, 89.0),
+                summary(5L, 86.0), summary(6L, 83.0), summary(7L, 80.0), summary(8L, 77.0));
+
+        assertTrue(SeedBank.cullable(eightBanked, 10, Set.of()).isEmpty(),
+                "eight candidates must all survive a cull to 10 — a roll always means N more");
     }
 
     // --------------------------------------------------------- path pinning

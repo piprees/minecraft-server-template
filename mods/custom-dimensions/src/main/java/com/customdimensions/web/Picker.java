@@ -69,6 +69,28 @@ public final class Picker {
         if (def == null) {
             return new Result(false, "No configured dimension " + dimensionSlug, null);
         }
+        int[] spawn = spawnFromTryOut(server, def.getDimensionIdentifier(), seed);
+        return write(server, def, dimensionSlug, seed, spawn);
+    }
+
+    /**
+     * The unattended write path: promotes {@code seed} to current with a
+     * SPECIFIC spawn (or {@code null} for none), rather than deriving one
+     * from a player standing in the candidate's try-out — a roll has nobody
+     * standing anywhere. Used only by {@code RollPipeline}'s auto-promote;
+     * {@link #pick} ("Use this seed") is unchanged and does not call this.
+     */
+    public static Result pickWithSpawn(MinecraftServer server, String dimensionSlug, long seed,
+                                       int[] spawn) {
+        DimensionConfig def = BankView.resolve(dimensionSlug);
+        if (def == null) {
+            return new Result(false, "No configured dimension " + dimensionSlug, null);
+        }
+        return write(server, def, dimensionSlug, seed, spawn);
+    }
+
+    private static Result write(MinecraftServer server, DimensionConfig def, String dimensionSlug,
+                                long seed, int[] spawn) {
         Path overlayDir = Artefacts.overlayDimensionsDir();
         if (!Files.isDirectory(overlayDir)) {
             return new Result(false, "The overlay is not mounted — set \"overrides\": {\"seed\": "
@@ -76,7 +98,6 @@ public final class Picker {
                     + dimensionSlug + ".json by hand", null);
         }
 
-        int[] spawn = spawnFromTryOut(server, def.getDimensionIdentifier(), seed);
         Path target = overlayDir.resolve(dimensionSlug + ".json");
         try {
             JsonObject root = Files.isRegularFile(target)

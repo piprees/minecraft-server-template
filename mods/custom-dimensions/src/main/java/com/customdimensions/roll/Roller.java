@@ -175,7 +175,8 @@ public final class Roller {
     private static int rollParallel(LongPredicate alreadyTried, LongSupplier seeds,
                                     Measurer measurer, Sink sink, Budget budget,
                                     java.util.function.BooleanSupplier abandonIf,
-                                    ExecutorService pool, int parallelism) {
+                                    ExecutorService pool, int parallelism,
+                                    Runnable onMeasured) {
         int attempts = 0;
         int measured = 0;
         Set<Long> inFlight = new LinkedHashSet<>();
@@ -207,6 +208,7 @@ public final class Roller {
             }
             inFlight.remove(draw.seed());
             measured++;
+            onMeasured.run();
             if (draw.verdict() == Scorecard.Verdict.SCORED) {
                 sink.scored(draw.seed(), draw.achieved(), draw.ceiling());
             } else {
@@ -331,7 +333,8 @@ public final class Roller {
     public static Screen screenShortlist(MinecraftServer server, Identifier dimensionId,
                                              DimensionConfig def, int count,
                                              java.util.function.BooleanSupplier abandonIf,
-                                             ExecutorService measurePool, int parallelism) {
+                                             ExecutorService measurePool, int parallelism,
+                                             Runnable onMeasured) {
         String dimension = dimensionId.toString();
         String inputHash = InputHash.of(def, server);
         Set<Long> tried = new LinkedHashSet<>(SeedBank.alreadyTriedSeeds(inputHash, dimension));
@@ -374,7 +377,8 @@ public final class Roller {
             }
         };
         int screenedCount = rollParallel(seed -> tried.contains(seed), random::nextLong, tier1, sink,
-                Budget.seeds(count), abandonIf, measurePool, Math.max(1, parallelism));
+                Budget.seeds(count), abandonIf, measurePool, Math.max(1, parallelism),
+                onMeasured);
         // A screen that measured nothing has nothing to say about the pool, and
         // the record it would write is indistinguishable from one whose every
         // seed was rejected. Writing it destroys the previous screen's ranks,

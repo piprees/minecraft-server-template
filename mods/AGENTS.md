@@ -38,6 +38,21 @@ mise exec -- ./gradlew build          # output: build/libs/<mod>-<version>.jar
 - **Never run a bare synchronous `/locate` into an ungenerated custom dimension** — it blocks the main thread long enough to wedge RCON while `docker ps` stays healthy (recover with `docker stop -t 90 mc && docker start mc`). Use `/customdim structure-census`.
 - **Log counts, not just events.** An "activated" line alone looks healthy in every broken state.
 
+## Seed roller invariants
+
+These are load-bearing product behaviour, not optimisations. Both are covered
+by tests — if a change makes one fail, the change is wrong, not the test.
+
+- **A roll always appends.** Asking for N seeds means N MORE for every targeted
+  dimension, whatever its board already holds. Never skip a dimension because
+  it is already full; the point of a roll is to find candidates that beat what
+  is there.
+- **The best banked seed becomes CURRENT after a roll**, written to the overlay
+  so it survives a restart. `POST /pick` ("Use this seed") is a manual override
+  and is a separate path.
+- **Tier 1 spends its whole seed budget**, stopping only on cancel or a yield to
+  a dimension opened in the viewer. Tier 2 measures every shortlisted seed.
+
 ## Portal system
 
 Full internals, plus the aura and immersive rules: [docs/mod-internals/portals.md](../docs/mod-internals/portals.md).

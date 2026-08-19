@@ -483,18 +483,6 @@
     border-left: 1px solid var(--color-card);
   }
 
-  /* Review meter — the one number that answers "how much of this job is
-     left" across a multi-hour session. */
-  .review-meter {
-    @apply bg-secondary mr-2 inline-block h-1.5 w-32 overflow-hidden rounded-full align-middle;
-  }
-  .review-meter-fill {
-    @apply bg-primary block h-full rounded-full;
-    transition: width 0.25s ease-out;
-  }
-  .review-note {
-    @apply text-muted-foreground;
-  }
   /* Empty state teaches the way out rather than saying "nothing here". */
   .empty-state {
     @apply text-muted-foreground border-border mt-4 flex items-center gap-3
