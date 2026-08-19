@@ -118,7 +118,8 @@ public final class RollPipeline {
     private static final AtomicInteger DIMENSIONS = new AtomicInteger();
     /** Seeds measured so far, counted as each one lands rather than per dimension. */
     private static final AtomicInteger ROLLED = new AtomicInteger();
-    /** The shortlist tier 2 is working through, and how far in it is. */
+    /** Shortlisted seeds this run, and how many are measured. Run-wide totals:
+     * dimensions roll concurrently, so a per-dimension ratio would be stomped. */
     private static final AtomicInteger SHORTLISTED = new AtomicInteger();
     private static final AtomicInteger SHORTLIST_DONE = new AtomicInteger();
     /** Seeds that cleared tier 1's gates — the pool the shortlist was taken from. */
@@ -184,6 +185,9 @@ public final class RollPipeline {
         DIMENSIONS.set(targets.size());
         ROLLED.set(0);
         SURVEYED.set(0);
+        PASSED.set(0);
+        SHORTLISTED.set(0);
+        SHORTLIST_DONE.set(0);
         STAGE.set("rolling");
         com.customdimensions.roll.CandidateRender.rolling(true);
         Thread worker = new Thread(() -> run(server, targets, count), "customdim-roll");
@@ -533,7 +537,7 @@ public final class RollPipeline {
                     measurePool, measureParallelism, ROLLED::incrementAndGet);
             shortlist = screen.shortlist();
             screened = screen.screened();
-            PASSED.set(screen.survivors());
+            PASSED.addAndGet(screen.survivors());
         } catch (RuntimeException e) {
             MultiverseServer.LOGGER.error("Roll failed for {}", id, e);
             ERROR.set(id.getPath() + ": " + e);
@@ -553,8 +557,7 @@ public final class RollPipeline {
             return;
         }
         STAGE.set("rolling " + id.getPath());
-        SHORTLISTED.set(shortlist.size());
-        SHORTLIST_DONE.set(0);
+        SHORTLISTED.addAndGet(shortlist.size());
         long tier2Start = System.nanoTime();
         // EVERY shortlisted seed, not the first WANTED of them. Tier 1 ranks on
         // structures and biome alone, so its order is not the order the full
