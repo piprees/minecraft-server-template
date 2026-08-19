@@ -958,43 +958,89 @@
   })
 
   // --- World border overlays ---
-  // All dimensions scale relative to the largest border diameter.
-  // A 1024b world is 1/16th of a 16384b overworld.
-  // No red ring on cards — just relative sizing.
-  // Lightbox hires (32K render) gets a red ring at 50% showing the border.
-  var RENDER_SIZE = 1024,
-    BASE_SCALE = 8
+  // A thumbnail's scale reflects how much of its world the picture ON
+  // SCREEN actually shows: a low-res render is a fixed 512-block window
+  // around spawn, a high-res one covers the whole border. The candidate
+  // showing the largest fraction fills the card; everything else scales
+  // down from that, so a tightly-cropped overworld thumbnail no longer
+  // outsizes a small world whose 512-block window already shows it whole.
+  var THUMBNAIL_BLOCKS = 512
+  function imageIsHires(img) {
+    return /_hires\.png(\?|$)/.test((img.getAttribute('src') || '').split('?')[0])
+  }
+  function imageCoverage(img, diameter) {
+    return imageIsHires(img) ? Math.max(THUMBNAIL_BLOCKS, diameter) : THUMBNAIL_BLOCKS
+  }
   function wrapImages () {
-  var maxDiameter = 0
-  document.querySelectorAll('.dim-card').forEach(function (card) {
-    var r = parseFloat(card.dataset.radius || 0)
-    if (r * 2 > maxDiameter) maxDiameter = r * 2
-  })
-  document.querySelectorAll('.dim-card').forEach(function (card) {
-    var radius = parseFloat(card.dataset.radius || 0)
-    var dimScale = parseFloat(card.dataset.dimScale || 1)
-    if (!radius) return
-    var diameter = radius * 2
-    var imgScale = Math.max(0.05, diameter / maxDiameter)
-    var normalCoverage = RENDER_SIZE * Math.max(1, Math.floor(BASE_SCALE / dimScale))
-    var hiresCoverage = Math.round((2048 * 16) / dimScale)
-    card.dataset.borderDiameter = diameter
-    card.querySelectorAll('img').forEach(function (img) {
-      var wrap = img.parentElement
-      if (wrap.classList.contains('img-wrap')) return
-      var div = document.createElement('div')
-      div.className = 'img-wrap'
-      div.dataset.borderScale = imgScale.toFixed(4)
-      img.parentNode.insertBefore(div, img)
-      div.appendChild(img)
-      var lbl = document.createElement('div')
-      lbl.className = 'border-label'
-      lbl.textContent = normalCoverage + 'b'
-      lbl.dataset.normalCoverage = normalCoverage
-      lbl.dataset.hiresCoverage = hiresCoverage
-      div.appendChild(lbl)
+    var entries = []
+    document.querySelectorAll('.dim-card').forEach(function (card) {
+      var radius = parseFloat(card.dataset.radius || 0)
+      if (!radius) return
+      var diameter = radius * 2
+      card.dataset.borderDiameter = diameter
+      var spawnX = parseFloat(card.dataset.spawnX || 0) || 0
+      var spawnZ = parseFloat(card.dataset.spawnZ || 0) || 0
+      card.querySelectorAll('img').forEach(function (img) {
+        var hires = imageIsHires(img)
+        entries.push({
+          img: img, diameter: diameter, hires: hires,
+          coverage: imageCoverage(img, diameter),
+          // The thumbnail is spawn-centred; the whole-world render is
+          // centred on the border itself (CandidateRender.draw).
+          cx: hires ? 0 : spawnX, cz: hires ? 0 : spawnZ,
+        })
+      })
     })
-  })
+    var maxRatio = 0
+    entries.forEach(function (e) {
+      e.ratio = e.coverage / e.diameter
+      if (e.ratio > maxRatio) maxRatio = e.ratio
+    })
+    if (!maxRatio) return
+    var bordersOn = document.body.classList.contains('show-borders')
+    entries.forEach(function (e) {
+      var img = e.img
+      var wrap = img.parentElement
+      if (!wrap.classList.contains('img-wrap')) {
+        var div = document.createElement('div')
+        div.className = 'img-wrap'
+        img.parentNode.insertBefore(div, img)
+        div.appendChild(img)
+        wrap = div
+      }
+      var scale = Math.max(0.05, e.ratio / maxRatio)
+      wrap.dataset.borderScale = scale.toFixed(4)
+      if (bordersOn) img.style.transform = 'scale(' + wrap.dataset.borderScale + ')'
+      var lbl = wrap.querySelector('.border-label')
+      if (!lbl) {
+        lbl = document.createElement('div')
+        lbl.className = 'border-label'
+        wrap.appendChild(lbl)
+      }
+      lbl.textContent = e.coverage + 'b'
+      var ring = wrap.querySelector('.border-ring')
+      // A ring only means something when the border sits INSIDE the
+      // frame — when the render covers less than the border, the edge is
+      // off-screen and there is nothing here to outline.
+      if (e.coverage > e.diameter) {
+        if (!ring) {
+          ring = document.createElement('div')
+          ring.className = 'border-ring'
+          wrap.appendChild(ring)
+        }
+        var pct = window.lbProjectRadius(e.diameter, e.coverage)
+        ring.style.left = window.lbProject(-e.diameter / 2 - e.cx, e.coverage) + '%'
+        ring.style.top = window.lbProject(-e.diameter / 2 - e.cz, e.coverage) + '%'
+        ring.style.width = pct + '%'
+        ring.style.height = pct + '%'
+      } else if (ring) {
+        ring.remove()
+      }
+      // The HD badge is server-rendered for every card with a whole-world
+      // render, but only visible once its image is actually the one shown.
+      var badge = wrap.parentElement && wrap.parentElement.querySelector('.hires-badge')
+      if (badge) badge.classList.toggle('visible', e.hires)
+    })
   }
   // The roller replaces #grid on every bank change, and the fresh markup has
   // no wrappers — without re-running this the border overlay stops working
@@ -1067,7 +1113,9 @@
   ;(function autoRefreshImages() {
     var pending = new Set()
     document.querySelectorAll('img[data-hires]').forEach(function (img) {
-      pending.add(img)
+      // Already showing the whole-world render chosen server-side —
+      // nothing here for this loop to upgrade.
+      if (!imageIsHires(img)) pending.add(img)
     })
     function tick() {
       if (!pending.size) return
@@ -1100,13 +1148,10 @@
         // and lbMapCoverage keeps scaling the overlay for the wide render.
         if (!img.dataset.low) img.dataset.low = img.src
         img.src = hi.src
-        var wrap = img.parentElement
-        if (wrap) {
-          var badge = wrap.querySelector('.hires-badge')
-          if (badge) badge.classList.add('visible')
-          var lbl = wrap.querySelector('.border-label')
-          if (lbl && lbl.dataset.hiresCoverage) lbl.textContent = lbl.dataset.hiresCoverage + 'b'
-        }
+        // The border scale, ring, label and HD badge are all keyed off
+        // which render is on screen — an upgraded thumbnail needs them
+        // redrawn, not just relabelled.
+        if (window.wrapCardImages) window.wrapCardImages()
         pending.delete(img)
       }
       hi.src = hires.split('?')[0] + '?t=' + Date.now()

@@ -181,6 +181,8 @@ public final class ViewerPage {
                 .append("' data-radius='")
                 .append(def.getPlayerBorderRadius())
                 .append("' data-dim-scale='").append(fmt(def.getScale()))
+                .append("' data-spawn-x='").append(spawnCoord(def, 0))
+                .append("' data-spawn-z='").append(spawnCoord(def, 2))
                 .append("'>");
 
         if (v.banked() == 0) {
@@ -501,7 +503,11 @@ public final class ViewerPage {
         }
         String low = "renders/" + slug + "/" + c.seed() + ".png";
         String hires = "renders/" + slug + "/" + c.seed() + "_hires.png";
-        return "<img src='" + escape(c.hasLowres() ? low : hires) + "' data-hires='" + escape(hires)
+        // The whole-world render wins whenever it exists: a candidate with
+        // only the 512-block spawn thumbnail shows that, but one that has
+        // been drawn in full shows its whole playable area instead.
+        String src = c.hasHighres() ? hires : low;
+        return "<img src='" + escape(src) + "' data-hires='" + escape(hires)
                 + "' loading='lazy' decoding='async'"
                 + " alt='Map render " + escape(slug) + " seed " + c.seed() + "'"
                 + " onerror=\"this.onerror=null;var d=document.createElement('div');"
@@ -510,6 +516,12 @@ public final class ViewerPage {
     }
 
     // ------------------------------------------------------------------ helpers
+
+    /** A dimension's declared spawn X or Z (index 0 or 2), 0 when unset. */
+    private static int spawnCoord(DimensionConfig def, int index) {
+        int[] spawn = def.getSpawn();
+        return spawn != null && spawn.length >= 3 ? spawn[index] : 0;
+    }
 
     private static String family(DimensionConfig def) {
         DimensionConfig.SeedRoll roll = def.getSeedRoll();
