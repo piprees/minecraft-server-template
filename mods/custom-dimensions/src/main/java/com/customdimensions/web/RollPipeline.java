@@ -22,19 +22,24 @@ import java.util.concurrent.atomic.AtomicReference;
  * run never touches the tick loop; the server stays playable and a try-out
  * running beside it is unaffected.
  *
- * <p>Tier-1 measurement is budgeted per SEED, not per dimension: every
- * dimension's {@link Roller#screenShortlist} call shares one {@code
- * ExecutorService} sized by {@link #workers()}, so one dimension in flight
- * gets the whole budget and eighty share it, rather than each dimension
- * claiming a core of its own regardless of how many others are running.
- * Dimension orchestration itself is cheap — each of its threads mostly
- * waits on that shared pool — so {@link #run} gives every target dimension
- * its own orchestration thread rather than capping that count too. CANCEL
- * and a FOCUS-yield are checked once per tier-1 batch and once per
- * shortlisted seed in the tier-2 loop below it, where a single measurement
- * still runs to about a hundred core-seconds on a modded dimension.
- * {@code generation} is bumped each time a dimension finishes, which is the
- * browser's cue to refetch the grid.
+ * <p>Measurement is budgeted per SEED, not per dimension, and TIER 1 AND
+ * TIER 2 SHARE ONE POOL: every dimension's {@link Roller#screenShortlist}
+ * and {@link Roller#measureShortlist} call the same {@code ExecutorService}
+ * sized by {@link #workers()}, so total concurrent measurement work never
+ * exceeds that bound whatever mix of dimensions is screening or measuring
+ * at once — a single tier-2 measurement alone runs to about a hundred
+ * core-seconds on a modded dimension, so leaving it unbounded per
+ * orchestrator thread would oversubscribe the machine by as many times as
+ * there are dimensions in flight. Dimension orchestration itself is cheap
+ * — each of its threads mostly waits on that shared pool — so {@link #run}
+ * gives every target dimension its own orchestration thread rather than
+ * capping that count too. CANCEL stops new submissions to the pool (never
+ * abandons a candidate mid-write) and is re-checked once the current batch
+ * drains. Opening a dimension in the viewer does NOT stop any other
+ * dimension's in-flight work — {@link #nextTarget} just serves the focused
+ * one first once a worker is free (see {@link #focus}). {@code generation}
+ * is bumped each time a dimension finishes, which is the browser's cue to
+ * refetch the grid.
  *
  * <p>One run at a time. Two concurrent searches would compete for the same
  * candidate directory and neither would be faster.
@@ -113,6 +118,11 @@ public final class RollPipeline {
     private static final AtomicInteger DIMENSIONS = new AtomicInteger();
     /** Seeds measured so far, counted as each one lands rather than per dimension. */
     private static final AtomicInteger ROLLED = new AtomicInteger();
+    /** The shortlist tier 2 is working through, and how far in it is. */
+    private static final AtomicInteger SHORTLISTED = new AtomicInteger();
+    private static final AtomicInteger SHORTLIST_DONE = new AtomicInteger();
+    /** Seeds that cleared tier 1's gates — the pool the shortlist was taken from. */
+    private static final AtomicInteger PASSED = new AtomicInteger();
     private static final AtomicInteger SURVEYED = new AtomicInteger();
     private static final AtomicInteger GENERATION = new AtomicInteger();
     private static final AtomicReference<String> STAGE = new AtomicReference<>("idle");
@@ -165,10 +175,8 @@ public final class RollPipeline {
         CANCEL.set(false);
         ERROR.set("");
         // A focus is a statement about the page somebody had open, not about
-        // the run they are starting now. Left set, it makes every OTHER
-        // dimension yield or abandon on its first check.
+        // the run they are starting now.
         FOCUS.set("");
-        UNSERVED_FOCUS.set("");
         STARVED.clear();
         // count MORE seeds per targeted dimension: every dimension in
         // targets is rolled, whatever its board already holds.
@@ -417,28 +425,6 @@ public final class RollPipeline {
             new java.util.concurrent.atomic.AtomicReference<>("");
 
     /**
-     * The focused dimension while it is still waiting for a worker — what a
-     * yield is actually for, and the only thing a worker should step aside
-     * over.
-     *
-     * <p>Yielding on {@link #FOCUS} itself makes EVERY worker abandon, when
-     * one stepping aside is enough to serve the focus: the other nine then
-     * cycle the queue abandoning each dimension in turn, and a focus on a
-     * dimension this run will never hand out (already surveyed, or not a roll
-     * target) never stops. {@link #nextTarget} clears this the moment the
-     * focused dimension is handed out or found absent, so a yield is bounded
-     * to the handful of workers that check before the claim lands.
-     */
-    private static final java.util.concurrent.atomic.AtomicReference<String> UNSERVED_FOCUS =
-            new java.util.concurrent.atomic.AtomicReference<>("");
-
-    /** Whether this dimension should step aside for one somebody has just opened. */
-    private static boolean yieldTo(DimensionConfig def) {
-        String want = UNSERVED_FOCUS.get();
-        return !want.isEmpty() && !want.equals(def.getName());
-    }
-
-    /**
      * Sets (or with a blank slug clears) the dimension that jumps the queue.
      *
      * <p>Opening a dimension queues its THUMBNAILS — that is what the list of
@@ -448,7 +434,6 @@ public final class RollPipeline {
     public static void focus(MinecraftServer server, String slug) {
         String want = slug == null ? "" : slug.trim();
         FOCUS.set(want);
-        UNSERVED_FOCUS.set(want);
         RenderQueue.focus(want);
         if (want.isEmpty()) {
             return;
@@ -464,23 +449,18 @@ public final class RollPipeline {
     }
 
     /**
-     * The next dimension to roll: the focused one if it is still waiting,
-     * otherwise the one at the head.
+     * The next dimension to roll: the focused one if it is still WAITING,
+     * otherwise the one at the head. This is the whole of focus priority —
+     * ordering, never abandonment: a dimension already being worked on by
+     * another orchestrator thread is not preempted, it simply is not in
+     * {@code pending} for this to find, and finishes its shortlist exactly
+     * as if nobody had opened anything.
      *
      * <p>Checked at each pull rather than fixed at submission, so opening a
-     * dimension mid-roll promotes it. A seed in flight is never abandoned —
-     * one measurement is a second or so, and abandoning it would throw away
-     * work to save less than it cost.
+     * dimension mid-roll promotes it.
      */
-    /** Dimensions that stepped aside for a focused one, to be picked up again. */
-    private static final java.util.concurrent.ConcurrentLinkedQueue<DimensionConfig> YIELDED =
-            new java.util.concurrent.ConcurrentLinkedQueue<>();
-
     private static DimensionConfig nextTarget(java.util.Deque<DimensionConfig> pending) {
         synchronized (pending) {
-            for (DimensionConfig back = YIELDED.poll(); back != null; back = YIELDED.poll()) {
-                pending.addLast(back);
-            }
             if (pending.isEmpty() || CANCEL.get()) {
                 return null;
             }
@@ -490,14 +470,9 @@ public final class RollPipeline {
                     DimensionConfig def = it.next();
                     if (want.equals(def.getName())) {
                         it.remove();
-                        UNSERVED_FOCUS.compareAndSet(want, "");
                         return def;
                     }
                 }
-                // Nothing here can serve it: it is already surveyed, in flight
-                // with another worker, or not a target of this run. Every case
-                // means stepping aside for it achieves nothing.
-                UNSERVED_FOCUS.compareAndSet(want, "");
             }
             return pending.poll();
         }
@@ -509,18 +484,18 @@ public final class RollPipeline {
      * roll means N more for every targeted dimension, whatever its board
      * already holds.
      *
-     * <p>Two tiers, not a flat search. {@link Roller#screenShortlist} sweeps
-     * {@code count} seeds cheaply — no per-seed terrain router — and ranks
-     * the best {@link Roller#SHORTLIST}, measuring on {@code measurePool}
-     * (up to {@code measureParallelism} seeds at once, shared with every
-     * other dimension currently screening — see {@link #run}); the loop
-     * below, over the shortlist alone, calls {@link Roller#measureOne} — a
-     * full measurement, ~a hundred core-seconds on a modded dimension — one
-     * at a time for EVERY shortlisted seed, never stopping early: tier 1's
-     * cheap rank is not the final score, so stopping early would bank the
-     * first few of the shortlist rather than its best few. The bank is
-     * culled to {@link #BOARD_LIMIT} afterwards, and its new best is
-     * promoted to current (see {@link #promoteBest}).
+     * <p>Two tiers, not a flat search, and both measure on {@code
+     * measurePool} — up to {@code measureParallelism} seeds at once, shared
+     * with every other dimension currently screening OR measuring tier 2
+     * (see {@link #run}). {@link Roller#screenShortlist} sweeps {@code
+     * count} seeds cheaply — no per-seed terrain router — and ranks the
+     * best {@link Roller#SHORTLIST}; {@link Roller#measureShortlist} then
+     * runs {@link Roller#measureOne} — a full measurement, ~a hundred
+     * core-seconds on a modded dimension — over EVERY shortlisted seed,
+     * never stopping early: tier 1's cheap rank is not the final score, so
+     * stopping early would bank the first few of the shortlist rather than
+     * its best few. The bank is culled to {@link #BOARD_LIMIT} afterwards,
+     * and its new best is promoted to current (see {@link #promoteBest}).
      *
      * <p>{@code count} is now the tier-1 POOL size, not a ceiling that never
      * bound: the sweep is a search over the whole pool, not a stream that
@@ -546,15 +521,19 @@ public final class RollPipeline {
         long tier1Start = System.nanoTime();
         java.util.List<Long> shortlist;
         int screened;
-        // The screen is thousands of seeds and minutes long, so it watches the
-        // same two signals the tier-2 loop below does rather than running to
-        // the end of the pool regardless.
-        java.util.function.BooleanSupplier abandonScreen = () -> CANCEL.get() || yieldTo(def);
+        // The screen is thousands of seeds and minutes long, so it watches
+        // CANCEL rather than running to the end of the pool regardless.
+        // Shared with tier 2 below — the same signal either way. Opening a
+        // different dimension in the viewer does NOT stop this: focus only
+        // orders what a free worker takes next (see nextTarget), it never
+        // preempts work already in flight.
+        java.util.function.BooleanSupplier abandon = CANCEL::get;
         try {
-            Roller.Screen screen = Roller.screenShortlist(server, id, def, count, abandonScreen,
+            Roller.Screen screen = Roller.screenShortlist(server, id, def, count, abandon,
                     measurePool, measureParallelism, ROLLED::incrementAndGet);
             shortlist = screen.shortlist();
             screened = screen.screened();
+            PASSED.set(screen.survivors());
         } catch (RuntimeException e) {
             MultiverseServer.LOGGER.error("Roll failed for {}", id, e);
             ERROR.set(id.getPath() + ": " + e);
@@ -567,21 +546,16 @@ public final class RollPipeline {
                 id.getPath(), screened, count, tier1Ms,
                 screened == 0 ? 0 : tier1Ms / (double) screened, shortlist.size());
         // A screen that measured nothing did not find a bad pool — it never
-        // ran, because the run was cancelled or the queue was told to serve a
-        // different dimension first. Re-queue rather than record a starved
-        // board: an empty shortlist skips the tier-2 loop entirely, so the
-        // yield inside it would never be reached. Its seeds are not counted
-        // either; a run that reported them would show progress it never made.
+        // ran, because the run was already cancelled before this dimension's
+        // screen started. Its seeds are not counted; a run that reported
+        // them would show progress it never made.
         if (screened == 0 && count > 0 && shortlist.isEmpty()) {
-            if (CANCEL.get()) {
-                return;
-            }
-            YIELDED.offer(def);
             return;
         }
         STAGE.set("rolling " + id.getPath());
+        SHORTLISTED.set(shortlist.size());
+        SHORTLIST_DONE.set(0);
         long tier2Start = System.nanoTime();
-        int measured = 0;
         // EVERY shortlisted seed, not the first WANTED of them. Tier 1 ranks on
         // structures and biome alone, so its order is not the order the full
         // scorecard produces — stopping once the board is full would bank the
@@ -589,44 +563,32 @@ public final class RollPipeline {
         // difference is exactly what tier 2 exists to find. SeedBank keeps
         // every card and leaderboard sorts descending, so the board is the top
         // WANTED by FINAL score once all ten are in.
-        for (long seed : shortlist) {
-            if (CANCEL.get()) {
-                break;
-            }
-            // Yield to a dimension somebody has just opened. Re-queued, never
-            // dropped: a focus that resumes this dimension later re-screens a
-            // fresh pool rather than resuming the part-drawn shortlist — tier
-            // 1 is cheap enough that the redraw costs little, and carrying a
-            // shortlist across a yield would need state this method has no
-            // other reason to keep.
-            if (yieldTo(def)) {
-                YIELDED.offer(def);
-                return;
-            }
-            try {
-                Roller.measureOne(server, id, def, seed);
-            } catch (RuntimeException e) {
-                MultiverseServer.LOGGER.error("Roll failed for {}", id, e);
-                ERROR.set(id.getPath() + ": " + e);
-                break;
-            }
-            measured++;
-            // The board moves while this runs, so the shortlist is redrawn as
-            // it goes rather than only at the end — the top ten are lookable
-            // long before the roll finishes.
-            if (measured % RECONCILE_EVERY == 0) {
-                RenderQueue.reconcile(server, def);
-            }
-        }
+        //
+        // Measured on measurePool — the SAME pool tier 1 screens on, up to
+        // measureParallelism at once — rather than one measurement per
+        // orchestrator thread: unbounded, a full sweep could run as many
+        // ~100-core-second measurements at once as there are dimensions,
+        // oversubscribing the machine many times over.
+        int measured = Roller.measureShortlist(server, id, def, shortlist, abandon,
+                measurePool, measureParallelism, () -> {
+                    int done = SHORTLIST_DONE.incrementAndGet();
+                    // The board moves while this runs, so the shortlist is
+                    // redrawn as it goes rather than only at the end.
+                    if (done % RECONCILE_EVERY == 0) {
+                        RenderQueue.reconcile(server, def);
+                    }
+                });
         long tier2Ms = (System.nanoTime() - tier2Start) / 1_000_000;
         MultiverseServer.LOGGER.info(
                 "roll: {} tier 2 measured {} of {} shortlisted seed(s) in {} ms ({} ms/seed)",
                 id.getPath(), measured, shortlist.size(), tier2Ms,
                 measured == 0 ? 0 : tier2Ms / (double) measured);
-        // The new seeds are already written (Roller.measureOne banks as it
-        // goes), so this leaderboard read is the CURRENT bank interleaved
-        // with what this roll just added — culling it to BOARD_LIMIT is
-        // exactly "top N of new, merged with current, trimmed" in one step.
+        // The new seeds are already written (measureShortlist banks each as
+        // it completes, and every future it submitted has been drained
+        // before it returns), so this leaderboard read is the CURRENT bank
+        // interleaved with what this roll just added — culling it to
+        // BOARD_LIMIT is exactly "top N of new, merged with current,
+        // trimmed" in one step.
         if (measured > 0) {
             com.customdimensions.roll.SeedBank.cullToTop(hash, dimension, BOARD_LIMIT,
                     protectedSeeds(def, dimension));
@@ -803,6 +765,9 @@ public final class RollPipeline {
         b.append(", \"target\": ").append(TARGET.get());
         b.append(", \"rolled\": ").append(ROLLED.get());
         b.append(", \"surveyed\": ").append(SURVEYED.get());
+        b.append(", \"passed\": ").append(PASSED.get());
+        b.append(", \"shortlisted\": ").append(SHORTLISTED.get());
+        b.append(", \"shortlist_done\": ").append(SHORTLIST_DONE.get());
         b.append(", \"dimensions\": ").append(DIMENSIONS.get());
         b.append(", \"generation\": ").append(GENERATION.get());
         b.append(", \"stage\": ").append(Json.quote(STAGE.get()));

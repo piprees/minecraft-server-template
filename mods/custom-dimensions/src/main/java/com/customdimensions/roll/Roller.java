@@ -37,9 +37,11 @@ import java.util.function.LongSupplier;
  * <p>{@link #roll} touches no filesystem and no Fabric API — persistence is
  * entirely the {@link Sink}'s concern, which is what makes the search loop
  * itself testable with a stub measurer and no server. {@link #screenShortlist}
- * and {@link #measureOne} are the live wiring: a cheap tier-1 sweep over a
- * pool of {@code count} seeds narrows to {@link #SHORTLIST}, then a full
- * tier-2 measurement per survivor — both persist through {@link SeedBank}.
+ * and {@link #measureShortlist} are the live wiring: a cheap tier-1 sweep over
+ * a pool of {@code count} seeds narrows to {@link #SHORTLIST}, then {@link
+ * #measureOne} runs on each survivor — both tiers submit through the same
+ * {@link #fanOut}, on the same caller-supplied pool, and both persist through
+ * {@link SeedBank}.
  *
  * <p>{@link FactsEngine#measure} builds its rig headlessly — no
  * {@code ServerWorld} is created and no chunk is loaded — so a roll never
@@ -154,10 +156,13 @@ public final class Roller {
      * The same draw/measure/sink shape as {@link #roll}, but {@code
      * measurer} runs on {@code pool} — up to {@code parallelism} seeds in
      * flight at once — instead of the calling thread. {@code pool} is
-     * shared with every other dimension currently screening, so it is the
-     * one thing that bounds TOTAL seed-measurement concurrency across all
-     * of them; this method only ever asks it for up to {@code parallelism}
-     * seeds of its own.
+     * shared with every other dimension currently screening OR measuring
+     * tier 2 (see {@link #measureShortlist}), so it is the one thing that
+     * bounds TOTAL seed-measurement concurrency across all of them; this
+     * method only ever asks it for up to {@code parallelism} seeds of its
+     * own. A measurement that throws aborts the whole sweep — the same
+     * seam {@link #screenShortlist}'s caller already catches around a tier-1
+     * failure — see {@link #fanOut} for the shared window mechanics.
      *
      * <p>Sink calls land in DRAW order, never completion order: a future is
      * only applied once every future submitted before it has been applied,
@@ -177,10 +182,49 @@ public final class Roller {
                                     java.util.function.BooleanSupplier abandonIf,
                                     ExecutorService pool, int parallelism,
                                     Runnable onMeasured) {
+        return fanOut(alreadyTried, seeds, measurer, budget, abandonIf, pool, parallelism,
+                draw -> {
+                    onMeasured.run();
+                    if (draw.verdict() == Scorecard.Verdict.SCORED) {
+                        sink.scored(draw.seed(), draw.achieved(), draw.ceiling());
+                    } else {
+                        sink.rejected(draw.seed(), draw.verdictReason());
+                    }
+                },
+                (seed, e) -> {
+                    throw e;
+                });
+    }
+
+    /** One in-flight measurement: which seed it is for, so a failure can be logged against it. */
+    private record Pending(long seed, Future<Draw> future) {
+    }
+
+    /**
+     * The windowed fan-out itself, shared by {@link #rollParallel} (tier 1)
+     * and {@link #measureShortlist} (tier 2): submits up to {@code
+     * parallelism} measurements from {@code seeds} to {@code pool} at once
+     * and drains the front of the window as each completes, in draw order.
+     * Stops SUBMITTING the moment {@code budget} is spent or {@code
+     * abandonIf} turns true; whatever is already in flight is drained, not
+     * abandoned mid-measurement — a candidate's write must never be left
+     * half-done. Callers differ only in how a seed is sourced and what a
+     * per-seed failure means for the rest of the run: {@code onFailure} may
+     * re-throw to abort (tier 1) or log and let the loop carry on to the
+     * next seed (tier 2) — either way {@code onSuccess} is never called for
+     * the seed that failed.
+     *
+     * @return how many seeds {@code onSuccess} was called for
+     */
+    static int fanOut(LongPredicate alreadyTried, LongSupplier seeds, Measurer measurer,
+                      Budget budget, java.util.function.BooleanSupplier abandonIf,
+                      ExecutorService pool, int parallelism,
+                      java.util.function.Consumer<Draw> onSuccess,
+                      java.util.function.BiConsumer<Long, RuntimeException> onFailure) {
         int attempts = 0;
         int measured = 0;
         Set<Long> inFlight = new LinkedHashSet<>();
-        Deque<Future<Draw>> window = new ArrayDeque<>();
+        Deque<Pending> window = new ArrayDeque<>();
         while (true) {
             while (window.size() < parallelism && !budget.exceeded(attempts)
                     && !abandonIf.getAsBoolean()) {
@@ -189,31 +233,28 @@ public final class Roller {
                 if (alreadyTried.test(seed) || !inFlight.add(seed)) {
                     continue;
                 }
-                window.addLast(pool.submit(() -> measurer.measure(seed)));
+                window.addLast(new Pending(seed, pool.submit(() -> measurer.measure(seed))));
             }
             if (window.isEmpty()) {
                 break;
             }
+            Pending pending = window.pollFirst();
             Draw draw;
             try {
-                draw = window.pollFirst().get();
+                draw = pending.future().get();
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 break;
             } catch (ExecutionException e) {
-                if (e.getCause() instanceof RuntimeException re) {
-                    throw re;
-                }
-                throw new RuntimeException(e.getCause());
+                inFlight.remove(pending.seed());
+                RuntimeException re = e.getCause() instanceof RuntimeException r
+                        ? r : new RuntimeException(e.getCause());
+                onFailure.accept(pending.seed(), re);
+                continue;
             }
             inFlight.remove(draw.seed());
             measured++;
-            onMeasured.run();
-            if (draw.verdict() == Scorecard.Verdict.SCORED) {
-                sink.scored(draw.seed(), draw.achieved(), draw.ceiling());
-            } else {
-                sink.rejected(draw.seed(), draw.verdictReason());
-            }
+            onSuccess.accept(draw);
         }
         return measured;
     }
@@ -230,7 +271,7 @@ public final class Roller {
      * two were conflated once and a screen that measured nothing reported the
      * whole pool, which hid the reason every board came back empty.
      */
-    public record Screen(List<Long> shortlist, int screened) {
+    public record Screen(List<Long> shortlist, int screened, int survivors) {
     }
 
     /**
@@ -391,7 +432,7 @@ public final class Roller {
                         "Failed to record the tier-1 screen for {}", dimension, e);
             }
         }
-        return new Screen(shortlist.bestFirst(), screenedCount);
+        return new Screen(shortlist.bestFirst(), screenedCount, screened.size());
     }
 
     /**
@@ -418,6 +459,41 @@ public final class Roller {
             MultiverseServer.LOGGER.error("Failed to record seed {} for {}", seed, dimension, e);
         }
         return new Draw(seed, card.verdict(), card.achieved(), card.ceiling(), card.verdictReason());
+    }
+
+    /**
+     * TIER 2, parallel: {@link #measureOne} for every seed in {@code
+     * shortlist}, on {@code measurePool} — the SAME pool tier 1 screens on,
+     * shared via {@link #fanOut} — up to {@code parallelism} in flight at
+     * once, so total concurrent measurement work across both tiers, and
+     * every dimension currently rolling, never exceeds one bound. A full
+     * measurement is ~a hundred core-seconds on a modded dimension; running
+     * one per dimension unbounded is heavy oversubscription on a machine
+     * with far fewer cores than dimensions.
+     *
+     * <p>Stops SUBMITTING the moment {@code abandonIf} turns true —
+     * cancelled, or yielding to a dimension somebody has just opened — and
+     * drains whatever is already in flight rather than abandoning a
+     * half-written candidate. A seed whose measurement throws is logged and
+     * skipped; the rest of the shortlist still measures, so one bad seed
+     * does not cost the dimension the others.
+     *
+     * @return how many seeds were genuinely measured (not counting one that
+     *         threw), which may be fewer than {@code shortlist.size()} on
+     *         an abandon
+     */
+    public static int measureShortlist(MinecraftServer server, Identifier dimensionId,
+                                       DimensionConfig def, List<Long> shortlist,
+                                       java.util.function.BooleanSupplier abandonIf,
+                                       ExecutorService measurePool, int parallelism,
+                                       Runnable onMeasured) {
+        java.util.Iterator<Long> it = shortlist.iterator();
+        return fanOut(seed -> false, it::next,
+                seed -> measureOne(server, dimensionId, def, seed),
+                Budget.seeds(shortlist.size()), abandonIf, measurePool, Math.max(1, parallelism),
+                draw -> onMeasured.run(),
+                (seed, e) -> MultiverseServer.LOGGER.error(
+                        "Tier-2 measurement failed for seed {} in {}", seed, dimensionId, e));
     }
 
     /**

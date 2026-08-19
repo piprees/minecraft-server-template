@@ -1830,7 +1830,9 @@
           // shortlisted, one at a time, and moves no counter at all. Naming
           // the phase is the difference between "stuck" and "working".
           var phase = (st.stage || '').split(' ')[0]
-          var doing = phase === 'rolling' ? 'measuring shortlist'
+          var doing = phase === 'rolling'
+            ? (st.passed || 0) + ' passed · measuring '
+              + (st.shortlist_done || 0) + '/' + (st.shortlisted || 0)
             : phase === 'scoring' ? 'scoring named seeds'
             : phase
           var pend = (st.render_pending || 0) + (st.thumbnails_pending || 0)
