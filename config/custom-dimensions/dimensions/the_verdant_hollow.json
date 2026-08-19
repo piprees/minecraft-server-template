@@ -4,19 +4,201 @@
   "seed": 9207382997821124202,
   "noiseSettings": "adventure:wide",
   "biomes": [
-    { "id": "terralith:lush_valley", "parameters": { "weirdness": [-2.0, -1.81] } },
-    { "id": "minecraft:meadow", "parameters": { "weirdness": [-1.81, -1.62] } },
-    { "id": "minecraft:plains", "parameters": { "weirdness": [-1.62, -1.43] } },
-    { "id": "minecraft:flower_forest", "parameters": { "weirdness": [-1.43, -1.24] } },
-    { "id": "terralith:lavender_valley", "parameters": { "weirdness": [-1.24, -1.05] } },
-    { "id": "terralith:temperate_highlands", "parameters": { "weirdness": [-1.05, -0.86] } },
-    { "id": "minecraft:birch_forest", "parameters": { "weirdness": [-0.86, -0.67] } },
-    { "id": "regions_unexplored:glistering_meadow", "parameters": { "weirdness": [-0.67, -0.456] } },
-    { "id": "regions_unexplored:clover_plains", "parameters": { "weirdness": [-0.456, -0.242] } },
-    { "id": "regions_unexplored:orchard", "parameters": { "weirdness": [-0.242, -0.028] } },
-    { "id": "regions_unexplored:temperate_grove", "parameters": { "weirdness": [-0.028, 0.186] } },
-    { "id": "regions_unexplored:rocky_meadow", "parameters": { "weirdness": [0.186, 0.4] } },
-    { "id": "regions_unexplored:flower_fields", "parameters": { "weirdness": [0.4, 2.0] } }
+    {
+      "id": "terralith:lush_valley",
+      "parameters": {
+        "weirdness": [
+          -2.0,
+          -1.81
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "minecraft:meadow",
+      "parameters": {
+        "weirdness": [
+          -1.81,
+          -1.62
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "minecraft:plains",
+      "parameters": {
+        "weirdness": [
+          -1.62,
+          -1.43
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "minecraft:flower_forest",
+      "parameters": {
+        "weirdness": [
+          -1.43,
+          -1.24
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "terralith:lavender_valley",
+      "parameters": {
+        "weirdness": [
+          -1.24,
+          -1.05
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "terralith:temperate_highlands",
+      "parameters": {
+        "weirdness": [
+          -1.05,
+          -0.86
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "minecraft:birch_forest",
+      "parameters": {
+        "weirdness": [
+          -0.86,
+          -0.67
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:glistering_meadow",
+      "parameters": {
+        "weirdness": [
+          -0.67,
+          -0.456
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:clover_plains",
+      "parameters": {
+        "weirdness": [
+          -0.456,
+          -0.242
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:orchard",
+      "parameters": {
+        "weirdness": [
+          -0.242,
+          -0.028
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:temperate_grove",
+      "parameters": {
+        "weirdness": [
+          -0.028,
+          0.186
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:rocky_meadow",
+      "parameters": {
+        "weirdness": [
+          0.186,
+          0.4
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:flower_fields",
+      "parameters": {
+        "weirdness": [
+          0.4,
+          2.0
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "minecraft:lush_caves",
+      "parameters": {
+        "weirdness": [
+          -2.0,
+          -0.045
+        ],
+        "depth": [
+          0.1,
+          2.0
+        ]
+      }
+    },
+    {
+      "id": "terralith:cave/fungal_caves",
+      "parameters": {
+        "weirdness": [
+          -0.045,
+          2.0
+        ],
+        "depth": [
+          0.1,
+          2.0
+        ]
+      }
+    }
   ],
   "borders": {
     "player": 1024,

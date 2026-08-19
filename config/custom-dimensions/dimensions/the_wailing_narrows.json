@@ -43,6 +43,14 @@
     "fogColor": "#2B1B3B",
     "ambientLight": 0.06
   },
+  "structures": {
+    "force": [
+      { "structure": "mns:bridge_1", "x": 60, "z": 60 }
+    ],
+    "terrainAdaptation": {
+      "mns:bridge_1": "pedestal"
+    }
+  },
   "seedRoll": {
     "mood": "hard",
     "allowHazardousSpawn": true,

@@ -27,8 +27,11 @@
     { "id": "wilderwild:oasis", "parameters": { "weirdness": [-1.06, -1.013] } },
     { "id": "wilderwild:parched_forest", "parameters": { "weirdness": [-1.013, -0.966] } },
     { "id": "regions_unexplored:baobab_savanna", "parameters": { "weirdness": [-0.966, -0.919] } },
-    { "id": "minecraft:plains", "parameters": { "temperature": [-0.45, 0.2], "humidity": [-1.0, -0.1], "weirdness": [-0.919, 0.401] } },
-    { "id": "minecraft:desert", "parameters": { "temperature": [0.55, 1.0], "weirdness": [0.401, 2.0] } }
+    { "id": "minecraft:plains", "parameters": { "temperature": [-0.45, 0.2], "humidity": [-1.0, -0.1], "weirdness": [-0.919, -0.4] } },
+    { "id": "regions_unexplored:joshua_desert", "parameters": { "weirdness": [-0.4, -0.1] } },
+    { "id": "terralith:desert_spires", "parameters": { "weirdness": [-0.1, 0.2] } },
+    { "id": "natures_spirit:scorched_dunes", "parameters": { "weirdness": [0.2, 0.5] } },
+    { "id": "minecraft:desert", "parameters": { "temperature": [0.55, 1.0], "weirdness": [0.5, 2.0] } }
   ],
   "borders": {
     "player": 8192,
@@ -60,7 +63,7 @@
   "seedRoll": {
     "mood": "adventurous",
     "spawnFilter": [
-      "minecraft:plains"
+      "minecraft:desert"
     ],
     "water": "none",
     "wants": {

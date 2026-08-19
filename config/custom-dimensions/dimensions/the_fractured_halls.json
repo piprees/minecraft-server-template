@@ -4,38 +4,11 @@
   "seed": 9185324862121826233,
   "biomes": [
     {
-      "id": "minecraft:end_highlands",
-      "parameters": {
-        "continentalness": [
-          0.1296,
-          0.2753
-        ]
-      }
-    },
-    {
-      "id": "nullscape:crystal_peaks",
-      "parameters": {
-        "continentalness": [
-          0.2753,
-          2.0
-        ]
-      }
-    },
-    {
       "id": "nullscape:shadowlands",
       "parameters": {
         "continentalness": [
           -2.0,
-          -0.1522
-        ]
-      }
-    },
-    {
-      "id": "minecraft:end_midlands",
-      "parameters": {
-        "continentalness": [
-          -0.0085,
-          0.1296
+          -0.62
         ]
       }
     },
@@ -43,8 +16,71 @@
       "id": "minecraft:small_end_islands",
       "parameters": {
         "continentalness": [
-          -0.1522,
-          -0.0085
+          -0.62,
+          -0.3
+        ]
+      }
+    },
+    {
+      "id": "terralith:moonlight_valley",
+      "parameters": {
+        "continentalness": [
+          -0.3,
+          -0.05
+        ]
+      }
+    },
+    {
+      "id": "terralith:moonlight_grove",
+      "parameters": {
+        "continentalness": [
+          -0.05,
+          0.18
+        ]
+      }
+    },
+    {
+      "id": "terralith:amethyst_canyon",
+      "parameters": {
+        "continentalness": [
+          0.18,
+          0.4
+        ]
+      }
+    },
+    {
+      "id": "minecraft:deep_dark",
+      "parameters": {
+        "continentalness": [
+          0.4,
+          0.55
+        ]
+      }
+    },
+    {
+      "id": "minecraft:end_midlands",
+      "parameters": {
+        "continentalness": [
+          0.55,
+          0.86
+        ]
+      }
+    },
+    {
+      "id": "minecraft:end_highlands",
+      "parameters": {
+        "continentalness": [
+          0.86,
+          1.3
+        ]
+      }
+    },
+    {
+      "id": "nullscape:crystal_peaks",
+      "parameters": {
+        "continentalness": [
+          1.3,
+          2.0
         ]
       }
     }

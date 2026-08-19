@@ -65,7 +65,7 @@
   "seedRoll": {
     "mood": "desolate",
     "spawnFilter": [
-      "natures_spirit:aspen_forest"
+      "natures_spirit:redwood_forest"
     ],
     "wants": {
       "abandoned_camp": "near_spawn",

@@ -55,6 +55,9 @@
     "playerLuck": 1.6
   },
   "structures": {
+    "force": [
+      { "structure": "paradise_lost:aurel_tower", "x": 60, "z": 60 }
+    ],
     "terrainAdaptation": {
       "paradise_lost:aurel_tower": "pedestal"
     }

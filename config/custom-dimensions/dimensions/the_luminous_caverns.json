@@ -112,6 +112,12 @@
     "noise": {
       "dungeons": "sparse",
       "landmarks": "sparse"
+    },
+    "force": [
+      { "structure": "adventuredungeons:underground_camp", "x": 80, "z": 80 }
+    ],
+    "terrainAdaptation": {
+      "adventuredungeons:underground_camp": "pedestal"
     }
   }
 }

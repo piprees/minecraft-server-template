@@ -25,7 +25,9 @@
     { "id": "regions_unexplored:cold_boreal_taiga", "parameters": { "weirdness": [0.0574, 0.1717] } },
     { "id": "regions_unexplored:golden_boreal_taiga", "parameters": { "weirdness": [0.1717, 0.286] } },
     { "id": "wilderwild:snowy_old_growth_pine_taiga", "parameters": { "weirdness": [0.286, 0.4003] } },
-    { "id": "terralith:alpine_grove", "parameters": { "temperature": [-1.0047, 0.2], "humidity": [-0.585, 1.0], "weirdness": [0.4003, 2.0] } }
+    { "id": "minecraft:snowy_plains", "parameters": { "weirdness": [0.4003, 0.95] } },
+    { "id": "minecraft:taiga", "parameters": { "weirdness": [0.95, 1.5] } },
+    { "id": "terralith:alpine_grove", "parameters": { "temperature": [-1.0047, 0.2], "humidity": [-0.585, 1.0], "weirdness": [1.5, 2.0] } }
   ],
   "borders": {
     "player": 8192,
@@ -51,7 +53,8 @@
   "seedRoll": {
     "mood": "pastoral",
     "spawnFilter": [
-      "terralith:alpine_grove"
+      "minecraft:snowy_plains",
+      "minecraft:taiga"
     ],
     "wants": {
       "village": "near_spawn",

@@ -29,7 +29,10 @@
     { "id": "regions_unexplored:clover_plains", "parameters": { "weirdness": [-0.966, -0.919] } },
     { "id": "regions_unexplored:glistering_meadow", "parameters": { "weirdness": [-0.919, -0.872] } },
     { "id": "regions_unexplored:orchard", "parameters": { "weirdness": [-0.872, -0.825] } },
-    { "id": "natures_spirit:lavender_fields", "parameters": { "temperature": [-0.15, 1.0], "humidity": [-1.0, 0.1], "weirdness": [-0.825, 0.495] } },
+    { "id": "natures_spirit:lavender_fields", "parameters": { "temperature": [-0.15, 1.0], "humidity": [-1.0, 0.1], "weirdness": [-0.825, -0.495] } },
+    { "id": "natures_spirit:floral_ridges", "parameters": { "weirdness": [-0.495, -0.165] } },
+    { "id": "natures_spirit:marigold_meadows", "parameters": { "weirdness": [-0.165, 0.165] } },
+    { "id": "regions_unexplored:flower_fields", "parameters": { "weirdness": [0.165, 0.495] } },
     { "id": "minecraft:cherry_grove", "parameters": { "weirdness": [0.495, 2.0] } }
   ],
   "borders": {
@@ -63,7 +66,7 @@
   "seedRoll": {
     "mood": "serene",
     "spawnFilter": [
-      "natures_spirit:lavender_fields"
+      "minecraft:cherry_grove"
     ],
     "wants": {
       "village": "near_spawn",
