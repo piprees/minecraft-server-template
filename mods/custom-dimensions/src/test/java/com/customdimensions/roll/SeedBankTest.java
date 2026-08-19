@@ -236,6 +236,27 @@ class SeedBankTest {
                 "eight candidates must all survive a cull to 10 — a roll always means N more");
     }
 
+    @Test
+    void cullableKeepsEveryNamedCategoryAlongsideTheTopTenPool() {
+        // Mirrors the board: 15 ranked candidates, keep=10 (BOARD_LIMIT).
+        // Seed 1 is BEST (rank 0, inside the pool). Seed 3 is CURRENT (also
+        // inside the pool — protection is redundant there, and must stay a
+        // no-op). Seed 15 is STARTING, ranked dead last. Seeds 12 and 13 are
+        // SHORTLISTED, both beyond the pool. Only seeds 11 and 14 are
+        // unprotected and beyond the pool — they are the only two that may
+        // be culled.
+        List<SeedBank.CandidateSummary> ranked = new java.util.ArrayList<>();
+        for (long seed = 1; seed <= 15; seed++) {
+            ranked.add(summary(seed, 101 - seed));
+        }
+        Set<Long> protectedSeeds = Set.of(3L, 15L, 12L, 13L);
+
+        List<Long> doomed = SeedBank.cullable(ranked, 10, protectedSeeds);
+
+        assertEquals(List.of(11L, 14L), doomed,
+                "only the unprotected seeds ranked beyond the top 10 may be culled");
+    }
+
     // --------------------------------------------------------- path pinning
 
     /**

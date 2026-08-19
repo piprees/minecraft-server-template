@@ -252,6 +252,36 @@ class CriteriaTest {
         assertFalse(c.applicable(config(null, null, null)));
     }
 
+    @Test
+    void aCoarseTier1SampleScoresJustLikeTheFullOne() {
+        // Tier 1 (FactsEngine.measureCheap) populates biomes.shares from the
+        // same sampleGrid pass as tier 2, just at SCREEN_GRID instead of
+        // GRID — fewer points, the same real fraction of the playable disc.
+        // The criterion reads shares() either way and has no branch for
+        // which tier measured it. Before this, tier 1 left shares absent
+        // entirely, so every non-spawn-hit seed was Unmeasured — dropped
+        // from both the achieved total and the ceiling, blind to namesake
+        // coverage except by a lucky spawn.
+        var c = new Criteria.SpawnReadsAsNamesake();
+        DimensionConfig def = config(List.of("minecraft:snowy_plains"), null, null);
+
+        // A 13-sided screen grid over a 4096 radius clips to roughly 133
+        // in-disc cells; a namesake third of those is ~44 of them — a
+        // plausible coarse count, not the smooth 0.33 a 1300-cell pass gives.
+        Criterion.Result.Score aThird = assertInstanceOf(Criterion.Result.Score.class,
+                c.evaluate(withShares(
+                        Map.of("minecraft:snowy_plains", 44.0 / 133.0,
+                                "minecraft:desert", 89.0 / 133.0),
+                        "minecraft:desert"), def));
+        assertEquals(1.0, aThird.value(), 1e-9,
+                "a coarse sample landing near the RELOCATABLE cap still reaches it");
+
+        Criterion.Result.Score none = assertInstanceOf(Criterion.Result.Score.class,
+                c.evaluate(withShares(
+                        Map.of("minecraft:desert", 1.0), "minecraft:desert"), def));
+        assertEquals(0.0, none.value(), 1e-9, "no namesake biome in the coarse sample either");
+    }
+
     // ------------------------------------------------------- headline share
 
     @Test

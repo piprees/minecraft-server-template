@@ -595,7 +595,7 @@ public final class RollPipeline {
         if (measured > 0) {
             com.customdimensions.roll.SeedBank.cullToTop(hash, dimension, BOARD_LIMIT,
                     protectedSeeds(def, dimension));
-            promoteBest(server, id, hash, dimension);
+            promoteBest(server, id, hash, dimension, def);
         }
         int got = banked(hash, dimension);
         if (got < WANTED && !CANCEL.get()) {
@@ -658,13 +658,14 @@ public final class RollPipeline {
      * seed was chosen. Never throws: a failed promote must not take the roll
      * down with it.
      */
-    private static void promoteBest(MinecraftServer server, Identifier id, String hash, String dimension) {
+    private static void promoteBest(MinecraftServer server, Identifier id, String hash, String dimension,
+                                    DimensionConfig def) {
         Long best = bestToPromote(com.customdimensions.roll.SeedBank.leaderboard(hash, dimension));
         if (best == null) {
             return;
         }
         int[] spawn = spawnToPromote(
-                com.customdimensions.roll.SeedBank.candidateFacts(hash, dimension, best));
+                com.customdimensions.roll.SeedBank.candidateFacts(hash, dimension, best), def);
         if (spawn == null) {
             MultiverseServer.LOGGER.info(
                     "roll: {} promoting seed {} to current with no spawn — none was recorded for it",
@@ -692,10 +693,18 @@ public final class RollPipeline {
      * the ground beneath them ({@code FactsEngine}'s own hazard check reads
      * it that way). Null when the candidate is unreadable or either half is
      * unmeasured: an auto-promote must never write half a spawn, or one
-     * built from something other than this seed's own facts. Pure, so the
-     * decision is pinned with no server or filesystem.
+     * built from something other than this seed's own facts.
+     *
+     * <p>A ceilinged or void/sky dimension has no floor under the declared
+     * column, and vanilla's own heightmap answers the dimension's minimum Y
+     * for one rather than nothing ({@code sampleGrid}'s own comment on this)
+     * — that reading is real (not absent) but not a place to stand, so
+     * writing it verbatim plants the spawn at bedrock. When that happens
+     * {@link #spawnFromGrid} searches the same candidate's banked grid for
+     * a cell that DOES have ground instead. Pure, so the decision is pinned
+     * with no server or filesystem.
      */
-    static int[] spawnToPromote(com.customdimensions.facts.SeedFacts facts) {
+    static int[] spawnToPromote(com.customdimensions.facts.SeedFacts facts, DimensionConfig def) {
         if (facts == null) {
             return null;
         }
@@ -704,7 +713,107 @@ public final class RollPipeline {
             return null;
         }
         com.customdimensions.facts.SeedFacts.Column column = spawn.column().value();
-        return new int[]{column.x(), spawn.surfaceHeight().value(), column.z()};
+        int height = spawn.surfaceHeight().value();
+        int floorY = assumedFloorY(def);
+        if (height > floorY) {
+            return new int[]{column.x(), height, column.z()};
+        }
+        MultiverseServer.LOGGER.info(
+                "roll: {} declared spawn column has no real surface for seed {} (height {} at or "
+                + "below floor {}) — searching the banked grid for one",
+                facts.dimension(), facts.seed(), height, floorY);
+        int[] fromGrid = spawnFromGrid(facts, def, floorY);
+        if (fromGrid == null) {
+            MultiverseServer.LOGGER.info(
+                    "roll: {} promoting seed {} with no spawn — the banked grid has no real "
+                    + "surface either", facts.dimension(), facts.seed());
+        }
+        return fromGrid;
+    }
+
+    /**
+     * The dimension's own floor: {@code environment.minY} when the config
+     * sets one, else the vanilla default for the base type {@code
+     * DimensionManager#createDimensionOptions} clones (0 for {@code
+     * nether}/{@code end}, -64 for every other type — they all clone the
+     * overworld's). A live datapack (another mod's End override, say) can
+     * still set a REAL floor lower than this guess; {@link #spawnToPromote}
+     * tests "at or below", so a low guess here only ever misses a grid
+     * search, never triggers a wrong one.
+     */
+    static int assumedFloorY(DimensionConfig def) {
+        DimensionConfig.Environment env = def == null ? null : def.getEnvironment();
+        if (env != null && env.minY != null) {
+            return env.minY;
+        }
+        String type = def == null ? null : def.getType();
+        return "nether".equalsIgnoreCase(type) || "end".equalsIgnoreCase(type) ? 0 : -64;
+    }
+
+    /** Worth walking this many times farther than the nearest cell for a namesake-biome spawn. */
+    private static final double NAMESAKE_DISTANCE_FACTOR = 2.0;
+
+    /**
+     * A real-ground cell from the candidate's own banked grid, nearest the
+     * world origin — the same centre {@code FactsEngine#sampleGrid} samples
+     * around — preferring a {@code seedRoll.spawnFilter} biome within {@link
+     * #NAMESAKE_DISTANCE_FACTOR} times that distance: a spawn already in a
+     * namesake biome is what {@code spawn_reads_as_namesake} awards full
+     * marks for. Null when no cell in the grid has ground either. Pure, so
+     * the search and the world-coordinate conversion (matched exactly to
+     * {@code sampleGrid}'s own formula) are pinned with no server.
+     */
+    static int[] spawnFromGrid(com.customdimensions.facts.SeedFacts facts, DimensionConfig def, int floorY) {
+        if (!facts.grid().isPresent()) {
+            return null;
+        }
+        com.customdimensions.facts.SeedFacts.Grid grid = facts.grid().value();
+        int side = grid.side();
+        if (side < 2) {
+            return null;
+        }
+        int step = Math.max(1, (facts.playableRadius() * 2) / (side - 1));
+        int half = side / 2;
+        java.util.Set<String> namesake = namesakeBiomes(def);
+
+        List<Integer> heights = grid.height();
+        List<Integer> biomeIdx = grid.biome();
+        List<String> biomeIds = grid.biomeIds();
+
+        int[] bestAny = null;
+        double bestAnyDist2 = Double.MAX_VALUE;
+        int[] bestNamesake = null;
+        double bestNamesakeDist2 = Double.MAX_VALUE;
+        for (int i = 0; i < heights.size(); i++) {
+            Integer h = heights.get(i);
+            if (h == null || h <= floorY) {
+                continue;
+            }
+            int x = (i % side - half) * step;
+            int z = (i / side - half) * step;
+            double dist2 = (double) x * x + (double) z * z;
+            if (dist2 < bestAnyDist2) {
+                bestAnyDist2 = dist2;
+                bestAny = new int[]{x, h, z};
+            }
+            Integer bi = i < biomeIdx.size() ? biomeIdx.get(i) : null;
+            String biomeId = bi != null && bi < biomeIds.size() ? biomeIds.get(bi) : null;
+            if (biomeId != null && namesake.contains(biomeId) && dist2 < bestNamesakeDist2) {
+                bestNamesakeDist2 = dist2;
+                bestNamesake = new int[]{x, h, z};
+            }
+        }
+        if (bestAny == null) {
+            return null;
+        }
+        return bestNamesake != null && bestNamesakeDist2 <= bestAnyDist2 * NAMESAKE_DISTANCE_FACTOR
+                ? bestNamesake : bestAny;
+    }
+
+    private static java.util.Set<String> namesakeBiomes(DimensionConfig def) {
+        DimensionConfig.SeedRoll sr = def == null ? null : def.getSeedRoll();
+        return sr == null || sr.spawnFilter == null
+                ? java.util.Set.of() : new java.util.LinkedHashSet<>(sr.spawnFilter);
     }
 
     /**

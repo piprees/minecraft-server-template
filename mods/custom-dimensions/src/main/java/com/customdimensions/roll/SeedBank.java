@@ -443,7 +443,8 @@ public final class SeedBank {
         try (Stream<Path> stream = Files.list(dir)) {
             for (Path p : stream.toList()) {
                 String name = p.getFileName().toString();
-                if (!name.endsWith(".json") || name.equals("rejected.json") || name.equals("frontier.json")) {
+                if (!name.endsWith(".json") || name.equals("rejected.json") || name.equals("frontier.json")
+                        || name.equals("screened.json")) {
                     continue;
                 }
                 try {

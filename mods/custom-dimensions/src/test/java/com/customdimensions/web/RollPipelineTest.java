@@ -4,10 +4,12 @@ import com.customdimensions.config.DimensionConfig;
 import com.customdimensions.facts.Measured;
 import com.customdimensions.facts.SeedFacts;
 import com.customdimensions.roll.SeedBank;
+import com.google.gson.Gson;
 import net.minecraft.server.MinecraftServer;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 
@@ -47,13 +49,25 @@ class RollPipelineTest {
 
     // ---------------------------------------------------------- spawnToPromote
 
-    /** A minimally valid, fully-absent facts record with a chosen spawn column/height. */
+    private static final Gson GSON = new Gson();
+
+    /** A type-less, environment-less config — {@link RollPipeline#assumedFloorY} falls back to -64. */
+    private static final DimensionConfig PLAIN_DIM = new DimensionConfig();
+
+    /** A minimally valid, fully-absent facts record with a chosen spawn column/height, no grid. */
     private static SeedFacts fixtureFacts(Measured<SeedFacts.Column> column,
                                           Measured<Integer> surfaceHeight) {
+        return fixtureFacts(4096, column, surfaceHeight, Measured.absent("not measured in this fixture"));
+    }
+
+    /** As above, with an explicit playable radius and grid — what {@link RollPipeline#spawnFromGrid} reads. */
+    private static SeedFacts fixtureFacts(int playableRadius, Measured<SeedFacts.Column> column,
+                                          Measured<Integer> surfaceHeight, Measured<SeedFacts.Grid> grid) {
         Measured<String> goneStr = Measured.absent("not measured in this fixture");
         Measured<Integer> goneInt = Measured.absent("not measured in this fixture");
         Measured<Double> goneDouble = Measured.absent("not measured in this fixture");
-        return new SeedFacts("v1.2.3", "adventure:the_boneyard", 111L, "2026-08-10T00:00:00Z", "fp", 4096,
+        return new SeedFacts("v1.2.3", "adventure:the_boneyard", 111L, "2026-08-10T00:00:00Z", "fp",
+                playableRadius,
                 new SeedFacts.SpawnFacts(column, goneStr, surfaceHeight, goneDouble,
                         Measured.absent("not measured in this fixture"),
                         Measured.absent("not measured in this fixture"),
@@ -73,7 +87,20 @@ class RollPipelineTest {
                         Measured.absent("not measured in this fixture"),
                         Measured.absent("not measured in this fixture"),
                         Measured.absent("not measured in this fixture")),
-                Measured.absent("not measured in this fixture"));
+                grid);
+    }
+
+    /** A {@code side x side} grid, row-major ({@code z * side + x}), every cell null until overridden. */
+    private static SeedFacts.Grid fixtureGrid(int side, List<String> biomeIds,
+                                              java.util.Map<Integer, Integer> heightByIndex,
+                                              java.util.Map<Integer, Integer> biomeIdxByIndex) {
+        int n = side * side;
+        List<Integer> height = new ArrayList<>(java.util.Collections.<Integer>nCopies(n, null));
+        List<Integer> biome = new ArrayList<>(java.util.Collections.<Integer>nCopies(n, null));
+        heightByIndex.forEach(height::set);
+        biomeIdxByIndex.forEach(biome::set);
+        int heightMeasured = (int) height.stream().filter(java.util.Objects::nonNull).count();
+        return new SeedFacts.Grid(side, biomeIds, biome, height, n, heightMeasured);
     }
 
     @Test
@@ -82,7 +109,20 @@ class RollPipelineTest {
         SeedFacts facts = fixtureFacts(
                 Measured.of(new SeedFacts.Column(120, -340, true)), Measured.of(85));
 
-        assertArrayEquals(new int[]{120, 85, -340}, RollPipeline.spawnToPromote(facts));
+        assertArrayEquals(new int[]{120, 85, -340}, RollPipeline.spawnToPromote(facts, PLAIN_DIM));
+    }
+
+    @Test
+    @DisplayName("a real surface at the declared column is used even when the grid disagrees")
+    void spawnToPromoteIgnoresTheGridWhenTheDeclaredColumnHasGround() {
+        // If the grid were consulted it would answer a different position —
+        // a real surface at the declared column must win without a search.
+        SeedFacts.Grid grid = fixtureGrid(5, List.of(),
+                java.util.Map.of(17, 70), java.util.Map.of());
+        SeedFacts facts = fixtureFacts(1000,
+                Measured.of(new SeedFacts.Column(120, -340, true)), Measured.of(85), Measured.of(grid));
+
+        assertArrayEquals(new int[]{120, 85, -340}, RollPipeline.spawnToPromote(facts, PLAIN_DIM));
     }
 
     @Test
@@ -91,7 +131,7 @@ class RollPipelineTest {
         SeedFacts facts = fixtureFacts(
                 Measured.absent("no safe column found"), Measured.absent("no safe column found"));
 
-        assertNull(RollPipeline.spawnToPromote(facts));
+        assertNull(RollPipeline.spawnToPromote(facts, PLAIN_DIM));
     }
 
     @Test
@@ -100,13 +140,119 @@ class RollPipelineTest {
         SeedFacts facts = fixtureFacts(
                 Measured.of(new SeedFacts.Column(1, 2, true)), Measured.absent("surface unmeasured"));
 
-        assertNull(RollPipeline.spawnToPromote(facts));
+        assertNull(RollPipeline.spawnToPromote(facts, PLAIN_DIM));
     }
 
     @Test
     @DisplayName("nothing is written when there is no candidate to read at all")
     void spawnToPromoteIsNullWhenFactsAreNull() {
-        assertNull(RollPipeline.spawnToPromote(null));
+        assertNull(RollPipeline.spawnToPromote(null, PLAIN_DIM));
+    }
+
+    // ------------------------------------------------------------- assumedFloorY
+
+    @Test
+    @DisplayName("nether and end default to floor 0, everything else to -64")
+    void assumedFloorYDefaultsByType() {
+        DimensionConfig nether = new DimensionConfig();
+        nether.setType("nether");
+        DimensionConfig end = new DimensionConfig();
+        end.setType("end");
+        DimensionConfig voidType = new DimensionConfig();
+        voidType.setType("void");
+
+        assertEquals(0, RollPipeline.assumedFloorY(nether));
+        assertEquals(0, RollPipeline.assumedFloorY(end));
+        assertEquals(-64, RollPipeline.assumedFloorY(voidType));
+        assertEquals(-64, RollPipeline.assumedFloorY(PLAIN_DIM), "an untyped config falls back to -64");
+    }
+
+    @Test
+    @DisplayName("an explicit environment.minY wins over the type default")
+    void assumedFloorYPrefersAnExplicitOverride() {
+        DimensionConfig config = GSON.fromJson(
+                "{\"type\": \"end\", \"environment\": {\"minY\": -16}}", DimensionConfig.class);
+
+        assertEquals(-16, RollPipeline.assumedFloorY(config));
+    }
+
+    // -------------------------------------------------------------- spawnFromGrid
+
+    @Test
+    @DisplayName("a void declared column falls back to the nearest real-ground grid cell")
+    void spawnToPromoteFallsBackToTheGridWhenTheDeclaredColumnIsVoid() {
+        // 5x5 grid, radius 1000 -> step 500, half 2. Centre (index 12) is
+        // void too. Index 7 (0,-500) is one step out and real; index 6
+        // (-500,-500) is farther (diagonal) — the nearer one must win.
+        SeedFacts.Grid grid = fixtureGrid(5, List.of(),
+                java.util.Map.of(12, -64, 7, 70, 6, 65), java.util.Map.of());
+        SeedFacts facts = fixtureFacts(1000,
+                Measured.of(new SeedFacts.Column(0, 0, true)), Measured.of(-64), Measured.of(grid));
+
+        assertArrayEquals(new int[]{0, 70, -500}, RollPipeline.spawnToPromote(facts, PLAIN_DIM));
+    }
+
+    @Test
+    @DisplayName("no real ground anywhere in the grid means no spawn is written")
+    void spawnFromGridIsNullWhenEveryCellIsVoidOrUnsampled() {
+        SeedFacts.Grid grid = fixtureGrid(5, List.of(),
+                java.util.Map.of(12, -64), java.util.Map.of());   // one floor reading, the rest null
+
+        assertNull(RollPipeline.spawnFromGrid(
+                fixtureFacts(1000, Measured.of(new SeedFacts.Column(0, 0, true)), Measured.of(-64),
+                        Measured.of(grid)),
+                PLAIN_DIM, -64));
+    }
+
+    @Test
+    @DisplayName("no banked grid at all means no spawn is written")
+    void spawnToPromoteIsNullWhenTheColumnIsVoidAndNoGridWasBanked() {
+        SeedFacts facts = fixtureFacts(
+                Measured.of(new SeedFacts.Column(0, 0, true)), Measured.of(-64));
+
+        assertNull(RollPipeline.spawnToPromote(facts, PLAIN_DIM));
+    }
+
+    @Test
+    @DisplayName("a namesake-biome cell wins over a nearer ordinary cell within twice the distance")
+    void spawnFromGridPrefersANamesakeBiomeCellWithinTwiceTheNearestDistance() {
+        // Index 7 (0,-500) is the nearest real cell, one step out, ordinary
+        // biome. Index 6 (-500,-500) is the namesake biome, sqrt(2) steps
+        // out — exactly twice the nearest cell's squared distance, which
+        // the rule still accepts ("within twice", inclusive).
+        DimensionConfig def = new DimensionConfig();
+        DimensionConfig.SeedRoll seedRoll = new DimensionConfig.SeedRoll();
+        seedRoll.spawnFilter = List.of("adventure:boneyard_meadow");
+        def.setSeedRoll(seedRoll);
+        SeedFacts.Grid grid = fixtureGrid(5, List.of("adventure:plains", "adventure:boneyard_meadow"),
+                java.util.Map.of(7, 70, 6, 65),
+                java.util.Map.of(7, 0, 6, 1));
+        SeedFacts facts = fixtureFacts(1000,
+                Measured.of(new SeedFacts.Column(0, 0, true)), Measured.of(-64), Measured.of(grid));
+
+        assertArrayEquals(new int[]{-500, 65, -500}, RollPipeline.spawnToPromote(facts, def));
+    }
+
+    @Test
+    @DisplayName("a namesake-biome cell too far away loses to the nearest ordinary cell")
+    void spawnFromGridIgnoresANamesakeBiomeCellBeyondTwiceTheNearestDistance() {
+        // 7x7 grid, radius 3000 -> step 1000, half 3. Nearest real cell is
+        // one step out (ordinary biome); the namesake cell is three steps
+        // out — nine times the nearest cell's squared distance, well
+        // outside the factor-of-two allowance.
+        DimensionConfig def = new DimensionConfig();
+        DimensionConfig.SeedRoll seedRoll = new DimensionConfig.SeedRoll();
+        seedRoll.spawnFilter = List.of("adventure:boneyard_meadow");
+        def.setSeedRoll(seedRoll);
+        int near = 3 * 7 + 4;   // (gx=4, gz=3) -> x=1000, z=0
+        int far = 3 * 7 + 6;    // (gx=6, gz=3) -> x=3000, z=0
+        SeedFacts.Grid grid = fixtureGrid(7, List.of("adventure:plains", "adventure:boneyard_meadow"),
+                java.util.Map.of(near, 70, far, 65),
+                java.util.Map.of(near, 0, far, 1));
+        SeedFacts facts = fixtureFacts(3000,
+                Measured.of(new SeedFacts.Column(0, 0, true)), Measured.of(-64), Measured.of(grid));
+
+        assertArrayEquals(new int[]{1000, 70, 0}, RollPipeline.spawnToPromote(facts, def));
     }
 
     /**

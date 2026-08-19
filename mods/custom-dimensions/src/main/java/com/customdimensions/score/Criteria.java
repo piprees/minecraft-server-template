@@ -145,6 +145,11 @@ public final class Criteria {
      * be told apart. No namesake biome anywhere is zero: that world is not
      * this dimension, and no amount of standing somewhere else will make it
      * one.
+     *
+     * <p>{@code biomes.shares} is a real measurement at both tiers — tier 1
+     * just samples a coarser grid than tier 2 does ({@code FactsEngine}'s
+     * {@code SCREEN_GRID} vs {@code GRID}), so this criterion never needs to
+     * know which tier measured it.
      */
     static final class SpawnReadsAsNamesake implements Criterion {
         /**
