@@ -154,5 +154,18 @@
         "arrival": "spawn"
       }
     }
+  },
+  "structures": {
+    "mode": "none",
+    "terrainAdaptation": {
+      "friendsandfoes:citadel": "none"
+    },
+    "force": [
+      {
+        "structure": "friendsandfoes:citadel",
+        "x": 240,
+        "z": -300
+      }
+    ]
   }
 }

@@ -292,7 +292,19 @@
       "structory:dense_forest_ruin": "bury",
       "structory:northern_ruin": "bury",
       "structory:taiga_ruin_surface": "bury"
-    }
+    },
+    "force": [
+      {
+        "structure": "structory:old_manor",
+        "x": 2800,
+        "z": -1200
+      },
+      {
+        "structure": "philipsruins:sculk_dungeon",
+        "x": 2800,
+        "z": -1200
+      }
+    ]
   },
   "portal": {
     "frameBlock": "minecraft:dark_oak_planks",

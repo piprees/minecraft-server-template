@@ -80,7 +80,17 @@
     "clearSpawnRadius": 96,
     "noise": {
       "dungeons": "sparse"
-    }
+    },
+    "terrainAdaptation": {
+      "paradise_lost:vault": "pedestal"
+    },
+    "force": [
+      {
+        "structure": "paradise_lost:vault",
+        "x": -460,
+        "z": 420
+      }
+    ]
   },
   "portal": {
     "frameBlock": "minecraft:end_stone",

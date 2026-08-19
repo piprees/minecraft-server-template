@@ -172,8 +172,16 @@
   "structureDensity": "sparse",
   "structures": {
     "terrainAdaptation": {
-      "landmarks": "bury"
-    }
+      "landmarks": "bury",
+      "minecraft:mansion": "bury"
+    },
+    "force": [
+      {
+        "structure": "minecraft:mansion",
+        "x": 620,
+        "z": -540
+      }
+    ]
   },
   "portal": {
     "frameBlock": "minecraft:mossy_cobblestone",

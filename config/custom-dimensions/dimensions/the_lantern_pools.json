@@ -242,5 +242,19 @@
     320,
     46,
     64
-  ]
+  ],
+  "structures": {
+    "force": [
+      {
+        "structure": "explorify:campsite",
+        "x": -176,
+        "z": -240
+      },
+      {
+        "structure": "philipsruins:ancient_ruins",
+        "x": -224,
+        "z": -272
+      }
+    ]
+  }
 }

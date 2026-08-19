@@ -134,7 +134,17 @@
   "structures": {
     "noise": {
       "dungeons": "sparse"
-    }
+    },
+    "terrainAdaptation": {
+      "paradise_lost:palace": "pedestal"
+    },
+    "force": [
+      {
+        "structure": "paradise_lost:palace",
+        "x": -3400,
+        "z": 2900
+      }
+    ]
   },
   "exits": {
     "void": {

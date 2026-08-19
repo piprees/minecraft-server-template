@@ -52,5 +52,20 @@
   "seedRoll": {
     "skip": true,
     "description": "A flat blank canvas for building. Peaceful by decree \u2014 bedrock, dirt and grass, nothing else, forever. No history, no ruins, no narrative. This one is yours to write."
+  },
+  "structures": {
+    "mode": "none",
+    "force": [
+      {
+        "structure": "mss:small_oak_house",
+        "x": 1200,
+        "z": -880
+      },
+      {
+        "structure": "minecraft:ancient_city",
+        "x": 1200,
+        "z": -880
+      }
+    ]
   }
 }

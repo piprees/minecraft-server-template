@@ -191,7 +191,14 @@
       "dungeons": "drain",
       "loot": "drain"
     },
-    "clearSpawnRadius": 80
+    "clearSpawnRadius": 80,
+    "force": [
+      {
+        "structure": "structory:old_manor",
+        "x": -690,
+        "z": 730
+      }
+    ]
   },
   "environment": {
     "fogColor": "#4B5B3B"
