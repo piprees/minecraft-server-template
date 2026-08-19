@@ -25,14 +25,18 @@ Fractions of the **playable radius** (`borders.player`, or `8192 / portal.scale`
 
 | Band          | Range (fraction of radius) |
 | ------------- | -------------------------- |
-| `near_spawn`  | 0.00 – 0.30                |
-| `spread`      | 0.15 – 0.65                |
-| `near_border` | 0.45 – 1.00                |
+| `near_spawn`  | 0.00 – 0.15                |
+| `spread`      | 0.10 – 0.75                |
+| `near_border` | 0.55 – 1.00                |
 
-`structureDensity` shifts these bands when using the band-name form (does NOT affect explicit `{min,max}` block ranges in `structures.wants` — those are always literal):
+Source of truth: `Criteria.Band` in `mods/custom-dimensions/src/main/java/com/customdimensions/score/Criteria.java`.
 
-- `dense`: `near_border` → `spread`, `spread` → `near_spawn` (everything pulled inward — makes sense in a smaller, denser world).
-- `sparse`: `near_spawn` → `spread`, `spread` → `near_border` (pushed outward).
+A placement outside its band does not drop straight to zero: the score ramps
+down over a further `TOLERANCE = 0.25` of the radius, then hits zero. So a
+`near_spawn` want on a 512-block border scores nothing past ~200 blocks.
+Check where a structure actually lands before choosing its band — one banded
+`near_spawn` scored zero on every seed while generating reliably at 323-342
+blocks.
 
 **Don't pick a `near_border` want on a tiny pocket dimension** — a 1024-radius world has no "far out" in absolute terms; the band is always relative to the actual playable radius, so it still works, but check the resulting block range makes sense (e.g. `near_border` on a 512-radius world is only ~230-512 blocks out — fine for a small structure, silly for something meant to feel remote).
 
