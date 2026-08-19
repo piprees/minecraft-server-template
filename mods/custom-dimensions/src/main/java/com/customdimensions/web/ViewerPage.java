@@ -574,11 +574,7 @@ public final class ViewerPage {
     }
 
     private static String description(DimensionConfig def) {
-        if (def.getDescription() != null && !def.getDescription().isBlank()) {
-            return def.getDescription();
-        }
-        DimensionConfig.SeedRoll roll = def.getSeedRoll();
-        return roll != null && roll.description != null ? roll.description : "";
+        return def.getDescription() != null ? def.getDescription() : "";
     }
 
     /** The highest percentage among a dimension's shown candidates, 0 when none is scored. */

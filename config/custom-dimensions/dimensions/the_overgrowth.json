@@ -220,8 +220,7 @@
       "tavern",
       "mansion",
       "monument"
-    ],
-    "description": "Nature won. Jungle-swallowed ruins and infested temples in compressed, tangled terrain. Villager settlements once stood here; the wild reclaimed every wall. The jungle doesn't negotiate."
+    ]
   },
   "spawn": [
     -64,

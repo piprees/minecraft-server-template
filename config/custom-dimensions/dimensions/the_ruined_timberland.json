@@ -175,8 +175,7 @@
     "shuns": [
       "village",
       "tavern"
-    ],
-    "description": "Autumn woods strewn with ruins. Every clearing has bones of something older \u2014 temples, crypts, pumpkin ruins from a harvest festival that was never finished. Rich pickings, no living towns. Whoever these people were, they left in a hurry."
+    ]
   },
   "spawn": [
     -64,

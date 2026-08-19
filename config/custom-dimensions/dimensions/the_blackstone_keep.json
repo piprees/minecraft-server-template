@@ -81,8 +81,7 @@
       "piglin_village",
       "crimson_fungus",
       "warped_outpost"
-    ],
-    "description": "The piglin military frontier. Bastions and blackstone walls from spawn, fortified against something that came from below. The deeper you dig, the harder it fights back \u2014 as if the keep itself remembers the threat."
+    ]
   },
   "spawn": [
     64,

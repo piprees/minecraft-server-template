@@ -50,8 +50,7 @@
     "target": "bed"
   },
   "seedRoll": {
-    "skip": true,
-    "description": "A flat blank canvas for building. Peaceful by decree \u2014 bedrock, dirt and grass, nothing else, forever. No history, no ruins, no narrative. This one is yours to write."
+    "skip": true
   },
   "structures": {
     "mode": "none",

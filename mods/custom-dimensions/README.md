@@ -214,7 +214,7 @@ An `"environment"` block registers a per-dimension `DimensionType` as `{ns}:{slu
 
 `ambientLight` is 0–1, `fixedTime` a tick of day (locks the sun), `natural: false` makes compasses and beds go weird, `effects` picks `minecraft:overworld|the_nether|the_end` sky rendering, `infiniburn` is a block tag, `monsterSpawnLightLevel` an int or int-provider.
 
-**Cosmetic and identity fields:** `"description"` is documentation-only (surfaced by tooling, never parsed). `portal.particleType` (any particle id, e.g. `minecraft:end_rod`) overrides the coloured particles, and `color` is ignored when it is set. `dimensionId` is LEGACY — omit it; the id derives from `{namespace}:{filename}`, and the four reserved filenames resolve to their existing ids.
+**Cosmetic and identity fields:** `"description"` is the dimension's one description, read by the mod and shown in the viewer. `portal.particleType` (any particle id, e.g. `minecraft:end_rod`) overrides the coloured particles, and `color` is ignored when it is set. `dimensionId` is LEGACY — omit it; the id derives from `{namespace}:{filename}`, and the four reserved filenames resolve to their existing ids.
 
 ## Portals
 

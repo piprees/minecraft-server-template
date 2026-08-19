@@ -155,8 +155,7 @@
       "tavern",
       "farmstead",
       "piglin_village"
-    ],
-    "description": "Sculk-eaten caverns. The deep dark outlived the world it consumed and tunnelled on \u2014 this is where the underground sculk broke through from the ancient cities. The humans who explored too deep triggered this, and the infection never stopped."
+    ]
   },
   "spawn": [
     128,

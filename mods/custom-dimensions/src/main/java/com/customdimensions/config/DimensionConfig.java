@@ -1594,8 +1594,6 @@ public class DimensionConfig {
          */
         @SerializedName("allowHazardousSpawn")
         public Boolean allowHazardousSpawn;
-        @SerializedName("description")
-        public String description;
         @SerializedName("wants")
         public JsonObject wants;
         @SerializedName("shuns")

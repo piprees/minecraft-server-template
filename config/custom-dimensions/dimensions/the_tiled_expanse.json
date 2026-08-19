@@ -63,7 +63,6 @@
       "phantom_citadel",
       "enderkeep"
     ],
-    "description": "The endermen's first construction \u2014 a quartz-and-void expanse laid out on a grid, in geometric silence. No cities, no habitation. Pure mathematical architecture, built before they understood what living in a place meant.",
     "terrain": "flat",
     "heightRange": [
       48,

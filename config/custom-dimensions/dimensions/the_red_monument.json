@@ -157,8 +157,7 @@
       "dragon_skeleton",
       "ruined_pillar",
       "end_ruins"
-    ],
-    "description": "The red monument \u2014 a single monolith hanging in nothing, bleeding scarlet into the void. The endermen's temple, their holiest site. Manuscript shrines and a mythic garden ring it at a fixed distance; there is no other ground in the world, and nothing here hunts you. The monument does not kill trespassers. It declines them."
+    ]
   },
   "spawn": [
     384,

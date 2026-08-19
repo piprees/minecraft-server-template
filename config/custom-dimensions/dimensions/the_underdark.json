@@ -276,8 +276,7 @@
       "village",
       "tavern",
       "farmstead"
-    ],
-    "description": "The deep dark as an endless cavern world. Ancient cities built by the endermen, abandoned during their migration, colonised by the sculk. The humans found them and the sculk woke. Mushroom light and sculk glow in equal measure."
+    ]
   },
   "spawn": [
     -128,

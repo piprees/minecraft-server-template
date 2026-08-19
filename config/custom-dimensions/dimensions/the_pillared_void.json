@@ -132,7 +132,6 @@
       "phantom_citadel",
       "enderkeep"
     ],
-    "description": "Lonely pillars in the void. Spires, a dragon's skeleton, nothing else \u2014 the endermen's oldest construction, predating even the tiled expanse. Whatever they built here, they built it for a dragon. The dragon is dead.",
     "terrain": "void"
   },
   "spawn": [

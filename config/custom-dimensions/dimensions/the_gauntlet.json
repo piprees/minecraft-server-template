@@ -120,8 +120,7 @@
       "village",
       "tavern",
       "farmstead"
-    ],
-    "description": "The gauntlet \u2014 the hardest overworld there is. Brutal peaks, ancient cities, trial chambers, and a keep. Every reward is guarded. The humans who built here were testing themselves, not settling."
+    ]
   },
   "spawn": [
     -128,

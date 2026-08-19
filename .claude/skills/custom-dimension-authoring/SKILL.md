@@ -60,7 +60,7 @@ overlay/config/custom-dimensions/dimensions/<slug>.json  # consumer override
 5. **Set `borders`, `difficulty`, `structureDensity`** per the [size↔difficulty table](#size--difficulty-the-philosophy).
 6. **Set `structures.wants`/`structures.shuns`** using short names from `references/structure-names.md`. See [Traps](#traps-read-this-before-you-write-json) — the two blocks (`structures` vs `seedRoll`) use different value formats.
 7. **Set `portal`** — frame block, igniter, colour/particle, sounds, scale. See [Portal scale guide](#portal-scale-guide). Check `igniterItem` uniqueness: `grep -h igniterItem config/custom-dimensions/dimensions/*.json | sort`.
-8. **Set `seedRoll`** — `mood`, `spawnFilter` (3-8 biomes, all must appear in your `biomes` list AND exist in `biome-catalogue.md` for that family), `description`.
+8. **Set `seedRoll`** — `mood`, `spawnFilter` (3-8 biomes, all must appear in your `biomes` list AND exist in `biome-catalogue.md` for that family).
 9. **Set `spawn`** — `[0, 64, 0]` (roller overwrites this).
 10. **Validate** — see [Validation](#validation-do-not-skip-this).
 
@@ -231,8 +231,7 @@ A complete, valid, medium-difficulty `multi_biome` dimension:
   },
   "seedRoll": {
     "mood": "adventurous",
-    "spawnFilter": ["minecraft:ice_spikes", "minecraft:frozen_peaks", "terralith:glacial_chasm"],
-    "description": "A frozen crystal cave dimension, medium difficulty."
+    "spawnFilter": ["minecraft:ice_spikes", "minecraft:frozen_peaks", "terralith:glacial_chasm"]
   },
   "spawn": [0, 64, 0]
 }

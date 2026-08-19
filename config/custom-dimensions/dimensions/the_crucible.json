@@ -262,8 +262,7 @@
       "village",
       "tavern",
       "farmstead"
-    ],
-    "description": "A compressed jungle gauntlet where the wild reclaimed everything. Infested temples and webbed dungeons in terrain that fights back. Whatever was built here was consumed long ago \u2014 the jungle doesn't negotiate."
+    ]
   },
   "spawn": [
     320,

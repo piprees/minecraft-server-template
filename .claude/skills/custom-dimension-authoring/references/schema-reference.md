@@ -30,7 +30,7 @@ Ground truth: `/Users/pip/Projects/minecraft-server-template/mods/custom-dimensi
 | Key | Type | Timing | Notes |
 | --- | --- | --- | --- |
 | `type` | string | creation-time | See [Valid types](#valid-type-values) below. Required for any dimension whose filename is not one of the four reserved ones. On `overworld`/`the_nether`/`the_end`/`paradise_lost` it selects nothing — `getType()` already supplies the family, so writing one moves that dimension onto another family's group set. See [the section on those four](#overworld-the_nether-the_end-paradise_lost). |
-| `description` | string | — | Documentation only; never parsed by the mod. Still worth writing well — good practice, and useful for humans skimming files. |
+| `description` | string | — | The dimension's one description, read by the mod and shown in the viewer. Write it well; it is what a human reads first. |
 | `seed` | number \| `"env"` | creation-time | Per-dimension world seed. `"env"` reads the `SEED` env var. Changing this after the world exists does nothing. |
 | `spawn` | `[x, y, z]` | boot-re-read | Spawn point. The seed roller overwrites this when it finalises a winner. |
 | `noiseSettings` | string (registry id) | creation-time | `ChunkGeneratorSettings` id. The mod ships `adventure:wide` (broad realistic relief, tall build height) and `adventure:compressed` (tighter climate bands, taller vertical scale, more relief per horizontal distance — used by ~23/84 shipped dims, mostly harder/pocket ones). Any datapack-registered id works. Ignored for void/superflat. |
@@ -237,7 +237,6 @@ The mod ignores this block entirely at runtime — it exists purely for seed rol
     "family": "overworld",
     "allowEndgameNearSpawn": false,
     "allowHazardousSpawn": false,
-    "description": "Human-readable dimension philosophy.",
     "wants": { "village": "near_spawn", "ancient_city": "spread" },
     "shuns": ["village", "tavern"]
   }
@@ -257,7 +256,6 @@ The mod ignores this block entirely at runtime — it exists purely for seed rol
 | `family` | `"overworld"`/`"nether"`/`"end"`/`"paradise_lost"` override of auto-detection from `type`. |
 | `allowEndgameNearSpawn` | Lets endgame/boss structures sit near spawn without penalty. |
 | `allowHazardousSpawn` | `true` withdraws BOTH spawn-safety gates — `nothing_is_immediately_lethal` (a sheer drop at the spawn column) and `spawn_is_safe_to_build_on` (lava, or nothing to stand on). For a dimension entered through a portal the mod builds the arrival itself — `PortalSite` finds an open site or carves one, lays a floor, and refuses the traversal rather than dropping somebody somewhere unopenable — so a player never steps out onto the column these measure, and for a dimension whose proposition IS danger a cliff there is scenery. Opt-out and never derived: every dimension has a portal, so deriving it would switch the gates off pack-wide in one silent step. Shipped on the 19 dimensions with `difficulty.mobMultiplier >= 2.0`, the same threshold the hard structure shift uses. |
-| `description` | Human-readable philosophy — shown in the viewer UI. Reuse the theme prompt here. |
 | `wants` | **Band-name** form: short-name → `"near_spawn"` (0–15% of `borders.player`) / `"spread"` (10–75%) / `"near_border"` (55–100%). One criterion per entry, scored on the nearest instance's distance as a fraction of this dimension's own border. Different format from `structures.wants` — see main SKILL.md traps. |
 | `shuns` | Bare list of short names (or map form). Absent is full marks; present is scored by how much of the world separates a player from it. |
 

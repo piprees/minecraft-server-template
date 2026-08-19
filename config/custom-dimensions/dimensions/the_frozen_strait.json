@@ -243,8 +243,7 @@
       "village",
       "mansion",
       "coliseum"
-    ],
-    "description": "Frozen channels between ice sheets. Igloos and cold dungeons mark where people tried to cross; shipwrecks mark where they failed. The sea is the road, and the road is cruel."
+    ]
   },
   "spawn": [
     0,

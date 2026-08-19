@@ -138,7 +138,6 @@
       "terralith:cave/frostfire_caves",
       "terralith:alpha_islands_winter"
     ],
-    "description": "A void where a frozen world used to be. The biomes remain \u2014 their cold, their fog, their sounds \u2014 but the ground does not. The disintegration finished here. Whatever broke this world left only the memory of ice.",
     "terrain": "void"
   },
   "spawn": [

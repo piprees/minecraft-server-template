@@ -61,8 +61,7 @@
       "piglin_village",
       "crimson_fungus",
       "warped_outpost"
-    ],
-    "description": "The sculk that fed on the boneyard war escaped here. Corrupted nether terrain, oppressive and chaotic \u2014 the catalyst is still feeding, still growing. The reactors and bastions it consumed are unrecognisable."
+    ]
   },
   "spawn": [
     -128,

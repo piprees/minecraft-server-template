@@ -64,8 +64,7 @@
     "shuns": [
       "piglin_village",
       "warped_outpost"
-    ],
-    "description": "Classic nether halls \u2014 fortress corridors that defined piglin military power. A mega-fortress anchors the far end, built when the piglin empire was at its height. Brick and fire all the way down."
+    ]
   },
   "spawn": [
     128,

@@ -1,4 +1,5 @@
 {
+  "description": "The nether \u2014 piglin heartland, 1:8 compressed. Fortresses and bastions in reach, Incendium's sanctum near the rim. Every civilisation that touched this place left infrastructure; only the piglins called it home.",
   "borders": {
     "player": 1024,
     "generation": 1024
@@ -23,7 +24,6 @@
   },
   "seedRoll": {
     "mood": "adventurous",
-    "description": "The nether \u2014 piglin heartland, 1:8 compressed. Fortresses and bastions in reach, Incendium's sanctum near the rim. Every civilisation that touched this place left infrastructure; only the piglins called it home.",
     "spawnFilter": [
       "minecraft:nether_wastes",
       "minecraft:crimson_forest",

@@ -47,8 +47,7 @@
       "ancient_city": "near_border",
       "desert_pyramid": "spread",
       "ruined_portal": "near_spawn"
-    },
-    "description": "The endless expanse \u2014 what humans and villagers built when they had room. Large biomes, big civilisation, a coliseum and a mansion at the far edge. The scale is the point."
+    }
   },
   "spawn": [
     256,

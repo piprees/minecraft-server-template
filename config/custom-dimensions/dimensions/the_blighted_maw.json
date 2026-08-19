@@ -64,7 +64,6 @@
       "crimson_fungus",
       "warped_outpost"
     ],
-    "description": "A toxic little hell that came apart. Piglin scientists built labs and reactors here to study the sculk infection from the boneyard; the blight won, and took the ground with it. What is left is a tight cluster of floating islands with a long fall between them. Fall off and the blight rejects you rather than killing you. Loot escalates with the danger.",
     "terrain": "islands",
     "water": "none"
   },

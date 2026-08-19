@@ -224,8 +224,7 @@
       "trial_chambers",
       "monument",
       "coliseum"
-    ],
-    "description": "The empty deep mire. Sunken ruins and a mausoleum in the murk \u2014 whoever built these, the swamp took them generations ago. Too wet for roads, too quiet for company. The marsh doesn't remember their names."
+    ]
   },
   "spawn": [
     128,

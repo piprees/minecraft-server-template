@@ -141,8 +141,7 @@
     "spawnFilter": [
       "terralith:cave/thermal_caves",
       "terralith:cave/granite_caves"
-    ],
-    "description": "A pocket foundry burrowed in glassy rock. Basalt columns, thermal vents, quartz light in the dark \u2014 piglin engineers built this as a proving ground. Small, self-contained, still warm."
+    ]
   },
   "spawn": [
     -128,

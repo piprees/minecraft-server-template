@@ -286,15 +286,16 @@ class DimensionConfigTest {
     @Test
     void seedRollBlockDeserialises() {
         DimensionConfig config = parse("d", """
-                {"seedRoll":{"mood":"serene","spawnFilter":["minecraft:swamp"],"water":"high",
-                 "wants":{"swamp_ruin":"spread"},"shuns":["village"],"description":"quiet"}}
+                {"description":"quiet",
+                 "seedRoll":{"mood":"serene","spawnFilter":["minecraft:swamp"],"water":"high",
+                 "wants":{"swamp_ruin":"spread"},"shuns":["village"]}}
                 """);
         assertNotNull(config.getSeedRoll());
         assertEquals("serene", config.getSeedRoll().mood);
         assertEquals(1, config.getSeedRoll().spawnFilter.size());
         assertEquals("high", config.getSeedRoll().water);
         assertTrue(config.getSeedRoll().wants.has("swamp_ruin"));
-        assertEquals("quiet", config.getSeedRoll().description);
+        assertEquals("quiet", config.getDescription());
     }
 
     @Test
