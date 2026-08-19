@@ -152,6 +152,16 @@
                      (terrablender/lithostitched). Matches only DataResult.Success —
                      a genuine DataResult.Error stays visible. -->
                 <RegexFilter regex=".*Failed to decode value DataResult\.Success\[ResourceKey\[minecraft:dimension.*" onMatch="DENY" onMismatch="NEUTRAL" />
+                <!-- Tag defined by a mod for content another mod owns; same class
+                     as the c:*/lead rules above. The summary line "Warnings were
+                     found!" stays visible, so a NEW tag fault still shows. -->
+                <RegexFilter regex=".*Not all defined tags.*immersive_weathering:.*" onMatch="DENY" onMismatch="NEUTRAL" />
+                <!-- Cosmetic metadata warnings in third-party mod jars -->
+                <RegexFilter regex="The mod &quot;dungeons_arise&quot; contains invalid entries in its mod json:" onMatch="DENY" onMismatch="NEUTRAL" />
+                <!-- Supplementaries names a Lithium rule this pack does not carry -->
+                <RegexFilter regex="Mod 'supplementaries' attempted to override option 'mixins\.block\.moving_block_shapes'.*" onMatch="DENY" onMismatch="NEUTRAL" />
+                <!-- Vanilla dye diffuse-colour self-check, cosmetic -->
+                <RegexFilter regex="Dye color \w+ produced diffuse color -?\d+ \(\w+\), this should never happen" onMatch="DENY" onMismatch="NEUTRAL" />
             </Filters>
         </Console>
         <RollingRandomAccessFile name="File" fileName="logs/latest.log"
