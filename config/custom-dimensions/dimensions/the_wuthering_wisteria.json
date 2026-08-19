@@ -193,6 +193,11 @@
         "structure": "towns_and_towers:exclusives/pillager_outpost_oriental",
         "x": -140,
         "z": 120
+      },
+      {
+        "structure": "paradise_lost:vault",
+        "x": 0,
+        "z": 0
       }
     ]
   },

@@ -204,6 +204,11 @@
         "structure": "explorify:farmstead",
         "x": -87,
         "z": -312
+      },
+      {
+        "structure": "dungeons_plus:dusty_tomb",
+        "x": -87,
+        "z": -312
       }
     ],
     "clearSpawnRadius": 128

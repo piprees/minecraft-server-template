@@ -118,6 +118,16 @@
         "structure": "adventuredungeons:underground_camp",
         "x": 80,
         "z": 80
+      },
+      {
+        "structure": "mns:copper_tower",
+        "x": 120,
+        "z": -380
+      },
+      {
+        "structure": "minecraft:ancient_city",
+        "x": -780,
+        "z": 640
       }
     ],
     "terrainAdaptation": {

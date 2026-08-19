@@ -242,6 +242,11 @@
         "structure": "structory:graveyard",
         "x": 150,
         "z": 90
+      },
+      {
+        "structure": "structory:abandoned_chapel",
+        "x": 540,
+        "z": -610
       }
     ]
   },

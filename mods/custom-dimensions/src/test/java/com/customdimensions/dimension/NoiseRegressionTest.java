@@ -154,11 +154,13 @@ class NoiseRegressionTest {
     // --- the_dustbowl: structureDensity none + force, the escape hatch -----
 
     @Test
-    void theDustbowlHasNoNoiseGroupsAndKeepsItsForcedFarmstead() {
+    void theDustbowlHasNoNoiseGroupsAndKeepsItsForcedPair() {
         DimensionConfig config = dim("the_dustbowl");
         NoiseGroupPlan plan = NoiseGroupPlan.resolve(config);
         assertEquals(Set.of(), plan.groups().keySet());
-        assertEquals(List.of("explorify:farmstead"), forcedStructureIds(config));
+        // The tomb shares the farmstead's coordinate, so it places beneath it.
+        assertEquals(List.of("explorify:farmstead", "dungeons_plus:dusty_tomb"),
+                forcedStructureIds(config));
         assertTrue(NoisePoolBuilder.forcedExclusiveStructureIds(config)
                 .contains("explorify:farmstead"));
     }

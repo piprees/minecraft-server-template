@@ -199,6 +199,11 @@
         "structure": "minecraft:mineshaft",
         "x": -718,
         "z": -389
+      },
+      {
+        "structure": "betterdungeons:zombie_dungeon",
+        "x": 678,
+        "z": -412
       }
     ],
     "clearSpawnRadius": 256
