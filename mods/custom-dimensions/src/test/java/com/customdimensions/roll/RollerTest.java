@@ -255,6 +255,44 @@ class RollerTest {
          * count, so completions genuinely race; the sink still sees draw
          * order.
          */
+        /**
+         * A measurement writes its candidate before it returns, and the cull
+         * reads the bank straight after, so leaving the loop early must not
+         * strand a write that is still running.
+         */
+        @Test
+        void everySubmittedMeasurementFinishesEvenWhenTheSweepThrows() {
+            ExecutorService pool = Executors.newFixedThreadPool(4);
+            java.util.Set<Long> landed =
+                    java.util.Collections.synchronizedSet(new java.util.LinkedHashSet<>());
+            AtomicLong next = new AtomicLong(1);
+            try {
+                Roller.Measurer measurer = seed -> {
+                    try {
+                        Thread.sleep(seed == 1 ? 1 : 25);
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                    }
+                    landed.add(seed);
+                    if (seed == 1) {
+                        throw new IllegalStateException("seed 1 blows up");
+                    }
+                    return new Roller.Draw(seed, Scorecard.Verdict.SCORED, 1.0, 100.0, "stub");
+                };
+                org.junit.jupiter.api.Assertions.assertThrows(IllegalStateException.class, () ->
+                        Roller.fanOut(seed -> false, next::getAndIncrement, measurer,
+                                Roller.Budget.seeds(4), () -> false, pool, 4,
+                                draw -> { },
+                                (seed, e) -> {
+                                    throw e;
+                                }));
+            } finally {
+                pool.shutdownNow();
+            }
+            assertEquals(java.util.Set.of(1L, 2L, 3L, 4L), landed,
+                    "every submitted measurement must complete before the sweep returns");
+        }
+
         @Test
         void aParallelSweepBanksExactlyWhatASerialSweepWould() {
             java.util.function.Supplier<Roller.Measurer> measurer = () -> seed -> {

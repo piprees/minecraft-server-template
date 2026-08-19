@@ -223,8 +223,10 @@ public final class Roller {
                       java.util.function.BiConsumer<Long, RuntimeException> onFailure) {
         int attempts = 0;
         int measured = 0;
+        boolean interrupted = false;
         Set<Long> inFlight = new LinkedHashSet<>();
         Deque<Pending> window = new ArrayDeque<>();
+        try {
         while (true) {
             while (window.size() < parallelism && !budget.exceeded(attempts)
                     && !abandonIf.getAsBoolean()) {
@@ -243,7 +245,7 @@ public final class Roller {
             try {
                 draw = pending.future().get();
             } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
+                interrupted = true;
                 break;
             } catch (ExecutionException e) {
                 inFlight.remove(pending.seed());
@@ -256,7 +258,32 @@ public final class Roller {
             measured++;
             onSuccess.accept(draw);
         }
+        } finally {
+            settle(window);
+            if (interrupted) {
+                Thread.currentThread().interrupt();
+            }
+        }
         return measured;
+    }
+
+    /**
+     * Waits out whatever is still running, discarding results. A measurement
+     * writes its candidate before it returns, so a caller that leaves the loop
+     * early — cancelled, interrupted, or carrying an exception — must not read
+     * the bank until those writes have landed.
+     */
+    private static void settle(Deque<Pending> window) {
+        while (!window.isEmpty()) {
+            Pending pending = window.pollFirst();
+            try {
+                pending.future().get();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            } catch (ExecutionException | RuntimeException ignored) {
+                // Already failed or already reported; the write is what matters.
+            }
+        }
     }
 
     /** How many tier-1 survivors a shortlist carries into a full tier-2 measurement. */
