@@ -4,177 +4,33 @@
   "seed": -2033868061535873206,
   "noiseSettings": "adventure:wide",
   "biomes": [
-    "minecraft:cherry_grove",
-    "minecraft:meadow",
-    "minecraft:flower_forest",
-    "minecraft:birch_forest",
-    "minecraft:old_growth_birch_forest",
-    {
-      "id": "minecraft:plains",
-      "parameters": {
-        "temperature": [
-          -0.45,
-          0.2
-        ],
-        "humidity": [
-          -1.0,
-          -0.1
-        ],
-        "weirdness": [
-          -2.0,
-          -0.19
-        ]
-      }
-    },
-    "minecraft:sunflower_plains",
-    {
-      "id": "minecraft:forest",
-      "parameters": {
-        "temperature": [
-          -0.45,
-          0.55
-        ],
-        "humidity": [
-          -0.1,
-          0.1
-        ],
-        "weirdness": [
-          -0.19,
-          -0.1578
-        ]
-      }
-    },
-    "minecraft:river",
-    "minecraft:beach",
-    "terralith:lavender_valley",
-    "terralith:blooming_valley",
-    {
-      "id": "terralith:sakura_valley",
-      "parameters": {
-        "temperature": [
-          -0.155,
-          0.55
-        ],
-        "humidity": [
-          0.3,
-          1.0
-        ],
-        "weirdness": [
-          -0.1578,
-          -0.1256
-        ]
-      }
-    },
-    "terralith:sakura_grove",
-    "terralith:moonlight_valley",
-    "terralith:moonlight_grove",
-    "terralith:blooming_plateau",
-    "terralith:lush_valley",
-    "terralith:temperate_highlands",
-    {
-      "id": "natures_spirit:wisteria_forest",
-      "parameters": {
-        "temperature": [
-          -0.15,
-          1.0
-        ],
-        "humidity": [
-          -0.1,
-          1.0
-        ],
-        "weirdness": [
-          -0.1256,
-          -0.0933
-        ]
-      }
-    },
-    {
-      "id": "natures_spirit:lavender_fields",
-      "parameters": {
-        "temperature": [
-          -0.15,
-          1.0
-        ],
-        "humidity": [
-          -1.0,
-          0.1
-        ],
-        "weirdness": [
-          -0.0933,
-          -0.0611
-        ]
-      }
-    },
-    {
-      "id": "natures_spirit:carnation_fields",
-      "parameters": {
-        "temperature": [
-          -0.15,
-          1.0
-        ],
-        "humidity": [
-          -1.0,
-          0.1
-        ],
-        "weirdness": [
-          -0.0611,
-          -0.0289
-        ]
-      }
-    },
-    {
-      "id": "terralith:lavender_forest",
-      "parameters": {
-        "temperature": [
-          -0.45,
-          -0.155
-        ],
-        "humidity": [
-          0.565,
-          1.0
-        ],
-        "weirdness": [
-          -0.0289,
-          0.0033
-        ]
-      }
-    },
-    {
-      "id": "regions_unexplored:poppy_fields",
-      "parameters": {
-        "weirdness": [
-          0.0033,
-          0.0356
-        ]
-      }
-    },
-    {
-      "id": "regions_unexplored:clover_plains",
-      "parameters": {
-        "weirdness": [
-          0.0356,
-          0.0678
-        ]
-      }
-    },
-    {
-      "id": "regions_unexplored:glistering_meadow",
-      "parameters": {
-        "weirdness": [
-          0.0678,
-          0.1
-        ]
-      }
-    },
-    {
-      "id": "regions_unexplored:orchard",
-      "parameters": {
-        "weirdness": [
-          0.1,
-          2.0
-        ]
-      }
-    }
+    { "id": "minecraft:meadow", "parameters": { "weirdness": [-2.0, -1.953] } },
+    { "id": "minecraft:flower_forest", "parameters": { "weirdness": [-1.953, -1.906] } },
+    { "id": "minecraft:birch_forest", "parameters": { "weirdness": [-1.906, -1.859] } },
+    { "id": "minecraft:old_growth_birch_forest", "parameters": { "weirdness": [-1.859, -1.812] } },
+    { "id": "minecraft:sunflower_plains", "parameters": { "weirdness": [-1.812, -1.765] } },
+    { "id": "minecraft:river", "parameters": { "weirdness": [-1.765, -1.718] } },
+    { "id": "minecraft:beach", "parameters": { "weirdness": [-1.718, -1.671] } },
+    { "id": "terralith:lavender_valley", "parameters": { "weirdness": [-1.671, -1.624] } },
+    { "id": "terralith:blooming_valley", "parameters": { "weirdness": [-1.624, -1.577] } },
+    { "id": "terralith:sakura_grove", "parameters": { "weirdness": [-1.577, -1.53] } },
+    { "id": "terralith:moonlight_valley", "parameters": { "weirdness": [-1.53, -1.483] } },
+    { "id": "terralith:moonlight_grove", "parameters": { "weirdness": [-1.483, -1.436] } },
+    { "id": "terralith:blooming_plateau", "parameters": { "weirdness": [-1.436, -1.389] } },
+    { "id": "terralith:lush_valley", "parameters": { "weirdness": [-1.389, -1.342] } },
+    { "id": "terralith:temperate_highlands", "parameters": { "weirdness": [-1.342, -1.295] } },
+    { "id": "minecraft:plains", "parameters": { "temperature": [-0.45, 0.2], "humidity": [-1.0, -0.1], "weirdness": [-1.295, -1.248] } },
+    { "id": "minecraft:forest", "parameters": { "temperature": [-0.45, 0.55], "humidity": [-0.1, 0.1], "weirdness": [-1.248, -1.201] } },
+    { "id": "terralith:sakura_valley", "parameters": { "temperature": [-0.155, 0.55], "humidity": [0.3, 1.0], "weirdness": [-1.201, -1.154] } },
+    { "id": "natures_spirit:wisteria_forest", "parameters": { "temperature": [-0.15, 1.0], "humidity": [-0.1, 1.0], "weirdness": [-1.154, -1.107] } },
+    { "id": "natures_spirit:carnation_fields", "parameters": { "temperature": [-0.15, 1.0], "humidity": [-1.0, 0.1], "weirdness": [-1.107, -1.06] } },
+    { "id": "terralith:lavender_forest", "parameters": { "temperature": [-0.45, -0.155], "humidity": [0.565, 1.0], "weirdness": [-1.06, -1.013] } },
+    { "id": "regions_unexplored:poppy_fields", "parameters": { "weirdness": [-1.013, -0.966] } },
+    { "id": "regions_unexplored:clover_plains", "parameters": { "weirdness": [-0.966, -0.919] } },
+    { "id": "regions_unexplored:glistering_meadow", "parameters": { "weirdness": [-0.919, -0.872] } },
+    { "id": "regions_unexplored:orchard", "parameters": { "weirdness": [-0.872, -0.825] } },
+    { "id": "natures_spirit:lavender_fields", "parameters": { "temperature": [-0.15, 1.0], "humidity": [-1.0, 0.1], "weirdness": [-0.825, 0.495] } },
+    { "id": "minecraft:cherry_grove", "parameters": { "weirdness": [0.495, 2.0] } }
   ],
   "borders": {
     "player": 8192,

@@ -3,55 +3,15 @@
   "description": "A pocket foundry burrowed in glassy rock. Basalt columns, thermal vents, quartz light in the dark — piglin engineers built this as a proving ground. Small, self-contained, still warm.",
   "seed": 9181733818447442817,
   "biomes": [
-    "terralith:cave/thermal_caves",
-    "terralith:cave/granite_caves",
-    "terralith:cave/tuff_caves",
-    "minecraft:dripstone_caves",
-    {
-      "id": "regions_unexplored:redstone_caves",
-      "parameters": {
-        "temperature": [
-          -2.0,
-          -0.6
-        ]
-      }
-    },
-    {
-      "id": "regions_unexplored:prismachasm",
-      "parameters": {
-        "temperature": [
-          -0.6,
-          -0.1
-        ]
-      }
-    },
-    {
-      "id": "galosphere:crystal_canyons",
-      "parameters": {
-        "temperature": [
-          -0.1,
-          0.4
-        ]
-      }
-    },
-    {
-      "id": "regions_unexplored:scorching_caves",
-      "parameters": {
-        "temperature": [
-          0.4,
-          0.9
-        ]
-      }
-    },
-    {
-      "id": "wilderwild:magmatic_caves",
-      "parameters": {
-        "temperature": [
-          0.9,
-          2.0
-        ]
-      }
-    }
+    { "id": "regions_unexplored:redstone_caves", "parameters": { "temperature": [-2.0, -1.6] } },
+    { "id": "minecraft:dripstone_caves", "parameters": { "temperature": [-1.6, -1.35] } },
+    { "id": "regions_unexplored:prismachasm", "parameters": { "temperature": [-1.35, -0.95] } },
+    { "id": "terralith:cave/tuff_caves", "parameters": { "temperature": [-0.95, -0.70] } },
+    { "id": "galosphere:crystal_canyons", "parameters": { "temperature": [-0.70, -0.30] } },
+    { "id": "terralith:cave/granite_caves", "parameters": { "temperature": [-0.30, -0.15] } },
+    { "id": "regions_unexplored:scorching_caves", "parameters": { "temperature": [-0.15, 0.25] } },
+    { "id": "terralith:cave/thermal_caves", "parameters": { "temperature": [0.25, 1.55] } },
+    { "id": "wilderwild:magmatic_caves", "parameters": { "temperature": [1.55, 2.0] } }
   ],
   "borders": {
     "player": 256,

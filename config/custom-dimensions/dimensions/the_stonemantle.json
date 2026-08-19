@@ -4,59 +4,19 @@
   "seed": 9192136150769168028,
   "noiseSettings": "adventure:compressed",
   "biomes": [
-    "terralith:rocky_mountains",
-    "minecraft:stony_peaks",
-    "minecraft:windswept_hills",
-    "minecraft:stony_shore",
-    "minecraft:windswept_gravelly_hills",
-    "terralith:basalt_cliffs",
-    "terralith:scarlet_mountains",
-    "terralith:volcanic_peaks",
-    {
-      "id": "regions_unexplored:towering_cliffs",
-      "parameters": {
-        "weirdness": [
-          -2.0,
-          -0.19
-        ]
-      }
-    },
-    {
-      "id": "regions_unexplored:spires",
-      "parameters": {
-        "weirdness": [
-          -0.19,
-          -0.0933
-        ]
-      }
-    },
-    {
-      "id": "regions_unexplored:mountains",
-      "parameters": {
-        "weirdness": [
-          -0.0933,
-          0.0033
-        ]
-      }
-    },
-    {
-      "id": "regions_unexplored:pine_slopes",
-      "parameters": {
-        "weirdness": [
-          0.0033,
-          0.1
-        ]
-      }
-    },
-    {
-      "id": "regions_unexplored:mauve_hills",
-      "parameters": {
-        "weirdness": [
-          0.1,
-          2.0
-        ]
-      }
-    }
+    { "id": "terralith:rocky_mountains", "parameters": { "weirdness": [-2.0, -1.81] } },
+    { "id": "minecraft:stony_peaks", "parameters": { "weirdness": [-1.81, -1.62] } },
+    { "id": "minecraft:windswept_hills", "parameters": { "weirdness": [-1.62, -1.43] } },
+    { "id": "minecraft:stony_shore", "parameters": { "weirdness": [-1.43, -1.24] } },
+    { "id": "minecraft:windswept_gravelly_hills", "parameters": { "weirdness": [-1.24, -1.05] } },
+    { "id": "terralith:basalt_cliffs", "parameters": { "weirdness": [-1.05, -0.86] } },
+    { "id": "terralith:scarlet_mountains", "parameters": { "weirdness": [-0.86, -0.67] } },
+    { "id": "terralith:volcanic_peaks", "parameters": { "weirdness": [-0.67, -0.37] } },
+    { "id": "regions_unexplored:towering_cliffs", "parameters": { "weirdness": [-0.37, 1.23] } },
+    { "id": "regions_unexplored:spires", "parameters": { "weirdness": [1.23, 1.4225] } },
+    { "id": "regions_unexplored:mountains", "parameters": { "weirdness": [1.4225, 1.615] } },
+    { "id": "regions_unexplored:pine_slopes", "parameters": { "weirdness": [1.615, 1.8075] } },
+    { "id": "regions_unexplored:mauve_hills", "parameters": { "weirdness": [1.8075, 2.0] } }
   ],
   "borders": {
     "player": 1024,

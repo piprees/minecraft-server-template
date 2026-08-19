@@ -3,68 +3,20 @@
   "description": "Ash-grey savanna under a volcanic sky. A settlement burned here once — abandoned camps and scorched tombs are all that remain. The grove remembers the fire, but not who set it.",
   "seed": -4745410978042438563,
   "biomes": [
-    "terralith:ashen_savanna",
-    "terralith:volcanic_peaks",
-    "terralith:volcanic_crater",
-    "minecraft:savanna",
-    "terralith:savanna_badlands",
-    "minecraft:badlands",
-    "minecraft:eroded_badlands",
-    "terralith:basalt_cliffs",
-    {
-      "id": "regions_unexplored:saguaro_desert",
-      "parameters": {
-        "weirdness": [
-          -2.0,
-          -0.19
-        ]
-      }
-    },
-    {
-      "id": "regions_unexplored:joshua_desert",
-      "parameters": {
-        "weirdness": [
-          -0.19,
-          -0.1175
-        ]
-      }
-    },
-    {
-      "id": "regions_unexplored:dry_bushland",
-      "parameters": {
-        "weirdness": [
-          -0.1175,
-          -0.045
-        ]
-      }
-    },
-    {
-      "id": "regions_unexplored:arid_mountains",
-      "parameters": {
-        "weirdness": [
-          -0.045,
-          0.0275
-        ]
-      }
-    },
-    {
-      "id": "regions_unexplored:ashen_woodland",
-      "parameters": {
-        "weirdness": [
-          0.0275,
-          0.1
-        ]
-      }
-    },
-    {
-      "id": "wilderwild:arid_savanna",
-      "parameters": {
-        "weirdness": [
-          0.1,
-          2.0
-        ]
-      }
-    }
+    { "id": "regions_unexplored:saguaro_desert", "parameters": { "weirdness": [-2.0, -1.85] } },
+    { "id": "terralith:ashen_savanna", "parameters": { "weirdness": [-1.85, -1.63] } },
+    { "id": "terralith:volcanic_peaks", "parameters": { "weirdness": [-1.63, -1.41] } },
+    { "id": "terralith:volcanic_crater", "parameters": { "weirdness": [-1.41, -1.19] } },
+    { "id": "minecraft:savanna", "parameters": { "weirdness": [-1.19, -0.97] } },
+    { "id": "terralith:savanna_badlands", "parameters": { "weirdness": [-0.97, -0.75] } },
+    { "id": "minecraft:badlands", "parameters": { "weirdness": [-0.75, -0.53] } },
+    { "id": "minecraft:eroded_badlands", "parameters": { "weirdness": [-0.53, -0.38] } },
+    { "id": "terralith:basalt_cliffs", "parameters": { "weirdness": [-0.38, -0.23] } },
+    { "id": "regions_unexplored:joshua_desert", "parameters": { "weirdness": [-0.23, -0.08] } },
+    { "id": "regions_unexplored:dry_bushland", "parameters": { "weirdness": [-0.08, 0.07] } },
+    { "id": "regions_unexplored:arid_mountains", "parameters": { "weirdness": [0.07, 0.22] } },
+    { "id": "regions_unexplored:ashen_woodland", "parameters": { "weirdness": [0.22, 1.82] } },
+    { "id": "wilderwild:arid_savanna", "parameters": { "weirdness": [1.82, 2.0] } }
   ],
   "borders": {
     "player": 1024,

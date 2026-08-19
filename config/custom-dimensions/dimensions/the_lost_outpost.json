@@ -105,7 +105,7 @@
     ],
     "wants": {
       "pillager_outpost": "near_spawn",
-      "pillager_lookout": "near_spawn",
+      "pillager_lookout": "spread",
       "bandit_towers": "spread",
       "illager_campsite": "near_spawn",
       "nomad_outpost": "spread",

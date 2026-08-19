@@ -4,17 +4,17 @@
   "seed": 5190387473893419670,
   "noiseSettings": "adventure:compressed",
   "biomes": [
-    "terralith:gravel_desert",
-    "terralith:basalt_cliffs",
-    "terralith:ashen_savanna",
-    "terralith:volcanic_peaks",
-    "minecraft:windswept_gravelly_hills",
-    "minecraft:stony_shore",
-    "terralith:rocky_shrubland",
-    "terralith:cold_shrubland",
-    { "id": "regions_unexplored:outback", "parameters": { "weirdness": [-2.0, -0.10] } },
-    { "id": "regions_unexplored:mauve_hills", "parameters": { "weirdness": [-0.10, -0.06] } },
-    { "id": "regions_unexplored:chalk_cliffs", "parameters": { "weirdness": [-0.06, 2.0] } }
+    { "id": "regions_unexplored:outback", "parameters": { "weirdness": [-2.0, -1.4] } },
+    { "id": "terralith:gravel_desert", "parameters": { "weirdness": [-1.4, -1.235] } },
+    { "id": "terralith:basalt_cliffs", "parameters": { "weirdness": [-1.235, -1.07] } },
+    { "id": "terralith:ashen_savanna", "parameters": { "weirdness": [-1.07, -0.905] } },
+    { "id": "terralith:volcanic_peaks", "parameters": { "weirdness": [-0.905, -0.74] } },
+    { "id": "minecraft:windswept_gravelly_hills", "parameters": { "weirdness": [-0.74, -0.575] } },
+    { "id": "minecraft:stony_shore", "parameters": { "weirdness": [-0.575, -0.41] } },
+    { "id": "terralith:rocky_shrubland", "parameters": { "weirdness": [-0.41, -0.245] } },
+    { "id": "terralith:cold_shrubland", "parameters": { "weirdness": [-0.245, -0.08] } },
+    { "id": "regions_unexplored:mauve_hills", "parameters": { "weirdness": [-0.08, 0.2] } },
+    { "id": "regions_unexplored:chalk_cliffs", "parameters": { "weirdness": [0.2, 2.0] } }
   ],
   "borders": {
     "player": 1024,

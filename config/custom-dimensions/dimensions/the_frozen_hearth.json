@@ -4,136 +4,28 @@
   "seed": -1692870054349687441,
   "noiseSettings": "adventure:wide",
   "biomes": [
-    "minecraft:snowy_plains",
-    "minecraft:snowy_taiga",
-    "minecraft:grove",
-    "minecraft:frozen_river",
-    "minecraft:ice_spikes",
-    "minecraft:snowy_slopes",
-    "minecraft:frozen_peaks",
-    "minecraft:jagged_peaks",
-    "minecraft:old_growth_spruce_taiga",
-    "minecraft:taiga",
-    {
-      "id": "minecraft:river",
-      "parameters": {
-        "temperature": [
-          -0.45,
-          0.55
-        ],
-        "weirdness": [
-          -2.0,
-          -0.19
-        ]
-      }
-    },
-    "minecraft:stony_shore",
-    {
-      "id": "terralith:alpine_grove",
-      "parameters": {
-        "temperature": [
-          -1.0047,
-          0.2
-        ],
-        "humidity": [
-          -0.585,
-          1.0
-        ],
-        "weirdness": [
-          -0.19,
-          -0.1486
-        ]
-      }
-    },
-    "terralith:birch_taiga",
-    "terralith:rocky_mountains",
-    {
-      "id": "natures_spirit:tundra",
-      "parameters": {
-        "temperature": [
-          -1.0,
-          0.2
-        ],
-        "humidity": [
-          -1.0,
-          0.1
-        ],
-        "weirdness": [
-          -0.1486,
-          -0.1071
-        ]
-      }
-    },
-    {
-      "id": "natures_spirit:snowy_fir_forest",
-      "parameters": {
-        "temperature": [
-          -1.0,
-          -0.15
-        ],
-        "humidity": [
-          -0.1,
-          1.0
-        ],
-        "weirdness": [
-          -0.1071,
-          -0.0657
-        ]
-      }
-    },
-    {
-      "id": "terralith:wintry_forest",
-      "parameters": {
-        "temperature": [
-          -1.0047,
-          -0.7273
-        ],
-        "humidity": [
-          -0.1,
-          1.0
-        ],
-        "weirdness": [
-          -0.0657,
-          -0.0243
-        ]
-      }
-    },
-    {
-      "id": "regions_unexplored:frozen_pine_taiga",
-      "parameters": {
-        "weirdness": [
-          -0.0243,
-          0.0171
-        ]
-      }
-    },
-    {
-      "id": "regions_unexplored:cold_boreal_taiga",
-      "parameters": {
-        "weirdness": [
-          0.0171,
-          0.0586
-        ]
-      }
-    },
-    {
-      "id": "regions_unexplored:golden_boreal_taiga",
-      "parameters": {
-        "weirdness": [
-          0.0586,
-          0.1
-        ]
-      }
-    },
-    {
-      "id": "wilderwild:snowy_old_growth_pine_taiga",
-      "parameters": {
-        "weirdness": [
-          0.1,
-          2.0
-        ]
-      }
-    }
+    { "id": "minecraft:snowy_plains", "parameters": { "weirdness": [-2.0, -1.8857] } },
+    { "id": "minecraft:snowy_taiga", "parameters": { "weirdness": [-1.8857, -1.7714] } },
+    { "id": "minecraft:grove", "parameters": { "weirdness": [-1.7714, -1.6571] } },
+    { "id": "minecraft:frozen_river", "parameters": { "weirdness": [-1.6571, -1.5428] } },
+    { "id": "minecraft:ice_spikes", "parameters": { "weirdness": [-1.5428, -1.4285] } },
+    { "id": "minecraft:snowy_slopes", "parameters": { "weirdness": [-1.4285, -1.3142] } },
+    { "id": "minecraft:frozen_peaks", "parameters": { "weirdness": [-1.3142, -1.1999] } },
+    { "id": "minecraft:jagged_peaks", "parameters": { "weirdness": [-1.1999, -1.0856] } },
+    { "id": "minecraft:old_growth_spruce_taiga", "parameters": { "weirdness": [-1.0856, -0.9713] } },
+    { "id": "minecraft:taiga", "parameters": { "weirdness": [-0.9713, -0.857] } },
+    { "id": "minecraft:stony_shore", "parameters": { "weirdness": [-0.857, -0.7427] } },
+    { "id": "terralith:birch_taiga", "parameters": { "weirdness": [-0.7427, -0.6284] } },
+    { "id": "terralith:rocky_mountains", "parameters": { "weirdness": [-0.6284, -0.5141] } },
+    { "id": "minecraft:river", "parameters": { "temperature": [-0.45, 0.55], "weirdness": [-0.5141, -0.3998] } },
+    { "id": "natures_spirit:tundra", "parameters": { "temperature": [-1.0, 0.2], "humidity": [-1.0, 0.1], "weirdness": [-0.3998, -0.2855] } },
+    { "id": "natures_spirit:snowy_fir_forest", "parameters": { "temperature": [-1.0, -0.15], "humidity": [-0.1, 1.0], "weirdness": [-0.2855, -0.1712] } },
+    { "id": "terralith:wintry_forest", "parameters": { "temperature": [-1.0047, -0.7273], "humidity": [-0.1, 1.0], "weirdness": [-0.1712, -0.0569] } },
+    { "id": "regions_unexplored:frozen_pine_taiga", "parameters": { "weirdness": [-0.0569, 0.0574] } },
+    { "id": "regions_unexplored:cold_boreal_taiga", "parameters": { "weirdness": [0.0574, 0.1717] } },
+    { "id": "regions_unexplored:golden_boreal_taiga", "parameters": { "weirdness": [0.1717, 0.286] } },
+    { "id": "wilderwild:snowy_old_growth_pine_taiga", "parameters": { "weirdness": [0.286, 0.4003] } },
+    { "id": "terralith:alpine_grove", "parameters": { "temperature": [-1.0047, 0.2], "humidity": [-0.585, 1.0], "weirdness": [0.4003, 2.0] } }
   ],
   "borders": {
     "player": 8192,

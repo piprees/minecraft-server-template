@@ -4,67 +4,19 @@
   "seed": 9207382997821124202,
   "noiseSettings": "adventure:wide",
   "biomes": [
-    "terralith:lush_valley",
-    "minecraft:meadow",
-    "minecraft:plains",
-    "minecraft:flower_forest",
-    "terralith:lavender_valley",
-    "terralith:temperate_highlands",
-    "minecraft:birch_forest",
-    {
-      "id": "regions_unexplored:glistering_meadow",
-      "parameters": {
-        "weirdness": [
-          -2.0,
-          -0.19
-        ]
-      }
-    },
-    {
-      "id": "regions_unexplored:clover_plains",
-      "parameters": {
-        "weirdness": [
-          -0.19,
-          -0.1175
-        ]
-      }
-    },
-    {
-      "id": "regions_unexplored:orchard",
-      "parameters": {
-        "weirdness": [
-          -0.1175,
-          -0.045
-        ]
-      }
-    },
-    {
-      "id": "regions_unexplored:temperate_grove",
-      "parameters": {
-        "weirdness": [
-          -0.045,
-          0.0275
-        ]
-      }
-    },
-    {
-      "id": "regions_unexplored:rocky_meadow",
-      "parameters": {
-        "weirdness": [
-          0.0275,
-          0.1
-        ]
-      }
-    },
-    {
-      "id": "regions_unexplored:flower_fields",
-      "parameters": {
-        "weirdness": [
-          0.1,
-          2.0
-        ]
-      }
-    }
+    { "id": "terralith:lush_valley", "parameters": { "weirdness": [-2.0, -1.81] } },
+    { "id": "minecraft:meadow", "parameters": { "weirdness": [-1.81, -1.62] } },
+    { "id": "minecraft:plains", "parameters": { "weirdness": [-1.62, -1.43] } },
+    { "id": "minecraft:flower_forest", "parameters": { "weirdness": [-1.43, -1.24] } },
+    { "id": "terralith:lavender_valley", "parameters": { "weirdness": [-1.24, -1.05] } },
+    { "id": "terralith:temperate_highlands", "parameters": { "weirdness": [-1.05, -0.86] } },
+    { "id": "minecraft:birch_forest", "parameters": { "weirdness": [-0.86, -0.67] } },
+    { "id": "regions_unexplored:glistering_meadow", "parameters": { "weirdness": [-0.67, -0.456] } },
+    { "id": "regions_unexplored:clover_plains", "parameters": { "weirdness": [-0.456, -0.242] } },
+    { "id": "regions_unexplored:orchard", "parameters": { "weirdness": [-0.242, -0.028] } },
+    { "id": "regions_unexplored:temperate_grove", "parameters": { "weirdness": [-0.028, 0.186] } },
+    { "id": "regions_unexplored:rocky_meadow", "parameters": { "weirdness": [0.186, 0.4] } },
+    { "id": "regions_unexplored:flower_fields", "parameters": { "weirdness": [0.4, 2.0] } }
   ],
   "borders": {
     "player": 1024,
