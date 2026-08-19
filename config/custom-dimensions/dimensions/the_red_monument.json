@@ -1,5 +1,6 @@
 {
   "type": "end",
+  "noiseSettings": "adventure:void",
   "description": "The red monument — a single monolith hanging in nothing, bleeding scarlet into the void. The endermen's temple, their holiest site. Manuscript shrines and a mythic garden ring it at a fixed distance; there is no other ground in the world, and nothing here hunts you. The monument does not kill trespassers. It declines them.",
   "seed": 847731309170024191,
   "biomes": [
