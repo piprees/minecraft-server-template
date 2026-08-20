@@ -348,7 +348,10 @@ else:
     open(p, "w").write("%s\n\t%s = false\n" % (section, key))
 PYEOF
 
-# Distant Horizons: silence the per-boot G1/explicit-GC warning wall.
+# Distant Horizons: silence the per-boot G1/explicit-GC warning wall, and keep
+# distant generation off. Nothing local has a player far enough out to need
+# LODs, and the generation machinery is ~50 threads and a batch chunk
+# generator per level, all writing SQLite onto the Docker Desktop file share.
 DH_TOML="$CONSUMER_DIR/data/config/DistantHorizons.toml"
 if [[ -f "$DH_TOML" ]]; then
   DH_SEDS=(
@@ -356,6 +359,9 @@ if [[ -f "$DH_TOML" ]]; then
     -e 's/showGarbageCollectorWarning = true/showGarbageCollectorWarning = false/'
     -e 's/logExplicitGcDisabledWarning = true/logExplicitGcDisabledWarning = false/'
     -e 's/showExplicitGcDisabledWarning = true/showExplicitGcDisabledWarning = false/'
+    -e 's/enableDistantGeneration = true/enableDistantGeneration = false/'
+    -e 's/enableServerGeneration = true/enableServerGeneration = false/'
+    -e 's/enableRealTimeUpdates = true/enableRealTimeUpdates = false/'
   )
   if [[ "$(uname)" == "Darwin" ]]; then
     sed -i '' "${DH_SEDS[@]}" "$DH_TOML"
