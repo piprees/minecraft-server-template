@@ -81,7 +81,8 @@
   "settingsOverrides": {
     "defaultBlock": "minecraft:netherrack",
     "defaultFluid": "minecraft:lava",
-    "seaLevel": -60
+    "seaLevel": -60,
+    "endIsland": false
   },
   "environment": {
     "fogColor": "#3B2B4B",

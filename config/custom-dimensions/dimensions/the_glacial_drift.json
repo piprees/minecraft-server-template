@@ -1,85 +1,85 @@
 {
-  "type": "paradise_lost:paradise_lost",
+  "type": "sky_islands",
   "description": "A glacial drift among the skylands \u2014 frozen paradise islands calving into the void. The oldest animals shelter here in tundra that predates every civilisation. Nothing was ever built; nothing needs to be.",
   "seed": -6742485365911610139,
   "biomes": [
     {
       "id": "paradise_lost:autumnal_tundra",
       "parameters": {
-        "continentalness": [
-          -0.0241,
-          0.0144
+        "weirdness": [
+          -0.0634,
+          -0.0273
         ]
       }
     },
     {
       "id": "paradise_lost:calcite_craglands",
       "parameters": {
-        "continentalness": [
-          0.0546,
-          0.1028
+        "weirdness": [
+          0.0104,
+          0.0556
         ]
       }
     },
     {
       "id": "minecraft:ice_spikes",
       "parameters": {
-        "continentalness": [
-          0.0144,
-          0.0546
+        "weirdness": [
+          -0.0273,
+          0.0104
         ]
       }
     },
     {
       "id": "terralith:glacial_chasm",
       "parameters": {
-        "continentalness": [
+        "weirdness": [
           -2.0,
-          -0.159
+          -0.19
         ]
       }
     },
     {
       "id": "natures_spirit:tundra",
       "parameters": {
-        "continentalness": [
-          -0.1125,
-          -0.0674
+        "weirdness": [
+          -0.1464,
+          -0.1041
         ]
       }
     },
     {
       "id": "terralith:skylands_winter",
       "parameters": {
-        "continentalness": [
-          -0.159,
-          -0.1125
+        "weirdness": [
+          -0.19,
+          -0.1464
         ]
       }
     },
     {
       "id": "minecraft:frozen_peaks",
       "parameters": {
-        "continentalness": [
-          0.1028,
-          0.1501
+        "weirdness": [
+          0.0556,
+          0.1
         ]
       }
     },
     {
       "id": "terralith:frozen_cliffs",
       "parameters": {
-        "continentalness": [
-          -0.0674,
-          -0.0241
+        "weirdness": [
+          -0.1041,
+          -0.0634
         ]
       }
     },
     {
       "id": "minecraft:snowy_slopes",
       "parameters": {
-        "continentalness": [
-          0.1501,
+        "weirdness": [
+          0.1,
           2.0
         ]
       }
@@ -150,5 +150,11 @@
       "action": "teleport",
       "target": "origin"
     }
+  },
+  "settingsOverrides": {
+    "defaultBlock": "minecraft:stone",
+    "defaultFluid": "minecraft:water",
+    "seaLevel": -64,
+    "endIsland": false
   }
 }

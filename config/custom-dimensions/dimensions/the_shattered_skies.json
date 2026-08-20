@@ -94,6 +94,7 @@
   "settingsOverrides": {
     "defaultBlock": "minecraft:stone",
     "defaultFluid": "minecraft:water",
-    "seaLevel": -64
+    "seaLevel": -64,
+    "endIsland": false
   }
 }

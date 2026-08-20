@@ -89,6 +89,21 @@ Every dimension needs a `type`. This is the most consequential choice — it det
 
 **Void dimensions: keep biomes from ONE family.** A void dim with `minecraft:deep_dark` (overworld) AND `minecraft:the_end` (end) will confuse the roller — it can't determine which family's noise config to use for sampling. If you want an end-themed void, use only end-family biomes from `references/biome-catalogue.md`.
 
+## sky_islands and nether_islands inherit the End's origin island
+
+Both build from `endGen.getSettings()`, so they carry Nullscape's End noise
+router — origin island and void moat included. A large one reads as an End
+knock-off wearing the wrong biomes, and `settingsOverrides`'
+`defaultBlock`/`seaLevel` cannot change it because the island lives in the
+noise router.
+
+Add `"settingsOverrides": {"endIsland": false}` unless the dimension is small
+enough to sit inside the island, in which case the island IS the world and the
+flag would hollow it out — `the_starwell` at a 256 border is the shipped
+example of that. Roughly: past a 1024 border you want the flag.
+
+Full detail: [TROUBLESHOOTING.md#t36](../../../TROUBLESHOOTING.md#t36).
+
 ## Two types discard the biome list
 
 `amplified` and `large_biomes` clone the world preset's overworld

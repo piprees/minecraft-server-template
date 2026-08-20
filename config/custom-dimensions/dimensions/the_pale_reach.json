@@ -1,58 +1,58 @@
 {
-  "type": "paradise_lost:paradise_lost",
+  "type": "sky_islands",
   "description": "The pale desolate reach \u2014 calcite crags floating in white silence. The skylands' frozen edge, where even the animal kingdoms thin out. Remains and birdcages drift in the whiteness, built by hands that left no other trace.",
   "seed": 1082668033493567880,
   "biomes": [
     {
       "id": "paradise_lost:calcite_craglands",
       "parameters": {
-        "continentalness": [
-          0.0008,
-          0.0304
+        "weirdness": [
+          -0.0123,
+          0.0427
         ]
       }
     },
     {
       "id": "terralith:frozen_cliffs",
       "parameters": {
-        "continentalness": [
-          -0.095,
-          -0.0627
+        "weirdness": [
+          -0.19,
+          -0.1301
         ]
       }
     },
     {
       "id": "terralith:wintry_lowlands",
       "parameters": {
-        "continentalness": [
-          -0.0627,
-          -0.0318
+        "weirdness": [
+          -0.1301,
+          -0.0727
         ]
       }
     },
     {
       "id": "minecraft:ice_spikes",
       "parameters": {
-        "continentalness": [
-          -0.0318,
-          0.0008
+        "weirdness": [
+          -0.0727,
+          -0.0123
         ]
       }
     },
     {
       "id": "minecraft:snowy_slopes",
       "parameters": {
-        "continentalness": [
-          0.0304,
-          0.0613
+        "weirdness": [
+          0.0427,
+          0.1
         ]
       }
     },
     {
       "id": "minecraft:frozen_peaks",
       "parameters": {
-        "continentalness": [
-          0.0613,
+        "weirdness": [
+          0.1,
           2.0
         ]
       }
@@ -60,9 +60,9 @@
     {
       "id": "terralith:skylands_winter",
       "parameters": {
-        "continentalness": [
+        "weirdness": [
           -2.0,
-          -0.095
+          -0.19
         ]
       }
     }
@@ -133,5 +133,11 @@
     128,
     136,
     -192
-  ]
+  ],
+  "settingsOverrides": {
+    "defaultBlock": "minecraft:stone",
+    "defaultFluid": "minecraft:water",
+    "seaLevel": -64,
+    "endIsland": false
+  }
 }

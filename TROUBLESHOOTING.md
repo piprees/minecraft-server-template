@@ -4,7 +4,7 @@
 
 | Prefix | Range | What it covers |
 | --- | --- | --- |
-| **T** | [T1–T14, T16–T19, T22–T27, T30–T35](#architecture-traps) | Architecture traps — each has caused a real production incident |
+| **T** | [T1–T14, T16–T19, T22–T27, T30–T36](#architecture-traps) | Architecture traps — each has caused a real production incident |
 | **P** | [P1–P4](#macos-local-dev) | macOS local-dev quirks (BSD tooling, toolchain) |
 | **D** | [D1–D6, D8–D9](#dimension-lifecycle) | Custom-dimension lifecycle on a live world |
 | **K** | [K1–K2, K5](#known-issues) | Open issues — unfixed, on the watch list |
@@ -69,6 +69,7 @@ Run this first. It covers deploy drift, disk, every expected container, `ONLINE_
 | Forced structures generate nothing in a `void` dimension; `produced no start` | [T33](#t33) |
 | A dimension generates biomes its `biomes` list never named; `structure-census` reports `FACTS ENGINE DISAGREES` | [T34](#t34) |
 | A mod is installed and loaded but its biomes are in no catalogue, or a catalogue count is lower than the jars hold | [T35](#t35) |
+| A sky_islands or nether_islands world is one island at origin ringed by void | [T36](#t36) |
 | Mod build fails with a misleading Gradle task error | [P4](#p4) |
 | A worldgen config change had no effect | [D2](#d2) |
 | `Tried to read NBT tag that was too big`; `level.dat` growing every boot | [D9](#d9) |
@@ -268,6 +269,35 @@ A world regenerates with the old terrain after a reset that set a new seed, or t
 - **Cause:** worldgen JSON reaches the game through GSON in lenient mode, so `//` and `/* */` comments and trailing commas are legal and mods use them. Python's `json` rejects all three, and every extractor here caught `JSONDecodeError` and `continue`d. Measured: YUNG's Cave Biomes ships both its biomes behind a `// RAW_GENERATION` comment, and four Nature's Spirit biomes had been missing since that mod was added — the catalogue read 229 biomes against an actual 350.
 - **Fix (in place):** `scripts/mcjson.py`, used by all four extractors. It strips comments and trailing commas string-aware, so a `//` inside a JSON string survives, and a file it still cannot read is named on stderr instead of skipped. **Never catch a parse error around mod data and continue** — that is the whole of this bug.
 - **Consequence worth knowing:** a biome absent from the catalogue is one nobody can name, and a biome no dimension names never generates however many mods are installed. `scripts/check-content-coverage.py` is the standing check.
+
+<a id="t36"></a>
+### T36 — sky_islands and nether_islands are built on the End, origin island included
+
+- **Symptom:** a `sky_islands` or `nether_islands` dimension generates one
+  island at world origin ringed by a wide void, then sparse islands beyond it
+  — an End knock-off wearing the wrong biomes, however its description reads.
+  `settingsOverrides` with `defaultBlock`/`seaLevel` re-skins the blocks and
+  changes nothing about the shape.
+- **Cause:** both types build their generator from `endGen.getSettings()`
+  (`DimensionManager`, the `sky_islands` and `nether_islands` cases), which on
+  this stack is Nullscape's `minecraft:end` — noise router, origin island and
+  void moat included. `settingsOverrides` cannot reach a noise router; its
+  whitelist is `seaLevel`, `defaultBlock`, `defaultFluid` and
+  `disableMobGeneration` ([T32](#t32) covers the related "the map disagrees"
+  reading).
+- **Fix:** `"settingsOverrides": {"endIsland": false}`. It walks the resolved
+  router and substitutes the island term for scattered noise, so it works on
+  any dimension whose generator carries one — End, sky_islands and
+  nether_islands alike. Self-verifying at boot: the log says either
+  `End origin island removed (N island term(s) -> scattered noise)` or
+  `settingsOverrides.endIsland is false but this generator carries no End
+  island term`.
+- **Border size is what decides whether this bites.** A dimension small
+  enough to sit inside the centre island never sees the moat, and the island
+  IS its world — `the_starwell` at a 256 border is correct as it stands and
+  must NOT get the flag. Anything past roughly a 1024 border shows the ring.
+- **Creation-time.** This is worldgen ([D2](#d2)) and it moves the seed
+  fingerprint, so an affected dimension needs a world wipe and a re-roll.
 
 <a id="t32"></a>
 ### T32 — A candidate's thumbnail is a window on spawn, not a picture of the world
