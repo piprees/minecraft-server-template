@@ -698,6 +698,26 @@ h1 {
   padding: 0.25rem 0.5rem;
   outline: none;
 }
+/* One height for the whole row. A native select carries intrinsic height
+   from its arrow and line-height, so matching padding alone leaves it and
+   the number input taller than the buttons beside them. */
+.filter-bar > select,
+.filter-bar select,
+.filter-bar input[type='text'],
+.filter-bar input[type='number'],
+.filter-bar .icon-btn,
+.filter-bar .nav-menu > summary {
+  height: 1.9rem;
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+}
+/* A select cannot be a flex container in every engine; keep it a block box
+   at the same height and let its own centring apply. */
+.filter-bar select {
+  display: inline-block;
+  line-height: 1.2;
+}
 .filter-bar select:focus,
 .filter-bar input[type='text']:focus,
 .filter-bar input[type='number']:focus {
@@ -2011,6 +2031,23 @@ details.incidental .mrow {
   display: grid;
   grid-template-columns: repeat(2, max-content);
 }
+/* A menu whose controls are unrelated to each other reads as a list. */
+.nav-menu-body.nav-menu-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.35rem;
+  min-width: 11rem;
+}
+.nav-menu-stack .icon-toggle span {
+  display: block;
+  text-align: left;
+}
+/* Sort is a single choice, so it sits in the bar as itself — dressed by the
+   shared .filter-bar select rule above, not a style of its own. */
+.nav-select {
+  cursor: pointer;
+}
 /* Near the right edge the last menu would otherwise open off-screen. */
 #menu-view .nav-menu-body {
   left: auto;
@@ -2147,10 +2184,30 @@ details.incidental .mrow {
   margin: 0 0.15rem;
   flex: none;
 }
+/* The status shares the header row rather than taking one of its own: it is
+   the only thing here allowed to shrink, and it truncates instead of
+   wrapping the controls onto a second line. */
+/* flex-basis 0, not auto: with auto the status asks for its full text width,
+   which is longer than whatever space is left, so the whole bar wraps and it
+   lands on a second row — the row of its own this was meant to remove. At 0
+   it takes only what is spare and truncates. */
 .nav-right {
   margin-left: auto;
-  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+  flex: 1 1 0;
+  overflow: hidden;
+  justify-content: flex-end;
   white-space: nowrap;
+}
+.roll-status {
+  font-size: 0.76rem;
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
 }
 .roller-group,
 .render-group,

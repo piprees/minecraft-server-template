@@ -83,11 +83,9 @@ public final class ViewerPage {
         String template = template();
 
         Set<String> families = new LinkedHashSet<>();
-        Set<String> types = new LinkedHashSet<>();
         Set<String> moods = new LinkedHashSet<>();
         for (BankView.DimensionView v : views) {
             families.add(family(v.config()));
-            types.add(type(v.config()));
             moods.add(mood(v.config()));
         }
 
@@ -99,10 +97,6 @@ public final class ViewerPage {
         for (String f : sorted(families)) {
             familyButtons.append("<button class='family-btn' data-family='").append(escape(f))
                     .append("'>").append(escape(f)).append("</button>");
-        }
-        StringBuilder typeOptions = new StringBuilder("<option value=''>All types</option>");
-        for (String t : sorted(types)) {
-            typeOptions.append("<option>").append(escape(t)).append("</option>");
         }
         StringBuilder moodOptions = new StringBuilder("<option value=''>All moods</option>");
         for (String m : sorted(moods)) {
@@ -116,7 +110,6 @@ public final class ViewerPage {
 
         return template
                 .replace("{{FAMILY_BUTTONS}}", familyButtons.toString())
-                .replace("{{TYPE_OPTIONS}}", typeOptions.toString())
                 .replace("{{MOOD_OPTIONS}}", moodOptions.toString())
                 .replace("{{DIMENSIONS_HTML}}", cards.toString());
     }

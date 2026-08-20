@@ -808,19 +808,17 @@
     if (el) el.textContent = text || ''
   }
   function updateMenuLabels() {
-    setMenuLabel('type-label', state.family && state.family !== 'All' ? state.family : '')
-    var filters = []
-    if (state.type) filters.push(state.type)
-    if (state.mood) filters.push(state.mood)
-    setMenuLabel('filters-label', filters.length ? String(filters.length) : '')
-    var sortEl2 = document.getElementById('f-sort')
-    var sortText = ''
-    if (state.sort && state.sort !== 'name' && sortEl2) {
-      var opt = sortEl2.querySelector('option[value="' + state.sort + '"]')
-      sortText = opt ? opt.textContent : state.sort
-    }
-    setMenuLabel('sort-label', sortText)
-    var views = ['flagged', 'shortlisted', 'ungrouped', 'scatter', 'hidden', 'borders']
+    // Type carries the family buttons and the declared-type select; Filters
+    // carries everything that removes cards; View everything that redraws
+    // them. Each label counts only what its own menu owns.
+    var type = []
+    if (state.family && state.family !== 'All') type.push(state.family)
+    if (state.type) type.push(state.type)
+    setMenuLabel('type-label', type.join(' · '))
+    var filters = ['mood', 'flagged', 'shortlisted']
+      .filter(function (k) { return state[k] }).length
+    setMenuLabel('filters-label', filters ? String(filters) : '')
+    var views = ['ungrouped', 'scatter', 'hidden', 'borders']
       .filter(function (k) { return state[k] }).length
     setMenuLabel('view-label', views ? String(views) : '')
   }
@@ -832,7 +830,7 @@
       b.setAttribute('aria-pressed', active ? 'true' : 'false')
     })
     updateMenuLabels()
-    typeEl.value = state.type
+    if (typeEl) typeEl.value = state.type
     moodEl.value = state.mood
     sortEl.value = state.sort
     searchEl.value = state.search
@@ -969,7 +967,7 @@
       searchEl.focus()
     })
   }
-  typeEl.addEventListener('change', function () {
+  if (typeEl) typeEl.addEventListener('change', function () {
     state.type = typeEl.value
     applyState()
   })

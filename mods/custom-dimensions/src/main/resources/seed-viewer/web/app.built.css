@@ -874,6 +874,16 @@ h1 {
   padding: 0.25rem 0.5rem;
   outline: none;
 }
+.filter-bar > select, .filter-bar select, .filter-bar input[type='text'], .filter-bar input[type='number'], .filter-bar .icon-btn, .filter-bar .nav-menu > summary {
+  height: 1.9rem;
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+}
+.filter-bar select {
+  display: inline-block;
+  line-height: 1.2;
+}
 .filter-bar select:focus, .filter-bar input[type='text']:focus, .filter-bar input[type='number']:focus {
   border-color: var(--action);
 }
@@ -2083,6 +2093,20 @@ details.incidental .mrow {
   display: grid;
   grid-template-columns: repeat(2, max-content);
 }
+.nav-menu-body.nav-menu-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.35rem;
+  min-width: 11rem;
+}
+.nav-menu-stack .icon-toggle span {
+  display: block;
+  text-align: left;
+}
+.nav-select {
+  cursor: pointer;
+}
 #menu-view .nav-menu-body {
   left: auto;
   right: 0;
@@ -2200,8 +2224,21 @@ details.incidental .mrow {
 }
 .nav-right {
   margin-left: auto;
-  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+  flex: 1 1 0;
+  overflow: hidden;
+  justify-content: flex-end;
   white-space: nowrap;
+}
+.roll-status {
+  font-size: 0.76rem;
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
 }
 .roller-group, .render-group, .view-toggles {
   display: flex;

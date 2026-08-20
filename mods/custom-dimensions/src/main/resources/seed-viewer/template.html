@@ -44,40 +44,36 @@
       <div class="nav-menu-body family-btns">{{FAMILY_BUTTONS}}</div>
     </details>
 
+    <!-- Filters: everything that REMOVES dimensions from the grid. -->
     <details class="nav-menu" id="menu-filters">
       <summary>Filters<b class="nav-menu-value" id="filters-label"></b></summary>
-      <div class="nav-menu-body">
-        <select id="f-type" aria-label="Filter by type">
-          {{TYPE_OPTIONS}}
-        </select>
+      <div class="nav-menu-body nav-menu-stack">
         <select id="f-mood" aria-label="Filter by mood">
           {{MOOD_OPTIONS}}
         </select>
-      </div>
-    </details>
-
-    <details class="nav-menu" id="menu-sort">
-      <summary>Sort<b class="nav-menu-value" id="sort-label"></b></summary>
-      <div class="nav-menu-body">
-        <select id="f-sort" aria-label="Sort order">
-          <option value="name">Name</option>
-          <option value="score-desc">Score ↓</option>
-          <option value="score-asc">Score ↑</option>
-          <option value="family">Family</option>
-          <option value="candidates">Most tested</option>
-        </select>
-      </div>
-    </details>
-
-    <details class="nav-menu" id="menu-view">
-      <summary>View<b class="nav-menu-value" id="view-label"></b></summary>
-      <div class="nav-menu-body view-toggles">
         <label class="icon-toggle" title="Below 80 — best available, not good">
           <input type="checkbox" id="f-flagged" /><span>⚠<b>below&nbsp;80</b></span></label
         >
         <label class="icon-toggle" title="Shortlisted only">
           <input type="checkbox" id="f-shortlisted" /><span>★<b>shortlist</b></span></label
         >
+      </div>
+    </details>
+
+    <!-- Sort is one choice, so it is the select itself rather than a menu
+         wrapping a select. -->
+    <select id="f-sort" class="nav-select" aria-label="Sort order">
+      <option value="name">Sort: Name</option>
+      <option value="score-desc">Sort: Score ↓</option>
+      <option value="score-asc">Sort: Score ↑</option>
+      <option value="family">Sort: Family</option>
+      <option value="candidates">Sort: Most tested</option>
+    </select>
+
+    <!-- View: everything that changes how the same set is DRAWN. -->
+    <details class="nav-menu" id="menu-view">
+      <summary>View<b class="nav-menu-value" id="view-label"></b></summary>
+      <div class="nav-menu-body view-toggles">
         <label class="icon-toggle" title="Flat view — all candidates, ungrouped">
           <input type="checkbox" id="f-ungrouped" /><span>▤<b>flat</b></span></label
         >
@@ -140,11 +136,11 @@
           <span id="rp-sub" class="rp-sub"></span>
         </span>
       </span>
+      <span class="roll-status" id="roll-status" aria-live="polite"></span>
     </span>
   </div>
 
   <h1 class="sr-only">Dimension seed candidates</h1>
-  <p class="summary" id="roll-status" aria-live="polite"></p>
 
   <!-- Grouped mode: dimension cards -->
   <p class="empty-state" id="empty-state" hidden>
