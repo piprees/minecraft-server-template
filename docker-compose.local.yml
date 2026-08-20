@@ -17,16 +17,8 @@ services:
     # A rolled winner is written into the consumer's committed overlay, so the
     # mod needs it mounted. Local only: production must never write to the
     # overlay, and its absence there is what makes `winner` refuse.
-    #
-    # local-world takes the world off the Docker Desktop file share. SQLite
-    # mmap over that share SIGBUSes the JVM under sustained I/O, and the
-    # world carries DistantHorizons' per-dimension databases and ledger's.
-    # Production binds a real disk and is unaffected. The world is no longer
-    # visible from the host here: `./dev clean world` removes the volume, and
-    # wipe-chunk cannot reach it.
     volumes:
       - ./overlay/config/custom-dimensions/dimensions:/overlay-dimensions
-      - local-world:/data/world
     ports:
       # The seed viewer the mod hosts. Bound on every interface so it can be
       # opened from a phone on the same network. It has no authentication and
@@ -83,14 +75,3 @@ services:
       NAV_SCHEME: http
       NAV_PORT: ":${WEB_PORT:-8080}"
       NAV_EXTRA_LINKS: '<a href="http://seeds.${LOCAL_DOMAIN:-${DOMAIN:-localhost}}:${WEB_PORT:-8080}">Seeds</a>'
-  # Both read the world mc writes, so they need the same volume rather than
-  # the host path, which is empty under it now.
-  mc-backup-local:
-    volumes:
-      - local-world:/data/world:ro
-  unmined-render:
-    volumes:
-      - local-world:/world:ro
-
-volumes:
-  local-world:
