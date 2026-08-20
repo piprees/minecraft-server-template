@@ -32,28 +32,64 @@
   <!-- The structures section and its map markers, on the same terms. -->
   <link rel="stylesheet" href="assets/structures.css" />
 
-  <!-- Single nav row. The view settings keep their checkbox inputs behind
-       icon labels so every existing filter handler still reads .checked;
-       only the presentation changed. -->
+  <!-- Single nav row. Three menus carry what was fourteen family buttons, a
+       filter set and six view toggles; every control keeps its id, so the
+       existing handlers still read .checked and .value and only the
+       presentation changed. Each summary shows its own current selection,
+       because a collapsed menu that cannot say what it is filtering by is
+       worse than the buttons it replaced. -->
   <div class="filter-bar">
-    <div class="family-btns">{{FAMILY_BUTTONS}}</div>
+    <details class="nav-menu" id="menu-type">
+      <summary>Type<b class="nav-menu-value" id="type-label"></b></summary>
+      <div class="nav-menu-body family-btns">{{FAMILY_BUTTONS}}</div>
+    </details>
 
-    <details class="more-filters">
-      <summary>Filters</summary>
-      <div class="more-filters-body">
+    <details class="nav-menu" id="menu-filters">
+      <summary>Filters<b class="nav-menu-value" id="filters-label"></b></summary>
+      <div class="nav-menu-body">
         <select id="f-type" aria-label="Filter by type">
           {{TYPE_OPTIONS}}
         </select>
         <select id="f-mood" aria-label="Filter by mood">
           {{MOOD_OPTIONS}}
         </select>
+      </div>
+    </details>
+
+    <details class="nav-menu" id="menu-sort">
+      <summary>Sort<b class="nav-menu-value" id="sort-label"></b></summary>
+      <div class="nav-menu-body">
         <select id="f-sort" aria-label="Sort order">
-          <option value="name">Sort: Name</option>
-          <option value="score-desc">Sort: Score ↓</option>
-          <option value="score-asc">Sort: Score ↑</option>
-          <option value="family">Sort: Family</option>
-          <option value="candidates">Sort: Most tested</option>
+          <option value="name">Name</option>
+          <option value="score-desc">Score ↓</option>
+          <option value="score-asc">Score ↑</option>
+          <option value="family">Family</option>
+          <option value="candidates">Most tested</option>
         </select>
+      </div>
+    </details>
+
+    <details class="nav-menu" id="menu-view">
+      <summary>View<b class="nav-menu-value" id="view-label"></b></summary>
+      <div class="nav-menu-body view-toggles">
+        <label class="icon-toggle" title="Below 80 — best available, not good">
+          <input type="checkbox" id="f-flagged" /><span>⚠<b>below&nbsp;80</b></span></label
+        >
+        <label class="icon-toggle" title="Shortlisted only">
+          <input type="checkbox" id="f-shortlisted" /><span>★<b>shortlist</b></span></label
+        >
+        <label class="icon-toggle" title="Flat view — all candidates, ungrouped">
+          <input type="checkbox" id="f-ungrouped" /><span>▤<b>flat</b></span></label
+        >
+        <label class="icon-toggle" title="Scatter — every candidate across every dimension">
+          <input type="checkbox" id="f-scatter" /><span>⁘<b>scatter</b></span></label
+        >
+        <label class="icon-toggle" title="Show hidden dimensions">
+          <input type="checkbox" id="f-hidden" /><span>👁<b>hidden</b></span></label
+        >
+        <label class="icon-toggle" title="Show world borders on renders">
+          <input type="checkbox" id="f-borders" /><span>◎<b>borders</b></span></label
+        >
       </div>
     </details>
 
@@ -74,13 +110,6 @@
         aria-label="Seed budget per dimension"
         title="Seed budget per dimension — each one stops once it has ten candidates, so a dimension that yields freely costs a fraction of this"
       />
-      <span id="roll-progress" hidden>
-        <span class="rp-bar"><span id="rp-fill"></span></span>
-        <span class="rp-lines">
-          <span id="rp-text" class="rp-text"></span>
-          <span id="rp-sub" class="rp-sub"></span>
-        </span>
-      </span>
       <select id="roll-dim" aria-label="Dimension to roll" title="Dimension to roll">
         <option value="">All</option>
         <!-- Rolls what the grid is SHOWING, in the order it is showing it, so
@@ -94,39 +123,27 @@
       </button>
     </span>
 
-    <span class="nav-sep" aria-hidden="true"></span>
-
-    <span class="view-toggles">
-      <label class="icon-toggle" title="Below 80 — best available, not good">
-        <input type="checkbox" id="f-flagged" /><span>⚠<b>below&nbsp;80</b></span></label
-      >
-      <label class="icon-toggle" title="Shortlisted only">
-        <input type="checkbox" id="f-shortlisted" /><span>★<b>shortlist</b></span></label
-      >
-      <label class="icon-toggle" title="Flat view — all candidates, ungrouped">
-        <input type="checkbox" id="f-ungrouped" /><span>▤<b>flat</b></span></label
-      >
-      <label class="icon-toggle" title="Scatter — every candidate across every dimension">
-        <input type="checkbox" id="f-scatter" /><span>⁘<b>scatter</b></span></label
-      >
-      <label class="icon-toggle" title="Show hidden dimensions">
-        <input type="checkbox" id="f-hidden" /><span>👁<b>hidden</b></span></label
-      >
-      <label class="icon-toggle" title="Show world borders on renders">
-        <input type="checkbox" id="f-borders" /><span>◎<b>borders</b></span></label
-      >
-    </span>
-
-    <span class="nav-sep" aria-hidden="true"></span>
-
     <span class="render-group">
       <button type="button" id="render-low-toggle" class="icon-btn" aria-label="Pause low-res renders" title="Pause low-res renders">⏸ low</button>
       <button type="button" id="render-high-toggle" class="icon-btn" aria-label="Pause high-res renders" title="Pause high-res renders">⏸ high</button>
     </span>
+
+    <!-- The roll readout sits beside the controls that started it, so the
+         nav answers "what is it doing" without a row of its own. Hidden
+         until a roll is running; the seed budget input above is what shows
+         in its place. -->
+    <span class="nav-right">
+      <span id="roll-progress" hidden>
+        <span class="rp-bar"><span id="rp-fill"></span></span>
+        <span class="rp-lines">
+          <span id="rp-text" class="rp-text"></span>
+          <span id="rp-sub" class="rp-sub"></span>
+        </span>
+      </span>
+    </span>
   </div>
 
   <h1 class="sr-only">Dimension seed candidates</h1>
-  <p class="summary" id="summary-stats">{{SUMMARY_STATS}}</p>
   <p class="summary" id="roll-status" aria-live="polite"></p>
 
   <!-- Grouped mode: dimension cards -->

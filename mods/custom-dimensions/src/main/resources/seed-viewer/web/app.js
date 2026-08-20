@@ -801,12 +801,37 @@
       + shortlisted + '</b> shortlisted &middot; <b>' + flagged + '</b> flagged'
   }
 
+  // Each nav menu's summary carries its own current selection. Collapsed, a
+  // menu that cannot say what it is filtering by hides the filter itself.
+  function setMenuLabel(id, text) {
+    var el = document.getElementById(id)
+    if (el) el.textContent = text || ''
+  }
+  function updateMenuLabels() {
+    setMenuLabel('type-label', state.family && state.family !== 'All' ? state.family : '')
+    var filters = []
+    if (state.type) filters.push(state.type)
+    if (state.mood) filters.push(state.mood)
+    setMenuLabel('filters-label', filters.length ? String(filters.length) : '')
+    var sortEl2 = document.getElementById('f-sort')
+    var sortText = ''
+    if (state.sort && state.sort !== 'name' && sortEl2) {
+      var opt = sortEl2.querySelector('option[value="' + state.sort + '"]')
+      sortText = opt ? opt.textContent : state.sort
+    }
+    setMenuLabel('sort-label', sortText)
+    var views = ['flagged', 'shortlisted', 'ungrouped', 'scatter', 'hidden', 'borders']
+      .filter(function (k) { return state[k] }).length
+    setMenuLabel('view-label', views ? String(views) : '')
+  }
+
   function applyState() {
     document.querySelectorAll('.family-btn').forEach(function (b) {
       var active = b.dataset.family === state.family
       b.classList.toggle('active', active)
       b.setAttribute('aria-pressed', active ? 'true' : 'false')
     })
+    updateMenuLabels()
     typeEl.value = state.type
     moodEl.value = state.mood
     sortEl.value = state.sort
@@ -909,7 +934,25 @@
   document.querySelectorAll('.family-btn').forEach(function (b) {
     b.addEventListener('click', function () {
       state.family = b.dataset.family
+      var menu = b.closest('.nav-menu')
+      if (menu) menu.open = false
       applyState()
+    })
+  })
+
+  // Three menus in one row: opening one closes the others, and a click
+  // anywhere else closes all of them. Without this they stack open over the
+  // grid and each has to be dismissed by hand.
+  document.addEventListener('click', function (e) {
+    var inside = e.target.closest ? e.target.closest('.nav-menu') : null
+    document.querySelectorAll('.nav-menu[open]').forEach(function (m) {
+      if (m !== inside) m.open = false
+    })
+  })
+  document.addEventListener('keydown', function (e) {
+    if (e.key !== 'Escape') return
+    document.querySelectorAll('.nav-menu[open]').forEach(function (m) {
+      m.open = false
     })
   })
 

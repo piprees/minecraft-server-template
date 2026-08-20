@@ -85,24 +85,10 @@ public final class ViewerPage {
         Set<String> families = new LinkedHashSet<>();
         Set<String> types = new LinkedHashSet<>();
         Set<String> moods = new LinkedHashSet<>();
-        int totalBanked = 0;
-        int rolledCount = 0;
-        int totalScreened = 0;
-        int totalShortlisted = 0;
-        int flaggedCount = 0;
         for (BankView.DimensionView v : views) {
             families.add(family(v.config()));
             types.add(type(v.config()));
             moods.add(mood(v.config()));
-            totalBanked += v.banked();
-            if (v.banked() > 0) {
-                rolledCount++;
-            }
-            totalScreened += v.screened();
-            totalShortlisted += shortlistedCount(v.candidates());
-            if (flagged(v, bestScore(v.candidates()))) {
-                flaggedCount++;
-            }
         }
 
         // "All" is the literal the filter compares against, not an empty
@@ -123,17 +109,6 @@ public final class ViewerPage {
             moodOptions.append("<option>").append(escape(m)).append("</option>");
         }
 
-        // "Seeds checked" reads SeedBank.screenedCount, the last tier-1 screen's
-        // size per dimension (screened.json, on disk) rather than RollPipeline's
-        // in-memory run counters — those reset to zero the moment a run ends or
-        // the server restarts, so they cannot answer this on an ordinary page
-        // load. "Candidates" and "shortlisted" match data-cands/data-shortlisted
-        // below exactly, which is what a filtered re-render recomputes from.
-        String summary = "<b>" + rolledCount + "/" + views.size() + "</b> dimensions rolled &middot; <b>"
-                + totalScreened + "</b> seeds checked &middot; <b>" + totalBanked
-                + "</b> candidates &middot; <b>" + totalShortlisted + "</b> shortlisted &middot; <b>"
-                + flaggedCount + "</b> flagged";
-
         StringBuilder cards = new StringBuilder();
         for (BankView.DimensionView v : views) {
             cards.append(card(v, anyoneOnline)).append('\n');
@@ -143,7 +118,6 @@ public final class ViewerPage {
                 .replace("{{FAMILY_BUTTONS}}", familyButtons.toString())
                 .replace("{{TYPE_OPTIONS}}", typeOptions.toString())
                 .replace("{{MOOD_OPTIONS}}", moodOptions.toString())
-                .replace("{{SUMMARY_STATS}}", summary)
                 .replace("{{DIMENSIONS_HTML}}", cards.toString());
     }
 
