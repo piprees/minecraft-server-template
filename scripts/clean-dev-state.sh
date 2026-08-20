@@ -292,6 +292,19 @@ printf '%s%s' "$PENDING" "$PLATFORM_PENDING" | while IFS='|' read -r t root path
   printf '  removed  %s\n' "${path#"$root"/}"
 done
 
+# The local profile keeps the world in a named volume, off the Docker Desktop
+# file share, so the host paths above hold nothing. Matched by suffix because
+# compose prefixes the project name.
+if has_target world; then
+  for vol in $(docker volume ls -q 2>/dev/null | grep -E '(^|_)local-world$' || true); do
+    if docker volume rm "$vol" >/dev/null 2>&1; then
+      printf '  removed  volume %s\n' "$vol"
+    else
+      printf '  WARN     volume %s is still in use — run ./dev down first\n' "$vol" >&2
+    fi
+  done
+fi
+
 echo ""
 echo "Freed roughly $(fmt_size "$TOTAL_KB")."
 if [[ -n "$PLATFORM" ]]; then
