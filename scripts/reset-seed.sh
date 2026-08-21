@@ -66,7 +66,12 @@
 #   ./scripts/reset-seed.sh --same-seed       # reset world, keep current seed
 #   ./scripts/reset-seed.sh --force           # skip all confirmation prompts
 #   ./scripts/reset-seed.sh --wipe-backups    # also purge restic snapshots
+#   ./scripts/reset-seed.sh --no-tar          # no tar.gz, and delete old ones
 #   ./scripts/reset-seed.sh --force --same-seed --wipe-backups
+#
+# --no-tar leaves NOTHING to restore from when combined with --wipe-backups.
+# gzip is single-threaded, so a 22 GB world costs ~15 minutes of one core; the
+# flag exists for a world nobody wants back, not to save time on one they do.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -108,12 +113,14 @@ STACK_SCRIPTS="${REMOTE_DIR}/.stack/current/stack/scripts"
 
 # --- parse args ---------------------------------------------------------------
 WIPE_BACKUPS=false
+NO_TAR=false
 SAME_SEED=false
 FORCE=false
 NEW_SEED=""
 for arg in "$@"; do
   case "$arg" in
     --wipe-backups) WIPE_BACKUPS=true ;;
+    --no-tar) NO_TAR=true ;;
     --same-seed) SAME_SEED=true ;;
     --force) FORCE=true ;;
     *) NEW_SEED="$arg" ;;
@@ -141,7 +148,11 @@ echo "   1. Stop all containers on the droplet (restic skipped: snapshots are pu
 else
 echo "   1. Back up the world to restic, then stop all containers on the droplet"
 fi
+if [[ "$NO_TAR" == true ]]; then
+echo "   2. NO tar.gz backup (--no-tar), and delete previous pre-reset archives"
+else
 echo "   2. Back up data/ to a cold tar.gz on the droplet"
+fi
 echo "   3. Delete data/world/ (every dimension's terrain, player data, DH cache,"
 echo "      POI, ledger, and level.dat, in one sweep)"
 echo "   4. Delete uNmINeD map renders (data/unmined-web: maps/, index.html, manifest.json)"
@@ -252,6 +263,16 @@ echo "  Containers stopped."
 BACKUP_NAME="pre-reset-${CURRENT_SEED}-${STAMP}.tar.gz"
 BACKUP_PATH="backups/${BACKUP_NAME}"
 
+if [[ "$NO_TAR" == true ]]; then
+  echo ""
+  echo "==> Skipping the tar.gz backup (--no-tar)."
+  # Old archives are pre-reset snapshots of worlds that no longer exist, and
+  # each is tens of GB on a disk the world itself has to grow into.
+  echo "==> Removing previous pre-reset archives..."
+  ssh -i "$SSH_KEY" "$REMOTE" "cd ${REMOTE_DIR} && ls -la backups/pre-reset-*.tar.gz 2>/dev/null; rm -f backups/pre-reset-*.tar.gz" || true
+  echo "  Old pre-reset archives removed."
+else
+
 echo ""
 echo "==> Creating tar.gz backup on the droplet: ${BACKUP_PATH}"
 # tar exit 1 is the "some files differ" warning class; only >=2 is fatal.
@@ -282,6 +303,7 @@ if [[ "$TAR_STATUS" -ge 2 ]]; then
 fi
 [[ "$TAR_STATUS" -eq 1 ]] && echo "  NOTE: tar reported changed files (exit 1); archive written."
 echo "  Backup saved to ${REMOTE_DIR}/${BACKUP_PATH}"
+fi
 
 # =============================================================================
 # 5. Delete world + player + regenerable data
