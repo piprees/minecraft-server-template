@@ -1,7 +1,7 @@
 {
   "type": "multi_biome",
   "description": "Warped groves to the horizon in every direction, dry and silent under a nether sky with no sun. The piglins avoided this place; the fungus here is older than their civilisation and nothing has ever happened in it. The greatsword belongs to someone who came looking and never left.",
-  "seed": 3959436081217052023,
+  "seed": -7200695631701786789,
   "biomes": [
     {
       "id": "minecraft:warped_forest",
@@ -61,7 +61,7 @@
   },
   "spawn": [
     192,
-    1,
+    61,
     -192
   ],
   "settingsOverrides": {

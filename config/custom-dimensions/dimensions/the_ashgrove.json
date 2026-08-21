@@ -1,7 +1,7 @@
 {
   "type": "multi_biome",
   "description": "Ash-grey savanna under a volcanic sky. A settlement burned here once \u2014 abandoned camps and scorched tombs are all that remain. The grove remembers the fire, but not who set it.",
-  "seed": -319551705182696848,
+  "seed": 5423694027203932416,
   "biomes": [
     {
       "id": "regions_unexplored:saguaro_desert",
@@ -282,7 +282,7 @@
   },
   "spawn": [
     -64,
-    111,
+    73,
     128
   ]
 }

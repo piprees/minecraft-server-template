@@ -1,7 +1,7 @@
 {
   "type": "sky_islands",
   "description": "The pale desolate reach \u2014 calcite crags floating in white silence. The skylands' frozen edge, where even the animal kingdoms thin out. Remains and birdcages drift in the whiteness, built by hands that left no other trace.",
-  "seed": 1082668033493567880,
+  "seed": -7643220614713389876,
   "biomes": [
     {
       "id": "paradise_lost:calcite_craglands",
@@ -130,9 +130,9 @@
     "terrain": "islands"
   },
   "spawn": [
-    128,
-    136,
-    -192
+    0,
+    37,
+    0
   ],
   "settingsOverrides": {
     "defaultBlock": "minecraft:stone",

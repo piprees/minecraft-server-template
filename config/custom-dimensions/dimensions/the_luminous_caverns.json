@@ -1,7 +1,7 @@
 {
   "type": "cave",
   "description": "Serene glowing caverns \u2014 lush moss and quartz light under a bedrock roof. No armies ever found this place. The copper towers and strange outposts were built by someone who came for the light and stayed.",
-  "seed": -5906993080628100432,
+  "seed": -8074874586289501964,
   "biomes": [
     "minecraft:lush_caves",
     "terralith:cave/thermal_caves",
@@ -104,7 +104,7 @@
   },
   "spawn": [
     0,
-    17,
+    22,
     -448
   ],
   "structures": {

@@ -1,7 +1,7 @@
 {
   "type": "nether",
   "description": "An ancient buried age \u2014 nether ruins and towers of a piglin civilisation the lava took, and is still taking. Two thirds of the world is under it. What is left is a corridor between the lava surface and the bedrock roof, and the only architecture you ever see is whatever was tall enough to keep its top floor.",
-  "seed": -315595599216508306,
+  "seed": -4187201657744688901,
   "biomes": [
     "minecraft:nether_wastes",
     "incendium:quartz_flats",
@@ -95,7 +95,7 @@
   },
   "spawn": [
     0,
-    30,
+    156,
     -256
   ],
   "settingsOverrides": {

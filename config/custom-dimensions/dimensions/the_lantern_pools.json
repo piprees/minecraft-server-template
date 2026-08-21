@@ -1,7 +1,7 @@
 {
   "type": "multi_biome",
   "description": "Serene oasis pools glowing at dusk. A hermit's paradise \u2014 desert shrines mark where travellers stopped to rest, but nobody built a town. The pools are older than the shrines.",
-  "seed": -8938623597306300190,
+  "seed": -2792686122266062874,
   "biomes": [
     {
       "id": "terralith:desert_oasis",
@@ -239,7 +239,7 @@
   },
   "spawn": [
     320,
-    46,
+    56,
     64
   ],
   "structures": {

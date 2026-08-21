@@ -1,7 +1,7 @@
 {
   "type": "nether",
   "description": "The last piglin forge still burning. Crimson forges and reactors in a small brutal deep \u2014 the fires here never went out because nobody survived to bank them. The deeper you go, the hotter and harder it gets.",
-  "seed": -3379581928602472813,
+  "seed": -6833270218787544653,
   "biomes": [
     "minecraft:basalt_deltas",
     "incendium:volcanic_deltas",
@@ -81,7 +81,7 @@
   },
   "spawn": [
     64,
-    27,
+    96,
     0
   ],
   "exitPortal": {

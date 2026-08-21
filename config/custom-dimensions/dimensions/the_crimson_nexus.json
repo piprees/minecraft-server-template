@@ -1,7 +1,7 @@
 {
   "type": "multi_biome",
   "description": "A nexus where the piglin nether bleeds through into overworld rock. Scarred badlands and volcanic scars under an open sky, and a fortress standing where it has no business standing \u2014 as if punched through from the other side.",
-  "seed": -5917454412537810890,
+  "seed": 8071654636714976847,
   "noiseSettings": "adventure:compressed",
   "biomes": [
     "terralith:warped_mesa",
@@ -123,7 +123,7 @@
   },
   "spawn": [
     512,
-    122,
+    52,
     -256
   ],
   "environment": {

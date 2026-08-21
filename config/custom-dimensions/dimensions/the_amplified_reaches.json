@@ -1,7 +1,7 @@
 {
   "type": "amplified",
   "description": "The human frontier pushed vertical. Cliffs beyond reason, keeps on the peaks \u2014 engineers and explorers who refused to stop climbing. The deeper valleys hide what they left behind.",
-  "seed": -6893354320409860085,
+  "seed": -4750001936915793509,
   "borders": {
     "player": 4096,
     "generation": 4096
@@ -53,7 +53,7 @@
   },
   "spawn": [
     0,
-    72,
+    198,
     -512
   ]
 }

@@ -1,7 +1,7 @@
 {
   "type": "multi_biome",
   "description": "Frozen channels between ice sheets. Igloos and cold dungeons mark where people tried to cross; shipwrecks mark where they failed. The sea is the road, and the road is cruel.",
-  "seed": 2089452998699548009,
+  "seed": -996257390854336766,
   "noiseSettings": "adventure:wide",
   "biomes": [
     {
@@ -247,7 +247,7 @@
   },
   "spawn": [
     0,
-    31,
+    2,
     -128
   ],
   "exitPortal": {

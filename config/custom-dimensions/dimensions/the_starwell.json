@@ -87,11 +87,11 @@
       "terralith:alpha_islands"
     ]
   },
-  "seed": -119982518568878782,
+  "seed": -3905594518967920643,
   "spawn": [
-    128,
-    -64,
-    -192
+    0,
+    59,
+    0
   ],
   "settingsOverrides": {
     "defaultBlock": "minecraft:deepslate",

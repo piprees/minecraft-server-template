@@ -1,7 +1,7 @@
 {
   "type": "multi_biome",
   "description": "The empty deep mire. Sunken ruins and a mausoleum in the murk \u2014 whoever built these, the swamp took them generations ago. Too wet for roads, too quiet for company. The marsh doesn't remember their names.",
-  "seed": 5178005033838326978,
+  "seed": -6221637500940750521,
   "biomes": [
     {
       "id": "terralith:orchid_swamp",
@@ -228,7 +228,7 @@
   },
   "spawn": [
     128,
-    71,
+    66,
     64
   ]
 }

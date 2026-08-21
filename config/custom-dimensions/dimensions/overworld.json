@@ -1,6 +1,6 @@
 {
   "description": "The world where it all begins. Villagers settled the plains and humans arrived through the stone gate. Safe at spawn, but the ancient cities near the border predate everyone \u2014 and something stirs in them.",
-  "seed": 3489942239821098976,
+  "seed": 1419601956218173845,
   "borders": {
     "player": 8192,
     "generation": 8192
@@ -67,7 +67,7 @@
   },
   "spawn": [
     -64,
-    66,
+    104,
     640
   ]
 }

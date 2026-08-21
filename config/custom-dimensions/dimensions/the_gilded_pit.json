@@ -1,7 +1,7 @@
 {
   "type": "nether",
   "description": "The piglin capital. Every portal drops you at the same ledge overlooking what remains: a bastion, a forge, a palace, a forbidden castle \u2014 gold in every wall, treasure in every ruin. Nothing within arm's reach of the landing. Greed pays and costs.",
-  "seed": -4513818485560389167,
+  "seed": -7248240486262508917,
   "biomes": [
     "minecraft:nether_wastes",
     "minecraft:basalt_deltas",
@@ -140,7 +140,7 @@
   },
   "spawn": [
     0,
-    45,
+    140,
     -128
   ]
 }

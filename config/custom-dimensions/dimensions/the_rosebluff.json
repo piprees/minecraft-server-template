@@ -1,7 +1,7 @@
 {
   "type": "multi_biome",
   "description": "Blossom cliffs over white stone \u2014 wisteria, sakura and chapels on the bluffs. Villager country at its most scenic, where people built for beauty rather than survival. The shrine towers are pilgrimage sites, not defences.",
-  "seed": 5243414565319414919,
+  "seed": 5135585854498159452,
   "biomes": [
     {
       "id": "natures_spirit:wisteria_forest",
@@ -221,7 +221,7 @@
   },
   "spawn": [
     -320,
-    43,
+    51,
     -64
   ]
 }

@@ -1,7 +1,7 @@
 {
   "type": "multi_biome",
   "description": "Gloomy cedar woodland where the fog sits low. The witches' territory \u2014 graveyards, chapels, and a manor that should probably be left alone. They came from the darkpine depths and brought their knowledge with them.",
-  "seed": 8907161271147887783,
+  "seed": -5475089934362763577,
   "biomes": [
     {
       "id": "natures_spirit:cedar_thicket",
@@ -194,7 +194,7 @@
   },
   "spawn": [
     0,
-    71,
+    64,
     64
   ]
 }

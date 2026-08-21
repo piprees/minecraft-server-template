@@ -1,7 +1,7 @@
 {
   "type": "cave",
   "description": "Shroomlight groves on ledges above a lava sea, under a stone ceiling \u2014 the nether's gentlest rooms, lit orange from below and teal from above. Even the piglins left these alone. The lava here does not kill you; it puts you back where you came from.",
-  "seed": -122223164298952749,
+  "seed": 376011753665830029,
   "biomes": [
     "minecraft:crimson_forest",
     "minecraft:warped_forest",
@@ -68,7 +68,7 @@
   },
   "spawn": [
     -384,
-    74,
+    30,
     320
   ],
   "settingsOverrides": {

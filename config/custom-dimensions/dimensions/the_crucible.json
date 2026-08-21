@@ -1,7 +1,7 @@
 {
   "type": "multi_biome",
   "description": "A compressed jungle gauntlet where the wild reclaimed everything. Infested temples and webbed dungeons in terrain that fights back. Whatever was built here was consumed long ago \u2014 the jungle doesn't negotiate.",
-  "seed": -1767073148463684069,
+  "seed": -2092289300691480070,
   "noiseSettings": "adventure:compressed",
   "biomes": [
     {
@@ -266,7 +266,7 @@
   },
   "spawn": [
     320,
-    92,
+    3,
     -192
   ]
 }

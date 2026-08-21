@@ -1,7 +1,7 @@
 {
   "type": "paradise_lost:paradise_lost",
   "description": "A shrine over the abyss \u2014 plateau islands ringing deep drowned hollows. Something is worshipped here, or was. Guardians circle below; the sky above is indifferent.",
-  "seed": 218940947777718728,
+  "seed": -3682385522640744786,
   "biomes": [
     {
       "id": "paradise_lost:continental_plateau",
@@ -117,7 +117,7 @@
   },
   "spawn": [
     64,
-    133,
+    129,
     -192
   ],
   "structures": {

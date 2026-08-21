@@ -1,7 +1,7 @@
 {
   "type": "nether",
   "description": "The battlefield. Piglins met endermen here and neither side won. Bones of giants lie in soul sand, a crashed ship rusts in the distance, and the sculk that crept in wasn't either side's weapon \u2014 it fed on the war itself.",
-  "seed": -854985351643499107,
+  "seed": 1211329661452953383,
   "biomes": [
     "minecraft:soul_sand_valley",
     "incendium:ash_barrens",
@@ -101,7 +101,7 @@
   },
   "spawn": [
     -64,
-    110,
+    144,
     0
   ]
 }

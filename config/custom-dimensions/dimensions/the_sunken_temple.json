@@ -1,7 +1,7 @@
 {
   "type": "paradise_lost:paradise_lost",
   "description": "Temple-hunting across drowned skyland basins. Monuments and fortresses sit where the water pooled between paradise islands \u2014 half-submerged architecture that predates the flooding. Something sacred was kept here, and the rising water couldn't wash it away.",
-  "seed": -1329928820626126378,
+  "seed": 2469318281693731022,
   "biomes": [
     {
       "id": "paradise_lost:tradewinds",
@@ -132,7 +132,7 @@
   },
   "spawn": [
     -192,
-    133,
+    136,
     64
   ],
   "structures": {

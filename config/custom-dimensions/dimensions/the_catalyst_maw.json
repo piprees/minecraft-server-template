@@ -1,7 +1,7 @@
 {
   "type": "nether_islands",
   "description": "The sculk that fed on the boneyard war escaped here. Corrupted nether terrain, oppressive and chaotic \u2014 the catalyst is still feeding, still growing. The reactors and bastions it consumed are unrecognisable.",
-  "seed": -3889660353726783549,
+  "seed": -4504732048969442742,
   "noiseSettings": "adventure:compressed",
   "biomes": [
     "minecraft:basalt_deltas",

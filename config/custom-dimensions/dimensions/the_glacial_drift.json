@@ -1,7 +1,7 @@
 {
   "type": "sky_islands",
   "description": "A glacial drift among the skylands \u2014 frozen paradise islands calving into the void. The oldest animals shelter here in tundra that predates every civilisation. Nothing was ever built; nothing needs to be.",
-  "seed": -6742485365911610139,
+  "seed": -8313982832499967773,
   "biomes": [
     {
       "id": "paradise_lost:autumnal_tundra",
@@ -126,9 +126,9 @@
     "terrain": "islands"
   },
   "spawn": [
-    -512,
-    128,
-    512
+    0,
+    41,
+    -204
   ],
   "structures": {
     "noise": {

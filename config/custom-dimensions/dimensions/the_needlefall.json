@@ -1,7 +1,7 @@
 {
   "type": "multi_biome",
   "description": "Steep pine cliffs and fire towers. Human frontier country where the dramatic terrain punishes a careless step. The outposts here were built by people who respected the mountain; the dungeons were here before them.",
-  "seed": -4159519402034942550,
+  "seed": -1681678732974222498,
   "noiseSettings": "adventure:compressed",
   "biomes": [
     {
@@ -193,7 +193,7 @@
   },
   "spawn": [
     -128,
-    67,
+    56,
     -64
   ]
 }

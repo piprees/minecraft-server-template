@@ -1,7 +1,7 @@
 {
   "type": "multi_biome",
   "description": "Where the endermen first taught the villagers. Amethyst rainforest and emerald peaks \u2014 wizard towers mark where the lessons happened. No war was ever fought here; this place was too beautiful to ruin.",
-  "seed": -5737558752956127404,
+  "seed": 3744254830280189342,
   "noiseSettings": "adventure:compressed",
   "biomes": [
     {
@@ -240,7 +240,7 @@
   },
   "spawn": [
     192,
-    72,
+    44,
     -448
   ],
   "biomePatches": [

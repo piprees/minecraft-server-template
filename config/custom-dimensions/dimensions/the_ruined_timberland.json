@@ -1,7 +1,7 @@
 {
   "type": "multi_biome",
   "description": "Autumn woods strewn with ruins. Every clearing has bones of something older \u2014 temples, crypts, pumpkin ruins from a harvest festival that was never finished. Rich pickings, no living towns. Whoever these people were, they left in a hurry.",
-  "seed": 1408325615029561164,
+  "seed": -7368007085845507592,
   "biomes": [
     {
       "id": "natures_spirit:aspen_forest",
@@ -179,7 +179,7 @@
   },
   "spawn": [
     -64,
-    63,
+    62,
     512
   ],
   "structures": {

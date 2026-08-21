@@ -1,7 +1,7 @@
 {
   "type": "multi_biome",
   "description": "Warped corruption spreading over a mesa world \u2014 teal fungus over red rock. The nether bleeding through, but slowly, almost beautifully. It came through at the centre and it is still spreading. The piglins who lived here didn't flee; they adapted. Their outposts stand in the fungus like houses in a rising tide.",
-  "seed": -8457914906827513258,
+  "seed": 8657262498802833871,
   "biomes": [
     {
       "id": "minecraft:eroded_badlands",
@@ -211,7 +211,7 @@
   },
   "spawn": [
     -384,
-    65,
+    50,
     0
   ],
   "biomePatches": [

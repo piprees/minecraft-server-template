@@ -1,7 +1,7 @@
 {
   "type": "multi_biome",
   "description": "The warm hearth in a frozen world. Snowy villages and taigas where villagers adapted to the cold \u2014 igloos, outposts, campsites. The dungeons out in the ice are older than the settlements.",
-  "seed": -8495486117474221498,
+  "seed": 5548474379549723599,
   "noiseSettings": "adventure:wide",
   "biomes": [
     {
