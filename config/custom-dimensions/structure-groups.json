@@ -4476,7 +4476,7 @@
    "separation": 16,
    "frequency": 1.0,
    "dimension": "overworld",
-   "source": "t_and_t-neoforge-fabric-1.13.9+1.21.1.jar"
+   "source": "t_and_t-fabric-neoforge-1.13.11.jar"
   },
   "towns_and_towers:towers": {
    "theme": "dungeon",
@@ -4487,7 +4487,7 @@
    "separation": 12,
    "frequency": 0.2,
    "dimension": "overworld",
-   "source": "t_and_t-neoforge-fabric-1.13.9+1.21.1.jar"
+   "source": "t_and_t-fabric-neoforge-1.13.11.jar"
   },
   "towns_and_towers:towns": {
    "theme": "settlement",
@@ -4498,7 +4498,7 @@
    "separation": 12,
    "frequency": 1.0,
    "dimension": "nether",
-   "source": "t_and_t-neoforge-fabric-1.13.9+1.21.1.jar"
+   "source": "t_and_t-neoforge-fabric-1.13.11+1.21.1.jar"
   },
   "underground_bunkers:minor_structures": {
    "theme": "dungeon",

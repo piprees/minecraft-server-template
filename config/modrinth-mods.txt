@@ -42,7 +42,7 @@ distanthorizons:ZpKb4kZp
 
 # === terrain & biomes ===
 tectonic:L87Phsbl
-lithostitched:JWtSqSeY
+lithostitched:vPyJwd70
 terralith:eWDLFabb
 wwoo:JBbDOEnc
 geophilic:jDzSPLta
@@ -85,7 +85,7 @@ true-ending:FBAAEUsA
 # === structures (need yungs-api) ===
 yungs-api:9aZPNrZC
 yungs-bridges:8h9N9fvs
-towns-and-towers:5PS5OhIh
+towns-and-towers:DZxwgj6V
 when-dungeons-arise:g8oglmT0
 yungs-better-dungeons:fQ7EjDPE
 yungs-better-strongholds:uYZShp1p
@@ -143,7 +143,7 @@ collective:4XRlrKGN
 cristel-lib:K1dyr5gj
 architectury-api:Pzc2FP5K
 forge-config-api-port:N5qzq0XV
-moonlight:hveZJByF
+moonlight:ip33wHvm
 kambrik:eMIEIbFZ
 playeranimator:CkedfDp3
 almanac:hUgNmeCO
