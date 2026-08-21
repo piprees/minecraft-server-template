@@ -1,34 +1,108 @@
 {
-  "type": "nether",
-  "description": "Piglin architecture at its most dramatic — basalt pillars, bridges slung between columns, a bastion anchoring the centre. They built upward here, into the dark.",
-  "seed": 9194112441437988152,
+  "type": "multi_biome",
+  "description": "Piglin architecture at its most dramatic \u2014 basalt pillars standing in lava, bridges slung between columns, a bastion anchoring the centre. They built upward here, into the dark, and there has never been a sky over it.",
+  "seed": 9132677375454640926,
   "biomes": [
-    "minecraft:basalt_deltas",
-    "incendium:volcanic_deltas",
-    "incendium:ash_barrens",
-    "minecraft:nether_wastes",
-    "minecraft:soul_sand_valley",
-    "incendium:quartz_flats"
+    {
+      "id": "minecraft:basalt_deltas",
+      "parameters": {
+        "temperature": [
+          -0.6,
+          -0.4125
+        ]
+      }
+    },
+    {
+      "id": "incendium:volcanic_deltas",
+      "parameters": {
+        "temperature": [
+          -0.4125,
+          -0.225
+        ]
+      }
+    },
+    {
+      "id": "incendium:ash_barrens",
+      "parameters": {
+        "temperature": [
+          -0.225,
+          -0.0375
+        ]
+      }
+    },
+    {
+      "id": "minecraft:nether_wastes",
+      "parameters": {
+        "temperature": [
+          -0.0375,
+          0.15
+        ]
+      }
+    },
+    {
+      "id": "minecraft:soul_sand_valley",
+      "parameters": {
+        "temperature": [
+          0.15,
+          0.3375
+        ]
+      }
+    },
+    {
+      "id": "incendium:quartz_flats",
+      "parameters": {
+        "temperature": [
+          0.3375,
+          0.525
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:blackstone_basin",
+      "parameters": {
+        "temperature": [
+          0.525,
+          0.7125
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:ancient_delta",
+      "parameters": {
+        "temperature": [
+          0.7125,
+          0.9
+        ]
+      }
+    }
   ],
   "borders": {
-    "player": 1024,
-    "generation": 1024
+    "player": 2048,
+    "generation": 2048
   },
   "difficulty": {
-    "mobMultiplier": 1.5,
-    "playerLuck": 1.3
+    "mobMultiplier": 1.8,
+    "playerLuck": 1.5
   },
   "structures": {
     "terrainAdaptation": {
-      "structory_towers:warped_greatsword": "pedestal"
-    }
+      "structory_towers:warped_greatsword": "pedestal",
+      "minecraft:bastion_remnant": "pedestal"
+    },
+    "force": [
+      {
+        "structure": "minecraft:bastion_remnant",
+        "x": 0,
+        "z": 0
+      }
+    ]
   },
   "portal": {
     "frameBlock": "minecraft:basalt",
     "igniterItem": "minecraft:flint_and_steel",
     "color": "5B4B4B",
     "lightLevel": 11,
-    "scale": 8.0,
+    "scale": 4.0,
     "cooldown": 40,
     "particleType": "minecraft:ash",
     "sounds": {
@@ -54,11 +128,30 @@
     "shuns": [
       "piglin_village"
     ],
-    "description": "Piglin architecture at its most dramatic — basalt pillars, bridges slung between columns, a bastion anchoring the centre. They built upward here, into the dark."
+    "terrain": "extreme",
+    "heightRange": [
+      40,
+      250
+    ],
+    "water": "none"
   },
   "spawn": [
-    0,
-    64,
-    0
-  ]
+    -128,
+    5,
+    128
+  ],
+  "noiseSettings": "adventure:compressed",
+  "settingsOverrides": {
+    "defaultBlock": "minecraft:blackstone",
+    "defaultFluid": "minecraft:lava",
+    "seaLevel": 40
+  },
+  "environment": {
+    "effects": "minecraft:the_nether",
+    "hasSkylight": false,
+    "ultraWarm": true,
+    "ambientLight": 0.15,
+    "fogColor": "#3B2B2B"
+  },
+  "structureDensity": "normal"
 }

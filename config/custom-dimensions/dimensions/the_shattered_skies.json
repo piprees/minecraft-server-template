@@ -1,7 +1,7 @@
 {
   "type": "sky_islands",
-  "description": "Floating garden islands — sakura and skylands adrift in a void slowly winning. The animals' paradise, where nothing was ever built to last and nothing needs to. Sky houses and castle ruins dot the islands like driftwood.",
-  "seed": -5208023471198691652,
+  "description": "Floating garden islands \u2014 sakura and skylands adrift in a void slowly winning. The animals' paradise, where nothing was ever built to last and nothing needs to. Sky houses and castle ruins dot the islands like driftwood.",
+  "seed": -2261948454891521411,
   "biomes": [
     "minecraft:plains",
     "minecraft:forest",
@@ -25,8 +25,8 @@
     "minecraft:sunflower_plains"
   ],
   "borders": {
-    "player": 8192,
-    "generation": 8192
+    "player": 4096,
+    "generation": 4096
   },
   "difficulty": {
     "mobMultiplier": 1.5,
@@ -37,7 +37,7 @@
     "igniterItem": "minecraft:amethyst_shard",
     "color": "B0D8F0",
     "lightLevel": 11,
-    "scale": 1.0,
+    "scale": 2.0,
     "cooldown": 40,
     "particleType": "minecraft:end_rod",
     "sounds": {
@@ -79,17 +79,22 @@
       "monument",
       "coliseum"
     ],
-    "description": "Floating garden islands — sakura and skylands adrift in a void slowly winning. The animals' paradise, where nothing was ever built to last and nothing needs to. Sky houses and castle ruins dot the islands like driftwood.",
     "terrain": "islands"
   },
   "spawn": [
-    0,
-    64,
-    0
+    -384,
+    -64,
+    384
   ],
   "structures": {
     "noise": {
       "endgame": "sparse"
     }
+  },
+  "settingsOverrides": {
+    "defaultBlock": "minecraft:stone",
+    "defaultFluid": "minecraft:water",
+    "seaLevel": -64,
+    "endIsland": false
   }
 }

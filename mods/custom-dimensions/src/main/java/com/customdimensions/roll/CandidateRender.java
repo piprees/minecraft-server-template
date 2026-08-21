@@ -13,6 +13,8 @@ import com.customdimensions.facts.SeedFacts;
 import com.customdimensions.facts.SeedFactsCodec;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.mojang.serialization.MapCodec;
+import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.server.MinecraftServer;
@@ -324,7 +326,8 @@ public final class CandidateRender {
         int cellHorizontal = shape == null ? 4 : shape.horizontalCellBlockCount();
         int shapeMinimumY = shape == null ? floorY : shape.minimumY();
 
-        MarkerCounts counts = new MarkerCounts();
+        boolean trivialDensity = raw != null && isConstant(raw.noiseRouter().finalDensity());
+        MarkerCounts counts = new MarkerCounts(trivialDensity);
         ChunkGeneratorSettings shapeSettings = climateAndShape(raw,
                 new WrapperRewrite(counts, cellHorizontal, band.cellHeight(), shapeMinimumY));
         TerrainShape.Calibration calibration = new TerrainShape.Calibration(0, 0, true);
@@ -385,6 +388,20 @@ public final class CandidateRender {
                 new java.util.concurrent.atomic.AtomicInteger();
         final java.util.concurrent.atomic.AtomicInteger columnRefused =
                 new java.util.concurrent.atomic.AtomicInteger();
+        /**
+         * A node registered under a marker id ({@code interpolated}/{@code
+         * flat_cache}/{@code cache_2d}) but not {@code instanceof Wrapper} — a
+         * marker genuinely exists here, this rewrite just cannot safely reach
+         * into an unrecognised class to extract its wrapped child.
+         */
+        final java.util.concurrent.atomic.AtomicInteger unrecognisedMarker =
+                new java.util.concurrent.atomic.AtomicInteger();
+        /** Whether the whole final density is a bare constant — nothing can ever interpolate across it. */
+        final boolean trivialDensity;
+
+        MarkerCounts(boolean trivialDensity) {
+            this.trivialDensity = trivialDensity;
+        }
 
         /** Says what the rewrite found, once the first seeding has resolved it. */
         void report() {
@@ -392,11 +409,25 @@ public final class CandidateRender {
             // package-private class. A name that stopped matching would leave
             // the map reading an un-interpolated density with nothing to say
             // so — the exact silent failure this codebase treats as its worst
-            // kind. Count it and say so.
+            // kind. Count it and say so — unless there is genuinely nothing to
+            // find (a constant final density, e.g. the void generator) or a
+            // marker was found by registry id but not by class, in which case
+            // the WARN below would itself be the lie.
             if (this.interpolated.get() == 0) {
-                com.customdimensions.MultiverseServer.LOGGER.warn(
-                        "render: no interpolated marker found in this router's final density — "
-                        + "the map is reading an EXACT density where generation interpolates one");
+                if (this.trivialDensity) {
+                    com.customdimensions.MultiverseServer.LOGGER.debug(
+                            "render: this router's final density is a bare constant — nothing to "
+                            + "interpolate, exact sampling is already exact");
+                } else if (this.unrecognisedMarker.get() > 0) {
+                    com.customdimensions.MultiverseServer.LOGGER.warn(
+                            "render: {} interpolated marker(s) found by registry id, but this "
+                            + "renderer's class-based rewrite does not recognise their type — "
+                            + "falling back to exact sampling for them", this.unrecognisedMarker.get());
+                } else {
+                    com.customdimensions.MultiverseServer.LOGGER.warn(
+                            "render: no interpolated marker found in this router's final density — "
+                            + "the map is reading an EXACT density where generation interpolates one");
+                }
             }
             // Said out loud once, because it is the difference between a cache
             // and a changed picture: caching a marker that reads y freezes
@@ -414,6 +445,38 @@ public final class CandidateRender {
                     + "marker(s) and left {} uncached for reading y",
                     this.interpolated.get(), this.columnCached.get(),
                     this.columnRefused.get());
+        }
+    }
+
+    /** {@code Registries.DENSITY_FUNCTION_TYPE} lookup for {@code minecraft:<id>}. */
+    private static MapCodec<? extends DensityFunction> markerCodec(String id) {
+        return Registries.DENSITY_FUNCTION_TYPE.get(Identifier.ofVanilla(id));
+    }
+
+    /**
+     * Whether a node is registered under an interpolation/cache marker id even
+     * though it is not {@code instanceof DensityFunctionTypes.Wrapper} — the
+     * class backing that id in THIS router is not vanilla's own {@code
+     * Wrapping} record. Matched by codec identity ({@code isEndIslands}'s
+     * pattern in {@code DimensionManager}), because the record classes behind
+     * these ids are package-private and cannot be named from here.
+     */
+    private static boolean isMarkerByRegistryId(DensityFunction function) {
+        try {
+            MapCodec<? extends DensityFunction> codec = function.getCodecHolder().codec();
+            return codec == markerCodec("interpolated") || codec == markerCodec("flat_cache")
+                    || codec == markerCodec("cache_2d");
+        } catch (UnsupportedOperationException e) {
+            return false;
+        }
+    }
+
+    /** Whether a node is exactly a constant — nothing can ever interpolate across it. */
+    private static boolean isConstant(DensityFunction function) {
+        try {
+            return function.getCodecHolder().codec() == markerCodec("constant");
+        } catch (UnsupportedOperationException e) {
+            return false;
         }
     }
 
@@ -475,6 +538,9 @@ public final class CandidateRender {
         @Override
         public DensityFunction apply(DensityFunction function) {
             if (!(function instanceof DensityFunctionTypes.Wrapper wrapper)) {
+                if (isMarkerByRegistryId(function)) {
+                    this.counts.unrecognisedMarker.incrementAndGet();
+                }
                 return function;
             }
             switch (markerName(wrapper)) {

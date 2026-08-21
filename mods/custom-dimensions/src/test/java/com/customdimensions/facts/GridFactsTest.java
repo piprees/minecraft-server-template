@@ -149,6 +149,96 @@ class GridFactsTest {
                 facts.edgeDensityNearSpawn().reason());
     }
 
+    // -------------------------------------------------------- tier-1 screening
+
+    /**
+     * A grid shaped exactly like what {@code sampleGrid} produces for a
+     * climate-only rig: biomes populated, heights and submerged left at
+     * their zero values (null / false) because there is no terrain router to
+     * ask. {@code biomeFacts} must still compute real shares from it — this
+     * is the whole of tier 1's fix, expressed as a fixture rather than a
+     * live measurement no test here can take.
+     */
+    @Test
+    void biomeFactsMeasuresRealSharesFromAGridWithNoHeightsAtAll() {
+        var facts = biomes(grid(
+                new String[] {P, P, D,
+                              P, P, D,
+                              P, P, D},
+                new Integer[9]));   // every height null — the climate-only case
+
+        assertEquals(2, facts.distinctCount().orThrow());
+        assertEquals(6.0 / 9.0, facts.shares().orThrow().get(P), 1e-12);
+        assertEquals(3.0 / 9.0, facts.shares().orThrow().get(D), 1e-12);
+        assertEquals(6.0 / 9.0, facts.headlineShare().orThrow(), 1e-12,
+                "a biome-only grid still answers headlineShare exactly like a full one");
+    }
+
+    @Test
+    void aGridDominatedByOneBiomeYieldsAHighShareForIt() {
+        var facts = biomes(grid(
+                new String[] {P, P, P, P, P, P, P, P, D},
+                new Integer[9]));
+
+        assertEquals(8.0 / 9.0, facts.shares().orThrow().get(P), 1e-12);
+        assertEquals(1.0 / 9.0, facts.shares().orThrow().get(D), 1e-12);
+    }
+
+    @Test
+    void aGridWithNoneOfABiomeGivesItNoShareAtAll() {
+        var facts = biomes(grid(
+                new String[] {P, P, P, P, P, P, P, P, P},
+                new Integer[9]));
+
+        assertEquals(1.0, facts.shares().orThrow().get(P), 1e-12);
+        assertFalse(facts.shares().orThrow().containsKey(D), "an absent biome has no entry");
+    }
+
+    // -------------------------------------------------------- grid geometry
+
+    /**
+     * The fraction of {@code side x side} grid cells clipped to the disc that
+     * fall in the "eastern" half ({@code dx >= 0}) — a shape whose true area
+     * fraction is 0.5 by the disc's own symmetry, computed straight from
+     * {@link FactsEngine#gridOffsets}, no {@code SpikeSampler} in sight.
+     */
+    private static double easternFraction(int side, int radius) {
+        int[][] offsets = FactsEngine.gridOffsets(radius, side);
+        int east = 0;
+        int total = 0;
+        for (int[] at : offsets) {
+            if (at == null) {
+                continue;
+            }
+            total++;
+            if (at[0] >= 0) {
+                east++;
+            }
+        }
+        return east / (double) total;
+    }
+
+    @Test
+    void screenGridAndFullGridSampleTheSameDiscJustAtDifferentDensities() {
+        // FactsEngine.measureCheap (tier 1) walks the same gridOffsets
+        // geometry FactsEngine.measure (tier 2) does, just at SCREEN_GRID
+        // instead of GRID. Both densities put a grid point exactly on the
+        // x=0 line (both sides are odd), so neither reads exactly 0.5 — the
+        // tolerances below allow for that one shared column, not for the two
+        // densities disagreeing about where the disc is.
+        int radius = 4096;
+        double full = easternFraction(FactsEngine.GRID, radius);
+        double screen = easternFraction(FactsEngine.SCREEN_GRID, radius);
+
+        assertEquals(0.5, full, 0.05,
+                "GRID (~1300 cells) must land close to the true 50/50 split, got " + full);
+        assertEquals(0.5, screen, 0.12,
+                "SCREEN_GRID (~130 cells) is coarser but must still land close, got " + screen);
+        assertEquals(full, screen, 0.15,
+                "the two densities must agree with each other within sampling noise, got "
+                + full + " vs " + screen);
+    }
+
     // ---------------------------------------------------------------- terrain
 
     @Test

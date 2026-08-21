@@ -1,15 +1,20 @@
 {
-  "count": 210,
-  "hostile_count": 28,
+  "count": 248,
+  "hostile_count": 33,
   "note": "Static JAR scan: names from lang keys, spawn groups from biome spawner tables. Health/damage are code-side.",
   "by_namespace": {
     "minecraft": 133,
     "crittersandcompanions": 17,
     "creeperoverhaul": 16,
+    "galosphere": 14,
     "supplementaries": 14,
     "friendsandfoes": 11,
+    "wilderwild": 10,
+    "undergroundworlds": 8,
     "paradise_lost": 6,
     "vinery": 4,
+    "yungscavebiomes": 3,
+    "regions_unexplored": 3,
     "handcrafted": 2,
     "lootr": 2,
     "untitledduckmod": 2,
@@ -121,104 +126,104 @@
       "category": "unknown"
     },
     "crittersandcompanions:dragonfly": {
-      "source": "crittersandcompanions-fabric-1.21.1-2.4.1.jar",
+      "source": "crittersandcompanions-fabric-1.21.1-2.7.0.jar",
       "name": "Dragonfly",
       "spawn_groups": {},
       "category": "unknown"
     },
     "crittersandcompanions:dumbo_octopus": {
-      "source": "crittersandcompanions-fabric-1.21.1-2.4.1.jar",
+      "source": "crittersandcompanions-fabric-1.21.1-2.7.0.jar",
       "name": "Dumbo Octopus",
       "spawn_groups": {},
       "category": "unknown"
     },
     "crittersandcompanions:ferret": {
-      "source": "crittersandcompanions-fabric-1.21.1-2.4.1.jar",
+      "source": "crittersandcompanions-fabric-1.21.1-2.7.0.jar",
       "name": "Ferret",
       "spawn_groups": {},
       "category": "unknown"
     },
     "crittersandcompanions:grappling_hook": {
-      "source": "crittersandcompanions-fabric-1.21.1-2.4.1.jar",
+      "source": "crittersandcompanions-fabric-1.21.1-2.7.0.jar",
       "name": "Grappling Hook",
       "spawn_groups": {},
       "category": "unknown"
     },
     "crittersandcompanions:jumping_spider": {
-      "source": "crittersandcompanions-fabric-1.21.1-2.4.1.jar",
+      "source": "crittersandcompanions-fabric-1.21.1-2.7.0.jar",
       "name": "Jumping Spider",
       "spawn_groups": {},
       "category": "unknown"
     },
     "crittersandcompanions:koi_fish": {
-      "source": "crittersandcompanions-fabric-1.21.1-2.4.1.jar",
+      "source": "crittersandcompanions-fabric-1.21.1-2.7.0.jar",
       "name": "Koi Fish",
       "spawn_groups": {},
       "category": "unknown"
     },
     "crittersandcompanions:ladybug": {
-      "source": "crittersandcompanions-fabric-1.21.1-2.4.1.jar",
+      "source": "crittersandcompanions-fabric-1.21.1-2.7.0.jar",
       "name": "Ladybug",
       "spawn_groups": {},
       "category": "unknown"
     },
     "crittersandcompanions:leaf_insect": {
-      "source": "crittersandcompanions-fabric-1.21.1-2.4.1.jar",
+      "source": "crittersandcompanions-fabric-1.21.1-2.7.0.jar",
       "name": "Leaf Insect",
       "spawn_groups": {},
       "category": "unknown"
     },
     "crittersandcompanions:otter": {
-      "source": "crittersandcompanions-fabric-1.21.1-2.4.1.jar",
+      "source": "crittersandcompanions-fabric-1.21.1-2.7.0.jar",
       "name": "Otter",
       "spawn_groups": {},
       "category": "unknown"
     },
     "crittersandcompanions:red_panda": {
-      "source": "crittersandcompanions-fabric-1.21.1-2.4.1.jar",
+      "source": "crittersandcompanions-fabric-1.21.1-2.7.0.jar",
       "name": "Red Panda",
       "spawn_groups": {},
       "category": "unknown"
     },
     "crittersandcompanions:roly_poly": {
-      "source": "crittersandcompanions-fabric-1.21.1-2.4.1.jar",
+      "source": "crittersandcompanions-fabric-1.21.1-2.7.0.jar",
       "name": "Roly-Poly",
       "spawn_groups": {},
       "category": "unknown"
     },
     "crittersandcompanions:sea_bunny": {
-      "source": "crittersandcompanions-fabric-1.21.1-2.4.1.jar",
+      "source": "crittersandcompanions-fabric-1.21.1-2.7.0.jar",
       "name": "Sea Bunny",
       "spawn_groups": {},
       "category": "unknown"
     },
     "crittersandcompanions:shima_enaga": {
-      "source": "crittersandcompanions-fabric-1.21.1-2.4.1.jar",
+      "source": "crittersandcompanions-fabric-1.21.1-2.7.0.jar",
       "name": "Shima Enaga",
       "spawn_groups": {},
       "category": "unknown"
     },
     "crittersandcompanions:snail": {
-      "source": "crittersandcompanions-fabric-1.21.1-2.4.1.jar",
+      "source": "crittersandcompanions-fabric-1.21.1-2.7.0.jar",
       "name": "Snail",
       "spawn_groups": {},
       "category": "unknown"
     },
     "crittersandcompanions:stag_beetle": {
-      "source": "crittersandcompanions-fabric-1.21.1-2.4.1.jar",
+      "source": "crittersandcompanions-fabric-1.21.1-2.7.0.jar",
       "name": "Stag Beetle",
       "spawn_groups": {},
       "category": "unknown"
     },
     "crittersandcompanions:stick_bug": {
-      "source": "crittersandcompanions-fabric-1.21.1-2.4.1.jar",
+      "source": "crittersandcompanions-fabric-1.21.1-2.7.0.jar",
       "name": "Stick Bug",
       "spawn_groups": {},
       "category": "unknown"
     },
     "crittersandcompanions:weevil": {
-      "source": "crittersandcompanions-fabric-1.21.1-2.4.1.jar",
-      "name": "Weevil",
+      "source": "crittersandcompanions-fabric-1.21.1-2.7.0.jar",
+      "name": "Acorn Weevil",
       "spawn_groups": {},
       "category": "unknown"
     },
@@ -229,68 +234,170 @@
       "category": "unknown"
     },
     "friendsandfoes:copper_golem": {
-      "source": "friendsandfoes-fabric-4.0.26+mc1.21.1.jar",
+      "source": "friendsandfoes-fabric-4.0.27+mc1.21.1.jar",
       "name": "Copper Golem",
       "spawn_groups": {},
       "category": "unknown"
     },
     "friendsandfoes:crab": {
-      "source": "friendsandfoes-fabric-4.0.26+mc1.21.1.jar",
+      "source": "friendsandfoes-fabric-4.0.27+mc1.21.1.jar",
       "name": "Crab",
       "spawn_groups": {},
       "category": "unknown"
     },
     "friendsandfoes:glare": {
-      "source": "friendsandfoes-fabric-4.0.26+mc1.21.1.jar",
+      "source": "friendsandfoes-fabric-4.0.27+mc1.21.1.jar",
       "name": "Glare",
       "spawn_groups": {},
       "category": "unknown"
     },
     "friendsandfoes:iceologer": {
-      "source": "friendsandfoes-fabric-4.0.26+mc1.21.1.jar",
+      "source": "friendsandfoes-fabric-4.0.27+mc1.21.1.jar",
       "name": "Iceologer",
       "spawn_groups": {},
       "category": "unknown"
     },
     "friendsandfoes:illusioner": {
-      "source": "friendsandfoes-fabric-4.0.26+mc1.21.1.jar",
+      "source": "friendsandfoes-fabric-4.0.27+mc1.21.1.jar",
       "name": "Illusioner",
       "spawn_groups": {},
       "category": "unknown"
     },
     "friendsandfoes:mauler": {
-      "source": "friendsandfoes-fabric-4.0.26+mc1.21.1.jar",
+      "source": "friendsandfoes-fabric-4.0.27+mc1.21.1.jar",
       "name": "Mauler",
       "spawn_groups": {},
       "category": "unknown"
     },
     "friendsandfoes:moobloom": {
-      "source": "friendsandfoes-fabric-4.0.26+mc1.21.1.jar",
+      "source": "friendsandfoes-fabric-4.0.27+mc1.21.1.jar",
       "name": "Moobloom",
       "spawn_groups": {},
       "category": "unknown"
     },
     "friendsandfoes:player_illusion": {
-      "source": "friendsandfoes-fabric-4.0.26+mc1.21.1.jar",
+      "source": "friendsandfoes-fabric-4.0.27+mc1.21.1.jar",
       "name": "Player Illusion",
       "spawn_groups": {},
       "category": "unknown"
     },
     "friendsandfoes:rascal": {
-      "source": "friendsandfoes-fabric-4.0.26+mc1.21.1.jar",
+      "source": "friendsandfoes-fabric-4.0.27+mc1.21.1.jar",
       "name": "Rascal",
       "spawn_groups": {},
       "category": "unknown"
     },
     "friendsandfoes:tuff_golem": {
-      "source": "friendsandfoes-fabric-4.0.26+mc1.21.1.jar",
+      "source": "friendsandfoes-fabric-4.0.27+mc1.21.1.jar",
       "name": "Tuff Golem",
       "spawn_groups": {},
       "category": "unknown"
     },
     "friendsandfoes:wildfire": {
-      "source": "friendsandfoes-fabric-4.0.26+mc1.21.1.jar",
+      "source": "friendsandfoes-fabric-4.0.27+mc1.21.1.jar",
       "name": "Wildfire",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "galosphere:berserker": {
+      "source": "Galosphere-1.21.1-1.5.4-Fabric.jar",
+      "name": "Berserker",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "galosphere:glow_flare": {
+      "source": "Galosphere-1.21.1-1.5.4-Fabric.jar",
+      "name": "Glow Flare",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "galosphere:mole": {
+      "source": "Galosphere-1.21.1-1.5.4-Fabric.jar",
+      "name": "Mole",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "galosphere:palladium_bomb": {
+      "source": "Galosphere-1.21.1-1.5.4-Fabric.jar",
+      "name": "Palladium Bomb",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "galosphere:pink_salt_pillar": {
+      "source": "Galosphere-1.21.1-1.5.4-Fabric.jar",
+      "name": "Pink Salt Pillar",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "galosphere:pink_salt_shard": {
+      "source": "Galosphere-1.21.1-1.5.4-Fabric.jar",
+      "name": "Pink Salt Shard",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "galosphere:preserved": {
+      "source": "Galosphere-1.21.1-1.5.4-Fabric.jar",
+      "name": "Preserved",
+      "spawn_groups": {
+        "monster": {
+          "biomes": 1,
+          "min_weight": 100,
+          "max_weight": 100
+        }
+      },
+      "category": "hostile"
+    },
+    "galosphere:rope_dart": {
+      "source": "Galosphere-1.21.1-1.5.4-Fabric.jar",
+      "name": "Rope Dart",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "galosphere:sparkle": {
+      "source": "Galosphere-1.21.1-1.5.4-Fabric.jar",
+      "name": "Sparkle",
+      "spawn_groups": {
+        "underground_water_creature": {
+          "biomes": 1,
+          "min_weight": 10,
+          "max_weight": 10
+        }
+      },
+      "category": "passive"
+    },
+    "galosphere:spectator_vision": {
+      "source": "Galosphere-1.21.1-1.5.4-Fabric.jar",
+      "name": "Spectator Vision",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "galosphere:specterpillar": {
+      "source": "Galosphere-1.21.1-1.5.4-Fabric.jar",
+      "name": "Specterpillar",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "galosphere:spectre": {
+      "source": "Galosphere-1.21.1-1.5.4-Fabric.jar",
+      "name": "Spectre",
+      "spawn_groups": {
+        "ambient": {
+          "biomes": 1,
+          "min_weight": 20,
+          "max_weight": 20
+        }
+      },
+      "category": "passive"
+    },
+    "galosphere:spectre_flare": {
+      "source": "Galosphere-1.21.1-1.5.4-Fabric.jar",
+      "name": "Spectre Flare",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "galosphere:weapon_rack": {
+      "source": "Galosphere-1.21.1-1.5.4-Fabric.jar",
+      "name": "Weapon Rack",
       "spawn_groups": {},
       "category": "unknown"
     },
@@ -313,13 +420,13 @@
       "category": "unknown"
     },
     "lootr:item_frame": {
-      "source": "lootr-fabric-1.21.1-1.11.37.121.jar",
+      "source": "lootr-fabric-1.21.1-1.11.38.123.jar",
       "name": "Item Frame with Loot",
       "spawn_groups": {},
       "category": "unknown"
     },
     "lootr:lootr_minecart": {
-      "source": "lootr-fabric-1.21.1-1.11.37.121.jar",
+      "source": "lootr-fabric-1.21.1-1.11.38.123.jar",
       "name": "Minecart with Loot Chest",
       "spawn_groups": {},
       "category": "unknown"
@@ -341,7 +448,7 @@
       "name": "Armadillo",
       "spawn_groups": {
         "creature": {
-          "biomes": 54,
+          "biomes": 60,
           "min_weight": 1,
           "max_weight": 10
         }
@@ -365,8 +472,8 @@
       "name": "Axolotl",
       "spawn_groups": {
         "axolotls": {
-          "biomes": 4,
-          "min_weight": 10,
+          "biomes": 8,
+          "min_weight": 4,
           "max_weight": 10
         }
       },
@@ -377,7 +484,7 @@
       "name": "Bat",
       "spawn_groups": {
         "ambient": {
-          "biomes": 550,
+          "biomes": 666,
           "min_weight": 10,
           "max_weight": 10
         }
@@ -461,8 +568,8 @@
       "name": "Cave Spider",
       "spawn_groups": {
         "monster": {
-          "biomes": 5,
-          "min_weight": 20,
+          "biomes": 6,
+          "min_weight": 1,
           "max_weight": 100
         }
       },
@@ -485,8 +592,8 @@
       "name": "Chicken",
       "spawn_groups": {
         "creature": {
-          "biomes": 380,
-          "min_weight": 10,
+          "biomes": 451,
+          "min_weight": 4,
           "max_weight": 50
         }
       },
@@ -497,8 +604,8 @@
       "name": "Cod",
       "spawn_groups": {
         "water_ambient": {
-          "biomes": 15,
-          "min_weight": 8,
+          "biomes": 17,
+          "min_weight": 5,
           "max_weight": 15
         }
       },
@@ -515,8 +622,8 @@
       "name": "Cow",
       "spawn_groups": {
         "creature": {
-          "biomes": 340,
-          "min_weight": 8,
+          "biomes": 403,
+          "min_weight": 6,
           "max_weight": 8
         }
       },
@@ -527,7 +634,7 @@
       "name": "Creeper",
       "spawn_groups": {
         "monster": {
-          "biomes": 548,
+          "biomes": 662,
           "min_weight": 20,
           "max_weight": 100
         }
@@ -539,7 +646,7 @@
       "name": "Dolphin",
       "spawn_groups": {
         "water_creature": {
-          "biomes": 15,
+          "biomes": 16,
           "min_weight": 1,
           "max_weight": 2
         }
@@ -551,7 +658,7 @@
       "name": "Donkey",
       "spawn_groups": {
         "creature": {
-          "biomes": 101,
+          "biomes": 118,
           "min_weight": 1,
           "max_weight": 1
         }
@@ -569,7 +676,7 @@
       "name": "Drowned",
       "spawn_groups": {
         "monster": {
-          "biomes": 44,
+          "biomes": 50,
           "min_weight": 1,
           "max_weight": 100
         }
@@ -611,7 +718,7 @@
       "name": "Enderman",
       "spawn_groups": {
         "monster": {
-          "biomes": 583,
+          "biomes": 699,
           "min_weight": 1,
           "max_weight": 1000
         }
@@ -689,9 +796,9 @@
       "name": "Fox",
       "spawn_groups": {
         "creature": {
-          "biomes": 72,
+          "biomes": 84,
           "min_weight": 1,
-          "max_weight": 8
+          "max_weight": 10
         }
       },
       "category": "passive"
@@ -701,7 +808,7 @@
       "name": "Frog",
       "spawn_groups": {
         "creature": {
-          "biomes": 20,
+          "biomes": 26,
           "min_weight": 10,
           "max_weight": 50
         }
@@ -719,8 +826,8 @@
       "name": "Ghast",
       "spawn_groups": {
         "monster": {
-          "biomes": 24,
-          "min_weight": 20,
+          "biomes": 25,
+          "min_weight": 5,
           "max_weight": 100
         }
       },
@@ -743,7 +850,7 @@
       "name": "Glow Squid",
       "spawn_groups": {
         "underground_water_creature": {
-          "biomes": 551,
+          "biomes": 667,
           "min_weight": 10,
           "max_weight": 10
         }
@@ -755,7 +862,7 @@
       "name": "Goat",
       "spawn_groups": {
         "creature": {
-          "biomes": 17,
+          "biomes": 21,
           "min_weight": 4,
           "max_weight": 10
         }
@@ -773,8 +880,8 @@
       "name": "Hoglin",
       "spawn_groups": {
         "monster": {
-          "biomes": 4,
-          "min_weight": 9,
+          "biomes": 6,
+          "min_weight": 5,
           "max_weight": 9
         }
       },
@@ -791,7 +898,7 @@
       "name": "Horse",
       "spawn_groups": {
         "creature": {
-          "biomes": 87,
+          "biomes": 105,
           "min_weight": 1,
           "max_weight": 5
         }
@@ -803,9 +910,9 @@
       "name": "Husk",
       "spawn_groups": {
         "monster": {
-          "biomes": 34,
+          "biomes": 41,
           "min_weight": 80,
-          "max_weight": 80
+          "max_weight": 100
         }
       },
       "category": "hostile"
@@ -869,7 +976,7 @@
       "name": "Llama",
       "spawn_groups": {
         "creature": {
-          "biomes": 52,
+          "biomes": 53,
           "min_weight": 5,
           "max_weight": 8
         }
@@ -911,7 +1018,7 @@
       "name": "Mooshroom",
       "spawn_groups": {
         "creature": {
-          "biomes": 3,
+          "biomes": 4,
           "min_weight": 8,
           "max_weight": 8
         }
@@ -929,7 +1036,7 @@
       "name": "Ocelot",
       "spawn_groups": {
         "monster": {
-          "biomes": 23,
+          "biomes": 27,
           "min_weight": 2,
           "max_weight": 2
         },
@@ -958,7 +1065,7 @@
       "name": "Panda",
       "spawn_groups": {
         "creature": {
-          "biomes": 29,
+          "biomes": 30,
           "min_weight": 1,
           "max_weight": 80
         }
@@ -982,7 +1089,7 @@
       "name": "Parrot",
       "spawn_groups": {
         "creature": {
-          "biomes": 33,
+          "biomes": 37,
           "min_weight": 6,
           "max_weight": 100
         }
@@ -1006,7 +1113,7 @@
       "name": "Pig",
       "spawn_groups": {
         "creature": {
-          "biomes": 352,
+          "biomes": 414,
           "min_weight": 1,
           "max_weight": 100
         }
@@ -1018,7 +1125,7 @@
       "name": "Piglin",
       "spawn_groups": {
         "monster": {
-          "biomes": 11,
+          "biomes": 13,
           "min_weight": 5,
           "max_weight": 100
         }
@@ -1048,7 +1155,7 @@
       "name": "Polar Bear",
       "spawn_groups": {
         "creature": {
-          "biomes": 23,
+          "biomes": 26,
           "min_weight": 1,
           "max_weight": 1
         }
@@ -1078,9 +1185,9 @@
       "name": "Rabbit",
       "spawn_groups": {
         "creature": {
-          "biomes": 172,
+          "biomes": 207,
           "min_weight": 2,
-          "max_weight": 12
+          "max_weight": 15
         }
       },
       "category": "passive"
@@ -1102,7 +1209,7 @@
       "name": "Salmon",
       "spawn_groups": {
         "water_ambient": {
-          "biomes": 24,
+          "biomes": 29,
           "min_weight": 5,
           "max_weight": 15
         }
@@ -1114,7 +1221,7 @@
       "name": "Sheep",
       "spawn_groups": {
         "creature": {
-          "biomes": 367,
+          "biomes": 432,
           "min_weight": 2,
           "max_weight": 12
         }
@@ -1144,7 +1251,7 @@
       "name": "Skeleton",
       "spawn_groups": {
         "monster": {
-          "biomes": 555,
+          "biomes": 669,
           "min_weight": 20,
           "max_weight": 100
         }
@@ -1162,7 +1269,7 @@
       "name": "Slime",
       "spawn_groups": {
         "monster": {
-          "biomes": 567,
+          "biomes": 685,
           "min_weight": 1,
           "max_weight": 100
         }
@@ -1210,7 +1317,7 @@
       "name": "Spider",
       "spawn_groups": {
         "monster": {
-          "biomes": 548,
+          "biomes": 663,
           "min_weight": 10,
           "max_weight": 100
         }
@@ -1222,7 +1329,7 @@
       "name": "Squid",
       "spawn_groups": {
         "water_creature": {
-          "biomes": 39,
+          "biomes": 45,
           "min_weight": 1,
           "max_weight": 10
         }
@@ -1234,7 +1341,7 @@
       "name": "Stray",
       "spawn_groups": {
         "monster": {
-          "biomes": 23,
+          "biomes": 33,
           "min_weight": 50,
           "max_weight": 100
         }
@@ -1246,8 +1353,8 @@
       "name": "Strider",
       "spawn_groups": {
         "creature": {
-          "biomes": 41,
-          "min_weight": 60,
+          "biomes": 46,
+          "min_weight": 40,
           "max_weight": 60
         }
       },
@@ -1294,7 +1401,7 @@
       "name": "Tropical Fish",
       "spawn_groups": {
         "water_ambient": {
-          "biomes": 14,
+          "biomes": 23,
           "min_weight": 5,
           "max_weight": 25
         }
@@ -1306,7 +1413,7 @@
       "name": "Turtle",
       "spawn_groups": {
         "creature": {
-          "biomes": 8,
+          "biomes": 11,
           "min_weight": 5,
           "max_weight": 50
         }
@@ -1366,7 +1473,7 @@
       "name": "Witch",
       "spawn_groups": {
         "monster": {
-          "biomes": 545,
+          "biomes": 659,
           "min_weight": 5,
           "max_weight": 30
         }
@@ -1384,8 +1491,8 @@
       "name": "Wither Skeleton",
       "spawn_groups": {
         "monster": {
-          "biomes": 3,
-          "min_weight": 50,
+          "biomes": 4,
+          "min_weight": 20,
           "max_weight": 50
         }
       },
@@ -1402,7 +1509,7 @@
       "name": "Wolf",
       "spawn_groups": {
         "creature": {
-          "biomes": 152,
+          "biomes": 200,
           "min_weight": 1,
           "max_weight": 8
         }
@@ -1420,7 +1527,7 @@
       "name": "Zombie",
       "spawn_groups": {
         "monster": {
-          "biomes": 546,
+          "biomes": 659,
           "min_weight": 19,
           "max_weight": 100
         }
@@ -1444,7 +1551,7 @@
       "name": "Zombie Villager",
       "spawn_groups": {
         "monster": {
-          "biomes": 544,
+          "biomes": 655,
           "min_weight": 1,
           "max_weight": 25
         }
@@ -1456,7 +1563,7 @@
       "name": "Zombified Piglin",
       "spawn_groups": {
         "monster": {
-          "biomes": 8,
+          "biomes": 12,
           "min_weight": 1,
           "max_weight": 100
         }
@@ -1517,87 +1624,165 @@
       "spawn_groups": {},
       "category": "unknown"
     },
+    "regions_unexplored:ashen": {
+      "source": "regions-unexplored-0.6.2-fabric-21.1.jar",
+      "name": "Ashen",
+      "spawn_groups": {
+        "monster": {
+          "biomes": 3,
+          "min_weight": 1,
+          "max_weight": 100
+        }
+      },
+      "category": "hostile"
+    },
+    "regions_unexplored:boat": {
+      "source": "regions-unexplored-0.6.2-fabric-21.1.jar",
+      "name": "Boat",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "regions_unexplored:chest_boat": {
+      "source": "regions-unexplored-0.6.2-fabric-21.1.jar",
+      "name": "Boat With Chest",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
     "supplementaries:brick_projectile": {
-      "source": "supplementaries-fabric-1.21.1-3.7.7.jar",
+      "source": "supplementaries-1.21.1-3.8.10-fabric.jar",
       "name": "Brick Projectile",
       "spawn_groups": {},
       "category": "unknown"
     },
     "supplementaries:cannon_boat": {
-      "source": "supplementaries-fabric-1.21.1-3.7.7.jar",
+      "source": "supplementaries-1.21.1-3.8.10-fabric.jar",
       "name": "Cannon Boat",
       "spawn_groups": {},
       "category": "unknown"
     },
     "supplementaries:cannonball": {
-      "source": "supplementaries-fabric-1.21.1-3.7.7.jar",
+      "source": "supplementaries-1.21.1-3.8.10-fabric.jar",
       "name": "Cannonball",
       "spawn_groups": {},
       "category": "unknown"
     },
     "supplementaries:dispenser_minecart": {
-      "source": "supplementaries-fabric-1.21.1-3.7.7.jar",
+      "source": "supplementaries-1.21.1-3.8.10-fabric.jar",
       "name": "Minecart with Dispenser",
       "spawn_groups": {},
       "category": "unknown"
     },
     "supplementaries:falling_ash": {
-      "source": "supplementaries-fabric-1.21.1-3.7.7.jar",
+      "source": "supplementaries-1.21.1-3.8.10-fabric.jar",
       "name": "Falling Ash",
       "spawn_groups": {},
       "category": "unknown"
     },
     "supplementaries:falling_lantern": {
-      "source": "supplementaries-fabric-1.21.1-3.7.7.jar",
+      "source": "supplementaries-1.21.1-3.8.10-fabric.jar",
       "name": "Falling Lantern",
       "spawn_groups": {},
       "category": "unknown"
     },
     "supplementaries:falling_urn": {
-      "source": "supplementaries-fabric-1.21.1-3.7.7.jar",
+      "source": "supplementaries-1.21.1-3.8.10-fabric.jar",
       "name": "Falling Urn",
       "spawn_groups": {},
       "category": "unknown"
     },
     "supplementaries:hat_stand": {
-      "source": "supplementaries-fabric-1.21.1-3.7.7.jar",
+      "source": "supplementaries-1.21.1-3.8.10-fabric.jar",
       "name": "Hat Stand",
       "spawn_groups": {},
       "category": "unknown"
     },
     "supplementaries:plunderer": {
-      "source": "supplementaries-fabric-1.21.1-3.7.7.jar",
+      "source": "supplementaries-1.21.1-3.8.10-fabric.jar",
       "name": "Plunderer",
       "spawn_groups": {},
       "category": "unknown"
     },
     "supplementaries:red_merchant": {
-      "source": "supplementaries-fabric-1.21.1-3.7.7.jar",
+      "source": "supplementaries-1.21.1-3.8.10-fabric.jar",
       "name": "Red Merchant",
       "spawn_groups": {},
       "category": "unknown"
     },
     "supplementaries:rope_arrow": {
-      "source": "supplementaries-fabric-1.21.1-3.7.7.jar",
+      "source": "supplementaries-1.21.1-3.8.10-fabric.jar",
       "name": "Rope Arrow",
       "spawn_groups": {},
       "category": "unknown"
     },
     "supplementaries:slimeball_projectile": {
-      "source": "supplementaries-fabric-1.21.1-3.7.7.jar",
+      "source": "supplementaries-1.21.1-3.8.10-fabric.jar",
       "name": "Slimeball Projectile",
       "spawn_groups": {},
       "category": "unknown"
     },
     "supplementaries:slingshot_projectile": {
-      "source": "supplementaries-fabric-1.21.1-3.7.7.jar",
+      "source": "supplementaries-1.21.1-3.8.10-fabric.jar",
       "name": "Slingshot Projectile",
       "spawn_groups": {},
       "category": "unknown"
     },
     "supplementaries:throwable_brick": {
-      "source": "supplementaries-fabric-1.21.1-3.7.7.jar",
+      "source": "supplementaries-1.21.1-3.8.10-fabric.jar",
       "name": "Brick Projectile",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "undergroundworlds:ashan": {
+      "source": "undergroundworlds-fabric-3.0.2-1.21.1.jar",
+      "name": "Ashan",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "undergroundworlds:black_recluse": {
+      "source": "undergroundworlds-fabric-3.0.2-1.21.1.jar",
+      "name": "Black Recluse",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "undergroundworlds:frozen_zombie": {
+      "source": "undergroundworlds-fabric-3.0.2-1.21.1.jar",
+      "name": "Frozen Zombie",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "undergroundworlds:icy_creeper": {
+      "source": "undergroundworlds-fabric-3.0.2-1.21.1.jar",
+      "name": "Icy Creeper",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "undergroundworlds:jungle_bee": {
+      "source": "undergroundworlds-fabric-3.0.2-1.21.1.jar",
+      "name": "Jungle Bee",
+      "spawn_groups": {
+        "monster": {
+          "biomes": 1,
+          "min_weight": 20,
+          "max_weight": 20
+        }
+      },
+      "category": "hostile"
+    },
+    "undergroundworlds:jungle_zombie": {
+      "source": "undergroundworlds-fabric-3.0.2-1.21.1.jar",
+      "name": "Jungle Zombie",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "undergroundworlds:spider_hatchling": {
+      "source": "undergroundworlds-fabric-3.0.2-1.21.1.jar",
+      "name": "Spider Hatchling",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "undergroundworlds:wrapped": {
+      "source": "undergroundworlds-fabric-3.0.2-1.21.1.jar",
+      "name": "Wrapped",
       "spawn_groups": {},
       "category": "unknown"
     },
@@ -1636,6 +1821,102 @@
       "name": "Wandering Winemaker",
       "spawn_groups": {},
       "category": "unknown"
+    },
+    "wilderwild:butterfly": {
+      "source": "WilderWild-4.2.1-mc1.21.1.jar",
+      "name": "Butterfly",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "wilderwild:coconut": {
+      "source": "WilderWild-4.2.1-mc1.21.1.jar",
+      "name": "Coconut",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "wilderwild:crab": {
+      "source": "WilderWild-4.2.1-mc1.21.1.jar",
+      "name": "Crab",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "wilderwild:firefly": {
+      "source": "WilderWild-4.2.1-mc1.21.1.jar",
+      "name": "Firefly",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "wilderwild:jellyfish": {
+      "source": "WilderWild-4.2.1-mc1.21.1.jar",
+      "name": "Jellyfish",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "wilderwild:moobloom": {
+      "source": "WilderWild-4.2.1-mc1.21.1.jar",
+      "name": "Moobloom",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "wilderwild:ostrich": {
+      "source": "WilderWild-4.2.1-mc1.21.1.jar",
+      "name": "Ostrich",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "wilderwild:penguin": {
+      "source": "WilderWild-4.2.1-mc1.21.1.jar",
+      "name": "Penguin",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "wilderwild:scorched": {
+      "source": "WilderWild-4.2.1-mc1.21.1.jar",
+      "name": "Scorched",
+      "spawn_groups": {
+        "monster": {
+          "biomes": 1,
+          "min_weight": 385,
+          "max_weight": 385
+        }
+      },
+      "category": "hostile"
+    },
+    "wilderwild:tumbleweed": {
+      "source": "WilderWild-4.2.1-mc1.21.1.jar",
+      "name": "Tumbleweed",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "yungscavebiomes:ice_cube": {
+      "source": "YungsCaveBiomes-1.21.1-Fabric-3.1.1.jar",
+      "name": "Ice Cube",
+      "spawn_groups": {
+        "monster": {
+          "biomes": 1,
+          "min_weight": 100,
+          "max_weight": 100
+        }
+      },
+      "category": "hostile"
+    },
+    "yungscavebiomes:icicle": {
+      "source": "YungsCaveBiomes-1.21.1-Fabric-3.1.1.jar",
+      "name": "Icicle",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "yungscavebiomes:sand_snapper": {
+      "source": "YungsCaveBiomes-1.21.1-Fabric-3.1.1.jar",
+      "name": "Sand Snapper",
+      "spawn_groups": {
+        "ambient": {
+          "biomes": 1,
+          "min_weight": 50,
+          "max_weight": 50
+        }
+      },
+      "category": "passive"
     }
   }
 }

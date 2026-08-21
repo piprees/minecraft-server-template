@@ -1,66 +1,93 @@
 {
   "type": "paradise_lost:paradise_lost",
-  "description": "Temple-hunting across drowned skyland basins. Monuments and fortresses sit where the water pooled between paradise islands — half-submerged architecture that predates the flooding. Something sacred was kept here, and the rising water couldn't wash it away.",
-  "seed": 4738366115120948309,
+  "description": "Temple-hunting across drowned skyland basins. Monuments and fortresses sit where the water pooled between paradise islands \u2014 half-submerged architecture that predates the flooding. Something sacred was kept here, and the rising water couldn't wash it away.",
+  "seed": -1329928820626126378,
   "biomes": [
     {
       "id": "paradise_lost:tradewinds",
       "parameters": {
-        "continentalness": [-2.0, -0.159]
+        "continentalness": [
+          -2.0,
+          -0.159
+        ]
       }
     },
     {
       "id": "paradise_lost:highlands",
       "parameters": {
-        "continentalness": [0.1028, 0.1501]
+        "continentalness": [
+          0.1028,
+          0.1501
+        ]
       }
     },
     {
       "id": "minecraft:warm_ocean",
       "parameters": {
-        "continentalness": [-0.159, -0.1125]
+        "continentalness": [
+          -0.159,
+          -0.1125
+        ]
       }
     },
     {
       "id": "terralith:deep_warm_ocean",
       "parameters": {
-        "continentalness": [-0.1125, -0.0674]
+        "continentalness": [
+          -0.1125,
+          -0.0674
+        ]
       }
     },
     {
       "id": "minecraft:jungle",
       "parameters": {
-        "continentalness": [0.1501, 2.0]
+        "continentalness": [
+          0.1501,
+          2.0
+        ]
       }
     },
     {
       "id": "terralith:skylands_summer",
       "parameters": {
-        "continentalness": [-0.0674, -0.0241]
+        "continentalness": [
+          -0.0674,
+          -0.0241
+        ]
       }
     },
     {
       "id": "terralith:mirage_isles",
       "parameters": {
-        "continentalness": [-0.0241, 0.0144]
+        "continentalness": [
+          -0.0241,
+          0.0144
+        ]
       }
     },
     {
       "id": "minecraft:lukewarm_ocean",
       "parameters": {
-        "continentalness": [0.0144, 0.0546]
+        "continentalness": [
+          0.0144,
+          0.0546
+        ]
       }
     },
     {
       "id": "minecraft:beach",
       "parameters": {
-        "continentalness": [0.0546, 0.1028]
+        "continentalness": [
+          0.0546,
+          0.1028
+        ]
       }
     }
   ],
   "borders": {
-    "player": 8192,
-    "generation": 8192
+    "player": 4096,
+    "generation": 4096
   },
   "difficulty": {
     "mobMultiplier": 0.8,
@@ -75,7 +102,7 @@
     "igniterItem": "minecraft:gold_ingot",
     "color": "2B7BAF",
     "lightLevel": 11,
-    "scale": 1.0,
+    "scale": 2.0,
     "cooldown": 40,
     "sounds": {
       "ignite": "block.portal.trigger",
@@ -85,7 +112,9 @@
   },
   "seedRoll": {
     "mood": "adventurous",
-    "spawnFilter": ["paradise_lost:highlands"],
+    "spawnFilter": [
+      "paradise_lost:highlands"
+    ],
     "water": "sea",
     "wants": {
       "para_vault": "spread",
@@ -97,15 +126,14 @@
       "birdcage": "spread",
       "aurel_tower": "near_spawn"
     },
-    "description": "Temple-hunting across drowned skyland basins. Monuments and fortresses sit where the water pooled between paradise islands — half-submerged architecture that predates the flooding. Something sacred was kept here, and the rising water couldn't wash it away.",
     "shuns": [],
     "family": "overworld",
     "terrain": "islands"
   },
   "spawn": [
-    0,
-    64,
-    0
+    -192,
+    133,
+    64
   ],
   "structures": {
     "noise": {

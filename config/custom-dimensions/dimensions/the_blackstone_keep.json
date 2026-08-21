@@ -1,13 +1,22 @@
 {
   "type": "nether",
-  "description": "The piglin military frontier. Bastions and blackstone walls from spawn, fortified against something that came from below. The deeper you dig, the harder it fights back — as if the keep itself remembers the threat.",
-  "seed": 9213987570450868060,
+  "description": "The piglin military frontier. Bastions and blackstone walls from spawn, fortified against something that came from below. The deeper you dig, the harder it fights back \u2014 as if the keep itself remembers the threat.",
+  "seed": -5571688875586374495,
   "biomes": [
     "minecraft:basalt_deltas",
     "minecraft:nether_wastes",
     "minecraft:crimson_forest",
     "minecraft:soul_sand_valley",
-    "incendium:ash_barrens"
+    "incendium:ash_barrens",
+    {
+      "id": "regions_unexplored:blackstone_basin",
+      "parameters": {
+        "temperature": [
+          -1.0,
+          -0.5
+        ]
+      }
+    }
   ],
   "borders": {
     "player": 1024,
@@ -72,12 +81,11 @@
       "piglin_village",
       "crimson_fungus",
       "warped_outpost"
-    ],
-    "description": "The piglin military frontier. Bastions and blackstone walls from spawn, fortified against something that came from below. The deeper you dig, the harder it fights back — as if the keep itself remembers the threat."
+    ]
   },
   "spawn": [
-    0,
     64,
-    0
+    98,
+    64
   ]
 }

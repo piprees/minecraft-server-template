@@ -1,16 +1,177 @@
 {
   "type": "multi_biome",
-  "description": "Serene oasis pools glowing at dusk. A hermit's paradise — desert shrines mark where travellers stopped to rest, but nobody built a town. The pools are older than the shrines.",
-  "seed": 8598640343340391518,
+  "description": "Serene oasis pools glowing at dusk. A hermit's paradise \u2014 desert shrines mark where travellers stopped to rest, but nobody built a town. The pools are older than the shrines.",
+  "seed": -8938623597306300190,
   "biomes": [
-    "terralith:desert_oasis",
-    "terralith:warm_river",
-    "minecraft:warm_ocean",
-    "minecraft:mangrove_swamp",
-    "terralith:lush_valley",
-    "minecraft:jungle",
-    "minecraft:sparse_jungle",
-    "terralith:orchid_swamp"
+    {
+      "id": "terralith:desert_oasis",
+      "parameters": {
+        "weirdness": [
+          -2.0,
+          -1.81
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "terralith:warm_river",
+      "parameters": {
+        "weirdness": [
+          -1.81,
+          -1.62
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "minecraft:warm_ocean",
+      "parameters": {
+        "weirdness": [
+          -1.62,
+          -1.43
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "minecraft:mangrove_swamp",
+      "parameters": {
+        "weirdness": [
+          -1.43,
+          -1.24
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "terralith:lush_valley",
+      "parameters": {
+        "weirdness": [
+          -1.24,
+          -1.05
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "minecraft:jungle",
+      "parameters": {
+        "weirdness": [
+          -1.05,
+          -0.86
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "minecraft:sparse_jungle",
+      "parameters": {
+        "weirdness": [
+          -0.86,
+          -0.67
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "terralith:orchid_swamp",
+      "parameters": {
+        "weirdness": [
+          -0.67,
+          -0.37
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:tropics",
+      "parameters": {
+        "weirdness": [
+          -0.37,
+          0.015
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "wilderwild:oasis",
+      "parameters": {
+        "weirdness": [
+          0.015,
+          1.615
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:glistering_meadow",
+      "parameters": {
+        "weirdness": [
+          1.615,
+          2.0
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "minecraft:lush_caves",
+      "parameters": {
+        "weirdness": [
+          -2.0,
+          -0.045
+        ],
+        "depth": [
+          0.1,
+          2.0
+        ]
+      }
+    },
+    {
+      "id": "terralith:cave/tuff_caves",
+      "parameters": {
+        "weirdness": [
+          -0.045,
+          2.0
+        ],
+        "depth": [
+          0.1,
+          2.0
+        ]
+      }
+    }
   ],
   "borders": {
     "player": 512,
@@ -23,7 +184,7 @@
   "structureDensity": "sparse",
   "portal": {
     "frameBlock": "minecraft:sea_lantern",
-    "igniterItem": "minecraft:netherite_scrap",
+    "igniterItem": "minecraft:nautilus_shell",
     "color": "4BCFCF",
     "lightLevel": 11,
     "scale": 16.0,
@@ -42,6 +203,11 @@
       "enter": "block.portal.travel",
       "exit": "block.portal.travel"
     }
+  },
+  "exitPortal": {
+    "enabled": true,
+    "pos": "spawn",
+    "target": "bed"
   },
   "seedRoll": {
     "mood": "serene",
@@ -69,12 +235,25 @@
       "coliseum",
       "ancient_city",
       "trial_chambers"
-    ],
-    "description": "Serene oasis pools glowing at dusk. A hermit's paradise — desert shrines mark where travellers stopped to rest, but nobody built a town. The pools are older than the shrines."
+    ]
   },
   "spawn": [
-    0,
-    64,
-    0
-  ]
+    320,
+    46,
+    64
+  ],
+  "structures": {
+    "force": [
+      {
+        "structure": "explorify:campsite",
+        "x": -176,
+        "z": -240
+      },
+      {
+        "structure": "philipsruins:ancient_ruins",
+        "x": -224,
+        "z": -272
+      }
+    ]
+  }
 }

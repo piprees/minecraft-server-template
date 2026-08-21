@@ -1,17 +1,217 @@
 {
   "type": "multi_biome",
-  "description": "The breadbasket. Rolling prairie and sunflowers where villagers and humans built the first joint settlements. Taverns close to spawn, honest mineshafts — a place to live, not to fight.",
-  "seed": 948538165005714500,
+  "description": "The breadbasket. Rolling prairie and sunflowers where villagers and humans built the first joint settlements. Taverns close to spawn, honest mineshafts \u2014 a place to live, not to fight.",
+  "seed": 797710484854904565,
   "noiseSettings": "adventure:wide",
   "biomes": [
-    "minecraft:sunflower_plains",
-    "minecraft:meadow",
-    "minecraft:plains",
-    "terralith:brushland",
-    "terralith:steppe",
-    "minecraft:savanna",
-    "terralith:shield_clearing",
-    "terralith:highlands"
+    {
+      "id": "regions_unexplored:clover_plains",
+      "parameters": {
+        "weirdness": [
+          -2.0,
+          -1.8
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "minecraft:sunflower_plains",
+      "parameters": {
+        "weirdness": [
+          -1.8,
+          -1.61
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "minecraft:meadow",
+      "parameters": {
+        "weirdness": [
+          -1.61,
+          -1.42
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "minecraft:plains",
+      "parameters": {
+        "weirdness": [
+          -1.42,
+          -1.23
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "terralith:brushland",
+      "parameters": {
+        "weirdness": [
+          -1.23,
+          -1.04
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "terralith:steppe",
+      "parameters": {
+        "weirdness": [
+          -1.04,
+          -0.85
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "minecraft:savanna",
+      "parameters": {
+        "weirdness": [
+          -0.85,
+          -0.66
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "terralith:shield_clearing",
+      "parameters": {
+        "weirdness": [
+          -0.66,
+          -0.47
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "terralith:highlands",
+      "parameters": {
+        "weirdness": [
+          -0.47,
+          -0.27
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:barley_fields",
+      "parameters": {
+        "weirdness": [
+          -0.27,
+          -0.12
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:poppy_fields",
+      "parameters": {
+        "weirdness": [
+          -0.12,
+          0.03
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:prairie",
+      "parameters": {
+        "weirdness": [
+          0.03,
+          1.43
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:grassland",
+      "parameters": {
+        "weirdness": [
+          1.43,
+          1.58
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:pumpkin_fields",
+      "parameters": {
+        "weirdness": [
+          1.58,
+          2.0
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "minecraft:lush_caves",
+      "parameters": {
+        "weirdness": [
+          -2.0,
+          -0.045
+        ],
+        "depth": [
+          0.1,
+          2.0
+        ]
+      }
+    },
+    {
+      "id": "terralith:cave/tuff_caves",
+      "parameters": {
+        "weirdness": [
+          -0.045,
+          2.0
+        ],
+        "depth": [
+          0.1,
+          2.0
+        ]
+      }
+    }
   ],
   "borders": {
     "player": 1024,
@@ -39,6 +239,11 @@
     },
     "orientation": "horizontal"
   },
+  "exitPortal": {
+    "enabled": true,
+    "pos": "spawn",
+    "target": "bed"
+  },
   "seedRoll": {
     "mood": "pastoral",
     "spawnFilter": [
@@ -60,8 +265,15 @@
       "campsite": "near_spawn",
       "lighthouse": "near_border"
     },
-    "shuns": ["ancient_city", "coliseum", "mansion"],
-    "description": "The breadbasket. Rolling prairie and sunflowers where villagers and humans built the first joint settlements. Taverns close to spawn, honest mineshafts — a place to live, not to fight."
+    "shuns": [
+      "ancient_city",
+      "coliseum",
+      "mansion"
+    ]
   },
-  "spawn": [0, 64, 0]
+  "spawn": [
+    128,
+    108,
+    0
+  ]
 }

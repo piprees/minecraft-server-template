@@ -1,21 +1,31 @@
 {
-  "type": "nether",
-  "description": "Shroomlight groves — the nether's gentlest rooms. Even the piglins left these alone; the fungus was here before them and will outlast them. No fortresses, no bastions, just light.",
-  "seed": 194573149100713462,
+  "type": "cave",
+  "description": "Shroomlight groves on ledges above a lava sea, under a stone ceiling \u2014 the nether's gentlest rooms, lit orange from below and teal from above. Even the piglins left these alone. The lava here does not kill you; it puts you back where you came from.",
+  "seed": -122223164298952749,
   "biomes": [
     "minecraft:crimson_forest",
     "minecraft:warped_forest",
     "incendium:inverted_forest",
     "minecraft:nether_wastes",
-    "incendium:quartz_flats"
+    "incendium:quartz_flats",
+    {
+      "id": "regions_unexplored:infernal_holt",
+      "parameters": {
+        "temperature": [
+          -0.5,
+          0.0
+        ]
+      }
+    },
+    "terralith:cave/fungal_caves"
   ],
   "borders": {
     "player": 1024,
     "generation": 1024
   },
   "difficulty": {
-    "mobMultiplier": 1.3,
-    "playerLuck": 1.5
+    "mobMultiplier": 0.5,
+    "playerLuck": 2.0
   },
   "structureDensity": "sparse",
   "portal": {
@@ -51,11 +61,45 @@
       "bastion",
       "sanctum"
     ],
-    "description": "Shroomlight groves — the nether's gentlest rooms. Even the piglins left these alone; the fungus was here before them and will outlast them. No fortresses, no bastions, just light."
+    "heightRange": [
+      30,
+      110
+    ]
   },
   "spawn": [
-    0,
-    64,
-    0
-  ]
+    -384,
+    74,
+    320
+  ],
+  "settingsOverrides": {
+    "defaultFluid": "minecraft:lava",
+    "seaLevel": 34
+  },
+  "exits": {
+    "death:lava": {
+      "action": "teleport",
+      "target": "origin"
+    },
+    "death:on_fire": {
+      "action": "teleport",
+      "target": "origin"
+    },
+    "death:in_fire": {
+      "action": "teleport",
+      "target": "origin"
+    }
+  },
+  "environment": {
+    "fogColor": "#2B1B14",
+    "ambientLight": 0.35,
+    "hasCeiling": true
+  },
+  "structures": {
+    "wants": {
+      "crimson_fungus": {
+        "min": 0,
+        "max": 154
+      }
+    }
+  }
 }

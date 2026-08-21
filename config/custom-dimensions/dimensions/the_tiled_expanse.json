@@ -1,45 +1,20 @@
 {
-  "type": "end",
-  "description": "The endermen's first construction — a quartz-and-void expanse of monoliths and archways in geometric silence. No cities, no habitation. Pure mathematical architecture, built before they understood what living in a place meant.",
-  "seed": 3962981317763428010,
+  "type": "checkerboard",
+  "description": "The endermen's first construction \u2014 a quartz-and-void expanse laid out on a grid, in geometric silence. No cities, no habitation. Pure mathematical architecture, built before they understood what living in a place meant.",
+  "seed": 2710841539875580608,
   "biomes": [
-    {
-      "id": "minecraft:end_midlands",
-      "parameters": {
-        "continentalness": [-0.0085, 0.1296]
-      }
-    },
-    {
-      "id": "nullscape:void_barrens",
-      "parameters": {
-        "continentalness": [0.1296, 0.2753]
-      }
-    },
-    {
-      "id": "nullscape:crystal_peaks",
-      "parameters": {
-        "continentalness": [0.2753, 2.0]
-      }
-    },
-    {
-      "id": "minecraft:end_barrens",
-      "parameters": {
-        "continentalness": [-2.0, -0.1522]
-      }
-    },
-    {
-      "id": "minecraft:the_end",
-      "parameters": {
-        "continentalness": [-0.1522, -0.0085]
-      }
-    }
+    "minecraft:end_midlands",
+    "nullscape:void_barrens",
+    "minecraft:the_end",
+    "nullscape:crystal_peaks",
+    "minecraft:end_barrens"
   ],
   "borders": {
-    "player": 8192,
-    "generation": 8192
+    "player": 2048,
+    "generation": 2048
   },
   "difficulty": {
-    "mobMultiplier": 2.0,
+    "mobMultiplier": 1.8,
     "playerLuck": 1.8
   },
   "structures": {
@@ -50,7 +25,7 @@
     "igniterItem": "minecraft:ender_eye",
     "color": "6B7B90",
     "lightLevel": 11,
-    "scale": 1.0,
+    "scale": 4.0,
     "cooldown": 40,
     "particleType": "minecraft:end_rod",
     "shape": "end_exit",
@@ -66,12 +41,15 @@
   "environment": {
     "skyColor": "#8B9BAF",
     "fogColor": "#8B9BAF",
-    "ambientLight": 0.25
+    "ambientLight": 0.25,
+    "effects": "minecraft:the_end"
   },
   "seedRoll": {
     "mood": "desolate",
     "allowHazardousSpawn": true,
-    "spawnFilter": ["minecraft:end_midlands"],
+    "spawnFilter": [
+      "minecraft:end_midlands"
+    ],
     "wants": {
       "monolith": "spread",
       "ruined_pillar": "near_spawn",
@@ -85,11 +63,29 @@
       "phantom_citadel",
       "enderkeep"
     ],
-    "description": "The endermen's first construction — a quartz-and-void expanse of monoliths and archways in geometric silence. No cities, no habitation. Pure mathematical architecture, built before they understood what living in a place meant."
+    "terrain": "flat",
+    "heightRange": [
+      48,
+      120
+    ]
   },
   "spawn": [
-    0,
     64,
-    0
-  ]
+    73,
+    -64
+  ],
+  "checkerboardScale": 5,
+  "settingsOverrides": {
+    "seaLevel": -64
+  },
+  "structureDensity": "sparse",
+  "exits": {
+    "enderPearl": {
+      "action": "teleport",
+      "target": {
+        "dimension": "adventure:the_pillared_void",
+        "arrival": "spawn"
+      }
+    }
+  }
 }

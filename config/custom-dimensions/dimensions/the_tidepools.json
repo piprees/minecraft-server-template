@@ -1,12 +1,125 @@
 {
   "type": "multi_biome",
-  "description": "A pocket of tidal shallows — rock pools, gull-grey cliffs and a drowned wreck glinting under clear water. No civilisation ever claimed this; the animals have always had it. The wreck is the only evidence anyone else was ever here.",
-  "seed": 9220205183867437739,
+  "description": "A pocket of tidal shallows \u2014 rock pools, gull-grey cliffs and a drowned wreck glinting under clear water. No civilisation ever claimed this; the animals have always had it. The wreck is the only evidence anyone else was ever here.",
+  "seed": 5753009126221455330,
   "biomes": [
-    "minecraft:beach",
-    "minecraft:stony_shore",
-    "terralith:granite_cliffs",
-    "minecraft:lukewarm_ocean"
+    {
+      "id": "regions_unexplored:rocky_reef",
+      "parameters": {
+        "weirdness": [
+          -2.0,
+          -1.6
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "minecraft:beach",
+      "parameters": {
+        "weirdness": [
+          -1.6,
+          -0.94
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "minecraft:stony_shore",
+      "parameters": {
+        "weirdness": [
+          -0.94,
+          -0.28
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "terralith:granite_cliffs",
+      "parameters": {
+        "weirdness": [
+          -0.28,
+          0.02
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:gravel_beach",
+      "parameters": {
+        "weirdness": [
+          0.02,
+          1.42
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "minecraft:lukewarm_ocean",
+      "parameters": {
+        "weirdness": [
+          1.42,
+          1.72
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:grassy_beach",
+      "parameters": {
+        "weirdness": [
+          1.72,
+          2.0
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "minecraft:lush_caves",
+      "parameters": {
+        "weirdness": [
+          -2.0,
+          -0.045
+        ],
+        "depth": [
+          0.1,
+          2.0
+        ]
+      }
+    },
+    {
+      "id": "terralith:cave/tuff_caves",
+      "parameters": {
+        "weirdness": [
+          -0.045,
+          2.0
+        ],
+        "depth": [
+          0.1,
+          2.0
+        ]
+      }
+    }
   ],
   "borders": {
     "player": 256,
@@ -35,6 +148,11 @@
       "exit": "ambient.underwater.exit"
     },
     "orientation": "horizontal"
+  },
+  "exitPortal": {
+    "enabled": true,
+    "pos": "spawn",
+    "target": "bed"
   },
   "structures": {
     "terrainAdaptation": {
@@ -75,7 +193,11 @@
     "spawnFilter": [
       "minecraft:beach",
       "minecraft:stony_shore"
-    ],
-    "description": "A pocket of tidal shallows — rock pools, gull-grey cliffs and a drowned wreck glinting under clear water. No civilisation ever claimed this; the animals have always had it. The wreck is the only evidence anyone else was ever here."
-  }
+    ]
+  },
+  "spawn": [
+    128,
+    62,
+    192
+  ]
 }

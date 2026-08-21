@@ -145,6 +145,7 @@ leave alone ([TROUBLESHOOTING.md#t26](../../../TROUBLESHOOTING.md#t26)).
 
 ### Generator types
 
+- `"type": "sky_islands"` / `"nether_islands"` — End terrain shape wearing overworld or nether biomes. Both take `endGen.getSettings()`, so they inherit the End's **origin island and void moat**; add `settingsOverrides.endIsland: false` on anything bigger than about a 1024 border ([TROUBLESHOOTING.md#t36](../../../TROUBLESHOOTING.md#t36)).
 - `"type": "checkerboard"` — fixed biome grid over overworld terrain noise. `checkerboardScale` sets cell size.
 - `"type": "superflat"` — accepts `flatBiome` and `layers` (bottom-up, `height` = thickness).
 

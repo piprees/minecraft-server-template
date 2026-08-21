@@ -1,15 +1,98 @@
 {
   "type": "void",
-  "description": "A void where a frozen world used to be. The biomes remain — their cold, their fog, their sounds — but the ground does not. The disintegration finished here. Whatever broke this world left only the memory of ice.",
-  "seed": 9219718437578432475,
+  "description": "A void where a frozen world used to be. The biomes remain \u2014 their cold, their fog, their sounds \u2014 but the ground does not. The disintegration finished here. Whatever broke this world left only the memory of ice.",
+  "seed": 429193475537880469,
   "biomes": [
-    "minecraft:deep_dark",
-    "minecraft:frozen_ocean",
-    "minecraft:ice_spikes",
-    "terralith:glacial_chasm",
-    "terralith:frozen_cliffs",
-    "terralith:cave/frostfire_caves",
-    "terralith:alpha_islands_winter"
+    {
+      "id": "yungscavebiomes:frosted_caves",
+      "parameters": {
+        "weirdness": [
+          -2.0,
+          -0.2
+        ]
+      }
+    },
+    {
+      "id": "minecraft:deep_dark",
+      "parameters": {
+        "weirdness": [
+          -0.2,
+          -0.01
+        ]
+      }
+    },
+    {
+      "id": "minecraft:frozen_ocean",
+      "parameters": {
+        "weirdness": [
+          -0.01,
+          0.18
+        ]
+      }
+    },
+    {
+      "id": "minecraft:ice_spikes",
+      "parameters": {
+        "weirdness": [
+          0.18,
+          0.37
+        ]
+      }
+    },
+    {
+      "id": "terralith:glacial_chasm",
+      "parameters": {
+        "weirdness": [
+          0.37,
+          0.56
+        ]
+      }
+    },
+    {
+      "id": "terralith:frozen_cliffs",
+      "parameters": {
+        "weirdness": [
+          0.56,
+          0.75
+        ]
+      }
+    },
+    {
+      "id": "terralith:cave/frostfire_caves",
+      "parameters": {
+        "weirdness": [
+          0.75,
+          0.94
+        ]
+      }
+    },
+    {
+      "id": "terralith:alpha_islands_winter",
+      "parameters": {
+        "weirdness": [
+          0.94,
+          1.13
+        ]
+      }
+    },
+    {
+      "id": "undergroundworlds:underground_tundra",
+      "parameters": {
+        "weirdness": [
+          1.13,
+          1.63
+        ]
+      }
+    },
+    {
+      "id": "wilderwild:frozen_caves",
+      "parameters": {
+        "weirdness": [
+          1.63,
+          2.0
+        ]
+      }
+    }
   ],
   "borders": {
     "player": 512,
@@ -40,7 +123,8 @@
   "environment": {
     "skyColor": "#1B2B3B",
     "fogColor": "#A8D8E8",
-    "ambientLight": 0.2
+    "ambientLight": 0.2,
+    "effects": "minecraft:the_end"
   },
   "seedRoll": {
     "mood": "desolate",
@@ -54,8 +138,34 @@
       "terralith:cave/frostfire_caves",
       "terralith:alpha_islands_winter"
     ],
-    "description": "A void where a frozen world used to be. The biomes remain — their cold, their fog, their sounds — but the ground does not. The disintegration finished here. Whatever broke this world left only the memory of ice.",
     "terrain": "void"
   },
-  "spawn": [0, 64, 0]
+  "spawn": [
+    -448,
+    -64,
+    64
+  ],
+  "exits": {
+    "void": {
+      "action": "teleport",
+      "target": {
+        "dimension": "adventure:the_glacial_drift",
+        "arrival": "spawn"
+      }
+    }
+  },
+  "structures": {
+    "mode": "none",
+    "terrainAdaptation": {
+      "friendsandfoes:citadel": "none"
+    },
+    "force": [
+      {
+        "structure": "friendsandfoes:citadel",
+        "x": 240,
+        "y": 0,
+        "z": -300
+      }
+    ]
+  }
 }

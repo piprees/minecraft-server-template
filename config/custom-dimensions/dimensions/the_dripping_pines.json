@@ -1,42 +1,136 @@
 {
   "type": "multi_biome",
-  "description": "Rain-soaked taiga, moss on everything, ruins rotting under the pines. A place people passed through but never stayed — the damp took their camps and the forest closed behind them.",
-  "seed": 8954320106618531345,
+  "description": "Rain-soaked taiga, moss on everything, ruins rotting under the pines. A place people passed through but never stayed \u2014 the damp took their camps and the forest closed behind them.",
+  "seed": 8983097485708786514,
   "biomes": [
     {
       "id": "terralith:siberian_taiga",
       "parameters": {
-        "weirdness": [-0.0951, -0.0398]
+        "weirdness": [
+          -2.0,
+          -0.19
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
       }
     },
     {
       "id": "natures_spirit:boreal_taiga",
       "parameters": {
-        "weirdness": [-0.0398, 0.017]
+        "weirdness": [
+          -0.19,
+          -0.1417
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
       }
     },
     {
       "id": "minecraft:old_growth_pine_taiga",
       "parameters": {
-        "weirdness": [-0.1649, -0.0951]
+        "weirdness": [
+          -0.1417,
+          -0.0933
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
       }
     },
     {
       "id": "minecraft:taiga",
       "parameters": {
-        "weirdness": [0.017, 0.0777]
+        "weirdness": [
+          -0.0933,
+          -0.045
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
       }
     },
     {
       "id": "minecraft:old_growth_spruce_taiga",
       "parameters": {
-        "weirdness": [-2.0, -0.1649]
+        "weirdness": [
+          -0.045,
+          0.0033
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
       }
     },
     {
       "id": "natures_spirit:fir_forest",
       "parameters": {
-        "weirdness": [0.0777, 2.0]
+        "weirdness": [
+          0.0033,
+          0.0517
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:pine_slopes",
+      "parameters": {
+        "weirdness": [
+          0.0517,
+          0.1
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "wilderwild:temperate_rainforest",
+      "parameters": {
+        "weirdness": [
+          0.1,
+          2.0
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "minecraft:dripstone_caves",
+      "parameters": {
+        "weirdness": [
+          -2.0,
+          -0.045
+        ],
+        "depth": [
+          0.1,
+          2.0
+        ]
+      }
+    },
+    {
+      "id": "terralith:cave/tuff_caves",
+      "parameters": {
+        "weirdness": [
+          -0.045,
+          2.0
+        ],
+        "depth": [
+          0.1,
+          2.0
+        ]
       }
     }
   ],
@@ -66,7 +160,9 @@
   },
   "seedRoll": {
     "mood": "scenic",
-    "spawnFilter": ["minecraft:taiga"],
+    "spawnFilter": [
+      "minecraft:taiga"
+    ],
     "wants": {
       "foraging_outpost": "near_spawn",
       "taiga_ruin_deep": "spread",
@@ -78,12 +174,11 @@
     "shuns": [
       "monument",
       "coliseum"
-    ],
-    "description": "Rain-soaked taiga, moss on everything, ruins rotting under the pines. A place people passed through but never stayed — the damp took their camps and the forest closed behind them."
+    ]
   },
   "spawn": [
-    0,
-    64,
-    0
+    -384,
+    40,
+    -512
   ]
 }

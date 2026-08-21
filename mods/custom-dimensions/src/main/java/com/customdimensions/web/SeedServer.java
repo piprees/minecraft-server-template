@@ -111,6 +111,18 @@ public final class SeedServer {
                 RollPipeline.stop();
                 send(exchange, 200, "application/json; charset=utf-8",
                         "{\"ok\": true}".getBytes(StandardCharsets.UTF_8));
+            } else if (path.equals("/render/low/pause")) {
+                RenderQueue.setLowPaused(true);
+                sendOk(exchange);
+            } else if (path.equals("/render/low/resume")) {
+                RenderQueue.setLowPaused(false);
+                sendOk(exchange);
+            } else if (path.equals("/render/high/pause")) {
+                RenderQueue.setHighPaused(true);
+                sendOk(exchange);
+            } else if (path.equals("/render/high/resume")) {
+                RenderQueue.setHighPaused(false);
+                sendOk(exchange);
             } else if (path.equals("/focus")) {
                 // Opening a dimension in the viewer says it is the one being
                 // looked at, so it is the one worth spending seeds and cores
@@ -181,10 +193,11 @@ public final class SeedServer {
     private static void startRoll(MinecraftServer minecraftServer, HttpExchange exchange)
             throws IOException {
         String body = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
-        // A per-dimension seed BUDGET, not a plan: a dimension stops at ten
-        // candidates. Five thousand is what gives the worst yields in the pack
-        // — roughly one candidate per 250 seeds — a fair shot at a full board,
-        // while a dimension that yields freely still costs about ten.
+        // A per-dimension seed BUDGET, not a plan: tier 1 screens the whole
+        // pool and tier 2 measures every shortlisted seed, so nothing here
+        // stops a roll early. Five thousand is what gives the worst yields in
+        // the pack — roughly one candidate per 250 seeds — a fair shot at a
+        // full board.
         int count = 5000;
         String dim = null;
         List<String> dims = new java.util.ArrayList<>();
@@ -434,6 +447,10 @@ public final class SeedServer {
 
     private static void sendJson(HttpExchange exchange, String body) throws IOException {
         send(exchange, 200, "application/json; charset=utf-8", body.getBytes(StandardCharsets.UTF_8));
+    }
+
+    private static void sendOk(HttpExchange exchange) throws IOException {
+        sendJson(exchange, "{\"ok\": true}");
     }
 
     private static String escape(String s) {

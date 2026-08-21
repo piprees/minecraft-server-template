@@ -60,7 +60,7 @@ overlay/config/custom-dimensions/dimensions/<slug>.json  # consumer override
 5. **Set `borders`, `difficulty`, `structureDensity`** per the [size↔difficulty table](#size--difficulty-the-philosophy).
 6. **Set `structures.wants`/`structures.shuns`** using short names from `references/structure-names.md`. See [Traps](#traps-read-this-before-you-write-json) — the two blocks (`structures` vs `seedRoll`) use different value formats.
 7. **Set `portal`** — frame block, igniter, colour/particle, sounds, scale. See [Portal scale guide](#portal-scale-guide). Check `igniterItem` uniqueness: `grep -h igniterItem config/custom-dimensions/dimensions/*.json | sort`.
-8. **Set `seedRoll`** — `mood`, `spawnFilter` (3-8 biomes, all must appear in your `biomes` list AND exist in `biome-catalogue.md` for that family), `description`.
+8. **Set `seedRoll`** — `mood`, `spawnFilter` (3-8 biomes, all must appear in your `biomes` list AND exist in `biome-catalogue.md` for that family).
 9. **Set `spawn`** — `[0, 64, 0]` (roller overwrites this).
 10. **Validate** — see [Validation](#validation-do-not-skip-this).
 
@@ -88,6 +88,21 @@ Every dimension needs a `type`. This is the most consequential choice — it det
 **Common mistake: using `overworld` when you mean `multi_biome`.** `overworld` uses ALL registered biomes — your `biomes` list only affects what the roller scores, not what generates. If you want a "jungle-only dimension" or "frozen peaks dimension", use `multi_biome`. The original `the_overgrowth` had `type: "overworld"` with a jungle biome list, which meant every overworld biome could appear (deserts, oceans, etc.) — only the roller cared about the jungle list, not the generator.
 
 **Void dimensions: keep biomes from ONE family.** A void dim with `minecraft:deep_dark` (overworld) AND `minecraft:the_end` (end) will confuse the roller — it can't determine which family's noise config to use for sampling. If you want an end-themed void, use only end-family biomes from `references/biome-catalogue.md`.
+
+## sky_islands and nether_islands inherit the End's origin island
+
+Both build from `endGen.getSettings()`, so they carry Nullscape's End noise
+router — origin island and void moat included. A large one reads as an End
+knock-off wearing the wrong biomes, and `settingsOverrides`'
+`defaultBlock`/`seaLevel` cannot change it because the island lives in the
+noise router.
+
+Add `"settingsOverrides": {"endIsland": false}` unless the dimension is small
+enough to sit inside the island, in which case the island IS the world and the
+flag would hollow it out — `the_starwell` at a 256 border is the shipped
+example of that. Roughly: past a 1024 border you want the flag.
+
+Full detail: [TROUBLESHOOTING.md#t36](../../../TROUBLESHOOTING.md#t36).
 
 ## Two types discard the biome list
 
@@ -231,8 +246,7 @@ A complete, valid, medium-difficulty `multi_biome` dimension:
   },
   "seedRoll": {
     "mood": "adventurous",
-    "spawnFilter": ["minecraft:ice_spikes", "minecraft:frozen_peaks", "terralith:glacial_chasm"],
-    "description": "A frozen crystal cave dimension, medium difficulty."
+    "spawnFilter": ["minecraft:ice_spikes", "minecraft:frozen_peaks", "terralith:glacial_chasm"]
   },
   "spawn": [0, 64, 0]
 }
@@ -372,7 +386,15 @@ Two things to hold in mind when tuning them:
 10. **Don't mix biome families** — a void dim with overworld AND end biomes confuses the roller (it can't pick a family for noise sampling). Stick to one family per dimension.
 11. **`type: "overworld"` uses ALL biomes**, not just the ones in your `biomes` list. Your list only affects roller scoring. Use `multi_biome` for a curated biome selection.
 12. **Don't change `portal.scale` on existing dimensions** — it shifts all portal coordinates and can strand players. Treat it as effectively permanent after first play.
-13. **A listed biome with no climate parameters swallows the dimension.** Every Nature's Spirit biome, plus `minecraft:end_barrens` and `minecraft:end_midlands`, is absent from the multi-noise parameter table, and the mod deals ALL leftover climate regions to such biomes round-robin — one of them takes 74–100% of the world and the rest of your list never appears. Give those entries an explicit `{"id": ..., "parameters": {"weirdness": [lo, hi]}}` band (continentalness for `paradise_lost` clones). See [TROUBLESHOOTING.md#t19](../../../TROUBLESHOOTING.md#t19).
+13. **A listed biome with no climate parameters swallows the dimension.** Every Nature's Spirit biome, plus `minecraft:end_barrens` and `minecraft:end_midlands`, is absent from the multi-noise parameter table, and the mod deals ALL leftover climate regions to such biomes round-robin — one of them takes 74–100% of the world and the rest of your list never appears. Give those entries an explicit `{"id": ..., "parameters": {"<axis>": [lo, hi]}}` band. **Every biome from a mod that places through TerraBlender or a lithostitched injector is in the same position** — Regions Unexplored, Wilder Wild, Galosphere, YUNG's Cave Biomes and Underground Worlds all are. The axis to band on differs by family, measured on this stack with `customdim sample-noise`:
+
+    | dimension type | axis | measured span |
+    | --- | --- | --- |
+    | overworld-family (`multi_biome`, `sky_islands`, `amplified`) | `weirdness` | about -0.19 .. +0.10 at a 512-1024 radius |
+    | `cave` | `temperature` | -0.61 .. +0.90 — continentalness, erosion, depth AND weirdness are all pinned to 0 there, so a weirdness band is inert |
+    | `paradise_lost:paradise_lost` clones | `continentalness` | weirdness is too flat |
+
+    Leave native biomes as plain strings: once no foreign biome remains, the leftover pool is dropped rather than dealt out. The boot line `biome source built (N explicit, M native, 0 mixed-in of K requested)` is the check — **0 mixed-in is the pass**. `scripts/check-content-coverage.py` lists installed biomes no dimension names. See [TROUBLESHOOTING.md#t19](../../../TROUBLESHOOTING.md#t19) and [#t35](../../../TROUBLESHOOTING.md#t35).
 14. **`spawnFilter` biomes must exist in the biome parameter table for the dimension's family** — a biome id that exists in-game but isn't in the roller's table for that family causes every candidate to be rejected (zero candidates). Cross-check against `references/biome-catalogue.md`.
 15. **Immersive is ON when you say nothing** — `"immersive": false` is the opt-out, not `true` the opt-in. Writing `"immersive": true` is harmless but redundant.
 16. **`subsume: "everything"` is destructive by design** and belongs in the dimension's `description` as well as its JSON. Never add it to a peaceful or scenic dimension because a keyword matched — see the `subsume` section.

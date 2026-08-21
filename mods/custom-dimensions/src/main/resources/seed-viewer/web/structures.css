@@ -47,7 +47,8 @@
 /* Three columns so the counts and distances stay in one line down the
    section however long a structure's name is. */
 .ef-group-row,
-.ef-struct-row {
+.ef-struct-row,
+.ef-biome-row {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 3rem 3.6rem;
   gap: 0.5rem;
@@ -83,7 +84,8 @@
   padding: 0 0 0 0.5rem;
 }
 
-.ef-struct-row {
+.ef-struct-row,
+.ef-biome-row {
   font-size: 0.74rem;
   color: var(--text-muted, #8b93a1);
 }
@@ -99,7 +101,8 @@
 
 .ef-group-row:hover,
 .ef-struct-row:hover,
-.ef-struct-row.ef-hot {
+.ef-struct-row.ef-hot,
+.ef-biome-row:hover {
   background: color-mix(in srgb, var(--action, #5b8dd0) 18%, transparent);
   color: var(--text-heading, #e6e8ec);
 }
@@ -130,6 +133,12 @@
   fill: var(--action, #5b8dd0);
   stroke: #fff;
   stroke-width: 3;
+}
+
+#lb-exact-markers .ef-biome-dot {
+  fill: #e8a735;
+  stroke: rgba(8, 10, 14, 0.6);
+  stroke-width: 1;
 }
 
 #lightbox .lb-image .ef-marker-note {

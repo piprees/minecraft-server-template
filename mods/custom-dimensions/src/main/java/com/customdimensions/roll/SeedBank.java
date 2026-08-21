@@ -1,8 +1,10 @@
 package com.customdimensions.roll;
 
+import com.customdimensions.MultiverseServer;
 import com.customdimensions.command.Artefacts;
 import com.customdimensions.facts.Json;
 import com.customdimensions.facts.SeedFacts;
+import com.customdimensions.facts.SeedFactsCodec;
 import com.customdimensions.score.Criterion;
 import com.customdimensions.score.Scorecard;
 import com.google.gson.JsonElement;
@@ -69,13 +71,14 @@ public final class SeedBank {
      * The derived views of a dimension's directory, held in memory.
      *
      * <p>Deriving the leaderboard means reading and parsing every candidate
-     * file, and the roll loop asks for it twice per seed — once to decide
-     * whether the board is full, once to skip already-tried seeds — while the
-     * viewer asks for it (and the scorecards) once per dimension on every
-     * page poll. At a few hundred candidates of 30 KB each that is megabytes
-     * of re-read and re-parse for a search whose measurement is the only part
-     * worth spending time on, and it grows with the bank: the roll of a
-     * low-yielding dimension slows down the longer it runs.
+     * file, and a roll reads it once per dimension via {@link
+     * #alreadyTriedSeeds} to skip already-tried seeds, again to count what is
+     * banked, and again to cull — while the viewer asks for it (and the
+     * scorecards) once per dimension on every page poll. At a few hundred
+     * candidates of 30 KB each that is megabytes of re-read and re-parse for a
+     * search whose measurement is the only part worth spending time on, and
+     * it grows with the bank: the roll of a low-yielding dimension slows down
+     * the longer it runs.
      *
      * <p>This process is the only writer, so the cache is updated in place by
      * {@link #writeCandidate} and {@link #appendRejected} rather than dropped
@@ -229,6 +232,53 @@ public final class SeedBank {
     }
 
     /**
+     * Seeds a bank should delete, given its leaderboard (best first, as
+     * {@link #leaderboard} returns it) and what must survive regardless of
+     * rank. Pure, so the cut line is pinned with no filesystem, the same
+     * tolerance {@link #rank} is given.
+     */
+    static List<Long> cullable(List<CandidateSummary> ranked, int keep, Set<Long> protectedSeeds) {
+        List<Long> out = new ArrayList<>();
+        for (int i = keep; i < ranked.size(); i++) {
+            long seed = ranked.get(i).seed();
+            if (!protectedSeeds.contains(seed)) {
+                out.add(seed);
+            }
+        }
+        return out;
+    }
+
+    /**
+     * Deletes every candidate {@link #cullable} names, and its renders, so a
+     * roll never leaves more than {@code keep} on disk. Reads the leaderboard
+     * AFTER this roll's new candidates are already written, so a new seed
+     * that outranks an old one culls the old one, never itself. Never
+     * throws: a cull that cannot delete a file must not take the roll down
+     * with it.
+     */
+    public static void cullToTop(String inputHash, String dimension, int keep,
+                                 Set<Long> protectedSeeds) {
+        List<Long> doomed = cullable(leaderboard(inputHash, dimension), keep, protectedSeeds);
+        boolean changed = false;
+        for (long seed : doomed) {
+            try {
+                Files.deleteIfExists(candidatePath(inputHash, dimension, seed));
+                Files.deleteIfExists(candidateImagePath(inputHash, dimension, seed,
+                        CandidateRender.Resolution.LOWRES));
+                Files.deleteIfExists(candidateImagePath(inputHash, dimension, seed,
+                        CandidateRender.Resolution.HIGHRES));
+                changed = true;
+            } catch (IOException e) {
+                MultiverseServer.LOGGER.warn("Could not cull candidate {} for {}: {}",
+                        seed, dimension, e.toString());
+            }
+        }
+        if (changed) {
+            forget(inputHash, dimension);
+        }
+    }
+
+    /**
      * The candidate file's body. Pure — touches no Fabric API — so the shape
      * is pinned against hand-built facts/scorecards with no server.
      */
@@ -291,6 +341,25 @@ public final class SeedBank {
         Artefacts.write(screenedPath(inputHash, dimension),
                 screenedJson(dimension, scores, Artefacts.stackVersion(),
                         Instant.now().toString()));
+    }
+
+    /**
+     * How many seeds the dimension's most recent tier-1 screen measured, from
+     * {@code screened.json} — overwritten each screen, so this is the last
+     * pass's size, not a lifetime total. Zero when the dimension has never
+     * been screened, or the file is unreadable.
+     */
+    public static int screenedCount(String inputHash, String dimension) {
+        Path p = screenedPath(inputHash, dimension);
+        if (!Files.isRegularFile(p)) {
+            return 0;
+        }
+        try {
+            JsonObject root = JsonParser.parseString(Files.readString(p)).getAsJsonObject();
+            return root.has("screened") ? root.get("screened").getAsInt() : 0;
+        } catch (IOException | RuntimeException e) {
+            return 0;
+        }
     }
 
     static String screenedJson(String dimension, Map<Long, Double> scores,
@@ -362,6 +431,28 @@ public final class SeedBank {
         return fixed;
     }
 
+    /**
+     * One candidate's full {@link SeedFacts}, read back out of its file via
+     * {@link SeedFactsCodec} — the spawn column it measured, and everything
+     * else. Null when the file is missing or unparseable, the same
+     * tolerance {@link #parseSummary} gives a corrupt candidate.
+     */
+    public static SeedFacts candidateFacts(String inputHash, String dimension, long seed) {
+        Path p = candidatePath(inputHash, dimension, seed);
+        if (!Files.isRegularFile(p)) {
+            return null;
+        }
+        try {
+            JsonObject root = JsonParser.parseString(Files.readString(p)).getAsJsonObject();
+            if (!root.has("facts") || !root.get("facts").isJsonObject()) {
+                return null;
+            }
+            return SeedFactsCodec.read(root.getAsJsonObject("facts").toString());
+        } catch (IOException | RuntimeException e) {
+            return null;
+        }
+    }
+
     /** Every candidate file's raw body — shared by {@link #leaderboard} and {@link #scorecards}. */
     private static List<String> readCandidateBodies(Path dir) {
         List<String> bodies = new ArrayList<>();
@@ -371,7 +462,8 @@ public final class SeedBank {
         try (Stream<Path> stream = Files.list(dir)) {
             for (Path p : stream.toList()) {
                 String name = p.getFileName().toString();
-                if (!name.endsWith(".json") || name.equals("rejected.json") || name.equals("frontier.json")) {
+                if (!name.endsWith(".json") || name.equals("rejected.json") || name.equals("frontier.json")
+                        || name.equals("screened.json")) {
                     continue;
                 }
                 try {

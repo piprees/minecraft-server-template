@@ -1,5 +1,5 @@
 {
-  "count": 380,
+  "count": 416,
   "structure_sets": {
     "adventure:exit_shrines": {
       "source": "customdimensions.jar",
@@ -323,6 +323,86 @@
       "dimension": "overworld",
       "rarity": "uncommon"
     },
+    "betterend:end_village": {
+      "source": "better-end-21.0.11.jar",
+      "theme": "settlement",
+      "structures": [
+        "betterend:end_village"
+      ],
+      "placementType": "minecraft:random_spread",
+      "spacing": 34,
+      "separation": 8,
+      "frequency": 1.0,
+      "dimension": "end",
+      "rarity": "uncommon"
+    },
+    "betterend:eternal_portal": {
+      "source": "better-end-21.0.11.jar",
+      "theme": "landmark",
+      "structures": [
+        "betterend:eternal_portal"
+      ],
+      "placementType": "minecraft:random_spread",
+      "spacing": 40,
+      "separation": 12,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
+    "betterend:giant_ice_star": {
+      "source": "better-end-21.0.11.jar",
+      "theme": "landmark",
+      "structures": [
+        "betterend:giant_ice_star"
+      ],
+      "placementType": "minecraft:random_spread",
+      "spacing": 16,
+      "separation": 8,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "betterend:giant_mossy_glowshroom": {
+      "source": "better-end-21.0.11.jar",
+      "theme": "landmark",
+      "structures": [
+        "betterend:giant_mossy_glowshroom"
+      ],
+      "placementType": "minecraft:random_spread",
+      "spacing": 16,
+      "separation": 8,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "betterend:megalake": {
+      "source": "better-end-21.0.11.jar",
+      "theme": "landmark",
+      "structures": [
+        "betterend:megalake",
+        "betterend:megalake_small"
+      ],
+      "placementType": "minecraft:random_spread",
+      "spacing": 4,
+      "separation": 1,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "betterend:mountain": {
+      "source": "better-end-21.0.11.jar",
+      "theme": "landmark",
+      "structures": [
+        "betterend:mountain",
+        "betterend:painted_mountain"
+      ],
+      "placementType": "minecraft:random_spread",
+      "spacing": 3,
+      "separation": 2,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
     "betterfortresses:fortress": {
       "source": "YungsBetterNetherFortresses-1.21.1-Fabric-3.1.5.jar",
       "theme": "landmark",
@@ -520,6 +600,23 @@
       "frequency": 1.0,
       "dimension": "overworld",
       "rarity": "uncommon"
+    },
+    "dungeons_arise_seven_seas:minor_structures": {
+      "source": "DungeonsAriseSevenSeas-1.21.x-1.0.4-fabric.jar",
+      "theme": "maritime",
+      "structures": [
+        "dungeons_arise_seven_seas:unicorn_galleon",
+        "dungeons_arise_seven_seas:pirate_junk",
+        "dungeons_arise_seven_seas:small_yacht",
+        "dungeons_arise_seven_seas:victory_frigate",
+        "dungeons_arise_seven_seas:corsair_corvette"
+      ],
+      "placementType": "minecraft:random_spread",
+      "spacing": 68,
+      "separation": 60,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "rare"
     },
     "dungeons_plus:dungeons": {
       "source": "datapack:structures",
@@ -842,6 +939,45 @@
       "separation": 10,
       "frequency": 1.0,
       "dimension": "overworld",
+      "rarity": "uncommon"
+    },
+    "galosphere:forgotten_ruins": {
+      "source": "Galosphere-1.21.1-1.5.4-Fabric.jar",
+      "theme": "ruins",
+      "structures": [
+        "galosphere:forgotten_ruins"
+      ],
+      "placementType": "minecraft:random_spread",
+      "spacing": 32,
+      "separation": 8,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
+    "galosphere:pink_salt_shrine": {
+      "source": "Galosphere-1.21.1-1.5.4-Fabric.jar",
+      "theme": "landmark",
+      "structures": [
+        "galosphere:pink_salt_shrine"
+      ],
+      "placementType": "minecraft:random_spread",
+      "spacing": 15,
+      "separation": 8,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "hellish_trials:minor_structures": {
+      "source": "HellishTrials-fabric-1.0.5.jar",
+      "theme": "landmark",
+      "structures": [
+        "hellish_trials:nether_trial"
+      ],
+      "placementType": "minecraft:random_spread",
+      "spacing": 45,
+      "separation": 25,
+      "frequency": 1.0,
+      "dimension": "nether",
       "rarity": "uncommon"
     },
     "incendium:greater_structures": {
@@ -4901,6 +5037,67 @@
       "dimension": "overworld",
       "rarity": "rare"
     },
+    "simply_houses:simply_structures": {
+      "source": "SimplyHouses-1.1.5-1.21.x-fabric.jar",
+      "theme": "settlement",
+      "structures": [
+        "simply_houses:forest_chapel",
+        "simply_houses:forest_house",
+        "simply_houses:forest_stonemason",
+        "simply_houses:forest_fort",
+        "simply_houses:taiga_house",
+        "simply_houses:taiga_forge",
+        "simply_houses:taiga_inn",
+        "simply_houses:taiga_woodcutter",
+        "simply_houses:plains_mansion",
+        "simply_houses:plains_house"
+      ],
+      "placementType": "minecraft:random_spread",
+      "spacing": 70,
+      "separation": 65,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "endgame"
+    },
+    "skyvillages:skyvillage": {
+      "source": "SkyVillages-1.0.6-1.21.x-fabric-release.jar",
+      "theme": "settlement",
+      "structures": [
+        "skyvillages:skyvillage"
+      ],
+      "placementType": "minecraft:random_spread",
+      "spacing": 70,
+      "separation": 65,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "rare"
+    },
+    "stoneholm:underground_village": {
+      "source": "stoneholm-2.1.2+1.21.1.jar",
+      "theme": "settlement",
+      "structures": [
+        "stoneholm:underground_village"
+      ],
+      "placementType": "minecraft:random_spread",
+      "spacing": 32,
+      "separation": 8,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
+    "stoneholm:underground_village_deepslate": {
+      "source": "stoneholm-2.1.2+1.21.1.jar",
+      "theme": "settlement",
+      "structures": [
+        "stoneholm:underground_village_deepslate"
+      ],
+      "placementType": "minecraft:random_spread",
+      "spacing": 32,
+      "separation": 8,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
     "structory:mid_rare_ruin": {
       "source": "Structory_26.2_v1.3.7.jar",
       "theme": "dungeon",
@@ -5057,6 +5254,162 @@
       "frequency": 0.5737,
       "dimension": "nether",
       "rarity": "very_rare"
+    },
+    "subsurface:cave_blocker": {
+      "source": "subsurface-1.0.4.jar",
+      "theme": "dungeon",
+      "structures": [
+        "subsurface:cave_blocker"
+      ],
+      "placementType": "minecraft:random_spread",
+      "spacing": 15,
+      "separation": 10,
+      "frequency": 0.5,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "subsurface:coral_caves": {
+      "source": "subsurface-1.0.4.jar",
+      "theme": "dungeon",
+      "structures": [
+        "subsurface:coral_caves"
+      ],
+      "placementType": "minecraft:random_spread",
+      "spacing": 1,
+      "separation": 0,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "subsurface:foliage_caves": {
+      "source": "subsurface-1.0.4.jar",
+      "theme": "dungeon",
+      "structures": [
+        "subsurface:foliage_caves"
+      ],
+      "placementType": "minecraft:random_spread",
+      "spacing": 1,
+      "separation": 0,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "subsurface:fungal_caves": {
+      "source": "subsurface-1.0.4.jar",
+      "theme": "dungeon",
+      "structures": [
+        "subsurface:fungal_caves"
+      ],
+      "placementType": "minecraft:random_spread",
+      "spacing": 1,
+      "separation": 0,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "subsurface:icicle_caves": {
+      "source": "subsurface-1.0.4.jar",
+      "theme": "dungeon",
+      "structures": [
+        "subsurface:icicle_caves"
+      ],
+      "placementType": "minecraft:random_spread",
+      "spacing": 1,
+      "separation": 0,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "subsurface:mesa_caves": {
+      "source": "subsurface-1.0.4.jar",
+      "theme": "dungeon",
+      "structures": [
+        "subsurface:mesa_caves"
+      ],
+      "placementType": "minecraft:random_spread",
+      "spacing": 1,
+      "separation": 0,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "subsurface:quartz_canyons": {
+      "source": "subsurface-1.0.4.jar",
+      "theme": "landmark",
+      "structures": [
+        "subsurface:quartz_canyons"
+      ],
+      "placementType": "minecraft:random_spread",
+      "spacing": 1,
+      "separation": 0,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "subsurface:sand_caves": {
+      "source": "subsurface-1.0.4.jar",
+      "theme": "dungeon",
+      "structures": [
+        "subsurface:sand_caves"
+      ],
+      "placementType": "minecraft:random_spread",
+      "spacing": 1,
+      "separation": 0,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "subsurface:soul_canyons": {
+      "source": "subsurface-1.0.4.jar",
+      "theme": "landmark",
+      "structures": [
+        "subsurface:soul_canyons"
+      ],
+      "placementType": "minecraft:random_spread",
+      "spacing": 1,
+      "separation": 0,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "subsurface:swamp_caves": {
+      "source": "subsurface-1.0.4.jar",
+      "theme": "dungeon",
+      "structures": [
+        "subsurface:swamp_caves"
+      ],
+      "placementType": "minecraft:random_spread",
+      "spacing": 1,
+      "separation": 0,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "subsurface:underground_forest": {
+      "source": "subsurface-1.0.4.jar",
+      "theme": "dungeon",
+      "structures": [
+        "subsurface:underground_forest"
+      ],
+      "placementType": "minecraft:random_spread",
+      "spacing": 1,
+      "separation": 0,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "subsurface:underground_taiga": {
+      "source": "subsurface-1.0.4.jar",
+      "theme": "dungeon",
+      "structures": [
+        "subsurface:underground_taiga"
+      ],
+      "placementType": "minecraft:random_spread",
+      "spacing": 1,
+      "separation": 0,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
     },
     "supplementaries:galleons": {
       "source": "supplementaries-1.21.1-3.8.10-fabric.jar",
@@ -5289,6 +5642,136 @@
       "frequency": 1.0,
       "dimension": "nether",
       "rarity": "uncommon"
+    },
+    "underground_bunkers:minor_structures": {
+      "source": "UndergroundBunkers-1.0.4-1.21.x-fabric.jar",
+      "theme": "dungeon",
+      "structures": [
+        "underground_bunkers:underground_bunker"
+      ],
+      "placementType": "minecraft:random_spread",
+      "spacing": 25,
+      "separation": 20,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "undergroundworlds:archives": {
+      "source": "undergroundworlds-fabric-3.0.2-1.21.1.jar",
+      "theme": "dungeon",
+      "structures": [
+        "undergroundworlds:archives"
+      ],
+      "placementType": "minecraft:random_spread",
+      "spacing": 128,
+      "separation": 96,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "very_rare"
+    },
+    "undergroundworlds:chillager_outposts": {
+      "source": "undergroundworlds-fabric-3.0.2-1.21.1.jar",
+      "theme": "settlement",
+      "structures": [
+        "undergroundworlds:chillager_outpost"
+      ],
+      "placementType": "minecraft:random_spread",
+      "spacing": 32,
+      "separation": 8,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
+    "undergroundworlds:desert_pyramids": {
+      "source": "undergroundworlds-fabric-3.0.2-1.21.1.jar",
+      "theme": "dungeon",
+      "structures": [
+        "undergroundworlds:desert_pyramid"
+      ],
+      "placementType": "minecraft:random_spread",
+      "spacing": 24,
+      "separation": 8,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "undergroundworlds:ice_dungeons": {
+      "source": "undergroundworlds-fabric-3.0.2-1.21.1.jar",
+      "theme": "dungeon",
+      "structures": [
+        "undergroundworlds:ice_dungeon"
+      ],
+      "placementType": "minecraft:random_spread",
+      "spacing": 24,
+      "separation": 8,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "undergroundworlds:jungle_temples": {
+      "source": "undergroundworlds-fabric-3.0.2-1.21.1.jar",
+      "theme": "dungeon",
+      "structures": [
+        "undergroundworlds:jungle_temple"
+      ],
+      "placementType": "minecraft:random_spread",
+      "spacing": 24,
+      "separation": 8,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "undergroundworlds:jungle_treehouses": {
+      "source": "undergroundworlds-fabric-3.0.2-1.21.1.jar",
+      "theme": "settlement",
+      "structures": [
+        "undergroundworlds:jungle_treehouse"
+      ],
+      "placementType": "minecraft:random_spread",
+      "spacing": 16,
+      "separation": 4,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "undergroundworlds:spider_caves_houses": {
+      "source": "undergroundworlds-fabric-3.0.2-1.21.1.jar",
+      "theme": "settlement",
+      "structures": [
+        "undergroundworlds:spider_caves_house"
+      ],
+      "placementType": "minecraft:random_spread",
+      "spacing": 6,
+      "separation": 2,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "undergroundworlds:swamp_houses": {
+      "source": "undergroundworlds-fabric-3.0.2-1.21.1.jar",
+      "theme": "settlement",
+      "structures": [
+        "undergroundworlds:swamp_house"
+      ],
+      "placementType": "minecraft:random_spread",
+      "spacing": 16,
+      "separation": 4,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "undergroundworlds:tundra_houses": {
+      "source": "undergroundworlds-fabric-3.0.2-1.21.1.jar",
+      "theme": "settlement",
+      "structures": [
+        "undergroundworlds:tundra_house"
+      ],
+      "placementType": "minecraft:random_spread",
+      "spacing": 12,
+      "separation": 4,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
     }
   }
 }

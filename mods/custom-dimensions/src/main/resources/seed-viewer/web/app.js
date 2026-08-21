@@ -6,8 +6,8 @@
  * every block was already an IIFE reading elements declared above it, so
  * that is strictly safer than it was.
  *
- * `openConfigDialog` is still assigned to window: the New dimension
- * button carries an inline onclick.
+ * `openConfigDialog` opens the fork/configure dialog; only this file
+ * calls it, via the create-dim/configure action buttons below.
  */
 
 ;(function () {
@@ -765,28 +765,6 @@
     })
   }
 
-  // --- Review progress: dims with a pinned winner, shortlisted seed, or hidden ---
-  function updateProgress() {
-    var cards = document.querySelectorAll('.dim-card')
-    var total = cards.length,
-      done = 0
-    cards.forEach(function (c) {
-      if (c.dataset.pinned === '1' || c.dataset.shortlisted === '1' || c.dataset.hidden === '1') done++
-    })
-    var el = document.getElementById('review-progress')
-    if (!el) return
-    // A bar, not a sentence. This is the one number that answers "how much of
-    // this job is left" across a session measured in hours, and it was
-    // previously a long clause nobody would re-read on every filter change.
-    var pct = total ? Math.round((done / total) * 100) : 0
-    el.innerHTML =
-      '<span class="review-meter" role="img" aria-label="' +
-      done + ' of ' + total + ' dimensions reviewed">' +
-      '<span class="review-meter-fill" style="width:' + pct + '%"></span></span>' +
-      '<b>' + done + '</b> of <b>' + total + '</b> dimensions reviewed' +
-      '<span class="review-note"> — pinned, shortlisted or hidden counts as reviewed</span>'
-  }
-
   // The filtered set going empty used to render as blank space under a stats
   // line that still claimed "81 dimensions", so a typo'd search was
   // indistinguishable from a broken page.
@@ -796,13 +774,63 @@
     el.hidden = visibleCount > 0
   }
 
+  // Recomputed off visibleDimensions() every filter change narrows it, so it
+  // agrees with grouped AND ungrouped view alike — ungrouped mode never sets
+  // .dim-card.hidden, only its own clones in #ungrouped-grid, so that class
+  // alone cannot answer "what is shown" in both modes. Reads data-cands and
+  // data-screened (SeedBank totals) off each dimension's card rather than
+  // roster-limited counts; "shortlisted" counts .cand[data-shortlisted]
+  // directly, since every shortlisted seed is always drawn as its own card.
+  var summaryStatsEl = document.getElementById('summary-stats')
+  function updateSummaryStats() {
+    if (!summaryStatsEl) return
+    var names = visibleDimensions()
+    var rolled = 0, seeds = 0, candidates = 0, shortlisted = 0, flagged = 0
+    names.forEach(function (name) {
+      var card = document.querySelector('.dim-card[data-name="' + CSS.escape(name) + '"]')
+      if (!card) return
+      var cands = parseInt(card.dataset.cands || '0', 10)
+      if (cands > 0) rolled++
+      candidates += cands
+      seeds += parseInt(card.dataset.screened || '0', 10)
+      shortlisted += card.querySelectorAll('.cand[data-shortlisted]').length
+      if (card.dataset.flagged === '1') flagged++
+    })
+    summaryStatsEl.innerHTML = '<b>' + rolled + '/' + names.length + '</b> dimensions rolled &middot; <b>'
+      + seeds + '</b> seeds checked &middot; <b>' + candidates + '</b> candidates &middot; <b>'
+      + shortlisted + '</b> shortlisted &middot; <b>' + flagged + '</b> flagged'
+  }
+
+  // Each nav menu's summary carries its own current selection. Collapsed, a
+  // menu that cannot say what it is filtering by hides the filter itself.
+  function setMenuLabel(id, text) {
+    var el = document.getElementById(id)
+    if (el) el.textContent = text || ''
+  }
+  function updateMenuLabels() {
+    // Type carries the family buttons and the declared-type select; Filters
+    // carries everything that removes cards; View everything that redraws
+    // them. Each label counts only what its own menu owns.
+    var type = []
+    if (state.family && state.family !== 'All') type.push(state.family)
+    if (state.type) type.push(state.type)
+    setMenuLabel('type-label', type.join(' · '))
+    var filters = ['mood', 'flagged', 'shortlisted']
+      .filter(function (k) { return state[k] }).length
+    setMenuLabel('filters-label', filters ? String(filters) : '')
+    var views = ['ungrouped', 'scatter', 'hidden', 'borders']
+      .filter(function (k) { return state[k] }).length
+    setMenuLabel('view-label', views ? String(views) : '')
+  }
+
   function applyState() {
     document.querySelectorAll('.family-btn').forEach(function (b) {
       var active = b.dataset.family === state.family
       b.classList.toggle('active', active)
       b.setAttribute('aria-pressed', active ? 'true' : 'false')
     })
-    typeEl.value = state.type
+    updateMenuLabels()
+    if (typeEl) typeEl.value = state.type
     moodEl.value = state.mood
     sortEl.value = state.sort
     searchEl.value = state.search
@@ -864,7 +892,7 @@
       updateEmptyState(visible.length)
     }
     if (state.ungrouped) updateEmptyState(ugGrid.children.length)
-    updateProgress()
+    updateSummaryStats()
     // The scatter honours the same filters; a scatter showing everything
     // while the grid shows one family answers a different question.
     if (window.refreshScatter) window.refreshScatter()
@@ -904,7 +932,25 @@
   document.querySelectorAll('.family-btn').forEach(function (b) {
     b.addEventListener('click', function () {
       state.family = b.dataset.family
+      var menu = b.closest('.nav-menu')
+      if (menu) menu.open = false
       applyState()
+    })
+  })
+
+  // Three menus in one row: opening one closes the others, and a click
+  // anywhere else closes all of them. Without this they stack open over the
+  // grid and each has to be dismissed by hand.
+  document.addEventListener('click', function (e) {
+    var inside = e.target.closest ? e.target.closest('.nav-menu') : null
+    document.querySelectorAll('.nav-menu[open]').forEach(function (m) {
+      if (m !== inside) m.open = false
+    })
+  })
+  document.addEventListener('keydown', function (e) {
+    if (e.key !== 'Escape') return
+    document.querySelectorAll('.nav-menu[open]').forEach(function (m) {
+      m.open = false
     })
   })
 
@@ -921,7 +967,7 @@
       searchEl.focus()
     })
   }
-  typeEl.addEventListener('change', function () {
+  if (typeEl) typeEl.addEventListener('change', function () {
     state.type = typeEl.value
     applyState()
   })
@@ -981,43 +1027,89 @@
   })
 
   // --- World border overlays ---
-  // All dimensions scale relative to the largest border diameter.
-  // A 1024b world is 1/16th of a 16384b overworld.
-  // No red ring on cards — just relative sizing.
-  // Lightbox hires (32K render) gets a red ring at 50% showing the border.
-  var RENDER_SIZE = 1024,
-    BASE_SCALE = 8
+  // A thumbnail's scale reflects how much of its world the picture ON
+  // SCREEN actually shows: a low-res render is a fixed 512-block window
+  // around spawn, a high-res one covers the whole border. The candidate
+  // showing the largest fraction fills the card; everything else scales
+  // down from that, so a tightly-cropped overworld thumbnail no longer
+  // outsizes a small world whose 512-block window already shows it whole.
+  var THUMBNAIL_BLOCKS = 512
+  function imageIsHires(img) {
+    return /_hires\.png(\?|$)/.test((img.getAttribute('src') || '').split('?')[0])
+  }
+  function imageCoverage(img, diameter) {
+    return imageIsHires(img) ? Math.max(THUMBNAIL_BLOCKS, diameter) : THUMBNAIL_BLOCKS
+  }
   function wrapImages () {
-  var maxDiameter = 0
-  document.querySelectorAll('.dim-card').forEach(function (card) {
-    var r = parseFloat(card.dataset.radius || 0)
-    if (r * 2 > maxDiameter) maxDiameter = r * 2
-  })
-  document.querySelectorAll('.dim-card').forEach(function (card) {
-    var radius = parseFloat(card.dataset.radius || 0)
-    var dimScale = parseFloat(card.dataset.dimScale || 1)
-    if (!radius) return
-    var diameter = radius * 2
-    var imgScale = Math.max(0.05, diameter / maxDiameter)
-    var normalCoverage = RENDER_SIZE * Math.max(1, Math.floor(BASE_SCALE / dimScale))
-    var hiresCoverage = Math.round((2048 * 16) / dimScale)
-    card.dataset.borderDiameter = diameter
-    card.querySelectorAll('img').forEach(function (img) {
-      var wrap = img.parentElement
-      if (wrap.classList.contains('img-wrap')) return
-      var div = document.createElement('div')
-      div.className = 'img-wrap'
-      div.dataset.borderScale = imgScale.toFixed(4)
-      img.parentNode.insertBefore(div, img)
-      div.appendChild(img)
-      var lbl = document.createElement('div')
-      lbl.className = 'border-label'
-      lbl.textContent = normalCoverage + 'b'
-      lbl.dataset.normalCoverage = normalCoverage
-      lbl.dataset.hiresCoverage = hiresCoverage
-      div.appendChild(lbl)
+    var entries = []
+    document.querySelectorAll('.dim-card').forEach(function (card) {
+      var radius = parseFloat(card.dataset.radius || 0)
+      if (!radius) return
+      var diameter = radius * 2
+      card.dataset.borderDiameter = diameter
+      var spawnX = parseFloat(card.dataset.spawnX || 0) || 0
+      var spawnZ = parseFloat(card.dataset.spawnZ || 0) || 0
+      card.querySelectorAll('img').forEach(function (img) {
+        var hires = imageIsHires(img)
+        entries.push({
+          img: img, diameter: diameter, hires: hires,
+          coverage: imageCoverage(img, diameter),
+          // The thumbnail is spawn-centred; the whole-world render is
+          // centred on the border itself (CandidateRender.draw).
+          cx: hires ? 0 : spawnX, cz: hires ? 0 : spawnZ,
+        })
+      })
     })
-  })
+    var maxRatio = 0
+    entries.forEach(function (e) {
+      e.ratio = e.coverage / e.diameter
+      if (e.ratio > maxRatio) maxRatio = e.ratio
+    })
+    if (!maxRatio) return
+    var bordersOn = document.body.classList.contains('show-borders')
+    entries.forEach(function (e) {
+      var img = e.img
+      var wrap = img.parentElement
+      if (!wrap.classList.contains('img-wrap')) {
+        var div = document.createElement('div')
+        div.className = 'img-wrap'
+        img.parentNode.insertBefore(div, img)
+        div.appendChild(img)
+        wrap = div
+      }
+      var scale = Math.max(0.05, e.ratio / maxRatio)
+      wrap.dataset.borderScale = scale.toFixed(4)
+      if (bordersOn) img.style.transform = 'scale(' + wrap.dataset.borderScale + ')'
+      var lbl = wrap.querySelector('.border-label')
+      if (!lbl) {
+        lbl = document.createElement('div')
+        lbl.className = 'border-label'
+        wrap.appendChild(lbl)
+      }
+      lbl.textContent = e.coverage + 'b'
+      var ring = wrap.querySelector('.border-ring')
+      // A ring only means something when the border sits INSIDE the
+      // frame — when the render covers less than the border, the edge is
+      // off-screen and there is nothing here to outline.
+      if (e.coverage > e.diameter) {
+        if (!ring) {
+          ring = document.createElement('div')
+          ring.className = 'border-ring'
+          wrap.appendChild(ring)
+        }
+        var pct = window.lbProjectRadius(e.diameter, e.coverage)
+        ring.style.left = window.lbProject(-e.diameter / 2 - e.cx, e.coverage) + '%'
+        ring.style.top = window.lbProject(-e.diameter / 2 - e.cz, e.coverage) + '%'
+        ring.style.width = pct + '%'
+        ring.style.height = pct + '%'
+      } else if (ring) {
+        ring.remove()
+      }
+      // The HD badge is server-rendered for every card with a whole-world
+      // render, but only visible once its image is actually the one shown.
+      var badge = wrap.parentElement && wrap.parentElement.querySelector('.hires-badge')
+      if (badge) badge.classList.toggle('visible', e.hires)
+    })
   }
   // The roller replaces #grid on every bank change, and the fresh markup has
   // no wrappers — without re-running this the border overlay stops working
@@ -1090,7 +1182,9 @@
   ;(function autoRefreshImages() {
     var pending = new Set()
     document.querySelectorAll('img[data-hires]').forEach(function (img) {
-      pending.add(img)
+      // Already showing the whole-world render chosen server-side —
+      // nothing here for this loop to upgrade.
+      if (!imageIsHires(img)) pending.add(img)
     })
     function tick() {
       if (!pending.size) return
@@ -1123,13 +1217,10 @@
         // and lbMapCoverage keeps scaling the overlay for the wide render.
         if (!img.dataset.low) img.dataset.low = img.src
         img.src = hi.src
-        var wrap = img.parentElement
-        if (wrap) {
-          var badge = wrap.querySelector('.hires-badge')
-          if (badge) badge.classList.add('visible')
-          var lbl = wrap.querySelector('.border-label')
-          if (lbl && lbl.dataset.hiresCoverage) lbl.textContent = lbl.dataset.hiresCoverage + 'b'
-        }
+        // The border scale, ring, label and HD badge are all keyed off
+        // which render is on screen — an upgraded thumbnail needs them
+        // redrawn, not just relabelled.
+        if (window.wrapCardImages) window.wrapCardImages()
         pending.delete(img)
       }
       hi.src = hires.split('?')[0] + '?t=' + Date.now()
@@ -1331,8 +1422,7 @@
           if (cardEl) {
             cardEl.dataset.shortlisted = cardEl.querySelector('.cand[data-shortlisted]') ? '1' : '0'
           }
-          updateProgress()
-        })
+              })
       return
     }
   }
@@ -1618,17 +1708,14 @@
     $id('cd-parent-dim').value = mode === 'fork' ? dim : ''
     $id('cd-seed').value = seed || ''
     $id('cd-title').textContent =
-      mode === 'fork' ? 'Fork "' + dim + '" as new dimension' : mode === 'edit' ? 'Configure "' + dim + '"' : 'New dimension'
-    $id('cd-name').value = mode === 'fork' ? dim + '_fork' : mode === 'edit' ? dim : ''
+      mode === 'fork' ? 'Fork "' + dim + '" as new dimension' : 'Configure "' + dim + '"'
+    $id('cd-name').value = mode === 'fork' ? dim + '_fork' : dim
     $id('cd-name').readOnly = mode === 'edit'
     $id('cd-create').disabled = false
     $id('cd-create').textContent = mode === 'edit' ? 'Save' : 'Create'
-    var configPromise =
-      mode === 'create'
-        ? Promise.resolve({ config: {} })
-        : fetch('/dim-config?dim=' + encodeURIComponent(dim)).then(function (r) {
-            return r.json()
-          })
+    var configPromise = fetch('/dim-config?dim=' + encodeURIComponent(dim)).then(function (r) {
+      return r.json()
+    })
     Promise.all([fetchSchema(), configPromise]).then(function (results) {
       var cfg = (results[1] && results[1].config) || {}
       $id('cd-desc').value = mode === 'edit' ? cfg.description || '' : ''
@@ -1754,7 +1841,25 @@
   var textEl = document.getElementById('rp-text')
   var dimEl = document.getElementById('roll-dim')
   var statusEl = document.getElementById('roll-status')
+  var renderLowBtn = document.getElementById('render-low-toggle')
+  var renderHighBtn = document.getElementById('render-high-toggle')
   if (!toggleBtn) return
+
+  // The two render queues pause independently of the roller and of each
+  // other — a stuck detail render must not block thumbnails, or the reverse.
+  function toggleRenderPause (kind, btn) {
+    var paused = btn.classList.contains('paused')
+    btn.disabled = true
+    post('/render/' + kind + '/' + (paused ? 'resume' : 'pause')).then(function () {
+      btn.disabled = false
+    })
+  }
+  if (renderLowBtn) renderLowBtn.addEventListener('click', function () {
+    toggleRenderPause('low', renderLowBtn)
+  })
+  if (renderHighBtn) renderHighBtn.addEventListener('click', function () {
+    toggleRenderPause('high', renderHighBtn)
+  })
 
   var lastGeneration = -1
   var running = false
@@ -1839,10 +1944,10 @@
           : running ? 'Stop rolling' : 'Start rolling'
         dimEl.disabled = running
         if (running && st.dimensions) {
-          // Measured in DIMENSIONS, not seeds. Seeds are a budget a run is
-          // meant to come in under — a dimension stops at ten candidates —
-          // so a bar reading rolled/target would sit near empty and then
-          // jump, reporting a finished run as barely started.
+          // The BAR is dimensions, the text is seeds. A screen spends its
+          // whole seed budget unless cancelled or told to yield, so the two
+          // agree; the seed count is the live one, since a dimension mid-sweep
+          // moves no dimension counter at all.
           // Rolling finishes long before rendering does; a bar pinned at
           // 100% for that tail would read as done, so it goes indeterminate
           // once there is nothing left to count.
@@ -1850,9 +1955,33 @@
           fillEl.classList.toggle('indeterminate', doneRolling)
           fillEl.style.width = doneRolling
             ? '' : Math.min(100, st.surveyed / st.dimensions * 100) + '%'
+          // Tier 1 sweeps the seed budget; tier 2 then measures the ten it
+          // shortlisted, one at a time, and moves no counter at all. Naming
+          // the phase is the difference between "stuck" and "working".
+          var phase = (st.stage || '').split(' ')[0]
+          var doing = phase === 'rolling'
+            ? (st.passed || 0) + ' passed · measuring '
+              + (st.shortlist_done || 0) + '/' + (st.shortlisted || 0)
+            : phase === 'scoring' ? 'scoring named seeds'
+            : phase
+          var pend = (st.render_pending || 0) + (st.thumbnails_pending || 0)
+          if (pend) doing += ' · ' + pend + ' render' + (pend === 1 ? '' : 's') + ' queued'
           textEl.textContent = doneRolling
             ? st.stage.replace('_', ' ')
-            : st.surveyed + '/' + st.dimensions + ' dims · ' + st.rolled + ' seeds'
+            : st.surveyed + '/' + st.dimensions + ' dims · '
+              + st.rolled + '/' + st.target + ' seeds · ' + doing
+        }
+        if (renderLowBtn) {
+          renderLowBtn.classList.toggle('paused', !!st.render_paused_low)
+          renderLowBtn.textContent = (st.render_paused_low ? '▶' : '⏸') + ' low'
+          renderLowBtn.title = renderLowBtn.ariaLabel =
+            (st.render_paused_low ? 'Resume' : 'Pause') + ' low-res renders'
+        }
+        if (renderHighBtn) {
+          renderHighBtn.classList.toggle('paused', !!st.render_paused_high)
+          renderHighBtn.textContent = (st.render_paused_high ? '▶' : '⏸') + ' high'
+          renderHighBtn.title = renderHighBtn.ariaLabel =
+            (st.render_paused_high ? 'Resume' : 'Pause') + ' high-res renders'
         }
         // Everything else that used to crowd the bar lives on the status
         // line under it, where it can wrap without reflowing the nav.
@@ -1873,6 +2002,8 @@
         var lo = (st.rendering_low || [])[0]
         if (lo) bits.push('rendering ' + lo)
         if (st.render_pending) bits.push(st.render_pending + ' images queued')
+        if (st.render_paused_low) bits.push('low-res renders paused')
+        if (st.render_paused_high) bits.push('high-res renders paused')
         if (st.error) bits.push('error: ' + st.error)
         var detail = bits.join(' · ')
         // Second line under the counter, inside the nav group, so the

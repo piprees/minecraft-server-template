@@ -79,21 +79,14 @@ public final class ViewerPage {
 
     public static String render(MinecraftServer server) throws IOException {
         List<BankView.DimensionView> views = BankView.all(server);
+        boolean anyoneOnline = !server.getPlayerManager().getPlayerList().isEmpty();
         String template = template();
 
         Set<String> families = new LinkedHashSet<>();
-        Set<String> types = new LinkedHashSet<>();
         Set<String> moods = new LinkedHashSet<>();
-        int totalCandidates = 0;
-        int withCandidates = 0;
         for (BankView.DimensionView v : views) {
             families.add(family(v.config()));
-            types.add(nullSafe(v.config().getType(), "unknown"));
             moods.add(mood(v.config()));
-            totalCandidates += v.candidates().size();
-            if (!v.candidates().isEmpty()) {
-                withCandidates++;
-            }
         }
 
         // "All" is the literal the filter compares against, not an empty
@@ -105,29 +98,19 @@ public final class ViewerPage {
             familyButtons.append("<button class='family-btn' data-family='").append(escape(f))
                     .append("'>").append(escape(f)).append("</button>");
         }
-        StringBuilder typeOptions = new StringBuilder("<option value=''>All types</option>");
-        for (String t : sorted(types)) {
-            typeOptions.append("<option>").append(escape(t)).append("</option>");
-        }
         StringBuilder moodOptions = new StringBuilder("<option value=''>All moods</option>");
         for (String m : sorted(moods)) {
             moodOptions.append("<option>").append(escape(m)).append("</option>");
         }
 
-        String summary = "<b>" + views.size() + "</b> dimensions &middot; <b>"
-                + withCandidates + "</b> rolled &middot; <b>" + totalCandidates
-                + "</b> candidates banked";
-
         StringBuilder cards = new StringBuilder();
         for (BankView.DimensionView v : views) {
-            cards.append(card(v)).append('\n');
+            cards.append(card(v, anyoneOnline)).append('\n');
         }
 
         return template
                 .replace("{{FAMILY_BUTTONS}}", familyButtons.toString())
-                .replace("{{TYPE_OPTIONS}}", typeOptions.toString())
                 .replace("{{MOOD_OPTIONS}}", moodOptions.toString())
-                .replace("{{SUMMARY_STATS}}", summary)
                 .replace("{{DIMENSIONS_HTML}}", cards.toString());
     }
 
@@ -142,7 +125,7 @@ public final class ViewerPage {
 
     // ------------------------------------------------------------------ card
 
-    private static String card(BankView.DimensionView v) {
+    private static String card(BankView.DimensionView v, boolean anyoneOnline) {
         DimensionConfig def = v.config();
         String slug = v.slug();
         List<BankView.CandidateView> candidates = v.candidates();
@@ -152,14 +135,8 @@ public final class ViewerPage {
         // to check. The score beside it stays the best score, because that is
         // what the flag and the sort are about.
         BankView.CandidateView face = candidates.isEmpty() ? null : candidates.get(0);
-        double bestScore = 0.0;
-        boolean anyShortlisted = false;
-        for (BankView.CandidateView c : candidates) {
-            if (c.percentage() != null) {
-                bestScore = Math.max(bestScore, c.percentage());
-            }
-            anyShortlisted |= c.shortlisted();
-        }
+        double bestScore = bestScore(candidates);
+        boolean anyShortlisted = shortlistedCount(candidates) > 0;
         String panelId = "detail-" + slug;
 
         StringBuilder b = new StringBuilder();
@@ -169,18 +146,20 @@ public final class ViewerPage {
         b.append("<div class='dim-card' data-dim='").append(escape(slug))
                 .append("' data-name='").append(escape(slug))
                 .append("' data-family='").append(escape(family(def)))
-                .append("' data-type='").append(escape(nullSafe(def.getType(), "unknown")))
+                .append("' data-type='").append(escape(type(def)))
                 .append("' data-mood='").append(escape(mood(def)))
-                .append("' data-flagged='")
-                .append(v.banked() == 0 || bestScore < RollPipeline.SCORE_THRESHOLD ? 1 : 0)
+                .append("' data-flagged='").append(flagged(v, bestScore) ? 1 : 0)
                 .append("' data-score='").append(fmt(bestScore))
                 .append("' data-cands='").append(v.banked())
+                .append("' data-screened='").append(v.screened())
                 .append("' data-shortlisted='").append(anyShortlisted ? 1 : 0)
                 .append("' data-pinned='").append(v.picked() ? 1 : 0)
                 .append("' data-sky='").append(escape(skyColour(def)))
                 .append("' data-radius='")
                 .append(def.getPlayerBorderRadius())
                 .append("' data-dim-scale='").append(fmt(def.getScale()))
+                .append("' data-spawn-x='").append(spawnCoord(def, 0))
+                .append("' data-spawn-z='").append(spawnCoord(def, 2))
                 .append("'>");
 
         if (v.banked() == 0) {
@@ -201,7 +180,7 @@ public final class ViewerPage {
                 .append(face == null ? "" : roleBadge(face.role()))
                 .append("<span class='dim-score' style='color:").append(scoreColour(bestScore))
                 .append("'>").append(v.banked() == 0 ? "&mdash;" : fmt(bestScore)).append("</span>")
-                .append("<span class='badge'>").append(escape(nullSafe(def.getType(), "unknown"))).append("</span>")
+                .append("<span class='badge'>").append(escape(type(def))).append("</span>")
                 .append("<span class='badge'>").append(escape(mood(def))).append("</span>")
                 .append("<span>").append(v.banked()).append(" seeds</span>")
                 .append("</div>");
@@ -223,7 +202,7 @@ public final class ViewerPage {
             b.append("<div class='blurb'>").append(escape(blurb)).append("</div>");
         }
         b.append("<div class='meta'>")
-                .append("<span class='badge'>").append(escape(nullSafe(def.getType(), "unknown"))).append("</span>")
+                .append("<span class='badge'>").append(escape(type(def))).append("</span>")
                 .append("<span class='badge'>").append(escape(mood(def))).append("</span>")
                 .append("<span class='badge'>").append(def.getPlayerBorderRadius() * 2).append("b border</span>");
         if (def.getStructureDensity() != null) {
@@ -237,7 +216,7 @@ public final class ViewerPage {
         }
         b.append("<span class='badge'>").append(escape(v.id().getNamespace())).append("</span>");
         if (def.getNoiseSettings() != null && !def.getNoiseSettings().isBlank()) {
-            b.append("<span class='badge'>").append(escape(def.getNoiseSettings())).append("</span>");
+            b.append("<span class='badge'>").append(escape(displayId(def.getNoiseSettings()))).append("</span>");
         }
         if (def.getScale() != 1.0) {
             b.append("<span class='badge'>").append(fmt(def.getScale())).append("x scale</span>");
@@ -266,7 +245,7 @@ public final class ViewerPage {
         } else {
             b.append("<div class='all-cands'>");
             for (int i = 0; i < candidates.size(); i++) {
-                b.append(candidate(i, slug, candidates.get(i), v));
+                b.append(candidate(i, slug, candidates.get(i), v, anyoneOnline));
             }
             b.append("</div>");
         }
@@ -277,7 +256,7 @@ public final class ViewerPage {
     // ------------------------------------------------------------------ candidate
 
     private static String candidate(int idx, String slug, BankView.CandidateView c,
-                                    BankView.DimensionView v) {
+                                    BankView.DimensionView v, boolean anyoneOnline) {
         double pct = c.percentage() == null ? 0.0 : c.percentage();
         boolean onFrontier = v.frontierSeeds().contains(c.seed());
         StringBuilder b = new StringBuilder();
@@ -354,16 +333,22 @@ public final class ViewerPage {
         b.append("</div>");
         // The two things a person does from here: go and look at it, then
         // choose it. Nothing between the map and the decision.
+        String offline = anyoneOnline ? "" : " disabled title='Join the server first — "
+                + "a try-out is a place you fly around in'";
+        boolean isCurrent = v.currentSeed() != null && v.currentSeed() == c.seed();
         b.append("<div class='lb-actions'>")
-                .append("<button type='button' class='action-btn tryout' data-dim='")
-                .append(escape(slug)).append("' data-seed='").append(c.seed())
+                .append("<button type='button' class='action-btn tryout'").append(offline)
+                .append(" data-dim='").append(escape(slug)).append("' data-seed='").append(c.seed())
                 .append("'>Try it out</button>")
-                .append("<button type='button' class='action-btn tryout-back'>Back to spawn</button>")
+                .append("<button type='button' class='action-btn tryout-back'").append(offline)
+                .append(">Back to spawn</button>")
                 .append("<button type='button' class='action-btn shortlist' data-dim='")
                 .append(escape(slug)).append("' data-seed='").append(c.seed())
                 .append("'>").append(c.shortlisted() ? "Remove from shortlist" : "Shortlist")
                 .append("</button>")
-                .append("<button type='button' class='pick' data-dim='").append(escape(slug))
+                .append("<button type='button' class='pick'")
+                .append(isCurrent ? " disabled title='Already the current seed'" : "")
+                .append(" data-dim='").append(escape(slug))
                 .append("' data-seed='").append(c.seed())
                 .append("'>Use this seed</button>")
                 .append("</div>");
@@ -501,7 +486,11 @@ public final class ViewerPage {
         }
         String low = "renders/" + slug + "/" + c.seed() + ".png";
         String hires = "renders/" + slug + "/" + c.seed() + "_hires.png";
-        return "<img src='" + escape(c.hasLowres() ? low : hires) + "' data-hires='" + escape(hires)
+        // The whole-world render wins whenever it exists: a candidate with
+        // only the 512-block spawn thumbnail shows that, but one that has
+        // been drawn in full shows its whole playable area instead.
+        String src = c.hasHighres() ? hires : low;
+        return "<img src='" + escape(src) + "' data-hires='" + escape(hires)
                 + "' loading='lazy' decoding='async'"
                 + " alt='Map render " + escape(slug) + " seed " + c.seed() + "'"
                 + " onerror=\"this.onerror=null;var d=document.createElement('div');"
@@ -511,12 +500,39 @@ public final class ViewerPage {
 
     // ------------------------------------------------------------------ helpers
 
+    /** A dimension's declared spawn X or Z (index 0 or 2), 0 when unset. */
+    private static int spawnCoord(DimensionConfig def, int index) {
+        int[] spawn = def.getSpawn();
+        return spawn != null && spawn.length >= 3 ? spawn[index] : 0;
+    }
+
     private static String family(DimensionConfig def) {
         DimensionConfig.SeedRoll roll = def.getSeedRoll();
         if (roll != null && roll.family != null && !roll.family.isBlank()) {
             return roll.family;
         }
-        return nullSafe(def.getType(), "unknown");
+        return type(def);
+    }
+
+    /** {@link DimensionConfig#getType()}, display-collapsed. Reserved dimensions with no
+     *  explicit type fall back to a namespace:path id ({@code paradise_lost:paradise_lost}). */
+    private static String type(DimensionConfig def) {
+        return displayId(nullSafe(def.getType(), "unknown"));
+    }
+
+    /** A namespaced id whose namespace equals its path ({@code paradise_lost:paradise_lost})
+     *  carries no information the path alone does not — shown as just the path. */
+    private static String displayId(String raw) {
+        if (raw == null) {
+            return null;
+        }
+        int colon = raw.indexOf(':');
+        if (colon < 0) {
+            return raw;
+        }
+        String ns = raw.substring(0, colon);
+        String path = raw.substring(colon + 1);
+        return ns.equals(path) ? path : raw;
     }
 
     private static String mood(DimensionConfig def) {
@@ -525,11 +541,33 @@ public final class ViewerPage {
     }
 
     private static String description(DimensionConfig def) {
-        if (def.getDescription() != null && !def.getDescription().isBlank()) {
-            return def.getDescription();
+        return def.getDescription() != null ? def.getDescription() : "";
+    }
+
+    /** The highest percentage among a dimension's shown candidates, 0 when none is scored. */
+    private static double bestScore(List<BankView.CandidateView> candidates) {
+        double best = 0.0;
+        for (BankView.CandidateView c : candidates) {
+            if (c.percentage() != null) {
+                best = Math.max(best, c.percentage());
+            }
         }
-        DimensionConfig.SeedRoll roll = def.getSeedRoll();
-        return roll != null && roll.description != null ? roll.description : "";
+        return best;
+    }
+
+    /** Below {@link RollPipeline#SCORE_THRESHOLD}, or nothing banked at all — display only. */
+    private static boolean flagged(BankView.DimensionView v, double bestScore) {
+        return v.banked() == 0 || bestScore < RollPipeline.SCORE_THRESHOLD;
+    }
+
+    private static int shortlistedCount(List<BankView.CandidateView> candidates) {
+        int n = 0;
+        for (BankView.CandidateView c : candidates) {
+            if (c.shortlisted()) {
+                n++;
+            }
+        }
+        return n;
     }
 
     private static String shortHash(String hash) {

@@ -1,42 +1,149 @@
 {
   "type": "multi_biome",
-  "description": "Gloomy cedar woodland where the fog sits low. The witches' territory — graveyards, chapels, and a manor that should probably be left alone. They came from the darkpine depths and brought their knowledge with them.",
-  "seed": 6737624617755405423,
+  "description": "Gloomy cedar woodland where the fog sits low. The witches' territory \u2014 graveyards, chapels, and a manor that should probably be left alone. They came from the darkpine depths and brought their knowledge with them.",
+  "seed": 8907161271147887783,
   "biomes": [
     {
       "id": "natures_spirit:cedar_thicket",
       "parameters": {
-        "weirdness": [-0.0398, 0.017]
+        "weirdness": [
+          -2.0,
+          -0.19
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
       }
     },
     {
       "id": "minecraft:dark_forest",
       "parameters": {
-        "weirdness": [-0.1649, -0.0951]
+        "weirdness": [
+          -0.19,
+          -0.1486
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
       }
     },
     {
       "id": "terralith:birch_taiga",
       "parameters": {
-        "weirdness": [0.0777, 2.0]
+        "weirdness": [
+          -0.1486,
+          -0.1071
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
       }
     },
     {
       "id": "natures_spirit:fir_forest",
       "parameters": {
-        "weirdness": [0.017, 0.0777]
+        "weirdness": [
+          -0.1071,
+          -0.0657
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
       }
     },
     {
       "id": "terralith:moonlight_grove",
       "parameters": {
-        "weirdness": [-2.0, -0.1649]
+        "weirdness": [
+          -0.0657,
+          -0.0243
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
       }
     },
     {
       "id": "minecraft:swamp",
       "parameters": {
-        "weirdness": [-0.0951, -0.0398]
+        "weirdness": [
+          -0.0243,
+          0.0171
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:fungal_fen",
+      "parameters": {
+        "weirdness": [
+          0.0171,
+          0.0586
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "wilderwild:dying_forest",
+      "parameters": {
+        "weirdness": [
+          0.0586,
+          0.1
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "wilderwild:dark_birch_forest",
+      "parameters": {
+        "weirdness": [
+          0.1,
+          2.0
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "minecraft:deep_dark",
+      "parameters": {
+        "weirdness": [
+          -2.0,
+          -0.045
+        ],
+        "depth": [
+          0.1,
+          2.0
+        ]
+      }
+    },
+    {
+      "id": "terralith:cave/infested_caves",
+      "parameters": {
+        "weirdness": [
+          -0.045,
+          2.0
+        ],
+        "depth": [
+          0.1,
+          2.0
+        ]
       }
     }
   ],
@@ -67,7 +174,9 @@
   },
   "seedRoll": {
     "mood": "adventurous",
-    "spawnFilter": ["terralith:birch_taiga"],
+    "spawnFilter": [
+      "terralith:birch_taiga"
+    ],
     "wants": {
       "graveyard": "near_spawn",
       "abandoned_chapel": "spread",
@@ -81,12 +190,11 @@
     "shuns": [
       "monument",
       "coliseum"
-    ],
-    "description": "Gloomy cedar woodland where the fog sits low. The witches' territory — graveyards, chapels, and a manor that should probably be left alone. They came from the darkpine depths and brought their knowledge with them."
+    ]
   },
   "spawn": [
     0,
-    64,
-    0
+    71,
+    64
   ]
 }

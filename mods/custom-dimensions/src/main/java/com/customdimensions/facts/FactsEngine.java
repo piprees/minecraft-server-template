@@ -62,6 +62,18 @@ public final class FactsEngine {
     public static final int GRID = 41;
 
     /**
+     * Grid samples across the diameter for {@link #measureCheap}'s biome-only
+     * pass — the same disc-clipped geometry {@link #GRID} walks, at a density
+     * cheap enough to run per screened seed. {@link com.customdimensions.score.Criteria.SpawnReadsAsNamesake}
+     * caps its use of any share at {@code RELOCATABLE = 0.33}, so this only
+     * has to tell "roughly none" from "roughly a third" honestly, not match
+     * {@link #GRID}'s precision — 13x13 clips to ~133 in-disc cells, giving a
+     * standard error under 5 percentage points at that share. Odd, so spawn
+     * is a sample, same as {@link #GRID}.
+     */
+    public static final int SCREEN_GRID = 13;
+
+    /**
      * The patch around spawn the mosaic reading is taken over: odd, so spawn
      * is its centre cell, and 9 wide so it spans a walk rather than a glance.
      */
@@ -127,7 +139,7 @@ public final class FactsEngine {
         // One grid pass feeds spawn, biome and terrain facts. Sampling three
         // times over the same columns would be three chances to disagree with
         // itself.
-        Grid grid = sampleGrid(rig, radius);
+        Grid grid = sampleGrid(rig, radius, GRID);
 
         SeedFacts.Column spawnAt = spawnColumn(def);
         SeedFacts.SpawnFacts spawn = spawnFacts(rig, spawnAt, radius);
@@ -153,7 +165,7 @@ public final class FactsEngine {
 
     /**
      * A cheap subset of {@link #measure}, for screening a large pool of seeds
-     * before the full grid is worth paying for. Two facts, both obtainable
+     * before the full grid is worth paying for. Three facts, all obtainable
      * with no per-seed terrain router:
      *
      * <ul>
@@ -172,16 +184,25 @@ public final class FactsEngine {
      *       #measure} uses, through the same {@link #mosaic}/{@link
      *       #edgeDensity} helpers, so a later full measurement of the same
      *       seed reads identically here.</li>
+     *   <li>{@code biomes.shares}, {@code biomes.distinctCount} and {@code
+     *       biomes.headlineShare} — a REAL measurement, not an approximation:
+     *       {@link #sampleGrid} run at {@link #SCREEN_GRID} instead of {@link
+     *       #GRID}, over the same disc-clipped geometry, through a rig with
+     *       {@code climateOnly() == true} — which makes {@link #sampleGrid}
+     *       take its cheap branch (biome only, via {@link
+     *       SpikeSampler#spawnBiome}) automatically, never the height/aquifer
+     *       work {@link #measure}'s pass pays for. One sampler, one geometry,
+     *       two densities — never two samplers that could silently drift
+     *       apart on where "the grid" samples.</li>
      * </ul>
      *
-     * <p>Everything else — height, relief, ground, the full biome mosaic
-     * share, every terrain fact — reads {@link Measured#absent} with a
-     * reason. That is deliberate, not a shortcut taken and hidden: {@link
-     * com.customdimensions.score.Scorer} already excludes an absent fact's
-     * criterion from both the achieved total and the ceiling, so scoring
-     * this partial record with the dimension's REAL criteria gives an honest
-     * coarse rank over exactly what was cheap to measure — never a guess
-     * standing in for the rest.
+     * <p>Everything else — height, relief, ground, every terrain fact — reads
+     * {@link Measured#absent} with a reason. That is deliberate, not a
+     * shortcut taken and hidden: {@link com.customdimensions.score.Scorer}
+     * already excludes an absent fact's criterion from both the achieved
+     * total and the ceiling, so scoring this partial record with the
+     * dimension's REAL criteria gives an honest coarse rank over exactly what
+     * was cheap to measure — never a guess standing in for the rest.
      *
      * @param base the seed-independent half, built once per roll and handed
      *             in rather than rebuilt per seed — see {@link
@@ -215,8 +236,10 @@ public final class FactsEngine {
             spawn = new SeedFacts.SpawnFacts(Measured.of(at), biome,
                     Measured.absent(why), Measured.absent(why), Measured.absent(why),
                     Measured.absent(why), Measured.absent(why));
-            biomes = new SeedFacts.BiomeFacts(Measured.absent(why), Measured.absent(why),
-                    Measured.absent(why), edgeDensity(mosaic(rig, at, radius), MOSAIC_SIDE));
+            // rig.climateOnly() is true here, so sampleGrid takes its cheap
+            // branch: biome only, no height, no aquifer probe.
+            Grid screen = sampleGrid(rig, radius, SCREEN_GRID);
+            biomes = biomeFacts(screen, edgeDensity(mosaic(rig, at, radius), MOSAIC_SIDE));
         }
 
         return new SeedFacts(Artefacts.stackVersion(), dimensionId.toString(), seed,
@@ -347,22 +370,35 @@ public final class FactsEngine {
                 : new Wetness(height <= seaLevel, true);
     }
 
-    private static Grid sampleGrid(SpikeSampler.Rig rig, int radius) {
-        int side = GRID;
-        int step = Math.max(1, (radius * 2) / (side - 1));
-        String[] biome = new String[side * side];
-        Integer[] height = new Integer[side * side];
-        boolean[] submerged = new boolean[side * side];
-        // The cheap gate: a generator whose default fluid is air (the End)
-        // never floods any column, so none of it is worth the cost below.
-        // Computed once per grid, not once per column.
-        boolean floods = SpikeSampler.floodsVoid(rig.generator());
-        Integer seaLevel = rig.generator() instanceof NoiseChunkGenerator noiseGen
-                ? noiseGen.getSettings().value().seaLevel() : null;
-        int floorY = rig.heightLimit().getBottomY();
-        int sampled = 0;
-        int fellBack = 0;
+    /**
+     * The block step between adjacent cells for a {@code side} x {@code side}
+     * grid clipped to a playable disc of the given radius — the ONE formula
+     * {@link #gridOffsets} and the persisted {@link SeedFacts.Grid} both use,
+     * so a coarser {@link #SCREEN_GRID} pass and the full {@link #GRID} pass
+     * can never silently disagree about what "the grid" at a given density
+     * means for a given radius.
+     */
+    static int gridStep(int radius, int side) {
+        return Math.max(1, (radius * 2) / (side - 1));
+    }
+
+    /**
+     * {@code (dx, dz)} offsets for a {@code side} x {@code side} grid clipped
+     * to the playable disc, row-major (index {@code gz * side + gx}, with a
+     * gap at every index outside the disc) — the pure geometry {@link
+     * #sampleGrid} walks at any density. Pulled out on its own so the
+     * geometry can be pinned in a test with no {@link SpikeSampler.Rig} in
+     * sight: whether a coarser tier-1 pass samples the SAME disc a tier-2
+     * pass would, just fewer times, is a question about arithmetic, not
+     * about a live generator.
+     *
+     * @return {@code side * side} entries, {@code null} at an index outside
+     *         the disc
+     */
+    static int[][] gridOffsets(int radius, int side) {
+        int step = gridStep(radius, side);
         int half = side / 2;
+        int[][] out = new int[side * side][];
         for (int gz = 0; gz < side; gz++) {
             for (int gx = 0; gx < side; gx++) {
                 int dx = (gx - half) * step;
@@ -370,7 +406,49 @@ public final class FactsEngine {
                 if ((long) dx * dx + (long) dz * dz > (long) radius * radius) {
                     continue;   // outside the playable disc — never attempted
                 }
-                int i = gz * side + gx;
+                out[gz * side + gx] = new int[] {dx, dz};
+            }
+        }
+        return out;
+    }
+
+    /**
+     * One pass over the playable disc at the given density, through {@link
+     * #gridOffsets}. Branches on {@code rig.climateOnly()} rather than being
+     * two methods: a climate-only rig (tier 1's {@link #measureCheap}) has no
+     * terrain router to ask for a height, so it takes the cheap branch — one
+     * {@link SpikeSampler#spawnBiome} call per cell, height and submerged
+     * left unmeasured — automatically, from the SAME geometry and the SAME
+     * {@link Grid} shape {@link #measure}'s full pass produces. One sampler
+     * with a density parameter, not two that could drift apart on where "the
+     * grid" samples.
+     */
+    private static Grid sampleGrid(SpikeSampler.Rig rig, int radius, int side) {
+        int[][] offsets = gridOffsets(radius, side);
+        String[] biome = new String[side * side];
+        Integer[] height = new Integer[side * side];
+        boolean[] submerged = new boolean[side * side];
+        boolean climateOnly = rig.climateOnly();
+        // The cheap gate: a generator whose default fluid is air (the End)
+        // never floods any column, so none of it is worth the cost below.
+        // Computed once per grid, not once per column. Meaningless on a
+        // climate-only rig, which never probes wetness at all.
+        boolean floods = !climateOnly && SpikeSampler.floodsVoid(rig.generator());
+        Integer seaLevel = !climateOnly && rig.generator() instanceof NoiseChunkGenerator noiseGen
+                ? noiseGen.getSettings().value().seaLevel() : null;
+        int floorY = rig.heightLimit().getBottomY();
+        int sampled = 0;
+        int fellBack = 0;
+        for (int i = 0; i < offsets.length; i++) {
+            int[] at = offsets[i];
+            if (at == null) {
+                continue;
+            }
+            int dx = at[0];
+            int dz = at[1];
+            if (climateOnly) {
+                biome[i] = SpikeSampler.spawnBiome(rig, dx, dz);
+            } else {
                 SpikeSampler.Sample s = SpikeSampler.sample(rig, dx, dz);
                 biome[i] = s.biome();
                 height[i] = s.surfaceHeight();
@@ -379,8 +457,8 @@ public final class FactsEngine {
                 if (wetness.fellBack()) {
                     fellBack++;
                 }
-                sampled++;
             }
+            sampled++;
         }
         if (fellBack > 0) {
             // The probe fails on properties of the RIG, not of one column — a
@@ -393,7 +471,7 @@ public final class FactsEngine {
                     + "water fraction for this seed is an estimate, not a reading.",
                     fellBack, sampled);
         }
-        return new Grid(biome, height, submerged, side, step, sampled);
+        return new Grid(biome, height, submerged, side, gridStep(radius, side), sampled);
     }
 
     // ----------------------------------------------------------------- spawn
@@ -623,6 +701,11 @@ public final class FactsEngine {
     // ---------------------------------------------------------------- biomes
 
     /**
+     * @param grid  a grid at any density {@link #sampleGrid} produced — the
+     *              full {@link #GRID} pass or the cheaper {@link
+     *              #SCREEN_GRID} one. Both feed the same arithmetic here: a
+     *              coarser grid gives a noisier {@code shares}, never a
+     *              differently-computed one.
      * @param edges the mosaic reading from the fixed-step patch around spawn.
      *              The shares, count and headline come from the playable grid
      *              — they are statements about the whole world — while the

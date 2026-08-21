@@ -1,19 +1,171 @@
 {
-  "type": "nether",
-  "description": "Warped corruption spreading over a mesa world — teal fungus over red rock. The nether bleeding through, but slowly, almost beautifully. The piglins who lived here didn't flee; they adapted. Their outposts stand in the fungus like houses in a rising tide.",
-  "seed": 9204094914283411112,
+  "type": "multi_biome",
+  "description": "Warped corruption spreading over a mesa world \u2014 teal fungus over red rock. The nether bleeding through, but slowly, almost beautifully. It came through at the centre and it is still spreading. The piglins who lived here didn't flee; they adapted. Their outposts stand in the fungus like houses in a rising tide.",
+  "seed": -8457914906827513258,
   "biomes": [
-    "minecraft:warped_forest",
-    "incendium:inverted_forest",
-    "minecraft:crimson_forest",
-    "minecraft:nether_wastes"
+    {
+      "id": "minecraft:eroded_badlands",
+      "parameters": {
+        "weirdness": [
+          -2.0,
+          -0.55
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "terralith:warped_mesa",
+      "parameters": {
+        "weirdness": [
+          -0.55,
+          -0.2
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "minecraft:badlands",
+      "parameters": {
+        "weirdness": [
+          -0.2,
+          0.15
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "minecraft:warped_forest",
+      "parameters": {
+        "weirdness": [
+          0.15,
+          0.4
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "incendium:inverted_forest",
+      "parameters": {
+        "weirdness": [
+          0.4,
+          0.6
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "minecraft:crimson_forest",
+      "parameters": {
+        "weirdness": [
+          0.6,
+          0.8
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "terralith:scarlet_mountains",
+      "parameters": {
+        "weirdness": [
+          0.8,
+          1.05
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "terralith:ashen_savanna",
+      "parameters": {
+        "weirdness": [
+          1.05,
+          1.35
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "terralith:volcanic_crater",
+      "parameters": {
+        "weirdness": [
+          1.35,
+          2.0
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "minecraft:dripstone_caves",
+      "parameters": {
+        "weirdness": [
+          -2.0,
+          -0.3
+        ],
+        "depth": [
+          0.1,
+          2.0
+        ]
+      }
+    },
+    {
+      "id": "terralith:cave/thermal_caves",
+      "parameters": {
+        "weirdness": [
+          -0.3,
+          0.5
+        ],
+        "depth": [
+          0.1,
+          2.0
+        ]
+      }
+    },
+    {
+      "id": "terralith:cave/infested_caves",
+      "parameters": {
+        "weirdness": [
+          0.5,
+          2.0
+        ],
+        "depth": [
+          0.1,
+          2.0
+        ]
+      }
+    }
   ],
   "borders": {
-    "player": 1024,
-    "generation": 1024
+    "player": 2048,
+    "generation": 2048
   },
   "difficulty": {
-    "mobMultiplier": 1.3,
+    "mobMultiplier": 1.6,
     "playerLuck": 1.4
   },
   "portal": {
@@ -21,7 +173,7 @@
     "igniterItem": "minecraft:flint_and_steel",
     "color": "1BAFAF",
     "lightLevel": 11,
-    "scale": 8.0,
+    "scale": 4.0,
     "cooldown": 40,
     "sounds": {
       "ignite": "block.portal.trigger",
@@ -33,14 +185,16 @@
     }
   },
   "environment": {
-    "fogColor": "#1B4B4B"
+    "fogColor": "#1B4B4B",
+    "ambientLight": 0.2,
+    "respawnAnchorWorks": true
   },
   "seedRoll": {
-    "mood": "scenic",
+    "mood": "adventurous",
     "spawnFilter": [
-      "minecraft:warped_forest",
-      "incendium:inverted_forest",
-      "minecraft:crimson_forest"
+      "minecraft:badlands",
+      "minecraft:eroded_badlands",
+      "terralith:warped_mesa"
     ],
     "wants": {
       "warped_greatsword": "spread",
@@ -53,11 +207,38 @@
     "shuns": [
       "piglin_village"
     ],
-    "description": "Warped corruption spreading over a mesa world — teal fungus over red rock. The nether bleeding through, but slowly, almost beautifully. The piglins who lived here didn't flee; they adapted. Their outposts stand in the fungus like houses in a rising tide."
+    "water": "none"
   },
   "spawn": [
-    0,
-    64,
+    -384,
+    65,
     0
-  ]
+  ],
+  "biomePatches": [
+    {
+      "biome": "minecraft:warped_forest",
+      "x": 0,
+      "z": 0,
+      "radius": 420,
+      "blend": 64
+    }
+  ],
+  "settingsOverrides": {
+    "seaLevel": -55
+  },
+  "structureDensity": "normal",
+  "structures": {
+    "force": [
+      {
+        "structure": "incendium:piglin_village",
+        "x": 40,
+        "z": -70
+      },
+      {
+        "structure": "structory_towers:nether/warped_outpost",
+        "x": -395,
+        "z": 245
+      }
+    ]
+  }
 }

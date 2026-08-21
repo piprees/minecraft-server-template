@@ -1,143 +1,84 @@
 #!/usr/bin/env python3
-"""export-seed-winners.py - Copy rolled winner seeds, spawns and thumbnails
-from a consumer's overlay into the platform's default dimension configs.
+"""export-seed-winners.py - Fold a consumer's dimension overlay into the
+platform's default dimension configs.
 
-Context: after a final roll and winner picking on the consumer (elfydd),
-each chosen `seed` and `spawn` lives in an overlay "overrides" file
-(overlay/config/custom-dimensions/dimensions/<slug>.json, written by the
-roller / viewer). The platform defaults ship in
-config/custom-dimensions/dimensions/<slug>.json. This tool surgically
-replaces ONLY the top-level "seed" number and "spawn" array in each
-template file — plain text substitution, no JSON round-trip, so JSONC
-comments and formatting survive untouched.
+Context: the roller and viewer write into a consumer's overlay
+(overlay/config/custom-dimensions/dimensions/<slug>.json). A winning seed only
+means anything alongside the config that produced it — the biomes, borders,
+type and structures are what make that seed worth having — so this exports the
+WHOLE override, not just the seed. The result is that the platform config
+alone reproduces the world the consumer was running.
 
-The same `web/Picker` write also drops the winner's own low/high renders
-beside its JSON, as <slug>_low.png / <slug>_high.png — this tool copies
-those across unchanged (binary, no substitution to do) so the map sidebar
-has a thumbnail for the exported dimension without the production server
-ever rendering one itself.
+Each overlay file is deep-merged over its platform counterpart using the same
+rule the mod applies at boot (DimensionConfigLoader.deepMerge): objects merge
+key-by-key, scalars AND arrays are replaced wholesale. The consumer's file then
+has nothing the platform lacks, so --clean removes it.
+
+The Picker also drops the winner's own renders beside its JSON as
+<slug>_low.png / <slug>_high.png; those are copied across unchanged.
 
 Usage:
-  scripts/export-seed-winners.py [--consumer PATH] [--dry-run]
+  scripts/export-seed-winners.py [--consumer PATH] [--platform PATH]
+                                 [--dry-run] [--clean]
 
   --consumer PATH  consumer repo root (default: ~/Projects/elfydd)
   --platform PATH  platform repo root (default: this script's checkout)
-  --dry-run        print per-file unified diffs, change nothing
+  --dry-run        print what would move, change nothing
+  --clean          delete each overlay file after folding it in
 
 Template-only (platform development); deliberately NOT in the bundle
-MANIFEST — consumers never run this.
+MANIFEST - consumers never run this.
 
-Gotchas: the config drives every seed, including the overworld's —
-ServerWorldSeedMixin reads each dimension's own file (overworld.json,
-the_nether.json, the_end.json, paradise_lost.json), so exporting a winner
-here IS what changes that world's terrain. `.env SEED` seeds level.dat only,
-and reaches terrain solely when a config's seed field is the literal string
-"env" (see TROUBLESHOOTING.md#t31). Passing the overworld winner to
-reset-seed keeps level.dat's reported seed consistent with the terrain; it is
-not the lever that generates it. What actually matters is that these configs
-reach the server BEFORE the world is deleted. Winner spawns of [0, 64, 0] are
-the "not chosen" placeholder and are never exported.
+Gotchas: the config drives every seed, including the overworld's -
+ServerWorldSeedMixin reads each dimension's own file, so exporting a winner
+here IS what changes that world's terrain, and the config must reach the
+server BEFORE the world is deleted (TROUBLESHOOTING.md#t31). An overlay
+file with no "overrides" wrapper is a FULL REPLACEMENT of the platform
+default and is folded in as such. A file that merges to nothing is left
+alone rather than deleted, because an empty {} overlay disables a dimension
+and that is never what an export meant.
 """
 import argparse
+import copy
 import difflib
 import json
-import re
 import sys
 from pathlib import Path
 
-PLACEHOLDER_SPAWN = [0, 64, 0]
-SEED_RE = re.compile(r'(?m)^(\s*"seed"\s*:\s*)(null|-?\d+)')
-SPAWN_RE = re.compile(r'(?s)(^[ \t]*)("spawn"\s*:\s*)\[[^\]]*\]', re.M)
+
+def deep_merge(base, over):
+    """DimensionConfigLoader.deepMerge: objects merge key-by-key, everything
+    else - scalars and arrays alike - is replaced wholesale."""
+    result = copy.deepcopy(base)
+    for key, value in over.items():
+        existing = result.get(key)
+        if isinstance(existing, dict) and isinstance(value, dict):
+            result[key] = deep_merge(existing, value)
+        else:
+            result[key] = copy.deepcopy(value)
+    return result
 
 
-def winner_fields(overlay_path):
-    """(seed, spawn) from an overlay file — overrides-form or full-replacement."""
-    try:
-        data = json.loads(overlay_path.read_text())
-    except (json.JSONDecodeError, OSError) as e:
-        print(f"  WARN {overlay_path.name}: unreadable ({e}) — skipped")
-        return None, None
-    if not isinstance(data, dict):
-        return None, None
-    overrides = data.get("overrides")
-    source = overrides if isinstance(overrides, dict) else data
-    seed = source.get("seed")
-    spawn = source.get("spawn")
-    if not isinstance(seed, int):
-        seed = None
-    if not (isinstance(spawn, list) and len(spawn) == 3
-            and all(isinstance(v, int) for v in spawn)) or spawn == PLACEHOLDER_SPAWN:
-        spawn = None
-    return seed, spawn
+def overrides_of(doc):
+    """The override body: the "overrides" block, or the whole doc when the
+    file is a full replacement."""
+    body = doc.get("overrides")
+    return body if isinstance(body, dict) else doc
 
 
-def replace_seed(text, seed, name):
-    match = SEED_RE.search(text)
-    if not match:
-        # A template without the key gains it as the first member — every
-        # dimension ships a rolled seed in its final form.
-        print(f"  {name}: template had no \"seed\" line — inserted")
-        return insert_after_open_brace(text, f'  "seed": {seed},\n')
-    return text[:match.start()] + match.group(1) + str(seed) + text[match.end():]
-
-
-def replace_spawn(text, spawn, name):
-    match = SPAWN_RE.search(text)
-    single = "[" + ", ".join(str(v) for v in spawn) + "]"
-    if not match:
-        seed_match = SEED_RE.search(text)
-        line = f'  "spawn": {single},\n'
-        if seed_match:
-            end = text.find("\n", seed_match.end()) + 1
-            print(f"  {name}: template had no \"spawn\" array — inserted")
-            return text[:end] + line + text[end:]
-        print(f"  {name}: template had no \"spawn\" array — inserted")
-        return insert_after_open_brace(text, line)
-    indent, prefix = match.group(1), match.group(2)
-    if "\n" in match.group(0):
-        inner = ",\n".join(f"{indent}  {v}" for v in spawn)
-        replacement = f"{indent}{prefix}[\n{inner}\n{indent}]"
-    else:
-        replacement = indent + prefix + single
-    return text[:match.start()] + replacement + text[match.end():]
-
-
-def parses_as_jsonc(text):
-    """Valid JSON after stripping whole-line // comments (the platform's
-    JSONC contract — trailing comments are deliberately unsupported)."""
-    stripped = "\n".join(
-        "" if line.lstrip().startswith("//") else line
-        for line in text.splitlines())
-    try:
-        json.loads(stripped)
-        return True
-    except json.JSONDecodeError:
-        return False
-
-
-def insert_after_open_brace(text, line):
-    brace = text.find("{")
-    newline = text.find("\n", brace)
-    if brace < 0 or newline < 0:
-        return text
-    return text[:newline + 1] + line + text[newline + 1:]
+def has_comments(text):
+    """Whole-line // comments, which a JSON round-trip would silently drop."""
+    return any(line.lstrip().startswith("//") for line in text.splitlines())
 
 
 def export_thumbnails(overlay_dir, template_dir, dry_run):
-    """Copies every <slug>_low.png / <slug>_high.png Picker wrote beside a
-    winner config into the platform template directory under the same name.
-    Independent of the JSON substitution above — a re-pick at an unchanged
-    seed can still swap in a different render, and there is nothing to
-    diff for a binary file, so this always copies what it finds."""
     copied = 0
-    sources = sorted(overlay_dir.glob("*_low.png")) + sorted(overlay_dir.glob("*_high.png"))
-    for src in sources:
-        dest = template_dir / src.name
+    for src in sorted(overlay_dir.glob("*_low.png")) + sorted(overlay_dir.glob("*_high.png")):
         size = src.stat().st_size
         if dry_run:
             print(f"  {src.name}: would copy ({size} bytes)")
         else:
-            dest.write_bytes(src.read_bytes())
+            (template_dir / src.name).write_bytes(src.read_bytes())
             print(f"  {src.name}: exported ({size} bytes)")
         copied += 1
     return copied
@@ -145,11 +86,12 @@ def export_thumbnails(overlay_dir, template_dir, dry_run):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Export rolled winner seeds/spawns from a consumer overlay "
-                    "into the platform dimension configs.")
+        description="Fold a consumer's dimension overlay into the platform configs.")
     parser.add_argument("--consumer", default=str(Path.home() / "Projects" / "elfydd"))
     parser.add_argument("--platform", default=None)
     parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument("--clean", action="store_true",
+                        help="delete each overlay file once it is folded in")
     args = parser.parse_args()
 
     platform_dir = (Path(args.platform).expanduser() if args.platform
@@ -160,53 +102,64 @@ def main():
     if not overlay_dir.is_dir():
         sys.exit(f"no overlay dimensions directory at {overlay_dir}")
 
-    changed = skipped = missing = 0
+    changed = skipped = missing = keys = 0
     overworld_seed = None
     for overlay_path in sorted(overlay_dir.glob("*.json")):
-        seed, spawn = winner_fields(overlay_path)
-        if seed is None and spawn is None:
+        try:
+            doc = json.loads(overlay_path.read_text())
+        except (json.JSONDecodeError, OSError) as e:
+            print(f"  WARN {overlay_path.name}: unreadable ({e}) - skipped")
+            missing += 1
+            continue
+        body = overrides_of(doc) if isinstance(doc, dict) else None
+        if not body:
             skipped += 1
             continue
+
         template = template_dir / overlay_path.name
         if not template.is_file():
-            print(f"  WARN {overlay_path.name}: no template counterpart — skipped")
+            print(f"  WARN {overlay_path.name}: no template counterpart - skipped")
             missing += 1
             continue
         original = template.read_text()
-        updated = original
-        if seed is not None:
-            updated = replace_seed(updated, seed, overlay_path.name)
-        if spawn is not None:
-            updated = replace_spawn(updated, spawn, overlay_path.name)
+        if has_comments(original):
+            print(f"  WARN {overlay_path.name}: template carries // comments that a merge "
+                  f"would drop - skipped, merge it by hand")
+            missing += 1
+            continue
+
+        merged = deep_merge(json.loads(original), body)
+        updated = json.dumps(merged, indent=2) + "\n"
         if updated == original:
             skipped += 1
             continue
-        if not parses_as_jsonc(updated):
-            print(f"  WARN {overlay_path.name}: substitution produced invalid JSON — "
-                  f"not written; inspect the template by hand")
-            missing += 1
-            continue
+
         changed += 1
-        if overlay_path.name == "overworld.json" and seed is not None:
-            overworld_seed = seed
+        keys += len(body)
+        if isinstance(body.get("seed"), int) and overlay_path.name == "overworld.json":
+            overworld_seed = body["seed"]
+
         if args.dry_run:
-            diff = difflib.unified_diff(
+            sys.stdout.writelines(difflib.unified_diff(
                 original.splitlines(keepends=True), updated.splitlines(keepends=True),
-                fromfile=f"a/{overlay_path.name}", tofile=f"b/{overlay_path.name}")
-            sys.stdout.writelines(diff)
+                fromfile=f"a/{overlay_path.name}", tofile=f"b/{overlay_path.name}"))
         else:
             template.write_text(updated)
-            print(f"  {overlay_path.name}: exported")
+            print(f"  {overlay_path.name}: folded in {len(body)} key(s)")
+            if args.clean:
+                overlay_path.unlink()
 
     png_copied = export_thumbnails(overlay_dir, template_dir, args.dry_run)
 
     verb = "would change" if args.dry_run else "changed"
     png_verb = "would copy" if args.dry_run else "copied"
-    print(f"\n{verb} {changed} file(s); {skipped} unchanged/no-winner; "
-          f"{missing} missing template(s); {png_verb} {png_copied} thumbnail(s)")
+    print(f"\n{verb} {changed} file(s) carrying {keys} override key(s); "
+          f"{skipped} unchanged/empty; {missing} skipped; {png_verb} {png_copied} thumbnail(s)")
+    if args.clean and not args.dry_run:
+        print("overlay files deleted - the platform config alone now reproduces that world")
     if overworld_seed is not None:
         print(f"NOTE: the overworld winner is {overworld_seed}. Its terrain comes from "
-              f"overworld.json, which this script just wrote — deploy that config BEFORE "
+              f"overworld.json, which this script just wrote - deploy that config BEFORE "
               f"the wipe. Passing the same seed to ./ops reset-seed only keeps level.dat's "
               f"reported seed consistent; it does not drive generation (T31).")
 

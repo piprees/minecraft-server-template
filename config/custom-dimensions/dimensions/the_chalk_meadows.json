@@ -1,54 +1,162 @@
 {
   "type": "multi_biome",
-  "description": "Rolling chalk downs in heather and carnation. Villager country — settlements in the hollows, nothing sinister for miles. The people here never went looking for ancient cities, and the ancient cities never found them.",
-  "seed": 7979793790560277687,
+  "description": "Rolling chalk downs in heather and carnation. Villager country \u2014 settlements in the hollows, nothing sinister for miles. The people here never went looking for ancient cities, and the ancient cities never found them.",
+  "seed": -2086923626932675969,
   "biomes": [
     {
       "id": "natures_spirit:heather_fields",
       "parameters": {
-        "weirdness": [-0.0398, 0.0053]
+        "weirdness": [
+          -2.0,
+          -0.19
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
       }
     },
     {
       "id": "natures_spirit:carnation_fields",
       "parameters": {
-        "weirdness": [-0.1308, -0.0825]
+        "weirdness": [
+          -0.19,
+          -0.1537
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
       }
     },
     {
       "id": "terralith:blooming_plateau",
       "parameters": {
-        "weirdness": [-0.0825, -0.0398]
+        "weirdness": [
+          -0.1537,
+          -0.1175
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
       }
     },
     {
       "id": "minecraft:meadow",
       "parameters": {
-        "weirdness": [0.0948, 2.0]
+        "weirdness": [
+          -0.1175,
+          -0.0812
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
       }
     },
     {
       "id": "minecraft:plains",
       "parameters": {
-        "weirdness": [0.0498, 0.0948]
+        "weirdness": [
+          -0.0812,
+          -0.045
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
       }
     },
     {
       "id": "minecraft:sunflower_plains",
       "parameters": {
-        "weirdness": [-2.0, -0.1868]
+        "weirdness": [
+          -0.045,
+          -0.0087
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
       }
     },
     {
       "id": "minecraft:flower_forest",
       "parameters": {
-        "weirdness": [0.0053, 0.0498]
+        "weirdness": [
+          -0.0087,
+          0.0275
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
       }
     },
     {
       "id": "natures_spirit:lavender_fields",
       "parameters": {
-        "weirdness": [-0.1868, -0.1308]
+        "weirdness": [
+          0.0275,
+          0.0638
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:chalk_cliffs",
+      "parameters": {
+        "weirdness": [
+          0.0638,
+          0.1
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:clover_plains",
+      "parameters": {
+        "weirdness": [
+          0.1,
+          2.0
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "minecraft:lush_caves",
+      "parameters": {
+        "weirdness": [
+          -2.0,
+          -0.045
+        ],
+        "depth": [
+          0.1,
+          2.0
+        ]
+      }
+    },
+    {
+      "id": "terralith:cave/tuff_caves",
+      "parameters": {
+        "weirdness": [
+          -0.045,
+          2.0
+        ],
+        "depth": [
+          0.1,
+          2.0
+        ]
       }
     }
   ],
@@ -82,12 +190,21 @@
     },
     "orientation": "horizontal"
   },
+  "exitPortal": {
+    "enabled": true,
+    "pos": "spawn",
+    "target": "bed"
+  },
   "structures": {
-    "terrainAdaptation": {"landmarks": "moat"}
+    "terrainAdaptation": {
+      "landmarks": "moat"
+    }
   },
   "seedRoll": {
     "mood": "pastoral",
-    "spawnFilter": ["minecraft:meadow"],
+    "spawnFilter": [
+      "minecraft:meadow"
+    ],
     "wants": {
       "village": "near_spawn",
       "farmstead": "near_spawn",
@@ -100,12 +217,11 @@
       "ancient_city",
       "mansion",
       "coliseum"
-    ],
-    "description": "Rolling chalk downs in heather and carnation. Villager country — settlements in the hollows, nothing sinister for miles. The people here never went looking for ancient cities, and the ancient cities never found them."
+    ]
   },
   "spawn": [
-    0,
-    64,
-    0
+    -192,
+    69,
+    320
   ]
 }

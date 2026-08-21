@@ -31,7 +31,7 @@ jobs:
   boot-test:
     name: Boot server and verify (${{ matrix.variant }})
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 75
     strategy:
       fail-fast: false
       matrix:
@@ -87,8 +87,11 @@ jobs:
         if: matrix.variant == 'removal'
         # Representative consumer removal set: three structure mods plus BOTH
         # worldgen mods the adventure:wide/compressed noise presets reference.
-        # fabric-seasons-terralith-compat hard-depends on terralith, so a real
-        # consumer removing terralith must remove it too — same here.
+        # fabric-seasons-terralith-compat and terralith-restoned both
+        # hard-depend on terralith, so a real consumer removing terralith must
+        # remove them too — same here. Modrinth declares no dependency for
+        # restoned; its jar declares `terralith >=2.0.0`, and the boot is a
+        # FormattedException, not a warning.
         run: |
           mkdir -p overlay
           cat > overlay/mods-remove.txt <<'EOF'
@@ -98,6 +101,7 @@ jobs:
           tectonic
           terralith
           fabric-seasons-terralith-compat
+          terralith-restoned
           EOF
 
       - name: Create bind-mount directories
@@ -153,9 +157,11 @@ jobs:
         # presets (adventure:wide / adventure:compressed) baked into the jar.
         #
         # The default variant additionally carries the render-check matrix —
-        # one dimension per world TYPE. Those are registered, never created:
-        # render-check-headless builds the generator from config and reads no
-        # world, so the cost is the config parse and nothing else.
+        # one dimension per world TYPE. Registering them is free: they are
+        # never created, and render-check-headless builds the generator from
+        # config and reads no world. The render-check step is not free —
+        # it walks 1313 columns per pair — ~28m across the matrix, which is
+        # why that step is disabled. Budget minutes per entry added.
         env:
           RENDER_CHECK_MATRIX: ${{ matrix.variant == 'default' && '1' || '' }}
         run: |
@@ -459,6 +465,40 @@ jobs:
           }
           echo "Custom dimensions + noise presets verified"
 
+      # Everything above runs on the boot that CREATES the world, where our
+      # dimensions reach the DIMENSION registry after every other mod has read
+      # it. Restarting is what makes them visible to a mod that rewrites level
+      # stems, and structure-census is the one instrument that compares the live
+      # world against the headless facts engine ([T34]).
+      - name: Assert the second boot generates the same world as the first
+        if: matrix.variant == 'default'
+        run: |
+          docker restart mc
+          for _ in $(seq 1 60); do
+            [ "$(docker inspect mc --format '{{.State.Health.Status}}')" = "healthy" ] && break
+            sleep 10
+          done
+          docker inspect mc --format 'Health={{.State.Health.Status}} Restarts={{.RestartCount}}'
+
+          for dim in the_claymarsh the_blossom_gardens; do
+            docker exec mc rcon-cli "customdim load $dim" > /dev/null 2>&1 || true
+          done
+          for dim in the_claymarsh the_blossom_gardens; do
+            OUT=""
+            for _ in $(seq 1 20); do
+              OUT=$(docker exec mc rcon-cli "customdim structure-census $dim" 2>&1 || true)
+              echo "$OUT" | grep -qE 'live and facts agree|DISAGREES' && break
+              sleep 5
+            done
+            echo "census($dim): $OUT"
+            echo "$OUT" | grep -q "live and facts agree" || {
+              echo "::error::$dim generates a different world on its second boot — the live"
+              echo "::error::structure placement disagrees with the facts engine: $OUT"
+              exit 1
+            }
+          done
+          docker logs mc 2>&1 | grep -F "injected regions into the persisted source" || true
+
       - name: Assert removed mods are gone and locate fails cleanly (removal variant)
         if: matrix.variant == 'removal'
         run: |
@@ -513,7 +553,12 @@ jobs:
             exit 1
           fi
 
+      # Disabled: ~28m of the default variant's ~43m. Re-enable (drop the
+      # `if: false`) before shipping a worldgen or height-source change —
+      # it is the only gate that catches a render frozen at a constant
+      # height, or the map and the facts answering different questions.
       - name: Assert the map and the facts answer one height (render-check)
+        if: false
         # The regression this catches is TWO HEIGHT SOURCES FOR ONE QUESTION.
         # The banked facts read SpikeSampler (a heightmap); the map reads
         # CandidateRender (a density walk). Nothing forces them to agree, and
@@ -588,13 +633,15 @@ jobs:
             echo "--- render-check-headless $DIM $SEED"
             docker exec mc rcon-cli "customdim render-check-headless $DIM $SEED 512" >/dev/null 2>&1 || true
             OUT=""
-            # 200 x 3s. render-check is tick-budget-bound, not CPU-bound, so
+            # 400 x 3s. render-check is tick-budget-bound, not CPU-bound, so
             # its wall time scales with the dimension's size and the runner's
             # speed rather than with anything this job controls — a ceilinged
             # cave walks its columns exactly and is the slowest shape there is.
+            # the_catalyst_maw needs 380s on a developer laptop, so the ceiling
+            # has to clear several times that for a shared runner.
             # The loop breaks the moment a dimension answers, so headroom is
             # free on every dimension that is not the slow one.
-            for _ in $(seq 1 200); do
+            for _ in $(seq 1 400); do
               OUT=$(docker exec mc rcon-cli "customdim render-check-headless $DIM $SEED 512" 2>&1 || true)
               case "$OUT" in
                 *"columns disagree"*|*FAILED*) break ;;

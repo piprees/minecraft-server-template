@@ -178,6 +178,10 @@ Three categories, by where a script ends up and who runs it. Every script has a 
 | `build-stack-bundle.sh` | Assemble the release tarball |
 | `sync-mod-cache.sh` | Reconcile `mods-cache/` against the pinned mod lists (`--apply`) |
 | `export-seed-winners.py` | Copy rolled winner seeds/spawns from a consumer overlay into the platform dimension configs (`--dry-run` diffs) |
+| `extract-biomes.py` / `extract-blocks.py` / `extract-entities.py` | Catalogue every biome, block and entity the installed mods register, for authoring and lint |
+| `check-content-coverage.py` | Which installed biomes any dimension actually names — an installed mod nobody names never appears in game |
+| `check-biome-bands.py` | Explicit biome bands within a dimension must partition its climate axis, not overlap (exits 1 on any overlap) |
+| `mcjson.py` | (imported) Parses the lenient JSON mods actually ship: `//` comments and trailing commas |
 
 ## How to do things
 

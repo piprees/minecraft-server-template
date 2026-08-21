@@ -5,9 +5,13 @@ import com.customdimensions.score.Scorecard;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -228,6 +232,192 @@ class RollerTest {
         @Test
         void anEmptyAccumulatorShortlistsNothing() {
             assertTrue(new Roller.TopN(Roller.SHORTLIST).bestFirst().isEmpty());
+        }
+    }
+
+    /**
+     * The windowed fan-out {@code rollParallel} and {@code measureShortlist}
+     * both submit through — a real {@link ExecutorService}, but a stub
+     * {@link Roller.Measurer} that never touches a server, so the mechanism
+     * is tested without Fabric. Bounded concurrency itself (never more than
+     * {@code parallelism} pending at once) is a one-line loop guard, evident
+     * from reading {@code fanOut}, and not re-proven here with a timing test
+     * — what IS tested is the two behaviours tier 2 needed and did not have
+     * before: a failing seed does not stop the rest of the shortlist, and
+     * stopping submission on abandon still drains what is already in flight.
+     */
+    @org.junit.jupiter.api.Nested
+    class FanOutTest {
+
+        /**
+         * The guard that matters: a parallel sweep must bank exactly what a
+         * serial one would. Pool size and window are wider than the seed
+         * count, so completions genuinely race; the sink still sees draw
+         * order.
+         */
+        /**
+         * A measurement writes its candidate before it returns, and the cull
+         * reads the bank straight after, so leaving the loop early must not
+         * strand a write that is still running.
+         */
+        @Test
+        void everySubmittedMeasurementFinishesEvenWhenTheSweepThrows() {
+            ExecutorService pool = Executors.newFixedThreadPool(4);
+            java.util.Set<Long> landed =
+                    java.util.Collections.synchronizedSet(new java.util.LinkedHashSet<>());
+            AtomicLong next = new AtomicLong(1);
+            try {
+                Roller.Measurer measurer = seed -> {
+                    try {
+                        Thread.sleep(seed == 1 ? 1 : 25);
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                    }
+                    landed.add(seed);
+                    if (seed == 1) {
+                        throw new IllegalStateException("seed 1 blows up");
+                    }
+                    return new Roller.Draw(seed, Scorecard.Verdict.SCORED, 1.0, 100.0, "stub");
+                };
+                org.junit.jupiter.api.Assertions.assertThrows(IllegalStateException.class, () ->
+                        Roller.fanOut(seed -> false, next::getAndIncrement, measurer,
+                                Roller.Budget.seeds(4), () -> false, pool, 4,
+                                draw -> { },
+                                (seed, e) -> {
+                                    throw e;
+                                }));
+            } finally {
+                pool.shutdownNow();
+            }
+            assertEquals(java.util.Set.of(1L, 2L, 3L, 4L), landed,
+                    "every submitted measurement must complete before the sweep returns");
+        }
+
+        @Test
+        void aParallelSweepBanksExactlyWhatASerialSweepWould() {
+            java.util.function.Supplier<Roller.Measurer> measurer = () -> seed -> {
+                // Uneven work, so later seeds finish before earlier ones.
+                try {
+                    Thread.sleep(seed % 5 == 0 ? 6 : 1);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+                return new Roller.Draw(seed,
+                        seed % 4 == 0 ? Scorecard.Verdict.REJECTED : Scorecard.Verdict.SCORED,
+                        (seed * 37) % 101, 100.0, "stub");
+            };
+
+            RecordingSink serialSink = new RecordingSink();
+            AtomicLong serialNext = new AtomicLong(1);
+            int serialCount = Roller.roll(seed -> false, serialNext::getAndIncrement,
+                    measurer.get(), serialSink, Roller.Budget.seeds(40));
+
+            RecordingSink parallelSink = new RecordingSink();
+            AtomicLong parallelNext = new AtomicLong(1);
+            ExecutorService pool = Executors.newFixedThreadPool(8);
+            int parallelCount;
+            try {
+                parallelCount = Roller.fanOut(seed -> false, parallelNext::getAndIncrement,
+                        measurer.get(), Roller.Budget.seeds(40), () -> false, pool, 8,
+                        draw -> {
+                            if (draw.verdict() == Scorecard.Verdict.SCORED) {
+                                parallelSink.scored(draw.seed(), draw.achieved(), draw.ceiling());
+                            } else {
+                                parallelSink.rejected(draw.seed(), draw.verdictReason());
+                            }
+                        },
+                        (seed, e) -> {
+                            throw e;
+                        });
+            } finally {
+                pool.shutdownNow();
+            }
+
+            assertEquals(serialCount, parallelCount, "measured count must match serial");
+            assertEquals(serialSink.scoredSeeds, parallelSink.scoredSeeds,
+                    "scored seeds and their order must match serial");
+            assertEquals(serialSink.rejectedSeeds, parallelSink.rejectedSeeds,
+                    "rejected seeds and their order must match serial");
+        }
+
+        @Test
+        void aFailingSeedIsSkippedAndTheRestOfTheBatchStillMeasures() throws InterruptedException {
+            ExecutorService pool = Executors.newFixedThreadPool(2);
+            try {
+                List<Long> seeds = List.of(1L, 2L, 3L);
+                java.util.Iterator<Long> it = seeds.iterator();
+                List<Long> succeeded = Collections.synchronizedList(new ArrayList<>());
+                List<Long> failed = Collections.synchronizedList(new ArrayList<>());
+                Roller.Measurer measurer = seed -> {
+                    if (seed == 2L) {
+                        throw new RuntimeException("boom");
+                    }
+                    return new Roller.Draw(seed, Scorecard.Verdict.SCORED, 1.0, 1.0, "");
+                };
+
+                int measured = Roller.fanOut(s -> false, it::next, measurer,
+                        Roller.Budget.seeds(seeds.size()), () -> false, pool, 1,
+                        draw -> succeeded.add(draw.seed()),
+                        (seed, e) -> failed.add(seed));
+
+                assertEquals(2, measured, "the failing seed must not count as measured");
+                assertEquals(List.of(1L, 3L), succeeded, "seeds either side of the failure still measure");
+                assertEquals(List.of(2L), failed);
+            } finally {
+                pool.shutdownNow();
+            }
+        }
+
+        @Test
+        void abandonStopsSubmittingButDrainsWhatIsAlreadyInFlight() throws InterruptedException {
+            int parallelism = 2;
+            ExecutorService pool = Executors.newFixedThreadPool(4);
+            try {
+                CountDownLatch release = new CountDownLatch(1);
+                AtomicInteger drawn = new AtomicInteger();
+                java.util.function.LongSupplier seeds = drawn::incrementAndGet;
+                // Seed 1's measurement blocks until the test releases it, so
+                // fanOut's own thread is provably still waiting on the first
+                // result while the pre-release assertion below runs.
+                Roller.Measurer measurer = seed -> {
+                    if (seed == 1) {
+                        await(release);
+                    }
+                    return new Roller.Draw(seed, Scorecard.Verdict.SCORED, 1.0, 1.0, "");
+                };
+                List<Long> succeeded = Collections.synchronizedList(new ArrayList<>());
+                Thread runner = new Thread(() -> Roller.fanOut(s -> false, seeds, measurer,
+                        Roller.Budget.seeds(3), () -> drawn.get() >= parallelism, pool, parallelism,
+                        draw -> succeeded.add(draw.seed()), (seed, e) -> { }));
+                runner.start();
+
+                // fanOut only has to fill a window of 2 and block on the
+                // first (still-latched) result — generous relative to that.
+                // A full window alone would explain this; it does not yet
+                // prove abandonIf did anything.
+                Thread.sleep(300);
+                assertEquals(parallelism, drawn.get(), "the window fills to parallelism before blocking");
+
+                // Releasing drains seed 1, which frees a window slot with a
+                // seed still available under the budget (3) — the ONLY thing
+                // that can now be stopping a third draw is abandonIf itself.
+                release.countDown();
+                runner.join(2000);
+                assertEquals(parallelism, drawn.get(),
+                        "abandonIf true must stop submission even once the window has room again");
+                assertEquals(List.of(1L, 2L), succeeded,
+                        "both already-submitted seeds drain even though abandon fired before either finished");
+            } finally {
+                pool.shutdownNow();
+            }
+        }
+
+        private void await(CountDownLatch latch) {
+            try {
+                latch.await();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
         }
     }
 }

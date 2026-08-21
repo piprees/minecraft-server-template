@@ -1,10 +1,10 @@
 {
   "type": "amplified",
-  "description": "The human frontier pushed vertical. Cliffs beyond reason, keeps on the peaks — engineers and explorers who refused to stop climbing. The deeper valleys hide what they left behind.",
-  "seed": -9159371576077905675,
+  "description": "The human frontier pushed vertical. Cliffs beyond reason, keeps on the peaks \u2014 engineers and explorers who refused to stop climbing. The deeper valleys hide what they left behind.",
+  "seed": -6893354320409860085,
   "borders": {
-    "player": 8192,
-    "generation": 8192
+    "player": 4096,
+    "generation": 4096
   },
   "difficulty": {
     "mobMultiplier": 1.2,
@@ -22,7 +22,7 @@
     "igniterItem": "minecraft:amethyst_shard",
     "color": "5B6B7B",
     "lightLevel": 11,
-    "scale": 1.0,
+    "scale": 2.0,
     "cooldown": 40,
     "sounds": {
       "ignite": "block.portal.trigger",
@@ -31,7 +31,10 @@
     }
   },
   "structures": {
-    "terrainAdaptation": {"landmarks": "pedestal", "endgame": "pedestal"}
+    "terrainAdaptation": {
+      "landmarks": "pedestal",
+      "endgame": "pedestal"
+    }
   },
   "seedRoll": {
     "mood": "dramatic",
@@ -46,12 +49,11 @@
     },
     "shuns": [
       "monument"
-    ],
-    "description": "The human frontier pushed vertical. Cliffs beyond reason, keeps on the peaks — engineers and explorers who refused to stop climbing. The deeper valleys hide what they left behind."
+    ]
   },
   "spawn": [
     0,
-    64,
-    0
+    72,
+    -512
   ]
 }

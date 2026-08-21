@@ -54,7 +54,7 @@ CI runs the identical check twice, so a local pass should never surprise it: `mo
 
 ## 3. Fast local loop
 
-Link a consumer repo to this checkout once, then build and `./dev up`. A release → deploy cycle costs 10–15 minutes and restarts production; this costs about a minute.
+Link a consumer repo to this checkout once, then build and `./dev up`. A release → deploy cycle costs ~25–35 minutes and restarts production; this costs about a minute.
 
 **The canonical workflow — first-time setup, what the link reaches, and the three development cases — is `.claude/skills/local-stack-testing/SKILL.md` § Linked local development.** Read it there; what follows is the mod-shaped summary.
 
@@ -81,7 +81,7 @@ If the persisted state format changed (config schema, namespace, ids), delete th
 
 **c2me DFC is self-patching.** The mod's preLaunch entrypoint (`C2meConfigPatch`) forces `useDensityFunctionCompiler = false` into `data/config/c2me.toml` on every boot, so a bare `docker restart mc` stays patched — no manual re-patch in the loop ([TROUBLESHOOTING.md#d6](../../../TROUBLESHOOTING.md#d6) has the mixin-bootstrap timing and the one first-boot gap the scripts still cover).
 
-**Verify via log grep, never by inspecting the config file afterwards** — the key's absence from `c2me.toml` post-boot is expected (c2me strips it after reading it): `docker exec mc grep "Removing config entry .vanillaWorldGenOptimizations.useDensityFunctionCompiler" /data/logs/latest.log`.
+**Verify by reading the file** — c2me `0.4.0-alpha.0.27` rewrites `c2me.toml` each boot and keeps the value, so `docker exec mc grep useDensityFunctionCompiler /data/config/c2me.toml` must answer `= false`. Below that pin the key is stripped as unknown and the `Removing config entry` log line is the proof instead.
 
 ## 4. Verify via artefacts, not RCON output
 

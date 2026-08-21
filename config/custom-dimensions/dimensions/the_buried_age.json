@@ -1,12 +1,21 @@
 {
   "type": "nether",
-  "description": "An ancient buried age — nether ruins and towers of a piglin civilisation the lava took. Pipelines and copper towers stand in flooded halls. Nobody shunned the bastions; the bastions are buried.",
-  "seed": 4043512277582323411,
+  "description": "An ancient buried age \u2014 nether ruins and towers of a piglin civilisation the lava took, and is still taking. Two thirds of the world is under it. What is left is a corridor between the lava surface and the bedrock roof, and the only architecture you ever see is whatever was tall enough to keep its top floor.",
+  "seed": -315595599216508306,
   "biomes": [
     "minecraft:nether_wastes",
     "incendium:quartz_flats",
     "minecraft:basalt_deltas",
-    "minecraft:soul_sand_valley"
+    "minecraft:soul_sand_valley",
+    {
+      "id": "regions_unexplored:ancient_delta",
+      "parameters": {
+        "temperature": [
+          0.5,
+          1.0
+        ]
+      }
+    }
   ],
   "borders": {
     "player": 1024,
@@ -14,7 +23,14 @@
   },
   "difficulty": {
     "mobMultiplier": 2.5,
-    "playerLuck": 2.5
+    "playerLuck": 2.5,
+    "depthScaling": {
+      "enabled": true,
+      "startY": 124,
+      "endY": 74,
+      "minMultiplier": 1.0,
+      "maxMultiplier": 1.5
+    }
   },
   "structureDensity": "dense",
   "portal": {
@@ -31,14 +47,25 @@
     },
     "aura": {
       "subsume": "everything"
+    },
+    "anchor": {
+      "pos": "spawn",
+      "exit": "bed"
     }
+  },
+  "exitPortal": {
+    "enabled": true,
+    "pos": "spawn",
+    "target": "bed"
   },
   "environment": {
     "fogColor": "#3B2B1B",
     "ambientLight": 0.1
   },
   "structures": {
-    "terrainAdaptation": {"landmarks": "bury"}
+    "terrainAdaptation": {
+      "landmarks": "bury"
+    }
   },
   "seedRoll": {
     "mood": "hard",
@@ -60,11 +87,19 @@
       "warped_outpost",
       "bastion"
     ],
-    "description": "An ancient buried age — nether ruins and towers of a piglin civilisation the lava took. Pipelines and copper towers stand in flooded halls. Nobody shunned the bastions; the bastions are buried."
+    "water": "sea",
+    "heightRange": [
+      74,
+      124
+    ]
   },
   "spawn": [
     0,
-    64,
-    0
-  ]
+    30,
+    -256
+  ],
+  "settingsOverrides": {
+    "defaultFluid": "minecraft:lava",
+    "seaLevel": 74
+  }
 }

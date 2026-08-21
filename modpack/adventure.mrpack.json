@@ -85,7 +85,14 @@
       "artifacts:WTnRdeH6",
       "comforts:LUPOTXbk",
       "guard-villagers-(fabricquilt):ea8J4gbH",
-      "universal-sawmill:1Z66lBRN"
+      "universal-sawmill:1Z66lBRN",
+      "galosphere:jviVa3qz",
+      "yungs-cave-biomes:geZa9lJS",
+      "underground-worlds:nQP9l4bd",
+      "regions-unexplored:SffwLsGY",
+      "medieval-buildings-end-edition:uCdUbsEn",
+      "frozenlib:GdadG0oj",
+      "wilder-wild:LGumUR4U"
     ],
     "optional": [
       "sodium:QV48eyCs",
@@ -132,7 +139,8 @@
       "pick-up-notifier:4syRr8dj",
       "travelers-titles:S27dNesu",
       "entity-model-features:NLDNY8vg",
-      "entitytexturefeatures:udcdeUXw"
+      "entitytexturefeatures:udcdeUXw",
+      "cave-dust:8zG4dQ2R"
     ],
     "_stableOnlyComment": "stableOnly: resolver picks the newest RELEASE for these slugs instead of the newest build of any channel. Use for mods whose pre-release channels have burned us. Everything else gets the newest build - mod authors keep their own latest sets coherent (e.g. supplementaries release requires sodium beta).",
     "stableOnly": [],

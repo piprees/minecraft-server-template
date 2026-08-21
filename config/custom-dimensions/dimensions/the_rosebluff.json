@@ -1,61 +1,179 @@
 {
   "type": "multi_biome",
-  "description": "Blossom cliffs over white stone — wisteria, sakura and chapels on the bluffs. Villager country at its most scenic, where people built for beauty rather than survival. The shrine towers are pilgrimage sites, not defences.",
-  "seed": -8536168897606233021,
+  "description": "Blossom cliffs over white stone \u2014 wisteria, sakura and chapels on the bluffs. Villager country at its most scenic, where people built for beauty rather than survival. The shrine towers are pilgrimage sites, not defences.",
+  "seed": 5243414565319414919,
   "biomes": [
     {
       "id": "natures_spirit:wisteria_forest",
       "parameters": {
-        "weirdness": [0.0571, 0.0996]
+        "weirdness": [
+          -2.0,
+          -0.19
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
       }
     },
     {
       "id": "terralith:sakura_grove",
       "parameters": {
-        "weirdness": [-0.1933, -0.1404]
+        "weirdness": [
+          -0.19,
+          -0.1578
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
       }
     },
     {
       "id": "minecraft:cherry_grove",
       "parameters": {
-        "weirdness": [0.0996, 2.0]
+        "weirdness": [
+          -0.1578,
+          -0.1256
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
       }
     },
     {
       "id": "terralith:lavender_forest",
       "parameters": {
-        "weirdness": [-0.0187, 0.017]
+        "weirdness": [
+          -0.1256,
+          -0.0933
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
       }
     },
     {
       "id": "terralith:white_cliffs",
       "parameters": {
-        "continentalness": [-0.6, -0.05],
-        "weirdness": [-0.0951, -0.0597]
+        "continentalness": [
+          -0.6,
+          -0.05
+        ],
+        "weirdness": [
+          -0.0933,
+          -0.0611
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
       }
     },
     {
       "id": "minecraft:flower_forest",
       "parameters": {
-        "weirdness": [0.017, 0.0571]
+        "weirdness": [
+          -0.0611,
+          -0.0289
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
       }
     },
     {
       "id": "minecraft:meadow",
       "parameters": {
-        "weirdness": [-2.0, -0.1933]
+        "weirdness": [
+          -0.0289,
+          0.0033
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
       }
     },
     {
       "id": "terralith:blooming_valley",
       "parameters": {
-        "weirdness": [-0.0597, -0.0187]
+        "weirdness": [
+          0.0033,
+          0.0356
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
       }
     },
     {
       "id": "minecraft:birch_forest",
       "parameters": {
-        "weirdness": [-0.1404, -0.0951]
+        "weirdness": [
+          0.0356,
+          0.0678
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:wisteria_grove",
+      "parameters": {
+        "weirdness": [
+          0.0678,
+          0.1
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:magnolia_woodland",
+      "parameters": {
+        "weirdness": [
+          0.1,
+          2.0
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "minecraft:lush_caves",
+      "parameters": {
+        "weirdness": [
+          -2.0,
+          -0.045
+        ],
+        "depth": [
+          0.1,
+          2.0
+        ]
+      }
+    },
+    {
+      "id": "terralith:cave/diorite_caves",
+      "parameters": {
+        "weirdness": [
+          -0.045,
+          2.0
+        ],
+        "depth": [
+          0.1,
+          2.0
+        ]
       }
     }
   ],
@@ -85,7 +203,9 @@
   },
   "seedRoll": {
     "mood": "scenic",
-    "spawnFilter": ["minecraft:meadow"],
+    "spawnFilter": [
+      "minecraft:meadow"
+    ],
     "wants": {
       "abandoned_chapel": "spread",
       "guide_post_warm": "near_spawn",
@@ -97,12 +217,11 @@
       "monument",
       "ancient_city",
       "coliseum"
-    ],
-    "description": "Blossom cliffs over white stone — wisteria, sakura and chapels on the bluffs. Villager country at its most scenic, where people built for beauty rather than survival. The shrine towers are pilgrimage sites, not defences."
+    ]
   },
   "spawn": [
-    0,
-    64,
-    0
+    -320,
+    43,
+    -64
   ]
 }

@@ -46,12 +46,41 @@ lithostitched:vPyJwd70
 terralith:eWDLFabb
 wwoo:JBbDOEnc
 geophilic:jDzSPLta
+# regions-unexplored places its biomes through TerraBlender regions, which
+# reach the overworld only — a managed dimension takes them by naming them in
+# its own "biomes" list (TROUBLESHOOTING T34).
+regions-unexplored:SffwLsGY
+wilder-wild:LGumUR4U
+
+# === caves & underground ===
+galosphere:jviVa3qz
+yungs-cave-biomes:geZa9lJS
+yungs-better-caves:72UkhXm7
+subsurface:JdF0yLTy
+# re-adds the andesite/diorite/granite blobs Terralith's cave generation removes.
+# Hard-depends on terralith >=2.0.0 despite Modrinth declaring no dependency —
+# a consumer removing terralith must remove this too or the boot dies.
+terralith-restoned:9wwdRqkT
+# 2.1.2 ships loot tables using set_nbt, removed in 1.20.5, and a trailing
+# comma in forbidden_knowledge. config/datapacks/stoneholm-loot/ overrides the
+# four affected tables; drop it if a later build fixes them upstream.
+stoneholm:4nZqBkRD
+underground-worlds:nQP9l4bd
+underground-bunkers:IOxi2RHE
+yungs-extras:aVsikHca
+cave-spider-spawn:VRwAOcqG
+underground-beacons:LHTttXOg
 
 # === dimensions ===
 incendium:7mVvV9Th
 nullscape:3fv8O3xX
 paradise-lost:kpnTCH47
 ender-dragon-destroys-end-island:19ntjDUW
+# Trial Chambers generated in the Nether, and End structures — both add
+# structures only, so neither competes with Incendium's or Nullscape's biomes.
+hellish-trials:wHRIHKx3
+medieval-buildings-end-edition:uCdUbsEn
+true-ending:FBAAEUsA
 
 # === structures (need yungs-api) ===
 yungs-api:9aZPNrZC
@@ -72,6 +101,9 @@ structory-towers:ziO4YIv1
 explorify:CuBdAr31
 philips-ruins:hWBO2GFM
 dungeons-and-taverns:EUlNXs9V
+when-dungeons-arise-seven-seas:tTpWP44G
+sky-villages:5Ldpp3lm
+simply-houses:imyvF030
 
 # === boss dungeons & extra structures ===
 deadly-deadly-dungeon:MlHPA0g5
@@ -122,6 +154,9 @@ otterlib:lMOoBAw6
 resourceful-config:dQh99ERC
 puzzles-lib:pqCNhF6A
 yacl:o3cDn8Vp
+# required by the YUNG's cave/extras mods and stoneholm
+cloth-config:HpMb5wGb
+frozenlib:GdadG0oj
 
 # === accessories (Trinkets framework - functional charm/cape slots) ===
 # Trinkets chosen over Accessories on 1.21.1: charm-of-undying (totem slot)

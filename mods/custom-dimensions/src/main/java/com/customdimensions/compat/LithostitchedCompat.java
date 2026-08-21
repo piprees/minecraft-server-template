@@ -15,10 +15,10 @@ import java.lang.reflect.Method;
  * biome lookups but is NOT a {@code MultiNoiseBiomeSource}, so the
  * dump's {@code instanceof} check fails without this unwrap.
  *
- * <p>On this server, no biome injectors are active by default (Terralith's
- * skylands disable pack is opt-in, and Tectonic's modifiers are not
- * biome injectors). But a consumer enabling that pack would trip the
- * check, so this is defensive.
+ * <p>Regions Unexplored ships biome injectors, so the overworld's and the
+ * nether's sources are wrapped on this server. Every path that composes a
+ * dimension from a base world's source has to unwrap first or it silently
+ * drops the dimension's whole biome list.
  *
  * <p>Fails open: if Lithostitched is absent or the API changed, returns
  * the source unchanged.

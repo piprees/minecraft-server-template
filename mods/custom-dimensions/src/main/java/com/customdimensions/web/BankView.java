@@ -47,7 +47,7 @@ public final class BankView {
     public record DimensionView(String slug, Identifier id, DimensionConfig config, String inputHash,
                                 boolean rollable, List<CandidateView> candidates, int rejected,
                                 List<Long> frontierSeeds, Long currentSeed, Long startingSeed,
-                                int banked, boolean picked) {
+                                int banked, boolean picked, int screened) {
     }
 
     /** One card, with the scorecard's own per-criterion entries and the role it is shown for. */
@@ -165,7 +165,8 @@ public final class BankView {
         }
         return new DimensionView(id.getPath(), id, def, inputHash, Roller.rollable(def),
                 candidates, SeedBank.rejectedSeeds(inputHash, dimension).size(), frontierSeeds,
-                current, starting, ranked.size(), picked != null);
+                current, starting, ranked.size(), picked != null,
+                SeedBank.screenedCount(inputHash, dimension));
     }
 
     /**
@@ -238,13 +239,16 @@ public final class BankView {
     }
 
     /**
-     * One candidate's structure census, read back out of the file the roll
-     * wrote — counts per structure, the distance to the nearest of each, and
-     * where spawn landed.
+     * One candidate's structure and biome census, read back out of the file
+     * the roll wrote — counts per structure, the distance to the nearest of
+     * each, where spawn landed, and the biome shares and sampled grid.
      *
-     * <p>Positions are recomputed rather than read: the bank stores counts
-     * and distances, never a coordinate per placement, and the sites are
-     * derivable from the seed for a fraction of what measuring them cost.
+     * <p>Structure positions are recomputed rather than read: the bank stores
+     * counts and distances, never a coordinate per placement, and the sites
+     * are derivable from the seed for a fraction of what measuring them cost.
+     * Biome shares and the sampled grid are copied straight out of the file
+     * instead — the grid pass that produced them already ran once for the
+     * measurement, so recomputing it here would only pay that cost twice.
      */
     public static String censusJson(MinecraftServer server, String slug, String seedText) {
         DimensionConfig def = resolve(slug);
@@ -278,6 +282,22 @@ public final class BankView {
                 copy(s, out, "nearestHostile");
                 out.add("groups", positions(server, def, seed));
             }
+            com.google.gson.JsonElement biomes = facts.get("biomes");
+            if (biomes != null && biomes.isJsonObject()) {
+                com.google.gson.JsonObject biomesOut = new com.google.gson.JsonObject();
+                copy(biomes.getAsJsonObject(), biomesOut, "shares");
+                out.add("biomes", biomesOut);
+            }
+            com.google.gson.JsonElement grid = facts.get("grid");
+            if (grid != null && grid.isJsonObject()) {
+                com.google.gson.JsonObject g = grid.getAsJsonObject();
+                com.google.gson.JsonObject gridOut = new com.google.gson.JsonObject();
+                copy(g, gridOut, "side");
+                copy(g, gridOut, "biomeIds");
+                copy(g, gridOut, "biome");
+                out.add("grid", gridOut);
+            }
+            copy(facts, out, "playableRadius");
             com.google.gson.JsonElement spawn = facts.get("spawn");
             if (spawn != null && spawn.isJsonObject()) {
                 copyAs(spawn.getAsJsonObject(), out, "x", "spawnX");

@@ -1,19 +1,24 @@
 {
-  "type": "nether",
-  "description": "Warped groves and a greatsword in the fog — the nether's strange, quiet corner. The piglins avoided this place; the fungus here is older than their civilisation. The greatsword belongs to someone who came looking and never left.",
-  "seed": 8276490801986154035,
+  "type": "multi_biome",
+  "description": "Warped groves to the horizon in every direction, dry and silent under a nether sky with no sun. The piglins avoided this place; the fungus here is older than their civilisation and nothing has ever happened in it. The greatsword belongs to someone who came looking and never left.",
+  "seed": 3959436081217052023,
   "biomes": [
-    "minecraft:warped_forest",
-    "incendium:inverted_forest",
-    "minecraft:nether_wastes",
-    "minecraft:crimson_forest"
+    {
+      "id": "minecraft:warped_forest",
+      "parameters": {
+        "temperature": [
+          -0.6,
+          0.9
+        ]
+      }
+    }
   ],
   "borders": {
     "player": 1024,
     "generation": 1024
   },
   "difficulty": {
-    "mobMultiplier": 1.3,
+    "mobMultiplier": 1.0,
     "playerLuck": 1.4
   },
   "portal": {
@@ -31,10 +36,9 @@
     }
   },
   "seedRoll": {
-    "mood": "scenic",
+    "mood": "desolate",
     "spawnFilter": [
-      "minecraft:warped_forest",
-      "incendium:inverted_forest"
+      "minecraft:warped_forest"
     ],
     "wants": {
       "warped_outpost": "near_spawn",
@@ -48,11 +52,35 @@
       "fortress",
       "sanctum"
     ],
-    "description": "Warped groves and a greatsword in the fog — the nether's strange, quiet corner. The piglins avoided this place; the fungus here is older than their civilisation. The greatsword belongs to someone who came looking and never left."
+    "terrain": "gently_rolling",
+    "heightRange": [
+      40,
+      140
+    ],
+    "water": "none"
   },
   "spawn": [
-    0,
-    64,
-    0
-  ]
+    192,
+    1,
+    -192
+  ],
+  "settingsOverrides": {
+    "seaLevel": -60
+  },
+  "structureDensity": "sparse",
+  "environment": {
+    "effects": "minecraft:the_nether",
+    "hasSkylight": false,
+    "ambientLight": 0.12,
+    "fogColor": "#1B4B44"
+  },
+  "structures": {
+    "force": [
+      {
+        "structure": "structory_towers:warped_greatsword",
+        "x": 620,
+        "z": -470
+      }
+    ]
+  }
 }

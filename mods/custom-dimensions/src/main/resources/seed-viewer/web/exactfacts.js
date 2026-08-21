@@ -1,17 +1,23 @@
-/* exactfacts.js — the structures panel, and the map selection it drives.
+/* exactfacts.js — the structures and biomes panels, and the map selection
+ * they drive.
  *
  * Fetches GET /census/<dim>/<seed> and renders the sidebar's structures
  * section: every group the scorer uses, with its count and the distance to
  * its nearest site, and every structure under it with the same two numbers.
+ * The biomes section lists every biome inside the border by share, with the
+ * distance from spawn to its sampled centre.
  *
  * The sidebar is the control and the map follows it. Nothing is pinned until
  * something is chosen, because a dimension can carry thousands of sites and
  * drawing them all at once is an opaque blob that hides the map. Choosing a
- * group draws that group; choosing a structure draws that structure.
+ * group draws that group; choosing a structure draws that structure. A biome
+ * has no such persistent selection — hovering its row marks its centre,
+ * leaving clears it, same as the map otherwise shows nothing for it.
  *
- * Every number here is exact. Positions and their assigned structure ids come
- * from the same noise placement and weighted pick the live world generates
- * from, and counts come from the banked measurement.
+ * Structure positions and their assigned ids are exact: the same noise
+ * placement and weighted pick the live world generates from. A biome's centre
+ * is the mean of the sampled grid cells that measured it — an approximation
+ * bounded by the grid's own resolution, not a placement.
  */
 ;(function () {
   if (location.protocol === 'file:') return
@@ -40,6 +46,7 @@
   var pending = {}
   var selection = null       // {kind:'group'|'structure', key:string}
   var lastKey = null
+  var biomeMarker = null     // the single <g> a hovered biome row draws
 
   function cacheKey(c) { return c.dim + '/' + c.seed }
 
@@ -112,46 +119,6 @@
 
   function clearLayer() { while (layer.firstChild) layer.removeChild(layer.firstChild) }
 
-  // The map's structure toggle. Nothing else drives it, so its count comes
-  // from the census this file already fetches: a bare 0 before the fetch
-  // lands is a measurement nobody took, and reads as "this world has none".
-  var structsBtn = lb.querySelector('.lb-structs-toggle')
-
-  function totalSites(data) {
-    if (!data || !data.ok || !data.groups) return null
-    var n = 0
-    Object.keys(data.groups).forEach(function (g) {
-      var e = data.groups[g]
-      if (e && e.positions) n += e.positions.length
-    })
-    return n
-  }
-
-  function setStructsLabel(count) {
-    if (!structsBtn) return
-    var known = typeof count === 'number'
-    structsBtn.textContent = 'Structures ' + (known ? count : '…')
-    structsBtn.disabled = !known || count === 0
-    structsBtn.title = !known
-      ? 'Counting this seed’s structure sites…'
-      : count === 0
-        ? 'This seed placed no structure sites'
-        : 'Toggle structure markers'
-  }
-
-  function structsOn() {
-    return !structsBtn || structsBtn.getAttribute('aria-pressed') !== 'false'
-  }
-
-  if (structsBtn) {
-    structsBtn.addEventListener('click', function (e) {
-      e.stopPropagation()
-      var next = !structsOn()
-      structsBtn.setAttribute('aria-pressed', next ? 'true' : 'false')
-      layer.style.display = next ? '' : 'none'
-    })
-  }
-
   function drawMarkers(data) {
     clearLayer()
     if (!data || !data.ok || !selection) return
@@ -216,6 +183,77 @@
         ? drawn + ' sites'
         : drawn + ' of ' + total + ' sites on this view'
     }
+  }
+
+  /**
+   * Every biome's centre, as the mean world column of the grid cells that
+   * sampled it. Cached on {@code data} itself — the census response is
+   * cached for the candidate's lifetime, so this need only run once.
+   *
+   * <p>Mirrors {@code FactsEngine.sampleGrid}'s own index-to-column mapping
+   * exactly (same {@code half}/{@code step}, same row-major index), since a
+   * grid cell carries no coordinate of its own — only its row and column.
+   */
+  function biomeCentres(data) {
+    if (data.biomeCentres) return data.biomeCentres
+    var grid = data.grid
+    var out = {}
+    data.biomeCentres = out
+    if (!grid || !grid.biome || !grid.biomeIds || !grid.side) return out
+    var side = grid.side
+    var half = Math.floor(side / 2)
+    var step = Math.max(1, Math.floor((2 * (data.playableRadius || 0)) / (side - 1)))
+    var sums = {}   // biome index -> {x, z, n}
+    grid.biome.forEach(function (idx, i) {
+      if (idx === null || idx === undefined) return
+      var col = i % side
+      var row = Math.floor(i / side)
+      var s = sums[idx] || (sums[idx] = { x: 0, z: 0, n: 0 })
+      s.x += (col - half) * step
+      s.z += (row - half) * step
+      s.n++
+    })
+    Object.keys(sums).forEach(function (idx) {
+      var s = sums[idx]
+      out[grid.biomeIds[idx]] = { x: s.x / s.n, z: s.z / s.n }
+    })
+    return out
+  }
+
+  function clearBiomeMarker() {
+    if (!biomeMarker) return
+    biomeMarker.remove()
+    biomeMarker = null
+  }
+
+  /** The one marker a hovered biome row draws — no selection, no persistence. */
+  function drawBiomeMarker(data, biomeId) {
+    clearBiomeMarker()
+    var pt = biomeCentres(data)[biomeId]
+    if (!pt) return
+    if (window.alignLbOverlay) window.alignLbOverlay()
+    var coverage = window.lbMapCoverage ? window.lbMapCoverage() : 0
+    if (!coverage) return
+    var img = imageBox.querySelector('img')
+    if (!img || !img.getBoundingClientRect().width) return
+    var mid = centre(data)
+    var cx = window.lbProject(pt.x - mid.x, coverage)
+    var cy = window.lbProject(pt.z - mid.z, coverage)
+    if (!window.lbOnRender(cx) || !window.lbOnRender(cy)) return
+    var g = document.createElementNS(NS, 'g')
+    g.setAttribute('class', 'ef-marker ef-biome-marker')
+    g.setAttribute('transform', 'translate(' + cx.toFixed(3) + ' ' + cy.toFixed(3) +
+      ') scale(' + (MARKER / 25).toFixed(5) + ')')
+    var plate = document.createElementNS(NS, 'circle')
+    plate.setAttribute('r', '12.5')
+    plate.setAttribute('class', 'ef-plate')
+    g.appendChild(plate)
+    var dot = document.createElementNS(NS, 'circle')
+    dot.setAttribute('r', '5')
+    dot.setAttribute('class', 'ef-biome-dot')
+    g.appendChild(dot)
+    layer.appendChild(g)
+    biomeMarker = g
   }
 
   // -------------------------------------------------------------- the panel
@@ -292,6 +330,29 @@
     return parts.join('')
   }
 
+  /** Every biome inside the border, by share — sorted highest first. */
+  function buildBiomesPanel(data) {
+    if (!data || !data.ok || !data.biomes || !data.biomes.shares) return ''
+    var shares = data.biomes.shares
+    var ids = Object.keys(shares).sort(function (a, b) { return shares[b] - shares[a] })
+    var centres = biomeCentres(data)
+    var parts = ['<div class="ef-panel ef-biomes-panel">']
+    parts.push('<h4 class="ef-heading">Biomes</h4>')
+    parts.push('<p class="ef-provenance">' + ids.length + ' biomes inside the border · hover to mark</p>')
+    parts.push('<ul class="ef-structures">')
+    ids.forEach(function (id) {
+      var pt = centres[id]
+      parts.push('<li><button type="button" class="ef-biome-row" data-biome="' +
+        escAttr(id) + '" title="' + escAttr(id) + '">' +
+        '<span class="ef-sname">' + escHtml(shortName(id)) + '</span>' +
+        '<span class="ef-scount">' + (shares[id] * 100).toFixed(1) + '%</span>' +
+        '<span class="ef-sdist">' + (pt ? dist(distance(data, pt.x, pt.z)) : '—') +
+        '</span></button></li>')
+    })
+    parts.push('</ul></div>')
+    return parts.join('')
+  }
+
   function escHtml(s) {
     return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
   }
@@ -361,7 +422,22 @@
     })
   }
 
+  /** No selection to wire — a biome row only ever marks and unmarks itself. */
+  function wireBiomes(panel, data) {
+    panel.addEventListener('mouseover', function (ev) {
+      var row = ev.target.closest('.ef-biome-row')
+      if (row) drawBiomeMarker(data, row.dataset.biome)
+    })
+    panel.addEventListener('mouseout', function (ev) {
+      if (ev.target.closest('.ef-biome-row')) clearBiomeMarker()
+    })
+  }
+
   // ------------------------------------------------------------- lifecycle
+
+  function removePanels() {
+    mount().querySelectorAll('.ef-panel').forEach(function (el) { el.remove() })
+  }
 
   function refresh() {
     var cand = window.lbCandidate ? window.lbCandidate() : null
@@ -369,9 +445,8 @@
       lastKey = null
       selection = null
       clearLayer()
-      setStructsLabel(null)
-      var gone = mount().querySelector('.ef-panel')
-      if (gone) gone.remove()
+      clearBiomeMarker()
+      removePanels()
       return
     }
     // Inserting the panel mutates the node this file observes; without the
@@ -381,23 +456,22 @@
     lastKey = key
     selection = null
     clearLayer()
-    setStructsLabel(null)
-    var existing = mount().querySelector('.ef-panel')
-    if (existing) existing.remove()
+    clearBiomeMarker()
+    removePanels()
 
     fetchFacts(cand, function (data) {
       if (window.lbCandidate) {
         var current = window.lbCandidate()
         if (!current || current.dim !== cand.dim || current.seed !== cand.seed) return
       }
-      setStructsLabel(totalSites(data))
-      var old = mount().querySelector('.ef-panel')
-      if (old) old.remove()
-      var html = buildPanel(data)
+      removePanels()
+      var html = buildPanel(data) + buildBiomesPanel(data)
       if (!html) return
       mount().insertAdjacentHTML('beforeend', html)
       var panel = mount().querySelector('.ef-panel')
       if (panel) wire(panel, data)
+      var biomesPanel = mount().querySelector('.ef-biomes-panel')
+      if (biomesPanel) wireBiomes(biomesPanel, data)
     })
   }
 

@@ -154,11 +154,13 @@ class NoiseRegressionTest {
     // --- the_dustbowl: structureDensity none + force, the escape hatch -----
 
     @Test
-    void theDustbowlHasNoNoiseGroupsAndKeepsItsForcedFarmstead() {
+    void theDustbowlHasNoNoiseGroupsAndKeepsItsForcedPair() {
         DimensionConfig config = dim("the_dustbowl");
         NoiseGroupPlan plan = NoiseGroupPlan.resolve(config);
         assertEquals(Set.of(), plan.groups().keySet());
-        assertEquals(List.of("explorify:farmstead"), forcedStructureIds(config));
+        // The tomb shares the farmstead's coordinate, so it places beneath it.
+        assertEquals(List.of("explorify:farmstead", "dungeons_plus:dusty_tomb"),
+                forcedStructureIds(config));
         assertTrue(NoisePoolBuilder.forcedExclusiveStructureIds(config)
                 .contains("explorify:farmstead"));
     }
@@ -251,7 +253,7 @@ class NoiseRegressionTest {
                 NoisePoolBuilder.forcedExclusiveStructureIds(config));
     }
 
-    // --- the_end_citadel: end + dense, the largest border we ship -----------
+    // --- the_end_citadel: end + dense, at the 4096 border most large dims use
 
     @Test
     void theEndCitadelEnablesDecoDungeonsAndEndgame() {
@@ -262,10 +264,10 @@ class NoiseRegressionTest {
     }
 
     @Test
-    void theEndCitadelPlacesAtLeastTenThousandPositions() {
+    void theEndCitadelPlacesSeveralThousandPositions() {
         DimensionConfig config = dim("the_end_citadel");
         NoiseGroupPlan plan = NoiseGroupPlan.resolve(config);
-        assertTrue(totalPositions(config, plan) >= 10_000,
+        assertTrue(totalPositions(config, plan) >= 3_000,
                 "got " + totalPositions(config, plan));
     }
 

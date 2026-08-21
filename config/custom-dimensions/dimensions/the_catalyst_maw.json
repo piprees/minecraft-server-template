@@ -1,7 +1,7 @@
 {
   "type": "nether_islands",
-  "description": "The sculk that fed on the boneyard war escaped here. Corrupted nether terrain, oppressive and chaotic — the catalyst is still feeding, still growing. The reactors and bastions it consumed are unrecognisable.",
-  "seed": 9093123537521721615,
+  "description": "The sculk that fed on the boneyard war escaped here. Corrupted nether terrain, oppressive and chaotic \u2014 the catalyst is still feeding, still growing. The reactors and bastions it consumed are unrecognisable.",
+  "seed": -3889660353726783549,
   "noiseSettings": "adventure:compressed",
   "biomes": [
     "minecraft:basalt_deltas",
@@ -12,8 +12,8 @@
     "incendium:ash_barrens"
   ],
   "borders": {
-    "player": 8192,
-    "generation": 8192
+    "player": 4096,
+    "generation": 4096
   },
   "difficulty": {
     "mobMultiplier": 2.5,
@@ -25,7 +25,7 @@
     "igniterItem": "minecraft:ender_eye",
     "color": "1B5B6B",
     "lightLevel": 11,
-    "scale": 1.0,
+    "scale": 2.0,
     "cooldown": 40,
     "particleType": "minecraft:end_rod",
     "sounds": {
@@ -61,12 +61,20 @@
       "piglin_village",
       "crimson_fungus",
       "warped_outpost"
-    ],
-    "description": "The sculk that fed on the boneyard war escaped here. Corrupted nether terrain, oppressive and chaotic — the catalyst is still feeding, still growing. The reactors and bastions it consumed are unrecognisable."
+    ]
   },
   "spawn": [
-    0,
+    -128,
     64,
-    0
-  ]
+    128
+  ],
+  "exits": {
+    "death": {
+      "action": "respawnAt",
+      "target": {
+        "dimension": "adventure:the_sculked_beyond",
+        "arrival": "spawn"
+      }
+    }
+  }
 }

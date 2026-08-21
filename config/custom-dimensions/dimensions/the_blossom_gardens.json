@@ -1,85 +1,339 @@
 {
   "type": "multi_biome",
-  "description": "Cherry-blossom gardens where the first villagers planted a life worth protecting. Villages and taverns grew among the petals, peaceful by decree. The portal at the centre is the oldest gate in the garden — everything was built around it.",
-  "seed": -2033868061535873206,
+  "description": "Cherry-blossom gardens where the first villagers planted a life worth protecting. Villages and taverns grew among the petals, peaceful by decree. The portal at the centre is the oldest gate in the garden \u2014 everything was built around it.",
+  "seed": 6420414594771499488,
   "noiseSettings": "adventure:wide",
   "biomes": [
-    "minecraft:cherry_grove",
-    "minecraft:meadow",
-    "minecraft:flower_forest",
-    "minecraft:birch_forest",
-    "minecraft:old_growth_birch_forest",
+    {
+      "id": "minecraft:meadow",
+      "parameters": {
+        "weirdness": [
+          -2.0,
+          -1.953
+        ]
+      }
+    },
+    {
+      "id": "minecraft:flower_forest",
+      "parameters": {
+        "weirdness": [
+          -1.953,
+          -1.906
+        ]
+      }
+    },
+    {
+      "id": "minecraft:birch_forest",
+      "parameters": {
+        "weirdness": [
+          -1.906,
+          -1.859
+        ]
+      }
+    },
+    {
+      "id": "minecraft:old_growth_birch_forest",
+      "parameters": {
+        "weirdness": [
+          -1.859,
+          -1.812
+        ]
+      }
+    },
+    {
+      "id": "minecraft:sunflower_plains",
+      "parameters": {
+        "weirdness": [
+          -1.812,
+          -1.765
+        ]
+      }
+    },
+    {
+      "id": "minecraft:river",
+      "parameters": {
+        "weirdness": [
+          -1.765,
+          -1.718
+        ]
+      }
+    },
+    {
+      "id": "minecraft:beach",
+      "parameters": {
+        "weirdness": [
+          -1.718,
+          -1.671
+        ]
+      }
+    },
+    {
+      "id": "terralith:lavender_valley",
+      "parameters": {
+        "weirdness": [
+          -1.671,
+          -1.624
+        ]
+      }
+    },
+    {
+      "id": "terralith:blooming_valley",
+      "parameters": {
+        "weirdness": [
+          -1.624,
+          -1.577
+        ]
+      }
+    },
+    {
+      "id": "terralith:sakura_grove",
+      "parameters": {
+        "weirdness": [
+          -1.577,
+          -1.53
+        ]
+      }
+    },
+    {
+      "id": "terralith:moonlight_valley",
+      "parameters": {
+        "weirdness": [
+          -1.53,
+          -1.483
+        ]
+      }
+    },
+    {
+      "id": "terralith:moonlight_grove",
+      "parameters": {
+        "weirdness": [
+          -1.483,
+          -1.436
+        ]
+      }
+    },
+    {
+      "id": "terralith:blooming_plateau",
+      "parameters": {
+        "weirdness": [
+          -1.436,
+          -1.389
+        ]
+      }
+    },
+    {
+      "id": "terralith:lush_valley",
+      "parameters": {
+        "weirdness": [
+          -1.389,
+          -1.342
+        ]
+      }
+    },
+    {
+      "id": "terralith:temperate_highlands",
+      "parameters": {
+        "weirdness": [
+          -1.342,
+          -1.295
+        ]
+      }
+    },
     {
       "id": "minecraft:plains",
       "parameters": {
-        "temperature": [-0.45, 0.2],
-        "humidity": [-1.0, -0.1],
-        "weirdness": [0.0178, 0.0575]
+        "temperature": [
+          -0.45,
+          0.2
+        ],
+        "humidity": [
+          -1.0,
+          -0.1
+        ],
+        "weirdness": [
+          -1.295,
+          -1.248
+        ]
       }
     },
-    "minecraft:sunflower_plains",
     {
       "id": "minecraft:forest",
       "parameters": {
-        "temperature": [-0.45, 0.55],
-        "humidity": [-0.1, 0.1],
-        "weirdness": [0.0575, 0.0964]
+        "temperature": [
+          -0.45,
+          0.55
+        ],
+        "humidity": [
+          -0.1,
+          0.1
+        ],
+        "weirdness": [
+          -1.248,
+          -1.201
+        ]
       }
     },
-    "minecraft:river",
-    "minecraft:beach",
-    "terralith:lavender_valley",
-    "terralith:blooming_valley",
     {
       "id": "terralith:sakura_valley",
       "parameters": {
-        "temperature": [-0.155, 0.55],
-        "humidity": [0.3, 1.0],
-        "weirdness": [-0.1401, -0.1031]
+        "temperature": [
+          -0.155,
+          0.55
+        ],
+        "humidity": [
+          0.3,
+          1.0
+        ],
+        "weirdness": [
+          -1.201,
+          -1.154
+        ]
       }
     },
-    "terralith:sakura_grove",
-    "terralith:moonlight_valley",
-    "terralith:moonlight_grove",
-    "terralith:blooming_plateau",
-    "terralith:lush_valley",
-    "terralith:temperate_highlands",
     {
       "id": "natures_spirit:wisteria_forest",
       "parameters": {
-        "temperature": [-0.15, 1.0],
-        "humidity": [-0.1, 1.0],
-        "weirdness": [0.0964, 0.1357]
-      }
-    },
-    {
-      "id": "natures_spirit:lavender_fields",
-      "parameters": {
-        "temperature": [-0.15, 1.0],
-        "humidity": [-1.0, 0.1],
-        "weirdness": [-0.1031, -0.0603]
+        "temperature": [
+          -0.15,
+          1.0
+        ],
+        "humidity": [
+          -0.1,
+          1.0
+        ],
+        "weirdness": [
+          -1.154,
+          -1.107
+        ]
       }
     },
     {
       "id": "natures_spirit:carnation_fields",
       "parameters": {
-        "temperature": [-0.15, 1.0],
-        "humidity": [-1.0, 0.1],
-        "weirdness": [-0.0603, -0.0201]
+        "temperature": [
+          -0.15,
+          1.0
+        ],
+        "humidity": [
+          -1.0,
+          0.1
+        ],
+        "weirdness": [
+          -1.107,
+          -1.06
+        ]
       }
     },
     {
       "id": "terralith:lavender_forest",
       "parameters": {
-        "temperature": [-0.45, -0.155],
-        "humidity": [0.565, 1.0],
-        "weirdness": [-0.0201, 0.0178]
+        "temperature": [
+          -0.45,
+          -0.155
+        ],
+        "humidity": [
+          0.565,
+          1.0
+        ],
+        "weirdness": [
+          -1.06,
+          -1.013
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:poppy_fields",
+      "parameters": {
+        "weirdness": [
+          -1.013,
+          -0.966
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:clover_plains",
+      "parameters": {
+        "weirdness": [
+          -0.966,
+          -0.919
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:glistering_meadow",
+      "parameters": {
+        "weirdness": [
+          -0.919,
+          -0.872
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:orchard",
+      "parameters": {
+        "weirdness": [
+          -0.872,
+          -0.825
+        ]
+      }
+    },
+    {
+      "id": "natures_spirit:lavender_fields",
+      "parameters": {
+        "temperature": [
+          -0.15,
+          1.0
+        ],
+        "humidity": [
+          -1.0,
+          0.1
+        ],
+        "weirdness": [
+          -0.825,
+          -0.495
+        ]
+      }
+    },
+    {
+      "id": "natures_spirit:floral_ridges",
+      "parameters": {
+        "weirdness": [
+          -0.495,
+          -0.165
+        ]
+      }
+    },
+    {
+      "id": "natures_spirit:marigold_meadows",
+      "parameters": {
+        "weirdness": [
+          -0.165,
+          0.165
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:flower_fields",
+      "parameters": {
+        "weirdness": [
+          0.165,
+          0.495
+        ]
+      }
+    },
+    {
+      "id": "minecraft:cherry_grove",
+      "parameters": {
+        "weirdness": [
+          0.495,
+          2.0
+        ]
       }
     }
   ],
   "borders": {
-    "player": 8192,
-    "generation": 8192
+    "player": 4096,
+    "generation": 4096
   },
   "difficulty": {
     "mobMultiplier": 0.0,
@@ -91,7 +345,7 @@
     "igniterItem": "minecraft:cherry_sapling",
     "color": "FFB7C5",
     "lightLevel": 11,
-    "scale": 1.0,
+    "scale": 2.0,
     "cooldown": 40,
     "particleType": "minecraft:cherry_leaves",
     "shape": "doorway",
@@ -105,9 +359,16 @@
       "exit": "block.portal.travel"
     }
   },
+  "exitPortal": {
+    "enabled": true,
+    "pos": "spawn",
+    "target": "bed"
+  },
   "seedRoll": {
     "mood": "serene",
-    "spawnFilter": ["natures_spirit:lavender_fields"],
+    "spawnFilter": [
+      "minecraft:cherry_grove"
+    ],
     "wants": {
       "village": "near_spawn",
       "tavern": "spread",
@@ -123,13 +384,12 @@
       "mansion",
       "coliseum",
       "monument"
-    ],
-    "description": "Cherry-blossom gardens where the first villagers planted a life worth protecting. Villages and taverns grew among the petals, peaceful by decree. The portal at the centre is the oldest gate in the garden — everything was built around it."
+    ]
   },
   "spawn": [
-    0,
-    64,
-    0
+    768,
+    74,
+    640
   ],
   "structures": {
     "force": [

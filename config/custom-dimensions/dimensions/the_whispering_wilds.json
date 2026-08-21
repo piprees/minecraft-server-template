@@ -1,74 +1,285 @@
 {
   "type": "multi_biome",
-  "description": "Untouched wilds that whisper. Redwoods, moon groves, abandoned camps of those who didn't stay — the forest was here before anyone arrived and it'll be here after everyone leaves. The whisper is the wind in old growth that's never been cut.",
-  "seed": 3367832196571995414,
+  "description": "Untouched wilds that whisper. Redwoods, moon groves, abandoned camps of those who didn't stay \u2014 the forest was here before anyone arrived and it'll be here after everyone leaves. The whisper is the wind in old growth that's never been cut.",
+  "seed": 1457115092326936852,
   "biomes": [
-    "minecraft:dark_forest",
-    "minecraft:old_growth_spruce_taiga",
-    "minecraft:old_growth_pine_taiga",
-    "minecraft:swamp",
-    "minecraft:mangrove_swamp",
-    "minecraft:taiga",
-    "minecraft:jungle",
-    "minecraft:sparse_jungle",
-    "minecraft:mushroom_fields",
-    "minecraft:river",
+    {
+      "id": "minecraft:dark_forest",
+      "parameters": {
+        "weirdness": [
+          -2.0,
+          -1.953
+        ]
+      }
+    },
+    {
+      "id": "minecraft:old_growth_spruce_taiga",
+      "parameters": {
+        "weirdness": [
+          -1.953,
+          -1.906
+        ]
+      }
+    },
+    {
+      "id": "minecraft:old_growth_pine_taiga",
+      "parameters": {
+        "weirdness": [
+          -1.906,
+          -1.859
+        ]
+      }
+    },
+    {
+      "id": "minecraft:swamp",
+      "parameters": {
+        "weirdness": [
+          -1.859,
+          -1.812
+        ]
+      }
+    },
+    {
+      "id": "minecraft:mangrove_swamp",
+      "parameters": {
+        "weirdness": [
+          -1.812,
+          -1.765
+        ]
+      }
+    },
+    {
+      "id": "minecraft:taiga",
+      "parameters": {
+        "weirdness": [
+          -1.765,
+          -1.718
+        ]
+      }
+    },
+    {
+      "id": "minecraft:jungle",
+      "parameters": {
+        "weirdness": [
+          -1.718,
+          -1.671
+        ]
+      }
+    },
+    {
+      "id": "minecraft:sparse_jungle",
+      "parameters": {
+        "weirdness": [
+          -1.671,
+          -1.624
+        ]
+      }
+    },
+    {
+      "id": "minecraft:mushroom_fields",
+      "parameters": {
+        "weirdness": [
+          -1.624,
+          -1.577
+        ]
+      }
+    },
+    {
+      "id": "minecraft:river",
+      "parameters": {
+        "weirdness": [
+          -1.577,
+          -1.53
+        ]
+      }
+    },
+    {
+      "id": "terralith:moonlight_valley",
+      "parameters": {
+        "weirdness": [
+          -1.53,
+          -1.483
+        ]
+      }
+    },
+    {
+      "id": "terralith:orchid_swamp",
+      "parameters": {
+        "weirdness": [
+          -1.483,
+          -1.436
+        ]
+      }
+    },
+    {
+      "id": "terralith:shield",
+      "parameters": {
+        "weirdness": [
+          -1.436,
+          -1.389
+        ]
+      }
+    },
+    {
+      "id": "terralith:birch_taiga",
+      "parameters": {
+        "weirdness": [
+          -1.389,
+          -1.342
+        ]
+      }
+    },
     {
       "id": "terralith:moonlight_grove",
       "parameters": {
-        "temperature": [-0.45, -0.155],
-        "humidity": [0.565, 1.0],
-        "weirdness": [-0.0915, -0.0463]
+        "temperature": [
+          -0.45,
+          -0.155
+        ],
+        "humidity": [
+          0.565,
+          1.0
+        ],
+        "weirdness": [
+          -1.342,
+          -1.295
+        ]
       }
     },
-    "terralith:moonlight_valley",
     {
       "id": "terralith:cloud_forest",
       "parameters": {
-        "temperature": [-0.45, -0.155],
-        "humidity": [0.1, 1.0],
-        "weirdness": [-0.1401, -0.0915]
+        "temperature": [
+          -0.45,
+          -0.155
+        ],
+        "humidity": [
+          0.1,
+          1.0
+        ],
+        "weirdness": [
+          -1.295,
+          -1.248
+        ]
       }
     },
-    "terralith:orchid_swamp",
-    "terralith:shield",
     {
       "id": "terralith:shield_clearing",
       "parameters": {
-        "temperature": [-0.45, -0.155],
-        "humidity": [-0.35, -0.1],
-        "weirdness": [0.0896, 0.1357]
-      }
-    },
-    "terralith:birch_taiga",
-    {
-      "id": "natures_spirit:aspen_forest",
-      "parameters": {
-        "temperature": [-0.45, 0.55],
-        "humidity": [-1.0, 0.1],
-        "weirdness": [-0.0463, -0.0021]
-      }
-    },
-    {
-      "id": "natures_spirit:redwood_forest",
-      "parameters": {
-        "temperature": [-0.45, 0.55],
-        "humidity": [-0.1, 1.0],
-        "weirdness": [-0.0021, 0.0455]
+        "temperature": [
+          -0.45,
+          -0.155
+        ],
+        "humidity": [
+          -0.35,
+          -0.1
+        ],
+        "weirdness": [
+          -1.248,
+          -1.201
+        ]
       }
     },
     {
       "id": "natures_spirit:cedar_thicket",
       "parameters": {
-        "temperature": [0.2, 1.0],
-        "humidity": [-1.0, 0.1],
-        "weirdness": [0.0455, 0.0896]
+        "temperature": [
+          0.2,
+          1.0
+        ],
+        "humidity": [
+          -1.0,
+          0.1
+        ],
+        "weirdness": [
+          -1.201,
+          -1.154
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:redwoods",
+      "parameters": {
+        "weirdness": [
+          -1.154,
+          -1.107
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:old_growth_forest",
+      "parameters": {
+        "weirdness": [
+          -1.107,
+          -1.06
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:silver_birch_forest",
+      "parameters": {
+        "weirdness": [
+          -1.06,
+          -1.013
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:sparse_redwoods",
+      "parameters": {
+        "weirdness": [
+          -1.013,
+          -0.966
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:alpha_grove",
+      "parameters": {
+        "weirdness": [
+          -0.966,
+          -0.919
+        ]
+      }
+    },
+    {
+      "id": "natures_spirit:aspen_forest",
+      "parameters": {
+        "temperature": [
+          -0.45,
+          0.55
+        ],
+        "humidity": [
+          -1.0,
+          0.1
+        ],
+        "weirdness": [
+          -0.919,
+          0.401
+        ]
+      }
+    },
+    {
+      "id": "natures_spirit:redwood_forest",
+      "parameters": {
+        "temperature": [
+          -0.45,
+          0.55
+        ],
+        "humidity": [
+          -0.1,
+          1.0
+        ],
+        "weirdness": [
+          0.401,
+          2.0
+        ]
       }
     }
   ],
   "borders": {
-    "player": 8192,
-    "generation": 8192
+    "player": 4096,
+    "generation": 4096
   },
   "difficulty": {
     "mobMultiplier": 1.2,
@@ -81,14 +292,26 @@
       "structory:dense_forest_ruin": "bury",
       "structory:northern_ruin": "bury",
       "structory:taiga_ruin_surface": "bury"
-    }
+    },
+    "force": [
+      {
+        "structure": "structory:old_manor",
+        "x": 2800,
+        "z": -1200
+      },
+      {
+        "structure": "philipsruins:sculk_dungeon",
+        "x": 2800,
+        "z": -1200
+      }
+    ]
   },
   "portal": {
     "frameBlock": "minecraft:dark_oak_planks",
     "igniterItem": "minecraft:amethyst_shard",
     "color": "2B4B2B",
     "lightLevel": 11,
-    "scale": 1.0,
+    "scale": 2.0,
     "cooldown": 40,
     "sounds": {
       "ignite": "block.portal.trigger",
@@ -101,7 +324,9 @@
   },
   "seedRoll": {
     "mood": "desolate",
-    "spawnFilter": ["natures_spirit:aspen_forest"],
+    "spawnFilter": [
+      "natures_spirit:redwood_forest"
+    ],
     "wants": {
       "abandoned_camp": "near_spawn",
       "forest_ruin": "spread",
@@ -117,12 +342,11 @@
       "tavern",
       "mansion",
       "coliseum"
-    ],
-    "description": "Untouched wilds that whisper. Redwoods, moon groves, abandoned camps of those who didn't stay — the forest was here before anyone arrived and it'll be here after everyone leaves. The whisper is the wind in old growth that's never been cut."
+    ]
   },
   "spawn": [
-    0,
-    64,
-    0
+    704,
+    -7,
+    64
   ]
 }

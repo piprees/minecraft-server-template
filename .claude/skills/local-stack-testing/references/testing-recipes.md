@@ -86,9 +86,9 @@ the layer covering a fresh environment's first boot).
 docker restart mc
 sleep 30
 
-# Verify via log grep, never the config file (the key is stripped again
-# by the boot that honours it — absence from c2me.toml is expected).
-docker exec mc sh -c 'grep -F "Removing config entry .vanillaWorldGenOptimizations.useDensityFunctionCompiler because it is not used" /data/logs/latest.log'
+# Verify by reading the file — c2me 0.4.0-alpha.0.27 rewrites c2me.toml each
+# boot and keeps the value. Must answer `useDensityFunctionCompiler = false`.
+docker exec mc grep useDensityFunctionCompiler /data/config/c2me.toml
 
 # The locate oracle: two dims with different seeds must give different
 # results; same seed must match.
