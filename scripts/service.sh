@@ -14,6 +14,12 @@
 #
 # Production refuses every mc action but status: deploy.sh (or Discord
 # /mc restart) owns the countdown, save, allowlist and config choreography.
+#
+# Gotchas: the production compose command must carry -f pointing into
+# .stack/current/stack/ — ~/server holds only .env and data/. `ps` works
+# without it (compose matches running containers by project label) so an
+# -f-less command looks healthy right up until you ask it to change
+# something. Exits non-zero if any target failed.
 # SERVICE_LOCAL=1 lifts that refusal, because none of it exists locally and
 # stopping mc is part of the normal inner loop.
 set -euo pipefail
@@ -90,8 +96,13 @@ else
   SSH_KEY="$HOME/.ssh/${BRAND_SLUG:+${BRAND_SLUG}_}mc_deploy_key"
   SSH_CMD="ssh -i $SSH_KEY ${DEPLOY_USER}@${DROPLET_HOST}"
 
+  # ~/server holds .env and data/ only — the compose file lives in the bundle
+  # under .stack/current/stack/. `ps` survives without -f because compose finds
+  # running containers by project label, but `up` needs the service definition,
+  # so an -f-less command fails for exactly the actions that change anything.
   compose_cmd() {
-    $SSH_CMD "cd ~/server && docker compose --profile cloud $*"
+    $SSH_CMD "cd ~/server && docker compose --project-directory ~/server \
+      -f ~/server/.stack/current/stack/docker-compose.yml --profile cloud $*"
   }
 fi
 
@@ -137,13 +148,17 @@ validate_targets() {
 
 validate_targets
 
+# A failed start reported as a warning on a zero exit reads as success to both
+# a human skimming and a caller checking $?. Count them and exit non-zero.
+failures=0
+
 case "$ACTION" in
   start)
     for svc in "${targets[@]}"; do
       echo "Starting $svc..."
       compose_cmd up -d --no-deps "$svc" \
         && echo "  $svc started" \
-        || warn "$svc start failed"
+        || { warn "$svc start failed"; failures=$((failures + 1)); }
     done
     ;;
   stop)
@@ -151,7 +166,7 @@ case "$ACTION" in
       echo "Stopping $svc..."
       compose_cmd stop "$svc" \
         && echo "  $svc stopped" \
-        || warn "$svc stop failed"
+        || { warn "$svc stop failed"; failures=$((failures + 1)); }
     done
     ;;
   restart)
@@ -159,7 +174,7 @@ case "$ACTION" in
       echo "Recreating $svc..."
       compose_cmd up -d --force-recreate --no-deps "$svc" \
         && echo "  $svc recreated" \
-        || warn "$svc recreate failed"
+        || { warn "$svc recreate failed"; failures=$((failures + 1)); }
     done
     ;;
   status)
@@ -185,3 +200,5 @@ case "$ACTION" in
     exit 1
     ;;
 esac
+
+[[ $failures -eq 0 ]] || exit 1

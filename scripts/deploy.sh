@@ -208,8 +208,14 @@ kuma_maintenance start
 pause_backups() {
   docker stop mc-backup 2> /dev/null || true
 }
+# `docker start` cannot revive a container that no longer exists, and step 17's
+# prune deletes stopped containers — mc-backup is the only one a deploy leaves
+# stopped. Going through compose recreates it, so a deploy can never end with
+# backups silently switched off.
 resume_backups() {
-  docker start mc-backup 2> /dev/null || true
+  docker start mc-backup 2> /dev/null && return 0
+  docker compose --project-directory "$SERVER_DIR" -f "$COMPOSE_FILE" \
+    --profile cloud up -d --no-deps mc-backup 2> /dev/null || true
 }
 pause_backups
 
@@ -938,6 +944,14 @@ rcon "say $(msg restart.welcome_back)"
 # =============================================================================
 echo ""
 echo "==> Cleaning up old Docker resources..."
+# Backups come back BEFORE the prune, not in the EXIT trap after it: a stopped
+# container is exactly what `prune` collects, and mc-backup is the only one the
+# deploy leaves stopped. The trap still runs, and is idempotent.
+resume_backups
+if ! docker ps --filter name=mc-backup --filter status=running --format '{{.Names}}' \
+  | grep -q '^mc-backup$'; then
+  warn "mc-backup is not running after resume — backups are OFF until this is fixed"
+fi
 docker system prune -f --filter "until=24h" 2> /dev/null || true
 
 # Vanilla writes a debug/chunk-*.txt report for every chunk that fails
