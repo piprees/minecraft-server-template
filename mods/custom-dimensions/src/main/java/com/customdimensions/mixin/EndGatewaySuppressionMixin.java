@@ -45,10 +45,10 @@ public class EndGatewaySuppressionMixin {
 
     // Cancelling collision also removes vanilla's "standing in a portal
     // keeps the cooldown topped up" behaviour, so an arriving player's
-    // cooldown decayed INSIDE the arrival gateway and the return trip
-    // fired instantly — a teleport bounce (found live 2026-07-24). Reset
-    // it here exactly like vanilla portal contact does: you must step out
-    // and back in before travelling again.
+    // cooldown decays INSIDE the arrival gateway and the return trip would
+    // fire instantly — a teleport bounce. Reset it here exactly like
+    // vanilla portal contact does: you must step out and back in before
+    // travelling again.
     private static void suppress(Entity entity, CallbackInfo ci) {
         if (entity.getPortalCooldown() > 0) {
             entity.resetPortalCooldown();

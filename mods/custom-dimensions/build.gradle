@@ -34,6 +34,11 @@ processResources {
     filesMatching("fabric.mod.json") {
         expand "version": project.version
     }
+
+    // The Tailwind source, not a stylesheet. build-viewer-css.sh compiles it to
+    // app.built.css, which is what template.html links and SeedServer serves;
+    // shipping both invites serving the one whose @apply rules style nothing.
+    exclude "seed-viewer/web/app.css"
 }
 
 tasks.withType(JavaCompile).configureEach {

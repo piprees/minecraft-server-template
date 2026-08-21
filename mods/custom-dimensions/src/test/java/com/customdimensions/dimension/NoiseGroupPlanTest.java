@@ -5,6 +5,7 @@ import com.google.gson.Gson;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -13,8 +14,8 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Spike tasks C2 + D1: the config -> type-defaults precedence chain, and the
- * backwards-compatibility rules. Pure, no Bootstrap.
+ * The config -> type-defaults precedence chain, and the backwards-
+ * compatibility rules. Pure, no Bootstrap.
  */
 class NoiseGroupPlanTest {
 
@@ -41,9 +42,14 @@ class NoiseGroupPlanTest {
         assertEquals(StructureGroupRegistry.knownGroups(), p.groups().keySet());
         assertSame(NoiseProfile.NATURAL, p.groups().get("settlements").profile());
         assertSame(NoiseProfile.SPARSE, p.groups().get("dungeons").profile());
-        // settlements -> inner, dungeons -> outer per the type table
-        assertEquals(1.5, p.groups().get("settlements").radial()[0], 1e-6);
-        assertEquals(0.0, p.groups().get("dungeons").radial()[0], 1e-6);
+        // settlements -> inner, dungeons -> outer per the type table. Compared
+        // against the named curves rather than against literal values: what
+        // this test owns is the MAPPING, so retuning a curve's numbers should
+        // not read as a broken precedence chain.
+        assertArrayEquals(StructureGroupRegistry.curve("inner"),
+                p.groups().get("settlements").radial(), 1e-9);
+        assertArrayEquals(StructureGroupRegistry.curve("outer"),
+                p.groups().get("dungeons").radial(), 1e-9);
     }
 
     @Test
@@ -52,6 +58,28 @@ class NoiseGroupPlanTest {
         assertTrue(plan("{\"type\": \"superflat\"}").isSuppressed());
         assertTrue(plan("{}").isSuppressed(), "no type at all");
         assertTrue(plan("{\"type\": \"not_a_type\"}").isSuppressed());
+    }
+
+    /**
+     * The void/superflat leak: "type enables no groups" means NO organic
+     * structures, so the legacy path must drop every set. The other
+     * suppression flavours keep their own meanings — density none drops in
+     * the legacy loop itself, mode none likewise, and noise=false
+     * deliberately keeps the vanilla grids.
+     */
+    @Test
+    void onlyTypeWithoutGroupsSuppressesAllSets() {
+        assertTrue(plan("{\"type\": \"void\"}").suppressesAllSets());
+        assertTrue(plan("{\"type\": \"superflat\"}").suppressesAllSets());
+        assertTrue(plan("{}").suppressesAllSets());
+        assertTrue(plan("{\"type\": \"not_a_type\"}").suppressesAllSets());
+        assertFalse(plan("{\"type\": \"multi_biome\", \"structureDensity\": \"none\"}")
+                .suppressesAllSets());
+        assertFalse(plan("{\"type\": \"multi_biome\", \"structures\": {\"mode\": \"none\"}}")
+                .suppressesAllSets());
+        assertFalse(plan("{\"type\": \"multi_biome\", \"structures\": {\"noise\": false}}")
+                .suppressesAllSets());
+        assertFalse(plan("{\"type\": \"multi_biome\"}").suppressesAllSets(), "not suppressed at all");
     }
 
     @Test
@@ -182,11 +210,12 @@ class NoiseGroupPlanTest {
     void hostileWorldsSpreadDungeonsEvenlyAndBringEndgameInwards() {
         NoiseGroupPlan p = plan("{\"type\": \"multi_biome\", "
                 + "\"difficulty\": {\"mobMultiplier\": 2.5}}");
-        double[] dungeons = p.groups().get("dungeons").radial();
-        assertEquals(1.0, dungeons[0], 1e-6, "hostile dungeons should use `even`");
-        assertEquals(1.0, dungeons[9], 1e-6);
+        assertArrayEquals(StructureGroupRegistry.curve("even"),
+                p.groups().get("dungeons").radial(), 1e-9,
+                "hostile dungeons should use `even`");
         double[] endgame = p.groups().get("endgame").radial();
-        assertEquals(0.3, endgame[0], 1e-6, "hostile endgame should use `mid`");
+        assertArrayEquals(StructureGroupRegistry.curve("mid"), endgame, 1e-9,
+                "hostile endgame should use `mid`");
         assertTrue(endgame[4] > endgame[9], "`mid` peaks away from the border");
     }
 
@@ -204,7 +233,8 @@ class NoiseGroupPlanTest {
         NoiseGroupPlan p = plan("{\"type\": \"multi_biome\", "
                 + "\"difficulty\": {\"mobMultiplier\": 1.0}}");
         assertTrue(p.groups().containsKey("dungeons"));
-        assertEquals(0.0, p.groups().get("dungeons").radial()[0], 1e-6, "still `outer`");
+        assertArrayEquals(StructureGroupRegistry.curve("outer"),
+                p.groups().get("dungeons").radial(), 1e-9, "still `outer`");
     }
 
     // --- radial overrides --------------------------------------------------
@@ -222,11 +252,14 @@ class NoiseGroupPlanTest {
         // Wrong length
         NoiseGroupPlan shortCurve = plan("{\"type\": \"multi_biome\", "
                 + "\"structures\": {\"radial\": {\"dungeons\": [1.0, 2.0]}}}");
-        assertEquals(0.0, shortCurve.groups().get("dungeons").radial()[0], 1e-6);
+        assertArrayEquals(StructureGroupRegistry.curve("outer"),
+                shortCurve.groups().get("dungeons").radial(), 1e-9,
+                "a malformed curve falls back to the type default");
         // Out of range
         NoiseGroupPlan wild = plan("{\"type\": \"multi_biome\", \"structures\": {\"radial\": "
                 + "{\"dungeons\": [0,0,0,0,0,0,0,0,0,99]}}}");
-        assertEquals(0.0, wild.groups().get("dungeons").radial()[0], 1e-6);
+        assertArrayEquals(StructureGroupRegistry.curve("outer"),
+                wild.groups().get("dungeons").radial(), 1e-9);
     }
 
     @Test
@@ -244,13 +277,13 @@ class NoiseGroupPlanTest {
 
     @Test
     void exclusionScalesWithTheProfileMultiplier() {
-        // deco base exclusion is 3: dense x0.6 -> 2, sparse x1.5 -> 5.
+        // deco base exclusion is 3: dense x1.6 -> 5, sparse x2.6 -> 8.
         NoiseGroupPlan dense = plan(
                 "{\"type\": \"multi_biome\", \"structures\": {\"noise\": \"dense\"}}");
         NoiseGroupPlan sparse = plan(
                 "{\"type\": \"multi_biome\", \"structures\": {\"noise\": \"sparse\"}}");
-        assertEquals(2, dense.groups().get("deco").exclusion());
-        assertEquals(5, sparse.groups().get("deco").exclusion());
+        assertEquals(5, dense.groups().get("deco").exclusion());
+        assertEquals(8, sparse.groups().get("deco").exclusion());
         assertTrue(sparse.groups().get("endgame").exclusion()
                 > dense.groups().get("endgame").exclusion());
     }
@@ -263,11 +296,11 @@ class NoiseGroupPlanTest {
         }
     }
 
-    // --- base worlds -------------------------------------------------------
+    // --- reserved dimensions -------------------------------------------------
 
     @Test
-    void aBaseWorldResolvesItsFamilysGroupsFromItsNameAlone() {
-        // A base-world file names no type — its generator is vanilla's — so
+    void aReservedDimensionResolvesItsFamilysGroupsFromItsNameAlone() {
+        // A reserved-dimension file names no type — its generator is vanilla's — so
         // the family comes from the filename the loader stamped.
         DimensionConfig config = GSON.fromJson(
                 "{\"seed\": 42, \"borders\": {\"player\": 1024}}", DimensionConfig.class);
@@ -279,7 +312,7 @@ class NoiseGroupPlanTest {
     }
 
     @Test
-    void eachBaseWorldCanonicalTypeResolvesToItsFamilysGroups() {
+    void eachReservedDimensionCanonicalTypeResolvesToItsFamilysGroups() {
         assertEquals(StructureGroupRegistry.knownGroups(),
                 plan("{\"type\": \"overworld\"}").groups().keySet());
         assertEquals(java.util.Set.of("deco", "settlements", "dungeons", "landmarks", "endgame"),
@@ -291,9 +324,9 @@ class NoiseGroupPlanTest {
     }
 
     @Test
-    void baseWorldDifficultyStillDrivesTheShifts() {
+    void reservedDimensionDifficultyStillDrivesTheShifts() {
         // the_end ships mobMultiplier 1.5 and the_nether higher still — the
-        // shifts must apply to a base world exactly as to any other dimension.
+        // shifts must apply to a reserved dimension exactly as to any other dimension.
         NoiseGroupPlan hostile = plan("{\"type\": \"nether\", "
                 + "\"difficulty\": {\"mobMultiplier\": 2.5}}");
         assertEquals(1.0, hostile.groups().get("dungeons").radial()[0], 1e-6);

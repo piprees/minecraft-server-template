@@ -1,0 +1,109 @@
+# Seed roller — LOCAL PROFILE ONLY.
+#
+# The roller is the page the custom-dimensions mod hosts on
+# SEED_VIEWER_PORT (default 8765) inside the mc container. It has no
+# authentication, it can teleport the player, and it writes rolled winners
+# into the consumer's committed overlay — so it is a trusted-LAN tool and
+# must never be reachable from the internet.
+#
+# That constraint is enforced by WHERE this file is staged, not by anything
+# in it: docker-compose.yml's nav-proxy command copies only
+# nav-proxy.conf.template, and docker-compose.local.yml overrides that
+# command to stage this file alongside it. The cloud profile never has this
+# server block at all, so there is nothing for a stray DNS record or tunnel
+# route to reach.
+server {
+    listen 80;
+    server_name seeds.${DOMAIN};
+
+    server_tokens off;
+
+    resolver 127.0.0.11 valid=10s ipv6=off;
+
+    # The roller mutates state (start/stop a roll, pick a winner, teleport
+    # into a try-out), so POST belongs here — unlike every read-only surface
+    # in nav-proxy.conf.template.
+    if ($request_method !~ ^(GET|HEAD|POST|OPTIONS)$) {
+        return 405;
+    }
+
+    add_header X-Robots-Tag "noindex, nofollow" always;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+    add_header Permissions-Policy "camera=(), microphone=(), geolocation=()" always;
+
+    proxy_buffer_size 8k;
+    proxy_buffers 4 16k;
+    client_max_body_size 1m;
+
+    # A roll runs for minutes and the viewer polls /pipeline-status while it
+    # does. The mod serves every route from a SINGLE-threaded executor, so a
+    # request nginx is still holding blocks every other one — keep the read
+    # timeout generous enough for a slow render but far short of forever.
+    proxy_connect_timeout 10s;
+    proxy_read_timeout 300s;
+    proxy_send_timeout 30s;
+
+    proxy_hide_header X-Powered-By;
+    # The mod sets its own Cache-Control on some routes; without hiding it
+    # the add_header below stacks a second, identical header.
+    proxy_hide_header Cache-Control;
+
+    # Thumbnails and census artefacts are rewritten by every roll, and a
+    # stale one is exactly the "the map disagrees with the facts" confusion
+    # T32 is about. Never cache them.
+    location ~ ^/(renders|census)/ {
+        set $seed_upstream http://mc:8765;
+        proxy_pass $seed_upstream;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        add_header Cache-Control "no-store" always;
+    }
+
+    # Live state — the roller's own progress. Never cached, for the same
+    # reason.
+    location ~ ^/(api/|pipeline|focus|pick|render|tryout) {
+        set $seed_upstream http://mc:8765;
+        proxy_pass $seed_upstream;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        add_header Cache-Control "no-store" always;
+    }
+
+    location / {
+        set $seed_upstream http://mc:8765;
+        proxy_pass $seed_upstream;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+
+        # Anchored on </html>, not the </head> and </body> every other
+        # surface uses: the viewer page omits both optional closing tags, so
+        # those filters match nothing and the nav silently never appears.
+        sub_filter '</html>' '
+<style>
+.site-nav{position:fixed;top:0;left:0;right:0;z-index:99999;display:flex;flex-wrap:wrap;align-items:center;gap:1.5rem;padding:.75rem 1.5rem;border-bottom:1px solid #1c2835;background:#080d12;font-family:system-ui,-apple-system,sans-serif;font-size:.875rem}
+.site-nav-brand{display:inline-flex;align-items:center;gap:.5rem;font-family:system-ui,-apple-system,sans-serif;font-weight:700;font-size:1.1rem;color:#e8ecf1;letter-spacing:.03em;margin-right:auto;text-decoration:none}
+.site-nav-brand img{width:28px;height:28px;border-radius:6px}
+.site-nav a{color:#7a8999;text-decoration:none;transition:color .15s}
+.site-nav a:hover{color:#c5cdd8}.site-nav a.site-nav-brand{color:#e8ecf1}
+.site-nav a[aria-current]{color:#5a9a70}
+@media (max-width:600px){.site-nav{gap:.85rem;padding:.65rem .75rem;font-size:.8rem;flex-wrap:nowrap;overflow-x:auto}.site-nav-brand{font-size:1rem;gap:.4rem}}
+@media (max-width:360px){.site-nav-brand{font-size:0;gap:0}}
+body{padding-top:44px !important}
+</style>
+<nav class="site-nav">
+<a href="${NAV_SCHEME}://pack.${DOMAIN}${NAV_PORT}" class="site-nav-brand" aria-label="${BRAND_NAME}"><img src="${NAV_SCHEME}://pack.${DOMAIN}${NAV_PORT}/icon.svg" alt="" role="presentation" width="28" height="28" loading="eager" decoding="async">${BRAND_NAME}</a>
+<a href="${NAV_SCHEME}://map.${DOMAIN}${NAV_PORT}">Map</a>
+<a href="${NAV_SCHEME}://status.${DOMAIN}${NAV_PORT}">Status</a>
+<a href="${NAV_SCHEME}://pack.${DOMAIN}${NAV_PORT}">Download</a>
+<a href="${NAV_SCHEME}://mods.${DOMAIN}${NAV_PORT}">Mods</a>
+<a href="${NAV_SCHEME}://seeds.${DOMAIN}${NAV_PORT}" aria-current="page">Seeds</a>
+</nav>
+</html>';
+
+        sub_filter_once on;
+        proxy_set_header Accept-Encoding "";
+        add_header Cache-Control "no-store" always;
+    }
+}

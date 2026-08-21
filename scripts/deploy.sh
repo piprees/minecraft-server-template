@@ -43,6 +43,12 @@ else
 fi
 cd "$SERVER_DIR"
 
+# A 'dev' symlink farm is a workstation-only testing device (./dev link) —
+# deploying through one would run unreleased code on production.
+if [[ "$(readlink "$SERVER_DIR/.stack/current" 2> /dev/null)" == "dev" ]]; then
+  die "Refusing to deploy: .stack/current points at a 'dev' symlink farm (./dev link). Restore a release bundle first (stack-pull.sh / ./ops update)."
+fi
+
 COMPOSE_FILE="$STACK_DIR/docker-compose.yml"
 
 # --- deploy banner ----------------------------------------------------------
@@ -414,10 +420,8 @@ local_data_cfg="$SERVER_DIR/data/config"
 #
 # Clearing it only when a source directory exists means REMOVING a consumer
 # overlay never takes effect: the staged copy survives and keeps replacing
-# every platform dimension file, silently, for good. Hit on the local consumer
-# 2026-07-26 — an overlay deleted days earlier was still overriding all 82
-# dimensions, so a released config change deployed and did nothing. The
-# symptom is a boot warning about config you have already fixed.
+# every platform dimension file, silently, for good. The symptom is a boot
+# warning about config you have already fixed.
 rm -rf "$local_data_cfg/custom-dimensions/overlay"
 
 if [[ -d "$SERVER_DIR/overlay/config" ]]; then
@@ -777,7 +781,7 @@ if [[ -e "$MULTIVERSE_CONFIG" ]]; then
 import json, sys
 from pathlib import Path
 src = Path(sys.argv[1])
-base_worlds = {"overworld", "the_nether", "the_end", "paradise_lost"}
+reserved_names = {"overworld", "the_nether", "the_end", "paradise_lost"}
 if src.is_dir():
     settings = {}
     sf = src / "settings.json"
@@ -785,7 +789,7 @@ if src.is_dir():
         settings = json.load(open(sf))
     print(settings.get("namespace", "adventure"))
     for f in sorted((src / "dimensions").glob("*.json")):
-        if f.stem in base_worlds:
+        if f.stem in reserved_names:
             continue
         try:
             d = json.load(open(f))
@@ -880,15 +884,31 @@ fi
 # Config-driven spawn wins: when the multiverse config's worlds[] overworld
 # entry carries "spawn": [x, y, z], the custom-dimensions mod applies it at
 # server start — the env enforcement below would fight it, so it only runs
-# when the config has no spawn.
+# when the config has no spawn. [0, 64, 0] is the seed roller's old
+# placeholder for "no site chosen", not a choice — it must not silence
+# SPAWN_X/Y/Z (the roller no longer writes it, but stamped configs remain).
 CONFIG_HAS_SPAWN="$(python3 -c "
 import json, os
 try:
-    ow = {}
-    v4 = '$SERVER_DIR/data/config/custom-dimensions/dimensions/overworld.json'
-    if os.path.exists(v4):
-        ow = json.load(open(v4))
-    print('yes' if isinstance(ow.get('spawn'), list) and len(ow['spawn']) == 3 else 'no')
+    # The answer must match what the MOD resolves at boot: the staged
+    # consumer overlay merges over the platform file (a file without
+    # 'overrides' replaces the entry wholesale; with 'overrides' only the
+    # named keys win). Reading the platform copy alone called an
+    # overlay-chosen spawn 'not chosen' and stamped SPAWN_X/Y/Z over it.
+    base = '$SERVER_DIR/data/config/custom-dimensions/dimensions/overworld.json'
+    over = '$SERVER_DIR/data/config/custom-dimensions/overlay/dimensions/overworld.json'
+    spawn = None
+    if os.path.exists(base):
+        spawn = json.load(open(base)).get('spawn')
+    if os.path.exists(over):
+        d = json.load(open(over))
+        if isinstance(d.get('overrides'), dict):
+            spawn = d['overrides'].get('spawn', spawn)
+        else:
+            spawn = d.get('spawn')
+    chosen = (isinstance(spawn, list) and len(spawn) == 3
+              and spawn != [0, 64, 0])
+    print('yes' if chosen else 'no')
 except Exception:
     print('no')
 " 2> /dev/null || echo no)"

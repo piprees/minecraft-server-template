@@ -44,16 +44,18 @@ This is the "Epic Dungeons + c2me wedge" documented in this repo's known issues:
 
 `ServerWorldSeedMixin` overrides `ServerWorld.getSeed()` per dimension — that value feeds `NoiseConfig` (terrain, biome layout, aquifers) and structure placement. c2me's density-function compiler (`c2me-opts-dfc`) caches compiled+instantiated density functions across `NoiseConfig` creations and **ignores the seed**, so with it enabled every custom dimension silently clones the main world's terrain.
 
-`deploy.sh` (step 8c) and `dev-up.sh` force `useDensityFunctionCompiler = false` in `c2me.toml` on every boot; the rest of c2me stays enabled. Two sharp edges:
+The mod's preLaunch entrypoint (`C2meConfigPatch`) forces `useDensityFunctionCompiler = false` into `c2me.toml` on every boot; the rest of c2me stays enabled. Two facts to hold:
 
-1. **c2me strips the unknown key when it rewrites its own config at boot**, after reading it. The key is read first, so enforcement holds — but only because both boot paths re-apply the patch every single time. The key's absence from `c2me.toml` after boot is _expected_, not a sign the patch failed.
-2. **A bare `docker restart mc` in the local loop boots WITHOUT the patch.** After any manual restart, re-apply the patch (or re-run `./dev up`) before trusting seed-dependent results. See the main SKILL.md § Fast local loop for the exact idempotent snippet.
+1. **c2me reads its config at mixin-bootstrap time — before any entrypoint.** Every boot after the first is self-patched, bare `docker restart mc` included ([TROUBLESHOOTING.md#d6](../../../../TROUBLESHOOTING.md#d6)).
+2. **The one gap is a fresh environment's very first boot** (new jar, no key on disk) — `deploy.sh` (step 8c) and `dev-up.sh` pre-patch as the second layer, which covers that boot on every scripted path.
 
-**Verify via log grep, never by inspecting the config file**:
+**Verify by reading the file.** c2me `0.4.0-alpha.0.27` rewrites `c2me.toml` each boot with its own comment block and keeps the value:
 
 ```bash
-docker exec mc grep "Removing config entry .vanillaWorldGenOptimizations.useDensityFunctionCompiler" /data/logs/latest.log
+docker exec mc grep useDensityFunctionCompiler /data/config/c2me.toml
 ```
+
+`useDensityFunctionCompiler = false` is the proof. Below that pin c2me treats the key as unknown and strips it, and the proof is instead the log line `Removing config entry .vanillaWorldGenOptimizations.useDensityFunctionCompiler because it is not used`.
 
 When testing seeds, use the locate oracle: two dimensions with different configured seeds must give different `execute in <ns>:<dim> run locate biome/structure` results; two dimensions with the same seed must match. If they don't behave this way, suspect the DFC patch didn't apply on the current boot before suspecting your own mod code.
 

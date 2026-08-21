@@ -1,0 +1,7 @@
+
+# Eclipse build output. Gradle builds into build/; this is the IDE's own
+# copy of the same resources, and three of them were tracked by accident.
+bin/
+.classpath
+.factorypath
+.settings/

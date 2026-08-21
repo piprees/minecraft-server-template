@@ -5,7 +5,7 @@ LABEL org.opencontainers.image.source=${REPO_URL} \
       org.opencontainers.image.description="Idle maintenance: save, GC, Chunky pre-gen" \
       org.opencontainers.image.licenses="MIT"
 
-RUN apk add --no-cache bash curl docker-cli
+RUN apk add --no-cache bash curl docker-cli jq
 
 COPY scripts/idle-tasks.sh /app/
 

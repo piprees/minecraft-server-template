@@ -3,40 +3,18 @@ package com.customdimensions.immersive;
 /**
  * How much projection work one refresh pass is allowed to do.
  *
- * <h2>Why this exists</h2>
- * {@link PlayerProjectionState}'s javadoc claimed batching was unnecessary:
- * <em>"the default 2x3 doorway at depth 8 / radius 2 has 336 CANDIDATE
- * positions … the sightline mask sends well under half of those from any one
- * viewing position."</em> Both halves of that were falsified in game on
- * 2026-07-25:
+ * <p>Walking past a portal inverts the whole sightline mask at once: every
+ * position the player could see needs a correction packet in the same pass —
+ * on the order of a thousand {@code BlockUpdateS2CPacket}s in a single tick,
+ * per viewer, per portal, enough to stall the server for several seconds.
  *
- * <pre>
- *   immersive: sightline mask ... 0 of 1056 maskable visible, 984 restored
- *   immersive: sightline mask ... 972 of 1056 maskable visible, 8 restored
- * </pre>
- *
- * 1056 candidates, not 336 — {@code previewRadius} was raised from 2 to 4 in
- * a later session and nothing revisited the budget note. And a single pass
- * sent 984 packets, not "well under half", because walking past a portal
- * flips the whole sightline mask at once: everything the player could see
- * becomes invisible, and every one of those positions needs a correction
- * packet in the SAME pass.
- *
- * <p>At the default 4-tick interval that is ~1000 {@code BlockUpdateS2CPacket}s
- * in one tick, per viewer, per portal. Reported as "a massive lag spike
- * lasting several seconds and the fake blocks stuck around for ages".
- *
- * <h2>The rule</h2>
- * <b>Restores outrank sends, always.</b> A fake block the client is still
- * showing after it should have gone is a visible defect — the player collides
- * with something that is not there. A fake block not yet sent is merely
- * absent: the view is incomplete for a few ticks and then correct. So when
- * the budget cannot cover everything, restores go first and sends wait.
- *
- * <p>This is the same priority the {@code lastSent} invariant implies:
+ * <p><b>The rule: restores outrank sends, always.</b> A fake block the
+ * client is still showing after it should have gone is a visible defect —
+ * the player collides with something that is not there. A fake block not
+ * yet sent is merely absent. This matches the {@code lastSent} invariant:
  * nothing leaves {@code lastSent} without a correction packet having gone
- * out, so deferring a restore means carrying a known-stale entry for longer.
- * Deferring a send costs nothing but latency.
+ * out, so deferring a restore means carrying a known-stale entry for longer,
+ * while deferring a send costs nothing but latency.
  *
  * <p>Pure arithmetic over plain ints — no packets, no world, no MC runtime.
  */

@@ -1,10 +1,26 @@
 {
-  "count": 377,
+  "count": 416,
   "structure_sets": {
+    "adventure:exit_shrines": {
+      "source": "customdimensions.jar",
+      "theme": "landmark",
+      "structures": [
+        "adventure:exit_shrine"
+      ],
+      "placementType": "minecraft:random_spread",
+      "spacing": 24,
+      "separation": 12,
+      "frequency": 0.001,
+      "dimension": "overworld",
+      "rarity": "legendary"
+    },
     "adventuredungeons:bygonedungeon": {
       "source": "adventuredungeons-fabric-1.21-1.3.1.jar",
       "theme": "dungeon",
-      "structures": ["adventuredungeons:bygonedungeon"],
+      "structures": [
+        "adventuredungeons:bygonedungeon"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 40,
       "separation": 12,
       "frequency": 1.0,
@@ -14,7 +30,10 @@
     "adventuredungeons:coldlair": {
       "source": "adventuredungeons-fabric-1.21-1.3.1.jar",
       "theme": "dungeon",
-      "structures": ["adventuredungeons:coldlair"],
+      "structures": [
+        "adventuredungeons:coldlair"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 40,
       "separation": 12,
       "frequency": 1.0,
@@ -24,7 +43,10 @@
     "adventuredungeons:murkydungeon": {
       "source": "adventuredungeons-fabric-1.21-1.3.1.jar",
       "theme": "dungeon",
-      "structures": ["adventuredungeons:murkydungeon"],
+      "structures": [
+        "adventuredungeons:murkydungeon"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 40,
       "separation": 12,
       "frequency": 1.0,
@@ -34,7 +56,10 @@
     "adventuredungeons:ruins_desert": {
       "source": "adventuredungeons-fabric-1.21-1.3.1.jar",
       "theme": "dungeon",
-      "structures": ["adventuredungeons:ruins_desert"],
+      "structures": [
+        "adventuredungeons:ruins_desert"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 30,
       "separation": 10,
       "frequency": 1.0,
@@ -44,7 +69,10 @@
     "adventuredungeons:ruins_snow": {
       "source": "adventuredungeons-fabric-1.21-1.3.1.jar",
       "theme": "dungeon",
-      "structures": ["adventuredungeons:ruins_snow"],
+      "structures": [
+        "adventuredungeons:ruins_snow"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 30,
       "separation": 10,
       "frequency": 1.0,
@@ -54,7 +82,10 @@
     "adventuredungeons:ruins_standard": {
       "source": "adventuredungeons-fabric-1.21-1.3.1.jar",
       "theme": "dungeon",
-      "structures": ["adventuredungeons:ruins_standard"],
+      "structures": [
+        "adventuredungeons:ruins_standard"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 30,
       "separation": 10,
       "frequency": 1.0,
@@ -64,7 +95,10 @@
     "adventuredungeons:trialrooms": {
       "source": "adventuredungeons-fabric-1.21-1.3.1.jar",
       "theme": "dungeon",
-      "structures": ["adventuredungeons:trialrooms"],
+      "structures": [
+        "adventuredungeons:trialrooms"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 35,
       "separation": 12,
       "frequency": 1.0,
@@ -74,7 +108,10 @@
     "adventuredungeons:underground_camp": {
       "source": "adventuredungeons-fabric-1.21-1.3.1.jar",
       "theme": "settlement",
-      "structures": ["adventuredungeons:underground_camp"],
+      "structures": [
+        "adventuredungeons:underground_camp"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 35,
       "separation": 12,
       "frequency": 1.0,
@@ -108,6 +145,7 @@
         "ati_structures:old_residence",
         "ati_structures:catalonian_castle"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 70,
       "separation": 69,
       "frequency": 0.85,
@@ -129,21 +167,66 @@
         "ati_structures:wither_keep",
         "ati_structures:dark_keep"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 55,
       "separation": 3,
       "frequency": 0.85,
       "dimension": "overworld",
       "rarity": "rare"
     },
+    "ati_structures:aboveground_small": {
+      "source": "ATi Structures V1.4.4 (1.21+).zip",
+      "theme": "settlement",
+      "structures": [
+        "ati_structures:deepslate_keep",
+        "ati_structures:haunted_ruin",
+        "ati_structures:ice_tribe",
+        "ati_structures:nomadic_camp",
+        "ati_structures:rotten_log",
+        "ati_structures:stray_ruins",
+        "ati_structures:rotting_temple",
+        "ati_structures:old_home",
+        "ati_structures:illager_homestead",
+        "ati_structures:mud_tower",
+        "ati_structures:storage_house",
+        "ati_structures:storage_shack"
+      ],
+      "placementType": "minecraft:random_spread",
+      "spacing": 33,
+      "separation": 1,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
     "ati_structures:rare": {
       "source": "datapack:structures",
       "theme": "settlement",
-      "structures": ["ati_structures:gnome_hut", "ati_structures:warden_monument", "ati_structures:ancient_vessel"],
+      "structures": [
+        "ati_structures:gnome_hut",
+        "ati_structures:warden_monument",
+        "ati_structures:ancient_vessel"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 111,
       "separation": 99,
       "frequency": 0.85,
       "dimension": "overworld",
       "rarity": "very_rare"
+    },
+    "ati_structures:underground_medium": {
+      "source": "ATi Structures V1.4.4 (1.21+).zip",
+      "theme": "dungeon",
+      "structures": [
+        "ati_structures:underground_monument",
+        "ati_structures:spider_nest",
+        "ati_structures:wither_cavern"
+      ],
+      "placementType": "minecraft:random_spread",
+      "spacing": 35,
+      "separation": 20,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "uncommon"
     },
     "ati_structures:underground_small": {
       "source": "datapack:structures",
@@ -155,6 +238,7 @@
         "ati_structures:rotting_temple_underground",
         "ati_structures:pufferfish_cave"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 15,
       "separation": 10,
       "frequency": 0.6,
@@ -164,7 +248,10 @@
     "betterdeserttemples:desert_temples": {
       "source": "YungsBetterDesertTemples-1.21.1-Fabric-4.1.5.jar",
       "theme": "landmark",
-      "structures": ["betterdeserttemples:desert_temple"],
+      "structures": [
+        "betterdeserttemples:desert_temple"
+      ],
+      "placementType": "betterdeserttemples:desert_temple",
       "spacing": 30,
       "separation": 20,
       "frequency": 1.0,
@@ -174,7 +261,10 @@
     "betterdungeons:skeleton_dungeons": {
       "source": "YungsBetterDungeons-1.21.1-Fabric-5.1.4.jar",
       "theme": "dungeon",
-      "structures": ["betterdungeons:skeleton_dungeon"],
+      "structures": [
+        "betterdungeons:skeleton_dungeon"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 46,
       "separation": 23,
       "frequency": 1.0,
@@ -184,7 +274,10 @@
     "betterdungeons:small_dungeons": {
       "source": "datapack:structures",
       "theme": "dungeon",
-      "structures": ["betterdungeons:small_dungeon"],
+      "structures": [
+        "betterdungeons:small_dungeon"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 10,
       "separation": 6,
       "frequency": 0.6,
@@ -194,7 +287,10 @@
     "betterdungeons:small_nether_dungeons": {
       "source": "YungsBetterDungeons-1.21.1-Fabric-5.1.4.jar",
       "theme": "dungeon",
-      "structures": ["betterdungeons:small_nether_dungeon"],
+      "structures": [
+        "betterdungeons:small_nether_dungeon"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 16,
       "separation": 10,
       "frequency": 1.0,
@@ -204,7 +300,10 @@
     "betterdungeons:spider_dungeons": {
       "source": "YungsBetterDungeons-1.21.1-Fabric-5.1.4.jar",
       "theme": "dungeon",
-      "structures": ["betterdungeons:spider_dungeon"],
+      "structures": [
+        "betterdungeons:spider_dungeon"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 44,
       "separation": 22,
       "frequency": 1.0,
@@ -214,17 +313,103 @@
     "betterdungeons:zombie_dungeons": {
       "source": "YungsBetterDungeons-1.21.1-Fabric-5.1.4.jar",
       "theme": "dungeon",
-      "structures": ["betterdungeons:zombie_dungeon"],
+      "structures": [
+        "betterdungeons:zombie_dungeon"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 48,
       "separation": 24,
       "frequency": 1.0,
       "dimension": "overworld",
       "rarity": "uncommon"
     },
+    "betterend:end_village": {
+      "source": "better-end-21.0.11.jar",
+      "theme": "settlement",
+      "structures": [
+        "betterend:end_village"
+      ],
+      "placementType": "minecraft:random_spread",
+      "spacing": 34,
+      "separation": 8,
+      "frequency": 1.0,
+      "dimension": "end",
+      "rarity": "uncommon"
+    },
+    "betterend:eternal_portal": {
+      "source": "better-end-21.0.11.jar",
+      "theme": "landmark",
+      "structures": [
+        "betterend:eternal_portal"
+      ],
+      "placementType": "minecraft:random_spread",
+      "spacing": 40,
+      "separation": 12,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
+    "betterend:giant_ice_star": {
+      "source": "better-end-21.0.11.jar",
+      "theme": "landmark",
+      "structures": [
+        "betterend:giant_ice_star"
+      ],
+      "placementType": "minecraft:random_spread",
+      "spacing": 16,
+      "separation": 8,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "betterend:giant_mossy_glowshroom": {
+      "source": "better-end-21.0.11.jar",
+      "theme": "landmark",
+      "structures": [
+        "betterend:giant_mossy_glowshroom"
+      ],
+      "placementType": "minecraft:random_spread",
+      "spacing": 16,
+      "separation": 8,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "betterend:megalake": {
+      "source": "better-end-21.0.11.jar",
+      "theme": "landmark",
+      "structures": [
+        "betterend:megalake",
+        "betterend:megalake_small"
+      ],
+      "placementType": "minecraft:random_spread",
+      "spacing": 4,
+      "separation": 1,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "betterend:mountain": {
+      "source": "better-end-21.0.11.jar",
+      "theme": "landmark",
+      "structures": [
+        "betterend:mountain",
+        "betterend:painted_mountain"
+      ],
+      "placementType": "minecraft:random_spread",
+      "spacing": 3,
+      "separation": 2,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
     "betterfortresses:fortress": {
       "source": "YungsBetterNetherFortresses-1.21.1-Fabric-3.1.5.jar",
       "theme": "landmark",
-      "structures": ["betterfortresses:fortress"],
+      "structures": [
+        "betterfortresses:fortress"
+      ],
+      "placementType": "yungsapi:enhanced_random_spread",
       "spacing": 30,
       "separation": 20,
       "frequency": 1.0,
@@ -234,7 +419,10 @@
     "betterjungletemples:jungle_temples": {
       "source": "YungsBetterJungleTemples-1.21.1-Fabric-3.1.2.jar",
       "theme": "landmark",
-      "structures": ["betterjungletemples:jungle_temple"],
+      "structures": [
+        "betterjungletemples:jungle_temple"
+      ],
+      "placementType": "betterjungletemples:jungle_temple",
       "spacing": 24,
       "separation": 8,
       "frequency": 1.0,
@@ -259,6 +447,7 @@
         "bettermineshafts:mineshaft_overgrown",
         "bettermineshafts:mineshaft_dripstone"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 1,
       "separation": 0,
       "frequency": 0.003,
@@ -268,7 +457,10 @@
     "betteroceanmonuments:ocean_monument": {
       "source": "YungsBetterOceanMonuments-1.21.1-Fabric-4.1.2.jar",
       "theme": "maritime",
-      "structures": ["betteroceanmonuments:ocean_monument"],
+      "structures": [
+        "betteroceanmonuments:ocean_monument"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 50,
       "separation": 20,
       "frequency": 1.0,
@@ -278,7 +470,10 @@
     "betterstrongholds:stronghold": {
       "source": "YungsBetterStrongholds-1.21.1-Fabric-5.1.3.jar",
       "theme": "dungeon",
-      "structures": ["betterstrongholds:stronghold"],
+      "structures": [
+        "betterstrongholds:stronghold"
+      ],
+      "placementType": "betterstrongholds:stronghold",
       "spacing": 85,
       "separation": 50,
       "frequency": 1.0,
@@ -288,7 +483,10 @@
     "betterwitchhuts:witch_circle": {
       "source": "YungsBetterWitchHuts-1.21.1-Fabric-4.1.1.jar",
       "theme": "settlement",
-      "structures": ["betterwitchhuts:witch_circle"],
+      "structures": [
+        "betterwitchhuts:witch_circle"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 40,
       "separation": 10,
       "frequency": 1.0,
@@ -298,7 +496,10 @@
     "betterwitchhuts:witch_hut": {
       "source": "YungsBetterWitchHuts-1.21.1-Fabric-4.1.1.jar",
       "theme": "settlement",
-      "structures": ["betterwitchhuts:witch_hut"],
+      "structures": [
+        "betterwitchhuts:witch_hut"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 30,
       "separation": 8,
       "frequency": 1.0,
@@ -308,7 +509,11 @@
     "ddd:dddtowers": {
       "source": "deadly-deadly-dungeon-1.0.4.jar",
       "theme": "landmark",
-      "structures": ["ddd:monolithic_tower", "ddd:monolithic_tower"],
+      "structures": [
+        "ddd:monolithic_tower",
+        "ddd:monolithic_tower"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 43,
       "separation": 32,
       "frequency": 1.0,
@@ -327,6 +532,7 @@
         "ddd:minor_dungeon_frozen",
         "ddd:minor_dungeon_frozen"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 50,
       "separation": 40,
       "frequency": 1.0,
@@ -370,6 +576,7 @@
         "dungeons_arise:mechanical_nest",
         "dungeons_arise:kisegi_sanctuary"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 50,
       "separation": 45,
       "frequency": 0.5,
@@ -387,11 +594,29 @@
         "dungeons_arise:abandoned_temple",
         "dungeons_arise:lighthouse"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 45,
       "separation": 40,
       "frequency": 1.0,
       "dimension": "overworld",
       "rarity": "uncommon"
+    },
+    "dungeons_arise_seven_seas:minor_structures": {
+      "source": "DungeonsAriseSevenSeas-1.21.x-1.0.4-fabric.jar",
+      "theme": "maritime",
+      "structures": [
+        "dungeons_arise_seven_seas:unicorn_galleon",
+        "dungeons_arise_seven_seas:pirate_junk",
+        "dungeons_arise_seven_seas:small_yacht",
+        "dungeons_arise_seven_seas:victory_frigate",
+        "dungeons_arise_seven_seas:corsair_corvette"
+      ],
+      "placementType": "minecraft:random_spread",
+      "spacing": 68,
+      "separation": 60,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "rare"
     },
     "dungeons_plus:dungeons": {
       "source": "datapack:structures",
@@ -408,6 +633,7 @@
         "dungeons_plus:dusty_tomb",
         "dungeons_plus:scorched_tomb"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 8,
       "separation": 3,
       "frequency": 0.5,
@@ -417,7 +643,10 @@
     "dungeons_plus:ruins": {
       "source": "dungeons+-1.10.1.jar",
       "theme": "dungeon",
-      "structures": ["dungeons_plus:dungeon_ruins"],
+      "structures": [
+        "dungeons_plus:dungeon_ruins"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 18,
       "separation": 10,
       "frequency": 0.5,
@@ -425,9 +654,14 @@
       "rarity": "common"
     },
     "epic:large_dungeons": {
-      "source": "Epic Dungeons 1.2.2.jar",
+      "source": "epic-structures-dungeons-1.2.4.jar",
       "theme": "dungeon",
-      "structures": ["epic:large_dungeon", "epic:large_ice_dungeon", "epic:large_sand_dungeon"],
+      "structures": [
+        "epic:large_dungeon",
+        "epic:large_ice_dungeon",
+        "epic:large_sand_dungeon"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 61,
       "separation": 60,
       "frequency": 1.0,
@@ -435,9 +669,14 @@
       "rarity": "endgame"
     },
     "epic:medium_dungeons": {
-      "source": "Epic Dungeons 1.2.2.jar",
+      "source": "epic-structures-dungeons-1.2.4.jar",
       "theme": "dungeon",
-      "structures": ["epic:medium_sand_dungeon", "epic:medium_ice_dungeon", "epic:medium_plains_dungeon"],
+      "structures": [
+        "epic:medium_sand_dungeon",
+        "epic:medium_ice_dungeon",
+        "epic:medium_plains_dungeon"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 45,
       "separation": 31,
       "frequency": 1.0,
@@ -445,9 +684,14 @@
       "rarity": "uncommon"
     },
     "epic:small_dungeons": {
-      "source": "Epic Dungeons 1.2.2.jar",
+      "source": "epic-structures-dungeons-1.2.4.jar",
       "theme": "dungeon",
-      "structures": ["epic:small_ice_dungeon", "epic:small_plains_dungeon", "epic:small_sand_dungeon"],
+      "structures": [
+        "epic:small_ice_dungeon",
+        "epic:small_plains_dungeon",
+        "epic:small_sand_dungeon"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 31,
       "separation": 4,
       "frequency": 1.0,
@@ -457,7 +701,10 @@
     "explorify:badlands_pyramids": {
       "source": "Explorify v1.6.5.mod.jar",
       "theme": "landmark",
-      "structures": ["explorify:badlands_pyramid"],
+      "structures": [
+        "explorify:badlands_pyramid"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 32,
       "separation": 12,
       "frequency": 0.75,
@@ -467,7 +714,10 @@
     "explorify:black_spirals": {
       "source": "Explorify v1.6.5.mod.jar",
       "theme": "landmark",
-      "structures": ["explorify:black_spiral"],
+      "structures": [
+        "explorify:black_spiral"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 40,
       "separation": 18,
       "frequency": 1.0,
@@ -477,7 +727,10 @@
     "explorify:campsites": {
       "source": "Explorify v1.6.5.mod.jar",
       "theme": "settlement",
-      "structures": ["explorify:campsite"],
+      "structures": [
+        "explorify:campsite"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 32,
       "separation": 16,
       "frequency": 0.8,
@@ -487,7 +740,10 @@
     "explorify:dark_forest_settlements": {
       "source": "Explorify v1.6.5.mod.jar",
       "theme": "settlement",
-      "structures": ["explorify:dark_forest_settlement"],
+      "structures": [
+        "explorify:dark_forest_settlement"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 32,
       "separation": 16,
       "frequency": 0.8,
@@ -497,7 +753,10 @@
     "explorify:desert_shrines": {
       "source": "Explorify v1.6.5.mod.jar",
       "theme": "landmark",
-      "structures": ["explorify:desert_shrine"],
+      "structures": [
+        "explorify:desert_shrine"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 24,
       "separation": 8,
       "frequency": 1.0,
@@ -507,7 +766,10 @@
     "explorify:end_shipwrecks": {
       "source": "Explorify v1.6.5.mod.jar",
       "theme": "maritime",
-      "structures": ["explorify:end_shipwreck"],
+      "structures": [
+        "explorify:end_shipwreck"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 24,
       "separation": 6,
       "frequency": 0.5,
@@ -517,7 +779,10 @@
     "explorify:farmsteads": {
       "source": "Explorify v1.6.5.mod.jar",
       "theme": "settlement",
-      "structures": ["explorify:farmstead"],
+      "structures": [
+        "explorify:farmstead"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 38,
       "separation": 28,
       "frequency": 0.8,
@@ -527,7 +792,11 @@
     "explorify:guide_posts": {
       "source": "Explorify v1.6.5.mod.jar",
       "theme": "landmark",
-      "structures": ["explorify:guide_post_cold", "explorify:guide_post_warm"],
+      "structures": [
+        "explorify:guide_post_cold",
+        "explorify:guide_post_warm"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 32,
       "separation": 10,
       "frequency": 0.75,
@@ -537,7 +806,10 @@
     "explorify:mangrove_huts": {
       "source": "Explorify v1.6.5.mod.jar",
       "theme": "settlement",
-      "structures": ["explorify:mangrove_hut"],
+      "structures": [
+        "explorify:mangrove_hut"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 28,
       "separation": 12,
       "frequency": 1.0,
@@ -547,7 +819,10 @@
     "explorify:mausoleums": {
       "source": "Explorify v1.6.5.mod.jar",
       "theme": "landmark",
-      "structures": ["explorify:mausoleum"],
+      "structures": [
+        "explorify:mausoleum"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 48,
       "separation": 16,
       "frequency": 0.8,
@@ -557,7 +832,10 @@
     "explorify:ruins": {
       "source": "Explorify v1.6.5.mod.jar",
       "theme": "ruins",
-      "structures": ["explorify:ruins"],
+      "structures": [
+        "explorify:ruins"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 48,
       "separation": 24,
       "frequency": 0.8,
@@ -576,6 +854,7 @@
         "explorify:supply_cache/mangrove",
         "explorify:supply_cache/taiga"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 32,
       "separation": 20,
       "frequency": 0.75,
@@ -585,7 +864,10 @@
     "explorify:taverns": {
       "source": "Explorify v1.6.5.mod.jar",
       "theme": "settlement",
-      "structures": ["explorify:tavern"],
+      "structures": [
+        "explorify:tavern"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 36,
       "separation": 18,
       "frequency": 0.8,
@@ -595,7 +877,12 @@
     "explorify:watchtowers": {
       "source": "Explorify v1.6.5.mod.jar",
       "theme": "landmark",
-      "structures": ["explorify:watchtower/plains", "explorify:watchtower/taiga", "explorify:watchtower/savanna"],
+      "structures": [
+        "explorify:watchtower/plains",
+        "explorify:watchtower/taiga",
+        "explorify:watchtower/savanna"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 48,
       "separation": 24,
       "frequency": 0.75,
@@ -603,9 +890,12 @@
       "rarity": "uncommon"
     },
     "friendsandfoes:citadel": {
-      "source": "friendsandfoes-fabric-4.0.26+mc1.21.1.jar",
+      "source": "friendsandfoes-fabric-4.0.27+mc1.21.1.jar",
       "theme": "landmark",
-      "structures": ["friendsandfoes:citadel"],
+      "structures": [
+        "friendsandfoes:citadel"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 16,
       "separation": 8,
       "frequency": 1.0,
@@ -613,9 +903,12 @@
       "rarity": "endgame"
     },
     "friendsandfoes:iceologer_cabin": {
-      "source": "friendsandfoes-fabric-4.0.26+mc1.21.1.jar",
+      "source": "friendsandfoes-fabric-4.0.27+mc1.21.1.jar",
       "theme": "landmark",
-      "structures": ["friendsandfoes:iceologer_cabin"],
+      "structures": [
+        "friendsandfoes:iceologer_cabin"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 40,
       "separation": 10,
       "frequency": 1.0,
@@ -623,9 +916,12 @@
       "rarity": "uncommon"
     },
     "friendsandfoes:illusioner_shack": {
-      "source": "friendsandfoes-fabric-4.0.26+mc1.21.1.jar",
+      "source": "friendsandfoes-fabric-4.0.27+mc1.21.1.jar",
       "theme": "landmark",
-      "structures": ["friendsandfoes:illusioner_shack"],
+      "structures": [
+        "friendsandfoes:illusioner_shack"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 40,
       "separation": 10,
       "frequency": 1.0,
@@ -633,19 +929,66 @@
       "rarity": "uncommon"
     },
     "friendsandfoes:illusioner_training_grounds": {
-      "source": "friendsandfoes-fabric-4.0.26+mc1.21.1.jar",
+      "source": "friendsandfoes-fabric-4.0.27+mc1.21.1.jar",
       "theme": "landmark",
-      "structures": ["friendsandfoes:illusioner_training_grounds"],
+      "structures": [
+        "friendsandfoes:illusioner_training_grounds"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 40,
       "separation": 10,
       "frequency": 1.0,
       "dimension": "overworld",
       "rarity": "uncommon"
     },
+    "galosphere:forgotten_ruins": {
+      "source": "Galosphere-1.21.1-1.5.4-Fabric.jar",
+      "theme": "ruins",
+      "structures": [
+        "galosphere:forgotten_ruins"
+      ],
+      "placementType": "minecraft:random_spread",
+      "spacing": 32,
+      "separation": 8,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
+    "galosphere:pink_salt_shrine": {
+      "source": "Galosphere-1.21.1-1.5.4-Fabric.jar",
+      "theme": "landmark",
+      "structures": [
+        "galosphere:pink_salt_shrine"
+      ],
+      "placementType": "minecraft:random_spread",
+      "spacing": 15,
+      "separation": 8,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "hellish_trials:minor_structures": {
+      "source": "HellishTrials-fabric-1.0.5.jar",
+      "theme": "landmark",
+      "structures": [
+        "hellish_trials:nether_trial"
+      ],
+      "placementType": "minecraft:random_spread",
+      "spacing": 45,
+      "separation": 25,
+      "frequency": 1.0,
+      "dimension": "nether",
+      "rarity": "uncommon"
+    },
     "incendium:greater_structures": {
       "source": "Incendium_1.21.x_v5.4.4.jar",
       "theme": "dungeon",
-      "structures": ["incendium:sanctum", "incendium:forbidden_castle", "incendium:nether_reactor"],
+      "structures": [
+        "incendium:sanctum",
+        "incendium:forbidden_castle",
+        "incendium:nether_reactor"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 30,
       "separation": 16,
       "frequency": 1.0,
@@ -663,6 +1006,7 @@
         "incendium:infernal_altar",
         "incendium:ruined_lab"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 20,
       "separation": 12,
       "frequency": 1.0,
@@ -672,7 +1016,10 @@
     "mes:astral_hideaway": {
       "source": "MoogsEndStructures-1.21-2.0.3.jar",
       "theme": "landmark",
-      "structures": ["mes:astral_hideaway"],
+      "structures": [
+        "mes:astral_hideaway"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 40,
       "separation": 18,
       "frequency": 1.0,
@@ -682,7 +1029,10 @@
     "mes:astral_meteorite": {
       "source": "MoogsEndStructures-1.21-2.0.3.jar",
       "theme": "landmark",
-      "structures": ["mes:astral_meteorite"],
+      "structures": [
+        "mes:astral_meteorite"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 27,
       "separation": 12,
       "frequency": 1.0,
@@ -692,7 +1042,10 @@
     "mes:ender_spire": {
       "source": "MoogsEndStructures-1.21-2.0.3.jar",
       "theme": "landmark",
-      "structures": ["mes:ender_spire"],
+      "structures": [
+        "mes:ender_spire"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 46,
       "separation": 38,
       "frequency": 1.0,
@@ -702,7 +1055,10 @@
     "mes:enderbloom_grove": {
       "source": "MoogsEndStructures-1.21-2.0.3.jar",
       "theme": "landmark",
-      "structures": ["mes:enderbloom_grove"],
+      "structures": [
+        "mes:enderbloom_grove"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 36,
       "separation": 12,
       "frequency": 1.0,
@@ -712,7 +1068,10 @@
     "mes:enderkeep_courtyard": {
       "source": "MoogsEndStructures-1.21-2.0.3.jar",
       "theme": "landmark",
-      "structures": ["mes:enderkeep_courtyard"],
+      "structures": [
+        "mes:enderkeep_courtyard"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 44,
       "separation": 25,
       "frequency": 1.0,
@@ -722,7 +1081,10 @@
     "mes:enderpin_spikes": {
       "source": "MoogsEndStructures-1.21-2.0.3.jar",
       "theme": "landmark",
-      "structures": ["mes:enderpin_spikes"],
+      "structures": [
+        "mes:enderpin_spikes"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 31,
       "separation": 8,
       "frequency": 1.0,
@@ -732,7 +1094,10 @@
     "mes:enderskog": {
       "source": "MoogsEndStructures-1.21-2.0.3.jar",
       "theme": "landmark",
-      "structures": ["mes:enderskog"],
+      "structures": [
+        "mes:enderskog"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 52,
       "separation": 22,
       "frequency": 1.0,
@@ -742,7 +1107,10 @@
     "mes:enderwatch_tower": {
       "source": "MoogsEndStructures-1.21-2.0.3.jar",
       "theme": "landmark",
-      "structures": ["mes:enderwatch_tower"],
+      "structures": [
+        "mes:enderwatch_tower"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 42,
       "separation": 12,
       "frequency": 1.0,
@@ -752,7 +1120,10 @@
     "mes:endscraps": {
       "source": "MoogsEndStructures-1.21-2.0.3.jar",
       "theme": "landmark",
-      "structures": ["mes:endscraps"],
+      "structures": [
+        "mes:endscraps"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 37,
       "separation": 7,
       "frequency": 1.0,
@@ -762,7 +1133,10 @@
     "mes:manuscript_shrine": {
       "source": "MoogsEndStructures-1.21-2.0.3.jar",
       "theme": "landmark",
-      "structures": ["mes:manuscript_shrine"],
+      "structures": [
+        "mes:manuscript_shrine"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 41,
       "separation": 27,
       "frequency": 1.0,
@@ -772,7 +1146,10 @@
     "mes:mega_ship": {
       "source": "MoogsEndStructures-1.21-2.0.3.jar",
       "theme": "maritime",
-      "structures": ["mes:mega_ship"],
+      "structures": [
+        "mes:mega_ship"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 77,
       "separation": 15,
       "frequency": 1.0,
@@ -782,7 +1159,10 @@
     "mes:mega_ship_basic": {
       "source": "MoogsEndStructures-1.21-2.0.3.jar",
       "theme": "maritime",
-      "structures": ["mes:mega_ship_basic"],
+      "structures": [
+        "mes:mega_ship_basic"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 80,
       "separation": 60,
       "frequency": 1.0,
@@ -792,7 +1172,10 @@
     "mes:mega_ship_crashed": {
       "source": "MoogsEndStructures-1.21-2.0.3.jar",
       "theme": "maritime",
-      "structures": ["mes:mega_ship_crashed"],
+      "structures": [
+        "mes:mega_ship_crashed"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 75,
       "separation": 46,
       "frequency": 1.0,
@@ -802,7 +1185,10 @@
     "mes:mega_ship_crashed_2": {
       "source": "MoogsEndStructures-1.21-2.0.3.jar",
       "theme": "maritime",
-      "structures": ["mes:mega_ship_crashed_2"],
+      "structures": [
+        "mes:mega_ship_crashed_2"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 72,
       "separation": 48,
       "frequency": 1.0,
@@ -812,7 +1198,10 @@
     "mes:mega_ship_crashed_deepslate": {
       "source": "MoogsEndStructures-1.21-2.0.3.jar",
       "theme": "maritime",
-      "structures": ["mes:mega_ship_crashed_deepslate"],
+      "structures": [
+        "mes:mega_ship_crashed_deepslate"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 79,
       "separation": 52,
       "frequency": 1.0,
@@ -822,7 +1211,10 @@
     "mes:mega_ship_deepslate": {
       "source": "MoogsEndStructures-1.21-2.0.3.jar",
       "theme": "maritime",
-      "structures": ["mes:mega_ship_deepslate"],
+      "structures": [
+        "mes:mega_ship_deepslate"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 88,
       "separation": 65,
       "frequency": 1.0,
@@ -832,7 +1224,10 @@
     "mes:mega_ship_deepslate_2": {
       "source": "MoogsEndStructures-1.21-2.0.3.jar",
       "theme": "maritime",
-      "structures": ["mes:mega_ship_deepslate_2"],
+      "structures": [
+        "mes:mega_ship_deepslate_2"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 82,
       "separation": 46,
       "frequency": 1.0,
@@ -842,7 +1237,10 @@
     "mes:mega_ship_deepslate_3": {
       "source": "MoogsEndStructures-1.21-2.0.3.jar",
       "theme": "maritime",
-      "structures": ["mes:mega_ship_deepslate_3"],
+      "structures": [
+        "mes:mega_ship_deepslate_3"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 84,
       "separation": 52,
       "frequency": 1.0,
@@ -852,7 +1250,10 @@
     "mes:monolith": {
       "source": "MoogsEndStructures-1.21-2.0.3.jar",
       "theme": "landmark",
-      "structures": ["mes:monolith"],
+      "structures": [
+        "mes:monolith"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 36,
       "separation": 21,
       "frequency": 1.0,
@@ -862,7 +1263,10 @@
     "mes:mystical_archway": {
       "source": "MoogsEndStructures-1.21-2.0.3.jar",
       "theme": "deco",
-      "structures": ["mes:mystical_archway"],
+      "structures": [
+        "mes:mystical_archway"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 44,
       "separation": 32,
       "frequency": 1.0,
@@ -872,7 +1276,10 @@
     "mes:mythic_garden": {
       "source": "MoogsEndStructures-1.21-2.0.3.jar",
       "theme": "deco",
-      "structures": ["mes:mythic_garden"],
+      "structures": [
+        "mes:mythic_garden"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 38,
       "separation": 27,
       "frequency": 1.0,
@@ -882,7 +1289,10 @@
     "mes:phantom_citadel": {
       "source": "MoogsEndStructures-1.21-2.0.3.jar",
       "theme": "landmark",
-      "structures": ["mes:phantom_citadel"],
+      "structures": [
+        "mes:phantom_citadel"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 31,
       "separation": 14,
       "frequency": 1.0,
@@ -892,7 +1302,10 @@
     "mes:placid_prairie": {
       "source": "MoogsEndStructures-1.21-2.0.3.jar",
       "theme": "landmark",
-      "structures": ["mes:placid_prairie"],
+      "structures": [
+        "mes:placid_prairie"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 32,
       "separation": 22,
       "frequency": 1.0,
@@ -902,7 +1315,10 @@
     "mes:ruined_pillar": {
       "source": "MoogsEndStructures-1.21-2.0.3.jar",
       "theme": "ruins",
-      "structures": ["mes:ruined_pillar"],
+      "structures": [
+        "mes:ruined_pillar"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 12,
       "separation": 7,
       "frequency": 1.0,
@@ -912,7 +1328,10 @@
     "mes:starlight_voyager": {
       "source": "MoogsEndStructures-1.21-2.0.3.jar",
       "theme": "maritime",
-      "structures": ["mes:starlight_voyager"],
+      "structures": [
+        "mes:starlight_voyager"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 32,
       "separation": 17,
       "frequency": 1.0,
@@ -922,7 +1341,10 @@
     "minecraft:ancient_cities": {
       "source": "vanilla",
       "theme": "settlement",
-      "structures": ["minecraft:ancient_city"],
+      "structures": [
+        "minecraft:ancient_city"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 24,
       "separation": 8,
       "frequency": 1.0,
@@ -932,7 +1354,10 @@
     "minecraft:buried_treasures": {
       "source": "vanilla",
       "theme": "dungeon",
-      "structures": ["minecraft:buried_treasure"],
+      "structures": [
+        "minecraft:buried_treasure"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 1,
       "separation": 0,
       "frequency": 0.01,
@@ -942,7 +1367,10 @@
     "minecraft:desert_pyramids": {
       "source": "vanilla",
       "theme": "ruins",
-      "structures": ["minecraft:desert_pyramid"],
+      "structures": [
+        "minecraft:desert_pyramid"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 32,
       "separation": 8,
       "frequency": 1.0,
@@ -952,7 +1380,10 @@
     "minecraft:end_cities": {
       "source": "Nullscape_1.21.x_v1.2.14.jar",
       "theme": "settlement",
-      "structures": ["minecraft:end_city"],
+      "structures": [
+        "minecraft:end_city"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 26,
       "separation": 18,
       "frequency": 1.0,
@@ -962,7 +1393,10 @@
     "minecraft:igloos": {
       "source": "vanilla",
       "theme": "ruins",
-      "structures": ["minecraft:igloo"],
+      "structures": [
+        "minecraft:igloo"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 32,
       "separation": 8,
       "frequency": 1.0,
@@ -972,7 +1406,10 @@
     "minecraft:jungle_temples": {
       "source": "vanilla",
       "theme": "ruins",
-      "structures": ["minecraft:jungle_pyramid"],
+      "structures": [
+        "minecraft:jungle_pyramid"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 32,
       "separation": 8,
       "frequency": 1.0,
@@ -982,7 +1419,11 @@
     "minecraft:mineshafts": {
       "source": "vanilla",
       "theme": "dungeon",
-      "structures": ["minecraft:mineshaft", "minecraft:mineshaft_mesa"],
+      "structures": [
+        "minecraft:mineshaft",
+        "minecraft:mineshaft_mesa"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 1,
       "separation": 0,
       "frequency": 0.004,
@@ -992,7 +1433,11 @@
     "minecraft:nether_complexes": {
       "source": "Incendium_1.21.x_v5.4.4.jar",
       "theme": "dungeon",
-      "structures": ["minecraft:fortress", "minecraft:bastion_remnant"],
+      "structures": [
+        "minecraft:fortress",
+        "minecraft:bastion_remnant"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 16,
       "separation": 8,
       "frequency": 1.0,
@@ -1002,7 +1447,10 @@
     "minecraft:nether_fossils": {
       "source": "vanilla",
       "theme": "ruins",
-      "structures": ["minecraft:nether_fossil"],
+      "structures": [
+        "minecraft:nether_fossil"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 2,
       "separation": 1,
       "frequency": 1.0,
@@ -1012,7 +1460,10 @@
     "minecraft:ocean_monuments": {
       "source": "vanilla",
       "theme": "maritime",
-      "structures": ["minecraft:monument"],
+      "structures": [
+        "minecraft:monument"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 32,
       "separation": 5,
       "frequency": 1.0,
@@ -1022,7 +1473,11 @@
     "minecraft:ocean_ruins": {
       "source": "vanilla",
       "theme": "maritime",
-      "structures": ["minecraft:ocean_ruin_cold", "minecraft:ocean_ruin_warm"],
+      "structures": [
+        "minecraft:ocean_ruin_cold",
+        "minecraft:ocean_ruin_warm"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 20,
       "separation": 8,
       "frequency": 1.0,
@@ -1032,7 +1487,10 @@
     "minecraft:pillager_outposts": {
       "source": "vanilla",
       "theme": "settlement",
-      "structures": ["minecraft:pillager_outpost"],
+      "structures": [
+        "minecraft:pillager_outpost"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 32,
       "separation": 8,
       "frequency": 0.2,
@@ -1051,6 +1509,7 @@
         "minecraft:ruined_portal_ocean",
         "minecraft:ruined_portal_nether"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 40,
       "separation": 15,
       "frequency": 1.0,
@@ -1060,7 +1519,11 @@
     "minecraft:shipwrecks": {
       "source": "vanilla",
       "theme": "maritime",
-      "structures": ["minecraft:shipwreck", "minecraft:shipwreck_beached"],
+      "structures": [
+        "minecraft:shipwreck",
+        "minecraft:shipwreck_beached"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 24,
       "separation": 4,
       "frequency": 1.0,
@@ -1070,9 +1533,12 @@
     "minecraft:strongholds": {
       "source": "vanilla",
       "theme": "dungeon",
-      "structures": ["minecraft:stronghold"],
-      "spacing": 0,
-      "separation": 0,
+      "structures": [
+        "minecraft:stronghold"
+      ],
+      "placementType": "minecraft:concentric_rings",
+      "spacing": null,
+      "separation": null,
       "frequency": 1.0,
       "dimension": "overworld",
       "rarity": "endgame"
@@ -1080,7 +1546,10 @@
     "minecraft:swamp_huts": {
       "source": "vanilla",
       "theme": "settlement",
-      "structures": ["minecraft:swamp_hut"],
+      "structures": [
+        "minecraft:swamp_hut"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 32,
       "separation": 8,
       "frequency": 1.0,
@@ -1090,7 +1559,10 @@
     "minecraft:trail_ruins": {
       "source": "vanilla",
       "theme": "ruins",
-      "structures": ["minecraft:trail_ruins"],
+      "structures": [
+        "minecraft:trail_ruins"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 34,
       "separation": 8,
       "frequency": 1.0,
@@ -1100,7 +1572,10 @@
     "minecraft:trial_chambers": {
       "source": "vanilla",
       "theme": "dungeon",
-      "structures": ["minecraft:trial_chambers"],
+      "structures": [
+        "minecraft:trial_chambers"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 34,
       "separation": 12,
       "frequency": 1.0,
@@ -1117,6 +1592,7 @@
         "minecraft:village_snowy",
         "minecraft:village_taiga"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 26,
       "separation": 8,
       "frequency": 1.0,
@@ -1126,7 +1602,11 @@
     "minecraft:woodland_mansions": {
       "source": "dungeons-and-taverns-v4.4.4.jar",
       "theme": "landmark",
-      "structures": ["minecraft:mansion", "nova_structures:illager_manor"],
+      "structures": [
+        "minecraft:mansion",
+        "nova_structures:illager_manor"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 80,
       "separation": 20,
       "frequency": 1.0,
@@ -1136,7 +1616,10 @@
     "mns:bridge_1": {
       "source": "MoogsNetherStructures-1.21-3.0.0.jar",
       "theme": "deco",
-      "structures": ["mns:bridge_1"],
+      "structures": [
+        "mns:bridge_1"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 90,
       "separation": 70,
       "frequency": 1.0,
@@ -1146,7 +1629,10 @@
     "mns:bridge_2": {
       "source": "MoogsNetherStructures-1.21-3.0.0.jar",
       "theme": "deco",
-      "structures": ["mns:bridge_2"],
+      "structures": [
+        "mns:bridge_2"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 90,
       "separation": 70,
       "frequency": 1.0,
@@ -1156,7 +1642,10 @@
     "mns:bridge_3": {
       "source": "MoogsNetherStructures-1.21-3.0.0.jar",
       "theme": "deco",
-      "structures": ["mns:bridge_3"],
+      "structures": [
+        "mns:bridge_3"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 90,
       "separation": 70,
       "frequency": 1.0,
@@ -1166,7 +1655,10 @@
     "mns:bridge_4": {
       "source": "MoogsNetherStructures-1.21-3.0.0.jar",
       "theme": "deco",
-      "structures": ["mns:bridge_4"],
+      "structures": [
+        "mns:bridge_4"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 90,
       "separation": 70,
       "frequency": 1.0,
@@ -1176,7 +1668,10 @@
     "mns:bridge_5": {
       "source": "MoogsNetherStructures-1.21-3.0.0.jar",
       "theme": "deco",
-      "structures": ["mns:bridge_5"],
+      "structures": [
+        "mns:bridge_5"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 90,
       "separation": 70,
       "frequency": 1.0,
@@ -1186,7 +1681,10 @@
     "mns:bridge_6": {
       "source": "MoogsNetherStructures-1.21-3.0.0.jar",
       "theme": "deco",
-      "structures": ["mns:bridge_6"],
+      "structures": [
+        "mns:bridge_6"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 90,
       "separation": 70,
       "frequency": 1.0,
@@ -1196,7 +1694,10 @@
     "mns:circle_blackstone": {
       "source": "MoogsNetherStructures-1.21-3.0.0.jar",
       "theme": "landmark",
-      "structures": ["mns:circle_blackstone"],
+      "structures": [
+        "mns:circle_blackstone"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 22,
       "separation": 15,
       "frequency": 1.0,
@@ -1206,7 +1707,10 @@
     "mns:circle_nether_brick": {
       "source": "MoogsNetherStructures-1.21-3.0.0.jar",
       "theme": "landmark",
-      "structures": ["mns:circle_nether_brick"],
+      "structures": [
+        "mns:circle_nether_brick"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 23,
       "separation": 11,
       "frequency": 1.0,
@@ -1216,7 +1720,10 @@
     "mns:copper_tower": {
       "source": "MoogsNetherStructures-1.21-3.0.0.jar",
       "theme": "landmark",
-      "structures": ["mns:copper_tower"],
+      "structures": [
+        "mns:copper_tower"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 72,
       "separation": 37,
       "frequency": 1.0,
@@ -1226,7 +1733,10 @@
     "mns:crimson_forge": {
       "source": "MoogsNetherStructures-1.21-3.0.0.jar",
       "theme": "landmark",
-      "structures": ["mns:crimson_forge"],
+      "structures": [
+        "mns:crimson_forge"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 24,
       "separation": 19,
       "frequency": 1.0,
@@ -1236,7 +1746,10 @@
     "mns:crimson_lava_well": {
       "source": "MoogsNetherStructures-1.21-3.0.0.jar",
       "theme": "deco",
-      "structures": ["mns:crimson_lava_well"],
+      "structures": [
+        "mns:crimson_lava_well"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 24,
       "separation": 19,
       "frequency": 1.0,
@@ -1246,7 +1759,10 @@
     "mns:giant_skull": {
       "source": "MoogsNetherStructures-1.21-3.0.0.jar",
       "theme": "landmark",
-      "structures": ["mns:giant_skull"],
+      "structures": [
+        "mns:giant_skull"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 54,
       "separation": 46,
       "frequency": 1.0,
@@ -1256,7 +1772,10 @@
     "mns:grave_yard": {
       "source": "MoogsNetherStructures-1.21-3.0.0.jar",
       "theme": "landmark",
-      "structures": ["mns:grave_yard"],
+      "structures": [
+        "mns:grave_yard"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 36,
       "separation": 22,
       "frequency": 1.0,
@@ -1266,7 +1785,10 @@
     "mns:large_blackstone_pillars": {
       "source": "MoogsNetherStructures-1.21-3.0.0.jar",
       "theme": "landmark",
-      "structures": ["mns:large_blackstone_pillars"],
+      "structures": [
+        "mns:large_blackstone_pillars"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 27,
       "separation": 18,
       "frequency": 1.0,
@@ -1276,7 +1798,10 @@
     "mns:large_blackstone_walls": {
       "source": "MoogsNetherStructures-1.21-3.0.0.jar",
       "theme": "landmark",
-      "structures": ["mns:large_blackstone_walls"],
+      "structures": [
+        "mns:large_blackstone_walls"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 29,
       "separation": 11,
       "frequency": 1.0,
@@ -1286,7 +1811,10 @@
     "mns:large_house_1": {
       "source": "MoogsNetherStructures-1.21-3.0.0.jar",
       "theme": "settlement",
-      "structures": ["mns:large_house_1"],
+      "structures": [
+        "mns:large_house_1"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 42,
       "separation": 38,
       "frequency": 1.0,
@@ -1296,7 +1824,10 @@
     "mns:large_nether_brick": {
       "source": "MoogsNetherStructures-1.21-3.0.0.jar",
       "theme": "landmark",
-      "structures": ["mns:large_nether_brick"],
+      "structures": [
+        "mns:large_nether_brick"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 32,
       "separation": 16,
       "frequency": 1.0,
@@ -1306,7 +1837,10 @@
     "mns:lava_pool": {
       "source": "MoogsNetherStructures-1.21-3.0.0.jar",
       "theme": "landmark",
-      "structures": ["mns:lava_pool"],
+      "structures": [
+        "mns:lava_pool"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 41,
       "separation": 26,
       "frequency": 1.0,
@@ -1316,7 +1850,10 @@
     "mns:leafy_rubble": {
       "source": "MoogsNetherStructures-1.21-3.0.0.jar",
       "theme": "landmark",
-      "structures": ["mns:leafy_rubble"],
+      "structures": [
+        "mns:leafy_rubble"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 22,
       "separation": 15,
       "frequency": 1.0,
@@ -1326,7 +1863,10 @@
     "mns:medium_blackstone": {
       "source": "MoogsNetherStructures-1.21-3.0.0.jar",
       "theme": "landmark",
-      "structures": ["mns:medium_blackstone"],
+      "structures": [
+        "mns:medium_blackstone"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 23,
       "separation": 18,
       "frequency": 1.0,
@@ -1336,7 +1876,11 @@
     "mns:medium_crimson_fungus": {
       "source": "MoogsNetherStructures-1.21-3.0.0.jar",
       "theme": "landmark",
-      "structures": ["mns:medium_crimson_fungus", "mns:medium_crimson_fungus_2"],
+      "structures": [
+        "mns:medium_crimson_fungus",
+        "mns:medium_crimson_fungus_2"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 24,
       "separation": 19,
       "frequency": 1.0,
@@ -1346,7 +1890,10 @@
     "mns:medium_crimson_well": {
       "source": "MoogsNetherStructures-1.21-3.0.0.jar",
       "theme": "deco",
-      "structures": ["mns:medium_crimson_well"],
+      "structures": [
+        "mns:medium_crimson_well"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 22,
       "separation": 12,
       "frequency": 1.0,
@@ -1356,7 +1903,10 @@
     "mns:medium_house": {
       "source": "MoogsNetherStructures-1.21-3.0.0.jar",
       "theme": "settlement",
-      "structures": ["mns:medium_house"],
+      "structures": [
+        "mns:medium_house"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 43,
       "separation": 34,
       "frequency": 1.0,
@@ -1366,7 +1916,10 @@
     "mns:medium_house_2": {
       "source": "MoogsNetherStructures-1.21-3.0.0.jar",
       "theme": "settlement",
-      "structures": ["mns:medium_house_2"],
+      "structures": [
+        "mns:medium_house_2"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 44,
       "separation": 36,
       "frequency": 1.0,
@@ -1376,7 +1929,11 @@
     "mns:medium_warped_fungus": {
       "source": "MoogsNetherStructures-1.21-3.0.0.jar",
       "theme": "landmark",
-      "structures": ["mns:medium_warped_fungus", "mns:medium_warped_fungus_2"],
+      "structures": [
+        "mns:medium_warped_fungus",
+        "mns:medium_warped_fungus_2"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 28,
       "separation": 13,
       "frequency": 1.0,
@@ -1386,7 +1943,10 @@
     "mns:medium_warped_well": {
       "source": "MoogsNetherStructures-1.21-3.0.0.jar",
       "theme": "deco",
-      "structures": ["mns:medium_warped_well"],
+      "structures": [
+        "mns:medium_warped_well"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 24,
       "separation": 14,
       "frequency": 1.0,
@@ -1396,7 +1956,12 @@
     "mns:mega_arenas": {
       "source": "MoogsNetherStructures-1.21-3.0.0.jar",
       "theme": "landmark",
-      "structures": ["mns:small_arena", "mns:large_arena", "mns:dragon_arena"],
+      "structures": [
+        "mns:small_arena",
+        "mns:large_arena",
+        "mns:dragon_arena"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 150,
       "separation": 100,
       "frequency": 1.0,
@@ -1406,7 +1971,10 @@
     "mns:mega_fortress": {
       "source": "MoogsNetherStructures-1.21-3.0.0.jar",
       "theme": "landmark",
-      "structures": ["mns:mega_fortress"],
+      "structures": [
+        "mns:mega_fortress"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 116,
       "separation": 76,
       "frequency": 1.0,
@@ -1416,7 +1984,10 @@
     "mns:nether_tower": {
       "source": "MoogsNetherStructures-1.21-3.0.0.jar",
       "theme": "landmark",
-      "structures": ["mns:nether_tower"],
+      "structures": [
+        "mns:nether_tower"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 115,
       "separation": 56,
       "frequency": 1.0,
@@ -1426,7 +1997,10 @@
     "mns:nether_wart_farm": {
       "source": "MoogsNetherStructures-1.21-3.0.0.jar",
       "theme": "settlement",
-      "structures": ["mns:nether_wart_farm"],
+      "structures": [
+        "mns:nether_wart_farm"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 85,
       "separation": 25,
       "frequency": 1.0,
@@ -1436,7 +2010,10 @@
     "mns:ruined_portal": {
       "source": "MoogsNetherStructures-1.21-3.0.0.jar",
       "theme": "ruins",
-      "structures": ["mns:ruined_portal"],
+      "structures": [
+        "mns:ruined_portal"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 30,
       "separation": 28,
       "frequency": 1.0,
@@ -1446,7 +2023,10 @@
     "mns:sandy_skull": {
       "source": "MoogsNetherStructures-1.21-3.0.0.jar",
       "theme": "landmark",
-      "structures": ["mns:sandy_skull"],
+      "structures": [
+        "mns:sandy_skull"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 40,
       "separation": 36,
       "frequency": 1.0,
@@ -1456,7 +2036,11 @@
     "mns:shrine": {
       "source": "MoogsNetherStructures-1.21-3.0.0.jar",
       "theme": "landmark",
-      "structures": ["mns:shrine", "mns:smoking_shrine"],
+      "structures": [
+        "mns:shrine",
+        "mns:smoking_shrine"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 24,
       "separation": 17,
       "frequency": 1.0,
@@ -1466,7 +2050,10 @@
     "mns:small_nether_brick": {
       "source": "MoogsNetherStructures-1.21-3.0.0.jar",
       "theme": "deco",
-      "structures": ["mns:small_nether_brick"],
+      "structures": [
+        "mns:small_nether_brick"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 24,
       "separation": 20,
       "frequency": 1.0,
@@ -1476,7 +2063,10 @@
     "mns:soul_fire": {
       "source": "MoogsNetherStructures-1.21-3.0.0.jar",
       "theme": "landmark",
-      "structures": ["mns:soul_fire"],
+      "structures": [
+        "mns:soul_fire"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 25,
       "separation": 16,
       "frequency": 1.0,
@@ -1486,7 +2076,10 @@
     "mns:sword": {
       "source": "MoogsNetherStructures-1.21-3.0.0.jar",
       "theme": "landmark",
-      "structures": ["mns:sword"],
+      "structures": [
+        "mns:sword"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 45,
       "separation": 42,
       "frequency": 1.0,
@@ -1496,7 +2089,10 @@
     "mns:train": {
       "source": "MoogsNetherStructures-1.21-3.0.0.jar",
       "theme": "landmark",
-      "structures": ["mns:train"],
+      "structures": [
+        "mns:train"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 65,
       "separation": 50,
       "frequency": 1.0,
@@ -1512,6 +2108,7 @@
         "mns:very_small_blackstone_3",
         "mns:very_small_blackstone_4"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 23,
       "separation": 12,
       "frequency": 1.0,
@@ -1521,7 +2118,12 @@
     "mns:very_small_nether_brick": {
       "source": "MoogsNetherStructures-1.21-3.0.0.jar",
       "theme": "deco",
-      "structures": ["mns:very_small_nether_brick", "mns:very_small_nether_brick_2", "mns:very_small_nether_brick_3"],
+      "structures": [
+        "mns:very_small_nether_brick",
+        "mns:very_small_nether_brick_2",
+        "mns:very_small_nether_brick_3"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 22,
       "separation": 12,
       "frequency": 1.0,
@@ -1531,7 +2133,10 @@
     "mns:warped_dome": {
       "source": "MoogsNetherStructures-1.21-3.0.0.jar",
       "theme": "landmark",
-      "structures": ["mns:warped_dome"],
+      "structures": [
+        "mns:warped_dome"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 42,
       "separation": 38,
       "frequency": 1.0,
@@ -1541,7 +2146,10 @@
     "mns:warped_house": {
       "source": "MoogsNetherStructures-1.21-3.0.0.jar",
       "theme": "settlement",
-      "structures": ["mns:warped_house"],
+      "structures": [
+        "mns:warped_house"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 42,
       "separation": 38,
       "frequency": 1.0,
@@ -1551,7 +2159,10 @@
     "mns:warped_pool": {
       "source": "MoogsNetherStructures-1.21-3.0.0.jar",
       "theme": "landmark",
-      "structures": ["mns:warped_pool"],
+      "structures": [
+        "mns:warped_pool"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 33,
       "separation": 21,
       "frequency": 1.0,
@@ -1561,7 +2172,10 @@
     "mss:arena": {
       "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
       "theme": "landmark",
-      "structures": ["mss:arena"],
+      "structures": [
+        "mss:arena"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 158,
       "separation": 92,
       "frequency": 1.0,
@@ -1571,7 +2185,10 @@
     "mss:birch_river": {
       "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
       "theme": "landmark",
-      "structures": ["mss:birch_river"],
+      "structures": [
+        "mss:birch_river"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 96,
       "separation": 34,
       "frequency": 1.0,
@@ -1581,7 +2198,10 @@
     "mss:calcite_house": {
       "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
       "theme": "settlement",
-      "structures": ["mss:calcite_house"],
+      "structures": [
+        "mss:calcite_house"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 68,
       "separation": 27,
       "frequency": 1.0,
@@ -1591,7 +2211,10 @@
     "mss:castle_ruin": {
       "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
       "theme": "ruins",
-      "structures": ["mss:castle_ruin"],
+      "structures": [
+        "mss:castle_ruin"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 107,
       "separation": 56,
       "frequency": 1.0,
@@ -1601,7 +2224,10 @@
     "mss:castle_tower": {
       "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
       "theme": "landmark",
-      "structures": ["mss:castle_tower"],
+      "structures": [
+        "mss:castle_tower"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 114,
       "separation": 52,
       "frequency": 1.0,
@@ -1611,7 +2237,10 @@
     "mss:cherry_river": {
       "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
       "theme": "landmark",
-      "structures": ["mss:cherry_river"],
+      "structures": [
+        "mss:cherry_river"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 53,
       "separation": 17,
       "frequency": 1.0,
@@ -1621,7 +2250,10 @@
     "mss:desert_pyramid": {
       "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
       "theme": "ruins",
-      "structures": ["mss:desert_pyramid"],
+      "structures": [
+        "mss:desert_pyramid"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 80,
       "separation": 42,
       "frequency": 1.0,
@@ -1631,7 +2263,10 @@
     "mss:desert_well": {
       "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
       "theme": "deco",
-      "structures": ["mss:desert_well"],
+      "structures": [
+        "mss:desert_well"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 66,
       "separation": 15,
       "frequency": 1.0,
@@ -1641,7 +2276,10 @@
     "mss:diorite_house": {
       "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
       "theme": "settlement",
-      "structures": ["mss:diorite_house"],
+      "structures": [
+        "mss:diorite_house"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 156,
       "separation": 97,
       "frequency": 1.0,
@@ -1651,7 +2289,10 @@
     "mss:frozen_pond": {
       "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
       "theme": "landmark",
-      "structures": ["mss:frozen_pond"],
+      "structures": [
+        "mss:frozen_pond"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 94,
       "separation": 31,
       "frequency": 1.0,
@@ -1661,7 +2302,10 @@
     "mss:jungle": {
       "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
       "theme": "landmark",
-      "structures": ["mss:jungle"],
+      "structures": [
+        "mss:jungle"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 72,
       "separation": 36,
       "frequency": 1.0,
@@ -1671,7 +2315,10 @@
     "mss:large_tower": {
       "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
       "theme": "landmark",
-      "structures": ["mss:large_tower"],
+      "structures": [
+        "mss:large_tower"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 140,
       "separation": 96,
       "frequency": 1.0,
@@ -1681,7 +2328,10 @@
     "mss:leaf_hollow": {
       "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
       "theme": "landmark",
-      "structures": ["mss:leaf_hollow"],
+      "structures": [
+        "mss:leaf_hollow"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 104,
       "separation": 62,
       "frequency": 1.0,
@@ -1691,7 +2341,10 @@
     "mss:mangrove": {
       "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
       "theme": "landmark",
-      "structures": ["mss:mangrove"],
+      "structures": [
+        "mss:mangrove"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 68,
       "separation": 32,
       "frequency": 1.0,
@@ -1701,7 +2354,10 @@
     "mss:muddy_water_hole": {
       "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
       "theme": "landmark",
-      "structures": ["mss:muddy_water_hole"],
+      "structures": [
+        "mss:muddy_water_hole"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 132,
       "separation": 72,
       "frequency": 1.0,
@@ -1711,7 +2367,10 @@
     "mss:mushroom": {
       "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
       "theme": "landmark",
-      "structures": ["mss:mushroom"],
+      "structures": [
+        "mss:mushroom"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 124,
       "separation": 48,
       "frequency": 1.0,
@@ -1721,7 +2380,10 @@
     "mss:nether_portal": {
       "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
       "theme": "landmark",
-      "structures": ["mss:nether_portal"],
+      "structures": [
+        "mss:nether_portal"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 99,
       "separation": 52,
       "frequency": 1.0,
@@ -1731,7 +2393,10 @@
     "mss:palm_island": {
       "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
       "theme": "landmark",
-      "structures": ["mss:palm_island"],
+      "structures": [
+        "mss:palm_island"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 102,
       "separation": 46,
       "frequency": 1.0,
@@ -1741,7 +2406,10 @@
     "mss:red_sand": {
       "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
       "theme": "landmark",
-      "structures": ["mss:red_sand"],
+      "structures": [
+        "mss:red_sand"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 142,
       "separation": 72,
       "frequency": 1.0,
@@ -1751,7 +2419,10 @@
     "mss:small_deepslate_house": {
       "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
       "theme": "settlement",
-      "structures": ["mss:small_deepslate_house"],
+      "structures": [
+        "mss:small_deepslate_house"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 124,
       "separation": 36,
       "frequency": 1.0,
@@ -1761,7 +2432,10 @@
     "mss:small_oak_house": {
       "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
       "theme": "settlement",
-      "structures": ["mss:small_oak_house"],
+      "structures": [
+        "mss:small_oak_house"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 105,
       "separation": 35,
       "frequency": 1.0,
@@ -1771,7 +2445,10 @@
     "mss:small_pond": {
       "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
       "theme": "deco",
-      "structures": ["mss:small_pond"],
+      "structures": [
+        "mss:small_pond"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 92,
       "separation": 18,
       "frequency": 1.0,
@@ -1781,7 +2458,10 @@
     "mss:small_tower": {
       "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
       "theme": "landmark",
-      "structures": ["mss:small_tower"],
+      "structures": [
+        "mss:small_tower"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 108,
       "separation": 46,
       "frequency": 1.0,
@@ -1791,7 +2471,10 @@
     "mss:spruce_huts": {
       "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
       "theme": "settlement",
-      "structures": ["mss:spruce_huts"],
+      "structures": [
+        "mss:spruce_huts"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 134,
       "separation": 48,
       "frequency": 1.0,
@@ -1801,7 +2484,10 @@
     "mss:taiga": {
       "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
       "theme": "landmark",
-      "structures": ["mss:taiga"],
+      "structures": [
+        "mss:taiga"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 95,
       "separation": 42,
       "frequency": 1.0,
@@ -1811,7 +2497,10 @@
     "mss:tree_1": {
       "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
       "theme": "landmark",
-      "structures": ["mss:tree_1"],
+      "structures": [
+        "mss:tree_1"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 147,
       "separation": 73,
       "frequency": 1.0,
@@ -1821,7 +2510,10 @@
     "mss:tree_2": {
       "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
       "theme": "landmark",
-      "structures": ["mss:tree_2"],
+      "structures": [
+        "mss:tree_2"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 148,
       "separation": 74,
       "frequency": 1.0,
@@ -1831,7 +2523,10 @@
     "mss:tree_3": {
       "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
       "theme": "landmark",
-      "structures": ["mss:tree_3"],
+      "structures": [
+        "mss:tree_3"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 176,
       "separation": 68,
       "frequency": 1.0,
@@ -1841,7 +2536,10 @@
     "mss:tree_4": {
       "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
       "theme": "landmark",
-      "structures": ["mss:tree_4"],
+      "structures": [
+        "mss:tree_4"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 159,
       "separation": 82,
       "frequency": 1.0,
@@ -1851,7 +2549,10 @@
     "mss:tree_5": {
       "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
       "theme": "landmark",
-      "structures": ["mss:tree_5"],
+      "structures": [
+        "mss:tree_5"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 175,
       "separation": 99,
       "frequency": 1.0,
@@ -1861,7 +2562,10 @@
     "mss:tree_6": {
       "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
       "theme": "landmark",
-      "structures": ["mss:tree_6"],
+      "structures": [
+        "mss:tree_6"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 182,
       "separation": 67,
       "frequency": 1.0,
@@ -1871,7 +2575,10 @@
     "mss:tree_7": {
       "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
       "theme": "landmark",
-      "structures": ["mss:tree_7"],
+      "structures": [
+        "mss:tree_7"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 186,
       "separation": 82,
       "frequency": 1.0,
@@ -1881,7 +2588,10 @@
     "mss:tree_8": {
       "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
       "theme": "landmark",
-      "structures": ["mss:tree_8"],
+      "structures": [
+        "mss:tree_8"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 156,
       "separation": 64,
       "frequency": 1.0,
@@ -1891,7 +2601,10 @@
     "mss:volcano": {
       "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
       "theme": "landmark",
-      "structures": ["mss:volcano"],
+      "structures": [
+        "mss:volcano"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 158,
       "separation": 78,
       "frequency": 1.0,
@@ -1901,7 +2614,10 @@
     "mss:white_house": {
       "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
       "theme": "settlement",
-      "structures": ["mss:white_house"],
+      "structures": [
+        "mss:white_house"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 145,
       "separation": 92,
       "frequency": 1.0,
@@ -1911,7 +2627,10 @@
     "mtr:badlands_temple": {
       "source": "MoogsTemplesReimagined-1.21-1.1.3.jar",
       "theme": "landmark",
-      "structures": ["mtr:badlands_temple"],
+      "structures": [
+        "mtr:badlands_temple"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 55,
       "separation": 6,
       "frequency": 1.0,
@@ -1921,7 +2640,10 @@
     "mtr:desert_temple": {
       "source": "MoogsTemplesReimagined-1.21-1.1.3.jar",
       "theme": "landmark",
-      "structures": ["mtr:desert_temple"],
+      "structures": [
+        "mtr:desert_temple"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 50,
       "separation": 8,
       "frequency": 1.0,
@@ -1931,7 +2653,10 @@
     "mtr:jungle_temple": {
       "source": "MoogsTemplesReimagined-1.21-1.1.3.jar",
       "theme": "landmark",
-      "structures": ["mtr:jungle_temple"],
+      "structures": [
+        "mtr:jungle_temple"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 50,
       "separation": 30,
       "frequency": 1.0,
@@ -1941,7 +2666,10 @@
     "mtr:nether_temple": {
       "source": "MoogsTemplesReimagined-1.21-1.1.3.jar",
       "theme": "landmark",
-      "structures": ["mtr:nether_temple"],
+      "structures": [
+        "mtr:nether_temple"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 150,
       "separation": 40,
       "frequency": 1.0,
@@ -1951,7 +2679,10 @@
     "mtr:ocean_temple": {
       "source": "MoogsTemplesReimagined-1.21-1.1.3.jar",
       "theme": "maritime",
-      "structures": ["mtr:ocean_temple"],
+      "structures": [
+        "mtr:ocean_temple"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 60,
       "separation": 30,
       "frequency": 1.0,
@@ -1961,7 +2692,10 @@
     "mtr:stronghold": {
       "source": "MoogsTemplesReimagined-1.21-1.1.3.jar",
       "theme": "dungeon",
-      "structures": ["mtr:stronghold"],
+      "structures": [
+        "mtr:stronghold"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 150,
       "separation": 90,
       "frequency": 1.0,
@@ -1971,7 +2705,10 @@
     "mvs:acacia_log_pile": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
       "theme": "landmark",
-      "structures": ["mvs:acacia_log_pile"],
+      "structures": [
+        "mvs:acacia_log_pile"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 26,
       "separation": 16,
       "frequency": 1.0,
@@ -1981,7 +2718,10 @@
     "mvs:acacia_tree": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
       "theme": "landmark",
-      "structures": ["mvs:acacia_tree"],
+      "structures": [
+        "mvs:acacia_tree"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 18,
       "separation": 13,
       "frequency": 1.0,
@@ -1991,7 +2731,10 @@
     "mvs:azelea_house": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
       "theme": "settlement",
-      "structures": ["mvs:azelea_house"],
+      "structures": [
+        "mvs:azelea_house"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 35,
       "separation": 31,
       "frequency": 1.0,
@@ -2001,7 +2744,10 @@
     "mvs:barn": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
       "theme": "landmark",
-      "structures": ["mvs:barn"],
+      "structures": [
+        "mvs:barn"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 31,
       "separation": 26,
       "frequency": 1.0,
@@ -2011,7 +2757,10 @@
     "mvs:beach_bar": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
       "theme": "landmark",
-      "structures": ["mvs:beach_bar"],
+      "structures": [
+        "mvs:beach_bar"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 48,
       "separation": 20,
       "frequency": 1.0,
@@ -2021,7 +2770,10 @@
     "mvs:bee_dome": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
       "theme": "landmark",
-      "structures": ["mvs:bee_dome"],
+      "structures": [
+        "mvs:bee_dome"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 34,
       "separation": 12,
       "frequency": 1.0,
@@ -2031,7 +2783,10 @@
     "mvs:bench": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
       "theme": "deco",
-      "structures": ["mvs:bench"],
+      "structures": [
+        "mvs:bench"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 18,
       "separation": 14,
       "frequency": 1.0,
@@ -2041,7 +2796,10 @@
     "mvs:big_oak_tree": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
       "theme": "landmark",
-      "structures": ["mvs:big_oak_tree"],
+      "structures": [
+        "mvs:big_oak_tree"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 39,
       "separation": 26,
       "frequency": 1.0,
@@ -2051,7 +2809,10 @@
     "mvs:birch_log_pile": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
       "theme": "landmark",
-      "structures": ["mvs:birch_log_pile"],
+      "structures": [
+        "mvs:birch_log_pile"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 26,
       "separation": 16,
       "frequency": 1.0,
@@ -2061,7 +2822,10 @@
     "mvs:birch_tree": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
       "theme": "landmark",
-      "structures": ["mvs:birch_tree"],
+      "structures": [
+        "mvs:birch_tree"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 18,
       "separation": 13,
       "frequency": 1.0,
@@ -2071,7 +2835,10 @@
     "mvs:boulder": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
       "theme": "landmark",
-      "structures": ["mvs:boulder"],
+      "structures": [
+        "mvs:boulder"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 35,
       "separation": 12,
       "frequency": 1.0,
@@ -2081,7 +2848,10 @@
     "mvs:campsite": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
       "theme": "settlement",
-      "structures": ["mvs:campsite"],
+      "structures": [
+        "mvs:campsite"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 37,
       "separation": 30,
       "frequency": 1.0,
@@ -2091,7 +2861,10 @@
     "mvs:cart": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
       "theme": "landmark",
-      "structures": ["mvs:cart"],
+      "structures": [
+        "mvs:cart"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 34,
       "separation": 26,
       "frequency": 1.0,
@@ -2101,7 +2874,10 @@
     "mvs:cartographer_tower": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
       "theme": "landmark",
-      "structures": ["mvs:cartographer_tower"],
+      "structures": [
+        "mvs:cartographer_tower"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 83,
       "separation": 46,
       "frequency": 1.0,
@@ -2111,7 +2887,10 @@
     "mvs:castle_ruins": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
       "theme": "ruins",
-      "structures": ["mvs:castle_ruins"],
+      "structures": [
+        "mvs:castle_ruins"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 45,
       "separation": 30,
       "frequency": 1.0,
@@ -2121,7 +2900,10 @@
     "mvs:cathedral": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
       "theme": "landmark",
-      "structures": ["mvs:cathedral"],
+      "structures": [
+        "mvs:cathedral"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 105,
       "separation": 98,
       "frequency": 1.0,
@@ -2131,7 +2913,10 @@
     "mvs:cherry_tree": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
       "theme": "landmark",
-      "structures": ["mvs:cherry_tree"],
+      "structures": [
+        "mvs:cherry_tree"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 18,
       "separation": 13,
       "frequency": 1.0,
@@ -2141,7 +2926,10 @@
     "mvs:crimson_enchanting_table": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
       "theme": "landmark",
-      "structures": ["mvs:crimson_enchanting_table"],
+      "structures": [
+        "mvs:crimson_enchanting_table"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 77,
       "separation": 58,
       "frequency": 1.0,
@@ -2151,7 +2939,10 @@
     "mvs:crystal": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
       "theme": "landmark",
-      "structures": ["mvs:crystal"],
+      "structures": [
+        "mvs:crystal"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 112,
       "separation": 62,
       "frequency": 1.0,
@@ -2161,7 +2952,10 @@
     "mvs:dark_oak_log_pile": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
       "theme": "landmark",
-      "structures": ["mvs:dark_oak_log_pile"],
+      "structures": [
+        "mvs:dark_oak_log_pile"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 26,
       "separation": 16,
       "frequency": 1.0,
@@ -2171,7 +2965,10 @@
     "mvs:dark_oak_tree": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
       "theme": "landmark",
-      "structures": ["mvs:dark_oak_tree"],
+      "structures": [
+        "mvs:dark_oak_tree"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 18,
       "separation": 13,
       "frequency": 1.0,
@@ -2181,7 +2978,10 @@
     "mvs:dead_tree_acacia": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
       "theme": "landmark",
-      "structures": ["mvs:dead_tree_acacia"],
+      "structures": [
+        "mvs:dead_tree_acacia"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 28,
       "separation": 24,
       "frequency": 1.0,
@@ -2191,7 +2991,10 @@
     "mvs:dead_tree_birch": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
       "theme": "landmark",
-      "structures": ["mvs:dead_tree_birch"],
+      "structures": [
+        "mvs:dead_tree_birch"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 28,
       "separation": 24,
       "frequency": 1.0,
@@ -2201,7 +3004,10 @@
     "mvs:dead_tree_cherry": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
       "theme": "landmark",
-      "structures": ["mvs:dead_tree_cherry"],
+      "structures": [
+        "mvs:dead_tree_cherry"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 28,
       "separation": 24,
       "frequency": 1.0,
@@ -2211,7 +3017,10 @@
     "mvs:dead_tree_dark_oak": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
       "theme": "landmark",
-      "structures": ["mvs:dead_tree_dark_oak"],
+      "structures": [
+        "mvs:dead_tree_dark_oak"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 28,
       "separation": 24,
       "frequency": 1.0,
@@ -2221,7 +3030,10 @@
     "mvs:dead_tree_jungle": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
       "theme": "landmark",
-      "structures": ["mvs:dead_tree_jungle"],
+      "structures": [
+        "mvs:dead_tree_jungle"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 28,
       "separation": 24,
       "frequency": 1.0,
@@ -2231,7 +3043,10 @@
     "mvs:dead_tree_mangrove": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
       "theme": "landmark",
-      "structures": ["mvs:dead_tree_mangrove"],
+      "structures": [
+        "mvs:dead_tree_mangrove"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 28,
       "separation": 24,
       "frequency": 1.0,
@@ -2241,7 +3056,10 @@
     "mvs:dead_tree_oak": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
       "theme": "landmark",
-      "structures": ["mvs:dead_tree_oak"],
+      "structures": [
+        "mvs:dead_tree_oak"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 28,
       "separation": 24,
       "frequency": 1.0,
@@ -2251,7 +3069,10 @@
     "mvs:deepslate_house": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
       "theme": "settlement",
-      "structures": ["mvs:deepslate_house"],
+      "structures": [
+        "mvs:deepslate_house"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 42,
       "separation": 34,
       "frequency": 1.0,
@@ -2261,7 +3082,10 @@
     "mvs:desert_house": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
       "theme": "settlement",
-      "structures": ["mvs:desert_house"],
+      "structures": [
+        "mvs:desert_house"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 48,
       "separation": 22,
       "frequency": 1.0,
@@ -2271,7 +3095,10 @@
     "mvs:desert_pump": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
       "theme": "landmark",
-      "structures": ["mvs:desert_pump"],
+      "structures": [
+        "mvs:desert_pump"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 32,
       "separation": 8,
       "frequency": 1.0,
@@ -2281,7 +3108,10 @@
     "mvs:diorite_and_deepslate_house": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
       "theme": "settlement",
-      "structures": ["mvs:diorite_and_deepslate_house"],
+      "structures": [
+        "mvs:diorite_and_deepslate_house"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 44,
       "separation": 34,
       "frequency": 1.0,
@@ -2291,7 +3121,10 @@
     "mvs:diorite_tower": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
       "theme": "landmark",
-      "structures": ["mvs:diorite_tower"],
+      "structures": [
+        "mvs:diorite_tower"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 50,
       "separation": 38,
       "frequency": 1.0,
@@ -2301,7 +3134,10 @@
     "mvs:duck": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
       "theme": "landmark",
-      "structures": ["mvs:duck"],
+      "structures": [
+        "mvs:duck"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 94,
       "separation": 46,
       "frequency": 1.0,
@@ -2311,7 +3147,10 @@
     "mvs:fire_camp": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
       "theme": "settlement",
-      "structures": ["mvs:fire_camp"],
+      "structures": [
+        "mvs:fire_camp"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 32,
       "separation": 17,
       "frequency": 1.0,
@@ -2321,7 +3160,10 @@
     "mvs:floating_islands": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
       "theme": "landmark",
-      "structures": ["mvs:floating_islands"],
+      "structures": [
+        "mvs:floating_islands"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 76,
       "separation": 38,
       "frequency": 1.0,
@@ -2331,7 +3173,10 @@
     "mvs:flower_hole": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
       "theme": "deco",
-      "structures": ["mvs:flower_hole"],
+      "structures": [
+        "mvs:flower_hole"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 46,
       "separation": 28,
       "frequency": 1.0,
@@ -2341,7 +3186,10 @@
     "mvs:fox_hut": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
       "theme": "settlement",
-      "structures": ["mvs:fox_hut"],
+      "structures": [
+        "mvs:fox_hut"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 48,
       "separation": 8,
       "frequency": 1.0,
@@ -2351,7 +3199,10 @@
     "mvs:gallows": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
       "theme": "landmark",
-      "structures": ["mvs:gallows"],
+      "structures": [
+        "mvs:gallows"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 36,
       "separation": 28,
       "frequency": 1.0,
@@ -2361,7 +3212,10 @@
     "mvs:haystack": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
       "theme": "landmark",
-      "structures": ["mvs:haystack"],
+      "structures": [
+        "mvs:haystack"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 16,
       "separation": 7,
       "frequency": 1.0,
@@ -2371,7 +3225,10 @@
     "mvs:horse_campsite": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
       "theme": "settlement",
-      "structures": ["mvs:horse_campsite"],
+      "structures": [
+        "mvs:horse_campsite"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 19,
       "separation": 17,
       "frequency": 1.0,
@@ -2381,7 +3238,10 @@
     "mvs:horse_pen": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
       "theme": "landmark",
-      "structures": ["mvs:horse_pen"],
+      "structures": [
+        "mvs:horse_pen"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 38,
       "separation": 26,
       "frequency": 1.0,
@@ -2391,7 +3251,10 @@
     "mvs:house": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
       "theme": "settlement",
-      "structures": ["mvs:house"],
+      "structures": [
+        "mvs:house"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 38,
       "separation": 31,
       "frequency": 1.0,
@@ -2401,7 +3264,10 @@
     "mvs:jungle_log_pile": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
       "theme": "landmark",
-      "structures": ["mvs:jungle_log_pile"],
+      "structures": [
+        "mvs:jungle_log_pile"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 26,
       "separation": 16,
       "frequency": 1.0,
@@ -2411,7 +3277,10 @@
     "mvs:jungle_palm_tree": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
       "theme": "landmark",
-      "structures": ["mvs:jungle_palm_tree"],
+      "structures": [
+        "mvs:jungle_palm_tree"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 18,
       "separation": 13,
       "frequency": 1.0,
@@ -2421,7 +3290,10 @@
     "mvs:jungle_tower": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
       "theme": "landmark",
-      "structures": ["mvs:jungle_tower"],
+      "structures": [
+        "mvs:jungle_tower"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 96,
       "separation": 80,
       "frequency": 1.0,
@@ -2431,7 +3303,10 @@
     "mvs:jungle_tree": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
       "theme": "landmark",
-      "structures": ["mvs:jungle_tree"],
+      "structures": [
+        "mvs:jungle_tree"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 18,
       "separation": 13,
       "frequency": 1.0,
@@ -2441,7 +3316,10 @@
     "mvs:lamp_chest": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
       "theme": "loot",
-      "structures": ["mvs:lamp_chest"],
+      "structures": [
+        "mvs:lamp_chest"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 45,
       "separation": 14,
       "frequency": 1.0,
@@ -2451,7 +3329,10 @@
     "mvs:large_cart_1": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
       "theme": "landmark",
-      "structures": ["mvs:large_cart_1"],
+      "structures": [
+        "mvs:large_cart_1"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 56,
       "separation": 20,
       "frequency": 1.0,
@@ -2461,7 +3342,10 @@
     "mvs:large_cart_2": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
       "theme": "landmark",
-      "structures": ["mvs:large_cart_2"],
+      "structures": [
+        "mvs:large_cart_2"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 56,
       "separation": 20,
       "frequency": 1.0,
@@ -2471,7 +3355,10 @@
     "mvs:large_floating_island": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
       "theme": "landmark",
-      "structures": ["mvs:large_floating_island"],
+      "structures": [
+        "mvs:large_floating_island"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 65,
       "separation": 49,
       "frequency": 1.0,
@@ -2481,7 +3368,10 @@
     "mvs:large_mushroom": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
       "theme": "landmark",
-      "structures": ["mvs:large_mushroom"],
+      "structures": [
+        "mvs:large_mushroom"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 98,
       "separation": 36,
       "frequency": 1.0,
@@ -2491,7 +3381,10 @@
     "mvs:large_warped_tower": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
       "theme": "landmark",
-      "structures": ["mvs:large_warped_tower"],
+      "structures": [
+        "mvs:large_warped_tower"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 51,
       "separation": 28,
       "frequency": 1.0,
@@ -2501,7 +3394,10 @@
     "mvs:lecturn_garden": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
       "theme": "deco",
-      "structures": ["mvs:lecturn_garden"],
+      "structures": [
+        "mvs:lecturn_garden"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 36,
       "separation": 16,
       "frequency": 1.0,
@@ -2511,7 +3407,10 @@
     "mvs:log_ruin": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
       "theme": "ruins",
-      "structures": ["mvs:log_ruin"],
+      "structures": [
+        "mvs:log_ruin"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 55,
       "separation": 30,
       "frequency": 1.0,
@@ -2521,7 +3420,10 @@
     "mvs:medium_bamboo_cart": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
       "theme": "landmark",
-      "structures": ["mvs:medium_bamboo_cart"],
+      "structures": [
+        "mvs:medium_bamboo_cart"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 12,
       "separation": 8,
       "frequency": 1.0,
@@ -2531,7 +3433,10 @@
     "mvs:medium_igloo_1": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
       "theme": "ruins",
-      "structures": ["mvs:medium_igloo_1"],
+      "structures": [
+        "mvs:medium_igloo_1"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 27,
       "separation": 21,
       "frequency": 1.0,
@@ -2541,7 +3446,10 @@
     "mvs:medium_oak_lantern": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
       "theme": "deco",
-      "structures": ["mvs:medium_oak_lantern"],
+      "structures": [
+        "mvs:medium_oak_lantern"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 28,
       "separation": 24,
       "frequency": 1.0,
@@ -2551,7 +3459,10 @@
     "mvs:mine_with_campsite": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
       "theme": "settlement",
-      "structures": ["mvs:mine_with_campsite"],
+      "structures": [
+        "mvs:mine_with_campsite"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 48,
       "separation": 31,
       "frequency": 1.0,
@@ -2561,7 +3472,10 @@
     "mvs:mud_brick_house_1": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
       "theme": "settlement",
-      "structures": ["mvs:mud_brick_house_1"],
+      "structures": [
+        "mvs:mud_brick_house_1"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 46,
       "separation": 32,
       "frequency": 1.0,
@@ -2571,7 +3485,10 @@
     "mvs:mushroom_pond": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
       "theme": "landmark",
-      "structures": ["mvs:mushroom_pond"],
+      "structures": [
+        "mvs:mushroom_pond"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 48,
       "separation": 12,
       "frequency": 1.0,
@@ -2581,7 +3498,10 @@
     "mvs:mushroom_statue": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
       "theme": "landmark",
-      "structures": ["mvs:mushroom_statue"],
+      "structures": [
+        "mvs:mushroom_statue"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 92,
       "separation": 16,
       "frequency": 1.0,
@@ -2591,7 +3511,10 @@
     "mvs:mushroom_well": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
       "theme": "deco",
-      "structures": ["mvs:mushroom_well"],
+      "structures": [
+        "mvs:mushroom_well"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 84,
       "separation": 18,
       "frequency": 1.0,
@@ -2601,7 +3524,10 @@
     "mvs:nether_devil": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
       "theme": "landmark",
-      "structures": ["mvs:nether_devil"],
+      "structures": [
+        "mvs:nether_devil"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 64,
       "separation": 16,
       "frequency": 1.0,
@@ -2611,7 +3537,10 @@
     "mvs:nether_well": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
       "theme": "deco",
-      "structures": ["mvs:nether_well"],
+      "structures": [
+        "mvs:nether_well"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 48,
       "separation": 30,
       "frequency": 1.0,
@@ -2621,7 +3550,10 @@
     "mvs:oak_log_pile": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
       "theme": "landmark",
-      "structures": ["mvs:oak_log_pile"],
+      "structures": [
+        "mvs:oak_log_pile"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 26,
       "separation": 16,
       "frequency": 1.0,
@@ -2631,7 +3563,10 @@
     "mvs:oak_tree": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
       "theme": "landmark",
-      "structures": ["mvs:oak_tree"],
+      "structures": [
+        "mvs:oak_tree"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 18,
       "separation": 13,
       "frequency": 1.0,
@@ -2641,7 +3576,10 @@
     "mvs:ocean_tower": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
       "theme": "maritime",
-      "structures": ["mvs:ocean_tower"],
+      "structures": [
+        "mvs:ocean_tower"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 35,
       "separation": 20,
       "frequency": 1.0,
@@ -2665,6 +3603,7 @@
         "mvs:jungle_well",
         "mvs:acacia_well"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 24,
       "separation": 18,
       "frequency": 1.0,
@@ -2674,7 +3613,10 @@
     "mvs:out_house": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
       "theme": "settlement",
-      "structures": ["mvs:out_house"],
+      "structures": [
+        "mvs:out_house"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 48,
       "separation": 30,
       "frequency": 1.0,
@@ -2684,7 +3626,10 @@
     "mvs:paths": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
       "theme": "landmark",
-      "structures": ["mvs:paths"],
+      "structures": [
+        "mvs:paths"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 35,
       "separation": 12,
       "frequency": 1.0,
@@ -2694,7 +3639,10 @@
     "mvs:pile": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
       "theme": "landmark",
-      "structures": ["mvs:pile"],
+      "structures": [
+        "mvs:pile"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 13,
       "separation": 7,
       "frequency": 1.0,
@@ -2704,7 +3652,10 @@
     "mvs:prismarine_house_1": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
       "theme": "settlement",
-      "structures": ["mvs:prismarine_house_1"],
+      "structures": [
+        "mvs:prismarine_house_1"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 44,
       "separation": 32,
       "frequency": 1.0,
@@ -2714,7 +3665,10 @@
     "mvs:prismarine_house_2": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
       "theme": "settlement",
-      "structures": ["mvs:prismarine_house_2"],
+      "structures": [
+        "mvs:prismarine_house_2"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 44,
       "separation": 32,
       "frequency": 1.0,
@@ -2724,7 +3678,10 @@
     "mvs:railway": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
       "theme": "landmark",
-      "structures": ["mvs:railway"],
+      "structures": [
+        "mvs:railway"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 46,
       "separation": 27,
       "frequency": 1.0,
@@ -2734,7 +3691,10 @@
     "mvs:rare_well": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
       "theme": "deco",
-      "structures": ["mvs:rare_well"],
+      "structures": [
+        "mvs:rare_well"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 68,
       "separation": 38,
       "frequency": 1.0,
@@ -2744,7 +3704,10 @@
     "mvs:red_tower": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
       "theme": "landmark",
-      "structures": ["mvs:red_tower"],
+      "structures": [
+        "mvs:red_tower"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 76,
       "separation": 14,
       "frequency": 1.0,
@@ -2754,7 +3717,10 @@
     "mvs:ruined_beacon": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
       "theme": "ruins",
-      "structures": ["mvs:ruined_beacon"],
+      "structures": [
+        "mvs:ruined_beacon"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 75,
       "separation": 60,
       "frequency": 1.0,
@@ -2764,7 +3730,10 @@
     "mvs:shed": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
       "theme": "landmark",
-      "structures": ["mvs:shed"],
+      "structures": [
+        "mvs:shed"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 38,
       "separation": 23,
       "frequency": 1.0,
@@ -2774,7 +3743,10 @@
     "mvs:small_acacia_lantern": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
       "theme": "deco",
-      "structures": ["mvs:small_acacia_lantern"],
+      "structures": [
+        "mvs:small_acacia_lantern"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 24,
       "separation": 12,
       "frequency": 1.0,
@@ -2784,7 +3756,10 @@
     "mvs:small_bamboo_lantern": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
       "theme": "deco",
-      "structures": ["mvs:small_bamboo_lantern"],
+      "structures": [
+        "mvs:small_bamboo_lantern"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 24,
       "separation": 12,
       "frequency": 1.0,
@@ -2794,7 +3769,10 @@
     "mvs:small_birch_lantern": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
       "theme": "deco",
-      "structures": ["mvs:small_birch_lantern"],
+      "structures": [
+        "mvs:small_birch_lantern"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 24,
       "separation": 12,
       "frequency": 1.0,
@@ -2804,7 +3782,10 @@
     "mvs:small_campfire_lantern": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
       "theme": "settlement",
-      "structures": ["mvs:small_campfire_lantern"],
+      "structures": [
+        "mvs:small_campfire_lantern"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 24,
       "separation": 12,
       "frequency": 1.0,
@@ -2814,7 +3795,10 @@
     "mvs:small_cherry_lantern": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
       "theme": "deco",
-      "structures": ["mvs:small_cherry_lantern"],
+      "structures": [
+        "mvs:small_cherry_lantern"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 24,
       "separation": 12,
       "frequency": 1.0,
@@ -2824,7 +3808,10 @@
     "mvs:small_dark_oak_lantern": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
       "theme": "deco",
-      "structures": ["mvs:small_dark_oak_lantern"],
+      "structures": [
+        "mvs:small_dark_oak_lantern"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 24,
       "separation": 12,
       "frequency": 1.0,
@@ -2834,7 +3821,10 @@
     "mvs:small_igloo": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
       "theme": "ruins",
-      "structures": ["mvs:small_igloo"],
+      "structures": [
+        "mvs:small_igloo"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 31,
       "separation": 26,
       "frequency": 1.0,
@@ -2844,7 +3834,10 @@
     "mvs:small_jungle_lantern": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
       "theme": "deco",
-      "structures": ["mvs:small_jungle_lantern"],
+      "structures": [
+        "mvs:small_jungle_lantern"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 24,
       "separation": 12,
       "frequency": 1.0,
@@ -2854,7 +3847,10 @@
     "mvs:small_mangrove_lantern": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
       "theme": "deco",
-      "structures": ["mvs:small_mangrove_lantern"],
+      "structures": [
+        "mvs:small_mangrove_lantern"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 24,
       "separation": 12,
       "frequency": 1.0,
@@ -2864,7 +3860,10 @@
     "mvs:small_oak_lantern": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
       "theme": "deco",
-      "structures": ["mvs:small_oak_lantern"],
+      "structures": [
+        "mvs:small_oak_lantern"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 24,
       "separation": 12,
       "frequency": 1.0,
@@ -2874,7 +3873,10 @@
     "mvs:small_oak_pond": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
       "theme": "deco",
-      "structures": ["mvs:small_oak_pond"],
+      "structures": [
+        "mvs:small_oak_pond"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 35,
       "separation": 12,
       "frequency": 1.0,
@@ -2884,7 +3886,10 @@
     "mvs:small_pillager_tower": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
       "theme": "landmark",
-      "structures": ["mvs:small_pillager_tower"],
+      "structures": [
+        "mvs:small_pillager_tower"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 34,
       "separation": 28,
       "frequency": 1.0,
@@ -2894,7 +3899,10 @@
     "mvs:small_ruin": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
       "theme": "ruins",
-      "structures": ["mvs:small_ruin"],
+      "structures": [
+        "mvs:small_ruin"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 38,
       "separation": 26,
       "frequency": 1.0,
@@ -2904,7 +3912,10 @@
     "mvs:small_ship": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
       "theme": "maritime",
-      "structures": ["mvs:small_ship"],
+      "structures": [
+        "mvs:small_ship"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 34,
       "separation": 28,
       "frequency": 1.0,
@@ -2914,7 +3925,10 @@
     "mvs:small_spruce_lantern": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
       "theme": "deco",
-      "structures": ["mvs:small_spruce_lantern"],
+      "structures": [
+        "mvs:small_spruce_lantern"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 24,
       "separation": 12,
       "frequency": 1.0,
@@ -2924,7 +3938,10 @@
     "mvs:small_swamp_house": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
       "theme": "settlement",
-      "structures": ["mvs:small_swamp_house"],
+      "structures": [
+        "mvs:small_swamp_house"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 78,
       "separation": 20,
       "frequency": 1.0,
@@ -2934,7 +3951,10 @@
     "mvs:small_tower_well": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
       "theme": "landmark",
-      "structures": ["mvs:small_tower_well"],
+      "structures": [
+        "mvs:small_tower_well"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 23,
       "separation": 15,
       "frequency": 1.0,
@@ -2944,7 +3964,10 @@
     "mvs:snowy_dog_hut": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
       "theme": "settlement",
-      "structures": ["mvs:snowy_dog_hut"],
+      "structures": [
+        "mvs:snowy_dog_hut"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 28,
       "separation": 24,
       "frequency": 1.0,
@@ -2954,7 +3977,10 @@
     "mvs:snowy_fossil": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
       "theme": "ruins",
-      "structures": ["mvs:snowy_fossil"],
+      "structures": [
+        "mvs:snowy_fossil"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 26,
       "separation": 13,
       "frequency": 1.0,
@@ -2964,7 +3990,10 @@
     "mvs:spruce_log_pile": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
       "theme": "landmark",
-      "structures": ["mvs:spruce_log_pile"],
+      "structures": [
+        "mvs:spruce_log_pile"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 26,
       "separation": 16,
       "frequency": 1.0,
@@ -2974,7 +4003,10 @@
     "mvs:spruce_tree": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
       "theme": "landmark",
-      "structures": ["mvs:spruce_tree"],
+      "structures": [
+        "mvs:spruce_tree"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 18,
       "separation": 13,
       "frequency": 1.0,
@@ -2984,7 +4016,13 @@
     "mvs:stalls": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
       "theme": "landmark",
-      "structures": ["mvs:red_stall", "mvs:orange_stall", "mvs:pink_stall", "mvs:blue_stall"],
+      "structures": [
+        "mvs:red_stall",
+        "mvs:orange_stall",
+        "mvs:pink_stall",
+        "mvs:blue_stall"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 32,
       "separation": 16,
       "frequency": 1.0,
@@ -2994,7 +4032,10 @@
     "mvs:statue_ruins": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
       "theme": "ruins",
-      "structures": ["mvs:statue_ruins"],
+      "structures": [
+        "mvs:statue_ruins"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 38,
       "separation": 30,
       "frequency": 1.0,
@@ -3004,7 +4045,10 @@
     "mvs:stone_fountain": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
       "theme": "deco",
-      "structures": ["mvs:stone_fountain"],
+      "structures": [
+        "mvs:stone_fountain"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 36,
       "separation": 12,
       "frequency": 1.0,
@@ -3014,7 +4058,10 @@
     "mvs:stone_pillars": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
       "theme": "landmark",
-      "structures": ["mvs:stone_pillars"],
+      "structures": [
+        "mvs:stone_pillars"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 42,
       "separation": 36,
       "frequency": 1.0,
@@ -3024,7 +4071,10 @@
     "mvs:stone_rock": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
       "theme": "landmark",
-      "structures": ["mvs:stone_rock"],
+      "structures": [
+        "mvs:stone_rock"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 18,
       "separation": 13,
       "frequency": 1.0,
@@ -3034,7 +4084,10 @@
     "mvs:sunzi_gate": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
       "theme": "landmark",
-      "structures": ["mvs:sunzi_gate"],
+      "structures": [
+        "mvs:sunzi_gate"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 54,
       "separation": 20,
       "frequency": 1.0,
@@ -3044,7 +4097,10 @@
     "mvs:tall_house": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
       "theme": "settlement",
-      "structures": ["mvs:tall_house"],
+      "structures": [
+        "mvs:tall_house"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 42,
       "separation": 34,
       "frequency": 1.0,
@@ -3054,7 +4110,10 @@
     "mvs:tree_monument": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
       "theme": "landmark",
-      "structures": ["mvs:tree_monument"],
+      "structures": [
+        "mvs:tree_monument"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 76,
       "separation": 65,
       "frequency": 1.0,
@@ -3064,7 +4123,10 @@
     "mvs:villager_statue": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
       "theme": "settlement",
-      "structures": ["mvs:villager_statue"],
+      "structures": [
+        "mvs:villager_statue"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 56,
       "separation": 40,
       "frequency": 1.0,
@@ -3074,7 +4136,10 @@
     "mvs:warped_house": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
       "theme": "settlement",
-      "structures": ["mvs:warped_house"],
+      "structures": [
+        "mvs:warped_house"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 48,
       "separation": 30,
       "frequency": 1.0,
@@ -3084,7 +4149,10 @@
     "mvs:wheat_grain_bin": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
       "theme": "landmark",
-      "structures": ["mvs:wheat_grain_bin"],
+      "structures": [
+        "mvs:wheat_grain_bin"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 26,
       "separation": 14,
       "frequency": 1.0,
@@ -3094,7 +4162,10 @@
     "mvs:windmill": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
       "theme": "settlement",
-      "structures": ["mvs:windmill"],
+      "structures": [
+        "mvs:windmill"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 26,
       "separation": 14,
       "frequency": 1.0,
@@ -3104,7 +4175,10 @@
     "mvs:wooden_wheat_farm": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
       "theme": "settlement",
-      "structures": ["mvs:wooden_wheat_farm"],
+      "structures": [
+        "mvs:wooden_wheat_farm"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 26,
       "separation": 14,
       "frequency": 1.0,
@@ -3114,7 +4188,10 @@
     "nova_structures:badlands_miner_outpost": {
       "source": "dungeons-and-taverns-v4.4.4.jar",
       "theme": "settlement",
-      "structures": ["nova_structures:badlands_miner_outpost"],
+      "structures": [
+        "nova_structures:badlands_miner_outpost"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 60,
       "separation": 12,
       "frequency": 1.0,
@@ -3124,7 +4201,10 @@
     "nova_structures:badlands_miner_outpost_mineshafts": {
       "source": "dungeons-and-taverns-v4.4.4.jar",
       "theme": "settlement",
-      "structures": ["minecraft:mineshaft_mesa"],
+      "structures": [
+        "minecraft:mineshaft_mesa"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 60,
       "separation": 12,
       "frequency": 1.0,
@@ -3134,7 +4214,10 @@
     "nova_structures:bunker": {
       "source": "dungeons-and-taverns-v4.4.4.jar",
       "theme": "landmark",
-      "structures": ["nova_structures:bunker"],
+      "structures": [
+        "nova_structures:bunker"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 50,
       "separation": 10,
       "frequency": 1.0,
@@ -3144,7 +4227,10 @@
     "nova_structures:conduit_ruin": {
       "source": "dungeons-and-taverns-v4.4.4.jar",
       "theme": "ruins",
-      "structures": ["nova_structures:conduit_ruin"],
+      "structures": [
+        "nova_structures:conduit_ruin"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 140,
       "separation": 90,
       "frequency": 1.0,
@@ -3154,7 +4240,10 @@
     "nova_structures:creeping_crypt": {
       "source": "dungeons-and-taverns-v4.4.4.jar",
       "theme": "dungeon",
-      "structures": ["nova_structures:creeping_crypt"],
+      "structures": [
+        "nova_structures:creeping_crypt"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 100,
       "separation": 10,
       "frequency": 1.0,
@@ -3164,7 +4253,10 @@
     "nova_structures:deepslate_camp": {
       "source": "datapack:structures",
       "theme": "settlement",
-      "structures": ["nova_structures:deepslate_camp"],
+      "structures": [
+        "nova_structures:deepslate_camp"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 15,
       "separation": 7,
       "frequency": 0.7,
@@ -3174,7 +4266,10 @@
     "nova_structures:desert_ruins": {
       "source": "dungeons-and-taverns-v4.4.4.jar",
       "theme": "ruins",
-      "structures": ["nova_structures:desert_ruins"],
+      "structures": [
+        "nova_structures:desert_ruins"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 80,
       "separation": 12,
       "frequency": 1.0,
@@ -3184,17 +4279,23 @@
     "nova_structures:end_castle": {
       "source": "dungeons-and-taverns-v4.4.4.jar",
       "theme": "landmark",
-      "structures": ["nova_structures:end_castle"],
-      "spacing": 0,
-      "separation": 0,
+      "structures": [
+        "nova_structures:end_castle"
+      ],
+      "placementType": "minecraft:concentric_rings",
+      "spacing": null,
+      "separation": null,
       "frequency": 1.0,
       "dimension": "end",
-      "rarity": "common"
+      "rarity": "uncommon"
     },
     "nova_structures:end_lighthouses": {
       "source": "dungeons-and-taverns-v4.4.4.jar",
       "theme": "maritime",
-      "structures": ["nova_structures:end_lighthouse"],
+      "structures": [
+        "nova_structures:end_lighthouse"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 40,
       "separation": 22,
       "frequency": 1.0,
@@ -3204,7 +4305,10 @@
     "nova_structures:end_ship": {
       "source": "dungeons-and-taverns-v4.4.4.jar",
       "theme": "maritime",
-      "structures": ["nova_structures:end_ship"],
+      "structures": [
+        "nova_structures:end_ship"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 40,
       "separation": 10,
       "frequency": 0.25,
@@ -3225,6 +4329,7 @@
         "nova_structures:firewatch_tower_swamp",
         "nova_structures:firewatch_tower_taiga"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 50,
       "separation": 15,
       "frequency": 1.0,
@@ -3234,7 +4339,10 @@
     "nova_structures:illager_camp": {
       "source": "dungeons-and-taverns-v4.4.4.jar",
       "theme": "settlement",
-      "structures": ["nova_structures:illager_camp"],
+      "structures": [
+        "nova_structures:illager_camp"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 50,
       "separation": 32,
       "frequency": 1.0,
@@ -3244,7 +4352,10 @@
     "nova_structures:illager_hideout": {
       "source": "dungeons-and-taverns-v4.4.4.jar",
       "theme": "landmark",
-      "structures": ["nova_structures:illager_hideout"],
+      "structures": [
+        "nova_structures:illager_hideout"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 200,
       "separation": 12,
       "frequency": 1.0,
@@ -3254,7 +4365,10 @@
     "nova_structures:jungle_ruins": {
       "source": "dungeons-and-taverns-v4.4.4.jar",
       "theme": "ruins",
-      "structures": ["nova_structures:jungle_ruins"],
+      "structures": [
+        "nova_structures:jungle_ruins"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 80,
       "separation": 12,
       "frequency": 1.0,
@@ -3264,7 +4378,10 @@
     "nova_structures:mangrove_witch_hut": {
       "source": "dungeons-and-taverns-v4.4.4.jar",
       "theme": "settlement",
-      "structures": ["nova_structures:mangrove_witch_hut"],
+      "structures": [
+        "nova_structures:mangrove_witch_hut"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 32,
       "separation": 8,
       "frequency": 1.0,
@@ -3281,6 +4398,7 @@
         "nova_structures:skeleton_camp_soul",
         "nova_structures:piglin_camp"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 20,
       "separation": 10,
       "frequency": 1.0,
@@ -3296,6 +4414,7 @@
         "nova_structures:nether_skeleton_tower_crimson",
         "nova_structures:nether_skeleton_tower_soul"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 40,
       "separation": 20,
       "frequency": 1.0,
@@ -3312,6 +4431,7 @@
         "nova_structures:piglin_outstation",
         "nova_structures:piglin_donjon"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 85,
       "separation": 40,
       "frequency": 1.0,
@@ -3347,6 +4467,7 @@
         "nova_structures:remnant_zombie_horse_ranch",
         "nova_structures:remnant_classic_village"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 120,
       "separation": 30,
       "frequency": 1.0,
@@ -3356,7 +4477,10 @@
     "nova_structures:ruin_town": {
       "source": "dungeons-and-taverns-v4.4.4.jar",
       "theme": "settlement",
-      "structures": ["nova_structures:ruin_town"],
+      "structures": [
+        "nova_structures:ruin_town"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 72,
       "separation": 30,
       "frequency": 1.0,
@@ -3366,7 +4490,10 @@
     "nova_structures:shrine_tower": {
       "source": "dungeons-and-taverns-v4.4.4.jar",
       "theme": "landmark",
-      "structures": ["nova_structures:shrine_tower"],
+      "structures": [
+        "nova_structures:shrine_tower"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 600,
       "separation": 312,
       "frequency": 1.0,
@@ -3383,6 +4510,7 @@
         "nova_structures:shrine_combat_tier_4",
         "nova_structures:shrine_combat_tier_5"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 50,
       "separation": 26,
       "frequency": 1.0,
@@ -3392,7 +4520,11 @@
     "nova_structures:stray_fort": {
       "source": "dungeons-and-taverns-v4.4.4.jar",
       "theme": "landmark",
-      "structures": ["nova_structures:stray_fort", "nova_structures:lone_citadel"],
+      "structures": [
+        "nova_structures:stray_fort",
+        "nova_structures:lone_citadel"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 100,
       "separation": 16,
       "frequency": 1.0,
@@ -3402,7 +4534,11 @@
     "nova_structures:swamp_structure": {
       "source": "dungeons-and-taverns-v4.4.4.jar",
       "theme": "landmark",
-      "structures": ["nova_structures:witch_villa", "nova_structures:toxic_lair"],
+      "structures": [
+        "nova_structures:witch_villa",
+        "nova_structures:toxic_lair"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 80,
       "separation": 20,
       "frequency": 1.0,
@@ -3425,6 +4561,7 @@
         "nova_structures:tavern_spruce",
         "nova_structures:tavern_swamp"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 40,
       "separation": 15,
       "frequency": 1.0,
@@ -3434,7 +4571,10 @@
     "nova_structures:trident_trial_monument": {
       "source": "dungeons-and-taverns-v4.4.4.jar",
       "theme": "landmark",
-      "structures": ["nova_structures:trident_trial_monument"],
+      "structures": [
+        "nova_structures:trident_trial_monument"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 200,
       "separation": 190,
       "frequency": 1.0,
@@ -3444,7 +4584,10 @@
     "nova_structures:undead_crypt": {
       "source": "dungeons-and-taverns-v4.4.4.jar",
       "theme": "dungeon",
-      "structures": ["nova_structures:undead_crypt"],
+      "structures": [
+        "nova_structures:undead_crypt"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 100,
       "separation": 20,
       "frequency": 1.0,
@@ -3454,7 +4597,10 @@
     "nova_structures:underground_house": {
       "source": "dungeons-and-taverns-v4.4.4.jar",
       "theme": "settlement",
-      "structures": ["nova_structures:underground_house"],
+      "structures": [
+        "nova_structures:underground_house"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 20,
       "separation": 10,
       "frequency": 1.0,
@@ -3464,7 +4610,10 @@
     "nova_structures:villages_birch": {
       "source": "datapack:structures",
       "theme": "settlement",
-      "structures": ["nova_structures:village_birch"],
+      "structures": [
+        "nova_structures:village_birch"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 26,
       "separation": 8,
       "frequency": 1.0,
@@ -3474,7 +4623,10 @@
     "nova_structures:villages_jungle": {
       "source": "datapack:structures",
       "theme": "settlement",
-      "structures": ["nova_structures:village_jungle"],
+      "structures": [
+        "nova_structures:village_jungle"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 26,
       "separation": 8,
       "frequency": 1.0,
@@ -3484,7 +4636,10 @@
     "nova_structures:villages_swamp": {
       "source": "datapack:structures",
       "theme": "settlement",
-      "structures": ["nova_structures:village_swamp"],
+      "structures": [
+        "nova_structures:village_swamp"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 26,
       "separation": 8,
       "frequency": 1.0,
@@ -3502,6 +4657,7 @@
         "nova_structures:well_oak",
         "nova_structures:well_savana"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 40,
       "separation": 15,
       "frequency": 1.0,
@@ -3511,7 +4667,10 @@
     "nova_structures:wild_ruin": {
       "source": "dungeons-and-taverns-v4.4.4.jar",
       "theme": "ruins",
-      "structures": ["nova_structures:wild_ruin"],
+      "structures": [
+        "nova_structures:wild_ruin"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 27,
       "separation": 18,
       "frequency": 1.0,
@@ -3521,7 +4680,10 @@
     "nullscape:dragon_skeleton": {
       "source": "Nullscape_1.21.x_v1.2.14.jar",
       "theme": "landmark",
-      "structures": ["nullscape:dragon_skeleton"],
+      "structures": [
+        "nullscape:dragon_skeleton"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 22,
       "separation": 12,
       "frequency": 1.0,
@@ -3531,7 +4693,10 @@
     "nullscape:rift": {
       "source": "Nullscape_1.21.x_v1.2.14.jar",
       "theme": "landmark",
-      "structures": ["nullscape:rift"],
+      "structures": [
+        "nullscape:rift"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 20,
       "separation": 12,
       "frequency": 1.0,
@@ -3541,7 +4706,10 @@
     "paradise_lost:aurel_tower": {
       "source": "paradise-lost-2.4.6-beta+1.21.1.jar",
       "theme": "landmark",
-      "structures": ["paradise_lost:aurel_tower"],
+      "structures": [
+        "paradise_lost:aurel_tower"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 28,
       "separation": 7,
       "frequency": 1.0,
@@ -3551,7 +4719,10 @@
     "paradise_lost:birdcage": {
       "source": "paradise-lost-2.4.6-beta+1.21.1.jar",
       "theme": "landmark",
-      "structures": ["paradise_lost:birdcage"],
+      "structures": [
+        "paradise_lost:birdcage"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 60,
       "separation": 18,
       "frequency": 1.0,
@@ -3561,7 +4732,10 @@
     "paradise_lost:palace": {
       "source": "paradise-lost-2.4.6-beta+1.21.1.jar",
       "theme": "landmark",
-      "structures": ["paradise_lost:palace"],
+      "structures": [
+        "paradise_lost:palace"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 70,
       "separation": 23,
       "frequency": 1.0,
@@ -3571,7 +4745,10 @@
     "paradise_lost:remains": {
       "source": "paradise-lost-2.4.6-beta+1.21.1.jar",
       "theme": "landmark",
-      "structures": ["paradise_lost:remains"],
+      "structures": [
+        "paradise_lost:remains"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 24,
       "separation": 6,
       "frequency": 1.0,
@@ -3581,7 +4758,10 @@
     "paradise_lost:vault": {
       "source": "paradise-lost-2.4.6-beta+1.21.1.jar",
       "theme": "dungeon",
-      "structures": ["paradise_lost:vault"],
+      "structures": [
+        "paradise_lost:vault"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 40,
       "separation": 16,
       "frequency": 1.0,
@@ -3591,7 +4771,10 @@
     "philipsruins:ancient_crypt": {
       "source": "Philips-Ruins1.21.1-1.9-Fabric.jar",
       "theme": "dungeon",
-      "structures": ["philipsruins:ancient_crypt"],
+      "structures": [
+        "philipsruins:ancient_crypt"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 80,
       "separation": 50,
       "frequency": 1.0,
@@ -3601,7 +4784,10 @@
     "philipsruins:ancient_dungeon": {
       "source": "datapack:structures",
       "theme": "dungeon",
-      "structures": ["philipsruins:ancient_dungeon"],
+      "structures": [
+        "philipsruins:ancient_dungeon"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 10,
       "separation": 3,
       "frequency": 0.5,
@@ -3611,7 +4797,10 @@
     "philipsruins:ancient_ruins": {
       "source": "Philips-Ruins1.21.1-1.9-Fabric.jar",
       "theme": "ruins",
-      "structures": ["philipsruins:ancient_ruins"],
+      "structures": [
+        "philipsruins:ancient_ruins"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 60,
       "separation": 30,
       "frequency": 1.0,
@@ -3621,7 +4810,10 @@
     "philipsruins:ancient_towers": {
       "source": "datapack:structures",
       "theme": "ruins",
-      "structures": ["philipsruins:ancient_towers"],
+      "structures": [
+        "philipsruins:ancient_towers"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 50,
       "separation": 40,
       "frequency": 0.85,
@@ -3631,7 +4823,10 @@
     "philipsruins:antiquus_crypta": {
       "source": "Philips-Ruins1.21.1-1.9-Fabric.jar",
       "theme": "dungeon",
-      "structures": ["philipsruins:antiquus_crypta"],
+      "structures": [
+        "philipsruins:antiquus_crypta"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 90,
       "separation": 40,
       "frequency": 1.0,
@@ -3646,6 +4841,7 @@
         "philipsruins:badlands_structures",
         "philipsruins:desert_structures"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 39,
       "separation": 15,
       "frequency": 1.0,
@@ -3655,7 +4851,11 @@
     "philipsruins:end_ruins": {
       "source": "Philips-Ruins1.21.1-1.9-Fabric.jar",
       "theme": "ruins",
-      "structures": ["philipsruins:end_ruins", "philipsruins:end_gate_fortress"],
+      "structures": [
+        "philipsruins:end_ruins",
+        "philipsruins:end_gate_fortress"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 35,
       "separation": 25,
       "frequency": 1.0,
@@ -3665,7 +4865,10 @@
     "philipsruins:field_stone_ruins": {
       "source": "Philips-Ruins1.21.1-1.9-Fabric.jar",
       "theme": "ruins",
-      "structures": ["philipsruins:field_stone_ruins"],
+      "structures": [
+        "philipsruins:field_stone_ruins"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 75,
       "separation": 35,
       "frequency": 1.0,
@@ -3675,7 +4878,10 @@
     "philipsruins:field_stone_ruins_rocks": {
       "source": "Philips-Ruins1.21.1-1.9-Fabric.jar",
       "theme": "ruins",
-      "structures": ["philipsruins:field_stone_ruins_rocks"],
+      "structures": [
+        "philipsruins:field_stone_ruins_rocks"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 40,
       "separation": 27,
       "frequency": 1.0,
@@ -3685,7 +4891,10 @@
     "philipsruins:level_one_ruins": {
       "source": "Philips-Ruins1.21.1-1.9-Fabric.jar",
       "theme": "ruins",
-      "structures": ["philipsruins:level_one_ruins"],
+      "structures": [
+        "philipsruins:level_one_ruins"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 75,
       "separation": 40,
       "frequency": 1.0,
@@ -3695,7 +4904,10 @@
     "philipsruins:level_three_ruins": {
       "source": "Philips-Ruins1.21.1-1.9-Fabric.jar",
       "theme": "ruins",
-      "structures": ["philipsruins:level_three_ruins"],
+      "structures": [
+        "philipsruins:level_three_ruins"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 85,
       "separation": 45,
       "frequency": 1.0,
@@ -3705,7 +4917,11 @@
     "philipsruins:level_two_ruins": {
       "source": "Philips-Ruins1.21.1-1.9-Fabric.jar",
       "theme": "ruins",
-      "structures": ["philipsruins:level_two_ruins", "philipsruins:level_two_ruins_pool"],
+      "structures": [
+        "philipsruins:level_two_ruins",
+        "philipsruins:level_two_ruins_pool"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 80,
       "separation": 50,
       "frequency": 1.0,
@@ -3715,7 +4931,10 @@
     "philipsruins:lost_soul_city": {
       "source": "Philips-Ruins1.21.1-1.9-Fabric.jar",
       "theme": "settlement",
-      "structures": ["philipsruins:lost_soul_city"],
+      "structures": [
+        "philipsruins:lost_soul_city"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 80,
       "separation": 65,
       "frequency": 1.0,
@@ -3725,7 +4944,10 @@
     "philipsruins:nether_ruins": {
       "source": "Philips-Ruins1.21.1-1.9-Fabric.jar",
       "theme": "ruins",
-      "structures": ["philipsruins:start_nether_ruin"],
+      "structures": [
+        "philipsruins:start_nether_ruin"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 310,
       "separation": 90,
       "frequency": 1.0,
@@ -3740,6 +4962,7 @@
         "philipsruins:sealedruinedghaststatue1",
         "philipsruins:nether_lava_ruins"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 30,
       "separation": 25,
       "frequency": 1.0,
@@ -3749,7 +4972,10 @@
     "philipsruins:ocean_fortress_main": {
       "source": "Philips-Ruins1.21.1-1.9-Fabric.jar",
       "theme": "maritime",
-      "structures": ["philipsruins:ocean_fortress"],
+      "structures": [
+        "philipsruins:ocean_fortress"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 70,
       "separation": 50,
       "frequency": 1.0,
@@ -3759,7 +4985,10 @@
     "philipsruins:ocean_ruins": {
       "source": "Philips-Ruins1.21.1-1.9-Fabric.jar",
       "theme": "maritime",
-      "structures": ["philipsruins:ocean_ruins"],
+      "structures": [
+        "philipsruins:ocean_ruins"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 50,
       "separation": 40,
       "frequency": 1.0,
@@ -3769,7 +4998,10 @@
     "philipsruins:pumpkin_ruins": {
       "source": "Philips-Ruins1.21.1-1.9-Fabric.jar",
       "theme": "ruins",
-      "structures": ["philipsruins:pumpkin_ruins"],
+      "structures": [
+        "philipsruins:pumpkin_ruins"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 50,
       "separation": 40,
       "frequency": 1.0,
@@ -3779,7 +5011,10 @@
     "philipsruins:rare_ruin": {
       "source": "Philips-Ruins1.21.1-1.9-Fabric.jar",
       "theme": "ruins",
-      "structures": ["philipsruins:rare_ruin"],
+      "structures": [
+        "philipsruins:rare_ruin"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 360,
       "separation": 130,
       "frequency": 1.0,
@@ -3795,16 +5030,83 @@
         "philipsruins:underground_structures",
         "philipsruins:sculk_dungeon"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 60,
       "separation": 35,
       "frequency": 1.0,
       "dimension": "overworld",
       "rarity": "rare"
     },
+    "simply_houses:simply_structures": {
+      "source": "SimplyHouses-1.1.5-1.21.x-fabric.jar",
+      "theme": "settlement",
+      "structures": [
+        "simply_houses:forest_chapel",
+        "simply_houses:forest_house",
+        "simply_houses:forest_stonemason",
+        "simply_houses:forest_fort",
+        "simply_houses:taiga_house",
+        "simply_houses:taiga_forge",
+        "simply_houses:taiga_inn",
+        "simply_houses:taiga_woodcutter",
+        "simply_houses:plains_mansion",
+        "simply_houses:plains_house"
+      ],
+      "placementType": "minecraft:random_spread",
+      "spacing": 70,
+      "separation": 65,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "endgame"
+    },
+    "skyvillages:skyvillage": {
+      "source": "SkyVillages-1.0.6-1.21.x-fabric-release.jar",
+      "theme": "settlement",
+      "structures": [
+        "skyvillages:skyvillage"
+      ],
+      "placementType": "minecraft:random_spread",
+      "spacing": 70,
+      "separation": 65,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "rare"
+    },
+    "stoneholm:underground_village": {
+      "source": "stoneholm-2.1.2+1.21.1.jar",
+      "theme": "settlement",
+      "structures": [
+        "stoneholm:underground_village"
+      ],
+      "placementType": "minecraft:random_spread",
+      "spacing": 32,
+      "separation": 8,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
+    "stoneholm:underground_village_deepslate": {
+      "source": "stoneholm-2.1.2+1.21.1.jar",
+      "theme": "settlement",
+      "structures": [
+        "stoneholm:underground_village_deepslate"
+      ],
+      "placementType": "minecraft:random_spread",
+      "spacing": 32,
+      "separation": 8,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
     "structory:mid_rare_ruin": {
-      "source": "Structory_26.1_v1.3.16.jar",
+      "source": "Structory_26.2_v1.3.7.jar",
       "theme": "dungeon",
-      "structures": ["structory:taiga_ruin_surface", "structory:taiga_ruin_underground", "structory:northern_ruin"],
+      "structures": [
+        "structory:taiga_ruin_surface",
+        "structory:taiga_ruin_underground",
+        "structory:northern_ruin"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 30,
       "separation": 16,
       "frequency": 0.7,
@@ -3812,9 +5114,13 @@
       "rarity": "uncommon"
     },
     "structory:old_manor": {
-      "source": "Structory_26.1_v1.3.16.jar",
+      "source": "Structory_26.2_v1.3.7.jar",
       "theme": "ruins",
-      "structures": ["structory:old_manor", "structory:dense_forest_ruin"],
+      "structures": [
+        "structory:old_manor",
+        "structory:dense_forest_ruin"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 42,
       "separation": 16,
       "frequency": 1.0,
@@ -3822,7 +5128,7 @@
       "rarity": "uncommon"
     },
     "structory:outcast_villager": {
-      "source": "Structory_26.1_v1.3.16.jar",
+      "source": "Structory_26.2_v1.3.7.jar",
       "theme": "settlement",
       "structures": [
         "structory:abandoned_chapel",
@@ -3834,6 +5140,7 @@
         "structory:outcast_villager_desert",
         "structory:boat"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 44,
       "separation": 14,
       "frequency": 1.0,
@@ -3841,9 +5148,12 @@
       "rarity": "uncommon"
     },
     "structory:ruin": {
-      "source": "Structory_26.1_v1.3.16.jar",
+      "source": "Structory_26.2_v1.3.7.jar",
       "theme": "ruins",
-      "structures": ["structory:jungle_ruin"],
+      "structures": [
+        "structory:jungle_ruin"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 30,
       "separation": 10,
       "frequency": 1.0,
@@ -3851,9 +5161,12 @@
       "rarity": "common"
     },
     "structory:ruin_quiet": {
-      "source": "Structory_26.1_v1.3.16.jar",
+      "source": "Structory_26.2_v1.3.7.jar",
       "theme": "ruins",
-      "structures": ["structory:swamp_ruin"],
+      "structures": [
+        "structory:swamp_ruin"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 23,
       "separation": 10,
       "frequency": 1.0,
@@ -3861,9 +5174,12 @@
       "rarity": "common"
     },
     "structory_towers:end_towers": {
-      "source": "Structory_Towers_26.1_v1.0.16.jar",
+      "source": "Structory_Towers_26.2_v1.0.17.jar",
       "theme": "landmark",
-      "structures": ["structory_towers:end/end_tower"],
+      "structures": [
+        "structory_towers:end/end_tower"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 82,
       "separation": 10,
       "frequency": 0.4,
@@ -3871,13 +5187,14 @@
       "rarity": "very_rare"
     },
     "structory_towers:nether_towers": {
-      "source": "Structory_Towers_26.1_v1.0.16.jar",
+      "source": "Structory_Towers_26.2_v1.0.17.jar",
       "theme": "settlement",
       "structures": [
         "structory_towers:nether/strange_outpost",
         "structory_towers:nether/warped_outpost",
         "structory_towers:nether/fortress_tower"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 33,
       "separation": 10,
       "frequency": 0.9,
@@ -3893,6 +5210,7 @@
         "structory_towers:mirage_outpost",
         "structory_towers:pillager_lookout"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 55,
       "separation": 16,
       "frequency": 0.5312,
@@ -3917,6 +5235,7 @@
         "structory_towers:taiga_outpost",
         "structory_towers:wizard_tower"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 40,
       "separation": 10,
       "frequency": 0.6162,
@@ -3926,17 +5245,179 @@
     "structory_towers:ultra_rare_towers": {
       "source": "datapack:structures",
       "theme": "landmark",
-      "structures": ["structory_towers:warped_greatsword"],
+      "structures": [
+        "structory_towers:warped_greatsword"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 80,
       "separation": 42,
       "frequency": 0.5737,
       "dimension": "nether",
       "rarity": "very_rare"
     },
-    "supplementaries:galleons": {
-      "source": "supplementaries-fabric-1.21.1-3.7.7.jar",
+    "subsurface:cave_blocker": {
+      "source": "subsurface-1.0.4.jar",
+      "theme": "dungeon",
+      "structures": [
+        "subsurface:cave_blocker"
+      ],
+      "placementType": "minecraft:random_spread",
+      "spacing": 15,
+      "separation": 10,
+      "frequency": 0.5,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "subsurface:coral_caves": {
+      "source": "subsurface-1.0.4.jar",
+      "theme": "dungeon",
+      "structures": [
+        "subsurface:coral_caves"
+      ],
+      "placementType": "minecraft:random_spread",
+      "spacing": 1,
+      "separation": 0,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "subsurface:foliage_caves": {
+      "source": "subsurface-1.0.4.jar",
+      "theme": "dungeon",
+      "structures": [
+        "subsurface:foliage_caves"
+      ],
+      "placementType": "minecraft:random_spread",
+      "spacing": 1,
+      "separation": 0,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "subsurface:fungal_caves": {
+      "source": "subsurface-1.0.4.jar",
+      "theme": "dungeon",
+      "structures": [
+        "subsurface:fungal_caves"
+      ],
+      "placementType": "minecraft:random_spread",
+      "spacing": 1,
+      "separation": 0,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "subsurface:icicle_caves": {
+      "source": "subsurface-1.0.4.jar",
+      "theme": "dungeon",
+      "structures": [
+        "subsurface:icicle_caves"
+      ],
+      "placementType": "minecraft:random_spread",
+      "spacing": 1,
+      "separation": 0,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "subsurface:mesa_caves": {
+      "source": "subsurface-1.0.4.jar",
+      "theme": "dungeon",
+      "structures": [
+        "subsurface:mesa_caves"
+      ],
+      "placementType": "minecraft:random_spread",
+      "spacing": 1,
+      "separation": 0,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "subsurface:quartz_canyons": {
+      "source": "subsurface-1.0.4.jar",
       "theme": "landmark",
-      "structures": ["supplementaries:galleon"],
+      "structures": [
+        "subsurface:quartz_canyons"
+      ],
+      "placementType": "minecraft:random_spread",
+      "spacing": 1,
+      "separation": 0,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "subsurface:sand_caves": {
+      "source": "subsurface-1.0.4.jar",
+      "theme": "dungeon",
+      "structures": [
+        "subsurface:sand_caves"
+      ],
+      "placementType": "minecraft:random_spread",
+      "spacing": 1,
+      "separation": 0,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "subsurface:soul_canyons": {
+      "source": "subsurface-1.0.4.jar",
+      "theme": "landmark",
+      "structures": [
+        "subsurface:soul_canyons"
+      ],
+      "placementType": "minecraft:random_spread",
+      "spacing": 1,
+      "separation": 0,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "subsurface:swamp_caves": {
+      "source": "subsurface-1.0.4.jar",
+      "theme": "dungeon",
+      "structures": [
+        "subsurface:swamp_caves"
+      ],
+      "placementType": "minecraft:random_spread",
+      "spacing": 1,
+      "separation": 0,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "subsurface:underground_forest": {
+      "source": "subsurface-1.0.4.jar",
+      "theme": "dungeon",
+      "structures": [
+        "subsurface:underground_forest"
+      ],
+      "placementType": "minecraft:random_spread",
+      "spacing": 1,
+      "separation": 0,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "subsurface:underground_taiga": {
+      "source": "subsurface-1.0.4.jar",
+      "theme": "dungeon",
+      "structures": [
+        "subsurface:underground_taiga"
+      ],
+      "placementType": "minecraft:random_spread",
+      "spacing": 1,
+      "separation": 0,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "supplementaries:galleons": {
+      "source": "supplementaries-1.21.1-3.8.10-fabric.jar",
+      "theme": "landmark",
+      "structures": [
+        "supplementaries:galleon"
+      ],
+      "placementType": "supplementaries:random_spread_with_exclusion",
       "spacing": 31,
       "separation": 19,
       "frequency": 1.0,
@@ -3944,9 +5425,12 @@
       "rarity": "common"
     },
     "supplementaries:road_signs": {
-      "source": "supplementaries-fabric-1.21.1-3.7.7.jar",
+      "source": "supplementaries-1.21.1-3.8.10-fabric.jar",
       "theme": "deco",
-      "structures": ["supplementaries:road_sign"],
+      "structures": [
+        "supplementaries:road_sign"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 19,
       "separation": 10,
       "frequency": 1.0,
@@ -3964,6 +5448,7 @@
         "terralith:mage_tower_winter",
         "terralith:mage_tower_spring"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 28,
       "separation": 16,
       "frequency": 0.85,
@@ -3973,7 +5458,10 @@
     "terralith:rare_dungeon": {
       "source": "Terralith_1.21.x_v2.6.2.jar",
       "theme": "dungeon",
-      "structures": ["terralith:spire"],
+      "structures": [
+        "terralith:spire"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 36,
       "separation": 28,
       "frequency": 1.0,
@@ -3983,7 +5471,11 @@
     "terralith:rare_village": {
       "source": "Terralith_1.21.x_v2.6.2.jar",
       "theme": "settlement",
-      "structures": ["terralith:fortified_village", "terralith:fortified_desert_village"],
+      "structures": [
+        "terralith:fortified_village",
+        "terralith:fortified_desert_village"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 46,
       "separation": 18,
       "frequency": 1.0,
@@ -4000,6 +5492,7 @@
         "terralith:glacial_hut",
         "terralith:igloo"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 27,
       "separation": 15,
       "frequency": 1.0,
@@ -4017,6 +5510,7 @@
         "terralith:rubble_mountain",
         "terralith:rubble_desert"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 26,
       "separation": 20,
       "frequency": 1.0,
@@ -4033,6 +5527,7 @@
         "terralith:underground/old_refinery",
         "terralith:underground/sunken_tower"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 11,
       "separation": 3,
       "frequency": 0.7,
@@ -4042,7 +5537,10 @@
     "terralith:underground_dungeon": {
       "source": "datapack:structures",
       "theme": "dungeon",
-      "structures": ["terralith:underground/frosted_dungeon"],
+      "structures": [
+        "terralith:underground/frosted_dungeon"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 9,
       "separation": 6,
       "frequency": 0.6,
@@ -4052,7 +5550,11 @@
     "towns_and_towers:other": {
       "source": "t_and_t-neoforge-fabric-1.13.9+1.21.1.jar",
       "theme": "maritime",
-      "structures": ["towns_and_towers:mimic_desert", "towns_and_towers:wreckage_ocean"],
+      "structures": [
+        "towns_and_towers:mimic_desert",
+        "towns_and_towers:wreckage_ocean"
+      ],
+      "placementType": "minecraft:random_spread",
       "spacing": 32,
       "separation": 16,
       "frequency": 1.0,
@@ -4095,6 +5597,7 @@
         "towns_and_towers:exclusives/pillager_outpost_rustic",
         "towns_and_towers:exclusives/pillager_outpost_nilotic"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 48,
       "separation": 12,
       "frequency": 0.2,
@@ -4133,11 +5636,142 @@
         "towns_and_towers:exclusives/village_nilotic",
         "towns_and_towers:exclusives/village_piglin"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 51,
       "separation": 12,
       "frequency": 1.0,
       "dimension": "nether",
       "rarity": "uncommon"
+    },
+    "underground_bunkers:minor_structures": {
+      "source": "UndergroundBunkers-1.0.4-1.21.x-fabric.jar",
+      "theme": "dungeon",
+      "structures": [
+        "underground_bunkers:underground_bunker"
+      ],
+      "placementType": "minecraft:random_spread",
+      "spacing": 25,
+      "separation": 20,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "undergroundworlds:archives": {
+      "source": "undergroundworlds-fabric-3.0.2-1.21.1.jar",
+      "theme": "dungeon",
+      "structures": [
+        "undergroundworlds:archives"
+      ],
+      "placementType": "minecraft:random_spread",
+      "spacing": 128,
+      "separation": 96,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "very_rare"
+    },
+    "undergroundworlds:chillager_outposts": {
+      "source": "undergroundworlds-fabric-3.0.2-1.21.1.jar",
+      "theme": "settlement",
+      "structures": [
+        "undergroundworlds:chillager_outpost"
+      ],
+      "placementType": "minecraft:random_spread",
+      "spacing": 32,
+      "separation": 8,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
+    "undergroundworlds:desert_pyramids": {
+      "source": "undergroundworlds-fabric-3.0.2-1.21.1.jar",
+      "theme": "dungeon",
+      "structures": [
+        "undergroundworlds:desert_pyramid"
+      ],
+      "placementType": "minecraft:random_spread",
+      "spacing": 24,
+      "separation": 8,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "undergroundworlds:ice_dungeons": {
+      "source": "undergroundworlds-fabric-3.0.2-1.21.1.jar",
+      "theme": "dungeon",
+      "structures": [
+        "undergroundworlds:ice_dungeon"
+      ],
+      "placementType": "minecraft:random_spread",
+      "spacing": 24,
+      "separation": 8,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "undergroundworlds:jungle_temples": {
+      "source": "undergroundworlds-fabric-3.0.2-1.21.1.jar",
+      "theme": "dungeon",
+      "structures": [
+        "undergroundworlds:jungle_temple"
+      ],
+      "placementType": "minecraft:random_spread",
+      "spacing": 24,
+      "separation": 8,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "undergroundworlds:jungle_treehouses": {
+      "source": "undergroundworlds-fabric-3.0.2-1.21.1.jar",
+      "theme": "settlement",
+      "structures": [
+        "undergroundworlds:jungle_treehouse"
+      ],
+      "placementType": "minecraft:random_spread",
+      "spacing": 16,
+      "separation": 4,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "undergroundworlds:spider_caves_houses": {
+      "source": "undergroundworlds-fabric-3.0.2-1.21.1.jar",
+      "theme": "settlement",
+      "structures": [
+        "undergroundworlds:spider_caves_house"
+      ],
+      "placementType": "minecraft:random_spread",
+      "spacing": 6,
+      "separation": 2,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "undergroundworlds:swamp_houses": {
+      "source": "undergroundworlds-fabric-3.0.2-1.21.1.jar",
+      "theme": "settlement",
+      "structures": [
+        "undergroundworlds:swamp_house"
+      ],
+      "placementType": "minecraft:random_spread",
+      "spacing": 16,
+      "separation": 4,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "undergroundworlds:tundra_houses": {
+      "source": "undergroundworlds-fabric-3.0.2-1.21.1.jar",
+      "theme": "settlement",
+      "structures": [
+        "undergroundworlds:tundra_house"
+      ],
+      "placementType": "minecraft:random_spread",
+      "spacing": 12,
+      "separation": 4,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
     }
   }
 }

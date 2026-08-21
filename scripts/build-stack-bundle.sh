@@ -69,29 +69,9 @@ MANIFEST=(
   # dies with a missing file on every consumer.
   scripts/pin-mod-versions.sh
   scripts/modrinth-api.py
-  scripts/seed/candidates.py
-  scripts/seed/roll-all.sh
-  scripts/seed/seed_worker.py
-  scripts/seed/dimension_profiles.py
-  scripts/seed/score-dimensions.py
-  scripts/seed/viewer-server.py
-  scripts/seed/viewer_template.html
-  scripts/seed/biome_renderer.py
-  scripts/seed/biome_sampler.py
-  scripts/seed/biome_source_mixing.py
-  scripts/seed/fast_roller.py
-  scripts/seed/structure_placement.py
-  scripts/seed/noise_placement.py
-  scripts/seed/census_scoring.py
-  scripts/check-dimension-drift.py
-  scripts/check-portal-integrity.py
-  scripts/check-noise-regression.py
-  scripts/seed/surface_rules.py
-  scripts/seed/terrain_height.py
-  scripts/seed/warmup_biomes.py
-  scripts/seed/terrain_splines.json
-  scripts/seed/biome_params.json
-  scripts/seed/noise_configs.json
+  # Resolves stack/VERSION for every artefact stamp and cache key.
+  scripts/stack_version.py
+  scripts/gen-suppress-catalogue.py
   scripts/server-power.sh
   scripts/discord-notify.sh
   scripts/discord-cleanup.sh
@@ -99,6 +79,7 @@ MANIFEST=(
   scripts/ddns-update.sh
   scripts/cache-assets.sh
   scripts/dev-up.sh
+  scripts/clean-dev-state.sh
   scripts/pack-build.sh
   scripts/remote-update.sh
   scripts/stack-pull.sh
@@ -132,7 +113,7 @@ if [[ $errors -gt 0 ]]; then
 fi
 
 rm -rf "$STAGING_DIR"
-mkdir -p "$STAGING_DIR/stack/scripts/seed" "$STAGING_DIR/stack/examples/consumer"
+mkdir -p "$STAGING_DIR/stack"
 
 echo "$VERSION" > "$STAGING_DIR/stack/VERSION"
 

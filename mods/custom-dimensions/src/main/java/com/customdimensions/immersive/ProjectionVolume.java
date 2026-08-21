@@ -13,27 +13,26 @@ import java.util.Set;
 import java.util.function.Predicate;
 
 /**
- * Pure geometry for the immersive portal preview (Phase 1): which source
- * positions make up the projection slab behind a portal, where each of them
- * samples from in the target dimension, and which of them a given viewer can
+ * Pure geometry for the immersive portal preview: which source positions
+ * make up the projection slab behind a portal, where each of them samples
+ * from in the target dimension, and which of them a given viewer can
  * actually see through the opening.
  *
- * Deliberately registry-, world- and server-free: every method takes plain
- * values (positions, axis, ints, scale) and returns plain values, so the
- * geometry is unit-testable without a live world.
+ * <p>Deliberately registry-, world- and server-free: every method takes
+ * plain values and returns plain values, so the geometry is unit-testable
+ * without a live world.
  *
- * The slab is a CANDIDATE set; {@link #seesThroughOpening} is what decides
- * what a player is sent. That split is deliberate — the slab is a property of
- * the zone and is computed once, while visibility is a property of the viewer
- * and changes every time they move.
+ * <p>The slab is a CANDIDATE set; {@link #seesThroughOpening} decides what a
+ * player is actually sent — the slab is a property of the zone, computed
+ * once, while visibility is a property of the viewer and changes every time
+ * they move.
  *
- * The mappings MIRROR the real teleport transforms exactly — {@code
- * ServerWorldMixin}'s outbound one (including its integer truncation, and its
- * use of the interior's average column for scaled portals but its MIN corner
- * for anchor portals) and {@code EntityTickPortalMixin}'s return one for the
- * arrival-side projection. A preview that disagrees with where the player
- * actually lands is worse than no preview, so any change to either teleport
- * path must be made here in the same commit.
+ * <p>The mappings MIRROR the real teleport transforms exactly — {@code
+ * ServerWorldMixin}'s outbound one (integer truncation, average column for
+ * scaled portals, MIN corner for anchor portals) and {@code
+ * EntityTickPortalMixin}'s return one. A preview that disagrees with where
+ * the player actually lands is worse than no preview, so any change to
+ * either teleport path must be made here in the same commit.
  */
 public final class ProjectionVolume {
 
@@ -89,22 +88,18 @@ public final class ProjectionVolume {
      * {@code radius} on both in-plane axes, extended {@code depth} blocks
      * along {@code normal}.
      *
-     * The slab starts ONE block past the portal plane, never on it — the
-     * doorway and its frame ring keep their real blocks, so the frame stays
-     * visible and the interior stays walkable-looking.
+     * <p>The slab starts ONE block past the portal plane, never on it, so the
+     * doorway and its frame ring keep their real blocks.
      *
-     * <b>This is a CANDIDATE set, not the projection.</b> The padded columns
-     * sit behind the frame WALL, not behind the opening, and sending them
-     * unconditionally is what made destination blocks appear beside and above
-     * the frame — the projection bleeding out into the real world for anyone
-     * merely looking in the portal's general direction. What a given player
-     * actually receives is this set filtered by {@link #seesThroughOpening},
-     * which is per-player and changes as they move. {@code radius} therefore
-     * only bounds how far the visible cone is allowed to widen behind the
-     * opening; it no longer decides what is shown.
+     * <p><b>This is a CANDIDATE set, not the projection.</b> The padded
+     * columns sit behind the frame WALL, not behind the opening; what a
+     * player actually receives is this set filtered by {@link
+     * #seesThroughOpening}, which is per-player and changes as they move.
+     * {@code radius} only bounds how far the visible cone can widen behind
+     * the opening — it does not decide what is shown.
      *
-     * Returned in a stable, spatially coherent order (the delta pass and the
-     * unit tests both rely on it being deterministic).
+     * <p>Returned in a stable, spatially coherent order (the delta pass and
+     * the unit tests both rely on it being deterministic).
      */
     public static List<BlockPos> computeSourcePositions(Set<BlockPos> interior,
             Direction.Axis portalAxis, Direction normal, int depth, int radius) {
@@ -163,11 +158,9 @@ public final class ProjectionVolume {
      * The coordinate, along {@code normal}'s axis, of the slab layer nearest
      * the portal plane — the first block of projected depth.
      *
-     * Must agree with {@link #computeSourcePositions}, which starts the slab
-     * one block past the plane — hence max+1 / min-1 here, the same
-     * arithmetic. (Phase 4a used it to gate a light layer on that first
-     * layer; the light now lives in the APERTURE, which has no side and so
-     * cannot flip as a viewer walks round the frame.)
+     * <p>Must agree with {@link #computeSourcePositions}, which starts the
+     * slab one block past the plane — hence max+1 / min-1 here, the same
+     * arithmetic.
      */
     public static int firstLayerCoord(Set<BlockPos> interior, Direction normal) {
         if (interior == null || interior.isEmpty() || normal == null) {
@@ -222,118 +215,69 @@ public final class ProjectionVolume {
      * opening, without any part of it also being visible AROUND the frame?
      *
      * <h2>Why this exists</h2>
-     * {@link #computeSourcePositions} is a rectangular slab, so most of it
-     * sits behind the frame WALL rather than behind the doorway. Sending all
-     * of it replaces real blocks beside and above the frame with destination
-     * terrain — reported in-game as "the server is rendering stuff when I
-     * just look in the general direction of the portal". A portal is a hole,
-     * and you can only see through a hole along a line that goes through it.
+     * {@link #computeSourcePositions} is a rectangular slab, most of which
+     * sits behind the frame WALL rather than behind the doorway. Sending it
+     * unconditionally would replace real blocks beside and above the frame
+     * with destination terrain for anyone merely looking in the portal's
+     * general direction. A portal is a hole: you can only see through it
+     * along a line that goes through it.
      *
-     * <h2>The test, and why it is neither of the two obvious ones</h2>
+     * <h2>The test</h2>
      * The block's shadow — the perspective projection of its full cube from
      * {@code eye} onto the portal's mid-plane — is walked cell by cell. The
      * block is shown when the shadow <b>touches the aperture at least once</b>
      * and <b>never leaves {@code interior} ∪ {@code frameRing}</b>. Cells are
-     * looked up in those sets themselves, never in a bounding box, so an
-     * irregular flood-filled frame (an L, an arch, a frame with a notch) masks
-     * per cell, exactly like {@code EntityPassthrough}'s swept-path test.
+     * looked up in those sets themselves, never a bounding box, so an
+     * irregular flood-filled frame masks per cell, like {@code
+     * EntityPassthrough}'s swept-path test.
      *
-     * <p>Both simpler rules were tried in game and both were reported:
-     * <ul>
-     *   <li><b>Centre only</b> — a block whose centre-ray clears the aperture
-     *       still renders as a whole cube, so at grazing angles its outer half
-     *       hangs past the frame edge: "i'm side-on to the portal, it shouldn't
-     *       have those leaves there".</li>
-     *   <li><b>Whole shadow inside the aperture</b> — correct but far too
-     *       conservative, because a block only fractionally behind the opening
-     *       is genuinely visible through it: "any block that is even slightly
-     *       in-frame should be rendered rather than only blocks that are fully
-     *       in frame".</li>
-     * </ul>
-     *
-     * <p>The ring is what reconciles them, and the reason is physical rather
-     * than a fudge: the parts of a partially-visible block that do NOT come
-     * through the aperture are behind the frame ring, which is real, solid,
-     * opaque geometry the client draws in front of them. They are occluded,
-     * not leaked. A shadow that runs past the ring is the case that actually
-     * leaks — those rays miss the frame altogether and reach the block in open
-     * air — and that is exactly the rule's cutoff.
+     * <p>The ring is what makes this correct where a centre-ray test (leaks
+     * geometry at grazing angles) and a whole-shadow-inside-aperture test
+     * (hides blocks genuinely visible through the opening) are not: the parts
+     * of a partially-visible block that do NOT come through the aperture are
+     * behind the frame ring, real solid geometry the client draws in front of
+     * them — occluded, not leaked. A shadow that runs past the ring is the
+     * actual leak, where the rays miss the frame and reach the block in open
+     * air.
      *
      * <p>The occluder set is whatever actually blocks sight in the portal's
-     * plane — see {@link #occluders}. A one-cell ring derived from geometry
-     * was the first attempt and it was still too tight in two ways, both
-     * reported: it omits the frame's diagonal CORNERS (a shadow clipping one
-     * was rejected outright, which is why sand kept showing at the bottom
-     * corners of the opening), and a portal built into a wider WALL occludes
-     * far more than one cell, so every steep or oblique view lost blocks the
-     * wall was already hiding. Reading the plane answers both, and adapts to
-     * whatever the player actually built.
+     * plane (see {@link #occluders}), not {@link #frameRing} alone: geometry
+     * misses a frame's diagonal CORNER blocks and undercounts a portal set
+     * into a wider WALL.
      *
      * <h2>How the shadow is computed</h2>
-     * Only the block's two faces ON THE NORMAL AXIS matter for the crossing
+     * Only the block's two faces on the normal axis matter for the crossing
      * parameter, giving two values of {@code t}; each in-plane axis then has
      * two candidate coordinates. The four combinations per axis bound the
-     * shadow, and its axis-aligned bounding rectangle is what gets walked.
-     * That rectangle is a superset of the true (hexagonal) shadow, so the
-     * ring bound errs towards hiding and the aperture touch errs towards
-     * showing — each in the direction that costs least if it is wrong.
-     *
-     * <h2>Cost</h2>
-     * Two divisions, eight multiply-adds and typically one to six {@code Set}
-     * lookups per position, in a single walk that rejects on the first cell
-     * outside the ring. (The old centre pre-test is gone: it was a valid cheap
-     * reject only while full containment was required, and under this rule a
-     * block whose centre misses can still be visible.) No allocation when the
-     * caller passes a {@code scratch} it reuses across the volume;
-     * {@code scratch} may be null (tests, one-off calls), which costs one
-     * {@link BlockPos} per lookup.
+     * shadow, and its axis-aligned bounding rectangle is what gets walked —
+     * a superset of the true (hexagonal) shadow, so the ring bound errs
+     * towards hiding and the aperture touch errs towards showing.
      *
      * <h2>Boundary behaviour</h2>
-     * A block is still in or out as a whole — that granularity is inherent, and
-     * it is why geometry visibly snaps as a player walks. That snapping is NOT
-     * a defect to be smoothed: hysteresis or fading would reintroduce the
-     * stuck-fake-block class this feature spent three rounds eliminating. Only
-     * a client-side renderer can clip sub-block accurately; see
-     * {@code client/SPEC.md}.
+     * A block is in or out as a whole, so geometry visibly snaps as a player
+     * walks. That is deliberate: hysteresis or fading would reintroduce
+     * stuck fake blocks. Only a client-side renderer can clip sub-block
+     * accurately.
      *
-     * <h2>The plane band, and the inversion that lived in it</h2>
-     * {@link #viewerFarSide} only flips the slab when the viewer's BLOCK
-     * coordinate passes the plane, so there is a one-block band on the normal
-     * axis inside which the eye can already be past the plane's midpoint while
-     * the slab still sits on the far side. This method used to treat that
-     * whole band as "the eye is in the doorway, nothing left to mask" and
-     * return true for every position in it.
+     * <h2>The plane band</h2>
+     * {@link #viewerFarSide} only flips the slab on a BLOCK boundary, so
+     * there is a one-block band on the normal axis where the eye can be past
+     * the plane's midpoint while the slab still sits on the far side.
+     * Treating that whole band as "the eye is in the doorway" would show the
+     * entire padded slab to a player walking sideways past the portal who
+     * cannot see the opening at all, because the frame wall is between them
+     * and it. The shortcut instead asks whether the eye is inside the
+     * APERTURE, not merely level with its plane.
      *
-     * <p>That band is infinite in the in-plane axes. Walking sideways PAST a
-     * portal crosses it, and the entire slab — padding included — appeared at
-     * once, for a player who could not see the opening at all because the
-     * frame wall was between them and it. Reported in game 2026-07-25 with the
-     * exact signature: "I cannot see the portal from my direction at all
-     * because the planks are in the way, but it suddenly pops; one more step
-     * forward and it goes away", symmetric on both sides. It is also where the
-     * fake blocks a player could walk into and mine came from: those are the
-     * padded columns, which nothing but this branch ever showed.
-     *
-     * <p>So the shortcut now asks the question it always meant to ask — is the
-     * eye inside the APERTURE, not merely level with its plane — and answers
-     * false when it is not. A player in the doorway still keeps their preview
-     * through the last half-block before a traversal, which is what the
-     * shortcut is for.
-     *
-     * <h2>Eye POSITION, never camera angle — do not "fix" this</h2>
-     * This takes a {@link Vec3d} position and nothing else. It must never
-     * grow a yaw/pitch parameter, and the result must never depend on where
-     * the player is looking. What is geometrically visible through a hole is
-     * a function of where your eye IS, not of which way it is pointing: turn
-     * your head and the same blocks are still on the far side of the same
-     * opening. Keying off camera angle would make real blocks pop in and out
-     * every time a player turned around, and would be a far worse artefact
-     * than the one this method fixes.
-     *
-     * Consequently the projection legitimately changes as a player WALKS and
-     * legitimately does not as they LOOK. If that asymmetry is ever reported
-     * as a bug, the bug is something else keyed to this mask that should not
-     * be — as {@code PlayerProjectionState}'s 4a light layer once was.
+     * <h2>Eye POSITION, never camera angle</h2>
+     * This takes a {@link Vec3d} position and nothing else, and the result
+     * must never depend on where the player is looking: what is
+     * geometrically visible through a hole is a function of where your eye
+     * IS. Keying off camera angle would make real blocks pop in and out
+     * every time a player turned around. The projection therefore legitimately
+     * changes as a player WALKS and does not as they LOOK — if that asymmetry
+     * is ever reported as a bug, the bug is something else keyed to this mask
+     * that should not be.
      *
      * @param occluders in-plane positions that block sight ({@link #occluders},
      *                  or {@link #frameRing} for the geometry-only fallback);
@@ -472,19 +416,6 @@ public final class ProjectionVolume {
     }
 
     /**
-     * The opening's in-plane ring: every position adjacent to the aperture
-     * within the portal's plane that is not itself part of the aperture.
-     *
-     * <p>For a valid zone these are exactly the frame blocks — zone validity
-     * is defined as this ring being made of frame material — which is what
-     * makes it usable as an occluder set by {@link #seesThroughOpening}
-     * without reading a single block state.
-     *
-     * <p>Derived from the normal axis rather than from
-     * {@code PortalHelper.planeDirections} so this class stays world- and
-     * mod-free; the two produce the same four directions by construction.
-     */
-    /**
      * The in-plane positions around an opening that actually block sight,
      * asked of the world rather than assumed from the frame's shape.
      *
@@ -494,15 +425,11 @@ public final class ProjectionVolume {
      * world-free; in the projector it is "the real block here is an opaque
      * full cube, on a loaded chunk".
      *
-     * <p><b>Why not {@link #frameRing}.</b> Geometry gets this wrong in both
-     * directions. It misses the frame's diagonal CORNER blocks, because a ring
-     * built by offsetting each aperture cell along the four in-plane
-     * directions never reaches them — and a shadow clipping a corner was
-     * therefore rejected as a leak, which is why real ground kept showing
-     * through the bottom corners of the opening. It also stops at one cell,
-     * while most portals worth looking through are set into a WALL that
-     * occludes far more, so every steep or oblique view lost blocks the wall
-     * was already hiding. Neither is a tuning problem; both are the same
+     * <p><b>Why not {@link #frameRing}.</b> Geometry alone gets this wrong in
+     * both directions: a ring built by offsetting each aperture cell along
+     * the four in-plane directions never reaches a frame's diagonal CORNER
+     * blocks, and it stops at one cell while most portals worth looking
+     * through are set into a WALL that occludes far more. Both are the same
      * mistake of describing the occluder instead of measuring it.
      *
      * <p>Anything the predicate declines — unloaded chunk, glass, air — is
@@ -550,6 +477,19 @@ public final class ProjectionVolume {
         return new BlockPos(u, v, planeCoord);
     }
 
+    /**
+     * The opening's in-plane ring: every position adjacent to the aperture
+     * within the portal's plane that is not itself part of the aperture.
+     *
+     * <p>For a valid zone these are exactly the frame blocks — zone validity
+     * is defined as this ring being made of frame material — which is what
+     * makes it usable as an occluder set by {@link #seesThroughOpening}
+     * without reading a single block state.
+     *
+     * <p>Derived from the normal axis rather than from
+     * {@code PortalHelper.planeDirections} so this class stays world- and
+     * mod-free; the two produce the same four directions by construction.
+     */
     public static Set<BlockPos> frameRing(Set<BlockPos> interior, Direction.Axis portalAxis) {
         if (interior == null || interior.isEmpty()) {
             return Set.of();
@@ -629,16 +569,13 @@ public final class ProjectionVolume {
     }
 
     /**
-     * Phase 8c — the cells a body occupies, padded by {@code pad} in every
-     * direction. A fake block must NEVER be painted into one of these.
+     * The cells a body occupies, padded by {@code pad} in every direction. A
+     * fake block must NEVER be painted into one of these.
      *
      * <p>Client-side collision against a fake block is inherent to the
-     * server-side approach: the client believes the block is real and will
-     * not let the player walk through it, while the server knows there is
-     * nothing there to mine. A fake block painted into somebody's body is
-     * therefore an unmineable wall that only they can see — the worst
-     * failure this feature has, because being unable to move loses the
-     * player entirely.
+     * server-side approach: the client believes the block is real and won't
+     * let the player walk through it, while the server knows there is
+     * nothing there to mine — an unmineable wall that only they can see.
      *
      * <p>Padding of 1 covers the step a player takes between refresh passes
      * (4 ticks by default); suppressing only the exact occupied cells would
@@ -686,21 +623,14 @@ public final class ProjectionVolume {
             centreX /= count;
             centreZ /= count;
         }
-        // DIVIDE on entry. `scale` is stated the way people actually talk
-        // about the Nether: "8 nether : 1 over" — one block walked in the
-        // DESTINATION is worth `scale` blocks at home. So going IN divides
-        // and coming OUT multiplies.
-        //
-        //   travel 10 in a scale-8 dim  ->  10 * 8 = 80 overworld blocks
-        //   a portal at overworld 1888  ->  1888 / 8 = 236 in the dim
-        //
-        // Multiplying here inflated arrivals by scale instead of shrinking
-        // them, putting them outside the destination's own world border —
-        // where vanilla forbids breaking or placing ANY block, so the player
-        // could not mine the frame, the portal, or the rock around them
-        // (2026-07-25, adventure:the_ember_fields at 1888,-3624 vs a border
-        // of 1024). Every dimension border is authored as overworldBorder /
-        // scale, which is only consistent with dividing here.
+        // DIVIDE on entry: `scale` means "one block walked in the
+        // DESTINATION is worth `scale` blocks at home" (Nether-style "8:1").
+        // Going IN divides, coming OUT multiplies — e.g. a portal at
+        // overworld 1888 arrives at 1888/8 = 236 in a scale-8 dimension.
+        // Multiplying here would place arrivals outside the destination's
+        // own world border, where vanilla forbids breaking or placing any
+        // block, since every dimension border is authored as
+        // overworldBorder / scale.
         int arrivalX = (int) Math.round(centreX / scale);
         int arrivalZ = (int) Math.round(centreZ / scale);
         return new TargetMapping(arrivalX - centreX, arrivalZ - centreZ,
@@ -711,37 +641,26 @@ public final class ProjectionVolume {
      * RETURN mapping, for projecting an ARRIVAL portal's far side — the world
      * you would go back to.
      *
-     * <h2>Which of the return paths this mirrors, and why</h2>
-     * {@code EntityTickPortalMixin.onTickPortal} resolves a player's return in
-     * this order: configured exit modes ({@code bed} / {@code worldSpawn} /
-     * {@code dim!…}), then the player's own tracked ORIGIN, then the portal's
-     * registered fallback — {@code target.sourceWorld} at {@code
-     * target.sourceY}, keeping the X/Z of the portal block they were standing
-     * in. This mirrors the LAST of those: a translation-free horizontal map
-     * ({@code dx = dz = 0}) with the aperture's floor row landing on
-     * {@code sourceY}, which the caller supplies as the {@code arrivalY}
-     * argument to {@link #toTarget}.
+     * <p>{@code EntityTickPortalMixin.onTickPortal} resolves a player's
+     * return in this order: configured exit modes ({@code bed} /
+     * {@code worldSpawn} / {@code dim!…}), then the player's own tracked
+     * ORIGIN, then the portal's registered fallback — {@code
+     * target.sourceWorld} at {@code target.sourceY}, keeping the X/Z of the
+     * portal block they stood in. This mirrors the LAST of those: a
+     * translation-free horizontal map with the aperture's floor row landing
+     * on {@code sourceY}.
      *
-     * The fallback is the right one to preview even though the origin usually
-     * wins at teleport time, for two reasons:
-     * <ul>
-     *   <li><b>A projection is shared.</b> Everyone who can see through this
-     *       portal sees the same fake blocks. Keying it to one player's travel
-     *       history would make the preview depend on who happened to look
-     *       first — worse than being slightly wrong.</li>
-     *   <li><b>At scale 1 they agree.</b> The origin is the source portal
-     *       block the player stepped into, and {@code sourceY} is that same
-     *       block's Y ({@code createTargetPortal} is handed {@code
-     *       pos.getY()}); the arrival is built at the SCALED source column, so
-     *       for an unscaled portal the fallback column and the origin column
-     *       are the same place. They diverge only for scaled portals, where
-     *       the fallback is also what any player who has lost their origin
-     *       (a restart) actually gets.</li>
-     * </ul>
+     * <p>The fallback is the right one to preview even though the origin
+     * usually wins at teleport time: a projection is shared between every
+     * viewer, so keying it to one player's travel history would make the
+     * preview depend on who happened to look first, and at scale 1 the
+     * fallback and origin columns are the same place anyway (they diverge
+     * only for scaled portals, where the fallback is also what a player who
+     * has lost their origin actually gets).
      *
-     * Callers must not use this for an arrival carrying an {@code exitMode}:
-     * {@code bed} is per-player, and {@code worldSpawn}/{@code dim!…} land
-     * somewhere that is not this portal's column at all.
+     * <p>Callers must not use this for an arrival carrying an {@code
+     * exitMode}: {@code bed} is per-player, and {@code worldSpawn}/{@code
+     * dim!…} land somewhere that is not this portal's column at all.
      */
     public static TargetMapping returnMapping(Set<BlockPos> aperture) {
         return returnMapping(aperture, null, null);
@@ -751,23 +670,15 @@ public final class ProjectionVolume {
      * RETURN mapping — a rigid TRANSLATION to the source portal's column,
      * exactly like {@link #scaledMapping} in the other direction.
      *
-     * <h2>A preview is never scaled</h2>
-     * N blocks out from a portal is N blocks on the other side, both ways.
-     * Neither mapping scales distances; both translate the slab whole. The
-     * only question is where to translate TO.
-     *
-     * <p>This used to translate by zero, sampling the return world at the
-     * ARRIVAL's own column. At scale 1 that is the same place as the source
-     * portal and it looked correct; at scale 8 it sampled ~8x away, hit
-     * chunks nobody had ever visited, and painted nothing but the aperture —
-     * the "(12 blocks)" arrivals of 2026-07-25, against 718 for an unscaled
-     * dimension. Two mappings existed only because the arrival did not know
-     * its source COLUMN: {@code PortalReturnTarget} carried sourceY and
-     * nothing else.
-     *
-     * <p>With {@code sourceX}/{@code sourceZ} persisted there is one rule for
-     * both directions. Legacy records have no column, so they fall back to
-     * the old translation-free behaviour rather than guessing.
+     * <p>A preview is never scaled: N blocks out from a portal is N blocks on
+     * the other side, both ways. The only question is where to translate TO
+     * — the source portal's column when it is known, or a translation-free
+     * fallback when it is not. Translating by zero is only correct at scale
+     * 1, where the arrival column and the source column coincide; at any
+     * other scale it samples the wrong place entirely. Legacy records that
+     * predate the persisted {@code sourceX}/{@code sourceZ} carry no column,
+     * so they fall back to the translation-free behaviour rather than
+     * guessing.
      */
     public static TargetMapping returnMapping(Set<BlockPos> aperture, Integer sourceX, Integer sourceZ) {
         if (aperture == null || aperture.isEmpty()) {
@@ -797,25 +708,18 @@ public final class ProjectionVolume {
      * from {@code seed} through {@code planeDirs} for as long as
      * {@code isPortalPosition} keeps saying yes.
      *
-     * <h2>Why a predicate and not a world</h2>
-     * The caller passes {@code PortalHelper::isRegisteredPortalPosition},
-     * which is a pure in-memory map read. That is deliberate: the obvious
-     * alternative, {@code PortalHelper.collectPortalArea}, flood-fills over
-     * real BLOCK STATES and can therefore walk out of the loaded region — and
-     * nothing in the projector may load a chunk (Rule 1). Growing over the
-     * registry instead reads nothing, works for an aperture that straddles a
-     * chunk border with one side unloaded, and reproduces the aperture
-     * exactly, because the registry entries ARE the interior positions
-     * {@code createTargetPortal} registered.
+     * <p>The caller passes {@code PortalHelper::isRegisteredPortalPosition},
+     * a pure in-memory map read, rather than {@code
+     * PortalHelper.collectPortalArea}, which flood-fills over real BLOCK
+     * STATES and can walk out of the loaded region — nothing in the
+     * projector may load a chunk (Rule 1). The trade-off is that the
+     * registry can be stale, since a destroyed portal is never
+     * de-registered, so the caller separately checks that the seed still
+     * carries a portal block on a loaded chunk.
      *
-     * The trade-off is that the registry can be stale — a destroyed portal is
-     * never de-registered — so the caller separately checks that the seed
-     * still carries a portal block, on a loaded chunk only. That check is the
-     * feature's portal-destruction teardown trigger.
-     *
-     * Bounded by {@code limit}, mirroring {@code PortalHelper}'s
-     * {@code MAX_PORTAL_BLOCKS}: a corrupted registry must not be able to walk
-     * this into a long loop from a tick path.
+     * <p>Bounded by {@code limit}, mirroring {@code PortalHelper}'s {@code
+     * MAX_PORTAL_BLOCKS}: a corrupted registry must not be able to walk this
+     * into a long loop from a tick path.
      */
     public static Set<BlockPos> collectAperture(BlockPos seed, Direction[] planeDirs,
             Predicate<BlockPos> isPortalPosition, int limit) {

@@ -42,9 +42,10 @@ looks_like_jwt() {
 save_token() {
   local token="$1"
 
-  # Local .env - APPEND when the line doesn't exist: a consumer .env
-  # without a KUMA_API_KEY line made the old sed a silent no-op, so the
-  # token never reached GitHub and CI deploys kept wiping it (2026-07-11).
+  # Local .env - APPEND when the line doesn't exist: a sed that only
+  # replaces an existing line is a silent no-op on a consumer .env with no
+  # KUMA_API_KEY line, so the token never reaches GitHub and CI deploys
+  # keep wiping it (see T7).
   if grep -q '^KUMA_API_KEY=' "$PROJECT_DIR/.env"; then
     sed -i '' "s|^KUMA_API_KEY=.*|KUMA_API_KEY=${token}|" "$PROJECT_DIR/.env" 2> /dev/null \
       || sed -i "s|^KUMA_API_KEY=.*|KUMA_API_KEY=${token}|" "$PROJECT_DIR/.env"

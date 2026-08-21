@@ -181,5 +181,94 @@ class DimensionConfigLoaderTest {
         assertEquals("minecraft:end_stone_bricks", s.frameEnd);
     }
 
-    // --- legacy conversion ----------------------------------------------------
+    // --- JSONC (whole-line // comments, readers-first) ------------------------
+
+    @Test
+    void commentedDimensionFileLoadsIdenticallyToTheUncommentedCopy(
+            @TempDir Path config, @TempDir Path overlay) throws IOException {
+        writeDim(config, "plain",
+                "{\"type\":\"overworld\",\"seed\":42,\"structureDensity\":\"sparse\"}");
+        writeDim(config, "commented", """
+                {
+                  // the whole worldgen block is creation-time-only
+                  "type": "overworld",
+                    // indented comments are fine too
+                  "seed": 42,
+                  "structureDensity": "sparse"
+                }
+                """);
+        Map<String, DimensionConfig> dims =
+                DimensionConfigLoader.loadDimensions(config, overlay, defaultSettings(), null);
+        assertEquals("overworld", dims.get("commented").getType());
+        assertEquals(42L, dims.get("commented").getSeed());
+        assertEquals(dims.get("plain").getSeed(), dims.get("commented").getSeed());
+        assertEquals(dims.get("plain").getStructureDensity(),
+                dims.get("commented").getStructureDensity());
+    }
+
+    @Test
+    void commentedSettingsFileParses(@TempDir Path config) throws IOException {
+        Files.writeString(config.resolve("settings.json"), """
+                {
+                  // consumer namespace
+                  "namespace": "elfydd"
+                }
+                """);
+        assertEquals("elfydd",
+                DimensionConfigLoader.loadSettings(config.resolve("settings.json")).namespace);
+    }
+
+    // --- overlay settings + global suppression --------------------------------
+
+    @Test
+    void overlaySettingsMergeOverPlatform(@TempDir Path config, @TempDir Path overlay) throws IOException {
+        Files.writeString(config.resolve("settings.json"), """
+                {"namespace":"adventure","idleUnloadMinutes":7,
+                 "frames":{"overworld":"minecraft:gold_block"}}
+                """);
+        Files.writeString(overlay.resolve("settings.json"), """
+                {"idleUnloadMinutes":3,
+                 "suppress":{"structures":["mvs:barn", "  ", "mns:bridge_1"]}}
+                """);
+        DimensionConfigLoader.Settings s = DimensionConfigLoader.loadSettings(
+                config.resolve("settings.json"), overlay.resolve("settings.json"));
+        assertEquals("adventure", s.namespace);
+        assertEquals(3, s.idleUnloadMinutes, "overlay scalar wins");
+        assertEquals("minecraft:gold_block", s.frameOverworld, "platform value survives");
+        assertEquals(java.util.List.of("mvs:barn", "mns:bridge_1"), s.suppressStructures);
+    }
+
+    @Test
+    void suppressDefaultsToEmptyAndMissingOverlayIsFine(@TempDir Path config) throws IOException {
+        Files.writeString(config.resolve("settings.json"), "{\"namespace\":\"adventure\"}");
+        DimensionConfigLoader.Settings s = DimensionConfigLoader.loadSettings(
+                config.resolve("settings.json"), config.resolve("no-such-overlay.json"));
+        assertTrue(s.suppressStructures.isEmpty());
+        assertTrue(s.suppressBiomes.isEmpty());
+    }
+
+    @Test
+    void suppressBiomesParsesAndFiltersBlanks(@TempDir Path config) throws IOException {
+        Files.writeString(config.resolve("settings.json"), """
+                {"suppress":{"biomes":["terralith:cave", "  ", "minecraft:desert"],
+                             "structures":["mvs:barn"]}}
+                """);
+        DimensionConfigLoader.Settings s = DimensionConfigLoader.loadSettings(
+                config.resolve("settings.json"), null);
+        assertEquals(java.util.List.of("terralith:cave", "minecraft:desert"), s.suppressBiomes);
+        assertEquals(java.util.List.of("mvs:barn"), s.suppressStructures);
+    }
+
+    @Test
+    void stripJsonCommentsIsWholeLineOnly() {
+        // Trailing comments are NOT comments — a // inside a string (URLs)
+        // must survive. Only lines STARTING with // are blanked.
+        assertEquals("{\"url\": \"https://x/y\"}",
+                DimensionConfigLoader.stripJsonComments("{\"url\": \"https://x/y\"}"));
+        assertEquals("\n{\"a\": 1}",
+                DimensionConfigLoader.stripJsonComments("// gone\n{\"a\": 1}"));
+        String kept = "{\"a\": 1 // NOT stripped: whole-line only\n}";
+        assertEquals(kept, DimensionConfigLoader.stripJsonComments(kept));
+        assertEquals("abc", DimensionConfigLoader.stripJsonComments("abc"));
+    }
 }

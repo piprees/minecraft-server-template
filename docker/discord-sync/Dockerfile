@@ -1,4 +1,4 @@
-FROM python:3.14.6-alpine3.24
+FROM python:3.14.7-alpine3.24
 
 ARG REPO_URL=https://github.com/piprees/minecraft-server-template
 LABEL org.opencontainers.image.source=${REPO_URL} \

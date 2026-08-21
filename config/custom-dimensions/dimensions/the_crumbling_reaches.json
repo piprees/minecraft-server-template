@@ -1,24 +1,79 @@
 {
   "type": "end",
-  "description": "What happens when the endermen leave and nobody maintains the infrastructure. Crystal peaks shearing into shadow, crashed ships in the rubble. Everything intact is already gone — only wreckage tells the story.",
-  "seed": 9222271493615113425,
-  "noiseSettings": "adventure:compressed",
+  "description": "What happens when the endermen leave and nobody maintains the infrastructure. Crystal peaks shearing into shadow, crashed ships in the rubble. Everything intact is already gone \u2014 only wreckage tells the story.",
+  "seed": 3742608075213267787,
   "biomes": [
-    "nullscape:crystal_peaks",
-    "nullscape:shadowlands",
-    "minecraft:end_highlands",
-    "minecraft:end_midlands",
-    "nullscape:void_barrens",
-    "minecraft:small_end_islands",
-    "minecraft:end_barrens"
+    {
+      "id": "nullscape:crystal_peaks",
+      "parameters": {
+        "continentalness": [
+          0.3204,
+          2.0
+        ]
+      }
+    },
+    {
+      "id": "nullscape:shadowlands",
+      "parameters": {
+        "continentalness": [
+          -2.0,
+          -0.1949
+        ]
+      }
+    },
+    {
+      "id": "minecraft:end_highlands",
+      "parameters": {
+        "continentalness": [
+          0.1084,
+          0.2115
+        ]
+      }
+    },
+    {
+      "id": "minecraft:end_midlands",
+      "parameters": {
+        "continentalness": [
+          0.013,
+          0.1084
+        ]
+      }
+    },
+    {
+      "id": "nullscape:void_barrens",
+      "parameters": {
+        "continentalness": [
+          0.2115,
+          0.3204
+        ]
+      }
+    },
+    {
+      "id": "minecraft:small_end_islands",
+      "parameters": {
+        "continentalness": [
+          -0.1949,
+          -0.0871
+        ]
+      }
+    },
+    {
+      "id": "minecraft:end_barrens",
+      "parameters": {
+        "continentalness": [
+          -0.0871,
+          0.013
+        ]
+      }
+    }
   ],
   "borders": {
-    "player": 8192,
-    "generation": 8192
+    "player": 2048,
+    "generation": 2048
   },
   "difficulty": {
-    "mobMultiplier": 2.0,
-    "playerLuck": 1.8
+    "mobMultiplier": 2.2,
+    "playerLuck": 2.0
   },
   "structureDensity": "dense",
   "portal": {
@@ -26,7 +81,7 @@
     "igniterItem": "minecraft:ender_eye",
     "color": "8B7050",
     "lightLevel": 11,
-    "scale": 1.0,
+    "scale": 4.0,
     "cooldown": 40,
     "particleType": "minecraft:end_rod",
     "shape": "end_gateway",
@@ -41,9 +96,8 @@
   },
   "seedRoll": {
     "mood": "hard",
+    "allowHazardousSpawn": true,
     "spawnFilter": [
-      "nullscape:crystal_peaks",
-      "nullscape:shadowlands",
       "minecraft:end_highlands"
     ],
     "wants": {
@@ -57,12 +111,19 @@
       "end_city",
       "phantom_citadel",
       "enderkeep"
-    ],
-    "description": "What happens when the endermen leave and nobody maintains the infrastructure. Crystal peaks shearing into shadow, crashed ships in the rubble. Everything intact is already gone — only wreckage tells the story."
+    ]
   },
   "spawn": [
-    0,
-    64,
-    0
-  ]
+    -192,
+    38,
+    -768
+  ],
+  "settingsOverrides": {
+    "endIsland": false
+  },
+  "structures": {
+    "rarity": {
+      "mes:mega_ship_crashed": "common"
+    }
+  }
 }

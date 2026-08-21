@@ -29,8 +29,8 @@ Ground truth: `/Users/pip/Projects/minecraft-server-template/mods/custom-dimensi
 
 | Key | Type | Timing | Notes |
 | --- | --- | --- | --- |
-| `type` | string | creation-time | See [Valid types](#valid-type-values) below. Required for any new (non-base-world) dimension. On a **base world** it selects nothing — it is the opt-in to structure management; see [Base worlds](#base-worlds). |
-| `description` | string | — | Documentation only; never parsed by the mod. Still worth writing well — good practice, and useful for humans skimming files. |
+| `type` | string | creation-time | See [Valid types](#valid-type-values) below. Required for any dimension whose filename is not one of the four reserved ones. On `overworld`/`the_nether`/`the_end`/`paradise_lost` it selects nothing — `getType()` already supplies the family, so writing one moves that dimension onto another family's group set. See [the section on those four](#overworld-the_nether-the_end-paradise_lost). |
+| `description` | string | — | The dimension's one description, read by the mod and shown in the viewer. Write it well; it is what a human reads first. |
 | `seed` | number \| `"env"` | creation-time | Per-dimension world seed. `"env"` reads the `SEED` env var. Changing this after the world exists does nothing. |
 | `spawn` | `[x, y, z]` | boot-re-read | Spawn point. The seed roller overwrites this when it finalises a winner. |
 | `noiseSettings` | string (registry id) | creation-time | `ChunkGeneratorSettings` id. The mod ships `adventure:wide` (broad realistic relief, tall build height) and `adventure:compressed` (tighter climate bands, taller vertical scale, more relief per horizontal distance — used by ~23/84 shipped dims, mostly harder/pocket ones). Any datapack-registered id works. Ignored for void/superflat. |
@@ -40,7 +40,7 @@ Ground truth: `/Users/pip/Projects/minecraft-server-template/mods/custom-dimensi
 | `flatBiome` | string | creation-time | `type: "superflat"` only. Default `minecraft:plains`. |
 | `settingsOverrides` | object | creation-time | `{"seaLevel": int, "defaultBlock": id, "defaultFluid": id, "disableMobGeneration": bool}`. Applied after `noiseSettings` resolves. |
 | `biomePatches` | array | creation-time | Fixed circular biome patches over the generated layout — precision placement. Rare; 0 uses in shipped dims. |
-| `scale` | number | — | Base-world (overworld/nether/end/paradise_lost overrides) travel-scale metadata only; custom dimensions use `portal.scale` instead. |
+| `scale` | number | — | Top-level travel-scale metadata, only read on the four reserved filenames; every dimension including those four uses `portal.scale` for real portal scaling. |
 | `borders` | object | see below | `{"player": int, "generation": int}` — both default 8192. `player`: vanilla world border radius, set at boot, boot-re-read (safe to tune anytime). `generation`: tooling metadata for Chunky/render bounds + the seed-group fingerprint key (creation/rolling relevant, not enforced by the mod at runtime). |
 | `difficulty` | object | boot-re-read | See [Difficulty](#difficulty-object) below. |
 | `structureDensity` | `"dense"` \| `"normal"` \| `"sparse"` \| `"none"` | boot-re-read (new chunks only) | Scales dungeon/loot structure frequency. `dense` ≈2x, `sparse` ≈half. Peaceful dims drop dungeon-theme sets regardless of density. |
@@ -50,7 +50,7 @@ Ground truth: `/Users/pip/Projects/minecraft-server-template/mods/custom-dimensi
 | `exits` | object (map) | boot-re-read | Exit condition rules — void/death/enderPearl/fallFrom triggers. See [Exits](#exits-object) below. |
 | `exitShrines` | object | worldgen creation-time; beacon detection boot-re-read | `{"enabled": true, "target": "bed"}` — scattered jigsaw exit ruins. |
 | `environment` | object | mostly boot-re-read (a few creation-time) | Custom `DimensionType` registration (`{ns}:{slug}_type`). See [Environment](#environment-object) below. |
-| `seedRoll` | object | ignored by the mod at runtime | Scoring config for the Python roller only. See [seedRoll](#seedroll-object) below — this is the block that actually determines what "good" means for this dimension. |
+| `seedRoll` | object | ignored by the mod at runtime | Scoring config for seed rolling only. See [seedRoll](#seedroll-object) below — this is the block that actually determines what "good" means for this dimension. |
 | ~~`dimensionId`~~ | string | — | **Legacy — omit.** The id is always derived from `{namespace}:{filename}`. |
 | ~~`hostileSpawning`~~ (top-level) | bool | — | **Legacy — use `difficulty.hostileSpawning` instead**, which wins when both are present. |
 
@@ -91,7 +91,9 @@ Ground truth: `/Users/pip/Projects/minecraft-server-template/mods/custom-dimensi
 - `mobMultiplier` (double, default `1.0`) — scales hostile mob health/damage/armor via attribute modifiers at spawn (persisted in NBT). `0` is effectively peaceful even with `hostileSpawning: true`.
 - `attributes` — which stats the multiplier touches. Platform default: health+damage+armor true, speed/knockback false.
 - `playerLuck` (double, default `1.0`) — flat luck bonus on join/world-change. Higher = better loot rolls.
-- `depthScaling` — ramps the multiplier from `minMultiplier` at `startY` to `maxMultiplier` at `endY` (deeper = harder). Used by `overworld.json` (`64→-64`, `1.0→1.5`).
+- `depthScaling` — ramps a FACTOR from `minMultiplier` at `startY` to `maxMultiplier` at `endY` (deeper = harder). Used by `overworld.json` (`64→-64`, `1.0→1.5`).
+  **These are factors on `mobMultiplier`, not effective values.** `DifficultyManager.effectiveMultiplier` returns `mobMultiplier * depthFactor(y)`, so `the_forged_depths` at `mobMultiplier` 2.5 with `1.5→3.5` runs 3.75 to 8.75, not 1.5 to 3.5. Writing the numbers you want as if they were absolute silently doubles the dimension's difficulty.
+  The `>= 2.0` / `<= 0.5` structure-group shift reads the STATIC `mobMultiplier` only (`NoiseGroupPlan`), never the depth-scaled value — so a ramp may exceed 2.0 at depth without changing which structures generate.
 
 Observed shipped patterns: peaceful `mobMultiplier: 0.0` + `hostileSpawning: false` + `playerLuck: 2.0-3.0`; standard `1.0`; hard `1.5-2.0`; brutal pocket dims `3.0` + `playerLuck: 2.0` (e.g. `the_gauntlet.json`).
 
@@ -219,7 +221,7 @@ All fields optional; anything unset inherits from the base dimension type. Regis
 
 ## `seedRoll` object
 
-The mod ignores this block entirely at runtime — it exists purely for the Python roller (`scripts/seed/dimension_profiles.py`). This is the block that actually defines "what does a good seed for this dimension look like":
+The mod ignores this block entirely at runtime — it exists purely for seed rolling. This is the block that actually defines "what does a good seed for this dimension look like":
 
 ```json
 {
@@ -234,7 +236,7 @@ The mod ignores this block entirely at runtime — it exists purely for the Pyth
     "heightRange": [-60, 440],
     "family": "overworld",
     "allowEndgameNearSpawn": false,
-    "description": "Human-readable dimension philosophy.",
+    "allowHazardousSpawn": false,
     "wants": { "village": "near_spawn", "ancient_city": "spread" },
     "shuns": ["village", "tavern"]
   }
@@ -245,25 +247,41 @@ The mod ignores this block entirely at runtime — it exists purely for the Pyth
 | --- | --- |
 | `skip` | `true` excludes this dimension from rolling entirely. |
 | `mood` | One of the 8 valid moods (`hard`/`adventurous`/`dramatic`/`scenic`/`pastoral`/`serene`/`desolate`/`standard`) — see `references/scoring-internals.md` for exact weights/behaviour. |
-| `spawnFilter` | Biome ids. Candidates whose spawn biome isn't in this list are rejected outright — this is the #1 cause of zero candidates if it lists a biome that doesn't actually exist in the biome table for this family. |
+| `spawnFilter` | Biome ids the dimension is named after. GRADED, not a gate: a spawn already in one is full marks, otherwise the mark is those biomes' combined share of the world, because picking a candidate writes the position you were standing in as the spawn. A filter naming a biome that cannot occur in this family scores every seed zero — still the first thing to check when a board stays empty. |
 | `spawnRadius` | Sampling radius for spawn biome checks. |
-| `water` | `"none"` / `"high"` / `"sea"` water-fraction preference. |
+| `water` | `"none"` (≤0.20) / `"high"` (0.25–0.80) / `"sea"` (≥0.50) — the fraction of columns WITH GROUND that sit at or below the generator's sea level. Nothing in the generator reads this; a dimension that needs a genuinely dry or drowned world sets `settingsOverrides.seaLevel`, which the generator does read. |
 | `locateCap` | Max locate distance; defaults to generation border + 1000. |
-| `terrain` | `"solid"` / `"islands"` / `"void"` override of the auto-detected terrain kind. |
-| `heightRange` | `[minY, maxY]` for terrain height computation (mostly matters for clone types). |
+| `terrain` | Two vocabularies. Relief words — `flat`, `gently_rolling`, `rolling`, `hilly`, `mountainous`, `extreme` — score against the terrain's interquartile height spread. Ground-shape words — `islands` (5–70% of the disc carries ground) and `void` (≤10%) — score against `terrain.groundFraction`. A dimension setting neither is asked instead whether it has a floor at all. `"solid"` is NOT a recognised word. |
+| `heightRange` | `[minY, maxY]` envelope the terrain should live INSIDE. Scored as the share of the terrain that exists which falls within it, so a narrow world inside a wide envelope is full marks — an envelope is a permission, not a quota. A range wide enough to contain anything (all six shipped uses declare `[-60, 440]`) discriminates nothing; make it fit the dimension. |
 | `family` | `"overworld"`/`"nether"`/`"end"`/`"paradise_lost"` override of auto-detection from `type`. |
 | `allowEndgameNearSpawn` | Lets endgame/boss structures sit near spawn without penalty. |
-| `description` | Human-readable philosophy — shown in the viewer UI. Reuse the theme prompt here. |
-| `wants` | **Band-name** form: short-name → `"near_spawn"`/`"spread"`/`"near_border"`. Different format from `structures.wants` — see main SKILL.md traps. |
-| `shuns` | Bare list of short names (or map form) to penalise. |
+| `allowHazardousSpawn` | `true` withdraws BOTH spawn-safety gates — `nothing_is_immediately_lethal` (a sheer drop at the spawn column) and `spawn_is_safe_to_build_on` (lava, or nothing to stand on). For a dimension entered through a portal the mod builds the arrival itself — `PortalSite` finds an open site or carves one, lays a floor, and refuses the traversal rather than dropping somebody somewhere unopenable — so a player never steps out onto the column these measure, and for a dimension whose proposition IS danger a cliff there is scenery. Opt-out and never derived: every dimension has a portal, so deriving it would switch the gates off pack-wide in one silent step. Shipped on the 19 dimensions with `difficulty.mobMultiplier >= 2.0`, the same threshold the hard structure shift uses. |
+| `wants` | **Band-name** form: short-name → `"near_spawn"` (0–15% of `borders.player`) / `"spread"` (10–75%) / `"near_border"` (55–100%). One criterion per entry, scored on the nearest instance's distance as a fraction of this dimension's own border. Different format from `structures.wants` — see main SKILL.md traps. |
+| `shuns` | Bare list of short names (or map form). Absent is full marks; present is scored by how much of the world separates a player from it. |
 
-## Base worlds
+## `overworld`, `the_nether`, `the_end`, `paradise_lost`
 
-`overworld.json`, `the_nether.json`, `the_end.json`, `paradise_lost.json` are **reserved filenames** — they override vanilla/existing worlds (map to `minecraft:overworld` etc.) rather than creating a new dimension. Don't create a new file with one of these names unless you deliberately mean to override that base world.
+Four dimensions among 82, managed like the rest. Every field in this document
+applies to them: `seed`, `spawn`, `biomes`, `borders`, `difficulty`, `portal`,
+`structures`, `structureDensity`, `settingsOverrides`, `environment` and
+`seedRoll`. They are rolled, scored, bordered, portalled, scaled, shrunk and
+retyped like any other. Leaving one out of a change needs a reason specific to
+that dimension — a progression gate, a forced coordinate, a border invariant
+([AGENTS.md § Dimensions](../../../../AGENTS.md#dimensions)).
 
-They are managed like any other dimension: `seed`, `spawn`, `scale`, `borders`, `difficulty`, `seedRoll`, `structureDensity`, `structures` and `portal` all apply. The mod resolves them by **exact dimension id**, never by namespace — `minecraft:` and `paradise_lost:` hold other mods' dimensions too.
+Their filenames are **reserved**: they resolve to existing dimension ids
+(`minecraft:overworld` and so on) rather than creating a new dimension, so reuse
+one only when that is what you mean. The mod resolves them by **exact dimension
+id**, never by namespace — `minecraft:` and `paradise_lost:` hold other mods'
+dimensions too.
 
-**A base world names no `type`** — vanilla owns its generator — and its structure groups resolve against its family instead:
+Their generators come from live registry entries this mod reads and rebuilds:
+`minecraft:end` carries Nullscape's surface rule, `minecraft:nether` carries
+Incendium's, the overworld carries Terralith's and Tectonic's. Every one of
+those is composable and overridable here.
+
+**These four name no `type`** because `DimensionConfig.getType()` already
+supplies the family, and their structure groups resolve against it:
 
 | File | Family |
 | --- | --- |
@@ -272,9 +290,9 @@ They are managed like any other dimension: `seed`, `spawn`, `scale`, `borders`, 
 | `the_end.json` | `end` |
 | `paradise_lost.json` | `paradise_lost:paradise_lost` |
 
-Writing an explicit `type` overrides that, which is how you move a base world onto another family's group set.
+Writing an explicit `type` overrides that, which is how you move one onto another family's group set.
 
-**A base world's `portal` block is live**: `the_nether.json`'s obsidian/flint-and-steel portal is the way to the Nether, at its configured scale, colour and sounds. `portal.scale` and `borders.player` must agree — a portal built at the source world's border divides by the scale on arrival and must land inside the destination's border. `ShippedDimensionReachabilityTest` pins that for every shipped dimension, base worlds included.
+**Their `portal` block is live**: `the_nether.json`'s obsidian/flint-and-steel portal is the way to the Nether, at its configured scale, colour and sounds. `portal.scale` and `borders.player` must agree — a portal built at the source world's border divides by the scale on arrival and must land inside the destination's border. `ShippedDimensionReachabilityTest` pins that for every shipped dimension, these four included.
 
 ## `structures` — noise placement fields
 
@@ -288,6 +306,7 @@ Noise placement is the default for every managed dimension; these fields overrid
 | `structures.rarity` | `{set_id: tier}` | derived from spacing | `common` / `uncommon` / `rare` / `endgame`. Changes a set's share of its group's placements, and can move it between groups — the `endgame` group requires a rare-or-rarer tier. Uses structure SET ids. |
 | `structures.exclude` | `string[]` | `[]` | Structure SET ids removed from the noise pool entirely. |
 | `structures.include` | `string[]` | `[]` | Structure SET ids forced into the pool, bypassing the biome filter. The escape hatch for a filter that is too aggressive. |
+| `structures.force[].y` | int | (none) | Pins the placement to this height, so it needs no ground and hangs where you put it. Absent, the structure finds its own ground and declines when there is none. Required in a `void` dimension — `customdim lint` reports `force_needs_y`. See [TROUBLESHOOTING.md#t33](../../../TROUBLESHOOTING.md#t33). |
 | `structures.force[].exclusive` | boolean | `true` | Whether forcing a structure also removes it from the noise pool. Absent = true. |
 
 **Groups:** `deco`, `settlements`, `dungeons`, `landmarks`, `maritime`, `endgame`, `loot`. Which are enabled comes from the world type — see `config/custom-dimensions/structure-type-defaults.json`, and `config/custom-dimensions/structure-groups.json` for every set's classification.

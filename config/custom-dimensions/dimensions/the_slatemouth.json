@@ -1,13 +1,53 @@
 {
   "type": "void",
-  "description": "A basalt-and-soul void — the nether's kind of ending. Whatever was here, the void consumed it completely. No structures, no ruins, no evidence. The piglins' word for this place translates roughly as 'the mouth that swallowed.'",
-  "seed": 9064486879499980563,
+  "description": "A basalt-and-soul void, and nothing else \u2014 no floor, no horizon, no lava left to reflect a sky. Whatever was here, the void consumed it completely. The piglins' word for this place translates roughly as 'the mouth that swallowed', and it does not kill what it swallows: it puts it down in the capital.",
+  "seed": -5988868724847523022,
   "biomes": [
-    "minecraft:basalt_deltas",
-    "minecraft:soul_sand_valley",
-    "incendium:toxic_heap",
-    "incendium:quartz_flats",
-    "minecraft:nether_wastes"
+    {
+      "id": "minecraft:basalt_deltas",
+      "parameters": {
+        "weirdness": [
+          -0.1374,
+          -0.0865
+        ]
+      }
+    },
+    {
+      "id": "minecraft:soul_sand_valley",
+      "parameters": {
+        "weirdness": [
+          0.0084,
+          2.0
+        ]
+      }
+    },
+    {
+      "id": "incendium:toxic_heap",
+      "parameters": {
+        "weirdness": [
+          -0.0384,
+          0.0084
+        ]
+      }
+    },
+    {
+      "id": "incendium:quartz_flats",
+      "parameters": {
+        "weirdness": [
+          -0.0865,
+          -0.0384
+        ]
+      }
+    },
+    {
+      "id": "minecraft:nether_wastes",
+      "parameters": {
+        "weirdness": [
+          -2.0,
+          -0.1374
+        ]
+      }
+    }
   ],
   "borders": {
     "player": 512,
@@ -40,23 +80,35 @@
   "environment": {
     "skyColor": "#1B0B0B",
     "fogColor": "#1B0B0B",
-    "ambientLight": 0.05
+    "ambientLight": 0.05,
+    "effects": "minecraft:the_nether",
+    "ultraWarm": true
   },
   "seedRoll": {
     "mood": "hard",
+    "allowHazardousSpawn": true,
     "spawnFilter": [
-      "minecraft:basalt_deltas",
-      "minecraft:soul_sand_valley",
-      "incendium:toxic_heap",
-      "incendium:quartz_flats",
       "minecraft:nether_wastes"
     ],
-    "description": "A basalt-and-soul void — the nether's kind of ending. Whatever was here, the void consumed it completely. No structures, no ruins, no evidence. The piglins' word for this place translates roughly as 'the mouth that swallowed.'",
     "terrain": "void"
   },
   "spawn": [
-    0,
-    64,
-    0
-  ]
+    -64,
+    -64,
+    -128
+  ],
+  "exitPortal": {
+    "enabled": true,
+    "pos": "spawn",
+    "target": "bed"
+  },
+  "exits": {
+    "void": {
+      "action": "teleport",
+      "target": {
+        "dimension": "adventure:the_gilded_pit",
+        "arrival": "anchor"
+      }
+    }
+  }
 }

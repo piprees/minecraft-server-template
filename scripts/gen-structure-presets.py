@@ -3,7 +3,7 @@
 
 Purpose:  Build three variants of the `structures` override datapack
           (default / dense / sparse) from the curated dial list in
-          scripts/data/structure-dials.csv. Each override is a
+          scripts/data/structure-dials.json. Each override is a
           WHOLE-FILE copy of the structure_set JSON from the exact pinned
           mod jar (world datapacks shadow mod data at the same path), with
           only placement fields changed.
@@ -43,18 +43,16 @@ Gotchas:  - Re-run when any structure mod pin bumps (weekly mod-updates PR);
 """
 
 import argparse
-import csv
 import io
 import json
 import re
-import sys
-import urllib.request
 import zipfile
 from pathlib import Path
 
+import modrinth_pins
+
 REPO = Path(__file__).resolve().parent.parent
-CSV_PATH = REPO / "scripts/data/structure-dials.csv"
-MODS_TXT = REPO / "config/modrinth-mods.txt"
+DIALS_PATH = REPO / "scripts/data/structure-dials.json"
 ACTIVE_OUT = REPO / "config/datapacks/structures"
 PRESETS_OUT = REPO / "config/datapack-presets"
 MCMETA_RAW = "https://raw.githubusercontent.com/misode/mcmeta/1.21.1-data/data/minecraft/worldgen/structure_set"
@@ -176,47 +174,7 @@ MVS_DECO_SPARSE_FACTOR = 0.6
 
 
 def load_rows():
-    rows = []
-    with open(CSV_PATH, newline="") as fh:
-        for row in csv.DictReader(fh):
-            rows.append(row)
-    return rows
-
-
-def pins():
-    out = {}
-    for line in MODS_TXT.read_text().splitlines():
-        line = line.strip()
-        if not line or line.startswith("#"):
-            continue
-        entry = line.split("#")[0].strip()
-        if entry.startswith("datapack:"):
-            entry = entry[len("datapack:"):]
-        if ":" not in entry:
-            continue
-        slug, version_id = entry.rsplit(":", 1)
-        out[slug] = version_id
-    return out
-
-
-def fetch(url, cache_dir, name):
-    dest = cache_dir / name
-    if dest.exists():
-        return dest.read_bytes()
-    print(f"  fetching {name} ...")
-    with urllib.request.urlopen(url) as r:
-        data = r.read()
-    dest.write_bytes(data)
-    return data
-
-
-def jar_for(slug, version_id, cache_dir):
-    api = f"https://api.modrinth.com/v2/version/{version_id}"
-    meta = json.loads(fetch(api, cache_dir, f"{slug}-{version_id}.meta.json"))
-    for f in meta["files"]:
-        if f.get("primary"):
-            return fetch(f["url"], cache_dir, f"{slug}-{version_id}.zip")
-    raise SystemExit(f"no primary file for {slug}:{version_id}")
+    return json.loads(DIALS_PATH.read_text())
 
 
 def structure_set_from_zip(data, set_id):
@@ -274,7 +232,7 @@ def main():
     cache_dir.mkdir(parents=True, exist_ok=True)
 
     rows = load_rows()
-    pin_map = pins()
+    pin_map = modrinth_pins.pins()
     jars = {}
 
     counts = {}
@@ -290,14 +248,14 @@ def main():
             mod = row["mod"]
             if mod == "minecraft":
                 path = set_id.split(":", 1)[1]
-                body = json.loads(fetch(f"{MCMETA_RAW}/{path}.json", cache_dir,
-                                        f"vanilla-{path}.json"))
+                body = json.loads(modrinth_pins.fetch(f"{MCMETA_RAW}/{path}.json", cache_dir,
+                                                       f"vanilla-{path}.json"))
             else:
                 slug = SLUG_ALIASES.get(mod, mod)
                 if slug not in pin_map:
                     raise SystemExit(f"{mod}: no pin found in modrinth-mods.txt")
                 if slug not in jars:
-                    jars[slug] = jar_for(slug, pin_map[slug], cache_dir)
+                    jars[slug] = modrinth_pins.jar_for(slug, pin_map[slug], cache_dir)
                 body = structure_set_from_zip(jars[slug], set_id)
                 if body is None:
                     raise SystemExit(f"{set_id} not found in {slug} jar")
@@ -309,7 +267,7 @@ def main():
             # Baseline drift alarm: jar vs CSV `current`.
             cur = parse_current(row["current"] or "")
             if cur:
-                sp, se, fr = cur
+                sp, se, _ = cur
                 p = body["placement"]
                 if int(p.get("spacing", -1)) != sp or int(p.get("separation", -1)) != se:
                     print(f"  WARNING: {set_id} baseline drifted: jar "
@@ -359,7 +317,7 @@ def main():
     # structure_themes.json and structure-groups.json now; two writers to one
     # file silently fought, with whichever ran last winning.
     print("theme map: owned by scripts/gen-structure-groups.py — run it "
-          "after refreshing structure-sets-extracted.csv")
+          "after refreshing structure-sets-extracted.json")
 
 
 if __name__ == "__main__":

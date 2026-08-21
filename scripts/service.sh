@@ -12,9 +12,10 @@
 #   ./dev start nav-proxy
 #   ./dev stop uptime-kuma
 #
-# MC lifecycle is intentionally excluded: deploy.sh (or Discord /mc restart)
-# owns the countdown, save, allowlist and config choreography. This script
-# only performs raw Compose operations for named sidecars.
+# Production refuses every mc action but status: deploy.sh (or Discord
+# /mc restart) owns the countdown, save, allowlist and config choreography.
+# SERVICE_LOCAL=1 lifts that refusal, because none of it exists locally and
+# stopping mc is part of the normal inner loop.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -50,7 +51,7 @@ usage() {
   echo "  status   Show container status (all if no service named)"
   echo ""
   echo "Mutable services: ${SERVICES[*]}"
-  echo "Read-only status also accepts: mc"
+  echo "mc: status anywhere; start/stop/restart only via ./dev (local)"
 }
 
 if [[ -z "$ACTION" || "$ACTION" == "help" || "$ACTION" == "--help" ]]; then
@@ -113,9 +114,19 @@ is_sidecar() {
 
 validate_targets() {
   local target
-  for target in "${targets[@]}"; do
+  # macOS bash 3.2: "${targets[@]}" on an EMPTY array is an unbound-variable
+  # error under set -u. `status` is the one action allowed zero targets, so a
+  # bare `./ops status` reached here with targets empty and died.
+  for target in ${targets[@]+"${targets[@]}"}; do
     if [[ "$target" == "mc" ]]; then
       if [[ "$ACTION" == "status" ]]; then
+        continue
+      fi
+      # Production only. The guard exists because a raw stop/restart there
+      # skips deploy.sh's countdown, kick, save-flush and whitelist dance
+      # with players connected — none of which exists locally, where
+      # stopping mc to swap a mod jar is the normal inner loop.
+      if [[ $LOCAL -eq 1 ]]; then
         continue
       fi
       die "Refusing raw MC lifecycle operation. Use deploy.sh or Discord /mc restart."

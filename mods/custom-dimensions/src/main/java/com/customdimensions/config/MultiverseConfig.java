@@ -21,8 +21,10 @@ import java.util.Set;
  *
  * Reads the per-dimension directory config/custom-dimensions/
  * (settings.json + dimensions/*.json + overlay/) via DimensionConfigLoader.
- * Everything — getDimension/getDimensions, getPortal/getPortals, getWorld,
- * getWorldSeedOverride — resolves against one Map&lt;String, DimensionConfig&gt;.
+ * Everything — getCustomDimension/getCustomDimensions,
+ * getReservedDimension/getReservedDimensionBySlug, getAllDimensions,
+ * getPortal/getPortals, getWorldSeedOverride — resolves against one
+ * Map&lt;String, DimensionConfig&gt;.
  */
 public class MultiverseConfig {
     private static final MultiverseConfig INSTANCE = new MultiverseConfig();
@@ -31,7 +33,7 @@ public class MultiverseConfig {
     private transient Path configRoot;
     private transient MinecraftServer server;
 
-    /** Every configured entry, keyed by slug — base worlds included. */
+    /** Every configured entry, keyed by slug — reserved dimensions included. */
     private Map<String, DimensionConfig> configs = new LinkedHashMap<>();
     /** Portal views for the custom dimensions that declare one. */
     private List<PortalDefinition> portals = new ArrayList<>();
@@ -72,12 +74,13 @@ public class MultiverseConfig {
         this.managedNamespaces = new LinkedHashSet<>();
         this.managedNamespaces.add(this.settings.namespace);
         for (DimensionConfig config : this.configs.values()) {
-            // Base worlds are deliberately NOT added to managedNamespaces:
-            // minecraft: and paradise_lost: are namespaces other mods also
-            // populate, and the mixins' definition lookup behind that gate is
-            // by PATH. They are resolved by exact dimension id instead
-            // (getBaseWorld) — same management, no path collisions.
-            if (!config.isBaseWorld()) {
+            // Reserved dimensions are deliberately NOT added to
+            // managedNamespaces: minecraft: and paradise_lost: are
+            // namespaces other mods also populate, and the mixins'
+            // definition lookup behind that gate is by PATH. Reserved
+            // dimensions resolve by exact dimension id instead
+            // (getReservedDimension) — no collisions.
+            if (!config.isReserved()) {
                 this.managedNamespaces.add(config.getNamespace());
             }
             if (config.hasPortal()) {
@@ -87,6 +90,16 @@ public class MultiverseConfig {
         for (String warning : PortalSafetyValidator.validate(this.configs.values())) {
             MultiverseServer.LOGGER.warn(warning);
         }
+    }
+
+    /** Globally suppressed structure SET ids (settings.json suppress.structures). */
+    public java.util.List<String> getSuppressedStructureSets() {
+        return this.settings.suppressStructures;
+    }
+
+    /** Globally suppressed biome ids (settings.json suppress.biomes). */
+    public java.util.List<String> getSuppressedBiomes() {
+        return this.settings.suppressBiomes;
     }
 
     /** The platform namespace (settings.json / legacy "namespace" field). */
@@ -104,18 +117,19 @@ public class MultiverseConfig {
         return this.managedNamespaces.contains(namespace);
     }
 
-    /** A CUSTOM dimension by slug (base worlds resolve via getWorld). */
-    public DimensionConfig getDimension(String name) {
+    /** A dimension THIS MOD CREATES, by slug (reserved dimensions resolve via getReservedDimensionBySlug). */
+    public DimensionConfig getCustomDimension(String name) {
         DimensionConfig config = this.configs.get(name);
-        return config != null && !config.isBaseWorld() ? config : null;
+        return config != null && !config.isReserved() ? config : null;
     }
 
-    public List<DimensionConfig> getDimensions() {
-        return this.configs.values().stream().filter(c -> !c.isBaseWorld()).toList();
+    /** Every dimension THIS MOD CREATES — not the reserved four, which it only configures. */
+    public List<DimensionConfig> getCustomDimensions() {
+        return this.configs.values().stream().filter(c -> !c.isReserved()).toList();
     }
 
     public List<String> getDimensionNames() {
-        return this.getDimensions().stream().map(DimensionConfig::getName).toList();
+        return this.getCustomDimensions().stream().map(DimensionConfig::getName).toList();
     }
 
     public PortalDefinition getPortal(String id) {
@@ -140,10 +154,9 @@ public class MultiverseConfig {
     /**
      * Every portal using this igniter, ordered so definitions whose frame
      * matches the clicked block come first. Igniter items are SHARED across
-     * dimensions (eight dims use ender_eye) — a first-match-wins lookup made
-     * every shared-igniter portal except the alphabetically first
-     * unignitable, because ignition then hunted for the wrong frame block
-     * (found 2026-07-23 via the Carpet-bot loop).
+     * dimensions (eight dims use ender_eye) — a first-match-wins lookup would
+     * leave every shared-igniter portal except the alphabetically first
+     * unignitable, because ignition would hunt for the wrong frame block.
      */
     public List<PortalDefinition> getPortalsByIgniter(String itemId, String clickedBlockId) {
         List<PortalDefinition> matches = new ArrayList<>();
@@ -165,11 +178,10 @@ public class MultiverseConfig {
      * Live immersive settings for a target dimension, or null. Zone records
      * in portal_links.json carry a Gson-deserialised PortalDefinition whose
      * transient immersive field is always null — restoreZones re-stamps
-     * from here so "immersive" stays boot-re-read (PLAN.md: "Changes apply
-     * without a wipe") for zones ignited before the setting existed, or
-     * before it last changed. Never throws — a malformed/legacy
-     * targetDimension string on any live portal must not abort the lookup
-     * for every other zone.
+     * from here so "immersive" stays boot-re-read for zones ignited before
+     * the setting existed, or before it last changed. Never throws — a
+     * malformed/legacy targetDimension string on any live portal must not
+     * abort the lookup for every other zone.
      */
     public ImmersiveSettings getImmersiveFor(RegistryKey<World> targetWorld) {
         if (targetWorld == null) {
@@ -221,19 +233,9 @@ public class MultiverseConfig {
      * The portal definition describing travel INTO {@code targetWorld}, or
      * null when nothing configures one.
      *
-     * <p>A dimension's {@code portal} block has always meant "the portal that
-     * leads to this dimension", which is what makes this lookup meaningful
-     * for the RETURN direction too: the portal standing in a custom dimension
-     * that takes you home is, by that definition, an overworld portal, and
-     * should look and sound like one.
-     *
-     * <p>Vanilla never needed this — there is no such thing as an "overworld
-     * portal" there, because the nether portal you came through is the same
-     * block you go back through. Ours are built per dimension, so without a
-     * lookup the way home inherits the presentation of the place you are
-     * trying to leave: a portal home from an ember dimension rendered in
-     * ember colours, which reads as another door deeper in rather than the
-     * way out.
+     * <p>Used for the RETURN direction too: the portal standing in a custom
+     * dimension that leads home is presented using the destination
+     * (overworld) portal's look and sound, not the dimension's own.
      */
     public PortalDefinition getPortalFor(RegistryKey<World> targetWorld) {
         if (targetWorld == null) {
@@ -282,14 +284,14 @@ public class MultiverseConfig {
 
     /**
      * Seed override for a static world, by full dimension id ("minecraft:
-     * overworld" etc.). Driven by the base-world files (overworld.json,
+     * overworld" etc.). Driven by the reserved-dimension files (overworld.json,
      * the_nether.json, ...); "seed": "env" reads the SEED environment
      * variable. The config loads at createWorlds HEAD, so the override is
      * active from the overworld's very first chunk.
      */
     public Long getWorldSeedOverride(String dimensionId) {
         return this.configs.values().stream()
-                .filter(DimensionConfig::isBaseWorld)
+                .filter(DimensionConfig::isReserved)
                 .filter(c -> dimensionId.equals(c.getDimensionId()))
                 .map(DimensionConfig::getSeed)
                 .filter(s -> s != null)
@@ -298,30 +300,35 @@ public class MultiverseConfig {
     }
 
     /**
-     * The base-world config for an EXACT dimension id, or null.
+     * The reserved-dimension config for an EXACT dimension id, or null.
      *
-     * <p>Base worlds are managed exactly like custom dimensions — seed,
-     * border, difficulty, portal, structures — but they are resolved by full
-     * id rather than through {@link #isManagedNamespace}. {@code minecraft:}
+     * <p>Reserved dimensions are managed exactly like custom dimensions —
+     * seed, border, difficulty, portal, structures — but they are resolved by
+     * full id rather than through {@link #isManagedNamespace}. {@code minecraft:}
      * and {@code paradise_lost:} carry other mods' dimensions, and the lookup
      * behind the namespace gate is by PATH, so a third party's
      * {@code minecraft:whatever} would resolve against one of our configs.
      */
-    public DimensionConfig getBaseWorld(String dimensionId) {
+    public DimensionConfig getReservedDimension(String dimensionId) {
         if (dimensionId == null) {
             return null;
         }
         for (DimensionConfig config : this.configs.values()) {
-            if (config.isBaseWorld() && dimensionId.equals(config.getDimensionId())) {
+            if (config.isReserved() && dimensionId.equals(config.getDimensionId())) {
                 return config;
             }
         }
         return null;
     }
 
-    /** The base-world config for a given name (e.g. "overworld"), or null. */
-    public DimensionConfig getWorld(String name) {
+    /** The reserved-dimension config for a given name (e.g. "overworld"), or null. */
+    public DimensionConfig getReservedDimensionBySlug(String name) {
         DimensionConfig config = this.configs.get(name);
-        return config != null && config.isBaseWorld() ? config : null;
+        return config != null && config.isReserved() ? config : null;
+    }
+
+    /** Every configured dimension, custom and reserved alike. */
+    public List<DimensionConfig> getAllDimensions() {
+        return List.copyOf(this.configs.values());
     }
 }

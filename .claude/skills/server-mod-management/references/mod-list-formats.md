@@ -65,14 +65,15 @@ Not a separate file — a top-level JSON object in the client pack manifest, key
 
 ```jsonc
 "_holds": {
-  "c2me-fabric": "0.4.0-alpha.0.21 wedges fresh-world creation: ...",
   "critters-and-companions": "2.6.x claims 1.21.1 but is built against a newer Architectury ...",
   "xaeros-world-map": "1.42.0 removed Waypoint's int x/y/z fields; ...",
   "xaeros-minimap": "era-pair of xaeros-world-map 1.41.2 - held at 26.1.0 ..."
 }
 ```
 
-Only consulted by `pin-mod-versions.sh`'s **client-manifest** re-pin loop (the Python block that rewrites `_clientMods.required`/`.optional`) — a slug in `holds` there is skipped entirely, its current `versionId` left untouched. The bash loop that rewrites `config/modrinth-mods.txt` (the server list) does not read this object at all; see the "Version holds" trap in the main `SKILL.md` for what that means in practice for a server-only held mod like `c2me-fabric`.
+Read the live object rather than this example — holds come and go.
+
+Only consulted by `pin-mod-versions.sh`'s **client-manifest** re-pin loop (the Python block that rewrites `_clientMods.required`/`.optional`) — a slug in `holds` there is skipped entirely, its current `versionId` left untouched. The bash loop that rewrites `config/modrinth-mods.txt` (the server list) does not read this object at all; see the "Version holds" trap in the main `SKILL.md` for what that means in practice for a server-only held mod.
 
 ## Two-place config rule: the flat-path exception
 

@@ -1,14 +1,138 @@
 {
   "type": "multi_biome",
-  "description": "Outpost country gone feral. Pillager lookouts, bandit towers, campsites — the military infrastructure of a kingdom that collapsed. The soldiers stayed after the kingdom fell and became the threat they were meant to guard against.",
-  "seed": -4857143333049984274,
+  "description": "Outpost country gone feral. Pillager lookouts, bandit towers, campsites \u2014 the military infrastructure of a kingdom that collapsed. The soldiers stayed after the kingdom fell and became the threat they were meant to guard against.",
+  "seed": -1862329473169212982,
   "biomes": [
-    "natures_spirit:oak_savanna",
-    "natures_spirit:golden_wilds",
-    "minecraft:savanna",
-    "terralith:fractured_savanna",
-    "terralith:savanna_slopes",
-    "minecraft:windswept_savanna"
+    {
+      "id": "natures_spirit:oak_savanna",
+      "parameters": {
+        "weirdness": [
+          -2.0,
+          -0.19
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "natures_spirit:golden_wilds",
+      "parameters": {
+        "weirdness": [
+          -0.19,
+          -0.1417
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "minecraft:savanna",
+      "parameters": {
+        "weirdness": [
+          -0.1417,
+          -0.0933
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "terralith:fractured_savanna",
+      "parameters": {
+        "weirdness": [
+          -0.0933,
+          -0.045
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "terralith:savanna_slopes",
+      "parameters": {
+        "weirdness": [
+          -0.045,
+          0.0033
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "minecraft:windswept_savanna",
+      "parameters": {
+        "weirdness": [
+          0.0033,
+          0.0517
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:shrubland",
+      "parameters": {
+        "weirdness": [
+          0.0517,
+          0.1
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:deciduous_forest",
+      "parameters": {
+        "weirdness": [
+          0.1,
+          2.0
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "terralith:cave/granite_caves",
+      "parameters": {
+        "weirdness": [
+          -2.0,
+          -0.045
+        ],
+        "depth": [
+          0.1,
+          2.0
+        ]
+      }
+    },
+    {
+      "id": "terralith:cave/infested_caves",
+      "parameters": {
+        "weirdness": [
+          -0.045,
+          2.0
+        ],
+        "depth": [
+          0.1,
+          2.0
+        ]
+      }
+    }
   ],
   "borders": {
     "player": 512,
@@ -35,14 +159,11 @@
   "seedRoll": {
     "mood": "adventurous",
     "spawnFilter": [
-      "natures_spirit:oak_savanna",
-      "natures_spirit:golden_wilds",
-      "minecraft:savanna",
-      "terralith:fractured_savanna"
+      "minecraft:savanna"
     ],
     "wants": {
       "pillager_outpost": "near_spawn",
-      "pillager_lookout": "near_spawn",
+      "pillager_lookout": "spread",
       "bandit_towers": "spread",
       "illager_campsite": "near_spawn",
       "nomad_outpost": "spread",
@@ -51,12 +172,39 @@
     },
     "shuns": [
       "monument"
-    ],
-    "description": "Outpost country gone feral. Pillager lookouts, bandit towers, campsites — the military infrastructure of a kingdom that collapsed. The soldiers stayed after the kingdom fell and became the threat they were meant to guard against."
+    ]
   },
   "spawn": [
-    0,
-    64,
-    0
-  ]
+    -64,
+    34,
+    128
+  ],
+  "structures": {
+    "radial": {
+      "dungeons": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "endgame": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    }
+  }
 }

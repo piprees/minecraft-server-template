@@ -7,10 +7,16 @@ on:
 
 jobs:
   deploy:
-    uses: piprees/minecraft-server-template/.github/workflows/deploy-reusable.yml@v4
+    uses: piprees/minecraft-server-template/.github/workflows/deploy-reusable.yml@v5
     with:
-      # Set the STACK_VERSION repository variable to pin a release line (v2)
-      # or exact version (v2.0.1); unset = latest release.
+      # Set the STACK_VERSION variable to pin a release line (v5) or an exact
+      # version (v5.6.1); unset = latest release.
+      #
+      # Must be a REPOSITORY variable — this job declares no `environment:`,
+      # so `vars.` only resolves repository variables. An environment
+      # variable of the same name is invisible here and is silently
+      # ignored, which pins the deploy to the wrong line while every
+      # later deploy still reports success.
       stack_version: ${{ vars.STACK_VERSION || 'latest' }}
     secrets:
       DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}

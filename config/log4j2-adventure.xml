@@ -35,6 +35,7 @@
                 <RegexFilter regex=".*Failed to load custom color set definition.*quark.*" onMatch="DENY" onMismatch="NEUTRAL" />
                 <!-- Missing tags for lead (no lead mod installed) -->
                 <RegexFilter regex=".*Not all defined tags.*c:ingots/lead.*" onMatch="DENY" onMismatch="NEUTRAL" />
+                <RegexFilter regex=".*Not all defined tags.*c:storage_blocks/lead.*" onMatch="DENY" onMismatch="NEUTRAL" />
                 <!-- C2ME/Lithium/ModernFix mixin override notices -->
                 <RegexFilter regex=".*Option.*overriden.*by mods.*" onMatch="DENY" onMismatch="NEUTRAL" />
                 <RegexFilter regex=".*Method overwrite conflict.*" onMatch="DENY" onMismatch="NEUTRAL" />
@@ -78,6 +79,15 @@
                      sawmill recipes come from universal-sawmill's generated pack. -->
                 <RegexFilter regex="Parsing error loading recipe dramaticdoors:.*" onMatch="DENY" onMismatch="NEUTRAL" />
                 <RegexFilter regex="Parsing error loading custom advancement dramaticdoors:.*" onMatch="DENY" onMismatch="NEUTRAL" />
+                <!-- Supplementaries' bundled Farmer's Delight integration recipes
+                     (ash/lapis brick salvaging, the FD quiver) give their result as
+                     a bare item-id string and their tool requirement as an unwrapped
+                     {"type":"farmersdelight:item_ability",...} predicate — neither
+                     matches farmers-delight-refabricated's cutting-board codec, which
+                     needs an object result and a Fabric-custom-ingredient-wrapped
+                     tool ({"fabric:type": ...}). They can never parse against this FD
+                     build; only these three optional recipes are lost. -->
+                <RegexFilter regex="Parsing error loading recipe supplementaries:integration/(ash_bricks_salvaging_fd|lapis_bricks_salvaging_fd|quiver_fd)" onMatch="DENY" onMismatch="NEUTRAL" />
                 <!-- When Dungeons Arise data bugs (pre-1.21 item predicate format) -->
                 <RegexFilter regex="Parsing error loading custom advancement dungeons_arise:.*" onMatch="DENY" onMismatch="NEUTRAL" />
                 <!-- The follow-up summary line for the same known-broken advancements -->
@@ -126,6 +136,32 @@
                      unfiltered so any new cause is visible immediately.) -->
                 <!-- Moogs structure loot table validation (optional parameter in wrong context) -->
                 <RegexFilter regex=".*loot_table.*mns:chests.*attacking_entity.*" onMatch="DENY" onMismatch="NEUTRAL" />
+                <!-- codecui jar-in-jar mixin fails to apply on a headless server (no GUI
+                     Screen to target); author-tolerated, "required": false. No newer
+                     codecui build exists. -->
+                <RegexFilter regex=".*Critical problem: codecui-codec\.mixins\.json:CodecXmapMixin.*" onMatch="DENY" onMismatch="NEUTRAL" />
+                <RegexFilter regex="(?s).*CodecUI: codec construction mixins DID NOT APPLY.*" onMatch="DENY" onMismatch="NEUTRAL" />
+                <!-- YUNG's Better Caves aquifer lookup on the headless seed-roll thread;
+                     the Liquid Regions override it warns about isn't configured in this
+                     pack and the path is never hit during real chunk generation. -->
+                <RegexFilter regex=".*AquiferContext is null in AquiferMixin, this should not happen!.*" onMatch="DENY" onMismatch="NEUTRAL" />
+                <RegexFilter regex=".*Failed to fetch the AquiferContext\. Liquid Regions for YUNG's Better Caves may not generate properly\..*" onMatch="DENY" onMismatch="NEUTRAL" />
+                <RegexFilter regex=".*This is a mod compatibility issue\. Please report it to the Better Caves GitHub issue tracker!.*" onMatch="DENY" onMismatch="NEUTRAL" />
+                <!-- Vanilla's dimension registry check logs even on success for
+                     third-party biome-source wrappers it can't round-trip
+                     (terrablender/lithostitched). Matches only DataResult.Success —
+                     a genuine DataResult.Error stays visible. -->
+                <RegexFilter regex=".*Failed to decode value DataResult\.Success\[ResourceKey\[minecraft:dimension.*" onMatch="DENY" onMismatch="NEUTRAL" />
+                <!-- Tag defined by a mod for content another mod owns; same class
+                     as the c:*/lead rules above. The summary line "Warnings were
+                     found!" stays visible, so a NEW tag fault still shows. -->
+                <RegexFilter regex=".*Not all defined tags.*immersive_weathering:.*" onMatch="DENY" onMismatch="NEUTRAL" />
+                <!-- Cosmetic metadata warnings in third-party mod jars -->
+                <RegexFilter regex="The mod &quot;dungeons_arise&quot; contains invalid entries in its mod json:" onMatch="DENY" onMismatch="NEUTRAL" />
+                <!-- Supplementaries names a Lithium rule this pack does not carry -->
+                <RegexFilter regex="Mod 'supplementaries' attempted to override option 'mixins\.block\.moving_block_shapes'.*" onMatch="DENY" onMismatch="NEUTRAL" />
+                <!-- Vanilla dye diffuse-colour self-check, cosmetic -->
+                <RegexFilter regex="Dye color \w+ produced diffuse color -?\d+ \(\w+\), this should never happen" onMatch="DENY" onMismatch="NEUTRAL" />
             </Filters>
         </Console>
         <RollingRandomAccessFile name="File" fileName="logs/latest.log"

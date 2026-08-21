@@ -88,36 +88,53 @@ public class MultiverseServer implements DedicatedServerModInitializer {
         // "spawn": [x, y, z] replaces the SPAWN_X/Y/Z env enforcement.
         // Other worlds share the global spawn in vanilla, so only the
         // overworld entry is applied.
+        // Try-out worlds never reach level.dat, so anything left on disk from
+        // a previous run is unreferenced bytes — and region files are not
+        // small. SERVER_STARTED, because nothing can have created one yet.
+        ServerLifecycleEvents.SERVER_STARTED.register(
+                com.customdimensions.tryout.TryOut::purgeOnStart);
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
             com.customdimensions.config.DimensionConfig ow =
-                    MultiverseConfig.getInstance().getWorld("overworld");
+                    MultiverseConfig.getInstance().getReservedDimensionBySlug("overworld");
             int[] spawn = ow != null ? ow.getSpawn() : null;
-            if (spawn != null) {
+            // [0, 64, 0] means "no spawn chosen" — the same contract
+            // deploy.sh's spawn guard reads. Stamping it would overwrite
+            // vanilla's own spawn choice with the origin.
+            if (spawn != null && (spawn[0] != 0 || spawn[1] != 64 || spawn[2] != 0)) {
+                int groundY = com.customdimensions.portal.PortalHelper.findSurfaceY(
+                        server.getOverworld(), spawn[0], spawn[2]);
                 server.getOverworld().setSpawnPos(
-                        new net.minecraft.util.math.BlockPos(spawn[0], spawn[1], spawn[2]), 0.0f);
-                LOGGER.info("World spawn set from config: {} {} {}", spawn[0], spawn[1], spawn[2]);
+                        new net.minecraft.util.math.BlockPos(spawn[0], groundY, spawn[2]), 0.0f);
+                LOGGER.info("World spawn set from config: {} {} {} (Y grounded from {})",
+                        spawn[0], groundY, spawn[2], spawn[1]);
             }
             // Per-dimension world borders (borders.player) — after
             // createWorlds so vanilla's overworld border-load can't clobber
             // them (see WorldBorderManager for the syncer trap).
             com.customdimensions.dimension.WorldBorderManager.applyAll(server);
+            // The seed tool's browser talks to this process directly — the
+            // registries, the bank and the live server are all right here.
+            com.customdimensions.web.SeedServer.start(server);
         });
         // Runtime-created dimensions get their border the moment they load.
         net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents.LOAD.register(
             (server, world) -> com.customdimensions.dimension.WorldBorderManager.onWorldLoad(world));
-        // Immersive portals (Phase 0): a pre-loaded-but-unvisited target
-        // world is closed by the idle unloader after its timeout. Drop
-        // that world's pre-load record so the next approach re-triggers
-        // pre-loading instead of silently no-opping forever (PLAN.md
-        // Agent Gotcha #11).
+        // Immersive portals: a pre-loaded-but-unvisited target world is
+        // closed by the idle unloader after its timeout. Drop that world's
+        // pre-load record so the next approach re-triggers pre-loading
+        // instead of silently no-opping forever.
         net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents.UNLOAD.register(
             (server, world) -> {
                 com.customdimensions.immersive.ImmersivePreloader.invalidate(world.getRegistryKey());
-                // Phase 1: release (or drop) any preview chunk tickets tied
-                // to this world before its chunk manager closes.
+                // Release (or drop) any preview chunk tickets tied to this
+                // world before its chunk manager closes.
                 com.customdimensions.immersive.ImmersiveProjector.onWorldUnload(world);
+                // Structure pick: clear the selection registry for this world
+                // so stale entries from a previous calculator never match.
+                com.customdimensions.dimension.StructurePick.clear(
+                        world.getRegistryKey().getValue().toString());
             });
-        // Immersive portals (Phase 1): a disconnecting player's fake-block
+        // Immersive portals: a disconnecting player's fake-block
         // projections are dropped without restore packets — there is no
         // connection left to send them on, and vanilla's chunk resend on
         // the next login corrects anything left over.
@@ -143,15 +160,17 @@ public class MultiverseServer implements DedicatedServerModInitializer {
         ServerEntityWorldChangeEvents.AFTER_PLAYER_CHANGE_WORLD.register(
             (player, origin, destination) -> {
                 DifficultyManager.applyPlayerLuck(player);
-                // Immersive portals (Phase 1): the projections this player
-                // had in the world they LEFT must go — stepping THROUGH an
-                // immersive portal is the common case. Dropped without
-                // restore packets: those coordinates now address the
-                // destination dimension on their client.
+                // Immersive portals: the projections this player had in the
+                // world they LEFT must go — stepping THROUGH an immersive
+                // portal is the common case. Dropped without restore
+                // packets: those coordinates now address the destination
+                // dimension on their client.
                 com.customdimensions.immersive.ImmersiveProjector.forgetInWorld(
                         player.getUuid(), player.getName().getString(), origin.getRegistryKey());
             });
         ServerTickEvents.END_SERVER_TICK.register(server -> {
+            com.customdimensions.tryout.TryOut.tick(server);
+            com.customdimensions.command.RenderCheck.tick(server);
             DimensionManager.getInstance().processPendingWorldLoads();
             DimensionManager.getInstance().reconcileOrphansOnce();
             DimensionManager.getInstance().processPendingWorldUnloads();
@@ -166,7 +185,9 @@ public class MultiverseServer implements DedicatedServerModInitializer {
     }
 
     public static void onServerStopping(MinecraftServer server) {
+        com.customdimensions.web.SeedServer.stop();
         com.customdimensions.command.LocateManager.getInstance().shutdown();
+        com.customdimensions.command.RenderCheck.clear();
         StorageHelper.shutdown();
         LOGGER.info("CustomDimensions shutdown complete");
     }

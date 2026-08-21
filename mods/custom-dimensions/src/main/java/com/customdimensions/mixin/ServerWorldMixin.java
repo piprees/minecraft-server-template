@@ -45,8 +45,8 @@ public class ServerWorldMixin {
             List<PortalHelper.PortalZone> zones = new ArrayList<>();
             for (PortalHelper.PortalZone zone : snapshot) {
                 if (!PortalHelper.isZoneValid(world, zone)) {
-                    // A portal is one thing with two ends. Breaking the frame
-                    // here used to leave the arrival standing in the
+                    // A portal is one thing with two ends. Breaking only this
+                    // frame would leave the arrival standing in the
                     // destination — still a real portal block, still
                     // registered, still returning anyone who stepped into it
                     // to a doorway that no longer exists. Take both.
@@ -57,11 +57,11 @@ public class ServerWorldMixin {
                     PortalHelper.breakLinkedArrival(world, zone);
                     PortalHelper.clearInteriorPortals(world, zone);
                     PortalHelper.removeZone(zone);
-                    // Persist the removal now rather than at shutdown. This
-                    // path had no save at all, so a broken portal lived on in
-                    // portal_links.json until a clean stop and came back on a
-                    // crash. Rare enough to cost nothing — a zone goes invalid
-                    // once, then it is gone.
+                    // Persist the removal now rather than at shutdown: without
+                    // this, a broken portal would live on in portal_links.json
+                    // until a clean stop and reappear after a crash. Rare
+                    // enough to cost nothing — a zone goes invalid once, then
+                    // it is gone.
                     PortalHelper.savePortalLinks();
                     continue;
                 }
@@ -83,12 +83,11 @@ public class ServerWorldMixin {
                 PortalHelper.spawnParticles(world, zone);
             }
 
-            // Immersive portals (Phase 0 — Instant Transition): once a
-            // player gets within activationRange of an immersive zone,
-            // pre-load its target world and pre-generate the arrival
-            // chunks, so stepping through feels instant instead of
-            // pausing on first visit. Zones without "immersive" configured
-            // skip this entirely — zero behavioural change for them.
+            // Immersive portals: once a player gets within activationRange
+            // of an immersive zone, pre-load its target world and
+            // pre-generate the arrival chunks, so stepping through feels
+            // instant instead of pausing on first visit. Zones without
+            // "immersive" configured skip this entirely.
             for (ServerPlayerEntity player : world.getPlayers()) {
                 BlockPos playerPos = player.getBlockPos();
                 for (PortalHelper.PortalZone zone : zones) {
@@ -185,9 +184,6 @@ public class ServerWorldMixin {
                         // adding the offset to it applies the shift twice
                         // (2*target - source) and builds the portal hundreds of
                         // blocks from where the player is teleported.
-                        // Found live 2026-07-25: source (63, -619) at scale 8
-                        // teleported the player to (8, -77) while the portal
-                        // was built at (-47, 465).
 
                         // Arrival height comes from the target column's own
                         // surface — the SCALED centre, since source-portal
@@ -206,14 +202,12 @@ public class ServerWorldMixin {
                         if (carved) {
                             // No open pocket anywhere in the band, so carve one.
                             //
-                            // This used to be `siteY = surfaceY` — the
-                            // MOTION_BLOCKING_NO_LEAVES heightmap, which reads
-                            // the ROOF in a ceilinged dimension. The one path
-                            // that exists to rescue a bad column was putting
-                            // players on the nether roof (y=192 in
-                            // the_boneyard, 2026-07-25), silently undoing
-                            // everything PortalSite is for. A fallback to a
-                            // number known to be wrong is not a fallback.
+                            // Never fall back to `siteY = surfaceY` here — the
+                            // MOTION_BLOCKING_NO_LEAVES heightmap reads the ROOF
+                            // in a ceilinged dimension, which would put players
+                            // on that roof and silently undo everything
+                            // PortalSite is for. A fallback to a number known
+                            // to be wrong is not a fallback.
                             siteY = com.customdimensions.portal.PortalSite.findCarveY(
                                     targetWorld, targetCenterX, targetCenterZ, zone.axis, surfaceY);
                         }
@@ -263,11 +257,9 @@ public class ServerWorldMixin {
                         PortalHelper.setSourceColumn(targetKey, adjustedInterior, portalCenterX, portalCenterZ);
                         com.customdimensions.portal.PortalAuraManager.onLink(
                                 world, zone, targetWorld, adjustedInterior);
-                        // Says HOW the site was chosen, not just that one was.
+                        // Says HOW the site was chosen, not just that one was:
                         // "carved" appearing on every arrival in a dimension
-                        // means its search band is wrong again — which is
-                        // exactly the state that shipped, invisibly, until
-                        // somebody stood on a roof.
+                        // means its search band is wrong again.
                         MultiverseServer.LOGGER.info("Created portal in {} at ({}, {}, {}) [{} site]",
                                 targetKey.getValue(), targetCenterX, surfaceY, targetCenterZ,
                                 carved ? "carved" : "open");
@@ -286,9 +278,9 @@ public class ServerWorldMixin {
             }
         }
 
-        // Symmetric breaking (Phase 9c): clear counterpart portal cells whose
-        // chunks were cold when their other end was broken. Loaded chunks
-        // only — never sync-loads, so a destination nobody has visited simply
+        // Symmetric breaking: clear counterpart portal cells whose chunks
+        // were cold when their other end was broken. Loaded chunks only —
+        // never sync-loads, so a destination nobody has visited simply
         // waits until somebody does.
         PortalHelper.processPendingBreaks(world);
 
@@ -304,20 +296,19 @@ public class ServerWorldMixin {
         // the exit-portal tick).
         com.customdimensions.portal.PortalAuraManager.tick(world);
 
-        // Immersive portals (Phase 1 — Portal Preview): per-player fake
-        // block projection of the far dimension through the frame. Must
-        // run AFTER the player teleport loop above (a player who stepped
-        // through this tick is already in the target world) and after the
-        // aura pass (so the projection samples post-aura blocks). Fetches
-        // its own zones and returns immediately when none are immersive.
+        // Immersive portals: per-player fake block projection of the far
+        // dimension through the frame. Must run AFTER the player teleport
+        // loop above (a player who stepped through this tick is already in
+        // the target world) and after the aura pass (so the projection
+        // samples post-aura blocks). Fetches its own zones and returns
+        // immediately when none are immersive.
         com.customdimensions.immersive.ImmersiveProjector.tick(world);
 
-        // Immersive portals (Phase 3 — Entity Pass-Through): items,
-        // projectiles, XP orbs and falling blocks crossing an immersive
-        // source zone with their velocity intact. After the projector so a
-        // crossing entity sees the same zone state the projection was built
-        // from, and before ExitConditions (PLAN.md Gotcha #12). Fetches its
-        // own zones and does nothing at all for non-immersive ones.
+        // Immersive portals: items, projectiles, XP orbs and falling blocks
+        // crossing an immersive source zone with their velocity intact.
+        // After the projector so a crossing entity sees the same zone state
+        // the projection was built from, and before ExitConditions. Fetches
+        // its own zones and does nothing at all for non-immersive ones.
         com.customdimensions.immersive.EntityPassthrough.tick(world);
 
         // Exit conditions ("exits" block): void + fallFrom triggers. Runs
@@ -346,7 +337,27 @@ public class ServerWorldMixin {
         int[] anchor = def.getAnchorPos();
         int anchorX = anchor[0];
         int anchorZ = anchor[2];
+        // The same arrival dance as the per-source path: the raw heightmap
+        // reports the ROOF in a ceilinged dimension (the exact bug
+        // PortalSite exists to prevent), so resolve a real site — open
+        // pocket first, carve second, refuse third. The anchor's
+        // configured Y stays a hint only.
         int surfaceY = PortalHelper.findSurfaceY(targetWorld, anchorX, anchorZ);
+        int siteY = com.customdimensions.portal.PortalSite.findArrivalY(
+                targetWorld, anchorX, anchorZ, zone.axis, surfaceY);
+        if (siteY == com.customdimensions.portal.PortalSite.NO_SITE) {
+            siteY = com.customdimensions.portal.PortalSite.findCarveY(
+                    targetWorld, anchorX, anchorZ, zone.axis, surfaceY);
+        }
+        if (siteY == com.customdimensions.portal.PortalSite.NO_SITE) {
+            MultiverseServer.LOGGER.error(
+                    "No viable anchor arrival site in {} at column ({}, {}) — refusing traversal",
+                    targetWorld.getRegistryKey().getValue(), anchorX, anchorZ);
+            player.sendMessage(net.minecraft.text.Text.literal(
+                    "The portal cannot find anywhere safe to put you."), true);
+            return;
+        }
+        surfaceY = siteY;
 
         BlockPos existing = com.customdimensions.portal.PortalShape.END_GATEWAY.equals(def.getShape())
                 ? PortalHelper.findExistingGateway(targetWorld, anchorX, surfaceY, anchorZ, 5, 16)

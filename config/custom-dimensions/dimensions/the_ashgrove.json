@@ -1,16 +1,216 @@
 {
   "type": "multi_biome",
-  "description": "Ash-grey savanna under a volcanic sky. A settlement burned here once — abandoned camps and scorched tombs are all that remain. The grove remembers the fire, but not who set it.",
-  "seed": -4745410978042438563,
+  "description": "Ash-grey savanna under a volcanic sky. A settlement burned here once \u2014 abandoned camps and scorched tombs are all that remain. The grove remembers the fire, but not who set it.",
+  "seed": -319551705182696848,
   "biomes": [
-    "terralith:ashen_savanna",
-    "terralith:volcanic_peaks",
-    "terralith:volcanic_crater",
-    "minecraft:savanna",
-    "terralith:savanna_badlands",
-    "minecraft:badlands",
-    "minecraft:eroded_badlands",
-    "terralith:basalt_cliffs"
+    {
+      "id": "regions_unexplored:saguaro_desert",
+      "parameters": {
+        "weirdness": [
+          -2.0,
+          -1.85
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "terralith:ashen_savanna",
+      "parameters": {
+        "weirdness": [
+          -1.85,
+          -1.63
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "terralith:volcanic_peaks",
+      "parameters": {
+        "weirdness": [
+          -1.63,
+          -1.41
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "terralith:volcanic_crater",
+      "parameters": {
+        "weirdness": [
+          -1.41,
+          -1.19
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "minecraft:savanna",
+      "parameters": {
+        "weirdness": [
+          -1.19,
+          -0.97
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "terralith:savanna_badlands",
+      "parameters": {
+        "weirdness": [
+          -0.97,
+          -0.75
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "minecraft:badlands",
+      "parameters": {
+        "weirdness": [
+          -0.75,
+          -0.53
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "minecraft:eroded_badlands",
+      "parameters": {
+        "weirdness": [
+          -0.53,
+          -0.38
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "terralith:basalt_cliffs",
+      "parameters": {
+        "weirdness": [
+          -0.38,
+          -0.23
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:joshua_desert",
+      "parameters": {
+        "weirdness": [
+          -0.23,
+          -0.08
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:dry_bushland",
+      "parameters": {
+        "weirdness": [
+          -0.08,
+          0.07
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:arid_mountains",
+      "parameters": {
+        "weirdness": [
+          0.07,
+          0.22
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:ashen_woodland",
+      "parameters": {
+        "weirdness": [
+          0.22,
+          1.82
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "wilderwild:arid_savanna",
+      "parameters": {
+        "weirdness": [
+          1.82,
+          2.0
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "minecraft:dripstone_caves",
+      "parameters": {
+        "weirdness": [
+          -2.0,
+          -0.045
+        ],
+        "depth": [
+          0.1,
+          2.0
+        ]
+      }
+    },
+    {
+      "id": "terralith:cave/andesite_caves",
+      "parameters": {
+        "weirdness": [
+          -0.045,
+          2.0
+        ],
+        "depth": [
+          0.1,
+          2.0
+        ]
+      }
+    }
   ],
   "borders": {
     "player": 1024,
@@ -36,7 +236,19 @@
     }
   },
   "structures": {
-    "clearSpawnRadius": 96
+    "clearSpawnRadius": 96,
+    "force": [
+      {
+        "structure": "structory:graveyard",
+        "x": 150,
+        "z": 90
+      },
+      {
+        "structure": "structory:abandoned_chapel",
+        "x": 540,
+        "z": -610
+      }
+    ]
   },
   "environment": {
     "fogColor": "#7B6B5B",
@@ -66,12 +278,11 @@
       "tavern",
       "monument"
     ],
-    "description": "Ash-grey savanna under a volcanic sky. A settlement burned here once — abandoned camps and scorched tombs are all that remain. The grove remembers the fire, but not who set it.",
     "water": "none"
   },
   "spawn": [
-    0,
-    64,
-    0
+    -64,
+    111,
+    128
   ]
 }

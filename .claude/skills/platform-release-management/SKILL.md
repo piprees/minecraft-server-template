@@ -1,6 +1,6 @@
 ---
 name: platform-release-management
-description: Cuts and verifies platform releases for this Minecraft server template. Covers the `gh workflow run release.yml -f version=vX.Y.Z` dispatch, version selection from conventional commits, pre-flight checks, the publish.yml concurrency collision that cancels image builds, what a release actually contains, post-release verification, and recovery from a cancelled image build, missing bundle, failed smoke test, or a burnt tag. Use when: cutting a new vX.Y.Z release, a published release is missing its version-tagged GHCR images, a release has no stack bundle tarball attached, deciding whether a change is a major/minor/patch bump, recovering after a push cancelled an in-flight release's image builds, or adding a new bundle script that needs the `MANIFEST` array in `scripts/build-stack-bundle.sh` updated.
+description: Cuts and verifies platform releases for this Minecraft server template. Covers the `gh workflow run release.yml -f version=vX.Y.Z` dispatch, version selection from conventional commits, pre-flight checks, publish.yml's concurrency groups and what a push to main can and cannot cancel, what a release actually contains, post-release verification, and recovery from a missing image build, missing bundle, failed smoke test, or a burnt tag. Use when: cutting a new vX.Y.Z release, a published release is missing its version-tagged GHCR images, a release has no stack bundle tarball attached, deciding whether a change is a major/minor/patch bump, recovering an image build that was cancelled or failed mid-release, or adding a new bundle script that needs the `MANIFEST` array in `scripts/build-stack-bundle.sh` updated.
 ---
 
 # Platform release management
@@ -41,19 +41,26 @@ From conventional commits since the last tag (`cliff.toml` parses the same prefi
 
 Consumers pinning `STACK_VERSION=v4` (the common case) automatically receive minor and patch updates on their next deploy — they never see a major bump unless they change the pin themselves.
 
-## The push freeze — read this before touching `main`
+## Pushing to `main` while a release runs
 
-**Do not push to `main` while `release.yml` is running.** `publish.yml` (which builds every GHCR image) uses concurrency group `publish-${{ github.ref }}` with `cancel-in-progress: true`. A push-triggered run of `publish.yml` and the `images` job that `release.yml` calls via `workflow_call` land in the **same concurrency group** (both resolve to `refs/heads/main`) — the push cancels the release's in-flight image builds mid-run.
+`publish.yml`'s concurrency group is keyed on what is being built, not on the ref that asked for it:
 
-This is not theoretical: **on 2026-07-13, a docs push cancelled the discord-sync 2.14.0 image build**, leaving a published release whose version-tagged image did not exist. Production pulls images by version tag (`IMAGE_TAG="${STACK_VERSION#v}"`), so that release was broken for every consumer who upgraded to it, even though the GitHub release itself looked fine. See `references/release-recovery.md` for the exact recovery.
+```yaml
+group: publish-${{ inputs.version || github.ref }}
+cancel-in-progress: ${{ !inputs.version }}
+```
 
-Check `gh run list --limit 5` (or specifically `gh run list --workflow release.yml --json status`) before any push to `main`, not just before cutting a release yourself.
+A versioned build — the `images` job `release.yml` calls via `workflow_call`, or a `workflow_dispatch` backfill — gets its own group and is never cancelled. An unversioned build (a push to `main` rebuilding `latest`) keeps `cancel-in-progress: true`, so successive pushes still collapse into one rebuild.
+
+The key has to discriminate on the version because **a reusable workflow evaluates `github.ref` from its caller**: a release dispatched on `main` and a push to `main` both resolve to `refs/heads/main`. Grouping on the ref alone put them in one group, and since `images` is `needs: bundle`, the tag was already published and immutable by the time the push cancelled its images — a release whose version-tagged images do not exist, while production pulls by version tag (`IMAGE_TAG="${STACK_VERSION#v}"`).
+
+A push during a release is still worth avoiding: the bundle job commits `CHANGELOG.md` back to `main` with three rebase attempts and `continue-on-error: true`, so a concurrent push can make that silently no-op. Check `gh run list --limit 5` before pushing.
 
 ## What actually happens when you run it
 
 `release.yml` ("Release Bundle") is three jobs, each gating the next:
 
-1. **`smoke-test`** — calls `smoke-test.yml`: builds `defaults-seed` from source, boots the local profile with ~150 cached mod JARs, and runs two matrix variants (`default`, `removal` — a representative consumer `mods-remove.txt`). Asserts RCON health, custom-dimensions load with the right noise presets and structure density, a Carpet bot traverses a real portal end-to-end, and carpet's patched piston mixin hasn't regressed. 5–10 minutes on GitHub runners. **If this fails, nothing else runs — no tag, no release, safe to just fix and re-dispatch the same version.**
+1. **`smoke-test`** — calls `smoke-test.yml`: builds `defaults-seed` from source, boots the local profile with ~150 cached mod JARs, and runs two matrix variants (`default`, `removal` — a representative consumer `mods-remove.txt`). Asserts RCON health, custom-dimensions load with the right noise presets and structure density, a Carpet bot traverses a real portal end-to-end, and carpet's patched piston mixin hasn't regressed. ~15 minutes on GitHub runners for the `default` variant, ~8 for `removal`; they run in parallel. The render-check step, which added ~28m to `default`, carries `if: false` — re-enable it before shipping a worldgen or height-source change. **If this fails, nothing else runs — no tag, no release, safe to just fix and re-dispatch the same version.**
 2. **`bundle`** (needs `smoke-test`) — validates the version string is `vX.Y.Z`; builds every in-house mod from `mods/local-mods.manifest` and verifies the **remapped** jar (never the `-dev` jar — an unremapped jar boots as a production crash loop, and Gradle reports BUILD SUCCESSFUL regardless); runs `scripts/build-stack-bundle.sh`; verifies every declared local mod actually landed in the bundle tarball; generates release notes and `CHANGELOG.md` via `git-cliff-action@v4.8.0`; **creates the release as a draft with the bundle assets attached, then publishes it** (`gh release create --draft` → `gh release edit --draft=false` — the only order that works with immutable releases); best-effort commits `CHANGELOG.md` back to `main` (rebase-and-retry ×3, `continue-on-error: true` — never fails the job over a changelog push race); best-effort force-moves the major tag (e.g. `v3`) to the release commit.
 3. **`images`** (needs `bundle`) — calls `publish.yml` via `workflow_call` with the release version, building and pushing all 7 images (`discord-sync`, `kuma-init`, `mod-checker`, `idle-tasks`, `defaults-seed`, `modpack-builder`, `unmined-render`) tagged `X.Y.Z`, `X.Y`, `X`, and `latest`, multi-arch (amd64+arm64).
 
@@ -82,7 +89,7 @@ Also check `CHANGELOG.md` on `main` actually picked up the new version — the c
 
 1. **A published immutable release burns its tag forever.** Deleting the release does not free the tag. If a release is broken, fix the cause and cut the **next patch version** — never retry the same tag.
 2. **A release published without a bundle is broken, not recoverable in place.** `release-guard.yml` fires on `release: published`, checks for a `stack-*.tar.gz` asset, and fails loudly with recovery steps if it's missing (this is the guard against someone using `gh release create` directly). Cut the next patch with the complete asset set — do not delete and re-cut. Draft releases are mutable until publication, so this only bites after the fact.
-3. **The publish.yml cancellation collision (2026-07-13).** Pushing to `main` while `release.yml` is running cancels the release's in-flight image builds via the shared `publish-${{ github.ref }}` concurrency group. Recovery: `gh run rerun <release-run-id> --failed` rebuilds only the cancelled jobs — the release and tag are unaffected if the `bundle` job ("Build bundle and publish release") already succeeded. Full detail in `references/release-recovery.md`.
+3. **A release published without its version-tagged images is broken for every consumer who upgrades**, however it happened — the GitHub release itself looks fine, and the failure only shows up as an image pull error on a consumer's deploy. Recovery: `gh run rerun <release-run-id> --failed` rebuilds only the failed jobs — the release and tag are unaffected once the `bundle` job ("Build bundle and publish release") has succeeded. Full detail in `references/release-recovery.md`.
 4. **Bundle manifest trap.** A new bundle script not added to the `MANIFEST` array in `scripts/build-stack-bundle.sh` is never shipped to consumers. `lint.yml`'s `bundle-manifest` job catches this only for scripts reached via an `ops` case mapping, an `ops` `ALLOWED_COMMANDS` default, or a `$SCRIPT_DIR/*.sh` reference inside another bundle script — a script added some other way can still slip through silently. Details: `references/bundle-contents.md`.
 5. **Stale local major tag.** Releases force-move `vN` (e.g. `v3`) to the new release commit; a stale local copy makes every subsequent `git fetch` complain. Refresh with the explicit refspec shown above, not a plain `git fetch`.
 6. **A release sitting on GitHub changes nothing on its own.** Consumers only pick it up when _something_ pushes to their repo and tier detection resolves their symbolic `STACK_VERSION` pin against the newly-tagged release.

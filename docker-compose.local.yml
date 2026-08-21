@@ -14,7 +14,22 @@ services:
       - /bin/bash
       - -c
       - unset WHITELIST; exec /image/scripts/start
+    # A rolled winner is written into the consumer's committed overlay, so the
+    # mod needs it mounted. Local only: production must never write to the
+    # overlay, and its absence there is what makes `winner` refuse.
+    volumes:
+      - ./overlay/config/custom-dimensions/dimensions:/overlay-dimensions
+    ports:
+      # The seed viewer the mod hosts. Bound on every interface so it can be
+      # opened from a phone on the same network. It has no authentication and
+      # it can teleport the player and write into the committed overlay, so
+      # this is a trusted-LAN tool — nothing publishes it in the cloud
+      # profile, and it is not reachable from the internet.
+      - "${SEED_VIEWER_PORT:-8765}:8765"
     environment:
+      # Turns the roller's listener on for local dev; the shared compose file
+      # defaults it to 0 so it never binds in the cloud profile.
+      SEED_VIEWER_PORT: ${SEED_VIEWER_PORT:-8765}
       ONLINE_MODE: "FALSE"
       ENABLE_WHITELIST: "FALSE"
       ENFORCE_WHITELIST: "FALSE"
@@ -23,3 +38,40 @@ services:
   nav-proxy:
     ports:
       - "${WEB_PORT:-8080}:80"
+    # Stage the local-only seeds surface alongside the shared template. The
+    # cloud profile's command copies nav-proxy.conf.template and nothing
+    # else, so seeds.${DOMAIN} does not exist there at all — the roller has
+    # no authentication and can write into the committed overlay, and that
+    # is what keeps it off the internet rather than the absence of a DNS
+    # record.
+    # The seeds copy tolerates failure: a stack-config volume seeded by an
+    # older image has no seeds template, and losing the roller surface is a
+    # far better failure than crash-looping nav-proxy and taking every web
+    # surface down with it.
+    #
+    # List form with a folded block scalar, not a plain `command: /bin/sh -c
+    # "..."` one-liner. A plain YAML scalar cannot contain ": ", so a colon
+    # anywhere in the shell string (an echo message, a URL) makes the whole
+    # file unparseable.
+    command:
+      - /bin/sh
+      - -c
+      - >-
+        mkdir -p /etc/nginx/templates &&
+        cp /config-vol/nginx/nav-proxy.conf.template
+        /etc/nginx/templates/default.conf.template &&
+        { cp /config-vol/nginx/nav-proxy-seeds.conf.template
+        /etc/nginx/templates/seeds.conf.template ||
+        echo 'nav-proxy: no seeds template in the config volume, skipping the seed roller surface'; } &&
+        exec /docker-entrypoint.sh nginx -g 'daemon off;'
+    environment:
+      # nav-proxy's server_name blocks match against DOMAIN, but dev-up.sh's
+      # /etc/hosts entries and the browser both use *.LOCAL_DOMAIN — override
+      # so server_name matches the Host the browser actually sends.
+      DOMAIN: ${LOCAL_DOMAIN:-${DOMAIN:-localhost}}
+      # Local is plain http on the published WEB_PORT, so every absolute nav
+      # link needs both — with the cloud defaults the whole nav is dead
+      # locally (https, no port).
+      NAV_SCHEME: http
+      NAV_PORT: ":${WEB_PORT:-8080}"
+      NAV_EXTRA_LINKS: '<a href="http://seeds.${LOCAL_DOMAIN:-${DOMAIN:-localhost}}:${WEB_PORT:-8080}">Seeds</a>'

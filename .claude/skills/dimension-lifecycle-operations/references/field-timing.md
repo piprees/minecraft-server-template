@@ -53,7 +53,7 @@ Do not classify `borders.generation` alongside `borders.player` (boot-re-read by
 | Field | Note |
 | --- | --- |
 | `description` | Documentation-only, surfaced by tooling, never parsed by the mod. |
-| `dimensionId` | Legacy. The id derives from `{namespace}:{filename}`; setting this does nothing (base worlds map to their vanilla ids regardless). |
+| `dimensionId` | Legacy. The id derives from `{namespace}:{filename}`; setting this does nothing (the four reserved filenames resolve to their existing ids regardless). |
 
 ## Quick self-check
 

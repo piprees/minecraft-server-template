@@ -55,7 +55,7 @@ Full detail (all 17 numbered sections) is in `references/deploy-sequence.md`. Th
 
 - **Step 8** — seeds default + overlay configs into `data/config/`, **before mc starts**. Mods that auto-generate config on first boot would otherwise create defaults that block the bundle's version.
 - **Step 8b** — copies `local-mods/*.jar` (in-house mods) into `data/mods/` while mc is **stopped**. Doing this after the health wait meant a jar that broke the boot could never be replaced by the deploy that shipped it.
-- **Step 8c** — re-patches `c2me.toml`'s `useDensityFunctionCompiler = false` and silences DistantHorizons GC warnings, while mc is stopped. c2me strips this key from its own config on every boot, so it must be re-applied every deploy or every custom dimension generates as a clone of the main world.
+- **Step 8c** — re-patches `c2me.toml`'s `useDensityFunctionCompiler = false` and silences DistantHorizons GC warnings, while mc is stopped. c2me strips this key from its own config on every boot; the mod's preLaunch entrypoint re-supplies it every boot too ([TROUBLESHOOTING.md#d6](../../../TROUBLESHOOTING.md#d6)) — 8c remains the layer that covers a fresh environment's very first boot.
 - **Step 10b** — `sync-mods.sh` fetches any managed jar/datapack missing from `data/`. `MODS_FILE` is empty by default so itzg makes zero network requests at boot; this is the only place mod downloads happen, and only when the mod list actually changed.
 
 **Changes to `deploy.sh` itself take effect on the _next_ deploy**, not the one that merges them — an in-flight deploy already executed the pre-pull copy of the script.
@@ -117,7 +117,7 @@ If the whitelist was cleared and the deploy died before step 15 restored it, the
 
 5. **Concurrent deploys race.** Symptom: `client_loop: send disconnect: Broken pipe`. A second deploy started (or a manual SSH session collided) while one was already restarting Docker. Wait for the in-progress run, verify health, then re-run.
 6. **Never run `harden.sh` during or near a deploy** — it restarts Docker and will pull the rug out from under an in-flight deploy.
-7. **Never `docker restart mc` on production.** It skips the countdown, kick, save-flush and whitelist dance that `deploy.sh` does deliberately. Use `deploy.sh` or Discord `/mc restart`. `./ops start|stop|restart mc` is meant to be prohibited too, but `service.sh` still technically permits raw `mc` operations — treat it as off-limits regardless, this is an acknowledged enforcement gap.
+7. **Never `docker restart mc` on production.** It skips the countdown, kick, save-flush and whitelist dance that `deploy.sh` does deliberately. Use `deploy.sh` or Discord `/mc restart`. `./ops start|stop|restart mc` is blocked for you: `service.sh`, `validate_targets` dies with "Refusing raw MC lifecycle operation" for any action but `status`. The same guard is skipped when `SERVICE_LOCAL=1` (`service.sh`, `validate_targets`), so `./dev start|stop|restart mc` works locally by design — that is the local mod loop, not a gap in the production rail.
 8. **A run's own script counters aren't proof of success.** `rcon_best_effort`/`rcon()` in `deploy.sh` log a warning on failure but don't abort the deploy — a step can "complete" having silently failed every RCON call inside it. Verify outcomes (world border, dimension count, whitelist contents), not just that the step printed.
 
 ## Validation

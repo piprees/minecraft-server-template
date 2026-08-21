@@ -5,6 +5,8 @@
   "compatibilityLevel": "JAVA_21",
   "mixins": [
     "ChunkGeneratorAccessor",
+    "ChunkGeneratorForcedStartMixin",
+    "ChunkNoiseSamplerMixin",
     "CreateWorldsMixin",
     "EntityTickPortalMixin",
     "GameEventSuppressionMixin",
@@ -13,6 +15,7 @@
     "MobSpawnMixin",
     "MultiNoiseBiomeSourceAccessor",
     "NoiseChunkGeneratorAccessor",
+    "NoiseChunkGeneratorForcedGroundMixin",
     "PeacefulDimensionSpawnMixin",
     "PlayerRespawnRedirectMixin",
     "PortalIgnitionMixin",
@@ -20,10 +23,15 @@
     "ServerWorldMixin",
     "ServerWorldSeedMixin",
     "SimpleRegistryAccessor",
+    "StructureAccessorAccessor",
     "StructurePlacementAccessor",
     "StructurePlacementCalculatorInvoker",
+    "StructurePoolIdCaseMixin",
+    "StructureTerrainAdaptationMixin",
+    "StructureWeightSamplerMixin",
     "WorldLoaderMixin",
     "NetherPortalProtectionMixin",
+    "NoiseStructureSelectionMixin",
     "EndGatewaySuppressionMixin"
   ],
   "injectors": {

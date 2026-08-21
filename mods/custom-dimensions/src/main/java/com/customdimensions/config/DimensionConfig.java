@@ -12,44 +12,43 @@ import java.util.Set;
 
 /**
  * One dimension, fully described by a single JSON file at
- * config/custom-dimensions/dimensions/{slug}.json — the v4 unified schema
- * replacing DimensionDefinition + PortalDefinition + WorldSeedDefinition.
+ * config/custom-dimensions/dimensions/{slug}.json.
  *
  * The slug (name) comes from the FILENAME, never from the JSON; the loader
  * stamps it (and the resolved namespace) after deserialisation. Every field
- * is optional: getters return sensible defaults so a two-line base-world
- * file ({"seed": ..., "spawn": [...]}) is a complete config.
+ * is optional: getters return sensible defaults so a two-line reserved-
+ * dimension file ({"seed": ..., "spawn": [...]}) is a complete config.
  *
  * Legacy multiverse_config.json fields ("biome" comma string, top-level
- * "hostileSpawning", explicit "dimensionId") are declared too so the legacy
- * converter and old-format entries deserialise into the same class.
+ * "hostileSpawning", explicit "dimensionId") deserialise into the same class.
  */
 public class DimensionConfig {
 
-    /** Filenames that override existing worlds instead of creating new ones. */
-    public static final Set<String> BASE_WORLDS =
+    /** Filenames that resolve to an existing dimension instead of creating a new one. */
+    public static final Set<String> RESERVED_NAMES =
             Set.of("overworld", "the_nether", "the_end", "paradise_lost");
 
-    private static final Map<String, String> BASE_WORLD_ID_BY_NAME = Map.of(
+    private static final Map<String, String> RESERVED_DIMENSION_ID_BY_NAME = Map.of(
             "overworld", "minecraft:overworld",
             "the_nether", "minecraft:the_nether",
             "the_end", "minecraft:the_end",
             "paradise_lost", "paradise_lost:paradise_lost");
 
-    /** Full dimension ids of the base worlds, for callers that work in ids. */
-    public static final Set<String> BASE_WORLD_IDS =
-            Set.copyOf(BASE_WORLD_ID_BY_NAME.values());
+    /** Full dimension ids of the reserved dimensions, for callers that work in ids. */
+    public static final Set<String> RESERVED_DIMENSION_IDS =
+            Set.copyOf(RESERVED_DIMENSION_ID_BY_NAME.values());
 
     /**
-     * The world type each base world's structure groups resolve against.
+     * The world type each reserved dimension's structure groups resolve
+     * against.
      *
-     * <p>A base world's generator is vanilla's, so its file carries no
-     * {@code type}; this supplies the one its structure groups are resolved
-     * against ({@link #getType()}). An explicit {@code type} in the file wins,
-     * which is how a consumer moves a base world onto another family's group
-     * set.
+     * <p>A reserved dimension's generator is vanilla's, so its file carries
+     * no {@code type}; this supplies the one its structure groups are
+     * resolved against ({@link #getType()}). An explicit {@code type} in the
+     * file wins, which is how a consumer moves a reserved dimension onto
+     * another family's group set.
      */
-    public static final Map<String, String> BASE_WORLD_TYPES = Map.of(
+    public static final Map<String, String> RESERVED_TYPE_BY_NAME = Map.of(
             "overworld", "overworld",
             "the_nether", "nether",
             "the_end", "end",
@@ -67,7 +66,7 @@ public class DimensionConfig {
     private String description;
 
     // === World generation ===
-    /** A number, or the string "env" (base worlds: read SEED from the environment). */
+    /** A number, or the string "env" (reserved dimensions: read SEED from the environment). */
     @SerializedName("seed")
     private JsonElement seed;
     @SerializedName("spawn")
@@ -99,9 +98,6 @@ public class DimensionConfig {
     /** Fixed circular biome patches over the generated layout (precision placement). */
     @SerializedName("biomePatches")
     private List<BiomePatch> biomePatches;
-    /** Base-world travel-scale metadata (worlds[].scale) — tooling only. */
-    @SerializedName("scale")
-    private Double scale;
 
     @SerializedName("borders")
     private Borders borders;
@@ -130,7 +126,17 @@ public class DimensionConfig {
     @SerializedName("seedRoll")
     private SeedRoll seedRoll;
 
-    /** Legacy explicit id; when absent the id is {namespace}:{slug} (vanilla ids for base worlds). */
+    /** Test seam: build a config in memory without going through Gson. */
+    public void setSeedRoll(SeedRoll seedRoll) {
+        this.seedRoll = seedRoll;
+    }
+
+    /** Test seam: the raw biome entries {@link #getBiomes()} reads. */
+    public void setBiomes(List<JsonElement> biomes) {
+        this.biomes = biomes;
+    }
+
+    /** Legacy explicit id; when absent the id is {namespace}:{slug} (vanilla ids for reserved dimensions). */
     @SerializedName("dimensionId")
     private String dimensionId;
 
@@ -158,14 +164,14 @@ public class DimensionConfig {
     }
 
     /**
-     * The world type structure groups resolve against. Base worlds fall back
-     * to their family ({@link #BASE_WORLD_TYPES}) — they generate with
-     * vanilla's generator, so their files name no type, but they are managed
-     * like any other dimension and need one.
+     * The world type structure groups resolve against. Reserved dimensions
+     * fall back to their family ({@link #RESERVED_TYPE_BY_NAME}) — they
+     * generate with vanilla's generator, so their files name no type, but
+     * they are managed like any other dimension and need one.
      */
     public String getType() {
         if (this.type == null && this.name != null) {
-            return BASE_WORLD_TYPES.get(this.name);
+            return RESERVED_TYPE_BY_NAME.get(this.name);
         }
         return this.type;
     }
@@ -179,14 +185,14 @@ public class DimensionConfig {
     }
 
     /** True for filenames that override existing worlds (overworld, the_nether, the_end, paradise_lost). */
-    public boolean isBaseWorld() {
-        return this.name != null && BASE_WORLDS.contains(this.name);
+    public boolean isReserved() {
+        return this.name != null && RESERVED_NAMES.contains(this.name);
     }
 
-    /** Full dimension id for an explicit namespace: {namespace}:{slug} (base worlds keep vanilla ids). */
+    /** Full dimension id for an explicit namespace: {namespace}:{slug} (reserved dimensions keep vanilla ids). */
     public String getDimensionId(String namespace) {
-        if (this.name != null && BASE_WORLD_ID_BY_NAME.containsKey(this.name)) {
-            return BASE_WORLD_ID_BY_NAME.get(this.name);
+        if (this.name != null && RESERVED_DIMENSION_ID_BY_NAME.containsKey(this.name)) {
+            return RESERVED_DIMENSION_ID_BY_NAME.get(this.name);
         }
         if (this.dimensionId != null && !this.dimensionId.isBlank()) {
             return this.dimensionId.toLowerCase();
@@ -252,7 +258,7 @@ public class DimensionConfig {
         return this.seed;
     }
 
-    /** Optional [x, y, z] spawn point (seed-roller-written or manual). */
+    /** Optional [x, y, z] spawn point. */
     public int[] getSpawn() {
         return this.spawn != null && this.spawn.length == 3 ? this.spawn : null;
     }
@@ -435,6 +441,7 @@ public class DimensionConfig {
         appendFingerprintField(sb, "defaultBlock", so.defaultBlock);
         appendFingerprintField(sb, "defaultFluid", so.defaultFluid);
         appendFingerprintField(sb, "disableMobGeneration", so.disableMobGeneration);
+        appendFingerprintField(sb, "endIsland", so.endIsland);
         return sb.length() > 0 ? sb.toString() : null;
     }
 
@@ -466,11 +473,8 @@ public class DimensionConfig {
         return sb.toString();
     }
 
-    /** Base-world travel scale (tooling metadata); custom dims use portal.scale. */
+    /** Travel scale for every dimension: portal.scale, defaulting to 1.0. */
     public double getScale() {
-        if (this.scale != null) {
-            return this.scale;
-        }
         return this.portal != null && this.portal.scale != null ? this.portal.scale : 1.0;
     }
 
@@ -478,6 +482,11 @@ public class DimensionConfig {
 
     public Borders getBorders() {
         return this.borders;
+    }
+
+    /** Test seam: a want's band is a fraction of the player border. */
+    public void setBorders(Borders borders) {
+        this.borders = borders;
     }
 
     public int getPlayerBorderRadius() {
@@ -511,6 +520,11 @@ public class DimensionConfig {
 
     public void setStructureDensity(String structureDensity) {
         this.structureDensity = structureDensity;
+    }
+
+    /** Test seam: the scoring layer's applicability rules read this. */
+    public void setStructures(Structures structures) {
+        this.structures = structures;
     }
 
     public Structures getStructures() {
@@ -581,14 +595,11 @@ public class DimensionConfig {
         if (this.portal == null) {
             return null;
         }
-        // Primary frame form: ALWAYS a plain, parseable block id — the plain
-        // config id, else the placement block, else obsidian (the documented
-        // build fallback). Never a "#tag" form: definitions persist into
-        // portal_links.json zone records, and older jars Identifier.of() the
-        // frameBlock in an UNCAUGHT world-tick path — a '#' there crash-loops
-        // any server that downgrades (hit live 2026-07-23 testing v3.6.0
-        // against new-format records). With a parseable-but-wrong id, old
-        // jars just drop the zone as invalid, which is the graceful floor.
+        // Primary frame form is ALWAYS a plain, parseable block id — the plain
+        // config id, else the placement block, else obsidian. Never a "#tag"
+        // form: zone records persist this, and an older jar calls
+        // Identifier.of() on it in an uncaught world-tick path — a '#' there
+        // crash-loops on downgrade.
         List<String> accepts = this.portal.getFrameAcceptForms();
         String plainId = this.portal.getFrameBlockId();
         String place = this.portal.resolvePlacementBlockId();
@@ -612,8 +623,7 @@ public class DimensionConfig {
         }
         // Plumb the explicit framePlaceBlock through: without this, a plain
         // frameBlock (e.g. "minecraft:stone") silently overrides a differing
-        // explicit framePlaceBlock in getFramePlaceBlock()'s fallback chain
-        // (found live 2026-07-24 while verifying per-part placement).
+        // explicit framePlaceBlock in getFramePlaceBlock()'s fallback chain.
         if (this.portal.framePlaceBlock != null && !this.portal.framePlaceBlock.isBlank()) {
             def.setFramePlaceBlock(this.portal.framePlaceBlock.trim());
         }
@@ -731,7 +741,7 @@ public class DimensionConfig {
      * One fixed circular biome patch: the biome claims every column within
      * `radius` blocks of (x, z), the delegate source answers everywhere
      * else. Creation-time worldgen (the wrapped source is baked into
-     * level.dat). A patch at spawn deletes the seed-roll spawn lottery.
+     * level.dat). A patch at spawn deletes the spawn lottery.
      */
     public static class BiomePatch {
         @SerializedName("biome")
@@ -778,6 +788,14 @@ public class DimensionConfig {
         public String defaultFluid;
         @SerializedName("disableMobGeneration")
         public Boolean disableMobGeneration;
+        /**
+         * False removes the End's origin-anchored island term, so the terrain
+         * around world origin is whatever this dimension generates everywhere
+         * else. Only end-family generators carry the term; elsewhere it is a
+         * no-op. Null leaves it as the generator ships it.
+         */
+        @SerializedName("endIsland")
+        public Boolean endIsland;
     }
 
     /** One superflat layer, bottom-up like vanilla: height = thickness in blocks. */
@@ -822,13 +840,12 @@ public class DimensionConfig {
          * Exact structure at an exact spot: synthetic single-structure sets
          * with a customdimensions:fixed placement. STRUCTURE ids (not set
          * ids); x/z are BLOCK coordinates (the structure start lands in that
-         * block's chunk). Generation-affecting — mirrored in
-         * scripts/seed/dimension_profiles.generation_payload().
+         * block's chunk). Generation-affecting.
          */
         @SerializedName("force")
         public List<ForcedStructure> force;
 
-        // --- noise placement (spike: structure noise) ---------------------
+        // --- noise placement ------------------------------------------------
         /**
          * Per-group noise profile. Two shapes:
          * <pre>
@@ -839,9 +856,6 @@ public class DimensionConfig {
          * world type's default. JsonElement because Gson cannot express
          * string-or-map — the same reason `seed`, `frameBlock` and
          * `immersive` are JsonElement.
-         *
-         * Creation-time-affecting: mirrored in
-         * scripts/seed/dimension_profiles.generation_payload().
          */
         @SerializedName("noise")
         public JsonElement noise;
@@ -865,6 +879,23 @@ public class DimensionConfig {
         @SerializedName("exclude")
         public List<String> exclude;
         /**
+         * Per-dimension Beardifier overrides: full STRUCTURE id or noise
+         * group name -> none | beard_thin | beard_box | bury | encapsulate.
+         * Resolution and semantics in TerrainAdaptationOverride.
+         */
+        /**
+         * Blocks around this dimension's spawn where the hostile groups
+         * ({@code dungeons}, {@code endgame}) may not place. A real placement
+         * exclusion, not a scoring penalty: {@link
+         * com.customdimensions.dimension.NoiseFieldIndex} never produces a
+         * candidate inside the disc, so nothing has to disapprove of one
+         * afterwards. Generation-affecting; 0 or absent means no disc.
+         */
+        @SerializedName("clearSpawnRadius")
+        public Integer clearSpawnRadius;
+        @SerializedName("terrainAdaptation")
+        public Map<String, String> terrainAdaptation;
+        /**
          * Structure SET ids forced INTO the noise pool, bypassing the biome
          * filter. The escape hatch for a filter that is too aggressive.
          */
@@ -880,6 +911,22 @@ public class DimensionConfig {
         public Integer x;
         @SerializedName("z")
         public Integer z;
+        /**
+         * The height to place at, or null to let the structure find its own
+         * ground. Set it and the placement no longer needs ground at all: the
+         * generator answers every height query with this value for the
+         * duration of the start attempt, so a structure hangs where it is put
+         * — over void, over lava, in open sky. Absent, a structure whose own
+         * generation finds nothing to stand on declines the position and
+         * nothing spawns, which is the right answer for a placement that meant
+         * to sit on terrain.
+         *
+         * <p>A structure whose start height is an absolute constant ignores
+         * ground queries entirely and lands where its own config says; this
+         * field cannot move those. See TROUBLESHOOTING.md#t33.
+         */
+        @SerializedName("y")
+        public Integer y;
         /**
          * Whether forcing this structure also removes it from the noise pool.
          * Defaults to TRUE (absent = true): "put exactly this here" normally
@@ -1439,7 +1486,7 @@ public class DimensionConfig {
      * mod detects on chunk load and registers as an exit zone. The shrine
      * structure SET ships with a near-zero frequency, raised to full only
      * for dimensions that enable this block (DimensionStructures), so
-     * shrines never leak into base worlds or unopted dims. The spawn
+     * shrines never leak into reserved dimensions or unopted dims. The spawn
      * exitPortal remains the guarantee; shrines are scenery.
      */
     public static class ExitShrines {
@@ -1498,7 +1545,7 @@ public class DimensionConfig {
         @SerializedName("logicalHeight")
         public Integer logicalHeight;
         // Vanilla dimension-type fields (Tier 1 of the Custom-world-settings
-        // support matrix — see mods/.ideas/vanilla-custom-world-settings.md).
+        // support matrix).
         @SerializedName("coordinateScale")
         public Double coordinateScale;
         @SerializedName("effects")
@@ -1515,8 +1562,6 @@ public class DimensionConfig {
     /**
      * Seed-roll scoring config. The mod ignores this at runtime — it exists
      * so per-dimension files are self-contained for the Python roller.
-     * wants/shuns stay raw JSON: Phase 1 preserves the legacy band-name
-     * shape verbatim (ranges land in Phase 6 under "structures").
      */
     public static class SeedRoll {
         /** True = the roller ignores this dimension entirely (no measurement, no scoring). */
@@ -1540,8 +1585,15 @@ public class DimensionConfig {
         public String family;
         @SerializedName("allowEndgameNearSpawn")
         public Boolean allowEndgameNearSpawn;
-        @SerializedName("description")
-        public String description;
+        /**
+         * Opt out of the two spawn-safety criteria: this dimension is
+         * allowed to be dangerous where a player arrives.
+         *
+         * <p>Absent or false means both are asked, which is the default. See
+         * {@code Criteria.spawnSafetyAsked}.
+         */
+        @SerializedName("allowHazardousSpawn")
+        public Boolean allowHazardousSpawn;
         @SerializedName("wants")
         public JsonObject wants;
         @SerializedName("shuns")

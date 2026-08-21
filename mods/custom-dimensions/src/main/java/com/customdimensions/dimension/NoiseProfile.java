@@ -12,18 +12,15 @@ import java.util.concurrent.ConcurrentHashMap;
  * key space is groups x dimensions, so a handful of entries).
  *
  * <pre>
- * natural   freq 0.025  thresh 0.68  excl 1.0x   even, slightly sparser than vanilla
- * dense     freq 0.040  thresh 0.45  excl 0.6x   packed
- * sparse    freq 0.015  thresh 0.85  excl 1.5x   an occasional structure is an event
- * cluster   dual layer               excl 0.4x   empty wastes, then a dense pocket
+ * natural   freq 0.025  thresh 0.68  excl 2.0x   even, slightly sparser than vanilla
+ * dense     freq 0.040  thresh 0.45  excl 1.6x   packed
+ * sparse    freq 0.015  thresh 0.85  excl 2.6x   an occasional structure is an event
+ * cluster   dual layer               excl 0.8x   empty wastes, then a dense pocket
  * </pre>
  *
  * `none` is not a profile — it is the absence of one, represented by a null
  * profile for that group. Making it a record would mean every caller had to
  * remember to test for it before building a placement.
- *
- * MIRRORED in scripts/seed/structure_placement.py (PROFILES). The constants
- * here are the contract; change both together.
  */
 public sealed interface NoiseProfile permits NoiseProfile.Simple, NoiseProfile.Cluster {
 
@@ -36,8 +33,9 @@ public sealed interface NoiseProfile permits NoiseProfile.Simple, NoiseProfile.C
      * and a 1024-block dimension (64 chunks radius, 128 across) spans about
      * two periods: the noise over the whole world is one blob, and whether a
      * group gets anything at all is a coin flip on where its peak lands.
-     * Measured on the first live boot — `the_overgrowth` came out with ZERO
-     * settlements. 512 chunks = 8192 blocks, the largest shipped border.
+     * 512 chunks = 8192 blocks, the largest shipped border — the reference
+     * radius must cover it, or the biggest dimension hits the same one-blob
+     * failure this scaling exists to prevent.
      */
     int REFERENCE_RADIUS_CHUNKS = 512;
 
@@ -144,10 +142,10 @@ public sealed interface NoiseProfile permits NoiseProfile.Simple, NoiseProfile.C
         }
     }
 
-    NoiseProfile NATURAL = new Simple("natural", 0.025, 0.68, 1.0);
-    NoiseProfile DENSE = new Simple("dense", 0.040, 0.45, 0.6);
-    NoiseProfile SPARSE = new Simple("sparse", 0.015, 0.85, 1.5);
-    NoiseProfile CLUSTER = new Cluster(0.008, 0.05, 0.90, 0.40, 0.4);
+    NoiseProfile SPARSE = new Simple("sparse", 0.015, 0.85, 2.6);
+    NoiseProfile NATURAL = new Simple("natural", 0.025, 0.68, 2.0);
+    NoiseProfile DENSE = new Simple("dense", 0.040, 0.45, 1.6);
+    NoiseProfile CLUSTER = new Cluster(0.008, 0.05, 0.90, 0.8, 0.8);
 
     /**
      * Config string to profile. Returns null for `none`, for null/empty, and

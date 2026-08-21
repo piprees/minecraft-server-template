@@ -21,8 +21,8 @@ Context:  "fully independent
             - config_clamp     -> vanilla clamp with min/max folded to numbers
             - tectonic:invert  -> 1 / <constant-folded argument>
 
-Self-containment (optional-mods hardening, 2026-07-24): the presets must
-survive Tectonic AND Terralith being removed via overlay/mods-remove.txt.
+Self-containment: the presets must survive Tectonic AND Terralith being
+removed via overlay/mods-remove.txt.
 Registry entries baked into a mod jar are always loaded, so a dangling
 reference is a boot break, not a cosmetic gap. Three mechanisms:
   1. DENSITY FUNCTIONS are cloned into the adventure namespace (the

@@ -194,6 +194,7 @@ jobs:
             fi
           done
 
+
           if [ $ERRORS -gt 0 ]; then
             echo ""
             echo "Add missing scripts to the MANIFEST array in scripts/build-stack-bundle.sh"

@@ -6,11 +6,11 @@ tags: [dev, ops, commands.json, dispatch, production]
 
 # Command surface
 
-This table is **derived from `examples/consumer/commands.json`**, which is the source of truth for the `production` flag per command. It's cross-checked here against the actual dispatch logic in `examples/consumer/ops` (the `script_file` remap and the `ALLOWED_COMMANDS` allowlist) so you can see which bundle script a command really runs. When `commands.json` and the `ops`/`dev` scripts disagree (see the note at the bottom), the scripts win — `commands.json` is a description index, not the implementation.
+This table is **derived from `examples/consumer/commands.json`**, which is the source of truth for the `production` flag per command. It's cross-checked here against the actual dispatch logic in `examples/consumer/ops` (the `script_file` remap and the `ALLOWED_COMMANDS` allowlist) so you can see which bundle script a command really runs. `commands.json` is a description index, not the implementation: if it ever disagrees with the `case` labels in `dev` or the allowlist in `ops`, the scripts win and the JSON is the thing to fix.
 
 ## `./dev` — always local
 
-Every `dev` command operates only on the local Docker stack. None of these touch production.
+Every `dev` command operates only on the local Docker stack; none touches production. This table is the `dev` block of `commands.json`, which now matches the `case` labels in `examples/consumer/dev` exactly.
 
 | Command        | Description (commands.json)                                   |
 | -------------- | ------------------------------------------------------------- |
@@ -18,24 +18,30 @@ Every `dev` command operates only on the local Docker stack. None of these touch
 | `down`         | Stop the local dev stack                                      |
 | `logs`         | Tail the Minecraft server logs                                |
 | `rcon`         | Run an RCON command locally                                   |
-| `pack`         | Build the client modpack into `./modpack-dist/`               |
-| `pin`          | Re-pin `overlay/mods-extra.txt` to latest mod builds          |
+| `seeds`        | Open the seed viewer — roll, look, try a candidate out, pick one |
+| `pack`         | Build the client modpack into ./modpack-dist/                 |
+| `pin`          | Re-pin overlay/mods-extra.txt to latest mod builds            |
 | `pull`         | Fetch the stack bundle only                                   |
 | `update`       | Pull the latest stack bundle + Docker images                  |
+| `refresh-config` | Force-refresh platform config defaults (backs up data/config; overlay wins) |
+| `clean`        | Delete regenerable state by target (stack, pack, cache, mods, config by default; world/seeds/backups opt-in). `--list`, `--dry-run` |
 | `rollback`     | Revert to a previous stack bundle version                     |
-| `doctor`       | Local health check (containers, RCON, seed exit)              |
-| `seed-roll`    | Parallel-roll seeds for every dimension, auto-pick winners    |
-| `seed-rescore` | Recompute candidate scores vs current configs (no re-rolling) |
-| `seed-status`  | Candidate-bank status: counts, winners, score freshness       |
+| `verify`       | Show where dimension/portal verification lives now (mod tests + /customdim lint) |
+| `link`         | Point .stack/current at a platform checkout (default ../minecraft-server-template) |
+| `unlink`       | Restore the newest pulled release bundle                      |
+| `reset-world`  | Delete the LOCAL world + player data (same set ./ops reset-seed deletes on production) |
 | `cache`        | Snapshot Docker images, mod JARs, offline client bundles      |
 | `start`        | Start a stopped local service                                 |
 | `stop`         | Stop a running local service                                  |
 | `restart`      | Force-recreate a local service                                |
 | `status`       | Show local container status                                   |
+| `doctor`       | Local health check (containers, RCON, seed exit)              |
 
-Two `dev` commands exist in the actual script but not in `commands.json`: `refresh-config` (force-refresh platform config defaults, backing up `data/config`; overlay still wins) and `seed-viewer` (launches the interactive seed viewer). Both are documented in `./dev help` output, just missing from the JSON index.
+`start`/`stop`/`restart` accept `mc` locally — `service.sh` skips its production-only refusal when `SERVICE_LOCAL=1` (`service.sh`, `validate_targets`), which `dev` always exports (`dev`, the `start|stop|restart|status)` case).
 
-`./ops sync` is the full alignment flow — see the main SKILL.md's update-commands table. It isn't in `commands.json` either.
+`link`/`unlink` are the local platform-development path: full workflow in the template repo's `.claude/skills/local-stack-testing/SKILL.md` § Linked local development.
+
+`./ops sync` is the full alignment flow — see the main SKILL.md's update-commands table. It is an `ops` command, not a `dev` one.
 
 ## `./ops` — production, with two 1Password exceptions
 
@@ -75,16 +81,9 @@ Two `dev` commands exist in the actual script but not in `commands.json`: `refre
 | `discord-notify` | Send a message via the webhook | `discord-notify.sh` |
 | `discord-cleanup` | Prune old bot messages | `discord-cleanup.sh` |
 | `discord-pin-sync` | Re-sync pinned info messages | `discord-pin-sync.sh` |
+| `shutdown` | Power off the cloud VPS (saves costs) | `server-power.sh shutdown` |
+| `startup` | Power on a stopped cloud VPS | `server-power.sh startup` |
+| `reboot` | Reboot the cloud VPS | `server-power.sh reboot` |
 | `teardown` | Destroy cloud resources (DESTRUCTIVE) | `teardown.sh` |
 
 `ops sync` is orchestration, not a single script — it runs, in order: `dev-up.sh down` (ignore failure) → `./dev update` → `github-env-sync.sh --allow-missing` → `./ops update --quick` → `dev-up.sh up`.
-
-## Gap: `commands.json` is missing three real `ops` commands
-
-`shutdown`, `startup`, and `reboot` (power the cloud VPS off / on / restart it) are in the `ops` script's `ALLOWED_COMMANDS` allowlist, dispatch to `server-power.sh`, and are documented in `./ops help`'s "Server control" section — but they have **no entry in `commands.json`**. If you're building a command list from `commands.json` alone (as this reference does, per the house rule that it must be derived from that file), you will miss these three. Verify against `./ops help` or the `ops` script itself if completeness matters for your task.
-
-| Command (not in commands.json) | What it does                          | Dispatches to              |
-| ------------------------------ | ------------------------------------- | -------------------------- |
-| `shutdown`                     | Power off the cloud VPS (saves costs) | `server-power.sh shutdown` |
-| `startup`                      | Power on a stopped cloud VPS          | `server-power.sh startup`  |
-| `reboot`                       | Reboot the cloud VPS                  | `server-power.sh reboot`   |

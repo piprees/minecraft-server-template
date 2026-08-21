@@ -1,14 +1,164 @@
 {
   "type": "multi_biome",
-  "description": "Deep old-growth forest with roots in everything. The witches' experiments took hold here — overgrown manors, spider dens, creeping crypts under a closed canopy. The forest grew around their work and made it its own.",
-  "seed": -1157745575203996945,
+  "description": "Deep old-growth forest with roots in everything. The witches' experiments took hold here \u2014 the forest grew around their work and made it its own. The roots go a long way down, and they did not stop at stone.",
+  "seed": 5597927839837641932,
   "biomes": [
-    "natures_spirit:redwood_forest",
-    "minecraft:dark_forest",
-    "terralith:shield",
-    "minecraft:old_growth_spruce_taiga",
-    "minecraft:forest",
-    "terralith:forested_highlands"
+    {
+      "id": "natures_spirit:redwood_forest",
+      "parameters": {
+        "weirdness": [
+          -2.0,
+          -0.19
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "minecraft:dark_forest",
+      "parameters": {
+        "weirdness": [
+          -0.19,
+          -0.1486
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "terralith:shield",
+      "parameters": {
+        "weirdness": [
+          -0.1486,
+          -0.1071
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "minecraft:old_growth_spruce_taiga",
+      "parameters": {
+        "weirdness": [
+          -0.1071,
+          -0.0657
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "minecraft:forest",
+      "parameters": {
+        "weirdness": [
+          -0.0657,
+          -0.0243
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "terralith:forested_highlands",
+      "parameters": {
+        "weirdness": [
+          -0.0243,
+          0.0171
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:old_growth_forest",
+      "parameters": {
+        "weirdness": [
+          0.0171,
+          0.0586
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:willow_forest",
+      "parameters": {
+        "weirdness": [
+          0.0586,
+          0.1
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "wilderwild:old_growth_dark_forest",
+      "parameters": {
+        "weirdness": [
+          0.1,
+          2.0
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "minecraft:lush_caves",
+      "parameters": {
+        "weirdness": [
+          -2.0,
+          -0.045
+        ],
+        "depth": [
+          0.1,
+          0.6
+        ]
+      }
+    },
+    {
+      "id": "terralith:cave/infested_caves",
+      "parameters": {
+        "weirdness": [
+          -0.045,
+          2.0
+        ],
+        "depth": [
+          0.1,
+          0.6
+        ]
+      }
+    },
+    {
+      "id": "incendium:withered_forest",
+      "parameters": {
+        "weirdness": [
+          -2.0,
+          2.0
+        ],
+        "depth": [
+          0.6,
+          2.0
+        ]
+      }
+    }
   ],
   "borders": {
     "player": 1024,
@@ -16,7 +166,14 @@
   },
   "difficulty": {
     "mobMultiplier": 1.2,
-    "playerLuck": 1.4
+    "playerLuck": 1.4,
+    "depthScaling": {
+      "enabled": true,
+      "startY": 40,
+      "endY": -60,
+      "minMultiplier": 1.2,
+      "maxMultiplier": 2.4
+    }
   },
   "portal": {
     "frameBlock": "minecraft:rooted_dirt",
@@ -34,10 +191,7 @@
   "seedRoll": {
     "mood": "adventurous",
     "spawnFilter": [
-      "natures_spirit:redwood_forest",
-      "minecraft:dark_forest",
-      "terralith:shield",
-      "minecraft:old_growth_spruce_taiga"
+      "minecraft:forest"
     ],
     "wants": {
       "forest_ruin": "spread",
@@ -52,12 +206,39 @@
     "shuns": [
       "monument",
       "coliseum"
-    ],
-    "description": "Deep old-growth forest with roots in everything. The witches' experiments took hold here — overgrown manors, spider dens, creeping crypts under a closed canopy. The forest grew around their work and made it its own."
+    ]
   },
   "spawn": [
-    0,
-    64,
-    0
-  ]
+    256,
+    77,
+    -64
+  ],
+  "structures": {
+    "radial": {
+      "dungeons": [
+        0.0,
+        0.1,
+        0.3,
+        0.5,
+        0.8,
+        1.0,
+        1.3,
+        1.6,
+        1.8,
+        2.0
+      ]
+    },
+    "force": [
+      {
+        "structure": "nova_structures:creeping_crypt",
+        "x": 620,
+        "z": -580
+      },
+      {
+        "structure": "ati_structures:wither_cavern",
+        "x": -540,
+        "z": 660
+      }
+    ]
+  }
 }

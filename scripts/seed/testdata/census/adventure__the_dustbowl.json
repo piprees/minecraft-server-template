@@ -1,8 +1,0 @@
-{
- "dimension": "adventure:the_dustbowl",
- "seed": 7848959581708343395,
- "groups": {},
- "forced": {
-  "explorify:farmstead": [[-6,-20]]
- }
-}

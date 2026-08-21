@@ -1,6 +1,6 @@
 ---
 name: fabric-mod-development
-description: Builds, verifies, and ships an in-house Fabric mod under mods/<name> (currently mods/custom-dimensions) — the mise-pinned Gradle build, the artefact-verification gate that catches an empty or unremapped jar, the fast local iteration loop against a running mc container, the Carpet fake-player harness for player-dependent paths, soak testing timers, and the release path into the stack bundle. Use when building or changing a mod under mods/, verifying a build before restarting a container with it, iterating locally without corrupting the test with a stale bundle jar, writing a headless RCON test for a portal/zone/timer path, or diagnosing a crash-looping server after a mod change. Also use when troubleshooting "could not find any targets ... No refMap loaded", a ClassCastException from an unlisted accessor mixin, or a ConcurrentModificationException from a world-tick mixin. Not for authoring dimension JSON (see custom-dimension-authoring) or cutting a release (see AGENTS.md § Cutting a release).
+description: Builds, verifies, and ships an in-house Fabric mod under mods/<name> (currently mods/custom-dimensions) — the mise-pinned Gradle build, the pre-build compile of generated resources (the seed viewer's Tailwind stylesheet, via build-viewer-css.sh), the artefact-verification gate that catches an empty or unremapped jar, the fast local iteration loop against a running mc container, the Carpet fake-player harness for player-dependent paths, soak testing timers, and the release path into the stack bundle. Use when building or changing a mod under mods/, editing the seed viewer's CSS, verifying a build before restarting a container with it, iterating locally without corrupting the test with a stale bundle jar, writing a headless RCON test for a portal/zone/timer path, or diagnosing a crash-looping server after a mod change. Also use when troubleshooting "could not find any targets ... No refMap loaded", a ClassCastException from an unlisted accessor mixin, a ConcurrentModificationException from a world-tick mixin, or a green build that shipped the previous stylesheet. Not for authoring dimension JSON (see custom-dimension-authoring) or cutting a release (see AGENTS.md § Cutting a release).
 ---
 
 # Fabric Mod Development
@@ -13,6 +13,7 @@ Building, verifying, and shipping the in-house Fabric mods in `mods/` (currently
 
 | File | Why you need it |
 | --- | --- |
+| `.claude/skills/local-stack-testing/SKILL.md` § Linked local development | The canonical `./dev link` workflow every local loop in this skill depends on |
 | `mods/AGENTS.md` § Verification loop | The full 5-stage loop this skill summarises, with every gotcha in place |
 | `mods/AGENTS.md` § Architecture (custom-dimensions) | The component tree — reference it, never reproduce it here |
 | `mods/AGENTS.md` § Worldgen self-containment rules, § Structure placement lessons | Noise-id vs DF-id seeding rules, CubicSpline extrapolation, `/locate` ordering — only relevant if you touch worldgen |
@@ -30,7 +31,9 @@ cd mods/<name>
 mise exec -- ./gradlew build
 ```
 
-**Never bare `./gradlew build`.** A global Java (e.g. 25) takes precedence over the `mods/mise.toml` pin (`temurin-21`), and Gradle fails with a misleading task-creation error — not a clear wrong-Java message (root `AGENTS.md:162`). First time in a project without a wrapper: `mise install && gradle wrapper --gradle-version 8.13`.
+**Never bare `./gradlew build`.** `mods/mise.toml` pins `java = "temurin-21"`, and `mise exec --` is what applies that pin to the build ([P4](../../../TROUBLESHOOTING.md#p4)). First time in a project without a wrapper: `mise install && gradle wrapper --gradle-version 8.13`.
+
+**Generated resources are not Gradle's job — compile them first.** `custom-dimensions` ships one: the seed viewer's stylesheet. `src/main/resources/seed-viewer/web/app.css` is Tailwind v4 source and the jar carries `app.built.css`, so a CSS edit needs `./build-viewer-css.sh` (mod root) before the build, with both files committed. Gradle deliberately does not run it — that is what keeps `mod-build.yml` and `release.yml` offline — so an unbuilt edit produces a green build shipping the old stylesheet. Same failure shape as the dev-jar trap below: `BUILD SUCCESSFUL` over a wrong artefact.
 
 ## 2. Verify the artefact, not the build — mandatory gate
 
@@ -47,61 +50,57 @@ unzip -p build/libs/<mod>-<version>.jar path/to/SomeMixin.class | strings | grep
 
 CI runs the identical check twice, so a local pass should never surprise it: `mod-build.yml` on every push/PR touching `mods/**` (floor: 10 classes, refmap must be present in the jar named by `mods/local-mods.manifest`'s third field), and `release.yml` again per mod listed in that manifest before it stages `dist/local-mods/<jar_name>` into the bundle. See `references/jar-verification.md` for the full manifest format and CI internals.
 
+`mod-build.yml` also runs `mods/*/build-viewer-css.sh --check` before the Gradle build, which is what catches a committed stylesheet that no longer matches its source.
+
 ## 3. Fast local loop
 
-Install straight into the local consumer's `data/mods/` and restart only the `mc` container — no release, no bundle, no full stack cycle. A release → deploy cycle costs 10–15 minutes and restarts production; this costs about a minute.
+Link a consumer repo to this checkout once, then build and `./dev up`. A release → deploy cycle costs ~25–35 minutes and restarts production; this costs about a minute.
 
-> **Never use `./dev up` to test a local mod build.** `dev-up.sh` copies `stack/local-mods/*.jar` from the bundle over `data/mods/` on every run — it will silently overwrite your locally-built jar with the old released version, and your test then runs the OLD code and "passes". 2026-07-25: an entire lazy-init feature appeared not to work across four boot cycles because every test was actually running the bundle jar. Use `docker stop mc && docker start mc` (or `docker restart mc`). Only run `./dev up` when you deliberately want to reset to the bundle's shipped jars.
+**The canonical workflow — first-time setup, what the link reaches, and the three development cases — is `.claude/skills/local-stack-testing/SKILL.md` § Linked local development.** Read it there; what follows is the mod-shaped summary.
 
 ```bash
-cp build/libs/<mod>-<version>.jar <consumer>/data/mods/<mod>.jar
-docker restart mc && sleep 45
+cd ~/Projects/elfydd && ./dev link        # once per consumer; readlink .stack/current -> dev
+
+cd ~/Projects/minecraft-server-template/mods/<name>
+mise exec -- ./gradlew build              # step 2's gate runs on the jar this produces
+
+cd ~/Projects/elfydd
+./dev up
+ls data/mods | grep <modid>                                       # exactly one line
 docker inspect mc --format '{{.State.Health.Status}}'             # must be healthy
-docker logs mc 2>&1 | grep -iE 'mixin apply|<modid>|error' | tail -20
+docker logs mc --tail 80 2>&1 | grep -iE 'mixin apply|<modid>|error'
 ```
+
+`./dev link` builds a farm of symlinks at `.stack/dev/stack`, one `local-mods/<jar>` per built jar (`dev`, the `link)` case's `ln -sfn`), so a rebuild changes what the link points at and needs no re-link. `dev-up.sh`, "Install in-house mod JARs" copies those into `data/mods/`, and `cp` follows the symlink, so the current build installs. **Re-run `./dev link` after `gradlew clean` or a `mod_version` change** — the symlink then names a deleted file and that `cp` aborts `./dev up`.
+
+**Never place or delete a jar in `data/mods/` by hand.** It is managed: each `./dev up` installs the farm's jars, rewrites `data/mods/.local-mods-manifest` from their basenames (`dev-up.sh`, the `.local-mods-manifest` write), then deletes every `data/mods/*.jar` named in neither this boot's seed manifest, that file, nor `$STACK_DIR/local-mods/` (`dev-up.sh`, "Prune stale mod jars"). A hand-placed jar matches none of the three.
+
+`./dev pull`, `./dev update` and `./dev rollback` all repoint `.stack/current` at a release bundle and undo the link; `./dev unlink` is the deliberate way back to the shipped jars.
 
 If the persisted state format changed (config schema, namespace, ids), delete the mod's state file(s) under `data/config/` before restarting — stale state from a previous build masks bugs and creates ghosts.
 
-**c2me re-patch rule, every single stop/start in this loop.** c2me strips `useDensityFunctionCompiler` from `data/config/c2me.toml` on every boot (after reading it), so patching once does not survive repeated restart cycles — a bare `docker restart mc` after the first boots WITHOUT the patch (2026-07-23: three consecutive fixture cycles ran unpatched mid-session despite the trap being documented). Without it, c2me's density-function-compiler caches compiled density functions across `NoiseConfig` creations and ignores the seed, so every custom dimension silently clones the main world. Re-apply before each restart with the same idempotent patch `dev-up.sh` uses:
+**c2me DFC is self-patching.** The mod's preLaunch entrypoint (`C2meConfigPatch`) forces `useDensityFunctionCompiler = false` into `data/config/c2me.toml` on every boot, so a bare `docker restart mc` stays patched — no manual re-patch in the loop ([TROUBLESHOOTING.md#d6](../../../TROUBLESHOOTING.md#d6) has the mixin-bootstrap timing and the one first-boot gap the scripts still cover).
+
+**Verify by reading the file** — c2me `0.4.0-alpha.0.27` rewrites `c2me.toml` each boot and keeps the value, so `docker exec mc grep useDensityFunctionCompiler /data/config/c2me.toml` must answer `= false`. Below that pin the key is stripped as unknown and the `Removing config entry` log line is the proof instead.
+
+## 4. Verify via artefacts, not RCON output
+
+**Start here, not with RCON.** The mod's diagnostic commands write JSON under `.seed-rolling/` (a directory sibling to `data/`, outside the reach of `deploy.sh`'s config sync and `./dev refresh-config`) and answer with one line plus a path; a few compare two measurements and report a capped pass/fail summary inline instead. RCON concatenates feedback lines with no separator, truncates at a few KB, and cannot distinguish a timeout from a success — so parsing its output is how you get a green run over a broken world. There is no offline checker script left to run — the Python checkers were ported to JUnit tests under `mods/custom-dimensions/src/test/java/`. Full contract: `mods/AGENTS.md` § Diagnostic artefacts.
 
 ```bash
-python3 - "<consumer>/data/config/c2me.toml" << 'PYEOF'
-import os, re, sys
-p = sys.argv[1]
-section, key = "[vanillaWorldGenOptimizations]", "useDensityFunctionCompiler"
-s = open(p).read() if os.path.exists(p) else ""
-if key in s:
-    updated = re.sub(r'%s\s*=\s*\S+' % key, '%s = false' % key, s)
-elif section in s:
-    updated = s.replace(section, section + "\n\t%s = false" % key)
-else:
-    updated = s + "\n%s\n\t%s = false\n" % (section, key)
-if updated != s:
-    open(p, "w").write(updated)
-PYEOF
-docker restart mc
+./dev verify                 # points at where fingerprint/portal/suppress verification lives now
 ```
 
-**Verify via log grep, never by inspecting the config file afterwards** — the key's absence from `c2me.toml` post-boot is expected (c2me strips it after reading it): `docker exec mc grep "Removing config entry .vanillaWorldGenOptimizations.useDensityFunctionCompiler" /data/logs/latest.log`.
+Check the mc boot log for a drift WARN FIRST if you are about to assert anything about worldgen (`docker logs mc | grep "worldgen config changed"`). Worldgen is creation-time-only, so a world created before your config change still generates the OLD world, and every other assertion is then measuring history. A stale world is the most likely reason a worldgen assertion disagrees with config — a "failed" structure-filter check is often just an old world, not a wrong filter.
 
-## 4. Verify via artefacts and checkers, not RCON output
-
-**Start here, not with RCON.** The mod's diagnostic commands write versioned JSON to `data/config/custom-dimensions/` and answer with one line plus a path; checkers in `scripts/` assert over those files with no server running. RCON concatenates feedback lines with no separator, truncates at a few KB, and cannot distinguish a timeout from a success — so parsing its output is how you get a green run over a broken world. Full contract: `mods/AGENTS.md` § Diagnostic artefacts.
-
-```bash
-./dev verify                 # every checker, no Docker needed, safe while paused
-```
-
-Run `check-dimension-drift.py` FIRST if you are about to assert anything about worldgen. Worldgen is creation-time-only, so a world created before your config change still generates the OLD world, and every other assertion is then measuring history. On 2026-07-27 a jungle dimension "failed" a structure-filter check with igloos in its pool; the filter was correct and the world was three configs old.
-
-| Question | Artefact | Checker |
+| Question | Instrument | Verified by |
 | --- | --- | --- |
-| Does this world still match its config? | `custom-dimensions-fingerprints.json` | `check-dimension-drift.py` |
-| Which structures reached each group, and where? | `census/<ns>__<slug>.json` | `check-noise-regression.py` |
-| Is persisted portal state sane? | `portal_links.json` | `check-portal-integrity.py` |
-| How was each set classified? | `structure-audit.txt` | human-read |
+| Does this world still match its config? | `data/config/custom-dimensions-fingerprints.json` | the mod, at boot (`DimensionFingerprints`) |
+| Which structures reached each group, and where? | `/customdim structure-census <dim>` (needs a LOADED dimension) | live world vs headless `FactsEngine`, compared inline — no file, no separate checker |
+| Is persisted portal state sane? | `data/config/portal_links.json` | the mod, on load (`PortalStateValidator`) |
+| How was each set classified? | `/customdim structure-audit [group]` | writes `.seed-rolling/lint/<hash>.structure-audit.json`, human-read |
 
-`/locate` is the wrong instrument for placement: it proves one instance exists and takes minutes doing it. Measured 2026-07-27 — locating a vanilla village in the **stock overworld** times out at 120 s, and Chunky pre-generation does not help.
+`/locate` is NOT an occupancy instrument — a miss walks placements for minutes and wedges RCON. Use `/customdim occupant <dim> <cx> <cz>` to read a loaded chunk's live `StructureStart`s (never generates, appends `<world save root>/customdimensions/census/occupancy__<ns>__<slug>.json` — this world's own save, not `.seed-rolling`, since it's a fact about chunks that actually generated) and `/customdim carver-draw <dim> <cx> <cz>` to replay vanilla's would-be first draw beside the noise assignment. Locating a vanilla village in the **stock overworld** times out at 120 s, and Chunky pre-generation does not help.
 
 ## 5. Exercise via RCON, headless
 
@@ -162,12 +161,12 @@ The pipeline itself: `release.yml` builds each mod listed in `mods/local-mods.ma
 1. **Gradle reports `BUILD SUCCESSFUL` while producing an empty or unremapped jar.** Shipped a production crash loop once — this is why step 2 is a mandatory gate, not a suggestion.
 2. **Unlisted mixins silently don't apply**, causing a `ClassCastException` at the point an accessor interface is used. `@Accessor`/`@Invoker` interfaces go in the same `mixins` array as `@Mixin` classes in `<modid>.mixins.json`. Set `"defaultRequire": 1` so a missing target crashes at startup instead of silently skipping.
 3. **Never mutate the server's worlds map (or any collection vanilla iterates per tick) from a `ServerWorld.tick`/world-tick mixin.** `ConcurrentModificationException` crash the moment the timer fires. Defer to `ServerTickEvents.END_SERVER_TICK`.
-4. **Any path adding a `ServerWorld` must fire `ServerWorldEvents.LOAD`; removing one must fire `UNLOAD` before `close()`.** Distant Horizons and c2me build per-level state exclusively from these events — skipping `LOAD` NPE'd DH and locked a player out of production (2026-07-12).
+4. **Any path adding a `ServerWorld` must fire `ServerWorldEvents.LOAD`; removing one must fire `UNLOAD` before `close()`.** Distant Horizons and c2me build per-level state exclusively from these events — skipping `LOAD` NPEs DH and can lock a player out of production.
 5. **Never call `getOrCreateDimension` synchronously from command context** — it deadlocks the main thread. Queue via `requestWorldLoad` (`END_SERVER_TICK`).
 6. **Never sync-load a chunk from a world tick.** That is the Epic Dungeons + c2me wedge — RCON goes i/o-timeout while `docker ps` stays healthy.
-7. **Fields serialised into `portal_links.json` must stay parseable by every jar that might read them back** — deploys roll back. A `#tag` in a persisted `frameBlock` crash-loops older jars (2026-07-23). General rule: persisted-state fields are a compatibility contract, not just today's schema.
+7. **Fields serialised into `portal_links.json` must stay parseable by every jar that might read them back** — deploys roll back. A `#tag` in a persisted `frameBlock` crash-loops older jars. General rule: persisted-state fields are a compatibility contract, not just today's schema.
 8. **If the persisted state format changed, delete the mod's state files under `data/config/` before restarting** — stale state masks bugs and creates ghosts.
-9. **Never hand-copy jars into consumer repos and never publish to Modrinth.** The pipeline is release → bundle `stack/local-mods/` → `deploy.sh` step 8b / `dev-up.sh`.
+9. **Never hand-copy jars into consumer repos and never publish to Modrinth.** The shipping pipeline is release → bundle `stack/local-mods/` → `deploy.sh` step 8b / `dev-up.sh`; the local iteration path is `./dev link` (§ 3), which symlinks the checkout's built jars into the same slot.
 
 ## Validation (do not skip this)
 
@@ -178,7 +177,7 @@ docker inspect mc --format 'Health={{.State.Health.Status}} Restarts={{.RestartC
 docker logs mc 2>&1 | grep -iE 'mixin apply|<modid>|error' | tail -20
 ```
 
-Loud failures: `BUILD FAILED`, missing mixin targets with `"defaultRequire": 1` set, an unhealthy container. Silent failures: an unremapped/empty jar that still reports `BUILD SUCCESSFUL`; a stripped c2me key that looks like "nothing happened" but is actually expected; a `./dev up` silently reverting your test jar to the bundle version; a world-tick mixin that skips `ServerWorldEvents` and only surfaces as a DH NPE much later.
+Loud failures: `BUILD FAILED`, missing mixin targets with `"defaultRequire": 1` set, an unhealthy container. Silent failures: an unremapped/empty jar that still reports `BUILD SUCCESSFUL`; a stripped c2me key that looks like "nothing happened" but is actually expected; an unlinked consumer installing the released jar over your build on every `./dev up`; a world-tick mixin that skips `ServerWorldEvents` and only surfaces as a DH NPE much later.
 
 ## References
 

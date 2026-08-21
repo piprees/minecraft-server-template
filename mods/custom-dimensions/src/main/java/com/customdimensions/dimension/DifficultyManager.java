@@ -16,22 +16,20 @@ import net.minecraft.util.Identifier;
 import net.minecraft.world.World;
 
 /**
- * Per-dimension mob difficulty and player luck, absorbed from the external
- * configurable-difficulty mod (v4 Phase 2). Driven entirely by each
+ * Per-dimension mob difficulty and player luck, driven entirely by each
  * dimension's DimensionConfig.difficulty block:
  *
  *   mobMultiplier   overall scaling; final = mobMultiplier x depth factor
  *   attributes      which attributes scale (health/damage/armor default on,
- *                   speed/knockback default off — matches the old config)
+ *                   speed/knockback default off)
  *   depthScaling    mobs harder underground (explicitly configured per
- *                   dimension; the migration puts it on overworld.json only,
- *                   matching the old mod's overworld-only behaviour)
+ *                   dimension; only overworld.json ships it by default)
  *   playerLuck      loot-quality luck applied to players inside the dimension
  *
  * Mob modifiers are applied ONCE at natural spawn (MobAttributeMixin →
  * MobEntity.initialize TAIL) and persist in the entity's NBT — mobs loaded
- * from disk keep their scaling without re-application. Hostile (MONSTER
- * spawn group) mobs only, like the old applyToHostile-only default.
+ * from disk keep their scaling without re-application. Applies to hostile
+ * (MONSTER spawn group) mobs only.
  * A multiplier of 0 means "peaceful dimension, spawning already blocked"
  * and is deliberately a no-op (0x health would insta-kill every mob).
  */
@@ -43,15 +41,13 @@ public final class DifficultyManager {
     private DifficultyManager() {
     }
 
-    /** The dimension config governing a world: base worlds by full id, managed custom dims by path. */
+    /** The dimension config governing a world: reserved dimensions by full id, managed custom dims by path. */
     public static DimensionConfig configFor(RegistryKey<World> worldKey) {
         MultiverseConfig config = MultiverseConfig.getInstance();
         Identifier id = worldKey.getValue();
-        for (String base : DimensionConfig.BASE_WORLDS) {
-            DimensionConfig world = config.getWorld(base);
-            if (world != null && world.getDimensionId().equals(id.toString())) {
-                return world;
-            }
+        DimensionConfig reserved = config.getReservedDimension(id.toString());
+        if (reserved != null) {
+            return reserved;
         }
         if (config.isManagedNamespace(id.getNamespace())) {
             return DimensionManager.getInstance().resolveDefinition(id.getPath());

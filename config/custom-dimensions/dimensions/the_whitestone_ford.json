@@ -1,15 +1,147 @@
 {
   "type": "multi_biome",
-  "description": "Wide river country crossed at white cliffs — the ford where the villager trade routes converged. Lighthouses and farms along the water, built where the crossing was easy and the fish were good.",
-  "seed": 8552618426369524335,
+  "description": "Wide river country crossed at white cliffs \u2014 the ford where the villager trade routes converged. Lighthouses and farms along the water, built where the crossing was easy and the fish were good.",
+  "seed": -5632527573971670830,
   "noiseSettings": "adventure:wide",
   "biomes": [
-    "terralith:white_cliffs",
-    "natures_spirit:white_cliffs",
-    "terralith:warm_river",
-    "minecraft:river",
-    "minecraft:plains",
-    "minecraft:meadow"
+    {
+      "id": "terralith:white_cliffs",
+      "parameters": {
+        "continentalness": [
+          -0.6,
+          -0.05
+        ],
+        "weirdness": [
+          -2.0,
+          -0.19
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "natures_spirit:white_cliffs",
+      "parameters": {
+        "continentalness": [
+          -0.6,
+          -0.05
+        ],
+        "weirdness": [
+          -0.19,
+          -0.1417
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "terralith:warm_river",
+      "parameters": {
+        "weirdness": [
+          -0.1417,
+          -0.0933
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "minecraft:river",
+      "parameters": {
+        "weirdness": [
+          -0.0933,
+          -0.045
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "minecraft:plains",
+      "parameters": {
+        "weirdness": [
+          -0.045,
+          0.0033
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "minecraft:meadow",
+      "parameters": {
+        "weirdness": [
+          0.0033,
+          0.0517
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:cold_river",
+      "parameters": {
+        "weirdness": [
+          0.0517,
+          0.1
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "wilderwild:warm_river",
+      "parameters": {
+        "weirdness": [
+          0.1,
+          2.0
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "terralith:cave/tuff_caves",
+      "parameters": {
+        "weirdness": [
+          -2.0,
+          -0.045
+        ],
+        "depth": [
+          0.1,
+          2.0
+        ]
+      }
+    },
+    {
+      "id": "minecraft:lush_caves",
+      "parameters": {
+        "weirdness": [
+          -0.045,
+          2.0
+        ],
+        "depth": [
+          0.1,
+          2.0
+        ]
+      }
+    }
   ],
   "borders": {
     "player": 1024,
@@ -41,13 +173,20 @@
     },
     "orientation": "horizontal"
   },
+  "exitPortal": {
+    "enabled": true,
+    "pos": "spawn",
+    "target": "bed"
+  },
+  "structures": {
+    "terrainAdaptation": {
+      "landmarks": "moat"
+    }
+  },
   "seedRoll": {
     "mood": "pastoral",
     "spawnFilter": [
-      "terralith:white_cliffs",
-      "natures_spirit:white_cliffs",
-      "terralith:warm_river",
-      "minecraft:river"
+      "minecraft:meadow"
     ],
     "water": "high",
     "wants": {
@@ -62,12 +201,11 @@
     "shuns": [
       "coliseum",
       "ancient_city"
-    ],
-    "description": "Wide river country crossed at white cliffs — the ford where the villager trade routes converged. Lighthouses and farms along the water, built where the crossing was easy and the fish were good."
+    ]
   },
   "spawn": [
-    0,
-    64,
-    0
+    128,
+    94,
+    -576
   ]
 }

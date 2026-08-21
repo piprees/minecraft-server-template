@@ -20,6 +20,10 @@ Context: Custom Dimensions v4 Phase 0 — feeds the configurator and
 validates dimension biome lists against what is actually installed.
 """
 import json
+import sys as _sys
+from pathlib import Path as _Path
+_sys.path.insert(0, str(_Path(__file__).resolve().parent))
+import mcjson
 import sys
 import zipfile
 from pathlib import Path
@@ -32,6 +36,9 @@ DATAPACKS_DIR = PLATFORM_DIR / "config" / "datapacks"
 OUTPUT = PLATFORM_DIR / "config" / "custom-dimensions" / "extractors" / "biomes.json"
 
 MARKER = "worldgen/biome/"
+
+# Files the game would read and this script could not; reported, never ignored.
+UNPARSEABLE = []
 
 
 def biome_id_from_path(path):
@@ -82,8 +89,12 @@ def scan_zip(path, label, out):
                 if biome_id is None:
                     continue
                 try:
-                    data = json.loads(zf.read(entry))
-                except json.JSONDecodeError:
+                    data = mcjson.loads(zf.read(entry))
+                except json.JSONDecodeError as e:
+                    # Loud: a dropped biome is content nobody can name, and it
+                    # looked exactly like "this mod ships none" for months.
+                    print(f"  UNPARSEABLE {label}:{entry}: {e}", file=sys.stderr)
+                    UNPARSEABLE.append(f"{label}:{entry}")
                     continue
                 if "effects" not in data and "spawners" not in data:
                     continue
@@ -104,7 +115,7 @@ def scan_datapacks(root, out):
         if biome_id is None:
             continue
         try:
-            data = json.loads(f.read_text())
+            data = mcjson.loads(f.read_text())
         except json.JSONDecodeError:
             continue
         out[biome_id] = parse_biome(data, "datapack:" + rel.split("/")[0])

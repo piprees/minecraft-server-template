@@ -1,31 +1,92 @@
 {
   "type": "end",
-  "description": "Citadel country — where the endermen built their densest urban centres. End cities and phantom citadels saturate the highlands. No ruins here; this is still maintained.",
-  "seed": 9063126249592024391,
+  "description": "Citadel country \u2014 where the endermen built their densest urban centres. End cities and phantom citadels saturate the highlands. No ruins here; this is still maintained.",
+  "seed": 4259649439410997754,
   "biomes": [
-    "minecraft:end_highlands",
-    "nullscape:crystal_peaks",
-    "minecraft:end_midlands",
-    "minecraft:the_end",
-    "minecraft:end_barrens",
-    "nullscape:void_barrens",
-    "minecraft:small_end_islands"
+    {
+      "id": "minecraft:end_highlands",
+      "parameters": {
+        "continentalness": [
+          0.1084,
+          0.2115
+        ]
+      }
+    },
+    {
+      "id": "nullscape:crystal_peaks",
+      "parameters": {
+        "continentalness": [
+          0.3204,
+          2.0
+        ]
+      }
+    },
+    {
+      "id": "minecraft:end_midlands",
+      "parameters": {
+        "continentalness": [
+          0.013,
+          0.1084
+        ]
+      }
+    },
+    {
+      "id": "minecraft:the_end",
+      "parameters": {
+        "continentalness": [
+          -0.0871,
+          0.013
+        ]
+      }
+    },
+    {
+      "id": "minecraft:end_barrens",
+      "parameters": {
+        "continentalness": [
+          -0.1949,
+          -0.0871
+        ]
+      }
+    },
+    {
+      "id": "nullscape:void_barrens",
+      "parameters": {
+        "continentalness": [
+          0.2115,
+          0.3204
+        ]
+      }
+    },
+    {
+      "id": "minecraft:small_end_islands",
+      "parameters": {
+        "continentalness": [
+          -2.0,
+          -0.1949
+        ]
+      }
+    }
   ],
   "borders": {
-    "player": 8192,
-    "generation": 8192
+    "player": 4096,
+    "generation": 4096
   },
   "difficulty": {
     "mobMultiplier": 2.0,
     "playerLuck": 1.8
   },
   "structureDensity": "dense",
+  "structures": {
+    "terrainAdaptation": {
+      "landmarks": "pedestal"
+    }
+  },
   "portal": {
     "frameBlock": "minecraft:end_stone_bricks",
     "igniterItem": "minecraft:ender_eye",
     "color": "D8DF90",
     "lightLevel": 11,
-    "scale": 1.0,
+    "scale": 2.0,
     "cooldown": 40,
     "particleType": "minecraft:end_rod",
     "shape": "doorway",
@@ -36,16 +97,17 @@
     },
     "aura": {
       "subsume": "everything"
+    },
+    "anchor": {
+      "pos": "spawn",
+      "exit": "bed"
     }
   },
   "seedRoll": {
     "mood": "hard",
+    "allowHazardousSpawn": true,
     "spawnFilter": [
-      "minecraft:end_highlands",
-      "nullscape:crystal_peaks",
-      "minecraft:the_end",
-      "minecraft:end_barrens",
-      "minecraft:end_midlands"
+      "minecraft:end_highlands"
     ],
     "wants": {
       "end_city": "near_spawn",
@@ -58,12 +120,28 @@
       "dragon_skeleton",
       "ruined_pillar",
       "end_ruins"
-    ],
-    "description": "Citadel country — where the endermen built their densest urban centres. End cities and phantom citadels saturate the highlands. No ruins here; this is still maintained."
+    ]
   },
   "spawn": [
     0,
-    64,
-    0
-  ]
+    48,
+    64
+  ],
+  "settingsOverrides": {
+    "endIsland": false
+  },
+  "exitPortal": {
+    "enabled": true,
+    "pos": "spawn",
+    "target": "bed"
+  },
+  "exits": {
+    "death": {
+      "action": "respawnAt",
+      "target": {
+        "dimension": "adventure:the_end_citadel",
+        "arrival": "spawn"
+      }
+    }
+  }
 }

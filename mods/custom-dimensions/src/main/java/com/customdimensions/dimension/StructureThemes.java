@@ -14,7 +14,7 @@ import java.util.Map;
 
 /**
  * Structure-set id -> classification, generated from
- * scripts/data/structure-dials.csv + structure-sets-extracted.csv by
+ * scripts/data/structure-dials.json + structure-sets-extracted.json by
  * scripts/gen-structure-groups.py and baked into the jar as
  * structure_themes.json.
  *
@@ -111,7 +111,8 @@ public final class StructureThemes {
                     .getConfigDir().resolve("structure_themes.json");
             if (java.nio.file.Files.exists(extra)) {
                 int n = merge(map, new Gson().fromJson(
-                        java.nio.file.Files.readString(extra),
+                        com.customdimensions.config.DimensionConfigLoader.stripJsonComments(
+                                java.nio.file.Files.readString(extra)),
                         new TypeToken<Map<String, JsonElement>>() {
                         }.getType()));
                 if (n > 0) {

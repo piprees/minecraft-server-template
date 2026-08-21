@@ -55,13 +55,13 @@ class DimensionConfigTest {
     }
 
     @Test
-    void baseWorldsKeepVanillaIds() {
+    void reservedDimensionsKeepVanillaIds() {
         assertEquals("minecraft:overworld", parse("overworld", "{}").getDimensionId());
         assertEquals("minecraft:the_nether", parse("the_nether", "{}").getDimensionId());
         assertEquals("minecraft:the_end", parse("the_end", "{}").getDimensionId());
         assertEquals("paradise_lost:paradise_lost", parse("paradise_lost", "{}").getDimensionId());
-        assertTrue(parse("overworld", "{}").isBaseWorld());
-        assertFalse(parse("the_claymarsh", "{}").isBaseWorld());
+        assertTrue(parse("overworld", "{}").isReserved());
+        assertFalse(parse("the_claymarsh", "{}").isReserved());
     }
 
     @Test
@@ -275,10 +275,10 @@ class DimensionConfigTest {
     }
 
     @Test
-    void portalScaleFeedsScaleGetterForCustomDims() {
+    void portalScaleFeedsScaleGetter() {
         DimensionConfig config = parse("d", "{\"portal\":{\"frameBlock\":\"b\",\"scale\":8.0}}");
         assertEquals(8.0, config.getScale());
-        DimensionConfig world = parse("the_nether", "{\"scale\":8.0}");
+        DimensionConfig world = parse("the_nether", "{\"portal\":{\"scale\":8.0}}");
         assertEquals(8.0, world.getScale());
         assertEquals(1.0, parse("d", "{}").getScale());
     }
@@ -286,15 +286,16 @@ class DimensionConfigTest {
     @Test
     void seedRollBlockDeserialises() {
         DimensionConfig config = parse("d", """
-                {"seedRoll":{"mood":"serene","spawnFilter":["minecraft:swamp"],"water":"high",
-                 "wants":{"swamp_ruin":"spread"},"shuns":["village"],"description":"quiet"}}
+                {"description":"quiet",
+                 "seedRoll":{"mood":"serene","spawnFilter":["minecraft:swamp"],"water":"high",
+                 "wants":{"swamp_ruin":"spread"},"shuns":["village"]}}
                 """);
         assertNotNull(config.getSeedRoll());
         assertEquals("serene", config.getSeedRoll().mood);
         assertEquals(1, config.getSeedRoll().spawnFilter.size());
         assertEquals("high", config.getSeedRoll().water);
         assertTrue(config.getSeedRoll().wants.has("swamp_ruin"));
-        assertEquals("quiet", config.getSeedRoll().description);
+        assertEquals("quiet", config.getDescription());
     }
 
     @Test
@@ -498,7 +499,7 @@ class DimensionConfigTest {
         assertEquals(0.3, config.getBiomeParameters().get("minecraft:cherry_grove")
                 .get("continentalness").getAsDouble());
         assertNotNull(config.getBiomeParametersFingerprint());
-        // Plain string arrays keep the old behaviour exactly.
+        // Plain string arrays produce no biome parameters and no fingerprint.
         DimensionConfig plain = parse("d", "{\"biomes\":[\"minecraft:swamp\",\"natures_spirit:marsh\"]}");
         assertEquals("minecraft:swamp,natures_spirit:marsh", plain.getBiome());
         assertTrue(plain.getBiomeParameters().isEmpty());
@@ -592,7 +593,7 @@ class DimensionConfigTest {
         assertEquals(1228, config.getStructures().endgame.safeRadius);
     }
 
-    // --- frame material generalisation (further-portal-customisations Tier 1) ---
+    // --- frame material generalisation (Tier 1) ---
 
     @Test
     void frameBlockAcceptsAllFourForms() {
@@ -640,8 +641,8 @@ class DimensionConfigTest {
 
     @Test
     void toPortalDefinitionCarriesFrameTier1Fields() {
-        // Simple config: definition (and its persisted zone records) look
-        // exactly like before — no accepts, no place block, no orientation.
+        // Simple config: no accepts list, no place block, no orientation in
+        // the JSON — the definition resolves them all from the plain frameBlock.
         PortalDefinition plain = parse("d",
                 "{\"portal\":{\"frameBlock\":\"minecraft:clay\",\"igniterItem\":\"minecraft:stick\"}}")
                 .toPortalDefinition();

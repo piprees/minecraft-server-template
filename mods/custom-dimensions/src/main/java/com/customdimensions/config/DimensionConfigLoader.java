@@ -8,7 +8,6 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
@@ -34,7 +33,7 @@ import java.util.TreeMap;
  *
  * Consumer-added slugs (overlay-only) get their namespace from the
  * BRAND_SLUG environment variable, falling back to the platform namespace.
- * Base-world slugs keep vanilla ids regardless of namespace.
+ * Reserved slugs keep their existing dimension ids regardless of namespace.
 
  */
 public final class DimensionConfigLoader {
@@ -44,7 +43,7 @@ public final class DimensionConfigLoader {
     private DimensionConfigLoader() {
     }
 
-    /** Global settings (settings.json). */
+    /** Global settings (settings.json, consumer overlay merged over it). */
     public static class Settings {
         public String namespace = "adventure";
         public int idleUnloadMinutes = 5;
@@ -53,9 +52,24 @@ public final class DimensionConfigLoader {
         public String frameEnd = "minecraft:end_stone_bricks";
         /** Raw "defaults" block, merged under every dimension. */
         public JsonObject defaults = new JsonObject();
+        /**
+         * Structure SET ids removed from every dimension's pools and
+         * pass-throughs ({@code "suppress": {"structures": [...]}}) — the
+         * global counterpart of a dimension's {@code structures.exclude}.
+         * Applied through the same filters (DimensionStructures.keepSet +
+         * NoisePoolBuilder). Unknown ids WARN at boot rather than failing.
+         */
+        public java.util.List<String> suppressStructures = java.util.List.of();
+        /**
+         * Biome ids removed from every world's biome source ({@code
+         * "suppress": {"biomes": [...]}}) — applied by BiomeSuppression to
+         * listed sources, full-source dims, and the reserved dimensions alike.
+         * Unknown ids WARN at boot.
+         */
+        public java.util.List<String> suppressBiomes = java.util.List.of();
     }
 
-    /** Settings + resolved dimension map (base worlds included, keyed by slug). */
+    /** Settings + resolved dimension map (reserved dimensions included, keyed by slug). */
     public record LoadResult(Settings settings, Map<String, DimensionConfig> dimensions) {
     }
 
@@ -65,7 +79,8 @@ public final class DimensionConfigLoader {
 
     /** Prompt-facing surface: env-driven BRAND_SLUG, no settings defaults. */
     public static Map<String, DimensionConfig> loadAll(Path configDir, Path overlayDir, String namespace) {
-        Settings settings = loadSettings(configDir.resolve("settings.json"));
+        Settings settings = loadSettings(configDir.resolve("settings.json"),
+                overlayDir != null ? overlayDir.resolve("settings.json") : null);
         if (namespace != null && !namespace.isBlank()) {
             settings.namespace = namespace;
         }
@@ -73,15 +88,31 @@ public final class DimensionConfigLoader {
     }
 
     public static LoadResult loadAllWithSettings(Path configDir, Path overlayDir) {
-        Settings settings = loadSettings(configDir.resolve("settings.json"));
+        Settings settings = loadSettings(configDir.resolve("settings.json"),
+                overlayDir != null ? overlayDir.resolve("settings.json") : null);
         Map<String, DimensionConfig> dims =
                 loadDimensions(configDir, overlayDir, settings, System.getenv("BRAND_SLUG"));
         return new LoadResult(settings, dims);
     }
 
     static Settings loadSettings(Path settingsFile) {
+        return loadSettings(settingsFile, null);
+    }
+
+    /**
+     * Platform settings with the consumer overlay's settings.json merged
+     * over them (deepMerge: overlay scalars win, objects merge key-by-key).
+     */
+    static Settings loadSettings(Path settingsFile, Path overlayFile) {
         Settings settings = new Settings();
         JsonObject json = readJsonObject(settingsFile);
+        JsonObject overlay = overlayFile != null ? readJsonObject(overlayFile) : null;
+        if (json == null) {
+            json = overlay;
+        } else if (overlay != null) {
+            json = deepMerge(json, overlay);
+            MultiverseServer.LOGGER.info("Consumer overlay settings.json merged over platform settings");
+        }
         if (json == null) {
             return settings;
         }
@@ -102,7 +133,27 @@ public final class DimensionConfigLoader {
         if (json.has("defaults") && json.get("defaults").isJsonObject()) {
             settings.defaults = json.getAsJsonObject("defaults");
         }
+        if (json.has("suppress") && json.get("suppress").isJsonObject()) {
+            JsonObject suppress = json.getAsJsonObject("suppress");
+            settings.suppressStructures = idList(suppress.get("structures"));
+            settings.suppressBiomes = idList(suppress.get("biomes"));
+        }
         return settings;
+    }
+
+    /** Non-blank strings from a JSON array; empty list for anything else. */
+    private static java.util.List<String> idList(JsonElement list) {
+        if (list == null || !list.isJsonArray()) {
+            return java.util.List.of();
+        }
+        java.util.List<String> ids = new java.util.ArrayList<>();
+        for (JsonElement e : list.getAsJsonArray()) {
+            if (e.isJsonPrimitive() && e.getAsJsonPrimitive().isString()
+                    && !e.getAsString().isBlank()) {
+                ids.add(e.getAsString().trim());
+            }
+        }
+        return java.util.List.copyOf(ids);
     }
 
     /**
@@ -237,12 +288,43 @@ public final class DimensionConfigLoader {
         return files;
     }
 
+    /**
+     * The JSONC contract, readers-first: a line whose first non-blank
+     * characters are {@code //} is blanked (line numbers preserved for
+     * parse errors). Trailing comments are deliberately NOT supported —
+     * a {@code //} inside a string (URLs) must never be a comment, and
+     * the whole-line rule needs no string-state tracking. Gson otherwise
+     * stays in strict (non-lenient) mode.
+     */
+    public static String stripJsonComments(String text) {
+        if (text == null || !text.contains("//")) {
+            return text;
+        }
+        StringBuilder out = new StringBuilder(text.length());
+        int start = 0;
+        int length = text.length();
+        while (start <= length) {
+            int end = text.indexOf('\n', start);
+            String line = end < 0 ? text.substring(start) : text.substring(start, end);
+            if (!line.strip().startsWith("//")) {
+                out.append(line);
+            }
+            if (end < 0) {
+                break;
+            }
+            out.append('\n');
+            start = end + 1;
+        }
+        return out.toString();
+    }
+
     private static JsonObject readJsonObject(Path file) {
         if (!Files.isRegularFile(file)) {
             return null;
         }
-        try (BufferedReader reader = Files.newBufferedReader(file)) {
-            JsonElement parsed = JsonParser.parseReader(reader);
+        try {
+            String text = stripJsonComments(Files.readString(file));
+            JsonElement parsed = JsonParser.parseString(text);
             return parsed != null && parsed.isJsonObject() ? parsed.getAsJsonObject() : null;
         } catch (IOException | JsonParseException e) {
             MultiverseServer.LOGGER.error("Failed to parse JSON file: {}", file, e);

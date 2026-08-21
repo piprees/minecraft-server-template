@@ -1,17 +1,165 @@
 {
   "type": "multi_biome",
   "description": "Nature won. Jungle-swallowed ruins and infested temples in compressed, tangled terrain. Villager settlements once stood here; the wild reclaimed every wall. The jungle doesn't negotiate.",
-  "seed": 88447297175691575,
+  "seed": -8087945941450082945,
   "noiseSettings": "adventure:compressed",
   "biomes": [
-    "terralith:rocky_jungle",
-    "terralith:jungle_mountains",
-    "natures_spirit:tropical_basin",
-    "terralith:cloud_forest",
-    "minecraft:jungle",
-    "minecraft:sparse_jungle",
-    "minecraft:bamboo_jungle",
-    "minecraft:dark_forest"
+    {
+      "id": "terralith:rocky_jungle",
+      "parameters": {
+        "weirdness": [
+          -2.0,
+          -0.19
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "terralith:jungle_mountains",
+      "parameters": {
+        "weirdness": [
+          -0.19,
+          -0.1537
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "natures_spirit:tropical_basin",
+      "parameters": {
+        "weirdness": [
+          -0.1537,
+          -0.1175
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "terralith:cloud_forest",
+      "parameters": {
+        "weirdness": [
+          -0.1175,
+          -0.0812
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "minecraft:jungle",
+      "parameters": {
+        "weirdness": [
+          -0.0812,
+          -0.045
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "minecraft:sparse_jungle",
+      "parameters": {
+        "weirdness": [
+          -0.045,
+          -0.0087
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "minecraft:bamboo_jungle",
+      "parameters": {
+        "weirdness": [
+          -0.0087,
+          0.0275
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "minecraft:dark_forest",
+      "parameters": {
+        "weirdness": [
+          0.0275,
+          0.0638
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:rainforest",
+      "parameters": {
+        "weirdness": [
+          0.0638,
+          0.1
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "wilderwild:rainforest",
+      "parameters": {
+        "weirdness": [
+          0.1,
+          2.0
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "terralith:cave/underground_jungle",
+      "parameters": {
+        "weirdness": [
+          -2.0,
+          -0.045
+        ],
+        "depth": [
+          0.1,
+          2.0
+        ]
+      }
+    },
+    {
+      "id": "terralith:cave/infested_caves",
+      "parameters": {
+        "weirdness": [
+          -0.045,
+          2.0
+        ],
+        "depth": [
+          0.1,
+          2.0
+        ]
+      }
+    }
   ],
   "borders": {
     "player": 1024,
@@ -22,6 +170,19 @@
     "playerLuck": 1.5
   },
   "structureDensity": "sparse",
+  "structures": {
+    "terrainAdaptation": {
+      "landmarks": "bury",
+      "minecraft:mansion": "bury"
+    },
+    "force": [
+      {
+        "structure": "minecraft:mansion",
+        "x": 620,
+        "z": -540
+      }
+    ]
+  },
   "portal": {
     "frameBlock": "minecraft:mossy_cobblestone",
     "igniterItem": "minecraft:amethyst_shard",
@@ -42,14 +203,7 @@
   "seedRoll": {
     "mood": "dramatic",
     "spawnFilter": [
-      "terralith:rocky_jungle",
-      "terralith:jungle_mountains",
-      "natures_spirit:tropical_basin",
-      "terralith:cloud_forest",
-      "minecraft:jungle",
-      "minecraft:sparse_jungle",
-      "minecraft:bamboo_jungle",
-      "minecraft:dark_forest"
+      "minecraft:sparse_jungle"
     ],
     "wants": {
       "jungle_ruin": "near_spawn",
@@ -66,12 +220,11 @@
       "tavern",
       "mansion",
       "monument"
-    ],
-    "description": "Nature won. Jungle-swallowed ruins and infested temples in compressed, tangled terrain. Villager settlements once stood here; the wild reclaimed every wall. The jungle doesn't negotiate."
+    ]
   },
   "spawn": [
-    0,
-    64,
+    -64,
+    65,
     0
   ]
 }

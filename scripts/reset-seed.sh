@@ -5,15 +5,60 @@
 # Backs up everything before destroying world data, then restarts
 # the server with the new seed.
 #
-# Deletes: all world data (overworld, nether, end, dimensions/),
-# player data (playerdata, stats, advancements), uNmINeD map renders,
-# Chunky markers + task state + .skip-pause, Distant Horizons cache,
-# POI, ledger, dynamic-data-pack-cache.
+# Deletes: everything under data/world/ in one sweep — that single directory
+# holds the overworld, DIM-1 (nether), DIM1 (end), dimensions/<ns>/<slug>/
+# (every custom dimension, including paradise_lost), playerdata, stats,
+# advancements, modplayerdata, essentialcommands homes, ec_player_profiles,
+# openpartiesandclaims claims (data/world/data/openpartiesandclaims), the
+# per-world DistantHorizons.sqlite (+ -shm/-wal), poi, ledger.sqlite, and
+# level.dat itself — so there is never a lingering WorldGenSettings.dimensions
+# registry entry outliving the world it describes (the D3 boot-wedge trap
+# doesn't apply here: level.dat and the world dirs it references die together).
+# Separately: uNmINeD map renders (maps/, index.html, manifest.json), Chunky
+# markers + task state + .skip-pause, dynamic-data-pack-cache (a real
+# top-level dir, unlike the rest of this list), the per-dimension "already
+# set up" markers deploy.sh uses to skip re-running `dimension load` on every
+# deploy (data/.dimension-setup/ — stale markers here would make deploy.sh
+# think every dimension on the NEW world was already loaded on the OLD one,
+# and silently skip loading all of them), and the two mod state files that
+# describe the world being destroyed — portal_links.json (every portal's
+# links, countdowns and aura state) and custom-dimensions-fingerprints.json
+# (each dimension's creation-time worldgen baseline). Keeping either would
+# leave portals resolving into a world at coordinates that meant something
+# else, and drift reported against a world that no longer exists. The mod
+# writes both fresh on the next boot. Deletion runs under sudo (sidecars
+# write as root, so DEPLOY_USER cannot remove data/unmined-web) and is
+# verified afterwards rather than assumed. Also wipes the old world's bot
+# and webhook messages from the Discord channels (DISCORD_CHANNEL_ID +
+# DISCORD_CHAT_CHANNEL_ID when distinct) via discord-cleanup.sh — fire and
+# forget, a Discord outage never blocks a reset.
+#
+# Deliberately NOT touched: whitelist.json, ops.json, banned-*.json (the
+# whitelist is a door lock, not world state); discord-players.json and
+# DiscordIntegration-Data/LinkedPlayers.json (Discord-account <-> MC-player
+# links survive same as the whitelist — players don't re-link just because
+# the world did); .seed-rolling/ (a sibling of data/, not under it — its
+# candidate-seed banks, lint, render-check and column-ladder artefacts are
+# keyed by a hash of the DIMENSION CONFIG, not the live world, so they stay
+# valid across a reset and are irrelevant to the world just destroyed).
+#
+# The seed argument updates SEED in .env locally and on the server, which
+# seeds level.dat ONLY. Terrain comes from each dimension's own config
+# (TROUBLESHOOTING.md#t31), so a new seed here changes nothing on its own:
+# put the seed in the config, deploy it, and reset AFTER it is on the server.
+# Same for spawn — the overworld entry's "spawn" replaces SPAWN_X/Y/Z.
 #
 # Optionally wipes restic backups in R2 (--wipe-backups flag).
 #
 # After restart, re-runs deploy.sh's post-boot configuration:
 # world borders, game rules, permissions, spawn coordinates.
+#
+# Gotcha: the tar.gz backup runs COLD, after the containers stop. A hot tar of
+# a live data/ exits 1 ("file changed as we read it") the moment mc flushes a
+# region file, which under set -e aborts the whole reset. The restic snapshot
+# has to run hot (the sidecar needs mc for save-off), so it is waited on before
+# the stack goes down, and skipped entirely when --wipe-backups would purge it
+# minutes later anyway.
 #
 # Usage:
 #   ./scripts/reset-seed.sh                   # interactive (prompts for seed)
@@ -91,19 +136,31 @@ echo " Droplet:       ${DROPLET_HOST}"
 echo " Current seed:  ${CURRENT_SEED}"
 echo ""
 echo " This script will:"
-echo "   1. Back up the world (restic + local tar.gz on the droplet)"
-echo "   2. Stop all containers on the droplet"
-echo "   3. Delete world data (Overworld, Nether, End, dimensions/)"
-echo "   4. Delete player data (playerdata, stats, advancements)"
-echo "   5. Delete uNmINeD map renders (data/unmined-web)"
-echo "   6. Delete all Chunky markers, task state, and .skip-pause"
-echo "   7. Delete Distant Horizons LOD cache"
-echo "   8. Delete regenerable state (POI, ledger, dynamic-data-pack-cache)"
 if [[ "$WIPE_BACKUPS" == true ]]; then
-echo "   9. WIPE all restic snapshots in R2"
+echo "   1. Stop all containers on the droplet (restic skipped: snapshots are purged below)"
+else
+echo "   1. Back up the world to restic, then stop all containers on the droplet"
 fi
-echo "  10. Update the seed in .env (local + droplet)"
-echo "  11. Restart and re-apply game rules, permissions, world borders"
+echo "   2. Back up data/ to a cold tar.gz on the droplet"
+echo "   3. Delete data/world/ (every dimension's terrain, player data, DH cache,"
+echo "      POI, ledger, and level.dat, in one sweep)"
+echo "   4. Delete uNmINeD map renders (data/unmined-web: maps/, index.html, manifest.json)"
+echo "   5. Delete all Chunky markers, task state, and .skip-pause"
+echo "   6. Delete dynamic-data-pack-cache and the per-dimension deploy-setup markers"
+echo "   6b. Delete portal links and dimension fingerprints for the old world"
+echo "   7. Wipe old-world bot/webhook messages from the Discord channels"
+if [[ "$WIPE_BACKUPS" == true ]]; then
+echo "   8. WIPE all restic snapshots in R2"
+fi
+echo "   9. Update the seed in .env (local + droplet)"
+echo "  10. Restart and re-apply game rules, permissions, world borders"
+echo ""
+echo " NOTE: step 9 only updates .env's SEED value. Terrain comes from each"
+echo " dimension's own config (TROUBLESHOOTING.md#t31) — for this seed to"
+echo " reach the overworld, put it in"
+echo " config/custom-dimensions/dimensions/overworld.json (seed: \"env\")"
+echo " and deploy that BEFORE running this reset, or the world regenerates"
+echo " with the OLD terrain under a new seed value that changed nothing."
 echo ""
 echo " This is IRREVERSIBLE without restoring from the backup."
 echo "=================================================================="
@@ -149,40 +206,39 @@ echo ""
 echo "==> Starting world reset..."
 
 # =============================================================================
-# 2. Backup - restic snapshot via backup-now.sh
+# 2. Backup - restic snapshot via backup-now.sh (hot; needs mc up for save-off)
 # =============================================================================
-echo ""
-echo "==> Running restic backup on the droplet..."
-ssh -i "$SSH_KEY" "$REMOTE" "cd ${REMOTE_DIR} && bash ${STACK_SCRIPTS}/backup-now.sh" || {
-  echo "WARNING: Restic backup failed. Continuing with tar backup."
-}
+if [[ "$WIPE_BACKUPS" == true ]]; then
+  echo ""
+  echo "==> Skipping restic backup (--wipe-backups purges snapshots below)."
+else
+  echo ""
+  echo "==> Running restic backup on the droplet..."
+  if ssh -i "$SSH_KEY" "$REMOTE" "cd ${REMOTE_DIR} && bash ${STACK_SCRIPTS}/backup-now.sh"; then
+    # backup-now.sh only restarts the sidecar; the snapshot lands after
+    # INITIAL_DELAY. Wait for it before stopping the stack, or `down` kills the
+    # snapshot mid-flight. Bounded: 60 polls x 10s = 10 minutes, then continue.
+    echo "  Waiting for the snapshot to land (up to 10 minutes)..."
+    RESTIC_DONE=false
+    for _ in $(seq 1 60); do
+      if ssh -i "$SSH_KEY" "$REMOTE" "docker logs mc-backup --since 30m 2>&1 | grep -q 'snapshot .* saved'"; then
+        RESTIC_DONE=true
+        break
+      fi
+      sleep 10
+    done
+    if [[ "$RESTIC_DONE" == true ]]; then
+      echo "  Restic snapshot saved."
+    else
+      echo "WARNING: No 'snapshot saved' line within 10 minutes. Continuing with the tar backup."
+    fi
+  else
+    echo "WARNING: Restic backup failed. Continuing with the tar backup."
+  fi
+fi
 
 # =============================================================================
-# 3. Backup - tar.gz snapshot of data/ on the droplet
-# =============================================================================
-BACKUP_NAME="pre-reset-${CURRENT_SEED}-${STAMP}.tar.gz"
-BACKUP_PATH="backups/${BACKUP_NAME}"
-
-echo ""
-echo "==> Creating tar.gz backup on the droplet: ${BACKUP_PATH}"
-ssh -i "$SSH_KEY" "$REMOTE" "cd ${REMOTE_DIR} && mkdir -p backups && tar czf ${BACKUP_PATH} \
-  --exclude='data/unmined-web' \
-  --exclude='data/mods' \
-  --exclude='data/libraries' \
-  --exclude='data/versions' \
-  --exclude='data/logs' \
-  --exclude='data/crash-reports' \
-  --exclude='data/DistantHorizons' \
-  --exclude='data/DistantHorizons.sqlite' \
-  --exclude='data/poi' \
-  --exclude='data/ledger.sqlite' \
-  --exclude='data/dynamic-data-pack-cache' \
-  --exclude='data/kuma' \
-  data/"
-echo "  Backup saved to ${REMOTE_DIR}/${BACKUP_PATH}"
-
-# =============================================================================
-# 4. Stop all containers on the droplet
+# 3. Stop all containers on the droplet
 # =============================================================================
 echo ""
 echo "==> Stopping all containers on the droplet..."
@@ -191,26 +247,105 @@ ssh -i "$SSH_KEY" "$REMOTE" "cd ${REMOTE_DIR} && docker compose --project-direct
 echo "  Containers stopped."
 
 # =============================================================================
+# 4. Backup - cold tar.gz snapshot of data/ on the droplet
+# =============================================================================
+BACKUP_NAME="pre-reset-${CURRENT_SEED}-${STAMP}.tar.gz"
+BACKUP_PATH="backups/${BACKUP_NAME}"
+
+echo ""
+echo "==> Creating tar.gz backup on the droplet: ${BACKUP_PATH}"
+# tar exit 1 is the "some files differ" warning class; only >=2 is fatal.
+# Nothing should be writing now that the stack is down, but a stray writer must
+# not abort the reset after the containers have already stopped.
+TAR_STATUS=0
+ssh -i "$SSH_KEY" "$REMOTE" "cd ${REMOTE_DIR} && mkdir -p backups && tar czf ${BACKUP_PATH} \
+  --exclude='data/unmined-web' \
+  --exclude='data/mods' \
+  --exclude='data/libraries' \
+  --exclude='data/versions' \
+  --exclude='data/logs' \
+  --exclude='data/crash-reports' \
+  --exclude='data/world/data/DistantHorizons.sqlite*' \
+  --exclude='data/world/poi' \
+  --exclude='data/world/ledger.sqlite' \
+  --exclude='data/dynamic-data-pack-cache' \
+  --exclude='data/kuma' \
+  data/" || TAR_STATUS=$?
+# The DH/poi/ledger excludes above are paths INSIDE data/world/, not at the
+# top level of data/ — a tar --exclude naming a nonexistent top-level path
+# silently excludes nothing.
+if [[ "$TAR_STATUS" -ge 2 ]]; then
+  echo "ERROR: tar failed (exit ${TAR_STATUS}). Refusing to delete the world without a backup."
+  echo "       The stack is stopped. Bring it back with:"
+  echo "       ssh -i $SSH_KEY ${REMOTE} 'cd ${REMOTE_DIR} && docker compose --project-directory ${REMOTE_DIR} -f ${COMPOSE_FILE} --profile cloud up -d'"
+  exit 1
+fi
+[[ "$TAR_STATUS" -eq 1 ]] && echo "  NOTE: tar reported changed files (exit 1); archive written."
+echo "  Backup saved to ${REMOTE_DIR}/${BACKUP_PATH}"
+
+# =============================================================================
 # 5. Delete world + player + regenerable data
 # =============================================================================
 echo ""
 echo "==> Deleting world and player data on the droplet..."
 
-ssh -i "$SSH_KEY" "$REMOTE" "cd ${REMOTE_DIR} && \
-  rm -rf data/world/ data/world_the_nether/ data/world_the_end/ data/dimensions/ && \
-  rm -rf data/playerdata/ data/stats/ data/advancements/ && \
-  rm -rf data/unmined-web/maps/ data/unmined-web/index.html && \
-  rm -f  data/.chunky-complete data/.chunky-nether-complete data/.chunky-end-complete data/.chunky-paradise-lost-complete && \
-  rm -f  data/.skip-pause && \
-  rm -rf data/config/chunky/tasks/ && \
-  rm -rf data/DistantHorizons/ data/DistantHorizons.sqlite && \
-  rm -rf data/poi/ data/ledger.sqlite data/dynamic-data-pack-cache/"
+# sudo: sidecars write as root inside their containers, so data/unmined-web is
+# root-owned and DEPLOY_USER cannot remove it. Statements are separated by ';'
+# not '&&' — chaining meant one Permission denied skipped every later deletion
+# and, under set -e, aborted the reset with the world already gone and the
+# stack still down.
+# data/world/ alone accounts for the overworld, DIM-1/DIM1 (nether/end),
+# dimensions/<ns>/<slug>/ (every custom dimension incl. paradise_lost),
+# playerdata/stats/advancements, modplayerdata, essentialcommands,
+# ec_player_profiles, and data/world/data/ (openpartiesandclaims claims,
+# DistantHorizons.sqlite, poi, ledger.sqlite, level.dat). Everything else
+# here is a genuinely separate top-level path.
+ssh -i "$SSH_KEY" "$REMOTE" "cd ${REMOTE_DIR}; \
+  sudo rm -rf data/world/; \
+  sudo rm -rf data/unmined-web/maps/ data/unmined-web/index.html data/unmined-web/manifest.json; \
+  sudo rm -f  data/.chunky-complete data/.chunky-nether-complete data/.chunky-end-complete data/.chunky-paradise-lost-complete; \
+  sudo rm -f  data/.skip-pause; \
+  sudo rm -rf data/config/chunky/tasks/; \
+  sudo rm -f  data/config/portal_links.json data/config/custom-dimensions-fingerprints.json; \
+  sudo rm -rf data/dynamic-data-pack-cache/; \
+  sudo rm -rf data/.dimension-setup/"
 
-echo "  Deleted: world data (all dimensions)"
-echo "  Deleted: player data (playerdata, stats, advancements)"
-echo "  Deleted: uNmINeD map renders (regenerated on the next render pass)"
+# Verify rather than trust: a partial delete leaves the old world in place and
+# the new seed would silently generate nothing.
+LEFTOVERS="$(ssh -i "$SSH_KEY" "$REMOTE" "cd ${REMOTE_DIR} && ls -d data/world data/unmined-web/maps data/unmined-web/manifest.json data/config/chunky/tasks data/dynamic-data-pack-cache data/.dimension-setup 2>/dev/null" || true)"
+if [[ -n "$LEFTOVERS" ]]; then
+  echo "ERROR: these paths survived deletion:"
+  echo "$LEFTOVERS" | sed 's/^/         /'
+  echo "       Remove them by hand, then re-run deploy.sh to bring the stack up:"
+  echo "       ssh -i $SSH_KEY ${REMOTE} 'cd ${REMOTE_DIR}/.stack/current/stack && bash scripts/deploy.sh --pull --non-interactive'"
+  exit 1
+fi
+
+echo "  Deleted: data/world/ (every dimension's terrain, player data, DH cache, POI, ledger, level.dat)"
+echo "  Deleted: uNmINeD map renders and manifest (regenerated on the next render pass)"
 echo "  Deleted: Chunky markers, task state, .skip-pause"
-echo "  Deleted: Distant Horizons, POI, ledger, dynamic-data-pack-cache"
+echo "  Deleted: dynamic-data-pack-cache"
+echo "  Deleted: per-dimension deploy-setup markers (deploy.sh will re-run 'dimension load' for all of them)"
+echo "  Deleted: portal links and dimension fingerprints (rewritten on next boot)"
+
+# =============================================================================
+# 5b. Wipe Discord channels — the old world's chat and notifications
+# =============================================================================
+echo ""
+echo "==> Wiping old-world bot/webhook messages from Discord..."
+WIPE_CHANNELS="${DISCORD_CHANNEL_ID:-}"
+if [[ -n "${DISCORD_CHAT_CHANNEL_ID:-}" && "${DISCORD_CHAT_CHANNEL_ID}" != "${DISCORD_CHANNEL_ID:-}" ]]; then
+  WIPE_CHANNELS="${WIPE_CHANNELS} ${DISCORD_CHAT_CHANNEL_ID}"
+fi
+if [[ -z "${WIPE_CHANNELS// /}" || -z "${DISCORD_BOT_TOKEN:-}" ]]; then
+  echo "  Skipped: DISCORD_CHANNEL_ID / DISCORD_BOT_TOKEN not configured."
+else
+  # Fire and forget — a Discord outage or rate limit never blocks a reset.
+  for channel in $WIPE_CHANNELS; do
+    bash "$SCRIPT_DIR/discord-cleanup.sh" "$channel" || \
+      echo "  WARNING: cleanup of channel ${channel} failed — continuing."
+  done
+fi
 
 # =============================================================================
 # 6. Update seed everywhere
@@ -223,12 +358,13 @@ else
   echo "==> Updating seed: ${CURRENT_SEED} -> ${NEW_SEED}"
 
   # --- .env (local) ---------------------------------------------------------------
+  # Single-quoted, per the .env writing convention (env_quote in lib.sh).
   cp -p .env ".env.bak.${STAMP}"
-  sed_i "s/^SEED=.*/SEED=${NEW_SEED}/" .env
+  sed_i "s/^SEED=.*/SEED='${NEW_SEED}'/" .env
   echo "  Updated .env (backed up to .env.bak.${STAMP})"
 
   # --- .env on the droplet --------------------------------------------------------
-  ssh -i "$SSH_KEY" "$REMOTE" "cd ${REMOTE_DIR} && cp -p .env .env.bak.${STAMP} && sed -i 's/^SEED=.*/SEED=${NEW_SEED}/' .env"
+  ssh -i "$SSH_KEY" "$REMOTE" "cd ${REMOTE_DIR} && cp -p .env .env.bak.${STAMP} && sed -i \"s/^SEED=.*/SEED='${NEW_SEED}'/\" .env"
   echo "  Updated .env on droplet (backed up to .env.bak.${STAMP})"
 fi
 

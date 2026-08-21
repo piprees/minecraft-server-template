@@ -1,17 +1,178 @@
 {
   "type": "multi_biome",
-  "description": "Gravel, basalt, and ash where it all went wrong. A ruined portal near the border, stone ruins, a dead mineshaft — the remains of something that tried to exist here and couldn't. Nobody could live here. Nothing organised survives.",
-  "seed": 5190387473893419670,
+  "description": "Gravel, basalt, and ash where it all went wrong. A ruined portal near the border, stone ruins, a dead mineshaft \u2014 the remains of something that tried to exist here and couldn't. Nobody could live here. Nothing organised survives.",
+  "seed": 6109191243100809656,
   "noiseSettings": "adventure:compressed",
   "biomes": [
-    "terralith:gravel_desert",
-    "terralith:basalt_cliffs",
-    "terralith:ashen_savanna",
-    "terralith:volcanic_peaks",
-    "minecraft:windswept_gravelly_hills",
-    "minecraft:stony_shore",
-    "terralith:rocky_shrubland",
-    "terralith:cold_shrubland"
+    {
+      "id": "regions_unexplored:outback",
+      "parameters": {
+        "weirdness": [
+          -2.0,
+          -1.4
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "terralith:gravel_desert",
+      "parameters": {
+        "weirdness": [
+          -1.4,
+          -1.235
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "terralith:basalt_cliffs",
+      "parameters": {
+        "weirdness": [
+          -1.235,
+          -1.07
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "terralith:ashen_savanna",
+      "parameters": {
+        "weirdness": [
+          -1.07,
+          -0.905
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "terralith:volcanic_peaks",
+      "parameters": {
+        "weirdness": [
+          -0.905,
+          -0.74
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "minecraft:windswept_gravelly_hills",
+      "parameters": {
+        "weirdness": [
+          -0.74,
+          -0.575
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "minecraft:stony_shore",
+      "parameters": {
+        "weirdness": [
+          -0.575,
+          -0.41
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "terralith:rocky_shrubland",
+      "parameters": {
+        "weirdness": [
+          -0.41,
+          -0.245
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "terralith:cold_shrubland",
+      "parameters": {
+        "weirdness": [
+          -0.245,
+          -0.08
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:mauve_hills",
+      "parameters": {
+        "weirdness": [
+          -0.08,
+          0.2
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:chalk_cliffs",
+      "parameters": {
+        "weirdness": [
+          0.2,
+          2.0
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "terralith:cave/andesite_caves",
+      "parameters": {
+        "weirdness": [
+          -2.0,
+          -0.045
+        ],
+        "depth": [
+          0.1,
+          2.0
+        ]
+      }
+    },
+    {
+      "id": "minecraft:dripstone_caves",
+      "parameters": {
+        "weirdness": [
+          -0.045,
+          2.0
+        ],
+        "depth": [
+          0.1,
+          2.0
+        ]
+      }
+    }
   ],
   "borders": {
     "player": 1024,
@@ -38,6 +199,11 @@
         "structure": "minecraft:mineshaft",
         "x": -718,
         "z": -389
+      },
+      {
+        "structure": "betterdungeons:zombie_dungeon",
+        "x": 678,
+        "z": -412
       }
     ],
     "clearSpawnRadius": 256
@@ -57,7 +223,8 @@
   },
   "environment": {
     "fogColor": "#8B7B6B",
-    "ambientLight": 0.18
+    "ambientLight": 0.18,
+    "bedWorks": false
   },
   "seedRoll": {
     "mood": "desolate",
@@ -72,13 +239,6 @@
       "terralith:cold_shrubland"
     ],
     "water": "none",
-    "wants": {
-      "ruined_portal": "near_spawn",
-      "field_ruins": "spread",
-      "mineshaft": "spread",
-      "scorched_tomb": "near_border",
-      "badlands_ruins": "spread"
-    },
     "shuns": [
       "village",
       "tavern",
@@ -87,12 +247,20 @@
       "mansion",
       "monument",
       "coliseum"
-    ],
-    "description": "Gravel, basalt, and ash where it all went wrong. A ruined portal near the border, stone ruins, a dead mineshaft — the remains of something that tried to exist here and couldn't. Nobody could live here. Nothing organised survives."
+    ]
   },
   "spawn": [
-    0,
-    64,
-    0
+    448,
+    128,
+    448
+  ],
+  "biomePatches": [
+    {
+      "biome": "minecraft:eroded_badlands",
+      "x": 678,
+      "z": -412,
+      "radius": 96,
+      "blend": 24
+    }
   ]
 }

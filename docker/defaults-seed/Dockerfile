@@ -24,8 +24,9 @@ COPY config/datapacks/    /defaults/config/datapacks/
 # extractors/ (authoring-only worldgen extraction data, ~2.6MB) is deliberately
 # excluded — the mod never reads it, and deploy.sh/dev-up.sh already skip it
 # when syncing data/config, so it would only ever bloat this image.
-COPY config/custom-dimensions/settings.json    /defaults/config/custom-dimensions/settings.json
-COPY config/custom-dimensions/dimensions/      /defaults/config/custom-dimensions/dimensions/
+COPY config/custom-dimensions/settings.json      /defaults/config/custom-dimensions/settings.json
+COPY config/custom-dimensions/display-names.json /defaults/config/custom-dimensions/display-names.json
+COPY config/custom-dimensions/dimensions/        /defaults/config/custom-dimensions/dimensions/
 # Noise-placement data. The MOD reads its own jar-baked copies of both, so
 # these are not the runtime source — they ship because the seed roller reads
 # them, and in consumer mode the roller resolves config from
@@ -47,6 +48,13 @@ COPY config/lootr/                     /defaults/config/lootr/
 COPY config/groundclear/               /defaults/config/groundclear/
 COPY config/nametagtweaks/             /defaults/config/nametagtweaks/
 COPY config/betterdays/                /defaults/config/betterdays/
+COPY config/betterfortresses-fabric-1_21.toml     /defaults/config/betterfortresses-fabric-1_21.toml
+COPY config/betterjungletemples-fabric-1_21.toml  /defaults/config/betterjungletemples-fabric-1_21.toml
+COPY config/bettermineshafts-fabric-1_21.toml     /defaults/config/bettermineshafts-fabric-1_21.toml
+COPY config/betteroceanmonuments-fabric-1_21.toml /defaults/config/betteroceanmonuments-fabric-1_21.toml
+COPY config/betterdeserttemples-fabric-1_21.toml  /defaults/config/betterdeserttemples-fabric-1_21.toml
+COPY config/betterwitchhuts-fabric-1_21.toml      /defaults/config/betterwitchhuts-fabric-1_21.toml
+COPY config/betterdungeons-fabric-1_21.toml       /defaults/config/betterdungeons-fabric-1_21.toml
 COPY config/openpartiesandclaims/      /defaults/config/openpartiesandclaims/
 COPY config/boring_default_game_rules/ /defaults/config/boring_default_game_rules/
 COPY config/voicechat/                 /defaults/config/voicechat/

@@ -6,8 +6,6 @@ name: Release Bundle
 # attached, then publishes it. This is the only order that works with
 # immutable releases (assets cannot be added after publish - and consumers
 # get the supply-chain guarantee that a published bundle never changes).
-# Publishing the draft fires the `release: published` event, which triggers
-# publish.yml to build and tag the container images.
 on:
   workflow_dispatch:
     inputs:
@@ -34,6 +32,11 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v7
+        with:
+          # git-cliff needs full history; checkout defaults to --depth=1,
+          # which truncates the notes and CHANGELOG to a single commit. The
+          # "Fetch tags for changelog" step below restores tags, not depth.
+          fetch-depth: 0
 
       - name: Validate version
         run: |
@@ -57,13 +60,18 @@ jobs:
         # build/devlibs/. Dev jars use Yarn named mappings and carry no refmap,
         # so every mixin fails on a production server (intermediary names) and
         # the server crash-loops at boot.
+        # -Pmod_version is what gives an artefact's stackVersion stamp meaning:
+        # the jar reports the release that built it, so a checker can tell a
+        # census from this stack from one an earlier stack left on disk.
         run: |
           mkdir -p dist/local-mods
+          MOD_VERSION="${{ inputs.version }}"
+          MOD_VERSION="${MOD_VERSION#v}"
           while IFS='|' read -r JAR_NAME PROJECT REF_MAP; do
             [[ -z "$JAR_NAME" || "$JAR_NAME" == \#* ]] && continue
             (
               cd "mods/$PROJECT"
-              gradle build
+              gradle build -Pmod_version="$MOD_VERSION"
               JAR=$(find build/libs -name '*.jar' ! -name '*-sources.jar' ! -name '*-dev.jar')
               cp "$JAR" "../../dist/local-mods/$JAR_NAME"
             )
@@ -104,7 +112,12 @@ jobs:
         uses: orhun/git-cliff-action@v4.8.0
         with:
           version: v2.13.1
-          args: --latest --strip header -o dist/RELEASE_NOTES.md
+          # --unreleased --tag, not --latest: this runs BEFORE the release
+          # is created, so the version being cut has no tag yet and --latest
+          # resolves to the PREVIOUS release (v4.3.1 shipped v4.3.0's notes).
+          args: >-
+            --unreleased --tag ${{ inputs.version }}
+            --strip header -o dist/RELEASE_NOTES.md
 
       - name: Fetch tags for changelog
         run: git fetch --tags --force
@@ -116,7 +129,9 @@ jobs:
         uses: orhun/git-cliff-action@v4.8.0
         with:
           version: v2.13.1
-          args: -o CHANGELOG.md
+          # --tag for the same reason: without it the version being released
+          # lands under an "Unreleased" heading in CHANGELOG.md.
+          args: --tag ${{ inputs.version }} -o CHANGELOG.md
 
       - name: Create draft release with assets, then publish
         run: |

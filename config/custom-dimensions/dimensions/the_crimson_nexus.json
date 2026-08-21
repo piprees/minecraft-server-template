@@ -1,7 +1,7 @@
 {
   "type": "multi_biome",
-  "description": "A nexus where the piglin nether bleeds through into overworld rock. Scarred badlands and volcanic scars under an open sky, and a fortress standing where it has no business standing — as if punched through from the other side.",
-  "seed": 6802233275268905437,
+  "description": "A nexus where the piglin nether bleeds through into overworld rock. Scarred badlands and volcanic scars under an open sky, and a fortress standing where it has no business standing \u2014 as if punched through from the other side.",
+  "seed": -5917454412537810890,
   "noiseSettings": "adventure:compressed",
   "biomes": [
     "terralith:warped_mesa",
@@ -12,22 +12,58 @@
     "terralith:ashen_savanna",
     "minecraft:eroded_badlands",
     "minecraft:badlands",
-    "terralith:yellowstone"
+    "terralith:yellowstone",
+    {
+      "id": "regions_unexplored:redstone_abyss",
+      "parameters": {
+        "weirdness": [
+          -0.19,
+          -0.1
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:arid_mountains",
+      "parameters": {
+        "weirdness": [
+          -0.1,
+          -0.03
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:outback",
+      "parameters": {
+        "weirdness": [
+          -0.03,
+          0.1
+        ]
+      }
+    },
+    "terralith:cave/thermal_caves",
+    "terralith:cave/mantle_caves"
   ],
   "borders": {
-    "player": 8192,
-    "generation": 8192
+    "player": 4096,
+    "generation": 4096
   },
   "difficulty": {
     "mobMultiplier": 1.5,
-    "playerLuck": 1.6
+    "playerLuck": 1.6,
+    "depthScaling": {
+      "enabled": true,
+      "startY": 40,
+      "endY": -60,
+      "minMultiplier": 1.5,
+      "maxMultiplier": 2.6
+    }
   },
   "portal": {
     "frameBlock": "minecraft:nether_bricks",
     "igniterItem": "minecraft:flint_and_steel",
     "color": "AF2B2B",
     "lightLevel": 11,
-    "scale": 1.0,
+    "scale": 2.0,
     "cooldown": 40,
     "sounds": {
       "ignite": "block.portal.trigger",
@@ -39,11 +75,30 @@
     }
   },
   "structures": {
+    "radial": {
+      "dungeons": [
+        2.8,
+        2.3,
+        1.9,
+        1.6,
+        1.35,
+        1.15,
+        0.95,
+        0.8,
+        0.65,
+        0.55
+      ]
+    },
     "force": [
       {
         "structure": "minecraft:fortress",
         "x": 287,
         "z": -64
+      },
+      {
+        "structure": "mns:crimson_forge",
+        "x": -410,
+        "z": 705
       }
     ]
   },
@@ -55,7 +110,6 @@
       "terralith:volcanic_crater"
     ],
     "wants": {
-      "fortress": "near_spawn",
       "wizard_tower": "spread",
       "ancient_temple": "spread",
       "keep_kayra": "near_border",
@@ -65,12 +119,14 @@
     "shuns": [
       "village",
       "monument"
-    ],
-    "description": "A nexus where the piglin nether bleeds through into overworld rock. Scarred badlands and volcanic scars under an open sky, and a fortress standing where it has no business standing — as if punched through from the other side."
+    ]
   },
   "spawn": [
-    0,
-    64,
-    0
-  ]
+    512,
+    122,
+    -256
+  ],
+  "environment": {
+    "respawnAnchorWorks": true
+  }
 }

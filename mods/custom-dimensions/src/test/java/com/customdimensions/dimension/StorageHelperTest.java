@@ -8,10 +8,7 @@ class StorageHelperTest {
 
     @Test
     void shutdownDoesNotThrow() {
-        // StorageHelper.shutdown() should be idempotent and safe to call
-        // even if the pool has already been shut down.
-        // Note: calling shutdown() in tests may affect other tests if they
-        // use the IO pool, but getDimensionDirectory doesn't need the pool.
+        // shutdown() must be idempotent and safe even if already shut down.
         assertDoesNotThrow(StorageHelper::shutdown);
     }
 }

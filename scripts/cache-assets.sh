@@ -413,7 +413,7 @@ fi
 if [[ $DO_MODS -eq 1 ]]; then
   echo ""
   echo " Server mods:    cache/server-mods/"
-  echo "   Pre-seed with: cp cache/server-mods/*.jar data/mods/"
+  echo "   Pre-seeded into data/mods/ automatically by ./dev up — never copy by hand"
 fi
 if [[ $DO_CLIENT -eq 1 ]]; then
   echo ""

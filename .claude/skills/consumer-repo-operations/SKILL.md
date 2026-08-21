@@ -54,7 +54,7 @@ Full merge semantics, worked examples, and the client-pack patch schema are in [
 | Branding (`.env` `BRAND_*`/`MOTD`, `overlay/assets/`) | Game rules (`config/boring_default_game_rules/`) |
 | Client mod add/remove for an **already-catalogued** slug (`overlay/modpack/manifest.json` `add`/`remove`) | A genuinely new client mod entering the catalogue, or anything needing `_clientMods.stableOnly`/`holds` |
 | Custom dimensions: add, override, or disable per-file (`overlay/config/custom-dimensions/dimensions/`) | Platform-default dimension files (`config/custom-dimensions/dimensions/`) |
-| World seed / reset (`.env` `SEED` + `./ops reset-seed`) | LuckPerms permission defaults |
+| World seed / reset (dimension config `seed`/`spawn`, `.env` `SEED`/`SPAWN_*` as legacy fallback, + `./ops reset-seed`) | LuckPerms permission defaults |
 | `.env` secrets and settings | Compose structure, scripts, Dockerfiles |
 
 ## Platform-owned files `./dev update` overwrites
@@ -66,6 +66,7 @@ Full merge semantics, worked examples, and the client-pack patch schema are in [
 | Command | Scope | What it actually does |
 | --- | --- | --- |
 | `./dev pull` | Local, bundle only | Fetches/refreshes `.stack/current` — no scaffold sync, no image pull |
+| `./dev link [path]` | Local, testing | **Run once per consumer.** Points `.stack/current` at a symlink farm over a platform checkout (`.stack/dev/stack`); the farm's entries are symlinks, one `local-mods/<jar>` per built mod jar included, so a rebuilt jar, an edited script and an edited compose file are all live on the next `./dev up` with no re-link. An edited `config/` file is not — that path is skip-if-exists and needs `./dev refresh-config`. `./dev up` shows a loud LINKED banner while active; deploy paths refuse a `dev` link. `./dev unlink` restores the newest pulled release, and `pull`/`update`/`rollback` undo the link as a side effect. Full workflow: the template repo's `.claude/skills/local-stack-testing/SKILL.md` § Linked local development |
 | `./dev update` | Local | `dev pull` + re-syncs the scaffold files above (write-to-temp + `mv`, never `cp` — see Trap 4) + `docker compose ... pull` for local-profile images |
 | `./ops update` | Production only | Ships and runs `remote-update.sh` on the server: pulls bundle + images, full redeploy |
 | `./ops sync` | Everything | `dev-up.sh down` → `dev update` → `github-env-sync.sh --allow-missing` → `ops update --quick` → `dev-up.sh up` — the one command that touches local, GitHub, and the server in sequence |
@@ -78,7 +79,7 @@ Full local + remote alignment is `./ops sync` — it touches production, which i
 
 ## Traps
 
-1. **Never hand-edit `data/mods/`.** Managed by Modrinth sync and bundle installs; your jar is overwritten on the next `./dev up` or deploy. Add mods via `overlay/mods-extra.txt` instead.
+1. **Never hand-place or delete a jar in `data/mods/`.** Managed by Modrinth sync and bundle installs: `dev-up.sh` reinstalls the bundle's (or the link's) jars and prunes every jar it cannot account for, so a hand-copied one is overwritten or deleted on the next `./dev up` or deploy. Third-party mods go in `overlay/mods-extra.txt`; an in-house mod you are developing goes in via `./dev link` (row above), never by copying a jar.
 2. **Never edit platform-owned scaffold files** (`dev`, `ops`, `.env.example`, `.gitignore`, `AGENTS.md`, `commands.json`, the three workflows). `./dev update` overwrites them silently — no error, no diff shown unless you run `git diff` yourself afterwards.
 3. **Your file diff usually doesn't decide the deploy tier.** A consumer repo has almost no deployable files of its own; most full deploys are driven by the resolved `STACK_VERSION` pin no longer matching the bundle the server is running (`readlink .stack/current` on the server) — a docs-only push made after a platform release lands is what actually rolls that release out.
 4. **A file added to `examples/consumer/` upstream reaches nobody** unless it's added to the sync list in the `update)` case of `examples/consumer/dev` (platform-side trap — `AGENTS.md:196` in the template repo — but you'll see the symptom here as "the new file never arrived" after `./dev update`).
@@ -86,7 +87,7 @@ Full local + remote alignment is `./ops sync` — it touches production, which i
 6. **The local consumer server is shared.** Check nobody is mid-test (`docker ps`, ask in Discord) before `./dev down` or restarting local containers — this isn't a personal sandbox.
 7. **A top-level `stack-pull.sh` in the consumer root is stale scaffold.** The puller now lives inside the bundle (`.stack/current/stack/scripts/stack-pull.sh`); `dev` only carries a minimal inline bootstrap for the very first pull. `./dev update` deletes a leftover root-level copy.
 8. **This repo's own `AGENTS.md` table oversells "Add a client mod: not here."** `overlay/modpack/manifest.json` genuinely can add or remove an existing-catalogue client mod (`{"add": {"required": ["slug:versionId"]}}` / `{"remove": ["slug"]}`) — verified against `docker/modpack-builder/merge-manifest.py`. Trust the patch-key list in `references/overlay-contract.md`, not the worked example in `overlay/modpack/README.md`, which shows the wrong JSON shape (a nested `_clientMods.required` object list) and will not do what it says.
-9. **`commands.json` doesn't list every command `ops` actually supports.** `shutdown`, `startup`, and `reboot` (power the cloud VPS off/on/restart) are in the `ops` script's allowlist and dispatch table and printed in `./ops help`, but have no entry in `commands.json`. If you're deriving a command list from `commands.json` alone, you'll miss these three real commands.
+9. **`commands.json` is an index, not the implementation.** It currently matches the `case` labels in `dev` and the `ALLOWED_COMMANDS` allowlist in `ops` exactly. If it ever drifts again, the scripts win and the JSON is what gets fixed — check `./dev help` / `./ops help` before trusting a command list derived from the JSON alone.
 
 ## Validation
 

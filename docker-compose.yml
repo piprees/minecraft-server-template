@@ -35,10 +35,15 @@ x-logging: &default-logging
 # --- Backup post-script: size cap + Discord notify (both backup sidecars) ---
 # Runs after every backup ($1 = backup exit code, itzg/mc-backup contract;
 # $$ is compose escaping for runtime vars).
-# 1. SIZE CAP: while the repo's raw size exceeds BACKUP_SIZE_CAP_GIB
-#    (default 10 — R2's free tier), forget the OLDEST snapshot and prune.
-#    Never touches the newest snapshot: a world genuinely bigger than the
-#    cap keeps exactly one copy and warns — raise the cap in .env instead.
+# 1. SIZE CAP: while the repo's raw size exceeds BACKUP_SIZE_CAP_GIB,
+#    forget the OLDEST snapshot and prune. Never touches the newest
+#    snapshot: a world genuinely bigger than the cap keeps exactly one copy
+#    and warns — raise the cap in .env instead.
+#    The default 80 GiB is a cost ceiling, not a technical one: R2 Standard
+#    bills $0.015/GB-month with the first 10 GB free, so a full repo at this
+#    cap costs about $1.14/month. R2 Infrequent Access is a false economy
+#    here — no free tier, $0.01/GB retrieval, and a 30-day minimum storage
+#    duration that bills every pruned pack in full.
 # 2. NOTIFY: one message per backup to DISCORD_WEBHOOK_URL (fire-and-forget,
 #    skipped when unset — e.g. local dev) with status, repo size, snapshot
 #    count, and any cap trims.
@@ -55,7 +60,7 @@ x-backup-post: &backup-post-script |
     notify ":x: **Backup FAILED** on \`$$(hostname)\` (exit $$1) — check \`docker logs mc-backup\`"
     exit 0
   fi
-  CAP_GIB="$${BACKUP_SIZE_CAP_GIB:-10}"
+  CAP_GIB="$${BACKUP_SIZE_CAP_GIB:-80}"
   CAP=$$(( CAP_GIB * 1024 * 1024 * 1024 ))
   TRIMMED=0
   WARN=""
@@ -111,7 +116,7 @@ services:
   # Uses the excellent itzg/minecraft-server image which handles Fabric
   # installation, mod loading via Modrinth, RCON, and graceful shutdown.
   #
-  # Present in BOTH profiles: local (seed-rolling) and cloud (production).
+  # Present in BOTH profiles: local and cloud (production).
   # The key difference is ONLINE_MODE - disabled locally so you don't need
   # a valid Mojang session for throwaway test worlds.
   # ==========================================================================
@@ -134,7 +139,7 @@ services:
 
       # --- Authentication ---
       # Production: ONLINE_MODE=TRUE (from .env) enforces Mojang auth.
-      # Local: ONLINE_MODE=FALSE (from .env) skips auth for seed-rolling.
+      # Local: ONLINE_MODE=FALSE (from .env) skips auth.
       ONLINE_MODE: "${ONLINE_MODE:-TRUE}"
 
       # --- Allowlist & operators ---
@@ -152,6 +157,11 @@ services:
 
       # --- World generation ---
       SEED: ${SEED:-}
+      # The seed roller's HTTP listener, off unless a profile turns it on.
+      # It has no authentication, can teleport a player and writes into the
+      # consumer overlay, so it belongs on a trusted LAN only — the local
+      # profile sets a real port, and nothing in the cloud profile does.
+      SEED_VIEWER_PORT: ${SEED_VIEWER_PORT:-0}
       # Consumer namespace for consumer-added dimension files in
       # overlay/config/custom-dimensions/ (custom-dimensions mod).
       BRAND_SLUG: ${BRAND_SLUG:-}
@@ -213,6 +223,12 @@ services:
     volumes:
       # Persistent world data, config, mods, logs - the lot.
       - ./data:/data
+      # Seed-rolling artefacts (custom-dimensions mod): candidates, events,
+      # lint reports. Sibling of /data so a config refresh cannot reach them.
+      # `./dev clean` still deletes them - the tree is gitignored and clean is
+      # `git clean -xdf`. The bank is a cache; the record of a choice is the
+      # winner seed written into the committed overlay.
+      - ${SEED_ROLLING_DIR:-./.seed-rolling}:/.seed-rolling
       # Merged modrinth mod list from the seed container.
       - stack-mods:/extras:ro
       # Seeded config (log4j2, etc.) - read-only.
@@ -310,12 +326,15 @@ services:
         --keep-daily ${RESTIC_RETENTION_DAILY:-3}
         --keep-weekly ${RESTIC_RETENTION_WEEKLY:-1}
         --keep-monthly ${RESTIC_RETENTION_MONTHLY:-1}
-      BACKUP_SIZE_CAP_GIB: "${BACKUP_SIZE_CAP_GIB:-10}"
+      BACKUP_SIZE_CAP_GIB: "${BACKUP_SIZE_CAP_GIB:-80}"
       POST_BACKUP_SCRIPT: *backup-post-script
       # Local dev: leave unset unless you want test-pack notifications too.
       DISCORD_WEBHOOK_URL: ${DISCORD_WEBHOOK_URL:-}
       RCON_HOST: mc
       RCON_PASSWORD: ${RCON_PASSWORD:-}
+      # Same excludes as mc-backup (below) - local verification should match
+      # what production actually does.
+      EXCLUDES: unmined-web,mods,libraries,versions,logs,crash-reports,kuma,DistantHorizons.sqlite,poi,ledger.sqlite,dynamic-data-pack-cache,.fabric
     volumes:
       - ./data:/data:ro
       - ./backups:/backups
@@ -336,7 +355,7 @@ services:
   # Uses RCON to issue save-off / save-on around snapshots so the world
   # files are consistent.
   #
-  # Cloud profile only - you don't need backups of throwaway seed-rolling
+  # Cloud profile only - you don't need backups of a throwaway local
   # worlds.
   # ==========================================================================
   mc-backup:
@@ -370,14 +389,15 @@ services:
         --keep-monthly ${RESTIC_RETENTION_MONTHLY:-1}
 
       # --- Hard size cap + Discord notify (see x-backup-post at the top) ---
-      BACKUP_SIZE_CAP_GIB: "${BACKUP_SIZE_CAP_GIB:-10}"
+      BACKUP_SIZE_CAP_GIB: "${BACKUP_SIZE_CAP_GIB:-80}"
       POST_BACKUP_SCRIPT: *backup-post-script
       DISCORD_WEBHOOK_URL: ${DISCORD_WEBHOOK_URL:-}
 
       # --- Exclude regenerable data from backups ---
       # Only world/ and config/ are irreplaceable; everything else is
-      # re-downloaded or regenerated on deploy.
-      EXCLUDES: unmined-web,mods,libraries,versions,logs,crash-reports,kuma,DistantHorizons.sqlite,poi,ledger.sqlite,dynamic-data-pack-cache
+      # re-downloaded or regenerated on deploy. .fabric is the Fabric
+      # installer's own cache, rebuilt by TYPE:FABRIC on every boot.
+      EXCLUDES: unmined-web,mods,libraries,versions,logs,crash-reports,kuma,DistantHorizons.sqlite,poi,ledger.sqlite,dynamic-data-pack-cache,.fabric
 
       # --- RCON connection to the game server ---
       RCON_HOST: mc
@@ -464,11 +484,11 @@ services:
   # ==========================================================================
   # unmined-render - Scheduled static map renders (uNmINeD CLI)
   # ==========================================================================
-  # Renders every base world + on-disk custom dimension to a static web map
+  # Renders every on-disk dimension to a static web map
   # (webp tiles, self-contained viewer) in ./data/unmined-web on an interval.
   # Incremental: only changed regions re-render; unchanged dimensions are
   # skipped entirely. Renders are clamped to borders.generation (custom
-  # dims) / PREGEN_BORDER_RADIUS (base worlds). nav-proxy serves the output
+  # dims) / PREGEN_BORDER_RADIUS (the four reserved ones). nav-proxy serves the output
   # (SPA shell + tiles) as map.DOMAIN — plain files, edge-cacheable, always
   # up regardless of mc's state.
   #
@@ -512,6 +532,17 @@ services:
     environment:
       DOMAIN: ${DOMAIN:-example.com}
       BRAND_NAME: ${BRAND_NAME:-Adventure Server}
+      # The nav links are absolute because one nginx serves every subdomain,
+      # so they carry whatever scheme and port the browser actually reached
+      # us on. Cloud is https on the default port; the local profile is http
+      # on WEB_PORT and overrides both. Must stay DEFINED even when empty —
+      # nginx's envsubst only substitutes variables present in the
+      # environment and leaves an undefined ${...} in the rendered config.
+      NAV_SCHEME: ${NAV_SCHEME:-https}
+      NAV_PORT: ${NAV_PORT:-}
+      # Extra entries appended to every surface's nav bar. Empty here: the
+      # only current user is the seed roller, which is local-profile only.
+      NAV_EXTRA_LINKS: ${NAV_EXTRA_LINKS:-}
     # No mc dependency: the map is static files, so nav-proxy serves it
     # nav-proxy has no mc upstream — web services come up (and stay up)
     # independently of the game server.

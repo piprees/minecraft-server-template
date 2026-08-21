@@ -200,3 +200,20 @@ require_provider_cli() {
       ;;
   esac
 }
+
+# --- Mod jar cache -----------------------------------------------------------
+# ONE place every mod jar is downloaded to, shared by every consumer on the
+# machine and by CI. Modrinth is free infrastructure we lean on heavily; each
+# extra download path is another way to hammer it and another way for CI to
+# fail on rate limits.
+#
+# Everything that needs jars reads from here and copies out what it needs —
+# the server set, the client+server mirror, the warmup container. Those are
+# different SUBSETS, but they are all filled from this one download.
+#
+# Override with MOD_CACHE_DIR (CI points it at a cached workspace path).
+mod_cache_dir() {
+  local dir="${MOD_CACHE_DIR:-$HOME/.cache/adventure-mods}"
+  mkdir -p "$dir"
+  printf '%s' "$dir"
+}

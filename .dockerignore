@@ -14,8 +14,6 @@ seed-results.csv
 seed-errors.log
 seed-results.csv.lock
 seed-errors.log.lock
-seedtest-data/
-seedtest-data-*/
 
 # Not referenced by any Dockerfile COPY (all six build with context: . but
 # only ever copy from config/, scripts/, modpack/, assets/, docker/) —
@@ -48,3 +46,5 @@ __pycache__/
 *.bak.*
 config/custom-dimensions/extractors/
 config/custom-dimensions/candidates/
+
+.seed-rolling/

@@ -1,7 +1,7 @@
 {
   "type": "multi_biome",
-  "description": "The gauntlet — the hardest overworld there is. Brutal peaks, ancient cities, trial chambers, and a keep. Every reward is guarded. The humans who built here were testing themselves, not settling.",
-  "seed": 9206337873968108447,
+  "description": "The gauntlet \u2014 the hardest overworld there is. Brutal peaks, ancient cities, trial chambers, and a keep. Every reward is guarded. The humans who built here were testing themselves, not settling.",
+  "seed": 1211742291245554745,
   "noiseSettings": "adventure:compressed",
   "biomes": [
     "minecraft:windswept_hills",
@@ -21,7 +21,34 @@
     "terralith:white_cliffs",
     "terralith:scarlet_mountains",
     "minecraft:eroded_badlands",
-    "terralith:windswept_spires"
+    "terralith:windswept_spires",
+    {
+      "id": "regions_unexplored:towering_cliffs",
+      "parameters": {
+        "weirdness": [
+          -0.19,
+          -0.1
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:spires",
+      "parameters": {
+        "weirdness": [
+          -0.1,
+          -0.02
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:icy_heights",
+      "parameters": {
+        "weirdness": [
+          -0.02,
+          0.1
+        ]
+      }
+    }
   ],
   "borders": {
     "player": 2048,
@@ -39,6 +66,12 @@
     }
   },
   "structureDensity": "dense",
+  "structures": {
+    "terrainAdaptation": {
+      "dungeons_arise:keep_kayra": "pedestal",
+      "nova_structures:lone_citadel": "pedestal"
+    }
+  },
   "portal": {
     "frameBlock": "minecraft:oxidized_copper",
     "igniterItem": "minecraft:diamond",
@@ -61,6 +94,7 @@
   },
   "seedRoll": {
     "mood": "hard",
+    "allowHazardousSpawn": true,
     "spawnFilter": [
       "minecraft:jagged_peaks",
       "minecraft:frozen_peaks",
@@ -86,12 +120,11 @@
       "village",
       "tavern",
       "farmstead"
-    ],
-    "description": "The gauntlet — the hardest overworld there is. Brutal peaks, ancient cities, trial chambers, and a keep. Every reward is guarded. The humans who built here were testing themselves, not settling."
+    ]
   },
   "spawn": [
-    0,
-    64,
-    0
+    -128,
+    16,
+    128
   ]
 }

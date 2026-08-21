@@ -107,15 +107,7 @@ public final class StructureGroupRegistry {
         return classify(setId, spacing).rarity();
     }
 
-    /**
-     * Spacing to rarity tier.
-     *
-     * MIRRORED from rarity_for() in scripts/gen-structure-groups.py and
-     * scripts/seed/structure_placement.py — change all three together. A
-     * negative spacing means "not a random-spread placement", which lands on
-     * `uncommon`: the middle tier, so an unclassifiable set neither floods
-     * its group nor vanishes from it.
-     */
+    /** Spacing to rarity tier. */
     public static String rarityForSpacing(int spacing) {
         if (spacing < 0) {
             return "uncommon";
@@ -151,7 +143,17 @@ public final class StructureGroupRegistry {
                                double hostileMinMobMultiplier,
                                Map<String, String> hostileRadial,
                                double peacefulMaxMobMultiplier,
-                               Map<String, String> peacefulProfiles) {
+                               Map<String, String> peacefulProfiles,
+                               Map<String, String> terrainAdaptation) {
+    }
+
+    /**
+     * Theme (group) -> terrain-adaptation defaults, applied to structures
+     * whose registry value is "none" (TerrainAdaptationOverride). Empty when
+     * the jar table carries no block.
+     */
+    public static Map<String, String> terrainAdaptationDefaults() {
+        return defaults().terrainAdaptation();
     }
 
     public record GroupDefault(String profile, String radial, int exclusion) {
@@ -216,7 +218,7 @@ public final class StructureGroupRegistry {
 
     private static TypeDefaults empty() {
         return new TypeDefaults(Map.of(), Map.of(), Map.of(), Map.of(),
-                Double.MAX_VALUE, Map.of(), -1.0, Map.of());
+                Double.MAX_VALUE, Map.of(), -1.0, Map.of(), Map.of());
     }
 
     private static TypeDefaults parse(JsonObject root) {
@@ -269,7 +271,8 @@ public final class StructureGroupRegistry {
                 hostile.get("minMobMultiplier").getAsDouble(),
                 stringMap(hostile.getAsJsonObject("radial")),
                 peaceful.get("maxMobMultiplier").getAsDouble(),
-                stringMap(peaceful.getAsJsonObject("profiles")));
+                stringMap(peaceful.getAsJsonObject("profiles")),
+                stringMap(root.getAsJsonObject("terrainAdaptation")));
     }
 
     private static Map<String, String> stringMap(JsonObject o) {

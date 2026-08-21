@@ -10,24 +10,30 @@ One recipe per row of the decision table in `SKILL.md`. Each ends with a verific
 
 ## 1. An in-house mod jar (`mods/custom-dimensions/`)
 
-Never `./dev up` for this — it overwrites `data/mods/<mod>.jar` from the bundle's `stack/local-mods/` on every run (2026-07-25 incident: a whole lazy-init feature looked broken across four boot cycles because every test ran the old bundle jar).
+Link the consumer once, then build and `./dev up`. Full workflow, including what the link does and does not reach: `SKILL.md` § Linked local development.
 
 ```bash
-cd mods/custom-dimensions
+cd ~/Projects/elfydd && ./dev link        # once per consumer; readlink .stack/current -> dev
+
+cd ~/Projects/minecraft-server-template/mods/custom-dimensions
 mise exec -- ./gradlew build
-unzip -l build/libs/customdimensions-*.jar | grep -c '\.class$'   # not 0
+unzip -l build/libs/customdimensions-*.jar | grep -c '\.class$'   # CI's floor is 10
 unzip -l build/libs/customdimensions-*.jar | grep refmap          # must be present
 
-cp build/libs/customdimensions-*.jar <consumer>/data/mods/customdimensions.jar
-docker stop mc && docker start mc      # or: docker restart mc
-sleep 45
+cd ~/Projects/elfydd
+./dev up
+ls data/mods | grep customdimensions                    # exactly one line
 docker inspect mc --format '{{.State.Health.Status}}'   # must be healthy
-docker logs mc 2>&1 | grep -iE 'mixin apply|customdimensions|error' | tail -20
+docker logs mc --tail 80 2>&1 | grep -iE 'mixin apply|customdimensions|error'
 ```
+
+Never place or delete a jar in `data/mods/` by hand — `dev-up.sh`, "Install in-house mod JARs" installs the farm's jars and `dev-up.sh`, "Prune stale mod jars" deletes every jar named in neither this boot's seed manifest, `data/mods/.local-mods-manifest`, nor `$STACK_DIR/local-mods/`.
+
+Re-run `./dev link` after `gradlew clean` or a `mod_version` change: the farm's symlink then names a deleted file and the `cp` at `dev-up.sh`, "Install in-house mod JARs" aborts `./dev up`.
 
 If the persisted state format changed (config schema, namespace, IDs), delete the mod's state file(s) under `data/config/` before restarting — otherwise stale state from the previous build masks the bug you're testing.
 
-Re-patch c2me before this restart if the change touches worldgen/seeds (see recipe 4).
+The c2me DFC patch is automatic on every boot (the mod's preLaunch entrypoint — recipe 4 has the verification grep).
 
 ## 2. Content baked into the `defaults-seed` image
 
@@ -69,32 +75,20 @@ python3 -c "import json; print(json.load(open('data/config/multiverse_config.jso
 
 ## 4. Per-dimension seeds / worldgen / anything c2me-adjacent
 
-The c2me snippet is inline in `SKILL.md` — reproduce it exactly, or use `./dev up` which applies it automatically.
+The c2me DFC patch is AUTOMATIC: the mod's preLaunch entrypoint
+(`C2meConfigPatch`) forces `useDensityFunctionCompiler = false` into
+`data/config/c2me.toml` on every boot, so a bare `docker restart mc` stays
+patched — no manual snippet ([TROUBLESHOOTING.md#d6](../../../../TROUBLESHOOTING.md#d6)
+has the mixin-bootstrap timing; `deploy.sh`/`dev-up.sh` still pre-patch as
+the layer covering a fresh environment's first boot).
 
 ```bash
-# Manual re-patch before a bare restart:
-python3 - "<consumer>/data/config/c2me.toml" << 'PYEOF'
-import sys, os, re
-p = sys.argv[1]
-section = "[vanillaWorldGenOptimizations]"
-key = "useDensityFunctionCompiler"
-s = open(p).read() if os.path.exists(p) else ""
-if key in s:
-    updated = re.sub(r'%s\s*=\s*\S+' % key, '%s = false' % key, s)
-elif section in s:
-    updated = s.replace(section, section + "\n\t%s = false" % key)
-else:
-    updated = s + "\n%s\n\t%s = false\n" % (section, key)
-if updated != s:
-    open(p, "w").write(updated)
-PYEOF
-
 docker restart mc
 sleep 30
 
-# Verify via log grep, never the config file (the key is stripped again
-# by the boot that honours it — absence from c2me.toml is expected).
-docker exec mc sh -c 'grep -F "Removing config entry .vanillaWorldGenOptimizations.useDensityFunctionCompiler because it is not used" /data/logs/latest.log'
+# Verify by reading the file — c2me 0.4.0-alpha.0.27 rewrites c2me.toml each
+# boot and keeps the value. Must answer `useDensityFunctionCompiler = false`.
+docker exec mc grep useDensityFunctionCompiler /data/config/c2me.toml
 
 # The locate oracle: two dims with different seeds must give different
 # results; same seed must match.
@@ -124,7 +118,8 @@ Don't wait on the `-u` watcher locally — on macOS Docker its file-change event
 ## Reset to a clean baseline
 
 ```bash
-./dev up      # restores bundle-shipped in-house mod jars, re-seeds any
+./dev unlink  # back to the newest pulled release bundle
+./dev up      # restores that bundle's in-house mod jars, re-seeds any
               # missing data/config file — deliberate, not a bug
 ./dev down    # stops and removes containers (data/ and volumes untouched)
 

@@ -1,15 +1,71 @@
 {
   "type": "paradise_lost:paradise_lost",
-  "description": "Violet spires in the sky — where endermen architecture meets the natural skylands. Wisteria islands and amethyst canyons, aurel towers and birdcages. Arcane but not hostile; a place where two worlds overlapped and neither broke.",
-  "seed": 9126336716251728441,
+  "description": "Violet spires in the sky \u2014 where endermen architecture meets the natural skylands. Wisteria islands and amethyst canyons, aurel towers and birdcages. Arcane but not hostile; a place where two worlds overlapped and neither broke.",
+  "seed": 2628853788600845267,
   "biomes": [
-    "paradise_lost:wisteria_woods",
-    "terralith:amethyst_canyon",
-    "terralith:windswept_spires",
-    "natures_spirit:lavender_fields",
-    "terralith:haze_mountain",
-    "terralith:skylands_spring",
-    "minecraft:cherry_grove"
+    {
+      "id": "paradise_lost:wisteria_woods",
+      "parameters": {
+        "continentalness": [
+          0.0304,
+          0.0613
+        ]
+      }
+    },
+    {
+      "id": "terralith:amethyst_canyon",
+      "parameters": {
+        "continentalness": [
+          -2.0,
+          -0.095
+        ]
+      }
+    },
+    {
+      "id": "terralith:windswept_spires",
+      "parameters": {
+        "continentalness": [
+          -0.095,
+          -0.0627
+        ]
+      }
+    },
+    {
+      "id": "natures_spirit:lavender_fields",
+      "parameters": {
+        "continentalness": [
+          0.0008,
+          0.0304
+        ]
+      }
+    },
+    {
+      "id": "terralith:haze_mountain",
+      "parameters": {
+        "continentalness": [
+          -0.0627,
+          -0.0318
+        ]
+      }
+    },
+    {
+      "id": "terralith:skylands_spring",
+      "parameters": {
+        "continentalness": [
+          -0.0318,
+          0.0008
+        ]
+      }
+    },
+    {
+      "id": "minecraft:cherry_grove",
+      "parameters": {
+        "continentalness": [
+          0.0613,
+          2.0
+        ]
+      }
+    }
   ],
   "borders": {
     "player": 683,
@@ -19,9 +75,21 @@
     "mobMultiplier": 1.0,
     "playerLuck": 1.6
   },
+  "structures": {
+    "force": [
+      {
+        "structure": "paradise_lost:aurel_tower",
+        "x": 60,
+        "z": 60
+      }
+    ],
+    "terrainAdaptation": {
+      "paradise_lost:aurel_tower": "pedestal"
+    }
+  },
   "portal": {
     "frameBlock": "minecraft:purpur_block",
-    "igniterItem": "minecraft:diamond",
+    "igniterItem": "minecraft:gold_ingot",
     "color": "9B5BB0",
     "lightLevel": 11,
     "scale": 12.0,
@@ -36,9 +104,7 @@
   "seedRoll": {
     "mood": "dramatic",
     "spawnFilter": [
-      "paradise_lost:wisteria_woods",
-      "terralith:amethyst_canyon",
-      "minecraft:cherry_grove"
+      "natures_spirit:lavender_fields"
     ],
     "wants": {
       "aurel_tower": "near_spawn",
@@ -53,17 +119,21 @@
       "village",
       "monument"
     ],
-    "description": "Violet spires in the sky — where endermen architecture meets the natural skylands. Wisteria islands and amethyst canyons, aurel towers and birdcages. Arcane but not hostile; a place where two worlds overlapped and neither broke.",
     "family": "overworld",
-    "terrain": "islands",
-    "heightRange": [
-      -60,
-      440
-    ]
+    "terrain": "islands"
   },
   "spawn": [
-    0,
-    64,
-    0
+    -320,
+    -64,
+    640
+  ],
+  "biomePatches": [
+    {
+      "biome": "nullscape:crystal_peaks",
+      "x": -240,
+      "z": 200,
+      "radius": 110,
+      "blend": 32
+    }
   ]
 }

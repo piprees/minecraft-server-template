@@ -55,7 +55,7 @@ fi
 
 echo "  Checking Python scripts..."
 PYTHON_ERRORS=0
-for py in scripts/*.py scripts/seed/*.py; do
+for py in scripts/*.py; do
   [[ -f "$py" ]] || continue
   if python3 -B -m py_compile "$py"; then
     echo "  ✓ $py syntax OK"
@@ -71,36 +71,6 @@ if python3 -B -m unittest discover -s scripts/tests -p 'test_*.py'; then
 else
   warn "Verification checker tests failed"
   PYTHON_ERRORS=$((PYTHON_ERRORS + 1))
-fi
-
-echo "  Running seed-roll regression tests..."
-if python3 -B -m unittest discover -s scripts/seed -p 'test_*.py'; then
-  echo "  ✓ Seed-roll regression tests pass"
-else
-  warn "Seed-roll regression tests failed"
-  PYTHON_ERRORS=$((PYTHON_ERRORS + 1))
-fi
-
-echo "  Checking seed-roll bundle dependencies..."
-BUNDLE_ERRORS=0
-SEED_RUNTIME_FILES=$(grep -hoE '\$SCRIPT_DIR/[[:alnum:]_.-]+\.(py|sh)' scripts/seed/roll-*.sh \
-  | sed 's#\$SCRIPT_DIR/#scripts/seed/#' | sort -u)
-for bundle_file in $SEED_RUNTIME_FILES; do
-  [[ "$bundle_file" == *.py ]] || continue
-  while IFS= read -r module; do
-    local_module="scripts/seed/$module.py"
-    [[ -f "$local_module" ]] && SEED_RUNTIME_FILES="$SEED_RUNTIME_FILES $local_module"
-  done < <(sed -nE 's/^from ([[:alnum:]_]+) import .*/\1/p; s/^import ([[:alnum:]_]+).*/\1/p' \
-    "$bundle_file")
-done
-for bundle_file in $(printf '%s\n' $SEED_RUNTIME_FILES | sort -u); do
-  if ! grep -Fxq "  $bundle_file" scripts/build-stack-bundle.sh; then
-    warn "Seed-roll dependency missing from bundle manifest: $bundle_file"
-    BUNDLE_ERRORS=$((BUNDLE_ERRORS + 1))
-  fi
-done
-if [[ $BUNDLE_ERRORS -eq 0 ]]; then
-  echo "  ✓ All seed-roll dependencies are bundled"
 fi
 
 echo "  Checking datapack ownership manifests..."
@@ -172,11 +142,21 @@ else
   warn "Local profile invalid"
   COMPOSE_ERRORS=$((COMPOSE_ERRORS + 1))
 fi
+# The line above does NOT read docker-compose.local.yml — compose auto-loads
+# docker-compose.override.yml and nothing else, so a syntax error in the
+# local override passes both checks above undetected. dev-up.sh merges both
+# files, so validate the same pair it runs.
+if docker compose -f docker-compose.yml -f docker-compose.local.yml --profile local config --quiet; then
+  echo "  ✓ Local profile + local override valid"
+else
+  warn "Local override (docker-compose.local.yml) invalid"
+  COMPOSE_ERRORS=$((COMPOSE_ERRORS + 1))
+fi
 
 echo "  Checking YAML files..."
 YAML_ERRORS=0
 if command -v yamllint &> /dev/null; then
-  if yamllint -c .yamllint.yml docker-compose.yml .github/workflows/*.yml config/cloudflared/config.yml; then
+  if yamllint -c .yamllint.yml docker-compose.yml docker-compose.local.yml .github/workflows/*.yml config/cloudflared/config.yml; then
     echo "  ✓ YAML lint clean"
   else
     warn "YAML lint issues"
@@ -187,7 +167,7 @@ else
   YAML_ERRORS=1
 fi
 
-STATIC_ERRORS=$((SHELL_ERRORS + PYTHON_ERRORS + BUNDLE_ERRORS + OWNERSHIP_ERRORS + COMPOSE_ERRORS + YAML_ERRORS))
+STATIC_ERRORS=$((SHELL_ERRORS + PYTHON_ERRORS + OWNERSHIP_ERRORS + COMPOSE_ERRORS + YAML_ERRORS))
 if [[ $STATIC_ERRORS -gt 0 ]]; then
   echo "::error::$STATIC_ERRORS static-analysis check(s) failed"
   exit 1

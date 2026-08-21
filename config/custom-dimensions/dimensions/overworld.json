@@ -1,6 +1,6 @@
 {
-  "seed": -4234339176563703533,
-  "scale": 1.0,
+  "description": "The world where it all begins. Villagers settled the plains and humans arrived through the stone gate. Safe at spawn, but the ancient cities near the border predate everyone \u2014 and something stirs in them.",
+  "seed": 3489942239821098976,
   "borders": {
     "player": 8192,
     "generation": 8192
@@ -17,7 +17,7 @@
     "playerLuck": 1.0
   },
   "portal": {
-    "frameBlock": "minecraft:stone",
+    "frameBlock": "minecraft:mossy_stone_bricks",
     "igniterItem": "minecraft:torch",
     "color": "87CEEB",
     "lightLevel": 15,
@@ -35,7 +35,6 @@
   },
   "seedRoll": {
     "mood": "standard",
-    "description": "The world where it all begins. Villagers settled the plains and humans arrived through the stone gate. Safe at spawn, but the ancient cities near the border predate everyone \u2014 and something stirs in them.",
     "spawnFilter": [
       "minecraft:plains",
       "minecraft:meadow",
@@ -49,6 +48,8 @@
     "wants": {
       "village": "near_spawn",
       "tavern": "near_spawn",
+      "campsite": "near_spawn",
+      "farmstead": "near_spawn",
       "ruined_portal": "near_spawn",
       "watchtower": "spread",
       "mineshaft": "spread",
@@ -59,11 +60,14 @@
       "mansion": "near_border",
       "coliseum": "near_border"
     },
-    "shuns": []
+    "shuns": [
+      "wizard_tower",
+      "nether_tower"
+    ]
   },
   "spawn": [
-    0,
-    64,
-    0
+    -64,
+    66,
+    640
   ]
 }

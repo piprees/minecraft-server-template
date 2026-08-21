@@ -29,7 +29,7 @@ import java.util.List;
  * global registry objects are never mutated, so every other dimension keeps
  * the shared placements.
  *
- * Caveats honoured (customising-structures.md):
+ * Caveats:
  * - Only exact minecraft:random_spread placements are rescaled. Custom
  *   placement types (YUNG's, Moog's) and concentric rings pass through
  *   unchanged — dropping whole sets is type-agnostic and still applies.
@@ -54,16 +54,22 @@ public final class DimensionStructures {
             def = com.customdimensions.dimension.DimensionManager.getInstance()
                     .resolveDefinition(key.getPath());
         } else {
-            // Base worlds (minecraft:overworld/the_nether/the_end,
+            // Reserved dimensions (minecraft:overworld/the_nether/the_end,
             // paradise_lost:paradise_lost) resolve by EXACT dimension id.
             // They are absent from the managed-namespace set on purpose —
             // those namespaces hold other mods' dimensions and the lookup
             // above is by path.
-            def = MultiverseConfig.getInstance().getBaseWorld(key.toString());
+            def = MultiverseConfig.getInstance().getReservedDimension(key.toString());
         }
         if (def == null) {
             return null;
         }
+        // Terrain-adaptation overrides apply to EVERY managed world —
+        // including ones whose calculator this method leaves untouched
+        // (returning null below): the Beardifier runs in the noise phase and
+        // covers pass-throughs and vanilla-grid sets alike.
+        installTerrainAdaptation(world, def, original);
+        installForcedStarts(world, def);
         String density = normalizedDensity(def);
         boolean peaceful = !def.isHostileSpawningEnabled();
         DimensionConfig.Structures structBlock = def.getStructures();
@@ -84,12 +90,27 @@ public final class DimensionStructures {
         // no groups, or every group resolving to none).
         NoiseGroupPlan.warnUnknownGroups(def);
         NoiseGroupPlan plan = NoiseGroupPlan.resolve(def);
+        // The global suppress list (settings.json suppress.structures, the
+        // consumer overlay merged in) joins the dimension's own exclude —
+        // one union applied at every filter point: the pool builder, the
+        // pass-through loop, and the legacy path below.
+        java.util.List<String> suppressed =
+                MultiverseConfig.getInstance().getSuppressedStructureSets();
+        warnUnknownSuppressedSets(world, suppressed);
+        java.util.Set<String> exclude = new java.util.HashSet<>(NoisePoolBuilder.lowerSet(
+                structBlock != null ? structBlock.exclude : null));
+        exclude.addAll(NoisePoolBuilder.lowerSet(suppressed));
         if (!plan.isSuppressed()) {
             return transformedNoise(world, biomeSource, noiseConfig, original, def, plan,
-                    spacingOverrides, forced);
+                    spacingOverrides, forced, mode, modeList, exclude);
         }
 
-        if ("normal".equals(density) && !peaceful && spacingOverrides.isEmpty()
+        // "Type enables no groups" means NO organic structures — returning
+        // null here kept the vanilla calculator intact and generated all
+        // 367 sets on vanilla grids in void/superflat dimensions.
+        boolean dropAll = plan.suppressesAllSets();
+
+        if (!dropAll && "normal".equals(density) && !peaceful && spacingOverrides.isEmpty()
                 && !def.hasExitShrines() && mode == null && forced.isEmpty()) {
             return null;
         }
@@ -105,7 +126,7 @@ public final class DimensionStructures {
             String theme = setId != null ? StructureThemes.themeOf(setId) : null;
 
             // Exit shrines ship with a near-zero frequency so they can never
-            // generate in worlds that bypass this rebuild (base worlds).
+            // generate in worlds that bypass this rebuild (reserved dimensions).
             // Opted-in dims get the full-frequency copy; everyone else keeps
             // the effectively-off original. Exempt from every theme factor.
             if ("adventure:exit_shrines".equals(setId)) {
@@ -117,8 +138,6 @@ public final class DimensionStructures {
                         // Explicit structures.spacing wins; otherwise the
                         // spacing derives from the playable border — a
                         // 256-radius pocket wants 1-2 shrines, not a grid.
-                        // MIRRORED in scripts/seed/fast_roller.py (tier 1);
-                        // change both together or shrine scoring lies.
                         DimensionConfig.SpacingOverride ov = spacingOverrides.get(setId);
                         if (ov == null) {
                             ov = derivedShrineSpacing(def.getPlayerBorderRadius());
@@ -136,21 +155,23 @@ public final class DimensionStructures {
                 continue;
             }
 
-            // Organic-set filter (structures.mode): applied after the
+            // The type enables no groups (void/superflat): every organic set
+            // is dropped. Exit shrines were handled above; forced placements
+            // append after the loop.
+            if (dropAll) {
+                dropped++;
+                continue;
+            }
+
+            // Organic-set filter (structures.mode + the exclude union, which
+            // carries the global suppress list): applied after the
             // exit-shrines opt-in (which is config-driven, not organic) and
             // before every density/theme path. Forced placements are
             // synthetic sets appended after the loop — mode never touches
             // them ("mode": "none" + force = ONLY the forced structures).
-            if (mode != null) {
-                boolean keep = switch (mode) {
-                    case "allow" -> setId != null && modeList.contains(setId);
-                    case "reject" -> setId == null || !modeList.contains(setId);
-                    default -> false; // "none"
-                };
-                if (!keep) {
-                    dropped++;
-                    continue;
-                }
+            if (!keepSet(setId, mode, modeList, exclude)) {
+                dropped++;
+                continue;
             }
 
             if (peaceful && "dungeon".equals(theme)) {
@@ -212,9 +233,10 @@ public final class DimensionStructures {
         int forcedCount = appendForcedPlacements(transformed, world, def, forced);
 
         MultiverseServer.LOGGER.info(
-                "Dimension {} structure profile: density={}{}{}{} ({} sets kept, {} rescaled, {} dropped)",
+                "Dimension {} structure profile: density={}{}{}{}{} ({} sets kept, {} rescaled, {} dropped)",
                 def.getName(), density, peaceful ? "+peaceful" : "",
                 mode != null ? "+mode=" + mode : "",
+                dropAll ? "+suppressed(" + plan.reason() + ")" : "",
                 forcedCount > 0 ? "+" + forcedCount + " forced" : "",
                 transformed.size(), rescaled, dropped);
         return StructurePlacementCalculatorInvoker.invokeNew(
@@ -235,7 +257,8 @@ public final class DimensionStructures {
             ServerWorld world, BiomeSource biomeSource, NoiseConfig noiseConfig,
             StructurePlacementCalculator original, DimensionConfig def, NoiseGroupPlan plan,
             java.util.Map<String, DimensionConfig.SpacingOverride> spacingOverrides,
-            java.util.List<DimensionConfig.ForcedStructure> forced) {
+            java.util.List<DimensionConfig.ForcedStructure> forced,
+            String mode, java.util.Set<String> modeList, java.util.Set<String> exclude) {
 
         long started = System.nanoTime();
         List<RegistryEntry<StructureSet>> transformed = new ArrayList<>();
@@ -255,18 +278,55 @@ public final class DimensionStructures {
             }
         }
 
+        // A wanted structure whose SET vanilla's own StructurePlacementCalculator
+        // prefilter dropped is invisible to the pool builder — the set is not in
+        // `original.getStructureSets()` at all, so `structures.include` cannot
+        // reach it either. Re-admit those sets from the full registry, then let
+        // the pool builder bypass the affinity filter for the wanted structures
+        // inside them.
+        java.util.Set<String> wanted = NoisePoolBuilder.wantedStructureIds(def);
+        Iterable<RegistryEntry<StructureSet>> poolSets = withWantedSets(
+                world, original.getStructureSets(), wanted, def.getName());
+
         NoisePoolBuilder.Result pools = NoisePoolBuilder.build(
-                def, original.getStructureSets(), biomeSource, plan);
+                def, poolSets, biomeSource, plan, exclude, null, wanted);
+        // Which structures a group can draw from is decided HERE, from the
+        // dimension's biome source against each structure's own biome list, so
+        // the seed roller cannot derive it. Recording it is what lets the roller
+        // ask "is there a Village" rather than only "is there a settlement" —
+        // see StructurePoolRecord for why 167 shuns were unsatisfiable without
+        // it. Free: the pools are already built. The registry lookup lives here
+        // rather than in the record so the record stays Bootstrap-free.
+        java.util.Map<String, java.util.List<StructurePoolRecord.Entry>> poolIds =
+                new java.util.LinkedHashMap<>();
+        pools.pools().forEach((group, pool) -> {
+            java.util.List<StructurePoolRecord.Entry> ids = new ArrayList<>();
+            for (var weighted : pool.entries()) {
+                weighted.structure().getKey().ifPresent(key -> ids.add(
+                        new StructurePoolRecord.Entry(
+                                key.getValue().toString(), weighted.weight())));
+            }
+            poolIds.put(group, ids);
+        });
+        StructurePoolRecord.record(def.getName(), poolIds);
 
         // Custom placement types pass through untouched: their rules are not
         // ours to reinterpret, and dropping them would silently delete every
-        // YUNG's structure from every managed dimension.
+        // YUNG's structure from every managed dimension. They never reach
+        // NoisePoolBuilder, so the dimension's set-id filters (structures.mode
+        // and structures.exclude) must be applied HERE or they silently never
+        // touch pass-throughs.
+        int passthroughFiltered = 0;
         for (RegistryEntry<StructureSet> entry : original.getStructureSets()) {
             String setId = entry.getKey().map(k -> k.getValue().toString()).orElse(null);
             if ("adventure:exit_shrines".equals(setId)) {
                 continue;
             }
-            if (entry.value().placement().getClass() != RandomSpreadStructurePlacement.class) {
+            if (!NoisePoolBuilder.noiseManaged(entry.value().placement())) {
+                if (!keepSet(setId, mode, modeList, exclude)) {
+                    passthroughFiltered++;
+                    continue;
+                }
                 transformed.add(entry);
                 passthrough++;
             }
@@ -278,6 +338,13 @@ public final class DimensionStructures {
         int groupsBuilt = 0;
         int totalPositions = 0;
         StringBuilder detail = new StringBuilder();
+        String worldId = world.getRegistryKey().getValue().toString();
+
+        // Selection registry: maps each WeightedEntry instance to its group's
+        // pick parameters so NoiseStructureSelectionMixin can assign the exact
+        // structure at generation time. Keyed by OBJECT IDENTITY.
+        java.util.IdentityHashMap<StructureSet.WeightedEntry, StructurePick.GroupSelection>
+                selectionRegistry = new java.util.IdentityHashMap<>();
 
         for (var groupEntry : plan.groups().entrySet()) {
             String group = groupEntry.getKey();
@@ -291,7 +358,25 @@ public final class DimensionStructures {
             long noiseSeed = worldSeed ^ dimensionSalt ^ saltOf(group);
             NoiseStructurePlacement placement = new NoiseStructurePlacement(
                     group, noiseSeed, settings.profile(), settings.exclusion(),
-                    settings.radial(), radiusChunks, 0, 0);
+                    settings.radial(), radiusChunks, 0, 0, settings.clearSpawnChunks());
+
+            // Build the sorted pool for this group's pick algorithm.
+            java.util.List<StructurePick.PoolEntry> pickPool = new ArrayList<>();
+            for (var weighted : pool.entries()) {
+                weighted.structure().getKey().ifPresent(key -> pickPool.add(
+                        new StructurePick.PoolEntry(
+                                key.getValue().toString(), weighted.weight())));
+            }
+            java.util.List<StructurePick.PoolEntry> sorted = StructurePick.sortedPool(pickPool);
+            StructurePick.GroupSelection sel = new StructurePick.GroupSelection(
+                    group, noiseSeed, sorted, placement.index());
+
+            // Register every WeightedEntry in this group's set so the mixin
+            // can look them up by object identity.
+            for (var weighted : pool.entries()) {
+                selectionRegistry.put(weighted, sel);
+            }
+
             transformed.add(RegistryEntry.of(
                     new StructureSet(pool.entries(), placement)));
             groupsBuilt++;
@@ -315,15 +400,19 @@ public final class DimensionStructures {
             }
         }
 
+        // Install the selection registry — replaced wholesale on every
+        // calculator rebuild, cleared on ServerWorldEvents.UNLOAD.
+        StructurePick.install(worldId, selectionRegistry);
+
         int forcedCount = appendForcedPlacements(transformed, world, def, forced);
         long millis = (System.nanoTime() - started) / 1_000_000;
 
         MultiverseServer.LOGGER.info(
                 "Dimension {} structure profile: noise radius={}c groups={}/{} positions={}"
-                + "{}{} ({} sets passed through, {} custom-placement, {}ms)",
+                + "{}{} ({} sets passed through, {} pass-through filtered, {} custom-placement, {}ms)",
                 def.getName(), radiusChunks, groupsBuilt, plan.groups().size(), totalPositions,
                 detail, forcedCount > 0 ? " +" + forcedCount + " forced" : "",
-                passthrough, pools.setsSkippedCustomPlacement(), millis);
+                passthrough, passthroughFiltered, pools.setsSkippedCustomPlacement(), millis);
         if (millis > 200) {
             MultiverseServer.LOGGER.warn(
                     "Dimension {}: noise placement took {}ms to precompute (radius {} chunks). "
@@ -337,11 +426,87 @@ public final class DimensionStructures {
     }
 
     /**
+     * The calculator's set list plus any set from the FULL registry that holds
+     * a wanted structure and is not already there.
+     *
+     * <p>Vanilla's {@code StructurePlacementCalculator.create} drops a set
+     * whose structures' valid biomes miss the dimension's biome source. That is
+     * correct for organic generation and wrong for a want, which is the author
+     * saying "put one here anyway". Only sets carrying a wanted structure are
+     * re-admitted, and only the wanted structures inside them bypass the
+     * affinity filter — the rest of such a set is still filtered normally.
+     *
+     * <p>Returns the original list unchanged when nothing needs re-admitting,
+     * which is every dimension whose wants already fit its biomes.
+     */
+    private static Iterable<RegistryEntry<StructureSet>> withWantedSets(
+            ServerWorld world, Iterable<RegistryEntry<StructureSet>> present,
+            java.util.Set<String> wanted, String dimensionName) {
+        if (wanted.isEmpty()) {
+            return present;
+        }
+        java.util.Set<String> haveIds = new java.util.HashSet<>();
+        java.util.Set<String> haveSets = new java.util.HashSet<>();
+        for (RegistryEntry<StructureSet> entry : present) {
+            entry.getKey().ifPresent(k -> haveSets.add(k.getValue().toString()));
+            for (StructureSet.WeightedEntry weighted : entry.value().structures()) {
+                weighted.structure().getKey()
+                        .ifPresent(k -> haveIds.add(k.getValue().toString()));
+            }
+        }
+        java.util.List<String> missing = new ArrayList<>();
+        for (String id : wanted) {
+            if (!haveIds.contains(id)) {
+                missing.add(id);
+            }
+        }
+        if (missing.isEmpty()) {
+            return present;
+        }
+        var registry = world.getRegistryManager()
+                .get(net.minecraft.registry.RegistryKeys.STRUCTURE_SET);
+        List<RegistryEntry<StructureSet>> combined = new ArrayList<>();
+        present.forEach(combined::add);
+        java.util.List<String> readmitted = new ArrayList<>();
+        for (var setEntry : registry.getEntrySet()) {
+            String setId = setEntry.getKey().getValue().toString();
+            if (haveSets.contains(setId)) {
+                continue;
+            }
+            boolean carriesWanted = false;
+            for (StructureSet.WeightedEntry weighted : setEntry.getValue().structures()) {
+                String id = weighted.structure().getKey()
+                        .map(k -> k.getValue().toString()).orElse(null);
+                if (id != null && missing.contains(id)) {
+                    carriesWanted = true;
+                    break;
+                }
+            }
+            if (carriesWanted) {
+                combined.add(registry.getEntry(setEntry.getKey()).orElseThrow());
+                readmitted.add(setId);
+            }
+        }
+        if (!readmitted.isEmpty()) {
+            MultiverseServer.LOGGER.info(
+                    "Dimension {}: re-admitted {} structure set(s) for wanted structures "
+                    + "the biome prefilter had dropped: {}",
+                    dimensionName, readmitted.size(), readmitted);
+        } else {
+            MultiverseServer.LOGGER.warn(
+                    "Dimension {}: wanted structure(s) {} are in no registered structure "
+                    + "set — nothing can place them (check the id, or the mod that "
+                    + "provides them)", dimensionName, missing);
+        }
+        return combined;
+    }
+
+    /**
      * Per-dimension and per-group noise salt. A plain String.hashCode would
      * give neighbouring names neighbouring salts (and it is only 32 bits), so
      * the noise fields of two similarly-named dimensions would correlate.
      */
-    static long saltOf(String name) {
+    public static long saltOf(String name) {
         if (name == null) {
             return 0L;
         }
@@ -383,6 +548,11 @@ public final class DimensionStructures {
      * per forced structure id, positioned by FixedStructurePlacement. Unknown
      * structure ids (e.g. from a removed mod) warn and skip — never a boot
      * break (optional-mods promise). Returns how many positions were added.
+     *
+     * Neither the structure's biome predicate nor other mods' start cancels
+     * apply at a forced position — see ForcedStartOverride. This line says
+     * what was configured; a second INFO line is logged when a forced
+     * position actually generates.
      */
     private static int appendForcedPlacements(List<RegistryEntry<StructureSet>> transformed,
                                               ServerWorld world, DimensionConfig def,
@@ -409,6 +579,13 @@ public final class DimensionStructures {
                         def.getName(), f.structure);
                 continue;
             }
+            int border = def.getPlayerBorderRadius();
+            if (border > 0 && (Math.abs(f.x) > border || Math.abs(f.z) > border)) {
+                MultiverseServer.LOGGER.warn(
+                        "Dimension {}: structures.force {} at ({}, {}) lies outside the playable "
+                        + "border (radius {}) — it generates only if chunks ever generate there",
+                        def.getName(), f.structure, f.x, f.z, border);
+            }
             byStructure.computeIfAbsent(sid, k -> new java.util.ArrayList<>())
                     .add(new net.minecraft.util.math.ChunkPos(f.x >> 4, f.z >> 4));
         }
@@ -423,7 +600,7 @@ public final class DimensionStructures {
                 continue;
             }
             transformed.add(RegistryEntry.of(new StructureSet(
-                    entry.get(), new FixedStructurePlacement(e.getValue()))));
+                    entry.get(), new FixedStructurePlacement(def.getName(), e.getValue()))));
             forcedCount += e.getValue().size();
             MultiverseServer.LOGGER.info(
                     "Dimension {}: forced {} at chunk(s) {}",
@@ -432,9 +609,234 @@ public final class DimensionStructures {
         return forcedCount;
     }
 
+    /**
+     * Installs the world's forced-start registry entries —
+     * {@code ChunkGeneratorForcedStartMixin} consults them at the head of
+     * every start attempt and performs forced ones itself, ahead of the
+     * structure's biome predicate and other mods' start cancels. Runs for
+     * every managed world, empty configs included, so a dimension that drops
+     * its forces also drops its registry entries.
+     */
+    private static void installForcedStarts(ServerWorld world, DimensionConfig def) {
+        DimensionConfig.Structures block = def.getStructures();
+        java.util.List<DimensionConfig.ForcedStructure> forced =
+                block != null && block.force != null ? block.force : java.util.List.of();
+        java.util.List<ForcedStartOverride.ForcedEntry> entries = new ArrayList<>();
+        for (DimensionConfig.ForcedStructure f : forced) {
+            if (f == null || f.structure == null || f.x == null || f.z == null) {
+                continue;   // appendForcedPlacements owns the malformed-entry warning
+            }
+            Identifier sid = Identifier.tryParse(f.structure);
+            if (sid == null) {
+                continue;
+            }
+            entries.add(new ForcedStartOverride.ForcedEntry(sid.toString(),
+                    net.minecraft.util.math.ChunkPos.toLong(f.x >> 4, f.z >> 4), f.y));
+        }
+        ForcedStartOverride.install(world.getRegistryKey().getValue().toString(),
+                def.getName(), ForcedStartOverride.byChunk(entries),
+                ForcedStartOverride.heightsByChunk(entries));
+    }
+
+    private static volatile boolean warnedSuppressList;
+
+    /**
+     * WARNs, once per boot, about suppress.structures ids that exist in no
+     * registered structure set — a typo would otherwise silently suppress
+     * nothing. Checked against the FULL structure-set registry, not the
+     * world's calculator list (that one is biome-prefiltered per dimension
+     * and would false-warn about sets the current dimension merely lacks).
+     */
+    private static void warnUnknownSuppressedSets(ServerWorld world,
+                                                  java.util.List<String> suppressed) {
+        if (warnedSuppressList || suppressed.isEmpty()) {
+            return;
+        }
+        warnedSuppressList = true;
+        var registry = world.getRegistryManager()
+                .get(net.minecraft.registry.RegistryKeys.STRUCTURE_SET);
+        for (String id : suppressed) {
+            Identifier parsed = Identifier.tryParse(id);
+            if (parsed == null || registry.get(parsed) == null) {
+                MultiverseServer.LOGGER.warn(
+                        "settings.json suppress.structures id '{}' matches no registered "
+                        + "structure set — a typo suppresses nothing (see "
+                        + "extractors/structures.json for valid set ids)", id);
+            }
+        }
+    }
+
+    /**
+     * Whether an organic set survives the dimension's set-id filters:
+     * structures.exclude, then structures.mode allow/reject over
+     * structures.list. Shared by the legacy path's mode filter (empty
+     * exclude — legacy semantics unchanged), the noise path's pass-through
+     * loop, and {@code FactsEngine}'s headless pass-through walk — one
+     * definition so a seed's facts never disagree with what the live world
+     * would actually keep. The global suppress list (settings.json, planned)
+     * plugs in here. Exclude entries are pre-lowercased
+     * (NoisePoolBuilder.lowerSet); mode list entries match exactly.
+     */
+    public static boolean keepSet(String setId, String mode, java.util.Set<String> modeList,
+                           java.util.Set<String> exclude) {
+        if (setId != null && exclude.contains(setId.toLowerCase(java.util.Locale.ROOT))) {
+            return false;
+        }
+        if (mode == null) {
+            return true;
+        }
+        return switch (mode) {
+            case "allow" -> setId != null && modeList.contains(setId);
+            case "reject" -> setId == null || !modeList.contains(setId);
+            default -> false; // "none"
+        };
+    }
+
+    /**
+     * Builds and installs the dimension's resolved Beardifier map: for every
+     * structure reachable through the world's structure sets, resolve
+     * per-structure config -> group config -> theme default (fills registry
+     * "none" only) -> registry value, and record only the entries that
+     * DIFFER. Keyed by registry-singleton identity so the armed per-chunk
+     * lookup is one IdentityHashMap get. See TerrainAdaptationOverride.
+     */
+    private static void installTerrainAdaptation(ServerWorld world, DimensionConfig def,
+                                                 StructurePlacementCalculator original) {
+        DimensionConfig.Structures block = def.getStructures();
+        java.util.Map<String, String> config =
+                block != null && block.terrainAdaptation != null
+                        ? block.terrainAdaptation : java.util.Map.of();
+        java.util.Map<String, String> themes = StructureGroupRegistry.terrainAdaptationDefaults();
+        Identifier worldId = world.getRegistryKey().getValue();
+        if (config.isEmpty() && themes.isEmpty()) {
+            TerrainAdaptationOverride.install(worldId, java.util.Map.of());
+            return;
+        }
+        java.util.IdentityHashMap<net.minecraft.world.gen.structure.Structure,
+                net.minecraft.world.gen.StructureTerrainAdaptation> map =
+                new java.util.IdentityHashMap<>();
+        java.util.IdentityHashMap<net.minecraft.world.gen.structure.Structure,
+                TerrainKernel> kernels = new java.util.IdentityHashMap<>();
+        java.util.Set<net.minecraft.world.gen.structure.Structure> seen =
+                java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<>());
+        for (RegistryEntry<StructureSet> entry : original.getStructureSets()) {
+            String setId = entry.getKey().map(k -> k.getValue().toString()).orElse(null);
+            StructurePlacement placement = entry.value().placement();
+            int spacing = placement instanceof RandomSpreadStructurePlacement random
+                    ? random.getSpacing() : -1;
+            String group = StructureGroupRegistry.classify(setId, spacing).group();
+            for (StructureSet.WeightedEntry weighted : entry.value().structures()) {
+                net.minecraft.world.gen.structure.Structure structure = weighted.structure().value();
+                String structureId = weighted.structure().getKey()
+                        .map(k -> k.getValue().toString()).orElse(null);
+                seen.add(structure);
+                resolveAdaptationInto(map, kernels, config, themes, structure,
+                        structureId, group, def.getName());
+            }
+        }
+
+        // Forced structures may have no set in this world's calculator — their
+        // organic set can be biome-prefiltered away, or belong to another
+        // family entirely. Resolve them from the FULL registries so beards and
+        // kernels apply to forced placements like any other structure.
+        java.util.List<DimensionConfig.ForcedStructure> forcedList =
+                block != null && block.force != null ? block.force : java.util.List.of();
+        if (!forcedList.isEmpty()) {
+            var structureRegistry = world.getRegistryManager()
+                    .get(net.minecraft.registry.RegistryKeys.STRUCTURE);
+            var setRegistry = world.getRegistryManager()
+                    .get(net.minecraft.registry.RegistryKeys.STRUCTURE_SET);
+            for (DimensionConfig.ForcedStructure f : forcedList) {
+                Identifier sid = f != null && f.structure != null
+                        ? Identifier.tryParse(f.structure) : null;
+                if (sid == null) {
+                    continue;
+                }
+                net.minecraft.world.gen.structure.Structure structure =
+                        structureRegistry.get(sid);
+                if (structure == null || !seen.add(structure)) {
+                    continue;
+                }
+                resolveAdaptationInto(map, kernels, config, themes, structure,
+                        sid.toString(), forcedGroupOf(setRegistry, structure),
+                        def.getName());
+            }
+        }
+        TerrainAdaptationOverride.install(worldId, map, kernels);
+        if (!map.isEmpty() || !kernels.isEmpty()) {
+            MultiverseServer.LOGGER.info(
+                    "Dimension {}: terrain adaptation overridden for {} structure(s)"
+                    + "{}",
+                    def.getName(), map.size(),
+                    kernels.isEmpty() ? ""
+                            : " (+" + kernels.size() + " custom kernel(s))");
+        }
+    }
+
+    /**
+     * One structure's adaptation resolution: per-structure config -> group
+     * config -> theme default (fills registry "none" only) -> registry value.
+     * Records only entries that DIFFER; a kernel name parses to NONE for
+     * vanilla and carries its real shape in the kernel map.
+     */
+    private static void resolveAdaptationInto(
+            java.util.IdentityHashMap<net.minecraft.world.gen.structure.Structure,
+                    net.minecraft.world.gen.StructureTerrainAdaptation> map,
+            java.util.IdentityHashMap<net.minecraft.world.gen.structure.Structure,
+                    TerrainKernel> kernels,
+            java.util.Map<String, String> config, java.util.Map<String, String> themes,
+            net.minecraft.world.gen.structure.Structure structure, String structureId,
+            String group, String dimName) {
+        net.minecraft.world.gen.StructureTerrainAdaptation vanilla;
+        try {
+            vanilla = structure.getTerrainAdaptation();
+        } catch (RuntimeException e) {
+            return;   // a broken structure is not ours to fail on
+        }
+        String resolvedName = TerrainAdaptationOverride.resolveName(
+                config, structureId, group, themes, vanilla.asString());
+        if (resolvedName == null) {
+            return;
+        }
+        var resolved = TerrainAdaptationOverride.parse(resolvedName,
+                "dimension " + dimName + ", structure " + structureId);
+        if (resolved != null && resolved != vanilla) {
+            map.put(structure, resolved);
+        }
+        TerrainKernel kernel = TerrainKernel.parse(resolvedName);
+        if (kernel != null) {
+            kernels.put(structure, kernel);
+        }
+    }
+
+    /**
+     * The group a forced structure's own set classifies to, resolved from the
+     * FULL structure-set registry — the world's calculator list is
+     * biome-prefiltered and can lack the set entirely. Null when the
+     * structure appears in no registered set (per-structure config and the
+     * registry adaptation still apply).
+     */
+    private static String forcedGroupOf(
+            net.minecraft.registry.Registry<StructureSet> setRegistry,
+            net.minecraft.world.gen.structure.Structure structure) {
+        for (var setEntry : setRegistry.getEntrySet()) {
+            for (StructureSet.WeightedEntry weighted : setEntry.getValue().structures()) {
+                if (weighted.structure().value() == structure) {
+                    String setId = setEntry.getKey().getValue().toString();
+                    StructurePlacement placement = setEntry.getValue().placement();
+                    int spacing = placement instanceof RandomSpreadStructurePlacement random
+                            ? random.getSpacing() : -1;
+                    return StructureGroupRegistry.classify(setId, spacing).group();
+                }
+            }
+        }
+        return null;
+    }
+
     /** Validated structures.mode: allow | reject | none, or null (off).
-     *  Package-private for unit tests (same pattern as derivedShrineSpacing). */
-    static String normalizedMode(String dimName, DimensionConfig.Structures block) {
+     *  Public so the facts layer can apply the identical filter to
+     *  pass-through positions that {@link #keepSet} applies live. */
+    public static String normalizedMode(String dimName, DimensionConfig.Structures block) {
         if (block == null || block.mode == null || block.mode.isEmpty()) {
             return null;
         }
@@ -476,7 +878,6 @@ public final class DimensionStructures {
     /**
      * Automatic shrine spacing from the playable border: roughly
      * radius-in-chunks / 2, clamped 12..48. Pure — unit-tested, and
-     * mirrored bit-for-bit in scripts/seed/fast_roller.py (roller parity).
      */
     static DimensionConfig.SpacingOverride derivedShrineSpacing(int playerBorderRadiusBlocks) {
         DimensionConfig.SpacingOverride out = new DimensionConfig.SpacingOverride();

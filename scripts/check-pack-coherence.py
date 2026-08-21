@@ -5,9 +5,9 @@ Scans every jar in a mods directory, parses fabric.mod.json, and evaluates
 each mod's `depends`/`breaks` version predicates against the mods actually
 present in the pack. This is exactly the check Fabric Loader runs at launch
 (the "Incompatible mods found!" screen) - running it at build time catches
-resolver regressions like the sodium/supplementaries incident (2026-07-02:
-supplementaries 3.7.7 requires sodium >=0.8.12-beta.1; the resolver had
-downgraded sodium to 0.6.13 and every client crashed at launch).
+resolver regressions before players hit them: a resolver can silently
+downgrade one mod below another's stated minimum version and ship a pack
+that crashes at launch.
 
 Predicate support is the practical Fabric subset: *, exact, >=, >, <=, <,
 ~ (same minor), ^ (same major), space-separated AND, list-of-strings OR.

@@ -1,29 +1,105 @@
 {
   "type": "end",
-  "description": "Fractured halls — endermen gate fortresses and enderkeeps in broken crystal country. No cities survived whatever happened here; only the military architecture endured.",
-  "seed": 9185324862121826233,
+  "description": "Fractured halls \u2014 endermen gate fortresses and enderkeeps in broken crystal country. No cities survived whatever happened here; only the military architecture endured, and moonlight groves have taken the sheltered ground between the ridges.",
+  "seed": 7730851934023930298,
   "biomes": [
-    "minecraft:end_highlands",
-    "nullscape:crystal_peaks",
-    "nullscape:shadowlands",
-    "minecraft:end_midlands",
-    "minecraft:small_end_islands"
+    {
+      "id": "nullscape:shadowlands",
+      "parameters": {
+        "continentalness": [
+          -2.0,
+          -0.62
+        ]
+      }
+    },
+    {
+      "id": "minecraft:small_end_islands",
+      "parameters": {
+        "continentalness": [
+          -0.62,
+          -0.3
+        ]
+      }
+    },
+    {
+      "id": "terralith:moonlight_valley",
+      "parameters": {
+        "continentalness": [
+          -0.3,
+          -0.05
+        ]
+      }
+    },
+    {
+      "id": "terralith:moonlight_grove",
+      "parameters": {
+        "continentalness": [
+          -0.05,
+          0.18
+        ]
+      }
+    },
+    {
+      "id": "terralith:amethyst_canyon",
+      "parameters": {
+        "continentalness": [
+          0.18,
+          0.4
+        ]
+      }
+    },
+    {
+      "id": "minecraft:deep_dark",
+      "parameters": {
+        "continentalness": [
+          0.4,
+          0.55
+        ]
+      }
+    },
+    {
+      "id": "minecraft:end_midlands",
+      "parameters": {
+        "continentalness": [
+          0.55,
+          0.86
+        ]
+      }
+    },
+    {
+      "id": "minecraft:end_highlands",
+      "parameters": {
+        "continentalness": [
+          0.86,
+          1.3
+        ]
+      }
+    },
+    {
+      "id": "nullscape:crystal_peaks",
+      "parameters": {
+        "continentalness": [
+          1.3,
+          2.0
+        ]
+      }
+    }
   ],
   "borders": {
-    "player": 8192,
-    "generation": 8192
+    "player": 4096,
+    "generation": 4096
   },
   "difficulty": {
-    "mobMultiplier": 2.0,
+    "mobMultiplier": 1.8,
     "playerLuck": 1.8
   },
-  "structureDensity": "dense",
+  "structureDensity": "normal",
   "portal": {
     "frameBlock": "minecraft:cracked_stone_bricks",
     "igniterItem": "minecraft:ender_eye",
     "color": "8B8B7B",
     "lightLevel": 11,
-    "scale": 1.0,
+    "scale": 2.0,
     "cooldown": 40,
     "particleType": "minecraft:end_rod",
     "shape": "doorway",
@@ -38,10 +114,9 @@
   },
   "seedRoll": {
     "mood": "hard",
+    "allowHazardousSpawn": true,
     "spawnFilter": [
-      "minecraft:end_highlands",
-      "nullscape:crystal_peaks",
-      "nullscape:shadowlands"
+      "minecraft:end_highlands"
     ],
     "wants": {
       "end_gate_fortress": "near_spawn",
@@ -57,16 +132,19 @@
       "phantom_citadel",
       "monolith"
     ],
-    "description": "Fractured halls — endermen gate fortresses and enderkeeps in broken crystal country. No cities survived whatever happened here; only the military architecture endured."
+    "terrain": "islands"
   },
   "spawn": [
-    0,
     64,
+    0,
     0
   ],
   "structures": {
     "noise": {
       "settlements": "dense"
     }
+  },
+  "settingsOverrides": {
+    "endIsland": false
   }
 }

@@ -7,11 +7,16 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.util.Identifier;
+import net.minecraft.util.WorldSavePath;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -22,21 +27,62 @@ import java.util.Map;
  * generator on every save. Deleting a dimension's region files (or even
  * `customdim destroy`) does not touch that entry, so a config type/noise/
  * biome change silently produces a world that no longer matches its config
- * (discovered 2026-07-22 converting dims to the cave type).
+ * (see D2).
  *
  * Policy: NEVER delete or regenerate someone's world because the config
  * changed. Warn and keep the world as generated; regeneration is an
  * operator decision (full world wipe). Seed-only drift logs at INFO —
  * the seed roller re-pins winner seeds constantly, and a seed change is
  * routine tuning rather than a structural mismatch.
+ *
+ * <p>A missing store file is only silent for a dimension that has never
+ * generated a chunk — nothing has been baked yet, so there is nothing to
+ * compare against. For a dimension whose world already exists on disk,
+ * an absent fingerprint is worth a WARN naming what cannot be verified
+ * (see {@link #checkExisting}): without it, a lost store file makes every
+ * such dimension silently agree with whatever config is running now, and
+ * a real drift never surfaces again.
  */
 public final class DimensionFingerprints {
 
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
+    // The fields the mod stamps at creation time. "seed" is creation-time too,
+    // but a re-roll is a deliberate act (see checkExisting) and is reported
+    // separately from worldgen drift.
+    private static final String[] WORLDGEN_FIELDS = {
+            "type", "noiseSettings", "biomes", "checkerboardScale",
+            "layers", "flatBiome", "settingsOverrides", "biomeParameters", "biomePatches"
+    };
     private static Map<String, Map<String, String>> cache;
     private static Path storePath;
 
     private DimensionFingerprints() {
+    }
+
+    /**
+     * The worldgen fields that differ between a stored fingerprint and a
+     * dimension's current config fields. Pure and boot-independent — the
+     * comparison a checker would run offline, kept in the mod instead.
+     */
+    public static List<String> driftedFields(Map<String, String> stored, Map<String, String> current) {
+        List<String> drifted = new ArrayList<>();
+        for (String field : WORLDGEN_FIELDS) {
+            if (!String.valueOf(stored.get(field)).equals(current.get(field))) {
+                drifted.add(field);
+            }
+        }
+        return drifted;
+    }
+
+    /** Fingerprinted dimension names with no matching entry in {@code configuredNames}. */
+    public static List<String> orphans(Collection<String> fingerprintedNames, Collection<String> configuredNames) {
+        List<String> found = new ArrayList<>();
+        for (String name : fingerprintedNames) {
+            if (!configuredNames.contains(name)) {
+                found.add(name);
+            }
+        }
+        return found;
     }
 
     private static Map<String, String> fields(DimensionConfig def) {
@@ -78,42 +124,114 @@ public final class DimensionFingerprints {
     }
 
     /**
-     * Existing registry entry seen at boot: compare config vs creation-time
-     * fingerprint. Worldgen drift (type/noiseSettings/biomes) warns; seed-only
-     * drift is an INFO. No stored baseline (pre-feature world) adopts the
-     * current config silently.
+     * Existing registry entry seen at boot: resolves whether this dimension's
+     * world has already generated chunks, then defers to {@link
+     * #checkExisting(DimensionConfig, boolean)}. Split so the decision core
+     * is testable without a {@code MinecraftServer} — this harness cannot
+     * construct one.
      */
-    public static synchronized void checkExisting(DimensionConfig def) {
+    public static synchronized void checkExisting(DimensionConfig def, MinecraftServer server) {
+        checkExisting(def, worldGenerated(def, server));
+    }
+
+    /**
+     * Compare config vs creation-time fingerprint. Worldgen drift
+     * (type/noiseSettings/biomes) warns; seed-only drift is an INFO. No
+     * stored baseline adopts the current config as the new one to compare
+     * against — silently for a dimension with no world on disk yet (nothing
+     * was ever baked, so nothing was ever lost), but with a WARN for one
+     * that already has generated chunks: the store was lost, not the
+     * dimension, and every drift check before this boot is now
+     * unrecoverable. Either way the baseline is adopted, so drift detection
+     * resumes from this boot rather than nagging forever.
+     */
+    static synchronized void checkExisting(DimensionConfig def, boolean worldHasGeneratedChunks) {
         load();
         Map<String, String> current = fields(def);
         Map<String, String> stored = cache.get(def.getName());
         if (stored == null) {
+            if (worldHasGeneratedChunks) {
+                MultiverseServer.LOGGER.warn(
+                        "Dimension {}: no fingerprint on record, but its world already has "
+                        + "generated chunks on disk — the fingerprints store was lost (deleted, or "
+                        + "never carried over), so any worldgen drift before this boot cannot be "
+                        + "verified. Adopting the current config as the new baseline from here.",
+                        def.getName());
+            }
             cache.put(def.getName(), current);
             save();
             return;
         }
-        StringBuilder worldgenDrift = new StringBuilder();
-        for (String k : new String[]{"type", "noiseSettings", "biomes", "checkerboardScale", "layers", "flatBiome", "settingsOverrides", "biomeParameters", "biomePatches"}) {
-            if (!String.valueOf(stored.get(k)).equals(current.get(k))) {
-                if (worldgenDrift.length() > 0) {
-                    worldgenDrift.append(", ");
-                }
-                worldgenDrift.append(k).append(": '").append(stored.get(k))
-                        .append("' -> '").append(current.get(k)).append("'");
-            }
-        }
+        List<String> drifted = driftedFields(stored, current);
         boolean seedDrift = !String.valueOf(stored.get("seed")).equals(current.get("seed"));
-        if (worldgenDrift.length() > 0) {
+        if (!drifted.isEmpty()) {
+            StringBuilder detail = new StringBuilder();
+            for (String field : drifted) {
+                if (detail.length() > 0) {
+                    detail.append(", ");
+                }
+                detail.append(field).append(": '").append(stored.get(field))
+                        .append("' -> '").append(current.get(field)).append("'");
+            }
             MultiverseServer.LOGGER.warn(
                     "Dimension {}: worldgen config changed since this world was created ({}) — "
                     + "KEEPING the world as generated; worldgen changes never apply to existing "
                     + "dimensions. Regenerating requires a full world wipe (the generator is "
-                    + "baked into level.dat).", def.getName(), worldgenDrift);
+                    + "baked into level.dat).", def.getName(), detail);
         } else if (seedDrift) {
             MultiverseServer.LOGGER.info(
                     "Dimension {}: configured seed changed ({} -> {}) — existing world keeps its "
                     + "creation-time seed.", def.getName(), stored.get("seed"), current.get("seed"));
         }
+    }
+
+    /**
+     * A fingerprinted world with no matching config entry: the config was
+     * deleted (or renamed) but the world — and its level.dat entry — still
+     * exists. Fingerprint-tone: WARN, never delete or unload (the mod's own
+     * orphan reconciliation, driven by config presence, already handles
+     * unloading; this only reports the fingerprint-level mismatch).
+     */
+    public static synchronized void warnOrphans(Collection<String> configuredNames) {
+        load();
+        for (String name : orphans(cache.keySet(), configuredNames)) {
+            MultiverseServer.LOGGER.warn(
+                    "Dimension {}: fingerprint recorded but no config entry exists for it — the "
+                    + "world still exists on disk with no config describing it.", name);
+        }
+    }
+
+    /**
+     * Whether this dimension's world has ever generated and saved a chunk,
+     * independent of whether it is currently loaded. A dimension can be
+     * registered (present in level.dat's dimension registry, which is why
+     * {@link #checkExisting} was reached at all) with nothing on disk yet —
+     * created but never visited — and that case has nothing to lose, so it
+     * stays silent.
+     */
+    private static boolean worldGenerated(DimensionConfig def, MinecraftServer server) {
+        if (server == null) {
+            return false;
+        }
+        return Files.isDirectory(
+                regionDirFor(server.getSavePath(WorldSavePath.ROOT), def.getDimensionIdentifier()));
+    }
+
+    /**
+     * The region directory vanilla creates once a dimension's first chunk
+     * actually saves — pure path arithmetic over the save root, kept
+     * separate from {@link #worldGenerated} so it is testable without a
+     * {@code MinecraftServer}.
+     */
+    static Path regionDirFor(Path saveRoot, Identifier dimensionId) {
+        return saveRoot.resolve("dimensions").resolve(dimensionId.getNamespace())
+                .resolve(dimensionId.getPath()).resolve("region");
+    }
+
+    /** Test seam: the fingerprint currently on record for a dimension, or null. */
+    static synchronized Map<String, String> storedFieldsFor(String name) {
+        load();
+        return cache.get(name);
     }
 
     private static void load() {

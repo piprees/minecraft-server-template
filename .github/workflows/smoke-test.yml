@@ -31,7 +31,7 @@ jobs:
   boot-test:
     name: Boot server and verify (${{ matrix.variant }})
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 75
     strategy:
       fail-fast: false
       matrix:
@@ -43,6 +43,7 @@ jobs:
         variant: [default, removal]
     env:
       VARIANT: ${{ matrix.variant }}
+      MOD_CACHE_DIR: ${{ github.workspace }}/.modcache
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -72,20 +73,25 @@ jobs:
       - name: Restore mod cache
         uses: actions/cache@v6
         with:
-          path: data/mods
-          # Variant-suffixed: the removal variant prunes jars from data/mods,
-          # and a shared key would let it poison the default variant's cache.
-          key: mc-mods-${{ hashFiles('config/modrinth-mods.txt') }}-${{ matrix.variant }}
-          restore-keys: |
-            mc-mods-${{ hashFiles('config/modrinth-mods.txt') }}-
-            mc-mods-
+          # The shared jar cache (scripts/lib.sh mod_cache_dir), NOT data/mods.
+          # data/mods is a per-variant working directory that the removal
+          # variant prunes, which is why this used to need a variant-suffixed
+          # key to stop one variant poisoning the other. The cache holds every
+          # jar and is never pruned, so both variants share one entry and
+          # Modrinth sees one download instead of two.
+          path: ${{ github.workspace }}/.modcache
+          key: mc-jars-${{ hashFiles('config/modrinth-mods.txt') }}
+          restore-keys: mc-jars-
 
       - name: Write consumer mods-remove overlay (removal variant)
         if: matrix.variant == 'removal'
         # Representative consumer removal set: three structure mods plus BOTH
         # worldgen mods the adventure:wide/compressed noise presets reference.
-        # fabric-seasons-terralith-compat hard-depends on terralith, so a real
-        # consumer removing terralith must remove it too — same here.
+        # fabric-seasons-terralith-compat and terralith-restoned both
+        # hard-depend on terralith, so a real consumer removing terralith must
+        # remove them too — same here. Modrinth declares no dependency for
+        # restoned; its jar declares `terralith >=2.0.0`, and the boot is a
+        # FormattedException, not a warning.
         run: |
           mkdir -p overlay
           cat > overlay/mods-remove.txt <<'EOF'
@@ -95,10 +101,24 @@ jobs:
           tectonic
           terralith
           fabric-seasons-terralith-compat
+          terralith-restoned
           EOF
 
       - name: Create bind-mount directories
-        run: mkdir -p data/mods data/config modpack-dist overlay backups
+        # .seed-rolling is where diagnostic artefacts land (Artefacts.rollingDir,
+        # mounted at /.seed-rolling by docker-compose.yml). render-check writes
+        # its answer there; without the directory the mount is created root-owned
+        # and the host cannot read the file back.
+        #
+        # It also has to be writable BY THE CONTAINER, which runs as a different
+        # uid from the runner: mkdir leaves it runner-owned, so mc could create
+        # nothing inside it and every render-check failed with an
+        # AccessDeniedException carrying only the path. macOS Docker Desktop does
+        # not enforce the uid mapping, so this passes locally and fails here —
+        # the directory is a throwaway, so open it rather than match uids.
+        run: |
+          mkdir -p data/mods data/config modpack-dist overlay backups .seed-rolling
+          chmod 777 .seed-rolling
 
       - uses: actions/setup-java@v5
         with:
@@ -135,6 +155,15 @@ jobs:
         # heavy for a CI runner. Two shipped dimension files prove the
         # directory loader; two smoke-only files exercise the noiseSettings
         # presets (adventure:wide / adventure:compressed) baked into the jar.
+        #
+        # The default variant additionally carries the render-check matrix —
+        # one dimension per world TYPE. Registering them is free: they are
+        # never created, and render-check-headless builds the generator from
+        # config and reads no world. The render-check step is not free —
+        # it walks 1313 columns per pair — ~28m across the matrix, which is
+        # why that step is disabled. Budget minutes per entry added.
+        env:
+          RENDER_CHECK_MATRIX: ${{ matrix.variant == 'default' && '1' || '' }}
         run: |
           python3 - <<'EOF'
           import json, os, shutil
@@ -142,7 +171,31 @@ jobs:
           shutil.rmtree(base, ignore_errors=True)
           os.makedirs(base + '/dimensions', exist_ok=True)
           shutil.copy('config/custom-dimensions/settings.json', base + '/settings.json')
-          keep = ['the_claymarsh', 'the_blossom_gardens']
+          # the_wuthering_wisteria is in here BY NAME, not for coverage: seed
+          # -8181123680324586121 is the case that was reported from play, and
+          # a green build that does not check it is not checking the thing
+          # that broke. The render-check step below pins that pair.
+          keep = ['the_claymarsh', 'the_blossom_gardens', 'the_wuthering_wisteria']
+          if os.environ.get('RENDER_CHECK_MATRIX'):
+              # One per world type, so a height-source regression cannot hide
+              # in a family nothing else covers: nether (ceilinged), end
+              # (islands over void), paradise_lost (raised sea level),
+              # sky_islands (mostly void), void (the degenerate case),
+              # nether_islands, cave (ceilinged overworld), amplified and
+              # large_biomes (extreme heights).
+              #
+              # paradise_lost is NOT here, and that is a statement rather than
+              # an omission. the_abyssal_shrine has never satisfied this gate:
+              # its median signed (render - facts) reads 2, 1 and -10 across
+              # three banked seeds, with 268-513 of 1313 columns off by nine
+              # blocks or more. That is the open high-relief finding, measured
+              # and written up, not a regression — and a gate pinned to a
+              # dimension that has never passed can only ever be red, which
+              # guards nothing. Put it back when that finding closes.
+              keep += ['the_basalt_spires', 'the_end_citadel',
+                       'the_starwell', 'the_icebound_rift',
+                       'the_catalyst_maw', 'the_luminous_caverns',
+                       'the_amplified_reaches', 'the_endless_expanse']
           for slug in keep:
               shutil.copy(f'config/custom-dimensions/dimensions/{slug}.json',
                           f'{base}/dimensions/{slug}.json')
@@ -267,6 +320,31 @@ jobs:
             exit 1
           }
 
+      # customdim lint reads every dimension config and reports unknown biomes,
+      # unknown or out-of-border forced structures, malformed radial curves,
+      # unknown portal blocks and igniter collisions. It needs no dimension
+      # loaded — targets() reads the configs directly — so it runs here rather
+      # than after the load loop, and catches an authoring mistake that would
+      # otherwise only ever be a line in a boot log nobody reads.
+      #
+      # Default variant only. The removal variant deletes terralith, which 47
+      # dimensions name across 201 biome references, and every one would report
+      # biome_unknown against configs that are correct for the shipped mod set.
+      - name: Assert dimension configs lint clean
+        if: matrix.variant == 'default'
+        run: |
+          OUT=$(docker exec mc rcon-cli "customdim lint" 2>/dev/null)
+          echo "$OUT"
+          ERRORS=$(echo "$OUT" | grep -oE '[0-9]+ error\(s\)' | grep -oE '^[0-9]+' | head -1)
+          if [[ -z "$ERRORS" ]]; then
+            echo "::error::customdim lint produced no parseable summary — RCON returned: $OUT"
+            exit 1
+          fi
+          if [[ "$ERRORS" -gt 0 ]]; then
+            echo "::error::customdim lint found $ERRORS ERROR-severity finding(s) in the shipped dimension configs"
+            exit 1
+          fi
+
       - name: Assert custom dimensions, noise presets and tectonic config
         run: |
           LOG=$(docker logs mc 2>&1)
@@ -387,6 +465,40 @@ jobs:
           }
           echo "Custom dimensions + noise presets verified"
 
+      # Everything above runs on the boot that CREATES the world, where our
+      # dimensions reach the DIMENSION registry after every other mod has read
+      # it. Restarting is what makes them visible to a mod that rewrites level
+      # stems, and structure-census is the one instrument that compares the live
+      # world against the headless facts engine ([T34]).
+      - name: Assert the second boot generates the same world as the first
+        if: matrix.variant == 'default'
+        run: |
+          docker restart mc
+          for _ in $(seq 1 60); do
+            [ "$(docker inspect mc --format '{{.State.Health.Status}}')" = "healthy" ] && break
+            sleep 10
+          done
+          docker inspect mc --format 'Health={{.State.Health.Status}} Restarts={{.RestartCount}}'
+
+          for dim in the_claymarsh the_blossom_gardens; do
+            docker exec mc rcon-cli "customdim load $dim" > /dev/null 2>&1 || true
+          done
+          for dim in the_claymarsh the_blossom_gardens; do
+            OUT=""
+            for _ in $(seq 1 20); do
+              OUT=$(docker exec mc rcon-cli "customdim structure-census $dim" 2>&1 || true)
+              echo "$OUT" | grep -qE 'live and facts agree|DISAGREES' && break
+              sleep 5
+            done
+            echo "census($dim): $OUT"
+            echo "$OUT" | grep -q "live and facts agree" || {
+              echo "::error::$dim generates a different world on its second boot — the live"
+              echo "::error::structure placement disagrees with the facts engine: $OUT"
+              exit 1
+            }
+          done
+          docker logs mc 2>&1 | grep -F "injected regions into the persisted source" || true
+
       - name: Assert removed mods are gone and locate fails cleanly (removal variant)
         if: matrix.variant == 'removal'
         run: |
@@ -440,6 +552,174 @@ jobs:
             echo "$KIT" | head -5
             exit 1
           fi
+
+      # Disabled: ~28m of the default variant's ~43m. Re-enable (drop the
+      # `if: false`) before shipping a worldgen or height-source change —
+      # it is the only gate that catches a render frozen at a constant
+      # height, or the map and the facts answering different questions.
+      - name: Assert the map and the facts answer one height (render-check)
+        if: false
+        # The regression this catches is TWO HEIGHT SOURCES FOR ONE QUESTION.
+        # The banked facts read SpikeSampler (a heightmap); the map reads
+        # CandidateRender (a density walk). Nothing forces them to agree, and
+        # on 2026-08-13 they did not: the nether's map answered the top of the
+        # generator's band for every column in the world, and the overworld's
+        # was a systematic block low at the shoreline.
+        #
+        # HEADLESS on purpose. The full check also reads a live world, which
+        # means generating a grid of chunks per dimension — minutes each, and
+        # far past this job's 20-minute budget for no extra signal, because the
+        # split this guards needs no world at all. The world side is a local
+        # instrument (see reports/render-check.md).
+        #
+        # Never parse the RCON line for the answer (T17): it is a doorbell.
+        # Poll it for completion, read the numbers from the artefact.
+        run: |
+          # dimension:seed pairs. the_wuthering_wisteria's is the seed that was
+          # REPORTED FROM PLAY — pinned by name so a green build is checking
+          # the case that broke, not a case that resembles it.
+          PAIRS="
+          minecraft:overworld:1
+          minecraft:the_nether:1
+          minecraft:the_end:1
+          adventure:the_wuthering_wisteria:-8181123680324586121
+          adventure:the_claymarsh:12345
+          adventure:the_smoke_wide:1111
+          adventure:the_smoke_compressed:2222
+          "
+          # One dimension per world TYPE, on the default variant only — the
+          # removal variant's fixture does not carry them, and a missing
+          # dimension would fail for the wrong reason.
+          if [[ "$VARIANT" == "default" ]]; then
+            PAIRS="$PAIRS
+          adventure:the_basalt_spires:7052441739903294973
+          adventure:the_end_citadel:4447215516364834752
+          adventure:the_starwell:8349953971000056928
+          adventure:the_icebound_rift:7131471311199519160
+          adventure:the_catalyst_maw:-4154076350820736470
+          adventure:the_luminous_caverns:-2289191587901142640
+          adventure:the_amplified_reaches:3454763833000591229
+          adventure:the_endless_expanse:6645879489798815320
+          "
+          fi
+          # The gate tests what a REGRESSION looks like, not raw scatter.
+          #
+          # Scatter is unavoidable and honest: generation samples the density
+          # at its own cell corners and INTERPOLATES, while the map samples the
+          # function directly, so the two diverge in proportion to how fast the
+          # terrain is changing. Measured on a mountainous seed, the flattest
+          # quartile of columns differs by a median of 2 blocks and the
+          # steepest by 20 — a fixed "2% of columns may disagree" is red on
+          # every mountain range in the pack, and a threshold loose enough to
+          # pass one guards nothing.
+          #
+          # Both real faults were one number each, and neither is confused by
+          # a steep dimension:
+          #   * the render's height must VARY across the grid. The nether's was
+          #     y=191 for all 1313 columns — the top of the generator's band,
+          #     because a clamped roof gradient says "solid" for every y above
+          #     it and a highest-solid walk never descends.
+          #   * the MEDIAN signed (render - facts) must be zero. It was -1
+          #     across the board: OCEAN_FLOOR_WG answers the block above the
+          #     floor and the density walk answered the floor block, which puts
+          #     the whole error on the shoreline.
+          MAX_MEDIAN_DELTA=0
+          MIN_HEIGHT_SPREAD=1
+
+          FAILED=0
+          for PAIR in $PAIRS; do
+            DIM="${PAIR%:*}"
+            SEED="${PAIR##*:}"
+            echo "--- render-check-headless $DIM $SEED"
+            docker exec mc rcon-cli "customdim render-check-headless $DIM $SEED 512" >/dev/null 2>&1 || true
+            OUT=""
+            # 400 x 3s. render-check is tick-budget-bound, not CPU-bound, so
+            # its wall time scales with the dimension's size and the runner's
+            # speed rather than with anything this job controls — a ceilinged
+            # cave walks its columns exactly and is the slowest shape there is.
+            # the_catalyst_maw needs 380s on a developer laptop, so the ceiling
+            # has to clear several times that for a shared runner.
+            # The loop breaks the moment a dimension answers, so headroom is
+            # free on every dimension that is not the slow one.
+            for _ in $(seq 1 400); do
+              OUT=$(docker exec mc rcon-cli "customdim render-check-headless $DIM $SEED 512" 2>&1 || true)
+              case "$OUT" in
+                *"columns disagree"*|*FAILED*) break ;;
+              esac
+              sleep 3
+            done
+            echo "  $OUT"
+            case "$OUT" in
+              *FAILED*)
+                echo "::error::render-check could not run for $DIM $SEED — $OUT"
+                FAILED=1
+                continue ;;
+              *"columns disagree"*) ;;
+              *)
+                echo "::error::render-check for $DIM $SEED never completed: $OUT"
+                FAILED=1
+                continue ;;
+            esac
+            SLUG="${DIM##*:}"
+            FILE=$(find .seed-rolling/render-check -name "${SLUG}-${SEED}-r512-headless.json" | head -1)
+            if [ -z "$FILE" ]; then
+              echo "::error::render-check wrote no artefact for $DIM $SEED"
+              FAILED=1
+              continue
+            fi
+            python3 - "$FILE" "$MAX_MEDIAN_DELTA" "$MIN_HEIGHT_SPREAD" "$DIM" <<'EOF' || FAILED=1
+          import json, sys
+          path, max_median, min_spread, dim = sys.argv[1], int(sys.argv[2]), int(sys.argv[3]), sys.argv[4]
+          d = json.load(open(path))
+          dis, gen = d["disagreement"], d["generator"]
+          sampled = max(1, dis["of"])
+          differing = dis["pairs"]["factsRender"]
+          median = dis.get("medianSignedRenderMinusFacts")
+          spread = dis.get("renderHeightSpread")
+          control = dim.startswith("minecraft:")
+          kind = "HARNESS" if control else "PACK"
+          print(f"  {dim}: median(render-facts)={median} spread={spread} "
+                f"differ={differing}/{sampled} ({differing / sampled:.1%}) "
+                f"worst={dis['maxDelta']['factsRender']} cell={gen['band']['cellHeight']} "
+                f"source={gen['renderHeightSource']} buckets={dis['buckets']}")
+          bad = []
+          if "medianSignedRenderMinusFacts" not in dis or "renderHeightSpread" not in dis:
+              # Absent KEY, not a null value: the artefact was written by a jar
+              # older than this gate. Fail on it rather than pass by omission.
+              bad.append("the artefact carries neither signal — it predates this check, "
+                         "so the jar under test is not the jar that ran")
+          else:
+              # The two signals are checked INDEPENDENTLY. They go null under
+              # different conditions — median when no column had both a facts
+              # and a render height, spread only when the render found no
+              # ground anywhere — and gating both on one `or` meant a
+              # facts-side hiccup silently skipped the SPREAD check, which is
+              # the one that catches a render frozen at a constant height.
+              # That is the nether regression this whole step exists for.
+              if median is None:
+                  print("    (no column had both a facts and a render height — "
+                        "the median is not computable, so it is not checked)")
+              elif abs(median) > max_median:
+                  bad.append(f"median(render - facts) is {median}, not 0 — the two are "
+                             f"answering different questions, not disagreeing by noise")
+              if spread is None:
+                  print("    (the render found no ground at any column — "
+                        "there is no height to vary)")
+              elif spread < min_spread:
+                  bad.append(f"the render's height is CONSTANT across all {sampled} columns "
+                             f"(spread {spread}) — it is not describing terrain")
+          if bad:
+              where = ("a MINECRAFT-NAMESPACE dimension — this harness's own control. "
+                       "The harness or the renderer is broken, not the pack."
+                       if control else
+                       "a pack dimension. The renderer and the facts have drifted apart.")
+              print(f"::error::render-check {kind} failure on {dim} ({where}) "
+                    + "; ".join(bad))
+              sys.exit(1)
+          EOF
+          done
+          [ "$FAILED" -eq 0 ] || exit 1
+          echo "render-check: the map and the facts answer one height"
 
       - name: Spawn a fake player (Carpet bot) and verify world generation
         if: matrix.variant == 'default'

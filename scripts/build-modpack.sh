@@ -65,8 +65,8 @@ fi
 # for any invocation that bypasses the container (calling this script
 # directly against a manifest that was never passed through the stripper).
 # A slug removed server-side but still in _clientMods.required is a JOIN
-# FAILURE for every player (Fabric registry handshake kick; 52 such
-# both-required mods audited 2026-07-24). Warn loudly; never fail the build.
+# FAILURE for every player (Fabric registry handshake kick). Warn loudly;
+# never fail the build.
 MODS_REMOVE="${MODS_REMOVE:-$PROJECT_DIR/overlay/mods-remove.txt}"
 if [[ -f "$MODS_REMOVE" ]]; then
   python3 - "$MANIFEST" "$MODS_REMOVE" << 'PARITY'
@@ -282,16 +282,20 @@ echo "==> Mirroring mod JARs and building modrinth.index.json..."
 
 mkdir -p "$WORK_DIR"
 MIRROR_DIR="$DIST_DIR/mods"
+# The SAME cache sync-mods.sh fills, so one mod list is downloaded once per
+# machine and once per CI run rather than twice.
+JAR_CACHE="$(mod_cache_dir)"
 mkdir -p "$MIRROR_DIR"
 
 python3 -c "
-import hashlib, json, os, sys, urllib.request
+import hashlib, json, os, shutil, sys, urllib.request
 from urllib.parse import quote
 
 with open('$FILES_TMPFILE') as f:
     files = json.load(f)
 
 mirror_dir = '$MIRROR_DIR'
+jar_cache = '$JAR_CACHE'
 domain = '${DOMAIN:-example.com}'
 ua = '${BRAND_SLUG:-adventure}/build-modpack'
 
@@ -303,6 +307,23 @@ def sha512_of(path):
     return h.hexdigest()
 
 def fetch_jar(url, target, want_hash):
+    # Cache first, network second; a fetched jar seeds the cache.
+    # Keyed on the CDN basename, which is what the cache stores - version ids
+    # are in Modrinth filenames, so a name collision across versions cannot
+    # happen. A cached file is still hash-verified below, so a corrupt entry
+    # is discarded rather than trusted.
+    # (Comments, not a docstring: this block is embedded in a double-quoted
+    # shell string, so a triple quote would terminate it.)
+    cached = os.path.join(jar_cache, os.path.basename(url.split('?')[0]))
+    if os.path.isfile(cached) and os.path.getsize(cached) > 0:
+        shutil.copyfile(cached, target)
+        if not want_hash or sha512_of(target) == want_hash:
+            return True
+        os.remove(target)          # stale/corrupt cache entry — refetch
+        try:
+            os.remove(cached)
+        except OSError:
+            pass
     try:
         req = urllib.request.Request(url, headers={'User-Agent': ua})
         with urllib.request.urlopen(req, timeout=60) as resp, open(target, 'wb') as out:
@@ -314,6 +335,11 @@ def fetch_jar(url, target, want_hash):
         if want_hash and sha512_of(target) != want_hash:
             os.remove(target)
             return False
+        try:
+            os.makedirs(jar_cache, exist_ok=True)
+            shutil.copyfile(target, cached)
+        except OSError:
+            pass                    # cache is an optimisation, never fatal
         return True
     except Exception as e:
         print(f'  ! {os.path.basename(target)}: fetch failed ({e})', file=sys.stderr)
@@ -429,9 +455,9 @@ rm -f "$FILES_TMPFILE"
 
 # --- dependency coherence gate --------------------------------------------------
 # Refuse to publish a pack Fabric would refuse to launch: every mod's
-# depends/breaks predicates are checked against the mods actually present
-# (the sodium/supplementaries incident, 2026-07-02). On conflict the build
-# aborts here and the previously-published artefacts keep serving.
+# depends/breaks predicates are checked against the mods actually present.
+# On conflict the build aborts here and the previously-published artefacts
+# keep serving.
 echo ""
 echo "==> Checking mod dependency coherence..."
 python3 "$SCRIPT_DIR/check-pack-coherence.py" "$MIRROR_DIR"

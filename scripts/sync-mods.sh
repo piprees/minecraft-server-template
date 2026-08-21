@@ -33,6 +33,10 @@
 # names. Must run on macOS bash 3.2 - no mapfile, no ${var,,}.
 set -euo pipefail
 
+SYNC_SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck disable=SC1091
+source "$SYNC_SCRIPT_DIR/lib.sh"
+
 DATA_DIR="${1:?usage: sync-mods.sh <data-dir> [stack-mods-volume]}"
 VOLUME="${2:-}"
 
@@ -65,10 +69,9 @@ FAILED=0
 # Default: mods-cache/server/ beside the repo root this script was run from
 # (platform checkouts and CI have it; a consumer/production server does not,
 # and simply falls through to the CDN). Override or disable with MOD_CACHE_DIR.
-if [[ -z "${MOD_CACHE_DIR+x}" ]]; then
-  MOD_CACHE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/mods-cache/server"
-fi
-[[ -d "$MOD_CACHE_DIR" ]] || MOD_CACHE_DIR=""
+# The shared cache (scripts/lib.sh) is always on and always created, so
+# every consumer gets the same warm cache as platform checkouts and CI.
+MOD_CACHE_DIR="$(mod_cache_dir)"
 
 fetch_missing() {
   # $1 = newline-separated URL list, $2 = destination directory

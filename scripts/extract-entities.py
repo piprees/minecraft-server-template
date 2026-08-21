@@ -19,6 +19,10 @@ Usage:
   ./scripts/extract-entities.py [consumer_dir]   # default: ~/Projects/elfydd
 """
 import json
+import sys as _sys
+from pathlib import Path as _Path
+_sys.path.insert(0, str(_Path(__file__).resolve().parent))
+import mcjson
 import sys
 import zipfile
 from pathlib import Path
@@ -47,7 +51,7 @@ def scan_lang(zf, jar_name, entities):
                 and parts[3] == "en_us.json"):
             continue
         try:
-            lang = json.loads(zf.read(entry))
+            lang = mcjson.loads(zf.read(entry))
         except json.JSONDecodeError:
             continue
         for key, value in lang.items():
@@ -85,7 +89,7 @@ def scan_jar(path, entities):
             for entry in zf.namelist():
                 if BIOME_MARKER in entry and entry.endswith(".json"):
                     try:
-                        scan_spawners_json(json.loads(zf.read(entry)), entities)
+                        scan_spawners_json(mcjson.loads(zf.read(entry)), entities)
                     except json.JSONDecodeError:
                         pass
             return n
@@ -108,7 +112,7 @@ def main():
         for f in sorted(DATAPACKS_DIR.rglob("*.json")):
             if BIOME_MARKER in f.as_posix():
                 try:
-                    scan_spawners_json(json.loads(f.read_text()), entities)
+                    scan_spawners_json(mcjson.loads(f.read_text()), entities)
                 except json.JSONDecodeError:
                     pass
 

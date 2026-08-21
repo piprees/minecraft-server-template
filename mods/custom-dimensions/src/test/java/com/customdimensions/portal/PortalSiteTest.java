@@ -13,8 +13,7 @@ import static org.junit.jupiter.api.Assertions.*;
 /**
  * {@link PortalSite} owns the two behaviours that can strand a player:
  * where an arrival goes, and whether they can step out of it once they are
- * there. It shipped with no tests at all and produced a live trap on
- * 2026-07-25 — see {@code TEST-COVERAGE-AUDIT.md}.
+ * there.
  *
  * <p>Everything here drives the pure cores with injected probes, in the same
  * style as {@code ProjectionVolumeTest}. No Minecraft runtime, no world.
@@ -157,11 +156,11 @@ class PortalSiteTest {
 
     @Test
     void aSiteUnderTheCeilingIsNeverOnTopOfIt() {
-        // The regression this whole change exists for: an arrival at y=192, on
-        // the nether roof. Roof surface at 190, open air above it to the build
-        // limit. Starting the scan under the ceiling makes the roof-top site
-        // unreachable by construction — the interior's TOP is still below the
-        // highest solid block in the column.
+        // An arrival at y=192, on the nether roof: roof surface at 190, open
+        // air above it to the build limit. Starting the scan under the
+        // ceiling makes the roof-top site unreachable by construction — the
+        // interior's TOP is still below the highest solid block in the
+        // column.
         int ceilingY = PortalSite.findCeilingY(0, 0, 255, 1, p -> p.getY() <= 190);
         int highest = ceilingY - PortalSite.STANDARD_HEIGHT - 2;
 
@@ -172,11 +171,10 @@ class PortalSiteTest {
 
     @Test
     void roofUndersideSkipsTheWholeContiguousSlab() {
-        // Measured live in the_boneyard 2026-07-26: the roof is not a
-        // one-block bedrock lid, it is a solid mass roughly y=145 to y=190.
-        // Starting the search a few blocks under its TOP starts it inside the
-        // rock, and on an entombed column the carve then opens a pocket near
-        // the top of a 45-block slab.
+        // The roof in the_boneyard is not a one-block bedrock lid — it is a
+        // solid mass roughly y=145 to y=190. Starting the search a few
+        // blocks under its TOP starts inside the rock, and on an entombed
+        // column the carve then opens a pocket near the top of the slab.
         Predicate<BlockPos> opaque = p -> p.getY() >= 145 && p.getY() <= 190;
 
         assertEquals(190, PortalSite.findCeilingY(400, 400, 255, 1, opaque));
@@ -239,9 +237,9 @@ class PortalSiteTest {
 
     @Test
     void carveSiteRefusesWhenNothingIsCarveable() {
-        // Bedrock all the way down. NO_SITE here is the honest answer and the
-        // caller refuses the traversal — the old code invented a Y from the
-        // heightmap instead, which is how players ended up on the roof.
+        // Bedrock all the way down. NO_SITE here is the honest answer, and
+        // the caller must refuse the traversal rather than invent a Y from
+        // the heightmap.
         assertEquals(PortalSite.NO_SITE,
                 PortalSite.findCarveY(0, 0, Direction.Axis.X, 120, 60, p -> false, ALL_SOLID));
     }
@@ -313,12 +311,12 @@ class PortalSiteTest {
         assertTrue(PortalSite.egressCells(null, Direction.Axis.X, 1).isEmpty());
     }
 
-    // === hasEgress — the invariant that was missing ======================
+    // === hasEgress — the egress invariant ================================
 
     @Test
     void entombedArrivalHasNoEgress() {
-        // The live defect: a 2x3 arrival with solid rock pressed against both
-        // faces. The player arrives and cannot move.
+        // A 2x3 arrival with solid rock pressed against both faces — the
+        // player arrives and cannot move.
         Set<BlockPos> interior = PortalSite.standardInterior(1887, 248, -3624, Direction.Axis.X);
 
         assertFalse(PortalSite.hasEgress(interior, Direction.Axis.X, NONE_SOLID),

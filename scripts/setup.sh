@@ -20,7 +20,6 @@
 #  10. Preflight      Validate config (delegates to preflight-check.sh)
 #  11. /etc/hosts     Offer to add local subdomain entries
 #  12. Local test     Start the server locally (delegates to dev-up.sh)
-#  13. Seed rolling   Optional multi-hour seed search (delegates to seed/)
 #  14. Cloud deploy   provision.sh → harden.sh → prepare-droplet.sh → first boot
 #  15. DNS & tunnel   Cloudflare tunnel + DNS records (cloudflare-setup.sh)
 #  16. Networking     LAN / VPN / internet exposure guidance
@@ -742,9 +741,7 @@ if [[ $SKIP_CREDENTIALS -eq 0 ]]; then
 
   step "World seed"
   info "Enter a seed if you have one, or leave blank to get a random one."
-  info "If you want to find a really good seed, skip this and use the"
-  info "seed roller later (it tests hundreds of seeds against the real modpack)."
-  prompt_value SEED "Seed (blank = random, or roll later)" "${SEED:-}"
+  prompt_value SEED "Seed (blank = random)" "${SEED:-}"
   if [[ -n "$SEED" ]]; then
     persist_secret SEED "$SEED"
   fi
@@ -1148,27 +1145,49 @@ persist_secret LOCAL_DOMAIN "$LOCAL_DOMAIN"
 HOSTS_MARKER_BEGIN="# BEGIN minecraft-${BRAND_SLUG:-adventure}"
 HOSTS_MARKER_END="# END minecraft-${BRAND_SLUG:-adventure}"
 
+# One definition of the hostnames, used by the write, the "is it current?"
+# comparison and the Windows instructions alike. The apex is here because
+# nav-proxy redirects it to the pack page, and seeds.* because the local
+# profile serves the seed roller there.
+HOSTS_LINE="127.0.0.1  ${LOCAL_DOMAIN} mc.${LOCAL_DOMAIN} map.${LOCAL_DOMAIN} pack.${LOCAL_DOMAIN} status.${LOCAL_DOMAIN} mods.${LOCAL_DOMAIN} seeds.${LOCAL_DOMAIN}"
+
 if [[ "$(uname)" == "Darwin" ]] || [[ "$(uname)" == "Linux" ]]; then
   step "Add local /etc/hosts entries?"
   info "Maps local subdomains to 127.0.0.1 so you can access web services"
   info "in your browser while keeping your real domain pointing at prod."
   echo ""
   echo "  Entries to add:"
-  echo "    127.0.0.1  mc.${LOCAL_DOMAIN} map.${LOCAL_DOMAIN} pack.${LOCAL_DOMAIN} status.${LOCAL_DOMAIN} mods.${LOCAL_DOMAIN}"
+  echo "    ${HOSTS_LINE}"
   echo ""
 
+  # Three states, not two: absent, present-and-current, present-and-STALE.
+  # Treating the third as "already present" is how an existing consumer
+  # silently never receives a hostname added in a later release.
   ALREADY_PRESENT=0
+  HOSTS_CURRENT=0
   if grep -q "$HOSTS_MARKER_BEGIN" /etc/hosts 2> /dev/null; then
     ALREADY_PRESENT=1
-    echo -e "  ${GREEN}✓${RESET} Entries already present (inside ${HOSTS_MARKER_BEGIN}...${HOSTS_MARKER_END})"
+    if grep -qF "seeds.${LOCAL_DOMAIN}" /etc/hosts 2> /dev/null; then
+      HOSTS_CURRENT=1
+      echo -e "  ${GREEN}✓${RESET} Entries already present and current (inside ${HOSTS_MARKER_BEGIN}...${HOSTS_MARKER_END})"
+    else
+      echo -e "  ${YELLOW}○${RESET} Entries present but missing newer hostnames (seeds, apex)."
+    fi
   fi
 
-  if [[ $ALREADY_PRESENT -eq 0 ]]; then
+  if [[ $ALREADY_PRESENT -eq 1 && $HOSTS_CURRENT -eq 0 ]]; then
+    if ask_yes_no "  Update the existing block? (requires sudo)"; then
+      sudo sed -i.bak "/${HOSTS_MARKER_BEGIN}/,/${HOSTS_MARKER_END}/d" /etc/hosts
+      printf '%s\n%s\n%s\n' "$HOSTS_MARKER_BEGIN" "$HOSTS_LINE" "$HOSTS_MARKER_END" \
+        | sudo tee -a /etc/hosts > /dev/null
+      echo -e "  ${GREEN}✓${RESET} Updated (previous /etc/hosts saved as /etc/hosts.bak)"
+    else
+      info "Skipped. The seed roller at seeds.${LOCAL_DOMAIN} won't resolve until you add it."
+    fi
+  elif [[ $ALREADY_PRESENT -eq 0 ]]; then
     if ask_yes_no "  Add entries to /etc/hosts? (requires sudo)"; then
-      HOSTS_BLOCK="${HOSTS_MARKER_BEGIN}
-127.0.0.1  mc.${LOCAL_DOMAIN} map.${LOCAL_DOMAIN} pack.${LOCAL_DOMAIN} status.${LOCAL_DOMAIN} mods.${LOCAL_DOMAIN}
-${HOSTS_MARKER_END}"
-      echo "$HOSTS_BLOCK" | sudo tee -a /etc/hosts > /dev/null
+      printf '%s\n%s\n%s\n' "$HOSTS_MARKER_BEGIN" "$HOSTS_LINE" "$HOSTS_MARKER_END" \
+        | sudo tee -a /etc/hosts > /dev/null
       echo -e "  ${GREEN}✓${RESET} Added. Remove later with: sudo sed -i '' '/${HOSTS_MARKER_BEGIN}/,/${HOSTS_MARKER_END}/d' /etc/hosts"
     else
       info "Skipped. Add manually or re-run ${SELF_CMD}."
@@ -1182,7 +1201,7 @@ else
   echo "  Add these lines to C:\\Windows\\System32\\drivers\\etc\\hosts"
   echo "  (open Notepad as Administrator):"
   echo ""
-  echo "    127.0.0.1  mc.${LOCAL_DOMAIN} map.${LOCAL_DOMAIN} pack.${LOCAL_DOMAIN} status.${LOCAL_DOMAIN} mods.${LOCAL_DOMAIN}"
+  echo "    ${HOSTS_LINE}"
   echo ""
   pause
 fi
@@ -1210,41 +1229,6 @@ if ask_yes_no "Start local server?" "$LOCAL_DEFAULT"; then
   echo "  Stop:          ./scripts/dev-up.sh --down"
   echo "  Game server:   mc.${LOCAL_DOMAIN:-localhost}:${GAME_PORT:-25577}"
   pause
-fi
-
-# =============================================================================
-#  Phase 13: Seed Rolling (optional)
-# =============================================================================
-banner "Seed Rolling (optional)"
-
-if [[ -n "${SEED:-}" ]]; then
-  echo "You already have a seed set: ${SEED}"
-  echo "Skip this unless you want to find a better one."
-else
-  echo "No seed set yet. The server will pick a random one on first boot."
-  echo "The seed roller finds good ones by testing structure placement and"
-  echo "spawn biomes against the real modpack. Worth doing if you care about"
-  echo "your world's starting area."
-fi
-echo ""
-setup_warn "Seed rolling takes HOURS (each seed = full server boot + worldgen)."
-info "It's resumable though, so you can stop and come back to it."
-echo ""
-
-if ask_yes_no "Start seed rolling?" "N"; then
-  echo ""
-  # Optional feature: a seed-rolling failure must not kill the wizard.
-  run_script "Rolling seeds" "$SCRIPT_DIR/seed/roll-all.sh"
-
-  echo ""
-  step "Choose your seed"
-  echo "  Winners are written into the dimension configs; review with"
-  echo "  ./dev seed-status, or override the overworld seed here:"
-  prompt_value CHOSEN_SEED "Winning seed" ""
-  if [[ -n "$CHOSEN_SEED" ]]; then
-    persist_secret SEED "$CHOSEN_SEED"
-    echo -e "  ${GREEN}✓${RESET} Seed saved to .env"
-  fi
 fi
 
 # =============================================================================
@@ -1587,7 +1571,6 @@ else
   echo "  Start server:     ./scripts/dev-up.sh"
   echo "  Stop server:      ./scripts/dev-up.sh --down"
   echo "  Watch logs:       ./scripts/dev-up.sh --logs"
-  echo "  Roll seeds:       ./dev seed-roll"
   echo "  Build modpack:    ./dev pack"
   echo "  Teardown:         ./scripts/teardown.sh --target local"
   echo ""

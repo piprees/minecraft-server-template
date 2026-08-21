@@ -94,7 +94,7 @@ It provides `PROJECT_DIR` resolution, colour codes, `log`/`warn`/`die`, `load_en
 
 `README.md` and `overlay/` are **deliberately** excluded from the consumer sync — those are consumer-owned content, never overwrite them.
 
-`.github/workflows/lint.yml`'s `bundle-manifest` job only catches part of this: it cross-checks `examples/consumer/ops`'s `script_file="X"` mappings and `ALLOWED_COMMANDS` entries against `MANIFEST`, and checks that any `$SCRIPT_DIR/foo.sh` referenced _from inside_ a manifested bundle script is itself in `MANIFEST`. It only greps for `scripts/*.sh` paths — **a standalone script nobody calls by name yet (or a `.py` file) has no automated check at all**, beyond the narrower `scripts/seed/*.py` import-graph check in `test-scripts.sh` Phase 1 (which only covers the seed roller's own dependency tree). Don't rely on CI to catch a forgotten manifest entry outside those two cases — add it by hand and verify with the validation commands below.
+`.github/workflows/lint.yml`'s `bundle-manifest` job only catches part of this: it cross-checks `examples/consumer/ops`'s `script_file="X"` mappings and `ALLOWED_COMMANDS` entries against `MANIFEST`, and checks that any `$SCRIPT_DIR/foo.sh` referenced _from inside_ a manifested bundle script is itself in `MANIFEST`. It only greps for `scripts/*.sh` paths — **a standalone script nobody calls by name yet (or a `.py` file) has no automated check at all.** The seed roller no longer has a Python dependency tree to check (it lives in the mod now, driven by `/customdim` subcommands), so `test-scripts.sh` Phase 1 has nothing equivalent to that old import-graph check. Don't rely on CI to catch a forgotten manifest entry — add it by hand and verify with the validation commands below.
 
 ## Safety: no unbounded loops
 
@@ -118,7 +118,7 @@ Run this before every push. CI's `lint.yml` runs the same plus `yamllint -c .yam
 
 ## Traps (read this before you write anything)
 
-1. **`grep -P` on macOS.** Documented in `AGENTS.md`, then hit _again_ in the seed-rolling scripts after that. BSD grep silently produces no match rather than erroring — "no output" reads as "nothing to fix", not as "this tool doesn't exist here". Use `grep -oE` or `sed`.
+1. **`grep -P` on macOS.** Documented in `AGENTS.md`. BSD grep silently produces no match rather than erroring — "no output" reads as "nothing to fix", not as "this tool doesn't exist here". Use `grep -oE` or `sed`.
 2. **A Bundle script missing from `MANIFEST` never ships.** The build succeeds, `test-scripts.sh` passes locally (you have the file on disk), and the first symptom is a consumer's `./ops <thing>` failing with `Script not found: <path>` after `./dev update` pulls a release tarball that never contained it.
 3. **A consumer scaffold file missing from the `update)` sync list never reaches existing consumers.** New consumers created via `degit`/curl get everything under `examples/consumer/` for free; existing consumers only receive what the explicit copy loops in `examples/consumer/dev`'s `update)` case name. `README.md` and `overlay/` are excluded on purpose — don't "fix" that.
 4. **`cp` over a running script corrupts it.** Bash reads a script incrementally as it executes; `cp` rewrites the destination inode in place, and an interpreter mid-execution hits shifted bytes and dies with a bogus `unexpected EOF`/parse error. Use write-to-temp + `mv` — see the executable-entry-points loop in `examples/consumer/dev`'s `update)` case, which does exactly this because that loop replaces the very script bash is executing.

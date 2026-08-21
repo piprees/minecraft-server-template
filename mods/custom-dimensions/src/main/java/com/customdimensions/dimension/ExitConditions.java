@@ -24,8 +24,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * a portal — void falls, death (generally or by cause), ender pearls,
  * surviving long falls. Boot-re-read like portal config.
  *
- * Design principles (exit-shrine-structure.md): exit conditions ADD
- * routes, never remove them; every configured exit resolves to a safe
+ * Exit conditions ADD routes, never remove them; every configured exit resolves to a safe
  * arrival (surface-resolved via ExitTarget, slow-falling on sky drops);
  * "void": {"action": "kill"} is an explicit vanilla opt-in, not a
  * default. A per-player cooldown stops trigger loops (e.g. chained void

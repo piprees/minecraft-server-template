@@ -10,20 +10,17 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Phase 7 — PRESENTATION describes where a portal GOES, not where it is.
+ * PRESENTATION describes where a portal GOES, not where it is.
  *
  * <p>The frame of an arrival is built from the destination's blocks so it is
- * recognisable on arrival; its colour and particles belong to the world on the
- * other side, because that portal's job is to take you back there.
+ * recognisable on arrival; its colour and particles belong to the world on
+ * the other side, because that portal's job is to take you back there.
  *
- * <p>This was audit row 9: implemented in {@code createTargetPortal} and
- * completely untested, so the one case that actually matters went unnoticed
- * for weeks — an arrival whose source is the OVERWORLD.
- * {@code getPortalFor(minecraft:overworld)} returns null (the overworld has no
- * portal config; nothing targets it), and the code fell back to
- * {@code definition}, which is the DESTINATION's own portal. Every way home
- * therefore glowed like the dimension you were standing in. Reported in game
- * 2026-07-25: "still seeing nether styles on the return portal".
+ * <p>{@code getPortalFor(minecraft:overworld)} returns null — the overworld
+ * has no portal config, since nothing targets it — so an arrival whose
+ * source is the overworld must fall back to a neutral presentation, never to
+ * {@code definition} (the DESTINATION's own portal), or every way home glows
+ * like the dimension you're standing in.
  */
 class PortalPresentationTest {
 
@@ -83,7 +80,7 @@ class PortalPresentationTest {
 
     @Test
     void aChainedDimensionKeepsItsOwnPresentation() {
-        // Only BASE worlds are neutral. A chained arrival (dim A -> dim B)
+        // Only RESERVED dimensions are neutral. A chained arrival (dim A -> dim B)
         // has a real config for A, so getPortalFor(A) answers and B's arrival
         // presents as A. Asserted through the lookup rather than the write
         // path, which needs a ServerWorld.

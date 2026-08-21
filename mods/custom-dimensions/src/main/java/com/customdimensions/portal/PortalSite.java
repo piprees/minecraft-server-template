@@ -15,17 +15,11 @@ import java.util.function.Predicate;
  * Where an arrival portal goes, and what shape it is.
  *
  * <h2>Why this exists</h2>
- * Arrivals used to be built at {@code findSurfaceY} — the
- * {@code MOTION_BLOCKING_NO_LEAVES} heightmap, plus one — in the shape of
- * whatever the player happened to build on the source side. Both halves were
- * wrong, and the first one traps people.
- *
  * <p><b>The heightmap is not the ground in a world with a ceiling.</b> In a
- * nether- or cave-type dimension it reports the top of the roof, so the
- * portal is built inside solid rock and the player arrives encased. Reported
- * in game 2026-07-25 arriving in the_ember_fields at y=248, walled in by
- * calcite, having to mine out. Vanilla does not do this: {@code PortalForcer}
- * scans for an actual open pocket and carves one when it cannot find any.
+ * nether- or cave-type dimension it reports the top of the roof, so building
+ * a portal at it would bury the player inside solid rock. Vanilla does not
+ * do this: {@code PortalForcer} scans for an actual open pocket and carves
+ * one when it cannot find any.
  *
  * <p><b>Mirroring the source shape propagates it forever.</b> An arrival the
  * same size as whatever frame someone happened to build is unpredictable —
@@ -124,10 +118,9 @@ public final class PortalSite {
         if (world.getDimension().hasCeiling()) {
             // The heightmap reads the ROOF here, so it is worse than useless.
             // The declared logicalHeight is no better: it is a vanilla-nether
-            // number (128) that these dimensions' generators ignore — the
-            // boneyard's playable space runs to y~172, so a band anchored to
-            // logicalHeight could not see it at all and every arrival fell
-            // through to the NO_SITE path (found live 2026-07-25).
+            // number (128) that these dimensions' generators ignore, so a
+            // band anchored to it can miss the playable space entirely — the
+            // boneyard's runs to y~172.
             //
             // Ask the column instead. The first opaque block walking DOWN from
             // the build limit is the underside of whatever roofs this column,
@@ -158,12 +151,11 @@ public final class PortalSite {
      * first opaque position walking DOWN from {@code fromY} — or
      * {@link #NO_SITE} when the column is open all the way down.
      *
-     * <p>This is what replaced {@code logicalHeight} as the top of the search
-     * band. {@code logicalHeight} is a property of the dimension TYPE and says
-     * nothing about where a modded generator actually put the roof; this asks
-     * the world. In a nether-type dimension it answers the bedrock roof, and
-     * everything below it is the space a player can be in — which is exactly
-     * the discrimination that "an arrival at y=192, on top of the roof" fails.
+     * <p>{@code logicalHeight} is a property of the dimension TYPE, not of
+     * what a modded generator actually built — using it as the search-band
+     * top can place an arrival on top of the roof instead of below it. This
+     * asks the world instead: in a nether-type dimension it answers the
+     * bedrock roof, and everything below it is the space a player can be in.
      *
      * <p>Reads one column rather than the interior's whole footprint. The
      * footprint is at most 3 blocks wide and {@link #fits} checks every cell
@@ -184,14 +176,13 @@ public final class PortalSite {
      * The first open Y beneath the roof slab — walk down from {@code ceilingY}
      * through the CONTIGUOUS opaque blocks and stop at the first that is not.
      *
-     * <p>The roof in these dimensions is not a one-block bedrock lid. Measured
-     * live in {@code the_boneyard} 2026-07-26, the solid mass runs from about
-     * y=145 to y=190 — forty-five blocks thick, and highly variable. Starting
-     * the search at {@code ceilingY - a few} therefore starts it INSIDE the
-     * roof, and on an entombed column the carve happily opens a pocket five
-     * blocks below the top of it: technically under cover, and a genuinely
-     * horrible place to arrive. Skipping the slab puts the search where the
-     * dimension actually is.
+     * <p>The roof in these dimensions is not a one-block bedrock lid — it can
+     * run dozens of blocks thick and vary column to column. Starting the
+     * search at {@code ceilingY - a few} therefore starts it INSIDE the roof,
+     * and on an entombed column the carve happily opens a pocket five blocks
+     * below the top of it: technically under cover, and a genuinely horrible
+     * place to arrive. Skipping the slab puts the search where the dimension
+     * actually is.
      *
      * @return the first non-opaque Y below the slab, or {@link #NO_SITE} when
      *         the column is opaque all the way to {@code toY}
@@ -215,19 +206,16 @@ public final class PortalSite {
      *   <li><b>Under the highest solid block</b> ({@code ceilingY}) is what
      *       makes "standing on the roof" unreachable by construction — the
      *       whole interior sits below something, so there is always cover
-     *       overhead. This is the y=192 fix.</li>
+     *       overhead.</li>
      *   <li><b>Under the roof's UNDERSIDE</b> is what stops an entombed column
      *       being carved out near the top of a forty-block slab instead of at
      *       the open space below it.</li>
      * </ul>
      *
-     * <p>Known limitation, stated rather than silently accepted: a column with
-     * an isolated solid mass floating ABOVE the roof would take its underside
-     * as the bound and could put a site on the roof top beneath it. No
-     * generator in this pack does that — the "roof" here is terrain whose top
-     * varies between roughly y=180 and y=190 with open sky above it, not a
-     * flat lid with things on top — so this is a note for whoever adds one,
-     * not a live defect.
+     * <p>Known limitation: a column with an isolated solid mass floating
+     * above the roof would take ITS underside as the bound and could still
+     * put a site on the roof top beneath it. No generator in this pack does
+     * that today.
      */
     private static int ceilingBandTop(int centreX, int centreZ, int ceilingY, int floor,
             Predicate<BlockPos> isOpaque) {
@@ -250,7 +238,7 @@ public final class PortalSite {
      * <p>Split out so the decision that governs whether a player arrives able
      * to move is testable without a world. The entombment case — every
      * candidate Y solid — is a table entry here, not something you find by
-     * standing in it (see {@code TEST-COVERAGE-AUDIT.md}).
+     * standing in it.
      *
      * @param isClear  may a portal cell occupy this position (air/replaceable)
      * @param isOpaque is this position an opaque full cube (floor support)
@@ -269,14 +257,11 @@ public final class PortalSite {
      * Where to CARVE when {@link #findArrivalY} found no open pocket at all.
      *
      * <h2>Why this is not "just use the heightmap"</h2>
-     * It used to be. {@code ServerWorldMixin} did
-     * {@code if (siteY == NO_SITE) siteY = surfaceY;} — and {@code surfaceY}
-     * is {@code MOTION_BLOCKING_NO_LEAVES}, which reads the ROOF in a
-     * ceilinged dimension. So the one path that exists to rescue a bad column
-     * put the player on the nether roof, which is the exact failure
-     * {@code PortalSite} was written to prevent. Seen live 2026-07-25 in
-     * {@code the_boneyard}: an arrival at y=192, on the roof. Falling back to
-     * a number known to be wrong is not a fallback.
+     * Falling back to {@code surfaceY} ({@code MOTION_BLOCKING_NO_LEAVES}) is
+     * not safe: it reads the ROOF in a ceilinged dimension, so the one path
+     * that exists to rescue a bad column would put the player on the nether
+     * roof instead — the exact failure {@code PortalSite} exists to prevent.
+     * Falling back to a number known to be wrong is not a fallback.
      *
      * <p>So: search the same band again with the requirement relaxed from
      * "already open" to "openable". Rock is openable; bedrock and block
@@ -435,12 +420,11 @@ public final class PortalSite {
      * passable — a player needs a body-height gap, not a single hole, and a
      * gap at head height over a solid floor cell is not a way out.
      *
-     * <p>This is the invariant behind the worst failure this code has. It was
-     * guaranteed only at creation time ({@code createTargetPortal}), so a
-     * portal reused by a later traversal — which is every traversal after the
-     * first — was never re-checked. A pre-fix arrival, or one later buried by
-     * terrain edits or an aura, strands the player permanently. Reported in
-     * game 2026-07-25 in {@code adventure:the_ember_fields}.
+     * <p>This is the invariant behind the worst failure this code can cause:
+     * an arrival's egress must be re-checked on every reuse, not just
+     * guaranteed once at creation time ({@code createTargetPortal}) — a
+     * portal buried later by terrain edits or an aura would otherwise strand
+     * the player permanently on every subsequent traversal.
      */
     public static boolean hasEgress(Set<BlockPos> interior, Direction.Axis axis,
             Predicate<BlockPos> isPassable) {
@@ -481,20 +465,11 @@ public final class PortalSite {
      * Egress guarantee for an arrival that ALREADY EXISTS — the reuse path.
      *
      * <p>{@link #carveEgress} runs inside {@code createTargetPortal}, so it
-     * only ever fired for a portal being built. Every traversal after the
-     * first reuses the existing arrival ({@code findExistingPortal}) and took
-     * no egress code path at all, which means:
-     *
-     * <ul>
-     *   <li>an arrival built before the {@code PortalSite} fix stays entombed
-     *       forever, and strands the player on EVERY visit;</li>
-     *   <li>an arrival later buried — terrain edits, another mod, an aura
-     *       converting the cells against its face — is never repaired.</li>
-     * </ul>
-     *
-     * <p>Reported in game 2026-07-25: {@code adventure:the_ember_fields} at
-     * y=248, a pre-fix 4x3 arrival with solid calcite on both faces. The
-     * player could not move and had to be teleported out.
+     * only fires when a portal is first built. Every traversal after that
+     * reuses the existing arrival ({@code findExistingPortal}) and takes no
+     * egress code path — so an arrival buried later (terrain edits, another
+     * mod, an aura converting cells against its face) is never repaired
+     * without this check.
      *
      * <p>Checks before it writes, so a healthy portal costs a handful of
      * block reads and no world mutation at all — this is on the teleport

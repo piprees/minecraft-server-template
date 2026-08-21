@@ -8,6 +8,20 @@ cd "$CONSUMER_DIR"
 
 STACK_SCRIPTS=".stack/current/stack/scripts"
 
+# Scaffold files are copies of the bundle's, refreshed by `./dev update`, and
+# nothing prompts that — a consumer can sit for releases missing commands the
+# stack assumes, with no symptom but the command printing usage. The file
+# itself is the version: differing from the bundled copy IS being out of date,
+# so there is no number to bump and no way for two entry points to disagree
+# about what a number means.
+check_scaffold_version() {
+  local bundled="$CONSUMER_DIR/.stack/current/stack/examples/consumer/ops"
+  [[ -f "$bundled" ]] || return 0
+  cmp -s "$bundled" "$CONSUMER_DIR/ops" && return 0
+  echo "NOTE: ./ops differs from the copy this stack ships — run" \
+    "'./dev update' to refresh the entry points." >&2
+}
+
 ALLOWED_COMMANDS=(
   setup
   preflight
@@ -219,6 +233,7 @@ fi
 echo "  ${BRAND_NAME:-} — ops $CMD"
 echo ""
 export BANNER_SHOWN=1
+check_scaffold_version
 unset _banner
 
 # For service.sh, pass the original command as the first argument (the action)

@@ -1,13 +1,22 @@
 {
   "type": "nether",
-  "description": "Crimson root-country — the piglins who survived the war retreated here. Forges and fungus in the red haze, a shadow of their former industry. They kept working, but the grandeur is gone.",
-  "seed": 7849380135011039804,
+  "description": "Crimson root-country \u2014 the piglins who survived the war retreated here. Forges and fungus in the red haze, a shadow of their former industry. They kept working, but the grandeur is gone.",
+  "seed": 8048297753260915604,
   "biomes": [
     "minecraft:crimson_forest",
     "incendium:weeping_valley",
     "incendium:inverted_forest",
     "minecraft:nether_wastes",
-    "minecraft:basalt_deltas"
+    "minecraft:basalt_deltas",
+    {
+      "id": "regions_unexplored:infernal_holt",
+      "parameters": {
+        "temperature": [
+          -0.5,
+          0.0
+        ]
+      }
+    }
   ],
   "borders": {
     "player": 1024,
@@ -45,19 +54,17 @@
       "crimson_forge": "spread",
       "fortress": "spread",
       "crimson_well": "near_spawn",
-      "nether_bridge": "spread",
       "pipeline": "near_border",
       "ruined_lab": "spread"
     },
     "shuns": [
       "warped_outpost",
       "warped_greatsword"
-    ],
-    "description": "Crimson root-country — the piglins who survived the war retreated here. Forges and fungus in the red haze, a shadow of their former industry. They kept working, but the grandeur is gone."
+    ]
   },
   "spawn": [
-    0,
-    64,
+    -64,
+    117,
     0
   ]
 }

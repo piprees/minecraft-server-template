@@ -4,28 +4,26 @@ import com.customdimensions.MultiverseServer;
 import com.customdimensions.config.DimensionConfig;
 import com.customdimensions.config.MultiverseConfig;
 import com.customdimensions.dimension.DimensionManager;
-import com.customdimensions.dimension.FixedStructurePlacement;
 import com.customdimensions.dimension.NoiseStructurePlacement;
 import com.customdimensions.dimension.StructureGroupRegistry;
-import com.customdimensions.mixin.MultiNoiseBiomeSourceAccessor;
+import com.customdimensions.dimension.StructurePickHelper;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.LongArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
-import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.command.argument.IdentifierArgumentType;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.structure.StructureStart;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.source.MultiNoiseBiomeSource;
 import net.minecraft.world.biome.source.util.MultiNoiseUtil;
-import net.minecraft.world.gen.chunk.NoiseChunkGenerator;
 import net.minecraft.world.gen.chunk.placement.RandomSpreadStructurePlacement;
 import net.minecraft.world.gen.noise.NoiseConfig;
 
@@ -45,9 +43,20 @@ import java.util.UUID;
  *   /customdim locate biome <dimension> <biome_id> [timeout]
  *   /customdim locate structure <dimension> <structure_id> [timeout]
  *   /customdim locate-result <uuid>
- *   /customdim dump-biome-params <dimension>
  *   /customdim structure-audit [group]
  *   /customdim structure-census <dimension>
+ *   /customdim occupant <dimension> <chunkX> <chunkZ>
+ *   /customdim eval-df <dimension> <df_id> <x> <y> <z>
+ *   /customdim carver-draw <dimension> <chunkX> <chunkZ>
+ *   /customdim render-check <dimension> <seed> [radius]
+ *   /customdim render-check-headless <dimension> <seed> [radius]
+ *   /customdim render-check-reset
+ *
+ * Rolling, banking, rendering and picking a winner are NOT commands — they
+ * live on the page the mod hosts (web/SeedServer, `./dev seeds`), which talks
+ * to the process that owns the registries and the live server with no RCON
+ * hop in between. This list named them for long enough that somebody will
+ * have gone looking.
  *
  * '-' marks an optional argument as unset (noiseSettings is an Identifier
  * argument, so '-' arrives as "minecraft:-" — both spellings are treated as
@@ -99,6 +108,8 @@ public class DimensionCommands {
                 .then(CommandManager.literal("destroy")
                     .then(CommandManager.argument("name", StringArgumentType.word())
                         .executes(ctx -> destroy(ctx, StringArgumentType.getString(ctx, "name")))))
+                .then(CommandManager.literal("tryout-list")
+                    .executes(DimensionCommands::tryOutList))
                 .then(CommandManager.literal("list")
                     .executes(DimensionCommands::list))
                 .then(CommandManager.literal("load")
@@ -122,9 +133,6 @@ public class DimensionCommands {
                 .then(CommandManager.literal("locate-result")
                     .then(CommandManager.argument("uuid", StringArgumentType.string())
                         .executes(DimensionCommands::locateResult)))
-                .then(CommandManager.literal("dump-biome-params")
-                    .then(CommandManager.argument("dimension", IdentifierArgumentType.identifier())
-                        .executes(DimensionCommands::dumpBiomeParams)))
                 .then(CommandManager.literal("debug-prng")
                     .then(CommandManager.argument("seed", LongArgumentType.longArg())
                         .executes(DimensionCommands::debugPrng)))
@@ -133,167 +141,377 @@ public class DimensionCommands {
                         .then(CommandManager.argument("x", IntegerArgumentType.integer())
                             .then(CommandManager.argument("z", IntegerArgumentType.integer())
                                 .executes(DimensionCommands::sampleNoise)))))
-                .then(CommandManager.literal("sample-biome-grid")
-                    .then(CommandManager.argument("dimension", IdentifierArgumentType.identifier())
-                        .then(CommandManager.argument("radius", IntegerArgumentType.integer(64, 8192))
-                            .then(CommandManager.argument("step", IntegerArgumentType.integer(16, 512))
-                                .executes(DimensionCommands::sampleBiomeGrid)))))
                 .then(CommandManager.literal("structure-audit")
                     .executes(ctx -> structureAudit(ctx, null))
                     .then(CommandManager.argument("group", StringArgumentType.word())
                         .executes(ctx -> structureAudit(ctx,
                             StringArgumentType.getString(ctx, "group")))))
+                .then(CommandManager.literal("occupant")
+                    .then(CommandManager.argument("dimension", IdentifierArgumentType.identifier())
+                        .then(CommandManager.argument("chunkX", IntegerArgumentType.integer())
+                            .then(CommandManager.argument("chunkZ", IntegerArgumentType.integer())
+                                .executes(DimensionCommands::occupant)))))
+                .then(CommandManager.literal("carver-draw")
+                    .then(CommandManager.argument("dimension", IdentifierArgumentType.identifier())
+                        .then(CommandManager.argument("chunkX", IntegerArgumentType.integer())
+                            .then(CommandManager.argument("chunkZ", IntegerArgumentType.integer())
+                                .executes(DimensionCommands::carverDraw)))))
+                .then(CommandManager.literal("lint")
+                    .executes(ctx -> SpikeCommands.lint(ctx, null))
+                    .then(CommandManager.argument("dimension", StringArgumentType.word())
+                        .executes(ctx -> SpikeCommands.lint(ctx,
+                            StringArgumentType.getString(ctx, "dimension")))))
+                .then(CommandManager.literal("gensettings")
+                    .then(CommandManager.argument("dimension", IdentifierArgumentType.identifier())
+                        .executes(DimensionCommands::gensettings)))
+                .then(CommandManager.literal("score")
+                    .then(CommandManager.argument("dimension", IdentifierArgumentType.identifier())
+                        .then(CommandManager.argument("seed", LongArgumentType.longArg())
+                            .executes(ScoreCommands::score))))
+                .then(CommandManager.literal("facts")
+                    .then(CommandManager.argument("dimension", IdentifierArgumentType.identifier())
+                        .then(CommandManager.argument("seed", LongArgumentType.longArg())
+                            .executes(FactsCommands::facts))))
                 .then(CommandManager.literal("structure-census")
                     .then(CommandManager.argument("dimension", IdentifierArgumentType.identifier())
-                        .executes(DimensionCommands::structureCensus)))
+                        .executes(CensusCommands::structureCensus)))
+                .then(CommandManager.literal("spike-compare")
+                    .then(CommandManager.argument("dimension", IdentifierArgumentType.identifier())
+                        .then(CommandManager.argument("seed", LongArgumentType.longArg())
+                            .then(CommandManager.argument("count", IntegerArgumentType.integer(1, 4096))
+                                .then(CommandManager.argument("span", IntegerArgumentType.integer(16, 1000000))
+                                    .executes(SpikeCommands::compare))))))
+                .then(CommandManager.literal("render-check")
+                    .then(CommandManager.argument("dimension", IdentifierArgumentType.identifier())
+                        .then(CommandManager.argument("seed", LongArgumentType.longArg())
+                            .executes(ctx -> renderCheck(ctx, RenderCheck.Mode.FULL, null))
+                            .then(CommandManager.argument("radius", IntegerArgumentType.integer(16, 1000000))
+                                .executes(ctx -> renderCheck(ctx, RenderCheck.Mode.FULL,
+                                    IntegerArgumentType.getInteger(ctx, "radius")))))))
+                .then(CommandManager.literal("render-check-headless")
+                    .then(CommandManager.argument("dimension", IdentifierArgumentType.identifier())
+                        .then(CommandManager.argument("seed", LongArgumentType.longArg())
+                            .executes(ctx -> renderCheck(ctx, RenderCheck.Mode.HEADLESS, null))
+                            .then(CommandManager.argument("radius", IntegerArgumentType.integer(16, 1000000))
+                                .executes(ctx -> renderCheck(ctx, RenderCheck.Mode.HEADLESS,
+                                    IntegerArgumentType.getInteger(ctx, "radius")))))))
+                .then(CommandManager.literal("column-ladder")
+                    .then(CommandManager.argument("dimension", IdentifierArgumentType.identifier())
+                        .then(CommandManager.argument("seed", LongArgumentType.longArg())
+                            .then(CommandManager.argument("x", IntegerArgumentType.integer())
+                                .then(CommandManager.argument("z", IntegerArgumentType.integer())
+                                    .executes(DimensionCommands::columnLadder))))))
+                .then(CommandManager.literal("render-check-reset")
+                    .executes(ctx -> {
+                        int n = RenderCheck.reset();
+                        ctx.getSource().sendFeedback(
+                            () -> Text.literal("render-check: dropped " + n + " job(s)"), false);
+                        return 1;
+                    }))
+                .then(CommandManager.literal("eval-df")
+                    .then(CommandManager.argument("dimension", IdentifierArgumentType.identifier())
+                        .then(CommandManager.argument("df_id", IdentifierArgumentType.identifier())
+                            .then(CommandManager.argument("x", IntegerArgumentType.integer())
+                                .then(CommandManager.argument("y", IntegerArgumentType.integer())
+                                    .then(CommandManager.argument("z", IntegerArgumentType.integer())
+                                        .executes(DimensionCommands::evalDf)))))))
         );
     }
 
     /**
-     * Dumps every noise-placed structure position in a dimension, grouped, to
-     * config/custom-dimensions/census/&lt;namespace&gt;__&lt;path&gt;.json.
+     * Starts (or polls) a three-way world/facts/render comparison.
      *
-     * A file rather than command output: a large dimension holds thousands of
-     * positions per group, which no RCON response can carry. The format
-     * mirrors the roller's `structure_all` so F4 can diff the two directly.
-     *
-     * Reads the world's LIVE StructurePlacementCalculator — the same objects
-     * chunk generation and /locate consult — rather than recomputing from
-     * config. Recomputing would be the one thing guaranteed to agree with
-     * itself while disagreeing with the world.
+     * <p>The world side generates chunks over several seconds to minutes, so
+     * this never blocks: it answers the job's current line and the caller
+     * runs it again to poll. The finished line carries the three water
+     * fractions, the disagreement count and the buckets, plus the artefact
+     * path — everything a person needs before opening the file.
      */
-    private static int structureCensus(CommandContext<ServerCommandSource> ctx) {
+    /**
+     * Prints one column's block ladder beside its density ladder.
+     *
+     * <p>Headless and single-column, so it answers inline rather than polling:
+     * the summary names the two walks' answers and the first y they disagree
+     * about, which is the diagnosis when there is one.
+     */
+    private static int columnLadder(CommandContext<ServerCommandSource> ctx) {
+        ServerCommandSource source = ctx.getSource();
+        Identifier dimension = IdentifierArgumentType.getIdentifier(ctx, "dimension");
+        long seed = LongArgumentType.getLong(ctx, "seed");
+        int x = IntegerArgumentType.getInteger(ctx, "x");
+        int z = IntegerArgumentType.getInteger(ctx, "z");
+        try {
+            String line = ColumnLadder.probe(source.getServer(), dimension, seed, x, z);
+            source.sendFeedback(() -> Text.literal(line), false);
+            return 1;
+        } catch (Exception e) {
+            source.sendError(Text.literal("column-ladder failed: "
+                    + e.getClass().getSimpleName() + ": " + e.getMessage()));
+            return 0;
+        }
+    }
+
+    private static int renderCheck(CommandContext<ServerCommandSource> ctx,
+                                   RenderCheck.Mode mode, Integer radius) {
+        ServerCommandSource source = ctx.getSource();
+        Identifier dimension = IdentifierArgumentType.getIdentifier(ctx, "dimension");
+        long seed = LongArgumentType.getLong(ctx, "seed");
+        RenderCheck.Job job = RenderCheck.start(source.getServer(), dimension, seed, mode, radius);
+        source.sendFeedback(() -> Text.literal(job.line()), false);
+        return job.state() == RenderCheck.State.FAILED ? 0 : 1;
+    }
+
+    /**
+     * Reads the LIVE chunk's structure starts map to report which structures
+     * occupy a chunk. The chunk must already be loaded/generated; this command
+     * does NOT generate it.
+     *
+     * For every structure with a start whose start chunk is this chunk and
+     * whose start hasChildren, answers one line "occupant ns:id"; if none,
+     * answers "empty". Also writes the answer to a census/occupancy artefact.
+     */
+    /**
+     * What a LIVE world's generator is actually made of.
+     *
+     * <p>Every static layer can be correct and the world still be wrong: the
+     * settings a dimension ends up with are assembled at runtime from the
+     * registry, the mod's own overrides and whatever datapacks won. This
+     * reports the assembled answer — the only one the blocks come from.
+     *
+     * <p>Inline rather than a file: three values and a rule name, which RCON
+     * carries without truncating.
+     */
+    private static int gensettings(CommandContext<ServerCommandSource> ctx) {
+        ServerCommandSource source = ctx.getSource();
+        ServerWorld world = resolveWorld(ctx);
+        if (world == null) {
+            source.sendError(Text.literal("Dimension not loaded: "
+                    + IdentifierArgumentType.getIdentifier(ctx, "dimension")));
+            return 0;
+        }
+        net.minecraft.world.gen.chunk.ChunkGenerator gen = world.getChunkManager().getChunkGenerator();
+        if (!(gen instanceof net.minecraft.world.gen.chunk.NoiseChunkGenerator noiseGen)) {
+            source.sendFeedback(() -> Text.literal(world.getRegistryKey().getValue()
+                    + ": not a noise generator (" + gen.getClass().getSimpleName() + ")"), false);
+            return 1;
+        }
+        var entry = noiseGen.getSettings();
+        var settings = entry.value();
+        String settingsId = entry.getKey().map(k -> k.getValue().toString()).orElse("(inline)");
+        String defaultBlock = net.minecraft.registry.Registries.BLOCK
+                .getId(settings.defaultBlock().getBlock()).toString();
+        String defaultFluid = net.minecraft.registry.Registries.BLOCK
+                .getId(settings.defaultFluid().getBlock()).toString();
+        String line = world.getRegistryKey().getValue()
+                + ": settings=" + settingsId
+                + " defaultBlock=" + defaultBlock
+                + " defaultFluid=" + defaultFluid
+                + " seaLevel=" + settings.seaLevel()
+                + " y=" + world.getBottomY() + ".." + (world.getTopY() - 1);
+        MultiverseServer.LOGGER.info("gensettings {}", line);
+        source.sendFeedback(() -> Text.literal(line), false);
+        return 1;
+    }
+
+    private static int occupant(CommandContext<ServerCommandSource> ctx) {
         ServerCommandSource source = ctx.getSource();
         ServerWorld world = resolveWorld(ctx);
         if (world == null) {
             source.sendError(Text.literal(
-                "Dimension not loaded: "
-                + IdentifierArgumentType.getIdentifier(ctx, "dimension")
-                + " (visit it or use /customdim load first)"));
+                    "Dimension not loaded: "
+                    + IdentifierArgumentType.getIdentifier(ctx, "dimension")));
             return 0;
         }
+        int chunkX = IntegerArgumentType.getInteger(ctx, "chunkX");
+        int chunkZ = IntegerArgumentType.getInteger(ctx, "chunkZ");
+        Identifier dimensionId = world.getRegistryKey().getValue();
+
+        // The chunk must be loaded — do NOT generate it.
+        net.minecraft.world.chunk.WorldChunk chunk =
+                world.getChunkManager().getWorldChunk(chunkX, chunkZ, false);
+        if (chunk == null) {
+            source.sendError(Text.literal(
+                    "Chunk [" + chunkX + ", " + chunkZ + "] is not loaded in "
+                    + dimensionId + " — visit it first or use /forceload. "
+                    + "This command does not generate chunks."));
+            return 0;
+        }
+
+        // Read the chunk's structure starts map.
+        java.util.Map<net.minecraft.world.gen.structure.Structure, StructureStart> starts =
+                chunk.getStructureStarts();
+        var structureRegistry = world.getRegistryManager().get(RegistryKeys.STRUCTURE);
+
+        java.util.List<String> occupants = new java.util.ArrayList<>();
+        for (var entry : starts.entrySet()) {
+            StructureStart start = entry.getValue();
+            if (start == null || !start.hasChildren()) {
+                continue;
+            }
+            // Only report starts whose start chunk IS this chunk
+            if (start.getPos().x != chunkX || start.getPos().z != chunkZ) {
+                continue;
+            }
+            String structureId = structureRegistry.getId(entry.getKey()) != null
+                    ? structureRegistry.getId(entry.getKey()).toString()
+                    : "unknown";
+            occupants.add(structureId);
+        }
+
+        // Build feedback and artefact
+        StringBuilder feedback = new StringBuilder("occupant " + dimensionId
+                + " [" + chunkX + ", " + chunkZ + "]: ");
+        if (occupants.isEmpty()) {
+            feedback.append("empty");
+        } else {
+            java.util.Collections.sort(occupants);
+            for (int i = 0; i < occupants.size(); i++) {
+                if (i > 0) {
+                    feedback.append(", ");
+                }
+                feedback.append(occupants.get(i));
+            }
+        }
+
+        // Append to <world>/customdimensions/census/occupancy__{dimension}.json
+        // (append pattern matching rejections — occupancy is a recorded fact
+        // about a generated chunk, world state rather than a seed-rolling
+        // hypothesis, so it is keyed by dimension alone, not by config hash).
+        try {
+            String dimPart = dimensionId.toString().replace(":", "__");
+            Path artefactPath = Artefacts.censusDir(source.getServer())
+                    .resolve("occupancy__" + dimPart + ".json");
+
+            StringBuilder record = new StringBuilder();
+            record.append("{\"chunkX\": ").append(chunkX)
+                    .append(", \"chunkZ\": ").append(chunkZ)
+                    .append(", \"occupants\": [");
+            for (int i = 0; i < occupants.size(); i++) {
+                if (i > 0) {
+                    record.append(", ");
+                }
+                record.append('"').append(occupants.get(i)).append('"');
+            }
+            record.append("]}");
+
+            StringBuilder json;
+            if (Files.exists(artefactPath)) {
+                String existing = Files.readString(artefactPath);
+                int lastBracket = existing.lastIndexOf(']');
+                if (lastBracket > 0) {
+                    json = new StringBuilder(existing.substring(0, lastBracket));
+                    json.append(",\n  ");
+                } else {
+                    json = newOccupancyFile(dimensionId.toString());
+                }
+            } else {
+                json = newOccupancyFile(dimensionId.toString());
+            }
+            json.append(record);
+            json.append("\n ]\n}\n");
+            Artefacts.write(artefactPath, json.toString());
+            feedback.append(" -> ").append(artefactPath);
+        } catch (IOException e) {
+            MultiverseServer.LOGGER.debug("Failed to write occupancy artefact: {}", e.getMessage());
+        }
+
+        final String msg = feedback.toString();
+        source.sendFeedback(() -> Text.literal(msg), false);
+        return occupants.isEmpty() ? 0 : occupants.size();
+    }
+
+    private static StringBuilder newOccupancyFile(String dimensionId) {
+        StringBuilder json = new StringBuilder(Artefacts.jsonHeader("structure-occupancy"));
+        json.append(" \"dimension\": \"").append(dimensionId).append("\",\n");
+        json.append(" \"occupants\": [\n  ");
+        return json;
+    }
+
+    /**
+     * Replays vanilla's carver-draw selection for each noise-managed group
+     * whose site list contains this chunk. Answers "vanilla-draw ns:id |
+     * assigned ns:id" -- first draw only, no rejection fall-through.
+     *
+     * This is a pure read: no generation, no state change. The draw uses
+     * the same LCG chain vanilla's ChunkGenerator.setStructureStarts would
+     * use, but the entries are in LIST ORDER (as vanilla sees them) which
+     * depends on registry entry order observable only server-side.
+     */
+    private static int carverDraw(CommandContext<ServerCommandSource> ctx) {
+        ServerCommandSource source = ctx.getSource();
+        ServerWorld world = resolveWorld(ctx);
+        if (world == null) {
+            source.sendError(Text.literal(
+                    "Dimension not loaded: "
+                    + IdentifierArgumentType.getIdentifier(ctx, "dimension")));
+            return 0;
+        }
+        int chunkX = IntegerArgumentType.getInteger(ctx, "chunkX");
+        int chunkZ = IntegerArgumentType.getInteger(ctx, "chunkZ");
         Identifier dimensionId = world.getRegistryKey().getValue();
 
         var calculator = world.getChunkManager().getStructurePlacementCalculator();
-        StringBuilder json = new StringBuilder(Artefacts.jsonHeader("structure-census"));
-        json.append(" \"dimension\": \"").append(dimensionId).append("\",\n");
-        json.append(" \"seed\": ").append(world.getSeed()).append(",\n");
-        json.append(" \"groups\": {");
+        long structureSeed = calculator.getStructureSeed();
 
-        int groupCount = 0;
-        int total = 0;
-        StringBuilder summary = new StringBuilder();
+        int results = 0;
+        StringBuilder summary = new StringBuilder("carver-draw " + dimensionId
+                + " [" + chunkX + ", " + chunkZ
+                + "] (first draw only, no rejection fall-through):");
         for (var entry : calculator.getStructureSets()) {
             if (!(entry.value().placement() instanceof NoiseStructurePlacement noise)) {
                 continue;
             }
-            if (groupCount > 0) {
-                json.append(',');
-            }
-            // The RESOLVED placement inputs, so the parity check (F4) can
-            // rebuild the field directly instead of re-deriving them from
-            // config. Config resolution is unit-tested on both sides
-            // separately; mixing the two here would make a parity failure
-            // ambiguous between "the maths diverged" and "the two sides read
-            // the config differently".
-            var index = noise.index();
-            json.append("\n  \"").append(noise.group()).append("\": {\n");
-            json.append("   \"profile\": \"").append(index.profileId()).append("\",\n");
-            json.append("   \"noiseSeed\": ").append(index.noiseSeed()).append(",\n");
-            json.append("   \"exclusion\": ").append(index.exclusion()).append(",\n");
-            json.append("   \"radiusChunks\": ").append(index.radiusChunks()).append(",\n");
-            json.append("   \"spawnChunkX\": ").append(index.spawnChunkX()).append(",\n");
-            json.append("   \"spawnChunkZ\": ").append(index.spawnChunkZ()).append(",\n");
-            json.append("   \"radial\": ");
-            double[] radial = index.radial();
-            if (radial == null) {
-                json.append("null");
-            } else {
-                json.append('[');
-                for (int i = 0; i < radial.length; i++) {
-                    if (i > 0) {
-                        json.append(", ");
-                    }
-                    json.append(radial[i]);
-                }
-                json.append(']');
-            }
-            json.append(",\n");
-            json.append("   \"spacing\": ").append(noise.getSpacing()).append(",\n");
-            // An OBJECT of id -> weight. Written as an array once, which is
-            // invalid JSON the moment a weight appears ( ["a":1] ), and the
-            // file parsed nowhere.
-            json.append("   \"structures\": {");
-            int n = 0;
-            for (var weighted : entry.value().structures()) {
-                if (n++ > 0) {
-                    json.append(", ");
-                }
-                json.append('"')
-                        .append(weighted.structure().getKey()
-                                .map(k -> k.getValue().toString()).orElse("?"))
-                        .append("\": ").append(weighted.weight());
-            }
-            json.append("},\n   \"positions\": [");
-            int i = 0;
-            for (var pos : noise.index().positions()) {
-                if (i++ > 0) {
-                    json.append(", ");
-                }
-                json.append('[').append(pos.x).append(',').append(pos.z).append(']');
-            }
-            json.append("]\n  }");
-            groupCount++;
-            total += i;
-            summary.append(' ').append(noise.group()).append('=').append(i);
-        }
-        json.append(groupCount > 0 ? "\n }" : "}");
-
-        // Forced placements are not noise, but a census that omitted them
-        // would look like a "none + force" dimension had nothing at all.
-        json.append(",\n \"forced\": {");
-        int forcedGroups = 0;
-        int forcedTotal = 0;
-        for (var entry : calculator.getStructureSets()) {
-            if (!(entry.value().placement() instanceof FixedStructurePlacement fixed)) {
+            // Is this chunk a placement site for this group?
+            if (!noise.index().isPlacement(chunkX, chunkZ)) {
                 continue;
             }
-            for (var weighted : entry.value().structures()) {
-                if (forcedGroups++ > 0) {
-                    json.append(',');
-                }
-                json.append("\n  \"")
-                        .append(weighted.structure().getKey()
-                                .map(k -> k.getValue().toString()).orElse("?"))
-                        .append("\": [");
-                int i = 0;
-                for (var pos : fixed.positions()) {
-                    if (i++ > 0) {
-                        json.append(", ");
-                    }
-                    json.append('[').append(pos.x).append(',').append(pos.z).append(']');
-                }
-                json.append(']');
-                forcedTotal += i;
-            }
-        }
-        json.append(forcedGroups > 0 ? "\n }" : "}").append("\n}\n");
 
-        try {
-            Path outputPath = Artefacts.dir("census")
-                .resolve(dimensionId.getNamespace() + "__" + dimensionId.getPath() + ".json");
-            Artefacts.write(outputPath, json.toString());
-            final String message = "structure-census " + dimensionId + ": "
-                    + groupCount + " groups, " + total + " noise positions"
-                    + (forcedTotal > 0 ? ", " + forcedTotal + " forced" : "")
-                    + " ->" + summary + " | " + outputPath;
-            source.sendFeedback(() -> Text.literal(message), false);
-            return total;
-        } catch (IOException e) {
-            MultiverseServer.LOGGER.error("Failed to write structure census", e);
-            source.sendError(Text.literal("Write failed: " + e.getMessage()));
-            return 0;
+            String group = noise.group();
+            var structures = entry.value().structures();
+            if (structures.size() <= 1) {
+                // Single-entry set: vanilla skips the carver draw entirely
+                String singleId = structures.isEmpty() ? "?"
+                        : structures.get(0).structure().getKey()
+                                .map(k -> k.getValue().toString()).orElse("?");
+                summary.append("\n  ").append(group).append(": single-entry ")
+                        .append(singleId);
+                results++;
+                continue;
+            }
+
+            // Build the entry list in vanilla's LIST ORDER (not sorted)
+            java.util.List<CarverDraw.Entry> vanillaEntries = new java.util.ArrayList<>();
+            for (var weighted : structures) {
+                String id = weighted.structure().getKey()
+                        .map(k -> k.getValue().toString()).orElse("?");
+                vanillaEntries.add(new CarverDraw.Entry(id, weighted.weight()));
+            }
+
+            CarverDraw.DrawResult draw = CarverDraw.draw(
+                    vanillaEntries, structureSeed, chunkX, chunkZ);
+
+            // Compute the assigned structure (our pick algorithm)
+            String assigned = StructurePickHelper.assignedAt(
+                    noise.index().noiseSeed(), chunkX, chunkZ,
+                    entry.value().structures());
+
+            if (draw != null) {
+                summary.append("\n  ").append(group)
+                        .append(": vanilla-draw ").append(draw.vanillaDraw())
+                        .append(" | assigned ").append(assigned != null ? assigned : "?")
+                        .append(" (j=").append(draw.j())
+                        .append("/").append(draw.totalWeight()).append(')');
+            }
+            results++;
         }
+
+        if (results == 0) {
+            summary.append(" no noise-managed group has a site at this chunk");
+        }
+
+        final String msg = summary.toString();
+        source.sendFeedback(() -> Text.literal(msg), false);
+        return results;
     }
 
     /**
@@ -350,18 +568,23 @@ public class DimensionCommands {
         }
         summary.append(" | inferred=").append(inferred);
 
-        // The rows go to a file, not the command output. RCON concatenates
-        // feedback lines with no separator and truncates the response at a
-        // few KB, so ~280 rows come back as one unreadable, half-missing
-        // string — which looks like a working command until you try to use it.
+        // Rows go to a file, not command output — RCON truncates and
+        // concatenates response lines, so ~280 rows would come back unreadable.
+        // Registry-wide (every structure set, not one dimension), so the hash
+        // covers only the stack version and mod list.
         try {
-            Path outputPath = Artefacts.dir().resolve("structure-audit.txt");
-            StringBuilder body = new StringBuilder(Artefacts.textHeader("structure-audit"));
-            body.append("# ").append(summary).append('\n');
-            body.append("# set_id group rarity theme source spacing\n");
-            for (String line : lines) {
-                body.append(line).append('\n');
+            String hash = InputHash.of(null, source.getServer());
+            Path outputPath = Artefacts.rollingDir().resolve("lint")
+                    .resolve(hash + ".structure-audit.json");
+            StringBuilder body = new StringBuilder(Artefacts.jsonHeader("structure-audit"));
+            body.append(" \"summary\": ")
+                    .append(com.customdimensions.facts.Json.quote(summary.toString())).append(",\n");
+            body.append(" \"sets\": [");
+            for (int i = 0; i < lines.size(); i++) {
+                body.append(i > 0 ? ",\n  " : "\n  ")
+                        .append(com.customdimensions.facts.Json.quote(lines.get(i)));
             }
+            body.append(lines.isEmpty() ? "]\n}\n" : "\n ]\n}\n");
             Artefacts.write(outputPath, body.toString());
             summary.append(" -> ").append(outputPath);
         } catch (IOException e) {
@@ -413,6 +636,24 @@ public class DimensionCommands {
         }
     }
 
+    /**
+     * Which try-out worlds are live. A diagnostic, not a way in: starting,
+     * entering, leaving and ending a try-out all happen in the browser,
+     * through the port the mod hosts.
+     */
+    private static int tryOutList(CommandContext<ServerCommandSource> ctx) {
+        ServerCommandSource source = ctx.getSource();
+        var sessions = com.customdimensions.tryout.TryOut.sessions();
+        StringBuilder b = new StringBuilder("tryout-list: " + sessions.size() + " live");
+        for (var s : sessions) {
+            b.append(" | ").append(s.dimension()).append(" seed=").append(s.seed())
+                    .append(" -> ").append(s.worldId());
+        }
+        final String msg = b.toString();
+        source.sendFeedback(() -> Text.literal(msg), false);
+        return sessions.size();
+    }
+
     private static int destroy(CommandContext<ServerCommandSource> ctx, String name) {
         ServerCommandSource source = ctx.getSource();
         DimensionManager mgr = DimensionManager.getInstance();
@@ -431,25 +672,23 @@ public class DimensionCommands {
      *
      * <p>Custom dimensions are REGISTERED at boot but their {@code ServerWorld}
      * is created lazily on first entry, so {@code execute in <ns>:<dim>} fails
-     * with "Unknown dimension" until somebody visits. That is correct at
-     * runtime and wrong for automation: CI's smoke test asserts per-dimension
-     * seeds, noise settings and structure density, and every one of those
-     * assertions needs a live world. This is the headless equivalent of
-     * walking through the portal.
+     * with "Unknown dimension" until somebody visits — correct at runtime, but
+     * CI's smoke test needs a live world to assert per-dimension seeds, noise
+     * settings and structure density.
      *
      * <p>Queues via {@code requestWorldLoad} (drained on END_SERVER_TICK)
      * rather than calling {@code getOrCreateDimension} directly — world
      * creation from command context deadlocks the main thread (mods/AGENTS.md,
-     * dynamic world lifecycle rule). So this returns immediately and the world
-     * appears a tick or two later; callers must poll, not assume.
+     * dynamic world lifecycle rule). Returns immediately; the world appears a
+     * tick or two later, so callers must poll.
      */
     private static int load(CommandContext<ServerCommandSource> ctx, String name) {
         ServerCommandSource source = ctx.getSource();
-        // Base worlds load through here too: CreateWorldsMixin defers every
+        // Reserved dimensions load through here too: CreateWorldsMixin defers every
         // non-overworld world, so "the_nether" is as absent at boot as any
         // custom dimension and needs the same way in.
-        if (MultiverseConfig.getInstance().getDimension(name) == null
-                && MultiverseConfig.getInstance().getWorld(name) == null) {
+        if (MultiverseConfig.getInstance().getCustomDimension(name) == null
+                && MultiverseConfig.getInstance().getReservedDimensionBySlug(name) == null) {
             source.sendError(Text.literal("No configured dimension named '" + name + "'"));
             return 0;
         }
@@ -484,14 +723,10 @@ public class DimensionCommands {
      * Resolve the {@code dimension} argument to a loaded world.
      *
      * Brigadier's identifier argument defaults a bare name to the
-     * {@code minecraft} namespace, so {@code structure-census the_overgrowth}
-     * asked about {@code minecraft:the_overgrowth} and answered "Dimension
-     * not loaded" while the dimension sat there loaded under the configured
-     * namespace — whereas {@code customdim load} takes bare names happily.
-     * Two commands in the same tree disagreeing about what a name means is a
-     * trap; the configured namespace is tried as a fallback so both spellings
-     * work everywhere. A real {@code minecraft:} world still wins, because it
-     * is tried first.
+     * {@code minecraft} namespace, while {@code customdim load} takes bare
+     * names under the configured namespace — so the configured namespace is
+     * tried as a fallback here too. A real {@code minecraft:} world still
+     * wins, since it is tried first.
      */
     private static ServerWorld resolveWorld(CommandContext<ServerCommandSource> ctx) {
         Identifier dimId = IdentifierArgumentType.getIdentifier(ctx, "dimension");
@@ -560,178 +795,6 @@ public class DimensionCommands {
         return 1;
     }
 
-    private static int dumpBiomeParams(CommandContext<ServerCommandSource> ctx) {
-        ServerCommandSource source = ctx.getSource();
-        ServerWorld world = resolveWorld(ctx);
-        if (world == null) {
-            source.sendError(Text.literal("Dimension not loaded"));
-            return 0;
-        }
-
-        var biomeSource = world.getChunkManager().getChunkGenerator().getBiomeSource();
-        if (!(biomeSource instanceof MultiNoiseBiomeSource mnbs)) {
-            source.sendError(Text.literal("Not a MultiNoiseBiomeSource"));
-            return 0;
-        }
-
-        // Phase 1: static entries from getBiomeEntries() — exact climate
-        // cells for vanilla + Terralith (anything that ships multinoise data
-        // in its JAR). These are the precise cells the nearest-neighbour
-        // sampler needs for correct biome placement.
-        var entries = ((MultiNoiseBiomeSourceAccessor) mnbs).invokeGetBiomeEntries();
-        var entryList = entries.getEntries();
-        var staticBiomes = new java.util.HashSet<String>();
-
-        StringBuilder json = new StringBuilder("[\n");
-        for (int i = 0; i < entryList.size(); i++) {
-            var pair = entryList.get(i);
-            var cube = pair.getFirst();
-            var biome = pair.getSecond();
-
-            String biomeId = biome.getKey()
-                .map(k -> k.getValue().toString())
-                .orElse("unknown");
-            staticBiomes.add(biomeId);
-
-            if (i > 0) json.append(",\n");
-            json.append("  {\"biome\": \"").append(biomeId).append("\"");
-            appendRange(json, "temperature", cube.temperature());
-            appendRange(json, "humidity", cube.humidity());
-            appendRange(json, "continentalness", cube.continentalness());
-            appendRange(json, "erosion", cube.erosion());
-            appendRange(json, "depth", cube.depth());
-            appendRange(json, "weirdness", cube.weirdness());
-            json.append(", \"offset\": ").append(cube.offset() / 10000.0);
-            json.append("}");
-        }
-
-        // Phase 2: spatial grid sample via the LIVE getBiome() — captures
-        // TerraBlender-injected biomes that the static entries miss. For
-        // each sample point, record the biome + the climate values. Only
-        // biomes NOT already in the static dump get entries here.
-        NoiseConfig noiseConfig = world.getChunkManager().getNoiseConfig();
-        var sampler = noiseConfig.getMultiNoiseSampler();
-        int radius = 8192;
-        int step = 64;
-
-        // Collect (climate point, biome) observations for non-static biomes.
-        // Group by biome, then bin by the vanilla temperature×humidity grid
-        // (5 temp bands × 5 humidity bands) to produce distinct entries per
-        // climate cell — same granularity as vanilla/Terralith entries.
-        var discovered = new java.util.HashMap<String,
-            java.util.HashMap<Long, long[]>>();
-
-        int gridPoints = 0;
-        for (int x = -radius; x <= radius; x += step) {
-            for (int z = -radius; z <= radius; z += step) {
-                int qx = x >> 2;
-                int qz = z >> 2;
-
-                var biome = biomeSource.getBiome(qx, 0, qz, sampler);
-                String biomeId = biome.getKey()
-                    .map(k -> k.getValue().toString())
-                    .orElse("unknown");
-
-                if (staticBiomes.contains(biomeId)) continue;
-
-                MultiNoiseUtil.NoiseValuePoint point = sampler.sample(qx, 0, qz);
-                long temp = point.temperatureNoise();
-                long humid = point.humidityNoise();
-                long cont = point.continentalnessNoise();
-                long eros = point.erosionNoise();
-                long depth = point.depth();
-                long weird = point.weirdnessNoise();
-
-                // Bin key: quantise temp and humidity to the 5 vanilla bands
-                // (-1.0, -0.45, -0.15, 0.2, 0.55, 1.0 for temp; similar
-                // for humidity). This keeps each biome's disjoint climate
-                // cells as separate entries rather than merging them.
-                int tempBin = quantiseBand(temp, TEMP_BREAKS);
-                int humidBin = quantiseBand(humid, HUMID_BREAKS);
-                long binKey = ((long) tempBin << 32) | (humidBin & 0xFFFFFFFFL);
-
-                var biomeMap = discovered.computeIfAbsent(biomeId,
-                    k -> new java.util.HashMap<>());
-                long[] range = biomeMap.computeIfAbsent(binKey, k -> new long[]{
-                    Long.MAX_VALUE, Long.MIN_VALUE,
-                    Long.MAX_VALUE, Long.MIN_VALUE,
-                    Long.MAX_VALUE, Long.MIN_VALUE,
-                    Long.MAX_VALUE, Long.MIN_VALUE,
-                    Long.MAX_VALUE, Long.MIN_VALUE,
-                    Long.MAX_VALUE, Long.MIN_VALUE
-                });
-                range[0] = Math.min(range[0], temp);   range[1] = Math.max(range[1], temp);
-                range[2] = Math.min(range[2], humid);  range[3] = Math.max(range[3], humid);
-                range[4] = Math.min(range[4], cont);   range[5] = Math.max(range[5], cont);
-                range[6] = Math.min(range[6], eros);   range[7] = Math.max(range[7], eros);
-                range[8] = Math.min(range[8], depth);   range[9] = Math.max(range[9], depth);
-                range[10] = Math.min(range[10], weird); range[11] = Math.max(range[11], weird);
-                gridPoints++;
-            }
-        }
-
-        // Append discovered entries (sorted for determinism).
-        int discoveredCount = 0;
-        var sortedDiscovered = new java.util.ArrayList<>(discovered.keySet());
-        java.util.Collections.sort(sortedDiscovered);
-        for (String biomeId : sortedDiscovered) {
-            var bins = discovered.get(biomeId);
-            var sortedBins = new java.util.ArrayList<>(bins.keySet());
-            java.util.Collections.sort(sortedBins);
-            for (long binKey : sortedBins) {
-                long[] r = bins.get(binKey);
-                json.append(",\n  {\"biome\": \"").append(biomeId).append("\"");
-                json.append(", \"temperature\": [").append(r[0] / 10000.0).append(", ").append(r[1] / 10000.0).append("]");
-                json.append(", \"humidity\": [").append(r[2] / 10000.0).append(", ").append(r[3] / 10000.0).append("]");
-                json.append(", \"continentalness\": [").append(r[4] / 10000.0).append(", ").append(r[5] / 10000.0).append("]");
-                json.append(", \"erosion\": [").append(r[6] / 10000.0).append(", ").append(r[7] / 10000.0).append("]");
-                json.append(", \"depth\": [").append(r[8] / 10000.0).append(", ").append(r[9] / 10000.0).append("]");
-                json.append(", \"weirdness\": [").append(r[10] / 10000.0).append(", ").append(r[11] / 10000.0).append("]");
-                json.append(", \"offset\": 0.0}");
-                discoveredCount++;
-            }
-        }
-        json.append("\n]\n");
-
-        try {
-            // No schemaVersion header here, deliberately: this artefact is a
-            // bare JSON ARRAY that the seed roller loads as a list
-            // (scripts/seed/biome_params.json). Wrapping it in an object to
-            // carry a version would break every roller that reads it. It
-            // still gets the atomic write, which is what matters — the dump
-            // is large and the roller reads it straight afterwards.
-            Path outputPath = Artefacts.dir().resolve("biome_params.json");
-            Artefacts.write(outputPath, json.toString());
-            int staticCount = staticBiomes.size();
-            int newBiomes = sortedDiscovered.size();
-            int newEntries = discoveredCount;
-            int totalEntries = entryList.size() + discoveredCount;
-            int totalGrid = gridPoints;
-            source.sendFeedback(() -> Text.literal(
-                "Dumped " + totalEntries + " entries (" + staticCount
-                + " static biomes + " + newBiomes + " discovered via "
-                + totalGrid + " grid samples, " + newEntries
-                + " new entries) to biome_params.json"), false);
-            return totalEntries;
-        } catch (IOException e) {
-            MultiverseServer.LOGGER.error("Failed to write biome params", e);
-            source.sendError(Text.literal("Write failed: " + e.getMessage()));
-            return 0;
-        }
-    }
-
-    // Vanilla temperature band breakpoints (×10000 for long-quantised values).
-    private static final long[] TEMP_BREAKS = {-4500, -1500, 2000, 5500};
-    // Vanilla humidity band breakpoints.
-    private static final long[] HUMID_BREAKS = {-3500, -1000, 1000, 3000};
-
-    private static int quantiseBand(long value, long[] breaks) {
-        for (int i = 0; i < breaks.length; i++) {
-            if (value < breaks[i]) return i;
-        }
-        return breaks.length;
-    }
-
     private static int debugPrng(CommandContext<ServerCommandSource> ctx) {
         ServerCommandSource source = ctx.getSource();
         long seed = LongArgumentType.getLong(ctx, "seed");
@@ -763,6 +826,56 @@ public class DimensionCommands {
             double v = dpNoise.sample(0, 0, 0);
             source.sendFeedback(() -> Text.literal(String.format(
                 "noise %s s(0)=%.10f", noiseId, v)), false);
+        }
+
+        // Tectonic continentalness: manual path + octave origin dump
+        {
+            var tecRng = splitter.split("tectonic:parameter/continentalness");
+            double[] tecAmps = {1.75, 1, 2, 3, 2, 2, 1, 1, 1};
+            var tecParams = new net.minecraft.util.math.noise.DoublePerlinNoiseSampler.NoiseParameters(
+                -10, new it.unimi.dsi.fastutil.doubles.DoubleArrayList(tecAmps));
+            var tecNoise = net.minecraft.util.math.noise.DoublePerlinNoiseSampler.create(tecRng, tecParams);
+            double v0 = tecNoise.sample(0, 0, 0);
+            double vShift = tecNoise.sample(0.527180713, 0, 0.527180713);
+            source.sendFeedback(() -> Text.literal(String.format(
+                "noise tectonic:parameter/continentalness s(0)=%.10f s(0.527)=%.10f", v0, vShift)), false);
+            String manualOrigins = dumpOctaveOrigins(tecNoise, "manual");
+            source.sendFeedback(() -> Text.literal(manualOrigins), false);
+        }
+
+        // Same noise via NoiseConfig.getOrCreateSampler (the live server path)
+        {
+            var server = ctx.getSource().getServer();
+            var noiseParamsLookup = server.getRegistryManager()
+                    .get(RegistryKeys.NOISE_PARAMETERS).getReadOnlyWrapper();
+            var settingsLookup = server.getRegistryManager()
+                    .get(net.minecraft.registry.RegistryKeys.CHUNK_GENERATOR_SETTINGS)
+                    .getReadOnlyWrapper();
+            // Build a NoiseConfig from adventure:compressed settings
+            var settingsKey = RegistryKey.of(
+                    net.minecraft.registry.RegistryKeys.CHUNK_GENERATOR_SETTINGS,
+                    Identifier.tryParse("adventure:compressed"));
+            try {
+                var settings = settingsLookup.getOrThrow(settingsKey).value();
+                var configNoise = NoiseConfig.create(settings, noiseParamsLookup, seed);
+                var tecKey = RegistryKey.of(RegistryKeys.NOISE_PARAMETERS,
+                        Identifier.tryParse("tectonic:parameter/continentalness"));
+                // Probe: what key does the registry entry report?
+                var noiseReg = server.getRegistryManager().get(RegistryKeys.NOISE_PARAMETERS);
+                var regEntry = noiseReg.getEntry(tecKey);
+                String regKeyStr = regEntry.map(e -> e.getKey()
+                        .map(k -> k.getValue().toString()).orElse("NO_KEY"))
+                        .orElse("NOT_FOUND");
+                source.sendFeedback(() -> Text.literal("registry_key=" + regKeyStr), false);
+                var configSampler = configNoise.getOrCreateSampler(tecKey);
+                double cv = configSampler.sample(0.527180713, 0, 0.527180713);
+                source.sendFeedback(() -> Text.literal(String.format(
+                    "config tectonic:parameter/continentalness s(0.527)=%.10f", cv)), false);
+                String configOrigins = dumpOctaveOrigins(configSampler, "config");
+                source.sendFeedback(() -> Text.literal(configOrigins), false);
+            } catch (Exception e) {
+                source.sendFeedback(() -> Text.literal("config path error: " + e.getMessage()), false);
+            }
         }
         return 1;
     }
@@ -805,55 +918,81 @@ public class DimensionCommands {
         return 1;
     }
 
-    private static int sampleBiomeGrid(CommandContext<ServerCommandSource> ctx) {
+    /**
+     * Evaluates an arbitrary density function from the DENSITY_FUNCTION
+     * registry at block coordinates (x, y, z). Binds the DF through a
+     * fresh NoiseConfig built from the dimension's generator settings and
+     * world seed — the same binding the noise pipeline uses.
+     */
+    private static int evalDf(CommandContext<ServerCommandSource> ctx) {
         ServerCommandSource source = ctx.getSource();
         ServerWorld world = resolveWorld(ctx);
         if (world == null) {
-            source.sendError(Text.literal("Dimension not loaded"));
+            source.sendError(Text.literal("Dimension not loaded: "
+                    + IdentifierArgumentType.getIdentifier(ctx, "dimension")));
             return 0;
         }
-        int radius = IntegerArgumentType.getInteger(ctx, "radius");
-        int step = IntegerArgumentType.getInteger(ctx, "step");
+        Identifier dfId = IdentifierArgumentType.getIdentifier(ctx, "df_id");
+        int x = IntegerArgumentType.getInteger(ctx, "x");
+        int y = IntegerArgumentType.getInteger(ctx, "y");
+        int z = IntegerArgumentType.getInteger(ctx, "z");
 
-        var biomeSource = world.getChunkManager().getChunkGenerator().getBiomeSource();
-        NoiseConfig noiseConfig = world.getChunkManager().getNoiseConfig();
-        var sampler = noiseConfig.getMultiNoiseSampler();
-
-        // Leading '#' comment line, so a reader must skip comments — the rows
-        // themselves stay plain `x,z,biome`.
-        StringBuilder csv = new StringBuilder(Artefacts.textHeader("biome-grid"));
-        int count = 0;
-        for (int x = -radius; x <= radius; x += step) {
-            for (int z = -radius; z <= radius; z += step) {
-                int qx = x >> 2;
-                int qz = z >> 2;
-                var biome = biomeSource.getBiome(qx, 16, qz, sampler);
-                String biomeId = biome.getKey()
-                    .map(k -> k.getValue().toString())
-                    .orElse("unknown");
-                csv.append(x).append(',').append(z).append(',').append(biomeId).append('\n');
-                count++;
-            }
+        var result = DensityFunctionEvaluator.evaluate(world, dfId, x, y, z);
+        if (!result.ok()) {
+            source.sendError(Text.literal("eval-df: " + result.errorMsg()));
+            return 0;
         }
 
+        String msg = String.format("df %s at (%d,%d,%d) = %.9f [%s]",
+                dfId, x, y, z, result.value(), result.binding());
+        source.sendFeedback(() -> Text.literal(msg), false);
+        return 1;
+    }
+
+    /**
+     * Extracts per-octave Perlin origins from a DoublePerlinNoiseSampler via
+     * reflection. Returns a compact string for RCON comparison against the
+     * Python side's octave origins.
+     */
+    private static String dumpOctaveOrigins(
+            net.minecraft.util.math.noise.DoublePerlinNoiseSampler sampler,
+            String label) {
         try {
-            Path outputPath = Artefacts.dir().resolve("biome_grid.csv");
-            Artefacts.write(outputPath, csv.toString());
-            int finalCount = count;
-            source.sendFeedback(() -> Text.literal(
-                "grid " + finalCount + " points"), false);
-            return count;
-        } catch (IOException e) {
-            MultiverseServer.LOGGER.error("Failed to write biome grid", e);
-            source.sendError(Text.literal("Write failed: " + e.getMessage()));
-            return 0;
+            // DoublePerlinNoiseSampler has private firstSampler/secondSampler
+            java.lang.reflect.Field firstF = null, secondF = null;
+            for (var f : net.minecraft.util.math.noise.DoublePerlinNoiseSampler.class.getDeclaredFields()) {
+                if (net.minecraft.util.math.noise.OctavePerlinNoiseSampler.class.isAssignableFrom(f.getType())) {
+                    if (firstF == null) firstF = f;
+                    else { secondF = f; break; }
+                }
+            }
+            if (firstF == null) return label + ":noFields";
+            firstF.setAccessible(true);
+            var first = (net.minecraft.util.math.noise.OctavePerlinNoiseSampler) firstF.get(sampler);
+            // OctavePerlinNoiseSampler has private octaveSamplers (PerlinNoiseSampler[])
+            java.lang.reflect.Field octF = null;
+            for (var f : net.minecraft.util.math.noise.OctavePerlinNoiseSampler.class.getDeclaredFields()) {
+                if (f.getType().isArray() && !f.getType().getComponentType().isPrimitive()
+                        && !java.lang.reflect.Modifier.isStatic(f.getModifiers())) {
+                    octF = f; break;
+                }
+            }
+            if (octF == null) return label + ":noOctaveField";
+            octF.setAccessible(true);
+            var octaves = (net.minecraft.util.math.noise.PerlinNoiseSampler[]) octF.get(first);
+            StringBuilder sb = new StringBuilder(label + "_first:");
+            for (int i = 0; i < octaves.length; i++) {
+                if (octaves[i] != null) {
+                    sb.append(String.format(" [%.6f,%.6f,%.6f]",
+                            octaves[i].originX, octaves[i].originY, octaves[i].originZ));
+                } else {
+                    sb.append(" [null]");
+                }
+            }
+            return sb.toString();
+        } catch (Exception e) {
+            return label + ":error=" + e.getClass().getSimpleName() + ":" + e.getMessage();
         }
     }
 
-    private static void appendRange(StringBuilder json, String name,
-                                    MultiNoiseUtil.ParameterRange range) {
-        json.append(", \"").append(name).append("\": [")
-            .append(range.min() / 10000.0).append(", ")
-            .append(range.max() / 10000.0).append("]");
-    }
 }

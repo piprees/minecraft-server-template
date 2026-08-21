@@ -3,21 +3,12 @@ package com.customdimensions.portal;
 /**
  * Can a portal built anywhere in the source world actually be arrived at?
  *
- * <h2>Why this exists</h2>
- * Arrival placement is {@code target = source * scale}. Nothing ever asked
- * whether the result lands somewhere a player can exist — and vanilla
- * forbids breaking AND placing blocks outside the world border, so a player
- * who arrives out of bounds cannot touch the portal frame, the portal, or
- * any block around them. Every diagnosis of that symptom points at
- * protection code; the cause is arithmetic in a config file.
- *
- * <p>Found live 2026-07-25 in {@code adventure:the_ember_fields}: the entry
- * transform MULTIPLIED by scale instead of dividing, so an overworld portal
- * at (236, −453) with {@code scale: 8.0} arrived at (1888, −3624) against a
- * player border of radius 1024. That root cause is fixed; this check remains
- * as the guard, because a badly authored scale/border pair can still put an
- * arrival out of bounds and the symptom ("I cannot break anything") points
- * nowhere near the cause.
+ * <p>Arrival placement is {@code target = source * scale}. Vanilla forbids
+ * breaking AND placing blocks outside the world border, so a player who
+ * arrives out of bounds cannot touch the portal frame or anything around
+ * them — a badly authored scale/border pair can silently put an arrival out
+ * of bounds, and the symptom ("I cannot break anything") points at
+ * protection code, nowhere near the actual cause.
  *
  * <p>Pure arithmetic over plain values: no world, no config objects, no
  * Minecraft runtime.

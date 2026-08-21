@@ -34,7 +34,7 @@ public class ServerWorldSeedMixin {
             }
             return;
         }
-        // Static worlds: the config drives every seed. Each base-world file
+        // Static worlds: the config drives every seed. Each reserved-dimension file
         // (overworld.json, the_nether.json, the_end.json, paradise_lost.json)
         // carries its own "seed" — "env" reads the SEED environment variable
         // (.env SEED otherwise only seeds level.dat as a legacy fallback).

@@ -1,17 +1,178 @@
 {
   "type": "multi_biome",
   "description": "Frozen channels between ice sheets. Igloos and cold dungeons mark where people tried to cross; shipwrecks mark where they failed. The sea is the road, and the road is cruel.",
-  "seed": 1407229080638003557,
+  "seed": 2089452998699548009,
   "noiseSettings": "adventure:wide",
   "biomes": [
-    "minecraft:frozen_ocean",
-    "minecraft:deep_frozen_ocean",
-    "terralith:ice_marsh",
-    "minecraft:snowy_beach",
-    "minecraft:snowy_plains",
-    "minecraft:frozen_river",
-    "minecraft:snowy_taiga",
-    "terralith:frozen_cliffs"
+    {
+      "id": "regions_unexplored:frozen_tundra",
+      "parameters": {
+        "weirdness": [
+          -2.0,
+          -1.4
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "minecraft:frozen_ocean",
+      "parameters": {
+        "weirdness": [
+          -1.4,
+          -1.235
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "minecraft:deep_frozen_ocean",
+      "parameters": {
+        "weirdness": [
+          -1.235,
+          -1.07
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "terralith:ice_marsh",
+      "parameters": {
+        "weirdness": [
+          -1.07,
+          -0.905
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "minecraft:snowy_beach",
+      "parameters": {
+        "weirdness": [
+          -0.905,
+          -0.74
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "minecraft:snowy_plains",
+      "parameters": {
+        "weirdness": [
+          -0.74,
+          -0.575
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "minecraft:frozen_river",
+      "parameters": {
+        "weirdness": [
+          -0.575,
+          -0.41
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "minecraft:snowy_taiga",
+      "parameters": {
+        "weirdness": [
+          -0.41,
+          -0.245
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "terralith:frozen_cliffs",
+      "parameters": {
+        "weirdness": [
+          -0.245,
+          -0.08
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:icy_heights",
+      "parameters": {
+        "weirdness": [
+          -0.08,
+          1.72
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "wilderwild:tundra",
+      "parameters": {
+        "weirdness": [
+          1.72,
+          2.0
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "terralith:cave/frostfire_caves",
+      "parameters": {
+        "weirdness": [
+          -2.0,
+          -0.045
+        ],
+        "depth": [
+          0.1,
+          2.0
+        ]
+      }
+    },
+    {
+      "id": "minecraft:dripstone_caves",
+      "parameters": {
+        "weirdness": [
+          -0.045,
+          2.0
+        ],
+        "depth": [
+          0.1,
+          2.0
+        ]
+      }
+    }
   ],
   "borders": {
     "player": 512,
@@ -19,6 +180,15 @@
   },
   "settingsOverrides": {
     "seaLevel": 72
+  },
+  "structures": {
+    "force": [
+      {
+        "structure": "minecraft:igloo",
+        "x": 48,
+        "z": 32
+      }
+    ]
   },
   "difficulty": {
     "mobMultiplier": 2.2,
@@ -39,10 +209,15 @@
     },
     "aura": {
       "subsume": "everything"
+    },
+    "anchor": {
+      "pos": "spawn",
+      "exit": "bed"
     }
   },
   "seedRoll": {
     "mood": "desolate",
+    "allowHazardousSpawn": true,
     "spawnFilter": [
       "minecraft:frozen_ocean",
       "minecraft:deep_frozen_ocean",
@@ -68,12 +243,16 @@
       "village",
       "mansion",
       "coliseum"
-    ],
-    "description": "Frozen channels between ice sheets. Igloos and cold dungeons mark where people tried to cross; shipwrecks mark where they failed. The sea is the road, and the road is cruel."
+    ]
   },
   "spawn": [
     0,
-    64,
-    0
-  ]
+    31,
+    -128
+  ],
+  "exitPortal": {
+    "enabled": true,
+    "pos": "spawn",
+    "target": "bed"
+  }
 }

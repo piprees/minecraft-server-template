@@ -1,17 +1,207 @@
 {
   "type": "multi_biome",
   "description": "Quiet wetland wilderness. Reed beds, drowned ruins, things half-sunk in the clay. Nobody settles here; the marsh keeps what it takes. Whatever civilisation these ruins belonged to, the swamp claimed it centuries ago.",
-  "seed": -8973129246890378784,
+  "seed": -1396019242766099038,
   "biomes": [
-    "natures_spirit:marsh",
-    "minecraft:swamp",
-    "minecraft:mangrove_swamp",
-    "terralith:orchid_swamp",
-    "natures_spirit:bamboo_wetlands",
-    "minecraft:river",
-    "minecraft:beach",
-    "minecraft:dark_forest",
-    "terralith:moonlight_valley"
+    {
+      "id": "natures_spirit:marsh",
+      "parameters": {
+        "weirdness": [
+          -2.0,
+          -0.19
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "minecraft:swamp",
+      "parameters": {
+        "weirdness": [
+          -0.19,
+          -0.1636
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "minecraft:mangrove_swamp",
+      "parameters": {
+        "weirdness": [
+          -0.1636,
+          -0.1373
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "terralith:orchid_swamp",
+      "parameters": {
+        "weirdness": [
+          -0.1373,
+          -0.1109
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "natures_spirit:bamboo_wetlands",
+      "parameters": {
+        "weirdness": [
+          -0.1109,
+          -0.0845
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "minecraft:river",
+      "parameters": {
+        "weirdness": [
+          -0.0845,
+          -0.0582
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "minecraft:beach",
+      "parameters": {
+        "continentalness": [
+          -0.6,
+          -0.05
+        ],
+        "weirdness": [
+          -0.0582,
+          -0.0318
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "minecraft:dark_forest",
+      "parameters": {
+        "weirdness": [
+          -0.0318,
+          -0.0055
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "terralith:moonlight_valley",
+      "parameters": {
+        "weirdness": [
+          -0.0055,
+          0.0209
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:marsh",
+      "parameters": {
+        "weirdness": [
+          0.0209,
+          0.0473
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:fen",
+      "parameters": {
+        "weirdness": [
+          0.0473,
+          0.0736
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:muddy_river",
+      "parameters": {
+        "weirdness": [
+          0.0736,
+          0.1
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "wilderwild:cypress_wetlands",
+      "parameters": {
+        "weirdness": [
+          0.1,
+          2.0
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "minecraft:lush_caves",
+      "parameters": {
+        "weirdness": [
+          -2.0,
+          -0.045
+        ],
+        "depth": [
+          0.1,
+          2.0
+        ]
+      }
+    },
+    {
+      "id": "terralith:cave/fungal_caves",
+      "parameters": {
+        "weirdness": [
+          -0.045,
+          2.0
+        ],
+        "depth": [
+          0.1,
+          2.0
+        ]
+      }
+    }
   ],
   "borders": {
     "player": 1024,
@@ -41,15 +231,7 @@
   "seedRoll": {
     "mood": "serene",
     "spawnFilter": [
-      "natures_spirit:marsh",
-      "minecraft:swamp",
-      "minecraft:mangrove_swamp",
-      "terralith:orchid_swamp",
-      "natures_spirit:bamboo_wetlands",
-      "minecraft:river",
-      "minecraft:beach",
-      "minecraft:dark_forest",
-      "terralith:moonlight_valley"
+      "natures_spirit:marsh"
     ],
     "water": "high",
     "wants": {
@@ -65,12 +247,11 @@
       "mansion",
       "trial_chambers",
       "ancient_city"
-    ],
-    "description": "Quiet wetland wilderness. Reed beds, drowned ruins, things half-sunk in the clay. Nobody settles here; the marsh keeps what it takes. Whatever civilisation these ruins belonged to, the swamp claimed it centuries ago."
+    ]
   },
   "spawn": [
-    0,
-    64,
-    0
+    -640,
+    47,
+    128
   ]
 }

@@ -1,13 +1,62 @@
 {
   "type": "nether",
-  "description": "Industrial lava flats — piglin pipelines and reactors built over the melt. The infrastructure still runs, still pumps, still processes. The workers are gone. The machines don't care.",
-  "seed": -8522992867091947329,
+  "description": "Industrial lava flats \u2014 piglin pipelines and reactors built over the melt. The infrastructure still runs, still pumps, still processes. The workers are gone. The machines don't care.",
+  "seed": -758736480885406820,
   "biomes": [
-    "minecraft:nether_wastes",
-    "incendium:infernal_dunes",
-    "incendium:volcanic_deltas",
-    "minecraft:basalt_deltas",
-    "incendium:ash_barrens"
+    {
+      "id": "incendium:ash_barrens",
+      "parameters": {
+        "temperature": [
+          -2.0,
+          -1.46
+        ]
+      }
+    },
+    {
+      "id": "minecraft:nether_wastes",
+      "parameters": {
+        "temperature": [
+          -1.46,
+          -1.02
+        ]
+      }
+    },
+    {
+      "id": "minecraft:basalt_deltas",
+      "parameters": {
+        "temperature": [
+          -1.02,
+          -0.48
+        ]
+      }
+    },
+    {
+      "id": "incendium:infernal_dunes",
+      "parameters": {
+        "temperature": [
+          -0.48,
+          -0.04
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:inferno",
+      "parameters": {
+        "temperature": [
+          -0.04,
+          1.56
+        ]
+      }
+    },
+    {
+      "id": "incendium:volcanic_deltas",
+      "parameters": {
+        "temperature": [
+          1.56,
+          2.0
+        ]
+      }
+    }
   ],
   "borders": {
     "player": 1024,
@@ -16,6 +65,12 @@
   "difficulty": {
     "mobMultiplier": 1.5,
     "playerLuck": 1.4
+  },
+  "structures": {
+    "terrainAdaptation": {
+      "incendium:nether_reactor": "platform_skirt",
+      "incendium:pipeline": "platform_skirt"
+    }
   },
   "portal": {
     "frameBlock": "minecraft:smooth_basalt",
@@ -49,12 +104,11 @@
     "shuns": [
       "piglin_village",
       "warped_outpost"
-    ],
-    "description": "Industrial lava flats — piglin pipelines and reactors built over the melt. The infrastructure still runs, still pumps, still processes. The workers are gone. The machines don't care."
+    ]
   },
   "spawn": [
-    0,
-    64,
+    128,
+    140,
     0
   ]
 }

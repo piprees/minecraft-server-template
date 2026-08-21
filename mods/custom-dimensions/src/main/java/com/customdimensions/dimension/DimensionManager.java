@@ -37,6 +37,7 @@ import net.minecraft.world.biome.source.MultiNoiseBiomeSourceParameterList;
 import net.minecraft.world.biome.source.util.MultiNoiseUtil;
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.world.gen.WorldPreset;
+import net.minecraft.world.gen.surfacebuilder.MaterialRules;
 import net.minecraft.world.gen.WorldPresets;
 import net.minecraft.world.gen.chunk.ChunkGeneratorSettings;
 import net.minecraft.world.gen.chunk.ChunkGenerator;
@@ -153,15 +154,14 @@ public class DimensionManager {
         }
         try {
             // Per-dim isolation: one broken config must not abort registration
-            // of every dimension after it (2026-07-22: a seed-less config NPE'd
-            // here and silently took an unrelated new dimension down with it).
+            // of every dimension after it.
             DimensionFingerprints.init(this.server);
-            for (DimensionConfig def : MultiverseConfig.getInstance().getDimensions()) {
+            for (DimensionConfig def : MultiverseConfig.getInstance().getCustomDimensions()) {
                 RegistryKey<DimensionOptions> key = RegistryKey.of(RegistryKeys.DIMENSION, def.getDimensionIdentifier());
                 if (dimRegistry.contains(key)) {
                     // The persisted generator (level.dat) wins for existing
                     // dimensions — warn on drift, never delete or regenerate.
-                    DimensionFingerprints.checkExisting(def);
+                    DimensionFingerprints.checkExisting(def, this.server);
                     continue;
                 }
                 try {
@@ -173,6 +173,7 @@ public class DimensionManager {
                     MultiverseServer.LOGGER.error("Failed to register dimension {}", key, e);
                 }
             }
+            DimensionFingerprints.warnOrphans(MultiverseConfig.getInstance().getDimensionNames());
         } finally {
             if (wasFrozen) {
                 accessor.setFrozen(true);
@@ -215,6 +216,55 @@ public class DimensionManager {
         return DimensionTypeBuilder.typeEntryFor(this.server, def, base);
     }
 
+    // Suffixes for the runtime-built ChunkGeneratorSettings variants this
+    // mod registers under {namespace}:{slug}{suffix} — distinct per call
+    // site, because a dimension can need both (settingsOverrides, then
+    // surface composition on top of it) and the second registration must
+    // build its OWN entry rather than finding the first one's id already
+    // taken and handing back its now-stale, pre-composition value.
+    private static final String SETTINGS_OVERRIDES_SUFFIX = "_settings_overrides";
+    private static final String SURFACE_COMPOSED_SUFFIX = "_surface_composed";
+
+    // Pure: the registry id a dimension's runtime-built settings variant
+    // gets. Same shape as DimensionTypeBuilder's "{slug}_type".
+    static Identifier generatorSettingsId(DimensionConfig def, String suffix) {
+        return Identifier.of(def.getNamespace(), def.getName() + suffix);
+    }
+
+    // Registers a runtime-built ChunkGeneratorSettings as a REFERENCE entry
+    // and hands that back — never RegistryEntry.of(value), which wraps a
+    // DIRECT entry that vanilla's RegistryElementCodec inlines wholesale
+    // (noise router and surface rule included) into level.dat on every save
+    // instead of writing an id. Idempotent like DimensionTypeBuilder.
+    // typeEntryFor: an id already registered wins, so repeated calls for the
+    // same dimension (the seed roller's headless facts runs measure one
+    // dimension many times over a roll) reuse one entry instead of never
+    // being read back out.
+    private RegistryEntry<ChunkGeneratorSettings> registerGeneratorSettings(Identifier id, ChunkGeneratorSettings value) {
+        DynamicRegistryManager.Immutable regManager = this.server.getCombinedDynamicRegistries().getCombinedRegistryManager();
+        Registry<ChunkGeneratorSettings> registry = regManager.get(RegistryKeys.CHUNK_GENERATOR_SETTINGS);
+        RegistryKey<ChunkGeneratorSettings> key = RegistryKey.of(RegistryKeys.CHUNK_GENERATOR_SETTINGS, id);
+        Optional<? extends RegistryEntry<ChunkGeneratorSettings>> existing = registry.getEntry(key);
+        if (existing.isPresent()) {
+            return existing.get();
+        }
+        MutableRegistry<ChunkGeneratorSettings> mutable = (MutableRegistry<ChunkGeneratorSettings>) registry;
+        SimpleRegistryAccessor accessor = (SimpleRegistryAccessor) mutable;
+        boolean wasFrozen = accessor.isFrozen();
+        if (wasFrozen) {
+            accessor.setFrozen(false);
+        }
+        try {
+            RegistryEntry<ChunkGeneratorSettings> entry = mutable.add(key, value, RegistryEntryInfo.DEFAULT);
+            MultiverseServer.LOGGER.info("Registered generator settings: {}", id);
+            return entry;
+        } finally {
+            if (wasFrozen) {
+                accessor.setFrozen(true);
+            }
+        }
+    }
+
     // Swap a noise generator's ChunkGeneratorSettings while keeping its biome
     // source. No-op for flat/void generators (noiseSettings has no meaning
     // there) and when no override is set.
@@ -230,14 +280,25 @@ public class DimensionManager {
     // biome (nether biomes in an overworld dim, cherry groves in the end —
     // cross-family mixing is the point) is dealt the remaining parameter
     // regions round-robin, so it genuinely appears in the layout instead of
-    // being silently dropped. Before this, a list with no native matches
-    // (the_crimson_nexus, the_souldrift) fell back to plains.
+    // being silently dropped — a list with no native matches at all (e.g.
+    // the_crimson_nexus, the_souldrift) still produces its requested biomes
+    // rather than falling back to plains.
     private BiomeSource buildMixedSource(MultiNoiseBiomeSource base, Registry<Biome> biomeRegistry,
                                          String biomeList, String dimName,
                                          Map<String, com.google.gson.JsonObject> paramOverrides) {
         Set<Identifier> allowedIds = Arrays.stream(biomeList.split(","))
                 .map(String::trim).map(Identifier::tryParse).filter(id -> id != null)
                 .collect(Collectors.toCollection(java.util.LinkedHashSet::new));
+        // Global suppress list strips listed biomes up front, so foreign
+        // round-robin slots go to the surviving biomes instead of being
+        // filtered out of the finished source. Mirrored by
+        // biome_source_mixing.py — keep in sync.
+        Set<Identifier> suppressedBiomes = BiomeSuppression.suppressedIds();
+        if (!suppressedBiomes.isEmpty() && allowedIds.removeAll(suppressedBiomes)) {
+            MultiverseServer.LOGGER.info(
+                    "Dimension {}: suppress.biomes removed listed biome(s); {} of the requested list remain",
+                    dimName, allowedIds.size());
+        }
 
         // Explicit per-biome parameters (Tier 3): a listed biome with a
         // valid "parameters" object gets ONE explicit hypercube and is
@@ -373,6 +434,28 @@ public class DimensionManager {
         return null;
     }
 
+    /**
+     * The multi-noise source a generator composes from, past any biome-injector
+     * wrapper.
+     *
+     * <p>Lithostitched wraps a base world's source when a mod ships a biome
+     * injector — Regions Unexplored is one — and the wrapper publishes no
+     * parameter entries, so composing from it is impossible and refusing drops
+     * the dimension's whole biome list. The original underneath is what this
+     * mod builds from; anything the wrapper injected reaches a managed
+     * dimension by being named in its {@code biomes} list, like any other biome.
+     *
+     * <p>Null when no multi-noise source is reachable, which the caller reports.
+     */
+    static MultiNoiseBiomeSource multiNoiseOf(ChunkGenerator generator) {
+        if (generator == null) {
+            return null;
+        }
+        BiomeSource source = com.customdimensions.compat.LithostitchedCompat
+                .unwrap(generator.getBiomeSource());
+        return source instanceof MultiNoiseBiomeSource multiNoise ? multiNoise : null;
+    }
+
     // Resolve the biome source for a dimension with a biome list: prefer the
     // dimension's own family source as the base (natural placements), fall
     // back to the overworld's. Null biome list -> null (caller keeps base).
@@ -382,12 +465,24 @@ public class DimensionManager {
         if (biomeList == null || biomeList.isEmpty()) {
             return null;
         }
-        if (baseGenerator != null && baseGenerator.getBiomeSource() instanceof MultiNoiseBiomeSource base) {
+        MultiNoiseBiomeSource base = multiNoiseOf(baseGenerator);
+        if (base != null) {
             return buildMixedSource(base, biomeRegistry, biomeList, def.getName(), def.getBiomeParameters());
         }
-        if (overworldGenerator != null && overworldGenerator.getBiomeSource() instanceof MultiNoiseBiomeSource owBase) {
+        MultiNoiseBiomeSource owBase = multiNoiseOf(overworldGenerator);
+        if (owBase != null) {
             return buildMixedSource(owBase, biomeRegistry, biomeList, def.getName(), def.getBiomeParameters());
         }
+        // Silent here meant a whole dimension quietly generating the base
+        // world's biomes instead of its own — name the class, because the mod
+        // that replaced it is the only thing that can be removed to fix it.
+        MultiverseServer.LOGGER.error(
+                "Dimension {}: biome list IGNORED — no multi-noise source to build from "
+                + "(own generator {}, overworld generator {}). A mod has replaced the base "
+                + "biome source; this dimension will generate the base world's biomes.",
+                def.getName(),
+                baseGenerator == null ? "absent" : baseGenerator.getBiomeSource().getClass().getName(),
+                overworldGenerator == null ? "absent" : overworldGenerator.getBiomeSource().getClass().getName());
         return null;
     }
 
@@ -472,9 +567,9 @@ public class DimensionManager {
                 // ambience still read the biome. This must be a NOISE
                 // generator: a flat generator samples the multi-noise
                 // source with zero climate noise, collapsing the layout to
-                // one biome everywhere and ignoring the seed (verified
-                // empirically 2026-07-17). adventure:void ships in the jar
-                // datapack — overworld climate router, final_density -1.
+                // one biome everywhere and ignoring the seed. adventure:void
+                // ships in the jar datapack — overworld climate router,
+                // final_density -1.
                 BiomeSource voidSource = this.resolveListedSource(def, biomeRegistry,
                         null, overworldOpts.chunkGenerator());
                 Registry<ChunkGeneratorSettings> nsRegistry = regManager.get(RegistryKeys.CHUNK_GENERATOR_SETTINGS);
@@ -584,9 +679,8 @@ public class DimensionManager {
             case "cave" -> {
                 // Fully underground world: vanilla still ships the
                 // minecraft:caves generator settings (bedrock roof at the top,
-                // no sky access, sea/lava level 32 — verified live 2026-07-22
-                // via a fixture using the noiseSettings override). Biome list
-                // mixes as usual; an explicit noiseSettings still wins.
+                // no sky access, sea/lava level 32). Biome list mixes as
+                // usual; an explicit noiseSettings still wins.
                 BiomeSource caveSource = this.resolveListedSource(def, biomeRegistry,
                         overworldOpts.chunkGenerator(), overworldOpts.chunkGenerator());
                 if (caveSource == null) {
@@ -713,7 +807,94 @@ public class DimensionManager {
                 yield new DimensionOptions(this.typeEntryFor(def, overworldOpts.dimensionTypeEntry()), withSeed(withSettings(overworldOpts.chunkGenerator(), settingsOverride), worldSeed));
             }
         };
-        return applyBiomePatches(def, applySettingsOverrides(def, built), biomeRegistry);
+        // Suppression runs BEFORE biomePatches: an author's explicit patch
+        // may still stamp a suppressed biome — specific beats general.
+        BiomeSuppression.warnUnknownSuppressedBiomes(biomeRegistry);
+        // Surface composition runs OUTERMOST, after biomePatches: a patch can
+        // stamp a biome the list never named, and a biome that reaches the
+        // finished source is one this dimension has to be able to dress.
+        return applySurfaceComposition(def, applyBiomePatches(def,
+                BiomeSuppression.filterOptions(applySettingsOverrides(def, built), def.getName()),
+                biomeRegistry));
+    }
+
+    /**
+     * Lets a biome from another world wear its own skin here.
+     *
+     * <p>A biome carries no terrain shape — depth and scale left {@code Biome}
+     * in 1.18 — so a nether biome in an overworld dimension already generates
+     * with overworld terrain at overworld heights. What does not travel with
+     * it is the SURFACE: surface rules belong to the generator, and an
+     * overworld generator's rule names only overworld biomes, so a
+     * transplanted one takes the fall-through and comes out as grass with
+     * nether features standing on it.
+     *
+     * <p>Foreign is decided per biome against the family whose surface rule
+     * this generator is actually carrying, which is
+     * {@link BiomeFamilies#surfaceHostFamily} rather than the structure host:
+     * the island types borrow the End's whole settings record, and an explicit
+     * {@code noiseSettings} replaces it outright. A dimension whose generator
+     * belongs to no family is left alone: without a host there is no way to
+     * say what is foreign, and guessing would re-skin biomes nobody asked
+     * about.
+     */
+    private DimensionOptions applySurfaceComposition(DimensionConfig def, DimensionOptions built) {
+        String hostFamily = BiomeFamilies.surfaceHostFamily(def.getType(), def.getNoiseSettings());
+        if (hostFamily == null
+                || !(built.chunkGenerator() instanceof NoiseChunkGenerator noiseGen)) {
+            return built;
+        }
+        Map<String, List<RegistryKey<Biome>>> foreign = new java.util.LinkedHashMap<>();
+        for (RegistryEntry<Biome> biome : noiseGen.getBiomeSource().getBiomes()) {
+            String family = BiomeFamilies.familyOf(biome);
+            if (family == null || family.equals(hostFamily)) {
+                continue;
+            }
+            RegistryKey<Biome> key = biome.getKey().orElse(null);
+            if (key != null) {
+                foreign.computeIfAbsent(family, f -> new ArrayList<>()).add(key);
+            }
+        }
+        ChunkGeneratorSettings base = noiseGen.getSettings().value();
+        SurfaceComposition.Result composed = SurfaceComposition.compose(
+                base.surfaceRule(), foreign, this::homeSurfaceRule);
+        if (!composed.composed()) {
+            return built;
+        }
+        ChunkGeneratorSettings dressed = new ChunkGeneratorSettings(
+                base.generationShapeConfig(), base.defaultBlock(), base.defaultFluid(),
+                base.noiseRouter(), composed.rule(), base.spawnTarget(), base.seaLevel(),
+                base.mobGenerationDisabled(), base.aquifers(), base.oreVeins(),
+                base.usesLegacyRandom());
+        MultiverseServer.LOGGER.info(
+                "Dimension {}: surface composed for biomes from other worlds ({}) — host family {}",
+                def.getName(), composed.describe(), hostFamily);
+        RegistryEntry<ChunkGeneratorSettings> dressedEntry = this.registerGeneratorSettings(
+                generatorSettingsId(def, SURFACE_COMPOSED_SUFFIX), dressed);
+        return new DimensionOptions(built.dimensionTypeEntry(),
+                new NoiseChunkGenerator(noiseGen.getBiomeSource(), dressedEntry));
+    }
+
+    /**
+     * A family's own surface rule, from the LIVE settings entry.
+     *
+     * <p>Live rather than vanilla's original is the whole economy of this:
+     * mods that add biomes to a family patch that family's settings
+     * themselves — Incendium overrides {@code minecraft:nether}, Nullscape
+     * overrides {@code minecraft:end} — so borrowing the rule inherits their
+     * surface work and a new mod needs no change here. Null when the settings
+     * are absent, which leaves those biomes on the host's fall-through
+     * exactly as they are today.
+     */
+    private MaterialRules.MaterialRule homeSurfaceRule(String family) {
+        Identifier id = BiomeFamilies.homeSettings(family);
+        if (id == null || this.server == null) {
+            return null;
+        }
+        ChunkGeneratorSettings settings = this.server.getCombinedDynamicRegistries()
+                .getCombinedRegistryManager().get(RegistryKeys.CHUNK_GENERATOR_SETTINGS)
+                .get(RegistryKey.of(RegistryKeys.CHUNK_GENERATOR_SETTINGS, id));
+        return settings == null ? null : settings.surfaceRule();
     }
 
     // "biomePatches" (precision placement): wrap the built generator's biome
@@ -783,7 +964,7 @@ public class DimensionManager {
     // AFTER the type switch so it composes with noiseSettings presets and
     // every noise-generator type. Per-field warn + keep-base on invalid
     // values; flat/void generators warn + no-op (nothing to override).
-    private static DimensionOptions applySettingsOverrides(DimensionConfig def, DimensionOptions built) {
+    private DimensionOptions applySettingsOverrides(DimensionConfig def, DimensionOptions built) {
         DimensionConfig.SettingsOverrides so = def.getSettingsOverrides();
         if (so == null) {
             return built;
@@ -814,16 +995,142 @@ public class DimensionManager {
         boolean disableMobGen = so.disableMobGeneration != null
                 ? so.disableMobGeneration : base.mobGenerationDisabled();
 
+        net.minecraft.world.gen.noise.NoiseRouter router =
+                Boolean.FALSE.equals(so.endIsland)
+                        ? withoutEndIsland(base.noiseRouter(), def.getName())
+                        : base.noiseRouter();
+
         ChunkGeneratorSettings swapped = new ChunkGeneratorSettings(
                 base.generationShapeConfig(), defaultBlock, defaultFluid,
-                base.noiseRouter(), base.surfaceRule(), base.spawnTarget(),
+                router, base.surfaceRule(), base.spawnTarget(),
                 seaLevel, disableMobGen, base.aquifers(), base.oreVeins(),
                 base.usesLegacyRandom());
         MultiverseServer.LOGGER.info("Dimension {}: settingsOverrides applied ({})",
                 def.getName(), def.getSettingsOverridesFingerprint());
+        RegistryEntry<ChunkGeneratorSettings> swappedEntry = this.registerGeneratorSettings(
+                generatorSettingsId(def, SETTINGS_OVERRIDES_SUFFIX), swapped);
         NoiseChunkGenerator swappedGen = new NoiseChunkGenerator(
-                noiseGen.getBiomeSource(), RegistryEntry.of(swapped));
+                noiseGen.getBiomeSource(), swappedEntry);
         return new DimensionOptions(built.dimensionTypeEntry(), swappedGen);
+    }
+
+    /**
+     * The island term's replacement, as an offset and amplitude on a plain
+     * noise.
+     *
+     * <p>{@code minecraft:end_islands} measures -0.84375 across the open plane
+     * and +0.5625 at world origin, where the type special-cases the centre
+     * cell. A CONSTANT cannot stand in for it: the End's void ring is the same
+     * field reading its floor, so a constant leaves the ring with no island in
+     * it — measured at 0 of 24 columns inside 700 blocks. A noise of the same
+     * amplitude scatters islands across the whole plane instead, which is what
+     * "this dimension never had a centre island" looks like.
+     */
+    private static final double END_ISLANDS_OFFSET = 0.0;
+    private static final double END_ISLANDS_AMPLITUDE = 1.2;
+    private static final double END_ISLANDS_XZ_SCALE = 0.5;
+
+    /**
+     * The registered codec for {@code minecraft:end_islands}. Yarn declares the
+     * type itself protected, so identity on its codec is how a node is
+     * recognised — and it stays correct under remapping, which a class-name
+     * test would not. Read per call, not into a static: a registry lookup at
+     * class-init fails wherever the game is not bootstrapped.
+     */
+    private static com.mojang.serialization.MapCodec<? extends
+            net.minecraft.world.gen.densityfunction.DensityFunction> endIslandsCodec() {
+        return Registries.DENSITY_FUNCTION_TYPE.get(Identifier.ofVanilla("end_islands"));
+    }
+
+    /**
+     * Whether a node is the End island term.
+     *
+     * <p>A registry-entry wrapper throws {@code UnsupportedOperationException}
+     * rather than answering for the function it holds; the visitor recurses
+     * through it either way, so refusing to answer is a no, not a failure.
+     */
+    private static boolean isEndIslands(
+            net.minecraft.world.gen.densityfunction.DensityFunction function) {
+        try {
+            return function.getCodecHolder().codec() == endIslandsCodec();
+        } catch (UnsupportedOperationException e) {
+            return false;
+        }
+    }
+
+    /**
+     * The router with every End island term replaced by the open plane.
+     *
+     * <p>Rewrites whatever graph the dimension resolved to, so a pack whose End
+     * is overhauled keeps its own terrain and loses only the origin bump.
+     * A generator carrying no island term is returned unchanged, which is every
+     * non-end family.
+     */
+    private net.minecraft.world.gen.noise.NoiseRouter withoutEndIsland(
+            net.minecraft.world.gen.noise.NoiseRouter router, String dimName) {
+        final net.minecraft.world.gen.densityfunction.DensityFunction replacement =
+                scatteredIslands();
+        if (replacement == null) {
+            MultiverseServer.LOGGER.warn(
+                    "Dimension {}: cannot remove the End origin island — the noise it would "
+                    + "be replaced by is not in the registry", dimName);
+            return router;
+        }
+        final int[] replaced = {0};
+        net.minecraft.world.gen.densityfunction.DensityFunction.DensityFunctionVisitor visitor =
+                new net.minecraft.world.gen.densityfunction.DensityFunction.DensityFunctionVisitor() {
+            @Override
+            public net.minecraft.world.gen.densityfunction.DensityFunction apply(
+                    net.minecraft.world.gen.densityfunction.DensityFunction function) {
+                if (isEndIslands(function)) {
+                    replaced[0]++;
+                    return replacement;
+                }
+                return function;
+            }
+
+            @Override
+            public net.minecraft.world.gen.densityfunction.DensityFunction.Noise apply(
+                    net.minecraft.world.gen.densityfunction.DensityFunction.Noise noise) {
+                return noise;
+            }
+        };
+        net.minecraft.world.gen.noise.NoiseRouter out = router.apply(visitor);
+        if (replaced[0] == 0) {
+            MultiverseServer.LOGGER.warn(
+                    "Dimension {}: settingsOverrides.endIsland is false but this generator "
+                    + "carries no End island term — nothing to remove", dimName);
+            return router;
+        }
+        MultiverseServer.LOGGER.info(
+                "Dimension {}: End origin island removed ({} island term(s) -> scattered noise, "
+                + "offset {} amplitude {})",
+                dimName, replaced[0], END_ISLANDS_OFFSET, END_ISLANDS_AMPLITUDE);
+        return out;
+    }
+
+    /**
+     * An origin-free stand-in for the End island term: a plain noise scaled to
+     * the range that term was measured at. Null when the noise is unavailable.
+     */
+    private net.minecraft.world.gen.densityfunction.DensityFunction scatteredIslands() {
+        if (this.server == null) {
+            return null;
+        }
+        var noiseRegistry = this.server.getRegistryManager().get(RegistryKeys.NOISE_PARAMETERS);
+        var params = noiseRegistry.getEntry(
+                net.minecraft.world.gen.noise.NoiseParametersKeys.CONTINENTALNESS);
+        if (params.isEmpty()) {
+            return null;
+        }
+        return net.minecraft.world.gen.densityfunction.DensityFunctionTypes.add(
+                net.minecraft.world.gen.densityfunction.DensityFunctionTypes
+                        .constant(END_ISLANDS_OFFSET),
+                net.minecraft.world.gen.densityfunction.DensityFunctionTypes.mul(
+                        net.minecraft.world.gen.densityfunction.DensityFunctionTypes
+                                .constant(END_ISLANDS_AMPLITUDE),
+                        net.minecraft.world.gen.densityfunction.DensityFunctionTypes.noise(
+                                params.get(), END_ISLANDS_XZ_SCALE, 0.0)));
     }
 
     private static net.minecraft.block.BlockState resolveOverrideBlock(
@@ -866,11 +1173,91 @@ public class DimensionManager {
         }
     }
 
+    /**
+     * The generator and dimension type a config would produce, built without
+     * creating (or touching) a ServerWorld. Exists so the seed roller can
+     * sample a dimension it has no world for, via the same
+     * {@code createDimensionOptions} world creation uses.
+     */
+    public DimensionOptions buildOptionsHeadless(DimensionConfig def) {
+        return this.createDimensionOptions(def);
+    }
+
+    /**
+     * A ServerWorld that exists only in the server's worlds map, never in the
+     * DIMENSION registry.
+     *
+     * <p>Vanilla encodes that registry into {@code level.dat} on every save,
+     * so a world kept out of it leaves nothing behind to scrub — closing it
+     * and deleting its region directory is the entire cleanup. Used by the
+     * seed try-out, whose worlds are disposable by definition.
+     *
+     * <p>Must be called from a safe point ({@code END_SERVER_TICK}), never
+     * from a request thread or a world tick: it mutates the worlds map and
+     * fires {@code ServerWorldEvents.LOAD}, off which Distant Horizons and
+     * c2me build their per-level state.
+     */
+    public ServerWorld createEphemeralWorld(Identifier worldId, DimensionOptions options, long seed) {
+        if (this.server == null || options == null) {
+            return null;
+        }
+        RegistryKey<World> worldKey = RegistryKey.of(RegistryKeys.WORLD, worldId);
+        MinecraftServerAccessor serverAccessor = (MinecraftServerAccessor) this.server;
+        Map<RegistryKey<World>, ServerWorld> worlds = serverAccessor.getWorlds();
+        ServerWorld existing = worlds.get(worldKey);
+        if (existing != null) {
+            return existing;
+        }
+
+        ServerWorld overworld = this.server.getOverworld();
+        SaveProperties saveProperties = serverAccessor.getSaveProperties();
+        ServerWorldProperties worldProperties = (ServerWorldProperties)
+                new UnmodifiableLevelProperties(saveProperties, saveProperties.getMainWorldProperties());
+
+        ServerWorld newWorld = new ServerWorld(
+                this.server, serverAccessor.getWorkerExecutor(), serverAccessor.getSession(),
+                worldProperties, worldKey, options, NO_OP_WORLD_GEN_PROGRESS,
+                false, seed, List.of(), false, overworld.getRandomSequences());
+
+        worlds.put(worldKey, newWorld);
+        lastPlayerPresence.put(worldKey, (long) this.server.getTicks());
+        ServerWorldEvents.LOAD.invoker().onWorldLoad(this.server, newWorld);
+        MultiverseServer.LOGGER.info("Created ephemeral world: {} (seed {})", worldId, seed);
+        return newWorld;
+    }
+
+    /**
+     * Evacuates and closes an ephemeral world. Players go to the overworld
+     * spawn first — a player inside a closed world is a guaranteed
+     * disconnect, the same reason {@link #processPendingWorldUnloads} does it.
+     */
+    public boolean closeEphemeralWorld(MinecraftServer server, Identifier worldId) {
+        if (server == null) {
+            return false;
+        }
+        RegistryKey<World> key = RegistryKey.of(RegistryKeys.WORLD, worldId);
+        if (PROTECTED_DIMENSIONS.contains(key)) {
+            return false;
+        }
+        Map<RegistryKey<World>, ServerWorld> worlds = ((MinecraftServerAccessor) server).getWorlds();
+        ServerWorld world = worlds.get(key);
+        if (world == null) {
+            return false;
+        }
+        ServerWorld overworld = server.getOverworld();
+        net.minecraft.util.math.BlockPos spawn = overworld.getSpawnPos();
+        for (net.minecraft.server.network.ServerPlayerEntity player : new ArrayList<>(world.getPlayers())) {
+            player.teleport(overworld, spawn.getX() + 0.5, spawn.getY(), spawn.getZ() + 0.5,
+                    Set.of(), player.getYaw(), player.getPitch());
+        }
+        return this.closeWorld(server, key);
+    }
+
     public ServerWorld getOrCreateDimension(String dimName) {
         if (this.server == null) {
             return null;
         }
-        DimensionConfig def = MultiverseConfig.getInstance().getDimension(dimName);
+        DimensionConfig def = MultiverseConfig.getInstance().getCustomDimension(dimName);
         if (def == null) {
             // Command-created dimensions have no config entry — their options
             // are already in the registry (registerDimension), load directly.
@@ -890,8 +1277,18 @@ public class DimensionManager {
         RegistryKey<DimensionOptions> dimOptionsKey = RegistryKey.of(RegistryKeys.DIMENSION, def.getDimensionIdentifier());
         DimensionOptions options = dimRegistry.get(dimOptionsKey);
         if (options == null) {
+            // A silent null here makes a failed `customdim load` look queued
+            // forever: configured dims only get options from
+            // registerDimensions(), which SEED_ROLL_MODE skips at boot, and a
+            // config file added after boot was never read at all.
+            MultiverseServer.LOGGER.warn(
+                    "No DimensionOptions registered for configured dimension {} — "
+                    + "SEED_ROLL_MODE skips boot registration (use /customdim create "
+                    + "there), and config files added after boot are not read",
+                    def.getDimensionIdentifier());
             return null;
         }
+        options = ConfiguredBiomeSource.restore(options, def);
 
         ServerWorld overworld = this.server.getOverworld();
         SaveProperties saveProperties = serverAccessor.getSaveProperties();
@@ -917,9 +1314,8 @@ public class DimensionManager {
         lastPlayerPresence.put(worldKey, (long) this.server.getTicks());
         // Fabric contract for dynamic world registration: mods that add a
         // ServerWorld outside createWorlds MUST fire LOAD, or every mod that
-        // builds a per-level map from this event (Distant Horizons,
-        // c2me) never learns the world exists. Skipping it NPE'd Distant
-        // Horizons on the first portal teleport in production (2026-07-12).
+        // builds a per-level map from this event (Distant Horizons, c2me)
+        // never learns the world exists.
         ServerWorldEvents.LOAD.invoker().onWorldLoad(this.server, newWorld);
         MultiverseServer.LOGGER.info("Created runtime world: {}", worldKey.getValue());
         return newWorld;
@@ -980,7 +1376,7 @@ public class DimensionManager {
             if (!MultiverseConfig.getInstance().isManagedNamespace(key.getValue().getNamespace())) {
                 continue;
             }
-            if (MultiverseConfig.getInstance().getDimension(key.getValue().getPath()) == null) {
+            if (MultiverseConfig.getInstance().getCustomDimension(key.getValue().getPath()) == null) {
                 continue;
             }
 
@@ -1047,7 +1443,7 @@ public class DimensionManager {
                 continue;
             }
             // Evacuate before teardown — a player inside a closed world is a
-            // guaranteed desync/disconnect (that's how the DH incident felt).
+            // guaranteed desync/disconnect.
             ServerWorld overworld = this.server.getOverworld();
             net.minecraft.util.math.BlockPos spawn = overworld.getSpawnPos();
             for (net.minecraft.server.network.ServerPlayerEntity player : new ArrayList<>(world.getPlayers())) {
@@ -1060,12 +1456,13 @@ public class DimensionManager {
     }
 
     public void requestWorldLoad(String name) {
-        // Base worlds queue here too — CreateWorldsMixin defers them exactly
-        // like a custom dimension, and this guard used to drop them SILENTLY:
-        // `customdim load the_nether` answered "Queued load for
-        // minecraft:the_nether" and nothing was ever queued.
-        if (MultiverseConfig.getInstance().getDimension(name) != null
-                || MultiverseConfig.getInstance().getWorld(name) != null) {
+        // Reserved dimensions queue here too — CreateWorldsMixin defers them
+        // exactly like a custom dimension, so the guard must check
+        // getReservedDimensionBySlug() as well as getCustomDimension(), or a
+        // reserved-dimension load request is silently dropped despite
+        // reporting success.
+        if (MultiverseConfig.getInstance().getCustomDimension(name) != null
+                || MultiverseConfig.getInstance().getReservedDimensionBySlug(name) != null) {
             this.pendingWorldLoads.add(name);
         }
     }
@@ -1098,18 +1495,20 @@ public class DimensionManager {
             return null;
         }
 
+        options = ConfiguredBiomeSource.restore(options, this.resolveDefinition(dimName));
+
         ServerWorld overworld = this.server.getOverworld();
         SaveProperties saveProperties = serverAccessor.getSaveProperties();
         ServerWorldProperties worldProperties = (ServerWorldProperties) new UnmodifiableLevelProperties(saveProperties, saveProperties.getMainWorldProperties());
         DimensionConfig runtimeDef = this.runtimeDefinitions.get(dimName);
-        // A base world's seed comes from its own config file, exactly as
-        // ServerWorldSeedMixin serves it — the constructor seed builds the
+        // A reserved dimension's seed comes from its own config file, exactly
+        // as ServerWorldSeedMixin serves it — the constructor seed builds the
         // NoiseConfig, so handing it the overworld's would generate the
         // wrong nether while getSeed() reported the right one.
-        Long baseWorldSeed = MultiverseConfig.getInstance().getWorldSeedOverride(dimId.toString());
+        Long reservedSeed = MultiverseConfig.getInstance().getWorldSeedOverride(dimId.toString());
         long worldSeed = runtimeDef != null && runtimeDef.getSeed() != null
                 ? runtimeDef.getSeed()
-                : (baseWorldSeed != null ? baseWorldSeed : overworld.getSeed());
+                : (reservedSeed != null ? reservedSeed : overworld.getSeed());
 
         ServerWorld newWorld = new ServerWorld(
                 this.server, serverAccessor.getWorkerExecutor(), serverAccessor.getSession(),
@@ -1124,25 +1523,13 @@ public class DimensionManager {
     }
 
     /**
-     * Creating a ServerWorld is a main-thread job and cannot be made
-     * otherwise: it mutates the server's worlds map and fires
-     * {@code ServerWorldEvents.LOAD}, off the back of which Distant Horizons,
-     * and c2me build their per-level state. Several hundred
-     * milliseconds each, and none of it is movable.
-     *
-     * <p>What IS movable is how many of them land on the same tick. This used
-     * to create every queued world in one drain, so a player walking towards
-     * a cluster of portals — a hub, or the test beach — paid for ALL of them
-     * at once and rubber-banded. Reported in game: "quite a bit of server lag
-     * when dimensions get loaded... if dims take a sec to load that's not the
-     * end of the world and better than the rubber banding (which also
-     * inadvertently gives away that there's a portal nearby)".
-     *
-     * <p>One per tick spreads the same total work over N ticks instead of
-     * stacking it into one. Nothing is dropped — the rest stay queued and are
-     * created on the following ticks, which is exactly the "takes a sec"
-     * trade. The set is unordered, so which world goes first among several is
-     * arbitrary; that is fine, because the player is approaching all of them.
+     * Creating a ServerWorld is a main-thread job costing several hundred
+     * milliseconds: it mutates the server's worlds map and fires
+     * {@code ServerWorldEvents.LOAD}, off the back of which Distant Horizons
+     * and c2me build their per-level state. Draining every queued world in
+     * one go would make a player walking towards a cluster of portals pay
+     * for all of them on one tick and rubber-band; one per tick spreads the
+     * same work over N ticks instead.
      */
     private static final int WORLD_LOADS_PER_TICK = 1;
 
@@ -1169,7 +1556,7 @@ public class DimensionManager {
     }
 
     public void bootCreateDimensions() {
-        for (DimensionConfig def : MultiverseConfig.getInstance().getDimensions()) {
+        for (DimensionConfig def : MultiverseConfig.getInstance().getCustomDimensions()) {
             this.requestWorldLoad(def.getName());
         }
     }
@@ -1197,12 +1584,12 @@ public class DimensionManager {
     }
 
     public boolean dimensionExists(String name) {
-        return MultiverseConfig.getInstance().getDimension(name) != null;
+        return MultiverseConfig.getInstance().getCustomDimension(name) != null;
     }
 
     // Config first, then runtime (command-created) definitions.
     public DimensionConfig resolveDefinition(String name) {
-        DimensionConfig def = MultiverseConfig.getInstance().getDimension(name);
+        DimensionConfig def = MultiverseConfig.getInstance().getCustomDimension(name);
         return def != null ? def : this.runtimeDefinitions.get(name);
     }
 
@@ -1220,12 +1607,12 @@ public class DimensionManager {
         if (def != null) {
             return def.getDimensionIdentifier();
         }
-        // Base worlds keep their vanilla ids. Without this, "the_nether"
-        // resolved to {namespace}:the_nether and the lazy-load path could
-        // never reach minecraft:the_nether — which matters because
-        // CreateWorldsMixin defers EVERY non-overworld world, base worlds
-        // included, so nothing else was ever going to create them.
-        DimensionConfig world = MultiverseConfig.getInstance().getWorld(name);
+        // Reserved dimensions keep their vanilla ids. Without this,
+        // "the_nether" resolved to {namespace}:the_nether and the lazy-load
+        // path could never reach minecraft:the_nether — which matters because
+        // CreateWorldsMixin defers EVERY non-overworld world, reserved
+        // dimensions included, so nothing else was ever going to create them.
+        DimensionConfig world = MultiverseConfig.getInstance().getReservedDimensionBySlug(name);
         if (world != null) {
             return world.getDimensionIdentifier();
         }

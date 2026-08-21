@@ -1,17 +1,89 @@
 {
   "type": "paradise_lost:paradise_lost",
-  "description": "A snowbound island adrift in the sky. Fir forests and drifts on floating ground — animal country where the cold keeps everything honest. The towers and vaults here grew naturally, like the trees.",
-  "seed": -1792310558452177569,
+  "description": "A snowbound island adrift in the sky. Fir forests and drifts on floating ground \u2014 animal country where the cold keeps everything honest. The towers and vaults here grew naturally, like the trees.",
+  "seed": 6188548931423268425,
   "biomes": [
-    "paradise_lost:autumnal_tundra",
-    "paradise_lost:highlands_shield",
-    "minecraft:snowy_taiga",
-    "natures_spirit:snowy_fir_forest",
-    "terralith:snowy_cherry_grove",
-    "terralith:skylands_winter",
-    "terralith:frozen_cliffs",
-    "minecraft:snowy_plains",
-    "minecraft:snowy_slopes"
+    {
+      "id": "paradise_lost:autumnal_tundra",
+      "parameters": {
+        "continentalness": [
+          -0.0441,
+          -0.0169
+        ]
+      }
+    },
+    {
+      "id": "paradise_lost:highlands_shield",
+      "parameters": {
+        "continentalness": [
+          -0.1063,
+          -0.0785
+        ]
+      }
+    },
+    {
+      "id": "minecraft:snowy_taiga",
+      "parameters": {
+        "continentalness": [
+          -0.0169,
+          0.0142
+        ]
+      }
+    },
+    {
+      "id": "natures_spirit:snowy_fir_forest",
+      "parameters": {
+        "continentalness": [
+          0.0142,
+          0.0449
+        ]
+      }
+    },
+    {
+      "id": "terralith:snowy_cherry_grove",
+      "parameters": {
+        "continentalness": [
+          0.0779,
+          0.1066
+        ]
+      }
+    },
+    {
+      "id": "terralith:skylands_winter",
+      "parameters": {
+        "continentalness": [
+          -2.0,
+          -0.1063
+        ]
+      }
+    },
+    {
+      "id": "terralith:frozen_cliffs",
+      "parameters": {
+        "continentalness": [
+          -0.0785,
+          -0.0441
+        ]
+      }
+    },
+    {
+      "id": "minecraft:snowy_plains",
+      "parameters": {
+        "continentalness": [
+          0.0449,
+          0.0779
+        ]
+      }
+    },
+    {
+      "id": "minecraft:snowy_slopes",
+      "parameters": {
+        "continentalness": [
+          0.1066,
+          2.0
+        ]
+      }
+    }
   ],
   "borders": {
     "player": 1024,
@@ -37,11 +109,7 @@
   "seedRoll": {
     "mood": "scenic",
     "spawnFilter": [
-      "paradise_lost:autumnal_tundra",
-      "natures_spirit:snowy_fir_forest",
-      "minecraft:snowy_taiga",
-      "minecraft:snowy_plains",
-      "minecraft:snowy_slopes"
+      "minecraft:snowy_plains"
     ],
     "water": "high",
     "wants": {
@@ -54,20 +122,18 @@
       "guide_post_cold": "near_spawn"
     },
     "shuns": [],
-    "description": "A snowbound island adrift in the sky. Fir forests and drifts on floating ground — animal country where the cold keeps everything honest. The towers and vaults here grew naturally, like the trees.",
     "family": "overworld",
-    "terrain": "islands",
-    "heightRange": [
-      -60,
-      440
-    ]
+    "terrain": "islands"
   },
   "spawn": [
-    0,
-    64,
-    0
+    -576,
+    133,
+    -768
   ],
   "structures": {
+    "terrainAdaptation": {
+      "paradise_lost:aurel_tower": "pedestal"
+    },
     "noise": {
       "dungeons": "sparse"
     }

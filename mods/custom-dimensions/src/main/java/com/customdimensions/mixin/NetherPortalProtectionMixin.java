@@ -20,9 +20,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
  * pops the portal to air otherwise. Our arrival/anchor/exit portals are
  * framed with configured blocks, so ANY neighbour update in the frame
  * plane silently deletes them — netherportalspread's nether-corruption
- * conversions did exactly that within seconds of portal creation (found
- * 2026-07-23 via a portal-pop stack trace during Tier-1 verification:
- * Util.spreadNetherToBlock -> NeighborUpdater -> portal popped).
+ * conversions trigger this within seconds of portal creation
+ * (Util.spreadNetherToBlock -> NeighborUpdater -> portal popped).
  *
  * Only positions registered in PortalHelper's return-target map are
  * protected — player-built vanilla nether portals behave exactly as

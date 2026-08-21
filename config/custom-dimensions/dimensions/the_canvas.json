@@ -1,6 +1,6 @@
 {
   "type": "superflat",
-  "description": "A flat blank canvas for building. Peaceful by decree — bedrock, dirt and grass, nothing else, forever. No history, no ruins, no narrative. This one is yours to write.",
+  "description": "A flat blank canvas for building. Peaceful by decree \u2014 bedrock, dirt and grass, nothing else, forever. No history, no ruins, no narrative. This one is yours to write.",
   "seed": -3604832347219380837,
   "layers": [
     {
@@ -17,8 +17,8 @@
     }
   ],
   "borders": {
-    "player": 8192,
-    "generation": 8192
+    "player": 4096,
+    "generation": 4096
   },
   "difficulty": {
     "mobMultiplier": 0.0,
@@ -31,7 +31,7 @@
     "igniterItem": "minecraft:amethyst_shard",
     "color": "E8E8E8",
     "lightLevel": 11,
-    "scale": 1.0,
+    "scale": 2.0,
     "cooldown": 40,
     "anchor": {
       "pos": "spawn",
@@ -44,8 +44,27 @@
     },
     "orientation": "horizontal"
   },
+  "exitPortal": {
+    "enabled": true,
+    "pos": "spawn",
+    "target": "bed"
+  },
   "seedRoll": {
-    "skip": true,
-    "description": "A flat blank canvas for building. Peaceful by decree — bedrock, dirt and grass, nothing else, forever. No history, no ruins, no narrative. This one is yours to write."
+    "skip": true
+  },
+  "structures": {
+    "mode": "none",
+    "force": [
+      {
+        "structure": "mss:small_oak_house",
+        "x": 1200,
+        "z": -880
+      },
+      {
+        "structure": "minecraft:ancient_city",
+        "x": 1200,
+        "z": -880
+      }
+    ]
   }
 }

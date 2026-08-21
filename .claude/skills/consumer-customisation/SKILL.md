@@ -42,7 +42,7 @@ You are customising a consumer server built from the Adventure Server template. 
 | File                                  | What to customise                                                 |
 | ------------------------------------- | ----------------------------------------------------------------- |
 | `.env`                                | `BRAND_NAME`, `BRAND_SLUG`, `MOTD`                                |
-| `config/.env`                         | `DOMAIN`, `SEED`, spawn coords, Discord IDs, `DISCORD_INVITE_URL` |
+| `config/.env`                         | `DOMAIN`, Discord IDs, `DISCORD_INVITE_URL` — `SEED`/spawn coords are a legacy fallback, see § What to keep private |
 | `config/messages.json`                | All player/Discord-facing messages, including the welcome pin     |
 | `config/essentialcommands/rules.txt`  | In-game `/rules` text                                             |
 | `modpack/template/index.html`         | Pack download page (themed via CSS custom properties)             |
@@ -150,7 +150,9 @@ Each clone can run independently:
 
 ## What to keep private
 
-Use `config/.env` (gitignored) for: seed, spawn coordinates, Discord snowflake IDs, domain, player usernames, tunnel names. The committed `.env` holds generic defaults.
+Use `config/.env` (gitignored) for: Discord snowflake IDs, domain, player usernames, tunnel names. The committed `.env` holds generic defaults.
+
+`SEED`/`SPAWN_X/Y/Z` also live in `.env`, but they are a legacy fallback, not the real lever: they only reach terrain/spawn when a dimension config opts in (`"seed": "env"`, or no `spawn` chosen). Set the real seed and spawn in `config/custom-dimensions/dimensions/overworld.json` (or the overlay) instead — see [custom-dimension-authoring](../custom-dimension-authoring/SKILL.md) and `TROUBLESHOOTING.md#t31`.
 
 ## Traps
 

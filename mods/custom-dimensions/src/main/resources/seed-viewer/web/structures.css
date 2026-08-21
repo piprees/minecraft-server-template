@@ -1,0 +1,171 @@
+/* The structures section in the lightbox sidebar, and its markers on the map.
+ *
+ * Same arrangement as criteria.css: plain CSS, served as written, because
+ * app.built.css is the design system and knows nothing about these class
+ * names. Colours come from the same custom properties it declares. */
+
+.ef-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-top: 0.7rem;
+}
+
+.ef-heading {
+  font-size: 0.68rem;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--text-muted, #8b93a1);
+  border-bottom: 1px solid var(--edge, #272c35);
+  padding-bottom: 0.15rem;
+  margin: 0;
+}
+
+.ef-provenance {
+  margin: 0;
+  font-size: 0.7rem;
+  color: var(--text-muted, #8b93a1);
+}
+
+.ef-unavailable {
+  margin: 0;
+  font-size: 0.76rem;
+  color: var(--text-muted, #8b93a1);
+}
+
+.ef-group {
+  display: flex;
+  flex-direction: column;
+}
+
+/* deco is selectable but never suggested: it outnumbers everything else
+   several times over and it is scenery. */
+.ef-group.ef-muted {
+  opacity: 0.6;
+}
+
+/* Three columns so the counts and distances stay in one line down the
+   section however long a structure's name is. */
+.ef-group-row,
+.ef-struct-row,
+.ef-biome-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 3rem 3.6rem;
+  gap: 0.5rem;
+  align-items: baseline;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: 0;
+  border-radius: 3px;
+  padding: 0.2rem 0.3rem;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+}
+
+.ef-group-row {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-heading, #e6e8ec);
+  text-transform: capitalize;
+  border-top: 1px solid color-mix(in srgb, var(--edge, #272c35) 55%, transparent);
+  margin-top: 0.25rem;
+}
+
+.ef-group.ef-hostile .ef-gname::after {
+  content: ' ⚠';
+  color: #e0a052;
+}
+
+.ef-structures {
+  list-style: none;
+  margin: 0;
+  padding: 0 0 0 0.5rem;
+}
+
+.ef-struct-row,
+.ef-biome-row {
+  font-size: 0.74rem;
+  color: var(--text-muted, #8b93a1);
+}
+
+.ef-gcount,
+.ef-scount,
+.ef-gdist,
+.ef-sdist {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.ef-group-row:hover,
+.ef-struct-row:hover,
+.ef-struct-row.ef-hot,
+.ef-biome-row:hover {
+  background: color-mix(in srgb, var(--action, #5b8dd0) 18%, transparent);
+  color: var(--text-heading, #e6e8ec);
+}
+
+.ef-group-row.ef-selected,
+.ef-struct-row.ef-selected {
+  background: color-mix(in srgb, var(--action, #5b8dd0) 30%, transparent);
+  color: var(--text-heading, #e6e8ec);
+}
+
+/* --- markers ------------------------------------------------------------ */
+
+#lb-exact-markers {
+  pointer-events: none;
+}
+
+#lb-exact-markers .ef-marker {
+  pointer-events: auto;
+}
+
+#lb-exact-markers .ef-plate {
+  fill: rgba(8, 10, 14, 0.72);
+  stroke: rgba(226, 232, 240, 0.5);
+  stroke-width: 1.5;
+}
+
+#lb-exact-markers .ef-marker.ef-hot .ef-plate {
+  fill: var(--action, #5b8dd0);
+  stroke: #fff;
+  stroke-width: 3;
+}
+
+#lb-exact-markers .ef-biome-dot {
+  fill: #e8a735;
+  stroke: rgba(8, 10, 14, 0.6);
+  stroke-width: 1;
+}
+
+#lightbox .lb-image .ef-marker-note {
+  position: absolute;
+  left: 8px;
+  bottom: 8px;
+  margin: 0;
+  padding: 2px 8px;
+  font-size: 11px;
+  pointer-events: none;
+  background: rgba(0, 0, 0, 0.55);
+  color: #cbd5e1;
+  border-radius: 4px;
+}
+
+/* A selection that draws nothing looks broken. When every site is off-view,
+   the note is the only thing distinguishing that from a bug. */
+#lightbox .lb-image .ef-marker-note.ef-note-loud {
+  left: 50%;
+  right: auto;
+  bottom: 50%;
+  transform: translate(-50%, 50%);
+  max-width: 70%;
+  text-align: center;
+  font-size: 13px;
+  padding: 8px 12px;
+  background: rgba(8, 10, 14, 0.88);
+  border: 1px solid var(--action, #5b8dd0);
+  color: #e6e8ec;
+}

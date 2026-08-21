@@ -9,6 +9,20 @@ cd "$CONSUMER_DIR"
 
 STACK_SCRIPTS=".stack/current/stack/scripts"
 
+# Scaffold files are copies of the bundle's, refreshed by `./dev update`, and
+# nothing prompts that — a consumer can sit for releases without `link`,
+# `unlink` or `reset-world`, the only symptom being the command printing
+# usage. The file itself is the version: differing from the bundled copy IS
+# being out of date, so there is no number to bump and no way for two entry
+# points to disagree about what a number means.
+check_scaffold_version() {
+  local bundled="$CONSUMER_DIR/.stack/current/stack/examples/consumer/dev"
+  [[ -f "$bundled" ]] || return 0
+  cmp -s "$bundled" "$CONSUMER_DIR/dev" && return 0
+  echo "NOTE: ./dev differs from the copy this stack ships — run" \
+    "'./dev update' to refresh the entry points." >&2
+}
+
 usage() {
   echo "Usage: ./dev <command>"
   echo ""
@@ -17,17 +31,19 @@ usage() {
   echo "  down     Stop the local dev stack"
   echo "  logs     Tail the Minecraft server logs"
   echo "  rcon     Run an RCON command (e.g. ./dev rcon \"list\")"
+  echo "  seeds    Open the seed viewer — roll, look, try a candidate out, pick one"
   echo "  pack     Build the client modpack into ./modpack-dist/"
   echo "  pin      Re-pin overlay/mods-extra.txt to latest mod builds (review with git diff)"
   echo "  pull     Fetch the stack bundle only (first boot / cache recovery)"
   echo "  update   Pull the latest stack bundle + Docker images"
   echo "  refresh-config Force-refresh platform config defaults (backs up data/config; overlay wins)"
+  echo "  clean    Delete regenerable state by target (./dev clean --list)."
+  echo "           Default: stack pack cache mods config. --dry-run to preview"
   echo "  rollback Revert to a previous stack bundle version"
-  echo "  seed-roll   Parallel-roll seeds for every dimension, auto-pick winners"
-  echo "  verify      Run every offline checker over the server's artefacts (no RCON)"
-  echo "  seed-rescore Recompute candidate scores vs current configs (no re-rolling)"
-  echo "  seed-status Candidate-bank status: counts, winners, score freshness"
-  echo "  seed-viewer Launch the interactive seed viewer (re-roll, edit configs, pick winners)"
+  echo "  verify      Show where dimension/portal verification lives now (mod tests + /customdim lint)"
+  echo "  link     Point .stack/current at a platform checkout (default ../minecraft-server-template)"
+  echo "  unlink   Restore the newest pulled release bundle"
+  echo "  reset-world Delete the LOCAL world + player data (same set ./ops reset-seed deletes on production)"
   echo "  cache    Snapshot Docker images, mod JARs, offline client bundles"
   echo "  start    Start a stopped service (e.g. ./dev start uptime-kuma)"
   echo "  stop     Stop a running service (e.g. ./dev stop uptime-kuma)"
@@ -56,7 +72,27 @@ ensure_env() {
 # because each release unpacks into an immutable .stack/<version>/ dir and
 # only the .stack/current symlink moves. bootstrap_stack below is the
 # minimal first-ever pull for when no bundle exists yet.
+
+# The pin the puller resolves comes from .env when the file carries one —
+# a STACK_VERSION already exported into this shell (an earlier `set -a;
+# source .env`, a wrapper, direnv) must never beat a fresh .env edit. The
+# ambient variable only decides when .env has no pin. For a one-off pull of
+# a different version, run the bundle's scripts/stack-pull.sh directly.
+resolve_stack_pin() {
+  local env_pin=""
+  if [[ -f "$CONSUMER_DIR/.env" ]]; then
+    env_pin=$(grep -E '^STACK_VERSION=' "$CONSUMER_DIR/.env" | head -1 | cut -d= -f2- | tr -d '"' | tr -d "'") || true
+  fi
+  if [[ -n "$env_pin" ]]; then
+    if [[ -n "${STACK_VERSION:-}" && "$STACK_VERSION" != "$env_pin" ]]; then
+      echo "NOTE: using STACK_VERSION=$env_pin from .env (ignoring exported STACK_VERSION=$STACK_VERSION)" >&2
+    fi
+    export STACK_VERSION="$env_pin"
+  fi
+}
+
 stack_pull() {
+  resolve_stack_pin
   if [[ -f "$CONSUMER_DIR/$STACK_SCRIPTS/stack-pull.sh" ]]; then
     (cd "$CONSUMER_DIR" && bash "$CONSUMER_DIR/$STACK_SCRIPTS/stack-pull.sh")
   else
@@ -66,10 +102,11 @@ stack_pull() {
 
 bootstrap_stack() {
   local repo="piprees/minecraft-server-template"
-  local pin="${STACK_VERSION:-}"
-  if [[ -z "$pin" && -f "$CONSUMER_DIR/.env" ]]; then
+  local pin=""
+  if [[ -f "$CONSUMER_DIR/.env" ]]; then
     pin=$(grep -E '^STACK_VERSION=' "$CONSUMER_DIR/.env" | head -1 | cut -d= -f2- | tr -d '"' | tr -d "'") || true
   fi
+  pin="${pin:-${STACK_VERSION:-}}"
   pin="${pin:-latest}"
   pin="${pin#v}"
   [[ "$pin" == "latest" ]] && pin=""
@@ -188,6 +225,7 @@ if [[ "$CMD" != "help" && "$CMD" != "--help" && "$CMD" != "-h" ]]; then
   echo "  ${_brand:+$_brand — }dev $CMD"
   echo ""
   export BANNER_SHOWN=1
+  check_scaffold_version
   unset _banner _brand
 fi
 
@@ -196,8 +234,133 @@ case "$CMD" in
     ensure_env
     ensure_stack
     ensure_docker
+    if [[ "$(readlink "$CONSUMER_DIR/.stack/current" 2> /dev/null)" == "dev" ]]; then
+      echo "=================================================================="
+      echo "  LINKED TO PLATFORM CHECKOUT — .stack/current -> dev symlink farm"
+      echo "  Configs, scripts and local-mods come from the checkout, not a"
+      echo "  release. Restore the release bundle with: ./dev unlink"
+      echo "=================================================================="
+      echo ""
+    fi
     export CONSUMER_DIR
     exec bash "$CONSUMER_DIR/$STACK_SCRIPTS/dev-up.sh" up
+    ;;
+  link)
+    # Point .stack/current at a symlink farm over a platform checkout, so a
+    # config/script/compose edit there is live here on the next roll or
+    # ./dev up — no release needed. local-mods/ symlinks the checkout's BUILT
+    # jars, so ./dev up installs local builds instead of reverting them.
+    # Run once per consumer: every entry is a symlink, so a rebuild needs no
+    # re-link.
+    PLATFORM_ARG="${1:-$CONSUMER_DIR/../minecraft-server-template}"
+    PLATFORM="$(cd "$PLATFORM_ARG" 2> /dev/null && pwd)" || {
+      echo "ERROR: platform checkout not found: $PLATFORM_ARG"
+      exit 1
+    }
+    if [[ ! -f "$PLATFORM/docker-compose.yml" || ! -d "$PLATFORM/scripts" ]]; then
+      echo "ERROR: $PLATFORM does not look like a platform checkout"
+      echo "       (needs docker-compose.yml and scripts/)"
+      exit 1
+    fi
+    FARM="$CONSUMER_DIR/.stack/dev/stack"
+    mkdir -p "$FARM"
+    ln -sfn "$PLATFORM/config" "$FARM/config"
+    ln -sfn "$PLATFORM/scripts" "$FARM/scripts"
+    ln -sfn "$PLATFORM/examples" "$FARM/examples"
+    ln -sfn "$PLATFORM/.env.example" "$FARM/.env.example"
+    ln -sfn "$PLATFORM/docker-compose.yml" "$FARM/docker-compose.yml"
+    ln -sfn "$PLATFORM/docker-compose.local.yml" "$FARM/docker-compose.local.yml"
+    rm -rf "$FARM/local-mods"
+    mkdir -p "$FARM/local-mods"
+    JAR_COUNT=0
+    for j in "$PLATFORM"/mods/*/build/libs/*.jar; do
+      [[ -f "$j" ]] || continue
+      case "$j" in *-dev.jar | *-sources.jar) continue ;; esac
+      # grep without -q: -q exits at first match and the resulting SIGPIPE
+      # into unzip reads as a pipeline failure under pipefail.
+      if ! unzip -l "$j" 2> /dev/null | grep "refmap" > /dev/null; then
+        echo "  WARNING: $(basename "$j") has no refmap — dev/unremapped jar skipped"
+        continue
+      fi
+      # Symlinked like the rest of the farm, so a rebuild needs no re-link.
+      ln -sfn "$j" "$FARM/local-mods/$(basename "$j")"
+      JAR_COUNT=$((JAR_COUNT + 1))
+    done
+    echo "dev" > "$FARM/VERSION"
+    ln -sfn dev "$CONSUMER_DIR/.stack/current"
+    echo "=================================================================="
+    echo "  LINKED TO PLATFORM CHECKOUT"
+    echo "  .stack/current -> .stack/dev/stack -> $PLATFORM"
+    echo "  local-mods: $JAR_COUNT built jar(s) from the checkout"
+    echo "  Local only — deploy paths refuse a 'dev' link. Restore with:"
+    echo "  ./dev unlink"
+    echo "=================================================================="
+    ;;
+  reset-world)
+    # Local sibling of ./ops reset-seed: stops the stack and deletes the
+    # SAME set production deletes. data/world/ alone carries the terrain,
+    # player data, DH cache, POI, and ledger for every dimension —
+    # playerdata/stats/advancements/DIM-1/DIM1/dimensions/
+    # DistantHorizons.sqlite/poi/ledger.sqlite/level.dat all live UNDER
+    # data/world/, not beside it. Also deletes map renders, Chunky state,
+    # dynamic-data-pack-cache, and the portal/fingerprint state files that
+    # describe the destroyed world. (deploy.sh-only in production, so
+    # nothing to delete here): the per-dimension deploy-setup markers.
+    # Keeps .env, mods, data/config (aside from the world-specific files
+    # above), overlay/ and the seed bank. Change SEED in .env before
+    # ./dev up if a new seed is wanted.
+    ensure_env
+    ensure_stack
+    echo "This deletes the LOCAL world and player data under $CONSUMER_DIR/data."
+    echo "Kept: .env, data/mods, data/config (aside from portal_links.json /"
+    echo "custom-dimensions-fingerprints.json), overlay/, .seed-rolling/."
+    if [[ "${1:-}" != "--force" ]]; then
+      read -rp "Type RESET to confirm: " CONFIRM
+      if [[ "$CONFIRM" != "RESET" ]]; then
+        echo "Confirmation not received. Aborting."
+        exit 1
+      fi
+    fi
+    ensure_docker
+    export CONSUMER_DIR
+    bash "$CONSUMER_DIR/$STACK_SCRIPTS/dev-up.sh" down || true
+    rm -rf "$CONSUMER_DIR/data/world" \
+      "$CONSUMER_DIR/data/unmined-web/maps" \
+      "$CONSUMER_DIR/data/unmined-web/index.html" \
+      "$CONSUMER_DIR/data/unmined-web/manifest.json" \
+      "$CONSUMER_DIR/data/dynamic-data-pack-cache" \
+      "$CONSUMER_DIR/data/config/chunky/tasks"
+    rm -f "$CONSUMER_DIR/data/.chunky-complete" "$CONSUMER_DIR/data/.chunky-nether-complete" \
+      "$CONSUMER_DIR/data/.chunky-end-complete" "$CONSUMER_DIR/data/.chunky-paradise-lost-complete" \
+      "$CONSUMER_DIR/data/.skip-pause" \
+      "$CONSUMER_DIR/data/config/portal_links.json" \
+      "$CONSUMER_DIR/data/config/custom-dimensions-fingerprints.json"
+    LEFT=$(ls -d "$CONSUMER_DIR/data/world" "$CONSUMER_DIR/data/unmined-web/maps" \
+      "$CONSUMER_DIR/data/unmined-web/manifest.json" "$CONSUMER_DIR/data/dynamic-data-pack-cache" \
+      2> /dev/null || true)
+    if [[ -n "$LEFT" ]]; then
+      echo "ERROR: paths survived deletion:"
+      echo "$LEFT"
+      exit 1
+    fi
+    echo "Local world reset. Run ./dev up to generate fresh (set SEED in .env first if changing it)."
+    ;;
+  unlink)
+    if [[ "$(readlink "$CONSUMER_DIR/.stack/current" 2> /dev/null)" != "dev" ]]; then
+      echo "Not linked ($(readlink "$CONSUMER_DIR/.stack/current" 2> /dev/null || echo 'no stack')) — nothing to do."
+      exit 0
+    fi
+    NEWEST=$(ls -d "$CONSUMER_DIR"/.stack/v*/ 2> /dev/null \
+      | sed 's|.*/\(v[0-9.]*\)/|\1|' \
+      | sed 's/^v//' \
+      | sort -t. -k1,1nr -k2,2nr -k3,3nr \
+      | head -1)
+    if [[ -z "$NEWEST" ]]; then
+      echo "ERROR: no pulled release bundles in .stack/ — run ./dev pull first."
+      exit 1
+    fi
+    ln -sfn "v$NEWEST" "$CONSUMER_DIR/.stack/current"
+    echo "Restored .stack/current -> v$NEWEST. Run ./dev up to return to the release bundle's jars and configs."
     ;;
   down)
     ensure_stack
@@ -213,6 +376,26 @@ case "$CMD" in
   rcon)
     ensure_stack
     exec bash "$CONSUMER_DIR/$STACK_SCRIPTS/rcon.sh" --local "$@"
+    ;;
+  seeds)
+    # Rolling, looking, trying out and picking all happen in the browser.
+    # The mod hosts the page from inside the mc container, so there is
+    # nothing to start here — the server being up IS the tool being up.
+    PORT="${SEED_VIEWER_PORT:-8765}"
+    if [[ -f "$CONSUMER_DIR/.env" ]]; then
+      ENV_PORT=$(grep -E '^SEED_VIEWER_PORT=' "$CONSUMER_DIR/.env" | head -1 | cut -d= -f2- | tr -d '"' | tr -d "'") || true
+      [[ -n "${ENV_PORT:-}" ]] && PORT="$ENV_PORT"
+    fi
+    URL="http://127.0.0.1:$PORT/"
+    if ! curl -fsS -o /dev/null --max-time 3 "$URL" 2> /dev/null; then
+      echo "The seed viewer is not answering at $URL."
+      echo "It is hosted by the mc container — start the stack with ./dev up first."
+      exit 1
+    fi
+    echo "Seed viewer: $URL"
+    if [[ "$(uname)" == "Darwin" ]]; then
+      open "$URL"
+    fi
     ;;
   pack)
     ensure_env
@@ -271,8 +454,8 @@ case "$CMD" in
         mv "$CONSUMER_DIR/$f.new" "$CONSUMER_DIR/$f"
       fi
     done
-    # Migration: the puller moved into the bundle (scripts/stack-pull.sh);
-    # remove the old vendored consumer-root copy.
+    # The puller lives in the bundle (scripts/stack-pull.sh); delete any
+    # vendored copy left behind in the consumer root.
     rm -f "$CONSUMER_DIR/stack-pull.sh"
     reexec_if_self_updated "$SELF_BEFORE" update "$@"
     # Non-executable files that track the platform.
@@ -297,11 +480,24 @@ case "$CMD" in
     # shellcheck disable=SC1091
     source "$CONSUMER_DIR/.env"
     set +a
+    # Same derivation dev-up.sh applies, and it has to happen here too: the
+    # compose files resolve images as ${IMAGE_TAG:-latest}, so a pull without
+    # it fetches :latest while every later boot runs :${STACK_VERSION#v}. The
+    # update then refreshes images the stack never uses and the stale ones
+    # keep booting, with nothing in the output saying so.
+    if [[ -n "${STACK_VERSION:-}" && -z "${IMAGE_TAG:-}" ]]; then
+      export IMAGE_TAG="${STACK_VERSION#v}"
+    fi
     docker compose \
       -f "$STACK_DIR/docker-compose.yml" \
       -f "$STACK_DIR/docker-compose.local.yml" \
       --project-directory "$CONSUMER_DIR" \
       --profile local pull
+    # modpack-builder is not a compose service — dev-up.sh runs it with a bare
+    # docker run — so the compose pull above never reaches it and the pack
+    # would keep building from whatever tag was cached.
+    docker pull "${IMAGE_REGISTRY:-ghcr.io/piprees/minecraft-server-template}/modpack-builder:${IMAGE_TAG:-latest}" \
+      || echo "  ! modpack-builder pull failed — the client pack may build stale"
     echo ""
     echo "Stack and images updated."
     echo "Tip: run 'git diff' to see what changed in synced scaffold files."
@@ -310,6 +506,17 @@ case "$CMD" in
     ensure_stack
     export CONSUMER_DIR
     exec bash "$CONSUMER_DIR/$STACK_SCRIPTS/dev-up.sh" refresh-config
+    ;;
+  clean)
+    # Runs before the stack is checked, because the bundle is one of the things
+    # it deletes — ensure_stack would re-pull what is about to go.
+    export CONSUMER_DIR
+    script="$CONSUMER_DIR/$STACK_SCRIPTS/clean-dev-state.sh"
+    if [[ ! -f "$script" ]]; then
+      echo "clean is not in this stack version — run ./dev update first." >&2
+      exit 1
+    fi
+    exec bash "$script" "$CONSUMER_DIR" "$@"
     ;;
   rollback)
     if [[ ! -d "$CONSUMER_DIR/.stack" ]]; then
@@ -340,68 +547,16 @@ case "$CMD" in
     ln -sfn "$target" "$CONSUMER_DIR/.stack/current"
     echo "Rolled back to $target. Run ./dev up to restart."
     ;;
-  seed-roll)
-    ensure_env
-    ensure_stack
-    ensure_docker
-    export CONSUMER_DIR
-    exec bash "$CONSUMER_DIR/$STACK_SCRIPTS/seed/roll-all.sh" "$@"
-    ;;
   verify)
-    # Offline verification: every checker reads artefacts the mod already
-    # wrote and asserts over them. No Docker, no RCON, no running server —
-    # so it is safe while the server is up, paused, or down.
-    ensure_stack
-    export CONSUMER_DIR
-    VERIFY_CFG="$CONSUMER_DIR/config/custom-dimensions"
-    [[ -d "$VERIFY_CFG/dimensions" ]] || VERIFY_CFG="$CONSUMER_DIR/data/config/custom-dimensions"
-    VERIFY_FAILED=0
-    for check in check-dimension-drift check-portal-integrity; do
-      script="$CONSUMER_DIR/$STACK_SCRIPTS/$check.py"
-      if [[ ! -f "$script" ]]; then
-        echo "  SKIP $check (not in this stack version)"
-        continue
-      fi
-      echo "== $check"
-      python3 "$script" --data "$CONSUMER_DIR/data" || VERIFY_FAILED=1
-    done
-    CENSUS_DIR="$CONSUMER_DIR/data/config/custom-dimensions/census"
-    if [[ -d "$CENSUS_DIR" ]]; then
-      echo "== check-noise-regression"
-      python3 "$CONSUMER_DIR/$STACK_SCRIPTS/check-noise-regression.py" \
-        --census "$CENSUS_DIR" --config "$VERIFY_CFG" || VERIFY_FAILED=1
-    else
-      echo "  SKIP check-noise-regression (no census dumps — run"
-      echo "       'customdim structure-census <ns>:<slug>' for the dims you care about)"
-    fi
-    exit $VERIFY_FAILED
-    ;;
-  seed-rescore | seed-status)
-    # v4 candidate bank: rescore = recompute scores from banked measurements
-    # against the CURRENT configs (no Docker, no re-rolling); status = per-
-    # dimension candidate counts, winners, and score freshness.
-    ensure_stack
-    export CONSUMER_DIR
-    # Same resolution as roll-all.sh: full local copy first (platform
-    # checkouts), else the merged view the server boots (bundle defaults +
-    # staged overlay under data/) — that is also where the candidate bank
-    # lives for consumers.
-    SEED_CFG="$CONSUMER_DIR/config/custom-dimensions"
-    [[ -d "$SEED_CFG/dimensions" ]] || SEED_CFG="$CONSUMER_DIR/data/config/custom-dimensions"
-    exec python3 "$CONSUMER_DIR/$STACK_SCRIPTS/seed/score-dimensions.py" "${CMD#seed-}" \
-      --config "$SEED_CFG" --seedtest "$CONSUMER_DIR/.seedtest" "$@"
-    ;;
-  seed-viewer)
-    ensure_stack
-    export CONSUMER_DIR
-    SEED_CFG="$CONSUMER_DIR/config/custom-dimensions"
-    [[ -d "$SEED_CFG/dimensions" ]] || SEED_CFG="$CONSUMER_DIR/data/config/custom-dimensions"
-    VIEWER_ARGS=(--config "$SEED_CFG" --seedtest "$CONSUMER_DIR/.seedtest")
-    # Consumer mode: pass overlay path so re-roll writes winners there
-    if [[ -d "$CONSUMER_DIR/overlay/config/custom-dimensions" ]]; then
-      VIEWER_ARGS+=(--write-config --winner-overlay "$CONSUMER_DIR/overlay/config/custom-dimensions")
-    fi
-    exec python3 "$CONSUMER_DIR/$STACK_SCRIPTS/seed/viewer-server.py" "${VIEWER_ARGS[@]}" "$@"
+    # Dimension worldgen drift, persisted portal state, and the
+    # settings.json suppress list are validated by the mod itself now
+    # (boot WARN, load-time validation, and a lint check) — there is no
+    # offline Python checker left to run from here.
+    echo "Dimension/portal/suppress-list verification lives in the mod now:"
+    echo "  - worldgen drift: WARN in the mc boot log (DimensionFingerprints)"
+    echo "  - portal state: validated on load, bad records are skipped (PortalStateValidator)"
+    echo "  - suppress list: ./dev rcon \"customdim lint\""
+    echo "Unit tests: mods/custom-dimensions/src/test/java/"
     ;;
   cache)
     ensure_env

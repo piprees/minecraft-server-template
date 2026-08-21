@@ -6,15 +6,13 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * {@link ArrivalReachability} decides whether a portal a player can build can
- * actually be arrived at. It shipped fully written with zero callers and zero
- * tests — the class existed, the check never ran.
+ * actually be arrived at.
  *
- * <p>The arithmetic it encodes is the one that cost two sessions on
- * 2026-07-25: entering DIVIDES by scale, so a source portal at radius R
- * arrives at R / scale and must land inside the destination's PLAYER border
- * (with room for its frame ring and egress pocket). Outside that border
- * vanilla forbids breaking AND placing every block, and the symptom — "I
- * cannot break anything" — points nowhere near the cause.
+ * <p>Entering DIVIDES by scale, so a source portal at radius R arrives at
+ * R / scale and must land inside the destination's PLAYER border (with room
+ * for its frame ring and egress pocket). Outside that border vanilla forbids
+ * breaking AND placing every block, and the symptom — "I cannot break
+ * anything" — points nowhere near the cause.
  */
 class ArrivalReachabilityTest {
 
@@ -26,8 +24,6 @@ class ArrivalReachabilityTest {
     void dividingOnEntryMakesAScaledDimensionMoreReachableNotLess() {
         // The direction that matters. A scale-8 dimension with a 1024 border
         // absorbs source portals out to ~8k, because entering COMPACTS them.
-        // Under the old multiply reading the same pair allowed only 128
-        // blocks, which is what the (now corrected) PHASE-9 table recorded.
         assertEquals((1024 - MARGIN) * 8, ArrivalReachability.usableSourceRadius(8.0, 1024, MARGIN));
     }
 
@@ -66,16 +62,13 @@ class ArrivalReachabilityTest {
 
     @Test
     void theShippedEmberFieldsPairIsReachableUnderDivideOnEntry() {
-        // scale 8, border 1024, overworld 8192. This is the exact pair that
-        // stranded a player under the multiply bug; with the corrected
-        // transform it is comfortably fine, and the boot must stay quiet
-        // about it. Encoding the OLD behaviour here would immortalise the bug
-        // (see PLAN.md — the first PortalScalingContractTest did exactly that).
+        // scale 8, border 1024, overworld 8192 — the shipped ember_fields
+        // config.
         //
         // Margin 0 here on purpose: 8192 / 8 is EXACTLY 1024, which is how the
         // whole dimension set is authored, so this pair sits precisely on the
-        // boundary and any margin at all fails it. That is why the boot check
-        // runs at margin 0 too (PortalSafetyValidator.ARRIVAL_MARGIN).
+        // boundary and any margin at all fails it. The boot check runs at
+        // margin 0 too (PortalSafetyValidator.ARRIVAL_MARGIN).
         assertTrue(ArrivalReachability.allArrivalsReachable(8.0, 8192, 1024, 0));
         assertFalse(ArrivalReachability.allArrivalsReachable(8.0, 8192, 1023, 0),
                 "one block under the exact quotient must fail");

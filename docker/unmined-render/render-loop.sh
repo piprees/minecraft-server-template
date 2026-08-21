@@ -1,13 +1,24 @@
 #!/usr/bin/env bash
 # render-loop.sh — scheduled uNmINeD static map renders (unmined-render image)
 #
-# Context: renders every base world + every on-disk custom dimension to a
+# Context: renders every on-disk dimension to a
 # static web map (webp tiles + self-contained OpenLayers viewer) under
 # $OUT_DIR/maps/<name>/, plus a generated $OUT_DIR/index.html listing them.
 # Output is plain files — served by nav-proxy at map.DOMAIN/unmined/ with
 # long edge-cache headers. Renders are incremental: uNmINeD only re-renders
 # regions whose .mca files changed, and whole dimensions are skipped when
 # nothing changed since the last pass (mtime marker).
+#
+# Sidebar preview cards read a thumbnail this script never renders. The seed
+# roller already draws a low/high PNG for every candidate it scores, and
+# `web/Picker` (the mod's /pick route) copies the chosen candidate's pair
+# beside the dimension's own JSON when a seed is picked — committed to git,
+# not generated server-side. This script's only job for a card is to publish
+# whatever committed PNG exists into $OUT_DIR so nginx can serve it, and
+# record its path in manifest.json; a dimension nobody has picked a seed for
+# (or one whose config still comes from `unmined-cli`-only worlds predating
+# the roller) simply has none, and the sidebar shows a placeholder frame
+# instead — it never asks this container to render one.
 #
 # Usage (container entrypoint; also runnable standalone for testing):
 #   UNMINED_INTERVAL=6h render-loop.sh          # daemon: render every 6h
@@ -20,7 +31,7 @@
 #                           borders.generation bounds each dimension's render
 #   OUT_DIR     (/web)    — output root (tiles + index.html)
 #   UNMINED_HOME (/opt/unmined) — CLI install dir (override for local tests)
-#   PREGEN_BORDER_RADIUS (8192) — base-world bound; nether uses /8
+#   PREGEN_BORDER_RADIUS (8192) — bound for the reserved four; nether uses /8
 #   UNMINED_INTERVAL (0)  — sleep between passes (sleep(1) syntax); 0 = off
 #   UNMINED_ZOOMOUT  (6)  — zoom-out levels for the web viewer
 #
@@ -99,7 +110,7 @@ render_one() {
   return 0
 }
 
-# Config file for a map name (base worlds use their v4 config slugs).
+# Config file for a map name (the reserved four use their v4 config slugs).
 config_file_for() {
   case "$1" in
     nether) echo "$CONFIG_DIR/dimensions/the_nether.json" ;;
@@ -108,16 +119,99 @@ config_file_for() {
   esac
 }
 
-# Display name for a dimension slug. Known dimensions get curated names;
-# custom ones fall back to title-casing the slug.
+# The committed thumbnail for a map name, at one of the two sizes Picker
+# writes ("low" | "high"). Checked overlay-first, same precedence
+# config_file_for's own dimension JSON gets — deploy.sh/dev-up.sh route
+# overlay/config/custom-dimensions/ to data/config/custom-dimensions/overlay/
+# rather than merging it into dimensions/ directly (the mod resolves
+# replace/"overrides"/empty-{} itself), so a picked-but-not-yet-exported
+# consumer seed is staged there, not beside the platform default. The file's
+# basename always matches config_file_for's own JSON basename (Picker writes
+# both under the same dimension slug), so there is one mapping to know, not
+# two. Empty output means no committed render exists yet.
+thumb_file_for() {
+  name="$1" size="$2"
+  base="$(basename "$(config_file_for "$name")" .json)"
+  for dir in "$CONFIG_DIR/overlay/dimensions" "$CONFIG_DIR/dimensions"; do
+    f="$dir/${base}_${size}.png"
+    [[ -f "$f" ]] && { echo "$f"; return; }
+  done
+  return 0
+}
+
+# Title-case a slug or namespaced id: strips a leading "namespace:", splits
+# on "_", capitalises each word. "terralith:blooming_plateau" -> "Blooming
+# Plateau"; "the_wuthering_wisteria" -> "The Wuthering Wisteria".
+titlecase_slug() {
+  jq -rn --arg s "$1" '$s | split(":") | last | split("_") | map(select(length > 0) | (.[0:1] | ascii_upcase) + .[1:]) | join(" ")'
+}
+
+# Display name for a dimension slug. Overrides for names that don't
+# mechanically title-case (the reserved four: single words, or a
+# deliberately different name from the slug) live in
+# config/custom-dimensions/display-names.json, next to the dimension
+# configs — not here — so a new override doesn't need a script change.
+# Everything else follows the "the_x" slug convention and title-cases
+# correctly with no override needed.
 display_name() {
-  case "$1" in
-    overworld)     echo "The Overworld" ;;
-    nether)        echo "The Nether" ;;
-    end)           echo "The End" ;;
-    paradise_lost) echo "The Paradise" ;;
-    *)             jq -rn --arg s "$1" '$s | split("_") | map((.[0:1] | ascii_upcase) + .[1:]) | join(" ")' ;;
+  slug="$1"
+  overrides="$CONFIG_DIR/display-names.json"
+  if [[ -f "$overrides" ]]; then
+    named=$(jq -r --arg s "$slug" '.[$s] // empty' "$overrides" 2>/dev/null || true)
+    [[ -n "$named" ]] && { echo "$named"; return; }
+  fi
+  titlecase_slug "$slug"
+}
+
+# Friendly label for a dimension's raw "type" config value (see
+# custom-dimension-authoring skill's type guide for the full enum). Base
+# worlds carry no "type" field at all — their world type is implied by
+# which of the four base configs they are, so it's keyed on dim name first.
+type_label() {
+  name="$1" raw="$2"
+  case "$name" in
+    overworld) echo "Overworld"; return ;;
+    nether)    echo "Nether"; return ;;
+    end)       echo "End"; return ;;
+    paradise_lost) echo "Paradise Lost skylands"; return ;;
   esac
+  case "$raw" in
+    multi_biome)                 echo "Curated overworld" ;;
+    overworld)                   echo "Overworld" ;;
+    nether)                      echo "Nether" ;;
+    end)                         echo "End islands" ;;
+    cave)                        echo "Cave world" ;;
+    void)                        echo "Void" ;;
+    sky_islands)                 echo "Sky islands" ;;
+    nether_islands)              echo "Nether islands" ;;
+    amplified)                   echo "Amplified overworld" ;;
+    large_biomes)                echo "Large biomes" ;;
+    superflat)                   echo "Superflat" ;;
+    paradise_lost:paradise_lost) echo "Paradise Lost skylands" ;;
+    single_biome)                echo "Single biome" ;;
+    checkerboard)                echo "Checkerboard" ;;
+    "")                          echo "Overworld" ;;
+    *)                           titlecase_slug "$raw" ;;
+  esac
+}
+
+# Difficulty bucket from difficulty.mobMultiplier / hostileSpawning — see
+# the custom-dimension-authoring skill's size<->difficulty table for the
+# philosophy (0.0 peaceful, ~1.0-1.5 standard, 2.5+ brutal). This is a
+# display label, not a scoring value — the mod's own difficulty math is
+# unaffected by this bucketing.
+difficulty_label() {
+  cfg="$1"
+  jq -r '
+    (.difficulty // .overrides.difficulty // {}) as $d
+    | ($d.mobMultiplier // 1.0) as $m
+    | if ($d.hostileSpawning == false) or ($m <= 0) then "Peaceful"
+      elif $m <= 1.0 then "Easy"
+      elif $m <= 1.75 then "Normal"
+      elif $m <= 2.5 then "Hard"
+      else "Deadly"
+      end
+  ' "$cfg" 2>/dev/null || echo "Normal"
 }
 
 # Spawn marker for one map: the dimension's spawn point labelled with its
@@ -149,9 +243,15 @@ manifest_entry() {
   cfg="$(config_file_for "$name")"
   dim_type="overworld"
   spawn="null"
+  mood=""
+  spawn_biome_raw=""
+  difficulty="Normal"
   if [[ -f "$cfg" ]]; then
     dim_type=$(jq -r '(.type // .overrides.type // "overworld")' "$cfg" 2>/dev/null || echo overworld)
     spawn=$(jq -c '(.spawn // .overrides.spawn // null)' "$cfg" 2>/dev/null || echo null)
+    mood=$(jq -r '(.seedRoll.mood // .overrides.seedRoll.mood // empty)' "$cfg" 2>/dev/null || true)
+    spawn_biome_raw=$(jq -r '((.seedRoll.spawnFilter // .overrides.seedRoll.spawnFilter // [])[0] // empty)' "$cfg" 2>/dev/null || true)
+    difficulty=$(difficulty_label "$cfg")
   fi
   case "$name:$dim_type" in
     nether:*|*:*nether*) family="nether" ;;
@@ -165,12 +265,33 @@ manifest_entry() {
     rendered="true"
     ver=$(stat -c %Y "$marker" 2>/dev/null || stat -f %m "$marker" 2>/dev/null || echo 0)
   fi
+  # Published from whatever committed render exists (see thumb_file_for) —
+  # never rendered by this container, and independent of $rendered: a picked
+  # seed can have a card long before anyone has generated a single chunk.
+  local thumb="" thumb_ver=0
+  local low_src; low_src="$(thumb_file_for "$name" low)"
+  if [[ -n "$low_src" ]]; then
+    mkdir -p "$OUT_DIR/maps/$name"
+    cp "$low_src" "$OUT_DIR/maps/$name/thumb.png"
+    thumb="/maps/$name/thumb.png"
+    thumb_ver=$(stat -c %Y "$low_src" 2>/dev/null || stat -f %m "$low_src" 2>/dev/null || echo 0)
+  fi
+  local high_src; high_src="$(thumb_file_for "$name" high)"
+  [[ -n "$high_src" ]] && cp "$high_src" "$OUT_DIR/maps/$name/thumb_high.png"
+  local theme="" spawn_biome=""
+  [[ -n "$mood" ]] && theme="$(titlecase_slug "$mood")"
+  [[ -n "$spawn_biome_raw" ]] && spawn_biome="$(titlecase_slug "$spawn_biome_raw")"
   jq -n --arg slug "$name" --arg type "$dim_type" --arg family "$family" \
     --argjson spawn "$spawn" --argjson ver "$ver" --argjson rendered "$rendered" \
-    --arg pretty "$(display_name "$name")" \
-    '{slug: $slug, name: $pretty, type: $type, family: $family,
+    --arg pretty "$(display_name "$name")" --arg typeLabel "$(type_label "$name" "$dim_type")" \
+    --arg difficulty "$difficulty" --arg theme "$theme" --arg spawnBiome "$spawn_biome" \
+    --arg thumb "$thumb" --argjson thumbVer "$thumb_ver" \
+    '{slug: $slug, name: $pretty, type: $type, typeLabel: $typeLabel, family: $family,
+      difficulty: $difficulty, theme: (if $theme == "" then null else $theme end),
+      spawnBiome: (if $spawnBiome == "" then null else $spawnBiome end),
       spawn: $spawn, version: $ver, renderedAt: (if $rendered then $ver else null end),
-      rendered: $rendered}'
+      rendered: $rendered, thumb: (if $thumb == "" then null else $thumb end),
+      thumbVersion: (if $thumb == "" then null else $thumbVer end)}'
 }
 
 # Manifest consumed by the web shell (served no-cache). Always includes the
@@ -213,7 +334,7 @@ install_shell() {
 
 render_all() {
   rendered=0
-  # Base worlds. Vanilla layouts: region/ (overworld), DIM-1 (nether),
+  # The reserved four. MC's own on-disk layout: region/ (overworld), DIM-1 (nether),
   # DIM1 (end). Nether coordinates are 1/8 scale.
   render_one overworld overworld "$WORLD_DIR/region" "$PREGEN_BORDER_RADIUS" && rendered=$((rendered + 1)) || true
   render_one nether nether "$WORLD_DIR/DIM-1/region" "$((PREGEN_BORDER_RADIUS / 8))" && rendered=$((rendered + 1)) || true
@@ -232,7 +353,8 @@ render_all() {
   done
   for d in "$OUT_DIR"/maps/*/; do
     [[ -f "$d/unmined.map.properties.js" ]] || continue
-    write_markers "$(basename "$d")"
+    name=$(basename "$d")
+    write_markers "$name"
   done
   install_shell
   write_manifest

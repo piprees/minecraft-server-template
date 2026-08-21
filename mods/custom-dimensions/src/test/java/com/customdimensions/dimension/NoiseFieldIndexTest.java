@@ -13,19 +13,26 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Spike task B2. All of NoiseStructurePlacement's behaviour lives in
- * NoiseFieldIndex precisely so it can be tested here, with no Bootstrap.
+ * All of NoiseStructurePlacement's behaviour lives in NoiseFieldIndex so it
+ * can be tested here without Minecraft's Bootstrap.
  */
 class NoiseFieldIndexTest {
 
     private static final long SEED = 0xC0FFEEL;
 
+    // The shipped curves (structure-type-defaults.json). Relative DENSITY per
+    // radial decile, spawn -> border, each normalised to an area-weighted mean
+    // of 1.0 so a curve redistributes content without changing how much of it
+    // there is.
     private static final double[] INNER =
-            {1.5, 1.3, 1.0, 0.8, 0.5, 0.3, 0.1, 0.0, 0.0, 0.0};
+            {2.8, 2.3, 1.9, 1.6, 1.35, 1.15, 0.95, 0.8, 0.65, 0.55};
     private static final double[] OUTER =
-            {0.0, 0.0, 0.1, 0.3, 0.6, 0.8, 1.0, 1.3, 1.5, 2.0};
+            {0.3, 0.35, 0.45, 0.55, 0.65, 0.8, 0.95, 1.1, 1.3, 1.55};
     private static final double[] EVEN =
             {1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
+    // A deliberate hard edge — the one thing a 0.0 in a curve still means.
+    private static final double[] OUTER_HALF_ONLY =
+            {0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0};
 
     private static NoiseFieldIndex build(NoiseProfile profile, int exclusion,
                                          double[] radial, int radiusChunks) {
@@ -94,48 +101,106 @@ class NoiseFieldIndexTest {
 
     // --- radial shaping --------------------------------------------------
 
-    private static double fractionWithin(NoiseFieldIndex index, int radiusChunks,
-                                         double innerFraction) {
-        if (index.size() == 0) {
+    /**
+     * Placements per unit area in one radial decile, normalised so a uniform
+     * layout reads 1.0 everywhere. Density, not share: decile 9 covers 19% of
+     * the disc and decile 0 covers 1%, so comparing raw counts would read any
+     * uniform layout as border-biased.
+     */
+    private static double densityInDecile(NoiseFieldIndex index, int radiusChunks,
+                                          int decile) {
+        int bins = 10;
+        int[] hist = new int[bins];
+        for (ChunkPos p : index.positions()) {
+            double d = Math.sqrt((double) p.x * p.x + (double) p.z * p.z);
+            hist[Math.min(bins - 1, (int) (d / radiusChunks * bins))]++;
+        }
+        int total = index.size();
+        if (total == 0) {
             return 0.0;
         }
-        double limit = radiusChunks * innerFraction;
-        long within = index.positions().stream()
-                .filter(p -> Math.sqrt((double) p.x * p.x + (double) p.z * p.z) <= limit)
-                .count();
-        return within / (double) index.size();
+        // Annulus areas go as 2i+1 and sum to 100 over ten bins.
+        return (hist[decile] / (double) total) / ((2 * decile + 1) / 100.0);
     }
 
     @Test
-    void innerCurveConcentratesNearSpawn() {
-        NoiseFieldIndex index = build(NoiseProfile.NATURAL, 3, INNER, 64);
-        assertTrue(index.size() > 10, "not enough positions to judge: " + index.size());
-        double fraction = fractionWithin(index, 64, 0.30);
-        assertTrue(fraction > 0.60,
-                "only " + (fraction * 100) + "% of inner-curve positions were in the "
-                + "inner 30% of the radius");
+    void innerCurveIsDenserNearSpawnThanAtTheBorder() {
+        NoiseFieldIndex index = build(NoiseProfile.NATURAL, 3, INNER, 512);
+        assertTrue(index.size() > 100, "not enough positions to judge: " + index.size());
+        double near = densityInDecile(index, 512, 0);
+        double far = densityInDecile(index, 512, 9);
+        assertTrue(near > 2.0 * far,
+                "inner asks for 2.8 vs 0.55 (5.1x) but measured " + near + " vs " + far);
     }
 
     @Test
-    void outerCurvePushesToTheBorder() {
-        NoiseFieldIndex index = build(NoiseProfile.NATURAL, 3, OUTER, 64);
-        assertTrue(index.size() > 10, "not enough positions to judge: " + index.size());
-        double inner = fractionWithin(index, 64, 0.45);
-        assertTrue(1.0 - inner > 0.60,
-                "only " + ((1.0 - inner) * 100) + "% of outer-curve positions were in "
-                + "the outer 55% of the radius");
+    void outerCurveIsDenserAtTheBorderThanNearSpawn() {
+        NoiseFieldIndex index = build(NoiseProfile.NATURAL, 3, OUTER, 512);
+        assertTrue(index.size() > 100, "not enough positions to judge: " + index.size());
+        double near = densityInDecile(index, 512, 0);
+        double far = densityInDecile(index, 512, 9);
+        assertTrue(far > 2.0 * near,
+                "outer asks for 0.3 vs 1.55 (5.2x) but measured " + near + " vs " + far);
     }
 
     @Test
-    void innerCurveLeavesTheBorderEmpty() {
-        // The tail of `inner` is 0.0, and a zero weight must suppress
-        // absolutely, not merely reduce.
-        NoiseFieldIndex index = build(NoiseProfile.NATURAL, 3, INNER, 64);
-        for (ChunkPos p : index.positions()) {
-            double fraction = Math.sqrt((double) p.x * p.x + (double) p.z * p.z) / 64.0;
-            assertTrue(fraction < 0.75,
-                    p + " is at radial fraction " + fraction + " where inner is 0.0");
+    void aTaperThinsTheBorderWithoutEmptyingIt() {
+        // A taper must thin the border, never empty it: multiplying the curve
+        // into the noise before the threshold test would let a taper fall to
+        // absolute zero the moment it crosses the profile's threshold.
+        NoiseFieldIndex index = build(NoiseProfile.NATURAL, 3, INNER, 512);
+        for (int decile = 0; decile < 10; decile++) {
+            assertTrue(densityInDecile(index, 512, decile) > 0.0,
+                    "decile " + decile + " is empty under a curve that only tapers");
         }
+    }
+
+    @Test
+    void aZeroInTheCurveStillSuppressesAbsolutely() {
+        // The escape hatch: 0.0 is now the ONLY way to ask for a hard edge, and
+        // it has to keep working, or an author cannot express one at all.
+        NoiseFieldIndex index = build(NoiseProfile.NATURAL, 3, OUTER_HALF_ONLY, 512);
+        assertTrue(index.size() > 100, "not enough positions to judge: " + index.size());
+        for (ChunkPos p : index.positions()) {
+            double fraction = Math.sqrt((double) p.x * p.x + (double) p.z * p.z) / 512.0;
+            assertTrue(fraction > 0.44,
+                    p + " is at radial fraction " + fraction + " where the curve is 0.0");
+        }
+    }
+
+    @Test
+    void aUniformCurveKeepsTheGroupsOwnExclusion() {
+        // Weight 1.0 must reproduce the unscaled separation exactly, or every
+        // `even` group in the shipped config would have moved for nothing.
+        assertEquals(7, NoiseFieldIndex.exclusionFor(7, 1.0));
+        assertEquals(14, build(NoiseProfile.NATURAL, 7, EVEN, 64).spacing());
+        assertEquals(14, build(NoiseProfile.NATURAL, 7, null, 64).spacing());
+    }
+
+    @Test
+    void exclusionScalesAsTheInverseSquareRootOfTheWeight() {
+        // d = base / sqrt(weight), so density (which goes as 1/d^2) is directly
+        // proportional to the weight. Four times the weight, half the spacing.
+        assertEquals(20, NoiseFieldIndex.exclusionFor(20, 1.0));
+        assertEquals(10, NoiseFieldIndex.exclusionFor(20, 4.0));
+        assertEquals(40, NoiseFieldIndex.exclusionFor(20, 0.25));
+        // Capped at MAX_EXCLUSION_SCALE so the neighbourhood scan stays bounded.
+        assertEquals(80, NoiseFieldIndex.exclusionFor(20, 0.0625));
+        assertEquals(80, NoiseFieldIndex.exclusionFor(20, 0.0001));
+        // Never below one chunk, whatever the peak.
+        assertEquals(1, NoiseFieldIndex.exclusionFor(1, 3.0));
+        // Zero is not a separation, it is a suppression.
+        assertEquals(0, NoiseFieldIndex.exclusionFor(20, 0.0));
+    }
+
+    @Test
+    void spacingComesFromTheCurvesPeakNotItsBase() {
+        // The locate cell has to fit the DENSEST packing the curve can ask for.
+        // Sized from the base instead, a cell would hold two placements wherever
+        // the weight peaks and byRegion would silently drop all but the first.
+        NoiseFieldIndex index = build(NoiseProfile.NATURAL, 6, INNER, 512);
+        assertEquals(NoiseFieldIndex.exclusionFor(6, 2.8) * 2, index.spacing());
+        assertTrue(index.spacing() < 12, "peak-scaled spacing must beat the base's 12");
     }
 
     @Test
@@ -336,12 +401,54 @@ class NoiseFieldIndexTest {
                 new double[]{0, 1}, -5, 100), 1e-9);
     }
 
+    // --- spawn clearance --------------------------------------------------
+
+    @Test
+    void clearSpawnRadiusRemovesEveryPlacementInsideTheDisc() {
+        NoiseFieldIndex open = new NoiseFieldIndex(
+                SEED, NoiseProfile.DENSE, 3, EVEN, 128, 0, 0, 0);
+        NoiseFieldIndex cleared = new NoiseFieldIndex(
+                SEED, NoiseProfile.DENSE, 3, EVEN, 128, 0, 0, 16);
+
+        long insideOpen = open.positions().stream()
+                .filter(p -> p.x * p.x + p.z * p.z < 16 * 16).count();
+        assertTrue(insideOpen > 0,
+                "the control must have placements inside the disc, or this proves nothing");
+        assertEquals(0, cleared.positions().stream()
+                        .filter(p -> p.x * p.x + p.z * p.z < 16 * 16).count(),
+                "no placement may land inside clearSpawnChunks of spawn");
+        assertTrue(cleared.size() < open.size(),
+                "clearing a disc must remove placements, not merely move them");
+    }
+
+    @Test
+    void clearSpawnRadiusIsCentredOnSpawnNotTheOrigin() {
+        NoiseFieldIndex cleared = new NoiseFieldIndex(
+                SEED, NoiseProfile.DENSE, 3, EVEN, 128, 40, -25, 12);
+        for (ChunkPos p : cleared.positions()) {
+            long dx = p.x - 40L;
+            long dz = p.z + 25L;
+            assertTrue(dx * dx + dz * dz >= 12L * 12L,
+                    "placement " + p + " is inside the disc around (40, -25)");
+        }
+    }
+
+    @Test
+    void zeroClearanceIsByteIdenticalToNoClearance() {
+        // The conditional-fingerprint promise: a dimension that does not use
+        // the feature must generate exactly the world it generated before.
+        NoiseFieldIndex before = build(NoiseProfile.NATURAL, 3, EVEN, 64);
+        NoiseFieldIndex after = new NoiseFieldIndex(
+                SEED, NoiseProfile.NATURAL, 3, EVEN, 64, 0, 0, 0);
+        assertEquals(before.positions(), after.positions());
+    }
+
     // --- performance -----------------------------------------------------
 
     @Test
     void largestDimensionBuildsWithinBudget() {
-        // The spike's target: an 8192-block radius (512 chunks) in under
-        // 200ms. Warm up first so this measures the algorithm, not JIT.
+        // Target: an 8192-block radius (512 chunks) in under 200ms. Warm up
+        // first so this measures the algorithm, not JIT.
         build(NoiseProfile.NATURAL, 3, EVEN, 128);
         long start = System.nanoTime();
         NoiseFieldIndex index = build(NoiseProfile.NATURAL, 3, EVEN, 512);

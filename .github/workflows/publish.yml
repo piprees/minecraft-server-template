@@ -34,9 +34,16 @@ permissions:
   contents: read
   packages: write
 
+# Keyed on WHAT is being built, not on which ref asked for it. A reusable
+# workflow evaluates github.ref from its caller, so release.yml's `images` job
+# and a plain push to main both resolve to refs/heads/main — one group, and the
+# push cancels the release's images while the tag it belongs to is already
+# published and immutable. A versioned build gets its own group and is never
+# cancelled; an unversioned one keeps the old behaviour, because successive
+# pushes to main should collapse into one `latest` rebuild.
 concurrency:
-  group: publish-${{ github.ref }}
-  cancel-in-progress: true
+  group: publish-${{ inputs.version || github.ref }}
+  cancel-in-progress: ${{ !inputs.version }}
 
 jobs:
   build-and-push:

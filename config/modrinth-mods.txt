@@ -2,12 +2,12 @@
 # Re-pin: ./scripts/pin-mod-versions.sh --version 1.21.1
 
 # === core / performance ===
-fabric-api:aUrTRV7H
+fabric-api:Nlt8gI9z
 fabric-language-kotlin:bdhiINYC
 lithium:N08Z8wog
 ferrite-core:sOzRw3CG
 krypton:Acz3ttTp
-c2me-fabric:GC7ouKxZ
+c2me-fabric:gRm1ZAvc
 # carpet — server admin/testing tool: fake players for the headless
 # verification loop (ops-gated commands; no client counterpart).
 #
@@ -46,12 +46,41 @@ lithostitched:JWtSqSeY
 terralith:eWDLFabb
 wwoo:JBbDOEnc
 geophilic:jDzSPLta
+# regions-unexplored places its biomes through TerraBlender regions, which
+# reach the overworld only — a managed dimension takes them by naming them in
+# its own "biomes" list (TROUBLESHOOTING T34).
+regions-unexplored:SffwLsGY
+wilder-wild:LGumUR4U
+
+# === caves & underground ===
+galosphere:jviVa3qz
+yungs-cave-biomes:geZa9lJS
+yungs-better-caves:72UkhXm7
+subsurface:JdF0yLTy
+# re-adds the andesite/diorite/granite blobs Terralith's cave generation removes.
+# Hard-depends on terralith >=2.0.0 despite Modrinth declaring no dependency —
+# a consumer removing terralith must remove this too or the boot dies.
+terralith-restoned:9wwdRqkT
+# 2.1.2 ships loot tables using set_nbt, removed in 1.20.5, and a trailing
+# comma in forbidden_knowledge. config/datapacks/stoneholm-loot/ overrides the
+# four affected tables; drop it if a later build fixes them upstream.
+stoneholm:4nZqBkRD
+underground-worlds:nQP9l4bd
+underground-bunkers:IOxi2RHE
+yungs-extras:aVsikHca
+cave-spider-spawn:VRwAOcqG
+underground-beacons:LHTttXOg
 
 # === dimensions ===
 incendium:7mVvV9Th
 nullscape:3fv8O3xX
 paradise-lost:kpnTCH47
 ender-dragon-destroys-end-island:19ntjDUW
+# Trial Chambers generated in the Nether, and End structures — both add
+# structures only, so neither competes with Incendium's or Nullscape's biomes.
+hellish-trials:wHRIHKx3
+medieval-buildings-end-edition:uCdUbsEn
+true-ending:FBAAEUsA
 
 # === structures (need yungs-api) ===
 yungs-api:9aZPNrZC
@@ -72,11 +101,14 @@ structory-towers:ziO4YIv1
 explorify:CuBdAr31
 philips-ruins:hWBO2GFM
 dungeons-and-taverns:EUlNXs9V
+when-dungeons-arise-seven-seas:tTpWP44G
+sky-villages:5Ldpp3lm
+simply-houses:imyvF030
 
 # === boss dungeons & extra structures ===
 deadly-deadly-dungeon:MlHPA0g5
 adventure-dungeons:EIun1fbq
-epic-structures-dungeons:enEtoyym
+epic-structures-dungeons:xR2jWhmr
 dungeons+:m8RPwRlg
 dungeonsreborn:PIK4U4ip
 datapack:ati-structures-fabricforge:K7cpaKjN  # ATI structures, ruins, towers, camps
@@ -88,9 +120,9 @@ mss-moogs-soaring-structures:i1RQPVjQ
 mtr-moogs-temples-reimagined:pI3PZZrR
 
 # === mobs & animals ===
-friends-and-foes:SJvhiYGe
+friends-and-foes:UaBxLkkc
 untitled-duck-mod:1iG0fXae
-critters-and-companions:YuM4Jtu5
+critters-and-companions:p19ZPlZD
 creeper-overhaul:O6yuPiE8
 
 # === villager overhaul ===
@@ -109,9 +141,9 @@ villagerapi:5cNuAKiT
 terrablender:XNtIBXyQ
 collective:4XRlrKGN
 cristel-lib:K1dyr5gj
-architectury-api:Wto0RchG
+architectury-api:Pzc2FP5K
 forge-config-api-port:N5qzq0XV
-moonlight:OtIOgMN8
+moonlight:hveZJByF
 kambrik:eMIEIbFZ
 playeranimator:CkedfDp3
 almanac:hUgNmeCO
@@ -122,6 +154,9 @@ otterlib:lMOoBAw6
 resourceful-config:dQh99ERC
 puzzles-lib:pqCNhF6A
 yacl:o3cDn8Vp
+# required by the YUNG's cave/extras mods and stoneholm
+cloth-config:HpMb5wGb
+frozenlib:GdadG0oj
 
 # === accessories (Trinkets framework - functional charm/cape slots) ===
 # Trinkets chosen over Accessories on 1.21.1: charm-of-undying (totem slot)
@@ -137,7 +172,7 @@ inmis:iE11BIfP
 # === variety ===
 immersive-armors:4m0lwLNO
 3d-placeable-food:F9DGEOfs
-supplementaries:kVl8AtPd
+supplementaries:9UlfVS6z
 natures-spirit:TRMapjpU
 macaws-bridges:pl1CA7dW
 macaws-doors:Zsfvgzu6
@@ -148,7 +183,7 @@ chipped:6h2mVZcb
 dramatic-doors:X5oMCwaA
 # universal-sawmill: provides the woodworks:sawmill recipe type dramatic-doors
 # references (kills the boot recipe-parse errors). Dep: moonlight (present).
-universal-sawmill:xpemrBXJ
+universal-sawmill:1Z66lBRN
 farmers-delight-refabricated:NCLOIK5z
 appleskin:b5ZiCjAr
 
@@ -164,9 +199,9 @@ pause-day-cycle:KQWm3NrZ
 
 # === quality of life ===
 fallingtree:wxGXaJMA
-carry-on:eFWFmwmL
+carry-on:iDV62vEU
 bountiful:LFm1BWOE
-lootr:uapIrG9e
+lootr:VYbLUFAk
 better-combat:JJQpBecL
 stack-refill:5RkgQCwL
 softer-hay-bales:RnWSv8yZ
@@ -227,8 +262,8 @@ sound-physics-remastered:tVu2EZ4u
 
 # === admin / community ===
 luckperms:l47d4ZWk
-open-parties-and-claims:cNfQARzn
-simple-voice-chat:jd1cFrJn
+open-parties-and-claims:rUrxgVyp
+simple-voice-chat:VS5X7jZd
 ledger:t1AtqfxZ
 styled-chat:4e1xZSk3
 essential-commands:kev3hDqV

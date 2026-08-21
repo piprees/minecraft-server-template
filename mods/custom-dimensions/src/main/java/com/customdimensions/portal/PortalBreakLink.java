@@ -11,44 +11,26 @@ import java.util.Set;
 
 /**
  * Which portal is the other half of this one — the pure half of symmetric
- * breaking (Phase 9c).
+ * breaking.
  *
- * <h2>Why a portal has to break at both ends</h2>
- * A portal is one thing with two ends. Mining the frame in the overworld took
- * the source zone down and left the arrival standing in the destination:
- * still a real {@code NETHER_PORTAL}, still registered, still sending anyone
- * who walked into it back to a doorway that no longer exists. Mining the
- * arrival was the same in reverse — the source zone stayed live and rebuilt a
- * fresh arrival on the next traversal, so the portal the player had just
- * destroyed came straight back somewhere near where it was. Neither end could
- * be got rid of from the end you were standing at.
+ * <p>A portal is one thing with two ends: breaking only one leaves the other
+ * as a real, registered portal pointing at a doorway that no longer exists
+ * (or, for the source side, one that rebuilds the far end on the next
+ * traversal). Both ends must break together.
  *
- * <h2>How the two ends find each other</h2>
- * Not by geometry. The arrival's column is {@code source / scale} and
- * recovering the source from it would mean multiplying a rounded number back
- * up and searching a box — the arithmetic that has already been wrong twice
- * in this file's history. Every arrival cell instead carries the column it was
- * built FOR, stamped by {@link PortalHelper#setSourceColumn} at creation:
- * {@code sourceWorld}, {@code sourceX}, {@code sourceZ}. Matching is then an
- * exact equality on values somebody else already computed, in both directions.
+ * <p>The two ends are matched not by geometry but by a stamped source
+ * column: every arrival cell carries the {@code sourceWorld}/
+ * {@code sourceX}/{@code sourceZ} it was built for
+ * ({@link PortalHelper#setSourceColumn}), so matching is exact equality, not
+ * reconstructing a rounded division.
  *
- * <h2>What must NOT break symmetrically</h2>
- * <ul>
- *   <li><b>Anchor dimensions.</b> Many source portals share one arrival, so
- *       one player mining their own frame would take away everybody's way
- *       home. Guarded explicitly on the source side by
- *       {@code definition.hasAnchor()}; on the arrival side it falls out for
- *       free, because the anchor path never calls {@code setSourceColumn} and
- *       so an anchor arrival has no source column to resolve. Both, because an
- *       invariant this sharp should not rest on an absence alone.</li>
- *   <li><b>Single-use expiry.</b> "The way in crumbles behind you" must not
- *       crumble the way HOME. That is why symmetric breaking is triggered at
- *       the two places a player actually breaks something, and never from
- *       {@link PortalHelper#removeZone}, which single-use expiry also calls.</li>
- *   <li><b>Exit portals and exit shrines.</b> They carry an {@code exitMode}
- *       and are the mod's own guaranteed way out; they are not one end of a
- *       player-built pair.</li>
- * </ul>
+ * <p>Anchor dimensions (many source portals share one arrival — guarded by
+ * {@code definition.hasAnchor()} and by the anchor path never stamping a
+ * source column), single-use expiry (triggered only where a player actually
+ * breaks something, never from {@link PortalHelper#removeZone}, which
+ * expiry also calls), and exit portals/shrines (which carry an
+ * {@code exitMode}) must NOT break symmetrically — see
+ * {@link #breaksSymmetrically}.
  *
  * <p>Pure: plain values in, plain values out, no world and no Minecraft
  * runtime. The caller reads the registry and writes the blocks.
@@ -59,15 +41,10 @@ public final class PortalBreakLink {
     }
 
     /**
-     * The COLUMN a portal interior is centred on, as
-     * {@code (x, z)}.
-     *
-     * <p>Integer-averaged, and shared with the traversal path deliberately:
-     * {@code ServerWorldMixin} computes the arrival column from this exact
-     * expression, and {@code setSourceColumn} stamps that value onto every
-     * arrival cell. If the two ever drifted, symmetric breaking would silently
-     * match nothing — which looks precisely like the bug it is meant to fix.
-     * One definition, no chance of drift.
+     * The column a portal interior is centred on, as {@code (x, z)}.
+     * Integer-averaged, using the exact same expression {@code
+     * ServerWorldMixin} uses to compute the arrival column — if the two ever
+     * drifted, symmetric breaking would silently match nothing.
      *
      * @return {@code {x, z}}, or null for an empty interior
      */

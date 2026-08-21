@@ -1,12 +1,89 @@
 {
   "type": "cave",
-  "description": "A pocket foundry burrowed in glassy rock. Basalt columns, thermal vents, quartz light in the dark — piglin engineers built this as a proving ground. Small, self-contained, still warm.",
-  "seed": 9181733818447442817,
+  "description": "A pocket foundry burrowed in glassy rock. Basalt columns, thermal vents, quartz light in the dark \u2014 piglin engineers built this as a proving ground. Small, self-contained, still warm.",
+  "seed": -1810886917463980096,
   "biomes": [
-    "terralith:cave/thermal_caves",
-    "terralith:cave/granite_caves",
-    "terralith:cave/tuff_caves",
-    "minecraft:dripstone_caves"
+    {
+      "id": "regions_unexplored:redstone_caves",
+      "parameters": {
+        "temperature": [
+          -2.0,
+          -1.6
+        ]
+      }
+    },
+    {
+      "id": "minecraft:dripstone_caves",
+      "parameters": {
+        "temperature": [
+          -1.6,
+          -1.35
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:prismachasm",
+      "parameters": {
+        "temperature": [
+          -1.35,
+          -0.95
+        ]
+      }
+    },
+    {
+      "id": "terralith:cave/tuff_caves",
+      "parameters": {
+        "temperature": [
+          -0.95,
+          -0.7
+        ]
+      }
+    },
+    {
+      "id": "galosphere:crystal_canyons",
+      "parameters": {
+        "temperature": [
+          -0.7,
+          -0.3
+        ]
+      }
+    },
+    {
+      "id": "terralith:cave/granite_caves",
+      "parameters": {
+        "temperature": [
+          -0.3,
+          -0.15
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:scorching_caves",
+      "parameters": {
+        "temperature": [
+          -0.15,
+          0.25
+        ]
+      }
+    },
+    {
+      "id": "terralith:cave/thermal_caves",
+      "parameters": {
+        "temperature": [
+          0.25,
+          1.55
+        ]
+      }
+    },
+    {
+      "id": "wilderwild:magmatic_caves",
+      "parameters": {
+        "temperature": [
+          1.55,
+          2.0
+        ]
+      }
+    }
   ],
   "borders": {
     "player": 256,
@@ -39,6 +116,11 @@
       "exit": "block.fire.extinguish"
     }
   },
+  "exitPortal": {
+    "enabled": true,
+    "pos": "spawn",
+    "target": "bed"
+  },
   "structures": {
     "wants": {
       "mining_complex": {
@@ -59,7 +141,11 @@
     "spawnFilter": [
       "terralith:cave/thermal_caves",
       "terralith:cave/granite_caves"
-    ],
-    "description": "A pocket foundry burrowed in glassy rock. Basalt columns, thermal vents, quartz light in the dark — piglin engineers built this as a proving ground. Small, self-contained, still warm."
-  }
+    ]
+  },
+  "spawn": [
+    -128,
+    77,
+    128
+  ]
 }

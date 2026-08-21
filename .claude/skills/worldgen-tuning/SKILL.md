@@ -3,14 +3,14 @@ name: worldgen-tuning
 description: |
   Tunes terrain shape, structure frequency, and per-dimension worldgen profiles for the Adventure Server platform. Covers Tectonic 3.x terrain dials (erosion_scale, ridge_scale, vertical_scale, max_y, ultrasmooth), the three structure-frequency presets (default/dense/sparse) and their datapack-overlay swap, per-dimension noiseSettings (adventure:wide / adventure:compressed) and structureDensity, generator types (checkerboard, superflat with layers), settingsOverrides (seaLevel, defaultBlock/Fluid), per-biome placement parameters, biomePatches (stamp/clipped-swap/global-swap with blend and shape), and per-dimension structure control (spacing overrides, mode allow/reject/none, forced placements).
 
-  Use when: changing terrain shape or proportions, adjusting structure density globally or per dimension, swapping structure presets, adding biome patches, overriding structure placement per dimension, configuring checkerboard or superflat generators, or tuning settingsOverrides. Not for portal/exit config (see custom-dimension-authoring), seed rolling (see seed-rolling), or consumer-level branding/overlay (see consumer-customisation).
+  Use when: changing terrain shape or proportions, adjusting structure density globally or per dimension, swapping structure presets, adding biome patches, overriding structure placement per dimension, configuring checkerboard or superflat generators, or tuning settingsOverrides. Not for portal/exit config (see custom-dimension-authoring), seed rolling (driven by `/customdim` subcommands in the mod), or consumer-level branding/overlay (see consumer-customisation).
 ---
 
 # Worldgen Tuning
 
 You are changing how the world generates — terrain shape, structure frequency, or per-dimension worldgen profiles. All worldgen config is **creation-time-only** ([TROUBLESHOOTING.md#d2](../../../TROUBLESHOOTING.md#d2)): changes affect newly generated chunks only, never existing terrain. Expect visible seams at the boundary between old and new terrain on an existing world.
 
-**Not this skill:** portal/exit/shrine config → [custom-dimension-authoring](../custom-dimension-authoring/SKILL.md); seed rolling → [seed-rolling](../seed-rolling/SKILL.md); consumer branding and overlay basics → [consumer-customisation](../consumer-customisation/SKILL.md); the dimension JSON schema beyond worldgen fields → [mods/custom-dimensions/README.md](../../../mods/custom-dimensions/README.md).
+**Not this skill:** portal/exit/shrine config → [custom-dimension-authoring](../custom-dimension-authoring/SKILL.md); seed rolling → driven by `/customdim` subcommands in the mod; consumer branding and overlay basics → [consumer-customisation](../consumer-customisation/SKILL.md); the dimension JSON schema beyond worldgen fields → [mods/custom-dimensions/README.md](../../../mods/custom-dimensions/README.md).
 
 ## MANDATORY: read before editing
 
@@ -80,8 +80,72 @@ Each dimension file in `config/custom-dimensions/dimensions/<slug>.json` accepts
 - `noiseSettings`: `adventure:wide` (broad realistic relief) or `adventure:compressed` (tight dramatic relief). Unset keeps the type's default generator. Ignored for void/superflat.
 - `structureDensity`: `dense` | `normal` | `sparse` | `none`. Theme-aware: dense boosts dungeons+loot ~2×, sparse halves them. Peaceful dims (`hostileSpawning: false`) auto-drop dungeon-theme sets.
 
+### Terrain-adaptation kernels — family verification
+
+`structures.terrainAdaptation` accepts, per structure id or group name, the
+vanilla adaptations (`none`/`beard_thin`/`beard_box`/`bury` — live on this
+stack, see [TROUBLESHOOTING.md#t24](../../../TROUBLESHOOTING.md#t24)) and
+five custom kernels delivered by `KernelDensity` over the chunk's final
+block-state density function. Verified per terrain family by forced-structure
+A/B fixtures (same seed, kernel vs none, probes chosen where the baseline is
+informative).
+
+**The jar theme defaults** (`structure_type_defaults.json` →
+`terrainAdaptation`) fill only a `none` registry value, and must stay
+blend-strength — `settlements` and `landmarks` map to `ground_blend`,
+`dungeons` and `endgame` to nothing. A guarantee-strength default overrules
+~130 structure authors per overworld and manufactures terrain they meant to
+leave alone ([TROUBLESHOOTING.md#t26](../../../TROUBLESHOOTING.md#t26)).
+
+| Kernel | overworld | paradise_lost | cave | nether | end | sky_islands |
+| --- | --- | --- | --- | --- | --- | --- |
+| `pedestal` (fill, 2.5) | ✓ live | ✓ 7/7 | ✓ 60/60 | ✓ 60/60 | ✓ 60/60 | ✓ 60/60 |
+| `platform_skirt` (fill, 2.0) | ✓ live | ✓ 13 pts | fill path shared with pedestal | fill path shared | fill path shared | fill path shared |
+| `ground_blend` (fill, 0.30) | ✓ live | fill path shared | fill path shared | fill path shared | fill path shared | ✓ stays air |
+| `moat` (carve, −1.2) | ✓ live | ✓ 23/60 | ✓ 5/60 | self-limits | self-limits | self-limits |
+| `drain` (fluid excl.) | ✓ live pocket | family-independent (wraps the chunk's FluidLevelSampler) | — | — | — | — |
+
+- **Magnitude decides whether a fill is a guarantee or a blend, and the
+  threshold is 0.4583.** `KernelDensity` adds the kernel on top of the FINAL
+  block-state density, whose terrain term ends in `squeeze` — bounded to
+  ±0.4583 and **pinned at −0.4583 in open sky, however high you are**. So a
+  fill above ~0.46 packs air solid at ANY altitude, and a fill below it can
+  only finish terrain that is already close to the surface. There is no
+  altitude awareness in the kernels themselves; this is the only mechanism.
+
+  | raw terrain | final (squeezed) | +0.30 | +2.5 |
+  | --- | --- | --- | --- |
+  | ≤ −1.56 (open sky) | −0.458 (clamped) | air | solid |
+  | −1.0 | −0.303 | air | solid |
+  | −0.5 | −0.159 | solid | solid |
+
+- **`pedestal` and `platform_skirt` are guarantees** (2.5 / 2.0, 64 / 48
+  blocks deep): they manufacture terrain unconditionally, which is what an
+  author asking for a motte wants. Do NOT reach for one as a general
+  "integrate with the ground" default — on a Terralith skyland a `pedestal`
+  is a solid 64-block cone, 100 blocks across, hanging in the sky.
+- **`ground_blend` is the blend** (0.30, 10 blocks deep, apron 2): the theme
+  default for `settlements` and `landmarks`. Never raise it past the squeeze
+  band to force a stubborn case — that converts it into a guarantee and
+  reintroduces sky terrain everywhere.
+- **The moat carves overworld-class density** (overworld, paradise_lost,
+  cave surfaces) and **self-limits inside nether/end/sky island cores**,
+  whose base density exceeds −1.2 — it will not crater dense interior
+  terrain. For "keep it out / seal it in" themes on those families, use
+  `pedestal` (raised and separate reads as sealed) rather than raising the
+  moat magnitude, which would re-tune every shipped overworld moat.
+- **Probe design**: fill kernels are invisible on flat solid ground and
+  carve kernels are invisible in open air — pick probe targets from a
+  baseline world's actual composition (solid ring cells for carve, air
+  under-piece cells for fill), never fixed offsets.
+- **Fill kernels feed the structure's own grounding**: a heightmap-grounded
+  piece can land a couple of blocks differently with its fill kernel on
+  (it grounds on the terrain the kernel makes). Placement of fixed-Y and
+  jigsaw-anchored structures is unaffected.
+
 ### Generator types
 
+- `"type": "sky_islands"` / `"nether_islands"` — End terrain shape wearing overworld or nether biomes. Both take `endGen.getSettings()`, so they inherit the End's **origin island and void moat**; add `settingsOverrides.endIsland: false` on anything bigger than about a 1024 border ([TROUBLESHOOTING.md#t36](../../../TROUBLESHOOTING.md#t36)).
 - `"type": "checkerboard"` — fixed biome grid over overworld terrain noise. `checkerboardScale` sets cell size.
 - `"type": "superflat"` — accepts `flatBiome` and `layers` (bottom-up, `height` = thickness).
 
@@ -104,7 +168,7 @@ See [references/generator-types.md](references/generator-types.md) for the full 
 4. **c2me's density-function compiler must stay disabled** ([TROUBLESHOOTING.md#d6](../../../TROUBLESHOOTING.md#d6)). `deploy.sh` and `dev-up.sh` enforce this. A bare `docker restart mc` boots unpatched.
 5. **Structure `frequency` is the safe knob; `spacing`/`salt` re-roll the grid.** Changing spacing on an existing world creates visible inconsistency near explored-terrain borders.
 6. **Consumer-added structure mods keep their defaults** — they aren't themed until the consumer adds `overlay/config/structure_themes.json` mapping each set id to a theme.
-7. **`structures.force` guarantees the attempt, not the biome check.** The structure's biome predicate still applies — pick a spot whose biome the structure accepts.
+7. **`structures.force` overrides the biome check AND other mods' start cancels — but `/locate` still will not find an out-of-biome one.** Forced start attempts are performed by the mod itself (`ChunkGeneratorForcedStartMixin` from the `ForcedStartOverride` registry), so an overworld structure forced into a nether dimension generates, and so does a vanilla fortress on this stack where YUNG's cancels organic ones ([TROUBLESHOOTING.md#t25](../../../TROUBLESHOOTING.md#t25)). `/locate` reads a separate index that vanilla builds only for structures whose valid biomes intersect the dimension's biome source, and that index is untouched. Verify a forced placement with `/customdim structure-census` and the `forced ... generated at chunk` log line, never with locate.
 8. **Overrides are whole-file.** A world datapack shadowing a mod's structure_set must re-declare the full `structures` list.
 
 ## Validation
@@ -116,8 +180,8 @@ docker exec mc grep -i "Couldn't load tectonic" /data/logs/latest.log   # expect
 # Verify structure preset ownership is intact
 python3 -c "import json; d=json.load(open('config/datapacks/structures/data/ownership.json')); print(f'{len(d)} overrides tracked')"
 
-# Verify dimension worldgen config drift
-./dev verify   # runs check-dimension-drift.py among other checkers
+# Verify dimension worldgen config drift (the mod WARNs at boot, not a script)
+docker logs mc 2>&1 | grep "worldgen config changed"   # expect no output on a fresh world
 
 # Check which preset is active
 ls overlay/config/datapacks/structures/ 2>/dev/null && echo "consumer override" || echo "platform default"
@@ -128,4 +192,4 @@ ls overlay/config/datapacks/structures/ 2>/dev/null && echo "consumer override" 
 - [references/tectonic-dials.md](references/tectonic-dials.md) — full dial table, shipped values, interaction notes
 - [references/structure-presets.md](references/structure-presets.md) — preset details, swap instructions, ownership.json, mod-removal safety
 - [references/generator-types.md](references/generator-types.md) — checkerboard, superflat, settingsOverrides, biome parameters, biomePatches, structure spacing/mode/force
-- Sibling skills: [custom-dimension-authoring](../custom-dimension-authoring/SKILL.md) (dimension JSON schema, portals, exits), [seed-rolling](../seed-rolling/SKILL.md) (evaluating seeds against worldgen), [consumer-customisation](../consumer-customisation/SKILL.md) (overlay basics)
+- Sibling skills: [custom-dimension-authoring](../custom-dimension-authoring/SKILL.md) (dimension JSON schema, portals, exits), [consumer-customisation](../consumer-customisation/SKILL.md) (overlay basics)

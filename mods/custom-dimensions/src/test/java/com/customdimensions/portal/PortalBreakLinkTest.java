@@ -16,7 +16,7 @@ import java.util.Set;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Symmetric breaking (Phase 9c): mining one end of a portal takes the other.
+ * Symmetric breaking: mining one end of a portal takes the other.
  *
  * <p>Every case here is about the two ends AGREEING. The linkage is an exact
  * match on the source column each arrival cell was stamped with, not a
@@ -73,14 +73,12 @@ class PortalBreakLinkTest {
 
     @Test
     void centreColumnTruncatesTowardZeroOnNegativeCoordinates() {
-        // Portal coordinates are frequently negative on a real world and this
-        // codebase has a documented history of sign mistakes (floor(-453.5) is
-        // -454, not -453). Java's `/` truncates TOWARD ZERO, so the average of
-        // -47 and -46 is -46, not -47 and not -47.5 rounded down.
+        // Portal coordinates are frequently negative. Java's `/` truncates
+        // TOWARD ZERO, so the average of -47 and -46 is -46, not -47.
         //
-        // The value being "wrong" in a mathematical sense does not matter — it
-        // only has to be the SAME wrong on both ends, which is exactly why
-        // ServerWorldMixin and symmetric breaking now share this one function
+        // The value being "wrong" in a mathematical sense does not matter —
+        // it only has to be the SAME wrong on both ends, which is why
+        // ServerWorldMixin and symmetric breaking share this one function
         // instead of each averaging the interior themselves.
         Set<BlockPos> interior = PortalSite.standardInterior(-47, 192, -465, Direction.Axis.X);
 

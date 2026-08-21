@@ -4,8 +4,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 /**
- * Presentation-only tuning for immersive portal previews (Phase 0 onward of
- * the immersive-portals feature). Parsed from the
+ * Presentation-only tuning for immersive portal previews. Parsed from the
  * "immersive" field on {@link DimensionConfig.Portal}:
  *
  * <pre>
@@ -17,18 +16,15 @@ import com.google.gson.JsonObject;
  *   "immersive": {"previewDepth": 4}  -&gt; that field clamped, rest defaults
  * </pre>
  *
- * <b>Absent means ON.</b> Immersive started as opt-in while it was risky;
- * it is now the house style for every portal this mod builds, and a
- * dimension that wants a plain vanilla portal says {@code "immersive":
- * false}. Keeping it opt-in would have meant most dimensions never
- * exercising the feature — the opposite of what catches its bugs, which
- * have every one of them been silent absence rather than a crash.
+ * <b>Absent means ON.</b> It is the house style for every portal this mod
+ * builds; a dimension that wants a plain vanilla portal says
+ * {@code "immersive": false}. Defaulting to ON keeps the feature exercised
+ * everywhere, which matters because its bugs surface as silent absence,
+ * not a crash.
  *
  * Deliberately NOT serialised into portal_links.json zone records: it is
  * transient on {@link PortalDefinition} and re-read from dimension config
- * every boot, exactly like the rest of the portal block (unlike
- * creation-time worldgen config, this presentation feature applies to
- * existing dimensions without a wipe).
+ * every boot, so changes apply without a world wipe.
  */
 public record ImmersiveSettings(
         boolean enabled,
@@ -48,17 +44,13 @@ public record ImmersiveSettings(
      * axes.
      *
      * <p><b>This is the corner budget, not a look.</b> The visible cone
-     * widens with depth, so at 8 blocks deep it wants to reach 4-6 blocks
-     * laterally — and a position outside the slab is not a candidate at all,
-     * so no amount of mask work can show it. Reported in game as the corners
-     * of the opening staying unfilled at depth: *"the rectangle we sample
-     * from needs to be maybe 3-4 blocks wider/taller than the portal itself
-     * to really get the corners filled in"*. It was 2.
+     * widens with depth, so at 8 blocks deep it needs to reach 4-6 blocks
+     * laterally — a position outside the slab is not a candidate at all, so
+     * no amount of mask work can show it.
      *
-     * <p>Raising it is cheap now in a way it was not before: the mask bounds
-     * what is SHOWN by real occlusion, so the extra candidates are rejected
-     * unless they are genuinely visible through the opening. It costs mask
-     * evaluations, not leaked geometry.
+     * <p>The mask bounds what is SHOWN by real occlusion, so a larger radius
+     * only costs mask evaluations: extra candidates are rejected unless
+     * genuinely visible through the opening, never leaked geometry.
      */
     public static final int DEFAULT_PREVIEW_RADIUS = 4;
     public static final int MIN_PREVIEW_RADIUS = 0;

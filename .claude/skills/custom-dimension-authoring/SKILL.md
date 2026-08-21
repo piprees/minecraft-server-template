@@ -26,7 +26,7 @@ This skill has five reference files. **You must read ALL of them before writing 
 - `the_blossom_gardens.json` — large (8192), peaceful, `multi_biome`, wide noise
 - `the_basalt_spires.json` — pocket (1024), nether type
 - `the_end_citadel.json` — medium (4096), end type
-- `overworld.json` — base-world override (no type, just seed/spawn/scoring)
+- `overworld.json` — an ordinary dimension like any other; names no `type` because `getType()` supplies the family
 
 **And always check blocks, structures, and items against the json files inside the extractors** (`config/custom-dimensions/extractors/`) — the mod silently ignores unknown ids. These catalogues are authoritative; don't guess ids from memory or the wiki, just choose from the lists.
 
@@ -60,7 +60,7 @@ overlay/config/custom-dimensions/dimensions/<slug>.json  # consumer override
 5. **Set `borders`, `difficulty`, `structureDensity`** per the [size↔difficulty table](#size--difficulty-the-philosophy).
 6. **Set `structures.wants`/`structures.shuns`** using short names from `references/structure-names.md`. See [Traps](#traps-read-this-before-you-write-json) — the two blocks (`structures` vs `seedRoll`) use different value formats.
 7. **Set `portal`** — frame block, igniter, colour/particle, sounds, scale. See [Portal scale guide](#portal-scale-guide). Check `igniterItem` uniqueness: `grep -h igniterItem config/custom-dimensions/dimensions/*.json | sort`.
-8. **Set `seedRoll`** — `mood`, `spawnFilter` (3-8 biomes, all must appear in your `biomes` list AND exist in `biome-catalogue.md` for that family), `description`.
+8. **Set `seedRoll`** — `mood`, `spawnFilter` (3-8 biomes, all must appear in your `biomes` list AND exist in `biome-catalogue.md` for that family).
 9. **Set `spawn`** — `[0, 64, 0]` (roller overwrites this).
 10. **Validate** — see [Validation](#validation-do-not-skip-this).
 
@@ -78,8 +78,8 @@ Every dimension needs a `type`. This is the most consequential choice — it det
 | `void` | No terrain at all. Biome layout still drives mob spawning, ambient sounds, and fog colour — variety matters even though nothing generates. Must have a `biomes` list to be rollable. | any (but biomes must match a single family for the roller — don't mix overworld + end biomes) | Empty void | 2 |
 | `sky_islands` | Floating islands. | overworld | Islands in the sky, void below | 2 |
 | `nether_islands` | End-island-style bones with nether biomes. | nether | Floating nether islands | 2 |
-| `amplified` | Amplified terrain (extreme heights). | overworld | Very tall, dramatic | 1 |
-| `large_biomes` | Large biomes (biome regions 4× bigger). | overworld | Huge biome regions | 1 |
+| `amplified` | Amplified terrain (extreme heights). **IGNORES `biomes` — see below.** | n/a | Very tall, dramatic | 1 |
+| `large_biomes` | Large biomes (biome regions 4× bigger). **IGNORES `biomes` — see below.** | n/a | Huge biome regions | 1 |
 | `superflat` | Flat world. Never rollable. | — | Flat | 1 |
 | `paradise_lost:paradise_lost` | Clone of the Paradise Lost skylands dimension. | paradise_lost | Floating skylands | 6 |
 | `single_biome` | One biome, `biomes` must have exactly 1 entry. | overworld | Single biome terrain | 0 |
@@ -88,6 +88,68 @@ Every dimension needs a `type`. This is the most consequential choice — it det
 **Common mistake: using `overworld` when you mean `multi_biome`.** `overworld` uses ALL registered biomes — your `biomes` list only affects what the roller scores, not what generates. If you want a "jungle-only dimension" or "frozen peaks dimension", use `multi_biome`. The original `the_overgrowth` had `type: "overworld"` with a jungle biome list, which meant every overworld biome could appear (deserts, oceans, etc.) — only the roller cared about the jungle list, not the generator.
 
 **Void dimensions: keep biomes from ONE family.** A void dim with `minecraft:deep_dark` (overworld) AND `minecraft:the_end` (end) will confuse the roller — it can't determine which family's noise config to use for sampling. If you want an end-themed void, use only end-family biomes from `references/biome-catalogue.md`.
+
+## sky_islands and nether_islands inherit the End's origin island
+
+Both build from `endGen.getSettings()`, so they carry Nullscape's End noise
+router — origin island and void moat included. A large one reads as an End
+knock-off wearing the wrong biomes, and `settingsOverrides`'
+`defaultBlock`/`seaLevel` cannot change it because the island lives in the
+noise router.
+
+Add `"settingsOverrides": {"endIsland": false}` unless the dimension is small
+enough to sit inside the island, in which case the island IS the world and the
+flag would hollow it out — `the_starwell` at a 256 border is the shipped
+example of that. Roughly: past a 1024 border you want the flag.
+
+Full detail: [TROUBLESHOOTING.md#t36](../../../TROUBLESHOOTING.md#t36).
+
+## Two types discard the biome list
+
+`amplified` and `large_biomes` clone the world preset's overworld
+`DimensionOptions` wholesale and never call `resolveListedSource`
+(`DimensionManager.java:729-757`). A biome list on either generates a plain
+overworld, and a `seedRoll.spawnFilter` naming a biome that cannot occur
+rejects every candidate — an empty board with no error.
+
+The two shipped users, `the_amplified_reaches` and `the_endless_expanse`, both
+carry an empty `biomes` array. That is not an oversight; it is the only honest
+config for these types.
+
+**Want amplified relief with a curated palette?** Use `multi_biome` with
+`noiseSettings: "adventure:compressed"`. It composes with a biome list, which
+amplified does not.
+
+## Cross-family biomes and surface composition
+
+A biome from another family generates on THIS dimension's terrain wearing its
+OWN family's surface blocks. A nether biome in a `multi_biome` world comes out
+as nylium and basalt on overworld terrain, and brings its mob spawns with it.
+That is deliberate, and it is the pack's strongest lever.
+
+**Get the direction right — three agents have inverted it.**
+
+| biome's family vs the surface host | result |
+| --- | --- |
+| **different** (foreign) | **composed** — gets its home family's live surface rule |
+| same (native) | nothing — keeps the host's rule |
+
+`applySurfaceComposition` builds a map of biomes whose family differs from the
+host and gates each borrowed rule ahead of the host's. Native biomes are the
+ones that get left alone.
+
+**The host is `BiomeFamilies.surfaceHostFamily(type, noiseSettings)`, not
+`hostFamily`.** They differ in two cases:
+
+- `sky_islands` and `nether_islands` report **`end`** — they build on the End's
+  settings record, so an overworld biome in a `sky_islands` world is foreign
+  and does get dressed.
+- An explicit `noiseSettings` reports the preset's family (**overworld**),
+  because the preset replaces the whole settings record including its surface
+  rule.
+
+`hostFamily` answers a different question — which structure groups apply — and
+reading it here re-skins exactly the wrong biomes.
 
 ## Noise settings
 
@@ -127,7 +189,7 @@ Every dimension needs a `type`. This is the most consequential choice — it det
 
 ## Size ↔ difficulty: the philosophy
 
-From `scripts/seed/dimension_profiles.py`:
+The scoring model's own philosophy (see `references/scoring-internals.md`):
 
 > Hard dims (dense + hostile + small playable radius) must be WORTH IT: hostile structures close, brutal terrain, places to hide/explore/fight. Easy/peaceful dims are relaxing but not boring: scenery, variety, gentle structures.
 
@@ -184,8 +246,7 @@ A complete, valid, medium-difficulty `multi_biome` dimension:
   },
   "seedRoll": {
     "mood": "adventurous",
-    "spawnFilter": ["minecraft:ice_spikes", "minecraft:frozen_peaks", "terralith:glacial_chasm"],
-    "description": "A frozen crystal cave dimension, medium difficulty."
+    "spawnFilter": ["minecraft:ice_spikes", "minecraft:frozen_peaks", "terralith:glacial_chasm"]
   },
   "spawn": [0, 64, 0]
 }
@@ -211,7 +272,8 @@ Full schema in `references/schema-reference.md`.
 
 ### Forced structure placement
 
-- **`structures.force`**: `[{"structure": "minecraft:ancient_city", "x": 1200, "z": -800}]` — exact placement at specific coordinates. Uses full structure ids (not short names, not set ids). Runtime.
+- **`structures.force`**: `[{"structure": "minecraft:ancient_city", "x": 1200, "z": -800}]` — exact placement at specific coordinates. Uses full structure ids (not short names, not set ids). Runtime. The start attempt is performed by the mod itself, so it survives the structure's biome predicate AND other mods' start cancels (all seven YUNG's mods suppress the vanilla types they replace — forcing one is the only way to place the vanilla structure; [TROUBLESHOOTING.md#t25](../../../TROUBLESHOOTING.md#t25)). Forced structures resolve terrain adaptation (beards/kernels) like any other structure, appear in the census `forced` block, and log `forced <id> generated at chunk [x, z]` on first generation. An out-of-border force warns at boot.
+- **`structures.force[].y`** — optional, and it is what makes a placement independent of terrain. Without it the structure asks the generator where the ground is and declines when the answer is "nowhere", which is correct for a placement meant to sit on terrain and fatal in a `void` dimension. With it, every height query during that one start attempt answers with your `y`, so the structure generates exactly there and hangs in open air over void, lava or nothing at all. `customdim lint` raises `force_needs_y` (ERROR) for a force entry in a `void` dimension that omits it. Caveat: a structure whose start height is an absolute constant ignores ground queries and lands where its own config says — `y` cannot move those. See [TROUBLESHOOTING.md#t33](../../../TROUBLESHOOTING.md#t33).
 
 ### Structure filtering
 
@@ -276,14 +338,22 @@ Four **profiles** control the shape of a group's distribution:
 
 **`force` is exclusive by default.** Forcing a structure removes it from the noise pool everywhere else in that dimension — "put exactly this here" almost always means "and nowhere else". Add `"exclusive": false` to keep organic copies too. Other structures in the same group are unaffected.
 
-### Base worlds
+### `overworld`, `the_nether`, `the_end`, `paradise_lost`
 
-`overworld.json`, `the_nether.json`, `the_end.json` and `paradise_lost.json` get noise placement like everything else. Their generator is vanilla's, so they name no `type` and the mod resolves their groups against their family (`overworld`, `nether`, `end`, `paradise_lost:paradise_lost`). Write an explicit `type` only to move one deliberately onto another family's group set.
+Four dimensions among 82, managed like the rest — every field in this schema
+applies to them, noise placement included ([AGENTS.md § Dimensions](../../../AGENTS.md#dimensions)).
+Leaving one out of a change needs a reason specific to that dimension.
+
+They name no `type` because `DimensionConfig.getType()` supplies the family
+(`overworld`, `nether`, `end`, `paradise_lost:paradise_lost`); writing one moves
+that dimension onto another family's group set. Their generators come from live
+registry entries this mod reads and rebuilds, so their surface rules and
+settings are as changeable as any other dimension's.
 
 Two things to hold in mind when tuning them:
 
 - **Placement is boot-re-read, so no world wipe is needed** — but already-generated chunks keep the structures they have, and the boundary shows, the same way a `structures.spacing` change shows. The overworld is the world everyone is already standing in.
-- **The Nether gates blaze rods on fortresses and the End gates elytra on end cities.** `scripts/check-noise-regression.py` holds a reachability floor for both. Re-run it after any change to either world's groups, density or border.
+- **The Nether gates blaze rods on fortresses and the End gates elytra on end cities.** `/customdim structure-census` reports the nearest live instance of each against the reachability floor (512 blocks for a fortress, 2048 for an end city — `CensusCommands`' `REACHABILITY_FLOOR_BLOCKS`, matching `score/Criteria.java`). Re-run it after any change to either world's groups, density or border.
 
 ### Switching it off
 
@@ -297,7 +367,7 @@ Two things to hold in mind when tuning them:
 - **`borders.player` and `difficulty.mobMultiplier` are now generation-affecting.** They used to be scoring/runtime only. The border sets both the scanned radius and the noise frequency scale; the multiplier drives the shifts above. Changing either changes the world.
 - **An unknown profile name suppresses the group** rather than silently becoming `natural`, and warns at boot. An unknown group name in `noise` or `radial` is ignored with a warning.
 - **A radial curve must be exactly 10 values in 0.0-3.0** or it is rejected with a warning and the type default is used. A trailing `0.0` suppresses that band absolutely — it does not merely reduce it.
-- **Not every structure is noise-placed.** Sets with a custom placement type (YUNG's, explorify, towns_and_towers) keep grid placement and ignore all of the above.
+- **Not every structure is noise-placed.** A set is noise-managed if its placement is vanilla `minecraft:random_spread` or a type in `NoisePoolBuilder.ABSORBED_PLACEMENT_TYPES`; anything else keeps its own grid. Read the split from `placementType` in `config/custom-dimensions/extractors/structures.json` — currently 376 of 380 sets are managed, and the four that are not are `minecraft:concentric_rings` twice (vanilla strongholds, DnT end_castle), `betterstrongholds:stronghold`, and Supplementaries' galleons. (Explorify and Towns & Towers ship plain `minecraft:random_spread` and ARE noise-managed; Cristel Lib only patches their spacing numbers.) Pass-throughs ignore noise fields, radial curves and rarity, but `structures.mode` and `structures.exclude` DO apply to them ([TROUBLESHOOTING.md#t23](../../../TROUBLESHOOTING.md#t23)), and `customdim lint` warns `want_is_passthrough` when a want names one.
 
 ## Traps (read this before you write JSON)
 
@@ -316,10 +386,19 @@ Two things to hold in mind when tuning them:
 10. **Don't mix biome families** — a void dim with overworld AND end biomes confuses the roller (it can't pick a family for noise sampling). Stick to one family per dimension.
 11. **`type: "overworld"` uses ALL biomes**, not just the ones in your `biomes` list. Your list only affects roller scoring. Use `multi_biome` for a curated biome selection.
 12. **Don't change `portal.scale` on existing dimensions** — it shifts all portal coordinates and can strand players. Treat it as effectively permanent after first play.
-13. **`spawnFilter` biomes must exist in the biome parameter table for the dimension's family** — a biome id that exists in-game but isn't in the roller's table for that family causes every candidate to be rejected (zero candidates). Cross-check against `references/biome-catalogue.md`.
-14. **Immersive is ON when you say nothing** — `"immersive": false` is the opt-out, not `true` the opt-in. Writing `"immersive": true` is harmless but redundant.
-15. **`subsume: "everything"` is destructive by design** and belongs in the dimension's `description` as well as its JSON. Never add it to a peaceful or scenic dimension because a keyword matched — see the `subsume` section.
-16. **Aura `trees` are never inferred, only configured.** Sampling them turned a beach into an impassable thicket.
+13. **A listed biome with no climate parameters swallows the dimension.** Every Nature's Spirit biome, plus `minecraft:end_barrens` and `minecraft:end_midlands`, is absent from the multi-noise parameter table, and the mod deals ALL leftover climate regions to such biomes round-robin — one of them takes 74–100% of the world and the rest of your list never appears. Give those entries an explicit `{"id": ..., "parameters": {"<axis>": [lo, hi]}}` band. **Every biome from a mod that places through TerraBlender or a lithostitched injector is in the same position** — Regions Unexplored, Wilder Wild, Galosphere, YUNG's Cave Biomes and Underground Worlds all are. The axis to band on differs by family, measured on this stack with `customdim sample-noise`:
+
+    | dimension type | axis | measured span |
+    | --- | --- | --- |
+    | overworld-family (`multi_biome`, `sky_islands`, `amplified`) | `weirdness` | about -0.19 .. +0.10 at a 512-1024 radius |
+    | `cave` | `temperature` | -0.61 .. +0.90 — continentalness, erosion, depth AND weirdness are all pinned to 0 there, so a weirdness band is inert |
+    | `paradise_lost:paradise_lost` clones | `continentalness` | weirdness is too flat |
+
+    Leave native biomes as plain strings: once no foreign biome remains, the leftover pool is dropped rather than dealt out. The boot line `biome source built (N explicit, M native, 0 mixed-in of K requested)` is the check — **0 mixed-in is the pass**. `scripts/check-content-coverage.py` lists installed biomes no dimension names. See [TROUBLESHOOTING.md#t19](../../../TROUBLESHOOTING.md#t19) and [#t35](../../../TROUBLESHOOTING.md#t35).
+14. **`spawnFilter` biomes must exist in the biome parameter table for the dimension's family** — a biome id that exists in-game but isn't in the roller's table for that family causes every candidate to be rejected (zero candidates). Cross-check against `references/biome-catalogue.md`.
+15. **Immersive is ON when you say nothing** — `"immersive": false` is the opt-out, not `true` the opt-in. Writing `"immersive": true` is harmless but redundant.
+16. **`subsume: "everything"` is destructive by design** and belongs in the dimension's `description` as well as its JSON. Never add it to a peaceful or scenic dimension because a keyword matched — see the `subsume` section.
+17. **Aura `trees` are never inferred, only configured.** Sampling them turned a beach into an impassable thicket.
 
 ## Validation (do not skip this)
 
@@ -338,16 +417,8 @@ Loud failures: invalid JSON, `structures.wants`/`shuns` format violations. Silen
 
 ## Seed rolling
 
-```bash
-./dev up                            # stage config first
-./dev seed-roll                     # roll all dimensions (default)
-./dev seed-roll --dims <slug>       # roll a single dimension
-./dev seed-roll --pool 10000 --count 200  # bigger screening pool
-./dev seed-rescore                  # recompute scores vs current configs (no re-rolling)
-./dev seed-status                   # candidate-bank status: counts, winners, freshness
-./dev seed-viewer                   # interactive picker + background rendering
-```
+Seed rolling lives in the custom-dimensions mod, driven by `/customdim` subcommands.
 
 **Rollable requirements**: not `skip: true`, not `superflat`, `void` needs a `biomes` list.
 
-**Zero candidates?** Most common cause: `seedRoll.spawnFilter` lists a biome that doesn't exist in `biome_params.json` for that family. Check `references/biome-catalogue.md`.
+**Zero candidates?** Most common cause: `seedRoll.spawnFilter` lists a biome that doesn't exist in the roller's biome parameter table for that family (see trap 13 above). Check `references/biome-catalogue.md`.

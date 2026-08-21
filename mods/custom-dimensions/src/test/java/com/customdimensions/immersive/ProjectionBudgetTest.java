@@ -6,10 +6,6 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * The packet ceiling that stops a mask flip landing in one tick.
- *
- * <p>Driven by live numbers: a single pass sent 984 correction packets when
- * a player walked past a portal and the whole sightline mask inverted. See
- * {@link ProjectionBudget} for the log lines.
  */
 class ProjectionBudgetTest {
 
@@ -49,8 +45,8 @@ class ProjectionBudgetTest {
 
     @Test
     void theLiveMaskFlipIsSpreadNotDumped() {
-        // 2026-07-25: "0 of 1056 maskable visible, 984 restored" — 984
-        // packets in one tick, per viewer, per portal. That is the lag spike.
+        // A full mask flip sends 984 restore packets in one tick, per
+        // viewer, per portal — the lag spike this budget caps.
         var a = ProjectionBudget.allow(984, 0, MAX);
 
         assertEquals(MAX, a.total(), "capped, not dumped");
@@ -61,7 +57,7 @@ class ProjectionBudgetTest {
 
     @Test
     void theOtherLivePassAlsoFitsTheCeiling() {
-        // "972 of 1056 maskable visible, 8 restored" — the inverse flip.
+        // The inverse flip: mostly sends, a few restores.
         var a = ProjectionBudget.allow(8, 972, MAX);
 
         assertEquals(8, a.restores(), "the few restores always go");

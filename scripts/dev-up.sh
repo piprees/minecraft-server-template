@@ -116,13 +116,10 @@ case "$ACTION" in
     # The staged dimension overlay is DERIVED from overlay/config/custom-dimensions,
     # never authored in data/, so clear it unconditionally before rebuilding.
     #
-    # Clearing it only when a source directory exists (which is what this used
-    # to do) means REMOVING a consumer overlay never takes effect: the staged
-    # copy survives and keeps replacing every platform dimension file, silently,
-    # for good. Hit on elfydd 2026-07-26 — an overlay deleted from the consumer
-    # repo days earlier was still overriding all 82 dimensions, so a released
-    # config change reached the server and did nothing at all. The symptom is a
-    # boot warning about config you have already fixed.
+    # Clearing it only when a source directory exists means REMOVING a
+    # consumer overlay never takes effect: the staged copy survives and
+    # keeps replacing every platform dimension file, silently, for good.
+    # The symptom is a boot warning about config you have already fixed.
     rm -rf "$local_data_cfg/custom-dimensions/overlay"
 
     if [[ -d "$CONSUMER_DIR/overlay/config" ]]; then
@@ -235,12 +232,13 @@ echo "Starting Minecraft server (local profile, project: ${COMPOSE_PROJECT_NAME}
 echo "  Version:  ${MC_VERSION:-1.21.1}"
 echo "  Game:     mc.${LOCAL_DOMAIN}:${GAME_PORT}"
 echo "  Voice:    mc.${LOCAL_DOMAIN}:${VOICE_PORT} (UDP)"
-echo "  Web:      http://map.${LOCAL_DOMAIN}:${WEB_PORT}"
+echo "  Web:      http://${LOCAL_DOMAIN}:${WEB_PORT}"
+echo "  Seeds:    http://seeds.${LOCAL_DOMAIN}:${WEB_PORT} (local only)"
 echo "  Memory:   ${MEMORY:-5G}"
 echo ""
 echo "  Add to /etc/hosts if not already present:"
 echo ""
-echo "    127.0.0.1  mc.${LOCAL_DOMAIN} map.${LOCAL_DOMAIN} status.${LOCAL_DOMAIN} pack.${LOCAL_DOMAIN} mods.${LOCAL_DOMAIN}"
+echo "    127.0.0.1  ${LOCAL_DOMAIN} mc.${LOCAL_DOMAIN} map.${LOCAL_DOMAIN} status.${LOCAL_DOMAIN} pack.${LOCAL_DOMAIN} mods.${LOCAL_DOMAIN} seeds.${LOCAL_DOMAIN}"
 echo ""
 
 # --- Seed default mod configs into data/config/ ------------------------------
@@ -350,7 +348,10 @@ else:
     open(p, "w").write("%s\n\t%s = false\n" % (section, key))
 PYEOF
 
-# Distant Horizons: silence the per-boot G1/explicit-GC warning wall.
+# Distant Horizons: silence the per-boot G1/explicit-GC warning wall, and keep
+# distant generation off. Nothing local has a player far enough out to need
+# LODs, and the generation machinery is ~50 threads and a batch chunk
+# generator per level, all writing SQLite onto the Docker Desktop file share.
 DH_TOML="$CONSUMER_DIR/data/config/DistantHorizons.toml"
 if [[ -f "$DH_TOML" ]]; then
   DH_SEDS=(
@@ -358,6 +359,9 @@ if [[ -f "$DH_TOML" ]]; then
     -e 's/showGarbageCollectorWarning = true/showGarbageCollectorWarning = false/'
     -e 's/logExplicitGcDisabledWarning = true/logExplicitGcDisabledWarning = false/'
     -e 's/showExplicitGcDisabledWarning = true/showExplicitGcDisabledWarning = false/'
+    -e 's/enableDistantGeneration = true/enableDistantGeneration = false/'
+    -e 's/enableServerGeneration = true/enableServerGeneration = false/'
+    -e 's/enableRealTimeUpdates = true/enableRealTimeUpdates = false/'
   )
   if [[ "$(uname)" == "Darwin" ]]; then
     sed -i '' "${DH_SEDS[@]}" "$DH_TOML"
@@ -396,11 +400,12 @@ elif [[ -z "${DISCORD_BOT_TOKEN:-}" && -f "$DI_TOML" ]]; then
   echo "  Warning: DISCORD_BOT_TOKEN not set — dcintegration will fail to connect"
 fi
 
-# --- Install in-house mod JARs from the bundle --------------------------------
-# Mirrors deploy.sh on production: stack/local-mods/*.jar -> data/mods/.
-# Overwrite deliberately so a bundle update replaces stale copies. Without
-# this step the local stack runs WITHOUT the in-house mods and local testing
-# can't catch mod regressions before they hit production.
+# --- Install in-house mod JARs ------------------------------------------------
+# Mirrors deploy.sh on production: <stack>/local-mods/*.jar -> data/mods/.
+# Under `./dev link` those entries are symlinks into a platform checkout's
+# build/libs, and cp follows them — so this installs the current local build.
+# Overwrite deliberately, so a bundle update or a rebuild replaces stale
+# copies. Without this step the local stack runs WITHOUT the in-house mods.
 LOCAL_MODS="$STACK_DIR/local-mods"
 if [[ -d "$LOCAL_MODS" ]] && ls "$LOCAL_MODS"/*.jar &> /dev/null 2>&1; then
   cp "$LOCAL_MODS"/*.jar "$CONSUMER_DIR/data/mods/"
@@ -497,10 +502,10 @@ fi
 # skip-existing download and the manifest prune both leave it alone).
 # MUST run after sync-mods.sh (the jars have to exist) and before mc starts.
 #
-# This was production-only until 2026-07-25, so local dev ran unpatched: Epic
-# Dungeons' CamelCase loot ids aborted feature placement and spawned lootless
-# chests, and carpet's piston mixin would crash the tick loop next to
-# Supplementaries. Local and production must repair the same jars.
+# Local and production must repair the same jars: without this, Epic
+# Dungeons' CamelCase loot ids abort feature placement and spawn lootless
+# chests, and carpet's piston mixin crashes the tick loop next to
+# Supplementaries.
 if [[ -f "$SCRIPT_DIR/patch-mod-data.py" ]]; then
   python3 "$SCRIPT_DIR/patch-mod-data.py" "$CONSUMER_DIR/data/mods" || true
 fi

@@ -148,8 +148,8 @@ class PortalSafetyValidatorTest {
     }
 
     @Test
-    void baseWorldsAreCheckedLikeAnyOther() {
-        // Base-world portals are real portals — same registry, same rules —
+    void reservedDimensionsAreCheckedLikeAnyOther() {
+        // Reserved-dimension portals are real portals — same registry, same rules —
         // so the same authoring traps apply to them.
         DimensionConfig overworld = parse("overworld", """
                 {"portal":{"frameBlock":"b","singleUse":{"enabled":true}}}
@@ -199,7 +199,7 @@ class PortalSafetyValidatorTest {
         hub.setNamespace("adventure");
         spoke.setNamespace("adventure");
         assertTrue(PortalSafetyValidator.validate(List.of(hub, spoke)).isEmpty());
-        // Base-world links are always known.
+        // Reserved-dimension links are always known.
         DimensionConfig toNether = parse("d", """
                 {"exits":{"void":{"target":{"dimension":"minecraft:the_nether"}}}}
                 """);

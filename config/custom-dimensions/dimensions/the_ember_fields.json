@@ -1,8 +1,7 @@
 {
   "type": "nether",
-  "description": "Rolling ember meadows where piglin villages still tend the geyser fields. The gentlest face of piglin civilisation — farmers and traders, not soldiers. The fortress at the rim is a precaution, not a threat.",
-  "seed": -1428534289047767583,
-  "noiseSettings": "adventure:wide",
+  "description": "Rolling ember meadows where piglin villages still tend the geyser fields. The gentlest face of piglin civilisation \u2014 farmers and traders, not soldiers. The fortress at the rim is a precaution, not a threat.",
+  "seed": 8126533220663086715,
   "biomes": [
     "minecraft:crimson_forest",
     "incendium:infernal_dunes",
@@ -17,6 +16,11 @@
   "difficulty": {
     "mobMultiplier": 1.0,
     "playerLuck": 1.4
+  },
+  "structures": {
+    "terrainAdaptation": {
+      "betterfortresses:fortress": "pedestal"
+    }
   },
   "portal": {
     "frameBlock": "minecraft:magma_block",
@@ -34,6 +38,7 @@
   },
   "seedRoll": {
     "mood": "scenic",
+    "water": "none",
     "spawnFilter": [
       "minecraft:crimson_forest",
       "incendium:infernal_dunes",
@@ -50,12 +55,14 @@
     "shuns": [
       "sanctum",
       "forbidden_castle"
-    ],
-    "description": "Rolling ember meadows where piglin villages still tend the geyser fields. The gentlest face of piglin civilisation — farmers and traders, not soldiers. The fortress at the rim is a precaution, not a threat."
+    ]
   },
   "spawn": [
-    0,
-    64,
-    0
-  ]
+    -64,
+    150,
+    320
+  ],
+  "environment": {
+    "bedWorks": true
+  }
 }

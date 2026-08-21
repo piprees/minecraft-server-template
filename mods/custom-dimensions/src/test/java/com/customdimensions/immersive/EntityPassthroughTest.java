@@ -24,20 +24,14 @@ import java.util.Set;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * The pure decision logic behind Phase 3's entity pass-through: which entity
- * types may cross, which live entity states may cross, the volume the scan
- * queries, and the swept "did it actually go through the doorway" test.
+ * The pure decision logic behind entity pass-through: which entity types may
+ * cross, which live entity states may cross, the volume the scan queries,
+ * and the swept "did it actually go through the doorway" test.
  *
- * <p>Everything asserted here is world-free by construction — that is the
- * point of keeping it out of {@code ServerWorldMixin}, and these tests
- * deliberately never bootstrap a registry, so no entity is ever instantiated.
- * The live paths ({@code tick}, {@code tryReturnFromArrivalPortal}) are
- * exercised on the real server via RCON; what CAN be pinned headlessly is
- * pinned here.
- *
- * <p>Phase 3b inverted the living-entity policy — mobs, villagers and animals
- * now cross, as they do through a vanilla nether portal — so the assertions
- * that used to prove they were rejected now prove the opposite.
+ * <p>Everything asserted here is world-free by construction, and these tests
+ * never bootstrap a registry, so no entity is ever instantiated. The live
+ * paths ({@code tick}, {@code tryReturnFromArrivalPortal}) are exercised on
+ * the real server via RCON; what CAN be pinned headlessly is pinned here.
  */
 class EntityPassthroughTest {
 
@@ -56,9 +50,8 @@ class EntityPassthroughTest {
 
     @Test
     void livingEntitiesMayCross() {
-        // The Phase 3b decision: portals carry mobs, villagers and livestock
-        // exactly as vanilla nether portals do. This assertion is the inverse
-        // of the one this file shipped with — it is the feature.
+        // Portals carry mobs, villagers and livestock exactly as vanilla
+        // nether portals do.
         assertTrue(EntityPassthrough.isPassthroughType(ZombieEntity.class));
         assertTrue(EntityPassthrough.isPassthroughType(VillagerEntity.class));
         assertTrue(EntityPassthrough.isPassthroughType(CowEntity.class));
@@ -66,29 +59,27 @@ class EntityPassthroughTest {
 
     @Test
     void playersNeverCross() {
-        // Players have their own teleport path in ServerWorldMixin (origin
-        // tracking, portal sounds, single-use countdown, arrival portal
-        // creation). Letting them in here would double-teleport them, so the
-        // exclusion is written against PlayerEntity and not just its server
-        // subclass.
+        // Players have their own teleport path in ServerWorldMixin; letting
+        // them in here would double-teleport them. Written against
+        // PlayerEntity, not just its server subclass, so it holds for every
+        // player type.
         assertFalse(EntityPassthrough.isPassthroughType(ServerPlayerEntity.class));
         assertFalse(EntityPassthrough.isPassthroughType(PlayerEntity.class));
     }
 
     @Test
     void armourStandsStayWhereTheyWerePut() {
-        // Living, but placed rather than wandering: a stand standing inside
-        // the frame as decoration must not teleport itself away. The one
-        // living type that is decor is the one living type excluded.
+        // Living, but placed as decoration — a stand inside the frame must
+        // not teleport itself away.
         assertFalse(EntityPassthrough.isPassthroughType(ArmorStandEntity.class));
     }
 
     @Test
     void vehiclesAndBlockAttachedEntitiesNeverCross() {
-        // A boat carrying a passenger across a dimension boundary is a bigger
-        // piece of work than this phase; a boat crossing WITHOUT its passenger
-        // is worse than not crossing at all. Frames and paintings are attached
-        // to blocks that do not come with them.
+        // A boat carrying a passenger across a dimension boundary is out of
+        // scope; crossing WITHOUT the passenger is worse than not crossing.
+        // Frames and paintings are attached to blocks that do not come with
+        // them.
         assertFalse(EntityPassthrough.isPassthroughType(BoatEntity.class));
         assertFalse(EntityPassthrough.isPassthroughType(MinecartEntity.class));
         assertFalse(EntityPassthrough.isPassthroughType(ItemFrameEntity.class));
@@ -99,7 +90,7 @@ class EntityPassthroughTest {
     void theAllowListIsAllowListNotDenyList() {
         // Non-living entities still have to be named explicitly — a modded
         // one we have never heard of stays put. (Living ones are in as a
-        // class, which is the deliberate asymmetry of this phase.)
+        // class, a deliberate asymmetry.)
         assertFalse(EntityPassthrough.isPassthroughType(net.minecraft.entity.Entity.class));
         assertFalse(EntityPassthrough.isPassthroughType(null));
     }
@@ -149,11 +140,10 @@ class EntityPassthroughTest {
     @Test
     void beingOnALeadIsNotARefusal() {
         // The leash is deliberately absent from the gate set: a leashed mob
-        // is eligible, and detachLeashBeforeCrossing breaks and drops the lead
-        // immediately before the teleport. Refusing instead would strand the
-        // mob leashed to a holder in another dimension, which vanilla NEVER
-        // breaks (Leashable.tickLeash detaches on death only, and skips its
-        // distance check entirely across worlds).
+        // is eligible, and detachLeashBeforeCrossing breaks and drops the
+        // lead before the teleport. Refusing would strand the mob leashed to
+        // a holder in another dimension, which vanilla never breaks across
+        // worlds.
         assertTrue(EntityPassthrough.isPassthroughState(false, false, false, true));
     }
 
@@ -204,8 +194,7 @@ class EntityPassthroughTest {
 
     @Test
     void stationaryEntityInsideTheInteriorCounts() {
-        // Previous == current: a dropped item resting in the doorway. This is
-        // the case the RCON `summon` verification produces.
+        // Previous == current: a dropped item resting in the doorway.
         assertTrue(EntityPassthrough.crossedInterior(DOOR, 0.5, 64.5, 0.5, 0.5, 64.5, 0.5));
     }
 
@@ -257,10 +246,8 @@ class EntityPassthroughTest {
     @Test
     void entityAtTheInteriorCentreLandsInThePlayersArrivalColumn() {
         // ServerWorldMixin sends a player to (arrivalX + 0.5, surfaceY,
-        // arrivalZ + 0.5). Pass-through translates the entity's own position
-        // by the same mapping, so an entity standing in the interior's centre
-        // column must land in exactly that block — otherwise the preview, the
-        // player and the thrown item would disagree about where "through" is.
+        // arrivalZ + 0.5); pass-through applies the same mapping, so an
+        // entity in the interior's centre column lands in exactly that block.
         Set<BlockPos> interior = Set.of(new BlockPos(100, 64, 50), new BlockPos(100, 65, 50));
         ProjectionVolume.TargetMapping mapping = ProjectionVolume.scaledMapping(interior, 0.125);
 

@@ -1,14 +1,98 @@
 {
   "type": "cave",
-  "description": "Sculk-eaten caverns. The deep dark outlived the world it consumed and tunnelled on — this is where the underground sculk broke through from the ancient cities. The humans who explored too deep triggered this, and the infection never stopped.",
-  "seed": 2639304234547348987,
+  "description": "Sculk-eaten caverns. The deep dark outlived the world it consumed and tunnelled on \u2014 this is where the underground sculk broke through from the ancient cities. The humans who explored too deep triggered this, and the infection never stopped.",
+  "seed": 3554816201793271193,
   "biomes": [
-    "minecraft:deep_dark",
-    "terralith:cave/infested_caves",
-    "terralith:cave/mantle_caves",
-    "terralith:cave/fungal_caves",
-    "terralith:cave/tuff_caves",
-    "terralith:cave/deep_caves"
+    {
+      "id": "regions_unexplored:redstone_abyss",
+      "parameters": {
+        "temperature": [
+          -2.0,
+          -1.5
+        ]
+      }
+    },
+    {
+      "id": "minecraft:deep_dark",
+      "parameters": {
+        "temperature": [
+          -1.5,
+          -1.28
+        ]
+      }
+    },
+    {
+      "id": "terralith:cave/infested_caves",
+      "parameters": {
+        "temperature": [
+          -1.28,
+          -1.06
+        ]
+      }
+    },
+    {
+      "id": "terralith:cave/mantle_caves",
+      "parameters": {
+        "temperature": [
+          -1.06,
+          -0.84
+        ]
+      }
+    },
+    {
+      "id": "terralith:cave/fungal_caves",
+      "parameters": {
+        "temperature": [
+          -0.84,
+          -0.62
+        ]
+      }
+    },
+    {
+      "id": "terralith:cave/tuff_caves",
+      "parameters": {
+        "temperature": [
+          -0.62,
+          -0.4
+        ]
+      }
+    },
+    {
+      "id": "terralith:cave/deep_caves",
+      "parameters": {
+        "temperature": [
+          -0.4,
+          -0.18
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:mycotoxic_undergrowth",
+      "parameters": {
+        "temperature": [
+          -0.18,
+          1.62
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:bioshroom_caves",
+      "parameters": {
+        "temperature": [
+          1.62,
+          1.86
+        ]
+      }
+    },
+    {
+      "id": "undergroundworlds:spider_cave",
+      "parameters": {
+        "temperature": [
+          1.86,
+          2.0
+        ]
+      }
+    }
   ],
   "borders": {
     "player": 512,
@@ -44,10 +128,13 @@
   },
   "environment": {
     "fogColor": "#0B2B3B",
-    "ambientLight": 0.03
+    "ambientLight": 0.03,
+    "hasSkylight": false,
+    "monsterSpawnLightLevel": 15
   },
   "seedRoll": {
     "mood": "hard",
+    "allowHazardousSpawn": true,
     "spawnFilter": [
       "minecraft:deep_dark",
       "terralith:cave/infested_caves",
@@ -68,12 +155,20 @@
       "tavern",
       "farmstead",
       "piglin_village"
-    ],
-    "description": "Sculk-eaten caverns. The deep dark outlived the world it consumed and tunnelled on — this is where the underground sculk broke through from the ancient cities. The humans who explored too deep triggered this, and the infection never stopped."
+    ]
   },
   "spawn": [
-    0,
-    64,
-    0
-  ]
+    128,
+    46,
+    128
+  ],
+  "exits": {
+    "death": {
+      "action": "respawnAt",
+      "target": {
+        "dimension": "adventure:the_underdark",
+        "arrival": "spawn"
+      }
+    }
+  }
 }

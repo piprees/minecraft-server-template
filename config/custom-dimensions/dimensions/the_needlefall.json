@@ -1,15 +1,139 @@
 {
   "type": "multi_biome",
   "description": "Steep pine cliffs and fire towers. Human frontier country where the dramatic terrain punishes a careless step. The outposts here were built by people who respected the mountain; the dungeons were here before them.",
-  "seed": -710009041145965796,
+  "seed": -4159519402034942550,
   "noiseSettings": "adventure:compressed",
   "biomes": [
-    "natures_spirit:fir_forest",
-    "terralith:siberian_taiga",
-    "natures_spirit:coniferous_covert",
-    "minecraft:old_growth_pine_taiga",
-    "minecraft:taiga",
-    "minecraft:snowy_taiga"
+    {
+      "id": "natures_spirit:fir_forest",
+      "parameters": {
+        "weirdness": [
+          -2.0,
+          -0.19
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "terralith:siberian_taiga",
+      "parameters": {
+        "weirdness": [
+          -0.19,
+          -0.1417
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "natures_spirit:coniferous_covert",
+      "parameters": {
+        "weirdness": [
+          -0.1417,
+          -0.0933
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "minecraft:old_growth_pine_taiga",
+      "parameters": {
+        "weirdness": [
+          -0.0933,
+          -0.045
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "minecraft:taiga",
+      "parameters": {
+        "weirdness": [
+          -0.045,
+          0.0033
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "minecraft:snowy_taiga",
+      "parameters": {
+        "weirdness": [
+          0.0033,
+          0.0517
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:pine_taiga",
+      "parameters": {
+        "weirdness": [
+          0.0517,
+          0.1
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:boreal_taiga",
+      "parameters": {
+        "weirdness": [
+          0.1,
+          2.0
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "terralith:cave/frostfire_caves",
+      "parameters": {
+        "weirdness": [
+          -2.0,
+          -0.045
+        ],
+        "depth": [
+          0.1,
+          2.0
+        ]
+      }
+    },
+    {
+      "id": "terralith:cave/tuff_caves",
+      "parameters": {
+        "weirdness": [
+          -0.045,
+          2.0
+        ],
+        "depth": [
+          0.1,
+          2.0
+        ]
+      }
+    }
   ],
   "borders": {
     "player": 1024,
@@ -24,6 +148,11 @@
       "endY": 0,
       "minMultiplier": 0.8,
       "maxMultiplier": 1.6
+    }
+  },
+  "structures": {
+    "terrainAdaptation": {
+      "structory:firetower": "pedestal"
     }
   },
   "portal": {
@@ -45,12 +174,7 @@
   "seedRoll": {
     "mood": "dramatic",
     "spawnFilter": [
-      "natures_spirit:fir_forest",
-      "terralith:siberian_taiga",
-      "natures_spirit:coniferous_covert",
-      "minecraft:old_growth_pine_taiga",
-      "minecraft:taiga",
-      "minecraft:snowy_taiga"
+      "minecraft:taiga"
     ],
     "wants": {
       "firetower": "near_spawn",
@@ -65,12 +189,11 @@
     "shuns": [
       "monument",
       "coliseum"
-    ],
-    "description": "Steep pine cliffs and fire towers. Human frontier country where the dramatic terrain punishes a careless step. The outposts here were built by people who respected the mountain; the dungeons were here before them."
+    ]
   },
   "spawn": [
-    0,
-    64,
-    0
+    -128,
+    67,
+    -64
   ]
 }

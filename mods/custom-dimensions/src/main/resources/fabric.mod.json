@@ -9,6 +9,7 @@
   "license": "MIT",
   "environment": "server",
   "entrypoints": {
+    "preLaunch": ["com.customdimensions.C2meConfigPatch"],
     "server": ["com.customdimensions.MultiverseServer"]
   },
   "mixins": ["customdimensions.mixins.json"],
