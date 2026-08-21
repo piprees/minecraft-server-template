@@ -19,6 +19,16 @@ services:
     # overlay, and its absence there is what makes `winner` refuse.
     volumes:
       - ./overlay/config/custom-dimensions/dimensions:/overlay-dimensions
+      # Ledger opens its SQLite in WAL mode, whose -shm file is a SHARED
+      # mmap. Docker Desktop shares data/ over virtiofs, which does not hold
+      # that mapping coherent, and the JVM takes a SIGBUS mid-commit. ext4
+      # inside the VM does. dev-up.sh symlinks data/world/ledger.sqlite here.
+      #
+      # Mounted OUTSIDE /data: Docker Desktop accepts a volume nested inside a
+      # virtiofs bind, reports it in `docker inspect`, and never mounts it —
+      # writes land on the bind instead, which is the failure being fixed.
+      # dev-up.sh chowns it to 1000, the uid mc runs as.
+      - ledger-db:/ledger-db
     ports:
       # The seed viewer the mod hosts. Bound on every interface so it can be
       # opened from a phone on the same network. It has no authentication and
@@ -75,3 +85,6 @@ services:
       NAV_SCHEME: http
       NAV_PORT: ":${WEB_PORT:-8080}"
       NAV_EXTRA_LINKS: '<a href="http://seeds.${LOCAL_DOMAIN:-${DOMAIN:-localhost}}:${WEB_PORT:-8080}">Seeds</a>'
+
+volumes:
+  ledger-db:

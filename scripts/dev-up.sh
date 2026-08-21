@@ -370,6 +370,42 @@ if [[ -f "$DH_TOML" ]]; then
   fi
 fi
 
+# Ledger keeps its SQLite in WAL mode, and WAL needs a -shm file held as a
+# shared mmap. data/ is a virtiofs share here, which does not keep that mapping
+# coherent: the page goes out from under the mapping and the JVM dies with
+# SIGBUS (BUS_ADRERR) in the middle of a commit, taking mc with it. Point the
+# database at the ledger-db volume, which is ext4 inside the VM. SQLite derives
+# the -wal/-shm names from the RESOLVED path, so they follow it off the share.
+# Production keeps the real file: its data/ is ext4 already.
+# Vanilla refuses to load a world containing a symlink whose target is not in
+# allowed_symlinks.txt, and dies with "Found forbidden symlinks". A bare line
+# is a prefix match against the target, and the file lives in the server's top
+# directory — /data, not the world.
+LEDGER_ALLOW="$CONSUMER_DIR/data/allowed_symlinks.txt"
+if [[ ! -f "$LEDGER_ALLOW" ]] || ! grep -qx '/ledger-db' "$LEDGER_ALLOW"; then
+  echo '/ledger-db' >> "$LEDGER_ALLOW"
+fi
+
+# A fresh named volume is root-owned and mc runs as uid 1000, which Ledger
+# reports as SQLITE_CANTOPEN and a tick-loop crash. Chown through the mc image
+# so this pulls nothing.
+LEDGER_VOL="${COMPOSE_PROJECT_NAME:-${BRAND_SLUG:-myserver}}_ledger-db"
+docker volume create "$LEDGER_VOL" > /dev/null 2>&1 || true
+docker run --rm --entrypoint chown \
+  -v "$LEDGER_VOL:/ledger-db" \
+  "${MIRROR_REGISTRY:-ghcr.io/piprees/mirrors}/itzg/minecraft-server:2026.7.0-java21" \
+  1000:1000 /ledger-db > /dev/null 2>&1 || true
+
+LEDGER_DB="$CONSUMER_DIR/data/world/ledger.sqlite"
+if [[ -d "$CONSUMER_DIR/data/world" && ! -L "$LEDGER_DB" ]]; then
+  # An existing database is local audit history for a world that is about to be
+  # re-rolled anyway; keeping a crashed copy is worth less than a clean start.
+  [[ -f "$LEDGER_DB" ]] && backup "$LEDGER_DB" && rm -f "$LEDGER_DB"
+  rm -f "$LEDGER_DB-wal" "$LEDGER_DB-shm"
+  ln -sfn /ledger-db/ledger.sqlite "$LEDGER_DB"
+  echo "  ledger: database moved off the file share (SIGBUS in WAL shared memory)"
+fi
+
 # --- Enforce Discord integration config (mirrors deploy.sh step 9) ------------
 # The dcintegration mod reads its bot token from Discord-Integration.toml, NOT
 # from env vars. dev-up.sh seeds the config with skip-if-exists, so the first
