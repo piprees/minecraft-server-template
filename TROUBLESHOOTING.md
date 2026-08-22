@@ -447,25 +447,40 @@ The rendered height disagrees with the facts on high-relief columns. The error i
   back puts three first-time generations on c2me's single JVM-wide chunk
   executor (`ChunkSystemExecutors`' fields are `static final`). The same
   forceload alone on a quiet server finishes in ~2 min on 4 cores.
-- **Cause: NOT ESTABLISHED.** Leading candidate, read from bytecode but by a
-  single reader: `com.ishland.flowsched.executor.ExecutorManager.tryLock()`
-  retries a check-then-act on a mutable `freed` flag through an internal
-  `goto` with no bound and no backoff, and never reaches its
-  listener-registration line while that flag flaps. That shape is a livelock —
-  real CPU, no exception, no log line, no bound — and it matches every
-  measurement. Refuted by direct read: thread-pool starvation (the dispatch
-  path has no blocking wait at all), `recoverFromErrors` retry storms and K2's
-  CME (both need a throw that never happened).
+- **Cause: NOT ESTABLISHED.** Two candidates survive, both inside c2me, both
+  producing real CPU with no exception and no log line:
+  1. **The consolidating drain** (leading). `ChunkSystemExecutors`'
+     `consolidatingBackgroundExecutor` appends to the deque a worker is
+     already draining whenever it is called from that worker, and
+     `consolidatingRoot0` drains with an unbounded `while (!isEmpty())`. Every
+     `ItemHolder` in every dimension is built on it, so all chunk work funnels
+     through one thread — which is why the executor's size never mattered.
+  2. **A `tryLock` livelock.** `ExecutorManager.tryLock` retries an unbounded
+     `goto` with no backoff, and its own rollback releases every token it had
+     claimed on hitting a held one. `VanillaWorldGenerationDelegate
+     .runTaskWithLockArea` asks for a rectangle of `(2r+1)² + 1` tokens per
+     task, so overlapping neighbours roll each other back continuously. Tokens
+     are scoped per dimension, so this needs two workers on one dimension.
+
+  Refuted by direct read: thread-pool starvation (the dispatch path has no
+  blocking wait at all), `recoverFromErrors` retry storms and K2's CME (both
+  need a throw, and neither log surface has one), a cycle in the dependency
+  graph (it is vanilla's own acyclic DAG), and three-way worker capture (three
+  captured workers would show ~300% CPU, not the measured 116%).
 - **Guard (in place):** `deploy.sh` activates the reserved dimensions one at a
   time, skips any that already has region files, and waits for the region file
   rather than for RCON — three unanswered `save-all flush` calls end the
   deploy in ~90s instead of ~114 min. The 78-dimension setup loop breaks after
   `DIMENSION_FAILURE_LIMIT` consecutive failures. `MAX_TICK_TIME` is a real
   threshold again, so a stalled tick produces a thread dump.
-- **Next reproduction, before killing anything:** read the pegged thread's
-  name — it discriminates directly between the two candidate mechanisms
-  (`c2me-worker-N` → the `tryLock` livelock; `c2me-sched` → the single-flight
-  consolidating executor).
+- **Next reproduction, before killing anything: take a thread DUMP.** The
+  thread NAME does not discriminate — both candidates run on `c2me-worker-N`.
+  The stack does: `consolidatingRoot0`/`ArrayDeque.remove` is the drain,
+  `ExecutorManager.tryLock` is the livelock, and `pollTasks`/`onSpinWait` on an
+  empty queue means the worker is idle and the stall is elsewhere. On the main
+  thread, look for vanilla's `ServerChunkManager$MainThreadExecutor` run-tasks
+  loop — the main thread waiting there drains the chunk manager's queue but not
+  the server's, which is why RCON stops being answered.
 
   ```bash
   docker top mc -eo pid,ppid,pcpu,comm            # java is NOT pid 1
