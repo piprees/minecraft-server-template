@@ -30,6 +30,8 @@ import net.minecraft.world.gen.noise.NoiseConfig;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -40,6 +42,7 @@ import java.util.UUID;
  *   /customdim create <name> <type> <seed> [noiseSettings] [structureDensity] [biome]
  *   /customdim destroy <name>
  *   /customdim list
+ *   /customdim bank-gc [delete]
  *   /customdim locate biome <dimension> <biome_id> [timeout]
  *   /customdim locate structure <dimension> <structure_id> [timeout]
  *   /customdim locate-result <uuid>
@@ -112,6 +115,10 @@ public class DimensionCommands {
                     .executes(DimensionCommands::tryOutList))
                 .then(CommandManager.literal("list")
                     .executes(DimensionCommands::list))
+                .then(CommandManager.literal("bank-gc")
+                    .executes(ctx -> bankGc(ctx, false))
+                    .then(CommandManager.literal("delete")
+                        .executes(ctx -> bankGc(ctx, true))))
                 .then(CommandManager.literal("load")
                     .then(CommandManager.argument("name", StringArgumentType.word())
                         .executes(ctx -> load(ctx, StringArgumentType.getString(ctx, "name")))))
@@ -701,6 +708,87 @@ public class DimensionCommands {
         DimensionManager.getInstance().requestWorldLoad(name);
         source.sendFeedback(() -> Text.literal("Queued load for " + worldKey.getValue()), false);
         return 1;
+    }
+
+    /**
+     * Removes candidate banks no configured dimension can reach.
+     *
+     * <p>The bank is keyed by {@link InputHash}, which covers the whole
+     * dimension config bar the seed plus the mod's measurement-relevant bytes.
+     * Every edit to either therefore strands the previous key's renders, and
+     * nothing has ever removed one — {@code sweep} prunes seeds WITHIN a
+     * dimension dir, never across hashes. A pack that has been rolled a few
+     * times carries hundreds of unreachable banks.
+     *
+     * <p>Reports by default and deletes only on {@code bank-gc delete}. Only
+     * the mod can do this: the live hash set has to be computed, and any
+     * shell-side heuristic (mtime, say) is guessing at which banks are dead.
+     */
+    private static int bankGc(CommandContext<ServerCommandSource> ctx, boolean delete) {
+        ServerCommandSource source = ctx.getSource();
+        Path root = Artefacts.rollingDir().resolve("candidates");
+        if (!Files.isDirectory(root)) {
+            source.sendFeedback(() -> Text.literal("No candidate bank on disk"), false);
+            return 0;
+        }
+        Set<String> live = new HashSet<>();
+        for (DimensionConfig def : MultiverseConfig.getInstance().getAllDimensions()) {
+            live.add(InputHash.of(def, source.getServer()));
+        }
+        long bytes = 0;
+        int stale = 0;
+        int failed = 0;
+        try (var entries = Files.list(root)) {
+            for (Path dir : entries.filter(Files::isDirectory).toList()) {
+                if (live.contains(dir.getFileName().toString())) {
+                    continue;
+                }
+                stale++;
+                bytes += sizeOf(dir);
+                if (delete && !deleteTree(dir)) {
+                    failed++;
+                }
+            }
+        } catch (IOException e) {
+            source.sendError(Text.literal("Could not read the bank: " + e));
+            return 0;
+        }
+        int megabytes = (int) (bytes / (1024 * 1024));
+        String verb = delete ? "Deleted" : "Would delete";
+        int finalStale = stale;
+        int finalFailed = failed;
+        source.sendFeedback(() -> Text.literal(verb + " " + finalStale + " unreachable bank(s), "
+                + megabytes + " MB; " + live.size() + " live"
+                + (finalFailed > 0 ? " (" + finalFailed + " could not be removed)" : "")
+                + (delete ? "" : " — run 'customdim bank-gc delete' to remove them")), false);
+        return stale;
+    }
+
+    private static long sizeOf(Path dir) {
+        try (var walk = Files.walk(dir)) {
+            return walk.filter(Files::isRegularFile).mapToLong(p -> {
+                try {
+                    return Files.size(p);
+                } catch (IOException e) {
+                    return 0L;
+                }
+            }).sum();
+        } catch (IOException e) {
+            return 0L;
+        }
+    }
+
+    /** Depth-first so children go before their parent. */
+    private static boolean deleteTree(Path dir) {
+        try (var walk = Files.walk(dir)) {
+            for (Path p : walk.sorted(java.util.Comparator.reverseOrder()).toList()) {
+                Files.deleteIfExists(p);
+            }
+            return true;
+        } catch (IOException e) {
+            MultiverseServer.LOGGER.warn("Could not remove stale bank {}: {}", dir, e.toString());
+            return false;
+        }
     }
 
     private static int list(CommandContext<ServerCommandSource> ctx) {
