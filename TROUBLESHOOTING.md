@@ -79,7 +79,7 @@ Run this first. It covers deploy drift, disk, every expected container, `ONLINE_
 | `Error upgrading chunk`, RCON i/o-timeout, container healthy | [K1](#k1) |
 | `TheChunkSystem` ConcurrentModificationException | [K2](#k2) |
 | The map looks imprecise on steep terrain | [K5](#k5) |
-| A fresh-world deploy stops answering RCON forever, no exception, one thread pegged | [K6](#k6) |
+| A chunk never finishes generating; RCON accepted but never answered, one thread pegged, nothing thrown | [K6](#k6) |
 | Can't connect / server won't start / backups failing / lag | [Common symptoms](#common-symptoms) |
 
 ---
@@ -430,76 +430,60 @@ The rendered height disagrees with the facts on high-relief columns. The error i
 **Ruled out by measurement — do not re-try these:** the interpolation rewrite (±9+ 608 → 594, then 594 → 594 at the marker), router trimming, cell geometry, off-corner sampling, the rung blind spot, and substituting `initialDensityWithoutJaggedness` (tried and REVERTED — it moved the wisteria anchor 8 → 1011 and stripped every ceilinged dimension of its ground). Vanilla's beardifier and this mod's `KernelDensity` are both structurally incapable of it ([T27](#t27)). The most promising unexplored lead is an off-thread benchmark of vanilla's own `getHeight`; the "~23 ms/column, so the honest height source is unaffordable" figure was wrong, because it came from `render-check`, which is tick-budget-bound at 12 ms a tick, not CPU-bound. `customdim column-ladder <dim> <seed> <x> <z>` prints one column's block ladder beside its density ladder and is the tool for this. **Related:** `the_abyssal_shrine` is excluded from the CI render-check gate — it has never satisfied it (median 2 / 1 / −10 across three seeds). Restore it when this closes.
 
 <a id="k6"></a>
-### K6 — Concurrent first-time chunk generation in several dimensions wedges the main thread
+### K6 — A worldgen feature that never returns wedges the main thread
 
-- **Symptom:** on a world with no region files (a `reset-seed`, or a first
-  deploy), the deploy's dimension-activation step stops returning. The
-  container stays healthy, RCON's listener keeps accepting connections
-  (`Thread RCON Client ... started` repeats in `data/logs/latest.log`) and no
-  command after the last forceload confirmation ever completes. One
-  `c2me-worker-N` thread sits RUNNABLE at ~100%, the rest of the JVM is idle,
-  and **nothing throws** — no exception, no `Error upgrading chunk`, no GC
-  warning, at info level or above. It does not recover; measured at 26 min and
-  2h47m before being killed by hand.
-- **Trigger, established:** more than one dimension generating its first
-  chunk at the same time. `forceload add` returns as soon as its ticket
-  registers, so issuing it for the nether, the End and paradise_lost back to
-  back puts three first-time generations on c2me's single JVM-wide chunk
-  executor (`ChunkSystemExecutors`' fields are `static final`). The same
-  forceload alone on a quiet server finishes in ~2 min on 4 cores.
-- **Cause: NOT ESTABLISHED.** Two candidates survive, both inside c2me, both
-  producing real CPU with no exception and no log line:
-  1. **The consolidating drain** (leading). `ChunkSystemExecutors`'
-     `consolidatingBackgroundExecutor` appends to the deque a worker is
-     already draining whenever it is called from that worker, and
-     `consolidatingRoot0` drains with an unbounded `while (!isEmpty())`. Every
-     `ItemHolder` in every dimension is built on it, so all chunk work funnels
-     through one thread — which is why the executor's size never mattered.
-  2. **A `tryLock` livelock.** `ExecutorManager.tryLock` retries an unbounded
-     `goto` with no backoff, and its own rollback releases every token it had
-     claimed on hitting a held one. `VanillaWorldGenerationDelegate
-     .runTaskWithLockArea` asks for a rectangle of `(2r+1)² + 1` tokens per
-     task, so overlapping neighbours roll each other back continuously. Tokens
-     are scoped per dimension, so this needs two workers on one dimension.
-
-  Refuted by direct read: thread-pool starvation (the dispatch path has no
-  blocking wait at all), `recoverFromErrors` retry storms and K2's CME (both
-  need a throw, and neither log surface has one), a cycle in the dependency
-  graph (it is vanilla's own acyclic DAG), and three-way worker capture (three
-  captured workers would show ~300% CPU, not the measured 116%).
-- **Guard (in place):** `deploy.sh` activates the reserved dimensions one at a
-  time, skips any that already has region files, and waits for the region file
-  rather than for RCON — three unanswered `save-all flush` calls end the
-  deploy in ~90s instead of ~114 min. The 78-dimension setup loop breaks after
-  `DIMENSION_FAILURE_LIMIT` consecutive failures. `MAX_TICK_TIME` is a real
-  threshold again, so a stalled tick produces a thread dump.
-- **Next reproduction, before killing anything: take a thread DUMP.** The
-  thread NAME does not discriminate — both candidates run on `c2me-worker-N`.
-  The stack does: `consolidatingRoot0`/`ArrayDeque.remove` is the drain,
-  `ExecutorManager.tryLock` is the livelock, and `pollTasks`/`onSpinWait` on an
-  empty queue means the worker is idle and the stall is elsewhere. On the main
-  thread, look for vanilla's `class_3215$class_4212.method_18857` — the
-  chunk manager's own run-tasks-until-condition loop. A main thread waiting
-  there drains the chunk manager's queue but not the server's, which would
-  explain accepted-but-never-answered RCON. INFERRED: that call site is
-  vanilla and outside the decompiled tree, so nobody has read whether it
-  spins or parks.
-
-  ```bash
-  docker top mc -eo pid,ppid,pcpu,comm            # java is NOT pid 1
-  docker exec mc kill -QUIT <java_pid>            # JVM thread dump, no tooling needed
-  docker exec mc sh -c 'for t in /proc/<java_pid>/task/*; do echo "$(cat $t/comm) $(awk "{print \$3}" $t/stat)"; done'
-  ```
-
-- **An exception hunt needs BOTH log surfaces.** `data/logs/latest.log` is the
-  unfiltered one for anything log4j routes — the console appender DENYs
-  `.*Thread RCON.*` and the chunk-executor errors, so reading `docker logs`
-  for those reports zero and inverts the conclusion. But a raw
-  `Throwable.printStackTrace()` never reaches log4j at all and lands ONLY in
-  the container's stderr, which is what `docker logs` shows. c2me's
-  consolidating drain catches that way, so "no exceptions in latest.log" does
-  not cover it. Check the file for logged errors and `docker logs` for bare
-  `at ...` stack frames.
+- **Symptom:** a dimension's first chunk never finishes generating. The container
+  stays healthy, RCON's listener keeps accepting connections and no command
+  completes. One `c2me-worker-N` thread is RUNNABLE at ~100%, every other worker
+  is `WAITING` on its semaphore, and **nothing throws** on either log surface.
+  It does not recover.
+- **Cause — ESTABLISHED, from a watchdog thread dump.** A feature in the
+  `minecraft:features` chunk step does not return. The main thread is parked in
+  `ServerChunkManager.getChunkBlocking` → `MainThreadExecutor.runTasks`
+  (`class_3215$class_4212.method_18857`), waiting on a chunk future that can
+  never complete, and that call drains the chunk manager's queue rather than the
+  server's — which is why RCON connections are accepted and never answered.
+- **The known instance, FIXED:** `wilderwild`'s
+  `SnowBlanketFeature.findLowestHeightForSnow` walks down looking for ground
+  with no lower bound, and below the world floor every read is `VOID_AIR` —
+  registered as air — so a column with no ground never ends the walk.
+  `SnowBlanketVoidFloorMixin` (`@Pseudo`, gated on `isModLoaded("wilderwild")`)
+  redirects that one read to return bedrock below `getBottomY()`. The walk then
+  ends at the floor and the feature's own `height > bottomHeight` check skips
+  the column, so the feature keeps working everywhere it already did.
+- **Which dimensions were exposed:** a dimension hangs iff a biome in its list
+  declares `minecraft:freeze_top_layer` AND its chunks contain a column with no
+  solid, non-search-through block beneath the heightmap. Generator shape alone
+  decides nothing — `the_end` is safe because `TheEndBiomeCreator` never calls
+  `addFrozenTopLayer`, despite being full of void. Twelve qualified. The `cave`
+  type is clean: it is built on `minecraft:caves`, which gets a bedrock floor.
+- **The hang is temperature-independent.** The search runs for all 256 columns
+  before any warmth check, so a jungle sky-island hangs exactly like a snowy
+  one.
+- **Fallback if the mixin ever has to be dropped:** `snowBelowTrees: false` in
+  `config/wilderwild/worldgen.json5` is the exact and only gate on this feature
+  (it costs snow under tree canopies; `snowTransitions` and `snowPiles` are
+  separate). Shipping it needs the two-place treatment — the file plus a `COPY`
+  in `docker/defaults-seed/Dockerfile`.
+- **Concurrency is NOT the trigger.** Activating one dimension at a time,
+  `the_nether` generated in 6 seconds and `paradise_lost` wedged alone with two
+  workers idle. Earlier runs correlated the hang with three simultaneous
+  forceloads because paradise_lost was always among them.
+- **c2me is a bystander.** Its chunk system is what the main thread waits on,
+  not what fails. The consolidating drain and the `ExecutorManager.tryLock`
+  retry are both real and both innocent here.
+- **This is [K1](#k1) without the throw.** K1 is "a chunk that cannot generate
+  wedges the main thread" via an exception leaving the future uncompleted; this
+  is the same wedge reached by a feature that simply never returns. Treat "a
+  synchronous chunk load can hang forever" as the invariant either way.
+- **Guard (in place):** `deploy.sh` activates reserved dimensions one at a time,
+  skips any that already has region files, and waits on the region file — three
+  unanswered `save-all flush` calls end the deploy in ~90s. `MAX_TICK_TIME`
+  (180000) then crashes the JVM and writes the thread dump that names the
+  offending feature. Measured end to end: 36s to a loud failure, dump at 180s.
+- **Diagnosing a new instance:** read `data/crash-reports/` after the watchdog
+  fires. The pegged `c2me-worker-N` stack names the feature and
+  `Upgrading chunk [x, z] to <status> in world <dim>` names the chunk.
 
 ---
 

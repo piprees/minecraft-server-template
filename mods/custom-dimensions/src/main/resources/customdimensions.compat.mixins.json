@@ -1,0 +1,13 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "com.customdimensions.mixin.compat",
+  "compatibilityLevel": "JAVA_21",
+  "plugin": "com.customdimensions.mixin.compat.WilderWildMixinPlugin",
+  "mixins": [
+    "SnowBlanketVoidFloorMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

@@ -9,10 +9,17 @@
   "license": "MIT",
   "environment": "server",
   "entrypoints": {
-    "preLaunch": ["com.customdimensions.C2meConfigPatch"],
-    "server": ["com.customdimensions.MultiverseServer"]
+    "preLaunch": [
+      "com.customdimensions.C2meConfigPatch"
+    ],
+    "server": [
+      "com.customdimensions.MultiverseServer"
+    ]
   },
-  "mixins": ["customdimensions.mixins.json"],
+  "mixins": [
+    "customdimensions.mixins.json",
+    "customdimensions.compat.mixins.json"
+  ],
   "depends": {
     "fabricloader": ">=0.16.0",
     "fabric-api": "*",
