@@ -478,9 +478,12 @@ The rendered height disagrees with the facts on high-relief columns. The error i
   The stack does: `consolidatingRoot0`/`ArrayDeque.remove` is the drain,
   `ExecutorManager.tryLock` is the livelock, and `pollTasks`/`onSpinWait` on an
   empty queue means the worker is idle and the stall is elsewhere. On the main
-  thread, look for vanilla's `ServerChunkManager$MainThreadExecutor` run-tasks
-  loop — the main thread waiting there drains the chunk manager's queue but not
-  the server's, which is why RCON stops being answered.
+  thread, look for vanilla's `class_3215$class_4212.method_18857` — the
+  chunk manager's own run-tasks-until-condition loop. A main thread waiting
+  there drains the chunk manager's queue but not the server's, which would
+  explain accepted-but-never-answered RCON. INFERRED: that call site is
+  vanilla and outside the decompiled tree, so nobody has read whether it
+  spins or parks.
 
   ```bash
   docker top mc -eo pid,ppid,pcpu,comm            # java is NOT pid 1
@@ -488,9 +491,15 @@ The rendered height disagrees with the facts on high-relief columns. The error i
   docker exec mc sh -c 'for t in /proc/<java_pid>/task/*; do echo "$(cat $t/comm) $(awk "{print \$3}" $t/stat)"; done'
   ```
 
-- **Forensics go to the file, never `docker logs`.** The console appender
-  DENYs `.*Thread RCON.*` and the chunk-executor errors; reading it instead of
-  `data/logs/latest.log` reports zero and inverts the conclusion.
+- **An exception hunt needs BOTH log surfaces.** `data/logs/latest.log` is the
+  unfiltered one for anything log4j routes — the console appender DENYs
+  `.*Thread RCON.*` and the chunk-executor errors, so reading `docker logs`
+  for those reports zero and inverts the conclusion. But a raw
+  `Throwable.printStackTrace()` never reaches log4j at all and lands ONLY in
+  the container's stderr, which is what `docker logs` shows. c2me's
+  consolidating drain catches that way, so "no exceptions in latest.log" does
+  not cover it. Check the file for logged errors and `docker logs` for bare
+  `at ...` stack frames.
 
 ---
 
