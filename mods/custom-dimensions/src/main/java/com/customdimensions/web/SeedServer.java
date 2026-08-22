@@ -26,13 +26,11 @@ import java.util.concurrent.Executors;
  * <p>Reads come off the request thread; anything that touches a world is
  * queued onto the server thread by the code it calls.
  *
- * <p>Off by default in production by construction: nothing publishes this
- * port outside the container except {@code docker-compose.local.yml}, and
- * {@code SEED_VIEWER_PORT=0} disables the listener entirely.
+ * <p>Off unless {@code SEED_VIEWER_PORT} names a port: only
+ * {@code docker-compose.local.yml} sets one, and only it publishes the port
+ * outside the container.
  */
 public final class SeedServer {
-
-    private static final int DEFAULT_PORT = 8765;
 
     private static HttpServer server;
 
@@ -42,7 +40,7 @@ public final class SeedServer {
     public static void start(MinecraftServer minecraftServer) {
         int port = configuredPort();
         if (port <= 0) {
-            MultiverseServer.LOGGER.info("Seed viewer disabled (SEED_VIEWER_PORT=0)");
+            MultiverseServer.LOGGER.info("Seed viewer disabled (SEED_VIEWER_PORT unset or 0)");
             return;
         }
         if (server != null) {
@@ -77,15 +75,23 @@ public final class SeedServer {
         }
     }
 
-    private static int configuredPort() {
+    /**
+     * The listener has no authentication, can teleport a player and writes
+     * into the consumer overlay, so an unset or unreadable value means OFF.
+     * Both compose files set it explicitly; anything that does not is a path
+     * this server was never meant to run on.
+     */
+    static int configuredPort() {
         String raw = System.getenv("SEED_VIEWER_PORT");
         if (raw == null || raw.isBlank()) {
-            return DEFAULT_PORT;
+            return 0;
         }
         try {
             return Integer.parseInt(raw.trim());
         } catch (NumberFormatException e) {
-            return DEFAULT_PORT;
+            MultiverseServer.LOGGER.warn(
+                    "SEED_VIEWER_PORT is not a number ({}) — seed viewer disabled", raw);
+            return 0;
         }
     }
 
