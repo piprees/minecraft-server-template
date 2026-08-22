@@ -636,6 +636,9 @@ class SyncBot(discord.Client):
 
         commands = []
         new_state: dict[str, tuple[bool, bool]] = {}
+        # Which commands belong to which member, so a member whose RCON call
+        # failed keeps its old state and is retried next cycle.
+        member_commands: dict[str, list[str]] = {}
 
         for discord_id, mc_name in list(mappings.items()):
             if not MC_USERNAME_RE.match(mc_name):
@@ -655,25 +658,38 @@ class SyncBot(discord.Client):
             if current == previous:
                 continue
 
+            mine: list[str] = []
             if has_player or has_admin:
-                commands.append(f"whitelist add {mc_name}")
+                mine.append(f"whitelist add {mc_name}")
             if has_admin:
-                commands.append(f"op {mc_name}")
+                mine.append(f"op {mc_name}")
             if not has_player and not has_admin:
-                commands.append(f"whitelist remove {mc_name}")
-                commands.append(f"deop {mc_name}")
+                mine.append(f"whitelist remove {mc_name}")
+                mine.append(f"deop {mc_name}")
             if has_player and not has_admin:
-                commands.append(f"deop {mc_name}")
+                mine.append(f"deop {mc_name}")
 
+            commands.extend(mine)
+            member_commands[discord_id] = mine
             new_state[discord_id] = current
 
         if commands:
-            await async_rcon_batch(commands)
-            self._last_sync_state.update(new_state)
+            results = await async_rcon_batch(commands)
+            # A command the server never answered has NOT been applied.
+            # Recording it as applied is how a player stays off the whitelist
+            # for good: the next cycle sees no state change and skips them.
+            applied = {
+                discord_id: state
+                for discord_id, state in new_state.items()
+                if all(results.get(cmd) is not None for cmd in member_commands[discord_id])
+            }
+            self._last_sync_state.update(applied)
+            deferred = len(new_state) - len(applied)
             log.info(
-                "Sync cycle - %d commands sent for %d state changes",
+                "Sync cycle - %d commands sent for %d state changes (%d deferred)",
                 len(commands),
-                len(new_state),
+                len(applied),
+                deferred,
             )
 
 
