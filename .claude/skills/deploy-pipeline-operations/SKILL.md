@@ -78,6 +78,26 @@ ssh -i ~/.ssh/mc_deploy_key deploy@$DROPLET_HOST \
 
 `./ops update` (→ `scripts/remote-update.sh`) is the scripted equivalent: pulls the stack bundle, pulls images, rebuilds the modpack, then runs `deploy.sh --non-interactive` and refreshes `kuma-init` — all over SSH, outside CI.
 
+## Exercising deploy.sh without a server
+
+`deploy.sh` only ever runs on the Linux server, so nothing in the normal test
+path executes it — `dev-up.sh` is a different script and the smoke test boots
+the local profile. Two levels are available:
+
+- **The blocks**, via `scripts/tests/test_deploy_activation.py`: it slices the
+  activation block and the dimension loop out of the shipped file by anchor
+  strings and runs them under stubbed `docker`/`rcon`/`sleep`. This is what
+  covers the K6 guards and the breakers.
+- **The whole script**, in a throwaway Debian container with a stub `docker`
+  on `PATH` (`bash -c 'case "$*" in *rcon-cli*) exit 1;; *) exit 0;; esac'`).
+  Lay out a fake `~/server` with `.env`, `.stack/current/stack/{scripts,config}`
+  and a `VERSION`, then run it. It gets as far as the stack-mods volume check
+  before failing, which is enough to exercise the lock, the EXIT trap, the
+  config seed and the TOML forcer against real files.
+
+Neither reaches the activation block itself — that needs an mc container
+answering RCON. Say so rather than implying a green run proves it.
+
 ## The deploy lock
 
 `deploy.sh` and `infra-deploy.sh` take an exclusive `flock` on `~/server/.deploy.lock` before touching anything; `harden.sh` refuses to run while it is held (it restarts Docker) and `reset-seed.sh` checks it over SSH before it starts deleting. A refusal names the holder, its pid and its start time. A killed holder frees it once its last child exits, up to ~30s. To inspect:
