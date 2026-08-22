@@ -385,12 +385,36 @@ class ShippedTextTests(unittest.TestCase):
                     "timeout", line, f"{name}: unbounded rcon call: {line.strip()}"
                 )
 
-    def test_the_whitelist_is_restored_however_the_deploy_exits(self):
+    def test_the_step_12_lockdown_is_undone_however_the_deploy_exits(self):
+        """Whitelist, discord-sync and quiet-boot rules all outlive an exit."""
         text = DEPLOY_SH.read_text()
-        self.assertIn("restore_whitelist_on_abort", text)
         traps = re.findall(r"^trap '([^']*)' EXIT", text, re.M)
         self.assertTrue(traps, "no EXIT trap found")
-        self.assertIn("restore_whitelist_on_abort", traps[-1])
+        self.assertIn("restore_after_abort", traps[-1])
+
+        body = text[text.index("restore_after_abort() {") :]
+        body = body[: body.index("\n}\n")]
+        self.assertIn("restore_whitelist", body)
+        self.assertIn("docker start discord-sync", body)
+        self.assertIn("restore_game_rules", body)
+
+    def test_the_game_rules_have_one_definition(self):
+        """The trap and the happy path must not drift apart."""
+        text = DEPLOY_SH.read_text()
+        self.assertEqual(
+            text.count('rcon "gamerule doMobSpawning true"'),
+            1,
+            "the live game-rule list is duplicated",
+        )
+
+    def test_every_early_exit_sits_under_the_trap(self):
+        """An exit before the trap is registered would restore nothing."""
+        text = DEPLOY_SH.read_text()
+        trap_at = text.index("trap 'restore_after_abort")
+        for match in re.finditer(r"^\s*exit 1$", text, re.M):
+            if match.start() < trap_at:
+                line = text.count("\n", 0, match.start()) + 1
+                self.fail(f"exit 1 at line {line} is above the EXIT trap")
 
 
 if __name__ == "__main__":

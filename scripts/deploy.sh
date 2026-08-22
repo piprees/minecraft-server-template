@@ -32,8 +32,10 @@
 #     server (K6). The deploy exits 1 rather than grinding on when the
 #     server stops answering — ACTIVATION_STALL_LIMIT unanswered flushes,
 #     or DIMENSION_FAILURE_LIMIT consecutive dimension-load failures.
-#   - Exiting between the whitelist clear and its restore leaves players
-#     locked out (T5), so the EXIT trap restores it.
+#   - Step 12 locks the server down (whitelist emptied, discord-sync
+#     stopped, quiet-boot game rules) and step 15 undoes it. Any exit in
+#     between goes through the EXIT trap's restore_after_abort, or the
+#     server comes back unjoinable with nothing spawning (T5).
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -208,10 +210,39 @@ restore_whitelist() {
   WHITELIST_CLEARED=0
 }
 
-restore_whitelist_on_abort() {
+# Live game rules. Quiet boot writes the opposites at step 12 and they
+# persist in level.dat, so they outlive the deploy that set them.
+restore_game_rules() {
+  rcon "gamerule doMobSpawning true"
+  rcon "gamerule randomTickSpeed 3"
+  rcon "gamerule doDaylightCycle true"
+  rcon "gamerule doWeatherCycle true"
+  rcon "gamerule doFireTick true"
+  rcon "gamerule doInsomnia false"
+  rcon "gamerule playersSleepingPercentage 50"
+  rcon "gamerule spawnRadius 0"
+  rcon "gamerule forgiveDeadPlayers true"
+  rcon "gamerule universalAnger false"
+  rcon "gamerule mobGriefing true"
+  rcon "gamerule playersNetherPortalDefaultDelay 0"
+}
+
+# Step 12 locks the server down — whitelist emptied, discord-sync stopped,
+# quiet-boot game rules written. Step 15 undoes it. Anything that exits in
+# between must undo it too, or the server comes back with nobody able to
+# join, no Discord bot and a world where nothing spawns or ticks.
+restore_after_abort() {
   [[ "${WHITELIST_CLEARED:-0}" -eq 1 ]] || return 0
-  echo "==> Deploy ended with the whitelist cleared — restoring it" >&2
+  echo "==> Deploy ended early — restoring player access" >&2
   restore_whitelist || echo "  Warning: whitelist restore failed; run 'whitelist on' by hand" >&2
+  docker start discord-sync 2> /dev/null || true
+  if server_alive; then
+    restore_game_rules
+    echo "  Whitelist, discord-sync and game rules restored" >&2
+  else
+    echo "  Server is not answering: quiet-boot game rules stay in level.dat" >&2
+    echo "  (nothing spawns or ticks). The next successful deploy clears them." >&2
+  fi
 }
 
 # Kuma maintenance window for the whole deploy: monitors show "maintenance"
@@ -249,7 +280,7 @@ pause_backups
 # Replaces the earlier resume-only trap: close the maintenance window,
 # release the autopause suspension, and restart backups however the
 # deploy exits.
-trap 'restore_whitelist_on_abort; kuma_maintenance stop; resume_autopause; resume_backups' EXIT
+trap 'restore_after_abort; kuma_maintenance stop; resume_autopause; resume_backups' EXIT
 
 msg() {
   local key="$1"
@@ -950,18 +981,7 @@ fi
 # and cycles come back here, at the very end, once dimension work is done.
 echo ""
 echo "==> Enforcing game rules..."
-rcon "gamerule doMobSpawning true"
-rcon "gamerule randomTickSpeed 3"
-rcon "gamerule doDaylightCycle true"
-rcon "gamerule doWeatherCycle true"
-rcon "gamerule doFireTick true"
-rcon "gamerule doInsomnia false"
-rcon "gamerule playersSleepingPercentage 50"
-rcon "gamerule spawnRadius 0"
-rcon "gamerule forgiveDeadPlayers true"
-rcon "gamerule universalAnger false"
-rcon "gamerule mobGriefing true"
-rcon "gamerule playersNetherPortalDefaultDelay 0"
+restore_game_rules
 echo "  Game rules set (quiet-boot mode off)"
 
 # Re-enable DH distant generation (disabled at step 8c to keep its worldgen
