@@ -23,7 +23,7 @@ Release notes are auto-generated from conventional commits by [git-cliff](https:
 1. Generates per-release notes → injected into the GitHub release body
 2. Regenerates `CHANGELOG.md` → committed to main
 
-`./dev update` prints the release URL when the version changes, so consumers can see what's new. Commit message quality directly determines changelog quality — see [CONTRIBUTING.md](../CONTRIBUTING.md#commit-conventions) for the format.
+`./dev update` prints the release URL when the version changes, so consumers can see what's new. Commit message quality directly determines changelog quality — see [CONTRIBUTING.md](../../../CONTRIBUTING.md#commit-conventions) for the format.
 
 ## Tag protection
 

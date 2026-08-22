@@ -8,7 +8,7 @@ registered but not listed below. Read `config/custom-dimensions/extractors/biome
 for the live set — it holds 350 biomes against this file's 229 — and
 `scripts/check-content-coverage.py` for which of them any dimension actually names.
 All five place through TerraBlender or a lithostitched injector, so every one of their
-biomes needs an explicit `parameters` band ([TROUBLESHOOTING.md#t19](../../../TROUBLESHOOTING.md#t19)).
+biomes needs an explicit `parameters` band ([TROUBLESHOOTING.md#t19](../../../../TROUBLESHOOTING.md#t19)).
 
 **Only use ids listed here.** A biome id not in this file will be silently filtered out by the mod — no error, no warning, and if your entire biomes list gets filtered to empty, the dimension falls back to `minecraft:plains`.
 

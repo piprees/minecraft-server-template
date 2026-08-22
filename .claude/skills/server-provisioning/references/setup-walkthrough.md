@@ -385,6 +385,6 @@ sudo zerotier-cli leave <network-id>
 ## What's next
 
 - **Roll seeds**: `./dev seed-roll` to find a great world seed before launch
-- **Manage players**: see [COMMANDS.md](../COMMANDS.md) for the Discord `/register` flow and admin commands
+- **Manage players**: see [COMMANDS.md](../../../COMMANDS.md) for the Discord `/register` flow and admin commands
 - **Local development**: `./dev up` to run everything locally
 - **Troubleshooting**: see the README's troubleshooting section for common issues

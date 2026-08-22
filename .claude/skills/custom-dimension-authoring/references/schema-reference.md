@@ -306,7 +306,7 @@ Noise placement is the default for every managed dimension; these fields overrid
 | `structures.rarity` | `{set_id: tier}` | derived from spacing | `common` / `uncommon` / `rare` / `endgame`. Changes a set's share of its group's placements, and can move it between groups — the `endgame` group requires a rare-or-rarer tier. Uses structure SET ids. |
 | `structures.exclude` | `string[]` | `[]` | Structure SET ids removed from the noise pool entirely. |
 | `structures.include` | `string[]` | `[]` | Structure SET ids forced into the pool, bypassing the biome filter. The escape hatch for a filter that is too aggressive. |
-| `structures.force[].y` | int | (none) | Pins the placement to this height, so it needs no ground and hangs where you put it. Absent, the structure finds its own ground and declines when there is none. Required in a `void` dimension — `customdim lint` reports `force_needs_y`. See [TROUBLESHOOTING.md#t33](../../../TROUBLESHOOTING.md#t33). |
+| `structures.force[].y` | int | (none) | Pins the placement to this height, so it needs no ground and hangs where you put it. Absent, the structure finds its own ground and declines when there is none. Required in a `void` dimension — `customdim lint` reports `force_needs_y`. See [TROUBLESHOOTING.md#t33](../../../../TROUBLESHOOTING.md#t33). |
 | `structures.force[].exclusive` | boolean | `true` | Whether forcing a structure also removes it from the noise pool. Absent = true. |
 
 **Groups:** `deco`, `settlements`, `dungeons`, `landmarks`, `maritime`, `endgame`, `loot`. Which are enabled comes from the world type — see `config/custom-dimensions/structure-type-defaults.json`, and `config/custom-dimensions/structure-groups.json` for every set's classification.
