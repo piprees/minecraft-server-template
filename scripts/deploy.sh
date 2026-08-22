@@ -980,6 +980,9 @@ PYEOF
       else
         FAILED_STREAK=0
       fi
+      # An `Unknown` reply deliberately neither counts nor RESETS the streak.
+      # It proves the server answered, but a wedge cannot produce one at all,
+      # so resetting on it would only ever delay a real trip.
     else
       FAILED_STREAK=$((FAILED_STREAK + 1))
     fi
