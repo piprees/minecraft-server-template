@@ -32,6 +32,9 @@ fi
 # The stack dir contains docker-compose.yml etc.
 STACK_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 
+# shellcheck disable=SC1091
+source "$SCRIPT_DIR/lib.sh"
+
 # --- Parse command ------------------------------------------------------------
 ACTION="${1:-up}"
 
@@ -354,20 +357,13 @@ PYEOF
 # generator per level, all writing SQLite onto the Docker Desktop file share.
 DH_TOML="$CONSUMER_DIR/data/config/DistantHorizons.toml"
 if [[ -f "$DH_TOML" ]]; then
-  DH_SEDS=(
-    -e 's/logGarbageCollectorWarning = true/logGarbageCollectorWarning = false/'
-    -e 's/showGarbageCollectorWarning = true/showGarbageCollectorWarning = false/'
-    -e 's/logExplicitGcDisabledWarning = true/logExplicitGcDisabledWarning = false/'
-    -e 's/showExplicitGcDisabledWarning = true/showExplicitGcDisabledWarning = false/'
-    -e 's/enableDistantGeneration = true/enableDistantGeneration = false/'
-    -e 's/enableServerGeneration = true/enableServerGeneration = false/'
-    -e 's/enableRealTimeUpdates = true/enableRealTimeUpdates = false/'
-  )
-  if [[ "$(uname)" == "Darwin" ]]; then
-    sed -i '' "${DH_SEDS[@]}" "$DH_TOML"
-  else
-    sed -i "${DH_SEDS[@]}" "$DH_TOML"
-  fi
+  dh_silence_warnings "$DH_TOML"
+  # Local-only: no distant, server-side or real-time generation in dev.
+  sed_i \
+    -e 's/enableDistantGeneration = true/enableDistantGeneration = false/' \
+    -e 's/enableServerGeneration = true/enableServerGeneration = false/' \
+    -e 's/enableRealTimeUpdates = true/enableRealTimeUpdates = false/' \
+    "$DH_TOML"
 fi
 
 # Ledger keeps its SQLite in WAL mode, and WAL needs a -shm file held as a

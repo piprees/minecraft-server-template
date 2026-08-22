@@ -219,6 +219,24 @@ echo ""
 echo "==> Starting world reset..."
 
 # =============================================================================
+# 1b. Refuse to start while the server is busy
+# =============================================================================
+# Everything below stops containers and deletes the world. A CI deploy running
+# at the same time recreates what this deletes and races the restart. The lock
+# lives on the server (lib.sh's acquire_deploy_lock); check it from here rather
+# than take it, because deploy.sh at step 8 must be able to take it itself.
+echo ""
+echo "==> Checking the server is not mid-deploy..."
+if ssh -i "$SSH_KEY" "$REMOTE" \
+  "test -f ${REMOTE_DIR}/.deploy.lock && ! flock -n ${REMOTE_DIR}/.deploy.lock true" 2> /dev/null; then
+  echo "ERROR: a server operation is in progress:" >&2
+  ssh -i "$SSH_KEY" "$REMOTE" "cat ${REMOTE_DIR}/.deploy.lock" 2> /dev/null >&2 || true
+  echo "  Wait for it to finish before resetting the world." >&2
+  exit 1
+fi
+echo "  Server is idle."
+
+# =============================================================================
 # 2. Backup - restic snapshot via backup-now.sh (hot; needs mc up for save-off)
 # =============================================================================
 if [[ "$WIPE_BACKUPS" == true ]]; then

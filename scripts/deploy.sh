@@ -117,8 +117,14 @@ suspend_autopause() {
 resume_autopause() {
   docker exec mc sh -c 'rm -f /data/.skip-pause-deploying; [ -e /data/.skip-pause-idle ] || rm -f /data/.skip-pause' 2> /dev/null || true
 }
-suspend_autopause
+# Before anything is touched: a concurrent deploy, infra deploy or harden run
+# gives SSH timeouts, broken healthchecks and half-applied config.
+acquire_deploy_lock "deploy.sh"
+
+# Trap first, then act — a suspension that fails must still be released, and a
+# resume against files that were never created is a no-op.
 trap resume_autopause EXIT
+suspend_autopause
 
 # --- helpers ------------------------------------------------------------------
 # Hard 30s cap per RCON call: a single hung command (e.g. a wedged main
@@ -575,13 +581,9 @@ PYEOF
 # [common.logging.warning] in DistantHorizons.toml.
 DH_TOML="$SERVER_DIR/data/config/DistantHorizons.toml"
 if [[ -f "$DH_TOML" ]]; then
-  sed -i \
-    -e 's/logGarbageCollectorWarning = true/logGarbageCollectorWarning = false/' \
-    -e 's/showGarbageCollectorWarning = true/showGarbageCollectorWarning = false/' \
-    -e 's/logExplicitGcDisabledWarning = true/logExplicitGcDisabledWarning = false/' \
-    -e 's/showExplicitGcDisabledWarning = true/showExplicitGcDisabledWarning = false/' \
-    -e 's/enableDistantGeneration = true/enableDistantGeneration = false/' \
-    "$DH_TOML"
+  dh_silence_warnings "$DH_TOML"
+  # Production-only: generation is off for the deploy and restored at the end.
+  sed_i 's/enableDistantGeneration = true/enableDistantGeneration = false/' "$DH_TOML"
   echo "  DH distant generation disabled (restored at deploy end)"
 fi
 
@@ -995,7 +997,7 @@ echo "  Game rules set (quiet-boot mode off)"
 # Re-enable DH distant generation (disabled at step 8c to keep its worldgen
 # threads from competing with dimension activation and Chunky pregen).
 if [[ -f "$DH_TOML" ]]; then
-  sed -i 's/enableDistantGeneration = false/enableDistantGeneration = true/' "$DH_TOML"
+  sed_i 's/enableDistantGeneration = false/enableDistantGeneration = true/' "$DH_TOML"
   rcon "dh config set enableDistantGeneration true" > /dev/null 2>&1 || true
   echo "  DH distant generation re-enabled"
 fi

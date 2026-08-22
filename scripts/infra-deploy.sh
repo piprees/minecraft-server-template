@@ -21,6 +21,9 @@ else
 fi
 cd "$SERVER_DIR"
 
+# Recreating sidecars while deploy.sh is mid-restart races it.
+acquire_deploy_lock "infra-deploy.sh"
+
 COMPOSE_FILE="$STACK_DIR/docker-compose.yml"
 
 if [[ -f .env ]]; then

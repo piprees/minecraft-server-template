@@ -153,6 +153,19 @@ fi
 STAMP="$(date +%Y%m%d-%H%M%S)"
 NON_INTERACTIVE="${1:-}"
 
+# --- refuse to run during a deploy --------------------------------------------
+# This restarts Docker, which takes a deploy's containers with it (safety rule
+# 9). deploy.sh and infra-deploy.sh hold this lock via lib.sh; harden.sh is
+# uploaded on its own and cannot source it, so the check is inline.
+DEPLOY_LOCK="/home/${DEPLOY_USER:-deploy}/server/.deploy.lock"
+if command -v flock > /dev/null 2>&1 && [[ -f "$DEPLOY_LOCK" ]]; then
+  if ! flock -n "$DEPLOY_LOCK" true 2> /dev/null; then
+    echo "ERROR: a server operation is in progress ($(cat "$DEPLOY_LOCK" 2> /dev/null || echo unknown))." >&2
+    echo "  harden.sh restarts Docker. Refusing to run alongside it." >&2
+    exit 1
+  fi
+fi
+
 # --- helper functions ---------------------------------------------------------
 
 backup() {

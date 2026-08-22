@@ -129,6 +129,53 @@ sed_i() {
   fi
 }
 
+# --- Mutual exclusion for server-side state changes ---------------------------
+# deploy.sh, infra-deploy.sh and harden.sh each stop containers, rewrite config
+# or restart Docker. Two at once give SSH timeouts, broken healthchecks and
+# half-applied state. The lock is held for the life of the caller and released
+# by the kernel however it exits, so a killed deploy cannot strand it.
+#
+# flock is Linux-only, which is where these scripts run; on macOS this is a
+# no-op so Mac-side callers stay portable. fd 200 by convention (bash 3.2 has
+# no {var}> redirection).
+acquire_deploy_lock() {
+  local holder="$1"
+  local lock="${2:-${SERVER_DIR:-$PROJECT_DIR}/.deploy.lock}"
+  command -v flock > /dev/null 2>&1 || return 0
+  # Writability is checked up front: a redirection error on `exec` is fatal,
+  # and no form of `2>` can be attached to it — `exec 200>> f 2>/dev/null`
+  # redirects the CALLING SCRIPT's stderr for the rest of its life.
+  local dir
+  dir="$(dirname "$lock")"
+  [[ -d "$dir" && -w "$dir" ]] || return 0
+  [[ ! -e "$lock" || -w "$lock" ]] || return 0
+  local owner=""
+  [[ -f "$lock" ]] && owner="$(tr -d '\n' < "$lock" 2> /dev/null || true)"
+  exec 200>> "$lock"
+  if ! flock -n 200; then
+    die "Refusing to run ${holder}: another server operation holds the lock (${owner:-unknown}).
+  Wait for it to finish, then retry. A killed holder frees the lock once its
+  last child exits (up to ~30s). If you are certain it is dead: rm -f ${lock}"
+  fi
+  printf '%s pid=%s started=%s\n' "$holder" "$$" "$(date -u '+%Y-%m-%dT%H:%M:%SZ')" > "$lock"
+}
+
+# --- Distant Horizons -----------------------------------------------------
+# The four warning keys DH logs on every tick when a server disables explicit
+# GC. Both deploy.sh and dev-up.sh silence these; each keeps its own extra
+# keys, because local also turns off server generation and real-time updates
+# and production must not.
+dh_silence_warnings() {
+  local toml="$1"
+  [[ -f "$toml" ]] || return 0
+  sed_i \
+    -e 's/logGarbageCollectorWarning = true/logGarbageCollectorWarning = false/' \
+    -e 's/showGarbageCollectorWarning = true/showGarbageCollectorWarning = false/' \
+    -e 's/logExplicitGcDisabledWarning = true/logExplicitGcDisabledWarning = false/' \
+    -e 's/showExplicitGcDisabledWarning = true/showExplicitGcDisabledWarning = false/' \
+    "$toml"
+}
+
 # --- Portable SHA-256 (macOS has shasum, Linux has sha256sum) -----------------
 sha256() {
   if command -v sha256sum &> /dev/null; then
