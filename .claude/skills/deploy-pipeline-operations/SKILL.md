@@ -57,6 +57,7 @@ Full detail (all 17 numbered sections) is in `references/deploy-sequence.md`. Th
 - **Step 8b** — copies `local-mods/*.jar` (in-house mods) into `data/mods/` while mc is **stopped**. Doing this after the health wait meant a jar that broke the boot could never be replaced by the deploy that shipped it.
 - **Step 8c** — re-patches `c2me.toml`'s `useDensityFunctionCompiler = false` and silences DistantHorizons GC warnings, while mc is stopped. c2me strips this key from its own config on every boot; the mod's preLaunch entrypoint re-supplies it every boot too ([TROUBLESHOOTING.md#d6](../../../TROUBLESHOOTING.md#d6)) — 8c remains the layer that covers a fresh environment's very first boot.
 - **Step 10b** — `sync-mods.sh` fetches any managed jar/datapack missing from `data/`. `MODS_FILE` is empty by default so itzg makes zero network requests at boot; this is the only place mod downloads happen, and only when the mod list actually changed.
+- **Step 14** — activates the reserved dimensions, then sets up the custom ones. Both halves end the deploy with exit 1 rather than grinding on: activation gives up after `ACTIVATION_STALL_LIMIT` (3) unanswered `save-all flush` calls, and the custom-dimension loop after `DIMENSION_FAILURE_LIMIT` (3) consecutive load failures. Activation runs **one dimension at a time** and skips any that already has region files — concurrent first-time chunk generation wedges the main thread permanently ([TROUBLESHOOTING.md#k6](../../../TROUBLESHOOTING.md#k6)), so never batch it. On an established world the whole block is a no-op.
 
 **Changes to `deploy.sh` itself take effect on the _next_ deploy**, not the one that merges them — an in-flight deploy already executed the pre-pull copy of the script.
 
@@ -77,6 +78,15 @@ ssh -i ~/.ssh/mc_deploy_key deploy@$DROPLET_HOST \
 
 `./ops update` (→ `scripts/remote-update.sh`) is the scripted equivalent: pulls the stack bundle, pulls images, rebuilds the modpack, then runs `deploy.sh --non-interactive` and refreshes `kuma-init` — all over SSH, outside CI.
 
+## The deploy lock
+
+`deploy.sh` and `infra-deploy.sh` take an exclusive `flock` on `~/server/.deploy.lock` before touching anything; `harden.sh` refuses to run while it is held (it restarts Docker) and `reset-seed.sh` checks it over SSH before it starts deleting. A refusal names the holder, its pid and its start time. A killed holder frees it once its last child exits, up to ~30s. To inspect:
+
+```bash
+ssh -i ~/.ssh/${BRAND_SLUG:+${BRAND_SLUG}_}mc_deploy_key deploy@$DROPLET_HOST \
+  'cat ~/server/.deploy.lock 2>/dev/null; flock -n ~/server/.deploy.lock true && echo FREE || echo HELD'
+```
+
 ## Failure recovery
 
 A failed deploy is not inert. `deploy.sh` clears the whitelist near the start and restores it near the end (steps 2 and 15) — a mid-run death can leave containers stopped, configs half-applied, or players locked out with the whitelist empty.
@@ -89,7 +99,7 @@ ssh -i ~/.ssh/mc_deploy_key deploy@$DROPLET_HOST 'docker logs mc --tail 80'
 ./ops doctor                                             # full triage: drift, disk, containers, backups
 ```
 
-If the whitelist was cleared and the deploy died before step 15 restored it, the itzg image re-applies `WHITELIST` from `.env` on the **next** boot — re-running `deploy.sh` (re-dispatch, or push again once the cause is fixed) restores it. Never `docker restart mc` to "fix" a stuck deploy — that skips the countdown/kick/save dance entirely; use `deploy.sh` or Discord `/mc restart`.
+`deploy.sh`'s EXIT trap restores the whitelist however the script exits. If that restore itself fails against a wedged server, the itzg image re-applies `WHITELIST` from `.env` on the **next** boot — re-running `deploy.sh` (re-dispatch, or push again once the cause is fixed) restores it. Never `docker restart mc` to "fix" a stuck deploy — that skips the countdown/kick/save dance entirely; use `deploy.sh` or Discord `/mc restart`.
 
 ## Traps
 
