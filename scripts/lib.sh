@@ -7,8 +7,9 @@
 #
 # Provides: PROJECT_DIR, colour codes, log/warn/die, load_env (sources .env),
 # sed_i + sha256 (macOS/Linux portable), backup (file.bak.TIMESTAMP),
-# rcon + get_player_count (via docker exec mc), detect_provider /
-# require_provider_cli.
+# rcon + get_player_count (bounded, via docker exec mc), detect_provider /
+# require_provider_cli, acquire_deploy_lock (server-side mutual exclusion),
+# platform_config_files, dh_silence_warnings.
 #
 # Mod config sync is handled inline by deploy.sh step 8 (before mc starts).
 # Adding a mod with config means: add its files under config/<modname>/ and
@@ -145,10 +146,22 @@ acquire_deploy_lock() {
   # Writability is checked up front: a redirection error on `exec` is fatal,
   # and no form of `2>` can be attached to it — `exec 200>> f 2>/dev/null`
   # redirects the CALLING SCRIPT's stderr for the rest of its life.
+  # Fail OPEN but LOUD. Refusing to run would turn a stray root-owned lock
+  # file into a total deploy outage; returning silently would leave two
+  # concurrent deploys unguarded with nothing in the log saying why.
   local dir
   dir="$(dirname "$lock")"
-  [[ -d "$dir" && -w "$dir" ]] || return 0
-  [[ ! -e "$lock" || -w "$lock" ]] || return 0
+  if [[ ! -d "$dir" || ! -w "$dir" ]]; then
+    warn "No deploy lock: ${dir} is not writable. Concurrent runs are UNGUARDED."
+    return 0
+  fi
+  if [[ -e "$lock" && ! -w "$lock" ]]; then
+    local me
+    me="$(id -un)"
+    warn "No deploy lock: ${lock} is not writable by ${me}. Concurrent runs are UNGUARDED."
+    warn "  Fix with: sudo chown ${me} ${lock}"
+    return 0
+  fi
   local owner=""
   [[ -f "$lock" ]] && owner="$(tr -d '\n' < "$lock" 2> /dev/null || true)"
   exec 200>> "$lock"

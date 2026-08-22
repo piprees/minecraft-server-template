@@ -320,6 +320,38 @@ class DeployLockTests(unittest.TestCase):
         proc, _ = self.run_lock(flock_rc=0)
         self.assertIn("stderr-marker", proc.stderr)
 
+    def test_an_unwritable_lock_file_warns_rather_than_failing_silently(self):
+        """A root-owned lock file must not disable exclusion without saying so."""
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        root = Path(tmp.name)
+        bindir = root / "bin"
+        bindir.mkdir()
+        fake = bindir / "flock"
+        fake.write_text("#!/bin/sh\nexit 0\n")
+        fake.chmod(0o755)
+        lock = root / ".deploy.lock"
+        lock.write_text("someone-else pid=1\n")
+        lock.chmod(0o444)
+        self.addCleanup(lock.chmod, 0o644)
+
+        script = root / "run.sh"
+        script.write_text(
+            f'source "{self.LIB_SH}"\n'
+            f'SERVER_DIR="{root}"\n'
+            'acquire_deploy_lock "deploy.sh"\n'
+            'echo "PROCEEDED"\n'
+        )
+        proc = subprocess.run(
+            ["bash", str(script)],
+            capture_output=True,
+            text=True,
+            env={"PATH": f"{bindir}:/usr/bin:/bin"},
+        )
+        self.assertEqual(proc.returncode, 0, "must fail open, not block every deploy")
+        self.assertIn("PROCEEDED", proc.stdout)
+        self.assertIn("UNGUARDED", proc.stderr, "the failure must be visible in the log")
+
     def test_an_unwritable_location_degrades_to_a_no_op(self):
         tmp = tempfile.TemporaryDirectory()
         self.addCleanup(tmp.cleanup)
