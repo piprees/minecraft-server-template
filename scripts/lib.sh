@@ -160,6 +160,29 @@ acquire_deploy_lock() {
   printf '%s pid=%s started=%s\n' "$holder" "$$" "$(date -u '+%Y-%m-%dT%H:%M:%SZ')" > "$lock"
 }
 
+# --- Platform config sync -----------------------------------------------------
+# The config/ files that belong in data/config/, relative to config/ — cd
+# there first. Everything excluded is owned by other machinery: nginx
+# templates are bind-mounted, datapacks go through the seed container, kuma
+# and cloudflare configs are applied by their own scripts, the extractor and
+# candidate trees are generated, and the mod lists and messages.json are read
+# from the bundle directly. deploy.sh and dev-up.sh (twice) all consume this.
+platform_config_files() {
+  find . -type f \
+    -not -path './nginx/*' \
+    -not -path './datapacks/*' \
+    -not -path './datapack-presets/*' \
+    -not -path './uptime-kuma/*' \
+    -not -path './cloudflare/*' \
+    -not -path './cloudflared/*' \
+    -not -path './custom-dimensions/extractors/*' \
+    -not -path './custom-dimensions/candidates/*' \
+    -not -name 'modrinth-mods.txt' \
+    -not -name 'modrinth-mods.pinned.txt' \
+    -not -name 'messages.json' \
+    -not -name '1password.env'
+}
+
 # --- Distant Horizons -----------------------------------------------------
 # The four warning keys DH logs on every tick when a server disables explicit
 # GC. Both deploy.sh and dev-up.sh silence these; each keeps its own extra

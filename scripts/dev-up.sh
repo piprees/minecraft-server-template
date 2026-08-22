@@ -95,25 +95,12 @@ case "$ACTION" in
 
     echo "Refreshing platform defaults into data/config/..."
     cd "$BUNDLE_CONFIG"
-    find . -type f \
-      -not -path './nginx/*' \
-      -not -path './datapacks/*' \
-      -not -path './datapack-presets/*' \
-      -not -path './uptime-kuma/*' \
-      -not -path './cloudflare/*' \
-      -not -path './cloudflared/*' \
-      -not -path './custom-dimensions/extractors/*' \
-      -not -path './custom-dimensions/candidates/*' \
-      -not -name 'modrinth-mods.txt' \
-      -not -name 'modrinth-mods.pinned.txt' \
-      -not -name 'messages.json' \
-      -not -name '1password.env' \
-      | while IFS= read -r f; do
-        dest="$local_data_cfg/${f#./}"
-        mkdir -p "$(dirname "$dest")"
-        cp "$f" "$dest"
-        printf '  platform: %s\n' "${f#./}"
-      done
+    platform_config_files | while IFS= read -r f; do
+      dest="$local_data_cfg/${f#./}"
+      mkdir -p "$(dirname "$dest")"
+      cp "$f" "$dest"
+      printf '  platform: %s\n' "${f#./}"
+    done
     cd "$CONSUMER_DIR"
 
     # The staged dimension overlay is DERIVED from overlay/config/custom-dimensions,
@@ -239,26 +226,13 @@ if [[ -d "$BUNDLE_CONFIG" ]]; then
   local_data_cfg="$CONSUMER_DIR/data/config"
   mkdir -p "$local_data_cfg"
   cd "$BUNDLE_CONFIG"
-  find . -type f \
-    -not -path './nginx/*' \
-    -not -path './datapacks/*' \
-    -not -path './datapack-presets/*' \
-    -not -path './uptime-kuma/*' \
-    -not -path './cloudflare/*' \
-    -not -path './cloudflared/*' \
-    -not -path './custom-dimensions/extractors/*' \
-    -not -path './custom-dimensions/candidates/*' \
-    -not -name 'modrinth-mods.txt' \
-    -not -name 'modrinth-mods.pinned.txt' \
-    -not -name 'messages.json' \
-    -not -name '1password.env' \
-    | while IFS= read -r f; do
-      dest="$local_data_cfg/${f#./}"
-      if [[ ! -f "$dest" ]]; then
-        mkdir -p "$(dirname "$dest")"
-        cp "$f" "$dest"
-      fi
-    done
+  platform_config_files | while IFS= read -r f; do
+    dest="$local_data_cfg/${f#./}"
+    if [[ ! -f "$dest" ]]; then
+      mkdir -p "$(dirname "$dest")"
+      cp "$f" "$dest"
+    fi
+  done
   cd "$CONSUMER_DIR"
 fi
 
