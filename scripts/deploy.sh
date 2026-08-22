@@ -942,9 +942,6 @@ PYEOF
   BREAKER_TRIPPED=0
   while IFS='|' read -r name scale; do
     [[ -z "$name" ]] && continue
-    if [[ $BREAKER_TRIPPED -eq 1 ]]; then
-      continue
-    fi
 
     if [[ -f "$SETUP_MARKERS_DIR/$name" ]]; then
       SKIPPED_COUNT=$((SKIPPED_COUNT + 1))
@@ -978,6 +975,7 @@ PYEOF
       echo "    ${DIM_NAMESPACE}:$name — no answer from the server ($FAILED_STREAK/$DIMENSION_FAILURE_LIMIT)"
       if [[ $FAILED_STREAK -ge $DIMENSION_FAILURE_LIMIT ]]; then
         BREAKER_TRIPPED=1
+        break
       fi
       continue
     fi
