@@ -266,6 +266,9 @@ public final class DimensionConfigLoader {
         return result;
     }
 
+    /** Suffix of the stamp {@code com.customdimensions.web.Picker} writes beside a committed thumbnail pair. */
+    private static final String THUMBNAIL_STAMP_SUFFIX = "_thumb";
+
     private static Map<String, JsonObject> readDimensionFiles(Path dir) {
         Map<String, JsonObject> files = new TreeMap<>();
         if (!Files.isDirectory(dir)) {
@@ -275,6 +278,11 @@ public final class DimensionConfigLoader {
             for (Path file : stream) {
                 String slug = file.getFileName().toString();
                 slug = slug.substring(0, slug.length() - ".json".length()).toLowerCase();
+                // Picker stamps <slug>_thumb.json beside the committed PNGs in
+                // this directory: thumbnail provenance, not a dimension.
+                if (slug.endsWith(THUMBNAIL_STAMP_SUFFIX)) {
+                    continue;
+                }
                 JsonObject json = readJsonObject(file);
                 if (json != null) {
                     files.put(slug, json);

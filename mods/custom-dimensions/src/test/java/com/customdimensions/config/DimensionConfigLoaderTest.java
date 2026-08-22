@@ -116,6 +116,20 @@ class DimensionConfigLoaderTest {
         assertTrue(dims.containsKey("the_claymarsh"));
     }
 
+    @Test
+    void thumbnailStampIsNotADimension(@TempDir Path config, @TempDir Path overlay) throws IOException {
+        writeDim(config, "the_gauntlet", "{\"type\":\"overworld\"}");
+        writeDim(config, "the_gauntlet_thumb", "{\"inputHash\":\"77a6c8a7\",\"seed\":42}");
+        writeDim(overlay, "the_claymarsh", "{\"type\":\"overworld\"}");
+        writeDim(overlay, "the_claymarsh_thumb", "{\"inputHash\":\"77a6c8a7\",\"seed\":42}");
+        Map<String, DimensionConfig> dims =
+                DimensionConfigLoader.loadDimensions(config, overlay, defaultSettings(), "elfydd");
+        // Picker stamps <slug>_thumb.json beside the committed PNGs, in the
+        // dimensions directory itself. Read as a dimension it doubles the
+        // config count and primes a phantom for every real dimension.
+        assertEquals(java.util.Set.of("the_gauntlet", "the_claymarsh"), dims.keySet());
+    }
+
     // --- settings defaults ----------------------------------------------------
 
     @Test
