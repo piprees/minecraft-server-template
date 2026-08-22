@@ -210,6 +210,12 @@ restore_whitelist() {
   WHITELIST_CLEARED=0
 }
 
+# Bounded like every other RCON call here: a docker exec that never returns
+# would trap the step-12 wait loop before it can reach its own ELAPSED check.
+server_alive() {
+  timeout 30 docker exec mc rcon-cli "list" &> /dev/null 2>&1
+}
+
 # Live game rules. Quiet boot writes the opposites at step 12 and they
 # persist in level.dat, so they outlive the deploy that set them.
 restore_game_rules() {
@@ -292,12 +298,6 @@ msg() {
   local messages_file="$SERVER_DIR/overlay/config/messages.json"
   [[ -f "$messages_file" ]] || messages_file="$STACK_DIR/config/messages.json"
   python3 -c "import json; print(json.load(open('$messages_file'))['$key'])" 2> /dev/null || echo "$key"
-}
-
-# Bounded like every other RCON call here: a docker exec that never returns
-# would trap the step-12 wait loop before it can reach its own ELAPSED check.
-server_alive() {
-  timeout 30 docker exec mc rcon-cli "list" &> /dev/null 2>&1
 }
 
 get_player_count() {
