@@ -38,8 +38,11 @@ class PrimingOrderTest {
     @Test
     void primingBlocksUntilTheQueueDrains() throws IOException {
         String src = read("RollPipeline.java");
-        assertTrue(src.contains("awaitRenders()"),
+        assertTrue(src.contains("awaitRenders(server, targets)"),
                 "priming must wait for the renders it queued, not just the measurements");
+        assertTrue(src.contains("exportReady(server, targets)"),
+                "the wait must publish as it goes — exporting only at the end leaves "
+                        + "nothing behind when the JVM dies part-way through");
         assertTrue(src.contains("RenderQueue.priming(false)"),
                 "the priming flag must be cleared in a finally, or rolls stay locked out");
     }

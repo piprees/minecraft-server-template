@@ -274,17 +274,9 @@ public final class RollPipeline {
                 // they are drawn, or a roll admitted here would put eighty
                 // dimensions' worth of candidates in front of the renders the
                 // configured seeds are still waiting on.
-                awaitRenders();
-                // Publish what was just drawn beside each dimension's JSON, so
-                // the map cards have a picture without anybody picking a seed
-                // they had no choice about anyway.
-                for (DimensionConfig def : targets) {
-                    String slug = def.getDimensionIdentifier().getPath();
-                    Long seed = BankView.currentSeed(def, def.getSeed());
-                    if (seed != null) {
-                        Picker.exportMissingThumbnails(server, def, slug, seed);
-                    }
-                }
+                awaitRenders(server, targets);
+                // A last pass for whatever landed after the final sweep.
+                exportReady(server, targets);
             } finally {
                 RenderQueue.priming(false);
                 pool.shutdownNow();
@@ -295,14 +287,43 @@ public final class RollPipeline {
         starter.start();
     }
 
-    /** Blocks until the render queue drains, this is cancelled, or it stalls. */
-    private static void awaitRenders() {
+    /**
+     * Publishes every target whose renders have landed. Safe to call
+     * repeatedly: each size is written only when absent, so a dimension
+     * already complete costs two stat calls.
+     */
+    private static void exportReady(MinecraftServer server, List<DimensionConfig> targets) {
+        for (DimensionConfig def : targets) {
+            String slug = def.getDimensionIdentifier().getPath();
+            if (Picker.thumbnailsPresent(server, def, slug)) {
+                continue;
+            }
+            Long seed = BankView.currentSeed(def, def.getSeed());
+            if (seed != null) {
+                Picker.exportMissingThumbnails(server, def, slug, seed);
+            }
+        }
+    }
+
+    /**
+     * Blocks until the render queue drains, this is cancelled, or it stalls,
+     * publishing whatever has landed as it goes. Exporting only at the end
+     * would mean a JVM that dies part-way through leaves nothing behind,
+     * however many hours of rendering it did first.
+     */
+    private static void awaitRenders(MinecraftServer server, List<DimensionConfig> targets) {
         int lastPending = -1;
         long unchangedFor = 0;
+        int tick = 0;
         while (!CANCEL.get()) {
             int pending = RenderQueue.pending();
             if (pending == 0) {
                 return;
+            }
+            // Every 30s, not every second: the sweep stats two files per
+            // target and the queue does not empty that fast.
+            if (++tick % 30 == 0) {
+                exportReady(server, targets);
             }
             // A queue that has not moved in ten minutes is stuck or paused;
             // holding the roll shut forever on it would be worse than letting
