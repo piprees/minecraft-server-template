@@ -527,7 +527,10 @@ jobs:
           MSG="${{ steps.meta.outputs.msg }}"
           URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
           ADMIN_ROLE_ID="${{ vars.DISCORD_ADMIN_ROLE_ID }}"
-          CONTENT="Deploy **FAILED** (**${TIER}**, \`${SHA}\`: ${MSG})\n${URL}"
+          # printf, not a "..\n.." literal: bash does not expand \n inside
+          # double quotes, so the escape reached Discord verbatim.
+          printf -v CONTENT 'Deploy **FAILED** (**%s**, `%s`: %s)\n%s' \
+            "$TIER" "$SHA" "$MSG" "$URL"
           [[ -n "$ADMIN_ROLE_ID" ]] && CONTENT="<@&${ADMIN_ROLE_ID}> ${CONTENT}"
 
           JQ_ARGS=()
