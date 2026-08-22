@@ -329,7 +329,16 @@ write_manifest() {
     [[ -d "$dir" ]] || continue
     for png in "$dir"/*_low.png; do
       [[ -f "$png" ]] || continue
-      manifest_emit "$tmp" "$(basename "$png" _low.png)"
+      # Back through config_file_for's mapping: a thumbnail is named after the
+      # dimension's JSON, so the nether's is the_nether_low.png while this
+      # script calls that map "nether" after MC's own DIM-1 layout. Emitting
+      # the file's own name would card the same world twice.
+      name=$(basename "$png" _low.png)
+      case "$name" in
+        the_nether) name="nether" ;;
+        the_end) name="end" ;;
+      esac
+      manifest_emit "$tmp" "$name"
     done
   done
   jq -s '{generated: now | floor, dimensions: .}' "$tmp" > "$OUT_DIR/manifest.json.tmp"
