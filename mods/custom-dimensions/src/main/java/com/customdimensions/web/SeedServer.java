@@ -76,13 +76,14 @@ public final class SeedServer {
     }
 
     /**
-     * The listener has no authentication, can teleport a player and writes
-     * into the consumer overlay, so an unset or unreadable value means OFF.
-     * Both compose files set it explicitly; anything that does not is a path
-     * this server was never meant to run on.
+     * Unset or unreadable means OFF: the listener has no authentication and
+     * can teleport a player. Both compose files set it explicitly.
      */
     static int configuredPort() {
-        String raw = System.getenv("SEED_VIEWER_PORT");
+        return portFrom(System.getenv("SEED_VIEWER_PORT"));
+    }
+
+    static int portFrom(String raw) {
         if (raw == null || raw.isBlank()) {
             return 0;
         }

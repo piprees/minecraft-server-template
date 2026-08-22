@@ -376,10 +376,9 @@ public class PortalHelper {
     }
 
     public static void setPlayerInZone(String key, boolean inZone) {
-        // Absent means "not in a zone", so leaving removes the entry rather
-        // than storing false — the key is (world, player uuid) and nothing
-        // else evicts it, so keeping falses grows by every player who ever
-        // stood in a portal, in every dimension they visited.
+        // Absent means "not in a zone". Nothing else evicts this map, so
+        // storing false would grow it by every (player, dimension) pair that
+        // ever touched a portal.
         if (inZone) {
             PLAYER_IN_ZONE.put(key, true);
         } else {

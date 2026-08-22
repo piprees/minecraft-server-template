@@ -81,7 +81,7 @@ The full contract, the artefact table and the seed-rolling internals: [docs/mod-
 
 ## Verification loop
 
-900+ JUnit tests across 73 classes run under `mise exec -- ./gradlew test` (`useJUnitPlatform`, `build.gradle:27`) and cover the worldgen-composition subsystem in real depth — run them first. They do NOT replace the runtime loop: anything touching mixins, chunk generation or portal behaviour is only proven against the real modded server, locally first. A release→deploy cycle costs 10–15 minutes and restarts production; the local loop costs ~1 minute. **Never cut a release for a change you haven't run through this loop.**
+900+ JUnit tests run under `mise exec -- ./gradlew test` (`useJUnitPlatform`, `build.gradle:27`) and cover the worldgen-composition subsystem in real depth — run them first. They do NOT replace the runtime loop: anything touching mixins, chunk generation or portal behaviour is only proven against the real modded server, locally first. A release→deploy cycle costs 10–15 minutes and restarts production; the local loop costs ~1 minute. **Never cut a release for a change you haven't run through this loop.**
 
 ### 1. Verify the artefact, not the build
 

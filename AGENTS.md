@@ -137,6 +137,7 @@ All of it lives in [`TROUBLESHOOTING.md`](TROUBLESHOOTING.md) — architecture t
 | [T11](TROUBLESHOOTING.md#t11) | `.deployed` can lie: CI green while the server runs nothing. |
 | [T12](TROUBLESHOOTING.md#t12) | Hand-patched volumes are reverted by every seed run — verify the rendered state, not the patch. |
 | [D2](TROUBLESHOOTING.md#d2) | All worldgen config is creation-time-only. Changing it needs a world wipe. |
+| [K6](TROUBLESHOOTING.md#k6) | Concurrent first-time chunk generation wedges the main thread. Activation is one dimension at a time; never make it concurrent again. |
 
 ## Scripts
 

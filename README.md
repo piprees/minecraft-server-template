@@ -152,7 +152,8 @@ Three categories, by where a script ends up and who runs it. Every script has a 
 | `clean-dev-state.sh` | Mac | `./dev clean`: delete regenerable local state by named target (`--list`, `--dry-run`); world, seed bank and backups are opt-in |
 | `service.sh` | Mac | Start, stop, restart, or check status of a service. Production refuses every `mc` action but `status`; the local profile (`./dev`) allows all of them |
 | `map-render.sh` | Mac | Drive the unmined-render sidecar: status, force a render pass |
-| `lib.sh` | (sourced) | Shared utilities: env loading, RCON, provider detection |
+| `force-toml-key.py` | server, Mac | Force one key in a mod's TOML to a value, re-applied every deploy because mods rewrite their own config |
+| `lib.sh` | (sourced) | Shared utilities: env loading, bounded RCON, the deploy lock, provider detection |
 
 ### Image scripts (baked into GHCR images, not run directly)
 

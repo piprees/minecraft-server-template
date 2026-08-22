@@ -11,9 +11,30 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class SeedServerPortTest {
 
     @Test
-    void anUnsetPortDisablesTheListener() {
-        // The suite runs without SEED_VIEWER_PORT set, which is the unset case.
-        assertEquals(0, SeedServer.configuredPort(),
-                "an unset SEED_VIEWER_PORT must disable the viewer, not default it on");
+    void anUnsetValueDisablesTheListener() {
+        assertEquals(0, SeedServer.portFrom(null));
+    }
+
+    @Test
+    void aBlankValueDisablesTheListener() {
+        assertEquals(0, SeedServer.portFrom(""));
+        assertEquals(0, SeedServer.portFrom("   "));
+    }
+
+    @Test
+    void anUnparseableValueDisablesTheListener() {
+        assertEquals(0, SeedServer.portFrom("yes"));
+        assertEquals(0, SeedServer.portFrom("8765x"));
+    }
+
+    @Test
+    void anExplicitZeroDisablesTheListener() {
+        assertEquals(0, SeedServer.portFrom("0"));
+    }
+
+    @Test
+    void anExplicitPortIsHonoured() {
+        assertEquals(8765, SeedServer.portFrom("8765"));
+        assertEquals(8765, SeedServer.portFrom(" 8765 "));
     }
 }
