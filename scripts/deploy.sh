@@ -258,8 +258,17 @@ restore_after_abort() {
   # operator after a command that cannot work either.
   if ! server_alive; then
     echo "  mc is not answering, so nothing could be restored over RCON." >&2
-    echo "  The whitelist comes back from .env on mc's next boot; the" >&2
-    echo "  quiet-boot game rules persist in level.dat until a deploy" >&2
+    if [[ -n "${WHITELIST:-}" ]]; then
+      echo "  The whitelist comes back from WHITELIST in .env on mc's next boot." >&2
+    else
+      # No WHITELIST means the itzg image writes nothing at boot, so the
+      # server comes back enforcing an EMPTY whitelist and nobody can join
+      # until discord-sync's next role cycle re-adds them.
+      echo "  WHITELIST is unset, so mc reboots enforcing an EMPTY whitelist —" >&2
+      echo "  nobody can join until discord-sync's next role sync (60s)." >&2
+      echo "  Check it is running: docker ps --filter name=discord-sync" >&2
+    fi
+    echo "  The quiet-boot game rules persist in level.dat until a deploy" >&2
     echo "  completes (nothing spawns or ticks until then)." >&2
     return 0
   fi
