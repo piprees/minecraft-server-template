@@ -232,12 +232,19 @@ if [ -n "${R2_ACCOUNT_ID:-}" ] && [ -n "${RESTIC_PASSWORD:-}" ] && command -v re
     | python3 -c '
 import json, sys, datetime
 snaps = json.load(sys.stdin)
-t = datetime.datetime.fromisoformat(snaps[-1]["time"])
-age = datetime.datetime.now(datetime.timezone.utc) - t
-print(int(age.total_seconds() // 3600))
+if not snaps:
+    # Reachable and readable, just empty. Answering -1 here would report a
+    # healthy repo as broken.
+    print(-2)
+else:
+    t = datetime.datetime.fromisoformat(snaps[-1]["time"])
+    age = datetime.datetime.now(datetime.timezone.utc) - t
+    print(int(age.total_seconds() // 3600))
 ' 2> /dev/null || echo "-1")
   if [ "$AGE_H" = "-1" ]; then
     res FAIL "could not read restic snapshots (R2 unreachable or repo broken)"
+  elif [ "$AGE_H" = "-2" ]; then
+    res WARN "restic repository is reachable but holds no snapshots - expected after reset-seed --wipe-backups or on a new repo; the next scheduled backup fills it"
   elif [ "$AGE_H" -gt 48 ]; then
     res FAIL "last backup ${AGE_H}h ago (schedule is 12h) - check: docker logs mc-backup --tail 50"
   elif [ "$AGE_H" -gt 26 ]; then
