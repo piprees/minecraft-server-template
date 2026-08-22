@@ -8,9 +8,11 @@ import net.minecraft.block.Blocks;
 import net.minecraft.block.NetherPortalBlock;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.RegistryKey;
+import net.minecraft.server.world.ChunkTicketType;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.ChunkPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.world.World;
 
@@ -91,7 +93,20 @@ public final class ExitPortalManager {
             baseX = (spawn != null ? spawn[0] : 0) + SPAWN_OFFSET_X;
             baseZ = spawn != null ? spawn[2] : 0;
         }
-        // Forces generation of the one target chunk (findSurfaceY contract).
+        // findSurfaceY sync-loads its column, and a sync chunk load from a
+        // world tick can hang the main thread forever ([K1]/[K6]). Probe
+        // without generating; when the site is cold, ask the chunk system
+        // for it and build on a later pass. Only while somebody is in the
+        // world: the idle dimensions must stay idle, and 78 of them asking
+        // at once is the concurrent first-time generation K6 forbids.
+        ChunkPos site = new ChunkPos(baseX >> 4, baseZ >> 4);
+        if (world.getChunkManager().getWorldChunk(site.x, site.z, false) == null) {
+            if (!world.getPlayers().isEmpty()) {
+                world.getChunkManager().addTicket(
+                        ChunkTicketType.PORTAL, site, 3, new BlockPos(baseX, 0, baseZ));
+            }
+            return;
+        }
         int surfaceY = PortalHelper.findSurfaceY(world, baseX, baseZ);
 
         // Adopt an existing intact portal near the site before building —

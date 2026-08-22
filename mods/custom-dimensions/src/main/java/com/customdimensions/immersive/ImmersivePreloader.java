@@ -5,8 +5,10 @@ import com.customdimensions.config.PortalDefinition;
 import com.customdimensions.portal.PortalHelper;
 import com.customdimensions.portal.PortalShape;
 import net.minecraft.registry.RegistryKey;
+import net.minecraft.server.world.ChunkTicketType;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.ChunkPos;
 import net.minecraft.world.World;
 
 import java.util.Map;
@@ -18,11 +20,10 @@ import java.util.concurrent.ConcurrentHashMap;
  * time a player approaches it, so the target world's terrain is ready
  * before the player steps through.
  *
- * <p>{@link #preloadIfNeeded} calls {@code ServerWorld.getChunk} — a
- * synchronous chunk-system call that must ONLY be invoked from the server
- * thread (it is always called from {@code ServerWorldMixin.onTick}, which
- * already runs there — c2me's multi-threaded chunk system behaves
- * unpredictably off-thread).
+ * <p>{@link #preloadIfNeeded} runs from {@code ServerWorldMixin.onTick} and
+ * so must never block: it registers portal chunk tickets and lets the chunk
+ * system generate on its own schedule. A synchronous {@code getChunk} here
+ * parks the main thread on a future nothing is working on ([K1]/[K6]).
  */
 public final class ImmersivePreloader {
     /** Chunk radius to pre-generate around the arrival column (2 = 5x5 = 25 chunks). */
@@ -72,11 +73,13 @@ public final class ImmersivePreloader {
 
         for (int dx = -PRELOAD_RADIUS; dx <= PRELOAD_RADIUS; dx++) {
             for (int dz = -PRELOAD_RADIUS; dz <= PRELOAD_RADIUS; dz++) {
-                targetWorld.getChunk(cx + dx, cz + dz);
+                ChunkPos pos = new ChunkPos(cx + dx, cz + dz);
+                targetWorld.getChunkManager().addTicket(
+                        ChunkTicketType.PORTAL, pos, 1, pos.getStartPos());
             }
         }
         MultiverseServer.LOGGER.debug(
-                "immersive: pre-generated {} arrival chunks around ({}, {}) in {} for zone {}",
+                "immersive: requested {} arrival chunks around ({}, {}) in {} for zone {}",
                 (2 * PRELOAD_RADIUS + 1) * (2 * PRELOAD_RADIUS + 1), cx, cz, targetKey.getValue(), key);
     }
 

@@ -351,6 +351,13 @@ BSD grep has no PCRE. Use `grep -oE` (extended regex) or `sed`. BSD `grep -E` al
 
 `mods/mise.toml` pins `java = "temurin-21"`, but a global Java (e.g. 25) takes precedence. Gradle fails with a misleading task-creation error, not a clear wrong-Java message. Use `mise exec -- ./gradlew build`.
 
+<a id="p5"></a>
+### P5 — Creating many dimensions locally kills the JVM with a SIGBUS in Distant Horizons' SQLite
+
+`hs_err_pid*.log` names `SIGBUS`, a `libc`/`libsqlitejdbc` problematic frame and a Java stack ending in `FullDataSourceV2Repo.<init>` on the **Server thread**; `docker logs mc` shows `Minecraft server failed … exitCode: -1` with no crash report. DH gives every level its own SQLite database under `data/world/dimensions/<ns>/<dim>/data/`, which is the virtiofs bind mount, and virtiofs does not keep an mmap coherent. Around 20 new dimensions in one session is enough.
+
+Local only — production is ext4 and unaffected. It bounds what a linked local stack can test: load a handful of dimensions per boot, not the full set. Not the same as the Ledger SIGBUS, which faults on the `Ledger Database` thread and is already fixed by the named volume `dev-up.sh` sets up.
+
 ---
 
 ## Dimension lifecycle
@@ -484,6 +491,15 @@ The rendered height disagrees with the facts on high-relief columns. The error i
 - **Diagnosing a new instance:** read `data/crash-reports/` after the watchdog
   fires. The pegged `c2me-worker-N` stack names the feature and
   `Upgrading chunk [x, z] to <status> in world <dim>` names the chunk.
+- **The worker threads tell you which wedge you have.** One worker RUNNABLE at
+  ~100% is a worldgen feature that never returns — read its stack. **Every**
+  worker `WAITING` on the semaphore, with the main thread still parked in
+  `getChunkBlocking`, means nothing is generating at all: something called a
+  blocking chunk load from the tick and the future has no work behind it. Read
+  the main thread's stack instead — the frame under `getChunkBlocking` names
+  the caller. `mods/AGENTS.md` forbids sync-loading from a tick path for this
+  reason; probe with `getChunkManager().getWorldChunk(cx, cz, false)` or
+  register a `ChunkTicketType.PORTAL` ticket and act on a later tick.
 
 ---
 
