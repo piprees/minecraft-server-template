@@ -330,16 +330,29 @@ fi
 # The tag comes from the compose file rather than a second copy here: a
 # duplicated pin silently stops matching when the compose one moves, and the
 # only symptom is the SQLITE_CANTOPEN crash this exists to prevent.
-LEDGER_VOL="${COMPOSE_PROJECT_NAME:-${BRAND_SLUG:-myserver}}_ledger-db"
-LEDGER_IMAGE="$(sed -n 's|.*image: .*/\(itzg/minecraft-server:[^ ]*\).*|\1|p' \
+MC_IMAGE="$(sed -n 's|.*image: .*/\(itzg/minecraft-server:[^ ]*\).*|\1|p' \
   "$STACK_DIR/docker-compose.yml" | head -1)"
-LEDGER_IMAGE="${MIRROR_REGISTRY:-ghcr.io/piprees/mirrors}/${LEDGER_IMAGE:-itzg/minecraft-server:latest}"
-docker volume create "$LEDGER_VOL" > /dev/null 2>&1 || true
-if ! docker run --rm --entrypoint chown -v "$LEDGER_VOL:/ledger-db" \
-  "$LEDGER_IMAGE" 1000:1000 /ledger-db > /dev/null 2>&1; then
-  echo "  WARNING: ledger: could not chown $LEDGER_VOL via $LEDGER_IMAGE" >&2
-  echo "  WARNING: Ledger will crash-loop with SQLITE_CANTOPEN until this succeeds" >&2
-fi
+MC_IMAGE="${MIRROR_REGISTRY:-ghcr.io/piprees/mirrors}/${MC_IMAGE:-itzg/minecraft-server:latest}"
+
+# $1 = volume suffix, $2 = mount path, $3 = what breaks if the chown fails.
+chown_sqlite_volume() {
+  local project="${COMPOSE_PROJECT_NAME:-${BRAND_SLUG:-myserver}}"
+  local vol="${project}_$1"
+  # Created here rather than by compose so the chown lands before mc starts.
+  # Without compose's own labels every `./dev up` warns about the volume.
+  docker volume create \
+    --label com.docker.compose.project="$project" \
+    --label com.docker.compose.volume="$1" \
+    "$vol" > /dev/null 2>&1 || true
+  if ! docker run --rm --entrypoint chown -v "$vol:$2" \
+    "$MC_IMAGE" 1000:1000 "$2" > /dev/null 2>&1; then
+    echo "  WARNING: could not chown $vol via $MC_IMAGE" >&2
+    echo "  WARNING: $3 until this succeeds" >&2
+  fi
+}
+
+chown_sqlite_volume ledger-db /ledger-db \
+  "Ledger will crash-loop with SQLITE_CANTOPEN"
 
 LEDGER_DB="$CONSUMER_DIR/data/world/ledger.sqlite"
 if [[ -d "$CONSUMER_DIR/data/world" && ! -L "$LEDGER_DB" ]]; then
@@ -349,6 +362,86 @@ if [[ -d "$CONSUMER_DIR/data/world" && ! -L "$LEDGER_DB" ]]; then
   rm -f "$LEDGER_DB-wal" "$LEDGER_DB-shm"
   ln -sfn /ledger-db/ledger.sqlite "$LEDGER_DB"
   echo "  ledger: database moved off the file share (SIGBUS in WAL shared memory)"
+fi
+
+# Distant Horizons opens one WAL-mode SQLite per level at
+# <level>/data/DistantHorizons.sqlite, so its -shm mmap takes the same virtiofs
+# SIGBUS as Ledger's — on the Server thread, as a level is created ([P5]).
+# Point every database at the dh-db volume, ext4 inside the VM. Names are
+# flattened into the volume root because the host cannot create directories
+# inside a Docker volume. Only the database moves: raids.dat, maps and the
+# other per-level NBT stay on the share, where backups and `./dev clean` see
+# them.
+DH_ALLOW="$CONSUMER_DIR/data/allowed_symlinks.txt"
+if [[ ! -f "$DH_ALLOW" ]] || ! grep -qx '/dh-db' "$DH_ALLOW"; then
+  echo '/dh-db' >> "$DH_ALLOW"
+fi
+chown_sqlite_volume dh-db /dh-db \
+  "Distant Horizons will fail every level with SQLITE_CANTOPEN"
+
+DH_LINKED=0
+# $1 = level directory under data/, $2 = flat database name in the volume.
+dh_link_level() {
+  local db="$CONSUMER_DIR/data/$1/data/DistantHorizons.sqlite"
+  if [[ -L "$db" ]]; then return 0; fi
+  mkdir -p "$CONSUMER_DIR/data/$1/data"
+  if [[ -f "$db" ]]; then
+    backup "$db"
+    rm -f "$db"
+  fi
+  rm -f "$db-wal" "$db-shm"
+  ln -sfn "/dh-db/$2.sqlite" "$db"
+  DH_LINKED=$((DH_LINKED + 1))
+}
+
+if [[ -d "$CONSUMER_DIR/data/world" ]]; then
+  dh_link_level world overworld
+  dh_link_level world/DIM-1 the_nether
+  dh_link_level world/DIM1 the_end
+
+  # Every level already on disk, whichever mod owns it.
+  for dh_dir in "$CONSUMER_DIR"/data/world/dimensions/*/*; do
+    if [[ ! -d "$dh_dir" ]]; then continue; fi
+    dh_slug="$(basename "$dh_dir")"
+    dh_ns="$(basename "$(dirname "$dh_dir")")"
+    dh_link_level "world/dimensions/$dh_ns/$dh_slug" "${dh_ns}__${dh_slug}"
+  done
+
+  # Every dimension the config declares, so one created mid-session finds its
+  # symlink already there. The reserved four sit at vanilla or mod-owned paths
+  # covered above.
+  DH_NS="$(python3 -c \
+    'import json,sys;print(json.load(open(sys.argv[1])).get("namespace","adventure"))' \
+    "$CONSUMER_DIR/data/config/custom-dimensions/settings.json" 2> /dev/null \
+    || echo adventure)"
+  for dh_cfg in "$CONSUMER_DIR"/data/config/custom-dimensions/dimensions/*.json; do
+    if [[ ! -f "$dh_cfg" ]]; then continue; fi
+    dh_slug="$(basename "$dh_cfg" .json)"
+    case "$dh_slug" in
+      overworld | the_nether | the_end | paradise_lost) continue ;;
+    esac
+    dh_link_level "world/dimensions/$DH_NS/$dh_slug" "${DH_NS}__${dh_slug}"
+  done
+
+  # DH probes the file before opening it and reports a dangling symlink as
+  # "Unable to read database file ... check the permissions", so every target
+  # has to exist. A zero-byte file is a valid empty SQLite database. Only a
+  # container can write into the volume, and it resolves each link itself
+  # rather than being handed 160+ names on the command line.
+  if ! docker run --rm \
+    -v "${COMPOSE_PROJECT_NAME:-${BRAND_SLUG:-myserver}}_dh-db:/dh-db" \
+    -v "$CONSUMER_DIR/data:/data" --entrypoint sh "$MC_IMAGE" -c '
+      find /data/world -name DistantHorizons.sqlite -type l | while read -r l; do
+        t=$(readlink "$l"); [ -e "$t" ] || : > "$t"
+      done
+      chown -R 1000:1000 /dh-db' > /dev/null 2>&1; then
+    echo "  WARNING: could not seed the dh-db volume via $MC_IMAGE" >&2
+    echo "  WARNING: Distant Horizons will fail every level load until it can" >&2
+  fi
+
+  if [[ "$DH_LINKED" -gt 0 ]]; then
+    echo "  distant-horizons: $DH_LINKED level databases moved off the file share"
+  fi
 fi
 
 # --- Enforce Discord integration config (mirrors deploy.sh step 9) ------------

@@ -352,11 +352,15 @@ BSD grep has no PCRE. Use `grep -oE` (extended regex) or `sed`. BSD `grep -E` al
 `mods/mise.toml` pins `java = "temurin-21"`, but a global Java (e.g. 25) takes precedence. Gradle fails with a misleading task-creation error, not a clear wrong-Java message. Use `mise exec -- ./gradlew build`.
 
 <a id="p5"></a>
-### P5 — Creating many dimensions locally kills the JVM with a SIGBUS in Distant Horizons' SQLite
+### P5 — Distant Horizons' per-level SQLite databases live on the `dh-db` volume locally
 
-`hs_err_pid*.log` names `SIGBUS`, a `libc`/`libsqlitejdbc` problematic frame and a Java stack ending in `FullDataSourceV2Repo.<init>` on the **Server thread**; `docker logs mc` shows `Minecraft server failed … exitCode: -1` with no crash report. DH gives every level its own SQLite database under `data/world/dimensions/<ns>/<dim>/data/`, which is the virtiofs bind mount, and virtiofs does not keep an mmap coherent. Around 20 new dimensions in one session is enough.
+DH opens one WAL-mode SQLite per level at `<level>/data/DistantHorizons.sqlite`. On the virtiofs bind mount its `-shm` shared mmap goes incoherent and the JVM takes a `SIGBUS` on the **Server thread** as a level is created — `hs_err_pid*.log` names a `libc`/`libsqlitejdbc` frame and a stack ending in `FullDataSourceV2Repo.<init>`, and `docker logs mc` shows `Minecraft server failed … exitCode: -1` with no crash report. Ledger fails the same way on its own thread.
 
-Local only — production is ext4 and unaffected. It bounds what a linked local stack can test: load a handful of dimensions per boot, not the full set. Not the same as the Ledger SIGBUS, which faults on the `Ledger Database` thread and is already fixed by the named volume `dev-up.sh` sets up.
+`dev-up.sh` symlinks every level's database into the `dh-db` named volume, ext4 inside the VM, mounted at `/dh-db` outside `/data`. Names are flattened into the volume root (`overworld.sqlite`, `<ns>__<slug>.sqlite`), so `-wal`/`-shm` follow the resolved path off the share. Only the database moves; `raids.dat`, maps and the rest of each level's `data/` stay on the bind mount. Three rules carry over from Ledger, and breaking any one is silent: the mount must be **outside** `/data` (Docker Desktop reports a nested volume in `docker inspect` and never mounts it — verify with `/proc/mounts`), the volume must be chowned to **1000**, and `/dh-db` must be listed in `data/allowed_symlinks.txt` or vanilla refuses the world with `Found forbidden symlinks`. DH adds a fourth: it probes the file before opening it, so a dangling symlink reads as `Unable to read database file … check the permissions` and every level load fails.
+
+Links are laid down for the three vanilla level paths, every level directory already on disk, and every dimension the config declares — so one created mid-session by `/customdim load` finds its link in place. A level created at runtime by something other than a `custom-dimensions` config file gets its database on the share until the next `./dev up`. The volume outlives `./dev clean`, so a re-rolled world starts with the previous world's LOD cache.
+
+Local only — production is ext4 and needs none of this.
 
 ---
 

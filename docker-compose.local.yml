@@ -29,6 +29,11 @@ services:
       # writes land on the bind instead, which is the failure being fixed.
       # dev-up.sh chowns it to 1000, the uid mc runs as.
       - ledger-db:/ledger-db
+      # Distant Horizons opens one WAL-mode SQLite per level, and faults the
+      # same way on the Server thread as a level is created. Same mount rule:
+      # outside /data, ext4 in the VM, chowned to 1000 by dev-up.sh, which
+      # symlinks every level's DistantHorizons.sqlite in here.
+      - dh-db:/dh-db
     ports:
       # The seed viewer the mod hosts. Bound on every interface so it can be
       # opened from a phone on the same network. It has no authentication and
@@ -88,3 +93,4 @@ services:
 
 volumes:
   ledger-db:
+  dh-db:
