@@ -53,6 +53,17 @@ class PrimingOrderTest {
     }
 
     @Test
+    void aThumbnailCommittedInThePlatformRepoCountsAsPresent() throws IOException {
+        String picker = read("Picker.java");
+        int start = picker.indexOf("public static boolean thumbnailsPresent");
+        assertTrue(start > 0, "thumbnailsPresent must exist");
+        String body = picker.substring(start, picker.indexOf("\n    }", start));
+        assertTrue(body.contains("overlayDimensionsDir()") && body.contains("dir(\"dimensions\")"),
+                "both places a pair can be committed must count — a dimension configured "
+                        + "only in the platform repo would otherwise be redrawn every prime");
+    }
+
+    @Test
     void primingPublishesBesideTheJsonWithoutClearingAnything() throws IOException {
         assertTrue(read("RollPipeline.java").contains("Picker.exportMissingThumbnails("),
                 "priming must publish the renders it drew, or they stay in the bank");

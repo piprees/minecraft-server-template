@@ -127,12 +127,22 @@ public final class Picker {
     }
 
     /**
-     * True when both thumbnails already sit beside the dimension's JSON.
-     * Priming skips a dimension that has them, so a roll's picks are never
-     * redrawn from the configured seed.
+     * True when both thumbnails already sit beside the dimension's JSON, in
+     * either place one can be committed. Priming skips a dimension that has
+     * them, so a roll's picks are never redrawn from the configured seed.
+     *
+     * <p>Overlay first, then the platform defaults — the same precedence
+     * {@code render-loop.sh}'s {@code thumb_file_for} publishes by. A
+     * dimension configured only in the platform repo has no overlay JSON and
+     * its pair sits beside the platform one; checking the overlay alone would
+     * call that missing and redraw it on every prime.
      */
     public static boolean thumbnailsPresent(String dimensionSlug) {
-        Path dir = Artefacts.overlayDimensionsDir();
+        return thumbnailPairIn(Artefacts.overlayDimensionsDir(), dimensionSlug)
+                || thumbnailPairIn(Artefacts.dir("dimensions"), dimensionSlug);
+    }
+
+    private static boolean thumbnailPairIn(Path dir, String dimensionSlug) {
         return Files.isRegularFile(dir.resolve(dimensionSlug + "_low.png"))
                 && Files.isRegularFile(dir.resolve(dimensionSlug + "_high.png"));
     }
