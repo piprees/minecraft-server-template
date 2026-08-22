@@ -122,7 +122,7 @@ _download_asset() {
       "${API_URL}/tags/${tag}" 2>/dev/null \
       | grep -B3 "\"name\": *\"${filename}\"" | grep -oE '"id": *[0-9]+' | head -1 | grep -oE '[0-9]+') || true
     if [[ -n "$asset_id" ]]; then
-      _retry curl -fSL --connect-timeout 10 --max-time 120 \
+      _retry curl -fSL --connect-timeout 10 --max-time 600 \
         -H "Authorization: Bearer ${GITHUB_TOKEN}" \
         -H "Accept: application/octet-stream" \
         -o "$dest" "https://api.github.com/repos/${REPO}/releases/assets/${asset_id}" && return 0
@@ -135,7 +135,7 @@ _download_asset() {
       && return 0
   fi
   local url="https://github.com/${REPO}/releases/download/${tag}/${filename}"
-  _retry curl -fSL --connect-timeout 10 --max-time 120 -o "$dest" "$url"
+  _retry curl -fSL --connect-timeout 10 --max-time 600 -o "$dest" "$url"
 }
 
 # Save the last successful resolution so offline runs can use it.
