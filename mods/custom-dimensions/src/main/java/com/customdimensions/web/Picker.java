@@ -207,7 +207,11 @@ public final class Picker {
      * it shows.
      */
     private static void recordProvenance(Path dir, String dimensionSlug, String inputHash, long seed) {
-        if (!Files.isRegularFile(dir.resolve(dimensionSlug + "_low.png"))) {
+        // Both, or the stamp claims a pair that is not there. thumbnailsPresent
+        // wants both, so a low-only stamp reads as "drawn under this config"
+        // while the lightbox image is still missing.
+        if (!Files.isRegularFile(dir.resolve(dimensionSlug + "_low.png"))
+                || !Files.isRegularFile(dir.resolve(dimensionSlug + "_high.png"))) {
             return;
         }
         JsonObject root = new JsonObject();

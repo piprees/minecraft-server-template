@@ -81,6 +81,19 @@ class PrimingOrderTest {
     }
 
     @Test
+    void aHalfWrittenPairIsNotStamped() throws IOException {
+        String picker = read("Picker.java");
+        int start = picker.indexOf("private static void recordProvenance");
+        assertTrue(start > 0, "recordProvenance must exist");
+        String body = picker.substring(start, picker.indexOf("\n    }", start));
+        assertTrue(body.contains("_low.png\"))")
+                        && body.contains("_high.png\"))"),
+                "the stamp must require BOTH sizes — thumbnailsPresent wants both, so a "
+                        + "low-only stamp claims a pair that is not there and reports a "
+                        + "run as finished while every lightbox image is still missing");
+    }
+
+    @Test
     void primingPublishesBesideTheJsonWithoutClearingAnything() throws IOException {
         assertTrue(read("RollPipeline.java").contains("Picker.exportMissingThumbnails("),
                 "priming must publish the renders it drew, or they stay in the bank");
