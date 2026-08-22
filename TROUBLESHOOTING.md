@@ -4,7 +4,7 @@
 
 | Prefix | Range | What it covers |
 | --- | --- | --- |
-| **T** | [T1–T14, T16–T19, T22–T27, T30–T36](#architecture-traps) | Architecture traps — each has caused a real production incident |
+| **T** | [T1–T14, T16–T19, T22–T27, T30–T37](#architecture-traps) | Architecture traps — each has caused a real production incident |
 | **P** | [P1–P4](#macos-local-dev) | macOS local-dev quirks (BSD tooling, toolchain) |
 | **D** | [D1–D6, D8–D9](#dimension-lifecycle) | Custom-dimension lifecycle on a live world |
 | **K** | [K1–K2, K5](#known-issues) | Open issues — unfixed, on the watch list |
@@ -70,6 +70,7 @@ Run this first. It covers deploy drift, disk, every expected container, `ONLINE_
 | A dimension generates biomes its `biomes` list never named; `structure-census` reports `FACTS ENGINE DISAGREES` | [T34](#t34) |
 | A mod is installed and loaded but its biomes are in no catalogue, or a catalogue count is lower than the jars hold | [T35](#t35) |
 | A sky_islands or nether_islands world is one island at origin ringed by void | [T36](#t36) |
+| "the mod does not run in the reserved four" — reasoning from `getCustomDimensions()` | [T37](#t37) |
 | Mod build fails with a misleading Gradle task error | [P4](#p4) |
 | A worldgen config change had no effect | [D2](#d2) |
 | `Tried to read NBT tag that was too big`; `level.dat` growing every boot | [D9](#d9) |
@@ -298,6 +299,27 @@ A world regenerates with the old terrain after a reset that set a new seed, or t
   must NOT get the flag. Anything past roughly a 1024 border shows the ring.
 - **Creation-time.** This is worldgen ([D2](#d2)) and it moves the seed
   fingerprint, so an affected dimension needs a world wipe and a re-roll.
+
+<a id="t37"></a>
+### T37 — `getCustomDimensions()` says which worlds the mod CREATES, not which worlds its code RUNS IN
+
+- **Symptom:** an investigation concludes this mod's worldgen is not in the code
+  path for `minecraft:overworld`/`the_nether`/`the_end`/`paradise_lost`, and
+  rules the mod out of a worldgen bug in one of them.
+- **Cause:** `MultiverseConfig.getCustomDimensions()` filters on
+  `!c.isReserved()`, and `registerDimensions()` iterates it — so the reserved
+  four are not built by `createDimensionOptions`. That is a statement about
+  world CREATION only. Generation behaviour is delivered by mixins on VANILLA
+  classes, which carry no reserved filter and therefore run in every world:
+  `NoiseStructureSelectionMixin` (`@Mixin(ChunkGenerator.class)`, the source of
+  the `Noise pick: … rejected … (world …)` lines), `ChunkNoiseSamplerMixin`
+  ([T27](#t27)), `NoiseChunkGeneratorForcedGroundMixin`,
+  `ChunkGeneratorForcedStartMixin` ([T25](#t25)), `ServerWorldSeedMixin`
+  ([T31](#t31)).
+- **Fix:** to answer "does our code run here", read the mixin targets, not the
+  config accessors. `AGENTS.md` § Dimensions states the invariant: the reserved
+  four are "four dimensions among 82", and `custom-dimensions` "owns every
+  generator in the pack".
 
 <a id="t32"></a>
 ### T32 — A candidate's thumbnail is a window on spawn, not a picture of the world

@@ -389,12 +389,19 @@ fi
 # A fresh named volume is root-owned and mc runs as uid 1000, which Ledger
 # reports as SQLITE_CANTOPEN and a tick-loop crash. Chown through the mc image
 # so this pulls nothing.
+# The tag comes from the compose file rather than a second copy here: a
+# duplicated pin silently stops matching when the compose one moves, and the
+# only symptom is the SQLITE_CANTOPEN crash this exists to prevent.
 LEDGER_VOL="${COMPOSE_PROJECT_NAME:-${BRAND_SLUG:-myserver}}_ledger-db"
+LEDGER_IMAGE="$(sed -n 's|.*image: .*/\(itzg/minecraft-server:[^ ]*\).*|\1|p' \
+  "$STACK_DIR/docker-compose.yml" | head -1)"
+LEDGER_IMAGE="${MIRROR_REGISTRY:-ghcr.io/piprees/mirrors}/${LEDGER_IMAGE:-itzg/minecraft-server:latest}"
 docker volume create "$LEDGER_VOL" > /dev/null 2>&1 || true
-docker run --rm --entrypoint chown \
-  -v "$LEDGER_VOL:/ledger-db" \
-  "${MIRROR_REGISTRY:-ghcr.io/piprees/mirrors}/itzg/minecraft-server:2026.7.0-java21" \
-  1000:1000 /ledger-db > /dev/null 2>&1 || true
+if ! docker run --rm --entrypoint chown -v "$LEDGER_VOL:/ledger-db" \
+  "$LEDGER_IMAGE" 1000:1000 /ledger-db > /dev/null 2>&1; then
+  echo "  WARNING: ledger: could not chown $LEDGER_VOL via $LEDGER_IMAGE" >&2
+  echo "  WARNING: Ledger will crash-loop with SQLITE_CANTOPEN until this succeeds" >&2
+fi
 
 LEDGER_DB="$CONSUMER_DIR/data/world/ledger.sqlite"
 if [[ -d "$CONSUMER_DIR/data/world" && ! -L "$LEDGER_DB" ]]; then

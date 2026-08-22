@@ -123,7 +123,11 @@ public class MultiverseConfig {
         return config != null && !config.isReserved() ? config : null;
     }
 
-    /** Every dimension THIS MOD CREATES — not the reserved four, which it only configures. */
+    /**
+     * Every dimension THIS MOD CREATES — not the reserved four, which it only
+     * configures. CREATION only: the mixins on vanilla worldgen classes carry
+     * no reserved filter and run in every world (TROUBLESHOOTING.md#t37).
+     */
     public List<DimensionConfig> getCustomDimensions() {
         return this.configs.values().stream().filter(c -> !c.isReserved()).toList();
     }
