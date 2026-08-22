@@ -556,25 +556,8 @@ fi
 # per-dimension worldgen; the rest of c2me stays on. c2me strips the key
 # when it rewrites its config at boot, so this re-applies every deploy.
 C2ME_TOML="$SERVER_DIR/data/config/c2me.toml"
-python3 - "$C2ME_TOML" "[vanillaWorldGenOptimizations]" "useDensityFunctionCompiler" "false" << 'PYEOF'
-import sys, os, re
-p, section, key, value = sys.argv[1:5]
-if os.path.exists(p):
-    s = open(p).read()
-    if key in s:
-        s2 = re.sub(r'%s\s*=\s*\S+' % key, '%s = %s' % (key, value), s)
-    elif section.replace("[", "\\[") and section in s:
-        s2 = s.replace(section, section + "\n\t%s = %s" % (key, value))
-    else:
-        s2 = s + "\n%s\n\t%s = %s\n" % (section, key, value)
-    if s2 != s:
-        open(p, "w").write(s2)
-        print("  %s: %s = %s enforced" % (os.path.basename(p), key, value))
-else:
-    os.makedirs(os.path.dirname(p), exist_ok=True)
-    open(p, "w").write("%s\n\t%s = %s\n" % (section, key, value))
-    print("  %s: created with %s = %s" % (os.path.basename(p), key, value))
-PYEOF
+python3 "$SCRIPT_DIR/force-toml-key.py" "$C2ME_TOML" \
+  "[vanillaWorldGenOptimizations]" "useDensityFunctionCompiler" "false"
 
 # Distant Horizons: silence the per-boot G1/explicit-GC nag (multi-line WARN
 # wall on every start; the GC choice is deliberate). Keys live under

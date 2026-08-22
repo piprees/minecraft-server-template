@@ -147,22 +147,8 @@ case "$ACTION" in
     fi
 
     C2ME_TOML="$local_data_cfg/c2me.toml"
-    python3 - "$C2ME_TOML" << 'PYEOF'
-import os, re, sys
-p = sys.argv[1]
-section = "[vanillaWorldGenOptimizations]"
-key = "useDensityFunctionCompiler"
-s = open(p).read() if os.path.exists(p) else ""
-if key in s:
-    updated = re.sub(r'%s\s*=\s*\S+' % key, '%s = false' % key, s)
-elif section in s:
-    updated = s.replace(section, section + "\n\t%s = false" % key)
-else:
-    updated = s + "\n%s\n\t%s = false\n" % (section, key)
-if updated != s:
-    with open(p, "w") as f:
-        f.write(updated)
-PYEOF
+    python3 "$SCRIPT_DIR/force-toml-key.py" "$C2ME_TOML" \
+      "[vanillaWorldGenOptimizations]" "useDensityFunctionCompiler" "false"
     echo "Config refresh complete. Review changes against data/config.bak.${timestamp}."
     exit 0
     ;;
@@ -330,26 +316,8 @@ fi
 # ignoring the seed — custom dimensions clone the main world without this.
 # Mirrors deploy.sh step 8c. Idempotent.
 C2ME_TOML="$CONSUMER_DIR/data/config/c2me.toml"
-python3 - "$C2ME_TOML" << 'PYEOF'
-import sys, os, re
-p = sys.argv[1]
-section = "[vanillaWorldGenOptimizations]"
-key = "useDensityFunctionCompiler"
-if os.path.exists(p):
-    s = open(p).read()
-    if key in s:
-        s2 = re.sub(r'%s\s*=\s*\S+' % key, '%s = false' % key, s)
-    elif section in s:
-        s2 = s.replace(section, section + "\n\t%s = false" % key)
-    else:
-        s2 = s + "\n%s\n\t%s = false\n" % (section, key)
-    if s2 != s:
-        open(p, "w").write(s2)
-        print("  c2me: useDensityFunctionCompiler forced off (per-dimension seeds)")
-else:
-    os.makedirs(os.path.dirname(p), exist_ok=True)
-    open(p, "w").write("%s\n\t%s = false\n" % (section, key))
-PYEOF
+python3 "$SCRIPT_DIR/force-toml-key.py" "$C2ME_TOML" \
+  "[vanillaWorldGenOptimizations]" "useDensityFunctionCompiler" "false"
 
 # Distant Horizons: silence the per-boot G1/explicit-GC warning wall, and keep
 # distant generation off. Nothing local has a player far enough out to need
@@ -417,19 +385,13 @@ fi
 # mod's mixin on player leave crashes the server with an NPE.
 DI_TOML="$CONSUMER_DIR/data/config/Discord-Integration.toml"
 if [[ -n "${DISCORD_BOT_TOKEN:-}" && -f "$DI_TOML" ]]; then
-  if [[ "$(uname)" == "Darwin" ]]; then
-    sed -i '' "s|botToken = \".*\"|botToken = \"${DISCORD_BOT_TOKEN}\"|" "$DI_TOML" 2>/dev/null || true
-    sed -i '' "s|botChannel = .*|botChannel = ${DISCORD_CHAT_CHANNEL_ID:-${DISCORD_CHANNEL_ID:-0}}|" "$DI_TOML" 2>/dev/null || true
-    sed -i '' 's|enable = false|enable = true|' "$DI_TOML" 2>/dev/null || true
-    sed -i '' "s|serverName = \".*\"|serverName = \"${BRAND_NAME:-Server}\"|" "$DI_TOML" 2>/dev/null || true
-    sed -i '' 's|serverStarting = true|serverStarting = false|' "$DI_TOML" 2>/dev/null || true
-  else
-    sed -i "s|botToken = \".*\"|botToken = \"${DISCORD_BOT_TOKEN}\"|" "$DI_TOML" 2>/dev/null || true
-    sed -i "s|botChannel = .*|botChannel = ${DISCORD_CHAT_CHANNEL_ID:-${DISCORD_CHANNEL_ID:-0}}|" "$DI_TOML" 2>/dev/null || true
-    sed -i 's|enable = false|enable = true|' "$DI_TOML" 2>/dev/null || true
-    sed -i "s|serverName = \".*\"|serverName = \"${BRAND_NAME:-Server}\"|" "$DI_TOML" 2>/dev/null || true
-    sed -i 's|serverStarting = true|serverStarting = false|' "$DI_TOML" 2>/dev/null || true
-  fi
+  sed_i \
+    -e "s|botToken = \".*\"|botToken = \"${DISCORD_BOT_TOKEN}\"|" \
+    -e "s|botChannel = .*|botChannel = ${DISCORD_CHAT_CHANNEL_ID:-${DISCORD_CHANNEL_ID:-0}}|" \
+    -e 's|enable = false|enable = true|' \
+    -e "s|serverName = \".*\"|serverName = \"${BRAND_NAME:-Server}\"|" \
+    -e 's|serverStarting = true|serverStarting = false|' \
+    "$DI_TOML" 2> /dev/null || true
   # discord-sync owns slash commands — disable them in the mod.
   if [[ -f "$SCRIPT_DIR/ensure-discord-command-owner.py" ]]; then
     python3 "$SCRIPT_DIR/ensure-discord-command-owner.py" "$DI_TOML"

@@ -30,6 +30,7 @@ MANIFEST=(
   docker-compose.local.yml
   .env.example
   scripts/lib.sh
+  scripts/force-toml-key.py
   scripts/deploy.sh
   scripts/sync-mods.sh
   scripts/initial-setup.sh
