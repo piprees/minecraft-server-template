@@ -294,22 +294,43 @@ manifest_entry() {
       thumbVersion: (if $thumb == "" then null else $thumbVer end)}'
 }
 
-# Manifest consumed by the web shell (served no-cache). Always includes the
-# four base dimensions (even before first render) plus any custom dimensions
-# that have been rendered.
+# One manifest entry per dimension, whichever source names it first. The three
+# sources below overlap: a rendered dimension usually also has a thumbnail.
+manifest_emitted=" "
+manifest_emit() {
+  local out="$1" name="$2"
+  [[ -n "$name" ]] || return 0
+  case "$manifest_emitted" in *" $name "*) return 0 ;; esac
+  manifest_entry "$name" >> "$out"
+  manifest_emitted="$manifest_emitted$name "
+}
+
+# Manifest consumed by the web shell (served no-cache). Includes the four base
+# dimensions (even before first render), every custom dimension that has been
+# rendered, and every custom dimension carrying a committed thumbnail.
 write_manifest() {
   tmp="$OUT_DIR/.manifest-entries"
   : > "$tmp"
+  manifest_emitted=" "
   # Base four — always present.
   for base in overworld nether end paradise_lost; do
-    manifest_entry "$base" >> "$tmp"
+    manifest_emit "$tmp" "$base"
   done
   # Custom dimensions that have been rendered.
   for d in "$OUT_DIR"/maps/*/; do
     [[ -f "$d/unmined.map.properties.js" ]] || continue
-    name=$(basename "$d")
-    case "$name" in overworld|nether|end|paradise_lost) continue ;; esac
-    manifest_entry "$name" >> "$tmp"
+    manifest_emit "$tmp" "$(basename "$d")"
+  done
+  # Custom dimensions with a picked seed but no chunks yet. manifest_entry
+  # already publishes a committed thumbnail regardless of render state, but
+  # only a dimension that reaches it can show one — without this loop a picked
+  # seed has a card only after somebody visits and a render pass runs.
+  for dir in "$CONFIG_DIR/overlay/dimensions" "$CONFIG_DIR/dimensions"; do
+    [[ -d "$dir" ]] || continue
+    for png in "$dir"/*_low.png; do
+      [[ -f "$png" ]] || continue
+      manifest_emit "$tmp" "$(basename "$png" _low.png)"
+    done
   done
   jq -s '{generated: now | floor, dimensions: .}' "$tmp" > "$OUT_DIR/manifest.json.tmp"
   mv "$OUT_DIR/manifest.json.tmp" "$OUT_DIR/manifest.json"

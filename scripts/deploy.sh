@@ -1030,6 +1030,21 @@ echo "==> Enforcing game rules..."
 restore_game_rules
 echo "  Game rules set (quiet-boot mode off)"
 
+# --- Re-render the map now the dimensions exist -------------------------------
+# The sidecar block above recreates unmined-render before any dimension work,
+# and the container renders once on start — so on a fresh world it draws the
+# overworld alone, then sleeps for UNMINED_INTERVAL (6h) with the nether, end
+# and paradise_lost missing from the map. Restarting it here re-runs render_all
+# against the world the activation block just generated. Never fatal: a map a
+# few hours stale is not worth failing a deploy over.
+if docker ps --format '{{.Names}}' | grep -qx unmined-render; then
+  if timeout 60 docker restart unmined-render > /dev/null 2>&1; then
+    echo "  Map render re-triggered (dimensions now on disk)"
+  else
+    warn "could not restart unmined-render; the map redraws on its next pass"
+  fi
+fi
+
 # Re-enable DH distant generation (disabled at step 8c to keep its worldgen
 # threads from competing with dimension activation and Chunky pregen).
 if [[ -f "$DH_TOML" ]]; then
