@@ -27,6 +27,13 @@
 #   - The sidecar list below intentionally omits kuma-init (CI and
 #     ./ops update refresh it separately; infra-deploy.sh includes it).
 #   - Game rules here must match config/boring_default_game_rules/config.json.
+#   - Dimension activation runs ONE dimension at a time and skips any that
+#     already has region files; concurrent first-time generation wedges the
+#     server (K6). The deploy exits 1 rather than grinding on when the
+#     server stops answering — ACTIVATION_STALL_LIMIT unanswered flushes,
+#     or DIMENSION_FAILURE_LIMIT consecutive dimension-load failures.
+#   - Exiting between the whitelist clear and its restore leaves players
+#     locked out (T5), so the EXIT trap restores it.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -154,8 +161,15 @@ whitelist_list() {
   rcon_verified "read whitelist" "whitelist list"
 }
 
+# Set between clear_whitelist and restore_whitelist. A deploy that dies in
+# that window leaves every player locked out (T5), so the EXIT trap restores
+# on the strength of this flag; the happy path clears it first and the trap
+# then does nothing.
+WHITELIST_CLEARED=0
+
 clear_whitelist() {
   local list_output players player
+  WHITELIST_CLEARED=1
   rcon_verified "enable whitelist enforcement" "whitelist on" > /dev/null
   list_output=$(whitelist_list)
   players="${list_output#*: }"
@@ -185,6 +199,13 @@ restore_whitelist() {
     done
   fi
   rcon_verified "restore whitelist enforcement" "whitelist on" > /dev/null
+  WHITELIST_CLEARED=0
+}
+
+restore_whitelist_on_abort() {
+  [[ "${WHITELIST_CLEARED:-0}" -eq 1 ]] || return 0
+  echo "==> Deploy ended with the whitelist cleared — restoring it" >&2
+  restore_whitelist || echo "  Warning: whitelist restore failed; run 'whitelist on' by hand" >&2
 }
 
 # Kuma maintenance window for the whole deploy: monitors show "maintenance"
@@ -222,7 +243,7 @@ pause_backups
 # Replaces the earlier resume-only trap: close the maintenance window,
 # release the autopause suspension, and restart backups however the
 # deploy exits.
-trap 'kuma_maintenance stop; resume_autopause; resume_backups' EXIT
+trap 'restore_whitelist_on_abort; kuma_maintenance stop; resume_autopause; resume_backups' EXIT
 
 msg() {
   local key="$1"
@@ -231,8 +252,10 @@ msg() {
   python3 -c "import json; print(json.load(open('$messages_file'))['$key'])" 2> /dev/null || echo "$key"
 }
 
+# Bounded like every other RCON call here: a docker exec that never returns
+# would trap the step-12 wait loop before it can reach its own ELAPSED check.
 server_alive() {
-  docker exec mc rcon-cli "list" &> /dev/null 2>&1
+  timeout 30 docker exec mc rcon-cli "list" &> /dev/null 2>&1
 }
 
 get_player_count() {
@@ -753,21 +776,103 @@ pause_backups
 # PREGEN_BORDER_RADIUS from the environment.
 echo "  World borders: mod-owned (borders.player in config/custom-dimensions/)"
 
-# --- Activate all dimensions (so Chunky can pre-generate them) ----------------
-# Dimensions don't create region files until a chunk is loaded in them.
-# Forceload one chunk in each, wait for it to save, then remove.
+# --- Activate the reserved dimensions (so Chunky can pre-generate them) -------
+# A dimension writes no region files until a chunk is loaded in it, and
+# unmined-render and idle-tasks both key off region files (D8), so each
+# reserved dimension needs one chunk generated once.
+#
+# ONE AT A TIME, and only where region files are absent. `forceload add`
+# returns as soon as its ticket registers, so three of them issued back to
+# back put three first-time generations on the shared chunk-system executor
+# at once — which wedges the main thread permanently on a fresh world (K6).
+# The region file appearing on disk is the completion signal: it is what the
+# next stage consumes, and unlike RCON it cannot answer "fine" while the
+# work is still queued.
 echo ""
 echo "==> Activating dimensions for pre-generation..."
-for dim in minecraft:the_nether minecraft:the_end paradise_lost:paradise_lost; do
-  rcon "execute in $dim run forceload add 0 0"
+WORLD_DIR="$SERVER_DIR/data/world"
+# 30 x (flush + 10s) is a ceiling near 10 min per dimension when the server
+# is answering; three unanswered flushes in a row (~90s) ends it sooner.
+ACTIVATION_ATTEMPTS="${ACTIVATION_ATTEMPTS:-30}"
+ACTIVATION_STALL_LIMIT="${ACTIVATION_STALL_LIMIT:-3}"
+
+# True when a dimension already carries real region files — the same test
+# idle-tasks.sh's visited() and unmined-render use to call it worth drawing.
+dim_has_region() {
+  find "$1" -maxdepth 1 -name '*.mca' -size +8k 2> /dev/null | head -1 | grep -q .
+}
+
+# Flush, then look for the region file. Two separate limits, because "slow"
+# and "wedged" are different failures: a first-time chunk takes ~2 min on a
+# 4-core box and deserves patience, but a flush that times out several times
+# running means the main thread is not draining and no amount of waiting
+# helps. Whichever limit is reached first ends the wait.
+wait_for_region() {
+  local region="$1" attempt stalled=0
+  for attempt in $(seq 1 "$ACTIVATION_ATTEMPTS"); do
+    if timeout 30 docker exec mc rcon-cli "save-all flush" > /dev/null 2>&1; then
+      stalled=0
+    else
+      stalled=$((stalled + 1))
+      echo "    no response from the server ($stalled/$ACTIVATION_STALL_LIMIT)" >&2
+      if [[ $stalled -ge $ACTIVATION_STALL_LIMIT ]]; then
+        return 1
+      fi
+      continue
+    fi
+    if [[ -d "$region" ]] && dim_has_region "$region"; then
+      return 0
+    fi
+    echo "    still generating (attempt $attempt/$ACTIVATION_ATTEMPTS)..."
+    sleep 10
+  done
+  return 1
+}
+
+ACTIVATED_COUNT=0
+ACTIVATION_FAILED=""
+for entry in \
+  "minecraft:the_nether|$WORLD_DIR/DIM-1/region" \
+  "minecraft:the_end|$WORLD_DIR/DIM1/region" \
+  "paradise_lost:paradise_lost|$WORLD_DIR/dimensions/paradise_lost/paradise_lost/region"; do
+  dim="${entry%%|*}"
+  region="${entry##*|}"
+  if [[ -d "$region" ]] && dim_has_region "$region"; then
+    echo "    $dim — already generated, skipping"
+    continue
+  fi
+  echo "    $dim — generating chunk [0, 0]..."
+  # Captured, not fire-and-forget: a pack without the Aether has no
+  # paradise_lost to forceload, and that must skip rather than fail the
+  # deploy. A timeout is a different answer and is treated as one.
+  if ! add_output=$(timeout 30 docker exec mc rcon-cli "execute in $dim run forceload add 0 0" 2>&1); then
+    ACTIVATION_FAILED="$dim"
+    break
+  fi
+  if [[ "$add_output" == *"Unknown"* || "$add_output" == *"nvalid"* ]]; then
+    echo "    $dim — not present on this server, skipping"
+    continue
+  fi
+  if wait_for_region "$region"; then
+    rcon "execute in $dim run forceload remove 0 0"
+    ACTIVATED_COUNT=$((ACTIVATED_COUNT + 1))
+    echo "    $dim — generated"
+  else
+    ACTIVATION_FAILED="$dim"
+    break
+  fi
 done
-sleep 5
-rcon "save-all flush"
-sleep 3
-for dim in minecraft:the_nether minecraft:the_end paradise_lost:paradise_lost; do
-  rcon "execute in $dim run forceload remove 0 0"
-done
-echo "  Dimensions activated (nether, end, paradise lost)"
+
+if [[ -n "$ACTIVATION_FAILED" ]]; then
+  echo "" >&2
+  echo "ERROR: $ACTIVATION_FAILED never wrote a region file (K6)." >&2
+  echo "  The main thread is not draining work. Stopping the deploy here" >&2
+  echo "  rather than issuing hours of commands it cannot service." >&2
+  echo "  Triage: ./ops logs --latest --grep ERROR, then the thread-name" >&2
+  echo "  read in TROUBLESHOOTING.md#k6." >&2
+  exit 1
+fi
+echo "  $ACTIVATED_COUNT reserved dimension(s) activated"
 
 # --- Custom dimensions (from config/custom-dimensions/) -----------------------
 # One-time setup per dimension: load once so the world exists on disk.
@@ -819,8 +924,18 @@ PYEOF
   echo "==> Setting up new custom dimensions..."
   NEW_COUNT=0
   SKIPPED_COUNT=0
+  # Every dimension costs ~61s when the server cannot answer, so 78 of them
+  # is ~90 minutes of grinding before anyone hears about it. Consecutive
+  # failures mean the server stopped servicing commands, not that one
+  # dimension is awkward — stop and say so (K6).
+  FAILED_STREAK=0
+  DIMENSION_FAILURE_LIMIT="${DIMENSION_FAILURE_LIMIT:-3}"
+  BREAKER_TRIPPED=0
   while IFS='|' read -r name scale; do
     [[ -z "$name" ]] && continue
+    if [[ $BREAKER_TRIPPED -eq 1 ]]; then
+      continue
+    fi
 
     if [[ -f "$SETUP_MARKERS_DIR/$name" ]]; then
       SKIPPED_COUNT=$((SKIPPED_COUNT + 1))
@@ -831,9 +946,14 @@ PYEOF
     sleep 1
     result=$(timeout 30 docker exec mc rcon-cli "execute in ${DIM_NAMESPACE}:$name run seed" 2> /dev/null || echo "")
     if [[ -z "$result" || "$result" == *"Unknown"* ]]; then
-      echo "    ${DIM_NAMESPACE}:$name — not ready yet, will retry next deploy"
+      FAILED_STREAK=$((FAILED_STREAK + 1))
+      echo "    ${DIM_NAMESPACE}:$name — not ready yet, will retry next deploy ($FAILED_STREAK/$DIMENSION_FAILURE_LIMIT)"
+      if [[ $FAILED_STREAK -ge $DIMENSION_FAILURE_LIMIT ]]; then
+        BREAKER_TRIPPED=1
+      fi
       continue
     fi
+    FAILED_STREAK=0
 
     # Borders are mod-owned (borders.player) since v4 Phase 3 — the old
     # per-dimension ChunkyBorder dance is gone.
@@ -842,6 +962,15 @@ PYEOF
     echo "    ${DIM_NAMESPACE}:$name — loaded once (scale 1:$scale, border mod-owned)"
   done <<< "$(echo "$DIM_DATA" | tail -n +2)"
   echo "  $NEW_COUNT dimension(s) newly configured, $SKIPPED_COUNT already set up (untouched)"
+  if [[ $BREAKER_TRIPPED -eq 1 ]]; then
+    echo "" >&2
+    echo "ERROR: $DIMENSION_FAILURE_LIMIT dimensions in a row failed to load (K6)." >&2
+    echo "  The server is not servicing commands. Stopping here rather than" >&2
+    echo "  spending an hour on the rest of the list." >&2
+    echo "  Setup markers for the ones that worked are kept, so the next" >&2
+    echo "  deploy resumes where this one stopped." >&2
+    exit 1
+  fi
 fi
 
 # --- Enforce game rules -------------------------------------------------------

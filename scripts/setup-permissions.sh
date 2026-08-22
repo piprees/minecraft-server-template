@@ -13,12 +13,19 @@
 #
 # COMMANDS.md documents what each group can do - update it when changing
 # permissions here.
+#
+# Gotchas: every rcon call is capped at 30s and warns on failure. This runs
+# ~90 of them at the very end of deploy.sh, so an unbounded one against a
+# wedged server hangs the whole deploy until a human kills it (K6).
 set -euo pipefail
 
 RCON_CMD="docker exec mc rcon-cli"
 
+# Hard 30s cap, matching deploy.sh's rcon_best_effort. Unbounded, a single
+# call against a wedged main thread hangs the whole deploy until a human
+# kills it (K6) — this script runs ~90 calls, at the very end of deploy.sh.
 rcon() {
-  $RCON_CMD "$1" > /dev/null 2>&1 || true
+  timeout 30 $RCON_CMD "$1" > /dev/null 2>&1 || echo "  Warning: LuckPerms command failed: $1" >&2
 }
 
 echo "==> Setting up LuckPerms groups and permissions..."

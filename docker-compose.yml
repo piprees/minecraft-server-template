@@ -185,7 +185,12 @@ services:
       # log lines/hour of pure chatter. 60s keeps pause/resume latency
       # fine-grained enough (knocks resume instantly regardless).
       AUTOPAUSE_PERIOD: "60"
-      MAX_TICK_TIME: "-1"
+      # Vanilla's watchdog, in ms. It is the only thing that preempts a
+      # stalled tick, and it dumps every thread's stack before exiting —
+      # the one diagnostic that names a wedge instead of leaving silence
+      # (K6). 300000 is 5x the vanilla default, far past any tick a healthy
+      # boot here has produced, so it fires only on a genuine stall.
+      MAX_TICK_TIME: "300000"
 
       # --- Gameplay ---
       DIFFICULTY: hard
@@ -235,6 +240,10 @@ services:
       - stack-config:/config-vol:ro
     logging: *default-logging
     restart: unless-stopped
+    # PID 1 is mc-server-runner, which takes up to STOP_DURATION (60s by
+    # default) to forward the stop, flush the world and exit. Docker's own
+    # 10s default SIGKILLs it mid-save on every stop (D9).
+    stop_grace_period: 90s
     depends_on:
       seed:
         condition: service_completed_successfully

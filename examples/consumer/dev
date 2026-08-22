@@ -306,14 +306,17 @@ case "$CMD" in
     # dynamic-data-pack-cache, and the portal/fingerprint state files that
     # describe the destroyed world. (deploy.sh-only in production, so
     # nothing to delete here): the per-dimension deploy-setup markers.
-    # Keeps .env, mods, data/config (aside from the world-specific files
-    # above), overlay/ and the seed bank. Change SEED in .env before
-    # ./dev up if a new seed is wanted.
+    # data/config/custom-dimensions goes too: it is seeded skip-if-exists,
+    # so keeping it regenerates the new world from the OLD seeds and spawn
+    # (D4), which reads as a passing test of a change that never applied.
+    # Keeps .env, mods, the rest of data/config, overlay/ and the seed
+    # bank. Change SEED in .env before ./dev up if a new seed is wanted.
     ensure_env
     ensure_stack
     echo "This deletes the LOCAL world and player data under $CONSUMER_DIR/data."
-    echo "Kept: .env, data/mods, data/config (aside from portal_links.json /"
-    echo "custom-dimensions-fingerprints.json), overlay/, .seed-rolling/."
+    echo "Kept: .env, data/mods, data/config (aside from custom-dimensions/,"
+    echo "portal_links.json, custom-dimensions-fingerprints.json), overlay/,"
+    echo ".seed-rolling/."
     if [[ "${1:-}" != "--force" ]]; then
       read -rp "Type RESET to confirm: " CONFIRM
       if [[ "$CONFIRM" != "RESET" ]]; then
@@ -329,7 +332,8 @@ case "$CMD" in
       "$CONSUMER_DIR/data/unmined-web/index.html" \
       "$CONSUMER_DIR/data/unmined-web/manifest.json" \
       "$CONSUMER_DIR/data/dynamic-data-pack-cache" \
-      "$CONSUMER_DIR/data/config/chunky/tasks"
+      "$CONSUMER_DIR/data/config/chunky/tasks" \
+      "$CONSUMER_DIR/data/config/custom-dimensions"
     rm -f "$CONSUMER_DIR/data/.chunky-complete" "$CONSUMER_DIR/data/.chunky-nether-complete" \
       "$CONSUMER_DIR/data/.chunky-end-complete" "$CONSUMER_DIR/data/.chunky-paradise-lost-complete" \
       "$CONSUMER_DIR/data/.skip-pause" \

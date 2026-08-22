@@ -7,7 +7,7 @@
 | **T** | [T1–T14, T16–T19, T22–T27, T30–T37](#architecture-traps) | Architecture traps — each has caused a real production incident |
 | **P** | [P1–P4](#macos-local-dev) | macOS local-dev quirks (BSD tooling, toolchain) |
 | **D** | [D1–D6, D8–D9](#dimension-lifecycle) | Custom-dimension lifecycle on a live world |
-| **K** | [K1–K2, K5](#known-issues) | Open issues — unfixed, on the watch list |
+| **K** | [K1–K2, K5–K6](#known-issues) | Open issues — unfixed, on the watch list |
 
 Related contracts: [`AGENTS.md`](AGENTS.md) (how to behave), [`COMMANDS.md`](COMMANDS.md) (command reference), [`mods/AGENTS.md`](mods/AGENTS.md) (in-house mod development, including portal-subsystem specifics).
 
@@ -79,6 +79,7 @@ Run this first. It covers deploy drift, disk, every expected container, `ONLINE_
 | `Error upgrading chunk`, RCON i/o-timeout, container healthy | [K1](#k1) |
 | `TheChunkSystem` ConcurrentModificationException | [K2](#k2) |
 | The map looks imprecise on steep terrain | [K5](#k5) |
+| A fresh-world deploy stops answering RCON forever, no exception, one thread pegged | [K6](#k6) |
 | Can't connect / server won't start / backups failing / lag | [Common symptoms](#common-symptoms) |
 
 ---
@@ -425,6 +426,54 @@ The rendered height disagrees with the facts on high-relief columns. The error i
 **What is measured:** `finalDensity` ends in `squeeze`, which clamps to ±0.4583, so under deep rock it saturates and carries no surface — a column whose blocks end at 203 reads a flat +0.4585 from y≈150 to 250, putting the first zero-crossing 92 blocks high. `finalDensity` is not the field that dimension's blocks are placed from; the world, the facts and `getColumnSample` agree with each other and disagree with it.
 
 **Ruled out by measurement — do not re-try these:** the interpolation rewrite (±9+ 608 → 594, then 594 → 594 at the marker), router trimming, cell geometry, off-corner sampling, the rung blind spot, and substituting `initialDensityWithoutJaggedness` (tried and REVERTED — it moved the wisteria anchor 8 → 1011 and stripped every ceilinged dimension of its ground). Vanilla's beardifier and this mod's `KernelDensity` are both structurally incapable of it ([T27](#t27)). The most promising unexplored lead is an off-thread benchmark of vanilla's own `getHeight`; the "~23 ms/column, so the honest height source is unaffordable" figure was wrong, because it came from `render-check`, which is tick-budget-bound at 12 ms a tick, not CPU-bound. `customdim column-ladder <dim> <seed> <x> <z>` prints one column's block ladder beside its density ladder and is the tool for this. **Related:** `the_abyssal_shrine` is excluded from the CI render-check gate — it has never satisfied it (median 2 / 1 / −10 across three seeds). Restore it when this closes.
+
+<a id="k6"></a>
+### K6 — Concurrent first-time chunk generation in several dimensions wedges the main thread
+
+- **Symptom:** on a world with no region files (a `reset-seed`, or a first
+  deploy), the deploy's dimension-activation step stops returning. The
+  container stays healthy, RCON's listener keeps accepting connections
+  (`Thread RCON Client ... started` repeats in `data/logs/latest.log`) and no
+  command after the last forceload confirmation ever completes. One
+  `c2me-worker-N` thread sits RUNNABLE at ~100%, the rest of the JVM is idle,
+  and **nothing throws** — no exception, no `Error upgrading chunk`, no GC
+  warning, at info level or above. It does not recover; measured at 26 min and
+  2h47m before being killed by hand.
+- **Trigger, established:** more than one dimension generating its first
+  chunk at the same time. `forceload add` returns as soon as its ticket
+  registers, so issuing it for the nether, the End and paradise_lost back to
+  back puts three first-time generations on c2me's single JVM-wide chunk
+  executor (`ChunkSystemExecutors`' fields are `static final`). The same
+  forceload alone on a quiet server finishes in ~2 min on 4 cores.
+- **Cause: NOT ESTABLISHED.** Leading candidate, read from bytecode but by a
+  single reader: `com.ishland.flowsched.executor.ExecutorManager.tryLock()`
+  retries a check-then-act on a mutable `freed` flag through an internal
+  `goto` with no bound and no backoff, and never reaches its
+  listener-registration line while that flag flaps. That shape is a livelock —
+  real CPU, no exception, no log line, no bound — and it matches every
+  measurement. Refuted by direct read: thread-pool starvation (the dispatch
+  path has no blocking wait at all), `recoverFromErrors` retry storms and K2's
+  CME (both need a throw that never happened).
+- **Guard (in place):** `deploy.sh` activates the reserved dimensions one at a
+  time, skips any that already has region files, and waits for the region file
+  rather than for RCON — three unanswered `save-all flush` calls end the
+  deploy in ~90s instead of ~114 min. The 78-dimension setup loop breaks after
+  `DIMENSION_FAILURE_LIMIT` consecutive failures. `MAX_TICK_TIME` is a real
+  threshold again, so a stalled tick produces a thread dump.
+- **Next reproduction, before killing anything:** read the pegged thread's
+  name — it discriminates directly between the two candidate mechanisms
+  (`c2me-worker-N` → the `tryLock` livelock; `c2me-sched` → the single-flight
+  consolidating executor).
+
+  ```bash
+  docker top mc -eo pid,ppid,pcpu,comm            # java is NOT pid 1
+  docker exec mc kill -QUIT <java_pid>            # JVM thread dump, no tooling needed
+  docker exec mc sh -c 'for t in /proc/<java_pid>/task/*; do echo "$(cat $t/comm) $(awk "{print \$3}" $t/stat)"; done'
+  ```
+
+- **Forensics go to the file, never `docker logs`.** The console appender
+  DENYs `.*Thread RCON.*` and the chunk-executor errors; reading it instead of
+  `data/logs/latest.log` reports zero and inverts the conclusion.
 
 ---
 

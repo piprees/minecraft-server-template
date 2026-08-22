@@ -103,8 +103,10 @@ pregen_stage=""      # "chunky" | "dh"
 pregen_target=""     # dimension id currently being generated
 tasks_done=false
 
+# Bounded at 30s: a wedged main thread never answers, and this loop must
+# keep running (and keep its own sentinel fresh) rather than block on it (K6).
 rcon() {
-  docker exec mc rcon-cli "$@" 2> /dev/null || true
+  timeout 30 docker exec mc rcon-cli "$@" 2> /dev/null || true
 }
 
 # True when the JVM is SIGSTOPped by autopause (process state T).

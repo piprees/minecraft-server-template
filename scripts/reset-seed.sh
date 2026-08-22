@@ -48,7 +48,9 @@
 # put the seed in the config, deploy it, and reset AFTER it is on the server.
 # Same for spawn — the overworld entry's "spawn" replaces SPAWN_X/Y/Z.
 #
-# Optionally wipes restic backups in R2 (--wipe-backups flag).
+# Optionally wipes restic backups in R2 (--wipe-backups flag). The wipe is
+# verified by re-listing the repository afterwards and aborts the reset if
+# anything survived — it must never report success over live backups.
 #
 # After restart, re-runs deploy.sh's post-boot configuration:
 # world borders, game rules, permissions, spawn coordinates.
@@ -396,21 +398,40 @@ fi
 if [[ "$WIPE_BACKUPS" == true ]]; then
   echo ""
   echo "==> Wiping restic snapshots in R2..."
+  # Every step is checked and the repository is re-listed at the end: a
+  # missing restic, an unreachable repo or a failed prune must not print
+  # "wiped" over backups that are still there.
   # shellcheck disable=SC2087
-  ssh -i "$SSH_KEY" "$REMOTE" bash <<'WIPE_EOF'
+  if ssh -i "$SSH_KEY" "$REMOTE" bash <<'WIPE_EOF'
+set -euo pipefail
 cd ~/server && set -a && source .env && set +a
 export RESTIC_REPOSITORY="s3:https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com/${R2_BUCKET}"
 export AWS_ACCESS_KEY_ID="$R2_ACCESS_KEY_ID"
 export AWS_SECRET_ACCESS_KEY="$R2_SECRET_ACCESS_KEY"
 export RESTIC_PASSWORD
-SNAP_IDS=$(restic snapshots --json 2>/dev/null | python3 -c 'import json,sys; [print(s["short_id"]) for s in json.load(sys.stdin)]' 2>/dev/null)
+snapshot_ids() {
+  restic snapshots --json | python3 -c 'import json,sys; [print(s["short_id"]) for s in json.load(sys.stdin)]'
+}
+SNAP_IDS=$(snapshot_ids)
 if [ -n "$SNAP_IDS" ]; then
-  restic forget $SNAP_IDS --prune 2>&1 | tail -3
+  # shellcheck disable=SC2086
+  restic forget $SNAP_IDS --prune
 else
   echo "No snapshots to remove"
 fi
+REMAINING=$(snapshot_ids)
+if [ -n "$REMAINING" ]; then
+  echo "ERROR: snapshots survived the wipe:" >&2
+  echo "$REMAINING" >&2
+  exit 1
+fi
 WIPE_EOF
-  echo "  Restic backups wiped"
+  then
+    echo "  Restic backups wiped (repository lists no snapshots)"
+  else
+    echo "ERROR: the restic wipe failed — snapshots may still exist in R2." >&2
+    exit 1
+  fi
 fi
 
 # =============================================================================

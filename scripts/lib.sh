@@ -148,13 +148,15 @@ backup() {
 # --- RCON helpers (require Docker) --------------------------------------------
 # CONTAINER_PREFIX is empty by default (single-instance); set to
 # "${COMPOSE_PROJECT_NAME}-" for multi-instance to avoid name collisions.
+# Bounded at 30s: a wedged main thread never answers, and an unbounded call
+# against one hangs the caller until a human kills it (K6).
 rcon() {
-  docker exec "${CONTAINER_PREFIX:-}mc" rcon-cli "$@" 2> /dev/null || true
+  timeout 30 docker exec "${CONTAINER_PREFIX:-}mc" rcon-cli "$@" 2> /dev/null || true
 }
 
 get_player_count() {
   local result
-  result=$(docker exec "${CONTAINER_PREFIX:-}mc" rcon-cli "list" 2> /dev/null || echo "")
+  result=$(timeout 30 docker exec "${CONTAINER_PREFIX:-}mc" rcon-cli "list" 2> /dev/null || echo "")
   if [[ -z "$result" ]]; then
     echo "-1"
     return
