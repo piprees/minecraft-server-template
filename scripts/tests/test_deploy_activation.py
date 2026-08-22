@@ -114,12 +114,31 @@ $(for i in $(seq 0 19); do printf 'dim_%02d|1\n' "$i"; done)"
 """
 
 
+# Every slice must still contain these, or the extraction has silently
+# shrunk past the logic under test and the suite would pass on nothing.
+BLOCK_MUST_CONTAIN = {
+    'WORLD_DIR="$SERVER_DIR/data/world"': ("dim_has_region", "wait_for_region",
+                                           "ACTIVATION_STALL_LIMIT", "forceload add"),
+    "  NEW_COUNT=0": ("DIMENSION_FAILURE_LIMIT", "BREAKER_TRIPPED", "dimension load"),
+    "restore_whitelist() {": ("rcon_verified", "WHITELIST_CLEARED"),
+}
+
+
 def extract(start, end):
     """Slice a block out of the real deploy.sh by anchor strings."""
     text = DEPLOY_SH.read_text()
+    if text.count(start) != 1:
+        raise AssertionError(f"start anchor is not unique: {start!r}")
     i = text.index(start)
     j = text.index(end, i) + len(end)
-    return text[i:j]
+    block = text[i:j]
+    for needle in BLOCK_MUST_CONTAIN.get(start, ()):
+        if needle not in block:
+            raise AssertionError(
+                f"extraction lost {needle!r} — the anchors no longer bound the "
+                f"logic under test, so these tests are asserting on nothing"
+            )
+    return block
 
 
 class ActivationHarness(unittest.TestCase):

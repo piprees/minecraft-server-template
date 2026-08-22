@@ -52,6 +52,12 @@
 # verified by re-listing the repository afterwards and aborts the reset if
 # anything survived — it must never report success over live backups.
 #
+# The deploy-lock check is ADVISORY, not exclusive: it looks once, up front,
+# and does not hold the lock for the run. A deploy starting in the window
+# after that check is not prevented. Holding it would mean keeping an SSH
+# session open for the whole multi-minute reset; the human confirmation this
+# script already requires is the real guard.
+#
 # After restart, re-runs deploy.sh's post-boot configuration:
 # world borders, game rules, permissions, spawn coordinates.
 #
