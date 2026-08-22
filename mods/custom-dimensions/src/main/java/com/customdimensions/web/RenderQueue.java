@@ -130,6 +130,23 @@ public final class RenderQueue {
     private static final AtomicLong SEQUENCE = new AtomicLong();
     private static final AtomicInteger PENDING = new AtomicInteger();
     private static final AtomicInteger THUMBNAILS_PENDING = new AtomicInteger();
+
+    /**
+     * True while the configured seeds are being drawn ahead of everything
+     * else. The yield rule below starves a detail map whenever any thumbnail
+     * is owed, which across eighty-odd dimensions means it never finishes for
+     * anything but the dimension somebody has open — so a priming pass would
+     * bank a low render for every dimension and a high one for none.
+     */
+    private static final AtomicBoolean PRIMING = new AtomicBoolean();
+
+    public static void priming(boolean on) {
+        PRIMING.set(on);
+    }
+
+    public static boolean priming() {
+        return PRIMING.get();
+    }
     private static final AtomicReference<String> CURRENT = new AtomicReference<>("");
     /** Queued or in flight, so a reconcile during a roll never queues the same map twice. */
     private static final Set<String> QUEUED = java.util.concurrent.ConcurrentHashMap.newKeySet();
@@ -279,7 +296,7 @@ public final class RenderQueue {
         // how the map somebody is waiting on never gets drawn.
         java.util.function.BooleanSupplier abandonIf = thumbnail
                 ? () -> false
-                : () -> THUMBNAILS_PENDING.get() > 0 && !isFocused(slug);
+                : () -> !PRIMING.get() && THUMBNAILS_PENDING.get() > 0 && !isFocused(slug);
         int priority = !thumbnail ? PRIORITY_HIGHRES
                 : pinned ? PRIORITY_PINNED : PRIORITY_LOWRES;
 

@@ -170,6 +170,11 @@ public final class RollPipeline {
                     def -> banked(com.customdimensions.command.InputHash.of(def, server),
                             def.getDimensionIdentifier().toString())));
         }
+        // The configured seeds come first, always: rolling now would queue
+        // candidates in front of the renders they are still waiting on.
+        if (RenderQueue.priming()) {
+            return "still drawing the configured seeds - try again when priming finishes";
+        }
         if (!RUNNING.compareAndSet(false, true)) {
             return "a roll is already running";
         }
@@ -222,6 +227,7 @@ public final class RollPipeline {
      */
     public static void primeNamedSeeds(MinecraftServer server) {
         Thread starter = new Thread(() -> {
+            RenderQueue.priming(true);
             List<DimensionConfig> targets = BankView.rollTargets();
             int workers = Math.max(1, Math.min(workers(), targets.size()));
             java.util.concurrent.ExecutorService pool =
@@ -248,13 +254,47 @@ public final class RollPipeline {
                         MultiverseServer.LOGGER.warn("Priming named seeds failed", e.getCause());
                     }
                 }
+                // Measuring only QUEUES the maps. Priming is not done until
+                // they are drawn, or a roll admitted here would put eighty
+                // dimensions' worth of candidates in front of the renders the
+                // configured seeds are still waiting on.
+                awaitRenders();
             } finally {
+                RenderQueue.priming(false);
                 pool.shutdownNow();
                 GENERATION.incrementAndGet();
             }
         }, "customdim-roll");
         starter.setDaemon(true);
         starter.start();
+    }
+
+    /** Blocks until the render queue drains, this is cancelled, or it stalls. */
+    private static void awaitRenders() {
+        int lastPending = -1;
+        long unchangedFor = 0;
+        while (!CANCEL.get()) {
+            int pending = RenderQueue.pending();
+            if (pending == 0) {
+                return;
+            }
+            // A queue that has not moved in ten minutes is stuck or paused;
+            // holding the roll shut forever on it would be worse than letting
+            // one through.
+            unchangedFor = pending == lastPending ? unchangedFor + 1 : 0;
+            if (unchangedFor > 600) {
+                MultiverseServer.LOGGER.warn(
+                        "Priming gave up waiting on {} unfinished render(s)", pending);
+                return;
+            }
+            lastPending = pending;
+            try {
+                Thread.sleep(1000L);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                return;
+            }
+        }
     }
 
     /**
