@@ -275,6 +275,80 @@ class CustomDimensionLoopTests(ActivationHarness):
         self.assertIn("0 dimension(s) newly configured, 20 already set up", proc.stdout)
 
 
+class RestoreWhitelistTests(unittest.TestCase):
+    """The real function, driven with a flaky rcon_verified.
+
+    bash's errexit is per CALL SITE: a bare `restore_whitelist` lets an
+    internal failure kill the whole script mid-loop, while `restore_whitelist
+    || warn` makes the body immune AND collapses the return value to the last
+    statement. Both shapes are exercised here.
+    """
+
+    BLOCK = ("restore_whitelist() {", "\n}\n")
+
+    def run_restore(self, fail_on, call, players="alice,bob,carol"):
+        """fail_on: player names whose `whitelist add` fails; 'ON' = enforcement."""
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        root = Path(tmp.name)
+        script = root / "run.sh"
+        script.write_text(
+            "set -euo pipefail\n"
+            "warn() { echo \"WARN: $*\" >&2; }\n"
+            f'FAIL_ON="{fail_on}"\n'
+            "rcon_verified() {\n"
+            '  local label="$1"; shift\n'
+            '  local target="$*"\n'
+            '  for f in $FAIL_ON; do\n'
+            '    if [[ "$target" == *"$f"* ]]; then return 1; fi\n'
+            "  done\n"
+            '  echo "did: $target" >> "$OUT"\n'
+            "  return 0\n"
+            "}\n"
+            f'WHITELIST="{players}"\n'
+            "WHITELIST_CLEARED=1\n"
+            + extract(*self.BLOCK)
+            + "\n"
+            + call
+            + '\necho "SURVIVED cleared=$WHITELIST_CLEARED"\n'
+        )
+        out = root / "did.log"
+        proc = subprocess.run(
+            ["bash", str(script)],
+            capture_output=True,
+            text=True,
+            env={"PATH": "/usr/bin:/bin", "OUT": str(out)},
+        )
+        did = out.read_text().splitlines() if out.exists() else []
+        return proc, did
+
+    def test_one_flaky_player_does_not_skip_the_players_after_it(self):
+        proc, did = self.run_restore("bob", "restore_whitelist")
+        self.assertIn("SURVIVED", proc.stdout, proc.stderr)
+        self.assertTrue(any("carol" in d for d in did), f"carol was skipped: {did}")
+        self.assertIn("WARN:", proc.stderr, "the skipped player must be reported")
+
+    def test_one_flaky_player_does_not_fail_the_deploy(self):
+        proc, _ = self.run_restore("bob", "restore_whitelist")
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        self.assertIn("cleared=0", proc.stdout, "the flag must still be cleared")
+
+    def test_a_failed_enforcement_call_does_fail(self):
+        """`whitelist on` is the load-bearing half — that one must be fatal."""
+        proc, _ = self.run_restore("whitelist on", "restore_whitelist")
+        self.assertEqual(proc.returncode, 1)
+        self.assertNotIn("SURVIVED", proc.stdout)
+
+    def test_the_guarded_call_can_still_report_failure(self):
+        """In the trap the call is guarded, so it must not always return 0."""
+        proc, _ = self.run_restore(
+            "whitelist on", 'restore_whitelist || echo "WARNING FIRED"'
+        )
+        self.assertEqual(proc.returncode, 0)
+        self.assertIn("WARNING FIRED", proc.stdout, "the diagnostic is dead code")
+        self.assertIn("cleared=1", proc.stdout, "a failed restore must not clear it")
+
+
 class DeployLockTests(unittest.TestCase):
     """lib.sh's flock guard, driven through a stubbed flock so it runs anywhere.
 

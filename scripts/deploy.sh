@@ -197,17 +197,29 @@ clear_whitelist() {
   fi
 }
 
+# Non-zero ONLY when enforcement could not be restored — that is the
+# load-bearing half. A single player's re-add is warned and carried past:
+# discord-sync re-syncs roles to the whitelist within 60s, and an unguarded
+# failure there aborts the loop, skipping every player after it, and under
+# `set -e` at a bare call site takes the whole deploy with it.
 restore_whitelist() {
-  local player
+  local player failed=0
   if [[ -n "${WHITELIST:-}" ]]; then
     IFS=',' read -ra WL_ARRAY <<< "$WHITELIST"
     for player in "${WL_ARRAY[@]}"; do
       player="$(echo "$player" | xargs)"
-      [[ -n "$player" ]] && rcon_verified "restore whitelisted player $player" "whitelist add $player" > /dev/null
+      [[ -n "$player" ]] || continue
+      if ! rcon_verified "restore whitelisted player $player" "whitelist add $player" > /dev/null; then
+        failed=$((failed + 1))
+      fi
     done
   fi
-  rcon_verified "restore whitelist enforcement" "whitelist on" > /dev/null
+  if [[ $failed -gt 0 ]]; then
+    warn "${failed} whitelisted player(s) not re-added; discord-sync re-syncs them from roles"
+  fi
+  rcon_verified "restore whitelist enforcement" "whitelist on" > /dev/null || return 1
   WHITELIST_CLEARED=0
+  return 0
 }
 
 # Bounded like every other RCON call here: a docker exec that never returns
