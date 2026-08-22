@@ -418,6 +418,8 @@ The platform copy under `config/` is the source of truth; the consumer copy unde
 
 `Error executing task on Chunk source main thread executor for <dim>` … `TheChunkSystem.lambda$onItemUpgrade$0`. c2me 0.4.0-alpha's chunk-system rewrite races vanilla's entity manager during heavy multi-dimension chunk activity (boot world creation, forceloads). Non-fatal — the executor catches it — but bursts correlate with degraded TPS during boots. **Do NOT filter it from logs**; it is a real error. If it starts crashing servers, the only lever on our side is removing c2me.
 
+The CME is the loud half of this race. `MixinServerEntityManager` `@Overwrite`s vanilla's pending-unload drain, replacing an iterator plus `iterator.remove()` with `while (!isEmpty()) removeFirstLong()` — a shape that **cannot** throw a CME and spins instead, silently, on the main thread. It also removes each entry unconditionally where vanilla removes only when the unload succeeds, so a failed unload is dropped rather than retried. Absence of the CME is therefore not absence of the race.
+
 <a id="k5"></a>
 ### K5 — the map is imprecise on steep terrain; cause not established
 
