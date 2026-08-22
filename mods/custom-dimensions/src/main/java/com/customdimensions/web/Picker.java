@@ -127,24 +127,45 @@ public final class Picker {
     }
 
     /**
-     * True when both thumbnails already sit beside the dimension's JSON, in
-     * either place one can be committed. Priming skips a dimension that has
-     * them, so a roll's picks are never redrawn from the configured seed.
+     * True when both thumbnails already sit beside the dimension's JSON AND
+     * were drawn from the config in force now. Priming skips a dimension that
+     * has them, so a roll's picks are never redrawn from the configured seed.
      *
-     * <p>Overlay first, then the platform defaults — the same precedence
-     * {@code render-loop.sh}'s {@code thumb_file_for} publishes by. A
-     * dimension configured only in the platform repo has no overlay JSON and
-     * its pair sits beside the platform one; checking the overlay alone would
-     * call that missing and redraw it on every prime.
+     * <p>Checked overlay first, then the platform defaults — the same
+     * precedence {@code render-loop.sh}'s {@code thumb_file_for} publishes by.
+     *
+     * <p>The filename carries only the slug, and a slug does not identify a
+     * world: {@link InputHash} covers the whole config bar the seed, so the
+     * same slug and the same seed draw a different picture either side of a
+     * biome edit or a consumer overlay. Without the recorded hash a pair goes
+     * stale silently — the bank re-renders under the new key while the
+     * committed PNG keeps showing a world nobody generates any more.
      */
-    public static boolean thumbnailsPresent(String dimensionSlug) {
-        return thumbnailPairIn(Artefacts.overlayDimensionsDir(), dimensionSlug)
-                || thumbnailPairIn(Artefacts.dir("dimensions"), dimensionSlug);
+    public static boolean thumbnailsPresent(MinecraftServer server, DimensionConfig def,
+                                            String dimensionSlug) {
+        String hash = InputHash.of(def, server);
+        return currentPairIn(Artefacts.overlayDimensionsDir(), dimensionSlug, hash)
+                || currentPairIn(Artefacts.dir("dimensions"), dimensionSlug, hash);
     }
 
-    private static boolean thumbnailPairIn(Path dir, String dimensionSlug) {
+    private static boolean currentPairIn(Path dir, String dimensionSlug, String hash) {
         return Files.isRegularFile(dir.resolve(dimensionSlug + "_low.png"))
-                && Files.isRegularFile(dir.resolve(dimensionSlug + "_high.png"));
+                && Files.isRegularFile(dir.resolve(dimensionSlug + "_high.png"))
+                && hash.equals(recordedHash(dir, dimensionSlug));
+    }
+
+    /** The hash a committed pair was drawn under, or null when unrecorded. */
+    private static String recordedHash(Path dir, String dimensionSlug) {
+        Path sidecar = dir.resolve(dimensionSlug + "_thumb.json");
+        if (!Files.isRegularFile(sidecar)) {
+            return null;
+        }
+        try {
+            JsonObject root = JsonParser.parseString(Files.readString(sidecar)).getAsJsonObject();
+            return root.has("inputHash") ? root.get("inputHash").getAsString() : null;
+        } catch (IOException | RuntimeException e) {
+            return null;
+        }
     }
 
     /**
@@ -175,6 +196,29 @@ public final class Picker {
         if (!Files.isRegularFile(high)) {
             writeThumbnail(SeedBank.candidateImagePath(inputHash, dimension, seed,
                     CandidateRender.Resolution.HIGHRES), high, THUMB_HIGH_MAX_SIDE);
+        }
+        recordProvenance(dir, dimensionSlug, inputHash, seed);
+    }
+
+    /**
+     * Stamps the pair with the config it was drawn under. Read back by
+     * {@link #thumbnailsPresent}, which treats an unstamped or stale pair as
+     * missing — the only thing that stops a committed PNG outliving the world
+     * it shows.
+     */
+    private static void recordProvenance(Path dir, String dimensionSlug, String inputHash, long seed) {
+        if (!Files.isRegularFile(dir.resolve(dimensionSlug + "_low.png"))) {
+            return;
+        }
+        JsonObject root = new JsonObject();
+        root.addProperty("inputHash", inputHash);
+        root.addProperty("seed", seed);
+        try {
+            Artefacts.write(dir.resolve(dimensionSlug + "_thumb.json"),
+                    new GsonBuilder().setPrettyPrinting().create().toJson(root) + "\n");
+        } catch (IOException | RuntimeException e) {
+            MultiverseServer.LOGGER.warn("Could not stamp thumbnails for {}: {}",
+                    dimensionSlug, e.toString());
         }
     }
 
@@ -212,6 +256,7 @@ public final class Picker {
         writeThumbnail(
                 SeedBank.candidateImagePath(inputHash, dimension, seed, CandidateRender.Resolution.HIGHRES),
                 overlayDir.resolve(dimensionSlug + "_high.png"), THUMB_HIGH_MAX_SIDE);
+        recordProvenance(overlayDir, dimensionSlug, inputHash, seed);
     }
 
     /**

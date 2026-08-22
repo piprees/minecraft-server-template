@@ -234,7 +234,7 @@ public final class RollPipeline {
             // configured seed would overwrite that pick.
             List<DimensionConfig> targets = new ArrayList<>();
             for (DimensionConfig def : BankView.rollTargets()) {
-                if (!Picker.thumbnailsPresent(def.getDimensionIdentifier().getPath())) {
+                if (!Picker.thumbnailsPresent(server, def, def.getDimensionIdentifier().getPath())) {
                     targets.add(def);
                 }
             }

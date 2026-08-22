@@ -64,6 +64,20 @@ class PrimingOrderTest {
     }
 
     @Test
+    void aPairDrawnUnderADifferentConfigDoesNotCountAsPresent() throws IOException {
+        String picker = read("Picker.java");
+        int start = picker.indexOf("private static boolean currentPairIn");
+        assertTrue(start > 0, "the presence check must compare provenance, not just existence");
+        String body = picker.substring(start, picker.indexOf("\n    }", start));
+        assertTrue(body.contains("hash.equals(recordedHash("),
+                "a slug does not identify a world — InputHash covers the whole config bar "
+                        + "the seed, so the same slug and seed draw a different picture "
+                        + "across a biome edit or a consumer overlay");
+        assertTrue(picker.contains("recordProvenance(overlayDir, dimensionSlug, inputHash, seed)"),
+                "pick must stamp too, or a picked pair reads as unstamped and is re-primed");
+    }
+
+    @Test
     void primingPublishesBesideTheJsonWithoutClearingAnything() throws IOException {
         assertTrue(read("RollPipeline.java").contains("Picker.exportMissingThumbnails("),
                 "priming must publish the renders it drew, or they stay in the bank");
