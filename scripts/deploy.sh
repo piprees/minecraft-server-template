@@ -234,15 +234,20 @@ restore_game_rules() {
 restore_after_abort() {
   [[ "${WHITELIST_CLEARED:-0}" -eq 1 ]] || return 0
   echo "==> Deploy ended early — restoring player access" >&2
-  restore_whitelist || echo "  Warning: whitelist restore failed; run 'whitelist on' by hand" >&2
   docker start discord-sync 2> /dev/null || true
-  if server_alive; then
-    restore_game_rules
-    echo "  Whitelist, discord-sync and game rules restored" >&2
-  else
-    echo "  Server is not answering: quiet-boot game rules stay in level.dat" >&2
-    echo "  (nothing spawns or ticks). The next successful deploy clears them." >&2
+  # Every remedy below is RCON, so it needs a server that answers. Saying
+  # "run whitelist on by hand" against a stopped or wedged mc sends the
+  # operator after a command that cannot work either.
+  if ! server_alive; then
+    echo "  mc is not answering, so nothing could be restored over RCON." >&2
+    echo "  The whitelist comes back from .env on mc's next boot; the" >&2
+    echo "  quiet-boot game rules persist in level.dat until a deploy" >&2
+    echo "  completes (nothing spawns or ticks until then)." >&2
+    return 0
   fi
+  restore_whitelist || echo "  Warning: whitelist restore failed; retry with ./ops deploy" >&2
+  restore_game_rules
+  echo "  Whitelist, discord-sync and game rules restored" >&2
 }
 
 # Kuma maintenance window for the whole deploy: monitors show "maintenance"
@@ -794,8 +799,9 @@ echo "  World borders: mod-owned (borders.player in config/custom-dimensions/)"
 echo ""
 echo "==> Activating dimensions for pre-generation..."
 WORLD_DIR="$SERVER_DIR/data/world"
-# 30 x (flush + 10s) is a ceiling near 10 min per dimension when the server
-# is answering; three unanswered flushes in a row (~90s) ends it sooner.
+# Up to 30 x (a 30s-bounded flush + 10s) — a ~20 min ceiling per dimension
+# while the server keeps answering; three unanswered flushes (~90s) end it
+# far sooner, which is the case that matters.
 ACTIVATION_ATTEMPTS="${ACTIVATION_ATTEMPTS:-30}"
 ACTIVATION_STALL_LIMIT="${ACTIVATION_STALL_LIMIT:-3}"
 
@@ -947,16 +953,34 @@ PYEOF
 
     rcon "dimension load $name"
     sleep 1
-    result=$(timeout 30 docker exec mc rcon-cli "execute in ${DIM_NAMESPACE}:$name run seed" 2> /dev/null || echo "")
-    if [[ -z "$result" || "$result" == *"Unknown"* ]]; then
+    # Two different failures wear the same face here, and only one of them
+    # is a wedge. `Unknown dimension` means the server ANSWERED and creation
+    # simply has not landed yet — it is queued to END_SERVER_TICK (T18) and a
+    # loaded server can miss the sleep-1 window. That defers this dimension
+    # and must not count toward the breaker, or a busy healthy server aborts
+    # its own remaining dimensions. A call that never returns is the wedge.
+    if result=$(timeout 30 docker exec mc rcon-cli "execute in ${DIM_NAMESPACE}:$name run seed" 2> /dev/null); then
+      if [[ "$result" == *"Unknown"* ]]; then
+        echo "    ${DIM_NAMESPACE}:$name — not ready yet, will retry next deploy"
+        continue
+      fi
+      if [[ -z "$result" ]]; then
+        # Empty with a clean exit cannot be told from a timeout (T17), so it
+        # counts — under-reacting here is what cost 89 minutes.
+        FAILED_STREAK=$((FAILED_STREAK + 1))
+      else
+        FAILED_STREAK=0
+      fi
+    else
       FAILED_STREAK=$((FAILED_STREAK + 1))
-      echo "    ${DIM_NAMESPACE}:$name — not ready yet, will retry next deploy ($FAILED_STREAK/$DIMENSION_FAILURE_LIMIT)"
+    fi
+    if [[ $FAILED_STREAK -gt 0 ]]; then
+      echo "    ${DIM_NAMESPACE}:$name — no answer from the server ($FAILED_STREAK/$DIMENSION_FAILURE_LIMIT)"
       if [[ $FAILED_STREAK -ge $DIMENSION_FAILURE_LIMIT ]]; then
         BREAKER_TRIPPED=1
       fi
       continue
     fi
-    FAILED_STREAK=0
 
     # Borders are mod-owned (borders.player) since v4 Phase 3 — the old
     # per-dimension ChunkyBorder dance is gone.

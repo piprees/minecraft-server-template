@@ -91,9 +91,11 @@ timeout() {
       ;;
     *"run seed"*)
       case "$SCENARIO" in
-        loop_wedged) echo "" ;;
-        loop_flaky)  case "$cmd" in *dim_0[357]*) echo "" ;; *) echo "Seed: [1]" ;; esac ;;
-        loop_late)   case "$cmd" in *dim_1[012]*) echo "" ;; *) echo "Seed: [1]" ;; esac ;;
+        loop_wedged) return 124 ;;
+        loop_flaky)  case "$cmd" in *dim_0[357]*) return 124 ;; *) echo "Seed: [1]" ;; esac ;;
+        loop_late)   case "$cmd" in *dim_1[012]*) return 124 ;; *) echo "Seed: [1]" ;; esac ;;
+        # A healthy but loaded server: creation has not landed yet (T18).
+        loop_t18)    case "$cmd" in *dim_0[3456789]*) echo "Unknown dimension" ;; *) echo "Seed: [1]" ;; esac ;;
         *)           echo "Seed: [1]" ;;
       esac
       return 0
@@ -230,13 +232,25 @@ class CustomDimensionLoopTests(ActivationHarness):
         self.assertIn("dimensions in a row failed to load (K6)", out)
         self.assertEqual(self.markers(root), [])
         # It must stop at the limit, not grind through all 20.
-        self.assertEqual(out.count("not ready yet"), 3)
+        self.assertEqual(out.count("no answer from the server"), 3)
 
     def test_scattered_failures_do_not_trip_the_breaker(self):
         rc, out, _, root = self.run_block("loop_flaky", DIMENSION_FAILURE_LIMIT=3)
         self.assertEqual(rc, 0, out)
         self.assertIn("17 dimension(s) newly configured", out)
         self.assertEqual(len(self.markers(root)), 17)
+
+    def test_a_loaded_server_reporting_unknown_never_trips_the_breaker(self):
+        """T18: creation is queued to END_SERVER_TICK and can miss the window.
+
+        The server ANSWERED, so it is not wedged — those dimensions defer to
+        the next deploy and the rest of the list must still be attempted.
+        """
+        rc, out, _, root = self.run_block("loop_t18", DIMENSION_FAILURE_LIMIT=3)
+        self.assertEqual(rc, 0, out)
+        self.assertIn("not ready yet", out)
+        self.assertNotIn("no answer from the server", out)
+        self.assertEqual(len(self.markers(root)), 13, "the other 13 must still be set up")
 
     def test_a_late_wedge_keeps_the_markers_already_earned(self):
         rc, out, _, root = self.run_block("loop_late", DIMENSION_FAILURE_LIMIT=3)

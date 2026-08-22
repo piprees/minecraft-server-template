@@ -227,14 +227,24 @@ echo "==> Starting world reset..."
 # than take it, because deploy.sh at step 8 must be able to take it itself.
 echo ""
 echo "==> Checking the server is not mid-deploy..."
-if ssh -i "$SSH_KEY" "$REMOTE" \
-  "test -f ${REMOTE_DIR}/.deploy.lock && ! flock -n ${REMOTE_DIR}/.deploy.lock true" 2> /dev/null; then
+# One round trip, three explicit answers. `ssh` exits 255 when it cannot
+# connect, which an `if ssh ...` would read as "lock is free" and let the
+# reset stop a stack that a live deploy is holding.
+LOCK_STATE=$(ssh -i "$SSH_KEY" "$REMOTE" \
+  "if [ -f ${REMOTE_DIR}/.deploy.lock ]; then \
+     flock -n ${REMOTE_DIR}/.deploy.lock true && echo free || echo held; \
+   else echo none; fi" 2> /dev/null) || {
+  echo "ERROR: could not reach the server to check the deploy lock." >&2
+  echo "  Refusing to reset a world whose state is unknown." >&2
+  exit 1
+}
+if [[ "$LOCK_STATE" == "held" ]]; then
   echo "ERROR: a server operation is in progress:" >&2
   ssh -i "$SSH_KEY" "$REMOTE" "cat ${REMOTE_DIR}/.deploy.lock" 2> /dev/null >&2 || true
   echo "  Wait for it to finish before resetting the world." >&2
   exit 1
 fi
-echo "  Server is idle."
+echo "  Server is idle (lock: ${LOCK_STATE})."
 
 # =============================================================================
 # 2. Backup - restic snapshot via backup-now.sh (hot; needs mc up for save-off)
