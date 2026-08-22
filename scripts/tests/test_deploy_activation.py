@@ -119,7 +119,7 @@ $(for i in $(seq 0 19); do printf 'dim_%02d|1\n' "$i"; done)"
 BLOCK_MUST_CONTAIN = {
     'WORLD_DIR="$SERVER_DIR/data/world"': ("dim_has_region", "wait_for_region",
                                            "ACTIVATION_STALL_LIMIT", "forceload add"),
-    "  NEW_COUNT=0": ("DIMENSION_FAILURE_LIMIT", "BREAKER_TRIPPED", "dimension load"),
+    "  NEW_COUNT=0": ("DIMENSION_FAILURE_LIMIT", "BREAKER_TRIPPED", "customdim load"),
     "restore_whitelist() {": ("rcon_verified", "WHITELIST_CLEARED"),
 }
 
@@ -238,6 +238,20 @@ class CustomDimensionLoopTests(ActivationHarness):
 
     def markers(self, root):
         return sorted(p.name for p in (root / "markers").iterdir())
+
+    def test_the_loop_uses_the_command_the_mod_actually_registers(self):
+        """`dimension load` is not a command; the mod registers `customdim`.
+
+        It answered "Unknown or incomplete command" on every dimension, every
+        deploy, and the seed check that follows then reported the dimension
+        as not-ready — so all 78 deferred forever and the count never moved.
+        """
+        _rc, _out, calls, _root = self.run_block("loop_ok")
+        loads = [c for c in calls if " load " in c]
+        self.assertTrue(loads, "the loop issued no load command at all")
+        for c in loads:
+            self.assertIn("customdim load", c, f"wrong command: {c}")
+            self.assertNotIn("rcon dimension load", c)
 
     def test_every_dimension_is_configured_when_the_server_answers(self):
         rc, out, _, root = self.run_block("loop_ok")

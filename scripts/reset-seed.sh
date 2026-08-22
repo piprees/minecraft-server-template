@@ -17,7 +17,7 @@
 # Separately: uNmINeD map renders (maps/, index.html, manifest.json), Chunky
 # markers + task state + .skip-pause, dynamic-data-pack-cache (a real
 # top-level dir, unlike the rest of this list), the per-dimension "already
-# set up" markers deploy.sh uses to skip re-running `dimension load` on every
+# set up" markers deploy.sh uses to skip re-running `customdim load` on every
 # deploy (data/.dimension-setup/ — stale markers here would make deploy.sh
 # think every dimension on the NEW world was already loaded on the OLD one,
 # and silently skip loading all of them), and the two mod state files that
@@ -383,7 +383,7 @@ echo "  Deleted: data/world/ (every dimension's terrain, player data, DH cache, 
 echo "  Deleted: uNmINeD map renders and manifest (regenerated on the next render pass)"
 echo "  Deleted: Chunky markers, task state, .skip-pause"
 echo "  Deleted: dynamic-data-pack-cache"
-echo "  Deleted: per-dimension deploy-setup markers (deploy.sh will re-run 'dimension load' for all of them)"
+echo "  Deleted: per-dimension deploy-setup markers (deploy.sh will re-run 'customdim load' for all of them)"
 echo "  Deleted: portal links and dimension fingerprints (rewritten on next boot)"
 
 # =============================================================================

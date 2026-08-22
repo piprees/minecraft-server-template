@@ -960,7 +960,7 @@ PYEOF
       continue
     fi
 
-    rcon "dimension load $name"
+    rcon "customdim load $name"
     sleep 1
     # Two different failures wear the same face here, and only one of them
     # is a wedge. `Unknown dimension` means the server ANSWERED and creation
