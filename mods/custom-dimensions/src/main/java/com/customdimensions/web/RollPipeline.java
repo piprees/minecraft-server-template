@@ -228,7 +228,23 @@ public final class RollPipeline {
     public static void primeNamedSeeds(MinecraftServer server) {
         Thread starter = new Thread(() -> {
             RenderQueue.priming(true);
-            List<DimensionConfig> targets = BankView.rollTargets();
+            // Only the dimensions whose thumbnails are not already committed.
+            // A dimension that has them has been settled — by an earlier prime
+            // or by somebody picking a rolled seed — and redrawing it from the
+            // configured seed would overwrite that pick.
+            List<DimensionConfig> targets = new ArrayList<>();
+            for (DimensionConfig def : BankView.rollTargets()) {
+                if (!Picker.thumbnailsPresent(def.getDimensionIdentifier().getPath())) {
+                    targets.add(def);
+                }
+            }
+            if (targets.isEmpty()) {
+                RenderQueue.priming(false);
+                GENERATION.incrementAndGet();
+                return;
+            }
+            MultiverseServer.LOGGER.info(
+                    "Priming {} dimension(s) with no committed thumbnails", targets.size());
             int workers = Math.max(1, Math.min(workers(), targets.size()));
             java.util.concurrent.ExecutorService pool =
                     java.util.concurrent.Executors.newFixedThreadPool(workers, r -> {
@@ -259,6 +275,16 @@ public final class RollPipeline {
                 // dimensions' worth of candidates in front of the renders the
                 // configured seeds are still waiting on.
                 awaitRenders();
+                // Publish what was just drawn beside each dimension's JSON, so
+                // the map cards have a picture without anybody picking a seed
+                // they had no choice about anyway.
+                for (DimensionConfig def : targets) {
+                    String slug = def.getDimensionIdentifier().getPath();
+                    Long seed = BankView.currentSeed(def, def.getSeed());
+                    if (seed != null) {
+                        Picker.exportMissingThumbnails(server, def, slug, seed);
+                    }
+                }
             } finally {
                 RenderQueue.priming(false);
                 pool.shutdownNow();

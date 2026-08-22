@@ -45,6 +45,28 @@ class PrimingOrderTest {
     }
 
     @Test
+    void aDimensionWithCommittedThumbnailsIsSkipped() throws IOException {
+        String src = read("RollPipeline.java");
+        assertTrue(src.contains("Picker.thumbnailsPresent("),
+                "priming must skip a dimension that already has both thumbnails, or it "
+                        + "redraws a rolled pick from the configured seed");
+    }
+
+    @Test
+    void primingPublishesBesideTheJsonWithoutClearingAnything() throws IOException {
+        assertTrue(read("RollPipeline.java").contains("Picker.exportMissingThumbnails("),
+                "priming must publish the renders it drew, or they stay in the bank");
+        String picker = read("Picker.java");
+        int start = picker.indexOf("public static void exportMissingThumbnails");
+        assertTrue(start > 0, "exportMissingThumbnails must exist");
+        String body = picker.substring(start, picker.indexOf("\n    }", start));
+        assertTrue(body.contains("if (!Files.isRegularFile(low))")
+                        && body.contains("if (!Files.isRegularFile(high))"),
+                "each size must be written only when absent — writeThumbnail clears a "
+                        + "target it has no source for, and a committed PNG is the only copy");
+    }
+
+    @Test
     void aRollIsRefusedWhilePrimingIsStillRunning() throws IOException {
         String src = read("RollPipeline.java");
         int gate = src.indexOf("RenderQueue.priming()");

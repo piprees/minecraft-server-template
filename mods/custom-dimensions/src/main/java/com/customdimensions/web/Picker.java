@@ -127,6 +127,48 @@ public final class Picker {
     }
 
     /**
+     * True when both thumbnails already sit beside the dimension's JSON.
+     * Priming skips a dimension that has them, so a roll's picks are never
+     * redrawn from the configured seed.
+     */
+    public static boolean thumbnailsPresent(String dimensionSlug) {
+        Path dir = Artefacts.overlayDimensionsDir();
+        return Files.isRegularFile(dir.resolve(dimensionSlug + "_low.png"))
+                && Files.isRegularFile(dir.resolve(dimensionSlug + "_high.png"));
+    }
+
+    /**
+     * Publishes the configured seed's renders beside its JSON, writing only
+     * the sizes that are missing and never clearing one. {@link #pick} deletes
+     * a target it has no source for, because a stale thumbnail there would
+     * belong to a seed nobody chose; priming has no such claim — a committed
+     * PNG it cannot re-source is the only copy of that picture, and the bank
+     * it would be re-sourced from is re-keyed by any config edit.
+     *
+     * <p>The JSON is untouched: priming publishes what the config already
+     * says, it does not choose anything.
+     */
+    public static void exportMissingThumbnails(MinecraftServer server, DimensionConfig def,
+                                               String dimensionSlug, long seed) {
+        Path dir = Artefacts.overlayDimensionsDir();
+        if (!Files.isDirectory(dir)) {
+            return;
+        }
+        String dimension = def.getDimensionIdentifier().toString();
+        String inputHash = InputHash.of(def, server);
+        Path low = dir.resolve(dimensionSlug + "_low.png");
+        if (!Files.isRegularFile(low)) {
+            writeThumbnail(SeedBank.candidateImagePath(inputHash, dimension, seed,
+                    CandidateRender.Resolution.LOWRES), low, THUMB_LOW_MAX_SIDE);
+        }
+        Path high = dir.resolve(dimensionSlug + "_high.png");
+        if (!Files.isRegularFile(high)) {
+            writeThumbnail(SeedBank.candidateImagePath(inputHash, dimension, seed,
+                    CandidateRender.Resolution.HIGHRES), high, THUMB_HIGH_MAX_SIDE);
+        }
+    }
+
+    /**
      * Where the person is standing, but only if they are standing in this
      * exact candidate's try-out. Standing anywhere else says nothing about
      * where this dimension's spawn should be.
