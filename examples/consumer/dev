@@ -298,11 +298,12 @@ case "$CMD" in
     ;;
   reset-world)
     # Local sibling of ./ops reset-seed: stops the stack and deletes the
-    # SAME set production deletes. data/world/ alone carries the terrain,
-    # player data, DH cache, POI, and ledger for every dimension —
-    # playerdata/stats/advancements/DIM-1/DIM1/dimensions/
-    # DistantHorizons.sqlite/poi/ledger.sqlite/level.dat all live UNDER
-    # data/world/, not beside it. Also deletes map renders, Chunky state,
+    # SAME set production deletes. data/world/ carries the terrain, player
+    # data, POI and level.dat for every dimension. Two SQLite stores do NOT
+    # live there: locally they sit on the ledger-db and dh-db volumes, off
+    # the virtiofs mount ([P5]), reached by symlink. Deleting only the
+    # directory would leave the previous world's LOD cache and ledger to be
+    # inherited by the next one, so the volumes go too. Also deletes map renders, Chunky state,
     # dynamic-data-pack-cache, and the portal/fingerprint state files that
     # describe the destroyed world. (deploy.sh-only in production, so
     # nothing to delete here): the per-dimension deploy-setup markers.
@@ -327,6 +328,23 @@ case "$CMD" in
     ensure_docker
     export CONSUMER_DIR
     bash "$CONSUMER_DIR/$STACK_SCRIPTS/dev-up.sh" down || true
+    # The stack is down, so nothing holds these open. ensure_env only checks
+    # .env exists, it does not source it, so BRAND_SLUG is read here — a wrong
+    # project name removes nothing and still reports success.
+    DB_PROJECT="${COMPOSE_PROJECT_NAME:-}"
+    if [[ -z "$DB_PROJECT" ]]; then
+      DB_PROJECT=$(grep -E "^BRAND_SLUG=" "$CONSUMER_DIR/.env" | head -1 | cut -d= -f2- | tr -d "\"'")
+    fi
+    if [[ -z "$DB_PROJECT" ]]; then
+      echo "ERROR: no BRAND_SLUG in .env and no COMPOSE_PROJECT_NAME."
+      echo "       Cannot name the ledger-db/dh-db volumes; refusing to"
+      echo "       half-reset the world. Set one and re-run."
+      exit 1
+    fi
+    for vol in ledger-db dh-db; do
+      docker volume rm "${DB_PROJECT}_${vol}" > /dev/null 2>&1 \
+        && echo "  removed volume ${DB_PROJECT}_${vol}" || true
+    done
     rm -rf "$CONSUMER_DIR/data/world" \
       "$CONSUMER_DIR/data/unmined-web/maps" \
       "$CONSUMER_DIR/data/unmined-web/index.html" \
@@ -347,6 +365,12 @@ case "$CMD" in
       echo "$LEFT"
       exit 1
     fi
+    for vol in ledger-db dh-db; do
+      if docker volume inspect "${DB_PROJECT}_${vol}" > /dev/null 2>&1; then
+        echo "ERROR: volume ${DB_PROJECT}_${vol} survived deletion"
+        exit 1
+      fi
+    done
     echo "Local world reset. Run ./dev up to generate fresh (set SEED in .env first if changing it)."
     ;;
   unlink)

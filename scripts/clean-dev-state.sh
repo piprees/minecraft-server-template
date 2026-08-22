@@ -295,6 +295,32 @@ printf '%s%s' "$PENDING" "$PLATFORM_PENDING" | while IFS='|' read -r t root path
   printf '  removed  %s\n' "${path#"$root"/}"
 done
 
+# The world's two SQLite stores live on named volumes, not under data/
+# ([P5]), so a path list cannot reach them. Left behind, the next world
+# inherits the previous one's LOD cache and ledger. Kept in step with the
+# reset-world case in examples/consumer/dev.
+case " $TARGETS " in
+  *" world "*)
+    # This script never sources .env, so BRAND_SLUG is not already set.
+    # Reading it here rather than defaulting: a wrong project name removes
+    # nothing and still reports success.
+    DB_PROJECT="${COMPOSE_PROJECT_NAME:-}"
+    if [[ -z "$DB_PROJECT" && -f "$CONSUMER/.env" ]]; then
+      DB_PROJECT=$(grep -E "^BRAND_SLUG=" "$CONSUMER/.env" | head -1 | cut -d= -f2- | tr -d "\"'" )
+    fi
+    if [[ -z "$DB_PROJECT" ]]; then
+      echo "  WARNING: no BRAND_SLUG or COMPOSE_PROJECT_NAME; leaving the"
+      echo "           ledger-db and dh-db volumes in place. Remove by hand,"
+      echo "           or the next world inherits this one's LOD cache."
+    else
+      for vol in ledger-db dh-db; do
+        docker volume rm "${DB_PROJECT}_${vol}" > /dev/null 2>&1 \
+          && printf '  removed  volume %s\n' "${DB_PROJECT}_${vol}" || true
+      done
+    fi
+    ;;
+esac
+
 echo ""
 echo "Freed roughly $(fmt_size "$TOTAL_KB")."
 if [[ -n "$PLATFORM" ]]; then
