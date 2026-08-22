@@ -376,7 +376,20 @@ public class PortalHelper {
     }
 
     public static void setPlayerInZone(String key, boolean inZone) {
-        PLAYER_IN_ZONE.put(key, inZone);
+        // Absent means "not in a zone", so leaving removes the entry rather
+        // than storing false — the key is (world, player uuid) and nothing
+        // else evicts it, so keeping falses grows by every player who ever
+        // stood in a portal, in every dimension they visited.
+        if (inZone) {
+            PLAYER_IN_ZONE.put(key, true);
+        } else {
+            PLAYER_IN_ZONE.remove(key);
+        }
+    }
+
+    /** Entries currently held — players standing in a source zone right now. */
+    public static int trackedZoneOccupants() {
+        return PLAYER_IN_ZONE.size();
     }
 
     // ------------------------------------------------------------------

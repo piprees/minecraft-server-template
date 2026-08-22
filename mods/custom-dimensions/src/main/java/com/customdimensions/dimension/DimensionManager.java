@@ -1168,7 +1168,16 @@ public class DimensionManager {
         }
         try {
             return seedable.getClass().getMethod("withSeed", long.class).invoke(seedable, seed);
+        } catch (NoSuchMethodException e) {
+            // Expected: most 1.21.1 biome sources no longer expose withSeed.
+            // The caller keeps the unseeded generator, which is the design.
+            return null;
         } catch (ReflectiveOperationException e) {
+            // The method exists and failed. The dimension then generates on
+            // the wrong seed with nothing else pointing at why.
+            MultiverseServer.LOGGER.warn(
+                    "withSeed failed on {} — this dimension generates unseeded",
+                    seedable.getClass().getName(), e);
             return null;
         }
     }

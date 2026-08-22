@@ -86,4 +86,31 @@ class PortalHelperTest {
             assertEquals(4, dirs.length, "Expected 4 directions for axis " + axis);
         }
     }
+
+    @Test
+    void zoneOccupancyIsTrackedOnlyWhileInside() {
+        String key = "minecraft:overworld|00000000-0000-0000-0000-000000000001";
+        int before = PortalHelper.trackedZoneOccupants();
+
+        PortalHelper.setPlayerInZone(key, true);
+        assertTrue(PortalHelper.wasPlayerInZone(key));
+        assertEquals(before + 1, PortalHelper.trackedZoneOccupants());
+
+        PortalHelper.setPlayerInZone(key, false);
+        assertFalse(PortalHelper.wasPlayerInZone(key));
+        assertEquals(before, PortalHelper.trackedZoneOccupants(),
+                "leaving a zone must drop the entry, not store false");
+    }
+
+    @Test
+    void leavingAZoneNeverAccumulatesEntries() {
+        int before = PortalHelper.trackedZoneOccupants();
+        for (int i = 0; i < 500; i++) {
+            String key = "adventure:dim_" + i + "|player-" + i;
+            PortalHelper.setPlayerInZone(key, true);
+            PortalHelper.setPlayerInZone(key, false);
+        }
+        assertEquals(before, PortalHelper.trackedZoneOccupants(),
+                "500 visits must leave nothing behind");
+    }
 }
