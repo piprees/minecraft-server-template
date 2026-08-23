@@ -111,6 +111,7 @@ public final class ViewerPage {
         return template
                 .replace("{{FAMILY_BUTTONS}}", familyButtons.toString())
                 .replace("{{MOOD_OPTIONS}}", moodOptions.toString())
+                .replace("{{SCORE_THRESHOLD}}", scoreThreshold())
                 .replace("{{DIMENSIONS_HTML}}", cards.toString());
     }
 
@@ -558,6 +559,17 @@ public final class ViewerPage {
     /** Below {@link RollPipeline#SCORE_THRESHOLD}, or nothing banked at all — display only. */
     private static boolean flagged(BankView.DimensionView v, double bestScore) {
         return v.banked() == 0 || bestScore < RollPipeline.SCORE_THRESHOLD;
+    }
+
+    /**
+     * {@link RollPipeline#SCORE_THRESHOLD} as the page states it — "80", not
+     * "80.0". The template and app.js both read this rather than carrying a
+     * number of their own, so the flagged toggle's label, its tooltip and the
+     * candidate filter in the flat view cannot disagree with {@link #flagged}.
+     */
+    private static String scoreThreshold() {
+        double t = RollPipeline.SCORE_THRESHOLD;
+        return t == Math.rint(t) ? String.valueOf((long) t) : fmt(t);
     }
 
     private static int shortlistedCount(List<BankView.CandidateView> candidates) {

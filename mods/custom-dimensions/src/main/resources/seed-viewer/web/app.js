@@ -626,6 +626,7 @@
       mood: p.get('mood') || '',
       search: p.get('q') || '',
       flagged: p.get('flagged') === '1',
+      maxScore: p.get('max-score') || '',
       shortlisted: p.get('shortlisted') === '1',
       ungrouped: p.get('ungrouped') === '1',
       showHidden: p.get('hidden') === '1',
@@ -641,6 +642,7 @@
     if (s.mood) p.set('mood', s.mood)
     if (s.search) p.set('q', s.search)
     if (s.flagged) p.set('flagged', '1')
+    if (s.maxScore) p.set('max-score', s.maxScore)
     if (s.shortlisted) p.set('shortlisted', '1')
     if (s.ungrouped) p.set('ungrouped', '1')
     if (s.showHidden) p.set('hidden', '1')
@@ -682,11 +684,22 @@
   var sortEl = document.getElementById('f-sort')
   var searchEl = document.getElementById('f-search')
   var flaggedEl = document.getElementById('f-flagged')
+  var maxScoreEl = document.getElementById('f-maxscore')
   var shortlistedEl = document.getElementById('f-shortlisted')
   var ungroupedEl = document.getElementById('f-ungrouped')
   var hiddenEl = document.getElementById('f-hidden')
   var grid = document.getElementById('grid')
   var ugGrid = document.getElementById('ungrouped-grid')
+
+  // ViewerPage stamps RollPipeline.SCORE_THRESHOLD here so the flag means the
+  // same number on the card, in the label and in the flat view.
+  var flagThreshold = parseFloat(flaggedEl.dataset.threshold || 80)
+  // Unscored reads 0.0 from ViewerPage, on cards and candidates alike, so a
+  // dimension with nothing banked sits below every bar — which is the set this
+  // filter exists to find.
+  function below(el, limit) {
+    return parseFloat(el.dataset.score || 0) < limit
+  }
 
   // A named seed (current, starting, best, shortlisted) keeps the place the
   // server gave it, ahead of everything ranked. Sorting by score alone put the
@@ -731,7 +744,8 @@
       if (!(fam && typ && moo && txt && hid)) return
       card.querySelectorAll('.cand').forEach(function (c) {
         if (state.shortlisted && !c.dataset.shortlisted) return
-        if (state.flagged && parseFloat(c.dataset.score || 100) >= 70) return
+        if (state.flagged && !below(c, flagThreshold)) return
+        if (state.maxScore && !below(c, parseFloat(state.maxScore))) return
         var clone = c.cloneNode(true)
         clone.style.display = ''
         // Drop the detail panel from the clone. It is the whole lightbox
@@ -815,7 +829,7 @@
     if (state.family && state.family !== 'All') type.push(state.family)
     if (state.type) type.push(state.type)
     setMenuLabel('type-label', type.join(' · '))
-    var filters = ['mood', 'flagged', 'shortlisted']
+    var filters = ['mood', 'flagged', 'maxScore', 'shortlisted']
       .filter(function (k) { return state[k] }).length
     setMenuLabel('filters-label', filters ? String(filters) : '')
     var views = ['ungrouped', 'scatter', 'hidden', 'borders']
@@ -835,6 +849,7 @@
     sortEl.value = state.sort
     searchEl.value = state.search
     flaggedEl.checked = state.flagged
+    maxScoreEl.value = state.maxScore
     shortlistedEl.checked = state.shortlisted
     ungroupedEl.checked = state.ungrouped
     hiddenEl.checked = state.showHidden
@@ -852,9 +867,12 @@
         var moo = !state.mood || c.dataset.mood === state.mood
         var txt = !q || c.dataset.name.toLowerCase().indexOf(q) >= 0
         var flg = !state.flagged || c.dataset.flagged === '1'
+        // The card's score is the dimension's BEST, so this asks "nothing here
+        // reaches the bar" — the same question the flag asks at a fixed 80.
+        var scr = !state.maxScore || below(c, parseFloat(state.maxScore))
         var shl = !state.shortlisted || c.querySelector('.cand[data-shortlisted]') !== null
         var hid = state.showHidden || c.dataset.hidden !== '1'
-        c.classList.toggle('hidden', !(fam && typ && moo && txt && flg && shl && hid))
+        c.classList.toggle('hidden', !(fam && typ && moo && txt && flg && scr && shl && hid))
       })
       var visible = cards.filter(function (c) {
         return !c.classList.contains('hidden')
@@ -962,6 +980,7 @@
       state.mood = ''
       state.search = ''
       state.flagged = false
+      state.maxScore = ''
       state.shortlisted = false
       applyState()
       searchEl.focus()
@@ -996,6 +1015,10 @@
   })
   flaggedEl.addEventListener('change', function () {
     state.flagged = flaggedEl.checked
+    applyState()
+  })
+  maxScoreEl.addEventListener('change', function () {
+    state.maxScore = maxScoreEl.value
     applyState()
   })
   shortlistedEl.addEventListener('change', function () {

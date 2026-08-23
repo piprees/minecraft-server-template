@@ -4,11 +4,13 @@ The browser interface for picking a dimension's seed: `template.html` plus the
 scripts and stylesheets in `web/`. It has a filter bar, search, sort, a scatter
 view and a card per dimension.
 
-`ViewerPage.render` (`java/com/customdimensions/web/ViewerPage.java`) fills five
+`ViewerPage.render` (`java/com/customdimensions/web/ViewerPage.java`) fills four
 placeholders in the template — `{{DIMENSIONS_HTML}}`, `{{FAMILY_BUTTONS}}`,
-`{{TYPE_OPTIONS}}`, `{{MOOD_OPTIONS}}`, `{{SUMMARY_STATS}}` — and `SeedServer`
-serves the result at `/`, with everything in `web/` at `/assets/<name>`. Both
-read from the jar via `getResourceAsStream`, so a change here is a mod rebuild.
+`{{MOOD_OPTIONS}}`, `{{SCORE_THRESHOLD}}` — and `SeedServer` serves the result at
+`/`, with everything in `web/` at `/assets/<name>`. Both read from the jar via
+`getResourceAsStream`, so a change here is a mod rebuild. `ViewerTemplateTest`
+fails the build when the template names a placeholder `render` does not fill —
+an unwired one renders literally and nothing else complains.
 
 `app.js` reads everything it filters and sorts on from `dataset.*` attributes on
 the cards — `dim`, `name`, `family`, `type`, `mood`, `score`, `seed`, `radius`,
