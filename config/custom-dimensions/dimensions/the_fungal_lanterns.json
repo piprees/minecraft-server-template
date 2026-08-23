@@ -3,21 +3,69 @@
   "description": "Shroomlight groves on ledges above a lava sea, under a stone ceiling \u2014 the nether's gentlest rooms, lit orange from below and teal from above. Even the piglins left these alone. The lava here does not kill you; it puts you back where you came from.",
   "seed": 376011753665830029,
   "biomes": [
-    "minecraft:crimson_forest",
-    "minecraft:warped_forest",
-    "incendium:inverted_forest",
-    "minecraft:nether_wastes",
-    "incendium:quartz_flats",
+    {
+      "id": "minecraft:crimson_forest",
+      "parameters": {
+        "temperature": [
+          -2.0,
+          -0.6
+        ]
+      }
+    },
+    {
+      "id": "minecraft:warped_forest",
+      "parameters": {
+        "temperature": [
+          -0.6,
+          -0.3581
+        ]
+      }
+    },
+    {
+      "id": "incendium:inverted_forest",
+      "parameters": {
+        "temperature": [
+          -0.3581,
+          -0.1161
+        ]
+      }
+    },
+    {
+      "id": "terralith:cave/fungal_caves",
+      "parameters": {
+        "temperature": [
+          -0.1161,
+          0.4161
+        ]
+      }
+    },
+    {
+      "id": "incendium:quartz_flats",
+      "parameters": {
+        "temperature": [
+          0.4161,
+          0.6581
+        ]
+      }
+    },
     {
       "id": "regions_unexplored:infernal_holt",
       "parameters": {
         "temperature": [
-          -0.5,
-          0.0
+          0.6581,
+          0.9
         ]
       }
     },
-    "terralith:cave/fungal_caves"
+    {
+      "id": "minecraft:nether_wastes",
+      "parameters": {
+        "temperature": [
+          0.9,
+          2.0
+        ]
+      }
+    }
   ],
   "borders": {
     "player": 1024,
@@ -62,7 +110,7 @@
       "sanctum"
     ],
     "heightRange": [
-      30,
+      -64,
       110
     ]
   },
