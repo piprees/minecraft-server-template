@@ -38,9 +38,9 @@ class PrimingOrderTest {
     @Test
     void primingBlocksUntilTheQueueDrains() throws IOException {
         String src = read("RollPipeline.java");
-        assertTrue(src.contains("awaitRenders(server, targets)"),
+        assertTrue(src.contains("awaitRenders(server, toDraw)"),
                 "priming must wait for the renders it queued, not just the measurements");
-        assertTrue(src.contains("exportReady(server, targets)"),
+        assertTrue(src.contains("exportReady(server, toDraw)"),
                 "the wait must publish as it goes — exporting only at the end leaves "
                         + "nothing behind when the JVM dies part-way through");
         assertTrue(src.contains("RenderQueue.priming(false)"),
@@ -48,11 +48,28 @@ class PrimingOrderTest {
     }
 
     @Test
-    void aDimensionWithCommittedThumbnailsIsSkipped() throws IOException {
+    void aDimensionWithCommittedThumbnailsIsNotRedrawn() throws IOException {
         String src = read("RollPipeline.java");
         assertTrue(src.contains("Picker.thumbnailsPresent("),
-                "priming must skip a dimension that already has both thumbnails, or it "
-                        + "redraws a rolled pick from the configured seed");
+                "priming must not redraw a dimension that already has both thumbnails, "
+                        + "or it overwrites a rolled pick from the configured seed");
+    }
+
+    @Test
+    void everyDimensionIsMeasuredWhateverItsThumbnails() throws IOException {
+        String src = read("RollPipeline.java");
+        int targets = src.indexOf("List<DimensionConfig> targets = BankView.rollTargets();");
+        assertTrue(targets > 0,
+                "targets must be every rollable dimension. A committed thumbnail says what a "
+                        + "world looks like, never whether it is any good — gating the "
+                        + "measurement on one leaves the viewer a wall of pictures with no "
+                        + "scores, which is the one thing the page exists to show.");
+        int loop = src.indexOf("for (DimensionConfig def : targets) {", targets);
+        int measure = src.indexOf("measureNamed(server, def);", loop);
+        int guard = src.indexOf("if (draw) {", loop);
+        assertTrue(loop > 0 && measure > 0 && guard > measure,
+                "measureNamed must run for every target, with only the reconcile behind "
+                        + "the draw guard");
     }
 
     @Test

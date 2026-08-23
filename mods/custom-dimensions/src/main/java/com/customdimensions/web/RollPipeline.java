@@ -228,23 +228,29 @@ public final class RollPipeline {
     public static void primeNamedSeeds(MinecraftServer server) {
         Thread starter = new Thread(() -> {
             RenderQueue.priming(true);
-            // Only the dimensions whose thumbnails are not already committed.
-            // A dimension that has them has been settled — by an earlier prime
-            // or by somebody picking a rolled seed — and redrawing it from the
-            // configured seed would overwrite that pick.
-            List<DimensionConfig> targets = new ArrayList<>();
-            for (DimensionConfig def : BankView.rollTargets()) {
-                if (!Picker.thumbnailsPresent(server, def, def.getDimensionIdentifier().getPath())) {
-                    targets.add(def);
-                }
-            }
+            // EVERY dimension is measured. A committed thumbnail says what a
+            // world looks like, never whether it is any good — gating the
+            // measurement on one leaves the page a wall of pictures with no
+            // scores, which is the one thing it exists to show. measureNamed
+            // skips what the bank already holds, so this is free on a restart.
+            List<DimensionConfig> targets = BankView.rollTargets();
             if (targets.isEmpty()) {
                 RenderQueue.priming(false);
                 GENERATION.incrementAndGet();
                 return;
             }
-            MultiverseServer.LOGGER.info(
-                    "Priming {} dimension(s) with no committed thumbnails", targets.size());
+            // Drawing is the expensive half and the only half a committed pair
+            // can stand in for. A dimension that has one has been settled — by
+            // an earlier prime or by somebody picking a rolled seed — and
+            // redrawing it from the configured seed would overwrite that pick.
+            List<DimensionConfig> toDraw = new ArrayList<>();
+            for (DimensionConfig def : targets) {
+                if (!Picker.thumbnailsPresent(server, def, def.getDimensionIdentifier().getPath())) {
+                    toDraw.add(def);
+                }
+            }
+            MultiverseServer.LOGGER.info("Priming {} dimension(s); {} need drawing",
+                    targets.size(), toDraw.size());
             int workers = Math.max(1, Math.min(workers(), targets.size()));
             java.util.concurrent.ExecutorService pool =
                     java.util.concurrent.Executors.newFixedThreadPool(workers, r -> {
@@ -255,9 +261,12 @@ public final class RollPipeline {
             try {
                 List<java.util.concurrent.Future<?>> futures = new ArrayList<>();
                 for (DimensionConfig def : targets) {
+                    boolean draw = toDraw.contains(def);
                     futures.add(pool.submit(() -> {
                         measureNamed(server, def);
-                        RenderQueue.reconcile(server, def);
+                        if (draw) {
+                            RenderQueue.reconcile(server, def);
+                        }
                     }));
                 }
                 for (java.util.concurrent.Future<?> f : futures) {
@@ -274,9 +283,9 @@ public final class RollPipeline {
                 // they are drawn, or a roll admitted here would put eighty
                 // dimensions' worth of candidates in front of the renders the
                 // configured seeds are still waiting on.
-                awaitRenders(server, targets);
+                awaitRenders(server, toDraw);
                 // A last pass for whatever landed after the final sweep.
-                exportReady(server, targets);
+                exportReady(server, toDraw);
             } finally {
                 RenderQueue.priming(false);
                 pool.shutdownNow();
