@@ -80,7 +80,14 @@ public final class InputHash {
     static String hashOf(DimensionConfig def, String stackVersion, List<String> modVersions,
                           String modArtefactHash) {
         StringBuilder canonical = new StringBuilder();
-        canonical.append("stackVersion=").append(stackVersion).append('\n');
+        // stackVersion is deliberately NOT hashed, and this mod is filtered
+        // out of modVersions: both change on every release whether or not
+        // worldgen moved, so they invalidated every committed thumbnail and
+        // every banked candidate on a version bump alone. modArtefactHash
+        // already carries the precise signal — the same narrowing its own
+        // javadoc records making when hashing the whole artefact proved too
+        // coarse. It is still accepted as an argument so a caller reads as
+        // supplying the full identity.
         canonical.append("artefact=").append(modArtefactHash).append('\n');
         canonical.append("dimension=").append(def == null ? "null" : def.getName()).append('\n');
         canonical.append("config=");
@@ -117,6 +124,12 @@ public final class InputHash {
     private static List<String> sortedModVersions() {
         List<String> out = new ArrayList<>();
         for (var mod : FabricLoader.getInstance().getAllMods()) {
+            // This mod's own version is modArtefactHash's job, and precisely:
+            // its version string moves on every release, its measurement
+            // bytes only when a measurement can change.
+            if ("customdimensions".equals(mod.getMetadata().getId())) {
+                continue;
+            }
             out.add(mod.getMetadata().getId() + '='
                     + mod.getMetadata().getVersion().getFriendlyString());
         }

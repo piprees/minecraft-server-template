@@ -50,13 +50,18 @@ class InputHashTest {
     }
 
     @Test
-    void changedStackVersionGivesADifferentHash() {
+    void aReleaseBumpAloneDoesNotChangeTheHash() {
+        // A version string moves on every release, worldgen or not. Hashing it
+        // threw away every banked candidate and invalidated every committed
+        // thumbnail on a bump that could not move a single measurement — which
+        // is what made platform-shipped pictures unusable to any consumer.
+        // modArtefactHash carries the real signal; see the test below.
         DimensionConfig def = dim("the_boneyard", "overworld");
         List<String> mods = List.of("fabric-api=0.100.0");
 
-        assertNotEquals(
-                InputHash.hashOf(def, "v4.2.0", mods, ARTEFACT),
-                InputHash.hashOf(def, "v4.3.0", mods, ARTEFACT));
+        assertEquals(
+                InputHash.hashOf(def, "0.0.0-local", mods, ARTEFACT),
+                InputHash.hashOf(def, "5.20.0", mods, ARTEFACT));
     }
 
     @Test
