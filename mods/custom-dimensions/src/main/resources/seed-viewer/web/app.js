@@ -22,11 +22,15 @@
     if (!lb.classList.contains('open')) {
       lbReturnFocus = document.activeElement
       lb.classList.add('open')
+      // Without this the page keeps scrolling under the open panel, and on a
+      // phone a drag that starts over the map moves the grid behind it.
+      document.body.classList.add('lb-open')
     }
     lb.querySelector('.lb-close').focus()
   }
   function lbHide() {
     lb.classList.remove('open')
+    document.body.classList.remove('lb-open')
     if (lbReturnFocus && document.contains(lbReturnFocus)) lbReturnFocus.focus()
     lbReturnFocus = null
     lbCurrentCand = null

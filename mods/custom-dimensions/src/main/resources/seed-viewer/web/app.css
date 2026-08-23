@@ -2408,46 +2408,144 @@ details.incidental .mrow {
   cursor: help;
 }
 
-/* --- The modal on a narrow screen --- */
+/* --- The narrow screen --- */
 /* A 2:1 flex row gives the square map the full width and pushes the panel off
    the side, where nothing can scroll to it: .lb-inner clips, and the only
    scrollable box is the panel that is no longer on screen. Stack the two and
-   let the whole modal scroll instead. */
+   give the modal the whole screen. */
 @media (max-width: 860px) {
-  #lightbox {
-    padding: 0.75rem;
+  /* One row that scrolls sideways, rather than four stacked rows taking 40%
+     of a phone screen before the first card. Nothing is hidden: the menus a
+     person browses with sit at the left, the roll controls follow. */
+  .filter-bar {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    gap: 0.35rem;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    /* Masks the box rather than the content, so the cue stays at the edge
+       while the row scrolls under it. It is the only signal that the row
+       continues past the screen. */
+    mask-image: linear-gradient(to right, #000 calc(100% - 1.75rem), transparent);
   }
-  /* Portrait, and no taller than twice the square map — the modal stays
-     tight to the picture instead of stretching to the viewport. */
+  .filter-bar::-webkit-scrollbar {
+    display: none;
+  }
+  /* Nothing in the bar may shrink, or the row squashes instead of scrolling. */
+  .filter-bar > * {
+    flex: 0 0 auto;
+  }
+  .filter-bar #f-search {
+    flex: 0 0 11rem;
+  }
+  .filter-bar .roller-group,
+  .filter-bar .render-group {
+    display: flex;
+    gap: 0.35rem;
+    flex: 0 0 auto;
+  }
+
+  /* The detail view takes the whole screen. Inset, it left the grid showing
+     through, and a drag near the edge scrolled the page behind the panel. */
+  #lightbox {
+    padding: 0;
+    align-items: stretch;
+    overscroll-behavior: contain;
+  }
   #lightbox .lb-inner {
     flex-direction: column;
-    aspect-ratio: 1/2;
-    /* Width drives it. The base rule's height:100% + max-height:90vh would
-       take the height from the viewport and derive a width from that, which
-       on a tall phone is wider than the screen. */
-    height: auto;
-    max-height: none;
+    aspect-ratio: auto;
+    width: 100%;
     max-width: 100%;
-    gap: 0.75rem;
+    height: 100dvh;
+    max-height: 100dvh;
+    border-radius: 0;
+    gap: 0;
     overflow: hidden;
   }
+  /* Hug the picture: centring it in a taller box left a dead strip with the
+     close button floating in it. */
   #lightbox .lb-image {
     flex: 0 0 auto;
     width: 100%;
     height: auto;
+    align-items: flex-start;
     justify-content: center;
   }
+  /* The map leads without taking the screen — the criteria under it are what
+     the score is actually read from. */
   #lightbox .lb-image img {
     width: 100%;
     height: auto;
+    max-height: 42dvh;
     object-fit: contain;
+  }
+  /* Clear of the notch: the map runs edge to edge, the control must not. */
+  #lightbox .lb-close {
+    top: calc(0.35rem + env(safe-area-inset-top));
+    right: 0.35rem;
+    min-width: 44px;
+    min-height: 44px;
+    background: rgba(0, 0, 0, 0.55);
+    border-radius: var(--r-md);
   }
   #lightbox .lb-header {
     padding: 0 0.9rem 0.5rem;
   }
-  #lightbox .lb-scroll {
-    padding: 0 0.9rem 4rem;
+  /* Four equal targets on two rows, sized for a thumb and clear of the home
+     indicator. --lb-actions-h is what the scroller pads itself by, so the
+     last criterion can always be read out from under the bar. */
+  #lightbox .lb-actions {
+    --lb-actions-h: 7.5rem;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.4rem;
+    padding: 0.5rem 0.6rem max(0.5rem, env(safe-area-inset-bottom));
   }
+  #lightbox .lb-actions .pick,
+  #lightbox .lb-actions .action-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    min-height: 44px;
+    margin: 0;
+    padding: 0.4rem 0.5rem;
+    font-size: 0.82rem;
+    line-height: 1.15;
+  }
+  /* The commit action carries the accent; the other three are reversible. */
+  #lightbox .lb-actions .pick {
+    border-color: var(--accent-gold);
+    color: var(--accent-gold-bright);
+    font-weight: 600;
+  }
+  #lightbox .lb-scroll {
+    padding: 0 0.9rem calc(var(--lb-actions-h, 7.5rem) + env(safe-area-inset-bottom));
+  }
+}
+
+/* A touch pointer gets a 44px floor on the bar's controls at any width — a
+   tablet is still a thumb. */
+@media (pointer: coarse) {
+  .filter-bar .nav-menu > summary,
+  .filter-bar select,
+  .filter-bar input,
+  .filter-bar .icon-btn {
+    min-height: 44px;
+  }
+  .icon-toggle span {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+  }
+}
+
+/* The page must not scroll while the detail panel is open. Every width: a
+   trackpad over the backdrop moved the grid on a desktop too. */
+body.lb-open {
+  overflow: hidden;
 }
 
 /* The dimension's facts, as a wrapping row rather than run-together inline

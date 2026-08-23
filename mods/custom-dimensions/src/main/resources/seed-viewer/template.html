@@ -1,6 +1,11 @@
 <!doctype html>
 <html lang="en">
   <meta charset="utf-8" />
+  <!-- Without this a phone lays the page out at 980px and scales it down, so
+       every touch target shrinks to a third and no max-width rule below ever
+       matches. viewport-fit lets the modal reach the edges and pay for the
+       notch itself with env(safe-area-inset-*). -->
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Seed Viewer — Multiverse</title>
   <!-- The page is served at /, at /the-nether, and at /the-nether/<seed>
        (see web/route.js). At the two-segment route every relative href

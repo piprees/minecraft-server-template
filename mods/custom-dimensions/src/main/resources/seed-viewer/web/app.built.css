@@ -2415,35 +2415,108 @@ details.incidental .mrow {
   cursor: help;
 }
 @media (max-width: 860px) {
+  .filter-bar {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    gap: 0.35rem;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    mask-image: linear-gradient(to right, #000 calc(100% - 1.75rem), transparent);
+  }
+  .filter-bar::-webkit-scrollbar {
+    display: none;
+  }
+  .filter-bar > * {
+    flex: 0 0 auto;
+  }
+  .filter-bar #f-search {
+    flex: 0 0 11rem;
+  }
+  .filter-bar .roller-group, .filter-bar .render-group {
+    display: flex;
+    gap: 0.35rem;
+    flex: 0 0 auto;
+  }
   #lightbox {
-    padding: 0.75rem;
+    padding: 0;
+    align-items: stretch;
+    overscroll-behavior: contain;
   }
   #lightbox .lb-inner {
     flex-direction: column;
-    aspect-ratio: 1/2;
-    height: auto;
-    max-height: none;
+    aspect-ratio: auto;
+    width: 100%;
     max-width: 100%;
-    gap: 0.75rem;
+    height: 100dvh;
+    max-height: 100dvh;
+    border-radius: 0;
+    gap: 0;
     overflow: hidden;
   }
   #lightbox .lb-image {
     flex: 0 0 auto;
     width: 100%;
     height: auto;
+    align-items: flex-start;
     justify-content: center;
   }
   #lightbox .lb-image img {
     width: 100%;
     height: auto;
+    max-height: 42dvh;
     object-fit: contain;
+  }
+  #lightbox .lb-close {
+    top: calc(0.35rem + env(safe-area-inset-top));
+    right: 0.35rem;
+    min-width: 44px;
+    min-height: 44px;
+    background: rgba(0, 0, 0, 0.55);
+    border-radius: var(--r-md);
   }
   #lightbox .lb-header {
     padding: 0 0.9rem 0.5rem;
   }
-  #lightbox .lb-scroll {
-    padding: 0 0.9rem 4rem;
+  #lightbox .lb-actions {
+    --lb-actions-h: 7.5rem;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.4rem;
+    padding: 0.5rem 0.6rem max(0.5rem, env(safe-area-inset-bottom));
   }
+  #lightbox .lb-actions .pick, #lightbox .lb-actions .action-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    min-height: 44px;
+    margin: 0;
+    padding: 0.4rem 0.5rem;
+    font-size: 0.82rem;
+    line-height: 1.15;
+  }
+  #lightbox .lb-actions .pick {
+    border-color: var(--accent-gold);
+    color: var(--accent-gold-bright);
+    font-weight: 600;
+  }
+  #lightbox .lb-scroll {
+    padding: 0 0.9rem calc(var(--lb-actions-h, 7.5rem) + env(safe-area-inset-bottom));
+  }
+}
+@media (pointer: coarse) {
+  .filter-bar .nav-menu > summary, .filter-bar select, .filter-bar input, .filter-bar .icon-btn {
+    min-height: 44px;
+  }
+  .icon-toggle span {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+  }
+}
+body.lb-open {
+  overflow: hidden;
 }
 .detail-header .meta {
   display: flex;
