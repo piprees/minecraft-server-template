@@ -124,6 +124,10 @@
   "structures": {
     "rarity": {
       "mes:mega_ship_crashed": "common"
-    }
+    },
+    "exclude": [
+      "minecraft:end_cities",
+      "mes:phantom_citadel"
+    ]
   }
 }

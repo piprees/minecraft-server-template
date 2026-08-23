@@ -79,7 +79,10 @@
   "structures": {
     "terrainAdaptation": {
       "landmarks": "pedestal"
-    }
+    },
+    "exclude": [
+      "mes:ruined_pillar"
+    ]
   },
   "portal": {
     "frameBlock": "minecraft:end_stone_bricks",
@@ -114,7 +117,7 @@
       "phantom_citadel": "spread",
       "enderwatch_tower": "near_spawn",
       "end_tower": "spread",
-      "monolith": "near_border"
+      "monolith": "spread"
     },
     "shuns": [
       "dragon_skeleton",

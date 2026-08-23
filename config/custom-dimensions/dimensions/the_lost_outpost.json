@@ -164,7 +164,6 @@
     "wants": {
       "pillager_outpost": "near_spawn",
       "pillager_lookout": "spread",
-      "bandit_towers": "spread",
       "illager_campsite": "near_spawn",
       "nomad_outpost": "spread",
       "bandit_village": "near_border",
@@ -180,6 +179,14 @@
     128
   ],
   "structures": {
+    "force": [
+      {
+        "structure": "dungeons_arise:bandit_towers",
+        "x": -240,
+        "z": 310,
+        "exclusive": false
+      }
+    ],
     "radial": {
       "dungeons": [
         1.0,

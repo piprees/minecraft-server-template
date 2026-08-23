@@ -69,6 +69,11 @@
   "structureDensity": "sparse",
   "structures": {
     "clearSpawnRadius": 128,
+    "exclude": [
+      "minecraft:end_cities",
+      "mes:phantom_citadel",
+      "mes:enderkeep_courtyard"
+    ],
     "terrainAdaptation": {
       "minecraft:bastion_remnant": "pedestal"
     },
@@ -132,7 +137,7 @@
       "phantom_citadel",
       "enderkeep"
     ],
-    "terrain": "void"
+    "terrain": "islands"
   },
   "spawn": [
     128,

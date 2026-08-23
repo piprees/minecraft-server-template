@@ -1,16 +1,147 @@
 {
   "type": "multi_biome",
-  "description": "Warped groves to the horizon in every direction, dry and silent under a nether sky with no sun. The piglins avoided this place; the fungus here is older than their civilisation and nothing has ever happened in it. The greatsword belongs to someone who came looking and never left.",
+  "description": "Warped groves stacked into ridges and gorges under a nether sky with no sun, dry to the bedrock. The piglins avoided this place; the fungus here is older than their civilisation. Only the marsh at the heart of it holds still water, and whoever cleared it left a greatsword behind.",
   "seed": -7200695631701786789,
+  "noiseSettings": "adventure:compressed",
   "biomes": [
+    {
+      "id": "incendium:withered_forest",
+      "parameters": {
+        "weirdness": [
+          -2.0,
+          -0.19
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "incendium:toxic_heap",
+      "parameters": {
+        "weirdness": [
+          -0.19,
+          -0.1479
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "minecraft:soul_sand_valley",
+      "parameters": {
+        "weirdness": [
+          -0.1479,
+          -0.1058
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "terralith:warped_mesa",
+      "parameters": {
+        "weirdness": [
+          -0.1058,
+          -0.0637
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
     {
       "id": "minecraft:warped_forest",
       "parameters": {
-        "temperature": [
-          -0.6,
-          0.9
+        "weirdness": [
+          -0.0637,
+          0.0205
+        ],
+        "depth": [
+          -2.0,
+          0.1
         ]
       }
+    },
+    {
+      "id": "incendium:inverted_forest",
+      "parameters": {
+        "weirdness": [
+          0.0205,
+          0.0626
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:marsh",
+      "parameters": {
+        "weirdness": [
+          0.0626,
+          0.1
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "incendium:ash_barrens",
+      "parameters": {
+        "weirdness": [
+          0.1,
+          2.0
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "terralith:cave/fungal_caves",
+      "parameters": {
+        "weirdness": [
+          -2.0,
+          -0.045
+        ],
+        "depth": [
+          0.1,
+          2.0
+        ]
+      }
+    },
+    {
+      "id": "minecraft:deep_dark",
+      "parameters": {
+        "weirdness": [
+          -0.045,
+          2.0
+        ],
+        "depth": [
+          0.1,
+          2.0
+        ]
+      }
+    }
+  ],
+  "biomePatches": [
+    {
+      "biome": "regions_unexplored:marsh",
+      "x": 0,
+      "z": 0,
+      "radius": 96,
+      "blend": 20
     }
   ],
   "borders": {
@@ -18,8 +149,8 @@
     "generation": 1024
   },
   "difficulty": {
-    "mobMultiplier": 1.0,
-    "playerLuck": 1.4
+    "mobMultiplier": 1.6,
+    "playerLuck": 1.6
   },
   "portal": {
     "frameBlock": "minecraft:warped_nylium",
@@ -36,14 +167,12 @@
     }
   },
   "seedRoll": {
-    "mood": "desolate",
+    "mood": "hard",
     "spawnFilter": [
-      "minecraft:warped_forest"
+      "regions_unexplored:marsh"
     ],
     "wants": {
       "warped_outpost": "near_spawn",
-      "warped_greatsword": "spread",
-      "fortress": "near_border",
       "strange_outpost": "spread",
       "crimson_fungus": "near_border"
     },
@@ -52,22 +181,22 @@
       "fortress",
       "sanctum"
     ],
-    "terrain": "gently_rolling",
+    "terrain": "hilly",
     "heightRange": [
-      40,
-      140
+      -40,
+      260
     ],
     "water": "none"
   },
   "spawn": [
-    192,
-    61,
-    -192
+    0,
+    64,
+    0
   ],
   "settingsOverrides": {
     "seaLevel": -60
   },
-  "structureDensity": "sparse",
+  "structureDensity": "dense",
   "environment": {
     "effects": "minecraft:the_nether",
     "hasSkylight": false,
@@ -75,6 +204,7 @@
     "fogColor": "#1B4B44"
   },
   "structures": {
+    "clearSpawnRadius": 64,
     "force": [
       {
         "structure": "structory_towers:warped_greatsword",

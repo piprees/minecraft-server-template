@@ -165,6 +165,9 @@
     "player": 1024,
     "generation": 1024
   },
+  "settingsOverrides": {
+    "seaLevel": 30
+  },
   "difficulty": {
     "mobMultiplier": 1.2,
     "playerLuck": 1.4
@@ -198,7 +201,7 @@
       "zombie_dungeon": "spread",
       "mansion": "near_border",
       "dark_settlement": "spread",
-      "creeping_crypt": "spread",
+      "creeping_crypt": "near_border",
       "spider_dungeon": "spread",
       "undead_crypt": "near_border"
     },

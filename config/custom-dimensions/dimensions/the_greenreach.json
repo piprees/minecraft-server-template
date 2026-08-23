@@ -9,7 +9,7 @@
       "parameters": {
         "weirdness": [
           -2.0,
-          -1.8
+          -0.19
         ],
         "depth": [
           -2.0,
@@ -21,8 +21,8 @@
       "id": "minecraft:sunflower_plains",
       "parameters": {
         "weirdness": [
-          -1.8,
-          -1.61
+          -0.19,
+          -0.1658
         ],
         "depth": [
           -2.0,
@@ -34,8 +34,8 @@
       "id": "minecraft:meadow",
       "parameters": {
         "weirdness": [
-          -1.61,
-          -1.42
+          -0.1658,
+          -0.1417
         ],
         "depth": [
           -2.0,
@@ -47,8 +47,8 @@
       "id": "minecraft:plains",
       "parameters": {
         "weirdness": [
-          -1.42,
-          -1.23
+          -0.1417,
+          -0.1175
         ],
         "depth": [
           -2.0,
@@ -60,8 +60,8 @@
       "id": "terralith:brushland",
       "parameters": {
         "weirdness": [
-          -1.23,
-          -1.04
+          -0.1175,
+          -0.0933
         ],
         "depth": [
           -2.0,
@@ -73,8 +73,8 @@
       "id": "terralith:steppe",
       "parameters": {
         "weirdness": [
-          -1.04,
-          -0.85
+          -0.0933,
+          -0.0692
         ],
         "depth": [
           -2.0,
@@ -86,8 +86,8 @@
       "id": "minecraft:savanna",
       "parameters": {
         "weirdness": [
-          -0.85,
-          -0.66
+          -0.0692,
+          -0.045
         ],
         "depth": [
           -2.0,
@@ -99,8 +99,8 @@
       "id": "terralith:shield_clearing",
       "parameters": {
         "weirdness": [
-          -0.66,
-          -0.47
+          -0.045,
+          -0.0208
         ],
         "depth": [
           -2.0,
@@ -112,8 +112,8 @@
       "id": "terralith:highlands",
       "parameters": {
         "weirdness": [
-          -0.47,
-          -0.27
+          -0.0208,
+          0.0033
         ],
         "depth": [
           -2.0,
@@ -125,8 +125,8 @@
       "id": "regions_unexplored:barley_fields",
       "parameters": {
         "weirdness": [
-          -0.27,
-          -0.12
+          0.0033,
+          0.0275
         ],
         "depth": [
           -2.0,
@@ -138,8 +138,8 @@
       "id": "regions_unexplored:poppy_fields",
       "parameters": {
         "weirdness": [
-          -0.12,
-          0.03
+          0.0275,
+          0.0517
         ],
         "depth": [
           -2.0,
@@ -151,8 +151,8 @@
       "id": "regions_unexplored:prairie",
       "parameters": {
         "weirdness": [
-          0.03,
-          1.43
+          0.0517,
+          0.0758
         ],
         "depth": [
           -2.0,
@@ -164,8 +164,8 @@
       "id": "regions_unexplored:grassland",
       "parameters": {
         "weirdness": [
-          1.43,
-          1.58
+          0.0758,
+          0.1
         ],
         "depth": [
           -2.0,
@@ -177,7 +177,7 @@
       "id": "regions_unexplored:pumpkin_fields",
       "parameters": {
         "weirdness": [
-          1.58,
+          0.1,
           2.0
         ],
         "depth": [
@@ -216,6 +216,9 @@
   "borders": {
     "player": 1024,
     "generation": 1024
+  },
+  "settingsOverrides": {
+    "seaLevel": 34
   },
   "difficulty": {
     "mobMultiplier": 1.0,

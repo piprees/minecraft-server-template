@@ -138,6 +138,9 @@
     "player": 1024,
     "generation": 1024
   },
+  "settingsOverrides": {
+    "seaLevel": 44
+  },
   "difficulty": {
     "mobMultiplier": 1.3,
     "playerLuck": 1.6
@@ -162,7 +165,7 @@
       "minecraft:forest"
     ],
     "wants": {
-      "ruins_standard": "near_spawn",
+      "ruins_standard": "spread",
       "forest_ruin": "near_spawn",
       "old_manor": "spread",
       "abandoned_temple": "spread",

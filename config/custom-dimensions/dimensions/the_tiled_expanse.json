@@ -4,10 +4,8 @@
   "seed": -4515861602403267790,
   "biomes": [
     "minecraft:end_midlands",
-    "nullscape:void_barrens",
-    "minecraft:the_end",
     "nullscape:crystal_peaks",
-    "minecraft:end_barrens"
+    "nullscape:void_barrens"
   ],
   "borders": {
     "player": 2048,
@@ -18,7 +16,10 @@
     "playerLuck": 1.8
   },
   "structures": {
-    "clearSpawnRadius": 128
+    "clearSpawnRadius": 128,
+    "exclude": [
+      "mes:phantom_citadel"
+    ]
   },
   "portal": {
     "frameBlock": "minecraft:deepslate_tiles",
@@ -59,7 +60,6 @@
       "manuscript_shrine": "near_border"
     },
     "shuns": [
-      "end_city",
       "phantom_citadel",
       "enderkeep"
     ],
@@ -74,7 +74,7 @@
     81,
     -64
   ],
-  "checkerboardScale": 5,
+  "checkerboardScale": 3,
   "settingsOverrides": {
     "seaLevel": -64
   },

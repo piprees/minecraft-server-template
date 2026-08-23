@@ -85,6 +85,9 @@
     ],
     "terrainAdaptation": {
       "paradise_lost:aurel_tower": "pedestal"
+    },
+    "rarity": {
+      "paradise_lost:birdcage": "common"
     }
   },
   "portal": {

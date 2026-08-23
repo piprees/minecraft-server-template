@@ -3,17 +3,57 @@
   "description": "Crimson root-country \u2014 the piglins who survived the war retreated here. Forges and fungus in the red haze, a shadow of their former industry. They kept working, but the grandeur is gone.",
   "seed": 8048297753260915604,
   "biomes": [
-    "minecraft:crimson_forest",
-    "incendium:weeping_valley",
-    "incendium:inverted_forest",
-    "minecraft:nether_wastes",
-    "minecraft:basalt_deltas",
+    {
+      "id": "minecraft:crimson_forest",
+      "parameters": {
+        "temperature": [
+          -2.0,
+          -0.6
+        ]
+      }
+    },
+    {
+      "id": "incendium:weeping_valley",
+      "parameters": {
+        "temperature": [
+          -0.6,
+          0.0346
+        ]
+      }
+    },
+    {
+      "id": "incendium:inverted_forest",
+      "parameters": {
+        "temperature": [
+          0.0346,
+          0.3231
+        ]
+      }
+    },
+    {
+      "id": "minecraft:nether_wastes",
+      "parameters": {
+        "temperature": [
+          0.3231,
+          0.6115
+        ]
+      }
+    },
+    {
+      "id": "minecraft:basalt_deltas",
+      "parameters": {
+        "temperature": [
+          0.6115,
+          0.9
+        ]
+      }
+    },
     {
       "id": "regions_unexplored:infernal_holt",
       "parameters": {
         "temperature": [
-          -0.5,
-          0.0
+          0.9,
+          2.0
         ]
       }
     }
