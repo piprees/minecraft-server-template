@@ -38,9 +38,9 @@ class PrimingOrderTest {
     @Test
     void primingBlocksUntilTheQueueDrains() throws IOException {
         String src = read("RollPipeline.java");
-        assertTrue(src.contains("awaitRenders(server, toDraw)"),
+        assertTrue(src.contains("awaitRenders(server, targets)"),
                 "priming must wait for the renders it queued, not just the measurements");
-        assertTrue(src.contains("exportReady(server, toDraw)"),
+        assertTrue(src.contains("exportReady(server, targets)"),
                 "the wait must publish as it goes — exporting only at the end leaves "
                         + "nothing behind when the JVM dies part-way through");
         assertTrue(src.contains("RenderQueue.priming(false)"),
@@ -48,11 +48,13 @@ class PrimingOrderTest {
     }
 
     @Test
-    void aDimensionWithCommittedThumbnailsIsNotRedrawn() throws IOException {
+    void aRollsPickIsProtectedByTheWriteRuleNotBySkippingWork() throws IOException {
         String src = read("RollPipeline.java");
-        assertTrue(src.contains("Picker.thumbnailsPresent("),
-                "priming must not redraw a dimension that already has both thumbnails, "
-                        + "or it overwrites a rolled pick from the configured seed");
+        assertTrue(!src.contains("if (draw) {"),
+                "nothing in the prime may be gated on a committed pair — the map's card "
+                        + "and the viewer's card are different artefacts, and one cannot "
+                        + "stand in for the other. A pick is protected by "
+                        + "exportMissingThumbnails writing only an absent size.");
     }
 
     @Test
@@ -66,10 +68,12 @@ class PrimingOrderTest {
                         + "scores, which is the one thing the page exists to show.");
         int loop = src.indexOf("for (DimensionConfig def : targets) {", targets);
         int measure = src.indexOf("measureNamed(server, def);", loop);
-        int guard = src.indexOf("if (draw) {", loop);
-        assertTrue(loop > 0 && measure > 0 && guard > measure,
-                "measureNamed must run for every target, with only the reconcile behind "
-                        + "the draw guard");
+        int reconcile = src.indexOf("RenderQueue.reconcile(server, def);", loop);
+        assertTrue(loop > 0 && measure > 0 && reconcile > measure,
+                "every target must be measured AND reconciled. The viewer's card is the "
+                        + "bank render reconcile queues; the committed pair is the map's "
+                        + "card. Gating the draw on a committed pair leaves every viewer "
+                        + "card reading \"render queued\" forever.");
     }
 
     @Test

@@ -239,18 +239,22 @@ public final class RollPipeline {
                 GENERATION.incrementAndGet();
                 return;
             }
-            // Drawing is the expensive half and the only half a committed pair
-            // can stand in for. A dimension that has one has been settled — by
-            // an earlier prime or by somebody picking a rolled seed — and
-            // redrawing it from the configured seed would overwrite that pick.
-            List<DimensionConfig> toDraw = new ArrayList<>();
+            // Everything is drawn too. A committed pair is the MAP's card
+            // (downscaled, published beside the JSON by exportMissingThumbnails);
+            // the viewer's card is the bank render this queues, and one cannot
+            // stand in for the other. Gating the draw on a committed pair left
+            // every card reading "render queued" forever. What protects a
+            // roll's pick is exportMissingThumbnails writing only the size that
+            // is absent — never this. enqueue skips whatever the bank already
+            // holds, so this is free once a hash has been drawn.
+            int committed = 0;
             for (DimensionConfig def : targets) {
-                if (!Picker.thumbnailsPresent(server, def, def.getDimensionIdentifier().getPath())) {
-                    toDraw.add(def);
+                if (Picker.thumbnailsPresent(server, def, def.getDimensionIdentifier().getPath())) {
+                    committed++;
                 }
             }
-            MultiverseServer.LOGGER.info("Priming {} dimension(s); {} need drawing",
-                    targets.size(), toDraw.size());
+            MultiverseServer.LOGGER.info("Priming {} dimension(s); {} already have a committed pair",
+                    targets.size(), committed);
             int workers = Math.max(1, Math.min(workers(), targets.size()));
             java.util.concurrent.ExecutorService pool =
                     java.util.concurrent.Executors.newFixedThreadPool(workers, r -> {
@@ -261,12 +265,9 @@ public final class RollPipeline {
             try {
                 List<java.util.concurrent.Future<?>> futures = new ArrayList<>();
                 for (DimensionConfig def : targets) {
-                    boolean draw = toDraw.contains(def);
                     futures.add(pool.submit(() -> {
                         measureNamed(server, def);
-                        if (draw) {
-                            RenderQueue.reconcile(server, def);
-                        }
+                        RenderQueue.reconcile(server, def);
                     }));
                 }
                 for (java.util.concurrent.Future<?> f : futures) {
@@ -283,9 +284,9 @@ public final class RollPipeline {
                 // they are drawn, or a roll admitted here would put eighty
                 // dimensions' worth of candidates in front of the renders the
                 // configured seeds are still waiting on.
-                awaitRenders(server, toDraw);
+                awaitRenders(server, targets);
                 // A last pass for whatever landed after the final sweep.
-                exportReady(server, toDraw);
+                exportReady(server, targets);
             } finally {
                 RenderQueue.priming(false);
                 pool.shutdownNow();
