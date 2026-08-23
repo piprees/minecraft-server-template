@@ -43,6 +43,7 @@ import java.util.UUID;
  *   /customdim destroy <name>
  *   /customdim list
  *   /customdim bank-gc [delete]
+ *   /customdim stamp-refresh
  *   /customdim locate biome <dimension> <biome_id> [timeout]
  *   /customdim locate structure <dimension> <structure_id> [timeout]
  *   /customdim locate-result <uuid>
@@ -115,6 +116,8 @@ public class DimensionCommands {
                     .executes(DimensionCommands::tryOutList))
                 .then(CommandManager.literal("list")
                     .executes(DimensionCommands::list))
+                .then(CommandManager.literal("stamp-refresh")
+                    .executes(DimensionCommands::stampRefresh))
                 .then(CommandManager.literal("bank-gc")
                     .executes(ctx -> bankGc(ctx, false))
                     .then(CommandManager.literal("delete")
@@ -724,6 +727,35 @@ public class DimensionCommands {
      * the mod can do this: the live hash set has to be computed, and any
      * shell-side heuristic (mtime, say) is guessing at which banks are dead.
      */
+    /**
+     * Re-stamps every committed thumbnail pair against the current
+     * {@link InputHash}, drawing nothing.
+     *
+     * <p>The pictures outlive the hash. A change to what InputHash covers
+     * re-keys every stamp at once while the PNGs beside them still show
+     * exactly what the config produces, so a prime would spend an hour
+     * re-rendering eighty-odd dimensions to reproduce files already on disk.
+     * This is the cheap half of that: same files, corrected provenance.
+     */
+    private static int stampRefresh(CommandContext<ServerCommandSource> ctx) {
+        ServerCommandSource source = ctx.getSource();
+        int stamped = 0;
+        int missing = 0;
+        for (DimensionConfig def : MultiverseConfig.getInstance().getAllDimensions()) {
+            String slug = def.getDimensionIdentifier().getPath();
+            if (com.customdimensions.web.Picker.restampExistingPair(source.getServer(), def, slug)) {
+                stamped++;
+            } else {
+                missing++;
+            }
+        }
+        int finalStamped = stamped;
+        int finalMissing = missing;
+        source.sendFeedback(() -> Text.literal("Re-stamped " + finalStamped + " pair(s); "
+                + finalMissing + " dimension(s) have no committed pair"), false);
+        return stamped;
+    }
+
     private static int bankGc(CommandContext<ServerCommandSource> ctx, boolean delete) {
         ServerCommandSource source = ctx.getSource();
         Path root = Artefacts.rollingDir().resolve("candidates");

@@ -22,6 +22,7 @@ import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.List;
 
 /**
  * Choosing a seed: the last step, and the only one a person makes.
@@ -206,6 +207,30 @@ public final class Picker {
      * missing — the only thing that stops a committed PNG outliving the world
      * it shows.
      */
+    /**
+     * Re-stamps an existing pair in place, in whichever tier holds it, without
+     * drawing anything. The pictures outlive the hash: a change to what
+     * {@link InputHash} covers re-keys every stamp while the PNGs beside them
+     * are still exactly what the config produces. Re-rendering eighty-odd
+     * dimensions to rewrite a hash they already satisfy is an hour spent
+     * reproducing files that are already on disk.
+     *
+     * @return true when a pair was found and stamped.
+     */
+    public static boolean restampExistingPair(MinecraftServer server, DimensionConfig def,
+                                              String dimensionSlug) {
+        String inputHash = InputHash.of(def, server);
+        Long seed = BankView.currentSeed(def, def.getSeed());
+        for (Path dir : List.of(Artefacts.overlayDimensionsDir(), Artefacts.dir("dimensions"))) {
+            if (Files.isRegularFile(dir.resolve(dimensionSlug + "_low.png"))
+                    && Files.isRegularFile(dir.resolve(dimensionSlug + "_high.png"))) {
+                recordProvenance(dir, dimensionSlug, inputHash, seed == null ? 0L : seed);
+                return true;
+            }
+        }
+        return false;
+    }
+
     private static void recordProvenance(Path dir, String dimensionSlug, String inputHash, long seed) {
         // Both, or the stamp claims a pair that is not there. thumbnailsPresent
         // wants both, so a low-only stamp reads as "drawn under this config"
