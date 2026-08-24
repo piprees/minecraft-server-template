@@ -595,6 +595,15 @@ echo "=== 5. fail2ban ==="
 
 apt_install fail2ban
 
+# ignoreip carries IPv6 ranges, and whether they are honoured depends on this.
+# fail2ban warns when it is unset and falls back to auto; set it explicitly so
+# the v6 entries are not silently inert on a host it decides is v4-only.
+backup /etc/fail2ban/fail2ban.local
+cat > /etc/fail2ban/fail2ban.local << 'F2BEOF'
+[Definition]
+allowipv6 = auto
+F2BEOF
+
 backup /etc/fail2ban/jail.local
 cat > /etc/fail2ban/jail.local << EOF
 [DEFAULT]
