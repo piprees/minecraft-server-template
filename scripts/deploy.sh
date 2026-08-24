@@ -930,7 +930,7 @@ if src.is_dir():
         settings = json.load(open(sf))
     print(settings.get("namespace", "adventure"))
     for f in sorted((src / "dimensions").glob("*.json")):
-        if f.stem in reserved_names:
+        if f.stem in reserved_names or f.stem.endswith("_thumb"):
             continue
         try:
             d = json.load(open(f))

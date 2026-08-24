@@ -418,7 +418,7 @@ if [[ -d "$CONSUMER_DIR/data/world" ]]; then
     if [[ ! -f "$dh_cfg" ]]; then continue; fi
     dh_slug="$(basename "$dh_cfg" .json)"
     case "$dh_slug" in
-      overworld | the_nether | the_end | paradise_lost) continue ;;
+      overworld | the_nether | the_end | paradise_lost | *_thumb) continue ;;
     esac
     dh_link_level "world/dimensions/$DH_NS/$dh_slug" "${DH_NS}__${dh_slug}"
   done
