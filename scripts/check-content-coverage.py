@@ -29,7 +29,13 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parent.parent
 CATALOGUE = REPO / "config/custom-dimensions/extractors/biomes.json"
 PLATFORM_DIMS = REPO / "config/custom-dimensions/dimensions"
-OVERLAY_DIMS = Path.home() / "Projects/elfydd/overlay/config/custom-dimensions/dimensions"
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from consumer_path import optional_consumer_dir  # noqa: E402
+
+_consumer = optional_consumer_dir()
+OVERLAY_DIMS = (_consumer / "overlay/config/custom-dimensions/dimensions"
+                if _consumer else None)
 
 
 def named_biomes(path):
@@ -73,7 +79,9 @@ def main():
     cat = json.loads(CATALOGUE.read_text())
     installed = set(cat["biomes"])
 
-    used = named_biomes(PLATFORM_DIMS) | named_biomes(OVERLAY_DIMS)
+    used = named_biomes(PLATFORM_DIMS)
+    if OVERLAY_DIMS:
+        used |= named_biomes(OVERLAY_DIMS)
 
     by_ns = {}
     for bid in installed:

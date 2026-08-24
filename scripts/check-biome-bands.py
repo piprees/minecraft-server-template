@@ -26,6 +26,10 @@ Gotchas:  - Hypercubes intersect only if they intersect on EVERY axis, so two
 """
 import json, glob, sys
 from itertools import combinations
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from consumer_path import ENV_VAR, optional_consumer_dir  # noqa: E402
 
 AXES = ["temperature","humidity","continentalness","erosion","depth","weirdness"]
 FULL = (-2.0, 2.0)
@@ -58,15 +62,21 @@ def covered(spans):
 FREE_EPSILON = 0.05
 
 total_files = total_pairs = total_starved = 0
-for pat in ("config/custom-dimensions/dimensions/*.json",
-            "/Users/pip/Projects/elfydd/overlay/config/custom-dimensions/dimensions/*.json"):
+consumer = optional_consumer_dir()
+sources = [("platform", "config/custom-dimensions/dimensions/*.json")]
+if consumer:
+    sources.append(("overlay",
+                    str(consumer / "overlay/config/custom-dimensions/dimensions/*.json")))
+
+scanned = 0
+for where, pat in sources:
     for f in sorted(glob.glob(pat)):
+        scanned += 1
         doc = json.load(open(f)); cfg = doc.get("overrides", doc)
         arr = cfg.get("biomes") or []
         ex = [(e["id"], e["parameters"]) for e in arr
               if isinstance(e, dict) and isinstance(e.get("parameters"), dict)]
         natives = [e for e in arr if isinstance(e, str)]
-        where = "overlay" if "elfydd" in f else "platform"
         name = f.split('/')[-1][:-5]
 
         bad = [(a[0], b[0]) for a, b in combinations(ex, 2) if overlaps(a[1], b[1])]
@@ -88,5 +98,11 @@ for pat in ("config/custom-dimensions/dimensions/*.json",
                     print(f"      {n}")
                 break
 
-print(f"\n{total_files} files, {total_pairs} overlapping pairs, {total_starved} starved natives")
+print(f"\nscanned {scanned} dimension file(s) "
+      f"({'platform + overlay' if consumer else 'platform only'})")
+if not consumer:
+    print(f"  overlay not checked - set {ENV_VAR} to include a consumer repo")
+print(f"{total_files} files, {total_pairs} overlapping pairs, {total_starved} starved natives")
+if scanned == 0:
+    sys.exit("nothing scanned - run this from the platform repo root")
 sys.exit(1 if (total_pairs or total_starved) else 0)

@@ -16,7 +16,7 @@ Sources: vanilla server JAR + <consumer>/data/mods/*.jar + config/datapacks/.
 Output: config/custom-dimensions/extractors/entities.json
 
 Usage:
-  ./scripts/extract-entities.py [consumer_dir]   # default: ~/Projects/elfydd
+  ./scripts/extract-entities.py [consumer_dir]   # default: $CONSUMER_DIR
 """
 import json
 import sys as _sys
@@ -28,7 +28,10 @@ import zipfile
 from pathlib import Path
 
 PLATFORM_DIR = Path(__file__).resolve().parent.parent
-CONSUMER_DIR = Path(sys.argv[1]) if len(sys.argv) > 1 else Path.home() / "Projects" / "elfydd"
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from consumer_path import consumer_dir  # noqa: E402
+
+CONSUMER_DIR = consumer_dir(sys.argv[1] if len(sys.argv) > 1 else None)
 MODS_DIR = CONSUMER_DIR / "data" / "mods"
 VANILLA_JAR = CONSUMER_DIR / "data" / "versions" / "1.21.1" / "server-1.21.1.jar"
 DATAPACKS_DIR = PLATFORM_DIR / "config" / "datapacks"

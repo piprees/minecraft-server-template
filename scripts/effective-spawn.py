@@ -15,7 +15,7 @@ Usage:
   effective-spawn.py <config-dir> [--out FILE]
 
   <config-dir> is the directory holding settings.json + dimensions/ + overlay/,
-  e.g. ~/Projects/elfydd/data/config/custom-dimensions (what the mod loads) or
+  e.g. "$CONSUMER_DIR"/data/config/custom-dimensions (what the mod loads) or
   a bundle's config/custom-dimensions merged with the consumer overlay.
 """
 

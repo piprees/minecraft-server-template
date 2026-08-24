@@ -14,7 +14,7 @@ table by spawn group. Later sources override earlier ones for the same id
 Output: config/custom-dimensions/extractors/biomes.json
 
 Usage:
-  ./scripts/extract-biomes.py [consumer_dir]     # default: ~/Projects/elfydd
+  ./scripts/extract-biomes.py [consumer_dir]     # default: $CONSUMER_DIR
 
 Context: Custom Dimensions v4 Phase 0 — feeds the configurator and
 validates dimension biome lists against what is actually installed.
@@ -29,7 +29,10 @@ import zipfile
 from pathlib import Path
 
 PLATFORM_DIR = Path(__file__).resolve().parent.parent
-CONSUMER_DIR = Path(sys.argv[1]) if len(sys.argv) > 1 else Path.home() / "Projects" / "elfydd"
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from consumer_path import consumer_dir  # noqa: E402
+
+CONSUMER_DIR = consumer_dir(sys.argv[1] if len(sys.argv) > 1 else None)
 MODS_DIR = CONSUMER_DIR / "data" / "mods"
 VANILLA_JAR = CONSUMER_DIR / "data" / "versions" / "1.21.1" / "server-1.21.1.jar"
 DATAPACKS_DIR = PLATFORM_DIR / "config" / "datapacks"

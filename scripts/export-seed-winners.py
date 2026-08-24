@@ -21,7 +21,7 @@ Usage:
   scripts/export-seed-winners.py [--consumer PATH] [--platform PATH]
                                  [--dry-run] [--clean]
 
-  --consumer PATH  consumer repo root (default: ~/Projects/elfydd)
+  --consumer PATH  consumer repo root (default: $CONSUMER_DIR; no fallback)
   --platform PATH  platform repo root (default: this script's checkout)
   --dry-run        print what would move, change nothing
   --clean          delete each overlay file after folding it in
@@ -44,6 +44,9 @@ import difflib
 import json
 import sys
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from consumer_path import consumer_dir  # noqa: E402
 
 
 def deep_merge(base, over):
@@ -87,7 +90,7 @@ def export_thumbnails(overlay_dir, template_dir, dry_run):
 def main():
     parser = argparse.ArgumentParser(
         description="Fold a consumer's dimension overlay into the platform configs.")
-    parser.add_argument("--consumer", default=str(Path.home() / "Projects" / "elfydd"))
+    parser.add_argument("--consumer", default=None)
     parser.add_argument("--platform", default=None)
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--clean", action="store_true",
@@ -97,7 +100,7 @@ def main():
     platform_dir = (Path(args.platform).expanduser() if args.platform
                     else Path(__file__).resolve().parent.parent)
     template_dir = platform_dir / "config" / "custom-dimensions" / "dimensions"
-    overlay_dir = (Path(args.consumer).expanduser()
+    overlay_dir = (consumer_dir(args.consumer)
                    / "overlay" / "config" / "custom-dimensions" / "dimensions")
     if not overlay_dir.is_dir():
         sys.exit(f"no overlay dimensions directory at {overlay_dir}")
