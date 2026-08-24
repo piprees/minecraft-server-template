@@ -376,7 +376,7 @@ to remove from the mods folder.
 TXTEOF
 
     USB_ZIP="$CLIENT_BUNDLE_DIR/${PACK_NAME}-usb-bundle.zip"
-    (cd "$USB_WORK" && zip -r "$USB_ZIP" ${BRAND_SLUG:-adventure}-mods/)
+    (cd "$USB_WORK" && zip -r "$USB_ZIP" "${BRAND_SLUG:-adventure}-mods/")
     echo "  ✓ $USB_ZIP"
 
     # Clean up temp dirs

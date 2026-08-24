@@ -7,14 +7,26 @@
 #   1. deploy user (passwordless sudo, root's keys + the GitHub deploy key)
 #   2. SSH: key-only, no root login (verify a new session BEFORE closing root!)
 #   3. UFW: deny inbound except SSH + SERVER_PORT/tcp + VOICE_PORT/udp
-#   4. fail2ban: sshd, MC connection-spam/login-flood (fed by systemd log-pipe
-#      units that mirror container logs to /var/log/), nginx exploit scans
-#      (banned on the real X-Forwarded-For IP); Cloudflare/Docker/localhost
-#      whitelisted
+#   4. fail2ban: sshd only. The MC and nginx jails ship DISABLED - they cannot
+#      see a real client address (docker-proxy relays; cloudflared is outbound)
+#      and their unanchored filters let a crafted chat line or header ban an
+#      arbitrary IP. Rate limiting at ufw-before-input does that job instead.
 #   5. unattended upgrades, 2G swap (swappiness 10), journald capped at 200MB
-#   6. Docker with iptables=false (can't bypass UFW) + NAT/rate-limit rules
-#      in UFW before.rules (game 6 conn/min, voice 10 pkt/min, SYN 30/min)
+#   6. Docker with iptables=false (can't bypass UFW) + NAT/rate-limit rules in
+#      before.rules AND before6.rules (game 6 conn/min, voice 10 pkt/min, SYN
+#      30/min). The trusted-source ACCEPT is scoped to the bridge interfaces;
+#      unscoped it admits anything claiming a 172.16/12 source.
 #   7. restic + zip for on-demand backups
+#
+# Gotchas:
+#   - Every value reaching the remote root shell is validated first. CALLER_IP
+#     comes off the network and lands in both a root shell and jail.local.
+#   - Docker is only restarted when daemon.json actually changed - a restart
+#     takes mc down with no countdown, kick or save.
+#   - The fail2ban jails for mc and nginx ship DISABLED. They cannot see a real
+#     client address, and their unanchored filters ban whatever a chat line or
+#     an X-Forwarded-For header names. Rate limiting does that job instead.
+#   - Refuses to disable root login unless the deploy user has a usable key.
 #
 # Usage:
 #   ./scripts/harden.sh --remote root@SERVER_IP     # from your Mac (uploads itself)
@@ -70,11 +82,34 @@ if [[ "${1:-}" == "--remote" ]]; then
   fi
 
   echo "Running harden.sh on $REMOTE_HOST..."
-  # shellcheck disable=SC1091
-  [[ -f "$PROJECT_DIR/.env" ]] && set -a && source "$PROJECT_DIR/.env" && set +a
+  # Only the four values this driver needs, read rather than sourced: `source`
+  # executes the file, so a $(...) in any .env value would run on this machine,
+  # and `set -a` would export the whole secret set into every child process.
+  if [[ -f "$PROJECT_DIR/.env" ]]; then
+    for _k in DEPLOY_USER SERVER_PORT VOICE_PORT BRAND_SLUG; do
+      _v=$(grep -E "^${_k}=" "$PROJECT_DIR/.env" | head -1 | cut -d= -f2- | tr -d '\042\047' | tr -d '\n')
+      [[ -n "$_v" ]] && eval "${_k}=\$_v"
+    done
+    unset _k _v
+  fi
 
-  # Detect caller's public IP for fail2ban whitelisting
-  CALLER_IP=$(curl -s -4 https://ifconfig.me 2> /dev/null || true)
+  # Caller's public IP, for the fail2ban whitelist. Validated strictly: this value
+  # reaches a root shell (:95) and /etc/fail2ban/jail.local (:445). An unvalidated
+  # body yields root RCE by two independent routes, and `0.0.0.0/0` alone disables
+  # every jail. Validate here, at the source - escaping the sinks does not close both.
+  CALLER_IP=$(curl -fsS -4 --max-time 10 https://cloudflare.com/cdn-cgi/trace 2> /dev/null \
+    | sed -n 's/^ip=//p' | head -1 || true)
+  # grep -q matches per LINE, so an embedded newline would smuggle a payload past a
+  # dotted-quad test. This rejects newline, $, (, /, quotes and whitespace outright.
+  case "$CALLER_IP" in
+    "" | *[!0-9.]*) CALLER_IP="" ;;
+  esac
+  if ! printf '%s' "$CALLER_IP" | grep -Eq '^([0-9]{1,3}\.){3}[0-9]{1,3}$'; then
+    if [[ -n "$CALLER_IP" ]]; then
+      echo "  Discarding malformed public-IP response - no self-whitelist." >&2
+    fi
+    CALLER_IP=""
+  fi
 
   # Run remotely via nohup so it survives SSH drops (Docker install takes 3+ min).
   SSH_FLAGS=()
@@ -92,6 +127,8 @@ if [[ "${1:-}" == "--remote" ]]; then
     ssh ${SSH_FLAGS[@]+"${SSH_FLAGS[@]}"} "$UPLOAD_HOST" "sudo cp /tmp/harden.sh /root/harden.sh; sudo cp /tmp/mc_deploy_key.pub /root/mc_deploy_key.pub 2>/dev/null; sudo chmod +x /root/harden.sh" 2> /dev/null
   fi
 
+  # shellcheck disable=SC2029  # Deliberate client-side expansion. Every value is
+  # validated before it gets here: CALLER_IP at :77, the rest come from .env.
   ssh ${SSH_FLAGS[@]+"${SSH_FLAGS[@]}"} "$UPLOAD_HOST" "${RUN_PREFIX} bash -c 'chmod +x /root/harden.sh && \
         rm -f /root/.harden-done /root/.harden-failed && \
         nohup bash -c \" \
@@ -158,12 +195,29 @@ NON_INTERACTIVE="${1:-}"
 # 9). deploy.sh and infra-deploy.sh hold this lock via lib.sh; harden.sh is
 # uploaded on its own and cannot source it, so the check is inline.
 DEPLOY_LOCK="/home/${DEPLOY_USER:-deploy}/server/.deploy.lock"
-if command -v flock > /dev/null 2>&1 && [[ -f "$DEPLOY_LOCK" ]]; then
-  if ! flock -n "$DEPLOY_LOCK" true 2> /dev/null; then
+# `flock -n FILE true` releases the moment true exits, leaving the ~3-15 min
+# until the Docker restart unguarded. Hold fd 200 for the life of this script
+# instead - the same shape as acquire_deploy_lock in lib.sh.
+# Keyed on the DIRECTORY, not the file: deploy.sh creates the lock file when it
+# starts, so requiring the file to pre-exist meant the first harden run took no
+# lock and a deploy starting seconds later collided with it.
+# Writability is checked BEFORE the exec, never with `2>` attached to it: a
+# redirection error on exec is fatal, and `exec 200>> f 2>/dev/null` would
+# redirect this script's stderr for the rest of its life. Same reasoning as
+# acquire_deploy_lock in lib.sh. Fail open, but say so loudly.
+LOCK_DIR="$(dirname "$DEPLOY_LOCK")"
+if command -v flock > /dev/null 2>&1 && [[ -d "$LOCK_DIR" && -w "$LOCK_DIR" ]] \
+  && { [[ ! -e "$DEPLOY_LOCK" ]] || [[ -w "$DEPLOY_LOCK" ]]; }; then
+  exec 200>> "$DEPLOY_LOCK"
+  if ! flock -n 200; then
     echo "ERROR: a server operation is in progress ($(cat "$DEPLOY_LOCK" 2> /dev/null || echo unknown))." >&2
     echo "  harden.sh restarts Docker. Refusing to run alongside it." >&2
     exit 1
   fi
+  # Register as the holder so a concurrent deploy names us, not "unknown".
+  printf '%s pid=%s started=%s\n' "harden.sh" "$$" "$(date -u '+%Y-%m-%dT%H:%M:%SZ')" >&200
+elif command -v flock > /dev/null 2>&1; then
+  echo "  WARNING: $DEPLOY_LOCK not writable - concurrent runs are UNGUARDED." >&2
 fi
 
 # --- helper functions ---------------------------------------------------------
@@ -247,14 +301,28 @@ else
 fi
 
 # Grant passwordless sudo (key-only login means no password exists to type)
+# Validate before it counts: a malformed sudoers file leaves this account with no
+# sudo at all, and root login is disabled later in the same run.
 echo "$NEWUSER ALL=(ALL) NOPASSWD:ALL" > "/etc/sudoers.d/90-$NEWUSER"
 chmod 0440 "/etc/sudoers.d/90-$NEWUSER"
+if command -v visudo > /dev/null 2>&1 && ! visudo -c -f "/etc/sudoers.d/90-$NEWUSER"; then
+  rm -f "/etc/sudoers.d/90-$NEWUSER"
+  echo "ERROR: generated sudoers file is invalid - removed it. Is '$NEWUSER' a" >&2
+  echo "       valid user name? Refusing to continue." >&2
+  exit 1
+fi
 
 # Copy root's SSH keys to the new user
 mkdir -p "/home/$NEWUSER/.ssh"
-if [[ -f /root/.ssh/authorized_keys ]]; then
+# Seed once, then leave alone. Overwriting on a re-run destroys any key added
+# since, including the CI deploy key - the runner's retries then trip the sshd
+# jail and ban it for a day. Merging root's file forward instead is worse: it
+# holds every key attached to the provider project, permanently.
+if [[ ! -s "/home/$NEWUSER/.ssh/authorized_keys" && -f /root/.ssh/authorized_keys ]]; then
   cp /root/.ssh/authorized_keys "/home/$NEWUSER/.ssh/authorized_keys"
-  echo "  Copied root's SSH keys to $NEWUSER."
+  echo "  Seeded $NEWUSER with root's SSH keys (first run only)."
+elif [[ -s "/home/$NEWUSER/.ssh/authorized_keys" ]]; then
+  echo "  $NEWUSER already has authorised keys - leaving them alone."
 fi
 
 # Also install the GitHub Actions deploy key if uploaded
@@ -284,6 +352,23 @@ sed -i 's/^#\?PermitRootLogin.*/PermitRootLogin no/' /etc/ssh/sshd_config
 sed -i 's/^#\?PasswordAuthentication.*/PasswordAuthentication no/' /etc/ssh/sshd_config
 sed -i 's/^#\?PubkeyAuthentication.*/PubkeyAuthentication yes/' /etc/ssh/sshd_config
 sed -i 's/^#\?ChallengeResponseAuthentication.*/ChallengeResponseAuthentication no/' /etc/ssh/sshd_config
+
+# Ubuntu's sshd_config starts with `Include /etc/ssh/sshd_config.d/*.conf`, and
+# sshd takes the FIRST value it obtains for any keyword. A drop-in therefore
+# beats the seds above - so write our own, named to sort BEFORE the distro's
+# 50-cloud-init.conf. A 99- prefix would lose; that is the trap here.
+if [[ -d /etc/ssh/sshd_config.d ]]; then
+  cat > /etc/ssh/sshd_config.d/00-hardening.conf << 'SSHDROP'
+# Managed by harden.sh. Sorts before 50-cloud-init.conf deliberately:
+# sshd uses the first value it obtains, so this file must be read first.
+PermitRootLogin no
+PasswordAuthentication no
+PubkeyAuthentication yes
+KbdInteractiveAuthentication no
+SSHDROP
+  chmod 0644 /etc/ssh/sshd_config.d/00-hardening.conf
+  echo "  Wrote /etc/ssh/sshd_config.d/00-hardening.conf (sorts before cloud-init)."
+fi
 
 # sshd reload is DEFERRED to the end of the script. Reloading here kills the
 # SSH session that's running this script (even under nohup), and everything
@@ -317,7 +402,11 @@ ufw allow "${VOICE_PORT}/udp" comment "Simple Voice Chat"
 echo "  Allowed ${VOICE_PORT}/udp (voice)"
 
 # Enable UFW (non-interactive: auto-confirm)
-echo "y" | ufw enable 2> /dev/null || true
+if ! echo "y" | ufw enable; then
+  echo "ERROR: ufw enable failed. With iptables=false there is no filter behind" >&2
+  echo "       UFW, so this box would be left fully open. Refusing to continue." >&2
+  exit 1
+fi
 echo "  UFW enabled. Default: deny inbound, allow outbound."
 
 # =============================================================================
@@ -329,7 +418,14 @@ echo "=== 4. Docker ==="
 if command -v docker &> /dev/null; then
   echo "  Docker already installed: $(docker --version)"
 else
-  retry 3 15 bash -c 'curl -fsSL https://get.docker.com | sh'
+  # `bash -c` does NOT inherit pipefail, so a failed curl leaves sh reading empty
+  # stdin and exiting 0 - the download failure is invisible. Set it explicitly,
+  # then verify the binary actually exists.
+  retry 3 15 bash -c 'set -o pipefail; curl -fsSL https://get.docker.com | sh'
+  if ! command -v docker &> /dev/null; then
+    echo "ERROR: Docker install reported success but no docker binary exists." >&2
+    exit 1
+  fi
   echo "  Docker installed."
 fi
 
@@ -341,8 +437,10 @@ echo ""
 echo "=== 4b. Docker daemon hardening ==="
 
 DAEMON_JSON="/etc/docker/daemon.json"
+DAEMON_JSON_BEFORE=""
 if [[ -f "$DAEMON_JSON" ]]; then
   backup "$DAEMON_JSON"
+  DAEMON_JSON_BEFORE="$DAEMON_JSON.bak.$STAMP"
 fi
 
 cat > "$DAEMON_JSON" << 'EOF'
@@ -380,6 +478,11 @@ echo "  inotify limits raised (512 instances, 65536 watches)"
 
 backup /etc/default/ufw
 sed -i 's/DEFAULT_FORWARD_POLICY="DROP"/DEFAULT_FORWARD_POLICY="ACCEPT"/' /etc/default/ufw
+if ! grep -q '^DEFAULT_FORWARD_POLICY="ACCEPT"' /etc/default/ufw; then
+  echo "ERROR: could not set DEFAULT_FORWARD_POLICY - the anchor was not found." >&2
+  echo "       Container networking would silently not work. Refusing to continue." >&2
+  exit 1
+fi
 echo "  UFW forward policy set to ACCEPT"
 
 UFW_BEFORE="/etc/ufw/before.rules"
@@ -404,7 +507,15 @@ if ! grep -q 'RATE-LIMIT' "$UFW_BEFORE" 2> /dev/null; then
   backup "$UFW_BEFORE"
   cat > /tmp/rate-limit-rules << RATELIMIT
 # Rate limiting for game and voice ports (anti-DDoS)
--A ufw-before-input -s 172.16.0.0/12 -j ACCEPT
+# Scoped to the bridge interfaces. Unscoped, this accepts anything from the
+# internet that simply claims a 172.16/12 source, ahead of all three limiters
+# below - Ubuntu ships rp_filter=2 (loose), which does not stop that.
+# NOTE: setting rp_filter=1 does NOT help. The kernel takes max(all, interface)
+# and loose(2) beats strict(1), and udev re-applies 2 to every new interface.
+# The interface scope is the whole fix. br+ is iptables' wildcard for br-<id>.
+-A ufw-before-input -i docker0 -s 172.16.0.0/12 -j ACCEPT
+-A ufw-before-input -i br+ -s 172.16.0.0/12 -j ACCEPT
+-A ufw-before-input -i lo -s 172.16.0.0/12 -j ACCEPT
 -A ufw-before-input -p tcp --dport ${SERVER_PORT:-25577} -m state --state NEW -m hashlimit --hashlimit-above 6/minute --hashlimit-burst 6 --hashlimit-mode srcip --hashlimit-name mc-game --hashlimit-htable-expire 30000 -j DROP
 -A ufw-before-input -p udp --dport ${VOICE_PORT:-24454} -m hashlimit --hashlimit-above 10/minute --hashlimit-burst 10 --hashlimit-mode srcip --hashlimit-name mc-voice --hashlimit-htable-expire 30000 -j DROP
 -A ufw-before-input -p tcp --syn -m hashlimit --hashlimit-above 30/minute --hashlimit-burst 15 --hashlimit-mode srcip --hashlimit-name syn-flood --hashlimit-htable-expire 60000 -j DROP
@@ -412,18 +523,68 @@ if ! grep -q 'RATE-LIMIT' "$UFW_BEFORE" 2> /dev/null; then
 RATELIMIT
   sed -i '/^# ok icmp codes/r /tmp/rate-limit-rules' "$UFW_BEFORE"
   rm -f /tmp/rate-limit-rules
+  # sed exits 0 when the anchor is absent, inserting nothing. Without this check
+  # an Ubuntu wording change silently drops all rate limiting while printing success.
+  if ! grep -q "RATE-LIMIT" "$UFW_BEFORE"; then
+    echo "ERROR: rate-limit rules were not inserted - the anchor comment" >&2
+    echo "       '# ok icmp codes' was not found in $UFW_BEFORE." >&2
+    exit 1
+  fi
   echo "  Rate limiting rules added to $UFW_BEFORE"
 fi
 
-ufw reload 2> /dev/null || true
+# A malformed before.rules makes this fail. With iptables=false nothing else is
+# filtering, so a swallowed failure here leaves every port open while the script
+# prints success. Verify the rules actually loaded rather than trusting exit 0.
+UFW_BEFORE6="/etc/ufw/before6.rules"
+# `ufw allow 25577/tcp` opens the port on BOTH families, but every rule above is
+# written to before.rules (IPv4). Without this the game port, voice port and SSH
+# are reachable over IPv6 with no rate limiting at all.
+if [[ -f "$UFW_BEFORE6" ]] && ! grep -q 'RATE-LIMIT' "$UFW_BEFORE6" 2> /dev/null; then
+  backup "$UFW_BEFORE6"
+  cat > /tmp/rate-limit-rules6 << RATELIMIT6
+# Rate limiting for game and voice ports over IPv6 (mirrors before.rules)
+-A ufw6-before-input -p tcp --dport ${SERVER_PORT:-25577} -m state --state NEW -m hashlimit --hashlimit-above 6/minute --hashlimit-burst 6 --hashlimit-mode srcip --hashlimit-name mc-game6 --hashlimit-htable-expire 30000 -j DROP
+-A ufw6-before-input -p udp --dport ${VOICE_PORT:-24454} -m hashlimit --hashlimit-above 10/minute --hashlimit-burst 10 --hashlimit-mode srcip --hashlimit-name mc-voice6 --hashlimit-htable-expire 30000 -j DROP
+-A ufw6-before-input -p tcp --syn -m hashlimit --hashlimit-above 30/minute --hashlimit-burst 15 --hashlimit-mode srcip --hashlimit-name syn-flood6 --hashlimit-htable-expire 60000 -j DROP
+# END RATE-LIMIT
+RATELIMIT6
+  sed -i '/^# ok icmp codes/r /tmp/rate-limit-rules6' "$UFW_BEFORE6"
+  rm -f /tmp/rate-limit-rules6
+  if ! grep -q "RATE-LIMIT" "$UFW_BEFORE6"; then
+    echo "ERROR: IPv6 rate-limit rules were not inserted into $UFW_BEFORE6." >&2
+    exit 1
+  fi
+  echo "  IPv6 rate limiting rules added to $UFW_BEFORE6"
+fi
+
+if ! ufw reload; then
+  echo "ERROR: ufw reload failed - before.rules is probably malformed." >&2
+  echo "       Restore ${UFW_BEFORE}.bak.${STAMP} and re-run. Refusing to continue." >&2
+  exit 1
+fi
+if ! ufw status | grep -q "Status: active"; then
+  echo "ERROR: ufw reports inactive after reload. Refusing to continue." >&2
+  exit 1
+fi
 echo "  UFW reloaded with Docker networking and rate limiting rules"
 
-if systemctl is-active --quiet docker; then
-  systemctl restart docker
-  echo "  Docker restarted with new daemon config."
-else
+# Restarting Docker takes mc down with none of deploy.sh's countdown, kick,
+# save-off or save-all flush. On a re-run where daemon.json is unchanged there
+# is nothing to apply, so do not pay that price. Safety rules 5, 8 and 9.
+if ! systemctl is-active --quiet docker; then
   systemctl start docker 2> /dev/null || true
   echo "  Docker started with new daemon config."
+elif [[ -n "$DAEMON_JSON_BEFORE" ]] && cmp -s "$DAEMON_JSON" "$DAEMON_JSON_BEFORE"; then
+  echo "  daemon.json unchanged - NOT restarting Docker (mc keeps running)."
+  rm -f "$DAEMON_JSON_BEFORE"
+else
+  if docker ps --format '{{.Names}}' 2> /dev/null | grep -q 'mc$'; then
+    echo "  WARNING: restarting Docker with mc running - no countdown, no save." >&2
+    echo "           Prefer deploy.sh or /mc restart if players may be online." >&2
+  fi
+  systemctl restart docker
+  echo "  Docker restarted with new daemon config."
 fi
 
 # =============================================================================
@@ -440,6 +601,9 @@ cat > /etc/fail2ban/jail.local << EOF
 # Never ban Docker bridge networks (healthchecks, sidecars), localhost,
 # or Cloudflare's IP ranges (tunnel traffic, web map, modpack downloads).
 # localhost + Docker bridge + private networks
+# <HOST> matches hostnames as well as addresses and usedns defaults to warn, so
+# without this a crafted header makes this box resolve an attacker-chosen name.
+usedns = no
 ignoreip = 127.0.0.0/8 ::1 172.16.0.0/12 10.0.0.0/8
 # The machine that ran setup (so SSH probes during provisioning don't self-ban)
              ${CALLER_IP:-}
@@ -449,6 +613,9 @@ ignoreip = 127.0.0.0/8 ::1 172.16.0.0/12 10.0.0.0/8
              141.101.64.0/18 108.162.192.0/18 190.93.240.0/20 188.114.96.0/20
              197.234.240.0/22 198.41.128.0/17 162.158.0.0/15 104.16.0.0/13
              104.24.0.0/14 172.64.0.0/13 131.0.72.0/22
+# Cloudflare IPv6 (cloudflare.com/ips-v6). Tunnel traffic arrives over v6 too.
+             2400:cb00::/32 2606:4700::/32 2803:f800::/32 2405:b500::/32
+             2405:8100::/32 2a06:98c0::/29 2c0f:f248::/32
 
 [sshd]
 enabled  = true
@@ -458,8 +625,14 @@ bantime  = 1d
 findtime = 10m
 maxretry = 4
 
+# Disabled. mc sees the Docker bridge gateway as the source for every player
+# (iptables=false, no DNAT, docker-proxy relays), and that address is in ignoreip
+# above - so this can never ban an abuser. The failregex is also unanchored, so a
+# player typing "/8.8.8.8: ..." in chat DOES get that address banned, and the log
+# pipe re-fires those bans from replayed history on every Docker restart. The
+# hashlimit at ufw-before-input does this job on the real source address.
 [mc-connection-spam]
-enabled  = true
+enabled  = false
 port     = ${SERVER_PORT:-25577}
 filter   = mc-connection-spam
 logpath  = /var/log/mc-docker.log
@@ -468,8 +641,10 @@ bantime  = 1h
 findtime = 2m
 maxretry = 10
 
+# Disabled - same reasons as mc-connection-spam above. This one also matches
+# SUCCESSFUL logins ("logged in with entity id"), so it counted normal joins.
 [mc-login-flood]
-enabled  = true
+enabled  = false
 port     = ${SERVER_PORT:-25577}
 filter   = mc-login-flood
 logpath  = /var/log/mc-docker.log
@@ -485,7 +660,14 @@ maxretry = 20
 # trailing X-Forwarded-For field (cloudflared sets it) - \$remote_addr in
 # these logs is just the internal Docker bridge IP of whichever proxy hop
 # forwarded the request, not the actual attacker.
-enabled  = true
+# Disabled. Two independent defects: <HOST> binds to the FIRST X-Forwarded-For
+# element, which Cloudflare appends to rather than replaces, so it is
+# attacker-supplied - one request bans any address named in that header. And no
+# inbound traffic reaches 80/443 (cloudflared makes an OUTBOUND tunnel), so the
+# ban lands on ports nothing arrives on. The port setting below is the only
+# thing keeping the poisoned ban harmless; changing it to anyport, or banaction
+# to iptables-allports, arms it against SSH and the game port.
+enabled  = false
 port     = http,https
 filter   = nginx-exploit-scan
 logpath  = /var/log/nav-proxy-nginx.log
@@ -570,16 +752,21 @@ cat > /etc/logrotate.d/mc-docker << 'LREOF'
 /var/log/nav-proxy-nginx.log
 /var/log/pack-web-nginx.log {
     daily
+    # size cap as well as daily: these files gain up to 30MB per daemon restart,
+    # and a daily-only rotation lets that fill the disk holding the world.
+    maxsize 20M
     rotate 3
     compress
     missingok
     notifempty
     copytruncate
+    create 0640 root adm
 }
 LREOF
 
 touch /var/log/mc-docker.log /var/log/nav-proxy-nginx.log /var/log/pack-web-nginx.log
-systemctl daemon-reload
+# These carry player IPs and request paths; do not leave them world-readable.
+chmod 0640 /var/log/mc-docker.log /var/log/nav-proxy-nginx.log /var/log/pack-web-nginx.log
 systemctl daemon-reload
 # Log-pipe services need Docker; enable them but don't fail if Docker isn't installed yet.
 # They'll start on next boot once Docker is available.
@@ -587,9 +774,12 @@ systemctl enable mc-log-pipe.service 2> /dev/null || true
 systemctl enable nginx-log-pipe@nav-proxy.service 2> /dev/null || true
 systemctl enable nginx-log-pipe@pack-web.service 2> /dev/null || true
 if command -v docker &> /dev/null; then
-  systemctl start mc-log-pipe.service 2> /dev/null || true
-  systemctl start nginx-log-pipe@nav-proxy.service 2> /dev/null || true
-  systemctl start nginx-log-pipe@pack-web.service 2> /dev/null || true
+  # restart, not start: daemon-reload does not restart running units and `start`
+  # on an active unit is a no-op, so a unit-file change would not take effect in
+  # the run that ships it.
+  systemctl restart mc-log-pipe.service 2> /dev/null || true
+  systemctl restart nginx-log-pipe@nav-proxy.service 2> /dev/null || true
+  systemctl restart nginx-log-pipe@pack-web.service 2> /dev/null || true
   echo "  Log-pipe services active (mc, nav-proxy, pack-web -> /var/log/)"
 else
   echo "  Log-pipe services enabled (will start after Docker is installed)"
@@ -599,16 +789,16 @@ systemctl enable fail2ban 2> /dev/null || true
 systemctl restart fail2ban 2> /dev/null || true
 echo "  fail2ban active:"
 echo "    - SSH: 4 failures in 10m > 24h ban"
-echo "    - MC connection spam: 10 disconnects in 2m > 1h ban"
-echo "    - MC login flood: 20 connections in 5m > 6h ban"
-echo "    - nginx exploit scans (wp-login.php, .env, admin panels, etc.): 1 hit > 1 week ban"
+echo "    - MC connection spam:  DISABLED (cannot see the real client address)"
+echo "    - MC login flood:      DISABLED (same, and it matched successful logins)"
+echo "    - nginx exploit scans: DISABLED (bans an attacker-supplied address)"
 echo "    - Whitelisted: localhost, Docker networks, Cloudflare IPs"
 
 # =============================================================================
 # 5. Automatic security updates
 # =============================================================================
 echo ""
-echo "=== 5. Unattended security upgrades ==="
+echo "=== 6. Unattended security upgrades ==="
 
 apt_install unattended-upgrades
 DEBIAN_FRONTEND=noninteractive dpkg-reconfigure -f noninteractive unattended-upgrades
@@ -618,7 +808,7 @@ echo "  Unattended upgrades enabled."
 # 5b. Swap (safety net for memory pressure)
 # =============================================================================
 echo ""
-echo "=== 5b. Swap file ==="
+echo "=== 6b. Swap file ==="
 
 SWAPFILE="/swapfile"
 if swapon --show | grep -q "$SWAPFILE"; then
@@ -631,17 +821,23 @@ else
     echo "  Created 2G swap file."
   fi
   swapon "$SWAPFILE"
-  if ! grep -q "$SWAPFILE" /etc/fstab; then
-    echo "$SWAPFILE none swap sw 0 0" >> /etc/fstab
-    echo "  Added swap to /etc/fstab."
-  fi
-  # Low swappiness - only use swap under real pressure
-  sysctl -w vm.swappiness=10 > /dev/null
-  if ! grep -q 'vm.swappiness' /etc/sysctl.conf; then
-    echo 'vm.swappiness=10' >> /etc/sysctl.conf
-  fi
-  echo "  Swap enabled (2G, swappiness=10)."
+  echo "  Swap enabled (2G)."
 fi
+
+# Outside the branch above deliberately: inside it, a box that already has swap
+# active can never have a missing fstab entry or swappiness restored by a re-run.
+if ! grep -q "^$SWAPFILE" /etc/fstab 2> /dev/null; then
+  echo "$SWAPFILE none swap sw 0 0" >> /etc/fstab
+  echo "  Added swap to /etc/fstab."
+fi
+# Low swappiness - only use swap under real pressure
+sysctl -w vm.swappiness=10 > /dev/null
+if grep -q '^vm.swappiness' /etc/sysctl.conf 2> /dev/null; then
+  sed -i 's/^vm.swappiness=.*/vm.swappiness=10/' /etc/sysctl.conf
+else
+  echo 'vm.swappiness=10' >> /etc/sysctl.conf
+fi
+echo "  swappiness=10 (applied and persisted)."
 
 # (Docker was installed and hardened in step 4, before fail2ban)
 
@@ -675,7 +871,7 @@ echo "  MC logs: 10MB × 3 days (log4j2.xml)"
 # 8. restic (for on-demand backups outside the mc-backup container)
 # =============================================================================
 echo ""
-echo "=== 7. restic ==="
+echo "=== 8. restic ==="
 
 apt_install restic zip
 echo "  restic installed: $(restic version 2> /dev/null || echo 'unknown')"
@@ -686,9 +882,40 @@ echo "  zip installed: $(zip --version 2> /dev/null | head -1 || echo 'unknown')
 # =============================================================================
 echo ""
 echo "=== 9. Applying SSH hardening ==="
-systemctl reload ssh 2> /dev/null || systemctl reload sshd 2> /dev/null \
-  || systemctl restart ssh 2> /dev/null || systemctl restart sshd 2> /dev/null || true
+
+# A4: nothing below is reversible without console access. Refuse to disable root
+# login and password auth unless someone else can demonstrably get in.
+AUTHKEYS="/home/$NEWUSER/.ssh/authorized_keys"
+if [[ ! -s "$AUTHKEYS" ]]; then
+  echo "ERROR: $AUTHKEYS is missing or empty." >&2
+  echo "       Disabling root login now would lock this box permanently." >&2
+  echo "       Add a key for $NEWUSER, then re-run. SSH policy NOT applied." >&2
+  exit 1
+fi
+if ! ssh-keygen -l -f "$AUTHKEYS" > /dev/null 2>&1; then
+  echo "ERROR: no parseable public key in $AUTHKEYS. SSH policy NOT applied." >&2
+  exit 1
+fi
+echo "  Authorised keys for $NEWUSER:"
+ssh-keygen -l -f "$AUTHKEYS" 2> /dev/null | sed "s/^/    /"
+
+# A3: validate before reloading. The old chain escalated reload -> restart with
+# every branch silenced, so a config sshd rejects left sshd STOPPED and the
+# script still exited 0.
+if ! sshd -t; then
+  echo "ERROR: sshd rejects the config just written. NOT reloading." >&2
+  echo "       Restore /etc/ssh/sshd_config.bak.$STAMP and re-run." >&2
+  exit 1
+fi
+if ! { systemctl reload ssh || systemctl reload sshd; }; then
+  echo "ERROR: sshd config is valid but the reload failed. Check: systemctl status ssh" >&2
+  exit 1
+fi
 echo "  SSH reloaded: root login disabled, key-only auth active."
+echo "  Effective policy:"
+sshd -T 2> /dev/null \
+  | grep -Ei "^(permitrootlogin|passwordauthentication|kbdinteractiveauthentication)" \
+  | sed "s/^/    /" || true
 
 # =============================================================================
 # Done
@@ -708,7 +935,7 @@ echo " Key-only access as '${NEWUSER}'."
 echo ""
 echo " Firewall allows: SSH, ${SERVER_PORT}/tcp (game), ${VOICE_PORT}/udp (voice)"
 echo " Rate limiting: game port (6/min), voice (10/min), SYN flood (30/min)"
-echo " fail2ban: SSH + MC connection spam + MC login flood + nginx exploit scans"
+echo " fail2ban: SSH only. MC and nginx jails ship disabled - see jail.local."
 echo " Docker: iptables=false (won't bypass UFW), log rotation enabled"
 echo " Swap: 2G safety net (swappiness=10)"
 echo " All other inbound traffic is blocked."

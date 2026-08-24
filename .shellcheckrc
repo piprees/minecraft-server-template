@@ -1,4 +1,14 @@
 # ShellCheck configuration
 # https://www.shellcheck.net/wiki/
 shell=bash
-severity=warning
+
+# info, not warning. SC2029 only surfaces at this level, and it is what flags a
+# value expanding client-side into a remote root shell.
+severity=info
+
+# Sourced paths resolve at runtime from SCRIPT_DIR; ShellCheck cannot follow them.
+disable=SC1091
+# Intentional idioms in this codebase, each verified in place:
+#   SC2012 ls on controlled build/backup paths   SC2015 A && B || C used for logging
+#   SC2016 single quotes around jq filters       SC2001 sed where ${//} is less readable
+disable=SC2012,SC2015,SC2016,SC2001

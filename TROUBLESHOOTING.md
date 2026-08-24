@@ -40,6 +40,10 @@ Run this first. It covers deploy drift, disk, every expected container, `ONLINE_
 | Symptom | Go to |
 | --- | --- |
 | Slash commands (`/mc`, `/register`) vanished after an mc restart | [T1](#t1) |
+| `sshd -T` still reports `passwordauthentication yes` after hardening | [T41](#t41) |
+| Spoofed private source still passes the rate limits despite `rp_filter=1` | [T42](#t42) |
+| A jail disabled in `jail.d/*.conf` is enabled again after `./ops harden` | [T43](#t43) |
+| Voice chat broke for everyone right after a firewall change | [T44](#t44) |
 | Config or mod changes didn't take effect after a deploy | [T2](#t2) |
 | `signal only works in main thread` in discord-sync logs | [T3](#t3) |
 | mc crash-loops with Modrinth `429 Too Many Requests` | [T4](#t4) |
@@ -613,6 +617,57 @@ The rendered height disagrees with the facts on high-relief columns. The error i
 ## Deep dives
 
 [`docs/known-issues/carpet-supplementaries-piston-crash.md`](docs/known-issues/carpet-supplementaries-piston-crash.md) — Carpet's piston mixin vs Supplementaries: the tick-loop crash, and why `scripts/patch-mod-data.py` strips one mixin on every deploy.
+
+<a id="t41"></a>
+### T41 — A hardening fix that lands in `sshd_config.d` must sort BEFORE cloud-init's
+
+- **Symptom:** `harden.sh` reports "root login disabled, key-only auth active", but
+  `sshd -T` still shows `passwordauthentication yes`.
+- **Cause:** Ubuntu's `/etc/ssh/sshd_config` opens with
+  `Include /etc/ssh/sshd_config.d/*.conf`, and sshd uses the **first value it
+  obtains** for any keyword — the opposite of most config systems. A drop-in named
+  `99-hardening.conf` is read *after* `50-cloud-init.conf` and loses to it.
+- **Fix:** name it `00-hardening.conf`, and assert the result with `sshd -T` rather
+  than trusting the write. `harden.sh` does both.
+
+<a id="t42"></a>
+### T42 — `rp_filter=1` does not close the spoofed-source bypass, and appears to
+
+- **Symptom:** a spoofed RFC1918 source still reaches the host past every hashlimit,
+  after setting `net.ipv4.conf.all.rp_filter=1`. `sysctl net.ipv4.conf.all.rp_filter`
+  returns `1`, confirming a fix that is not in force.
+- **Cause:** the kernel takes `max(all, interface)` for reverse-path filtering, and
+  **loose is 2 while strict is 1** — so a per-interface 2 outranks a global 1. Ubuntu
+  ships loose in two files (`systemd`'s `50-default.conf` and `procps`'s
+  `10-network-security.conf`), and systemd's udev rule re-applies it to every new
+  interface, so each Docker bridge is set back to 2 at creation.
+- **Fix:** scope the trusted-source ACCEPT to the bridge interfaces
+  (`-i docker0`, `-i br+`). The interface scope is the whole fix; the sysctl is not
+  a defence-in-depth measure, it is a no-op.
+
+<a id="t43"></a>
+### T43 — fail2ban `jail.d/*.conf` loses to `jail.local`; use `.local`
+
+- **Symptom:** a jail disabled in `/etc/fail2ban/jail.d/mc-source.conf` is enabled
+  again after the next `./ops harden`, with nothing in the log saying so.
+- **Cause:** fail2ban reads `jail.conf` → `jail.d/*.conf` → **`jail.local`** →
+  `jail.d/*.local`, and `harden.sh` rewrites `jail.local` unconditionally.
+- **Fix:** put operator overrides in `/etc/fail2ban/jail.d/mc-source.local`, which is
+  read after `jail.local` and which `harden.sh` never touches.
+
+<a id="t44"></a>
+### T44 — Moving the UFW rate-limit block earlier kills voice chat
+
+- **Symptom:** Simple Voice Chat breaks for everyone immediately after a firewall
+  change, with no error anywhere.
+- **Cause:** the hashlimit block sits **after** ufw's `RELATED,ESTABLISHED` accept in
+  `before.rules`. That placement is load-bearing: the voice rule reads as
+  "10 UDP packets/min", which would destroy a ~50 packet/sec stream, and it only
+  works because established flows never reach it. Moving the block up exposes every
+  packet of an ongoing conversation to the limit.
+- **Fix:** leave the block where it is. It rates flow-opening packets only, which is
+  the intent.
+
 
 ## Adding an entry
 

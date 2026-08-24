@@ -162,13 +162,13 @@ while true; do
     j) ((CURSOR < COUNT - 1)) && ((CURSOR++)) ;;
     ' ')
       if [[ "${SELECTED[$CURSOR]}" == "1" ]]; then
-        SELECTED[$CURSOR]="0"
+        SELECTED[CURSOR]="0"
       else
-        SELECTED[$CURSOR]="1"
+        SELECTED[CURSOR]="1"
       fi
       ;;
-    a) for i in $(seq 0 $((COUNT - 1))); do SELECTED[$i]="1"; done ;;
-    n) for i in $(seq 0 $((COUNT - 1))); do SELECTED[$i]="0"; done ;;
+    a) for i in $(seq 0 $((COUNT - 1))); do SELECTED[i]="1"; done ;;
+    n) for i in $(seq 0 $((COUNT - 1))); do SELECTED[i]="0"; done ;;
     q)
       echo ""
       exit 0

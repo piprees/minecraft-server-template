@@ -42,7 +42,9 @@ SHELL_ERRORS=0
 SHELL_TOTAL=0
 while IFS= read -r -d '' script; do
   SHELL_TOTAL=$((SHELL_TOTAL + 1))
-  if ! shellcheck --severity=warning "$script"; then
+  # Severity comes from .shellcheckrc (info) - do not pin it here, or the
+  # SC2029 client-side-expansion check silently stops running.
+  if ! shellcheck "$script"; then
     SHELL_ERRORS=$((SHELL_ERRORS + 1))
   fi
 done < <(find scripts docker examples/consumer -type f \( -name '*.sh' -o -name dev -o -name ops \) -print0)

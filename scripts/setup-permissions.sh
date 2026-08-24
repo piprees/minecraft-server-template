@@ -25,6 +25,7 @@ RCON_CMD="docker exec mc rcon-cli"
 # call against a wedged main thread hangs the whole deploy until a human
 # kills it (K6) — this script runs ~90 calls, at the very end of deploy.sh.
 rcon() {
+  # shellcheck disable=SC2086  # RCON_CMD is a command plus args; the split is intentional
   timeout 30 $RCON_CMD "$1" > /dev/null 2>&1 || echo "  Warning: LuckPerms command failed: $1" >&2
 }
 

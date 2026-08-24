@@ -1198,7 +1198,7 @@ if [[ "$(uname)" == "Darwin" ]] || [[ "$(uname)" == "Linux" ]]; then
 else
   step "/etc/hosts (Windows)"
   echo ""
-  echo "  Add these lines to C:\\Windows\\System32\\drivers\\etc\\hosts"
+  printf "  Add these lines to C:\\\\Windows\\\\System32\\\\drivers\\\\etc\\\\hosts\n"
   echo "  (open Notepad as Administrator):"
   echo ""
   echo "    ${HOSTS_LINE}"

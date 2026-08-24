@@ -978,8 +978,8 @@ MMCEOF
   cp -r "$WORK_DIR/overrides/." "$INST_DIR/.minecraft/"
 
   # Only the current version is kept — prune old instance zips and mrpacks
-  rm -f "$DIST_DIR"/${BRAND_SLUG:-adventure}-*-prism-instance.zip
-  for old in "$DIST_DIR"/${BRAND_SLUG:-adventure}-*-v*.mrpack; do
+  rm -f "$DIST_DIR"/"${BRAND_SLUG:-adventure}"-*-prism-instance.zip
+  for old in "$DIST_DIR"/"${BRAND_SLUG:-adventure}"-*-v*.mrpack; do
     [[ -f "$old" ]] || continue
     [[ "$old" == "$PACK_FILE" ]] && continue
     rm -f "$old"
