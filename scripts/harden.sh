@@ -515,7 +515,6 @@ if ! grep -q 'RATE-LIMIT' "$UFW_BEFORE" 2> /dev/null; then
 # The interface scope is the whole fix. br+ is iptables' wildcard for br-<id>.
 -A ufw-before-input -i docker0 -s 172.16.0.0/12 -j ACCEPT
 -A ufw-before-input -i br+ -s 172.16.0.0/12 -j ACCEPT
--A ufw-before-input -i lo -s 172.16.0.0/12 -j ACCEPT
 -A ufw-before-input -p tcp --dport ${SERVER_PORT:-25577} -m state --state NEW -m hashlimit --hashlimit-above 6/minute --hashlimit-burst 6 --hashlimit-mode srcip --hashlimit-name mc-game --hashlimit-htable-expire 30000 -j DROP
 -A ufw-before-input -p udp --dport ${VOICE_PORT:-24454} -m hashlimit --hashlimit-above 10/minute --hashlimit-burst 10 --hashlimit-mode srcip --hashlimit-name mc-voice --hashlimit-htable-expire 30000 -j DROP
 -A ufw-before-input -p tcp --syn -m hashlimit --hashlimit-above 30/minute --hashlimit-burst 15 --hashlimit-mode srcip --hashlimit-name syn-flood --hashlimit-htable-expire 60000 -j DROP
