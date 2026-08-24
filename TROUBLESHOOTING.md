@@ -71,6 +71,9 @@ Run this first. It covers deploy drift, disk, every expected container, `ONLINE_
 | A mod is installed and loaded but its biomes are in no catalogue, or a catalogue count is lower than the jars hold | [T35](#t35) |
 | A sky_islands or nether_islands world is one island at origin ringed by void | [T36](#t36) |
 | "the mod does not run in the reserved four" — reasoning from `getCustomDimensions()` | [T37](#t37) |
+| A boot line reports far more `native` biomes than the config requested | [T38](#t38) |
+| A dimension is stuck below 85 however many seeds are rolled | [T39](#t39) |
+| A dimension is full of rivers and lakes; `seedRoll.water` changes nothing | [T40](#t40) |
 | Mod build fails with a misleading Gradle task error | [P4](#p4) |
 | A worldgen config change had no effect | [D2](#d2) |
 | `Tried to read NBT tag that was too big`; `level.dat` growing every boot | [D9](#d9) |
@@ -321,6 +324,69 @@ A world regenerates with the old terrain after a reset that set a new seed, or t
   config accessors. `AGENTS.md` § Dimensions states the invariant: the reserved
   four are "four dimensions among 82", and `custom-dimensions` "owns every
   generator in the pack".
+
+<a id="t38"></a>
+### T38 — The boot line's `native` count is hypercube pairs, not biomes
+
+- **Symptom:** `biome source built (0 explicit, 228 native, 0 mixed-in of 20
+  requested)` reads as the biome list being discarded and the whole registry
+  substituted, and a dimension gets "fixed" that was never broken.
+- **Cause:** `DimensionManager` logs `nativeEntries.size()`, and each entry is
+  one hypercube→biome pair. A vanilla overworld biome occupies many points in
+  the multi-noise table, so 20 listed biomes legitimately build 228 pairs.
+  Nether- and End-family tables are small, which is why those dimensions log
+  close to 1:1 and set a misleading expectation.
+- **Fix:** the count that answers "did the list survive" is `mixed-in`, which
+  must be 0, and `requested`, which must match the config. To check what the
+  world actually produced, read `biomes.distinctCount` from a banked candidate
+  — a dimension honouring a 20-biome list shows about 20, and one genuinely
+  discarding its list (`amplified`, `large_biomes`) shows 130+.
+
+<a id="t39"></a>
+### T39 — A seed score is the mean of two tiers, so a general criterion is worth 2–3 wants
+
+- **Symptom:** a dimension will not pass 85 however many seeds are screened,
+  and the per-criterion detail shows nothing obviously catastrophic.
+- **Cause:** `Scorecard.percentage()` averages the **configured** and
+  **general** tier percentages; it is not `achieved / ceiling`. The general
+  tier holds 4–6 criteria in a pocket dimension, so one of them at zero costs
+  8–12 points of the headline, while a single want in a 13-criterion
+  configured tier costs under 4. An `unmeasured` criterion leaves both the
+  numerator and the denominator, so a want naming a structure outside the
+  pool costs nothing — it is simply never measured.
+- **`structures_form_places_not_noise` is a fixed tax below a 4096 border.**
+  It scores Clark-Evans spacing against a lattice at 2.1491, and noise
+  placement in a small disc measures 1.3–1.5 whatever the config says.
+  Measured across the bank: ~0.50 at every radius up to 2048, 0.82 at 4096,
+  0.99 at 8192, independent of `structureDensity`, noise profile and
+  placement count. **A 1024-radius dimension's realistic maximum is ~96%**;
+  chasing the last four points is chasing the criterion, not the world.
+- **Fix:** rank blockers by tier cost — `50 / N` per point of a general-tier
+  criterion, where N is that tier's criteria count — and read the per-criterion
+  `best` across every banked candidate. A criterion whose best is capped on
+  every seed is a config fault; one that varies is seed luck.
+
+<a id="t40"></a>
+### T40 — `seedRoll.water` is scored but never generated; `settingsOverrides.seaLevel` is the dial
+
+- **Symptom:** a dimension is waterlogged — rivers and lakes over most of the
+  playable disc — and setting or changing `seedRoll.water` does nothing to it.
+- **Cause:** nothing in the generator reads `seedRoll.water`; it is a scoring
+  word only, consumed by `Criteria.WaterMatchesIntent`. Sea level comes from
+  the dimension's noise settings, which is **63** for `adventure:wide` and
+  `adventure:compressed` alike.
+- **Fix:** `"settingsOverrides": {"seaLevel": N}`, which the generator does
+  read. Pick N from the terrain's own height distribution rather than by feel
+  — the fraction of columns at or below N is what `waterFraction` measures.
+  The two scored bands leave a dead zone between them (`none` is 0.00–0.20,
+  `high` is 0.25–0.80), so a world landing at 0.22 scores nothing on either;
+  either aim inside a band or leave `seedRoll.water` unset, which is not
+  applicable rather than a loss.
+- **Draining is usually free.** Flooding buys no score unless ocean, river or
+  beach biomes are in the palette: `biome_variety_present` counts distinct
+  biomes off the biome grid, which is fluid-independent.
+- **Creation-time.** `settingsOverrides` is in the generation fingerprint
+  ([D2](#d2)), so this needs a world wipe and a re-roll.
 
 <a id="t32"></a>
 ### T32 — A candidate's thumbnail is a window on spawn, not a picture of the world
