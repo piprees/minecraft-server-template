@@ -1,7 +1,7 @@
 {
   "type": "multi_biome",
   "description": "Soul-sand drifting into shadow. The surface scar where the underground sculk infection broke through from the ancient cities \u2014 ashen savanna and eroded badlands over a deep dark that shouldn't be this close to the surface.",
-  "seed": 4988657778968954231,
+  "seed": 917083952261014886,
   "biomes": [
     "terralith:ashen_savanna",
     "minecraft:eroded_badlands",
@@ -106,7 +106,7 @@
   },
   "spawn": [
     512,
-    156,
+    141,
     256
   ],
   "structures": {

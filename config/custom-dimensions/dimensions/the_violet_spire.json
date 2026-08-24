@@ -1,7 +1,7 @@
 {
   "type": "paradise_lost:paradise_lost",
   "description": "Violet spires in the sky \u2014 where endermen architecture meets the natural skylands. Wisteria islands and amethyst canyons, aurel towers and birdcages. Arcane but not hostile; a place where two worlds overlapped and neither broke.",
-  "seed": 8607150349089877665,
+  "seed": 4671917536214886133,
   "biomes": [
     {
       "id": "paradise_lost:wisteria_woods",
@@ -126,9 +126,9 @@
     "terrain": "islands"
   },
   "spawn": [
-    -34,
-    128,
-    0
+    34,
+    114,
+    34
   ],
   "biomePatches": [
     {

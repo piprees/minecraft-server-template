@@ -1,7 +1,7 @@
 {
   "type": "cave",
   "description": "Sculk-eaten caverns. The deep dark outlived the world it consumed and tunnelled on \u2014 this is where the underground sculk broke through from the ancient cities. The humans who explored too deep triggered this, and the infection never stopped.",
-  "seed": -6221766328318715889,
+  "seed": -5571975126977944203,
   "biomes": [
     {
       "id": "regions_unexplored:redstone_abyss",
@@ -159,7 +159,7 @@
   },
   "spawn": [
     128,
-    74,
+    82,
     128
   ],
   "exits": {

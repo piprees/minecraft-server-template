@@ -1,7 +1,7 @@
 {
   "type": "end",
   "description": "Lonely pillars in the void. Spires, a dragon's skeleton, nothing else \u2014 the endermen's oldest construction, predating even the tiled expanse. Whatever they built here, they built it for a dragon. The dragon is dead.",
-  "seed": -714120997123260870,
+  "seed": 3416287496612925768,
   "biomes": [
     {
       "id": "nullscape:void_barrens",
@@ -140,9 +140,9 @@
     "terrain": "islands"
   },
   "spawn": [
-    128,
-    52,
-    -448
+    408,
+    45,
+    0
   ],
   "settingsOverrides": {
     "endIsland": false

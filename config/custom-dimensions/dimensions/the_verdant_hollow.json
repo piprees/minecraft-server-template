@@ -1,7 +1,7 @@
 {
   "type": "multi_biome",
   "description": "Broad green valleys with hamlets in the folds. Villager country at its gentlest \u2014 pastoral, generous, a little whimsical. The giant mushrooms and campsites suggest people who enjoyed living here, not just surviving.",
-  "seed": -7299582832430437285,
+  "seed": -6508963529620472918,
   "noiseSettings": "adventure:wide",
   "biomes": [
     {
@@ -262,7 +262,7 @@
   },
   "spawn": [
     192,
-    70,
+    83,
     -192
   ]
 }

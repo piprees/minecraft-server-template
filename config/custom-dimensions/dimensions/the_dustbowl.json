@@ -1,7 +1,7 @@
 {
   "type": "multi_biome",
   "description": "A tiny, exhausted dust plain. One farmstead stands in the north \u2014 the last holdout of someone who refused to leave. The wind owns everything else. Whatever was here dried up and blew away.",
-  "seed": -5321264402366953035,
+  "seed": -8457785760406717469,
   "biomes": [
     {
       "id": "terralith:ancient_sands",
@@ -244,7 +244,7 @@
   },
   "spawn": [
     384,
-    68,
+    -2,
     192
   ]
 }

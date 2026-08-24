@@ -1,7 +1,7 @@
 {
   "type": "multi_biome",
   "description": "Gravel, basalt, and ash where it all went wrong. A ruined portal near the border, stone ruins, a dead mineshaft \u2014 the remains of something that tried to exist here and couldn't. Nobody could live here. Nothing organised survives.",
-  "seed": 6109191243100809656,
+  "seed": 8286382283624820051,
   "noiseSettings": "adventure:compressed",
   "biomes": [
     {
@@ -251,7 +251,7 @@
   },
   "spawn": [
     448,
-    128,
+    65,
     448
   ],
   "biomePatches": [

@@ -1,7 +1,7 @@
 {
   "type": "nether",
   "description": "The piglin military frontier. Bastions and blackstone walls from spawn, fortified against something that came from below. The deeper you dig, the harder it fights back \u2014 as if the keep itself remembers the threat.",
-  "seed": -3442984985006402219,
+  "seed": 6973119787935770282,
   "biomes": [
     "minecraft:basalt_deltas",
     "minecraft:nether_wastes",
@@ -85,7 +85,7 @@
   },
   "spawn": [
     64,
-    45,
+    29,
     64
   ]
 }

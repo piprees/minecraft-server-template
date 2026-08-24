@@ -1,7 +1,7 @@
 {
   "type": "end",
   "description": "Citadel country \u2014 where the endermen built their densest urban centres. End cities and phantom citadels saturate the highlands. No ruins here; this is still maintained.",
-  "seed": 4093499574296428429,
+  "seed": 4890946857129946416,
   "biomes": [
     {
       "id": "minecraft:end_highlands",
@@ -127,7 +127,7 @@
   },
   "spawn": [
     0,
-    62,
+    49,
     64
   ],
   "settingsOverrides": {

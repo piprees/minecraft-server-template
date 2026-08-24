@@ -1,7 +1,7 @@
 {
   "type": "cave",
   "description": "The deep dark as an endless cavern world. Ancient cities built by the endermen, abandoned during their migration, colonised by the sculk. The humans found them and the sculk woke. Mushroom light and sculk glow in equal measure.",
-  "seed": 4248036665397091515,
+  "seed": -2791000652368102763,
   "biomes": [
     {
       "id": "minecraft:deep_dark",
@@ -172,7 +172,7 @@
   },
   "spawn": [
     -128,
-    92,
+    64,
     0
   ],
   "structures": {

@@ -1,7 +1,7 @@
 {
   "type": "multi_biome",
   "description": "Where the villagers who listened too long to the endermen withdrew. Moonlit spruce dark, graveyards, manors \u2014 the woods keep their own counsel. The witches came from here: students who couldn't stop learning.",
-  "seed": 8927393758703227272,
+  "seed": 501199591289636099,
   "noiseSettings": "adventure:compressed",
   "biomes": [
     {
@@ -212,7 +212,7 @@
   },
   "spawn": [
     0,
-    28,
+    60,
     64
   ]
 }

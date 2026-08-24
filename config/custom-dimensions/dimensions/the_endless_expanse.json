@@ -1,7 +1,7 @@
 {
   "type": "large_biomes",
   "description": "The endless expanse \u2014 what humans and villagers built when they had room. Large biomes, big civilisation, a coliseum and a mansion at the far edge. The scale is the point.",
-  "seed": 6856788716491787454,
+  "seed": -5751190766661487440,
   "borders": {
     "player": 4096,
     "generation": 4096
@@ -51,7 +51,7 @@
   },
   "spawn": [
     256,
-    96,
+    70,
     256
   ],
   "structures": {
