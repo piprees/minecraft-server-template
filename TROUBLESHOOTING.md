@@ -45,6 +45,7 @@ Run this first. It covers deploy drift, disk, every expected container, `ONLINE_
 | A jail disabled in `jail.d/*.conf` is enabled again after `./ops harden` | [T43](#t43) |
 | Voice chat broke for everyone right after a firewall change | [T44](#t44) |
 | Players dropped from the game port well below the stated rate limit | [T45](#t45) |
+| `./ops harden` ran an old script after a successful `./ops update` | [T46](#t46) |
 | Config or mod changes didn't take effect after a deploy | [T2](#t2) |
 | `signal only works in main thread` in discord-sync logs | [T3](#t3) |
 | mc crash-loops with Modrinth `429 Too Many Requests` | [T4](#t4) |
@@ -655,6 +656,25 @@ The rendered height disagrees with the facts on high-relief columns. The error i
   `jail.d/*.local`, and `harden.sh` rewrites `jail.local` unconditionally.
 - **Fix:** put operator overrides in `/etc/fail2ban/jail.d/mc-source.local`, which is
   read after `jail.local` and which `harden.sh` never touches.
+
+<a id="t46"></a>
+### T46 — `./ops update` and `./dev update` refresh different machines; `./ops harden` reads the local one
+
+- **Symptom:** `./ops update` reports `v5.23.0 ready at .stack/current`, but a following
+  `./ops harden` uploads and runs the previous version's script — completing successfully and
+  writing `/root/.harden-done`.
+- **Cause:** `./ops update` pulls the bundle **on the server**; `./dev update` pulls it
+  **locally**. Both print the same `.stack/current` path. `harden.sh --remote` uploads *itself*,
+  so it ships whatever the **local** bundle holds, regardless of what the server has.
+- **Fix:** run `./dev update` before `./ops harden`, and verify the local bundle before shipping
+  it:
+
+  ```bash
+  readlink .stack/current   # expect the version you just released
+  ```
+
+  From v5.24.0 `harden.sh` also compares the uploaded file's sha256 against `/root/harden.sh`
+  and refuses to run on a mismatch, so a stale script aborts rather than hardening silently.
 
 <a id="t45"></a>
 ### T45 — `before6.rules` has FOUR `# ok icmp codes` headings; the v4 anchor duplicates rules

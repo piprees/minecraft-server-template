@@ -81,7 +81,9 @@ if [[ "${1:-}" == "--remote" ]]; then
       || scp "$DEPLOY_KEY_PUB_EXPANDED" "${UPLOAD_HOST}:${UPLOAD_DIR}/mc_deploy_key.pub"
   fi
 
-  echo "Running harden.sh on $REMOTE_HOST..."
+  # $UPLOAD_HOST, not $REMOTE_HOST: the latter is always root@IP from the re-exec,
+  # and prints "root@" even on a box where root login is disabled and deploy was used.
+  echo "Running harden.sh on $UPLOAD_HOST..."
   # Only the four values this driver needs, read rather than sourced: `source`
   # executes the file, so a $(...) in any .env value would run on this machine,
   # and `set -a` would export the whole secret set into every child process.
@@ -126,6 +128,23 @@ if [[ "${1:-}" == "--remote" ]]; then
   if [[ "$UPLOAD_DIR" == "/tmp" ]]; then
     ssh ${SSH_FLAGS[@]+"${SSH_FLAGS[@]}"} "$UPLOAD_HOST" "sudo cp /tmp/harden.sh /root/harden.sh; sudo cp /tmp/mc_deploy_key.pub /root/mc_deploy_key.pub 2>/dev/null; sudo chmod +x /root/harden.sh" 2> /dev/null
   fi
+
+  # Verify root is about to execute the file we just uploaded. /root/harden.sh
+  # persists between runs, so a failed copy leaves an older script in place and it
+  # runs, completes, and writes .harden-done as though nothing were wrong.
+  LOCAL_SUM="$(shasum -a 256 "$SCRIPT_PATH" 2> /dev/null | cut -d" " -f1)"
+  [[ -n "$LOCAL_SUM" ]] || LOCAL_SUM="$(sha256sum "$SCRIPT_PATH" | cut -d" " -f1)"
+  # shellcheck disable=SC2029  # RUN_PREFIX is "sudo" or empty, set above; no external input.
+  REMOTE_SUM="$(ssh ${SSH_FLAGS[@]+"${SSH_FLAGS[@]}"} "$UPLOAD_HOST" \
+    "${RUN_PREFIX} sha256sum /root/harden.sh 2>/dev/null | cut -d' ' -f1" 2> /dev/null)"
+  if [[ "$LOCAL_SUM" != "$REMOTE_SUM" ]]; then
+    echo "ERROR: /root/harden.sh does not match the file just uploaded." >&2
+    echo "  local:  ${LOCAL_SUM:-<none>}" >&2
+    echo "  remote: ${REMOTE_SUM:-<none>}" >&2
+    echo "  Running it would harden with a stale script and report success." >&2
+    exit 1
+  fi
+  echo "  Verified the uploaded script is what will run (${LOCAL_SUM:0:12})."
 
   # shellcheck disable=SC2029  # Deliberate client-side expansion. Every value is
   # validated before it gets here: CALLER_IP at :77, the rest come from .env.
