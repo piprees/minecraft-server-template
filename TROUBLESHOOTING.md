@@ -44,6 +44,7 @@ Run this first. It covers deploy drift, disk, every expected container, `ONLINE_
 | Spoofed private source still passes the rate limits despite `rp_filter=1` | [T42](#t42) |
 | A jail disabled in `jail.d/*.conf` is enabled again after `./ops harden` | [T43](#t43) |
 | Voice chat broke for everyone right after a firewall change | [T44](#t44) |
+| Players dropped from the game port well below the stated rate limit | [T45](#t45) |
 | Config or mod changes didn't take effect after a deploy | [T2](#t2) |
 | `signal only works in main thread` in discord-sync logs | [T3](#t3) |
 | mc crash-loops with Modrinth `429 Too Many Requests` | [T4](#t4) |
@@ -654,6 +655,20 @@ The rendered height disagrees with the facts on high-relief columns. The error i
   `jail.d/*.local`, and `harden.sh` rewrites `jail.local` unconditionally.
 - **Fix:** put operator overrides in `/etc/fail2ban/jail.d/mc-source.local`, which is
   read after `jail.local` and which `harden.sh` never touches.
+
+<a id="t45"></a>
+### T45 — `before6.rules` has FOUR `# ok icmp codes` headings; the v4 anchor duplicates rules
+
+- **Symptom:** after adding IPv6 rate limiting, legitimate players are dropped from
+  the game port far below the advertised 6 connections/minute.
+- **Cause:** `sed '/pattern/r file'` inserts after **every** match. `before.rules`
+  carries one `# ok icmp codes` heading (INPUT is plural "codes", FORWARD is singular
+  "code"), but `before6.rules` carries **four** — INPUT, OUTPUT and FORWARD twice.
+  Four rules sharing one `--hashlimit-name` share one htable, so each packet spends
+  four tokens and the effective limit is roughly a quarter of the figure written.
+- **Fix:** anchor on `^# ok icmp codes for INPUT`, which is unique in both files, and
+  assert `grep -c 'hashlimit-name mc-game6' == 1` afterwards rather than merely
+  checking the marker is present.
 
 <a id="t44"></a>
 ### T44 — Moving the UFW rate-limit block earlier kills voice chat

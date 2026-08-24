@@ -524,9 +524,11 @@ RATELIMIT
   rm -f /tmp/rate-limit-rules
   # sed exits 0 when the anchor is absent, inserting nothing. Without this check
   # an Ubuntu wording change silently drops all rate limiting while printing success.
-  if ! grep -q "RATE-LIMIT" "$UFW_BEFORE"; then
-    echo "ERROR: rate-limit rules were not inserted - the anchor comment" >&2
-    echo "       '# ok icmp codes' was not found in $UFW_BEFORE." >&2
+  # Exactly once, not merely present: a second copy would share the htable and
+  # halve the effective limit.
+  if [[ "$(grep -c 'hashlimit-name mc-game' "$UFW_BEFORE")" -ne 1 ]]; then
+    echo "ERROR: rate-limit rules were not inserted exactly once into $UFW_BEFORE" >&2
+    echo "       (anchor '# ok icmp codes' missing, or matched more than once)." >&2
     exit 1
   fi
   echo "  Rate limiting rules added to $UFW_BEFORE"
@@ -548,8 +550,21 @@ if [[ -f "$UFW_BEFORE6" ]] && ! grep -q 'RATE-LIMIT' "$UFW_BEFORE6" 2> /dev/null
 -A ufw6-before-input -p tcp --syn -m hashlimit --hashlimit-above 30/minute --hashlimit-burst 15 --hashlimit-mode srcip --hashlimit-name syn-flood6 --hashlimit-htable-expire 60000 -j DROP
 # END RATE-LIMIT
 RATELIMIT6
-  sed -i '/^# ok icmp codes/r /tmp/rate-limit-rules6' "$UFW_BEFORE6"
+  # Anchor on the INPUT heading specifically. before6.rules carries FOUR
+  # `# ok icmp codes` headings (INPUT, OUTPUT, FORWARD x2) and sed's `r` inserts
+  # after every match - four copies sharing one --hashlimit-name would each spend
+  # a token per packet, cutting the game limit to about a quarter of the figure
+  # advertised. The v4 file has one match; this one does not.
+  if [[ "$(grep -c '^# ok icmp codes for INPUT' "$UFW_BEFORE6")" -ne 1 ]]; then
+    echo "ERROR: expected exactly one '# ok icmp codes for INPUT' in $UFW_BEFORE6." >&2
+    exit 1
+  fi
+  sed -i '/^# ok icmp codes for INPUT/r /tmp/rate-limit-rules6' "$UFW_BEFORE6"
   rm -f /tmp/rate-limit-rules6
+  if [[ "$(grep -c 'hashlimit-name mc-game6' "$UFW_BEFORE6")" -ne 1 ]]; then
+    echo "ERROR: IPv6 rate-limit block was not inserted exactly once." >&2
+    exit 1
+  fi
   if ! grep -q "RATE-LIMIT" "$UFW_BEFORE6"; then
     echo "ERROR: IPv6 rate-limit rules were not inserted into $UFW_BEFORE6." >&2
     exit 1
