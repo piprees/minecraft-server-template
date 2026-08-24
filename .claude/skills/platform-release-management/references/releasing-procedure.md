@@ -58,7 +58,7 @@ Within a major version:
 
 A major bump signals that consumers must review migration notes before upgrading.
 
-Consumers pinning `STACK_VERSION=v4` automatically receive minor and patch updates.
+Consumers pinning `STACK_VERSION=v5` automatically receive minor and patch updates.
 
 ## Consumer impact
 

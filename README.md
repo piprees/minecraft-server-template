@@ -47,7 +47,7 @@ Then push to `main` — `.github/workflows/deploy.yml` calls the reusable workfl
 
 ## Upgrading
 
-Bump `STACK_VERSION` in `.env` (or leave it as `v4` to track the latest v4.x.y), then `./dev update && ./dev up`. Each release `vX.Y.Z` tags every GHCR image (`X.Y.Z`, `X.Y`, `X`, `latest`) and attaches a **stack bundle** tarball: compose files, all host-side operational scripts, default configs, and the in-house mod JARs (`local-mods/`, CI-built and remap-verified, installed into `data/mods/` by `deploy.sh` and `./dev up`). **Compatibility:** `v4` → `v5` is breaking (`.env` keys, overlay contract, compose structure) and ships a migration guide; `v4.1` → `v4.2` adds features, default mods, and config, backwards-compatible; `v4.1.0` → `v4.1.1` is drop-in. Pinning `STACK_VERSION=v4` picks up minors and patches automatically. Cutting a release: the `platform-release-management` skill.
+Bump `STACK_VERSION` in `.env` (or leave it as `v5` to track the latest v5.x.y), then `./dev update && ./dev up`. Each release `vX.Y.Z` tags every GHCR image (`X.Y.Z`, `X.Y`, `X`, `latest`) and attaches a **stack bundle** tarball: compose files, all host-side operational scripts, default configs, and the in-house mod JARs (`local-mods/`, CI-built and remap-verified, installed into `data/mods/` by `deploy.sh` and `./dev up`). **Compatibility:** a major bump is breaking (`.env` keys, overlay contract, compose structure) and ships a migration guide; `v5.1` → `v5.2` adds features, default mods, and config, backwards-compatible; `v5.1.0` → `v5.1.1` is drop-in. Pinning `STACK_VERSION=v5` picks up minors and patches automatically. Cutting a release: the `platform-release-management` skill.
 
 ## Architecture
 
@@ -198,7 +198,7 @@ A big job — all ~150 server mods and ~110 client mods must support the target 
 
 ### Deploy to production
 
-Pushing to `main` in a consumer repo triggers the caller workflow, which invokes the reusable `deploy-reusable.yml` from this platform repo. It resolves the symbolic `STACK_VERSION` pin (`v4`, `latest`) to a concrete release tag, compares it against the bundle the server is actually running (`readlink .stack/current`), then diffs consumer files against the server's deployed commit and picks a tier:
+Pushing to `main` in a consumer repo triggers the caller workflow, which invokes the reusable `deploy-reusable.yml` from this platform repo. It resolves the symbolic `STACK_VERSION` pin (`v5`, `latest`) to a concrete release tag, compares it against the bundle the server is actually running (`readlink .stack/current`), then diffs consumer files against the server's deployed commit and picks a tier:
 
 | Mode | Trigger | What happens |
 | --- | --- | --- |

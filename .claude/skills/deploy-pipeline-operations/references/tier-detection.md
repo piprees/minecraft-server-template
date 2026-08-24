@@ -20,7 +20,7 @@ Manual dispatch and GitHub `release` events always deploy full, unconditionally.
 
 ## Stage 1 — resolve the symbolic pin, compare against what's actually running
 
-`inputs.stack_version` is usually symbolic (`v4`, `latest`) — it resolves to a different concrete release over time. Comparing symbolic-to-symbolic never detects a new release (the historical bug that made every consumer push land in pull tier). The workflow resolves it exactly like `stack-pull.sh` does: highest semver release tag matching the pin.
+`inputs.stack_version` is usually symbolic (`v5`, `latest`) — it resolves to a different concrete release over time. Comparing symbolic-to-symbolic never detects a new release (the historical bug that made every consumer push land in pull tier). The workflow resolves it exactly like `stack-pull.sh` does: highest semver release tag matching the pin.
 
 ```bash
 DEPLOYED=$($SSH "cat ~/server/.deployed 2>/dev/null" || echo "")

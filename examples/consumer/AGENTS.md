@@ -20,7 +20,7 @@ curl -sL https://raw.githubusercontent.com/piprees/minecraft-server-template/mai
 
 ## Keeping up to date
 
-`STACK_VERSION` in `.env` (usually `v4`) resolves to the latest matching release.
+`STACK_VERSION` in `.env` (usually `v5`) resolves to the latest matching release.
 
 | Command | Does |
 | --- | --- |
