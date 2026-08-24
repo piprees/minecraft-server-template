@@ -321,7 +321,7 @@ if [[ $IS_CLOUD -eq 1 ]]; then
   if [[ -f "$DEPLOY_KEY_PUB_EXPANDED" ]]; then
     pass "Deploy public key exists at $DEPLOY_KEY_PUB"
   else
-    fail "Deploy public key not found at $DEPLOY_KEY_PUB - generate with: ssh-keygen -t ed25519 -f ~/.ssh/mc_deploy_key -C \"github-actions-deploy\" -N \"\""
+    fail "Deploy public key not found at $DEPLOY_KEY_PUB - generate with: ssh-keygen -t ed25519 -f ~/.ssh/${BRAND_SLUG:+${BRAND_SLUG}_}mc_deploy_key -C \"${BRAND_SLUG:-adventure}-deploy\" -N \"\""
   fi
 
   # Auto-deploy only works if the GitHub 'production' environment is wired up.

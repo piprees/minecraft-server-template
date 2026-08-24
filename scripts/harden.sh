@@ -41,7 +41,7 @@ if [[ "${1:-}" == "--remote" ]]; then
   SCRIPT_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/$(basename "${BASH_SOURCE[0]}")"
   PROJECT_DIR="${CONSUMER_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
 
-  DEPLOY_KEY_PUB_EXPANDED="${DEPLOY_KEY_PUB:-$HOME/.ssh/mc_deploy_key.pub}"
+  DEPLOY_KEY_PUB_EXPANDED="${DEPLOY_KEY_PUB:-$HOME/.ssh/${BRAND_SLUG:+${BRAND_SLUG}_}mc_deploy_key.pub}"
   DEPLOY_KEY_PUB_EXPANDED="${DEPLOY_KEY_PUB_EXPANDED/#\~/$HOME}"
   DEPLOY_KEY_FILE="${DEPLOY_KEY_PUB_EXPANDED%.pub}"
   DEPLOY_USER_VAL="${DEPLOY_USER:-deploy}"

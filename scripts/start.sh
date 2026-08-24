@@ -29,7 +29,7 @@ start_local() {
 start_cloud() {
   local host="${DROPLET_HOST:-}"
   local user="${DEPLOY_USER:-deploy}"
-  local key="${DEPLOY_KEY_PATH:-$HOME/.ssh/mc_deploy_key}"
+  local key="${DEPLOY_KEY_PATH:-$HOME/.ssh/${BRAND_SLUG:+${BRAND_SLUG}_}mc_deploy_key}"
   local dir
   dir="$(basename "$PROJECT_DIR")"
 

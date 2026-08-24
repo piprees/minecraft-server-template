@@ -33,7 +33,6 @@ PROJECT_DIR="${CONSUMER_DIR:-$(cd "$SCRIPT_DIR/.." && pwd)}"
 source "$PROJECT_DIR/.env" 2> /dev/null || true
 SERVER_DIR="server"
 KEY="${HOME}/.ssh/${BRAND_SLUG:+${BRAND_SLUG}_}mc_deploy_key"
-[[ -f "$KEY" ]] || KEY="${HOME}/.ssh/mc_deploy_key"
 
 looks_like_jwt() {
   [[ "$1" =~ ^ey[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$ ]]

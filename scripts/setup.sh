@@ -1293,7 +1293,7 @@ if [[ $IS_CLOUD -eq 1 ]]; then
       step "Step 2/4: Harden the server (./scripts/harden.sh)"
       info "Secures SSH, sets up firewall, installs Docker, configures fail2ban."
 
-      DEPLOY_KEY="${DEPLOY_KEY_PATH:-$HOME/.ssh/mc_deploy_key}"
+      DEPLOY_KEY="${DEPLOY_KEY_PATH:-$HOME/.ssh/${BRAND_SLUG:+${BRAND_SLUG}_}mc_deploy_key}"
       DEPLOY_SSH_OK=0
       ROOT_SSH_OK=0
       ssh -o ConnectTimeout=5 -o BatchMode=yes -i "$DEPLOY_KEY" "${DEPLOY_USER:-deploy}@${SERVER_IP}" 'command -v docker' 2>/dev/null && DEPLOY_SSH_OK=1

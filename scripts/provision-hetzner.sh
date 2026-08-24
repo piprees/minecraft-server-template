@@ -50,7 +50,7 @@ else
   SSH_KEY_NAMES=$(hcloud ssh-key list -o noheader -o columns=name 2> /dev/null || true)
   if [[ -z "$SSH_KEY_NAMES" ]]; then
     log "Uploading SSH keys to Hetzner..."
-    for pubkey in ~/.ssh/id_ed25519.pub ~/.ssh/id_rsa.pub ~/.ssh/mc_deploy_key.pub; do
+    for pubkey in ~/.ssh/id_ed25519.pub ~/.ssh/id_rsa.pub ~/.ssh/${BRAND_SLUG:+${BRAND_SLUG}_}mc_deploy_key.pub; do
       if [[ -f "$pubkey" ]]; then
         keyname="$(basename "$pubkey" .pub)"
         hcloud ssh-key create --name "$keyname" --public-key-from-file "$pubkey" 2> /dev/null || true
