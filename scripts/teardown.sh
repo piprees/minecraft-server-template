@@ -253,7 +253,7 @@ step "5. Credentials (NOT touched)"
 # the deploy SSH key, API tokens, and the 1Password item - are shared
 # across server repos and survive teardown by design. Deleting them here
 # is how credentials kept "mysteriously dying" between test cycles.
-info "Deploy key (~/.ssh/mc_deploy_key), API tokens, and the 1Password item are preserved."
+info "Deploy key (~/.ssh/${BRAND_SLUG:+${BRAND_SLUG}_}mc_deploy_key), API tokens, and the 1Password item are preserved."
 info "Revoke them manually ONLY if you are abandoning the account entirely (see docs/credentials.md)."
 
 # =============================================================================
