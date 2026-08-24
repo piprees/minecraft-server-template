@@ -334,7 +334,7 @@ ssh -i "$SSH_KEY" "$REMOTE" "cd ${REMOTE_DIR} && mkdir -p backups && tar czf ${B
 if [[ "$TAR_STATUS" -ge 2 ]]; then
   echo "ERROR: tar failed (exit ${TAR_STATUS}). Refusing to delete the world without a backup."
   echo "       The stack is stopped. Bring it back with:"
-  echo "       ssh -i $SSH_KEY ${REMOTE} 'cd ${REMOTE_DIR} && docker compose --project-directory ${REMOTE_DIR} -f ${COMPOSE_FILE} --profile cloud up -d'"
+  echo "       ./ops ssh 'cd ~/server && docker compose --project-directory ~/server -f .stack/current/stack/docker-compose.yml --profile cloud up -d'"
   exit 1
 fi
 [[ "$TAR_STATUS" -eq 1 ]] && echo "  NOTE: tar reported changed files (exit 1); archive written."
@@ -375,7 +375,7 @@ if [[ -n "$LEFTOVERS" ]]; then
   echo "ERROR: these paths survived deletion:"
   echo "$LEFTOVERS" | sed 's/^/         /'
   echo "       Remove them by hand, then re-run deploy.sh to bring the stack up:"
-  echo "       ssh -i $SSH_KEY ${REMOTE} 'cd ${REMOTE_DIR}/.stack/current/stack && bash scripts/deploy.sh --pull --non-interactive'"
+  echo "       ./ops ssh 'cd ~/server/.stack/current/stack && bash scripts/deploy.sh --pull --non-interactive'"
   exit 1
 fi
 
@@ -491,16 +491,16 @@ echo ""
 echo " To undo (restore world data from backup):"
 echo ""
 echo "   # 1. Stop the server"
-echo "   ssh -i $SSH_KEY ${REMOTE} 'cd ${REMOTE_DIR}/.stack/current/stack && docker compose --project-directory ${REMOTE_DIR} --profile cloud down'"
+echo "   ./ops ssh 'cd ~/server/.stack/current/stack && docker compose --project-directory ~/server --profile cloud down'"
 echo ""
 echo "   # 2. Restore the backup"
-echo "   ssh -i $SSH_KEY ${REMOTE} 'cd ${REMOTE_DIR} && tar xzf ${BACKUP_PATH}'"
+echo "   ./ops ssh 'cd ~/server && tar xzf ${BACKUP_PATH}'"
 echo ""
 echo "   # 3. Revert the seed in .env (local and droplet)"
 echo "   #    Or restore from .env.bak.${STAMP}"
 echo ""
 echo "   # 4. Restart via deploy.sh"
-echo "   ssh -i $SSH_KEY ${REMOTE} 'cd ${REMOTE_DIR}/.stack/current/stack && bash scripts/deploy.sh --pull --non-interactive'"
+echo "   ./ops ssh 'cd ~/server/.stack/current/stack && bash scripts/deploy.sh --pull --non-interactive'"
 echo ""
 echo " Don't forget to commit and push .env if deploying via CI."
 echo "=================================================================="

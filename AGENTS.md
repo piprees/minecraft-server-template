@@ -92,14 +92,13 @@ Host: `DROPLET_HOST` in `.env`. Server directory: `~/server`. User: `deploy` (pa
 ./ops rcon "list"                                       # any RCON command (auto local/production)
 ./ops logs mc --tail 200 --grep ERROR                   # log snapshot (returns immediately)
 ./ops stats --once                                      # system + container + TPS snapshot
-ssh -i ~/.ssh/${BRAND_SLUG}_mc_deploy_key deploy@$DROPLET_HOST '<command>'   # anything else
+./ops ssh '<command>'                                       # anything else
 ```
 
-The deploy key is brand-prefixed whenever `BRAND_SLUG` is set — every `./ops`
-script resolves it as `~/.ssh/${BRAND_SLUG:+${BRAND_SLUG}_}mc_deploy_key`. Add
-`-o IdentitiesOnly=yes` when an SSH agent holds other keys, or the agent's keys
-are offered first and a broken agent fails the connection before the `-i` key
-is ever tried.
+`./ops ssh` resolves the deploy key from `BRAND_SLUG` automatically
+(`~/.ssh/${BRAND_SLUG:+${BRAND_SLUG}_}mc_deploy_key`). If SSH fails with an
+agent-related error, the key resolution in `lib.sh` already passes
+`-o IdentitiesOnly=yes`.
 
 **Snapshot, never stream.** `docker logs --tail N` and `gh run view` are fine; `docker logs -f`, `live-logs.sh` and `gh run watch` in the foreground block forever. **RCON silence usually means autopause**, not an outage: the JVM freezes when the server is empty for 10 minutes and `docker ps` still shows healthy. Never add anything that touches the game port on an interval — it defeats autopause.
 

@@ -391,27 +391,22 @@ restic snapshots --last 5
 
 ```bash
 # SSH into the server
-ssh -i ~/.ssh/mc_deploy_key deploy@DROPLET_HOST
+./ops ssh
 
 # RCON interactive console
-ssh -i ~/.ssh/mc_deploy_key deploy@DROPLET_HOST \
-  'cd ~/server && docker exec -it mc rcon-cli'
+./ops ssh 'cd ~/server && docker exec -it mc rcon-cli'
 
 # Single RCON command
-ssh -i ~/.ssh/mc_deploy_key deploy@DROPLET_HOST \
-  'cd ~/server && docker exec -i mc rcon-cli "list"'
+./ops rcon "list"
 
-# Tail server logs
-ssh -i ~/.ssh/mc_deploy_key deploy@DROPLET_HOST \
-  'cd ~/server && docker compose --profile cloud logs -f mc'
+# Tail server logs (snapshot, never stream)
+./ops logs mc --tail 200
 
 # Manual deploy
-ssh -i ~/.ssh/mc_deploy_key deploy@DROPLET_HOST \
-  'cd ~/server && .stack/current/stack/scripts/deploy.sh --non-interactive'
+./ops ssh 'cd ~/server/.stack/current/stack && bash scripts/deploy.sh --pull --non-interactive'
 
 # Restart without full deploy
-ssh -i ~/.ssh/mc_deploy_key deploy@DROPLET_HOST \
-  'cd ~/server && docker compose --profile cloud restart mc'
+./ops ssh 'cd ~/server && docker compose --profile cloud restart mc'
 ```
 
 ## Discord commands

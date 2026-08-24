@@ -28,8 +28,7 @@ Run these three, in order, before pushing anything that could trigger a deploy:
 
 ```bash
 gh run list --limit 3                                   # 1. a run already in progress? WAIT — concurrent deploys race
-ssh -i ~/.ssh/mc_deploy_key deploy@$DROPLET_HOST \
-  'docker exec -i mc rcon-cli "list"'                    # 2. only if this change is full-tier: check who's online
+./ops rcon "list"                    # 2. only if this change is full-tier: check who's online
 git add -A && git commit -m "..."                        # 3. batch related changes into ONE commit — every push is a deploy
 ```
 
@@ -72,8 +71,7 @@ gh workflow run deploy.yml   # run from the consumer repo; workflow_dispatch has
 Direct manual deploy on the server, bypassing CI (there is no `~/server/scripts/` — `deploy.sh` ships inside the bundle):
 
 ```bash
-ssh -i ~/.ssh/mc_deploy_key deploy@$DROPLET_HOST \
-  'cd ~/server && .stack/current/stack/scripts/deploy.sh --non-interactive'
+./ops ssh 'cd ~/server/.stack/current/stack && bash scripts/deploy.sh --pull --non-interactive'
 ```
 
 `./ops update` (→ `scripts/remote-update.sh`) is the scripted equivalent: pulls the stack bundle, pulls images, rebuilds the modpack, then runs `deploy.sh --non-interactive` and refreshes `kuma-init` — all over SSH, outside CI.
@@ -103,8 +101,7 @@ answering RCON. Say so rather than implying a green run proves it.
 `deploy.sh` and `infra-deploy.sh` take an exclusive `flock` on `~/server/.deploy.lock` before touching anything; `harden.sh` refuses to run while it is held (it restarts Docker) and `reset-seed.sh` checks it over SSH before it starts deleting. A refusal names the holder, its pid and its start time. A killed holder frees it once its last child exits, up to ~30s. To inspect:
 
 ```bash
-ssh -i ~/.ssh/${BRAND_SLUG:+${BRAND_SLUG}_}mc_deploy_key deploy@$DROPLET_HOST \
-  'cat ~/server/.deploy.lock 2>/dev/null; flock -n ~/server/.deploy.lock true && echo FREE || echo HELD'
+./ops ssh 'cat ~/server/.deploy.lock 2>/dev/null; flock -n ~/server/.deploy.lock true && echo FREE || echo HELD'
 ```
 
 ## Failure recovery
@@ -113,8 +110,8 @@ A failed deploy is not inert. `deploy.sh` clears the whitelist near the start an
 
 ```bash
 gh run view <id> --json status,conclusion               # confirm it actually failed
-ssh -i ~/.ssh/mc_deploy_key deploy@$DROPLET_HOST 'docker ps -a --format "{{.Names}}\t{{.Status}}"'
-ssh -i ~/.ssh/mc_deploy_key deploy@$DROPLET_HOST 'docker logs mc --tail 80'
+./ops ssh 'docker ps -a --format "{{.Names}}\t{{.Status}}"'
+./ops logs mc --tail 80
 ./ops rcon "list"                                        # empty/timeout under load ≠ success — re-check, don't assume healthy
 ./ops doctor                                             # full triage: drift, disk, containers, backups
 ```
@@ -138,8 +135,7 @@ ssh -i ~/.ssh/mc_deploy_key deploy@$DROPLET_HOST 'docker logs mc --tail 80'
    So a hand-run deploy leaves Kuma un-reprovisioned. If Kuma monitors or the maintenance window look stale after a manual deploy, that is why — refresh it yourself:
 
    ```bash
-   ssh -i ~/.ssh/mc_deploy_key deploy@$DROPLET_HOST \
-     'cd ~/server && docker compose --project-directory . -f .stack/current/stack/docker-compose.yml \
+   ./ops ssh 'cd ~/server && docker compose --project-directory . -f .stack/current/stack/docker-compose.yml \
       --profile cloud up -d --force-recreate --no-deps kuma-init'
    ```
 
@@ -154,7 +150,7 @@ ssh -i ~/.ssh/mc_deploy_key deploy@$DROPLET_HOST 'docker logs mc --tail 80'
 
 ```bash
 gh run view <id> --json status,conclusion
-ssh -i ~/.ssh/mc_deploy_key deploy@$DROPLET_HOST 'docker logs mc --tail 50'
+./ops logs mc --tail 50
 ./ops rcon "list"
 ./ops doctor
 ```

@@ -31,8 +31,8 @@ Check exactly once. Read the result:
 ## Log snapshots (never streams)
 
 ```bash
-ssh -i ~/.ssh/mc_deploy_key deploy@$DROPLET_HOST 'docker logs mc --tail 80'
-ssh -i ~/.ssh/mc_deploy_key deploy@$DROPLET_HOST 'docker logs mc --tail 200'   # if the 80-line snapshot doesn't show the boot start
+./ops logs mc --tail 80
+./ops logs mc --tail 200   # if the 80-line snapshot doesn't show the boot start
 ```
 
 The reusable workflow's own "Verify server health" step does exactly this on failure (dumps `--tail 80`, then `--tail 200` if the RCON check fails) — mirror it rather than tailing with `-f`.
@@ -45,12 +45,12 @@ The reusable workflow's own "Verify server health" step does exactly this on fai
    ```
 2. **Check what's actually running on the server**:
    ```bash
-   ssh -i ~/.ssh/mc_deploy_key deploy@$DROPLET_HOST 'docker ps -a --format "{{.Names}}\t{{.Status}}"'
+   ./ops ssh 'docker ps -a --format "{{.Names}}\t{{.Status}}"'
    ```
    Look specifically for `mc` — is it running, restarting, or exited? `deploy.sh` stops mc in section 5 and doesn't restart it until section 11; a death between those two points leaves the server down with the whitelist cleared.
 3. **Read the boot log**:
    ```bash
-   ssh -i ~/.ssh/mc_deploy_key deploy@$DROPLET_HOST 'docker logs mc --tail 80'
+   ./ops logs mc --tail 80
    ```
 4. **Check whether RCON actually responds** — and treat a timeout or empty response as "unknown", not "healthy":
    ```bash

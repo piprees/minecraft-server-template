@@ -31,7 +31,7 @@ Every script also carries its own header comment — read it before running (`he
 | Bridge | `./ops prepare` | hardened server reachable as `deploy@`, `gh` authenticated | — (also runs `github-env-sync.sh` as its step 6) |
 | Wire CI | `./ops github-env-sync` | `gh` authenticated, a GitHub remote on the repo | — (safe to re-run any time secrets change) |
 | DNS/tunnel/R2 | `./ops cloudflare` | `CLOUDFLARE_API_TOKEN` + `_ACCOUNT_ID` + `_ZONE_ID` + `DOMAIN` in `.env` | restarts `cloudflared` on the server automatically at the end of the script (only if `DROPLET_HOST` is set) |
-| First boot | `ssh -i ~/.ssh/<brand>_mc_deploy_key deploy@IP 'cd ~/server && .stack/current/stack/scripts/initial-setup.sh'` | `.stack/current` already installed (prepare-droplet.sh did this) | — (delegates to `deploy.sh --non-interactive`) |
+| First boot | `./ops ssh 'cd ~/server && .stack/current/stack/scripts/initial-setup.sh'` | `.stack/current` already installed (prepare-droplet.sh did this) | — (delegates to `deploy.sh --non-interactive`) |
 
 `./ops setup` runs this whole sequence interactively and re-entrantly: it fast-forwards past anything already set in `.env`, and every phase can be declined and re-run later with the standalone command shown in its own output.
 

@@ -202,7 +202,7 @@ Run this once on a fresh server. It applies:
 > **CRITICAL**: Before closing your root terminal session, open a **new terminal** and verify you can SSH in as the `deploy` user:
 >
 > ```bash
-> ssh -i ~/.ssh/mc_deploy_key deploy@SERVER_IP
+> ./ops ssh
 > ```
 >
 > Root SSH is disabled after hardening. If the deploy user doesn't work and you close your root session, you'll be locked out of the server.
@@ -222,8 +222,7 @@ The script copies the deploy key to the server, clones the repo, writes the prod
 ### Run initial setup on the server
 
 ```bash
-ssh -i ~/.ssh/mc_deploy_key deploy@DROPLET_HOST \
-  'cd ~/YOUR_REPO_NAME && ./scripts/initial-setup.sh'
+./ops ssh 'cd ~/server && .stack/current/stack/scripts/initial-setup.sh'
 ```
 
 The script initialises the restic backup repository, seeds config files, pulls Docker images, and runs the first deploy via `deploy.sh`.
@@ -242,10 +241,10 @@ After deployment completes:
 
 ```bash
 # Check the server is healthy
-ssh -i ~/.ssh/mc_deploy_key deploy@DROPLET_HOST 'docker exec -i mc rcon-cli "list"'
+./ops rcon "list"
 
 # Check containers are running
-ssh -i ~/.ssh/mc_deploy_key deploy@DROPLET_HOST 'docker ps'
+./ops ssh 'docker ps'
 ```
 
 From this point on, pushing to `main` auto-deploys. CI picks a deploy tier (full/infra/pull) based on what changed. See the README for details.

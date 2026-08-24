@@ -21,5 +21,5 @@ Task → file → command lookup. Constraints and traps live in [`AGENTS.md`](..
 | Restart a sidecar | - | `./ops restart <name>` (force-recreates; `mc` is prohibited) |
 | Check mod updates | - | `./scripts/check-updates.sh` (weekly PR: `gh workflow run mod-updates.yml`) |
 | Update MC version | `.env` + re-pin | Big job — [README → Update Minecraft version](../README.md#update-minecraft-version) |
-| Manual deploy | - | `ssh -i ~/.ssh/mc_deploy_key deploy@$DROPLET_HOST 'cd ~/server && .stack/current/stack/scripts/deploy.sh --non-interactive'` (deploy.sh ships in the bundle — there is no `~/server/scripts/`) |
+| Manual deploy | - | `./ops ssh 'cd ~/server/.stack/current/stack && bash scripts/deploy.sh --pull --non-interactive'` (deploy.sh ships in the bundle — there is no `~/server/scripts/`) |
 | Validate scripts | - | `./scripts/test-scripts.sh --quick` |

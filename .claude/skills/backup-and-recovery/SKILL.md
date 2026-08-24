@@ -62,7 +62,7 @@ locally it is `mc-backup-local`).
 # on the server
 ./ops backup
 # from a Mac, against production
-ssh -i ~/.ssh/${BRAND_SLUG}_mc_deploy_key deploy@$DROPLET_HOST 'docker restart mc-backup'
+./ops ssh 'docker restart mc-backup'
 
 docker logs mc-backup --tail 50                 # verify — look for "snapshot ... saved"
 ```
