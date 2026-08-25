@@ -9,16 +9,17 @@
 # regions whose .mca files changed, and whole dimensions are skipped when
 # nothing changed since the last pass (mtime marker).
 #
+# Only dimensions with generated chunks reach manifest.json, so the sidebar
+# lists where players have actually been.
+#
 # Sidebar preview cards read a thumbnail this script never renders. The seed
-# roller already draws a low/high PNG for every candidate it scores, and
-# `web/Picker` (the mod's /pick route) copies the chosen candidate's pair
-# beside the dimension's own JSON when a seed is picked — committed to git,
-# not generated server-side. This script's only job for a card is to publish
-# whatever committed PNG exists into $OUT_DIR so nginx can serve it, and
-# record its path in manifest.json; a dimension nobody has picked a seed for
-# (or one whose config still comes from `unmined-cli`-only worlds predating
-# the roller) simply has none, and the sidebar shows a placeholder frame
-# instead — it never asks this container to render one.
+# roller draws a low/high PNG for every candidate it scores, and `web/Picker`
+# (the mod's /pick route) copies the chosen candidate's pair beside the
+# dimension's own JSON when a seed is picked — committed to git, not generated
+# server-side. This script's only job for a card is to publish whatever
+# committed PNG exists into $OUT_DIR so nginx can serve it, and record its path
+# in manifest.json; a dimension with no picked seed simply has none, and the
+# sidebar shows a placeholder frame instead.
 #
 # Usage (container entrypoint; also runnable standalone for testing):
 #   UNMINED_INTERVAL=6h render-loop.sh          # daemon: render every 6h
@@ -235,9 +236,8 @@ write_markers() {
     }]' > "$OUT_DIR/maps/$name/markers.json"
 }
 
-# Emit one manifest entry for a dimension. Rendered dimensions get a
-# version stamp from the last-render marker; unrendered ones get version 0
-# and rendered=false so the shell can show them as placeholders.
+# Emit one manifest entry for a rendered dimension. The version stamp comes
+# from the last-render marker and versions every asset URL the shell requests.
 manifest_entry() {
   name="$1"
   cfg="$(config_file_for "$name")"
@@ -259,15 +259,11 @@ manifest_entry() {
     *paradise*) family="paradise_lost" ;;
     *) family="overworld" ;;
   esac
-  local rendered="false" ver=0
   local marker="$OUT_DIR/maps/$name/.last-render"
-  if [[ -f "$OUT_DIR/maps/$name/unmined.map.properties.js" ]]; then
-    rendered="true"
-    ver=$(stat -c %Y "$marker" 2>/dev/null || stat -f %m "$marker" 2>/dev/null || echo 0)
-  fi
+  local ver
+  ver=$(stat -c %Y "$marker" 2>/dev/null || stat -f %m "$marker" 2>/dev/null || echo 0)
   # Published from whatever committed render exists (see thumb_file_for) —
-  # never rendered by this container, and independent of $rendered: a picked
-  # seed can have a card long before anyone has generated a single chunk.
+  # never rendered by this container.
   local thumb="" thumb_ver=0
   local low_src; low_src="$(thumb_file_for "$name" low)"
   if [[ -n "$low_src" ]]; then
@@ -282,64 +278,27 @@ manifest_entry() {
   [[ -n "$mood" ]] && theme="$(titlecase_slug "$mood")"
   [[ -n "$spawn_biome_raw" ]] && spawn_biome="$(titlecase_slug "$spawn_biome_raw")"
   jq -n --arg slug "$name" --arg type "$dim_type" --arg family "$family" \
-    --argjson spawn "$spawn" --argjson ver "$ver" --argjson rendered "$rendered" \
+    --argjson spawn "$spawn" --argjson ver "$ver" \
     --arg pretty "$(display_name "$name")" --arg typeLabel "$(type_label "$name" "$dim_type")" \
     --arg difficulty "$difficulty" --arg theme "$theme" --arg spawnBiome "$spawn_biome" \
     --arg thumb "$thumb" --argjson thumbVer "$thumb_ver" \
     '{slug: $slug, name: $pretty, type: $type, typeLabel: $typeLabel, family: $family,
       difficulty: $difficulty, theme: (if $theme == "" then null else $theme end),
       spawnBiome: (if $spawnBiome == "" then null else $spawnBiome end),
-      spawn: $spawn, version: $ver, renderedAt: (if $rendered then $ver else null end),
-      rendered: $rendered, thumb: (if $thumb == "" then null else $thumb end),
+      spawn: $spawn, version: $ver, renderedAt: $ver,
+      thumb: (if $thumb == "" then null else $thumb end),
       thumbVersion: (if $thumb == "" then null else $thumbVer end)}'
 }
 
-# One manifest entry per dimension, whichever source names it first. The three
-# sources below overlap: a rendered dimension usually also has a thumbnail.
-manifest_emitted=" "
-manifest_emit() {
-  local out="$1" name="$2"
-  [[ -n "$name" ]] || return 0
-  case "$manifest_emitted" in *" $name "*) return 0 ;; esac
-  manifest_entry "$name" >> "$out"
-  manifest_emitted="$manifest_emitted$name "
-}
-
-# Manifest consumed by the web shell (served no-cache). Includes the four base
-# dimensions (even before first render), every custom dimension that has been
-# rendered, and every custom dimension carrying a committed thumbnail.
+# Manifest consumed by the web shell (served no-cache). One entry per rendered
+# dimension — a world nobody has generated chunks in is not listed at all, so
+# the sidebar is a record of where players have actually been.
 write_manifest() {
   tmp="$OUT_DIR/.manifest-entries"
   : > "$tmp"
-  manifest_emitted=" "
-  # Base four — always present.
-  for base in overworld nether end paradise_lost; do
-    manifest_emit "$tmp" "$base"
-  done
-  # Custom dimensions that have been rendered.
   for d in "$OUT_DIR"/maps/*/; do
     [[ -f "$d/unmined.map.properties.js" ]] || continue
-    manifest_emit "$tmp" "$(basename "$d")"
-  done
-  # Custom dimensions with a picked seed but no chunks yet. manifest_entry
-  # already publishes a committed thumbnail regardless of render state, but
-  # only a dimension that reaches it can show one — without this loop a picked
-  # seed has a card only after somebody visits and a render pass runs.
-  for dir in "$CONFIG_DIR/overlay/dimensions" "$CONFIG_DIR/dimensions"; do
-    [[ -d "$dir" ]] || continue
-    for png in "$dir"/*_low.png; do
-      [[ -f "$png" ]] || continue
-      # Back through config_file_for's mapping: a thumbnail is named after the
-      # dimension's JSON, so the nether's is the_nether_low.png while this
-      # script calls that map "nether" after MC's own DIM-1 layout. Emitting
-      # the file's own name would card the same world twice.
-      name=$(basename "$png" _low.png)
-      case "$name" in
-        the_nether) name="nether" ;;
-        the_end) name="end" ;;
-      esac
-      manifest_emit "$tmp" "$name"
-    done
+    manifest_entry "$(basename "$d")" >> "$tmp"
   done
   jq -s '{generated: now | floor, dimensions: .}' "$tmp" > "$OUT_DIR/manifest.json.tmp"
   mv "$OUT_DIR/manifest.json.tmp" "$OUT_DIR/manifest.json"
@@ -388,6 +347,9 @@ render_all() {
   done
   install_shell
   write_manifest
+  # The uNmINeD CLI writes its output 0600/0700; nginx serves this tree as an
+  # unprivileged user and answers 403 for anything it cannot read.
+  chmod -R a+rX "$OUT_DIR" 2>/dev/null || true
   log "pass complete: $rendered map(s) considered"
 }
 

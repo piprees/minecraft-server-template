@@ -79,7 +79,6 @@ body.sidebar-closed #sidebar { transform: translateX(-100%); }
 #dim-list a[aria-current="page"] { background: #14202b; border-color: var(--accent); }
 #dim-list a[aria-current="page"] .dim-name { color: #a8d8a0; }
 #dim-list a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-#dim-list a.dim-pending .dim-name { color: var(--text-muted); font-style: italic; }
 
 .dim-thumb {
   display: block; width: 100%; aspect-ratio: 16 / 10;
@@ -119,8 +118,21 @@ body.sidebar-closed #view { left: 0; }
 #map-empty h1 { font-size: 1.3rem; margin: 0 0 .4rem; }
 #map-empty p { color: var(--text-muted); max-width: 30rem; margin: 0; }
 
-/* OpenLayers zoom control sits under our toggle when the sidebar is closed */
-#view .ol-zoom { top: .5em; left: auto; right: .5em; }
+/* OpenLayers controls. uNmINeD draws its coordinate ruler down the right edge
+   and along the top, so every control lives on the left: the zoom stack sits
+   below the sidebar toggle, the readouts along the bottom. The mouse position
+   holds a non-breaking space when the pointer is off the map, so it is shadowed
+   rather than boxed — a chip would leave an empty box sitting there. */
+#view .ol-zoom { top: 3.6rem; left: .7rem; right: auto; }
+#view .ol-rotate { top: 8.2rem; left: .7rem; right: auto; }
+#view .ol-attribution { right: .7rem; bottom: .7rem; }
+#view .ol-scale-bar, #view .ol-scale-line { left: .7rem; bottom: 1.6rem; }
+#view .ol-mouse-position {
+  top: auto; right: auto; left: .7rem; bottom: 4.4rem;
+  color: #fff; font-size: .72rem; font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, .95), 0 0 4px rgba(0, 0, 0, .8);
+}
 
 @media (prefers-reduced-motion: reduce) {
   #sidebar, #view { transition: none; }

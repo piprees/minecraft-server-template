@@ -7,8 +7,11 @@
  * Data contract (written by render-loop.sh):
  *   /manifest.json              — { dimensions: [ { slug, name, type,
  *                                   typeLabel, family, difficulty, theme,
- *                                   spawnBiome, rendered, spawn, version,
- *                                   renderedAt, thumb, thumbVersion } ] }
+ *                                   spawnBiome, spawn, version, renderedAt,
+ *                                   thumb, thumbVersion } ] }
+ *                                 Only dimensions with generated chunks are
+ *                                 listed; a world nobody has visited has no
+ *                                 entry, and its URL shows the empty state.
  *   /maps/<slug>/…              — uNmINeD web output per dimension
  *   /maps/<slug>/thumb.png      — sidebar card preview, published from the
  *                                 seed roller's own committed render (absent
@@ -55,6 +58,12 @@
   function toPath(slug) { return slug.replace(/_/g, '-'); }
   function fromPath(path) { return path.replace(/-/g, '_'); }
 
+  function titleCase(slug) {
+    return slug.split('_').filter(Boolean).map(function (w) {
+      return w.charAt(0).toUpperCase() + w.slice(1);
+    }).join(' ');
+  }
+
   function slugFromPath() {
     return fromPath(decodeURIComponent(location.pathname.replace(/^\/+|\/+$/g, '')));
   }
@@ -77,12 +86,11 @@
     return null;
   }
 
-  // One preview card per dimension: thumbnail (when a seed has been picked
-  // for it, independent of whether the world has ever been rendered), name,
-  // an info line built from whatever config-derived fields the manifest
-  // carries (type/difficulty/theme/spawn biome — any of these may be
-  // absent for a sparsely-configured dimension, so the line only joins
-  // the ones actually present), and the render/pending status line.
+  // One preview card per dimension: thumbnail (present when a seed has been
+  // picked for it), name, an info line built from whatever config-derived
+  // fields the manifest carries (type/difficulty/theme/spawn biome — any of
+  // these may be absent for a sparsely-configured dimension, so the line only
+  // joins the ones actually present), and the render timestamp.
   function buildSidebar(manifest) {
     var currentSlug = slugFromPath();
     var frag = document.createDocumentFragment();
@@ -91,7 +99,6 @@
       var a = document.createElement('a');
       a.href = '/' + encodeURIComponent(toPath(dim.slug));
       a.dataset.slug = dim.slug;
-      if (!dim.rendered) { a.classList.add('dim-pending'); }
 
       a.appendChild(buildThumb(dim));
 
@@ -120,9 +127,9 @@
         a.title = dim.name;
       }
 
-      var whenText = dim.rendered
-        ? (dim.renderedAt ? 'rendered ' + new Date(dim.renderedAt * 1000).toLocaleString() : '')
-        : 'awaiting first explorer';
+      var whenText = dim.renderedAt
+        ? 'rendered ' + new Date(dim.renderedAt * 1000).toLocaleString()
+        : '';
       if (whenText) {
         var when = document.createElement('span');
         when.className = 'dim-when';
@@ -131,7 +138,7 @@
       }
       a.appendChild(body);
 
-      if (dim.slug === currentSlug || (!findDim(manifest, currentSlug) && dim === manifest[0])) {
+      if (dim.slug === currentSlug || (!currentSlug && dim === manifest[0])) {
         a.setAttribute('aria-current', 'page');
       }
       li.appendChild(a);
@@ -171,11 +178,12 @@
 
   function loadCurrentDimension(manifest) {
     var slug = slugFromPath();
-    var dim = findDim(manifest, slug);
-    if (!dim) dim = manifest.find(function (d) { return d.rendered; }) || manifest[0];
-    if (!dim || !dim.rendered) {
+    var dim = slug ? findDim(manifest, slug) : manifest[0];
+    // A slug the manifest doesn't carry has no chunks yet, so say that rather
+    // than silently showing whichever world happens to come first.
+    if (!dim) {
       emptyEl.hidden = false;
-      emptyEl.querySelector('h1').textContent = dim ? dim.name : 'No maps yet';
+      emptyEl.querySelector('h1').textContent = titleCase(slug);
       emptyEl.querySelector('p').textContent = 'This dimension hasn’t been explored yet — venture in and check back after the next render pass.';
       return;
     }
