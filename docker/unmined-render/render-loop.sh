@@ -35,7 +35,6 @@
 #   PREGEN_BORDER_RADIUS (8192) — bound for the reserved four; nether uses /8
 #   UNMINED_INTERVAL (0)  — sleep between passes (sleep(1) syntax); 0 = off
 #   UNMINED_ZOOMOUT  (6)  — zoom-out levels for the web viewer
-#   VISITED_BIN (/app/visited.py) — the InhabitedTime scanner
 #
 # Gotchas:
 #   - Custom dimensions are addressed as <namespace>:<slug>; discovery is
@@ -51,7 +50,6 @@ CONFIG_DIR="${CONFIG_DIR:-/config}"
 OUT_DIR="${OUT_DIR:-/web}"
 UNMINED_HOME="${UNMINED_HOME:-/opt/unmined}"
 WEBSHELL_DIR="${WEBSHELL_DIR:-/app/webshell}"
-VISITED_BIN="${VISITED_BIN:-/app/visited.py}"
 PREGEN_BORDER_RADIUS="${PREGEN_BORDER_RADIUS:-8192}"
 UNMINED_INTERVAL="${UNMINED_INTERVAL:-0}"
 UNMINED_ZOOMOUT="${UNMINED_ZOOMOUT:-6}"
@@ -238,30 +236,22 @@ write_markers() {
     }]' > "$OUT_DIR/maps/$name/markers.json"
 }
 
-# Record whether a player has ever been in a dimension. Chunky pre-generates
-# the four base worlds, so chunks on disk prove nothing; visited.py reads
-# InhabitedTime instead. Cached both ways: once visited, never re-scanned; if
-# not, only regions written since the last scan are re-read. An unreadable
-# world counts as visited so a scanner problem never empties the map.
-note_visit() {
-  name="$1" region_dir="$2"
-  out="$OUT_DIR/maps/$name"
-  [[ -f "$out/.visited" ]] && return 0
-  [[ -d "$region_dir" ]] || return 0
-  since=0
-  if [[ -f "$out/.visit-scan" ]]; then
-    since=$(stat -c %Y "$out/.visit-scan" 2>/dev/null || stat -f %m "$out/.visit-scan" 2>/dev/null || echo 0)
-  fi
-  mkdir -p "$out"
-  # Stamped before the scan, so a region written while it runs is re-read next
-  # pass rather than skipped.
-  : > "$out/.visit-scan"
-  rc=0
-  python3 "$VISITED_BIN" "$region_dir" --since "$since" || rc=$?
-  case "$rc" in
-    0) : > "$out/.visited"; log "$name visited for the first time" ;;
-    2) : > "$out/.visited"; log "WARN: $name chunk data unreadable — listing it anyway" ;;
+# Dimensions a player has entered, written by the custom-dimensions mod
+# (visited-dimensions.json in the world dir). Chunky pre-generates the base
+# worlds, so region files on disk never meant anyone had been there. No file
+# yet, or one that isn't a JSON array — an older mc, a world predating the
+# registry, a truncated write — lists everything rather than emptying the map.
+dimension_visited() {
+  reg="$WORLD_DIR/visited-dimensions.json"
+  [[ -f "$reg" ]] || return 0
+  jq -e 'type == "array"' "$reg" >/dev/null 2>&1 || return 0
+  case "$1" in
+    overworld) want="minecraft:overworld" ;;
+    nether)    want="minecraft:the_nether" ;;
+    end)       want="minecraft:the_end" ;;
+    *)         want=":$1" ;;
   esac
+  jq -e --arg w "$want" 'any(.[]; . == $w or endswith($w))' "$reg" >/dev/null 2>&1
 }
 
 # Emit one manifest entry for a rendered dimension. The version stamp comes
@@ -323,15 +313,30 @@ manifest_entry() {
 # people have gone rather than of what has been generated.
 write_manifest() {
   tmp="$OUT_DIR/.manifest-entries"
+  reg="$WORLD_DIR/visited-dimensions.json"
   : > "$tmp"
   for d in "$OUT_DIR"/maps/*/; do
     [[ -f "$d/unmined.map.properties.js" ]] || continue
-    [[ -f "$d/.visited" ]] || continue
-    manifest_entry "$(basename "$d")" >> "$tmp"
+    name=$(basename "$d")
+    dimension_visited "$name" || continue
+    manifest_entry "$name" >> "$tmp"
   done
-  # Base worlds in progression order, everything else alphabetical after them.
-  jq -s '{generated: now | floor,
-          dimensions: sort_by(({overworld: 0, nether: 1, end: 2, paradise_lost: 3}[.slug] // 4), .name)}' \
+  # Base worlds in progression order, then everything else in the order it was
+  # first entered. A dimension the registry doesn't place falls back to name.
+  order='[]'
+  if [[ -f "$reg" ]] && jq -e 'type == "array"' "$reg" >/dev/null 2>&1; then
+    order=$(cat "$reg")
+  fi
+  jq -s --argjson order "$order" '
+      {generated: now | floor,
+       dimensions: sort_by(
+         ({overworld: 0, nether: 1, end: 2, paradise_lost: 3}[.slug] // 4),
+         ( ({overworld: "minecraft:overworld", nether: "minecraft:the_nether",
+             end: "minecraft:the_end"}[.slug] // (":" + .slug)) as $want
+           | ( [ $order | to_entries[]
+                 | select(.value == $want or (.value | endswith($want)))
+                 | .key ] | first // 9999 ) ),
+         .name)}' \
     "$tmp" > "$OUT_DIR/manifest.json.tmp"
   mv "$OUT_DIR/manifest.json.tmp" "$OUT_DIR/manifest.json"
   rm -f "$tmp"
@@ -360,9 +365,6 @@ render_all() {
   render_one overworld overworld "$WORLD_DIR/region" "$PREGEN_BORDER_RADIUS" && rendered=$((rendered + 1)) || true
   render_one nether nether "$WORLD_DIR/DIM-1/region" "$((PREGEN_BORDER_RADIUS / 8))" && rendered=$((rendered + 1)) || true
   render_one end end "$WORLD_DIR/DIM1/region" "$PREGEN_BORDER_RADIUS" && rendered=$((rendered + 1)) || true
-  note_visit overworld "$WORLD_DIR/region"
-  note_visit nether "$WORLD_DIR/DIM-1/region"
-  note_visit end "$WORLD_DIR/DIM1/region"
 
   # Custom dimensions: dimensions/<ns>/<slug>/region
   for nsdir in "$WORLD_DIR"/dimensions/*/; do
@@ -373,7 +375,6 @@ render_all() {
       slug=$(basename "$dimdir")
       radius=$(generation_radius "$slug")
       render_one "$slug" "$ns:$slug" "$dimdir/region" "$radius" && rendered=$((rendered + 1)) || true
-      note_visit "$slug" "$dimdir/region"
     done
   done
   for d in "$OUT_DIR"/maps/*/; do

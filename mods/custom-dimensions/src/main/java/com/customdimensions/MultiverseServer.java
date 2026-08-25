@@ -5,6 +5,7 @@ import com.customdimensions.config.MultiverseConfig;
 import com.customdimensions.dimension.DifficultyManager;
 import com.customdimensions.dimension.DimensionManager;
 import com.customdimensions.dimension.StorageHelper;
+import com.customdimensions.dimension.VisitLog;
 import net.fabricmc.api.DedicatedServerModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.entity.event.v1.ServerEntityWorldChangeEvents;
@@ -93,6 +94,7 @@ public class MultiverseServer implements DedicatedServerModInitializer {
         // small. SERVER_STARTED, because nothing can have created one yet.
         ServerLifecycleEvents.SERVER_STARTED.register(
                 com.customdimensions.tryout.TryOut::purgeOnStart);
+        ServerLifecycleEvents.SERVER_STARTED.register(VisitLog::load);
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
             com.customdimensions.config.DimensionConfig ow =
                     MultiverseConfig.getInstance().getReservedDimensionBySlug("overworld");
@@ -157,8 +159,14 @@ public class MultiverseServer implements DedicatedServerModInitializer {
         // re-applied whenever a player joins or changes world.
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) ->
             DifficultyManager.applyPlayerLuck(handler.player));
+        // The map lists a dimension once somebody has been in it. JOIN covers
+        // the world a player logs back into; the world change below covers
+        // every other arrival.
+        ServerPlayConnectionEvents.JOIN.register((handler, sender, server) ->
+            VisitLog.record(server, handler.player.getWorld().getRegistryKey()));
         ServerEntityWorldChangeEvents.AFTER_PLAYER_CHANGE_WORLD.register(
             (player, origin, destination) -> {
+                VisitLog.record(player.getServer(), destination.getRegistryKey());
                 DifficultyManager.applyPlayerLuck(player);
                 // Immersive portals: the projections this player had in the
                 // world they LEFT must go — stepping THROUGH an immersive
