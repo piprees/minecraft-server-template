@@ -57,7 +57,7 @@ fi
 
 echo "  Checking Python scripts..."
 PYTHON_ERRORS=0
-for py in scripts/*.py; do
+for py in scripts/*.py $(find docker -name '*.py' | sort); do
   [[ -f "$py" ]] || continue
   if python3 -B -m py_compile "$py"; then
     echo "  ✓ $py syntax OK"

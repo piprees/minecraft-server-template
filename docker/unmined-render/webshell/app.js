@@ -184,7 +184,7 @@
     if (!dim) {
       emptyEl.hidden = false;
       emptyEl.querySelector('h1').textContent = titleCase(slug);
-      emptyEl.querySelector('p').textContent = 'This dimension hasn’t been explored yet — venture in and check back after the next render pass.';
+      emptyEl.querySelector('p').textContent = 'Nobody has been here yet. Venture in, and it will appear on the map.';
       return;
     }
 

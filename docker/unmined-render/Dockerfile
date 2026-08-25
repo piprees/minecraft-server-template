@@ -13,7 +13,7 @@ FROM debian:bookworm-slim
 
 ARG TARGETARCH
 RUN DEBIAN_FRONTEND=noninteractive apt-get update \
-    && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends ca-certificates curl jq libicu72 \
+    && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends ca-certificates curl jq libicu72 python3 \
     && rm -rf /var/lib/apt/lists/*
 
 # Map Docker arch to uNmINeD's naming (amd64 -> x64). The LINUX downloads
@@ -36,7 +36,9 @@ RUN case "$TARGETARCH" in \
     && test -d /opt/unmined/library
 
 COPY docker/unmined-render/render-loop.sh /app/render-loop.sh
+COPY docker/unmined-render/visited.py /app/visited.py
 COPY docker/unmined-render/webshell/ /app/webshell/
-RUN chmod +x /app/render-loop.sh
+RUN chmod +x /app/render-loop.sh /app/visited.py \
+    && python3 -c 'import zlib, struct'
 
 ENTRYPOINT ["/app/render-loop.sh"]
