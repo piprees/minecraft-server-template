@@ -1,11 +1,11 @@
-FROM python:3.14.7-alpine3.24
+FROM alpine:3.24.1
 
 ARG REPO_URL=https://github.com/piprees/minecraft-server-template
 LABEL org.opencontainers.image.source=${REPO_URL} \
       org.opencontainers.image.description="Client modpack builder: .mrpack + packwiz + Prism instance" \
       org.opencontainers.image.licenses="MIT"
 
-RUN apk add --no-cache bash curl jq zip
+RUN apk upgrade --no-cache && apk add --no-cache bash curl jq zip python3
 
 COPY modpack/adventure.mrpack.json /defaults/manifest.json
 COPY modpack/overrides/            /defaults/overrides/

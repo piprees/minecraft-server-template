@@ -115,5 +115,10 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          # Buildx defaults to provenance mode=min and no SBOM, which reads as
+          # a missing attestation to scanners. Both are needed for the image to
+          # carry a full supply-chain record.
+          provenance: mode=max
+          sbom: true
           build-args: |
             REPO_URL=${{ github.server_url }}/${{ github.repository }}

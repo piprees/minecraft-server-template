@@ -1,11 +1,11 @@
-FROM python:3.14.7-alpine3.24
+FROM alpine:3.24.1
 
 ARG REPO_URL=https://github.com/piprees/minecraft-server-template
 LABEL org.opencontainers.image.source=${REPO_URL} \
       org.opencontainers.image.description="Daily mod update checker with HTML status page" \
       org.opencontainers.image.licenses="MIT"
 
-RUN apk add --no-cache bash curl jq
+RUN apk upgrade --no-cache && apk add --no-cache bash curl jq python3
 
 COPY scripts/check-updates.sh /app/scripts/
 COPY scripts/modrinth-api.py /app/scripts/

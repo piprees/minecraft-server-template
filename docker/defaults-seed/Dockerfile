@@ -5,7 +5,7 @@ LABEL org.opencontainers.image.source=${REPO_URL} \
       org.opencontainers.image.description="Init container: seeds default config + overlay merge into shared volumes" \
       org.opencontainers.image.licenses="MIT"
 
-RUN apk add --no-cache bash rsync python3
+RUN apk upgrade --no-cache && apk add --no-cache bash rsync python3
 
 COPY config/modrinth-mods.txt /defaults/modrinth-mods.txt
 # Committed resolve cache: known pins need zero Modrinth API calls

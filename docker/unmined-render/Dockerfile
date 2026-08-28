@@ -13,6 +13,7 @@ FROM debian:bookworm-slim
 
 ARG TARGETARCH
 RUN DEBIAN_FRONTEND=noninteractive apt-get update \
+    && DEBIAN_FRONTEND=noninteractive apt-get upgrade -y \
     && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends ca-certificates curl jq libicu72 \
     && rm -rf /var/lib/apt/lists/*
 
