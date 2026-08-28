@@ -7,7 +7,7 @@
 # player has actually visited.
 #
 # Pre-generation runs in two stages per dimension, in queue order:
-#   1. Chunky, out to min(border, CHUNKY_MAX_RADIUS) — real chunks, so no
+#   1. Chunky, out to the dimension's borders.generation — real chunks, so no
 #      generation stutter where players actually go, and region files for
 #      unmined-render to draw the map from.
 #   2. Distant Horizons `/dh pregen`, out to the dimension's full border —
@@ -18,9 +18,9 @@
 #      generation. INTERNAL_SERVER is the only mode that draws structures and
 #      it writes region files, so it costs the same as Chunky.
 #
-# The overworld gets 2x CHUNKY_MAX_RADIUS, or OVERWORLD_CHUNKY_RADIUS when set.
-# It is the one dimension explored daily, so it earns a larger area than the
-# rest; both are still clamped by the dimension's own border.
+# Pre-generation extent is `borders.generation` in the dimension's own config
+# (falling back to `borders.player`). Storage is quadratic in radius, so that
+# one number is the whole cost control — there is no separate cap.
 #
 # Only visited dimensions are pre-generated, detected the same way
 # unmined-render detects them: a region directory holding an .mca over 8k.
@@ -29,7 +29,7 @@
 # Completion is tracked by per-dimension marker files that persist across
 # restarts, under data/: .chunky-<id>-complete and .dhpregen-<id>-complete,
 # with ':' and '/' in the id mapped to '_'. Delete one to force that stage to
-# re-run (e.g. after a border change or a CHUNKY_MAX_RADIUS increase).
+# re-run (e.g. after a borders.generation increase).
 # Pre-gen pauses when a player joins and resumes next idle.
 #
 # While either stage runs, the script creates /data/.skip-pause — the itzg
@@ -43,10 +43,6 @@
 # runs means BUSY, not paused — state is kept and the poll retried.
 #
 # Usage: no arguments. Configured entirely by environment:
-#   CHUNKY_MAX_RADIUS    blocks, default 2048. Chunky stops here or at the
-#                        dimension's border, whichever is smaller.
-#   OVERWORLD_CHUNKY_RADIUS  blocks. The overworld's own cap; defaults to
-#                        2x CHUNKY_MAX_RADIUS. Still clamped by its border.
 #   PREGEN_BORDER_RADIUS blocks, default 8192. Last-resort border, used only
 #                        when settings.json carries no defaults.borders.player.
 #   DH_PREGEN            "true"/"false", default true. The stage-2 switch.
@@ -54,10 +50,10 @@
 #   POLL_INTERVAL        seconds between polls.
 #   DEPLOY_STALE_MINUTES age at which a deploy sentinel is treated as dead.
 #
-# Gotchas: the effective border is the consumer overlay's
-# `overrides.borders.player` where present, else the platform config's, else
-# settings.json's `defaults.borders.player` — read with jq per dimension rather
-# than deep-merging the whole config, because one field is all this needs.
+# Gotchas: the effective radius is the consumer overlay's
+# `overrides.borders.generation` where present, else the platform config's,
+# else `borders.player`, else settings.json's default — read with jq per
+# dimension rather than deep-merging the whole config.
 # `/dh pregen` takes a radius in CHUNKS with a minimum of 32 and requires
 # permission level 4, which RCON has. Must run on macOS bash 3.2 - no mapfile,
 # no ${var,,}, no declare -A.
@@ -68,12 +64,6 @@ RCON_PASSWORD="${RCON_PASSWORD:-}"
 IDLE_GRACE="${IDLE_GRACE:-1}"
 POLL_INTERVAL="${POLL_INTERVAL:-30}"
 
-# Chunky stops at the smaller of the dimension's border and this. Storage is
-# quadratic in radius, so this bounds the whole fleet: every dimension costs
-# at most (CHUNKY_MAX_RADIUS/8)^2 chunks however large its border is.
-CHUNKY_MAX_RADIUS="${CHUNKY_MAX_RADIUS:-2048}"
-# The overworld tracks 2x the fleet cap unless given its own number.
-OVERWORLD_MAX_RADIUS="${OVERWORLD_CHUNKY_RADIUS:-$((CHUNKY_MAX_RADIUS * 2))}"
 # The border for a dimension whose config cannot be read.
 PREGEN_BORDER_RADIUS="${PREGEN_BORDER_RADIUS:-${WORLD_BORDER_RADIUS:-8192}}"
 DH_PREGEN="${DH_PREGEN:-true}"
@@ -233,37 +223,39 @@ dh_marker() {
   echo "/data/.dhpregen-$(marker_id "$1")-complete"
 }
 
-# settings.json's `defaults.borders.player` — the same default the mod merges
-# under every dimension that names no border of its own. Read once at startup.
+# settings.json's `defaults.borders.generation`, falling back to `.player` —
+# the same default the mod merges under a dimension naming no border of its
+# own. Read once at startup.
 DEFAULT_BORDER=""
 resolve_default_border() {
   local value=""
   if [[ -f "$OVERLAY_SETTINGS_FILE" ]]; then
-    value=$(jq -r '(.defaults.borders.player // empty)' \
+    value=$(jq -r '(.defaults.borders.generation // .defaults.borders.player // empty)' \
       "$OVERLAY_SETTINGS_FILE" 2> /dev/null || echo "")
   fi
   if [[ -z "$value" || "$value" == "null" ]] && [[ -f "$SETTINGS_FILE" ]]; then
-    value=$(jq -r '(.defaults.borders.player // empty)' "$SETTINGS_FILE" 2> /dev/null || echo "")
+    value=$(jq -r '(.defaults.borders.generation // .defaults.borders.player // empty)' "$SETTINGS_FILE" 2> /dev/null || echo "")
   fi
   if [[ -z "$value" || "$value" == "null" ]]; then
     value="$PREGEN_BORDER_RADIUS"
-    echo "  No defaults.borders.player in settings.json — falling back to PREGEN_BORDER_RADIUS ${value}"
+    echo "  No defaults.borders in settings.json — falling back to PREGEN_BORDER_RADIUS ${value}"
   fi
   DEFAULT_BORDER="$value"
 }
 
-# The dimension's own player border, resolved the way the mod resolves it: the
-# consumer overlay's override, else the platform config, else settings.json's
-# default. Only this one field is read — deep-merging the whole config is the
-# mod's job, not this script's.
+# How far to pre-generate this dimension: its own `borders.generation`, else
+# `borders.player`, else settings.json's default. Resolved the way the mod
+# resolves any field — overlay override first, then the platform config.
+# generation is normally >= player, so terrain exists past the wall.
 border_for() {
   local slug="$1" value=""
   if [[ -f "$OVERLAY_DIM_DIR/$slug.json" ]]; then
-    value=$(jq -r '(.overrides.borders.player // .borders.player // empty)' \
+    value=$(jq -r '(.overrides.borders.generation // .borders.generation
+                    // .overrides.borders.player // .borders.player // empty)' \
       "$OVERLAY_DIM_DIR/$slug.json" 2> /dev/null || echo "")
   fi
   if [[ -z "$value" || "$value" == "null" ]] && [[ -f "$DIM_DIR/$slug.json" ]]; then
-    value=$(jq -r '(.borders.player // empty)' "$DIM_DIR/$slug.json" 2> /dev/null || echo "")
+    value=$(jq -r '(.borders.generation // .borders.player // empty)' "$DIM_DIR/$slug.json" 2> /dev/null || echo "")
   fi
   if [[ -z "$value" || "$value" == "null" ]]; then
     value="$DEFAULT_BORDER"
@@ -313,18 +305,6 @@ dimension_queue() {
   done
 }
 
-# Chunky's radius for a dimension: its border, capped. The overworld's cap is
-# doubled — it is the world people explore, and one knob still sets both.
-chunky_radius_for() {
-  local id="$1" border="$2" cap="$CHUNKY_MAX_RADIUS"
-  [[ "$id" == "minecraft:overworld" ]] && cap="$OVERWORLD_MAX_RADIUS"
-  if [[ "$border" -lt "$cap" ]]; then
-    echo "$border"
-  else
-    echo "$cap"
-  fi
-}
-
 # Markers from before per-dimension naming cover a LARGER radius than any this
 # script now asks for, so an old completion still satisfies the new one and
 # re-running would regenerate ground that already exists.
@@ -353,8 +333,8 @@ start_pregen() {
   while IFS='|' read -r id region border; do
     [[ -n "$id" ]] || continue
     [[ -f "$(chunky_marker "$id")" ]] && continue
-    radius=$(chunky_radius_for "$id" "$border")
-    echo "[$(date '+%H:%M:%S')] Chunky pre-generation: ${id} (radius ${radius}, border ${border})"
+    radius="$border"
+    echo "[$(date '+%H:%M:%S')] Chunky pre-generation: ${id} (radius ${radius})"
     enable_skip_pause
     local resumed
     resumed=$(rcon "chunky continue" 2> /dev/null || echo "")
@@ -462,8 +442,8 @@ trap cleanup EXIT
 
 echo "Idle task monitor started (grace: ${IDLE_GRACE}min, poll: ${POLL_INTERVAL}s)"
 resolve_default_border
-echo "  Default border from settings.json: ${DEFAULT_BORDER}"
-echo "  Chunky radius: min(border, ${CHUNKY_MAX_RADIUS}); overworld min(border, ${OVERWORLD_MAX_RADIUS})"
+echo "  Default generation border from settings.json: ${DEFAULT_BORDER}"
+echo "  Chunky radius: each dimension's borders.generation"
 echo "  DH LOD pre-generation: ${DH_PREGEN} (to each dimension's own border)"
 echo "  Dimensions are pre-generated once a player has visited them."
 migrate_legacy_markers
