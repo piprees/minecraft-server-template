@@ -130,6 +130,38 @@ else
   warn "Datapack ownership lint failed (unguarded mod references — boot risk on mod removal)"
 fi
 
+echo "  Checking Modrinth resolve cache covers every pin..."
+# defaults-seed bakes config/modrinth-resolve-cache.json in and resolves pins
+# from it with zero Modrinth calls. A pin with no entry is resolved live at
+# boot instead, so a Modrinth outage mid-deploy fails a required resolution
+# and blocks the boot. Parsing comes from modrinth_pins.pins() so this can
+# never disagree with gen-resolve-cache.py about what a pin is.
+RESOLVE_CACHE_ERRORS=0
+RESOLVE_CACHE_OUT=$(python3 - << 'PYEOF'
+import json
+import sys
+from pathlib import Path
+
+sys.path.insert(0, "scripts")
+from modrinth_pins import pins
+
+cache = json.loads(Path("config/modrinth-resolve-cache.json").read_text() or "{}")
+missing = sorted(f"{slug}:{vid}" for slug, vid in pins().items()
+                 if f"{slug}:{vid}" not in cache)
+for key in missing:
+    print(f"  {key} has no resolve-cache entry")
+if missing:
+    print("  regenerate: python3 scripts/gen-resolve-cache.py")
+sys.exit(1 if missing else 0)
+PYEOF
+) || RESOLVE_CACHE_ERRORS=1
+if [[ $RESOLVE_CACHE_ERRORS -eq 0 ]]; then
+  echo "  ✓ Resolve cache covers every pinned mod and datapack"
+else
+  echo "$RESOLVE_CACHE_OUT"
+  warn "Resolve cache is stale (seed would resolve live at boot)"
+fi
+
 echo "  Validating docker-compose.yml..."
 COMPOSE_ERRORS=0
 if docker compose --profile cloud config --quiet; then
@@ -169,7 +201,7 @@ else
   YAML_ERRORS=1
 fi
 
-STATIC_ERRORS=$((SHELL_ERRORS + PYTHON_ERRORS + OWNERSHIP_ERRORS + COMPOSE_ERRORS + YAML_ERRORS))
+STATIC_ERRORS=$((SHELL_ERRORS + PYTHON_ERRORS + OWNERSHIP_ERRORS + RESOLVE_CACHE_ERRORS + COMPOSE_ERRORS + YAML_ERRORS))
 if [[ $STATIC_ERRORS -gt 0 ]]; then
   echo "::error::$STATIC_ERRORS static-analysis check(s) failed"
   exit 1
