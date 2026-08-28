@@ -142,7 +142,7 @@ key_supplementaries.keybind.quiver:key.keyboard.grave.accent
 key_gui.xaero_pac_key_open_menu:key.keyboard.apostrophe
 key_key.presencefootsteps.settings:key.keyboard.unknown
 key_key.presencefootsteps.toggle:key.keyboard.unknown
-key_key.push_to_talk:key.keyboard.unknown
+key_key.push_to_talk:key.keyboard.r
 key_key.whisper:key.keyboard.unknown
 key_key.mute_microphone:key.keyboard.f8
 key_key.disable_voice_chat:key.keyboard.n
