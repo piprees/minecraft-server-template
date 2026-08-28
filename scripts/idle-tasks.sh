@@ -270,8 +270,7 @@ border_for() {
 # True when a player has been here: the same test unmined-render uses to
 # decide a dimension is worth drawing.
 visited() {
-  # -print -quit, never `| head` — SIGPIPE + pipefail reads as "no data"
-  # once the paths overflow find's 4KiB stdout buffer.
+  # -print -quit, never `| head` under pipefail (TROUBLESHOOTING.md#t47).
   [[ -n "$(find "$1" -maxdepth 1 -name '*.mca' -size +8k -print -quit 2> /dev/null)" ]]
 }
 

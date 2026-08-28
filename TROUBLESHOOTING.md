@@ -46,6 +46,7 @@ Run this first. It covers deploy drift, disk, every expected container, `ONLINE_
 | Voice chat broke for everyone right after a firewall change | [T44](#t44) |
 | Players dropped from the game port well below the stated rate limit | [T45](#t45) |
 | `./ops harden` ran an old script after a successful `./ops update` | [T46](#t46) |
+| A dimension vanished from the map or pre-gen queue with no error | [T47](#t47) |
 | Config or mod changes didn't take effect after a deploy | [T2](#t2) |
 | `signal only works in main thread` in discord-sync logs | [T3](#t3) |
 | mc crash-loops with Modrinth `429 Too Many Requests` | [T4](#t4) |
@@ -656,6 +657,25 @@ The rendered height disagrees with the facts on high-relief columns. The error i
   `jail.d/*.local`, and `harden.sh` rewrites `jail.local` unconditionally.
 - **Fix:** put operator overrides in `/etc/fail2ban/jail.d/mc-source.local`, which is
   read after `jail.local` and which `harden.sh` never touches.
+
+<a id="t47"></a>
+### T47 — `find | head` under `pipefail` reports a populated dimension as having no chunks
+
+- **Symptom:** a dimension with hundreds of region files silently disappears from the map, the
+  pre-generation queue, and deploy's activation wait. No error, no log line — `render_all` just
+  reports a lower "map(s) considered" count than there are dimensions. Small dimensions keep
+  working, so it reads as corruption or a stale mount rather than a bug.
+- **Cause:** `find ... | head -1 | grep -q .`. `head -1` closes the pipe after one line; if `find`
+  is still writing it dies of SIGPIPE (exit 141), and `set -o pipefail` makes that the pipeline's
+  status, which `if ! ...` reads as "no chunk data". `find` only writes twice once its output
+  passes the 4KiB stdout buffer, so the failure is deterministic on region count — roughly 150
+  regions under `/world/region`, fewer for the longer paths under `dimensions/<ns>/<slug>/`.
+  Measured on production: 355 matches → 141, 100 → 0, 36 → 0.
+- **Fix (in place):** `[[ -n "$(find ... -print -quit)" ]]` at all four sites — `render-loop.sh`
+  (render guard and the "no region changes" check), `idle-tasks.sh` `visited()`, `deploy.sh`
+  `dim_has_region()`. `-quit` stops `find` itself and the command substitution uses no pipe, so
+  SIGPIPE is impossible rather than unlikely.
+- **Rule:** never pipe `find` into `head` in a script running `pipefail`. Use `-print -quit`.
 
 <a id="t46"></a>
 ### T46 — `./ops update` and `./dev update` refresh different machines; `./ops harden` reads the local one

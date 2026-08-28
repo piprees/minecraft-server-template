@@ -85,9 +85,7 @@ render_one() {
   out="$OUT_DIR/maps/$name"
   marker="$out/.last-render"
 
-  # -print -quit, never `| head`: head closes the pipe, find dies of SIGPIPE,
-  # and pipefail reports that as "no data" for any dimension whose paths
-  # overflow find's 4KiB stdout buffer. Silently unrenderable above ~150 regions.
+  # -print -quit, never `| head` under pipefail (TROUBLESHOOTING.md#t47).
   if [[ -z "$(find "$region_dir" -maxdepth 1 -name '*.mca' -size +8k -print -quit 2>/dev/null)" ]]; then
     return 1  # no real chunk data yet
   fi
