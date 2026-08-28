@@ -18,8 +18,9 @@
 #      generation. INTERNAL_SERVER is the only mode that draws structures and
 #      it writes region files, so it costs the same as Chunky.
 #
-# The overworld gets 2x CHUNKY_MAX_RADIUS. It is the one dimension explored
-# daily, and tying it to the same knob keeps one number in play instead of two.
+# The overworld gets 2x CHUNKY_MAX_RADIUS, or OVERWORLD_CHUNKY_RADIUS when set.
+# It is the one dimension explored daily, so it earns a larger area than the
+# rest; both are still clamped by the dimension's own border.
 #
 # Only visited dimensions are pre-generated, detected the same way
 # unmined-render detects them: a region directory holding an .mca over 8k.
@@ -44,6 +45,8 @@
 # Usage: no arguments. Configured entirely by environment:
 #   CHUNKY_MAX_RADIUS    blocks, default 2048. Chunky stops here or at the
 #                        dimension's border, whichever is smaller.
+#   OVERWORLD_CHUNKY_RADIUS  blocks. The overworld's own cap; defaults to
+#                        2x CHUNKY_MAX_RADIUS. Still clamped by its border.
 #   PREGEN_BORDER_RADIUS blocks, default 8192. Last-resort border, used only
 #                        when settings.json carries no defaults.borders.player.
 #   DH_PREGEN            "true"/"false", default true. The stage-2 switch.
@@ -69,7 +72,8 @@ POLL_INTERVAL="${POLL_INTERVAL:-30}"
 # quadratic in radius, so this bounds the whole fleet: every dimension costs
 # at most (CHUNKY_MAX_RADIUS/8)^2 chunks however large its border is.
 CHUNKY_MAX_RADIUS="${CHUNKY_MAX_RADIUS:-2048}"
-OVERWORLD_MAX_RADIUS=$((CHUNKY_MAX_RADIUS * 2))
+# The overworld tracks 2x the fleet cap unless given its own number.
+OVERWORLD_MAX_RADIUS="${OVERWORLD_CHUNKY_RADIUS:-$((CHUNKY_MAX_RADIUS * 2))}"
 # The border for a dimension whose config cannot be read.
 PREGEN_BORDER_RADIUS="${PREGEN_BORDER_RADIUS:-${WORLD_BORDER_RADIUS:-8192}}"
 DH_PREGEN="${DH_PREGEN:-true}"
