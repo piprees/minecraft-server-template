@@ -55,7 +55,7 @@ wilder-wild:LGumUR4U
 # === caves & underground ===
 galosphere:jviVa3qz
 yungs-cave-biomes:geZa9lJS
-yungs-better-caves:72UkhXm7
+yungs-better-caves:wwXr6B2n
 subsurface:JdF0yLTy
 # re-adds the andesite/diorite/granite blobs Terralith's cave generation removes.
 # Hard-depends on terralith >=2.0.0 despite Modrinth declaring no dependency —
@@ -83,7 +83,7 @@ medieval-buildings-end-edition:uCdUbsEn
 true-ending:FBAAEUsA
 
 # === structures (need yungs-api) ===
-yungs-api:9aZPNrZC
+yungs-api:okaPlkwI
 yungs-bridges:8h9N9fvs
 towns-and-towers:DZxwgj6V
 when-dungeons-arise:g8oglmT0
@@ -143,7 +143,7 @@ collective:4XRlrKGN
 cristel-lib:K1dyr5gj
 architectury-api:Pzc2FP5K
 forge-config-api-port:N5qzq0XV
-moonlight:ip33wHvm
+moonlight:Ic9GXl0K
 kambrik:eMIEIbFZ
 playeranimator:CkedfDp3
 almanac:hUgNmeCO
@@ -166,13 +166,13 @@ frozenlib:GdadG0oj
 trinkets:JagCscwi
 charm-of-undying:RX60LMvX
 elytra-slot:jxx2pc4h
-artifacts:WTnRdeH6
+artifacts:Z0AbY3eY
 inmis:iE11BIfP
 
 # === variety ===
 immersive-armors:4m0lwLNO
 3d-placeable-food:F9DGEOfs
-supplementaries:9UlfVS6z
+supplementaries:8HLe7fdX
 natures-spirit:TRMapjpU
 macaws-bridges:pl1CA7dW
 macaws-doors:Zsfvgzu6
@@ -184,14 +184,14 @@ dramatic-doors:X5oMCwaA
 # universal-sawmill: provides the woodworks:sawmill recipe type dramatic-doors
 # references (kills the boot recipe-parse errors). Dep: moonlight (present).
 universal-sawmill:1Z66lBRN
-farmers-delight-refabricated:NCLOIK5z
+farmers-delight-refabricated:6Q2bg2Oh
 appleskin:b5ZiCjAr
 
 # === seasons ===
 fabric-seasons:2mIvRTNp
 fabric-seasons-terralith-compat:MJ2OF7eg
 fabric-seasons-delight-compat:KIzyS8hk
-fabric-seasons-extras:W9dvZHrP
+fabric-seasons-extras:ZIfSos0S
 
 # === time cycle ===
 betterdays:dTNbe6uN
@@ -201,7 +201,7 @@ pause-day-cycle:KQWm3NrZ
 fallingtree:wxGXaJMA
 carry-on:iDV62vEU
 bountiful:LFm1BWOE
-lootr:VYbLUFAk
+lootr:rNCVo4w9
 better-combat:JJQpBecL
 stack-refill:5RkgQCwL
 softer-hay-bales:RnWSv8yZ
@@ -212,7 +212,7 @@ natures-compass:dtrDpgsF
 explorers-compass:qSRKiE4D
 animal_feeding_trough:BgW2cRLu
 sit!:wstK3UaY
-amendments:eDkdvpvV
+amendments:O8U6IzEM
 smarter-farmers-farmers-replant:bsYbob1i
 grabby-mobs:a40un6os
 name-tag-tweaks:IFWMImfs
@@ -233,7 +233,7 @@ your-items-are-safe:lFkq1P1J
 fire-spread-tweaks:fAAi76Fv
 
 # === enchanting ===
-enchantment-descriptions:YSJWkwEM
+enchantment-descriptions:NBccO5gj
 beautiful-enchanted-books-mod-edition:kcGH3Tr5
 enchanting-commands:1LHfij4k
 overstacked-enchantments:66Chl80b
@@ -262,7 +262,7 @@ sound-physics-remastered:tVu2EZ4u
 
 # === admin / community ===
 luckperms:l47d4ZWk
-open-parties-and-claims:rUrxgVyp
+open-parties-and-claims:y7JKBy6O
 simple-voice-chat:VS5X7jZd
 ledger:t1AtqfxZ
 styled-chat:4e1xZSk3
