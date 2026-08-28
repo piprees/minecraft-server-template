@@ -829,7 +829,9 @@ ACTIVATION_STALL_LIMIT="${ACTIVATION_STALL_LIMIT:-3}"
 # True when a dimension already carries real region files — the same test
 # idle-tasks.sh's visited() and unmined-render use to call it worth drawing.
 dim_has_region() {
-  find "$1" -maxdepth 1 -name '*.mca' -size +8k 2> /dev/null | head -1 | grep -q .
+  # -print -quit, never `| head` — SIGPIPE + pipefail reads as "no data"
+  # once the paths overflow find's 4KiB stdout buffer.
+  [[ -n "$(find "$1" -maxdepth 1 -name '*.mca' -size +8k -print -quit 2> /dev/null)" ]]
 }
 
 # Flush, then look for the region file. Two separate limits, because "slow"
