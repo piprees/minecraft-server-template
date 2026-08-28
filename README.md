@@ -182,6 +182,7 @@ Three categories, by where a script ends up and who runs it. Every script has a 
 | `extract-biomes.py` / `extract-blocks.py` / `extract-entities.py` | Catalogue every biome, block and entity the installed mods register, for authoring and lint |
 | `check-content-coverage.py` | Which installed biomes any dimension actually names — an installed mod nobody names never appears in game |
 | `check-biome-bands.py` | Explicit biome bands within a dimension must partition its climate axis, not overlap (exits 1 on any overlap) |
+| `gen-unmined-blocktags.py` | Regenerate the map renderer's modded block tags from the block catalogue (`--check` in CI) |
 | `mcjson.py` | (imported) Parses the lenient JSON mods actually ship: `//` comments and trailing commas |
 
 ## How to do things

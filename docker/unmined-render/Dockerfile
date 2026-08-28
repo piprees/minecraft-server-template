@@ -36,6 +36,10 @@ RUN case "$TARGETARCH" in \
     && test -x /opt/unmined/unmined-cli \
     && test -d /opt/unmined/library
 
+# Modded block tags. uNmINeD loads every subfolder of config/, applying
+# default/ first and ours after, so these land on top of the stock styles.
+COPY docker/unmined-render/unmined-config/ /opt/unmined/config/adventure/
+
 COPY docker/unmined-render/render-loop.sh /app/render-loop.sh
 COPY docker/unmined-render/webshell/ /app/webshell/
 RUN chmod +x /app/render-loop.sh

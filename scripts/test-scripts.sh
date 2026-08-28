@@ -130,6 +130,15 @@ else
   warn "Datapack ownership lint failed (unguarded mod references — boot risk on mod removal)"
 fi
 
+echo "  Checking uNmINeD block tags are up to date..."
+# The map renderer draws untagged modded blocks pink. Regenerate after any
+# mod change or the new blocks render pink (TROUBLESHOOTING.md#t47 sibling).
+if python3 ./scripts/gen-unmined-blocktags.py --check > /dev/null 2>&1; then
+  echo "  ✓ uNmINeD block tags cover every modded block"
+else
+  warn "uNmINeD block tags are stale (new mod blocks would render pink) — run ./scripts/gen-unmined-blocktags.py"
+fi
+
 echo "  Checking Modrinth resolve cache covers every pin..."
 # defaults-seed bakes config/modrinth-resolve-cache.json in and resolves pins
 # from it with zero Modrinth calls. A pin with no entry is resolved live at
