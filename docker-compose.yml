@@ -645,6 +645,8 @@ services:
       IDLE_GRACE: "3"
       POLL_INTERVAL: "30"
       PREGEN_BORDER_RADIUS: "${PREGEN_BORDER_RADIUS:-8192}"
+      # Chunky pre-gen cap per dimension; the overworld gets 2x this.
+      CHUNKY_MAX_RADIUS: "${CHUNKY_MAX_RADIUS:-2048}"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./data:/data
