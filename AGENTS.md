@@ -126,7 +126,7 @@ A push to `main` in a consumer repo triggers the caller workflow, which invokes 
 
 ## Problems, traps, and known issues
 
-All of it lives in [`TROUBLESHOOTING.md`](TROUBLESHOOTING.md) — architecture traps (T1–T50, no T15), macOS local-dev quirks (P1–P4), dimension lifecycle (D1–D8), open issues (K1–K2). Every entry has a permanent anchor; cite them precisely (`TROUBLESHOOTING.md#t14`). Start any diagnosis with `./ops doctor`; the forbidden-actions list is at the top of that file.
+All of it lives in [`TROUBLESHOOTING.md`](TROUBLESHOOTING.md) — architecture traps (T1–T54, no T15), macOS local-dev quirks (P1–P4), dimension lifecycle (D1–D8), open issues (K1–K2). Every entry has a permanent anchor; cite them precisely (`TROUBLESHOOTING.md#t14`). Start any diagnosis with `./ops doctor`; the forbidden-actions list is at the top of that file.
 
 |  |  |
 | --- | --- |
@@ -137,6 +137,8 @@ All of it lives in [`TROUBLESHOOTING.md`](TROUBLESHOOTING.md) — architecture t
 | [T12](TROUBLESHOOTING.md#t12) | Hand-patched volumes are reverted by every seed run — verify the rendered state, not the patch. |
 | [T49](TROUBLESHOOTING.md#t49) | Jar scans resolve `c:*` tags wrongly. `registries.json` (via `/customdim catalogue`) is ground truth. |
 | [T50](TROUBLESHOOTING.md#t50) | `run say` returns nothing over RCON; unloaded positions cannot be probed; biomes are 3D. |
+| [T53](TROUBLESHOOTING.md#t53) | The biome bypass belongs to a site's ASSIGNED structure only. Given to a re-draw candidate, one want becomes a universal filler. |
+| [T54](TROUBLESHOOTING.md#t54) | Jigsaw `size`/`max_distance_from_center` are not a footprint. `structure-sizes.json` is measured; re-measure, never proxy. |
 | [D2](TROUBLESHOOTING.md#d2) | All worldgen config is creation-time-only. Changing it needs a world wipe. |
 | [K6](TROUBLESHOOTING.md#k6) | Concurrent first-time chunk generation wedges the main thread. Activation is one dimension at a time; never make it concurrent again. |
 

@@ -4,7 +4,7 @@
 
 | Prefix | Range | What it covers |
 | --- | --- | --- |
-| **T** | [T1–T14, T16–T19, T22–T27, T30–T37](#architecture-traps) | Architecture traps — each has caused a real production incident |
+| **T** | [T1–T14, T16–T19, T22–T27, T30–T54](#architecture-traps) | Architecture traps — each has caused a real production incident |
 | **P** | [P1–P4](#macos-local-dev) | macOS local-dev quirks (BSD tooling, toolchain) |
 | **D** | [D1–D6, D8–D9](#dimension-lifecycle) | Custom-dimension lifecycle on a live world |
 | **K** | [K1–K2, K5–K6](#known-issues) | Open issues — unfixed, on the watch list |
@@ -52,6 +52,8 @@ Run this first. It covers deploy drift, disk, every expected container, `ONLINE_
 | A probe returns nothing, or the same value everywhere | [T50](#t50) |
 | Structure spacing arithmetic disagrees with the world | [T51](#t51) |
 | The same few structures repeat endlessly in one dimension | [T52](#t52) |
+| One wanted structure fills half the dimension | [T53](#t53) |
+| Structures overlap, or a huge one gets a tiny one's clearance | [T54](#t54) |
 | Config or mod changes didn't take effect after a deploy | [T2](#t2) |
 | `signal only works in main thread` in discord-sync logs | [T3](#t3) |
 | mc crash-loops with Modrinth `429 Too Many Requests` | [T4](#t4) |
@@ -399,6 +401,68 @@ A world regenerates with the old terrain after a reset that set a new seed, or t
   biomes off the biome grid, which is fluid-independent.
 - **Creation-time.** `settingsOverrides` is in the generation fingerprint
   ([D2](#d2)), so this needs a world wipe and a re-roll.
+
+<a id="t54"></a>
+### T54 — A structure's declared jigsaw fields are not its footprint
+
+- **Symptom:** a placement, spacing or collision calculation keyed on `size` or
+  `max_distance_from_center` puts structures on top of each other, or gives a
+  1-block cave marker the same elbow room as a 244-block castle.
+- **Measured**, 781 structures, against real `StructureStart.getBoundingBox()`
+  spans from `/customdim structure-sizes`:
+
+  ```
+  size (jigsaw pool depth)         Spearman +0.478  (n=740)
+  max_distance_from_center         Spearman +0.357  (n=501)
+
+  declared size 1 -> spans   5-72 blocks
+  declared size 6 -> spans  1-244 blocks
+  minecraft:village_plains  declares a bound of 80, spans 170
+  minecraft:mineshaft       declares NEITHER field, spans 163
+  ```
+
+- **Cause:** `size` is the jigsaw pool's maximum expansion DEPTH and
+  `max_distance_from_center` is the assembler's SEARCH BOUND. 280 of 783
+  structures declare no bound and 246 of the rest sit on the default 80.
+  Neither describes extent, and a non-jigsaw structure declares neither.
+- **The answer is measured, and cheap.** `Structure.createStructureStart` takes
+  the world only as a `HeightLimitView` and reads no block data, so an
+  assembly needs no chunks and no pregen. The whole registry sweeps in five
+  minutes and the result is in `config/custom-dimensions/structure-sizes.json`
+  (jar-baked as `structure_sizes.json`).
+- **Do not** reintroduce the declared fields as a proxy when the table looks
+  stale. Re-measure: `/customdim structure-sizes minecraft:overworld 3 900`,
+  then `mise run sizes <artefact>`. `mise run sizes --report <artefact>`
+  reprints the correlation above from the artefact itself.
+- **Sweep an OVERWORLD.** A nether reaches 727 of 783 and truncates deep
+  structures against its ceiling — `minecraft:ancient_city` is 242 blocks in an
+  overworld and 65 in a nether. Where both measure one, 73% agree exactly.
+- A structure with no measurement is OMITTED from the table, never zeroed: a
+  zero silently grants no personal space at all.
+
+<a id="t53"></a>
+### T53 — A want reached by re-draw becomes a universal filler
+
+- **Symptom:** one `structures.wants` entry fills a large fraction of a
+  dimension. Measured during the A2 fix: a single want produced **340
+  `minecraft:monument` sites** in a 512-chunk radius, and the WANTED count for
+  the overworld went 61 → 427 in one build.
+- **Cause:** a wanted structure is admitted to the pool at full weight with its
+  biome predicate bypassed. If that bypass travels with the structure as a
+  re-draw CANDIDATE rather than staying with the site's own ASSIGNMENT, then
+  every site whose chain nothing else fits falls through to it. A want stops
+  meaning "admit this where the noise puts it" and starts meaning "use this
+  wherever nothing else fits".
+- **The rule:** the bypass belongs to the ASSIGNED structure only — depth 1 of
+  the chain — never to a candidate reached by re-draw.
+- **Why it nearly shipped:** the gate at the time was "violations reach zero",
+  which this satisfied perfectly. A metric that can only move the right way is
+  not a gate. The gate that caught it was `WANTED` held to an exact count,
+  because that one could move in both directions.
+- **Do not** raise `StructurePick.MAX_CANDIDATES` to reduce empty sites. 65% of
+  fills already come from the re-draw chain and the depth histogram does not
+  decay; a deeper chain is the same anti-pattern wearing a different name.
+  Absence is a valid outcome.
 
 <a id="t52"></a>
 ### T52 — Site count is decoupled from pool variety (ANTI-PATTERN)

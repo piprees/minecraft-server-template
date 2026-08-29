@@ -59,16 +59,24 @@ Full details, what's deliberately untouched, and the ownership.json mod-removal 
 
 ### Keeping land structures out of the sea
 
-`NoiseStructureSelectionMixin` replaces the assigned structure's biome
-predicate with `ANY_BIOME` at every noise site, so a structure's declared
-biomes do not constrain where it starts and land structures land in open sea.
-`config/datapacks/open-water/` restores an ocean check the bypass cannot
-reach: a Lithostitched `set_structure_spawn_condition` of
+`NoiseStructureSelectionMixin` holds every noise-site candidate to its own
+declared biomes. The bypass belongs to the assigned structure alone, and only
+where `structures.wants` or `structures.include` asked for it — never to a
+candidate reached by re-draw, or one want becomes a universal filler
+([T53](../../../TROUBLESHOOTING.md#t53)). A chain refused end to end leaves the
+site empty; the pool never falls through to another group's.
+
+That reaches every generation step and needs no maintained list, so it is the
+primary defence. `config/datapacks/open-water/` remains for the residue the
+predicate cannot reach by construction: ~87 structures whose author declared a
+catch-all overworld tag, which is a predicate saying "anywhere". It is a
+Lithostitched `set_structure_spawn_condition` of
 `not(in_biome #adventure:open_water)` on every non-marine `surface_structures`
 structure, evaluated after the predicate. Ocean villages and ocean outposts
 instead require unflooded ground within 192 blocks, which leaves the coastal
-ones and drops the mid-ocean ones. A rejected noise site stays empty — the
-pool never falls through to a second structure.
+ones and drops the mid-ocean ones. **Its scope is `surface_structures` and
+nothing else** — roughly 201 installed structures at other steps have no
+coverage from it.
 
 **There is no depth check and one cannot be written.** `height_filter` is the
 only condition that reads terrain; heightmap-relative against
