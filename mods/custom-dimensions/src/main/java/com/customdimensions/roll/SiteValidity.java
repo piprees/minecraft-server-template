@@ -3,6 +3,7 @@ package com.customdimensions.roll;
 import com.customdimensions.command.SpikeSampler;
 import com.customdimensions.config.DimensionConfig;
 import com.customdimensions.dimension.NoisePoolBuilder;
+import com.customdimensions.dimension.StructurePick;
 import net.minecraft.registry.Registry;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.registry.entry.RegistryEntry;
@@ -81,9 +82,15 @@ public final class SiteValidity {
      * between the two reads is a recorded pair rather than a flag.
      */
     public record SiteVerdict(String group, long x, long z, String structureId,
+                              String assigned, int chainDepth,
                               String biome, Integer surfaceY, Verdict verdict,
                               Verdict fixedVerdict, boolean underground,
                               Verdict bandMidVerdict, Verdict subsurfaceVerdict) {
+
+        /** Whether a re-draw filled this site rather than the assignment. */
+        public boolean chainFired() {
+            return this.chainDepth > 1;
+        }
 
         public boolean flipped() {
             return this.verdict != this.fixedVerdict;
@@ -190,6 +197,42 @@ public final class SiteValidity {
             return n;
         }
 
+        /** Sites a re-draw filled rather than the assignment — how often the chain fires. */
+        public int chainFired() {
+            int n = 0;
+            for (SiteVerdict s : this.sites) {
+                if (s.chainFired()) {
+                    n++;
+                }
+            }
+            return n;
+        }
+
+        /** The deepest a fill went. Well under the cap means the cap is not binding. */
+        public int deepestFill() {
+            int n = 0;
+            for (SiteVerdict s : this.sites) {
+                n = Math.max(n, s.chainDepth());
+            }
+            return n;
+        }
+
+        /**
+         * Sites this read leaves empty that the fixed slice fills. The instrument
+         * samples at the render's surface height and vanilla samples at the
+         * position each structure chose for itself, so these are the sites where
+         * the two reads could disagree — the residue, bounded rather than assumed.
+         */
+        public int emptyFilledAtFixedSlice() {
+            int n = 0;
+            for (SiteVerdict s : this.sites) {
+                if (s.verdict() == Verdict.EMPTY && s.fixedVerdict() != Verdict.EMPTY) {
+                    n++;
+                }
+            }
+            return n;
+        }
+
         /** Failing sites whose structure generates underground — where the residual error is. */
         public int failedUnderground() {
             int n = 0;
@@ -210,7 +253,11 @@ public final class SiteValidity {
                     + this.undergroundClearedAtBandMid() + " clear at the band midpoint and "
                     + this.undergroundClearedAtSubsurface() + " below this column), "
                     + this.count(Verdict.WANTED) + " wanted, "
-                    + this.count(Verdict.EMPTY) + " empty, "
+                    + this.count(Verdict.EMPTY) + " empty at this read (upper bound; "
+                    + this.emptyFilledAtFixedSlice() + " of them fill at the y="
+                    + (this.fixedQuartY * 4) + " slice), "
+                    + this.chainFired() + " filled by re-draw, deepest fill "
+                    + this.deepestFill() + " of " + StructurePick.MAX_CANDIDATES + ", "
                     + this.count(Verdict.UNSAMPLED) + " unsampled, "
                     + this.fixedSliceFlips() + " verdicts differ from the y="
                     + (this.fixedQuartY * 4) + " slice (" + this.flipsToPassing()
@@ -266,35 +313,16 @@ public final class SiteValidity {
                 // there is, and saying so beats inventing a height.
                 String biome = atSurface != null ? atSurface : atFixed;
 
-                // Walk the site's chain exactly as the mixin does: the first
-                // candidate this biome accepts is what stands here. A chain
-                // the biome refuses end to end leaves the site EMPTY, which is
-                // information rather than a bug.
-                String occupantId = site.structureId();
-                boolean asked = admitted.contains(occupantId);
-                Set<Identifier> valid = declared.computeIfAbsent(
-                        occupantId, id -> declaredBiomes(structureRegistry, id));
-                Verdict verdict = Verdict.EMPTY;
-                boolean head = true;
-                for (var candidate : site.chain()) {
-                    // The bypass is the assigned structure's alone, as at
-                    // generation time; a re-draw answers to its own biomes.
-                    boolean candidateAsked = head && (candidate.bypassBiome()
-                            || admitted.contains(candidate.structureId()));
-                    head = false;
-                    Set<Identifier> candidateValid = declared.computeIfAbsent(
-                            candidate.structureId(), id -> declaredBiomes(structureRegistry, id));
-                    Verdict candidateVerdict = verdictOf(candidateValid, biome, candidateAsked);
-                    if (!candidateVerdict.fails()) {
-                        occupantId = candidate.structureId();
-                        asked = candidateAsked;
-                        valid = candidateValid;
-                        verdict = candidateVerdict;
-                        break;
-                    }
-                }
-                Verdict fixedVerdict = verdict == Verdict.EMPTY
-                        ? Verdict.EMPTY : verdictOf(valid, atFixed, asked);
+                // The same walk at both reads, so the gap between them is a
+                // measured number rather than an assumption.
+                Occupant at = resolve(site, biome, admitted, declared, structureRegistry);
+                Occupant atFixedRead = resolve(site, atFixed, admitted, declared,
+                        structureRegistry);
+                String occupantId = at.structureId();
+                boolean asked = at.asked();
+                Set<Identifier> valid = at.valid();
+                Verdict verdict = at.verdict();
+                Verdict fixedVerdict = atFixedRead.verdict();
 
                 // An underground family picks a deep or fixed y of its own, so
                 // the surface read describes a column it never occupies. Two
@@ -322,12 +350,54 @@ public final class SiteValidity {
                     wanted++;
                 }
                 sites.add(new SiteVerdict(group.getKey(), site.x(), site.z(), occupantId,
+                        site.structureId(), at.depth(),
                         biome, surfaceY, verdict, fixedVerdict, deep, bandMid, subsurface));
             }
             tallies.put(group.getKey(), new GroupTally(group.getValue().size(), failed, wanted));
         }
         return new Report(def.getDimensionIdentifier().toString(), seed, radius, FIXED_QUART_Y,
                 sites, tallies, failedByStructure, (System.nanoTime() - start) / 1_000_000L);
+    }
+
+    /**
+     * Who a site's chain settles on at one biome read, and how deep it went.
+     * Depth is 1-based; zero means the whole chain was refused.
+     */
+    private record Occupant(String structureId, Verdict verdict, int depth,
+                            boolean asked, Set<Identifier> valid) {
+    }
+
+    /**
+     * Walks a site's chain exactly as {@code NoiseStructureSelectionMixin}
+     * does: the first candidate this biome accepts is what stands there. The
+     * bypass belongs to the assigned structure alone, as at generation time,
+     * and is {@link NoisePoolBuilder#admittedDespiteBiomes}'s decision carried
+     * on the pool entry — never re-derived here.
+     */
+    private static Occupant resolve(CandidateRender.Site site, String biome,
+                                    Set<String> admitted,
+                                    Map<String, Set<Identifier>> declared,
+                                    Registry<Structure> registry) {
+        int depth = 0;
+        Set<Identifier> headValid = null;
+        for (StructurePick.PoolEntry candidate : site.chain()) {
+            depth++;
+            boolean asked = depth == 1 && (candidate.bypassBiome()
+                    || admitted.contains(candidate.structureId()));
+            Set<Identifier> valid = declared.computeIfAbsent(candidate.structureId(),
+                    id -> declaredBiomes(registry, id));
+            if (headValid == null) {
+                headValid = valid;
+            }
+            Verdict verdict = verdictOf(valid, biome, asked);
+            if (!verdict.fails()) {
+                return new Occupant(candidate.structureId(), verdict, depth, asked, valid);
+            }
+        }
+        String assigned = site.structureId();
+        return new Occupant(assigned, Verdict.EMPTY, 0,
+                assigned != null && admitted.contains(assigned),
+                headValid != null ? headValid : Set.of());
     }
 
     /** The biome id the source produces at one block column and quart height. */
@@ -413,6 +483,14 @@ public final class SiteValidity {
         b.append(" \"seed\": ").append(report.seed()).append(",\n");
         b.append(" \"radiusBlocks\": ").append(report.radius()).append(",\n");
         b.append(" \"biomeReadAt\": \"structure column surface height\",\n");
+        b.append(" \"note\": \"A site's verdict walks the same candidate chain the mixin walks,"
+                + " ignoring structural rejection, so EMPTY is an upper bound on what stays"
+                + " empty and the occupant is an upper bound on what fills.\",\n");
+        b.append(" \"chainCap\": ").append(StructurePick.MAX_CANDIDATES).append(",\n");
+        b.append(" \"chainFired\": ").append(report.chainFired()).append(",\n");
+        b.append(" \"deepestFill\": ").append(report.deepestFill()).append(",\n");
+        b.append(" \"emptyFilledAtFixedSlice\": ")
+                .append(report.emptyFilledAtFixedSlice()).append(",\n");
         b.append(" \"fixedQuartY\": ").append(report.fixedQuartY()).append(",\n");
         b.append(" \"fixedSliceFlips\": ").append(report.fixedSliceFlips()).append(",\n");
         b.append(" \"fixedSliceFlipsToPassing\": ").append(report.flipsToPassing()).append(",\n");
@@ -457,7 +535,9 @@ public final class SiteValidity {
                     .append("\", \"x\": ").append(s.x())
                     .append(", \"z\": ").append(s.z())
                     .append(", \"structure\": \"").append(s.structureId())
-                    .append("\", \"biome\": ")
+                    .append("\", \"assigned\": \"").append(s.assigned())
+                    .append("\", \"chainDepth\": ").append(s.chainDepth())
+                    .append(", \"biome\": ")
                     .append(s.biome() == null ? "null" : "\"" + s.biome() + "\"")
                     .append(", \"surfaceY\": ").append(s.surfaceY() == null ? "null" : s.surfaceY())
                     .append(", \"underground\": ").append(s.underground())
