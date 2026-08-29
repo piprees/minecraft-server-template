@@ -35,7 +35,7 @@ template-only scripts run under:
 ```bash
 mise trust && mise install     # python, shellcheck, yamllint, jq
 mise run deps                  # template-only Python packages
-cp .env.local.example .env.local   # CONSUMER_DIR -> your consumer checkout
+cp .env.example .env               # set CONSUMER_DIR to your consumer checkout
 ```
 
 Python is pinned to 3.13 deliberately: 3.14 has thin wheel coverage. Java

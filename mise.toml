@@ -15,8 +15,9 @@ yamllint = "latest"
 jq = "latest"
 
 [env]
-# Machine-specific values (CONSUMER_DIR, etc). Git-ignored; copy the example.
-_.file = { path = ".env.local", redact = true }
+# Local settings, git-ignored. CONSUMER_DIR points template tooling at your
+# consumer checkout; the rest is the local-profile server config.
+_.file = { path = ".env", redact = true }
 
 [tasks.deps]
 description = "Install template-only Python packages"
