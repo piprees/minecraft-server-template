@@ -32,7 +32,7 @@ Deleting `overlay/config/datapacks/structures/` returns you to the platform defa
 ## What is deliberately NOT overridden
 
 - **Towns and Towers + Explorify** — Cristel Lib rewrites their placement at runtime from `config/` files; a datapack override would fight it.
-- **YUNG's and Moog's sets with custom placement types** (`yungsapi:enhanced_random_spread`, `moogs_structures:advanced_random_spread`, …) — untested against field changes; the generator skips them.
+- **YUNG's and Moog's sets with custom placement types** (`yungsapi:enhanced_random_spread`, `moogs_structures:advanced_random_spread`, …) — untested against field changes; the generator skips them. Moog's 221 sets also multiply whatever spacing they are given by 1.65 ([TROUBLESHOOTING.md#t48](../../../../TROUBLESHOOTING.md#t48)); their control surface is `config/cristellib/<mod>/structure_placement_config.json5`, not a datapack.
 - **Ultra-rare by-design sets** (`nova_structures:shrine_tower`, `philipsruins:rare_ruin`) and Dungeons Reborn (no structure sets).
 - **Vanilla sets** other than `minecraft:villages`.
 

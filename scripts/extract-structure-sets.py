@@ -165,6 +165,22 @@ def classify_theme(structure_set_id, structures_list):
     return "landmark"
 
 
+# Moog's Structure Lib multiplies its own datapack spacing/separation by this
+# in the AdvancedRandomSpread constructor, so the jar number is never what the
+# registry holds. No config switches it off (TROUBLESHOOTING.md#t48).
+MOOGS_PLACEMENT = "moogs_structures:advanced_random_spread"
+MOOGS_SPACING_FACTOR = 1.65
+
+
+def effective_grid(placement_type, spacing, separation):
+    """Grid values as the live registry holds them, not as the jar spells them."""
+    if placement_type != MOOGS_PLACEMENT:
+        return spacing, separation
+    def scaled(v):
+        return v if v is None else int(v * MOOGS_SPACING_FACTOR + 0.5)  # Java Math.round
+    return scaled(spacing), scaled(separation)
+
+
 def classify_rarity(spacing, separation, frequency, structure_set_id, structures_list):
     """Classify rarity based on effective attempts per 1000 chunks.
 
@@ -211,6 +227,7 @@ def parse_structure_set(data, file_path, source_name):
     spacing = placement.get("spacing")
     separation = placement.get("separation")
     frequency = placement.get("frequency", 1.0)
+    spacing, separation = effective_grid(placement_type, spacing, separation)
 
     # Derive the structure set ID from the file path
     # Pattern: data/<namespace>/worldgen/structure_set/<name>.json

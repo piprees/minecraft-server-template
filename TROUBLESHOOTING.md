@@ -47,6 +47,7 @@ Run this first. It covers deploy drift, disk, every expected container, `ONLINE_
 | Players dropped from the game port well below the stated rate limit | [T45](#t45) |
 | `./ops harden` ran an old script after a successful `./ops update` | [T46](#t46) |
 | A dimension vanished from the map or pre-gen queue with no error | [T47](#t47) |
+| A Moog's structure set's live spacing is larger than its jar and config say | [T48](#t48) |
 | Config or mod changes didn't take effect after a deploy | [T2](#t2) |
 | `signal only works in main thread` in discord-sync logs | [T3](#t3) |
 | mc crash-loops with Modrinth `429 Too Many Requests` | [T4](#t4) |
@@ -394,6 +395,16 @@ A world regenerates with the old terrain after a reset that set a new seed, or t
   biomes off the biome grid, which is fluid-independent.
 - **Creation-time.** `settingsOverrides` is in the generation fingerprint
   ([D2](#d2)), so this needs a world wipe and a re-roll.
+
+<a id="t48"></a>
+### T48 — Moog's structure sets generate 1.65× further apart than any file says
+
+- **Symptom:** a `mes:`, `mns:`, `mss:`, `mtr:` or `mvs:` structure set reads one spacing in its jar, the same spacing in `config/cristellib/<mod>/structure_placement_config.json5`, and a larger one in the live registry — `mes:enderskog` is 52/22 in both files and 86/36 in the `/customdim catalogue` dump. 221 of the pack's 411 sets are affected, every one of them `moogs_structures:advanced_random_spread`.
+- **Cause:** Moog's Structure Lib multiplies both `spacing` and `separation` by a hard-coded `1.65` in the `AdvancedRandomSpread` constructor (`com/finndog/moogs_structures/world/structures/placements/AdvancedRandomSpread.class`, `ldc2_w double 1.65d; dmul; Math.round`). It applies to every source of the value — the mod's own datapack, a world datapack override, and Cristel Lib's config alike — and no config key turns it off.
+- **Fix (in place):** `effective_grid()` in `scripts/extract-structure-sets.py` applies the same factor, so the census, `config/custom-dimensions/extractors/structures.json` and the rarity tiers in `structure-groups.json` record what the registry holds. Verified: all 409 comparable sets match `extractors/registries.json` exactly.
+- **Consequence worth knowing:** to set one of these sets' spacing, write the pre-multiplier number in `config/cristellib/<mod>/structure_placement_config.json5` and expect `round(value × 1.65)` in game. Measured: `mes:enderskog` at 40/18 in that file boots as 66/30.
+
+---
 
 <a id="t32"></a>
 ### T32 — A candidate's thumbnail is a window on spawn, not a picture of the world

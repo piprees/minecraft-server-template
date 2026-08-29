@@ -62,6 +62,7 @@ Full details, what's deliberately untouched, and the ownership.json mod-removal 
 - `spacing` (grid cell size in chunks), `separation` (min gap, strictly < spacing), `frequency` (0–1 chance per cell). Expected structures per area ∝ `frequency / spacing²`.
 - **`frequency` is the safe knob on an existing world** — reducing it never moves placements already generated. Changing `spacing` or `salt` re-rolls the grid for future chunks.
 - Two mods are natively configurable (don't datapack them): **Towns and Towers** and **Explorify** read Cristel Lib configs through the normal config-sync pipeline.
+- **Moog's sets multiply any spacing they are given by 1.65** ([TROUBLESHOOTING.md#t48](../../../TROUBLESHOOTING.md#t48)) — 221 of the pack's 411 sets. Set them in `config/cristellib/<mod>/structure_placement_config.json5` and read the result from `/customdim catalogue`, never from a jar or that file.
 - Per-dimension density is the mod's `structureDensity` field — vanilla cannot vary one set's frequency per dimension.
 
 ## Per-dimension worldgen profiles

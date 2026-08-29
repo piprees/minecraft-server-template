@@ -1,5 +1,5 @@
 {
-  "count": 416,
+  "count": 411,
   "structure_sets": {
     "adventure:exit_shrines": {
       "source": "customdimensions.jar",
@@ -322,86 +322,6 @@
       "frequency": 1.0,
       "dimension": "overworld",
       "rarity": "uncommon"
-    },
-    "betterend:end_village": {
-      "source": "better-end-21.0.11.jar",
-      "theme": "settlement",
-      "structures": [
-        "betterend:end_village"
-      ],
-      "placementType": "minecraft:random_spread",
-      "spacing": 34,
-      "separation": 8,
-      "frequency": 1.0,
-      "dimension": "end",
-      "rarity": "uncommon"
-    },
-    "betterend:eternal_portal": {
-      "source": "better-end-21.0.11.jar",
-      "theme": "landmark",
-      "structures": [
-        "betterend:eternal_portal"
-      ],
-      "placementType": "minecraft:random_spread",
-      "spacing": 40,
-      "separation": 12,
-      "frequency": 1.0,
-      "dimension": "overworld",
-      "rarity": "uncommon"
-    },
-    "betterend:giant_ice_star": {
-      "source": "better-end-21.0.11.jar",
-      "theme": "landmark",
-      "structures": [
-        "betterend:giant_ice_star"
-      ],
-      "placementType": "minecraft:random_spread",
-      "spacing": 16,
-      "separation": 8,
-      "frequency": 1.0,
-      "dimension": "overworld",
-      "rarity": "common"
-    },
-    "betterend:giant_mossy_glowshroom": {
-      "source": "better-end-21.0.11.jar",
-      "theme": "landmark",
-      "structures": [
-        "betterend:giant_mossy_glowshroom"
-      ],
-      "placementType": "minecraft:random_spread",
-      "spacing": 16,
-      "separation": 8,
-      "frequency": 1.0,
-      "dimension": "overworld",
-      "rarity": "common"
-    },
-    "betterend:megalake": {
-      "source": "better-end-21.0.11.jar",
-      "theme": "landmark",
-      "structures": [
-        "betterend:megalake",
-        "betterend:megalake_small"
-      ],
-      "placementType": "minecraft:random_spread",
-      "spacing": 4,
-      "separation": 1,
-      "frequency": 1.0,
-      "dimension": "overworld",
-      "rarity": "common"
-    },
-    "betterend:mountain": {
-      "source": "better-end-21.0.11.jar",
-      "theme": "landmark",
-      "structures": [
-        "betterend:mountain",
-        "betterend:painted_mountain"
-      ],
-      "placementType": "minecraft:random_spread",
-      "spacing": 3,
-      "separation": 2,
-      "frequency": 1.0,
-      "dimension": "overworld",
-      "rarity": "common"
     },
     "betterfortresses:fortress": {
       "source": "YungsBetterNetherFortresses-1.21.1-Fabric-3.1.5.jar",
@@ -1013,6 +933,23 @@
       "dimension": "nether",
       "rarity": "common"
     },
+    "medievalend:houses": {
+      "source": "medieval_buildings_end_edition-1.21.1-1.0.4-fabric.jar",
+      "theme": "maritime",
+      "structures": [
+        "medievalend:shrine",
+        "medievalend:house",
+        "medievalend:pyramid",
+        "medievalend:castle",
+        "medievalend:ship"
+      ],
+      "placementType": "minecraft:random_spread",
+      "spacing": 28,
+      "separation": 22,
+      "frequency": 1.0,
+      "dimension": "end",
+      "rarity": "common"
+    },
     "mes:astral_hideaway": {
       "source": "MoogsEndStructures-1.21-2.0.3.jar",
       "theme": "landmark",
@@ -1020,11 +957,11 @@
         "mes:astral_hideaway"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 40,
-      "separation": 18,
+      "spacing": 66,
+      "separation": 30,
       "frequency": 1.0,
       "dimension": "end",
-      "rarity": "uncommon"
+      "rarity": "rare"
     },
     "mes:astral_meteorite": {
       "source": "MoogsEndStructures-1.21-2.0.3.jar",
@@ -1033,11 +970,11 @@
         "mes:astral_meteorite"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 27,
-      "separation": 12,
+      "spacing": 45,
+      "separation": 20,
       "frequency": 1.0,
       "dimension": "end",
-      "rarity": "common"
+      "rarity": "uncommon"
     },
     "mes:ender_spire": {
       "source": "MoogsEndStructures-1.21-2.0.3.jar",
@@ -1046,11 +983,11 @@
         "mes:ender_spire"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 46,
-      "separation": 38,
+      "spacing": 76,
+      "separation": 63,
       "frequency": 1.0,
       "dimension": "end",
-      "rarity": "uncommon"
+      "rarity": "rare"
     },
     "mes:enderbloom_grove": {
       "source": "MoogsEndStructures-1.21-2.0.3.jar",
@@ -1059,11 +996,11 @@
         "mes:enderbloom_grove"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 36,
-      "separation": 12,
+      "spacing": 59,
+      "separation": 20,
       "frequency": 1.0,
       "dimension": "end",
-      "rarity": "uncommon"
+      "rarity": "rare"
     },
     "mes:enderkeep_courtyard": {
       "source": "MoogsEndStructures-1.21-2.0.3.jar",
@@ -1072,11 +1009,11 @@
         "mes:enderkeep_courtyard"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 44,
-      "separation": 25,
+      "spacing": 73,
+      "separation": 41,
       "frequency": 1.0,
       "dimension": "end",
-      "rarity": "uncommon"
+      "rarity": "rare"
     },
     "mes:enderpin_spikes": {
       "source": "MoogsEndStructures-1.21-2.0.3.jar",
@@ -1085,11 +1022,11 @@
         "mes:enderpin_spikes"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 31,
-      "separation": 8,
+      "spacing": 51,
+      "separation": 13,
       "frequency": 1.0,
       "dimension": "end",
-      "rarity": "common"
+      "rarity": "uncommon"
     },
     "mes:enderskog": {
       "source": "MoogsEndStructures-1.21-2.0.3.jar",
@@ -1098,11 +1035,11 @@
         "mes:enderskog"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 52,
-      "separation": 22,
+      "spacing": 86,
+      "separation": 36,
       "frequency": 1.0,
       "dimension": "end",
-      "rarity": "uncommon"
+      "rarity": "rare"
     },
     "mes:enderwatch_tower": {
       "source": "MoogsEndStructures-1.21-2.0.3.jar",
@@ -1111,11 +1048,11 @@
         "mes:enderwatch_tower"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 42,
-      "separation": 12,
+      "spacing": 69,
+      "separation": 20,
       "frequency": 1.0,
       "dimension": "end",
-      "rarity": "uncommon"
+      "rarity": "rare"
     },
     "mes:endscraps": {
       "source": "MoogsEndStructures-1.21-2.0.3.jar",
@@ -1124,11 +1061,11 @@
         "mes:endscraps"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 37,
-      "separation": 7,
+      "spacing": 61,
+      "separation": 12,
       "frequency": 1.0,
       "dimension": "end",
-      "rarity": "uncommon"
+      "rarity": "rare"
     },
     "mes:manuscript_shrine": {
       "source": "MoogsEndStructures-1.21-2.0.3.jar",
@@ -1137,11 +1074,11 @@
         "mes:manuscript_shrine"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 41,
-      "separation": 27,
+      "spacing": 68,
+      "separation": 45,
       "frequency": 1.0,
       "dimension": "end",
-      "rarity": "uncommon"
+      "rarity": "rare"
     },
     "mes:mega_ship": {
       "source": "MoogsEndStructures-1.21-2.0.3.jar",
@@ -1150,8 +1087,8 @@
         "mes:mega_ship"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 77,
-      "separation": 15,
+      "spacing": 127,
+      "separation": 25,
       "frequency": 1.0,
       "dimension": "end",
       "rarity": "endgame"
@@ -1163,8 +1100,8 @@
         "mes:mega_ship_basic"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 80,
-      "separation": 60,
+      "spacing": 132,
+      "separation": 99,
       "frequency": 1.0,
       "dimension": "end",
       "rarity": "endgame"
@@ -1176,8 +1113,8 @@
         "mes:mega_ship_crashed"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 75,
-      "separation": 46,
+      "spacing": 124,
+      "separation": 76,
       "frequency": 1.0,
       "dimension": "end",
       "rarity": "endgame"
@@ -1189,8 +1126,8 @@
         "mes:mega_ship_crashed_2"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 72,
-      "separation": 48,
+      "spacing": 119,
+      "separation": 79,
       "frequency": 1.0,
       "dimension": "end",
       "rarity": "endgame"
@@ -1202,8 +1139,8 @@
         "mes:mega_ship_crashed_deepslate"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 79,
-      "separation": 52,
+      "spacing": 130,
+      "separation": 86,
       "frequency": 1.0,
       "dimension": "end",
       "rarity": "endgame"
@@ -1215,8 +1152,8 @@
         "mes:mega_ship_deepslate"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 88,
-      "separation": 65,
+      "spacing": 145,
+      "separation": 107,
       "frequency": 1.0,
       "dimension": "end",
       "rarity": "endgame"
@@ -1228,8 +1165,8 @@
         "mes:mega_ship_deepslate_2"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 82,
-      "separation": 46,
+      "spacing": 135,
+      "separation": 76,
       "frequency": 1.0,
       "dimension": "end",
       "rarity": "endgame"
@@ -1241,8 +1178,8 @@
         "mes:mega_ship_deepslate_3"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 84,
-      "separation": 52,
+      "spacing": 139,
+      "separation": 86,
       "frequency": 1.0,
       "dimension": "end",
       "rarity": "endgame"
@@ -1254,11 +1191,11 @@
         "mes:monolith"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 36,
-      "separation": 21,
+      "spacing": 59,
+      "separation": 35,
       "frequency": 1.0,
       "dimension": "end",
-      "rarity": "uncommon"
+      "rarity": "rare"
     },
     "mes:mystical_archway": {
       "source": "MoogsEndStructures-1.21-2.0.3.jar",
@@ -1267,11 +1204,11 @@
         "mes:mystical_archway"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 44,
-      "separation": 32,
+      "spacing": 73,
+      "separation": 53,
       "frequency": 1.0,
       "dimension": "end",
-      "rarity": "uncommon"
+      "rarity": "rare"
     },
     "mes:mythic_garden": {
       "source": "MoogsEndStructures-1.21-2.0.3.jar",
@@ -1280,11 +1217,11 @@
         "mes:mythic_garden"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 38,
-      "separation": 27,
+      "spacing": 63,
+      "separation": 45,
       "frequency": 1.0,
       "dimension": "end",
-      "rarity": "uncommon"
+      "rarity": "rare"
     },
     "mes:phantom_citadel": {
       "source": "MoogsEndStructures-1.21-2.0.3.jar",
@@ -1293,8 +1230,8 @@
         "mes:phantom_citadel"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 31,
-      "separation": 14,
+      "spacing": 51,
+      "separation": 23,
       "frequency": 1.0,
       "dimension": "end",
       "rarity": "endgame"
@@ -1306,8 +1243,8 @@
         "mes:placid_prairie"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 32,
-      "separation": 22,
+      "spacing": 53,
+      "separation": 36,
       "frequency": 1.0,
       "dimension": "end",
       "rarity": "uncommon"
@@ -1319,8 +1256,8 @@
         "mes:ruined_pillar"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 12,
-      "separation": 7,
+      "spacing": 20,
+      "separation": 12,
       "frequency": 1.0,
       "dimension": "end",
       "rarity": "common"
@@ -1332,8 +1269,8 @@
         "mes:starlight_voyager"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 32,
-      "separation": 17,
+      "spacing": 53,
+      "separation": 28,
       "frequency": 1.0,
       "dimension": "end",
       "rarity": "uncommon"
@@ -1620,11 +1557,11 @@
         "mns:bridge_1"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 90,
-      "separation": 70,
+      "spacing": 149,
+      "separation": 116,
       "frequency": 1.0,
       "dimension": "nether",
-      "rarity": "rare"
+      "rarity": "very_rare"
     },
     "mns:bridge_2": {
       "source": "MoogsNetherStructures-1.21-3.0.0.jar",
@@ -1633,11 +1570,11 @@
         "mns:bridge_2"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 90,
-      "separation": 70,
+      "spacing": 149,
+      "separation": 116,
       "frequency": 1.0,
       "dimension": "nether",
-      "rarity": "rare"
+      "rarity": "very_rare"
     },
     "mns:bridge_3": {
       "source": "MoogsNetherStructures-1.21-3.0.0.jar",
@@ -1646,11 +1583,11 @@
         "mns:bridge_3"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 90,
-      "separation": 70,
+      "spacing": 149,
+      "separation": 116,
       "frequency": 1.0,
       "dimension": "nether",
-      "rarity": "rare"
+      "rarity": "very_rare"
     },
     "mns:bridge_4": {
       "source": "MoogsNetherStructures-1.21-3.0.0.jar",
@@ -1659,11 +1596,11 @@
         "mns:bridge_4"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 90,
-      "separation": 70,
+      "spacing": 149,
+      "separation": 116,
       "frequency": 1.0,
       "dimension": "nether",
-      "rarity": "rare"
+      "rarity": "very_rare"
     },
     "mns:bridge_5": {
       "source": "MoogsNetherStructures-1.21-3.0.0.jar",
@@ -1672,11 +1609,11 @@
         "mns:bridge_5"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 90,
-      "separation": 70,
+      "spacing": 149,
+      "separation": 116,
       "frequency": 1.0,
       "dimension": "nether",
-      "rarity": "rare"
+      "rarity": "very_rare"
     },
     "mns:bridge_6": {
       "source": "MoogsNetherStructures-1.21-3.0.0.jar",
@@ -1685,11 +1622,11 @@
         "mns:bridge_6"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 90,
-      "separation": 70,
+      "spacing": 149,
+      "separation": 116,
       "frequency": 1.0,
       "dimension": "nether",
-      "rarity": "rare"
+      "rarity": "very_rare"
     },
     "mns:circle_blackstone": {
       "source": "MoogsNetherStructures-1.21-3.0.0.jar",
@@ -1698,11 +1635,11 @@
         "mns:circle_blackstone"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 22,
-      "separation": 15,
+      "spacing": 36,
+      "separation": 25,
       "frequency": 1.0,
       "dimension": "nether",
-      "rarity": "common"
+      "rarity": "uncommon"
     },
     "mns:circle_nether_brick": {
       "source": "MoogsNetherStructures-1.21-3.0.0.jar",
@@ -1711,11 +1648,11 @@
         "mns:circle_nether_brick"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 23,
-      "separation": 11,
+      "spacing": 38,
+      "separation": 18,
       "frequency": 1.0,
       "dimension": "nether",
-      "rarity": "common"
+      "rarity": "uncommon"
     },
     "mns:copper_tower": {
       "source": "MoogsNetherStructures-1.21-3.0.0.jar",
@@ -1724,11 +1661,11 @@
         "mns:copper_tower"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 72,
-      "separation": 37,
+      "spacing": 119,
+      "separation": 61,
       "frequency": 1.0,
       "dimension": "nether",
-      "rarity": "rare"
+      "rarity": "very_rare"
     },
     "mns:crimson_forge": {
       "source": "MoogsNetherStructures-1.21-3.0.0.jar",
@@ -1737,11 +1674,11 @@
         "mns:crimson_forge"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 24,
-      "separation": 19,
+      "spacing": 40,
+      "separation": 31,
       "frequency": 1.0,
       "dimension": "nether",
-      "rarity": "common"
+      "rarity": "uncommon"
     },
     "mns:crimson_lava_well": {
       "source": "MoogsNetherStructures-1.21-3.0.0.jar",
@@ -1750,11 +1687,11 @@
         "mns:crimson_lava_well"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 24,
-      "separation": 19,
+      "spacing": 40,
+      "separation": 31,
       "frequency": 1.0,
       "dimension": "nether",
-      "rarity": "common"
+      "rarity": "uncommon"
     },
     "mns:giant_skull": {
       "source": "MoogsNetherStructures-1.21-3.0.0.jar",
@@ -1763,11 +1700,11 @@
         "mns:giant_skull"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 54,
-      "separation": 46,
+      "spacing": 89,
+      "separation": 76,
       "frequency": 1.0,
       "dimension": "nether",
-      "rarity": "uncommon"
+      "rarity": "rare"
     },
     "mns:grave_yard": {
       "source": "MoogsNetherStructures-1.21-3.0.0.jar",
@@ -1776,11 +1713,11 @@
         "mns:grave_yard"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 36,
-      "separation": 22,
+      "spacing": 59,
+      "separation": 36,
       "frequency": 1.0,
       "dimension": "nether",
-      "rarity": "uncommon"
+      "rarity": "rare"
     },
     "mns:large_blackstone_pillars": {
       "source": "MoogsNetherStructures-1.21-3.0.0.jar",
@@ -1789,11 +1726,11 @@
         "mns:large_blackstone_pillars"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 27,
-      "separation": 18,
+      "spacing": 45,
+      "separation": 30,
       "frequency": 1.0,
       "dimension": "nether",
-      "rarity": "common"
+      "rarity": "uncommon"
     },
     "mns:large_blackstone_walls": {
       "source": "MoogsNetherStructures-1.21-3.0.0.jar",
@@ -1802,11 +1739,11 @@
         "mns:large_blackstone_walls"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 29,
-      "separation": 11,
+      "spacing": 48,
+      "separation": 18,
       "frequency": 1.0,
       "dimension": "nether",
-      "rarity": "common"
+      "rarity": "uncommon"
     },
     "mns:large_house_1": {
       "source": "MoogsNetherStructures-1.21-3.0.0.jar",
@@ -1815,11 +1752,11 @@
         "mns:large_house_1"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 42,
-      "separation": 38,
+      "spacing": 69,
+      "separation": 63,
       "frequency": 1.0,
       "dimension": "nether",
-      "rarity": "uncommon"
+      "rarity": "rare"
     },
     "mns:large_nether_brick": {
       "source": "MoogsNetherStructures-1.21-3.0.0.jar",
@@ -1828,8 +1765,8 @@
         "mns:large_nether_brick"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 32,
-      "separation": 16,
+      "spacing": 53,
+      "separation": 26,
       "frequency": 1.0,
       "dimension": "nether",
       "rarity": "uncommon"
@@ -1841,11 +1778,11 @@
         "mns:lava_pool"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 41,
-      "separation": 26,
+      "spacing": 68,
+      "separation": 43,
       "frequency": 1.0,
       "dimension": "nether",
-      "rarity": "uncommon"
+      "rarity": "rare"
     },
     "mns:leafy_rubble": {
       "source": "MoogsNetherStructures-1.21-3.0.0.jar",
@@ -1854,11 +1791,11 @@
         "mns:leafy_rubble"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 22,
-      "separation": 15,
+      "spacing": 36,
+      "separation": 25,
       "frequency": 1.0,
       "dimension": "nether",
-      "rarity": "common"
+      "rarity": "uncommon"
     },
     "mns:medium_blackstone": {
       "source": "MoogsNetherStructures-1.21-3.0.0.jar",
@@ -1867,11 +1804,11 @@
         "mns:medium_blackstone"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 23,
-      "separation": 18,
+      "spacing": 38,
+      "separation": 30,
       "frequency": 1.0,
       "dimension": "nether",
-      "rarity": "common"
+      "rarity": "uncommon"
     },
     "mns:medium_crimson_fungus": {
       "source": "MoogsNetherStructures-1.21-3.0.0.jar",
@@ -1881,11 +1818,11 @@
         "mns:medium_crimson_fungus_2"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 24,
-      "separation": 19,
+      "spacing": 40,
+      "separation": 31,
       "frequency": 1.0,
       "dimension": "nether",
-      "rarity": "common"
+      "rarity": "uncommon"
     },
     "mns:medium_crimson_well": {
       "source": "MoogsNetherStructures-1.21-3.0.0.jar",
@@ -1894,11 +1831,11 @@
         "mns:medium_crimson_well"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 22,
-      "separation": 12,
+      "spacing": 36,
+      "separation": 20,
       "frequency": 1.0,
       "dimension": "nether",
-      "rarity": "common"
+      "rarity": "uncommon"
     },
     "mns:medium_house": {
       "source": "MoogsNetherStructures-1.21-3.0.0.jar",
@@ -1907,11 +1844,11 @@
         "mns:medium_house"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 43,
-      "separation": 34,
+      "spacing": 71,
+      "separation": 56,
       "frequency": 1.0,
       "dimension": "nether",
-      "rarity": "uncommon"
+      "rarity": "rare"
     },
     "mns:medium_house_2": {
       "source": "MoogsNetherStructures-1.21-3.0.0.jar",
@@ -1920,11 +1857,11 @@
         "mns:medium_house_2"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 44,
-      "separation": 36,
+      "spacing": 73,
+      "separation": 59,
       "frequency": 1.0,
       "dimension": "nether",
-      "rarity": "uncommon"
+      "rarity": "rare"
     },
     "mns:medium_warped_fungus": {
       "source": "MoogsNetherStructures-1.21-3.0.0.jar",
@@ -1934,11 +1871,11 @@
         "mns:medium_warped_fungus_2"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 28,
-      "separation": 13,
+      "spacing": 46,
+      "separation": 21,
       "frequency": 1.0,
       "dimension": "nether",
-      "rarity": "common"
+      "rarity": "uncommon"
     },
     "mns:medium_warped_well": {
       "source": "MoogsNetherStructures-1.21-3.0.0.jar",
@@ -1947,11 +1884,11 @@
         "mns:medium_warped_well"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 24,
-      "separation": 14,
+      "spacing": 40,
+      "separation": 23,
       "frequency": 1.0,
       "dimension": "nether",
-      "rarity": "common"
+      "rarity": "uncommon"
     },
     "mns:mega_arenas": {
       "source": "MoogsNetherStructures-1.21-3.0.0.jar",
@@ -1962,8 +1899,8 @@
         "mns:dragon_arena"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 150,
-      "separation": 100,
+      "spacing": 248,
+      "separation": 165,
       "frequency": 1.0,
       "dimension": "nether",
       "rarity": "endgame"
@@ -1975,8 +1912,8 @@
         "mns:mega_fortress"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 116,
-      "separation": 76,
+      "spacing": 191,
+      "separation": 125,
       "frequency": 1.0,
       "dimension": "nether",
       "rarity": "endgame"
@@ -1988,11 +1925,11 @@
         "mns:nether_tower"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 115,
-      "separation": 56,
+      "spacing": 190,
+      "separation": 92,
       "frequency": 1.0,
       "dimension": "nether",
-      "rarity": "very_rare"
+      "rarity": "legendary"
     },
     "mns:nether_wart_farm": {
       "source": "MoogsNetherStructures-1.21-3.0.0.jar",
@@ -2001,11 +1938,11 @@
         "mns:nether_wart_farm"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 85,
-      "separation": 25,
+      "spacing": 140,
+      "separation": 41,
       "frequency": 1.0,
       "dimension": "nether",
-      "rarity": "rare"
+      "rarity": "very_rare"
     },
     "mns:ruined_portal": {
       "source": "MoogsNetherStructures-1.21-3.0.0.jar",
@@ -2014,11 +1951,11 @@
         "mns:ruined_portal"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 30,
-      "separation": 28,
+      "spacing": 50,
+      "separation": 46,
       "frequency": 1.0,
       "dimension": "nether",
-      "rarity": "common"
+      "rarity": "uncommon"
     },
     "mns:sandy_skull": {
       "source": "MoogsNetherStructures-1.21-3.0.0.jar",
@@ -2027,11 +1964,11 @@
         "mns:sandy_skull"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 40,
-      "separation": 36,
+      "spacing": 66,
+      "separation": 59,
       "frequency": 1.0,
       "dimension": "nether",
-      "rarity": "uncommon"
+      "rarity": "rare"
     },
     "mns:shrine": {
       "source": "MoogsNetherStructures-1.21-3.0.0.jar",
@@ -2041,11 +1978,11 @@
         "mns:smoking_shrine"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 24,
-      "separation": 17,
+      "spacing": 40,
+      "separation": 28,
       "frequency": 1.0,
       "dimension": "nether",
-      "rarity": "common"
+      "rarity": "uncommon"
     },
     "mns:small_nether_brick": {
       "source": "MoogsNetherStructures-1.21-3.0.0.jar",
@@ -2054,11 +1991,11 @@
         "mns:small_nether_brick"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 24,
-      "separation": 20,
+      "spacing": 40,
+      "separation": 33,
       "frequency": 1.0,
       "dimension": "nether",
-      "rarity": "common"
+      "rarity": "uncommon"
     },
     "mns:soul_fire": {
       "source": "MoogsNetherStructures-1.21-3.0.0.jar",
@@ -2067,11 +2004,11 @@
         "mns:soul_fire"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 25,
-      "separation": 16,
+      "spacing": 41,
+      "separation": 26,
       "frequency": 1.0,
       "dimension": "nether",
-      "rarity": "common"
+      "rarity": "uncommon"
     },
     "mns:sword": {
       "source": "MoogsNetherStructures-1.21-3.0.0.jar",
@@ -2080,11 +2017,11 @@
         "mns:sword"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 45,
-      "separation": 42,
+      "spacing": 74,
+      "separation": 69,
       "frequency": 1.0,
       "dimension": "nether",
-      "rarity": "uncommon"
+      "rarity": "rare"
     },
     "mns:train": {
       "source": "MoogsNetherStructures-1.21-3.0.0.jar",
@@ -2093,11 +2030,11 @@
         "mns:train"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 65,
-      "separation": 50,
+      "spacing": 107,
+      "separation": 83,
       "frequency": 1.0,
       "dimension": "nether",
-      "rarity": "rare"
+      "rarity": "very_rare"
     },
     "mns:very_small_blackstone": {
       "source": "MoogsNetherStructures-1.21-3.0.0.jar",
@@ -2109,11 +2046,11 @@
         "mns:very_small_blackstone_4"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 23,
-      "separation": 12,
+      "spacing": 38,
+      "separation": 20,
       "frequency": 1.0,
       "dimension": "nether",
-      "rarity": "common"
+      "rarity": "uncommon"
     },
     "mns:very_small_nether_brick": {
       "source": "MoogsNetherStructures-1.21-3.0.0.jar",
@@ -2124,11 +2061,11 @@
         "mns:very_small_nether_brick_3"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 22,
-      "separation": 12,
+      "spacing": 36,
+      "separation": 20,
       "frequency": 1.0,
       "dimension": "nether",
-      "rarity": "common"
+      "rarity": "uncommon"
     },
     "mns:warped_dome": {
       "source": "MoogsNetherStructures-1.21-3.0.0.jar",
@@ -2137,11 +2074,11 @@
         "mns:warped_dome"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 42,
-      "separation": 38,
+      "spacing": 69,
+      "separation": 63,
       "frequency": 1.0,
       "dimension": "nether",
-      "rarity": "uncommon"
+      "rarity": "rare"
     },
     "mns:warped_house": {
       "source": "MoogsNetherStructures-1.21-3.0.0.jar",
@@ -2150,11 +2087,11 @@
         "mns:warped_house"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 42,
-      "separation": 38,
+      "spacing": 69,
+      "separation": 63,
       "frequency": 1.0,
       "dimension": "nether",
-      "rarity": "uncommon"
+      "rarity": "rare"
     },
     "mns:warped_pool": {
       "source": "MoogsNetherStructures-1.21-3.0.0.jar",
@@ -2163,8 +2100,8 @@
         "mns:warped_pool"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 33,
-      "separation": 21,
+      "spacing": 54,
+      "separation": 35,
       "frequency": 1.0,
       "dimension": "nether",
       "rarity": "uncommon"
@@ -2176,8 +2113,8 @@
         "mss:arena"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 158,
-      "separation": 92,
+      "spacing": 261,
+      "separation": 152,
       "frequency": 1.0,
       "dimension": "overworld",
       "rarity": "endgame"
@@ -2189,11 +2126,11 @@
         "mss:birch_river"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 96,
-      "separation": 34,
+      "spacing": 158,
+      "separation": 56,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "rare"
+      "rarity": "very_rare"
     },
     "mss:calcite_house": {
       "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
@@ -2202,11 +2139,11 @@
         "mss:calcite_house"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 68,
-      "separation": 27,
+      "spacing": 112,
+      "separation": 45,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "rare"
+      "rarity": "very_rare"
     },
     "mss:castle_ruin": {
       "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
@@ -2215,8 +2152,8 @@
         "mss:castle_ruin"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 107,
-      "separation": 56,
+      "spacing": 177,
+      "separation": 92,
       "frequency": 1.0,
       "dimension": "overworld",
       "rarity": "very_rare"
@@ -2228,11 +2165,11 @@
         "mss:castle_tower"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 114,
-      "separation": 52,
+      "spacing": 188,
+      "separation": 86,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "very_rare"
+      "rarity": "legendary"
     },
     "mss:cherry_river": {
       "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
@@ -2241,11 +2178,11 @@
         "mss:cherry_river"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 53,
-      "separation": 17,
+      "spacing": 87,
+      "separation": 28,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "uncommon"
+      "rarity": "rare"
     },
     "mss:desert_pyramid": {
       "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
@@ -2254,11 +2191,11 @@
         "mss:desert_pyramid"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 80,
-      "separation": 42,
+      "spacing": 132,
+      "separation": 69,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "rare"
+      "rarity": "very_rare"
     },
     "mss:desert_well": {
       "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
@@ -2267,11 +2204,11 @@
         "mss:desert_well"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 66,
-      "separation": 15,
+      "spacing": 109,
+      "separation": 25,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "rare"
+      "rarity": "very_rare"
     },
     "mss:diorite_house": {
       "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
@@ -2280,11 +2217,11 @@
         "mss:diorite_house"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 156,
-      "separation": 97,
+      "spacing": 257,
+      "separation": 160,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "very_rare"
+      "rarity": "legendary"
     },
     "mss:frozen_pond": {
       "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
@@ -2293,11 +2230,11 @@
         "mss:frozen_pond"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 94,
-      "separation": 31,
+      "spacing": 155,
+      "separation": 51,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "rare"
+      "rarity": "very_rare"
     },
     "mss:jungle": {
       "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
@@ -2306,11 +2243,11 @@
         "mss:jungle"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 72,
-      "separation": 36,
+      "spacing": 119,
+      "separation": 59,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "rare"
+      "rarity": "very_rare"
     },
     "mss:large_tower": {
       "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
@@ -2319,11 +2256,11 @@
         "mss:large_tower"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 140,
-      "separation": 96,
+      "spacing": 231,
+      "separation": 158,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "very_rare"
+      "rarity": "legendary"
     },
     "mss:leaf_hollow": {
       "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
@@ -2332,8 +2269,8 @@
         "mss:leaf_hollow"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 104,
-      "separation": 62,
+      "spacing": 172,
+      "separation": 102,
       "frequency": 1.0,
       "dimension": "overworld",
       "rarity": "very_rare"
@@ -2345,11 +2282,11 @@
         "mss:mangrove"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 68,
-      "separation": 32,
+      "spacing": 112,
+      "separation": 53,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "rare"
+      "rarity": "very_rare"
     },
     "mss:muddy_water_hole": {
       "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
@@ -2358,11 +2295,11 @@
         "mss:muddy_water_hole"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 132,
-      "separation": 72,
+      "spacing": 218,
+      "separation": 119,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "very_rare"
+      "rarity": "legendary"
     },
     "mss:mushroom": {
       "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
@@ -2371,11 +2308,11 @@
         "mss:mushroom"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 124,
-      "separation": 48,
+      "spacing": 205,
+      "separation": 79,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "very_rare"
+      "rarity": "legendary"
     },
     "mss:nether_portal": {
       "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
@@ -2384,11 +2321,11 @@
         "mss:nether_portal"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 99,
-      "separation": 52,
+      "spacing": 163,
+      "separation": 86,
       "frequency": 1.0,
       "dimension": "nether",
-      "rarity": "rare"
+      "rarity": "very_rare"
     },
     "mss:palm_island": {
       "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
@@ -2397,8 +2334,8 @@
         "mss:palm_island"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 102,
-      "separation": 46,
+      "spacing": 168,
+      "separation": 76,
       "frequency": 1.0,
       "dimension": "overworld",
       "rarity": "very_rare"
@@ -2410,11 +2347,11 @@
         "mss:red_sand"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 142,
-      "separation": 72,
+      "spacing": 234,
+      "separation": 119,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "very_rare"
+      "rarity": "legendary"
     },
     "mss:small_deepslate_house": {
       "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
@@ -2423,11 +2360,11 @@
         "mss:small_deepslate_house"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 124,
-      "separation": 36,
+      "spacing": 205,
+      "separation": 59,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "very_rare"
+      "rarity": "legendary"
     },
     "mss:small_oak_house": {
       "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
@@ -2436,8 +2373,8 @@
         "mss:small_oak_house"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 105,
-      "separation": 35,
+      "spacing": 173,
+      "separation": 58,
       "frequency": 1.0,
       "dimension": "overworld",
       "rarity": "very_rare"
@@ -2449,11 +2386,11 @@
         "mss:small_pond"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 92,
-      "separation": 18,
+      "spacing": 152,
+      "separation": 30,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "rare"
+      "rarity": "very_rare"
     },
     "mss:small_tower": {
       "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
@@ -2462,8 +2399,8 @@
         "mss:small_tower"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 108,
-      "separation": 46,
+      "spacing": 178,
+      "separation": 76,
       "frequency": 1.0,
       "dimension": "overworld",
       "rarity": "very_rare"
@@ -2475,11 +2412,11 @@
         "mss:spruce_huts"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 134,
-      "separation": 48,
+      "spacing": 221,
+      "separation": 79,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "very_rare"
+      "rarity": "legendary"
     },
     "mss:taiga": {
       "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
@@ -2488,11 +2425,11 @@
         "mss:taiga"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 95,
-      "separation": 42,
+      "spacing": 157,
+      "separation": 69,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "rare"
+      "rarity": "very_rare"
     },
     "mss:tree_1": {
       "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
@@ -2501,11 +2438,11 @@
         "mss:tree_1"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 147,
-      "separation": 73,
+      "spacing": 243,
+      "separation": 120,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "very_rare"
+      "rarity": "legendary"
     },
     "mss:tree_2": {
       "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
@@ -2514,11 +2451,11 @@
         "mss:tree_2"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 148,
-      "separation": 74,
+      "spacing": 244,
+      "separation": 122,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "very_rare"
+      "rarity": "legendary"
     },
     "mss:tree_3": {
       "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
@@ -2527,11 +2464,11 @@
         "mss:tree_3"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 176,
-      "separation": 68,
+      "spacing": 290,
+      "separation": 112,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "very_rare"
+      "rarity": "legendary"
     },
     "mss:tree_4": {
       "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
@@ -2540,11 +2477,11 @@
         "mss:tree_4"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 159,
-      "separation": 82,
+      "spacing": 262,
+      "separation": 135,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "very_rare"
+      "rarity": "legendary"
     },
     "mss:tree_5": {
       "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
@@ -2553,11 +2490,11 @@
         "mss:tree_5"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 175,
-      "separation": 99,
+      "spacing": 289,
+      "separation": 163,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "very_rare"
+      "rarity": "legendary"
     },
     "mss:tree_6": {
       "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
@@ -2566,11 +2503,11 @@
         "mss:tree_6"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 182,
-      "separation": 67,
+      "spacing": 300,
+      "separation": 111,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "very_rare"
+      "rarity": "legendary"
     },
     "mss:tree_7": {
       "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
@@ -2579,8 +2516,8 @@
         "mss:tree_7"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 186,
-      "separation": 82,
+      "spacing": 307,
+      "separation": 135,
       "frequency": 1.0,
       "dimension": "overworld",
       "rarity": "legendary"
@@ -2592,11 +2529,11 @@
         "mss:tree_8"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 156,
-      "separation": 64,
+      "spacing": 257,
+      "separation": 106,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "very_rare"
+      "rarity": "legendary"
     },
     "mss:volcano": {
       "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
@@ -2605,11 +2542,11 @@
         "mss:volcano"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 158,
-      "separation": 78,
+      "spacing": 261,
+      "separation": 129,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "very_rare"
+      "rarity": "legendary"
     },
     "mss:white_house": {
       "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
@@ -2618,11 +2555,11 @@
         "mss:white_house"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 145,
-      "separation": 92,
+      "spacing": 239,
+      "separation": 152,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "very_rare"
+      "rarity": "legendary"
     },
     "mtr:badlands_temple": {
       "source": "MoogsTemplesReimagined-1.21-1.1.3.jar",
@@ -2631,11 +2568,11 @@
         "mtr:badlands_temple"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 55,
-      "separation": 6,
+      "spacing": 91,
+      "separation": 10,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "uncommon"
+      "rarity": "rare"
     },
     "mtr:desert_temple": {
       "source": "MoogsTemplesReimagined-1.21-1.1.3.jar",
@@ -2644,11 +2581,11 @@
         "mtr:desert_temple"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 50,
-      "separation": 8,
+      "spacing": 83,
+      "separation": 13,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "uncommon"
+      "rarity": "rare"
     },
     "mtr:jungle_temple": {
       "source": "MoogsTemplesReimagined-1.21-1.1.3.jar",
@@ -2657,11 +2594,11 @@
         "mtr:jungle_temple"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 50,
-      "separation": 30,
+      "spacing": 83,
+      "separation": 50,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "uncommon"
+      "rarity": "rare"
     },
     "mtr:nether_temple": {
       "source": "MoogsTemplesReimagined-1.21-1.1.3.jar",
@@ -2670,11 +2607,11 @@
         "mtr:nether_temple"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 150,
-      "separation": 40,
+      "spacing": 248,
+      "separation": 66,
       "frequency": 1.0,
       "dimension": "nether",
-      "rarity": "very_rare"
+      "rarity": "legendary"
     },
     "mtr:ocean_temple": {
       "source": "MoogsTemplesReimagined-1.21-1.1.3.jar",
@@ -2683,8 +2620,8 @@
         "mtr:ocean_temple"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 60,
-      "separation": 30,
+      "spacing": 99,
+      "separation": 50,
       "frequency": 1.0,
       "dimension": "overworld",
       "rarity": "rare"
@@ -2696,8 +2633,8 @@
         "mtr:stronghold"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 150,
-      "separation": 90,
+      "spacing": 248,
+      "separation": 149,
       "frequency": 1.0,
       "dimension": "overworld",
       "rarity": "endgame"
@@ -2709,11 +2646,11 @@
         "mvs:acacia_log_pile"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 26,
-      "separation": 16,
+      "spacing": 43,
+      "separation": 26,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "common"
+      "rarity": "uncommon"
     },
     "mvs:acacia_tree": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
@@ -2722,8 +2659,8 @@
         "mvs:acacia_tree"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 18,
-      "separation": 13,
+      "spacing": 30,
+      "separation": 21,
       "frequency": 1.0,
       "dimension": "overworld",
       "rarity": "common"
@@ -2735,11 +2672,11 @@
         "mvs:azelea_house"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 35,
-      "separation": 31,
+      "spacing": 58,
+      "separation": 51,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "uncommon"
+      "rarity": "rare"
     },
     "mvs:barn": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
@@ -2748,11 +2685,11 @@
         "mvs:barn"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 31,
-      "separation": 26,
+      "spacing": 51,
+      "separation": 43,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "common"
+      "rarity": "uncommon"
     },
     "mvs:beach_bar": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
@@ -2761,11 +2698,11 @@
         "mvs:beach_bar"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 48,
-      "separation": 20,
+      "spacing": 79,
+      "separation": 33,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "uncommon"
+      "rarity": "rare"
     },
     "mvs:bee_dome": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
@@ -2774,8 +2711,8 @@
         "mvs:bee_dome"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 34,
-      "separation": 12,
+      "spacing": 56,
+      "separation": 20,
       "frequency": 1.0,
       "dimension": "overworld",
       "rarity": "uncommon"
@@ -2787,8 +2724,8 @@
         "mvs:bench"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 18,
-      "separation": 14,
+      "spacing": 30,
+      "separation": 23,
       "frequency": 1.0,
       "dimension": "overworld",
       "rarity": "common"
@@ -2800,11 +2737,11 @@
         "mvs:big_oak_tree"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 39,
-      "separation": 26,
+      "spacing": 64,
+      "separation": 43,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "uncommon"
+      "rarity": "rare"
     },
     "mvs:birch_log_pile": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
@@ -2813,11 +2750,11 @@
         "mvs:birch_log_pile"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 26,
-      "separation": 16,
+      "spacing": 43,
+      "separation": 26,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "common"
+      "rarity": "uncommon"
     },
     "mvs:birch_tree": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
@@ -2826,8 +2763,8 @@
         "mvs:birch_tree"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 18,
-      "separation": 13,
+      "spacing": 30,
+      "separation": 21,
       "frequency": 1.0,
       "dimension": "overworld",
       "rarity": "common"
@@ -2839,11 +2776,11 @@
         "mvs:boulder"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 35,
-      "separation": 12,
+      "spacing": 58,
+      "separation": 20,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "uncommon"
+      "rarity": "rare"
     },
     "mvs:campsite": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
@@ -2852,11 +2789,11 @@
         "mvs:campsite"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 37,
-      "separation": 30,
+      "spacing": 61,
+      "separation": 50,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "uncommon"
+      "rarity": "rare"
     },
     "mvs:cart": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
@@ -2865,8 +2802,8 @@
         "mvs:cart"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 34,
-      "separation": 26,
+      "spacing": 56,
+      "separation": 43,
       "frequency": 1.0,
       "dimension": "overworld",
       "rarity": "uncommon"
@@ -2878,11 +2815,11 @@
         "mvs:cartographer_tower"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 83,
-      "separation": 46,
+      "spacing": 137,
+      "separation": 76,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "rare"
+      "rarity": "very_rare"
     },
     "mvs:castle_ruins": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
@@ -2891,11 +2828,11 @@
         "mvs:castle_ruins"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 45,
-      "separation": 30,
+      "spacing": 74,
+      "separation": 50,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "uncommon"
+      "rarity": "rare"
     },
     "mvs:cathedral": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
@@ -2904,8 +2841,8 @@
         "mvs:cathedral"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 105,
-      "separation": 98,
+      "spacing": 173,
+      "separation": 162,
       "frequency": 1.0,
       "dimension": "overworld",
       "rarity": "very_rare"
@@ -2917,8 +2854,8 @@
         "mvs:cherry_tree"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 18,
-      "separation": 13,
+      "spacing": 30,
+      "separation": 21,
       "frequency": 1.0,
       "dimension": "overworld",
       "rarity": "common"
@@ -2930,11 +2867,11 @@
         "mvs:crimson_enchanting_table"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 77,
-      "separation": 58,
+      "spacing": 127,
+      "separation": 96,
       "frequency": 1.0,
       "dimension": "nether",
-      "rarity": "rare"
+      "rarity": "very_rare"
     },
     "mvs:crystal": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
@@ -2943,11 +2880,11 @@
         "mvs:crystal"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 112,
-      "separation": 62,
+      "spacing": 185,
+      "separation": 102,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "very_rare"
+      "rarity": "legendary"
     },
     "mvs:dark_oak_log_pile": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
@@ -2956,11 +2893,11 @@
         "mvs:dark_oak_log_pile"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 26,
-      "separation": 16,
+      "spacing": 43,
+      "separation": 26,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "common"
+      "rarity": "uncommon"
     },
     "mvs:dark_oak_tree": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
@@ -2969,8 +2906,8 @@
         "mvs:dark_oak_tree"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 18,
-      "separation": 13,
+      "spacing": 30,
+      "separation": 21,
       "frequency": 1.0,
       "dimension": "overworld",
       "rarity": "common"
@@ -2982,11 +2919,11 @@
         "mvs:dead_tree_acacia"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 28,
-      "separation": 24,
+      "spacing": 46,
+      "separation": 40,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "common"
+      "rarity": "uncommon"
     },
     "mvs:dead_tree_birch": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
@@ -2995,11 +2932,11 @@
         "mvs:dead_tree_birch"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 28,
-      "separation": 24,
+      "spacing": 46,
+      "separation": 40,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "common"
+      "rarity": "uncommon"
     },
     "mvs:dead_tree_cherry": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
@@ -3008,11 +2945,11 @@
         "mvs:dead_tree_cherry"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 28,
-      "separation": 24,
+      "spacing": 46,
+      "separation": 40,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "common"
+      "rarity": "uncommon"
     },
     "mvs:dead_tree_dark_oak": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
@@ -3021,11 +2958,11 @@
         "mvs:dead_tree_dark_oak"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 28,
-      "separation": 24,
+      "spacing": 46,
+      "separation": 40,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "common"
+      "rarity": "uncommon"
     },
     "mvs:dead_tree_jungle": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
@@ -3034,11 +2971,11 @@
         "mvs:dead_tree_jungle"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 28,
-      "separation": 24,
+      "spacing": 46,
+      "separation": 40,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "common"
+      "rarity": "uncommon"
     },
     "mvs:dead_tree_mangrove": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
@@ -3047,11 +2984,11 @@
         "mvs:dead_tree_mangrove"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 28,
-      "separation": 24,
+      "spacing": 46,
+      "separation": 40,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "common"
+      "rarity": "uncommon"
     },
     "mvs:dead_tree_oak": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
@@ -3060,11 +2997,11 @@
         "mvs:dead_tree_oak"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 28,
-      "separation": 24,
+      "spacing": 46,
+      "separation": 40,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "common"
+      "rarity": "uncommon"
     },
     "mvs:deepslate_house": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
@@ -3073,11 +3010,11 @@
         "mvs:deepslate_house"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 42,
-      "separation": 34,
+      "spacing": 69,
+      "separation": 56,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "uncommon"
+      "rarity": "rare"
     },
     "mvs:desert_house": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
@@ -3086,11 +3023,11 @@
         "mvs:desert_house"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 48,
-      "separation": 22,
+      "spacing": 79,
+      "separation": 36,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "uncommon"
+      "rarity": "rare"
     },
     "mvs:desert_pump": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
@@ -3099,8 +3036,8 @@
         "mvs:desert_pump"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 32,
-      "separation": 8,
+      "spacing": 53,
+      "separation": 13,
       "frequency": 1.0,
       "dimension": "overworld",
       "rarity": "uncommon"
@@ -3112,11 +3049,11 @@
         "mvs:diorite_and_deepslate_house"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 44,
-      "separation": 34,
+      "spacing": 73,
+      "separation": 56,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "uncommon"
+      "rarity": "rare"
     },
     "mvs:diorite_tower": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
@@ -3125,11 +3062,11 @@
         "mvs:diorite_tower"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 50,
-      "separation": 38,
+      "spacing": 83,
+      "separation": 63,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "uncommon"
+      "rarity": "rare"
     },
     "mvs:duck": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
@@ -3138,11 +3075,11 @@
         "mvs:duck"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 94,
-      "separation": 46,
+      "spacing": 155,
+      "separation": 76,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "rare"
+      "rarity": "very_rare"
     },
     "mvs:fire_camp": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
@@ -3151,8 +3088,8 @@
         "mvs:fire_camp"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 32,
-      "separation": 17,
+      "spacing": 53,
+      "separation": 28,
       "frequency": 1.0,
       "dimension": "overworld",
       "rarity": "uncommon"
@@ -3164,11 +3101,11 @@
         "mvs:floating_islands"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 76,
-      "separation": 38,
+      "spacing": 125,
+      "separation": 63,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "rare"
+      "rarity": "very_rare"
     },
     "mvs:flower_hole": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
@@ -3177,11 +3114,11 @@
         "mvs:flower_hole"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 46,
-      "separation": 28,
+      "spacing": 76,
+      "separation": 46,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "uncommon"
+      "rarity": "rare"
     },
     "mvs:fox_hut": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
@@ -3190,11 +3127,11 @@
         "mvs:fox_hut"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 48,
-      "separation": 8,
+      "spacing": 79,
+      "separation": 13,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "uncommon"
+      "rarity": "rare"
     },
     "mvs:gallows": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
@@ -3203,11 +3140,11 @@
         "mvs:gallows"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 36,
-      "separation": 28,
+      "spacing": 59,
+      "separation": 46,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "uncommon"
+      "rarity": "rare"
     },
     "mvs:haystack": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
@@ -3216,8 +3153,8 @@
         "mvs:haystack"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 16,
-      "separation": 7,
+      "spacing": 26,
+      "separation": 12,
       "frequency": 1.0,
       "dimension": "overworld",
       "rarity": "common"
@@ -3229,8 +3166,8 @@
         "mvs:horse_campsite"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 19,
-      "separation": 17,
+      "spacing": 31,
+      "separation": 28,
       "frequency": 1.0,
       "dimension": "overworld",
       "rarity": "common"
@@ -3242,11 +3179,11 @@
         "mvs:horse_pen"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 38,
-      "separation": 26,
+      "spacing": 63,
+      "separation": 43,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "uncommon"
+      "rarity": "rare"
     },
     "mvs:house": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
@@ -3255,11 +3192,11 @@
         "mvs:house"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 38,
-      "separation": 31,
+      "spacing": 63,
+      "separation": 51,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "uncommon"
+      "rarity": "rare"
     },
     "mvs:jungle_log_pile": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
@@ -3268,11 +3205,11 @@
         "mvs:jungle_log_pile"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 26,
-      "separation": 16,
+      "spacing": 43,
+      "separation": 26,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "common"
+      "rarity": "uncommon"
     },
     "mvs:jungle_palm_tree": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
@@ -3281,8 +3218,8 @@
         "mvs:jungle_palm_tree"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 18,
-      "separation": 13,
+      "spacing": 30,
+      "separation": 21,
       "frequency": 1.0,
       "dimension": "overworld",
       "rarity": "common"
@@ -3294,11 +3231,11 @@
         "mvs:jungle_tower"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 96,
-      "separation": 80,
+      "spacing": 158,
+      "separation": 132,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "rare"
+      "rarity": "very_rare"
     },
     "mvs:jungle_tree": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
@@ -3307,8 +3244,8 @@
         "mvs:jungle_tree"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 18,
-      "separation": 13,
+      "spacing": 30,
+      "separation": 21,
       "frequency": 1.0,
       "dimension": "overworld",
       "rarity": "common"
@@ -3320,11 +3257,11 @@
         "mvs:lamp_chest"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 45,
-      "separation": 14,
+      "spacing": 74,
+      "separation": 23,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "uncommon"
+      "rarity": "rare"
     },
     "mvs:large_cart_1": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
@@ -3333,11 +3270,11 @@
         "mvs:large_cart_1"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 56,
-      "separation": 20,
+      "spacing": 92,
+      "separation": 33,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "uncommon"
+      "rarity": "rare"
     },
     "mvs:large_cart_2": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
@@ -3346,11 +3283,11 @@
         "mvs:large_cart_2"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 56,
-      "separation": 20,
+      "spacing": 92,
+      "separation": 33,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "uncommon"
+      "rarity": "rare"
     },
     "mvs:large_floating_island": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
@@ -3359,11 +3296,11 @@
         "mvs:large_floating_island"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 65,
-      "separation": 49,
+      "spacing": 107,
+      "separation": 81,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "rare"
+      "rarity": "very_rare"
     },
     "mvs:large_mushroom": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
@@ -3372,11 +3309,11 @@
         "mvs:large_mushroom"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 98,
-      "separation": 36,
+      "spacing": 162,
+      "separation": 59,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "rare"
+      "rarity": "very_rare"
     },
     "mvs:large_warped_tower": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
@@ -3385,11 +3322,11 @@
         "mvs:large_warped_tower"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 51,
-      "separation": 28,
+      "spacing": 84,
+      "separation": 46,
       "frequency": 1.0,
       "dimension": "nether",
-      "rarity": "uncommon"
+      "rarity": "rare"
     },
     "mvs:lecturn_garden": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
@@ -3398,11 +3335,11 @@
         "mvs:lecturn_garden"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 36,
-      "separation": 16,
+      "spacing": 59,
+      "separation": 26,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "uncommon"
+      "rarity": "rare"
     },
     "mvs:log_ruin": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
@@ -3411,11 +3348,11 @@
         "mvs:log_ruin"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 55,
-      "separation": 30,
+      "spacing": 91,
+      "separation": 50,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "uncommon"
+      "rarity": "rare"
     },
     "mvs:medium_bamboo_cart": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
@@ -3424,8 +3361,8 @@
         "mvs:medium_bamboo_cart"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 12,
-      "separation": 8,
+      "spacing": 20,
+      "separation": 13,
       "frequency": 1.0,
       "dimension": "overworld",
       "rarity": "common"
@@ -3437,11 +3374,11 @@
         "mvs:medium_igloo_1"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 27,
-      "separation": 21,
+      "spacing": 45,
+      "separation": 35,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "common"
+      "rarity": "uncommon"
     },
     "mvs:medium_oak_lantern": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
@@ -3450,11 +3387,11 @@
         "mvs:medium_oak_lantern"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 28,
-      "separation": 24,
+      "spacing": 46,
+      "separation": 40,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "common"
+      "rarity": "uncommon"
     },
     "mvs:mine_with_campsite": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
@@ -3463,11 +3400,11 @@
         "mvs:mine_with_campsite"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 48,
-      "separation": 31,
+      "spacing": 79,
+      "separation": 51,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "uncommon"
+      "rarity": "rare"
     },
     "mvs:mud_brick_house_1": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
@@ -3476,11 +3413,11 @@
         "mvs:mud_brick_house_1"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 46,
-      "separation": 32,
+      "spacing": 76,
+      "separation": 53,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "uncommon"
+      "rarity": "rare"
     },
     "mvs:mushroom_pond": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
@@ -3489,11 +3426,11 @@
         "mvs:mushroom_pond"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 48,
-      "separation": 12,
+      "spacing": 79,
+      "separation": 20,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "uncommon"
+      "rarity": "rare"
     },
     "mvs:mushroom_statue": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
@@ -3502,11 +3439,11 @@
         "mvs:mushroom_statue"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 92,
-      "separation": 16,
+      "spacing": 152,
+      "separation": 26,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "rare"
+      "rarity": "very_rare"
     },
     "mvs:mushroom_well": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
@@ -3515,11 +3452,11 @@
         "mvs:mushroom_well"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 84,
-      "separation": 18,
+      "spacing": 139,
+      "separation": 30,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "rare"
+      "rarity": "very_rare"
     },
     "mvs:nether_devil": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
@@ -3528,11 +3465,11 @@
         "mvs:nether_devil"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 64,
-      "separation": 16,
+      "spacing": 106,
+      "separation": 26,
       "frequency": 1.0,
       "dimension": "nether",
-      "rarity": "rare"
+      "rarity": "very_rare"
     },
     "mvs:nether_well": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
@@ -3541,11 +3478,11 @@
         "mvs:nether_well"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 48,
-      "separation": 30,
+      "spacing": 79,
+      "separation": 50,
       "frequency": 1.0,
       "dimension": "nether",
-      "rarity": "uncommon"
+      "rarity": "rare"
     },
     "mvs:oak_log_pile": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
@@ -3554,11 +3491,11 @@
         "mvs:oak_log_pile"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 26,
-      "separation": 16,
+      "spacing": 43,
+      "separation": 26,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "common"
+      "rarity": "uncommon"
     },
     "mvs:oak_tree": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
@@ -3567,8 +3504,8 @@
         "mvs:oak_tree"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 18,
-      "separation": 13,
+      "spacing": 30,
+      "separation": 21,
       "frequency": 1.0,
       "dimension": "overworld",
       "rarity": "common"
@@ -3580,11 +3517,11 @@
         "mvs:ocean_tower"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 35,
-      "separation": 20,
+      "spacing": 58,
+      "separation": 33,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "uncommon"
+      "rarity": "rare"
     },
     "mvs:other_wells": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
@@ -3604,11 +3541,11 @@
         "mvs:acacia_well"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 24,
-      "separation": 18,
+      "spacing": 40,
+      "separation": 30,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "common"
+      "rarity": "uncommon"
     },
     "mvs:out_house": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
@@ -3617,11 +3554,11 @@
         "mvs:out_house"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 48,
-      "separation": 30,
+      "spacing": 79,
+      "separation": 50,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "uncommon"
+      "rarity": "rare"
     },
     "mvs:paths": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
@@ -3630,11 +3567,11 @@
         "mvs:paths"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 35,
-      "separation": 12,
+      "spacing": 58,
+      "separation": 20,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "uncommon"
+      "rarity": "rare"
     },
     "mvs:pile": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
@@ -3643,8 +3580,8 @@
         "mvs:pile"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 13,
-      "separation": 7,
+      "spacing": 21,
+      "separation": 12,
       "frequency": 1.0,
       "dimension": "overworld",
       "rarity": "common"
@@ -3656,11 +3593,11 @@
         "mvs:prismarine_house_1"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 44,
-      "separation": 32,
+      "spacing": 73,
+      "separation": 53,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "uncommon"
+      "rarity": "rare"
     },
     "mvs:prismarine_house_2": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
@@ -3669,11 +3606,11 @@
         "mvs:prismarine_house_2"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 44,
-      "separation": 32,
+      "spacing": 73,
+      "separation": 53,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "uncommon"
+      "rarity": "rare"
     },
     "mvs:railway": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
@@ -3682,11 +3619,11 @@
         "mvs:railway"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 46,
-      "separation": 27,
+      "spacing": 76,
+      "separation": 45,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "uncommon"
+      "rarity": "rare"
     },
     "mvs:rare_well": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
@@ -3695,11 +3632,11 @@
         "mvs:rare_well"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 68,
-      "separation": 38,
+      "spacing": 112,
+      "separation": 63,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "rare"
+      "rarity": "very_rare"
     },
     "mvs:red_tower": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
@@ -3708,11 +3645,11 @@
         "mvs:red_tower"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 76,
-      "separation": 14,
+      "spacing": 125,
+      "separation": 23,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "rare"
+      "rarity": "very_rare"
     },
     "mvs:ruined_beacon": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
@@ -3721,11 +3658,11 @@
         "mvs:ruined_beacon"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 75,
-      "separation": 60,
+      "spacing": 124,
+      "separation": 99,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "rare"
+      "rarity": "very_rare"
     },
     "mvs:shed": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
@@ -3734,11 +3671,11 @@
         "mvs:shed"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 38,
-      "separation": 23,
+      "spacing": 63,
+      "separation": 38,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "uncommon"
+      "rarity": "rare"
     },
     "mvs:small_acacia_lantern": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
@@ -3747,11 +3684,11 @@
         "mvs:small_acacia_lantern"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 24,
-      "separation": 12,
+      "spacing": 40,
+      "separation": 20,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "common"
+      "rarity": "uncommon"
     },
     "mvs:small_bamboo_lantern": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
@@ -3760,11 +3697,11 @@
         "mvs:small_bamboo_lantern"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 24,
-      "separation": 12,
+      "spacing": 40,
+      "separation": 20,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "common"
+      "rarity": "uncommon"
     },
     "mvs:small_birch_lantern": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
@@ -3773,11 +3710,11 @@
         "mvs:small_birch_lantern"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 24,
-      "separation": 12,
+      "spacing": 40,
+      "separation": 20,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "common"
+      "rarity": "uncommon"
     },
     "mvs:small_campfire_lantern": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
@@ -3786,11 +3723,11 @@
         "mvs:small_campfire_lantern"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 24,
-      "separation": 12,
+      "spacing": 40,
+      "separation": 20,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "common"
+      "rarity": "uncommon"
     },
     "mvs:small_cherry_lantern": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
@@ -3799,11 +3736,11 @@
         "mvs:small_cherry_lantern"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 24,
-      "separation": 12,
+      "spacing": 40,
+      "separation": 20,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "common"
+      "rarity": "uncommon"
     },
     "mvs:small_dark_oak_lantern": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
@@ -3812,11 +3749,11 @@
         "mvs:small_dark_oak_lantern"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 24,
-      "separation": 12,
+      "spacing": 40,
+      "separation": 20,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "common"
+      "rarity": "uncommon"
     },
     "mvs:small_igloo": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
@@ -3825,11 +3762,11 @@
         "mvs:small_igloo"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 31,
-      "separation": 26,
+      "spacing": 51,
+      "separation": 43,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "common"
+      "rarity": "uncommon"
     },
     "mvs:small_jungle_lantern": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
@@ -3838,11 +3775,11 @@
         "mvs:small_jungle_lantern"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 24,
-      "separation": 12,
+      "spacing": 40,
+      "separation": 20,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "common"
+      "rarity": "uncommon"
     },
     "mvs:small_mangrove_lantern": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
@@ -3851,11 +3788,11 @@
         "mvs:small_mangrove_lantern"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 24,
-      "separation": 12,
+      "spacing": 40,
+      "separation": 20,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "common"
+      "rarity": "uncommon"
     },
     "mvs:small_oak_lantern": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
@@ -3864,11 +3801,11 @@
         "mvs:small_oak_lantern"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 24,
-      "separation": 12,
+      "spacing": 40,
+      "separation": 20,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "common"
+      "rarity": "uncommon"
     },
     "mvs:small_oak_pond": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
@@ -3877,11 +3814,11 @@
         "mvs:small_oak_pond"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 35,
-      "separation": 12,
+      "spacing": 58,
+      "separation": 20,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "uncommon"
+      "rarity": "rare"
     },
     "mvs:small_pillager_tower": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
@@ -3890,8 +3827,8 @@
         "mvs:small_pillager_tower"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 34,
-      "separation": 28,
+      "spacing": 56,
+      "separation": 46,
       "frequency": 1.0,
       "dimension": "overworld",
       "rarity": "uncommon"
@@ -3903,11 +3840,11 @@
         "mvs:small_ruin"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 38,
-      "separation": 26,
+      "spacing": 63,
+      "separation": 43,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "uncommon"
+      "rarity": "rare"
     },
     "mvs:small_ship": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
@@ -3916,8 +3853,8 @@
         "mvs:small_ship"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 34,
-      "separation": 28,
+      "spacing": 56,
+      "separation": 46,
       "frequency": 1.0,
       "dimension": "overworld",
       "rarity": "uncommon"
@@ -3929,11 +3866,11 @@
         "mvs:small_spruce_lantern"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 24,
-      "separation": 12,
+      "spacing": 40,
+      "separation": 20,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "common"
+      "rarity": "uncommon"
     },
     "mvs:small_swamp_house": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
@@ -3942,11 +3879,11 @@
         "mvs:small_swamp_house"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 78,
-      "separation": 20,
+      "spacing": 129,
+      "separation": 33,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "rare"
+      "rarity": "very_rare"
     },
     "mvs:small_tower_well": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
@@ -3955,11 +3892,11 @@
         "mvs:small_tower_well"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 23,
-      "separation": 15,
+      "spacing": 38,
+      "separation": 25,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "common"
+      "rarity": "uncommon"
     },
     "mvs:snowy_dog_hut": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
@@ -3968,11 +3905,11 @@
         "mvs:snowy_dog_hut"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 28,
-      "separation": 24,
+      "spacing": 46,
+      "separation": 40,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "common"
+      "rarity": "uncommon"
     },
     "mvs:snowy_fossil": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
@@ -3981,11 +3918,11 @@
         "mvs:snowy_fossil"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 26,
-      "separation": 13,
+      "spacing": 43,
+      "separation": 21,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "common"
+      "rarity": "uncommon"
     },
     "mvs:spruce_log_pile": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
@@ -3994,11 +3931,11 @@
         "mvs:spruce_log_pile"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 26,
-      "separation": 16,
+      "spacing": 43,
+      "separation": 26,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "common"
+      "rarity": "uncommon"
     },
     "mvs:spruce_tree": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
@@ -4007,8 +3944,8 @@
         "mvs:spruce_tree"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 18,
-      "separation": 13,
+      "spacing": 30,
+      "separation": 21,
       "frequency": 1.0,
       "dimension": "overworld",
       "rarity": "common"
@@ -4023,8 +3960,8 @@
         "mvs:blue_stall"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 32,
-      "separation": 16,
+      "spacing": 53,
+      "separation": 26,
       "frequency": 1.0,
       "dimension": "overworld",
       "rarity": "uncommon"
@@ -4036,11 +3973,11 @@
         "mvs:statue_ruins"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 38,
-      "separation": 30,
+      "spacing": 63,
+      "separation": 50,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "uncommon"
+      "rarity": "rare"
     },
     "mvs:stone_fountain": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
@@ -4049,11 +3986,11 @@
         "mvs:stone_fountain"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 36,
-      "separation": 12,
+      "spacing": 59,
+      "separation": 20,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "uncommon"
+      "rarity": "rare"
     },
     "mvs:stone_pillars": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
@@ -4062,11 +3999,11 @@
         "mvs:stone_pillars"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 42,
-      "separation": 36,
+      "spacing": 69,
+      "separation": 59,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "uncommon"
+      "rarity": "rare"
     },
     "mvs:stone_rock": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
@@ -4075,8 +4012,8 @@
         "mvs:stone_rock"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 18,
-      "separation": 13,
+      "spacing": 30,
+      "separation": 21,
       "frequency": 1.0,
       "dimension": "overworld",
       "rarity": "common"
@@ -4088,11 +4025,11 @@
         "mvs:sunzi_gate"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 54,
-      "separation": 20,
+      "spacing": 89,
+      "separation": 33,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "uncommon"
+      "rarity": "rare"
     },
     "mvs:tall_house": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
@@ -4101,11 +4038,11 @@
         "mvs:tall_house"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 42,
-      "separation": 34,
+      "spacing": 69,
+      "separation": 56,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "uncommon"
+      "rarity": "rare"
     },
     "mvs:tree_monument": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
@@ -4114,11 +4051,11 @@
         "mvs:tree_monument"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 76,
-      "separation": 65,
+      "spacing": 125,
+      "separation": 107,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "rare"
+      "rarity": "very_rare"
     },
     "mvs:villager_statue": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
@@ -4127,11 +4064,11 @@
         "mvs:villager_statue"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 56,
-      "separation": 40,
+      "spacing": 92,
+      "separation": 66,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "uncommon"
+      "rarity": "rare"
     },
     "mvs:warped_house": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
@@ -4140,11 +4077,11 @@
         "mvs:warped_house"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 48,
-      "separation": 30,
+      "spacing": 79,
+      "separation": 50,
       "frequency": 1.0,
       "dimension": "nether",
-      "rarity": "uncommon"
+      "rarity": "rare"
     },
     "mvs:wheat_grain_bin": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
@@ -4153,11 +4090,11 @@
         "mvs:wheat_grain_bin"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 26,
-      "separation": 14,
+      "spacing": 43,
+      "separation": 23,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "common"
+      "rarity": "uncommon"
     },
     "mvs:windmill": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
@@ -4166,11 +4103,11 @@
         "mvs:windmill"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 26,
-      "separation": 14,
+      "spacing": 43,
+      "separation": 23,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "common"
+      "rarity": "uncommon"
     },
     "mvs:wooden_wheat_farm": {
       "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
@@ -4179,11 +4116,11 @@
         "mvs:wooden_wheat_farm"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 26,
-      "separation": 14,
+      "spacing": 43,
+      "separation": 23,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "common"
+      "rarity": "uncommon"
     },
     "nova_structures:badlands_miner_outpost": {
       "source": "dungeons-and-taverns-v4.4.4.jar",
@@ -5412,7 +5349,7 @@
       "rarity": "common"
     },
     "supplementaries:galleons": {
-      "source": "supplementaries-1.21.1-3.8.10-fabric.jar",
+      "source": "supplementaries-1.21.1-3.9.3-fabric.jar",
       "theme": "landmark",
       "structures": [
         "supplementaries:galleon"
@@ -5425,7 +5362,7 @@
       "rarity": "common"
     },
     "supplementaries:road_signs": {
-      "source": "supplementaries-1.21.1-3.8.10-fabric.jar",
+      "source": "supplementaries-1.21.1-3.9.3-fabric.jar",
       "theme": "deco",
       "structures": [
         "supplementaries:road_sign"
