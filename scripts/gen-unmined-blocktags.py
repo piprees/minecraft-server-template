@@ -176,11 +176,58 @@ RULES: list[tuple[str, str, str]] = [
     ("snapdragon", "sub", "#flower"),
     ("hyacinth", "sub", "#flower"),
     ("aster", "end", "#flower"),
+    # --- families the vendor stylesheet is assumed to cover; tagged anyway,
+    # because a redundant tag is free and a missed one renders pink ---------
+    ("leaves", "end", "#leaves"),
+    ("sapling", "end", "#sapling"),
+    ("hanging_sign", "sub", "#sign"),
+    ("wall_sign", "sub", "#sign"),
+    ("sign", "end", "#sign"),
+    ("planks", "end", "#planks"),
+    ("slab", "end", "#slab"),
+    ("stairs", "end", "#stairs"),
+    ("trapdoor", "end", "#trapdoor"),
+    ("door", "end", "#door"),
+    ("pressure_plate", "end", "#pressureplate"),
+    ("button", "end", "#button"),
+    ("fence_gate", "end", "#fencegate"),
+    ("fence", "end", "#fence"),
+    ("wood", "end", "#wood"),
+    ("lantern", "end", "#light"),
+    # --- remaining named flora --------------------------------------------
+    ("snowbelle", "sub", "#flower"),
+    ("lupine", "sub", "#flower"),
+    ("heather", "sub", "#flower"),
+    ("wildflower", "sub", "#flower"),
+    ("coneflower", "sub", "#flower"),
+    ("bearberries", "sub", "#bush"),
+    ("sprouts", "end", "#sprout"),
+    ("flowers", "end", "#flower"),
+    ("vines", "sub", "#vine"),
+    ("polypore", "sub", "#mushroom"),
+    ("sporecap", "sub", "#mushroom"),
+    ("pink_sand", "sub", "#sand"),
+    ("barley", "sub", "#crops"),
+    ("turnip", "sub", "#crops"),
+    ("farmland", "end", "#soil"),
+    ("torch", "end", "#torch"),
+    ("crystalite", "sub", "#crystal"),
+    ("bulbs", "end", "#flower"),
+    ("cheese", "sub", "#artificial"),
+    ("pizza", "sub", "#artificial"),
+    ("paper_block", "sub", "#artificial"),
+    ("amber_tile", "sub", "#artificial"),
+    ("olvite", "sub", "#artificial"),
+    ("cherine", "sub", "#artificial"),
 ]
 
 # Anything in a non-worldgen namespace that no rule matched. Furniture and
 # building blocks read acceptably as #artificial and never as pink.
 CATCH_ALL = "#artificial"
+
+# Last resort for a worldgen namespace. Terrain-plausible and, above all,
+# not pink — uNmINeD colours anything it has no style for bright pink.
+WORLDGEN_FALLBACK = "#rock"
 
 
 def tag_for(name: str) -> str | None:
@@ -200,9 +247,8 @@ def build() -> str:
         if block.startswith("minecraft:"):
             continue
         namespace, name = block.split(":", 1)
-        tags = tag_for(name)
-        if not tags and namespace not in WORLDGEN_NAMESPACES:
-            tags = CATCH_ALL
+        tags = tag_for(name) or (
+            WORLDGEN_FALLBACK if namespace in WORLDGEN_NAMESPACES else CATCH_ALL)
         if tags:
             lines.setdefault(tags, []).append(block)
     out = [
