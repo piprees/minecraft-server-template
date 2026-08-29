@@ -123,7 +123,7 @@
   ],
   "borders": {
     "player": 256,
-    "generation": 2048
+    "generation": 512
   },
   "difficulty": {
     "mobMultiplier": 0.0,
