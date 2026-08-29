@@ -4,7 +4,7 @@
 
 | Prefix | Range | What it covers |
 | --- | --- | --- |
-| **T** | [T1–T14, T16–T19, T22–T27, T30–T54](#architecture-traps) | Architecture traps — each has caused a real production incident |
+| **T** | [T1–T14, T16–T19, T22–T27, T30–T55](#architecture-traps) | Architecture traps — each has caused a real production incident |
 | **P** | [P1–P4](#macos-local-dev) | macOS local-dev quirks (BSD tooling, toolchain) |
 | **D** | [D1–D6, D8–D9](#dimension-lifecycle) | Custom-dimension lifecycle on a live world |
 | **K** | [K1–K2, K5–K6](#known-issues) | Open issues — unfixed, on the watch list |
@@ -54,6 +54,7 @@ Run this first. It covers deploy drift, disk, every expected container, `ONLINE_
 | The same few structures repeat endlessly in one dimension | [T52](#t52) |
 | One wanted structure fills half the dimension | [T53](#t53) |
 | Structures overlap, or a huge one gets a tiny one's clearance | [T54](#t54) |
+| A worldgen mod's biomes generate but its landforms never appear | [T55](#t55) |
 | Config or mod changes didn't take effect after a deploy | [T2](#t2) |
 | `signal only works in main thread` in discord-sync logs | [T3](#t3) |
 | mc crash-loops with Modrinth `429 Too Many Requests` | [T4](#t4) |
@@ -401,6 +402,46 @@ A world regenerates with the old terrain after a reset that set a new seed, or t
   biomes off the biome grid, which is fluid-independent.
 - **Creation-time.** `settingsOverrides` is in the generation fingerprint
   ([D2](#d2)), so this needs a world wipe and a re-roll.
+
+<a id="t55"></a>
+### T55 — A mod's dense terrain features are absorbed into the structure model and vanish
+
+- **Symptom:** a worldgen mod is installed, its biomes generate correctly, and
+  the landforms it is known for never appear.
+- **Measured**, `minecraft:the_end` with BetterEnd installed, radius 2048
+  (~65,536 chunks), via `/customdim site-validity`:
+
+  ```
+  betterend:mountain           1 site    = 1 per 65,536 chunks
+  betterend:painted_mountain   0 sites
+  betterend:megalake           0 sites
+  betterend:megalake_small     1 site
+
+  what the mod asks for: mountain spacing 3 (~1 per 9 chunks)
+                         megalake spacing 4 (~1 per 16 chunks)
+  ```
+
+  Roughly a **7,000x** reduction on `mountain`, and zero for two of the four.
+- **The obvious confound is ruled out.** 238 of the 403 sites (59%) are in
+  `betterend:` biomes, so the biome source is not the reason — the biomes are
+  the dominant ones in that dimension.
+- **Cause:** these are declared as structure SETS on `minecraft:random_spread`,
+  which `NoisePoolBuilder.ABSORBED_PLACEMENT_TYPES` absorbs. A set built to
+  fire every 3 chunks becomes one weighted member of a shared `deco` pool that
+  places a few hundred sites across the whole disc. Their generation step gives
+  them away: `betterend:megalake` is step `lakes` and `betterend:mountain` is
+  `raw_generation`. **They are terrain features wearing a structure set.**
+- **Not a BetterX problem.** Any mod expressing landforms as dense
+  random_spread sets is absorbed and gutted the same way. Spacing under about
+  8 is the tell — no adventure structure is meant to appear every 128 blocks.
+- **Classifying them does not fix it.** A group is a density band; the smallest
+  (`deco`) is still ~96 blocks of exclusion, an order of magnitude too sparse.
+  There is currently **no way to keep an absorbed set on its own grid** —
+  `structures.exclude` removes it from the world rather than passing it
+  through.
+- **Do not** "fix" it by making `deco` denser. That would multiply every other
+  deco structure in the pack to reach a handful of landforms — T52's
+  anti-pattern, from the other direction.
 
 <a id="t54"></a>
 ### T54 — A structure's declared jigsaw fields are not its footprint
