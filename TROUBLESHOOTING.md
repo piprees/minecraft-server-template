@@ -432,10 +432,14 @@ A world regenerates with the old terrain after a reset that set a new seed, or t
   that separation is what makes placement order-free and headless. Resolving
   the occupant during placement would couple the field to the biome source and
   destroy both properties.
-- **Where repetition can be addressed instead:** the pool (weights and
-  variety, [T52](#t52)), or the re-draw chain itself — the chain performs 63%
-  of fills and its depth histogram does not decay, so it is the mechanism
-  actually choosing what repeats.
+- **Where repetition IS addressed:** `NoiseFieldIndex.Occupants` resolves the
+  real occupant by walking the candidate chain against the biome at the site,
+  then drops a placement repeating a higher-ranked one. It runs once per
+  PLACEMENT, not per eligible chunk, which is what makes a biome sample
+  affordable there — a few thousand rather than a few hundred thousand.
+- **Do not move that walk into the eligibility pass.** The field decides where
+  sites go without asking the biome, and that is what keeps the expensive part
+  cheap and the placement order-free.
 - `structure` vs `assigned` in a `/customdim site-validity` artefact is the
   measurement; they differ on exactly those 63%.
 
@@ -470,11 +474,20 @@ A world regenerates with the old terrain after a reset that set a new seed, or t
 - **Not a BetterX problem.** Any mod expressing landforms as dense
   random_spread sets is absorbed and gutted the same way. Spacing under about
   8 is the tell — no adventure structure is meant to appear every 128 blocks.
-- **Classifying them does not fix it.** A group is a density band; the smallest
-  (`deco`) is still ~96 blocks of exclusion, an order of magnitude too sparse.
-  There is currently **no way to keep an absorbed set on its own grid** —
-  `structures.exclude` removes it from the world rather than passing it
-  through.
+- **A density band cannot fix it.** The smallest group (`deco`) is still ~96
+  blocks of exclusion, an order of magnitude too sparse, and
+  `structures.exclude` removes a set rather than passing it through.
+- **THE FIX:** classify the set into the `ubiquitous` group
+  (`NoisePoolBuilder.UBIQUITOUS_GROUP`). Such a set is not absorbed and keeps
+  its own vanilla grid. Curate it in `scripts/gen-structure-groups.py`.
+- **The trigger is CURATED, never derived from spacing.** This platform
+  rescales spacing — the structure presets, `rescale()`, and Moog's 1.65x
+  ([T48](#t48)) — so a rule keyed on it is circular and moves whenever density
+  is tuned. Spacing is evidence for whoever curates, not a runtime gate.
+- **Every caller of the absorb decision must use the set-id overload**
+  (`noiseManaged(setId, placement)`). Two of the four were left on the old
+  one-argument form and diverged from the live world by 63 census mismatches;
+  `/customdim structure-census <dim>` is what catches that.
 - **Do not** "fix" it by making `deco` denser. That would multiply every other
   deco structure in the pack to reach a handful of landforms — T52's
   anti-pattern, from the other direction.
