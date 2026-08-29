@@ -31,6 +31,10 @@ run = "./scripts/test-scripts.sh --quick"
 description = "What generated in the local consumer's world, and its water depth"
 run = './scripts/scan-structure-placements.py "$CONSUMER_DIR/data/world" "$@"'
 
+[tasks.places]
+description = "Clark-Evans dispersion and cross-class distance from a site-validity artefact"
+run = './scripts/analyse-site-validity.py "$@"'
+
 [tasks.catalogue]
 description = "Pull the live registry catalogue from the local consumer"
 run = './scripts/extract-registries.py "$@"'

@@ -186,6 +186,7 @@ Three categories, by where a script ends up and who runs it. Every script has a 
 | `gen-unmined-blocktags.py` | Regenerate the map renderer's modded block tags from the block catalogue (`--check` in CI) |
 | `gen-open-water-guard.py` | Regenerate `config/datapacks/open-water/` — the Lithostitched conditions that keep land structures out of the sea (`--check` for CI) |
 | `scan-structure-placements.py` | What generated in a world and whether it is standing in water (needs `requirements-dev.txt`) |
+| `analyse-site-validity.py` | Clark-Evans dispersion per group and cross-class nearest-neighbour distance from a `/customdim site-validity` artefact — whether structures form places or noise |
 | `extract-registries.py` | Pull the live registry catalogue via `/customdim catalogue` |
 | `mcjson.py` | (imported) Parses the lenient JSON mods actually ship: `//` comments and trailing commas |
 
