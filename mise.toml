@@ -46,3 +46,7 @@ run = "./scripts/gen-unmined-blocktags.py"
 [tasks.water-guard]
 description = "Regenerate the open-water structure placement guard datapack"
 run = './scripts/gen-open-water-guard.py "$@"'
+
+[tasks.sizes]
+description = "Footprint table from /customdim structure-sizes artefacts (--report for the evidence)"
+run = './scripts/gen-structure-sizes.py "$@"'

@@ -1,0 +1,4690 @@
+{
+ "structures": {
+  "adventure:exit_shrine": {
+   "span": 31,
+   "radius": 15,
+   "y": 32,
+   "pieces": 1
+  },
+  "adventuredungeons:bygonedungeon": {
+   "span": 144,
+   "radius": 72,
+   "y": 47,
+   "pieces": 219
+  },
+  "adventuredungeons:coldlair": {
+   "span": 238,
+   "radius": 119,
+   "y": 71,
+   "pieces": 91
+  },
+  "adventuredungeons:murkydungeon": {
+   "span": 256,
+   "radius": 128,
+   "y": 47,
+   "pieces": 62
+  },
+  "adventuredungeons:ruins_desert": {
+   "span": 37,
+   "radius": 18,
+   "y": 33,
+   "pieces": 11
+  },
+  "adventuredungeons:ruins_snow": {
+   "span": 34,
+   "radius": 17,
+   "y": 33,
+   "pieces": 9
+  },
+  "adventuredungeons:ruins_standard": {
+   "span": 35,
+   "radius": 17,
+   "y": 33,
+   "pieces": 9
+  },
+  "adventuredungeons:trialrooms": {
+   "span": 135,
+   "radius": 67,
+   "y": 35,
+   "pieces": 12
+  },
+  "adventuredungeons:underground_camp": {
+   "span": 9,
+   "radius": 4,
+   "y": 6,
+   "pieces": 1
+  },
+  "ati_structures:ancient_temple": {
+   "span": 49,
+   "radius": 24,
+   "y": 96,
+   "pieces": 2
+  },
+  "ati_structures:ancient_vessel": {
+   "span": 43,
+   "radius": 21,
+   "y": 35,
+   "pieces": 1
+  },
+  "ati_structures:arachnid_dwelling": {
+   "span": 49,
+   "radius": 24,
+   "y": 78,
+   "pieces": 2
+  },
+  "ati_structures:ati_stoneworks": {
+   "span": 150,
+   "radius": 75,
+   "y": 96,
+   "pieces": 34
+  },
+  "ati_structures:castillo": {
+   "span": 50,
+   "radius": 25,
+   "y": 44,
+   "pieces": 3
+  },
+  "ati_structures:catalonian_castle": {
+   "span": 48,
+   "radius": 24,
+   "y": 80,
+   "pieces": 2
+  },
+  "ati_structures:dark_keep": {
+   "span": 25,
+   "radius": 12,
+   "y": 59,
+   "pieces": 2
+  },
+  "ati_structures:dark_tower": {
+   "span": 25,
+   "radius": 12,
+   "y": 45,
+   "pieces": 2
+  },
+  "ati_structures:deepslate_keep": {
+   "span": 25,
+   "radius": 12,
+   "y": 41,
+   "pieces": 2
+  },
+  "ati_structures:desert_outpost": {
+   "span": 49,
+   "radius": 24,
+   "y": 96,
+   "pieces": 2
+  },
+  "ati_structures:dojo": {
+   "span": 48,
+   "radius": 24,
+   "y": 88,
+   "pieces": 2
+  },
+  "ati_structures:fortified_temple": {
+   "span": 49,
+   "radius": 24,
+   "y": 96,
+   "pieces": 2
+  },
+  "ati_structures:gnome_hut": {
+   "span": 49,
+   "radius": 24,
+   "y": 61,
+   "pieces": 1
+  },
+  "ati_structures:granite_fort": {
+   "span": 49,
+   "radius": 24,
+   "y": 96,
+   "pieces": 2
+  },
+  "ati_structures:haunted_ruin": {
+   "span": 39,
+   "radius": 19,
+   "y": 34,
+   "pieces": 1
+  },
+  "ati_structures:herobrine_stronghold": {
+   "span": 49,
+   "radius": 24,
+   "y": 96,
+   "pieces": 2
+  },
+  "ati_structures:ice_tribe": {
+   "span": 42,
+   "radius": 21,
+   "y": 20,
+   "pieces": 1
+  },
+  "ati_structures:illager_homestead": {
+   "span": 25,
+   "radius": 12,
+   "y": 39,
+   "pieces": 2
+  },
+  "ati_structures:illager_tower": {
+   "span": 25,
+   "radius": 12,
+   "y": 49,
+   "pieces": 2
+  },
+  "ati_structures:jungle_grotto": {
+   "span": 49,
+   "radius": 24,
+   "y": 96,
+   "pieces": 2
+  },
+  "ati_structures:jungle_settlement": {
+   "span": 72,
+   "radius": 36,
+   "y": 41,
+   "pieces": 1
+  },
+  "ati_structures:lighthouse": {
+   "span": 48,
+   "radius": 24,
+   "y": 40,
+   "pieces": 1
+  },
+  "ati_structures:manor": {
+   "span": 48,
+   "radius": 24,
+   "y": 79,
+   "pieces": 2
+  },
+  "ati_structures:marble_chateau": {
+   "span": 49,
+   "radius": 24,
+   "y": 96,
+   "pieces": 2
+  },
+  "ati_structures:monastery_tower": {
+   "span": 25,
+   "radius": 12,
+   "y": 69,
+   "pieces": 2
+  },
+  "ati_structures:mosque": {
+   "span": 50,
+   "radius": 25,
+   "y": 50,
+   "pieces": 1
+  },
+  "ati_structures:mud_tower": {
+   "span": 25,
+   "radius": 12,
+   "y": 49,
+   "pieces": 2
+  },
+  "ati_structures:nomadic_camp": {
+   "span": 72,
+   "radius": 36,
+   "y": 84,
+   "pieces": 2
+  },
+  "ati_structures:old_fort": {
+   "span": 49,
+   "radius": 24,
+   "y": 96,
+   "pieces": 2
+  },
+  "ati_structures:old_home": {
+   "span": 25,
+   "radius": 12,
+   "y": 44,
+   "pieces": 2
+  },
+  "ati_structures:old_residence": {
+   "span": 48,
+   "radius": 24,
+   "y": 85,
+   "pieces": 2
+  },
+  "ati_structures:overgrown_outpost": {
+   "span": 48,
+   "radius": 24,
+   "y": 93,
+   "pieces": 2
+  },
+  "ati_structures:pufferfish_cave": {
+   "span": 17,
+   "radius": 8,
+   "y": 15,
+   "pieces": 1
+  },
+  "ati_structures:quarry": {
+   "span": 174,
+   "radius": 87,
+   "y": 50,
+   "pieces": 33
+  },
+  "ati_structures:rotten_log": {
+   "span": 49,
+   "radius": 24,
+   "y": 33,
+   "pieces": 1
+  },
+  "ati_structures:rotting_temple": {
+   "span": 25,
+   "radius": 12,
+   "y": 44,
+   "pieces": 2
+  },
+  "ati_structures:rotting_temple_underground": {
+   "span": 44,
+   "radius": 22,
+   "y": 44,
+   "pieces": 1
+  },
+  "ati_structures:ruined_castle": {
+   "span": 49,
+   "radius": 24,
+   "y": 93,
+   "pieces": 2
+  },
+  "ati_structures:sculk_deposit": {
+   "span": 15,
+   "radius": 7,
+   "y": 11,
+   "pieces": 1
+  },
+  "ati_structures:silverfish_nest": {
+   "span": 15,
+   "radius": 7,
+   "y": 10,
+   "pieces": 1
+  },
+  "ati_structures:sinking_temple": {
+   "span": 48,
+   "radius": 24,
+   "y": 48,
+   "pieces": 1
+  },
+  "ati_structures:small_keep": {
+   "span": 25,
+   "radius": 12,
+   "y": 62,
+   "pieces": 2
+  },
+  "ati_structures:spider_nest": {
+   "span": 45,
+   "radius": 22,
+   "y": 32,
+   "pieces": 1
+  },
+  "ati_structures:steam_house": {
+   "span": 49,
+   "radius": 24,
+   "y": 96,
+   "pieces": 2
+  },
+  "ati_structures:storage_house": {
+   "span": 49,
+   "radius": 24,
+   "y": 60,
+   "pieces": 2
+  },
+  "ati_structures:storage_shack": {
+   "span": 49,
+   "radius": 24,
+   "y": 59,
+   "pieces": 2
+  },
+  "ati_structures:stray_ruins": {
+   "span": 39,
+   "radius": 19,
+   "y": 34,
+   "pieces": 1
+  },
+  "ati_structures:tavern": {
+   "span": 49,
+   "radius": 24,
+   "y": 85,
+   "pieces": 2
+  },
+  "ati_structures:underground_monument": {
+   "span": 45,
+   "radius": 22,
+   "y": 11,
+   "pieces": 1
+  },
+  "ati_structures:underwater_dungeon": {
+   "span": 15,
+   "radius": 7,
+   "y": 10,
+   "pieces": 1
+  },
+  "ati_structures:villager_inn": {
+   "span": 48,
+   "radius": 24,
+   "y": 96,
+   "pieces": 2
+  },
+  "ati_structures:warden_monument": {
+   "span": 72,
+   "radius": 36,
+   "y": 72,
+   "pieces": 1
+  },
+  "ati_structures:wither_cavern": {
+   "span": 45,
+   "radius": 22,
+   "y": 45,
+   "pieces": 1
+  },
+  "ati_structures:wither_keep": {
+   "span": 30,
+   "radius": 15,
+   "y": 71,
+   "pieces": 2
+  },
+  "ati_structures:woodland_keep": {
+   "span": 48,
+   "radius": 24,
+   "y": 88,
+   "pieces": 2
+  },
+  "betterdeserttemples:desert_temple": {
+   "span": 88,
+   "radius": 44,
+   "y": 70,
+   "pieces": 468
+  },
+  "betterdungeons:skeleton_dungeon": {
+   "span": 31,
+   "radius": 15,
+   "y": 13,
+   "pieces": 43
+  },
+  "betterdungeons:small_dungeon": {
+   "span": 9,
+   "radius": 4,
+   "y": 7,
+   "pieces": 5
+  },
+  "betterdungeons:spider_dungeon": {
+   "span": 96,
+   "radius": 48,
+   "y": 59,
+   "pieces": 23
+  },
+  "betterdungeons:zombie_dungeon": {
+   "span": 134,
+   "radius": 67,
+   "y": 26,
+   "pieces": 760
+  },
+  "betterfortresses:fortress": {
+   "span": 226,
+   "radius": 113,
+   "y": 99,
+   "pieces": 666
+  },
+  "betterjungletemples:jungle_temple": {
+   "span": 60,
+   "radius": 30,
+   "y": 54,
+   "pieces": 41
+  },
+  "bettermineshafts:mineshaft_acacia": {
+   "span": 151,
+   "radius": 75,
+   "y": 288,
+   "pieces": 103
+  },
+  "bettermineshafts:mineshaft_desert": {
+   "span": 151,
+   "radius": 75,
+   "y": 288,
+   "pieces": 109
+  },
+  "bettermineshafts:mineshaft_dripstone": {
+   "span": 151,
+   "radius": 75,
+   "y": 288,
+   "pieces": 103
+  },
+  "bettermineshafts:mineshaft_ice": {
+   "span": 151,
+   "radius": 75,
+   "y": 288,
+   "pieces": 103
+  },
+  "bettermineshafts:mineshaft_jungle": {
+   "span": 151,
+   "radius": 75,
+   "y": 288,
+   "pieces": 103
+  },
+  "bettermineshafts:mineshaft_lush": {
+   "span": 151,
+   "radius": 75,
+   "y": 288,
+   "pieces": 103
+  },
+  "bettermineshafts:mineshaft_mesa": {
+   "span": 151,
+   "radius": 75,
+   "y": 288,
+   "pieces": 103
+  },
+  "bettermineshafts:mineshaft_mushroom": {
+   "span": 151,
+   "radius": 75,
+   "y": 288,
+   "pieces": 103
+  },
+  "bettermineshafts:mineshaft_oak": {
+   "span": 151,
+   "radius": 75,
+   "y": 288,
+   "pieces": 103
+  },
+  "bettermineshafts:mineshaft_overgrown": {
+   "span": 151,
+   "radius": 75,
+   "y": 285,
+   "pieces": 74
+  },
+  "bettermineshafts:mineshaft_red_desert": {
+   "span": 151,
+   "radius": 75,
+   "y": 288,
+   "pieces": 109
+  },
+  "bettermineshafts:mineshaft_spruce": {
+   "span": 151,
+   "radius": 75,
+   "y": 288,
+   "pieces": 103
+  },
+  "bettermineshafts:mineshaft_spruce_snowy": {
+   "span": 151,
+   "radius": 75,
+   "y": 288,
+   "pieces": 103
+  },
+  "betteroceanmonuments:ocean_monument": {
+   "span": 126,
+   "radius": 63,
+   "y": 64,
+   "pieces": 1466
+  },
+  "betterstrongholds:stronghold": {
+   "span": 181,
+   "radius": 90,
+   "y": 63,
+   "pieces": 646
+  },
+  "betterwitchhuts:witch_circle": {
+   "span": 9,
+   "radius": 4,
+   "y": 5,
+   "pieces": 3
+  },
+  "betterwitchhuts:witch_hut": {
+   "span": 11,
+   "radius": 5,
+   "y": 7,
+   "pieces": 3
+  },
+  "ddd:major_dungeon_desert": {
+   "span": 201,
+   "radius": 100,
+   "y": 106,
+   "pieces": 10063
+  },
+  "ddd:major_dungeon_frozen": {
+   "span": 201,
+   "radius": 100,
+   "y": 106,
+   "pieces": 9987
+  },
+  "ddd:major_dungeon_plains": {
+   "span": 201,
+   "radius": 100,
+   "y": 144,
+   "pieces": 10298
+  },
+  "ddd:minor_dungeon_desert": {
+   "span": 201,
+   "radius": 100,
+   "y": 106,
+   "pieces": 3861
+  },
+  "ddd:minor_dungeon_frozen": {
+   "span": 201,
+   "radius": 100,
+   "y": 106,
+   "pieces": 4481
+  },
+  "ddd:minor_dungeon_plains": {
+   "span": 201,
+   "radius": 100,
+   "y": 106,
+   "pieces": 4622
+  },
+  "ddd:monolithic_tower": {
+   "span": 45,
+   "radius": 22,
+   "y": 76,
+   "pieces": 43
+  },
+  "ddd:spider_lair": {
+   "span": 201,
+   "radius": 100,
+   "y": 105,
+   "pieces": 936
+  },
+  "dungeons_arise:abandoned_temple": {
+   "span": 245,
+   "radius": 122,
+   "y": 72,
+   "pieces": 28
+  },
+  "dungeons_arise:aviary": {
+   "span": 144,
+   "radius": 72,
+   "y": 96,
+   "pieces": 63
+  },
+  "dungeons_arise:bandit_towers": {
+   "span": 178,
+   "radius": 89,
+   "y": 191,
+   "pieces": 318
+  },
+  "dungeons_arise:bandit_village": {
+   "span": 113,
+   "radius": 56,
+   "y": 55,
+   "pieces": 66
+  },
+  "dungeons_arise:bathhouse": {
+   "span": 55,
+   "radius": 27,
+   "y": 73,
+   "pieces": 7
+  },
+  "dungeons_arise:ceryneian_hind": {
+   "span": 144,
+   "radius": 72,
+   "y": 48,
+   "pieces": 3
+  },
+  "dungeons_arise:coliseum": {
+   "span": 88,
+   "radius": 44,
+   "y": 56,
+   "pieces": 16
+  },
+  "dungeons_arise:fishing_hut": {
+   "span": 21,
+   "radius": 10,
+   "y": 14,
+   "pieces": 2
+  },
+  "dungeons_arise:foundry": {
+   "span": 203,
+   "radius": 101,
+   "y": 49,
+   "pieces": 191
+  },
+  "dungeons_arise:giant_mushroom": {
+   "span": 53,
+   "radius": 26,
+   "y": 38,
+   "pieces": 5
+  },
+  "dungeons_arise:greenwood_pub": {
+   "span": 87,
+   "radius": 43,
+   "y": 56,
+   "pieces": 58
+  },
+  "dungeons_arise:heavenly_challenger": {
+   "span": 131,
+   "radius": 65,
+   "y": 48,
+   "pieces": 39
+  },
+  "dungeons_arise:heavenly_conqueror": {
+   "span": 64,
+   "radius": 32,
+   "y": 48,
+   "pieces": 16
+  },
+  "dungeons_arise:heavenly_rider": {
+   "span": 64,
+   "radius": 32,
+   "y": 48,
+   "pieces": 18
+  },
+  "dungeons_arise:illager_campsite": {
+   "span": 174,
+   "radius": 87,
+   "y": 37,
+   "pieces": 84
+  },
+  "dungeons_arise:illager_corsair": {
+   "span": 63,
+   "radius": 31,
+   "y": 48,
+   "pieces": 16
+  },
+  "dungeons_arise:illager_fort": {
+   "span": 79,
+   "radius": 39,
+   "y": 84,
+   "pieces": 135
+  },
+  "dungeons_arise:illager_galley": {
+   "span": 63,
+   "radius": 31,
+   "y": 48,
+   "pieces": 11
+  },
+  "dungeons_arise:illager_windmill": {
+   "span": 130,
+   "radius": 65,
+   "y": 69,
+   "pieces": 61
+  },
+  "dungeons_arise:infested_temple": {
+   "span": 101,
+   "radius": 50,
+   "y": 181,
+   "pieces": 126
+  },
+  "dungeons_arise:jungle_tree_house": {
+   "span": 31,
+   "radius": 15,
+   "y": 64,
+   "pieces": 13
+  },
+  "dungeons_arise:keep_kayra": {
+   "span": 163,
+   "radius": 81,
+   "y": 250,
+   "pieces": 169
+  },
+  "dungeons_arise:kisegi_sanctuary": {
+   "span": 125,
+   "radius": 62,
+   "y": 215,
+   "pieces": 136
+  },
+  "dungeons_arise:lighthouse": {
+   "span": 31,
+   "radius": 15,
+   "y": 68,
+   "pieces": 2
+  },
+  "dungeons_arise:mechanical_nest": {
+   "span": 228,
+   "radius": 114,
+   "y": 192,
+   "pieces": 693
+  },
+  "dungeons_arise:merchant_campsite": {
+   "span": 174,
+   "radius": 87,
+   "y": 30,
+   "pieces": 48
+  },
+  "dungeons_arise:mining_complex": {
+   "span": 230,
+   "radius": 115,
+   "y": 230,
+   "pieces": 131
+  },
+  "dungeons_arise:mining_system": {
+   "span": 179,
+   "radius": 89,
+   "y": 63,
+   "pieces": 26
+  },
+  "dungeons_arise:monastery": {
+   "span": 144,
+   "radius": 72,
+   "y": 65,
+   "pieces": 25
+  },
+  "dungeons_arise:mushroom_house": {
+   "span": 55,
+   "radius": 27,
+   "y": 76,
+   "pieces": 6
+  },
+  "dungeons_arise:mushroom_mines": {
+   "span": 64,
+   "radius": 32,
+   "y": 64,
+   "pieces": 74
+  },
+  "dungeons_arise:mushroom_village": {
+   "span": 91,
+   "radius": 45,
+   "y": 69,
+   "pieces": 12
+  },
+  "dungeons_arise:plague_asylum": {
+   "span": 223,
+   "radius": 111,
+   "y": 60,
+   "pieces": 183
+  },
+  "dungeons_arise:scorched_mines": {
+   "span": 206,
+   "radius": 103,
+   "y": 74,
+   "pieces": 67
+  },
+  "dungeons_arise:shiraz_palace": {
+   "span": 144,
+   "radius": 72,
+   "y": 96,
+   "pieces": 88
+  },
+  "dungeons_arise:small_blimp": {
+   "span": 62,
+   "radius": 31,
+   "y": 73,
+   "pieces": 7
+  },
+  "dungeons_arise:thornborn_towers": {
+   "span": 170,
+   "radius": 85,
+   "y": 180,
+   "pieces": 201
+  },
+  "dungeons_arise:typhon": {
+   "span": 144,
+   "radius": 72,
+   "y": 48,
+   "pieces": 3
+  },
+  "dungeons_arise:undead_pirate_ship": {
+   "span": 63,
+   "radius": 31,
+   "y": 48,
+   "pieces": 30
+  },
+  "dungeons_arise:wishing_well": {
+   "span": 16,
+   "radius": 8,
+   "y": 25,
+   "pieces": 2
+  },
+  "dungeons_arise_seven_seas:corsair_corvette": {
+   "span": 60,
+   "radius": 30,
+   "y": 55,
+   "pieces": 7
+  },
+  "dungeons_arise_seven_seas:pirate_junk": {
+   "span": 68,
+   "radius": 34,
+   "y": 63,
+   "pieces": 12
+  },
+  "dungeons_arise_seven_seas:small_yacht": {
+   "span": 38,
+   "radius": 19,
+   "y": 43,
+   "pieces": 4
+  },
+  "dungeons_arise_seven_seas:unicorn_galleon": {
+   "span": 64,
+   "radius": 32,
+   "y": 55,
+   "pieces": 12
+  },
+  "dungeons_arise_seven_seas:victory_frigate": {
+   "span": 115,
+   "radius": 57,
+   "y": 121,
+   "pieces": 29
+  },
+  "dungeons_plus:cold_dungeon": {
+   "span": 47,
+   "radius": 23,
+   "y": 35,
+   "pieces": 1
+  },
+  "dungeons_plus:deepwater_dungeon": {
+   "span": 37,
+   "radius": 18,
+   "y": 36,
+   "pieces": 1
+  },
+  "dungeons_plus:dungeon_ruins": {
+   "span": 35,
+   "radius": 17,
+   "y": 30,
+   "pieces": 1
+  },
+  "dungeons_plus:dusty_tomb": {
+   "span": 37,
+   "radius": 18,
+   "y": 35,
+   "pieces": 1
+  },
+  "dungeons_plus:frozen_dungeon": {
+   "span": 42,
+   "radius": 21,
+   "y": 38,
+   "pieces": 1
+  },
+  "dungeons_plus:infested_dungeon": {
+   "span": 37,
+   "radius": 18,
+   "y": 35,
+   "pieces": 1
+  },
+  "dungeons_plus:lush_dungeon": {
+   "span": 37,
+   "radius": 18,
+   "y": 34,
+   "pieces": 1
+  },
+  "dungeons_plus:mouldy_dungeon": {
+   "span": 37,
+   "radius": 18,
+   "y": 36,
+   "pieces": 1
+  },
+  "dungeons_plus:muddy_dungeon": {
+   "span": 41,
+   "radius": 20,
+   "y": 35,
+   "pieces": 1
+  },
+  "dungeons_plus:scorched_tomb": {
+   "span": 37,
+   "radius": 18,
+   "y": 35,
+   "pieces": 1
+  },
+  "dungeons_plus:webbed_dungeon": {
+   "span": 39,
+   "radius": 19,
+   "y": 35,
+   "pieces": 1
+  },
+  "epic:large_dungeon": {
+   "span": 161,
+   "radius": 80,
+   "y": 82,
+   "pieces": 246
+  },
+  "epic:large_ice_dungeon": {
+   "span": 161,
+   "radius": 80,
+   "y": 89,
+   "pieces": 75
+  },
+  "epic:large_sand_dungeon": {
+   "span": 161,
+   "radius": 80,
+   "y": 129,
+   "pieces": 238
+  },
+  "epic:medium_ice_dungeon": {
+   "span": 159,
+   "radius": 79,
+   "y": 70,
+   "pieces": 49
+  },
+  "epic:medium_plains_dungeon": {
+   "span": 160,
+   "radius": 80,
+   "y": 39,
+   "pieces": 61
+  },
+  "epic:medium_sand_dungeon": {
+   "span": 159,
+   "radius": 79,
+   "y": 24,
+   "pieces": 47
+  },
+  "epic:small_ice_dungeon": {
+   "span": 48,
+   "radius": 24,
+   "y": 48,
+   "pieces": 1
+  },
+  "epic:small_plains_dungeon": {
+   "span": 48,
+   "radius": 24,
+   "y": 44,
+   "pieces": 1
+  },
+  "epic:small_sand_dungeon": {
+   "span": 47,
+   "radius": 23,
+   "y": 47,
+   "pieces": 1
+  },
+  "explorify:badlands_pyramid": {
+   "span": 25,
+   "radius": 12,
+   "y": 23,
+   "pieces": 1
+  },
+  "explorify:black_spiral": {
+   "span": 181,
+   "radius": 90,
+   "y": 48,
+   "pieces": 248
+  },
+  "explorify:campsite": {
+   "span": 48,
+   "radius": 24,
+   "y": 29,
+   "pieces": 4
+  },
+  "explorify:dark_forest_settlement": {
+   "span": 119,
+   "radius": 59,
+   "y": 36,
+   "pieces": 44
+  },
+  "explorify:desert_shrine": {
+   "span": 11,
+   "radius": 5,
+   "y": 14,
+   "pieces": 1
+  },
+  "explorify:end_shipwreck": {
+   "span": 25,
+   "radius": 12,
+   "y": 12,
+   "pieces": 2
+  },
+  "explorify:farmstead": {
+   "span": 55,
+   "radius": 27,
+   "y": 34,
+   "pieces": 10
+  },
+  "explorify:guide_post_cold": {
+   "span": 11,
+   "radius": 5,
+   "y": 25,
+   "pieces": 1
+  },
+  "explorify:guide_post_warm": {
+   "span": 11,
+   "radius": 5,
+   "y": 25,
+   "pieces": 1
+  },
+  "explorify:mangrove_hut": {
+   "span": 16,
+   "radius": 8,
+   "y": 32,
+   "pieces": 3
+  },
+  "explorify:mausoleum": {
+   "span": 35,
+   "radius": 17,
+   "y": 36,
+   "pieces": 1
+  },
+  "explorify:ruins": {
+   "span": 108,
+   "radius": 54,
+   "y": 43,
+   "pieces": 84
+  },
+  "explorify:supply_cache/birch": {
+   "span": 28,
+   "radius": 14,
+   "y": 28,
+   "pieces": 1
+  },
+  "explorify:supply_cache/dark": {
+   "span": 28,
+   "radius": 14,
+   "y": 28,
+   "pieces": 1
+  },
+  "explorify:supply_cache/desert": {
+   "span": 28,
+   "radius": 14,
+   "y": 28,
+   "pieces": 1
+  },
+  "explorify:supply_cache/forest": {
+   "span": 28,
+   "radius": 14,
+   "y": 28,
+   "pieces": 1
+  },
+  "explorify:supply_cache/jungle": {
+   "span": 28,
+   "radius": 14,
+   "y": 28,
+   "pieces": 1
+  },
+  "explorify:supply_cache/mangrove": {
+   "span": 28,
+   "radius": 14,
+   "y": 28,
+   "pieces": 1
+  },
+  "explorify:supply_cache/taiga": {
+   "span": 28,
+   "radius": 14,
+   "y": 28,
+   "pieces": 1
+  },
+  "explorify:tavern": {
+   "span": 53,
+   "radius": 26,
+   "y": 36,
+   "pieces": 12
+  },
+  "explorify:watchtower/plains": {
+   "span": 33,
+   "radius": 16,
+   "y": 49,
+   "pieces": 1
+  },
+  "explorify:watchtower/savanna": {
+   "span": 33,
+   "radius": 16,
+   "y": 49,
+   "pieces": 1
+  },
+  "explorify:watchtower/taiga": {
+   "span": 33,
+   "radius": 16,
+   "y": 49,
+   "pieces": 1
+  },
+  "friendsandfoes:citadel": {
+   "span": 95,
+   "radius": 47,
+   "y": 33,
+   "pieces": 84
+  },
+  "friendsandfoes:iceologer_cabin": {
+   "span": 48,
+   "radius": 24,
+   "y": 32,
+   "pieces": 6
+  },
+  "friendsandfoes:illusioner_shack": {
+   "span": 53,
+   "radius": 26,
+   "y": 38,
+   "pieces": 10
+  },
+  "friendsandfoes:illusioner_training_grounds": {
+   "span": 37,
+   "radius": 18,
+   "y": 28,
+   "pieces": 6
+  },
+  "galosphere:forgotten_ruins": {
+   "span": 113,
+   "radius": 56,
+   "y": 35,
+   "pieces": 47
+  },
+  "galosphere:pink_salt_shrine": {
+   "span": 117,
+   "radius": 58,
+   "y": 52,
+   "pieces": 12
+  },
+  "hellish_trials:nether_trial": {
+   "span": 244,
+   "radius": 122,
+   "y": 155,
+   "pieces": 308
+  },
+  "incendium:abandoned_tower": {
+   "span": 135,
+   "radius": 67,
+   "y": 45,
+   "pieces": 25
+  },
+  "incendium:forbidden_castle": {
+   "span": 138,
+   "radius": 69,
+   "y": 98,
+   "pieces": 390
+  },
+  "incendium:infernal_altar": {
+   "span": 79,
+   "radius": 39,
+   "y": 62,
+   "pieces": 1
+  },
+  "incendium:nether_reactor": {
+   "span": 107,
+   "radius": 53,
+   "y": 97,
+   "pieces": 6
+  },
+  "incendium:piglin_village": {
+   "span": 134,
+   "radius": 67,
+   "y": 94,
+   "pieces": 175
+  },
+  "incendium:pipeline": {
+   "span": 144,
+   "radius": 72,
+   "y": 120,
+   "pieces": 73
+  },
+  "incendium:quartz_kitchen": {
+   "span": 64,
+   "radius": 32,
+   "y": 36,
+   "pieces": 1
+  },
+  "incendium:ruined_lab": {
+   "span": 76,
+   "radius": 38,
+   "y": 58,
+   "pieces": 1
+  },
+  "incendium:sanctum": {
+   "span": 125,
+   "radius": 62,
+   "y": 72,
+   "pieces": 130
+  },
+  "medievalend:castle": {
+   "span": 68,
+   "radius": 34,
+   "y": 72,
+   "pieces": 1
+  },
+  "medievalend:house": {
+   "span": 45,
+   "radius": 22,
+   "y": 39,
+   "pieces": 1
+  },
+  "medievalend:pyramid": {
+   "span": 67,
+   "radius": 33,
+   "y": 52,
+   "pieces": 1
+  },
+  "medievalend:ship": {
+   "span": 59,
+   "radius": 29,
+   "y": 42,
+   "pieces": 1
+  },
+  "medievalend:shrine": {
+   "span": 37,
+   "radius": 18,
+   "y": 33,
+   "pieces": 1
+  },
+  "mes:astral_hideaway": {
+   "span": 34,
+   "radius": 17,
+   "y": 34,
+   "pieces": 1
+  },
+  "mes:astral_meteorite": {
+   "span": 48,
+   "radius": 24,
+   "y": 34,
+   "pieces": 1
+  },
+  "mes:ender_spire": {
+   "span": 31,
+   "radius": 15,
+   "y": 42,
+   "pieces": 1
+  },
+  "mes:enderbloom_grove": {
+   "span": 34,
+   "radius": 17,
+   "y": 39,
+   "pieces": 1
+  },
+  "mes:enderkeep_courtyard": {
+   "span": 67,
+   "radius": 33,
+   "y": 45,
+   "pieces": 1
+  },
+  "mes:enderpin_spikes": {
+   "span": 5,
+   "radius": 2,
+   "y": 10,
+   "pieces": 1
+  },
+  "mes:enderskog": {
+   "span": 38,
+   "radius": 19,
+   "y": 34,
+   "pieces": 1
+  },
+  "mes:enderwatch_tower": {
+   "span": 41,
+   "radius": 20,
+   "y": 68,
+   "pieces": 1
+  },
+  "mes:endscraps": {
+   "span": 34,
+   "radius": 17,
+   "y": 31,
+   "pieces": 1
+  },
+  "mes:manuscript_shrine": {
+   "span": 39,
+   "radius": 19,
+   "y": 34,
+   "pieces": 1
+  },
+  "mes:mega_ship": {
+   "span": 96,
+   "radius": 48,
+   "y": 48,
+   "pieces": 3
+  },
+  "mes:mega_ship_basic": {
+   "span": 96,
+   "radius": 48,
+   "y": 48,
+   "pieces": 3
+  },
+  "mes:mega_ship_crashed": {
+   "span": 120,
+   "radius": 60,
+   "y": 72,
+   "pieces": 3
+  },
+  "mes:mega_ship_crashed_2": {
+   "span": 120,
+   "radius": 60,
+   "y": 72,
+   "pieces": 3
+  },
+  "mes:mega_ship_crashed_deepslate": {
+   "span": 120,
+   "radius": 60,
+   "y": 72,
+   "pieces": 3
+  },
+  "mes:mega_ship_deepslate": {
+   "span": 99,
+   "radius": 49,
+   "y": 52,
+   "pieces": 4
+  },
+  "mes:mega_ship_deepslate_2": {
+   "span": 96,
+   "radius": 48,
+   "y": 69,
+   "pieces": 7
+  },
+  "mes:mega_ship_deepslate_3": {
+   "span": 99,
+   "radius": 49,
+   "y": 73,
+   "pieces": 6
+  },
+  "mes:monolith": {
+   "span": 35,
+   "radius": 17,
+   "y": 60,
+   "pieces": 1
+  },
+  "mes:mystical_archway": {
+   "span": 65,
+   "radius": 32,
+   "y": 72,
+   "pieces": 1
+  },
+  "mes:mythic_garden": {
+   "span": 43,
+   "radius": 21,
+   "y": 37,
+   "pieces": 1
+  },
+  "mes:phantom_citadel": {
+   "span": 38,
+   "radius": 19,
+   "y": 35,
+   "pieces": 1
+  },
+  "mes:placid_prairie": {
+   "span": 11,
+   "radius": 5,
+   "y": 14,
+   "pieces": 1
+  },
+  "mes:ruined_pillar": {
+   "span": 31,
+   "radius": 15,
+   "y": 28,
+   "pieces": 1
+  },
+  "mes:starlight_voyager": {
+   "span": 32,
+   "radius": 16,
+   "y": 24,
+   "pieces": 1
+  },
+  "minecraft:ancient_city": {
+   "span": 242,
+   "radius": 121,
+   "y": 55,
+   "pieces": 91
+  },
+  "minecraft:bastion_remnant": {
+   "span": 76,
+   "radius": 38,
+   "y": 74,
+   "pieces": 173
+  },
+  "minecraft:buried_treasure": {
+   "span": 1,
+   "radius": 0,
+   "y": 1,
+   "pieces": 1
+  },
+  "minecraft:desert_pyramid": {
+   "span": 21,
+   "radius": 10,
+   "y": 15,
+   "pieces": 1
+  },
+  "minecraft:end_city": {
+   "span": 113,
+   "radius": 56,
+   "y": 103,
+   "pieces": 56
+  },
+  "minecraft:fortress": {
+   "span": 243,
+   "radius": 121,
+   "y": 25,
+   "pieces": 134
+  },
+  "minecraft:igloo": {
+   "span": 10,
+   "radius": 5,
+   "y": 41,
+   "pieces": 12
+  },
+  "minecraft:jungle_pyramid": {
+   "span": 15,
+   "radius": 7,
+   "y": 10,
+   "pieces": 1
+  },
+  "minecraft:mansion": {
+   "span": 79,
+   "radius": 39,
+   "y": 31,
+   "pieces": 607
+  },
+  "minecraft:mineshaft": {
+   "span": 163,
+   "radius": 81,
+   "y": 23,
+   "pieces": 135
+  },
+  "minecraft:mineshaft_mesa": {
+   "span": 163,
+   "radius": 81,
+   "y": 23,
+   "pieces": 135
+  },
+  "minecraft:monument": {
+   "span": 58,
+   "radius": 29,
+   "y": 23,
+   "pieces": 1
+  },
+  "minecraft:nether_fossil": {
+   "span": 27,
+   "radius": 13,
+   "y": 31,
+   "pieces": 1
+  },
+  "minecraft:ocean_ruin_cold": {
+   "span": 7,
+   "radius": 3,
+   "y": 7,
+   "pieces": 3
+  },
+  "minecraft:ocean_ruin_warm": {
+   "span": 7,
+   "radius": 3,
+   "y": 7,
+   "pieces": 1
+  },
+  "minecraft:pillager_outpost": {
+   "span": 72,
+   "radius": 36,
+   "y": 54,
+   "pieces": 12
+  },
+  "minecraft:ruined_portal": {
+   "span": 12,
+   "radius": 6,
+   "y": 8,
+   "pieces": 1
+  },
+  "minecraft:ruined_portal_desert": {
+   "span": 9,
+   "radius": 4,
+   "y": 7,
+   "pieces": 1
+  },
+  "minecraft:ruined_portal_jungle": {
+   "span": 9,
+   "radius": 4,
+   "y": 8,
+   "pieces": 1
+  },
+  "minecraft:ruined_portal_mountain": {
+   "span": 12,
+   "radius": 6,
+   "y": 8,
+   "pieces": 1
+  },
+  "minecraft:ruined_portal_nether": {
+   "span": 9,
+   "radius": 4,
+   "y": 8,
+   "pieces": 1
+  },
+  "minecraft:ruined_portal_ocean": {
+   "span": 9,
+   "radius": 4,
+   "y": 7,
+   "pieces": 1
+  },
+  "minecraft:ruined_portal_swamp": {
+   "span": 9,
+   "radius": 4,
+   "y": 7,
+   "pieces": 1
+  },
+  "minecraft:shipwreck": {
+   "span": 22,
+   "radius": 11,
+   "y": 9,
+   "pieces": 1
+  },
+  "minecraft:shipwreck_beached": {
+   "span": 28,
+   "radius": 14,
+   "y": 9,
+   "pieces": 1
+  },
+  "minecraft:stronghold": {
+   "span": 160,
+   "radius": 80,
+   "y": 61,
+   "pieces": 156
+  },
+  "minecraft:swamp_hut": {
+   "span": 9,
+   "radius": 4,
+   "y": 7,
+   "pieces": 1
+  },
+  "minecraft:trail_ruins": {
+   "span": 76,
+   "radius": 38,
+   "y": 46,
+   "pieces": 18
+  },
+  "minecraft:trial_chambers": {
+   "span": 144,
+   "radius": 72,
+   "y": 68,
+   "pieces": 240
+  },
+  "minecraft:village_desert": {
+   "span": 119,
+   "radius": 59,
+   "y": 51,
+   "pieces": 105
+  },
+  "minecraft:village_plains": {
+   "span": 170,
+   "radius": 85,
+   "y": 44,
+   "pieces": 90
+  },
+  "minecraft:village_savanna": {
+   "span": 183,
+   "radius": 91,
+   "y": 40,
+   "pieces": 108
+  },
+  "minecraft:village_snowy": {
+   "span": 174,
+   "radius": 87,
+   "y": 45,
+   "pieces": 101
+  },
+  "minecraft:village_taiga": {
+   "span": 162,
+   "radius": 81,
+   "y": 40,
+   "pieces": 58
+  },
+  "mns:bridge_1": {
+   "span": 9,
+   "radius": 4,
+   "y": 5,
+   "pieces": 1
+  },
+  "mns:bridge_2": {
+   "span": 17,
+   "radius": 8,
+   "y": 4,
+   "pieces": 1
+  },
+  "mns:bridge_3": {
+   "span": 9,
+   "radius": 4,
+   "y": 5,
+   "pieces": 1
+  },
+  "mns:bridge_4": {
+   "span": 13,
+   "radius": 6,
+   "y": 5,
+   "pieces": 1
+  },
+  "mns:bridge_5": {
+   "span": 13,
+   "radius": 6,
+   "y": 5,
+   "pieces": 1
+  },
+  "mns:bridge_6": {
+   "span": 5,
+   "radius": 2,
+   "y": 5,
+   "pieces": 1
+  },
+  "mns:circle_blackstone": {
+   "span": 42,
+   "radius": 21,
+   "y": 30,
+   "pieces": 1
+  },
+  "mns:circle_nether_brick": {
+   "span": 41,
+   "radius": 20,
+   "y": 34,
+   "pieces": 1
+  },
+  "mns:copper_tower": {
+   "span": 42,
+   "radius": 21,
+   "y": 41,
+   "pieces": 1
+  },
+  "mns:crimson_forge": {
+   "span": 43,
+   "radius": 21,
+   "y": 36,
+   "pieces": 1
+  },
+  "mns:crimson_lava_well": {
+   "span": 31,
+   "radius": 15,
+   "y": 35,
+   "pieces": 1
+  },
+  "mns:dragon_arena": {
+   "span": 129,
+   "radius": 64,
+   "y": 45,
+   "pieces": 38
+  },
+  "mns:giant_skull": {
+   "span": 71,
+   "radius": 35,
+   "y": 56,
+   "pieces": 1
+  },
+  "mns:grave_yard": {
+   "span": 42,
+   "radius": 21,
+   "y": 32,
+   "pieces": 1
+  },
+  "mns:large_arena": {
+   "span": 99,
+   "radius": 49,
+   "y": 47,
+   "pieces": 25
+  },
+  "mns:large_blackstone_pillars": {
+   "span": 37,
+   "radius": 18,
+   "y": 35,
+   "pieces": 1
+  },
+  "mns:large_blackstone_walls": {
+   "span": 44,
+   "radius": 22,
+   "y": 34,
+   "pieces": 1
+  },
+  "mns:large_house_1": {
+   "span": 71,
+   "radius": 35,
+   "y": 69,
+   "pieces": 1
+  },
+  "mns:large_nether_brick": {
+   "span": 46,
+   "radius": 23,
+   "y": 33,
+   "pieces": 1
+  },
+  "mns:lava_pool": {
+   "span": 47,
+   "radius": 23,
+   "y": 32,
+   "pieces": 2
+  },
+  "mns:leafy_rubble": {
+   "span": 33,
+   "radius": 16,
+   "y": 30,
+   "pieces": 1
+  },
+  "mns:medium_blackstone": {
+   "span": 34,
+   "radius": 17,
+   "y": 30,
+   "pieces": 1
+  },
+  "mns:medium_crimson_fungus": {
+   "span": 35,
+   "radius": 17,
+   "y": 44,
+   "pieces": 1
+  },
+  "mns:medium_crimson_fungus_2": {
+   "span": 36,
+   "radius": 18,
+   "y": 41,
+   "pieces": 1
+  },
+  "mns:medium_crimson_well": {
+   "span": 33,
+   "radius": 16,
+   "y": 42,
+   "pieces": 2
+  },
+  "mns:medium_house": {
+   "span": 43,
+   "radius": 21,
+   "y": 38,
+   "pieces": 1
+  },
+  "mns:medium_house_2": {
+   "span": 43,
+   "radius": 21,
+   "y": 38,
+   "pieces": 1
+  },
+  "mns:medium_warped_fungus": {
+   "span": 33,
+   "radius": 16,
+   "y": 46,
+   "pieces": 1
+  },
+  "mns:medium_warped_fungus_2": {
+   "span": 37,
+   "radius": 18,
+   "y": 38,
+   "pieces": 1
+  },
+  "mns:medium_warped_well": {
+   "span": 33,
+   "radius": 16,
+   "y": 42,
+   "pieces": 2
+  },
+  "mns:mega_fortress": {
+   "span": 255,
+   "radius": 127,
+   "y": 56,
+   "pieces": 339
+  },
+  "mns:nether_tower": {
+   "span": 47,
+   "radius": 23,
+   "y": 70,
+   "pieces": 1
+  },
+  "mns:nether_wart_farm": {
+   "span": 42,
+   "radius": 21,
+   "y": 44,
+   "pieces": 1
+  },
+  "mns:ruined_portal": {
+   "span": 42,
+   "radius": 21,
+   "y": 37,
+   "pieces": 1
+  },
+  "mns:sandy_skull": {
+   "span": 43,
+   "radius": 21,
+   "y": 37,
+   "pieces": 1
+  },
+  "mns:shrine": {
+   "span": 33,
+   "radius": 16,
+   "y": 29,
+   "pieces": 1
+  },
+  "mns:small_arena": {
+   "span": 117,
+   "radius": 58,
+   "y": 42,
+   "pieces": 12
+  },
+  "mns:small_nether_brick": {
+   "span": 35,
+   "radius": 17,
+   "y": 32,
+   "pieces": 1
+  },
+  "mns:smoking_shrine": {
+   "span": 37,
+   "radius": 18,
+   "y": 33,
+   "pieces": 1
+  },
+  "mns:soul_fire": {
+   "span": 34,
+   "radius": 17,
+   "y": 39,
+   "pieces": 1
+  },
+  "mns:sword": {
+   "span": 56,
+   "radius": 28,
+   "y": 51,
+   "pieces": 1
+  },
+  "mns:train": {
+   "span": 61,
+   "radius": 30,
+   "y": 37,
+   "pieces": 1
+  },
+  "mns:very_small_blackstone": {
+   "span": 27,
+   "radius": 13,
+   "y": 29,
+   "pieces": 1
+  },
+  "mns:very_small_blackstone_2": {
+   "span": 28,
+   "radius": 14,
+   "y": 29,
+   "pieces": 1
+  },
+  "mns:very_small_blackstone_3": {
+   "span": 27,
+   "radius": 13,
+   "y": 29,
+   "pieces": 1
+  },
+  "mns:very_small_blackstone_4": {
+   "span": 26,
+   "radius": 13,
+   "y": 28,
+   "pieces": 1
+  },
+  "mns:very_small_nether_brick": {
+   "span": 27,
+   "radius": 13,
+   "y": 29,
+   "pieces": 1
+  },
+  "mns:very_small_nether_brick_2": {
+   "span": 26,
+   "radius": 13,
+   "y": 28,
+   "pieces": 1
+  },
+  "mns:very_small_nether_brick_3": {
+   "span": 26,
+   "radius": 13,
+   "y": 28,
+   "pieces": 1
+  },
+  "mns:warped_dome": {
+   "span": 50,
+   "radius": 25,
+   "y": 39,
+   "pieces": 1
+  },
+  "mns:warped_house": {
+   "span": 42,
+   "radius": 21,
+   "y": 50,
+   "pieces": 1
+  },
+  "mns:warped_pool": {
+   "span": 39,
+   "radius": 19,
+   "y": 43,
+   "pieces": 2
+  },
+  "mss:arena": {
+   "span": 162,
+   "radius": 81,
+   "y": 121,
+   "pieces": 21
+  },
+  "mss:birch_river": {
+   "span": 35,
+   "radius": 17,
+   "y": 35,
+   "pieces": 1
+  },
+  "mss:calcite_house": {
+   "span": 25,
+   "radius": 12,
+   "y": 48,
+   "pieces": 1
+  },
+  "mss:castle_ruin": {
+   "span": 43,
+   "radius": 21,
+   "y": 35,
+   "pieces": 1
+  },
+  "mss:castle_tower": {
+   "span": 31,
+   "radius": 15,
+   "y": 63,
+   "pieces": 2
+  },
+  "mss:cherry_river": {
+   "span": 31,
+   "radius": 15,
+   "y": 38,
+   "pieces": 1
+  },
+  "mss:desert_pyramid": {
+   "span": 53,
+   "radius": 26,
+   "y": 63,
+   "pieces": 3
+  },
+  "mss:desert_well": {
+   "span": 26,
+   "radius": 13,
+   "y": 44,
+   "pieces": 1
+  },
+  "mss:diorite_house": {
+   "span": 60,
+   "radius": 30,
+   "y": 96,
+   "pieces": 4
+  },
+  "mss:frozen_pond": {
+   "span": 36,
+   "radius": 18,
+   "y": 38,
+   "pieces": 1
+  },
+  "mss:jungle": {
+   "span": 78,
+   "radius": 39,
+   "y": 58,
+   "pieces": 8
+  },
+  "mss:large_tower": {
+   "span": 68,
+   "radius": 34,
+   "y": 113,
+   "pieces": 6
+  },
+  "mss:leaf_hollow": {
+   "span": 86,
+   "radius": 43,
+   "y": 30,
+   "pieces": 4
+  },
+  "mss:mangrove": {
+   "span": 40,
+   "radius": 20,
+   "y": 68,
+   "pieces": 2
+  },
+  "mss:muddy_water_hole": {
+   "span": 63,
+   "radius": 31,
+   "y": 61,
+   "pieces": 4
+  },
+  "mss:mushroom": {
+   "span": 35,
+   "radius": 17,
+   "y": 27,
+   "pieces": 1
+  },
+  "mss:nether_portal": {
+   "span": 35,
+   "radius": 17,
+   "y": 27,
+   "pieces": 1
+  },
+  "mss:palm_island": {
+   "span": 14,
+   "radius": 7,
+   "y": 38,
+   "pieces": 1
+  },
+  "mss:red_sand": {
+   "span": 63,
+   "radius": 31,
+   "y": 35,
+   "pieces": 2
+  },
+  "mss:small_deepslate_house": {
+   "span": 34,
+   "radius": 17,
+   "y": 37,
+   "pieces": 1
+  },
+  "mss:small_oak_house": {
+   "span": 35,
+   "radius": 17,
+   "y": 48,
+   "pieces": 1
+  },
+  "mss:small_pond": {
+   "span": 20,
+   "radius": 10,
+   "y": 40,
+   "pieces": 1
+  },
+  "mss:small_tower": {
+   "span": 38,
+   "radius": 19,
+   "y": 48,
+   "pieces": 1
+  },
+  "mss:spruce_huts": {
+   "span": 32,
+   "radius": 16,
+   "y": 38,
+   "pieces": 1
+  },
+  "mss:taiga": {
+   "span": 45,
+   "radius": 22,
+   "y": 58,
+   "pieces": 2
+  },
+  "mss:tree_1": {
+   "span": 13,
+   "radius": 6,
+   "y": 22,
+   "pieces": 1
+  },
+  "mss:tree_2": {
+   "span": 17,
+   "radius": 8,
+   "y": 25,
+   "pieces": 1
+  },
+  "mss:tree_3": {
+   "span": 21,
+   "radius": 10,
+   "y": 30,
+   "pieces": 1
+  },
+  "mss:tree_4": {
+   "span": 21,
+   "radius": 10,
+   "y": 30,
+   "pieces": 1
+  },
+  "mss:tree_5": {
+   "span": 25,
+   "radius": 12,
+   "y": 31,
+   "pieces": 1
+  },
+  "mss:tree_6": {
+   "span": 20,
+   "radius": 10,
+   "y": 28,
+   "pieces": 1
+  },
+  "mss:tree_7": {
+   "span": 20,
+   "radius": 10,
+   "y": 40,
+   "pieces": 1
+  },
+  "mss:tree_8": {
+   "span": 20,
+   "radius": 10,
+   "y": 40,
+   "pieces": 1
+  },
+  "mss:volcano": {
+   "span": 98,
+   "radius": 49,
+   "y": 78,
+   "pieces": 6
+  },
+  "mss:white_house": {
+   "span": 63,
+   "radius": 31,
+   "y": 96,
+   "pieces": 5
+  },
+  "mtr:badlands_temple": {
+   "span": 66,
+   "radius": 33,
+   "y": 46,
+   "pieces": 2
+  },
+  "mtr:desert_temple": {
+   "span": 101,
+   "radius": 50,
+   "y": 72,
+   "pieces": 5
+  },
+  "mtr:jungle_temple": {
+   "span": 108,
+   "radius": 54,
+   "y": 75,
+   "pieces": 5
+  },
+  "mtr:nether_temple": {
+   "span": 99,
+   "radius": 49,
+   "y": 88,
+   "pieces": 6
+  },
+  "mtr:ocean_temple": {
+   "span": 72,
+   "radius": 36,
+   "y": 67,
+   "pieces": 1
+  },
+  "mtr:stronghold": {
+   "span": 220,
+   "radius": 110,
+   "y": 66,
+   "pieces": 65
+  },
+  "mvs:acacia_log_pile": {
+   "span": 31,
+   "radius": 15,
+   "y": 28,
+   "pieces": 1
+  },
+  "mvs:acacia_tree": {
+   "span": 43,
+   "radius": 21,
+   "y": 39,
+   "pieces": 1
+  },
+  "mvs:acacia_well": {
+   "span": 29,
+   "radius": 14,
+   "y": 31,
+   "pieces": 1
+  },
+  "mvs:azelea_house": {
+   "span": 44,
+   "radius": 22,
+   "y": 44,
+   "pieces": 3
+  },
+  "mvs:barn": {
+   "span": 42,
+   "radius": 21,
+   "y": 34,
+   "pieces": 1
+  },
+  "mvs:beach_bar": {
+   "span": 38,
+   "radius": 19,
+   "y": 30,
+   "pieces": 1
+  },
+  "mvs:bee_dome": {
+   "span": 32,
+   "radius": 16,
+   "y": 31,
+   "pieces": 1
+  },
+  "mvs:bench": {
+   "span": 28,
+   "radius": 14,
+   "y": 27,
+   "pieces": 1
+  },
+  "mvs:big_oak_tree": {
+   "span": 50,
+   "radius": 25,
+   "y": 46,
+   "pieces": 1
+  },
+  "mvs:birch_log_pile": {
+   "span": 31,
+   "radius": 15,
+   "y": 28,
+   "pieces": 1
+  },
+  "mvs:birch_tree": {
+   "span": 38,
+   "radius": 19,
+   "y": 44,
+   "pieces": 1
+  },
+  "mvs:birch_well": {
+   "span": 29,
+   "radius": 14,
+   "y": 31,
+   "pieces": 1
+  },
+  "mvs:blue_stall": {
+   "span": 35,
+   "radius": 17,
+   "y": 34,
+   "pieces": 1
+  },
+  "mvs:boulder": {
+   "span": 30,
+   "radius": 15,
+   "y": 29,
+   "pieces": 1
+  },
+  "mvs:campsite": {
+   "span": 43,
+   "radius": 21,
+   "y": 32,
+   "pieces": 1
+  },
+  "mvs:cart": {
+   "span": 27,
+   "radius": 13,
+   "y": 28,
+   "pieces": 1
+  },
+  "mvs:cartographer_tower": {
+   "span": 46,
+   "radius": 23,
+   "y": 82,
+   "pieces": 3
+  },
+  "mvs:castle_ruins": {
+   "span": 45,
+   "radius": 22,
+   "y": 46,
+   "pieces": 1
+  },
+  "mvs:cathedral": {
+   "span": 95,
+   "radius": 47,
+   "y": 128,
+   "pieces": 71
+  },
+  "mvs:cherry_tree": {
+   "span": 40,
+   "radius": 20,
+   "y": 40,
+   "pieces": 1
+  },
+  "mvs:crimson_enchanting_table": {
+   "span": 38,
+   "radius": 19,
+   "y": 27,
+   "pieces": 1
+  },
+  "mvs:crystal": {
+   "span": 39,
+   "radius": 19,
+   "y": 55,
+   "pieces": 2
+  },
+  "mvs:dark_oak_log_pile": {
+   "span": 31,
+   "radius": 15,
+   "y": 28,
+   "pieces": 1
+  },
+  "mvs:dark_oak_tree": {
+   "span": 50,
+   "radius": 25,
+   "y": 49,
+   "pieces": 1
+  },
+  "mvs:dark_oak_well": {
+   "span": 29,
+   "radius": 14,
+   "y": 31,
+   "pieces": 1
+  },
+  "mvs:dead_tree_acacia": {
+   "span": 27,
+   "radius": 13,
+   "y": 32,
+   "pieces": 1
+  },
+  "mvs:dead_tree_birch": {
+   "span": 30,
+   "radius": 15,
+   "y": 33,
+   "pieces": 1
+  },
+  "mvs:dead_tree_cherry": {
+   "span": 31,
+   "radius": 15,
+   "y": 33,
+   "pieces": 1
+  },
+  "mvs:dead_tree_dark_oak": {
+   "span": 31,
+   "radius": 15,
+   "y": 33,
+   "pieces": 1
+  },
+  "mvs:dead_tree_jungle": {
+   "span": 33,
+   "radius": 16,
+   "y": 42,
+   "pieces": 1
+  },
+  "mvs:dead_tree_mangrove": {
+   "span": 30,
+   "radius": 15,
+   "y": 33,
+   "pieces": 1
+  },
+  "mvs:dead_tree_oak": {
+   "span": 28,
+   "radius": 14,
+   "y": 33,
+   "pieces": 1
+  },
+  "mvs:dead_tree_spruce": {
+   "span": 28,
+   "radius": 14,
+   "y": 32,
+   "pieces": 1
+  },
+  "mvs:deepslate_house": {
+   "span": 46,
+   "radius": 23,
+   "y": 39,
+   "pieces": 3
+  },
+  "mvs:desert_house": {
+   "span": 36,
+   "radius": 18,
+   "y": 32,
+   "pieces": 1
+  },
+  "mvs:desert_pump": {
+   "span": 29,
+   "radius": 14,
+   "y": 32,
+   "pieces": 1
+  },
+  "mvs:desert_well": {
+   "span": 29,
+   "radius": 14,
+   "y": 31,
+   "pieces": 1
+  },
+  "mvs:diorite_and_deepslate_house": {
+   "span": 43,
+   "radius": 21,
+   "y": 46,
+   "pieces": 1
+  },
+  "mvs:diorite_tower": {
+   "span": 43,
+   "radius": 21,
+   "y": 48,
+   "pieces": 1
+  },
+  "mvs:duck": {
+   "span": 33,
+   "radius": 16,
+   "y": 31,
+   "pieces": 1
+  },
+  "mvs:fire_camp": {
+   "span": 32,
+   "radius": 16,
+   "y": 26,
+   "pieces": 1
+  },
+  "mvs:floating_islands": {
+   "span": 30,
+   "radius": 15,
+   "y": 19,
+   "pieces": 1
+  },
+  "mvs:flower_hole": {
+   "span": 51,
+   "radius": 25,
+   "y": 32,
+   "pieces": 3
+  },
+  "mvs:fox_hut": {
+   "span": 29,
+   "radius": 14,
+   "y": 32,
+   "pieces": 1
+  },
+  "mvs:gallows": {
+   "span": 35,
+   "radius": 17,
+   "y": 33,
+   "pieces": 1
+  },
+  "mvs:haystack": {
+   "span": 30,
+   "radius": 15,
+   "y": 29,
+   "pieces": 1
+  },
+  "mvs:horse_campsite": {
+   "span": 33,
+   "radius": 16,
+   "y": 27,
+   "pieces": 1
+  },
+  "mvs:horse_pen": {
+   "span": 31,
+   "radius": 15,
+   "y": 30,
+   "pieces": 1
+  },
+  "mvs:house": {
+   "span": 44,
+   "radius": 22,
+   "y": 41,
+   "pieces": 2
+  },
+  "mvs:jungle_log_pile": {
+   "span": 31,
+   "radius": 15,
+   "y": 28,
+   "pieces": 1
+  },
+  "mvs:jungle_palm_tree": {
+   "span": 40,
+   "radius": 20,
+   "y": 50,
+   "pieces": 1
+  },
+  "mvs:jungle_tower": {
+   "span": 71,
+   "radius": 35,
+   "y": 86,
+   "pieces": 3
+  },
+  "mvs:jungle_tree": {
+   "span": 42,
+   "radius": 21,
+   "y": 41,
+   "pieces": 1
+  },
+  "mvs:jungle_well": {
+   "span": 29,
+   "radius": 14,
+   "y": 31,
+   "pieces": 1
+  },
+  "mvs:lamp_chest": {
+   "span": 37,
+   "radius": 18,
+   "y": 30,
+   "pieces": 1
+  },
+  "mvs:large_cart_1": {
+   "span": 35,
+   "radius": 17,
+   "y": 32,
+   "pieces": 1
+  },
+  "mvs:large_cart_2": {
+   "span": 33,
+   "radius": 16,
+   "y": 32,
+   "pieces": 1
+  },
+  "mvs:large_floating_island": {
+   "span": 26,
+   "radius": 13,
+   "y": 28,
+   "pieces": 2
+  },
+  "mvs:large_mushroom": {
+   "span": 37,
+   "radius": 18,
+   "y": 36,
+   "pieces": 1
+  },
+  "mvs:large_warped_tower": {
+   "span": 54,
+   "radius": 27,
+   "y": 77,
+   "pieces": 2
+  },
+  "mvs:lecturn_garden": {
+   "span": 36,
+   "radius": 18,
+   "y": 27,
+   "pieces": 1
+  },
+  "mvs:log_ruin": {
+   "span": 54,
+   "radius": 27,
+   "y": 37,
+   "pieces": 1
+  },
+  "mvs:medium_bamboo_cart": {
+   "span": 30,
+   "radius": 15,
+   "y": 28,
+   "pieces": 1
+  },
+  "mvs:medium_igloo_1": {
+   "span": 38,
+   "radius": 19,
+   "y": 31,
+   "pieces": 2
+  },
+  "mvs:medium_oak_lantern": {
+   "span": 27,
+   "radius": 13,
+   "y": 30,
+   "pieces": 1
+  },
+  "mvs:mine_with_campsite": {
+   "span": 72,
+   "radius": 36,
+   "y": 51,
+   "pieces": 4
+  },
+  "mvs:mud_brick_house_1": {
+   "span": 48,
+   "radius": 24,
+   "y": 48,
+   "pieces": 1
+  },
+  "mvs:mushroom_pond": {
+   "span": 39,
+   "radius": 19,
+   "y": 33,
+   "pieces": 2
+  },
+  "mvs:mushroom_statue": {
+   "span": 29,
+   "radius": 14,
+   "y": 34,
+   "pieces": 1
+  },
+  "mvs:mushroom_well": {
+   "span": 29,
+   "radius": 14,
+   "y": 31,
+   "pieces": 1
+  },
+  "mvs:nether_devil": {
+   "span": 29,
+   "radius": 14,
+   "y": 38,
+   "pieces": 1
+  },
+  "mvs:nether_well": {
+   "span": 29,
+   "radius": 14,
+   "y": 31,
+   "pieces": 1
+  },
+  "mvs:oak_log_pile": {
+   "span": 31,
+   "radius": 15,
+   "y": 28,
+   "pieces": 1
+  },
+  "mvs:oak_tree": {
+   "span": 38,
+   "radius": 19,
+   "y": 42,
+   "pieces": 1
+  },
+  "mvs:oak_well": {
+   "span": 29,
+   "radius": 14,
+   "y": 31,
+   "pieces": 1
+  },
+  "mvs:ocean_tower": {
+   "span": 56,
+   "radius": 28,
+   "y": 68,
+   "pieces": 1
+  },
+  "mvs:orange_stall": {
+   "span": 34,
+   "radius": 17,
+   "y": 33,
+   "pieces": 1
+  },
+  "mvs:out_house": {
+   "span": 32,
+   "radius": 16,
+   "y": 32,
+   "pieces": 2
+  },
+  "mvs:paths": {
+   "span": 52,
+   "radius": 26,
+   "y": 28,
+   "pieces": 1
+  },
+  "mvs:pile": {
+   "span": 27,
+   "radius": 13,
+   "y": 27,
+   "pieces": 1
+  },
+  "mvs:pink_stall": {
+   "span": 31,
+   "radius": 15,
+   "y": 33,
+   "pieces": 1
+  },
+  "mvs:prismarine_house_1": {
+   "span": 47,
+   "radius": 23,
+   "y": 46,
+   "pieces": 1
+  },
+  "mvs:prismarine_house_2": {
+   "span": 51,
+   "radius": 25,
+   "y": 45,
+   "pieces": 1
+  },
+  "mvs:railway": {
+   "span": 40,
+   "radius": 20,
+   "y": 29,
+   "pieces": 1
+  },
+  "mvs:rare_well": {
+   "span": 33,
+   "radius": 16,
+   "y": 35,
+   "pieces": 2
+  },
+  "mvs:red_stall": {
+   "span": 31,
+   "radius": 15,
+   "y": 33,
+   "pieces": 1
+  },
+  "mvs:red_tower": {
+   "span": 65,
+   "radius": 32,
+   "y": 97,
+   "pieces": 2
+  },
+  "mvs:rocky_well": {
+   "span": 29,
+   "radius": 14,
+   "y": 31,
+   "pieces": 1
+  },
+  "mvs:ruined_beacon": {
+   "span": 44,
+   "radius": 22,
+   "y": 33,
+   "pieces": 1
+  },
+  "mvs:shed": {
+   "span": 34,
+   "radius": 17,
+   "y": 30,
+   "pieces": 1
+  },
+  "mvs:small_acacia_lantern": {
+   "span": 26,
+   "radius": 13,
+   "y": 29,
+   "pieces": 1
+  },
+  "mvs:small_bamboo_lantern": {
+   "span": 26,
+   "radius": 13,
+   "y": 29,
+   "pieces": 1
+  },
+  "mvs:small_birch_lantern": {
+   "span": 26,
+   "radius": 13,
+   "y": 29,
+   "pieces": 1
+  },
+  "mvs:small_campfire_lantern": {
+   "span": 27,
+   "radius": 13,
+   "y": 31,
+   "pieces": 1
+  },
+  "mvs:small_cherry_lantern": {
+   "span": 26,
+   "radius": 13,
+   "y": 29,
+   "pieces": 1
+  },
+  "mvs:small_copper_well": {
+   "span": 31,
+   "radius": 15,
+   "y": 29,
+   "pieces": 1
+  },
+  "mvs:small_dark_oak_lantern": {
+   "span": 26,
+   "radius": 13,
+   "y": 29,
+   "pieces": 1
+  },
+  "mvs:small_igloo": {
+   "span": 34,
+   "radius": 17,
+   "y": 30,
+   "pieces": 3
+  },
+  "mvs:small_jungle_lantern": {
+   "span": 26,
+   "radius": 13,
+   "y": 29,
+   "pieces": 1
+  },
+  "mvs:small_mangrove_lantern": {
+   "span": 26,
+   "radius": 13,
+   "y": 29,
+   "pieces": 1
+  },
+  "mvs:small_oak_lantern": {
+   "span": 26,
+   "radius": 13,
+   "y": 29,
+   "pieces": 1
+  },
+  "mvs:small_oak_pond": {
+   "span": 40,
+   "radius": 20,
+   "y": 34,
+   "pieces": 2
+  },
+  "mvs:small_pillager_tower": {
+   "span": 37,
+   "radius": 18,
+   "y": 51,
+   "pieces": 1
+  },
+  "mvs:small_ruin": {
+   "span": 41,
+   "radius": 20,
+   "y": 38,
+   "pieces": 1
+  },
+  "mvs:small_ship": {
+   "span": 15,
+   "radius": 7,
+   "y": 10,
+   "pieces": 2
+  },
+  "mvs:small_spruce_lantern": {
+   "span": 26,
+   "radius": 13,
+   "y": 29,
+   "pieces": 1
+  },
+  "mvs:small_swamp_house": {
+   "span": 34,
+   "radius": 17,
+   "y": 35,
+   "pieces": 1
+  },
+  "mvs:small_tower_well": {
+   "span": 30,
+   "radius": 15,
+   "y": 31,
+   "pieces": 1
+  },
+  "mvs:small_well": {
+   "span": 32,
+   "radius": 16,
+   "y": 29,
+   "pieces": 1
+  },
+  "mvs:snowy_dog_hut": {
+   "span": 30,
+   "radius": 15,
+   "y": 28,
+   "pieces": 1
+  },
+  "mvs:snowy_fossil": {
+   "span": 36,
+   "radius": 18,
+   "y": 36,
+   "pieces": 1
+  },
+  "mvs:snowy_well": {
+   "span": 29,
+   "radius": 14,
+   "y": 31,
+   "pieces": 1
+  },
+  "mvs:spruce_log_pile": {
+   "span": 31,
+   "radius": 15,
+   "y": 28,
+   "pieces": 1
+  },
+  "mvs:spruce_tree": {
+   "span": 34,
+   "radius": 17,
+   "y": 45,
+   "pieces": 1
+  },
+  "mvs:spruce_well": {
+   "span": 29,
+   "radius": 14,
+   "y": 31,
+   "pieces": 1
+  },
+  "mvs:statue_ruins": {
+   "span": 33,
+   "radius": 16,
+   "y": 31,
+   "pieces": 1
+  },
+  "mvs:stone_fountain": {
+   "span": 32,
+   "radius": 16,
+   "y": 28,
+   "pieces": 1
+  },
+  "mvs:stone_pillars": {
+   "span": 40,
+   "radius": 20,
+   "y": 34,
+   "pieces": 1
+  },
+  "mvs:stone_rock": {
+   "span": 28,
+   "radius": 14,
+   "y": 28,
+   "pieces": 1
+  },
+  "mvs:sunzi_gate": {
+   "span": 41,
+   "radius": 20,
+   "y": 41,
+   "pieces": 1
+  },
+  "mvs:tall_house": {
+   "span": 50,
+   "radius": 25,
+   "y": 45,
+   "pieces": 3
+  },
+  "mvs:tree_monument": {
+   "span": 61,
+   "radius": 30,
+   "y": 35,
+   "pieces": 1
+  },
+  "mvs:villager_statue": {
+   "span": 30,
+   "radius": 15,
+   "y": 36,
+   "pieces": 1
+  },
+  "mvs:warped_house": {
+   "span": 43,
+   "radius": 21,
+   "y": 36,
+   "pieces": 1
+  },
+  "mvs:well": {
+   "span": 28,
+   "radius": 14,
+   "y": 33,
+   "pieces": 2
+  },
+  "mvs:wheat_grain_bin": {
+   "span": 31,
+   "radius": 15,
+   "y": 37,
+   "pieces": 1
+  },
+  "mvs:windmill": {
+   "span": 30,
+   "radius": 15,
+   "y": 32,
+   "pieces": 1
+  },
+  "mvs:wooden_wheat_farm": {
+   "span": 41,
+   "radius": 20,
+   "y": 29,
+   "pieces": 3
+  },
+  "natures_spirit:village_adobe": {
+   "span": 97,
+   "radius": 48,
+   "y": 47,
+   "pieces": 97
+  },
+  "natures_spirit:village_coconut": {
+   "span": 175,
+   "radius": 87,
+   "y": 38,
+   "pieces": 100
+  },
+  "natures_spirit:village_cypress": {
+   "span": 177,
+   "radius": 88,
+   "y": 48,
+   "pieces": 129
+  },
+  "natures_spirit:village_wisteria": {
+   "span": 173,
+   "radius": 86,
+   "y": 44,
+   "pieces": 81
+  },
+  "nova_structures:badlands_miner_outpost": {
+   "span": 189,
+   "radius": 94,
+   "y": 50,
+   "pieces": 159
+  },
+  "nova_structures:bunker": {
+   "span": 104,
+   "radius": 52,
+   "y": 63,
+   "pieces": 98
+  },
+  "nova_structures:conduit_ruin": {
+   "span": 151,
+   "radius": 75,
+   "y": 22,
+   "pieces": 71
+  },
+  "nova_structures:creeping_crypt": {
+   "span": 160,
+   "radius": 80,
+   "y": 70,
+   "pieces": 205
+  },
+  "nova_structures:deepslate_camp": {
+   "span": 9,
+   "radius": 4,
+   "y": 5,
+   "pieces": 5
+  },
+  "nova_structures:desert_ruins": {
+   "span": 225,
+   "radius": 112,
+   "y": 81,
+   "pieces": 3795
+  },
+  "nova_structures:end_castle": {
+   "span": 202,
+   "radius": 101,
+   "y": 143,
+   "pieces": 1054
+  },
+  "nova_structures:end_lighthouse": {
+   "span": 44,
+   "radius": 22,
+   "y": 60,
+   "pieces": 25
+  },
+  "nova_structures:end_ship": {
+   "span": 29,
+   "radius": 14,
+   "y": 26,
+   "pieces": 3
+  },
+  "nova_structures:firewatch_tower_birch": {
+   "span": 33,
+   "radius": 16,
+   "y": 43,
+   "pieces": 1
+  },
+  "nova_structures:firewatch_tower_cherry": {
+   "span": 33,
+   "radius": 16,
+   "y": 45,
+   "pieces": 1
+  },
+  "nova_structures:firewatch_tower_dark_oak": {
+   "span": 33,
+   "radius": 16,
+   "y": 43,
+   "pieces": 1
+  },
+  "nova_structures:firewatch_tower_forest": {
+   "span": 33,
+   "radius": 16,
+   "y": 43,
+   "pieces": 1
+  },
+  "nova_structures:firewatch_tower_jungle": {
+   "span": 33,
+   "radius": 16,
+   "y": 43,
+   "pieces": 1
+  },
+  "nova_structures:firewatch_tower_mangrove": {
+   "span": 33,
+   "radius": 16,
+   "y": 55,
+   "pieces": 1
+  },
+  "nova_structures:firewatch_tower_savanna": {
+   "span": 33,
+   "radius": 16,
+   "y": 43,
+   "pieces": 1
+  },
+  "nova_structures:firewatch_tower_swamp": {
+   "span": 33,
+   "radius": 16,
+   "y": 43,
+   "pieces": 1
+  },
+  "nova_structures:firewatch_tower_taiga": {
+   "span": 33,
+   "radius": 16,
+   "y": 43,
+   "pieces": 1
+  },
+  "nova_structures:hamlet": {
+   "span": 93,
+   "radius": 46,
+   "y": 44,
+   "pieces": 124
+  },
+  "nova_structures:illager_camp": {
+   "span": 41,
+   "radius": 20,
+   "y": 31,
+   "pieces": 5
+  },
+  "nova_structures:illager_hideout": {
+   "span": 168,
+   "radius": 84,
+   "y": 94,
+   "pieces": 242
+  },
+  "nova_structures:illager_manor": {
+   "span": 238,
+   "radius": 119,
+   "y": 44,
+   "pieces": 14218
+  },
+  "nova_structures:jungle_ruins": {
+   "span": 173,
+   "radius": 86,
+   "y": 61,
+   "pieces": 2362
+  },
+  "nova_structures:lone_citadel": {
+   "span": 245,
+   "radius": 122,
+   "y": 126,
+   "pieces": 19362
+  },
+  "nova_structures:mangrove_witch_hut": {
+   "span": 36,
+   "radius": 18,
+   "y": 35,
+   "pieces": 8
+  },
+  "nova_structures:nether_keep": {
+   "span": 240,
+   "radius": 120,
+   "y": 143,
+   "pieces": 8255
+  },
+  "nova_structures:nether_port": {
+   "span": 190,
+   "radius": 95,
+   "y": 56,
+   "pieces": 50
+  },
+  "nova_structures:nether_skeleton_tower_crimson": {
+   "span": 63,
+   "radius": 31,
+   "y": 37,
+   "pieces": 27
+  },
+  "nova_structures:nether_skeleton_tower_soul": {
+   "span": 63,
+   "radius": 31,
+   "y": 39,
+   "pieces": 27
+  },
+  "nova_structures:nether_skeleton_tower_warped": {
+   "span": 63,
+   "radius": 31,
+   "y": 37,
+   "pieces": 27
+  },
+  "nova_structures:nether_skeleton_tower_waste": {
+   "span": 63,
+   "radius": 31,
+   "y": 37,
+   "pieces": 26
+  },
+  "nova_structures:piglin_camp": {
+   "span": 41,
+   "radius": 20,
+   "y": 31,
+   "pieces": 9
+  },
+  "nova_structures:piglin_donjon": {
+   "span": 236,
+   "radius": 118,
+   "y": 76,
+   "pieces": 14927
+  },
+  "nova_structures:piglin_outstation": {
+   "span": 164,
+   "radius": 82,
+   "y": 65,
+   "pieces": 5141
+  },
+  "nova_structures:remnant_bee_keeper": {
+   "span": 37,
+   "radius": 18,
+   "y": 31,
+   "pieces": 1
+  },
+  "nova_structures:remnant_big_remnant": {
+   "span": 51,
+   "radius": 25,
+   "y": 34,
+   "pieces": 1
+  },
+  "nova_structures:remnant_big_remnant_2": {
+   "span": 55,
+   "radius": 27,
+   "y": 29,
+   "pieces": 1
+  },
+  "nova_structures:remnant_big_remnant_3": {
+   "span": 54,
+   "radius": 27,
+   "y": 44,
+   "pieces": 2
+  },
+  "nova_structures:remnant_birch_graveyard": {
+   "span": 61,
+   "radius": 30,
+   "y": 45,
+   "pieces": 1
+  },
+  "nova_structures:remnant_bridge_remnant": {
+   "span": 61,
+   "radius": 30,
+   "y": 39,
+   "pieces": 85
+  },
+  "nova_structures:remnant_bunny_base": {
+   "span": 45,
+   "radius": 22,
+   "y": 38,
+   "pieces": 1
+  },
+  "nova_structures:remnant_classic_village": {
+   "span": 88,
+   "radius": 44,
+   "y": 48,
+   "pieces": 24
+  },
+  "nova_structures:remnant_desert_remnant": {
+   "span": 45,
+   "radius": 22,
+   "y": 38,
+   "pieces": 2
+  },
+  "nova_structures:remnant_forest_smith": {
+   "span": 40,
+   "radius": 20,
+   "y": 32,
+   "pieces": 1
+  },
+  "nova_structures:remnant_frog_ranch": {
+   "span": 46,
+   "radius": 23,
+   "y": 40,
+   "pieces": 1
+  },
+  "nova_structures:remnant_graveyard": {
+   "span": 61,
+   "radius": 30,
+   "y": 34,
+   "pieces": 1
+  },
+  "nova_structures:remnant_medium_remnant": {
+   "span": 37,
+   "radius": 18,
+   "y": 31,
+   "pieces": 1
+  },
+  "nova_structures:remnant_medium_remnant_2": {
+   "span": 40,
+   "radius": 20,
+   "y": 28,
+   "pieces": 1
+  },
+  "nova_structures:remnant_miner_hut": {
+   "span": 40,
+   "radius": 20,
+   "y": 41,
+   "pieces": 2
+  },
+  "nova_structures:remnant_mud_brick_constructor": {
+   "span": 48,
+   "radius": 24,
+   "y": 44,
+   "pieces": 1
+  },
+  "nova_structures:remnant_ominous_shop": {
+   "span": 32,
+   "radius": 16,
+   "y": 34,
+   "pieces": 3
+  },
+  "nova_structures:remnant_ruin_farmer": {
+   "span": 43,
+   "radius": 21,
+   "y": 37,
+   "pieces": 1
+  },
+  "nova_structures:remnant_ruin_smith": {
+   "span": 38,
+   "radius": 19,
+   "y": 39,
+   "pieces": 1
+  },
+  "nova_structures:remnant_sawmill": {
+   "span": 43,
+   "radius": 21,
+   "y": 36,
+   "pieces": 1
+  },
+  "nova_structures:remnant_school_remnant": {
+   "span": 49,
+   "radius": 24,
+   "y": 41,
+   "pieces": 1
+  },
+  "nova_structures:remnant_taiga_castle": {
+   "span": 51,
+   "radius": 25,
+   "y": 44,
+   "pieces": 1
+  },
+  "nova_structures:remnant_woodland_hud": {
+   "span": 37,
+   "radius": 18,
+   "y": 34,
+   "pieces": 1
+  },
+  "nova_structures:remnant_zombie_horse_ranch": {
+   "span": 41,
+   "radius": 20,
+   "y": 32,
+   "pieces": 1
+  },
+  "nova_structures:ruin_town": {
+   "span": 142,
+   "radius": 71,
+   "y": 46,
+   "pieces": 135
+  },
+  "nova_structures:shrine_combat_tier_1": {
+   "span": 43,
+   "radius": 21,
+   "y": 93,
+   "pieces": 11
+  },
+  "nova_structures:shrine_combat_tier_2": {
+   "span": 54,
+   "radius": 27,
+   "y": 93,
+   "pieces": 17
+  },
+  "nova_structures:shrine_combat_tier_3": {
+   "span": 70,
+   "radius": 35,
+   "y": 93,
+   "pieces": 25
+  },
+  "nova_structures:shrine_combat_tier_4": {
+   "span": 89,
+   "radius": 44,
+   "y": 93,
+   "pieces": 34
+  },
+  "nova_structures:shrine_combat_tier_5": {
+   "span": 93,
+   "radius": 46,
+   "y": 93,
+   "pieces": 45
+  },
+  "nova_structures:shrine_tower": {
+   "span": 9,
+   "radius": 4,
+   "y": 37,
+   "pieces": 5
+  },
+  "nova_structures:skeleton_camp_crimson": {
+   "span": 41,
+   "radius": 20,
+   "y": 32,
+   "pieces": 5
+  },
+  "nova_structures:skeleton_camp_soul": {
+   "span": 41,
+   "radius": 20,
+   "y": 31,
+   "pieces": 5
+  },
+  "nova_structures:skeleton_camp_warped": {
+   "span": 41,
+   "radius": 20,
+   "y": 32,
+   "pieces": 6
+  },
+  "nova_structures:skeleton_camp_waste": {
+   "span": 41,
+   "radius": 20,
+   "y": 31,
+   "pieces": 5
+  },
+  "nova_structures:stray_fort": {
+   "span": 180,
+   "radius": 90,
+   "y": 52,
+   "pieces": 159
+  },
+  "nova_structures:tavern_acacia": {
+   "span": 64,
+   "radius": 32,
+   "y": 39,
+   "pieces": 13
+  },
+  "nova_structures:tavern_birch": {
+   "span": 66,
+   "radius": 33,
+   "y": 37,
+   "pieces": 11
+  },
+  "nova_structures:tavern_cherry": {
+   "span": 57,
+   "radius": 28,
+   "y": 43,
+   "pieces": 12
+  },
+  "nova_structures:tavern_dark_oak": {
+   "span": 66,
+   "radius": 33,
+   "y": 38,
+   "pieces": 10
+  },
+  "nova_structures:tavern_desert": {
+   "span": 66,
+   "radius": 33,
+   "y": 37,
+   "pieces": 15
+  },
+  "nova_structures:tavern_jungle": {
+   "span": 66,
+   "radius": 33,
+   "y": 37,
+   "pieces": 14
+  },
+  "nova_structures:tavern_mangrove": {
+   "span": 64,
+   "radius": 32,
+   "y": 44,
+   "pieces": 31
+  },
+  "nova_structures:tavern_oak": {
+   "span": 65,
+   "radius": 32,
+   "y": 37,
+   "pieces": 11
+  },
+  "nova_structures:tavern_snowy": {
+   "span": 57,
+   "radius": 28,
+   "y": 37,
+   "pieces": 11
+  },
+  "nova_structures:tavern_spruce": {
+   "span": 66,
+   "radius": 33,
+   "y": 38,
+   "pieces": 13
+  },
+  "nova_structures:tavern_swamp": {
+   "span": 64,
+   "radius": 32,
+   "y": 37,
+   "pieces": 35
+  },
+  "nova_structures:toxic_lair": {
+   "span": 209,
+   "radius": 104,
+   "y": 85,
+   "pieces": 3926
+  },
+  "nova_structures:trident_trial_monument": {
+   "span": 172,
+   "radius": 86,
+   "y": 76,
+   "pieces": 3991
+  },
+  "nova_structures:undead_crypt": {
+   "span": 144,
+   "radius": 72,
+   "y": 71,
+   "pieces": 129
+  },
+  "nova_structures:underground_house": {
+   "span": 13,
+   "radius": 6,
+   "y": 8,
+   "pieces": 9
+  },
+  "nova_structures:village_birch": {
+   "span": 167,
+   "radius": 83,
+   "y": 45,
+   "pieces": 111
+  },
+  "nova_structures:village_jungle": {
+   "span": 170,
+   "radius": 85,
+   "y": 46,
+   "pieces": 106
+  },
+  "nova_structures:village_swamp": {
+   "span": 169,
+   "radius": 84,
+   "y": 49,
+   "pieces": 112
+  },
+  "nova_structures:well_birch": {
+   "span": 28,
+   "radius": 14,
+   "y": 35,
+   "pieces": 2
+  },
+  "nova_structures:well_dark_oak": {
+   "span": 28,
+   "radius": 14,
+   "y": 36,
+   "pieces": 2
+  },
+  "nova_structures:well_jungle": {
+   "span": 28,
+   "radius": 14,
+   "y": 36,
+   "pieces": 2
+  },
+  "nova_structures:well_oak": {
+   "span": 28,
+   "radius": 14,
+   "y": 35,
+   "pieces": 2
+  },
+  "nova_structures:well_savana": {
+   "span": 28,
+   "radius": 14,
+   "y": 36,
+   "pieces": 2
+  },
+  "nova_structures:well_spruce": {
+   "span": 28,
+   "radius": 14,
+   "y": 36,
+   "pieces": 2
+  },
+  "nova_structures:wild_ruin": {
+   "span": 30,
+   "radius": 15,
+   "y": 31,
+   "pieces": 1
+  },
+  "nova_structures:witch_villa": {
+   "span": 142,
+   "radius": 71,
+   "y": 58,
+   "pieces": 185
+  },
+  "nullscape:dragon_skeleton": {
+   "span": 55,
+   "radius": 27,
+   "y": 39,
+   "pieces": 1
+  },
+  "nullscape:rift": {
+   "span": 17,
+   "radius": 8,
+   "y": 2,
+   "pieces": 1
+  },
+  "paradise_lost:aurel_tower": {
+   "span": 33,
+   "radius": 16,
+   "y": 41,
+   "pieces": 1
+  },
+  "paradise_lost:birdcage": {
+   "span": 230,
+   "radius": 115,
+   "y": 153,
+   "pieces": 213
+  },
+  "paradise_lost:palace": {
+   "span": 105,
+   "radius": 52,
+   "y": 107,
+   "pieces": 45
+  },
+  "paradise_lost:remains": {
+   "span": 137,
+   "radius": 68,
+   "y": 26,
+   "pieces": 34
+  },
+  "paradise_lost:vault": {
+   "span": 150,
+   "radius": 75,
+   "y": 64,
+   "pieces": 100
+  },
+  "philipsruins:ancient_crypt": {
+   "span": 73,
+   "radius": 36,
+   "y": 36,
+   "pieces": 6
+  },
+  "philipsruins:ancient_dungeon": {
+   "span": 34,
+   "radius": 17,
+   "y": 34,
+   "pieces": 1
+  },
+  "philipsruins:ancient_ruins": {
+   "span": 34,
+   "radius": 17,
+   "y": 30,
+   "pieces": 1
+  },
+  "philipsruins:ancient_towers": {
+   "span": 33,
+   "radius": 16,
+   "y": 37,
+   "pieces": 1
+  },
+  "philipsruins:antiquus_crypta": {
+   "span": 40,
+   "radius": 20,
+   "y": 31,
+   "pieces": 1
+  },
+  "philipsruins:badlands_start_dungeon": {
+   "span": 45,
+   "radius": 22,
+   "y": 41,
+   "pieces": 2
+  },
+  "philipsruins:badlands_structures": {
+   "span": 50,
+   "radius": 25,
+   "y": 37,
+   "pieces": 1
+  },
+  "philipsruins:bone_dungeon": {
+   "span": 99,
+   "radius": 49,
+   "y": 41,
+   "pieces": 7
+  },
+  "philipsruins:desert_structures": {
+   "span": 39,
+   "radius": 19,
+   "y": 35,
+   "pieces": 1
+  },
+  "philipsruins:end_gate_fortress": {
+   "span": 168,
+   "radius": 84,
+   "y": 65,
+   "pieces": 16
+  },
+  "philipsruins:end_ruins": {
+   "span": 53,
+   "radius": 26,
+   "y": 38,
+   "pieces": 1
+  },
+  "philipsruins:field_stone_ruins": {
+   "span": 43,
+   "radius": 21,
+   "y": 29,
+   "pieces": 1
+  },
+  "philipsruins:field_stone_ruins_rocks": {
+   "span": 28,
+   "radius": 14,
+   "y": 26,
+   "pieces": 1
+  },
+  "philipsruins:level_one_ruins": {
+   "span": 37,
+   "radius": 18,
+   "y": 32,
+   "pieces": 1
+  },
+  "philipsruins:level_three_ruins": {
+   "span": 45,
+   "radius": 22,
+   "y": 46,
+   "pieces": 1
+  },
+  "philipsruins:level_two_ruins": {
+   "span": 33,
+   "radius": 16,
+   "y": 30,
+   "pieces": 1
+  },
+  "philipsruins:level_two_ruins_pool": {
+   "span": 32,
+   "radius": 16,
+   "y": 31,
+   "pieces": 1
+  },
+  "philipsruins:lost_soul_city": {
+   "span": 107,
+   "radius": 53,
+   "y": 55,
+   "pieces": 5
+  },
+  "philipsruins:lost_soul_dungeon": {
+   "span": 112,
+   "radius": 56,
+   "y": 38,
+   "pieces": 5
+  },
+  "philipsruins:nether_lava_ruins": {
+   "span": 39,
+   "radius": 19,
+   "y": 31,
+   "pieces": 1
+  },
+  "philipsruins:ocean_fortress": {
+   "span": 84,
+   "radius": 42,
+   "y": 45,
+   "pieces": 4
+  },
+  "philipsruins:ocean_ruins": {
+   "span": 36,
+   "radius": 18,
+   "y": 33,
+   "pieces": 1
+  },
+  "philipsruins:pumpkin_ruins": {
+   "span": 37,
+   "radius": 18,
+   "y": 31,
+   "pieces": 1
+  },
+  "philipsruins:rare_ruin": {
+   "span": 44,
+   "radius": 22,
+   "y": 36,
+   "pieces": 1
+  },
+  "philipsruins:sculk_dungeon": {
+   "span": 114,
+   "radius": 57,
+   "y": 39,
+   "pieces": 6
+  },
+  "philipsruins:sealedruinedghaststatue1": {
+   "span": 31,
+   "radius": 15,
+   "y": 32,
+   "pieces": 1
+  },
+  "philipsruins:start_nether_dungeon": {
+   "span": 110,
+   "radius": 55,
+   "y": 36,
+   "pieces": 7
+  },
+  "philipsruins:start_nether_ruin": {
+   "span": 98,
+   "radius": 49,
+   "y": 40,
+   "pieces": 5
+  },
+  "philipsruins:underground_structures": {
+   "span": 46,
+   "radius": 23,
+   "y": 36,
+   "pieces": 1
+  },
+  "simply_houses:forest_chapel": {
+   "span": 49,
+   "radius": 24,
+   "y": 49,
+   "pieces": 1
+  },
+  "simply_houses:forest_fort": {
+   "span": 53,
+   "radius": 26,
+   "y": 49,
+   "pieces": 2
+  },
+  "simply_houses:forest_house": {
+   "span": 49,
+   "radius": 24,
+   "y": 49,
+   "pieces": 1
+  },
+  "simply_houses:forest_stonemason": {
+   "span": 49,
+   "radius": 24,
+   "y": 42,
+   "pieces": 1
+  },
+  "simply_houses:plains_house": {
+   "span": 52,
+   "radius": 26,
+   "y": 49,
+   "pieces": 2
+  },
+  "simply_houses:plains_mansion": {
+   "span": 57,
+   "radius": 28,
+   "y": 54,
+   "pieces": 1
+  },
+  "simply_houses:taiga_forge": {
+   "span": 50,
+   "radius": 25,
+   "y": 49,
+   "pieces": 1
+  },
+  "simply_houses:taiga_house": {
+   "span": 47,
+   "radius": 23,
+   "y": 49,
+   "pieces": 1
+  },
+  "simply_houses:taiga_inn": {
+   "span": 49,
+   "radius": 24,
+   "y": 49,
+   "pieces": 1
+  },
+  "simply_houses:taiga_woodcutter": {
+   "span": 49,
+   "radius": 24,
+   "y": 44,
+   "pieces": 1
+  },
+  "skyvillages:skyvillage": {
+   "span": 128,
+   "radius": 64,
+   "y": 55,
+   "pieces": 63
+  },
+  "stoneholm:underground_village": {
+   "span": 49,
+   "radius": 24,
+   "y": 47,
+   "pieces": 41
+  },
+  "stoneholm:underground_village_deepslate": {
+   "span": 49,
+   "radius": 24,
+   "y": 47,
+   "pieces": 41
+  },
+  "structory:abandoned_camp": {
+   "span": 35,
+   "radius": 17,
+   "y": 36,
+   "pieces": 2
+  },
+  "structory:abandoned_chapel": {
+   "span": 58,
+   "radius": 29,
+   "y": 42,
+   "pieces": 3
+  },
+  "structory:boat": {
+   "span": 21,
+   "radius": 10,
+   "y": 8,
+   "pieces": 3
+  },
+  "structory:dense_forest_ruin": {
+   "span": 42,
+   "radius": 21,
+   "y": 32,
+   "pieces": 1
+  },
+  "structory:firetower": {
+   "span": 40,
+   "radius": 20,
+   "y": 50,
+   "pieces": 2
+  },
+  "structory:graveyard": {
+   "span": 48,
+   "radius": 24,
+   "y": 30,
+   "pieces": 1
+  },
+  "structory:jungle_ruin": {
+   "span": 49,
+   "radius": 24,
+   "y": 35,
+   "pieces": 1
+  },
+  "structory:northern_ruin": {
+   "span": 64,
+   "radius": 32,
+   "y": 35,
+   "pieces": 13
+  },
+  "structory:old_manor": {
+   "span": 86,
+   "radius": 43,
+   "y": 51,
+   "pieces": 21
+  },
+  "structory:outcast_villager_desert": {
+   "span": 40,
+   "radius": 20,
+   "y": 33,
+   "pieces": 2
+  },
+  "structory:outcast_villager_grassy": {
+   "span": 59,
+   "radius": 29,
+   "y": 38,
+   "pieces": 2
+  },
+  "structory:ruin_grassy": {
+   "span": 73,
+   "radius": 36,
+   "y": 39,
+   "pieces": 6
+  },
+  "structory:swamp_ruin": {
+   "span": 124,
+   "radius": 62,
+   "y": 54,
+   "pieces": 26
+  },
+  "structory:taiga_ruin_surface": {
+   "span": 38,
+   "radius": 19,
+   "y": 33,
+   "pieces": 1
+  },
+  "structory:taiga_ruin_underground": {
+   "span": 55,
+   "radius": 27,
+   "y": 50,
+   "pieces": 20
+  },
+  "structory_towers:ancient_temple": {
+   "span": 35,
+   "radius": 17,
+   "y": 53,
+   "pieces": 2
+  },
+  "structory_towers:end/end_tower": {
+   "span": 11,
+   "radius": 5,
+   "y": 31,
+   "pieces": 2
+  },
+  "structory_towers:engineer_tower": {
+   "span": 35,
+   "radius": 17,
+   "y": 53,
+   "pieces": 2
+  },
+  "structory_towers:farmer_outpost": {
+   "span": 35,
+   "radius": 17,
+   "y": 52,
+   "pieces": 2
+  },
+  "structory_towers:foraging_outpost": {
+   "span": 35,
+   "radius": 17,
+   "y": 53,
+   "pieces": 2
+  },
+  "structory_towers:great_toadstool": {
+   "span": 41,
+   "radius": 20,
+   "y": 41,
+   "pieces": 2
+  },
+  "structory_towers:lighthouse": {
+   "span": 35,
+   "radius": 17,
+   "y": 60,
+   "pieces": 2
+  },
+  "structory_towers:mirage_outpost": {
+   "span": 35,
+   "radius": 17,
+   "y": 68,
+   "pieces": 2
+  },
+  "structory_towers:nether/fortress_tower": {
+   "span": 35,
+   "radius": 17,
+   "y": 53,
+   "pieces": 2
+  },
+  "structory_towers:nether/strange_outpost": {
+   "span": 35,
+   "radius": 17,
+   "y": 64,
+   "pieces": 2
+  },
+  "structory_towers:nether/warped_outpost": {
+   "span": 14,
+   "radius": 7,
+   "y": 55,
+   "pieces": 3
+  },
+  "structory_towers:nomad_outpost": {
+   "span": 35,
+   "radius": 17,
+   "y": 53,
+   "pieces": 2
+  },
+  "structory_towers:ocean_pillar": {
+   "span": 35,
+   "radius": 17,
+   "y": 50,
+   "pieces": 2
+  },
+  "structory_towers:overgrown_mangrove": {
+   "span": 35,
+   "radius": 17,
+   "y": 54,
+   "pieces": 2
+  },
+  "structory_towers:pillager_lookout": {
+   "span": 35,
+   "radius": 17,
+   "y": 50,
+   "pieces": 2
+  },
+  "structory_towers:quarter_outpost": {
+   "span": 35,
+   "radius": 17,
+   "y": 64,
+   "pieces": 2
+  },
+  "structory_towers:sacred_relic_temple": {
+   "span": 35,
+   "radius": 17,
+   "y": 57,
+   "pieces": 2
+  },
+  "structory_towers:small_firetower": {
+   "span": 35,
+   "radius": 17,
+   "y": 53,
+   "pieces": 2
+  },
+  "structory_towers:taiga_outpost": {
+   "span": 35,
+   "radius": 17,
+   "y": 57,
+   "pieces": 2
+  },
+  "structory_towers:warped_greatsword": {
+   "span": 35,
+   "radius": 17,
+   "y": 52,
+   "pieces": 2
+  },
+  "structory_towers:wizard_tower": {
+   "span": 41,
+   "radius": 20,
+   "y": 53,
+   "pieces": 2
+  },
+  "subsurface:coral_caves": {
+   "span": 1,
+   "radius": 0,
+   "y": 4,
+   "pieces": 4
+  },
+  "subsurface:foliage_caves": {
+   "span": 1,
+   "radius": 0,
+   "y": 11,
+   "pieces": 11
+  },
+  "subsurface:fungal_caves": {
+   "span": 1,
+   "radius": 0,
+   "y": 8,
+   "pieces": 8
+  },
+  "subsurface:icicle_caves": {
+   "span": 1,
+   "radius": 0,
+   "y": 5,
+   "pieces": 5
+  },
+  "subsurface:mesa_caves": {
+   "span": 1,
+   "radius": 0,
+   "y": 7,
+   "pieces": 7
+  },
+  "subsurface:quartz_canyons": {
+   "span": 1,
+   "radius": 0,
+   "y": 4,
+   "pieces": 4
+  },
+  "subsurface:sand_caves": {
+   "span": 1,
+   "radius": 0,
+   "y": 4,
+   "pieces": 4
+  },
+  "subsurface:soul_canyons": {
+   "span": 1,
+   "radius": 0,
+   "y": 7,
+   "pieces": 7
+  },
+  "subsurface:swamp_caves": {
+   "span": 1,
+   "radius": 0,
+   "y": 6,
+   "pieces": 6
+  },
+  "subsurface:underground_forest": {
+   "span": 1,
+   "radius": 0,
+   "y": 7,
+   "pieces": 7
+  },
+  "subsurface:underground_taiga": {
+   "span": 1,
+   "radius": 0,
+   "y": 9,
+   "pieces": 9
+  },
+  "supplementaries:galleon": {
+   "span": 47,
+   "radius": 23,
+   "y": 37,
+   "pieces": 19
+  },
+  "supplementaries:road_sign": {
+   "span": 31,
+   "radius": 15,
+   "y": 31,
+   "pieces": 2
+  },
+  "terralith:desert_outpost": {
+   "span": 51,
+   "radius": 25,
+   "y": 40,
+   "pieces": 1
+  },
+  "terralith:fortified_desert_village": {
+   "span": 177,
+   "radius": 88,
+   "y": 66,
+   "pieces": 54
+  },
+  "terralith:fortified_village": {
+   "span": 179,
+   "radius": 89,
+   "y": 68,
+   "pieces": 80
+  },
+  "terralith:glacial_hut": {
+   "span": 39,
+   "radius": 19,
+   "y": 35,
+   "pieces": 2
+  },
+  "terralith:igloo": {
+   "span": 32,
+   "radius": 16,
+   "y": 29,
+   "pieces": 1
+  },
+  "terralith:mage_complex": {
+   "span": 70,
+   "radius": 35,
+   "y": 82,
+   "pieces": 10
+  },
+  "terralith:mage_tower": {
+   "span": 48,
+   "radius": 24,
+   "y": 82,
+   "pieces": 8
+  },
+  "terralith:mage_tower_autumn": {
+   "span": 48,
+   "radius": 24,
+   "y": 82,
+   "pieces": 8
+  },
+  "terralith:mage_tower_spring": {
+   "span": 48,
+   "radius": 24,
+   "y": 82,
+   "pieces": 8
+  },
+  "terralith:mage_tower_summer": {
+   "span": 48,
+   "radius": 24,
+   "y": 82,
+   "pieces": 8
+  },
+  "terralith:mage_tower_winter": {
+   "span": 48,
+   "radius": 24,
+   "y": 82,
+   "pieces": 8
+  },
+  "terralith:rubble_desert": {
+   "span": 29,
+   "radius": 14,
+   "y": 29,
+   "pieces": 1
+  },
+  "terralith:rubble_forest": {
+   "span": 29,
+   "radius": 14,
+   "y": 29,
+   "pieces": 1
+  },
+  "terralith:rubble_jungle": {
+   "span": 29,
+   "radius": 14,
+   "y": 29,
+   "pieces": 1
+  },
+  "terralith:rubble_mesa": {
+   "span": 29,
+   "radius": 14,
+   "y": 29,
+   "pieces": 1
+  },
+  "terralith:rubble_mountain": {
+   "span": 29,
+   "radius": 14,
+   "y": 29,
+   "pieces": 1
+  },
+  "terralith:rubble_taiga": {
+   "span": 29,
+   "radius": 14,
+   "y": 29,
+   "pieces": 1
+  },
+  "terralith:spire": {
+   "span": 107,
+   "radius": 53,
+   "y": 172,
+   "pieces": 6
+  },
+  "terralith:underground/frosted_dungeon": {
+   "span": 49,
+   "radius": 24,
+   "y": 44,
+   "pieces": 1
+  },
+  "terralith:underground/giant_bee_hive": {
+   "span": 41,
+   "radius": 20,
+   "y": 38,
+   "pieces": 1
+  },
+  "terralith:underground/mining_outpost": {
+   "span": 36,
+   "radius": 18,
+   "y": 30,
+   "pieces": 1
+  },
+  "terralith:underground/oak_cabin": {
+   "span": 36,
+   "radius": 18,
+   "y": 31,
+   "pieces": 1
+  },
+  "terralith:underground/old_refinery": {
+   "span": 47,
+   "radius": 23,
+   "y": 40,
+   "pieces": 1
+  },
+  "terralith:underground/sunken_tower": {
+   "span": 39,
+   "radius": 19,
+   "y": 41,
+   "pieces": 1
+  },
+  "terralith:underground/witch_hut": {
+   "span": 38,
+   "radius": 19,
+   "y": 41,
+   "pieces": 1
+  },
+  "terralith:underground_cabin": {
+   "span": 36,
+   "radius": 18,
+   "y": 31,
+   "pieces": 1
+  },
+  "terralith:valley_lodge": {
+   "span": 53,
+   "radius": 26,
+   "y": 43,
+   "pieces": 5
+  },
+  "terralith:witch_hut": {
+   "span": 38,
+   "radius": 19,
+   "y": 41,
+   "pieces": 1
+  },
+  "towns_and_towers:exclusives/pillager_outpost_classic": {
+   "span": 47,
+   "radius": 23,
+   "y": 37,
+   "pieces": 7
+  },
+  "towns_and_towers:exclusives/pillager_outpost_iberian": {
+   "span": 53,
+   "radius": 26,
+   "y": 45,
+   "pieces": 9
+  },
+  "towns_and_towers:exclusives/pillager_outpost_mediterranean": {
+   "span": 68,
+   "radius": 34,
+   "y": 39,
+   "pieces": 19
+  },
+  "towns_and_towers:exclusives/pillager_outpost_nilotic": {
+   "span": 26,
+   "radius": 13,
+   "y": 31,
+   "pieces": 9
+  },
+  "towns_and_towers:exclusives/pillager_outpost_oriental": {
+   "span": 51,
+   "radius": 25,
+   "y": 68,
+   "pieces": 11
+  },
+  "towns_and_towers:exclusives/pillager_outpost_rustic": {
+   "span": 60,
+   "radius": 30,
+   "y": 45,
+   "pieces": 14
+  },
+  "towns_and_towers:exclusives/pillager_outpost_swedish": {
+   "span": 48,
+   "radius": 24,
+   "y": 61,
+   "pieces": 8
+  },
+  "towns_and_towers:exclusives/pillager_outpost_tudor": {
+   "span": 39,
+   "radius": 19,
+   "y": 63,
+   "pieces": 12
+  },
+  "towns_and_towers:exclusives/village_classic": {
+   "span": 160,
+   "radius": 80,
+   "y": 48,
+   "pieces": 29
+  },
+  "towns_and_towers:exclusives/village_iberian": {
+   "span": 228,
+   "radius": 114,
+   "y": 42,
+   "pieces": 92
+  },
+  "towns_and_towers:exclusives/village_mediterranean": {
+   "span": 131,
+   "radius": 65,
+   "y": 44,
+   "pieces": 120
+  },
+  "towns_and_towers:exclusives/village_nilotic": {
+   "span": 104,
+   "radius": 52,
+   "y": 36,
+   "pieces": 37
+  },
+  "towns_and_towers:exclusives/village_piglin": {
+   "span": 147,
+   "radius": 73,
+   "y": 44,
+   "pieces": 30
+  },
+  "towns_and_towers:exclusives/village_rustic": {
+   "span": 150,
+   "radius": 75,
+   "y": 41,
+   "pieces": 68
+  },
+  "towns_and_towers:exclusives/village_swedish": {
+   "span": 147,
+   "radius": 73,
+   "y": 44,
+   "pieces": 93
+  },
+  "towns_and_towers:exclusives/village_tudor": {
+   "span": 162,
+   "radius": 81,
+   "y": 46,
+   "pieces": 89
+  },
+  "towns_and_towers:exclusives/village_wandering_trader_camp": {
+   "span": 43,
+   "radius": 21,
+   "y": 33,
+   "pieces": 7
+  },
+  "towns_and_towers:mimic_desert": {
+   "span": 40,
+   "radius": 20,
+   "y": 35,
+   "pieces": 3
+  },
+  "towns_and_towers:pillager_outpost_badlands": {
+   "span": 50,
+   "radius": 25,
+   "y": 47,
+   "pieces": 8
+  },
+  "towns_and_towers:pillager_outpost_beach": {
+   "span": 52,
+   "radius": 26,
+   "y": 36,
+   "pieces": 9
+  },
+  "towns_and_towers:pillager_outpost_birch_forest": {
+   "span": 45,
+   "radius": 22,
+   "y": 55,
+   "pieces": 13
+  },
+  "towns_and_towers:pillager_outpost_desert": {
+   "span": 59,
+   "radius": 29,
+   "y": 42,
+   "pieces": 15
+  },
+  "towns_and_towers:pillager_outpost_flower_forest": {
+   "span": 37,
+   "radius": 18,
+   "y": 58,
+   "pieces": 10
+  },
+  "towns_and_towers:pillager_outpost_forest": {
+   "span": 49,
+   "radius": 24,
+   "y": 62,
+   "pieces": 12
+  },
+  "towns_and_towers:pillager_outpost_grove": {
+   "span": 53,
+   "radius": 26,
+   "y": 41,
+   "pieces": 9
+  },
+  "towns_and_towers:pillager_outpost_jungle": {
+   "span": 55,
+   "radius": 27,
+   "y": 54,
+   "pieces": 16
+  },
+  "towns_and_towers:pillager_outpost_meadow": {
+   "span": 37,
+   "radius": 18,
+   "y": 61,
+   "pieces": 10
+  },
+  "towns_and_towers:pillager_outpost_mushroom_fields": {
+   "span": 44,
+   "radius": 22,
+   "y": 72,
+   "pieces": 13
+  },
+  "towns_and_towers:pillager_outpost_ocean": {
+   "span": 76,
+   "radius": 38,
+   "y": 65,
+   "pieces": 28
+  },
+  "towns_and_towers:pillager_outpost_old_growth_taiga": {
+   "span": 59,
+   "radius": 29,
+   "y": 41,
+   "pieces": 14
+  },
+  "towns_and_towers:pillager_outpost_savanna": {
+   "span": 37,
+   "radius": 18,
+   "y": 58,
+   "pieces": 11
+  },
+  "towns_and_towers:pillager_outpost_savanna_plateau": {
+   "span": 61,
+   "radius": 30,
+   "y": 46,
+   "pieces": 22
+  },
+  "towns_and_towers:pillager_outpost_snowy_beach": {
+   "span": 52,
+   "radius": 26,
+   "y": 36,
+   "pieces": 9
+  },
+  "towns_and_towers:pillager_outpost_snowy_plains": {
+   "span": 47,
+   "radius": 23,
+   "y": 62,
+   "pieces": 11
+  },
+  "towns_and_towers:pillager_outpost_snowy_slopes": {
+   "span": 53,
+   "radius": 26,
+   "y": 64,
+   "pieces": 9
+  },
+  "towns_and_towers:pillager_outpost_snowy_taiga": {
+   "span": 37,
+   "radius": 18,
+   "y": 59,
+   "pieces": 9
+  },
+  "towns_and_towers:pillager_outpost_sparse_jungle": {
+   "span": 55,
+   "radius": 27,
+   "y": 34,
+   "pieces": 11
+  },
+  "towns_and_towers:pillager_outpost_sunflower_plains": {
+   "span": 51,
+   "radius": 25,
+   "y": 59,
+   "pieces": 8
+  },
+  "towns_and_towers:pillager_outpost_swamp": {
+   "span": 43,
+   "radius": 21,
+   "y": 58,
+   "pieces": 8
+  },
+  "towns_and_towers:pillager_outpost_taiga": {
+   "span": 43,
+   "radius": 21,
+   "y": 58,
+   "pieces": 8
+  },
+  "towns_and_towers:pillager_outpost_wooded_badlands": {
+   "span": 57,
+   "radius": 28,
+   "y": 34,
+   "pieces": 11
+  },
+  "towns_and_towers:village_badlands": {
+   "span": 153,
+   "radius": 76,
+   "y": 42,
+   "pieces": 223
+  },
+  "towns_and_towers:village_beach": {
+   "span": 72,
+   "radius": 36,
+   "y": 59,
+   "pieces": 10
+  },
+  "towns_and_towers:village_birch_forest": {
+   "span": 186,
+   "radius": 93,
+   "y": 54,
+   "pieces": 145
+  },
+  "towns_and_towers:village_flower_forest": {
+   "span": 199,
+   "radius": 99,
+   "y": 40,
+   "pieces": 178
+  },
+  "towns_and_towers:village_forest": {
+   "span": 199,
+   "radius": 99,
+   "y": 41,
+   "pieces": 69
+  },
+  "towns_and_towers:village_grove": {
+   "span": 49,
+   "radius": 24,
+   "y": 39,
+   "pieces": 18
+  },
+  "towns_and_towers:village_jungle": {
+   "span": 171,
+   "radius": 85,
+   "y": 48,
+   "pieces": 114
+  },
+  "towns_and_towers:village_meadow": {
+   "span": 160,
+   "radius": 80,
+   "y": 40,
+   "pieces": 95
+  },
+  "towns_and_towers:village_mushroom_fields": {
+   "span": 145,
+   "radius": 72,
+   "y": 44,
+   "pieces": 74
+  },
+  "towns_and_towers:village_ocean": {
+   "span": 81,
+   "radius": 40,
+   "y": 41,
+   "pieces": 45
+  },
+  "towns_and_towers:village_old_growth_taiga": {
+   "span": 146,
+   "radius": 73,
+   "y": 39,
+   "pieces": 89
+  },
+  "towns_and_towers:village_savanna_plateau": {
+   "span": 44,
+   "radius": 22,
+   "y": 52,
+   "pieces": 23
+  },
+  "towns_and_towers:village_snowy_slopes": {
+   "span": 51,
+   "radius": 25,
+   "y": 36,
+   "pieces": 11
+  },
+  "towns_and_towers:village_snowy_taiga": {
+   "span": 201,
+   "radius": 100,
+   "y": 42,
+   "pieces": 159
+  },
+  "towns_and_towers:village_sparse_jungle": {
+   "span": 160,
+   "radius": 80,
+   "y": 36,
+   "pieces": 128
+  },
+  "towns_and_towers:village_sunflower_plains": {
+   "span": 91,
+   "radius": 45,
+   "y": 50,
+   "pieces": 38
+  },
+  "towns_and_towers:village_swamp": {
+   "span": 129,
+   "radius": 64,
+   "y": 39,
+   "pieces": 85
+  },
+  "towns_and_towers:village_wooded_badlands": {
+   "span": 46,
+   "radius": 23,
+   "y": 34,
+   "pieces": 13
+  },
+  "towns_and_towers:wreckage_ocean": {
+   "span": 14,
+   "radius": 7,
+   "y": 3,
+   "pieces": 1
+  },
+  "underground_bunkers:underground_bunker": {
+   "span": 236,
+   "radius": 118,
+   "y": 139,
+   "pieces": 268
+  },
+  "undergroundworlds:archives": {
+   "span": 135,
+   "radius": 67,
+   "y": 48,
+   "pieces": 18
+  },
+  "undergroundworlds:chillager_outpost": {
+   "span": 35,
+   "radius": 17,
+   "y": 57,
+   "pieces": 1
+  },
+  "undergroundworlds:desert_pyramid": {
+   "span": 31,
+   "radius": 15,
+   "y": 30,
+   "pieces": 3
+  },
+  "undergroundworlds:ice_dungeon": {
+   "span": 55,
+   "radius": 27,
+   "y": 16,
+   "pieces": 31
+  },
+  "undergroundworlds:jungle_temple": {
+   "span": 32,
+   "radius": 16,
+   "y": 32,
+   "pieces": 1
+  },
+  "undergroundworlds:jungle_treehouse": {
+   "span": 39,
+   "radius": 19,
+   "y": 50,
+   "pieces": 1
+  },
+  "undergroundworlds:spider_caves_house": {
+   "span": 35,
+   "radius": 17,
+   "y": 33,
+   "pieces": 1
+  },
+  "undergroundworlds:swamp_house": {
+   "span": 34,
+   "radius": 17,
+   "y": 32,
+   "pieces": 2
+  },
+  "undergroundworlds:tundra_house": {
+   "span": 35,
+   "radius": 17,
+   "y": 39,
+   "pieces": 1
+  }
+ }
+}
