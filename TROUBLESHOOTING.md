@@ -403,26 +403,40 @@ A world regenerates with the old terrain after a reset that set a new seed, or t
 <a id="t52"></a>
 ### T52 — Site count is decoupled from pool variety (ANTI-PATTERN)
 
-- **Symptom:** a dimension generates enormous numbers of structure sites and a
-  player meets the same handful of structures over and over. Measured on
-  `the_end_citadel`: 7 biomes, **42 structures able to generate there**, **62,556
-  sites** — roughly **1,489 copies of each structure**, and worse than that in
-  practice because the weighted draw favours the common rarity tiers.
+- **Symptom:** a dimension generates far more structure sites than it has
+  distinct structures to fill them, so a player meets the same few over and over.
+- **Measured**, `adventure:the_end_citadel`, seed 4890946857129946416, via
+  `/customdim site-validity`:
+
+  ```
+  3,265 sites over 205,887 chunks   = 1 per 63 chunks, ~127 blocks apart
+                                    = 2.85x the overworld's site density
+  35 distinct structures occupy them = ~93 copies of each
+  mes:astral_meteorite   608 sites  (18.6% of the dimension)
+  minecraft:end_city     393 sites  (12.0%)
+  top three structures              = 37.6% of every site
+  ```
+
+  **393 end cities in one dimension.** A structure meant to be the landmark of an
+  entire dimension appears 393 times.
 - **Cause:** site count is derived from the noise profile and the dimension's
-  border area alone. **The pool never enters the calculation.** A dimension with
-  42 available structures gets the same site count as one with 400.
-- **This is an anti-pattern, not a tuning question.** Reducing a profile's
-  admitted fraction does not fix it: cutting `dense` from 59% to 15% of chunks
-  still leaves ~380 copies of each structure in that dimension.
+  border area alone. **The pool never enters the calculation.** Pool sizes across
+  the shipped dimensions range from 42 to 353 structures — an 8x spread a
+  pool-blind model cannot express.
+- **This is an anti-pattern, not a tuning question.** Lowering a profile's
+  admitted fraction does not fix it; it scales every dimension by the same factor
+  and leaves the 42-structure dimension and the 353-structure dimension with the
+  same site count.
 - **The rule:** `targetSites ~= poolSize x repetitionBudget(profile)`, with the
   exclusion radius SOLVED for that target rather than set as a constant. Any
   density model that does not read the pool size is wrong by construction.
-- **Do not** treat it by shrinking `borders.player`. That is the symptom, costs
-  the dimension the space it was given on purpose, and leaves the decoupling in
-  place for every other dimension.
-- **Do not** let a doc rationalise it. `docs/mod-internals/worldgen-structures.md`
-  defended the 62,556 figure as an accepted performance cost by comparing it
-  against a hypothetical stacked grid nobody would ship.
+- **Do not** treat it by shrinking `borders.player` — that is the symptom, costs
+  the dimension the space it was given on purpose, and leaves every other
+  dimension decoupled.
+- **Trap within the trap:** `docs/mod-internals/worldgen-structures.md` cites
+  62,556 positions for this dimension against an 8192 border. The config ships
+  **4096**. Combining that stale count with the current border yields a wildly
+  wrong density — measure with `site-validity`, never quote the doc.
 
 <a id="t51"></a>
 ### T51 — Structure placement is noise-managed, not a grid; grid arithmetic describes nothing
