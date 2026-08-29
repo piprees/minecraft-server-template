@@ -1038,7 +1038,9 @@ public final class FactsEngine {
                 weighted.structure().getKey().ifPresent(k -> pickPool.add(
                         new StructurePick.PoolEntry(k.getValue().toString(), weighted.weight(),
                                 structureAdmitted.contains(k.getValue().toString()),
-                                weighted.structure())));
+                                weighted.structure(),
+                                pools.wanted().contains(k.getValue().toString()),
+                                pools.shunned().contains(k.getValue().toString()))));
             }
             java.util.Set<String> groupPool = new java.util.HashSet<>();
             for (StructurePick.PoolEntry pe : pickPool) {

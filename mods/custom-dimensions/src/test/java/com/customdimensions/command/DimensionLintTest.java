@@ -21,8 +21,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * here — {@link #checkRadialCurves} reads config alone, and {@link
  * #unknownSuppressedIds} takes the registry lookup as a predicate, and {@link
  * #checkPoolFloor} decides on counts alone, and {@link
- * #checkForcedPosition} decides on four numbers, so all four run against
- * plain data. Lint's overall runtime and the registry-backed
+ * #checkForcedPosition}, {@link #checkGenerationBorder} and {@link
+ * #checkWantShunConflict} decide on plain numbers and id sets, so all of them
+ * run against plain data. Lint's overall runtime and the registry-backed
  * checks (want/pool cross-checks, suppress-list resolution) need a running
  * server and are exercised by {@code /customdim lint} against one instead.
  */
@@ -239,6 +240,107 @@ class DimensionLintTest {
     void aZeroBorderDisablesItsOwnCheck() {
         assertTrue(DimensionLint.checkForcedPosition(
                 "d", "s", 99999, 99999, 0, 0).isEmpty());
+    }
+
+    // ---------------------------------------------------- generation border
+
+    /** The server default: VIEW_DISTANCE 10 chunks, so 160 blocks of slack. */
+    private static final int VIEW_DISTANCE = 10;
+
+    @Test
+    void aGenerationBorderMatchingThePlayerBorderIsClean() {
+        // 53 of the 82 shipped dimensions sit here.
+        assertTrue(DimensionLint.checkGenerationBorder("d", 1024, 1024, VIEW_DISTANCE).isEmpty());
+    }
+
+    @Test
+    void aGenerationBorderInsideThePlayerBorderIsClean() {
+        // 22 shipped dimensions cap a 4096 player border at 2048 of pre-gen.
+        assertTrue(DimensionLint.checkGenerationBorder("d", 4096, 2048, VIEW_DISTANCE).isEmpty());
+    }
+
+    @Test
+    void aGenerationBorderWithinTheViewDistanceSlackIsClean() {
+        assertTrue(DimensionLint.checkGenerationBorder("d", 1024, 1184, VIEW_DISTANCE).isEmpty());
+    }
+
+    @Test
+    void aGenerationBorderPastThePlayerBorderPlusSlackWarns() {
+        List<DimensionLint.Finding> out =
+                DimensionLint.checkGenerationBorder("the_wuthering_wisteria", 512, 2048, VIEW_DISTANCE);
+        assertEquals(1, out.size());
+        assertEquals(DimensionLint.WARN, out.get(0).severity());
+        assertEquals("generation_border_beyond_reach", out.get(0).check());
+        assertTrue(out.get(0).message().contains("16x"), out.get(0).message());
+        assertEveryFindingIsActionable(out);
+    }
+
+    /**
+     * The floor keeps a small dimension drawable. It also lifts the cap for a
+     * player border under it, which is why the three 256-radius dimensions
+     * pre-generate 512 without being flagged.
+     */
+    @Test
+    void aTinyPlayerBorderIsAllowedTheFloorWithoutBeingFlagged() {
+        assertTrue(DimensionLint.checkGenerationBorder("d", 256, 512, VIEW_DISTANCE).isEmpty());
+    }
+
+    @Test
+    void aGenerationBorderBelowTheFloorWarns() {
+        List<DimensionLint.Finding> out =
+                DimensionLint.checkGenerationBorder("d", 256, 256, VIEW_DISTANCE);
+        assertEquals(1, out.size());
+        assertEquals("generation_border_below_floor", out.get(0).check());
+        assertEveryFindingIsActionable(out);
+    }
+
+    @Test
+    void aZeroGenerationBorderChecksNothing() {
+        assertTrue(DimensionLint.checkGenerationBorder("d", 1024, 0, VIEW_DISTANCE).isEmpty());
+    }
+
+    @Test
+    void aBorderlessDimensionHasNoReachableBoundToMeasureAgainst() {
+        assertTrue(DimensionLint.checkGenerationBorder("d", 0, 8192, VIEW_DISTANCE).isEmpty());
+    }
+
+    @Test
+    void everyShippedBorderPairIsJudgedTheWayTheDataSaysItShouldBe() {
+        // The four the shipped pack would fail on, and the three it must not.
+        assertEquals(1, DimensionLint.checkGenerationBorder(
+                "the_blighted_maw", 1024, 2048, VIEW_DISTANCE).size());
+        assertEquals(1, DimensionLint.checkGenerationBorder(
+                "the_red_monument", 512, 1024, VIEW_DISTANCE).size());
+        assertEquals(1, DimensionLint.checkGenerationBorder(
+                "the_weeping_vault", 683, 1024, VIEW_DISTANCE).size());
+        assertEquals(1, DimensionLint.checkGenerationBorder(
+                "the_wuthering_wisteria", 512, 2048, VIEW_DISTANCE).size());
+        assertEquals(List.of(), DimensionLint.checkGenerationBorder(
+                "the_emberglass_foundry", 256, 512, VIEW_DISTANCE));
+        assertEquals(List.of(), DimensionLint.checkGenerationBorder(
+                "the_starwell", 256, 512, VIEW_DISTANCE));
+        assertEquals(List.of(), DimensionLint.checkGenerationBorder(
+                "overworld", 8192, 8192, VIEW_DISTANCE));
+    }
+
+    // ------------------------------------------------------ want/shun conflict
+
+    @Test
+    void aStructureBothWantedAndShunnedWarns() {
+        List<DimensionLint.Finding> out = DimensionLint.checkWantShunConflict(
+                "d", Set.of("minecraft:monument", "minecraft:igloo"),
+                Set.of("minecraft:monument"));
+        assertEquals(1, out.size());
+        assertEquals(DimensionLint.WARN, out.get(0).severity());
+        assertEquals("want_and_shun_conflict", out.get(0).check());
+        assertEquals("minecraft:monument", out.get(0).subject());
+        assertEveryFindingIsActionable(out);
+    }
+
+    @Test
+    void disjointWantsAndShunsAreClean() {
+        assertTrue(DimensionLint.checkWantShunConflict(
+                "d", Set.of("minecraft:igloo"), Set.of("minecraft:monument")).isEmpty());
     }
 
 }

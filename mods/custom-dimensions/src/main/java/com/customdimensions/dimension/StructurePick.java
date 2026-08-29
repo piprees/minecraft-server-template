@@ -45,17 +45,31 @@ public final class StructurePick {
     /**
      * One pool member: its id, weighted draw share, whether the dimension
      * admitted it despite its biomes ({@code structures.include} or a want),
-     * and the registry entry a re-draw needs to start it.
+     * the registry entry a re-draw needs to start it, and whether the config
+     * favoured or discouraged it.
      *
      * <p>{@code bypassBiome} is the flag {@link NoisePoolBuilder#admittedDespiteBiomes}
      * decides; {@code structure} is null for headless callers that only need
      * the assignment.
+     *
+     * <p>{@code wanted} and {@code shunned} are carried rather than derived
+     * because {@link NoisePoolBuilder#favourWeight} folds them into an integer
+     * that cannot be read backwards — nothing downstream can tell a wanted
+     * weight-1 structure from a plain one at weight 1.2. Both come from the
+     * {@link NoisePoolBuilder.Result} the pool was built with, so no caller
+     * resolves the config a second time.
      */
     public record PoolEntry(String structureId, int weight, boolean bypassBiome,
-                            RegistryEntry<Structure> structure) {
+                            RegistryEntry<Structure> structure,
+                            boolean wanted, boolean shunned) {
 
         public PoolEntry(String structureId, int weight) {
-            this(structureId, weight, false, null);
+            this(structureId, weight, false, null, false, false);
+        }
+
+        public PoolEntry(String structureId, int weight, boolean bypassBiome,
+                         RegistryEntry<Structure> structure) {
+            this(structureId, weight, bypassBiome, structure, false, false);
         }
     }
 

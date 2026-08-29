@@ -79,15 +79,23 @@ public final class StructureWants {
     }
 
     /**
-     * {@code seedRoll.shuns} as a list of names. It is authored as a bare list
-     * and read as one; the MAP form belongs to {@code structures.shuns}, which
-     * is a different field with a different meaning.
+     * The shun names a config carries, most specific first — the same order
+     * {@link #resolve} walks for wants: {@code structures.shuns} (a MAP of
+     * name to shun options) when the block names it, else {@code
+     * seedRoll.shuns} (a bare list, or the same map shape). Two shapes, one
+     * answer, because the pool builder and the scorer must discourage the same
+     * structures or rolling searches for something the world is no less likely
+     * to make.
      *
      * <p>Here rather than in the scorer because two readers of one config
-     * field drift, and this one is read by both the scorer and the facts
-     * layer.
+     * field drift, and this one is read by the scorer, the facts layer and
+     * {@code NoisePoolBuilder.shunnedStructureIds}.
      */
     public static List<String> shunNames(DimensionConfig def) {
+        DimensionConfig.Structures block = def == null ? null : def.getStructures();
+        if (block != null && block.shuns != null) {
+            return new ArrayList<>(block.shuns.keySet());
+        }
         DimensionConfig.SeedRoll sr = def == null ? null : def.getSeedRoll();
         if (sr == null || sr.shuns == null) {
             return List.of();

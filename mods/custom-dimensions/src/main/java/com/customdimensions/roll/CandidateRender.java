@@ -1690,7 +1690,9 @@ public final class CandidateRender {
             for (var weighted : pool.entries()) {
                 weighted.structure().getKey().ifPresent(key -> pickPool.add(
                         new StructurePick.PoolEntry(key.getValue().toString(), weighted.weight(),
-                                admitted.contains(key.getValue().toString()), weighted.structure())));
+                                admitted.contains(key.getValue().toString()), weighted.structure(),
+                                pools.wanted().contains(key.getValue().toString()),
+                                pools.shunned().contains(key.getValue().toString()))));
             }
             List<StructurePick.PoolEntry> sorted = StructurePick.sortedPool(pickPool);
             NoiseStructurePlacement placement = NoiseStructurePlacement.forGroup(

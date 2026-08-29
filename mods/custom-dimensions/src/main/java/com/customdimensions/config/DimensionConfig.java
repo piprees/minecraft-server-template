@@ -807,6 +807,11 @@ public class DimensionConfig {
     }
 
     public static class Structures {
+        /**
+         * Favoured and discouraged structures, by short name. Both tilt the
+         * noise pool weight (NoisePoolBuilder.favourWeight) and both are
+         * scored by the roller; neither adds or removes a structure.
+         */
         @SerializedName("wants")
         public Map<String, StructureWant> wants;
         @SerializedName("shuns")
@@ -816,8 +821,8 @@ public class DimensionConfig {
         /**
          * Runtime per-set placement overrides (Tier 3), keyed by structure
          * SET id (e.g. "minecraft:villages" — the worldgen/structure_set
-         * registry key, NOT a structure id). Unlike wants/shuns (roller-only
-         * scoring), this changes real generation: the set's random_spread
+         * registry key, NOT a structure id). Where wants/shuns tilt a pool
+         * weight, this rewrites the grid itself: the set's random_spread
          * placement is rebuilt with these exact values. Creation-time-ish:
          * applies to newly generated chunks only (grid re-rolls at the
          * explored-terrain border, same caveat as datapack spacing edits).

@@ -110,9 +110,12 @@ public final class Criteria {
     }
 
     /**
-     * {@code seedRoll.shuns} as a list of names, from the one place that reads
-     * that field — the facts layer needs the same list to look tags up, and two
-     * readers of one config field drift apart silently.
+     * The config's shun names, from the one place that resolves them —
+     * {@code structures.shuns} first, else {@code seedRoll.shuns}. The facts
+     * layer needs the same list to look tags up and the pool builder needs it
+     * to lower a weight, and two readers of one config field drift apart
+     * silently: a seed marked down for a structure the world is no less likely
+     * to make is a roll spent on nothing.
      */
     static List<String> shunNames(DimensionConfig def) {
         return com.customdimensions.dimension.StructureWants.shunNames(def);
@@ -1387,7 +1390,7 @@ public final class Criteria {
     }
 
     /**
-     * One {@code seedRoll.shuns} entry: the author said not this one.
+     * One shun entry: the author said not this one.
      *
      * <p>Absent is the answer in full. Present is scored by how much of the
      * world separates a player from it — a shunned structure at the far rim

@@ -38,11 +38,21 @@ public final class NoisePoolBuilder {
                        int excluded) {
     }
 
-    /** Everything the builder produced, for the boot log and the census. */
+    /**
+     * Everything the builder produced, for the boot log and the census.
+     *
+     * <p>{@code wanted} and {@code shunned} are the resolved id sets this build
+     * weighted with. They ride on the result because a weight is a rounded int
+     * that cannot be read backwards: a diagnostic asking why a structure has
+     * the weight it has, and every {@code StructurePick.PoolEntry} carrying the
+     * flags, needs the same answer this build used rather than a second lookup.
+     */
     public record Result(Map<String, Pool> pools,
                          int setsConsidered,
                          int setsSkippedCustomPlacement,
-                         Set<String> forcedExclusive) {
+                         Set<String> forcedExclusive,
+                         Set<String> wanted,
+                         Set<String> shunned) {
     }
 
     private NoisePoolBuilder() {
@@ -84,6 +94,23 @@ public final class NoisePoolBuilder {
      * Curated, never derived from spacing — spacing is an input we rescale.
      */
     public static final String UBIQUITOUS_GROUP = "ubiquitous";
+
+    /** What a want multiplies a pool weight by, and what a shun divides it by. */
+    public static final double WANT_WEIGHT_FACTOR = 1.2;
+    public static final double SHUN_WEIGHT_DIVISOR = 1.5;
+
+    /**
+     * Units of pool weight one weight is carried as. A want is 6/5 of a weight
+     * and a shun 2/3 of one; at 15 units both are whole numbers, so the factors
+     * above apply at weight 1 exactly as they do at weight 160. Rounding a 1.2
+     * into an integer weight instead would discard the want on every weight-1
+     * structure, which is the rare and endgame tiers — the ones wants name.
+     */
+    public static final int WEIGHT_RESOLUTION = 15;
+
+    /** {@link #WEIGHT_RESOLUTION} through each factor. Both are exact. */
+    private static final int WANTED_UNITS = 18;
+    private static final int SHUNNED_UNITS = 10;
 
     public static boolean ubiquitous(String setId) {
         if (setId == null) {
@@ -168,6 +195,43 @@ public final class NoisePoolBuilder {
     }
 
     /**
+     * The structure ids this dimension's config discourages, resolved through
+     * the alias table. The mirror of {@link #wantedStructureIds}: it lowers a
+     * pool weight instead of raising one, and both drop a name that resolves
+     * to a {@code #tag}, which is a set of structures rather than one.
+     */
+    public static Set<String> shunnedStructureIds(DimensionConfig def) {
+        Set<String> out = new HashSet<>();
+        for (String name : StructureWants.shunNames(def)) {
+            String id = StructureAliases.resolve(name);
+            if (id != null && !id.startsWith("#")) {
+                out.add(id);
+            }
+        }
+        return out;
+    }
+
+    /**
+     * A weight in pool units, with the author's want or shun applied.
+     *
+     * <p>Every weight is scaled by the same {@link #WEIGHT_RESOLUTION}, so no
+     * unfavoured structure's share of the draw moves — the nine heaviest keep
+     * exactly the third of the overworld pool they hold today. What the
+     * resolution buys is somewhere for the factors to land: 18/15 and 10/15 are
+     * exactly 1.2x and a 1.5x reduction at every weight, including 1.
+     *
+     * <p>A shun cannot reach 0: discouraging is not removing, and removing is
+     * what {@code structures.exclude} is for. Naming a structure in both wants
+     * and shuns cancels, because neither instruction can be honoured over the
+     * other; {@code DimensionLint.checkWantShunConflict} reports it.
+     */
+    public static int favourWeight(int weight, boolean wanted, boolean shunned) {
+        int units = wanted == shunned ? WEIGHT_RESOLUTION
+                : wanted ? WANTED_UNITS : SHUNNED_UNITS;
+        return Math.max(1, weight) * units;
+    }
+
+    /**
      * Whether this dimension asked for a structure that its biomes would
      * otherwise have filtered out — {@code structures.include} names the SET,
      * {@code structures.wants} names the STRUCTURE, and either admits it at
@@ -237,6 +301,7 @@ public final class NoisePoolBuilder {
         Set<String> include = lowerSet(includeOverride != null ? includeOverride
                 : (block == null ? null : block.include));
         Set<String> wantedIds = wanted == null ? Set.of() : wanted;
+        Set<String> shunnedIds = shunnedStructureIds(def);
         Map<String, String> rarityOverrides = block == null || block.rarity == null
                 ? Map.of() : block.rarity;
         Set<String> forcedExclusive = forcedExclusiveStructureIds(def);
@@ -304,8 +369,11 @@ public final class NoisePoolBuilder {
                 // structure keeps full weight: the author asked for it, so it
                 // must not be quietly out-competed by whatever happens to fit.
                 double affinityFactor = admitted ? 1.0 : 0.5 + 0.5 * affinity;
-                int weight = (int) Math.max(1, Math.round(
-                        weighted.weight() * share * affinityFactor));
+                int weight = favourWeight(
+                        (int) Math.max(1, Math.round(
+                                weighted.weight() * share * affinityFactor)),
+                        structureId != null && wantedIds.contains(structureId),
+                        structureId != null && shunnedIds.contains(structureId));
                 byGroup.computeIfAbsent(group, k -> new ArrayList<>())
                         .add(new StructureSet.WeightedEntry(structure, weight));
             }
@@ -317,7 +385,8 @@ public final class NoisePoolBuilder {
             pools.put(e.getKey(), new Pool(e.getKey(), List.copyOf(e.getValue()),
                     counter[0], counter[1]));
         }
-        return new Result(Map.copyOf(pools), considered, customPlacement, forcedExclusive);
+        return new Result(Map.copyOf(pools), considered, customPlacement, forcedExclusive,
+                Set.copyOf(wantedIds), Set.copyOf(shunnedIds));
     }
 
     /**

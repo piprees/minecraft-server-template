@@ -207,7 +207,13 @@ public final class InputHash {
             "data/",
             "structure_themes.json",
             "structure_type_defaults.json",
-            "structure_default_wants.json");
+            "structure_default_wants.json",
+            // structure_aliases.json turns a want/shun NAME into the id the
+            // pool weights and the biome bypass admit, so an alias edit moves
+            // generation. structure_sizes.json is the footprint table
+            // NoiseStructurePlacement asks how much ground each site claims.
+            "structure_aliases.json",
+            "structure_sizes.json");
 
     /** Whether a jar entry or class path is one a measurement depends on. */
     static boolean affectsMeasurement(String entry) {

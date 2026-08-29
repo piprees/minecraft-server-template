@@ -52,6 +52,13 @@ public final class DimensionLint {
     static final int POOL_FLOOR = 5;
 
     /**
+     * Smallest useful {@code borders.generation}. Below it there is too little
+     * pre-generated ground for the map renderer or Distant Horizons to draw
+     * anything of the dimension, however small its player border is.
+     */
+    static final int MIN_GENERATION_RADIUS = 512;
+
+    /**
      * One fault. {@code subject} is whatever the finding is about — a want
      * name, a biome id, a structure set — so findings can be diffed between
      * runs without parsing prose.
@@ -115,6 +122,11 @@ public final class DimensionLint {
         out.addAll(checkForced(server, def));
         out.addAll(checkRadialCurves(def));
         out.addAll(checkPortalBlocks(def));
+        out.addAll(checkGenerationBorder(name, def.getPlayerBorderRadius(),
+                def.getGenerationBorderRadius(),
+                server.getPlayerManager().getViewDistance()));
+        out.addAll(checkWantShunConflict(name, NoisePoolBuilder.wantedStructureIds(def),
+                NoisePoolBuilder.shunnedStructureIds(def)));
         return out;
     }
 
@@ -452,6 +464,89 @@ public final class DimensionLint {
                     + "pre-generation and the map never cover it",
                     "raise borders.generation to include it, or accept that it is found by "
                     + "exploring rather than shown on the map"));
+        }
+        return out;
+    }
+
+    // ---------------------------------------------------------- generation border
+
+    /**
+     * {@code borders.generation} against {@code borders.player}. Generation is
+     * tooling metadata — Chunky's pre-generation extent, the map renderer's
+     * clamp and {@code getLocateCap} — so it costs disk and render passes for
+     * ground {@code borders.player} already puts out of reach. The slack is the
+     * server's view distance, because a player standing at the border loads
+     * that far past it anyway. Pure over the three numbers so it is testable
+     * without a registry.
+     *
+     * <p>WARN, not ERROR: the threshold is a policy about cost, and a wrong one
+     * must not block a build.
+     */
+    static List<Finding> checkGenerationBorder(String dimension, int playerBorder,
+                                               int generationBorder,
+                                               int viewDistanceChunks) {
+        List<Finding> out = new ArrayList<>();
+        if (generationBorder <= 0) {
+            return out;   // nothing pre-generated and nothing rendered
+        }
+        if (generationBorder < MIN_GENERATION_RADIUS) {
+            out.add(new Finding(dimension, WARN, "generation_border_below_floor",
+                    String.valueOf(generationBorder),
+                    "borders.generation is " + generationBorder + ", below the floor of "
+                    + MIN_GENERATION_RADIUS + " — too little ground is pre-generated for "
+                    + "the map or Distant Horizons to draw the dimension",
+                    "raise borders.generation to at least " + MIN_GENERATION_RADIUS
+                    + "; it is in the generation fingerprint, so the change re-keys this "
+                    + "dimension's seed bank"));
+        }
+        if (playerBorder <= 0) {
+            return out;   // borderless: no reachable bound to measure against
+        }
+        int slack = Math.max(0, viewDistanceChunks) * 16;
+        int cap = Math.max(MIN_GENERATION_RADIUS, playerBorder + slack);
+        if (generationBorder > cap) {
+            out.add(new Finding(dimension, WARN, "generation_border_beyond_reach",
+                    String.valueOf(generationBorder),
+                    "borders.generation " + generationBorder + " reaches "
+                    + (generationBorder - playerBorder) + " blocks past borders.player "
+                    + playerBorder + ", more than the " + slack
+                    + "-block view-distance slack — Chunky pre-generates and the renderer "
+                    + "draws ground no player can reach, over an area "
+                    + areaRatio(generationBorder, playerBorder) + " the reachable one",
+                    "lower borders.generation to " + cap + " or less, or raise "
+                    + "borders.player deliberately (it must stay overworldBorder / scale); "
+                    + "borders.generation is in the generation fingerprint, so either "
+                    + "change re-keys this dimension's seed bank"));
+        }
+        return out;
+    }
+
+    /** Squares are areas: "4x", or "2.3x" when the ratio is not a whole number. */
+    private static String areaRatio(int generationBorder, int playerBorder) {
+        double ratio = ((double) generationBorder * generationBorder)
+                / ((double) playerBorder * playerBorder);
+        return Math.abs(ratio - Math.rint(ratio)) < 0.01
+                ? String.format(Locale.ROOT, "%.0fx", ratio)
+                : String.format(Locale.ROOT, "%.1fx", ratio);
+    }
+
+    /**
+     * A structure named in both wants and shuns. The pool builder cancels the
+     * two — neither instruction can be honoured over the other — so the author
+     * gets the untouched weight they asked twice not to have.
+     */
+    static List<Finding> checkWantShunConflict(String dimension, Set<String> wantedIds,
+                                               Set<String> shunnedIds) {
+        List<Finding> out = new ArrayList<>();
+        for (String id : new java.util.TreeSet<>(wantedIds)) {
+            if (!shunnedIds.contains(id)) {
+                continue;
+            }
+            out.add(new Finding(dimension, WARN, "want_and_shun_conflict", id,
+                    id + " is both wanted and shunned, so the two cancel and it keeps "
+                    + "its ordinary pool weight",
+                    "drop it from wants or from shuns; to remove it entirely use "
+                    + "structures.exclude"));
         }
         return out;
     }
