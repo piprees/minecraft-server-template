@@ -27,6 +27,19 @@ cp .env.example .env
 
 The local profile disables online-mode and whitelist, so you can connect at `localhost:25577` without a Microsoft account. `build-stack-bundle.sh` uses GNU tar for reproducible bundles — on macOS `brew install gnu-tar` provides `gtar`; without it locally-built bundles won't byte-match CI's output (harmless, CI does the real build).
 
+## Python tooling
+
+Bundle scripts and image entrypoints are stdlib-only or get their deps from
+their own Dockerfile. A few **template-only** scripts need more:
+
+```bash
+pip3 install -r requirements-dev.txt
+```
+
+`nbtlib` reads Minecraft's NBT — `level.dat` surgery for the dimension-removal
+procedure, and region-file inspection via
+`scripts/scan-structure-placements.py`. Nothing you need to run a server.
+
 ## Quality gates
 
 ```bash

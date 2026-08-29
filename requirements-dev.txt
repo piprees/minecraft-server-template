@@ -1,0 +1,12 @@
+# Python packages for template-only tooling (platform development).
+# Not needed to RUN a server — the shipped bundle scripts are stdlib-only,
+# and image scripts get their deps from their own Dockerfile.
+#
+#   pip3 install -r requirements-dev.txt
+#
+# nbtlib reads Minecraft's NBT: level.dat surgery (TROUBLESHOOTING.md#d?
+# dimension removal) and region-file inspection.
+# Deliberately NOT amulet-core: it needs amulet-nbt, amulet-leveldb and
+# amulet-rocksdb, none of which ship wheels for current Python, plus a
+# numpy~=1.17 pin. A C toolchain everywhere for speed we do not need.
+nbtlib==2.0.4
