@@ -19,9 +19,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Per-dimension structure control ("structureDensity" in
- * multiverse_config.json: dense | normal | sparse | none), plus the automatic
- * peaceful overlay for hostileSpawning:false dimensions.
+ * Per-dimension structure control ("structureDensity" in each dimension's
+ * own config: dense | normal | sparse | none), plus the automatic
+ * peaceful overlay for hostileSpawning:false dimensions. That overlay is
+ * GRID-PATH ONLY: transformed() returns transformedNoise() before reaching
+ * it, so a noise-managed dimension is shaped by NoiseGroupPlan's
+ * mobMultiplier shift instead, which structures.noise.<group> outranks.
  *
  * Applied by rebuilding the world's StructurePlacementCalculator with a
  * transformed structure-set list (ServerChunkLoadingManagerMixin). Placement
@@ -375,7 +378,9 @@ public final class DimensionStructures {
                         new StructurePick.PoolEntry(
                                 key.getValue().toString(), weighted.weight(),
                                 admitted.contains(key.getValue().toString()),
-                                weighted.structure())));
+                                weighted.structure(),
+                                pools.wanted().contains(key.getValue().toString()),
+                                pools.shunned().contains(key.getValue().toString()))));
             }
             java.util.List<StructurePick.PoolEntry> sorted = StructurePick.sortedPool(pickPool);
 
