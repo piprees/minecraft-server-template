@@ -32,7 +32,11 @@ Noise placement is the **default** for every managed dimension. It replaces the 
 
 ## Structure occupancy contract
 
-A site's assigned structure is exact and mirrored: the site is occupied by that structure iff the structure's own generation accepts the position, and by nothing else, ever. A structural rejection leaves the site empty and is itself recorded exactly — `NoiseStructureSelectionMixin` logs every rejection with dimension, group, structure id and chunk coordinates, and appends it to `<world save root>/customdimensions/census/rejections__<ns>__<slug>.json` (`Artefacts.censusDir(server)`) via `Artefacts.write`.
+A site is occupied from its own CANDIDATE CHAIN and by nothing else: the assigned structure, then each re-draw of `resolveWeighted` on the pool minus what has been tried at the same pick value, capped at `StructurePick.MAX_CANDIDATES` (8). The first candidate whose own generation accepts the position takes the site. Each candidate is held to its declared biomes, except one `structures.include` or a want admitted despite them (`NoisePoolBuilder.admittedDespiteBiomes`), which keeps the bypassed predicate.
+
+The chain is a pure function of pool and pick value, so it is the same list whatever order sets are visited in, and `NoiseStructureSelectionMixin` returns without regenerating when a start with children already exists — that idempotence is what keeps placement ORDER-FREE while a re-draw crosses set boundaries. `StructurePick.candidates` is the one implementation; the site-validity instrument walks the same function to predict what will stand at a site.
+
+A site whose whole chain declines is left empty and recorded ONCE, by site rather than by attempt: `RejectionCensus` appends `{group, structure, chunkX, chunkZ, candidates, biomeRejections}` to `<world save root>/customdimensions/census/rejections__<ns>__<slug>.json` (`Artefacts.censusDir(server)`), batching writes per world and flushing on world unload. Per-attempt recording is what makes the file a serialisation point across every c2me chunk worker.
 
 Assignment: `StructurePick.assignedStructure(noiseSeed, cx, cz, sortedPool)` with `pickSeed = noiseSeed ^ saltOf("structure_pick")`. The sorted pool is a plain string sort on structure id (stable; duplicate-id entries stay adjacent). `resolveWeighted` uses `Long.remainderUnsigned(pickValue, totalWeight)`, cumulative walk in sorted order; null iff `totalWeight <= 0`.
 

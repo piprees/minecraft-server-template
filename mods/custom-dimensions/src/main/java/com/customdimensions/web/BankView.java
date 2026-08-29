@@ -406,8 +406,9 @@ public final class BankView {
 
     /**
      * The wire code for a verdict — spelled out so a reordered enum cannot
-     * move it. Codes 1 and 2 fail; 3 is a deliberate want and 4 is unknown,
-     * and the viewer draws those three apart.
+     * move it. Codes 1 and 2 fail; 3 is a deliberate want, 4 is unknown and 5
+     * is a site nothing in its chain can occupy, and the viewer draws them
+     * apart.
      */
     private static int verdictCode(SiteValidity.Verdict verdict) {
         return switch (verdict) {
@@ -416,6 +417,7 @@ public final class BankView {
             case NO_VALID_BIOMES -> 2;
             case WANTED -> 3;
             case UNSAMPLED -> 4;
+            case EMPTY -> 5;
         };
     }
 

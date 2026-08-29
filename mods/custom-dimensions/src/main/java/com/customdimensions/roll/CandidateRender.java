@@ -1611,7 +1611,12 @@ public final class CandidateRender {
      * the group — the sidebar names a structure, so it has to be the one that
      * generates.
      */
-    public record Site(long x, long z, String structureId) {
+    public record Site(long x, long z, String structureId,
+                       List<StructurePick.PoolEntry> chain) {
+
+        public Site(long x, long z, String structureId) {
+            this(x, z, structureId, List.of());
+        }
     }
 
     /**
@@ -1659,6 +1664,7 @@ public final class CandidateRender {
         }
         NoisePoolBuilder.Result pools = NoisePoolBuilder.build(
                 def, sets, base.generator().getBiomeSource(), plan, exclude, null, wanted);
+        Set<String> admitted = NoisePoolBuilder.admittedStructureIds(def, sets);
 
         int radiusChunks = radius / 16;
         long dimensionSalt = DimensionStructures.saltOf(def.getName());
@@ -1679,13 +1685,19 @@ public final class CandidateRender {
             List<StructurePick.PoolEntry> pickPool = new ArrayList<>();
             for (var weighted : pool.entries()) {
                 weighted.structure().getKey().ifPresent(key -> pickPool.add(
-                        new StructurePick.PoolEntry(key.getValue().toString(), weighted.weight())));
+                        new StructurePick.PoolEntry(key.getValue().toString(), weighted.weight(),
+                                admitted.contains(key.getValue().toString()), weighted.structure())));
             }
             List<StructurePick.PoolEntry> sorted = StructurePick.sortedPool(pickPool);
             List<Site> positions = byGroup.computeIfAbsent(group, g -> new ArrayList<>());
             for (ChunkPos pos : placement.index().positions()) {
+                // The chain the mixin will walk, not just its head: a site is
+                // occupied by the first candidate its biome accepts.
+                List<StructurePick.PoolEntry> chain = StructurePick.candidates(sorted,
+                        StructurePick.pickValue(noiseSeed, pos.x, pos.z),
+                        StructurePick.MAX_CANDIDATES);
                 positions.add(new Site(pos.x * 16L + 8, pos.z * 16L + 8,
-                        StructurePick.assignedStructure(noiseSeed, pos.x, pos.z, sorted)));
+                        chain.isEmpty() ? null : chain.get(0).structureId(), chain));
             }
         }
         return byGroup;

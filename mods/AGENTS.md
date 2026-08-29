@@ -192,7 +192,7 @@ Noise placement is the default for every managed dimension: structure sets are s
 - **`/locate` is first-found-in-radius-order, not nearest-across-sets**, and an out-of-biome forced structure generates but is **not locatable**. Verify with `structure-census` and the boot log.
 - **Forced start attempts are performed by the mod**, not left to vanilla — `ChunkGeneratorForcedStartMixin` runs first at priority 900 and bypasses both the biome gate and other mods' HEAD cancels ([T25](../TROUBLESHOOTING.md#t25)). Vanilla behaviour is unchanged for every other set.
 - **Vanilla `CubicSpline` extrapolates LINEARLY beyond its endpoints** — a re-implementation that clamps flattens any spline with non-zero edge derivatives.
-- **A site's assigned structure is exact and mirrored** (`StructurePick`): only the assigned structure may start there, and a structural rejection leaves the site empty and is recorded once in the world's own census file.
+- **A site is filled from its own candidate chain** (`StructurePick.candidates`): the assigned structure, then bounded re-draws, each held to its declared biomes unless `include`/`wants` admitted it. The chain is pure and the mixin is idempotent, which is what keeps placement order-free. A chain that declines end to end leaves the site empty, recorded once per site in the world's census file.
 
 ## Architecture (custom-dimensions)
 

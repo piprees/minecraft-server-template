@@ -135,6 +135,10 @@ public class MultiverseServer implements DedicatedServerModInitializer {
                 // so stale entries from a previous calculator never match.
                 com.customdimensions.dimension.StructurePick.clear(
                         world.getRegistryKey().getValue().toString());
+                // Empty-site records are batched; this world's pending ones
+                // are written before its chunk manager closes.
+                com.customdimensions.dimension.RejectionCensus.flush(
+                        world.getRegistryKey().getValue().toString());
             });
         // Immersive portals: a disconnecting player's fake-block
         // projections are dropped without restore packets — there is no

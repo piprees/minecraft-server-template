@@ -65,7 +65,9 @@ public final class SiteValidity {
         /** The structure declares no valid biomes at all, and nothing asked for it. */
         NO_VALID_BIOMES,
         /** The biome source produced nothing at this column. */
-        UNSAMPLED;
+        UNSAMPLED,
+        /** Every candidate in the site's chain is out of biome: nothing stands here. */
+        EMPTY;
 
         /** Whether this verdict should fail a gate — a want and an unknown should not. */
         public boolean fails() {
@@ -208,6 +210,7 @@ public final class SiteValidity {
                     + this.undergroundClearedAtBandMid() + " clear at the band midpoint and "
                     + this.undergroundClearedAtSubsurface() + " below this column), "
                     + this.count(Verdict.WANTED) + " wanted, "
+                    + this.count(Verdict.EMPTY) + " empty, "
                     + this.count(Verdict.UNSAMPLED) + " unsampled, "
                     + this.fixedSliceFlips() + " verdicts differ from the y="
                     + (this.fixedQuartY * 4) + " slice (" + this.flipsToPassing()
@@ -256,10 +259,6 @@ public final class SiteValidity {
             for (CandidateRender.Site site : group.getValue()) {
                 int x = (int) site.x();
                 int z = (int) site.z();
-                Set<Identifier> valid = declared.computeIfAbsent(
-                        site.structureId(), id -> declaredBiomes(structureRegistry, id));
-                boolean asked = admitted.contains(site.structureId());
-
                 Integer surfaceY = CandidateRender.surfaceAt(model, shape, null, x, z);
                 String atSurface = surfaceY == null ? null : biomeAt(rig, x, surfaceY >> 2, z);
                 String atFixed = biomeAt(rig, x, FIXED_QUART_Y, z);
@@ -267,15 +266,42 @@ public final class SiteValidity {
                 // there is, and saying so beats inventing a height.
                 String biome = atSurface != null ? atSurface : atFixed;
 
-                Verdict verdict = verdictOf(valid, biome, asked);
-                Verdict fixedVerdict = verdictOf(valid, atFixed, asked);
+                // Walk the site's chain exactly as the mixin does: the first
+                // candidate this biome accepts is what stands here. A chain
+                // the biome refuses end to end leaves the site EMPTY, which is
+                // information rather than a bug.
+                String occupantId = site.structureId();
+                boolean asked = admitted.contains(occupantId);
+                Set<Identifier> valid = declared.computeIfAbsent(
+                        occupantId, id -> declaredBiomes(structureRegistry, id));
+                Verdict verdict = Verdict.EMPTY;
+                boolean head = true;
+                for (var candidate : site.chain()) {
+                    // The bypass is the assigned structure's alone, as at
+                    // generation time; a re-draw answers to its own biomes.
+                    boolean candidateAsked = head && (candidate.bypassBiome()
+                            || admitted.contains(candidate.structureId()));
+                    head = false;
+                    Set<Identifier> candidateValid = declared.computeIfAbsent(
+                            candidate.structureId(), id -> declaredBiomes(structureRegistry, id));
+                    Verdict candidateVerdict = verdictOf(candidateValid, biome, candidateAsked);
+                    if (!candidateVerdict.fails()) {
+                        occupantId = candidate.structureId();
+                        asked = candidateAsked;
+                        valid = candidateValid;
+                        verdict = candidateVerdict;
+                        break;
+                    }
+                }
+                Verdict fixedVerdict = verdict == Verdict.EMPTY
+                        ? Verdict.EMPTY : verdictOf(valid, atFixed, asked);
 
                 // An underground family picks a deep or fixed y of its own, so
                 // the surface read describes a column it never occupies. Two
                 // more reads bound that: the middle of the dimension's own
                 // band, and the middle of the rock between its floor and this
                 // column's surface.
-                boolean deep = underground.computeIfAbsent(site.structureId(),
+                boolean deep = underground.computeIfAbsent(occupantId,
                         id -> generatesUnderground(structureRegistry, id));
                 Verdict bandMid = null;
                 Verdict subsurface = null;
@@ -287,13 +313,15 @@ public final class SiteValidity {
                         subsurface = verdictOf(valid, biomeAt(rig, x, under >> 2, z), asked);
                     }
                 }
+                if (verdict.fails() || verdict == Verdict.EMPTY) {
+                    failedByStructure.merge(occupantId, 1, Integer::sum);
+                }
                 if (verdict.fails()) {
                     failed++;
-                    failedByStructure.merge(site.structureId(), 1, Integer::sum);
                 } else if (verdict == Verdict.WANTED) {
                     wanted++;
                 }
-                sites.add(new SiteVerdict(group.getKey(), site.x(), site.z(), site.structureId(),
+                sites.add(new SiteVerdict(group.getKey(), site.x(), site.z(), occupantId,
                         biome, surfaceY, verdict, fixedVerdict, deep, bandMid, subsurface));
             }
             tallies.put(group.getKey(), new GroupTally(group.getValue().size(), failed, wanted));

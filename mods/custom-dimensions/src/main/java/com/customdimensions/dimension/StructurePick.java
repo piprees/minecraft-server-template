@@ -1,10 +1,13 @@
 package com.customdimensions.dimension;
 
+import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.structure.StructureSet;
+import net.minecraft.world.gen.structure.Structure;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.IdentityHashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -13,17 +16,15 @@ import java.util.concurrent.ConcurrentHashMap;
  * Deterministic per-site structure assignment for noise-managed groups.
  *
  * Every noise site has exactly one assigned structure:
- * {@code assigned = resolveWeighted(sortedPool, pick(pickSeed, cx, cz))}.
- * The assignment governs generation via {@code NoiseStructureSelectionMixin}:
- * only the assigned structure can ever start at a noise site, its biome
- * predicate bypassed.
+ * {@code assigned = resolveWeighted(sortedPool, pick(pickSeed, cx, cz))}, and
+ * one candidate chain that follows from it ({@link #candidates}).
  *
  * <h2>The occupancy contract</h2>
  *
- * A site's assigned structure is exact and mirrored; the site is occupied by
- * that structure iff the structure's own generation accepts the position, and
- * by nothing else, ever. A structural rejection leaves the site empty and is
- * itself recorded exactly.
+ * A site is occupied by the first candidate in its chain whose own generation
+ * accepts the position, and by nothing outside that chain, ever. A chain that
+ * declines end to end leaves the site empty, recorded once by
+ * {@link RejectionCensus}.
  *
  * <h2>Selection registry</h2>
  *
@@ -41,8 +42,21 @@ public final class StructurePick {
     private StructurePick() {
     }
 
-    /** One pool member: its id and weighted draw share. */
-    public record PoolEntry(String structureId, int weight) {
+    /**
+     * One pool member: its id, weighted draw share, whether the dimension
+     * admitted it despite its biomes ({@code structures.include} or a want),
+     * and the registry entry a re-draw needs to start it.
+     *
+     * <p>{@code bypassBiome} is the flag {@link NoisePoolBuilder#admittedDespiteBiomes}
+     * decides; {@code structure} is null for headless callers that only need
+     * the assignment.
+     */
+    public record PoolEntry(String structureId, int weight, boolean bypassBiome,
+                            RegistryEntry<Structure> structure) {
+
+        public PoolEntry(String structureId, int weight) {
+            this(structureId, weight, false, null);
+        }
     }
 
     /** A group's selection state for one world. */
@@ -169,13 +183,67 @@ public final class StructurePick {
     }
 
     /**
+     * How many candidates a site may try. One number for the mixin that walks
+     * the chain and the instrument that predicts it — two would drift, and the
+     * drift would read as the fix not working.
+     */
+    public static final int MAX_CANDIDATES = 8;
+
+    /** The unsigned pick value at a site: pickSeed + pick, in one call. */
+    public static long pickValue(long noiseSeed, int cx, int cz) {
+        return pick(pickSeed(noiseSeed), cx, cz);
+    }
+
+    /**
      * The assigned structure for a noise site, combining pickSeed + pick +
      * resolveWeighted. Returns null for an empty pool.
      */
     public static String assignedStructure(long noiseSeed, int cx, int cz,
                                            List<PoolEntry> sortedPool) {
-        long ps = pickSeed(noiseSeed);
-        long pv = pick(ps, cx, cz);
-        return resolveWeighted(sortedPool, pv);
+        return resolveWeighted(sortedPool, pickValue(noiseSeed, cx, cz));
+    }
+
+    /**
+     * The ordered candidate chain at a site: the assigned structure, then each
+     * successive re-draw on the pool minus what has been tried, at the SAME
+     * pick value — vanilla's own remove-and-redraw shape, iteratively.
+     *
+     * <p>A pure function of (pool, pickValue), so the chain is identical
+     * whatever order sets are visited in and whoever asks:
+     * {@code NoiseStructureSelectionMixin} walks it to fill a site whose
+     * assigned structure declines the position, and the site-validity
+     * instrument walks the same list to say what will stand there.
+     *
+     * <p>Every entry sharing a picked id is removed together — the mixin
+     * identifies a candidate by id, so a duplicate would re-offer the same
+     * structure. {@code cap} truncates the chain and nothing else.
+     */
+    public static List<PoolEntry> candidates(List<PoolEntry> sortedPool, long pickValue, int cap) {
+        if (sortedPool == null || sortedPool.isEmpty() || cap <= 0) {
+            return List.of();
+        }
+        List<PoolEntry> remaining = new ArrayList<>(sortedPool);
+        List<PoolEntry> chain = new ArrayList<>();
+        while (chain.size() < cap && !remaining.isEmpty()) {
+            String id = resolveWeighted(remaining, pickValue);
+            if (id == null) {
+                break;
+            }
+            PoolEntry picked = null;
+            for (Iterator<PoolEntry> it = remaining.iterator(); it.hasNext(); ) {
+                PoolEntry e = it.next();
+                if (e.structureId().equals(id)) {
+                    if (picked == null) {
+                        picked = e;
+                    }
+                    it.remove();
+                }
+            }
+            if (picked == null) {
+                break;
+            }
+            chain.add(picked);
+        }
+        return List.copyOf(chain);
     }
 }

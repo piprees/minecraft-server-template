@@ -292,6 +292,12 @@ public final class DimensionStructures {
 
         NoisePoolBuilder.Result pools = NoisePoolBuilder.build(
                 def, poolSets, biomeSource, plan, exclude, null, wanted);
+        // Which pool entries keep the bypassed biome predicate at their site.
+        // The same seam the pool builder weighted them with and the same one
+        // the site-validity instrument reads, so a want reads as a want in
+        // both places.
+        java.util.Set<String> admitted =
+                NoisePoolBuilder.admittedStructureIds(def, poolSets);
         // Which structures a group can draw from is decided HERE, from the
         // dimension's biome source against each structure's own biome list, so
         // the seed roller cannot derive it. Recording it is what lets the roller
@@ -367,7 +373,9 @@ public final class DimensionStructures {
             for (var weighted : pool.entries()) {
                 weighted.structure().getKey().ifPresent(key -> pickPool.add(
                         new StructurePick.PoolEntry(
-                                key.getValue().toString(), weighted.weight())));
+                                key.getValue().toString(), weighted.weight(),
+                                admitted.contains(key.getValue().toString()),
+                                weighted.structure())));
             }
             java.util.List<StructurePick.PoolEntry> sorted = StructurePick.sortedPool(pickPool);
             StructurePick.GroupSelection sel = new StructurePick.GroupSelection(

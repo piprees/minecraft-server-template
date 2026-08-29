@@ -1,10 +1,10 @@
 package com.customdimensions.mixin;
 
-import com.customdimensions.MultiverseServer;
-import com.customdimensions.command.Artefacts;
+import com.customdimensions.dimension.RejectionCensus;
 import com.customdimensions.dimension.StructurePick;
 import net.minecraft.registry.DynamicRegistryManager;
 import net.minecraft.registry.entry.RegistryEntry;
+import net.minecraft.registry.entry.RegistryEntryList;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.structure.StructureSet;
 import net.minecraft.structure.StructureStart;
@@ -25,17 +25,15 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.List;
 import java.util.function.Predicate;
 
 /**
- * Enforces the noise-managed structure pick at generation time: only the
- * assigned structure can start at a noise site, and its biome predicate is
- * bypassed (same technique as {@link ChunkGeneratorForcedStartMixin}).
+ * Enforces the noise-managed structure pick at generation time: a noise site
+ * is filled from its own candidate chain and by nothing else. Each candidate
+ * is held to its declared biomes, except one the dimension asked for by
+ * {@code structures.include} or a want, which keeps the bypassed predicate
+ * (same technique as {@link ChunkGeneratorForcedStartMixin}).
  *
  * <p>Priority 900, same as the forced-start mixin. Both target
  * {@code trySetStructureStart} at HEAD. Mixin application order within the
@@ -49,9 +47,8 @@ import java.util.function.Predicate;
  * vs {@link StructurePick}), and mixing their concerns would make testing
  * and ordering both harder.
  *
- * <p>On structural rejection (the structure's own generation declines the
- * position), the rejection is logged with dedupe and appended to the
- * census/rejections artefact so occupancy is a recorded fact.
+ * <p>A site whose whole chain declines is left empty and recorded once by
+ * {@link RejectionCensus}, so occupancy is a recorded fact.
  */
 @Mixin(value = ChunkGenerator.class, priority = 900)
 public abstract class NoiseStructureSelectionMixin {
@@ -59,18 +56,6 @@ public abstract class NoiseStructureSelectionMixin {
     @Unique
     private static final Predicate<RegistryEntry<Biome>> CUSTOMDIMENSIONS$ANY_BIOME_NOISE =
             biomeEntry -> true;
-
-    /** Dedupe: (dim, group, structure, chunk) seen once. */
-    @Unique
-    private static final Set<String> CUSTOMDIMENSIONS$LOGGED = ConcurrentHashMap.newKeySet();
-
-    @Unique
-    private static final int CUSTOMDIMENSIONS$LOG_CAP = 4096;
-
-    /** One lock per dimension, guarding its rejection file's read-modify-write. */
-    @Unique
-    private static final java.util.Map<String, Object> CUSTOMDIMENSIONS$REJECT_LOCKS =
-            new ConcurrentHashMap<>();
 
     @Inject(method = "trySetStructureStart", at = @At("HEAD"), cancellable = true)
     private void customdimensions$noiseStructureSelection(
@@ -104,104 +89,110 @@ public abstract class NoiseStructureSelectionMixin {
             return;
         }
 
-        String assigned = StructurePick.assignedStructure(
-                sel.noiseSeed(), pos.x, pos.z, sel.sortedPool());
+        long pickValue = StructurePick.pickValue(sel.noiseSeed(), pos.x, pos.z);
+        List<StructurePick.PoolEntry> chain = StructurePick.candidates(
+                sel.sortedPool(), pickValue, StructurePick.MAX_CANDIDATES);
+        if (chain.isEmpty()) {
+            return;
+        }
 
         // Not the assigned structure -> suppress. Vanilla's setStructureStarts
         // loop removes the entry and redraws, so every non-assigned entry is
         // rejected until the assigned one is tried (or the pool exhausts).
+        String assigned = chain.get(0).structureId();
         if (!entryId.equals(assigned)) {
             cir.setReturnValue(false);
             return;
         }
 
-        // This IS the assigned structure -> generate it, biome predicate
-        // bypassed (same as forced-start: pools are already biome-filtered
-        // by NoisePoolBuilder and affinity-weighted).
-        Structure structure = weightedEntry.structure().value();
-        StructureStart existing = structureAccessor.getStructureStart(sectionPos, structure, chunk);
-        int references = existing != null ? existing.getReferences() : 0;
+        // Walk the chain: the assigned structure, then each re-draw, until one
+        // accepts the position. The bypass belongs to the ASSIGNED structure
+        // alone — a want that also absorbed every re-draw would turn one
+        // request into hundreds of out-of-biome placements.
         ChunkGenerator self = (ChunkGenerator) (Object) this;
-        StructureStart start = structure.createStructureStart(registryManager,
-                self, self.getBiomeSource(),
-                noiseConfig, templateManager, seed, pos, references, chunk,
-                CUSTOMDIMENSIONS$ANY_BIOME_NOISE);
-
-        if (start.hasChildren()) {
-            structureAccessor.setStructureStart(sectionPos, structure, start, chunk);
-            cir.setReturnValue(true);
-        } else {
-            // Structural rejection: the structure's own generation declined.
-            // The site stays empty. Record it.
-            customdimensions$recordRejection(world, worldId, sel.group(), entryId, pos.x, pos.z);
-            cir.setReturnValue(false);
-        }
-    }
-
-    @Unique
-    private static void customdimensions$recordRejection(
-            ServerWorld world, String worldId, String group, String structureId,
-            int chunkX, int chunkZ) {
-        String key = worldId + '/' + group + '/' + structureId + '@' + chunkX + ',' + chunkZ;
-        if (CUSTOMDIMENSIONS$LOGGED.size() < CUSTOMDIMENSIONS$LOG_CAP
-                && CUSTOMDIMENSIONS$LOGGED.add(key)) {
-            MultiverseServer.LOGGER.info(
-                    "Noise pick: {} rejected at chunk [{}, {}] in group {} (world {}) "
-                    + "-- structural rejection, site stays empty",
-                    structureId, chunkX, chunkZ, group, worldId);
-        }
-
-        // Append to <world>/customdimensions/census/rejections__{dimension}.json
-        // (atomic rewrite on each event — a rejection is proven once, when
-        // the chunk generates, and re-proving it means regenerating the
-        // chunk). World state, not a seed-rolling hypothesis, so it is keyed
-        // by dimension alone, not by config hash.
-        //
-        // Locked per dimension: this is a read-modify-write of one file and
-        // chunk generation runs it from several c2me workers at once, so
-        // unsynchronised writers read the same content and each append over
-        // the other's entry. The lock is per world id, so busy dimensions
-        // never wait on each other.
-        Object lock = CUSTOMDIMENSIONS$REJECT_LOCKS.computeIfAbsent(worldId, k -> new Object());
-        synchronized (lock) {
-            try {
-                String dimPart = worldId.replace(":", "__");
-                Path rejectPath = Artefacts.censusDir(world.getServer())
-                        .resolve("rejections__" + dimPart + ".json");
-                StringBuilder json;
-                if (Files.exists(rejectPath)) {
-                    String existing = Files.readString(rejectPath);
-                    // Strip trailing \n]\n}\n and append
-                    int lastBracket = existing.lastIndexOf(']');
-                    if (lastBracket > 0) {
-                        json = new StringBuilder(existing.substring(0, lastBracket));
-                        json.append(",\n  ");
-                    } else {
-                        json = customdimensions$newRejectionFile(worldId);
-                    }
-                } else {
-                    json = customdimensions$newRejectionFile(worldId);
-                }
-                json.append("{\"group\": \"").append(group)
-                        .append("\", \"structure\": \"").append(structureId)
-                        .append("\", \"chunkX\": ").append(chunkX)
-                        .append(", \"chunkZ\": ").append(chunkZ)
-                        .append('}');
-                json.append("\n ]\n}\n");
-                Artefacts.write(rejectPath, json.toString());
-            } catch (IOException e) {
-                // Best effort -- a failed rejection log is not worth crashing over.
-                MultiverseServer.LOGGER.debug(
-                        "Failed to write rejection artefact: {}", e.getMessage());
+        boolean[] biomeRejected = {false};
+        int tried = 0;
+        int biomeRejections = 0;
+        for (StructurePick.PoolEntry candidate : chain) {
+            RegistryEntry<Structure> entry = candidate.structure() != null
+                    ? candidate.structure()
+                    : (tried == 0 ? weightedEntry.structure() : null);
+            if (entry == null) {
+                break;
+            }
+            tried++;
+            biomeRejected[0] = false;
+            if (customdimensions$tryStart(self, entry.value(), candidate.bypassBiome() && tried == 1,
+                    structureAccessor, registryManager, noiseConfig, templateManager,
+                    seed, chunk, pos, sectionPos, biomeRejected)) {
+                cir.setReturnValue(true);
+                return;
+            }
+            if (biomeRejected[0]) {
+                biomeRejections++;
             }
         }
+
+        // Nothing in the chain accepted: the site stays empty. Recorded once
+        // per site, not once per candidate, with how many of the candidates
+        // the biome turned away rather than the terrain.
+        RejectionCensus.siteEmpty(world, worldId, sel.group(), assigned,
+                pos.x, pos.z, tried, biomeRejections);
+        cir.setReturnValue(false);
     }
 
+    /**
+     * One candidate's attempt. Returns true when the site is occupied by this
+     * structure — including when it already was, which is what makes the walk
+     * idempotent and therefore order-free.
+     *
+     * <p>The predicate records whether it was the biome that turned the
+     * position away, so an empty site can say which of its candidates the
+     * biome refused and which the terrain did.
+     */
     @Unique
-    private static StringBuilder customdimensions$newRejectionFile(String worldId) {
-        StringBuilder json = new StringBuilder(Artefacts.jsonHeader("structure-rejections"));
-        json.append(" \"dimension\": \"").append(worldId).append("\",\n");
-        json.append(" \"rejections\": [\n  ");
-        return json;
+    private static boolean customdimensions$tryStart(
+            ChunkGenerator self, Structure structure, boolean bypassBiome,
+            StructureAccessor structureAccessor, DynamicRegistryManager registryManager,
+            NoiseConfig noiseConfig, StructureTemplateManager templateManager,
+            long seed, Chunk chunk, ChunkPos pos, ChunkSectionPos sectionPos,
+            boolean[] biomeRejected) {
+
+        StructureStart existing = structureAccessor.getStructureStart(sectionPos, structure, chunk);
+        if (existing != null && existing.hasChildren()) {
+            return true;
+        }
+        int references = existing != null ? existing.getReferences() : 0;
+
+        Predicate<RegistryEntry<Biome>> predicate = CUSTOMDIMENSIONS$ANY_BIOME_NOISE;
+        if (!bypassBiome) {
+            RegistryEntryList<Biome> valid;
+            try {
+                valid = structure.getValidBiomes();
+            } catch (RuntimeException e) {
+                // A structure whose biome list will not resolve is not ours to
+                // fail on; it keeps the bypass, as NoisePoolBuilder does.
+                valid = null;
+            }
+            if (valid != null) {
+                RegistryEntryList<Biome> biomes = valid;
+                predicate = biomeEntry -> {
+                    if (biomes.contains(biomeEntry)) {
+                        return true;
+                    }
+                    biomeRejected[0] = true;
+                    return false;
+                };
+            }
+        }
+
+        StructureStart start = structure.createStructureStart(registryManager,
+                self, self.getBiomeSource(), noiseConfig, templateManager, seed, pos,
+                references, chunk, predicate);
+        if (!start.hasChildren()) {
+            return false;
+        }
+        structureAccessor.setStructureStart(sectionPos, structure, start, chunk);
+        return true;
     }
 }
