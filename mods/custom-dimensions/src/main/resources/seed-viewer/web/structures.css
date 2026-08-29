@@ -44,7 +44,7 @@
   opacity: 0.6;
 }
 
-/* Three columns so the counts and distances stay in one line down the
+/* Fixed columns so the counts and distances stay in one line down the
    section however long a structure's name is. */
 .ef-group-row,
 .ef-struct-row,
@@ -62,6 +62,14 @@
   color: inherit;
   cursor: pointer;
   font: inherit;
+}
+
+/* A structure and group row carry a fourth column, the failing-site count.
+   Always present, empty at zero — a column that appeared only on bad rows
+   would shift every number beside it. */
+.ef-group-row,
+.ef-struct-row {
+  grid-template-columns: minmax(0, 1fr) 2.2rem 3rem 3.6rem;
 }
 
 .ef-group-row {
@@ -108,9 +116,49 @@
 }
 
 .ef-group-row.ef-selected,
-.ef-struct-row.ef-selected {
+.ef-struct-row.ef-selected,
+.ef-validity-bad.ef-selected {
   background: color-mix(in srgb, var(--action, #5b8dd0) 30%, transparent);
   color: var(--text-heading, #e6e8ec);
+}
+
+/* --- site validity ------------------------------------------------------ */
+
+.ef-validity {
+  display: block;
+  width: 100%;
+  text-align: left;
+  font-size: 0.72rem;
+  line-height: 1.35;
+  padding: 0.3rem 0.4rem;
+  border-radius: 4px;
+}
+
+.ef-validity-clean {
+  color: var(--text-muted, #8b93a1);
+}
+
+.ef-validity-bad {
+  color: #fca5a5;
+  background: rgba(120, 18, 24, 0.25);
+  border: 1px solid rgba(248, 113, 113, 0.45);
+}
+
+.ef-validity-bad:hover {
+  background: rgba(120, 18, 24, 0.4);
+}
+
+.ef-vcount,
+.ef-invalid-count {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  color: #fca5a5;
+}
+
+.ef-invalid-count {
+  text-align: right;
+  padding-right: 0.3rem;
 }
 
 /* --- markers ------------------------------------------------------------ */
@@ -133,6 +181,15 @@
   fill: var(--action, #5b8dd0);
   stroke: #fff;
   stroke-width: 3;
+}
+
+/* A site whose assigned structure does not accept the biome under it. Red
+   plate rather than a red glyph: the glyph says which structure, and both
+   readings are wanted at once. */
+#lb-exact-markers .ef-marker.ef-invalid .ef-plate {
+  fill: rgba(120, 18, 24, 0.85);
+  stroke: #f87171;
+  stroke-width: 2.5;
 }
 
 #lb-exact-markers .ef-biome-dot {

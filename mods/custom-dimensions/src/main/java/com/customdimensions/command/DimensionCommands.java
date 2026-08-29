@@ -55,6 +55,7 @@ import java.util.UUID;
  *   /customdim carver-draw <dimension> <chunkX> <chunkZ>
  *   /customdim render-check <dimension> <seed> [radius]
  *   /customdim render-check-headless <dimension> <seed> [radius]
+ *   /customdim site-validity <dimension> <seed> [radius]
  *   /customdim render-check-reset
  *
  * Rolling, banking, rendering and picking a winner are NOT commands — they
@@ -207,6 +208,15 @@ public class DimensionCommands {
                             .executes(ctx -> renderCheck(ctx, RenderCheck.Mode.HEADLESS, null))
                             .then(CommandManager.argument("radius", IntegerArgumentType.integer(16, 1000000))
                                 .executes(ctx -> renderCheck(ctx, RenderCheck.Mode.HEADLESS,
+                                    IntegerArgumentType.getInteger(ctx, "radius")))))))
+                .then(CommandManager.literal("site-validity")
+                    .then(CommandManager.argument("dimension", IdentifierArgumentType.identifier())
+                        .then(CommandManager.argument("seed", LongArgumentType.longArg())
+                            .executes(ctx -> SiteValidityCommand.siteValidity(ctx,
+                                LongArgumentType.getLong(ctx, "seed"), null))
+                            .then(CommandManager.argument("radius", IntegerArgumentType.integer(16, 1000000))
+                                .executes(ctx -> SiteValidityCommand.siteValidity(ctx,
+                                    LongArgumentType.getLong(ctx, "seed"),
                                     IntegerArgumentType.getInteger(ctx, "radius")))))))
                 .then(CommandManager.literal("column-ladder")
                     .then(CommandManager.argument("dimension", IdentifierArgumentType.identifier())

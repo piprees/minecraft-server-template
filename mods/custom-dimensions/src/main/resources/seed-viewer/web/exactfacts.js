@@ -18,6 +18,10 @@
  * placement and weighted pick the live world generates from. A biome's centre
  * is the mean of the sampled grid cells that measured it — an approximation
  * bounded by the grid's own resolution, not a placement.
+ *
+ * Every site also carries a verdict: whether the assigned structure's own
+ * declared biomes accept the biome at that site, read at block y 64. A failing
+ * site draws in red and the panel's top line counts them and draws only those.
  */
 ;(function () {
   if (location.protocol === 'file:') return
@@ -101,7 +105,22 @@
     return Math.sqrt(dx * dx + dz * dz)
   }
 
-  /** The sites the current selection asks for, as {x, z, sid, group}. */
+  /**
+   * A site's biome id, and whether its assigned structure's own declared
+   * biomes accept it. Verdict 0 is accepted; 1 the structure lists biomes and
+   * this is not one, 2 it lists none at all, 3 the biome source answered
+   * nothing. Anything above 0 is drawn loudly — that is the whole point of
+   * the layer.
+   */
+  var VERDICT = ['', 'its biomes exclude this one', 'it declares no valid biomes',
+    'no biome sampled here']
+
+  function siteBiome(data, p) {
+    var ids = data.siteBiomes || []
+    return p.length > 4 ? ids[p[4]] : null
+  }
+
+  /** The sites the current selection asks for, as {x, z, sid, group, bad, biome}. */
   function selectedSites(data) {
     if (!selection || !data || !data.groups) return []
     var out = []
@@ -111,10 +130,27 @@
       if (selection.kind === 'group' && group !== selection.key) return
       entry.positions.forEach(function (p) {
         if (selection.kind === 'structure' && p[2] !== selection.key) return
-        out.push({ x: p[0], z: p[1], sid: p[2], group: group })
+        var bad = (p[3] || 0)
+        if (selection.kind === 'invalid' && !bad) return
+        out.push({
+          x: p[0], z: p[1], sid: p[2], group: group,
+          bad: bad, biome: siteBiome(data, p)
+        })
       })
     })
     return out
+  }
+
+  /** How many sites in a group, or under one structure, failed their biome. */
+  function invalidCount(data, group, sid) {
+    var entry = (data.groups || {})[group]
+    if (!entry || !entry.positions) return 0
+    if (sid === undefined) return entry.invalid || 0
+    var n = 0
+    entry.positions.forEach(function (p) {
+      if (p[2] === sid && p[3]) n++
+    })
+    return n
   }
 
   function clearLayer() { while (layer.firstChild) layer.removeChild(layer.firstChild) }
@@ -138,7 +174,7 @@
       if (!window.lbOnRender(cx) || !window.lbOnRender(cy)) return
       var fam = familyFor(s.sid || s.group)
       var g = document.createElementNS(NS, 'g')
-      g.setAttribute('class', 'ef-marker')
+      g.setAttribute('class', 'ef-marker' + (s.bad ? ' ef-invalid' : ''))
       g.setAttribute('data-sid', s.sid || '')
       g.setAttribute('data-group', s.group)
       g.setAttribute('transform', 'translate(' + cx.toFixed(3) + ' ' + cy.toFixed(3) +
@@ -153,8 +189,11 @@
       glyph.setAttribute('fill-rule', 'evenodd')
       g.appendChild(glyph)
       var title = document.createElementNS(NS, 'title')
-      title.textContent = shortName(s.sid || s.group) + ' — ' +
+      var line = shortName(s.sid || s.group) + ' — ' +
         Math.round(distance(data, s.x, s.z)) + ' blocks from spawn'
+      if (s.biome) line += ' · in ' + shortName(s.biome)
+      if (s.bad) line += ' — ' + VERDICT[s.bad]
+      title.textContent = line
       g.appendChild(title)
       frag.appendChild(g)
       drawn++
@@ -300,6 +339,7 @@
     parts.push('<h4 class="ef-heading">Structures</h4>')
     parts.push('<p class="ef-provenance">' + (data.totalPositions || 0) +
       ' sites across ' + present.length + ' groups · choose one to draw it</p>')
+    parts.push(buildValidity(data))
 
     present.forEach(function (group) {
       var entry = groups[group]
@@ -310,6 +350,7 @@
       parts.push('<div class="ef-group' + muted + hostile + '" data-group="' + escAttr(group) + '">')
       parts.push('<button type="button" class="ef-group-row" data-group="' + escAttr(group) + '">' +
         '<span class="ef-gname">' + escHtml(group) + '</span>' +
+        badge(invalidCount(data, group)) +
         '<span class="ef-gcount">' + count + '</span>' +
         '<span class="ef-gdist">' + dist(entry.nearestBlocks) + '</span></button>')
       var rows = structuresIn(data, group)
@@ -319,6 +360,7 @@
           parts.push('<li><button type="button" class="ef-struct-row" data-sid="' +
             escAttr(r.sid) + '" data-group="' + escAttr(group) + '" title="' + escAttr(r.sid) + '">' +
             '<span class="ef-sname">' + escHtml(shortName(r.sid)) + '</span>' +
+            badge(invalidCount(data, group, r.sid)) +
             '<span class="ef-scount">' + r.count + '</span>' +
             '<span class="ef-sdist">' + dist(r.nearest) + '</span></button></li>')
         })
@@ -328,6 +370,40 @@
     })
     parts.push('</div>')
     return parts.join('')
+  }
+
+  /**
+   * The failing-site count for a row. Always emitted, blank at zero: it is a
+   * grid column, and one that appeared only on bad rows would shift every
+   * number beside it.
+   */
+  function badge(n) {
+    return '<span class="ef-invalid-count" title="sites whose assigned structure ' +
+      'does not accept the biome there">' + (n || '') + '</span>'
+  }
+
+  /**
+   * The one line that answers "is anything placed where its own structure
+   * says it cannot go", and the control that draws exactly those sites.
+   *
+   * <p>Above the groups, because a group with three bad sites out of 1900 is
+   * invisible in a per-group reading and is the finding.
+   */
+  function buildValidity(data) {
+    var v = data.siteValidity
+    if (!v) return ''
+    if (!v.invalid) {
+      return '<p class="ef-validity ef-validity-clean">every one of ' + v.total +
+        ' sites is assigned a structure that accepts the biome there</p>'
+    }
+    var parts = []
+    if (v.mismatch) parts.push(v.mismatch + ' in a biome their structure excludes')
+    if (v.noValidBiomes) parts.push(v.noValidBiomes + ' assigned a structure with no valid biomes')
+    if (v.unsampled) parts.push(v.unsampled + ' where no biome sampled')
+    return '<button type="button" class="ef-validity ef-validity-bad" data-invalid="1">' +
+      '<span class="ef-vcount">' + v.invalid + '</span> of ' + v.total +
+      ' sites fail their own biome check — ' + escHtml(parts.join(', ')) +
+      ' · draw them</button>'
   }
 
   /** Every biome inside the border, by share — sorted highest first. */
@@ -365,9 +441,10 @@
       el.classList.remove('ef-selected')
     })
     if (selection) {
-      var sel = selection.kind === 'group'
-        ? '.ef-group-row[data-group="' + CSS.escape(selection.key) + '"]'
-        : '.ef-struct-row[data-sid="' + CSS.escape(selection.key) + '"]'
+      var sel = selection.kind === 'invalid' ? '.ef-validity-bad'
+        : selection.kind === 'group'
+          ? '.ef-group-row[data-group="' + CSS.escape(selection.key) + '"]'
+          : '.ef-struct-row[data-sid="' + CSS.escape(selection.key) + '"]'
       panel.querySelectorAll(sel).forEach(function (el) {
         el.classList.add('ef-selected')
       })
@@ -379,9 +456,11 @@
     panel.addEventListener('click', function (ev) {
       var g = ev.target.closest('.ef-group-row')
       var s = ev.target.closest('.ef-struct-row')
+      var v = ev.target.closest('.ef-validity-bad')
       var next = null
       if (s) next = { kind: 'structure', key: s.dataset.sid }
       else if (g) next = { kind: 'group', key: g.dataset.group }
+      else if (v) next = { kind: 'invalid', key: 'invalid' }
       else return
       // Choosing the same row again unpins it, so the map can be cleared
       // without hunting for an "off" control.

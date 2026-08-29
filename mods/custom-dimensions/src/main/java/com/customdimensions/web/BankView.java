@@ -10,6 +10,7 @@ import com.customdimensions.roll.CandidateRender;
 import com.customdimensions.roll.Roller;
 import com.customdimensions.roll.SeedBank;
 import com.customdimensions.roll.Shortlist;
+import com.customdimensions.roll.SiteValidity;
 import com.customdimensions.score.Frontier;
 import com.customdimensions.score.Scorecard;
 import net.minecraft.server.MinecraftServer;
@@ -280,7 +281,7 @@ public final class BankView {
                 copy(s, out, "nearestByStructure");
                 copy(s, out, "byGroup");
                 copy(s, out, "nearestHostile");
-                out.add("groups", positions(server, def, seed));
+                positions(server, def, seed, out);
             }
             com.google.gson.JsonElement biomes = facts.get("biomes");
             if (biomes != null && biomes.isJsonObject()) {
@@ -317,56 +318,94 @@ public final class BankView {
     }
 
     /**
-     * Every noise-managed structure site, by group, recomputed here rather
-     * than banked.
+     * Every noise-managed structure site, by group, each with the verdict its
+     * own biome gives the structure assigned there — recomputed rather than
+     * banked.
      *
      * <p>A dimension can carry thousands of placements; writing those into
      * every candidate file would multiply the bank for data only ever read
      * when one of a board's top ten is open. {@code NoiseFieldIndex} derives
      * them from the seed, so recomputing costs a fraction of the measurement
      * that produced the candidate in the first place.
+     *
+     * <p>A site is {@code [x, z, structureId, verdict, biomeIndex]}: verdict
+     * is {@link #verdictCode} and biomeIndex points into the {@code siteBiomes}
+     * array beside {@code groups}, which is interned because a dimension's few
+     * dozen biome ids would otherwise be repeated thousands of times.
      */
-    private static com.google.gson.JsonObject positions(MinecraftServer server,
-                                                        DimensionConfig def, long seed) {
+    private static void positions(MinecraftServer server, DimensionConfig def, long seed,
+                                  com.google.gson.JsonObject out) {
         com.google.gson.JsonObject groups = new com.google.gson.JsonObject();
+        com.google.gson.JsonArray biomeIds = new com.google.gson.JsonArray();
         try {
             com.customdimensions.command.SpikeSampler.Base base =
                     com.customdimensions.command.SpikeSampler.base(
                             server, def.getDimensionIdentifier());
             if (!base.ok()) {
-                return groups;
+                out.add("groups", groups);
+                return;
             }
             int radius = Math.max(1, def.getPlayerBorderRadius());
             int[] spawn = def.getSpawn();
             long sx = spawn != null && spawn.length >= 3 ? spawn[0] : 0;
             long sz = spawn != null && spawn.length >= 3 ? spawn[2] : 0;
-            for (Map.Entry<String, List<CandidateRender.Site>> e
-                    : CandidateRender.structurePositions(server, def, base, seed, radius).entrySet()) {
-                com.google.gson.JsonArray points = new com.google.gson.JsonArray();
-                double nearest = Double.MAX_VALUE;
-                for (CandidateRender.Site p : e.getValue()) {
-                    com.google.gson.JsonArray xz = new com.google.gson.JsonArray();
-                    xz.add(p.x());
-                    xz.add(p.z());
-                    xz.add(p.structureId());
-                    points.add(xz);
-                    double dx = p.x() - sx;
-                    double dz = p.z() - sz;
-                    nearest = Math.min(nearest, Math.sqrt(dx * dx + dz * dz));
-                }
+            SiteValidity.Report report = SiteValidity.of(server, def, base, seed, radius);
+            Map<String, Integer> biomeIndex = new LinkedHashMap<>();
+            Map<String, com.google.gson.JsonArray> points = new LinkedHashMap<>();
+            Map<String, Double> nearest = new LinkedHashMap<>();
+            for (SiteValidity.SiteVerdict p : report.sites()) {
+                com.google.gson.JsonArray site = new com.google.gson.JsonArray();
+                site.add(p.x());
+                site.add(p.z());
+                site.add(p.structureId());
+                site.add(verdictCode(p.verdict()));
+                site.add(biomeIndex.computeIfAbsent(String.valueOf(p.biome()), id -> {
+                    biomeIds.add(p.biome());
+                    return biomeIds.size() - 1;
+                }));
+                points.computeIfAbsent(p.group(), g -> new com.google.gson.JsonArray()).add(site);
+                double dx = p.x() - sx;
+                double dz = p.z() - sz;
+                nearest.merge(p.group(), Math.sqrt(dx * dx + dz * dz), Math::min);
+            }
+            for (Map.Entry<String, SiteValidity.GroupTally> e : report.byGroup().entrySet()) {
                 com.google.gson.JsonObject group = new com.google.gson.JsonObject();
-                group.add("positions", points);
+                group.add("positions", points.getOrDefault(e.getKey(),
+                        new com.google.gson.JsonArray()));
                 group.addProperty("hostile", CandidateRender.isHostileGroup(e.getKey()));
-                if (nearest < Double.MAX_VALUE) {
-                    group.addProperty("nearestBlocks", nearest);
+                group.addProperty("invalid", e.getValue().bad());
+                Double d = nearest.get(e.getKey());
+                if (d != null) {
+                    group.addProperty("nearestBlocks", d);
                 }
                 groups.add(e.getKey(), group);
             }
+            com.google.gson.JsonObject validity = new com.google.gson.JsonObject();
+            validity.addProperty("total", report.total());
+            validity.addProperty("invalid", report.bad());
+            validity.addProperty("mismatch", report.count(SiteValidity.Verdict.MISMATCH));
+            validity.addProperty("noValidBiomes",
+                    report.count(SiteValidity.Verdict.NO_VALID_BIOMES));
+            validity.addProperty("unsampled", report.count(SiteValidity.Verdict.UNSAMPLED));
+            validity.addProperty("biomeQuartY", report.biomeQuartY());
+            validity.addProperty("millis", report.millis());
+            out.add("siteValidity", validity);
         } catch (RuntimeException ex) {
             MultiverseServer.LOGGER.warn("Structure positions unavailable for {} seed {}: {}",
                     def.getName(), seed, ex.toString());
         }
-        return groups;
+        out.add("groups", groups);
+        out.add("siteBiomes", biomeIds);
+    }
+
+    /** The wire code for a verdict — spelled out so a reordered enum cannot move it. */
+    private static int verdictCode(SiteValidity.Verdict verdict) {
+        return switch (verdict) {
+            case VALID -> 0;
+            case MISMATCH -> 1;
+            case NO_VALID_BIOMES -> 2;
+            case UNSAMPLED -> 3;
+        };
     }
 
     private static void copy(com.google.gson.JsonObject from, com.google.gson.JsonObject to, String key) {
