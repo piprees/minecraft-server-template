@@ -59,20 +59,31 @@ Full details, what's deliberately untouched, and the ownership.json mod-removal 
 
 ### Keeping land structures out of the sea
 
-`config/datapacks/open-water/` adds a Lithostitched
-`set_structure_spawn_condition` to every land structure whose biome gate
-contains ocean biomes: not in an `#adventure:open_water` biome, and its own
-generation point no more than 5 blocks below `WORLD_SURFACE_WG`. The height
-half is heightmap-relative, so it holds at any sea level. Ocean villages and
-ocean outposts keep a separate condition requiring unflooded ground within 192
-blocks, which leaves the coastal ones and drops the mid-ocean ones.
+`NoiseStructureSelectionMixin` replaces the assigned structure's biome
+predicate with `ANY_BIOME` at every noise site, so a structure's declared
+biomes do not constrain where it starts and land structures land in open sea.
+`config/datapacks/open-water/` restores an ocean check the bypass cannot
+reach: a Lithostitched `set_structure_spawn_condition` of
+`not(in_biome #adventure:open_water)` on every non-marine `surface_structures`
+structure, evaluated after the predicate. Ocean villages and ocean outposts
+instead require unflooded ground within 192 blocks, which leaves the coastal
+ones and drops the mid-ocean ones. A rejected noise site stays empty — the
+pool never falls through to a second structure.
 
-The condition wraps the structure's registry entry; its `biomes` field is
-unchanged, so `/customdim catalogue` reports the same biome set either way —
-placement counts from `scan-structure-placements.py` are the evidence.
-Regenerate with `mise run water-guard` after a structure-mod pin bump or a
-registry refresh. A `structures.force` entry for a guarded structure into deep
-water is rejected: the condition runs after the mod's biome-predicate bypass.
+**There is no depth check and one cannot be written.** `height_filter` is the
+only condition that reads terrain; heightmap-relative against
+`WORLD_SURFACE_WG` measures from the bedrock roof in a nether dimension, and
+absolute ranges break on the 25 dimensions setting sea levels from -64 to 90.
+No condition subtracts two heightmaps. A land structure submerged in a land
+biome is therefore out of reach of this pack.
+
+The condition wraps the structure's registry entry, preserving biomes, spawn
+overrides, step and terrain adaptation; the `biomes` field is unchanged, so
+`/customdim catalogue` reports the same biome set either way — placement counts
+from `scan-structure-placements.py` are the evidence. Regenerate with
+`mise run water-guard` after a structure-mod pin bump or a registry refresh. A
+`structures.force` entry for a guarded structure into an ocean biome is
+rejected: the condition runs after the mod's biome-predicate bypass.
 
 ### How placement tuning works (1.21.1 mechanics)
 

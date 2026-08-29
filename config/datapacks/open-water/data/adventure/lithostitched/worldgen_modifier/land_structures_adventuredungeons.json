@@ -1,0 +1,16 @@
+{
+ "type": "lithostitched:set_structure_spawn_condition",
+ "structures": [
+  "adventuredungeons:ruins_desert",
+  "adventuredungeons:ruins_snow",
+  "adventuredungeons:ruins_standard"
+ ],
+ "spawn_condition": {
+  "type": "lithostitched:not",
+  "condition": {
+   "type": "lithostitched:in_biome",
+   "biomes": "#adventure:open_water"
+  }
+ },
+ "append": true
+}

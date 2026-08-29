@@ -1,0 +1,33 @@
+{
+ "type": "lithostitched:set_structure_spawn_condition",
+ "structures": [
+  "minecraft:bastion_remnant",
+  "minecraft:desert_pyramid",
+  "minecraft:end_city",
+  "minecraft:igloo",
+  "minecraft:jungle_pyramid",
+  "minecraft:mansion",
+  "minecraft:pillager_outpost",
+  "minecraft:ruined_portal",
+  "minecraft:ruined_portal_desert",
+  "minecraft:ruined_portal_jungle",
+  "minecraft:ruined_portal_mountain",
+  "minecraft:ruined_portal_nether",
+  "minecraft:ruined_portal_swamp",
+  "minecraft:shipwreck_beached",
+  "minecraft:swamp_hut",
+  "minecraft:village_desert",
+  "minecraft:village_plains",
+  "minecraft:village_savanna",
+  "minecraft:village_snowy",
+  "minecraft:village_taiga"
+ ],
+ "spawn_condition": {
+  "type": "lithostitched:not",
+  "condition": {
+   "type": "lithostitched:in_biome",
+   "biomes": "#adventure:open_water"
+  }
+ },
+ "append": true
+}

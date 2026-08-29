@@ -1,0 +1,37 @@
+{
+ "type": "lithostitched:set_structure_spawn_condition",
+ "structures": [
+  "terralith:desert_outpost",
+  "terralith:fortified_desert_village",
+  "terralith:fortified_village",
+  "terralith:glacial_hut",
+  "terralith:igloo",
+  "terralith:mage_complex",
+  "terralith:mage_tower",
+  "terralith:rubble_desert",
+  "terralith:rubble_forest",
+  "terralith:rubble_jungle",
+  "terralith:rubble_mesa",
+  "terralith:rubble_mountain",
+  "terralith:rubble_taiga",
+  "terralith:spire",
+  "terralith:underground/frosted_dungeon",
+  "terralith:underground/giant_bee_hive",
+  "terralith:underground/mining_outpost",
+  "terralith:underground/oak_cabin",
+  "terralith:underground/old_refinery",
+  "terralith:underground/sunken_tower",
+  "terralith:underground/witch_hut",
+  "terralith:underground_cabin",
+  "terralith:valley_lodge",
+  "terralith:witch_hut"
+ ],
+ "spawn_condition": {
+  "type": "lithostitched:not",
+  "condition": {
+   "type": "lithostitched:in_biome",
+   "biomes": "#adventure:open_water"
+  }
+ },
+ "append": true
+}

@@ -1,16 +1,18 @@
 #!/usr/bin/env python3
 """Generate the open-water placement guard datapack.
 
-Purpose:  Land structures gate on a biome tag that contains ocean biomes, so
-          houses, windmills and sheds generate standing in open sea. This
-          writes Lithostitched `set_structure_spawn_condition` modifiers that
-          add a placement condition to each land structure: not in an ocean
-          biome, and not tens of blocks under the water surface. Ocean
-          villages get a separate condition that keeps them within sight of a
-          coast instead of mid-ocean.
+Purpose:  Land structures generate standing in open sea because
+          NoiseStructureSelectionMixin replaces the assigned structure's
+          biome predicate with ANY_BIOME at every noise site. This writes
+          Lithostitched `set_structure_spawn_condition` modifiers restoring
+          an ocean check that the bypass cannot reach: a spawn condition runs
+          after the predicate, so `not(in_biome #adventure:open_water)` holds
+          where the structure's own `biomes` field no longer does. Ocean
+          villages get a condition keeping them within sight of a coast.
 
 Context:  The condition wraps the structure's registry entry
-          (DelegatingStructure); the structure's own `biomes` field is
+          (DelegatingStructure), preserving its biomes, spawn overrides, step
+          and terrain adaptation. The structure's own `biomes` field is
           untouched, so `/customdim catalogue` reports the same biome set
           before and after — placement counts are the only evidence.
           Structure-set placement is a different mechanism
@@ -36,6 +38,13 @@ Gotchas:  - A structure is "marine by design" when at least half its valid
             what lets deploy.sh strip a modifier whose mod a consumer
             removed, and an unknown structure id in a modifier fails
             datapack load.
+          - A depth check belongs here and cannot be written. `height_filter`
+            is the only condition that reads terrain, and heightmap-relative
+            against WORLD_SURFACE_WG measures from the bedrock roof in a
+            nether dimension, which rejects every nether structure. Absolute
+            ranges are worse: 25 dimensions set sea levels from -64 to 90.
+            No condition subtracts two heightmaps, so "is it underwater" is
+            unreachable and only the biome check ships.
 """
 
 import argparse
@@ -71,9 +80,37 @@ EXEMPT = {
 
 # Guarded namespace -> modrinth slug, for ownership.json.
 NS_SLUG = {
-    "mvs": "moogs-voyager-structures",
+    "adventuredungeons": "adventure-dungeons",
+    "ati_structures": "ati-structures-fabricforge",
+    "betterdeserttemples": "yungs-better-desert-temples",
+    "betterfortresses": "yungs-better-nether-fortresses",
+    "betterjungletemples": "yungs-better-jungle-temples",
+    "betterwitchhuts": "yungs-better-witch-huts",
+    "ddd": "deadly-deadly-dungeon",
+    "dungeons_arise": "when-dungeons-arise",
+    "epic": "epic-structures-dungeons",
+    "explorify": "explorify",
+    "friendsandfoes": "friends-and-foes",
+    "medievalend": "medieval-buildings-end-edition",
+    "mes": "mes-moogs-end-structures",
+    "minecraft": "minecraft",
+    "mns": "mns-moogs-nether-structures",
     "mss": "mss-moogs-soaring-structures",
+    "mtr": "mtr-moogs-temples-reimagined",
+    "mvs": "moogs-voyager-structures",
+    "natures_spirit": "natures-spirit",
+    "nova_structures": "dungeons-and-taverns",
+    "nullscape": "nullscape",
+    "paradise_lost": "paradise-lost",
+    "philipsruins": "philips-ruins",
+    "simply_houses": "simply-houses",
+    "skyvillages": "sky-villages",
+    "stoneholm": "stoneholm",
+    "structory": "structory",
+    "structory_towers": "structory-towers",
+    "terralith": "terralith",
     "towns_and_towers": "towns-and-towers",
+    "undergroundworlds": "underground-worlds",
 }
 
 # Ocean villages stay, but only where a sample within RADIUS blocks is not open
@@ -83,31 +120,11 @@ COASTAL = {
     "towns_and_towers:pillager_outpost_ocean": {"radius": 192, "step": 48},
 }
 
-# A guarded structure may sit this far below the water/ground surface at its own
-# generation point. Relative to WORLD_SURFACE_WG, so it holds in a dimension
-# with any sea level.
-MAX_SUBMERSION = 5
-
 
 def not_open_water():
     return {
         "type": "lithostitched:not",
         "condition": {"type": "lithostitched:in_biome", "biomes": f"#{WATER_TAG}"},
-    }
-
-
-def on_dry_land():
-    return {
-        "type": "lithostitched:all_of",
-        "conditions": [
-            not_open_water(),
-            {
-                "type": "lithostitched:height_filter",
-                "range_type": "heightmap_relative",
-                "heightmap": "WORLD_SURFACE_WG",
-                "permitted_range": {"min_inclusive": -MAX_SUBMERSION, "max_inclusive": 512},
-            },
-        ],
     }
 
 
@@ -129,7 +146,12 @@ def ocean_biomes(tags):
 
 
 def guarded(registries):
-    """Land structures that can currently generate in an ocean biome, by namespace."""
+    """Land structures on a surface step, by namespace.
+
+    Every one of them, not only those whose biome tag contains an ocean: the
+    noise placement bypasses the biome predicate, so a structure's declared
+    biomes no longer constrain where it starts.
+    """
     tags, structures = registries["biomeTags"], registries["structures"]
     oceans = ocean_biomes(tags)
     by_ns = {}
@@ -137,10 +159,7 @@ def guarded(registries):
         if sid in EXEMPT or info.get("step") not in GUARDED_STEPS:
             continue
         values = tags.get(info.get("biomeTag") or "")
-        if not values:
-            continue
-        wet = len(oceans & set(values))
-        if not wet or wet / len(values) >= MARINE_FRACTION:
+        if values and len(oceans & set(values)) / len(values) >= MARINE_FRACTION:
             continue
         by_ns.setdefault(sid.split(":", 1)[0], []).append(sid)
     return by_ns
@@ -170,7 +189,7 @@ def build(registries):
         files[rel] = {
             "type": "lithostitched:set_structure_spawn_condition",
             "structures": ids,
-            "spawn_condition": on_dry_land(),
+            "spawn_condition": not_open_water(),
             "append": True,
         }
         ownership[rel] = NS_SLUG[ns]

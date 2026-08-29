@@ -1,0 +1,15 @@
+{
+ "type": "lithostitched:set_structure_spawn_condition",
+ "structures": [
+  "epic:large_sand_dungeon",
+  "epic:medium_sand_dungeon"
+ ],
+ "spawn_condition": {
+  "type": "lithostitched:not",
+  "condition": {
+   "type": "lithostitched:in_biome",
+   "biomes": "#adventure:open_water"
+  }
+ },
+ "append": true
+}

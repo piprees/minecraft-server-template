@@ -1,0 +1,38 @@
+{
+ "type": "lithostitched:set_structure_spawn_condition",
+ "structures": [
+  "mes:astral_hideaway",
+  "mes:astral_meteorite",
+  "mes:ender_spire",
+  "mes:enderbloom_grove",
+  "mes:enderkeep_courtyard",
+  "mes:enderpin_spikes",
+  "mes:enderskog",
+  "mes:enderwatch_tower",
+  "mes:endscraps",
+  "mes:manuscript_shrine",
+  "mes:mega_ship",
+  "mes:mega_ship_basic",
+  "mes:mega_ship_crashed",
+  "mes:mega_ship_crashed_2",
+  "mes:mega_ship_crashed_deepslate",
+  "mes:mega_ship_deepslate",
+  "mes:mega_ship_deepslate_2",
+  "mes:mega_ship_deepslate_3",
+  "mes:monolith",
+  "mes:mystical_archway",
+  "mes:mythic_garden",
+  "mes:phantom_citadel",
+  "mes:placid_prairie",
+  "mes:ruined_pillar",
+  "mes:starlight_voyager"
+ ],
+ "spawn_condition": {
+  "type": "lithostitched:not",
+  "condition": {
+   "type": "lithostitched:in_biome",
+   "biomes": "#adventure:open_water"
+  }
+ },
+ "append": true
+}

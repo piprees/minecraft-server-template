@@ -1,0 +1,36 @@
+{
+ "type": "lithostitched:set_structure_spawn_condition",
+ "structures": [
+  "explorify:badlands_pyramid",
+  "explorify:black_spiral",
+  "explorify:campsite",
+  "explorify:dark_forest_settlement",
+  "explorify:desert_shrine",
+  "explorify:end_shipwreck",
+  "explorify:farmstead",
+  "explorify:guide_post_cold",
+  "explorify:guide_post_warm",
+  "explorify:mangrove_hut",
+  "explorify:mausoleum",
+  "explorify:ruins",
+  "explorify:supply_cache/birch",
+  "explorify:supply_cache/dark",
+  "explorify:supply_cache/desert",
+  "explorify:supply_cache/forest",
+  "explorify:supply_cache/jungle",
+  "explorify:supply_cache/mangrove",
+  "explorify:supply_cache/taiga",
+  "explorify:tavern",
+  "explorify:watchtower/plains",
+  "explorify:watchtower/savanna",
+  "explorify:watchtower/taiga"
+ ],
+ "spawn_condition": {
+  "type": "lithostitched:not",
+  "condition": {
+   "type": "lithostitched:in_biome",
+   "biomes": "#adventure:open_water"
+  }
+ },
+ "append": true
+}

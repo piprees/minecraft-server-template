@@ -1,0 +1,32 @@
+{
+ "type": "lithostitched:set_structure_spawn_condition",
+ "structures": [
+  "philipsruins:ancient_crypt",
+  "philipsruins:ancient_ruins",
+  "philipsruins:ancient_towers",
+  "philipsruins:antiquus_crypta",
+  "philipsruins:badlands_start_dungeon",
+  "philipsruins:badlands_structures",
+  "philipsruins:desert_structures",
+  "philipsruins:end_gate_fortress",
+  "philipsruins:end_ruins",
+  "philipsruins:field_stone_ruins",
+  "philipsruins:field_stone_ruins_rocks",
+  "philipsruins:level_one_ruins",
+  "philipsruins:level_three_ruins",
+  "philipsruins:level_two_ruins",
+  "philipsruins:level_two_ruins_pool",
+  "philipsruins:pumpkin_ruins",
+  "philipsruins:rare_ruin",
+  "philipsruins:sealedruinedghaststatue1",
+  "philipsruins:start_nether_ruin"
+ ],
+ "spawn_condition": {
+  "type": "lithostitched:not",
+  "condition": {
+   "type": "lithostitched:in_biome",
+   "biomes": "#adventure:open_water"
+  }
+ },
+ "append": true
+}

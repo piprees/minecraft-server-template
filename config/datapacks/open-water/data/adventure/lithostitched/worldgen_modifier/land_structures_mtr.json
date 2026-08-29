@@ -1,0 +1,17 @@
+{
+ "type": "lithostitched:set_structure_spawn_condition",
+ "structures": [
+  "mtr:badlands_temple",
+  "mtr:desert_temple",
+  "mtr:jungle_temple",
+  "mtr:nether_temple"
+ ],
+ "spawn_condition": {
+  "type": "lithostitched:not",
+  "condition": {
+   "type": "lithostitched:in_biome",
+   "biomes": "#adventure:open_water"
+  }
+ },
+ "append": true
+}

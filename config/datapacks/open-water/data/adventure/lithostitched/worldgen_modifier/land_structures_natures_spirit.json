@@ -1,0 +1,17 @@
+{
+ "type": "lithostitched:set_structure_spawn_condition",
+ "structures": [
+  "natures_spirit:village_adobe",
+  "natures_spirit:village_coconut",
+  "natures_spirit:village_cypress",
+  "natures_spirit:village_wisteria"
+ ],
+ "spawn_condition": {
+  "type": "lithostitched:not",
+  "condition": {
+   "type": "lithostitched:in_biome",
+   "biomes": "#adventure:open_water"
+  }
+ },
+ "append": true
+}

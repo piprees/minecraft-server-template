@@ -1,0 +1,23 @@
+{
+ "type": "lithostitched:set_structure_spawn_condition",
+ "structures": [
+  "simply_houses:forest_chapel",
+  "simply_houses:forest_fort",
+  "simply_houses:forest_house",
+  "simply_houses:forest_stonemason",
+  "simply_houses:plains_house",
+  "simply_houses:plains_mansion",
+  "simply_houses:taiga_forge",
+  "simply_houses:taiga_house",
+  "simply_houses:taiga_inn",
+  "simply_houses:taiga_woodcutter"
+ ],
+ "spawn_condition": {
+  "type": "lithostitched:not",
+  "condition": {
+   "type": "lithostitched:in_biome",
+   "biomes": "#adventure:open_water"
+  }
+ },
+ "append": true
+}

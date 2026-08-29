@@ -1,0 +1,14 @@
+{
+ "type": "lithostitched:set_structure_spawn_condition",
+ "structures": [
+  "ddd:monolithic_tower"
+ ],
+ "spawn_condition": {
+  "type": "lithostitched:not",
+  "condition": {
+   "type": "lithostitched:in_biome",
+   "biomes": "#adventure:open_water"
+  }
+ },
+ "append": true
+}

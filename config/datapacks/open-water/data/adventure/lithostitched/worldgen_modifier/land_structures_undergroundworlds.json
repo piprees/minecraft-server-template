@@ -1,0 +1,16 @@
+{
+ "type": "lithostitched:set_structure_spawn_condition",
+ "structures": [
+  "undergroundworlds:chillager_outpost",
+  "undergroundworlds:jungle_treehouse",
+  "undergroundworlds:swamp_house"
+ ],
+ "spawn_condition": {
+  "type": "lithostitched:not",
+  "condition": {
+   "type": "lithostitched:in_biome",
+   "biomes": "#adventure:open_water"
+  }
+ },
+ "append": true
+}

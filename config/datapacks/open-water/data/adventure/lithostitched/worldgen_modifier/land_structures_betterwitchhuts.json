@@ -1,0 +1,15 @@
+{
+ "type": "lithostitched:set_structure_spawn_condition",
+ "structures": [
+  "betterwitchhuts:witch_circle",
+  "betterwitchhuts:witch_hut"
+ ],
+ "spawn_condition": {
+  "type": "lithostitched:not",
+  "condition": {
+   "type": "lithostitched:in_biome",
+   "biomes": "#adventure:open_water"
+  }
+ },
+ "append": true
+}

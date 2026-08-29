@@ -2,17 +2,29 @@
  "type": "lithostitched:set_structure_spawn_condition",
  "structures": [
   "mss:arena",
+  "mss:birch_river",
   "mss:calcite_house",
   "mss:castle_ruin",
   "mss:castle_tower",
+  "mss:cherry_river",
+  "mss:desert_pyramid",
+  "mss:desert_well",
   "mss:diorite_house",
+  "mss:frozen_pond",
+  "mss:jungle",
   "mss:large_tower",
   "mss:leaf_hollow",
+  "mss:mangrove",
+  "mss:muddy_water_hole",
+  "mss:mushroom",
   "mss:nether_portal",
+  "mss:red_sand",
   "mss:small_deepslate_house",
   "mss:small_oak_house",
   "mss:small_pond",
   "mss:small_tower",
+  "mss:spruce_huts",
+  "mss:taiga",
   "mss:tree_1",
   "mss:tree_2",
   "mss:tree_3",
@@ -25,25 +37,11 @@
   "mss:white_house"
  ],
  "spawn_condition": {
-  "type": "lithostitched:all_of",
-  "conditions": [
-   {
-    "type": "lithostitched:not",
-    "condition": {
-     "type": "lithostitched:in_biome",
-     "biomes": "#adventure:open_water"
-    }
-   },
-   {
-    "type": "lithostitched:height_filter",
-    "range_type": "heightmap_relative",
-    "heightmap": "WORLD_SURFACE_WG",
-    "permitted_range": {
-     "min_inclusive": -5,
-     "max_inclusive": 512
-    }
-   }
-  ]
+  "type": "lithostitched:not",
+  "condition": {
+   "type": "lithostitched:in_biome",
+   "biomes": "#adventure:open_water"
+  }
  },
  "append": true
 }

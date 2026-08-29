@@ -1,0 +1,18 @@
+{
+ "type": "lithostitched:set_structure_spawn_condition",
+ "structures": [
+  "medievalend:castle",
+  "medievalend:house",
+  "medievalend:pyramid",
+  "medievalend:ship",
+  "medievalend:shrine"
+ ],
+ "spawn_condition": {
+  "type": "lithostitched:not",
+  "condition": {
+   "type": "lithostitched:in_biome",
+   "biomes": "#adventure:open_water"
+  }
+ },
+ "append": true
+}

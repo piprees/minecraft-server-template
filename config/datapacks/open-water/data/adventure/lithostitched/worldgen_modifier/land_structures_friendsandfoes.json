@@ -1,0 +1,16 @@
+{
+ "type": "lithostitched:set_structure_spawn_condition",
+ "structures": [
+  "friendsandfoes:iceologer_cabin",
+  "friendsandfoes:illusioner_shack",
+  "friendsandfoes:illusioner_training_grounds"
+ ],
+ "spawn_condition": {
+  "type": "lithostitched:not",
+  "condition": {
+   "type": "lithostitched:in_biome",
+   "biomes": "#adventure:open_water"
+  }
+ },
+ "append": true
+}
