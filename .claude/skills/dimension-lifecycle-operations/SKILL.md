@@ -17,7 +17,8 @@ Every dimension-lifecycle task reduces to one question: _does this field apply o
 | --- | --- | --- |
 | `type`, `noiseSettings`, `biomes`, `seed`, `environment.minY`/`height`/`logicalHeight` | **Creation-time only** | Wipe `data/world` (local) / a reset-seed ritual (production, `./ops reset-seed` — confirm-before-proceed) |
 | `portal` (all of it — `immersive`, `aura`, `anchor`, `singleUse`, `exitPortal`, frame materials, `shape`, sounds), `difficulty`, `borders.player`, `structureDensity`, `structures.force`/`mode`/`list`/`spacing`, `exits`, most of `environment` (`fixedTime`, `hasCeiling`, `hasSkylight`, `ultraWarm`, `natural`, `bedWorks`, `respawnAnchorWorks`, `piglinSafe`, `hasRaids`, `ambientLight`, `effects`, `infiniburn`, `monsterSpawnLightLevel`/`BlockLightLimit`) | **Re-read every boot** | Edit the file, restart mc, done — no wipe |
-| `borders.generation` | **Not read by the mod at all** — pure tooling metadata (see below) | Edit the file; takes effect on the next map render pass, no restart needed |
+| `structures.wants`/`shuns` | **Re-read every boot** — pool weights, newly generated chunks only | Edit the file, restart mc; already-generated chunks keep what they got. Boot WARNs that the pool moved, explicitly without asking for a wipe |
+| `borders.generation` | **Never applied to a world** — tooling metadata for the renderer, Chunky, `getLocateCap` and lint (see below) | Edit the file; takes effect on the next map render pass, no restart needed. It is in the generation fingerprint, so it re-keys the seed bank |
 
 Full field-by-field reference, with the exact source line for each classification: `references/field-timing.md`. Read it before telling anyone a field is safe to change on a live world — the exceptions (`environment` heights, `borders.generation`) are easy to get backwards from general Minecraft knowledge.
 
@@ -60,7 +61,7 @@ cp config/custom-dimensions/dimensions/<slug>.json <consumer>/overlay/config/cus
 The map renderer (`docker/unmined-render/render-loop.sh`) needs no per-dimension registration at all:
 
 - It walks `data/world/dimensions/<ns>/<slug>/region/*.mca` directly on every pass (default every `UNMINED_INTERVAL`, 6h) and renders whatever it finds. A dimension appears **automatically** once it has real generated chunks — no config file to write, no reload command to run.
-- It reads `borders.generation` from the dimension's own config (falling back to `settings.json`'s `defaults.borders.generation`, then `PREGEN_BORDER_RADIUS`) to clamp the rendered area — **this is the only place `borders.generation` is actually consumed**. `WorldBorderManager` (the mod) explicitly does _not_ apply it; it is tooling metadata for the renderer alone.
+- It reads `borders.generation` from the dimension's own config (falling back to `settings.json`'s `defaults.borders.generation`, then `PREGEN_BORDER_RADIUS`) to clamp the rendered area. `WorldBorderManager` (the mod) explicitly does _not_ apply it — the other readers are Chunky's pre-generation extent (`scripts/idle-tasks.sh`), `DimensionConfig.getLocateCap()` and `DimensionLint.checkGenerationBorder`; none of them gates chunk generation.
 - Served at `map.DOMAIN` via `nav-proxy` from `data/unmined-web/`, always up regardless of `mc`'s state (plain files).
 
 ```bash

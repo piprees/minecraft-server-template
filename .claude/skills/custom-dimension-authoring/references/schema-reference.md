@@ -41,16 +41,16 @@ Ground truth: `/Users/pip/Projects/minecraft-server-template/mods/custom-dimensi
 | `settingsOverrides` | object | creation-time | `{"seaLevel": int, "defaultBlock": id, "defaultFluid": id, "disableMobGeneration": bool}`. Applied after `noiseSettings` resolves. |
 | `biomePatches` | array | creation-time | Fixed circular biome patches over the generated layout — precision placement. Rare; 0 uses in shipped dims. |
 | `scale` | number | — | Top-level travel-scale metadata, only read on the four reserved filenames; every dimension including those four uses `portal.scale` for real portal scaling. |
-| `borders` | object | see below | `{"player": int, "generation": int}` — both default 8192. `player`: vanilla world border radius, set at boot, boot-re-read (safe to tune anytime). `generation`: tooling metadata for Chunky/render bounds + the seed-group fingerprint key (creation/rolling relevant, not enforced by the mod at runtime). |
+| `borders` | object | see below | `{"player": int, "generation": int}` — both default 8192. `player`: vanilla world border radius, set at boot, boot-re-read (safe to tune anytime). `generation`: tooling metadata for Chunky pre-generation, the map renderer's clamp and `getLocateCap`, never applied to a world. `DimensionLint` WARNs when it reaches more than the server's view distance past `player`, or falls below 512. |
 | `difficulty` | object | boot-re-read | See [Difficulty](#difficulty-object) below. |
 | `structureDensity` | `"dense"` \| `"normal"` \| `"sparse"` \| `"none"` | boot-re-read (new chunks only) | Scales dungeon/loot structure frequency. `dense` ≈2x, `sparse` ≈half. Peaceful dims drop dungeon-theme sets regardless of density. |
-| `structures` | object | mixed | Wants/shuns for the roller, plus runtime `spacing`/`mode`/`list`/`force`. See [Structures](#structures-object) below. |
+| `structures` | object | mixed | Wants/shuns — scored by the roller AND tilting the noise-pool weight — plus runtime `spacing`/`mode`/`list`/`force`. See [Structures](#structures-object) below. |
 | `portal` | object | boot-re-read | See [Portal](#portal-object) below. Omit entirely for a dimension with no portal (still reachable via commands/dimension links). |
 | `exitPortal` | object | boot-re-read | Mod-built exit frame near spawn. `{"enabled": true, "pos": "spawn", "target": "bed"}`. |
 | `exits` | object (map) | boot-re-read | Exit condition rules — void/death/enderPearl/fallFrom triggers. See [Exits](#exits-object) below. |
 | `exitShrines` | object | worldgen creation-time; beacon detection boot-re-read | `{"enabled": true, "target": "bed"}` — scattered jigsaw exit ruins. |
 | `environment` | object | mostly boot-re-read (a few creation-time) | Custom `DimensionType` registration (`{ns}:{slug}_type`). See [Environment](#environment-object) below. |
-| `seedRoll` | object | ignored by the mod at runtime | Scoring config for seed rolling only. See [seedRoll](#seedroll-object) below — this is the block that actually determines what "good" means for this dimension. |
+| `seedRoll` | object | scoring, plus `wants`/`shuns` as pool-weight fallbacks | Scoring config for seed rolling. `wants`/`shuns` here also tilt the noise-pool weight when the `structures` block names none; everything else is scoring-only. See [seedRoll](#seedroll-object) below — this is the block that determines what "good" means for this dimension. |
 | ~~`dimensionId`~~ | string | — | **Legacy — omit.** The id is always derived from `{namespace}:{filename}`. |
 | ~~`hostileSpawning`~~ (top-level) | bool | — | **Legacy — use `difficulty.hostileSpawning` instead**, which wins when both are present. |
 
@@ -115,8 +115,8 @@ Observed shipped patterns: peaceful `mobMultiplier: 0.0` + `hostileSpawning: fal
 ```
 
 - `wants` — map of structure short-name → `{"min": N, "max": M}` **block distances**. Scored by the roller AND read for placement: a want multiplies the structure's noise-pool weight by 1.2 and bypasses the biome-affinity filter. Short names resolve via `references/structure-names.md`; a name resolving to a `#tag` is dropped.
-- `shuns` — map of short-name → `{}` (must not exist anywhere in the playable radius) or `{"minDistance": N}` (must be at least N blocks away). **Map form only** — a bare list crashes Gson. Also divides the pool weight by 1.5, floored at 1 — a shun discourages, `exclude` removes.
-- Both round away from the starting weight (a want adds at least one unit, a shun removes at least one), and naming a structure in both cancels. When the `structures` block names neither, `seedRoll.wants`/`seedRoll.shuns` supply the list.
+- `shuns` — map of short-name → `{}` (must not exist anywhere in the playable radius) or `{"minDistance": N}` (must be at least N blocks away). **Map form only** — a bare list crashes Gson. Also divides the pool weight by 1.5 — a shun discourages, `exclude` removes, and a shun can never reach zero.
+- Both factors are exact at every weight (the pool is carried at 15 units per weight), and naming a structure in both cancels. When the `structures` block names neither, `seedRoll.wants`/`seedRoll.shuns` supply the list.
 - `endgame` — `{"allow": bool, "safeRadius": N}`. Overrides the roller's automatic endgame-near-spawn penalty.
 - `spacing` — map of structure **set** id → `{"spacing": N, "separation": M}`. This one IS read by the mod at runtime (new chunks only) — actually rescales placement, not just scoring.
 - `mode` + `list` — `"allow"`/`"reject"`/`"none"` filter on organic structure sets. Runtime.

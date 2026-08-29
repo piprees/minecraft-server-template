@@ -114,6 +114,13 @@ These are a gradient, and the weak end must stay weak:
 | `structures.exclude` | absolute | remove it from the pool |
 | `structures.force` | absolute | put exactly this here |
 
+**A want on a force-placed structure is dead config.** `structures.force` is
+exclusive by default, so the structure leaves the noise pool entirely and is
+guaranteed at its coordinate — there is nothing left to favour, and the census
+the roller scores against records only noise groups, so the want scores 0.0 on
+every seed forever. Remove the want, or set `"exclusive": false` on the force
+entry so organic copies also enter the pool and the census can see them.
+
 A want is a **favouring, not a forcing**. Anything that makes a want
 effectively mandatory (a x20 weight, a guaranteed seat) turns authorship into
 scripting and produces the T53 failure from the other direction — see
@@ -158,6 +165,13 @@ vanilla `WorldBorder`, and it bounds where a player can go and therefore where
 chunks generate. `borders.generation` is a **tools-only** bound for Chunky
 pre-generation and the map renderer, which is why dimensions set it at or
 below the player border.
+
+Its value is bounded at both ends: at least 2048 so a small dimension still
+has terrain for Distant Horizons to draw, and no more than the server's render
+distance beyond `borders.player`, because ground a player can never reach costs
+pre-generation time, disk and render passes for nothing. `borders.generation`
+is in the generation fingerprint, so changing one re-keys that dimension's
+seed bank.
 
 Reason about reachability from `borders.player`. Anything gating generation on
 `borders.generation` is wrong — that mistake made six forced placements report

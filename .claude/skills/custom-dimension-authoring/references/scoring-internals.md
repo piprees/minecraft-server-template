@@ -120,10 +120,50 @@ shrine_tower, trident_trial, lone_citadel, stray_fort, illager_manor,
 antiquus_crypta, iceologer_citadel
 ```
 
-## Seed-group rolling (why some dimensions share measurements instantly)
+## Bank keying (what makes a banked measurement reusable)
 
-Many dimensions in this repo are "same world, different curated taste" — identical generation, differing only in wants/shuns/spawn filters/portal/difficulty. The roller measures each seed **once per generation fingerprint** and shares the rows across every dimension with a byte-identical fingerprint, so adding a new dimension that reuses an existing worldgen shape can score near-instantly.
+The seed bank is keyed by `InputHash.of(def, server)`
+(`mods/custom-dimensions/src/main/java/com/customdimensions/command/InputHash.java`),
+and candidates live under `.seed-rolling/candidates/{inputHash}/{dimension}/`.
 
-The fingerprint (`generation_fingerprint()`) is computed from: `type`, `noiseSettings`, the **full ordered** biome list + per-biome parameters (reordering or changing even one biome re-deals the whole layout — no partial credit), `structureDensity`, the peaceful flag (`hostileSpawning: false`), worldgen `environment` fields (`minY`/`height`/`logicalHeight`), `borders.generation`, `checkerboardScale`/`layers`/`flatBiome`, `settingsOverrides`, `biomePatches`, whether `exitShrines` is enabled (and its derived spacing, when not explicitly overridden), and `structures.mode`/`list`/`force`/`spacing`. Everything else — `seedRoll`, `portal`, difficulty multipliers, `description`, colours — is scoring/runtime-only and shares freely without affecting the fingerprint.
+The hash covers three things: the mod's own measurement-relevant bytes
+(`MEASUREMENT_PATHS` — the facts engine, scorer, `dimension/`, `config/`,
+mixins, the sampler, and the jar-baked `structure_themes.json`,
+`structure_type_defaults.json`, `structure_default_wants.json`,
+`structure_aliases.json`, `structure_sizes.json`), the dimension's name, and
+**the whole config canonicalised with `seed` removed**. The mod's own version
+string and the stack version are deliberately excluded, and this mod is
+filtered out of the mod list — all three move on every release whether or not a
+measurement could change.
 
-**Practical implication**: if you want a new dimension to roll instantly against an existing dimension's already-measured seed pool, copy its `type`/`noiseSettings`/`biomes` (in the exact same order) /`structureDensity`/environment fields exactly, and only vary `seedRoll`, `portal`, `difficulty`, `structures.wants`/`shuns`. If you change even one biome, it becomes its own fingerprint group and needs a full independent roll.
+**Every config field except `seed` re-keys the bank**, `description` and
+colours included. There is no worldgen-only subset and no sharing of measured
+rows between dimensions: two dimensions differing in any field measure
+separately. Over-inclusion is deliberate — a spare cache entry is harmless, a
+reused stale measurement is not.
+
+`seed` is out because a candidate is measured at the seed the ROLL drew, never
+the one the config names; hashing it meant picking a winner rewrote the config
+and destroyed the board the choice was made from.
+
+`DimensionFingerprints.WORLDGEN_FIELDS` is a different thing and answers a
+different question — has this world drifted from the config that describes it?
+Nine of its eleven fields are the generator inputs baked into `level.dat` at
+creation (`type`, `noiseSettings`, `biomes`, `checkerboardScale`, `layers`,
+`flatBiome`, `settingsOverrides`, `biomeParameters`, `biomePatches`), and drift
+in one warns that only a world wipe can apply it. The other two,
+`structureWants` and `structureShuns`, hold the RESOLVED structure-id sets the
+noise pool is weighted by — an alias is not identity, and a band word or a
+min/max never reaches the pool, so neither registers as a change. They get the
+no-wipe variant of the warning: the pool rebuilds from config every boot, so
+only chunks already generated keep the old weighting. `structureDensity` and
+`structures.mode`/`list`/`force`/`spacing` are still out.
+
+A record written before a field joined that list is backfilled rather than
+compared — an absent key is unknown, not changed, so growing the list does not
+warn on every dimension once.
+
+**Practical implication**: there is no way to make a new dimension roll
+instantly against an existing dimension's pool. Budget a full roll for every
+new dimension, and expect a fresh bank after any config edit or any change to
+the mod's measurement paths.

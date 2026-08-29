@@ -40,6 +40,8 @@ A site whose whole chain declines is left empty and recorded ONCE, by site rathe
 
 Assignment: `StructurePick.assignedStructure(noiseSeed, cx, cz, sortedPool)` with `pickSeed = noiseSeed ^ saltOf("structure_pick")`. The sorted pool is a plain string sort on structure id (stable; duplicate-id entries stay adjacent). `resolveWeighted` uses `Long.remainderUnsigned(pickValue, totalWeight)`, cumulative walk in sorted order; null iff `totalWeight <= 0`.
 
+Pool weight: `max(1, round(setWeight * rarityShare * affinityFactor))` in whole weights, then `NoisePoolBuilder.favourWeight` converts to pool units at `WEIGHT_RESOLUTION` (15) and applies the author's tilt — 18 units for a want, 10 for a shun, 15 for neither. The resolution exists so x1.2 and /1.5 are exact integers at weight 1, where rounding a 1.2 would erase the want on the rare and endgame tiers; being uniform it moves no unfavoured structure's share of the draw, and a shun can never reach zero. Wants and shuns are resolved once inside `build`, so every caller (the live world, `FactsEngine`, `CandidateRender`, lint) weighs the pool identically; a caller-supplied `wanted` set exists only for lint's counterfactual builds. `resolveWeighted` sums into a `long`, so the 15x totals (~65k on the overworld) are nowhere near a limit.
+
 The per-world selection registry (`StructurePick.install/lookup/clear`) is keyed by `WeightedEntry` OBJECT IDENTITY (`IdentityHashMap`), installed by `DimensionStructures.transformedNoise`, replaced wholesale on every calculator rebuild, cleared on `ServerWorldEvents.UNLOAD` in `MultiverseServer`.
 
 ## Mixin ordering on `ChunkGenerator.trySetStructureStart`
