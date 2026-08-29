@@ -124,7 +124,15 @@
       "exit": "block.portal.travel"
     },
     "aura": {
-      "subsume": "everything"
+      "subsume": "everything",
+      "palette": [
+        "minecraft:sculk",
+        "minecraft:sculk_catalyst",
+        "minecraft:blackstone"
+      ],
+      "flora": [
+        "minecraft:sculk_vein"
+      ]
     }
   },
   "environment": {

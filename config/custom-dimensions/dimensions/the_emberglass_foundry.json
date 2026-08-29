@@ -4,47 +4,11 @@
   "seed": -7664897803789187350,
   "biomes": [
     {
-      "id": "regions_unexplored:redstone_caves",
-      "parameters": {
-        "temperature": [
-          -2.0,
-          -0.9496
-        ]
-      }
-    },
-    {
-      "id": "minecraft:dripstone_caves",
-      "parameters": {
-        "temperature": [
-          -0.9496,
-          -0.8495
-        ]
-      }
-    },
-    {
-      "id": "regions_unexplored:prismachasm",
-      "parameters": {
-        "temperature": [
-          -0.8495,
-          -0.6624
-        ]
-      }
-    },
-    {
-      "id": "terralith:cave/tuff_caves",
-      "parameters": {
-        "temperature": [
-          -0.6624,
-          -0.3773
-        ]
-      }
-    },
-    {
       "id": "galosphere:crystal_canyons",
       "parameters": {
         "temperature": [
-          -0.3773,
-          -0.2745
+          -2.0,
+          -0.9045
         ]
       }
     },
@@ -52,26 +16,8 @@
       "id": "incendium:quartz_flats",
       "parameters": {
         "temperature": [
-          -0.2745,
-          -0.0702
-        ]
-      }
-    },
-    {
-      "id": "terralith:cave/granite_caves",
-      "parameters": {
-        "temperature": [
-          -0.0702,
-          0.0033
-        ]
-      }
-    },
-    {
-      "id": "regions_unexplored:scorching_caves",
-      "parameters": {
-        "temperature": [
-          0.0033,
-          0.0871
+          -0.9045,
+          -0.3274
         ]
       }
     },
@@ -79,8 +25,17 @@
       "id": "regions_unexplored:blackstone_basin",
       "parameters": {
         "temperature": [
-          0.0871,
-          0.2195
+          -0.3274,
+          -0.1385
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:scorching_caves",
+      "parameters": {
+        "temperature": [
+          -0.1385,
+          0.099
         ]
       }
     },
@@ -88,8 +43,8 @@
       "id": "minecraft:basalt_deltas",
       "parameters": {
         "temperature": [
-          0.2195,
-          0.2606
+          0.099,
+          0.2719
         ]
       }
     },
@@ -97,16 +52,7 @@
       "id": "terralith:cave/thermal_caves",
       "parameters": {
         "temperature": [
-          0.2606,
-          0.3481
-        ]
-      }
-    },
-    {
-      "id": "wilderwild:magmatic_caves",
-      "parameters": {
-        "temperature": [
-          0.3481,
+          0.2719,
           2.0
         ]
       }
@@ -185,7 +131,7 @@
     "mood": "adventurous",
     "spawnFilter": [
       "terralith:cave/thermal_caves",
-      "terralith:cave/granite_caves"
+      "regions_unexplored:scorching_caves"
     ]
   },
   "spawn": [

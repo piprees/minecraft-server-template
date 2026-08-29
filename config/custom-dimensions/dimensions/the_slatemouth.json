@@ -92,7 +92,12 @@
       "exit": "block.portal.travel"
     },
     "aura": {
-      "subsume": "everything"
+      "subsume": "everything",
+      "palette": [
+        "minecraft:basalt",
+        "minecraft:soul_soil",
+        "minecraft:blackstone"
+      ]
     }
   },
   "environment": {

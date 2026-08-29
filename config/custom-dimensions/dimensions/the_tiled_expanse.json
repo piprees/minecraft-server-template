@@ -47,7 +47,11 @@
       "exit": "block.portal.travel"
     },
     "aura": {
-      "subsume": "everything"
+      "subsume": "everything",
+      "palette": [
+        "minecraft:quartz_block",
+        "minecraft:end_stone_bricks"
+      ]
     }
   },
   "environment": {

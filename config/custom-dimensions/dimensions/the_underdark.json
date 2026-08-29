@@ -160,7 +160,12 @@
       "exit": "block.portal.travel"
     },
     "aura": {
-      "subsume": "everything"
+      "subsume": "everything",
+      "palette": [
+        "minecraft:sculk",
+        "minecraft:moss_block",
+        "minecraft:dripstone_block"
+      ]
     }
   },
   "environment": {

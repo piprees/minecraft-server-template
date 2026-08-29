@@ -109,7 +109,12 @@
       "exit": "block.portal.travel"
     },
     "aura": {
-      "subsume": "everything"
+      "subsume": "everything",
+      "palette": [
+        "minecraft:end_stone",
+        "minecraft:purpur_block",
+        "minecraft:obsidian"
+      ]
     }
   },
   "seedRoll": {

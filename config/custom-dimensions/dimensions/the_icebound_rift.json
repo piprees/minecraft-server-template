@@ -135,7 +135,12 @@
       "exit": "block.portal.travel"
     },
     "aura": {
-      "subsume": "everything"
+      "subsume": "everything",
+      "palette": [
+        "minecraft:blue_ice",
+        "minecraft:packed_ice",
+        "minecraft:snow_block"
+      ]
     }
   },
   "environment": {

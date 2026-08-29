@@ -81,7 +81,16 @@
       "exit": "block.portal.travel"
     },
     "aura": {
-      "subsume": "everything"
+      "subsume": "everything",
+      "palette": [
+        "minecraft:netherrack",
+        "minecraft:magma_block",
+        "minecraft:basalt"
+      ],
+      "fluids": [
+        "minecraft:lava"
+      ],
+      "fireChance": 0.06
     }
   },
   "seedRoll": {
