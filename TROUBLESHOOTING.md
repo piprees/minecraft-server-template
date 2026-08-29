@@ -450,6 +450,11 @@ A world regenerates with the old terrain after a reset that set a new seed, or t
     for a structure's validity check — a marine structure can sit in a chunk
     whose y48-63 biome is `snowy_taiga`. Ask terrain, not biome: heightmaps
     give ocean floor and water surface separately.
+  - **A dimension's band midpoint is not a deep read.** The overworld band is
+    roughly -64..319, so its midpoint is y~127 — above the terrain on 3795 of
+    4586 columns, i.e. sampling sky. A probe placed there returns a clean,
+    confident, uniform answer rather than an error. Sample midway between the
+    band floor and the column's OWN surface instead.
   - Heightmaps pack `ceil(log2(worldHeight+1))` bits. This world is 512 tall
     (`min_y -64`, Tectonic `max_y 448`), so entries are **10 bits, not
     vanilla's 9** — a 9-bit decode yields a plausible-looking constant.
