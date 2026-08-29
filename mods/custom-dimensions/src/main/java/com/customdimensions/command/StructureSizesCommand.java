@@ -18,35 +18,24 @@ import java.util.concurrent.atomic.AtomicReference;
  * every structure in the registry assembled at scattered chunks, and the
  * bounding box each one built, written to an artefact.
  *
- * <p>The placement model needs a footprint per structure so a castle claims
- * more ground than a well. The jigsaw fields in the jars do not carry one —
- * {@code size} is pool depth and {@code max_distance_from_center} is a search
- * bound most authors leave at its default. This measures the thing itself.
- *
  * <p>A structure's biomes are ignored here on purpose: the question is how
  * big it is, not where it belongs, and holding a structure to its own biomes
  * would leave every one whose biomes this dimension lacks unmeasured.
  *
- * <p><b>An overworld is the one to run.</b> Measured: an overworld reaches
- * 781 of 783 structures and the nether 727, a strict subset, because a low
- * ceiling truncates a jigsaw expansion — {@code minecraft:ancient_city} spans
- * 242 blocks in an overworld and 65 in a nether. Where both measure a
- * structure the medians agree (73% identical, p90 within 11%), so a footprint
- * is a property of the structure and one sweep is enough. Run a second
- * dimension only to fill a hole, and merge by the larger value.
+ * <p><b>An overworld is the one to run.</b> A low ceiling truncates a jigsaw
+ * expansion, so a nether reaches fewer structures and measures some of them
+ * short. A footprint is a property of the structure, so one sweep is enough:
+ * run a second dimension only to fill a hole, and merge by the larger value.
  *
- * <p><b>Runs off the server thread, and must.</b> An assembly costs roughly
- * half a second per structure and the pack has 783 of them, so a synchronous
- * sweep would hold the main thread for minutes and wedge RCON while
- * {@code docker ps} still reads healthy. Only {@code createStructureStart} is
- * called — never {@code StructureAccessor} — so the {@code HashMap} that
- * makes a structure locate server-thread-only is not in this path. The
- * command returns immediately and the artefact lands at the end.
+ * <p><b>Runs off the server thread, and must.</b> A synchronous sweep holds
+ * the main thread long enough to wedge RCON while {@code docker ps} still
+ * reads healthy. Only {@code createStructureStart} is called — never
+ * {@code StructureAccessor} — so the {@code HashMap} that makes a structure
+ * locate server-thread-only is not in this path. The command returns
+ * immediately and the artefact lands at the end.
  *
- * <p>Progress is a SEPARATE command, {@code /customdim structure-sizes-progress}.
- * Asking a long job how it is doing must not be able to start another one —
- * a poll loop written against a single command restarts the sweep the moment
- * it finishes, forever.
+ * <p>Progress is a SEPARATE command, {@code /customdim structure-sizes-progress}:
+ * asking a long job how it is doing must not be able to start another one.
  */
 public final class StructureSizesCommand {
 

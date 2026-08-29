@@ -54,8 +54,8 @@ class StructureGroupRegistryTest {
                 "minecraft:shipwrecks", "maritime",
                 "minecraft:igloos", "landmarks",
                 "minecraft:jungle_temples", "landmarks",
-                "minecraft:mineshafts", "dungeons",
-                "minecraft:buried_treasures", "loot",
+                "minecraft:mineshafts", "ubiquitous",
+                "minecraft:buried_treasures", "ubiquitous",
                 "mns:mega_fortress", "endgame",
                 "epic:large_dungeons", "endgame");
         for (Map.Entry<String, String> e : expected.entrySet()) {

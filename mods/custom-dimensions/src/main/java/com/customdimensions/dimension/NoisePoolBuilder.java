@@ -77,6 +77,26 @@ public final class NoisePoolBuilder {
      * FixedStructurePlacement) and every non-random_spread type passes
      * through on its own placement.
      */
+    /**
+     * Group name for a set that keeps its own grid instead of joining a pool.
+     * A pool splits one fixed site budget between its members, so a set meant
+     * to be everywhere cannot be expressed in one at any weight (T55).
+     * Curated, never derived from spacing — spacing is an input we rescale.
+     */
+    public static final String UBIQUITOUS_GROUP = "ubiquitous";
+
+    public static boolean ubiquitous(String setId) {
+        if (setId == null) {
+            return false;
+        }
+        StructureThemes.Classification c = StructureThemes.classificationOf(setId);
+        return c != null && UBIQUITOUS_GROUP.equals(c.group());
+    }
+
+    public static boolean noiseManaged(String setId, StructurePlacement placement) {
+        return !ubiquitous(setId) && noiseManaged(placement);
+    }
+
     public static boolean noiseManaged(StructurePlacement placement) {
         if (placement.getClass() == RandomSpreadStructurePlacement.class) {
             return true;
@@ -242,7 +262,7 @@ public final class NoisePoolBuilder {
 
             StructureSet set = setEntry.value();
             StructurePlacement placement = set.placement();
-            if (!noiseManaged(placement)) {
+            if (!noiseManaged(setId, placement)) {
                 customPlacement++;
                 continue;
             }

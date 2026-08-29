@@ -23,27 +23,22 @@ import java.util.function.Predicate;
 
 /**
  * How much ground a structure actually covers, measured from the assembly
- * vanilla builds rather than inferred from the jigsaw fields it declares.
- *
- * <p>Neither declared field is a footprint. {@code size} is the jigsaw pool's
- * maximum expansion depth and {@code max_distance_from_center} is the
- * assembler's search bound — of the pack's 783 structures, 280 declare no
- * bound at all and 246 of the rest leave it at the default 80, so it
- * discriminates almost nothing. The assembled {@link StructureStart} knows the
- * answer exactly, and knows it before a single chunk exists.
+ * vanilla builds rather than inferred from the jigsaw fields it declares:
+ * {@code size} is the jigsaw pool's maximum expansion depth and
+ * {@code max_distance_from_center} is the assembler's search bound, and
+ * neither is a footprint. The assembled {@link StructureStart} knows the
+ * answer exactly, before a single chunk exists.
  *
  * <p><b>Headless.</b> {@code Structure.createStructureStart} takes the world
  * only as a {@code HeightLimitView} and reads no block data, so an assembly
- * here generates nothing and can run against a world at any state. The
- * biome predicate is always-true on purpose: this asks how big a thing is,
- * not where it belongs, and holding it to its own biomes would leave every
- * structure whose biomes are absent from this dimension unmeasured.
+ * here generates nothing and can run against a world at any state. The biome
+ * predicate is always-true: this asks how big a thing is, not where it
+ * belongs.
  *
- * <p><b>One assembly is not a size.</b> A jigsaw structure reaches a
- * different depth at every position, so each structure is assembled at
- * several scattered chunks and reported as a spread. A caller wanting one
- * number wants {@link Measurement#medianSpan()}; a caller wanting to know
- * whether that number means anything wants the gap between min and max.
+ * <p>A jigsaw structure reaches a different depth at every position, so each
+ * structure is assembled at several scattered chunks and reported as a spread:
+ * {@link Measurement#medianSpan()} for one number, the min-to-max gap for
+ * whether that number means anything.
  */
 public final class StructureSizes {
 
@@ -54,9 +49,8 @@ public final class StructureSizes {
     private static final Predicate<RegistryEntry<Biome>> ANY_BIOME = biomeEntry -> true;
 
     /**
-     * The golden angle, which is what keeps a sunflower spiral's points from
-     * ever falling into rings — the scatter must not correlate with the
-     * terrain's own periodicity or a structure gets measured on one landform.
+     * The golden angle — keeps the sunflower spiral's points off rings, which
+     * could correlate with the terrain's own periodicity.
      */
     private static final double GOLDEN_ANGLE = 2.399963229728653;
 
@@ -97,9 +91,8 @@ public final class StructureSizes {
         }
 
         /**
-         * The summary line, in counts. "Measured 604 of 783" is the only
-         * reading that says whether the table is usable; a structure that
-         * refused every position is a hole in it, not a rounding error.
+         * The summary line, in counts. A structure that refused every position
+         * is a hole in the table, not a rounding error.
          */
         public String summary() {
             return this.measured.size() + " measured of " + this.total()
@@ -115,18 +108,16 @@ public final class StructureSizes {
      * world and record what each one built.
      *
      * <p>Runs to {@code budgetMillis} and then stops, reporting the structures
-     * it never reached rather than running past a caller's patience. The order
-     * is the registry's own id order, so a second run with a larger budget
-     * covers a superset of the first.
+     * it never reached. The order is the registry's own id order, so a run with
+     * a larger budget covers a superset of a smaller one.
      *
      * <p><b>Safe off the server thread.</b> Nothing here touches
-     * {@code StructureAccessor} or the world's {@code StructureStartsStorage}
-     * — the plain {@code HashMap} that makes a structure LOCATE server-thread
+     * {@code StructureAccessor} or the world's {@code StructureStartsStorage},
+     * the plain {@code HashMap} that makes a structure LOCATE server-thread
      * only ({@code LocateManager}). A start is built and measured, never
-     * stored, and vanilla itself builds starts on chunk workers.
+     * stored.
      *
-     * <p>{@code progress} counts structures decided, for a caller reporting
-     * on a run it does not block on.
+     * <p>{@code progress} counts structures decided.
      */
     public static Census of(MinecraftServer server, ServerWorld world, int samples,
                             int maxAttempts, int radiusChunks, long budgetMillis,
@@ -221,10 +212,8 @@ public final class StructureSizes {
      *
      * <p>Deterministic, so two runs measure the same structure at the same
      * places, and area-uniform (radius grows as the square root of the index)
-     * so the samples are not all crowded into the middle. The first position
-     * is deliberately away from the origin: spawn terrain is flattened and
-     * special-cased, and a structure measured only there is measured on a
-     * landform the rest of the world does not have.
+     * so the samples are not all crowded into the middle. It starts away from
+     * the origin because spawn terrain is flattened and special-cased.
      */
     static ChunkPos scatter(int a, int n, int radiusChunks) {
         double angle = a * GOLDEN_ANGLE;

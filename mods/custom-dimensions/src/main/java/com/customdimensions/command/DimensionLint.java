@@ -334,7 +334,7 @@ public final class DimensionLint {
             return null;
         }
         StructureSet set = setRegistry.get(id);
-        if (set == null || NoisePoolBuilder.noiseManaged(set.placement())) {
+        if (set == null || NoisePoolBuilder.noiseManaged(setId, set.placement())) {
             return null;
         }
         Identifier type = net.minecraft.registry.Registries.STRUCTURE_PLACEMENT

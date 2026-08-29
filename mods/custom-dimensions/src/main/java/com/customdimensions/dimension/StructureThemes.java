@@ -58,7 +58,7 @@ public final class StructureThemes {
         return c != null ? c.theme() : null;
     }
 
-    static synchronized Classification classificationOf(String structureSetId) {
+    public static synchronized Classification classificationOf(String structureSetId) {
         if (entries == null) {
             entries = load();
         }
