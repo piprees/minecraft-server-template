@@ -2,7 +2,7 @@
 
 | File | Direction | Owner script |
 | --- | --- | --- |
-| `structure-dials.json` | INPUT (hand-curated) | `gen-structure-presets.py` reads it to build the structure datapack presets; `gen-structure-groups.py` reads it for the authoritative `theme` |
+| `structure-dials.json` | INPUT (hand-curated) | `gen-structure-presets.py` reads it to build the structure datapack presets; `gen-structure-groups.py` reads it for the authoritative `theme` and `rarity` |
 | `structure-sets-extracted.json` | OUTPUT (regenerated) | `extract-structure-sets.py` — audits every structure set in the pinned jars/datapacks/vanilla; also writes `config/custom-dimensions/extractors/structures.json`. `gen-structure-groups.py` reads it as the set census + spacing source |
 
 Both files are JSON arrays of objects, one object per structure set, with the same field names the two files have always carried.
@@ -18,8 +18,19 @@ catch-all default (163 of 377 land there), and the two disagree on theme for
 theme wins, extracted supplies the census and spacing, and a hand-reviewed
 `CURATED` table in that script covers the 23 sets dials never carried.
 
+Rarity is a judgement about the content, not about the grid it sits on, so
+dials carries it directly for the 221 Moog's sets (`mvs`/`mns`/`mss`/`mes`/
+`mtr`), banded from the measured footprint spans in
+`.handoff/world-fixes/sizes/`: under 40 blocks common, 40-69 uncommon, 70-109
+rare, 110+ endgame, with a `dungeon` theme one tier rarer. Their extracted
+spacing is inflated 1.65x by Moog's own placement constructor
+(`TROUBLESHOOTING.md#t48`), which made the spacing thresholds read most of the
+pack as endgame.
+
 `structure-dials.json` fields: `mod`, `structure_set`, `structures`,
-`theme` (dungeon/settlement/maritime/landmark/deco/loot), `current`
+`theme` (dungeon/settlement/maritime/landmark/deco/loot), `rarity`
+(common/uncommon/rare/endgame, optional — a row without one falls back to
+`gen-structure-groups.py`'s spacing thresholds), `current`
 (mod-default `spacing/separation` + `f=frequency`), `dims`, `rec_global`
 (`keep default` or `CONFIGURE: ...`), `rec_peaceful_dims`,
 `rec_hard_dims`, `notes` (vanilla-set overrides, custom placement types,

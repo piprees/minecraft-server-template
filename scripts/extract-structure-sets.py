@@ -168,6 +168,8 @@ def classify_theme(structure_set_id, structures_list):
 # Moog's Structure Lib multiplies its own datapack spacing/separation by this
 # in the AdvancedRandomSpread constructor, so the jar number is never what the
 # registry holds. No config switches it off (TROUBLESHOOTING.md#t48).
+# The scaled value is the live grid, and only that. Rarity for these sets is
+# curated in structure-dials.json, not derived from it.
 MOOGS_PLACEMENT = "moogs_structures:advanced_random_spread"
 MOOGS_SPACING_FACTOR = 1.65
 
