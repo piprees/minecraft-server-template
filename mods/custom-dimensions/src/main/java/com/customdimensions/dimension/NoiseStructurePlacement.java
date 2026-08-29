@@ -119,7 +119,7 @@ public class NoiseStructurePlacement extends RandomSpreadStructurePlacement {
      * scales as 1/exclusion^2, so one corrective rebuild lands close.
      */
     public static NoiseStructurePlacement forGroup(
-            String group, long noiseSeed, NoiseProfile profile, int exclusion,
+            String dimension, String group, long noiseSeed, NoiseProfile profile, int exclusion,
             double[] radial, int radiusChunks, int clearSpawnChunks,
             java.util.List<StructurePick.PoolEntry> sortedPool,
             net.minecraft.world.biome.source.BiomeSource biomeSource,
@@ -156,9 +156,10 @@ public class NoiseStructurePlacement extends RandomSpreadStructurePlacement {
         // quietly shipping an empty dimension.
         if (placement.index().size() * 2 < uncorrected) {
             com.customdimensions.MultiverseServer.LOGGER.warn(
-                    "Group {} cut from {} to {} sites: its pool holds {} structure(s), so the "
-                    + "repetition ceiling binds hard. Name more structures for this dimension.",
-                    group, uncorrected, placement.index().size(), poolSize);
+                    "Dimension {} group {}: cut from {} to {} sites because its pool holds only "
+                    + "{} structure(s). Too few structures reach this dimension's biomes — add "
+                    + "them with structures.include, or name biomes more structures declare.",
+                    dimension, group, uncorrected, placement.index().size(), poolSize);
         }
         return placement;
     }

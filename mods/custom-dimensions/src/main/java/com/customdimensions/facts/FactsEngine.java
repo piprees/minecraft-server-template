@@ -1013,6 +1013,7 @@ public final class FactsEngine {
 
         Map<String, Integer> poolWeights = new TreeMap<>();
         Map<String, Integer> byGroup = new TreeMap<>();
+        Map<String, Integer> poolByGroup = new TreeMap<>();
         Map<String, Integer> byStructure = new TreeMap<>();
         Map<String, Double> nearest = new TreeMap<>();
         Map<String, List<long[]>> positionsByGroup = new TreeMap<>();
@@ -1039,13 +1040,16 @@ public final class FactsEngine {
                                 structureAdmitted.contains(k.getValue().toString()),
                                 weighted.structure())));
             }
+            java.util.Set<String> groupPool = new java.util.HashSet<>();
             for (StructurePick.PoolEntry pe : pickPool) {
                 poolWeights.merge(pe.structureId(), pe.weight(), Integer::sum);
+                groupPool.add(pe.structureId());
             }
+            poolByGroup.put(group, groupPool.size());
             List<StructurePick.PoolEntry> sorted = StructurePick.sortedPool(pickPool);
 
             NoiseStructurePlacement placement = NoiseStructurePlacement.forGroup(
-                    group, noiseSeed, settings.profile(), settings.exclusion(),
+                    def.getDimensionIdentifier().toString(), group, noiseSeed, settings.profile(), settings.exclusion(),
                     settings.radial(), radiusChunks, settings.clearSpawnChunks(),
                     sorted, structureBiomeSource, structureClimate);
 
@@ -1076,7 +1080,8 @@ public final class FactsEngine {
         if (total == 0) {
             String why = "every enabled group produced an empty pool or an empty field";
             return new SeedFacts.StructureFacts(
-                    Measured.of(poolWeights), Measured.of(byGroup), Measured.of(byStructure),
+                    Measured.of(poolWeights), Measured.of(byGroup), Measured.of(poolByGroup),
+                    Measured.of(byStructure),
                     Measured.of(nearest), Measured.absent(why),
                     Measured.absent(why), Measured.absent(why), Measured.of(0), tagMembers,
                     passThroughByStructure, passThroughNearestByStructure, passThroughUnmodelledSets);
@@ -1085,6 +1090,7 @@ public final class FactsEngine {
         return new SeedFacts.StructureFacts(
                 Measured.of(poolWeights),
                 Measured.of(byGroup),
+                Measured.of(poolByGroup),
                 Measured.of(byStructure),
                 Measured.of(nearest),
                 clusteringByGroup(positionsByGroup, radiusChunks),
@@ -1309,7 +1315,8 @@ public final class FactsEngine {
                 Measured.absent(why), Measured.absent(why), Measured.absent(why),
                 Measured.absent(why), Measured.absent(why), Measured.absent(why),
                 Measured.absent(why), Measured.absent(why), Measured.absent(why),
-                Measured.absent(why), Measured.absent(why), Measured.absent(why));
+                Measured.absent(why), Measured.absent(why), Measured.absent(why),
+                Measured.absent(why));
     }
 
     private static double nearestDistanceBlocks(List<long[]> positions) {

@@ -380,7 +380,7 @@ public final class DimensionStructures {
             java.util.List<StructurePick.PoolEntry> sorted = StructurePick.sortedPool(pickPool);
 
             NoiseStructurePlacement placement = NoiseStructurePlacement.forGroup(
-                    group, noiseSeed, settings.profile(), settings.exclusion(),
+                    worldId, group, noiseSeed, settings.profile(), settings.exclusion(),
                     settings.radial(), radiusChunks, settings.clearSpawnChunks(),
                     sorted, biomeSource, noiseConfig);
 

@@ -1694,7 +1694,7 @@ public final class CandidateRender {
             }
             List<StructurePick.PoolEntry> sorted = StructurePick.sortedPool(pickPool);
             NoiseStructurePlacement placement = NoiseStructurePlacement.forGroup(
-                    group, noiseSeed, settings.profile(), settings.exclusion(),
+                    def.getDimensionIdentifier().toString(), group, noiseSeed, settings.profile(), settings.exclusion(),
                     settings.radial(), radiusChunks, settings.clearSpawnChunks(),
                     sorted, base.generator().getBiomeSource(), climate);
             List<Site> positions = byGroup.computeIfAbsent(group, g -> new ArrayList<>());
