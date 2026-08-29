@@ -134,7 +134,7 @@ public class NoiseStructurePlacement extends RandomSpreadStructurePlacement {
                 group, noiseSeed, profile, exclusion, radial, radiusChunks, 0, 0,
                 clearSpawnChunks, footprints, occupants);
 
-        int poolSize = sortedPool == null ? 0 : sortedPool.size();
+        int poolSize = StructurePick.distinctStructures(sortedPool);
         int target = poolSize * profile.repetitionBudget();
         if (target <= 0) {
             return placement;
@@ -166,6 +166,7 @@ public class NoiseStructurePlacement extends RandomSpreadStructurePlacement {
 
     /** Corrective rebuilds allowed when solving exclusion for the site target. */
     private static final int TARGET_PASSES = 4;
+
 
     @Override
     public ChunkPos getStartChunk(long seed, int chunkX, int chunkZ) {

@@ -189,6 +189,18 @@ public final class StructurePick {
      */
     public static final int MAX_CANDIDATES = 8;
 
+    /** Distinct structures a pool can place; one reachable twice is one thing. */
+    public static int distinctStructures(List<PoolEntry> pool) {
+        if (pool == null || pool.isEmpty()) {
+            return 0;
+        }
+        java.util.Set<String> ids = new java.util.HashSet<>();
+        for (PoolEntry e : pool) {
+            ids.add(e.structureId());
+        }
+        return ids.size();
+    }
+
     /** The unsigned pick value at a site: pickSeed + pick, in one call. */
     public static long pickValue(long noiseSeed, int cx, int cz) {
         return pick(pickSeed(noiseSeed), cx, cz);
