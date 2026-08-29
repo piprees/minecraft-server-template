@@ -434,7 +434,10 @@ public final class DimensionLint {
         List<Finding> out = new ArrayList<>();
         for (Map.Entry<String, Integer> e : distinctByGroup.entrySet()) {
             int size = e.getValue() == null ? 0 : e.getValue();
-            if (size >= POOL_FLOOR) {
+            // An empty pool means the group is not active here at all — a
+            // landlocked dimension has no maritime structures, and the pool
+            // builder already treats that as normal.
+            if (size == 0 || size >= POOL_FLOOR) {
                 continue;
             }
             out.add(new Finding(dimension, ERROR, "pool_below_floor", e.getKey(),

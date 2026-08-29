@@ -169,13 +169,18 @@ class DimensionLintTest {
     }
 
     @Test
-    void anEmptyGroupIsReportedAsZero() {
-        List<DimensionLint.Finding> findings =
-                DimensionLint.checkPoolFloor("the_test", groups("dungeons", null));
-        assertEquals(1, findings.size());
-        assertTrue(findings.get(0).message().contains("only 0 structure"),
-                findings.get(0).message());
-        assertEveryFindingIsActionable(findings);
+    void anAbsentGroupCountIsNotAFinding() {
+        // Absent and zero mean the same thing: the group is not active here.
+        assertEquals(List.of(),
+                DimensionLint.checkPoolFloor("the_test", groups("dungeons", null)));
+    }
+
+    @Test
+    void anEmptyPoolIsNotAFinding() {
+        // A landlocked dimension has no maritime structures. The pool builder
+        // skips the group; lint must not call that a fault.
+        assertEquals(List.of(), DimensionLint.checkPoolFloor(
+                "the_greenreach", java.util.Map.of("maritime", 0)));
     }
 
     @Test
