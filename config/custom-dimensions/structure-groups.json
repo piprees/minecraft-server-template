@@ -4,9 +4,9 @@
   "sets": 426,
   "byGroup": {
    "deco": 150,
-   "dungeons": 72,
-   "endgame": 18,
-   "landmarks": 72,
+   "dungeons": 71,
+   "endgame": 20,
+   "landmarks": 71,
    "loot": 6,
    "maritime": 15,
    "settlements": 76,
@@ -914,7 +914,7 @@
   },
   "hellish_trials:minor_structures": {
    "theme": "landmark",
-   "group": "landmarks",
+   "group": "endgame",
    "rarity": "uncommon",
    "spacing": 45,
    "themeSource": "extracted",
@@ -926,7 +926,7 @@
   },
   "incendium:greater_structures": {
    "theme": "dungeon",
-   "group": "dungeons",
+   "group": "endgame",
    "rarity": "uncommon",
    "spacing": 30,
    "themeSource": "dials",

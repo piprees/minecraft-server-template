@@ -371,7 +371,7 @@
  },
  "incendium:greater_structures": {
   "theme": "dungeon",
-  "group": "dungeons",
+  "group": "endgame",
   "rarity": "uncommon"
  },
  "incendium:lesser_structures": {

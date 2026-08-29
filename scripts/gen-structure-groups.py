@@ -121,6 +121,10 @@ ENDGAME_CURATED = frozenset({
     # biomes. Without it the nether family's endgame pool is 4 across eight
     # dimensions, under DimensionLint.POOL_FLOOR.
     "hellish_trials:minor_structures",
+    # Incendium's three big nether interiors. Each reaches only 1-3 nether
+    # biomes, so the gain varies by dimension, but the nether family has too
+    # little endgame content for its dimension count either way.
+    "incendium:greater_structures",
 })
 
 # Lifted verbatim from extract-structure-sets.py's ENDGAME_PATTERNS: an
