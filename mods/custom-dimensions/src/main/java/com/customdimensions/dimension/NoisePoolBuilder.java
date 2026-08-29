@@ -148,6 +148,48 @@ public final class NoisePoolBuilder {
     }
 
     /**
+     * Whether this dimension asked for a structure that its biomes would
+     * otherwise have filtered out — {@code structures.include} names the SET,
+     * {@code structures.wants} names the STRUCTURE, and either admits it at
+     * full weight.
+     *
+     * <p>The one definition of "legitimately bypassed". {@link #build} decides
+     * a pool entry with it, and a diagnostic asking whether an out-of-biome
+     * site is a bug or a request must call the same predicate — the two
+     * disagreeing is exactly the failure a second copy would produce.
+     */
+    public static boolean admittedDespiteBiomes(Set<String> includeSets, Set<String> wantedIds,
+                                                String setId, String structureId) {
+        return (setId != null && includeSets.contains(setId.toLowerCase(Locale.ROOT)))
+                || (structureId != null && wantedIds.contains(structureId));
+    }
+
+    /**
+     * Every structure id this dimension admits despite its biomes, resolved
+     * across the structure-set registry so a caller holding only a structure
+     * id can answer the question {@link #admittedDespiteBiomes} asks per entry.
+     */
+    public static Set<String> admittedStructureIds(
+            DimensionConfig def, Iterable<RegistryEntry<StructureSet>> sets) {
+        DimensionConfig.Structures block = def.getStructures();
+        Set<String> include = lowerSet(block == null ? null : block.include);
+        Set<String> wanted = wantedStructureIds(def);
+        Set<String> out = new HashSet<>(wanted);
+        for (RegistryEntry<StructureSet> setEntry : sets) {
+            String setId = setEntry.getKey().map(k -> k.getValue().toString()).orElse(null);
+            for (StructureSet.WeightedEntry weighted : setEntry.value().structures()) {
+                String structureId = weighted.structure().getKey()
+                        .map(k -> k.getValue().toString()).orElse(null);
+                if (structureId != null
+                        && admittedDespiteBiomes(include, wanted, setId, structureId)) {
+                    out.add(structureId);
+                }
+            }
+        }
+        return out;
+    }
+
+    /**
      * As above with the wanted set supplied.
      *
      * <p>{@code wanted} bypasses the biome-affinity filter exactly as
@@ -222,7 +264,6 @@ public final class NoisePoolBuilder {
                 continue;
             }
 
-            boolean bypassBiomeFilter = include.contains(setId.toLowerCase(Locale.ROOT));
             double share = StructureGroupRegistry.rarityShare(rarity);
 
             for (StructureSet.WeightedEntry weighted : set.structures()) {
@@ -232,9 +273,9 @@ public final class NoisePoolBuilder {
                     counter[1]++;
                     continue;   // placed by hand, and nowhere else
                 }
-                boolean wantedHere = structureId != null && wantedIds.contains(structureId);
+                boolean admitted = admittedDespiteBiomes(include, wantedIds, setId, structureId);
                 double affinity = biomeAffinity(structure, dimensionBiomes);
-                if (affinity <= 0.0 && !bypassBiomeFilter && !wantedHere) {
+                if (affinity <= 0.0 && !admitted) {
                     counter[0]++;
                     continue;   // cannot generate in any of this dim's biomes
                 }
@@ -242,8 +283,7 @@ public final class NoisePoolBuilder {
                 // weigh more, so generation leans towards what fits. A wanted
                 // structure keeps full weight: the author asked for it, so it
                 // must not be quietly out-competed by whatever happens to fit.
-                double affinityFactor = bypassBiomeFilter || wantedHere
-                        ? 1.0 : 0.5 + 0.5 * affinity;
+                double affinityFactor = admitted ? 1.0 : 0.5 + 0.5 * affinity;
                 int weight = (int) Math.max(1, Math.round(
                         weighted.weight() * share * affinityFactor));
                 byGroup.computeIfAbsent(group, k -> new ArrayList<>())
@@ -297,19 +337,32 @@ public final class NoisePoolBuilder {
         } catch (Exception e) {
             return 1.0;   // a broken structure is not ours to fail on
         }
-        int total = 0;
-        int matched = 0;
+        java.util.List<Identifier> validIds = new ArrayList<>();
         for (RegistryEntry<Biome> biome : valid) {
-            total++;
-            Identifier id = biome.getKey().map(k -> k.getValue()).orElse(null);
+            validIds.add(biome.getKey().map(k -> k.getValue()).orElse(null));
+        }
+        return affinityOf(validIds, dimensionBiomes);
+    }
+
+    /**
+     * The affinity arithmetic, without a registry. A null id counts towards the
+     * total and matches nothing, so an unresolvable biome dilutes rather than
+     * disappears.
+     */
+    static double affinityOf(java.util.List<Identifier> validBiomeIds,
+                             Set<Identifier> dimensionBiomes) {
+        if (validBiomeIds.isEmpty()) {
+            // contains() over an empty list is false everywhere: nowhere, not
+            // anywhere. Matches intersectsBiomes.
+            return 0.0;
+        }
+        int matched = 0;
+        for (Identifier id : validBiomeIds) {
             if (id != null && dimensionBiomes.contains(id)) {
                 matched++;
             }
         }
-        if (total == 0) {
-            return 1.0;   // no predicate at all: generates anywhere
-        }
-        return matched / (double) total;
+        return matched / (double) validBiomeIds.size();
     }
 
     /**
@@ -347,12 +400,11 @@ public final class NoisePoolBuilder {
      * Vanilla's own prefilter test: does this structure list a biome the source
      * produces?
      *
-     * <p>NOT {@code biomeAffinity > 0}, and the difference is the whole of a
-     * parity failure. Affinity answers 1.0 for a structure with NO valid biomes
-     * at all, on the reading "no predicate, so it generates anywhere" — right
-     * for weighting a structure already in a pool. Vanilla's filter is an
-     * {@code anyMatch} over the list, and an empty list matches nothing, so it
-     * drops the set.
+     * <p>NOT {@code biomeAffinity > 0}. Affinity is a ratio for weighting a
+     * structure already in a pool; this is vanilla's {@code anyMatch} over the
+     * list. They agree that an empty list matches nothing — five installed
+     * structures have one — but a partial match weighs differently from a
+     * hit, so neither substitutes for the other.
      */
     public static boolean intersectsBiomes(RegistryEntry<Structure> structure,
                                            Set<Identifier> dimensionBiomes) {
