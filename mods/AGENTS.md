@@ -75,6 +75,7 @@ Full internals, plus the aura and immersive rules: [docs/mod-internals/portals.m
 - Census records (`rejections__*`, `occupancy__*`) live in the world save under `customdimensions/census/` instead, keyed by dimension with no `inputHash` — a world wipe is the only thing that should remove them.
 - Every artefact opens with `Artefacts.jsonHeader(kind)`; callers append their own fields.
 - A command that iterates a registry or a world writes a file. `structure-census` and `spike-compare` are the two documented inline exceptions.
+- **Every biome-tag, structure-biome and structure-set question is answered by `/customdim catalogue`**, which dumps the live registries; `c:*` tags exist only at runtime, so a jar scan gets them wrong. `scripts/extract-registries.py` copies the dump into `config/custom-dimensions/extractors/registries.json`.
 - **Start any "is the mod behaving?" question here, not with RCON**: `structure-census` and `/customdim occupant`, having checked the boot log's `DimensionFingerprints` drift WARN first — under drift every other result is measuring an older config ([D2](../TROUBLESHOOTING.md#d2)).
 
 The full contract, the artefact table and the seed-rolling internals: [docs/mod-internals/diagnostics.md](../docs/mod-internals/diagnostics.md).

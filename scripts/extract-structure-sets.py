@@ -15,6 +15,11 @@ Sources:
 Output: scripts/data/structure-sets-extracted.json
         config/custom-dimensions/extractors/structures.json  (v4 Phase 0)
 
+Placement numbers and set membership only. A structure's valid biomes are a
+tag reference this cannot resolve — `c:*` tags are built at runtime — and
+another mod's datapack can patch a set's spacing before registry load. Both
+answers come from extract-registries.py, which dumps the live registries.
+
 Usage:
     scripts/extract-structure-sets.py [--cache DIR] [--check]
     --check exits 1 if the committed outputs are stale instead of

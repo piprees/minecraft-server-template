@@ -49,6 +49,7 @@ import java.util.UUID;
  *   /customdim locate-result <uuid>
  *   /customdim structure-audit [group]
  *   /customdim structure-census <dimension>
+ *   /customdim catalogue
  *   /customdim occupant <dimension> <chunkX> <chunkZ>
  *   /customdim eval-df <dimension> <df_id> <x> <y> <z>
  *   /customdim carver-draw <dimension> <chunkX> <chunkZ>
@@ -185,6 +186,8 @@ public class DimensionCommands {
                 .then(CommandManager.literal("structure-census")
                     .then(CommandManager.argument("dimension", IdentifierArgumentType.identifier())
                         .executes(CensusCommands::structureCensus)))
+                .then(CommandManager.literal("catalogue")
+                    .executes(CatalogueCommands::catalogue))
                 .then(CommandManager.literal("spike-compare")
                     .then(CommandManager.argument("dimension", IdentifierArgumentType.identifier())
                         .then(CommandManager.argument("seed", LongArgumentType.longArg())

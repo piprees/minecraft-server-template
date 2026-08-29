@@ -4,8 +4,9 @@ Every biome id available on this server, grouped by **family** (which dimension 
 
 **This snapshot predates five mods.** Regions Unexplored (78 biomes), Wilder Wild (30),
 Underground Worlds (4), Galosphere (3) and YUNG's Cave Biomes (2) are installed and
-registered but not listed below. Read `config/custom-dimensions/extractors/biomes.json`
-for the live set — it holds 350 biomes against this file's 229 — and
+registered but not listed below. Read `config/custom-dimensions/extractors/registries.json`
+for the registered set — 349 biomes against this file's 229, plus every biome tag with
+its resolved membership — and
 `scripts/check-content-coverage.py` for which of them any dimension actually names.
 All five place through TerraBlender or a lithostitched injector, so every one of their
 biomes needs an explicit `parameters` band ([TROUBLESHOOTING.md#t19](../../../../TROUBLESHOOTING.md#t19)).

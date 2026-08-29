@@ -179,7 +179,8 @@ Three categories, by where a script ends up and who runs it. Every script has a 
 | `build-stack-bundle.sh` | Assemble the release tarball |
 | `sync-mod-cache.sh` | Reconcile `mods-cache/` against the pinned mod lists (`--apply`) |
 | `export-seed-winners.py` | Copy rolled winner seeds/spawns from a consumer overlay into the platform dimension configs (`--dry-run` diffs) |
-| `extract-biomes.py` / `extract-blocks.py` / `extract-entities.py` | Catalogue every biome, block and entity the installed mods register, for authoring and lint |
+| `extract-biomes.py` / `extract-blocks.py` / `extract-entities.py` | Catalogue every biome, block and entity in the installed mod JARs, for authoring and lint. Static scans — they cannot resolve a tag |
+| `extract-registries.py` | Trigger `/customdim catalogue` on a running consumer and copy the dump in: biomes, fully-resolved biome tags (`c:*` included), structures with their step, terrain adaptation and valid biomes, and structure sets with their placement. The only source for a tag question |
 | `check-content-coverage.py` | Which installed biomes any dimension actually names — an installed mod nobody names never appears in game |
 | `check-biome-bands.py` | Explicit biome bands within a dimension must partition its climate axis, not overlap (exits 1 on any overlap) |
 | `gen-unmined-blocktags.py` | Regenerate the map renderer's modded block tags from the block catalogue (`--check` in CI) |

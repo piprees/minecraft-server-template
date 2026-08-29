@@ -13,6 +13,11 @@ table by spawn group. Later sources override earlier ones for the same id
 
 Output: config/custom-dimensions/extractors/biomes.json
 
+A jar scan cannot resolve a biome TAG. Convention tags (`c:*`) are populated
+by the Fabric Convention Tags API at runtime and are in no mod's data/
+directory. Tag membership comes from extract-registries.py, which dumps the
+live registries; nothing here answers a tag question.
+
 Usage:
   ./scripts/extract-biomes.py [consumer_dir]     # default: $CONSUMER_DIR
 
