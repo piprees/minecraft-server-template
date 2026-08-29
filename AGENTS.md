@@ -126,7 +126,7 @@ A push to `main` in a consumer repo triggers the caller workflow, which invokes 
 
 ## Problems, traps, and known issues
 
-All of it lives in [`TROUBLESHOOTING.md`](TROUBLESHOOTING.md) — architecture traps (T1–T55, no T15), macOS local-dev quirks (P1–P4), dimension lifecycle (D1–D8), open issues (K1–K2). Every entry has a permanent anchor; cite them precisely (`TROUBLESHOOTING.md#t14`). Start any diagnosis with `./ops doctor`; the forbidden-actions list is at the top of that file.
+All of it lives in [`TROUBLESHOOTING.md`](TROUBLESHOOTING.md) — architecture traps (T1–T56, no T15), macOS local-dev quirks (P1–P4), dimension lifecycle (D1–D8), open issues (K1–K2). Every entry has a permanent anchor; cite them precisely (`TROUBLESHOOTING.md#t14`). Start any diagnosis with `./ops doctor`; the forbidden-actions list is at the top of that file.
 
 |  |  |
 | --- | --- |

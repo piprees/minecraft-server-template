@@ -4,7 +4,7 @@
 
 | Prefix | Range | What it covers |
 | --- | --- | --- |
-| **T** | [T1–T14, T16–T19, T22–T27, T30–T55](#architecture-traps) | Architecture traps — each has caused a real production incident |
+| **T** | [T1–T14, T16–T19, T22–T27, T30–T56](#architecture-traps) | Architecture traps — each has caused a real production incident |
 | **P** | [P1–P4](#macos-local-dev) | macOS local-dev quirks (BSD tooling, toolchain) |
 | **D** | [D1–D6, D8–D9](#dimension-lifecycle) | Custom-dimension lifecycle on a live world |
 | **K** | [K1–K2, K5–K6](#known-issues) | Open issues — unfixed, on the watch list |
@@ -55,6 +55,7 @@ Run this first. It covers deploy drift, disk, every expected container, `ONLINE_
 | One wanted structure fills half the dimension | [T53](#t53) |
 | Structures overlap, or a huge one gets a tiny one's clearance | [T54](#t54) |
 | A worldgen mod's biomes generate but its landforms never appear | [T55](#t55) |
+| A placement rule keyed on the assigned structure changes nothing | [T56](#t56) |
 | Config or mod changes didn't take effect after a deploy | [T2](#t2) |
 | `signal only works in main thread` in discord-sync logs | [T3](#t3) |
 | mc crash-loops with Modrinth `429 Too Many Requests` | [T4](#t4) |
@@ -402,6 +403,41 @@ A world regenerates with the old terrain after a reset that set a new seed, or t
   biomes off the biome grid, which is fluid-independent.
 - **Creation-time.** `settingsOverrides` is in the generation fingerprint
   ([D2](#d2)), so this needs a world wipe and a re-roll.
+
+<a id="t56"></a>
+### T56 — A site's ASSIGNED structure is not what stands there (63% of the time)
+
+- **Symptom:** a placement-time rule keyed on "what structure is at this site"
+  costs real world content and does not move the statistic it targets.
+- **Built and reverted**, 2026-08-30: a minimum separation between copies of
+  the SAME structure, to fix the measured tail where two copies of one
+  structure sit 72–122 blocks apart. It keyed on
+  {@code StructurePick.assignedStructure}. Measured on the full-border
+  overworld:
+
+  ```
+  occupied sites          2606 -> 2230   (-14%)
+  distinct occupants       269 ->  261
+  same-structure pairs within 200 blocks   7.5% -> 5.1%
+  MINIMUM separation, every rarity tier    107/72/122/113 -> 107/72/122/113
+  ```
+
+  **The minima did not move at all.** 14% of the world's content for nothing.
+- **Cause:** the assignment is the HEAD of a site's candidate chain, and
+  **1639 of 2606 occupied sites (63%) are filled by a re-draw**, so their
+  occupant is a different structure from their assignment. A rule reading the
+  assignment is reading the wrong variable for two thirds of the world.
+- **It cannot be fixed at placement time.** Which candidate accepts depends on
+  the biome at the site, and the placement field is deliberately biome-blind —
+  that separation is what makes placement order-free and headless. Resolving
+  the occupant during placement would couple the field to the biome source and
+  destroy both properties.
+- **Where repetition can be addressed instead:** the pool (weights and
+  variety, [T52](#t52)), or the re-draw chain itself — the chain performs 63%
+  of fills and its depth histogram does not decay, so it is the mechanism
+  actually choosing what repeats.
+- `structure` vs `assigned` in a `/customdim site-validity` artefact is the
+  measurement; they differ on exactly those 63%.
 
 <a id="t55"></a>
 ### T55 — A mod's dense terrain features are absorbed into the structure model and vanish
