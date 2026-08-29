@@ -80,7 +80,8 @@ public final class SiteValidity {
      */
     public record SiteVerdict(String group, long x, long z, String structureId,
                               String biome, Integer surfaceY, Verdict verdict,
-                              Verdict fixedVerdict, boolean underground) {
+                              Verdict fixedVerdict, boolean underground,
+                              Verdict bandMidVerdict, Verdict subsurfaceVerdict) {
 
         public boolean flipped() {
             return this.verdict != this.fixedVerdict;
@@ -158,6 +159,35 @@ public final class SiteValidity {
             return n;
         }
 
+        /**
+         * Of the failing underground sites, how many a deeper read clears.
+         * Two depths, because neither is vanilla's own: the middle of the
+         * dimension's band, and the middle of the rock beneath this column.
+         * A low number on both means the surface read was not the thing
+         * condemning them.
+         */
+        public int undergroundClearedAtBandMid() {
+            int n = 0;
+            for (SiteVerdict s : this.sites) {
+                if (s.verdict().fails() && s.underground()
+                        && s.bandMidVerdict() != null && !s.bandMidVerdict().fails()) {
+                    n++;
+                }
+            }
+            return n;
+        }
+
+        public int undergroundClearedAtSubsurface() {
+            int n = 0;
+            for (SiteVerdict s : this.sites) {
+                if (s.verdict().fails() && s.underground()
+                        && s.subsurfaceVerdict() != null && !s.subsurfaceVerdict().fails()) {
+                    n++;
+                }
+            }
+            return n;
+        }
+
         /** Failing sites whose structure generates underground — where the residual error is. */
         public int failedUnderground() {
             int n = 0;
@@ -174,7 +204,9 @@ public final class SiteValidity {
             return this.total() + " sites, " + this.failed() + " violations ("
                     + this.count(Verdict.VIOLATION) + " out-of-biome, "
                     + this.count(Verdict.NO_VALID_BIOMES) + " no-valid-biomes; "
-                    + this.failedUnderground() + " of them underground-step), "
+                    + this.failedUnderground() + " of them underground-step, of which "
+                    + this.undergroundClearedAtBandMid() + " clear at the band midpoint and "
+                    + this.undergroundClearedAtSubsurface() + " below this column), "
                     + this.count(Verdict.WANTED) + " wanted, "
                     + this.count(Verdict.UNSAMPLED) + " unsampled, "
                     + this.fixedSliceFlips() + " verdicts differ from the y="
@@ -237,6 +269,24 @@ public final class SiteValidity {
 
                 Verdict verdict = verdictOf(valid, biome, asked);
                 Verdict fixedVerdict = verdictOf(valid, atFixed, asked);
+
+                // An underground family picks a deep or fixed y of its own, so
+                // the surface read describes a column it never occupies. Two
+                // more reads bound that: the middle of the dimension's own
+                // band, and the middle of the rock between its floor and this
+                // column's surface.
+                boolean deep = underground.computeIfAbsent(site.structureId(),
+                        id -> generatesUnderground(structureRegistry, id));
+                Verdict bandMid = null;
+                Verdict subsurface = null;
+                if (deep) {
+                    int mid = (model.band().bottomY() + model.band().topY()) / 2;
+                    bandMid = verdictOf(valid, biomeAt(rig, x, mid >> 2, z), asked);
+                    if (surfaceY != null) {
+                        int under = (model.band().bottomY() + surfaceY) / 2;
+                        subsurface = verdictOf(valid, biomeAt(rig, x, under >> 2, z), asked);
+                    }
+                }
                 if (verdict.fails()) {
                     failed++;
                     failedByStructure.merge(site.structureId(), 1, Integer::sum);
@@ -244,9 +294,7 @@ public final class SiteValidity {
                     wanted++;
                 }
                 sites.add(new SiteVerdict(group.getKey(), site.x(), site.z(), site.structureId(),
-                        biome, surfaceY, verdict, fixedVerdict,
-                        underground.computeIfAbsent(site.structureId(),
-                                id -> generatesUnderground(structureRegistry, id))));
+                        biome, surfaceY, verdict, fixedVerdict, deep, bandMid, subsurface));
             }
             tallies.put(group.getKey(), new GroupTally(group.getValue().size(), failed, wanted));
         }
@@ -345,6 +393,10 @@ public final class SiteValidity {
         b.append(" \"totalSites\": ").append(report.total()).append(",\n");
         b.append(" \"failedSites\": ").append(report.failed()).append(",\n");
         b.append(" \"failedUnderground\": ").append(report.failedUnderground()).append(",\n");
+        b.append(" \"undergroundClearedAtBandMid\": ")
+                .append(report.undergroundClearedAtBandMid()).append(",\n");
+        b.append(" \"undergroundClearedAtSubsurface\": ")
+                .append(report.undergroundClearedAtSubsurface()).append(",\n");
         for (Verdict v : Verdict.values()) {
             b.append(" \"").append(v.name().toLowerCase(java.util.Locale.ROOT))
                     .append("Sites\": ").append(report.count(v)).append(",\n");
@@ -382,6 +434,10 @@ public final class SiteValidity {
                     .append(", \"surfaceY\": ").append(s.surfaceY() == null ? "null" : s.surfaceY())
                     .append(", \"underground\": ").append(s.underground())
                     .append(", \"fixedVerdict\": \"").append(s.fixedVerdict().name()).append('"')
+                    .append(", \"bandMidVerdict\": ").append(s.bandMidVerdict() == null
+                            ? "null" : "\"" + s.bandMidVerdict().name() + "\"")
+                    .append(", \"subsurfaceVerdict\": ").append(s.subsurfaceVerdict() == null
+                            ? "null" : "\"" + s.subsurfaceVerdict().name() + "\"")
                     .append(", \"verdict\": \"").append(s.verdict().name()).append("\"}");
         }
         b.append(first ? "]\n}\n" : "\n ]\n}\n");
