@@ -114,8 +114,9 @@ Observed shipped patterns: peaceful `mobMultiplier: 0.0` + `hostileSpawning: fal
 }
 ```
 
-- `wants` — map of structure short-name → `{"min": N, "max": M}` **block distances**. Roller-only (the mod doesn't read this for placement, only the roller scores against it). Short names resolve via `references/structure-names.md`.
-- `shuns` — map of short-name → `{}` (must not exist anywhere in the playable radius) or `{"minDistance": N}` (must be at least N blocks away). **Map form only** — a bare list crashes Gson.
+- `wants` — map of structure short-name → `{"min": N, "max": M}` **block distances**. Scored by the roller AND read for placement: a want multiplies the structure's noise-pool weight by 1.2 and bypasses the biome-affinity filter. Short names resolve via `references/structure-names.md`; a name resolving to a `#tag` is dropped.
+- `shuns` — map of short-name → `{}` (must not exist anywhere in the playable radius) or `{"minDistance": N}` (must be at least N blocks away). **Map form only** — a bare list crashes Gson. Also divides the pool weight by 1.5, floored at 1 — a shun discourages, `exclude` removes.
+- Both round away from the starting weight (a want adds at least one unit, a shun removes at least one), and naming a structure in both cancels. When the `structures` block names neither, `seedRoll.wants`/`seedRoll.shuns` supply the list.
 - `endgame` — `{"allow": bool, "safeRadius": N}`. Overrides the roller's automatic endgame-near-spawn penalty.
 - `spacing` — map of structure **set** id → `{"spacing": N, "separation": M}`. This one IS read by the mod at runtime (new chunks only) — actually rescales placement, not just scoring.
 - `mode` + `list` — `"allow"`/`"reject"`/`"none"` filter on organic structure sets. Runtime.
@@ -256,7 +257,7 @@ The mod ignores this block entirely at runtime — it exists purely for seed rol
 | `allowEndgameNearSpawn` | Lets endgame/boss structures sit near spawn without penalty. |
 | `allowHazardousSpawn` | `true` withdraws BOTH spawn-safety gates — `nothing_is_immediately_lethal` (a sheer drop at the spawn column) and `spawn_is_safe_to_build_on` (lava, or nothing to stand on). For a dimension entered through a portal the mod builds the arrival itself — `PortalSite` finds an open site or carves one, lays a floor, and refuses the traversal rather than dropping somebody somewhere unopenable — so a player never steps out onto the column these measure, and for a dimension whose proposition IS danger a cliff there is scenery. Opt-out and never derived: every dimension has a portal, so deriving it would switch the gates off pack-wide in one silent step. Shipped on the 19 dimensions with `difficulty.mobMultiplier >= 2.0`, the same threshold the hard structure shift uses. |
 | `wants` | **Band-name** form: short-name → `"near_spawn"` (0–15% of `borders.player`) / `"spread"` (10–75%) / `"near_border"` (55–100%). One criterion per entry, scored on the nearest instance's distance as a fraction of this dimension's own border. Different format from `structures.wants` — see main SKILL.md traps. |
-| `shuns` | Bare list of short names (or map form). Absent is full marks; present is scored by how much of the world separates a player from it. |
+| `shuns` | Bare list of short names (or map form), used when `structures.shuns` names none. Absent is full marks; present is scored by how much of the world separates a player from it, and the structure's pool weight is divided by 1.5. |
 
 ## `overworld`, `the_nether`, `the_end`, `paradise_lost`
 
@@ -301,7 +302,7 @@ Noise placement is the default for every managed dimension; these fields overrid
 | --- | --- | --- | --- |
 | `structureDensity` | `"none"` / `"sparse"` / `"normal"` / `"dense"` | `"normal"` | Global profile for every group. `"normal"` means "use the world type's defaults", not a profile. `"none"` suppresses noise entirely; `force` still applies. |
 | `structures.noise` | string, object, or `false` | type defaults | String = every group uses that profile. Object = `{group: profile}`, per group, `"none"` drops that group, unmentioned groups keep the type default. `false` = fall back to vanilla grid placement (escape hatch). |
-| `structures.radial` | `{group: number[10]}` | type defaults | 10-point piecewise-linear weight curve, spawn (index 0) to border (index 9). Values 0.0–3.0. Multiplied into the noise before the threshold test, so `0.0` suppresses a band absolutely. Wrong length or out-of-range warns and falls back. |
+| `structures.radial` | `{group: number[10]}` | type defaults | 10-point piecewise-linear weight curve, spawn (index 0) to border (index 9). Values 0.0–3.0. Multiplied into the noise before the threshold test, so `0.0` suppresses a band absolutely. Wrong length or out-of-range warns and falls back. **Cannot enable a group**: only `structures.noise` does that, so a curve naming a group the world type does not list is silently dead — name it under `noise` too. |
 | `structures.rarity` | `{set_id: tier}` | derived from spacing | `common` / `uncommon` / `rare` / `endgame`. Changes a set's share of its group's placements, and can move it between groups — the `endgame` group requires a rare-or-rarer tier. Uses structure SET ids. |
 | `structures.exclude` | `string[]` | `[]` | Structure SET ids removed from the noise pool entirely. |
 | `structures.include` | `string[]` | `[]` | Structure SET ids forced into the pool, bypassing the biome filter. The escape hatch for a filter that is too aggressive. |

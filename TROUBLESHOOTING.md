@@ -209,7 +209,27 @@ Launchers download HTML instead of mod JARs, or packwiz auto-update serves stale
 
 - **Symptom:** a `multi_biome` (or any biome-listed) dimension generates as one biome nearly everywhere, and seed rolling reports the rest as "not found" however many candidates are rolled. The outcome is structural, not unlucky.
 - **Cause:** `DimensionManager.buildMixedSource` splits the biome list into biomes that already have a hypercube in the base source ("native") and those that do not ("foreign"), then deals every leftover hypercube to the foreign biomes **round-robin** — so a single foreign biome receives all of them while the natives keep only what they literally claim. Across the 34 affected dimensions the foreign biomes held 74–100% of the area. Without climate parameters: all 47 **Nature's Spirit** biomes (they place through their own layer, not the vanilla multi-noise list), and `minecraft:end_barrens`/`minecraft:end_midlands` (vanilla places those by erosion in `TheEndBiomeSource`, which Nullscape replaces wholesale). Nullscape also gives `minecraft:the_end` and `minecraft:end_highlands` the **same** full-span hypercube, so one of that pair can never win a nearest-point lookup, and gates `nullscape:void_barrens`/`nullscape:crystal_peaks` on `temperature >= 0` — an octave -11 noise that barely moves inside one dimension.
-- **Fix:** give the biome an explicit hypercube. An object-form entry (`{"id": ..., "parameters": {...}}`) withdraws it from the foreign machinery, and once no foreign biomes remain the leftover pool is dropped rather than dealt out. Band on an axis the dimension's climate noise actually crosses at its own radius — **weirdness** for overworld and End dimensions, **continentalness** for `paradise_lost` clones (humidity spans 0.207 across a 512-radius world against weirdness's 0.783). `biomes` is creation-time worldgen config ([D2](#d2)) and changing it re-keys the generation fingerprint, so every affected dimension needs a re-roll, not a rescore.
+- **Fix:** give the biome an explicit hypercube. An object-form entry (`{"id": ..., "parameters": {...}}`) withdraws it from the foreign machinery, and once no foreign biomes remain the leftover pool is dropped rather than dealt out. Band on an axis the dimension's climate noise actually crosses at its own radius — typically **weirdness** for overworld and End dimensions, **continentalness** for `paradise_lost` clones (humidity spans 0.207 across a 512-radius world against weirdness's 0.783).
+- **The usable axis belongs to the noise ROUTER, not the dimension family.** Measured with `customdim sample-noise` over 11 points spanning the playable radius, one representative per (`type`, `noiseSettings`) — the table is `config/custom-dimensions/climate-axes.json`:
+
+  | type | noiseSettings | axis | span |
+  | --- | --- | --- | --- |
+  | `multi_biome` | — | `weirdness` | 1.772 |
+  | `multi_biome` | `adventure:compressed` | `weirdness` | 1.316 |
+  | `multi_biome` | `adventure:wide` | `erosion` | 1.300 |
+  | `cave` | — | `temperature` | 1.066 |
+  | `nether` | — | `temperature` | 1.126 |
+  | `nether_islands` | — | `erosion` | 1.136 |
+  | `nether_islands` | `adventure:compressed` | `temperature` | 1.654 |
+  | `end` | — | `continentalness` | 1.113 |
+  | `sky_islands` | — | `continentalness` | 1.291 |
+  | `paradise_lost:*` | — | `temperature` | 1.277 |
+  | `void` | — | `weirdness` | 1.055 |
+  | `void` | `adventure:void` | `erosion` | 0.909 |
+
+  `overworld`, `checkerboard` and `superflat` answer `Not a MultiNoiseBiomeSource` and have no climate point to band on. In a `cave` dimension weirdness measures a span of **0.00** across one distinct value — completely inert.
+- **One representative per combination is a starting point, not a guarantee.** Measure your own dimension: `the_crumbling_reaches` (`end`, border 2048) gives weirdness 1.099 against continentalness 0.895, the reverse of the `end` row.
+- **Rank candidate axes by DISTRIBUTION, not span.** `the_red_monument` (`adventure:void`) gives weirdness a span of 2.000 across just THREE distinct values, seven of eleven samples pinned at -0.50 — the widest span and the worst possible axis. Count distinct values across the radius before choosing. `biomes` is creation-time worldgen config ([D2](#d2)) and changing it re-keys the generation fingerprint, so every affected dimension needs a re-roll, not a rescore.
 
 <a id="t22"></a>
 ### T22 — `"groups": []` suppressed noise only, so void/superflat dims generated every structure set

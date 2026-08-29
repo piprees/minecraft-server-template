@@ -366,6 +366,7 @@ Two things to hold in mind when tuning them:
 
 - **It is creation-time worldgen.** Changing any of these affects only newly generated chunks; existing chunks keep what they have. The seed roller fingerprints all of it, so a change re-rolls that dimension.
 - **`borders.player` and `difficulty.mobMultiplier` are now generation-affecting.** They used to be scoring/runtime only. The border sets both the scanned radius and the noise frequency scale; the multiplier drives the shifts above. Changing either changes the world.
+- **Only `structures.noise` can ENABLE a group the world type does not list.** `NoiseGroupPlan.resolve` adds any group named there — the type's own list is a default, not a gate — so `{"endgame": "sparse"}` on a `cave` dimension does real work. `structures.radial` is NOT symmetrical: `explicitGroups` reads only `noise`, so a `radial` curve naming a group the type does not enable is silently dead. Name the group under `noise` as well as `radial`.
 - **An unknown profile name suppresses the group** rather than silently becoming `natural`, and warns at boot. An unknown group name in `noise` or `radial` is ignored with a warning.
 - **A radial curve must be exactly 10 values in 0.0-3.0** or it is rejected with a warning and the type default is used. A trailing `0.0` suppresses that band absolutely — it does not merely reduce it.
 - **Not every structure is noise-placed.** A set is noise-managed if its placement is vanilla `minecraft:random_spread` or a type in `NoisePoolBuilder.ABSORBED_PLACEMENT_TYPES`; anything else keeps its own grid. Read the split from `placementType` in `config/custom-dimensions/extractors/registries.json` — currently 376 of 380 sets are managed, and the four that are not are `minecraft:concentric_rings` twice (vanilla strongholds, DnT end_castle), `betterstrongholds:stronghold`, and Supplementaries' galleons. (Explorify and Towns & Towers ship plain `minecraft:random_spread` and ARE noise-managed; Cristel Lib only patches their spacing numbers.) Pass-throughs ignore noise fields, radial curves and rarity, but `structures.mode` and `structures.exclude` DO apply to them ([TROUBLESHOOTING.md#t23](../../../TROUBLESHOOTING.md#t23)), and `customdim lint` warns `want_is_passthrough` when a want names one.
@@ -389,11 +390,26 @@ Two things to hold in mind when tuning them:
 12. **Don't change `portal.scale` on existing dimensions** — it shifts all portal coordinates and can strand players. Treat it as effectively permanent after first play.
 13. **A listed biome with no climate parameters swallows the dimension.** Every Nature's Spirit biome, plus `minecraft:end_barrens` and `minecraft:end_midlands`, is absent from the multi-noise parameter table, and the mod deals ALL leftover climate regions to such biomes round-robin — one of them takes 74–100% of the world and the rest of your list never appears. Give those entries an explicit `{"id": ..., "parameters": {"<axis>": [lo, hi]}}` band. **Every biome from a mod that places through TerraBlender or a lithostitched injector is in the same position** — Regions Unexplored, Wilder Wild, Galosphere, YUNG's Cave Biomes and Underground Worlds all are. The axis to band on differs by family, measured on this stack with `customdim sample-noise`:
 
-    | dimension type | axis | measured span |
+    The axis belongs to the noise ROUTER, not the dimension family, and it is
+    measured — the full table is `config/custom-dimensions/climate-axes.json`
+    and [T19](../../../TROUBLESHOOTING.md#t19). Highlights, and note that
+    `sky_islands` and `end` do NOT take weirdness:
+
+    | type | noiseSettings | axis |
     | --- | --- | --- |
-    | overworld-family (`multi_biome`, `sky_islands`, `amplified`) | `weirdness` | about -0.19 .. +0.10 at a 512-1024 radius |
-    | `cave` | `temperature` | -0.61 .. +0.90 — continentalness, erosion, depth AND weirdness are all pinned to 0 there, so a weirdness band is inert |
-    | `paradise_lost:paradise_lost` clones | `continentalness` | weirdness is too flat |
+    | `multi_biome` | — / `adventure:compressed` | `weirdness` |
+    | `multi_biome` | `adventure:wide` | `erosion` |
+    | `cave` | — | `temperature` (weirdness is inert: span 0.00) |
+    | `nether` | — | `temperature` |
+    | `nether_islands` | — / `adventure:compressed` | `erosion` / `temperature` |
+    | `end`, `sky_islands` | — | `continentalness` |
+    | `paradise_lost:*` | — | `temperature` |
+    | `void` | — / `adventure:void` | `weirdness` / `erosion` |
+
+    Measure your own dimension with `customdim sample-noise` before relying on
+    a row, and rank candidates by DISTINCT VALUES across the radius, not by
+    span — `adventure:void` gives weirdness the widest span (2.000) across
+    three distinct values, which is the worst axis in that dimension.
 
     Leave native biomes as plain strings: once no foreign biome remains, the leftover pool is dropped rather than dealt out. The boot line `biome source built (N explicit, M native, 0 mixed-in of K requested)` is the check — **0 mixed-in is the pass**. `scripts/check-content-coverage.py` lists installed biomes no dimension names. See [TROUBLESHOOTING.md#t19](../../../TROUBLESHOOTING.md#t19) and [#t35](../../../TROUBLESHOOTING.md#t35).
 14. **`spawnFilter` biomes must exist in the biome parameter table for the dimension's family** — a biome id that exists in-game but isn't in the roller's table for that family causes every candidate to be rejected (zero candidates). Cross-check against `references/biome-catalogue.md`.
