@@ -1,0 +1,6 @@
+{
+ "data/adventure/lithostitched/worldgen_modifier/coastal_pillager_outpost_ocean.json": "towns-and-towers",
+ "data/adventure/lithostitched/worldgen_modifier/coastal_village_ocean.json": "towns-and-towers",
+ "data/adventure/lithostitched/worldgen_modifier/land_structures_mss.json": "mss-moogs-soaring-structures",
+ "data/adventure/lithostitched/worldgen_modifier/land_structures_mvs.json": "moogs-voyager-structures"
+}

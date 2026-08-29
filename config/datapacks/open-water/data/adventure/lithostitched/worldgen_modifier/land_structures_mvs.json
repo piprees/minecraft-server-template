@@ -1,0 +1,82 @@
+{
+ "type": "lithostitched:set_structure_spawn_condition",
+ "structures": [
+  "mvs:azelea_house",
+  "mvs:barn",
+  "mvs:bench",
+  "mvs:blue_stall",
+  "mvs:campsite",
+  "mvs:cart",
+  "mvs:cartographer_tower",
+  "mvs:castle_ruins",
+  "mvs:cathedral",
+  "mvs:crystal",
+  "mvs:dead_tree_oak",
+  "mvs:deepslate_house",
+  "mvs:diorite_and_deepslate_house",
+  "mvs:diorite_tower",
+  "mvs:duck",
+  "mvs:fire_camp",
+  "mvs:gallows",
+  "mvs:haystack",
+  "mvs:horse_campsite",
+  "mvs:horse_pen",
+  "mvs:house",
+  "mvs:lamp_chest",
+  "mvs:large_cart_1",
+  "mvs:large_cart_2",
+  "mvs:large_warped_tower",
+  "mvs:log_ruin",
+  "mvs:mine_with_campsite",
+  "mvs:mushroom_pond",
+  "mvs:orange_stall",
+  "mvs:paths",
+  "mvs:pile",
+  "mvs:pink_stall",
+  "mvs:railway",
+  "mvs:rare_well",
+  "mvs:red_stall",
+  "mvs:ruined_beacon",
+  "mvs:shed",
+  "mvs:small_copper_well",
+  "mvs:small_oak_lantern",
+  "mvs:small_oak_pond",
+  "mvs:small_ruin",
+  "mvs:small_tower_well",
+  "mvs:small_well",
+  "mvs:statue_ruins",
+  "mvs:stone_fountain",
+  "mvs:stone_pillars",
+  "mvs:sunzi_gate",
+  "mvs:tall_house",
+  "mvs:tree_monument",
+  "mvs:villager_statue",
+  "mvs:warped_house",
+  "mvs:well",
+  "mvs:wheat_grain_bin",
+  "mvs:windmill",
+  "mvs:wooden_wheat_farm"
+ ],
+ "spawn_condition": {
+  "type": "lithostitched:all_of",
+  "conditions": [
+   {
+    "type": "lithostitched:not",
+    "condition": {
+     "type": "lithostitched:in_biome",
+     "biomes": "#adventure:open_water"
+    }
+   },
+   {
+    "type": "lithostitched:height_filter",
+    "range_type": "heightmap_relative",
+    "heightmap": "WORLD_SURFACE_WG",
+    "permitted_range": {
+     "min_inclusive": -5,
+     "max_inclusive": 512
+    }
+   }
+  ]
+ },
+ "append": true
+}

@@ -38,3 +38,7 @@ run = './scripts/extract-registries.py "$@"'
 [tasks.blocktags]
 description = "Regenerate the map renderer's modded block tags"
 run = "./scripts/gen-unmined-blocktags.py"
+
+[tasks.water-guard]
+description = "Regenerate the open-water structure placement guard datapack"
+run = './scripts/gen-open-water-guard.py "$@"'

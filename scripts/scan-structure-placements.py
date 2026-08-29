@@ -16,10 +16,13 @@ Context:  Reads <world>/region/*.mca. No server, no RCON, no /locate (banned,
 Usage:    ./scripts/scan-structure-placements.py <world-dir> [--water-only]
                                                  [--max-regions N] [--min-depth N]
 
-Gotchas:  A structure start is recorded in the chunk that owns it, which is
-          not necessarily where its pieces render. Underground structures
-          legitimately sit under a seabed — water above them is expected, so
-          filter on step/name before calling one misplaced.
+Gotchas:  Depth and biome are sampled at the start's bounding-box centre,
+          clamped into the chunk that owns the start — a start whose pieces
+          run into the next chunk is measured at the clamp, not at the piece.
+          Underground structures legitimately sit under a seabed — water above
+          them is expected, so filter on step/name before calling one
+          misplaced. The `ocean` column counts placements whose biome is an
+          ocean; `wet` minus `ocean` is a land biome with submerged terrain.
 """
 import argparse
 import collections
@@ -67,14 +70,48 @@ def heightmap(chunk, name, min_y=-64):
     return out if len(out) == 256 else None
 
 
-def water_depth(chunk):
-    """Water over the sea floor at the chunk centre; None when unknown."""
+def column(chunk, lx, lz):
+    """(water depth, ground height) at a local column; (None, None) when unknown."""
     surf = heightmap(chunk, "WORLD_SURFACE_WG") or heightmap(chunk, "WORLD_SURFACE")
     floor = heightmap(chunk, "OCEAN_FLOOR_WG") or heightmap(chunk, "OCEAN_FLOOR")
     if not surf or not floor:
-        return None
-    i = 8 * 16 + 8
-    return surf[i] - floor[i]
+        return None, None
+    i = lz * 16 + lx
+    return surf[i] - floor[i], floor[i]
+
+
+def biome_at(chunk, lx, y, lz):
+    """Biome id at a local column and world Y; None when the section is absent.
+
+    Biome palettes are 4x4x4 per section, so the index quantises by 2 bits.
+    """
+    for section in chunk.get("sections", []):
+        if (int(section.get("Y", 0)) << 4) != (y & ~15):
+            continue
+        biomes = section.get("biomes")
+        if biomes is None:
+            return None
+        palette = [str(p) for p in biomes.get("palette", [])]
+        if len(palette) <= 1:
+            return palette[0] if palette else None
+        data = biomes.get("data")
+        if data is None:
+            return palette[0]
+        bits = max(1, (len(palette) - 1).bit_length())
+        per = 64 // bits
+        idx = ((y & 15) >> 2) * 16 + ((lz & 15) >> 2) * 4 + ((lx & 15) >> 2)
+        word = int(data[idx // per]) & ((1 << 64) - 1)
+        return palette[(word >> (bits * (idx % per))) & ((1 << bits) - 1)]
+    return None
+
+
+def start_column(start, cx, cz):
+    """Local (x, z) of a structure start's bounding-box centre, clamped to its chunk."""
+    bb = start.get("BB")
+    if bb is None or len(bb) != 6:
+        return 8, 8
+    mx, mz = (int(bb[0]) + int(bb[3])) // 2, (int(bb[2]) + int(bb[5])) // 2
+    return min(15, max(0, mx - cx * 16)), min(15, max(0, mz - cz * 16))
 
 
 def chunks(mca):
@@ -111,35 +148,45 @@ def main():
     if a.max_regions:
         files = files[:a.max_regions]
 
-    found = collections.defaultdict(lambda: {"total": 0, "wet": 0, "deep": 0, "sample": []})
-    seen = 0
+    found = collections.defaultdict(
+        lambda: {"total": 0, "wet": 0, "ocean": 0, "deep": 0, "sample": []})
+    seen = wet_chunks = 0
     for mca in files:
         for chunk in chunks(mca):
             seen += 1
             root = chunk.get("") if "" in chunk else chunk
+            cx, cz = int(root.get("xPos", 0)), int(root.get("zPos", 0))
+            if (column(root, 8, 8)[0] or 0) >= a.min_depth:
+                wet_chunks += 1
             starts = root.get("structures", {}).get("starts", {})
             if not starts:
                 continue
-            depth = water_depth(root)
-            cx, cz = int(root.get("xPos", 0)), int(root.get("zPos", 0))
             for sid, st in starts.items():
                 if not hasattr(st, "get") or str(st.get("id", "INVALID")) == "INVALID":
                     continue
                 e = found[sid]
                 e["total"] += 1
-                if depth is not None and depth >= a.min_depth:
-                    e["wet"] += 1
-                    e["deep"] = max(e["deep"], depth)
-                    if len(e["sample"]) < 3:
-                        e["sample"].append(f"{cx*16},{cz*16}({depth}m)")
+                lx, lz = start_column(st, cx, cz)
+                depth, ground = column(root, lx, lz)
+                if depth is None or depth < a.min_depth:
+                    continue
+                biome = biome_at(root, lx, ground, lz) or "?"
+                e["wet"] += 1
+                e["deep"] = max(e["deep"], depth)
+                if "ocean" in biome:
+                    e["ocean"] += 1
+                if len(e["sample"]) < 3:
+                    e["sample"].append(
+                        f"{cx*16+lx},{cz*16+lz}({depth}m {biome.split(':')[-1]})")
 
-    print(f"regions {len(files)}  chunks {seen}\n")
+    print(f"regions {len(files)}  chunks {seen}  chunks in water {wet_chunks}\n")
     rows = sorted(found.items(), key=lambda kv: (-kv[1]["deep"], -kv[1]["wet"]))
     if a.water_only:
         rows = [r for r in rows if r[1]["wet"]]
-    print(f"{'structure':<48}{'total':>6}{'wet':>5}{'max':>6}  samples")
+    print(f"{'structure':<46}{'total':>6}{'wet':>5}{'ocean':>6}{'max':>6}  samples")
     for sid, e in rows:
-        print(f"  {sid:<46}{e['total']:>6}{e['wet']:>5}{e['deep']:>5}m  {', '.join(e['sample'])}")
+        print(f"  {sid:<44}{e['total']:>6}{e['wet']:>5}{e['ocean']:>6}{e['deep']:>5}m  "
+              f"{', '.join(e['sample'])}")
     return 0
 
 

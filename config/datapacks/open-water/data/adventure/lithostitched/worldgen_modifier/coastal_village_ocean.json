@@ -1,0 +1,21 @@
+{
+ "type": "lithostitched:set_structure_spawn_condition",
+ "structures": "towns_and_towers:village_ocean",
+ "spawn_condition": {
+  "type": "lithostitched:grid",
+  "radius": 192,
+  "distance_between_points": 48,
+  "allowed_count": {
+   "min_inclusive": 1,
+   "max_inclusive": 4096
+  },
+  "condition": {
+   "type": "lithostitched:not",
+   "condition": {
+    "type": "lithostitched:in_biome",
+    "biomes": "#adventure:open_water"
+   }
+  }
+ },
+ "append": true
+}

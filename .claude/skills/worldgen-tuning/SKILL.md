@@ -57,6 +57,23 @@ Consumer swap: `cp -r .stack/current/stack/config/datapack-presets/dense/structu
 
 Full details, what's deliberately untouched, and the ownership.json mod-removal safety system: [references/structure-presets.md](references/structure-presets.md).
 
+### Keeping land structures out of the sea
+
+`config/datapacks/open-water/` adds a Lithostitched
+`set_structure_spawn_condition` to every land structure whose biome gate
+contains ocean biomes: not in an `#adventure:open_water` biome, and its own
+generation point no more than 5 blocks below `WORLD_SURFACE_WG`. The height
+half is heightmap-relative, so it holds at any sea level. Ocean villages and
+ocean outposts keep a separate condition requiring unflooded ground within 192
+blocks, which leaves the coastal ones and drops the mid-ocean ones.
+
+The condition wraps the structure's registry entry; its `biomes` field is
+unchanged, so `/customdim catalogue` reports the same biome set either way —
+placement counts from `scan-structure-placements.py` are the evidence.
+Regenerate with `mise run water-guard` after a structure-mod pin bump or a
+registry refresh. A `structures.force` entry for a guarded structure into deep
+water is rejected: the condition runs after the mod's biome-predicate bypass.
+
 ### How placement tuning works (1.21.1 mechanics)
 
 - `spacing` (grid cell size in chunks), `separation` (min gap, strictly < spacing), `frequency` (0–1 chance per cell). Expected structures per area ∝ `frequency / spacing²`.

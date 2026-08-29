@@ -1,0 +1,49 @@
+{
+ "type": "lithostitched:set_structure_spawn_condition",
+ "structures": [
+  "mss:arena",
+  "mss:calcite_house",
+  "mss:castle_ruin",
+  "mss:castle_tower",
+  "mss:diorite_house",
+  "mss:large_tower",
+  "mss:leaf_hollow",
+  "mss:nether_portal",
+  "mss:small_deepslate_house",
+  "mss:small_oak_house",
+  "mss:small_pond",
+  "mss:small_tower",
+  "mss:tree_1",
+  "mss:tree_2",
+  "mss:tree_3",
+  "mss:tree_4",
+  "mss:tree_5",
+  "mss:tree_6",
+  "mss:tree_7",
+  "mss:tree_8",
+  "mss:volcano",
+  "mss:white_house"
+ ],
+ "spawn_condition": {
+  "type": "lithostitched:all_of",
+  "conditions": [
+   {
+    "type": "lithostitched:not",
+    "condition": {
+     "type": "lithostitched:in_biome",
+     "biomes": "#adventure:open_water"
+    }
+   },
+   {
+    "type": "lithostitched:height_filter",
+    "range_type": "heightmap_relative",
+    "heightmap": "WORLD_SURFACE_WG",
+    "permitted_range": {
+     "min_inclusive": -5,
+     "max_inclusive": 512
+    }
+   }
+  ]
+ },
+ "append": true
+}
