@@ -278,6 +278,8 @@ public final class DimensionStructures {
             }
         }
 
+        warnInapplicableSpacing(def, original, spacingOverrides);
+
         // A wanted structure whose SET vanilla's own StructurePlacementCalculator
         // prefilter dropped is invisible to the pool builder — the set is not in
         // `original.getStructureSets()` at all, so `structures.include` cannot
@@ -917,6 +919,32 @@ public final class DimensionStructures {
                 spacing,
                 separation,
                 random.getSpreadType());
+    }
+
+    /**
+     * A noise-managed set has no grid, so structures.spacing cannot reach it —
+     * its group's NoiseStructurePlacement decides placement. Silence here reads
+     * as a working dial (T51).
+     */
+    private static void warnInapplicableSpacing(DimensionConfig def,
+            StructurePlacementCalculator original,
+            java.util.Map<String, DimensionConfig.SpacingOverride> spacingOverrides) {
+        if (spacingOverrides.isEmpty()) {
+            return;
+        }
+        for (RegistryEntry<StructureSet> entry : original.getStructureSets()) {
+            String setId = entry.getKey().map(k -> k.getValue().toString()).orElse(null);
+            if (setId == null || "adventure:exit_shrines".equals(setId)
+                    || !spacingOverrides.containsKey(setId)
+                    || !NoisePoolBuilder.noiseManaged(entry.value().placement())) {
+                continue;
+            }
+            MultiverseServer.LOGGER.warn(
+                    "Dimension {}: structures.spacing for {} ignored — the set is noise-managed "
+                    + "and has no grid to space. Use structureDensity or a per-group "
+                    + "structures.noise entry.",
+                    def.getName(), setId);
+        }
     }
 
     // Only exact random_spread placements can be rescaled generically; any

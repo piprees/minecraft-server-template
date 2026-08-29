@@ -50,6 +50,7 @@ Run this first. It covers deploy drift, disk, every expected container, `ONLINE_
 | A Moog's structure set's live spacing is larger than its jar and config say | [T48](#t48) |
 | Which structures can spawn where disagrees with the jars | [T49](#t49) |
 | A probe returns nothing, or the same value everywhere | [T50](#t50) |
+| Structure spacing arithmetic disagrees with the world | [T51](#t51) |
 | Config or mod changes didn't take effect after a deploy | [T2](#t2) |
 | `signal only works in main thread` in discord-sync logs | [T3](#t3) |
 | mc crash-loops with Modrinth `429 Too Many Requests` | [T4](#t4) |
@@ -397,6 +398,40 @@ A world regenerates with the old terrain after a reset that set a new seed, or t
   biomes off the biome grid, which is fluid-independent.
 - **Creation-time.** `settingsOverrides` is in the generation fingerprint
   ([D2](#d2)), so this needs a world wipe and a re-roll.
+
+<a id="t51"></a>
+### T51 — Structure placement is noise-managed, not a grid; grid arithmetic describes nothing
+
+- **Symptom:** a spacing, density or frequency calculation over the pack's
+  structure sets produces a number nothing in the world matches — a mean gap of
+  tens of blocks where the world shows hundreds — and a fix aimed at set
+  spacing changes nothing.
+- **Cause:** noise placement is the default for every managed dimension.
+  `NoisePoolBuilder.noiseManaged` dissolves a set's own placement into one of
+  seven meta-groups whenever the placement is vanilla `minecraft:random_spread`
+  or a type in `ABSORBED_PLACEMENT_TYPES`. Measured against the runtime
+  catalogue: **408 of 411 sets are absorbed** — 221
+  `moogs_structures:advanced_random_spread`, 184 `minecraft:random_spread`, and
+  one each of `betterdeserttemples:desert_temple`,
+  `yungsapi:enhanced_random_spread`, `betterjungletemples:jungle_temple`. Only 2
+  `minecraft:concentric_rings` and 1 `betterstrongholds:stronghold` keep their
+  own grid. An absorbed set's `spacing`, `separation` and `frequency` are
+  discarded; the group's `NoiseStructurePlacement` decides everything.
+- **What the grid path still governs:** `DimensionStructures.rescale()` and
+  `withExplicitSpacing()` guard on an EXACT `RandomSpreadStructurePlacement`
+  class check, and both are reached only from the legacy grid path — used when
+  the noise plan is suppressed (void and superflat dimensions) — plus the
+  exit-shrine branch. `structureDensity` reaches the default path through
+  `NoiseGroupPlan` group profiles instead.
+- **`structures.spacing` is not a general control.** In `transformedNoise` the
+  override map is passed only to `exitShrineSet`. An entry naming any other set
+  is discarded.
+- **Fix:** read the dimension's `structure profile` boot line, which states
+  which path ran. `noise radius=...c groups=n/m positions=N` is the noise path;
+  `density=... (N sets kept, N rescaled, N dropped)` is the grid path. Take
+  placement-type counts from `config/custom-dimensions/extractors/registries.json`
+  ([T49](#t49)), never from a jar scan, and take Moog's 1.65x
+  ([T48](#t48)) as governing the pass-throughs, not the pack.
 
 <a id="t50"></a>
 ### T50 — Measuring a live world: the probes that silently return nothing
