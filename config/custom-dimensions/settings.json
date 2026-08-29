@@ -10,7 +10,7 @@
     "frameBlock": "minecraft:mossy_stone_bricks",
     "borders": {
       "player": 8192,
-      "generation": 8192
+      "generation": 2048
     },
     "difficulty": {
       "mobMultiplier": 1.0,

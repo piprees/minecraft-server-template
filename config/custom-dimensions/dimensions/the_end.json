@@ -2,7 +2,7 @@
   "description": "The end \u2014 the endermen's current home, not their origin. Cities and citadels within honest reach of the gateways, built after they moved on from the older void dimensions.",
   "borders": {
     "player": 4096,
-    "generation": 4096
+    "generation": 2048
   },
   "difficulty": {
     "mobMultiplier": 1.5,

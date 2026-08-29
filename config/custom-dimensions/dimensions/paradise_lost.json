@@ -3,7 +3,7 @@
   "seed": 2371774050900492985,
   "borders": {
     "player": 4096,
-    "generation": 4096
+    "generation": 2048
   },
   "difficulty": {
     "mobMultiplier": 0.8,
