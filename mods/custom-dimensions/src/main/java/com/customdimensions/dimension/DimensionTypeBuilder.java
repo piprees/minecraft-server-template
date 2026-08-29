@@ -28,15 +28,15 @@ import java.util.Set;
  * Custom DimensionType entries from the config's "environment" block:
  * fixedTime, ceiling/skylight, ultraWarm, natural, bedWorks,
  * respawnAnchorWorks, piglinSafe, hasRaids, minY/height/logicalHeight,
- * ambientLight, coordinateScale, effects (one of the three vanilla
+ * ambientLight, effects (one of the three vanilla
  * dimension effects), infiniburn (block tag), monsterSpawnLightLevel (int
  * or [min,max]) and monsterSpawnBlockLightLimit. Every unset field
  * inherits from the dimension's base type (the overworld/nether/end type
  * it would have cloned anyway), so a partial environment block is safe.
  *
- * coordinateScale here is the VANILLA travel scale (nether-portal maths,
- * map scaling). The mod's own portal system scales via portal.scale —
- * setting both double-applies; pick one per dimension.
+ * Travel scale is portal.scale alone — ServerWorldMixin divides arrival
+ * coordinates by it. The vanilla DimensionType keeps its base type's
+ * coordinateScale; setting both would apply the division twice.
  *
  * Each custom type registers once as {namespace}:{slug}_type in the
  * dynamic DIMENSION_TYPE registry (unfrozen/refrozen exactly like the
@@ -158,15 +158,6 @@ public final class DimensionTypeBuilder {
             return null;
         }
         double coordinateScale = base.coordinateScale();
-        if (env.coordinateScale != null) {
-            if (env.coordinateScale < 0.00001 || env.coordinateScale > 30000000.0) {
-                MultiverseServer.LOGGER.warn(
-                        "Dimension {}: coordinateScale {} outside 0.00001..30000000 — using the base type",
-                        name, env.coordinateScale);
-                return null;
-            }
-            coordinateScale = env.coordinateScale;
-        }
 
         Identifier effects = base.effects();
         if (env.effects != null) {

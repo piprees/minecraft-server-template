@@ -19,11 +19,10 @@ class DimensionTypeBuilderTest {
     @Test
     void newFieldsDeserialise() {
         DimensionConfig.Environment e = env("""
-            {"coordinateScale": 8.0, "effects": "minecraft:the_nether",
+            {"effects": "minecraft:the_nether",
              "infiniburn": "#minecraft:infiniburn_nether",
              "monsterSpawnLightLevel": [0, 7],
              "monsterSpawnBlockLightLimit": 15}""");
-        assertEquals(8.0, e.coordinateScale);
         assertEquals("minecraft:the_nether", e.effects);
         assertEquals("#minecraft:infiniburn_nether", e.infiniburn);
         assertNotNull(e.monsterSpawnLightLevel);
@@ -33,7 +32,6 @@ class DimensionTypeBuilderTest {
     @Test
     void unsetFieldsStayNull() {
         DimensionConfig.Environment e = env("{\"ambientLight\": 0.5}");
-        assertNull(e.coordinateScale);
         assertNull(e.effects);
         assertNull(e.infiniburn);
         assertNull(e.monsterSpawnLightLevel);

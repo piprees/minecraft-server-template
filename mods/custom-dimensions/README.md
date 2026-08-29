@@ -206,7 +206,7 @@ An `"environment"` block registers a per-dimension `DimensionType` as `{ns}:{slu
   "skyColor": "#4A2C6B", "fogColor": "#2A1A3E", "ambientLight": 0.3, "fixedTime": 18000,
   "hasSkylight": true, "hasCeiling": false, "ultraWarm": false, "natural": false,
   "bedWorks": false, "respawnAnchorWorks": true, "piglinSafe": false, "hasRaids": false,
-  "minY": -64, "height": 512, "logicalHeight": 512, "coordinateScale": 1.0,
+  "minY": -64, "height": 512, "logicalHeight": 512,
   "effects": "minecraft:the_end", "infiniburn": "#minecraft:infiniburn_overworld",
   "monsterSpawnLightLevel": 7, "monsterSpawnBlockLightLimit": 0
 }

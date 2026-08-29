@@ -1546,8 +1546,6 @@ public class DimensionConfig {
         public Integer logicalHeight;
         // Vanilla dimension-type fields (Tier 1 of the Custom-world-settings
         // support matrix).
-        @SerializedName("coordinateScale")
-        public Double coordinateScale;
         @SerializedName("effects")
         public String effects;
         @SerializedName("infiniburn")
