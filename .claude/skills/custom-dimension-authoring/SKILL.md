@@ -268,7 +268,7 @@ Full schema in `references/schema-reference.md`.
 
 ### Custom environment (DimensionType)
 
-- **`environment`**: Registers a custom DimensionType (`{ns}:{slug}_type`). Fields like `skyColor`, `fogColor`, `ambientLight`, `fixedTime`, `effects` (`minecraft:overworld`/`the_nether`/`the_end`), `hasCeiling`, `bedWorks`, etc. Most fields are boot-re-read; `minY`, `height`, `logicalHeight`, `coordinateScale` are creation-time. Invalid heights fall back to the base type rather than crashing.
+- **`environment`**: Registers a custom DimensionType (`{ns}:{slug}_type`). Fields like `skyColor`, `fogColor`, `ambientLight`, `fixedTime`, `effects` (`minecraft:overworld`/`the_nether`/`the_end`), `hasCeiling`, `bedWorks`, etc. Most fields are boot-re-read; `minY`, `height`, `logicalHeight` are creation-time. Travel scale is `portal.scale`. Invalid heights fall back to the base type rather than crashing.
 
 ### Forced structure placement
 

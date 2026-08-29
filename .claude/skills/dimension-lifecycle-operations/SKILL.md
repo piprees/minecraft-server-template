@@ -15,7 +15,7 @@ Every dimension-lifecycle task reduces to one question: _does this field apply o
 
 | Field group | Timing | To apply a change |
 | --- | --- | --- |
-| `type`, `noiseSettings`, `biomes`, `seed`, `environment.minY`/`height`/`logicalHeight`/`coordinateScale` | **Creation-time only** | Wipe `data/world` (local) / a reset-seed ritual (production, `./ops reset-seed` — confirm-before-proceed) |
+| `type`, `noiseSettings`, `biomes`, `seed`, `environment.minY`/`height`/`logicalHeight` | **Creation-time only** | Wipe `data/world` (local) / a reset-seed ritual (production, `./ops reset-seed` — confirm-before-proceed) |
 | `portal` (all of it — `immersive`, `aura`, `anchor`, `singleUse`, `exitPortal`, frame materials, `shape`, sounds), `difficulty`, `borders.player`, `structureDensity`, `structures.force`/`mode`/`list`/`spacing`, `exits`, most of `environment` (`fixedTime`, `hasCeiling`, `hasSkylight`, `ultraWarm`, `natural`, `bedWorks`, `respawnAnchorWorks`, `piglinSafe`, `hasRaids`, `ambientLight`, `effects`, `infiniburn`, `monsterSpawnLightLevel`/`BlockLightLimit`) | **Re-read every boot** | Edit the file, restart mc, done — no wipe |
 | `borders.generation` | **Not read by the mod at all** — pure tooling metadata (see below) | Edit the file; takes effect on the next map render pass, no restart needed |
 

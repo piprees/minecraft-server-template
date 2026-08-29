@@ -208,7 +208,6 @@ Trigger keys: `"void"`, `"death"`, `"death:<cause>"` (e.g. `death:lava`, `death:
     "minY": -64,
     "height": 512,
     "logicalHeight": 512,
-    "coordinateScale": 1.0,
     "effects": "minecraft:the_end",
     "infiniburn": "#minecraft:infiniburn_overworld",
     "monsterSpawnLightLevel": 7,
@@ -217,7 +216,7 @@ Trigger keys: `"void"`, `"death"`, `"death:<cause>"` (e.g. `death:lava`, `death:
 }
 ```
 
-All fields optional; anything unset inherits from the base dimension type. Registers a new `DimensionType` (`{ns}:{slug}_type`). Invalid heights fall back to the base type rather than crashing. `skyColor`/`fogColor` are client-visible-only with client mods (no effect on a plain vanilla client). `effects` picks sky rendering: `minecraft:overworld` / `minecraft:the_nether` / `minecraft:the_end`. **Creation-time**: `minY`, `height`, `logicalHeight`, `coordinateScale`. Everything else here is boot-re-read.
+All fields optional; anything unset inherits from the base dimension type. Registers a new `DimensionType` (`{ns}:{slug}_type`). Invalid heights fall back to the base type rather than crashing. `skyColor`/`fogColor` are client-visible-only with client mods (no effect on a plain vanilla client). `effects` picks sky rendering: `minecraft:overworld` / `minecraft:the_nether` / `minecraft:the_end`. **Creation-time**: `minY`, `height`, `logicalHeight`. Travel scale is `portal.scale` — there is no `environment` scale field. Everything else here is boot-re-read.
 
 ## `seedRoll` object
 
