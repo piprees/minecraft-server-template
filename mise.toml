@@ -1,0 +1,39 @@
+# Local development environment for the PLATFORM repo.
+# Consumers need none of this: bundle scripts are POSIX/stdlib only and
+# image scripts get their deps from their own Dockerfile.
+#
+#   mise trust && mise install && mise run deps
+#
+# Java lives in mods/mise.toml (temurin-21), scoped to the Gradle builds.
+
+[tools]
+# 3.13 rather than latest: 3.14 has thin wheel coverage, which is what made
+# amulet-nbt source-only and forced a C toolchain.
+python = "3.13"
+shellcheck = "latest"
+yamllint = "latest"
+jq = "latest"
+
+[env]
+# Machine-specific values (CONSUMER_DIR, etc). Git-ignored; copy the example.
+_.file = { path = ".env.local", redact = true }
+
+[tasks.deps]
+description = "Install template-only Python packages"
+run = "pip3 install -r requirements-dev.txt"
+
+[tasks.gate]
+description = "The pre-push quality gate (shellcheck, py_compile, compose, yamllint)"
+run = "./scripts/test-scripts.sh --quick"
+
+[tasks.scan]
+description = "What generated in the local consumer's world, and its water depth"
+run = './scripts/scan-structure-placements.py "$CONSUMER_DIR/data/world" "$@"'
+
+[tasks.catalogue]
+description = "Pull the live registry catalogue from the local consumer"
+run = './scripts/extract-registries.py "$@"'
+
+[tasks.blocktags]
+description = "Regenerate the map renderer's modded block tags"
+run = "./scripts/gen-unmined-blocktags.py"

@@ -27,18 +27,26 @@ cp .env.example .env
 
 The local profile disables online-mode and whitelist, so you can connect at `localhost:25577` without a Microsoft account. `build-stack-bundle.sh` uses GNU tar for reproducible bundles — on macOS `brew install gnu-tar` provides `gtar`; without it locally-built bundles won't byte-match CI's output (harmless, CI does the real build).
 
-## Python tooling
+## Local development environment
 
-Bundle scripts and image entrypoints are stdlib-only or get their deps from
-their own Dockerfile. A few **template-only** scripts need more:
+`mise.toml` at the repo root pins the CLI tools CI uses and the Python the
+template-only scripts run under:
 
 ```bash
-pip3 install -r requirements-dev.txt
+mise trust && mise install     # python, shellcheck, yamllint, jq
+mise run deps                  # template-only Python packages
+cp .env.local.example .env.local   # CONSUMER_DIR -> your consumer checkout
 ```
 
-`nbtlib` reads Minecraft's NBT — `level.dat` surgery for the dimension-removal
-procedure, and region-file inspection via
-`scripts/scan-structure-placements.py`. Nothing you need to run a server.
+Python is pinned to 3.13 deliberately: 3.14 has thin wheel coverage. Java
+stays in `mods/mise.toml` (temurin-21), scoped to the Gradle builds.
+
+Tasks: `mise run gate` (the pre-push gate), `scan` (what generated in the
+local consumer's world and its water depth), `catalogue` (pull the live
+registry dump), `blocktags`. `mise tasks` lists them.
+
+Consumers need none of this — bundle scripts are POSIX/stdlib only and image
+scripts get their deps from their own Dockerfile.
 
 ## Quality gates
 
