@@ -12,9 +12,10 @@ import java.util.concurrent.ConcurrentHashMap;
  * key space is groups x dimensions, so a handful of entries).
  *
  * <pre>
- * natural   freq 0.025  thresh 0.68  excl 2.0x   even, slightly sparser than vanilla
- * dense     freq 0.040  thresh 0.45  excl 1.6x   packed
- * sparse    freq 0.015  thresh 0.85  excl 2.6x   an occasional structure is an event
+ * natural   freq 0.025  thresh 0.82  excl 2.0x   even, slightly sparser than vanilla
+ * dense     freq 0.040  thresh 0.72  excl 1.6x   busier than natural
+ * packed    freq 0.040  thresh 0.60  excl 1.6x   the densest single layer
+ * sparse    freq 0.015  thresh 0.92  excl 2.6x   an occasional structure is an event
  * cluster   dual layer               excl 0.8x   empty wastes, then a dense pocket
  * </pre>
  *
@@ -46,7 +47,7 @@ public sealed interface NoiseProfile permits NoiseProfile.Simple, NoiseProfile.C
         return (double) REFERENCE_RADIUS_CHUNKS / radiusChunks;
     }
 
-    /** Config name (`natural`, `dense`, `sparse`, `cluster`). */
+    /** Config name (`natural`, `dense`, `packed`, `sparse`, `cluster`). */
     String id();
 
     /** Score above which a chunk is a placement candidate. */
@@ -89,7 +90,7 @@ public sealed interface NoiseProfile permits NoiseProfile.Simple, NoiseProfile.C
     /** Decorrelates a cluster profile's fine layer from its coarse one. */
     long FINE_SALT = 0xDEADL;
 
-    /** Single-layer profiles: natural, dense, sparse. */
+    /** Single-layer profiles: natural, dense, packed, sparse. */
     record Simple(String id, double frequency, double threshold,
                   double exclusionMultiplier) implements NoiseProfile {
         @Override
@@ -142,9 +143,10 @@ public sealed interface NoiseProfile permits NoiseProfile.Simple, NoiseProfile.C
         }
     }
 
-    NoiseProfile SPARSE = new Simple("sparse", 0.015, 0.85, 2.6);
-    NoiseProfile NATURAL = new Simple("natural", 0.025, 0.68, 2.0);
-    NoiseProfile DENSE = new Simple("dense", 0.040, 0.45, 1.6);
+    NoiseProfile SPARSE = new Simple("sparse", 0.015, 0.92, 2.6);
+    NoiseProfile NATURAL = new Simple("natural", 0.025, 0.82, 2.0);
+    NoiseProfile DENSE = new Simple("dense", 0.040, 0.72, 1.6);
+    NoiseProfile PACKED = new Simple("packed", 0.040, 0.60, 1.6);
     NoiseProfile CLUSTER = new Cluster(0.008, 0.05, 0.90, 0.8, 0.8);
 
     /**
@@ -164,6 +166,7 @@ public sealed interface NoiseProfile permits NoiseProfile.Simple, NoiseProfile.C
         return switch (value.toLowerCase(java.util.Locale.ROOT)) {
             case "natural" -> NATURAL;
             case "dense" -> DENSE;
+            case "packed" -> PACKED;
             case "sparse" -> SPARSE;
             case "cluster" -> CLUSTER;
             case "none" -> null;

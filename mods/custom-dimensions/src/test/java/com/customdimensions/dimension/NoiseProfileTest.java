@@ -144,9 +144,10 @@ class NoiseProfileTest {
     void hitRatesLandInTheirDesignBands() {
         // Bands are wide enough not to be brittle, tight enough that
         // retuning a threshold or frequency by accident fails.
-        assertRate("natural", hitRate(NoiseProfile.NATURAL), 0.12, 0.32);
-        assertRate("dense", hitRate(NoiseProfile.DENSE), 0.45, 0.75);
-        assertRate("sparse", hitRate(NoiseProfile.SPARSE), 0.01, 0.12);
+        assertRate("natural", hitRate(NoiseProfile.NATURAL), 0.05, 0.11);
+        assertRate("dense", hitRate(NoiseProfile.DENSE), 0.11, 0.22);
+        assertRate("packed", hitRate(NoiseProfile.PACKED), 0.26, 0.42);
+        assertRate("sparse", hitRate(NoiseProfile.SPARSE), 0.01, 0.05);
     }
 
     private static void assertRate(String name, double rate, double lo, double hi) {
@@ -229,15 +230,17 @@ class NoiseProfileTest {
     void exclusionMultipliersMatchTheSpec() {
         assertEquals(2.0, NoiseProfile.NATURAL.exclusionMultiplier(), 0.0);
         assertEquals(1.6, NoiseProfile.DENSE.exclusionMultiplier(), 1e-9);
+        assertEquals(1.6, NoiseProfile.PACKED.exclusionMultiplier(), 1e-9);
         assertEquals(2.6, NoiseProfile.SPARSE.exclusionMultiplier(), 1e-9);
         assertEquals(0.8, NoiseProfile.CLUSTER.exclusionMultiplier(), 1e-9);
     }
 
     @Test
     void thresholdsMatchTheSpec() {
-        assertEquals(0.68, NoiseProfile.NATURAL.threshold(), 1e-9);
-        assertEquals(0.45, NoiseProfile.DENSE.threshold(), 1e-9);
-        assertEquals(0.85, NoiseProfile.SPARSE.threshold(), 1e-9);
+        assertEquals(0.82, NoiseProfile.NATURAL.threshold(), 1e-9);
+        assertEquals(0.72, NoiseProfile.DENSE.threshold(), 1e-9);
+        assertEquals(0.60, NoiseProfile.PACKED.threshold(), 1e-9);
+        assertEquals(0.92, NoiseProfile.SPARSE.threshold(), 1e-9);
         assertEquals(0.80, NoiseProfile.CLUSTER.threshold(), 1e-9);
     }
 
@@ -247,6 +250,7 @@ class NoiseProfileTest {
     void fromStringResolvesKnownNames() {
         assertSame(NoiseProfile.NATURAL, NoiseProfile.fromString("natural"));
         assertSame(NoiseProfile.DENSE, NoiseProfile.fromString("dense"));
+        assertSame(NoiseProfile.PACKED, NoiseProfile.fromString("packed"));
         assertSame(NoiseProfile.SPARSE, NoiseProfile.fromString("sparse"));
         assertSame(NoiseProfile.CLUSTER, NoiseProfile.fromString("cluster"));
         assertSame(NoiseProfile.NATURAL, NoiseProfile.fromString("NATURAL"),
