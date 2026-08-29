@@ -149,6 +149,8 @@ Noise placement is the default for every managed dimension: sets are sorted into
 
 ```json
 "structures": {
+  "wants": { "shipwreck": { "min": 0, "max": 256 } },
+  "shuns": { "monument": {} },
   "mode": "allow",
   "list": ["minecraft:villages", "adventure:exit_shrines"],
   "spacing": { "minecraft:villages": { "spacing": 24, "separation": 8 } },
@@ -157,14 +159,15 @@ Noise placement is the default for every managed dimension: sets are sorted into
 }
 ```
 
+- **`wants`** and **`shuns`** name structures by short name (`references/structure-names.md`). A want multiplies its pool weight by 1.2 and also bypasses the biome-affinity filter; a shun divides it by 1.5. Pool weights are carried at 15 units each (`NoisePoolBuilder.WEIGHT_RESOLUTION`), so both factors are exact integers at every weight down to 1 — a rounded 1.2 would discard the want on precisely the rare and endgame structures wants usually name. The scale is uniform, so no unfavoured structure's share of the draw moves. A shun never reaches zero: discouraging is not removing, and `exclude` is what removes. Naming a structure in both cancels (lint reports it), and a name resolving to a `#tag` is dropped by both. The same numbers drive the roller's scorecard, so what a roll searches for is what the world is more likely to make. Falls back to `seedRoll.wants`/`seedRoll.shuns` when the block names none.
 - **`mode`** filters the ORGANIC sets at the per-world calculator rebuild: `allow` keeps only sets in `list`, `reject` drops them, `none` drops every organic set. The exit-shrines opt-in precedes the filter. Unknown modes warn and disable the filter.
 - **`spacing`** maps structure SET ids to exact `{spacing, separation}` values, overriding the theme-based `structureDensity` factors for those sets. **Grid placement only** — a noise-managed set has no grid to space, so its group's `NoiseStructurePlacement` decides placement and the override is inapplicable. It applies to `adventure:exit_shrines`, to the pass-through sets, and to every set in a dimension whose noise plan is suppressed (void, superflat). Naming any other set WARNs at boot ([T51](../../TROUBLESHOOTING.md#t51)); the control for a noise-managed dimension is `structureDensity` and the per-group profile.
 - **`force`** places an exact STRUCTURE at exact block coordinates; the start lands in that block's chunk. Each entry becomes a synthetic single-structure set with a `customdimensions:fixed` placement (a `RandomSpreadStructurePlacement` subclass, so vanilla `/locate` finds it and density rescaling exempts it). Unknown structures (removed mods) warn and skip — never a boot break. Forced placements are additive after `mode`, so `"mode": "none"` + `force` = ONLY the forced structures.
   - The mod performs the start attempt itself (`ChunkGeneratorForcedStartMixin`), bypassing the structure's own biome gate and other mods' cancellable HEAD injects — all seven YUNG's structure mods cancel every vanilla start of the type they replace ([T25](../../TROUBLESHOOTING.md#t25)). Every other set keeps vanilla behaviour exactly, and forced structures still get terrain adaptation (beard/kernel).
   - **Out-of-biome forced structures generate but are NOT locatable** — `/locate` reads an index vanilla builds only for structures whose valid biomes intersect the biome source, and that index is untouched on purpose. Verify with `/customdim structure-census` and the boot log's `forced <structure> generated at chunk [x, z]` INFO line (a WARN when the structure's own generation rejects the position). One forced position per 32-chunk region is locatable; extras in the same region still generate (warned at boot).
 - **`endgame`** keeps end-game structures away from spawn (`safeRadius`) or bans them (`allow: false`).
-- `mode`, `spacing` and `force` are a RUNTIME rebuild — re-read every boot, newly generated chunks only — not creation-time worldgen.
-- Roller parity: filtered sets measure as absent, forced structures as constant distances (`structure_placement.forced_distance`/`mode_drops`); both fields join `generation_payload()` conditionally, so existing fingerprints stay byte-stable. The fork-config GUI does not expose these fields yet.
+- `wants`, `shuns`, `mode`, `spacing` and `force` are a RUNTIME rebuild — re-read every boot, newly generated chunks only — not creation-time worldgen.
+- Roller parity: filtered sets measure as absent, forced structures as constant distances (`structure_placement.forced_distance`/`mode_drops`). The fork-config GUI does not expose these fields yet.
 
 **Assignment.** Every noise-managed site has exactly one assigned structure (`StructurePick.assignedStructure`, a deterministic weighted selection from the group's pool). Only the assigned structure can start there, its biome predicate bypassed; a structural rejection leaves the site empty and is appended to the world save's own `customdimensions/census/rejections__<ns>__<slug>.json`. Vanilla `/locate` on a multi-structure set walks placements without knowing which structure occupies each site, so `structure-census` and `/customdim occupant` are the sanctioned instruments for "where is structure X" and "what occupies this chunk".
 
@@ -180,7 +183,7 @@ Noise placement is the default for every managed dimension: sets are sorted into
 }
 ```
 
-`mobMultiplier` scales hostile mobs only at spawn, as attribute modifiers persisted in NBT (`0` = effectively peaceful); `attributes` booleans choose WHICH attributes it touches (default health + damage). `playerLuck` is a flat luck bonus applied on join and world change, boosting loot quality inside the dimension. `depthScaling` ramps the multiplier from `minMultiplier` at `startY` to `maxMultiplier` at `endY`. Peaceful dimensions drop dungeon-theme structure sets automatically.
+`mobMultiplier` scales hostile mobs only at spawn, as attribute modifiers persisted in NBT (`0` = effectively peaceful); `attributes` booleans choose WHICH attributes it touches (default health + damage). `playerLuck` is a flat luck bonus applied on join and world change, boosting loot quality inside the dimension. `depthScaling` ramps the multiplier from `minMultiplier` at `startY` to `maxMultiplier` at `endY`. Peaceful dimensions drop dungeon-theme structure sets automatically on the GRID path; a noise-managed dimension takes `NoiseGroupPlan`'s `mobMultiplier` shift instead, which a per-group `structures.noise` entry outranks.
 
 ### Exits
 

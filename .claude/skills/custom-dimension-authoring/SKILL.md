@@ -14,7 +14,7 @@ This skill has five reference files. **You must read ALL of them before writing 
 | File | What it contains | Why you need it |
 | --- | --- | --- |
 | `references/schema-reference.md` | Full field-by-field JSON schema, every key's type, timing (creation-time vs boot-re-read), and valid values | Know what you can write |
-| `references/scoring-internals.md` | Mood weight tables, placement bands, difficulty derivation, seed-group fingerprinting | Know how the roller will judge your config |
+| `references/scoring-internals.md` | Mood weight tables, placement bands, difficulty derivation, seed-bank keying | Know how the roller will judge your config |
 | `references/structure-names.md` | All 130+ valid structure short names, grouped by theme | Pick the right structures without inventing names |
 | `references/biome-catalogue.md` | Every installed biome id grouped by family (overworld/nether/end/paradise_lost) and namespace — **the only biome ids that will actually work** | Pick biomes that exist and belong to the right family |
 | `references/portals-and-exits.md` | Aura policy, immersive portals, exit portals and shrines, single-use and anchored portals, exit conditions | Get a player in and back out again |
@@ -384,7 +384,7 @@ Two things to hold in mind when tuning them:
 6. **`color` is 6-digit hex, no `#`**: `"88CCFF"`, not `"#88CCFF"`.
 7. **`lightLevel` is 0-15** (most use `11`). **`cooldown` is in ticks** (20/sec, default `40`=2s).
 8. **Tag-only `frameBlock`** needs explicit `framePlaceBlock` or it falls back to obsidian silently.
-9. **Peaceful dims auto-drop dungeon-theme structures** — don't `want` hostile structures in a peaceful dimension.
+9. **Peaceful dims drop dungeon-theme structures on the GRID PATH ONLY.** `DimensionStructures.transformed()` returns `transformedNoise()` before reaching that drop, so a noise-managed dimension (almost all of them) is shaped instead by `NoiseGroupPlan`'s `mobMultiplier` shift — which an explicit `structures.noise.{"dungeons": ...}` outranks. A hostile want in a peaceful noise dimension is therefore live config, not dead; `the_luminous_caverns` is the shipped example.
 10. **Don't mix biome families** — a void dim with overworld AND end biomes confuses the roller (it can't pick a family for noise sampling). Stick to one family per dimension.
 11. **`type: "overworld"` uses ALL biomes**, not just the ones in your `biomes` list. Your list only affects roller scoring. Use `multi_biome` for a curated biome selection.
 12. **Don't change `portal.scale` on existing dimensions** — it shifts all portal coordinates and can strand players. Treat it as effectively permanent after first play.

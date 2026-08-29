@@ -115,7 +115,7 @@ Each dimension file in `config/custom-dimensions/dimensions/<slug>.json` accepts
 ```
 
 - `noiseSettings`: `adventure:wide` (broad realistic relief) or `adventure:compressed` (tight dramatic relief). Unset keeps the type's default generator. Ignored for void/superflat.
-- `structureDensity`: `dense` | `normal` | `sparse` | `none`. Theme-aware: dense boosts dungeons+loot ~2×, sparse halves them. Peaceful dims (`hostileSpawning: false`) auto-drop dungeon-theme sets.
+- `structureDensity`: `dense` | `normal` | `sparse` | `none`. Theme-aware: dense boosts dungeons+loot ~2×, sparse halves them. Peaceful dims (`hostileSpawning: false`) drop dungeon-theme sets on the GRID path only; a noise-managed dimension takes `NoiseGroupPlan`'s `mobMultiplier` shift instead, which a per-group `structures.noise` entry outranks.
 
 ### Terrain-adaptation kernels — family verification
 
