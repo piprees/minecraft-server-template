@@ -16,12 +16,18 @@ Context:  An equal-width partition of the theoretical -2..2 axis is wrong for
           is ground truth; `axes` is a per-(type, noiseSettings) fallback,
           measured on ONE representative, so it is indicative only.
 
-Usage:    scripts/check-band-reach.py            # exits 1 on any dead band
+Usage:    scripts/check-band-reach.py            # exits 1 on a MEASURED dead band
           scripts/check-band-reach.py --warn     # never exits non-zero
+          scripts/check-band-reach.py --strict   # also exit 1 on indicative ones
 
 Gotchas:  - 11 samples on one diagonal UNDERSTATE the true range, so a band
             marginally outside it may still be live. A band is only reported
             when it misses by more than MARGIN.
+          - A verdict from a type REPRESENTATIVE is indicative, never proof:
+            span scales with radius, so a dimension at a larger border than
+            its representative has a wider real range and a band outside the
+            representative may still be live. Those are reported but do not
+            fail the run without --strict.
           - A dimension with no measurement is skipped, not guessed at.
           - Gaps between bands are NOT a fault: that is where native biomes
             live, and check-biome-bands.py already guards the opposite case.
@@ -62,8 +68,10 @@ def measured_range(table, slug, dim_type, noise_settings, axis):
 
 def main():
     warn_only = "--warn" in sys.argv
+    strict = "--strict" in sys.argv
     table = json.loads(AXES.read_text())
-    dead = 0
+    dead_measured = 0
+    dead_indicative = 0
     checked = 0
     skipped = []
 
@@ -93,20 +101,29 @@ def main():
                 band = raw if isinstance(raw, list) else [raw, raw]
                 checked += 1
                 if band[1] < lo - MARGIN or band[0] > hi + MARGIN:
-                    dead += 1
+                    if source == "own border":
+                        dead_measured += 1
+                        verdict = "cannot generate"
+                    else:
+                        dead_indicative += 1
+                        verdict = "likely cannot generate — INDICATIVE, measure it"
                     print(
                         f"{slug}: {biome_id} banded {name} "
                         f"[{band[0]:+.3f}, {band[1]:+.3f}] but the world spans "
-                        f"[{lo:+.3f}, {hi:+.3f}] ({source}) — it cannot generate"
+                        f"[{lo:+.3f}, {hi:+.3f}] ({source}) — {verdict}"
                     )
 
-    print(f"\nchecked {checked} band(s); {dead} cannot generate")
+    print(f"\nchecked {checked} band(s)")
+    print(f"  {dead_measured} cannot generate (measured at the dimension's own border)")
+    print(f"  {dead_indicative} likely cannot generate (indicative, from a type representative)")
     if skipped:
         uniq = sorted(set(skipped))
         print(f"no measurement for {len(uniq)} dimension/axis pair(s) — skipped, not guessed")
         for s in uniq[:10]:
             print(f"  {s}")
-    if dead and not warn_only:
+    if warn_only:
+        return 0
+    if dead_measured or (strict and dead_indicative):
         return 1
     return 0
 

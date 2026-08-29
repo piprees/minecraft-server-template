@@ -6,7 +6,8 @@
   "One representative per combination, not per dimension. Treat a row as the STARTING POINT and measure your own dimension before relying on it: the_crumbling_reaches (end, border 2048) measures weirdness 1.099 / continentalness 0.895, the reverse of the end row's representative.",
   "Rank by distribution, not span. adventure:void gives weirdness a span of 2.000 across just THREE distinct values (7 of 11 samples pinned at -0.50) - the widest span and the worst axis.",
   "overworld, checkerboard and superflat answer 'Not a MultiNoiseBiomeSource' and have no climate point to band on.",
-  "perDimension entries are measured at that dimension's OWN borders.player and are ground truth for it; the `axes` list above is a per-(type, noiseSettings) fallback for a dimension not measured directly."
+  "perDimension entries are measured at that dimension's OWN borders.player and are ground truth for it; the `axes` list above is a per-(type, noiseSettings) fallback for a dimension not measured directly.",
+  "axes[].all now carries min/max from the representative's own samples, so check-band-reach.py can give an INDICATIVE verdict for a dimension with no per-dimension measurement. Indicative only: span scales with radius, and the representative may sit at a different border."
  ],
  "regenerate": "Load each representative with `customdim load <slug>`, then sample; see .handoff/ for the harness used.",
  "axes": [
@@ -22,23 +23,33 @@
    "all": {
     "temp": {
      "span": 1.378,
-     "distinct": 11
+     "distinct": 11,
+     "min": -0.804,
+     "max": 0.575
     },
     "cont": {
      "span": 1.244,
-     "distinct": 11
+     "distinct": 11,
+     "min": -0.401,
+     "max": 0.844
     },
     "weird": {
      "span": 1.077,
-     "distinct": 11
+     "distinct": 11,
+     "min": -0.394,
+     "max": 0.683
     },
     "humid": {
      "span": 1.017,
-     "distinct": 10
+     "distinct": 10,
+     "min": -0.662,
+     "max": 0.355
     },
     "eros": {
      "span": 0.778,
-     "distinct": 11
+     "distinct": 11,
+     "min": -0.558,
+     "max": 0.221
     }
    }
   },
@@ -54,23 +65,33 @@
    "all": {
     "temp": {
      "span": 1.066,
-     "distinct": 11
+     "distinct": 11,
+     "min": -0.504,
+     "max": 0.561
     },
     "humid": {
      "span": 0.764,
-     "distinct": 11
+     "distinct": 11,
+     "min": -0.332,
+     "max": 0.432
     },
     "weird": {
      "span": 0.0,
-     "distinct": 1
+     "distinct": 1,
+     "min": 0.0,
+     "max": 0.0
     },
     "eros": {
      "span": 0.0,
-     "distinct": 1
+     "distinct": 1,
+     "min": 0.0,
+     "max": 0.0
     },
     "cont": {
      "span": 0.0,
-     "distinct": 1
+     "distinct": 1,
+     "min": 0.0,
+     "max": 0.0
     }
    }
   },
@@ -86,23 +107,33 @@
    "all": {
     "cont": {
      "span": 1.113,
-     "distinct": 11
+     "distinct": 11,
+     "min": -0.386,
+     "max": 0.727
     },
     "weird": {
      "span": 0.933,
-     "distinct": 11
+     "distinct": 11,
+     "min": -0.419,
+     "max": 0.514
     },
     "eros": {
      "span": 0.826,
-     "distinct": 11
+     "distinct": 11,
+     "min": -0.539,
+     "max": 0.287
     },
     "temp": {
      "span": 0.615,
-     "distinct": 11
+     "distinct": 11,
+     "min": -0.361,
+     "max": 0.255
     },
     "humid": {
      "span": 0.381,
-     "distinct": 11
+     "distinct": 11,
+     "min": -0.013,
+     "max": 0.367
     }
    }
   },
@@ -118,23 +149,33 @@
    "all": {
     "cont": {
      "span": 1.139,
-     "distinct": 11
+     "distinct": 11,
+     "min": -0.792,
+     "max": 0.347
     },
     "weird": {
      "span": 0.87,
-     "distinct": 11
+     "distinct": 11,
+     "min": -0.377,
+     "max": 0.493
     },
     "humid": {
      "span": 0.806,
-     "distinct": 11
+     "distinct": 11,
+     "min": -0.307,
+     "max": 0.499
     },
     "eros": {
      "span": 0.316,
-     "distinct": 11
+     "distinct": 11,
+     "min": -0.011,
+     "max": 0.305
     },
     "temp": {
      "span": 0.215,
-     "distinct": 11
+     "distinct": 11,
+     "min": -0.044,
+     "max": 0.172
     }
    }
   },
@@ -150,23 +191,33 @@
    "all": {
     "weird": {
      "span": 1.772,
-     "distinct": 11
+     "distinct": 11,
+     "min": -0.772,
+     "max": 1.0
     },
     "temp": {
      "span": 1.287,
-     "distinct": 11
+     "distinct": 11,
+     "min": -0.686,
+     "max": 0.601
     },
     "humid": {
      "span": 1.094,
-     "distinct": 11
+     "distinct": 11,
+     "min": -0.709,
+     "max": 0.385
     },
     "cont": {
      "span": 1.019,
-     "distinct": 10
+     "distinct": 10,
+     "min": -0.494,
+     "max": 0.525
     },
     "eros": {
      "span": 1.05,
-     "distinct": 8
+     "distinct": 8,
+     "min": -0.55,
+     "max": 0.5
     }
    }
   },
@@ -182,23 +233,33 @@
    "all": {
     "weird": {
      "span": 1.316,
-     "distinct": 11
+     "distinct": 11,
+     "min": -0.678,
+     "max": 0.638
     },
     "humid": {
      "span": 1.206,
-     "distinct": 11
+     "distinct": 11,
+     "min": -0.536,
+     "max": 0.669
     },
     "cont": {
      "span": 0.867,
-     "distinct": 11
+     "distinct": 11,
+     "min": -0.688,
+     "max": 0.179
     },
     "temp": {
      "span": 0.674,
-     "distinct": 11
+     "distinct": 11,
+     "min": -0.664,
+     "max": 0.009
     },
     "eros": {
      "span": 0.957,
-     "distinct": 7
+     "distinct": 7,
+     "min": -0.55,
+     "max": 0.407
     }
    }
   },
@@ -214,23 +275,33 @@
    "all": {
     "eros": {
      "span": 1.3,
-     "distinct": 11
+     "distinct": 11,
+     "min": -1.0,
+     "max": 0.3
     },
     "weird": {
      "span": 1.5,
-     "distinct": 8
+     "distinct": 8,
+     "min": -0.5,
+     "max": 1.0
     },
     "humid": {
      "span": 1.014,
-     "distinct": 11
+     "distinct": 11,
+     "min": -0.645,
+     "max": 0.368
     },
     "cont": {
      "span": 0.909,
-     "distinct": 8
+     "distinct": 8,
+     "min": -0.384,
+     "max": 0.525
     },
     "temp": {
      "span": 0.291,
-     "distinct": 11
+     "distinct": 11,
+     "min": -0.589,
+     "max": -0.298
     }
    }
   },
@@ -246,23 +317,33 @@
    "all": {
     "temp": {
      "span": 1.126,
-     "distinct": 11
+     "distinct": 11,
+     "min": -0.427,
+     "max": 0.699
     },
     "weird": {
      "span": 0.862,
-     "distinct": 11
+     "distinct": 11,
+     "min": -0.339,
+     "max": 0.523
     },
     "eros": {
      "span": 0.756,
-     "distinct": 11
+     "distinct": 11,
+     "min": -0.155,
+     "max": 0.601
     },
     "cont": {
      "span": 0.662,
-     "distinct": 11
+     "distinct": 11,
+     "min": -0.399,
+     "max": 0.263
     },
     "humid": {
      "span": 0.405,
-     "distinct": 11
+     "distinct": 11,
+     "min": -0.197,
+     "max": 0.208
     }
    }
   },
@@ -278,23 +359,33 @@
    "all": {
     "eros": {
      "span": 1.136,
-     "distinct": 11
+     "distinct": 11,
+     "min": -0.519,
+     "max": 0.617
     },
     "cont": {
      "span": 0.956,
-     "distinct": 11
+     "distinct": 11,
+     "min": -0.291,
+     "max": 0.665
     },
     "weird": {
      "span": 0.944,
-     "distinct": 11
+     "distinct": 11,
+     "min": -0.579,
+     "max": 0.365
     },
     "humid": {
      "span": 0.449,
-     "distinct": 11
+     "distinct": 11,
+     "min": -0.015,
+     "max": 0.434
     },
     "temp": {
      "span": 0.418,
-     "distinct": 11
+     "distinct": 11,
+     "min": -0.528,
+     "max": -0.11
     }
    }
   },
@@ -310,23 +401,33 @@
    "all": {
     "temp": {
      "span": 1.654,
-     "distinct": 11
+     "distinct": 11,
+     "min": -0.797,
+     "max": 0.858
     },
     "weird": {
      "span": 1.345,
-     "distinct": 9
+     "distinct": 9,
+     "min": -0.5,
+     "max": 0.845
     },
     "humid": {
      "span": 0.897,
-     "distinct": 11
+     "distinct": 11,
+     "min": -0.365,
+     "max": 0.532
     },
     "eros": {
      "span": 1.3,
-     "distinct": 6
+     "distinct": 6,
+     "min": -1.0,
+     "max": 0.3
     },
     "cont": {
      "span": 0.771,
-     "distinct": 10
+     "distinct": 10,
+     "min": -0.246,
+     "max": 0.525
     }
    }
   },
@@ -342,23 +443,33 @@
    "all": {
     "temp": {
      "span": 1.277,
-     "distinct": 11
+     "distinct": 11,
+     "min": -0.518,
+     "max": 0.759
     },
     "cont": {
      "span": 1.186,
-     "distinct": 11
+     "distinct": 11,
+     "min": -0.833,
+     "max": 0.353
     },
     "eros": {
      "span": 0.869,
-     "distinct": 11
+     "distinct": 11,
+     "min": -0.28,
+     "max": 0.588
     },
     "weird": {
      "span": 0.508,
-     "distinct": 11
+     "distinct": 11,
+     "min": -0.219,
+     "max": 0.289
     },
     "humid": {
      "span": 0.463,
-     "distinct": 11
+     "distinct": 11,
+     "min": -0.276,
+     "max": 0.186
     }
    }
   },
@@ -374,23 +485,33 @@
    "all": {
     "cont": {
      "span": 1.291,
-     "distinct": 11
+     "distinct": 11,
+     "min": -0.846,
+     "max": 0.445
     },
     "temp": {
      "span": 0.99,
-     "distinct": 11
+     "distinct": 11,
+     "min": -0.144,
+     "max": 0.845
     },
     "weird": {
      "span": 0.976,
-     "distinct": 11
+     "distinct": 11,
+     "min": -0.497,
+     "max": 0.478
     },
     "eros": {
      "span": 0.897,
-     "distinct": 11
+     "distinct": 11,
+     "min": -0.424,
+     "max": 0.473
     },
     "humid": {
      "span": 0.733,
-     "distinct": 11
+     "distinct": 11,
+     "min": -0.317,
+     "max": 0.415
     }
    }
   },
@@ -406,23 +527,33 @@
    "all": {
     "weird": {
      "span": 1.055,
-     "distinct": 11
+     "distinct": 11,
+     "min": -0.335,
+     "max": 0.72
     },
     "eros": {
      "span": 0.535,
-     "distinct": 11
+     "distinct": 11,
+     "min": -0.047,
+     "max": 0.487
     },
     "temp": {
      "span": 0.432,
-     "distinct": 11
+     "distinct": 11,
+     "min": 0.214,
+     "max": 0.647
     },
     "cont": {
      "span": 0.408,
-     "distinct": 11
+     "distinct": 11,
+     "min": -0.728,
+     "max": -0.32
     },
     "humid": {
      "span": 0.178,
-     "distinct": 11
+     "distinct": 11,
+     "min": -0.231,
+     "max": -0.053
     }
    }
   },
@@ -438,23 +569,33 @@
    "all": {
     "eros": {
      "span": 0.909,
-     "distinct": 8
+     "distinct": 8,
+     "min": -1.0,
+     "max": -0.091
     },
     "cont": {
      "span": 0.657,
-     "distinct": 11
+     "distinct": 11,
+     "min": -0.287,
+     "max": 0.37
     },
     "weird": {
      "span": 2.0,
-     "distinct": 3
+     "distinct": 3,
+     "min": -1.0,
+     "max": 1.0
     },
     "humid": {
      "span": 0.511,
-     "distinct": 11
+     "distinct": 11,
+     "min": -0.645,
+     "max": -0.135
     },
     "temp": {
      "span": 0.151,
-     "distinct": 11
+     "distinct": 11,
+     "min": -0.356,
+     "max": -0.206
     }
    }
   }
