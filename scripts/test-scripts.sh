@@ -139,6 +139,16 @@ else
   warn "uNmINeD block tags are stale (new mod blocks would render pink) — run ./scripts/gen-unmined-blocktags.py"
 fi
 
+echo "  Checking biome bands reach their world's climate..."
+# A band outside the range a world's climate crosses is a biome that cannot
+# generate. check-biome-bands.py tests overlap and starved natives, which is a
+# different question; both faults are silent in game.
+if python3 ./scripts/check-band-reach.py > /dev/null 2>&1; then
+  echo "  ✓ Every explicit biome band reaches its world"
+else
+  warn "A biome band sits outside its world's climate range — run ./scripts/check-band-reach.py"
+fi
+
 echo "  Checking Modrinth resolve cache covers every pin..."
 # defaults-seed bakes config/modrinth-resolve-cache.json in and resolves pins
 # from it with zero Modrinth calls. A pin with no entry is resolved live at
