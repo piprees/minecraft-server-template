@@ -51,6 +51,7 @@ Run this first. It covers deploy drift, disk, every expected container, `ONLINE_
 | Which structures can spawn where disagrees with the jars | [T49](#t49) |
 | A probe returns nothing, or the same value everywhere | [T50](#t50) |
 | Structure spacing arithmetic disagrees with the world | [T51](#t51) |
+| The same few structures repeat endlessly in one dimension | [T52](#t52) |
 | Config or mod changes didn't take effect after a deploy | [T2](#t2) |
 | `signal only works in main thread` in discord-sync logs | [T3](#t3) |
 | mc crash-loops with Modrinth `429 Too Many Requests` | [T4](#t4) |
@@ -398,6 +399,30 @@ A world regenerates with the old terrain after a reset that set a new seed, or t
   biomes off the biome grid, which is fluid-independent.
 - **Creation-time.** `settingsOverrides` is in the generation fingerprint
   ([D2](#d2)), so this needs a world wipe and a re-roll.
+
+<a id="t52"></a>
+### T52 — Site count is decoupled from pool variety (ANTI-PATTERN)
+
+- **Symptom:** a dimension generates enormous numbers of structure sites and a
+  player meets the same handful of structures over and over. Measured on
+  `the_end_citadel`: 7 biomes, **42 structures able to generate there**, **62,556
+  sites** — roughly **1,489 copies of each structure**, and worse than that in
+  practice because the weighted draw favours the common rarity tiers.
+- **Cause:** site count is derived from the noise profile and the dimension's
+  border area alone. **The pool never enters the calculation.** A dimension with
+  42 available structures gets the same site count as one with 400.
+- **This is an anti-pattern, not a tuning question.** Reducing a profile's
+  admitted fraction does not fix it: cutting `dense` from 59% to 15% of chunks
+  still leaves ~380 copies of each structure in that dimension.
+- **The rule:** `targetSites ~= poolSize x repetitionBudget(profile)`, with the
+  exclusion radius SOLVED for that target rather than set as a constant. Any
+  density model that does not read the pool size is wrong by construction.
+- **Do not** treat it by shrinking `borders.player`. That is the symptom, costs
+  the dimension the space it was given on purpose, and leaves the decoupling in
+  place for every other dimension.
+- **Do not** let a doc rationalise it. `docs/mod-internals/worldgen-structures.md`
+  defended the 62,556 figure as an accepted performance cost by comparing it
+  against a hypothetical stacked grid nobody would ship.
 
 <a id="t51"></a>
 ### T51 — Structure placement is noise-managed, not a grid; grid arithmetic describes nothing
