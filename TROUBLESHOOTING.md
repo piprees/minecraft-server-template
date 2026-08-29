@@ -581,9 +581,18 @@ A world regenerates with the old terrain after a reset that set a new seed, or t
   admitted fraction does not fix it; it scales every dimension by the same factor
   and leaves the 42-structure dimension and the 353-structure dimension with the
   same site count.
-- **The rule:** `targetSites ~= poolSize x repetitionBudget(profile)`, with the
-  exclusion radius SOLVED for that target rather than set as a constant. Any
-  density model that does not read the pool size is wrong by construction.
+- **The rule, and it is a CEILING not a target:**
+  `maxSites = poolSize x REPETITION_CEILING`, per GROUP, with the exclusion
+  radius solved for it over a few corrective rebuilds. Any density model that
+  does not read the pool size is wrong by construction.
+- **Read as a TARGET the rule is actively harmful.** Most dimensions already
+  sit well under any budget, so a target inflates them — one 512-radius
+  dimension would go from 36 sites to 1512. `NoiseStructurePlacement.forGroup`
+  only ever raises exclusion, so it can only remove sites.
+- **Observed copies land above the ceiling**, because the target counts the
+  POOL and only about half a pool typically places. Low cover — a dimension
+  naming far more structures than ever appear — is a SEPARATE defect and must
+  not be fixed by loosening this.
 - **Do not** treat it by shrinking `borders.player` — that is the symptom, costs
   the dimension the space it was given on purpose, and leaves every other
   dimension decoupled.
