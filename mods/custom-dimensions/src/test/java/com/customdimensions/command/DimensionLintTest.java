@@ -5,7 +5,9 @@ import com.google.gson.Gson;
 import net.minecraft.util.Identifier;
 import org.junit.jupiter.api.Test;
 
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -17,8 +19,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * carries a fix and a valid severity. Most checks need a live {@code
  * MinecraftServer} (the structure and biome registries) and cannot run
  * here — {@link #checkRadialCurves} reads config alone, and {@link
- * #unknownSuppressedIds} takes the registry lookup as a predicate, so both
- * run against plain data. Lint's overall runtime and the registry-backed
+ * #unknownSuppressedIds} takes the registry lookup as a predicate, and {@link
+ * #checkPoolFloor} decides on counts alone, so all three run against plain
+ * data. Lint's overall runtime and the registry-backed
  * checks (want/pool cross-checks, suppress-list resolution) need a running
  * server and are exercised by {@code /customdim lint} against one instead.
  */
@@ -134,5 +137,56 @@ class DimensionLintTest {
     void blankAndNullEntriesAreSkippedRatherThanFlagged() {
         List<String> suppressed = java.util.Arrays.asList("", "   ", null, "minecraft:village_plains");
         assertEquals(List.of(), DimensionLint.unknownSuppressedIds(suppressed, KNOWN_VILLAGE_PLAINS));
+    }
+
+    private static Map<String, Integer> groups(Object... pairs) {
+        Map<String, Integer> out = new LinkedHashMap<>();
+        for (int i = 0; i < pairs.length; i += 2) {
+            out.put((String) pairs[i], (Integer) pairs[i + 1]);
+        }
+        return out;
+    }
+
+    @Test
+    void aGroupAtOrAboveTheFloorProducesNoFindings() {
+        assertEquals(List.of(), DimensionLint.checkPoolFloor("the_catalyst_maw",
+                groups("deco", DimensionLint.POOL_FLOOR, "loot", 22)));
+    }
+
+    @Test
+    void aThinGroupIsAnErrorNamingTheGroupAndItsSize() {
+        List<DimensionLint.Finding> findings = DimensionLint.checkPoolFloor(
+                "the_blossom_gardens", groups("maritime", 1, "deco", 18));
+        assertEquals(1, findings.size());
+        DimensionLint.Finding f = findings.get(0);
+        assertEquals("pool_below_floor", f.check());
+        assertEquals(DimensionLint.ERROR, f.severity());
+        assertEquals("maritime", f.subject());
+        assertTrue(f.message().contains("the_blossom_gardens"), f.message());
+        assertTrue(f.message().contains("maritime"), f.message());
+        assertTrue(f.message().contains("only 1 structure"), f.message());
+        assertEveryFindingIsActionable(findings);
+    }
+
+    @Test
+    void anEmptyGroupIsReportedAsZero() {
+        List<DimensionLint.Finding> findings =
+                DimensionLint.checkPoolFloor("the_test", groups("dungeons", null));
+        assertEquals(1, findings.size());
+        assertTrue(findings.get(0).message().contains("only 0 structure"),
+                findings.get(0).message());
+        assertEveryFindingIsActionable(findings);
+    }
+
+    @Test
+    void reservedDimensionsAreNotExempt() {
+        for (String reserved : List.of("overworld", "the_nether", "the_end", "paradise_lost")) {
+            List<DimensionLint.Finding> findings =
+                    DimensionLint.checkPoolFloor(reserved, groups("dungeons", 2));
+            assertEquals(1, findings.size(), reserved + " was skipped");
+            assertEquals(DimensionLint.ERROR, findings.get(0).severity());
+            assertEquals(reserved, findings.get(0).dimension());
+            assertEveryFindingIsActionable(findings);
+        }
     }
 }

@@ -5,6 +5,7 @@ import com.customdimensions.config.MultiverseConfig;
 import com.customdimensions.dimension.NoiseGroupPlan;
 import com.customdimensions.dimension.NoisePoolBuilder;
 import com.customdimensions.dimension.StructureAliases;
+import com.customdimensions.dimension.StructurePick;
 import com.customdimensions.dimension.StructureWants;
 import net.minecraft.registry.Registry;
 import net.minecraft.registry.RegistryKey;
@@ -42,6 +43,13 @@ public final class DimensionLint {
     public static final String ERROR = "error";
     public static final String WARN = "warn";
     public static final String INFO = "info";
+
+    /**
+     * Fewest distinct structures an active noise group may hold. Site count
+     * is capped at the pool's distinct structures, so a thinner pool leaves
+     * the group's biomes near-empty however the noise is tuned.
+     */
+    static final int POOL_FLOOR = 5;
 
     /**
      * One fault. {@code subject} is whatever the finding is about — a want
@@ -103,6 +111,7 @@ public final class DimensionLint {
 
         out.addAll(checkBiomes(server, def, biomeSource));
         out.addAll(checkWants(server, def, biomeSource));
+        out.addAll(checkPools(server, def, biomeSource));
         out.addAll(checkForced(server, def));
         out.addAll(checkRadialCurves(def));
         out.addAll(checkPortalBlocks(def));
@@ -366,6 +375,75 @@ public final class DimensionLint {
             if (f != null && f.structure != null) {
                 out.add(f.structure);
             }
+        }
+        return out;
+    }
+
+    // ----------------------------------------------------------------- pools
+
+    /**
+     * Every active noise group's pool, counted the way placement counts it.
+     * The build is the one generation performs — include and wants bypasses
+     * applied — so the count is what the site cap will actually see.
+     */
+    private static List<Finding> checkPools(MinecraftServer server, DimensionConfig def,
+                                            BiomeSource biomeSource) {
+        NoiseGroupPlan plan = NoiseGroupPlan.resolve(def);
+        if (plan.isSuppressed()) {
+            return List.of();
+        }
+        DimensionConfig.Structures block = def.getStructures();
+        Set<String> exclude = new java.util.HashSet<>(NoisePoolBuilder.lowerSet(
+                block == null ? null : block.exclude));
+        exclude.addAll(NoisePoolBuilder.lowerSet(
+                MultiverseConfig.getInstance().getSuppressedStructureSets()));
+
+        List<RegistryEntry<StructureSet>> sets = new ArrayList<>();
+        for (var entry : server.getRegistryManager()
+                .get(RegistryKeys.STRUCTURE_SET).getIndexedEntries()) {
+            sets.add(entry);
+        }
+        NoisePoolBuilder.Result pools = NoisePoolBuilder.build(def, sets, biomeSource, plan,
+                exclude, null, NoisePoolBuilder.wantedStructureIds(def));
+
+        Map<String, Integer> distinct = new LinkedHashMap<>();
+        for (String group : plan.groups().keySet()) {
+            distinct.put(group, 0);
+        }
+        pools.pools().forEach((group, pool) -> distinct.put(
+                group, StructurePick.distinctStructures(pickEntries(pool))));
+        return checkPoolFloor(def.getName(), distinct);
+    }
+
+    /** A group's entries as pick entries, so the count is placement's count. */
+    private static List<StructurePick.PoolEntry> pickEntries(NoisePoolBuilder.Pool pool) {
+        List<StructurePick.PoolEntry> out = new ArrayList<>();
+        for (StructureSet.WeightedEntry weighted : pool.entries()) {
+            weighted.structure().getKey().ifPresent(k -> out.add(
+                    new StructurePick.PoolEntry(k.getValue().toString(), weighted.weight())));
+        }
+        return out;
+    }
+
+    /**
+     * A group below {@link #POOL_FLOOR} is a content fault: the dimension
+     * ships with biomes nothing reaches. Pure over the counts so it is
+     * testable without a registry; {@link #checkPools} supplies them.
+     */
+    static List<Finding> checkPoolFloor(String dimension, Map<String, Integer> distinctByGroup) {
+        List<Finding> out = new ArrayList<>();
+        for (Map.Entry<String, Integer> e : distinctByGroup.entrySet()) {
+            int size = e.getValue() == null ? 0 : e.getValue();
+            if (size >= POOL_FLOOR) {
+                continue;
+            }
+            out.add(new Finding(dimension, ERROR, "pool_below_floor", e.getKey(),
+                    "dimension " + dimension + " group " + e.getKey() + ": pool holds only "
+                    + size + " structure(s), below the floor of " + POOL_FLOOR
+                    + " — too few structures reach this dimension's biomes, and the group's "
+                    + "site count is capped at what its pool holds",
+                    "add them with structures.include, or name biomes more structures "
+                    + "declare"));
         }
         return out;
     }
