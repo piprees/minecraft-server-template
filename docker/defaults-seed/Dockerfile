@@ -62,6 +62,7 @@ COPY config/essentialcommands/         /defaults/config/essentialcommands/
 COPY config/starterkit/                /defaults/config/starterkit/
 COPY config/servercore/                /defaults/config/servercore/
 COPY config/bountiful/                 /defaults/config/bountiful/
+COPY config/towns_and_towers/          /defaults/config/towns_and_towers/
 
 COPY docker/defaults-seed/seed.sh /seed.sh
 COPY docker/defaults-seed/resolve-mods.py /resolve-mods.py
