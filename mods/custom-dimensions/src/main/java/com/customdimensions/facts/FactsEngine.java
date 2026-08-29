@@ -1044,12 +1044,10 @@ public final class FactsEngine {
             }
             List<StructurePick.PoolEntry> sorted = StructurePick.sortedPool(pickPool);
 
-            NoiseStructurePlacement placement = new NoiseStructurePlacement(
+            NoiseStructurePlacement placement = NoiseStructurePlacement.forGroup(
                     group, noiseSeed, settings.profile(), settings.exclusion(),
-                    settings.radial(), radiusChunks, 0, 0, settings.clearSpawnChunks(),
-                    com.customdimensions.dimension.StructureFootprints.forPool(noiseSeed, sorted),
-                    com.customdimensions.dimension.StructureFootprints.occupantsFor(
-                            noiseSeed, sorted, structureBiomeSource, structureClimate));
+                    settings.radial(), radiusChunks, settings.clearSpawnChunks(),
+                    sorted, structureBiomeSource, structureClimate);
 
             int count = 0;
             List<long[]> groupPositions = new ArrayList<>();

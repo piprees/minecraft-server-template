@@ -109,6 +109,53 @@ public class NoiseStructurePlacement extends RandomSpreadStructurePlacement {
                 radiusChunks, spawnChunkX, spawnChunkZ, clearSpawnChunks, footprints, occupants));
     }
 
+    /**
+     * The one way all three field builders construct a group's placement:
+     * the live world, the seed roller's render and the scorer. Separate call
+     * sites drifted apart three times.
+     *
+     * <p>Site count is solved against the pool: a group holding two structures
+     * must not get the site budget of one holding two hundred (T52). Count
+     * scales as 1/exclusion^2, so one corrective rebuild lands close.
+     */
+    public static NoiseStructurePlacement forGroup(
+            String group, long noiseSeed, NoiseProfile profile, int exclusion,
+            double[] radial, int radiusChunks, int clearSpawnChunks,
+            java.util.List<StructurePick.PoolEntry> sortedPool,
+            net.minecraft.world.biome.source.BiomeSource biomeSource,
+            net.minecraft.world.gen.noise.NoiseConfig noiseConfig) {
+
+        NoiseFieldIndex.Footprints footprints =
+                StructureFootprints.forPool(noiseSeed, sortedPool);
+        NoiseFieldIndex.Occupants occupants =
+                StructureFootprints.occupantsFor(noiseSeed, sortedPool, biomeSource, noiseConfig);
+
+        NoiseStructurePlacement placement = new NoiseStructurePlacement(
+                group, noiseSeed, profile, exclusion, radial, radiusChunks, 0, 0,
+                clearSpawnChunks, footprints, occupants);
+
+        int poolSize = sortedPool == null ? 0 : sortedPool.size();
+        int target = poolSize * profile.repetitionBudget();
+        if (target <= 0) {
+            return placement;
+        }
+        int current = exclusion;
+        for (int pass = 0; pass < TARGET_PASSES && placement.index().size() > target; pass++) {
+            int corrected = (int) Math.ceil(
+                    current * Math.sqrt(placement.index().size() / (double) target));
+            if (corrected <= current) {
+                break;
+            }
+            current = corrected;
+            placement = new NoiseStructurePlacement(group, noiseSeed, profile, current, radial,
+                    radiusChunks, 0, 0, clearSpawnChunks, footprints, occupants);
+        }
+        return placement;
+    }
+
+    /** Corrective rebuilds allowed when solving exclusion for the site target. */
+    private static final int TARGET_PASSES = 4;
+
     @Override
     public ChunkPos getStartChunk(long seed, int chunkX, int chunkZ) {
         return index.startFor(chunkX, chunkZ);

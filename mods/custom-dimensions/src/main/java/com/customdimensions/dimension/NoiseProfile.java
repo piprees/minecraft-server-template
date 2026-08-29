@@ -56,6 +56,16 @@ public sealed interface NoiseProfile permits NoiseProfile.Simple, NoiseProfile.C
     /** Scales the group's base exclusion radius. */
     double exclusionMultiplier();
 
+    /**
+     * Ceiling on copies of one structure per group. A CEILING, never a target:
+     * most dimensions sit well under it and must not be raised to meet it.
+     */
+    int REPETITION_CEILING = 4;
+
+    default int repetitionBudget() {
+        return REPETITION_CEILING;
+    }
+
     /** Primary layer frequency, before the radius scale. */
     double frequency();
 

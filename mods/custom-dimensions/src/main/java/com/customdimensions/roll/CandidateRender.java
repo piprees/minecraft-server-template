@@ -1693,12 +1693,10 @@ public final class CandidateRender {
                                 admitted.contains(key.getValue().toString()), weighted.structure())));
             }
             List<StructurePick.PoolEntry> sorted = StructurePick.sortedPool(pickPool);
-            NoiseStructurePlacement placement = new NoiseStructurePlacement(
+            NoiseStructurePlacement placement = NoiseStructurePlacement.forGroup(
                     group, noiseSeed, settings.profile(), settings.exclusion(),
-                    settings.radial(), radiusChunks, 0, 0, settings.clearSpawnChunks(),
-                    com.customdimensions.dimension.StructureFootprints.forPool(noiseSeed, sorted),
-                    com.customdimensions.dimension.StructureFootprints.occupantsFor(
-                            noiseSeed, sorted, base.generator().getBiomeSource(), climate));
+                    settings.radial(), radiusChunks, settings.clearSpawnChunks(),
+                    sorted, base.generator().getBiomeSource(), climate);
             List<Site> positions = byGroup.computeIfAbsent(group, g -> new ArrayList<>());
             for (ChunkPos pos : placement.index().positions()) {
                 // The chain the mixin will walk, not just its head: a site is
