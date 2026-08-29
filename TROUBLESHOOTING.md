@@ -48,6 +48,8 @@ Run this first. It covers deploy drift, disk, every expected container, `ONLINE_
 | `./ops harden` ran an old script after a successful `./ops update` | [T46](#t46) |
 | A dimension vanished from the map or pre-gen queue with no error | [T47](#t47) |
 | A Moog's structure set's live spacing is larger than its jar and config say | [T48](#t48) |
+| Which structures can spawn where disagrees with the jars | [T49](#t49) |
+| A probe returns nothing, or the same value everywhere | [T50](#t50) |
 | Config or mod changes didn't take effect after a deploy | [T2](#t2) |
 | `signal only works in main thread` in discord-sync logs | [T3](#t3) |
 | mc crash-loops with Modrinth `429 Too Many Requests` | [T4](#t4) |
@@ -395,6 +397,51 @@ A world regenerates with the old terrain after a reset that set a new seed, or t
   biomes off the biome grid, which is fluid-independent.
 - **Creation-time.** `settingsOverrides` is in the generation fingerprint
   ([D2](#d2)), so this needs a world wipe and a re-roll.
+
+<a id="t50"></a>
+### T50 — Measuring a live world: the probes that silently return nothing
+
+- **Symptom:** a diagnostic reports zero hits, or a uniform value, and the
+  conclusion drawn from it is confidently wrong.
+- **Causes, all measured:**
+  - `execute ... run say X` returns an **empty string** over RCON. The command
+    runs; its output goes to chat, not the RCON response. Use `execute if
+    block ...` with no `run`, which answers `Test passed`.
+  - A block or biome query at coordinates outside loaded chunks answers `That
+    position is not loaded`. `/locate` reads the structure grid without
+    loading anything, so its coordinates are unprobeable until you
+    `forceload add` them (and `forceload remove all` afterwards).
+  - **Biomes are 3D.** The y-slice you sample is not the slice the game used
+    for a structure's validity check — a marine structure can sit in a chunk
+    whose y48-63 biome is `snowy_taiga`. Ask terrain, not biome: heightmaps
+    give ocean floor and water surface separately.
+  - Heightmaps pack `ceil(log2(worldHeight+1))` bits. This world is 512 tall
+    (`min_y -64`, Tectonic `max_y 448`), so entries are **10 bits, not
+    vanilla's 9** — a 9-bit decode yields a plausible-looking constant.
+  - `ps`/`pgrep` over SSH matches **your own command line**. A grep for a
+    process name finds the SSH invocation containing that name.
+- **Fix:** `scripts/scan-structure-placements.py` does this correctly offline
+  from region files, and needs no server.
+
+<a id="t49"></a>
+### T49 — Static jar scans resolve convention tags wrongly; use the runtime catalogue
+
+- **Symptom:** an analysis of which structures can generate where is
+  confidently wrong. Structures appear at sea that "cannot" spawn there.
+- **Cause:** `c:*` convention tags are populated by the Fabric Convention Tags
+  API **at boot**, not in datapack JSON. A jar scan sees an almost-empty tag:
+  `#c:is_overworld` resolves to **92 biomes with no oceans** statically and
+  **305 biomes including 9 oceans** live. Cristel Lib also rewrites some
+  placements before registry load ([T48](#t48)), and set membership differs
+  both ways — the static scan lists sets for uninstalled mods and misses
+  installed ones.
+- **Fix:** `/customdim catalogue` writes the live registries to
+  `.seed-rolling/catalogue/registries.json`; `scripts/extract-registries.py`
+  pulls it to `config/custom-dimensions/extractors/registries.json`. That file
+  is ground truth for biome tags, structure validity and placement.
+  `structures.json`, `biomes.json`, `blocks.json` and `entities.json` remain
+  jar scans — fine for ids and per-biome detail, wrong for anything
+  tag-dependent.
 
 <a id="t48"></a>
 ### T48 — Moog's structure sets generate 1.65× further apart than any file says

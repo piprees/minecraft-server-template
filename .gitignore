@@ -93,3 +93,6 @@ __pycache__/
 .impeccable
 
 # ~100MB binary that produces it is not.
+
+# Session handoff notes (local scratch, not repo documentation)
+.handoff/
