@@ -56,8 +56,9 @@ import java.util.concurrent.ConcurrentHashMap;
  * an unloaded world is inert (nothing arms it) and is overwritten on reload.
  *
  * Generation-affecting: the resolved values change generated terrain, so the
- * inputs (the dimension's block + the theme-default table) are fingerprinted
- * in dimension_profiles.generation_payload() — change both together.
+ * inputs (the dimension's block + the theme-default table) must stay in
+ * {@link DimensionFingerprints#WORLDGEN_FIELDS}, or a world that has drifted
+ * from its creation-time config never warns ([D2]).
  */
 public final class TerrainAdaptationOverride {
 

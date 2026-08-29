@@ -249,8 +249,10 @@ class NoiseRegressionTest {
         assertTrue(plan.groups().keySet().containsAll(Set.of("deco", "dungeons", "settlements")),
                 plan.groups().keySet().toString());
         assertEquals(List.of("minecraft:bastion_remnant"), forcedStructureIds(config));
-        assertEquals(Set.of("minecraft:bastion_remnant"),
-                NoisePoolBuilder.forcedExclusiveStructureIds(config));
+        // The force carries "exclusive": false, so the bastion also stays in the
+        // noise pool: seedRoll.wants asks for it near spawn, and a census that
+        // records only noise placements cannot score a want it never sees.
+        assertEquals(Set.of(), NoisePoolBuilder.forcedExclusiveStructureIds(config));
     }
 
     // --- the_end_citadel: end + dense, at the 4096 border most large dims use

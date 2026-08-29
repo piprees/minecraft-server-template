@@ -27,9 +27,9 @@ import java.util.List;
  * are unit-testable without Bootstrap.
  *
  * Generation-affecting: kernel names flow through the same
- * {@code structures.terrainAdaptation} strings the fingerprint already
- * captures (dimension_profiles.generation_payload fingerprints the INPUTS),
- * so adopting a kernel re-rolls that dimension with no payload change.
+ * {@code structures.terrainAdaptation} strings
+ * {@link DimensionFingerprints#WORLDGEN_FIELDS} already captures, so
+ * adopting a kernel re-rolls that dimension with no payload change.
  */
 public enum TerrainKernel {
 
