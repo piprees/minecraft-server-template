@@ -73,10 +73,18 @@ public final class SiteValidity {
         }
     }
 
-    /** One noise site, its assignment, the biome under it and the verdict. */
+    /**
+     * One noise site, its assignment, the biome under it and the verdict —
+     * plus the verdict the fixed slice would have reached, so the difference
+     * between the two reads is a recorded pair rather than a flag.
+     */
     public record SiteVerdict(String group, long x, long z, String structureId,
                               String biome, Integer surfaceY, Verdict verdict,
-                              boolean underground, boolean flippedFromFixedSlice) {
+                              Verdict fixedVerdict, boolean underground) {
+
+        public boolean flipped() {
+            return this.verdict != this.fixedVerdict;
+        }
     }
 
     /** One group's site count and how many of them fail. */
@@ -116,7 +124,34 @@ public final class SiteValidity {
         public int fixedSliceFlips() {
             int n = 0;
             for (SiteVerdict s : this.sites) {
-                if (s.flippedFromFixedSlice()) {
+                if (s.flipped()) {
+                    n++;
+                }
+            }
+            return n;
+        }
+
+        /**
+         * Sites the surface read CLEARS that the fixed slice condemned, and
+         * sites it condemns that the fixed slice cleared. Reported apart
+         * because a net figure hides the second, which is the direction that
+         * matters — an instrument that only ever exonerates is not an
+         * instrument.
+         */
+        public int flipsToPassing() {
+            int n = 0;
+            for (SiteVerdict s : this.sites) {
+                if (s.fixedVerdict().fails() && !s.verdict().fails()) {
+                    n++;
+                }
+            }
+            return n;
+        }
+
+        public int flipsToFailing() {
+            int n = 0;
+            for (SiteVerdict s : this.sites) {
+                if (!s.fixedVerdict().fails() && s.verdict().fails()) {
                     n++;
                 }
             }
@@ -143,8 +178,9 @@ public final class SiteValidity {
                     + this.count(Verdict.WANTED) + " wanted, "
                     + this.count(Verdict.UNSAMPLED) + " unsampled, "
                     + this.fixedSliceFlips() + " verdicts differ from the y="
-                    + (this.fixedQuartY * 4) + " slice, " + this.byGroup.size()
-                    + " group(s), " + this.millis + "ms";
+                    + (this.fixedQuartY * 4) + " slice (" + this.flipsToPassing()
+                    + " cleared, " + this.flipsToFailing() + " newly failing), "
+                    + this.byGroup.size() + " group(s), " + this.millis + "ms";
         }
     }
 
@@ -200,7 +236,7 @@ public final class SiteValidity {
                 String biome = atSurface != null ? atSurface : atFixed;
 
                 Verdict verdict = verdictOf(valid, biome, asked);
-                boolean flipped = verdict != verdictOf(valid, atFixed, asked);
+                Verdict fixedVerdict = verdictOf(valid, atFixed, asked);
                 if (verdict.fails()) {
                     failed++;
                     failedByStructure.merge(site.structureId(), 1, Integer::sum);
@@ -208,10 +244,9 @@ public final class SiteValidity {
                     wanted++;
                 }
                 sites.add(new SiteVerdict(group.getKey(), site.x(), site.z(), site.structureId(),
-                        biome, surfaceY, verdict,
+                        biome, surfaceY, verdict, fixedVerdict,
                         underground.computeIfAbsent(site.structureId(),
-                                id -> generatesUnderground(structureRegistry, id)),
-                        flipped));
+                                id -> generatesUnderground(structureRegistry, id))));
             }
             tallies.put(group.getKey(), new GroupTally(group.getValue().size(), failed, wanted));
         }
@@ -304,6 +339,8 @@ public final class SiteValidity {
         b.append(" \"biomeReadAt\": \"structure column surface height\",\n");
         b.append(" \"fixedQuartY\": ").append(report.fixedQuartY()).append(",\n");
         b.append(" \"fixedSliceFlips\": ").append(report.fixedSliceFlips()).append(",\n");
+        b.append(" \"fixedSliceFlipsToPassing\": ").append(report.flipsToPassing()).append(",\n");
+        b.append(" \"fixedSliceFlipsToFailing\": ").append(report.flipsToFailing()).append(",\n");
         b.append(" \"millis\": ").append(report.millis()).append(",\n");
         b.append(" \"totalSites\": ").append(report.total()).append(",\n");
         b.append(" \"failedSites\": ").append(report.failed()).append(",\n");
@@ -344,7 +381,7 @@ public final class SiteValidity {
                     .append(s.biome() == null ? "null" : "\"" + s.biome() + "\"")
                     .append(", \"surfaceY\": ").append(s.surfaceY() == null ? "null" : s.surfaceY())
                     .append(", \"underground\": ").append(s.underground())
-                    .append(", \"flippedFromFixedSlice\": ").append(s.flippedFromFixedSlice())
+                    .append(", \"fixedVerdict\": \"").append(s.fixedVerdict().name()).append('"')
                     .append(", \"verdict\": \"").append(s.verdict().name()).append("\"}");
         }
         b.append(first ? "]\n}\n" : "\n ]\n}\n");
