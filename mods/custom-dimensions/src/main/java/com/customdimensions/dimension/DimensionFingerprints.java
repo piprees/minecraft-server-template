@@ -51,8 +51,18 @@ public final class DimensionFingerprints {
     // separately from worldgen drift.
     private static final String[] WORLDGEN_FIELDS = {
             "type", "noiseSettings", "biomes", "checkerboardScale",
-            "layers", "flatBiome", "settingsOverrides", "biomeParameters", "biomePatches"
+            "layers", "flatBiome", "settingsOverrides", "biomeParameters", "biomePatches",
+            "structureWants", "structureShuns"
     };
+
+    /**
+     * Of {@link #WORLDGEN_FIELDS}, the ones NOT baked into level.dat. Wants and
+     * shuns weight the noise pool, which is rebuilt from config every boot, so
+     * drift in one reaches newly generated chunks on its own. Saying "wipe the
+     * world" for those would send an operator to reset-seed for nothing.
+     */
+    private static final java.util.Set<String> NEW_CHUNKS_ONLY_FIELDS =
+            java.util.Set.of("structureWants", "structureShuns");
     private static Map<String, Map<String, String>> cache;
     private static Path storePath;
 
@@ -67,11 +77,32 @@ public final class DimensionFingerprints {
     public static List<String> driftedFields(Map<String, String> stored, Map<String, String> current) {
         List<String> drifted = new ArrayList<>();
         for (String field : WORLDGEN_FIELDS) {
+            // A record written before a field joined this list knows nothing
+            // about it. That is unknown, not changed — comparing anyway would
+            // report drift on every dimension the first time the list grows.
+            // {@link #checkExisting} adopts the current value instead.
+            if (!stored.containsKey(field)) {
+                continue;
+            }
             if (!String.valueOf(stored.get(field)).equals(current.get(field))) {
                 drifted.add(field);
             }
         }
         return drifted;
+    }
+
+    /**
+     * Whether any drifted field is one baked into level.dat, so only a wipe can
+     * apply it. False means every drifted field rebuilds from config at boot
+     * and reaches newly generated chunks by itself.
+     */
+    static boolean needsWipe(List<String> drifted) {
+        for (String field : drifted) {
+            if (!NEW_CHUNKS_ONLY_FIELDS.contains(field)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /** Fingerprinted dimension names with no matching entry in {@code configuredNames}. */
@@ -91,16 +122,26 @@ public final class DimensionFingerprints {
         f.put("noiseSettings", String.valueOf(def.getNoiseSettings()));
         f.put("biomes", String.valueOf(def.getBiome()));
         f.put("seed", String.valueOf(def.getSeed()));
-        // Tier 2 creation-time generator knobs. Old fingerprint records lack
-        // these keys — stored null vs current "null" compares equal, so
-        // pre-Tier-2 worlds never false-positive on drift.
+        // A record that predates any of these keys is backfilled rather than
+        // compared — see driftedFields.
         f.put("checkerboardScale", String.valueOf(def.getCheckerboardScale()));
         f.put("layers", String.valueOf(def.getLayersFingerprint()));
         f.put("flatBiome", String.valueOf(def.getFlatBiome()));
         f.put("settingsOverrides", String.valueOf(def.getSettingsOverridesFingerprint()));
         f.put("biomeParameters", String.valueOf(def.getBiomeParametersFingerprint()));
         f.put("biomePatches", String.valueOf(def.getBiomePatchesFingerprint()));
+        // The RESOLVED ids, not the config block: aliases are not identity
+        // ("fortress" is betterfortresses:fortress), so two configs naming one
+        // structure two ways describe the same pool, and a band word or a
+        // min/max never reaches the pool at all.
+        f.put("structureWants", sortedIds(NoisePoolBuilder.wantedStructureIds(def)));
+        f.put("structureShuns", sortedIds(NoisePoolBuilder.shunnedStructureIds(def)));
         return f;
+    }
+
+    /** A resolved id set in a stable order, so the record is comparable. */
+    private static String sortedIds(java.util.Set<String> ids) {
+        return String.valueOf(new java.util.TreeSet<>(ids));
     }
 
     public static synchronized void init(MinecraftServer server) {
@@ -163,6 +204,18 @@ public final class DimensionFingerprints {
             return;
         }
         List<String> drifted = driftedFields(stored, current);
+        // Adopt every field this record predates, so the next boot compares it
+        // for real instead of skipping it forever.
+        boolean backfilled = false;
+        for (String field : WORLDGEN_FIELDS) {
+            if (!stored.containsKey(field)) {
+                stored.put(field, current.get(field));
+                backfilled = true;
+            }
+        }
+        if (backfilled) {
+            save();
+        }
         boolean seedDrift = !String.valueOf(stored.get("seed")).equals(current.get("seed"));
         if (!drifted.isEmpty()) {
             StringBuilder detail = new StringBuilder();
@@ -173,11 +226,19 @@ public final class DimensionFingerprints {
                 detail.append(field).append(": '").append(stored.get(field))
                         .append("' -> '").append(current.get(field)).append("'");
             }
-            MultiverseServer.LOGGER.warn(
-                    "Dimension {}: worldgen config changed since this world was created ({}) — "
-                    + "KEEPING the world as generated; worldgen changes never apply to existing "
-                    + "dimensions. Regenerating requires a full world wipe (the generator is "
-                    + "baked into level.dat).", def.getName(), detail);
+            if (needsWipe(drifted)) {
+                MultiverseServer.LOGGER.warn(
+                        "Dimension {}: worldgen config changed since this world was created ({}) — "
+                        + "KEEPING the world as generated; worldgen changes never apply to existing "
+                        + "dimensions. Regenerating requires a full world wipe (the generator is "
+                        + "baked into level.dat).", def.getName(), detail);
+            } else {
+                MultiverseServer.LOGGER.warn(
+                        "Dimension {}: structure wants/shuns changed since this world was created "
+                        + "({}) — no wipe needed, the noise pool is rebuilt every boot, but chunks "
+                        + "already generated keep the weighting they were built with.",
+                        def.getName(), detail);
+            }
         } else if (seedDrift) {
             MultiverseServer.LOGGER.info(
                     "Dimension {}: configured seed changed ({} -> {}) — existing world keeps its "

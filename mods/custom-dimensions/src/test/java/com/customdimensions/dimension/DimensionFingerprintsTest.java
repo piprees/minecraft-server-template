@@ -32,6 +32,13 @@ class DimensionFingerprintsTest {
         f.put("settingsOverrides", "null");
         f.put("biomeParameters", "null");
         f.put("biomePatches", "null");
+        // Resolved through the alias table, so a config naming no wants still
+        // records its family's inherited list — the one the pool weights.
+        DimensionConfig bare = config("the_bare", type, noiseSettings, biomes);
+        f.put("structureWants",
+                String.valueOf(new java.util.TreeSet<>(NoisePoolBuilder.wantedStructureIds(bare))));
+        f.put("structureShuns",
+                String.valueOf(new java.util.TreeSet<>(NoisePoolBuilder.shunnedStructureIds(bare))));
         return f;
     }
 
@@ -46,14 +53,18 @@ class DimensionFingerprintsTest {
     void oneFieldDrifted() {
         Map<String, String> stored = fingerprint("nether", "adventure:wide", "minecraft:crimson_forest");
         Map<String, String> current = fingerprint("overworld", "adventure:wide", "minecraft:crimson_forest");
-        assertEquals(List.of("type"), DimensionFingerprints.driftedFields(stored, current));
+        // structureWants comes along: a config naming no wants inherits its
+        // FAMILY's default list, and the family follows from the type, so the
+        // pool this dimension draws from really did change.
+        assertEquals(List.of("type", "structureWants"),
+                DimensionFingerprints.driftedFields(stored, current));
     }
 
     @Test
     void severalFieldsDrifted() {
         Map<String, String> stored = fingerprint("nether", "adventure:wide", "minecraft:crimson_forest");
         Map<String, String> current = fingerprint("overworld", "adventure:compressed", "minecraft:plains");
-        assertEquals(List.of("type", "noiseSettings", "biomes"),
+        assertEquals(List.of("type", "noiseSettings", "biomes", "structureWants"),
                 DimensionFingerprints.driftedFields(stored, current));
     }
 
