@@ -198,7 +198,6 @@
     ],
     "wants": {
       "warped_greatsword": "spread",
-      "warped_outpost": "near_spawn",
       "bastion": "spread",
       "crimson_forge": "spread",
       "nether_bridge": "spread",

@@ -4,11 +4,11 @@
   "seed": -7643220614713389876,
   "biomes": [
     {
-      "id": "paradise_lost:calcite_craglands",
+      "id": "terralith:skylands_winter",
       "parameters": {
         "weirdness": [
-          -0.0123,
-          0.0427
+          -2.0,
+          -0.5082
         ]
       }
     },
@@ -16,8 +16,8 @@
       "id": "terralith:frozen_cliffs",
       "parameters": {
         "weirdness": [
-          -0.19,
-          -0.1301
+          -0.5082,
+          -0.4877
         ]
       }
     },
@@ -25,8 +25,17 @@
       "id": "terralith:wintry_lowlands",
       "parameters": {
         "weirdness": [
-          -0.1301,
-          -0.0727
+          -0.4877,
+          -0.3996
+        ]
+      }
+    },
+    {
+      "id": "nullscape:void_barrens",
+      "parameters": {
+        "weirdness": [
+          -0.3996,
+          -0.3089
         ]
       }
     },
@@ -34,8 +43,26 @@
       "id": "minecraft:ice_spikes",
       "parameters": {
         "weirdness": [
-          -0.0727,
-          -0.0123
+          -0.3089,
+          -0.243
+        ]
+      }
+    },
+    {
+      "id": "terralith:white_cliffs",
+      "parameters": {
+        "weirdness": [
+          -0.243,
+          -0.2023
+        ]
+      }
+    },
+    {
+      "id": "paradise_lost:calcite_craglands",
+      "parameters": {
+        "weirdness": [
+          -0.2023,
+          -0.1272
         ]
       }
     },
@@ -43,8 +70,8 @@
       "id": "minecraft:snowy_slopes",
       "parameters": {
         "weirdness": [
-          0.0427,
-          0.1
+          -0.1272,
+          0.0066
         ]
       }
     },
@@ -52,17 +79,8 @@
       "id": "minecraft:frozen_peaks",
       "parameters": {
         "weirdness": [
-          0.1,
+          0.0066,
           2.0
-        ]
-      }
-    },
-    {
-      "id": "terralith:skylands_winter",
-      "parameters": {
-        "weirdness": [
-          -2.0,
-          -0.19
         ]
       }
     }
@@ -108,7 +126,8 @@
   "environment": {
     "skyColor": "#E8F0F5",
     "fogColor": "#E8F0F5",
-    "ambientLight": 0.3
+    "ambientLight": 0.3,
+    "fixedTime": 6000
   },
   "seedRoll": {
     "mood": "desolate",

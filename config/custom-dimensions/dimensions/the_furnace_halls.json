@@ -38,7 +38,8 @@
       {
         "structure": "betterfortresses:fortress",
         "x": 138,
-        "z": 57
+        "z": 57,
+        "exclusive": false
       },
       {
         "structure": "mns:mega_fortress",

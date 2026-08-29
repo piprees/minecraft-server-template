@@ -232,7 +232,8 @@
       {
         "structure": "nova_structures:creeping_crypt",
         "x": 620,
-        "z": -580
+        "z": -580,
+        "exclusive": false
       },
       {
         "structure": "ati_structures:wither_cavern",

@@ -4,29 +4,20 @@
   "seed": -710688060811807211,
   "biomes": [
     {
+      "id": "minecraft:nether_wastes",
+      "parameters": {
+        "weirdness": [
+          -2.0,
+          -0.5538
+        ]
+      }
+    },
+    {
       "id": "minecraft:basalt_deltas",
       "parameters": {
         "weirdness": [
-          -0.1374,
-          -0.0865
-        ]
-      }
-    },
-    {
-      "id": "minecraft:soul_sand_valley",
-      "parameters": {
-        "weirdness": [
-          0.0084,
-          2.0
-        ]
-      }
-    },
-    {
-      "id": "incendium:toxic_heap",
-      "parameters": {
-        "weirdness": [
-          -0.0384,
-          0.0084
+          -0.5538,
+          -0.5271
         ]
       }
     },
@@ -34,17 +25,44 @@
       "id": "incendium:quartz_flats",
       "parameters": {
         "weirdness": [
-          -0.0865,
-          -0.0384
+          -0.5271,
+          -0.508
         ]
       }
     },
     {
-      "id": "minecraft:nether_wastes",
+      "id": "incendium:toxic_heap",
       "parameters": {
         "weirdness": [
-          -2.0,
-          -0.1374
+          -0.508,
+          -0.4792
+        ]
+      }
+    },
+    {
+      "id": "nullscape:void_barrens",
+      "parameters": {
+        "weirdness": [
+          -0.4792,
+          -0.3709
+        ]
+      }
+    },
+    {
+      "id": "minecraft:soul_sand_valley",
+      "parameters": {
+        "weirdness": [
+          -0.3709,
+          -0.2942
+        ]
+      }
+    },
+    {
+      "id": "nullscape:shadowlands",
+      "parameters": {
+        "weirdness": [
+          -0.2942,
+          2.0
         ]
       }
     }
@@ -82,7 +100,10 @@
     "fogColor": "#1B0B0B",
     "ambientLight": 0.05,
     "effects": "minecraft:the_nether",
-    "ultraWarm": true
+    "ultraWarm": true,
+    "natural": false,
+    "bedWorks": false,
+    "respawnAnchorWorks": true
   },
   "seedRoll": {
     "mood": "hard",

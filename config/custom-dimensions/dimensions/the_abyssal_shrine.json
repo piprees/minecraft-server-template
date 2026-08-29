@@ -4,29 +4,11 @@
   "seed": -3682385522640744786,
   "biomes": [
     {
-      "id": "paradise_lost:continental_plateau",
+      "id": "nullscape:shadowlands",
       "parameters": {
         "continentalness": [
-          -0.0488,
-          -0.024
-        ]
-      }
-    },
-    {
-      "id": "paradise_lost:highlands_grand_glade",
-      "parameters": {
-        "continentalness": [
-          -0.024,
-          -0.0062
-        ]
-      }
-    },
-    {
-      "id": "paradise_lost:calcite_craglands",
-      "parameters": {
-        "continentalness": [
-          0.0404,
-          2.0
+          -2.0,
+          -0.0918
         ]
       }
     },
@@ -34,8 +16,8 @@
       "id": "minecraft:deep_ocean",
       "parameters": {
         "continentalness": [
-          -2.0,
-          -0.0766
+          -0.0918,
+          -0.0806
         ]
       }
     },
@@ -43,8 +25,26 @@
       "id": "minecraft:deep_cold_ocean",
       "parameters": {
         "continentalness": [
-          -0.0766,
-          -0.0488
+          -0.0806,
+          -0.0525
+        ]
+      }
+    },
+    {
+      "id": "paradise_lost:continental_plateau",
+      "parameters": {
+        "continentalness": [
+          -0.0525,
+          0.0045
+        ]
+      }
+    },
+    {
+      "id": "paradise_lost:highlands_grand_glade",
+      "parameters": {
+        "continentalness": [
+          0.0045,
+          0.1027
         ]
       }
     },
@@ -52,8 +52,8 @@
       "id": "minecraft:deep_dark",
       "parameters": {
         "continentalness": [
-          -0.0062,
-          0.0171
+          0.1027,
+          0.1675
         ]
       }
     },
@@ -61,8 +61,26 @@
       "id": "minecraft:dripstone_caves",
       "parameters": {
         "continentalness": [
-          0.0171,
-          0.0404
+          0.1675,
+          0.1902
+        ]
+      }
+    },
+    {
+      "id": "paradise_lost:highlands_thicket",
+      "parameters": {
+        "continentalness": [
+          0.1902,
+          0.1946
+        ]
+      }
+    },
+    {
+      "id": "paradise_lost:calcite_craglands",
+      "parameters": {
+        "continentalness": [
+          0.1946,
+          2.0
         ]
       }
     }
@@ -102,7 +120,6 @@
     ],
     "water": "sea",
     "wants": {
-      "para_vault": "near_spawn",
       "monument": "spread",
       "para_palace": "spread",
       "deepwater_dungeon": "spread",
@@ -132,5 +149,10 @@
         "z": -140
       }
     ]
+  },
+  "environment": {
+    "skyColor": "#1B3B6B",
+    "fogColor": "#0E2A44",
+    "ambientLight": 0.15
   }
 }

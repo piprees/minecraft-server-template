@@ -4,47 +4,11 @@
   "seed": 3742608075213267787,
   "biomes": [
     {
-      "id": "nullscape:crystal_peaks",
-      "parameters": {
-        "continentalness": [
-          0.3204,
-          2.0
-        ]
-      }
-    },
-    {
       "id": "nullscape:shadowlands",
       "parameters": {
         "continentalness": [
           -2.0,
-          -0.1949
-        ]
-      }
-    },
-    {
-      "id": "minecraft:end_highlands",
-      "parameters": {
-        "continentalness": [
-          0.1084,
-          0.2115
-        ]
-      }
-    },
-    {
-      "id": "minecraft:end_midlands",
-      "parameters": {
-        "continentalness": [
-          0.013,
-          0.1084
-        ]
-      }
-    },
-    {
-      "id": "nullscape:void_barrens",
-      "parameters": {
-        "continentalness": [
-          0.2115,
-          0.3204
+          -0.185
         ]
       }
     },
@@ -52,8 +16,8 @@
       "id": "minecraft:small_end_islands",
       "parameters": {
         "continentalness": [
-          -0.1949,
-          -0.0871
+          -0.185,
+          0.023
         ]
       }
     },
@@ -61,8 +25,62 @@
       "id": "minecraft:end_barrens",
       "parameters": {
         "continentalness": [
-          -0.0871,
-          0.013
+          0.023,
+          0.035
+        ]
+      }
+    },
+    {
+      "id": "minecraft:end_midlands",
+      "parameters": {
+        "continentalness": [
+          0.035,
+          0.299
+        ]
+      }
+    },
+    {
+      "id": "minecraft:end_highlands",
+      "parameters": {
+        "continentalness": [
+          0.299,
+          0.401
+        ]
+      }
+    },
+    {
+      "id": "nullscape:void_barrens",
+      "parameters": {
+        "continentalness": [
+          0.401,
+          0.453
+        ]
+      }
+    },
+    {
+      "id": "terralith:basalt_cliffs",
+      "parameters": {
+        "continentalness": [
+          0.453,
+          0.5165
+        ]
+      }
+    },
+    {
+      "id": "terralith:stony_spires",
+      "parameters": {
+        "continentalness": [
+          0.5165,
+          0.5485
+        ]
+      }
+    },
+    {
+      "id": "nullscape:crystal_peaks",
+      "parameters": {
+        "continentalness": [
+          0.5485,
+          2.0
         ]
       }
     }
@@ -128,6 +146,25 @@
     "exclude": [
       "minecraft:end_cities",
       "mes:phantom_citadel"
+    ],
+    "force": [
+      {
+        "structure": "mes:mega_ship_deepslate",
+        "x": -330,
+        "z": -1010
+      },
+      {
+        "structure": "nullscape:dragon_skeleton",
+        "x": -100,
+        "z": -900,
+        "exclusive": false
+      }
     ]
+  },
+  "environment": {
+    "skyColor": "#0B0B14",
+    "fogColor": "#241C2E",
+    "ambientLight": 0.05,
+    "effects": "minecraft:the_end"
   }
 }

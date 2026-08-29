@@ -4,15 +4,6 @@
   "seed": 4671917536214886133,
   "biomes": [
     {
-      "id": "paradise_lost:wisteria_woods",
-      "parameters": {
-        "continentalness": [
-          0.0304,
-          0.0613
-        ]
-      }
-    },
-    {
       "id": "terralith:amethyst_canyon",
       "parameters": {
         "continentalness": [
@@ -26,7 +17,34 @@
       "parameters": {
         "continentalness": [
           -0.095,
-          -0.0627
+          -0.072
+        ]
+      }
+    },
+    {
+      "id": "nullscape:crystal_peaks",
+      "parameters": {
+        "continentalness": [
+          -0.072,
+          -0.0475
+        ]
+      }
+    },
+    {
+      "id": "terralith:haze_mountain",
+      "parameters": {
+        "continentalness": [
+          -0.0475,
+          -0.0318
+        ]
+      }
+    },
+    {
+      "id": "terralith:skylands_spring",
+      "parameters": {
+        "continentalness": [
+          -0.0318,
+          0.0008
         ]
       }
     },
@@ -40,20 +58,20 @@
       }
     },
     {
-      "id": "terralith:haze_mountain",
+      "id": "paradise_lost:wisteria_woods",
       "parameters": {
         "continentalness": [
-          -0.0627,
-          -0.0318
+          0.0304,
+          0.048
         ]
       }
     },
     {
-      "id": "terralith:skylands_spring",
+      "id": "paradise_lost:highlands_forest",
       "parameters": {
         "continentalness": [
-          -0.0318,
-          0.0008
+          0.048,
+          0.0613
         ]
       }
     },
@@ -80,7 +98,14 @@
       {
         "structure": "paradise_lost:aurel_tower",
         "x": 60,
-        "z": 60
+        "z": 60,
+        "exclusive": false
+      },
+      {
+        "structure": "mes:mystical_archway",
+        "x": -300,
+        "z": 180,
+        "exclusive": false
       }
     ],
     "terrainAdaptation": {
@@ -138,5 +163,10 @@
       "radius": 110,
       "blend": 32
     }
-  ]
+  ],
+  "environment": {
+    "skyColor": "#6B4B9B",
+    "fogColor": "#3A2352",
+    "ambientLight": 0.25
+  }
 }

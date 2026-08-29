@@ -8,7 +8,7 @@
       "parameters": {
         "temperature": [
           -2.0,
-          -1.6
+          -0.9496
         ]
       }
     },
@@ -16,8 +16,8 @@
       "id": "minecraft:dripstone_caves",
       "parameters": {
         "temperature": [
-          -1.6,
-          -1.35
+          -0.9496,
+          -0.8495
         ]
       }
     },
@@ -25,8 +25,8 @@
       "id": "regions_unexplored:prismachasm",
       "parameters": {
         "temperature": [
-          -1.35,
-          -0.95
+          -0.8495,
+          -0.6624
         ]
       }
     },
@@ -34,8 +34,8 @@
       "id": "terralith:cave/tuff_caves",
       "parameters": {
         "temperature": [
-          -0.95,
-          -0.7
+          -0.6624,
+          -0.3773
         ]
       }
     },
@@ -43,8 +43,17 @@
       "id": "galosphere:crystal_canyons",
       "parameters": {
         "temperature": [
-          -0.7,
-          -0.3
+          -0.3773,
+          -0.2745
+        ]
+      }
+    },
+    {
+      "id": "incendium:quartz_flats",
+      "parameters": {
+        "temperature": [
+          -0.2745,
+          -0.0702
         ]
       }
     },
@@ -52,8 +61,8 @@
       "id": "terralith:cave/granite_caves",
       "parameters": {
         "temperature": [
-          -0.3,
-          -0.15
+          -0.0702,
+          0.0033
         ]
       }
     },
@@ -61,8 +70,26 @@
       "id": "regions_unexplored:scorching_caves",
       "parameters": {
         "temperature": [
-          -0.15,
-          0.25
+          0.0033,
+          0.0871
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:blackstone_basin",
+      "parameters": {
+        "temperature": [
+          0.0871,
+          0.2195
+        ]
+      }
+    },
+    {
+      "id": "minecraft:basalt_deltas",
+      "parameters": {
+        "temperature": [
+          0.2195,
+          0.2606
         ]
       }
     },
@@ -70,8 +97,8 @@
       "id": "terralith:cave/thermal_caves",
       "parameters": {
         "temperature": [
-          0.25,
-          1.55
+          0.2606,
+          0.3481
         ]
       }
     },
@@ -79,7 +106,7 @@
       "id": "wilderwild:magmatic_caves",
       "parameters": {
         "temperature": [
-          1.55,
+          0.3481,
           2.0
         ]
       }
@@ -114,6 +141,21 @@
       "ignite": "item.firecharge.use",
       "enter": "block.blastfurnace.fire_crackle",
       "exit": "block.fire.extinguish"
+    },
+    "aura": {
+      "subsume": "natural",
+      "palette": [
+        "minecraft:blackstone",
+        "minecraft:basalt",
+        "minecraft:magma_block",
+        "minecraft:polished_blackstone",
+        "minecraft:quartz_block"
+      ],
+      "flora": [],
+      "fluids": [
+        "minecraft:lava"
+      ],
+      "fireChance": 0.05
     }
   },
   "exitPortal": {
@@ -126,15 +168,18 @@
       "mining_complex": {
         "min": 0,
         "max": 256
-      },
-      "foundry": {
-        "min": 128,
-        "max": 512
       }
     },
     "noise": {
       "endgame": "sparse"
-    }
+    },
+    "force": [
+      {
+        "structure": "dungeons_arise:foundry",
+        "x": -60,
+        "z": -40
+      }
+    ]
   },
   "seedRoll": {
     "mood": "adventurous",
@@ -147,5 +192,12 @@
     -128,
     55,
     128
-  ]
+  ],
+  "environment": {
+    "fogColor": "#3A1508",
+    "ambientLight": 0.12,
+    "hasSkylight": false,
+    "hasCeiling": true,
+    "infiniburn": "#minecraft:infiniburn_nether"
+  }
 }

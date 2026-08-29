@@ -1,6 +1,6 @@
 {
   "type": "multi_biome",
-  "description": "A compressed jungle gauntlet where the wild reclaimed everything. Infested temples and webbed dungeons in terrain that fights back. Whatever was built here was consumed long ago \u2014 the jungle doesn't negotiate.",
+  "description": "A compressed jungle gauntlet where the wild reclaimed everything. Infested temples and webbed dungeons in terrain that fights back, and crimson fungus rooted in the canopy where the nether leaked in. Whatever was built here was consumed long ago \u2014 the jungle doesn't negotiate, and what it reaches through the portal it keeps.",
   "seed": -2092289300691480070,
   "noiseSettings": "adventure:compressed",
   "biomes": [
@@ -9,7 +9,7 @@
       "parameters": {
         "weirdness": [
           -2.0,
-          -1.9306
+          -0.5887
         ]
       }
     },
@@ -17,8 +17,8 @@
       "id": "minecraft:mangrove_swamp",
       "parameters": {
         "weirdness": [
-          -1.9306,
-          -1.8612
+          -0.5887,
+          -0.5463
         ]
       }
     },
@@ -26,8 +26,8 @@
       "id": "minecraft:swamp",
       "parameters": {
         "weirdness": [
-          -1.8612,
-          -1.7918
+          -0.5463,
+          -0.5068
         ]
       }
     },
@@ -35,8 +35,8 @@
       "id": "minecraft:sparse_jungle",
       "parameters": {
         "weirdness": [
-          -1.7918,
-          -1.7224
+          -0.5068,
+          -0.4837
         ]
       }
     },
@@ -44,8 +44,8 @@
       "id": "minecraft:river",
       "parameters": {
         "weirdness": [
-          -1.7224,
-          -1.653
+          -0.4837,
+          -0.4605
         ]
       }
     },
@@ -53,8 +53,8 @@
       "id": "minecraft:beach",
       "parameters": {
         "weirdness": [
-          -1.653,
-          -1.5836
+          -0.4605,
+          -0.4373
         ]
       }
     },
@@ -62,8 +62,8 @@
       "id": "minecraft:lush_caves",
       "parameters": {
         "weirdness": [
-          -1.5836,
-          -1.5142
+          -0.4373,
+          -0.4141
         ]
       }
     },
@@ -71,8 +71,8 @@
       "id": "terralith:orchid_swamp",
       "parameters": {
         "weirdness": [
-          -1.5142,
-          -1.4448
+          -0.4141,
+          -0.3909
         ]
       }
     },
@@ -80,8 +80,8 @@
       "id": "terralith:moonlight_grove",
       "parameters": {
         "weirdness": [
-          -1.4448,
-          -1.3754
+          -0.3909,
+          -0.3677
         ]
       }
     },
@@ -89,8 +89,8 @@
       "id": "terralith:mirage_isles",
       "parameters": {
         "weirdness": [
-          -1.3754,
-          -1.306
+          -0.3677,
+          -0.3445
         ]
       }
     },
@@ -98,8 +98,8 @@
       "id": "terralith:moonlight_valley",
       "parameters": {
         "weirdness": [
-          -1.306,
-          -1.2366
+          -0.3445,
+          -0.3213
         ]
       }
     },
@@ -107,8 +107,8 @@
       "id": "terralith:rocky_jungle",
       "parameters": {
         "weirdness": [
-          -1.2366,
-          -1.1672
+          -0.3213,
+          -0.2976
         ]
       }
     },
@@ -116,8 +116,8 @@
       "id": "terralith:cave/underground_jungle",
       "parameters": {
         "weirdness": [
-          -1.1672,
-          -1.0978
+          -0.2976,
+          -0.2735
         ]
       }
     },
@@ -125,8 +125,8 @@
       "id": "wilderwild:rainforest",
       "parameters": {
         "weirdness": [
-          -1.0978,
-          -1.0284
+          -0.2735,
+          -0.2495
         ]
       }
     },
@@ -134,8 +134,8 @@
       "id": "wilderwild:birch_jungle",
       "parameters": {
         "weirdness": [
-          -1.0284,
-          -0.959
+          -0.2495,
+          -0.2144
         ]
       }
     },
@@ -143,8 +143,8 @@
       "id": "regions_unexplored:tropical_river",
       "parameters": {
         "weirdness": [
-          -0.959,
-          -0.8896
+          -0.2144,
+          -0.1758
         ]
       }
     },
@@ -152,8 +152,8 @@
       "id": "regions_unexplored:sparse_rainforest",
       "parameters": {
         "weirdness": [
-          -0.8896,
-          -0.8202
+          -0.1758,
+          -0.1371
         ]
       }
     },
@@ -161,8 +161,8 @@
       "id": "minecraft:jungle",
       "parameters": {
         "weirdness": [
-          -0.8202,
-          -0.4902
+          -0.1371,
+          0.0589
         ]
       }
     },
@@ -170,8 +170,8 @@
       "id": "minecraft:bamboo_jungle",
       "parameters": {
         "weirdness": [
-          -0.4902,
-          -0.1602
+          0.0589,
+          0.2096
         ]
       }
     },
@@ -179,8 +179,35 @@
       "id": "terralith:cloud_forest",
       "parameters": {
         "weirdness": [
-          -0.1602,
-          0.1698
+          0.2096,
+          0.2876
+        ]
+      }
+    },
+    {
+      "id": "undergroundworlds:underground_jungle",
+      "parameters": {
+        "weirdness": [
+          0.2876,
+          0.3356
+        ]
+      }
+    },
+    {
+      "id": "wilderwild:sparse_birch_jungle",
+      "parameters": {
+        "weirdness": [
+          0.3356,
+          0.3818
+        ]
+      }
+    },
+    {
+      "id": "incendium:inverted_forest",
+      "parameters": {
+        "weirdness": [
+          0.3818,
+          0.4433
         ]
       }
     },
@@ -188,8 +215,8 @@
       "id": "terralith:tropical_jungle",
       "parameters": {
         "weirdness": [
-          0.1698,
-          0.4998
+          0.4433,
+          0.4785
         ]
       }
     },
@@ -197,7 +224,7 @@
       "id": "regions_unexplored:tropics",
       "parameters": {
         "weirdness": [
-          0.4998,
+          0.4785,
           2.0
         ]
       }
@@ -232,12 +259,24 @@
       "exit": "block.portal.travel"
     },
     "aura": {
-      "subsume": "everything"
+      "subsume": "everything",
+      "palette": [
+        "minecraft:moss_block",
+        "minecraft:mud",
+        "minecraft:rooted_dirt",
+        "minecraft:podzol"
+      ],
+      "flora": [
+        "minecraft:fern",
+        "minecraft:large_fern",
+        "minecraft:moss_carpet"
+      ]
     }
   },
   "environment": {
     "fogColor": "#2B4B2B",
-    "ambientLight": 0.1
+    "ambientLight": 0.1,
+    "skyColor": "#1E3A1E"
   },
   "seedRoll": {
     "mood": "hard",
@@ -268,5 +307,15 @@
     320,
     219,
     -192
-  ]
+  ],
+  "structures": {
+    "force": [
+      {
+        "structure": "dungeons_arise:jungle_tree_house",
+        "x": 180,
+        "z": -70,
+        "exclusive": false
+      }
+    ]
+  }
 }

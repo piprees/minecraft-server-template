@@ -1,6 +1,6 @@
 {
   "type": "multi_biome",
-  "description": "Soul-sand drifting into shadow. The surface scar where the underground sculk infection broke through from the ancient cities \u2014 ashen savanna and eroded badlands over a deep dark that shouldn't be this close to the surface.",
+  "description": "Soul-sand drifting into shadow. The surface scar where the underground sculk infection broke through from the ancient cities \u2014 nether ash and soul valleys over a deep dark that shouldn't be this close to the surface. The drift does not stop at the portal: what it reaches, it takes, and a build near the frame is part of what it reaches.",
   "seed": 917083952261014886,
   "biomes": [
     "terralith:ashen_savanna",
@@ -13,11 +13,83 @@
     "minecraft:deep_dark",
     "terralith:white_cliffs",
     {
+      "id": "nullscape:shadowlands",
+      "parameters": {
+        "weirdness": [
+          -2.0,
+          -0.7
+        ]
+      }
+    },
+    {
+      "id": "minecraft:soul_sand_valley",
+      "parameters": {
+        "weirdness": [
+          -0.56,
+          -0.475
+        ]
+      }
+    },
+    {
+      "id": "incendium:ash_barrens",
+      "parameters": {
+        "weirdness": [
+          -0.475,
+          -0.42
+        ]
+      }
+    },
+    {
       "id": "regions_unexplored:redstone_abyss",
       "parameters": {
         "weirdness": [
-          -0.19,
-          -0.1
+          -0.42,
+          -0.37
+        ]
+      }
+    },
+    {
+      "id": "minecraft:basalt_deltas",
+      "parameters": {
+        "weirdness": [
+          -0.155,
+          -0.115
+        ]
+      }
+    },
+    {
+      "id": "incendium:toxic_heap",
+      "parameters": {
+        "weirdness": [
+          -0.115,
+          -0.075
+        ]
+      }
+    },
+    {
+      "id": "minecraft:nether_wastes",
+      "parameters": {
+        "weirdness": [
+          -0.075,
+          -0.035
+        ]
+      }
+    },
+    {
+      "id": "incendium:infernal_dunes",
+      "parameters": {
+        "weirdness": [
+          -0.035,
+          0.045
+        ]
+      }
+    },
+    {
+      "id": "incendium:volcanic_deltas",
+      "parameters": {
+        "weirdness": [
+          0.2,
+          0.3
         ]
       }
     },
@@ -25,8 +97,8 @@
       "id": "regions_unexplored:mycotoxic_undergrowth",
       "parameters": {
         "weirdness": [
-          -0.1,
-          -0.02
+          0.3,
+          0.55
         ]
       }
     },
@@ -34,8 +106,8 @@
       "id": "regions_unexplored:redstone_caves",
       "parameters": {
         "weirdness": [
-          -0.02,
-          0.06
+          0.55,
+          0.85
         ]
       }
     },
@@ -43,8 +115,8 @@
       "id": "regions_unexplored:prismachasm",
       "parameters": {
         "weirdness": [
-          0.06,
-          0.19
+          0.85,
+          2.0
         ]
       }
     }
@@ -75,6 +147,20 @@
       "ignite": "block.portal.trigger",
       "enter": "block.portal.travel",
       "exit": "block.portal.travel"
+    },
+    "aura": {
+      "subsume": "everything",
+      "palette": [
+        "minecraft:soul_sand",
+        "minecraft:soul_soil",
+        "minecraft:blackstone",
+        "minecraft:basalt",
+        "minecraft:sculk"
+      ],
+      "flora": [
+        "minecraft:dead_bush"
+      ],
+      "fireChance": 0.03
     }
   },
   "environment": {
@@ -89,7 +175,8 @@
       "terralith:ashen_savanna",
       "minecraft:eroded_badlands",
       "terralith:volcanic_crater",
-      "minecraft:deep_dark"
+      "minecraft:deep_dark",
+      "minecraft:soul_sand_valley"
     ],
     "wants": {
       "graveyard": "near_spawn",
@@ -117,5 +204,14 @@
         "z": -420
       }
     ]
-  }
+  },
+  "biomePatches": [
+    {
+      "biome": "minecraft:soul_sand_valley",
+      "x": 540,
+      "z": -420,
+      "radius": 180,
+      "blend": 40
+    }
+  ]
 }

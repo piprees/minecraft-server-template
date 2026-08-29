@@ -119,7 +119,6 @@
     ],
     "wants": {
       "blackstone_pillars": "spread",
-      "bastion": "spread",
       "warped_greatsword": "spread",
       "crimson_forge": "near_border",
       "nether_tower": "spread",

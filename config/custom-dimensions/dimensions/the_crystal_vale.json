@@ -191,7 +191,8 @@
       {
         "structure": "structory_towers:wizard_tower",
         "x": 120,
-        "z": -90
+        "z": -90,
+        "exclusive": false
       }
     ]
   },

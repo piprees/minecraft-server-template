@@ -186,7 +186,8 @@
       {
         "structure": "minecraft:igloo",
         "x": 48,
-        "z": 32
+        "z": 32,
+        "exclusive": false
       }
     ]
   },

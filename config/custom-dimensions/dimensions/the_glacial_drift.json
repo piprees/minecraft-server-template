@@ -4,47 +4,11 @@
   "seed": -8313982832499967773,
   "biomes": [
     {
-      "id": "paradise_lost:autumnal_tundra",
-      "parameters": {
-        "weirdness": [
-          -0.0634,
-          -0.0273
-        ]
-      }
-    },
-    {
-      "id": "paradise_lost:calcite_craglands",
-      "parameters": {
-        "weirdness": [
-          0.0104,
-          0.0556
-        ]
-      }
-    },
-    {
-      "id": "minecraft:ice_spikes",
-      "parameters": {
-        "weirdness": [
-          -0.0273,
-          0.0104
-        ]
-      }
-    },
-    {
       "id": "terralith:glacial_chasm",
       "parameters": {
         "weirdness": [
           -2.0,
-          -0.19
-        ]
-      }
-    },
-    {
-      "id": "natures_spirit:tundra",
-      "parameters": {
-        "weirdness": [
-          -0.1464,
-          -0.1041
+          -0.3454
         ]
       }
     },
@@ -52,17 +16,26 @@
       "id": "terralith:skylands_winter",
       "parameters": {
         "weirdness": [
-          -0.19,
-          -0.1464
+          -0.3454,
+          -0.2911
         ]
       }
     },
     {
-      "id": "minecraft:frozen_peaks",
+      "id": "nullscape:void_barrens",
       "parameters": {
         "weirdness": [
-          0.0556,
-          0.1
+          -0.2911,
+          -0.2044
+        ]
+      }
+    },
+    {
+      "id": "natures_spirit:tundra",
+      "parameters": {
+        "weirdness": [
+          -0.2044,
+          0.0705
         ]
       }
     },
@@ -70,8 +43,62 @@
       "id": "terralith:frozen_cliffs",
       "parameters": {
         "weirdness": [
-          -0.1041,
-          -0.0634
+          0.0705,
+          0.1276
+        ]
+      }
+    },
+    {
+      "id": "paradise_lost:autumnal_tundra",
+      "parameters": {
+        "weirdness": [
+          0.1276,
+          0.2559
+        ]
+      }
+    },
+    {
+      "id": "terralith:snowy_shield",
+      "parameters": {
+        "weirdness": [
+          0.2559,
+          0.3535
+        ]
+      }
+    },
+    {
+      "id": "minecraft:ice_spikes",
+      "parameters": {
+        "weirdness": [
+          0.3535,
+          0.3699
+        ]
+      }
+    },
+    {
+      "id": "paradise_lost:calcite_craglands",
+      "parameters": {
+        "weirdness": [
+          0.3699,
+          0.3947
+        ]
+      }
+    },
+    {
+      "id": "minecraft:frozen_peaks",
+      "parameters": {
+        "weirdness": [
+          0.3947,
+          0.4222
+        ]
+      }
+    },
+    {
+      "id": "natures_spirit:sleeted_slopes",
+      "parameters": {
+        "weirdness": [
+          0.4222,
+          0.4506
         ]
       }
     },
@@ -79,7 +106,7 @@
       "id": "minecraft:snowy_slopes",
       "parameters": {
         "weirdness": [
-          0.1,
+          0.4506,
           2.0
         ]
       }
@@ -118,8 +145,7 @@
       "aurel_tower": "spread",
       "igloo": "near_spawn",
       "para_vault": "near_border",
-      "birdcage": "spread",
-      "para_palace": "near_border"
+      "birdcage": "spread"
     },
     "shuns": [],
     "family": "overworld",
@@ -156,5 +182,10 @@
     "defaultFluid": "minecraft:water",
     "seaLevel": -64,
     "endIsland": false
+  },
+  "environment": {
+    "skyColor": "#BFD8E8",
+    "fogColor": "#D8E8F0",
+    "ambientLight": 0.3
   }
 }

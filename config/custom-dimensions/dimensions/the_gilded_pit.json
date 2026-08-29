@@ -130,11 +130,8 @@
       "minecraft:basalt_deltas"
     ],
     "wants": {
-      "bastion": "near_border",
-      "crimson_forge": "near_border",
       "sanctum": "near_border",
       "blackstone_walls": "near_border",
-      "forbidden_castle": "near_border",
       "nether_tower": "near_border"
     }
   },

@@ -4,7 +4,8 @@
   "biomes": [
     "terralith:mirage_isles",
     "terralith:skylands_winter",
-    "terralith:alpha_islands"
+    "terralith:alpha_islands",
+    "terralith:alpha_islands_winter"
   ],
   "borders": {
     "player": 256,
@@ -96,5 +97,14 @@
   "settingsOverrides": {
     "defaultBlock": "minecraft:deepslate",
     "seaLevel": -64
-  }
+  },
+  "biomePatches": [
+    {
+      "biome": "nullscape:shadowlands",
+      "x": 168,
+      "z": -140,
+      "radius": 72,
+      "blend": 20
+    }
+  ]
 }

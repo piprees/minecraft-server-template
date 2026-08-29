@@ -5,47 +5,11 @@
   "seed": -8209537325260385263,
   "biomes": [
     {
-      "id": "minecraft:end_barrens",
-      "parameters": {
-        "continentalness": [
-          -0.0546,
-          0.0636
-        ]
-      }
-    },
-    {
-      "id": "minecraft:end_highlands",
-      "parameters": {
-        "continentalness": [
-          0.177,
-          0.3015
-        ]
-      }
-    },
-    {
-      "id": "minecraft:the_end",
-      "parameters": {
-        "continentalness": [
-          0.0636,
-          0.177
-        ]
-      }
-    },
-    {
       "id": "nullscape:shadowlands",
       "parameters": {
         "continentalness": [
           -2.0,
-          -0.1771
-        ]
-      }
-    },
-    {
-      "id": "nullscape:crystal_peaks",
-      "parameters": {
-        "continentalness": [
-          0.3015,
-          2.0
+          -0.22
         ]
       }
     },
@@ -53,8 +17,62 @@
       "id": "minecraft:small_end_islands",
       "parameters": {
         "continentalness": [
-          -0.1771,
-          -0.0546
+          -0.22,
+          -0.115
+        ]
+      }
+    },
+    {
+      "id": "terralith:scarlet_mountains",
+      "parameters": {
+        "continentalness": [
+          -0.115,
+          -0.035
+        ]
+      }
+    },
+    {
+      "id": "minecraft:end_barrens",
+      "parameters": {
+        "continentalness": [
+          -0.035,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "terralith:red_oasis",
+      "parameters": {
+        "continentalness": [
+          0.1,
+          0.155
+        ]
+      }
+    },
+    {
+      "id": "minecraft:the_end",
+      "parameters": {
+        "continentalness": [
+          0.155,
+          0.2
+        ]
+      }
+    },
+    {
+      "id": "minecraft:end_highlands",
+      "parameters": {
+        "continentalness": [
+          0.2,
+          0.29
+        ]
+      }
+    },
+    {
+      "id": "nullscape:crystal_peaks",
+      "parameters": {
+        "continentalness": [
+          0.29,
+          2.0
         ]
       }
     }
@@ -105,8 +123,7 @@
         "y": 92,
         "z": -168
       }
-    ],
-    "wants": {}
+    ]
   },
   "portal": {
     "frameBlock": "minecraft:red_sandstone",
@@ -139,7 +156,12 @@
     "skyColor": "#5C0F0F",
     "fogColor": "#120404",
     "ambientLight": 0.2,
-    "effects": "minecraft:the_end"
+    "effects": "minecraft:the_end",
+    "natural": false,
+    "bedWorks": false,
+    "respawnAnchorWorks": false,
+    "fixedTime": 18000,
+    "monsterSpawnLightLevel": 0
   },
   "seedRoll": {
     "mood": "desolate",
@@ -148,11 +170,6 @@
     "spawnFilter": [
       "minecraft:end_highlands"
     ],
-    "wants": {
-      "monolith": "near_spawn",
-      "manuscript_shrine": "spread",
-      "mythic_garden": "spread"
-    },
     "shuns": [
       "dragon_skeleton",
       "ruined_pillar",

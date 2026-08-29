@@ -7,7 +7,26 @@
     "incendium:infernal_dunes",
     "minecraft:nether_wastes",
     "incendium:volcanic_deltas",
-    "incendium:weeping_valley"
+    "incendium:weeping_valley",
+    "incendium:quartz_flats",
+    {
+      "id": "terralith:yellowstone",
+      "parameters": {
+        "temperature": [
+          -0.264,
+          -0.201
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:glistering_meadow",
+      "parameters": {
+        "temperature": [
+          -0.021,
+          0.221
+        ]
+      }
+    }
   ],
   "borders": {
     "player": 1024,
@@ -20,7 +39,15 @@
   "structures": {
     "terrainAdaptation": {
       "betterfortresses:fortress": "pedestal"
-    }
+    },
+    "force": [
+      {
+        "structure": "incendium:piglin_village",
+        "x": 256,
+        "z": 120,
+        "exclusive": false
+      }
+    ]
   },
   "portal": {
     "frameBlock": "minecraft:magma_block",
@@ -63,6 +90,8 @@
     320
   ],
   "environment": {
-    "bedWorks": true
+    "bedWorks": true,
+    "fogColor": "#E8A05A",
+    "ambientLight": 0.25
   }
 }

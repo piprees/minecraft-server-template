@@ -3,9 +3,12 @@
   "description": "The endermen's first construction \u2014 a quartz-and-void expanse laid out on a grid, in geometric silence. No cities, no habitation. Pure mathematical architecture, built before they understood what living in a place meant.",
   "seed": -4515861602403267790,
   "biomes": [
-    "minecraft:end_midlands",
+    "incendium:quartz_flats",
+    "nullscape:void_barrens",
     "nullscape:crystal_peaks",
-    "nullscape:void_barrens"
+    "nullscape:shadowlands",
+    "minecraft:end_midlands",
+    "minecraft:the_end"
   ],
   "borders": {
     "player": 2048,
@@ -19,6 +22,14 @@
     "clearSpawnRadius": 128,
     "exclude": [
       "mes:phantom_citadel"
+    ],
+    "force": [
+      {
+        "structure": "mes:monolith",
+        "x": 256,
+        "z": 256,
+        "exclusive": false
+      }
     ]
   },
   "portal": {
@@ -43,7 +54,8 @@
     "skyColor": "#8B9BAF",
     "fogColor": "#8B9BAF",
     "ambientLight": 0.25,
-    "effects": "minecraft:the_end"
+    "effects": "minecraft:the_end",
+    "natural": false
   },
   "seedRoll": {
     "mood": "desolate",

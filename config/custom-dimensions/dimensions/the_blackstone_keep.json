@@ -59,7 +59,8 @@
       {
         "structure": "minecraft:bastion_remnant",
         "x": 185,
-        "z": 42
+        "z": 42,
+        "exclusive": false
       }
     ]
   },

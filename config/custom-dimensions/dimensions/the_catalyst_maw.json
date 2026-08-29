@@ -1,6 +1,6 @@
 {
   "type": "nether_islands",
-  "description": "The sculk that fed on the boneyard war escaped here. Corrupted nether terrain, oppressive and chaotic \u2014 the catalyst is still feeding, still growing. The reactors and bastions it consumed are unrecognisable.",
+  "description": "The sculk that fed on the boneyard war escaped here \u2014 corrupted end terrain bleeding into dark overworld, oppressive and chaotic. The catalyst is still feeding, still growing. The reactors and bastions it consumed are unrecognisable, and what it reaches near the portal it takes.",
   "seed": -4504732048969442742,
   "noiseSettings": "adventure:compressed",
   "biomes": [
@@ -9,7 +9,97 @@
     "incendium:toxic_heap",
     "incendium:withered_forest",
     "minecraft:nether_wastes",
-    "incendium:ash_barrens"
+    "incendium:ash_barrens",
+    {
+      "id": "nullscape:shadowlands",
+      "parameters": {
+        "weirdness": [
+          -2.0,
+          -0.435
+        ]
+      }
+    },
+    {
+      "id": "minecraft:deep_dark",
+      "parameters": {
+        "weirdness": [
+          -0.435,
+          -0.3
+        ]
+      }
+    },
+    {
+      "id": "terralith:moonlight_valley",
+      "parameters": {
+        "weirdness": [
+          -0.02,
+          0.12
+        ]
+      }
+    },
+    {
+      "id": "minecraft:mangrove_swamp",
+      "parameters": {
+        "weirdness": [
+          0.345,
+          0.39
+        ]
+      }
+    },
+    {
+      "id": "minecraft:dark_forest",
+      "parameters": {
+        "weirdness": [
+          0.39,
+          0.42
+        ]
+      }
+    },
+    {
+      "id": "terralith:moonlight_grove",
+      "parameters": {
+        "weirdness": [
+          0.495,
+          0.53
+        ]
+      }
+    },
+    {
+      "id": "minecraft:end_midlands",
+      "parameters": {
+        "weirdness": [
+          0.53,
+          0.6
+        ]
+      }
+    },
+    {
+      "id": "minecraft:end_highlands",
+      "parameters": {
+        "weirdness": [
+          0.6,
+          0.7
+        ]
+      }
+    },
+    {
+      "id": "terralith:volcanic_crater",
+      "parameters": {
+        "weirdness": [
+          0.7,
+          0.79
+        ]
+      }
+    },
+    {
+      "id": "terralith:caldera",
+      "parameters": {
+        "weirdness": [
+          0.79,
+          2.0
+        ]
+      }
+    }
   ],
   "borders": {
     "player": 4096,
@@ -39,7 +129,10 @@
   },
   "environment": {
     "fogColor": "#0B2B3B",
-    "ambientLight": 0.06
+    "ambientLight": 0.06,
+    "effects": "minecraft:the_end",
+    "hasCeiling": false,
+    "monsterSpawnLightLevel": 15
   },
   "seedRoll": {
     "mood": "hard",
@@ -48,7 +141,9 @@
       "minecraft:basalt_deltas",
       "minecraft:soul_sand_valley",
       "incendium:toxic_heap",
-      "incendium:withered_forest"
+      "incendium:withered_forest",
+      "nullscape:shadowlands",
+      "minecraft:deep_dark"
     ],
     "wants": {
       "sculk_dungeon": "near_spawn",
@@ -76,5 +171,30 @@
         "arrival": "spawn"
       }
     }
-  }
+  },
+  "structures": {
+    "force": [
+      {
+        "structure": "philipsruins:sculk_dungeon",
+        "x": 140,
+        "z": 96,
+        "exclusive": false
+      },
+      {
+        "structure": "incendium:nether_reactor",
+        "x": 1180,
+        "z": -860,
+        "exclusive": false
+      }
+    ]
+  },
+  "biomePatches": [
+    {
+      "biome": "minecraft:deep_dark",
+      "x": 1180,
+      "z": -860,
+      "radius": 200,
+      "blend": 40
+    }
+  ]
 }

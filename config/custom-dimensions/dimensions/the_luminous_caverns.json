@@ -14,7 +14,7 @@
       "parameters": {
         "temperature": [
           -2.0,
-          -0.45
+          -0.1671
         ]
       }
     },
@@ -22,8 +22,17 @@
       "id": "galosphere:lichen_caves",
       "parameters": {
         "temperature": [
-          -0.45,
-          -0.15
+          -0.1671,
+          -0.014
+        ]
+      }
+    },
+    {
+      "id": "incendium:quartz_flats",
+      "parameters": {
+        "temperature": [
+          -0.014,
+          0.1057
         ]
       }
     },
@@ -31,8 +40,17 @@
       "id": "galosphere:crystal_canyons",
       "parameters": {
         "temperature": [
-          0.3,
-          0.55
+          0.2777,
+          0.3949
+        ]
+      }
+    },
+    {
+      "id": "minecraft:crimson_forest",
+      "parameters": {
+        "temperature": [
+          0.3949,
+          0.5767
         ]
       }
     },
@@ -40,8 +58,8 @@
       "id": "galosphere:pink_salt_caves",
       "parameters": {
         "temperature": [
-          0.7,
-          0.95
+          0.7674,
+          0.9592
         ]
       }
     },
@@ -49,7 +67,7 @@
       "id": "yungscavebiomes:lost_caves",
       "parameters": {
         "temperature": [
-          0.95,
+          0.9592,
           2.0
         ]
       }
@@ -76,11 +94,16 @@
       "ignite": "block.portal.trigger",
       "enter": "block.portal.travel",
       "exit": "block.portal.travel"
+    },
+    "aura": {
+      "subsume": "none"
     }
   },
   "environment": {
     "fogColor": "#4B3B1B",
-    "ambientLight": 0.4
+    "ambientLight": 0.4,
+    "hasSkylight": false,
+    "hasCeiling": true
   },
   "seedRoll": {
     "mood": "serene",
@@ -93,7 +116,6 @@
       "strange_outpost": "spread",
       "lush_dungeon": "near_spawn",
       "sculk_dungeon": "spread",
-      "underground_camp": "near_spawn",
       "mineshaft": "spread"
     },
     "shuns": [
@@ -121,7 +143,8 @@
       {
         "structure": "mns:copper_tower",
         "x": 120,
-        "z": -380
+        "z": -380,
+        "exclusive": false
       },
       {
         "structure": "minecraft:ancient_city",

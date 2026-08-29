@@ -70,7 +70,8 @@
       {
         "structure": "incendium:forbidden_castle",
         "x": 0,
-        "z": 0
+        "z": 0,
+        "exclusive": false
       },
       {
         "structure": "incendium:sanctum",
@@ -145,7 +146,6 @@
     "wants": {
       "forbidden_castle": "spread",
       "nether_dungeon": "near_spawn",
-      "sanctum": "near_border",
       "bastion": "spread",
       "infernal_altar": "spread",
       "nether_tower": "near_border"

@@ -91,7 +91,8 @@
       {
         "structure": "incendium:nether_reactor",
         "x": -380,
-        "z": 290
+        "z": 290,
+        "exclusive": false
       },
       {
         "structure": "philipsruins:sculk_dungeon",

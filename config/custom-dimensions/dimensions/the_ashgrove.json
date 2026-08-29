@@ -241,7 +241,8 @@
       {
         "structure": "structory:graveyard",
         "x": 150,
-        "z": 90
+        "z": 90,
+        "exclusive": false
       },
       {
         "structure": "structory:abandoned_chapel",

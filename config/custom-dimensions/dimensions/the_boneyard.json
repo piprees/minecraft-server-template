@@ -7,12 +7,31 @@
     "incendium:ash_barrens",
     "minecraft:basalt_deltas",
     "incendium:withered_forest",
+    "incendium:toxic_heap",
+    {
+      "id": "minecraft:deep_dark",
+      "parameters": {
+        "temperature": [
+          -0.6947,
+          -0.4323
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:blackstone_basin",
+      "parameters": {
+        "temperature": [
+          -0.4323,
+          -0.403
+        ]
+      }
+    },
     {
       "id": "regions_unexplored:ancient_delta",
       "parameters": {
         "temperature": [
-          0.5,
-          1.0
+          -0.3507,
+          -0.0993
         ]
       }
     }
@@ -39,7 +58,18 @@
       "exit": "block.portal.travel"
     },
     "aura": {
-      "subsume": "everything"
+      "subsume": "everything",
+      "palette": [
+        "minecraft:bone_block",
+        "minecraft:soul_soil",
+        "minecraft:soul_sand",
+        "minecraft:basalt",
+        "minecraft:sculk"
+      ],
+      "flora": [
+        "minecraft:dead_bush"
+      ],
+      "fireChance": 0.04
     }
   },
   "structures": {
@@ -77,7 +107,8 @@
     ]
   },
   "environment": {
-    "fogColor": "#D8C8A0"
+    "fogColor": "#D8C8A0",
+    "ambientLight": 0.08
   },
   "seedRoll": {
     "mood": "hard",
@@ -86,9 +117,7 @@
       "incendium:ash_barrens"
     ],
     "wants": {
-      "giant_skull": "near_spawn",
       "nether_graveyard": "spread",
-      "bone_dungeon": "near_spawn",
       "nether_dungeon": "spread",
       "infernal_altar": "spread"
     },
