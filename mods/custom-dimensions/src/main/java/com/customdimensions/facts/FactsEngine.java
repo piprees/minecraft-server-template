@@ -993,6 +993,13 @@ public final class FactsEngine {
         NoisePoolBuilder.Result pools = NoisePoolBuilder.build(
                 def, sets, base.generator().getBiomeSource(), plan, exclude, null, wanted);
 
+        var structureBiomeSource = base.generator().getBiomeSource();
+        java.util.Set<String> structureAdmitted =
+                NoisePoolBuilder.admittedStructureIds(def, sets);
+        SpikeSampler.Rig structureRig = SpikeSampler.forSeedClimate(server, base, seed);
+        net.minecraft.world.gen.noise.NoiseConfig structureClimate =
+                structureRig.ok() ? structureRig.noiseConfig() : null;
+
         // Independent of the noise pools above: a set NoisePoolBuilder does not
         // absorb still generates on its own grid, and its grid is computable
         // from the same registry entries — see passThroughFacts.
@@ -1028,7 +1035,9 @@ public final class FactsEngine {
             List<StructurePick.PoolEntry> pickPool = new ArrayList<>();
             for (var weighted : pool.entries()) {
                 weighted.structure().getKey().ifPresent(k -> pickPool.add(
-                        new StructurePick.PoolEntry(k.getValue().toString(), weighted.weight())));
+                        new StructurePick.PoolEntry(k.getValue().toString(), weighted.weight(),
+                                structureAdmitted.contains(k.getValue().toString()),
+                                weighted.structure())));
             }
             for (StructurePick.PoolEntry pe : pickPool) {
                 poolWeights.merge(pe.structureId(), pe.weight(), Integer::sum);
@@ -1038,7 +1047,9 @@ public final class FactsEngine {
             NoiseStructurePlacement placement = new NoiseStructurePlacement(
                     group, noiseSeed, settings.profile(), settings.exclusion(),
                     settings.radial(), radiusChunks, 0, 0, settings.clearSpawnChunks(),
-                    com.customdimensions.dimension.StructureFootprints.forPool(noiseSeed, sorted));
+                    com.customdimensions.dimension.StructureFootprints.forPool(noiseSeed, sorted),
+                    com.customdimensions.dimension.StructureFootprints.occupantsFor(
+                            noiseSeed, sorted, structureBiomeSource, structureClimate));
 
             int count = 0;
             List<long[]> groupPositions = new ArrayList<>();
@@ -1142,7 +1153,7 @@ public final class FactsEngine {
             }
             StructureSet set = entry.value();
             StructurePlacement placement = set.placement();
-            if (NoisePoolBuilder.noiseManaged(placement)) {
+            if (NoisePoolBuilder.noiseManaged(setId, placement)) {
                 continue;   // already counted by the noise pool above
             }
             if (!DimensionStructures.keepSet(setId, mode, modeList, exclude)) {

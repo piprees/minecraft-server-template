@@ -1668,6 +1668,11 @@ public final class CandidateRender {
 
         int radiusChunks = radius / 16;
         long dimensionSalt = DimensionStructures.saltOf(def.getName());
+        // The occupant pass needs a biome; the climate-only rig is the cheap
+        // way to get one. Null leaves the pass off rather than diverging loudly.
+        SpikeSampler.Rig climateRig = SpikeSampler.forSeedClimate(server, base, seed);
+        net.minecraft.world.gen.noise.NoiseConfig climate =
+                climateRig.ok() ? climateRig.noiseConfig() : null;
         Map<String, List<Site>> byGroup = new java.util.LinkedHashMap<>();
         for (var groupEntry : plan.groups().entrySet()) {
             String group = groupEntry.getKey();
@@ -1691,7 +1696,9 @@ public final class CandidateRender {
             NoiseStructurePlacement placement = new NoiseStructurePlacement(
                     group, noiseSeed, settings.profile(), settings.exclusion(),
                     settings.radial(), radiusChunks, 0, 0, settings.clearSpawnChunks(),
-                    com.customdimensions.dimension.StructureFootprints.forPool(noiseSeed, sorted));
+                    com.customdimensions.dimension.StructureFootprints.forPool(noiseSeed, sorted),
+                    com.customdimensions.dimension.StructureFootprints.occupantsFor(
+                            noiseSeed, sorted, base.generator().getBiomeSource(), climate));
             List<Site> positions = byGroup.computeIfAbsent(group, g -> new ArrayList<>());
             for (ChunkPos pos : placement.index().positions()) {
                 // The chain the mixin will walk, not just its head: a site is

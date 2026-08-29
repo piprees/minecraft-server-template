@@ -92,8 +92,21 @@ public class NoiseStructurePlacement extends RandomSpreadStructurePlacement {
                                    int exclusion, double[] radial, int radiusChunks,
                                    int spawnChunkX, int spawnChunkZ, int clearSpawnChunks,
                                    NoiseFieldIndex.Footprints footprints) {
+        this(group, noiseSeed, profile, exclusion, radial, radiusChunks,
+                spawnChunkX, spawnChunkZ, clearSpawnChunks, footprints, null);
+    }
+
+    /**
+     * @param occupants what actually stands at each placement, for the
+     *                  biome-aware repetition pass. Null skips it.
+     */
+    public NoiseStructurePlacement(String group, long noiseSeed, NoiseProfile profile,
+                                   int exclusion, double[] radial, int radiusChunks,
+                                   int spawnChunkX, int spawnChunkZ, int clearSpawnChunks,
+                                   NoiseFieldIndex.Footprints footprints,
+                                   NoiseFieldIndex.Occupants occupants) {
         this(group, new NoiseFieldIndex(noiseSeed, profile, exclusion, radial,
-                radiusChunks, spawnChunkX, spawnChunkZ, clearSpawnChunks, footprints));
+                radiusChunks, spawnChunkX, spawnChunkZ, clearSpawnChunks, footprints, occupants));
     }
 
     @Override

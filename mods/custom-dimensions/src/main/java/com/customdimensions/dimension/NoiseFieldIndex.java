@@ -74,24 +74,31 @@ public final class NoiseFieldIndex {
     public static final double MIN_RADIAL_WEIGHT = 0.0625;
 
     /**
-     * The ground a site claims because of WHAT stands on it, rather than
-     * where it stands.
-     *
-     * <p>Supplied by the caller because this class must not know about pools,
-     * registries or structure ids — it is the half that is testable without
-     * Minecraft's Bootstrap. {@code DimensionStructures} binds it to the
-     * group's own pool, so the factor at a chunk is the size factor of the
-     * structure {@link StructurePick} assigns there. Both are pure functions
-     * of the chunk, which is what keeps placement order-free.
+     * The ground a site claims because of WHAT stands on it, rather than where
+     * it stands. Supplied by the caller so this class needs no pools,
+     * registries or structure ids.
      *
      * <p>Null means uniform: every site claims its group's radius and the
-     * index takes the integer path it always took.
+     * index takes the integer path.
      */
     @FunctionalInterface
     public interface Footprints {
         /** Exclusion scale for whatever is assigned at this chunk. 1.0 is the median. */
         double factorAt(int chunkX, int chunkZ);
     }
+
+    /**
+     * What stands at a placement, not what was assigned there
+     * ([T56](TROUBLESHOOTING.md#t56)). Negative is unknown. Called per
+     * PLACEMENT, never per eligible chunk.
+     */
+    @FunctionalInterface
+    public interface Occupants {
+        int occupantAt(int chunkX, int chunkZ);
+    }
+
+    /** Minimum chunks between two placements holding the same occupant. */
+    public static final int SAME_OCCUPANT_MIN_CHUNKS = 16;
 
     private final Set<Long> placements;
     private final Map<Long, ChunkPos> byRegion;
@@ -144,15 +151,20 @@ public final class NoiseFieldIndex {
     /**
      * @param footprints per-site exclusion scale from whatever is assigned
      *                   there, or null for the uniform integer path. A uniform
-     *                   1.0 through this parameter is defined to produce the
-     *                   same placements as null — see
-     *                   {@link #radiusOf(int, double)} — so the feature can be
-     *                   switched on without moving a world that has no size
-     *                   variation to move.
+     *                   1.0 places identically to null
+     *                   ({@link #radiusOf(int, double)}).
      */
     public NoiseFieldIndex(long noiseSeed, NoiseProfile profile, int exclusion,
                            double[] radial, int radiusChunks, int spawnChunkX, int spawnChunkZ,
                            int clearSpawnChunks, Footprints footprints) {
+        this(noiseSeed, profile, exclusion, radial, radiusChunks,
+                spawnChunkX, spawnChunkZ, clearSpawnChunks, footprints, null);
+    }
+
+    /** @param occupants repetition pass input; null skips it. */
+    public NoiseFieldIndex(long noiseSeed, NoiseProfile profile, int exclusion,
+                           double[] radial, int radiusChunks, int spawnChunkX, int spawnChunkZ,
+                           int clearSpawnChunks, Footprints footprints, Occupants occupants) {
         int r = Math.min(Math.max(radiusChunks, 0), MAX_RADIUS_CHUNKS);
         int excl = Math.max(1, exclusion);
         // The locate cell has to be sized from the SMALLEST separation the
@@ -296,6 +308,10 @@ public final class NoiseFieldIndex {
             }
         }
 
+        if (occupants != null) {
+            orderedPositions = thinRepeats(orderedPositions, occupants, noiseSeed);
+        }
+
         // Nearest-first, ties broken on the chunk key so the order is total
         // and identical in the Python mirror. The order decides which position
         // represents a locate cell, so it has to be deterministic, not merely
@@ -391,28 +407,14 @@ public final class NoiseFieldIndex {
     }
 
     /**
-     * The same test, with each site claiming its own radius: two sites
-     * conflict when they are closer than the SUM of what each claims.
+     * The same test, with each site claiming its own radius: two sites conflict
+     * when they are closer than the SUM of what each claims, so a pair resolves
+     * the same way whichever of them is asking.
      *
      * <p>Radii are halves of a separation ({@link #radiusOf}), so two sites of
-     * median size sum back to exactly the separation the uniform path uses —
-     * turning footprints on does not move a world whose structures are all
-     * average, and a big one takes its extra ground from its neighbours rather
-     * than from the group's overall density.
-     *
-     * <p><b>Why the sum, and not each site's own radius.</b> Judging a
-     * candidate only against its OWN radius, as the uniform path does, lets a
-     * small structure ignore a large one: a well 3 chunks from a castle
-     * consults its own 2-chunk disc, never sees the castle, and places inside
-     * it. The castle sees the well but only loses if the well outranks it.
-     * Under the sum both sides use the same number, so the pair resolves the
-     * same way whichever of them is asking.
-     *
-     * <p>The scan is bounded by this site's radius plus the largest any site
-     * in the field claims, so nothing that could reach this chunk is missed.
-     * That disc is wider than the uniform path's, and it is affordable for one
-     * reason: the test returns on the first higher-ranked neighbour, and the
-     * overwhelming majority of candidates are rejected within a few rings.
+     * median size sum back to the separation the uniform path uses. The scan is
+     * bounded by this site's radius plus the largest any site in the field
+     * claims, so nothing that could reach this chunk is missed.
      */
     private static boolean outranksSizedNeighbours(boolean[] eligible, long[] ranks, float[] radii,
                                                    int side, int r, int dx, int dz,
@@ -454,11 +456,77 @@ public final class NoiseFieldIndex {
     }
 
     /**
-     * Half a separation, scaled by what stands here.
-     *
-     * <p>Halved so that two sites at factor 1.0 sum to {@code separation}
-     * exactly, which is what makes the footprint path a no-op on a world with
-     * no size variation rather than a silent halving of density.
+     * Drops a placement whose occupant repeats a higher-ranked one within
+     * {@link #SAME_OCCUPANT_MIN_CHUNKS}. Removes only; the loser stays empty.
+     * Ranked on the same white noise as the thinning, so it is order-free.
+     */
+    private static List<ChunkPos> thinRepeats(List<ChunkPos> positions,
+                                              Occupants occupants, long noiseSeed) {
+        int n = positions.size();
+        int[] occupant = new int[n];
+        for (int i = 0; i < n; i++) {
+            ChunkPos p = positions.get(i);
+            occupant[i] = occupants.occupantAt(p.x, p.z);
+        }
+        int cell = Math.max(1, SAME_OCCUPANT_MIN_CHUNKS);
+        Map<Long, List<Integer>> buckets = new HashMap<>();
+        for (int i = 0; i < n; i++) {
+            if (occupant[i] < 0) {
+                continue;
+            }
+            ChunkPos p = positions.get(i);
+            buckets.computeIfAbsent(
+                    regionKey(Math.floorDiv(p.x, cell), Math.floorDiv(p.z, cell)),
+                    k -> new ArrayList<>()).add(i);
+        }
+        long minSq = (long) SAME_OCCUPANT_MIN_CHUNKS * SAME_OCCUPANT_MIN_CHUNKS;
+        List<ChunkPos> kept = new ArrayList<>(n);
+        for (int i = 0; i < n; i++) {
+            ChunkPos p = positions.get(i);
+            if (occupant[i] < 0) {
+                kept.add(p);
+                continue;
+            }
+            long rank = priority(noiseSeed, p.x, p.z);
+            long key = ChunkPos.toLong(p.x, p.z);
+            boolean beaten = false;
+            int gx = Math.floorDiv(p.x, cell);
+            int gz = Math.floorDiv(p.z, cell);
+            for (int ox = -1; ox <= 1 && !beaten; ox++) {
+                for (int oz = -1; oz <= 1 && !beaten; oz++) {
+                    List<Integer> bucket = buckets.get(regionKey(gx + ox, gz + oz));
+                    if (bucket == null) {
+                        continue;
+                    }
+                    for (int j : bucket) {
+                        if (j == i || occupant[j] != occupant[i]) {
+                            continue;
+                        }
+                        ChunkPos q = positions.get(j);
+                        long dx = p.x - (long) q.x;
+                        long dz = p.z - (long) q.z;
+                        if (dx * dx + dz * dz >= minSq) {
+                            continue;
+                        }
+                        long otherRank = priority(noiseSeed, q.x, q.z);
+                        int cmp = Long.compareUnsigned(otherRank, rank);
+                        if (cmp > 0 || (cmp == 0 && ChunkPos.toLong(q.x, q.z) < key)) {
+                            beaten = true;
+                            break;
+                        }
+                    }
+                }
+            }
+            if (!beaten) {
+                kept.add(p);
+            }
+        }
+        return kept;
+    }
+
+    /**
+     * Half a separation, scaled by what stands here. Halved so that two sites
+     * at factor 1.0 sum to {@code separation} exactly.
      */
     static double radiusOf(int separation, double factor) {
         return separation * Math.max(0.0, factor) / 2.0;

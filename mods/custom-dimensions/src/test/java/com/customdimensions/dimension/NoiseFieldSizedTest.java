@@ -182,4 +182,78 @@ class NoiseFieldSizedTest {
     void radiusOfNeverGoesNegative() {
         assertEquals(0.0, NoiseFieldIndex.radiusOf(8, -3.0), 1e-9);
     }
+
+    // ------------------------------------- the biome-aware repetition pass
+
+    private static NoiseFieldIndex withOccupants(NoiseFieldIndex.Occupants occ) {
+        return new NoiseFieldIndex(SEED, NoiseProfile.NATURAL, 4, null,
+                RADIUS, 0, 0, 0, (x, z) -> 1.0, occ);
+    }
+
+    @Test
+    void aNullOccupantFunctionLeavesTheFieldAlone() {
+        assertEquals(index((x, z) -> 1.0).positions(), withOccupants(null).positions(),
+                "the repetition pass must be entirely opt-in");
+    }
+
+    @Test
+    void anUnknownOccupantConflictsWithNothing() {
+        assertEquals(index((x, z) -> 1.0).positions(), withOccupants((x, z) -> -1).positions(),
+                "-1 must never read as 'all the same thing'");
+    }
+
+    @Test
+    void thePassOnlyEverRemoves() {
+        List<ChunkPos> before = index((x, z) -> 1.0).positions();
+        List<ChunkPos> after = withOccupants((x, z) -> 0).positions();
+        assertTrue(before.containsAll(after),
+                "the pass may drop a placement but must never move or invent one");
+        assertTrue(after.size() < before.size(),
+                "one repeated occupant everywhere must cost sites");
+    }
+
+    @Test
+    void noTwoSurvivorsShareAnOccupantInsideTheMinimum() {
+        NoiseFieldIndex.Occupants occ = (x, z) -> Math.floorMod(x * 73856093 ^ z * 19349663, 5);
+        List<ChunkPos> pos = withOccupants(occ).positions();
+        assertTrue(pos.size() > 20, "need a populated field");
+        long min = (long) NoiseFieldIndex.SAME_OCCUPANT_MIN_CHUNKS
+                * NoiseFieldIndex.SAME_OCCUPANT_MIN_CHUNKS;
+        int violations = 0;
+        for (int i = 0; i < pos.size(); i++) {
+            for (int j = i + 1; j < pos.size(); j++) {
+                ChunkPos a = pos.get(i);
+                ChunkPos b = pos.get(j);
+                if (occ.occupantAt(a.x, a.z) != occ.occupantAt(b.x, b.z)) {
+                    continue;
+                }
+                long dx = a.x - (long) b.x;
+                long dz = a.z - (long) b.z;
+                if (dx * dx + dz * dz < min) {
+                    violations++;
+                }
+            }
+        }
+        assertEquals(0, violations, "two copies of one occupant survived inside the minimum");
+    }
+
+    @Test
+    void aVariedWorldBarelyNotices() {
+        int flat = index((x, z) -> 1.0).positions().size();
+        int varied = withOccupants(
+                (x, z) -> Math.floorMod(x * 2654435761L + z * 40503L, 400)).positions().size();
+        assertTrue(varied >= flat * 0.95,
+                "a 400-occupant world should lose almost nothing; got "
+                + varied + " against " + flat);
+    }
+
+    @Test
+    void theRepetitionPassIsOrderFree() {
+        NoiseFieldIndex.Occupants occ = (x, z) -> Math.floorMod(x * 31 + z * 17, 7);
+        assertEquals(withOccupants(occ).positions(), withOccupants(occ).positions());
+        // and independent of the order the thinning happened to emit
+        List<ChunkPos> once = withOccupants(occ).positions();
+        List<ChunkPos> twice = withOccupants(occ).positions();
+        assertEquals(once, twice);
+    }
 }

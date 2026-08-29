@@ -330,7 +330,7 @@ public final class DimensionStructures {
             if ("adventure:exit_shrines".equals(setId)) {
                 continue;
             }
-            if (!NoisePoolBuilder.noiseManaged(entry.value().placement())) {
+            if (!NoisePoolBuilder.noiseManaged(setId, entry.value().placement())) {
                 if (!keepSet(setId, mode, modeList, exclude)) {
                     passthroughFiltered++;
                     continue;
@@ -382,7 +382,8 @@ public final class DimensionStructures {
             NoiseStructurePlacement placement = new NoiseStructurePlacement(
                     group, noiseSeed, settings.profile(), settings.exclusion(),
                     settings.radial(), radiusChunks, 0, 0, settings.clearSpawnChunks(),
-                    StructureFootprints.forPool(noiseSeed, sorted));
+                    StructureFootprints.forPool(noiseSeed, sorted),
+                    StructureFootprints.occupantsFor(noiseSeed, sorted, biomeSource, noiseConfig));
 
             StructurePick.GroupSelection sel = new StructurePick.GroupSelection(
                     group, noiseSeed, sorted, placement.index());
@@ -950,7 +951,7 @@ public final class DimensionStructures {
             String setId = entry.getKey().map(k -> k.getValue().toString()).orElse(null);
             if (setId == null || "adventure:exit_shrines".equals(setId)
                     || !spacingOverrides.containsKey(setId)
-                    || !NoisePoolBuilder.noiseManaged(entry.value().placement())) {
+                    || !NoisePoolBuilder.noiseManaged(setId, entry.value().placement())) {
                 continue;
             }
             MultiverseServer.LOGGER.warn(
