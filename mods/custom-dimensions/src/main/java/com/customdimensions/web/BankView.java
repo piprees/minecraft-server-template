@@ -364,6 +364,9 @@ public final class BankView {
                     return biomeIds.size() - 1;
                 }));
                 points.computeIfAbsent(p.group(), g -> new com.google.gson.JsonArray()).add(site);
+                // Nearest is measured over every site in the group, failing or
+                // not — the panel's distance column answers "where is the
+                // closest one of these", which a verdict does not change.
                 double dx = p.x() - sx;
                 double dz = p.z() - sz;
                 nearest.merge(p.group(), Math.sqrt(dx * dx + dz * dz), Math::min);
@@ -373,7 +376,8 @@ public final class BankView {
                 group.add("positions", points.getOrDefault(e.getKey(),
                         new com.google.gson.JsonArray()));
                 group.addProperty("hostile", CandidateRender.isHostileGroup(e.getKey()));
-                group.addProperty("invalid", e.getValue().bad());
+                group.addProperty("invalid", e.getValue().failed());
+                group.addProperty("wanted", e.getValue().wanted());
                 Double d = nearest.get(e.getKey());
                 if (d != null) {
                     group.addProperty("nearestBlocks", d);
@@ -382,12 +386,14 @@ public final class BankView {
             }
             com.google.gson.JsonObject validity = new com.google.gson.JsonObject();
             validity.addProperty("total", report.total());
-            validity.addProperty("invalid", report.bad());
-            validity.addProperty("mismatch", report.count(SiteValidity.Verdict.MISMATCH));
+            validity.addProperty("invalid", report.failed());
+            validity.addProperty("violation", report.count(SiteValidity.Verdict.VIOLATION));
             validity.addProperty("noValidBiomes",
                     report.count(SiteValidity.Verdict.NO_VALID_BIOMES));
+            validity.addProperty("wanted", report.count(SiteValidity.Verdict.WANTED));
             validity.addProperty("unsampled", report.count(SiteValidity.Verdict.UNSAMPLED));
-            validity.addProperty("biomeQuartY", report.biomeQuartY());
+            validity.addProperty("failedUnderground", report.failedUnderground());
+            validity.addProperty("fixedSliceFlips", report.fixedSliceFlips());
             validity.addProperty("millis", report.millis());
             out.add("siteValidity", validity);
         } catch (RuntimeException ex) {
@@ -398,13 +404,18 @@ public final class BankView {
         out.add("siteBiomes", biomeIds);
     }
 
-    /** The wire code for a verdict — spelled out so a reordered enum cannot move it. */
+    /**
+     * The wire code for a verdict — spelled out so a reordered enum cannot
+     * move it. Codes 1 and 2 fail; 3 is a deliberate want and 4 is unknown,
+     * and the viewer draws those three apart.
+     */
     private static int verdictCode(SiteValidity.Verdict verdict) {
         return switch (verdict) {
             case VALID -> 0;
-            case MISMATCH -> 1;
+            case VIOLATION -> 1;
             case NO_VALID_BIOMES -> 2;
-            case UNSAMPLED -> 3;
+            case WANTED -> 3;
+            case UNSAMPLED -> 4;
         };
     }
 

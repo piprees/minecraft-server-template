@@ -138,6 +138,10 @@
   color: var(--text-muted, #8b93a1);
 }
 
+.ef-validity-aside {
+  color: var(--text-muted, #8b93a1);
+}
+
 .ef-validity-bad {
   color: #fca5a5;
   background: rgba(120, 18, 24, 0.25);
@@ -183,13 +187,21 @@
   stroke-width: 3;
 }
 
-/* A site whose assigned structure does not accept the biome under it. Red
-   plate rather than a red glyph: the glyph says which structure, and both
-   readings are wanted at once. */
+/* A site whose assigned structure does not accept the biome under it and
+   nothing asked for it. Red plate rather than a red glyph: the glyph says
+   which structure, and both readings are wanted at once. */
 #lb-exact-markers .ef-marker.ef-invalid .ef-plate {
   fill: rgba(120, 18, 24, 0.85);
   stroke: #f87171;
   stroke-width: 2.5;
+}
+
+/* Also out of biome, but named by structures.wants or structures.include —
+   the dimension author asking for it. Amber, not red: deliberate. */
+#lb-exact-markers .ef-marker.ef-wanted .ef-plate {
+  fill: rgba(94, 62, 8, 0.8);
+  stroke: #e0a052;
+  stroke-width: 2;
 }
 
 #lb-exact-markers .ef-biome-dot {

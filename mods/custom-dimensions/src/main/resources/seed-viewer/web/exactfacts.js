@@ -106,21 +106,22 @@
   }
 
   /**
-   * A site's biome id, and whether its assigned structure's own declared
-   * biomes accept it. Verdict 0 is accepted; 1 the structure lists biomes and
-   * this is not one, 2 it lists none at all, 3 the biome source answered
-   * nothing. Anything above 0 is drawn loudly — that is the whole point of
-   * the layer.
+   * A site's verdict code. 0 the structure's declared biomes accept the biome
+   * there; 1 they do not and nothing asked for it; 2 it declares no valid
+   * biomes at all; 3 out of biome and this dimension's wants/include asked for
+   * it, which is deliberate; 4 no biome sampled. Only 1 and 2 are failures.
    */
   var VERDICT = ['', 'its biomes exclude this one', 'it declares no valid biomes',
-    'no biome sampled here']
+    'out of biome, and this dimension asks for it', 'no biome sampled here']
+
+  function fails(v) { return v === 1 || v === 2 }
 
   function siteBiome(data, p) {
     var ids = data.siteBiomes || []
     return p.length > 4 ? ids[p[4]] : null
   }
 
-  /** The sites the current selection asks for, as {x, z, sid, group, bad, biome}. */
+  /** The sites the current selection asks for, as {x, z, sid, group, v, biome}. */
   function selectedSites(data) {
     if (!selection || !data || !data.groups) return []
     var out = []
@@ -130,11 +131,11 @@
       if (selection.kind === 'group' && group !== selection.key) return
       entry.positions.forEach(function (p) {
         if (selection.kind === 'structure' && p[2] !== selection.key) return
-        var bad = (p[3] || 0)
-        if (selection.kind === 'invalid' && !bad) return
+        var v = p[3] || 0
+        if (selection.kind === 'invalid' && !fails(v)) return
         out.push({
           x: p[0], z: p[1], sid: p[2], group: group,
-          bad: bad, biome: siteBiome(data, p)
+          v: v, biome: siteBiome(data, p)
         })
       })
     })
@@ -148,7 +149,7 @@
     if (sid === undefined) return entry.invalid || 0
     var n = 0
     entry.positions.forEach(function (p) {
-      if (p[2] === sid && p[3]) n++
+      if (p[2] === sid && fails(p[3] || 0)) n++
     })
     return n
   }
@@ -174,7 +175,8 @@
       if (!window.lbOnRender(cx) || !window.lbOnRender(cy)) return
       var fam = familyFor(s.sid || s.group)
       var g = document.createElementNS(NS, 'g')
-      g.setAttribute('class', 'ef-marker' + (s.bad ? ' ef-invalid' : ''))
+      g.setAttribute('class', 'ef-marker' +
+        (fails(s.v) ? ' ef-invalid' : s.v === 3 ? ' ef-wanted' : ''))
       g.setAttribute('data-sid', s.sid || '')
       g.setAttribute('data-group', s.group)
       g.setAttribute('transform', 'translate(' + cx.toFixed(3) + ' ' + cy.toFixed(3) +
@@ -192,7 +194,7 @@
       var line = shortName(s.sid || s.group) + ' — ' +
         Math.round(distance(data, s.x, s.z)) + ' blocks from spawn'
       if (s.biome) line += ' · in ' + shortName(s.biome)
-      if (s.bad) line += ' — ' + VERDICT[s.bad]
+      if (s.v) line += ' — ' + VERDICT[s.v]
       title.textContent = line
       g.appendChild(title)
       frag.appendChild(g)
@@ -392,18 +394,25 @@
   function buildValidity(data) {
     var v = data.siteValidity
     if (!v) return ''
+    var aside = []
+    if (v.wanted) aside.push(v.wanted + ' out of biome by request')
+    if (v.unsampled) aside.push(v.unsampled + ' with no biome sampled')
+    var tail = aside.length ? ' <span class="ef-validity-aside">(' + escHtml(aside.join(', ')) +
+      ')</span>' : ''
     if (!v.invalid) {
-      return '<p class="ef-validity ef-validity-clean">every one of ' + v.total +
-        ' sites is assigned a structure that accepts the biome there</p>'
+      return '<p class="ef-validity ef-validity-clean">no site is assigned a structure ' +
+        'that its own biomes reject, across all ' + v.total + tail + '</p>'
     }
     var parts = []
-    if (v.mismatch) parts.push(v.mismatch + ' in a biome their structure excludes')
+    if (v.violation) parts.push(v.violation + ' in a biome their structure excludes')
     if (v.noValidBiomes) parts.push(v.noValidBiomes + ' assigned a structure with no valid biomes')
-    if (v.unsampled) parts.push(v.unsampled + ' where no biome sampled')
+    if (v.failedUnderground) {
+      parts.push(v.failedUnderground + ' generate underground, where this reads the surface')
+    }
     return '<button type="button" class="ef-validity ef-validity-bad" data-invalid="1">' +
       '<span class="ef-vcount">' + v.invalid + '</span> of ' + v.total +
       ' sites fail their own biome check — ' + escHtml(parts.join(', ')) +
-      ' · draw them</button>'
+      ' · draw them' + tail + '</button>'
   }
 
   /** Every biome inside the border, by share — sorted highest first. */
