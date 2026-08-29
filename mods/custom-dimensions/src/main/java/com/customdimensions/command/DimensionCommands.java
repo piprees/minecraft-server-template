@@ -56,6 +56,8 @@ import java.util.UUID;
  *   /customdim render-check <dimension> <seed> [radius]
  *   /customdim render-check-headless <dimension> <seed> [radius]
  *   /customdim site-validity <dimension> <seed> [radius]
+ *   /customdim structure-sizes <dimension> [samples] [budgetSeconds]
+ *   /customdim structure-sizes-progress
  *   /customdim render-check-reset
  *
  * Rolling, banking, rendering and picking a winner are NOT commands — they
@@ -218,6 +220,19 @@ public class DimensionCommands {
                                 .executes(ctx -> SiteValidityCommand.siteValidity(ctx,
                                     LongArgumentType.getLong(ctx, "seed"),
                                     IntegerArgumentType.getInteger(ctx, "radius")))))))
+                .then(CommandManager.literal("structure-sizes")
+                    .then(CommandManager.argument("dimension", IdentifierArgumentType.identifier())
+                        .executes(ctx -> StructureSizesCommand.structureSizes(ctx, null, null))
+                        .then(CommandManager.argument("samples", IntegerArgumentType.integer(1, 32))
+                            .executes(ctx -> StructureSizesCommand.structureSizes(ctx,
+                                IntegerArgumentType.getInteger(ctx, "samples"), null))
+                            .then(CommandManager.argument("budget_seconds",
+                                    IntegerArgumentType.integer(1, 900))
+                                .executes(ctx -> StructureSizesCommand.structureSizes(ctx,
+                                    IntegerArgumentType.getInteger(ctx, "samples"),
+                                    IntegerArgumentType.getInteger(ctx, "budget_seconds")))))))
+                .then(CommandManager.literal("structure-sizes-progress")
+                    .executes(StructureSizesCommand::progress))
                 .then(CommandManager.literal("column-ladder")
                     .then(CommandManager.argument("dimension", IdentifierArgumentType.identifier())
                         .then(CommandManager.argument("seed", LongArgumentType.longArg())
