@@ -4573,11 +4573,11 @@
    "source": "subsurface-1.0.4.jar"
   },
   "subsurface:coral_caves": {
-   "theme": "dungeon",
+   "theme": "deco",
    "group": "ubiquitous",
    "rarity": "common",
    "spacing": 1,
-   "themeSource": "extracted",
+   "themeSource": "curated",
    "raritySource": "spacing",
    "separation": 0,
    "frequency": 1.0,
@@ -4585,11 +4585,11 @@
    "source": "subsurface-1.0.4.jar"
   },
   "subsurface:foliage_caves": {
-   "theme": "dungeon",
+   "theme": "deco",
    "group": "ubiquitous",
    "rarity": "common",
    "spacing": 1,
-   "themeSource": "extracted",
+   "themeSource": "curated",
    "raritySource": "spacing",
    "separation": 0,
    "frequency": 1.0,
@@ -4597,11 +4597,11 @@
    "source": "subsurface-1.0.4.jar"
   },
   "subsurface:fungal_caves": {
-   "theme": "dungeon",
+   "theme": "deco",
    "group": "ubiquitous",
    "rarity": "common",
    "spacing": 1,
-   "themeSource": "extracted",
+   "themeSource": "curated",
    "raritySource": "spacing",
    "separation": 0,
    "frequency": 1.0,
@@ -4609,11 +4609,11 @@
    "source": "subsurface-1.0.4.jar"
   },
   "subsurface:icicle_caves": {
-   "theme": "dungeon",
+   "theme": "deco",
    "group": "ubiquitous",
    "rarity": "common",
    "spacing": 1,
-   "themeSource": "extracted",
+   "themeSource": "curated",
    "raritySource": "spacing",
    "separation": 0,
    "frequency": 1.0,
@@ -4621,11 +4621,11 @@
    "source": "subsurface-1.0.4.jar"
   },
   "subsurface:mesa_caves": {
-   "theme": "dungeon",
+   "theme": "deco",
    "group": "ubiquitous",
    "rarity": "common",
    "spacing": 1,
-   "themeSource": "extracted",
+   "themeSource": "curated",
    "raritySource": "spacing",
    "separation": 0,
    "frequency": 1.0,
@@ -4633,11 +4633,11 @@
    "source": "subsurface-1.0.4.jar"
   },
   "subsurface:quartz_canyons": {
-   "theme": "landmark",
+   "theme": "deco",
    "group": "ubiquitous",
    "rarity": "common",
    "spacing": 1,
-   "themeSource": "extracted",
+   "themeSource": "curated",
    "raritySource": "spacing",
    "separation": 0,
    "frequency": 1.0,
@@ -4645,11 +4645,11 @@
    "source": "subsurface-1.0.4.jar"
   },
   "subsurface:sand_caves": {
-   "theme": "dungeon",
+   "theme": "deco",
    "group": "ubiquitous",
    "rarity": "common",
    "spacing": 1,
-   "themeSource": "extracted",
+   "themeSource": "curated",
    "raritySource": "spacing",
    "separation": 0,
    "frequency": 1.0,
@@ -4657,11 +4657,11 @@
    "source": "subsurface-1.0.4.jar"
   },
   "subsurface:soul_canyons": {
-   "theme": "landmark",
+   "theme": "deco",
    "group": "ubiquitous",
    "rarity": "common",
    "spacing": 1,
-   "themeSource": "extracted",
+   "themeSource": "curated",
    "raritySource": "spacing",
    "separation": 0,
    "frequency": 1.0,
@@ -4669,11 +4669,11 @@
    "source": "subsurface-1.0.4.jar"
   },
   "subsurface:swamp_caves": {
-   "theme": "dungeon",
+   "theme": "deco",
    "group": "ubiquitous",
    "rarity": "common",
    "spacing": 1,
-   "themeSource": "extracted",
+   "themeSource": "curated",
    "raritySource": "spacing",
    "separation": 0,
    "frequency": 1.0,
@@ -4681,11 +4681,11 @@
    "source": "subsurface-1.0.4.jar"
   },
   "subsurface:underground_forest": {
-   "theme": "dungeon",
+   "theme": "deco",
    "group": "ubiquitous",
    "rarity": "common",
    "spacing": 1,
-   "themeSource": "extracted",
+   "themeSource": "curated",
    "raritySource": "spacing",
    "separation": 0,
    "frequency": 1.0,
@@ -4693,11 +4693,11 @@
    "source": "subsurface-1.0.4.jar"
   },
   "subsurface:underground_taiga": {
-   "theme": "dungeon",
+   "theme": "deco",
    "group": "ubiquitous",
    "rarity": "common",
    "spacing": 1,
-   "themeSource": "extracted",
+   "themeSource": "curated",
    "raritySource": "spacing",
    "separation": 0,
    "frequency": 1.0,

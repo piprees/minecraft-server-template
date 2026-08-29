@@ -177,6 +177,20 @@ CURATED = {
     # --- supplementaries ---------------------------------------------------
     "supplementaries:galleons": ("maritime", "overworld"),
     "supplementaries:road_signs": ("deco", "overworld"),
+    # --- subsurface --------------------------------------------------------
+    # Cave dressing placed at the vegetal_decoration step; the census regex
+    # reads them as dungeons and landmarks.
+    "subsurface:coral_caves": ("deco", None),
+    "subsurface:foliage_caves": ("deco", None),
+    "subsurface:fungal_caves": ("deco", None),
+    "subsurface:icicle_caves": ("deco", None),
+    "subsurface:mesa_caves": ("deco", None),
+    "subsurface:quartz_canyons": ("deco", None),
+    "subsurface:sand_caves": ("deco", None),
+    "subsurface:soul_canyons": ("deco", None),
+    "subsurface:swamp_caves": ("deco", None),
+    "subsurface:underground_forest": ("deco", None),
+    "subsurface:underground_taiga": ("deco", None),
 }
 
 # The extracted file's `dimensions` and the dials file's `dims` use different
