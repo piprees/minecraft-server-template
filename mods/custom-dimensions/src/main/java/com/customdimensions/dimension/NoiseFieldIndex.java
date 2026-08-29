@@ -73,6 +73,26 @@ public final class NoiseFieldIndex {
     public static final double MAX_EXCLUSION_SCALE = 4.0;
     public static final double MIN_RADIAL_WEIGHT = 0.0625;
 
+    /**
+     * The ground a site claims because of WHAT stands on it, rather than
+     * where it stands.
+     *
+     * <p>Supplied by the caller because this class must not know about pools,
+     * registries or structure ids — it is the half that is testable without
+     * Minecraft's Bootstrap. {@code DimensionStructures} binds it to the
+     * group's own pool, so the factor at a chunk is the size factor of the
+     * structure {@link StructurePick} assigns there. Both are pure functions
+     * of the chunk, which is what keeps placement order-free.
+     *
+     * <p>Null means uniform: every site claims its group's radius and the
+     * index takes the integer path it always took.
+     */
+    @FunctionalInterface
+    public interface Footprints {
+        /** Exclusion scale for whatever is assigned at this chunk. 1.0 is the median. */
+        double factorAt(int chunkX, int chunkZ);
+    }
+
     private final Set<Long> placements;
     private final Map<Long, ChunkPos> byRegion;
     private final List<ChunkPos> ordered;
@@ -117,6 +137,22 @@ public final class NoiseFieldIndex {
     public NoiseFieldIndex(long noiseSeed, NoiseProfile profile, int exclusion,
                            double[] radial, int radiusChunks, int spawnChunkX, int spawnChunkZ,
                            int clearSpawnChunks) {
+        this(noiseSeed, profile, exclusion, radial, radiusChunks,
+                spawnChunkX, spawnChunkZ, clearSpawnChunks, null);
+    }
+
+    /**
+     * @param footprints per-site exclusion scale from whatever is assigned
+     *                   there, or null for the uniform integer path. A uniform
+     *                   1.0 through this parameter is defined to produce the
+     *                   same placements as null — see
+     *                   {@link #radiusOf(int, double)} — so the feature can be
+     *                   switched on without moving a world that has no size
+     *                   variation to move.
+     */
+    public NoiseFieldIndex(long noiseSeed, NoiseProfile profile, int exclusion,
+                           double[] radial, int radiusChunks, int spawnChunkX, int spawnChunkZ,
+                           int clearSpawnChunks, Footprints footprints) {
         int r = Math.min(Math.max(radiusChunks, 0), MAX_RADIUS_CHUNKS);
         int excl = Math.max(1, exclusion);
         // The locate cell has to be sized from the SMALLEST separation the
@@ -158,6 +194,12 @@ public final class NoiseFieldIndex {
         // mix64 calls on a large dense dimension. Only eligible entries are
         // ever read.
         long[] ranks = new long[side * side];
+        // Per-site claimed radius, HALF a separation each so two median sites
+        // sum back to exactly the separation the uniform path would have used.
+        // Null when no footprints were supplied, which keeps the integer path
+        // and its byte-identical output.
+        float[] radii = footprints == null ? null : new float[side * side];
+        double maxRadius = 0.0;
         double rSquared = (double) r * r;
         double threshold = profile.threshold();
         // structures.clearSpawnRadius. Everything strictly inside the disc is
@@ -182,7 +224,8 @@ public final class NoiseFieldIndex {
                 // Tested before the noise so a suppressed band costs no Perlin
                 // work; the samples are independent per chunk, so skipping one
                 // cannot change another.
-                if (radialWeight(radial, Math.sqrt(distSq), r) <= 0.0) {
+                double weight = radialWeight(radial, Math.sqrt(distSq), r);
+                if (weight <= 0.0) {
                     continue;
                 }
                 int cx = spawnChunkX + dx;
@@ -199,6 +242,20 @@ public final class NoiseFieldIndex {
                     int idx = (dz + r) * side + (dx + r);
                     eligible[idx] = true;
                     ranks[idx] = priority(noiseSeed, cx, cz);
+                    if (radii != null) {
+                        // One call per ELIGIBLE chunk, never per neighbour
+                        // pair. Same reason ranks are cached here: a candidate
+                        // is read once as itself and up to a disc's worth of
+                        // times as somebody's neighbour, and resolving the
+                        // pool on each of those reads is tens of millions of
+                        // weighted draws on a large dimension.
+                        float rad = (float) radiusOf(exclusionFor(excl, weight),
+                                footprints.factorAt(cx, cz));
+                        radii[idx] = rad;
+                        if (rad > maxRadius) {
+                            maxRadius = rad;
+                        }
+                    }
                 }
             }
         }
@@ -224,10 +281,15 @@ public final class NoiseFieldIndex {
                 // order-free — every decision reads only the eligibility and
                 // rank arrays, never another decision — so parity with the
                 // Python mirror is still a set comparison.
-                int candidateExcl = exclusionFor(excl,
-                        radialWeight(radial, Math.sqrt((double) dx * dx + (double) dz * dz), r));
-                if (!outranksNeighbours(eligible, ranks, side, r, dx, dz, candidateExcl,
-                        cx, cz, spawnChunkX, spawnChunkZ)) {
+                if (radii == null) {
+                    int candidateExcl = exclusionFor(excl,
+                            radialWeight(radial, Math.sqrt((double) dx * dx + (double) dz * dz), r));
+                    if (!outranksNeighbours(eligible, ranks, side, r, dx, dz, candidateExcl,
+                            cx, cz, spawnChunkX, spawnChunkZ)) {
+                        continue;
+                    }
+                } else if (!outranksSizedNeighbours(eligible, ranks, radii, side, r, dx, dz,
+                        maxRadius, cx, cz, spawnChunkX, spawnChunkZ)) {
                     continue;
                 }
                 orderedPositions.add(new ChunkPos(cx, cz));
@@ -326,6 +388,80 @@ public final class NoiseFieldIndex {
             }
         }
         return true;
+    }
+
+    /**
+     * The same test, with each site claiming its own radius: two sites
+     * conflict when they are closer than the SUM of what each claims.
+     *
+     * <p>Radii are halves of a separation ({@link #radiusOf}), so two sites of
+     * median size sum back to exactly the separation the uniform path uses —
+     * turning footprints on does not move a world whose structures are all
+     * average, and a big one takes its extra ground from its neighbours rather
+     * than from the group's overall density.
+     *
+     * <p><b>Why the sum, and not each site's own radius.</b> Judging a
+     * candidate only against its OWN radius, as the uniform path does, lets a
+     * small structure ignore a large one: a well 3 chunks from a castle
+     * consults its own 2-chunk disc, never sees the castle, and places inside
+     * it. The castle sees the well but only loses if the well outranks it.
+     * Under the sum both sides use the same number, so the pair resolves the
+     * same way whichever of them is asking.
+     *
+     * <p>The scan is bounded by this site's radius plus the largest any site
+     * in the field claims, so nothing that could reach this chunk is missed.
+     * That disc is wider than the uniform path's, and it is affordable for one
+     * reason: the test returns on the first higher-ranked neighbour, and the
+     * overwhelming majority of candidates are rejected within a few rings.
+     */
+    private static boolean outranksSizedNeighbours(boolean[] eligible, long[] ranks, float[] radii,
+                                                   int side, int r, int dx, int dz,
+                                                   double maxRadius, int cx, int cz,
+                                                   int spawnChunkX, int spawnChunkZ) {
+        long key = ChunkPos.toLong(cx, cz);
+        int self = (dz + r) * side + (dx + r);
+        long rank = ranks[self];
+        double selfRadius = radii[self];
+        int scan = (int) Math.ceil(selfRadius + maxRadius);
+        for (int oz = -scan; oz <= scan; oz++) {
+            for (int ox = -scan; ox <= scan; ox++) {
+                if (ox == 0 && oz == 0) {
+                    continue;
+                }
+                int nx = dx + ox;
+                int nz = dz + oz;
+                if (nx < -r || nx > r || nz < -r || nz > r) {
+                    continue;   // outside the world: nothing can be there
+                }
+                int nIdx = (nz + r) * side + (nx + r);
+                if (!eligible[nIdx]) {
+                    continue;
+                }
+                double reach = selfRadius + radii[nIdx];
+                if ((double) ox * ox + (double) oz * oz > reach * reach) {
+                    continue;   // far enough apart that neither claims the other
+                }
+                int cmp = Long.compareUnsigned(ranks[nIdx], rank);
+                if (cmp > 0) {
+                    return false;
+                }
+                if (cmp == 0 && ChunkPos.toLong(spawnChunkX + nx, spawnChunkZ + nz) < key) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Half a separation, scaled by what stands here.
+     *
+     * <p>Halved so that two sites at factor 1.0 sum to {@code separation}
+     * exactly, which is what makes the footprint path a no-op on a world with
+     * no size variation rather than a silent halving of density.
+     */
+    static double radiusOf(int separation, double factor) {
+        return separation * Math.max(0.0, factor) / 2.0;
     }
 
     /**
