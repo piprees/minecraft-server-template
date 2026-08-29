@@ -1,6 +1,6 @@
 # In-House Server Mods
 
-Fabric mods built and maintained as part of this platform. Each subdirectory is a standalone Gradle project producing a JAR for the server's mod list. This file is what you must know **before** touching one. Subsystem detail lives in `docs/mod-internals/`: [portals](../docs/mod-internals/portals.md), [worldgen & structures](../docs/mod-internals/worldgen-structures.md), [diagnostics & seed rolling](../docs/mod-internals/diagnostics.md), [architecture](../docs/mod-internals/architecture.md). Player-facing config schema: [`custom-dimensions/README.md`](custom-dimensions/README.md).
+Fabric mods built and maintained as part of this platform. Each subdirectory is a standalone Gradle project producing a JAR for the server's mod list. This file is what you must know **before** touching one. Subsystem detail lives in `docs/mod-internals/`: [portals](../docs/mod-internals/portals.md), [worldgen & structures](../docs/mod-internals/worldgen-structures.md), [noise placement design intent](../docs/design/noise-placement.md), [diagnostics & seed rolling](../docs/mod-internals/diagnostics.md), [architecture](../docs/mod-internals/architecture.md). Player-facing config schema: [`custom-dimensions/README.md`](custom-dimensions/README.md).
 
 ## Environment
 

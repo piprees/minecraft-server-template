@@ -110,6 +110,19 @@ UBIQUITOUS = frozenset({
     "betterend:mountain",
 })
 
+# Flagship content the automated gate cannot see. The gate needs an eligible
+# theme, a rare/endgame tier AND a keyword hit; a set can be the biggest thing
+# in its family and miss all three. Curated by id, the UBIQUITOUS precedent
+# (TROUBLESHOOTING.md#t55): spacing is evidence for whoever curates, never the
+# trigger.
+ENDGAME_CURATED = frozenset({
+    # The only endgame-scale nether content outside mns:. One member, the
+    # widest measured span of any nether structure, valid in all 18 nether
+    # biomes. Without it the nether family's endgame pool is 4 across eight
+    # dimensions, under DimensionLint.POOL_FLOOR.
+    "hellish_trials:minor_structures",
+})
+
 # Lifted verbatim from extract-structure-sets.py's ENDGAME_PATTERNS: an
 # already-reviewed "flagship content" keyword list. Used here to pick the
 # endgame GROUP (mega-dungeons), never the rarity tier.
@@ -246,6 +259,8 @@ def group_for(theme, rarity, set_id, structures):
     """
     if set_id in UBIQUITOUS:
         return UBIQUITOUS_GROUP
+    if set_id in ENDGAME_CURATED:
+        return "endgame"
     group = THEME_TO_GROUP.get(theme)
     if group is None:
         return None

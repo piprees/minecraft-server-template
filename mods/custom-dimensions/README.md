@@ -3,7 +3,7 @@
 Runtime dimension creation for Minecraft 1.21.1 Fabric: custom portal frames, configurable igniters, coordinate scaling, per-dimension worldgen, and bidirectional travel. One JSON file per dimension, read at boot.
 
 - Development contract (mixins, verification loop, jar gate): [`mods/AGENTS.md`](../AGENTS.md)
-- Internals: [portals](../../docs/mod-internals/portals.md) · [worldgen & structures](../../docs/mod-internals/worldgen-structures.md) · [diagnostics & seed rolling](../../docs/mod-internals/diagnostics.md) · [architecture](../../docs/mod-internals/architecture.md)
+- Internals: [portals](../../docs/mod-internals/portals.md) · [worldgen & structures](../../docs/mod-internals/worldgen-structures.md) · [noise placement design intent](../../docs/design/noise-placement.md) · [diagnostics & seed rolling](../../docs/mod-internals/diagnostics.md) · [architecture](../../docs/mod-internals/architecture.md)
 
 **Requirements:** Minecraft 1.21.1, Fabric Loader 0.16+, Fabric API, Java 21.
 

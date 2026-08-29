@@ -1,6 +1,6 @@
 # Worldgen and structure internals (custom-dimensions)
 
-Implementation rules for jar-baked worldgen data and structure placement. Read [`mods/AGENTS.md`](../../mods/AGENTS.md) first for the short rules; config schema is [`mods/custom-dimensions/README.md`](../../mods/custom-dimensions/README.md).
+Implementation rules for jar-baked worldgen data and structure placement. Read [`mods/AGENTS.md`](../../mods/AGENTS.md) first for the short rules; config schema is [`mods/custom-dimensions/README.md`](../../mods/custom-dimensions/README.md). Where this is all HEADING, and the rules that override tuning: [noise-placement-design.md](../design/noise-placement.md).
 
 ## Worldgen self-containment (optional-mods hardening)
 

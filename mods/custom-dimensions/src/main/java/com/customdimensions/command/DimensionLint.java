@@ -426,6 +426,37 @@ public final class DimensionLint {
     }
 
     /**
+     * Whether a forced position is reachable, and whether anything will draw
+     * it. {@code borders.player} is what bounds a world — WorldBorderManager
+     * applies it as the vanilla WorldBorder — while {@code borders.generation}
+     * is metadata the renderer and Chunky read, so a position beyond it still
+     * generates the moment a player walks there. Pure over the four numbers so
+     * it is testable without a registry.
+     */
+    static List<Finding> checkForcedPosition(String dimension, String structure,
+                                             int x, int z,
+                                             int playerBorder, int generationBorder) {
+        List<Finding> out = new ArrayList<>();
+        if (playerBorder > 0 && (Math.abs(x) > playerBorder || Math.abs(z) > playerBorder)) {
+            out.add(new Finding(dimension, ERROR, "force_outside_border", structure,
+                    structure + " is forced to (" + x + ", " + z
+                    + "), outside borders.player (radius " + playerBorder
+                    + ") — no player can reach it, so it never generates",
+                    "move it inside +/-" + playerBorder + ", or raise borders.player"));
+        } else if (generationBorder > 0
+                && (Math.abs(x) > generationBorder || Math.abs(z) > generationBorder)) {
+            out.add(new Finding(dimension, WARN, "force_outside_pregen", structure,
+                    structure + " is forced to (" + x + ", " + z
+                    + "), inside borders.player but outside borders.generation (radius "
+                    + generationBorder + ") — it generates when a player reaches it, but "
+                    + "pre-generation and the map never cover it",
+                    "raise borders.generation to include it, or accept that it is found by "
+                    + "exploring rather than shown on the map"));
+        }
+        return out;
+    }
+
+    /**
      * A group below {@link #POOL_FLOOR} is a content fault: the dimension
      * ships with biomes nothing reaches. Pure over the counts so it is
      * testable without a registry; {@link #checkPools} supplies them.
@@ -528,6 +559,7 @@ public final class DimensionLint {
         Registry<net.minecraft.world.gen.structure.Structure> structureRegistry =
                 server.getRegistryManager().get(RegistryKeys.STRUCTURE);
         int generationBorder = def.getGenerationBorderRadius();
+        int playerBorder = def.getPlayerBorderRadius();
 
         for (DimensionConfig.ForcedStructure f : block.force) {
             if (f == null || f.structure == null || f.x == null || f.z == null) {
@@ -554,15 +586,8 @@ public final class DimensionLint {
                         "give the entry a \"y\" to pin it there without ground, or move the "
                         + "placement to a dimension whose type generates terrain"));
             }
-            if (generationBorder > 0
-                    && (Math.abs(f.x) > generationBorder || Math.abs(f.z) > generationBorder)) {
-                out.add(new Finding(name, ERROR, "force_outside_border", f.structure,
-                        f.structure + " is forced to (" + f.x + ", " + f.z
-                        + "), outside borders.generation (radius " + generationBorder
-                        + ") — chunks never generate there, so it never appears",
-                        "move it inside +/-" + generationBorder
-                        + ", or raise borders.generation"));
-            }
+            out.addAll(checkForcedPosition(name, f.structure, f.x, f.z,
+                    playerBorder, generationBorder));
         }
         return out;
     }

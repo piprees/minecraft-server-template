@@ -20,8 +20,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * MinecraftServer} (the structure and biome registries) and cannot run
  * here — {@link #checkRadialCurves} reads config alone, and {@link
  * #unknownSuppressedIds} takes the registry lookup as a predicate, and {@link
- * #checkPoolFloor} decides on counts alone, so all three run against plain
- * data. Lint's overall runtime and the registry-backed
+ * #checkPoolFloor} decides on counts alone, and {@link
+ * #checkForcedPosition} decides on four numbers, so all four run against
+ * plain data. Lint's overall runtime and the registry-backed
  * checks (want/pool cross-checks, suppress-list resolution) need a running
  * server and are exercised by {@code /customdim lint} against one instead.
  */
@@ -194,4 +195,50 @@ class DimensionLintTest {
             assertEveryFindingIsActionable(findings);
         }
     }
+    // ------------------------------------------------------- forced position
+
+    @Test
+    void aForcePastThePlayerBorderIsAnErrorBecauseNobodyCanReachIt() {
+        List<DimensionLint.Finding> out = DimensionLint.checkForcedPosition(
+                "d", "minecraft:mansion", 5000, 0, 4096, 2048);
+        assertEquals(1, out.size());
+        assertEquals(DimensionLint.ERROR, out.get(0).severity());
+        assertEquals("force_outside_border", out.get(0).check());
+    }
+
+    /**
+     * borders.generation is metadata the renderer and Chunky read; nothing
+     * gates chunk generation on it, so a position past it still generates
+     * when a player walks there. Reporting that as an ERROR produced six
+     * false findings across the shipped pack.
+     */
+    @Test
+    void aForceInsideThePlayerBorderButPastPregenIsOnlyAWarning() {
+        List<DimensionLint.Finding> out = DimensionLint.checkForcedPosition(
+                "d", "structory:old_manor", 2800, -1200, 4096, 2048);
+        assertEquals(1, out.size());
+        assertEquals(DimensionLint.WARN, out.get(0).severity());
+        assertEquals("force_outside_pregen", out.get(0).check());
+    }
+
+    @Test
+    void aForceInsideBothBordersIsClean() {
+        assertTrue(DimensionLint.checkForcedPosition(
+                "d", "minecraft:igloo", 100, -100, 4096, 2048).isEmpty());
+    }
+
+    @Test
+    void theBordersAreSquareSoOneAxisAloneDecides() {
+        assertEquals(1, DimensionLint.checkForcedPosition(
+                "d", "s", 0, 4097, 4096, 2048).size());
+        assertTrue(DimensionLint.checkForcedPosition(
+                "d", "s", 4096, 4096, 4096, 4096).isEmpty());
+    }
+
+    @Test
+    void aZeroBorderDisablesItsOwnCheck() {
+        assertTrue(DimensionLint.checkForcedPosition(
+                "d", "s", 99999, 99999, 0, 0).isEmpty());
+    }
+
 }
