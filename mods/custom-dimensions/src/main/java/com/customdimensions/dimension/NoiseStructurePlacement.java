@@ -139,6 +139,7 @@ public class NoiseStructurePlacement extends RandomSpreadStructurePlacement {
         if (target <= 0) {
             return placement;
         }
+        int uncorrected = placement.index().size();
         int current = exclusion;
         for (int pass = 0; pass < TARGET_PASSES && placement.index().size() > target; pass++) {
             int corrected = (int) Math.ceil(
@@ -149,6 +150,15 @@ public class NoiseStructurePlacement extends RandomSpreadStructurePlacement {
             current = corrected;
             placement = new NoiseStructurePlacement(group, noiseSeed, profile, current, radial,
                     radiusChunks, 0, 0, clearSpawnChunks, footprints, occupants);
+        }
+        // A group whose pool cannot sustain its own area is a CONTENT defect —
+        // too few structures named, not too many sites. Say so rather than
+        // quietly shipping an empty dimension.
+        if (placement.index().size() * 2 < uncorrected) {
+            com.customdimensions.MultiverseServer.LOGGER.warn(
+                    "Group {} cut from {} to {} sites: its pool holds {} structure(s), so the "
+                    + "repetition ceiling binds hard. Name more structures for this dimension.",
+                    group, uncorrected, placement.index().size(), poolSize);
         }
         return placement;
     }

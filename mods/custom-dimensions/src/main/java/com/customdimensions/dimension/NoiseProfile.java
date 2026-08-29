@@ -60,7 +60,7 @@ public sealed interface NoiseProfile permits NoiseProfile.Simple, NoiseProfile.C
      * Ceiling on copies of one structure per group. A CEILING, never a target:
      * most dimensions sit well under it and must not be raised to meet it.
      */
-    int REPETITION_CEILING = 4;
+    int REPETITION_CEILING = 6;
 
     default int repetitionBudget() {
         return REPETITION_CEILING;
