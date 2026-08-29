@@ -104,6 +104,36 @@
   "group": "dungeons",
   "rarity": "rare"
  },
+ "betterend:end_village": {
+  "theme": "settlement",
+  "group": "settlements",
+  "rarity": "uncommon"
+ },
+ "betterend:eternal_portal": {
+  "theme": "landmark",
+  "group": "landmarks",
+  "rarity": "uncommon"
+ },
+ "betterend:giant_ice_star": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "common"
+ },
+ "betterend:giant_mossy_glowshroom": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "common"
+ },
+ "betterend:megalake": {
+  "theme": "landmark",
+  "group": "ubiquitous",
+  "rarity": "common"
+ },
+ "betterend:mountain": {
+  "theme": "landmark",
+  "group": "ubiquitous",
+  "rarity": "common"
+ },
  "betterfortresses:fortress": {
   "theme": "dungeon",
   "group": "dungeons",
@@ -118,6 +148,51 @@
   "theme": "deco",
   "group": "ubiquitous",
   "rarity": "common"
+ },
+ "betternether:altars": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "uncommon"
+ },
+ "betternether:gardens": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "rare"
+ },
+ "betternether:ghast_hive": {
+  "theme": "dungeon",
+  "group": "dungeons",
+  "rarity": "rare"
+ },
+ "betternether:nether_city": {
+  "theme": "settlement",
+  "group": "settlements",
+  "rarity": "rare"
+ },
+ "betternether:pillars": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "common"
+ },
+ "betternether:portals": {
+  "theme": "landmark",
+  "group": "landmarks",
+  "rarity": "uncommon"
+ },
+ "betternether:pyramid": {
+  "theme": "landmark",
+  "group": "landmarks",
+  "rarity": "uncommon"
+ },
+ "betternether:respawn_points": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "uncommon"
+ },
+ "betternether:spawn_altar_ladder": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "uncommon"
  },
  "betteroceanmonuments:ocean_monument": {
   "theme": "dungeon",

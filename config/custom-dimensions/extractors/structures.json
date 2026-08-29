@@ -1,5 +1,5 @@
 {
-  "count": 411,
+  "count": 426,
   "structure_sets": {
     "adventure:exit_shrines": {
       "source": "customdimensions.jar",
@@ -323,6 +323,86 @@
       "dimension": "overworld",
       "rarity": "uncommon"
     },
+    "betterend:end_village": {
+      "source": "better-end-21.0.11.jar",
+      "theme": "settlement",
+      "structures": [
+        "betterend:end_village"
+      ],
+      "placementType": "minecraft:random_spread",
+      "spacing": 34,
+      "separation": 8,
+      "frequency": 1.0,
+      "dimension": "end",
+      "rarity": "uncommon"
+    },
+    "betterend:eternal_portal": {
+      "source": "better-end-21.0.11.jar",
+      "theme": "landmark",
+      "structures": [
+        "betterend:eternal_portal"
+      ],
+      "placementType": "minecraft:random_spread",
+      "spacing": 40,
+      "separation": 12,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
+    "betterend:giant_ice_star": {
+      "source": "better-end-21.0.11.jar",
+      "theme": "landmark",
+      "structures": [
+        "betterend:giant_ice_star"
+      ],
+      "placementType": "minecraft:random_spread",
+      "spacing": 16,
+      "separation": 8,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "betterend:giant_mossy_glowshroom": {
+      "source": "better-end-21.0.11.jar",
+      "theme": "landmark",
+      "structures": [
+        "betterend:giant_mossy_glowshroom"
+      ],
+      "placementType": "minecraft:random_spread",
+      "spacing": 16,
+      "separation": 8,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "betterend:megalake": {
+      "source": "better-end-21.0.11.jar",
+      "theme": "landmark",
+      "structures": [
+        "betterend:megalake",
+        "betterend:megalake_small"
+      ],
+      "placementType": "minecraft:random_spread",
+      "spacing": 4,
+      "separation": 1,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "betterend:mountain": {
+      "source": "better-end-21.0.11.jar",
+      "theme": "landmark",
+      "structures": [
+        "betterend:mountain",
+        "betterend:painted_mountain"
+      ],
+      "placementType": "minecraft:random_spread",
+      "spacing": 3,
+      "separation": 2,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
     "betterfortresses:fortress": {
       "source": "YungsBetterNetherFortresses-1.21.1-Fabric-3.1.5.jar",
       "theme": "landmark",
@@ -373,6 +453,124 @@
       "frequency": 0.003,
       "dimension": "overworld",
       "rarity": "common"
+    },
+    "betternether:altars": {
+      "source": "better-nether-21.0.11.jar",
+      "theme": "landmark",
+      "structures": [
+        "betternether:altars"
+      ],
+      "placementType": "minecraft:random_spread",
+      "spacing": 40,
+      "separation": 16,
+      "frequency": 1.0,
+      "dimension": "nether",
+      "rarity": "uncommon"
+    },
+    "betternether:gardens": {
+      "source": "better-nether-21.0.11.jar",
+      "theme": "deco",
+      "structures": [
+        "betternether:gardens"
+      ],
+      "placementType": "minecraft:random_spread",
+      "spacing": 50,
+      "separation": 16,
+      "frequency": 1.0,
+      "dimension": "nether",
+      "rarity": "uncommon"
+    },
+    "betternether:ghast_hive": {
+      "source": "better-nether-21.0.11.jar",
+      "theme": "landmark",
+      "structures": [
+        "betternether:ghast_hive"
+      ],
+      "placementType": "minecraft:random_spread",
+      "spacing": 80,
+      "separation": 32,
+      "frequency": 1.0,
+      "dimension": "nether",
+      "rarity": "rare"
+    },
+    "betternether:nether_city": {
+      "source": "better-nether-21.0.11.jar",
+      "theme": "settlement",
+      "structures": [
+        "betternether:nether_city"
+      ],
+      "placementType": "minecraft:random_spread",
+      "spacing": 64,
+      "separation": 32,
+      "frequency": 1.0,
+      "dimension": "nether",
+      "rarity": "rare"
+    },
+    "betternether:pillars": {
+      "source": "better-nether-21.0.11.jar",
+      "theme": "landmark",
+      "structures": [
+        "betternether:pillars"
+      ],
+      "placementType": "minecraft:random_spread",
+      "spacing": 20,
+      "separation": 8,
+      "frequency": 1.0,
+      "dimension": "nether",
+      "rarity": "common"
+    },
+    "betternether:portals": {
+      "source": "better-nether-21.0.11.jar",
+      "theme": "landmark",
+      "structures": [
+        "betternether:portals"
+      ],
+      "placementType": "minecraft:random_spread",
+      "spacing": 40,
+      "separation": 15,
+      "frequency": 1.0,
+      "dimension": "nether",
+      "rarity": "uncommon"
+    },
+    "betternether:pyramid": {
+      "source": "better-nether-21.0.11.jar",
+      "theme": "landmark",
+      "structures": [
+        "betternether:pyramid",
+        "betternether:jungle_temples"
+      ],
+      "placementType": "minecraft:random_spread",
+      "spacing": 32,
+      "separation": 8,
+      "frequency": 1.0,
+      "dimension": "nether",
+      "rarity": "uncommon"
+    },
+    "betternether:respawn_points": {
+      "source": "better-nether-21.0.11.jar",
+      "theme": "landmark",
+      "structures": [
+        "betternether:respawn_points"
+      ],
+      "placementType": "minecraft:random_spread",
+      "spacing": 32,
+      "separation": 24,
+      "frequency": 1.0,
+      "dimension": "nether",
+      "rarity": "uncommon"
+    },
+    "betternether:spawn_altar_ladder": {
+      "source": "better-nether-21.0.11.jar",
+      "theme": "landmark",
+      "structures": [
+        "betternether:spawn_altar_ladder"
+      ],
+      "placementType": "minecraft:random_spread",
+      "spacing": 40,
+      "separation": 20,
+      "frequency": 1.0,
+      "dimension": "nether",
+      "rarity": "uncommon"
     },
     "betteroceanmonuments:ocean_monument": {
       "source": "YungsBetterOceanMonuments-1.21.1-Fabric-4.1.2.jar",

@@ -59,6 +59,10 @@
   "filename": "attributefix-fabric-1.21.1-21.1.3.jar",
   "url": "https://cdn.modrinth.com/data/lOOpEntO/versions/XwbErf6s/attributefix-fabric-1.21.1-21.1.3.jar"
  },
+ "bclib:TxWM7AW8": {
+  "filename": "bclib-21.0.13.jar",
+  "url": "https://cdn.modrinth.com/data/BgNRHReB/versions/TxWM7AW8/bclib-21.0.13.jar"
+ },
  "beautiful-enchanted-books-mod-edition:kcGH3Tr5": {
   "filename": "BEB-Fabric-1.21-6.0.0.jar",
   "url": "https://cdn.modrinth.com/data/pcqEicMM/versions/kcGH3Tr5/BEB-Fabric-1.21-6.0.0.jar"
@@ -70,6 +74,14 @@
  "betterdays:dTNbe6uN": {
   "filename": "betterdays-1.21.1-3.3.6.3-FABRIC.jar",
   "url": "https://cdn.modrinth.com/data/tPLE214j/versions/dTNbe6uN/betterdays-1.21.1-3.3.6.3-FABRIC.jar"
+ },
+ "betterend:4qhBEg6J": {
+  "filename": "better-end-21.0.11.jar",
+  "url": "https://cdn.modrinth.com/data/gc8OEnCC/versions/4qhBEg6J/better-end-21.0.11.jar"
+ },
+ "betternether:M1o6hR2m": {
+  "filename": "better-nether-21.0.11.jar",
+  "url": "https://cdn.modrinth.com/data/MpzVLzy5/versions/M1o6hR2m/better-nether-21.0.11.jar"
  },
  "betterspawn:I0Kiorjk": {
   "filename": "betterspawn-1.0.7-1.21.1.jar",
@@ -738,6 +750,10 @@
  "wilder-wild:LGumUR4U": {
   "filename": "WilderWild-4.2.1-mc1.21.1.jar",
   "url": "https://cdn.modrinth.com/data/AtHRJSUW/versions/LGumUR4U/WilderWild-4.2.1-mc1.21.1.jar"
+ },
+ "worldweaver:mPmeykPR": {
+  "filename": "worldweaver-21.0.13.jar",
+  "url": "https://cdn.modrinth.com/data/RiN8rDVs/versions/mPmeykPR/worldweaver-21.0.13.jar"
  },
  "wwoo:JBbDOEnc": {
   "filename": "wwoo-fabric-2.6.7.jar",

@@ -52,6 +52,17 @@ geophilic:jDzSPLta
 regions-unexplored:SffwLsGY
 wilder-wild:LGumUR4U
 
+# === BetterX family (chunk-zero only) ===
+# bclib's ChunkGeneratorMixin rotates the feature-placement seed for every
+# decoration in every dimension, so these never go onto a world that already
+# has generated chunks (AGENTS.md, and TROUBLESHOOTING T55 for how their
+# sets are classified). Install order matters. worldweaver nests wover-* and
+# wunderlib, so fabric-api is the only external requirement.
+worldweaver:mPmeykPR
+bclib:TxWM7AW8
+betterend:4qhBEg6J
+betternether:M1o6hR2m
+
 # === caves & underground ===
 galosphere:jviVa3qz
 yungs-cave-biomes:geZa9lJS

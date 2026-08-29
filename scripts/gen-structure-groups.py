@@ -105,6 +105,9 @@ UBIQUITOUS = frozenset({
     "subsurface:swamp_caves",
     "subsurface:underground_forest",
     "subsurface:underground_taiga",
+    # BetterEnd terrain features: lakes and raw_generation steps, not content.
+    "betterend:megalake",
+    "betterend:mountain",
 })
 
 # Lifted verbatim from extract-structure-sets.py's ENDGAME_PATTERNS: an
@@ -143,6 +146,21 @@ ENDGAME_ELIGIBLE_RARITIES = {"rare", "endgame"}
 # the mod jar and structure names, so paradise_lost reads as overworld and
 # ruined_portals reads as nether off its `_nether` variant).
 CURATED = {
+    # --- BetterX -----------------------------------------------------------
+    # Classified from each set's generation step and spacing, not its name.
+    "betterend:end_village": ("settlement", "end"),
+    "betterend:eternal_portal": ("landmark", "end"),
+    "betterend:giant_ice_star": ("deco", "end"),
+    "betterend:giant_mossy_glowshroom": ("deco", "end"),
+    "betternether:altars": ("deco", "nether"),
+    "betternether:gardens": ("deco", "nether"),
+    "betternether:ghast_hive": ("dungeon", "nether"),
+    "betternether:nether_city": ("settlement", "nether"),
+    "betternether:pillars": ("deco", "nether"),
+    "betternether:portals": ("landmark", "nether"),
+    "betternether:pyramid": ("landmark", "nether"),
+    "betternether:respawn_points": ("deco", "nether"),
+    "betternether:spawn_altar_ladder": ("deco", "nether"),
     # --- vanilla -----------------------------------------------------------
     # Explorable temples with loot and traps: landmarks, not scenery.
     "minecraft:desert_pyramids": ("landmark", "overworld"),
