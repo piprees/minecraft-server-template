@@ -27,6 +27,8 @@ RUN case "$TARGETARCH" in \
         *) echo "unsupported arch: $TARGETARCH" >&2; exit 1 ;; \
     esac \
     && curl -fsSL "https://unmined.net/download/unmined-cli-linux-${UNMINED_ARCH}-dev/" -o /tmp/unmined.tar.gz \
+    && { [ "$(wc -c < /tmp/unmined.tar.gz)" -gt 1000000 ] \
+         || { echo "uNmINeD ${UNMINED_ARCH} download truncated" >&2; exit 1; }; } \
     && tar -xzf /tmp/unmined.tar.gz -C /opt \
     && rm /tmp/unmined.tar.gz \
     && mv /opt/unmined-cli_* /opt/unmined \
