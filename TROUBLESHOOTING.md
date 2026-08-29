@@ -4,7 +4,7 @@
 
 | Prefix | Range | What it covers |
 | --- | --- | --- |
-| **T** | [T1–T14, T16–T19, T22–T27, T30–T56](#architecture-traps) | Architecture traps — each has caused a real production incident |
+| **T** | [T1–T14, T16–T19, T22–T27, T30–T57](#architecture-traps) | Architecture traps — each has caused a real production incident |
 | **P** | [P1–P4](#macos-local-dev) | macOS local-dev quirks (BSD tooling, toolchain) |
 | **D** | [D1–D6, D8–D9](#dimension-lifecycle) | Custom-dimension lifecycle on a live world |
 | **K** | [K1–K2, K5–K6](#known-issues) | Open issues — unfixed, on the watch list |
@@ -51,6 +51,7 @@ Run this first. It covers deploy drift, disk, every expected container, `ONLINE_
 | Which structures can spawn where disagrees with the jars | [T49](#t49) |
 | A probe returns nothing, or the same value everywhere | [T50](#t50) |
 | Structure spacing arithmetic disagrees with the world | [T51](#t51) |
+| mc watchdog-crashes a few minutes after a local world reset, parked in `save-all` | [T57](#t57) |
 | The same few structures repeat endlessly in one dimension | [T52](#t52) |
 | One wanted structure fills half the dimension | [T53](#t53) |
 | Structures overlap, or a huge one gets a tiny one's clearance | [T54](#t54) |
@@ -1023,6 +1024,33 @@ The rendered height disagrees with the facts on high-relief columns. The error i
 - **Fix:** leave the block where it is. It rates flow-opening packets only, which is
   the intent.
 
+
+<a id="t57"></a>
+### T57 — The local backup sidecar's first run collides with a fresh world's priming pass
+
+- **Symptom:** on a local stack a few minutes after `./dev reset-world` +
+  `./dev up`, `mc` crashes with `java.lang.Error: Watchdog` and restarts
+  (`RestartCount` 1, exit 0). The parked frame is a `save-all` reached through
+  brigadier from RCON:
+  `CompletableFuture.join` -> `class_5565.method_31758` ->
+  `c2me$tryFlush` -> `replaceEntityFlushLogic` -> `MinecraftServer.method_3723`.
+  The seed roller's priming pass restarts, and `render_pending` jumps back up.
+- **Cause:** `mc-backup-local` waits a fixed `initial delay of 2m` after start,
+  then runs `save-off` / `save-all flush` / `save-on`. On a fresh world that
+  lands inside the roller's priming pass, which is creating and scoring every
+  dimension at once. The entity flush blocks the main thread past
+  `MAX_TICK_TIME` (180000) and the watchdog kills the JVM. The collision is
+  deterministic, not a race that sometimes loses — the delay is fixed and
+  priming always occupies that window.
+- **Fix:** `docker stop mc-backup-local` before a fresh-world roll and start it
+  again once priming has finished. The world survives — verify with
+  `customdim structure-census <dim>` reporting `live and facts agree` — so this
+  costs a restart, not data.
+- **The sidecar's own log is not the check.** It reports `sleeping 12h` while
+  the crash it caused is already in `data/crash-reports/`; read
+  `docker inspect mc --format '{{.RestartCount}}'` instead.
+- A roll running longer than `BACKUP_INTERVAL` (default 12h) meets the next
+  backup and crashes again.
 
 ## Adding an entry
 
