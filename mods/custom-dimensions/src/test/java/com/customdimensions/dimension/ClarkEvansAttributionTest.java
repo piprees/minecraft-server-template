@@ -10,11 +10,17 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 /**
  * Which input moves the dispersion statistic, isolated one at a time.
  * Clark-Evans is meanNN / (0.5 * sqrt(area / n)): 1.0 random, below clustered.
+ *
+ * <p>Geometry matches what deco actually ships with. An exclusion no group
+ * uses produces an attribution that does not describe this platform.
  */
 class ClarkEvansAttributionTest {
 
     private static final long SEED = 0xC0FFEEL;
-    private static final int RADIUS = 192;
+    private static final int RADIUS = 256;
+
+    /** deco's real natural exclusion: base 3 x the profile's 2.0 multiplier. */
+    private static final int DECO_EXCLUSION = 6;
 
     private static final NoiseProfile OLD_NATURAL = new NoiseProfile.Simple(
             "natural-old", 0.025, 0.68, 2.0);
@@ -44,7 +50,7 @@ class ClarkEvansAttributionTest {
     private static List<ChunkPos> field(NoiseProfile profile,
                                         NoiseFieldIndex.Footprints fp,
                                         NoiseFieldIndex.Occupants occ) {
-        return new NoiseFieldIndex(SEED, profile, 3, null, RADIUS, 0, 0, 0, fp, occ)
+        return new NoiseFieldIndex(SEED, profile, DECO_EXCLUSION, null, RADIUS, 0, 0, 0, fp, occ)
                 .positions();
     }
 
@@ -87,19 +93,19 @@ class ClarkEvansAttributionTest {
     }
 
     @Test
-    void theThresholdDominatesTheCombination() {
-        double oldAll = clarkEvans(
-                field(OLD_NATURAL, varyingSizes(), varyingOccupants()), RADIUS);
-        double newAll = clarkEvans(
-                field(NoiseProfile.NATURAL, varyingSizes(), varyingOccupants()), RADIUS);
-        double thresholdOnly = clarkEvans(field(NoiseProfile.NATURAL, null, null), RADIUS);
+    void footprintsMoveDispersionMoreThanTheThresholdDoes() {
+        // At the exclusion deco actually ships with, the threshold is no
+        // longer the dominant term. Measuring this at an exclusion no group
+        // uses reversed the conclusion.
         double baseline = clarkEvans(field(OLD_NATURAL, null, null), RADIUS);
+        double thresholdOnly = clarkEvans(field(NoiseProfile.NATURAL, null, null), RADIUS);
+        double all = clarkEvans(
+                field(NoiseProfile.NATURAL, varyingSizes(), varyingOccupants()), RADIUS);
 
         double thresholdEffect = Math.abs(thresholdOnly - baseline);
-        double everythingElse = Math.abs(newAll - thresholdOnly);
-        assertTrue(thresholdEffect > everythingElse,
-                "threshold effect " + thresholdEffect
-                + " should exceed the rest " + everythingElse
-                + " (old-all " + oldAll + ", new-all " + newAll + ")");
+        double everythingElse = Math.abs(all - thresholdOnly);
+        assertTrue(everythingElse > thresholdEffect,
+                "footprints should outweigh the threshold at shipped geometry; threshold "
+                + thresholdEffect + " against " + everythingElse);
     }
 }
