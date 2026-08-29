@@ -174,6 +174,11 @@ public record SeedFacts(
      *                           was. Without it a pool difference and a pick
      *                           difference are indistinguishable from outside.
      * @param byGroup            group -> how many positions
+     * @param poolByGroup        group -> how many distinct structures its own
+     *                           pool holds. {@code pool} is the union over
+     *                           every group, so it cannot say which group a
+     *                           thin pool belongs to — and repetition is a
+     *                           group's site count against its OWN pool.
      * @param byStructure        structure id -> how many positions assigned
      * @param nearestByStructure structure id -> distance in blocks from spawn
      * @param clusteringByGroup  group -> Clark-Evans for THAT group's placements
@@ -228,6 +233,7 @@ public record SeedFacts(
     public record StructureFacts(
             Measured<Map<String, Integer>> pool,
             Measured<Map<String, Integer>> byGroup,
+            Measured<Map<String, Integer>> poolByGroup,
             Measured<Map<String, Integer>> byStructure,
             Measured<Map<String, Double>> nearestByStructure,
             Measured<Map<String, Double>> clusteringByGroup,
@@ -323,6 +329,7 @@ public record SeedFacts(
         b.append(" \"structures\": {\n");
         field(b, "pool", structures.pool().toJson(SeedFacts::intMap), true);
         field(b, "byGroup", structures.byGroup().toJson(SeedFacts::intMap), true);
+        field(b, "poolByGroup", structures.poolByGroup().toJson(SeedFacts::intMap), true);
         field(b, "byStructure", structures.byStructure().toJson(SeedFacts::intMap), true);
         field(b, "nearestByStructure",
                 structures.nearestByStructure().toJson(SeedFacts::doubleMap), true);
@@ -457,6 +464,7 @@ public record SeedFacts(
         absent(out, "terrain.maxHeight", terrain.maxHeight());
         absent(out, "structures.pool", structures.pool());
         absent(out, "structures.byGroup", structures.byGroup());
+        absent(out, "structures.poolByGroup", structures.poolByGroup());
         absent(out, "structures.byStructure", structures.byStructure());
         absent(out, "structures.nearestByStructure", structures.nearestByStructure());
         absent(out, "structures.clustering", structures.clustering());

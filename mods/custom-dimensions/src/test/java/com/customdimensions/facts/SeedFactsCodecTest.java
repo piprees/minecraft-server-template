@@ -51,6 +51,7 @@ class SeedFactsCodecTest {
                 new SeedFacts.StructureFacts(
                         Measured.of(Map.of("minecraft:village_plains", 12)),
                         Measured.of(Map.of("dungeons", 7, "endgame", 1)),
+                        Measured.of(Map.of("dungeons", 4, "endgame", 1)),
                         Measured.of(Map.of("minecraft:village_plains", 3)),
                         Measured.of(Map.of("minecraft:village_plains", 912.5)),
                         Measured.of(Map.of("dungeons", 0.7412, "endgame", 1.0891)),
@@ -101,6 +102,7 @@ class SeedFactsCodecTest {
                 new SeedFacts.StructureFacts(
                         f.structures().pool(),
                         f.structures().byGroup(),
+                        f.structures().poolByGroup(),
                         f.structures().byStructure(),
                         f.structures().nearestByStructure(),
                         f.structures().clusteringByGroup(),
@@ -152,6 +154,7 @@ class SeedFactsCodecTest {
                 a.terrain(),
                 new SeedFacts.StructureFacts(
                         a.structures().pool(), a.structures().byGroup(),
+                        a.structures().poolByGroup(),
                         a.structures().byStructure(), a.structures().nearestByStructure(),
                         a.structures().clusteringByGroup(),
                         Measured.of(0.8123456789 + 1e-12),

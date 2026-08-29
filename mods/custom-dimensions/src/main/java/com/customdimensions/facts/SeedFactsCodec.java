@@ -74,6 +74,7 @@ public final class SeedFactsCodec {
                 new SeedFacts.StructureFacts(
                         measured(structures, "pool", SeedFactsCodec::intMap),
                         measured(structures, "byGroup", SeedFactsCodec::intMap),
+                        measured(structures, "poolByGroup", SeedFactsCodec::intMap),
                         measured(structures, "byStructure", SeedFactsCodec::intMap),
                         measured(structures, "nearestByStructure", SeedFactsCodec::doubleMap),
                         measured(structures, "clusteringByGroup", SeedFactsCodec::doubleMap),

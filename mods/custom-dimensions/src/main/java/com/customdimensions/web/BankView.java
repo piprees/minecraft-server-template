@@ -280,6 +280,7 @@ public final class BankView {
                 copy(s, out, "byStructure");
                 copy(s, out, "nearestByStructure");
                 copy(s, out, "byGroup");
+                copy(s, out, "poolByGroup");
                 copy(s, out, "nearestHostile");
                 positions(server, def, seed, out);
             }

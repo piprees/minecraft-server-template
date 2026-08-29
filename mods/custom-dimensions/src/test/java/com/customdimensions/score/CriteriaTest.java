@@ -116,6 +116,7 @@ class CriteriaTest {
                 Measured.of(countByGroup),
                 Measured.of(Map.of()),
                 Measured.of(Map.of()),
+                Measured.of(Map.of()),
                 spacingByGroup == null ? gone() : Measured.of(spacingByGroup),
                 spacingByGroup == null ? gone()
                         : Measured.of(spacingByGroup.values().stream()
@@ -155,6 +156,7 @@ class CriteriaTest {
         return new SeedFacts.StructureFacts(
                 Measured.of(pool),
                 Measured.of(Map.of("deco", 10)),
+                Measured.of(Map.of("deco", pool.size())),
                 Measured.of(Map.of()),
                 Measured.of(nearestByStructure),
                 Measured.of(Map.of("deco", 1.0)),
@@ -169,6 +171,7 @@ class CriteriaTest {
         return new SeedFacts.StructureFacts(
                 Measured.of(byStructure),
                 Measured.of(Map.of("deco", 10)),
+                Measured.of(Map.of("deco", byStructure.size())),
                 Measured.of(byStructure),
                 Measured.of(Map.of()),
                 Measured.of(Map.of("deco", 1.0)),
@@ -1046,7 +1049,8 @@ class CriteriaTest {
                 new SeedFacts.BiomeFacts(gone(), gone(), gone(), gone()),
                 new SeedFacts.TerrainFacts(gone(), gone(), gone(), gone(), gone(), gone()),
                 new SeedFacts.StructureFacts(gone(), gone(), gone(), gone(), gone(),
-                        gone(), gone(), gone(), gone(), gone(), gone(), gone()),
+                        gone(), gone(), gone(), gone(), gone(), gone(), gone(),
+                        gone()),
                 4096, gone());
     }
 
@@ -1063,7 +1067,8 @@ class CriteriaTest {
                 new SeedFacts.BiomeFacts(gone(), gone(), gone(), gone()),
                 new SeedFacts.TerrainFacts(gone(), gone(), gone(), gone(), gone(), gone()),
                 new SeedFacts.StructureFacts(gone(), gone(), gone(), gone(), gone(),
-                        gone(), gone(), gone(), gone(), gone(), gone(), gone()),
+                        gone(), gone(), gone(), gone(), gone(), gone(), gone(),
+                        gone()),
                 4096, gone());
     }
 
@@ -1264,7 +1269,8 @@ class CriteriaTest {
                 Criteria.Band.SPREAD);
         SeedFacts empty = withStructures(new SeedFacts.StructureFacts(
                 Measured.of(Map.of("minecraft:igloo", 10)),
-                Measured.of(Map.of("deco", 10)), Measured.of(Map.of()), Measured.of(Map.of()),
+                Measured.of(Map.of("deco", 10)), Measured.of(Map.of("deco", 1)),
+                Measured.of(Map.of()), Measured.of(Map.of()),
                 Measured.of(Map.of("deco", 1.0)), Measured.of(1.0), Measured.of(900.0),
                 Measured.of(10),
                 Measured.of(Map.of("#minecraft:village", List.<String>of())),
@@ -1307,6 +1313,7 @@ class CriteriaTest {
         return withStructures(new SeedFacts.StructureFacts(
                 Measured.of(pool),
                 Measured.of(Map.of("deco", 10)),
+                Measured.of(Map.of("deco", pool.size())),
                 Measured.of(counts),
                 Measured.of(nearestByMember),
                 Measured.of(Map.of("deco", 1.0)),

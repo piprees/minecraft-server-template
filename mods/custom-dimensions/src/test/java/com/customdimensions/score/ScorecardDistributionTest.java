@@ -64,6 +64,7 @@ class ScorecardDistributionTest {
         return new SeedFacts.StructureFacts(
                 Measured.of(Map.of(WANTED, 10, SHUNNED, 10)),
                 Measured.of(counts),
+                Measured.of(Map.of("deco", 2)),
                 Measured.of(Map.of(WANTED, 3, SHUNNED, 1)),
                 Measured.of(Map.of(WANTED, wantedAt, SHUNNED, shunnedAt)),
                 Measured.of(spacing), Measured.of(clustering), Measured.of(nearestHostile),
