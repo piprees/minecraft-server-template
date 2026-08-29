@@ -111,6 +111,32 @@ public final class StructureFootprints {
         return Math.max(MIN_SIZE_FACTOR, Math.min(MAX_SIZE_FACTOR, factor));
     }
 
+    /**
+     * The footprint function for one group's pool: at any chunk, the size
+     * factor of the structure {@link StructurePick} assigns there.
+     *
+     * <p>One implementation for all three callers — the live world
+     * ({@code DimensionStructures}), the seed roller's render
+     * ({@code CandidateRender}) and the scorer ({@code FactsEngine}). Three
+     * copies of this expression would be three chances for the instrument to
+     * describe a world the server does not build.
+     *
+     * <p>Both halves are pure functions of the chunk, which is what keeps
+     * placement order-free: the assignment does not depend on which sites
+     * were decided first.
+     *
+     * <p>Returns null for an empty pool, which {@link NoiseFieldIndex} reads
+     * as "no footprints" and answers with the uniform path.
+     */
+    public static NoiseFieldIndex.Footprints forPool(
+            long noiseSeed, List<StructurePick.PoolEntry> sortedPool) {
+        if (sortedPool == null || sortedPool.isEmpty()) {
+            return null;
+        }
+        return (chunkX, chunkZ) -> sizeFactor(
+                StructurePick.assignedStructure(noiseSeed, chunkX, chunkZ, sortedPool));
+    }
+
     /** Test seam: forces the next lookup to re-read from the jar. */
     static synchronized void reset() {
         spans = null;

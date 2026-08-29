@@ -364,11 +364,11 @@ public final class DimensionStructures {
                 continue;
             }
             long noiseSeed = worldSeed ^ dimensionSalt ^ saltOf(group);
-            NoiseStructurePlacement placement = new NoiseStructurePlacement(
-                    group, noiseSeed, settings.profile(), settings.exclusion(),
-                    settings.radial(), radiusChunks, 0, 0, settings.clearSpawnChunks());
 
-            // Build the sorted pool for this group's pick algorithm.
+            // The pool is resolved BEFORE the placement, because the field now
+            // asks it what stands at each site: a big structure claims more
+            // ground than a small one. Both the assignment and the footprint
+            // are pure functions of the chunk, so the field stays order-free.
             java.util.List<StructurePick.PoolEntry> pickPool = new ArrayList<>();
             for (var weighted : pool.entries()) {
                 weighted.structure().getKey().ifPresent(key -> pickPool.add(
@@ -378,6 +378,12 @@ public final class DimensionStructures {
                                 weighted.structure())));
             }
             java.util.List<StructurePick.PoolEntry> sorted = StructurePick.sortedPool(pickPool);
+
+            NoiseStructurePlacement placement = new NoiseStructurePlacement(
+                    group, noiseSeed, settings.profile(), settings.exclusion(),
+                    settings.radial(), radiusChunks, 0, 0, settings.clearSpawnChunks(),
+                    StructureFootprints.forPool(noiseSeed, sorted));
+
             StructurePick.GroupSelection sel = new StructurePick.GroupSelection(
                     group, noiseSeed, sorted, placement.index());
 

@@ -1021,10 +1021,10 @@ public final class FactsEngine {
                 continue;
             }
             long noiseSeed = seed ^ dimensionSalt ^ DimensionStructures.saltOf(group);
-            NoiseStructurePlacement placement = new NoiseStructurePlacement(
-                    group, noiseSeed, settings.profile(), settings.exclusion(),
-                    settings.radial(), radiusChunks, 0, 0, settings.clearSpawnChunks());
 
+            // Pool first: the field asks it how much ground each site claims,
+            // and a scorer measuring a different field from the one the world
+            // builds is worse than no scorer.
             List<StructurePick.PoolEntry> pickPool = new ArrayList<>();
             for (var weighted : pool.entries()) {
                 weighted.structure().getKey().ifPresent(k -> pickPool.add(
@@ -1034,6 +1034,11 @@ public final class FactsEngine {
                 poolWeights.merge(pe.structureId(), pe.weight(), Integer::sum);
             }
             List<StructurePick.PoolEntry> sorted = StructurePick.sortedPool(pickPool);
+
+            NoiseStructurePlacement placement = new NoiseStructurePlacement(
+                    group, noiseSeed, settings.profile(), settings.exclusion(),
+                    settings.radial(), radiusChunks, 0, 0, settings.clearSpawnChunks(),
+                    com.customdimensions.dimension.StructureFootprints.forPool(noiseSeed, sorted));
 
             int count = 0;
             List<long[]> groupPositions = new ArrayList<>();

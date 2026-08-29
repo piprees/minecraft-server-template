@@ -79,8 +79,21 @@ public class NoiseStructurePlacement extends RandomSpreadStructurePlacement {
     public NoiseStructurePlacement(String group, long noiseSeed, NoiseProfile profile,
                                    int exclusion, double[] radial, int radiusChunks,
                                    int spawnChunkX, int spawnChunkZ, int clearSpawnChunks) {
+        this(group, noiseSeed, profile, exclusion, radial, radiusChunks,
+                spawnChunkX, spawnChunkZ, clearSpawnChunks, null);
+    }
+
+    /**
+     * @param footprints per-site exclusion scale from the structure assigned
+     *                   there ({@link StructureFootprints#forPool}), or null
+     *                   for a field where every site claims the same ground.
+     */
+    public NoiseStructurePlacement(String group, long noiseSeed, NoiseProfile profile,
+                                   int exclusion, double[] radial, int radiusChunks,
+                                   int spawnChunkX, int spawnChunkZ, int clearSpawnChunks,
+                                   NoiseFieldIndex.Footprints footprints) {
         this(group, new NoiseFieldIndex(noiseSeed, profile, exclusion, radial,
-                radiusChunks, spawnChunkX, spawnChunkZ, clearSpawnChunks));
+                radiusChunks, spawnChunkX, spawnChunkZ, clearSpawnChunks, footprints));
     }
 
     @Override

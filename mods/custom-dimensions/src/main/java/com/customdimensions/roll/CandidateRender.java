@@ -1677,11 +1677,10 @@ public final class CandidateRender {
                 continue;
             }
             long noiseSeed = seed ^ dimensionSalt ^ DimensionStructures.saltOf(group);
-            NoiseStructurePlacement placement = new NoiseStructurePlacement(
-                    group, noiseSeed, settings.profile(), settings.exclusion(),
-                    settings.radial(), radiusChunks, 0, 0, settings.clearSpawnChunks());
             // Same pool, same sort, same seed as DimensionStructures builds for
-            // the live world, so a site's id here is the one that generates.
+            // the live world, so a site's id here is the one that generates —
+            // and resolved BEFORE the placement, because the field asks the
+            // pool how much ground each site claims.
             List<StructurePick.PoolEntry> pickPool = new ArrayList<>();
             for (var weighted : pool.entries()) {
                 weighted.structure().getKey().ifPresent(key -> pickPool.add(
@@ -1689,6 +1688,10 @@ public final class CandidateRender {
                                 admitted.contains(key.getValue().toString()), weighted.structure())));
             }
             List<StructurePick.PoolEntry> sorted = StructurePick.sortedPool(pickPool);
+            NoiseStructurePlacement placement = new NoiseStructurePlacement(
+                    group, noiseSeed, settings.profile(), settings.exclusion(),
+                    settings.radial(), radiusChunks, 0, 0, settings.clearSpawnChunks(),
+                    com.customdimensions.dimension.StructureFootprints.forPool(noiseSeed, sorted));
             List<Site> positions = byGroup.computeIfAbsent(group, g -> new ArrayList<>());
             for (ChunkPos pos : placement.index().positions()) {
                 // The chain the mixin will walk, not just its head: a site is
