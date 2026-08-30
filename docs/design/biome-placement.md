@@ -63,6 +63,19 @@ Where a biome carries its own declared placement, use it.
 | WHICH biomes this dimension has | the author's `biomes` list |
 | WHERE each one goes | the biome's own mod, by default |
 
+**And the list is exhaustive only where the type says so.** `multi_biome`,
+`single_biome` and `checkerboard` exist to curate a set, so there the list IS
+the world. `overworld` is the other end: it takes the base generator whole, the
+list never reaches the biome source at all, and the world's biomes arrive
+naturally. `amplified` and `large_biomes` discard the list the same way. The
+remaining types — `nether`, `end`, `cave`, `void`, `sky_islands`,
+`nether_islands` and the clones — compose the list over their family's source,
+so the list adds to what that source already places.
+
+So on a naturally-populated dimension the `biomes` list is a set of asks laid
+over a world that already works: bring this one in, put that one here. It is
+not a manifest, and a biome missing from it is not thereby excluded.
+
 A band answers the second question, so it is for the case where the author
 wants a specific placement — a crimson forest at the heart of a nexus, a band
 of ice along one climate edge. **Using a band merely to make a biome appear is
