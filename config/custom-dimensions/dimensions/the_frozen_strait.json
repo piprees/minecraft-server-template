@@ -7,172 +7,40 @@
     {
       "id": "regions_unexplored:frozen_tundra",
       "parameters": {
-        "weirdness": [
-          -2.0,
-          -1.0
-        ],
-        "depth": [
-          -2.0,
-          0.1
+        "humidity": [
+          -0.19,
+          -0.12
         ]
       }
     },
-    {
-      "id": "minecraft:frozen_ocean",
-      "parameters": {
-        "weirdness": [
-          -1.0,
-          -0.996
-        ],
-        "depth": [
-          -2.0,
-          0.1
-        ]
-      }
-    },
-    {
-      "id": "minecraft:deep_frozen_ocean",
-      "parameters": {
-        "weirdness": [
-          -0.996,
-          -0.6018
-        ],
-        "depth": [
-          -2.0,
-          0.1
-        ]
-      }
-    },
-    {
-      "id": "terralith:ice_marsh",
-      "parameters": {
-        "weirdness": [
-          -0.6018,
-          -0.2407
-        ],
-        "depth": [
-          -2.0,
-          0.1
-        ]
-      }
-    },
-    {
-      "id": "minecraft:snowy_beach",
-      "parameters": {
-        "weirdness": [
-          -0.2407,
-          -0.129
-        ],
-        "depth": [
-          -2.0,
-          0.1
-        ]
-      }
-    },
-    {
-      "id": "minecraft:snowy_plains",
-      "parameters": {
-        "weirdness": [
-          -0.129,
-          -0.034
-        ],
-        "depth": [
-          -2.0,
-          0.1
-        ]
-      }
-    },
-    {
-      "id": "minecraft:frozen_river",
-      "parameters": {
-        "weirdness": [
-          -0.034,
-          0.132
-        ],
-        "depth": [
-          -2.0,
-          0.1
-        ]
-      }
-    },
-    {
-      "id": "minecraft:snowy_taiga",
-      "parameters": {
-        "weirdness": [
-          0.132,
-          0.2245
-        ],
-        "depth": [
-          -2.0,
-          0.1
-        ]
-      }
-    },
-    {
-      "id": "terralith:frozen_cliffs",
-      "parameters": {
-        "weirdness": [
-          0.2245,
-          0.3777
-        ],
-        "depth": [
-          -2.0,
-          0.1
-        ]
-      }
-    },
+    "minecraft:frozen_ocean",
+    "minecraft:deep_frozen_ocean",
+    "terralith:ice_marsh",
+    "minecraft:snowy_beach",
+    "minecraft:snowy_plains",
+    "minecraft:frozen_river",
+    "minecraft:snowy_taiga",
+    "terralith:frozen_cliffs",
     {
       "id": "regions_unexplored:icy_heights",
       "parameters": {
-        "weirdness": [
-          0.3777,
-          0.5839
-        ],
-        "depth": [
-          -2.0,
-          0.1
+        "humidity": [
+          -0.08,
+          -0.0
         ]
       }
     },
     {
       "id": "wilderwild:tundra",
       "parameters": {
-        "weirdness": [
-          0.5839,
-          2.0
-        ],
-        "depth": [
-          -2.0,
-          0.1
+        "humidity": [
+          0.03,
+          0.11
         ]
       }
     },
-    {
-      "id": "terralith:cave/frostfire_caves",
-      "parameters": {
-        "weirdness": [
-          -2.0,
-          -0.075
-        ],
-        "depth": [
-          0.1,
-          2.0
-        ]
-      }
-    },
-    {
-      "id": "minecraft:dripstone_caves",
-      "parameters": {
-        "weirdness": [
-          -0.075,
-          2.0
-        ],
-        "depth": [
-          0.1,
-          2.0
-        ]
-      }
-    }
+    "terralith:cave/frostfire_caves",
+    "minecraft:dripstone_caves"
   ],
   "borders": {
     "player": 512,

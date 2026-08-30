@@ -59,15 +59,12 @@ Not covered: whether a correctly fitted band is worth having. A band can pass
           Weirdness saturates at +/-1.0, which is why a partition cut on round
           numbers lands its boundaries exactly where the noise piles up.
 
-Usage:    scripts/check-biome-bands.py            # exits 1 on any of the four
-                                                  # gating arms; the tie arm
-                                                  # reports only
+Usage:    scripts/check-biome-bands.py            # exits 1 on any of the five arms
 
 Gotchas:  - The tie arm needs climate-axes.json to know what a world reaches, so
-            it is silent for a dimension nobody has measured. It does NOT feed
-            the exit code: 11 shipped bands trip it today, and a gate that is
-            red on arrival is one everyone learns to skip. Add total_tied to the
-            return in main() once those bands are fixed.
+            it is silent for a dimension nobody has measured. That is the one
+            arm a new dimension can trip without anyone noticing until it is
+            measured.
           - It reports the HAZARD, never which band dies. Naming a loser would be
             a guess: the winner depends on the previous lookup's result and on
             traversal order, neither of which a config can be read for.
@@ -363,7 +360,8 @@ def main():
           f"{total_tied} bands that can never outrank a rival")
     if scanned == 0:
         sys.exit("nothing scanned - run this from the platform repo root")
-    return 1 if (total_pairs or total_starved or total_sliced or total_dead) else 0
+    return 1 if (total_pairs or total_starved or total_sliced or total_dead
+                 or total_tied) else 0
 
 if __name__ == "__main__":
     sys.exit(main())

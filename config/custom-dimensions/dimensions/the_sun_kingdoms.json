@@ -4,342 +4,90 @@
   "seed": -1936785309129524884,
   "noiseSettings": "adventure:wide",
   "biomes": [
-    {
-      "id": "minecraft:savanna",
-      "parameters": {
-        "weirdness": [
-          -2.0,
-          -1.0
-        ]
-      }
-    },
-    {
-      "id": "minecraft:savanna_plateau",
-      "parameters": {
-        "weirdness": [
-          -1.0,
-          -0.6334
-        ]
-      }
-    },
-    {
-      "id": "minecraft:wooded_badlands",
-      "parameters": {
-        "weirdness": [
-          -0.6334,
-          -0.5
-        ]
-      }
-    },
-    {
-      "id": "terralith:arid_highlands",
-      "parameters": {
-        "weirdness": [
-          -0.5,
-          -0.496
-        ]
-      }
-    },
-    {
-      "id": "terralith:hot_shrubland",
-      "parameters": {
-        "weirdness": [
-          -0.496,
-          -0.492
-        ]
-      }
-    },
-    {
-      "id": "terralith:fractured_savanna",
-      "parameters": {
-        "weirdness": [
-          -0.492,
-          -0.4476
-        ]
-      }
-    },
-    {
-      "id": "terralith:savanna_badlands",
-      "parameters": {
-        "weirdness": [
-          -0.4476,
-          -0.413
-        ]
-      }
-    },
-    {
-      "id": "terralith:brushland",
-      "parameters": {
-        "weirdness": [
-          -0.413,
-          -0.3727
-        ]
-      }
-    },
-    {
-      "id": "terralith:steppe",
-      "parameters": {
-        "weirdness": [
-          -0.3727,
-          -0.3063
-        ]
-      }
-    },
-    {
-      "id": "terralith:shrubland",
-      "parameters": {
-        "weirdness": [
-          -0.3063,
-          -0.2284
-        ]
-      }
-    },
-    {
-      "id": "minecraft:badlands",
-      "parameters": {
-        "temperature": [
-          0.55,
-          1.0
-        ],
-        "weirdness": [
-          -0.2284,
-          -0.1799
-        ]
-      }
-    },
-    {
-      "id": "minecraft:eroded_badlands",
-      "parameters": {
-        "temperature": [
-          0.55,
-          1.0
-        ],
-        "humidity": [
-          -1.0,
-          -0.1
-        ],
-        "weirdness": [
-          -0.1799,
-          -0.1276
-        ]
-      }
-    },
-    {
-      "id": "terralith:lush_desert",
-      "parameters": {
-        "temperature": [
-          0.55,
-          1.0
-        ],
-        "humidity": [
-          -0.1,
-          0.565
-        ],
-        "weirdness": [
-          -0.1276,
-          -0.0811
-        ]
-      }
-    },
-    {
-      "id": "terralith:desert_oasis",
-      "parameters": {
-        "temperature": [
-          0.55,
-          1.0
-        ],
-        "humidity": [
-          -0.1,
-          1.0
-        ],
-        "weirdness": [
-          -0.0811,
-          -0.052
-        ]
-      }
-    },
-    {
-      "id": "terralith:desert_canyon",
-      "parameters": {
-        "temperature": [
-          0.55,
-          1.0
-        ],
-        "humidity": [
-          -0.35,
-          0.565
-        ],
-        "weirdness": [
-          -0.052,
-          0.0003
-        ]
-      }
-    },
-    {
-      "id": "terralith:red_oasis",
-      "parameters": {
-        "temperature": [
-          0.55,
-          1.0
-        ],
-        "weirdness": [
-          0.0003,
-          0.1174
-        ]
-      }
-    },
-    {
-      "id": "terralith:savanna_slopes",
-      "parameters": {
-        "temperature": [
-          0.2,
-          0.55
-        ],
-        "humidity": [
-          -0.585,
-          -0.1
-        ],
-        "weirdness": [
-          0.1174,
-          0.1897
-        ]
-      }
-    },
+    "minecraft:savanna",
+    "minecraft:savanna_plateau",
+    "minecraft:wooded_badlands",
+    "terralith:arid_highlands",
+    "terralith:hot_shrubland",
+    "terralith:fractured_savanna",
+    "terralith:savanna_badlands",
+    "terralith:brushland",
+    "terralith:steppe",
+    "terralith:shrubland",
+    "minecraft:badlands",
+    "minecraft:eroded_badlands",
+    "terralith:lush_desert",
+    "terralith:desert_oasis",
+    "terralith:desert_canyon",
+    "terralith:red_oasis",
+    "terralith:savanna_slopes",
     {
       "id": "natures_spirit:stratified_desert",
       "parameters": {
-        "temperature": [
-          0.2,
-          1.0
-        ],
         "humidity": [
-          -1.0,
-          -0.1
-        ],
-        "weirdness": [
-          0.1897,
-          0.2273
+          -0.67,
+          -0.51
         ]
       }
     },
     {
       "id": "natures_spirit:oak_savanna",
       "parameters": {
-        "temperature": [
-          0.2,
-          1.0
-        ],
         "humidity": [
-          -1.0,
-          -0.1
-        ],
-        "weirdness": [
-          0.2273,
-          0.2954
+          -0.43,
+          -0.27
         ]
       }
     },
-    {
-      "id": "terralith:ancient_sands",
-      "parameters": {
-        "temperature": [
-          0.55,
-          1.0
-        ],
-        "humidity": [
-          -1.0,
-          -0.35
-        ],
-        "weirdness": [
-          0.2954,
-          0.4164
-        ]
-      }
-    },
+    "terralith:ancient_sands",
     {
       "id": "wilderwild:oasis",
       "parameters": {
-        "weirdness": [
-          0.4164,
-          0.462
+        "humidity": [
+          -0.19,
+          -0.03
         ]
       }
     },
     {
       "id": "wilderwild:parched_forest",
       "parameters": {
-        "weirdness": [
-          0.462,
-          0.486
+        "humidity": [
+          0.04,
+          0.2
         ]
       }
     },
     {
       "id": "regions_unexplored:baobab_savanna",
       "parameters": {
-        "weirdness": [
-          0.486,
-          0.5
-        ]
-      }
-    },
-    {
-      "id": "minecraft:plains",
-      "parameters": {
-        "temperature": [
-          -0.45,
-          0.2
-        ],
         "humidity": [
-          -1.0,
-          -0.1
-        ],
-        "weirdness": [
-          0.5,
-          0.504
+          0.28,
+          0.44
         ]
       }
     },
+    "minecraft:plains",
     {
       "id": "regions_unexplored:joshua_desert",
       "parameters": {
-        "weirdness": [
-          0.504,
-          0.508
+        "humidity": [
+          0.52,
+          0.68
         ]
       }
     },
-    {
-      "id": "terralith:desert_spires",
-      "parameters": {
-        "weirdness": [
-          0.508,
-          0.512
-        ]
-      }
-    },
+    "terralith:desert_spires",
     {
       "id": "natures_spirit:scorched_dunes",
       "parameters": {
-        "weirdness": [
-          0.512,
-          0.6337
+        "humidity": [
+          0.76,
+          0.92
         ]
       }
     },
-    {
-      "id": "minecraft:desert",
-      "parameters": {
-        "temperature": [
-          0.55,
-          1.0
-        ],
-        "weirdness": [
-          0.6337,
-          2.0
-        ]
-      }
-    }
+    "minecraft:desert"
   ],
   "borders": {
     "player": 4096,

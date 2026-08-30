@@ -3,276 +3,92 @@
   "description": "Untouched wilds that whisper. Redwoods, moon groves, abandoned camps of those who didn't stay \u2014 the forest was here before anyone arrived and it'll be here after everyone leaves. The whisper is the wind in old growth that's never been cut.",
   "seed": -3343682839012524840,
   "biomes": [
-    {
-      "id": "minecraft:dark_forest",
-      "parameters": {
-        "weirdness": [
-          -2.0,
-          -1.0
-        ]
-      }
-    },
-    {
-      "id": "minecraft:old_growth_spruce_taiga",
-      "parameters": {
-        "weirdness": [
-          -1.0,
-          -0.996
-        ]
-      }
-    },
-    {
-      "id": "minecraft:old_growth_pine_taiga",
-      "parameters": {
-        "weirdness": [
-          -0.996,
-          -0.9
-        ]
-      }
-    },
-    {
-      "id": "minecraft:swamp",
-      "parameters": {
-        "weirdness": [
-          -0.9,
-          -0.5926
-        ]
-      }
-    },
-    {
-      "id": "minecraft:mangrove_swamp",
-      "parameters": {
-        "weirdness": [
-          -0.5926,
-          -0.5
-        ]
-      }
-    },
-    {
-      "id": "minecraft:taiga",
-      "parameters": {
-        "weirdness": [
-          -0.5,
-          -0.496
-        ]
-      }
-    },
-    {
-      "id": "minecraft:jungle",
-      "parameters": {
-        "weirdness": [
-          -0.496,
-          -0.492
-        ]
-      }
-    },
-    {
-      "id": "minecraft:sparse_jungle",
-      "parameters": {
-        "weirdness": [
-          -0.492,
-          -0.488
-        ]
-      }
-    },
-    {
-      "id": "minecraft:mushroom_fields",
-      "parameters": {
-        "weirdness": [
-          -0.488,
-          -0.375
-        ]
-      }
-    },
-    {
-      "id": "minecraft:river",
-      "parameters": {
-        "weirdness": [
-          -0.375,
-          -0.254
-        ]
-      }
-    },
-    {
-      "id": "terralith:moonlight_valley",
-      "parameters": {
-        "weirdness": [
-          -0.254,
-          -0.1678
-        ]
-      }
-    },
-    {
-      "id": "terralith:orchid_swamp",
-      "parameters": {
-        "weirdness": [
-          -0.1678,
-          -0.0922
-        ]
-      }
-    },
-    {
-      "id": "terralith:shield",
-      "parameters": {
-        "weirdness": [
-          -0.0922,
-          -0.0238
-        ]
-      }
-    },
-    {
-      "id": "terralith:birch_taiga",
-      "parameters": {
-        "weirdness": [
-          -0.0238,
-          0.0726
-        ]
-      }
-    },
-    {
-      "id": "terralith:moonlight_grove",
-      "parameters": {
-        "temperature": [
-          -0.45,
-          -0.155
-        ],
-        "humidity": [
-          0.565,
-          1.0
-        ],
-        "weirdness": [
-          0.0726,
-          0.128
-        ]
-      }
-    },
-    {
-      "id": "terralith:cloud_forest",
-      "parameters": {
-        "temperature": [
-          -0.45,
-          -0.155
-        ],
-        "humidity": [
-          0.1,
-          1.0
-        ],
-        "weirdness": [
-          0.128,
-          0.202
-        ]
-      }
-    },
-    {
-      "id": "terralith:shield_clearing",
-      "parameters": {
-        "temperature": [
-          -0.45,
-          -0.155
-        ],
-        "humidity": [
-          -0.35,
-          -0.1
-        ],
-        "weirdness": [
-          0.202,
-          0.3246
-        ]
-      }
-    },
+    "minecraft:dark_forest",
+    "minecraft:old_growth_spruce_taiga",
+    "minecraft:old_growth_pine_taiga",
+    "minecraft:swamp",
+    "minecraft:mangrove_swamp",
+    "minecraft:taiga",
+    "minecraft:jungle",
+    "minecraft:sparse_jungle",
+    "minecraft:mushroom_fields",
+    "minecraft:river",
+    "terralith:moonlight_valley",
+    "terralith:orchid_swamp",
+    "terralith:shield",
+    "terralith:birch_taiga",
+    "terralith:moonlight_grove",
+    "terralith:cloud_forest",
+    "terralith:shield_clearing",
     {
       "id": "natures_spirit:cedar_thicket",
       "parameters": {
-        "temperature": [
-          0.2,
-          1.0
-        ],
         "humidity": [
-          -1.0,
-          0.1
-        ],
-        "weirdness": [
-          0.3246,
-          0.4646
+          -0.7,
+          -0.58
         ]
       }
     },
     {
       "id": "regions_unexplored:redwoods",
       "parameters": {
-        "weirdness": [
-          0.4646,
-          0.5
+        "humidity": [
+          -0.53,
+          -0.41
         ]
       }
     },
     {
       "id": "regions_unexplored:old_growth_forest",
       "parameters": {
-        "weirdness": [
-          0.5,
-          0.504
+        "humidity": [
+          -0.35,
+          -0.24
         ]
       }
     },
     {
       "id": "regions_unexplored:silver_birch_forest",
       "parameters": {
-        "weirdness": [
-          0.504,
-          0.508
+        "humidity": [
+          -0.18,
+          -0.07
         ]
       }
     },
     {
       "id": "regions_unexplored:sparse_redwoods",
       "parameters": {
-        "weirdness": [
-          0.508,
-          0.525
+        "humidity": [
+          -0.01,
+          0.11
         ]
       }
     },
     {
       "id": "regions_unexplored:alpha_grove",
       "parameters": {
-        "weirdness": [
-          0.525,
-          1.0
+        "humidity": [
+          0.16,
+          0.28
         ]
       }
     },
     {
       "id": "natures_spirit:aspen_forest",
       "parameters": {
-        "temperature": [
-          -0.45,
-          0.55
-        ],
         "humidity": [
-          -1.0,
-          0.1
-        ],
-        "weirdness": [
-          1.0,
-          1.004
+          0.33,
+          0.45
         ]
       }
     },
     {
       "id": "natures_spirit:redwood_forest",
       "parameters": {
-        "temperature": [
-          -0.45,
-          0.55
-        ],
         "humidity": [
-          -0.1,
-          1.0
-        ],
-        "weirdness": [
-          1.004,
-          2.0
+          0.51,
+          0.62
         ]
       }
     }
