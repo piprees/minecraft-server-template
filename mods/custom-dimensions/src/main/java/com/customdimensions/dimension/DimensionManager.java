@@ -54,6 +54,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -372,6 +373,143 @@ public class DimensionManager {
                 unplaced.size() - dealt.foreign().size(), dealt.natural().size(),
                 dealt.foreign().size(), allowedIds.size());
         return MultiNoiseBiomeSource.create(new MultiNoiseUtil.Entries<>(result));
+    }
+
+    /**
+     * The base source with the config's asks appended, for the types whose
+     * biomes arrive naturally. Null when the list is empty — the base
+     * generator is then used whole — or when the generator carries no
+     * multi-noise source to append to.
+     */
+    private BiomeSource resolveAdditiveSource(DimensionConfig def, Registry<Biome> biomeRegistry,
+                                              ChunkGenerator generator) {
+        String biomeList = def.getBiome();
+        if (biomeList == null || biomeList.isEmpty()) {
+            return null;
+        }
+        MultiNoiseBiomeSource base = multiNoiseOf(generator);
+        if (base == null) {
+            MultiverseServer.LOGGER.error(
+                    "Dimension {}: biome list IGNORED — no multi-noise source to append to (generator {})",
+                    def.getName(),
+                    generator == null ? "absent" : generator.getBiomeSource().getClass().getName());
+            return null;
+        }
+        return buildAdditiveSource(base, biomeRegistry, biomeList, def.getName(),
+                def.getBiomeBands(), declaredCellsFor(base, biomeRegistry));
+    }
+
+    /**
+     * Every base entry, plus a cell for each asked biome the base does not
+     * already place. This is the opposite of {@link #buildMixedSource}, which
+     * keeps only what the list names: here the list is an ask on top of a
+     * world that populates itself, so nothing the base places is removed.
+     *
+     * <p>An ask takes its cell from its own band, or from what its mod
+     * declared. One with neither is named in a WARN and does not generate —
+     * seating it would mean displacing a base biome, and a fallback that
+     * fills from another pool is forbidden.
+     *
+     * <p>An appended cell competes in vanilla's nearest-point lookup on equal
+     * terms with the base's own. Two consequences worth knowing: a range
+     * contains its endpoints, so an ask overlapping a base entry ties at
+     * distance zero and the tie-break decides rather than the author; and the
+     * lookup charges nothing for an axis a hypercube leaves unconstrained, so
+     * a loosely-banded ask is a far larger target than a tightly-banded one.
+     */
+    private BiomeSource buildAdditiveSource(MultiNoiseBiomeSource base, Registry<Biome> biomeRegistry,
+                                            String biomeList, String dimName,
+                                            List<DimensionConfig.BiomeBand> bands,
+                                            Map<Identifier, List<MultiNoiseUtil.NoiseHypercube>> declaredCells) {
+        Set<Identifier> askedIds = Arrays.stream(biomeList.split(","))
+                .map(String::trim).map(Identifier::tryParse).filter(id -> id != null)
+                .collect(Collectors.toCollection(java.util.LinkedHashSet::new));
+        askedIds.removeAll(BiomeSuppression.suppressedIds());
+
+        Placed<MultiNoiseUtil.NoiseHypercube> explicit = explicitBands(bands, askedIds,
+                band -> hypercubeFrom(band.parameters(), dimName, band.id()));
+
+        MultiNoiseUtil.Entries<RegistryEntry<Biome>> entries =
+                ((MultiNoiseBiomeSourceAccessor) base).invokeGetBiomeEntries();
+        List<Pair<MultiNoiseUtil.NoiseHypercube, RegistryEntry<Biome>>> result =
+                new ArrayList<>(entries.getEntries());
+        Set<Identifier> basePlaced = new HashSet<>();
+        for (Pair<MultiNoiseUtil.NoiseHypercube, RegistryEntry<Biome>> pair : entries.getEntries()) {
+            pair.getSecond().getKey().map(RegistryKey::getValue).ifPresent(basePlaced::add);
+        }
+
+        int banded = 0;
+        for (Pair<MultiNoiseUtil.NoiseHypercube, Identifier> cell : explicit.cells()) {
+            Optional<RegistryEntry.Reference<Biome>> entry =
+                    biomeRegistry.getEntry(RegistryKey.of(RegistryKeys.BIOME, cell.getSecond()));
+            if (entry.isPresent()) {
+                result.add(Pair.of(cell.getFirst(), entry.get()));
+                banded++;
+            } else {
+                MultiverseServer.LOGGER.warn("Dimension {}: biome {} (with parameters) not in the registry — skipped",
+                        dimName, cell.getSecond());
+            }
+        }
+
+        Appended asks = classifyAsks(askedIds, explicit.ids(), basePlaced, declaredCells.keySet());
+        int declared = 0;
+        for (Identifier id : asks.declared()) {
+            Optional<RegistryEntry.Reference<Biome>> entry =
+                    biomeRegistry.getEntry(RegistryKey.of(RegistryKeys.BIOME, id));
+            if (entry.isEmpty()) {
+                MultiverseServer.LOGGER.warn("Dimension {}: biome {} not in the registry — skipped", dimName, id);
+                continue;
+            }
+            for (MultiNoiseUtil.NoiseHypercube cell : declaredCells.getOrDefault(id, List.of())) {
+                result.add(Pair.of(cell, entry.get()));
+                declared++;
+            }
+        }
+        List<Identifier> unplaceable = asks.unplaceable();
+        if (!unplaceable.isEmpty()) {
+            MultiverseServer.LOGGER.warn(
+                    "Dimension {}: {} asked biome(s) will not generate — nothing declares a placement and no "
+                    + "band gives one: {}. Add a band with \"parameters\", or remove them from the list.",
+                    dimName, unplaceable.size(), unplaceable);
+        }
+        MultiverseServer.LOGGER.info(
+                "Dimension {}: biome source appended ({} base kept, {} banded, {} declared, "
+                + "{} already arriving, {} unplaceable of {} asked)",
+                dimName, entries.getEntries().size(), banded, declared, asks.arriving().size(),
+                unplaceable.size(), askedIds.size());
+        return banded + declared == 0 ? base
+                : MultiNoiseBiomeSource.create(new MultiNoiseUtil.Entries<>(result));
+    }
+
+    /**
+     * Where each asked biome gets its ground when the base source is kept
+     * whole. A band wins first because it is the author overriding; the base
+     * next, because a biome it already places needs nothing; then the
+     * placement the biome's own mod declared. What is left has no cell and
+     * does not generate.
+     */
+    record Appended(List<Identifier> arriving, List<Identifier> declared, List<Identifier> unplaceable) {
+    }
+
+    /** Classifies asks against what is banded, already placed, and declared. */
+    static Appended classifyAsks(Collection<Identifier> asked, Set<Identifier> bandedIds,
+                                 Set<Identifier> basePlaced, Set<Identifier> declaredIds) {
+        List<Identifier> arriving = new ArrayList<>();
+        List<Identifier> declared = new ArrayList<>();
+        List<Identifier> unplaceable = new ArrayList<>();
+        for (Identifier id : asked) {
+            if (bandedIds.contains(id)) {
+                continue;
+            }
+            if (basePlaced.contains(id)) {
+                arriving.add(id);
+            } else if (declaredIds.contains(id)) {
+                declared.add(id);
+            } else {
+                unplaceable.add(id);
+            }
+        }
+        return new Appended(arriving, declared, unplaceable);
     }
 
     /**
@@ -844,6 +982,19 @@ public class DimensionManager {
                 }
                 yield new DimensionOptions(this.typeEntryFor(def, overworldOpts.dimensionTypeEntry()), withSeed(withSettings(overworldOpts.chunkGenerator(), settingsOverride), worldSeed));
             }
+            case "overworld" -> {
+                // Biomes arrive from the overworld's own source; the list is
+                // an ask on top of them, never a replacement for them.
+                if (overworldOpts.chunkGenerator() instanceof NoiseChunkGenerator noiseGen) {
+                    BiomeSource appended = this.resolveAdditiveSource(def, biomeRegistry,
+                            overworldOpts.chunkGenerator());
+                    if (appended != null) {
+                        NoiseChunkGenerator newGen = new NoiseChunkGenerator(appended, noiseGen.getSettings());
+                        yield new DimensionOptions(this.typeEntryFor(def, overworldOpts.dimensionTypeEntry()), withSeed(withSettings(newGen, settingsOverride), worldSeed));
+                    }
+                }
+                yield new DimensionOptions(this.typeEntryFor(def, overworldOpts.dimensionTypeEntry()), withSeed(withSettings(overworldOpts.chunkGenerator(), settingsOverride), worldSeed));
+            }
             case "multi_biome" -> {
                 if (overworldOpts.chunkGenerator() instanceof NoiseChunkGenerator noiseGen) {
                     BiomeSource mixed = this.resolveListedSource(def, biomeRegistry,
@@ -946,7 +1097,12 @@ public class DimensionManager {
                 if (preset != null) {
                     Optional<DimensionOptions> presetOpts = preset.getOverworld();
                     if (presetOpts.isPresent()) {
-                        yield new DimensionOptions(this.typeEntryFor(def, overworldOpts.dimensionTypeEntry()), withSeed(withSettings(presetOpts.get().chunkGenerator(), settingsOverride), worldSeed));
+                        ChunkGenerator presetGen = presetOpts.get().chunkGenerator();
+                        BiomeSource appended = this.resolveAdditiveSource(def, biomeRegistry, presetGen);
+                        if (appended != null && presetGen instanceof NoiseChunkGenerator presetNoise) {
+                            presetGen = new NoiseChunkGenerator(appended, presetNoise.getSettings());
+                        }
+                        yield new DimensionOptions(this.typeEntryFor(def, overworldOpts.dimensionTypeEntry()), withSeed(withSettings(presetGen, settingsOverride), worldSeed));
                     }
                 }
                 MultiverseServer.LOGGER.warn("Amplified preset not found, falling back to overworld");
@@ -958,7 +1114,12 @@ public class DimensionManager {
                 if (preset != null) {
                     Optional<DimensionOptions> presetOpts = preset.getOverworld();
                     if (presetOpts.isPresent()) {
-                        yield new DimensionOptions(this.typeEntryFor(def, overworldOpts.dimensionTypeEntry()), withSeed(withSettings(presetOpts.get().chunkGenerator(), settingsOverride), worldSeed));
+                        ChunkGenerator presetGen = presetOpts.get().chunkGenerator();
+                        BiomeSource appended = this.resolveAdditiveSource(def, biomeRegistry, presetGen);
+                        if (appended != null && presetGen instanceof NoiseChunkGenerator presetNoise) {
+                            presetGen = new NoiseChunkGenerator(appended, presetNoise.getSettings());
+                        }
+                        yield new DimensionOptions(this.typeEntryFor(def, overworldOpts.dimensionTypeEntry()), withSeed(withSettings(presetGen, settingsOverride), worldSeed));
                     }
                 }
                 MultiverseServer.LOGGER.warn("Large biomes preset not found, falling back to overworld");

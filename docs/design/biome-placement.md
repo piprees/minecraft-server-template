@@ -127,11 +127,15 @@ Two rules follow, and neither is negotiable:
   and 68.6% of its weirdness samples sit on a rail** — two thirds of that world
   divided by a tie-break rather than by its boundaries.
 
-  Two alternatives were tested and refused. Storing samples at three decimal
+  Three alternatives were tested and refused. Storing samples at three decimal
   places could fake a rail by collapsing −0.4996 onto −0.500; rounding the dense
-  grid to 3dp moves the counts by under 1%. And an apparent reversal at density
-  was a composition effect, not a density one — only 10 of 68 dimensions band at
-  a rail, and the dense subset contained almost none of them.
+  grid to 3dp moves the counts by under 1%. An apparent reversal at density was
+  a composition effect, not a density one — only 10 of 68 dimensions band at a
+  rail, and the dense subset contained almost none of them. And the sampling
+  lattice cannot be the cause: `2B/10` is exactly four times `2B/40` at every
+  border, so the 121 coarse points are 121 of the 1681 dense points. A lattice
+  artefact would be diluted roughly fourteen-fold by the superset, and the rate
+  is unchanged.
 
   The rule does not depend on the figure — a shared boundary ties whatever the
   noise does — but the figure explains why fitters keep landing there.
