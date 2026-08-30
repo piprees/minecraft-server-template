@@ -364,8 +364,28 @@ public class DimensionManager {
             }
         }
         int explicitCells = bandCells.size();
+        // Filler is dealt round-robin and declared by nothing, so it must not
+        // outrank a band inside the band's own window. Stamped AFTER the
+        // projection, which reads spans and never offsets, so g cannot move.
+        long floor = fillerFloor(maxOffsetOf(bandCells));
+        int fillerFrom = nativeEntries.size() + dealt.natural().size();
+        List<Pair<MultiNoiseUtil.NoiseHypercube, RegistryEntry<Biome>>> placed = projected.cells();
+        if (placed.size() == declared.size()) {
+            placed = withFillerFloor(placed, fillerFrom, floor);
+        } else {
+            MultiverseServer.LOGGER.warn(
+                    "Dimension {}: projection returned {} cell(s) for {} declared — the filler tier "
+                    + "cannot be located, so round-robin cells keep their own offsets",
+                    dimName, placed.size(), declared.size());
+        }
+        if (!dealt.filler().isEmpty() && floor <= maxOffsetOf(bandCells)) {
+            MultiverseServer.LOGGER.warn(
+                    "Dimension {}: a band already carries the largest offset vanilla encodes, so "
+                    + "round-robin filler ties with it inside its own window rather than losing",
+                    dimName);
+        }
         List<Pair<MultiNoiseUtil.NoiseHypercube, RegistryEntry<Biome>>> result =
-                bandsBeforeDeclared(bandCells, projected.cells());
+                bandsBeforeDeclared(bandCells, placed);
         if (result.isEmpty()) {
             MultiverseServer.LOGGER.warn("Dimension {}: no usable biomes in '{}' — keeping the base source", dimName, biomeList);
             return base;
@@ -558,6 +578,61 @@ public class DimensionManager {
         List<T> out = new ArrayList<>(bandCells.size() + declaredCells.size());
         out.addAll(bandCells);
         out.addAll(declaredCells);
+        return out;
+    }
+
+    /** 1.0 in the fixed point a hypercube stores its offset in. */
+    static final long OFFSET_MAX = 10000L;
+
+    /** The heaviest offset in a cell list, or 0 for an empty one. */
+    static <T> long maxOffsetOf(List<Pair<MultiNoiseUtil.NoiseHypercube, T>> cells) {
+        long max = 0L;
+        for (Pair<MultiNoiseUtil.NoiseHypercube, T> cell : cells) {
+            max = Math.max(max, cell.getFirst().offset());
+        }
+        return max;
+    }
+
+    /**
+     * One fixed-point unit above the heaviest band, capped at what vanilla
+     * encodes. Minimum intervention on purpose: the offset is an additive
+     * penalty on squared distance, so anything larger evicts filler from
+     * ground no band was contesting.
+     */
+    static long fillerFloor(long maxBandOffset) {
+        return Math.min(OFFSET_MAX, maxBandOffset + 1L);
+    }
+
+    /**
+     * Raises the offset on the FILLER cells of a projected list, so an
+     * author's band outranks arbitrary round-robin placement inside its own
+     * window. Inside a band's cube both are at axis distance 0, so the winner
+     * is whichever pays the smaller {@code square(offset)} — and until now
+     * that was filler, at zero.
+     *
+     * <p>Filler alone, and that is the whole discrimination. Natives and
+     * natural cells are declared placements and keep the handicap that lets a
+     * closer one take a cell off a band; that balance is what
+     * {@code BAND_OFFSET_BASE} was measured against. Cells below
+     * {@code fillerFrom} are returned by identity, never rebuilt.
+     */
+    static <T> List<Pair<MultiNoiseUtil.NoiseHypercube, T>> withFillerFloor(
+            List<Pair<MultiNoiseUtil.NoiseHypercube, T>> cells, int fillerFrom, long floor) {
+        if (fillerFrom >= cells.size()) {
+            return cells;
+        }
+        List<Pair<MultiNoiseUtil.NoiseHypercube, T>> out = new ArrayList<>(cells.size());
+        for (int i = 0; i < cells.size(); i++) {
+            Pair<MultiNoiseUtil.NoiseHypercube, T> cell = cells.get(i);
+            if (i < fillerFrom || cell.getFirst().offset() >= floor) {
+                out.add(cell);
+                continue;
+            }
+            MultiNoiseUtil.NoiseHypercube c = cell.getFirst();
+            out.add(Pair.of(new MultiNoiseUtil.NoiseHypercube(c.temperature(), c.humidity(),
+                    c.continentalness(), c.erosion(), c.depth(), c.weirdness(), floor),
+                    cell.getSecond()));
+        }
         return out;
     }
 
