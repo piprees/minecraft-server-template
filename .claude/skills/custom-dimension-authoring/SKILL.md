@@ -61,7 +61,7 @@ overlay/config/custom-dimensions/dimensions/<slug>.json  # consumer override
 5. **Set `borders`, `difficulty`, `structureDensity`** per the [size↔difficulty table](#size--difficulty-the-philosophy).
 6. **Set `structures.wants`/`structures.shuns`** using short names from `references/structure-names.md`. See [Traps](#traps-read-this-before-you-write-json) — the two blocks (`structures` vs `seedRoll`) use different value formats.
 7. **Set `portal`** — frame block, igniter, colour/particle, sounds, scale. See [Portal scale guide](#portal-scale-guide). Check `igniterItem` uniqueness: `grep -h igniterItem config/custom-dimensions/dimensions/*.json | sort`.
-8. **Set `seedRoll`** — `mood`, `spawnFilter` (3-8 biomes, all must appear in your `biomes` list AND exist in `biome-catalogue.md` for that family).
+8. **Set `seedRoll`** — `mood`, `spawnFilter` (the biome that IS the place plus the ground around it; every entry must appear in your `biomes` list AND in `biome-catalogue.md` for that family). A pocket dimension gets one place, a 4096 up to sixteen — see [Traps](#traps-read-this-before-you-write-json) 14.
 9. **Set `spawn`** — `[0, 64, 0]` (roller overwrites this).
 10. **Validate** — see [Validation](#validation-do-not-skip-this).
 
@@ -110,8 +110,8 @@ Full detail: [TROUBLESHOOTING.md#t36](../../../TROUBLESHOOTING.md#t36).
 `amplified` and `large_biomes` clone the world preset's overworld
 `DimensionOptions` wholesale and never call `resolveListedSource`
 (`DimensionManager.java:729-757`). A biome list on either generates a plain
-overworld, and a `seedRoll.spawnFilter` naming a biome that cannot occur
-rejects every candidate — an empty board with no error.
+overworld, and a `seedRoll.spawnFilter` naming a biome that cannot occur there
+scores zero on `spawn_reads_as_namesake` for every seed rolled.
 
 The two shipped users, `the_amplified_reaches` and `the_endless_expanse`, both
 carry an empty `biomes` array. That is not an oversight; it is the only honest
@@ -441,7 +441,7 @@ Two things to hold in mind when tuning them:
     Leave a biome a plain string when something already places it — the base source's own cells, or the cells its mod registered with TerraBlender for that family. Once no biome is left foreign the leftover pool is dropped rather than dealt out. The boot line `biome source built (N explicit of B banded, M native, P natural over C cell(s), 0 mixed-in of K requested)` says every listed biome got a cell, and `explicit` below `banded` says bands were dropped. **It does NOT say the biome generates.** That line is an ASSIGNMENT-time count; whether the router ever reaches those cells is a separate question, and reading one as the other has produced three wrong conclusions on this project. Measured: `natures_spirit:cypress_fields` was handed **556 cells, 0 mixed-in — and generates nowhere**.
 
 **The generation check is `customdim facts <dim> <seed>`**, and `customdim locate biome` with the distance read against `borders.player` for anything it reports short. A `done` reply outside the border is a biome nobody can reach. A band written over a biome that would place naturally is authorship, not a fix. `scripts/check-content-coverage.py` lists installed biomes no dimension names. See [TROUBLESHOOTING.md#t19](../../../TROUBLESHOOTING.md#t19) and [#t35](../../../TROUBLESHOOTING.md#t35).
-14. **`spawnFilter` biomes must exist in the biome parameter table for the dimension's family** — a biome id that exists in-game but isn't in the roller's table for that family causes every candidate to be rejected (zero candidates). Cross-check against `references/biome-catalogue.md`.
+14. **`spawnFilter` names the place a player arrives in, and it is scored rather than gated.** `spawn_reads_as_namesake` gives full marks when spawn sits in a filter biome, otherwise ramps the filter biomes' combined share of the world to a cap at 0.33, and gives zero when none of them holds any ground. So an entry that generates nowhere is inert twice over — it adds nothing to the mark and can never be a spawn target — and a filter naming most of the palette cannot aim a spawn anywhere in particular. Name the biome that IS the place, plus the ground around it: a dimension has a budget of places ([biome-placement.md](../../../docs/design/biome-placement.md)), and `scripts/check-spawn-filters.py` holds every filter to it and to its own `biomes` list.
 15. **Immersive is ON when you say nothing** — `"immersive": false` is the opt-out, not `true` the opt-in. Writing `"immersive": true` is harmless but redundant.
 16. **`subsume: "everything"` is destructive by design** and belongs in the dimension's `description` as well as its JSON. Never add it to a peaceful or scenic dimension because a keyword matched — see the `subsume` section.
 17. **Aura `trees` are never inferred, only configured.** Sampling them turned a beach into an impassable thicket.
@@ -467,4 +467,4 @@ Seed rolling lives in the custom-dimensions mod, driven by `/customdim` subcomma
 
 **Rollable requirements**: not `skip: true`, not `superflat`, `void` needs a `biomes` list.
 
-**Zero candidates?** Most common cause: `seedRoll.spawnFilter` lists a biome that doesn't exist in the roller's biome parameter table for that family (see trap 13 above). Check `references/biome-catalogue.md`.
+**Zero candidates?** Exactly two criteria reject a seed outright, and both are dimension-specific: `fortress_reachable_in_nether` and `end_city_reachable_in_end`. Every other criterion scores, so in any other dimension no criterion can empty the board. Read the verdict reason — `customdim score <dim> <seed>` prints it, and it is the only place a rejection survives.

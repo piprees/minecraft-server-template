@@ -1,0 +1,141 @@
+#!/usr/bin/env python3
+"""Report spawn filters that name a palette rather than a place, or name a biome the dimension does not list.
+
+Purpose:  `seedRoll.spawnFilter` answers one question — which biomes read as
+          this dimension, so that a rolled spawn lands in one and the score
+          reflects how much of the world is the thing it is named after.
+          `Criteria.SpawnReadsAsNamesake` awards full marks when spawn sits in
+          a filter biome and otherwise ramps the filter's combined share to a
+          cap; `RollPipeline.spawnFromGrid` prefers a filter biome within twice
+          the distance of the nearest ground. Both readings are of a PLACE.
+
+          A filter listing most of the dimension's palette answers a different
+          question. It cannot aim a spawn, because almost anywhere satisfies
+          it, and it inflates the share until the criterion is free.
+
+Context:  A place is 128-256 blocks across and covers a structure, the ground
+          it stands on and its surroundings together, so it spans a small
+          number of biomes rather than one. And a dimension has a budget of
+          PLACES, not a share per biome: a pocket holds one at most, a 4096 up
+          to sixteen. Both figures are stated in docs/design/biome-placement.md
+          and BUDGET is fitted to them exactly.
+
+          The shape this catches is mechanical rather than stylistic. Seventeen
+          of the eighteen filters naming six or more biomes are the head of
+          that dimension's own `biomes` array — the first entries typed, not a
+          set anybody chose.
+
+Not covered: whether a filter biome holds any ground. That is a measurement,
+          it needs the 41x41 grid the game itself samples, and a static check
+          cannot make it — see K7 before treating a small share as a defect.
+          A filter can pass both arms here and still name a biome that
+          generates nowhere.
+
+Usage:    scripts/check-spawn-filters.py       # exits 1 on either arm
+          CONSUMER_DIR=~/Projects/elfydd scripts/check-spawn-filters.py
+
+Gotchas:  - The reserved four and the list-discarding types (`amplified`,
+            `large_biomes`) carry an EMPTY `biomes` array by design, so the
+            membership arm has nothing to check and skips them. That is not a
+            pass, it is an abstention.
+          - An overlay entry under `overrides` deep-merges over the platform
+            default, so its border comes from the platform file when it states
+            none. Reading the overlay alone gives every such dimension the
+            pocket budget and over-reports.
+          - BIOMES_PER_PLACE is the one judgement here. The budget formula is
+            derived from the design doc's two stated anchors; three biomes per
+            place is a reading of "the ground it stands on and its
+            surroundings", not a measurement.
+"""
+import json
+import glob
+import os
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from consumer_path import optional_consumer_dir  # noqa: E402
+
+PLATFORM = "config/custom-dimensions/dimensions/*.json"
+OVERLAY = "overlay/config/custom-dimensions/dimensions/*.json"
+
+# One place, in biomes: the one it sits in plus its surroundings.
+BIOMES_PER_PLACE = 3
+
+
+def budget(border):
+    """Places a dimension of this border can hold.
+
+    Fitted to docs/design/biome-placement.md's two anchors: 1024 holds one
+    place, 4096 holds sixteen. The pocket clause falls out as the floor.
+    """
+    if not border or border <= 0:
+        return None
+    return max(1, round((border / 1024.0) ** 2))
+
+
+def entries(pattern):
+    """(name, config) per dimension file, thumbnails excluded."""
+    for f in sorted(glob.glob(pattern)):
+        name = os.path.basename(f)[:-5]
+        if name.endswith("_thumb"):
+            continue
+        doc = json.load(open(f))
+        yield name, doc.get("overrides", doc)
+
+
+def biome_ids(cfg):
+    return [b if isinstance(b, str) else b.get("id") for b in (cfg.get("biomes") or [])]
+
+
+def spawn_filter(cfg):
+    return ((cfg.get("seedRoll") or {}).get("spawnFilter")) or []
+
+
+def main():
+    platform = dict(entries(PLATFORM))
+    sources = [("platform", platform)]
+    consumer = optional_consumer_dir()
+    if consumer:
+        sources.append(("overlay", dict(entries(str(consumer / OVERLAY)))))
+
+    unlisted = palettes = scanned = 0
+    for where, configs in sources:
+        for name, cfg in sorted(configs.items()):
+            sf = spawn_filter(cfg)
+            if not sf:
+                continue
+            scanned += 1
+
+            listed = biome_ids(cfg) or biome_ids(platform.get(name, {}))
+            missing = [b for b in sf if b not in listed] if listed else []
+            if missing:
+                unlisted += len(missing)
+                for b in missing:
+                    print(f"  {name:26s} [{where:8s}] {b} is in spawnFilter but not in biomes")
+                print("      a filter biome the dimension never lists cannot be curated into"
+                      " the world, so it scores only where the base source happens to place it")
+
+            border = cfg.get("borders", {}).get("player") \
+                or platform.get(name, {}).get("borders", {}).get("player")
+            bud = budget(border)
+            if bud is None:
+                continue
+            allowed = BIOMES_PER_PLACE * bud
+            if len(sf) > allowed:
+                palettes += 1
+                print(f"  {name:26s} [{where:8s}] spawnFilter names {len(sf)} biomes;"
+                      f" a {border} border holds {bud} place(s), so at most {allowed}")
+                print("      name the biome that IS the place and the ground around it, not the"
+                      " palette — a filter satisfied almost anywhere cannot aim a spawn")
+
+    print(f"{scanned} spawn filter(s), {unlisted} naming an unlisted biome,"
+          f" {palettes} naming a palette")
+    if unlisted or palettes:
+        return 1
+    print("✓ Every spawn filter names a place, from biomes its dimension lists")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
