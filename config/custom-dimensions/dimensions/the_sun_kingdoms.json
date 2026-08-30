@@ -9,7 +9,7 @@
       "parameters": {
         "weirdness": [
           -2.0,
-          -1.953
+          -1.0
         ]
       }
     },
@@ -17,8 +17,8 @@
       "id": "minecraft:savanna_plateau",
       "parameters": {
         "weirdness": [
-          -1.953,
-          -1.906
+          -1.0,
+          -0.6334
         ]
       }
     },
@@ -26,8 +26,8 @@
       "id": "minecraft:wooded_badlands",
       "parameters": {
         "weirdness": [
-          -1.906,
-          -1.859
+          -0.6334,
+          -0.5
         ]
       }
     },
@@ -35,8 +35,8 @@
       "id": "terralith:arid_highlands",
       "parameters": {
         "weirdness": [
-          -1.859,
-          -1.812
+          -0.5,
+          -0.496
         ]
       }
     },
@@ -44,8 +44,8 @@
       "id": "terralith:hot_shrubland",
       "parameters": {
         "weirdness": [
-          -1.812,
-          -1.765
+          -0.496,
+          -0.492
         ]
       }
     },
@@ -53,8 +53,8 @@
       "id": "terralith:fractured_savanna",
       "parameters": {
         "weirdness": [
-          -1.765,
-          -1.718
+          -0.492,
+          -0.4476
         ]
       }
     },
@@ -62,8 +62,8 @@
       "id": "terralith:savanna_badlands",
       "parameters": {
         "weirdness": [
-          -1.718,
-          -1.671
+          -0.4476,
+          -0.413
         ]
       }
     },
@@ -71,8 +71,8 @@
       "id": "terralith:brushland",
       "parameters": {
         "weirdness": [
-          -1.671,
-          -1.624
+          -0.413,
+          -0.3727
         ]
       }
     },
@@ -80,8 +80,8 @@
       "id": "terralith:steppe",
       "parameters": {
         "weirdness": [
-          -1.624,
-          -1.577
+          -0.3727,
+          -0.3063
         ]
       }
     },
@@ -89,8 +89,8 @@
       "id": "terralith:shrubland",
       "parameters": {
         "weirdness": [
-          -1.577,
-          -1.53
+          -0.3063,
+          -0.2284
         ]
       }
     },
@@ -102,8 +102,8 @@
           1.0
         ],
         "weirdness": [
-          -1.53,
-          -1.483
+          -0.2284,
+          -0.1799
         ]
       }
     },
@@ -119,8 +119,8 @@
           -0.1
         ],
         "weirdness": [
-          -1.483,
-          -1.436
+          -0.1799,
+          -0.1276
         ]
       }
     },
@@ -136,8 +136,8 @@
           0.565
         ],
         "weirdness": [
-          -1.436,
-          -1.389
+          -0.1276,
+          -0.0811
         ]
       }
     },
@@ -153,8 +153,8 @@
           1.0
         ],
         "weirdness": [
-          -1.389,
-          -1.342
+          -0.0811,
+          -0.052
         ]
       }
     },
@@ -170,8 +170,8 @@
           0.565
         ],
         "weirdness": [
-          -1.342,
-          -1.295
+          -0.052,
+          0.0003
         ]
       }
     },
@@ -183,8 +183,8 @@
           1.0
         ],
         "weirdness": [
-          -1.295,
-          -1.248
+          0.0003,
+          0.1174
         ]
       }
     },
@@ -200,8 +200,8 @@
           -0.1
         ],
         "weirdness": [
-          -1.248,
-          -1.201
+          0.1174,
+          0.1897
         ]
       }
     },
@@ -217,8 +217,8 @@
           -0.1
         ],
         "weirdness": [
-          -1.201,
-          -1.154
+          0.1897,
+          0.2273
         ]
       }
     },
@@ -234,8 +234,8 @@
           -0.1
         ],
         "weirdness": [
-          -1.154,
-          -1.107
+          0.2273,
+          0.2954
         ]
       }
     },
@@ -251,8 +251,8 @@
           -0.35
         ],
         "weirdness": [
-          -1.107,
-          -1.06
+          0.2954,
+          0.4164
         ]
       }
     },
@@ -260,8 +260,8 @@
       "id": "wilderwild:oasis",
       "parameters": {
         "weirdness": [
-          -1.06,
-          -1.013
+          0.4164,
+          0.462
         ]
       }
     },
@@ -269,8 +269,8 @@
       "id": "wilderwild:parched_forest",
       "parameters": {
         "weirdness": [
-          -1.013,
-          -0.966
+          0.462,
+          0.486
         ]
       }
     },
@@ -278,8 +278,8 @@
       "id": "regions_unexplored:baobab_savanna",
       "parameters": {
         "weirdness": [
-          -0.966,
-          -0.919
+          0.486,
+          0.5
         ]
       }
     },
@@ -295,8 +295,8 @@
           -0.1
         ],
         "weirdness": [
-          -0.919,
-          -0.4
+          0.5,
+          0.504
         ]
       }
     },
@@ -304,8 +304,8 @@
       "id": "regions_unexplored:joshua_desert",
       "parameters": {
         "weirdness": [
-          -0.4,
-          -0.1
+          0.504,
+          0.508
         ]
       }
     },
@@ -313,8 +313,8 @@
       "id": "terralith:desert_spires",
       "parameters": {
         "weirdness": [
-          -0.1,
-          0.2
+          0.508,
+          0.512
         ]
       }
     },
@@ -322,8 +322,8 @@
       "id": "natures_spirit:scorched_dunes",
       "parameters": {
         "weirdness": [
-          0.2,
-          0.5
+          0.512,
+          0.6337
         ]
       }
     },
@@ -335,7 +335,7 @@
           1.0
         ],
         "weirdness": [
-          0.5,
+          0.6337,
           2.0
         ]
       }

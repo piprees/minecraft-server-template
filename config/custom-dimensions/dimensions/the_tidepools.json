@@ -8,7 +8,7 @@
       "parameters": {
         "weirdness": [
           -2.0,
-          -1.6
+          -0.6496
         ],
         "depth": [
           -2.0,
@@ -20,8 +20,8 @@
       "id": "minecraft:beach",
       "parameters": {
         "weirdness": [
-          -1.6,
-          -0.94
+          -0.6496,
+          -0.5067
         ],
         "depth": [
           -2.0,
@@ -33,8 +33,8 @@
       "id": "minecraft:stony_shore",
       "parameters": {
         "weirdness": [
-          -0.94,
-          -0.28
+          -0.5067,
+          -0.358
         ],
         "depth": [
           -2.0,
@@ -46,8 +46,8 @@
       "id": "terralith:granite_cliffs",
       "parameters": {
         "weirdness": [
-          -0.28,
-          0.02
+          -0.358,
+          -0.1741
         ],
         "depth": [
           -2.0,
@@ -59,8 +59,8 @@
       "id": "regions_unexplored:gravel_beach",
       "parameters": {
         "weirdness": [
-          0.02,
-          1.42
+          -0.1741,
+          0.023
         ],
         "depth": [
           -2.0,
@@ -72,8 +72,8 @@
       "id": "minecraft:lukewarm_ocean",
       "parameters": {
         "weirdness": [
-          1.42,
-          1.72
+          0.023,
+          0.2443
         ],
         "depth": [
           -2.0,
@@ -85,7 +85,7 @@
       "id": "regions_unexplored:grassy_beach",
       "parameters": {
         "weirdness": [
-          1.72,
+          0.2443,
           2.0
         ],
         "depth": [
@@ -99,7 +99,7 @@
       "parameters": {
         "weirdness": [
           -2.0,
-          -0.045
+          -0.279
         ],
         "depth": [
           0.1,
@@ -111,7 +111,7 @@
       "id": "terralith:cave/tuff_caves",
       "parameters": {
         "weirdness": [
-          -0.045,
+          -0.279,
           2.0
         ],
         "depth": [

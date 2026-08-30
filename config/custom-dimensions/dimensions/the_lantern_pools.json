@@ -8,7 +8,7 @@
       "parameters": {
         "weirdness": [
           -2.0,
-          -1.81
+          -1.0
         ],
         "depth": [
           -2.0,
@@ -20,8 +20,8 @@
       "id": "terralith:warm_river",
       "parameters": {
         "weirdness": [
-          -1.81,
-          -1.62
+          -1.0,
+          -0.996
         ],
         "depth": [
           -2.0,
@@ -33,8 +33,8 @@
       "id": "minecraft:warm_ocean",
       "parameters": {
         "weirdness": [
-          -1.62,
-          -1.43
+          -0.996,
+          -0.992
         ],
         "depth": [
           -2.0,
@@ -46,8 +46,8 @@
       "id": "minecraft:mangrove_swamp",
       "parameters": {
         "weirdness": [
-          -1.43,
-          -1.24
+          -0.992,
+          -0.988
         ],
         "depth": [
           -2.0,
@@ -59,8 +59,8 @@
       "id": "terralith:lush_valley",
       "parameters": {
         "weirdness": [
-          -1.24,
-          -1.05
+          -0.988,
+          -0.3476
         ],
         "depth": [
           -2.0,
@@ -72,8 +72,8 @@
       "id": "minecraft:jungle",
       "parameters": {
         "weirdness": [
-          -1.05,
-          -0.86
+          -0.3476,
+          0.0824
         ],
         "depth": [
           -2.0,
@@ -85,8 +85,8 @@
       "id": "minecraft:sparse_jungle",
       "parameters": {
         "weirdness": [
-          -0.86,
-          -0.67
+          0.0824,
+          0.3875
         ],
         "depth": [
           -2.0,
@@ -98,8 +98,8 @@
       "id": "terralith:orchid_swamp",
       "parameters": {
         "weirdness": [
-          -0.67,
-          -0.37
+          0.3875,
+          0.5
         ],
         "depth": [
           -2.0,
@@ -111,8 +111,8 @@
       "id": "regions_unexplored:tropics",
       "parameters": {
         "weirdness": [
-          -0.37,
-          0.015
+          0.5,
+          0.6292
         ],
         "depth": [
           -2.0,
@@ -124,8 +124,8 @@
       "id": "wilderwild:oasis",
       "parameters": {
         "weirdness": [
-          0.015,
-          1.615
+          0.6292,
+          1.0
         ],
         "depth": [
           -2.0,
@@ -137,7 +137,7 @@
       "id": "regions_unexplored:glistering_meadow",
       "parameters": {
         "weirdness": [
-          1.615,
+          1.0,
           2.0
         ],
         "depth": [
@@ -151,7 +151,7 @@
       "parameters": {
         "weirdness": [
           -2.0,
-          -0.045
+          -0.121
         ],
         "depth": [
           0.1,
@@ -163,7 +163,7 @@
       "id": "terralith:cave/tuff_caves",
       "parameters": {
         "weirdness": [
-          -0.045,
+          -0.121,
           2.0
         ],
         "depth": [

@@ -20,7 +20,14 @@ Usage:    scripts/check-band-reach.py            # exits 1 on a MEASURED dead ba
           scripts/check-band-reach.py --warn     # never exits non-zero
           scripts/check-band-reach.py --strict   # also exit 1 on indicative ones
 
-Gotchas:  - 11 samples on one diagonal UNDERSTATE the true range, so a band
+Gotchas:  - depth bands are NOT judged. `customdim sample-noise` reads the
+            climate at a fixed y, and depth is the one axis that varies with
+            it (measured: exactly linear, -1/128 per block), so the table
+            holds a one-block slice of a 512-block axis. Every shipped depth
+            band is a surface/underground split ([-2, 0.1] / [0.1, 2]), which
+            every world crosses, so the question is not merely unanswerable
+            here but close to vacuous.
+          - 11 samples on one diagonal UNDERSTATE the true range, so a band
             marginally outside it may still be live. A band is only reported
             when it misses by more than MARGIN.
           - A verdict from a type REPRESENTATIVE is indicative, never proof:
@@ -42,6 +49,9 @@ AXES = REPO / "config/custom-dimensions/climate-axes.json"
 
 # Sampling understates the range; only flag a band that misses by more than this.
 MARGIN = 0.05
+
+# Axes the climate table cannot answer for, because it is sampled at one height.
+Y_DEPENDENT = {"depth"}
 
 AXIS_KEY = {
     "temperature": "temp",
@@ -73,6 +83,7 @@ def main():
     dead_measured = 0
     dead_indicative = 0
     checked = 0
+    y_dependent = 0
     skipped = []
 
     for path in sorted(DIMS.glob("*.json")):
@@ -93,6 +104,9 @@ def main():
         for biome_id, params in banded:
             for name, raw in params.items():
                 axis = AXIS_KEY.get(name, name)
+                if axis in Y_DEPENDENT:
+                    y_dependent += 1
+                    continue
                 rng = measured_range(table, slug, dim_type, noise_settings, axis)
                 if rng is None:
                     skipped.append(f"{slug}/{axis}")
@@ -116,6 +130,9 @@ def main():
     print(f"\nchecked {checked} band(s)")
     print(f"  {dead_measured} cannot generate (measured at the dimension's own border)")
     print(f"  {dead_indicative} likely cannot generate (indicative, from a type representative)")
+    if y_dependent:
+        print(f"  {y_dependent} depth band(s) NOT JUDGED — the climate table is sampled at one "
+              f"height and depth varies with it, so this check cannot answer for them")
     if skipped:
         uniq = sorted(set(skipped))
         print(f"no measurement for {len(uniq)} dimension/axis pair(s) — skipped, not guessed")

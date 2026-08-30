@@ -9,7 +9,7 @@
       "parameters": {
         "weirdness": [
           -2.0,
-          -1.953
+          -1.0
         ]
       }
     },
@@ -17,8 +17,8 @@
       "id": "minecraft:flower_forest",
       "parameters": {
         "weirdness": [
-          -1.953,
-          -1.906
+          -1.0,
+          -0.506
         ]
       }
     },
@@ -26,8 +26,8 @@
       "id": "minecraft:birch_forest",
       "parameters": {
         "weirdness": [
-          -1.906,
-          -1.859
+          -0.506,
+          -0.5
         ]
       }
     },
@@ -35,8 +35,8 @@
       "id": "minecraft:old_growth_birch_forest",
       "parameters": {
         "weirdness": [
-          -1.859,
-          -1.812
+          -0.5,
+          -0.496
         ]
       }
     },
@@ -44,8 +44,8 @@
       "id": "minecraft:sunflower_plains",
       "parameters": {
         "weirdness": [
-          -1.812,
-          -1.765
+          -0.496,
+          -0.492
         ]
       }
     },
@@ -53,8 +53,8 @@
       "id": "minecraft:river",
       "parameters": {
         "weirdness": [
-          -1.765,
-          -1.718
+          -0.492,
+          -0.488
         ]
       }
     },
@@ -62,8 +62,8 @@
       "id": "minecraft:beach",
       "parameters": {
         "weirdness": [
-          -1.718,
-          -1.671
+          -0.488,
+          -0.466
         ]
       }
     },
@@ -71,8 +71,8 @@
       "id": "terralith:lavender_valley",
       "parameters": {
         "weirdness": [
-          -1.671,
-          -1.624
+          -0.466,
+          -0.42
         ]
       }
     },
@@ -80,8 +80,8 @@
       "id": "terralith:blooming_valley",
       "parameters": {
         "weirdness": [
-          -1.624,
-          -1.577
+          -0.42,
+          -0.37
         ]
       }
     },
@@ -89,8 +89,8 @@
       "id": "terralith:sakura_grove",
       "parameters": {
         "weirdness": [
-          -1.577,
-          -1.53
+          -0.37,
+          -0.244
         ]
       }
     },
@@ -98,8 +98,8 @@
       "id": "terralith:moonlight_valley",
       "parameters": {
         "weirdness": [
-          -1.53,
-          -1.483
+          -0.244,
+          -0.179
         ]
       }
     },
@@ -107,8 +107,8 @@
       "id": "terralith:moonlight_grove",
       "parameters": {
         "weirdness": [
-          -1.483,
-          -1.436
+          -0.179,
+          -0.104
         ]
       }
     },
@@ -116,8 +116,8 @@
       "id": "terralith:blooming_plateau",
       "parameters": {
         "weirdness": [
-          -1.436,
-          -1.389
+          -0.104,
+          -0.046
         ]
       }
     },
@@ -125,8 +125,8 @@
       "id": "terralith:lush_valley",
       "parameters": {
         "weirdness": [
-          -1.389,
-          -1.342
+          -0.046,
+          0.002
         ]
       }
     },
@@ -134,8 +134,8 @@
       "id": "terralith:temperate_highlands",
       "parameters": {
         "weirdness": [
-          -1.342,
-          -1.295
+          0.002,
+          0.061
         ]
       }
     },
@@ -151,8 +151,8 @@
           -0.1
         ],
         "weirdness": [
-          -1.295,
-          -1.248
+          0.061,
+          0.094
         ]
       }
     },
@@ -168,8 +168,8 @@
           0.1
         ],
         "weirdness": [
-          -1.248,
-          -1.201
+          0.094,
+          0.138
         ]
       }
     },
@@ -185,8 +185,8 @@
           1.0
         ],
         "weirdness": [
-          -1.201,
-          -1.154
+          0.138,
+          0.164
         ]
       }
     },
@@ -202,8 +202,8 @@
           1.0
         ],
         "weirdness": [
-          -1.154,
-          -1.107
+          0.164,
+          0.214
         ]
       }
     },
@@ -219,8 +219,8 @@
           0.1
         ],
         "weirdness": [
-          -1.107,
-          -1.06
+          0.214,
+          0.256
         ]
       }
     },
@@ -236,8 +236,8 @@
           1.0
         ],
         "weirdness": [
-          -1.06,
-          -1.013
+          0.256,
+          0.313
         ]
       }
     },
@@ -245,8 +245,8 @@
       "id": "regions_unexplored:poppy_fields",
       "parameters": {
         "weirdness": [
-          -1.013,
-          -0.966
+          0.313,
+          0.36
         ]
       }
     },
@@ -254,8 +254,8 @@
       "id": "regions_unexplored:clover_plains",
       "parameters": {
         "weirdness": [
-          -0.966,
-          -0.919
+          0.36,
+          0.455
         ]
       }
     },
@@ -263,8 +263,8 @@
       "id": "regions_unexplored:glistering_meadow",
       "parameters": {
         "weirdness": [
-          -0.919,
-          -0.872
+          0.455,
+          0.5
         ]
       }
     },
@@ -272,8 +272,8 @@
       "id": "regions_unexplored:orchard",
       "parameters": {
         "weirdness": [
-          -0.872,
-          -0.825
+          0.5,
+          0.504
         ]
       }
     },
@@ -289,8 +289,8 @@
           0.1
         ],
         "weirdness": [
-          -0.825,
-          -0.495
+          0.504,
+          0.508
         ]
       }
     },
@@ -298,8 +298,8 @@
       "id": "natures_spirit:floral_ridges",
       "parameters": {
         "weirdness": [
-          -0.495,
-          -0.165
+          0.508,
+          0.512
         ]
       }
     },
@@ -307,8 +307,8 @@
       "id": "natures_spirit:marigold_meadows",
       "parameters": {
         "weirdness": [
-          -0.165,
-          0.165
+          0.512,
+          0.516
         ]
       }
     },
@@ -316,8 +316,8 @@
       "id": "regions_unexplored:flower_fields",
       "parameters": {
         "weirdness": [
-          0.165,
-          0.495
+          0.516,
+          0.52
         ]
       }
     },
@@ -325,7 +325,7 @@
       "id": "minecraft:cherry_grove",
       "parameters": {
         "weirdness": [
-          0.495,
+          0.52,
           2.0
         ]
       }

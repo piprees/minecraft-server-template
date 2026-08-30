@@ -9,7 +9,7 @@
       "parameters": {
         "weirdness": [
           -2.0,
-          -1.9111
+          -1.0
         ]
       }
     },
@@ -17,8 +17,8 @@
       "id": "minecraft:windswept_forest",
       "parameters": {
         "weirdness": [
-          -1.9111,
-          -1.8222
+          -1.0,
+          -0.9263
         ]
       }
     },
@@ -26,8 +26,8 @@
       "id": "minecraft:windswept_gravelly_hills",
       "parameters": {
         "weirdness": [
-          -1.8222,
-          -1.7333
+          -0.9263,
+          -0.5959
         ]
       }
     },
@@ -35,8 +35,8 @@
       "id": "minecraft:stony_peaks",
       "parameters": {
         "weirdness": [
-          -1.7333,
-          -1.6444
+          -0.5959,
+          -0.5
         ]
       }
     },
@@ -44,8 +44,8 @@
       "id": "minecraft:meadow",
       "parameters": {
         "weirdness": [
-          -1.6444,
-          -1.5555
+          -0.5,
+          -0.496
         ]
       }
     },
@@ -53,8 +53,8 @@
       "id": "minecraft:plains",
       "parameters": {
         "weirdness": [
-          -1.5555,
-          -1.4666
+          -0.496,
+          -0.492
         ]
       }
     },
@@ -62,8 +62,8 @@
       "id": "minecraft:stony_shore",
       "parameters": {
         "weirdness": [
-          -1.4666,
-          -1.3777
+          -0.492,
+          -0.488
         ]
       }
     },
@@ -71,8 +71,8 @@
       "id": "terralith:highlands",
       "parameters": {
         "weirdness": [
-          -1.3777,
-          -1.2888
+          -0.488,
+          -0.484
         ]
       }
     },
@@ -80,8 +80,8 @@
       "id": "terralith:temperate_highlands",
       "parameters": {
         "weirdness": [
-          -1.2888,
-          -1.1999
+          -0.484,
+          -0.4658
         ]
       }
     },
@@ -89,8 +89,8 @@
       "id": "terralith:forested_highlands",
       "parameters": {
         "weirdness": [
-          -1.1999,
-          -1.111
+          -0.4658,
+          -0.4426
         ]
       }
     },
@@ -98,8 +98,8 @@
       "id": "terralith:rocky_mountains",
       "parameters": {
         "weirdness": [
-          -1.111,
-          -1.0221
+          -0.4426,
+          -0.3914
         ]
       }
     },
@@ -107,8 +107,8 @@
       "id": "terralith:haze_mountain",
       "parameters": {
         "weirdness": [
-          -1.0221,
-          -0.9332
+          -0.3914,
+          -0.3297
         ]
       }
     },
@@ -116,8 +116,8 @@
       "id": "terralith:white_cliffs",
       "parameters": {
         "weirdness": [
-          -0.9332,
-          -0.8443
+          -0.3297,
+          -0.2213
         ]
       }
     },
@@ -125,8 +125,8 @@
       "id": "terralith:caldera",
       "parameters": {
         "weirdness": [
-          -0.8443,
-          -0.7554
+          -0.2213,
+          -0.1716
         ]
       }
     },
@@ -134,8 +134,8 @@
       "id": "terralith:blooming_plateau",
       "parameters": {
         "weirdness": [
-          -0.7554,
-          -0.6665
+          -0.1716,
+          -0.1155
         ]
       }
     },
@@ -147,8 +147,8 @@
           0.55
         ],
         "weirdness": [
-          -0.6665,
-          -0.5776
+          -0.1155,
+          -0.0865
         ]
       }
     },
@@ -160,8 +160,8 @@
           1.0
         ],
         "weirdness": [
-          -0.5776,
-          -0.4887
+          -0.0865,
+          -0.0378
         ]
       }
     },
@@ -177,8 +177,8 @@
           0.565
         ],
         "weirdness": [
-          -0.4887,
-          -0.3998
+          -0.0378,
+          0.0155
         ]
       }
     },
@@ -194,8 +194,8 @@
           -0.1
         ],
         "weirdness": [
-          -0.3998,
-          -0.3109
+          0.0155,
+          0.0637
         ]
       }
     },
@@ -211,8 +211,8 @@
           -0.35
         ],
         "weirdness": [
-          -0.3109,
-          -0.222
+          0.0637,
+          0.1034
         ]
       }
     },
@@ -224,8 +224,8 @@
           -0.155
         ],
         "weirdness": [
-          -0.222,
-          -0.1331
+          0.1034,
+          0.2289
         ]
       }
     },
@@ -233,8 +233,8 @@
       "id": "regions_unexplored:pine_slopes",
       "parameters": {
         "weirdness": [
-          -0.1331,
-          -0.0442
+          0.2289,
+          0.3355
         ]
       }
     },
@@ -242,8 +242,8 @@
       "id": "regions_unexplored:mauve_hills",
       "parameters": {
         "weirdness": [
-          -0.0442,
-          0.0447
+          0.3355,
+          0.4374
         ]
       }
     },
@@ -251,8 +251,8 @@
       "id": "regions_unexplored:mountains",
       "parameters": {
         "weirdness": [
-          0.0447,
-          0.1336
+          0.4374,
+          0.4735
         ]
       }
     },
@@ -260,8 +260,8 @@
       "id": "regions_unexplored:towering_cliffs",
       "parameters": {
         "weirdness": [
-          0.1336,
-          0.2225
+          0.4735,
+          0.5
         ]
       }
     },
@@ -269,8 +269,8 @@
       "id": "regions_unexplored:highland_fields",
       "parameters": {
         "weirdness": [
-          0.2225,
-          0.3114
+          0.5,
+          0.504
         ]
       }
     },
@@ -278,8 +278,8 @@
       "id": "regions_unexplored:spires",
       "parameters": {
         "weirdness": [
-          0.3114,
-          0.4003
+          0.504,
+          0.508
         ]
       }
     },
@@ -287,8 +287,8 @@
       "id": "regions_unexplored:fen",
       "parameters": {
         "weirdness": [
-          0.4003,
-          0.9
+          0.508,
+          0.512
         ]
       }
     },
@@ -296,8 +296,8 @@
       "id": "natures_spirit:heather_fields",
       "parameters": {
         "weirdness": [
-          0.9,
-          1.4
+          0.512,
+          0.5337
         ]
       }
     },
@@ -313,8 +313,8 @@
           0.1
         ],
         "weirdness": [
-          1.4,
-          1.8575
+          0.5337,
+          0.7775
         ]
       }
     },
@@ -322,7 +322,7 @@
       "id": "minecraft:windswept_hills",
       "parameters": {
         "weirdness": [
-          1.8575,
+          0.7775,
           2.0
         ]
       }

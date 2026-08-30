@@ -9,7 +9,7 @@
       "parameters": {
         "weirdness": [
           -2.0,
-          -1.4
+          -0.5963
         ],
         "depth": [
           -2.0,
@@ -21,8 +21,8 @@
       "id": "terralith:gravel_desert",
       "parameters": {
         "weirdness": [
-          -1.4,
-          -1.235
+          -0.5963,
+          -0.5
         ],
         "depth": [
           -2.0,
@@ -34,8 +34,8 @@
       "id": "terralith:basalt_cliffs",
       "parameters": {
         "weirdness": [
-          -1.235,
-          -1.07
+          -0.5,
+          -0.496
         ],
         "depth": [
           -2.0,
@@ -47,8 +47,8 @@
       "id": "terralith:ashen_savanna",
       "parameters": {
         "weirdness": [
-          -1.07,
-          -0.905
+          -0.496,
+          -0.492
         ],
         "depth": [
           -2.0,
@@ -60,8 +60,8 @@
       "id": "terralith:volcanic_peaks",
       "parameters": {
         "weirdness": [
-          -0.905,
-          -0.74
+          -0.492,
+          -0.4237
         ],
         "depth": [
           -2.0,
@@ -73,8 +73,8 @@
       "id": "minecraft:windswept_gravelly_hills",
       "parameters": {
         "weirdness": [
-          -0.74,
-          -0.575
+          -0.4237,
+          -0.2017
         ],
         "depth": [
           -2.0,
@@ -86,8 +86,8 @@
       "id": "minecraft:stony_shore",
       "parameters": {
         "weirdness": [
-          -0.575,
-          -0.41
+          -0.2017,
+          -0.0915
         ],
         "depth": [
           -2.0,
@@ -99,8 +99,8 @@
       "id": "terralith:rocky_shrubland",
       "parameters": {
         "weirdness": [
-          -0.41,
-          -0.245
+          -0.0915,
+          0.0068
         ],
         "depth": [
           -2.0,
@@ -112,8 +112,8 @@
       "id": "terralith:cold_shrubland",
       "parameters": {
         "weirdness": [
-          -0.245,
-          -0.08
+          0.0068,
+          0.1964
         ],
         "depth": [
           -2.0,
@@ -125,8 +125,8 @@
       "id": "regions_unexplored:mauve_hills",
       "parameters": {
         "weirdness": [
-          -0.08,
-          0.2
+          0.1964,
+          0.5
         ],
         "depth": [
           -2.0,
@@ -138,7 +138,7 @@
       "id": "regions_unexplored:chalk_cliffs",
       "parameters": {
         "weirdness": [
-          0.2,
+          0.5,
           2.0
         ],
         "depth": [
@@ -152,7 +152,7 @@
       "parameters": {
         "weirdness": [
           -2.0,
-          -0.045
+          -0.334
         ],
         "depth": [
           0.1,
@@ -164,7 +164,7 @@
       "id": "minecraft:dripstone_caves",
       "parameters": {
         "weirdness": [
-          -0.045,
+          -0.334,
           2.0
         ],
         "depth": [

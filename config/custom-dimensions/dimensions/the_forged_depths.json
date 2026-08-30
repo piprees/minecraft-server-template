@@ -11,7 +11,7 @@
       "id": "regions_unexplored:inferno",
       "parameters": {
         "temperature": [
-          1.3,
+          -0.023,
           2.0
         ]
       }

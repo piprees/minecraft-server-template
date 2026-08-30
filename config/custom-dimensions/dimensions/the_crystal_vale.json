@@ -9,7 +9,7 @@
       "parameters": {
         "weirdness": [
           -2.0,
-          -1.78
+          -1.0
         ],
         "depth": [
           -2.0,
@@ -21,8 +21,8 @@
       "id": "terralith:amethyst_canyon",
       "parameters": {
         "weirdness": [
-          -1.78,
-          -1.56
+          -1.0,
+          -0.558
         ],
         "depth": [
           -2.0,
@@ -34,8 +34,8 @@
       "id": "terralith:emerald_peaks",
       "parameters": {
         "weirdness": [
-          -1.56,
-          -1.34
+          -0.558,
+          -0.4467
         ],
         "depth": [
           -2.0,
@@ -47,8 +47,8 @@
       "id": "minecraft:grove",
       "parameters": {
         "weirdness": [
-          -1.34,
-          -1.12
+          -0.4467,
+          -0.224
         ],
         "depth": [
           -2.0,
@@ -60,8 +60,8 @@
       "id": "minecraft:meadow",
       "parameters": {
         "weirdness": [
-          -1.12,
-          -0.9
+          -0.224,
+          -0.0655
         ],
         "depth": [
           -2.0,
@@ -73,8 +73,8 @@
       "id": "terralith:moonlight_grove",
       "parameters": {
         "weirdness": [
-          -0.9,
-          -0.68
+          -0.0655,
+          0.0796
         ],
         "depth": [
           -2.0,
@@ -86,8 +86,8 @@
       "id": "regions_unexplored:alpha_grove",
       "parameters": {
         "weirdness": [
-          -0.68,
-          -0.41
+          0.0796,
+          0.3931
         ],
         "depth": [
           -2.0,
@@ -99,8 +99,8 @@
       "id": "regions_unexplored:rocky_meadow",
       "parameters": {
         "weirdness": [
-          -0.41,
-          -0.14
+          0.3931,
+          0.5
         ],
         "depth": [
           -2.0,
@@ -112,8 +112,8 @@
       "id": "regions_unexplored:temperate_grove",
       "parameters": {
         "weirdness": [
-          -0.14,
-          1.46
+          0.5,
+          0.5305
         ],
         "depth": [
           -2.0,
@@ -125,8 +125,8 @@
       "id": "regions_unexplored:prismachasm",
       "parameters": {
         "weirdness": [
-          1.46,
-          1.73
+          0.5305,
+          1.0
         ],
         "depth": [
           -2.0,
@@ -138,7 +138,7 @@
       "id": "regions_unexplored:hyacinth_deeps",
       "parameters": {
         "weirdness": [
-          1.73,
+          1.0,
           2.0
         ],
         "depth": [
@@ -152,7 +152,7 @@
       "parameters": {
         "weirdness": [
           -2.0,
-          -0.045
+          -0.015
         ],
         "depth": [
           0.1,
@@ -164,7 +164,7 @@
       "id": "terralith:cave/diorite_caves",
       "parameters": {
         "weirdness": [
-          -0.045,
+          -0.015,
           2.0
         ],
         "depth": [

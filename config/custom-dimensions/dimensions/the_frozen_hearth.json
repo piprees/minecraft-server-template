@@ -9,7 +9,7 @@
       "parameters": {
         "weirdness": [
           -2.0,
-          -1.8857
+          -1.0
         ]
       }
     },
@@ -17,8 +17,8 @@
       "id": "minecraft:snowy_taiga",
       "parameters": {
         "weirdness": [
-          -1.8857,
-          -1.7714
+          -1.0,
+          -0.519
         ]
       }
     },
@@ -26,8 +26,8 @@
       "id": "minecraft:grove",
       "parameters": {
         "weirdness": [
-          -1.7714,
-          -1.6571
+          -0.519,
+          -0.5
         ]
       }
     },
@@ -35,8 +35,8 @@
       "id": "minecraft:frozen_river",
       "parameters": {
         "weirdness": [
-          -1.6571,
-          -1.5428
+          -0.5,
+          -0.496
         ]
       }
     },
@@ -44,8 +44,8 @@
       "id": "minecraft:ice_spikes",
       "parameters": {
         "weirdness": [
-          -1.5428,
-          -1.4285
+          -0.496,
+          -0.492
         ]
       }
     },
@@ -53,8 +53,8 @@
       "id": "minecraft:snowy_slopes",
       "parameters": {
         "weirdness": [
-          -1.4285,
-          -1.3142
+          -0.492,
+          -0.366
         ]
       }
     },
@@ -62,8 +62,8 @@
       "id": "minecraft:frozen_peaks",
       "parameters": {
         "weirdness": [
-          -1.3142,
-          -1.1999
+          -0.366,
+          -0.255
         ]
       }
     },
@@ -71,8 +71,8 @@
       "id": "minecraft:jagged_peaks",
       "parameters": {
         "weirdness": [
-          -1.1999,
-          -1.0856
+          -0.255,
+          -0.171
         ]
       }
     },
@@ -80,8 +80,8 @@
       "id": "minecraft:old_growth_spruce_taiga",
       "parameters": {
         "weirdness": [
-          -1.0856,
-          -0.9713
+          -0.171,
+          -0.064
         ]
       }
     },
@@ -89,8 +89,8 @@
       "id": "minecraft:taiga",
       "parameters": {
         "weirdness": [
-          -0.9713,
-          -0.857
+          -0.064,
+          0.017
         ]
       }
     },
@@ -98,8 +98,8 @@
       "id": "minecraft:stony_shore",
       "parameters": {
         "weirdness": [
-          -0.857,
-          -0.7427
+          0.017,
+          0.061
         ]
       }
     },
@@ -107,8 +107,8 @@
       "id": "terralith:birch_taiga",
       "parameters": {
         "weirdness": [
-          -0.7427,
-          -0.6284
+          0.061,
+          0.084
         ]
       }
     },
@@ -116,8 +116,8 @@
       "id": "terralith:rocky_mountains",
       "parameters": {
         "weirdness": [
-          -0.6284,
-          -0.5141
+          0.084,
+          0.109
         ]
       }
     },
@@ -129,8 +129,8 @@
           0.55
         ],
         "weirdness": [
-          -0.5141,
-          -0.3998
+          0.109,
+          0.181
         ]
       }
     },
@@ -146,8 +146,8 @@
           0.1
         ],
         "weirdness": [
-          -0.3998,
-          -0.2855
+          0.181,
+          0.249
         ]
       }
     },
@@ -163,8 +163,8 @@
           1.0
         ],
         "weirdness": [
-          -0.2855,
-          -0.1712
+          0.249,
+          0.323
         ]
       }
     },
@@ -172,16 +172,16 @@
       "id": "terralith:wintry_forest",
       "parameters": {
         "temperature": [
-          -1.0047,
-          -0.7273
+          0.0023,
+          0.0377
         ],
         "humidity": [
           -0.1,
           1.0
         ],
         "weirdness": [
-          -0.1712,
-          -0.0569
+          0.323,
+          0.432
         ]
       }
     },
@@ -189,8 +189,8 @@
       "id": "regions_unexplored:frozen_pine_taiga",
       "parameters": {
         "weirdness": [
-          -0.0569,
-          0.0574
+          0.432,
+          0.471
         ]
       }
     },
@@ -198,8 +198,8 @@
       "id": "regions_unexplored:cold_boreal_taiga",
       "parameters": {
         "weirdness": [
-          0.0574,
-          0.1717
+          0.471,
+          0.5
         ]
       }
     },
@@ -207,8 +207,8 @@
       "id": "regions_unexplored:golden_boreal_taiga",
       "parameters": {
         "weirdness": [
-          0.1717,
-          0.286
+          0.5,
+          0.504
         ]
       }
     },
@@ -216,8 +216,8 @@
       "id": "wilderwild:snowy_old_growth_pine_taiga",
       "parameters": {
         "weirdness": [
-          0.286,
-          0.4003
+          0.504,
+          0.508
         ]
       }
     },
@@ -225,8 +225,8 @@
       "id": "minecraft:snowy_plains",
       "parameters": {
         "weirdness": [
-          0.4003,
-          0.95
+          0.508,
+          0.522
         ]
       }
     },
@@ -234,8 +234,8 @@
       "id": "minecraft:taiga",
       "parameters": {
         "weirdness": [
-          0.95,
-          1.5
+          0.522,
+          1.0
         ]
       }
     },
@@ -251,7 +251,7 @@
           1.0
         ],
         "weirdness": [
-          1.5,
+          1.0,
           2.0
         ]
       }

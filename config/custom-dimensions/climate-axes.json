@@ -1,15 +1,19 @@
 {
  "kind": "climate-axes",
  "purpose": "Which climate axis a dimension's noise router actually varies across its playable radius, so an explicit biome band (T19) is written on an axis the world crosses.",
- "method": "customdim sample-noise at 11 points along a diagonal spanning the full playable radius of one representative dimension per (type, noiseSettings). Ranked by span x (distinct/samples), so a wide-but-degenerate axis loses to a narrower smooth one.",
+ "method": "perDimension is `customdim sample-noise` on an 11x11 grid over that dimension's own playable square [-borders.player, +borders.player]^2 - 121 points, with span, distinct, min and max taken over all of them and centreRow holding the 11 points at z=0 for inspection. axes is one representative per (type, noiseSettings) at 11 points along a diagonal. Rank a candidate axis by span x (distinct/samples), so a wide-but-degenerate axis loses to a narrower smooth one.",
  "limits": [
-  "One representative per combination, not per dimension. Treat a row as the STARTING POINT and measure your own dimension before relying on it: the_crumbling_reaches (end, border 2048) measures weirdness 1.099 / continentalness 0.895, the reverse of the end row's representative.",
-  "Rank by distribution, not span. adventure:void gives weirdness a span of 2.000 across just THREE distinct values (7 of 11 samples pinned at -0.50) - the widest span and the worst axis.",
-  "overworld, checkerboard and superflat answer 'Not a MultiNoiseBiomeSource' and have no climate point to band on.",
-  "perDimension entries are measured at that dimension's OWN borders.player and are ground truth for it; the `axes` list above is a per-(type, noiseSettings) fallback for a dimension not measured directly.",
-  "axes[].all now carries min/max from the representative's own samples, so check-band-reach.py can give an INDICATIVE verdict for a dimension with no per-dimension measurement. Indicative only: span scales with radius, and the representative may sit at a different border."
+  "perDimension entries are measured at that dimension's OWN borders.player and are ground truth for it. The `axes` list is the fallback for a dimension nothing has measured.",
+  "An `axes` row is 11 points on one diagonal, and a grid over the same square strictly contains any path inside it, so a row's span is a lower bound on the real one. Measured against the grid on the same dimensions, over 68 axes: the diagonal understates span by 1.00x to 5.43x, median 1.52x. A verdict taken from a row is therefore biased towards a false 'cannot generate'.",
+  "Rank by distribution, not span. adventure:void gives weirdness a span of 2.000 across three distinct values - the widest span and the worst axis.",
+  "checkerboard, superflat, minecraft:the_nether and minecraft:the_end answer 'Not a MultiNoiseBiomeSource' and have no climate point to band on. minecraft:overworld and paradise_lost:paradise_lost do sample.",
+  "axes[].all carries min/max from the representative's own samples, so check-band-reach.py can give an INDICATIVE verdict for a dimension with no per-dimension measurement.",
+  "centreRow is a bounded excerpt, not the measurement. The 121-point cloud is regenerable from the harness and is not kept here.",
+  "Span grows with radius only until an axis saturates its clamp. Measured on the_sun_kingdoms over nested squares at one seed and one router, span against the 512 baseline: temperature 1.76x / 4.18x / 6.75x and erosion 1.11x / 1.70x / 2.13x at 1024 / 2048 / 4096, both still climbing; humidity 2.62x and continentalness 1.85x, decelerating; depth 1.39x and flat past 2048; weirdness 1.07x, flat across an eightfold radius because it is already at the +/-1 rail by 512. So a type representative measured at another border is materially biased for temperature and erosion and NOT for weirdness, which is the axis most dimensions band on.",
+  "Sampling density is not the mechanism: at a fixed 512 radius, 440 points against 121 move span by 1.00x to 1.03x on every axis. 121 points already saturate the span for a given radius, so the radius figures above are not an artefact of coarser spacing.",
+  "distinct measures sampling resolution as much as the axis, and is comparable only between entries taken at the same point count. The same 512 square gives weirdness 75 distinct at 121 points and 243 at 440, with span unchanged at 2.000. Every perDimension entry here is 121 points, so they compare with each other and not with a grid of another size."
  ],
- "regenerate": "Load each representative with `customdim load <slug>`, then sample; see .handoff/ for the harness used.",
+ "regenerate": "Load each dimension with `customdim load <slug>`, then sample its playable square; see .handoff/band-verdicts/ for the harness used.",
  "axes": [
   {
    "type": "amplified",
@@ -687,346 +691,1123 @@
  "perDimension": {
   "the_abyssal_shrine": {
    "border": 512,
+   "grid": 11,
    "axes": {
     "temp": {
-     "span": 0.572,
-     "distinct": 11,
-     "min": -0.433,
-     "max": 0.139,
-     "samples": [
-      -0.248,
-      -0.335,
-      -0.411,
-      -0.433,
-      -0.432,
+     "span": 0.839,
+     "distinct": 111,
+     "min": -0.668,
+     "max": 0.171,
+     "samples": 121,
+     "centreRow": [
+      -0.398,
+      -0.453,
+      -0.475,
+      -0.477,
+      -0.464,
       -0.42,
-      -0.379,
-      -0.241,
-      -0.103,
-      0.022,
-      0.139
+      -0.355,
+      -0.271,
+      -0.188,
+      -0.105,
+      -0.034
      ]
     },
     "humid": {
-     "span": 0.366,
-     "distinct": 11,
-     "min": 0.008,
-     "max": 0.374,
-     "samples": [
-      0.235,
-      0.314,
-      0.228,
-      0.088,
-      0.188,
+     "span": 0.919,
+     "distinct": 115,
+     "min": -0.498,
+     "max": 0.421,
+     "samples": 121,
+     "centreRow": [
+      -0.121,
+      -0.068,
+      -0.016,
+      0.072,
+      0.236,
       0.357,
-      0.374,
-      0.268,
-      0.227,
-      0.118,
-      0.008
+      0.33,
+      0.213,
+      0.163,
+      0.092,
+      0.015
      ]
     },
     "cont": {
-     "span": 0.691,
-     "distinct": 11,
-     "min": -0.21,
-     "max": 0.481,
-     "samples": [
-      0.111,
-      -0.21,
-      -0.088,
-      -0.061,
-      0.195,
+     "span": 1.439,
+     "distinct": 114,
+     "min": -0.683,
+     "max": 0.756,
+     "samples": 121,
+     "centreRow": [
+      0.299,
+      -0.071,
+      -0.167,
+      0.112,
+      0.292,
       0.481,
-      0.02,
-      0.18,
-      0.194,
-      -0.094,
-      -0.014
+      0.094,
+      0.379,
+      0.458,
+      0.074,
+      -0.291
      ]
     },
     "eros": {
-     "span": 1.222,
-     "distinct": 11,
-     "min": -0.497,
-     "max": 0.724,
-     "samples": [
-      -0.028,
-      -0.223,
-      -0.449,
-      -0.497,
-      -0.35,
+     "span": 1.653,
+     "distinct": 114,
+     "min": -0.688,
+     "max": 0.965,
+     "samples": 121,
+     "centreRow": [
+      -0.013,
+      -0.049,
+      -0.098,
+      -0.063,
+      -0.221,
       -0.056,
-      0.348,
-      0.357,
-      0.509,
-      0.668,
-      0.724
+      0.241,
+      0.412,
+      0.335,
+      0.51,
+      0.564
      ]
     },
     "weird": {
-     "span": 0.196,
-     "distinct": 11,
-     "min": -0.291,
-     "max": -0.095,
-     "samples": [
-      -0.291,
-      -0.269,
-      -0.238,
-      -0.206,
-      -0.175,
+     "span": 0.849,
+     "distinct": 111,
+     "min": -0.441,
+     "max": 0.408,
+     "samples": 121,
+     "centreRow": [
+      -0.156,
+      -0.18,
+      -0.198,
+      -0.203,
+      -0.187,
       -0.146,
-      -0.126,
-      -0.111,
-      -0.103,
-      -0.098,
-      -0.095
+      -0.087,
+      -0.016,
+      0.049,
+      0.105,
+      0.15
      ]
     },
     "depth": {
-     "span": 0.582,
-     "distinct": 11,
-     "min": 0.29,
-     "max": 0.872,
-     "samples": [
+     "span": 1.007,
+     "distinct": 96,
+     "min": 0.247,
+     "max": 1.254,
+     "samples": 121,
+     "centreRow": [
       0.376,
-      0.306,
-      0.29,
-      0.5,
-      0.391,
+      0.376,
+      0.376,
+      0.376,
+      0.371,
       0.656,
-      0.605,
-      0.838,
-      0.81,
-      0.704,
-      0.872
+      0.682,
+      0.801,
+      0.772,
+      0.764,
+      1.138
+     ]
+    }
+   }
+  },
+  "the_ashgrove": {
+   "border": 1024,
+   "grid": 11,
+   "axes": {
+    "temp": {
+     "span": 0.651,
+     "distinct": 106,
+     "min": -0.397,
+     "max": 0.254,
+     "samples": 121,
+     "centreRow": [
+      0.206,
+      0.183,
+      0.138,
+      0.054,
+      0.03,
+      -0.011,
+      -0.064,
+      -0.133,
+      -0.181,
+      -0.181,
+      -0.138
+     ]
+    },
+    "humid": {
+     "span": 1.204,
+     "distinct": 114,
+     "min": -0.755,
+     "max": 0.449,
+     "samples": 121,
+     "centreRow": [
+      0.01,
+      -0.092,
+      -0.028,
+      0.084,
+      0.253,
+      0.151,
+      0.018,
+      -0.164,
+      -0.302,
+      -0.4,
+      -0.352
+     ]
+    },
+    "cont": {
+     "span": 0.64,
+     "distinct": 106,
+     "min": -0.275,
+     "max": 0.365,
+     "samples": 121,
+     "centreRow": [
+      0.258,
+      0.044,
+      -0.065,
+      -0.082,
+      -0.099,
+      -0.07,
+      0.016,
+      0.058,
+      0.166,
+      0.08,
+      0.002
+     ]
+    },
+    "eros": {
+     "span": 1.3,
+     "distinct": 55,
+     "min": -1.0,
+     "max": 0.3,
+     "samples": 121,
+     "centreRow": [
+      -0.259,
+      -0.3,
+      -0.5,
+      -0.5,
+      -0.5,
+      -0.287,
+      -0.004,
+      0.113,
+      0.107,
+      0.255,
+      0.289
+     ]
+    },
+    "weird": {
+     "span": 2.0,
+     "distinct": 43,
+     "min": -1.0,
+     "max": 1.0,
+     "samples": 121,
+     "centreRow": [
+      0.5,
+      0.5,
+      0.5,
+      0.5,
+      0.5,
+      -0.5,
+      -0.312,
+      -0.147,
+      0.301,
+      0.268,
+      -0.114
+     ]
+    },
+    "depth": {
+     "span": 0.985,
+     "distinct": 103,
+     "min": 0.315,
+     "max": 1.3,
+     "samples": 121,
+     "centreRow": [
+      1.025,
+      1.026,
+      0.98,
+      0.934,
+      0.613,
+      0.809,
+      0.755,
+      0.529,
+      0.581,
+      0.519,
+      0.506
+     ]
+    }
+   }
+  },
+  "the_basalt_spires": {
+   "border": 2048,
+   "grid": 11,
+   "axes": {
+    "temp": {
+     "span": 1.868,
+     "distinct": 116,
+     "min": -0.785,
+     "max": 1.083,
+     "samples": 121,
+     "centreRow": [
+      0.63,
+      0.663,
+      0.657,
+      0.645,
+      0.26,
+      -0.234,
+      -0.376,
+      -0.518,
+      -0.64,
+      -0.438,
+      -0.238
+     ]
+    },
+    "humid": {
+     "span": 1.525,
+     "distinct": 115,
+     "min": -0.985,
+     "max": 0.54,
+     "samples": 121,
+     "centreRow": [
+      0.075,
+      -0.074,
+      -0.034,
+      -0.192,
+      -0.464,
+      -0.091,
+      -0.003,
+      -0.001,
+      -0.38,
+      -0.38,
+      -0.287
+     ]
+    },
+    "cont": {
+     "span": 0.603,
+     "distinct": 63,
+     "min": -0.078,
+     "max": 0.525,
+     "samples": 121,
+     "centreRow": [
+      0.525,
+      0.525,
+      0.525,
+      0.525,
+      0.525,
+      0.525,
+      0.525,
+      0.525,
+      0.282,
+      0.08,
+      -0.059
+     ]
+    },
+    "eros": {
+     "span": 1.6,
+     "distinct": 44,
+     "min": -1.0,
+     "max": 0.6,
+     "samples": 121,
+     "centreRow": [
+      0.0,
+      0.003,
+      0.3,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.3,
+      0.5,
+      0.0
+     ]
+    },
+    "weird": {
+     "span": 1.409,
+     "distinct": 73,
+     "min": -0.764,
+     "max": 0.645,
+     "samples": 121,
+     "centreRow": [
+      -0.641,
+      -0.597,
+      -0.391,
+      0.529,
+      0.523,
+      0.558,
+      0.573,
+      0.116,
+      -0.299,
+      -0.5,
+      0.077
+     ]
+    },
+    "depth": {
+     "span": 0.947,
+     "distinct": 71,
+     "min": 0.353,
+     "max": 1.3,
+     "samples": 121,
+     "centreRow": [
+      1.3,
+      0.581,
+      0.575,
+      0.595,
+      1.3,
+      1.213,
+      1.27,
+      0.515,
+      0.738,
+      1.3,
+      0.481
+     ]
+    }
+   }
+  },
+  "the_blackstone_keep": {
+   "border": 1024,
+   "grid": 11,
+   "axes": {
+    "temp": {
+     "span": 1.361,
+     "distinct": 116,
+     "min": -0.554,
+     "max": 0.807,
+     "samples": 121,
+     "centreRow": [
+      0.144,
+      0.18,
+      -0.2,
+      -0.439,
+      -0.492,
+      -0.125,
+      0.188,
+      -0.088,
+      -0.398,
+      -0.537,
+      -0.55
+     ]
+    },
+    "humid": {
+     "span": 1.839,
+     "distinct": 116,
+     "min": -0.848,
+     "max": 0.991,
+     "samples": 121,
+     "centreRow": [
+      0.725,
+      0.522,
+      0.062,
+      -0.018,
+      0.218,
+      0.182,
+      0.157,
+      0.124,
+      0.063,
+      -0.013,
+      -0.083
+     ]
+    },
+    "cont": {
+     "span": 1.464,
+     "distinct": 116,
+     "min": -0.712,
+     "max": 0.752,
+     "samples": 121,
+     "centreRow": [
+      -0.329,
+      -0.488,
+      -0.225,
+      0.04,
+      -0.072,
+      0.146,
+      -0.024,
+      0.101,
+      -0.082,
+      -0.251,
+      -0.179
+     ]
+    },
+    "eros": {
+     "span": 1.204,
+     "distinct": 116,
+     "min": -0.503,
+     "max": 0.701,
+     "samples": 121,
+     "centreRow": [
+      -0.503,
+      -0.108,
+      0.182,
+      0.153,
+      0.052,
+      0.086,
+      0.152,
+      0.426,
+      0.681,
+      0.701,
+      0.404
+     ]
+    },
+    "weird": {
+     "span": 1.703,
+     "distinct": 117,
+     "min": -1.024,
+     "max": 0.679,
+     "samples": 121,
+     "centreRow": [
+      -0.559,
+      0.113,
+      0.082,
+      -0.21,
+      0.122,
+      0.05,
+      0.231,
+      -0.446,
+      -0.349,
+      0.06,
+      0.004
+     ]
+    },
+    "depth": {
+     "span": 1.193,
+     "distinct": 111,
+     "min": -0.408,
+     "max": 0.785,
+     "samples": 121,
+     "centreRow": [
+      -0.408,
+      -0.331,
+      -0.285,
+      -0.27,
+      -0.188,
+      -0.041,
+      0.264,
+      0.553,
+      0.555,
+      0.423,
+      0.392
+     ]
+    }
+   }
+  },
+  "the_bloodroot_wastes": {
+   "border": 1024,
+   "grid": 11,
+   "axes": {
+    "temp": {
+     "span": 1.578,
+     "distinct": 115,
+     "min": -0.773,
+     "max": 0.805,
+     "samples": 121,
+     "centreRow": [
+      -0.237,
+      -0.234,
+      -0.183,
+      0.325,
+      0.61,
+      0.232,
+      -0.048,
+      -0.277,
+      -0.615,
+      -0.773,
+      -0.546
+     ]
+    },
+    "humid": {
+     "span": 1.113,
+     "distinct": 115,
+     "min": -0.489,
+     "max": 0.624,
+     "samples": 121,
+     "centreRow": [
+      0.188,
+      -0.041,
+      -0.105,
+      0.221,
+      0.455,
+      0.37,
+      0.17,
+      0.005,
+      -0.101,
+      -0.072,
+      -0.071
+     ]
+    },
+    "cont": {
+     "span": 1.051,
+     "distinct": 115,
+     "min": -0.443,
+     "max": 0.608,
+     "samples": 121,
+     "centreRow": [
+      -0.166,
+      0.27,
+      0.478,
+      0.271,
+      0.502,
+      0.501,
+      0.123,
+      0.0,
+      0.046,
+      -0.085,
+      -0.298
+     ]
+    },
+    "eros": {
+     "span": 0.875,
+     "distinct": 108,
+     "min": -0.179,
+     "max": 0.696,
+     "samples": 121,
+     "centreRow": [
+      -0.179,
+      -0.063,
+      0.187,
+      0.065,
+      0.132,
+      0.138,
+      0.403,
+      0.601,
+      0.217,
+      0.146,
+      0.114
+     ]
+    },
+    "weird": {
+     "span": 1.444,
+     "distinct": 113,
+     "min": -0.761,
+     "max": 0.683,
+     "samples": 121,
+     "centreRow": [
+      -0.238,
+      0.158,
+      0.031,
+      0.531,
+      0.355,
+      0.327,
+      0.001,
+      -0.318,
+      -0.611,
+      -0.396,
+      0.014
+     ]
+    },
+    "depth": {
+     "span": 0.97,
+     "distinct": 109,
+     "min": -0.263,
+     "max": 0.707,
+     "samples": 121,
+     "centreRow": [
+      0.434,
+      0.68,
+      0.656,
+      0.44,
+      0.267,
+      0.124,
+      0.174,
+      0.174,
+      0.113,
+      -0.029,
+      -0.263
+     ]
+    }
+   }
+  },
+  "the_blossom_gardens": {
+   "border": 4096,
+   "grid": 11,
+   "axes": {
+    "temp": {
+     "span": 1.579,
+     "distinct": 117,
+     "min": -0.612,
+     "max": 0.967,
+     "samples": 121,
+     "centreRow": [
+      -0.365,
+      -0.509,
+      -0.575,
+      -0.612,
+      -0.477,
+      -0.457,
+      -0.488,
+      -0.334,
+      -0.264,
+      -0.213,
+      -0.281
+     ]
+    },
+    "humid": {
+     "span": 1.349,
+     "distinct": 109,
+     "min": -0.812,
+     "max": 0.537,
+     "samples": 121,
+     "centreRow": [
+      0.282,
+      0.12,
+      0.057,
+      -0.092,
+      -0.345,
+      -0.636,
+      -0.605,
+      -0.045,
+      0.207,
+      0.307,
+      0.416
+     ]
+    },
+    "cont": {
+     "span": 1.692,
+     "distinct": 78,
+     "min": -1.167,
+     "max": 0.525,
+     "samples": 121,
+     "centreRow": [
+      0.266,
+      0.078,
+      -0.081,
+      -0.026,
+      0.403,
+      0.23,
+      0.005,
+      0.459,
+      0.515,
+      0.511,
+      0.492
+     ]
+    },
+    "eros": {
+     "span": 1.3,
+     "distinct": 51,
+     "min": -1.0,
+     "max": 0.3,
+     "samples": 121,
+     "centreRow": [
+      -0.018,
+      0.154,
+      -0.208,
+      -0.5,
+      -1.0,
+      -1.0,
+      -0.5,
+      0.3,
+      0.0,
+      0.3,
+      0.3
+     ]
+    },
+    "weird": {
+     "span": 2.0,
+     "distinct": 80,
+     "min": -1.0,
+     "max": 1.0,
+     "samples": 121,
+     "centreRow": [
+      -0.49,
+      -0.505,
+      0.5,
+      -0.5,
+      0.5,
+      -0.5,
+      0.5,
+      0.331,
+      0.159,
+      -0.067,
+      -0.328
+     ]
+    },
+    "depth": {
+     "span": 1.254,
+     "distinct": 89,
+     "min": 0.046,
+     "max": 1.3,
+     "samples": 121,
+     "centreRow": [
+      0.807,
+      0.474,
+      0.701,
+      1.186,
+      1.3,
+      1.3,
+      1.052,
+      0.537,
+      0.505,
+      0.469,
+      0.535
      ]
     }
    }
   },
   "the_boneyard": {
    "border": 1024,
+   "grid": 11,
    "axes": {
     "temp": {
-     "span": 0.945,
-     "distinct": 11,
-     "min": -0.787,
-     "max": 0.158,
-     "samples": [
-      -0.768,
-      -0.431,
-      -0.403,
-      -0.787,
-      -0.658,
+     "span": 1.491,
+     "distinct": 115,
+     "min": -1.047,
+     "max": 0.444,
+     "samples": 121,
+     "centreRow": [
+      -0.043,
+      0.162,
+      -0.13,
+      -0.525,
+      -0.424,
       -0.329,
-      -0.433,
-      -0.394,
-      -0.119,
-      0.158,
-      -0.06
+      -0.553,
+      -0.464,
+      0.041,
+      0.328,
+      0.444
      ]
     },
     "humid": {
-     "span": 0.793,
-     "distinct": 11,
-     "min": -0.492,
-     "max": 0.301,
-     "samples": [
-      0.301,
-      -0.148,
-      -0.418,
-      -0.343,
-      -0.236,
+     "span": 1.342,
+     "distinct": 118,
+     "min": -0.522,
+     "max": 0.82,
+     "samples": 121,
+     "centreRow": [
+      0.358,
+      0.217,
+      0.099,
+      -0.068,
+      -0.325,
       -0.368,
-      -0.492,
-      -0.348,
-      0.122,
-      0.268,
-      0.239
+      -0.403,
+      -0.35,
+      0.069,
+      0.54,
+      0.82
      ]
     },
     "cont": {
-     "span": 0.871,
-     "distinct": 11,
-     "min": -0.76,
-     "max": 0.111,
-     "samples": [
-      -0.023,
-      0.089,
-      -0.174,
-      -0.324,
-      0.023,
+     "span": 1.417,
+     "distinct": 112,
+     "min": -0.661,
+     "max": 0.756,
+     "samples": 121,
+     "centreRow": [
+      0.229,
+      0.233,
+      0.072,
+      -0.002,
+      0.151,
       0.111,
-      -0.076,
-      -0.304,
-      -0.431,
-      -0.76,
-      -0.552
+      -0.194,
+      -0.018,
+      0.114,
+      0.369,
+      0.325
      ]
     },
     "eros": {
-     "span": 0.539,
-     "distinct": 11,
-     "min": -0.055,
-     "max": 0.484,
-     "samples": [
-      0.412,
-      0.26,
-      0.301,
-      0.346,
-      0.437,
+     "span": 1.121,
+     "distinct": 116,
+     "min": -0.455,
+     "max": 0.666,
+     "samples": 121,
+     "centreRow": [
+      0.384,
+      0.61,
+      0.43,
+      0.485,
+      0.588,
       0.484,
-      0.423,
-      0.178,
-      0.2,
-      -0.055,
-      0.053
+      0.37,
+      0.016,
+      -0.169,
+      -0.14,
+      -0.412
      ]
     },
     "weird": {
-     "span": 1.108,
-     "distinct": 11,
-     "min": -0.419,
-     "max": 0.689,
-     "samples": [
-      -0.419,
-      -0.171,
-      -0.224,
-      -0.256,
-      -0.126,
+     "span": 1.356,
+     "distinct": 115,
+     "min": -0.676,
+     "max": 0.68,
+     "samples": 121,
+     "centreRow": [
+      -0.676,
+      0.066,
+      -0.25,
+      -0.462,
+      0.143,
       0.175,
-      -0.078,
-      -0.12,
-      0.257,
-      0.689,
-      0.331
+      -0.314,
+      -0.193,
+      -0.264,
+      -0.392,
+      -0.22
      ]
     },
     "depth": {
-     "span": 0.965,
-     "distinct": 11,
-     "min": -0.688,
-     "max": 0.277,
-     "samples": [
-      -0.688,
-      -0.599,
-      -0.362,
-      -0.038,
-      0.227,
+     "span": 1.214,
+     "distinct": 119,
+     "min": -0.678,
+     "max": 0.536,
+     "samples": 121,
+     "centreRow": [
+      -0.169,
+      -0.114,
+      0.066,
+      0.147,
+      0.224,
       0.277,
-      0.115,
-      -0.128,
+      0.201,
+      -0.129,
+      -0.387,
+      -0.414,
+      -0.297
+     ]
+    }
+   }
+  },
+  "the_buried_age": {
+   "border": 1024,
+   "grid": 11,
+   "axes": {
+    "temp": {
+     "span": 1.594,
+     "distinct": 113,
+     "min": -0.707,
+     "max": 0.887,
+     "samples": 121,
+     "centreRow": [
+      -0.227,
+      0.047,
+      -0.019,
+      -0.289,
+      -0.113,
+      -0.207,
+      -0.372,
+      -0.132,
+      -0.016,
+      -0.095,
+      -0.033
+     ]
+    },
+    "humid": {
+     "span": 1.243,
+     "distinct": 117,
+     "min": -0.521,
+     "max": 0.722,
+     "samples": 121,
+     "centreRow": [
+      -0.049,
+      -0.064,
+      -0.131,
+      -0.19,
+      -0.078,
+      0.258,
+      0.453,
+      -0.083,
+      -0.521,
+      -0.289,
+      0.267
+     ]
+    },
+    "cont": {
+     "span": 1.377,
+     "distinct": 116,
+     "min": -0.625,
+     "max": 0.752,
+     "samples": 121,
+     "centreRow": [
+      -0.543,
+      -0.38,
+      -0.447,
       -0.265,
-      -0.327,
-      -0.023
+      -0.309,
+      -0.378,
+      -0.297,
+      -0.015,
+      0.117,
+      0.009,
+      0.129
+     ]
+    },
+    "eros": {
+     "span": 1.437,
+     "distinct": 115,
+     "min": -0.568,
+     "max": 0.869,
+     "samples": 121,
+     "centreRow": [
+      0.051,
+      0.089,
+      0.087,
+      0.046,
+      0.117,
+      0.258,
+      0.092,
+      -0.062,
+      -0.26,
+      -0.226,
+      -0.054
+     ]
+    },
+    "weird": {
+     "span": 2.203,
+     "distinct": 119,
+     "min": -0.9,
+     "max": 1.303,
+     "samples": 121,
+     "centreRow": [
+      -0.002,
+      0.275,
+      0.142,
+      -0.051,
+      0.499,
+      0.874,
+      0.3,
+      0.258,
+      -0.18,
+      -0.399,
+      -0.9
+     ]
+    },
+    "depth": {
+     "span": 1.268,
+     "distinct": 116,
+     "min": -0.634,
+     "max": 0.634,
+     "samples": 121,
+     "centreRow": [
+      -0.186,
+      -0.19,
+      -0.269,
+      -0.318,
+      -0.281,
+      -0.226,
+      -0.083,
+      0.14,
+      0.378,
+      0.543,
+      0.619
      ]
     }
    }
   },
   "the_burning_archipelago": {
    "border": 4096,
+   "grid": 11,
    "axes": {
     "temp": {
-     "span": 0.418,
-     "distinct": 11,
-     "min": -0.528,
-     "max": -0.11,
-     "samples": [
-      -0.273,
-      -0.234,
-      -0.133,
-      -0.118,
-      -0.111,
+     "span": 0.938,
+     "distinct": 114,
+     "min": -0.542,
+     "max": 0.396,
+     "samples": 121,
+     "centreRow": [
+      -0.478,
+      -0.355,
+      -0.344,
+      -0.245,
+      -0.184,
       -0.369,
-      -0.513,
-      -0.528,
-      -0.492,
-      -0.403,
-      -0.11
+      -0.484,
+      -0.542,
+      -0.512,
+      -0.345,
+      -0.188
      ]
     },
     "humid": {
-     "span": 0.449,
-     "distinct": 11,
-     "min": -0.015,
-     "max": 0.434,
-     "samples": [
-      0.331,
-      0.434,
-      0.295,
-      0.16,
-      0.158,
+     "span": 1.193,
+     "distinct": 112,
+     "min": -0.406,
+     "max": 0.787,
+     "samples": 121,
+     "centreRow": [
+      0.584,
+      0.449,
+      0.081,
+      0.075,
+      0.189,
       0.216,
-      0.048,
-      -0.015,
-      0.161,
-      0.102,
-      0.066
+      0.24,
+      0.144,
+      0.132,
+      0.053,
+      -0.12
      ]
     },
     "cont": {
-     "span": 0.956,
-     "distinct": 11,
-     "min": -0.291,
-     "max": 0.665,
-     "samples": [
-      0.613,
-      0.22,
-      -0.147,
-      -0.291,
-      0.218,
+     "span": 1.864,
+     "distinct": 117,
+     "min": -0.798,
+     "max": 1.066,
+     "samples": 121,
+     "centreRow": [
+      -0.453,
+      -0.629,
+      -0.445,
+      -0.415,
+      -0.575,
       0.164,
-      0.615,
-      0.533,
-      -0.11,
-      -0.272,
-      0.665
+      0.156,
+      1.059,
+      0.742,
+      0.465,
+      -0.253
      ]
     },
     "eros": {
-     "span": 1.136,
-     "distinct": 11,
-     "min": -0.519,
-     "max": 0.617,
-     "samples": [
-      -0.519,
-      -0.387,
-      -0.19,
-      -0.197,
-      -0.321,
+     "span": 1.255,
+     "distinct": 116,
+     "min": -0.569,
+     "max": 0.686,
+     "samples": 121,
+     "centreRow": [
+      -0.441,
+      -0.342,
+      -0.29,
+      -0.102,
+      -0.311,
       -0.298,
-      -0.362,
-      -0.079,
-      0.467,
-      0.617,
-      0.328
+      -0.369,
+      -0.261,
+      -0.09,
+      0.093,
+      0.156
      ]
     },
     "weird": {
-     "span": 0.944,
-     "distinct": 11,
-     "min": -0.579,
-     "max": 0.365,
-     "samples": [
-      -0.408,
-      -0.116,
-      0.365,
-      -0.086,
-      -0.261,
+     "span": 1.388,
+     "distinct": 115,
+     "min": -0.672,
+     "max": 0.716,
+     "samples": 121,
+     "centreRow": [
+      -0.114,
+      -0.05,
+      -0.029,
+      0.495,
+      -0.005,
       -0.025,
-      -0.121,
-      -0.402,
-      0.015,
-      -0.579,
-      -0.415
+      0.043,
+      0.282,
+      -0.496,
+      -0.109,
+      0.612
      ]
     },
     "depth": {
      "span": 40.0,
-     "distinct": 2,
+     "distinct": 3,
      "min": 40.0,
      "max": 80.0,
-     "samples": [
+     "samples": 121,
+     "centreRow": [
       40.0,
       40.0,
       40.0,
@@ -1044,473 +1825,753 @@
   },
   "the_catalyst_maw": {
    "border": 4096,
+   "grid": 11,
    "axes": {
     "temp": {
-     "span": 1.654,
-     "distinct": 11,
-     "min": -0.797,
-     "max": 0.858,
-     "samples": [
-      0.354,
-      -0.347,
-      -0.797,
-      -0.135,
-      0.243,
+     "span": 1.938,
+     "distinct": 115,
+     "min": -1.027,
+     "max": 0.911,
+     "samples": 121,
+     "centreRow": [
+      0.031,
+      0.184,
+      0.113,
+      0.08,
+      0.295,
       0.152,
-      -0.124,
-      0.207,
-      0.664,
-      0.858,
-      -0.248
+      -0.174,
+      -0.431,
+      -0.096,
+      0.312,
+      0.549
      ]
     },
     "humid": {
-     "span": 0.897,
-     "distinct": 11,
-     "min": -0.365,
-     "max": 0.532,
-     "samples": [
-      0.357,
-      0.015,
-      0.258,
-      -0.059,
-      0.427,
+     "span": 1.668,
+     "distinct": 117,
+     "min": -0.846,
+     "max": 0.822,
+     "samples": 121,
+     "centreRow": [
+      -0.217,
+      0.356,
+      0.428,
+      0.035,
+      -0.109,
       0.532,
-      0.144,
-      -0.365,
-      -0.297,
-      0.173,
-      -0.082
+      0.341,
+      0.077,
+      -0.075,
+      0.304,
+      -0.176
      ]
     },
     "cont": {
-     "span": 0.771,
-     "distinct": 10,
-     "min": -0.246,
+     "span": 1.785,
+     "distinct": 99,
+     "min": -1.26,
      "max": 0.525,
-     "samples": [
-      0.227,
-      0.353,
-      0.363,
-      0.365,
-      0.011,
-      -0.246,
-      0.395,
-      0.409,
-      0.213,
+     "samples": 121,
+     "centreRow": [
       0.525,
+      0.525,
+      0.525,
+      -0.086,
+      -0.299,
+      -0.246,
+      0.162,
+      0.312,
+      0.258,
+      0.217,
       0.525
      ]
     },
     "eros": {
-     "span": 1.3,
-     "distinct": 6,
+     "span": 1.838,
+     "distinct": 67,
      "min": -1.0,
-     "max": 0.3,
-     "samples": [
-      0.039,
-      0.174,
+     "max": 0.838,
+     "samples": 121,
+     "centreRow": [
+      -0.3,
+      0.299,
       0.3,
-      -1.0,
+      0.0,
+      0.272,
+      0.3,
+      0.0,
+      -0.047,
+      -0.154,
+      0.295,
+      0.5
+     ]
+    },
+    "weird": {
+     "span": 2.0,
+     "distinct": 83,
+     "min": -1.0,
+     "max": 1.0,
+     "samples": 121,
+     "centreRow": [
+      0.5,
+      -0.039,
+      -0.353,
+      0.468,
+      -0.225,
+      0.053,
+      -0.433,
+      0.433,
+      0.5,
+      -0.177,
+      -0.066
+     ]
+    },
+    "depth": {
+     "span": 1.254,
+     "distinct": 67,
+     "min": 0.046,
+     "max": 1.3,
+     "samples": 121,
+     "centreRow": [
+      1.3,
+      0.42,
+      0.568,
+      0.502,
+      0.297,
+      0.336,
+      0.866,
+      0.984,
+      1.068,
+      0.526,
+      0.482
+     ]
+    }
+   }
+  },
+  "the_chalk_meadows": {
+   "border": 1024,
+   "grid": 11,
+   "axes": {
+    "temp": {
+     "span": 0.344,
+     "distinct": 97,
+     "min": -0.496,
+     "max": -0.152,
+     "samples": 121,
+     "centreRow": [
+      -0.243,
+      -0.27,
+      -0.204,
+      -0.214,
+      -0.222,
+      -0.222,
+      -0.26,
+      -0.276,
+      -0.319,
+      -0.325,
+      -0.347
+     ]
+    },
+    "humid": {
+     "span": 1.176,
+     "distinct": 114,
+     "min": -0.598,
+     "max": 0.578,
+     "samples": 121,
+     "centreRow": [
+      -0.103,
+      -0.193,
+      -0.325,
+      -0.455,
+      -0.476,
+      -0.405,
+      -0.342,
+      -0.05,
+      0.113,
+      0.223,
+      0.24
+     ]
+    },
+    "cont": {
+     "span": 0.975,
+     "distinct": 99,
+     "min": -0.45,
+     "max": 0.525,
+     "samples": 121,
+     "centreRow": [
+      0.525,
+      0.525,
+      0.507,
+      0.345,
+      0.093,
+      0.066,
+      0.258,
+      0.37,
+      0.407,
+      0.357,
+      0.2
+     ]
+    },
+    "eros": {
+     "span": 1.418,
+     "distinct": 49,
+     "min": -1.0,
+     "max": 0.418,
+     "samples": 121,
+     "centreRow": [
       0.3,
       0.3,
-      -0.019,
-      -1.0,
-      -1.0,
-      -0.092,
+      0.3,
+      0.3,
+      0.3,
+      0.3,
+      0.3,
+      0.292,
+      0.298,
+      0.3,
       0.3
      ]
     },
     "weird": {
-     "span": 1.345,
-     "distinct": 9,
-     "min": -0.5,
-     "max": 0.845,
-     "samples": [
-      0.845,
-      0.313,
-      0.493,
-      0.5,
-      0.378,
-      0.053,
-      -0.373,
-      -0.5,
-      -0.5,
-      0.5,
-      0.401
+     "span": 1.407,
+     "distinct": 87,
+     "min": -0.638,
+     "max": 0.769,
+     "samples": 121,
+     "centreRow": [
+      -0.638,
+      -0.544,
+      -0.208,
+      0.193,
+      0.387,
+      0.086,
+      -0.366,
+      -0.519,
+      -0.431,
+      -0.262,
+      0.138
      ]
     },
     "depth": {
-     "span": 0.964,
-     "distinct": 9,
-     "min": 0.336,
+     "span": 1.254,
+     "distinct": 93,
+     "min": 0.046,
      "max": 1.3,
-     "samples": [
-      0.874,
-      0.504,
-      0.496,
-      1.3,
-      0.512,
-      0.336,
-      0.967,
-      1.3,
-      1.3,
-      1.05,
-      0.463
+     "samples": 121,
+     "centreRow": [
+      0.675,
+      0.617,
+      0.544,
+      0.628,
+      0.6,
+      0.498,
+      0.549,
+      0.564,
+      0.545,
+      0.525,
+      0.508
+     ]
+    }
+   }
+  },
+  "the_claymarsh": {
+   "border": 1024,
+   "grid": 11,
+   "axes": {
+    "temp": {
+     "span": 0.828,
+     "distinct": 110,
+     "min": -0.583,
+     "max": 0.245,
+     "samples": 121,
+     "centreRow": [
+      -0.397,
+      -0.335,
+      -0.326,
+      -0.283,
+      -0.287,
+      -0.247,
+      -0.271,
+      -0.345,
+      -0.357,
+      -0.385,
+      -0.403
+     ]
+    },
+    "humid": {
+     "span": 0.882,
+     "distinct": 115,
+     "min": -0.594,
+     "max": 0.288,
+     "samples": 121,
+     "centreRow": [
+      -0.257,
+      -0.332,
+      -0.332,
+      -0.393,
+      -0.311,
+      -0.284,
+      -0.307,
+      -0.319,
+      -0.361,
+      -0.258,
+      -0.298
+     ]
+    },
+    "cont": {
+     "span": 1.12,
+     "distinct": 113,
+     "min": -0.703,
+     "max": 0.417,
+     "samples": 121,
+     "centreRow": [
+      0.133,
+      0.183,
+      0.072,
+      -0.0,
+      -0.077,
+      -0.043,
+      -0.098,
+      -0.149,
+      -0.165,
+      -0.241,
+      -0.703
+     ]
+    },
+    "eros": {
+     "span": 0.881,
+     "distinct": 68,
+     "min": -0.55,
+     "max": 0.331,
+     "samples": 121,
+     "centreRow": [
+      0.094,
+      -0.003,
+      -0.032,
+      -0.044,
+      -0.187,
+      -0.3,
+      -0.5,
+      -0.5,
+      -0.3,
+      -0.278,
+      0.331
+     ]
+    },
+    "weird": {
+     "span": 2.0,
+     "distinct": 52,
+     "min": -1.0,
+     "max": 1.0,
+     "samples": 121,
+     "centreRow": [
+      -0.452,
+      -0.396,
+      -0.136,
+      0.025,
+      0.5,
+      -0.5,
+      -0.5,
+      -1.0,
+      -1.0,
+      1.0,
+      0.51
+     ]
+    },
+    "depth": {
+     "span": 1.254,
+     "distinct": 106,
+     "min": 0.046,
+     "max": 1.3,
+     "samples": 121,
+     "centreRow": [
+      0.621,
+      0.695,
+      0.709,
+      0.485,
+      0.665,
+      0.938,
+      0.831,
+      0.737,
+      0.402,
+      0.339,
+      0.046
      ]
     }
    }
   },
   "the_crimson_nexus": {
    "border": 4096,
+   "grid": 11,
    "axes": {
     "temp": {
-     "span": 0.674,
-     "distinct": 11,
-     "min": -0.664,
-     "max": 0.009,
-     "samples": [
-      -0.089,
-      -0.576,
-      -0.407,
-      -0.066,
-      -0.295,
+     "span": 1.826,
+     "distinct": 114,
+     "min": -0.849,
+     "max": 0.977,
+     "samples": 121,
+     "centreRow": [
+      -0.132,
+      -0.09,
+      0.088,
+      0.147,
+      -0.315,
       -0.561,
-      -0.664,
-      -0.266,
-      -0.1,
-      -0.154,
-      0.009
+      -0.564,
+      -0.414,
+      -0.343,
+      -0.639,
+      -0.481
      ]
     },
     "humid": {
-     "span": 1.206,
-     "distinct": 11,
-     "min": -0.536,
-     "max": 0.669,
-     "samples": [
-      -0.536,
-      0.071,
-      0.669,
-      -0.503,
-      -0.268,
+     "span": 1.56,
+     "distinct": 116,
+     "min": -0.871,
+     "max": 0.689,
+     "samples": 121,
+     "centreRow": [
+      0.222,
+      -0.12,
+      -0.083,
+      0.008,
+      -0.456,
       -0.247,
-      -0.104,
-      -0.51,
-      -0.259,
-      0.227,
-      0.105
+      0.046,
+      0.175,
+      -0.029,
+      0.049,
+      -0.056
      ]
     },
     "cont": {
-     "span": 0.867,
-     "distinct": 11,
-     "min": -0.688,
-     "max": 0.179,
-     "samples": [
-      -0.069,
-      -0.464,
-      -0.344,
-      -0.268,
-      -0.325,
+     "span": 1.575,
+     "distinct": 112,
+     "min": -1.05,
+     "max": 0.525,
+     "samples": 121,
+     "centreRow": [
+      -0.817,
+      -0.298,
+      -0.253,
+      -0.24,
+      -0.352,
       0.168,
-      0.179,
-      -0.432,
-      -0.539,
-      -0.688,
-      -0.468
+      -0.252,
+      -0.451,
+      -0.398,
+      -0.047,
+      -0.167
      ]
     },
     "eros": {
-     "span": 0.957,
-     "distinct": 7,
-     "min": -0.55,
-     "max": 0.407,
-     "samples": [
-      -0.028,
-      -0.066,
+     "span": 1.81,
+     "distinct": 67,
+     "min": -1.188,
+     "max": 0.622,
+     "samples": 121,
+     "centreRow": [
+      -0.041,
+      -0.5,
       -0.55,
       -0.55,
+      -0.5,
       -0.55,
       -0.55,
-      -0.55,
-      0.044,
-      0.407,
-      -0.536,
-      0.231
+      -0.5,
+      0.3,
+      -0.5,
+      0.002
      ]
     },
     "weird": {
-     "span": 1.316,
-     "distinct": 11,
-     "min": -0.678,
-     "max": 0.638,
-     "samples": [
-      -0.323,
-      0.219,
-      0.555,
-      -0.678,
-      -0.541,
+     "span": 2.0,
+     "distinct": 88,
+     "min": -1.0,
+     "max": 1.0,
+     "samples": 121,
+     "centreRow": [
+      -0.34,
+      -1.0,
+      0.218,
+      0.186,
+      -1.0,
       -0.108,
-      -0.238,
-      -0.369,
-      -0.042,
-      -0.287,
-      0.638
+      0.34,
+      1.0,
+      -0.095,
+      0.5,
+      0.223
      ]
     },
     "depth": {
-     "span": 0.709,
-     "distinct": 9,
+     "span": 1.254,
+     "distinct": 78,
      "min": 0.046,
-     "max": 0.755,
-     "samples": [
-      0.722,
-      0.113,
-      0.292,
-      0.341,
-      0.303,
+     "max": 1.3,
+     "samples": 121,
+     "centreRow": [
+      0.046,
+      0.297,
+      0.35,
+      0.358,
+      0.276,
       0.671,
-      0.755,
-      0.22,
+      0.351,
       0.046,
-      0.046,
-      0.046
+      0.167,
+      1.258,
+      0.467
      ]
     }
    }
   },
   "the_crucible": {
    "border": 2048,
+   "grid": 11,
    "axes": {
     "temp": {
-     "span": 0.833,
-     "distinct": 11,
-     "min": -0.557,
-     "max": 0.276,
-     "samples": [
-      -0.061,
-      -0.333,
-      -0.372,
-      -0.557,
-      -0.393,
+     "span": 1.334,
+     "distinct": 115,
+     "min": -0.782,
+     "max": 0.552,
+     "samples": 121,
+     "centreRow": [
+      0.086,
+      -0.063,
+      -0.243,
+      -0.495,
+      -0.442,
       -0.29,
-      0.007,
-      0.276,
-      0.185,
-      -0.049,
-      -0.364
+      -0.023,
+      0.314,
+      0.506,
+      0.441,
+      0.264
      ]
     },
     "humid": {
-     "span": 0.497,
-     "distinct": 11,
-     "min": -0.275,
-     "max": 0.222,
-     "samples": [
-      0.068,
-      0.222,
-      0.118,
-      -0.14,
-      -0.11,
+     "span": 1.229,
+     "distinct": 117,
+     "min": -0.558,
+     "max": 0.671,
+     "samples": 121,
+     "centreRow": [
+      0.247,
+      0.08,
+      -0.188,
+      -0.451,
+      -0.351,
       -0.275,
-      -0.066,
-      -0.156,
-      0.092,
-      -0.097,
-      -0.066
+      -0.105,
+      -0.159,
+      -0.413,
+      -0.067,
+      0.153
      ]
     },
     "cont": {
-     "span": 0.571,
-     "distinct": 8,
-     "min": -0.046,
+     "span": 1.22,
+     "distinct": 81,
+     "min": -0.695,
      "max": 0.525,
-     "samples": [
-      -0.017,
-      0.375,
-      0.478,
-      0.52,
+     "samples": 121,
+     "centreRow": [
       0.525,
       0.525,
-      0.397,
       0.525,
-      0.449,
       0.525,
-      -0.046
+      0.525,
+      0.525,
+      0.418,
+      0.404,
+      0.289,
+      -0.005,
+      -0.061
      ]
     },
     "eros": {
-     "span": 1.5,
-     "distinct": 7,
+     "span": 1.6,
+     "distinct": 56,
      "min": -1.0,
-     "max": 0.5,
-     "samples": [
-      -0.257,
-      -0.03,
+     "max": 0.6,
+     "samples": 121,
+     "centreRow": [
+      -0.068,
+      -0.3,
+      0.3,
       0.0,
-      0.5,
       0.0,
       0.0,
-      -1.0,
-      -1.0,
-      0.0,
-      -0.292,
-      -0.057
+      -0.5,
+      -0.008,
+      -0.006,
+      -0.131,
+      0.0
      ]
     },
     "weird": {
-     "span": 1.133,
-     "distinct": 8,
-     "min": -0.631,
-     "max": 0.502,
-     "samples": [
+     "span": 2.186,
+     "distinct": 67,
+     "min": -1.186,
+     "max": 1.0,
+     "samples": 121,
+     "centreRow": [
       -0.5,
-      0.145,
-      0.502,
-      0.342,
-      -0.631,
+      -0.5,
+      0.428,
+      -0.344,
+      0.128,
       -0.494,
       -0.5,
+      0.294,
+      0.573,
       0.5,
-      -0.388,
-      -0.5,
-      -0.5
+      -0.522
      ]
     },
     "depth": {
-     "span": 0.55,
-     "distinct": 8,
-     "min": 0.75,
+     "span": 1.254,
+     "distinct": 84,
+     "min": 0.046,
      "max": 1.3,
-     "samples": [
-      1.019,
-      0.849,
-      1.289,
-      1.048,
+     "samples": 121,
+     "centreRow": [
+      0.917,
       1.3,
+      0.674,
+      0.613,
+      0.516,
       0.844,
       1.3,
-      1.3,
-      0.827,
-      1.3,
-      0.75
+      0.854,
+      0.992,
+      1.007,
+      0.506
      ]
     }
    }
   },
   "the_crumbling_reaches": {
    "border": 2048,
+   "grid": 11,
    "axes": {
     "temp": {
-     "span": 0.405,
-     "distinct": 11,
-     "min": -0.258,
-     "max": 0.147,
-     "samples": [
-      0.147,
-      0.044,
-      -0.073,
-      -0.182,
-      -0.258,
+     "span": 0.87,
+     "distinct": 113,
+     "min": -0.581,
+     "max": 0.289,
+     "samples": 121,
+     "centreRow": [
+      0.289,
+      0.184,
+      0.039,
+      -0.111,
+      -0.222,
       -0.253,
-      -0.198,
-      -0.18,
-      -0.201,
-      -0.202,
-      -0.123
+      -0.229,
+      -0.227,
+      -0.266,
+      -0.301,
+      -0.306
      ]
     },
     "humid": {
-     "span": 0.226,
-     "distinct": 11,
-     "min": 0.032,
-     "max": 0.259,
-     "samples": [
-      0.15,
-      0.137,
-      0.105,
-      0.057,
-      0.032,
+     "span": 0.882,
+     "distinct": 108,
+     "min": -0.395,
+     "max": 0.487,
+     "samples": 121,
+     "centreRow": [
+      0.109,
+      0.121,
+      0.118,
+      0.068,
+      0.033,
       0.074,
-      0.167,
-      0.252,
-      0.259,
       0.158,
-      0.084
+      0.226,
+      0.257,
+      0.194,
+      0.048
      ]
     },
     "cont": {
-     "span": 0.943,
-     "distinct": 11,
-     "min": -0.38,
-     "max": 0.563,
-     "samples": [
-      -0.38,
-      0.035,
-      0.299,
-      0.023,
-      0.388,
+     "span": 1.558,
+     "distinct": 115,
+     "min": -0.818,
+     "max": 0.74,
+     "samples": 121,
+     "centreRow": [
+      0.059,
+      0.3,
+      0.211,
+      0.377,
+      0.471,
       0.556,
-      0.563,
-      0.492,
-      0.414,
-      0.541,
-      -0.185
+      0.451,
+      0.74,
+      0.178,
+      0.322,
+      0.154
      ]
     },
     "eros": {
-     "span": 0.278,
-     "distinct": 11,
-     "min": -0.302,
-     "max": -0.024,
-     "samples": [
-      -0.058,
-      -0.302,
-      -0.291,
-      -0.27,
-      -0.275,
+     "span": 0.941,
+     "distinct": 110,
+     "min": -0.583,
+     "max": 0.358,
+     "samples": 121,
+     "centreRow": [
+      -0.357,
+      -0.374,
+      -0.306,
+      -0.38,
+      -0.324,
       -0.235,
-      -0.106,
-      -0.05,
-      -0.057,
-      -0.024,
-      -0.224
+      -0.043,
+      0.025,
+      -0.037,
+      -0.141,
+      -0.383
      ]
     },
     "weird": {
-     "span": 1.117,
-     "distinct": 11,
-     "min": -0.45,
-     "max": 0.667,
-     "samples": [
-      -0.416,
-      0.271,
-      0.667,
-      -0.068,
-      0.515,
+     "span": 2.029,
+     "distinct": 113,
+     "min": -1.023,
+     "max": 1.006,
+     "samples": 121,
+     "centreRow": [
+      0.005,
+      0.011,
+      0.58,
+      0.272,
+      -0.002,
       0.547,
-      0.31,
-      -0.073,
-      0.304,
-      -0.45,
-      -0.078
+      0.347,
+      -1.023,
+      0.519,
+      0.199,
+      -0.175
      ]
     },
     "depth": {
      "span": 39.999,
-     "distinct": 6,
+     "distinct": 39,
      "min": 40.0,
      "max": 79.999,
-     "samples": [
+     "samples": 121,
+     "centreRow": [
       40.0,
       40.0,
       40.0,
-      53.72,
-      77.54,
+      43.5,
+      75.94,
       79.999,
-      76.776,
-      53.792,
+      74.465,
+      47.533,
       40.0,
       40.0,
       40.0
@@ -1518,164 +2579,678 @@
     }
    }
   },
-  "the_ember_fields": {
+  "the_crystal_vale": {
    "border": 1024,
+   "grid": 11,
    "axes": {
     "temp": {
-     "span": 0.849,
-     "distinct": 11,
-     "min": -0.538,
-     "max": 0.311,
-     "samples": [
-      -0.264,
-      -0.538,
-      -0.463,
-      -0.021,
-      0.124,
-      -0.254,
-      -0.066,
-      0.307,
-      0.311,
-      0.221,
-      -0.201
+     "span": 1.472,
+     "distinct": 117,
+     "min": -1.234,
+     "max": 0.238,
+     "samples": 121,
+     "centreRow": [
+      -0.923,
+      -0.971,
+      -0.908,
+      -0.845,
+      -0.841,
+      -0.852,
+      -0.749,
+      -0.68,
+      -0.661,
+      -0.62,
+      -0.657
      ]
     },
     "humid": {
-     "span": 1.077,
-     "distinct": 11,
-     "min": -0.579,
-     "max": 0.499,
-     "samples": [
-      -0.579,
-      -0.473,
-      -0.181,
-      0.024,
-      -0.116,
-      -0.268,
-      -0.244,
-      0.123,
-      0.23,
-      0.28,
-      0.499
+     "span": 1.139,
+     "distinct": 111,
+     "min": -0.515,
+     "max": 0.624,
+     "samples": 121,
+     "centreRow": [
+      -0.098,
+      -0.321,
+      -0.423,
+      -0.509,
+      -0.357,
+      -0.257,
+      -0.228,
+      -0.255,
+      -0.263,
+      -0.206,
+      -0.002
      ]
     },
     "cont": {
-     "span": 1.004,
-     "distinct": 11,
-     "min": -0.084,
-     "max": 0.921,
-     "samples": [
-      -0.021,
-      -0.084,
-      0.169,
-      0.221,
-      0.672,
-      0.921,
-      0.845,
-      0.512,
-      0.236,
-      0.17,
-      0.064
+     "span": 0.902,
+     "distinct": 104,
+     "min": -0.611,
+     "max": 0.291,
+     "samples": 121,
+     "centreRow": [
+      -0.251,
+      -0.258,
+      -0.262,
+      -0.264,
+      -0.337,
+      -0.488,
+      -0.611,
+      -0.378,
+      -0.157,
+      -0.127,
+      -0.311
      ]
     },
     "eros": {
-     "span": 0.63,
-     "distinct": 11,
-     "min": -0.356,
-     "max": 0.274,
-     "samples": [
-      0.274,
-      0.183,
-      -0.083,
-      -0.276,
-      -0.105,
-      -0.072,
-      -0.003,
-      0.084,
-      -0.356,
-      -0.318,
-      0.108
+     "span": 1.243,
+     "distinct": 49,
+     "min": -0.643,
+     "max": 0.6,
+     "samples": 121,
+     "centreRow": [
+      -0.5,
+      -0.5,
+      -0.274,
+      -0.253,
+      -0.5,
+      -0.5,
+      -0.087,
+      -0.5,
+      -0.242,
+      0.0,
+      0.0
      ]
     },
     "weird": {
-     "span": 1.466,
-     "distinct": 11,
-     "min": -0.715,
-     "max": 0.751,
-     "samples": [
-      0.142,
-      0.453,
-      0.751,
-      0.164,
-      -0.559,
-      -0.715,
-      -0.073,
-      -0.117,
-      0.106,
-      0.083,
-      0.283
+     "span": 2.0,
+     "distinct": 67,
+     "min": -1.0,
+     "max": 1.0,
+     "samples": 121,
+     "centreRow": [
+      -1.0,
+      -1.0,
+      1.0,
+      -1.0,
+      1.0,
+      -1.0,
+      0.003,
+      1.0,
+      1.0,
+      -0.351,
+      -0.146
      ]
     },
     "depth": {
-     "span": 1.151,
-     "distinct": 11,
-     "min": -0.316,
-     "max": 0.835,
-     "samples": [
-      0.38,
+     "span": 1.254,
+     "distinct": 89,
+     "min": 0.046,
+     "max": 1.3,
+     "samples": 121,
+     "centreRow": [
+      0.332,
+      0.327,
+      0.324,
+      0.323,
+      0.278,
+      0.046,
+      0.046,
+      0.233,
+      0.574,
+      0.497,
+      0.289
+     ]
+    }
+   }
+  },
+  "the_darkpine_depths": {
+   "border": 1024,
+   "grid": 11,
+   "axes": {
+    "temp": {
+     "span": 0.784,
+     "distinct": 110,
+     "min": -0.661,
+     "max": 0.123,
+     "samples": 121,
+     "centreRow": [
+      -0.53,
+      -0.544,
+      -0.464,
+      -0.398,
+      -0.414,
+      -0.401,
+      -0.331,
+      -0.246,
+      -0.293,
+      -0.308,
+      -0.276
+     ]
+    },
+    "humid": {
+     "span": 0.797,
+     "distinct": 109,
+     "min": -0.46,
+     "max": 0.337,
+     "samples": 121,
+     "centreRow": [
+      -0.223,
+      -0.063,
+      0.056,
+      0.143,
+      0.171,
+      0.253,
+      0.224,
+      -0.025,
+      -0.233,
+      -0.28,
+      -0.231
+     ]
+    },
+    "cont": {
+     "span": 1.11,
+     "distinct": 108,
+     "min": -0.771,
+     "max": 0.339,
+     "samples": 121,
+     "centreRow": [
+      -0.317,
+      -0.13,
+      0.04,
+      0.195,
+      0.172,
+      -0.02,
+      -0.255,
+      -0.715,
+      -0.761,
+      -0.315,
+      -0.189
+     ]
+    },
+    "eros": {
+     "span": 1.083,
+     "distinct": 45,
+     "min": -0.583,
+     "max": 0.5,
+     "samples": 121,
+     "centreRow": [
+      0.0,
+      0.003,
+      -0.5,
       0.3,
-      0.362,
-      0.709,
+      0.3,
+      0.3,
+      0.286,
+      -0.393,
+      -0.109,
+      -0.5,
+      0.0
+     ]
+    },
+    "weird": {
+     "span": 2.0,
+     "distinct": 87,
+     "min": -1.0,
+     "max": 1.0,
+     "samples": 121,
+     "centreRow": [
+      0.223,
+      -0.217,
+      -0.5,
+      -0.211,
+      -0.01,
+      -0.016,
+      -0.29,
+      0.028,
+      0.087,
+      -1.0,
+      0.054
+     ]
+    },
+    "depth": {
+     "span": 1.254,
+     "distinct": 85,
+     "min": 0.046,
+     "max": 1.3,
+     "samples": 121,
+     "centreRow": [
+      0.285,
+      0.497,
+      1.3,
+      0.53,
+      0.41,
+      0.426,
+      0.329,
+      0.046,
+      0.046,
+      0.286,
+      0.362
+     ]
+    }
+   }
+  },
+  "the_dripping_pines": {
+   "border": 1024,
+   "grid": 11,
+   "axes": {
+    "temp": {
+     "span": 1.089,
+     "distinct": 113,
+     "min": -0.691,
+     "max": 0.398,
+     "samples": 121,
+     "centreRow": [
+      0.1,
+      0.028,
+      0.035,
+      -0.111,
+      -0.251,
+      -0.351,
+      -0.373,
+      -0.335,
+      -0.386,
+      -0.484,
+      -0.638
+     ]
+    },
+    "humid": {
+     "span": 1.039,
+     "distinct": 115,
+     "min": -0.419,
+     "max": 0.62,
+     "samples": 121,
+     "centreRow": [
+      0.162,
+      0.231,
+      0.275,
+      0.255,
+      0.314,
+      0.204,
+      0.029,
+      -0.109,
+      -0.328,
+      -0.419,
+      -0.384
+     ]
+    },
+    "cont": {
+     "span": 1.196,
+     "distinct": 108,
+     "min": -0.731,
+     "max": 0.465,
+     "samples": 121,
+     "centreRow": [
+      -0.051,
+      -0.009,
+      0.008,
+      -0.042,
+      -0.11,
+      -0.099,
+      -0.138,
+      -0.223,
+      -0.317,
+      -0.293,
+      -0.198
+     ]
+    },
+    "eros": {
+     "span": 1.432,
+     "distinct": 33,
+     "min": -0.96,
+     "max": 0.472,
+     "samples": 121,
+     "centreRow": [
+      0.3,
+      0.3,
+      0.3,
+      0.3,
+      0.3,
+      0.3,
+      0.0,
+      0.0,
+      0.3,
+      0.3,
+      0.405
+     ]
+    },
+    "weird": {
+     "span": 1.522,
+     "distinct": 111,
+     "min": -0.685,
+     "max": 0.837,
+     "samples": 121,
+     "centreRow": [
+      0.494,
+      0.513,
+      0.521,
+      0.042,
+      -0.376,
+      -0.051,
+      0.488,
+      0.479,
+      0.272,
+      -0.267,
+      -0.351
+     ]
+    },
+    "depth": {
+     "span": 0.605,
+     "distinct": 83,
+     "min": 0.046,
+     "max": 0.651,
+     "samples": 121,
+     "centreRow": [
+      0.504,
+      0.506,
+      0.507,
+      0.435,
+      0.498,
+      0.441,
+      0.496,
+      0.349,
+      0.285,
+      0.301,
+      0.356
+     ]
+    }
+   }
+  },
+  "the_dustbowl": {
+   "border": 512,
+   "grid": 11,
+   "axes": {
+    "temp": {
+     "span": 0.576,
+     "distinct": 109,
+     "min": 0.444,
+     "max": 1.02,
+     "samples": 121,
+     "centreRow": [
+      0.519,
+      0.526,
+      0.567,
+      0.612,
+      0.64,
+      0.699,
+      0.722,
+      0.774,
+      0.799,
       0.835,
+      0.881
+     ]
+    },
+    "humid": {
+     "span": 0.731,
+     "distinct": 115,
+     "min": -0.602,
+     "max": 0.129,
+     "samples": 121,
+     "centreRow": [
+      -0.19,
+      -0.233,
+      -0.278,
+      -0.285,
+      -0.348,
+      -0.353,
+      -0.388,
+      -0.284,
+      -0.184,
+      -0.134,
+      0.011
+     ]
+    },
+    "cont": {
+     "span": 0.665,
+     "distinct": 111,
+     "min": -0.69,
+     "max": -0.025,
+     "samples": 121,
+     "centreRow": [
+      -0.037,
+      -0.025,
+      -0.128,
+      -0.289,
+      -0.323,
+      -0.438,
+      -0.545,
+      -0.46,
+      -0.392,
+      -0.429,
+      -0.427
+     ]
+    },
+    "eros": {
+     "span": 1.433,
+     "distinct": 39,
+     "min": -0.55,
+     "max": 0.883,
+     "samples": 121,
+     "centreRow": [
+      -0.55,
+      -0.55,
+      -0.55,
+      -0.55,
+      -0.55,
+      0.715,
+      0.734,
+      0.3,
+      0.3,
+      0.315,
+      0.343
+     ]
+    },
+    "weird": {
+     "span": 1.891,
+     "distinct": 109,
+     "min": -0.941,
+     "max": 0.95,
+     "samples": 121,
+     "centreRow": [
+      0.332,
+      0.181,
+      -0.015,
+      -0.332,
+      -0.201,
+      0.222,
+      0.243,
+      -0.45,
+      -0.5,
+      -0.5,
+      -0.5
+     ]
+    },
+    "depth": {
+     "span": 0.681,
+     "distinct": 88,
+     "min": 0.046,
+     "max": 0.727,
+     "samples": 121,
+     "centreRow": [
+      0.637,
+      0.549,
+      0.336,
+      0.327,
+      0.304,
+      0.202,
+      0.046,
+      0.046,
+      0.189,
+      0.073,
+      0.076
+     ]
+    }
+   }
+  },
+  "the_ember_fields": {
+   "border": 1024,
+   "grid": 11,
+   "axes": {
+    "temp": {
+     "span": 1.196,
+     "distinct": 114,
+     "min": -0.733,
+     "max": 0.463,
+     "samples": 121,
+     "centreRow": [
+      -0.432,
+      -0.516,
+      -0.275,
+      0.015,
+      0.057,
+      -0.254,
+      -0.026,
+      0.45,
+      0.35,
+      0.118,
+      0.19
+     ]
+    },
+    "humid": {
+     "span": 1.665,
+     "distinct": 112,
+     "min": -1.026,
+     "max": 0.639,
+     "samples": 121,
+     "centreRow": [
+      0.255,
+      0.402,
+      0.433,
+      0.295,
+      -0.009,
+      -0.268,
+      -0.22,
+      0.131,
+      0.35,
+      0.36,
+      0.228
+     ]
+    },
+    "cont": {
+     "span": 1.672,
+     "distinct": 116,
+     "min": -0.751,
+     "max": 0.921,
+     "samples": 121,
+     "centreRow": [
+      0.431,
+      0.235,
+      0.325,
+      0.339,
+      0.683,
+      0.921,
+      0.67,
+      0.37,
+      -0.368,
+      -0.222,
+      -0.342
+     ]
+    },
+    "eros": {
+     "span": 1.31,
+     "distinct": 113,
+     "min": -0.673,
+     "max": 0.637,
+     "samples": 121,
+     "centreRow": [
+      0.45,
+      0.216,
+      0.255,
+      -0.009,
+      -0.02,
+      -0.072,
+      0.173,
+      0.296,
+      -0.141,
+      -0.52,
+      -0.369
+     ]
+    },
+    "weird": {
+     "span": 1.778,
+     "distinct": 118,
+     "min": -0.814,
+     "max": 0.964,
+     "samples": 121,
+     "centreRow": [
+      -0.259,
+      -0.162,
+      0.161,
+      -0.285,
+      -0.814,
+      -0.715,
+      0.046,
+      0.124,
+      0.636,
+      0.088,
+      0.474
+     ]
+    },
+    "depth": {
+     "span": 1.286,
+     "distinct": 116,
+     "min": -0.475,
+     "max": 0.811,
+     "samples": 121,
+     "centreRow": [
+      -0.094,
+      0.164,
+      0.452,
+      0.687,
+      0.777,
       0.552,
-      0.303,
-      0.174,
-      -0.097,
-      -0.316,
-      -0.211
+      0.182,
+      -0.078,
+      -0.324,
+      -0.414,
+      -0.419
      ]
     }
    }
   },
   "the_emberglass_foundry": {
    "border": 256,
+   "grid": 11,
    "axes": {
     "temp": {
-     "span": 1.342,
-     "distinct": 11,
-     "min": -0.966,
-     "max": 0.376,
-     "samples": [
-      -0.966,
-      -0.955,
-      -0.753,
-      -0.343,
-      0.051,
+     "span": 1.392,
+     "distinct": 115,
+     "min": -0.962,
+     "max": 0.43,
+     "samples": 121,
+     "centreRow": [
+      -0.584,
+      -0.524,
+      -0.363,
+      -0.122,
+      0.113,
       0.261,
-      0.348,
-      0.376,
-      0.243,
-      -0.006,
-      -0.218
+      0.32,
+      0.32,
+      0.221,
+      0.068,
+      -0.077
      ]
     },
     "humid": {
-     "span": 0.455,
-     "distinct": 11,
-     "min": -0.631,
-     "max": -0.175,
-     "samples": [
-      -0.175,
-      -0.315,
-      -0.379,
-      -0.384,
-      -0.431,
+     "span": 1.137,
+     "distinct": 117,
+     "min": -0.672,
+     "max": 0.465,
+     "samples": 121,
+     "centreRow": [
+      0.099,
+      -0.007,
+      -0.076,
+      -0.163,
+      -0.335,
       -0.533,
-      -0.631,
-      -0.612,
-      -0.467,
-      -0.339,
-      -0.194
+      -0.655,
+      -0.64,
+      -0.515,
+      -0.378,
+      -0.222
      ]
     },
     "cont": {
@@ -1683,7 +3258,8 @@
      "distinct": 1,
      "min": 0.0,
      "max": 0.0,
-     "samples": [
+     "samples": 121,
+     "centreRow": [
       0.0,
       0.0,
       0.0,
@@ -1702,7 +3278,8 @@
      "distinct": 1,
      "min": 0.0,
      "max": 0.0,
-     "samples": [
+     "samples": 121,
+     "centreRow": [
       0.0,
       0.0,
       0.0,
@@ -1721,7 +3298,8 @@
      "distinct": 1,
      "min": 0.0,
      "max": 0.0,
-     "samples": [
+     "samples": 121,
+     "centreRow": [
       0.0,
       0.0,
       0.0,
@@ -1740,7 +3318,764 @@
      "distinct": 1,
      "min": 0.0,
      "max": 0.0,
-     "samples": [
+     "samples": 121,
+     "centreRow": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+     ]
+    }
+   }
+  },
+  "the_end_citadel": {
+   "border": 4096,
+   "grid": 11,
+   "axes": {
+    "temp": {
+     "span": 1.241,
+     "distinct": 116,
+     "min": -0.699,
+     "max": 0.542,
+     "samples": 121,
+     "centreRow": [
+      0.084,
+      -0.018,
+      -0.094,
+      -0.102,
+      -0.131,
+      -0.063,
+      0.138,
+      0.224,
+      0.252,
+      0.341,
+      0.46
+     ]
+    },
+    "humid": {
+     "span": 1.086,
+     "distinct": 111,
+     "min": -0.689,
+     "max": 0.397,
+     "samples": 121,
+     "centreRow": [
+      0.196,
+      0.044,
+      0.058,
+      0.097,
+      -0.019,
+      0.041,
+      0.17,
+      0.105,
+      0.054,
+      -0.005,
+      -0.218
+     ]
+    },
+    "cont": {
+     "span": 1.911,
+     "distinct": 115,
+     "min": -0.944,
+     "max": 0.967,
+     "samples": 121,
+     "centreRow": [
+      0.322,
+      0.339,
+      -0.233,
+      -0.642,
+      -0.376,
+      0.176,
+      0.191,
+      0.529,
+      0.967,
+      0.409,
+      0.213
+     ]
+    },
+    "eros": {
+     "span": 1.347,
+     "distinct": 113,
+     "min": -0.665,
+     "max": 0.682,
+     "samples": 121,
+     "centreRow": [
+      0.212,
+      0.018,
+      0.117,
+      -0.177,
+      -0.394,
+      -0.539,
+      -0.236,
+      -0.28,
+      -0.382,
+      -0.031,
+      0.224
+     ]
+    },
+    "weird": {
+     "span": 1.585,
+     "distinct": 116,
+     "min": -0.911,
+     "max": 0.674,
+     "samples": 121,
+     "centreRow": [
+      0.024,
+      -0.019,
+      -0.01,
+      0.032,
+      -0.499,
+      -0.419,
+      -0.25,
+      -0.111,
+      0.435,
+      -0.066,
+      -0.215
+     ]
+    },
+    "depth": {
+     "span": 40.0,
+     "distinct": 5,
+     "min": 40.0,
+     "max": 80.0,
+     "samples": 121,
+     "centreRow": [
+      40.0,
+      40.0,
+      40.0,
+      40.0,
+      40.0,
+      80.0,
+      41.842,
+      40.0,
+      40.0,
+      40.0,
+      40.0
+     ]
+    }
+   }
+  },
+  "the_forged_depths": {
+   "border": 683,
+   "grid": 11,
+   "axes": {
+    "temp": {
+     "span": 1.359,
+     "distinct": 112,
+     "min": -0.835,
+     "max": 0.524,
+     "samples": 121,
+     "centreRow": [
+      -0.179,
+      -0.287,
+      -0.476,
+      -0.55,
+      -0.551,
+      -0.567,
+      -0.536,
+      -0.293,
+      0.156,
+      0.46,
+      0.519
+     ]
+    },
+    "humid": {
+     "span": 1.459,
+     "distinct": 115,
+     "min": -0.749,
+     "max": 0.71,
+     "samples": 121,
+     "centreRow": [
+      0.134,
+      0.255,
+      0.175,
+      -0.105,
+      -0.36,
+      -0.533,
+      -0.679,
+      -0.749,
+      -0.727,
+      -0.66,
+      -0.521
+     ]
+    },
+    "cont": {
+     "span": 1.352,
+     "distinct": 114,
+     "min": -0.654,
+     "max": 0.698,
+     "samples": 121,
+     "centreRow": [
+      0.158,
+      0.467,
+      0.611,
+      0.544,
+      0.577,
+      0.311,
+      0.142,
+      -0.105,
+      -0.284,
+      -0.45,
+      -0.348
+     ]
+    },
+    "eros": {
+     "span": 1.208,
+     "distinct": 115,
+     "min": -0.492,
+     "max": 0.716,
+     "samples": 121,
+     "centreRow": [
+      -0.283,
+      -0.133,
+      -0.074,
+      0.26,
+      0.188,
+      0.325,
+      0.332,
+      0.306,
+      0.095,
+      0.017,
+      -0.037
+     ]
+    },
+    "weird": {
+     "span": 1.434,
+     "distinct": 114,
+     "min": -0.614,
+     "max": 0.82,
+     "samples": 121,
+     "centreRow": [
+      -0.213,
+      -0.147,
+      -0.105,
+      0.259,
+      0.334,
+      0.385,
+      0.347,
+      0.127,
+      0.06,
+      -0.186,
+      -0.341
+     ]
+    },
+    "depth": {
+     "span": 1.332,
+     "distinct": 116,
+     "min": -0.505,
+     "max": 0.827,
+     "samples": 121,
+     "centreRow": [
+      -0.11,
+      -0.206,
+      -0.225,
+      -0.194,
+      -0.197,
+      -0.245,
+      -0.201,
+      -0.138,
+      -0.106,
+      -0.128,
+      -0.161
+     ]
+    }
+   }
+  },
+  "the_fractured_halls": {
+   "border": 4096,
+   "grid": 11,
+   "axes": {
+    "temp": {
+     "span": 1.17,
+     "distinct": 116,
+     "min": -0.481,
+     "max": 0.689,
+     "samples": 121,
+     "centreRow": [
+      0.521,
+      0.5,
+      0.437,
+      0.267,
+      0.095,
+      0.001,
+      -0.104,
+      -0.242,
+      -0.331,
+      -0.363,
+      -0.223
+     ]
+    },
+    "humid": {
+     "span": 1.067,
+     "distinct": 113,
+     "min": -0.558,
+     "max": 0.509,
+     "samples": 121,
+     "centreRow": [
+      0.151,
+      0.356,
+      0.405,
+      0.49,
+      0.454,
+      0.375,
+      0.371,
+      0.398,
+      0.473,
+      0.311,
+      -0.01
+     ]
+    },
+    "cont": {
+     "span": 1.725,
+     "distinct": 115,
+     "min": -0.651,
+     "max": 1.074,
+     "samples": 121,
+     "centreRow": [
+      0.352,
+      -0.155,
+      0.051,
+      -0.099,
+      0.032,
+      0.057,
+      1.074,
+      0.961,
+      0.277,
+      -0.077,
+      -0.142
+     ]
+    },
+    "eros": {
+     "span": 1.465,
+     "distinct": 115,
+     "min": -0.775,
+     "max": 0.69,
+     "samples": 121,
+     "centreRow": [
+      0.505,
+      0.175,
+      -0.043,
+      -0.323,
+      -0.499,
+      -0.522,
+      -0.528,
+      -0.7,
+      -0.531,
+      -0.392,
+      -0.246
+     ]
+    },
+    "weird": {
+     "span": 1.493,
+     "distinct": 119,
+     "min": -0.637,
+     "max": 0.856,
+     "samples": 121,
+     "centreRow": [
+      -0.487,
+      0.281,
+      -0.251,
+      -0.474,
+      -0.208,
+      0.231,
+      0.149,
+      -0.09,
+      0.215,
+      -0.043,
+      -0.318
+     ]
+    },
+    "depth": {
+     "span": 39.806,
+     "distinct": 3,
+     "min": 40.0,
+     "max": 79.806,
+     "samples": 121,
+     "centreRow": [
+      40.0,
+      40.0,
+      40.0,
+      40.0,
+      40.0,
+      79.806,
+      53.042,
+      40.0,
+      40.0,
+      40.0,
+      40.0
+     ]
+    }
+   }
+  },
+  "the_frozen_hearth": {
+   "border": 4096,
+   "grid": 11,
+   "axes": {
+    "temp": {
+     "span": 1.005,
+     "distinct": 113,
+     "min": -0.3,
+     "max": 0.705,
+     "samples": 121,
+     "centreRow": [
+      0.531,
+      0.484,
+      0.366,
+      0.341,
+      0.28,
+      0.114,
+      0.015,
+      -0.095,
+      -0.274,
+      -0.3,
+      -0.192
+     ]
+    },
+    "humid": {
+     "span": 1.264,
+     "distinct": 110,
+     "min": -0.627,
+     "max": 0.637,
+     "samples": 121,
+     "centreRow": [
+      0.062,
+      -0.326,
+      -0.12,
+      -0.095,
+      -0.182,
+      -0.212,
+      -0.219,
+      -0.42,
+      -0.263,
+      0.063,
+      0.172
+     ]
+    },
+    "cont": {
+     "span": 1.216,
+     "distinct": 74,
+     "min": -0.691,
+     "max": 0.525,
+     "samples": 121,
+     "centreRow": [
+      0.525,
+      0.525,
+      0.525,
+      0.525,
+      0.525,
+      0.525,
+      0.525,
+      0.525,
+      0.294,
+      0.05,
+      -0.148
+     ]
+    },
+    "eros": {
+     "span": 1.376,
+     "distinct": 63,
+     "min": -1.0,
+     "max": 0.376,
+     "samples": 121,
+     "centreRow": [
+      -0.5,
+      -1.0,
+      0.101,
+      0.3,
+      0.3,
+      0.3,
+      -0.3,
+      -1.0,
+      -0.264,
+      0.047,
+      0.3
+     ]
+    },
+    "weird": {
+     "span": 2.0,
+     "distinct": 79,
+     "min": -1.0,
+     "max": 1.0,
+     "samples": 121,
+     "centreRow": [
+      0.5,
+      0.5,
+      -0.582,
+      0.36,
+      0.714,
+      -0.771,
+      -0.5,
+      0.5,
+      -0.5,
+      -0.003,
+      0.549
+     ]
+    },
+    "depth": {
+     "span": 1.254,
+     "distinct": 85,
+     "min": 0.046,
+     "max": 1.3,
+     "samples": 121,
+     "centreRow": [
+      1.3,
+      1.3,
+      0.619,
+      0.544,
+      0.598,
+      0.545,
+      1.188,
+      1.3,
+      1.038,
+      0.408,
+      0.496
+     ]
+    }
+   }
+  },
+  "the_frozen_strait": {
+   "border": 512,
+   "grid": 11,
+   "axes": {
+    "temp": {
+     "span": 0.282,
+     "distinct": 90,
+     "min": 0.231,
+     "max": 0.513,
+     "samples": 121,
+     "centreRow": [
+      0.41,
+      0.395,
+      0.38,
+      0.349,
+      0.334,
+      0.315,
+      0.291,
+      0.256,
+      0.249,
+      0.247,
+      0.231
+     ]
+    },
+    "humid": {
+     "span": 0.322,
+     "distinct": 100,
+     "min": -0.202,
+     "max": 0.12,
+     "samples": 121,
+     "centreRow": [
+      -0.097,
+      -0.098,
+      -0.152,
+      -0.159,
+      -0.179,
+      -0.166,
+      -0.147,
+      -0.156,
+      -0.161,
+      -0.162,
+      -0.171
+     ]
+    },
+    "cont": {
+     "span": 0.945,
+     "distinct": 117,
+     "min": -0.922,
+     "max": 0.023,
+     "samples": 121,
+     "centreRow": [
+      -0.449,
+      -0.698,
+      -0.677,
+      -0.688,
+      -0.723,
+      -0.724,
+      -0.693,
+      -0.631,
+      -0.596,
+      -0.588,
+      -0.574
+     ]
+    },
+    "eros": {
+     "span": 0.843,
+     "distinct": 87,
+     "min": -0.55,
+     "max": 0.293,
+     "samples": 121,
+     "centreRow": [
+      -0.5,
+      0.096,
+      0.102,
+      0.098,
+      0.099,
+      0.094,
+      0.101,
+      0.138,
+      0.183,
+      0.213,
+      0.203
+     ]
+    },
+    "weird": {
+     "span": 1.95,
+     "distinct": 92,
+     "min": -1.0,
+     "max": 0.95,
+     "samples": 121,
+     "centreRow": [
+      -1.0,
+      0.263,
+      -0.135,
+      -0.49,
+      -0.124,
+      -0.153,
+      0.157,
+      0.26,
+      -0.006,
+      0.289,
+      -0.171
+     ]
+    },
+    "depth": {
+     "span": 0.461,
+     "distinct": 39,
+     "min": 0.046,
+     "max": 0.507,
+     "samples": 121,
+     "centreRow": [
+      0.046,
+      0.046,
+      0.046,
+      0.046,
+      0.046,
+      0.046,
+      0.046,
+      0.046,
+      0.046,
+      0.046,
+      0.046
+     ]
+    }
+   }
+  },
+  "the_fungal_lanterns": {
+   "border": 1024,
+   "grid": 11,
+   "axes": {
+    "temp": {
+     "span": 1.797,
+     "distinct": 116,
+     "min": -0.935,
+     "max": 0.862,
+     "samples": 121,
+     "centreRow": [
+      0.037,
+      0.159,
+      -0.199,
+      0.201,
+      0.674,
+      0.354,
+      0.431,
+      0.598,
+      0.102,
+      -0.064,
+      -0.245
+     ]
+    },
+    "humid": {
+     "span": 1.592,
+     "distinct": 110,
+     "min": -0.811,
+     "max": 0.781,
+     "samples": 121,
+     "centreRow": [
+      0.012,
+      0.012,
+      -0.086,
+      -0.12,
+      -0.439,
+      -0.05,
+      -0.067,
+      -0.17,
+      -0.148,
+      0.038,
+      -0.246
+     ]
+    },
+    "cont": {
+     "span": 0.0,
+     "distinct": 1,
+     "min": 0.0,
+     "max": 0.0,
+     "samples": 121,
+     "centreRow": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+     ]
+    },
+    "eros": {
+     "span": 0.0,
+     "distinct": 1,
+     "min": 0.0,
+     "max": 0.0,
+     "samples": 121,
+     "centreRow": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+     ]
+    },
+    "weird": {
+     "span": 0.0,
+     "distinct": 1,
+     "min": 0.0,
+     "max": 0.0,
+     "samples": 121,
+     "centreRow": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+     ]
+    },
+    "depth": {
+     "span": 0.0,
+     "distinct": 1,
+     "min": 0.0,
+     "max": 0.0,
+     "samples": 121,
+     "centreRow": [
       0.0,
       0.0,
       0.0,
@@ -1758,232 +4093,372 @@
   },
   "the_gauntlet": {
    "border": 2048,
+   "grid": 11,
    "axes": {
     "temp": {
-     "span": 0.667,
-     "distinct": 11,
-     "min": -0.625,
-     "max": 0.041,
-     "samples": [
-      -0.389,
-      -0.625,
-      -0.444,
-      -0.302,
-      -0.198,
+     "span": 1.134,
+     "distinct": 115,
+     "min": -0.765,
+     "max": 0.369,
+     "samples": 121,
+     "centreRow": [
+      -0.211,
+      -0.157,
+      -0.1,
+      -0.09,
+      -0.006,
       -0.082,
-      0.041,
-      -0.03,
-      -0.083,
-      -0.333,
-      -0.449
+      -0.017,
+      0.048,
+      0.061,
+      0.091,
+      -0.128
      ]
     },
     "humid": {
-     "span": 1.019,
-     "distinct": 11,
-     "min": -0.497,
-     "max": 0.521,
-     "samples": [
-      0.336,
-      0.496,
-      0.521,
-      0.307,
-      0.212,
+     "span": 1.432,
+     "distinct": 116,
+     "min": -0.675,
+     "max": 0.757,
+     "samples": 121,
+     "centreRow": [
+      0.224,
+      0.123,
+      -0.009,
+      0.174,
+      0.271,
       0.245,
-      0.116,
-      -0.497,
-      -0.278,
-      0.158,
-      0.408
+      0.171,
+      0.015,
+      0.147,
+      -0.086,
+      -0.173
      ]
     },
     "cont": {
-     "span": 0.954,
-     "distinct": 11,
-     "min": -0.841,
-     "max": 0.112,
-     "samples": [
-      -0.841,
-      -0.808,
-      -0.751,
-      -0.472,
-      -0.312,
+     "span": 1.845,
+     "distinct": 111,
+     "min": -1.32,
+     "max": 0.525,
+     "samples": 121,
+     "centreRow": [
+      -1.022,
+      -1.32,
+      -1.199,
+      -0.762,
+      -0.466,
       -0.308,
-      -0.471,
-      -0.266,
-      0.112,
-      -0.187,
-      -0.028
+      -0.412,
+      -0.023,
+      0.354,
+      0.525,
+      0.525
      ]
     },
     "eros": {
-     "span": 1.1,
-     "distinct": 9,
-     "min": -0.5,
-     "max": 0.6,
-     "samples": [
-      0.441,
-      0.032,
-      -0.215,
-      -0.136,
+     "span": 2.082,
+     "distinct": 80,
+     "min": -1.0,
+     "max": 1.082,
+     "samples": 121,
+     "centreRow": [
+      -0.714,
+      -0.423,
+      -0.384,
+      -0.205,
       -0.5,
       0.368,
-      0.5,
-      0.6,
-      0.6,
-      0.6,
-      0.0
+      0.0,
+      0.003,
+      -0.264,
+      0.002,
+      -0.269
      ]
     },
     "weird": {
-     "span": 1.5,
-     "distinct": 10,
-     "min": -0.5,
+     "span": 2.0,
+     "distinct": 102,
+     "min": -1.0,
      "max": 1.0,
-     "samples": [
-      -0.241,
-      0.528,
-      -0.067,
-      1.0,
+     "samples": 121,
+     "centreRow": [
+      -0.342,
+      0.148,
+      0.875,
+      -0.24,
       1.0,
       -0.5,
-      -0.431,
-      -0.484,
+      -0.503,
+      0.081,
       0.5,
-      0.264,
-      -0.481
+      -0.204,
+      0.5
      ]
     },
     "depth": {
      "span": 1.254,
-     "distinct": 7,
+     "distinct": 49,
      "min": 0.046,
      "max": 1.3,
-     "samples": [
+     "samples": 121,
+     "centreRow": [
+      0.048,
+      0.536,
+      0.536,
       0.046,
       0.046,
-      0.046,
-      0.046,
-      0.288,
       0.29,
-      0.046,
-      0.321,
+      0.12,
+      0.491,
       1.3,
-      0.371,
-      0.51
+      0.513,
+      1.3
+     ]
+    }
+   }
+  },
+  "the_gilded_pit": {
+   "border": 683,
+   "grid": 11,
+   "axes": {
+    "temp": {
+     "span": 1.365,
+     "distinct": 113,
+     "min": -0.628,
+     "max": 0.737,
+     "samples": 121,
+     "centreRow": [
+      0.193,
+      0.007,
+      -0.122,
+      0.018,
+      0.255,
+      0.361,
+      0.517,
+      0.644,
+      0.727,
+      0.737,
+      0.478
+     ]
+    },
+    "humid": {
+     "span": 1.634,
+     "distinct": 112,
+     "min": -0.447,
+     "max": 1.187,
+     "samples": 121,
+     "centreRow": [
+      0.257,
+      0.306,
+      0.468,
+      0.692,
+      0.913,
+      1.014,
+      1.036,
+      1.063,
+      1.012,
+      0.814,
+      0.568
+     ]
+    },
+    "cont": {
+     "span": 1.089,
+     "distinct": 113,
+     "min": -0.434,
+     "max": 0.655,
+     "samples": 121,
+     "centreRow": [
+      -0.397,
+      -0.201,
+      -0.018,
+      -0.006,
+      0.398,
+      0.353,
+      0.563,
+      0.655,
+      0.519,
+      0.259,
+      0.015
+     ]
+    },
+    "eros": {
+     "span": 1.558,
+     "distinct": 113,
+     "min": -0.749,
+     "max": 0.809,
+     "samples": 121,
+     "centreRow": [
+      0.083,
+      0.019,
+      -0.23,
+      -0.326,
+      -0.299,
+      -0.16,
+      -0.155,
+      0.021,
+      0.098,
+      -0.158,
+      -0.137
+     ]
+    },
+    "weird": {
+     "span": 1.694,
+     "distinct": 119,
+     "min": -1.12,
+     "max": 0.574,
+     "samples": 121,
+     "centreRow": [
+      0.26,
+      0.126,
+      0.104,
+      -0.034,
+      0.149,
+      -0.04,
+      0.295,
+      0.253,
+      0.031,
+      0.156,
+      -0.216
+     ]
+    },
+    "depth": {
+     "span": 1.945,
+     "distinct": 119,
+     "min": -0.975,
+     "max": 0.97,
+     "samples": 121,
+     "centreRow": [
+      -0.143,
+      -0.043,
+      0.116,
+      0.262,
+      0.389,
+      0.456,
+      0.43,
+      0.369,
+      0.254,
+      0.164,
+      0.227
      ]
     }
    }
   },
   "the_glacial_drift": {
    "border": 4096,
+   "grid": 11,
    "axes": {
     "temp": {
-     "span": 0.99,
-     "distinct": 11,
-     "min": -0.144,
-     "max": 0.845,
-     "samples": [
-      -0.137,
-      -0.144,
-      -0.019,
-      0.19,
-      0.395,
+     "span": 1.106,
+     "distinct": 119,
+     "min": -0.255,
+     "max": 0.851,
+     "samples": 121,
+     "centreRow": [
+      -0.22,
+      -0.023,
+      0.062,
+      0.232,
+      0.438,
       0.575,
-      0.754,
-      0.845,
-      0.628,
-      0.335,
-      0.051
+      0.707,
+      0.816,
+      0.73,
+      0.493,
+      0.188
      ]
     },
     "humid": {
-     "span": 0.733,
-     "distinct": 11,
-     "min": -0.317,
-     "max": 0.415,
-     "samples": [
-      0.35,
-      0.361,
-      0.415,
-      0.243,
-      -0.178,
+     "span": 1.019,
+     "distinct": 111,
+     "min": -0.326,
+     "max": 0.693,
+     "samples": 121,
+     "centreRow": [
+      -0.065,
+      0.128,
+      0.034,
+      -0.1,
+      -0.307,
       -0.317,
-      -0.025,
-      0.121,
-      0.075,
-      0.06,
-      -0.114
+      -0.12,
+      -0.129,
+      -0.187,
+      -0.052,
+      0.075
      ]
     },
     "cont": {
-     "span": 1.291,
-     "distinct": 11,
-     "min": -0.846,
-     "max": 0.445,
-     "samples": [
-      0.37,
-      0.336,
-      -0.096,
-      -0.846,
-      -0.299,
+     "span": 1.998,
+     "distinct": 117,
+     "min": -0.892,
+     "max": 1.106,
+     "samples": 121,
+     "centreRow": [
+      -0.016,
+      0.239,
+      -0.145,
+      0.034,
+      -0.211,
       0.445,
-      -0.183,
-      -0.328,
-      0.415,
-      -0.448,
-      -0.402
+      0.097,
+      -0.031,
+      0.068,
+      -0.286,
+      0.356
      ]
     },
     "eros": {
-     "span": 0.897,
-     "distinct": 11,
-     "min": -0.424,
-     "max": 0.473,
-     "samples": [
-      0.473,
-      -0.07,
-      -0.424,
-      -0.171,
-      -0.208,
+     "span": 1.225,
+     "distinct": 112,
+     "min": -0.4,
+     "max": 0.825,
+     "samples": 121,
+     "centreRow": [
+      -0.18,
+      -0.141,
+      -0.141,
+      -0.125,
+      -0.135,
       -0.394,
-      -0.278,
-      -0.02,
-      0.326,
-      0.129,
-      -0.311
+      -0.342,
+      -0.176,
+      0.131,
+      0.374,
+      0.343
      ]
     },
     "weird": {
-     "span": 0.976,
-     "distinct": 11,
-     "min": -0.497,
-     "max": 0.478,
-     "samples": [
-      0.414,
-      0.082,
-      -0.278,
-      -0.147,
-      0.157,
+     "span": 1.865,
+     "distinct": 114,
+     "min": -0.883,
+     "max": 0.982,
+     "samples": 121,
+     "centreRow": [
+      0.127,
+      0.315,
+      0.488,
+      0.207,
+      -0.133,
       0.373,
-      -0.349,
-      -0.497,
-      0.387,
-      0.478,
-      0.447
+      0.151,
+      -0.223,
+      -0.17,
+      0.738,
+      -0.319
      ]
     },
     "depth": {
      "span": 39.979,
-     "distinct": 3,
+     "distinct": 5,
      "min": 40.0,
      "max": 79.979,
-     "samples": [
+     "samples": 121,
+     "centreRow": [
       40.0,
       40.0,
       40.0,
       40.0,
-      40.625,
+      55.542,
       79.979,
       40.0,
       40.0,
@@ -1994,118 +4469,629 @@
     }
    }
   },
-  "the_icebound_rift": {
-   "border": 512,
+  "the_greenreach": {
+   "border": 1024,
+   "grid": 11,
    "axes": {
     "temp": {
-     "span": 0.432,
-     "distinct": 11,
-     "min": 0.214,
-     "max": 0.647,
-     "samples": [
-      0.647,
-      0.603,
-      0.56,
-      0.545,
-      0.502,
-      0.43,
-      0.388,
-      0.362,
-      0.309,
-      0.26,
-      0.214
+     "span": 0.315,
+     "distinct": 94,
+     "min": -0.209,
+     "max": 0.106,
+     "samples": 121,
+     "centreRow": [
+      -0.029,
+      -0.006,
+      0.018,
+      0.022,
+      0.043,
+      0.057,
+      0.053,
+      0.066,
+      0.06,
+      0.031,
+      0.009
      ]
     },
     "humid": {
-     "span": 0.178,
-     "distinct": 11,
-     "min": -0.231,
-     "max": -0.053,
-     "samples": [
-      -0.053,
-      -0.07,
-      -0.117,
-      -0.131,
-      -0.184,
-      -0.221,
-      -0.231,
-      -0.21,
-      -0.178,
-      -0.169,
-      -0.188
+     "span": 0.739,
+     "distinct": 105,
+     "min": -0.313,
+     "max": 0.426,
+     "samples": 121,
+     "centreRow": [
+      0.062,
+      0.15,
+      0.145,
+      0.159,
+      0.156,
+      0.136,
+      0.08,
+      0.014,
+      0.049,
+      -0.034,
+      -0.094
      ]
     },
     "cont": {
-     "span": 0.408,
-     "distinct": 11,
-     "min": -0.728,
-     "max": -0.32,
-     "samples": [
-      -0.728,
-      -0.689,
-      -0.459,
-      -0.376,
-      -0.32,
-      -0.329,
-      -0.354,
-      -0.422,
-      -0.694,
-      -0.617,
-      -0.575
+     "span": 0.744,
+     "distinct": 110,
+     "min": -0.678,
+     "max": 0.066,
+     "samples": 121,
+     "centreRow": [
+      -0.179,
+      -0.176,
+      -0.106,
+      -0.148,
+      -0.227,
+      -0.193,
+      -0.165,
+      -0.148,
+      -0.025,
+      0.025,
+      -0.037
      ]
     },
     "eros": {
-     "span": 0.535,
-     "distinct": 11,
-     "min": -0.047,
-     "max": 0.487,
-     "samples": [
-      0.487,
-      0.469,
-      0.206,
-      0.134,
-      0.067,
-      -0.025,
-      -0.047,
-      -0.013,
-      0.396,
-      0.395,
-      0.369
+     "span": 0.992,
+     "distinct": 27,
+     "min": -0.5,
+     "max": 0.492,
+     "samples": 121,
+     "centreRow": [
+      0.003,
+      0.293,
+      0.3,
+      0.3,
+      0.3,
+      0.3,
+      0.3,
+      0.3,
+      0.3,
+      0.3,
+      0.3
      ]
     },
     "weird": {
-     "span": 1.055,
-     "distinct": 11,
-     "min": -0.335,
-     "max": 0.72,
-     "samples": [
-      0.011,
-      -0.335,
-      0.72,
-      0.582,
-      0.42,
-      0.289,
-      0.238,
-      0.287,
-      0.386,
-      0.374,
-      -0.184
+     "span": 2.0,
+     "distinct": 114,
+     "min": -1.0,
+     "max": 1.0,
+     "samples": 121,
+     "centreRow": [
+      0.591,
+      0.644,
+      0.33,
+      -0.214,
+      -0.439,
+      -0.242,
+      -0.196,
+      -0.213,
+      -0.085,
+      -0.012,
+      -0.211
      ]
     },
     "depth": {
-     "span": 0.238,
-     "distinct": 6,
+     "span": 0.935,
+     "distinct": 76,
      "min": 0.046,
-     "max": 0.284,
-     "samples": [
-      0.046,
-      0.046,
-      0.046,
+     "max": 0.981,
+     "samples": 121,
+     "centreRow": [
+      0.407,
+      0.419,
+      0.499,
+      0.496,
+      0.347,
+      0.357,
+      0.473,
+      0.496,
+      0.496,
+      0.421,
+      0.505
+     ]
+    }
+   }
+  },
+  "the_greywoods": {
+   "border": 1024,
+   "grid": 11,
+   "axes": {
+    "temp": {
+     "span": 0.909,
+     "distinct": 110,
+     "min": -0.257,
+     "max": 0.652,
+     "samples": 121,
+     "centreRow": [
+      0.555,
+      0.499,
+      0.403,
+      0.278,
+      0.202,
+      0.201,
+      0.163,
+      0.146,
+      0.068,
+      0.009,
+      -0.075
+     ]
+    },
+    "humid": {
+     "span": 1.049,
+     "distinct": 111,
+     "min": -0.645,
+     "max": 0.404,
+     "samples": 121,
+     "centreRow": [
+      0.205,
+      0.168,
+      0.094,
+      -0.147,
+      -0.283,
+      -0.439,
+      -0.519,
+      -0.563,
+      -0.481,
+      -0.286,
+      -0.032
+     ]
+    },
+    "cont": {
+     "span": 1.56,
+     "distinct": 113,
+     "min": -1.07,
+     "max": 0.49,
+     "samples": 121,
+     "centreRow": [
+      -0.281,
+      -0.304,
+      -0.317,
+      -0.25,
+      -0.256,
+      -0.214,
+      -0.068,
+      -0.009,
+      0.011,
+      0.068,
+      0.257
+     ]
+    },
+    "eros": {
+     "span": 0.936,
+     "distinct": 48,
+     "min": -0.5,
+     "max": 0.436,
+     "samples": 121,
+     "centreRow": [
+      -0.5,
+      -0.5,
+      -0.044,
+      0.002,
+      0.0,
+      0.3,
+      0.3,
+      0.3,
+      0.3,
+      0.3,
+      0.3
+     ]
+    },
+    "weird": {
+     "span": 2.0,
+     "distinct": 97,
+     "min": -1.0,
+     "max": 1.0,
+     "samples": 121,
+     "centreRow": [
+      1.0,
+      -1.0,
+      -0.325,
+      -0.437,
+      -0.225,
+      0.295,
+      0.347,
+      0.333,
+      0.407,
+      0.321,
+      -0.052
+     ]
+    },
+    "depth": {
+     "span": 1.135,
+     "distinct": 88,
+     "min": 0.046,
+     "max": 1.181,
+     "samples": 121,
+     "centreRow": [
+      0.309,
+      0.293,
+      0.286,
+      0.333,
+      0.329,
+      0.353,
+      0.502,
+      0.506,
+      0.509,
+      0.601,
+      0.414
+     ]
+    }
+   }
+  },
+  "the_gritlands": {
+   "border": 1024,
+   "grid": 11,
+   "axes": {
+    "temp": {
+     "span": 0.728,
+     "distinct": 105,
+     "min": -0.3,
+     "max": 0.428,
+     "samples": 121,
+     "centreRow": [
+      0.047,
+      0.066,
+      0.097,
+      0.029,
+      -0.005,
+      -0.08,
+      -0.041,
+      0.085,
+      0.122,
+      0.128,
+      0.127
+     ]
+    },
+    "humid": {
+     "span": 0.943,
+     "distinct": 109,
+     "min": -0.471,
+     "max": 0.472,
+     "samples": 121,
+     "centreRow": [
+      -0.023,
+      -0.028,
+      0.185,
+      0.377,
+      0.451,
+      0.363,
+      0.196,
+      0.032,
+      0.132,
+      0.065,
+      -0.018
+     ]
+    },
+    "cont": {
+     "span": 0.828,
+     "distinct": 111,
+     "min": -0.303,
+     "max": 0.525,
+     "samples": 121,
+     "centreRow": [
+      -0.121,
+      -0.047,
+      -0.002,
+      0.011,
+      0.006,
+      0.047,
+      0.221,
+      0.322,
+      0.378,
+      0.501,
+      0.525
+     ]
+    },
+    "eros": {
+     "span": 1.6,
+     "distinct": 53,
+     "min": -1.0,
+     "max": 0.6,
+     "samples": 121,
+     "centreRow": [
+      -0.083,
+      -0.024,
+      -0.5,
+      -0.3,
+      -0.08,
+      0.3,
+      0.3,
+      0.5,
+      0.6,
+      0.5,
+      0.5
+     ]
+    },
+    "weird": {
+     "span": 2.0,
+     "distinct": 78,
+     "min": -1.0,
+     "max": 1.0,
+     "samples": 121,
+     "centreRow": [
+      -1.0,
+      -0.654,
+      -0.5,
+      -0.5,
+      -0.5,
+      -0.66,
+      0.5,
+      0.5,
+      0.5,
+      -0.343,
+      0.058
+     ]
+    },
+    "depth": {
+     "span": 1.006,
+     "distinct": 90,
+     "min": 0.294,
+     "max": 1.3,
+     "samples": 121,
+     "centreRow": [
+      0.526,
+      0.792,
+      1.3,
+      1.15,
+      0.961,
+      0.573,
+      0.6,
+      1.3,
+      1.3,
+      1.101,
+      0.445
+     ]
+    }
+   }
+  },
+  "the_highland_crossing": {
+   "border": 4096,
+   "grid": 11,
+   "axes": {
+    "temp": {
+     "span": 1.733,
+     "distinct": 114,
+     "min": -0.83,
+     "max": 0.903,
+     "samples": 121,
+     "centreRow": [
+      0.116,
+      0.485,
+      0.549,
+      0.506,
+      0.314,
+      0.31,
+      0.346,
+      0.339,
+      -0.016,
+      -0.227,
+      -0.246
+     ]
+    },
+    "humid": {
+     "span": 1.357,
+     "distinct": 114,
+     "min": -0.751,
+     "max": 0.606,
+     "samples": 121,
+     "centreRow": [
+      -0.059,
+      -0.405,
+      -0.1,
+      0.361,
+      -0.026,
+      0.031,
+      -0.23,
+      -0.751,
+      -0.004,
+      -0.162,
+      -0.265
+     ]
+    },
+    "cont": {
+     "span": 1.162,
+     "distinct": 69,
+     "min": -0.637,
+     "max": 0.525,
+     "samples": 121,
+     "centreRow": [
+      -0.203,
+      0.207,
+      0.525,
+      0.525,
+      0.525,
+      0.525,
+      0.525,
+      0.525,
+      0.525,
+      0.303,
+      -0.409
+     ]
+    },
+    "eros": {
+     "span": 1.659,
+     "distinct": 57,
+     "min": -1.0,
+     "max": 0.659,
+     "samples": 121,
+     "centreRow": [
+      -0.5,
+      -1.0,
+      -0.29,
+      0.0,
+      0.026,
+      0.186,
+      0.0,
+      0.3,
+      0.463,
+      0.003,
+      0.0
+     ]
+    },
+    "weird": {
+     "span": 2.069,
+     "distinct": 79,
+     "min": -1.069,
+     "max": 1.0,
+     "samples": 121,
+     "centreRow": [
+      -1.0,
+      0.5,
+      -0.5,
+      0.423,
+      0.322,
+      0.084,
+      -0.398,
+      -0.603,
+      -0.037,
+      0.449,
+      -0.086
+     ]
+    },
+    "depth": {
+     "span": 1.254,
+     "distinct": 79,
+     "min": 0.046,
+     "max": 1.3,
+     "samples": 121,
+     "centreRow": [
+      0.356,
+      1.3,
+      1.3,
+      0.752,
+      0.933,
+      0.503,
+      0.727,
+      0.649,
+      0.395,
+      0.965,
+      0.129
+     ]
+    }
+   }
+  },
+  "the_icebound_rift": {
+   "border": 512,
+   "grid": 11,
+   "axes": {
+    "temp": {
+     "span": 0.507,
+     "distinct": 109,
+     "min": 0.169,
+     "max": 0.676,
+     "samples": 121,
+     "centreRow": [
+      0.617,
+      0.581,
+      0.547,
+      0.53,
+      0.487,
+      0.43,
+      0.394,
+      0.373,
+      0.339,
+      0.3,
+      0.239
+     ]
+    },
+    "humid": {
+     "span": 0.637,
+     "distinct": 112,
+     "min": -0.466,
+     "max": 0.171,
+     "samples": 121,
+     "centreRow": [
+      0.008,
+      -0.046,
+      -0.099,
+      -0.112,
+      -0.185,
+      -0.221,
+      -0.267,
+      -0.263,
+      -0.258,
+      -0.27,
+      -0.279
+     ]
+    },
+    "cont": {
+     "span": 0.581,
+     "distinct": 104,
+     "min": -0.812,
+     "max": -0.231,
+     "samples": 121,
+     "centreRow": [
+      -0.711,
+      -0.494,
+      -0.401,
+      -0.348,
+      -0.35,
+      -0.329,
+      -0.326,
+      -0.414,
+      -0.702,
+      -0.704,
+      -0.641
+     ]
+    },
+    "eros": {
+     "span": 1.023,
+     "distinct": 97,
+     "min": -0.5,
+     "max": 0.523,
+     "samples": 121,
+     "centreRow": [
+      0.406,
+      0.12,
+      0.112,
+      0.072,
+      0.018,
+      -0.025,
+      0.01,
+      0.042,
+      0.407,
+      0.406,
+      0.374
+     ]
+    },
+    "weird": {
+     "span": 1.867,
+     "distinct": 87,
+     "min": -0.725,
+     "max": 1.142,
+     "samples": 121,
+     "centreRow": [
+      -0.329,
+      1.028,
+      0.952,
+      0.733,
+      0.486,
+      0.289,
+      0.212,
       0.237,
-      0.284,
+      0.156,
+      -0.17,
+      -0.228
+     ]
+    },
+    "depth": {
+     "span": 0.299,
+     "distinct": 63,
+     "min": 0.046,
+     "max": 0.345,
+     "samples": 121,
+     "centreRow": [
+      0.046,
+      0.046,
+      0.159,
+      0.276,
+      0.276,
       0.28,
-      0.275,
-      0.091,
+      0.281,
+      0.114,
       0.046,
       0.046,
       0.046
@@ -2113,45 +5099,300 @@
     }
    }
   },
-  "the_luminous_caverns": {
-   "border": 1024,
+  "the_lantern_pools": {
+   "border": 512,
+   "grid": 11,
    "axes": {
     "temp": {
-     "span": 1.848,
-     "distinct": 11,
-     "min": -0.831,
-     "max": 1.017,
-     "samples": [
-      0.281,
-      0.809,
-      0.622,
-      0.021,
-      -0.024,
-      0.486,
-      0.275,
-      -0.831,
+     "span": 0.313,
+     "distinct": 79,
+     "min": -0.259,
+     "max": 0.054,
+     "samples": 121,
+     "centreRow": [
+      -0.179,
+      -0.169,
+      -0.196,
+      -0.195,
+      -0.141,
+      -0.16,
+      -0.175,
       -0.185,
-      1.017,
-      0.978
+      -0.183,
+      -0.168,
+      -0.195
      ]
     },
     "humid": {
-     "span": 0.461,
-     "distinct": 11,
-     "min": -0.298,
-     "max": 0.162,
-     "samples": [
-      0.091,
-      -0.2,
-      -0.044,
-      -0.207,
-      0.15,
+     "span": 0.731,
+     "distinct": 108,
+     "min": -0.29,
+     "max": 0.441,
+     "samples": 121,
+     "centreRow": [
+      0.174,
+      0.157,
+      0.146,
+      0.132,
+      0.057,
+      0.035,
+      0.026,
+      0.039,
+      0.077,
+      0.146,
+      0.133
+     ]
+    },
+    "cont": {
+     "span": 0.633,
+     "distinct": 110,
+     "min": -0.706,
+     "max": -0.073,
+     "samples": 121,
+     "centreRow": [
+      -0.64,
+      -0.427,
+      -0.378,
+      -0.378,
+      -0.327,
+      -0.28,
+      -0.248,
+      -0.202,
+      -0.129,
+      -0.1,
+      -0.077
+     ]
+    },
+    "eros": {
+     "span": 0.639,
+     "distinct": 57,
+     "min": -0.508,
+     "max": 0.131,
+     "samples": 121,
+     "centreRow": [
+      -0.351,
+      -0.294,
+      -0.5,
+      -0.5,
+      -0.5,
+      -0.5,
+      -0.5,
+      -0.5,
+      -0.5,
+      -0.3,
+      -0.264
+     ]
+    },
+    "weird": {
+     "span": 2.0,
+     "distinct": 44,
+     "min": -1.0,
+     "max": 1.0,
+     "samples": 121,
+     "centreRow": [
+      -0.054,
+      -1.0,
+      -1.0,
+      -1.0,
+      -1.0,
+      -1.0,
+      -1.0,
+      -1.0,
+      -1.0,
+      0.5,
+      0.5
+     ]
+    },
+    "depth": {
+     "span": 0.768,
+     "distinct": 74,
+     "min": 0.046,
+     "max": 0.814,
+     "samples": 121,
+     "centreRow": [
+      0.046,
+      0.077,
+      0.233,
+      0.233,
+      0.281,
+      0.31,
+      0.335,
+      0.356,
+      0.46,
+      0.785,
+      0.781
+     ]
+    }
+   }
+  },
+  "the_lost_outpost": {
+   "border": 512,
+   "grid": 11,
+   "axes": {
+    "temp": {
+     "span": 0.432,
+     "distinct": 105,
+     "min": -0.59,
+     "max": -0.158,
+     "samples": 121,
+     "centreRow": [
+      -0.361,
+      -0.361,
+      -0.356,
+      -0.402,
+      -0.438,
+      -0.424,
+      -0.375,
+      -0.373,
+      -0.36,
+      -0.358,
+      -0.351
+     ]
+    },
+    "humid": {
+     "span": 0.557,
+     "distinct": 104,
+     "min": -0.499,
+     "max": 0.058,
+     "samples": 121,
+     "centreRow": [
+      -0.167,
+      -0.205,
+      -0.244,
+      -0.286,
+      -0.36,
+      -0.463,
+      -0.497,
+      -0.468,
+      -0.373,
+      -0.28,
+      -0.141
+     ]
+    },
+    "cont": {
+     "span": 0.033,
+     "distinct": 6,
+     "min": 0.492,
+     "max": 0.525,
+     "samples": 121,
+     "centreRow": [
+      0.525,
+      0.525,
+      0.525,
+      0.525,
+      0.525,
+      0.525,
+      0.525,
+      0.525,
+      0.525,
+      0.525,
+      0.515
+     ]
+    },
+    "eros": {
+     "span": 0.326,
+     "distinct": 14,
+     "min": 0.0,
+     "max": 0.326,
+     "samples": 121,
+     "centreRow": [
+      0.308,
+      0.3,
+      0.3,
+      0.3,
+      0.3,
+      0.3,
+      0.3,
+      0.3,
+      0.3,
+      0.3,
+      0.3
+     ]
+    },
+    "weird": {
+     "span": 1.015,
+     "distinct": 106,
+     "min": -0.513,
+     "max": 0.502,
+     "samples": 121,
+     "centreRow": [
+      -0.296,
+      -0.308,
+      -0.27,
+      -0.261,
+      -0.273,
+      -0.183,
+      -0.085,
+      0.007,
+      0.129,
+      0.269,
+      0.476
+     ]
+    },
+    "depth": {
+     "span": 0.447,
+     "distinct": 104,
+     "min": 0.399,
+     "max": 0.846,
+     "samples": 121,
+     "centreRow": [
+      0.576,
+      0.663,
+      0.608,
+      0.601,
+      0.539,
+      0.534,
+      0.496,
+      0.406,
+      0.523,
+      0.578,
+      0.512
+     ]
+    }
+   }
+  },
+  "the_luminous_caverns": {
+   "border": 1024,
+   "grid": 11,
+   "axes": {
+    "temp": {
+     "span": 1.862,
+     "distinct": 115,
+     "min": -0.81,
+     "max": 1.052,
+     "samples": 121,
+     "centreRow": [
+      -0.395,
+      -0.702,
+      -0.09,
+      0.261,
+      0.201,
+      0.486,
+      0.744,
+      0.039,
+      -0.327,
+      -0.329,
+      -0.548
+     ]
+    },
+    "humid": {
+     "span": 1.414,
+     "distinct": 117,
+     "min": -0.804,
+     "max": 0.61,
+     "samples": 121,
+     "centreRow": [
+      -0.04,
+      -0.139,
+      0.195,
+      0.102,
+      0.173,
       0.045,
-      -0.025,
-      -0.004,
-      -0.298,
-      0.162,
-      0.042
+      -0.036,
+      -0.208,
+      -0.07,
+      -0.092,
+      -0.383
      ]
     },
     "cont": {
@@ -2159,7 +5400,8 @@
      "distinct": 1,
      "min": 0.0,
      "max": 0.0,
-     "samples": [
+     "samples": 121,
+     "centreRow": [
       0.0,
       0.0,
       0.0,
@@ -2178,7 +5420,8 @@
      "distinct": 1,
      "min": 0.0,
      "max": 0.0,
-     "samples": [
+     "samples": 121,
+     "centreRow": [
       0.0,
       0.0,
       0.0,
@@ -2197,7 +5440,8 @@
      "distinct": 1,
      "min": 0.0,
      "max": 0.0,
-     "samples": [
+     "samples": 121,
+     "centreRow": [
       0.0,
       0.0,
       0.0,
@@ -2216,7 +5460,8 @@
      "distinct": 1,
      "min": 0.0,
      "max": 0.0,
-     "samples": [
+     "samples": 121,
+     "centreRow": [
       0.0,
       0.0,
       0.0,
@@ -2232,120 +5477,757 @@
     }
    }
   },
-  "the_pale_reach": {
-   "border": 683,
+  "the_miredeep": {
+   "border": 1024,
+   "grid": 11,
    "axes": {
     "temp": {
-     "span": 0.272,
-     "distinct": 11,
-     "min": -0.411,
-     "max": -0.139,
-     "samples": [
-      -0.139,
-      -0.184,
-      -0.215,
-      -0.247,
-      -0.272,
-      -0.298,
-      -0.325,
-      -0.35,
-      -0.374,
-      -0.394,
-      -0.411
+     "span": 1.18,
+     "distinct": 113,
+     "min": -0.314,
+     "max": 0.866,
+     "samples": 121,
+     "centreRow": [
+      0.807,
+      0.828,
+      0.81,
+      0.75,
+      0.692,
+      0.69,
+      0.646,
+      0.613,
+      0.453,
+      0.439,
+      0.297
      ]
     },
     "humid": {
-     "span": 0.344,
-     "distinct": 11,
-     "min": -0.285,
-     "max": 0.059,
-     "samples": [
-      -0.257,
-      -0.28,
-      -0.285,
-      -0.273,
-      -0.248,
-      -0.212,
-      -0.163,
-      -0.112,
-      -0.051,
-      0.006,
-      0.059
+     "span": 1.071,
+     "distinct": 116,
+     "min": -0.563,
+     "max": 0.508,
+     "samples": 121,
+     "centreRow": [
+      0.118,
+      0.368,
+      0.453,
+      0.473,
+      0.396,
+      0.202,
+      0.126,
+      0.057,
+      -0.095,
+      -0.305,
+      -0.459
      ]
     },
     "cont": {
-     "span": 0.696,
-     "distinct": 11,
-     "min": -0.526,
-     "max": 0.17,
-     "samples": [
-      0.095,
-      0.17,
-      -0.234,
-      -0.164,
-      -0.107,
-      -0.121,
-      -0.255,
-      -0.227,
-      -0.235,
-      -0.291,
-      -0.526
+     "span": 1.05,
+     "distinct": 111,
+     "min": -0.695,
+     "max": 0.355,
+     "samples": 121,
+     "centreRow": [
+      -0.263,
+      -0.221,
+      -0.308,
+      -0.475,
+      -0.197,
+      -0.178,
+      -0.282,
+      -0.346,
+      -0.515,
+      -0.009,
+      -0.035
      ]
     },
     "eros": {
-     "span": 0.369,
-     "distinct": 11,
-     "min": -0.199,
-     "max": 0.171,
-     "samples": [
-      0.171,
-      0.097,
-      0.026,
-      0.006,
-      0.009,
-      -0.001,
-      -0.082,
-      -0.091,
-      -0.068,
-      -0.115,
-      -0.199
+     "span": 0.85,
+     "distinct": 49,
+     "min": -0.55,
+     "max": 0.3,
+     "samples": 121,
+     "centreRow": [
+      0.3,
+      0.3,
+      0.152,
+      -0.025,
+      -0.55,
+      -0.55,
+      -0.55,
+      -0.55,
+      -0.051,
+      -0.55,
+      -0.55
      ]
     },
     "weird": {
-     "span": 0.85,
-     "distinct": 11,
-     "min": -0.792,
-     "max": 0.059,
-     "samples": [
-      -0.385,
-      -0.494,
-      -0.173,
-      -0.192,
-      -0.228,
+     "span": 2.0,
+     "distinct": 105,
+     "min": -1.0,
+     "max": 1.0,
+     "samples": 121,
+     "centreRow": [
+      0.116,
+      0.131,
+      -0.224,
+      -0.352,
+      -0.121,
+      -0.584,
+      0.062,
+      0.411,
+      0.182,
+      -0.051,
+      -0.867
+     ]
+    },
+    "depth": {
+     "span": 1.228,
+     "distinct": 89,
+     "min": 0.046,
+     "max": 1.274,
+     "samples": 121,
+     "centreRow": [
+      0.324,
+      0.35,
+      0.291,
+      0.046,
+      0.374,
+      0.38,
+      0.332,
+      0.291,
+      0.046,
+      0.381,
+      0.595
+     ]
+    }
+   }
+  },
+  "the_molten_flats": {
+   "border": 1024,
+   "grid": 11,
+   "axes": {
+    "temp": {
+     "span": 1.892,
+     "distinct": 116,
+     "min": -1.079,
+     "max": 0.813,
+     "samples": 121,
+     "centreRow": [
+      0.097,
+      -0.066,
+      -0.201,
+      -0.174,
+      -0.047,
+      0.129,
+      0.308,
+      0.239,
+      -0.153,
+      -0.296,
+      -0.03
+     ]
+    },
+    "humid": {
+     "span": 1.372,
+     "distinct": 116,
+     "min": -0.531,
+     "max": 0.841,
+     "samples": 121,
+     "centreRow": [
+      0.477,
+      0.517,
+      0.459,
+      0.218,
+      0.248,
+      0.206,
+      0.071,
+      0.086,
+      0.015,
+      -0.098,
+      -0.349
+     ]
+    },
+    "cont": {
+     "span": 1.183,
+     "distinct": 111,
+     "min": -0.494,
+     "max": 0.689,
+     "samples": 121,
+     "centreRow": [
+      -0.367,
+      -0.393,
+      -0.377,
+      -0.13,
+      0.098,
+      0.407,
+      0.254,
+      0.461,
+      0.135,
+      0.358,
+      0.171
+     ]
+    },
+    "eros": {
+     "span": 1.162,
+     "distinct": 113,
+     "min": -0.57,
+     "max": 0.592,
+     "samples": 121,
+     "centreRow": [
+      0.23,
+      0.495,
+      0.46,
+      0.478,
+      0.592,
+      0.493,
+      0.471,
+      0.045,
+      0.087,
+      -0.032,
+      -0.237
+     ]
+    },
+    "weird": {
+     "span": 1.437,
+     "distinct": 118,
+     "min": -0.599,
+     "max": 0.838,
+     "samples": 121,
+     "centreRow": [
+      0.034,
+      -0.028,
+      -0.038,
+      0.079,
+      -0.197,
+      0.04,
+      -0.164,
+      -0.599,
+      -0.381,
+      -0.108,
+      -0.41
+     ]
+    },
+    "depth": {
+     "span": 1.07,
+     "distinct": 113,
+     "min": -0.438,
+     "max": 0.632,
+     "samples": 121,
+     "centreRow": [
+      0.055,
+      0.001,
+      -0.122,
+      -0.285,
+      -0.316,
+      -0.072,
+      0.181,
+      0.23,
+      0.35,
+      0.502,
+      0.318
+     ]
+    }
+   }
+  },
+  "the_needlefall": {
+   "border": 1024,
+   "grid": 11,
+   "axes": {
+    "temp": {
+     "span": 1.459,
+     "distinct": 117,
+     "min": -0.556,
+     "max": 0.903,
+     "samples": 121,
+     "centreRow": [
+      0.566,
+      0.56,
+      0.588,
+      0.586,
+      0.453,
+      0.259,
+      0.166,
+      0.005,
+      -0.148,
+      -0.344,
+      -0.456
+     ]
+    },
+    "humid": {
+     "span": 1.003,
+     "distinct": 109,
+     "min": -0.52,
+     "max": 0.483,
+     "samples": 121,
+     "centreRow": [
+      0.238,
+      0.193,
+      0.233,
+      0.346,
+      0.26,
+      0.107,
+      0.026,
+      -0.118,
+      -0.17,
+      -0.139,
+      -0.024
+     ]
+    },
+    "cont": {
+     "span": 1.379,
+     "distinct": 116,
+     "min": -0.854,
+     "max": 0.525,
+     "samples": 121,
+     "centreRow": [
+      -0.427,
+      -0.636,
+      -0.643,
+      -0.481,
+      -0.134,
+      0.047,
       0.059,
-      -0.099,
-      -0.291,
-      -0.487,
-      -0.792,
-      0.004
+      -0.054,
+      -0.112,
+      -0.236,
+      -0.419
+     ]
+    },
+    "eros": {
+     "span": 1.6,
+     "distinct": 75,
+     "min": -1.0,
+     "max": 0.6,
+     "samples": 121,
+     "centreRow": [
+      -0.5,
+      -0.544,
+      -0.867,
+      0.6,
+      0.6,
+      0.237,
+      0.0,
+      0.004,
+      -0.021,
+      -0.5,
+      -0.249
+     ]
+    },
+    "weird": {
+     "span": 2.086,
+     "distinct": 86,
+     "min": -1.0,
+     "max": 1.086,
+     "samples": 121,
+     "centreRow": [
+      -1.0,
+      -0.045,
+      0.261,
+      -0.45,
+      -0.494,
+      -0.057,
+      0.46,
+      0.498,
+      0.553,
+      1.0,
+      -1.0
+     ]
+    },
+    "depth": {
+     "span": 1.254,
+     "distinct": 62,
+     "min": 0.046,
+     "max": 1.3,
+     "samples": 121,
+     "centreRow": [
+      0.076,
+      0.046,
+      0.046,
+      0.046,
+      0.498,
+      0.447,
+      0.824,
+      0.507,
+      0.568,
+      0.342,
+      0.099
+     ]
+    }
+   }
+  },
+  "the_overgrowth": {
+   "border": 1024,
+   "grid": 11,
+   "axes": {
+    "temp": {
+     "span": 0.608,
+     "distinct": 104,
+     "min": -0.181,
+     "max": 0.427,
+     "samples": 121,
+     "centreRow": [
+      0.148,
+      0.149,
+      0.138,
+      0.157,
+      0.155,
+      0.051,
+      0.048,
+      0.072,
+      0.15,
+      0.24,
+      0.279
+     ]
+    },
+    "humid": {
+     "span": 1.051,
+     "distinct": 113,
+     "min": -0.63,
+     "max": 0.421,
+     "samples": 121,
+     "centreRow": [
+      -0.045,
+      -0.175,
+      -0.258,
+      -0.156,
+      -0.124,
+      0.119,
+      -0.131,
+      -0.316,
+      -0.476,
+      -0.418,
+      -0.322
+     ]
+    },
+    "cont": {
+     "span": 0.971,
+     "distinct": 111,
+     "min": -0.705,
+     "max": 0.266,
+     "samples": 121,
+     "centreRow": [
+      -0.398,
+      -0.461,
+      -0.411,
+      -0.383,
+      -0.334,
+      -0.302,
+      -0.056,
+      0.064,
+      0.135,
+      -0.072,
+      -0.14
+     ]
+    },
+    "eros": {
+     "span": 1.403,
+     "distinct": 52,
+     "min": -0.976,
+     "max": 0.427,
+     "samples": 121,
+     "centreRow": [
+      -0.55,
+      0.0,
+      0.0,
+      -0.024,
+      -0.3,
+      0.003,
+      0.0,
+      0.0,
+      0.3,
+      0.3,
+      -0.018
+     ]
+    },
+    "weird": {
+     "span": 2.0,
+     "distinct": 87,
+     "min": -1.0,
+     "max": 1.0,
+     "samples": 121,
+     "centreRow": [
+      0.038,
+      0.436,
+      -0.107,
+      0.078,
+      1.0,
+      0.201,
+      0.321,
+      -0.419,
+      -0.053,
+      -0.079,
+      0.021
+     ]
+    },
+    "depth": {
+     "span": 1.254,
+     "distinct": 85,
+     "min": 0.046,
+     "max": 1.3,
+     "samples": 121,
+     "centreRow": [
+      0.276,
+      0.046,
+      0.124,
+      0.219,
+      0.279,
+      0.294,
+      0.507,
+      0.615,
+      0.427,
+      0.484,
+      0.427
+     ]
+    }
+   }
+  },
+  "the_pale_reach": {
+   "border": 683,
+   "grid": 11,
+   "axes": {
+    "temp": {
+     "span": 0.393,
+     "distinct": 97,
+     "min": -0.446,
+     "max": -0.053,
+     "samples": 121,
+     "centreRow": [
+      -0.236,
+      -0.251,
+      -0.264,
+      -0.274,
+      -0.284,
+      -0.298,
+      -0.314,
+      -0.331,
+      -0.348,
+      -0.363,
+      -0.377
+     ]
+    },
+    "humid": {
+     "span": 0.39,
+     "distinct": 97,
+     "min": -0.287,
+     "max": 0.103,
+     "samples": 121,
+     "centreRow": [
+      -0.279,
+      -0.286,
+      -0.284,
+      -0.27,
+      -0.247,
+      -0.212,
+      -0.165,
+      -0.106,
+      -0.04,
+      0.026,
+      0.103
+     ]
+    },
+    "cont": {
+     "span": 1.592,
+     "distinct": 116,
+     "min": -0.867,
+     "max": 0.725,
+     "samples": 121,
+     "centreRow": [
+      0.102,
+      0.23,
+      -0.114,
+      -0.117,
+      -0.081,
+      -0.121,
+      -0.282,
+      -0.387,
+      -0.492,
+      -0.582,
+      -0.867
+     ]
+    },
+    "eros": {
+     "span": 0.519,
+     "distinct": 104,
+     "min": -0.219,
+     "max": 0.3,
+     "samples": 121,
+     "centreRow": [
+      0.021,
+      0.04,
+      0.019,
+      -0.005,
+      -0.005,
+      -0.001,
+      -0.04,
+      -0.097,
+      -0.08,
+      -0.056,
+      -0.061
+     ]
+    },
+    "weird": {
+     "span": 2.037,
+     "distinct": 117,
+     "min": -1.067,
+     "max": 0.97,
+     "samples": 121,
+     "centreRow": [
+      0.295,
+      0.495,
+      0.204,
+      -0.242,
+      -0.079,
+      0.059,
+      -0.434,
+      -0.773,
+      -1.067,
+      -0.76,
+      0.092
      ]
     },
     "depth": {
      "span": 40.0,
-     "distinct": 10,
+     "distinct": 103,
      "min": 40.0,
      "max": 80.0,
-     "samples": [
-      40.0,
-      50.867,
-      63.803,
-      74.409,
-      79.526,
+     "samples": 121,
+     "centreRow": [
+      58.247,
+      69.891,
+      74.48,
+      79.202,
+      79.96,
       80.0,
-      79.944,
-      74.675,
-      64.381,
-      49.037,
+      79.997,
+      79.504,
+      77.493,
+      72.554,
+      68.359
+     ]
+    }
+   }
+  },
+  "the_pillared_void": {
+   "border": 4096,
+   "grid": 11,
+   "axes": {
+    "temp": {
+     "span": 1.532,
+     "distinct": 118,
+     "min": -0.554,
+     "max": 0.978,
+     "samples": 121,
+     "centreRow": [
+      0.888,
+      0.978,
+      0.871,
+      0.814,
+      0.776,
+      0.545,
+      0.356,
+      0.321,
+      0.187,
+      0.129,
+      0.16
+     ]
+    },
+    "humid": {
+     "span": 1.031,
+     "distinct": 113,
+     "min": -0.621,
+     "max": 0.41,
+     "samples": 121,
+     "centreRow": [
+      0.045,
+      -0.254,
+      -0.32,
+      -0.273,
+      0.004,
+      0.203,
+      0.092,
+      -0.068,
+      -0.347,
+      -0.347,
+      -0.187
+     ]
+    },
+    "cont": {
+     "span": 2.045,
+     "distinct": 114,
+     "min": -0.831,
+     "max": 1.214,
+     "samples": 121,
+     "centreRow": [
+      0.941,
+      0.078,
+      0.489,
+      0.359,
+      0.671,
+      0.165,
+      0.058,
+      0.649,
+      -0.115,
+      0.074,
+      -0.018
+     ]
+    },
+    "eros": {
+     "span": 1.093,
+     "distinct": 114,
+     "min": -0.677,
+     "max": 0.416,
+     "samples": 121,
+     "centreRow": [
+      -0.176,
+      -0.203,
+      -0.183,
+      -0.062,
+      -0.053,
+      -0.136,
+      -0.117,
+      -0.07,
+      -0.329,
+      -0.507,
+      -0.525
+     ]
+    },
+    "weird": {
+     "span": 1.699,
+     "distinct": 114,
+     "min": -0.76,
+     "max": 0.939,
+     "samples": 121,
+     "centreRow": [
+      -0.282,
+      0.005,
+      -0.241,
+      0.011,
+      -0.678,
+      0.246,
+      0.384,
+      -0.188,
+      -0.226,
+      0.523,
+      -0.038
+     ]
+    },
+    "depth": {
+     "span": 39.8,
+     "distinct": 6,
+     "min": 40.0,
+     "max": 79.8,
+     "samples": 121,
+     "centreRow": [
+      40.0,
+      40.0,
+      40.0,
+      40.0,
+      67.156,
+      79.8,
+      64.267,
+      40.0,
+      40.0,
+      40.0,
       40.0
      ]
     }
@@ -2353,91 +6235,97 @@
   },
   "the_red_monument": {
    "border": 512,
+   "grid": 11,
    "axes": {
     "temp": {
-     "span": 0.151,
-     "distinct": 11,
-     "min": -0.356,
-     "max": -0.206,
-     "samples": [
-      -0.356,
-      -0.335,
-      -0.325,
-      -0.291,
-      -0.296,
+     "span": 0.316,
+     "distinct": 100,
+     "min": -0.474,
+     "max": -0.158,
+     "samples": 121,
+     "centreRow": [
+      -0.4,
+      -0.362,
+      -0.342,
+      -0.321,
+      -0.316,
       -0.333,
-      -0.318,
-      -0.306,
-      -0.267,
-      -0.238,
-      -0.206
+      -0.305,
+      -0.282,
+      -0.257,
+      -0.222,
+      -0.2
      ]
     },
     "humid": {
-     "span": 0.511,
-     "distinct": 11,
-     "min": -0.645,
-     "max": -0.135,
-     "samples": [
-      -0.637,
-      -0.598,
-      -0.645,
-      -0.626,
-      -0.587,
+     "span": 0.635,
+     "distinct": 103,
+     "min": -0.7,
+     "max": -0.065,
+     "samples": 121,
+     "centreRow": [
+      -0.608,
+      -0.641,
+      -0.647,
+      -0.625,
+      -0.597,
       -0.516,
-      -0.468,
-      -0.415,
-      -0.337,
-      -0.212,
-      -0.135
+      -0.449,
+      -0.357,
+      -0.294,
+      -0.221,
+      -0.148
      ]
     },
     "cont": {
-     "span": 0.657,
-     "distinct": 11,
-     "min": -0.287,
-     "max": 0.37,
-     "samples": [
-      -0.287,
-      -0.185,
-      -0.101,
-      -0.03,
-      0.001,
+     "span": 0.676,
+     "distinct": 109,
+     "min": -0.304,
+     "max": 0.372,
+     "samples": 121,
+     "centreRow": [
+      -0.253,
+      -0.225,
+      -0.119,
+      -0.048,
+      0.009,
       0.03,
-      0.046,
-      0.129,
-      0.309,
-      0.355,
-      0.37
+      0.035,
+      0.037,
+      0.104,
+      0.215,
+      0.312
      ]
     },
     "eros": {
-     "span": 0.909,
-     "distinct": 8,
+     "span": 1.268,
+     "distinct": 68,
      "min": -1.0,
-     "max": -0.091,
-     "samples": [
-      -0.091,
-      -0.115,
-      -0.191,
-      -0.3,
+     "max": 0.268,
+     "samples": 121,
+     "centreRow": [
+      0.118,
+      0.032,
+      -0.139,
+      -0.294,
       -0.3,
       -0.5,
-      -0.722,
-      -0.994,
-      -1.0,
+      -0.643,
+      -0.658,
+      -0.96,
       -1.0,
       -1.0
      ]
     },
     "weird": {
      "span": 2.0,
-     "distinct": 3,
+     "distinct": 25,
      "min": -1.0,
      "max": 1.0,
-     "samples": [
-      1.0,
-      -1.0,
+     "samples": 121,
+     "centreRow": [
+      -0.58,
+      -0.626,
       -0.5,
       -0.5,
       -0.5,
@@ -2450,19 +6338,20 @@
      ]
     },
     "depth": {
-     "span": 0.995,
-     "distinct": 8,
-     "min": 0.305,
+     "span": 1.007,
+     "distinct": 70,
+     "min": 0.293,
      "max": 1.3,
-     "samples": [
-      0.305,
-      0.379,
-      0.628,
-      0.907,
-      0.982,
+     "samples": 121,
+     "centreRow": [
+      0.331,
+      0.348,
+      0.541,
+      0.858,
+      1.025,
       1.142,
-      1.286,
-      1.3,
+      1.212,
+      1.242,
       1.3,
       1.3,
       1.3
@@ -2470,402 +6359,2064 @@
     }
    }
   },
-  "the_sculked_beyond": {
-   "border": 512,
+  "the_roothold": {
+   "border": 1024,
+   "grid": 11,
    "axes": {
     "temp": {
-     "span": 0.398,
-     "distinct": 11,
-     "min": -0.284,
-     "max": 0.114,
-     "samples": [
-      -0.284,
-      -0.142,
-      -0.064,
-      0.076,
-      0.114,
-      0.072,
-      -0.041,
-      -0.078,
-      -0.07,
-      -0.165,
-      0.07
+     "span": 1.399,
+     "distinct": 116,
+     "min": -0.625,
+     "max": 0.774,
+     "samples": 121,
+     "centreRow": [
+      0.453,
+      0.412,
+      0.412,
+      0.429,
+      0.401,
+      0.344,
+      0.251,
+      0.106,
+      -0.017,
+      -0.131,
+      -0.299
      ]
     },
     "humid": {
-     "span": 0.723,
-     "distinct": 11,
-     "min": -0.154,
-     "max": 0.569,
-     "samples": [
-      0.059,
-      0.269,
-      0.07,
-      -0.154,
-      0.045,
-      0.505,
-      0.569,
-      0.261,
-      0.035,
-      -0.032,
-      0.195
-     ]
-    },
-    "cont": {
-     "span": 0.0,
-     "distinct": 1,
-     "min": 0.0,
-     "max": 0.0,
-     "samples": [
-      0.0,
-      0.0,
-      0.0,
-      0.0,
-      0.0,
-      0.0,
-      0.0,
-      0.0,
-      0.0,
-      0.0,
-      0.0
-     ]
-    },
-    "eros": {
-     "span": 0.0,
-     "distinct": 1,
-     "min": 0.0,
-     "max": 0.0,
-     "samples": [
-      0.0,
-      0.0,
-      0.0,
-      0.0,
-      0.0,
-      0.0,
-      0.0,
-      0.0,
-      0.0,
-      0.0,
-      0.0
-     ]
-    },
-    "weird": {
-     "span": 0.0,
-     "distinct": 1,
-     "min": 0.0,
-     "max": 0.0,
-     "samples": [
-      0.0,
-      0.0,
-      0.0,
-      0.0,
-      0.0,
-      0.0,
-      0.0,
-      0.0,
-      0.0,
-      0.0,
-      0.0
-     ]
-    },
-    "depth": {
-     "span": 0.0,
-     "distinct": 1,
-     "min": 0.0,
-     "max": 0.0,
-     "samples": [
-      0.0,
-      0.0,
-      0.0,
-      0.0,
-      0.0,
-      0.0,
-      0.0,
-      0.0,
-      0.0,
-      0.0,
-      0.0
-     ]
-    }
-   }
-  },
-  "the_slatemouth": {
-   "border": 512,
-   "axes": {
-    "temp": {
-     "span": 0.132,
-     "distinct": 11,
-     "min": -0.589,
-     "max": -0.457,
-     "samples": [
-      -0.457,
-      -0.471,
-      -0.477,
-      -0.48,
-      -0.498,
-      -0.529,
-      -0.536,
-      -0.545,
-      -0.564,
-      -0.589,
-      -0.563
-     ]
-    },
-    "humid": {
-     "span": 0.306,
-     "distinct": 11,
-     "min": -0.065,
-     "max": 0.241,
-     "samples": [
-      -0.065,
-      0.036,
-      0.112,
-      0.17,
+     "span": 1.065,
+     "distinct": 112,
+     "min": -0.404,
+     "max": 0.661,
+     "samples": 121,
+     "centreRow": [
+      0.29,
+      0.162,
       0.169,
-      0.172,
-      0.173,
-      0.199,
-      0.236,
-      0.241,
-      0.209
+      0.073,
+      0.149,
+      0.122,
+      0.04,
+      0.016,
+      -0.099,
+      -0.066,
+      -0.068
      ]
     },
     "cont": {
-     "span": 0.701,
-     "distinct": 11,
-     "min": -0.635,
-     "max": 0.066,
-     "samples": [
-      -0.38,
-      -0.466,
-      -0.414,
-      -0.282,
-      -0.058,
-      -0.048,
-      0.066,
-      -0.108,
-      -0.283,
-      -0.523,
-      -0.635
+     "span": 1.598,
+     "distinct": 114,
+     "min": -1.226,
+     "max": 0.372,
+     "samples": 121,
+     "centreRow": [
+      -0.119,
+      -0.012,
+      0.045,
+      0.032,
+      0.097,
+      0.015,
+      -0.059,
+      -0.222,
+      -0.426,
+      -0.641,
+      -0.92
      ]
     },
     "eros": {
-     "span": 1.0,
-     "distinct": 5,
+     "span": 1.001,
+     "distinct": 92,
      "min": -0.55,
-     "max": 0.45,
-     "samples": [
-      -0.55,
-      0.099,
-      0.12,
-      -0.55,
-      -0.55,
-      -0.55,
-      -0.55,
-      -0.55,
-      -0.55,
-      0.404,
-      0.45
+     "max": 0.451,
+     "samples": 121,
+     "centreRow": [
+      0.3,
+      0.007,
+      0.002,
+      0.204,
+      0.161,
+      0.246,
+      0.293,
+      0.291,
+      0.001,
+      0.438,
+      0.4
      ]
     },
     "weird": {
-     "span": 1.293,
-     "distinct": 11,
-     "min": -0.741,
-     "max": 0.551,
-     "samples": [
-      -0.337,
-      -0.564,
-      -0.503,
-      -0.373,
-      -0.285,
-      -0.52,
-      -0.709,
-      -0.476,
-      -0.741,
-      -0.535,
-      0.551
+     "span": 1.93,
+     "distinct": 116,
+     "min": -0.93,
+     "max": 1.0,
+     "samples": 121,
+     "centreRow": [
+      -0.237,
+      -0.527,
+      -0.552,
+      -0.502,
+      -0.414,
+      -0.339,
+      0.058,
+      0.378,
+      0.394,
+      0.95,
+      0.594
      ]
     },
     "depth": {
-     "span": 0.818,
-     "distinct": 10,
+     "span": 1.123,
+     "distinct": 71,
      "min": 0.046,
-     "max": 0.865,
-     "samples": [
-      0.279,
-      0.108,
-      0.264,
-      0.332,
-      0.604,
-      0.769,
-      0.865,
-      0.727,
-      0.331,
+     "max": 1.169,
+     "samples": 121,
+     "centreRow": [
+      0.497,
+      0.506,
+      0.64,
+      0.505,
+      0.502,
+      0.507,
+      0.448,
+      0.35,
+      0.08,
       0.046,
       0.046
      ]
     }
    }
   },
-  "the_souldrift": {
-   "border": 4096,
+  "the_rosebluff": {
+   "border": 1024,
+   "grid": 11,
    "axes": {
     "temp": {
-     "span": 1.287,
-     "distinct": 11,
-     "min": -0.686,
-     "max": 0.601,
-     "samples": [
-      0.128,
-      -0.167,
-      -0.428,
-      -0.508,
-      -0.148,
-      -0.305,
-      -0.686,
-      -0.604,
-      -0.271,
-      0.288,
-      0.601
+     "span": 0.33,
+     "distinct": 107,
+     "min": 0.073,
+     "max": 0.403,
+     "samples": 121,
+     "centreRow": [
+      0.235,
+      0.23,
+      0.319,
+      0.367,
+      0.327,
+      0.275,
+      0.262,
+      0.247,
+      0.173,
+      0.208,
+      0.147
      ]
     },
     "humid": {
-     "span": 1.094,
-     "distinct": 11,
-     "min": -0.709,
-     "max": 0.385,
-     "samples": [
-      -0.199,
-      -0.483,
-      -0.079,
-      0.238,
-      0.375,
-      0.385,
-      -0.23,
-      0.097,
-      -0.158,
-      -0.709,
-      0.102
+     "span": 1.235,
+     "distinct": 108,
+     "min": -0.6,
+     "max": 0.635,
+     "samples": 121,
+     "centreRow": [
+      0.272,
+      0.179,
+      0.116,
+      0.171,
+      0.198,
+      0.177,
+      0.111,
+      0.196,
+      0.277,
+      0.225,
+      0.161
      ]
     },
     "cont": {
-     "span": 1.019,
-     "distinct": 10,
-     "min": -0.494,
+     "span": 0.557,
+     "distinct": 42,
+     "min": -0.032,
      "max": 0.525,
-     "samples": [
-      0.405,
+     "samples": 121,
+     "centreRow": [
       0.525,
       0.525,
-      -0.026,
-      -0.287,
-      -0.247,
-      -0.475,
-      -0.467,
-      -0.494,
-      -0.17,
-      -0.246
+      0.525,
+      0.525,
+      0.525,
+      0.525,
+      0.525,
+      0.525,
+      0.513,
+      0.458,
+      0.44
      ]
     },
     "eros": {
-     "span": 1.05,
-     "distinct": 8,
-     "min": -0.55,
-     "max": 0.5,
-     "samples": [
+     "span": 0.504,
+     "distinct": 32,
+     "min": -0.204,
+     "max": 0.3,
+     "samples": 121,
+     "centreRow": [
       0.3,
-      0.0,
       0.3,
+      0.3,
+      0.3,
+      0.3,
+      0.3,
+      0.3,
+      0.3,
+      0.3,
+      0.3,
+      0.0
+     ]
+    },
+    "weird": {
+     "span": 1.407,
+     "distinct": 115,
+     "min": -0.576,
+     "max": 0.831,
+     "samples": 121,
+     "centreRow": [
+      -0.527,
+      -0.517,
+      -0.452,
+      -0.107,
+      0.171,
+      0.33,
+      0.362,
+      0.508,
+      0.447,
+      0.114,
+      -0.181
+     ]
+    },
+    "depth": {
+     "span": 0.562,
+     "distinct": 81,
+     "min": 0.38,
+     "max": 0.942,
+     "samples": 121,
+     "centreRow": [
+      0.568,
+      0.565,
+      0.534,
+      0.501,
+      0.509,
+      0.508,
+      0.508,
+      0.505,
+      0.539,
+      0.506,
+      0.508
+     ]
+    }
+   }
+  },
+  "the_ruined_timberland": {
+   "border": 1024,
+   "grid": 11,
+   "axes": {
+    "temp": {
+     "span": 0.491,
+     "distinct": 104,
+     "min": -0.347,
+     "max": 0.144,
+     "samples": 121,
+     "centreRow": [
+      0.121,
+      0.114,
+      0.062,
+      0.001,
+      0.022,
+      -0.026,
+      -0.085,
+      -0.061,
+      -0.046,
+      -0.068,
+      0.02
+     ]
+    },
+    "humid": {
+     "span": 1.107,
+     "distinct": 115,
+     "min": -0.602,
+     "max": 0.505,
+     "samples": 121,
+     "centreRow": [
+      0.471,
+      0.488,
+      0.426,
+      0.286,
+      0.269,
+      0.151,
+      -0.008,
+      -0.107,
+      -0.229,
+      -0.449,
+      -0.458
+     ]
+    },
+    "cont": {
+     "span": 0.71,
+     "distinct": 55,
+     "min": -0.185,
+     "max": 0.525,
+     "samples": 121,
+     "centreRow": [
+      0.024,
+      0.389,
+      0.525,
+      0.525,
+      0.525,
+      0.525,
+      0.525,
+      0.525,
+      0.525,
+      0.525,
+      0.438
+     ]
+    },
+    "eros": {
+     "span": 1.3,
+     "distinct": 64,
+     "min": -1.0,
+     "max": 0.3,
+     "samples": 121,
+     "centreRow": [
+      -0.575,
+      -1.0,
+      -1.0,
+      -1.0,
+      -0.5,
+      -0.178,
+      0.108,
+      0.187,
+      0.134,
+      0.186,
+      0.3
+     ]
+    },
+    "weird": {
+     "span": 2.009,
+     "distinct": 82,
+     "min": -1.009,
+     "max": 1.0,
+     "samples": 121,
+     "centreRow": [
       0.5,
-      0.242,
+      0.5,
+      -0.5,
+      0.5,
+      0.5,
+      0.5,
+      0.646,
+      0.548,
+      0.355,
+      -0.167,
+      -0.343
+     ]
+    },
+    "depth": {
+     "span": 0.886,
+     "distinct": 82,
+     "min": 0.414,
+     "max": 1.3,
+     "samples": 121,
+     "centreRow": [
+      1.264,
+      1.3,
+      1.3,
+      1.3,
+      1.3,
+      0.906,
+      0.553,
+      0.54,
+      0.543,
+      0.513,
+      0.53
+     ]
+    }
+   }
+  },
+  "the_scorched_mesa": {
+   "border": 1024,
+   "grid": 11,
+   "axes": {
+    "temp": {
+     "span": 1.059,
+     "distinct": 110,
+     "min": -0.222,
+     "max": 0.837,
+     "samples": 121,
+     "centreRow": [
+      0.837,
+      0.741,
+      0.688,
+      0.555,
+      0.426,
+      0.213,
+      -0.024,
+      -0.093,
+      -0.068,
+      0.019,
+      0.075
+     ]
+    },
+    "humid": {
+     "span": 0.984,
+     "distinct": 115,
+     "min": -0.125,
+     "max": 0.859,
+     "samples": 121,
+     "centreRow": [
+      0.369,
+      0.372,
+      0.633,
+      0.767,
+      0.7,
+      0.531,
+      0.559,
+      0.719,
+      0.715,
+      0.685,
+      0.517
+     ]
+    },
+    "cont": {
+     "span": 1.117,
+     "distinct": 113,
+     "min": -0.739,
+     "max": 0.378,
+     "samples": 121,
+     "centreRow": [
+      0.378,
+      0.322,
+      0.029,
+      -0.093,
+      -0.195,
+      -0.137,
+      -0.025,
+      0.12,
+      0.31,
+      0.058,
+      -0.02
+     ]
+    },
+    "eros": {
+     "span": 1.656,
+     "distinct": 46,
+     "min": -1.0,
+     "max": 0.656,
+     "samples": 121,
+     "centreRow": [
+      -1.0,
+      -1.0,
+      0.001,
+      0.265,
+      0.476,
+      0.6,
+      0.6,
+      0.6,
+      0.5,
+      0.487,
+      0.002
+     ]
+    },
+    "weird": {
+     "span": 2.0,
+     "distinct": 101,
+     "min": -1.0,
+     "max": 1.0,
+     "samples": 121,
+     "centreRow": [
+      0.5,
+      -0.5,
+      -0.427,
+      0.234,
+      -0.023,
+      0.105,
+      0.332,
+      -0.238,
+      -0.069,
+      -0.101,
+      -0.069
+     ]
+    },
+    "depth": {
+     "span": 1.254,
+     "distinct": 77,
+     "min": 0.046,
+     "max": 1.3,
+     "samples": 121,
+     "centreRow": [
+      1.3,
+      1.3,
+      0.687,
+      0.501,
+      0.356,
+      0.495,
+      0.468,
+      0.57,
+      0.495,
+      0.521,
+      0.468
+     ]
+    }
+   }
+  },
+  "the_sculked_beyond": {
+   "border": 512,
+   "grid": 11,
+   "axes": {
+    "temp": {
+     "span": 0.903,
+     "distinct": 115,
+     "min": -0.415,
+     "max": 0.488,
+     "samples": 121,
+     "centreRow": [
+      -0.184,
+      0.031,
+      0.022,
+      0.073,
+      -0.005,
+      0.072,
+      -0.025,
+      -0.16,
+      -0.147,
+      -0.178,
+      0.117
+     ]
+    },
+    "humid": {
+     "span": 1.459,
+     "distinct": 119,
+     "min": -0.777,
+     "max": 0.682,
+     "samples": 121,
+     "centreRow": [
+      0.133,
+      0.026,
+      0.074,
+      0.013,
+      0.064,
+      0.505,
+      0.682,
+      0.365,
+      0.08,
+      0.027,
+      -0.04
+     ]
+    },
+    "cont": {
+     "span": 0.0,
+     "distinct": 1,
+     "min": 0.0,
+     "max": 0.0,
+     "samples": 121,
+     "centreRow": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+     ]
+    },
+    "eros": {
+     "span": 0.0,
+     "distinct": 1,
+     "min": 0.0,
+     "max": 0.0,
+     "samples": 121,
+     "centreRow": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+     ]
+    },
+    "weird": {
+     "span": 0.0,
+     "distinct": 1,
+     "min": 0.0,
+     "max": 0.0,
+     "samples": 121,
+     "centreRow": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+     ]
+    },
+    "depth": {
+     "span": 0.0,
+     "distinct": 1,
+     "min": 0.0,
+     "max": 0.0,
+     "samples": 121,
+     "centreRow": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+     ]
+    }
+   }
+  },
+  "the_shallows": {
+   "border": 512,
+   "grid": 11,
+   "axes": {
+    "temp": {
+     "span": 0.367,
+     "distinct": 96,
+     "min": 0.052,
+     "max": 0.419,
+     "samples": 121,
+     "centreRow": [
+      0.226,
+      0.204,
+      0.174,
+      0.154,
+      0.154,
+      0.135,
+      0.129,
+      0.151,
+      0.149,
+      0.142,
+      0.135
+     ]
+    },
+    "humid": {
+     "span": 0.348,
+     "distinct": 97,
+     "min": -0.671,
+     "max": -0.323,
+     "samples": 121,
+     "centreRow": [
+      -0.457,
+      -0.523,
+      -0.613,
+      -0.623,
+      -0.603,
+      -0.637,
+      -0.655,
+      -0.649,
+      -0.628,
+      -0.578,
+      -0.544
+     ]
+    },
+    "cont": {
+     "span": 0.836,
+     "distinct": 107,
+     "min": -0.688,
+     "max": 0.148,
+     "samples": 121,
+     "centreRow": [
+      -0.022,
+      0.046,
+      0.117,
+      0.112,
+      0.011,
+      0.036,
+      -0.138,
+      -0.27,
+      -0.559,
+      -0.447,
+      -0.4
+     ]
+    },
+    "eros": {
+     "span": 1.429,
+     "distinct": 45,
+     "min": -0.929,
+     "max": 0.5,
+     "samples": 121,
+     "centreRow": [
       -0.55,
+      -0.55,
+      -0.55,
+      -0.55,
+      -0.55,
+      -0.55,
+      -0.55,
+      -0.55,
+      -0.857,
+      0.494,
+      0.5
+     ]
+    },
+    "weird": {
+     "span": 1.85,
+     "distinct": 115,
+     "min": -0.95,
+     "max": 0.9,
+     "samples": 121,
+     "centreRow": [
+      -0.74,
+      -0.405,
+      0.395,
+      0.707,
+      0.454,
+      0.24,
+      0.028,
+      -0.169,
+      -0.416,
+      0.347,
+      0.3
+     ]
+    },
+    "depth": {
+     "span": 0.903,
+     "distinct": 77,
+     "min": 0.046,
+     "max": 0.949,
+     "samples": 121,
+     "centreRow": [
+      0.72,
+      0.763,
+      0.855,
+      0.949,
+      0.759,
+      0.624,
+      0.343,
+      0.34,
+      0.046,
+      0.047,
+      0.162
+     ]
+    }
+   }
+  },
+  "the_slatemouth": {
+   "border": 512,
+   "grid": 11,
+   "axes": {
+    "temp": {
+     "span": 0.18,
+     "distinct": 83,
+     "min": -0.59,
+     "max": -0.41,
+     "samples": 121,
+     "centreRow": [
+      -0.418,
+      -0.439,
+      -0.468,
+      -0.48,
+      -0.503,
+      -0.529,
+      -0.553,
+      -0.558,
+      -0.55,
+      -0.561,
+      -0.566
+     ]
+    },
+    "humid": {
+     "span": 0.565,
+     "distinct": 107,
+     "min": -0.181,
+     "max": 0.384,
+     "samples": 121,
+     "centreRow": [
+      0.021,
+      0.025,
+      0.096,
+      0.125,
+      0.154,
+      0.172,
+      0.18,
+      0.185,
+      0.216,
+      0.22,
+      0.217
+     ]
+    },
+    "cont": {
+     "span": 0.901,
+     "distinct": 113,
+     "min": -0.688,
+     "max": 0.213,
+     "samples": 121,
+     "centreRow": [
+      -0.616,
+      -0.59,
+      -0.552,
+      -0.384,
+      -0.174,
+      -0.048,
+      0.101,
+      -0.028,
+      -0.274,
+      -0.504,
+      -0.576
+     ]
+    },
+    "eros": {
+     "span": 1.008,
+     "distinct": 48,
+     "min": -0.55,
+     "max": 0.458,
+     "samples": 121,
+     "centreRow": [
+      0.026,
+      0.058,
+      0.092,
+      -0.55,
+      -0.55,
+      -0.55,
+      -0.55,
+      -0.55,
+      -0.55,
+      0.36,
+      0.378
+     ]
+    },
+    "weird": {
+     "span": 1.9,
+     "distinct": 111,
+     "min": -0.95,
+     "max": 0.95,
+     "samples": 121,
+     "centreRow": [
+      0.404,
+      0.365,
+      -0.053,
+      0.078,
+      0.122,
+      -0.52,
+      -0.697,
+      -0.697,
+      -0.309,
+      -0.013,
+      -0.325
+     ]
+    },
+    "depth": {
+     "span": 0.94,
+     "distinct": 86,
+     "min": 0.046,
+     "max": 0.986,
+     "samples": 121,
+     "centreRow": [
+      0.046,
+      0.046,
+      0.046,
+      0.278,
+      0.389,
+      0.769,
+      0.942,
+      0.752,
+      0.337,
+      0.046,
+      0.046
+     ]
+    }
+   }
+  },
+  "the_snowbound_isle": {
+   "border": 1024,
+   "grid": 11,
+   "axes": {
+    "temp": {
+     "span": 0.999,
+     "distinct": 114,
+     "min": -0.476,
+     "max": 0.523,
+     "samples": 121,
+     "centreRow": [
+      -0.051,
+      -0.14,
+      -0.088,
+      0.08,
+      0.111,
+      -0.015,
+      -0.076,
+      -0.045,
+      -0.138,
+      -0.273,
+      -0.291
+     ]
+    },
+    "humid": {
+     "span": 1.175,
+     "distinct": 111,
+     "min": -0.584,
+     "max": 0.591,
+     "samples": 121,
+     "centreRow": [
+      -0.273,
+      -0.1,
+      0.085,
+      0.064,
+      -0.227,
+      -0.571,
+      -0.452,
+      -0.227,
+      0.008,
+      0.298,
+      0.433
+     ]
+    },
+    "cont": {
+     "span": 1.461,
+     "distinct": 115,
+     "min": -0.675,
+     "max": 0.786,
+     "samples": 121,
+     "centreRow": [
+      -0.59,
+      0.314,
+      0.021,
+      0.417,
+      -0.599,
+      0.025,
+      0.007,
+      0.367,
+      0.078,
+      -0.437,
+      -0.096
+     ]
+    },
+    "eros": {
+     "span": 1.86,
+     "distinct": 113,
+     "min": -0.975,
+     "max": 0.885,
+     "samples": 121,
+     "centreRow": [
+      0.061,
+      0.087,
+      0.282,
+      0.035,
+      -0.304,
+      0.17,
+      0.006,
+      -0.195,
+      -0.341,
+      -0.314,
+      0.087
+     ]
+    },
+    "weird": {
+     "span": 0.783,
+     "distinct": 111,
+     "min": -0.443,
+     "max": 0.34,
+     "samples": 121,
+     "centreRow": [
+      0.171,
+      0.132,
+      0.1,
+      0.077,
+      0.051,
+      0.027,
+      0.013,
+      -0.012,
+      -0.04,
+      -0.077,
+      -0.125
+     ]
+    },
+    "depth": {
+     "span": 1.841,
+     "distinct": 104,
+     "min": -0.3,
+     "max": 1.541,
+     "samples": 121,
+     "centreRow": [
+      0.475,
+      0.984,
+      1.541,
+      0.685,
+      0.551,
+      0.724,
+      0.433,
+      0.376,
+      0.126,
+      -0.004,
+      0.032
+     ]
+    }
+   }
+  },
+  "the_souldrift": {
+   "border": 4096,
+   "grid": 11,
+   "axes": {
+    "temp": {
+     "span": 1.552,
+     "distinct": 118,
+     "min": -0.838,
+     "max": 0.714,
+     "samples": 121,
+     "centreRow": [
+      -0.56,
+      -0.702,
+      -0.759,
+      -0.433,
+      -0.276,
+      -0.305,
+      -0.561,
+      -0.693,
+      -0.625,
+      -0.521,
+      -0.35
+     ]
+    },
+    "humid": {
+     "span": 1.416,
+     "distinct": 113,
+     "min": -0.764,
+     "max": 0.652,
+     "samples": 121,
+     "centreRow": [
+      0.294,
+      -0.074,
+      -0.005,
+      0.144,
+      -0.088,
+      0.385,
+      -0.174,
+      0.073,
+      0.369,
+      0.02,
+      -0.26
+     ]
+    },
+    "cont": {
+     "span": 1.42,
+     "distinct": 102,
+     "min": -0.895,
+     "max": 0.525,
+     "samples": 121,
+     "centreRow": [
+      0.356,
+      0.27,
+      0.114,
+      -0.107,
+      -0.349,
+      -0.247,
+      -0.445,
+      -0.229,
+      -0.199,
+      -0.608,
+      -0.734
+     ]
+    },
+    "eros": {
+     "span": 1.6,
+     "distinct": 48,
+     "min": -1.0,
+     "max": 0.6,
+     "samples": 121,
+     "centreRow": [
+      0.3,
+      0.337,
+      0.6,
+      0.6,
+      -0.55,
+      -0.55,
+      -0.401,
+      -0.296,
+      -0.55,
+      0.278,
+      0.163
+     ]
+    },
+    "weird": {
+     "span": 2.0,
+     "distinct": 97,
+     "min": -1.0,
+     "max": 1.0,
+     "samples": 121,
+     "centreRow": [
+      0.089,
+      0.133,
+      -0.365,
+      -0.495,
+      -0.168,
+      -0.772,
+      0.185,
+      1.0,
+      -0.826,
+      -0.572,
+      0.243
+     ]
+    },
+    "depth": {
+     "span": 1.254,
+     "distinct": 94,
+     "min": 0.046,
+     "max": 1.3,
+     "samples": 121,
+     "centreRow": [
+      0.5,
+      0.514,
+      0.553,
+      0.502,
+      0.29,
+      0.354,
+      0.177,
+      0.346,
+      0.374,
+      0.046,
+      0.046
+     ]
+    }
+   }
+  },
+  "the_soulfields": {
+   "border": 4096,
+   "grid": 11,
+   "axes": {
+    "temp": {
+     "span": 1.306,
+     "distinct": 108,
+     "min": -0.705,
+     "max": 0.601,
+     "samples": 121,
+     "centreRow": [
+      -0.453,
+      -0.349,
+      0.029,
+      -0.066,
+      -0.122,
+      -0.295,
+      -0.428,
+      0.088,
+      0.282,
+      0.282,
+      0.082
+     ]
+    },
+    "humid": {
+     "span": 1.577,
+     "distinct": 116,
+     "min": -0.818,
+     "max": 0.759,
+     "samples": 121,
+     "centreRow": [
+      -0.267,
+      -0.142,
+      0.034,
+      0.401,
+      0.536,
+      0.018,
+      -0.553,
+      -0.53,
+      -0.219,
+      0.102,
+      -0.009
+     ]
+    },
+    "cont": {
+     "span": 1.356,
+     "distinct": 109,
+     "min": -0.831,
+     "max": 0.525,
+     "samples": 121,
+     "centreRow": [
+      0.525,
+      0.209,
+      0.139,
+      0.283,
+      0.007,
+      -0.422,
+      -0.372,
+      -0.55,
+      -0.345,
+      -0.004,
+      0.351
+     ]
+    },
+    "eros": {
+     "span": 1.541,
+     "distinct": 63,
+     "min": -1.0,
+     "max": 0.541,
+     "samples": 121,
+     "centreRow": [
+      0.3,
+      0.3,
       -0.3,
-      0.214,
-      0.499,
+      -1.0,
+      -0.5,
+      0.123,
+      -0.55,
+      0.469,
+      -0.048,
+      -0.5,
+      -0.052
+     ]
+    },
+    "weird": {
+     "span": 2.0,
+     "distinct": 79,
+     "min": -1.0,
+     "max": 1.0,
+     "samples": 121,
+     "centreRow": [
+      0.47,
+      0.534,
+      -0.5,
+      0.5,
+      0.5,
+      0.174,
+      -0.13,
+      0.346,
+      0.378,
+      0.5,
+      0.5
+     ]
+    },
+    "depth": {
+     "span": 1.254,
+     "distinct": 94,
+     "min": 0.046,
+     "max": 1.3,
+     "samples": 121,
+     "centreRow": [
+      0.612,
+      0.681,
+      1.199,
+      1.3,
+      1.119,
+      0.091,
+      0.281,
+      0.046,
+      0.276,
+      1.217,
+      0.825
+     ]
+    }
+   }
+  },
+  "the_stonemantle": {
+   "border": 1024,
+   "grid": 11,
+   "axes": {
+    "temp": {
+     "span": 1.204,
+     "distinct": 115,
+     "min": -0.701,
+     "max": 0.503,
+     "samples": 121,
+     "centreRow": [
+      0.093,
+      0.113,
+      0.049,
+      -0.035,
+      -0.076,
+      -0.087,
+      -0.082,
+      0.005,
+      0.124,
+      0.221,
+      0.326
+     ]
+    },
+    "humid": {
+     "span": 0.959,
+     "distinct": 109,
+     "min": -0.442,
+     "max": 0.517,
+     "samples": 121,
+     "centreRow": [
+      0.302,
+      0.123,
+      0.002,
+      -0.004,
+      -0.004,
+      0.036,
+      0.166,
+      0.255,
+      0.392,
+      0.517,
+      0.464
+     ]
+    },
+    "cont": {
+     "span": 0.628,
+     "distinct": 26,
+     "min": -0.103,
+     "max": 0.525,
+     "samples": 121,
+     "centreRow": [
+      0.525,
+      0.525,
+      0.525,
+      0.525,
+      0.525,
+      0.525,
+      0.525,
+      0.525,
+      0.525,
+      0.521,
+      0.445
+     ]
+    },
+    "eros": {
+     "span": 1.3,
+     "distinct": 51,
+     "min": -1.0,
+     "max": 0.3,
+     "samples": 121,
+     "centreRow": [
+      -1.0,
+      -1.0,
+      0.002,
+      0.3,
+      0.3,
+      0.3,
+      0.3,
+      0.3,
+      -0.251,
+      -1.0,
+      -0.5
+     ]
+    },
+    "weird": {
+     "span": 1.781,
+     "distinct": 48,
+     "min": -0.88,
+     "max": 0.901,
+     "samples": 121,
+     "centreRow": [
+      -0.5,
+      0.5,
+      -0.127,
+      -0.648,
+      -0.44,
+      -0.065,
+      -0.464,
+      -0.519,
+      -0.5,
+      0.5,
+      0.5
+     ]
+    },
+    "depth": {
+     "span": 0.888,
+     "distinct": 58,
+     "min": 0.412,
+     "max": 1.3,
+     "samples": 121,
+     "centreRow": [
+      1.3,
+      1.3,
+      0.522,
+      0.494,
+      0.505,
+      0.457,
+      0.461,
+      0.492,
+      1.3,
+      1.3,
+      1.3
+     ]
+    }
+   }
+  },
+  "the_sun_kingdoms": {
+   "border": 4096,
+   "grid": 11,
+   "axes": {
+    "temp": {
+     "span": 1.801,
+     "distinct": 119,
+     "min": -0.978,
+     "max": 0.823,
+     "samples": 121,
+     "centreRow": [
+      0.25,
+      0.448,
+      0.523,
+      0.466,
+      0.261,
+      0.071,
+      -0.007,
+      -0.116,
+      -0.239,
+      -0.283,
+      -0.361
+     ]
+    },
+    "humid": {
+     "span": 1.685,
+     "distinct": 114,
+     "min": -0.719,
+     "max": 0.966,
+     "samples": 121,
+     "centreRow": [
+      0.586,
+      0.966,
+      0.602,
+      0.204,
+      -0.156,
+      -0.719,
+      -0.426,
+      -0.162,
+      0.2,
+      0.463,
+      0.401
+     ]
+    },
+    "cont": {
+     "span": 1.383,
+     "distinct": 113,
+     "min": -0.858,
+     "max": 0.525,
+     "samples": 121,
+     "centreRow": [
+      -0.114,
+      0.282,
+      0.34,
+      0.077,
+      -0.178,
+      -0.43,
+      -0.38,
+      -0.227,
+      -0.573,
+      -0.435,
+      -0.23
+     ]
+    },
+    "eros": {
+     "span": 1.836,
+     "distinct": 50,
+     "min": -1.0,
+     "max": 0.836,
+     "samples": 121,
+     "centreRow": [
+      -0.5,
+      -0.5,
+      -0.096,
+      0.0,
+      0.0,
+      -0.298,
+      -0.55,
+      -0.55,
+      0.387,
+      0.291,
+      0.3
+     ]
+    },
+    "weird": {
+     "span": 2.145,
+     "distinct": 90,
+     "min": -1.0,
+     "max": 1.145,
+     "samples": 121,
+     "centreRow": [
+      -0.5,
+      -0.5,
+      0.5,
+      0.006,
+      -0.134,
+      -1.0,
+      0.19,
+      -0.002,
+      -0.938,
+      -0.055,
+      0.481
+     ]
+    },
+    "depth": {
+     "span": 1.254,
+     "distinct": 96,
+     "min": 0.046,
+     "max": 1.3,
+     "samples": 121,
+     "centreRow": [
+      0.79,
+      1.288,
+      0.859,
+      0.42,
+      0.409,
+      0.069,
+      0.279,
+      0.365,
+      0.046,
+      0.06,
+      0.346
+     ]
+    }
+   }
+  },
+  "the_sunken_temple": {
+   "border": 4096,
+   "grid": 11,
+   "axes": {
+    "temp": {
+     "span": 2.102,
+     "distinct": 119,
+     "min": -0.915,
+     "max": 1.187,
+     "samples": 121,
+     "centreRow": [
+      -0.167,
+      0.005,
+      0.07,
+      -0.284,
+      -0.35,
+      -0.518,
+      -0.174,
+      0.322,
+      0.396,
+      0.581,
+      -0.184
+     ]
+    },
+    "humid": {
+     "span": 1.368,
+     "distinct": 112,
+     "min": -0.659,
+     "max": 0.709,
+     "samples": 121,
+     "centreRow": [
+      0.245,
+      -0.031,
+      0.428,
+      -0.204,
+      0.018,
+      0.058,
+      0.139,
+      0.148,
+      -0.107,
+      0.059,
+      0.009
+     ]
+    },
+    "cont": {
+     "span": 1.475,
+     "distinct": 114,
+     "min": -0.7,
+     "max": 0.775,
+     "samples": 121,
+     "centreRow": [
+      -0.386,
+      0.485,
+      -0.573,
+      0.309,
+      0.045,
+      -0.327,
+      0.615,
+      0.155,
+      0.643,
+      -0.26,
+      0.111
+     ]
+    },
+    "eros": {
+     "span": 1.537,
+     "distinct": 117,
+     "min": -0.842,
+     "max": 0.695,
+     "samples": 121,
+     "centreRow": [
+      -0.355,
+      -0.278,
+      0.298,
+      -0.252,
+      -0.004,
+      0.588,
+      -0.454,
+      -0.015,
+      -0.165,
+      -0.04,
+      -0.192
+     ]
+    },
+    "weird": {
+     "span": 0.707,
+     "distinct": 106,
+     "min": -0.363,
+     "max": 0.344,
+     "samples": 121,
+     "centreRow": [
+      -0.155,
+      0.08,
+      0.005,
+      -0.115,
+      -0.147,
+      -0.101,
+      -0.099,
+      0.215,
+      -0.277,
+      0.065,
+      0.101
+     ]
+    },
+    "depth": {
+     "span": 1.59,
+     "distinct": 96,
+     "min": -0.304,
+     "max": 1.286,
+     "samples": 121,
+     "centreRow": [
+      0.504,
+      0.894,
+      0.83,
+      0.962,
+      0.663,
+      0.61,
+      0.376,
+      0.774,
+      0.694,
+      0.505,
+      0.501
+     ]
+    }
+   }
+  },
+  "the_teal_corruption": {
+   "border": 2048,
+   "grid": 11,
+   "axes": {
+    "temp": {
+     "span": 0.854,
+     "distinct": 116,
+     "min": -0.458,
+     "max": 0.396,
+     "samples": 121,
+     "centreRow": [
+      0.158,
+      0.002,
+      -0.038,
+      -0.19,
+      -0.27,
+      -0.382,
+      -0.365,
+      -0.276,
+      -0.172,
+      -0.158,
+      -0.089
+     ]
+    },
+    "humid": {
+     "span": 1.378,
+     "distinct": 113,
+     "min": -0.838,
+     "max": 0.54,
+     "samples": 121,
+     "centreRow": [
+      0.265,
+      0.033,
+      0.127,
+      0.343,
+      0.344,
+      0.165,
+      -0.135,
+      -0.025,
+      0.311,
+      0.356,
+      0.027
+     ]
+    },
+    "cont": {
+     "span": 1.077,
+     "distinct": 114,
+     "min": -0.695,
+     "max": 0.382,
+     "samples": 121,
+     "centreRow": [
+      0.325,
+      0.177,
+      -0.13,
+      -0.218,
+      -0.194,
+      0.001,
+      0.023,
+      -0.095,
+      -0.134,
+      0.01,
+      0.075
+     ]
+    },
+    "eros": {
+     "span": 2.152,
+     "distinct": 31,
+     "min": -0.791,
+     "max": 1.361,
+     "samples": 121,
+     "centreRow": [
+      0.6,
+      0.6,
+      0.6,
+      0.6,
+      0.6,
+      0.6,
+      0.6,
+      0.6,
+      0.492,
+      0.0,
+      0.3
+     ]
+    },
+    "weird": {
+     "span": 1.839,
+     "distinct": 89,
+     "min": -0.841,
+     "max": 0.998,
+     "samples": 121,
+     "centreRow": [
+      0.377,
+      -0.447,
+      -0.5,
+      -0.068,
+      -0.255,
+      -0.463,
+      -0.5,
+      0.193,
+      0.382,
+      0.497,
+      0.293
+     ]
+    },
+    "depth": {
+     "span": 1.254,
+     "distinct": 87,
+     "min": 0.046,
+     "max": 1.3,
+     "samples": 121,
+     "centreRow": [
+      0.724,
+      0.565,
+      0.498,
+      0.351,
+      0.357,
+      0.488,
+      0.535,
+      0.489,
+      0.497,
+      0.512,
+      0.503
+     ]
+    }
+   }
+  },
+  "the_tidepools": {
+   "border": 256,
+   "grid": 11,
+   "axes": {
+    "temp": {
+     "span": 0.295,
+     "distinct": 97,
+     "min": -0.267,
+     "max": 0.028,
+     "samples": 121,
+     "centreRow": [
+      -0.024,
+      -0.056,
+      -0.077,
+      -0.086,
+      -0.085,
+      -0.1,
+      -0.132,
+      -0.153,
+      -0.176,
+      -0.198,
+      -0.202
+     ]
+    },
+    "humid": {
+     "span": 0.234,
+     "distinct": 82,
+     "min": 0.074,
+     "max": 0.308,
+     "samples": 121,
+     "centreRow": [
+      0.209,
+      0.205,
+      0.225,
+      0.226,
+      0.254,
+      0.222,
+      0.19,
+      0.169,
+      0.155,
+      0.169,
+      0.139
+     ]
+    },
+    "cont": {
+     "span": 1.363,
+     "distinct": 116,
+     "min": -0.698,
+     "max": 0.665,
+     "samples": 121,
+     "centreRow": [
+      0.128,
+      0.073,
+      0.112,
+      0.183,
+      0.283,
+      0.283,
+      0.299,
+      0.197,
+      0.154,
+      0.095,
+      -0.208
+     ]
+    },
+    "eros": {
+     "span": 1.701,
+     "distinct": 17,
+     "min": -0.55,
+     "max": 1.151,
+     "samples": 121,
+     "centreRow": [
+      -0.55,
+      -0.55,
+      -0.55,
+      -0.55,
+      -0.55,
+      -0.55,
+      -0.55,
+      -0.55,
+      -0.55,
       -0.55,
       -0.55
      ]
     },
     "weird": {
-     "span": 1.772,
-     "distinct": 11,
-     "min": -0.772,
-     "max": 1.0,
-     "samples": [
-      -0.511,
-      0.436,
-      0.086,
-      -0.223,
-      -0.254,
-      -0.772,
-      1.0,
-      0.016,
-      0.084,
-      -0.519,
-      -0.217
+     "span": 1.499,
+     "distinct": 113,
+     "min": -0.95,
+     "max": 0.549,
+     "samples": 121,
+     "centreRow": [
+      -0.778,
+      -0.65,
+      -0.582,
+      -0.531,
+      -0.354,
+      -0.132,
+      0.013,
+      -0.169,
+      -0.368,
+      -0.455,
+      -0.763
      ]
     },
     "depth": {
-     "span": 0.664,
-     "distinct": 10,
+     "span": 1.254,
+     "distinct": 98,
      "min": 0.046,
-     "max": 0.71,
-     "samples": [
-      0.609,
-      0.71,
-      0.497,
-      0.505,
-      0.305,
-      0.354,
+     "max": 1.3,
+     "samples": 121,
+     "centreRow": [
+      0.869,
+      0.962,
+      1.081,
+      1.127,
+      0.917,
+      0.719,
+      0.696,
+      0.72,
+      0.872,
+      0.887,
+      0.372
+     ]
+    }
+   }
+  },
+  "the_twisted_groves": {
+   "border": 1024,
+   "grid": 11,
+   "axes": {
+    "temp": {
+     "span": 0.834,
+     "distinct": 113,
+     "min": -0.508,
+     "max": 0.326,
+     "samples": 121,
+     "centreRow": [
+      -0.045,
+      0.019,
+      0.042,
+      0.035,
+      0.018,
+      0.046,
+      0.034,
+      0.101,
+      0.078,
+      0.05,
+      -0.014
+     ]
+    },
+    "humid": {
+     "span": 1.056,
+     "distinct": 115,
+     "min": -0.717,
+     "max": 0.339,
+     "samples": 121,
+     "centreRow": [
+      -0.176,
+      -0.148,
+      0.097,
+      0.038,
+      -0.167,
+      -0.397,
+      -0.453,
+      -0.305,
+      -0.292,
+      -0.297,
+      -0.383
+     ]
+    },
+    "cont": {
+     "span": 1.006,
+     "distinct": 113,
+     "min": -0.964,
+     "max": 0.042,
+     "samples": 121,
+     "centreRow": [
+      -0.571,
+      -0.436,
+      -0.447,
+      -0.668,
+      -0.683,
+      -0.694,
+      -0.678,
+      -0.354,
+      -0.439,
+      -0.692,
+      -0.493
+     ]
+    },
+    "eros": {
+     "span": 1.85,
+     "distinct": 64,
+     "min": -1.25,
+     "max": 0.6,
+     "samples": 121,
+     "centreRow": [
+      -0.803,
+      0.5,
+      0.5,
+      -1.1,
+      -1.01,
+      -0.934,
+      -1.066,
+      0.6,
+      0.6,
+      -1.165,
+      0.5
+     ]
+    },
+    "weird": {
+     "span": 2.0,
+     "distinct": 106,
+     "min": -1.0,
+     "max": 1.0,
+     "samples": 121,
+     "centreRow": [
+      0.173,
+      -0.064,
+      0.5,
+      0.151,
+      0.037,
+      -0.178,
+      0.838,
+      -0.5,
+      -0.315,
+      0.153,
+      -0.129
+     ]
+    },
+    "depth": {
+     "span": 1.08,
+     "distinct": 61,
+     "min": 0.046,
+     "max": 1.126,
+     "samples": 121,
+     "centreRow": [
+      0.046,
+      0.059,
+      0.047,
       0.046,
       0.046,
-      0.048,
-      0.469,
-      0.355
+      0.046,
+      0.046,
+      0.275,
+      0.054,
+      0.046,
+      0.046
      ]
     }
    }
   },
   "the_underdark": {
    "border": 4096,
+   "grid": 11,
    "axes": {
     "temp": {
-     "span": 1.066,
-     "distinct": 11,
-     "min": -0.504,
-     "max": 0.561,
-     "samples": [
-      0.337,
-      0.062,
-      0.154,
-      -0.504,
-      -0.124,
+     "span": 1.568,
+     "distinct": 115,
+     "min": -0.781,
+     "max": 0.787,
+     "samples": 121,
+     "centreRow": [
+      0.057,
+      0.161,
+      0.282,
+      0.076,
+      -0.477,
       0.215,
-      0.561,
-      -0.007,
-      -0.244,
-      -0.385,
-      0.054
+      0.095,
+      -0.276,
+      0.263,
+      0.357,
+      -0.465
      ]
     },
     "humid": {
-     "span": 0.764,
-     "distinct": 11,
-     "min": -0.332,
-     "max": 0.432,
-     "samples": [
-      -0.007,
-      0.176,
-      0.338,
-      -0.332,
-      -0.157,
+     "span": 1.381,
+     "distinct": 116,
+     "min": -0.621,
+     "max": 0.76,
+     "samples": 121,
+     "centreRow": [
+      -0.037,
+      0.224,
+      -0.577,
+      -0.108,
+      -0.163,
       0.432,
-      0.227,
-      0.214,
-      -0.048,
-      0.23,
-      0.197
+      0.107,
+      0.071,
+      0.18,
+      0.329,
+      -0.053
      ]
     },
     "cont": {
@@ -2873,7 +8424,8 @@
      "distinct": 1,
      "min": 0.0,
      "max": 0.0,
-     "samples": [
+     "samples": 121,
+     "centreRow": [
       0.0,
       0.0,
       0.0,
@@ -2892,7 +8444,8 @@
      "distinct": 1,
      "min": 0.0,
      "max": 0.0,
-     "samples": [
+     "samples": 121,
+     "centreRow": [
       0.0,
       0.0,
       0.0,
@@ -2911,7 +8464,8 @@
      "distinct": 1,
      "min": 0.0,
      "max": 0.0,
-     "samples": [
+     "samples": 121,
+     "centreRow": [
       0.0,
       0.0,
       0.0,
@@ -2930,7 +8484,8 @@
      "distinct": 1,
      "min": 0.0,
      "max": 0.0,
-     "samples": [
+     "samples": 121,
+     "centreRow": [
       0.0,
       0.0,
       0.0,
@@ -2942,6 +8497,762 @@
       0.0,
       0.0,
       0.0
+     ]
+    }
+   }
+  },
+  "the_verdant_hollow": {
+   "border": 1024,
+   "grid": 11,
+   "axes": {
+    "temp": {
+     "span": 0.538,
+     "distinct": 101,
+     "min": 0.059,
+     "max": 0.597,
+     "samples": 121,
+     "centreRow": [
+      0.569,
+      0.567,
+      0.586,
+      0.569,
+      0.567,
+      0.532,
+      0.488,
+      0.469,
+      0.44,
+      0.347,
+      0.301
+     ]
+    },
+    "humid": {
+     "span": 0.615,
+     "distinct": 107,
+     "min": -0.656,
+     "max": -0.041,
+     "samples": 121,
+     "centreRow": [
+      -0.265,
+      -0.289,
+      -0.336,
+      -0.387,
+      -0.323,
+      -0.306,
+      -0.363,
+      -0.379,
+      -0.384,
+      -0.374,
+      -0.393
+     ]
+    },
+    "cont": {
+     "span": 1.01,
+     "distinct": 112,
+     "min": -0.69,
+     "max": 0.32,
+     "samples": 121,
+     "centreRow": [
+      -0.341,
+      -0.502,
+      -0.511,
+      -0.32,
+      -0.111,
+      0.009,
+      0.003,
+      0.024,
+      -0.232,
+      -0.287,
+      -0.35
+     ]
+    },
+    "eros": {
+     "span": 1.458,
+     "distinct": 37,
+     "min": -0.55,
+     "max": 0.908,
+     "samples": 121,
+     "centreRow": [
+      -0.55,
+      0.675,
+      0.703,
+      -0.55,
+      -0.55,
+      -0.55,
+      -0.55,
+      -0.55,
+      -0.55,
+      -0.55,
+      -0.55
+     ]
+    },
+    "weird": {
+     "span": 1.773,
+     "distinct": 112,
+     "min": -0.95,
+     "max": 0.823,
+     "samples": 121,
+     "centreRow": [
+      0.318,
+      0.477,
+      0.509,
+      -0.033,
+      -0.093,
+      -0.101,
+      0.042,
+      -0.552,
+      0.1,
+      0.089,
+      0.053
+     ]
+    },
+    "depth": {
+     "span": 1.226,
+     "distinct": 91,
+     "min": 0.046,
+     "max": 1.272,
+     "samples": 121,
+     "centreRow": [
+      0.294,
+      0.046,
+      0.046,
+      0.306,
+      0.406,
+      0.479,
+      0.388,
+      0.879,
+      0.362,
+      0.328,
+      0.289
+     ]
+    }
+   }
+  },
+  "the_violet_spire": {
+   "border": 683,
+   "grid": 11,
+   "axes": {
+    "temp": {
+     "span": 0.618,
+     "distinct": 109,
+     "min": 0.116,
+     "max": 0.734,
+     "samples": 121,
+     "centreRow": [
+      0.259,
+      0.324,
+      0.365,
+      0.421,
+      0.442,
+      0.46,
+      0.502,
+      0.573,
+      0.611,
+      0.563,
+      0.43
+     ]
+    },
+    "humid": {
+     "span": 0.885,
+     "distinct": 115,
+     "min": -0.626,
+     "max": 0.259,
+     "samples": 121,
+     "centreRow": [
+      -0.564,
+      -0.284,
+      -0.03,
+      0.032,
+      0.054,
+      0.062,
+      -0.103,
+      -0.196,
+      -0.311,
+      -0.493,
+      -0.566
+     ]
+    },
+    "cont": {
+     "span": 1.796,
+     "distinct": 110,
+     "min": -0.746,
+     "max": 1.05,
+     "samples": 121,
+     "centreRow": [
+      0.187,
+      1.05,
+      -0.188,
+      -0.214,
+      0.365,
+      -0.245,
+      -0.085,
+      -0.548,
+      -0.036,
+      0.292,
+      -0.027
+     ]
+    },
+    "eros": {
+     "span": 1.42,
+     "distinct": 113,
+     "min": -0.771,
+     "max": 0.649,
+     "samples": 121,
+     "centreRow": [
+      0.056,
+      0.269,
+      0.24,
+      -0.021,
+      0.465,
+      0.615,
+      0.366,
+      -0.393,
+      -0.771,
+      -0.768,
+      -0.703
+     ]
+    },
+    "weird": {
+     "span": 0.788,
+     "distinct": 109,
+     "min": -0.394,
+     "max": 0.394,
+     "samples": 121,
+     "centreRow": [
+      0.02,
+      0.13,
+      0.162,
+      0.122,
+      0.052,
+      -0.046,
+      -0.134,
+      -0.174,
+      -0.15,
+      -0.076,
+      0.009
+     ]
+    },
+    "depth": {
+     "span": 0.985,
+     "distinct": 83,
+     "min": -0.243,
+     "max": 0.742,
+     "samples": 121,
+     "centreRow": [
+      0.371,
+      0.376,
+      0.376,
+      0.053,
+      -0.13,
+      -0.007,
+      0.229,
+      0.369,
+      0.246,
+      0.247,
+      0.351
+     ]
+    }
+   }
+  },
+  "the_weeping_vault": {
+   "border": 683,
+   "grid": 11,
+   "axes": {
+    "temp": {
+     "span": 1.607,
+     "distinct": 117,
+     "min": -0.759,
+     "max": 0.848,
+     "samples": 121,
+     "centreRow": [
+      -0.075,
+      0.106,
+      -0.048,
+      0.175,
+      0.1,
+      0.053,
+      0.294,
+      0.212,
+      0.092,
+      0.033,
+      0.035
+     ]
+    },
+    "humid": {
+     "span": 1.477,
+     "distinct": 115,
+     "min": -0.596,
+     "max": 0.881,
+     "samples": 121,
+     "centreRow": [
+      -0.567,
+      -0.596,
+      0.047,
+      0.426,
+      0.085,
+      0.233,
+      0.322,
+      0.309,
+      0.591,
+      0.79,
+      0.227
+     ]
+    },
+    "cont": {
+     "span": 0.0,
+     "distinct": 1,
+     "min": 0.0,
+     "max": 0.0,
+     "samples": 121,
+     "centreRow": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+     ]
+    },
+    "eros": {
+     "span": 0.0,
+     "distinct": 1,
+     "min": 0.0,
+     "max": 0.0,
+     "samples": 121,
+     "centreRow": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+     ]
+    },
+    "weird": {
+     "span": 0.0,
+     "distinct": 1,
+     "min": 0.0,
+     "max": 0.0,
+     "samples": 121,
+     "centreRow": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+     ]
+    },
+    "depth": {
+     "span": 0.0,
+     "distinct": 1,
+     "min": 0.0,
+     "max": 0.0,
+     "samples": 121,
+     "centreRow": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+     ]
+    }
+   }
+  },
+  "the_whispering_wilds": {
+   "border": 4096,
+   "grid": 11,
+   "axes": {
+    "temp": {
+     "span": 1.834,
+     "distinct": 118,
+     "min": -0.914,
+     "max": 0.92,
+     "samples": 121,
+     "centreRow": [
+      0.222,
+      0.615,
+      0.422,
+      0.367,
+      0.213,
+      -0.041,
+      -0.463,
+      -0.644,
+      -0.685,
+      -0.673,
+      -0.418
+     ]
+    },
+    "humid": {
+     "span": 1.404,
+     "distinct": 115,
+     "min": -0.74,
+     "max": 0.664,
+     "samples": 121,
+     "centreRow": [
+      0.401,
+      0.022,
+      0.009,
+      0.081,
+      0.434,
+      -0.004,
+      0.483,
+      0.135,
+      -0.162,
+      -0.088,
+      0.227
+     ]
+    },
+    "cont": {
+     "span": 1.543,
+     "distinct": 116,
+     "min": -1.048,
+     "max": 0.495,
+     "samples": 121,
+     "centreRow": [
+      -0.168,
+      -0.047,
+      0.02,
+      -0.282,
+      0.106,
+      -0.038,
+      0.024,
+      0.163,
+      0.004,
+      -0.001,
+      -0.127
+     ]
+    },
+    "eros": {
+     "span": 1.677,
+     "distinct": 67,
+     "min": -1.0,
+     "max": 0.677,
+     "samples": 121,
+     "centreRow": [
+      0.3,
+      0.0,
+      0.3,
+      0.3,
+      0.288,
+      0.127,
+      -0.574,
+      -1.0,
+      -0.502,
+      -0.5,
+      -0.5
+     ]
+    },
+    "weird": {
+     "span": 2.0,
+     "distinct": 65,
+     "min": -1.0,
+     "max": 1.0,
+     "samples": 121,
+     "centreRow": [
+      -0.254,
+      -0.156,
+      0.069,
+      -0.007,
+      0.474,
+      0.309,
+      -0.5,
+      -0.5,
+      -0.5,
+      -0.5,
+      -1.0
+     ]
+    },
+    "depth": {
+     "span": 1.254,
+     "distinct": 88,
+     "min": 0.046,
+     "max": 1.3,
+     "samples": 121,
+     "centreRow": [
+      0.464,
+      0.504,
+      0.467,
+      0.309,
+      0.502,
+      0.505,
+      1.22,
+      1.3,
+      1.152,
+      1.188,
+      0.785
+     ]
+    }
+   }
+  },
+  "the_whitestone_ford": {
+   "border": 1024,
+   "grid": 11,
+   "axes": {
+    "temp": {
+     "span": 0.499,
+     "distinct": 106,
+     "min": -0.076,
+     "max": 0.423,
+     "samples": 121,
+     "centreRow": [
+      0.354,
+      0.308,
+      0.323,
+      0.282,
+      0.269,
+      0.261,
+      0.226,
+      0.193,
+      0.135,
+      0.069,
+      0.044
+     ]
+    },
+    "humid": {
+     "span": 0.617,
+     "distinct": 105,
+     "min": -0.127,
+     "max": 0.49,
+     "samples": 121,
+     "centreRow": [
+      0.336,
+      0.398,
+      0.385,
+      0.377,
+      0.353,
+      0.333,
+      0.255,
+      0.273,
+      0.312,
+      0.356,
+      0.453
+     ]
+    },
+    "cont": {
+     "span": 0.873,
+     "distinct": 112,
+     "min": -0.753,
+     "max": 0.12,
+     "samples": 121,
+     "centreRow": [
+      -0.753,
+      -0.723,
+      -0.68,
+      -0.344,
+      -0.237,
+      -0.16,
+      -0.038,
+      0.019,
+      0.039,
+      -0.018,
+      -0.043
+     ]
+    },
+    "eros": {
+     "span": 1.009,
+     "distinct": 43,
+     "min": -0.709,
+     "max": 0.3,
+     "samples": 121,
+     "centreRow": [
+      -0.62,
+      -0.667,
+      -0.709,
+      0.3,
+      0.3,
+      0.3,
+      0.3,
+      0.3,
+      0.3,
+      0.3,
+      0.3
+     ]
+    },
+    "weird": {
+     "span": 2.0,
+     "distinct": 107,
+     "min": -1.0,
+     "max": 1.0,
+     "samples": 121,
+     "centreRow": [
+      0.791,
+      0.669,
+      0.008,
+      -0.523,
+      -0.537,
+      -0.52,
+      -0.501,
+      -0.235,
+      0.143,
+      0.501,
+      0.623
+     ]
+    },
+    "depth": {
+     "span": 1.208,
+     "distinct": 77,
+     "min": 0.046,
+     "max": 1.254,
+     "samples": 121,
+     "centreRow": [
+      0.046,
+      0.046,
+      0.046,
+      0.277,
+      0.342,
+      0.49,
+      0.505,
+      0.507,
+      0.507,
+      0.506,
+      0.504
+     ]
+    }
+   }
+  },
+  "the_wuthering_wisteria": {
+   "border": 512,
+   "grid": 11,
+   "axes": {
+    "temp": {
+     "span": 0.533,
+     "distinct": 108,
+     "min": -0.493,
+     "max": 0.04,
+     "samples": 121,
+     "centreRow": [
+      -0.153,
+      -0.177,
+      -0.172,
+      -0.173,
+      -0.189,
+      -0.198,
+      -0.181,
+      -0.179,
+      -0.145,
+      -0.172,
+      -0.173
+     ]
+    },
+    "humid": {
+     "span": 0.8,
+     "distinct": 109,
+     "min": -0.318,
+     "max": 0.482,
+     "samples": 121,
+     "centreRow": [
+      -0.173,
+      -0.138,
+      -0.03,
+      0.1,
+      0.177,
+      0.222,
+      0.313,
+      0.373,
+      0.365,
+      0.346,
+      0.33
+     ]
+    },
+    "cont": {
+     "span": 0.635,
+     "distinct": 113,
+     "min": -0.242,
+     "max": 0.393,
+     "samples": 121,
+     "centreRow": [
+      0.354,
+      0.314,
+      0.28,
+      0.166,
+      0.045,
+      0.021,
+      -0.029,
+      -0.053,
+      -0.071,
+      -0.073,
+      -0.075
+     ]
+    },
+    "eros": {
+     "span": 1.3,
+     "distinct": 54,
+     "min": -1.0,
+     "max": 0.3,
+     "samples": 121,
+     "centreRow": [
+      -0.288,
+      -0.234,
+      -0.17,
+      -0.107,
+      -0.018,
+      -0.003,
+      0.003,
+      0.001,
+      0.003,
+      0.004,
+      0.222
+     ]
+    },
+    "weird": {
+     "span": 2.0,
+     "distinct": 68,
+     "min": -1.0,
+     "max": 1.0,
+     "samples": 121,
+     "centreRow": [
+      -0.5,
+      -0.5,
+      -0.5,
+      -0.5,
+      -0.501,
+      -0.463,
+      -0.489,
+      -0.561,
+      -0.615,
+      -0.566,
+      -0.463
+     ]
+    },
+    "depth": {
+     "span": 0.961,
+     "distinct": 89,
+     "min": 0.339,
+     "max": 1.3,
+     "samples": 121,
+     "centreRow": [
+      1.095,
+      0.977,
+      0.887,
+      0.863,
+      0.768,
+      0.535,
+      0.505,
+      0.503,
+      0.502,
+      0.502,
+      0.501
      ]
     }
    }

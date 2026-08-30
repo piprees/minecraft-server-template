@@ -8,7 +8,7 @@
       "parameters": {
         "temperature": [
           -2.0,
-          -1.46
+          -0.495
         ]
       }
     },
@@ -16,8 +16,8 @@
       "id": "minecraft:nether_wastes",
       "parameters": {
         "temperature": [
-          -1.46,
-          -1.02
+          -0.495,
+          -0.234
         ]
       }
     },
@@ -25,8 +25,8 @@
       "id": "minecraft:basalt_deltas",
       "parameters": {
         "temperature": [
-          -1.02,
-          -0.48
+          -0.234,
+          -0.046
         ]
       }
     },
@@ -34,8 +34,8 @@
       "id": "incendium:infernal_dunes",
       "parameters": {
         "temperature": [
-          -0.48,
-          -0.04
+          -0.046,
+          0.098
         ]
       }
     },
@@ -43,8 +43,8 @@
       "id": "regions_unexplored:inferno",
       "parameters": {
         "temperature": [
-          -0.04,
-          1.56
+          0.098,
+          0.297
         ]
       }
     },
@@ -52,7 +52,7 @@
       "id": "incendium:volcanic_deltas",
       "parameters": {
         "temperature": [
-          1.56,
+          0.297,
           2.0
         ]
       }

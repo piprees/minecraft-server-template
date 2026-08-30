@@ -8,7 +8,7 @@
       "parameters": {
         "weirdness": [
           -2.0,
-          -1.85
+          -1.0
         ],
         "depth": [
           -2.0,
@@ -20,8 +20,8 @@
       "id": "terralith:ashen_savanna",
       "parameters": {
         "weirdness": [
-          -1.85,
-          -1.63
+          -1.0,
+          -0.5
         ],
         "depth": [
           -2.0,
@@ -33,8 +33,8 @@
       "id": "terralith:volcanic_peaks",
       "parameters": {
         "weirdness": [
-          -1.63,
-          -1.41
+          -0.5,
+          -0.496
         ],
         "depth": [
           -2.0,
@@ -46,8 +46,8 @@
       "id": "terralith:volcanic_crater",
       "parameters": {
         "weirdness": [
-          -1.41,
-          -1.19
+          -0.496,
+          -0.492
         ],
         "depth": [
           -2.0,
@@ -59,8 +59,8 @@
       "id": "minecraft:savanna",
       "parameters": {
         "weirdness": [
-          -1.19,
-          -0.97
+          -0.492,
+          -0.4589
         ],
         "depth": [
           -2.0,
@@ -72,8 +72,8 @@
       "id": "terralith:savanna_badlands",
       "parameters": {
         "weirdness": [
-          -0.97,
-          -0.75
+          -0.4589,
+          -0.376
         ],
         "depth": [
           -2.0,
@@ -85,8 +85,8 @@
       "id": "minecraft:badlands",
       "parameters": {
         "weirdness": [
-          -0.75,
-          -0.53
+          -0.376,
+          -0.114
         ],
         "depth": [
           -2.0,
@@ -98,8 +98,8 @@
       "id": "minecraft:eroded_badlands",
       "parameters": {
         "weirdness": [
-          -0.53,
-          -0.38
+          -0.114,
+          0.2869
         ],
         "depth": [
           -2.0,
@@ -111,8 +111,8 @@
       "id": "terralith:basalt_cliffs",
       "parameters": {
         "weirdness": [
-          -0.38,
-          -0.23
+          0.2869,
+          0.5
         ],
         "depth": [
           -2.0,
@@ -124,8 +124,8 @@
       "id": "regions_unexplored:joshua_desert",
       "parameters": {
         "weirdness": [
-          -0.23,
-          -0.08
+          0.5,
+          0.504
         ],
         "depth": [
           -2.0,
@@ -137,8 +137,8 @@
       "id": "regions_unexplored:dry_bushland",
       "parameters": {
         "weirdness": [
-          -0.08,
-          0.07
+          0.504,
+          0.508
         ],
         "depth": [
           -2.0,
@@ -150,8 +150,8 @@
       "id": "regions_unexplored:arid_mountains",
       "parameters": {
         "weirdness": [
-          0.07,
-          0.22
+          0.508,
+          0.512
         ],
         "depth": [
           -2.0,
@@ -163,8 +163,8 @@
       "id": "regions_unexplored:ashen_woodland",
       "parameters": {
         "weirdness": [
-          0.22,
-          1.82
+          0.512,
+          0.5573
         ],
         "depth": [
           -2.0,
@@ -176,7 +176,7 @@
       "id": "wilderwild:arid_savanna",
       "parameters": {
         "weirdness": [
-          1.82,
+          0.5573,
           2.0
         ],
         "depth": [
@@ -190,7 +190,7 @@
       "parameters": {
         "weirdness": [
           -2.0,
-          -0.045
+          -0.114
         ],
         "depth": [
           0.1,
@@ -202,7 +202,7 @@
       "id": "terralith:cave/andesite_caves",
       "parameters": {
         "weirdness": [
-          -0.045,
+          -0.114,
           2.0
         ],
         "depth": [
