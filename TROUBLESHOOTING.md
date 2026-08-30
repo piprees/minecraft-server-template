@@ -4,10 +4,10 @@
 
 | Prefix | Range | What it covers |
 | --- | --- | --- |
-| **T** | [T1–T14, T16–T19, T22–T27, T30–T57](#architecture-traps) | Architecture traps — each has caused a real production incident |
+| **T** | [T1–T14, T16–T19, T22–T27, T30–T58](#architecture-traps) | Architecture traps — each has caused a real production incident |
 | **P** | [P1–P4](#macos-local-dev) | macOS local-dev quirks (BSD tooling, toolchain) |
 | **D** | [D1–D6, D8–D9](#dimension-lifecycle) | Custom-dimension lifecycle on a live world |
-| **K** | [K1–K2, K5–K6](#known-issues) | Open issues — unfixed, on the watch list |
+| **K** | [K1–K2, K5–K7](#known-issues) | Open issues — unfixed, on the watch list |
 
 Related contracts: [`AGENTS.md`](AGENTS.md) (how to behave), [`COMMANDS.md`](COMMANDS.md) (command reference), [`mods/AGENTS.md`](mods/AGENTS.md) (in-house mod development, including portal-subsystem specifics).
 
@@ -57,6 +57,8 @@ Run this first. It covers deploy drift, disk, every expected container, `ONLINE_
 | Structures overlap, or a huge one gets a tiny one's clearance | [T54](#t54) |
 | A worldgen mod's biomes generate but its landforms never appear | [T55](#t55) |
 | A placement rule keyed on the assigned structure changes nothing | [T56](#t56) |
+| A biome band is reported dead but the biome generates | [T58](#t58) |
+| A `biomePatches` dimension generates biomes its list never named | [K7](#k7) |
 | Config or mod changes didn't take effect after a deploy | [T2](#t2) |
 | `signal only works in main thread` in discord-sync logs | [T3](#t3) |
 | mc crash-loops with Modrinth `429 Too Many Requests` | [T4](#t4) |
@@ -723,6 +725,45 @@ A seed's map and its banked facts appear to contradict each other — the thumbn
 
 ---
 
+<a id="t58"></a>
+### T58 — A sparse climate sample understates a world's range, and the checker treats it as proof
+
+- **Symptom:** `scripts/check-band-reach.py` reports a biome band as
+  `cannot generate` and fails the gate, but the biome does generate. Or the
+  reverse: a band judged against a type representative measured at a different
+  border reads clean when it is dead.
+- **Cause:** `config/custom-dimensions/climate-axes.json` holds a measured
+  range per dimension, and the checker treats a `perDimension` entry as proof
+  while an `axes[]` representative is only INDICATIVE. A range sampled along a
+  path rather than across the playable square understates every axis, because
+  the true range is over `[-B,+B]^2` and any path inside it is a subset.
+  Measured on `the_abyssal_shrine` (border 512), 11 points on one path against
+  a 121-point grid over the same square: weirdness 0.196 against 0.847
+  (**x4.32**), humidity x2.51, continentalness x2.07, depth x1.72, temperature
+  x1.47, erosion x1.36. Weirdness is the axis most dimensions band on and is
+  the worst affected. `MARGIN = 0.05` does not cover an error that size, and an
+  understated range makes a live band look dead.
+- **Fix:** sample the playable square, not a path through it. `borders.player`
+  is a RADIUS and the vanilla world border is SQUARE (`WorldBorderManager`:
+  `setCenter(0,0)`, `setSize(radius * 2)`), so an N x N grid over `[-B,+B]^2`
+  covers the world exactly and nothing outside it. `customdim sample-noise`
+  reads the noise router and needs no loaded chunks — only the ServerWorld must
+  exist — so a grid costs nothing in generation. At ~46 ms per RCON call an
+  11x11 grid is ~14 s per dimension. Harness:
+  `.handoff/band-verdicts/grid-sample.sh`.
+- **A wide span can be a clamped axis rather than a rich one.** Read `distinct`
+  beside `min`/`max`: an axis reporting span 2.000 bounded at exactly +-1.000
+  across a third of its samples has points pinned at the rails. A band
+  containing a rail value still generates, so the band-reach verdict "live" is
+  correct — but it collects every pinned point and the biome takes a
+  disproportionate share, which is [T19](#t19) reached by another route. Two
+  different questions; answering one does not answer the other.
+- **Only a `perDimension` entry can produce a `cannot generate` verdict.**
+  Adding rows to `axes[]` never converts an INDICATIVE finding, whatever the
+  row contains — `measured_range` returns `"representative"` for all of them.
+- A `customdim load` does not survive an `mc` restart ([T18](#t18)), so a
+  sampling run must load each dimension in the same pass that samples it.
+
 ## macOS local dev
 
 <a id="p1"></a>
@@ -900,6 +941,33 @@ The rendered height disagrees with the facts on high-relief columns. The error i
   register a `ChunkTicketType.PORTAL` ticket and act on a later tick.
 
 ---
+
+<a id="k7"></a>
+### K7 — Ten dimensions with `biomePatches` have no T34 defence
+
+- **Symptom:** a dimension carrying `biomePatches` generates biomes its
+  `biomes` list never named, and `/customdim structure-census` reports
+  `FACTS ENGINE DISAGREES` — the [T34](#t34) symptom, on a dimension where the
+  T34 defence is supposed to prevent it.
+- **Cause:** `ConfiguredBiomeSource.restore` is that defence. It gates on
+  `noiseGen.getBiomeSource() instanceof MultiNoiseBiomeSource`
+  (`ConfiguredBiomeSource.java:46-47`) and is called from
+  `getOrCreateDimension` (`DimensionManager.java:1315`) on every
+  `customdim load`. `applyBiomePatches` wraps the source in a
+  `PatchedBiomeSource`, which is not a `MultiNoiseBiomeSource`, so the gate
+  fails and `restore` returns its input untouched. Confirmed from
+  `data/world/level.dat`: every persisted `customdimensions:patched` source
+  holds its `minecraft:multi_noise` delegate one layer down, where the gate
+  cannot see it.
+- **Fix — NOT a matter of unwrapping.** `restore` rebuilds the source from its
+  parameter entries, so unwrapping alone rebuilds a bare
+  `MultiNoiseBiomeSource` and **drops the dimension's patches**. The shape has
+  to be unwrap, rebuild, then re-wrap the patches around the result.
+  `DimensionManager.multiNoiseOf` is public and unwraps both wrapper classes to
+  a fixed point, which supplies the first step and nothing else.
+- Creation-time worldgen ([D2](#d2)): changing it changes what those dimensions
+  generate, so it takes a world wipe to apply and cannot be undone on chunks
+  that already exist.
 
 ## Common symptoms
 
