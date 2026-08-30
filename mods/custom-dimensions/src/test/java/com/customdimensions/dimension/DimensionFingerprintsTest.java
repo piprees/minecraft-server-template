@@ -21,6 +21,31 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 class DimensionFingerprintsTest {
 
+    @Test
+    void biomePatchesAddedToAWorldThatAlreadyExistsReadsAsDrift() {
+        // A dimension created before its patches records the string "null", so
+        // the key is present and compared rather than backfilled. Adding
+        // biomePatches later is creation-time worldgen the world cannot take.
+        Map<String, String> stored = fingerprint("multi_biome", "null", "minecraft:plains");
+        Map<String, String> current = new HashMap<>(stored);
+        current.put("biomePatches", "minecraft:warped_forest@0,0,420~64");
+
+        List<String> drifted = DimensionFingerprints.driftedFields(stored, current);
+
+        assertEquals(List.of("biomePatches"), drifted);
+        assertTrue(DimensionFingerprints.needsWipe(drifted),
+                "the generator is baked into level.dat, so this needs a wipe");
+    }
+
+    @Test
+    void aPatchListThatHasNotChangedIsNotDrift() {
+        Map<String, String> stored = fingerprint("multi_biome", "null", "minecraft:plains");
+        stored.put("biomePatches", "minecraft:warped_forest@0,0,420~64");
+        Map<String, String> current = new HashMap<>(stored);
+
+        assertEquals(List.of(), DimensionFingerprints.driftedFields(stored, current));
+    }
+
     private static Map<String, String> fingerprint(String type, String noiseSettings, String biomes) {
         Map<String, String> f = new HashMap<>();
         f.put("type", type);
