@@ -17,6 +17,8 @@ import net.minecraft.world.gen.chunk.NoiseChunkGenerator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Supplier;
+import java.util.function.UnaryOperator;
 
 /**
  * A managed dimension generates the biome source this mod built for it.
@@ -27,6 +29,11 @@ import java.util.Set;
  * survives that untouched, so a source rebuilt from it carries the dimension's
  * own palette and nothing else. The four reserved worlds have no config here
  * and keep whatever the pack's biome mods give them.
+ *
+ * <p>A dimension with {@code biomePatches} carries its multi-noise source inside
+ * a {@link PatchedBiomeSource}. The rebuild reads that core and wraps its result
+ * back in the same patches, so restoring a palette never costs the dimension its
+ * stamps and swaps.
  */
 public final class ConfiguredBiomeSource {
 
@@ -43,8 +50,15 @@ public final class ConfiguredBiomeSource {
         if (options == null || def == null) {
             return options;
         }
-        if (!(options.chunkGenerator() instanceof NoiseChunkGenerator noiseGen)
-                || !(noiseGen.getBiomeSource() instanceof MultiNoiseBiomeSource source)) {
+        if (!(options.chunkGenerator() instanceof NoiseChunkGenerator noiseGen)) {
+            return options;
+        }
+        BiomeSource outer = noiseGen.getBiomeSource();
+        PatchedBiomeSource patched = outer instanceof PatchedBiomeSource p ? p : null;
+        // The palette is the CORE's parameter entries. A wrapper's own biome set
+        // also counts its patch biomes, which would read as widening.
+        BiomeSource core = patched == null ? outer : patched.delegate();
+        if (!(core instanceof MultiNoiseBiomeSource source)) {
             return options;
         }
         List<Pair<MultiNoiseUtil.NoiseHypercube, RegistryEntry<Biome>>> entries =
@@ -54,16 +68,36 @@ public final class ConfiguredBiomeSource {
             pair.getSecond().getKey().map(RegistryKey::getValue).ifPresent(own::add);
         }
         int reported = source.getBiomes().size();
-        if (reported <= own.size()) {
+        BiomeSource restored = restored(outer, reported, own.size(),
+                () -> MultiNoiseBiomeSource.create(new MultiNoiseUtil.Entries<>(entries)),
+                patched == null ? UnaryOperator.identity()
+                        : rebuilt -> new PatchedBiomeSource(rebuilt, patched.patches()));
+        if (restored == outer) {
             return options;
         }
-        BiomeSource rebuilt = MultiNoiseBiomeSource.create(new MultiNoiseUtil.Entries<>(entries));
         MultiverseServer.LOGGER.warn(
                 "Dimension {}: biome source reported {} biomes over a {}-biome palette — "
                 + "another mod injected regions into the persisted source; rebuilt from its "
-                + "own {} parameter point(s)",
-                def.getName(), reported, own.size(), entries.size());
+                + "own {} parameter point(s){}",
+                def.getName(), reported, own.size(), entries.size(),
+                patched == null ? "" : " inside its " + patched.patches().size() + " patch(es)");
         return new DimensionOptions(options.dimensionTypeEntry(),
-                new NoiseChunkGenerator(rebuilt, noiseGen.getSettings()));
+                new NoiseChunkGenerator(restored, noiseGen.getSettings()));
+    }
+
+    /**
+     * The rebuilt core back inside the wrapper it came out of, or {@code source}
+     * itself when the palette was never widened.
+     *
+     * <p>Generic so the rebuild-then-rewrap order is unit-testable:
+     * {@code BiomeSource} initialises {@code Registries}, which that suite cannot
+     * bootstrap.
+     */
+    static <S> S restored(S source, int reported, int palette,
+                          Supplier<S> rebuild, UnaryOperator<S> rewrap) {
+        if (reported <= palette) {
+            return source;
+        }
+        return rewrap.apply(rebuild.get());
     }
 }
