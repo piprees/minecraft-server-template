@@ -47,9 +47,7 @@
           0.9
         ]
       }
-    },
-    "betternether:nether_grasslands",
-    "betternether:soul_plain"
+    }
   ],
   "borders": {
     "player": 4096,

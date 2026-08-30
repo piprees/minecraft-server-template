@@ -74,10 +74,7 @@
           0.9
         ]
       }
-    },
-    "betternether:flooded_deltas",
-    "betternether:magma_land",
-    "betternether:upside_down_forest"
+    }
   ],
   "borders": {
     "player": 2048,

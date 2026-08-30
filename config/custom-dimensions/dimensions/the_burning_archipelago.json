@@ -58,13 +58,7 @@
           2.0
         ]
       }
-    },
-    "betterend:amber_land",
-    "betterend:dry_shrubland",
-    "betterend:megalake",
-    "betterend:painted_mountains",
-    "betterend:sulphur_springs",
-    "betternether:nether_swampland_terraces"
+    }
   ],
   "borders": {
     "player": 4096,
