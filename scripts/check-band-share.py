@@ -32,7 +32,9 @@ Gotchas:  - A biome may carry several bands and holds each region. A repeat
             SQUARE, so every cell of `[-B,+B]^2` is ground a player can stand
             on. FactsEngine disc-clips its own sample, so it under-reports a
             band living only near the corners; that is a limit of `facts`, not
-            of the world. Nothing here clips.
+            of the world. Nothing here clips. Measured: `the_whitestone_ford`
+            `minecraft:lush_caves` holds 0 cells inside the disc and 46 outside
+            it, so `facts` reports the band empty and this script does not.
           - **Depth is measured, at one height.** The grids carry depth at y=0;
             the gradient is -1/128 per block, so block y 64 — the height
             `customdim facts` reads — is the sampled value minus 0.5. Every
