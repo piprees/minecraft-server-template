@@ -3,23 +3,87 @@
   "description": "The piglin military frontier. Bastions and blackstone walls from spawn, fortified against something that came from below. The deeper you dig, the harder it fights back \u2014 as if the keep itself remembers the threat.",
   "seed": 6973119787935770282,
   "biomes": [
-    "minecraft:basalt_deltas",
-    "minecraft:nether_wastes",
-    "minecraft:crimson_forest",
-    "minecraft:soul_sand_valley",
-    "incendium:ash_barrens",
+    {
+      "id": "minecraft:soul_sand_valley",
+      "parameters": {
+        "temperature": [
+          -2.0,
+          -0.4317
+        ]
+      }
+    },
     {
       "id": "regions_unexplored:blackstone_basin",
       "parameters": {
         "temperature": [
-          -1.0,
-          -0.5
+          -0.4317,
+          0.0319
         ]
       }
     },
-    "betternether:crimson_glowing_woods",
-    "betternether:wart_forest",
-    "betternether:wart_forest_edge"
+    {
+      "id": "incendium:ash_barrens",
+      "parameters": {
+        "temperature": [
+          0.0319,
+          0.1067
+        ]
+      }
+    },
+    {
+      "id": "minecraft:basalt_deltas",
+      "parameters": {
+        "temperature": [
+          0.1067,
+          0.2023
+        ]
+      }
+    },
+    {
+      "id": "minecraft:nether_wastes",
+      "parameters": {
+        "temperature": [
+          0.2023,
+          0.3611
+        ]
+      }
+    },
+    {
+      "id": "betternether:crimson_glowing_woods",
+      "parameters": {
+        "temperature": [
+          0.3611,
+          0.458
+        ]
+      }
+    },
+    {
+      "id": "minecraft:crimson_forest",
+      "parameters": {
+        "temperature": [
+          0.458,
+          0.6126
+        ]
+      }
+    },
+    {
+      "id": "betternether:wart_forest",
+      "parameters": {
+        "temperature": [
+          0.6126,
+          0.6955
+        ]
+      }
+    },
+    {
+      "id": "betternether:wart_forest_edge",
+      "parameters": {
+        "temperature": [
+          0.6955,
+          2.0
+        ]
+      }
+    }
   ],
   "borders": {
     "player": 1024,

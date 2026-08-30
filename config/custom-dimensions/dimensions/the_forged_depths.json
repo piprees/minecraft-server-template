@@ -3,22 +3,78 @@
   "description": "The last piglin forge still burning. Crimson forges and reactors in a small brutal deep \u2014 the fires here never went out because nobody survived to bank them. The deeper you go, the hotter and harder it gets. The heat comes back through the frame, and anything built beside the portal is fuel.",
   "seed": -6833270218787544653,
   "biomes": [
-    "minecraft:basalt_deltas",
-    "incendium:volcanic_deltas",
-    "incendium:quartz_flats",
-    "minecraft:nether_wastes",
+    {
+      "id": "incendium:quartz_flats",
+      "parameters": {
+        "temperature": [
+          -2.0,
+          -0.6683
+        ]
+      }
+    },
+    {
+      "id": "minecraft:nether_wastes",
+      "parameters": {
+        "temperature": [
+          -0.6683,
+          -0.5841
+        ]
+      }
+    },
+    {
+      "id": "betternether:crimson_pinewood",
+      "parameters": {
+        "temperature": [
+          -0.5841,
+          -0.5424
+        ]
+      }
+    },
+    {
+      "id": "betternether:crimson_glowing_woods",
+      "parameters": {
+        "temperature": [
+          -0.5424,
+          -0.5064
+        ]
+      }
+    },
+    {
+      "id": "minecraft:basalt_deltas",
+      "parameters": {
+        "temperature": [
+          -0.5064,
+          -0.3832
+        ]
+      }
+    },
+    {
+      "id": "betternether:magma_land",
+      "parameters": {
+        "temperature": [
+          -0.3832,
+          -0.3125
+        ]
+      }
+    },
+    {
+      "id": "incendium:volcanic_deltas",
+      "parameters": {
+        "temperature": [
+          -0.3125,
+          -0.1988
+        ]
+      }
+    },
     {
       "id": "regions_unexplored:inferno",
       "parameters": {
         "temperature": [
-          -0.023,
+          -0.1988,
           2.0
         ]
       }
-    },
-    "betternether:crimson_glowing_woods",
-    "betternether:crimson_pinewood",
-    "betternether:magma_land"
+    }
   ],
   "borders": {
     "player": 683,

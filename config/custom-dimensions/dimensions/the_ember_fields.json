@@ -3,18 +3,21 @@
   "description": "Rolling ember meadows where piglin villages still tend the geyser fields. The gentlest face of piglin civilisation \u2014 farmers and traders, not soldiers. The fortress at the rim is a precaution, not a threat.",
   "seed": -214351804805440947,
   "biomes": [
-    "minecraft:crimson_forest",
-    "incendium:infernal_dunes",
-    "minecraft:nether_wastes",
-    "incendium:volcanic_deltas",
-    "incendium:weeping_valley",
-    "incendium:quartz_flats",
     {
-      "id": "terralith:yellowstone",
+      "id": "betternether:nether_grasslands",
       "parameters": {
         "temperature": [
-          -0.264,
-          -0.201
+          -2.0,
+          -0.5106
+        ]
+      }
+    },
+    {
+      "id": "betternether:poor_nether_grasslands",
+      "parameters": {
+        "temperature": [
+          -0.5106,
+          -0.4514
         ]
       }
     },
@@ -22,16 +25,101 @@
       "id": "regions_unexplored:glistering_meadow",
       "parameters": {
         "temperature": [
-          -0.021,
-          0.221
+          -0.4514,
+          -0.2045
         ]
       }
     },
-    "betterend:sulphur_springs",
-    "betternether:nether_grasslands",
-    "betternether:nether_mushroom_forest",
-    "betternether:poor_nether_grasslands",
-    "betternether:wart_forest_edge"
+    {
+      "id": "betternether:wart_forest_edge",
+      "parameters": {
+        "temperature": [
+          -0.2045,
+          -0.1908
+        ]
+      }
+    },
+    {
+      "id": "betternether:nether_mushroom_forest",
+      "parameters": {
+        "temperature": [
+          -0.1908,
+          -0.1715
+        ]
+      }
+    },
+    {
+      "id": "betterend:sulphur_springs",
+      "parameters": {
+        "temperature": [
+          -0.1715,
+          -0.1036
+        ]
+      }
+    },
+    {
+      "id": "terralith:yellowstone",
+      "parameters": {
+        "temperature": [
+          -0.1036,
+          -0.0304
+        ]
+      }
+    },
+    {
+      "id": "incendium:quartz_flats",
+      "parameters": {
+        "temperature": [
+          -0.0304,
+          0.0059
+        ]
+      }
+    },
+    {
+      "id": "incendium:weeping_valley",
+      "parameters": {
+        "temperature": [
+          0.0059,
+          0.0354
+        ]
+      }
+    },
+    {
+      "id": "minecraft:crimson_forest",
+      "parameters": {
+        "temperature": [
+          0.0354,
+          0.1007
+        ]
+      }
+    },
+    {
+      "id": "minecraft:nether_wastes",
+      "parameters": {
+        "temperature": [
+          0.1007,
+          0.1586
+        ]
+      }
+    },
+    {
+      "id": "incendium:infernal_dunes",
+      "parameters": {
+        "temperature": [
+          0.1586,
+          0.2916
+        ]
+      }
+    },
+    {
+      "id": "incendium:volcanic_deltas",
+      "parameters": {
+        "temperature": [
+          0.2916,
+          2.0
+        ]
+      }
+    }
   ],
   "borders": {
     "player": 1024,

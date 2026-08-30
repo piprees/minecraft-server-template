@@ -3,17 +3,57 @@
   "description": "The battlefield. Piglins met endermen here and neither side won. Bones of giants lie in soul sand, a crashed ship rusts in the distance, and the sculk that crept in wasn't either side's weapon \u2014 it fed on the war itself.",
   "seed": 1211329661452953383,
   "biomes": [
-    "minecraft:soul_sand_valley",
-    "incendium:ash_barrens",
-    "minecraft:basalt_deltas",
-    "incendium:withered_forest",
-    "incendium:toxic_heap",
     {
       "id": "minecraft:deep_dark",
       "parameters": {
         "temperature": [
-          -0.6947,
-          -0.4323
+          -2.0,
+          -0.8352
+        ]
+      }
+    },
+    {
+      "id": "betternether:bone_reef",
+      "parameters": {
+        "temperature": [
+          -0.8352,
+          -0.6762
+        ]
+      }
+    },
+    {
+      "id": "minecraft:soul_sand_valley",
+      "parameters": {
+        "temperature": [
+          -0.6762,
+          -0.1768
+        ]
+      }
+    },
+    {
+      "id": "betternether:soul_plain",
+      "parameters": {
+        "temperature": [
+          -0.1768,
+          -0.1168
+        ]
+      }
+    },
+    {
+      "id": "betternether:sulfuric_bone_reef",
+      "parameters": {
+        "temperature": [
+          -0.1168,
+          -0.0547
+        ]
+      }
+    },
+    {
+      "id": "incendium:ash_barrens",
+      "parameters": {
+        "temperature": [
+          -0.0547,
+          0.0512
         ]
       }
     },
@@ -21,8 +61,17 @@
       "id": "regions_unexplored:blackstone_basin",
       "parameters": {
         "temperature": [
-          -0.4323,
-          -0.403
+          0.0512,
+          0.0977
+        ]
+      }
+    },
+    {
+      "id": "minecraft:basalt_deltas",
+      "parameters": {
+        "temperature": [
+          0.0977,
+          0.1629
         ]
       }
     },
@@ -30,14 +79,29 @@
       "id": "regions_unexplored:ancient_delta",
       "parameters": {
         "temperature": [
-          -0.3507,
-          -0.0993
+          0.1629,
+          0.2058
         ]
       }
     },
-    "betternether:bone_reef",
-    "betternether:soul_plain",
-    "betternether:sulfuric_bone_reef"
+    {
+      "id": "incendium:toxic_heap",
+      "parameters": {
+        "temperature": [
+          0.2058,
+          0.3044
+        ]
+      }
+    },
+    {
+      "id": "incendium:withered_forest",
+      "parameters": {
+        "temperature": [
+          0.3044,
+          2.0
+        ]
+      }
+    }
   ],
   "borders": {
     "player": 1024,
