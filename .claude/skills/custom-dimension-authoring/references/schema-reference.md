@@ -103,8 +103,7 @@ Observed shipped patterns: peaceful `mobMultiplier: 0.0` + `hostileSpawning: fal
 {
   "structures": {
     "wants": { "guide_post_warm": { "min": 256, "max": 512 } },
-    "shuns": { "village": {}, "ruined_portal": { "minDistance": 2000 } },
-    "endgame": { "allow": true, "safeRadius": 1500 },
+    "shuns": { "village": {}, "ruined_portal": {} },
     "spacing": { "minecraft:villages": { "spacing": 32, "separation": 8 } },
     "mode": "allow",
     "list": ["minecraft:villages", "adventure:exit_shrines"],
@@ -115,9 +114,10 @@ Observed shipped patterns: peaceful `mobMultiplier: 0.0` + `hostileSpawning: fal
 ```
 
 - `wants` — map of structure short-name → `{"min": N, "max": M}` **block distances**. Scored by the roller AND read for placement: a want multiplies the structure's noise-pool weight by 1.2 and bypasses the biome-affinity filter. Short names resolve via `references/structure-names.md`; a name resolving to a `#tag` is dropped.
-- `shuns` — map of short-name → `{}` (must not exist anywhere in the playable radius) or `{"minDistance": N}` (must be at least N blocks away). **Map form only** — a bare list crashes Gson. Also divides the pool weight by 1.5 — a shun discourages, `exclude` removes, and a shun can never reach zero.
+- `shuns` — map of short-name → `{}`. **Map form only** — a bare list crashes Gson. Divides the pool weight by 1.5 — a shun discourages, `exclude` removes, and a shun can never reach zero.
+  **`{"minDistance": N}` is PARSED, INERT.** `StructureWants.shunNames` returns `block.shuns.keySet()`, so the values are discarded and every shun behaves as `{}` — the distance is never enforced at placement nor scored. Write `{}` and mean it; a distance in the file reads as a constraint nobody applies.
 - Both factors are exact at every weight (the pool is carried at 15 units per weight), and naming a structure in both cancels. When the `structures` block names neither, `seedRoll.wants`/`seedRoll.shuns` supply the list.
-- `endgame` — `{"allow": bool, "safeRadius": N}`. Overrides the roller's automatic endgame-near-spawn penalty.
+- `endgame` — **PARSED, INERT.** `{"allow": bool, "safeRadius": N}` is declared at `DimensionConfig.java:915` and the whole object is read by nothing; there is no automatic endgame-near-spawn penalty for it to override. The live lever is `clearSpawnRadius` below. (The string `"endgame"` elsewhere is a structure GROUP name and is unrelated.)
 - `spacing` — map of structure **set** id → `{"spacing": N, "separation": M}`. This one IS read by the mod at runtime (new chunks only) — actually rescales placement, not just scoring.
 - `mode` + `list` — `"allow"`/`"reject"`/`"none"` filter on organic structure sets. Runtime.
 - `force` — exact placements: `{"structure": "<full id>", "x": N, "z": N}` (structure ids here, not short names, not set ids). Runtime.
@@ -221,7 +221,9 @@ All fields optional; anything unset inherits from the base dimension type. Regis
 
 ## `seedRoll` object
 
-The mod ignores this block entirely at runtime — it exists purely for seed rolling. This is the block that actually defines "what does a good seed for this dimension look like":
+The mod ignores this block entirely at runtime — it exists purely for seed rolling.
+The worked examples show only fields that DO something; the tables below also
+cover the parsed-but-inert ones, which are marked as such. This is the block that actually defines "what does a good seed for this dimension look like":
 
 ```json
 {
@@ -229,13 +231,10 @@ The mod ignores this block entirely at runtime — it exists purely for seed rol
     "skip": false,
     "mood": "adventurous",
     "spawnFilter": ["minecraft:desert", "minecraft:savanna"],
-    "spawnRadius": 128,
     "water": "none",
-    "locateCap": 9000,
     "terrain": "islands",
     "heightRange": [-60, 440],
     "family": "overworld",
-    "allowEndgameNearSpawn": false,
     "allowHazardousSpawn": false,
     "wants": { "village": "near_spawn", "ancient_city": "spread" },
     "shuns": ["village", "tavern"]
@@ -248,13 +247,13 @@ The mod ignores this block entirely at runtime — it exists purely for seed rol
 | `skip` | `true` excludes this dimension from rolling entirely. |
 | `mood` | One of the 8 valid moods (`hard`/`adventurous`/`dramatic`/`scenic`/`pastoral`/`serene`/`desolate`/`standard`) — see `references/scoring-internals.md` for exact weights/behaviour. |
 | `spawnFilter` | Biome ids the dimension is named after. GRADED, not a gate: a spawn already in one is full marks, otherwise the mark is those biomes' combined share of the world, because picking a candidate writes the position you were standing in as the spawn. A filter naming a biome that cannot occur in this family scores every seed zero — still the first thing to check when a board stays empty. |
-| `spawnRadius` | Sampling radius for spawn biome checks. |
+| `spawnRadius` | **PARSED, INERT.** Declared at `DimensionConfig.java:1673` and read by nothing. Spawn biome checks use the roller's own sampling. Setting it changes no behaviour. |
 | `water` | `"none"` (≤0.20) / `"high"` (0.25–0.80) / `"sea"` (≥0.50) — the fraction of columns WITH GROUND that sit at or below the generator's sea level. Nothing in the generator reads this; a dimension that needs a genuinely dry or drowned world sets `settingsOverrides.seaLevel`, which the generator does read. |
-| `locateCap` | Max locate distance; defaults to generation border + 1000. |
+| `locateCap` | **PARSED, INERT.** `getLocateCap()` reads it and falls back to generation border + 1000, but nothing calls that getter: `LocateManager` hard-codes a 6400-block search. Setting it changes no behaviour. |
 | `terrain` | Two vocabularies. Relief words — `flat`, `gently_rolling`, `rolling`, `hilly`, `mountainous`, `extreme` — score against the terrain's interquartile height spread. Ground-shape words — `islands` (5–70% of the disc carries ground) and `void` (≤10%) — score against `terrain.groundFraction`. A dimension setting neither is asked instead whether it has a floor at all. `"solid"` is NOT a recognised word. |
 | `heightRange` | `[minY, maxY]` envelope the terrain should live INSIDE. Scored as the share of the terrain that exists which falls within it, so a narrow world inside a wide envelope is full marks — an envelope is a permission, not a quota. A range wide enough to contain anything (all six shipped uses declare `[-60, 440]`) discriminates nothing; make it fit the dimension. |
 | `family` | `"overworld"`/`"nether"`/`"end"`/`"paradise_lost"` override of auto-detection from `type`. |
-| `allowEndgameNearSpawn` | Lets endgame/boss structures sit near spawn without penalty. |
+| `allowEndgameNearSpawn` | **PARSED, INERT.** Declared at `DimensionConfig.java:1685` and read by nothing. There is no endgame-near-spawn penalty to lift. To keep structures off spawn use `structures.clearSpawnRadius`, which is live. |
 | `allowHazardousSpawn` | `true` withdraws BOTH spawn-safety gates — `nothing_is_immediately_lethal` (a sheer drop at the spawn column) and `spawn_is_safe_to_build_on` (lava, or nothing to stand on). For a dimension entered through a portal the mod builds the arrival itself — `PortalSite` finds an open site or carves one, lays a floor, and refuses the traversal rather than dropping somebody somewhere unopenable — so a player never steps out onto the column these measure, and for a dimension whose proposition IS danger a cliff there is scenery. Opt-out and never derived: every dimension has a portal, so deriving it would switch the gates off pack-wide in one silent step. Shipped on the 19 dimensions with `difficulty.mobMultiplier >= 2.0`, the same threshold the hard structure shift uses. |
 | `wants` | **Band-name** form: short-name → `"near_spawn"` (0–15% of `borders.player`) / `"spread"` (10–75%) / `"near_border"` (55–100%). One criterion per entry, scored on the nearest instance's distance as a fraction of this dimension's own border. Different format from `structures.wants` — see main SKILL.md traps. |
 | `shuns` | Bare list of short names (or map form), used when `structures.shuns` names none. Absent is full marks; present is scored by how much of the world separates a player from it, and the structure's pool weight is divided by 1.5. |
