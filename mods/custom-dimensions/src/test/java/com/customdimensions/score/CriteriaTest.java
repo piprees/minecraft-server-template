@@ -213,6 +213,116 @@ class CriteriaTest {
                 terrain(30.0), structures(0.6, 900.0), 4096);
     }
 
+    // ------------------------------------- the namesake mark, on real cards
+
+    /**
+     * The pair that stopped the 64-dimension roll, from the banked cards for
+     * {@code the_weeping_vault} under input hash {@code 17ecbf5d}. Its filter
+     * names two biomes and both worlds deliver both, so nothing but the
+     * BALANCE tells them apart — which is exactly what a combined share
+     * cannot see.
+     */
+    @Test
+    void theSmokePairSeparates() {
+        var c = new Criteria.SpawnReadsAsNamesake();
+        DimensionConfig def = config(
+                List.of("incendium:weeping_valley", "minecraft:crimson_forest"), null, null);
+
+        // seed -1632004514647508524: 20.00% / 26.01%, spawn soul_sand_valley
+        double incumbent = score(c.evaluate(withShares(Map.of(
+                "incendium:weeping_valley", 0.2000,
+                "minecraft:crimson_forest", 0.2601,
+                "minecraft:soul_sand_valley", 0.5399), "minecraft:soul_sand_valley"), def));
+        // seed 3321659936879994338: 5.61% / 33.60%, spawn basalt_deltas
+        double winner = score(c.evaluate(withShares(Map.of(
+                "incendium:weeping_valley", 0.0561,
+                "minecraft:crimson_forest", 0.3360,
+                "minecraft:basalt_deltas", 0.6079), "minecraft:basalt_deltas"), def));
+
+        assertTrue(incumbent > winner,
+                "the roll promoted the winner over the incumbent while the biome this "
+                        + "dimension is NAMED AFTER fell 20.00% -> 5.61%; got incumbent "
+                        + incumbent + " against winner " + winner);
+        assertTrue(incumbent - winner > 0.15,
+                "and it must separate by a margin rather than a hair, got "
+                        + (incumbent - winner));
+    }
+
+    @Test
+    void aCombinedShareCannotSeeTheCollapseThatStoppedTheRoll() {
+        // The control the falsification needs: on the same pair the OLD
+        // aggregate moves 46.01% -> 39.21%, so a criterion reading the sum
+        // separates them by 0.068 where the conjunction separates by 0.18 —
+        // and above a third the old form capped both to 1.0 and saw nothing.
+        double[] incumbent = {0.2000, 0.2601};
+        double[] winner = {0.0561, 0.3360};
+
+        assertEquals(0.4601, incumbent[0] + incumbent[1], 1e-9);
+        assertEquals(0.3921, winner[0] + winner[1], 1e-9);
+        assertTrue(Criteria.SpawnReadsAsNamesake.namesakeMark(incumbent, false)
+                        - Criteria.SpawnReadsAsNamesake.namesakeMark(winner, false)
+                        > (incumbent[0] + incumbent[1]) - (winner[0] + winner[1]),
+                "the conjunction must separate them by MORE than the sum does, or it "
+                        + "has added nothing over the aggregate it replaces");
+    }
+
+    @Test
+    void aConjunctionWillNotLetOneNamesakeSubstituteForAnother() {
+        double[] both = {0.25, 0.25};
+        double[] one = {0.50, 0.00};
+
+        assertEquals(0.50, both[0] + both[1], 1e-9, "identical combined share");
+        assertEquals(0.50, one[0] + one[1], 1e-9);
+        assertTrue(Criteria.SpawnReadsAsNamesake.namesakeMark(both, false)
+                > Criteria.SpawnReadsAsNamesake.namesakeMark(one, false),
+                "a dimension naming two biomes wants both, and the sum cannot say so");
+        assertEquals(0.50, Criteria.SpawnReadsAsNamesake.namesakeMark(both, false), 1e-9,
+                "equal shares make the balanced coverage the combined share exactly");
+        assertEquals(0.25, Criteria.SpawnReadsAsNamesake.namesakeMark(one, false), 1e-9,
+                "half the named biomes delivered, so half the mark");
+    }
+
+    @Test
+    void aSpawnAlreadyInANamesakeBeatsOneThatHasToBeMoved() {
+        double[] shares = {0.20, 0.26};
+        double moved = Criteria.SpawnReadsAsNamesake.namesakeMark(shares, false);
+        double already = Criteria.SpawnReadsAsNamesake.namesakeMark(shares, true);
+
+        assertTrue(already > moved, "0,0 already reading as the dimension is worth something");
+        assertEquals(moved + (1.0 - moved) * Criteria.SpawnReadsAsNamesake.NATIVE_SPAWN_BONUS,
+                already, 1e-9, "it closes a fixed fraction of the gap, never exceeding it");
+        assertEquals(0.25, Criteria.SpawnReadsAsNamesake.NATIVE_SPAWN_BONUS, 1e-9,
+                "pinned as a literal so a change to it cannot pass silently");
+    }
+
+    @Test
+    void theMarkIsBoundedByConstructionRatherThanByAClamp() {
+        // A cap is what made the old form blind above a third, so the bound
+        // has to come from the maths. AM-GM gives balanced <= combined share,
+        // and shares are fractions of one world.
+        assertEquals(1.0, Criteria.SpawnReadsAsNamesake.namesakeMark(new double[]{1.0}, true), 1e-9);
+        assertEquals(1.0, Criteria.SpawnReadsAsNamesake.namesakeMark(new double[]{0.5, 0.5}, false), 1e-9);
+        assertEquals(0.0, Criteria.SpawnReadsAsNamesake.namesakeMark(new double[]{0.0, 0.0}, false), 1e-9,
+                "no namesake biome anywhere, and not standing in one, is zero");
+        assertEquals(Criteria.SpawnReadsAsNamesake.NATIVE_SPAWN_BONUS,
+                Criteria.SpawnReadsAsNamesake.namesakeMark(new double[]{0.0, 0.0}, true), 1e-9,
+                "standing in a namesake the 41x41 grid stepped over is [K7], not a "
+                        + "contradiction — the observation outranks the sample that missed "
+                        + "it, but evidences presence and not coverage");
+        for (double[] s : List.of(new double[]{0.9, 0.1}, new double[]{0.34, 0.33, 0.33},
+                new double[]{1.0, 0.0}, new double[]{0.001, 0.999})) {
+            double m = Criteria.SpawnReadsAsNamesake.namesakeMark(s, true);
+            assertTrue(m >= 0.0 && m <= 1.0, "mark out of range: " + m);
+        }
+    }
+
+    @Test
+    void aSingleNamedBiomeIsGradedOnItsOwnShareAlone() {
+        // n = 1 must reduce to the plain share, or a one-entry filter is
+        // silently on a different scale from every other dimension's.
+        assertEquals(0.42, Criteria.SpawnReadsAsNamesake.namesakeMark(new double[]{0.42}, false), 1e-9);
+    }
+
     // --------------------------------------------------- spawn reads as name
 
     @Test
@@ -232,11 +342,16 @@ class CriteriaTest {
                 Map.of("minecraft:snowy_plains", 1.0), "minecraft:snowy_plains"), def)), 1e-9,
                 "a spawn already in a namesake biome is the full mark");
 
-        // Spawn elsewhere, but a third of the world is the namesake: as easy
-        // to place a spawn in as a world entirely covered by it.
-        assertEquals(1.0, score(c.evaluate(withShares(
+        // A third of the world is the namesake and the mark says a third. The
+        // old form capped here, so every world above a third read alike and
+        // THEME stopped contributing to the ranking at all.
+        assertEquals(0.33, score(c.evaluate(withShares(
                 Map.of("minecraft:snowy_plains", 0.33, "minecraft:desert", 0.67),
                 "minecraft:desert"), def)), 1e-9);
+        assertEquals(0.66, score(c.evaluate(withShares(
+                Map.of("minecraft:snowy_plains", 0.66, "minecraft:desert", 0.34),
+                "minecraft:desert"), def)), 1e-9,
+                "twice the namesake is twice the mark — the point of the fix");
 
         double sliver = score(c.evaluate(withShares(
                 Map.of("minecraft:snowy_plains", 0.05, "minecraft:desert", 0.95),
@@ -256,7 +371,7 @@ class CriteriaTest {
     }
 
     @Test
-    void aCoarseTier1SampleScoresJustLikeTheFullOne() {
+    void aCoarseTier1SampleIsScoredRatherThanSkipped() {
         // Tier 1 (FactsEngine.measureCheap) populates biomes.shares from the
         // same sampleGrid pass as tier 2, just at SCREEN_GRID instead of
         // GRID — fewer points, the same real fraction of the playable disc.
@@ -276,8 +391,9 @@ class CriteriaTest {
                         Map.of("minecraft:snowy_plains", 44.0 / 133.0,
                                 "minecraft:desert", 89.0 / 133.0),
                         "minecraft:desert"), def));
-        assertEquals(1.0, aThird.value(), 1e-9,
-                "a coarse sample landing near the RELOCATABLE cap still reaches it");
+        assertEquals(44.0 / 133.0, aThird.value(), 1e-9,
+                "a coarse sample is graded on the share it actually measured; there is no "
+                + "cap left for it to reach, which is the whole of the fix");
 
         Criterion.Result.Score none = assertInstanceOf(Criterion.Result.Score.class,
                 c.evaluate(withShares(

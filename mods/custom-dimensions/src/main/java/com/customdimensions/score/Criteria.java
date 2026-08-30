@@ -141,13 +141,18 @@ public final class Criteria {
      * thing the dimension is named after", and the {@code biomes.shares} fact
      * answers exactly that.
      *
-     * <p>A spawn already in a namesake biome is the full mark. Otherwise the
-     * mark is the namesake biomes' combined share of the world, capped at
-     * {@link #RELOCATABLE} — a world a third covered in its namesake is as
-     * easy to place a spawn in as one entirely covered, and the two should not
-     * be told apart. No namesake biome anywhere is zero: that world is not
-     * this dimension, and no amount of standing somewhere else will make it
-     * one.
+     * <p>The mark is the share of the world that reads as this dimension,
+     * uncapped, so it goes on discriminating above a third. A filter is a
+     * CONJUNCTION — a dimension naming two biomes wants both — so a combined
+     * share is the wrong aggregate: it lets one namesake substitute for
+     * another. {@link #namesakeMark} uses a balanced coverage that equals the
+     * combined share when the named biomes hold equal ground and falls below
+     * it as one crowds the others out, times the fraction of named biomes
+     * actually delivered. A spawn already standing in one is a boost toward a
+     * perfect world rather than a full mark, because the spawn is relocatable
+     * and the world is not. No namesake biome anywhere is zero: that world is
+     * not this dimension, and no amount of standing somewhere else will make
+     * it one.
      *
      * <p>{@code biomes.shares} is a real measurement at both tiers — tier 1
      * just samples a coarser grid than tier 2 does ({@code FactsEngine}'s
@@ -156,11 +161,51 @@ public final class Criteria {
      */
     static final class SpawnReadsAsNamesake implements Criterion {
         /**
-         * The namesake share at which relocating a spawn is a certainty
-         * rather than a hunt. A third of the world is hundreds of thousands
-         * of blocks in every dimension the pack ships.
+         * How much of the gap to a perfect world a spawn already standing in
+         * a namesake closes. Judgement, not measurement: the world is what
+         * ranks and the spawn column is relocatable, so this is a thumb on
+         * the scale rather than the scale.
          */
-        static final double RELOCATABLE = 0.33;
+        static final double NATIVE_SPAWN_BONUS = 0.25;
+
+        /**
+         * The mark for a world holding {@code shares} of the biomes its
+         * filter names, in the filter's own order and 0 for one that is
+         * absent.
+         *
+         * <p>{@code present x geometricMean(present)} is the combined share a
+         * world would have if the delivered biomes held equal ground; by
+         * AM-GM it never exceeds the real combined share, and it falls away
+         * as one biome crowds out the rest. That is the conjunction: naming
+         * two biomes and delivering one of them twice over is not the same
+         * world as delivering both. Multiplying by the delivered fraction
+         * penalises naming a biome the world does not have at all, without
+         * annihilating a world that merely misses one.
+         *
+         * <p>Bounded by construction rather than by clamping — a cap is what
+         * made the old form blind above a third.
+         */
+        static double namesakeMark(double[] shares, boolean spawnIsNamesake) {
+            double logSum = 0.0;
+            int present = 0;
+            for (double s : shares) {
+                if (s > 0.0) {
+                    logSum += Math.log(s);
+                    present++;
+                }
+            }
+            if (present == 0) {
+                // The grid resolved none of it and the spawn column is standing
+                // in one, which [K7] says happens: facts samples a lattice and
+                // steps over a patch smaller than its step. Observation beats a
+                // sample that missed it, but it evidences presence and not
+                // coverage, so it is worth the boost and nothing more.
+                return spawnIsNamesake ? NATIVE_SPAWN_BONUS : 0.0;
+            }
+            double balanced = present * Math.exp(logSum / present);
+            double base = balanced * present / shares.length;
+            return spawnIsNamesake ? base + (1.0 - base) * NATIVE_SPAWN_BONUS : base;
+        }
 
         public String id() {
             return "spawn_reads_as_namesake";
@@ -190,28 +235,36 @@ public final class Criteria {
             if (!biome.isPresent()) {
                 return new Result.Unmeasured(biome.reason());
             }
-            if (want.contains(biome.orThrow())) {
-                return new Result.Score(1.0, "spawn biome is " + biome.orThrow());
-            }
+            boolean native_ = want.contains(biome.orThrow());
             Measured<Map<String, Double>> shares = facts.biomes().shares();
             if (!shares.isPresent()) {
-                return new Result.Unmeasured(shares.reason());
+                // A namesake spawn answers the question on its own; coverage
+                // is what it cannot answer, so it takes the boost alone.
+                return native_
+                        ? new Result.Score(NATIVE_SPAWN_BONUS, "spawn is " + biome.orThrow()
+                                + ", a namesake; coverage unmeasured (" + shares.reason() + ")")
+                        : new Result.Unmeasured(shares.reason());
             }
-            double namesakeShare = 0.0;
-            for (String b : want) {
-                Double s = shares.orThrow().get(b);
-                if (s != null) {
-                    namesakeShare += s;
+            double[] named = new double[want.size()];
+            double combined = 0.0;
+            int present = 0;
+            for (int i = 0; i < want.size(); i++) {
+                Double s = shares.orThrow().get(want.get(i));
+                named[i] = s == null ? 0.0 : s;
+                combined += named[i];
+                if (named[i] > 0.0) {
+                    present++;
                 }
             }
+            String where = native_ ? "spawn is " + biome.orThrow() + ", a namesake"
+                    : "spawn is " + biome.orThrow() + ", not a namesake biome";
             String ev = String.format(Locale.ROOT,
-                    "spawn is %s, not a namesake biome; namesake biomes cover %.1f%% of the world",
-                    biome.orThrow(), namesakeShare * 100.0);
-            if (namesakeShare <= 0.0) {
-                return new Result.Score(0.0, ev + " — nowhere here reads as this dimension");
+                    "%s; %d of %d named biome(s) present, covering %.1f%% of the world",
+                    where, present, want.size(), combined * 100.0);
+            if (present == 0 && !native_) {
+                ev = ev + " — nowhere here reads as this dimension";
             }
-            return new Result.Score(ramp(namesakeShare, 0.0, RELOCATABLE),
-                    ev + " — a spawn could be placed in one");
+            return new Result.Score(namesakeMark(named, native_), ev);
         }
     }
 
