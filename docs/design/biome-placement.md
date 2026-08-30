@@ -24,18 +24,37 @@ The measure is what a player meets, so it is expressed in ground rather than in
 cells or percentages. A cell of a 41x41 grid is ~50 blocks at a 1024 border and
 ~200 at 4096, so any threshold in cells is wrong across borders by construction.
 
-**No threshold has been measured, and the one that was proposed is withdrawn.**
-A "place size" of ~320 blocks was derived as two render distances and used to
-build a capacity model; its own author later found the derivation conflated a
-radius with a diameter, and that even the corrected 640 was a stipulation
-nobody had tested. Everything resting on it — a per-dimension biome capacity,
-and a count of bands called specks — is suspended.
+### What a place is
 
-So the bar is a **direction**, not a number: bigger than a patch a player
-crosses without noticing, and nobody has established where that line sits.
-Until someone does, ABSENCE is the only side of this that can be claimed from
-evidence. A biome missing from a 41x41 sample is measured; a biome present but
-judged too small is not.
+Stated by the maintainer, 2026-08-30. This is the specification.
+
+| span | what it is |
+| --- | --- |
+| **32 blocks** across | a campsite. The floor for being anywhere at all |
+| **128–256 blocks** across | **a place.** People go here; something lives here; someone named this area |
+
+**And a dimension has a budget of places, not a share per biome.** This is the
+part that inverts the obvious reading:
+
+- A **pocket** dimension (512, 1024) has **one place at most**.
+- A **4096** dimension could hold up to sixteen, and usually wants fewer.
+- A dense dimension past that is "all still kind of one big place".
+
+**So most biomes in a small dimension are not places, and are not meant to be.**
+They are the material a place sits in. A 512-border world listing thirteen
+biomes should not contain thirteen places; it should contain one, and twelve
+biomes' worth of surroundings.
+
+That retires the speck question as posed. "This biome holds only a small share"
+is not a defect — it is what a supporting biome looks like. The real questions
+are whether the dimension has **a** place, and whether the biome that got to be
+that place is **the one the author chose** rather than whichever entry the
+nearest-point lookup happened to favour.
+
+A per-biome floor was proposed earlier (~320 blocks, from two render distances)
+and is **withdrawn**: its own author found the derivation conflated a radius
+with a diameter, and the corrected figure was still untested. Do not reinstate a
+per-biome minimum; the budget above is per dimension.
 
 ## Gaps are the design; specks are not
 
