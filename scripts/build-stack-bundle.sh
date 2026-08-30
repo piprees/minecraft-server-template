@@ -125,10 +125,12 @@ for file in "${MANIFEST[@]}"; do
 done
 
 # Bundle the entire config/ directory (mod configs, messages, nginx, etc.)
-# Excludes 1password.env (secrets) and pinned mod lists (platform-internal).
+# Excludes 1password.env (secrets), pinned mod lists and the climate grids
+# (platform-internal: 2.3 MB that only check-band-share.py reads).
 rsync -a \
   --exclude='1password.env' \
   --exclude='modrinth-mods.pinned.txt' \
+  --exclude='grids-41' \
   "$PROJECT_DIR/config/" "$STAGING_DIR/stack/config/"
 
 # Include declared in-house mod JARs (produced by CI before this script runs).
