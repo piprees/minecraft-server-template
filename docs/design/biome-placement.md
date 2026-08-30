@@ -24,6 +24,11 @@ The measure is what a player meets, so it is expressed in ground rather than in
 cells or percentages. A cell of a 41x41 grid is ~50 blocks at a 1024 border and
 ~200 at 4096, so any threshold in cells is wrong across borders by construction.
 
+**And `customdim facts` samples a disc inside a square world.** The border is
+square — `setSize` is a side length — so the corners are playable, and `facts`
+never looks at roughly a fifth of the ground. A low count is a floor for that
+reason as well as for grid density; only `locate` searches rather than samples.
+
 ### What a place is
 
 Stated by the maintainer, 2026-08-30. This is the specification.
