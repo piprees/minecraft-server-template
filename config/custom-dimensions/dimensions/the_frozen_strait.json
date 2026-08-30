@@ -10,7 +10,8 @@
         "humidity": [
           -0.19,
           -0.12
-        ]
+        ],
+        "offset": 0.4
       }
     },
     "minecraft:frozen_ocean",
