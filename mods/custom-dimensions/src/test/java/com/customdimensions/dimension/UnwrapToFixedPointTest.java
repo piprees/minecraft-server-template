@@ -35,7 +35,14 @@ class UnwrapToFixedPointTest {
     @Test
     void stopsWhenAStepMakesNoProgress() {
         String opaque = "opaque";
-        assertSame(opaque, DimensionManager.unwrapToFixedPoint(opaque, s -> false, s -> s));
+        AtomicInteger steps = new AtomicInteger();
+        String result = DimensionManager.unwrapToFixedPoint(opaque, s -> false, s -> {
+            steps.incrementAndGet();
+            return s;
+        });
+        assertSame(opaque, result);
+        // One step proves it stopped on no-progress; without that it spends the whole bound.
+        assertEquals(1, steps.get());
     }
 
     @Test
