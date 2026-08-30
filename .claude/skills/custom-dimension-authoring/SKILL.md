@@ -22,11 +22,11 @@ This skill has five reference files. **You must read ALL of them before writing 
 **Also read 2-3 existing dimension configs** from `config/custom-dimensions/dimensions/`, with a similar size/mood to the one you're building. Good anchors:
 
 - `the_gauntlet.json` — small (2048), brutal, `multi_biome`, compressed noise
-- `the_wuthering_wisteria.json` — pocket (256), peaceful, `multi_biome`
-- `the_blossom_gardens.json` — large (8192), peaceful, `multi_biome`, wide noise
-- `the_basalt_spires.json` — pocket (1024), nether type
+- `the_wuthering_wisteria.json` — pocket (512), peaceful, `multi_biome`
+- `the_blossom_gardens.json` — medium (4096), serene, `multi_biome`, wide noise
+- `the_obsidian_sanctum.json` — pocket (1024), nether type
 - `the_end_citadel.json` — medium (4096), end type
-- `overworld.json` — an ordinary dimension like any other; names no `type` because `getType()` supplies the family
+- `overworld.json` — an ordinary dimension like any other; names no `type` because `getType()` supplies the family; the only 8192 in the pack
 
 **And always check blocks, structures, and items against the json files inside the extractors** (`config/custom-dimensions/extractors/`) — the mod silently ignores unknown ids. These catalogues are authoritative; don't guess ids from memory or the wiki, just choose from the lists.
 
@@ -48,7 +48,7 @@ overlay/config/custom-dimensions/dimensions/<slug>.json  # consumer override
 ```
 
 - The **filename is the dimension id** — never set `dimensionId` in the JSON.
-- `<slug>` must be lowercase alphanumeric with `_`/`-`/`/`. Convention: `the_<name>` (83 of 84 existing dims follow it).
+- `<slug>` must be lowercase alphanumeric with `_`/`-`/`/`. Convention: `the_<name>` (80 of 82 existing dims follow it).
 - **Namespace**: if `<slug>` matches a platform-shipped filename, it keeps `adventure:<slug>`. A genuinely new slug gets `{BRAND_SLUG}:<slug>` (e.g. `elfydd:<slug>`). Check with: `ls config/custom-dimensions/dimensions/ | grep -i <slug>`.
 - **Overlay rules**: no `"overrides"` key = full replacement. `"overrides": {...}` = deep-merge over platform default. Empty `{}` = dimension disabled.
 
@@ -57,7 +57,7 @@ overlay/config/custom-dimensions/dimensions/<slug>.json  # consumer override
 1. **Read all four reference files** (above). Do not skip this.
 2. **Pick the shape**: `type`, target `mood`, playable size (`borders.player`), and `portal.scale`. See [Dimension type guide](#dimension-type-guide) and [Portal scale guide](#portal-scale-guide).
 3. **Check for name/namespace collisions** and pick `<slug>`.
-4. **Pick biomes** from `references/biome-catalogue.md`. Only use ids listed there — anything else is silently dropped. Match biomes to the dimension's family (see type guide). For `multi_biome`, list 8-20 biomes.
+4. **Pick biomes** from `references/biome-catalogue.md`. Only use ids listed there — anything else is silently dropped. Match biomes to the dimension's family (see type guide). For `multi_biome`, list 8-20 biomes; the 39 shipped ones run 7 to 32, median 13.
 5. **Set `borders`, `difficulty`, `structureDensity`** per the [size↔difficulty table](#size--difficulty-the-philosophy).
 6. **Set `structures.wants`/`structures.shuns`** using short names from `references/structure-names.md`. See [Traps](#traps-read-this-before-you-write-json) — the two blocks (`structures` vs `seedRoll`) use different value formats.
 7. **Set `portal`** — frame block, igniter, colour/particle, sounds, scale. See [Portal scale guide](#portal-scale-guide). Check `igniterItem` uniqueness: `grep -h igniterItem config/custom-dimensions/dimensions/*.json | sort`.
@@ -71,20 +71,20 @@ Every dimension needs a `type`. This is the most consequential choice — it det
 
 | Type | When to use | Biome family | Terrain feel | Shipped count |
 | --- | --- | --- | --- | --- |
-| `multi_biome` | **Default choice for themed dims.** Curated biome subset over overworld noise. | overworld | Standard overworld terrain filtered to your biomes | 11 |
-| `overworld` | Full overworld with ALL biomes (not curated). Use when the theme is "the whole world but with different scoring/difficulty" — NOT for themed subsets (use `multi_biome` instead). | overworld | Full overworld, every biome can appear | 24 |
-| `nether` | Nether cave terrain. Only nether-family biomes work (`minecraft:*_forest`, `incendium:*`, etc). | nether | Bedrock ceiling, lava sea, cave-based | 18 |
-| `end` | End terrain — islands over void. Only end-family biomes work. | end | Floating islands, void between them | 6 |
-| `cave` | Cave world with overworld climate but a bedrock ceiling. | overworld | Underground feel, overworld biomes | 4 |
-| `void` | No terrain at all. Biome layout still drives mob spawning, ambient sounds, and fog colour — variety matters even though nothing generates. Must have a `biomes` list to be rollable. | any (but biomes must match a single family for the roller — don't mix overworld + end biomes) | Empty void | 2 |
-| `sky_islands` | Floating islands. | overworld | Islands in the sky, void below | 2 |
-| `nether_islands` | End-island-style bones with nether biomes. | nether | Floating nether islands | 2 |
+| `multi_biome` | **Default choice for themed dims.** Curated biome subset over overworld noise. | overworld | Standard overworld terrain filtered to your biomes | 39 |
+| `overworld` | Full overworld with ALL biomes (not curated). Use when the theme is "the whole world but with different scoring/difficulty" — NOT for themed subsets (use `multi_biome` instead). | overworld | Full overworld, every biome can appear | 0 |
+| `nether` | Nether cave terrain. Only nether-family biomes work (`minecraft:*_forest`, `incendium:*`, etc). | nether | Bedrock ceiling, lava sea, cave-based | 11 |
+| `end` | End terrain — islands over void. Only end-family biomes work. | end | Floating islands, void between them | 4 |
+| `cave` | Cave world with overworld climate but a bedrock ceiling. | overworld | Underground feel, overworld biomes | 6 |
+| `void` | No terrain at all. Biome layout still drives mob spawning, ambient sounds, and fog colour — variety matters even though nothing generates. Must have a `biomes` list to be rollable. | any (but biomes must match a single family for the roller — don't mix overworld + end biomes) | Empty void | 3 |
+| `sky_islands` | Floating islands. | overworld | Islands in the sky, void below | 4 |
+| `nether_islands` | End-island-style bones with nether biomes. | nether | Floating nether islands | 3 |
 | `amplified` | Amplified terrain (extreme heights). **IGNORES `biomes` — see below.** | n/a | Very tall, dramatic | 1 |
 | `large_biomes` | Large biomes (biome regions 4× bigger). **IGNORES `biomes` — see below.** | n/a | Huge biome regions | 1 |
 | `superflat` | Flat world. Never rollable. | — | Flat | 1 |
-| `paradise_lost:paradise_lost` | Clone of the Paradise Lost skylands dimension. | paradise_lost | Floating skylands | 6 |
+| `paradise_lost:paradise_lost` | Clone of the Paradise Lost skylands dimension. | paradise_lost | Floating skylands | 4 |
 | `single_biome` | One biome, `biomes` must have exactly 1 entry. | overworld | Single biome terrain | 0 |
-| `checkerboard` | Deterministic biome grid, overworld noise. | overworld | Biome checkerboard | 0 |
+| `checkerboard` | Deterministic biome grid, overworld noise. | overworld | Biome checkerboard | 1 |
 
 **Common mistake: using `overworld` when you mean `multi_biome`.** `overworld` uses ALL registered biomes — your `biomes` list only affects what the roller scores, not what generates. If you want a "jungle-only dimension" or "frozen peaks dimension", use `multi_biome`. The original `the_overgrowth` had `type: "overworld"` with a jungle biome list, which meant every overworld biome could appear (deserts, oceans, etc.) — only the roller cared about the jungle list, not the generator.
 
@@ -172,9 +172,10 @@ reading it here re-skins exactly the wrong biomes.
 
 | Value | Effect | When to use | Shipped usage |
 | --- | --- | --- | --- |
-| (omitted / `null`) | Vanilla defaults for the type | Most dimensions — fine for standard terrain | 54 dims |
-| `adventure:compressed` | Tighter climate bands, 1.5× vertical scale, more relief per horizontal distance | Pocket/hard dims where compressed terrain adds drama in a small space; also pairs well with `multi_biome` when you want more height variation | 11 dims |
-| `adventure:wide` | Broad realistic relief, 512-block build height, gentler gradients | Large scenic/pastoral dims where sweeping landscapes matter more than tight terrain features | 12 dims |
+| (omitted / `null`) | Vanilla defaults for the type | Most dimensions — fine for standard terrain | 59 dims |
+| `adventure:compressed` | Tighter climate bands, 1.5× vertical scale, more relief per horizontal distance | Pocket/hard dims where compressed terrain adds drama in a small space; also pairs well with `multi_biome` when you want more height variation | 14 dims |
+| `adventure:wide` | Broad realistic relief, 512-block build height, gentler gradients | Large scenic/pastoral dims where sweeping landscapes matter more than tight terrain features | 8 dims |
+| `adventure:void` | The `void` type's own preset | Only `the_red_monument` | 1 dim |
 
 **Rule of thumb**: compressed for small/hard dims, wide for large/scenic dims, default for everything else. Don't combine `adventure:compressed` with a large (8192) peaceful dimension — it creates unnecessarily violent terrain in a relaxing world. Don't use `adventure:wide` on a 512-radius pocket dim — the terrain features are too broad to be visible in the small space.
 
@@ -184,19 +185,23 @@ reading it here re-skins exactly the wrong biomes.
 
 | Scale | What it means | Playable world size (at 8192 OW border) | Use for | Shipped count |
 | --- | --- | --- | --- | --- |
-| `1.0` | 1:1 with overworld. Walk 100 blocks in dim = 100 blocks in OW. | Full-sized, same as overworld | Large worlds, base-building dims, dimensions meant to feel "real" | 26 |
-| `4.0` | 1:4 compression. Walk 100 blocks in dim = 400 blocks in OW. | Effectively 4× smaller playable area | Small brutal gauntlets (the_gauntlet, the_crucible) | 2 |
-| `8.0` | 1:8 (nether-like). Walk 100 blocks in dim = 800 blocks in OW. | Pocket worlds. Most common for 1024-border dims. | The standard pocket dimension scale | 36 |
-| `12.0` | 1:12 extreme compression. | Very tight. 683-block borders typical. | Extreme pocket dims, desolate/hard | 5 |
-| `16.0` | 1:16 maximum compression. | Tiny. 512-block borders typical. | Claustrophobic pocket dims | 9 |
+| `1.0` | 1:1 with overworld. Walk 100 blocks in dim = 100 blocks in OW. | Full-sized, same as overworld | The overworld itself, and nothing else | 1 |
+| `2.0` | 1:2. Walk 100 blocks in dim = 200 blocks in OW. | Half-scale. Every 4096-border dim. | Medium worlds with room to explore | 22 |
+| `4.0` | 1:4 compression. Walk 100 blocks in dim = 400 blocks in OW. | Effectively 4× smaller playable area | Small brutal gauntlets (the_gauntlet, the_crucible) | 6 |
+| `8.0` | 1:8 (nether-like). Walk 100 blocks in dim = 800 blocks in OW. | Pocket worlds. Every 1024-border dim. | The standard pocket dimension scale | 34 |
+| `12.0` | 1:12 extreme compression. | Very tight. 683-block borders. | Extreme pocket dims, desolate/hard | 6 |
+| `16.0` | 1:16 maximum compression. | Tiny. 256- and 512-block borders. | Claustrophobic pocket dims | 13 |
 
-**Scale and border interact.** The 84 shipped dimensions follow a clear pattern:
+**Scale and border interact.** Across the 82 shipped dimensions the mapping is
+exact — every dimension at a given scale carries the same border, except 16.0
+which covers both pocket sizes:
 
-- `scale=1.0` → `borders.player=8192` (or `4096`)
+- `scale=1.0` → `borders.player=8192`
+- `scale=2.0` → `borders.player=4096`
 - `scale=4.0` → `borders.player=2048`
 - `scale=8.0` → `borders.player=1024`
 - `scale=12.0` → `borders.player=683`
-- `scale=16.0` → `borders.player=512`
+- `scale=16.0` → `borders.player=512` (10) or `256` (3)
 
 **Do not change scale on a dimension that already has one** unless you understand the consequences: every portal link's arrival coordinates shift, and players who've built near the border may find themselves outside it. Scale is effectively permanent after first play.
 
