@@ -209,15 +209,26 @@ Launchers download HTML instead of mod JARs, or packwiz auto-update serves stale
 `execute in adventure:<slug> run seed` answers `Unknown dimension` on a healthy server with the config plainly present. `CreateWorldsMixin` filters the `createWorlds` loop down to `overworld`, `the_nether`, `the_end` and `paradise_lost`; the other ~78 are built by `DimensionManager.getOrCreateDimension` when a player first enters one, because Distant Horizons and c2me build per-level state from `ServerWorldEvents.LOAD` and paying that per dimension per boot is what this avoids. Load one with `rcon-cli "customdim load <bare_slug>"` and poll — creation is queued to `END_SERVER_TICK`, so it lands a tick or two later, not immediately. Those four load eagerly because MC asks for them by key from paths with no lazy-creation hook. That is a loading difference; they are managed like every other dimension ([AGENTS.md § Dimensions](AGENTS.md#dimensions)).
 
 <a id="t19"></a>
-### T19 — A listed biome with no climate parameters swallows the whole dimension
+### T19 — A listed biome the source cannot place swallows the whole dimension
 
 - **Symptom:** a `multi_biome` (or any biome-listed) dimension generates as one biome nearly everywhere, and seed rolling reports the rest as "not found" however many candidates are rolled. The outcome is structural, not unlucky.
 - **Cause:** `DimensionManager.buildMixedSource` places a listed biome in four tiers — an explicit `parameters` object, then the base source's own cells for it ("native"), then the cells its declaring mod registered with TerraBlender for that family ("natural"), and finally the leftover hypercubes dealt **round-robin** to whatever is left ("mixed-in"). Round-robin is arbitrary placement: one such biome receives every leftover cell while the natives keep only what they literally claim, and across the 34 dimensions measured before the natural tier existed those biomes held 74–100% of the area.
-- **A biome reaches round-robin only when nothing readable declares where it goes.** Of the six modded namespaces in the pack's lists, four register TerraBlender regions and place naturally (Nature's Spirit's 47 biomes across 5 regions, Wilder Wild, YUNG's Cave Biomes, Underground Worlds); Galosphere injects into vanilla's `OverworldBiomeBuilder` and is native in any overworld-based source; **Regions Unexplored declares nothing anywhere** — no TerraBlender region, no Lithostitched biome injector, no parameter-list override — so its 78 biomes have no placement but the one you write. Lithostitched's injectors are not a second source: they substitute a biome into an existing source and carry no hypercubes.
+- **A biome reaches round-robin only when nothing readable declares where it goes, and there are at least six ways to declare it.** A negative across the mechanisms you happen to know is not a negative — that reading has been wrong twice, on two different mods, because the mechanism was one further along this list:
+
+  | mechanism | read it from | who uses it here |
+  | --- | --- | --- |
+  | A TerraBlender region | `Regions.get(RegionType)` -> `Region.addBiomes` | Nature's Spirit (47 biomes, 5 regions), Wilder Wild, YUNG's Cave Biomes, Underground Worlds |
+  | A mixin into vanilla's `OverworldBiomeBuilder` | the base source's own entries — it is already native | Galosphere |
+  | A datapack dimension or parameter-list entry | the base source's own entries | Incendium (13 inline entries in `data/minecraft/dimension/the_nether.json`), Terralith, Nullscape |
+  | Fabric's `NetherBiomes.addNetherBiome` | the vanilla `minecraft:nether` parameter list | BetterNether, via wover's `BiomeSourceManagerImpl.didLoadBiomeData` |
+  | A Lithostitched region registered PROGRAMMATICALLY at runtime | the mod's own config file — there is no injector JSON to find | Regions Unexplored (`RULithostitched.init` on `AddRegionsEvent`) |
+  | A mod's own biome-source model with no cells at all | nothing — there is no climate data | BetterEnd (wover tag + weighted picker + `BiomeMap`) |
+
+- **Regions Unexplored declares 64 of its 78 biomes**, in `data/config/regions_unexplored/common.json` (lenient JSON — parse it as [T35](#t35) requires). The model is substitution rather than a cell: `can_replace` a host biome, take a `weight`ed share of the region it occupies, optionally narrowed by a per-axis range. 43 of the 64 carry no `parameters` at all and inherit the replaced biome's cell entirely, so a reader that returns hypercubes without consulting the host has nothing to return. **14 declare nothing anywhere** and are the RU biomes a band is genuinely the only mechanism for: `arid_mountains`, `barley_fields`, `cold_deciduous_forest`, `deciduous_forest`, `frozen_tundra`, `golden_boreal_taiga`, `mauve_hills`, `mountains`, `pumpkin_fields`, `redstone_abyss`, `rocky_meadow`, `scorching_caves`, `steppe`, `temperate_grove`.
 - **TerraBlender has OVERWORLD and NETHER region types and no END**, and its cells are shaped for that family's climate router, so the natural tier applies only where the base source IS the overworld's or the nether's. An End, `sky_islands` or `paradise_lost` source keeps round-robin, which at least guarantees the biome appears.
 - **Vanilla and Nullscape End biomes still need a band.** `minecraft:end_barrens`/`minecraft:end_midlands` are placed by erosion in `TheEndBiomeSource`, which Nullscape replaces wholesale; Nullscape gives `minecraft:the_end` and `minecraft:end_highlands` the **same** full-span hypercube, so one of that pair can never win a nearest-point lookup, and it gates `nullscape:void_barrens`/`nullscape:crystal_peaks` on `temperature >= 0` — an octave -11 noise that barely moves inside one dimension.
 - **Fix:** give the biome an explicit hypercube. An object-form entry (`{"id": ..., "parameters": {...}}`) withdraws it from every other tier, and once no biome is left foreign the leftover pool is dropped rather than dealt out. Band on an axis the dimension's climate noise actually crosses at its own radius — typically **weirdness** for overworld and End dimensions, **continentalness** for `paradise_lost` clones (humidity spans 0.207 across a 512-radius world against weirdness's 0.783).
-- **An explicit band outranks natural placement**, so it stays the tool for deliberate authorship — putting a biome somewhere its author did not, or reaching it in a family TerraBlender does not cover. The natural tier removes the requirement, not the control.
+- **An explicit band outranks every other tier, which is why a band written as plumbing hides the placement it stood in for.** A band is for a placement an author chose; one written merely to make a biome appear substitutes a guess for what the biome's own mod already declared, and the two look identical in the file. Once a mechanism can be read, the bands standing in for it come out — see [`docs/design/biome-placement.md`](docs/design/biome-placement.md).
 - **The natural tier is a flat union of every region's cells.** TerraBlender consults one region per position through its uniqueness noise; without that layer cells from different regions compete directly by nearest point, and region weight has no effect. Placement is the author's, the region layout is not.
 - **The usable axis belongs to the noise ROUTER, not the dimension family.** Measured with `customdim sample-noise` over 11 points spanning the playable radius, one representative per (`type`, `noiseSettings`) — the table is `config/custom-dimensions/climate-axes.json`:
 
@@ -1052,7 +1063,19 @@ The rendered height disagrees with the facts on high-relief columns. The error i
   which exist only 4480 and 4640 blocks out against a 512 border.
 - **`locate biome` returning `done` is not "reachable".** It searches past
   `borders.player` and the reply's FIRST field is the distance — check it
-  against the dimension's own border before reading a hit as success.
+  against the dimension's own border before reading a hit as success. A
+  **`pending` reply is not a negative** either: the search has not finished.
+  Only `not_found` is.
+- **The instrument hierarchy, weakest last.** `locate biome` SEARCHES the biome
+  source and is the only thing that proves presence. `customdim facts` SAMPLES
+  at 41x41 and is a floor. A script samples at whatever density it chooses and
+  is a floor under that. **None of the three answers encounterability** — that
+  is a question about share, and presence and encounterability are different
+  questions ([biome-placement.md](../docs/design/biome-placement.md)).
+- **`the_claymarsh` is the counter-example, not the model.** Four biomes hold
+  96% of it and eleven share 3% at a tenth of a percent each; `minecraft:swamp`
+  is one cell of 1257. Every check passes and a player crossing that world meets
+  four biomes.
 - **Fix:** measure at the game's density before calling a band empty.
   `scripts/sample-climate-grid.sh <slug> <border> 41` takes about five seconds.
   `scripts/check-band-share.py` runs the lookup but reads the committed
