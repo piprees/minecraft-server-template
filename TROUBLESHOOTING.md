@@ -4,7 +4,7 @@
 
 | Prefix | Range | What it covers |
 | --- | --- | --- |
-| **T** | [T1–T14, T16–T19, T22–T27, T30–T72](#architecture-traps) | Architecture traps — each has caused a real production incident |
+| **T** | [T1–T14, T16–T19, T22–T27, T30–T73](#architecture-traps) | Architecture traps — each has caused a real production incident |
 | **P** | [P1–P4](#macos-local-dev) | macOS local-dev quirks (BSD tooling, toolchain) |
 | **D** | [D1–D6, D8–D9](#dimension-lifecycle) | Custom-dimension lifecycle on a live world |
 | **K** | [K1–K2, K5–K7](#known-issues) | Open issues — unfixed, on the watch list |
@@ -70,8 +70,10 @@ Run this first. It covers deploy drift, disk, every expected container, `ONLINE_
 | A fresh world's first boot logs `Failed to load server level` and then starts fine | [T68](#t68) |
 | A dimension listing a dozen biomes generates one or two, bands green | [T69](#t69) |
 | A comment-only edit makes a roll re-measure what the bank already held | [T70](#t70) |
+| A pack-wide score threshold keeps selecting the same dimensions | [T73](#t73) |
 | A band boundary is moved off a clamp rail, every arm is green, and generation order still decides | [T71](#t71) |
 | A climate window needs measuring at a different seed and every route needs a restart | [T72](#t72) |
+| A grep over `docker logs` finds none of the boot lines on a healthy container | [T73](#t73) |
 | Config or mod changes didn't take effect after a deploy | [T2](#t2) |
 | `signal only works in main thread` in discord-sync logs | [T3](#t3) |
 | mc crash-loops with Modrinth `429 Too Many Requests` | [T4](#t4) |
@@ -1351,6 +1353,61 @@ measurement of it.
   winners are chosen means winners selected under one transform and a world
   built under another. Freeze it across the roll; regenerate after a wipe, where
   it reaches only dimensions created later.
+
+<a id="t73"></a>
+### T73 — A long roll flushes the boot log out of the container's ring buffer, and every instrument that reads it goes silent
+
+- **Symptom:** `docker logs mc | grep "biome source built"` returns **0 lines** on
+  a container that has been up for hours and never restarted. Any diagnosis that
+  reads a once-per-boot line — the biome-source counters, `appliedFactor`, the
+  drift WARNs, `Registered dimension` — has nothing to work with, and reports
+  zero findings rather than an error.
+- **Cause:** Docker's json-file driver is a **ring buffer** with a size cap, and
+  a seed roll writes continuously. Measured: after a roll reached 91,640 screens
+  the boot lines were gone, and `--tail 30000` did not reach back far enough to
+  find them. The container is healthy and `RestartCount` is still 0, so nothing
+  looks wrong.
+- **Fix:** snapshot the boot to a file **at boot**, and read the file afterwards
+  rather than assuming the log persists:
+
+  ```bash
+  docker logs mc --tail 4000 > .handoff/boot-$(date -u +%Y%m%dT%H%M%SZ).log 2>&1
+  ```
+
+- **The tell is a zero with no error.** A grep over a rolled-out log is
+  indistinguishable from a grep that found nothing wrong ([T63](#t63)). Print the
+  line count of what you searched, not just the count of what matched.
+- **Where a boot-only fact is still needed after a roll**, derive it from
+  committed data instead and say so: the biome-source tiers can be modelled from
+  `config/custom-dimensions/extractors/biome-table-{overworld,nether,end}.json`,
+  which separates native from not-native but **cannot** separate `natural` from
+  `foreign` — `declaredCellsForFamily` reads TerraBlender at runtime and no
+  committed artefact carries it. That model is an upper bound, not the counter.
+
+<a id="t73"></a>
+### T73 — A seed's percentage is not comparable between dimensions, because the ceiling differs by 7x
+
+- **Symptom:** a pack-wide triage rule like "re-roll anything under 85" selects
+  the same dimensions every time, or a change to one criterion moves some
+  dimensions by 13 points and others by nothing.
+- **Cause:** `Scorer`'s headline is achieved/ceiling, and the ceiling is the
+  count of criteria that APPLY to that dimension — a criterion that does not
+  apply is excluded from both the score and the ceiling, deliberately. Measured
+  over 3132 banked cards across 78 dimensions, distinct ceilings run
+  **3, 5, 7, 8, 10, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21**. One criterion
+  unit is therefore worth **33.33 points at ceiling 3 and 4.76 at ceiling 21**.
+  Ten dimensions sit at ceiling <= 8; twelve at >= 19.
+- **Consequence:** the same mark change costs 7x more percentage in a
+  low-ceiling dimension, and low ceiling means FEWEST applicable criteria — the
+  "few things to get right" dimensions are punished hardest by any criterion
+  change.
+- **Fix:** rank WITHIN a dimension's own roll, which is what the roller does.
+  A cross-dimension percentage threshold needs to be per-dimension or it is
+  measuring dimension shape. Do not carry a fixed threshold across a change to
+  any criterion.
+- **The arity of a `spawnFilter` is not the cause and was the obvious suspect.**
+  Medians by filter arity are flat — arity 1: 4.21, 2: 3.59, 3: 4.58, 4: 3.91,
+  10: 2.75. Check the ceiling, not the config.
 
 ## macOS local dev
 
