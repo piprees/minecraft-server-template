@@ -1,11 +1,13 @@
 {
-  "count": 350,
+  "count": 397,
   "by_namespace": {
     "terralith": 95,
     "regions_unexplored": 78,
     "minecraft": 65,
     "natures_spirit": 51,
     "wilderwild": 30,
+    "betterend": 25,
+    "betternether": 22,
     "paradise_lost": 10,
     "incendium": 8,
     "undergroundworlds": 4,
@@ -15,6 +17,2303 @@
     "terrablender": 1
   },
   "biomes": {
+    "betterend:amber_land": {
+      "source": "better-end-21.0.11.jar",
+      "temperature": 0.5,
+      "downfall": 0.5,
+      "has_precipitation": false,
+      "effects": {
+        "sky_color": 0,
+        "fog_color": -18361,
+        "water_color": -7246776,
+        "water_fog_color": -7246776,
+        "grass_color": -2395354,
+        "foliage_color": -2395354
+      },
+      "spawners": {
+        "monster": [
+          {
+            "type": "minecraft:enderman",
+            "weight": 50,
+            "minCount": 1,
+            "maxCount": 4
+          },
+          {
+            "type": "betterend:end_slime",
+            "weight": 30,
+            "minCount": 1,
+            "maxCount": 2
+          }
+        ]
+      }
+    },
+    "betterend:blossoming_spires": {
+      "source": "better-end-21.0.11.jar",
+      "temperature": 0.5,
+      "downfall": 0.5,
+      "has_precipitation": false,
+      "effects": {
+        "sky_color": 0,
+        "fog_color": -945435,
+        "water_color": 4159204,
+        "water_fog_color": 329011,
+        "grass_color": -8770182,
+        "foliage_color": -8770182
+      },
+      "spawners": {
+        "ambient": [
+          {
+            "type": "betterend:silk_moth",
+            "weight": 5,
+            "minCount": 1,
+            "maxCount": 2
+          }
+        ],
+        "monster": [
+          {
+            "type": "minecraft:enderman",
+            "weight": 50,
+            "minCount": 1,
+            "maxCount": 4
+          }
+        ]
+      }
+    },
+    "betterend:chorus_forest": {
+      "source": "better-end-21.0.11.jar",
+      "temperature": 0.5,
+      "downfall": 0.5,
+      "has_precipitation": false,
+      "effects": {
+        "sky_color": 0,
+        "fog_color": -11068841,
+        "water_color": -11985335,
+        "water_fog_color": -11985335,
+        "grass_color": -8770182,
+        "foliage_color": -8770182
+      },
+      "spawners": {
+        "monster": [
+          {
+            "type": "betterend:end_slime",
+            "weight": 5,
+            "minCount": 1,
+            "maxCount": 2
+          },
+          {
+            "type": "minecraft:enderman",
+            "weight": 50,
+            "minCount": 1,
+            "maxCount": 4
+          }
+        ]
+      }
+    },
+    "betterend:crystal_mountains": {
+      "source": "better-end-21.0.11.jar",
+      "temperature": 0.5,
+      "downfall": 0.5,
+      "has_precipitation": false,
+      "effects": {
+        "sky_color": 0,
+        "fog_color": 10518688,
+        "water_color": 4159204,
+        "water_fog_color": 329011,
+        "grass_color": -31277,
+        "foliage_color": -31277
+      },
+      "spawners": {
+        "monster": [
+          {
+            "type": "minecraft:enderman",
+            "weight": 50,
+            "minCount": 1,
+            "maxCount": 2
+          }
+        ]
+      }
+    },
+    "betterend:dragon_graveyards": {
+      "source": "better-end-21.0.11.jar",
+      "temperature": 0.5,
+      "downfall": 0.5,
+      "has_precipitation": false,
+      "effects": {
+        "sky_color": 0,
+        "fog_color": -774577,
+        "water_color": -3458137,
+        "water_fog_color": -3458137,
+        "grass_color": -774577,
+        "foliage_color": -774577
+      },
+      "spawners": {
+        "monster": [
+          {
+            "type": "minecraft:enderman",
+            "weight": 50,
+            "minCount": 1,
+            "maxCount": 2
+          }
+        ]
+      }
+    },
+    "betterend:dry_shrubland": {
+      "source": "better-end-21.0.11.jar",
+      "temperature": 0.5,
+      "downfall": 0.5,
+      "has_precipitation": false,
+      "effects": {
+        "sky_color": 0,
+        "fog_color": -8117491,
+        "water_color": -9349067,
+        "water_fog_color": -9349067,
+        "grass_color": -1213886,
+        "foliage_color": -1213886
+      },
+      "spawners": {
+        "monster": [
+          {
+            "type": "minecraft:enderman",
+            "weight": 50,
+            "minCount": 1,
+            "maxCount": 2
+          }
+        ]
+      }
+    },
+    "betterend:dust_wastelands": {
+      "source": "better-end-21.0.11.jar",
+      "temperature": 0.5,
+      "downfall": 0.5,
+      "has_precipitation": false,
+      "effects": {
+        "sky_color": 0,
+        "fog_color": -1904728,
+        "water_color": -4148093,
+        "water_fog_color": -4148093
+      },
+      "spawners": {
+        "monster": [
+          {
+            "type": "minecraft:enderman",
+            "weight": 50,
+            "minCount": 1,
+            "maxCount": 2
+          }
+        ]
+      }
+    },
+    "betterend:empty_aurora_cave": {
+      "source": "better-end-21.0.11.jar",
+      "temperature": 0.5,
+      "downfall": 0.5,
+      "has_precipitation": false,
+      "effects": {
+        "sky_color": 0,
+        "fog_color": -6939068,
+        "water_color": -4567571,
+        "water_fog_color": -4567571,
+        "grass_color": -9692882,
+        "foliage_color": -9692882
+      },
+      "spawners": {}
+    },
+    "betterend:empty_end_cave": {
+      "source": "better-end-21.0.11.jar",
+      "temperature": 0.5,
+      "downfall": 0.5,
+      "has_precipitation": false,
+      "effects": {
+        "sky_color": 0,
+        "fog_color": 10518688,
+        "water_color": 4159204,
+        "water_fog_color": 329011
+      },
+      "spawners": {}
+    },
+    "betterend:empty_smaragdant_cave": {
+      "source": "better-end-21.0.11.jar",
+      "temperature": 0.5,
+      "downfall": 0.5,
+      "has_precipitation": false,
+      "effects": {
+        "sky_color": 0,
+        "fog_color": -16712266,
+        "water_color": -14702636,
+        "water_fog_color": -14702636,
+        "grass_color": -16743535,
+        "foliage_color": -16743535
+      },
+      "spawners": {}
+    },
+    "betterend:foggy_mushroomland": {
+      "source": "better-end-21.0.11.jar",
+      "temperature": 0.5,
+      "downfall": 0.5,
+      "has_precipitation": false,
+      "effects": {
+        "sky_color": 0,
+        "fog_color": -14058835,
+        "water_color": -8920070,
+        "water_fog_color": -8920070,
+        "grass_color": -11939119,
+        "foliage_color": -11939119
+      },
+      "spawners": {
+        "ambient": [
+          {
+            "type": "betterend:dragonfly",
+            "weight": 80,
+            "minCount": 2,
+            "maxCount": 5
+          }
+        ],
+        "monster": [
+          {
+            "type": "betterend:end_slime",
+            "weight": 10,
+            "minCount": 1,
+            "maxCount": 2
+          },
+          {
+            "type": "minecraft:enderman",
+            "weight": 10,
+            "minCount": 1,
+            "maxCount": 2
+          }
+        ],
+        "water_ambient": [
+          {
+            "type": "betterend:end_fish",
+            "weight": 20,
+            "minCount": 2,
+            "maxCount": 5
+          },
+          {
+            "type": "betterend:cubozoa",
+            "weight": 10,
+            "minCount": 3,
+            "maxCount": 8
+          }
+        ]
+      }
+    },
+    "betterend:glowing_grasslands": {
+      "source": "better-end-21.0.11.jar",
+      "temperature": 0.5,
+      "downfall": 0.5,
+      "has_precipitation": false,
+      "effects": {
+        "sky_color": 0,
+        "fog_color": -10230537,
+        "water_color": -10683674,
+        "water_fog_color": -10683674,
+        "grass_color": -11939119,
+        "foliage_color": -11939119
+      },
+      "spawners": {
+        "monster": [
+          {
+            "type": "minecraft:enderman",
+            "weight": 50,
+            "minCount": 1,
+            "maxCount": 2
+          }
+        ]
+      }
+    },
+    "betterend:ice_starfield": {
+      "source": "better-end-21.0.11.jar",
+      "temperature": 0.0,
+      "downfall": 0.5,
+      "has_precipitation": false,
+      "effects": {
+        "sky_color": 0,
+        "fog_color": -2034178,
+        "water_color": 4159204,
+        "water_fog_color": 329011,
+        "foliage_color": -4066060
+      },
+      "spawners": {
+        "monster": [
+          {
+            "type": "minecraft:enderman",
+            "weight": 20,
+            "minCount": 1,
+            "maxCount": 4
+          }
+        ]
+      }
+    },
+    "betterend:jade_cave": {
+      "source": "better-end-21.0.11.jar",
+      "temperature": 0.5,
+      "downfall": 0.5,
+      "has_precipitation": false,
+      "effects": {
+        "sky_color": 0,
+        "fog_color": -9005456,
+        "water_color": -10493953,
+        "water_fog_color": -10493953
+      },
+      "spawners": {}
+    },
+    "betterend:lantern_woods": {
+      "source": "better-end-21.0.11.jar",
+      "temperature": 0.5,
+      "downfall": 0.5,
+      "has_precipitation": false,
+      "effects": {
+        "sky_color": 0,
+        "fog_color": -4369850,
+        "water_color": -5510430,
+        "water_fog_color": -5510430,
+        "grass_color": -109255,
+        "foliage_color": -109255
+      },
+      "spawners": {
+        "monster": [
+          {
+            "type": "minecraft:enderman",
+            "weight": 50,
+            "minCount": 1,
+            "maxCount": 2
+          }
+        ]
+      }
+    },
+    "betterend:lush_aurora_cave": {
+      "source": "better-end-21.0.11.jar",
+      "temperature": 0.5,
+      "downfall": 0.5,
+      "has_precipitation": false,
+      "effects": {
+        "sky_color": 0,
+        "fog_color": -6939068,
+        "water_color": -4567571,
+        "water_fog_color": -4567571,
+        "grass_color": -9692882,
+        "foliage_color": -9692882
+      },
+      "spawners": {}
+    },
+    "betterend:lush_smaragdant_cave": {
+      "source": "better-end-21.0.11.jar",
+      "temperature": 0.5,
+      "downfall": 0.5,
+      "has_precipitation": false,
+      "effects": {
+        "sky_color": 0,
+        "fog_color": -16712266,
+        "water_color": -14702636,
+        "water_fog_color": -14702636,
+        "grass_color": -16743535,
+        "foliage_color": -16743535
+      },
+      "spawners": {}
+    },
+    "betterend:megalake": {
+      "source": "better-end-21.0.11.jar",
+      "temperature": 0.5,
+      "downfall": 0.5,
+      "has_precipitation": false,
+      "effects": {
+        "sky_color": 0,
+        "fog_color": -5058056,
+        "water_color": -10443777,
+        "water_fog_color": -10443777,
+        "grass_color": -11939119,
+        "foliage_color": -11939119
+      },
+      "spawners": {
+        "ambient": [
+          {
+            "type": "betterend:dragonfly",
+            "weight": 50,
+            "minCount": 1,
+            "maxCount": 3
+          }
+        ],
+        "monster": [
+          {
+            "type": "betterend:end_slime",
+            "weight": 5,
+            "minCount": 1,
+            "maxCount": 2
+          },
+          {
+            "type": "minecraft:enderman",
+            "weight": 10,
+            "minCount": 1,
+            "maxCount": 2
+          }
+        ],
+        "water_ambient": [
+          {
+            "type": "betterend:end_fish",
+            "weight": 50,
+            "minCount": 3,
+            "maxCount": 8
+          },
+          {
+            "type": "betterend:cubozoa",
+            "weight": 50,
+            "minCount": 3,
+            "maxCount": 8
+          }
+        ]
+      }
+    },
+    "betterend:megalake_grove": {
+      "source": "better-end-21.0.11.jar",
+      "temperature": 0.5,
+      "downfall": 0.5,
+      "has_precipitation": false,
+      "effects": {
+        "sky_color": 0,
+        "fog_color": -5058056,
+        "water_color": -10443777,
+        "water_fog_color": -10443777,
+        "grass_color": -11939119,
+        "foliage_color": -11939119
+      },
+      "spawners": {
+        "ambient": [
+          {
+            "type": "betterend:dragonfly",
+            "weight": 20,
+            "minCount": 1,
+            "maxCount": 3
+          }
+        ],
+        "monster": [
+          {
+            "type": "betterend:end_slime",
+            "weight": 5,
+            "minCount": 1,
+            "maxCount": 2
+          },
+          {
+            "type": "minecraft:enderman",
+            "weight": 10,
+            "minCount": 1,
+            "maxCount": 2
+          }
+        ],
+        "water_ambient": [
+          {
+            "type": "betterend:end_fish",
+            "weight": 20,
+            "minCount": 3,
+            "maxCount": 8
+          },
+          {
+            "type": "betterend:cubozoa",
+            "weight": 50,
+            "minCount": 3,
+            "maxCount": 8
+          }
+        ]
+      }
+    },
+    "betterend:neon_oasis": {
+      "source": "better-end-21.0.11.jar",
+      "temperature": 0.5,
+      "downfall": 0.5,
+      "has_precipitation": false,
+      "effects": {
+        "sky_color": 0,
+        "fog_color": -1904728,
+        "water_color": -9769257,
+        "water_fog_color": -9769257
+      },
+      "spawners": {
+        "monster": [
+          {
+            "type": "minecraft:enderman",
+            "weight": 50,
+            "minCount": 1,
+            "maxCount": 2
+          }
+        ]
+      }
+    },
+    "betterend:painted_mountains": {
+      "source": "better-end-21.0.11.jar",
+      "temperature": 0.5,
+      "downfall": 0.5,
+      "has_precipitation": false,
+      "effects": {
+        "sky_color": 0,
+        "fog_color": -1904728,
+        "water_color": -4148093,
+        "water_fog_color": -4148093
+      },
+      "spawners": {
+        "monster": [
+          {
+            "type": "minecraft:enderman",
+            "weight": 50,
+            "minCount": 1,
+            "maxCount": 2
+          }
+        ]
+      }
+    },
+    "betterend:shadow_forest": {
+      "source": "better-end-21.0.11.jar",
+      "temperature": 0.5,
+      "downfall": 0.5,
+      "has_precipitation": false,
+      "effects": {
+        "sky_color": 0,
+        "fog_color": -16777216,
+        "water_color": -14013104,
+        "water_fog_color": -14013104,
+        "grass_color": -13816531,
+        "foliage_color": -13816531
+      },
+      "spawners": {
+        "monster": [
+          {
+            "type": "betterend:shadow_walker",
+            "weight": 80,
+            "minCount": 2,
+            "maxCount": 4
+          },
+          {
+            "type": "minecraft:enderman",
+            "weight": 40,
+            "minCount": 1,
+            "maxCount": 4
+          },
+          {
+            "type": "minecraft:phantom",
+            "weight": 1,
+            "minCount": 1,
+            "maxCount": 2
+          }
+        ]
+      }
+    },
+    "betterend:sulphur_springs": {
+      "source": "better-end-21.0.11.jar",
+      "temperature": 0.5,
+      "downfall": 0.5,
+      "has_precipitation": false,
+      "effects": {
+        "sky_color": 0,
+        "fog_color": -3161538,
+        "water_color": -15115619,
+        "water_fog_color": -14794435
+      },
+      "spawners": {
+        "monster": [
+          {
+            "type": "minecraft:enderman",
+            "weight": 50,
+            "minCount": 1,
+            "maxCount": 4
+          }
+        ],
+        "water_ambient": [
+          {
+            "type": "betterend:end_fish",
+            "weight": 50,
+            "minCount": 3,
+            "maxCount": 8
+          },
+          {
+            "type": "betterend:cubozoa",
+            "weight": 50,
+            "minCount": 3,
+            "maxCount": 8
+          }
+        ]
+      }
+    },
+    "betterend:umbra_valley": {
+      "source": "better-end-21.0.11.jar",
+      "temperature": 0.5,
+      "downfall": 0.5,
+      "has_precipitation": false,
+      "effects": {
+        "sky_color": 0,
+        "fog_color": -10197916,
+        "water_color": -12228474,
+        "water_fog_color": -12228474,
+        "grass_color": -5456450,
+        "foliage_color": -5456450
+      },
+      "spawners": {}
+    },
+    "betterend:umbrella_jungle": {
+      "source": "better-end-21.0.11.jar",
+      "temperature": 0.5,
+      "downfall": 0.5,
+      "has_precipitation": false,
+      "effects": {
+        "sky_color": 0,
+        "fog_color": -11018275,
+        "water_color": -8927491,
+        "water_fog_color": -8927491,
+        "foliage_color": -14960702
+      },
+      "spawners": {
+        "monster": [
+          {
+            "type": "minecraft:enderman",
+            "weight": 50,
+            "minCount": 1,
+            "maxCount": 2
+          }
+        ]
+      }
+    },
+    "betternether:bone_reef": {
+      "source": "better-nether-21.0.11.jar",
+      "temperature": 2.0,
+      "downfall": 0.0,
+      "has_precipitation": false,
+      "effects": {
+        "sky_color": 7254527,
+        "fog_color": -13640246,
+        "water_color": 4159204,
+        "water_fog_color": 329011
+      },
+      "spawners": {
+        "ambient": [
+          {
+            "type": "betternether:firefly",
+            "weight": 5,
+            "minCount": 1,
+            "maxCount": 3
+          },
+          {
+            "type": "betternether:hydrogen_jellyfish",
+            "weight": 5,
+            "minCount": 2,
+            "maxCount": 6
+          }
+        ],
+        "creature": [
+          {
+            "type": "minecraft:strider",
+            "weight": 60,
+            "minCount": 1,
+            "maxCount": 2
+          }
+        ],
+        "monster": [
+          {
+            "type": "minecraft:ghast",
+            "weight": 50,
+            "minCount": 4,
+            "maxCount": 4
+          },
+          {
+            "type": "minecraft:zombified_piglin",
+            "weight": 100,
+            "minCount": 4,
+            "maxCount": 4
+          },
+          {
+            "type": "minecraft:magma_cube",
+            "weight": 2,
+            "minCount": 4,
+            "maxCount": 4
+          },
+          {
+            "type": "betternether:skull",
+            "weight": 2,
+            "minCount": 2,
+            "maxCount": 4
+          },
+          {
+            "type": "minecraft:enderman",
+            "weight": 1,
+            "minCount": 4,
+            "maxCount": 4
+          },
+          {
+            "type": "minecraft:piglin",
+            "weight": 15,
+            "minCount": 4,
+            "maxCount": 4
+          },
+          {
+            "type": "betternether:naga",
+            "weight": 8,
+            "minCount": 3,
+            "maxCount": 5
+          }
+        ]
+      }
+    },
+    "betternether:crimson_glowing_woods": {
+      "source": "better-nether-21.0.11.jar",
+      "temperature": 2.0,
+      "downfall": 0.0,
+      "has_precipitation": false,
+      "effects": {
+        "sky_color": 7254527,
+        "fog_color": -13434109,
+        "water_color": 4159204,
+        "water_fog_color": 329011
+      },
+      "spawners": {
+        "ambient": [
+          {
+            "type": "betternether:firefly",
+            "weight": 5,
+            "minCount": 1,
+            "maxCount": 3
+          },
+          {
+            "type": "betternether:hydrogen_jellyfish",
+            "weight": 5,
+            "minCount": 2,
+            "maxCount": 6
+          },
+          {
+            "type": "betternether:flying_pig",
+            "weight": 20,
+            "minCount": 2,
+            "maxCount": 4
+          }
+        ],
+        "creature": [
+          {
+            "type": "minecraft:strider",
+            "weight": 60,
+            "minCount": 1,
+            "maxCount": 2
+          }
+        ],
+        "monster": [
+          {
+            "type": "minecraft:ghast",
+            "weight": 50,
+            "minCount": 4,
+            "maxCount": 4
+          },
+          {
+            "type": "minecraft:zombified_piglin",
+            "weight": 100,
+            "minCount": 4,
+            "maxCount": 4
+          },
+          {
+            "type": "minecraft:magma_cube",
+            "weight": 2,
+            "minCount": 4,
+            "maxCount": 4
+          },
+          {
+            "type": "betternether:skull",
+            "weight": 2,
+            "minCount": 2,
+            "maxCount": 4
+          },
+          {
+            "type": "minecraft:enderman",
+            "weight": 1,
+            "minCount": 4,
+            "maxCount": 4
+          },
+          {
+            "type": "minecraft:piglin",
+            "weight": 15,
+            "minCount": 4,
+            "maxCount": 4
+          },
+          {
+            "type": "minecraft:hoglin",
+            "weight": 9,
+            "minCount": 1,
+            "maxCount": 2
+          }
+        ]
+      }
+    },
+    "betternether:crimson_pinewood": {
+      "source": "better-nether-21.0.11.jar",
+      "temperature": 2.0,
+      "downfall": 0.0,
+      "has_precipitation": false,
+      "effects": {
+        "sky_color": 7254527,
+        "fog_color": -13434109,
+        "water_color": 4159204,
+        "water_fog_color": 329011
+      },
+      "spawners": {
+        "ambient": [
+          {
+            "type": "betternether:firefly",
+            "weight": 5,
+            "minCount": 1,
+            "maxCount": 3
+          },
+          {
+            "type": "betternether:hydrogen_jellyfish",
+            "weight": 5,
+            "minCount": 2,
+            "maxCount": 6
+          },
+          {
+            "type": "betternether:flying_pig",
+            "weight": 20,
+            "minCount": 2,
+            "maxCount": 4
+          }
+        ],
+        "creature": [
+          {
+            "type": "minecraft:strider",
+            "weight": 60,
+            "minCount": 1,
+            "maxCount": 2
+          }
+        ],
+        "monster": [
+          {
+            "type": "minecraft:ghast",
+            "weight": 50,
+            "minCount": 4,
+            "maxCount": 4
+          },
+          {
+            "type": "minecraft:zombified_piglin",
+            "weight": 100,
+            "minCount": 4,
+            "maxCount": 4
+          },
+          {
+            "type": "minecraft:magma_cube",
+            "weight": 2,
+            "minCount": 4,
+            "maxCount": 4
+          },
+          {
+            "type": "betternether:skull",
+            "weight": 2,
+            "minCount": 2,
+            "maxCount": 4
+          },
+          {
+            "type": "minecraft:enderman",
+            "weight": 1,
+            "minCount": 4,
+            "maxCount": 4
+          },
+          {
+            "type": "minecraft:piglin",
+            "weight": 15,
+            "minCount": 4,
+            "maxCount": 4
+          },
+          {
+            "type": "minecraft:hoglin",
+            "weight": 9,
+            "minCount": 1,
+            "maxCount": 2
+          }
+        ]
+      }
+    },
+    "betternether:flooded_deltas": {
+      "source": "better-nether-21.0.11.jar",
+      "temperature": 2.0,
+      "downfall": 0.0,
+      "has_precipitation": false,
+      "effects": {
+        "sky_color": 7254527,
+        "fog_color": -9937040,
+        "water_color": 4159204,
+        "water_fog_color": 329011
+      },
+      "spawners": {
+        "ambient": [
+          {
+            "type": "betternether:firefly",
+            "weight": 5,
+            "minCount": 1,
+            "maxCount": 3
+          },
+          {
+            "type": "betternether:hydrogen_jellyfish",
+            "weight": 5,
+            "minCount": 2,
+            "maxCount": 6
+          }
+        ],
+        "creature": [
+          {
+            "type": "minecraft:strider",
+            "weight": 60,
+            "minCount": 1,
+            "maxCount": 2
+          }
+        ],
+        "monster": [
+          {
+            "type": "minecraft:ghast",
+            "weight": 50,
+            "minCount": 4,
+            "maxCount": 4
+          },
+          {
+            "type": "minecraft:zombified_piglin",
+            "weight": 100,
+            "minCount": 4,
+            "maxCount": 4
+          },
+          {
+            "type": "minecraft:magma_cube",
+            "weight": 2,
+            "minCount": 4,
+            "maxCount": 4
+          },
+          {
+            "type": "betternether:skull",
+            "weight": 2,
+            "minCount": 2,
+            "maxCount": 4
+          },
+          {
+            "type": "minecraft:enderman",
+            "weight": 1,
+            "minCount": 4,
+            "maxCount": 4
+          },
+          {
+            "type": "minecraft:piglin",
+            "weight": 15,
+            "minCount": 4,
+            "maxCount": 4
+          },
+          {
+            "type": "betternether:naga",
+            "weight": 8,
+            "minCount": 3,
+            "maxCount": 5
+          }
+        ]
+      }
+    },
+    "betternether:gravel_desert": {
+      "source": "better-nether-21.0.11.jar",
+      "temperature": 2.0,
+      "downfall": 0.0,
+      "has_precipitation": false,
+      "effects": {
+        "sky_color": 7254527,
+        "fog_color": -5623808,
+        "water_color": 4159204,
+        "water_fog_color": 329011
+      },
+      "spawners": {
+        "ambient": [
+          {
+            "type": "betternether:firefly",
+            "weight": 5,
+            "minCount": 1,
+            "maxCount": 3
+          },
+          {
+            "type": "betternether:hydrogen_jellyfish",
+            "weight": 5,
+            "minCount": 2,
+            "maxCount": 6
+          }
+        ],
+        "creature": [
+          {
+            "type": "minecraft:strider",
+            "weight": 60,
+            "minCount": 1,
+            "maxCount": 2
+          }
+        ],
+        "monster": [
+          {
+            "type": "minecraft:ghast",
+            "weight": 50,
+            "minCount": 4,
+            "maxCount": 4
+          },
+          {
+            "type": "minecraft:zombified_piglin",
+            "weight": 100,
+            "minCount": 4,
+            "maxCount": 4
+          },
+          {
+            "type": "minecraft:magma_cube",
+            "weight": 2,
+            "minCount": 4,
+            "maxCount": 4
+          },
+          {
+            "type": "betternether:skull",
+            "weight": 2,
+            "minCount": 2,
+            "maxCount": 4
+          },
+          {
+            "type": "minecraft:enderman",
+            "weight": 1,
+            "minCount": 4,
+            "maxCount": 4
+          },
+          {
+            "type": "minecraft:piglin",
+            "weight": 15,
+            "minCount": 4,
+            "maxCount": 4
+          },
+          {
+            "type": "betternether:naga",
+            "weight": 20,
+            "minCount": 3,
+            "maxCount": 5
+          }
+        ]
+      }
+    },
+    "betternether:magma_land": {
+      "source": "better-nether-21.0.11.jar",
+      "temperature": 2.0,
+      "downfall": 0.0,
+      "has_precipitation": false,
+      "effects": {
+        "sky_color": 7254527,
+        "fog_color": -483772,
+        "water_color": 4159204,
+        "water_fog_color": 329011
+      },
+      "spawners": {
+        "ambient": [
+          {
+            "type": "betternether:firefly",
+            "weight": 5,
+            "minCount": 1,
+            "maxCount": 3
+          },
+          {
+            "type": "betternether:hydrogen_jellyfish",
+            "weight": 5,
+            "minCount": 2,
+            "maxCount": 6
+          }
+        ],
+        "creature": [
+          {
+            "type": "minecraft:strider",
+            "weight": 60,
+            "minCount": 1,
+            "maxCount": 2
+          }
+        ],
+        "monster": [
+          {
+            "type": "minecraft:ghast",
+            "weight": 50,
+            "minCount": 4,
+            "maxCount": 4
+          },
+          {
+            "type": "minecraft:zombified_piglin",
+            "weight": 100,
+            "minCount": 4,
+            "maxCount": 4
+          },
+          {
+            "type": "minecraft:magma_cube",
+            "weight": 2,
+            "minCount": 4,
+            "maxCount": 4
+          },
+          {
+            "type": "betternether:skull",
+            "weight": 2,
+            "minCount": 2,
+            "maxCount": 4
+          },
+          {
+            "type": "minecraft:enderman",
+            "weight": 1,
+            "minCount": 4,
+            "maxCount": 4
+          },
+          {
+            "type": "minecraft:piglin",
+            "weight": 15,
+            "minCount": 4,
+            "maxCount": 4
+          },
+          {
+            "type": "betternether:naga",
+            "weight": 8,
+            "minCount": 3,
+            "maxCount": 5
+          }
+        ]
+      }
+    },
+    "betternether:nether_grasslands": {
+      "source": "better-nether-21.0.11.jar",
+      "temperature": 2.0,
+      "downfall": 0.0,
+      "has_precipitation": false,
+      "effects": {
+        "sky_color": 7254527,
+        "fog_color": -9352827,
+        "water_color": 4159204,
+        "water_fog_color": 329011
+      },
+      "spawners": {
+        "ambient": [
+          {
+            "type": "betternether:firefly",
+            "weight": 15,
+            "minCount": 1,
+            "maxCount": 3
+          },
+          {
+            "type": "betternether:hydrogen_jellyfish",
+            "weight": 5,
+            "minCount": 2,
+            "maxCount": 6
+          }
+        ],
+        "creature": [
+          {
+            "type": "minecraft:strider",
+            "weight": 60,
+            "minCount": 1,
+            "maxCount": 2
+          }
+        ],
+        "monster": [
+          {
+            "type": "minecraft:ghast",
+            "weight": 50,
+            "minCount": 4,
+            "maxCount": 4
+          },
+          {
+            "type": "minecraft:zombified_piglin",
+            "weight": 100,
+            "minCount": 4,
+            "maxCount": 4
+          },
+          {
+            "type": "minecraft:magma_cube",
+            "weight": 2,
+            "minCount": 4,
+            "maxCount": 4
+          },
+          {
+            "type": "betternether:skull",
+            "weight": 2,
+            "minCount": 2,
+            "maxCount": 4
+          },
+          {
+            "type": "minecraft:enderman",
+            "weight": 1,
+            "minCount": 4,
+            "maxCount": 4
+          },
+          {
+            "type": "minecraft:piglin",
+            "weight": 15,
+            "minCount": 4,
+            "maxCount": 4
+          },
+          {
+            "type": "betternether:naga",
+            "weight": 8,
+            "minCount": 3,
+            "maxCount": 5
+          }
+        ]
+      }
+    },
+    "betternether:nether_jungle": {
+      "source": "better-nether-21.0.11.jar",
+      "temperature": 2.0,
+      "downfall": 0.0,
+      "has_precipitation": false,
+      "effects": {
+        "sky_color": 7254527,
+        "fog_color": -12670659,
+        "water_color": 4159204,
+        "water_fog_color": 329011
+      },
+      "spawners": {
+        "ambient": [
+          {
+            "type": "betternether:firefly",
+            "weight": 5,
+            "minCount": 1,
+            "maxCount": 3
+          },
+          {
+            "type": "betternether:hydrogen_jellyfish",
+            "weight": 5,
+            "minCount": 2,
+            "maxCount": 6
+          }
+        ],
+        "monster": [
+          {
+            "type": "betternether:skull",
+            "weight": 2,
+            "minCount": 2,
+            "maxCount": 4
+          },
+          {
+            "type": "betternether:naga",
+            "weight": 8,
+            "minCount": 3,
+            "maxCount": 5
+          },
+          {
+            "type": "betternether:jungle_skeleton",
+            "weight": 40,
+            "minCount": 2,
+            "maxCount": 4
+          }
+        ]
+      }
+    },
+    "betternether:nether_mushroom_forest": {
+      "source": "better-nether-21.0.11.jar",
+      "temperature": 2.0,
+      "downfall": 0.0,
+      "has_precipitation": false,
+      "effects": {
+        "sky_color": 7254527,
+        "fog_color": -5888417,
+        "water_color": 4159204,
+        "water_fog_color": 329011
+      },
+      "spawners": {
+        "ambient": [
+          {
+            "type": "betternether:firefly",
+            "weight": 5,
+            "minCount": 1,
+            "maxCount": 3
+          },
+          {
+            "type": "betternether:hydrogen_jellyfish",
+            "weight": 5,
+            "minCount": 2,
+            "maxCount": 6
+          }
+        ],
+        "creature": [
+          {
+            "type": "minecraft:strider",
+            "weight": 60,
+            "minCount": 1,
+            "maxCount": 2
+          }
+        ],
+        "monster": [
+          {
+            "type": "minecraft:ghast",
+            "weight": 50,
+            "minCount": 4,
+            "maxCount": 4
+          },
+          {
+            "type": "minecraft:zombified_piglin",
+            "weight": 100,
+            "minCount": 4,
+            "maxCount": 4
+          },
+          {
+            "type": "minecraft:magma_cube",
+            "weight": 2,
+            "minCount": 4,
+            "maxCount": 4
+          },
+          {
+            "type": "betternether:skull",
+            "weight": 2,
+            "minCount": 2,
+            "maxCount": 4
+          },
+          {
+            "type": "minecraft:enderman",
+            "weight": 1,
+            "minCount": 4,
+            "maxCount": 4
+          },
+          {
+            "type": "minecraft:piglin",
+            "weight": 15,
+            "minCount": 4,
+            "maxCount": 4
+          },
+          {
+            "type": "betternether:naga",
+            "weight": 8,
+            "minCount": 3,
+            "maxCount": 5
+          }
+        ]
+      }
+    },
+    "betternether:nether_mushroom_forest_edge": {
+      "source": "better-nether-21.0.11.jar",
+      "temperature": 2.0,
+      "downfall": 0.0,
+      "has_precipitation": false,
+      "effects": {
+        "sky_color": 7254527,
+        "fog_color": -3638883,
+        "water_color": 4159204,
+        "water_fog_color": 329011
+      },
+      "spawners": {
+        "ambient": [
+          {
+            "type": "betternether:firefly",
+            "weight": 5,
+            "minCount": 1,
+            "maxCount": 3
+          },
+          {
+            "type": "betternether:hydrogen_jellyfish",
+            "weight": 5,
+            "minCount": 2,
+            "maxCount": 6
+          }
+        ],
+        "creature": [
+          {
+            "type": "minecraft:strider",
+            "weight": 60,
+            "minCount": 1,
+            "maxCount": 2
+          }
+        ],
+        "monster": [
+          {
+            "type": "minecraft:ghast",
+            "weight": 50,
+            "minCount": 4,
+            "maxCount": 4
+          },
+          {
+            "type": "minecraft:zombified_piglin",
+            "weight": 100,
+            "minCount": 4,
+            "maxCount": 4
+          },
+          {
+            "type": "minecraft:magma_cube",
+            "weight": 2,
+            "minCount": 4,
+            "maxCount": 4
+          },
+          {
+            "type": "betternether:skull",
+            "weight": 2,
+            "minCount": 2,
+            "maxCount": 4
+          },
+          {
+            "type": "minecraft:enderman",
+            "weight": 1,
+            "minCount": 4,
+            "maxCount": 4
+          },
+          {
+            "type": "minecraft:piglin",
+            "weight": 15,
+            "minCount": 4,
+            "maxCount": 4
+          },
+          {
+            "type": "betternether:naga",
+            "weight": 8,
+            "minCount": 3,
+            "maxCount": 5
+          }
+        ]
+      }
+    },
+    "betternether:nether_swampland": {
+      "source": "better-nether-21.0.11.jar",
+      "temperature": 2.0,
+      "downfall": 0.0,
+      "has_precipitation": false,
+      "effects": {
+        "sky_color": 7254527,
+        "fog_color": -7793842,
+        "water_color": 4159204,
+        "water_fog_color": 329011
+      },
+      "spawners": {
+        "ambient": [
+          {
+            "type": "betternether:firefly",
+            "weight": 5,
+            "minCount": 1,
+            "maxCount": 3
+          },
+          {
+            "type": "betternether:hydrogen_jellyfish",
+            "weight": 5,
+            "minCount": 2,
+            "maxCount": 6
+          }
+        ],
+        "creature": [
+          {
+            "type": "minecraft:strider",
+            "weight": 40,
+            "minCount": 1,
+            "maxCount": 2
+          }
+        ],
+        "monster": [
+          {
+            "type": "minecraft:magma_cube",
+            "weight": 40,
+            "minCount": 4,
+            "maxCount": 4
+          },
+          {
+            "type": "betternether:skull",
+            "weight": 2,
+            "minCount": 2,
+            "maxCount": 4
+          },
+          {
+            "type": "betternether:naga",
+            "weight": 8,
+            "minCount": 3,
+            "maxCount": 5
+          }
+        ]
+      }
+    },
+    "betternether:nether_swampland_terraces": {
+      "source": "better-nether-21.0.11.jar",
+      "temperature": 2.0,
+      "downfall": 0.0,
+      "has_precipitation": false,
+      "effects": {
+        "sky_color": 7254527,
+        "fog_color": -7793842,
+        "water_color": 4159204,
+        "water_fog_color": 329011
+      },
+      "spawners": {
+        "ambient": [
+          {
+            "type": "betternether:firefly",
+            "weight": 5,
+            "minCount": 1,
+            "maxCount": 3
+          },
+          {
+            "type": "betternether:hydrogen_jellyfish",
+            "weight": 5,
+            "minCount": 2,
+            "maxCount": 6
+          }
+        ],
+        "creature": [
+          {
+            "type": "minecraft:strider",
+            "weight": 40,
+            "minCount": 1,
+            "maxCount": 2
+          }
+        ],
+        "monster": [
+          {
+            "type": "minecraft:magma_cube",
+            "weight": 40,
+            "minCount": 4,
+            "maxCount": 4
+          },
+          {
+            "type": "betternether:skull",
+            "weight": 2,
+            "minCount": 2,
+            "maxCount": 4
+          },
+          {
+            "type": "betternether:naga",
+            "weight": 8,
+            "minCount": 3,
+            "maxCount": 5
+          }
+        ]
+      }
+    },
+    "betternether:old_fungiwoods": {
+      "source": "better-nether-21.0.11.jar",
+      "temperature": 2.0,
+      "downfall": 0.0,
+      "has_precipitation": false,
+      "effects": {
+        "sky_color": 7254527,
+        "fog_color": -5888417,
+        "water_color": 4159204,
+        "water_fog_color": 329011
+      },
+      "spawners": {
+        "ambient": [
+          {
+            "type": "betternether:firefly",
+            "weight": 5,
+            "minCount": 1,
+            "maxCount": 3
+          },
+          {
+            "type": "betternether:hydrogen_jellyfish",
+            "weight": 5,
+            "minCount": 2,
+            "maxCount": 6
+          }
+        ],
+        "creature": [
+          {
+            "type": "minecraft:strider",
+            "weight": 60,
+            "minCount": 1,
+            "maxCount": 2
+          }
+        ],
+        "monster": [
+          {
+            "type": "minecraft:ghast",
+            "weight": 50,
+            "minCount": 4,
+            "maxCount": 4
+          },
+          {
+            "type": "minecraft:zombified_piglin",
+            "weight": 100,
+            "minCount": 4,
+            "maxCount": 4
+          },
+          {
+            "type": "minecraft:magma_cube",
+            "weight": 2,
+            "minCount": 4,
+            "maxCount": 4
+          },
+          {
+            "type": "betternether:skull",
+            "weight": 2,
+            "minCount": 2,
+            "maxCount": 4
+          },
+          {
+            "type": "minecraft:enderman",
+            "weight": 1,
+            "minCount": 4,
+            "maxCount": 4
+          },
+          {
+            "type": "minecraft:piglin",
+            "weight": 15,
+            "minCount": 4,
+            "maxCount": 4
+          },
+          {
+            "type": "betternether:naga",
+            "weight": 8,
+            "minCount": 3,
+            "maxCount": 5
+          }
+        ]
+      }
+    },
+    "betternether:old_swampland": {
+      "source": "better-nether-21.0.11.jar",
+      "temperature": 2.0,
+      "downfall": 0.0,
+      "has_precipitation": false,
+      "effects": {
+        "sky_color": 7254527,
+        "fog_color": -7793842,
+        "water_color": 4159204,
+        "water_fog_color": 329011
+      },
+      "spawners": {
+        "ambient": [
+          {
+            "type": "betternether:firefly",
+            "weight": 5,
+            "minCount": 1,
+            "maxCount": 3
+          },
+          {
+            "type": "betternether:hydrogen_jellyfish",
+            "weight": 5,
+            "minCount": 2,
+            "maxCount": 6
+          }
+        ],
+        "creature": [
+          {
+            "type": "minecraft:strider",
+            "weight": 40,
+            "minCount": 1,
+            "maxCount": 2
+          }
+        ],
+        "monster": [
+          {
+            "type": "minecraft:magma_cube",
+            "weight": 40,
+            "minCount": 4,
+            "maxCount": 4
+          },
+          {
+            "type": "betternether:skull",
+            "weight": 2,
+            "minCount": 2,
+            "maxCount": 4
+          },
+          {
+            "type": "betternether:naga",
+            "weight": 8,
+            "minCount": 3,
+            "maxCount": 5
+          }
+        ]
+      }
+    },
+    "betternether:old_warped_woods": {
+      "source": "better-nether-21.0.11.jar",
+      "temperature": 2.0,
+      "downfall": 0.0,
+      "has_precipitation": false,
+      "effects": {
+        "sky_color": 7254527,
+        "fog_color": -15071974,
+        "water_color": 4159204,
+        "water_fog_color": 329011
+      },
+      "spawners": {
+        "ambient": [
+          {
+            "type": "betternether:firefly",
+            "weight": 5,
+            "minCount": 1,
+            "maxCount": 3
+          },
+          {
+            "type": "betternether:hydrogen_jellyfish",
+            "weight": 5,
+            "minCount": 2,
+            "maxCount": 6
+          }
+        ],
+        "creature": [
+          {
+            "type": "minecraft:strider",
+            "weight": 60,
+            "minCount": 1,
+            "maxCount": 2
+          }
+        ],
+        "monster": [
+          {
+            "type": "betternether:skull",
+            "weight": 2,
+            "minCount": 2,
+            "maxCount": 4
+          },
+          {
+            "type": "minecraft:enderman",
+            "weight": 1,
+            "minCount": 4,
+            "maxCount": 4
+          },
+          {
+            "type": "betternether:naga",
+            "weight": 8,
+            "minCount": 3,
+            "maxCount": 5
+          }
+        ]
+      }
+    },
+    "betternether:poor_nether_grasslands": {
+      "source": "better-nether-21.0.11.jar",
+      "temperature": 2.0,
+      "downfall": 0.0,
+      "has_precipitation": false,
+      "effects": {
+        "sky_color": 7254527,
+        "fog_color": -9352827,
+        "water_color": 4159204,
+        "water_fog_color": 329011
+      },
+      "spawners": {
+        "ambient": [
+          {
+            "type": "betternether:firefly",
+            "weight": 5,
+            "minCount": 1,
+            "maxCount": 3
+          },
+          {
+            "type": "betternether:hydrogen_jellyfish",
+            "weight": 5,
+            "minCount": 2,
+            "maxCount": 6
+          }
+        ],
+        "creature": [
+          {
+            "type": "minecraft:strider",
+            "weight": 60,
+            "minCount": 1,
+            "maxCount": 2
+          }
+        ],
+        "monster": [
+          {
+            "type": "minecraft:ghast",
+            "weight": 50,
+            "minCount": 4,
+            "maxCount": 4
+          },
+          {
+            "type": "minecraft:zombified_piglin",
+            "weight": 100,
+            "minCount": 4,
+            "maxCount": 4
+          },
+          {
+            "type": "minecraft:magma_cube",
+            "weight": 2,
+            "minCount": 4,
+            "maxCount": 4
+          },
+          {
+            "type": "betternether:skull",
+            "weight": 2,
+            "minCount": 2,
+            "maxCount": 4
+          },
+          {
+            "type": "minecraft:enderman",
+            "weight": 1,
+            "minCount": 4,
+            "maxCount": 4
+          },
+          {
+            "type": "minecraft:piglin",
+            "weight": 15,
+            "minCount": 4,
+            "maxCount": 4
+          },
+          {
+            "type": "betternether:naga",
+            "weight": 8,
+            "minCount": 3,
+            "maxCount": 5
+          }
+        ]
+      }
+    },
+    "betternether:soul_plain": {
+      "source": "better-nether-21.0.11.jar",
+      "temperature": 2.0,
+      "downfall": 0.0,
+      "has_precipitation": false,
+      "effects": {
+        "sky_color": 7254527,
+        "fog_color": -3902993,
+        "water_color": 4159204,
+        "water_fog_color": 329011
+      },
+      "spawners": {
+        "ambient": [
+          {
+            "type": "betternether:firefly",
+            "weight": 5,
+            "minCount": 1,
+            "maxCount": 3
+          },
+          {
+            "type": "betternether:hydrogen_jellyfish",
+            "weight": 5,
+            "minCount": 2,
+            "maxCount": 6
+          }
+        ],
+        "creature": [
+          {
+            "type": "minecraft:strider",
+            "weight": 60,
+            "minCount": 1,
+            "maxCount": 2
+          }
+        ],
+        "monster": [
+          {
+            "type": "minecraft:ghast",
+            "weight": 50,
+            "minCount": 4,
+            "maxCount": 4
+          },
+          {
+            "type": "minecraft:zombified_piglin",
+            "weight": 100,
+            "minCount": 4,
+            "maxCount": 4
+          },
+          {
+            "type": "minecraft:magma_cube",
+            "weight": 2,
+            "minCount": 4,
+            "maxCount": 4
+          },
+          {
+            "type": "betternether:skull",
+            "weight": 2,
+            "minCount": 2,
+            "maxCount": 4
+          },
+          {
+            "type": "minecraft:enderman",
+            "weight": 1,
+            "minCount": 4,
+            "maxCount": 4
+          },
+          {
+            "type": "minecraft:piglin",
+            "weight": 15,
+            "minCount": 4,
+            "maxCount": 4
+          },
+          {
+            "type": "betternether:naga",
+            "weight": 8,
+            "minCount": 3,
+            "maxCount": 5
+          }
+        ]
+      }
+    },
+    "betternether:sulfuric_bone_reef": {
+      "source": "better-nether-21.0.11.jar",
+      "temperature": 2.0,
+      "downfall": 0.0,
+      "has_precipitation": false,
+      "effects": {
+        "sky_color": 7254527,
+        "fog_color": -6647759,
+        "water_color": 4159204,
+        "water_fog_color": 329011
+      },
+      "spawners": {
+        "ambient": [
+          {
+            "type": "betternether:firefly",
+            "weight": 5,
+            "minCount": 1,
+            "maxCount": 3
+          },
+          {
+            "type": "betternether:hydrogen_jellyfish",
+            "weight": 5,
+            "minCount": 2,
+            "maxCount": 6
+          }
+        ],
+        "creature": [
+          {
+            "type": "minecraft:strider",
+            "weight": 60,
+            "minCount": 1,
+            "maxCount": 2
+          }
+        ],
+        "monster": [
+          {
+            "type": "minecraft:ghast",
+            "weight": 50,
+            "minCount": 4,
+            "maxCount": 4
+          },
+          {
+            "type": "minecraft:zombified_piglin",
+            "weight": 100,
+            "minCount": 4,
+            "maxCount": 4
+          },
+          {
+            "type": "minecraft:magma_cube",
+            "weight": 2,
+            "minCount": 4,
+            "maxCount": 4
+          },
+          {
+            "type": "betternether:skull",
+            "weight": 2,
+            "minCount": 2,
+            "maxCount": 4
+          },
+          {
+            "type": "minecraft:enderman",
+            "weight": 1,
+            "minCount": 4,
+            "maxCount": 4
+          },
+          {
+            "type": "minecraft:piglin",
+            "weight": 15,
+            "minCount": 4,
+            "maxCount": 4
+          },
+          {
+            "type": "betternether:naga",
+            "weight": 8,
+            "minCount": 3,
+            "maxCount": 5
+          }
+        ]
+      }
+    },
+    "betternether:upside_down_forest": {
+      "source": "better-nether-21.0.11.jar",
+      "temperature": 2.0,
+      "downfall": 0.0,
+      "has_precipitation": false,
+      "effects": {
+        "sky_color": 7254527,
+        "fog_color": -9454481,
+        "water_color": 4159204,
+        "water_fog_color": 329011
+      },
+      "spawners": {
+        "ambient": [
+          {
+            "type": "betternether:firefly",
+            "weight": 5,
+            "minCount": 1,
+            "maxCount": 3
+          },
+          {
+            "type": "betternether:hydrogen_jellyfish",
+            "weight": 5,
+            "minCount": 2,
+            "maxCount": 6
+          }
+        ],
+        "creature": [
+          {
+            "type": "minecraft:strider",
+            "weight": 60,
+            "minCount": 1,
+            "maxCount": 2
+          }
+        ],
+        "monster": [
+          {
+            "type": "minecraft:ghast",
+            "weight": 50,
+            "minCount": 4,
+            "maxCount": 4
+          },
+          {
+            "type": "minecraft:zombified_piglin",
+            "weight": 100,
+            "minCount": 4,
+            "maxCount": 4
+          },
+          {
+            "type": "minecraft:magma_cube",
+            "weight": 2,
+            "minCount": 4,
+            "maxCount": 4
+          },
+          {
+            "type": "betternether:skull",
+            "weight": 2,
+            "minCount": 2,
+            "maxCount": 4
+          },
+          {
+            "type": "minecraft:enderman",
+            "weight": 1,
+            "minCount": 4,
+            "maxCount": 4
+          },
+          {
+            "type": "minecraft:piglin",
+            "weight": 15,
+            "minCount": 4,
+            "maxCount": 4
+          },
+          {
+            "type": "betternether:naga",
+            "weight": 8,
+            "minCount": 3,
+            "maxCount": 5
+          }
+        ]
+      }
+    },
+    "betternether:upside_down_forest_cleared": {
+      "source": "better-nether-21.0.11.jar",
+      "temperature": 2.0,
+      "downfall": 0.0,
+      "has_precipitation": false,
+      "effects": {
+        "sky_color": 7254527,
+        "fog_color": -9454471,
+        "water_color": 4159204,
+        "water_fog_color": 329011
+      },
+      "spawners": {
+        "ambient": [
+          {
+            "type": "betternether:firefly",
+            "weight": 5,
+            "minCount": 1,
+            "maxCount": 3
+          },
+          {
+            "type": "betternether:hydrogen_jellyfish",
+            "weight": 5,
+            "minCount": 2,
+            "maxCount": 6
+          }
+        ],
+        "creature": [
+          {
+            "type": "minecraft:strider",
+            "weight": 60,
+            "minCount": 1,
+            "maxCount": 2
+          }
+        ],
+        "monster": [
+          {
+            "type": "minecraft:ghast",
+            "weight": 50,
+            "minCount": 4,
+            "maxCount": 4
+          },
+          {
+            "type": "minecraft:zombified_piglin",
+            "weight": 100,
+            "minCount": 4,
+            "maxCount": 4
+          },
+          {
+            "type": "minecraft:magma_cube",
+            "weight": 2,
+            "minCount": 4,
+            "maxCount": 4
+          },
+          {
+            "type": "betternether:skull",
+            "weight": 2,
+            "minCount": 2,
+            "maxCount": 4
+          },
+          {
+            "type": "minecraft:enderman",
+            "weight": 1,
+            "minCount": 4,
+            "maxCount": 4
+          },
+          {
+            "type": "minecraft:piglin",
+            "weight": 15,
+            "minCount": 4,
+            "maxCount": 4
+          },
+          {
+            "type": "betternether:naga",
+            "weight": 8,
+            "minCount": 3,
+            "maxCount": 5
+          }
+        ]
+      }
+    },
+    "betternether:wart_forest": {
+      "source": "better-nether-21.0.11.jar",
+      "temperature": 2.0,
+      "downfall": 0.0,
+      "has_precipitation": false,
+      "effects": {
+        "sky_color": 7254527,
+        "fog_color": -6879738,
+        "water_color": 4159204,
+        "water_fog_color": 329011
+      },
+      "spawners": {
+        "ambient": [
+          {
+            "type": "betternether:firefly",
+            "weight": 5,
+            "minCount": 1,
+            "maxCount": 3
+          },
+          {
+            "type": "betternether:hydrogen_jellyfish",
+            "weight": 5,
+            "minCount": 2,
+            "maxCount": 6
+          },
+          {
+            "type": "betternether:flying_pig",
+            "weight": 20,
+            "minCount": 2,
+            "maxCount": 4
+          }
+        ],
+        "creature": [
+          {
+            "type": "minecraft:strider",
+            "weight": 60,
+            "minCount": 1,
+            "maxCount": 2
+          }
+        ],
+        "monster": [
+          {
+            "type": "minecraft:ghast",
+            "weight": 50,
+            "minCount": 4,
+            "maxCount": 4
+          },
+          {
+            "type": "minecraft:zombified_piglin",
+            "weight": 100,
+            "minCount": 4,
+            "maxCount": 4
+          },
+          {
+            "type": "minecraft:magma_cube",
+            "weight": 2,
+            "minCount": 4,
+            "maxCount": 4
+          },
+          {
+            "type": "betternether:skull",
+            "weight": 2,
+            "minCount": 2,
+            "maxCount": 4
+          },
+          {
+            "type": "minecraft:enderman",
+            "weight": 1,
+            "minCount": 4,
+            "maxCount": 4
+          },
+          {
+            "type": "minecraft:piglin",
+            "weight": 15,
+            "minCount": 4,
+            "maxCount": 4
+          }
+        ]
+      }
+    },
+    "betternether:wart_forest_edge": {
+      "source": "better-nether-21.0.11.jar",
+      "temperature": 2.0,
+      "downfall": 0.0,
+      "has_precipitation": false,
+      "effects": {
+        "sky_color": 7254527,
+        "fog_color": -4252644,
+        "water_color": 4159204,
+        "water_fog_color": 329011
+      },
+      "spawners": {
+        "ambient": [
+          {
+            "type": "betternether:firefly",
+            "weight": 5,
+            "minCount": 1,
+            "maxCount": 3
+          },
+          {
+            "type": "betternether:hydrogen_jellyfish",
+            "weight": 5,
+            "minCount": 2,
+            "maxCount": 6
+          },
+          {
+            "type": "betternether:flying_pig",
+            "weight": 20,
+            "minCount": 2,
+            "maxCount": 4
+          }
+        ],
+        "creature": [
+          {
+            "type": "minecraft:strider",
+            "weight": 60,
+            "minCount": 1,
+            "maxCount": 2
+          }
+        ],
+        "monster": [
+          {
+            "type": "minecraft:ghast",
+            "weight": 50,
+            "minCount": 4,
+            "maxCount": 4
+          },
+          {
+            "type": "minecraft:zombified_piglin",
+            "weight": 100,
+            "minCount": 4,
+            "maxCount": 4
+          },
+          {
+            "type": "minecraft:magma_cube",
+            "weight": 2,
+            "minCount": 4,
+            "maxCount": 4
+          },
+          {
+            "type": "betternether:skull",
+            "weight": 2,
+            "minCount": 2,
+            "maxCount": 4
+          },
+          {
+            "type": "minecraft:enderman",
+            "weight": 1,
+            "minCount": 4,
+            "maxCount": 4
+          },
+          {
+            "type": "minecraft:piglin",
+            "weight": 15,
+            "minCount": 4,
+            "maxCount": 4
+          }
+        ]
+      }
+    },
     "galosphere:crystal_canyons": {
       "source": "Galosphere-1.21.1-1.5.4-Fabric.jar",
       "temperature": 0.5,

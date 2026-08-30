@@ -1,0 +1,16 @@
+{
+ "type": "lithostitched:set_structure_spawn_condition",
+ "structures": [
+  "betterend:end_village",
+  "betterend:giant_ice_star",
+  "betterend:giant_mossy_glowshroom"
+ ],
+ "spawn_condition": {
+  "type": "lithostitched:not",
+  "condition": {
+   "type": "lithostitched:in_biome",
+   "biomes": "#adventure:open_water"
+  }
+ },
+ "append": true
+}
