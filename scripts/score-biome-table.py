@@ -18,14 +18,25 @@ Context:  Vanilla picks a biome by nearest hypercube. `getSquaredDistance` sums
 Usage:    scripts/score-biome-table.py <dump.json> <slug>
           scripts/score-biome-table.py <dump.json> <slug> --sweep
 
+          Two instruments, and they disagree in opposite directions. Plain
+          output models THE WORLD: a Minecraft world border is a square
+          (`WorldBorderManager` passes a side length to `setSize`), so every
+          corner of [-B,+B]^2 is reachable ground. `--disc` models what
+          `customdim facts` REPORTS: `FactsEngine` samples "a square grid
+          clipped to the playable disc", leaving ~21% of reachable ground
+          unsampled. Use --disc to predict a facts figure, plain to ask what
+          the world contains.
+
 Gotchas:  - The table must be dumped from the SAME build you are asking about.
             It already contains whatever the projection did; nothing here
             re-implements it, which is the point.
-          - Scores the committed 121-point cloud; `facts` uses 41x41
-            disc-clipped. This over-counts, so read gains as RELATIVE. A biome
-            winning one cloud point is not a biome a player meets ([K7]).
-          - climate-axes.json records the bounding SQUARE. --disc clips to the
-            playable circle, which is what the game measures over.
+          - Scores the committed 121-point cloud where `facts` walks 41x41, so
+            a biome winning one cloud point is not a biome a player meets
+            ([K7]). Against a facts figure this over-counts by roughly 2-4 on
+            the plain output; --disc removed that gap on the one dimension
+            checked. Read absolutes with both caveats, never as facts numbers.
+          - `facts` itself UNDER-counts against the world, because its disc
+            never samples the corners. The two biases pull opposite ways.
           - Ties resolve first-wins here; the game resolves them by incumbent
             and that depends on generation order (T59). Ties are reported.
 """
@@ -70,7 +81,13 @@ def load_table(path):
 
 
 def samples(axes_doc, slug, disc=False):
-    """Sample points as fixed-point arrays, optionally clipped to the disc."""
+    """Sample points as fixed-point arrays.
+
+    `disc` reproduces FactsEngine's own sampling, which clips a square grid to
+    a circle. It is NOT the shape of the world: the border is a square and the
+    corners are reachable. Clip to compare against a facts figure; leave it off
+    to ask what the world holds.
+    """
     rec = axes_doc["perDimension"][slug]["samples"]
     n = len(rec["temp"])
     side = round(n ** 0.5)
@@ -151,7 +168,7 @@ def main(argv):
     points = samples(axes_doc, slug, disc)
     listed, bands = listed_of(config), band_ids_of(config)
     print(f"{slug}: {len(table)} cells, {len(listed)} listed, {len(bands)} banded, "
-          f"{len(points)} sample points{' (disc-clipped)' if disc else ' (bounding square)'}")
+          f"{len(points)} sample points{" (facts' disc sampling)" if disc else " (the square world)"}")
     base = report("as dumped", table, points, listed, bands)
     if "--sweep" in argv:
         for o in (0.005, 0.01, 0.02, 0.05, 0.1, 0.2):
