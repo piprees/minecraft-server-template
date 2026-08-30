@@ -155,8 +155,9 @@
     "mood": "desolate",
     "allowHazardousSpawn": true,
     "spawnFilter": [
-      "terralith:alpha_islands_winter",
-      "minecraft:ice_spikes"
+      "minecraft:frozen_ocean",
+      "terralith:glacial_chasm",
+      "terralith:alpha_islands_winter"
     ],
     "terrain": "void"
   },

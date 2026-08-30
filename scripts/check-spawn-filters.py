@@ -25,11 +25,13 @@ Context:  A place is 128-256 blocks across and covers a structure, the ground
           that dimension's own `biomes` array — the first entries typed, not a
           set anybody chose.
 
-Not covered: whether a filter biome holds any ground. That is a measurement,
-          it needs the 41x41 grid the game itself samples, and a static check
-          cannot make it — see K7 before treating a small share as a defect.
-          A filter can pass both arms here and still name a biome that
-          generates nowhere.
+Third arm, ADVISORY: whether the named biomes hold any ground. That is a
+          measurement, so it never gates. Where a consumer has a persisted
+          `customdim facts` record for a dimension's shipped seed
+          (`.seed-rolling/facts__<ns>_<slug>__<seed>.json`) the filter's summed
+          share is read from it and reported. Absent a record the dimension is
+          named as unmeasured, never assumed fine — see K7 before treating a
+          small share as a defect.
 
 Usage:    scripts/check-spawn-filters.py       # exits 1 on either arm
           CONSUMER_DIR=~/Projects/elfydd scripts/check-spawn-filters.py
@@ -61,6 +63,29 @@ OVERLAY = "overlay/config/custom-dimensions/dimensions/*.json"
 
 # One place, in biomes: the one it sits in plus its surroundings.
 BIOMES_PER_PLACE = 3
+
+# Only a ZERO share is reported. biome-placement.md refuses a per-biome minimum
+# and K7 says narrow is not empty, so any other floor would be invented.
+RESERVED = {"overworld": "minecraft:overworld", "the_nether": "minecraft:the_nether",
+            "the_end": "minecraft:the_end", "paradise_lost": "paradise_lost:paradise_lost"}
+
+
+def facts_shares(consumer, name, platform_cfg, overlay_cfg):
+    """The persisted facts record for this dimension's shipped seed, if one exists."""
+    if not consumer:
+        return None
+    seed = (overlay_cfg or {}).get("seed", platform_cfg.get("seed"))
+    if seed is None:
+        return None
+    dim = RESERVED.get(name, "adventure:" + name).replace(":", "_")
+    path = consumer / ".seed-rolling" / f"facts__{dim}__{seed}.json"
+    if not path.is_file():
+        return None
+    try:
+        doc = json.loads(path.read_text())
+    except json.JSONDecodeError:
+        return None
+    return (doc.get("biomes") or {}).get("shares")
 
 
 def budget(border):
@@ -99,7 +124,10 @@ def main():
     if consumer:
         sources.append(("overlay", dict(entries(str(consumer / OVERLAY)))))
 
+    overlay = dict(sources[1][1]) if len(sources) > 1 else {}
     unlisted = palettes = scanned = 0
+    measured = unmeasured = inert = 0
+    held_shares = []
     for where, configs in sources:
         for name, cfg in sorted(configs.items()):
             sf = spawn_filter(cfg)
@@ -116,6 +144,19 @@ def main():
                 print("      a filter biome the dimension never lists cannot be curated into"
                       " the world, so it scores only where the base source happens to place it")
 
+            if where == "platform":
+                shares = facts_shares(consumer, name, cfg, overlay.get(name))
+                if shares is None:
+                    unmeasured += 1
+                else:
+                    measured += 1
+                    held = sum(shares.get(b, 0.0) for b in sf)
+                    held_shares.append(held)
+                    if held == 0.0:
+                        inert += 1
+                        print(f"  {name:26s} [measured] every one of its {len(sf)} filter biomes"
+                              f" holds no cell — the share branch can never score")
+
             border = cfg.get("borders", {}).get("player") \
                 or platform.get(name, {}).get("borders", {}).get("player")
             bud = budget(border)
@@ -131,6 +172,12 @@ def main():
 
     print(f"{scanned} spawn filter(s), {unlisted} naming an unlisted biome,"
           f" {palettes} naming a palette")
+    # Advisory only. A share is a measurement and this is a static gate, so the
+    # count is printed whether it is zero or not — a silent arm is an unrun one.
+    med = sorted(held_shares)[len(held_shares) // 2] if held_shares else 0.0
+    print(f"share check (advisory): {measured} measured against a facts record,"
+          f" {unmeasured} with no record, {inert} holding nothing at all,"
+          f" median share {med * 100:.1f}%")
     if unlisted or palettes:
         return 1
     print("✓ Every spawn filter names a place, from biomes its dimension lists")

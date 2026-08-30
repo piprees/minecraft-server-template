@@ -229,9 +229,9 @@
   "seedRoll": {
     "mood": "desolate",
     "spawnFilter": [
+      "minecraft:windswept_gravelly_hills",
       "terralith:gravel_desert",
-      "terralith:basalt_cliffs",
-      "terralith:ashen_savanna"
+      "terralith:volcanic_peaks"
     ],
     "water": "none",
     "shuns": [
