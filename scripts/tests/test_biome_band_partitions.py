@@ -11,6 +11,7 @@ Every constant below is pinned by a test that fails when it moves, because a
 threshold nothing exercises is a threshold that can be widened to nothing.
 """
 import importlib.util
+import json
 import sys
 import unittest
 from pathlib import Path
@@ -196,9 +197,6 @@ class NativeStarvationTests(unittest.TestCase):
         self.assertGreater(4.0 - bands.covered([(-2.0, 1.0)]), bands.FREE_EPSILON)
 
 
-if __name__ == "__main__":
-    unittest.main()
-
 
 class DeadRepeats(unittest.TestCase):
     """A repeat is a fault only when it states nothing new."""
@@ -297,3 +295,34 @@ class TieHazards(unittest.TestCase):
         ex = [("mod:high", {"weirdness": [1.0, 2.0]}),
               ("mod:mid", {"weirdness": [0.5, 1.0]})]
         self.assertEqual([], bands.tie_hazards(ex, {}))
+class ShippedCorpus(unittest.TestCase):
+    """The pack itself is the upper bound on both width tolerances.
+
+    Each tolerance is pinned from below by a fixture. Nothing pinned them from
+    above, so WIDTH_ABS_TOL could be widened to 1.0 with every other test still
+    green — and the gate would then fire on 8 correct files. Loosening is the
+    direction that gets a gate switched off, so the corpus pins it.
+    """
+
+    def test_no_shipped_dimension_carries_an_anchored_run(self):
+        root = Path(__file__).resolve().parents[2]
+        offenders = []
+        for f in sorted((root / "config/custom-dimensions/dimensions").glob("*.json")):
+            if f.name.endswith("_thumb.json"):
+                continue
+            doc = json.loads(f.read_text())
+            cfg = doc.get("overrides", doc)
+            ex = [(e["id"], e["parameters"]) for e in cfg.get("biomes") or []
+                  if isinstance(e, dict) and isinstance(e.get("parameters"), dict)]
+            if not ex:
+                continue
+            for axis in bands.AXES:
+                if axis in bands.NOT_SLICED:
+                    continue
+                run, _ = bands.anchored_equal_run(bands.bands_on(ex, axis))
+                if run:
+                    offenders.append(f"{f.stem}/{axis} run={run}")
+        self.assertEqual([], offenders)
+
+if __name__ == "__main__":
+    unittest.main()
