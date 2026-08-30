@@ -1408,6 +1408,12 @@ measurement of it.
 - **The arity of a `spawnFilter` is not the cause and was the obvious suspect.**
   Medians by filter arity are flat — arity 1: 4.21, 2: 3.59, 3: 4.58, 4: 3.91,
   10: 2.75. Check the ceiling, not the config.
+- **The roller already knows.** `RollPipeline.SCORE_THRESHOLD` is 80.0 and its
+  own javadoc says it is display only and gates nothing, "because the score is
+  not comparable BETWEEN dimensions". `bestToPromote` returns `ranked.get(0)` —
+  pure rank within one dimension's own leaderboard, never a threshold. So
+  auto-promotion is immune; what is exposed is any number a HUMAN reads off a
+  percentage and compares across dimensions.
 
 ## macOS local dev
 
