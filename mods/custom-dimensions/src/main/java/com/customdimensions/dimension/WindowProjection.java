@@ -1,7 +1,9 @@
 package com.customdimensions.dimension;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.List;
 import java.util.Set;
 
@@ -194,6 +196,19 @@ public final class WindowProjection {
         int moved = 0;
         int stuck = 0;
         for (int a = 0; a < AXES; a++) {
+            // Endpoint tallies rather than a scan of every other cell: a
+            // dimension's declared table runs to thousands of cells, and the
+            // pairwise form cost seconds per dimension on the world-creation
+            // thread.
+            Map<Long, Integer> los = new HashMap<>();
+            Map<Long, Integer> his = new HashMap<>();
+            for (Cell<T> cell : cells) {
+                Span span = axisOf(cell, a);
+                if (span != null) {
+                    tally(los, span.lo(), 1);
+                    tally(his, span.hi(), 1);
+                }
+            }
             for (int i = 0; i < cells.size(); i++) {
                 Span span = axisOf(cells.get(i), a);
                 if (span == null) {
@@ -201,25 +216,29 @@ public final class WindowProjection {
                 }
                 double lo = span.lo();
                 double hi = span.hi();
-                for (int step = 0; step < MAX_SEPARATION_STEPS
-                        && needsMove(cells, a, i, lo, true); step++) {
+                // Withdraw this cell's own ends, so it is never separated from
+                // itself, then put the moved ones back for the cells after it.
+                tally(los, lo, -1);
+                tally(his, hi, -1);
+                for (int step = 0; step < MAX_SEPARATION_STEPS && needsMove(his, lo); step++) {
                     if (lo + QUANTUM > hi) {
                         break;
                     }
                     lo += QUANTUM;
                     moved++;
                 }
-                for (int step = 0; step < MAX_SEPARATION_STEPS
-                        && needsMove(cells, a, i, hi, false); step++) {
+                for (int step = 0; step < MAX_SEPARATION_STEPS && needsMove(los, hi); step++) {
                     if (hi - QUANTUM < lo) {
                         break;
                     }
                     hi -= QUANTUM;
                     moved++;
                 }
-                if (needsMove(cells, a, i, lo, true) || needsMove(cells, a, i, hi, false)) {
+                if (needsMove(his, lo) || needsMove(los, hi)) {
                     stuck++;
                 }
+                tally(los, lo, 1);
+                tally(his, hi, 1);
                 if (lo != span.lo() || hi != span.hi()) {
                     cells.get(i).axes().set(a, new Span(lo, hi));
                 }
@@ -228,24 +247,23 @@ public final class WindowProjection {
         return new int[]{moved, stuck};
     }
 
-    /** True when a value sits on a rail, or meets another cell's opposite end. */
-    private static <T> boolean needsMove(List<Cell<T>> cells, int axis, int self,
-                                         double value, boolean isLow) {
+    /** The quantised bucket a value falls in — the only equality the game can see. */
+    static long bucket(double value) {
+        return Math.round(value / QUANTUM);
+    }
+
+    private static void tally(Map<Long, Integer> counts, double value, int delta) {
+        counts.merge(bucket(value), delta, Integer::sum);
+    }
+
+    /** True when a value sits on a rail, or meets an opposite endpoint. */
+    private static boolean needsMove(Map<Long, Integer> opposite, double value) {
         for (double rail : RAILS) {
             if (same(value, rail)) {
                 return true;
             }
         }
-        for (int j = 0; j < cells.size(); j++) {
-            if (j == self) {
-                continue;
-            }
-            Span other = axisOf(cells.get(j), axis);
-            if (other != null && same(value, isLow ? other.hi() : other.lo())) {
-                return true;
-            }
-        }
-        return false;
+        return opposite.getOrDefault(bucket(value), 0) > 0;
     }
 
     /** Equal once quantised, which is the only equality the game can see. */
