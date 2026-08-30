@@ -1441,6 +1441,20 @@ The rendered height disagrees with the facts on high-relief columns. The error i
   79%, against 8 and 47% measured. It also reported `the_roothold`
   `incendium:withered_forest` empty because that band starts at depth 0.6 and
   neither invented layer reached it.
+- **The mirror failure is an ABSENT depth, not an invented one, and it is worse
+  because it looks plausible.** `config/custom-dimensions/climate-axes.json`
+  carries five axes per dimension — `temp, humid, cont, eros, weird` — and **no
+  depth column at all**, so a scorer reading it must pin depth to 0. A band that
+  constrains only humidity pays nothing either way; every surface native pinned
+  at `depth [-0.005, 0.000]` is then handed **0.2014** of free squared distance
+  where the game charges it at y64. Measured on `the_frozen_strait`, that is
+  **3.7x the entire offset term being swept** (0.0548 at offset 0.234) — the
+  tool reported 10 of 13 biomes with bands at 22% where the live world reads 3
+  and 100%, and the error was monotone and smooth enough to read as a real
+  curve. **Score against `config/custom-dimensions/grids-41/<slug>.tsv.gz`** —
+  six axes, 1681 points, `FactsEngine`'s own density — and apply the -0.5. A
+  five-axis source cannot answer a six-axis question, and nothing about the
+  output says so.
 - **Confirmed against the game.** On `the_claymarsh` at seed
   135505505384991812, `customdim facts` reports 14 of its 15 biomes and
   `customdim score` gives 83.4%. `minecraft:swamp` holds a weirdness band 0.026
