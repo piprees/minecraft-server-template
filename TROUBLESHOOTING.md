@@ -102,6 +102,7 @@ Run this first. It covers deploy drift, disk, every expected container, `ONLINE_
 | The map looks imprecise on steep terrain | [K5](#k5) |
 | A chunk never finishes generating; RCON accepted but never answered, one thread pegged, nothing thrown | [K6](#k6) |
 | An analysis says a biome band generates nothing but the game finds it | [K7](#k7) |
+| `locate biome` returns a position but players never reach the biome | [K7](#k7) |
 | A biome named at two places on an axis generates at only one | [K8](#k8) |
 | Can't connect / server won't start / backups failing / lag | [Common symptoms](#common-symptoms) |
 
@@ -1012,7 +1013,7 @@ The rendered height disagrees with the facts on high-relief columns. The error i
 
 <a id="k7"></a>
 
-### K7 — an 11x11 climate grid overstates absence by 3.8x, and a band it calls empty still generates
+### K7 — a climate grid overstates absence, and a band it calls empty usually still generates
 
 - **Symptom:** an analysis reports that N explicit bands "win no ground" or
   "generate nothing", while the game finds those biomes.
@@ -1032,12 +1033,26 @@ The rendered height disagrees with the facts on high-relief columns. The error i
   wide of a 2.000 span, takes 1 cell of 1257, and `customdim locate biome` finds
   it at **(340, 64, -224)**. The same lookup at 41x41 predicts 15 of 15 — one
   more than the game, disagreeing only on one-cell biomes.
-- **The real residue is 18 bands**, concentrated in `the_whispering_wilds` (4),
-  `the_lantern_pools` (4), `the_frozen_hearth` (3), `the_frozen_strait` (3), and
-  one each in `the_blossom_gardens`, `the_crystal_vale`, `the_rosebluff` and
-  `the_sun_kingdoms`. Ten of them are 0.004 wide — the minimum-width floor of an
-  equal-area fit whose boundaries stacked on a clamp rail — and the other 29
-  bands at that width generate normally.
+- **Probed against the game, on the synced configs.** Twelve `customdim facts`
+  runs: `the_crucible` generates 25 of its 25 listed biomes where this grid
+  claimed 9 empty, `the_highland_crossing` 30 of 30 against a claimed 6,
+  `the_abyssal_shrine` 9 of 9 and `the_sculked_beyond` 12 of 12 against 1 each.
+- **`customdim facts` is itself a floor.** It reads `FactsEngine.GRID` at one
+  height, so at a 4096 border its points are 205 blocks apart. `minecraft:plains`
+  is missing from `the_sun_kingdoms`' count and `locate biome` finds it 71
+  blocks from spawn. Only `locate` searches the source rather than sampling it.
+- **A 0.004-wide band generates.** Of ten such bands this grid called empty,
+  seven are reachable inside `borders.player`, one of them at spawn
+  (`the_lantern_pools` `terralith:warm_river`, distance 0) and one 71 blocks out
+  (`the_sun_kingdoms` `minecraft:plains`). The minimum-width floor of an
+  equal-area fit is not, on its own, a defect.
+- **Three are genuinely unreachable**, and they are the residue worth acting on:
+  `the_frozen_hearth` `minecraft:frozen_river` (not found at all), and
+  `the_lantern_pools` `minecraft:warm_ocean` and `minecraft:mangrove_swamp`,
+  which exist only 4480 and 4640 blocks out against a 512 border.
+- **`locate biome` returning `done` is not "reachable".** It searches past
+  `borders.player` and the reply's FIRST field is the distance — check it
+  against the dimension's own border before reading a hit as success.
 - **Fix:** measure at the game's density before calling a band empty.
   `scripts/sample-climate-grid.sh <slug> <border> 41` takes about five seconds.
   `scripts/check-band-share.py` runs the lookup but reads the committed
