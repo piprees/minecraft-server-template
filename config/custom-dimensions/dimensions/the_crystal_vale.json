@@ -7,168 +7,168 @@
     {
       "id": "terralith:amethyst_rainforest",
       "parameters": {
-        "weirdness": [
-          -2.0,
-          -1.0
-        ],
         "depth": [
           -2.0,
           0.1
+        ],
+        "temperature": [
+          -2.0,
+          -1.1517
         ]
       }
     },
     {
       "id": "terralith:amethyst_canyon",
       "parameters": {
-        "weirdness": [
-          -1.0,
-          -0.558
-        ],
         "depth": [
           -2.0,
           0.1
+        ],
+        "temperature": [
+          -1.1517,
+          -1.1218
         ]
       }
     },
     {
       "id": "terralith:emerald_peaks",
       "parameters": {
-        "weirdness": [
-          -0.558,
-          -0.4467
-        ],
         "depth": [
           -2.0,
           0.1
+        ],
+        "temperature": [
+          -1.1218,
+          -1.0018
         ]
       }
     },
     {
       "id": "minecraft:grove",
       "parameters": {
-        "weirdness": [
-          -0.4467,
-          -0.224
-        ],
         "depth": [
           -2.0,
           0.1
+        ],
+        "temperature": [
+          -1.0018,
+          -0.8863
         ]
       }
     },
     {
       "id": "minecraft:meadow",
       "parameters": {
-        "weirdness": [
-          -0.224,
-          -0.0655
-        ],
         "depth": [
           -2.0,
           0.1
+        ],
+        "temperature": [
+          -0.8863,
+          -0.778
         ]
       }
     },
     {
       "id": "terralith:moonlight_grove",
       "parameters": {
-        "weirdness": [
-          -0.0655,
-          0.0796
-        ],
         "depth": [
           -2.0,
           0.1
+        ],
+        "temperature": [
+          -0.778,
+          -0.6365
         ]
       }
     },
     {
       "id": "regions_unexplored:alpha_grove",
       "parameters": {
-        "weirdness": [
-          0.0796,
-          0.3931
-        ],
         "depth": [
           -2.0,
           0.1
+        ],
+        "temperature": [
+          -0.6365,
+          -0.4698
         ]
       }
     },
     {
       "id": "regions_unexplored:rocky_meadow",
       "parameters": {
-        "weirdness": [
-          0.3931,
-          0.5
-        ],
         "depth": [
           -2.0,
           0.1
+        ],
+        "temperature": [
+          -0.4698,
+          -0.3357
         ]
       }
     },
     {
       "id": "regions_unexplored:temperate_grove",
       "parameters": {
-        "weirdness": [
-          0.5,
-          0.5305
-        ],
         "depth": [
           -2.0,
           0.1
+        ],
+        "temperature": [
+          -0.3357,
+          -0.163
         ]
       }
     },
     {
       "id": "regions_unexplored:prismachasm",
       "parameters": {
-        "weirdness": [
-          0.5305,
-          1.0
-        ],
         "depth": [
           -2.0,
           0.1
+        ],
+        "temperature": [
+          -0.163,
+          -0.0371
         ]
       }
     },
     {
       "id": "regions_unexplored:hyacinth_deeps",
       "parameters": {
-        "weirdness": [
-          1.0,
-          2.0
-        ],
         "depth": [
           -2.0,
           0.1
+        ],
+        "temperature": [
+          -0.0371,
+          2.0
         ]
       }
     },
     {
       "id": "minecraft:lush_caves",
       "parameters": {
-        "weirdness": [
-          -2.0,
-          -0.015
-        ],
         "depth": [
           0.1,
           2.0
+        ],
+        "temperature": [
+          -2.0,
+          -0.77
         ]
       }
     },
     {
       "id": "terralith:cave/diorite_caves",
       "parameters": {
-        "weirdness": [
-          -0.015,
-          2.0
-        ],
         "depth": [
           0.1,
+          2.0
+        ],
+        "temperature": [
+          -0.77,
           2.0
         ]
       }

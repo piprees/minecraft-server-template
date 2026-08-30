@@ -7,194 +7,194 @@
     {
       "id": "terralith:rocky_mountains",
       "parameters": {
-        "weirdness": [
-          -2.0,
-          -0.19
-        ],
         "depth": [
           -2.0,
           0.1
+        ],
+        "humidity": [
+          -2.0,
+          -0.4351
         ]
       }
     },
     {
       "id": "minecraft:stony_peaks",
       "parameters": {
-        "weirdness": [
-          -0.19,
-          -0.1636
-        ],
         "depth": [
           -2.0,
           0.1
+        ],
+        "humidity": [
+          -0.4351,
+          -0.2381
         ]
       }
     },
     {
       "id": "minecraft:windswept_hills",
       "parameters": {
-        "weirdness": [
-          -0.1636,
-          -0.1373
-        ],
         "depth": [
           -2.0,
           0.1
+        ],
+        "humidity": [
+          -0.2381,
+          -0.1255
         ]
       }
     },
     {
       "id": "minecraft:stony_shore",
       "parameters": {
-        "weirdness": [
-          -0.1373,
-          -0.1109
-        ],
         "depth": [
           -2.0,
           0.1
+        ],
+        "humidity": [
+          -0.1255,
+          -0.076
         ]
       }
     },
     {
       "id": "minecraft:windswept_gravelly_hills",
       "parameters": {
-        "weirdness": [
-          -0.1109,
-          -0.0845
-        ],
         "depth": [
           -2.0,
           0.1
+        ],
+        "humidity": [
+          -0.076,
+          -0.0124
         ]
       }
     },
     {
       "id": "terralith:basalt_cliffs",
       "parameters": {
-        "weirdness": [
-          -0.0845,
-          -0.0582
-        ],
         "depth": [
           -2.0,
           0.1
+        ],
+        "humidity": [
+          -0.0124,
+          0.0331
         ]
       }
     },
     {
       "id": "terralith:scarlet_mountains",
       "parameters": {
-        "weirdness": [
-          -0.0582,
-          -0.0318
-        ],
         "depth": [
           -2.0,
           0.1
+        ],
+        "humidity": [
+          0.0331,
+          0.082
         ]
       }
     },
     {
       "id": "terralith:volcanic_peaks",
       "parameters": {
-        "weirdness": [
-          -0.0318,
-          -0.0055
-        ],
         "depth": [
           -2.0,
           0.1
+        ],
+        "humidity": [
+          0.082,
+          0.1128
         ]
       }
     },
     {
       "id": "regions_unexplored:towering_cliffs",
       "parameters": {
-        "weirdness": [
-          -0.0055,
-          0.0209
-        ],
         "depth": [
           -2.0,
           0.1
+        ],
+        "humidity": [
+          0.1128,
+          0.1518
         ]
       }
     },
     {
       "id": "regions_unexplored:spires",
       "parameters": {
-        "weirdness": [
-          0.0209,
-          0.0473
-        ],
         "depth": [
           -2.0,
           0.1
+        ],
+        "humidity": [
+          0.1518,
+          0.2126
         ]
       }
     },
     {
       "id": "regions_unexplored:mountains",
       "parameters": {
-        "weirdness": [
-          0.0473,
-          0.0736
-        ],
         "depth": [
           -2.0,
           0.1
+        ],
+        "humidity": [
+          0.2126,
+          0.277
         ]
       }
     },
     {
       "id": "regions_unexplored:pine_slopes",
       "parameters": {
-        "weirdness": [
-          0.0736,
-          0.1
-        ],
         "depth": [
           -2.0,
           0.1
+        ],
+        "humidity": [
+          0.277,
+          0.4921
         ]
       }
     },
     {
       "id": "regions_unexplored:mauve_hills",
       "parameters": {
-        "weirdness": [
-          0.1,
-          2.0
-        ],
         "depth": [
           -2.0,
           0.1
+        ],
+        "humidity": [
+          0.4921,
+          2.0
         ]
       }
     },
     {
       "id": "terralith:cave/granite_caves",
       "parameters": {
-        "weirdness": [
-          -2.0,
-          -0.045
-        ],
         "depth": [
           0.1,
           2.0
+        ],
+        "humidity": [
+          -2.0,
+          0.036
         ]
       }
     },
     {
       "id": "terralith:cave/deep_caves",
       "parameters": {
-        "weirdness": [
-          -0.045,
-          2.0
-        ],
         "depth": [
           0.1,
+          2.0
+        ],
+        "humidity": [
+          0.036,
           2.0
         ]
       }

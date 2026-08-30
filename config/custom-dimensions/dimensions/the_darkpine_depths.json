@@ -9,7 +9,7 @@
       "parameters": {
         "weirdness": [
           -2.0,
-          -0.19
+          -1.0
         ],
         "depth": [
           -2.0,
@@ -21,8 +21,8 @@
       "id": "minecraft:old_growth_spruce_taiga",
       "parameters": {
         "weirdness": [
-          -0.19,
-          -0.1537
+          -1.0,
+          -0.5
         ],
         "depth": [
           -2.0,
@@ -34,8 +34,8 @@
       "id": "natures_spirit:snowy_fir_forest",
       "parameters": {
         "weirdness": [
-          -0.1537,
-          -0.1175
+          -0.5,
+          -0.438
         ],
         "depth": [
           -2.0,
@@ -47,8 +47,8 @@
       "id": "minecraft:dark_forest",
       "parameters": {
         "weirdness": [
-          -0.1175,
-          -0.0812
+          -0.438,
+          -0.268
         ],
         "depth": [
           -2.0,
@@ -60,8 +60,8 @@
       "id": "minecraft:taiga",
       "parameters": {
         "weirdness": [
-          -0.0812,
-          -0.045
+          -0.268,
+          -0.171
         ],
         "depth": [
           -2.0,
@@ -73,8 +73,8 @@
       "id": "natures_spirit:fir_forest",
       "parameters": {
         "weirdness": [
-          -0.045,
-          -0.0087
+          -0.171,
+          -0.051
         ],
         "depth": [
           -2.0,
@@ -86,8 +86,8 @@
       "id": "minecraft:old_growth_pine_taiga",
       "parameters": {
         "weirdness": [
-          -0.0087,
-          0.0275
+          -0.051,
+          0.068
         ],
         "depth": [
           -2.0,
@@ -99,8 +99,8 @@
       "id": "terralith:birch_taiga",
       "parameters": {
         "weirdness": [
-          0.0275,
-          0.0638
+          0.068,
+          0.205
         ],
         "depth": [
           -2.0,
@@ -112,8 +112,8 @@
       "id": "regions_unexplored:blackwood_taiga",
       "parameters": {
         "weirdness": [
-          0.0638,
-          0.1
+          0.205,
+          0.484
         ],
         "depth": [
           -2.0,
@@ -125,7 +125,7 @@
       "id": "wilderwild:dark_taiga",
       "parameters": {
         "weirdness": [
-          0.1,
+          0.484,
           2.0
         ],
         "depth": [
@@ -139,7 +139,7 @@
       "parameters": {
         "weirdness": [
           -2.0,
-          -0.045
+          -0.171
         ],
         "depth": [
           0.1,
@@ -151,7 +151,7 @@
       "id": "terralith:cave/deep_caves",
       "parameters": {
         "weirdness": [
-          -0.045,
+          -0.171,
           2.0
         ],
         "depth": [

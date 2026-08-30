@@ -8,7 +8,7 @@
       "parameters": {
         "continentalness": [
           -2.0,
-          -0.095
+          -0.4257
         ]
       }
     },
@@ -16,8 +16,8 @@
       "id": "terralith:windswept_spires",
       "parameters": {
         "continentalness": [
-          -0.095,
-          -0.072
+          -0.4257,
+          -0.306
         ]
       }
     },
@@ -25,8 +25,8 @@
       "id": "nullscape:crystal_peaks",
       "parameters": {
         "continentalness": [
-          -0.072,
-          -0.0475
+          -0.306,
+          -0.188
         ]
       }
     },
@@ -34,8 +34,8 @@
       "id": "terralith:haze_mountain",
       "parameters": {
         "continentalness": [
-          -0.0475,
-          -0.0318
+          -0.188,
+          -0.0717
         ]
       }
     },
@@ -43,8 +43,8 @@
       "id": "terralith:skylands_spring",
       "parameters": {
         "continentalness": [
-          -0.0318,
-          0.0008
+          -0.0717,
+          0.0153
         ]
       }
     },
@@ -52,8 +52,8 @@
       "id": "natures_spirit:lavender_fields",
       "parameters": {
         "continentalness": [
-          0.0008,
-          0.0304
+          0.0153,
+          0.111
         ]
       }
     },
@@ -61,8 +61,8 @@
       "id": "paradise_lost:wisteria_woods",
       "parameters": {
         "continentalness": [
-          0.0304,
-          0.048
+          0.111,
+          0.2087
         ]
       }
     },
@@ -70,8 +70,8 @@
       "id": "paradise_lost:highlands_forest",
       "parameters": {
         "continentalness": [
-          0.048,
-          0.0613
+          0.2087,
+          0.3367
         ]
       }
     },
@@ -79,7 +79,7 @@
       "id": "minecraft:cherry_grove",
       "parameters": {
         "continentalness": [
-          0.0613,
+          0.3367,
           2.0
         ]
       }

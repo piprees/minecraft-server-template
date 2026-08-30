@@ -6,126 +6,126 @@
     {
       "id": "minecraft:dark_forest",
       "parameters": {
-        "weirdness": [
+        "continentalness": [
           -2.0,
-          -1.0
+          -0.8815
         ]
       }
     },
     {
       "id": "minecraft:old_growth_spruce_taiga",
       "parameters": {
-        "weirdness": [
-          -1.0,
-          -0.996
+        "continentalness": [
+          -0.8815,
+          -0.7786
         ]
       }
     },
     {
       "id": "minecraft:old_growth_pine_taiga",
       "parameters": {
-        "weirdness": [
-          -0.996,
-          -0.9
+        "continentalness": [
+          -0.7786,
+          -0.6396
         ]
       }
     },
     {
       "id": "minecraft:swamp",
       "parameters": {
-        "weirdness": [
-          -0.9,
-          -0.5926
+        "continentalness": [
+          -0.6396,
+          -0.6015
         ]
       }
     },
     {
       "id": "minecraft:mangrove_swamp",
       "parameters": {
-        "weirdness": [
-          -0.5926,
-          -0.5
+        "continentalness": [
+          -0.6015,
+          -0.5328
         ]
       }
     },
     {
       "id": "minecraft:taiga",
       "parameters": {
-        "weirdness": [
-          -0.5,
-          -0.496
+        "continentalness": [
+          -0.5328,
+          -0.4965
         ]
       }
     },
     {
       "id": "minecraft:jungle",
       "parameters": {
-        "weirdness": [
-          -0.496,
-          -0.492
+        "continentalness": [
+          -0.4965,
+          -0.4242
         ]
       }
     },
     {
       "id": "minecraft:sparse_jungle",
       "parameters": {
-        "weirdness": [
-          -0.492,
-          -0.488
+        "continentalness": [
+          -0.4242,
+          -0.3712
         ]
       }
     },
     {
       "id": "minecraft:mushroom_fields",
       "parameters": {
-        "weirdness": [
-          -0.488,
-          -0.375
+        "continentalness": [
+          -0.3712,
+          -0.3437
         ]
       }
     },
     {
       "id": "minecraft:river",
       "parameters": {
-        "weirdness": [
-          -0.375,
-          -0.254
+        "continentalness": [
+          -0.3437,
+          -0.3001
         ]
       }
     },
     {
       "id": "terralith:moonlight_valley",
       "parameters": {
-        "weirdness": [
-          -0.254,
-          -0.1678
+        "continentalness": [
+          -0.3001,
+          -0.289
         ]
       }
     },
     {
       "id": "terralith:orchid_swamp",
       "parameters": {
-        "weirdness": [
-          -0.1678,
-          -0.0922
+        "continentalness": [
+          -0.289,
+          -0.2645
         ]
       }
     },
     {
       "id": "terralith:shield",
       "parameters": {
-        "weirdness": [
-          -0.0922,
-          -0.0238
+        "continentalness": [
+          -0.2645,
+          -0.2412
         ]
       }
     },
     {
       "id": "terralith:birch_taiga",
       "parameters": {
-        "weirdness": [
-          -0.0238,
-          0.0726
+        "continentalness": [
+          -0.2412,
+          -0.2256
         ]
       }
     },
@@ -133,16 +133,16 @@
       "id": "terralith:moonlight_grove",
       "parameters": {
         "temperature": [
-          -0.45,
-          -0.155
+          -0.1195,
+          0.0235
         ],
         "humidity": [
-          0.565,
-          1.0
+          0.0858,
+          0.15
         ],
-        "weirdness": [
-          0.0726,
-          0.128
+        "continentalness": [
+          -0.2256,
+          -0.168
         ]
       }
     },
@@ -157,9 +157,9 @@
           0.1,
           1.0
         ],
-        "weirdness": [
-          0.128,
-          0.202
+        "continentalness": [
+          -0.168,
+          -0.1077
         ]
       }
     },
@@ -174,9 +174,9 @@
           -0.35,
           -0.1
         ],
-        "weirdness": [
-          0.202,
-          0.3246
+        "continentalness": [
+          -0.1077,
+          -0.0594
         ]
       }
     },
@@ -191,54 +191,54 @@
           -1.0,
           0.1
         ],
-        "weirdness": [
-          0.3246,
-          0.4646
+        "continentalness": [
+          -0.0594,
+          -0.0046
         ]
       }
     },
     {
       "id": "regions_unexplored:redwoods",
       "parameters": {
-        "weirdness": [
-          0.4646,
-          0.5
+        "continentalness": [
+          -0.0046,
+          -0.0006
         ]
       }
     },
     {
       "id": "regions_unexplored:old_growth_forest",
       "parameters": {
-        "weirdness": [
-          0.5,
-          0.504
+        "continentalness": [
+          -0.0006,
+          0.0048
         ]
       }
     },
     {
       "id": "regions_unexplored:silver_birch_forest",
       "parameters": {
-        "weirdness": [
-          0.504,
-          0.508
+        "continentalness": [
+          0.0048,
+          0.0462
         ]
       }
     },
     {
       "id": "regions_unexplored:sparse_redwoods",
       "parameters": {
-        "weirdness": [
-          0.508,
-          0.525
+        "continentalness": [
+          0.0462,
+          0.1631
         ]
       }
     },
     {
       "id": "regions_unexplored:alpha_grove",
       "parameters": {
-        "weirdness": [
-          0.525,
-          1.0
+        "continentalness": [
+          0.1631,
+          0.1751
         ]
       }
     },
@@ -253,9 +253,9 @@
           -1.0,
           0.1
         ],
-        "weirdness": [
-          1.0,
-          1.004
+        "continentalness": [
+          0.1751,
+          0.3195
         ]
       }
     },
@@ -270,8 +270,8 @@
           -0.1,
           1.0
         ],
-        "weirdness": [
-          1.004,
+        "continentalness": [
+          0.3195,
           2.0
         ]
       }

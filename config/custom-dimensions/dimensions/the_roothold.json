@@ -8,7 +8,7 @@
       "parameters": {
         "weirdness": [
           -2.0,
-          -0.19
+          -0.526
         ],
         "depth": [
           -2.0,
@@ -20,8 +20,8 @@
       "id": "minecraft:dark_forest",
       "parameters": {
         "weirdness": [
-          -0.19,
-          -0.1486
+          -0.526,
+          -0.331
         ],
         "depth": [
           -2.0,
@@ -33,8 +33,8 @@
       "id": "terralith:shield",
       "parameters": {
         "weirdness": [
-          -0.1486,
-          -0.1071
+          -0.331,
+          -0.107
         ],
         "depth": [
           -2.0,
@@ -46,8 +46,8 @@
       "id": "minecraft:old_growth_spruce_taiga",
       "parameters": {
         "weirdness": [
-          -0.1071,
-          -0.0657
+          -0.107,
+          0.0323
         ],
         "depth": [
           -2.0,
@@ -59,8 +59,8 @@
       "id": "minecraft:forest",
       "parameters": {
         "weirdness": [
-          -0.0657,
-          -0.0243
+          0.0323,
+          0.126
         ],
         "depth": [
           -2.0,
@@ -72,8 +72,8 @@
       "id": "terralith:forested_highlands",
       "parameters": {
         "weirdness": [
-          -0.0243,
-          0.0171
+          0.126,
+          0.205
         ],
         "depth": [
           -2.0,
@@ -85,8 +85,8 @@
       "id": "regions_unexplored:old_growth_forest",
       "parameters": {
         "weirdness": [
-          0.0171,
-          0.0586
+          0.205,
+          0.3063
         ],
         "depth": [
           -2.0,
@@ -98,8 +98,8 @@
       "id": "regions_unexplored:willow_forest",
       "parameters": {
         "weirdness": [
-          0.0586,
-          0.1
+          0.3063,
+          0.4837
         ],
         "depth": [
           -2.0,
@@ -111,7 +111,7 @@
       "id": "wilderwild:old_growth_dark_forest",
       "parameters": {
         "weirdness": [
-          0.1,
+          0.4837,
           2.0
         ],
         "depth": [
@@ -125,7 +125,7 @@
       "parameters": {
         "weirdness": [
           -2.0,
-          -0.045
+          0.073
         ],
         "depth": [
           0.1,
@@ -137,7 +137,7 @@
       "id": "terralith:cave/infested_caves",
       "parameters": {
         "weirdness": [
-          -0.045,
+          0.073,
           2.0
         ],
         "depth": [

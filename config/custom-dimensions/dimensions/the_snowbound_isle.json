@@ -7,8 +7,8 @@
       "id": "paradise_lost:autumnal_tundra",
       "parameters": {
         "continentalness": [
-          -0.0441,
-          -0.0169
+          -0.118,
+          -0.035
         ]
       }
     },
@@ -16,8 +16,8 @@
       "id": "paradise_lost:highlands_shield",
       "parameters": {
         "continentalness": [
-          -0.1063,
-          -0.0785
+          -0.3323,
+          -0.2027
         ]
       }
     },
@@ -25,8 +25,8 @@
       "id": "minecraft:snowy_taiga",
       "parameters": {
         "continentalness": [
-          -0.0169,
-          0.0142
+          -0.035,
+          0.0533
         ]
       }
     },
@@ -34,8 +34,8 @@
       "id": "natures_spirit:snowy_fir_forest",
       "parameters": {
         "continentalness": [
-          0.0142,
-          0.0449
+          0.0533,
+          0.154
         ]
       }
     },
@@ -43,8 +43,8 @@
       "id": "terralith:snowy_cherry_grove",
       "parameters": {
         "continentalness": [
-          0.0779,
-          0.1066
+          0.2843,
+          0.3923
         ]
       }
     },
@@ -53,7 +53,7 @@
       "parameters": {
         "continentalness": [
           -2.0,
-          -0.1063
+          -0.3323
         ]
       }
     },
@@ -61,8 +61,8 @@
       "id": "terralith:frozen_cliffs",
       "parameters": {
         "continentalness": [
-          -0.0785,
-          -0.0441
+          -0.2027,
+          -0.118
         ]
       }
     },
@@ -70,8 +70,8 @@
       "id": "minecraft:snowy_plains",
       "parameters": {
         "continentalness": [
-          0.0449,
-          0.0779
+          0.154,
+          0.2843
         ]
       }
     },
@@ -79,7 +79,7 @@
       "id": "minecraft:snowy_slopes",
       "parameters": {
         "continentalness": [
-          0.1066,
+          0.3923,
           2.0
         ]
       }

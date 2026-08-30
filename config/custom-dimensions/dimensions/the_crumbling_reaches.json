@@ -8,7 +8,7 @@
       "parameters": {
         "continentalness": [
           -2.0,
-          -0.185
+          -0.364
         ]
       }
     },
@@ -16,8 +16,8 @@
       "id": "minecraft:small_end_islands",
       "parameters": {
         "continentalness": [
-          -0.185,
-          0.023
+          -0.364,
+          -0.17
         ]
       }
     },
@@ -25,8 +25,8 @@
       "id": "minecraft:end_barrens",
       "parameters": {
         "continentalness": [
-          0.023,
-          0.035
+          -0.17,
+          -0.058
         ]
       }
     },
@@ -34,8 +34,8 @@
       "id": "minecraft:end_midlands",
       "parameters": {
         "continentalness": [
-          0.035,
-          0.299
+          -0.058,
+          0.0517
         ]
       }
     },
@@ -43,8 +43,8 @@
       "id": "minecraft:end_highlands",
       "parameters": {
         "continentalness": [
-          0.299,
-          0.401
+          0.0517,
+          0.1663
         ]
       }
     },
@@ -52,8 +52,8 @@
       "id": "nullscape:void_barrens",
       "parameters": {
         "continentalness": [
-          0.401,
-          0.453
+          0.1663,
+          0.272
         ]
       }
     },
@@ -61,8 +61,8 @@
       "id": "terralith:basalt_cliffs",
       "parameters": {
         "continentalness": [
-          0.453,
-          0.5165
+          0.272,
+          0.381
         ]
       }
     },
@@ -70,8 +70,8 @@
       "id": "terralith:stony_spires",
       "parameters": {
         "continentalness": [
-          0.5165,
-          0.5485
+          0.381,
+          0.475
         ]
       }
     },
@@ -79,7 +79,7 @@
       "id": "nullscape:crystal_peaks",
       "parameters": {
         "continentalness": [
-          0.5485,
+          0.475,
           2.0
         ]
       }

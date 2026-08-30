@@ -6,155 +6,155 @@
     {
       "id": "natures_spirit:heather_fields",
       "parameters": {
-        "weirdness": [
-          -2.0,
-          -0.19
-        ],
         "depth": [
           -2.0,
           0.1
+        ],
+        "temperature": [
+          -2.0,
+          -0.4599
         ]
       }
     },
     {
       "id": "natures_spirit:carnation_fields",
       "parameters": {
-        "weirdness": [
-          -0.19,
-          -0.1537
-        ],
         "depth": [
           -2.0,
           0.1
+        ],
+        "temperature": [
+          -0.4599,
+          -0.4274
         ]
       }
     },
     {
       "id": "terralith:blooming_plateau",
       "parameters": {
-        "weirdness": [
-          -0.1537,
-          -0.1175
-        ],
         "depth": [
           -2.0,
           0.1
+        ],
+        "temperature": [
+          -0.4274,
+          -0.3472
         ]
       }
     },
     {
       "id": "minecraft:meadow",
       "parameters": {
-        "weirdness": [
-          -0.1175,
-          -0.0812
-        ],
         "depth": [
           -2.0,
           0.1
+        ],
+        "temperature": [
+          -0.3472,
+          -0.338
         ]
       }
     },
     {
       "id": "minecraft:plains",
       "parameters": {
-        "weirdness": [
-          -0.0812,
-          -0.045
-        ],
         "depth": [
           -2.0,
           0.1
+        ],
+        "temperature": [
+          -0.338,
+          -0.325
         ]
       }
     },
     {
       "id": "minecraft:sunflower_plains",
       "parameters": {
-        "weirdness": [
-          -0.045,
-          -0.0087
-        ],
         "depth": [
           -2.0,
           0.1
+        ],
+        "temperature": [
+          -0.325,
+          -0.2755
         ]
       }
     },
     {
       "id": "minecraft:flower_forest",
       "parameters": {
-        "weirdness": [
-          -0.0087,
-          0.0275
-        ],
         "depth": [
           -2.0,
           0.1
+        ],
+        "temperature": [
+          -0.2755,
+          -0.2173
         ]
       }
     },
     {
       "id": "natures_spirit:lavender_fields",
       "parameters": {
-        "weirdness": [
-          0.0275,
-          0.0638
-        ],
         "depth": [
           -2.0,
           0.1
+        ],
+        "temperature": [
+          -0.2173,
+          -0.1857
         ]
       }
     },
     {
       "id": "regions_unexplored:chalk_cliffs",
       "parameters": {
-        "weirdness": [
-          0.0638,
-          0.1
-        ],
         "depth": [
           -2.0,
           0.1
+        ],
+        "temperature": [
+          -0.1857,
+          -0.1586
         ]
       }
     },
     {
       "id": "regions_unexplored:clover_plains",
       "parameters": {
-        "weirdness": [
-          0.1,
-          2.0
-        ],
         "depth": [
           -2.0,
           0.1
+        ],
+        "temperature": [
+          -0.1586,
+          2.0
         ]
       }
     },
     {
       "id": "minecraft:lush_caves",
       "parameters": {
-        "weirdness": [
-          -2.0,
-          -0.045
-        ],
         "depth": [
           0.1,
           2.0
+        ],
+        "temperature": [
+          -2.0,
+          -0.304
         ]
       }
     },
     {
       "id": "terralith:cave/tuff_caves",
       "parameters": {
-        "weirdness": [
-          -0.045,
-          2.0
-        ],
         "depth": [
           0.1,
+          2.0
+        ],
+        "temperature": [
+          -0.304,
           2.0
         ]
       }

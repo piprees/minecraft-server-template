@@ -180,6 +180,20 @@ else
   warn "Biome band partition check failed — run ./scripts/check-biome-bands.py"
 fi
 
+echo "  Checking every biome band wins ground..."
+# A band can sit inside its world's range, overlap nothing, and still generate
+# nothing: on a fine partition every point is nearer to a neighbour. Neither
+# check above can see it. The known-empty list in the script is a ratchet — a
+# new empty band fails here, and so does a listed one that starts generating.
+BAND_SHARE_ERRORS=0
+BAND_SHARE_OUT=$(python3 ./scripts/check-band-share.py 2>&1) || BAND_SHARE_ERRORS=1
+if [[ $BAND_SHARE_ERRORS -eq 0 ]]; then
+  echo "  ✓ Every biome band wins ground its world reaches"
+else
+  echo "$BAND_SHARE_OUT"
+  warn "A biome band wins no ground — run ./scripts/check-band-share.py"
+fi
+
 echo "  Checking Modrinth resolve cache covers every pin..."
 # defaults-seed bakes config/modrinth-resolve-cache.json in and resolves pins
 # from it with zero Modrinth calls. A pin with no entry is resolved live at
@@ -253,7 +267,7 @@ fi
 
 STATIC_ERRORS=$((SHELL_ERRORS + PYTHON_ERRORS + OWNERSHIP_ERRORS + RESOLVE_CACHE_ERRORS
   + BLOCKTAG_ERRORS + OPEN_WATER_ERRORS + BAND_REACH_ERRORS + BIOME_BANDS_ERRORS
-  + COMPOSE_ERRORS + YAML_ERRORS))
+  + BAND_SHARE_ERRORS + COMPOSE_ERRORS + YAML_ERRORS))
 if [[ $STATIC_ERRORS -gt 0 ]]; then
   echo "::error::$STATIC_ERRORS static-analysis check(s) failed"
   exit 1

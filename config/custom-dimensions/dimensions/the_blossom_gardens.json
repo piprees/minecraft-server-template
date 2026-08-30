@@ -264,7 +264,7 @@
       "parameters": {
         "weirdness": [
           0.455,
-          0.5
+          0.4888
         ]
       }
     },
@@ -272,7 +272,7 @@
       "id": "regions_unexplored:orchard",
       "parameters": {
         "weirdness": [
-          0.5,
+          0.4888,
           0.504
         ]
       }
@@ -317,7 +317,7 @@
       "parameters": {
         "weirdness": [
           0.516,
-          0.52
+          0.89
         ]
       }
     },
@@ -325,7 +325,7 @@
       "id": "minecraft:cherry_grove",
       "parameters": {
         "weirdness": [
-          0.52,
+          0.89,
           2.0
         ]
       }

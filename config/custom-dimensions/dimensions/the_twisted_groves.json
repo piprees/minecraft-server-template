@@ -9,7 +9,7 @@
       "parameters": {
         "weirdness": [
           -2.0,
-          -0.19
+          -0.5
         ],
         "depth": [
           -2.0,
@@ -21,8 +21,8 @@
       "id": "incendium:toxic_heap",
       "parameters": {
         "weirdness": [
-          -0.19,
-          -0.1479
+          -0.5,
+          -0.362
         ],
         "depth": [
           -2.0,
@@ -34,8 +34,8 @@
       "id": "minecraft:soul_sand_valley",
       "parameters": {
         "weirdness": [
-          -0.1479,
-          -0.1058
+          -0.362,
+          -0.218
         ],
         "depth": [
           -2.0,
@@ -47,8 +47,8 @@
       "id": "terralith:warped_mesa",
       "parameters": {
         "weirdness": [
-          -0.1058,
-          -0.0637
+          -0.218,
+          -0.034
         ],
         "depth": [
           -2.0,
@@ -60,8 +60,8 @@
       "id": "minecraft:warped_forest",
       "parameters": {
         "weirdness": [
-          -0.0637,
-          0.0205
+          -0.034,
+          0.102
         ],
         "depth": [
           -2.0,
@@ -73,8 +73,8 @@
       "id": "incendium:inverted_forest",
       "parameters": {
         "weirdness": [
-          0.0205,
-          0.0626
+          0.102,
+          0.211
         ],
         "depth": [
           -2.0,
@@ -86,8 +86,8 @@
       "id": "regions_unexplored:marsh",
       "parameters": {
         "weirdness": [
-          0.0626,
-          0.1
+          0.211,
+          0.401
         ],
         "depth": [
           -2.0,
@@ -99,7 +99,7 @@
       "id": "incendium:ash_barrens",
       "parameters": {
         "weirdness": [
-          0.1,
+          0.401,
           2.0
         ],
         "depth": [
@@ -113,7 +113,7 @@
       "parameters": {
         "weirdness": [
           -2.0,
-          -0.045
+          -0.034
         ],
         "depth": [
           0.1,
@@ -125,7 +125,7 @@
       "id": "minecraft:deep_dark",
       "parameters": {
         "weirdness": [
-          -0.045,
+          -0.034,
           2.0
         ],
         "depth": [

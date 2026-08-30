@@ -7,155 +7,155 @@
     {
       "id": "terralith:rocky_jungle",
       "parameters": {
-        "weirdness": [
-          -2.0,
-          -0.19
-        ],
         "depth": [
           -2.0,
           0.1
+        ],
+        "humidity": [
+          -2.0,
+          -0.6056
         ]
       }
     },
     {
       "id": "terralith:jungle_mountains",
       "parameters": {
-        "weirdness": [
-          -0.19,
-          -0.1537
-        ],
         "depth": [
           -2.0,
           0.1
+        ],
+        "humidity": [
+          -0.6056,
+          -0.3185
         ]
       }
     },
     {
       "id": "natures_spirit:tropical_basin",
       "parameters": {
-        "weirdness": [
-          -0.1537,
-          -0.1175
-        ],
         "depth": [
           -2.0,
           0.1
+        ],
+        "humidity": [
+          -0.3185,
+          -0.2202
         ]
       }
     },
     {
       "id": "terralith:cloud_forest",
       "parameters": {
-        "weirdness": [
-          -0.1175,
-          -0.0812
-        ],
         "depth": [
           -2.0,
           0.1
+        ],
+        "humidity": [
+          -0.2202,
+          -0.1408
         ]
       }
     },
     {
       "id": "minecraft:jungle",
       "parameters": {
-        "weirdness": [
-          -0.0812,
-          -0.045
-        ],
         "depth": [
           -2.0,
           0.1
+        ],
+        "humidity": [
+          -0.1408,
+          -0.1079
         ]
       }
     },
     {
       "id": "minecraft:sparse_jungle",
       "parameters": {
-        "weirdness": [
-          -0.045,
-          -0.0087
-        ],
         "depth": [
           -2.0,
           0.1
+        ],
+        "humidity": [
+          -0.1079,
+          -0.061
         ]
       }
     },
     {
       "id": "minecraft:bamboo_jungle",
       "parameters": {
-        "weirdness": [
-          -0.0087,
-          0.0275
-        ],
         "depth": [
           -2.0,
           0.1
+        ],
+        "humidity": [
+          -0.061,
+          0.0708
         ]
       }
     },
     {
       "id": "minecraft:dark_forest",
       "parameters": {
-        "weirdness": [
-          0.0275,
-          0.0638
-        ],
         "depth": [
           -2.0,
           0.1
+        ],
+        "humidity": [
+          0.0708,
+          0.1503
         ]
       }
     },
     {
       "id": "regions_unexplored:rainforest",
       "parameters": {
-        "weirdness": [
-          0.0638,
-          0.1
-        ],
         "depth": [
           -2.0,
           0.1
+        ],
+        "humidity": [
+          0.1503,
+          0.4141
         ]
       }
     },
     {
       "id": "wilderwild:rainforest",
       "parameters": {
-        "weirdness": [
-          0.1,
-          2.0
-        ],
         "depth": [
           -2.0,
           0.1
+        ],
+        "humidity": [
+          0.4141,
+          2.0
         ]
       }
     },
     {
       "id": "terralith:cave/underground_jungle",
       "parameters": {
-        "weirdness": [
-          -2.0,
-          -0.045
-        ],
         "depth": [
           0.1,
           2.0
+        ],
+        "humidity": [
+          -2.0,
+          -0.108
         ]
       }
     },
     {
       "id": "terralith:cave/infested_caves",
       "parameters": {
-        "weirdness": [
-          -0.045,
-          2.0
-        ],
         "depth": [
           0.1,
+          2.0
+        ],
+        "humidity": [
+          -0.108,
           2.0
         ]
       }

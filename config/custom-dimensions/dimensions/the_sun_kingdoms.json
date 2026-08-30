@@ -7,90 +7,90 @@
     {
       "id": "minecraft:savanna",
       "parameters": {
-        "weirdness": [
+        "continentalness": [
           -2.0,
-          -1.0
+          -0.6775
         ]
       }
     },
     {
       "id": "minecraft:savanna_plateau",
       "parameters": {
-        "weirdness": [
-          -1.0,
-          -0.6334
+        "continentalness": [
+          -0.6775,
+          -0.6404
         ]
       }
     },
     {
       "id": "minecraft:wooded_badlands",
       "parameters": {
-        "weirdness": [
-          -0.6334,
-          -0.5
+        "continentalness": [
+          -0.6404,
+          -0.6002
         ]
       }
     },
     {
       "id": "terralith:arid_highlands",
       "parameters": {
-        "weirdness": [
-          -0.5,
-          -0.496
+        "continentalness": [
+          -0.6002,
+          -0.5628
         ]
       }
     },
     {
       "id": "terralith:hot_shrubland",
       "parameters": {
-        "weirdness": [
-          -0.496,
-          -0.492
+        "continentalness": [
+          -0.5628,
+          -0.4426
         ]
       }
     },
     {
       "id": "terralith:fractured_savanna",
       "parameters": {
-        "weirdness": [
-          -0.492,
-          -0.4476
+        "continentalness": [
+          -0.4426,
+          -0.4128
         ]
       }
     },
     {
       "id": "terralith:savanna_badlands",
       "parameters": {
-        "weirdness": [
-          -0.4476,
-          -0.413
+        "continentalness": [
+          -0.4128,
+          -0.3962
         ]
       }
     },
     {
       "id": "terralith:brushland",
       "parameters": {
-        "weirdness": [
-          -0.413,
-          -0.3727
+        "continentalness": [
+          -0.3962,
+          -0.3408
         ]
       }
     },
     {
       "id": "terralith:steppe",
       "parameters": {
-        "weirdness": [
-          -0.3727,
-          -0.3063
+        "continentalness": [
+          -0.3408,
+          -0.3122
         ]
       }
     },
     {
       "id": "terralith:shrubland",
       "parameters": {
-        "weirdness": [
-          -0.3063,
-          -0.2284
+        "continentalness": [
+          -0.3122,
+          -0.2874
         ]
       }
     },
@@ -101,9 +101,9 @@
           0.55,
           1.0
         ],
-        "weirdness": [
-          -0.2284,
-          -0.1799
+        "continentalness": [
+          -0.2874,
+          -0.2455
         ]
       }
     },
@@ -118,9 +118,9 @@
           -1.0,
           -0.1
         ],
-        "weirdness": [
-          -0.1799,
-          -0.1276
+        "continentalness": [
+          -0.2455,
+          -0.2065
         ]
       }
     },
@@ -135,9 +135,9 @@
           -0.1,
           0.565
         ],
-        "weirdness": [
-          -0.1276,
-          -0.0811
+        "continentalness": [
+          -0.2065,
+          -0.1527
         ]
       }
     },
@@ -152,9 +152,9 @@
           -0.1,
           1.0
         ],
-        "weirdness": [
-          -0.0811,
-          -0.052
+        "continentalness": [
+          -0.1527,
+          -0.1133
         ]
       }
     },
@@ -169,9 +169,9 @@
           -0.35,
           0.565
         ],
-        "weirdness": [
-          -0.052,
-          0.0003
+        "continentalness": [
+          -0.1133,
+          -0.0781
         ]
       }
     },
@@ -182,9 +182,9 @@
           0.55,
           1.0
         ],
-        "weirdness": [
-          0.0003,
-          0.1174
+        "continentalness": [
+          -0.0781,
+          -0.0567
         ]
       }
     },
@@ -199,9 +199,9 @@
           -0.585,
           -0.1
         ],
-        "weirdness": [
-          0.1174,
-          0.1897
+        "continentalness": [
+          -0.0567,
+          -0.0251
         ]
       }
     },
@@ -216,9 +216,9 @@
           -1.0,
           -0.1
         ],
-        "weirdness": [
-          0.1897,
-          0.2273
+        "continentalness": [
+          -0.0251,
+          0.0004
         ]
       }
     },
@@ -233,9 +233,9 @@
           -1.0,
           -0.1
         ],
-        "weirdness": [
-          0.2273,
-          0.2954
+        "continentalness": [
+          0.0004,
+          0.0361
         ]
       }
     },
@@ -243,43 +243,43 @@
       "id": "terralith:ancient_sands",
       "parameters": {
         "temperature": [
-          0.55,
-          1.0
+          0.0165,
+          0.226
         ],
         "humidity": [
-          -1.0,
-          -0.35
+          -0.094,
+          0.0825
         ],
-        "weirdness": [
-          0.2954,
-          0.4164
+        "continentalness": [
+          0.0361,
+          0.0881
         ]
       }
     },
     {
       "id": "wilderwild:oasis",
       "parameters": {
-        "weirdness": [
-          0.4164,
-          0.462
+        "continentalness": [
+          0.0881,
+          0.0931
         ]
       }
     },
     {
       "id": "wilderwild:parched_forest",
       "parameters": {
-        "weirdness": [
-          0.462,
-          0.486
+        "continentalness": [
+          0.0931,
+          0.1341
         ]
       }
     },
     {
       "id": "regions_unexplored:baobab_savanna",
       "parameters": {
-        "weirdness": [
-          0.486,
-          0.5
+        "continentalness": [
+          0.1341,
+          0.1381
         ]
       }
     },
@@ -294,36 +294,36 @@
           -1.0,
           -0.1
         ],
-        "weirdness": [
-          0.5,
-          0.504
+        "continentalness": [
+          0.1381,
+          0.2604
         ]
       }
     },
     {
       "id": "regions_unexplored:joshua_desert",
       "parameters": {
-        "weirdness": [
-          0.504,
-          0.508
+        "continentalness": [
+          0.2604,
+          0.3153
         ]
       }
     },
     {
       "id": "terralith:desert_spires",
       "parameters": {
-        "weirdness": [
-          0.508,
-          0.512
+        "continentalness": [
+          0.3153,
+          0.3633
         ]
       }
     },
     {
       "id": "natures_spirit:scorched_dunes",
       "parameters": {
-        "weirdness": [
-          0.512,
-          0.6337
+        "continentalness": [
+          0.3633,
+          0.4139
         ]
       }
     },
@@ -334,8 +334,8 @@
           0.55,
           1.0
         ],
-        "weirdness": [
-          0.6337,
+        "continentalness": [
+          0.4139,
           2.0
         ]
       }

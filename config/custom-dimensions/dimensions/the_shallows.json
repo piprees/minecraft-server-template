@@ -9,7 +9,7 @@
       "parameters": {
         "weirdness": [
           -2.0,
-          -0.19
+          -0.4393
         ],
         "depth": [
           -2.0,
@@ -21,8 +21,8 @@
       "id": "minecraft:warm_ocean",
       "parameters": {
         "weirdness": [
-          -0.19,
-          -0.1486
+          -0.4393,
+          -0.2697
         ],
         "depth": [
           -2.0,
@@ -34,8 +34,8 @@
       "id": "minecraft:lukewarm_ocean",
       "parameters": {
         "weirdness": [
-          -0.1486,
-          -0.1071
+          -0.2697,
+          -0.117
         ],
         "depth": [
           -2.0,
@@ -47,8 +47,8 @@
       "id": "natures_spirit:tropical_shores",
       "parameters": {
         "weirdness": [
-          -0.1071,
-          -0.0657
+          -0.117,
+          0.0363
         ],
         "depth": [
           -2.0,
@@ -60,8 +60,8 @@
       "id": "terralith:deep_warm_ocean",
       "parameters": {
         "weirdness": [
-          -0.0657,
-          -0.0243
+          0.0363,
+          0.1473
         ],
         "depth": [
           -2.0,
@@ -73,8 +73,8 @@
       "id": "minecraft:beach",
       "parameters": {
         "weirdness": [
-          -0.0243,
-          0.0171
+          0.1473,
+          0.274
         ],
         "depth": [
           -2.0,
@@ -86,8 +86,8 @@
       "id": "regions_unexplored:tropical_river",
       "parameters": {
         "weirdness": [
-          0.0171,
-          0.0586
+          0.274,
+          0.367
         ],
         "depth": [
           -2.0,
@@ -99,8 +99,8 @@
       "id": "regions_unexplored:rocky_reef",
       "parameters": {
         "weirdness": [
-          0.0586,
-          0.1
+          0.367,
+          0.4993
         ],
         "depth": [
           -2.0,
@@ -112,7 +112,7 @@
       "id": "wilderwild:warm_beach",
       "parameters": {
         "weirdness": [
-          0.1,
+          0.4993,
           2.0
         ],
         "depth": [
@@ -126,7 +126,7 @@
       "parameters": {
         "weirdness": [
           -2.0,
-          -0.045
+          0.088
         ],
         "depth": [
           0.1,
@@ -138,7 +138,7 @@
       "id": "terralith:cave/tuff_caves",
       "parameters": {
         "weirdness": [
-          -0.045,
+          0.088,
           2.0
         ],
         "depth": [

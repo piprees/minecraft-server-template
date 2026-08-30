@@ -8,7 +8,7 @@
       "parameters": {
         "weirdness": [
           -2.0,
-          -0.5082
+          -0.5977
         ]
       }
     },
@@ -16,8 +16,8 @@
       "id": "terralith:frozen_cliffs",
       "parameters": {
         "weirdness": [
-          -0.5082,
-          -0.4877
+          -0.5977,
+          -0.4237
         ]
       }
     },
@@ -25,8 +25,8 @@
       "id": "terralith:wintry_lowlands",
       "parameters": {
         "weirdness": [
-          -0.4877,
-          -0.3996
+          -0.4237,
+          -0.291
         ]
       }
     },
@@ -34,8 +34,8 @@
       "id": "nullscape:void_barrens",
       "parameters": {
         "weirdness": [
-          -0.3996,
-          -0.3089
+          -0.291,
+          -0.1383
         ]
       }
     },
@@ -43,8 +43,8 @@
       "id": "minecraft:ice_spikes",
       "parameters": {
         "weirdness": [
-          -0.3089,
-          -0.243
+          -0.1383,
+          -0.0193
         ]
       }
     },
@@ -52,8 +52,8 @@
       "id": "terralith:white_cliffs",
       "parameters": {
         "weirdness": [
-          -0.243,
-          -0.2023
+          -0.0193,
+          0.063
         ]
       }
     },
@@ -61,8 +61,8 @@
       "id": "paradise_lost:calcite_craglands",
       "parameters": {
         "weirdness": [
-          -0.2023,
-          -0.1272
+          0.063,
+          0.1897
         ]
       }
     },
@@ -70,8 +70,8 @@
       "id": "minecraft:snowy_slopes",
       "parameters": {
         "weirdness": [
-          -0.1272,
-          0.0066
+          0.1897,
+          0.329
         ]
       }
     },
@@ -79,7 +79,7 @@
       "id": "minecraft:frozen_peaks",
       "parameters": {
         "weirdness": [
-          0.0066,
+          0.329,
           2.0
         ]
       }

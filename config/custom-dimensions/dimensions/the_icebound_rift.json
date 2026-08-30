@@ -6,107 +6,107 @@
     {
       "id": "yungscavebiomes:frosted_caves",
       "parameters": {
-        "weirdness": [
+        "humidity": [
           -2.0,
-          -0.2126
+          -0.4337
         ]
       }
     },
     {
       "id": "minecraft:deep_dark",
       "parameters": {
-        "weirdness": [
-          -0.2126,
-          -0.0636
+        "humidity": [
+          -0.4337,
+          -0.4026
         ]
       }
     },
     {
       "id": "nullscape:void_barrens",
       "parameters": {
-        "weirdness": [
-          -0.0636,
-          0.1067
+        "humidity": [
+          -0.4026,
+          -0.3622
         ]
       }
     },
     {
       "id": "minecraft:frozen_ocean",
       "parameters": {
-        "weirdness": [
-          0.1067,
-          0.2327
+        "humidity": [
+          -0.3622,
+          -0.3556
         ]
       }
     },
     {
       "id": "wilderwild:mesoglea_caves",
       "parameters": {
-        "weirdness": [
-          0.2327,
-          0.2707
+        "humidity": [
+          -0.3556,
+          -0.28
         ]
       }
     },
     {
       "id": "minecraft:ice_spikes",
       "parameters": {
-        "weirdness": [
-          0.2707,
-          0.2802
+        "humidity": [
+          -0.28,
+          -0.1853
         ]
       }
     },
     {
       "id": "terralith:glacial_chasm",
       "parameters": {
-        "weirdness": [
-          0.2802,
-          0.3526
+        "humidity": [
+          -0.1853,
+          -0.17
         ]
       }
     },
     {
       "id": "terralith:frozen_cliffs",
       "parameters": {
-        "weirdness": [
-          0.3526,
-          0.3808
+        "humidity": [
+          -0.17,
+          -0.1168
         ]
       }
     },
     {
       "id": "terralith:cave/frostfire_caves",
       "parameters": {
-        "weirdness": [
-          0.3808,
-          0.4078
+        "humidity": [
+          -0.1168,
+          -0.0425
         ]
       }
     },
     {
       "id": "terralith:alpha_islands_winter",
       "parameters": {
-        "weirdness": [
-          0.4078,
-          0.4804
+        "humidity": [
+          -0.0425,
+          0.0202
         ]
       }
     },
     {
       "id": "undergroundworlds:underground_tundra",
       "parameters": {
-        "weirdness": [
-          0.4804,
-          0.6075
+        "humidity": [
+          0.0202,
+          0.1161
         ]
       }
     },
     {
       "id": "wilderwild:frozen_caves",
       "parameters": {
-        "weirdness": [
-          0.6075,
+        "humidity": [
+          0.1161,
           2.0
         ]
       }

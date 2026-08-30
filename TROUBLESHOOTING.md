@@ -7,7 +7,7 @@
 | **T** | [T1–T14, T16–T19, T22–T27, T30–T58](#architecture-traps) | Architecture traps — each has caused a real production incident |
 | **P** | [P1–P4](#macos-local-dev) | macOS local-dev quirks (BSD tooling, toolchain) |
 | **D** | [D1–D6, D8–D9](#dimension-lifecycle) | Custom-dimension lifecycle on a live world |
-| **K** | [K1–K2, K5–K6](#known-issues) | Open issues — unfixed, on the watch list |
+| **K** | [K1–K2, K5–K7](#known-issues) | Open issues — unfixed, on the watch list |
 
 Related contracts: [`AGENTS.md`](AGENTS.md) (how to behave), [`COMMANDS.md`](COMMANDS.md) (command reference), [`mods/AGENTS.md`](mods/AGENTS.md) (in-house mod development, including portal-subsystem specifics).
 
@@ -101,6 +101,7 @@ Run this first. It covers deploy drift, disk, every expected container, `ONLINE_
 | `TheChunkSystem` ConcurrentModificationException | [K2](#k2) |
 | The map looks imprecise on steep terrain | [K5](#k5) |
 | A chunk never finishes generating; RCON accepted but never answered, one thread pegged, nothing thrown | [K6](#k6) |
+| A listed biome never rolls; band reach and overlap checks both clean | [K7](#k7) |
 | Can't connect / server won't start / backups failing / lag | [Common symptoms](#common-symptoms) |
 
 ---
@@ -230,6 +231,10 @@ Launchers download HTML instead of mod JARs, or packwiz auto-update serves stale
 
   `overworld`, `checkerboard` and `superflat` answer `Not a MultiNoiseBiomeSource` and have no climate point to band on. In a `cave` dimension weirdness measures a span of **0.00** across one distinct value — completely inert.
 - **One representative per combination is a starting point, not a guarantee.** Measure your own dimension: `the_crumbling_reaches` (`end`, border 2048) gives weirdness 1.099 against continentalness 0.895, the reverse of the `end` row.
+- **The opposite failure is not covered by this entry.** A band can be live,
+  non-overlapping and still win no ground, because the lookup is nearest-cube
+  and a neighbour can be nearer everywhere the band claims —
+  `scripts/check-band-share.py` measures that, and [K7](#k7) holds the open cases.
 - **Rank candidate axes by DISTRIBUTION, not span.** `the_red_monument` (`adventure:void`) gives weirdness a span of 2.000 across just THREE distinct values, seven of eleven samples pinned at -0.50 — the widest span and the worst possible axis. Count distinct values across the radius before choosing. `biomes` is creation-time worldgen config ([D2](#d2)) and changing it re-keys the generation fingerprint, so every affected dimension needs a re-roll, not a rescore.
 
 <a id="t22"></a>
@@ -982,6 +987,33 @@ The rendered height disagrees with the facts on high-relief columns. The error i
   the caller. `mods/AGENTS.md` forbids sync-loading from a tick path for this
   reason; probe with `getChunkManager().getWorldChunk(cx, cz, false)` or
   register a `ChunkTicketType.PORTAL` ticket and act on a later tick.
+
+<a id="k7"></a>
+
+### K7 — 20 biome bands are live, do not overlap, and still win no ground
+
+- **Symptom:** a listed biome never appears however many seeds are rolled, while
+  `check-band-reach.py` reports 0 dead of 821 and `check-biome-bands.py` reports
+  0 overlaps. `check-band-share.py` names it and carries it in `KNOWN_EMPTY`.
+- **Cause:** the band carries a filter on a second axis, and the region where
+  that filter passes lies inside a NEIGHBOUR's slot on the partition axis. The
+  biome source is a nearest-hypercube lookup, so a neighbour with no filter is
+  distance 0 where the filtered band is not, and on a fine partition the
+  neighbour is nearer by an order of magnitude. Widening the slot cannot reach a
+  region the slot does not cover, and neither can an axis switch while the
+  filter stays where it is.
+- **The 20, by dimension:** `the_blossom_gardens` 6 of 30 bands,
+  `the_sun_kingdoms` 6 of 28, `the_highland_crossing` 4 of 31,
+  `the_frozen_hearth`, `the_gritlands`, `the_roothold` and
+  `the_whispering_wilds` one each. Every one is in a partition of 24 bands or
+  more; no partition of 15 or fewer has an empty band.
+- **What would fix it:** order each chain by where its own filter passes rather
+  than by the author's listed sequence, so a filtered band's slot sits under its
+  filter. That reorders the climate gradient, which is a design change, so it
+  needs an author's decision rather than a fit.
+- **Do not clear an entry from `KNOWN_EMPTY` by hand.** The check fails on a
+  stale entry as well as a new one, so the list can only shrink and only when
+  the band genuinely starts generating.
 
 ## Common symptoms
 

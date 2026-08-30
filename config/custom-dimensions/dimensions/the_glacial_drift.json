@@ -8,7 +8,7 @@
       "parameters": {
         "weirdness": [
           -2.0,
-          -0.3454
+          -0.386
         ]
       }
     },
@@ -16,8 +16,8 @@
       "id": "terralith:skylands_winter",
       "parameters": {
         "weirdness": [
-          -0.3454,
-          -0.2911
+          -0.386,
+          -0.223
         ]
       }
     },
@@ -25,8 +25,8 @@
       "id": "nullscape:void_barrens",
       "parameters": {
         "weirdness": [
-          -0.2911,
-          -0.2044
+          -0.223,
+          -0.147
         ]
       }
     },
@@ -34,8 +34,8 @@
       "id": "natures_spirit:tundra",
       "parameters": {
         "weirdness": [
-          -0.2044,
-          0.0705
+          -0.147,
+          -0.108
         ]
       }
     },
@@ -43,8 +43,8 @@
       "id": "terralith:frozen_cliffs",
       "parameters": {
         "weirdness": [
-          0.0705,
-          0.1276
+          -0.108,
+          -0.017
         ]
       }
     },
@@ -52,8 +52,8 @@
       "id": "paradise_lost:autumnal_tundra",
       "parameters": {
         "weirdness": [
-          0.1276,
-          0.2559
+          -0.017,
+          0.089
         ]
       }
     },
@@ -61,8 +61,8 @@
       "id": "terralith:snowy_shield",
       "parameters": {
         "weirdness": [
-          0.2559,
-          0.3535
+          0.089,
+          0.132
         ]
       }
     },
@@ -70,8 +70,8 @@
       "id": "minecraft:ice_spikes",
       "parameters": {
         "weirdness": [
-          0.3535,
-          0.3699
+          0.132,
+          0.231
         ]
       }
     },
@@ -79,8 +79,8 @@
       "id": "paradise_lost:calcite_craglands",
       "parameters": {
         "weirdness": [
-          0.3699,
-          0.3947
+          0.231,
+          0.328
         ]
       }
     },
@@ -88,8 +88,8 @@
       "id": "minecraft:frozen_peaks",
       "parameters": {
         "weirdness": [
-          0.3947,
-          0.4222
+          0.328,
+          0.439
         ]
       }
     },
@@ -97,8 +97,8 @@
       "id": "natures_spirit:sleeted_slopes",
       "parameters": {
         "weirdness": [
-          0.4222,
-          0.4506
+          0.439,
+          0.548
         ]
       }
     },
@@ -106,7 +106,7 @@
       "id": "minecraft:snowy_slopes",
       "parameters": {
         "weirdness": [
-          0.4506,
+          0.548,
           2.0
         ]
       }

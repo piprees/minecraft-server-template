@@ -7,224 +7,224 @@
     {
       "id": "minecraft:dark_forest",
       "parameters": {
-        "weirdness": [
+        "humidity": [
           -2.0,
-          -0.5887
+          -0.48
         ]
       }
     },
     {
       "id": "minecraft:mangrove_swamp",
       "parameters": {
-        "weirdness": [
-          -0.5887,
-          -0.5463
+        "humidity": [
+          -0.48,
+          -0.4113
         ]
       }
     },
     {
       "id": "minecraft:swamp",
       "parameters": {
-        "weirdness": [
-          -0.5463,
-          -0.5068
+        "humidity": [
+          -0.4113,
+          -0.3271
         ]
       }
     },
     {
       "id": "minecraft:sparse_jungle",
       "parameters": {
-        "weirdness": [
-          -0.5068,
-          -0.4837
+        "humidity": [
+          -0.3271,
+          -0.3199
         ]
       }
     },
     {
       "id": "minecraft:river",
       "parameters": {
-        "weirdness": [
-          -0.4837,
-          -0.4605
+        "humidity": [
+          -0.3199,
+          -0.2774
         ]
       }
     },
     {
       "id": "minecraft:beach",
       "parameters": {
-        "weirdness": [
-          -0.4605,
-          -0.4373
+        "humidity": [
+          -0.2774,
+          -0.2268
         ]
       }
     },
     {
       "id": "minecraft:lush_caves",
       "parameters": {
-        "weirdness": [
-          -0.4373,
-          -0.4141
+        "humidity": [
+          -0.2268,
+          -0.1815
         ]
       }
     },
     {
       "id": "terralith:orchid_swamp",
       "parameters": {
-        "weirdness": [
-          -0.4141,
-          -0.3909
+        "humidity": [
+          -0.1815,
+          -0.1599
         ]
       }
     },
     {
       "id": "terralith:moonlight_grove",
       "parameters": {
-        "weirdness": [
-          -0.3909,
-          -0.3677
+        "humidity": [
+          -0.1599,
+          -0.1068
         ]
       }
     },
     {
       "id": "terralith:mirage_isles",
       "parameters": {
-        "weirdness": [
-          -0.3677,
-          -0.3445
+        "humidity": [
+          -0.1068,
+          -0.0843
         ]
       }
     },
     {
       "id": "terralith:moonlight_valley",
       "parameters": {
-        "weirdness": [
-          -0.3445,
-          -0.3213
+        "humidity": [
+          -0.0843,
+          -0.0457
         ]
       }
     },
     {
       "id": "terralith:rocky_jungle",
       "parameters": {
-        "weirdness": [
-          -0.3213,
-          -0.2976
+        "humidity": [
+          -0.0457,
+          -0.0003
         ]
       }
     },
     {
       "id": "terralith:cave/underground_jungle",
       "parameters": {
-        "weirdness": [
-          -0.2976,
-          -0.2735
+        "humidity": [
+          -0.0003,
+          0.0228
         ]
       }
     },
     {
       "id": "wilderwild:rainforest",
       "parameters": {
-        "weirdness": [
-          -0.2735,
-          -0.2495
+        "humidity": [
+          0.0228,
+          0.062
         ]
       }
     },
     {
       "id": "wilderwild:birch_jungle",
       "parameters": {
-        "weirdness": [
-          -0.2495,
-          -0.2144
+        "humidity": [
+          0.062,
+          0.1158
         ]
       }
     },
     {
       "id": "regions_unexplored:tropical_river",
       "parameters": {
-        "weirdness": [
-          -0.2144,
-          -0.1758
+        "humidity": [
+          0.1158,
+          0.1556
         ]
       }
     },
     {
       "id": "regions_unexplored:sparse_rainforest",
       "parameters": {
-        "weirdness": [
-          -0.1758,
-          -0.1371
+        "humidity": [
+          0.1556,
+          0.1621
         ]
       }
     },
     {
       "id": "minecraft:jungle",
       "parameters": {
-        "weirdness": [
-          -0.1371,
-          0.0589
+        "humidity": [
+          0.1621,
+          0.1701
         ]
       }
     },
     {
       "id": "minecraft:bamboo_jungle",
       "parameters": {
-        "weirdness": [
-          0.0589,
-          0.2096
+        "humidity": [
+          0.1701,
+          0.1741
         ]
       }
     },
     {
       "id": "terralith:cloud_forest",
       "parameters": {
-        "weirdness": [
-          0.2096,
-          0.2876
+        "humidity": [
+          0.1741,
+          0.1797
         ]
       }
     },
     {
       "id": "undergroundworlds:underground_jungle",
       "parameters": {
-        "weirdness": [
-          0.2876,
-          0.3356
+        "humidity": [
+          0.1797,
+          0.2367
         ]
       }
     },
     {
       "id": "wilderwild:sparse_birch_jungle",
       "parameters": {
-        "weirdness": [
-          0.3356,
-          0.3818
+        "humidity": [
+          0.2367,
+          0.3207
         ]
       }
     },
     {
       "id": "incendium:inverted_forest",
       "parameters": {
-        "weirdness": [
-          0.3818,
-          0.4433
+        "humidity": [
+          0.3207,
+          0.3407
         ]
       }
     },
     {
       "id": "terralith:tropical_jungle",
       "parameters": {
-        "weirdness": [
-          0.4433,
-          0.4785
+        "humidity": [
+          0.3407,
+          0.6508
         ]
       }
     },
     {
       "id": "regions_unexplored:tropics",
       "parameters": {
-        "weirdness": [
-          0.4785,
+        "humidity": [
+          0.6508,
           2.0
         ]
       }
