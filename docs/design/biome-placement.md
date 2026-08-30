@@ -92,6 +92,32 @@ out.** Leaving them means the compat never takes effect — explicit outranks
 natural — so the work is inert and the guesses remain. Removing them is the
 point of doing it, not a follow-up.
 
+## Where a band's boundaries may sit
+
+A `ParameterRange` contains both its endpoints, so two bands sharing a boundary
+are **both at distance zero** from it. The winner is then decided by
+`SearchTree`'s incumbent — a `ThreadLocal` holding whatever the previous lookup
+on that thread returned — so it turns on which column a worker resolved
+immediately before, and nothing in the config decides it. That is the mechanism
+behind "this biome is missing" reports nobody can reproduce.
+
+Two rules follow, and neither is negotiable:
+
+- **Never let two bands share a boundary. Leave a gap.** Not an epsilon — an
+  epsilon gap leaves the loser a sliver, and a sliver was worthless in the first
+  place. A real gap is where natives live, which is the design.
+- **No boundary may sit on a clamp rail** (±0.5, ±1.0, ±2.0). The noise
+  saturates there: 98% of every sample that lands exactly on a band edge lands
+  on one of those four values. Clamping a fit to a measured range puts a
+  boundary on that range's endpoint, and a rail IS a range endpoint — so
+  equal-area fitting collides with the rails by construction. The fitter and the
+  defect are the same mechanism.
+
+**A band whose only reachable territory IS the rail cannot be fixed by moving
+its boundary.** It needs a different axis, or it becomes a plain string and
+takes its own declared cells. That second route is what fixed all seven of the
+dimensions this rule was derived from.
+
 ## What "fixed" means when a biome is not encounterable
 
 In order of preference, because each preserves more of the author's intent than
