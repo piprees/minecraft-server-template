@@ -183,6 +183,19 @@ else
   warn "Biome band partition check failed — run ./scripts/check-biome-bands.py"
 fi
 
+echo "  Checking spawn filters name a place..."
+# A filter naming most of a dimension's palette cannot aim a spawn and makes
+# spawn_reads_as_namesake free; a filter biome the dimension never lists scores
+# only where the base source happens to place it. Budget: biome-placement.md.
+SPAWN_FILTER_ERRORS=0
+SPAWN_FILTER_OUT=$(python3 ./scripts/check-spawn-filters.py 2>&1) || SPAWN_FILTER_ERRORS=1
+if [[ $SPAWN_FILTER_ERRORS -eq 0 ]]; then
+  echo "  ✓ Every spawn filter names a place, from biomes its dimension lists"
+else
+  echo "$SPAWN_FILTER_OUT"
+  warn "Spawn filter check failed — run ./scripts/check-spawn-filters.py"
+fi
+
 echo "  Checking Modrinth resolve cache covers every pin..."
 # defaults-seed bakes config/modrinth-resolve-cache.json in and resolves pins
 # from it with zero Modrinth calls. A pin with no entry is resolved live at
@@ -256,7 +269,7 @@ fi
 
 STATIC_ERRORS=$((SHELL_ERRORS + PYTHON_ERRORS + OWNERSHIP_ERRORS + RESOLVE_CACHE_ERRORS
   + BLOCKTAG_ERRORS + OPEN_WATER_ERRORS + BAND_REACH_ERRORS + BIOME_BANDS_ERRORS
-  + COMPOSE_ERRORS + YAML_ERRORS))
+  + SPAWN_FILTER_ERRORS + COMPOSE_ERRORS + YAML_ERRORS))
 if [[ $STATIC_ERRORS -gt 0 ]]; then
   echo "::error::$STATIC_ERRORS static-analysis check(s) failed"
   exit 1

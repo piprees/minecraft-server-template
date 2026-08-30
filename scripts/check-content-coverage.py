@@ -1,13 +1,23 @@
 #!/usr/bin/env python3
-"""Report which installed biomes any dimension can actually produce.
+"""Report which registered biomes no dimension names.
 
 Purpose:  Adding a biome mod puts biomes in the registry; it does not put them
-          in a world. A managed dimension generates the biomes its `biomes`
-          list names and nothing else, so a mod nobody names is installed,
-          loaded, paid for on every boot, and invisible in game.
+          in a managed dimension. A `multi_biome`, `single_biome` or
+          `checkerboard` dimension generates what its `biomes` list names and
+          nothing else, so a biome nobody names cannot appear in one.
 
-Context:  The catalogue comes from scripts/extract-biomes.py, which must be
-          re-run after any mod-list change or it reports the previous pack.
+Not covered: whether the biome appears ANYWHERE. The reserved four take their
+          base generator whole, so a biome its own mod places — a TerraBlender
+          region, a datapack parameter entry — generates there unnamed.
+          Measured on this pack: 29 of the 51 unnamed biomes hold ground in the
+          live overworld. Read a row as "no dimension curates this", never as
+          "this never generates".
+
+Context:  Population is the runtime catalogue, config/custom-dimensions/
+          extractors/registries.json (`/customdim catalogue` via
+          scripts/extract-registries.py). The jar scan biomes.json is the
+          fallback and over-counts: it sees biomes inside a mod's optional
+          built-in datapacks, which are never registered (TROUBLESHOOTING.md#t66).
 
 Usage:    scripts/check-content-coverage.py [--namespace NS] [--unused]
           --unused lists the unreferenced biome ids rather than counting them.
@@ -27,6 +37,7 @@ import sys
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
+REGISTRY = REPO / "config/custom-dimensions/extractors/registries.json"
 CATALOGUE = REPO / "config/custom-dimensions/extractors/biomes.json"
 PLATFORM_DIMS = REPO / "config/custom-dimensions/dimensions"
 
@@ -73,11 +84,15 @@ def main():
     ap.add_argument("--unused", action="store_true")
     args = ap.parse_args()
 
-    if not CATALOGUE.exists():
-        print(f"No catalogue at {CATALOGUE} — run scripts/extract-biomes.py", file=sys.stderr)
+    if REGISTRY.exists():
+        source = "registries.json (runtime)"
+        installed = set(json.loads(REGISTRY.read_text())["biomes"])
+    elif CATALOGUE.exists():
+        source = "biomes.json (jar scan — over-counts, see the header)"
+        installed = set(json.loads(CATALOGUE.read_text())["biomes"])
+    else:
+        print(f"No catalogue at {REGISTRY} — run scripts/extract-registries.py", file=sys.stderr)
         return 2
-    cat = json.loads(CATALOGUE.read_text())
-    installed = set(cat["biomes"])
 
     used = named_biomes(PLATFORM_DIMS)
     if OVERLAY_DIMS:
@@ -98,14 +113,17 @@ def main():
 
     unreachable = sorted(b for b in installed if b not in used
                          and (not args.namespace or b.startswith(args.namespace + ":")))
-    print(f"\n{len(unreachable)} of {len(installed)} installed biomes are named by no dimension")
+    print(f"\n{len(unreachable)} of {len(installed)} registered biomes are named by no dimension"
+          f"\npopulation: {source}")
     if args.unused:
         for b in unreachable:
             print(f"  {b}")
 
+    # A named biome outside the runtime registry is a band dropped at boot
+    # (TROUBLESHOOTING.md#t38) and a config that names what cannot generate.
     named_but_absent = sorted(b for b in used if b not in installed and ":" in b)
     if named_but_absent:
-        print(f"\n{len(named_but_absent)} named biome(s) are not installed:")
+        print(f"\n{len(named_but_absent)} named biome(s) are in no runtime registry:")
         for b in named_but_absent[:20]:
             print(f"  {b}")
     return 0

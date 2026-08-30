@@ -89,13 +89,7 @@
     "allowHazardousSpawn": true,
     "spawnFilter": [
       "minecraft:frozen_ocean",
-      "minecraft:deep_frozen_ocean",
-      "terralith:ice_marsh",
-      "minecraft:snowy_beach",
-      "minecraft:snowy_plains",
-      "minecraft:frozen_river",
-      "minecraft:snowy_taiga",
-      "terralith:frozen_cliffs"
+      "regions_unexplored:frozen_tundra"
     ],
     "water": "sea",
     "wants": {

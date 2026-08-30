@@ -80,13 +80,8 @@
   "seedRoll": {
     "mood": "serene",
     "spawnFilter": [
-      "terralith:desert_oasis",
-      "terralith:warm_river",
-      "minecraft:warm_ocean",
-      "minecraft:mangrove_swamp",
-      "terralith:lush_valley",
-      "minecraft:jungle",
-      "minecraft:sparse_jungle"
+      "wilderwild:oasis",
+      "terralith:warm_river"
     ],
     "water": "high",
     "wants": {
