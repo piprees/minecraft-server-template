@@ -584,6 +584,21 @@ class DimensionConfigTest {
     }
 
     @Test
+    void anAllBandedDimensionWithOneAuthoredOffsetStillMoves() {
+        // The no-op needs EVERY cell to carry the same default. One authored
+        // band means the offsets differ, so the lookup can move and this must
+        // warn — suppressing it would be a silent worldgen change.
+        DimensionConfig config = parse("d", """
+                {"biomes":[{"id":"minecraft:taiga","parameters":{"weirdness":[-2.0,-1.0]}},
+                           {"id":"minecraft:snowy_plains",
+                            "parameters":{"weirdness":[0.1,0.4],"offset":0.2}}]}
+                """);
+
+        assertTrue(config.defaultOffsetCanAct());
+        assertTrue(config.getBiomeParametersFingerprint().contains("defaultOffset=0.375"));
+    }
+
+    @Test
     void oneUnbandedBiomeIsEnoughForTheDefaultToAct() {
         DimensionConfig config = parse("d", """
                 {"biomes":["minecraft:plains",

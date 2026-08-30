@@ -354,14 +354,18 @@ public class DimensionConfig {
 
     /**
      * Whether the mod's default band offset can change this dimension's
-     * layout: some band leaves its offset to the mod, AND some listed biome is
-     * not banded.
+     * layout: some band leaves its offset to the mod, and NOT every cell in
+     * the source would carry that same default.
      *
-     * <p>Where every listed biome is banded there is no native rival, the
-     * default lands on every cell alike, and an identical {@code offset²} adds
-     * the same constant to every candidate — so the nearest-point lookup
-     * cannot move. Fingerprinting the default there would demand a world wipe
-     * for a change that provably cannot alter the world.
+     * <p>An identical {@code offset²} adds the same constant to every
+     * candidate, so the nearest-point lookup cannot move. That happens only
+     * when every cell is an unauthored band — every listed biome banded AND
+     * every band unauthored. One authored band, or one unbanded biome, gives
+     * a cell carrying something else and the default can decide between them.
+     *
+     * <p>This is a property of the CONFIG, not of the code: any dimension is
+     * one edit away from flipping, so it is computed per dimension rather
+     * than encoding today's split.
      */
     public boolean defaultOffsetCanAct() {
         List<BiomeBand> bands = this.getBiomeBands();
@@ -369,13 +373,21 @@ public class DimensionConfig {
             return false;
         }
         boolean anyUnauthored = false;
+        boolean anyAuthored = false;
         Set<String> banded = new java.util.HashSet<>();
         for (BiomeBand band : bands) {
             banded.add(band.id());
-            anyUnauthored |= !bandAuthorsOffset(band.parameters());
+            if (bandAuthorsOffset(band.parameters())) {
+                anyAuthored = true;
+            } else {
+                anyUnauthored = true;
+            }
         }
         if (!anyUnauthored) {
             return false;
+        }
+        if (anyAuthored) {
+            return true;
         }
         String listed = this.getBiome();
         if (listed == null) {
