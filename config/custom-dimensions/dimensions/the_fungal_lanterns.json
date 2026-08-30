@@ -8,7 +8,7 @@
       "parameters": {
         "temperature": [
           -2.0,
-          -0.3137
+          -0.6
         ]
       }
     },
@@ -16,8 +16,8 @@
       "id": "minecraft:warped_forest",
       "parameters": {
         "temperature": [
-          -0.3137,
-          -0.1851
+          -0.6,
+          -0.3581
         ]
       }
     },
@@ -25,8 +25,8 @@
       "id": "incendium:inverted_forest",
       "parameters": {
         "temperature": [
-          -0.1851,
-          0.0274
+          -0.3581,
+          -0.1161
         ]
       }
     },
@@ -34,8 +34,8 @@
       "id": "terralith:cave/fungal_caves",
       "parameters": {
         "temperature": [
-          0.0274,
-          0.144
+          -0.1161,
+          0.4161
         ]
       }
     },
@@ -43,8 +43,8 @@
       "id": "incendium:quartz_flats",
       "parameters": {
         "temperature": [
-          0.144,
-          0.2576
+          0.4161,
+          0.6581
         ]
       }
     },
@@ -52,8 +52,8 @@
       "id": "regions_unexplored:infernal_holt",
       "parameters": {
         "temperature": [
-          0.2576,
-          0.4641
+          0.6581,
+          0.9
         ]
       }
     },
@@ -61,7 +61,7 @@
       "id": "minecraft:nether_wastes",
       "parameters": {
         "temperature": [
-          0.4641,
+          0.9,
           2.0
         ]
       }

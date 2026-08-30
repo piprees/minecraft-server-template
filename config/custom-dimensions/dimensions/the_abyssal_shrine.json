@@ -8,7 +8,7 @@
       "parameters": {
         "continentalness": [
           -2.0,
-          -0.3657
+          -0.0918
         ]
       }
     },
@@ -16,8 +16,8 @@
       "id": "minecraft:deep_ocean",
       "parameters": {
         "continentalness": [
-          -0.3657,
-          -0.2493
+          -0.0918,
+          -0.0806
         ]
       }
     },
@@ -25,8 +25,8 @@
       "id": "minecraft:deep_cold_ocean",
       "parameters": {
         "continentalness": [
-          -0.2493,
-          -0.167
+          -0.0806,
+          -0.0525
         ]
       }
     },
@@ -34,8 +34,8 @@
       "id": "paradise_lost:continental_plateau",
       "parameters": {
         "continentalness": [
-          -0.167,
-          -0.027
+          -0.0525,
+          0.0045
         ]
       }
     },
@@ -43,8 +43,8 @@
       "id": "paradise_lost:highlands_grand_glade",
       "parameters": {
         "continentalness": [
-          -0.027,
-          0.042
+          0.0045,
+          0.1027
         ]
       }
     },
@@ -52,8 +52,8 @@
       "id": "minecraft:deep_dark",
       "parameters": {
         "continentalness": [
-          0.042,
-          0.115
+          0.1027,
+          0.1675
         ]
       }
     },
@@ -61,8 +61,8 @@
       "id": "minecraft:dripstone_caves",
       "parameters": {
         "continentalness": [
-          0.115,
-          0.2183
+          0.1675,
+          0.1902
         ]
       }
     },
@@ -70,8 +70,8 @@
       "id": "paradise_lost:highlands_thicket",
       "parameters": {
         "continentalness": [
-          0.2183,
-          0.324
+          0.1902,
+          0.1946
         ]
       }
     },
@@ -79,7 +79,7 @@
       "id": "paradise_lost:calcite_craglands",
       "parameters": {
         "continentalness": [
-          0.324,
+          0.1946,
           2.0
         ]
       }

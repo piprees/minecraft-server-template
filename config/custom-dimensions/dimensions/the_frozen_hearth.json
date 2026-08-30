@@ -7,7 +7,7 @@
     {
       "id": "minecraft:snowy_plains",
       "parameters": {
-        "erosion": [
+        "weirdness": [
           -2.0,
           -1.0
         ]
@@ -16,108 +16,108 @@
     {
       "id": "minecraft:snowy_taiga",
       "parameters": {
-        "erosion": [
+        "weirdness": [
           -1.0,
-          -0.7231
+          -0.519
         ]
       }
     },
     {
       "id": "minecraft:grove",
       "parameters": {
-        "erosion": [
-          -0.7231,
-          -0.5944
+        "weirdness": [
+          -0.519,
+          -0.5
         ]
       }
     },
     {
       "id": "minecraft:frozen_river",
       "parameters": {
-        "erosion": [
-          -0.5944,
-          -0.55
-        ]
-      }
-    },
-    {
-      "id": "minecraft:ice_spikes",
-      "parameters": {
-        "erosion": [
-          -0.55,
-          -0.5
-        ]
-      }
-    },
-    {
-      "id": "minecraft:snowy_slopes",
-      "parameters": {
-        "erosion": [
+        "weirdness": [
           -0.5,
           -0.496
         ]
       }
     },
     {
-      "id": "minecraft:frozen_peaks",
+      "id": "minecraft:ice_spikes",
       "parameters": {
-        "erosion": [
+        "weirdness": [
           -0.496,
           -0.492
         ]
       }
     },
     {
+      "id": "minecraft:snowy_slopes",
+      "parameters": {
+        "weirdness": [
+          -0.492,
+          -0.366
+        ]
+      }
+    },
+    {
+      "id": "minecraft:frozen_peaks",
+      "parameters": {
+        "weirdness": [
+          -0.366,
+          -0.255
+        ]
+      }
+    },
+    {
       "id": "minecraft:jagged_peaks",
       "parameters": {
-        "erosion": [
-          -0.492,
-          -0.4373
+        "weirdness": [
+          -0.255,
+          -0.171
         ]
       }
     },
     {
       "id": "minecraft:old_growth_spruce_taiga",
       "parameters": {
-        "erosion": [
-          -0.4373,
-          -0.3
+        "weirdness": [
+          -0.171,
+          -0.064
         ]
       }
     },
     {
       "id": "minecraft:taiga",
       "parameters": {
-        "erosion": [
-          -0.3,
-          -0.296
+        "weirdness": [
+          -0.064,
+          0.017
         ]
       }
     },
     {
       "id": "minecraft:stony_shore",
       "parameters": {
-        "erosion": [
-          -0.296,
-          -0.2524
+        "weirdness": [
+          0.017,
+          0.061
         ]
       }
     },
     {
       "id": "terralith:birch_taiga",
       "parameters": {
-        "erosion": [
-          -0.2524,
-          -0.2317
+        "weirdness": [
+          0.061,
+          0.084
         ]
       }
     },
     {
       "id": "terralith:rocky_mountains",
       "parameters": {
-        "erosion": [
-          -0.2317,
-          -0.1153
+        "weirdness": [
+          0.084,
+          0.109
         ]
       }
     },
@@ -128,9 +128,9 @@
           -0.45,
           0.55
         ],
-        "erosion": [
-          -0.1153,
-          -0.0648
+        "weirdness": [
+          0.109,
+          0.181
         ]
       }
     },
@@ -145,9 +145,9 @@
           -1.0,
           0.1
         ],
-        "erosion": [
-          -0.0648,
-          0.004
+        "weirdness": [
+          0.181,
+          0.249
         ]
       }
     },
@@ -162,9 +162,9 @@
           -0.1,
           1.0
         ],
-        "erosion": [
-          0.004,
-          0.1129
+        "weirdness": [
+          0.249,
+          0.323
         ]
       }
     },
@@ -179,63 +179,63 @@
           -0.1,
           1.0
         ],
-        "erosion": [
-          0.1129,
-          0.2169
+        "weirdness": [
+          0.323,
+          0.432
         ]
       }
     },
     {
       "id": "regions_unexplored:frozen_pine_taiga",
       "parameters": {
-        "erosion": [
-          0.2169,
-          0.2444
+        "weirdness": [
+          0.432,
+          0.471
         ]
       }
     },
     {
       "id": "regions_unexplored:cold_boreal_taiga",
       "parameters": {
-        "erosion": [
-          0.2444,
-          0.2492
+        "weirdness": [
+          0.471,
+          0.5
         ]
       }
     },
     {
       "id": "regions_unexplored:golden_boreal_taiga",
       "parameters": {
-        "erosion": [
-          0.2492,
-          0.2632
+        "weirdness": [
+          0.5,
+          0.504
         ]
       }
     },
     {
       "id": "wilderwild:snowy_old_growth_pine_taiga",
       "parameters": {
-        "erosion": [
-          0.2632,
-          0.3
+        "weirdness": [
+          0.504,
+          0.508
         ]
       }
     },
     {
       "id": "minecraft:snowy_plains",
       "parameters": {
-        "erosion": [
-          0.3,
-          0.304
+        "weirdness": [
+          0.508,
+          0.522
         ]
       }
     },
     {
       "id": "minecraft:taiga",
       "parameters": {
-        "erosion": [
-          0.304,
-          0.308
+        "weirdness": [
+          0.522,
+          1.0
         ]
       }
     },
@@ -250,8 +250,8 @@
           -0.585,
           1.0
         ],
-        "erosion": [
-          0.308,
+        "weirdness": [
+          1.0,
           2.0
         ]
       }

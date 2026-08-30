@@ -6,78 +6,78 @@
     {
       "id": "natures_spirit:marsh",
       "parameters": {
+        "weirdness": [
+          -2.0,
+          -0.19
+        ],
         "depth": [
           -2.0,
           0.1
-        ],
-        "humidity": [
-          -2.0,
-          -0.5881
         ]
       }
     },
     {
       "id": "minecraft:swamp",
       "parameters": {
+        "weirdness": [
+          -0.19,
+          -0.1636
+        ],
         "depth": [
           -2.0,
           0.1
-        ],
-        "humidity": [
-          -0.5881,
-          -0.4661
         ]
       }
     },
     {
       "id": "minecraft:mangrove_swamp",
       "parameters": {
+        "weirdness": [
+          -0.1636,
+          -0.1373
+        ],
         "depth": [
           -2.0,
           0.1
-        ],
-        "humidity": [
-          -0.4661,
-          -0.4192
         ]
       }
     },
     {
       "id": "terralith:orchid_swamp",
       "parameters": {
+        "weirdness": [
+          -0.1373,
+          -0.1109
+        ],
         "depth": [
           -2.0,
           0.1
-        ],
-        "humidity": [
-          -0.4192,
-          -0.367
         ]
       }
     },
     {
       "id": "natures_spirit:bamboo_wetlands",
       "parameters": {
+        "weirdness": [
+          -0.1109,
+          -0.0845
+        ],
         "depth": [
           -2.0,
           0.1
-        ],
-        "humidity": [
-          -0.367,
-          -0.3228
         ]
       }
     },
     {
       "id": "minecraft:river",
       "parameters": {
+        "weirdness": [
+          -0.0845,
+          -0.0582
+        ],
         "depth": [
           -2.0,
           0.1
-        ],
-        "humidity": [
-          -0.3228,
-          -0.2884
         ]
       }
     },
@@ -88,116 +88,116 @@
           -0.6,
           -0.05
         ],
+        "weirdness": [
+          -0.0582,
+          -0.0318
+        ],
         "depth": [
           -2.0,
           0.1
-        ],
-        "humidity": [
-          -0.2884,
-          -0.2543
         ]
       }
     },
     {
       "id": "minecraft:dark_forest",
       "parameters": {
+        "weirdness": [
+          -0.0318,
+          -0.0055
+        ],
         "depth": [
           -2.0,
           0.1
-        ],
-        "humidity": [
-          -0.2543,
-          -0.1988
         ]
       }
     },
     {
       "id": "terralith:moonlight_valley",
       "parameters": {
+        "weirdness": [
+          -0.0055,
+          0.0209
+        ],
         "depth": [
           -2.0,
           0.1
-        ],
-        "humidity": [
-          -0.1988,
-          -0.0894
         ]
       }
     },
     {
       "id": "regions_unexplored:marsh",
       "parameters": {
+        "weirdness": [
+          0.0209,
+          0.0473
+        ],
         "depth": [
           -2.0,
           0.1
-        ],
-        "humidity": [
-          -0.0894,
-          0.0125
         ]
       }
     },
     {
       "id": "regions_unexplored:fen",
       "parameters": {
+        "weirdness": [
+          0.0473,
+          0.0736
+        ],
         "depth": [
           -2.0,
           0.1
-        ],
-        "humidity": [
-          0.0125,
-          0.1035
         ]
       }
     },
     {
       "id": "regions_unexplored:muddy_river",
       "parameters": {
+        "weirdness": [
+          0.0736,
+          0.1
+        ],
         "depth": [
           -2.0,
           0.1
-        ],
-        "humidity": [
-          0.1035,
-          0.2632
         ]
       }
     },
     {
       "id": "wilderwild:cypress_wetlands",
       "parameters": {
+        "weirdness": [
+          0.1,
+          2.0
+        ],
         "depth": [
           -2.0,
           0.1
-        ],
-        "humidity": [
-          0.2632,
-          2.0
         ]
       }
     },
     {
       "id": "minecraft:lush_caves",
       "parameters": {
+        "weirdness": [
+          -2.0,
+          -0.045
+        ],
         "depth": [
           0.1,
           2.0
-        ],
-        "humidity": [
-          -2.0,
-          -0.2786
         ]
       }
     },
     {
       "id": "terralith:cave/fungal_caves",
       "parameters": {
-        "depth": [
-          0.1,
+        "weirdness": [
+          -0.045,
           2.0
         ],
-        "humidity": [
-          -0.2786,
+        "depth": [
+          0.1,
           2.0
         ]
       }

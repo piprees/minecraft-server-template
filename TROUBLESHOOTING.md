@@ -101,7 +101,7 @@ Run this first. It covers deploy drift, disk, every expected container, `ONLINE_
 | `TheChunkSystem` ConcurrentModificationException | [K2](#k2) |
 | The map looks imprecise on steep terrain | [K5](#k5) |
 | A chunk never finishes generating; RCON accepted but never answered, one thread pegged, nothing thrown | [K6](#k6) |
-| A listed biome never rolls; band reach and overlap checks both clean | [K7](#k7) |
+| An analysis says a biome band generates nothing but the game finds it | [K7](#k7) |
 | Can't connect / server won't start / backups failing / lag | [Common symptoms](#common-symptoms) |
 
 ---
@@ -231,10 +231,9 @@ Launchers download HTML instead of mod JARs, or packwiz auto-update serves stale
 
   `overworld`, `checkerboard` and `superflat` answer `Not a MultiNoiseBiomeSource` and have no climate point to band on. In a `cave` dimension weirdness measures a span of **0.00** across one distinct value — completely inert.
 - **One representative per combination is a starting point, not a guarantee.** Measure your own dimension: `the_crumbling_reaches` (`end`, border 2048) gives weirdness 1.099 against continentalness 0.895, the reverse of the `end` row.
-- **The opposite failure is not covered by this entry.** A band can be live,
-  non-overlapping and still win no ground, because the lookup is nearest-cube
-  and a neighbour can be nearer everywhere the band claims —
-  `scripts/check-band-share.py` measures that, and [K7](#k7) holds the open cases.
+- **Band SIZE is a separate question and a 121-point grid cannot answer it.**
+  `scripts/check-band-share.py` reports each band's share; read [K7](#k7) before
+  treating a small one as a defect.
 - **Rank candidate axes by DISTRIBUTION, not span.** `the_red_monument` (`adventure:void`) gives weirdness a span of 2.000 across just THREE distinct values, seven of eleven samples pinned at -0.50 — the widest span and the worst possible axis. Count distinct values across the radius before choosing. `biomes` is creation-time worldgen config ([D2](#d2)) and changing it re-keys the generation fingerprint, so every affected dimension needs a re-roll, not a rescore.
 
 <a id="t22"></a>
@@ -990,30 +989,31 @@ The rendered height disagrees with the facts on high-relief columns. The error i
 
 <a id="k7"></a>
 
-### K7 — 20 biome bands are live, do not overlap, and still win no ground
+### K7 — a 121-point climate grid overstates absence, and a band it calls empty still generates
 
-- **Symptom:** a listed biome never appears however many seeds are rolled, while
-  `check-band-reach.py` reports 0 dead of 821 and `check-biome-bands.py` reports
-  0 overlaps. `check-band-share.py` names it and carries it in `KNOWN_EMPTY`.
-- **Cause:** the band carries a filter on a second axis, and the region where
-  that filter passes lies inside a NEIGHBOUR's slot on the partition axis. The
-  biome source is a nearest-hypercube lookup, so a neighbour with no filter is
-  distance 0 where the filtered band is not, and on a fine partition the
-  neighbour is nearer by an order of magnitude. Widening the slot cannot reach a
-  region the slot does not cover, and neither can an axis switch while the
-  filter stays where it is.
-- **The 20, by dimension:** `the_blossom_gardens` 6 of 30 bands,
-  `the_sun_kingdoms` 6 of 28, `the_highland_crossing` 4 of 31,
-  `the_frozen_hearth`, `the_gritlands`, `the_roothold` and
-  `the_whispering_wilds` one each. Every one is in a partition of 24 bands or
-  more; no partition of 15 or fewer has an empty band.
-- **What would fix it:** order each chain by where its own filter passes rather
-  than by the author's listed sequence, so a filtered band's slot sits under its
-  filter. That reorders the climate gradient, which is a design change, so it
-  needs an author's decision rather than a fit.
-- **Do not clear an entry from `KNOWN_EMPTY` by hand.** The check fails on a
-  stale entry as well as a new one, so the list can only shrink and only when
-  the band genuinely starts generating.
+- **Symptom:** a partition analysis reports that N explicit bands "win no
+  ground" or "generate nothing", while the game finds those biomes.
+- **Cause:** the analysis grid in `config/custom-dimensions/climate-axes.json`
+  is 11x11 = 121 points over the playable square. The game's own measurement is
+  `FactsEngine.GRID = 41`, disc-clipped to roughly 1300 cells, read at block
+  y 64 (`SpikeSampler`). At about 11x the density a band holding a fraction of
+  a percent gets several hits instead of none, so "0 of 121" is a resolution
+  floor, not an absence.
+- **Measured, on `the_claymarsh` at seed 135505505384991812 with its shipped
+  config:** `customdim facts` reports **14 of its 15 biomes present** and
+  `customdim score` gives **83.4%**. `minecraft:swamp` holds a weirdness band
+  0.026 wide of a 2.000 span, takes none of the 121-point grid, and
+  `customdim locate biome` finds it at **(340, 64, -224)** — a few hundred
+  blocks from spawn.
+- **What follows:** narrow is not empty, and an author's narrow band is not a
+  defect. `scripts/check-band-share.py` reports shares and deliberately does not
+  gate; a threshold needs a grid measured at the game's own geometry first.
+- **Still open and NOT covered by the above:** the bands left 0.004 wide by an
+  equal-area fit whose boundaries stacked on a clamp rail — 37 of them across
+  9 dimensions, 6.5x narrower than the `minecraft:swamp` band that probed
+  positive. Those are machine artefacts rather than authorship. Whether they
+  generate is unmeasured: the local container's config predates that fit, so
+  they cannot be probed without a config sync.
 
 ## Common symptoms
 

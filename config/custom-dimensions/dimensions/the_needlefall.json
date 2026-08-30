@@ -9,7 +9,7 @@
       "parameters": {
         "weirdness": [
           -2.0,
-          -0.549
+          -0.19
         ],
         "depth": [
           -2.0,
@@ -21,8 +21,8 @@
       "id": "terralith:siberian_taiga",
       "parameters": {
         "weirdness": [
-          -0.549,
-          -0.5
+          -0.19,
+          -0.1417
         ],
         "depth": [
           -2.0,
@@ -34,8 +34,8 @@
       "id": "natures_spirit:coniferous_covert",
       "parameters": {
         "weirdness": [
-          -0.5,
-          -0.314
+          -0.1417,
+          -0.0933
         ],
         "depth": [
           -2.0,
@@ -47,8 +47,8 @@
       "id": "minecraft:old_growth_pine_taiga",
       "parameters": {
         "weirdness": [
-          -0.314,
-          -0.072
+          -0.0933,
+          -0.045
         ],
         "depth": [
           -2.0,
@@ -60,8 +60,8 @@
       "id": "minecraft:taiga",
       "parameters": {
         "weirdness": [
-          -0.072,
-          0.121
+          -0.045,
+          0.0033
         ],
         "depth": [
           -2.0,
@@ -73,8 +73,8 @@
       "id": "minecraft:snowy_taiga",
       "parameters": {
         "weirdness": [
-          0.121,
-          0.328
+          0.0033,
+          0.0517
         ],
         "depth": [
           -2.0,
@@ -86,8 +86,8 @@
       "id": "regions_unexplored:pine_taiga",
       "parameters": {
         "weirdness": [
-          0.328,
-          0.5
+          0.0517,
+          0.1
         ],
         "depth": [
           -2.0,
@@ -99,7 +99,7 @@
       "id": "regions_unexplored:boreal_taiga",
       "parameters": {
         "weirdness": [
-          0.5,
+          0.1,
           2.0
         ],
         "depth": [
@@ -113,7 +113,7 @@
       "parameters": {
         "weirdness": [
           -2.0,
-          -0.072
+          -0.045
         ],
         "depth": [
           0.1,
@@ -125,7 +125,7 @@
       "id": "terralith:cave/tuff_caves",
       "parameters": {
         "weirdness": [
-          -0.072,
+          -0.045,
           2.0
         ],
         "depth": [

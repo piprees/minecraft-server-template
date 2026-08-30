@@ -13,7 +13,7 @@
         ],
         "weirdness": [
           -2.0,
-          -0.5817
+          -0.19
         ],
         "depth": [
           -2.0,
@@ -29,8 +29,8 @@
           -0.05
         ],
         "weirdness": [
-          -0.5817,
-          -0.4933
+          -0.19,
+          -0.1417
         ],
         "depth": [
           -2.0,
@@ -42,8 +42,8 @@
       "id": "terralith:warm_river",
       "parameters": {
         "weirdness": [
-          -0.4933,
-          -0.2127
+          -0.1417,
+          -0.0933
         ],
         "depth": [
           -2.0,
@@ -55,8 +55,8 @@
       "id": "minecraft:river",
       "parameters": {
         "weirdness": [
-          -0.2127,
-          0.0563
+          -0.0933,
+          -0.045
         ],
         "depth": [
           -2.0,
@@ -68,8 +68,8 @@
       "id": "minecraft:plains",
       "parameters": {
         "weirdness": [
-          0.0563,
-          0.2146
+          -0.045,
+          0.0033
         ],
         "depth": [
           -2.0,
@@ -81,8 +81,8 @@
       "id": "minecraft:meadow",
       "parameters": {
         "weirdness": [
-          0.2146,
-          0.4655
+          0.0033,
+          0.0517
         ],
         "depth": [
           -2.0,
@@ -94,8 +94,8 @@
       "id": "regions_unexplored:cold_river",
       "parameters": {
         "weirdness": [
-          0.4655,
-          0.5162
+          0.0517,
+          0.1
         ],
         "depth": [
           -2.0,
@@ -107,7 +107,7 @@
       "id": "wilderwild:warm_river",
       "parameters": {
         "weirdness": [
-          0.5162,
+          0.1,
           2.0
         ],
         "depth": [
@@ -121,7 +121,7 @@
       "parameters": {
         "weirdness": [
           -2.0,
-          0.02
+          -0.045
         ],
         "depth": [
           0.1,
@@ -133,7 +133,7 @@
       "id": "minecraft:lush_caves",
       "parameters": {
         "weirdness": [
-          0.02,
+          -0.045,
           2.0
         ],
         "depth": [

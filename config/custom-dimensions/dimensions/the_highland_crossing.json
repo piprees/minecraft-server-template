@@ -36,7 +36,7 @@
       "parameters": {
         "weirdness": [
           -0.5959,
-          -0.524
+          -0.5
         ]
       }
     },
@@ -44,7 +44,7 @@
       "id": "minecraft:meadow",
       "parameters": {
         "weirdness": [
-          -0.524,
+          -0.5,
           -0.496
         ]
       }
@@ -81,7 +81,7 @@
       "parameters": {
         "weirdness": [
           -0.484,
-          -0.46
+          -0.4658
         ]
       }
     },
@@ -89,7 +89,7 @@
       "id": "terralith:forested_highlands",
       "parameters": {
         "weirdness": [
-          -0.46,
+          -0.4658,
           -0.4426
         ]
       }

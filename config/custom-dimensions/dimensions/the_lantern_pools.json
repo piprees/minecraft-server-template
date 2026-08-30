@@ -6,168 +6,168 @@
     {
       "id": "terralith:desert_oasis",
       "parameters": {
+        "weirdness": [
+          -2.0,
+          -1.0
+        ],
         "depth": [
           -2.0,
           0.1
-        ],
-        "continentalness": [
-          -2.0,
-          -0.6915
         ]
       }
     },
     {
       "id": "terralith:warm_river",
       "parameters": {
+        "weirdness": [
+          -1.0,
+          -0.996
+        ],
         "depth": [
           -2.0,
           0.1
-        ],
-        "continentalness": [
-          -0.6915,
-          -0.6789
         ]
       }
     },
     {
       "id": "minecraft:warm_ocean",
       "parameters": {
+        "weirdness": [
+          -0.996,
+          -0.992
+        ],
         "depth": [
           -2.0,
           0.1
-        ],
-        "continentalness": [
-          -0.6789,
-          -0.4851
         ]
       }
     },
     {
       "id": "minecraft:mangrove_swamp",
       "parameters": {
+        "weirdness": [
+          -0.992,
+          -0.988
+        ],
         "depth": [
           -2.0,
           0.1
-        ],
-        "continentalness": [
-          -0.4851,
-          -0.2936
         ]
       }
     },
     {
       "id": "terralith:lush_valley",
       "parameters": {
+        "weirdness": [
+          -0.988,
+          -0.3476
+        ],
         "depth": [
           -2.0,
           0.1
-        ],
-        "continentalness": [
-          -0.2936,
-          -0.182
         ]
       }
     },
     {
       "id": "minecraft:jungle",
       "parameters": {
+        "weirdness": [
+          -0.3476,
+          0.0824
+        ],
         "depth": [
           -2.0,
           0.1
-        ],
-        "continentalness": [
-          -0.182,
-          -0.1556
         ]
       }
     },
     {
       "id": "minecraft:sparse_jungle",
       "parameters": {
+        "weirdness": [
+          0.0824,
+          0.3875
+        ],
         "depth": [
           -2.0,
           0.1
-        ],
-        "continentalness": [
-          -0.1556,
-          -0.143
         ]
       }
     },
     {
       "id": "terralith:orchid_swamp",
       "parameters": {
+        "weirdness": [
+          0.3875,
+          0.5
+        ],
         "depth": [
           -2.0,
           0.1
-        ],
-        "continentalness": [
-          -0.143,
-          -0.1237
         ]
       }
     },
     {
       "id": "regions_unexplored:tropics",
       "parameters": {
+        "weirdness": [
+          0.5,
+          0.6292
+        ],
         "depth": [
           -2.0,
           0.1
-        ],
-        "continentalness": [
-          -0.1237,
-          -0.1074
         ]
       }
     },
     {
       "id": "wilderwild:oasis",
       "parameters": {
+        "weirdness": [
+          0.6292,
+          1.0
+        ],
         "depth": [
           -2.0,
           0.1
-        ],
-        "continentalness": [
-          -0.1074,
-          -0.0992
         ]
       }
     },
     {
       "id": "regions_unexplored:glistering_meadow",
       "parameters": {
+        "weirdness": [
+          1.0,
+          2.0
+        ],
         "depth": [
           -2.0,
           0.1
-        ],
-        "continentalness": [
-          -0.0992,
-          2.0
         ]
       }
     },
     {
       "id": "minecraft:lush_caves",
       "parameters": {
+        "weirdness": [
+          -2.0,
+          -0.121
+        ],
         "depth": [
           0.1,
           2.0
-        ],
-        "continentalness": [
-          -2.0,
-          -0.358
         ]
       }
     },
     {
       "id": "terralith:cave/tuff_caves",
       "parameters": {
-        "depth": [
-          0.1,
+        "weirdness": [
+          -0.121,
           2.0
         ],
-        "continentalness": [
-          -0.358,
+        "depth": [
+          0.1,
           2.0
         ]
       }
