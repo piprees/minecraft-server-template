@@ -175,9 +175,9 @@ BIOME_BANDS_ERRORS=0
 BIOME_BANDS_OUT=$(python3 ./scripts/check-biome-bands.py 2>&1) || BIOME_BANDS_ERRORS=1
 if [[ $BIOME_BANDS_ERRORS -eq 0 ]]; then
   echo "  ✓ Biome bands partition their axis and are fitted to their world"
-  # The tie arm does not gate yet, so surface its findings here or a passing
-  # run hides them entirely.
-  echo "$BIOME_BANDS_OUT" | grep "can never outrank" || true
+  # The tie and rail arms do not gate yet, so surface the tally here or a
+  # passing run hides them. Match the counts, not a phrase either arm owns.
+  echo "$BIOME_BANDS_OUT" | grep -E "outrank a rival|clamp rail" || true
 else
   echo "$BIOME_BANDS_OUT"
   warn "Biome band partition check failed — run ./scripts/check-biome-bands.py"

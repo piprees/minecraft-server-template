@@ -50,7 +50,27 @@ Not covered: whether a correctly fitted band is worth having. A band can pass
           check reports the hazard and never names a loser. Mechanism, and why
           boundaries land on rails in the first place: T59.
 
+          `overlaps` is open-interval (`hi1 <= lo2` is disjoint), which is right
+          for "do these claim the same region" and wrong for `ParameterRange`,
+          which contains both endpoints. Two bands merely TOUCHING are a tie,
+          not an overlap, and the rail arm is what covers that gap — widening
+          `overlaps` instead would report 790 pairs across 56 of 82 dimensions,
+          which is an alarm rather than a gate. Measured over the committed
+          41x41 grids: of 819 shared boundaries, 705 sit on a value the world
+          never returns and 114 are live; every one of the 8 on a rail is live
+          at 42-406 samples, and all 106 others are at 2-3. The rail rule
+          biome-placement.md already calls non-negotiable is exactly what
+          separates them, so this needs no threshold of the script's own.
+
 Usage:    scripts/check-biome-bands.py            # exits 1 on any of the five arms
+
+          The rail arm REPORTS and does not gate. It has 8 live findings on the
+          shipped pack, across the_highland_crossing (3), the_gritlands (2),
+          the_teal_corruption (2) and the_crimson_nexus (1); each needs a
+          boundary moved off the rail with a real gap, which is creation-time
+          worldgen and needs a wipe. Add `total_rail` to the exit condition once
+          they are fixed — the count in the tally line is what makes an arm that
+          does not gate still visible.
 
 Gotchas:  - The tie arm needs climate-axes.json to know what a world reaches, so
             it is silent for a dimension nobody has measured. That is the one
@@ -108,6 +128,9 @@ WIDTH_REL_TOL = 0.02
 MIN_RUN = 3
 # A surface/underground split, not a partition fitted to a measured range.
 NOT_SLICED = {"depth"}
+# biome-placement.md: "No boundary may sit on a clamp rail." The noise
+# saturates at these values, so a boundary there collects the pile-up.
+RAILS = {-2.0, -1.0, -0.5, 0.5, 1.0, 2.0}
 
 def rng(params, axis):
     v = params.get(axis)
@@ -224,6 +247,38 @@ def tie_hazards(entries, samples):
     return out
 
 
+def rail_ties(entries, samples):
+    """(id, rival, axis, value, cells) per pair sharing a boundary ON A CLAMP RAIL.
+
+    `overlaps` is open-interval arithmetic and a `ParameterRange` contains both
+    its endpoints, so two bands meeting at a boundary are both at distance zero
+    from a sample on it and the SearchTree incumbent decides (T59). Measured
+    over the committed 41x41 grids: 819 shared boundaries, 705 on a value the
+    world never returns, 114 live — and every one of the 8 sitting on a rail is
+    live at 42-406 samples while all 106 others are at 2-3. The rail rule
+    biome-placement.md already states is what separates them, so gating on it
+    needs no threshold of this script's own invention.
+    """
+    out = []
+    for axis, key in SAMPLE_KEY.items():
+        drawn = samples.get(key)
+        if not drawn:
+            continue
+        for (bid, a), (rid, b) in combinations(entries, 2):
+            if any(rng(a, ax)[1] < rng(b, ax)[0] or rng(b, ax)[1] < rng(a, ax)[0]
+                   for ax in AXES):
+                continue
+            lo1, hi1 = rng(a, axis)
+            lo2, hi2 = rng(b, axis)
+            point = hi1 if hi1 == lo2 else (hi2 if hi2 == lo1 else None)
+            if point is None or point not in RAILS:
+                continue
+            cells = sum(1 for x in drawn if x == point)
+            if cells:
+                out.append((bid, rid, axis, point, cells))
+    return out
+
+
 def dead_repeats(arr):
     """(id, why) for every entry repeating a biome without adding a hypercube.
 
@@ -265,7 +320,7 @@ def measured():
 
 def main():
     total_files = total_pairs = total_starved = total_sliced = total_dead = 0
-    total_tied = 0
+    total_tied = total_rail = 0
     grids = measured()
     consumer = optional_consumer_dir()
     sources = [("platform", "config/custom-dimensions/dimensions/*.json")]
@@ -295,6 +350,13 @@ def main():
                 print(f"      a range contains both its endpoints, so a shared boundary is a tie"
                       f" that generation order settles, not a split this config decides —"
                       f" move the boundary off {point}, or widen the band so it can win outright")
+
+            railed = rail_ties(ex, drawn) if drawn else []
+            if railed:
+                total_rail += len(railed)
+                for bid, rid, axis, point, cells in railed:
+                    print(f"  {name:26s} [{where:8s}] {bid} and {rid} share the {axis}"
+                          f" boundary {point}, a clamp rail the world returns {cells} times")
 
             dead = dead_repeats(arr)
             if dead:
@@ -343,7 +405,8 @@ def main():
         print(f"  overlay not checked - set {ENV_VAR} to include a consumer repo")
     print(f"{total_files} files, {total_pairs} overlapping pairs, {total_starved} starved natives, "
           f"{total_sliced} schema-stepped bands, {total_dead} dead repeats, "
-          f"{total_tied} bands that can never outrank a rival")
+          f"{total_tied} bands that can never outrank a rival, "
+          f"{total_rail} shared boundaries on a clamp rail")
     if scanned == 0:
         sys.exit("nothing scanned - run this from the platform repo root")
     return 1 if (total_pairs or total_starved or total_sliced or total_dead
