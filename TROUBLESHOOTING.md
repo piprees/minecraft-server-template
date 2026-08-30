@@ -4,7 +4,7 @@
 
 | Prefix | Range | What it covers |
 | --- | --- | --- |
-| **T** | [T1–T14, T16–T19, T22–T27, T30–T69](#architecture-traps) | Architecture traps — each has caused a real production incident |
+| **T** | [T1–T14, T16–T19, T22–T27, T30–T70](#architecture-traps) | Architecture traps — each has caused a real production incident |
 | **P** | [P1–P4](#macos-local-dev) | macOS local-dev quirks (BSD tooling, toolchain) |
 | **D** | [D1–D6, D8–D9](#dimension-lifecycle) | Custom-dimension lifecycle on a live world |
 | **K** | [K1–K2, K5–K7](#known-issues) | Open issues — unfixed, on the watch list |
@@ -69,6 +69,7 @@ Run this first. It covers deploy drift, disk, every expected container, `ONLINE_
 | A batched loop runs one iteration and exits 0 | [T67](#t67) |
 | A fresh world's first boot logs `Failed to load server level` and then starts fine | [T68](#t68) |
 | A dimension listing a dozen biomes generates one or two, bands green | [T69](#t69) |
+| A comment-only edit makes a roll re-measure what the bank already held | [T70](#t70) |
 | Config or mod changes didn't take effect after a deploy | [T2](#t2) |
 | `signal only works in main thread` in discord-sync logs | [T3](#t3) |
 | mc crash-loops with Modrinth `429 Too Many Requests` | [T4](#t4) |
@@ -1263,6 +1264,32 @@ measurement of it.
   authored `offset` is used raw and can exceed `BAND_OFFSET_BASE × g` — a floor
   derived from the default would sit under an authored band and hand filler that
   band's window.
+
+<a id="t70"></a>
+### T70 — A comment-only edit to a mod source file changes the compiled bytes, and invalidates every banked scorecard
+
+- **Symptom:** a javadoc or comment is tidied, nothing else, and the next roll
+  re-measures dimensions the bank already held — or a jar that should be
+  identical to the one a measurement ran against has a different `InputHash`.
+- **Cause:** the class file carries a `LineNumberTable` mapping bytecode offsets
+  to **source line numbers**. `DimensionManager.class` holds 81 entries.
+  Deleting comment lines above a method shifts every entry below it, so the
+  compiled bytes move. `InputHash.hashArtefactPath` hashes the CRC of each jar
+  entry under `MEASUREMENT_PATHS`, so the hash moves with them, and the bank is
+  keyed by that hash — every scorecard for every dimension becomes unreachable.
+- **Fix:** treat any edit to a file under `com/customdimensions/config/` or
+  `com/customdimensions/dimension/` as measurement-affecting, comments included.
+  Land comment work in its own commit, before a roll or after the tag, never
+  between a roll and the release it ships in.
+- **Measure control and treatment through the SAME procedure.** Gradle answers
+  `Task :compileJava UP-TO-DATE` when a source mtime has not moved, so a naive
+  before/after reports an unchanged CRC having recompiled nothing. Delete the
+  class and recompile for both arms, and confirm the control reproduces its own
+  hash before believing the treatment.
+- **`build/classes` is not what the hash reads.** `hashArtefactPath` walks the
+  **jar**, whose classes are Loom-remapped and carry different bytes from
+  `build/classes`. A comparison on `build/classes` is evidence about compilation,
+  not about the artefact the bank is keyed on.
 
 ## macOS local dev
 
