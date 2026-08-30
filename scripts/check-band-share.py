@@ -9,9 +9,9 @@ Purpose:  check-band-reach.py asks whether a band is reachable at all and
 
 Context:  A small share is NOT a fault and this script does not gate. It reads
           the 41x41 = 1681-point grids under config/custom-dimensions/grids-41/,
-          which is the density FactsEngine measures at. The 121-point cloud in
-          climate-axes.json called 37 bands empty where these call 2 — 35 of the
-          37 were resolution artefacts (K7).
+          which is the density FactsEngine measures at. Thinning those same
+          grids to the 121-point cloud in climate-axes.json calls 40 bands empty
+          against these 2 — 38 of the 40 are resolution artefacts (K7).
 
           The target is that no listed biome is IGNORED, never that the parts
           are equal. A dimension where one biome dominates and the others each
@@ -33,8 +33,16 @@ Gotchas:  - A biome may carry several bands and holds each region. A repeat
             on. FactsEngine disc-clips its own sample, so it under-reports a
             band living only near the corners; that is a limit of `facts`, not
             of the world. Nothing here clips.
-          - Depth is still two synthetic layers rather than measured, which
-            flatters a cave band. Judged elsewhere.
+          - **Depth is measured, at one height.** The grids carry depth at y=0;
+            the gradient is -1/128 per block, so block y 64 — the height
+            `customdim facts` reads — is the sampled value minus 0.5. Every
+            column is scored once, there. A band placed deeper than that height
+            reaches only what the surface columns happen to expose, so a thin
+            share is expected and is not a fault.
+          - A dimension whose depth column is off the climate scale (an end or
+            cave router reads 0, or 40..80) never has a band constraining depth,
+            and an axis no band constrains adds the same distance to every band.
+            Depth is dropped from the lookup there; the argmin cannot move.
           - Exits 0 always. "Holds no cell" at this density is worth
             investigating and is still not proof of absence — only
             `customdim locate biome` searches rather than samples.
@@ -56,14 +64,15 @@ REPO = pathlib.Path(__file__).resolve().parent.parent
 DIMS = REPO / "config/custom-dimensions/dimensions"
 GRIDS = REPO / "config/custom-dimensions/grids-41"
 # Column order in a sample-climate-grid.sh TSV: x z temp humid cont eros depth weird
-COL = {"temp": 2, "humid": 3, "cont": 4, "eros": 5, "weird": 7}
+COL = {"temp": 2, "humid": 3, "cont": 4, "eros": 5, "depth": 6, "weird": 7}
 
 AXES = ["temperature", "humidity", "continentalness", "erosion", "depth", "weirdness"]
 KEY = {"temperature": "temp", "humidity": "humid", "continentalness": "cont",
-       "erosion": "eros", "weirdness": "weird"}
+       "erosion": "eros", "depth": "depth", "weirdness": "weird"}
 FULL = (-2.0, 2.0)
-# One representative depth per layer: below and above every shipped split.
-LAYERS = {"surface": -0.5, "cave": 0.5}
+# Blocks between the grid's sampled height and the one facts reads, over the
+# depth gradient's -1/128 per block.
+DEPTH_AT_Y64 = -0.5
 
 
 def grid(slug):
@@ -73,7 +82,9 @@ def grid(slug):
         return None
     with gzip.open(path, "rt") as fh:
         rows = [l.split("\t") for l in fh.read().splitlines() if not l.startswith("#")][1:]
-    return {k: [float(r[c]) for r in rows] for k, c in COL.items()}
+    cols = {k: [float(r[c]) for r in rows] for k, c in COL.items()}
+    cols["depth"] = [d + DEPTH_AT_Y64 for d in cols["depth"]]
+    return cols
 
 
 def rng(params, axis):
@@ -85,9 +96,9 @@ def rng(params, axis):
     return (float(v[0]), float(v[1]))
 
 
-def squared_distance(cube, point):
+def squared_distance(cube, point, axes):
     total = 0.0
-    for axis in AXES:
+    for axis in axes:
         lo, hi = cube[axis]
         v = point[axis]
         d = lo - v if v < lo else (v - hi if v > hi else 0.0)
@@ -95,14 +106,14 @@ def squared_distance(cube, point):
     return total
 
 
-def wins(bands, samples, depth):
+def wins(bands, samples, axes):
     got = {bid: 0 for bid, _ in bands}
     n = len(next(iter(samples.values())))
     for i in range(n):
-        point = {a: (depth if a == "depth" else samples[KEY[a]][i]) for a in AXES}
+        point = {a: samples[KEY[a]][i] for a in axes}
         best, bestd = None, None
         for bid, cube in bands:
-            d = squared_distance(cube, point)
+            d = squared_distance(cube, point, axes)
             if bestd is None or d < bestd:
                 best, bestd = bid, d
         got[best] += 1
@@ -137,18 +148,14 @@ def main():
 
 
         judged += len(bands)
-        held = {bid: 0 for bid, _ in bands}
-        top = (0.0, None, 0)
-        for depth in LAYERS.values():
-            members = [b for b in bands if b[1]["depth"][0] <= depth <= b[1]["depth"][1]]
-            if not members:
-                continue
-            got, n = wins(bands, samples, depth)
-            for bid, c in got.items():
-                held[bid] += c
-            best = max(((got[bid], bid) for bid, _ in members), default=(0, None))
-            if best[0] / n > top[0]:
-                top = (best[0] / n, best[1], len(members))
+        # Depth off-scale (an end or cave router reads 0, or 40..80) only ever
+        # coincides with no band constraining it, and an axis no band constrains
+        # adds the same distance to every band, so dropping it cannot move the
+        # argmin.
+        axes = AXES if any(c["depth"] != FULL for _, c in bands) else \
+            [a for a in AXES if a != "depth"]
+        held, n = wins(bands, samples, axes)
+        top = max(((c / n, bid) for bid, c in held.items()), default=(0.0, None))
 
         blank = [bid for bid, _ in bands if held[bid] == 0]
         empty += len(blank)

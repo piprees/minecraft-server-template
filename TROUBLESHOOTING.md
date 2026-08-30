@@ -1076,18 +1076,28 @@ The rendered height disagrees with the facts on high-relief columns. The error i
   holding a fraction of a percent gets several hits at that density and none at
   121, so "0 of 121" is a resolution floor.
 - **Measured against a real 41x41 sweep of all 78 measurable dimensions: a
-  121-point cloud calls 37 bands empty where 1681 points call 2 — 18.5x.**
-  Thirty-five are resolution artefacts. `check-band-share.py` reads the dense
-  grids in `config/custom-dimensions/grids-41/`; the comparison holds its `rng`,
-  `wins` and `LAYERS` fixed, so density is the only variable.
+  121-point cloud calls 40 bands empty where 1681 points call 2 — 20x.**
+  Thirty-eight are resolution artefacts, and the 2 are a strict subset of the
+  40. `check-band-share.py` reads the dense grids in
+  `config/custom-dimensions/grids-41/`; the comparison thins those same grids
+  1-in-4 on both axes, so density is the only variable.
 - **A "holds no cell" line from the 121-point cloud is wrong about 95% of the
   time.** Do not act on one. The two that survive density are
-  `the_roothold` `incendium:withered_forest` and `the_rosebluff`
+  `the_greenreach` `minecraft:lush_caves` and `the_rosebluff`
   `terralith:white_cliffs`, both at a 1024 border and both unprobed.
-- The error runs both ways, and depth is the other direction. Scoring two
-  SYNTHETIC depth layers separately flatters a cave band the game reads at one
-  height (`the_frozen_strait` goes 1 empty to 3). That is independent of
-  density, so it lands as its own change.
+- **Axes can be individually reachable and jointly impossible, and
+  `check-band-reach.py` cannot see it** — it tests each axis against that axis's
+  own measured min/max, one at a time. `the_greenreach` `minecraft:lush_caves`
+  wants depth >= 0.1 and weirdness <= -0.045; 73 columns are deep enough and
+  635 are weird enough, and no column is both. Only the joint lookup finds it.
+- **Depth is the other direction, and one sampled height is all there is.** The
+  grids carry depth at y=0 and the gradient is -1/128 per block, so block y 64
+  — what `facts` reads — is that value minus 0.5. Scoring a column at two
+  invented depths instead hands a whole synthetic layer to the cave bands: it
+  put a cave biome top in all 25 dimensions that band on depth, at shares up to
+  79%, against 8 and 47% measured. It also reported `the_roothold`
+  `incendium:withered_forest` empty because that band starts at depth 0.6 and
+  neither invented layer reached it.
 - **Confirmed against the game.** On `the_claymarsh` at seed
   135505505384991812, `customdim facts` reports 14 of its 15 biomes and
   `customdim score` gives 83.4%. `minecraft:swamp` holds a weirdness band 0.026
