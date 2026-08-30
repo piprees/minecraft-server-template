@@ -329,11 +329,17 @@ public class DimensionConfig {
 
     /**
      * The offset a band gets when its author writes none, before the
-     * dimension's own projection factor is applied. Vanilla's heaviest
-     * authored value ({@code warped_forest} in the nether preset), which is
-     * what a band costing a native its ground has to be measured against.
+     * dimension's own projection factor is applied. Vanilla authors two
+     * ({@code basalt_deltas} 0.175 and {@code warped_forest} 0.375); this is
+     * the conservative one, and the value is PROVISIONAL until measured.
+     *
+     * <p>The risk is asymmetric. Too low under-corrects and bands keep
+     * winning ground, which is the state before this existed and is invisible.
+     * Too high takes ground from bands that were placing correctly, in a world
+     * someone is playing. Start at the bottom of the defensible range and let
+     * a measurement move it up.
      */
-    public static final float BAND_OFFSET_BASE = 0.375f;
+    public static final float BAND_OFFSET_BASE = 0.175f;
 
     /**
      * Whether a band states its own offset. One rule for both callers — the

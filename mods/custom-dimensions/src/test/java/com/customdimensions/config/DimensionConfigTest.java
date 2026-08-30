@@ -565,7 +565,7 @@ class DimensionConfigTest {
         // The value is a literal, not a reference to the constant: a term built
         // from BAND_OFFSET_BASE moves with it, so it can never catch a change
         // to the default — which is the only thing this term exists to catch.
-        assertTrue(config.getBiomeParametersFingerprint().contains("defaultOffset=0.375"));
+        assertTrue(config.getBiomeParametersFingerprint().contains("defaultOffset=0.175"));
     }
 
     @Test
@@ -595,7 +595,7 @@ class DimensionConfigTest {
                 """);
 
         assertTrue(config.defaultOffsetCanAct());
-        assertTrue(config.getBiomeParametersFingerprint().contains("defaultOffset=0.375"));
+        assertTrue(config.getBiomeParametersFingerprint().contains("defaultOffset=0.175"));
     }
 
     @Test
@@ -606,7 +606,7 @@ class DimensionConfigTest {
                 """);
 
         assertTrue(config.defaultOffsetCanAct());
-        assertTrue(config.getBiomeParametersFingerprint().contains("defaultOffset=0.375"));
+        assertTrue(config.getBiomeParametersFingerprint().contains("defaultOffset=0.175"));
     }
 
     @Test

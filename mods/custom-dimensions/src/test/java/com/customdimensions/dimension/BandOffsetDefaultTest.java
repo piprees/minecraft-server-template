@@ -137,25 +137,26 @@ class BandOffsetDefaultTest {
     }
 
     @Test
-    void theBaseIsVanillasHeaviestAuthoredOffset() {
-        // warped_forest, in MultiNoiseBiomeSourceParameterList$Preset$1. Pinned
-        // as a literal on purpose: a test written against the constant moves
-        // with it and cannot see it change.
-        assertEquals(0.375f, DimensionConfig.BAND_OFFSET_BASE);
+    void theBaseIsTheConservativeOfVanillasTwoAuthoredOffsets() {
+        // basalt_deltas, in MultiNoiseBiomeSourceParameterList$Preset$1;
+        // warped_forest's 0.375 is the other and is the top of the range.
+        // Pinned as a literal on purpose: a test written against the constant
+        // moves with it and cannot see it change.
+        assertEquals(0.175f, DimensionConfig.BAND_OFFSET_BASE);
     }
 
     @Test
     void theDefaultScalesWithTheFactorTheProjectionApplied() {
         // the_lantern_pools measures 0.583, so its bands are sized against
         // natives whose own offsets were multiplied by that.
-        assertEquals(0.375f * 0.583f, DimensionManager.defaultBandOffset(0.583), 1e-6);
+        assertEquals(0.175f * 0.583f, DimensionManager.defaultBandOffset(0.583), 1e-6);
     }
 
     @Test
     void anUnprojectedDimensionGetsTheBaseUnscaled() {
         // Both projection refusals report 1.0, and the additive path never
         // projects at all — there the rivals pay their own offsets.
-        assertEquals(0.375f, DimensionManager.defaultBandOffset(1.0), 1e-6);
+        assertEquals(0.175f, DimensionManager.defaultBandOffset(1.0), 1e-6);
     }
 
     @Test
