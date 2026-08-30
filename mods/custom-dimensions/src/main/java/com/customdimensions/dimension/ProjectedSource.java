@@ -119,17 +119,27 @@ public final class ProjectedSource {
     }
 
     /**
+     * The projected cells, and the factor their offsets were actually
+     * multiplied by. {@code appliedFactor} is 1.0 on every refusal, so a
+     * caller sizing something against a declared offset reads what the cells
+     * carry rather than what could have been computed.
+     */
+    public record Projected<T>(List<Pair<MultiNoiseUtil.NoiseHypercube, T>> cells,
+                               double appliedFactor) {
+    }
+
+    /**
      * The declared entries mapped into {@code dimName}'s own window.
      *
      * <p>Returns the input unchanged when the dimension has no measured window,
      * when nothing is declared, or when no axis survives the collapse filter —
      * every one of which is a refusal to guess rather than a failure.
      */
-    public static <T> List<Pair<MultiNoiseUtil.NoiseHypercube, T>> project(
+    public static <T> Projected<T> project(
             List<Pair<MultiNoiseUtil.NoiseHypercube, T>> declared, String dimName) {
         List<WindowProjection.Window> window = windows.get(dimName);
         if (window == null || declared == null || declared.isEmpty()) {
-            return declared;
+            return new Projected<>(declared, 1.0);
         }
         List<WindowProjection.Cell<Pair<MultiNoiseUtil.NoiseHypercube, T>>> cells = new ArrayList<>();
         for (Pair<MultiNoiseUtil.NoiseHypercube, T> entry : declared) {
@@ -141,7 +151,7 @@ public final class ProjectedSource {
             MultiverseServer.LOGGER.warn(
                     "Dimension {}: no climate axis carries enough variation to place on — "
                     + "{} declared cell(s) left as authored", dimName, declared.size());
-            return declared;
+            return new Projected<>(declared, 1.0);
         }
         List<Pair<MultiNoiseUtil.NoiseHypercube, T>> out = new ArrayList<>();
         for (WindowProjection.Cell<Pair<MultiNoiseUtil.NoiseHypercube, T>> cell : result.cells()) {
@@ -152,7 +162,7 @@ public final class ProjectedSource {
                 + "(offset x{}, {} axis/axes rejected, {} boundary move(s), {} left tied)",
                 dimName, out.size(), String.format(java.util.Locale.ROOT, "%.3f", result.offsetFactor()),
                 result.rejectedAxes().size(), result.separations(), result.unseparated());
-        return out;
+        return new Projected<>(out, result.offsetFactor());
     }
 
     /** A hypercube as a projectable cell, keeping the original as the payload. */

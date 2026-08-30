@@ -328,6 +328,14 @@ public class DimensionConfig {
     }
 
     /**
+     * The offset a band gets when its author writes none, before the
+     * dimension's own projection factor is applied. Vanilla's heaviest
+     * authored value ({@code warped_forest} in the nether preset), which is
+     * what a band costing a native its ground has to be measured against.
+     */
+    public static final float BAND_OFFSET_BASE = 0.375f;
+
+    /**
      * Explicit multi-noise bands from object-form biomes entries (Tier 3), in
      * file order. A biome may carry SEVERAL — vanilla's own parameter table
      * gives minecraft:plains a hypercube in each climate region it belongs to,
@@ -414,10 +422,11 @@ public class DimensionConfig {
 
     /**
      * Canonical "id={params json},..." string for creation-time
-     * fingerprinting, one term per band; null when no entry carries
-     * parameters. JsonObject preserves insertion order, so the same file
-     * always fingerprints equal, and a biome's second band is its own term
-     * rather than a repeat that changes nothing.
+     * fingerprinting, one term per band, plus a trailing
+     * {@code |defaultOffset=} where any band leaves its offset to the mod;
+     * null when no entry carries parameters. JsonObject preserves insertion
+     * order, so the same file always fingerprints equal, and a biome's second
+     * band is its own term rather than a repeat that changes nothing.
      */
     public String getBiomeParametersFingerprint() {
         List<BiomeBand> bands = this.getBiomeBands();
@@ -425,11 +434,19 @@ public class DimensionConfig {
             return null;
         }
         StringBuilder sb = new StringBuilder();
+        boolean anyDefaulted = false;
         for (BiomeBand band : bands) {
             if (sb.length() > 0) {
                 sb.append(",");
             }
             sb.append(band.id()).append("=").append(band.parameters());
+            anyDefaulted |= band.parameters() == null || !band.parameters().has("offset");
+        }
+        // A band writing no offset generates against the mod's default, so a
+        // changed default is a changed generator and has to read as drift
+        // ([D2]). The config text on its own cannot see that.
+        if (anyDefaulted) {
+            sb.append("|defaultOffset=").append(BAND_OFFSET_BASE);
         }
         return sb.toString();
     }

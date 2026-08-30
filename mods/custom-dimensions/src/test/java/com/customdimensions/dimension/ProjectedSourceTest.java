@@ -176,6 +176,25 @@ class ProjectedSourceTest {
         List<Pair<MultiNoiseUtil.NoiseHypercube, String>> declared =
                 List.of(Pair.of(cube(-0.5, 0.5, OPEN, 0.0), "a"));
 
-        assertEquals(declared, ProjectedSource.project(declared, "nothing_measured_here"));
+        assertEquals(declared, ProjectedSource.project(declared, "nothing_measured_here").cells());
+    }
+
+    /**
+     * A refusal leaves every declared offset as authored, so the factor it
+     * reports has to be the one applied and not the one computable — a caller
+     * sizing a band against these cells would otherwise scale against nothing.
+     */
+    @Test
+    void anUnmeasuredDimensionAppliesNoFactor() {
+        List<Pair<MultiNoiseUtil.NoiseHypercube, String>> declared =
+                List.of(Pair.of(cube(-0.5, 0.5, OPEN, 0.0), "a"));
+
+        assertEquals(1.0, ProjectedSource.project(declared, "nothing_measured_here").appliedFactor());
+    }
+
+    @Test
+    void anEmptyPaletteAppliesNoFactor() {
+        assertEquals(1.0, ProjectedSource.project(
+                List.<Pair<MultiNoiseUtil.NoiseHypercube, String>>of(), "anything").appliedFactor());
     }
 }

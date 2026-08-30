@@ -18,9 +18,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  *
  * <p>Driven with strings for cells rather than hypercubes: resolving one
  * initialises {@code Registries}, and this suite cannot bootstrap Minecraft.
- * The parameters-to-hypercube step is {@code hypercubeFrom}, which the running
- * server exercises; what is asked here is which bands place and which biomes
- * are then withdrawn from native and round-robin placement.
+ * The parameters-to-cube step is {@code bandCubeFrom}, covered by
+ * {@link BandOffsetDefaultTest}; what is asked here is which bands place and
+ * which biomes are then withdrawn from native and round-robin placement.
  */
 class ExplicitBandsTest {
 
@@ -105,7 +105,7 @@ class ExplicitBandsTest {
 
     @Test
     void aBandWhoseParametersDoNotParsePlacesNothingAndWithdrawsNothing() {
-        // hypercubeFrom returns null on an invalid axis. The biome must fall
+        // bandCubeFrom returns null on an invalid axis. The biome must fall
         // back to plain-listed behaviour, which means staying available to the
         // native tier — withdrawing it would delete it from the dimension.
         DimensionManager.Placed<String> placed = DimensionManager.explicitBands(

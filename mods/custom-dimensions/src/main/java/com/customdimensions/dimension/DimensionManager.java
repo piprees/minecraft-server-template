@@ -308,8 +308,8 @@ public class DimensionManager {
         // valid "parameters" object places its own hypercube, and its biome is
         // withdrawn from the native/round-robin machinery entirely — its
         // natural regions (if any) join the pool for foreign biomes.
-        Placed<MultiNoiseUtil.NoiseHypercube> explicit = explicitBands(bands, allowedIds,
-                band -> hypercubeFrom(band.parameters(), dimName, band.id()));
+        Placed<BandCube> explicit = explicitBands(bands, allowedIds,
+                band -> bandCubeFrom(band.parameters(), dimName, band.id()));
 
         MultiNoiseUtil.Entries<RegistryEntry<Biome>> entries =
                 ((MultiNoiseBiomeSourceAccessor) base).invokeGetBiomeEntries();
@@ -340,19 +340,6 @@ public class DimensionManager {
             }
         }
 
-        List<Pair<MultiNoiseUtil.NoiseHypercube, RegistryEntry<Biome>>> result = new ArrayList<>();
-        int explicitCells = 0;
-        for (Pair<MultiNoiseUtil.NoiseHypercube, Identifier> cell : explicit.cells()) {
-            Optional<RegistryEntry.Reference<Biome>> biomeEntry =
-                    biomeRegistry.getEntry(RegistryKey.of(RegistryKeys.BIOME, cell.getSecond()));
-            if (biomeEntry.isPresent()) {
-                result.add(Pair.of(cell.getFirst(), biomeEntry.get()));
-                explicitCells++;
-            } else {
-                MultiverseServer.LOGGER.warn("Dimension {}: biome {} (with parameters) not in the registry — skipped",
-                        dimName, cell.getSecond());
-            }
-        }
         // Declared cells are authored across the whole climate space; this
         // dimension samples a sliver of it. An author's own bands are NOT
         // projected — they were written for this world already.
@@ -362,7 +349,25 @@ public class DimensionManager {
         declared.addAll(nativeEntries);
         declared.addAll(dealt.natural());
         declared.addAll(dealt.filler());
-        result.addAll(ProjectedSource.project(declared, dimName));
+        ProjectedSource.Projected<RegistryEntry<Biome>> projected =
+                ProjectedSource.project(declared, dimName);
+        // Bands are placed before the projected cells, and that order settles
+        // which of two tied cells the SearchTree keeps ([T59]).
+        float bandOffset = defaultBandOffset(projected.appliedFactor());
+        List<Pair<MultiNoiseUtil.NoiseHypercube, RegistryEntry<Biome>>> result = new ArrayList<>();
+        int explicitCells = 0;
+        for (Pair<BandCube, Identifier> cell : explicit.cells()) {
+            Optional<RegistryEntry.Reference<Biome>> biomeEntry =
+                    biomeRegistry.getEntry(RegistryKey.of(RegistryKeys.BIOME, cell.getSecond()));
+            if (biomeEntry.isPresent()) {
+                result.add(Pair.of(withDefaultOffset(cell.getFirst(), bandOffset), biomeEntry.get()));
+                explicitCells++;
+            } else {
+                MultiverseServer.LOGGER.warn("Dimension {}: biome {} (with parameters) not in the registry — skipped",
+                        dimName, cell.getSecond());
+            }
+        }
+        result.addAll(projected.cells());
         if (result.isEmpty()) {
             MultiverseServer.LOGGER.warn("Dimension {}: no usable biomes in '{}' — keeping the base source", dimName, biomeList);
             return base;
@@ -431,8 +436,8 @@ public class DimensionManager {
                 .collect(Collectors.toCollection(java.util.LinkedHashSet::new));
         askedIds.removeAll(BiomeSuppression.suppressedIds());
 
-        Placed<MultiNoiseUtil.NoiseHypercube> explicit = explicitBands(bands, askedIds,
-                band -> hypercubeFrom(band.parameters(), dimName, band.id()));
+        Placed<BandCube> explicit = explicitBands(bands, askedIds,
+                band -> bandCubeFrom(band.parameters(), dimName, band.id()));
 
         MultiNoiseUtil.Entries<RegistryEntry<Biome>> entries =
                 ((MultiNoiseBiomeSourceAccessor) base).invokeGetBiomeEntries();
@@ -443,12 +448,16 @@ public class DimensionManager {
             pair.getSecond().getKey().map(RegistryKey::getValue).ifPresent(basePlaced::add);
         }
 
+        // Nothing here is projected — the base source is kept whole and
+        // declared cells are appended as authored — so the rivals a band
+        // competes with pay their own offsets and the default is unscaled.
+        float bandOffset = defaultBandOffset(1.0);
         int banded = 0;
-        for (Pair<MultiNoiseUtil.NoiseHypercube, Identifier> cell : explicit.cells()) {
+        for (Pair<BandCube, Identifier> cell : explicit.cells()) {
             Optional<RegistryEntry.Reference<Biome>> entry =
                     biomeRegistry.getEntry(RegistryKey.of(RegistryKeys.BIOME, cell.getSecond()));
             if (entry.isPresent()) {
-                result.add(Pair.of(cell.getFirst(), entry.get()));
+                result.add(Pair.of(withDefaultOffset(cell.getFirst(), bandOffset), entry.get()));
                 banded++;
             } else {
                 MultiverseServer.LOGGER.warn("Dimension {}: biome {} (with parameters) not in the registry — skipped",
@@ -515,6 +524,35 @@ public class DimensionManager {
             }
         }
         return new Appended(arriving, declared, unplaceable);
+    }
+
+    /**
+     * A band's cube and whether its author wrote an {@code offset}. An explicit
+     * {@code 0} is authored and means no penalty; absent or out of range is
+     * unauthored, and the dimension's default applies.
+     */
+    record BandCube(MultiNoiseUtil.NoiseHypercube cube, boolean offsetAuthored) {
+    }
+
+    /**
+     * The offset an unauthored band gets where the declared cells were scaled
+     * by {@code appliedFactor}. Natives arrive with their own offsets already
+     * multiplied by it, so a constant here would mean a different thing in
+     * every dimension.
+     */
+    static float defaultBandOffset(double appliedFactor) {
+        return (float) (DimensionConfig.BAND_OFFSET_BASE * appliedFactor);
+    }
+
+    /** A band's cube, with the default stamped on where its author wrote none. */
+    static MultiNoiseUtil.NoiseHypercube withDefaultOffset(BandCube band, float defaultOffset) {
+        if (band.offsetAuthored()) {
+            return band.cube();
+        }
+        MultiNoiseUtil.NoiseHypercube c = band.cube();
+        return new MultiNoiseUtil.NoiseHypercube(c.temperature(), c.humidity(),
+                c.continentalness(), c.erosion(), c.depth(), c.weirdness(),
+                Math.round(defaultOffset * 10000.0));
     }
 
     /**
@@ -616,12 +654,13 @@ public class DimensionManager {
         return new Dealt<>(natural, filler, foreign);
     }
 
-    // One NoiseHypercube from a raw "parameters" object. Each axis is a
-    // number (point) or [min, max]; unset axes span the whole [-2, 2] space
-    // (the biome claims everything the interval doesn't constrain).
-    // "offset" is a plain float >= 0. Any invalid axis -> warn + null (the
-    // biome falls back to plain-listed behaviour, never a crash).
-    private static MultiNoiseUtil.NoiseHypercube hypercubeFrom(
+    // One BandCube from a raw "parameters" object. Each axis is a number
+    // (point) or [min, max]; unset axes span the whole [-2, 2] space (the
+    // biome claims everything the interval doesn't constrain). Any invalid
+    // axis -> warn + null (the biome falls back to plain-listed behaviour,
+    // never a crash). "offset" is a float in 0..1; absent or out of range
+    // leaves the band unauthored, and the dimension's default applies.
+    static BandCube bandCubeFrom(
             com.google.gson.JsonObject params, String dimName, String biomeId) {
         MultiNoiseUtil.ParameterRange[] ranges = new MultiNoiseUtil.ParameterRange[6];
         String[] axes = {"temperature", "humidity", "continentalness", "erosion", "depth", "weirdness"};
@@ -636,18 +675,21 @@ public class DimensionManager {
             ranges[i] = range;
         }
         float offset = 0.0f;
+        boolean authored = false;
         com.google.gson.JsonElement off = params.get("offset");
         if (off != null && off.isJsonPrimitive() && off.getAsJsonPrimitive().isNumber()) {
             float v = off.getAsFloat();
             if (v >= 0.0f && v <= 1.0f) {
                 offset = v;
+                authored = true;
             } else {
-                MultiverseServer.LOGGER.warn("Dimension {}: biome {} parameters.offset {} outside 0..1 — using 0",
+                MultiverseServer.LOGGER.warn(
+                        "Dimension {}: biome {} parameters.offset {} outside 0..1 — using this dimension's default",
                         dimName, biomeId, v);
             }
         }
-        return MultiNoiseUtil.createNoiseHypercube(
-                ranges[0], ranges[1], ranges[2], ranges[3], ranges[4], ranges[5], offset);
+        return new BandCube(MultiNoiseUtil.createNoiseHypercube(
+                ranges[0], ranges[1], ranges[2], ranges[3], ranges[4], ranges[5], offset), authored);
     }
 
     // A parameter axis: absent -> full span; number -> point; [min, max] ->

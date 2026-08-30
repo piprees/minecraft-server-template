@@ -551,6 +551,60 @@ class DimensionConfigTest {
     }
 
     @Test
+    void aBandLeavingItsOffsetToTheModFingerprintsTheDefault() {
+        // The default is generator behaviour the config text does not state, so
+        // without this term a changed default moves no fingerprint and every
+        // existing world keeps its old generator with no drift WARN ([D2]).
+        DimensionConfig config = parse("d", """
+                {"biomes":[{"id":"minecraft:taiga","parameters":{"weirdness":[-2.0,-1.0]}}]}
+                """);
+
+        // The value is a literal, not a reference to the constant: a term built
+        // from BAND_OFFSET_BASE moves with it, so it can never catch a change
+        // to the default — which is the only thing this term exists to catch.
+        assertTrue(config.getBiomeParametersFingerprint().contains("defaultOffset=0.375"));
+    }
+
+    @Test
+    void everyBandAuthoringItsOwnOffsetLeavesTheDefaultOut() {
+        // Those bands do not generate against the default, so a change to it
+        // must not report drift on a config it cannot reach.
+        DimensionConfig config = parse("d", """
+                {"biomes":[{"id":"minecraft:taiga",
+                            "parameters":{"weirdness":[-2.0,-1.0],"offset":0.2}},
+                           {"id":"minecraft:snowy_plains",
+                            "parameters":{"weirdness":[0.1,0.4],"offset":0.0}}]}
+                """);
+
+        assertFalse(config.getBiomeParametersFingerprint().contains("defaultOffset"));
+    }
+
+    @Test
+    void oneUnauthoredBandAmongAuthoredOnesStillFingerprintsTheDefault() {
+        DimensionConfig config = parse("d", """
+                {"biomes":[{"id":"minecraft:taiga",
+                            "parameters":{"weirdness":[-2.0,-1.0],"offset":0.2}},
+                           {"id":"minecraft:snowy_plains","parameters":{"weirdness":[0.1,0.4]}}]}
+                """);
+
+        assertTrue(config.getBiomeParametersFingerprint().contains("defaultOffset"));
+    }
+
+    @Test
+    void authoringAnOffsetChangesTheFingerprint() {
+        DimensionConfig without = parse("d", """
+                {"biomes":[{"id":"minecraft:taiga","parameters":{"weirdness":[-2.0,-1.0]}}]}
+                """);
+        DimensionConfig with = parse("d", """
+                {"biomes":[{"id":"minecraft:taiga",
+                            "parameters":{"weirdness":[-2.0,-1.0],"offset":0.3}}]}
+                """);
+
+        assertNotEquals(without.getBiomeParametersFingerprint(),
+                with.getBiomeParametersFingerprint());
+    }
+
+    @Test
     void biomePatchesDeserialise() {
         DimensionConfig config = parse("d", """
                 {"biomePatches":[{"biome":"minecraft:cherry_grove","x":0,"z":0,"radius":96},
