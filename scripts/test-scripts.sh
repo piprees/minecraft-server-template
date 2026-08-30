@@ -177,7 +177,7 @@ if [[ $BIOME_BANDS_ERRORS -eq 0 ]]; then
   echo "  ✓ Biome bands partition their axis and are fitted to their world"
   # The tie arm does not gate yet, so surface its findings here or a passing
   # run hides them entirely.
-  echo "$BIOME_BANDS_OUT" | grep "generates nowhere" || true
+  echo "$BIOME_BANDS_OUT" | grep "can never outrank" || true
 else
   echo "$BIOME_BANDS_OUT"
   warn "Biome band partition check failed — run ./scripts/check-biome-bands.py"

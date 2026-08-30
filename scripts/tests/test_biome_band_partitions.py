@@ -242,24 +242,25 @@ class DeadRepeats(unittest.TestCase):
         self.assertEqual([], bands.dead_repeats(arr))
 
 
-class NeverWins(unittest.TestCase):
-    """Bands that can only ever tie, and so generate nowhere.
+class TieHazards(unittest.TestCase):
+    """Bands that can only ever tie, so nothing in the config decides them.
 
-    `ParameterRange.getDistance` returns 0 at BOTH endpoints and `SearchTree`
-    replaces its incumbent only on a strictly smaller distance, so a shared
-    boundary is a tie the incumbent keeps — verified against the 1.21.1
-    bytecode, not against documented semantics.
+    `ParameterRange.getDistance` returns 0 anywhere in [min, max] and
+    `SearchTree` replaces its incumbent only on a strictly smaller distance —
+    read from the 1.21.1 bytecode, not from documented semantics. Which of two
+    tied bands generates is deliberately NOT asserted anywhere below: it turns
+    on `SearchTree.get`'s ThreadLocal incumbent and on traversal order.
     """
 
     # weirdness saturates at +/-1.0, so those values are returned constantly.
     RAILED = {"weird": [-1.0] * 6 + [0.0] * 100 + [1.0] * 6}
 
-    def test_a_band_reaching_only_the_saturation_point_never_wins(self):
+    def test_a_band_reaching_only_the_saturation_point_cannot_outrank(self):
         # [1.0, 2.0] against a world whose weirdness maxes at 1.0: its whole
         # territory is the single value its neighbour already claims.
         ex = [("mod:high", {"weirdness": [1.0, 2.0]}),
               ("mod:mid", {"weirdness": [0.5, 1.0]})]
-        found = bands.never_wins(ex, self.RAILED)
+        found = bands.tie_hazards(ex, self.RAILED)
         self.assertEqual([("mod:high", "weirdness", 1.0, "mod:mid", 6)], found)
 
     def test_a_narrower_rival_does_not_convict(self):
@@ -267,14 +268,14 @@ class NeverWins(unittest.TestCase):
         # more distant of the two and this band wins the cell outright.
         ex = [("mod:high", {"weirdness": [1.0, 2.0]}),
               ("mod:mid", {"weirdness": [0.5, 1.0], "temperature": [0.1, 0.2]})]
-        self.assertEqual([], bands.never_wins(ex, self.RAILED))
+        self.assertEqual([], bands.tie_hazards(ex, self.RAILED))
 
     def test_a_wider_rival_convicts_across_axes(self):
         # terralith:alpine_grove's shape: it constrains temperature too, and
         # its rival constrains nothing else, so the rival is never further away.
         ex = [("mod:high", {"weirdness": [1.0, 2.0], "temperature": [0.1, 0.2]}),
               ("mod:mid", {"weirdness": [0.5, 1.0]})]
-        found = bands.never_wins(ex, self.RAILED)
+        found = bands.tie_hazards(ex, self.RAILED)
         self.assertEqual(1, len(found))
         self.assertEqual("mod:high", found[0][0])
 
@@ -282,7 +283,7 @@ class NeverWins(unittest.TestCase):
         # [0.0, 1.0] reaches 0.0 as well as 1.0, and at 0.0 it is alone.
         ex = [("mod:wide", {"weirdness": [0.0, 1.0]}),
               ("mod:mid", {"weirdness": [-1.0, 0.0]})]
-        self.assertEqual([], bands.never_wins(ex, self.RAILED))
+        self.assertEqual([], bands.tie_hazards(ex, self.RAILED))
 
     def test_a_point_the_world_never_returns_is_not_reported(self):
         # A band pinned to one value is harmless when the climate never returns
@@ -290,9 +291,9 @@ class NeverWins(unittest.TestCase):
         # rather than the reachability line above it.
         ex = [("mod:pin", {"weirdness": [0.5, 0.5]}),
               ("mod:wide", {"weirdness": [-1.0, 1.0]})]
-        self.assertEqual([], bands.never_wins(ex, {"weird": [-1.0] * 10 + [1.0] * 10}))
+        self.assertEqual([], bands.tie_hazards(ex, {"weird": [-1.0] * 10 + [1.0] * 10}))
 
     def test_no_samples_means_no_verdict(self):
         ex = [("mod:high", {"weirdness": [1.0, 2.0]}),
               ("mod:mid", {"weirdness": [0.5, 1.0]})]
-        self.assertEqual([], bands.never_wins(ex, {}))
+        self.assertEqual([], bands.tie_hazards(ex, {}))

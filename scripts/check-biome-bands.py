@@ -42,11 +42,20 @@ Not covered: whether a correctly fitted band is worth having. A band can pass
           that. Encounterability is a different question and nothing gates it,
           so three green band checks do not mean the bands are good.
 
-          A band can also be unwinnable outright. `ParameterRange.getDistance`
-          returns 0 at BOTH endpoints and the search tree replaces its incumbent
-          only on a strictly SMALLER distance, so two bands sharing a boundary
-          tie there and the incumbent keeps every cell. Where a band's whole
-          reachable territory is one such shared value, it generates nowhere.
+          A band can also be unable to WIN. `ParameterRange.getDistance` returns
+          0 anywhere in [min, max], both ends included, and `SearchTree` replaces
+          its incumbent only on a strictly SMALLER distance — so two bands
+          sharing a boundary are both at distance zero there and neither can
+          displace the other. Where a band's whole reachable territory is one
+          such value it never outranks its rival anywhere, and whether it
+          appears at all is settled outside the config.
+
+          WHICH of the two wins is not knowable from here, and this check does
+          not guess. `SearchTree.get` seeds each lookup with `previousResultNode`
+          — a ThreadLocal holding what the PREVIOUS lookup returned — so a tied
+          band that won last time is the incumbent and wins again; otherwise
+          traversal order decides. Generation order, not authorship.
+
           Weirdness saturates at +/-1.0, which is why a partition cut on round
           numbers lands its boundaries exactly where the noise piles up.
 
@@ -59,6 +68,9 @@ Gotchas:  - The tie arm needs climate-axes.json to know what a world reaches, so
             the exit code: 11 shipped bands trip it today, and a gate that is
             red on arrival is one everyone learns to skip. Add total_tied to the
             return in main() once those bands are fixed.
+          - It reports the HAZARD, never which band dies. Naming a loser would be
+            a guess: the winner depends on the previous lookup's result and on
+            traversal order, neither of which a config can be read for.
           - A repeated biome id is NOT itself a fault, and gating on one would
             fail the shipped configs that band a biome at two points on an axis
             deliberately. Only a repeat with nothing new to say is reported.
@@ -186,15 +198,19 @@ def contains(outer, inner):
     return outer[0] <= inner[0] and outer[1] >= inner[1]
 
 
-def never_wins(entries, samples):
-    """(id, axis, value, rival, cells) for every band that cannot win a cell.
+def tie_hazards(entries, samples):
+    """(id, axis, value, rival, cells) for every band that can never outrank.
 
-    `ParameterRange.getDistance` is inclusive at BOTH ends — at either endpoint
-    it returns 0 — and `SearchTree` replaces its incumbent only on a strictly
-    smaller distance. So where a band's whole reachable territory on an axis is
-    one value a rival also reaches at distance 0, and that rival's other axes
-    cover this band's, the rival's total distance is <= this band's for every
-    sample there. The band ties at best, never wins, and generates nowhere.
+    `ParameterRange.getDistance` returns 0 anywhere in [min, max], both ends
+    included, and `SearchTree` replaces its incumbent only on a strictly smaller
+    distance. So where a band's whole reachable territory on an axis is one
+    value a rival also reaches at distance 0, and that rival's other axes cover
+    this band's, the rival's total distance is <= this band's for every sample
+    there: the band ties at best and can never take a cell on merit.
+
+    Which of the two actually generates is NOT decided here and is not reported.
+    `SearchTree.get` carries the previous lookup's result in as the incumbent,
+    so the winner turns on generation order and traversal, not on the config.
     """
     out = []
     for axis, key in SAMPLE_KEY.items():
@@ -286,15 +302,16 @@ def main():
             name = f.split('/')[-1][:-5]
 
             drawn = (grids.get(name) or {}).get("samples") or {}
-            tied = never_wins(ex, drawn) if drawn else []
+            tied = tie_hazards(ex, drawn) if drawn else []
             if tied:
                 total_files += 1; total_tied += len(tied)
                 for bid, axis, point, rid, cells in tied:
-                    print(f"  {name:26s} [{where:8s}] {bid} generates nowhere: the only {axis}"
-                          f" it reaches is {point}, where {rid} is equally close"
-                          f" ({cells} of its cells) and wins every tie")
-                print(f"      {axis} is inclusive at both ends, so a shared boundary is a tie,"
-                      f" not a split — move the boundary off {point} or widen the band")
+                    print(f"  {name:26s} [{where:8s}] {bid} can never outrank {rid}: the only"
+                          f" {axis} it reaches is {point}, where both are exactly as close"
+                          f" ({cells} cells at stake)")
+                print(f"      a range contains both its endpoints, so a shared boundary is a tie"
+                      f" that generation order settles, not a split this config decides —"
+                      f" move the boundary off {point}, or widen the band so it can win outright")
 
             dead = dead_repeats(arr)
             if dead:
@@ -343,7 +360,7 @@ def main():
         print(f"  overlay not checked - set {ENV_VAR} to include a consumer repo")
     print(f"{total_files} files, {total_pairs} overlapping pairs, {total_starved} starved natives, "
           f"{total_sliced} schema-stepped bands, {total_dead} dead repeats, "
-          f"{total_tied} bands that never win a tie")
+          f"{total_tied} bands that can never outrank a rival")
     if scanned == 0:
         sys.exit("nothing scanned - run this from the platform repo root")
     return 1 if (total_pairs or total_starved or total_sliced or total_dead) else 0
