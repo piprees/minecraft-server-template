@@ -6,207 +6,207 @@
     {
       "id": "regions_unexplored:saguaro_desert",
       "parameters": {
-        "weirdness": [
-          -2.0,
-          -1.0
-        ],
         "depth": [
           -2.0,
           0.1
+        ],
+        "humidity": [
+          -2.0,
+          -0.5657
         ]
       }
     },
     {
       "id": "terralith:ashen_savanna",
       "parameters": {
-        "weirdness": [
-          -1.0,
-          -0.5
-        ],
         "depth": [
           -2.0,
           0.1
+        ],
+        "humidity": [
+          -0.5657,
+          -0.3514
         ]
       }
     },
     {
       "id": "terralith:volcanic_peaks",
       "parameters": {
-        "weirdness": [
-          -0.5,
-          -0.496
-        ],
         "depth": [
           -2.0,
           0.1
+        ],
+        "humidity": [
+          -0.3514,
+          -0.1936
         ]
       }
     },
     {
       "id": "terralith:volcanic_crater",
       "parameters": {
-        "weirdness": [
-          -0.496,
-          -0.492
-        ],
         "depth": [
           -2.0,
           0.1
+        ],
+        "humidity": [
+          -0.1936,
+          -0.088
         ]
       }
     },
     {
       "id": "minecraft:savanna",
       "parameters": {
-        "weirdness": [
-          -0.492,
-          -0.4589
-        ],
         "depth": [
           -2.0,
           0.1
+        ],
+        "humidity": [
+          -0.088,
+          -0.0531
         ]
       }
     },
     {
       "id": "terralith:savanna_badlands",
       "parameters": {
-        "weirdness": [
-          -0.4589,
-          -0.376
-        ],
         "depth": [
           -2.0,
           0.1
+        ],
+        "humidity": [
+          -0.0531,
+          -0.0237
         ]
       }
     },
     {
       "id": "minecraft:badlands",
       "parameters": {
-        "weirdness": [
-          -0.376,
-          -0.114
-        ],
         "depth": [
           -2.0,
           0.1
+        ],
+        "humidity": [
+          -0.0237,
+          0.004
         ]
       }
     },
     {
       "id": "minecraft:eroded_badlands",
       "parameters": {
-        "weirdness": [
-          -0.114,
-          0.2869
-        ],
         "depth": [
           -2.0,
           0.1
+        ],
+        "humidity": [
+          0.004,
+          0.0223
         ]
       }
     },
     {
       "id": "terralith:basalt_cliffs",
       "parameters": {
-        "weirdness": [
-          0.2869,
-          0.5
-        ],
         "depth": [
           -2.0,
           0.1
+        ],
+        "humidity": [
+          0.0223,
+          0.0687
         ]
       }
     },
     {
       "id": "regions_unexplored:joshua_desert",
       "parameters": {
-        "weirdness": [
-          0.5,
-          0.504
-        ],
         "depth": [
           -2.0,
           0.1
+        ],
+        "humidity": [
+          0.0687,
+          0.104
         ]
       }
     },
     {
       "id": "regions_unexplored:dry_bushland",
       "parameters": {
-        "weirdness": [
-          0.504,
-          0.508
-        ],
         "depth": [
           -2.0,
           0.1
+        ],
+        "humidity": [
+          0.104,
+          0.1711
         ]
       }
     },
     {
       "id": "regions_unexplored:arid_mountains",
       "parameters": {
-        "weirdness": [
-          0.508,
-          0.512
-        ],
         "depth": [
           -2.0,
           0.1
+        ],
+        "humidity": [
+          0.1711,
+          0.2069
         ]
       }
     },
     {
       "id": "regions_unexplored:ashen_woodland",
       "parameters": {
-        "weirdness": [
-          0.512,
-          0.5573
-        ],
         "depth": [
           -2.0,
           0.1
+        ],
+        "humidity": [
+          0.2069,
+          0.2999
         ]
       }
     },
     {
       "id": "wilderwild:arid_savanna",
       "parameters": {
-        "weirdness": [
-          0.5573,
-          2.0
-        ],
         "depth": [
           -2.0,
           0.1
+        ],
+        "humidity": [
+          0.2999,
+          2.0
         ]
       }
     },
     {
       "id": "minecraft:dripstone_caves",
       "parameters": {
-        "weirdness": [
-          -2.0,
-          -0.114
-        ],
         "depth": [
           0.1,
           2.0
+        ],
+        "humidity": [
+          -2.0,
+          0.004
         ]
       }
     },
     {
       "id": "terralith:cave/andesite_caves",
       "parameters": {
-        "weirdness": [
-          -0.114,
-          2.0
-        ],
         "depth": [
           0.1,
+          2.0
+        ],
+        "humidity": [
+          0.004,
           2.0
         ]
       }
