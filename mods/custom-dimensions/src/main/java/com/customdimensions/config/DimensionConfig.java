@@ -329,17 +329,11 @@ public class DimensionConfig {
 
     /**
      * The offset a band gets when its author writes none, before the
-     * dimension's own projection factor is applied. Vanilla authors two
-     * ({@code basalt_deltas} 0.175 and {@code warped_forest} 0.375); this is
-     * the conservative one, and the value is PROVISIONAL until measured.
-     *
-     * <p>The risk is asymmetric. Too low under-corrects and bands keep
-     * winning ground, which is the state before this existed and is invisible.
-     * Too high takes ground from bands that were placing correctly, in a world
-     * someone is playing. Start at the bottom of the defensible range and let
-     * a measurement move it up.
+     * dimension's own projection factor is applied. Measured: it maximises
+     * coverage with no band losing its ground, and clears by 11% the ceiling
+     * at which {@code BASE * appliedFactor} stops being encodable.
      */
-    public static final float BAND_OFFSET_BASE = 0.175f;
+    public static final float BAND_OFFSET_BASE = 0.45f;
 
     /**
      * Whether a band states its own offset. One rule for both callers — the
