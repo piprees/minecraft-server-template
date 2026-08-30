@@ -98,6 +98,12 @@ public final class SeedServer {
 
     // ------------------------------------------------------------------ routes
 
+    /** Paths the viewer's JS posts to and no handler serves. */
+    private static final java.util.Set<String> NOT_BUILT = java.util.Set.of(
+            "/create-dimension", "/edit-config", "/fork-schema",
+            "/hide-dimension", "/remove-dimension", "/reroll");
+
+
     private static void route(MinecraftServer minecraftServer, HttpExchange exchange) {
         String path = exchange.getRequestURI().getPath();
         try {
@@ -172,6 +178,17 @@ public final class SeedServer {
                 census(minecraftServer, exchange, path.substring("/census/".length()));
             } else if (path.startsWith("/renders/")) {
                 render(minecraftServer, exchange, path.substring("/renders/".length()));
+            } else if (NOT_BUILT.contains(path) || path.startsWith("/job/")
+                    || path.startsWith("/dim-config")) {
+                // The dialog's JS calls these; no handler was ever written.
+                // Answering the page here would leave the caller parsing HTML
+                // as JSON, which rejects with nothing listening and hangs the
+                // button on "Saving...".
+                send(exchange, 501, "application/json; charset=utf-8",
+                        ("{\"ok\": false, \"error\": "
+                                + com.customdimensions.facts.Json.quote(
+                                        "Not built yet: " + path)
+                                + "}").getBytes(StandardCharsets.UTF_8));
             } else {
                 // Deep links (/the-nether, /the-nether/<seed>) are the same
                 // page; route.js reads the URL and opens what it names.
