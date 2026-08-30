@@ -165,7 +165,7 @@
       "parameters": {
         "weirdness": [
           -2.0,
-          -0.045
+          -0.3988
         ],
         "depth": [
           0.1,
@@ -174,10 +174,23 @@
       }
     },
     {
+      "id": "wilderwild:magmatic_caves",
+      "parameters": {
+        "depth": [
+          0.1,
+          2.0
+        ],
+        "weirdness": [
+          -0.3988,
+          0.4923
+        ]
+      }
+    },
+    {
       "id": "minecraft:dripstone_caves",
       "parameters": {
         "weirdness": [
-          -0.045,
+          0.4923,
           2.0
         ],
         "depth": [

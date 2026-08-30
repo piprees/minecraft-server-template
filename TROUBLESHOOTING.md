@@ -1110,7 +1110,11 @@ The rendered height disagrees with the facts on high-relief columns. The error i
   (hypercube, biome) pairs, with the withdrawal-from-native logic keyed on a Set
   of ids. The configs express what their authors intended and should not be
   trimmed to match the defect. `scripts/check-band-share.py` reports it and
-  exits 1; it is deliberately not in the quick gate while the defect is open.
+  exits 1; it is deliberately NOT in the quick gate while the defect is open —
+  three entries fail it today, so gating now leaves the gate red until the mod
+  fix lands, and a red gate everyone learns to skip is worse than none. **Wire
+  it into `test-scripts.sh` as the last step of the mod fix**, when the only way
+  to trip it is a new config error.
 
 ## Common symptoms
 

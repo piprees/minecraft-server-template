@@ -35,6 +35,10 @@
 #           - Endpoints are computed per index so the last column is exactly
 #             +border; integer stepping drifts short on a border not divisible
 #             by n-1, such as 683.
+#           - Check a result for PLAUSIBILITY before trusting it. Reading a TSV
+#             while a background writer is still filling it produced "all 12
+#             bands empty" once; nothing errored, and 12 of 12 is simply not a
+#             believable answer. Row count is the cheap check: n*n exactly.
 #           - depth is reported at y=0 and is linear in y at -1/128 per block.
 #             `customdim facts` reads block y 64, so subtract 0.5 to compare.
 #
