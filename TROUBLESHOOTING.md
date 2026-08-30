@@ -989,31 +989,38 @@ The rendered height disagrees with the facts on high-relief columns. The error i
 
 <a id="k7"></a>
 
-### K7 — a 121-point climate grid overstates absence, and a band it calls empty still generates
+### K7 — an 11x11 climate grid overstates absence by 3.8x, and a band it calls empty still generates
 
-- **Symptom:** a partition analysis reports that N explicit bands "win no
-  ground" or "generate nothing", while the game finds those biomes.
-- **Cause:** the analysis grid in `config/custom-dimensions/climate-axes.json`
-  is 11x11 = 121 points over the playable square. The game's own measurement is
-  `FactsEngine.GRID = 41`, disc-clipped to roughly 1300 cells, read at block
-  y 64 (`SpikeSampler`). At about 11x the density a band holding a fraction of
-  a percent gets several hits instead of none, so "0 of 121" is a resolution
-  floor, not an absence.
-- **Measured, on `the_claymarsh` at seed 135505505384991812 with its shipped
-  config:** `customdim facts` reports **14 of its 15 biomes present** and
-  `customdim score` gives **83.4%**. `minecraft:swamp` holds a weirdness band
-  0.026 wide of a 2.000 span, takes none of the 121-point grid, and
-  `customdim locate biome` finds it at **(340, 64, -224)** — a few hundred
-  blocks from spawn.
-- **What follows:** narrow is not empty, and an author's narrow band is not a
-  defect. `scripts/check-band-share.py` reports shares and deliberately does not
-  gate; a threshold needs a grid measured at the game's own geometry first.
-- **Still open and NOT covered by the above:** the bands left 0.004 wide by an
-  equal-area fit whose boundaries stacked on a clamp rail — 37 of them across
-  9 dimensions, 6.5x narrower than the `minecraft:swamp` band that probed
-  positive. Those are machine artefacts rather than authorship. Whether they
-  generate is unmeasured: the local container's config predates that fit, so
-  they cannot be probed without a config sync.
+- **Symptom:** an analysis reports that N explicit bands "win no ground" or
+  "generate nothing", while the game finds those biomes.
+- **Cause:** the samples in `config/custom-dimensions/climate-axes.json` are an
+  11x11 grid, 121 points. The game's own measurement is `FactsEngine.GRID = 41`,
+  disc-clipped to about 1300 cells, read at block y 64 (`SpikeSampler`). A band
+  holding a fraction of a percent gets several hits at that density and none at
+  121, so "0 of 121" is a resolution floor.
+- **Measured, 372 bands across the 26 dimensions where the coarse grid found
+  anything empty:** 68 bands empty at 121 points, **18 empty at 41x41 over the
+  same geometry — 3.8x**. The error runs both ways: the coarse method scores two
+  depth layers separately, which flatters a cave band the game reads at one
+  height (`the_frozen_strait` goes 1 empty to 3).
+- **Confirmed against the game.** On `the_claymarsh` at seed
+  135505505384991812, `customdim facts` reports 14 of its 15 biomes and
+  `customdim score` gives 83.4%. `minecraft:swamp` holds a weirdness band 0.026
+  wide of a 2.000 span, takes 1 cell of 1257, and `customdim locate biome` finds
+  it at **(340, 64, -224)**. The same lookup at 41x41 predicts 15 of 15 — one
+  more than the game, disagreeing only on one-cell biomes.
+- **The real residue is 18 bands**, concentrated in `the_whispering_wilds` (4),
+  `the_lantern_pools` (4), `the_frozen_hearth` (3), `the_frozen_strait` (3), and
+  one each in `the_blossom_gardens`, `the_crystal_vale`, `the_rosebluff` and
+  `the_sun_kingdoms`. Ten of them are 0.004 wide — the minimum-width floor of an
+  equal-area fit whose boundaries stacked on a clamp rail — and the other 29
+  bands at that width generate normally.
+- **Fix:** measure at the game's density before calling a band empty.
+  `scripts/sample-climate-grid.sh <slug> <border> 41` takes about five seconds.
+  `scripts/check-band-share.py` runs the lookup but reads the committed
+  121-point samples, so it reports and deliberately does not gate.
+- **Narrow is not empty, and small is not a defect.** The target is that no
+  listed biome is ignored, never that shares are equal.
 
 ## Common symptoms
 

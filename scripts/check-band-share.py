@@ -144,8 +144,9 @@ def main():
                 print(f"    holds no cell of 121: {bid}")
 
     print(f"\njudged {judged} band(s) across measured dimensions with no native biomes")
-    print(f"  {empty} hold no cell of this 121-point grid. The game samples ~1300 cells, "
-          f"so this OVERSTATES absence — see the header, and K7.")
+    print(f"  {empty} hold no cell of this 121-point grid. Measured, that overstates "
+          f"absence by 3.8x against the game's own geometry — re-measure with "
+          f"scripts/sample-climate-grid.sh before acting on one. See K7.")
     if natives_skipped:
         print(f"  {len(natives_skipped)} dimension(s) NOT JUDGED (plain-string natives): "
               f"{', '.join(natives_skipped[:6])}{'...' if len(natives_skipped) > 6 else ''}")
