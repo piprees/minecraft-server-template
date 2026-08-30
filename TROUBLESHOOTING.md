@@ -4,7 +4,7 @@
 
 | Prefix | Range | What it covers |
 | --- | --- | --- |
-| **T** | [T1–T14, T16–T19, T22–T27, T30–T73](#architecture-traps) | Architecture traps — each has caused a real production incident |
+| **T** | [T1–T14, T16–T19, T22–T27, T30–T74](#architecture-traps) | Architecture traps — each has caused a real production incident |
 | **P** | [P1–P4](#macos-local-dev) | macOS local-dev quirks (BSD tooling, toolchain) |
 | **D** | [D1–D6, D8–D9](#dimension-lifecycle) | Custom-dimension lifecycle on a live world |
 | **K** | [K1–K2, K5–K7](#known-issues) | Open issues — unfixed, on the watch list |
@@ -73,7 +73,7 @@ Run this first. It covers deploy drift, disk, every expected container, `ONLINE_
 | A pack-wide score threshold keeps selecting the same dimensions | [T73](#t73) |
 | A band boundary is moved off a clamp rail, every arm is green, and generation order still decides | [T71](#t71) |
 | A climate window needs measuring at a different seed and every route needs a restart | [T72](#t72) |
-| A grep over `docker logs` finds none of the boot lines on a healthy container | [T73](#t73) |
+| A grep over `docker logs` finds none of the boot lines on a healthy container | [T74](#t74) |
 | Config or mod changes didn't take effect after a deploy | [T2](#t2) |
 | `signal only works in main thread` in discord-sync logs | [T3](#t3) |
 | mc crash-loops with Modrinth `429 Too Many Requests` | [T4](#t4) |
@@ -1354,8 +1354,8 @@ measurement of it.
   built under another. Freeze it across the roll; regenerate after a wipe, where
   it reaches only dimensions created later.
 
-<a id="t73"></a>
-### T73 — A long roll flushes the boot log out of the container's ring buffer, and every instrument that reads it goes silent
+<a id="t74"></a>
+### T74 — A long roll flushes the boot log out of the container's ring buffer, and every instrument that reads it goes silent
 
 - **Symptom:** `docker logs mc | grep "biome source built"` returns **0 lines** on
   a container that has been up for hours and never restarted. Any diagnosis that
