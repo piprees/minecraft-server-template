@@ -209,13 +209,7 @@
       "exit": "block.portal.travel"
     },
     "aura": {
-      "subsume": "everything",
-      "palette": [
-        "minecraft:packed_ice",
-        "minecraft:ice",
-        "minecraft:snow_block",
-        "minecraft:gravel"
-      ]
+      "subsume": "everything"
     },
     "anchor": {
       "pos": "spawn",

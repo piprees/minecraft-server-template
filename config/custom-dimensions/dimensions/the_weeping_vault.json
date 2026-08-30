@@ -118,13 +118,7 @@
       "exit": "block.portal.travel"
     },
     "aura": {
-      "subsume": "everything",
-      "palette": [
-        "minecraft:crying_obsidian",
-        "minecraft:blackstone",
-        "minecraft:obsidian",
-        "minecraft:basalt"
-      ]
+      "subsume": "everything"
     },
     "singleUse": {
       "enabled": true,

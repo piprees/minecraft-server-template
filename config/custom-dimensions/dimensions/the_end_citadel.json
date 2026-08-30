@@ -99,12 +99,7 @@
       "exit": "block.portal.travel"
     },
     "aura": {
-      "subsume": "everything",
-      "palette": [
-        "minecraft:purpur_block",
-        "minecraft:end_stone_bricks",
-        "minecraft:end_stone"
-      ]
+      "subsume": "everything"
     },
     "anchor": {
       "pos": "spawn",

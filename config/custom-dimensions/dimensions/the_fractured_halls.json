@@ -109,13 +109,7 @@
       "exit": "block.portal.travel"
     },
     "aura": {
-      "subsume": "everything",
-      "palette": [
-        "minecraft:end_stone",
-        "minecraft:amethyst_block",
-        "minecraft:calcite",
-        "minecraft:cracked_stone_bricks"
-      ]
+      "subsume": "everything"
     }
   },
   "seedRoll": {

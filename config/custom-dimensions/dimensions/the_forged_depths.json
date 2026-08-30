@@ -47,17 +47,7 @@
       "exit": "block.portal.travel"
     },
     "aura": {
-      "subsume": "everything",
-      "palette": [
-        "minecraft:blackstone",
-        "minecraft:basalt",
-        "minecraft:magma_block",
-        "minecraft:netherrack"
-      ],
-      "fluids": [
-        "minecraft:lava"
-      ],
-      "fireChance": 0.08
+      "subsume": "everything"
     },
     "anchor": {
       "pos": "spawn",

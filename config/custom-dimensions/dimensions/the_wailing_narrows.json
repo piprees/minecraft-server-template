@@ -36,16 +36,7 @@
       "exit": "block.portal.travel"
     },
     "aura": {
-      "subsume": "everything",
-      "palette": [
-        "minecraft:soul_sand",
-        "minecraft:soul_soil",
-        "minecraft:quartz_block",
-        "minecraft:basalt"
-      ],
-      "flora": [
-        "minecraft:dead_bush"
-      ]
+      "subsume": "everything"
     },
     "anchor": {
       "pos": "spawn",

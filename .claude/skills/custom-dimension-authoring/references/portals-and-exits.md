@@ -78,6 +78,10 @@ The aura runs by default and needs no config. This block is for tuning it; the p
 - Tunables: `radius` (default 8, max 32), `interval` (ticks, default 40, min 10), `blocksPerPass` (default 2, max 16), `budget` (lifetime conversions per side, default 300, `-1` = endless), `sides` (`"source"`/`"target"`/`"both"`).
 - Palette overrides: `palette` (terrain block ids), `flora`, `trees` (ConfiguredFeature ids), `fluids`, `conversions` (`{"from": "to"}`, `from` may be `#tag`), `fireChance` (0-1, default 0).
 
+**A palette is an override, and no palette is not a gap.** With none set, the aura samples the far side when the link is made: the source portal takes the destination's terrain from around the arrival, and the arrival takes the source's. The leak is therefore derived from where that portal actually opened and differs between two portals into the same world. Setting `palette` fixes it — for every portal into the dimension, and, via `emissionOverrideFor`, for what the dimension leaks into anywhere you travel to from inside it. Set one only when the dimension should impose the same look wherever you stand.
+
+**Palette order is significant.** `palette[0]` is the block an exposed position takes; buried positions take a random member of the rest. Put the surface block first.
+
 **Trees are never inferred**, only planted from an explicit `aura.trees`. A sampled tree palette turned a beach portal into an impassable dark-oak thicket — a tree's footprint is orders of magnitude bigger than the block that seeded it. Set `trees` only when a forest IS the effect you want.
 
 **Test at a sped-up cadence**, never the default: `{"interval": 10, "blocksPerPass": 8}`.

@@ -181,17 +181,7 @@
       "exit": "block.portal.travel"
     },
     "aura": {
-      "subsume": "everything",
-      "palette": [
-        "minecraft:warped_nylium",
-        "minecraft:warped_wart_block",
-        "minecraft:netherrack"
-      ],
-      "flora": [
-        "minecraft:warped_fungus",
-        "minecraft:warped_roots",
-        "minecraft:nether_sprouts"
-      ]
+      "subsume": "everything"
     }
   },
   "environment": {

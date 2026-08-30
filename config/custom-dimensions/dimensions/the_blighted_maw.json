@@ -38,17 +38,7 @@
       "exit": "block.portal.travel"
     },
     "aura": {
-      "subsume": "everything",
-      "palette": [
-        "minecraft:sculk",
-        "minecraft:netherrack",
-        "minecraft:soul_soil",
-        "minecraft:magma_block"
-      ],
-      "flora": [
-        "minecraft:sculk_vein"
-      ],
-      "fireChance": 0.04
+      "subsume": "everything"
     }
   },
   "environment": {
