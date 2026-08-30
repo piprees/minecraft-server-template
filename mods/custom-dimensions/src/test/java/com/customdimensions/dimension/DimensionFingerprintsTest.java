@@ -14,6 +14,7 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -291,6 +292,130 @@ class DimensionFingerprintsTest {
                         DimensionFingerprints.storedFieldsFor(def.getName()),
                         fingerprint("nether", "adventure:wide", "minecraft:crimson_forest")),
                 "the original baseline must survive a drifted boot unchanged");
+    }
+
+    // ------------------------------------------- record(): the re-registration split
+
+    private static DimensionConfig seeded(String name, String type, String biome, long seed) {
+        DimensionConfig def = config(name, type, "adventure:wide", biome);
+        def.setSeed(seed);
+        return def;
+    }
+
+    @Test
+    void aDimensionWithNoStoredRecordAdoptsTheCurrentConfig() {
+        DimensionConfig def = seeded("the_first_light", "nether", "minecraft:crimson_forest", 11L);
+        DimensionFingerprints.record(def, false);
+
+        assertEquals("nether", DimensionFingerprints.storedFieldsFor(def.getName()).get("type"));
+        assertEquals("11", DimensionFingerprints.storedFieldsFor(def.getName()).get("seed"));
+    }
+
+    @Test
+    void aRerecordedDimensionWithNoChunksAdoptsTheNewConfig() {
+        // Nothing was ever baked, so the stored record is a forecast and the
+        // current config is the better one. Refreshing here is correct.
+        DimensionFingerprints.record(
+                seeded("the_unvisited_span", "nether", "minecraft:crimson_forest", 1L), false);
+        DimensionFingerprints.record(
+                seeded("the_unvisited_span", "overworld", "minecraft:plains", 2L), false);
+
+        Map<String, String> stored = DimensionFingerprints.storedFieldsFor("the_unvisited_span");
+        assertEquals("overworld", stored.get("type"));
+        assertEquals("2", stored.get("seed"));
+    }
+
+    @Test
+    void aRerecordedDimensionWithChunksKeepsItsStoredBaseline() {
+        // THE FIX. A dimension whose level.dat entry did not decode falls out
+        // of the registry and takes this path, and its stored fingerprint is
+        // the only record of what the chunks on disk were built from.
+        DimensionFingerprints.record(
+                seeded("the_settled_span", "nether", "minecraft:crimson_forest", 1L), false);
+        DimensionFingerprints.record(
+                seeded("the_settled_span", "overworld", "minecraft:plains", 2L), true);
+
+        assertEquals("nether", DimensionFingerprints.storedFieldsFor("the_settled_span").get("type"),
+                "a re-record over generated chunks must not adopt the drifted config");
+    }
+
+    @Test
+    void aRerecordedDimensionWithChunksKeepsItsStoredSeedToo() {
+        // seed is written by fields() and is NOT in WORLDGEN_FIELDS, so
+        // driftedFields never sees it. It follows the world like every other
+        // field rather than getting a rule of its own.
+        DimensionFingerprints.record(
+                seeded("the_settled_seed", "nether", "minecraft:crimson_forest", 1L), false);
+        DimensionFingerprints.record(
+                seeded("the_settled_seed", "nether", "minecraft:crimson_forest", 999L), true);
+
+        assertEquals("1", DimensionFingerprints.storedFieldsFor("the_settled_seed").get("seed"));
+    }
+
+    @Test
+    void aRerecordedDimensionWithNoChunksRefreshesTheStoredSeed() {
+        // The other half of the same rule, and the one a "skip the write when
+        // no worldgen field drifted" implementation gets wrong: seed is not a
+        // worldgen field, so nothing would have drifted and the store would
+        // keep a creation seed the world will never be created from.
+        DimensionFingerprints.record(
+                seeded("the_rerolled_span", "nether", "minecraft:crimson_forest", 1L), false);
+        DimensionFingerprints.record(
+                seeded("the_rerolled_span", "nether", "minecraft:crimson_forest", 42L), false);
+
+        assertEquals("42", DimensionFingerprints.storedFieldsFor("the_rerolled_span").get("seed"));
+    }
+
+    @Test
+    void anUnchangedRerecordDoesNotRewriteTheStore() {
+        // 65 of 82 dimensions re-register on every boot of a fresh world, each
+        // rewriting an identical record into a 118 KB file. fields() builds a
+        // new map every call, so the stored instance surviving IS the proof
+        // that no put happened.
+        DimensionFingerprints.record(
+                seeded("the_unchanged_span", "nether", "minecraft:crimson_forest", 7L), false);
+        Map<String, String> first = DimensionFingerprints.storedFieldsFor("the_unchanged_span");
+
+        DimensionFingerprints.record(
+                seeded("the_unchanged_span", "nether", "minecraft:crimson_forest", 7L), false);
+
+        assertSame(first, DimensionFingerprints.storedFieldsFor("the_unchanged_span"),
+                "an identical re-record must not write");
+    }
+
+    @Test
+    void aRecordPredatingAFieldIsBackfilledByARerecordOverChunks() {
+        // driftedFields skips a field the record does not carry, so without the
+        // backfill "no drift" and "never compared" stay indistinguishable for
+        // the life of the store.
+        DimensionFingerprints.record(
+                seeded("the_elder_span", "nether", "minecraft:crimson_forest", 1L), false);
+        DimensionFingerprints.storedFieldsFor("the_elder_span").remove("biomeParameters");
+
+        DimensionFingerprints.record(
+                seeded("the_elder_span", "nether", "minecraft:crimson_forest", 1L), true);
+
+        assertTrue(DimensionFingerprints.storedFieldsFor("the_elder_span")
+                        .containsKey("biomeParameters"),
+                "a field the record predates must be adopted, not skipped forever");
+    }
+
+    @Test
+    void aRebuiltGeneratorIsNeverToldItsChangeWillNotApply() {
+        // The two worldgen warnings are opposites and the branch between them
+        // is the whole reason record() does not simply delegate: a generator
+        // rebuilt from config DOES reach new chunks.
+        String baked = DimensionFingerprints.driftWarning(List.of("type"), false);
+        String rebuilt = DimensionFingerprints.driftWarning(List.of("type"), true);
+
+        assertNotEquals(baked, rebuilt);
+        assertTrue(baked.contains("never apply to existing"));
+        assertFalse(rebuilt.contains("never apply to existing"),
+                "the rebuilt-generator case must not claim the change will not apply");
+        assertTrue(rebuilt.contains("will not match across the boundary"));
+        // wants/shuns are not baked either way, so the path does not change it
+        assertEquals(DimensionFingerprints.driftWarning(List.of("structureWants"), false),
+                DimensionFingerprints.driftWarning(List.of("structureWants"), true));
     }
 
     // -------------------------------------------------------------- regionDirFor

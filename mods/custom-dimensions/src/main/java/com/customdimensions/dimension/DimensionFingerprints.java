@@ -42,6 +42,11 @@ import java.util.Map;
  * (see {@link #checkExisting}): without it, a lost store file makes every
  * such dimension silently agree with whatever config is running now, and
  * a real drift never surfaces again.
+ *
+ * <p>The same rule governs both boot paths, and the world on disk decides
+ * it: a baseline describing generated chunks is never overwritten, and one
+ * describing a dimension with no chunks is adopted whole — seed included,
+ * because nothing was baked for it to be the creation record of.
  */
 public final class DimensionFingerprints {
 
@@ -179,11 +184,39 @@ public final class DimensionFingerprints {
         cache = null; // reload lazily against the new path
     }
 
-    /** New dimension registered: remember what it was created from. */
-    public static synchronized void record(DimensionConfig def) {
+    /**
+     * Dimension registered because the registry did not hold it: resolves
+     * whether its world already has chunks, then defers to {@link
+     * #record(DimensionConfig, boolean)}. Split so the decision core is
+     * testable without a {@code MinecraftServer}.
+     */
+    public static synchronized void record(DimensionConfig def, MinecraftServer server) {
+        record(def, worldGenerated(def, server));
+    }
+
+    /**
+     * Remember what a dimension was created from — but never over a baseline
+     * that describes chunks already on disk.
+     *
+     * <p>No chunks means nothing was ever baked, so the stored record is a
+     * forecast and the current config is the better one: adopted whole, seed
+     * included, and written only when it moved. With chunks, the world exists
+     * and its registry entry does not, so {@code createDimensionOptions} has
+     * just rebuilt the generator from the current config — the stored
+     * fingerprint is the only record of what the existing chunks were built
+     * from and is kept, drift reported.
+     */
+    static synchronized void record(DimensionConfig def, boolean worldHasGeneratedChunks) {
         load();
-        cache.put(def.getName(), fields(def));
-        save();
+        if (worldHasGeneratedChunks) {
+            compare(def, true, true);
+            return;
+        }
+        Map<String, String> current = fields(def);
+        if (!current.equals(cache.get(def.getName()))) {
+            cache.put(def.getName(), current);
+            save();
+        }
     }
 
     /** Dimension destroyed at runtime: its next creation is a fresh baseline. */
@@ -217,6 +250,18 @@ public final class DimensionFingerprints {
      * resumes from this boot rather than nagging forever.
      */
     static synchronized void checkExisting(DimensionConfig def, boolean worldHasGeneratedChunks) {
+        compare(def, worldHasGeneratedChunks, false);
+    }
+
+    /**
+     * The shared comparison both boot paths run: backfill what the record
+     * predates, then report drift. {@code generatorRebuiltFromConfig} picks
+     * the worldgen wording — the registry held this dimension and its baked
+     * generator wins, or it did not and the generator was rebuilt from the
+     * current config, which is a different and worse outcome.
+     */
+    private static void compare(DimensionConfig def, boolean worldHasGeneratedChunks,
+                                boolean generatorRebuiltFromConfig) {
         load();
         Map<String, String> current = fields(def);
         Map<String, String> stored = cache.get(def.getName());
@@ -256,24 +301,39 @@ public final class DimensionFingerprints {
                 detail.append(field).append(": '").append(stored.get(field))
                         .append("' -> '").append(current.get(field)).append("'");
             }
-            if (needsWipe(drifted)) {
-                MultiverseServer.LOGGER.warn(
-                        "Dimension {}: worldgen config changed since this world was created ({}) — "
-                        + "KEEPING the world as generated; worldgen changes never apply to existing "
-                        + "dimensions. Regenerating requires a full world wipe (the generator is "
-                        + "baked into level.dat).", def.getName(), detail);
-            } else {
-                MultiverseServer.LOGGER.warn(
-                        "Dimension {}: structure wants/shuns changed since this world was created "
-                        + "({}) — no wipe needed, the noise pool is rebuilt every boot, but chunks "
-                        + "already generated keep the weighting they were built with.",
-                        def.getName(), detail);
-            }
+            MultiverseServer.LOGGER.warn(driftWarning(drifted, generatorRebuiltFromConfig),
+                    def.getName(), detail);
         } else if (seedDrift) {
             MultiverseServer.LOGGER.info(
                     "Dimension {}: configured seed changed ({} -> {}) — existing world keeps its "
                     + "creation-time seed.", def.getName(), stored.get("seed"), current.get("seed"));
         }
+    }
+
+    /**
+     * What to tell the operator about a drift, as a {name, detail} format
+     * string. Three outcomes, and only one of them is "your change will not
+     * apply": a generator rebuilt from config DOES reach new chunks, so
+     * saying otherwise there would describe the opposite of what happened.
+     */
+    static String driftWarning(List<String> drifted, boolean generatorRebuiltFromConfig) {
+        if (!needsWipe(drifted)) {
+            return "Dimension {}: structure wants/shuns changed since this world was created "
+                    + "({}) — no wipe needed, the noise pool is rebuilt every boot, but chunks "
+                    + "already generated keep the weighting they were built with.";
+        }
+        if (generatorRebuiltFromConfig) {
+            return "Dimension {}: its world has generated chunks but the dimension registry did "
+                    + "not hold it, so its generator was rebuilt from the current config — which "
+                    + "has changed since this world was created ({}). Chunks already on disk keep "
+                    + "the generator they were built with and new ones take the current one, so "
+                    + "terrain will not match across the boundary. KEEPING the stored fingerprint: "
+                    + "it is the only record of what those chunks were built from.";
+        }
+        return "Dimension {}: worldgen config changed since this world was created ({}) — "
+                + "KEEPING the world as generated; worldgen changes never apply to existing "
+                + "dimensions. Regenerating requires a full world wipe (the generator is "
+                + "baked into level.dat).";
     }
 
     /**

@@ -169,7 +169,7 @@ public class DimensionManager {
                 try {
                     DimensionOptions options = this.createDimensionOptions(def);
                     dimRegistry.add(key, options, RegistryEntryInfo.DEFAULT);
-                    DimensionFingerprints.record(def);
+                    DimensionFingerprints.record(def, this.server);
                     MultiverseServer.LOGGER.info("Registered dimension: {}", key);
                 } catch (Exception e) {
                     MultiverseServer.LOGGER.error("Failed to register dimension {}", key, e);
