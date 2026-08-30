@@ -90,7 +90,7 @@ Run this first. It covers deploy drift, disk, every expected container, `ONLINE_
 | A mod is installed and loaded but its biomes are in no catalogue, or a catalogue count is lower than the jars hold | [T35](#t35) |
 | A sky_islands or nether_islands world is one island at origin ringed by void | [T36](#t36) |
 | "the mod does not run in the reserved four" — reasoning from `getCustomDimensions()` | [T37](#t37) |
-| A boot line reports far more `native` biomes than the config requested | [T38](#t38) |
+| A boot-line biome count disagrees with what the world generated, either way | [T38](#t38) |
 | A dimension is stuck below 85 however many seeds are rolled | [T39](#t39) |
 | A dimension is full of rivers and lakes; `seedRoll.water` changes nothing | [T40](#t40) |
 | Mod build fails with a misleading Gradle task error | [P4](#p4) |
@@ -387,34 +387,45 @@ A world regenerates with the old terrain after a reset that set a new seed, or t
   generator in the pack".
 
 <a id="t38"></a>
-### T38 — The boot line's `native` count is hypercube pairs, not biomes
+### T38 — Every count in the boot line is assignment-time, never an outcome
 
-- **Symptom:** `biome source built (0 explicit of 0 banded, 228 native, 0
-  natural over 0 cell(s), 0 mixed-in of 20 requested)` reads as the biome list
-  being discarded and the whole registry substituted, and a dimension gets
-  "fixed" that was never broken.
-- **Cause:** `DimensionManager` logs `nativeEntries.size()`, and each entry is
-  one hypercube→biome pair. A vanilla overworld biome occupies many points in
-  the multi-noise table, so 20 listed biomes legitimately build 228 pairs.
-  Nether- and End-family tables are small, which is why those dimensions log
-  close to 1:1 and set a misleading expectation.
+- **Symptom:** the same line misread in both directions. `biome source built
+  (0 explicit of 0 banded, 228 native, 0 natural over 0 cell(s), 0 mixed-in of
+  20 requested)` reads as the list being discarded, and a dimension gets "fixed"
+  that was never broken; or a biome holding a large cell count is taken as
+  present and is nowhere in the world.
+- **Cause:** `DimensionManager.buildMixedSource` logs what it ASSEMBLED. A cell
+  is an offer of a climate point, not ground. Which biome takes a point is
+  settled afterwards by the nearest-hypercube lookup against the climate that
+  dimension's noise router actually returns, and no count in the line consults
+  it. Every one of them is an upper bound.
+- **A large cell count is not safety.** `natures_spirit:cypress_fields` is
+  assigned 556 cells by the natural tier and generates nowhere, while natives it
+  competes with hold 1, 4, 4, 7, 26 and 36 and do generate. Counts from
+  different tiers are not comparable: the whole vanilla overworld table is 150
+  biomes over 1,715 cells, median 6 and max 72, so a natural-tier figure in the
+  hundreds is a different unit, not a bigger share.
+- **A band can hold cells and lose every one of them.** Two bands sharing a
+  boundary are both at distance zero there and the incumbent keeps the cell
+  ([T59](#t59)). The line is emitted before any lookup runs.
 - **The six counts are not in the same units.** `explicit` and `native` are
   hypercube pairs; `banded` is `biomes` ENTRIES carrying a `parameters` block,
-  counted from the config; `natural` is BIOMES, with its own pair count beside
-  it as `over N cell(s)`; `mixed-in` and `requested` are biomes. A natural
-  biome brings every cell its mod declared, so a handful of biomes can carry
-  hundreds of cells.
+  counted from the config; `natural` is BIOMES, with its pair count beside it as
+  `over N cell(s)`; `mixed-in` and `requested` are biomes. A vanilla overworld
+  biome occupies many points in the multi-noise table, so 20 listed biomes
+  legitimately build 228 pairs; nether and End tables are small, log close to
+  1:1, and set a misleading expectation.
 - **`explicit` below `banded` means bands were dropped**, one per entry naming
   an unlisted biome, carrying invalid parameters, or naming a biome absent from
-  the registry. It is the only pair in the line that compares like with like:
-  every other count is per-biome, so a lost entry leaves them all agreeing.
-- **Fix:** the count that answers "did the list survive" is `mixed-in`, which
-  must be 0, and `requested`, which must match the config. `explicit + native
-  biomes + natural + mixed-in` accounts for every requested biome that
-  resolved. To check what the world actually produced, read
-  `biomes.distinctCount` from a banked candidate — a dimension honouring a
-  20-biome list shows about 20, and one genuinely discarding its list
-  (`amplified`, `large_biomes`) shows 130+.
+  the registry. It is the only pair in the line comparing like with like: every
+  other count is per-biome, so a lost entry leaves them all agreeing.
+- **Fix:** the line answers one question — did the list survive assembly.
+  `mixed-in` must be 0 and `requested` must match the config. For what the world
+  produced, read `biomes.distinctCount` from a banked candidate (a dimension
+  honouring a 20-biome list shows about 20; `amplified` and `large_biomes`
+  genuinely discard theirs and show 130+), measure with `customdim facts`, and
+  confirm with `customdim locate biome`, which searches rather than samples
+  ([K7](#k7)).
 
 <a id="t39"></a>
 ### T39 — A seed score is the mean of two tiers, so a general criterion is worth 2–3 wants
