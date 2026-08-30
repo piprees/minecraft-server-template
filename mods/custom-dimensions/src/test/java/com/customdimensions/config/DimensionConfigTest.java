@@ -555,8 +555,11 @@ class DimensionConfigTest {
         // The default is generator behaviour the config text does not state, so
         // without this term a changed default moves no fingerprint and every
         // existing world keeps its old generator with no drift WARN ([D2]).
+        // A bare biome is needed for the default to be able to act at all —
+        // without a native rival it cannot move the lookup.
         DimensionConfig config = parse("d", """
-                {"biomes":[{"id":"minecraft:taiga","parameters":{"weirdness":[-2.0,-1.0]}}]}
+                {"biomes":["minecraft:plains",
+                           {"id":"minecraft:taiga","parameters":{"weirdness":[-2.0,-1.0]}}]}
                 """);
 
         // The value is a literal, not a reference to the constant: a term built
@@ -566,11 +569,52 @@ class DimensionConfigTest {
     }
 
     @Test
+    void anAllBandedDimensionLeavesTheDefaultOut() {
+        // Every listed biome banded means no native rival: the default lands
+        // on every cell alike and an identical offset^2 cannot move the
+        // nearest-point lookup. Warning here would demand a world wipe for a
+        // change that provably cannot alter the world.
+        DimensionConfig config = parse("d", """
+                {"biomes":[{"id":"minecraft:taiga","parameters":{"weirdness":[-2.0,-1.0]}},
+                           {"id":"minecraft:snowy_plains","parameters":{"weirdness":[0.1,0.4]}}]}
+                """);
+
+        assertFalse(config.defaultOffsetCanAct());
+        assertFalse(config.getBiomeParametersFingerprint().contains("defaultOffset"));
+    }
+
+    @Test
+    void oneUnbandedBiomeIsEnoughForTheDefaultToAct() {
+        DimensionConfig config = parse("d", """
+                {"biomes":["minecraft:plains",
+                           {"id":"minecraft:taiga","parameters":{"weirdness":[-2.0,-1.0]}}]}
+                """);
+
+        assertTrue(config.defaultOffsetCanAct());
+        assertTrue(config.getBiomeParametersFingerprint().contains("defaultOffset=0.375"));
+    }
+
+    @Test
+    void aBareEntryForAnAlreadyBandedBiomeIsNotANativeRival() {
+        // The list is deduplicated before placement, so the bare entry never
+        // reaches the layout and leaves the dimension all-banded.
+        DimensionConfig config = parse("d", """
+                {"biomes":["minecraft:taiga",
+                           {"id":"minecraft:taiga","parameters":{"weirdness":[-2.0,-1.0]}}]}
+                """);
+
+        assertFalse(config.defaultOffsetCanAct());
+    }
+
+    @Test
     void everyBandAuthoringItsOwnOffsetLeavesTheDefaultOut() {
         // Those bands do not generate against the default, so a change to it
         // must not report drift on a config it cannot reach.
+        // A bare biome is present so all-bandedness is NOT the reason the term
+        // is absent — the authored offsets are.
         DimensionConfig config = parse("d", """
-                {"biomes":[{"id":"minecraft:taiga",
+                {"biomes":["minecraft:plains",
+                           {"id":"minecraft:taiga",
                             "parameters":{"weirdness":[-2.0,-1.0],"offset":0.2}},
                            {"id":"minecraft:snowy_plains",
                             "parameters":{"weirdness":[0.1,0.4],"offset":0.0}}]}
@@ -582,7 +626,8 @@ class DimensionConfigTest {
     @Test
     void oneUnauthoredBandAmongAuthoredOnesStillFingerprintsTheDefault() {
         DimensionConfig config = parse("d", """
-                {"biomes":[{"id":"minecraft:taiga",
+                {"biomes":["minecraft:plains",
+                           {"id":"minecraft:taiga",
                             "parameters":{"weirdness":[-2.0,-1.0],"offset":0.2}},
                            {"id":"minecraft:snowy_plains","parameters":{"weirdness":[0.1,0.4]}}]}
                 """);

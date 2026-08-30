@@ -353,6 +353,43 @@ public class DimensionConfig {
     }
 
     /**
+     * Whether the mod's default band offset can change this dimension's
+     * layout: some band leaves its offset to the mod, AND some listed biome is
+     * not banded.
+     *
+     * <p>Where every listed biome is banded there is no native rival, the
+     * default lands on every cell alike, and an identical {@code offset²} adds
+     * the same constant to every candidate — so the nearest-point lookup
+     * cannot move. Fingerprinting the default there would demand a world wipe
+     * for a change that provably cannot alter the world.
+     */
+    public boolean defaultOffsetCanAct() {
+        List<BiomeBand> bands = this.getBiomeBands();
+        if (bands.isEmpty()) {
+            return false;
+        }
+        boolean anyUnauthored = false;
+        Set<String> banded = new java.util.HashSet<>();
+        for (BiomeBand band : bands) {
+            banded.add(band.id());
+            anyUnauthored |= !bandAuthorsOffset(band.parameters());
+        }
+        if (!anyUnauthored) {
+            return false;
+        }
+        String listed = this.getBiome();
+        if (listed == null) {
+            return false;
+        }
+        for (String id : listed.split(",")) {
+            if (!banded.contains(id.trim())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * Explicit multi-noise bands from object-form biomes entries (Tier 3), in
      * file order. A biome may carry SEVERAL — vanilla's own parameter table
      * gives minecraft:plains a hypercube in each climate region it belongs to,
@@ -451,18 +488,17 @@ public class DimensionConfig {
             return null;
         }
         StringBuilder sb = new StringBuilder();
-        boolean anyDefaulted = false;
         for (BiomeBand band : bands) {
             if (sb.length() > 0) {
                 sb.append(",");
             }
             sb.append(band.id()).append("=").append(band.parameters());
-            anyDefaulted |= !bandAuthorsOffset(band.parameters());
         }
         // A band writing no offset generates against the mod's default, so a
         // changed default is a changed generator and has to read as drift
-        // ([D2]). The config text on its own cannot see that.
-        if (anyDefaulted) {
+        // ([D2]). The config text on its own cannot see that — and where the
+        // default cannot act, warning would demand a wipe for nothing.
+        if (this.defaultOffsetCanAct()) {
             sb.append("|defaultOffset=").append(BAND_OFFSET_BASE);
         }
         return sb.toString();
