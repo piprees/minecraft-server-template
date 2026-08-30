@@ -471,9 +471,18 @@ public class DimensionManager {
     static BiomeSource unwrapToMultiNoise(BiomeSource source) {
         return unwrapToFixedPoint(source,
                 s -> s instanceof MultiNoiseBiomeSource,
-                s -> s instanceof PatchedBiomeSource patched
-                        ? patched.delegate()
-                        : com.customdimensions.compat.LithostitchedCompat.unwrap(s));
+                DimensionManager::unwrapOneLayer);
+    }
+
+    /**
+     * One wrapper off a biome source: this mod's patch layer, or a foreign one an
+     * unwrapper can see through. A source nothing can unwrap comes back as itself,
+     * which every caller reads as the end of the walk.
+     */
+    static BiomeSource unwrapOneLayer(BiomeSource source) {
+        return source instanceof PatchedBiomeSource patched
+                ? patched.delegate()
+                : com.customdimensions.compat.LithostitchedCompat.unwrap(source);
     }
 
     /**

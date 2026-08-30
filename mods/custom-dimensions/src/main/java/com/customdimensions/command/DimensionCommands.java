@@ -339,14 +339,11 @@ public class DimensionCommands {
                 .getId(settings.defaultBlock().getBlock()).toString();
         String defaultFluid = net.minecraft.registry.Registries.BLOCK
                 .getId(settings.defaultFluid().getBlock()).toString();
-        // The LIVE source, wrappers included: what ConfiguredBiomeSource.restore
-        // handed this world, which no other probe reports ([T34]).
-        StringBuilder sources = new StringBuilder();
-        for (net.minecraft.world.biome.source.BiomeSource s = noiseGen.getBiomeSource(); s != null;) {
-            sources.append(sources.length() == 0 ? "" : ">").append(s.getClass().getSimpleName());
-            s = s instanceof com.customdimensions.dimension.PatchedBiomeSource patched
-                    ? patched.delegate() : null;
-        }
+        // The LIVE source, every wrapper included — this mod's and other mods'
+        // alike: what ConfiguredBiomeSource.restore handed this world, which no
+        // other probe reports ([T34]).
+        String sources = com.customdimensions.dimension.ConfiguredBiomeSource
+                .layerChain(noiseGen.getBiomeSource());
         String line = world.getRegistryKey().getValue()
                 + ": settings=" + settingsId
                 + " biomeSource=" + sources

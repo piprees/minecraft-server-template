@@ -1,7 +1,7 @@
 package com.customdimensions.dimension;
 
 import com.customdimensions.dimension.ConfiguredBiomeSource.Layers;
-import com.customdimensions.dimension.ConfiguredBiomeSource.Refusal;
+import com.customdimensions.dimension.ConfiguredBiomeSource.Outcome;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -36,14 +36,22 @@ class ConfiguredBiomeSourceTest {
     }
 
     /**
-     * A biome source: a multi-noise core, the patch layers over it (outermost
-     * first), and an opaque layer this mod cannot rebuild, if one sits between.
+     * A biome source: a multi-noise core, this mod's patch layers over it
+     * (outermost first), and another mod's layers, which cannot be re-wrapped.
      */
-    private record Source(String core, List<List<Patch>> layers, boolean opaqueLayer) {
+    private record Source(String core, List<List<Patch>> layers, List<String> foreign) {
         static Source of(String core, List<Patch>... layers) {
-            return new Source(core, List.of(layers), false);
+            return new Source(core, List.of(layers), List.of());
+        }
+
+        static Source withInjector(String core, List<Patch>... layers) {
+            return new Source(core, List.of(layers), List.of(INJECTOR));
         }
     }
+
+    /** Stands for Lithostitched's InjectorBiomeSource: real, and un-re-wrappable. */
+    private static final String INJECTOR =
+            "dev.worldgen.lithostitched.impl.worldgen.biomeinjector.internal.InjectorBiomeSource";
 
     private static final List<Patch> STAMPS = List.of(
             new Patch("minecraft:basalt_deltas", 0, 0, 240, Optional.empty(), 8, "clip", "circle"),
@@ -65,7 +73,7 @@ class ConfiguredBiomeSourceTest {
     private static class Model implements Layers<Source> {
         int rebuilds;
         int rewraps;
-        final Set<Refusal> reported = EnumSet.noneOf(Refusal.class);
+        final Set<Outcome> reported = EnumSet.noneOf(Outcome.class);
         private final int reported0;
         private final int palette0;
         private final boolean reachableCore;
@@ -84,12 +92,12 @@ class ConfiguredBiomeSourceTest {
 
         @Override
         public Source core(Source source) {
-            return this.reachableCore ? new Source(source.core(), List.of(), false) : null;
+            return this.reachableCore ? new Source(source.core(), List.of(), List.of()) : null;
         }
 
         @Override
-        public boolean rewrappable(Source source, Source core) {
-            return !source.opaqueLayer();
+        public List<String> foreignLayers(Source source) {
+            return source.foreign();
         }
 
         @Override
@@ -105,13 +113,14 @@ class ConfiguredBiomeSourceTest {
         @Override
         public Source rebuild(Source core) {
             this.rebuilds++;
-            return new Source("rebuilt", List.of(), false);
+            return new Source("rebuilt", List.of(), List.of());
         }
 
+        /** A rebuild carries this mod's layers and no other mod's: that is the drop. */
         @Override
         public Source rewrap(Source source, Source rebuiltCore) {
             this.rewraps++;
-            return new Source(rebuiltCore.core(), this.mangle.apply(source.layers()), false);
+            return new Source(rebuiltCore.core(), this.mangle.apply(source.layers()), List.of());
         }
 
         @Override
@@ -120,8 +129,8 @@ class ConfiguredBiomeSourceTest {
         }
 
         @Override
-        public void report(Refusal reason, Source source, Source core) {
-            this.reported.add(reason);
+        public void report(Outcome outcome, Source source, Source core) {
+            this.reported.add(outcome);
         }
     }
 
@@ -137,7 +146,9 @@ class ConfiguredBiomeSourceTest {
         assertEquals(List.of(STAMPS), restored.layers(), "the patches must survive it, in config order");
         assertEquals(1, model.rebuilds);
         assertEquals(1, model.rewraps);
-        assertTrue(model.reported.contains(Refusal.REBUILT));
+        assertTrue(model.reported.contains(Outcome.REBUILT));
+        assertFalse(model.reported.contains(Outcome.FOREIGN_LAYER_DROPPED),
+                "nothing foreign was in this stack, so nothing was dropped");
     }
 
     @Test
@@ -230,15 +241,57 @@ class ConfiguredBiomeSourceTest {
     }
 
     @Test
-    void aLayerThatCannotBeRebuiltRefusesTheRebuildRatherThanDroppingIt() {
-        // patched > lithostitched injector > multi_noise: re-wrapping only the
-        // patches would silently cost the dimension that mod's biomes.
+    void aWidenedSourceIsRebuiltThroughAnotherModsLayerAndOurPatchesComeBack() {
+        // patched > lithostitched injector > multi_noise. Refusing here let a
+        // foreign wrapper decide whether the [T34] defence ran at all.
         Model model = new Model(228, 20);
-        Source withInjector = new Source("widened", List.of(STAMPS), true);
+        Source withInjector = Source.withInjector("widened", STAMPS);
 
-        assertSame(withInjector, ConfiguredBiomeSource.restored(withInjector, model));
-        assertEquals(0, model.rebuilds, "rebuilt across a layer it cannot put back");
-        assertTrue(model.reported.contains(Refusal.LAYER_NOT_REWRAPPABLE));
+        Source restored = ConfiguredBiomeSource.restored(withInjector, model);
+
+        assertEquals("rebuilt", restored.core(), "a foreign layer must not veto the rebuild");
+        assertEquals(List.of(STAMPS), restored.layers(),
+                "this dimension's own patches must survive the rebuild, in config order");
+        assertEquals(1, model.rebuilds);
+    }
+
+    @Test
+    void droppingAnotherModsLayerIsReportedAsItsOwnOutcome() {
+        // A reader of the log must be able to tell the two rebuilds apart: one
+        // costs another mod its injections, the other costs nothing.
+        Model model = new Model(228, 20);
+
+        ConfiguredBiomeSource.restored(Source.withInjector("widened", STAMPS), model);
+
+        assertTrue(model.reported.contains(Outcome.FOREIGN_LAYER_DROPPED));
+        assertFalse(model.reported.contains(Outcome.REBUILT),
+                "a dropped foreign layer must not report as an ordinary rebuild");
+    }
+
+    @Test
+    void anotherModsLayerIsLEFTALONEWhenNothingWidenedThePalette() {
+        // The drop is a consequence of undoing a [T34] injection, never routine:
+        // no injection to undo, no rebuild, and the injector keeps working.
+        Model model = new Model(20, 20);
+        Source withInjector = Source.withInjector("own", STAMPS);
+
+        assertSame(withInjector, ConfiguredBiomeSource.restored(withInjector, model),
+                "a palette nothing widened must be handed back with its foreign layer intact");
+        assertEquals(0, model.rebuilds, "dropped another mod's layer with nothing to fix");
+        assertEquals(0, model.rewraps);
+        assertTrue(model.reported.isEmpty());
+    }
+
+    @Test
+    void aRebuildAcrossAnotherModsLayerThatLosesOurPatchesIsStillRefused() {
+        Model model = new Model(228, 20);
+        model.mangle = layers -> List.of();
+        Source withInjector = Source.withInjector("widened", STAMPS);
+
+        assertSame(withInjector, ConfiguredBiomeSource.restored(withInjector, model),
+                "losing our patches is refused whether or not a foreign layer is in the way");
+        assertTrue(model.reported.contains(Outcome.PATCHES_LOST));
+        assertFalse(model.reported.contains(Outcome.FOREIGN_LAYER_DROPPED));
     }
 
     @Test
@@ -249,8 +302,8 @@ class ConfiguredBiomeSourceTest {
         model.mangle = layers -> List.of();
 
         assertSame(PATCHED_WIDENED, ConfiguredBiomeSource.restored(PATCHED_WIDENED, model));
-        assertTrue(model.reported.contains(Refusal.PATCHES_LOST));
-        assertFalse(model.reported.contains(Refusal.REBUILT));
+        assertTrue(model.reported.contains(Outcome.PATCHES_LOST));
+        assertFalse(model.reported.contains(Outcome.REBUILT));
     }
 
     @Test
@@ -260,7 +313,7 @@ class ConfiguredBiomeSourceTest {
 
         assertSame(PATCHED_WIDENED, ConfiguredBiomeSource.restored(PATCHED_WIDENED, model),
                 "order is part of precedence: local patches resolve in config order");
-        assertTrue(model.reported.contains(Refusal.PATCHES_LOST));
+        assertTrue(model.reported.contains(Outcome.PATCHES_LOST));
     }
 
     @Test
@@ -286,7 +339,7 @@ class ConfiguredBiomeSourceTest {
         Source nested = Source.of("widened", STAMPS, SECOND_LAYER);
 
         assertSame(nested, ConfiguredBiomeSource.restored(nested, model));
-        assertTrue(model.reported.contains(Refusal.PATCHES_LOST));
+        assertTrue(model.reported.contains(Outcome.PATCHES_LOST));
     }
 
     // --- preserved() itself ---------------------------------------------------
@@ -302,6 +355,69 @@ class ConfiguredBiomeSourceTest {
         assertFalse(ConfiguredBiomeSource.preserved(List.of(STAMPS), List.of(reversed(STAMPS))));
         assertFalse(ConfiguredBiomeSource.preserved(List.of(STAMPS), List.of()));
         assertFalse(ConfiguredBiomeSource.preserved(List.of(STAMPS), List.of(List.of())));
+    }
+
+    // --- the layer walk ------------------------------------------------------
+
+    /** A stack for {@link ConfiguredBiomeSource#layersOf}: a named layer over what it wraps. */
+    private record Layer(String name, Layer under) {
+        static Layer stack(String... names) {
+            Layer out = new Layer("core", null);
+            for (int i = names.length - 1; i >= 0; i--) {
+                out = new Layer(names[i], out);
+            }
+            return out;
+        }
+    }
+
+    private static final java.util.function.Predicate<Layer> AT_CORE = l -> "core".equals(l.name());
+    private static final java.util.function.UnaryOperator<Layer> PEEL =
+            l -> l.under() == null ? l : l.under();
+
+    @Test
+    void ourPatchLayersUNDERAnotherModsAreStillCollected() {
+        // The property the whole re-wrap rests on: wrappersOf filters this list,
+        // so a patch layer the walk skips is a patch layer silently dropped.
+        List<Layer> walked = ConfiguredBiomeSource.layersOf(
+                Layer.stack("patched-outer", "injector", "patched-inner"), AT_CORE, PEEL);
+
+        assertEquals(List.of("patched-outer", "injector", "patched-inner"), names(walked),
+                "every layer down to the core, outermost first");
+    }
+
+    @Test
+    void aSourceThatIsAlreadyTheCoreHasNoLayers() {
+        assertEquals(List.of(), names(ConfiguredBiomeSource.layersOf(
+                Layer.stack(), AT_CORE, PEEL)));
+    }
+
+    @Test
+    void aLayerNothingCanUnwrapEndsTheWalkAndIsItselfCounted() {
+        // An opaque layer is the deepest this mod gets, and naming it is how a
+        // reader learns which mod to look at.
+        List<Layer> walked = ConfiguredBiomeSource.layersOf(
+                new Layer("patched", new Layer("opaque", null)), AT_CORE, PEEL);
+
+        assertEquals(List.of("patched", "opaque"), names(walked));
+    }
+
+    @Test
+    void aStackWithNoCoreIsBoundedByMAXUNWRAPDEPTH() {
+        String[] deep = new String[DimensionManager.MAX_UNWRAP_DEPTH + 4];
+        java.util.Arrays.fill(deep, "patched");
+        Layer endless = Layer.stack(deep);
+
+        assertEquals(DimensionManager.MAX_UNWRAP_DEPTH,
+                ConfiguredBiomeSource.layersOf(endless, AT_CORE, PEEL).size(),
+                "an unbounded walk over a cyclic source spins the boot thread");
+    }
+
+    private static List<String> names(List<Layer> layers) {
+        List<String> out = new ArrayList<>();
+        for (Layer layer : layers) {
+            out.add(layer.name());
+        }
+        return out;
     }
 
     private static List<Patch> reversed(List<Patch> patches) {

@@ -18,6 +18,8 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Predicate;
+import java.util.function.UnaryOperator;
 
 /**
  * A managed dimension generates the biome source this mod built for it.
@@ -31,9 +33,15 @@ import java.util.Set;
  *
  * <p>A dimension with {@code biomePatches} carries its multi-noise core inside
  * one or more {@link PatchedBiomeSource} layers. The rebuild reads the core and
- * puts every layer back, so restoring a palette never costs the dimension its
- * patches. A layer this mod cannot rebuild — Lithostitched's injector exposes
- * no way to re-wrap one — refuses the rebuild rather than dropping it.
+ * puts every layer back, wherever in the stack it sat, so restoring a palette
+ * never costs the dimension its patches.
+ *
+ * <p>Another mod's layer is DROPPED by a rebuild — Lithostitched's injector
+ * exposes no way to re-wrap one — so its injections reach a managed dimension
+ * only by being named in the dimension's {@code biomes} list, which is where
+ * {@link DimensionManager#multiNoiseOf} has always put them. A palette nobody
+ * widened is never rebuilt, so no foreign layer is dropped without a [T34]
+ * injection to undo.
  */
 public final class ConfiguredBiomeSource {
 
@@ -51,8 +59,8 @@ public final class ConfiguredBiomeSource {
         /** The multi-noise core under every layer, or null when none is reachable. */
         S core(S source);
 
-        /** Whether every layer between {@code source} and {@code core} can be put back. */
-        boolean rewrappable(S source, S core);
+        /** Layers between {@code source} and its core belonging to another mod, by class name. */
+        List<String> foreignLayers(S source);
 
         /** Distinct biomes the core reports. */
         int reported(S core);
@@ -69,20 +77,20 @@ public final class ConfiguredBiomeSource {
         /** Whether {@code rebuilt} carries the same layer configuration as {@code source}. */
         boolean preserved(S source, S rebuilt);
 
-        /** Reports why a rebuild was refused, or that one happened. */
-        void report(Refusal reason, S source, S core);
+        /** Reports what happened: a rebuild, what it dropped, or why one was refused. */
+        void report(Outcome outcome, S source, S core);
     }
 
-    /** Why {@link #restored} handed back what it was given. */
-    enum Refusal {
+    /** What {@link #restored} did with the source it was given. */
+    enum Outcome {
         /** Nothing widened the palette; the source is already the dimension's own. */
         NOT_WIDENED,
-        /** A layer between the source and its core cannot be put back. */
-        LAYER_NOT_REWRAPPABLE,
-        /** The rebuild came back without the layers that went into it. */
+        /** The rebuild came back without the layers that went into it; refused. */
         PATCHES_LOST,
         /** A rebuild happened. */
-        REBUILT
+        REBUILT,
+        /** A rebuild happened and dropped another mod's layer, which cannot be put back. */
+        FOREIGN_LAYER_DROPPED
     }
 
     /**
@@ -108,27 +116,27 @@ public final class ConfiguredBiomeSource {
     }
 
     /**
-     * The source with its palette restored, or {@code source} itself when the
-     * rebuild is unnecessary, impossible, or would lose a layer.
+     * The source with its palette restored, or {@code source} itself when nothing
+     * widened it, no core is reachable, or the rebuild would lose one of this
+     * dimension's patch layers. Another mod's layer is dropped, not refused.
      */
     static <S> S restored(S source, Layers<S> layers) {
         S core = layers.core(source);
         if (core == null) {
             return source;
         }
-        if (!layers.rewrappable(source, core)) {
-            layers.report(Refusal.LAYER_NOT_REWRAPPABLE, source, core);
-            return source;
-        }
+        // Widening is asked FIRST: without an injection to undo there is no
+        // rebuild, and so no foreign layer is dropped.
         if (layers.reported(core) <= layers.palette(core)) {
             return source;
         }
+        boolean foreign = !layers.foreignLayers(source).isEmpty();
         S rebuilt = layers.rewrap(source, layers.rebuild(core));
         if (!layers.preserved(source, rebuilt)) {
-            layers.report(Refusal.PATCHES_LOST, source, core);
+            layers.report(Outcome.PATCHES_LOST, source, core);
             return source;
         }
-        layers.report(Refusal.REBUILT, source, core);
+        layers.report(foreign ? Outcome.FOREIGN_LAYER_DROPPED : Outcome.REBUILT, source, core);
         return rebuilt;
     }
 
@@ -141,26 +149,66 @@ public final class ConfiguredBiomeSource {
         return before.equals(after);
     }
 
-    /** The {@link PatchedBiomeSource} layers over a source, outermost first. */
-    static List<PatchedBiomeSource> wrappersOf(BiomeSource source) {
-        List<PatchedBiomeSource> out = new ArrayList<>();
-        BiomeSource walk = source;
-        while (walk instanceof PatchedBiomeSource patched
-                && out.size() < DimensionManager.MAX_UNWRAP_DEPTH) {
-            out.add(patched);
-            walk = patched.delegate();
+    /**
+     * Every layer over {@code start}'s core, outermost first, stepping THROUGH
+     * layers it does not own — a patch layer under another mod's wrapper is
+     * still this dimension's and still has to come back. Bounded by
+     * {@link DimensionManager#MAX_UNWRAP_DEPTH}; a step that returns its own
+     * input ends the walk.
+     */
+    static <T> List<T> layersOf(T start, Predicate<T> atCore, UnaryOperator<T> step) {
+        List<T> out = new ArrayList<>();
+        T walk = start;
+        for (int i = 0; i < DimensionManager.MAX_UNWRAP_DEPTH && !atCore.test(walk); i++) {
+            out.add(walk);
+            T next = step.apply(walk);
+            if (next == walk) {
+                break;
+            }
+            walk = next;
         }
         return out;
     }
 
-    /** What the {@link #wrappersOf} walk lands on. */
-    private static BiomeSource beneathPatches(BiomeSource source) {
-        BiomeSource walk = source;
-        for (int i = 0; i < DimensionManager.MAX_UNWRAP_DEPTH
-                && walk instanceof PatchedBiomeSource patched; i++) {
-            walk = patched.delegate();
+    private static List<BiomeSource> layersOver(BiomeSource source) {
+        return layersOf(source, s -> s instanceof MultiNoiseBiomeSource,
+                DimensionManager::unwrapOneLayer);
+    }
+
+    /** This mod's {@link PatchedBiomeSource} layers over a source, outermost first. */
+    static List<PatchedBiomeSource> wrappersOf(BiomeSource source) {
+        List<PatchedBiomeSource> out = new ArrayList<>();
+        for (BiomeSource layer : layersOver(source)) {
+            if (layer instanceof PatchedBiomeSource patched) {
+                out.add(patched);
+            }
         }
-        return walk;
+        return out;
+    }
+
+    /**
+     * The live layer chain over a source, outermost first and ending at what the
+     * unwrap lands on: {@code PatchedBiomeSource>InjectorBiomeSource>class_4766}.
+     * The same walk the rebuild uses, so the probe cannot disagree with it.
+     */
+    public static String layerChain(BiomeSource source) {
+        StringBuilder out = new StringBuilder();
+        for (BiomeSource layer : layersOver(source)) {
+            out.append(layer.getClass().getSimpleName()).append('>');
+        }
+        return out.append(DimensionManager.unwrapToMultiNoise(source)
+                .getClass().getSimpleName()).toString();
+    }
+
+    /** Other mods' layers over a source, by class name, outermost first. */
+    static List<String> foreignLayersOf(BiomeSource source) {
+        List<String> out = new ArrayList<>();
+        for (BiomeSource layer : layersOver(source)) {
+            if (!(layer instanceof PatchedBiomeSource)) {
+                out.add(layer.getClass().getName());
+            }
+        }
+        return out;
     }
 
     private static List<List<PatchedBiomeSource.Patch>> patchesOf(BiomeSource source) {
@@ -181,8 +229,8 @@ public final class ConfiguredBiomeSource {
         }
 
         @Override
-        public boolean rewrappable(BiomeSource source, BiomeSource core) {
-            return beneathPatches(source) == core;
+        public List<String> foreignLayers(BiomeSource source) {
+            return foreignLayersOf(source);
         }
 
         @Override
@@ -220,14 +268,10 @@ public final class ConfiguredBiomeSource {
         }
 
         @Override
-        public void report(Refusal reason, BiomeSource source, BiomeSource core) {
+        public void report(Outcome outcome, BiomeSource source, BiomeSource core) {
             int layers = wrappersOf(source).size();
-            switch (reason) {
-                case LAYER_NOT_REWRAPPABLE -> MultiverseServer.LOGGER.warn(
-                        "Dimension {}: biome source palette NOT restored — {} sits between this "
-                        + "dimension's patches and its multi-noise source and cannot be rebuilt, "
-                        + "and dropping it would cost the dimension that mod's biomes",
-                        this.def.getName(), beneathPatches(source).getClass().getName());
+            String inside = layers == 0 ? "" : " inside its " + layers + " patch layer(s)";
+            switch (outcome) {
                 case PATCHES_LOST -> MultiverseServer.LOGGER.error(
                         "Dimension {}: the biome-source rebuild lost this dimension's biomePatches "
                         + "— {} layer(s) went in; keeping the un-rebuilt source",
@@ -237,7 +281,14 @@ public final class ConfiguredBiomeSource {
                         + "another mod injected regions into the persisted source; rebuilt from its "
                         + "own {} parameter point(s){}",
                         this.def.getName(), reported(core), palette(core), entriesOf(core).size(),
-                        layers == 0 ? "" : " inside its " + layers + " patch layer(s)");
+                        inside);
+                case FOREIGN_LAYER_DROPPED -> MultiverseServer.LOGGER.warn(
+                        "Dimension {}: biome source reported {} biomes over a {}-biome palette — "
+                        + "rebuilt from its own {} parameter point(s){}, DROPPING {}, which exposes "
+                        + "no way to re-wrap it; name that mod's biomes in this dimension's biomes "
+                        + "list to keep them",
+                        this.def.getName(), reported(core), palette(core), entriesOf(core).size(),
+                        inside, String.join(", ", foreignLayersOf(source)));
                 default -> { }
             }
         }
