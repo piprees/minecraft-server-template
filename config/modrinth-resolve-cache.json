@@ -195,6 +195,10 @@
   "filename": "deimos-1.21.1-fabric-2.7.jar",
   "url": "https://cdn.modrinth.com/data/WQaxNzFg/versions/mxzk31z4/deimos-1.21.1-fabric-2.7.jar"
  },
+ "deltaboxlib:jvWocoI8": {
+  "filename": "deltaboxlib-fabric-3.0.1+1.21.1.jar",
+  "url": "https://cdn.modrinth.com/data/FDGHOWuC/versions/jvWocoI8/deltaboxlib-fabric-3.0.1%2B1.21.1.jar"
+ },
  "distanthorizons:ZpKb4kZp": {
   "filename": "DistantHorizons-3.2.0-b-1.21.1-fabric-neoforge.jar",
   "url": "https://cdn.modrinth.com/data/uCdwusMi/versions/ZpKb4kZp/DistantHorizons-3.2.0-b-1.21.1-fabric-neoforge.jar"
@@ -558,6 +562,10 @@
  "packet-fixer:2C41Q8WX": {
   "filename": "packetfixer-3.3.1-1.20.5-1.21.X-merged.jar",
   "url": "https://cdn.modrinth.com/data/c7m1mi73/versions/2C41Q8WX/packetfixer-3.3.1-1.20.5-1.21.X-merged.jar"
+ },
+ "pale-garden-backport:AQLqibSn": {
+  "filename": "palegardenbackport-fabric-3.0.1+1.21.1.jar",
+  "url": "https://cdn.modrinth.com/data/wjFTvIvm/versions/AQLqibSn/palegardenbackport-fabric-3.0.1%2B1.21.1.jar"
  },
  "paradise-lost:kpnTCH47": {
   "filename": "paradise-lost-2.4.6-beta+1.21.1.jar",

@@ -150,6 +150,11 @@ athena-ctm:JfyYsWKP
 geckolib:dnJdtm0u
 villagerapi:5cNuAKiT
 terrablender:XNtIBXyQ
+# Pale Garden is a 1.21.4 vanilla biome; this backport brings it, the pale oak
+# blocks and the Creaking to 1.21.1. Places through TerraBlender, so a dimension
+# naming minecraft:pale_garden needs an explicit band (T19).
+deltaboxlib:jvWocoI8
+pale-garden-backport:AQLqibSn
 collective:4XRlrKGN
 cristel-lib:K1dyr5gj
 architectury-api:Pzc2FP5K
