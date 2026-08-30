@@ -115,7 +115,7 @@ docker exec mc cat /data/logs/latest.log | grep -i "registered dimension\|Create
 docker exec mc cat /data/logs/latest.log | grep -i "fingerprint\|drift"
 
 # Health / crash-loop check after any dimension operation
-docker inspect mc --format 'Health={{.State.Health.Status}} Restarts={{.RestartCount}}'
+docker inspect mc --format 'Health={{.State.Health.Status}} Started={{.State.StartedAt}}'
 
 # Map picked it up (only meaningful once the dimension has generated chunks)
 ./ops map status

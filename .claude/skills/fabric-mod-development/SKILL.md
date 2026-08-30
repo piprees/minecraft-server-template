@@ -139,7 +139,7 @@ Full traversal recipes, every assertion pattern, and ~20 gotchas (aiming, ignite
 Anything on a timer (idle unload, cooldowns, periodic saves) must be soaked through its **real** window, not assumed from reading the code:
 
 ```bash
-docker inspect mc --format 'Health={{.State.Health.Status}} Restarts={{.RestartCount}}'   # Restarts must be 0
+docker inspect mc --format 'Health={{.State.Health.Status}} Started={{.State.StartedAt}}'  # StartedAt must not move
 docker exec mc cat /data/logs/latest.log | grep -iE 'Unloading idle|ConcurrentModification'  # feature line present, no CME
 ```
 
@@ -173,7 +173,7 @@ The pipeline itself: `release.yml` builds each mod listed in `mods/local-mods.ma
 ```bash
 unzip -l build/libs/<mod>-<version>.jar | grep -c '\.class$'   # non-zero
 unzip -l build/libs/<mod>-<version>.jar | grep refmap
-docker inspect mc --format 'Health={{.State.Health.Status}} Restarts={{.RestartCount}}'
+docker inspect mc --format 'Health={{.State.Health.Status}} Started={{.State.StartedAt}}'
 docker logs mc 2>&1 | grep -iE 'mixin apply|<modid>|error' | tail -20
 ```
 

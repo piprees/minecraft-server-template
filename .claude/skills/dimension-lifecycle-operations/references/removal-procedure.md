@@ -116,11 +116,11 @@ Only now. Confirm the dimension is genuinely gone and nothing wedged:
 
 ```bash
 docker exec -i mc rcon-cli "execute in adventure:the_slug_being_removed run seed"   # expect "Unknown dimension"
-docker inspect mc --format 'Health={{.State.Health.Status}} Restarts={{.RestartCount}}'
+docker inspect mc --format 'Health={{.State.Health.Status}} Started={{.State.StartedAt}}'
 docker exec mc cat /data/logs/latest.log | grep -iE 'Error upgrading chunk|DungeonZombie|Timed out waiting for world statistics'
 ```
 
-A `RestartCount` above 0, or any of those log lines, means something regenerated when it shouldn't have — re-check that every file in step 5 was actually removed (a typo'd slug in one of the five paths is the most common cause of a partial scrub).
+A moved `StartedAt`, or any of those log lines, means something regenerated when it shouldn't have — re-check that every file in step 5 was actually removed (a typo'd slug in one of the five paths is the most common cause of a partial scrub).
 
 ## Ordering summary
 

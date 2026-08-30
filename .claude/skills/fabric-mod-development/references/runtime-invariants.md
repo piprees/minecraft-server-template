@@ -16,7 +16,7 @@ Defer any such mutation to `ServerTickEvents.END_SERVER_TICK`. The pattern used 
 
 ```bash
 # Soak assertion — the timer has to actually fire to catch this:
-docker inspect mc --format 'Health={{.State.Health.Status}} Restarts={{.RestartCount}}'   # Restarts must be 0
+docker inspect mc --format 'Health={{.State.Health.Status}} Started={{.State.StartedAt}}'   # Restarts must be 0
 docker exec mc cat /data/logs/latest.log | grep -iE 'Unloading idle|ConcurrentModification'
 ```
 

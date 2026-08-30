@@ -742,15 +742,23 @@ A seed's map and its banked facts appear to contradict each other — the thumbn
   the median — `the_abyssal_shrine` weirdness reads 0.196 on a diagonal against
   0.847 on a grid (x4.32) — so a single dimension's ratio is not the number to
   generalise from.
-- **Span grows with radius only until the axis saturates its clamp**, so a
-  representative measured at another border is NOT uniformly biased. Measured on
-  one dimension, one seed, one router, span against a 512 baseline: temperature
-  x6.75 and erosion x2.13 still climbing at 4096, depth flat past 2048, and
-  **weirdness x1.07 across an eightfold radius change** because it is already at
-  the +-1 rail by 512. Weirdness carries 589 of 1163 band-axis instances, so the
-  radius argument fails precisely where it is load-bearing; there the bias that
-  matters is the sampling PATH. Density is not the mechanism: at a fixed radius,
-  440 points against 121 move span x1.00-x1.03 on every axis.
+- **Span grows with radius only until an axis saturates ITS ROUTER'S clamp**, so
+  a representative measured at another border is not uniformly biased. Measured
+  on `the_sun_kingdoms` (`multi_biome`/`adventure:wide`), one seed, one router,
+  span against a 512 baseline: temperature x6.75 and erosion x2.13 still
+  climbing at 4096, depth flat past 2048, and **weirdness x1.07 across an
+  eightfold radius change**, already at its rail by 512. Weirdness carries 589
+  of 1163 band-axis instances, so where it IS railed the radius argument fails
+  precisely where it is load-bearing, and the bias that matters there is the
+  sampling PATH. Density is not the mechanism: at a fixed radius, 440 points
+  against 121 move span x1.00-x1.03 on every axis.
+- **The rail is per-router, not universal**, and a band outside +-1 is dead only
+  where its own dimension says so. Across 15 grids the global ranges reach
+  temperature +1.083, continentalness -1.260, erosion -1.188 and weirdness
+  +1.303 / -1.186. The mechanism above is one dimension's evidence: whether
+  another router's weirdness saturates as early is unmeasured, and the cheap
+  probe is the same nested-square run on a dimension whose weirdness reaches
+  past the rail (`the_crucible` at -1.186, `the_buried_age` at +1.303).
 - **`depth` cannot be judged by this check at all.** `customdim sample-noise`
   hard-codes `y=0` and depth is linear in y at -1/128 per block, so a
   surface/underground band pair is compared against a single-height reading.
@@ -1126,7 +1134,10 @@ The rendered height disagrees with the facts on high-relief columns. The error i
   costs a restart, not data.
 - **The sidecar's own log is not the check.** It reports `sleeping 12h` while
   the crash it caused is already in `data/crash-reports/`; read
-  `docker inspect mc --format '{{.RestartCount}}'` instead.
+  `docker inspect mc --format '{{.RestartCount}}'` instead. `RestartCount`
+  counts POLICY restarts, so it catches this watchdog kill but NOT a deliberate
+  `docker restart` — for "is this still the process I was measuring against",
+  compare `{{.State.StartedAt}}`.
 - A roll running longer than `BACKUP_INTERVAL` (default 12h) meets the next
   backup and crashes again.
 

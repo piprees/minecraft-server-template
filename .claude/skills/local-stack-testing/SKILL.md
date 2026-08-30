@@ -389,9 +389,10 @@ The decision table's rows are the core of this skill, restated here as full symp
 Generic "did my change actually take effect" ritual, in order:
 
 ```bash
-# 1. Container health and restart count (a RestartCount above 0 is a crash
-#    you haven't explained yet, not evidence of self-healing)
-docker inspect <service> --format '{{.State.Health.Status}} {{.RestartCount}}'
+# 1. Container health, and whether this is still the process you were measuring.
+#    RestartCount counts POLICY restarts only: a crash-loop increments it, a
+#    deliberate `docker restart` does not. StartedAt moves for both.
+docker inspect <service> --format '{{.State.Health.Status}} {{.State.StartedAt}}'
 
 # 2. Read the RENDERED artefact, never the source you edited
 docker exec <service> <read the rendered config/file>
