@@ -195,11 +195,12 @@ public final class Criteria {
                 }
             }
             if (present == 0) {
-                // The grid resolved none of it and the spawn column is standing
-                // in one, which [K7] says happens: facts samples a lattice and
-                // steps over a patch smaller than its step. Observation beats a
-                // sample that missed it, but it evidences presence and not
-                // coverage, so it is worth the boost and nothing more.
+                // The grid resolved none of it and the spawn is standing in
+                // one — [K7], a patch smaller than the lattice step. Not a
+                // separate pick: the branch below tends to exactly
+                // NATIVE_SPAWN_BONUS as coverage tends to 0, so this is its
+                // limit. Anything higher would score 0% coverage above a world
+                // holding 0.0001% of it.
                 return spawnIsNamesake ? NATIVE_SPAWN_BONUS : 0.0;
             }
             double balanced = present * Math.exp(logSum / present);

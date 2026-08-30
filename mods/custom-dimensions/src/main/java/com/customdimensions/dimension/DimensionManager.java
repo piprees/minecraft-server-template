@@ -365,8 +365,8 @@ public class DimensionManager {
         }
         int explicitCells = bandCells.size();
         // Filler is dealt round-robin and declared by nothing, so it must not
-        // outrank a band inside the band's own window. Stamped AFTER the
-        // projection, which reads spans and never offsets, so g cannot move.
+        // outrank a band inside the band's own window ([T69]). Stamped after
+        // the projection: g comes from offsetFactor, which reads spans alone.
         long floor = fillerFloor(maxOffsetOf(bandCells));
         int fillerFrom = nativeEntries.size() + dealt.natural().size();
         List<Pair<MultiNoiseUtil.NoiseHypercube, RegistryEntry<Biome>>> placed = projected.cells();
@@ -605,14 +605,12 @@ public class DimensionManager {
 
     /**
      * Raises the offset on the FILLER cells of a projected list, so an
-     * author's band outranks arbitrary round-robin placement inside its own
-     * window. Inside a band's cube both are at axis distance 0, so the winner
-     * is whichever pays the smaller {@code square(offset)} — and until now
-     * that was filler, at zero.
+     * author's band outranks round-robin placement inside its own window
+     * ([T69]).
      *
      * <p>Filler alone, and that is the whole discrimination. Natives and
      * natural cells are declared placements and keep the handicap that lets a
-     * closer one take a cell off a band; that balance is what
+     * closer one take a cell off a band, which is the balance
      * {@code BAND_OFFSET_BASE} was measured against. Cells below
      * {@code fillerFrom} are returned by identity, never rebuilt.
      */

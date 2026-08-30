@@ -317,6 +317,26 @@ class CriteriaTest {
     }
 
     @Test
+    void theGridSteppedOverFallbackIsTheFormulasOwnLimit() {
+        // Not a second hand-picked constant sitting beside the formula: the
+        // main branch tends to NATIVE_SPAWN_BONUS as measured coverage tends
+        // to zero, so the [K7] fallback is continuous with it. A higher one
+        // would score 0% coverage ABOVE a world holding a millionth of it.
+        double bonus = Criteria.SpawnReadsAsNamesake.NATIVE_SPAWN_BONUS;
+        assertEquals(bonus,
+                Criteria.SpawnReadsAsNamesake.namesakeMark(new double[]{0.0, 0.0}, true), 1e-9);
+        for (double tiny : new double[]{1e-3, 1e-6, 1e-9, 1e-12}) {
+            double near = Criteria.SpawnReadsAsNamesake.namesakeMark(new double[]{tiny, 0.0}, true);
+            assertTrue(near >= bonus,
+                    "approaching from above, so no world with real coverage is ranked "
+                            + "below one with none: " + near + " at " + tiny);
+        }
+        assertEquals(bonus,
+                Criteria.SpawnReadsAsNamesake.namesakeMark(new double[]{1e-12, 0.0}, true), 1e-9,
+                "and it converges to the fallback rather than merely approaching it");
+    }
+
+    @Test
     void aSingleNamedBiomeIsGradedOnItsOwnShareAlone() {
         // n = 1 must reduce to the plain share, or a one-entry filter is
         // silently on a different scale from every other dimension's.
