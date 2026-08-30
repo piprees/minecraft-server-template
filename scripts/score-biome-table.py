@@ -47,11 +47,17 @@ Gotchas:  - The table must be dumped from the SAME build you are asking about.
           - Ties resolve first-wins here; the game resolves them by incumbent
             and that depends on generation order (T59). Ties are reported.
 """
+import gzip
 import json, sys
 from pathlib import Path
 
 AXES = ["temperature", "humidity", "continentalness", "erosion", "depth", "weirdness"]
-SAMPLE_KEY = ["temp", "humid", "cont", "eros", None, "weird"]
+SAMPLE_KEY = ["temp", "humid", "cont", "eros", "depth", "weird"]
+# The samples carry depth at y=0; FactsEngine reads block y64, which is that
+# value minus 0.5 (K7). Scoring depth as 0.0 hands every native pinned at
+# depth [-0.005, 0.000] a free 0.2014 of squared distance — measured on
+# the_frozen_strait, 3.7x the entire offset term being swept.
+DEPTH_AT_Y64 = -0.5
 SCALE = 10000
 
 
@@ -95,7 +101,12 @@ def samples(axes_doc, slug, disc=False):
     corners are reachable. Clip to compare against a facts figure; leave it off
     to ask what the world holds.
     """
-    rec = axes_doc["perDimension"][slug]["samples"]
+    rec = grid_samples(slug) or axes_doc["perDimension"][slug]["samples"]
+    if "depth" not in rec:
+        print("  WARNING: no depth column in this sample source, so depth is scored"
+              " as 0.0 and every native pinned near depth 0 is handed a free"
+              " 0.2 of squared distance. Regenerate config/custom-dimensions/"
+              "grids-41/%s.tsv.gz to score it properly." % slug, file=sys.stderr)
     n = len(rec["temp"])
     side = round(n ** 0.5)
     out = []
@@ -107,10 +118,39 @@ def samples(axes_doc, slug, disc=False):
                 continue
         point = [0] * 6
         for a, key in enumerate(SAMPLE_KEY):
-            if key is not None:
-                point[a] = fx(rec[key][i])
+            if key is not None and key in rec:
+                v = rec[key][i]
+                point[a] = fx(v + DEPTH_AT_Y64 if key == "depth" else v)
         out.append(point)
     return out
+
+
+def grid_samples(slug):
+    """All six axes from the committed 41x41 grid, or None when there is none.
+
+    The 121-point cloud in climate-axes.json carries no depth column at all,
+    which is why depth went unscored. These grids do, and they are the density
+    FactsEngine itself reads.
+    """
+    path = Path("config/custom-dimensions/grids-41/%s.tsv.gz" % slug)
+    if not path.is_file():
+        return None
+    cols, rec = None, {}
+    with gzip.open(path, "rt") as fh:
+        for line in fh:
+            line = line.rstrip("\n")
+            if line.startswith("#"):
+                continue
+            if cols is None:
+                cols = line.split("\t")
+                rec = {c: [] for c in cols}
+                continue
+            parts = line.split("\t")
+            if len(parts) != len(cols):
+                continue
+            for c, v in zip(cols, parts):
+                rec[c].append(float(v))
+    return rec or None
 
 
 def score(table, points):
@@ -178,7 +218,10 @@ def main(argv):
           f"{len(points)} sample points{" (facts' disc sampling)" if disc else " (the square world)"}")
     base = report("as dumped", table, points, listed, bands)
     if "--sweep" in argv:
-        for o in (0.005, 0.01, 0.02, 0.05, 0.1, 0.2):
+        # Spans the range a band offset is actually written in. The old grid
+        # topped out at 0.2, where the_frozen_strait measures inert at three
+        # separate live points — a sweep that cannot reach the answer.
+        for o in (0.05, 0.1, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.6):
             report(f"band offset {o}", with_band_offset(table, bands, o),
                    points, listed, bands)
     missing = sorted(set(listed) - set(base))
