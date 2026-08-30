@@ -198,3 +198,101 @@ class NativeStarvationTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class DeadRepeats(unittest.TestCase):
+    """A repeat is a fault only when it states nothing new."""
+
+    def test_two_bands_for_one_biome_are_legal(self):
+        # Vanilla's parameter table gives one biome a hypercube per climate
+        # region. Gating on a repeated id would fail the shipped configs that
+        # band a biome at two points on an axis deliberately.
+        arr = [{"id": "minecraft:taiga", "parameters": {"weirdness": [-2.0, -1.0]}},
+               {"id": "minecraft:taiga", "parameters": {"weirdness": [0.5, 1.0]}}]
+        self.assertEqual([], bands.dead_repeats(arr))
+
+    def test_identical_parameters_are_reported(self):
+        arr = [{"id": "minecraft:taiga", "parameters": {"weirdness": [-2.0, -1.0]}},
+               {"id": "minecraft:taiga", "parameters": {"weirdness": [-2.0, -1.0]}}]
+        found = bands.dead_repeats(arr)
+        self.assertEqual(1, len(found))
+        self.assertEqual("minecraft:taiga", found[0][0])
+        self.assertIn("identical parameters", found[0][1])
+
+    def test_key_order_does_not_disguise_an_identical_block(self):
+        # The comparison is over parsed keys, not the source text.
+        arr = [{"id": "minecraft:taiga",
+                "parameters": {"weirdness": [-2.0, -1.0], "depth": [0.0, 1.0]}},
+               {"id": "minecraft:taiga",
+                "parameters": {"depth": [0.0, 1.0], "weirdness": [-2.0, -1.0]}}]
+        self.assertEqual(1, len(bands.dead_repeats(arr)))
+
+    def test_a_bare_entry_beside_a_banded_one_is_reported(self):
+        # The biome list is deduplicated to a set before placement, so the bare
+        # entry cannot reach the layout at all.
+        arr = ["minecraft:taiga",
+               {"id": "minecraft:taiga", "parameters": {"weirdness": [-2.0, -1.0]}}]
+        found = bands.dead_repeats(arr)
+        self.assertEqual(1, len(found))
+        self.assertIn("bare", found[0][1])
+
+    def test_a_bare_entry_alone_is_not_a_repeat(self):
+        arr = ["minecraft:taiga", {"id": "minecraft:jungle",
+                                   "parameters": {"weirdness": [0.0, 1.0]}}]
+        self.assertEqual([], bands.dead_repeats(arr))
+
+
+class NeverWins(unittest.TestCase):
+    """Bands that can only ever tie, and so generate nowhere.
+
+    `ParameterRange.getDistance` returns 0 at BOTH endpoints and `SearchTree`
+    replaces its incumbent only on a strictly smaller distance, so a shared
+    boundary is a tie the incumbent keeps — verified against the 1.21.1
+    bytecode, not against documented semantics.
+    """
+
+    # weirdness saturates at +/-1.0, so those values are returned constantly.
+    RAILED = {"weird": [-1.0] * 6 + [0.0] * 100 + [1.0] * 6}
+
+    def test_a_band_reaching_only_the_saturation_point_never_wins(self):
+        # [1.0, 2.0] against a world whose weirdness maxes at 1.0: its whole
+        # territory is the single value its neighbour already claims.
+        ex = [("mod:high", {"weirdness": [1.0, 2.0]}),
+              ("mod:mid", {"weirdness": [0.5, 1.0]})]
+        found = bands.never_wins(ex, self.RAILED)
+        self.assertEqual([("mod:high", "weirdness", 1.0, "mod:mid", 6)], found)
+
+    def test_a_narrower_rival_does_not_convict(self):
+        # The rival must cover this band on every OTHER axis, or it can be the
+        # more distant of the two and this band wins the cell outright.
+        ex = [("mod:high", {"weirdness": [1.0, 2.0]}),
+              ("mod:mid", {"weirdness": [0.5, 1.0], "temperature": [0.1, 0.2]})]
+        self.assertEqual([], bands.never_wins(ex, self.RAILED))
+
+    def test_a_wider_rival_convicts_across_axes(self):
+        # terralith:alpine_grove's shape: it constrains temperature too, and
+        # its rival constrains nothing else, so the rival is never further away.
+        ex = [("mod:high", {"weirdness": [1.0, 2.0], "temperature": [0.1, 0.2]}),
+              ("mod:mid", {"weirdness": [0.5, 1.0]})]
+        found = bands.never_wins(ex, self.RAILED)
+        self.assertEqual(1, len(found))
+        self.assertEqual("mod:high", found[0][0])
+
+    def test_a_band_with_room_to_win_is_not_reported(self):
+        # [0.0, 1.0] reaches 0.0 as well as 1.0, and at 0.0 it is alone.
+        ex = [("mod:wide", {"weirdness": [0.0, 1.0]}),
+              ("mod:mid", {"weirdness": [-1.0, 0.0]})]
+        self.assertEqual([], bands.never_wins(ex, self.RAILED))
+
+    def test_a_point_the_world_never_returns_is_not_reported(self):
+        # A band pinned to one value is harmless when the climate never returns
+        # it. The band must be REACHABLE for this to exercise the sample check
+        # rather than the reachability line above it.
+        ex = [("mod:pin", {"weirdness": [0.5, 0.5]}),
+              ("mod:wide", {"weirdness": [-1.0, 1.0]})]
+        self.assertEqual([], bands.never_wins(ex, {"weird": [-1.0] * 10 + [1.0] * 10}))
+
+    def test_no_samples_means_no_verdict(self):
+        ex = [("mod:high", {"weirdness": [1.0, 2.0]}),
+              ("mod:mid", {"weirdness": [0.5, 1.0]})]
+        self.assertEqual([], bands.never_wins(ex, {}))

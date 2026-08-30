@@ -42,9 +42,24 @@ Not covered: whether a correctly fitted band is worth having. A band can pass
           that. Encounterability is a different question and nothing gates it,
           so three green band checks do not mean the bands are good.
 
-Usage:    scripts/check-biome-bands.py            # exits 1 on any of the four
+          A band can also be unwinnable outright. `ParameterRange.getDistance`
+          returns 0 at BOTH endpoints and the search tree replaces its incumbent
+          only on a strictly SMALLER distance, so two bands sharing a boundary
+          tie there and the incumbent keeps every cell. Where a band's whole
+          reachable territory is one such shared value, it generates nowhere.
+          Weirdness saturates at +/-1.0, which is why a partition cut on round
+          numbers lands its boundaries exactly where the noise piles up.
 
-Gotchas:  - A repeated biome id is NOT itself a fault, and gating on one would
+Usage:    scripts/check-biome-bands.py            # exits 1 on any of the four
+                                                  # gating arms; the tie arm
+                                                  # reports only
+
+Gotchas:  - The tie arm needs climate-axes.json to know what a world reaches, so
+            it is silent for a dimension nobody has measured. It does NOT feed
+            the exit code: 11 shipped bands trip it today, and a gate that is
+            red on arrival is one everyone learns to skip. Add total_tied to the
+            return in main() once those bands are fixed.
+          - A repeated biome id is NOT itself a fault, and gating on one would
             fail the shipped configs that band a biome at two points on an axis
             deliberately. Only a repeat with nothing new to say is reported.
           - Hypercubes intersect only if they intersect on EVERY axis, so two
@@ -161,6 +176,55 @@ def anchored_equal_run(bands):
     return (best, best_w) if best >= MIN_RUN else (0, 0.0)
 
 
+# The axis key each parameters axis is sampled under in climate-axes.json.
+SAMPLE_KEY = {"temperature": "temp", "humidity": "humid", "continentalness": "cont",
+              "erosion": "eros", "weirdness": "weird", "depth": "depth"}
+
+
+def contains(outer, inner):
+    """Whether `outer` covers `inner`, so its distance can never be the larger."""
+    return outer[0] <= inner[0] and outer[1] >= inner[1]
+
+
+def never_wins(entries, samples):
+    """(id, axis, value, rival, cells) for every band that cannot win a cell.
+
+    `ParameterRange.getDistance` is inclusive at BOTH ends — at either endpoint
+    it returns 0 — and `SearchTree` replaces its incumbent only on a strictly
+    smaller distance. So where a band's whole reachable territory on an axis is
+    one value a rival also reaches at distance 0, and that rival's other axes
+    cover this band's, the rival's total distance is <= this band's for every
+    sample there. The band ties at best, never wins, and generates nowhere.
+    """
+    out = []
+    for axis, key in SAMPLE_KEY.items():
+        drawn = samples.get(key)
+        if not drawn:
+            continue
+        lo_s, hi_s = min(drawn), max(drawn)
+        for bid, params in entries:
+            if not isinstance(params.get(axis), list):
+                continue
+            lo, hi = rng(params, axis)
+            # The only value of this axis the band can ever be asked about.
+            point = max(lo, lo_s)
+            if point != min(hi, hi_s):
+                continue
+            cells = sum(1 for x in drawn if x == point)
+            if not cells:
+                continue
+            for rid, rival in entries:
+                if rival is params:
+                    continue
+                r_lo, r_hi = rng(rival, axis)
+                if r_lo <= point <= r_hi and all(
+                        contains(rng(rival, a), rng(params, a))
+                        for a in AXES if a != axis):
+                    out.append((bid, axis, point, rid, cells))
+                    break
+    return out
+
+
 def dead_repeats(arr):
     """(id, why) for every entry repeating a biome without adding a hypercube.
 
@@ -192,8 +256,18 @@ def dead_repeats(arr):
     return out
 
 
+def measured():
+    """Per-dimension sample grids from climate-axes.json; empty when absent."""
+    path = Path("config/custom-dimensions/climate-axes.json")
+    if not path.is_file():
+        return {}
+    return json.loads(path.read_text()).get("perDimension", {})
+
+
 def main():
     total_files = total_pairs = total_starved = total_sliced = total_dead = 0
+    total_tied = 0
+    grids = measured()
     consumer = optional_consumer_dir()
     sources = [("platform", "config/custom-dimensions/dimensions/*.json")]
     if consumer:
@@ -210,6 +284,17 @@ def main():
                   if isinstance(e, dict) and isinstance(e.get("parameters"), dict)]
             natives = [e for e in arr if isinstance(e, str)]
             name = f.split('/')[-1][:-5]
+
+            drawn = (grids.get(name) or {}).get("samples") or {}
+            tied = never_wins(ex, drawn) if drawn else []
+            if tied:
+                total_files += 1; total_tied += len(tied)
+                for bid, axis, point, rid, cells in tied:
+                    print(f"  {name:26s} [{where:8s}] {bid} generates nowhere: the only {axis}"
+                          f" it reaches is {point}, where {rid} is equally close"
+                          f" ({cells} of its cells) and wins every tie")
+                print(f"      {axis} is inclusive at both ends, so a shared boundary is a tie,"
+                      f" not a split — move the boundary off {point} or widen the band")
 
             dead = dead_repeats(arr)
             if dead:
@@ -257,7 +342,8 @@ def main():
     if not consumer:
         print(f"  overlay not checked - set {ENV_VAR} to include a consumer repo")
     print(f"{total_files} files, {total_pairs} overlapping pairs, {total_starved} starved natives, "
-          f"{total_sliced} schema-stepped bands, {total_dead} dead repeats")
+          f"{total_sliced} schema-stepped bands, {total_dead} dead repeats, "
+          f"{total_tied} bands that never win a tie")
     if scanned == 0:
         sys.exit("nothing scanned - run this from the platform repo root")
     return 1 if (total_pairs or total_starved or total_sliced or total_dead) else 0
