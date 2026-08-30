@@ -3,12 +3,60 @@
   "description": "Serene glowing caverns \u2014 lush moss and quartz light under a bedrock roof. No armies ever found this place. The copper towers and strange outposts were built by someone who came for the light and stayed.",
   "seed": -8074874586289501964,
   "biomes": [
-    "minecraft:lush_caves",
-    "terralith:cave/thermal_caves",
-    "terralith:cave/tuff_caves",
-    "minecraft:dripstone_caves",
-    "terralith:cave/andesite_caves",
-    "terralith:cave/diorite_caves",
+    {
+      "id": "minecraft:lush_caves",
+      "parameters": {
+        "temperature": [
+          0.1057,
+          0.1487
+        ]
+      }
+    },
+    {
+      "id": "terralith:cave/thermal_caves",
+      "parameters": {
+        "temperature": [
+          0.1487,
+          0.1917
+        ]
+      }
+    },
+    {
+      "id": "terralith:cave/tuff_caves",
+      "parameters": {
+        "temperature": [
+          0.1917,
+          0.2347
+        ]
+      }
+    },
+    {
+      "id": "minecraft:dripstone_caves",
+      "parameters": {
+        "temperature": [
+          0.2347,
+          0.2777
+        ]
+      }
+    },
+    {
+      "id": "terralith:cave/andesite_caves",
+      "parameters": {
+        "temperature": [
+          0.5767,
+          0.6403
+        ]
+      }
+    },
+    {
+      "id": "terralith:cave/diorite_caves",
+      "parameters": {
+        "temperature": [
+          0.6403,
+          0.7038
+        ]
+      }
+    },
     {
       "id": "yungscavebiomes:frosted_caves",
       "parameters": {
@@ -72,7 +120,15 @@
         ]
       }
     },
-    "undergroundworlds:underground_desert"
+    {
+      "id": "undergroundworlds:underground_desert",
+      "parameters": {
+        "temperature": [
+          0.7038,
+          0.7674
+        ]
+      }
+    }
   ],
   "borders": {
     "player": 1024,
