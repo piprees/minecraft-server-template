@@ -110,9 +110,11 @@ public final class DatapackDimensions {
                         id, options.chunkGenerator().getBiomeSource().getClass().getName());
                 return null;
             }
+            // BIOMES, not entries: a datapack may name one biome twice, as
+            // Nullscape does for crystal_peaks, and getBiomes is a set.
             MultiverseServer.LOGGER.info(
-                    "Datapack dimension {}: composing from its own {} parameter entries; the live "
-                    + "entry was replaced and carries no multi-noise source",
+                    "Datapack dimension {}: composing from its own {} biome(s); the live entry "
+                    + "was replaced and carries no multi-noise source",
                     id, source.getBiomes().size());
             return source;
         } catch (Exception e) {
