@@ -74,6 +74,17 @@ public final class ConfiguredBiomeSource {
         if (restored == outer) {
             return options;
         }
+        // A rebuild that costs a dimension its patches is worse than no rebuild,
+        // so say so and keep the un-rebuilt source ([T34]).
+        List<PatchedBiomeSource.Patch> kept =
+                restored instanceof PatchedBiomeSource p ? p.patches() : null;
+        if (!preserved(patched == null ? null : patched.patches(), kept)) {
+            MultiverseServer.LOGGER.error(
+                    "Dimension {}: the biome-source rebuild lost this dimension's biomePatches — "
+                    + "{} patch(es) went in, {} came back; keeping the un-rebuilt source",
+                    def.getName(), patched.patches().size(), kept == null ? 0 : kept.size());
+            return options;
+        }
         MultiverseServer.LOGGER.warn(
                 "Dimension {}: biome source reported {} biomes over a {}-biome palette — "
                 + "another mod injected regions into the persisted source; rebuilt from its "
@@ -98,5 +109,14 @@ public final class ConfiguredBiomeSource {
             return source;
         }
         return rewrap.apply(rebuild.get());
+    }
+
+    /**
+     * Whether a rebuild handed back the wrapper's own configuration. {@code Patch}
+     * is a record and {@code List.equals} is ordered, so this compares every field
+     * of every patch, in order. A source that was never wrapped has nothing to keep.
+     */
+    static <C> boolean preserved(List<C> before, List<C> after) {
+        return before == null || before.equals(after);
     }
 }
