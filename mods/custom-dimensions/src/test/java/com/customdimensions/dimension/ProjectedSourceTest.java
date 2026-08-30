@@ -83,6 +83,36 @@ class ProjectedSourceTest {
     }
 
     @Test
+    void aProjectedOffsetIsNeverAboveWhatVanillaWillEncode() {
+        // The third route to the offset vanilla's codec refuses, after the
+        // authored and default band paths. A declared 0.6 in a dimension whose
+        // projection factor is 2.0 is 1.2, and the failure is silent all the
+        // way to a level.dat with no WorldGenSettings.
+        WindowProjection.Cell<Pair<MultiNoiseUtil.NoiseHypercube, String>> scaled =
+                new WindowProjection.Cell<>(
+                        Pair.of(cube(-0.5, 0.5, OPEN, 0.6), "a"),
+                        ProjectedSource.toCell(Pair.of(cube(-0.5, 0.5, OPEN, 0.6), "a")).axes(),
+                        1.2);
+
+        assertEquals(10000L, ProjectedSource.toHypercube(scaled).offset(),
+                "offset 1.2 is outside [0,1] and cannot be persisted");
+    }
+
+    @Test
+    void theClampDoesNotTouchAProjectedOffsetThatFitsAlready() {
+        // A ceiling, not a rescale: vanilla's heaviest authored offset at the
+        // pack's largest measured projection factor is 0.375 x 1.978 = 0.742,
+        // and it must cross untouched.
+        WindowProjection.Cell<Pair<MultiNoiseUtil.NoiseHypercube, String>> scaled =
+                new WindowProjection.Cell<>(
+                        Pair.of(cube(-0.5, 0.5, OPEN, 0.375), "a"),
+                        ProjectedSource.toCell(Pair.of(cube(-0.5, 0.5, OPEN, 0.375), "a")).axes(),
+                        0.375 * 1.978);
+
+        assertEquals(7418L, ProjectedSource.toHypercube(scaled).offset());
+    }
+
+    @Test
     void theOffsetCrossesTheFixedPointBoundaryIntact() {
         // A hypercube stores offset as v * 10000; the projection works in the
         // plain value. Getting the scale wrong here would be invisible until a

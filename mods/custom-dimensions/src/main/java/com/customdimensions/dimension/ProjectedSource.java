@@ -179,7 +179,16 @@ public final class ProjectedSource {
         return new WindowProjection.Cell<>(entry, axes, h.offset() / SCALE);
     }
 
-    /** The projected cell as a hypercube, taking depth back from the original. */
+    /**
+     * The projected cell as a hypercube, taking depth back from the original.
+     *
+     * <p>The offset is clamped to what vanilla will encode. A declared offset
+     * multiplied by a projection factor above 1 is the third route to the
+     * value {@code MultiNoiseUtil$NoiseHypercube}'s codec refuses, and the
+     * refusal drops {@code WorldGenSettings} from {@code level.dat} with
+     * nothing thrown — the same ceiling the authored and default band paths
+     * already apply.
+     */
     static <T> MultiNoiseUtil.NoiseHypercube toHypercube(
             WindowProjection.Cell<Pair<MultiNoiseUtil.NoiseHypercube, T>> cell) {
         MultiNoiseUtil.NoiseHypercube original = cell.value().getFirst();
@@ -190,7 +199,7 @@ public final class ProjectedSource {
                 rangeOf(cell.axes().get(3)),
                 original.depth(),
                 rangeOf(cell.axes().get(5)),
-                Math.round(cell.offset() * SCALE));
+                Math.round(Math.min(1.0, cell.offset()) * SCALE));
     }
 
     /** The game's fixed point: a climate value is stored as {@code v * 10000}. */
