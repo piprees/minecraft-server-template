@@ -434,8 +434,8 @@ public class DimensionManager {
         return null;
     }
 
-    /** Wrappers nest at most two deep; the bound is what stops a cyclic source spinning. */
-    private static final int MAX_UNWRAP_DEPTH = 8;
+    /** Bounds the unwrap loop so a cyclic or pathological source cannot spin. */
+    static final int MAX_UNWRAP_DEPTH = 8;
 
     /**
      * The multi-noise source a generator composes from, past any wrapper.
@@ -458,17 +458,43 @@ public class DimensionManager {
         if (generator == null) {
             return null;
         }
-        BiomeSource source = generator.getBiomeSource();
-        for (int i = 0; i < MAX_UNWRAP_DEPTH && !(source instanceof MultiNoiseBiomeSource); i++) {
-            BiomeSource inner = source instanceof PatchedBiomeSource patched
-                    ? patched.delegate()
-                    : com.customdimensions.compat.LithostitchedCompat.unwrap(source);
-            if (inner == source) {
+        BiomeSource source = unwrapToMultiNoise(generator.getBiomeSource());
+        return source instanceof MultiNoiseBiomeSource multiNoise ? multiNoise : null;
+    }
+
+    /**
+     * The unwrapping step of {@link #multiNoiseOf}, to a fixed point.
+     *
+     * <p>Returns the source unchanged once it is a {@link MultiNoiseBiomeSource}, once
+     * neither unwrapper can see through it, or once {@link #MAX_UNWRAP_DEPTH} is spent.
+     */
+    static BiomeSource unwrapToMultiNoise(BiomeSource source) {
+        return unwrapToFixedPoint(source,
+                s -> s instanceof MultiNoiseBiomeSource,
+                s -> s instanceof PatchedBiomeSource patched
+                        ? patched.delegate()
+                        : com.customdimensions.compat.LithostitchedCompat.unwrap(s));
+    }
+
+    /**
+     * Applies {@code step} until {@code done} holds, until a step returns its own input,
+     * or until {@link #MAX_UNWRAP_DEPTH} steps are spent — whichever comes first.
+     *
+     * <p>Separate from the biome-source types so the termination rules are unit-testable:
+     * {@code BiomeSource} initialises {@code Registries}, which cannot be bootstrapped in
+     * this suite.
+     */
+    static <T> T unwrapToFixedPoint(T start, java.util.function.Predicate<T> done,
+                                    java.util.function.UnaryOperator<T> step) {
+        T current = start;
+        for (int i = 0; i < MAX_UNWRAP_DEPTH && !done.test(current); i++) {
+            T next = step.apply(current);
+            if (next == current) {
                 break;
             }
-            source = inner;
+            current = next;
         }
-        return source instanceof MultiNoiseBiomeSource multiNoise ? multiNoise : null;
+        return current;
     }
 
     // Resolve the biome source for a dimension with a biome list: prefer the
