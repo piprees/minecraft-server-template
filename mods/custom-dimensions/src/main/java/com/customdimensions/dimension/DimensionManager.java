@@ -61,6 +61,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class DimensionManager {
@@ -275,24 +276,25 @@ public class DimensionManager {
         return generator;
     }
 
-    // Build a multi-noise source for an arbitrary biome list. Biomes native
-    // to the base source keep their natural placement; every OTHER requested
-    // biome (nether biomes in an overworld dim, cherry groves in the end —
-    // cross-family mixing is the point) is dealt the remaining parameter
-    // regions round-robin, so it genuinely appears in the layout instead of
-    // being silently dropped — a list with no native matches at all (e.g.
+    // Build a multi-noise source for an arbitrary biome list, in four tiers.
+    // A biome with explicit "parameters" gets that one hypercube. A biome the
+    // base source already places keeps its own cells. A biome the base source
+    // does not place, whose own mod declared cells for this family, gets those
+    // cells ([T19]). Everything left is dealt the remaining parameter regions
+    // round-robin, so it genuinely appears in the layout instead of being
+    // silently dropped — a list with no native matches at all (e.g.
     // the_crimson_nexus, the_souldrift) still produces its requested biomes
     // rather than falling back to plains.
     private BiomeSource buildMixedSource(MultiNoiseBiomeSource base, Registry<Biome> biomeRegistry,
                                          String biomeList, String dimName,
-                                         Map<String, com.google.gson.JsonObject> paramOverrides) {
+                                         Map<String, com.google.gson.JsonObject> paramOverrides,
+                                         Map<Identifier, List<MultiNoiseUtil.NoiseHypercube>> declaredCells) {
         Set<Identifier> allowedIds = Arrays.stream(biomeList.split(","))
                 .map(String::trim).map(Identifier::tryParse).filter(id -> id != null)
                 .collect(Collectors.toCollection(java.util.LinkedHashSet::new));
         // Global suppress list strips listed biomes up front, so foreign
         // round-robin slots go to the surviving biomes instead of being
-        // filtered out of the finished source. Mirrored by
-        // biome_source_mixing.py — keep in sync.
+        // filtered out of the finished source.
         Set<Identifier> suppressedBiomes = BiomeSuppression.suppressedIds();
         if (!suppressedBiomes.isEmpty() && allowedIds.removeAll(suppressedBiomes)) {
             MultiverseServer.LOGGER.info(
@@ -304,7 +306,6 @@ public class DimensionManager {
         // valid "parameters" object gets ONE explicit hypercube and is
         // withdrawn from the native/round-robin machinery entirely — its
         // natural regions (if any) join the pool for foreign biomes.
-        // Mirrored by biome_source_mixing.py (param_overrides); keep in sync.
         Map<Identifier, MultiNoiseUtil.NoiseHypercube> explicit = new java.util.LinkedHashMap<>();
         if (paramOverrides != null) {
             for (Map.Entry<String, com.google.gson.JsonObject> e : paramOverrides.entrySet()) {
@@ -334,7 +335,7 @@ public class DimensionManager {
             }
         }
 
-        List<RegistryEntry<Biome>> foreign = new ArrayList<>();
+        List<RegistryEntry<Biome>> unplaced = new ArrayList<>();
         for (Identifier id : allowedIds) {
             if (nativeIds.contains(id) || explicit.containsKey(id)) {
                 continue;
@@ -342,37 +343,96 @@ public class DimensionManager {
             Optional<RegistryEntry.Reference<Biome>> entry =
                     biomeRegistry.getEntry(RegistryKey.of(RegistryKeys.BIOME, id));
             if (entry.isPresent()) {
-                foreign.add(entry.get());
+                unplaced.add(entry.get());
             } else {
                 MultiverseServer.LOGGER.warn("Dimension {}: biome {} not in the registry — skipped", dimName, id);
             }
         }
 
         List<Pair<MultiNoiseUtil.NoiseHypercube, RegistryEntry<Biome>>> result = new ArrayList<>();
+        int explicitCells = 0;
         for (Map.Entry<Identifier, MultiNoiseUtil.NoiseHypercube> e : explicit.entrySet()) {
             Optional<RegistryEntry.Reference<Biome>> biomeEntry =
                     biomeRegistry.getEntry(RegistryKey.of(RegistryKeys.BIOME, e.getKey()));
             if (biomeEntry.isPresent()) {
                 result.add(Pair.of(e.getValue(), biomeEntry.get()));
+                explicitCells++;
             } else {
                 MultiverseServer.LOGGER.warn("Dimension {}: biome {} (with parameters) not in the registry — skipped",
                         dimName, e.getKey());
             }
         }
         result.addAll(nativeEntries);
-        if (!foreign.isEmpty()) {
-            for (int i = 0; i < pool.size(); i++) {
-                result.add(Pair.of(pool.get(i), foreign.get(i % foreign.size())));
-            }
-        }
+        Dealt<RegistryEntry<Biome>, MultiNoiseUtil.NoiseHypercube> dealt =
+                dealRemaining(unplaced, biome -> declaredCellsOf(declaredCells, biome), pool);
+        result.addAll(dealt.natural());
+        result.addAll(dealt.filler());
         if (result.isEmpty()) {
             MultiverseServer.LOGGER.warn("Dimension {}: no usable biomes in '{}' — keeping the base source", dimName, biomeList);
             return base;
         }
-        MultiverseServer.LOGGER.info("Dimension {}: biome source built ({} explicit, {} native, {} mixed-in of {} requested)",
-                dimName, result.size() - nativeEntries.size() - (foreign.isEmpty() ? 0 : pool.size()),
-                nativeEntries.size(), foreign.size(), allowedIds.size());
+        MultiverseServer.LOGGER.info(
+                "Dimension {}: biome source built ({} explicit, {} native, {} natural over {} cell(s), "
+                + "{} mixed-in of {} requested)",
+                dimName, explicitCells, nativeEntries.size(),
+                unplaced.size() - dealt.foreign().size(), dealt.natural().size(),
+                dealt.foreign().size(), allowedIds.size());
         return MultiNoiseBiomeSource.create(new MultiNoiseUtil.Entries<>(result));
+    }
+
+    /** A biome's declared cells, or empty when its mod declared none. */
+    private static List<MultiNoiseUtil.NoiseHypercube> declaredCellsOf(
+            Map<Identifier, List<MultiNoiseUtil.NoiseHypercube>> declaredCells,
+            RegistryEntry<Biome> biome) {
+        Identifier id = biome.getKey().map(RegistryKey::getValue).orElse(null);
+        return id == null ? List.of() : declaredCells.getOrDefault(id, List.of());
+    }
+
+    /**
+     * The outcome of placing the biomes the base source does not place:
+     * {@code natural} carries each biome's own declared cells, {@code filler}
+     * the leftover parameter regions dealt round-robin, and {@code foreign}
+     * the biomes that took them.
+     */
+    record Dealt<B, C>(List<Pair<C, B>> natural, List<Pair<C, B>> filler, List<B> foreign) {
+    }
+
+    /**
+     * Places every biome the base source does not place. A biome whose own mod
+     * declared climate cells for this family takes those cells; the rest are
+     * dealt the leftover parameter regions round-robin, which is arbitrary
+     * placement and the reason one such biome can hold most of a dimension
+     * ([T19]).
+     *
+     * <p>The leftover pool is dropped whole when nothing is left foreign, so a
+     * dimension whose every biome is placed carries only the cells it asked
+     * for.
+     *
+     * <p>Generic over the biome and cell types so the rules are testable: this
+     * suite cannot bootstrap Minecraft's registries.
+     */
+    static <B, C> Dealt<B, C> dealRemaining(List<B> remaining,
+                                            Function<B, List<C>> declaredCells,
+                                            List<C> pool) {
+        List<Pair<C, B>> natural = new ArrayList<>();
+        List<B> foreign = new ArrayList<>();
+        for (B biome : remaining) {
+            List<C> cells = declaredCells.apply(biome);
+            if (cells == null || cells.isEmpty()) {
+                foreign.add(biome);
+                continue;
+            }
+            for (C cell : cells) {
+                natural.add(Pair.of(cell, biome));
+            }
+        }
+        List<Pair<C, B>> filler = new ArrayList<>();
+        if (!foreign.isEmpty()) {
+            for (int i = 0; i < pool.size(); i++) {
+                filler.add(Pair.of(pool.get(i), foreign.get(i % foreign.size())));
+            }
+        }
+        return new Dealt<>(natural, filler, foreign);
     }
 
     // One NoiseHypercube from a raw "parameters" object. Each axis is a
@@ -442,8 +502,8 @@ public class DimensionManager {
      *
      * <p>Two wrappers sit over a source here, in either order:
      * {@link PatchedBiomeSource} for a dimension's {@code biomePatches}, and
-     * Lithostitched's injector for a base world whose mod ships biome injectors
-     * (Regions Unexplored is one). Neither publishes parameter entries, so
+     * Lithostitched's injector for a base world any mod's datapack has injected
+     * biomes into. Neither publishes parameter entries, so
      * composing from one is impossible and refusing drops the dimension's whole
      * biome list. The source underneath is what this mod builds from; anything a
      * wrapper adds reaches a managed dimension by being named in its
@@ -517,11 +577,13 @@ public class DimensionManager {
         }
         MultiNoiseBiomeSource base = multiNoiseOf(baseGenerator);
         if (base != null) {
-            return buildMixedSource(base, biomeRegistry, biomeList, def.getName(), def.getBiomeParameters());
+            return buildMixedSource(base, biomeRegistry, biomeList, def.getName(),
+                    def.getBiomeParameters(), declaredCellsFor(base, biomeRegistry));
         }
         MultiNoiseBiomeSource owBase = multiNoiseOf(overworldGenerator);
         if (owBase != null) {
-            return buildMixedSource(owBase, biomeRegistry, biomeList, def.getName(), def.getBiomeParameters());
+            return buildMixedSource(owBase, biomeRegistry, biomeList, def.getName(),
+                    def.getBiomeParameters(), declaredCellsFor(owBase, biomeRegistry));
         }
         // Silent here meant a whole dimension quietly generating the base
         // world's biomes instead of its own — name the class, because the mod
@@ -534,6 +596,36 @@ public class DimensionManager {
                 baseGenerator == null ? "absent" : baseGenerator.getBiomeSource().getClass().getName(),
                 overworldGenerator == null ? "absent" : overworldGenerator.getBiomeSource().getClass().getName());
         return null;
+    }
+
+    /**
+     * The cells other mods declared for the family {@code base} belongs to,
+     * empty for any other source.
+     *
+     * <p>TerraBlender registers regions per family (OVERWORLD, NETHER — there
+     * is no END type) and shapes their cells for that family's climate router.
+     * Handing overworld cells to an End or paradise_lost source would place
+     * biomes where that router never reaches, which is worse than the
+     * round-robin it replaces — so the family is decided by identity against
+     * the overworld's and the nether's own sources, not by dimension type.
+     */
+    private Map<Identifier, List<MultiNoiseUtil.NoiseHypercube>> declaredCellsFor(
+            MultiNoiseBiomeSource base, Registry<Biome> biomeRegistry) {
+        MutableRegistry<DimensionOptions> dimRegistry = this.getDimensionRegistry();
+        if (base == null || dimRegistry == null) {
+            return Map.of();
+        }
+        if (base == multiNoiseSourceOf(dimRegistry.get(DimensionOptions.OVERWORLD))) {
+            return com.customdimensions.compat.TerraBlenderCompat.cellsByBiome(biomeRegistry, true);
+        }
+        if (base == multiNoiseSourceOf(dimRegistry.get(DimensionOptions.NETHER))) {
+            return com.customdimensions.compat.TerraBlenderCompat.cellsByBiome(biomeRegistry, false);
+        }
+        return Map.of();
+    }
+
+    private static MultiNoiseBiomeSource multiNoiseSourceOf(DimensionOptions options) {
+        return options == null ? null : multiNoiseOf(options.chunkGenerator());
     }
 
     // "flatBiome" for superflat dims: unknown or unset falls back to plains

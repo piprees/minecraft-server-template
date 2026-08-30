@@ -211,8 +211,13 @@ Launchers download HTML instead of mod JARs, or packwiz auto-update serves stale
 ### T19 — A listed biome with no climate parameters swallows the whole dimension
 
 - **Symptom:** a `multi_biome` (or any biome-listed) dimension generates as one biome nearly everywhere, and seed rolling reports the rest as "not found" however many candidates are rolled. The outcome is structural, not unlucky.
-- **Cause:** `DimensionManager.buildMixedSource` splits the biome list into biomes that already have a hypercube in the base source ("native") and those that do not ("foreign"), then deals every leftover hypercube to the foreign biomes **round-robin** — so a single foreign biome receives all of them while the natives keep only what they literally claim. Across the 34 affected dimensions the foreign biomes held 74–100% of the area. Without climate parameters: all 47 **Nature's Spirit** biomes (they place through their own layer, not the vanilla multi-noise list), and `minecraft:end_barrens`/`minecraft:end_midlands` (vanilla places those by erosion in `TheEndBiomeSource`, which Nullscape replaces wholesale). Nullscape also gives `minecraft:the_end` and `minecraft:end_highlands` the **same** full-span hypercube, so one of that pair can never win a nearest-point lookup, and gates `nullscape:void_barrens`/`nullscape:crystal_peaks` on `temperature >= 0` — an octave -11 noise that barely moves inside one dimension.
-- **Fix:** give the biome an explicit hypercube. An object-form entry (`{"id": ..., "parameters": {...}}`) withdraws it from the foreign machinery, and once no foreign biomes remain the leftover pool is dropped rather than dealt out. Band on an axis the dimension's climate noise actually crosses at its own radius — typically **weirdness** for overworld and End dimensions, **continentalness** for `paradise_lost` clones (humidity spans 0.207 across a 512-radius world against weirdness's 0.783).
+- **Cause:** `DimensionManager.buildMixedSource` places a listed biome in four tiers — an explicit `parameters` object, then the base source's own cells for it ("native"), then the cells its declaring mod registered with TerraBlender for that family ("natural"), and finally the leftover hypercubes dealt **round-robin** to whatever is left ("mixed-in"). Round-robin is arbitrary placement: one such biome receives every leftover cell while the natives keep only what they literally claim, and across the 34 dimensions measured before the natural tier existed those biomes held 74–100% of the area.
+- **A biome reaches round-robin only when nothing readable declares where it goes.** Of the six modded namespaces in the pack's lists, four register TerraBlender regions and place naturally (Nature's Spirit's 47 biomes across 5 regions, Wilder Wild, YUNG's Cave Biomes, Underground Worlds); Galosphere injects into vanilla's `OverworldBiomeBuilder` and is native in any overworld-based source; **Regions Unexplored declares nothing anywhere** — no TerraBlender region, no Lithostitched biome injector, no parameter-list override — so its 78 biomes have no placement but the one you write. Lithostitched's injectors are not a second source: they substitute a biome into an existing source and carry no hypercubes.
+- **TerraBlender has OVERWORLD and NETHER region types and no END**, and its cells are shaped for that family's climate router, so the natural tier applies only where the base source IS the overworld's or the nether's. An End, `sky_islands` or `paradise_lost` source keeps round-robin, which at least guarantees the biome appears.
+- **Vanilla and Nullscape End biomes still need a band.** `minecraft:end_barrens`/`minecraft:end_midlands` are placed by erosion in `TheEndBiomeSource`, which Nullscape replaces wholesale; Nullscape gives `minecraft:the_end` and `minecraft:end_highlands` the **same** full-span hypercube, so one of that pair can never win a nearest-point lookup, and it gates `nullscape:void_barrens`/`nullscape:crystal_peaks` on `temperature >= 0` — an octave -11 noise that barely moves inside one dimension.
+- **Fix:** give the biome an explicit hypercube. An object-form entry (`{"id": ..., "parameters": {...}}`) withdraws it from every other tier, and once no biome is left foreign the leftover pool is dropped rather than dealt out. Band on an axis the dimension's climate noise actually crosses at its own radius — typically **weirdness** for overworld and End dimensions, **continentalness** for `paradise_lost` clones (humidity spans 0.207 across a 512-radius world against weirdness's 0.783).
+- **An explicit band outranks natural placement**, so it stays the tool for deliberate authorship — putting a biome somewhere its author did not, or reaching it in a family TerraBlender does not cover. The natural tier removes the requirement, not the control.
+- **The natural tier is a flat union of every region's cells.** TerraBlender consults one region per position through its uniqueness noise; without that layer cells from different regions compete directly by nearest point, and region weight has no effect. Placement is the author's, the region layout is not.
 - **The usable axis belongs to the noise ROUTER, not the dimension family.** Measured with `customdim sample-noise` over 11 points spanning the playable radius, one representative per (`type`, `noiseSettings`) — the table is `config/custom-dimensions/climate-axes.json`:
 
   | type | noiseSettings | axis | span |
@@ -371,19 +376,27 @@ A world regenerates with the old terrain after a reset that set a new seed, or t
 <a id="t38"></a>
 ### T38 — The boot line's `native` count is hypercube pairs, not biomes
 
-- **Symptom:** `biome source built (0 explicit, 228 native, 0 mixed-in of 20
-  requested)` reads as the biome list being discarded and the whole registry
-  substituted, and a dimension gets "fixed" that was never broken.
+- **Symptom:** `biome source built (0 explicit, 228 native, 0 natural over 0
+  cell(s), 0 mixed-in of 20 requested)` reads as the biome list being discarded
+  and the whole registry substituted, and a dimension gets "fixed" that was
+  never broken.
 - **Cause:** `DimensionManager` logs `nativeEntries.size()`, and each entry is
   one hypercube→biome pair. A vanilla overworld biome occupies many points in
   the multi-noise table, so 20 listed biomes legitimately build 228 pairs.
   Nether- and End-family tables are small, which is why those dimensions log
   close to 1:1 and set a misleading expectation.
+- **The five counts are not in the same units.** `explicit` and `native` are
+  hypercube pairs; `natural` is BIOMES, with its own pair count beside it as
+  `over N cell(s)`; `mixed-in` and `requested` are biomes. A natural biome
+  brings every cell its mod declared, so a handful of biomes can carry
+  hundreds of cells.
 - **Fix:** the count that answers "did the list survive" is `mixed-in`, which
-  must be 0, and `requested`, which must match the config. To check what the
-  world actually produced, read `biomes.distinctCount` from a banked candidate
-  — a dimension honouring a 20-biome list shows about 20, and one genuinely
-  discarding its list (`amplified`, `large_biomes`) shows 130+.
+  must be 0, and `requested`, which must match the config. `explicit + native
+  biomes + natural + mixed-in` accounts for every requested biome that
+  resolved. To check what the world actually produced, read
+  `biomes.distinctCount` from a banked candidate — a dimension honouring a
+  20-biome list shows about 20, and one genuinely discarding its list
+  (`amplified`, `large_biomes`) shows 130+.
 
 <a id="t39"></a>
 ### T39 — A seed score is the mean of two tiers, so a general criterion is worth 2–3 wants

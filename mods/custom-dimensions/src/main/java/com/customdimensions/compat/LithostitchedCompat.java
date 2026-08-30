@@ -15,10 +15,10 @@ import java.lang.reflect.Method;
  * biome lookups but is NOT a {@code MultiNoiseBiomeSource}, so the
  * dump's {@code instanceof} check fails without this unwrap.
  *
- * <p>Regions Unexplored ships biome injectors, so the overworld's and the
- * nether's sources are wrapped on this server. Every path that composes a
- * dimension from a base world's source has to unwrap first or it silently
- * drops the dimension's whole biome list.
+ * <p>Any mod's datapack can add one, so a base world's source may be wrapped
+ * on any given mod list. Every path that composes a dimension from a base
+ * world's source has to unwrap first or it silently drops the dimension's
+ * whole biome list.
  *
  * <p>Fails open: if Lithostitched is absent or the API changed, returns
  * the source unchanged.

@@ -4,14 +4,18 @@ import com.customdimensions.MultiverseServer;
 import com.mojang.datafixers.util.Pair;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.registry.Registry;
+import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.entry.RegistryEntry;
+import net.minecraft.util.Identifier;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.biome.source.util.MultiNoiseUtil;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 
 /**
@@ -50,6 +54,9 @@ public final class TerraBlenderCompat {
     private static Method regionGetWeight;
     private static Object overworldType;
     private static Object netherType;
+    private static Registry<Biome> cachedFor;
+    private static Map<Identifier, List<MultiNoiseUtil.NoiseHypercube>> overworldCells;
+    private static Map<Identifier, List<MultiNoiseUtil.NoiseHypercube>> netherCells;
 
     private TerraBlenderCompat() {
     }
@@ -73,6 +80,55 @@ public final class TerraBlenderCompat {
 
     public static boolean isAvailable() {
         return ensureResolved();
+    }
+
+    /**
+     * Every TB-registered region's cells for one region type, indexed by
+     * biome — the climate placement each biome's own mod declared. Empty
+     * when TB is absent or registers no region of that type.
+     *
+     * <p>This is the only readable source of placement for a TB biome.
+     * {@code MixinParameterList.initializeForTerraBlender} builds a separate
+     * search tree per region from a fresh list and never merges one back
+     * into the parameter list's own entries, so a TB biome is structurally
+     * absent from {@code getBiomeEntries} ([T19]).
+     *
+     * <p>The union is flat. TB consults one region per position through its
+     * uniqueness noise; without that layer, cells from different regions
+     * compete directly by nearest point and region weight has no effect.
+     *
+     * <p>Cached per biome registry — regions are fixed at mod init, and a
+     * different registry means a different server.
+     */
+    public static Map<Identifier, List<MultiNoiseUtil.NoiseHypercube>> cellsByBiome(
+            Registry<Biome> biomeRegistry, boolean overworld) {
+        if (biomeRegistry == null || !ensureResolved()) {
+            return Collections.emptyMap();
+        }
+        if (biomeRegistry != cachedFor) {
+            cachedFor = biomeRegistry;
+            overworldCells = null;
+            netherCells = null;
+        }
+        Map<Identifier, List<MultiNoiseUtil.NoiseHypercube>> cached =
+                overworld ? overworldCells : netherCells;
+        if (cached != null) {
+            return cached;
+        }
+        Map<Identifier, List<MultiNoiseUtil.NoiseHypercube>> built = new LinkedHashMap<>();
+        for (Pair<MultiNoiseUtil.NoiseHypercube, RegistryEntry<Biome>> pair
+                : regionEntries(biomeRegistry, overworld)) {
+            pair.getSecond().getKey().map(RegistryKey::getValue).ifPresent(
+                    id -> built.computeIfAbsent(id, k -> new ArrayList<>()).add(pair.getFirst()));
+        }
+        Map<Identifier, List<MultiNoiseUtil.NoiseHypercube>> result =
+                Collections.unmodifiableMap(built);
+        if (overworld) {
+            overworldCells = result;
+        } else {
+            netherCells = result;
+        }
+        return result;
     }
 
     /**
@@ -224,6 +280,9 @@ public final class TerraBlenderCompat {
         regionGetWeight = null;
         overworldType = null;
         netherType = null;
+        cachedFor = null;
+        overworldCells = null;
+        netherCells = null;
     }
     /**
      * Per-position probe of a live TB-extended parameter list: the
