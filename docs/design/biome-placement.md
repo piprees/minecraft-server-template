@@ -56,6 +56,30 @@ The same relationship holds elsewhere in the mod: `portal.aura.palette`
 overrides sampling the destination, and omitting it is the richer default.
 Where a biome carries its own declared placement, use it.
 
+**Two separate questions, and only the first is the author's:**
+
+| question | answered by |
+| --- | --- |
+| WHICH biomes this dimension has | the author's `biomes` list |
+| WHERE each one goes | the biome's own mod, by default |
+
+A band answers the second question, so it is for the case where the author
+wants a specific placement — a crimson forest at the heart of a nexus, a band
+of ice along one climate edge. **Using a band merely to make a biome appear is
+the anti-pattern**: it substitutes our guess for a placement its author already
+described, and it does it silently, because a hand-written band looks identical
+to a deliberate one.
+
+So a compat for a mod's placement mechanism is not an optimisation. It is what
+keeps bands meaning something. Every band written as plumbing is a band that
+cannot be read as intent, and a pack whose biomes only appear because someone
+hand-placed them is a pack of patterns rather than places.
+
+**Once a mechanism can be read, the bands that were standing in for it come
+out.** Leaving them means the compat never takes effect — explicit outranks
+natural — so the work is inert and the guesses remain. Removing them is the
+point of doing it, not a follow-up.
+
 ## What "fixed" means when a biome is not encounterable
 
 In order of preference, because each preserves more of the author's intent than
