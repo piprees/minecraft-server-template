@@ -1118,6 +1118,27 @@ The rendered height disagrees with the facts on high-relief columns. The error i
   it into `test-scripts.sh` as the last step of the mod fix**, when the only way
   to trip it is a new config error.
 
+### K9 — an `overworld`-type dimension never reads its `biomes` list
+
+- **Symptom:** a dimension with `"type": "overworld"` generates the full base
+  world whatever its `biomes` list says. No warning, no `biome list IGNORED`
+  line, nothing in the boot log — the list is simply never consulted.
+- **Cause:** the type switch in `DimensionManager.createDimensionOptions` has no
+  `case "overworld"`. It falls to `default`, which handles only a type
+  containing `:` (a clone of another registered dimension) and otherwise yields
+  `overworldOpts.chunkGenerator()` unchanged, so `resolveListedSource` is never
+  called. `amplified` and `large_biomes` reach the same outcome by cloning the
+  world preset's options wholesale. `applyBiomePatches` runs on every type but
+  reads `biomePatches`, a different field, so it does not stand in.
+- **Latent, not active.** `overworld`, `the_amplified_reaches`,
+  `the_endless_expanse` and `the_canvas` all carry `biomes: []`, so no shipped
+  dimension is affected and no band anywhere is inert because of this.
+- **Why it matters anyway:** the intended model for a naturally-populated
+  dimension is that biomes arrive from the base source AND the author's specific
+  asks are catered on top. The first half works; the second half has no
+  mechanism at all. The first person to put a biome in one of those lists will
+  get silence.
+
 ## Common symptoms
 
 **Server won't start:**

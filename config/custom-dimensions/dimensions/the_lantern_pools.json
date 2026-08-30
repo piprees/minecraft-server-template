@@ -174,8 +174,8 @@
     }
   ],
   "borders": {
-    "player": 512,
-    "generation": 512
+    "player": 1024,
+    "generation": 1024
   },
   "difficulty": {
     "mobMultiplier": 0.6,
@@ -187,7 +187,7 @@
     "igniterItem": "minecraft:nautilus_shell",
     "color": "4BCFCF",
     "lightLevel": 11,
-    "scale": 16.0,
+    "scale": 8.0,
     "cooldown": 40,
     "shape": "door",
     "anchor": {
