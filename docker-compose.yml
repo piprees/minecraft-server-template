@@ -332,9 +332,9 @@ services:
       AWS_SECRET_ACCESS_KEY: minioadmin123
       RESTIC_PASSWORD: local-dev-backups
       BACKUP_INTERVAL: "${BACKUP_INTERVAL:-12h}"
-      # First run after start. 2m lands inside a fresh world's priming
-      # pass and the entity flush can trip the watchdog ([T57]) — widen
-      # it when rolling a new world.
+      # First run after start. Its save-all flush can trip the watchdog on a
+      # fresh world ([T57]). Do NOT widen this — above ~3m it lands inside
+      # Chunky pre-gen instead. Stop mc-backup and idle-tasks for the window.
       INITIAL_DELAY: ${BACKUP_INITIAL_DELAY:-2m}
       PRUNE_RESTIC_RETENTION: >-
         --keep-daily ${RESTIC_RETENTION_DAILY:-3}
@@ -393,9 +393,9 @@ services:
 
       # --- Schedule ---
       BACKUP_INTERVAL: ${BACKUP_INTERVAL:-12h}
-      # First run after start. 2m lands inside a fresh world's priming
-      # pass and the entity flush can trip the watchdog ([T57]) — widen
-      # it when rolling a new world.
+      # First run after start. Its save-all flush can trip the watchdog on a
+      # fresh world ([T57]). Do NOT widen this — above ~3m it lands inside
+      # Chunky pre-gen instead. Stop mc-backup and idle-tasks for the window.
       INITIAL_DELAY: ${BACKUP_INITIAL_DELAY:-2m}
 
       # --- Retention policy ---

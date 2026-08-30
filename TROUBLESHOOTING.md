@@ -1675,15 +1675,27 @@ The rendered height disagrees with the facts on high-relief columns. The error i
   no flush can reach it. `docker start` re-runs the entrypoint, so the
   `BACKUP_INITIAL_DELAY` timer begins at `:1133`. What remains is the
   `BACKUP_INITIAL_DELAY` after `deploy.sh` returns, when every dimension exists
-  with spawn chunks generated. `./ops reset-seed` prints the check and the two
-  commands when it finishes: `./ops ssh 'docker stop mc-backup'`, then
-  `docker start mc-backup` once the map shows dimensions rendering.
-- **Stop the sidecar; do not widen the window with `BACKUP_INITIAL_DELAY`.**
-  The value sets when the FIRST snapshot of the new world lands, so a value
-  long enough to cover first generation deletes the backup you most want to
-  exist, and a GitHub production variable applies to every deploy afterwards.
-  The roller's priming pass — the expensive case measured below — is
-  local-profile-only and never runs on production.
+  with spawn chunks generated.
+- **`mc-backup` is not the only flush. `idle-tasks` issues its own a minute
+  later and no variable reaches it.** `idle-tasks.sh:194-199` runs
+  `save-all flush`, `sleep 5`, `spark gc`, then starts Chunky pre-generation
+  across every dimension (`:332-354`). Its gate is `IDLE_GRACE: "3"` minutes
+  and `POLL_INTERVAL: "30"` seconds, and it is dormant while `deploy.sh` holds
+  `.skip-pause-deploying` (`:86`), so it wakes when the deploy returns and
+  fires three minutes later — the same brigadier → `SaveAllCommand` →
+  `c2me$tryFlush` → `CompletableFuture.join` frame, without a `save-off` to
+  mark it. Post-reset with nobody online: +2m the sidecar's flush, +3m
+  idle-tasks' flush and then Chunky.
+- **Stop both sidecars; do not widen the window with `BACKUP_INITIAL_DELAY`.**
+  `./ops ssh 'docker stop mc-backup idle-tasks'`, then `docker start` both once
+  the map shows dimensions rendering. 2m is already the quietest point after a
+  reset — creation is finished and Chunky has not started — so any value above
+  ~3m moves the flush INTO Chunky pre-generation of a fresh 82-dimension world,
+  which is more expensive than the window it left. Nothing clears first
+  generation: that is hours of Chunky, and a value in hours deletes the first
+  snapshot of the new world. A GitHub production variable also applies to every
+  deploy afterwards. The roller's priming pass — the expensive case measured
+  below — is local-profile-only and never runs on production.
 - **An ESTABLISHED world's priming pass survives it.** Measured across three
   boots whose flush landed inside a priming pass over 78 existing level
   directories: windows of 7 s, 33 s and 35 s against `MAX_TICK_TIME` 180000,
