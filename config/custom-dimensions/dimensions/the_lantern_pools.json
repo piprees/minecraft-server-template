@@ -1,174 +1,42 @@
 {
   "type": "multi_biome",
-  "description": "Serene oasis pools glowing at dusk. A hermit's paradise \u2014 desert shrines mark where travellers stopped to rest, but nobody built a town. The pools are older than the shrines.",
+  "description": "Serene oasis pools glowing at dusk. A hermit's paradise — desert shrines mark where travellers stopped to rest, but nobody built a town. The pools are older than the shrines.",
   "seed": -2792686122266062874,
   "biomes": [
+    "terralith:desert_oasis",
+    "terralith:warm_river",
+    "terralith:lush_valley",
+    "terralith:orchid_swamp",
+    "minecraft:warm_ocean",
+    "minecraft:mangrove_swamp",
+    "minecraft:jungle",
+    "minecraft:sparse_jungle",
+    "minecraft:lush_caves",
+    "terralith:cave/tuff_caves",
     {
-      "id": "terralith:desert_oasis",
+      "id": "regions_unexplored:glistering_meadow",
       "parameters": {
-        "weirdness": [
-          -2.0,
-          -1.0
-        ],
-        "depth": [
-          -2.0,
-          0.1
-        ]
-      }
-    },
-    {
-      "id": "terralith:warm_river",
-      "parameters": {
-        "weirdness": [
-          -1.0,
-          -0.996
-        ],
-        "depth": [
-          -2.0,
-          0.1
-        ]
-      }
-    },
-    {
-      "id": "minecraft:warm_ocean",
-      "parameters": {
-        "weirdness": [
-          -0.996,
-          -0.992
-        ],
-        "depth": [
-          -2.0,
-          0.1
-        ]
-      }
-    },
-    {
-      "id": "minecraft:mangrove_swamp",
-      "parameters": {
-        "weirdness": [
-          -0.992,
-          -0.988
-        ],
-        "depth": [
-          -2.0,
-          0.1
-        ]
-      }
-    },
-    {
-      "id": "terralith:lush_valley",
-      "parameters": {
-        "weirdness": [
-          -0.988,
-          -0.3476
-        ],
-        "depth": [
-          -2.0,
-          0.1
-        ]
-      }
-    },
-    {
-      "id": "minecraft:jungle",
-      "parameters": {
-        "weirdness": [
-          -0.3476,
-          0.0824
-        ],
-        "depth": [
-          -2.0,
-          0.1
-        ]
-      }
-    },
-    {
-      "id": "minecraft:sparse_jungle",
-      "parameters": {
-        "weirdness": [
-          0.0824,
-          0.3875
-        ],
-        "depth": [
-          -2.0,
-          0.1
-        ]
-      }
-    },
-    {
-      "id": "terralith:orchid_swamp",
-      "parameters": {
-        "weirdness": [
-          0.3875,
-          0.5
-        ],
-        "depth": [
-          -2.0,
-          0.1
+        "humidity": [
+          -0.25,
+          -0.11
         ]
       }
     },
     {
       "id": "regions_unexplored:tropics",
       "parameters": {
-        "weirdness": [
-          0.5,
-          0.6292
-        ],
-        "depth": [
-          -2.0,
-          0.1
+        "humidity": [
+          0.02,
+          0.16
         ]
       }
     },
     {
       "id": "wilderwild:oasis",
       "parameters": {
-        "weirdness": [
-          0.6292,
-          1.0
-        ],
-        "depth": [
-          -2.0,
-          0.1
-        ]
-      }
-    },
-    {
-      "id": "regions_unexplored:glistering_meadow",
-      "parameters": {
-        "weirdness": [
-          1.0,
-          2.0
-        ],
-        "depth": [
-          -2.0,
-          0.1
-        ]
-      }
-    },
-    {
-      "id": "minecraft:lush_caves",
-      "parameters": {
-        "weirdness": [
-          -2.0,
-          -0.121
-        ],
-        "depth": [
-          0.1,
-          2.0
-        ]
-      }
-    },
-    {
-      "id": "terralith:cave/tuff_caves",
-      "parameters": {
-        "weirdness": [
-          -0.121,
-          2.0
-        ],
-        "depth": [
-          0.1,
-          2.0
+        "humidity": [
+          0.29,
+          0.43
         ]
       }
     }
