@@ -1088,10 +1088,12 @@ The rendered height disagrees with the facts on high-relief columns. The error i
 ### K8 — a biome listed twice keeps only its last band, and nothing reports it
 
 - **Symptom:** a dimension names one biome at two places on an axis and it
-  generates at only one of them. The boot line's `explicit` count is lower than
-  the number of banded entries in the config —
-  `the_frozen_hearth: biome source built (22 explicit, 0 native, 0 mixed-in of
-  22 requested)` against 24 banded entries.
+  generates at only one of them. The boot line's FIRST count is lower than the
+  number of banded entries in the config — `the_frozen_hearth: biome source
+  built (22 explicit, 0 native, 0 natural over 0 cell(s), 0 mixed-in of 22
+  requested)` against **24** banded entries. `requested` is the distinct id
+  count, so it agrees with `explicit` and hides the loss; the config is the only
+  place the 24 is visible.
 - **Cause:** `DimensionManager.buildMixedSource` builds `explicit` as a
   `LinkedHashMap<Identifier, NoiseHypercube>`, so a repeated id overwrites its
   predecessor and only the last hypercube reaches the biome source. Vanilla
