@@ -250,8 +250,9 @@ Launchers download HTML instead of mod JARs, or packwiz auto-update serves stale
   `overworld`, `checkerboard` and `superflat` answer `Not a MultiNoiseBiomeSource` and have no climate point to band on. In a `cave` dimension weirdness measures a span of **0.00** across one distinct value — completely inert.
 - **One representative per combination is a starting point, not a guarantee.** Measure your own dimension: `the_crumbling_reaches` (`end`, border 2048) gives weirdness 1.099 against continentalness 0.895, the reverse of the `end` row.
 - **Band SIZE is a separate question and a 121-point grid cannot answer it.**
-  `scripts/check-band-share.py` reports each band's share; read [K7](#k7) before
-  treating a small one as a defect.
+  `scripts/check-band-share.py` reports each band's share over the 41x41 grids
+  in `config/custom-dimensions/grids-41/`; read [K7](#k7) before treating a
+  small one as a defect.
 - **Rank candidate axes by DISTRIBUTION, not span.** `the_red_monument` (`adventure:void`) gives weirdness a span of 2.000 across just THREE distinct values, seven of eleven samples pinned at -0.50 — the widest span and the worst possible axis. Count distinct values across the radius before choosing. `biomes` is creation-time worldgen config ([D2](#d2)) and changing it re-keys the generation fingerprint, so every affected dimension needs a re-roll, not a rescore.
 
 <a id="t22"></a>
@@ -1074,20 +1075,19 @@ The rendered height disagrees with the facts on high-relief columns. The error i
   disc-clipped to about 1300 cells, read at block y 64 (`SpikeSampler`). A band
   holding a fraction of a percent gets several hits at that density and none at
   121, so "0 of 121" is a resolution floor.
-- **Measured against a real 41x41 sweep of all 78 measurable dimensions:
-  `check-band-share.py` reports 37 bands holding no cell at 121 points and
-  2 at 1681 — 18.5x.** Thirty-five were resolution artefacts. The re-judgement
-  imports the checker's own `rng`, `wins` and `LAYERS`, so density is the only
-  variable. An earlier estimate of 3.8x came from a smaller, differently-scoped
-  comparison and understated it.
+- **Measured against a real 41x41 sweep of all 78 measurable dimensions: a
+  121-point cloud calls 37 bands empty where 1681 points call 2 — 18.5x.**
+  Thirty-five are resolution artefacts. `check-band-share.py` reads the dense
+  grids in `config/custom-dimensions/grids-41/`; the comparison holds its `rng`,
+  `wins` and `LAYERS` fixed, so density is the only variable.
 - **A "holds no cell" line from the 121-point cloud is wrong about 95% of the
   time.** Do not act on one. The two that survive density are
   `the_roothold` `incendium:withered_forest` and `the_rosebluff`
   `terralith:white_cliffs`, both at a 1024 border and both unprobed.
-- The error runs both ways: the coarse method scores two SYNTHETIC depth layers
-  separately, which flatters a cave band the game reads at one height
-  (`the_frozen_strait` goes 1 empty to 3). Fixing the density and the
-  depth-handling are separate changes and should land separately.
+- The error runs both ways, and depth is the other direction. Scoring two
+  SYNTHETIC depth layers separately flatters a cave band the game reads at one
+  height (`the_frozen_strait` goes 1 empty to 3). That is independent of
+  density, so it lands as its own change.
 - **Confirmed against the game.** On `the_claymarsh` at seed
   135505505384991812, `customdim facts` reports 14 of its 15 biomes and
   `customdim score` gives 83.4%. `minecraft:swamp` holds a weirdness band 0.026
@@ -1127,9 +1127,10 @@ The rendered height disagrees with the facts on high-relief columns. The error i
   is one cell of 1257. Every check passes and a player crossing that world meets
   four biomes.
 - **Fix:** measure at the game's density before calling a band empty.
-  `scripts/sample-climate-grid.sh <slug> <border> 41` takes about five seconds.
-  `scripts/check-band-share.py` runs the lookup but reads the committed
-  121-point samples, so it reports and deliberately does not gate.
+  `scripts/check-band-share.py` runs the lookup over the committed 41x41 grids
+  and reports without gating. A dimension with no grid is named and skipped
+  rather than guessed at; `scripts/sample-climate-grid.sh <slug> <border> 41`
+  takes about five seconds to make one.
 - **Narrow is not empty, and small is not a defect.** The target is that no
   listed biome is ignored, never that shares are equal.
 
