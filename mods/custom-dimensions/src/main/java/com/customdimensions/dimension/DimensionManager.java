@@ -434,25 +434,40 @@ public class DimensionManager {
         return null;
     }
 
+    /** Wrappers nest at most two deep; the bound is what stops a cyclic source spinning. */
+    private static final int MAX_UNWRAP_DEPTH = 8;
+
     /**
-     * The multi-noise source a generator composes from, past any biome-injector
-     * wrapper.
+     * The multi-noise source a generator composes from, past any wrapper.
      *
-     * <p>Lithostitched wraps a base world's source when a mod ships a biome
-     * injector — Regions Unexplored is one — and the wrapper publishes no
-     * parameter entries, so composing from it is impossible and refusing drops
-     * the dimension's whole biome list. The original underneath is what this
-     * mod builds from; anything the wrapper injected reaches a managed
-     * dimension by being named in its {@code biomes} list, like any other biome.
+     * <p>Two wrappers sit over a source here, in either order:
+     * {@link PatchedBiomeSource} for a dimension's {@code biomePatches}, and
+     * Lithostitched's injector for a base world whose mod ships biome injectors
+     * (Regions Unexplored is one). Neither publishes parameter entries, so
+     * composing from one is impossible and refusing drops the dimension's whole
+     * biome list. The source underneath is what this mod builds from; anything a
+     * wrapper adds reaches a managed dimension by being named in its
+     * {@code biomes} list, like any other biome.
+     *
+     * <p>Unwrapping fails open: a source it cannot see through comes back as
+     * itself and ends the loop.
      *
      * <p>Null when no multi-noise source is reachable, which the caller reports.
      */
-    static MultiNoiseBiomeSource multiNoiseOf(ChunkGenerator generator) {
+    public static MultiNoiseBiomeSource multiNoiseOf(ChunkGenerator generator) {
         if (generator == null) {
             return null;
         }
-        BiomeSource source = com.customdimensions.compat.LithostitchedCompat
-                .unwrap(generator.getBiomeSource());
+        BiomeSource source = generator.getBiomeSource();
+        for (int i = 0; i < MAX_UNWRAP_DEPTH && !(source instanceof MultiNoiseBiomeSource); i++) {
+            BiomeSource inner = source instanceof PatchedBiomeSource patched
+                    ? patched.delegate()
+                    : com.customdimensions.compat.LithostitchedCompat.unwrap(source);
+            if (inner == source) {
+                break;
+            }
+            source = inner;
+        }
         return source instanceof MultiNoiseBiomeSource multiNoise ? multiNoise : null;
     }
 

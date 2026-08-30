@@ -76,7 +76,7 @@ public final class PatchedBiomeSource extends BiomeSource {
     }
 
     public static final MapCodec<PatchedBiomeSource> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-            BiomeSource.CODEC.fieldOf("delegate").forGetter(s -> s.delegate),
+            BiomeSource.CODEC.fieldOf("delegate").forGetter(PatchedBiomeSource::delegate),
             Patch.CODEC.listOf().fieldOf("patches").forGetter(s -> s.patches))
             .apply(instance, PatchedBiomeSource::new));
 
@@ -121,6 +121,11 @@ public final class PatchedBiomeSource extends BiomeSource {
             this.localGeometry[i * 6 + 4] = i;  // jitter salt: stable config order
             this.localGeometry[i * 6 + 5] = p.isSquare() ? 1 : 0;
         }
+    }
+
+    /** The wrapped source. Callers reaching for a MultiNoiseBiomeSource unwrap through here. */
+    public BiomeSource delegate() {
+        return this.delegate;
     }
 
     @Override

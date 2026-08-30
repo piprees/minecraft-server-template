@@ -22,7 +22,6 @@ import net.minecraft.structure.StructureStart;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.world.World;
-import net.minecraft.world.biome.source.MultiNoiseBiomeSource;
 import net.minecraft.world.biome.source.util.MultiNoiseUtil;
 import net.minecraft.world.gen.chunk.placement.RandomSpreadStructurePlacement;
 import net.minecraft.world.gen.noise.NoiseConfig;
@@ -1040,8 +1039,7 @@ public class DimensionCommands {
 
         // Sample the biome source's climate point at quarter-resolution
         var chunkGen = world.getChunkManager().getChunkGenerator();
-        var biomeSource = chunkGen.getBiomeSource();
-        if (!(biomeSource instanceof MultiNoiseBiomeSource mnbs)) {
+        if (DimensionManager.multiNoiseOf(chunkGen) == null) {
             source.sendError(Text.literal("Not a MultiNoiseBiomeSource"));
             return 0;
         }
