@@ -796,7 +796,16 @@ A seed's map and its banked facts appear to contradict each other — the thumbn
   documented recipe — so it arrives by hand, and this check cannot fail a new
   dimension because nothing has measured it yet. `check-biome-bands.py` catches
   the shape without a measurement; fit boundaries to the dimension's own range
-  in `climate-axes.json`, equal-area, ends clamped to +-2.0.
+  in `climate-axes.json`, ends clamped to +-2.0.
+- **The target is that no listed biome is ignored, NOT that shares are equal.**
+  A dominant biome with the others each occupying somewhere real is a good
+  world; equal parts of everything is a quadrant world, and `checkerboard` is
+  the type for that. Equal-area CDF fitting is one technique for the specific
+  failure of bands that catch nothing — it is not the objective, and a band's
+  share is information, never a pass/fail. Size slots so each band expects
+  samples at its own filter pass rate: plain equal area assumes the fitted axis
+  is a band's only constraint, and for a band carrying a second-axis filter it
+  is not, which collapses slots into hairlines that catch nothing.
 
 ## macOS local dev
 
