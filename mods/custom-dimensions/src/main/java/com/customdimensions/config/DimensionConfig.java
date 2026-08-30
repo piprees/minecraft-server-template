@@ -336,6 +336,23 @@ public class DimensionConfig {
     public static final float BAND_OFFSET_BASE = 0.375f;
 
     /**
+     * Whether a band states its own offset. One rule for both callers — the
+     * fingerprint and the cube builder — so a band the fingerprint calls
+     * authored can never be one the builder gives the default to.
+     *
+     * <p>A number states it, whatever its range: an out-of-range value is
+     * clamped rather than defaulted, so it stays the author's. Anything else
+     * (absent, a string, a bool) does not state it.
+     */
+    public static boolean bandAuthorsOffset(JsonObject params) {
+        if (params == null) {
+            return false;
+        }
+        JsonElement off = params.get("offset");
+        return off != null && off.isJsonPrimitive() && off.getAsJsonPrimitive().isNumber();
+    }
+
+    /**
      * Explicit multi-noise bands from object-form biomes entries (Tier 3), in
      * file order. A biome may carry SEVERAL — vanilla's own parameter table
      * gives minecraft:plains a hypercube in each climate region it belongs to,
@@ -440,7 +457,7 @@ public class DimensionConfig {
                 sb.append(",");
             }
             sb.append(band.id()).append("=").append(band.parameters());
-            anyDefaulted |= band.parameters() == null || !band.parameters().has("offset");
+            anyDefaulted |= !bandAuthorsOffset(band.parameters());
         }
         // A band writing no offset generates against the mod's default, so a
         // changed default is a changed generator and has to read as drift

@@ -81,14 +81,53 @@ class BandOffsetDefaultTest {
     }
 
     @Test
-    void anOffsetOutsideZeroToOneIsUnauthoredSoTheDefaultApplies() {
-        // A typo is not an instruction to pay nothing. Falling back to 0 would
-        // hand a mistyped band the largest possible advantage over a native.
+    void anOffsetAboveOneIsClampedAndStaysTheAuthors() {
+        // Laundering an author error into the default would make a typo
+        // indistinguishable from writing nothing, and the fingerprint —
+        // which keys on the offset being STATED — would then record no
+        // default in use while the band was using one.
         DimensionManager.BandCube band = parse(5.0);
+
+        assertTrue(band.offsetAuthored());
+        assertEquals(Math.round(1.0 * SCALE), band.cube().offset());
+        assertEquals(Math.round(1.0 * SCALE),
+                DimensionManager.withDefaultOffset(band, 0.25f).offset());
+    }
+
+    @Test
+    void anOffsetBelowZeroIsClampedAndStaysTheAuthors() {
+        DimensionManager.BandCube band = parse(-3.0);
+
+        assertTrue(band.offsetAuthored());
+        assertEquals(0L, band.cube().offset());
+        assertEquals(0L, DimensionManager.withDefaultOffset(band, 0.25f).offset());
+    }
+
+    @Test
+    void anOffsetThatIsNotANumberIsUnauthoredSoTheDefaultApplies() {
+        // Nothing to clamp, so this is the one invalid form that does take the
+        // default — and it warns rather than passing silently.
+        JsonObject params = params(null);
+        params.addProperty("offset", "quite a lot");
+        DimensionManager.BandCube band =
+                DimensionManager.bandCubeFrom(params, "a_dimension", "minecraft:taiga");
 
         assertFalse(band.offsetAuthored());
         assertEquals(Math.round(0.25 * SCALE),
                 DimensionManager.withDefaultOffset(band, 0.25f).offset());
+    }
+
+    @Test
+    void theFingerprintAndTheCubeAgreeOnWhoAuthored() {
+        // One rule, two callers. If they ever disagree, a band the fingerprint
+        // calls authored takes the default anyway and the drift term is a lie.
+        for (Object value : new Object[]{null, 0.0, 0.5, 5.0, -3.0}) {
+            JsonObject params = params(value == null ? null : (Double) value);
+            boolean fromConfig = DimensionConfig.bandAuthorsOffset(params);
+            boolean fromCube = DimensionManager
+                    .bandCubeFrom(params, "a_dimension", "minecraft:taiga").offsetAuthored();
+            assertEquals(fromConfig, fromCube, "disagreed on offset=" + value);
+        }
     }
 
     @Test
@@ -140,6 +179,25 @@ class BandOffsetDefaultTest {
         assertEquals(before.depth(), after.depth());
         assertEquals(before.weirdness(), after.weirdness());
         assertNotEquals(before.offset(), after.offset());
+    }
+
+    @Test
+    void bandsComeBeforeDeclaredCells() {
+        // Order is behaviour: two entries at equal distance are settled by
+        // which the SearchTree traversal reaches first (T59), so a refactor
+        // that swaps these groups changes which biome wins tied cells.
+        assertEquals(java.util.List.of("band1", "band2", "declared1", "declared2"),
+                DimensionManager.bandsBeforeDeclared(
+                        java.util.List.of("band1", "band2"),
+                        java.util.List.of("declared1", "declared2")));
+    }
+
+    @Test
+    void eitherSideOfTheOrderMayBeEmpty() {
+        assertEquals(java.util.List.of("d"),
+                DimensionManager.bandsBeforeDeclared(java.util.List.of(), java.util.List.of("d")));
+        assertEquals(java.util.List.of("b"),
+                DimensionManager.bandsBeforeDeclared(java.util.List.of("b"), java.util.List.of()));
     }
 
     @Test

@@ -351,23 +351,21 @@ public class DimensionManager {
         declared.addAll(dealt.filler());
         ProjectedSource.Projected<RegistryEntry<Biome>> projected =
                 ProjectedSource.project(declared, dimName);
-        // Bands are placed before the projected cells, and that order settles
-        // which of two tied cells the SearchTree keeps ([T59]).
         float bandOffset = defaultBandOffset(projected.appliedFactor());
-        List<Pair<MultiNoiseUtil.NoiseHypercube, RegistryEntry<Biome>>> result = new ArrayList<>();
-        int explicitCells = 0;
+        List<Pair<MultiNoiseUtil.NoiseHypercube, RegistryEntry<Biome>>> bandCells = new ArrayList<>();
         for (Pair<BandCube, Identifier> cell : explicit.cells()) {
             Optional<RegistryEntry.Reference<Biome>> biomeEntry =
                     biomeRegistry.getEntry(RegistryKey.of(RegistryKeys.BIOME, cell.getSecond()));
             if (biomeEntry.isPresent()) {
-                result.add(Pair.of(withDefaultOffset(cell.getFirst(), bandOffset), biomeEntry.get()));
-                explicitCells++;
+                bandCells.add(Pair.of(withDefaultOffset(cell.getFirst(), bandOffset), biomeEntry.get()));
             } else {
                 MultiverseServer.LOGGER.warn("Dimension {}: biome {} (with parameters) not in the registry — skipped",
                         dimName, cell.getSecond());
             }
         }
-        result.addAll(projected.cells());
+        int explicitCells = bandCells.size();
+        List<Pair<MultiNoiseUtil.NoiseHypercube, RegistryEntry<Biome>>> result =
+                bandsBeforeDeclared(bandCells, projected.cells());
         if (result.isEmpty()) {
             MultiverseServer.LOGGER.warn("Dimension {}: no usable biomes in '{}' — keeping the base source", dimName, biomeList);
             return base;
@@ -544,6 +542,22 @@ public class DimensionManager {
         return (float) (DimensionConfig.BAND_OFFSET_BASE * appliedFactor);
     }
 
+    /**
+     * The finished entry list: a dimension's own bands first, then the
+     * projected declared cells.
+     *
+     * <p>Order is behaviour, not tidiness. Two entries at equal distance are
+     * settled by which the {@code SearchTree} traversal reaches first
+     * ([T59]), so swapping these two groups changes which biome wins tied
+     * cells with nothing in any config saying so.
+     */
+    static <T> List<T> bandsBeforeDeclared(List<T> bandCells, List<T> declaredCells) {
+        List<T> out = new ArrayList<>(bandCells.size() + declaredCells.size());
+        out.addAll(bandCells);
+        out.addAll(declaredCells);
+        return out;
+    }
+
     /** A band's cube, with the default stamped on where its author wrote none. */
     static MultiNoiseUtil.NoiseHypercube withDefaultOffset(BandCube band, float defaultOffset) {
         if (band.offsetAuthored()) {
@@ -658,8 +672,9 @@ public class DimensionManager {
     // (point) or [min, max]; unset axes span the whole [-2, 2] space (the
     // biome claims everything the interval doesn't constrain). Any invalid
     // axis -> warn + null (the biome falls back to plain-listed behaviour,
-    // never a crash). "offset" is a float in 0..1; absent or out of range
-    // leaves the band unauthored, and the dimension's default applies.
+    // never a crash). "offset": a number is the author's and is clamped to
+    // 0..1; absent takes the dimension's default, and a non-number warns and
+    // does the same.
     static BandCube bandCubeFrom(
             com.google.gson.JsonObject params, String dimName, String biomeId) {
         MultiNoiseUtil.ParameterRange[] ranges = new MultiNoiseUtil.ParameterRange[6];
@@ -675,18 +690,20 @@ public class DimensionManager {
             ranges[i] = range;
         }
         float offset = 0.0f;
-        boolean authored = false;
-        com.google.gson.JsonElement off = params.get("offset");
-        if (off != null && off.isJsonPrimitive() && off.getAsJsonPrimitive().isNumber()) {
-            float v = off.getAsFloat();
-            if (v >= 0.0f && v <= 1.0f) {
-                offset = v;
-                authored = true;
-            } else {
+        boolean authored = DimensionConfig.bandAuthorsOffset(params);
+        if (authored) {
+            float v = params.get("offset").getAsFloat();
+            offset = Math.min(Math.max(v, 0.0f), 1.0f);
+            if (offset != v) {
                 MultiverseServer.LOGGER.warn(
-                        "Dimension {}: biome {} parameters.offset {} outside 0..1 — using this dimension's default",
-                        dimName, biomeId, v);
+                        "Dimension {}: biome {} parameters.offset {} is outside 0..1 — clamped to {}, "
+                        + "not replaced by this dimension's default",
+                        dimName, biomeId, v, offset);
             }
+        } else if (params.has("offset")) {
+            MultiverseServer.LOGGER.warn(
+                    "Dimension {}: biome {} parameters.offset is not a number — using this dimension's default",
+                    dimName, biomeId);
         }
         return new BandCube(MultiNoiseUtil.createNoiseHypercube(
                 ranges[0], ranges[1], ranges[2], ranges[3], ranges[4], ranges[5], offset), authored);
