@@ -349,9 +349,11 @@ def main():
                     print(f"  {name:26s} [{where:8s}] {bid} can never outrank {rid}: the only"
                           f" {axis} it reaches is {point}, where both are exactly as close"
                           f" ({cells} cells at stake)")
+                # Advice names no value: a block can list several ties at
+                # different boundaries, and each line above carries its own.
                 print(f"      a range contains both its endpoints, so a shared boundary is a tie"
                       f" that generation order settles, not a split this config decides —"
-                      f" move the boundary off {point}, or widen the band so it can win outright")
+                      f" move each boundary above, or widen the band so it can win outright")
 
             railed = rail_ties(ex, drawn)
             if railed:
@@ -361,8 +363,8 @@ def main():
                         else "unmeasured — no samples for this dimension"
                     print(f"  {name:26s} [{where:8s}] {bid} and {rid} share the {axis}"
                           f" boundary {point}, a clamp rail ({seen})")
-                print(f"      move the boundary off {point} so one band contains the rail"
-                      f" outright — a gap leaves a midpoint that is a tie of its own")
+                print(f"      move each shared boundary above off its rail so one band contains"
+                      f" the rail outright — a gap leaves a midpoint that is a tie of its own")
 
             dead = dead_repeats(arr)
             if dead:

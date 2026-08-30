@@ -70,6 +70,7 @@ Run this first. It covers deploy drift, disk, every expected container, `ONLINE_
 | A fresh world's first boot logs `Failed to load server level` and then starts fine | [T68](#t68) |
 | A dimension listing a dozen biomes generates one or two, bands green | [T69](#t69) |
 | A comment-only edit makes a roll re-measure what the bank already held | [T70](#t70) |
+| A band boundary is moved off a clamp rail, every arm is green, and generation order still decides | [T71](#t71) |
 | Config or mod changes didn't take effect after a deploy | [T2](#t2) |
 | `signal only works in main thread` in discord-sync logs | [T3](#t3) |
 | mc crash-loops with Modrinth `429 Too Many Requests` | [T4](#t4) |
@@ -1290,6 +1291,33 @@ measurement of it.
   **jar**, whose classes are Loom-remapped and carry different bytes from
   `build/classes`. A comparison on `build/classes` is evidence about compilation,
   not about the artefact the bank is keyed on.
+
+<a id="t71"></a>
+### T71 — Pulling two bands apart to clear a clamp rail leaves a midpoint tie that no check can see
+
+- **Symptom:** a shared band boundary is taken off a clamp rail by moving one
+  band's edge and leaving a gap. `scripts/check-biome-bands.py` reports
+  `0 shared boundaries on a clamp rail` and every other arm is clean, but the
+  dimension still hands cells to generation order.
+- **Cause:** `NoiseHypercube.getSquaredDistance` sums each axis's distance to
+  the range, so a sample **inside the gap** is a fixed distance from both
+  neighbours and exactly equidistant at the gap's midpoint — [T59](#t59)'s tie,
+  recreated by the fix meant to remove it. Nothing reports it: it is not a
+  shared boundary, so `rail_ties()` cannot see it, and `overlaps()` is
+  open-interval, so two bands with a gap between them are disjoint. Measured on
+  `the_gritlands`: taking the `terralith:gravel_desert` /
+  `terralith:basalt_cliffs` boundary off the weirdness rail `-0.5` with a 0.001
+  gap left the 41x41 grid sampling **-0.4995**, the exact midpoint of
+  `(-0.5, -0.499)`.
+- **Fix:** move the shared boundary, never the bands apart. Both edges take the
+  same new value, so one band contains the rail outright and the other starts
+  where it ends. The residual tie is then only at the new boundary — measured
+  at 0-2 cells of 1681, against 42-406 sitting on the rail.
+- **Choose the new value by rail membership, not by "the world never returns
+  this value".** A rail is the router's clamping and survives a re-roll; a quiet
+  non-rail value is a property of one seed and a re-roll voids it.
+- **A gap is still correct where no rail is involved** — it is only a hazard
+  when a pile-up sits beside it, which is what a rail is.
 
 ## macOS local dev
 
