@@ -29,6 +29,12 @@ Context:  The shipped configs had zero overlapping pairs. Two editing passes
           can only report indicatively on a dimension nobody has measured yet.
           This check needs no measurement.
 
+Not covered: whether a correctly fitted band is worth having. A band can pass
+          all three arms here, pass check-band-reach.py, and still hand its
+          biome one cell of 1257 — the_claymarsh's minecraft:swamp does exactly
+          that. Encounterability is a different question and nothing gates it,
+          so three green band checks do not mean the bands are good.
+
 Usage:    scripts/check-biome-bands.py            # exits 1 on any of the three
 
 Gotchas:  - Hypercubes intersect only if they intersect on EVERY axis, so two
