@@ -12,9 +12,10 @@ meets it, and finds a place rather than a speck when they do.
 That is the bar, and it rules out both failures either side of it:
 
 - **Not "present".** A biome holding one cell of 1257 passes every band check
-  and gives a player one 50-block patch in a whole world. `/locate` finds it;
-  nobody else will. Boolean thinking — nonzero therefore fine — excuses
-  generation that does not work for the person playing it.
+  and gives a player a single patch one grid cell across — 25 blocks at a 512
+  border, 51 at 1024, 205 at 4096. `/locate` finds it; nobody else will.
+  Boolean thinking — nonzero therefore fine — excuses generation that does not
+  work for the person playing it.
 - **Not "equal".** Equal parts of every biome is a quadrant world, and
   `checkerboard` is the type for that. A dominant biome with the others each
   occupying somewhere real is a good world, and often the authored one.

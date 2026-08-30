@@ -128,6 +128,20 @@ OWN family's surface blocks. A nether biome in a `multi_biome` world comes out
 as nylium and basalt on overworld terrain, and brings its mob spawns with it.
 That is deliberate, and it is the pack's strongest lever.
 
+**`sky_islands` has THREE "which family" questions with THREE different
+answers.** Reading one and applying it to another is how this gets inverted:
+
+| question | `sky_islands` answer | decided by |
+| --- | --- | --- |
+| which base BIOME SOURCE | **overworld** | `resolveListedSource(def, reg, overworldOpts, overworldOpts)` — both arguments |
+| which terrain SETTINGS | **end** | `endGen.getSettings()` |
+| which SURFACE RULE host | **end** | `BiomeFamilies.surfaceHostFamily` |
+
+So "sky_islands reports end" is true of the surface rule and false of the biome
+source. Overworld biomes ARE native in a `sky_islands` dimension and place
+themselves; they are simultaneously foreign for surface composition and do get
+dressed. Both are correct at once.
+
 **Get the direction right — three agents have inverted it.**
 
 | biome's family vs the surface host | result |
