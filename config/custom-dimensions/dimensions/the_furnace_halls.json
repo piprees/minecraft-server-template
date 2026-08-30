@@ -7,9 +7,7 @@
     "minecraft:basalt_deltas",
     "minecraft:crimson_forest",
     "incendium:volcanic_deltas",
-    "minecraft:soul_sand_valley",
-    "betternether:upside_down_forest_cleared",
-    "betternether:wart_forest"
+    "minecraft:soul_sand_valley"
   ],
   "borders": {
     "player": 1024,
