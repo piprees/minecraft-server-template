@@ -4,7 +4,7 @@
 
 | Prefix | Range | What it covers |
 | --- | --- | --- |
-| **T** | [T1–T14, T16–T19, T22–T27, T30–T68](#architecture-traps) | Architecture traps — each has caused a real production incident |
+| **T** | [T1–T14, T16–T19, T22–T27, T30–T69](#architecture-traps) | Architecture traps — each has caused a real production incident |
 | **P** | [P1–P4](#macos-local-dev) | macOS local-dev quirks (BSD tooling, toolchain) |
 | **D** | [D1–D6, D8–D9](#dimension-lifecycle) | Custom-dimension lifecycle on a live world |
 | **K** | [K1–K2, K5–K7](#known-issues) | Open issues — unfixed, on the watch list |
@@ -68,6 +68,7 @@ Run this first. It covers deploy drift, disk, every expected container, `ONLINE_
 | A biome is in the jar catalogue, its mod is loaded, and it is in no live registry | [T66](#t66) |
 | A batched loop runs one iteration and exits 0 | [T67](#t67) |
 | A fresh world's first boot logs `Failed to load server level` and then starts fine | [T68](#t68) |
+| A dimension listing a dozen biomes generates one or two, bands green | [T69](#t69) |
 | Config or mod changes didn't take effect after a deploy | [T2](#t2) |
 | `signal only works in main thread` in discord-sync logs | [T3](#t3) |
 | mc crash-loops with Modrinth `429 Too Many Requests` | [T4](#t4) |
@@ -1230,6 +1231,38 @@ measurement of it.
   `-1.0`, `-0.5`, `+0.5` or `+1.0`, whose width is a small fraction of the
   dimension's measured span, and whose share is a large one. All three
   together, on the same band.
+
+<a id="t69"></a>
+### T69 — A dimension listing a dozen biomes generates one, and the boot line's `mixed-in` field says why
+
+- **Symptom:** a dimension whose author listed a dozen biomes and hand-banded
+  several generates one or two. Every band looks correct, `check-biome-bands.py`
+  and `check-band-reach.py` are green, and `customdim facts` reports bands
+  holding **zero** cells while their climate windows are large and well inside
+  the disc — measured at 407, 399, 327, 218 and 211 cells of ~1265 owning none.
+- **The tell is one field in the boot line.**
+  `Dimension X: biome source built (…, N mixed-in of M requested)` — `N` is
+  `dealt.foreign().size()`, the biomes that declared no climate cells anywhere.
+  `0 mixed-in` is healthy. Compare `the_gritlands` (13 banded, 0 mixed-in,
+  every band holds ground) against a swallowed one reporting 7 or 8.
+- **Cause:** `DimensionManager.dealRemaining` deals the **whole** leftover pool
+  round-robin to biomes with no declared placement, and those cells join
+  `declared`. A band is protected inside its own window — filler carries an
+  offset one fixed-point unit above the heaviest band actually placed, so
+  vanilla's `square(offset)` term makes it lose there — but the deal is not
+  bounded, so filler still blankets every sample **outside** every band window.
+  A dimension with no bands at all is unprotected everywhere.
+- **This is not [T55](#t55) and not a band-reach fault.** The band is neither
+  too small nor unreachable. Read a "band holds no ground" result against the
+  boot line's `mixed-in` before reaching for the band.
+- **Fix:** remove the bare entries whose namespaces declare no climate cells, or
+  give them bands. With `foreign` empty, `dealRemaining` drops the pool whole and
+  the author's placement is the only placement. Banding them instead needs every
+  band in the dimension to carry the same axes — see [T65](#t65).
+- **The floor is built on the heaviest band CELL, never on the default.** An
+  authored `offset` is used raw and can exceed `BAND_OFFSET_BASE × g` — a floor
+  derived from the default would sit under an authored band and hand filler that
+  band's window.
 
 ## macOS local dev
 
