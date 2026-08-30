@@ -190,6 +190,11 @@ public class DimensionCommands {
                         .executes(CensusCommands::structureCensus)))
                 .then(CommandManager.literal("catalogue")
                     .executes(CatalogueCommands::catalogue))
+                .then(CommandManager.literal("biome-table")
+                    .executes(BiomeTableDump::biomeTable)
+                    .then(CommandManager.argument("dimension", IdentifierArgumentType.identifier())
+                        .executes(ctx -> BiomeTableDump.biomeTable(ctx,
+                            IdentifierArgumentType.getIdentifier(ctx, "dimension")))))
                 .then(CommandManager.literal("spike-compare")
                     .then(CommandManager.argument("dimension", IdentifierArgumentType.identifier())
                         .then(CommandManager.argument("seed", LongArgumentType.longArg())
