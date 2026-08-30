@@ -189,8 +189,10 @@ services:
       # stalled tick, and it dumps every thread's stack before exiting —
       # the one diagnostic that names a wedge instead of leaving silence
       # (K6). The longest single tick ever recorded on this stack is 32.3s,
-      # during spawn-area preparation, so 180000 clears it 5.6x over.
-      MAX_TICK_TIME: "180000"
+      # during spawn-area preparation, so 180000 clears it 5.6x over. A
+      # backup's entity flush during a fresh world's priming pass does not
+      # clear it ([T57]).
+      MAX_TICK_TIME: ${MAX_TICK_TIME:-180000}
 
       # --- Gameplay ---
       DIFFICULTY: hard
@@ -330,7 +332,10 @@ services:
       AWS_SECRET_ACCESS_KEY: minioadmin123
       RESTIC_PASSWORD: local-dev-backups
       BACKUP_INTERVAL: "${BACKUP_INTERVAL:-12h}"
-      INITIAL_DELAY: 2m
+      # First run after start. 2m lands inside a fresh world's priming
+      # pass and the entity flush can trip the watchdog ([T57]) — widen
+      # it when rolling a new world.
+      INITIAL_DELAY: ${BACKUP_INITIAL_DELAY:-2m}
       PRUNE_RESTIC_RETENTION: >-
         --keep-daily ${RESTIC_RETENTION_DAILY:-3}
         --keep-weekly ${RESTIC_RETENTION_WEEKLY:-1}
@@ -388,7 +393,10 @@ services:
 
       # --- Schedule ---
       BACKUP_INTERVAL: ${BACKUP_INTERVAL:-12h}
-      INITIAL_DELAY: 2m
+      # First run after start. 2m lands inside a fresh world's priming
+      # pass and the entity flush can trip the watchdog ([T57]) — widen
+      # it when rolling a new world.
+      INITIAL_DELAY: ${BACKUP_INITIAL_DELAY:-2m}
 
       # --- Retention policy ---
       # Prune old snapshots to keep storage costs sensible.

@@ -1425,7 +1425,7 @@ The rendered height disagrees with the facts on high-relief columns. The error i
 
 
 <a id="t57"></a>
-### T57 — The local backup sidecar's first run collides with a fresh world's priming pass
+### T57 — The backup sidecar's first run collides with a fresh world's priming pass
 
 - **Symptom:** on a local stack a few minutes after `./dev reset-world` +
   `./dev up`, `mc` crashes with `java.lang.Error: Watchdog` and restarts
@@ -1444,7 +1444,15 @@ The rendered height disagrees with the facts on high-relief columns. The error i
 - **Fix:** `docker stop mc-backup-local` before a fresh-world roll and start it
   again once priming has finished. The world survives — verify with
   `customdim structure-census <dim>` reporting `live and facts agree` — so this
-  costs a restart, not data.
+  costs a restart, not data. `BACKUP_INITIAL_DELAY` widens the window and
+  `MAX_TICK_TIME` widens the budget; both default to the values above.
+- **Production hits the same collision**, through `mc-backup` rather than
+  `mc-backup-local`. `./ops reset-seed` ends by running `deploy.sh`, which
+  starts the sidecar, and its first backup lands `BACKUP_INITIAL_DELAY` later
+  into the fresh world's priming pass. `reset-seed.sh` prints the check and the
+  two commands when it finishes. Set `BACKUP_INITIAL_DELAY` in the GitHub
+  production environment, never in the server's `.env` — that file is
+  CI-generated and a hand-edit is wiped by the next full deploy.
 - **An ESTABLISHED world's priming pass survives it.** Measured across three
   boots whose flush landed inside a priming pass over 78 existing level
   directories: windows of 7 s, 33 s and 35 s against `MAX_TICK_TIME` 180000,
