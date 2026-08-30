@@ -412,6 +412,34 @@ class ConfiguredBiomeSourceTest {
                 "an unbounded walk over a cyclic source spins the boot thread");
     }
 
+    @Test
+    void aPatchLayerUNDERAnInjectorIsCollectedAndPreservedNoticesItGoing() {
+        // The inverted stack, injector > patched > core. A walk that stops at the
+        // injector collects nothing on either side, so preserved() compares []
+        // against [] and passes a rebuild that dropped the dimension's patches —
+        // the guard blinded by the same defect it guards against.
+        List<String> before = ourLayers(ConfiguredBiomeSource.layersOf(
+                Layer.stack("injector", "patched"), AT_CORE, PEEL));
+        List<String> afterARebuildDroppedIt = ourLayers(ConfiguredBiomeSource.layersOf(
+                Layer.stack(), AT_CORE, PEEL));
+
+        assertEquals(List.of("patched"), before,
+                "an injector on top must not hide the patch layer beneath it");
+        assertFalse(ConfiguredBiomeSource.preserved(before, afterARebuildDroppedIt),
+                "a patch dropped from under an injector must not read as preserved");
+    }
+
+    /** The layers this mod owns, mirroring the instanceof filter in wrappersOf. */
+    private static List<String> ourLayers(List<Layer> walked) {
+        List<String> out = new ArrayList<>();
+        for (Layer layer : walked) {
+            if (layer.name().startsWith("patched")) {
+                out.add(layer.name());
+            }
+        }
+        return out;
+    }
+
     private static List<String> names(List<Layer> layers) {
         List<String> out = new ArrayList<>();
         for (Layer layer : layers) {
