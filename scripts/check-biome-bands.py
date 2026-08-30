@@ -16,14 +16,18 @@ Context:  The shipped configs had zero overlapping pairs. Two editing passes
           explicit bands covering an axis end to end leave the natives
           unreachable, and the dimension silently stops containing them.
 
-          -2..2 is the range the SCHEMA allows a band to declare, not the range
-          a world crosses: a real dimension crosses a fraction of it, centred
-          wherever its own noise sits. Cutting -2..2 into equal slices therefore
-          puts most of the slices outside the world — 17 dead bands of 25 in one
-          dimension. check-band-reach.py measures that consequence and needs
-          climate-axes.json to do it, so it can only report indicatively on a
-          dimension nobody has measured yet. This check needs no measurement and
-          catches the shape itself, which is what a new dimension ships with.
+          -2.0 is where the SCHEMA starts, not where a world does. A partition
+          cut from the schema's floor in equal steps puts most of its bands
+          outside the world — 17 dead bands of 25 in one dimension. The shape
+          that actually ships is a run of equal steps FROM -2.0 that stops
+          wherever the author ran out of biomes, with a wide catch-all tail:
+          measured at 7f5c5e98, the_highland_crossing is 27 x 0.0889 and
+          the_frozen_hearth 21 x 0.1143, both ending at +0.4003 to four
+          decimals. Two band counts, one endpoint, is computed output.
+          So the run is the signal and the tail is noise. check-band-reach.py
+          measures the consequence and needs climate-axes.json to do it, so it
+          can only report indicatively on a dimension nobody has measured yet.
+          This check needs no measurement.
 
 Usage:    scripts/check-biome-bands.py            # exits 1 on any of the three
 
@@ -32,12 +36,19 @@ Gotchas:  - Hypercubes intersect only if they intersect on EVERY axis, so two
             bands do not overlap. Comparing one axis alone over-reports.
           - An unconstrained axis spans the whole -2..2 range, which is why an
             entry carrying a single axis overlaps almost everything.
-          - Equal widths are judged over the WHOLE chain, ends included. A
-            correct fit clamps its outermost bands to +/-2.0 so nothing falls
-            off the axis, and those two are then far wider than the interior
-            ones — an equal-area fit is unequal-width by construction.
-          - `depth` is excluded from the slice check: it is a surface/underground
-            split at a fixed boundary, not a partition fitted to a range.
+          - Judging equal widths across a WHOLE chain has no discriminating
+            power: a defective chain has a fat clamped tail exactly like a
+            correct one. the_crucible's tail is 1.5215 against a 0.0694 body.
+            Only the run from the floor separates them.
+          - The run is found over every band on the axis, NOT within a
+            signature group. A dimension carrying a per-band filter on a second
+            axis puts each band in a group of one, and a grouped search sees no
+            run at all.
+          - WIDTH_ABS_TOL covers a partition written to one decimal place
+            (0.05) and a hand-nudged boundary. Tightening it below either
+            re-opens a false-negative class that is trivial to author.
+          - `depth` is excluded: it is a surface/underground split at a fixed
+            boundary, not a partition fitted to a range.
 """
 import json, glob, sys
 from itertools import combinations
@@ -53,10 +64,17 @@ FULL = (-2.0, 2.0)
 FREE_EPSILON = 0.05
 # Float slack for "starts at -2.0" and "these bands touch".
 EDGE = 1e-6
-# Band widths within this fraction of their mean count as equal.
-WIDTH_TOL = 0.02
-# Two bands can split an axis at its midpoint deliberately; three cannot.
-MIN_SLICES = 3
+# Where the schema's axis starts. A partition cut from here was cut from the
+# schema rather than from the world.
+AXIS_FLOOR = -2.0
+# Absolute width slack. A width is the difference of two boundaries, so a
+# partition written to one decimal place moves one by up to 0.1 — and one
+# decimal place is the most natural way to write a partition by hand.
+WIDTH_ABS_TOL = 0.11
+# Proportional slack, for runs whose step is wide enough that 0.06 is tight.
+WIDTH_REL_TOL = 0.02
+# Two equal steps can be a deliberate split; three is a partition.
+MIN_RUN = 3
 # A surface/underground split, not a partition fitted to a measured range.
 NOT_SLICED = {"depth"}
 
@@ -84,41 +102,48 @@ def covered(spans):
             out += hi - end; end = hi
     return out
 
-def signature(params, axis):
-    """A band's constraints on every axis but this one.
+def bands_on(entries, axis):
+    """Every distinct [lo, hi] stated on one axis, ascending.
 
-    Bands separated by another axis are separate partitions: surface and cave
-    entries each span their axis end to end and are not one chain.
+    Deliberately not grouped by the other axes a band constrains: a dimension
+    with a per-band filter on a second axis has one band per group, and a
+    grouped search finds no run.
     """
-    return tuple(sorted((a, tuple(v) if isinstance(v, list) else v)
-                        for a, v in params.items() if a != axis))
-
-def chains(entries, axis):
-    """Maximal runs of touching bands on one axis, grouped by signature."""
-    groups = {}
+    out = set()
     for _, params in entries:
-        if params.get(axis) is None:
-            continue
-        groups.setdefault(signature(params, axis), []).append(rng(params, axis))
-    out = []
-    for bands in groups.values():
-        run = []
-        for lo, hi in sorted(bands):
-            if run and abs(lo - run[-1][1]) > EDGE:
-                out.append(run); run = []
-            run.append((lo, hi))
-        out.append(run)
-    return out
+        v = params.get(axis)
+        if isinstance(v, list):
+            out.add((float(v[0]), float(v[1])))
+    return sorted(out)
 
-def slices_the_schema(chain):
-    """True when a chain cuts the whole -2..2 axis into equal-width bands."""
-    if len(chain) < MIN_SLICES:
-        return False
-    if chain[0][0] > FULL[0] + EDGE or chain[-1][1] < FULL[1] - EDGE:
-        return False
-    widths = [hi - lo for lo, hi in chain]
-    mean = sum(widths) / len(widths)
-    return mean > 0 and (max(widths) - min(widths)) <= WIDTH_TOL * mean
+
+def anchored_equal_run(bands):
+    """(length, width) of the longest equal-step run from the axis floor.
+
+    Returns (0, 0.0) when nothing reaches MIN_RUN. The walk takes its step from
+    the first band and follows it, so a run that stops early and hands the rest
+    of the axis to one wide catch-all is still caught by its body.
+    """
+    by_lo = {}
+    for lo, hi in bands:
+        by_lo.setdefault(round(lo, 6), []).append(hi)
+    best, best_w = 0, 0.0
+    for first_hi in by_lo.get(AXIS_FLOOR, []):
+        step = first_hi - AXIS_FLOOR
+        if step <= 0:
+            continue
+        tol = max(WIDTH_ABS_TOL, WIDTH_REL_TOL * step)
+        run, cur = 1, first_hi
+        while True:
+            nxt = [h for h in by_lo.get(round(cur, 6), []) if abs((h - cur) - step) <= tol]
+            if not nxt:
+                break
+            cur = nxt[0]
+            run += 1
+        if run > best:
+            best, best_w = run, step
+    return (best, best_w) if best >= MIN_RUN else (0, 0.0)
+
 
 def main():
     total_files = total_pairs = total_starved = total_sliced = 0
@@ -158,27 +183,26 @@ def main():
                         print(f"      {n}")
                     break
 
-            # -2..2 is the schema's range, not the world's.
+            # -2.0 is where the schema starts, not where this world does.
             for ax in AXES:
                 if ax in NOT_SLICED:
                     continue
-                for chain in chains(ex, ax):
-                    if not slices_the_schema(chain):
-                        continue
-                    total_files += 1; total_sliced += len(chain)
-                    print(f"  {name:26s} [{where:8s}] {len(chain):2d} band(s) cut {ax} into equal"
-                          f" slices of {FULL[0]:+.1f}..{FULL[1]:+.1f}, which is the range the schema"
-                          f" allows, not the range this world crosses")
-                    print(f"      every slice is {(chain[0][1] - chain[0][0]):.4f} wide;"
-                          f" fit the boundaries to the dimension's own measured range in"
-                          f" config/custom-dimensions/climate-axes.json instead")
+                run, step = anchored_equal_run(bands_on(ex, ax))
+                if not run:
+                    continue
+                total_files += 1; total_sliced += run
+                print(f"  {name:26s} [{where:8s}] {run:2d} band(s) step {ax} by a constant"
+                      f" {step:.4f} from {AXIS_FLOOR:+.1f} — cut from the schema's floor, not"
+                      f" from the range this world crosses")
+                print(f"      fit the boundaries to the dimension's own measured range in"
+                      f" config/custom-dimensions/climate-axes.json instead")
 
     print(f"\nscanned {scanned} dimension file(s) "
           f"({'platform + overlay' if consumer else 'platform only'})")
     if not consumer:
         print(f"  overlay not checked - set {ENV_VAR} to include a consumer repo")
     print(f"{total_files} files, {total_pairs} overlapping pairs, {total_starved} starved natives, "
-          f"{total_sliced} schema-sliced bands")
+          f"{total_sliced} schema-stepped bands")
     if scanned == 0:
         sys.exit("nothing scanned - run this from the platform repo root")
     return 1 if (total_pairs or total_starved or total_sliced) else 0

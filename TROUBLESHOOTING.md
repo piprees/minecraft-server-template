@@ -794,13 +794,22 @@ A seed's map and its banked facts appear to contradict each other — the thumbn
   row contains — `measured_range` returns `"representative"` for all of them.
 - A `customdim load` does not survive an `mc` restart ([T18](#t18)), so a
   sampling run must load each dimension in the same pass that samples it.
-- **The shape that produces the dead bands is an equal-width partition of
-  -2..2**, the range the schema allows a band to declare rather than the range
-  a world crosses. Nothing in the repo emits one — no script, no mod path, no
-  documented recipe — so it arrives by hand, and this check cannot fail a new
-  dimension because nothing has measured it yet. `check-biome-bands.py` catches
-  the shape without a measurement; fit boundaries to the dimension's own range
-  in `climate-axes.json`, ends clamped to +-2.0.
+- **The shape that produces the dead bands is a run of equal steps from -2.0**,
+  the schema's floor rather than any world's. The run stops where the author ran
+  out of biomes and hands the rest of the axis to one wide catch-all, so judging
+  widths across a whole chain finds nothing: at `7f5c5e98` `the_crucible`'s tail
+  is 1.5215 against a 0.0694 body. The run is the signal, the tail is noise.
+- **It was generated, not hand-written.** `the_highland_crossing` is 27 x 0.0889
+  and `the_frozen_hearth` 21 x 0.1143, both ending at +0.4003 to four decimals —
+  two band counts and one endpoint is computed output. The tool was
+  `scripts/seed/biome_sampler.py` with `scripts/seed/biome_source_mixing.py`
+  (which writes `[-2.0, 2.0]` directly), deleted at `89f9202c`. Whether it
+  should return is open; that it existed is not.
+- `check-biome-bands.py` catches the shape with no measurement, which is what a
+  new dimension needs because it has no `perDimension` entry yet. Measured: 10
+  dimension/axis pairs over 167 bands at `7f5c5e98`, and zero on eight clean
+  states either side of it. Fit boundaries to the dimension's own range in
+  `climate-axes.json`, ends clamped to +-2.0.
 - **The target is that no listed biome is ignored, NOT that shares are equal.**
   A dominant biome with the others each occupying somewhere real is a good
   world; equal parts of everything is a quadrant world, and `checkerboard` is

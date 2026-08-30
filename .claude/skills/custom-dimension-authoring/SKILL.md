@@ -414,12 +414,15 @@ Two things to hold in mind when tuning them:
     **Then fit the boundaries to that measurement, not to -2..2.** -2..2 is
     what the schema will accept, not what a world crosses: a dimension crosses
     a fraction of it, centred wherever its own noise sits, and the range per
-    dimension is in `config/custom-dimensions/climate-axes.json`. Cut the
-    measured range into equal-AREA slices (each biome gets an equal share of
-    the world) and clamp only the outermost pair to `-2.0` and `2.0` so nothing
-    falls off the axis. An equal-width cut of -2..2 gave one dimension 17 bands
-    of 25 that cannot generate; `scripts/check-biome-bands.py` refuses that
-    shape, and `scripts/check-band-reach.py` measures what reaches.
+    dimension is in `config/custom-dimensions/climate-axes.json`. Fit the
+    boundaries inside that range and clamp only the outermost pair to `-2.0`
+    and `2.0` so nothing falls off the axis. **The objective is that no band
+    catches nothing** — a dominant biome with the others each holding somewhere
+    real is a good world, and equal shares are a technique for reaching that,
+    never the target ([T58](../../../TROUBLESHOOTING.md#t58)). Stepping equal
+    widths from -2.0 gave one dimension 17 bands of 25 that cannot generate;
+    `scripts/check-biome-bands.py` refuses that shape and
+    `scripts/check-band-reach.py` measures what reaches.
 
     Leave native biomes as plain strings: once no foreign biome remains, the leftover pool is dropped rather than dealt out. The boot line `biome source built (N explicit, M native, 0 mixed-in of K requested)` is the check — **0 mixed-in is the pass**. `scripts/check-content-coverage.py` lists installed biomes no dimension names. See [TROUBLESHOOTING.md#t19](../../../TROUBLESHOOTING.md#t19) and [#t35](../../../TROUBLESHOOTING.md#t35).
 14. **`spawnFilter` biomes must exist in the biome parameter table for the dimension's family** — a biome id that exists in-game but isn't in the roller's table for that family causes every candidate to be rejected (zero candidates). Cross-check against `references/biome-catalogue.md`.
