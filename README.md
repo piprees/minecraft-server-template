@@ -182,7 +182,7 @@ Three categories, by where a script ends up and who runs it. Every script has a 
 | `extract-biomes.py` / `extract-blocks.py` / `extract-entities.py` | Catalogue every biome, block and entity in the installed mod JARs, for authoring and lint. Static scans — they cannot resolve a tag |
 | `extract-registries.py` | Trigger `/customdim catalogue` on a running consumer and copy the dump in: biomes, fully-resolved biome tags (`c:*` included), structures with their step, terrain adaptation and valid biomes, and structure sets with their placement. The only source for a tag question |
 | `check-content-coverage.py` | Which installed biomes any dimension actually names — an installed mod nobody names never appears in game |
-| `check-biome-bands.py` | Explicit biome bands within a dimension must partition its climate axis, not overlap (exits 1 on any overlap) |
+| `check-biome-bands.py` | Explicit biome bands must partition a dimension's climate axis without overlapping, without covering an axis end to end over its native entries, and without being cut into equal slices of the schema's -2..2 (exits 1 on any of the three) |
 | `gen-unmined-blocktags.py` | Regenerate the map renderer's modded block tags from the block catalogue (`--check` in CI) |
 | `gen-open-water-guard.py` | Regenerate `config/datapacks/open-water/` — the Lithostitched conditions that keep land structures out of the sea (`--check` for CI) |
 | `scan-structure-placements.py` | What generated in a world and whether it is standing in water (needs `requirements-dev.txt`) |

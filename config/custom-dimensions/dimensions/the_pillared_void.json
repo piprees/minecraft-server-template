@@ -1,6 +1,6 @@
 {
   "type": "end",
-  "description": "Lonely pillars in the void. Spires, a dragon's skeleton, nothing else \u2014 the endermen's oldest construction, predating even the tiled expanse. Whatever they built here, they built it for a dragon. The dragon is dead.",
+  "description": "Lonely pillars in the void. Spires, a dragon's skeleton, nothing else \u2014 the endermen's oldest construction, predating even the tiled expanse. Whatever they built here, they built it for a dragon. The dragon is dead. The pillars are not finished. They rise through the frame, through whatever you built beside it.",
   "seed": 3416287496612925768,
   "biomes": [
     {
@@ -110,7 +110,12 @@
       "exit": "block.portal.travel"
     },
     "aura": {
-      "subsume": "everything"
+      "subsume": "everything",
+      "palette": [
+        "minecraft:obsidian",
+        "minecraft:polished_basalt",
+        "minecraft:end_stone"
+      ]
     }
   },
   "environment": {

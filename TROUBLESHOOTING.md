@@ -790,6 +790,13 @@ A seed's map and its banked facts appear to contradict each other — the thumbn
   row contains — `measured_range` returns `"representative"` for all of them.
 - A `customdim load` does not survive an `mc` restart ([T18](#t18)), so a
   sampling run must load each dimension in the same pass that samples it.
+- **The shape that produces the dead bands is an equal-width partition of
+  -2..2**, the range the schema allows a band to declare rather than the range
+  a world crosses. Nothing in the repo emits one — no script, no mod path, no
+  documented recipe — so it arrives by hand, and this check cannot fail a new
+  dimension because nothing has measured it yet. `check-biome-bands.py` catches
+  the shape without a measurement; fit boundaries to the dimension's own range
+  in `climate-axes.json`, equal-area, ends clamped to +-2.0.
 
 ## macOS local dev
 

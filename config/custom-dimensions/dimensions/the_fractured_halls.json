@@ -1,6 +1,6 @@
 {
   "type": "end",
-  "description": "Fractured halls \u2014 endermen gate fortresses and enderkeeps in broken crystal country. No cities survived whatever happened here; only the military architecture endured, and moonlight groves have taken the sheltered ground between the ridges.",
+  "description": "Fractured halls \u2014 endermen gate fortresses and enderkeeps in broken crystal country. No cities survived whatever happened here; only the military architecture endured, and moonlight groves have taken the sheltered ground between the ridges. The keeps are still building. What stands beside the portal becomes part of the wall.",
   "seed": -2307231717102623267,
   "biomes": [
     {
@@ -109,7 +109,13 @@
       "exit": "block.portal.travel"
     },
     "aura": {
-      "subsume": "everything"
+      "subsume": "everything",
+      "palette": [
+        "minecraft:end_stone",
+        "minecraft:amethyst_block",
+        "minecraft:calcite",
+        "minecraft:cracked_stone_bricks"
+      ]
     }
   },
   "seedRoll": {

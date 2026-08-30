@@ -1,6 +1,6 @@
 {
   "type": "multi_biome",
-  "description": "Frozen channels between ice sheets. Igloos and cold dungeons mark where people tried to cross; shipwrecks mark where they failed. The sea is the road, and the road is cruel.",
+  "description": "Frozen channels between ice sheets. Igloos and cold dungeons mark where people tried to cross; shipwrecks mark where they failed. The sea is the road, and the road is cruel. The cold crosses back through the frame; whatever you leave beside the portal freezes into the sheet.",
   "seed": -996257390854336766,
   "noiseSettings": "adventure:wide",
   "biomes": [
@@ -209,7 +209,13 @@
       "exit": "block.portal.travel"
     },
     "aura": {
-      "subsume": "everything"
+      "subsume": "everything",
+      "palette": [
+        "minecraft:packed_ice",
+        "minecraft:ice",
+        "minecraft:snow_block",
+        "minecraft:gravel"
+      ]
     },
     "anchor": {
       "pos": "spawn",

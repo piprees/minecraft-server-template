@@ -1,6 +1,6 @@
 {
   "type": "end",
-  "description": "Citadel country \u2014 where the endermen built their densest urban centres. End cities and phantom citadels saturate the highlands. No ruins here; this is still maintained.",
+  "description": "Citadel country \u2014 where the endermen built their densest urban centres. End cities and phantom citadels saturate the highlands. No ruins here; this is still maintained. Maintenance does not stop at the frame \u2014 build beside the portal and the citadel absorbs it.",
   "seed": 4890946857129946416,
   "biomes": [
     {
@@ -99,7 +99,12 @@
       "exit": "block.portal.travel"
     },
     "aura": {
-      "subsume": "everything"
+      "subsume": "everything",
+      "palette": [
+        "minecraft:purpur_block",
+        "minecraft:end_stone_bricks",
+        "minecraft:end_stone"
+      ]
     },
     "anchor": {
       "pos": "spawn",

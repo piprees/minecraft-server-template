@@ -154,8 +154,9 @@ fi
 
 echo "  Checking biome bands reach their world's climate..."
 # A band outside the range a world's climate crosses is a biome that cannot
-# generate. check-biome-bands.py tests overlap and starved natives, which is a
-# different question; both faults are silent in game.
+# generate. check-biome-bands.py tests overlap, starved natives and equal
+# slices of the schema's axis, which are different questions; every one of
+# these faults is silent in game.
 # Plain, not --strict: a measured dead band fails, an indicative one reports.
 BAND_REACH_ERRORS=0
 if python3 ./scripts/check-band-reach.py > /dev/null 2>&1; then
@@ -163,6 +164,20 @@ if python3 ./scripts/check-band-reach.py > /dev/null 2>&1; then
 else
   warn "A biome band sits outside its world's climate range — run ./scripts/check-band-reach.py"
   BAND_REACH_ERRORS=1
+fi
+
+echo "  Checking biome band partitions..."
+# Overlaps, natives starved off their own axis, and partitions cut from the
+# schema's -2..2 rather than the world's measured range. The third is the
+# shape that produces the dead bands the check above measures, and it needs
+# no measurement — which is what makes it the one a new dimension trips.
+BIOME_BANDS_ERRORS=0
+BIOME_BANDS_OUT=$(python3 ./scripts/check-biome-bands.py 2>&1) || BIOME_BANDS_ERRORS=1
+if [[ $BIOME_BANDS_ERRORS -eq 0 ]]; then
+  echo "  ✓ Biome bands partition their axis and are fitted to their world"
+else
+  echo "$BIOME_BANDS_OUT"
+  warn "Biome band partition check failed — run ./scripts/check-biome-bands.py"
 fi
 
 echo "  Checking Modrinth resolve cache covers every pin..."
@@ -237,7 +252,8 @@ else
 fi
 
 STATIC_ERRORS=$((SHELL_ERRORS + PYTHON_ERRORS + OWNERSHIP_ERRORS + RESOLVE_CACHE_ERRORS
-  + BLOCKTAG_ERRORS + OPEN_WATER_ERRORS + BAND_REACH_ERRORS + COMPOSE_ERRORS + YAML_ERRORS))
+  + BLOCKTAG_ERRORS + OPEN_WATER_ERRORS + BAND_REACH_ERRORS + BIOME_BANDS_ERRORS
+  + COMPOSE_ERRORS + YAML_ERRORS))
 if [[ $STATIC_ERRORS -gt 0 ]]; then
   echo "::error::$STATIC_ERRORS static-analysis check(s) failed"
   exit 1

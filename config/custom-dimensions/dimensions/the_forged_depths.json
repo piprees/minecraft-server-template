@@ -1,6 +1,6 @@
 {
   "type": "nether",
-  "description": "The last piglin forge still burning. Crimson forges and reactors in a small brutal deep \u2014 the fires here never went out because nobody survived to bank them. The deeper you go, the hotter and harder it gets.",
+  "description": "The last piglin forge still burning. Crimson forges and reactors in a small brutal deep \u2014 the fires here never went out because nobody survived to bank them. The deeper you go, the hotter and harder it gets. The heat comes back through the frame, and anything built beside the portal is fuel.",
   "seed": -6833270218787544653,
   "biomes": [
     "minecraft:basalt_deltas",
@@ -47,7 +47,17 @@
       "exit": "block.portal.travel"
     },
     "aura": {
-      "subsume": "everything"
+      "subsume": "everything",
+      "palette": [
+        "minecraft:blackstone",
+        "minecraft:basalt",
+        "minecraft:magma_block",
+        "minecraft:netherrack"
+      ],
+      "fluids": [
+        "minecraft:lava"
+      ],
+      "fireChance": 0.08
     },
     "anchor": {
       "pos": "spawn",

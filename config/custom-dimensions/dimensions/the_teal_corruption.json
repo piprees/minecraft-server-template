@@ -1,6 +1,6 @@
 {
   "type": "multi_biome",
-  "description": "Warped corruption spreading over a mesa world \u2014 teal fungus over red rock. The nether bleeding through, but slowly, almost beautifully. It came through at the centre and it is still spreading. The piglins who lived here didn't flee; they adapted. Their outposts stand in the fungus like houses in a rising tide.",
+  "description": "Warped corruption spreading over a mesa world \u2014 teal fungus over red rock. The nether bleeding through, but slowly, almost beautifully. It came through at the centre and it is still spreading. The piglins who lived here didn't flee; they adapted. Their outposts stand in the fungus like houses in a rising tide. The tide comes through the portal as well, and it does not ask what you built there.",
   "seed": 8657262498802833871,
   "biomes": [
     {
@@ -181,7 +181,17 @@
       "exit": "block.portal.travel"
     },
     "aura": {
-      "subsume": "everything"
+      "subsume": "everything",
+      "palette": [
+        "minecraft:warped_nylium",
+        "minecraft:warped_wart_block",
+        "minecraft:netherrack"
+      ],
+      "flora": [
+        "minecraft:warped_fungus",
+        "minecraft:warped_roots",
+        "minecraft:nether_sprouts"
+      ]
     }
   },
   "environment": {
