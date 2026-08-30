@@ -55,6 +55,7 @@ public class MultiverseConfig {
             return;
         }
         Path configDir = this.configRoot.resolve(CONFIG_DIR_NAME);
+        com.customdimensions.dimension.ProjectedSource.load(configDir);
         if (!Files.isDirectory(configDir.resolve("dimensions"))) {
             MultiverseServer.LOGGER.info("No config/custom-dimensions/dimensions/ found — no dimensions to load");
             return;

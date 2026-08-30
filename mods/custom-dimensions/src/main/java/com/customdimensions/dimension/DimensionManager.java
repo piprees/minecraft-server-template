@@ -353,11 +353,16 @@ public class DimensionManager {
                         dimName, cell.getSecond());
             }
         }
-        result.addAll(nativeEntries);
+        // Declared cells are authored across the whole climate space; this
+        // dimension samples a sliver of it. An author's own bands are NOT
+        // projected — they were written for this world already.
         Dealt<RegistryEntry<Biome>, MultiNoiseUtil.NoiseHypercube> dealt =
                 dealRemaining(unplaced, biome -> declaredCellsOf(declaredCells, biome), pool);
-        result.addAll(dealt.natural());
-        result.addAll(dealt.filler());
+        List<Pair<MultiNoiseUtil.NoiseHypercube, RegistryEntry<Biome>>> declared = new ArrayList<>();
+        declared.addAll(nativeEntries);
+        declared.addAll(dealt.natural());
+        declared.addAll(dealt.filler());
+        result.addAll(ProjectedSource.project(declared, dimName));
         if (result.isEmpty()) {
             MultiverseServer.LOGGER.warn("Dimension {}: no usable biomes in '{}' — keeping the base source", dimName, biomeList);
             return base;

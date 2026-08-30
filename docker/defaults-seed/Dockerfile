@@ -33,6 +33,10 @@ COPY config/custom-dimensions/dimensions/        /defaults/config/custom-dimensi
 # data/config/custom-dimensions/ (roll-all.sh) rather than a repo checkout.
 COPY config/custom-dimensions/structure-groups.json         /defaults/config/custom-dimensions/structure-groups.json
 COPY config/custom-dimensions/structure-type-defaults.json  /defaults/config/custom-dimensions/structure-type-defaults.json
+# Measured climate windows. The mod reads these to map declared cells into the
+# range a dimension's router actually samples; without the file every dimension
+# keeps its cells as authored, across the whole climate space.
+COPY config/custom-dimensions/climate-axes.json  /defaults/config/custom-dimensions/climate-axes.json
 
 COPY modpack/adventure.mrpack.json /defaults/config/modpack-manifest.json
 
