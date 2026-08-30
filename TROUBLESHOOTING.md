@@ -1667,13 +1667,23 @@ The rendered height disagrees with the facts on high-relief columns. The error i
   `customdim structure-census <dim>` reporting `live and facts agree` — so this
   costs a restart, not data. `BACKUP_INITIAL_DELAY` widens the window and
   `MAX_TICK_TIME` widens the budget; both default to the values above.
-- **Production hits the same collision**, through `mc-backup` rather than
-  `mc-backup-local`. `./ops reset-seed` ends by running `deploy.sh`, which
-  starts the sidecar, and its first backup lands `BACKUP_INITIAL_DELAY` later
-  into the fresh world's priming pass. `reset-seed.sh` prints the check and the
-  two commands when it finishes. Set `BACKUP_INITIAL_DELAY` in the GitHub
-  production environment, never in the server's `.env` — that file is
-  CI-generated and a hand-edit is wiped by the next full deploy.
+- **Production's exposure is one window, and it is not the dimension sweep.**
+  `deploy.sh` stops `mc-backup` for the duration of every deploy —
+  `pause_backups` at `:310`, re-stopped at `:724` and `:793` after each compose
+  up recreates it, `resume_backups` at `:1133`, plus an EXIT trap at `:315`.
+  The `customdim load` activation sweep at `:973` sits inside that window, so
+  no flush can reach it. `docker start` re-runs the entrypoint, so the
+  `BACKUP_INITIAL_DELAY` timer begins at `:1133`. What remains is the
+  `BACKUP_INITIAL_DELAY` after `deploy.sh` returns, when every dimension exists
+  with spawn chunks generated. `./ops reset-seed` prints the check and the two
+  commands when it finishes: `./ops ssh 'docker stop mc-backup'`, then
+  `docker start mc-backup` once the map shows dimensions rendering.
+- **Stop the sidecar; do not widen the window with `BACKUP_INITIAL_DELAY`.**
+  The value sets when the FIRST snapshot of the new world lands, so a value
+  long enough to cover first generation deletes the backup you most want to
+  exist, and a GitHub production variable applies to every deploy afterwards.
+  The roller's priming pass — the expensive case measured below — is
+  local-profile-only and never runs on production.
 - **An ESTABLISHED world's priming pass survives it.** Measured across three
   boots whose flush landed inside a priming pass over 78 existing level
   directories: windows of 7 s, 33 s and 35 s against `MAX_TICK_TIME` 180000,
