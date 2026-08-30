@@ -7,7 +7,7 @@
 | **T** | [T1–T14, T16–T19, T22–T27, T30–T58](#architecture-traps) | Architecture traps — each has caused a real production incident |
 | **P** | [P1–P4](#macos-local-dev) | macOS local-dev quirks (BSD tooling, toolchain) |
 | **D** | [D1–D6, D8–D9](#dimension-lifecycle) | Custom-dimension lifecycle on a live world |
-| **K** | [K1–K2, K5–K7](#known-issues) | Open issues — unfixed, on the watch list |
+| **K** | [K1–K2, K5–K6](#known-issues) | Open issues — unfixed, on the watch list |
 
 Related contracts: [`AGENTS.md`](AGENTS.md) (how to behave), [`COMMANDS.md`](COMMANDS.md) (command reference), [`mods/AGENTS.md`](mods/AGENTS.md) (in-house mod development, including portal-subsystem specifics).
 
@@ -58,7 +58,6 @@ Run this first. It covers deploy drift, disk, every expected container, `ONLINE_
 | A worldgen mod's biomes generate but its landforms never appear | [T55](#t55) |
 | A placement rule keyed on the assigned structure changes nothing | [T56](#t56) |
 | A biome band is reported dead but the biome generates | [T58](#t58) |
-| A `biomePatches` dimension generates biomes its list never named | [K7](#k7) |
 | Config or mod changes didn't take effect after a deploy | [T2](#t2) |
 | `signal only works in main thread` in discord-sync logs | [T3](#t3) |
 | mc crash-loops with Modrinth `429 Too Many Requests` | [T4](#t4) |
@@ -939,35 +938,6 @@ The rendered height disagrees with the facts on high-relief columns. The error i
   the caller. `mods/AGENTS.md` forbids sync-loading from a tick path for this
   reason; probe with `getChunkManager().getWorldChunk(cx, cz, false)` or
   register a `ChunkTicketType.PORTAL` ticket and act on a later tick.
-
----
-
-<a id="k7"></a>
-### K7 — Ten dimensions with `biomePatches` have no T34 defence
-
-- **Symptom:** a dimension carrying `biomePatches` generates biomes its
-  `biomes` list never named, and `/customdim structure-census` reports
-  `FACTS ENGINE DISAGREES` — the [T34](#t34) symptom, on a dimension where the
-  T34 defence is supposed to prevent it.
-- **Cause:** `ConfiguredBiomeSource.restore` is that defence. It gates on
-  `noiseGen.getBiomeSource() instanceof MultiNoiseBiomeSource`
-  (`ConfiguredBiomeSource.java:46-47`) and is called from
-  `getOrCreateDimension` (`DimensionManager.java:1315`) on every
-  `customdim load`. `applyBiomePatches` wraps the source in a
-  `PatchedBiomeSource`, which is not a `MultiNoiseBiomeSource`, so the gate
-  fails and `restore` returns its input untouched. Confirmed from
-  `data/world/level.dat`: every persisted `customdimensions:patched` source
-  holds its `minecraft:multi_noise` delegate one layer down, where the gate
-  cannot see it.
-- **Fix — NOT a matter of unwrapping.** `restore` rebuilds the source from its
-  parameter entries, so unwrapping alone rebuilds a bare
-  `MultiNoiseBiomeSource` and **drops the dimension's patches**. The shape has
-  to be unwrap, rebuild, then re-wrap the patches around the result.
-  `DimensionManager.multiNoiseOf` is public and unwraps both wrapper classes to
-  a fixed point, which supplies the first step and nothing else.
-- Creation-time worldgen ([D2](#d2)): changing it changes what those dimensions
-  generate, so it takes a world wipe to apply and cannot be undone on chunks
-  that already exist.
 
 ## Common symptoms
 
