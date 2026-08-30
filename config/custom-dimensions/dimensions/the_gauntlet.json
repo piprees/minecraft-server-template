@@ -75,7 +75,15 @@
           0.9886
         ]
       }
-    }
+    },
+    "betterend:crystal_mountains",
+    "betterend:dry_shrubland",
+    "betterend:painted_mountains",
+    "betterend:umbrella_jungle",
+    "undergroundworlds:underground_desert",
+    "wilderwild:dying_mixed_forest",
+    "wilderwild:snowy_dying_forest",
+    "wilderwild:snowy_dying_mixed_forest"
   ],
   "borders": {
     "player": 2048,

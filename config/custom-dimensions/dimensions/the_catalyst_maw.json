@@ -99,7 +99,17 @@
           2.0
         ]
       }
-    }
+    },
+    "betterend:amber_land",
+    "betterend:chorus_forest",
+    "betterend:crystal_mountains",
+    "betterend:empty_aurora_cave",
+    "betterend:empty_end_cave",
+    "betterend:shadow_forest",
+    "betterend:umbra_valley",
+    "betternether:nether_jungle",
+    "betternether:nether_swampland",
+    "betternether:old_warped_woods"
   ],
   "borders": {
     "player": 4096,

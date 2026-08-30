@@ -15,7 +15,10 @@
           2.0
         ]
       }
-    }
+    },
+    "betternether:crimson_glowing_woods",
+    "betternether:crimson_pinewood",
+    "betternether:magma_land"
   ],
   "borders": {
     "player": 683,

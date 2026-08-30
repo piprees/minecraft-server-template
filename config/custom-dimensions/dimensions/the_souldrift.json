@@ -119,7 +119,11 @@
           2.0
         ]
       }
-    }
+    },
+    "betterend:empty_smaragdant_cave",
+    "betterend:shadow_forest",
+    "betterend:umbra_valley",
+    "wilderwild:dying_mixed_forest"
   ],
   "borders": {
     "player": 4096,

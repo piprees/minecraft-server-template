@@ -15,7 +15,11 @@
           1.0
         ]
       }
-    }
+    },
+    "betternether:flooded_deltas",
+    "betternether:old_swampland",
+    "betternether:upside_down_forest",
+    "betternether:upside_down_forest_cleared"
   ],
   "borders": {
     "player": 1024,

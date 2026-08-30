@@ -8,7 +8,11 @@
     "nullscape:crystal_peaks",
     "nullscape:shadowlands",
     "minecraft:end_midlands",
-    "minecraft:the_end"
+    "minecraft:the_end",
+    "betterend:chorus_forest",
+    "betterend:dragon_graveyards",
+    "betterend:dust_wastelands",
+    "betterend:neon_oasis"
   ],
   "borders": {
     "player": 2048,

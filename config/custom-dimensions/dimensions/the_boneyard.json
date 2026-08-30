@@ -34,7 +34,10 @@
           -0.0993
         ]
       }
-    }
+    },
+    "betternether:bone_reef",
+    "betternether:soul_plain",
+    "betternether:sulfuric_bone_reef"
   ],
   "borders": {
     "player": 1024,

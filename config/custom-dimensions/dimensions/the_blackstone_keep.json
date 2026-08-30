@@ -16,7 +16,10 @@
           -0.5
         ]
       }
-    }
+    },
+    "betternether:crimson_glowing_woods",
+    "betternether:wart_forest",
+    "betternether:wart_forest_edge"
   ],
   "borders": {
     "player": 1024,

@@ -22,7 +22,14 @@
     "terralith:skylands_summer",
     "terralith:skylands_winter",
     "terralith:mirage_isles",
-    "minecraft:sunflower_plains"
+    "minecraft:sunflower_plains",
+    "betterend:blossoming_spires",
+    "betterend:foggy_mushroomland",
+    "betterend:glowing_grasslands",
+    "betterend:ice_starfield",
+    "betterend:lantern_woods",
+    "betterend:megalake",
+    "betterend:megalake_grove"
   ],
   "borders": {
     "player": 4096,

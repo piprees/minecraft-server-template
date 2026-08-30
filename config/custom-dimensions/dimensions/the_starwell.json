@@ -5,7 +5,14 @@
     "terralith:mirage_isles",
     "terralith:skylands_winter",
     "terralith:alpha_islands",
-    "terralith:alpha_islands_winter"
+    "terralith:alpha_islands_winter",
+    "betterend:blossoming_spires",
+    "betterend:dragon_graveyards",
+    "betterend:dust_wastelands",
+    "betterend:glowing_grasslands",
+    "betterend:ice_starfield",
+    "betterend:megalake_grove",
+    "betterend:neon_oasis"
   ],
   "borders": {
     "player": 256,

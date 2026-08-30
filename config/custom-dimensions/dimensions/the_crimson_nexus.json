@@ -113,7 +113,11 @@
           2.0
         ]
       }
-    }
+    },
+    "betterend:umbrella_jungle",
+    "betternether:crimson_pinewood",
+    "betternether:nether_jungle",
+    "betternether:old_warped_woods"
   ],
   "borders": {
     "player": 4096,

@@ -7,7 +7,11 @@
     "minecraft:soul_sand_valley",
     "incendium:withered_forest",
     "incendium:ash_barrens",
-    "minecraft:nether_wastes"
+    "minecraft:nether_wastes",
+    "betternether:nether_swampland",
+    "betternether:nether_swampland_terraces",
+    "betternether:old_swampland",
+    "betternether:sulfuric_bone_reef"
   ],
   "borders": {
     "player": 1024,

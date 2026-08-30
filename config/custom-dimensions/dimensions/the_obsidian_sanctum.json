@@ -6,7 +6,8 @@
     "minecraft:soul_sand_valley",
     "minecraft:nether_wastes",
     "incendium:withered_forest",
-    "minecraft:basalt_deltas"
+    "minecraft:basalt_deltas",
+    "betternether:old_fungiwoods"
   ],
   "borders": {
     "player": 1024,

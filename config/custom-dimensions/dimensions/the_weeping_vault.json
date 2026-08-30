@@ -47,7 +47,14 @@
           0.9
         ]
       }
-    }
+    },
+    "betterend:empty_aurora_cave",
+    "betterend:empty_end_cave",
+    "betterend:empty_smaragdant_cave",
+    "betterend:jade_cave",
+    "betterend:lush_aurora_cave",
+    "betterend:lush_smaragdant_cave",
+    "betternether:nether_mushroom_forest_edge"
   ],
   "borders": {
     "player": 683,
