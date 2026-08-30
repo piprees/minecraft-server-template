@@ -625,18 +625,17 @@ public final class DimensionLint {
             }
         }
 
-        Map<String, com.google.gson.JsonObject> params = def.getBiomeParameters();
-        if (params != null) {
-            for (String biomeId : params.keySet()) {
-                boolean isListed = listed.stream().anyMatch(
-                        b -> b != null && b.trim().equalsIgnoreCase(biomeId));
-                if (!isListed) {
-                    out.add(new Finding(name, WARN, "parameters_for_unlisted_biome", biomeId,
-                            "biomeParameters names " + biomeId
-                            + ", which is not in this dimension's biomes list — "
-                            + "the parameters are ignored",
-                            "add " + biomeId + " to biomes, or drop its parameters entry"));
-                }
+        Set<String> reported = new LinkedHashSet<>();
+        for (DimensionConfig.BiomeBand band : def.getBiomeBands()) {
+            String biomeId = band.id();
+            boolean isListed = listed.stream().anyMatch(
+                    b -> b != null && b.trim().equalsIgnoreCase(biomeId));
+            if (!isListed && reported.add(biomeId)) {
+                out.add(new Finding(name, WARN, "parameters_for_unlisted_biome", biomeId,
+                        "biomeParameters names " + biomeId
+                        + ", which is not in this dimension's biomes list — "
+                        + "the parameters are ignored",
+                        "add " + biomeId + " to biomes, or drop its parameters entry"));
             }
         }
         return out;

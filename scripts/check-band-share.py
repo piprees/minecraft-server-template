@@ -24,16 +24,11 @@ Context:  A small share is NOT a fault and this script does not gate. Measured
 Usage:    scripts/check-band-share.py            # shares per dimension
           scripts/check-band-share.py --empty    # only bands taking no cell
 
-          Exits 1 on a repeated biome id, which is a defect rather than a
-          measurement (see below). Share is reported and never gated.
+          Share is reported and never gated.
 
-Gotchas:  - **A biome id may appear only ONCE with parameters.**
-            `DimensionManager.buildMixedSource` keys its `explicit` map by
-            Identifier, so a repeated id keeps its LAST hypercube and the
-            earlier ones are silently dropped. Vanilla multi-noise allows a
-            biome many hypercubes; this mod does not. Neither the overlap check
-            nor the reach check can see it — the bands are disjoint and both
-            are in range. See TROUBLESHOOTING.md#k8.
+Gotchas:  - A biome may carry several bands and holds each region. A repeat
+            stating nothing new is a config fault `scripts/check-biome-bands.py`
+            gates; nothing about it is measured here.
           - **This grid is 11x11 = 121 points at two synthetic depths. The game
             samples 41x41 disc-clipped, about 1300 cells, at block y 64**
             (`FactsEngine.GRID`, `SpikeSampler`). It is roughly 11x denser, so
@@ -104,7 +99,7 @@ def wins(bands, samples, depth):
 def main():
     empty_only = "--empty" in sys.argv
     table = json.loads(AXES_FILE.read_text())["perDimension"]
-    empty = judged = duplicated = 0
+    empty = judged = 0
     natives_skipped = []
     unmeasured = []
 
@@ -131,14 +126,6 @@ def main():
             natives_skipped.append(slug)
             continue
 
-        seen = {}
-        for bid, _cube in bands:
-            seen[bid] = seen.get(bid, 0) + 1
-        for bid, n in seen.items():
-            if n > 1:
-                duplicated += 1
-                print(f"{slug}: {bid} carries {n} bands, but buildMixedSource keys explicit "
-                      f"by id — only the last survives and the rest are dead config (K8)")
 
         judged += len(bands)
         held = {bid: 0 for bid, _ in bands}
@@ -163,7 +150,6 @@ def main():
                 print(f"    holds no cell of 121: {bid}")
 
     print(f"\njudged {judged} band(s) across measured dimensions with no native biomes")
-    print(f"  {duplicated} repeated biome id(s) — dead config, and the only failure here")
     print(f"  {empty} hold no cell of this 121-point grid. Measured, that overstates "
           f"absence by 3.8x against the game's own geometry — re-measure with "
           f"scripts/sample-climate-grid.sh before acting on one. See K7.")
@@ -173,7 +159,7 @@ def main():
     if unmeasured:
         print(f"  {len(unmeasured)} dimension(s) have bands but no measurement — skipped, "
               f"not guessed: {', '.join(unmeasured[:6])}{'...' if len(unmeasured) > 6 else ''}")
-    return 1 if duplicated else 0
+    return 0
 
 
 if __name__ == "__main__":

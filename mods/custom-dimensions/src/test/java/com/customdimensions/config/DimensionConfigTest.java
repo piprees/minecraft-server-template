@@ -3,6 +3,8 @@ package com.customdimensions.config;
 import com.google.gson.Gson;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class DimensionConfigTest {
@@ -493,17 +495,59 @@ class DimensionConfigTest {
         // Both entry forms contribute ids, in order.
         assertEquals("minecraft:plains,minecraft:cherry_grove,minecraft:desert", config.getBiome());
         assertEquals(3, config.getBiomes().size());
-        // Only object entries with a parameters object land in the map.
-        assertEquals(1, config.getBiomeParameters().size());
-        assertTrue(config.getBiomeParameters().containsKey("minecraft:cherry_grove"));
-        assertEquals(0.3, config.getBiomeParameters().get("minecraft:cherry_grove")
+        // Only object entries with a parameters object become bands.
+        assertEquals(1, config.getBiomeBands().size());
+        assertEquals("minecraft:cherry_grove", config.getBiomeBands().get(0).id());
+        assertEquals(0.3, config.getBiomeBands().get(0).parameters()
                 .get("continentalness").getAsDouble());
         assertNotNull(config.getBiomeParametersFingerprint());
-        // Plain string arrays produce no biome parameters and no fingerprint.
+        // Plain string arrays produce no bands and no fingerprint.
         DimensionConfig plain = parse("d", "{\"biomes\":[\"minecraft:swamp\",\"natures_spirit:marsh\"]}");
         assertEquals("minecraft:swamp,natures_spirit:marsh", plain.getBiome());
-        assertTrue(plain.getBiomeParameters().isEmpty());
+        assertTrue(plain.getBiomeBands().isEmpty());
         assertNull(plain.getBiomeParametersFingerprint());
+    }
+
+    @Test
+    void aBiomeNamedTwiceKeepsBothOfItsBands() {
+        // Vanilla's parameter table gives one biome a hypercube in every
+        // climate region it belongs to, so a repeated id is authorship rather
+        // than a mistake. Keying bands by id would keep one and drop the rest.
+        DimensionConfig config = parse("d", """
+                {"biomes":[{"id":"minecraft:taiga","parameters":{"weirdness":[-2.0,-1.0]}},
+                           {"id":"minecraft:snowy_plains","parameters":{"weirdness":[0.1,0.4]}},
+                           {"id":"minecraft:taiga","parameters":{"weirdness":[0.522,1.0]}}]}
+                """);
+
+        List<DimensionConfig.BiomeBand> bands = config.getBiomeBands();
+        assertEquals(3, bands.size());
+        assertEquals(List.of("minecraft:taiga", "minecraft:snowy_plains", "minecraft:taiga"),
+                bands.stream().map(DimensionConfig.BiomeBand::id).toList());
+        // The two taiga bands are the DIFFERENT hypercubes the file states, in
+        // file order — not one band counted twice.
+        assertEquals(-2.0, bands.get(0).parameters().get("weirdness").getAsJsonArray()
+                .get(0).getAsDouble());
+        assertEquals(0.522, bands.get(2).parameters().get("weirdness").getAsJsonArray()
+                .get(0).getAsDouble());
+    }
+
+    @Test
+    void aSecondBandForOneBiomeChangesTheFingerprint() {
+        // The fingerprint is the drift detector for creation-time worldgen
+        // ([D2]), so a second band for an already-banded biome has to move it —
+        // an id-keyed fingerprint reports no drift for exactly that edit.
+        DimensionConfig one = parse("d", """
+                {"biomes":[{"id":"minecraft:taiga","parameters":{"weirdness":[-2.0,-1.0]}}]}
+                """);
+        DimensionConfig two = parse("d", """
+                {"biomes":[{"id":"minecraft:taiga","parameters":{"weirdness":[-2.0,-1.0]}},
+                           {"id":"minecraft:taiga","parameters":{"weirdness":[0.5,1.0]}}]}
+                """);
+
+        assertNotEquals(one.getBiomeParametersFingerprint(), two.getBiomeParametersFingerprint());
+        // Both bands appear, so the fingerprint says which two.
+        assertTrue(two.getBiomeParametersFingerprint().contains("-1.0"));
+        assertTrue(two.getBiomeParametersFingerprint().contains("0.5"));
     }
 
     @Test

@@ -323,14 +323,20 @@ public class DimensionConfig {
         return ids;
     }
 
+    /** One object-form biomes entry carrying explicit multi-noise placement. */
+    public record BiomeBand(String id, JsonObject parameters) {
+    }
+
     /**
-     * Explicit multi-noise parameter overrides from object-form biomes
-     * entries (Tier 3): biome id -> raw "parameters" object. Empty map when
-     * none. Interval validation happens at use (DimensionManager) — this is
+     * Explicit multi-noise bands from object-form biomes entries (Tier 3), in
+     * file order. A biome may carry SEVERAL — vanilla's own parameter table
+     * gives minecraft:plains a hypercube in each climate region it belongs to,
+     * and keying these by id would keep one band per biome and silently drop
+     * the rest. Interval validation happens at use (DimensionManager); this is
      * pure extraction.
      */
-    public Map<String, JsonObject> getBiomeParameters() {
-        Map<String, JsonObject> out = new java.util.LinkedHashMap<>();
+    public List<BiomeBand> getBiomeBands() {
+        List<BiomeBand> out = new java.util.ArrayList<>();
         if (this.biomes == null) {
             return out;
         }
@@ -341,7 +347,7 @@ public class DimensionConfig {
             String id = biomeIdOf(entry);
             JsonElement params = entry.getAsJsonObject().get("parameters");
             if (id != null && params != null && params.isJsonObject()) {
-                out.put(id, params.getAsJsonObject());
+                out.add(new BiomeBand(id, params.getAsJsonObject()));
             }
         }
         return out;
@@ -408,20 +414,22 @@ public class DimensionConfig {
 
     /**
      * Canonical "id={params json},..." string for creation-time
-     * fingerprinting; null when no entry carries parameters. JsonObject
-     * preserves insertion order, so the same file always fingerprints equal.
+     * fingerprinting, one term per band; null when no entry carries
+     * parameters. JsonObject preserves insertion order, so the same file
+     * always fingerprints equal, and a biome's second band is its own term
+     * rather than a repeat that changes nothing.
      */
     public String getBiomeParametersFingerprint() {
-        Map<String, JsonObject> params = this.getBiomeParameters();
-        if (params.isEmpty()) {
+        List<BiomeBand> bands = this.getBiomeBands();
+        if (bands.isEmpty()) {
             return null;
         }
         StringBuilder sb = new StringBuilder();
-        for (Map.Entry<String, JsonObject> e : params.entrySet()) {
+        for (BiomeBand band : bands) {
             if (sb.length() > 0) {
                 sb.append(",");
             }
-            sb.append(e.getKey()).append("=").append(e.getValue());
+            sb.append(band.id()).append("=").append(band.parameters());
         }
         return sb.toString();
     }

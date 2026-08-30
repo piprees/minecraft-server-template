@@ -277,17 +277,18 @@ public class DimensionManager {
     }
 
     // Build a multi-noise source for an arbitrary biome list, in four tiers.
-    // A biome with explicit "parameters" gets that one hypercube. A biome the
-    // base source already places keeps its own cells. A biome the base source
-    // does not place, whose own mod declared cells for this family, gets those
-    // cells ([T19]). Everything left is dealt the remaining parameter regions
-    // round-robin, so it genuinely appears in the layout instead of being
-    // silently dropped — a list with no native matches at all (e.g.
-    // the_crimson_nexus, the_souldrift) still produces its requested biomes
-    // rather than falling back to plains.
+    // Every entry with explicit "parameters" gets a hypercube, so a biome
+    // named several times holds several cells. A biome the base source already
+    // places keeps its own cells. A biome the base source does not place,
+    // whose own mod declared cells for this family, gets those cells ([T19]).
+    // Everything left is dealt the remaining parameter regions round-robin, so
+    // it genuinely appears in the layout instead of being silently dropped — a
+    // list with no native matches at all (e.g. the_crimson_nexus,
+    // the_souldrift) still produces its requested biomes rather than falling
+    // back to plains.
     private BiomeSource buildMixedSource(MultiNoiseBiomeSource base, Registry<Biome> biomeRegistry,
                                          String biomeList, String dimName,
-                                         Map<String, com.google.gson.JsonObject> paramOverrides,
+                                         List<DimensionConfig.BiomeBand> bands,
                                          Map<Identifier, List<MultiNoiseUtil.NoiseHypercube>> declaredCells) {
         Set<Identifier> allowedIds = Arrays.stream(biomeList.split(","))
                 .map(String::trim).map(Identifier::tryParse).filter(id -> id != null)
@@ -302,23 +303,12 @@ public class DimensionManager {
                     dimName, allowedIds.size());
         }
 
-        // Explicit per-biome parameters (Tier 3): a listed biome with a
-        // valid "parameters" object gets ONE explicit hypercube and is
+        // Explicit per-biome parameters (Tier 3): every listed band with a
+        // valid "parameters" object places its own hypercube, and its biome is
         // withdrawn from the native/round-robin machinery entirely — its
         // natural regions (if any) join the pool for foreign biomes.
-        Map<Identifier, MultiNoiseUtil.NoiseHypercube> explicit = new java.util.LinkedHashMap<>();
-        if (paramOverrides != null) {
-            for (Map.Entry<String, com.google.gson.JsonObject> e : paramOverrides.entrySet()) {
-                Identifier id = Identifier.tryParse(e.getKey());
-                if (id == null || !allowedIds.contains(id)) {
-                    continue;
-                }
-                MultiNoiseUtil.NoiseHypercube cube = hypercubeFrom(e.getValue(), dimName, e.getKey());
-                if (cube != null) {
-                    explicit.put(id, cube);
-                }
-            }
-        }
+        Placed<MultiNoiseUtil.NoiseHypercube> explicit = explicitBands(bands, allowedIds,
+                band -> hypercubeFrom(band.parameters(), dimName, band.id()));
 
         MultiNoiseUtil.Entries<RegistryEntry<Biome>> entries =
                 ((MultiNoiseBiomeSourceAccessor) base).invokeGetBiomeEntries();
@@ -327,7 +317,7 @@ public class DimensionManager {
         Set<Identifier> nativeIds = new HashSet<>();
         for (Pair<MultiNoiseUtil.NoiseHypercube, RegistryEntry<Biome>> pair : entries.getEntries()) {
             Identifier id = pair.getSecond().getKey().map(RegistryKey::getValue).orElse(null);
-            if (id != null && allowedIds.contains(id) && !explicit.containsKey(id)) {
+            if (id != null && allowedIds.contains(id) && !explicit.ids().contains(id)) {
                 nativeEntries.add(pair);
                 nativeIds.add(id);
             } else {
@@ -337,7 +327,7 @@ public class DimensionManager {
 
         List<RegistryEntry<Biome>> unplaced = new ArrayList<>();
         for (Identifier id : allowedIds) {
-            if (nativeIds.contains(id) || explicit.containsKey(id)) {
+            if (nativeIds.contains(id) || explicit.ids().contains(id)) {
                 continue;
             }
             Optional<RegistryEntry.Reference<Biome>> entry =
@@ -351,15 +341,15 @@ public class DimensionManager {
 
         List<Pair<MultiNoiseUtil.NoiseHypercube, RegistryEntry<Biome>>> result = new ArrayList<>();
         int explicitCells = 0;
-        for (Map.Entry<Identifier, MultiNoiseUtil.NoiseHypercube> e : explicit.entrySet()) {
+        for (Pair<MultiNoiseUtil.NoiseHypercube, Identifier> cell : explicit.cells()) {
             Optional<RegistryEntry.Reference<Biome>> biomeEntry =
-                    biomeRegistry.getEntry(RegistryKey.of(RegistryKeys.BIOME, e.getKey()));
+                    biomeRegistry.getEntry(RegistryKey.of(RegistryKeys.BIOME, cell.getSecond()));
             if (biomeEntry.isPresent()) {
-                result.add(Pair.of(e.getValue(), biomeEntry.get()));
+                result.add(Pair.of(cell.getFirst(), biomeEntry.get()));
                 explicitCells++;
             } else {
                 MultiverseServer.LOGGER.warn("Dimension {}: biome {} (with parameters) not in the registry — skipped",
-                        dimName, e.getKey());
+                        dimName, cell.getSecond());
             }
         }
         result.addAll(nativeEntries);
@@ -371,13 +361,61 @@ public class DimensionManager {
             MultiverseServer.LOGGER.warn("Dimension {}: no usable biomes in '{}' — keeping the base source", dimName, biomeList);
             return base;
         }
+        // Banded entries are counted from the config, not from the placements:
+        // both other counts here are per-biome and agree with each other while
+        // an entry is being lost, so the file's own number is what makes the
+        // loss legible.
         MultiverseServer.LOGGER.info(
-                "Dimension {}: biome source built ({} explicit, {} native, {} natural over {} cell(s), "
-                + "{} mixed-in of {} requested)",
-                dimName, explicitCells, nativeEntries.size(),
+                "Dimension {}: biome source built ({} explicit of {} banded, {} native, "
+                + "{} natural over {} cell(s), {} mixed-in of {} requested)",
+                dimName, explicitCells, bands == null ? 0 : bands.size(), nativeEntries.size(),
                 unplaced.size() - dealt.foreign().size(), dealt.natural().size(),
                 dealt.foreign().size(), allowedIds.size());
         return MultiNoiseBiomeSource.create(new MultiNoiseUtil.Entries<>(result));
+    }
+
+    /**
+     * The cells a config's explicit bands place, and the biome ids those bands
+     * withdraw from native and round-robin placement.
+     *
+     * <p>{@code cells} carries one entry per usable band, in file order, so a
+     * biome named by several bands holds several cells — vanilla's parameter
+     * table gives {@code minecraft:plains} a hypercube in each climate region
+     * it belongs to the same way. {@code ids} is the withdrawal set, which is
+     * why it is a set and {@code cells} is not.
+     */
+    record Placed<C>(List<Pair<C, Identifier>> cells, Set<Identifier> ids) {
+    }
+
+    /**
+     * Places every band a dimension declares. A band is dropped when its id
+     * does not parse, when it names a biome this dimension does not list, or
+     * when {@code toCell} rejects its parameters; anything else places a cell
+     * and withdraws its biome.
+     *
+     * <p>Generic over the cell type so the rules are testable: this suite
+     * cannot bootstrap Minecraft's registries.
+     */
+    static <C> Placed<C> explicitBands(List<DimensionConfig.BiomeBand> bands,
+                                       Set<Identifier> allowedIds,
+                                       Function<DimensionConfig.BiomeBand, C> toCell) {
+        List<Pair<C, Identifier>> cells = new ArrayList<>();
+        Set<Identifier> ids = new java.util.LinkedHashSet<>();
+        if (bands == null) {
+            return new Placed<>(cells, ids);
+        }
+        for (DimensionConfig.BiomeBand band : bands) {
+            Identifier id = Identifier.tryParse(band.id());
+            if (id == null || !allowedIds.contains(id)) {
+                continue;
+            }
+            C cell = toCell.apply(band);
+            if (cell != null) {
+                cells.add(Pair.of(cell, id));
+                ids.add(id);
+            }
+        }
+        return new Placed<>(cells, ids);
     }
 
     /** A biome's declared cells, or empty when its mod declared none. */
@@ -578,12 +616,12 @@ public class DimensionManager {
         MultiNoiseBiomeSource base = multiNoiseOf(baseGenerator);
         if (base != null) {
             return buildMixedSource(base, biomeRegistry, biomeList, def.getName(),
-                    def.getBiomeParameters(), declaredCellsFor(base, biomeRegistry));
+                    def.getBiomeBands(), declaredCellsFor(base, biomeRegistry));
         }
         MultiNoiseBiomeSource owBase = multiNoiseOf(overworldGenerator);
         if (owBase != null) {
             return buildMixedSource(owBase, biomeRegistry, biomeList, def.getName(),
-                    def.getBiomeParameters(), declaredCellsFor(owBase, biomeRegistry));
+                    def.getBiomeBands(), declaredCellsFor(owBase, biomeRegistry));
         }
         // Silent here meant a whole dimension quietly generating the base
         // world's biomes instead of its own — name the class, because the mod

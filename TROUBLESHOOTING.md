@@ -7,7 +7,7 @@
 | **T** | [T1–T14, T16–T19, T22–T27, T30–T58](#architecture-traps) | Architecture traps — each has caused a real production incident |
 | **P** | [P1–P4](#macos-local-dev) | macOS local-dev quirks (BSD tooling, toolchain) |
 | **D** | [D1–D6, D8–D9](#dimension-lifecycle) | Custom-dimension lifecycle on a live world |
-| **K** | [K1–K2, K5–K8](#known-issues) | Open issues — unfixed, on the watch list |
+| **K** | [K1–K2, K5–K7](#known-issues) | Open issues — unfixed, on the watch list |
 
 Related contracts: [`AGENTS.md`](AGENTS.md) (how to behave), [`COMMANDS.md`](COMMANDS.md) (command reference), [`mods/AGENTS.md`](mods/AGENTS.md) (in-house mod development, including portal-subsystem specifics).
 
@@ -103,7 +103,6 @@ Run this first. It covers deploy drift, disk, every expected container, `ONLINE_
 | A chunk never finishes generating; RCON accepted but never answered, one thread pegged, nothing thrown | [K6](#k6) |
 | An analysis says a biome band generates nothing but the game finds it | [K7](#k7) |
 | `locate biome` returns a position but players never reach the biome | [K7](#k7) |
-| A biome named at two places on an axis generates at only one | [K8](#k8) |
 | Can't connect / server won't start / backups failing / lag | [Common symptoms](#common-symptoms) |
 
 ---
@@ -388,20 +387,25 @@ A world regenerates with the old terrain after a reset that set a new seed, or t
 <a id="t38"></a>
 ### T38 — The boot line's `native` count is hypercube pairs, not biomes
 
-- **Symptom:** `biome source built (0 explicit, 228 native, 0 natural over 0
-  cell(s), 0 mixed-in of 20 requested)` reads as the biome list being discarded
-  and the whole registry substituted, and a dimension gets "fixed" that was
-  never broken.
+- **Symptom:** `biome source built (0 explicit of 0 banded, 228 native, 0
+  natural over 0 cell(s), 0 mixed-in of 20 requested)` reads as the biome list
+  being discarded and the whole registry substituted, and a dimension gets
+  "fixed" that was never broken.
 - **Cause:** `DimensionManager` logs `nativeEntries.size()`, and each entry is
   one hypercube→biome pair. A vanilla overworld biome occupies many points in
   the multi-noise table, so 20 listed biomes legitimately build 228 pairs.
   Nether- and End-family tables are small, which is why those dimensions log
   close to 1:1 and set a misleading expectation.
-- **The five counts are not in the same units.** `explicit` and `native` are
-  hypercube pairs; `natural` is BIOMES, with its own pair count beside it as
-  `over N cell(s)`; `mixed-in` and `requested` are biomes. A natural biome
-  brings every cell its mod declared, so a handful of biomes can carry
+- **The six counts are not in the same units.** `explicit` and `native` are
+  hypercube pairs; `banded` is `biomes` ENTRIES carrying a `parameters` block,
+  counted from the config; `natural` is BIOMES, with its own pair count beside
+  it as `over N cell(s)`; `mixed-in` and `requested` are biomes. A natural
+  biome brings every cell its mod declared, so a handful of biomes can carry
   hundreds of cells.
+- **`explicit` below `banded` means bands were dropped**, one per entry naming
+  an unlisted biome, carrying invalid parameters, or naming a biome absent from
+  the registry. It is the only pair in the line that compares like with like:
+  every other count is per-biome, so a lost entry leaves them all agreeing.
 - **Fix:** the count that answers "did the list survive" is `mixed-in`, which
   must be 0, and `requested`, which must match the config. `explicit + native
   biomes + natural + mixed-in` accounts for every requested biome that
@@ -1082,41 +1086,6 @@ The rendered height disagrees with the facts on high-relief columns. The error i
   121-point samples, so it reports and deliberately does not gate.
 - **Narrow is not empty, and small is not a defect.** The target is that no
   listed biome is ignored, never that shares are equal.
-
-<a id="k8"></a>
-
-### K8 — a biome listed twice keeps only its last band, and nothing reports it
-
-- **Symptom:** a dimension names one biome at two places on an axis and it
-  generates at only one of them. The boot line's FIRST count is lower than the
-  number of banded entries in the config — `the_frozen_hearth: biome source
-  built (22 explicit, 0 native, 0 natural over 0 cell(s), 0 mixed-in of 22
-  requested)` against **24** banded entries. `requested` is the distinct id
-  count, so it agrees with `explicit` and hides the loss; the config is the only
-  place the 24 is visible.
-- **Cause:** `DimensionManager.buildMixedSource` builds `explicit` as a
-  `LinkedHashMap<Identifier, NoiseHypercube>`, so a repeated id overwrites its
-  predecessor and only the last hypercube reaches the biome source. Vanilla
-  multi-noise gives one biome many hypercubes — that is how `minecraft:plains`
-  occupies several climate regions — so the config is legal and the mod is the
-  narrower of the two.
-- **Why no check catches it:** `check-biome-bands.py` tests whether hypercubes
-  OVERLAP and these do not, being disjoint ranges on the same axis;
-  `check-band-reach.py` tests whether each is inside the world's range and both
-  are. The ground the dropped band would have held falls to whichever neighbour
-  is nearest, so the dimension differs from its config with no signal anywhere.
-- **The three affected entries:** `the_frozen_hearth` `minecraft:snowy_plains`
-  and `minecraft:taiga`, `the_highland_crossing` `minecraft:windswept_hills`.
-  In each case the FIRST band is dead.
-- **Fix belongs in the mod, not the configs.** `explicit` wants to be a list of
-  (hypercube, biome) pairs, with the withdrawal-from-native logic keyed on a Set
-  of ids. The configs express what their authors intended and should not be
-  trimmed to match the defect. `scripts/check-band-share.py` reports it and
-  exits 1; it is deliberately NOT in the quick gate while the defect is open —
-  three entries fail it today, so gating now leaves the gate red until the mod
-  fix lands, and a red gate everyone learns to skip is worse than none. **Wire
-  it into `test-scripts.sh` as the last step of the mod fix**, when the only way
-  to trip it is a new config error.
 
 ### K9 — an `overworld`-type dimension never reads its `biomes` list
 

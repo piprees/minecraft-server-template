@@ -6,6 +6,13 @@ Purpose:  A dimension's explicit bands are meant to partition its climate axis.
           between them is no longer what the config says — which is how a
           hand-tuned layout quietly stops meaning anything.
 
+          A biome may be banded more than once — vanilla's parameter table gives
+          minecraft:plains a hypercube in every climate region it belongs to.
+          What is never meant is a repeat entry carrying no new hypercube: an
+          identical `parameters` block, or a bare-string entry beside a banded
+          one. The biome list is deduplicated to a set before placement, so such
+          an entry places nothing and states nothing.
+
 Context:  The shipped configs had zero overlapping pairs. Two editing passes
           appending bands to the same files produced 393, none of which lint or
           the boot log flags: overlap is legal worldgen, just not intended.
@@ -35,9 +42,12 @@ Not covered: whether a correctly fitted band is worth having. A band can pass
           that. Encounterability is a different question and nothing gates it,
           so three green band checks do not mean the bands are good.
 
-Usage:    scripts/check-biome-bands.py            # exits 1 on any of the three
+Usage:    scripts/check-biome-bands.py            # exits 1 on any of the four
 
-Gotchas:  - Hypercubes intersect only if they intersect on EVERY axis, so two
+Gotchas:  - A repeated biome id is NOT itself a fault, and gating on one would
+            fail the shipped configs that band a biome at two points on an axis
+            deliberately. Only a repeat with nothing new to say is reported.
+          - Hypercubes intersect only if they intersect on EVERY axis, so two
             entries sharing a weirdness band but sitting in different `depth`
             bands do not overlap. Comparing one axis alone over-reports.
           - An unconstrained axis spans the whole -2..2 range, which is why an
@@ -151,8 +161,39 @@ def anchored_equal_run(bands):
     return (best, best_w) if best >= MIN_RUN else (0, 0.0)
 
 
+def dead_repeats(arr):
+    """(id, why) for every entry repeating a biome without adding a hypercube.
+
+    Two bands for one biome are legitimate. A second entry states nothing new
+    when it carries an identical `parameters` block, or when it is a bare
+    string beside a banded entry — the list is deduplicated to a set before
+    placement, so that entry cannot reach the layout at all.
+    """
+    seen_params = {}
+    banded = set()
+    plain = set()
+    out = []
+    for e in arr:
+        if isinstance(e, str):
+            plain.add(e.strip())
+        elif isinstance(e, dict) and isinstance(e.get("id"), str):
+            bid = e["id"].strip()
+            params = e.get("parameters")
+            if not isinstance(params, dict):
+                plain.add(bid)
+                continue
+            banded.add(bid)
+            key = json.dumps(params, sort_keys=True)
+            if key in seen_params.setdefault(bid, set()):
+                out.append((bid, "a second band with identical parameters"))
+            seen_params[bid].add(key)
+    for bid in sorted(plain & banded):
+        out.append((bid, "listed bare as well as banded, so the bare entry is dead"))
+    return out
+
+
 def main():
-    total_files = total_pairs = total_starved = total_sliced = 0
+    total_files = total_pairs = total_starved = total_sliced = total_dead = 0
     consumer = optional_consumer_dir()
     sources = [("platform", "config/custom-dimensions/dimensions/*.json")]
     if consumer:
@@ -169,6 +210,14 @@ def main():
                   if isinstance(e, dict) and isinstance(e.get("parameters"), dict)]
             natives = [e for e in arr if isinstance(e, str)]
             name = f.split('/')[-1][:-5]
+
+            dead = dead_repeats(arr)
+            if dead:
+                total_files += 1; total_dead += len(dead)
+                for bid, why in dead:
+                    print(f"  {name:26s} [{where:8s}] {bid} is repeated: {why}")
+                print(f"      delete the repeat, or give it a parameters block that"
+                      f" states a different region")
 
             bad = [(a[0], b[0]) for a, b in combinations(ex, 2) if overlaps(a[1], b[1])]
             if bad:
@@ -208,10 +257,10 @@ def main():
     if not consumer:
         print(f"  overlay not checked - set {ENV_VAR} to include a consumer repo")
     print(f"{total_files} files, {total_pairs} overlapping pairs, {total_starved} starved natives, "
-          f"{total_sliced} schema-stepped bands")
+          f"{total_sliced} schema-stepped bands, {total_dead} dead repeats")
     if scanned == 0:
         sys.exit("nothing scanned - run this from the platform repo root")
-    return 1 if (total_pairs or total_starved or total_sliced) else 0
+    return 1 if (total_pairs or total_starved or total_sliced or total_dead) else 0
 
 if __name__ == "__main__":
     sys.exit(main())
