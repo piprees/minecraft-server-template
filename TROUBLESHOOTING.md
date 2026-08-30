@@ -4,7 +4,7 @@
 
 | Prefix | Range | What it covers |
 | --- | --- | --- |
-| **T** | [T1–T14, T16–T19, T22–T27, T30–T63](#architecture-traps) | Architecture traps — each has caused a real production incident |
+| **T** | [T1–T14, T16–T19, T22–T27, T30–T68](#architecture-traps) | Architecture traps — each has caused a real production incident |
 | **P** | [P1–P4](#macos-local-dev) | macOS local-dev quirks (BSD tooling, toolchain) |
 | **D** | [D1–D6, D8–D9](#dimension-lifecycle) | Custom-dimension lifecycle on a live world |
 | **K** | [K1–K2, K5–K7](#known-issues) | Open issues — unfixed, on the watch list |
@@ -63,6 +63,11 @@ Run this first. It covers deploy drift, disk, every expected container, `ONLINE_
 | An `rcon-cli` batch exits 0 having answered only the first few commands | [T61](#t61) |
 | The newest measurement of a dimension is of a config nobody shipped | [T62](#t62) |
 | A check reports success having examined nothing | [T63](#t63) |
+| The server watchdog-crashes during a read-only diagnostic sweep | [T64](#t64) |
+| A band changes nothing, and the band checker reports overlapping pairs | [T65](#t65) |
+| A biome is in the jar catalogue, its mod is loaded, and it is in no live registry | [T66](#t66) |
+| A batched loop runs one iteration and exits 0 | [T67](#t67) |
+| A fresh world's first boot logs `Failed to load server level` and then starts fine | [T68](#t68) |
 | Config or mod changes didn't take effect after a deploy | [T2](#t2) |
 | `signal only works in main thread` in discord-sync logs | [T3](#t3) |
 | mc crash-loops with Modrinth `429 Too Many Requests` | [T4](#t4) |
@@ -993,6 +998,201 @@ A seed's map and its banked facts appear to contradict each other — the thumbn
   gate by breaking its target and watching the specific counter move, never by
   watching the exit code — an exit code aggregates arms and cannot isolate one
   (the duplicate-band gate reached the same conclusion from its own injections).
+- **Print the VALUE the check matched on, not only the denominator.** An error
+  string, an empty map and a wrong-namespace filename all pass a presence test.
+  Three instances in one session: a settle-watch polling for a non-empty RCON
+  reply, satisfied within a second by `Failed to connect to RCON server ...
+  connection refused`; the same trap a session earlier; and a bank query
+  matching `facts__adventure_*` reporting a dimension unmeasured because
+  reserved dimensions bank as `facts__minecraft_*`. **A check has to name the
+  state it wants, not the absence of nothing** — and it should exit non-zero on
+  an unusable result rather than warn, so the result cannot enter a table.
+
+---
+
+<a id="t64"></a>
+### T64 — A `customdim` measurement over RCON runs on the main thread with no deadline
+
+- **Symptom:** a read-only diagnostic sweep kills the server. `docker inspect mc`
+  shows `RestartCount` incremented, `data/crash-reports/` holds
+  `Description: Watching Server` / `java.lang.Error: Watchdog`, and the log says
+  `A single server tick took 180.00 seconds (should be max 0.05)`. The rest of
+  the sweep then returns `Failed to connect to RCON server ... connection
+  refused` and exits 0 ([T61](#t61)).
+- **Cause:** an RCON command executes on the **main thread**, and
+  `FactsEngine.measure` is synchronous with no tick budget and no deadline. The
+  Server thread stack at the kill names it exactly:
+
+  ```
+  SpikeSampler.sample -> FactsEngine.neighbourhood -> FactsEngine.safeColumnFraction
+    -> FactsEngine.spawnFacts -> FactsEngine.measure -> FactsCommands.facts
+  ```
+
+  **No single call is long enough to do it — the tick holds SEVERAL.** Measured
+  over 89 calls, in-mod duration:
+
+  ```
+  server contended (roller priming + a second operator)  median 10,721ms  max 65,310ms
+  server exclusive (roller stopped)                      median  8,883ms  max 25,365ms
+  ```
+
+  The slowest call anywhere is **65,310 ms** against a 180,000 ms budget, so one
+  command cannot blow it. The crash report says what did: **two RCON client
+  threads blocked on two DISTINCT `CompletableFuture$Signaller` objects**, i.e.
+  two commands queued on the same thread, serialising into one tick.
+
+  ```
+  "RCON Client /0:0:0:0:0:0:0:1 #16"  Id=676  WAITING on CompletableFuture$Signaller@3f92b969
+  "RCON Client /0:0:0:0:0:0:0:1 #17"  Id=677  WAITING on CompletableFuture$Signaller@74417c1b
+  ```
+
+  **The hazard is two operators measuring at once, not any one dimension.**
+  `the_amplified_reaches`, blamed for one such crash, costs 4,547 ms. Load
+  changes duration by about 1.8x on the mean; it does not change a `facts`
+  value.
+- **The crash report names no dimension.** `grep -c adventure:` returns 0. Any
+  claim about which dimension was in flight comes from the harness's own row,
+  identifies that operator's call only, and says nothing about the other blocked
+  client.
+- **The roller is not exposed.** `RollPipeline` runs the same measurement on the
+  `customdim-roll` thread. Only the RCON route puts it on the tick.
+  [K5](#k5) records that `render-check` "polls chunk futures with a finite
+  deadline for exactly this reason"; `facts` has no equivalent.
+- **Fix, and it is scheduling rather than a budget.** **One operator on RCON at a
+  time** — a second agent's `facts` call queued behind yours is what reaches
+  180 s. Sweep with a fail-fast harness (one `rcon-cli` per command, abort the
+  moment a reply is not the expected shape) so an interruption costs one call
+  rather than the tail of the list, and check `docker logs mc --tail 20` for
+  `customdim-roll` lines before starting. `MAX_TICK_TIME` is overridable in the
+  consumer `.env` and raising it buys headroom, but every number taken under a
+  raised budget must say so.
+
+<a id="t65"></a>
+### T65 — Two bands on different axes in one dimension are at distance zero from each other
+
+- **Symptom:** a band is moved to a different climate axis to "use a better
+  axis", and `scripts/check-biome-bands.py` reports N overlapping pairs where it
+  reported none. Nothing in the file overlaps when read axis by axis.
+- **Cause:** a band constrains the axes it names and leaves the rest at
+  `[-2, 2]`. A humidity-only band and an erosion-only band therefore both contain
+  any sample whose humidity is in the first window and whose erosion is in the
+  second, and both are at squared distance **zero** from it — which is
+  [T59](#t59)'s tie, reached without sharing a boundary. Measured: moving one of
+  seven humidity bands to erosion produced `6 overlapping pair(s) of 7 explicit`.
+- **Fix:** add the axis, do not swap it. A band carrying
+  `{"humidity": [...], "erosion": [...]}` keeps its place in the humidity
+  partition and takes the second axis as a further constraint.
+  **Size the result, do not assume it:** a second-axis filter multiplies pass
+  rates, and [T58](#t58) already warns that this "collapses slots into hairlines
+  that catch nothing" — measured, a plausible erosion window intersected with an
+  existing humidity slot took it from 33 grid cells to **2**.
+- **Erosion is not a continuum in these routers, it is three or four shelves.**
+  The 33 cells of one humidity slot carried erosion values
+  `-0.672 x1, -0.646 x1, -0.575 x1, -0.550 x8, -0.521 x1, -0.500 x4, -0.103 x1,
+  -0.062 x1, 0.105 x1, 0.300 x14` — 22 of 33 on three values. Put an erosion
+  boundary in the EMPTY GAP between shelves, where it can neither tie nor collect
+  a pile-up.
+
+<a id="t66"></a>
+### T66 — A jar scan sees biomes inside a mod's optional built-in datapacks
+
+- **Symptom:** a biome appears in
+  `config/custom-dimensions/extractors/biomes.json`, its mod is installed and
+  loaded, and the biome is in no live registry. Naming it produces a band dropped
+  at boot ([T38](#t38)) and a config that names something that can never
+  generate.
+- **Cause:** the extractors walk every `data/*/worldgen/biome/*.json` in a jar
+  without asking which built-in pack contains it. A Fabric mod may ship several
+  packs under `resources/` and register only some of them.
+  Measured: `minecraft:pale_garden` sits at
+  `resources/vanilla_backport_compat/data/minecraft/worldgen/biome/pale_garden.json`
+  in `wwoo-fabric-2.6.7.jar`; the server's `Available Data Packs:` line lists
+  `wwoo`, `wwoo:resources/wwoo_main` and `wwoo:resources/wwoo_remove_ores` and
+  not that one, so it is not offered, never mind enabled. It is the ONLY
+  difference between the jar scan (397 biomes) and `registries.json` (396), in
+  either direction.
+- **This is a different mechanism from [T49](#t49).** T49 is about convention
+  tags being populated at boot; this is about PACK SELECTION.
+- **Fix:** take the population from `registries.json`, the runtime catalogue.
+  `scripts/check-content-coverage.py` reads the jar scan, so its denominator
+  counts biomes nobody can name.
+- **A pack the server does not offer cannot be enabled from the server side**,
+  and enabling it is not always the answer: this one's biome references two
+  1.21.4 vanilla features and five features built from blocks that do not exist
+  here — `minecraft:pale*` over the 15,521-entry block catalogue is empty.
+
+<a id="t67"></a>
+### T67 — `docker exec -i` inside a `while read` loop eats the rest of the input
+
+- **Symptom:** a loop over an N-line list runs the FIRST iteration, exits 0, and
+  reports success. No error, right exit code, and a tally line that says
+  `COMMANDS=1` against an N-line input. In a batched-RCON harness it looks
+  exactly like [T61](#t61) — a run that "completed" far too fast — but the cause
+  is on this side of the wire.
+- **Cause:** `docker exec -i` (and `ssh`, and `rcon-cli` reading a command list)
+  attaches STDIN and reads it to EOF. In
+
+  ```bash
+  while IFS= read -r line; do
+    docker exec -i mc rcon-cli "$line"     # <- consumes the rest of the file
+  done < list.txt
+  ```
+
+  the loop's stdin IS `list.txt`, so the first `exec` drains the remaining N-1
+  lines into the container and the loop ends. Measured: a 108-row sweep ran 1.
+- **Fix:** give the loop its own descriptor and the command an empty stdin.
+  Either is enough; use both.
+
+  ```bash
+  while IFS= read -r line <&3; do
+    docker exec -i mc rcon-cli "$line" </dev/null
+  done 3< list.txt
+  ```
+
+  Drop `-i` entirely where the command needs no stdin.
+- **The tell is the denominator, never the exit code.** Print what you issued
+  against what the list held and read it ([T63](#t63)). Every symptom of this
+  bug is indistinguishable from success without that line.
+
+<a id="t68"></a>
+### T68 — A fresh world's first boot logs a FATAL that belongs to Distant Horizons
+
+- **Symptom:** the boot after `./dev reset-world` logs, inside thirty seconds,
+  `Failed fixing Level-Data in level.dat (./world/./level.dat)`, then
+  `[Server thread/FATAL] Failed to load server level, error:
+  [SQLITE_READONLY_DBMOVED]`, then `Failed to load chunk 0,0` and
+  `Failed to read chunk [0, 0]` — and then `Done (Ns)!` and a healthy
+  container. Three unrelated faults that read as one cascade.
+- **The FATAL is Distant Horizons', and "server level" is DH's level.** The
+  exception type is `dh_sqlite.SQLiteException` and the stack is
+  `DhServerWorld.getOrLoadLevel` -> `DhServerLevel.<init>` ->
+  `ServerLevelModule` -> `FullDataSourceV2Repo` ->
+  `DatabaseUpdater.runAutoUpdateScripts`, running
+  `0010-sqlite-createInitialDataTables.sql` against one dimension's
+  `data/DistantHorizons.sqlite` on the `dh-db` volume ([P5](#p5)). Minecraft's
+  world loader is not in the stack. The FATAL level and the wording are DH's
+  own. The cost is that dimension's LOD data for that boot; the next boot
+  creates the database clean.
+- **`Failed to load chunk 0,0` is a separate fault with a separate cause**, and
+  reading it as fallout from the FATAL wastes the triage. Its cause line is
+  `IllegalArgumentException: Expected directory, got /data/./world/entities`,
+  thrown by vanilla's region storage from
+  `C2MEStorageThread.scheduleChunkRead`. `Files.isDirectory` is false for a path
+  that does not exist yet, and c2me's rewritten chunk IO surfaces that as a
+  failed read rather than an empty one. `world/entities` appears seconds later
+  and the message does not recur.
+- **`Failed fixing Level-Data` is the datafixer on a `level.dat` that has no
+  content to fix.** Fresh world, nothing to migrate.
+- **All three are first-boot-only.** Measured: one occurrence on the boot that
+  follows the wipe, zero across the three subsequent boots of the same world.
+- **What actually threatens that boot is [T57](#t57), six minutes later**, and
+  the healthy container immediately after `Done` says nothing about it. Read
+  `data/crash-reports/` and `data/logs/*.log.gz` before calling a post-wipe boot
+  good.
+- **Confirm rather than assume**, on the boot after the one that logged it:
+  `grep -c "Expected directory, got\|SQLITE_READONLY_DBMOVED" data/logs/latest.log`
+  must be 0, and the dimension's database must now exist on the volume
+  (`docker run --rm -v <project>_dh-db:/l alpine ls -la /l`).
 
 ---
 
@@ -1462,11 +1662,36 @@ The rendered height disagrees with the facts on high-relief columns. The error i
   Stop the sidecar anyway — the cost is a `docker stop`, and the case that bites
   is the one you are most likely to be running.
 - **The sidecar's own log is not the check.** It reports `sleeping 12h` while
-  the crash it caused is already in `data/crash-reports/`; read
-  `docker inspect mc --format '{{.RestartCount}}'` instead. `RestartCount`
-  counts POLICY restarts, so it catches this watchdog kill but NOT a deliberate
-  `docker restart` — for "is this still the process I was measuring against",
-  compare `{{.State.StartedAt}}`.
+  the crash it caused is already in `data/crash-reports/`.
+- **`RestartCount` belongs to the CURRENT container, not to the world.** A
+  recreate — `./dev up`, `docker compose up`, anything that replaces the
+  container — resets it to 0, so a container recreated after two watchdog kills
+  reports `RestartCount=0 Health=healthy` and reads as a clean run. `docker
+  logs` goes with it. What survives a recreate is `data/logs/*.log.gz` (one
+  rotation per server start, so today's file count is today's boot count) and
+  `data/crash-reports/`. Bracket a run with `gzcat data/logs/<date>-N.log.gz |
+  head -1` and `| tail -1` before treating a series of measurements as one JVM.
+- **The tell is silence, not the tick warning.** The last line before the kill
+  is the sidecar's own `[Rcon: Automatic saving is now disabled]`, and nothing
+  follows it for the whole watchdog budget. Measured: save-off at 16:22:26, `A
+  single server tick took 180.00 seconds` at 16:25:26 — the difference to the
+  second, three minutes of no output between them. A post-wipe boot that goes
+  quiet right after a save-off is already dead.
+- **`MAX_TICK_TIME` is a safety net, not the fix, and it moves where the server
+  dies.** The watchdog is a liveness detector and a `save-all` flush during
+  first generation is legitimately slow rather than hung; nothing in the
+  watchdog separates them. Not issuing the save-all during priming is the fix —
+  stop the sidecar, or push `BACKUP_INITIAL_DELAY` past the priming window.
+  Raise `MAX_TICK_TIME` for the window and **put it back**: at 900000 a
+  genuinely wedged main thread takes fifteen minutes to surface instead of
+  three, and a value left in a consumer's `.env` survives every recreate.
+- **Two crashes on one post-wipe world are not one fault.** Tell them apart by
+  the main thread, never by the workers — all eight c2me workers park on a
+  `Semaphore$NonfairSync` in both. `"Server thread" ... WAITING` inside
+  `SaveAllCommand -> c2me$tryFlush -> CompletableFuture.join` is this entry.
+  `"Server thread" ... RUNNABLE` inside `NoiseChunkGenerator.populateNoise` is
+  not — that is the main thread doing worldgen too slowly ([K1](#k1),
+  [K6](#k6)), and over RCON it is [T64](#t64).
 - A roll running longer than `BACKUP_INTERVAL` (default 12h) meets the next
   backup and crashes again.
 
