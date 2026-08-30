@@ -925,8 +925,15 @@ A seed's map and its banked facts appear to contradict each other — the thumbn
   5 → 7 → 12 → 10 in a single morning.
 - **Fix:** never read a share out of the thumb's candidate. Gather every record
   for the (dimension, seed) across all hashes and select on evidence, not on
-  the thumb — see [T62](#t62) for which one. A record's `configFingerprint` is
-  null in the bank and cannot be used for this.
+  the thumb — see [T62](#t62) for which one.
+- **`configFingerprint` is populated and usable, but only in records written by
+  a mod carrying `DimensionFingerprints.canonical`.** Older records hold the
+  four-character **string** `"null"` — quoted, not JSON null, so it decodes
+  cleanly and reads like a value. Every one of them therefore matches every
+  other, and matches nothing new. **A comparison must reject the literal
+  `"null"` explicitly rather than treat it as a fingerprint**, or it corroborates
+  every old record against every other old record. Same shape as
+  [T62](#t62).
 
 <a id="t61"></a>
 ### T61 — A batched `rcon-cli` command list exits 0 having answered only the first few
