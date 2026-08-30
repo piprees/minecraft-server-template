@@ -23,6 +23,19 @@ The measure is what a player meets, so it is expressed in ground rather than in
 cells or percentages. A cell of a 41x41 grid is ~50 blocks at a 1024 border and
 ~200 at 4096, so any threshold in cells is wrong across borders by construction.
 
+**No threshold has been measured, and the one that was proposed is withdrawn.**
+A "place size" of ~320 blocks was derived as two render distances and used to
+build a capacity model; its own author later found the derivation conflated a
+radius with a diameter, and that even the corrected 640 was a stipulation
+nobody had tested. Everything resting on it — a per-dimension biome capacity,
+and a count of bands called specks — is suspended.
+
+So the bar is a **direction**, not a number: bigger than a patch a player
+crosses without noticing, and nobody has established where that line sits.
+Until someone does, ABSENCE is the only side of this that can be claimed from
+evidence. A biome missing from a 41x41 sample is measured; a biome present but
+judged too small is not.
+
 ## Gaps are the design; specks are not
 
 A gap between explicit bands is where native biomes live, and a dimension that
