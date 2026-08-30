@@ -85,7 +85,7 @@ def facts_shares(consumer, name, platform_cfg, overlay_cfg):
         doc = json.loads(path.read_text())
     except json.JSONDecodeError:
         return None
-    return (doc.get("biomes") or {}).get("shares")
+    return (doc.get("biomes") or {}).get("shares"), doc.get("measuredAt") or ""
 
 
 def budget(border):
@@ -128,6 +128,7 @@ def main():
     unlisted = palettes = scanned = 0
     measured = unmeasured = inert = 0
     held_shares = []
+    stamps = []
     for where, configs in sources:
         for name, cfg in sorted(configs.items()):
             sf = spawn_filter(cfg)
@@ -145,10 +146,12 @@ def main():
                       " the world, so it scores only where the base source happens to place it")
 
             if where == "platform":
-                shares = facts_shares(consumer, name, cfg, overlay.get(name))
-                if shares is None:
+                got = facts_shares(consumer, name, cfg, overlay.get(name))
+                if got is None:
                     unmeasured += 1
                 else:
+                    shares, stamp = got
+                    stamps.append(stamp)
                     measured += 1
                     held = sum(shares.get(b, 0.0) for b in sf)
                     held_shares.append(held)
@@ -178,6 +181,13 @@ def main():
     print(f"share check (advisory): {measured} measured against a facts record,"
           f" {unmeasured} with no record, {inert} holding nothing at all,"
           f" median share {med * 100:.1f}%")
+    # A record is whatever the last `customdim facts` on that seed wrote, from
+    # whatever jar was installed then. Print the span so a population mixed
+    # across two jars is visible rather than silently averaged.
+    if stamps:
+        lo, hi = min(stamps), max(stamps)
+        print(f"  records written {lo[:19]}Z .. {hi[:19]}Z"
+              + ("  <- SPANS MORE THAN AN HOUR: may mix two jars" if lo[:13] != hi[:13] else ""))
     if unlisted or palettes:
         return 1
     print("✓ Every spawn filter names a place, from biomes its dimension lists")
