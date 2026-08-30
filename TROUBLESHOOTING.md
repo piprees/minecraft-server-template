@@ -1074,11 +1074,20 @@ The rendered height disagrees with the facts on high-relief columns. The error i
   disc-clipped to about 1300 cells, read at block y 64 (`SpikeSampler`). A band
   holding a fraction of a percent gets several hits at that density and none at
   121, so "0 of 121" is a resolution floor.
-- **Measured, 372 bands across the 26 dimensions where the coarse grid found
-  anything empty:** 68 bands empty at 121 points, **18 empty at 41x41 over the
-  same geometry — 3.8x**. The error runs both ways: the coarse method scores two
-  depth layers separately, which flatters a cave band the game reads at one
-  height (`the_frozen_strait` goes 1 empty to 3).
+- **Measured against a real 41x41 sweep of all 78 measurable dimensions:
+  `check-band-share.py` reports 37 bands holding no cell at 121 points and
+  2 at 1681 — 18.5x.** Thirty-five were resolution artefacts. The re-judgement
+  imports the checker's own `rng`, `wins` and `LAYERS`, so density is the only
+  variable. An earlier estimate of 3.8x came from a smaller, differently-scoped
+  comparison and understated it.
+- **A "holds no cell" line from the 121-point cloud is wrong about 95% of the
+  time.** Do not act on one. The two that survive density are
+  `the_roothold` `incendium:withered_forest` and `the_rosebluff`
+  `terralith:white_cliffs`, both at a 1024 border and both unprobed.
+- The error runs both ways: the coarse method scores two SYNTHETIC depth layers
+  separately, which flatters a cave band the game reads at one height
+  (`the_frozen_strait` goes 1 empty to 3). Fixing the density and the
+  depth-handling are separate changes and should land separately.
 - **Confirmed against the game.** On `the_claymarsh` at seed
   135505505384991812, `customdim facts` reports 14 of its 15 biomes and
   `customdim score` gives 83.4%. `minecraft:swamp` holds a weirdness band 0.026
