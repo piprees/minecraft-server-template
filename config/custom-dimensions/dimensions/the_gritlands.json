@@ -35,7 +35,7 @@
       "parameters": {
         "weirdness": [
           -0.499,
-          -0.496
+          -0.478
         ],
         "depth": [
           -2.0,
@@ -47,8 +47,8 @@
       "id": "terralith:ashen_savanna",
       "parameters": {
         "weirdness": [
-          -0.496,
-          -0.492
+          -0.478,
+          -0.468
         ],
         "depth": [
           -2.0,
@@ -60,7 +60,7 @@
       "id": "terralith:volcanic_peaks",
       "parameters": {
         "weirdness": [
-          -0.492,
+          -0.468,
           -0.4237
         ],
         "depth": [
