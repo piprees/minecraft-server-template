@@ -4,7 +4,7 @@
 
 | Prefix | Range | What it covers |
 | --- | --- | --- |
-| **T** | [T1–T14, T16–T19, T22–T27, T30–T59](#architecture-traps) | Architecture traps — each has caused a real production incident |
+| **T** | [T1–T14, T16–T19, T22–T27, T30–T63](#architecture-traps) | Architecture traps — each has caused a real production incident |
 | **P** | [P1–P4](#macos-local-dev) | macOS local-dev quirks (BSD tooling, toolchain) |
 | **D** | [D1–D6, D8–D9](#dimension-lifecycle) | Custom-dimension lifecycle on a live world |
 | **K** | [K1–K2, K5–K7](#known-issues) | Open issues — unfixed, on the watch list |
@@ -59,6 +59,10 @@ Run this first. It covers deploy drift, disk, every expected container, `ONLINE_
 | A placement rule keyed on the assigned structure changes nothing | [T56](#t56) |
 | A biome band is reported dead but the biome generates | [T58](#t58) |
 | A listed biome holds no ground and its band looks correct | [T59](#t59) |
+| A banked measurement describes a world the config no longer produces | [T60](#t60) |
+| An `rcon-cli` batch exits 0 having answered only the first few commands | [T61](#t61) |
+| The newest measurement of a dimension is of a config nobody shipped | [T62](#t62) |
+| A check reports success having examined nothing | [T63](#t63) |
 | Config or mod changes didn't take effect after a deploy | [T2](#t2) |
 | `signal only works in main thread` in discord-sync logs | [T3](#t3) |
 | mc crash-loops with Modrinth `429 Too Many Requests` | [T4](#t4) |
@@ -898,6 +902,127 @@ A seed's map and its banked facts appear to contradict each other — the thumbn
   samples at its own filter pass rate: plain equal area assumes the fitted axis
   is a band's only constraint, and for a band carrying a second-axis filter it
   is not, which collapses slots into hairlines that catch nothing.
+
+<a id="t60"></a>
+### T60 — A candidate's `inputHash` names the roll it came from, not the newest measurement of it
+
+- **Symptom:** a dimension's committed `_thumb.json` resolves cleanly to a
+  banked candidate, the file parses, the grid is the right density — and the
+  shares in it describe a world the current config has not produced for days.
+- **Cause:** `_thumb.json` carries the `inputHash` and `seed` of the candidate
+  that WON its roll. The bank is keyed by that hash, and the same
+  (dimension, seed) is re-measured under a NEW hash every time the config or
+  the mod's measurement-relevant bytes change. Nothing rewrites the thumb when
+  that happens, so the thumb keeps pointing at the roll while newer
+  measurements of the same seed accumulate under other keys. Measured:
+  `the_luminous_caverns` holds **19 banked measurements of one seed across
+  eight days**, its thumb points at the oldest, and `distinctCount` moved
+  5 → 7 → 12 → 10 in a single morning.
+- **Fix:** never read a share out of the thumb's candidate. Gather every record
+  for the (dimension, seed) across all hashes and select on evidence, not on
+  the thumb — see [T62](#t62) for which one. A record's `configFingerprint` is
+  null in the bank and cannot be used for this.
+
+<a id="t61"></a>
+### T61 — A batched `rcon-cli` command list exits 0 having answered only the first few
+
+- **Symptom:** a sweep over many dimensions "completes" in a fraction of the
+  expected time, the wrapper exits 0, and the output holds a prefix of the
+  commands with no error anywhere. Or the output is entirely
+  `Failed to connect to RCON server` and the exit code is still 0.
+- **Cause:** `rcon-cli` reads a newline-separated command list from stdin and
+  runs them in one connection. If the server restarts, pauses or drops that
+  connection mid-list, the remaining commands are abandoned and the process
+  still exits 0. Measured: a 82-command sweep answered 10 and exited 0; a later
+  run answered 0, logged `dial tcp [::1]:25575: connect: connection refused`
+  72 times, and exited 0. This is [T17](#t17)'s "cannot tell a timeout from a
+  success" reaching a case T17 does not describe — the loss is the TAIL of a
+  batch, not a truncated line.
+- **Fix:** one `rcon-cli` invocation per command, appending to a file as it
+  goes, so partial progress survives and the shortfall is visible as a row
+  count. Count the answers against the commands and treat any shortfall as a
+  failed run. Multiple commands as separate ARGUMENTS do not work either —
+  `rcon-cli` concatenates them into one malformed command.
+
+<a id="t62"></a>
+### T62 — The newest banked measurement of a dimension can be of a config nobody shipped
+
+- **Symptom:** taking the most recent record for a (dimension, seed) — the
+  obvious correction to [T60](#t60) — gives shares that contradict the
+  committed config, and a dimension appears to have lost most of its biomes.
+- **Cause:** the bank records every measurement, including throwaway probes.
+  A bands-removed experiment, a refit later reverted, or a clone under another
+  slug all leave records that are newer than the shipped config's. Measured:
+  `the_frozen_strait`'s newest record is a three-biome bands-removed probe,
+  while the shipped config carries thirteen entries.
+- **Fix:** select the newest record whose `biomes.distinctCount` equals what
+  `customdim facts <dim> <seed>` returns from the running server now. Where no
+  record matches, the dimension is UNMEASURABLE from the bank and must be
+  reported as such rather than approximated — measured 71 of 82 corroborated,
+  11 not. This makes the live probe the gate on every share rather than a spot
+  check, which is what [K7](#k7) and the `swallowed-worlds` reversal ask for.
+  A live reading is itself only valid for the jar that produced it: compare a
+  jar's size and mtime against the checkout's before treating a sweep as
+  current, because `./dev up` installs a jar and `./dev restart mc` does not.
+
+<a id="t63"></a>
+### T63 — A check that never ran reports success, and reads exactly like a pass
+
+- **Symptom:** a comparison, gate or suite comes back green having examined
+  nothing. There is no error, the exit code is right, and the output is the
+  shape a pass produces.
+- **Cause:** the check exits, skips or short-circuits before reaching the
+  assertion, and nothing downstream distinguishes "zero failures found" from
+  "zero cases examined". Six instances in one session, all different
+  mechanisms, all reading as passes:
+
+  | what happened | the tell |
+  | --- | --- |
+  | a comparison keyed on `e['score']` where the field is `value` | skip count equalled the population (3,268 of 3,268) |
+  | a fixture consumer without a `dev` file, so the path resolver exited 1 before the arm ran | the tally line was absent from the output |
+  | a batched `rcon-cli` list abandoned after 10 of 82 ([T61](#t61)) | answers fewer than commands |
+  | `Task :test UP-TO-DATE` serving cached XML | `BUILD SUCCESSFUL` with no test execution |
+  | a gate arm whose recall against the historical defect was zero | it had never fired on any state |
+  | an uncorroborated dimension with an empty share map, so every share read 0.0 | every value identical, and identical to the "absent" value |
+
+- **Fix:** a pass is only a pass if you can show the check ran on the population
+  you think it ran on. Print the denominator next to the result, and read it:
+  a zero denominator, a skip count equal to the population, a missing tally
+  line, an exit code that could have come from another process, or a value
+  indistinguishable from "not measured" are all the same fault. Prove a new
+  gate by breaking its target and watching the specific counter move, never by
+  watching the exit code — an exit code aggregates arms and cannot isolate one
+  (the duplicate-band gate reached the same conclusion from its own injections).
+
+---
+
+## T58 addendum — the rail effect, with a number
+
+To be appended to [T58](../../TROUBLESHOOTING.md#t58), which states this in prose
+("a band containing a rail value still generates — but it collects every pinned
+point and the biome takes a disproportionate share") and has never carried a
+measurement of it.
+
+- **Measured, on `the_frozen_strait`.** Commit `9a2ca470` re-fitted its
+  weirdness partition and gave `minecraft:frozen_ocean` the band
+  `"weirdness": [-1.0, -0.996]` — **0.004 wide**. That dimension's own measured
+  weirdness is `min -1.0, max 0.95, span 1.95` over 1681 samples
+  (`config/custom-dimensions/climate-axes.json`), and the min sits **exactly**
+  on the rail. So the band covers **0.205% of the axis the world crosses**.
+  The banked 41x41 measurement of that config gives `frozen_ocean`
+  **19.8% of the ground** — a **97x** over-representation.
+- **Why it matters more than a share statistic.** The biome read as having
+  started generating: it held nothing before the re-fit and a fifth of the
+  world after it. That looks like a fix and is not one. The band did not find
+  the biome room; it parked on the point where the noise saturates and
+  collected every pinned sample.
+- **The probe:** move the band off the rail — anywhere strictly inside
+  `(-1.0, 0.95)` — and re-measure. If the share collapses toward the band's
+  width, the ground was the rail's and not the biome's.
+- **The tell, before you have a probe:** a band whose endpoint is exactly
+  `-1.0`, `-0.5`, `+0.5` or `+1.0`, whose width is a small fraction of the
+  dimension's measured span, and whose share is a large one. All three
+  together, on the same band.
 
 ## macOS local dev
 
