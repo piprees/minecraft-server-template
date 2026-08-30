@@ -95,6 +95,31 @@ class ClusteringTest {
     }
 
     @Test
+    void theStatisticDoesNotDependOnTheUnitsItIsMeasuredIn() {
+        // Positions arrive here in chunks; a site list is in blocks. Clark-Evans
+        // is scale-free, so scaling both the layout and the radius by 16 must
+        // leave it alone — which is what makes one measurement of it enough.
+        List<long[]> chunks = grid(12, 7);
+        double inChunks = FactsEngine.clustering(chunks, 200).orThrow();
+        double inBlocks = FactsEngine.clustering(scaled(chunks, 16), 200 * 16).orThrow();
+        assertEquals(inChunks, inBlocks, 1e-9,
+                "the same layout read in blocks gave " + inBlocks + " against " + inChunks);
+    }
+
+    @Test
+    void aSquareLatticeReadsAtTwiceTheRandomExpectation() {
+        // The scale of the statistic, not merely its sign. At the radius whose
+        // disc area equals the lattice's own footprint, every nearest neighbour
+        // is exactly `spacing` and the expected spacing is half of it, so a
+        // square lattice reads 2.0 — the value the dispersed/lattice-like
+        // readings are drawn against.
+        int side = 40;
+        int spacing = 8;
+        int radius = (int) Math.round(side * spacing / Math.sqrt(Math.PI));
+        assertEquals(2.0, FactsEngine.clustering(grid(side, spacing), radius).orThrow(), 0.02);
+    }
+
+    @Test
     void theBucketedSearchAgreesWithBruteForceOnEveryPoint() {
         // The bucketed search is only worth having if it is exact, so it is
         // checked against the O(n^2) definition on layouts that stress the ring
@@ -177,6 +202,15 @@ class ClusteringTest {
             for (int i = 0; i < per; i++) {
                 out.add(new long[] {ox + i % side, oz + i / side});
             }
+        }
+        return out;
+    }
+
+    /** The same layout in larger units — chunks read as blocks. */
+    private static List<long[]> scaled(List<long[]> positions, int factor) {
+        List<long[]> out = new ArrayList<>();
+        for (long[] p : positions) {
+            out.add(new long[] {p[0] * factor, p[1] * factor});
         }
         return out;
     }
