@@ -1132,6 +1132,14 @@ The rendered height disagrees with the facts on high-relief columns. The error i
   again once priming has finished. The world survives — verify with
   `customdim structure-census <dim>` reporting `live and facts agree` — so this
   costs a restart, not data.
+- **An ESTABLISHED world's priming pass survives it.** Measured across three
+  boots whose flush landed inside a priming pass over 78 existing level
+  directories: windows of 7 s, 33 s and 35 s against `MAX_TICK_TIME` 180000,
+  zero `Watchdog` occurrences, `RestartCount` 0 throughout. The collision is
+  deterministic; the KILL is not. A fresh world's pass creates and scores every
+  dimension at once and is far more expensive than one that only re-scores.
+  Stop the sidecar anyway — the cost is a `docker stop`, and the case that bites
+  is the one you are most likely to be running.
 - **The sidecar's own log is not the check.** It reports `sleeping 12h` while
   the crash it caused is already in `data/crash-reports/`; read
   `docker inspect mc --format '{{.RestartCount}}'` instead. `RestartCount`
