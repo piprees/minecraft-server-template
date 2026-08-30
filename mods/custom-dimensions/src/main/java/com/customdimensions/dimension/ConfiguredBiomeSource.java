@@ -70,8 +70,7 @@ public final class ConfiguredBiomeSource {
         int reported = source.getBiomes().size();
         BiomeSource restored = restored(outer, reported, own.size(),
                 () -> MultiNoiseBiomeSource.create(new MultiNoiseUtil.Entries<>(entries)),
-                patched == null ? UnaryOperator.identity()
-                        : rebuilt -> new PatchedBiomeSource(rebuilt, patched.patches()));
+                patched == null ? UnaryOperator.identity() : patched::withDelegate);
         if (restored == outer) {
             return options;
         }

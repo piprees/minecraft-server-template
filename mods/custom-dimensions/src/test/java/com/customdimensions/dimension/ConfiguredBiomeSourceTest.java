@@ -87,13 +87,16 @@ class ConfiguredBiomeSourceTest {
         // the rebuilt one leaves the injected palette in place and still looks
         // like a patched dimension on every log line.
         Source widened = new Source("widened", PATCHES);
+        AtomicInteger rewraps = new AtomicInteger();
 
         Source restored = ConfiguredBiomeSource.restored(widened, 228, 20,
                 ConfiguredBiomeSourceTest::rebuild, rebuilt -> {
+                    rewraps.incrementAndGet();
                     assertSame(REBUILT, rebuilt, "re-wrap was handed the wrong source");
                     return new Source(rebuilt.core(), widened.patches());
                 });
 
+        assertEquals(1, rewraps.get(), "a widened patched source must be re-wrapped exactly once");
         assertEquals("rebuilt", restored.core());
     }
 

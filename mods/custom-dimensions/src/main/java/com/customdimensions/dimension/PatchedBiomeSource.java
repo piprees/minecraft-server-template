@@ -128,9 +128,14 @@ public final class PatchedBiomeSource extends BiomeSource {
         return this.delegate;
     }
 
-    /** The patches, in config order. Immutable; rebuilding the delegate re-wraps with these ([T34]). */
+    /** The patches, in config order. Immutable. */
     public List<Patch> patches() {
         return this.patches;
+    }
+
+    /** These same patches round a rebuilt delegate — the [T34] rebuild's way back. */
+    public PatchedBiomeSource withDelegate(BiomeSource rebuilt) {
+        return new PatchedBiomeSource(rebuilt, this.patches);
     }
 
     @Override
