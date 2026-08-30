@@ -756,6 +756,17 @@ public class DimensionManager {
             return buildMixedSource(base, biomeRegistry, biomeList, def.getName(),
                     def.getBiomeBands(), declaredCellsFor(base, biomeRegistry));
         }
+        // The family's own source has been replaced by a mod whose source is not
+        // multi-noise, so it publishes no parameter entries. Its datapack entry
+        // still does, and composing from that keeps the family's biomes native
+        // instead of dealing them the overworld's leftovers.
+        RegistryKey<DimensionOptions> family = reservedFamilyOf(baseGenerator);
+        MultiNoiseBiomeSource declared = family == null ? null
+                : DatapackDimensions.multiNoiseFor(this.server, family);
+        if (declared != null) {
+            return buildMixedSource(declared, biomeRegistry, biomeList, def.getName(),
+                    def.getBiomeBands(), declaredCellsForFamily(family, biomeRegistry));
+        }
         MultiNoiseBiomeSource owBase = multiNoiseOf(overworldGenerator);
         if (owBase != null) {
             return buildMixedSource(owBase, biomeRegistry, biomeList, def.getName(),
@@ -792,12 +803,47 @@ public class DimensionManager {
             return Map.of();
         }
         if (base == multiNoiseSourceOf(dimRegistry.get(DimensionOptions.OVERWORLD))) {
-            return com.customdimensions.compat.TerraBlenderCompat.cellsByBiome(biomeRegistry, true);
+            return declaredCellsForFamily(DimensionOptions.OVERWORLD, biomeRegistry);
         }
         if (base == multiNoiseSourceOf(dimRegistry.get(DimensionOptions.NETHER))) {
+            return declaredCellsForFamily(DimensionOptions.NETHER, biomeRegistry);
+        }
+        return Map.of();
+    }
+
+    /**
+     * The same, for a family already identified — the datapack path knows which
+     * family it read, so it needs no identity comparison.
+     */
+    private static Map<Identifier, List<MultiNoiseUtil.NoiseHypercube>> declaredCellsForFamily(
+            RegistryKey<DimensionOptions> family, Registry<Biome> biomeRegistry) {
+        if (DimensionOptions.OVERWORLD.equals(family)) {
+            return com.customdimensions.compat.TerraBlenderCompat.cellsByBiome(biomeRegistry, true);
+        }
+        if (DimensionOptions.NETHER.equals(family)) {
             return com.customdimensions.compat.TerraBlenderCompat.cellsByBiome(biomeRegistry, false);
         }
         return Map.of();
+    }
+
+    /**
+     * Which RESERVED dimension a generator is the live generator of, by identity.
+     * Unrelated to {@code BiomeFamilies.familyOf}, which classifies a biome.
+     * Null for the overworld, which needs no datapack fallback, and for anything
+     * that is not a reserved family's own generator.
+     */
+    private RegistryKey<DimensionOptions> reservedFamilyOf(ChunkGenerator baseGenerator) {
+        MutableRegistry<DimensionOptions> dimRegistry = this.getDimensionRegistry();
+        if (baseGenerator == null || dimRegistry == null) {
+            return null;
+        }
+        for (RegistryKey<DimensionOptions> family : List.of(DimensionOptions.NETHER, DimensionOptions.END)) {
+            DimensionOptions live = dimRegistry.get(family);
+            if (live != null && live.chunkGenerator() == baseGenerator) {
+                return family;
+            }
+        }
+        return null;
     }
 
     private static MultiNoiseBiomeSource multiNoiseSourceOf(DimensionOptions options) {
