@@ -4,7 +4,7 @@
 
 | Prefix | Range | What it covers |
 | --- | --- | --- |
-| **T** | [T1–T14, T16–T19, T22–T27, T30–T58](#architecture-traps) | Architecture traps — each has caused a real production incident |
+| **T** | [T1–T14, T16–T19, T22–T27, T30–T59](#architecture-traps) | Architecture traps — each has caused a real production incident |
 | **P** | [P1–P4](#macos-local-dev) | macOS local-dev quirks (BSD tooling, toolchain) |
 | **D** | [D1–D6, D8–D9](#dimension-lifecycle) | Custom-dimension lifecycle on a live world |
 | **K** | [K1–K2, K5–K7](#known-issues) | Open issues — unfixed, on the watch list |
@@ -58,6 +58,7 @@ Run this first. It covers deploy drift, disk, every expected container, `ONLINE_
 | A worldgen mod's biomes generate but its landforms never appear | [T55](#t55) |
 | A placement rule keyed on the assigned structure changes nothing | [T56](#t56) |
 | A biome band is reported dead but the biome generates | [T58](#t58) |
+| A listed biome holds no ground and its band looks correct | [T59](#t59) |
 | Config or mod changes didn't take effect after a deploy | [T2](#t2) |
 | `signal only works in main thread` in discord-sync logs | [T3](#t3) |
 | mc crash-loops with Modrinth `429 Too Many Requests` | [T4](#t4) |
@@ -757,6 +758,42 @@ A world regenerates with the old terrain after a reset that set a new seed, or t
 A seed's map and its banked facts appear to contradict each other — the thumbnail shows an island and a coastline while `terrain.waterFraction` reports the world as almost entirely submerged, and play confirms the facts. `CandidateRender.Resolution.LOWRES` covers a fixed `THUMBNAIL_BLOCKS` (512) centred on the dimension's **declared spawn**, one block per pixel, while the facts cover the whole playable disc — 1024 blocks across for a 512-radius dimension, so the thumbnail is a quarter of the area, and the roller picks a habitable spawn, which makes that quarter the least representative part by construction. Measured on `the_wuthering_wisteria` (seed `-8181123680324586121`): facts 98.0% water, live world 97.3%, highres PNG 96.6%, lowres PNG **81.4%**. Compare like with like — `customdim render-check <dim> <seed>` puts world, facts and render on ONE grid and reports where they disagree, `render-check-headless` does facts ↔ render with no world — and judge wetness from the highres view or the facts, never from the thumbnail. Any "the map disagrees with the measurement" report needs the sampled AREA established first.
 
 ---
+
+<a id="t59"></a>
+### T59 — A zero-distance tie is settled by the previous lookup, not by the config
+
+- **Symptom:** a biome named in a dimension's `biomes` list holds no ground, and
+  nothing accounts for it — its band is inside the world's measured range, the
+  overlap check passes, and the boot log reports it placed.
+- **Cause:** `ParameterRange.getDistance` returns 0 anywhere in `[min, max]`,
+  **both ends included**, so two bands sharing a boundary are both at squared
+  distance exactly zero from a sample sitting on it.
+  `SearchTree$TreeBranchNode.getResultingNode` replaces its incumbent only on
+  `best > candidate` — strictly smaller — so neither tied band can displace the
+  other and the incumbent keeps the cell.
+- **The incumbent is the previous lookup's result.** `SearchTree.get` passes
+  `previousResultNode.get()`, a `ThreadLocal<TreeLeafNode>` holding what that
+  worker thread last resolved, into `getResultingNode` and stores the result
+  back afterwards. So a tied band that won the previous column arrives at
+  distance 0 and wins again; where the incumbent is some third biome at a
+  positive distance, whichever tied band the traversal reaches first takes the
+  cell and the other cannot beat zero.
+- **The winner is therefore fixed by generation order**, deterministic given a
+  worker thread's full state and derivable from no file. It follows that two
+  generations of the same seed can disagree at a tied cell if chunk scheduling
+  differs — the mechanism permits it; nothing here has measured it.
+- **Boundaries land on ties because the noise piles up at its rails.** Weirdness
+  saturates at +-1.0 and plateaus at +-0.5, so a partition cut on round numbers
+  puts its boundaries exactly where the samples concentrate — a machine-fitted
+  partition collides with the rails by construction, a hand-written one mostly
+  does not. Most samples landing exactly on an internal boundary sit on those
+  four values, and the share rises with sampling density. The exact proportion
+  tracks how many partitions remain in the pack, so measure it rather than
+  quoting one.
+- **Fix:** do not let two bands share a boundary the world's climate returns.
+  `scripts/check-biome-bands.py` reports a band whose entire reachable territory
+  is one such value. It names the hazard and never which band dies, because a
+  config cannot be read for that.
 
 <a id="t58"></a>
 ### T58 — A sparse climate sample understates a world's range, and the checker treats it as proof

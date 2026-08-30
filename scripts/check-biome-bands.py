@@ -42,22 +42,13 @@ Not covered: whether a correctly fitted band is worth having. A band can pass
           that. Encounterability is a different question and nothing gates it,
           so three green band checks do not mean the bands are good.
 
-          A band can also be unable to WIN. `ParameterRange.getDistance` returns
-          0 anywhere in [min, max], both ends included, and `SearchTree` replaces
-          its incumbent only on a strictly SMALLER distance — so two bands
-          sharing a boundary are both at distance zero there and neither can
-          displace the other. Where a band's whole reachable territory is one
-          such value it never outranks its rival anywhere, and whether it
-          appears at all is settled outside the config.
-
-          WHICH of the two wins is not knowable from here, and this check does
-          not guess. `SearchTree.get` seeds each lookup with `previousResultNode`
-          — a ThreadLocal holding what the PREVIOUS lookup returned — so a tied
-          band that won last time is the incumbent and wins again; otherwise
-          traversal order decides. Generation order, not authorship.
-
-          Weirdness saturates at +/-1.0, which is why a partition cut on round
-          numbers lands its boundaries exactly where the noise piles up.
+          A band can also be unable to WIN. Two bands sharing a boundary are
+          both at distance zero from a sample on it, and neither can displace
+          the other; where a band's whole reachable territory is one such value
+          it never outranks its rival anywhere. WHICH of the two generates is
+          settled by generation order and is not knowable from a config, so this
+          check reports the hazard and never names a loser. Mechanism, and why
+          boundaries land on rails in the first place: T59.
 
 Usage:    scripts/check-biome-bands.py            # exits 1 on any of the five arms
 
@@ -198,16 +189,11 @@ def contains(outer, inner):
 def tie_hazards(entries, samples):
     """(id, axis, value, rival, cells) for every band that can never outrank.
 
-    `ParameterRange.getDistance` returns 0 anywhere in [min, max], both ends
-    included, and `SearchTree` replaces its incumbent only on a strictly smaller
-    distance. So where a band's whole reachable territory on an axis is one
-    value a rival also reaches at distance 0, and that rival's other axes cover
-    this band's, the rival's total distance is <= this band's for every sample
-    there: the band ties at best and can never take a cell on merit.
-
-    Which of the two actually generates is NOT decided here and is not reported.
-    `SearchTree.get` carries the previous lookup's result in as the incumbent,
-    so the winner turns on generation order and traversal, not on the config.
+    Where a band's whole reachable territory on an axis is one value a rival
+    also reaches at distance 0, and that rival's other axes cover this band's,
+    the rival's total distance is <= this band's for every sample there: the
+    band ties at best and can never take a cell on merit. Which of the two
+    generates is not decided here and is not reported (T59).
     """
     out = []
     for axis, key in SAMPLE_KEY.items():
