@@ -3,6 +3,7 @@ package com.customdimensions.facts;
 import com.customdimensions.MultiverseServer;
 import com.customdimensions.command.Artefacts;
 import com.customdimensions.command.SpikeSampler;
+import com.customdimensions.dimension.DimensionFingerprints;
 import com.customdimensions.config.DimensionConfig;
 import com.customdimensions.config.MultiverseConfig;
 import com.customdimensions.dimension.DimensionStructures;
@@ -129,7 +130,7 @@ public final class FactsEngine {
         int radius = def != null ? def.getPlayerBorderRadius() : 8192;
 
         SpikeSampler.Base base = SpikeSampler.base(server, dimensionId);
-        String fingerprint = def != null ? String.valueOf(def.getBiomePatchesFingerprint()) : "";
+        String fingerprint = DimensionFingerprints.canonical(def);
         if (!base.ok()) {
             String why = "the dimension's generator could not be built: " + base.error();
             return unmeasurable(dimensionId, seed, radius, fingerprint, why);
@@ -211,7 +212,7 @@ public final class FactsEngine {
     public static SeedFacts measureCheap(MinecraftServer server, Identifier dimensionId,
                                          DimensionConfig def, SpikeSampler.Base base, long seed) {
         int radius = def != null ? def.getPlayerBorderRadius() : 8192;
-        String fingerprint = def != null ? String.valueOf(def.getBiomePatchesFingerprint()) : "";
+        String fingerprint = DimensionFingerprints.canonical(def);
         String why = "tier-1 screen: only structures and near-spawn biome were measured for this seed";
 
         SeedFacts.StructureFacts structures = def == null

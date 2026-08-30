@@ -144,6 +144,36 @@ public final class DimensionFingerprints {
         return String.valueOf(new java.util.TreeSet<>(ids));
     }
 
+    /**
+     * Every creation-time worldgen field of a config in one string, keys
+     * sorted. A measurement's identity: two records carrying the same value
+     * measured the same generator, and a differing one names the field that
+     * moved rather than only asserting that something did.
+     *
+     * <p>Sorted rather than listed, so the order cannot drift when a field is
+     * added and a new field is covered without a second place to update. Same
+     * reason {@link #sortedIds} exists.
+     *
+     * <p>It carries {@code biomeParameters}, which is where the band default's
+     * {@code |defaultOffset=} term lives — so a change to
+     * {@link DimensionConfig#BAND_OFFSET_BASE} moves it, and a sweep of that
+     * constant writes a different value into every record.
+     */
+    public static String canonical(DimensionConfig def) {
+        if (def == null) {
+            return "";
+        }
+        Map<String, String> f = fields(def);
+        StringBuilder sb = new StringBuilder();
+        for (String key : new java.util.TreeSet<>(f.keySet())) {
+            if (sb.length() > 0) {
+                sb.append('|');
+            }
+            sb.append(key).append('=').append(f.get(key));
+        }
+        return sb.toString();
+    }
+
     public static synchronized void init(MinecraftServer server) {
         storePath = server.getRunDirectory().resolve("config").resolve("custom-dimensions-fingerprints.json");
         cache = null; // reload lazily against the new path

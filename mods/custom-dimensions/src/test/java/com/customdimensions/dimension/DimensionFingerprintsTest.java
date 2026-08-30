@@ -13,6 +13,7 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -91,6 +92,133 @@ class DimensionFingerprintsTest {
         Map<String, String> current = fingerprint("overworld", "adventure:compressed", "minecraft:plains");
         assertEquals(List.of("type", "noiseSettings", "biomes", "structureWants"),
                 DimensionFingerprints.driftedFields(stored, current));
+    }
+
+    // ------------------------------------ canonical(): a measurement's identity
+
+    private static DimensionConfig parseConfig(String json) {
+        DimensionConfig config = new com.google.gson.Gson().fromJson(json, DimensionConfig.class);
+        config.setName("d");
+        config.setNamespace("adventure");
+        return config;
+    }
+
+    private static String bandedAt(String weirdness) {
+        return "{\"type\":\"multi_biome\",\"biomes\":[\"minecraft:plains\","
+                + "{\"id\":\"minecraft:taiga\",\"parameters\":{\"weirdness\":[" + weirdness + "]}}]}";
+    }
+
+    @Test
+    void twoConfigsDifferingOnlyInTheirBandsFingerprintDifferently() {
+        assertNotEquals(
+                DimensionFingerprints.canonical(parseConfig(bandedAt("-2.0,-1.0"))),
+                DimensionFingerprints.canonical(parseConfig(bandedAt("-1.0,0.0"))));
+    }
+
+    @Test
+    void theSameConfigFingerprintsIdenticallyEveryTime() {
+        // Stability is the other half. A value that moved across a restart
+        // would hand a corroboration gate a false-MISMATCH arm in place of the
+        // false-match one this replaces.
+        DimensionConfig a = parseConfig(bandedAt("-2.0,-1.0"));
+        assertEquals(DimensionFingerprints.canonical(a), DimensionFingerprints.canonical(a));
+        assertEquals(DimensionFingerprints.canonical(a),
+                DimensionFingerprints.canonical(parseConfig(bandedAt("-2.0,-1.0"))));
+    }
+
+    @Test
+    void theCanonicalCarriesTheBandDefaultTerm() {
+        // The sweep's per-point proof: BAND_OFFSET_BASE lives inside
+        // biomeParameters, so a build at a different default writes a
+        // different value into every affected record. Asserted on the TERM,
+        // not its value — the value is pinned by BandOffsetDefaultTest.
+        assertTrue(DimensionFingerprints.canonical(parseConfig(bandedAt("-2.0,-1.0")))
+                .contains("|defaultOffset="));
+    }
+
+    @Test
+    void twoConfigsWithNoBiomePatchesStillFingerprintDistinctly() {
+        // The exact shape of the defect this replaces: the field carried the
+        // biomePatches fingerprint, which is the literal "null" for every
+        // dimension without a patch, so a gate keyed on it compared nothing.
+        DimensionConfig a = parseConfig("{\"type\":\"multi_biome\",\"biomes\":[\"minecraft:plains\"]}");
+        DimensionConfig b = parseConfig("{\"type\":\"multi_biome\",\"biomes\":[\"minecraft:swamp\"]}");
+
+        assertEquals("null", String.valueOf(a.getBiomePatchesFingerprint()));
+        assertEquals("null", String.valueOf(b.getBiomePatchesFingerprint()));
+        assertNotEquals(DimensionFingerprints.canonical(a), DimensionFingerprints.canonical(b));
+    }
+
+    @Test
+    void canonicalSurvivesEveryDegenerateConfigShapeFactsCanBeCalledOn() {
+        // canonical() runs fields(), which resolves structure ids through the
+        // alias table — code the field it replaces never touched. `facts` is
+        // called on RESERVED dimensions too, and a reserved config has never
+        // been through fields(): registerDimensions iterates
+        // getCustomDimensions(), which excludes them. A throw here would break
+        // a call that used to succeed, so the shapes are pinned rather than
+        // assumed.
+        assertEquals("", DimensionFingerprints.canonical(null));
+        for (String json : List.of(
+                "{}",
+                "{\"type\":\"overworld\"}",
+                "{\"type\":\"nether\",\"biomes\":[]}",
+                "{\"type\":\"superflat\",\"layers\":[{\"block\":\"minecraft:stone\",\"height\":1}]}",
+                "{\"type\":\"checkerboard\",\"biomes\":[\"minecraft:plains\"],\"checkerboardScale\":2}")) {
+            String c = DimensionFingerprints.canonical(parseConfig(json));
+            assertFalse(c.isEmpty(), "canonical must answer for " + json);
+            assertTrue(c.contains("biomeParameters="),
+                    "every field is present even where its value is null: " + json);
+        }
+    }
+
+    // ------------------------------------------ the band-offset default term
+
+    /**
+     * A real band string from a server record. The default's term is a SUFFIX
+     * inside the {@code biomeParameters} VALUE, not a field of its own, and
+     * the three tests below turn on that distinction.
+     */
+    private static final String BANDS = "regions_unexplored:inferno={\"temperature\":[0.375,2.0]}";
+
+    @Test
+    void changingTheDefaultOffsetTermDriftsBiomeParameters() {
+        Map<String, String> stored = fingerprint("nether", "null", "minecraft:crimson_forest");
+        stored.put("biomeParameters", BANDS + "|defaultOffset=0.175");
+        Map<String, String> current = new HashMap<>(stored);
+        current.put("biomeParameters", BANDS + "|defaultOffset=0.3");
+
+        List<String> drifted = DimensionFingerprints.driftedFields(stored, current);
+
+        assertEquals(List.of("biomeParameters"), drifted);
+        assertTrue(DimensionFingerprints.needsWipe(drifted),
+                "the biome source is baked into level.dat, so a moved default needs a wipe");
+    }
+
+    @Test
+    void droppingTheDefaultOffsetTermStillDriftsBecauseTheKeyRemains() {
+        // driftedFields skips a field only where the KEY is absent. Removing
+        // the suffix leaves the key present with a changed value, so it drifts
+        // like any other edit. The vacuous case is the next test, not this one.
+        Map<String, String> stored = fingerprint("nether", "null", "minecraft:crimson_forest");
+        stored.put("biomeParameters", BANDS + "|defaultOffset=0.175");
+        Map<String, String> current = new HashMap<>(stored);
+        current.put("biomeParameters", BANDS);
+
+        assertEquals(List.of("biomeParameters"),
+                DimensionFingerprints.driftedFields(stored, current));
+    }
+
+    @Test
+    void aRecordCarryingNoBiomeParametersKeyAtAllCannotDrift() {
+        // The one edit that cannot warn: a record predating the field is
+        // backfilled rather than compared.
+        Map<String, String> stored = fingerprint("nether", "null", "minecraft:crimson_forest");
+        stored.remove("biomeParameters");
+        Map<String, String> current = new HashMap<>(stored);
+        current.put("biomeParameters", BANDS + "|defaultOffset=0.175");
+
+        assertEquals(List.of(), DimensionFingerprints.driftedFields(stored, current));
     }
 
     @Test

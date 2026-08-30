@@ -137,7 +137,7 @@ class BandOffsetDefaultTest {
     }
 
     @Test
-    void theBaseIsTheConservativeOfVanillasTwoAuthoredOffsets() {
+    void theBaseIsPinnedAsALiteralSoAChangeIsVisible() {
         // basalt_deltas, in MultiNoiseBiomeSourceParameterList$Preset$1;
         // warped_forest's 0.375 is the other and is the top of the range.
         // Pinned as a literal on purpose: a test written against the constant
