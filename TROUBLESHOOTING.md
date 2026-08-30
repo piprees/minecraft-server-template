@@ -736,12 +736,29 @@ A seed's map and its banked facts appear to contradict each other — the thumbn
   while an `axes[]` representative is only INDICATIVE. A range sampled along a
   path rather than across the playable square understates every axis, because
   the true range is over `[-B,+B]^2` and any path inside it is a subset.
-  Measured on `the_abyssal_shrine` (border 512), 11 points on one path against
-  a 121-point grid over the same square: weirdness 0.196 against 0.847
-  (**x4.32**), humidity x2.51, continentalness x2.07, depth x1.72, temperature
-  x1.47, erosion x1.36. Weirdness is the axis most dimensions band on and is
-  the worst affected. `MARGIN = 0.05` does not cover an error that size, and an
-  understated range makes a live band look dead.
+  Measured across 44 axes, diagonal against grid over the same square: median
+  **x1.62**, range x1.00-x5.43. `MARGIN = 0.05` does not cover that, and an
+  understated range makes a live band look dead. The tail is much worse than
+  the median — `the_abyssal_shrine` weirdness reads 0.196 on a diagonal against
+  0.847 on a grid (x4.32) — so a single dimension's ratio is not the number to
+  generalise from.
+- **Span grows with radius only until the axis saturates its clamp**, so a
+  representative measured at another border is NOT uniformly biased. Measured on
+  one dimension, one seed, one router, span against a 512 baseline: temperature
+  x6.75 and erosion x2.13 still climbing at 4096, depth flat past 2048, and
+  **weirdness x1.07 across an eightfold radius change** because it is already at
+  the +-1 rail by 512. Weirdness carries 589 of 1163 band-axis instances, so the
+  radius argument fails precisely where it is load-bearing; there the bias that
+  matters is the sampling PATH. Density is not the mechanism: at a fixed radius,
+  440 points against 121 move span x1.00-x1.03 on every axis.
+- **`depth` cannot be judged by this check at all.** `customdim sample-noise`
+  hard-codes `y=0` and depth is linear in y at -1/128 per block, so a
+  surface/underground band pair is compared against a single-height reading.
+  `check-band-reach.py` skips depth with a counted reason; the reductio is
+  `the_ashgrove`, whose own measurement declared all 14 of its surface biomes
+  ungeneratable. 342 of 1163 checks were on depth, and coverage without them is
+  821 — exactly the pre-depth figure, so a past "342-band coverage win" was
+  entirely this.
 - **Fix:** sample the playable square, not a path through it. `borders.player`
   is a RADIUS and the vanilla world border is SQUARE (`WorldBorderManager`:
   `setCenter(0,0)`, `setSize(radius * 2)`), so an N x N grid over `[-B,+B]^2`
@@ -752,7 +769,10 @@ A seed's map and its banked facts appear to contradict each other — the thumbn
   `.handoff/band-verdicts/grid-sample.sh`.
 - **A wide span can be a clamped axis rather than a rich one.** Read `distinct`
   beside `min`/`max`: an axis reporting span 2.000 bounded at exactly +-1.000
-  across a third of its samples has points pinned at the rails. A band
+  across a third of its samples has points pinned at the rails. `distinct` also
+  measures sampling resolution, not only axis quality — the same square gives 75
+  distinct at 121 points and 243 at 440, span unchanged — so entries compare
+  only at equal point counts. A band
   containing a rail value still generates, so the band-reach verdict "live" is
   correct — but it collects every pinned point and the biome takes a
   disproportionate share, which is [T19](#t19) reached by another route. Two
