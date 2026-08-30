@@ -32,9 +32,16 @@ Gotchas:  - The table must be dumped from the SAME build you are asking about.
             re-implements it, which is the point.
           - Scores the committed 121-point cloud where `facts` walks 41x41, so
             a biome winning one cloud point is not a biome a player meets
-            ([K7]). Against a facts figure this over-counts by roughly 2-4 on
-            the plain output; --disc removed that gap on the one dimension
-            checked. Read absolutes with both caveats, never as facts numbers.
+            ([K7]). Against a facts figure it over-counts: measured on
+            the_lantern_pools, --disc matched facts exactly at 4 of 13 and then
+            over-read it by 2 at 10 of 13 on the same dimension. One agreement
+            is not calibration. Read absolutes as an upper bound, never as
+            facts numbers.
+          - The likely source of that gap is the tie-break. This scores by
+            plain argmin; the game hands a tie to the incumbent, which is
+            whatever the previous lookup returned (T59), so a biome that wins
+            here on merit can lose there to a ratchet. That biases this tool
+            HIGH on distinct counts, which is the direction observed.
           - `facts` itself UNDER-counts against the world, because its disc
             never samples the corners. The two biases pull opposite ways.
           - Ties resolve first-wins here; the game resolves them by incumbent
