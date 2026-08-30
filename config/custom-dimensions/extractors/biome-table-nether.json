@@ -1,0 +1,49 @@
+{
+ "stackVersion": "0.0.0-local",
+ "kind": "biome-parameter-table",
+ "generatedAt": "2026-08-30T11:29:44.722603126Z",
+ "dimension": "minecraft:the_nether",
+ "source": "datapack",
+ "counts": {"biomes": 13, "cells": 13},
+ "table": {
+  "incendium:ash_barrens": [
+   {"temperature": [-0.3, -0.3], "humidity": [0.0, 0.0], "continentalness": [-0.55, -0.55], "erosion": [0.5, 0.5], "depth": [0.0, 0.0], "weirdness": [0.0, 0.0], "offset": 0.2}
+  ],
+  "incendium:infernal_dunes": [
+   {"temperature": [0.3, 0.3], "humidity": [-0.125, -0.125], "continentalness": [0.335, 0.335], "erosion": [0.3, 0.3], "depth": [0.25, 0.25], "weirdness": [0.0, 0.0], "offset": 0.15}
+  ],
+  "incendium:inverted_forest": [
+   {"temperature": [0.0, 0.0], "humidity": [0.5, 0.5], "continentalness": [0.0, 0.0], "erosion": [-0.3, -0.3], "depth": [0.1, 0.1], "weirdness": [0.0, 0.0], "offset": 0.375}
+  ],
+  "incendium:quartz_flats": [
+   {"temperature": [0.215, 0.215], "humidity": [0.0, 0.0], "continentalness": [-0.25, -0.25], "erosion": [0.6, 0.6], "depth": [0.125, 0.125], "weirdness": [0.0, 0.0], "offset": 0.2}
+  ],
+  "incendium:toxic_heap": [
+   {"temperature": [-0.125, -0.125], "humidity": [-0.25, -0.25], "continentalness": [-0.15, -0.15], "erosion": [0.15, 0.15], "depth": [-0.5, -0.5], "weirdness": [0.0, 0.0], "offset": 0.2649}
+  ],
+  "incendium:volcanic_deltas": [
+   {"temperature": [-0.625, -0.625], "humidity": [0.0, 0.0], "continentalness": [0.4, 0.4], "erosion": [0.4, 0.4], "depth": [0.125, 0.125], "weirdness": [0.0, 0.0], "offset": 0.225}
+  ],
+  "incendium:weeping_valley": [
+   {"temperature": [0.1, 0.1], "humidity": [-0.625, -0.625], "continentalness": [0.1125, 0.1125], "erosion": [-0.3, -0.3], "depth": [-0.125, -0.125], "weirdness": [0.0, 0.0], "offset": 0.075}
+  ],
+  "incendium:withered_forest": [
+   {"temperature": [0.3, 0.3], "humidity": [0.4, 0.4], "continentalness": [0.1, 0.1], "erosion": [0.175, 0.175], "depth": [-0.365, -0.365], "weirdness": [0.0, 0.0], "offset": 0.375}
+  ],
+  "minecraft:basalt_deltas": [
+   {"temperature": [-0.5, -0.5], "humidity": [0.0, 0.0], "continentalness": [0.0, 0.0], "erosion": [0.0, 0.0], "depth": [0.0, 0.0], "weirdness": [0.0, 0.0], "offset": 0.175}
+  ],
+  "minecraft:crimson_forest": [
+   {"temperature": [0.4, 0.4], "humidity": [0.0, 0.0], "continentalness": [0.0, 0.0], "erosion": [0.0, 0.0], "depth": [0.0, 0.0], "weirdness": [0.0, 0.0], "offset": 0.0}
+  ],
+  "minecraft:nether_wastes": [
+   {"temperature": [0.0, 0.0], "humidity": [0.0, 0.0], "continentalness": [0.0, 0.0], "erosion": [0.0, 0.0], "depth": [0.0, 0.0], "weirdness": [0.0, 0.0], "offset": 0.0}
+  ],
+  "minecraft:soul_sand_valley": [
+   {"temperature": [0.0, 0.0], "humidity": [-0.5, -0.5], "continentalness": [0.0, 0.0], "erosion": [0.0, 0.0], "depth": [0.0, 0.0], "weirdness": [0.0, 0.0], "offset": 0.0}
+  ],
+  "minecraft:warped_forest": [
+   {"temperature": [0.0, 0.0], "humidity": [0.5, 0.5], "continentalness": [0.0, 0.0], "erosion": [0.0, 0.0], "depth": [0.0, 0.0], "weirdness": [0.0, 0.0], "offset": 0.375}
+  ]
+ }
+}

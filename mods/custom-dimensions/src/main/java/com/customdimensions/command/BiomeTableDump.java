@@ -1,5 +1,6 @@
 package com.customdimensions.command;
 
+import com.customdimensions.dimension.DatapackDimensions;
 import com.customdimensions.dimension.DimensionManager;
 import com.customdimensions.mixin.MultiNoiseBiomeSourceAccessor;
 import com.mojang.brigadier.context.CommandContext;
@@ -52,10 +53,19 @@ public final class BiomeTableDump {
         }
         MultiNoiseBiomeSource multiNoise = DimensionManager.multiNoiseOf(
                 world.getChunkManager().getChunkGenerator());
+        String origin = "live";
+        if (multiNoise == null) {
+            // A mod replaced the live source with one that is not multi-noise
+            // ([T-DEF2]). The datapack entry still carries the family's own
+            // table, which is the thing worth dumping.
+            multiNoise = DatapackDimensions.multiNoiseFor(source.getServer(),
+                    RegistryKey.of(RegistryKeys.DIMENSION, dimensionId));
+            origin = "datapack";
+        }
         if (multiNoise == null) {
             source.sendError(Text.literal(dimensionId + ": not a MultiNoiseBiomeSource ("
                     + world.getChunkManager().getChunkGenerator().getBiomeSource()
-                            .getClass().getName() + ")"));
+                            .getClass().getName() + ") and no datapack entry carries one"));
             return 0;
         }
 
@@ -72,6 +82,7 @@ public final class BiomeTableDump {
         StringBuilder json = new StringBuilder(1 << 18);
         json.append(Artefacts.jsonHeader("biome-parameter-table"));
         json.append(" \"dimension\": \"").append(dimensionId).append("\",\n");
+        json.append(" \"source\": \"").append(origin).append("\",\n");
         json.append(" \"counts\": {\"biomes\": ").append(byBiome.size())
                 .append(", \"cells\": ").append(cells).append("},\n");
         json.append(" \"table\": {");
@@ -94,7 +105,7 @@ public final class BiomeTableDump {
             source.sendError(Text.literal("biome-table: write failed: " + e.getMessage()));
             return 0;
         }
-        final String msg = "biome-table " + dimensionId + ": " + byBiome.size()
+        final String msg = "biome-table " + dimensionId + " (" + origin + "): " + byBiome.size()
                 + " biomes over " + cells + " cell(s) -> " + out;
         source.sendFeedback(() -> Text.literal(msg), false);
         return 1;

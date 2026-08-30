@@ -1,0 +1,29 @@
+{
+ "stackVersion": "0.0.0-local",
+ "kind": "biome-parameter-table",
+ "generatedAt": "2026-08-30T11:29:45.338329460Z",
+ "dimension": "minecraft:the_end",
+ "source": "datapack",
+ "counts": {"biomes": 6, "cells": 7},
+ "table": {
+  "minecraft:end_highlands": [
+   {"temperature": [-1.0, 1.0], "humidity": [-1.0, 1.0], "continentalness": [-1.0, 1.0], "erosion": [-1.0, 1.0], "depth": [-1.4, 1.0], "weirdness": [-1.0, 1.0], "offset": 0.5}
+  ],
+  "minecraft:small_end_islands": [
+   {"temperature": [-1.0, 1.0], "humidity": [-1.0, 1.0], "continentalness": [-1.0, 0.0], "erosion": [-1.0, -0.3], "depth": [-2.0, -2.0], "weirdness": [-1.0, 1.0], "offset": 1.0}
+  ],
+  "minecraft:the_end": [
+   {"temperature": [-1.0, 1.0], "humidity": [-1.0, 1.0], "continentalness": [-1.0, 1.0], "erosion": [-1.0, 1.0], "depth": [1.9, 2.0], "weirdness": [-1.0, 1.0], "offset": 0.75}
+  ],
+  "nullscape:crystal_peaks": [
+   {"temperature": [0.0, 1.0], "humidity": [-1.0, 1.0], "continentalness": [0.3, 1.0], "erosion": [-1.0, -0.15], "depth": [-1.4, 1.0], "weirdness": [0.475, 1.0], "offset": 0.485},
+   {"temperature": [0.0, 1.0], "humidity": [-1.0, 1.0], "continentalness": [0.3, 1.0], "erosion": [-1.0, -0.15], "depth": [-1.4, 1.0], "weirdness": [-1.0, -0.475], "offset": 0.485}
+  ],
+  "nullscape:shadowlands": [
+   {"temperature": [-1.0, 1.0], "humidity": [-1.0, -0.2], "continentalness": [-1.0, 0.0], "erosion": [-1.0, 1.0], "depth": [-1.4, 1.0], "weirdness": [-1.0, 1.0], "offset": 0.49}
+  ],
+  "nullscape:void_barrens": [
+   {"temperature": [0.0, 1.0], "humidity": [-1.0, 1.0], "continentalness": [0.3, 1.0], "erosion": [-1.0, -0.15], "depth": [-1.4, 1.0], "weirdness": [-0.475, 0.475], "offset": 0.49}
+  ]
+ }
+}
