@@ -4,7 +4,7 @@
 
 | Prefix | Range | What it covers |
 | --- | --- | --- |
-| **T** | [T1–T14, T16–T19, T22–T27, T30–T71](#architecture-traps) | Architecture traps — each has caused a real production incident |
+| **T** | [T1–T14, T16–T19, T22–T27, T30–T72](#architecture-traps) | Architecture traps — each has caused a real production incident |
 | **P** | [P1–P4](#macos-local-dev) | macOS local-dev quirks (BSD tooling, toolchain) |
 | **D** | [D1–D6, D8–D9](#dimension-lifecycle) | Custom-dimension lifecycle on a live world |
 | **K** | [K1–K2, K5–K7](#known-issues) | Open issues — unfixed, on the watch list |
@@ -71,6 +71,7 @@ Run this first. It covers deploy drift, disk, every expected container, `ONLINE_
 | A dimension listing a dozen biomes generates one or two, bands green | [T69](#t69) |
 | A comment-only edit makes a roll re-measure what the bank already held | [T70](#t70) |
 | A band boundary is moved off a clamp rail, every arm is green, and generation order still decides | [T71](#t71) |
+| A climate window needs measuring at a different seed and every route needs a restart | [T72](#t72) |
 | Config or mod changes didn't take effect after a deploy | [T2](#t2) |
 | `signal only works in main thread` in discord-sync logs | [T3](#t3) |
 | mc crash-loops with Modrinth `429 Too Many Requests` | [T4](#t4) |
@@ -1318,6 +1319,38 @@ measurement of it.
   non-rail value is a property of one seed and a re-roll voids it.
 - **A gap is still correct where no rail is involved** — it is only a hazard
   when a pile-up sits beside it, which is what a rail is.
+
+<a id="t72"></a>
+### T72 — `sample-noise` takes no seed and reads the live world, so a climate window cannot be measured at another seed read-only
+
+- **Symptom:** a probe is framed as "measure this dimension's climate at seed N"
+  — regenerate its grid at a different seed, compare the windows — and there is
+  no read-only way to run it. `scripts/sample-climate-grid.sh <slug> <border>
+  [n]` takes no seed argument, and the command beneath it answers
+  `Dimension not loaded`.
+- **Cause:** `customdim sample-noise` is registered as `dimension x z`
+  (`command/DimensionCommands.java:152-156`) and its body reads the live world —
+  `resolveWorld(ctx)`, then `world.getChunkManager().getChunkGenerator()` and
+  `.getNoiseConfig()` (`:1043-1060`). It does **not** take
+  `SpikeSampler.base:238`'s `buildOptionsHeadless` path, which is why
+  `customdim facts` accepts an arbitrary seed and this does not. And a `facts`
+  artefact cannot substitute: it carries `spawn`, `biomes.shares`, `terrain` and
+  `structures`, and **no climate axes at all**.
+- **Fix:** measuring a window at another seed needs the seed changed in config
+  plus a restart plus a world — a lifecycle change, not a read. Where the
+  question is only *whether* windows move with the seed, the experiment is
+  already banked: dimensions sharing `type`, `noiseSettings`, `borders.player`,
+  `settingsOverrides`, `layers`, `flatBiome` and `checkerboardScale` but
+  differing in `seed` **are** the same router at two seeds. Measured over 11
+  such groups / 39 dimensions / 66 live (group, axis) pairs: **median edge
+  spread 24.9% of the window's own width, max 123.8%.**
+- **The windows are therefore not seed-robust, and `climate-axes.json` must not
+  be regenerated between a roll and the release that ships it.** The projection
+  is a transform, not a measurement of truth: the roll scores candidates through
+  it, so production has to build through the same one. Regenerating it after the
+  winners are chosen means winners selected under one transform and a world
+  built under another. Freeze it across the roll; regenerate after a wipe, where
+  it reaches only dimensions created later.
 
 ## macOS local dev
 
