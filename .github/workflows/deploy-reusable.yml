@@ -242,7 +242,9 @@ jobs:
           V_SPAWN_Y: ${{ vars.SPAWN_Y }}
           V_SPAWN_Z: ${{ vars.SPAWN_Z }}
           V_PREGEN_BORDER_RADIUS: ${{ vars.PREGEN_BORDER_RADIUS }}
+          V_MAX_TICK_TIME: ${{ vars.MAX_TICK_TIME }}
           V_BACKUP_INTERVAL: ${{ vars.BACKUP_INTERVAL }}
+          V_BACKUP_INITIAL_DELAY: ${{ vars.BACKUP_INITIAL_DELAY }}
           V_CLOUD_PROVIDER: ${{ vars.CLOUD_PROVIDER }}
           V_IMAGE_REGISTRY: ${{ vars.IMAGE_REGISTRY }}
           V_STACK_VERSION: ${{ inputs.stack_version }}
@@ -299,7 +301,12 @@ jobs:
             # PLAYER_BORDER_RADIUS removed in v3: borders are mod-owned
             # (borders.player in config/custom-dimensions/dimensions/*.json)
             emit PREGEN_BORDER_RADIUS "${V_PREGEN_BORDER_RADIUS:-8192}"
+            # Both defaults match docker-compose.yml. Raise
+            # BACKUP_INITIAL_DELAY past a fresh world's priming pass before a
+            # reset, or the first save-all lands inside it (TROUBLESHOOTING.md#t57).
+            emit MAX_TICK_TIME "${V_MAX_TICK_TIME:-180000}"
             emit BACKUP_INTERVAL "${V_BACKUP_INTERVAL:-12h}"
+            emit BACKUP_INITIAL_DELAY "${V_BACKUP_INITIAL_DELAY:-2m}"
             emit CLOUD_PROVIDER "${V_CLOUD_PROVIDER:-hetzner}"
             emit IMAGE_REGISTRY "${V_IMAGE_REGISTRY:-ghcr.io/piprees/minecraft-server-template}"
             emit STACK_VERSION "$V_STACK_VERSION"
