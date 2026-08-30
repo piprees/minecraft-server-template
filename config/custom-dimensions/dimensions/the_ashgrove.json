@@ -258,12 +258,8 @@
   "seedRoll": {
     "mood": "desolate",
     "spawnFilter": [
-      "terralith:ashen_savanna",
-      "terralith:volcanic_peaks",
-      "terralith:volcanic_crater",
-      "minecraft:savanna",
-      "terralith:savanna_badlands",
-      "minecraft:badlands"
+      "regions_unexplored:ashen_woodland",
+      "terralith:ashen_savanna"
     ],
     "wants": {
       "abandoned_camp": "near_spawn",

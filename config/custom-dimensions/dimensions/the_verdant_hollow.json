@@ -238,13 +238,7 @@
   "seedRoll": {
     "mood": "pastoral",
     "spawnFilter": [
-      "terralith:lush_valley",
-      "minecraft:meadow",
-      "minecraft:plains",
-      "minecraft:flower_forest",
-      "terralith:lavender_valley",
-      "terralith:temperate_highlands",
-      "minecraft:birch_forest"
+      "terralith:lush_valley"
     ],
     "wants": {
       "village": "near_spawn",

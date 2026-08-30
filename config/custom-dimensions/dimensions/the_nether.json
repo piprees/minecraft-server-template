@@ -26,7 +26,6 @@
     "mood": "adventurous",
     "spawnFilter": [
       "minecraft:nether_wastes",
-      "minecraft:crimson_forest",
       "minecraft:warped_forest",
       "incendium:quartz_flats"
     ],

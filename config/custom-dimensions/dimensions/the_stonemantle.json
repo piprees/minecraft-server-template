@@ -235,12 +235,7 @@
     "mood": "dramatic",
     "spawnFilter": [
       "terralith:rocky_mountains",
-      "minecraft:stony_peaks",
-      "minecraft:windswept_hills",
-      "minecraft:stony_shore",
-      "minecraft:windswept_gravelly_hills",
-      "terralith:basalt_cliffs",
-      "terralith:scarlet_mountains"
+      "terralith:cave/granite_caves"
     ],
     "water": "none",
     "wants": {

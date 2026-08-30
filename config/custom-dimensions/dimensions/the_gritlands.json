@@ -231,12 +231,7 @@
     "spawnFilter": [
       "terralith:gravel_desert",
       "terralith:basalt_cliffs",
-      "terralith:ashen_savanna",
-      "terralith:volcanic_peaks",
-      "minecraft:windswept_gravelly_hills",
-      "minecraft:stony_shore",
-      "terralith:rocky_shrubland",
-      "terralith:cold_shrubland"
+      "terralith:ashen_savanna"
     ],
     "water": "none",
     "shuns": [

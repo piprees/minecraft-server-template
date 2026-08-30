@@ -155,13 +155,8 @@
     "mood": "desolate",
     "allowHazardousSpawn": true,
     "spawnFilter": [
-      "minecraft:deep_dark",
-      "minecraft:frozen_ocean",
-      "minecraft:ice_spikes",
-      "terralith:glacial_chasm",
-      "terralith:frozen_cliffs",
-      "terralith:cave/frostfire_caves",
-      "terralith:alpha_islands_winter"
+      "terralith:alpha_islands_winter",
+      "minecraft:ice_spikes"
     ],
     "terrain": "void"
   },

@@ -102,11 +102,7 @@
     "mood": "scenic",
     "spawnFilter": [
       "terralith:amethyst_rainforest",
-      "terralith:amethyst_canyon",
-      "terralith:emerald_peaks",
-      "minecraft:grove",
-      "minecraft:meadow",
-      "terralith:moonlight_grove"
+      "terralith:amethyst_canyon"
     ],
     "wants": {
       "wizard_tower": "spread",

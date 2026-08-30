@@ -250,13 +250,8 @@
   "seedRoll": {
     "mood": "pastoral",
     "spawnFilter": [
-      "minecraft:sunflower_plains",
-      "minecraft:meadow",
-      "minecraft:plains",
-      "terralith:brushland",
-      "terralith:steppe",
-      "minecraft:savanna",
-      "terralith:shield_clearing"
+      "regions_unexplored:clover_plains",
+      "minecraft:sunflower_plains"
     ],
     "wants": {
       "village": "near_spawn",
