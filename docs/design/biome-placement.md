@@ -45,6 +45,19 @@ They are the material a place sits in. A 512-border world listing thirteen
 biomes should not contain thirteen places; it should contain one, and twelve
 biomes' worth of surroundings.
 
+**A place is not a biome.** It is a structure's footprint, the ground it stands
+on, and whatever else nearby adds to its atmosphere. A *scary* place is an
+abandoned house far out in the sticks **and** the surroundings that make it read
+that way. A *safe* place is more likely a good house with a well, a neighbour,
+and a village not far off than a good house alone.
+
+So the 128–256 blocks is the span of the **whole** thing — biome, structures and
+supporting detail together. **A biome does not have to be 256 blocks across to
+be part of a place**, and a biome that is exactly 256 blocks across with nothing
+in it is not one. This is why the budget is per dimension and why a per-biome
+minimum is the wrong instrument: it measures one ingredient and calls it the
+dish.
+
 That retires the speck question as posed. "This biome holds only a small share"
 is not a defect — it is what a supporting biome looks like. The real questions
 are whether the dimension has **a** place, and whether the biome that got to be
