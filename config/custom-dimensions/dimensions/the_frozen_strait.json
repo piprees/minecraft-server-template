@@ -5,43 +5,122 @@
   "noiseSettings": "adventure:wide",
   "biomes": [
     {
-      "id": "regions_unexplored:frozen_tundra",
+      "id": "minecraft:deep_frozen_ocean",
       "parameters": {
-        "humidity": [
-          -0.19,
-          -0.12
-        ],
-        "offset": 0.4
+        "continentalness": [
+          -2.0,
+          -0.9061
+        ]
       }
     },
-    "minecraft:frozen_ocean",
-    "minecraft:deep_frozen_ocean",
-    "terralith:ice_marsh",
-    "minecraft:snowy_beach",
-    "minecraft:snowy_plains",
-    "minecraft:frozen_river",
-    "minecraft:snowy_taiga",
-    "terralith:frozen_cliffs",
     {
-      "id": "regions_unexplored:icy_heights",
+      "id": "minecraft:frozen_ocean",
       "parameters": {
-        "humidity": [
-          -0.08,
-          -0.0
+        "continentalness": [
+          -0.9061,
+          -0.5407
+        ]
+      }
+    },
+    {
+      "id": "minecraft:frozen_river",
+      "parameters": {
+        "continentalness": [
+          -0.5407,
+          -0.5333
+        ]
+      }
+    },
+    {
+      "id": "minecraft:snowy_beach",
+      "parameters": {
+        "continentalness": [
+          -0.5333,
+          -0.5245
+        ]
+      }
+    },
+    {
+      "id": "terralith:ice_marsh",
+      "parameters": {
+        "continentalness": [
+          -0.5245,
+          -0.5152
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:frozen_tundra",
+      "parameters": {
+        "continentalness": [
+          -0.5152,
+          -0.4452
         ]
       }
     },
     {
       "id": "wilderwild:tundra",
       "parameters": {
-        "humidity": [
-          0.03,
-          0.11
+        "continentalness": [
+          -0.4452,
+          -0.433
         ]
       }
     },
-    "terralith:cave/frostfire_caves",
-    "minecraft:dripstone_caves"
+    {
+      "id": "minecraft:snowy_plains",
+      "parameters": {
+        "continentalness": [
+          -0.433,
+          -0.3654
+        ]
+      }
+    },
+    {
+      "id": "minecraft:snowy_taiga",
+      "parameters": {
+        "continentalness": [
+          -0.3654,
+          -0.3467
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:icy_heights",
+      "parameters": {
+        "continentalness": [
+          -0.3467,
+          -0.2376
+        ]
+      }
+    },
+    {
+      "id": "terralith:frozen_cliffs",
+      "parameters": {
+        "continentalness": [
+          -0.2376,
+          -0.1639
+        ]
+      }
+    },
+    {
+      "id": "terralith:cave/frostfire_caves",
+      "parameters": {
+        "continentalness": [
+          -0.1639,
+          -0.1333
+        ]
+      }
+    },
+    {
+      "id": "minecraft:dripstone_caves",
+      "parameters": {
+        "continentalness": [
+          -0.1333,
+          2.0
+        ]
+      }
+    }
   ],
   "borders": {
     "player": 512,
