@@ -4,7 +4,15 @@
   "seed": 5789198435151009993,
   "noiseSettings": "adventure:compressed",
   "biomes": [
-    "terralith:warped_mesa",
+    {
+      "id": "terralith:warped_mesa",
+      "parameters": {
+        "weirdness": [
+          0.07,
+          0.12
+        ]
+      }
+    },
     "terralith:scarlet_mountains",
     "terralith:volcanic_crater",
     "terralith:volcanic_peaks",
