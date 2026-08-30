@@ -111,13 +111,30 @@ Two rules follow, and neither is negotiable:
   range endpoint — so equal-area fitting collides with the rails by
   construction. The fitter and the defect are the same mechanism.
 
-  How concentrated the noise is on those four values is **not settled**. At a
-  121-point grid, 338 of 418 samples landing exactly on a band edge sit on
-  ±0.5/±1.0 (81%). A denser measurement has not reproduced that: the per-sample
-  hit rate is 5.1% at 121 against 0.6% at 41, and one dimension carries most of
-  the dense-grid hits. The rule above does not depend on the figure — a shared
-  boundary ties whatever the noise does — so it stands either way, but do not
-  cite a saturation percentage until one reproduces on a quiesced dataset.
+  **The noise really does saturate there, and it is density-stable.** Measured
+  per dimension on the same axis at two grid densities, the fraction of samples
+  sitting exactly on ±0.5/±1.0 agrees to within a few points:
+
+  | dimension | axis | grid 11 | grid 41 |
+  | --- | --- | ---: | ---: |
+  | `the_ashgrove` | weirdness | 67.8% | 68.6% |
+  | `the_claymarsh` | weirdness | 59.5% | 61.6% |
+  | `the_blossom_gardens` | weirdness | 36.4% | 37.8% |
+  | `the_chalk_meadows` | weirdness | 27.3% | 24.7% |
+
+  So a generator cutting on round numbers puts its boundaries exactly where the
+  noise piles up. **`the_ashgrove` carries a 14-band contiguous weirdness chain
+  and 68.6% of its weirdness samples sit on a rail** — two thirds of that world
+  divided by a tie-break rather than by its boundaries.
+
+  Two alternatives were tested and refused. Storing samples at three decimal
+  places could fake a rail by collapsing −0.4996 onto −0.500; rounding the dense
+  grid to 3dp moves the counts by under 1%. And an apparent reversal at density
+  was a composition effect, not a density one — only 10 of 68 dimensions band at
+  a rail, and the dense subset contained almost none of them.
+
+  The rule does not depend on the figure — a shared boundary ties whatever the
+  noise does — but the figure explains why fitters keep landing there.
 
 **A band whose only reachable territory IS the rail cannot be fixed by moving
 its boundary.** It needs a different axis, or it becomes a plain string and
