@@ -8,7 +8,7 @@
       "parameters": {
         "weirdness": [
           -2.0,
-          -0.5
+          -0.501
         ],
         "depth": [
           -2.0,
@@ -20,7 +20,7 @@
       "id": "terralith:warped_mesa",
       "parameters": {
         "weirdness": [
-          -0.5,
+          -0.501,
           -0.463
         ],
         "depth": [
@@ -99,7 +99,7 @@
       "parameters": {
         "weirdness": [
           0.3823,
-          0.5
+          0.501
         ],
         "depth": [
           -2.0,
@@ -111,7 +111,7 @@
       "id": "terralith:volcanic_crater",
       "parameters": {
         "weirdness": [
-          0.5,
+          0.501,
           2.0
         ],
         "depth": [

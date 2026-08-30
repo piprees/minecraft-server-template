@@ -22,7 +22,7 @@
       "parameters": {
         "weirdness": [
           -0.5963,
-          -0.5
+          -0.499
         ],
         "depth": [
           -2.0,
@@ -34,7 +34,7 @@
       "id": "terralith:basalt_cliffs",
       "parameters": {
         "weirdness": [
-          -0.5,
+          -0.499,
           -0.496
         ],
         "depth": [
@@ -126,7 +126,7 @@
       "parameters": {
         "weirdness": [
           0.1964,
-          0.5
+          0.499
         ],
         "depth": [
           -2.0,
@@ -138,7 +138,7 @@
       "id": "regions_unexplored:chalk_cliffs",
       "parameters": {
         "weirdness": [
-          0.5,
+          0.499,
           2.0
         ],
         "depth": [

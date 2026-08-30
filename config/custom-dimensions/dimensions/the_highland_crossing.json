@@ -9,7 +9,7 @@
       "parameters": {
         "weirdness": [
           -2.0,
-          -1.0
+          -0.999
         ]
       }
     },
@@ -17,7 +17,7 @@
       "id": "minecraft:windswept_forest",
       "parameters": {
         "weirdness": [
-          -1.0,
+          -0.999,
           -0.9263
         ]
       }
@@ -36,7 +36,7 @@
       "parameters": {
         "weirdness": [
           -0.5959,
-          -0.5
+          -0.499
         ]
       }
     },
@@ -44,7 +44,7 @@
       "id": "minecraft:meadow",
       "parameters": {
         "weirdness": [
-          -0.5,
+          -0.499,
           -0.496
         ]
       }
@@ -261,7 +261,7 @@
       "parameters": {
         "weirdness": [
           0.4735,
-          0.5
+          0.501
         ]
       }
     },
@@ -269,7 +269,7 @@
       "id": "regions_unexplored:highland_fields",
       "parameters": {
         "weirdness": [
-          0.5,
+          0.501,
           0.504
         ]
       }

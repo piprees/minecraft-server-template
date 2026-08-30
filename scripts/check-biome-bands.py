@@ -62,15 +62,15 @@ Not covered: whether a correctly fitted band is worth having. A band can pass
           biome-placement.md already calls non-negotiable is exactly what
           separates them, so this needs no threshold of the script's own.
 
-Usage:    scripts/check-biome-bands.py            # exits 1 on any of the five arms
+Usage:    scripts/check-biome-bands.py            # exits 1 on any of the six arms
 
-          The rail arm REPORTS and does not gate. It has 8 live findings on the
-          shipped pack, across the_highland_crossing (3), the_gritlands (2),
-          the_teal_corruption (2) and the_crimson_nexus (1); each needs a
-          boundary moved off the rail with a real gap, which is creation-time
-          worldgen and needs a wipe. Add `total_rail` to the exit condition once
-          they are fixed — the count in the tally line is what makes an arm that
-          does not gate still visible.
+          The rail arm gates on the config alone: a shared boundary sitting on a
+          rail is a finding whether or not the dimension has been measured. The
+          sample count is printed as evidence of what is at stake, never as the
+          fire condition — a rail's pile-up comes from the noise router's
+          clamping, so it survives a re-roll while the samples do not, and an
+          arm keyed on samples is silent for exactly the dimensions nobody has
+          measured yet.
 
 Gotchas:  - The tie arm needs climate-axes.json to know what a world reaches, so
             it is silent for a dimension nobody has measured. That is the one
@@ -258,12 +258,15 @@ def rail_ties(entries, samples):
     live at 42-406 samples while all 106 others are at 2-3. The rail rule
     biome-placement.md already states is what separates them, so gating on it
     needs no threshold of this script's own invention.
+
+    The discriminator is static: the boundary comes from the config and the rail
+    set from the router's clamping, neither of which a seed can move. `cells` is
+    the sample count where the dimension has been measured and None where it has
+    not; it never decides whether a pair is reported.
     """
     out = []
     for axis, key in SAMPLE_KEY.items():
         drawn = samples.get(key)
-        if not drawn:
-            continue
         for (bid, a), (rid, b) in combinations(entries, 2):
             if any(rng(a, ax)[1] < rng(b, ax)[0] or rng(b, ax)[1] < rng(a, ax)[0]
                    for ax in AXES):
@@ -273,9 +276,8 @@ def rail_ties(entries, samples):
             point = hi1 if hi1 == lo2 else (hi2 if hi2 == lo1 else None)
             if point is None or point not in RAILS:
                 continue
-            cells = sum(1 for x in drawn if x == point)
-            if cells:
-                out.append((bid, rid, axis, point, cells))
+            cells = sum(1 for x in drawn if x == point) if drawn else None
+            out.append((bid, rid, axis, point, cells))
     return out
 
 
@@ -351,12 +353,16 @@ def main():
                       f" that generation order settles, not a split this config decides —"
                       f" move the boundary off {point}, or widen the band so it can win outright")
 
-            railed = rail_ties(ex, drawn) if drawn else []
+            railed = rail_ties(ex, drawn)
             if railed:
-                total_rail += len(railed)
+                total_files += 1; total_rail += len(railed)
                 for bid, rid, axis, point, cells in railed:
+                    seen = f"the world returns {cells} times" if cells is not None \
+                        else "unmeasured — no samples for this dimension"
                     print(f"  {name:26s} [{where:8s}] {bid} and {rid} share the {axis}"
-                          f" boundary {point}, a clamp rail the world returns {cells} times")
+                          f" boundary {point}, a clamp rail ({seen})")
+                print(f"      move the boundary off {point} so one band contains the rail"
+                      f" outright — a gap leaves a midpoint that is a tie of its own")
 
             dead = dead_repeats(arr)
             if dead:
@@ -410,7 +416,7 @@ def main():
     if scanned == 0:
         sys.exit("nothing scanned - run this from the platform repo root")
     return 1 if (total_pairs or total_starved or total_sliced or total_dead
-                 or total_tied) else 0
+                 or total_tied or total_rail) else 0
 
 if __name__ == "__main__":
     sys.exit(main())
