@@ -137,6 +137,31 @@ class BandOffsetDefaultTest {
     }
 
     @Test
+    void theDefaultIsNeverAboveWhatVanillaWillEncode() {
+        // MultiNoiseUtil$NoiseHypercube binds offset to Codec.floatRange(0, 1)
+        // and the encode failure is SILENT: level.dat saves WITHOUT
+        // WorldGenSettings and the next boot dies at
+        // "No key dimensions in MapLike[{}]". Observed live at BASE 1.00 with a
+        // measured factor of 1.978.
+        // Factors far above any measured g, so this holds whatever BASE ships.
+        for (double factor : new double[] {1.978, 10.0, 100.0, 1000.0}) {
+            float offset = DimensionManager.defaultBandOffset(factor);
+            assertTrue(offset <= 1.0f,
+                    "offset " + offset + " at factor " + factor
+                            + " is outside [0,1] and cannot be persisted");
+        }
+        assertEquals(1.0f, DimensionManager.defaultBandOffset(1000.0), 1e-6);
+    }
+
+    @Test
+    void theClampDoesNotTouchAFactorThatFitsAlready() {
+        // The clamp must be a ceiling, not a rescale — every in-range value
+        // still comes through as BASE * factor exactly.
+        assertEquals(DimensionConfig.BAND_OFFSET_BASE * 0.583f,
+                DimensionManager.defaultBandOffset(0.583), 1e-6);
+    }
+
+    @Test
     void theBaseIsPinnedAsALiteralSoAChangeIsVisible() {
         // basalt_deltas, in MultiNoiseBiomeSourceParameterList$Preset$1;
         // warped_forest's 0.375 is the other and is the top of the range.

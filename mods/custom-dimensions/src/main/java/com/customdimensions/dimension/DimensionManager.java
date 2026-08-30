@@ -539,7 +539,10 @@ public class DimensionManager {
      * every dimension.
      */
     static float defaultBandOffset(double appliedFactor) {
-        return (float) (DimensionConfig.BAND_OFFSET_BASE * appliedFactor);
+        // Vanilla binds the offset to Codec.floatRange(0, 1) and an over-range
+        // encode fails SILENTLY — level.dat saves with no WorldGenSettings and
+        // the next boot dies. Same rule an authored offset already gets.
+        return (float) Math.min(1.0, DimensionConfig.BAND_OFFSET_BASE * appliedFactor);
     }
 
     /**
