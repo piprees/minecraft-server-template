@@ -133,20 +133,36 @@ fi
 echo "  Checking uNmINeD block tags are up to date..."
 # The map renderer draws untagged modded blocks pink. Regenerate after any
 # mod change or the new blocks render pink (TROUBLESHOOTING.md#t47 sibling).
+BLOCKTAG_ERRORS=0
 if python3 ./scripts/gen-unmined-blocktags.py --check > /dev/null 2>&1; then
   echo "  ✓ uNmINeD block tags cover every modded block"
 else
   warn "uNmINeD block tags are stale (new mod blocks would render pink) — run ./scripts/gen-unmined-blocktags.py"
+  BLOCKTAG_ERRORS=1
+fi
+
+echo "  Checking the open-water guard datapack is up to date..."
+# Lithostitched conditions that keep land structures out of the sea. A stale
+# pack ships structures standing in open water.
+OPEN_WATER_ERRORS=0
+if python3 ./scripts/gen-open-water-guard.py --check > /dev/null 2>&1; then
+  echo "  ✓ Open-water guard covers every land structure"
+else
+  warn "Open-water guard is stale (land structures would generate at sea) — run ./scripts/gen-open-water-guard.py"
+  OPEN_WATER_ERRORS=1
 fi
 
 echo "  Checking biome bands reach their world's climate..."
 # A band outside the range a world's climate crosses is a biome that cannot
 # generate. check-biome-bands.py tests overlap and starved natives, which is a
 # different question; both faults are silent in game.
+# Plain, not --strict: a measured dead band fails, an indicative one reports.
+BAND_REACH_ERRORS=0
 if python3 ./scripts/check-band-reach.py > /dev/null 2>&1; then
   echo "  ✓ Every explicit biome band reaches its world"
 else
   warn "A biome band sits outside its world's climate range — run ./scripts/check-band-reach.py"
+  BAND_REACH_ERRORS=1
 fi
 
 echo "  Checking Modrinth resolve cache covers every pin..."
@@ -220,7 +236,8 @@ else
   YAML_ERRORS=1
 fi
 
-STATIC_ERRORS=$((SHELL_ERRORS + PYTHON_ERRORS + OWNERSHIP_ERRORS + RESOLVE_CACHE_ERRORS + COMPOSE_ERRORS + YAML_ERRORS))
+STATIC_ERRORS=$((SHELL_ERRORS + PYTHON_ERRORS + OWNERSHIP_ERRORS + RESOLVE_CACHE_ERRORS
+  + BLOCKTAG_ERRORS + OPEN_WATER_ERRORS + BAND_REACH_ERRORS + COMPOSE_ERRORS + YAML_ERRORS))
 if [[ $STATIC_ERRORS -gt 0 ]]; then
   echo "::error::$STATIC_ERRORS static-analysis check(s) failed"
   exit 1
