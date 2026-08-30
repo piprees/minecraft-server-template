@@ -106,12 +106,18 @@ Two rules follow, and neither is negotiable:
 - **Never let two bands share a boundary. Leave a gap.** Not an epsilon — an
   epsilon gap leaves the loser a sliver, and a sliver was worthless in the first
   place. A real gap is where natives live, which is the design.
-- **No boundary may sit on a clamp rail** (±0.5, ±1.0, ±2.0). The noise
-  saturates there: 98% of every sample that lands exactly on a band edge lands
-  on one of those four values. Clamping a fit to a measured range puts a
-  boundary on that range's endpoint, and a rail IS a range endpoint — so
-  equal-area fitting collides with the rails by construction. The fitter and the
-  defect are the same mechanism.
+- **No boundary may sit on a clamp rail** (±0.5, ±1.0, ±2.0). Clamping a fit to
+  a measured range puts a boundary on that range's endpoint, and a rail IS a
+  range endpoint — so equal-area fitting collides with the rails by
+  construction. The fitter and the defect are the same mechanism.
+
+  How concentrated the noise is on those four values is **not settled**. At a
+  121-point grid, 338 of 418 samples landing exactly on a band edge sit on
+  ±0.5/±1.0 (81%). A denser measurement has not reproduced that: the per-sample
+  hit rate is 5.1% at 121 against 0.6% at 41, and one dimension carries most of
+  the dense-grid hits. The rule above does not depend on the figure — a shared
+  boundary ties whatever the noise does — so it stands either way, but do not
+  cite a saturation percentage until one reproduces on a quiesced dataset.
 
 **A band whose only reachable territory IS the rail cannot be fixed by moving
 its boundary.** It needs a different axis, or it becomes a plain string and
