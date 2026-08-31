@@ -97,6 +97,7 @@ MANIFEST=(
   examples/consumer/README.md
   examples/consumer/.github/workflows/deploy.yml
   examples/consumer/.github/workflows/update.yml
+  examples/consumer/.github/workflows/server-power.yml
 )
 
 echo "Building stack bundle v${VERSION}..."

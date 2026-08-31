@@ -180,10 +180,13 @@ jobs:
             fi
           done
 
-          # Every script sourced/exec'd by bundle scripts should be in the manifest
+          # Every script sourced/exec'd by bundle scripts should be in the
+          # manifest. Matches .sh AND .py, and names carrying _ or digits:
+          # a bundle script exec'ing a helper that never shipped either dies
+          # mid-deploy or, where the call is -f guarded, does nothing forever.
           for script in $(echo "$MANIFEST" | grep '^scripts/'); do
             if [ -f "$script" ]; then
-              for ref in $(grep -oE '\$SCRIPT_DIR/[a-z][-a-z]*\.sh' "$script" 2>/dev/null \
+              for ref in $(grep -oE '\$SCRIPT_DIR/[A-Za-z0-9._-]+\.(sh|py)' "$script" 2>/dev/null \
                 | sed 's|\$SCRIPT_DIR/||' || true); do
                 target="scripts/$ref"
                 if [ -f "$target" ] && ! echo "$MANIFEST" | grep -qF "$target"; then
@@ -191,6 +194,17 @@ jobs:
                   ERRORS=$((ERRORS + 1))
                 fi
               done
+            fi
+          done
+
+          # Every consumer-scaffold file `dev update` copies must ship in the
+          # bundle. Its copy loops are [[ -f ]] guarded, so a file missing
+          # from MANIFEST is a silent skip on every consumer, forever.
+          for ref in $(grep -oE '\.github/workflows/[A-Za-z0-9._-]+\.yml' examples/consumer/dev 2>/dev/null | sort -u); do
+            target="examples/consumer/$ref"
+            if [ -f "$target" ] && ! echo "$MANIFEST" | grep -qF "$target"; then
+              echo "::error::examples/consumer/dev copies $ref but $target is missing from build-stack-bundle.sh MANIFEST"
+              ERRORS=$((ERRORS + 1))
             fi
           done
 

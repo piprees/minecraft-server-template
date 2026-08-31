@@ -139,21 +139,32 @@ def patch_jar(jar_path: Path) -> int:
 CARPET_CRASH_MIXINS = ["PistonBaseBlock_movableBEMixin"]
 
 
-def patch_carpet(jar_path: Path) -> int:
-    """Drop carpet's piston movable-BE mixin. Returns mixins removed."""
+def patch_carpet(jar_path: Path):
+    """Drop carpet's piston movable-BE mixin.
+
+    Returns (status, removed):
+      "removed"  - stripped this run
+      "clean"    - the mixin is not listed, so it cannot apply (already
+                   patched, or an upstream build that never shipped it)
+      "unknown"  - carpet.mixins.json is missing or malformed, so whether the
+                   mixin applies cannot be established from the jar
+    A mixin applies only if it is listed, so "not listed" is safe whatever the
+    reason. Zero-removed is therefore NOT a failure - the jar is patched in
+    place and keeps its filename, so every run after the first removes none.
+    """
     config = "carpet.mixins.json"
     with zipfile.ZipFile(jar_path) as zf:
         if config not in zf.namelist():
-            return 0
+            return ("unknown", 0)
         raw = zf.read(config)
     doc = json.loads(raw)
     mixins = doc.get("mixins")
     if not isinstance(mixins, list):
-        return 0
+        return ("unknown", 0)
     keep = [m for m in mixins if m not in CARPET_CRASH_MIXINS]
     removed = len(mixins) - len(keep)
     if removed == 0:
-        return 0  # already patched - idempotent
+        return ("clean", 0)
     doc["mixins"] = keep
     payload = json.dumps(doc, indent=2).encode()
 
@@ -165,22 +176,37 @@ def patch_carpet(jar_path: Path) -> int:
             data = payload if item.filename == config else zin.read(item.filename)
             zout.writestr(item, data)
     shutil.move(str(tmp), str(jar_path))
-    return removed
+    return ("removed", removed)
 
 
 def main():
     if len(sys.argv) != 2:
         print("usage: patch-mod-data.py <mods-dir>")
-        return
+        return 0
     mods_dir = Path(sys.argv[1])
+    # A carpet jar that is present and unpatched crashes the server on the
+    # first Supplementaries piston interaction, so every outcome says which
+    # one it was. Silence used to be indistinguishable from success.
+    carpet_seen = False
+    carpet_ok = True
     for jar in sorted(mods_dir.glob("*.jar")):
         if "carpet" in jar.name.lower():
+            carpet_seen = True
             try:
-                n = patch_carpet(jar)
-                if n:
+                status, n = patch_carpet(jar)
+                if status == "removed":
                     print(f"  patch-mod-data: {jar.name}: removed {n} piston mixin(s) "
                           "(carpet x Supplementaries crash)")
-            except Exception as e:  # never block a deploy
+                elif status == "clean":
+                    print(f"  patch-mod-data: {jar.name}: piston mixin not listed (ok)")
+                else:
+                    carpet_ok = False
+                    print(f"  patch-mod-data: {jar.name}: carpet.mixins.json missing or "
+                          "malformed — cannot establish whether the Supplementaries piston "
+                          "crash is patched "
+                          "(docs/known-issues/carpet-supplementaries-piston-crash.md)")
+            except Exception as e:
+                carpet_ok = False
                 print(f"  patch-mod-data: FAILED on {jar.name}: {e}")
             continue
         if "epic" not in jar.name.lower():
@@ -194,6 +220,9 @@ def main():
             print(f"  patch-mod-data: {jar.name}: rewrote {n} loot table reference(s)")
         else:
             print(f"  patch-mod-data: {jar.name}: nothing to patch (ok)")
+    if not carpet_seen:
+        print("  patch-mod-data: no carpet jar in this mods dir — nothing to patch")
+    return 0 if carpet_ok else 1
 
 
-main()
+sys.exit(main())

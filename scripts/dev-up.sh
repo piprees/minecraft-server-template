@@ -575,7 +575,12 @@ fi
 # chests, and carpet's piston mixin crashes the tick loop next to
 # Supplementaries.
 if [[ -f "$SCRIPT_DIR/patch-mod-data.py" ]]; then
-  python3 "$SCRIPT_DIR/patch-mod-data.py" "$CONSUMER_DIR/data/mods" || true
+  # A non-zero exit means a carpet jar is present and NOT patched. Loud, but
+  # not fatal: a half-applied deploy is the worse outcome, and the crash it
+  # guards needs a Supplementaries piston interaction to fire.
+  if ! python3 "$SCRIPT_DIR/patch-mod-data.py" "$CONSUMER_DIR/data/mods"; then
+    warn "carpet is UNPATCHED — expect the Supplementaries piston crash (docs/known-issues/carpet-supplementaries-piston-crash.md)"
+  fi
 fi
 
 MC_NAME="${CONTAINER_PREFIX:-}mc"

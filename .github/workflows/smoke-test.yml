@@ -787,8 +787,12 @@ jobs:
           echo "Checking mc logs for errors after player join..."
           ERRORS=$(docker logs mc 2>&1 | grep -ciE "FATAL|ClassCastException|MixinApplyError" || true)
           if [ "$ERRORS" -gt 0 ]; then
-            echo "::warning::$ERRORS critical error(s) found in logs after bot join"
+            # A mixin that applies at boot and throws only once a player is in
+            # the world lands here and nowhere else, so this fails the job like
+            # every other assertion in this file.
+            echo "::error::$ERRORS critical error(s) found in logs after bot join"
             docker logs mc 2>&1 | grep -iE "FATAL|ClassCastException|MixinApplyError" | head -10
+            exit 1
           fi
 
           # ---- Portal traversal, end to end -------------------------------
