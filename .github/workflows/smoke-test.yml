@@ -553,12 +553,11 @@ jobs:
             exit 1
           fi
 
-      # Disabled: ~28m of the default variant's ~43m. Re-enable (drop the
-      # `if: false`) before shipping a worldgen or height-source change —
-      # it is the only gate that catches a render frozen at a constant
-      # height, or the map and the facts answering different questions.
+      # ~28m of the default variant's ~43m, and the only gate that catches a
+      # render frozen at a constant height, or the map and the facts answering
+      # different questions. Runs for a worldgen or height-source change; set
+      # `if: false` again to trade it back for run time.
       - name: Assert the map and the facts answer one height (render-check)
-        if: false
         # The regression this catches is TWO HEIGHT SOURCES FOR ONE QUESTION.
         # The banked facts read SpikeSampler (a heightmap); the map reads
         # CandidateRender (a density walk). Nothing forces them to agree, and
