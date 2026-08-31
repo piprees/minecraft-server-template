@@ -134,6 +134,14 @@ public final class RollPipeline {
     private static final AtomicInteger PASSED = new AtomicInteger();
     private static final AtomicInteger SURVEYED = new AtomicInteger();
     private static final AtomicInteger GENERATION = new AtomicInteger();
+
+    /**
+     * Dimensions whose configured seed has been scored, against the number
+     * being scored. A roll queued behind priming moves no roll counter at
+     * all, so without these the page can only say it is waiting.
+     */
+    private static final AtomicInteger PRIMED = new AtomicInteger();
+    private static final AtomicInteger PRIMING_TOTAL = new AtomicInteger();
     private static final AtomicReference<String> STAGE = new AtomicReference<>("idle");
     private static final AtomicReference<String> CURRENT = new AtomicReference<>("");
     private static final AtomicReference<String> ERROR = new AtomicReference<>("");
@@ -309,6 +317,8 @@ public final class RollPipeline {
             }
             MultiverseServer.LOGGER.info("Priming {} dimension(s); {} already have a committed pair",
                     targets.size(), committed);
+            PRIMED.set(0);
+            PRIMING_TOTAL.set(targets.size());
             int workers = Math.max(1, Math.min(workers(), targets.size()));
             java.util.concurrent.ExecutorService pool =
                     java.util.concurrent.Executors.newFixedThreadPool(workers, r -> {
@@ -320,8 +330,12 @@ public final class RollPipeline {
                 List<java.util.concurrent.Future<?>> futures = new ArrayList<>();
                 for (DimensionConfig def : targets) {
                     futures.add(pool.submit(() -> {
-                        measureNamed(server, def);
-                        RenderQueue.reconcile(server, def);
+                        try {
+                            measureNamed(server, def);
+                            RenderQueue.reconcile(server, def);
+                        } finally {
+                            PRIMED.incrementAndGet();
+                        }
                     }));
                 }
                 for (java.util.concurrent.Future<?> f : futures) {
@@ -1141,6 +1155,9 @@ public final class RollPipeline {
         b.append(", \"shortlist_done\": ").append(SHORTLIST_DONE.get());
         b.append(", \"dimensions\": ").append(DIMENSIONS.get());
         b.append(", \"generation\": ").append(GENERATION.get());
+        b.append(", \"priming\": ").append(PRIMING_MEASURE.get());
+        b.append(", \"primed\": ").append(PRIMED.get());
+        b.append(", \"priming_total\": ").append(PRIMING_TOTAL.get());
         b.append(", \"stage\": ").append(Json.quote(STAGE.get()));
         b.append(", \"current\": ").append(Json.quote(CURRENT.get()));
         b.append(", \"render_pending\": ").append(RenderQueue.pending());

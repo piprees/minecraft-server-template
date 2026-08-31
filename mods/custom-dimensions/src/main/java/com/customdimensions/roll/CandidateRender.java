@@ -203,10 +203,15 @@ public final class CandidateRender {
      *
      * <p>A quarter of the machine while a roll is running — the search is what
      * makes anything worth drawing, so it keeps the majority — and nearly all
-     * of it when nothing is rolling, because a detail map is then the only
+     * of it when NOTHING is measuring, because a detail map is then the only
      * work there is and leaving three quarters of the cores idle just makes
      * somebody wait. Read per render rather than fixed at class load, so the
      * split follows what the machine is actually doing.
+     *
+     * <p>Priming counts as measuring. It scores every dimension's pinned seeds
+     * and does not wait on the renders it queues, so a render-heavy split
+     * leaves it {@code cpus - 2 - (cpus - 2) = 1} worker and it runs serially
+     * while most of the machine draws pictures nobody is blocked on.
      *
      * <p>A fraction rather than a fixed count, because a fixed one silently
      * inverts the split on a smaller machine: eight was more than half of a
@@ -215,7 +220,8 @@ public final class CandidateRender {
      */
     public static int renderCores() {
         int cpus = Runtime.getRuntime().availableProcessors();
-        return ROLLING.get() ? Math.max(1, cpus / 4) : Math.max(1, cpus - 2);
+        boolean measuring = ROLLING.get() || com.customdimensions.web.RenderQueue.priming();
+        return measuring ? Math.max(1, cpus / 4) : Math.max(1, cpus - 2);
     }
 
     // Vanilla's map shading: a cell is brighter, level with, or darker than

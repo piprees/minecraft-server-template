@@ -1986,14 +1986,25 @@
           // shortlisted, one at a time, and moves no counter at all. Naming
           // the phase is the difference between "stuck" and "working".
           var phase = (st.stage || '').split(' ')[0]
-          var doing = phase === 'rolling'
+          // Priming scores every dimension's pinned seeds and moves no roll
+          // counter, so a roll queued behind it reads 0/0 dims and looks
+          // wedged rather than waiting. Its own counter is the whole line.
+          var priming = st.priming && st.priming_total
+          var doing = priming
+            ? 'priming ' + (st.primed || 0) + '/' + st.priming_total
+            : phase === 'rolling'
             ? (st.passed || 0) + ' passed · measuring '
               + (st.shortlist_done || 0) + '/' + (st.shortlisted || 0)
             : phase === 'scoring' ? 'scoring named seeds'
             : phase
           var pend = (st.render_pending || 0) + (st.thumbnails_pending || 0)
           if (pend) doing += ' · ' + pend + ' render' + (pend === 1 ? '' : 's') + ' queued'
-          textEl.textContent = doneRolling
+          if (priming) {
+            fillEl.classList.remove('indeterminate')
+            fillEl.style.width = (st.primed || 0) / st.priming_total * 100 + '%'
+          }
+          textEl.textContent = priming ? doing
+            : doneRolling
             ? st.stage.replace('_', ' ')
             : st.surveyed + '/' + st.dimensions + ' dims · '
               + st.rolled + '/' + st.target + ' seeds · ' + doing
