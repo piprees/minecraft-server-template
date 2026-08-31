@@ -1,6 +1,7 @@
 package com.customdimensions.dimension;
 
 import com.mojang.datafixers.util.Pair;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -105,5 +106,28 @@ class DealRemainingTest {
         assertEquals(List.of(), dealt.natural());
         assertEquals(List.of(), dealt.filler());
         assertEquals(List.of(), dealt.foreign());
+    }
+
+    @Test
+    @DisplayName("a biome that declares no cell anywhere still gets one")
+    void everyUndeclaredBiomeGetsACell() {
+        // The nether: 40 wanted, 13 with cells, nothing given up.
+        assertEquals(27, DimensionManager.synthesiseFillerCells(27).size());
+        assertEquals(0, DimensionManager.synthesiseFillerCells(0).size());
+        assertEquals(0, DimensionManager.synthesiseFillerCells(-1).size());
+    }
+
+    @Test
+    @DisplayName("synthesised cells are places, not stripes across the world")
+    void synthesisedCellsArePatches() {
+        var cells = DimensionManager.synthesiseFillerCells(9);
+        assertEquals(9, cells.size());
+        // 3x3 over temperature x humidity: the first cell must not span the
+        // whole of either axis, or every biome reads as a band.
+        var first = cells.get(0);
+        assertTrue(first.temperature().max() < 1.0f * 10000,
+                "temperature must be a window, not the full span");
+        assertEquals(cells.size(), cells.stream().distinct().count(),
+                "each biome needs its own window, or they collide");
     }
 }

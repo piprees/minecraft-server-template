@@ -343,6 +343,22 @@ public class DimensionManager {
         // Declared cells are authored across the whole climate space; this
         // dimension samples a sliver of it. An author's own bands are NOT
         // projected — they were written for this world already.
+        // A foreign biome can only be dealt a cell some native GAVE UP, so a
+        // family whose natives are all wanted leaves nothing to deal and every
+        // foreign biome is silently absent — measured: 27 of the nether's 40
+        // and 21 of the End's 27. BCLib registers its biomes through its own
+        // BiomeMap and declares no climate cell anywhere, so if the cells are
+        // not made here the biome places nowhere at all.
+        int foreignCount = 0;
+        for (RegistryEntry<Biome> biome : unplaced) {
+            List<MultiNoiseUtil.NoiseHypercube> cells = declaredCellsOf(declaredCells, biome);
+            if (cells == null || cells.isEmpty()) {
+                foreignCount++;
+            }
+        }
+        if (foreignCount > pool.size()) {
+            pool.addAll(synthesiseFillerCells(foreignCount - pool.size()));
+        }
         Dealt<RegistryEntry<Biome>, MultiNoiseUtil.NoiseHypercube> dealt =
                 dealRemaining(unplaced, biome -> declaredCellsOf(declaredCells, biome), pool);
         List<Pair<MultiNoiseUtil.NoiseHypercube, RegistryEntry<Biome>>> declared = new ArrayList<>();
@@ -720,6 +736,40 @@ public class DimensionManager {
      * <p>Generic over the biome and cell types so the rules are testable: this
      * suite cannot bootstrap Minecraft's registries.
      */
+    /**
+     * Cells for biomes that declare none anywhere, as a near-square grid over
+     * temperature x humidity.
+     *
+     * <p>A grid rather than stripes on one axis: a biome dealt a full-height
+     * sliver reads as a band across the world, and these are meant to be
+     * places. Full span on the other four axes, offset left at zero — the
+     * filler floor is stamped downstream, so these lose inside a band's own
+     * window exactly like a leftover cell does ([T69]).
+     *
+     * <p>Pure, so the partition is pinned without a registry.
+     */
+    static List<MultiNoiseUtil.NoiseHypercube> synthesiseFillerCells(int count) {
+        List<MultiNoiseUtil.NoiseHypercube> cells = new ArrayList<>();
+        if (count <= 0) {
+            return cells;
+        }
+        int side = (int) Math.ceil(Math.sqrt(count));
+        MultiNoiseUtil.ParameterRange full = MultiNoiseUtil.ParameterRange.of(-2.0f, 2.0f);
+        for (int i = 0; i < count; i++) {
+            int gx = i % side;
+            int gy = i / side;
+            float t0 = -1.0f + 2.0f * gx / side;
+            float t1 = -1.0f + 2.0f * (gx + 1) / side;
+            float h0 = -1.0f + 2.0f * gy / side;
+            float h1 = -1.0f + 2.0f * (gy + 1) / side;
+            cells.add(MultiNoiseUtil.createNoiseHypercube(
+                    MultiNoiseUtil.ParameterRange.of(t0, t1),
+                    MultiNoiseUtil.ParameterRange.of(h0, h1),
+                    full, full, full, full, 0.0f));
+        }
+        return cells;
+    }
+
     static <B, C> Dealt<B, C> dealRemaining(List<B> remaining,
                                             Function<B, List<C>> declaredCells,
                                             List<C> pool) {
@@ -904,7 +954,15 @@ public class DimensionManager {
         MultiNoiseBiomeSource declared = family == null ? null
                 : DatapackDimensions.multiNoiseFor(this.server, family);
         if (declared != null) {
-            return buildMixedSource(declared, biomeRegistry, biomeList, def.getName(),
+            // The family's own biomes come too. Its live source holds what the
+            // datapack never named (a BCLib family registers through its own
+            // BiomeMap), and filtering to the config list alone drops every one
+            // of them — measured: 27 of 40 in the nether, 21 of 27 in the End.
+            // The list still drives bands and emphasis; this only stops it
+            // deleting the world it is written for.
+            String live = familyBiomeList(family, biomeRegistry);
+            String asked = live.isEmpty() ? biomeList : biomeList + "," + live;
+            return buildMixedSource(declared, biomeRegistry, asked, def.getName(),
                     def.getBiomeBands(), declaredCellsForFamily(family, biomeRegistry));
         }
         MultiNoiseBiomeSource owBase = multiNoiseOf(overworldGenerator);
@@ -944,6 +1002,33 @@ public class DimensionManager {
     private static final java.util.Set<RegistryKey<DimensionOptions>> FAMILY_SOURCE_REPORTED =
             java.util.concurrent.ConcurrentHashMap.newKeySet();
 
+    /**
+     * Every biome that BELONGS to a family, comma-joined, from the registry's
+     * own tag.
+     *
+     * <p>The tag, not the generator being replaced: whatever a mod does with
+     * its own biome source, {@code is_nether} and {@code is_end} are the
+     * registry's statement of what belongs in those worlds, and this mod
+     * places all of it by its own rules. Empty for a family with no tag.
+     */
+    private static String familyBiomeList(RegistryKey<DimensionOptions> family,
+                                          Registry<Biome> biomeRegistry) {
+        net.minecraft.registry.tag.TagKey<Biome> tag;
+        if (DimensionOptions.NETHER.equals(family)) {
+            tag = net.minecraft.registry.tag.BiomeTags.IS_NETHER;
+        } else if (DimensionOptions.END.equals(family)) {
+            tag = net.minecraft.registry.tag.BiomeTags.IS_END;
+        } else {
+            return "";
+        }
+        return biomeRegistry.getEntryList(tag).map(list -> list.stream()
+                .map(entry -> entry.getKey().map(RegistryKey::getValue).orElse(null))
+                .filter(id -> id != null)
+                .map(Identifier::toString)
+                .distinct()
+                .collect(Collectors.joining(","))).orElse("");
+    }
+
     private BiomeSource declaredFamilySource(ChunkGenerator baseGenerator) {
         if (baseGenerator == null || multiNoiseOf(baseGenerator) != null) {
             return null;
@@ -965,12 +1050,7 @@ public class DimensionManager {
         // rather than by the source being replaced.
         Registry<Biome> biomeRegistry = this.server.getCombinedDynamicRegistries()
                 .getCombinedRegistryManager().get(RegistryKeys.BIOME);
-        String liveList = baseGenerator.getBiomeSource().getBiomes().stream()
-                .map(entry -> entry.getKey().map(RegistryKey::getValue).orElse(null))
-                .filter(id -> id != null)
-                .map(Identifier::toString)
-                .distinct()
-                .collect(Collectors.joining(","));
+        String liveList = familyBiomeList(family, biomeRegistry);
         BiomeSource mixed = liveList.isEmpty() ? null
                 : buildMixedSource(declared, biomeRegistry, liveList,
                         family.getValue().getPath(), List.of(),
