@@ -169,7 +169,7 @@
   },
   "biomePatches": [
     {
-      "biome": "minecraft:pale_garden",
+      "biome": "palegardenbackport:pale_garden",
       "x": 520,
       "z": -480,
       "radius": 110,
