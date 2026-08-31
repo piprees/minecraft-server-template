@@ -342,11 +342,7 @@ public final class RenderCheck {
             this.seed = seed;
             this.mode = mode;
 
-            DimensionConfig resolved =
-                    MultiverseConfig.getInstance().getCustomDimension(dimensionId.getPath());
-            if (resolved == null) {
-                resolved = MultiverseConfig.getInstance().getReservedDimension(dimensionId.toString());
-            }
+            DimensionConfig resolved = MultiverseConfig.getInstance().getDimension(dimensionId);
             this.def = resolved;
             int configured = resolved != null ? resolved.getPlayerBorderRadius() : 8192;
             this.radius = radiusOverride != null ? radiusOverride : Math.max(1, configured);

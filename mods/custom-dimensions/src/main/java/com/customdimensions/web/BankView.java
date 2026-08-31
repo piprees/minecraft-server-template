@@ -96,8 +96,7 @@ public final class BankView {
      * design.
      */
     public static DimensionConfig resolve(String slug) {
-        DimensionConfig def = MultiverseConfig.getInstance().getCustomDimension(slug);
-        return def != null ? def : MultiverseConfig.getInstance().getReservedDimensionBySlug(slug);
+        return MultiverseConfig.getInstance().getDimensionBySlug(slug);
     }
 
     public static DimensionView of(MinecraftServer server, DimensionConfig def) {

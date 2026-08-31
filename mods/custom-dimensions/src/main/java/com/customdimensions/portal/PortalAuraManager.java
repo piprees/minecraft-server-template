@@ -163,7 +163,7 @@ public final class PortalAuraManager {
     private static PortalDefinition.AuraSettings emissionOverrideFor(ServerWorld world) {
         com.customdimensions.config.DimensionConfig config =
                 com.customdimensions.config.MultiverseConfig.getInstance()
-                        .getCustomDimension(world.getRegistryKey().getValue().getPath());
+                        .getDimension(world.getRegistryKey().getValue());
         if (config == null || config.getPortal() == null) {
             return null;
         }

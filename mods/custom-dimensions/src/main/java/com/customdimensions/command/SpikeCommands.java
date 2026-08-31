@@ -44,15 +44,8 @@ public final class SpikeCommands {
         if (!"minecraft".equals(raw.getNamespace())) {
             return raw;
         }
-        var def = MultiverseConfig.getInstance().getCustomDimension(raw.getPath());
-        if (def != null) {
-            return def.getDimensionIdentifier();
-        }
-        var base = MultiverseConfig.getInstance().getReservedDimensionBySlug(raw.getPath());
-        if (base != null) {
-            return base.getDimensionIdentifier();
-        }
-        return raw;
+        var def = MultiverseConfig.getInstance().getDimensionBySlug(raw.getPath());
+        return def != null ? def.getDimensionIdentifier() : raw;
     }
 
     // -------------------------------------------------------------------- lint

@@ -220,13 +220,13 @@ public final class SpikeSampler {
      * <p>It comes from {@code DimensionManager}'s own
      * {@code createDimensionOptions} — the exact code world creation runs —
      * so a divergence here is a real divergence and not two builders
-     * disagreeing. Reserved dimensions (the nether, the end, paradise_lost) have no
-     * config-built generator; theirs is read from the DIMENSION registry.
+     * disagreeing. Reserved dimensions build from config like any other; the
+     * DIMENSION registry answers only for a dimension with no config at all.
      */
     public static Base base(MinecraftServer server, Identifier dimensionId) {
         DimensionManager manager = DimensionManager.getInstance();
-        DimensionConfig def = MultiverseConfig.getInstance().getCustomDimension(dimensionId.getPath());
-        if (def == null || !def.getDimensionIdentifier().equals(dimensionId)) {
+        DimensionConfig def = MultiverseConfig.getInstance().getDimension(dimensionId);
+        if (def != null && !def.getDimensionIdentifier().equals(dimensionId)) {
             def = null;
         }
 

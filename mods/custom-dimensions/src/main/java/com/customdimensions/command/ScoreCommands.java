@@ -32,11 +32,7 @@ public final class ScoreCommands {
         Identifier dimensionId = SpikeCommands.resolveId(ctx);
         long seed = LongArgumentType.getLong(ctx, "seed");
 
-        DimensionConfig def = MultiverseConfig.getInstance()
-                .getCustomDimension(dimensionId.getPath());
-        if (def == null) {
-            def = MultiverseConfig.getInstance().getReservedDimension(dimensionId.toString());
-        }
+        DimensionConfig def = MultiverseConfig.getInstance().getDimension(dimensionId);
         if (def == null) {
             source.sendError(Text.literal("No configured dimension " + dimensionId));
             return 0;

@@ -118,7 +118,7 @@ public final class TryOut {
      */
     public static Identifier request(MinecraftServer server, Identifier dimensionId, long seed,
                                      UUID player) {
-        DimensionConfig real = resolve(dimensionId);
+        DimensionConfig real = MultiverseConfig.getInstance().getDimension(dimensionId);
         if (real == null) {
             return null;
         }
@@ -192,25 +192,9 @@ public final class TryOut {
         }
     }
 
-    /**
-     * A dimension's config by id, reserved dimensions included.
-     *
-     * <p>A managed dimension is keyed by PATH and a reserved dimension by its FULL
-     * id, so a path-only lookup answers null for the overworld, the nether,
-     * the end and paradise_lost — and a null here is reported as "not ready
-     * yet", which never becomes ready. Every other caller that takes a
-     * dimension id does both lookups ({@code FactsEngine.measure},
-     * {@code ScoreCommands}); this is the same pair, in one place.
-     */
-    private static DimensionConfig resolve(Identifier dimensionId) {
-        DimensionConfig def = MultiverseConfig.getInstance().getCustomDimension(dimensionId.getPath());
-        return def != null ? def
-                : MultiverseConfig.getInstance().getReservedDimension(dimensionId.toString());
-    }
-
     private static void build(MinecraftServer server, PendingStart start) {
         Identifier dimensionId = Identifier.of(start.dimension());
-        DimensionConfig real = resolve(dimensionId);
+        DimensionConfig real = MultiverseConfig.getInstance().getDimension(dimensionId);
         if (real == null) {
             MultiverseServer.LOGGER.warn("try-out {}: no configured dimension", start.dimension());
             return;

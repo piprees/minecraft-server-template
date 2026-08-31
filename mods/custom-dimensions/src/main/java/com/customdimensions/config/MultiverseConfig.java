@@ -3,6 +3,7 @@ package com.customdimensions.config;
 import com.customdimensions.MultiverseServer;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.util.Identifier;
 import net.minecraft.world.World;
 
 import java.nio.file.Files;
@@ -330,6 +331,41 @@ public class MultiverseConfig {
     public DimensionConfig getReservedDimensionBySlug(String name) {
         DimensionConfig config = this.configs.get(name);
         return config != null && config.isReserved() ? config : null;
+    }
+
+    /**
+     * A configured dimension by its FULL id, reserved dimensions included.
+     *
+     * <p>This is what a caller holding a dimension id wants. A reserved
+     * dimension matches on the exact id; a custom one matches on path behind
+     * {@link #isManagedNamespace}, because {@code minecraft:} and
+     * {@code paradise_lost:} carry other mods' dimensions and a bare path
+     * lookup resolves a third party's world against one of our configs.
+     *
+     * <p>Both halves live here so a caller cannot do one of them: a
+     * custom-only lookup answers null for the four dimensions players
+     * actually live in, and the resulting null is read as "not configured".
+     */
+    public DimensionConfig getDimension(Identifier dimensionId) {
+        if (dimensionId == null) {
+            return null;
+        }
+        DimensionConfig reserved = this.getReservedDimension(dimensionId.toString());
+        if (reserved != null) {
+            return reserved;
+        }
+        return this.isManagedNamespace(dimensionId.getNamespace())
+                ? this.getCustomDimension(dimensionId.getPath())
+                : null;
+    }
+
+    /**
+     * A configured dimension by slug, reserved dimensions included, for
+     * callers holding a slug off a URL, a button or a command argument
+     * rather than a full id.
+     */
+    public DimensionConfig getDimensionBySlug(String name) {
+        return name == null ? null : this.configs.get(name);
     }
 
     /** Every configured dimension, custom and reserved alike. */
