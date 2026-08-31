@@ -123,16 +123,16 @@ epic-structures-dungeons:xR2jWhmr
 dungeons+:m8RPwRlg
 dungeonsreborn:PIK4U4ip
 datapack:ati-structures-fabricforge:K7cpaKjN  # ATI structures, ruins, towers, camps
-moogs-structure-lib:6YYQZweF
+moogs-structure-lib:lGD7xue0
 moogs-voyager-structures:uEZeTQ4b
 mes-moogs-end-structures:JW80uvhz
 mns-moogs-nether-structures:RFeEhpv4
 mss-moogs-soaring-structures:i1RQPVjQ
-mtr-moogs-temples-reimagined:pI3PZZrR
+mtr-moogs-temples-reimagined:rSO4Zps4
 
 # === mobs & animals ===
 friends-and-foes:UaBxLkkc
-untitled-duck-mod:1iG0fXae
+untitled-duck-mod:e8WLrDbM
 critters-and-companions:p19ZPlZD
 creeper-overhaul:O6yuPiE8
 
@@ -188,7 +188,7 @@ inmis:iE11BIfP
 # === variety ===
 immersive-armors:4m0lwLNO
 3d-placeable-food:F9DGEOfs
-supplementaries:8HLe7fdX
+supplementaries:ecPmpscM
 natures-spirit:TRMapjpU
 macaws-bridges:pl1CA7dW
 macaws-doors:Zsfvgzu6
@@ -200,7 +200,7 @@ dramatic-doors:X5oMCwaA
 # universal-sawmill: provides the woodworks:sawmill recipe type dramatic-doors
 # references (kills the boot recipe-parse errors). Dep: moonlight (present).
 universal-sawmill:1Z66lBRN
-farmers-delight-refabricated:6Q2bg2Oh
+farmers-delight-refabricated:V9iUg8PW
 appleskin:b5ZiCjAr
 
 # === seasons ===
