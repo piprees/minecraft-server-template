@@ -141,6 +141,7 @@ All of it lives in [`TROUBLESHOOTING.md`](TROUBLESHOOTING.md) — architecture t
 | [T54](TROUBLESHOOTING.md#t54) | Jigsaw `size`/`max_distance_from_center` are not a footprint. `structure-sizes.json` is measured; re-measure, never proxy. |
 | [T55](TROUBLESHOOTING.md#t55) | A mod's dense terrain features (spacing < ~8) are absorbed into the structure pool and vanish. Measured: BetterEnd mountains 7,000x too sparse. |
 | [T76](TROUBLESHOOTING.md#t76) | End-settings dimensions sample depth 40–80. Depth is opened where the measured window misses ±2; `sample-climate-grid.sh` y=0 and `facts` y=64 are not interconvertible. |
+| [T77](TROUBLESHOOTING.md#t77) | A linked local stack runs the seed IMAGE's baked mod list, not the repo's. Diff resolved filenames against `data/mods` before any roll. |
 | [D2](TROUBLESHOOTING.md#d2) | All worldgen config is creation-time-only. Changing it needs a world wipe. |
 | [K6](TROUBLESHOOTING.md#k6) | Concurrent first-time chunk generation wedges the main thread. Activation is one dimension at a time; never make it concurrent again. |
 

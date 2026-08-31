@@ -1354,6 +1354,47 @@ measurement of it.
   built under another. Freeze it across the roll; regenerate after a wipe, where
   it reaches only dimensions created later.
 
+<a id="t77"></a>
+### T77 — A linked local stack silently runs the mod set of the last released seed image, not the repo's
+
+- **Symptom:** a mod pinned in `config/modrinth-mods.txt` is absent from the
+  running local server. `/customdim catalogue` reports fewer biomes than
+  production will have, and a dimension naming that mod's biome is skipped. No
+  error, no failed boot, healthy container.
+- **Cause:** `docker/defaults-seed/Dockerfile` COPYs `config/modrinth-mods.txt`
+  into the image, so the mod list is baked in at BUILD time.
+  `sync-mods.sh` fetches what the SEED resolved into the stack-mods volume, not
+  what the pin file lists. A `defaults-seed:latest` pulled before the pin was
+  added therefore never resolves it, and nothing downstream can tell.
+  `./dev link` does not cover this — it reaches scripts, compose and in-house
+  mod jars, never the seed image.
+- **Why the usual checks miss it:** `test-scripts.sh` verifies the resolve cache
+  covers every pin, which is a template-side check and passes. `sync-mods.sh`
+  exits non-zero only when it cannot fetch what the seed EXPECTS, and a stale
+  seed expects nothing. The pin count can even match the jar count by
+  coincidence.
+- **Fix:** `docker pull` the `defaults-seed` tag the stack uses, then `./dev up`.
+  Verify by diffing resolved filenames against `data/mods`, never by absence of
+  errors:
+
+  ```bash
+  python3 - <<'EOF'
+  import json, os
+  cache = json.load(open("config/modrinth-resolve-cache.json"))
+  installed = set(os.listdir("<consumer>/data/mods"))
+  pins = [l.strip().lstrip("?").replace("datapack:", "")
+          for l in open("config/modrinth-mods.txt")
+          if l.strip() and not l.startswith("#")]
+  print([(p, cache[p]["filename"]) for p in pins
+         if p in cache and cache[p]["filename"] not in installed])
+  EOF
+  ```
+
+- **Run that check before any seed roll.** A roll on a short mod set banks
+  winners scored against a registry production will not have, and the mod set is
+  part of the bank key — the next boot re-primes all 82 dimensions from scratch
+  (`Priming 82 dimension(s); 0 already have a committed pair`).
+
 <a id="t76"></a>
 ### T76 — An End-settings dimension samples depth 40–80, and the highest-declared-depth biome takes the map
 
