@@ -32,7 +32,11 @@ Gotchas: <slug>_thumb.json sidecars sit in the same directory and are viewer
 artefacts, not overrides - they are skipped by name, and the skipped count is
 printed so a naming change cannot silently empty the check. A dimension whose
 platform config has no top-level spawn (the_canvas) cannot inherit a stale one,
-so a seed-only winner there is reported as benign rather than as a failure.
+so a seed-only winner there is reported as benign rather than as a failure. The
+same holds for a `void` dimension: it has no terrain, so no surface exists to
+measure a spawn on and the authored one is the only possible answer - measured
+on the 81-dimension roll, all three void dimensions promoted seed-only and all
+three were correct to.
 """
 import argparse
 import json
@@ -104,7 +108,11 @@ def main():
             malformed.append((slug, f"platform config unreadable: {exc}"))
             continue
 
-        if base.get("spawn") is None:
+        # A void dimension has no terrain, so there is no surface to measure a
+        # spawn on and the authored one is the only possible answer. Inheriting
+        # it is correct, not a stale-spawn hazard.
+        void = str(base.get("type", "")).lower() == "void"
+        if base.get("spawn") is None or void:
             benign.append(slug)
         else:
             stale_spawn.append((slug, base["spawn"], over.get("seed")))
@@ -135,7 +143,9 @@ def main():
     print(f"Read {total} override(s) from {overlay_dir}")
     print(f"  thumbnail sidecars skipped   {skipped_thumbs}")
     print(f"  carry seed AND spawn         {len(ok)} of {total}")
-    print(f"  seed-only, nothing to inherit {len(benign)} of {total}  {benign if benign else ''}")
+    print(f"  seed-only, benign (void or no authored spawn) {len(benign)} of {total}")
+    if benign:
+        print(f"    {', '.join(benign)}")
 
     if stale_spawn:
         print(f"\nFAIL  {len(stale_spawn)} of {total} would deploy a spawn measured against the OLD seed:")
