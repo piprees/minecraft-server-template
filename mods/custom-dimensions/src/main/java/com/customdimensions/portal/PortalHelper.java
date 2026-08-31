@@ -767,11 +767,17 @@ public class PortalHelper {
             }
             return;
         }
+        // containsId, not a null check: Registries.BLOCK is a DefaultedRegistry,
+        // so get() answers minecraft:air for an id that does not exist. Air is
+        // also a LEGITIMATE replacement (PortalDecay maps *_planks to it), so
+        // only the registry can tell the two apart — and the rule that
+        // synthesises "stripped_<log>" can name a block no mod ships. Without
+        // this the whole frame is set to air and the portal breaks at both ends.
         Identifier replacementId = Identifier.tryParse(replacement);
-        Block replacementBlock = replacementId != null ? Registries.BLOCK.get(replacementId) : null;
-        if (replacementBlock == null) {
+        if (replacementId == null || !Registries.BLOCK.containsId(replacementId)) {
             return;
         }
+        Block replacementBlock = Registries.BLOCK.get(replacementId);
         world.syncWorldEvent(2001, pos, Block.getRawIdFromState(state));
         world.setBlockState(pos, replacementBlock.getDefaultState(), Block.NOTIFY_LISTENERS | Block.FORCE_STATE);
     }

@@ -1,5 +1,6 @@
 package com.customdimensions.portal;
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -72,5 +73,17 @@ class PortalDecayTest {
     void partialPickHandlesDegenerateFrames() {
         assertTrue(PortalDecay.pickPartialIndices(0, 1L).isEmpty());
         assertEquals(List.of(0), PortalDecay.pickPartialIndices(1, 99L));
+    }
+
+    @Test
+    @DisplayName("the stripped_ rule synthesises an id it never checks, so the caller must")
+    void strippedRuleIsUnvalidated() {
+        // Not a defect here — resolve is pure and has no registry. It is the
+        // reason decayFrameBlock guards with Registries.BLOCK.containsId:
+        // DefaultedRegistry.get answers air for an id no mod ships, and air is
+        // also a legitimate replacement, so only the registry separates them.
+        assertEquals("fakemod:stripped_ghost_log",
+                PortalDecay.resolve("fakemod:ghost_log", null));
+        assertEquals("minecraft:air", PortalDecay.resolve("minecraft:oak_planks", null));
     }
 }
