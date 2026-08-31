@@ -38,6 +38,53 @@ class InputHashTest {
                 InputHash.hashOf(b, "v4.2.0", mods, ARTEFACT));
     }
 
+    /**
+     * The two fields {@code Picker.write} sets on a chosen candidate. Hashing
+     * either means the board a choice was made from vanishes at the moment of
+     * choosing.
+     */
+    @Test
+    void theSeedDoesNotMoveTheHash() {
+        DimensionConfig a = dim("the_boneyard", "overworld");
+        DimensionConfig b = dim("the_boneyard", "overworld");
+        b.setSeed(-4802385692424703726L);
+        List<String> mods = List.of("fabric-api=0.100.0");
+
+        assertEquals(
+                InputHash.hashOf(a, "v4.2.0", mods, ARTEFACT),
+                InputHash.hashOf(b, "v4.2.0", mods, ARTEFACT),
+                "a candidate is measured at the seed the roll drew, never the configured one");
+    }
+
+    @Test
+    void theSpawnDoesNotMoveTheHash() {
+        DimensionConfig a = dim("the_boneyard", "overworld");
+        a.setSpawn(new int[] {0, 64, 256});
+        DimensionConfig b = dim("the_boneyard", "overworld");
+        b.setSpawn(new int[] {0, 51, 0});
+        List<String> mods = List.of("fabric-api=0.100.0");
+
+        assertEquals(
+                InputHash.hashOf(a, "v4.2.0", mods, ARTEFACT),
+                InputHash.hashOf(b, "v4.2.0", mods, ARTEFACT),
+                "re-calibrating a spawn must not discard the dimension's bank");
+    }
+
+    @Test
+    void aFieldThatIsNeitherSeedNorSpawnStillMovesTheHash() {
+        // The exclusions are two named fields, not "anything the picker might
+        // touch" — a worldgen change has to re-key.
+        DimensionConfig a = dim("the_boneyard", "overworld");
+        a.setSpawn(new int[] {0, 64, 256});
+        DimensionConfig b = dim("the_boneyard", "nether");
+        b.setSpawn(new int[] {0, 64, 256});
+        List<String> mods = List.of("fabric-api=0.100.0");
+
+        assertNotEquals(
+                InputHash.hashOf(a, "v4.2.0", mods, ARTEFACT),
+                InputHash.hashOf(b, "v4.2.0", mods, ARTEFACT));
+    }
+
     @Test
     void changedConfigGivesADifferentHash() {
         DimensionConfig a = dim("the_boneyard", "overworld");

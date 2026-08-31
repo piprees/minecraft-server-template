@@ -100,23 +100,29 @@ public final class InputHash {
     }
 
     /**
-     * The config as it bears on a measurement — everything except {@code seed}.
+     * The config as it bears on a measurement — everything except the two
+     * fields picking a winner writes back, {@code seed} and {@code spawn}.
      *
-     * <p>A candidate is measured at the seed the ROLL drew, never at the one
-     * the config names: no criterion and no part of {@link
-     * com.customdimensions.facts.FactsEngine} reads it, and its only readers
-     * are the viewer's "starting" badge. Hashing it meant picking a winner
-     * rewrote the config and re-keyed the dimension's whole bank, so the board
-     * the choice was made from vanished at the moment of choosing and a roll
-     * for more candidates started from nothing.
+     * <p>Both are excluded for the same reason: {@code Picker.write} sets them
+     * on the chosen candidate, so hashing either means the board a choice was
+     * made from vanishes at the moment of choosing, and a roll for more
+     * candidates starts from nothing.
      *
-     * <p>{@code spawn} stays in: the facts measure at the declared spawn
-     * column, so moving it genuinely changes what every candidate says.
+     * <p>They are not equally inert. Nothing measures with {@code seed} — a
+     * candidate is scored at the seed the ROLL drew, and its only readers are
+     * the viewer's "starting" badge. {@code spawn} does reach a measurement:
+     * {@link com.customdimensions.facts.FactsEngine} profiles the declared
+     * spawn column, so two candidates scored at different spawns disagree
+     * about {@code spawn.*} by that much. Deliberately accepted — moving a
+     * spawn a few blocks changes what is measured FROM that column, not the
+     * world being measured, and re-calibrating one must not discard a
+     * dimension's whole bank.
      */
     private static JsonElement measurementConfig(DimensionConfig def) {
         JsonElement tree = GSON.toJsonTree(def);
         if (tree.isJsonObject()) {
             tree.getAsJsonObject().remove("seed");
+            tree.getAsJsonObject().remove("spawn");
         }
         return tree;
     }
