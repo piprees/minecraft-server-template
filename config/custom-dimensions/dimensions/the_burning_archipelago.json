@@ -1,7 +1,7 @@
 {
   "type": "nether_islands",
   "description": "Burning islands in a void sea \u2014 nether terrain on end-island bones. The piglins and endermen fought across these straits; the islands that survived still smoulder.",
-  "seed": 2048694913705908297,
+  "seed": 3555303414896997140,
   "biomes": [
     "minecraft:crimson_forest",
     "minecraft:warped_forest",
@@ -121,7 +121,7 @@
   },
   "spawn": [
     256,
-    64,
+    0,
     448
   ],
   "settingsOverrides": {

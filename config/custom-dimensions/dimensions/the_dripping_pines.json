@@ -1,7 +1,7 @@
 {
   "type": "multi_biome",
   "description": "Rain-soaked taiga, moss on everything, ruins rotting under the pines. A place people passed through but never stayed \u2014 the damp took their camps and the forest closed behind them.",
-  "seed": -6495337575863349103,
+  "seed": -110531497654782041,
   "biomes": [
     {
       "id": "terralith:siberian_taiga",
@@ -178,7 +178,7 @@
   },
   "spawn": [
     -384,
-    45,
+    61,
     -512
   ]
 }

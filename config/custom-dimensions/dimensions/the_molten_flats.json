@@ -1,7 +1,7 @@
 {
   "type": "nether",
   "description": "Industrial lava flats \u2014 piglin pipelines and reactors built over the melt. The infrastructure still runs, still pumps, still processes. The workers are gone. The machines don't care.",
-  "seed": -4266588947532218324,
+  "seed": -1699649039837762897,
   "biomes": [
     {
       "id": "incendium:ash_barrens",
@@ -108,7 +108,7 @@
   },
   "spawn": [
     128,
-    31,
+    173,
     0
   ]
 }

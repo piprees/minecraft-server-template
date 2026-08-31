@@ -1,6 +1,6 @@
 {
   "description": "The oldest living world \u2014 skylands where towers and vaults grew like coral long before anyone named them. Wisteria drifts on the updrafts between plateaus. Whatever built this place wasn't human, wasn't piglin, wasn't enderman. It just grew.",
-  "seed": 2371774050900492985,
+  "seed": 7826077224469180302,
   "borders": {
     "player": 4096,
     "generation": 2048
@@ -41,9 +41,9 @@
     "shuns": []
   },
   "spawn": [
-    204,
-    150,
-    204
+    0,
+    79,
+    -408
   ],
   "structures": {
     "noise": {

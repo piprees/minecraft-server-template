@@ -1,7 +1,7 @@
 {
   "type": "end",
   "description": "What happens when the endermen leave and nobody maintains the infrastructure. Crystal peaks shearing into shadow, crashed ships in the rubble. Everything intact is already gone \u2014 only wreckage tells the story.",
-  "seed": 3742608075213267787,
+  "seed": -7079357783755633258,
   "biomes": [
     {
       "id": "nullscape:shadowlands",
@@ -137,9 +137,9 @@
     ]
   },
   "spawn": [
-    -192,
-    38,
-    -768
+    0,
+    39,
+    -102
   ],
   "settingsOverrides": {
     "endIsland": false

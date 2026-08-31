@@ -1,7 +1,7 @@
 {
   "type": "multi_biome",
   "description": "Vast desert kingdoms \u2014 what humans and villagers built together at their peak. Walled villages, sand dungeons, desert shrines, and a keep on the horizon. The civilisation here still stands; the bandits at its edges are the only threat.",
-  "seed": -1936785309129524884,
+  "seed": 324214883657804275,
   "noiseSettings": "adventure:wide",
   "biomes": [
     "minecraft:savanna",
@@ -144,7 +144,7 @@
   },
   "spawn": [
     640,
-    64,
+    62,
     -768
   ]
 }

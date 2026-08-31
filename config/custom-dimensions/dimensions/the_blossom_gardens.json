@@ -1,7 +1,7 @@
 {
   "type": "multi_biome",
   "description": "Cherry-blossom gardens where the first villagers planted a life worth protecting. Villages and taverns grew among the petals, peaceful by decree. The portal at the centre is the oldest gate in the garden \u2014 everything was built around it.",
-  "seed": -8801298740044898069,
+  "seed": -1484124298185960397,
   "noiseSettings": "adventure:wide",
   "biomes": [
     "minecraft:meadow",
@@ -172,7 +172,7 @@
   },
   "spawn": [
     768,
-    112,
+    92,
     640
   ],
   "structures": {

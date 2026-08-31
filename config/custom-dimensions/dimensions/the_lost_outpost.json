@@ -1,7 +1,7 @@
 {
   "type": "multi_biome",
   "description": "Outpost country gone feral. Pillager lookouts, bandit towers, campsites \u2014 the military infrastructure of a kingdom that collapsed. The soldiers stayed after the kingdom fell and became the threat they were meant to guard against.",
-  "seed": -3320822410160307046,
+  "seed": 4576916738702776883,
   "biomes": [
     {
       "id": "natures_spirit:oak_savanna",
@@ -175,7 +175,7 @@
   },
   "spawn": [
     -64,
-    71,
+    66,
     128
   ],
   "structures": {

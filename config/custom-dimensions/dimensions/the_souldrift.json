@@ -1,7 +1,7 @@
 {
   "type": "multi_biome",
   "description": "Soul-sand drifting into shadow. The surface scar where the underground sculk infection broke through from the ancient cities \u2014 nether ash and soul valleys over a deep dark that shouldn't be this close to the surface. The drift does not stop at the portal: what it reaches, it takes, and a build near the frame is part of what it reaches.",
-  "seed": 917083952261014886,
+  "seed": -7532638359217139357,
   "biomes": [
     "terralith:ashen_savanna",
     "minecraft:eroded_badlands",
@@ -194,7 +194,7 @@
   },
   "spawn": [
     512,
-    141,
+    54,
     256
   ],
   "structures": {

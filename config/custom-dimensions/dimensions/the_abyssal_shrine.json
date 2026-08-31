@@ -1,7 +1,7 @@
 {
   "type": "paradise_lost:paradise_lost",
   "description": "A shrine over the abyss \u2014 plateau islands ringing deep drowned hollows. Something is worshipped here, or was. Guardians circle below; the sky above is indifferent.",
-  "seed": -3682385522640744786,
+  "seed": -2851350029895099402,
   "biomes": [
     {
       "id": "nullscape:shadowlands",
@@ -134,7 +134,7 @@
   },
   "spawn": [
     64,
-    129,
+    131,
     -192
   ],
   "structures": {

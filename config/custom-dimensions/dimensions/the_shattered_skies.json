@@ -1,7 +1,7 @@
 {
   "type": "sky_islands",
   "description": "Floating garden islands \u2014 sakura and skylands adrift in a void slowly winning. The animals' paradise, where nothing was ever built to last and nothing needs to. Sky houses and castle ruins dot the islands like driftwood.",
-  "seed": -7254827560280174731,
+  "seed": -2068817936672598070,
   "biomes": [
     "minecraft:plains",
     "minecraft:forest",
@@ -82,8 +82,8 @@
     "terrain": "islands"
   },
   "spawn": [
-    -204,
-    44,
+    0,
+    42,
     0
   ],
   "structures": {

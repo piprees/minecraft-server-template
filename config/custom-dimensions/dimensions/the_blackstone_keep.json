@@ -1,7 +1,7 @@
 {
   "type": "nether",
   "description": "The piglin military frontier. Bastions and blackstone walls from spawn, fortified against something that came from below. The deeper you dig, the harder it fights back \u2014 as if the keep itself remembers the threat.",
-  "seed": 6973119787935770282,
+  "seed": -7287939919542866926,
   "biomes": [
     {
       "id": "minecraft:soul_sand_valley",
@@ -152,8 +152,8 @@
     ]
   },
   "spawn": [
-    64,
-    29,
-    64
+    0,
+    90,
+    0
   ]
 }

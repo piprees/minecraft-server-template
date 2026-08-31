@@ -1,7 +1,7 @@
 {
   "type": "multi_biome",
   "description": "Craggy quarry country \u2014 bare spires, engineers' towers, and old workings in the stone. The humans' industrial heartland, where they mined the raw materials for the sun kingdoms and the highland crossing. The deeper shafts are harder.",
-  "seed": 4623330624098606444,
+  "seed": -3441490954914475026,
   "noiseSettings": "adventure:compressed",
   "biomes": [
     {
@@ -254,7 +254,7 @@
   },
   "spawn": [
     -384,
-    192,
+    132,
     -320
   ],
   "structures": {

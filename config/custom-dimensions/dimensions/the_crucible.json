@@ -1,7 +1,7 @@
 {
   "type": "multi_biome",
   "description": "A compressed jungle gauntlet where the wild reclaimed everything. Infested temples and webbed dungeons in terrain that fights back, and crimson fungus rooted in the canopy where the nether leaked in. Whatever was built here was consumed long ago \u2014 the jungle doesn't negotiate, and what it reaches through the portal it keeps.",
-  "seed": -2092289300691480070,
+  "seed": -1677720627089150295,
   "noiseSettings": "adventure:compressed",
   "biomes": [
     {
@@ -305,7 +305,7 @@
   },
   "spawn": [
     320,
-    219,
+    67,
     -192
   ],
   "structures": {

@@ -1,7 +1,7 @@
 {
   "type": "multi_biome",
   "description": "Deep old-growth forest with roots in everything. The witches' experiments took hold here \u2014 the forest grew around their work and made it its own. The roots go a long way down, and they did not stop at stone.",
-  "seed": 7107555630733899061,
+  "seed": -4466427064329235351,
   "biomes": [
     {
       "id": "natures_spirit:redwood_forest",
@@ -210,7 +210,7 @@
   },
   "spawn": [
     256,
-    56,
+    57,
     -64
   ],
   "structures": {

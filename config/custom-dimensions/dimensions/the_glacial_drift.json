@@ -1,7 +1,7 @@
 {
   "type": "sky_islands",
   "description": "A glacial drift among the skylands \u2014 frozen paradise islands calving into the void. The oldest animals shelter here in tundra that predates every civilisation. Nothing was ever built; nothing needs to be.",
-  "seed": -8313982832499967773,
+  "seed": -5306884761838161928,
   "biomes": [
     {
       "id": "terralith:glacial_chasm",
@@ -153,7 +153,7 @@
   },
   "spawn": [
     0,
-    41,
+    55,
     -204
   ],
   "structures": {

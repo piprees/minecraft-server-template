@@ -1,7 +1,7 @@
 {
   "type": "cave",
   "description": "A vault of crying obsidian under a stone lid \u2014 castle dungeons and a sanctum in a small dense world with no sky. The piglins sealed something in here; the crying obsidian is the lock, and it re-engages behind you. Whatever it is, it's still inside. The lock spreads. Crying obsidian creeps out through the frame and seals in whatever is beside it.",
-  "seed": -1632004514647508524,
+  "seed": -7869444455040978050,
   "biomes": [
     {
       "id": "incendium:weeping_valley",
@@ -162,7 +162,7 @@
   },
   "spawn": [
     64,
-    6,
+    -22,
     192
   ],
   "settingsOverrides": {

@@ -1,7 +1,7 @@
 {
   "type": "nether",
   "description": "Narrow bridged chasms \u2014 quartz spans over the wail. The quarantine that didn't hold: the zombified remnants of the boneyard war were driven here, deeper and deeper. The deeper you go, the worse it gets. The quarantine leaks back through the frame \u2014 soul sand takes whatever stands beside the portal.",
-  "seed": -579406806336973831,
+  "seed": -10966878617603435,
   "biomes": [
     "minecraft:soul_sand_valley",
     "minecraft:basalt_deltas",
@@ -80,7 +80,7 @@
   },
   "spawn": [
     128,
-    32,
+    89,
     -128
   ],
   "exitPortal": {

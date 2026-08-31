@@ -1,7 +1,7 @@
 {
   "type": "multi_biome",
   "description": "Piglin architecture at its most dramatic \u2014 basalt pillars standing in lava, bridges slung between columns, a bastion anchoring the centre. They built upward here, into the dark, and there has never been a sky over it.",
-  "seed": -1913488333391510258,
+  "seed": -8231015609373989591,
   "biomes": [
     {
       "id": "minecraft:basalt_deltas",
@@ -136,7 +136,7 @@
   },
   "spawn": [
     -128,
-    94,
+    67,
     128
   ],
   "noiseSettings": "adventure:compressed",

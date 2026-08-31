@@ -1,7 +1,7 @@
 {
   "type": "multi_biome",
   "description": "A pocket of tidal shallows \u2014 rock pools, gull-grey cliffs and a drowned wreck glinting under clear water. No civilisation ever claimed this; the animals have always had it. The wreck is the only evidence anyone else was ever here.",
-  "seed": 2983980111576863878,
+  "seed": 7874909944384856008,
   "biomes": [
     {
       "id": "regions_unexplored:rocky_reef",
@@ -197,7 +197,7 @@
   },
   "spawn": [
     128,
-    12,
+    64,
     192
   ]
 }

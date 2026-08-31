@@ -1,7 +1,7 @@
 {
   "type": "multi_biome",
   "description": "The gauntlet \u2014 the hardest overworld there is. Brutal peaks, ancient cities, trial chambers, and a keep. Crystal spires and ash barrens break the ridgelines where other worlds press against this one. Every reward is guarded and nothing here waits for dark. The humans who built here were testing themselves, not settling.",
-  "seed": 2463816094643731921,
+  "seed": 6366799653796305661,
   "noiseSettings": "adventure:compressed",
   "biomes": [
     "minecraft:windswept_hills",
@@ -169,7 +169,7 @@
   },
   "spawn": [
     -128,
-    35,
+    68,
     128
   ]
 }

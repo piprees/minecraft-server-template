@@ -1,7 +1,7 @@
 {
   "type": "multi_biome",
   "description": "Soul-sand meadows and grave fields without end \u2014 the piglin memorial dimension, always at midnight. The dead are the crop. You arrive in an empty plain and the graves begin some way out and thicken all the way to the edge. Nothing living is welcome.",
-  "seed": 4234822116952542873,
+  "seed": -2801941019599630829,
   "biomes": [
     {
       "id": "minecraft:soul_sand_valley",
@@ -160,7 +160,7 @@
   },
   "spawn": [
     -64,
-    11,
+    10,
     0
   ],
   "settingsOverrides": {

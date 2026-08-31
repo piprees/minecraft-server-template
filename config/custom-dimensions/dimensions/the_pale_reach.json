@@ -1,7 +1,7 @@
 {
   "type": "sky_islands",
   "description": "The pale desolate reach \u2014 calcite crags floating in white silence. The skylands' frozen edge, where even the animal kingdoms thin out. Remains and birdcages drift in the whiteness, built by hands that left no other trace.",
-  "seed": -7643220614713389876,
+  "seed": -1788836604001161885,
   "biomes": [
     {
       "id": "terralith:skylands_winter",
@@ -158,8 +158,8 @@
   },
   "spawn": [
     0,
-    37,
-    0
+    54,
+    -136
   ],
   "settingsOverrides": {
     "defaultBlock": "minecraft:stone",

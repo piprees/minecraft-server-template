@@ -1,7 +1,7 @@
 {
   "type": "void",
   "description": "A void where a frozen world used to be. The biomes remain \u2014 their cold, their fog, their sounds \u2014 but the ground does not. The disintegration finished here. Whatever broke this world left only the memory of ice.",
-  "seed": -2960875844048445372,
+  "seed": -7779457580041241280,
   "biomes": [
     {
       "id": "yungscavebiomes:frosted_caves",

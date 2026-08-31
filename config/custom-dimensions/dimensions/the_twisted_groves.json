@@ -1,7 +1,7 @@
 {
   "type": "multi_biome",
   "description": "Warped groves stacked into ridges and gorges under a nether sky with no sun, dry to the bedrock. The piglins avoided this place; the fungus here is older than their civilisation. Only the marsh at the heart of it holds still water, and whoever cleared it left a greatsword behind.",
-  "seed": -6818528904472711348,
+  "seed": 7730707883975153929,
   "noiseSettings": "adventure:compressed",
   "biomes": [
     {
@@ -190,7 +190,7 @@
   },
   "spawn": [
     192,
-    17,
+    36,
     -192
   ],
   "settingsOverrides": {

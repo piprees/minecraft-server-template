@@ -1,7 +1,7 @@
 {
   "type": "multi_biome",
   "description": "Broad warm shallows and mirage isles. Wrecks and drowned ruins under clear water \u2014 ships that tried to cross and didn't make it. The ocean doesn't care about civilisation; it just collects the debris.",
-  "seed": -225263123829053194,
+  "seed": -8451995168785269352,
   "noiseSettings": "adventure:wide",
   "biomes": [
     {
@@ -207,7 +207,7 @@
   },
   "spawn": [
     64,
-    39,
+    63,
     -256
   ]
 }
