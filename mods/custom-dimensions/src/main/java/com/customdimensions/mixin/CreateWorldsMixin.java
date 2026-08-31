@@ -3,6 +3,7 @@ package com.customdimensions.mixin;
 import com.customdimensions.MultiverseServer;
 import com.customdimensions.config.DimensionConfig;
 import com.customdimensions.dimension.BiomeSuppression;
+import com.customdimensions.dimension.DimensionManager;
 import net.minecraft.registry.Registry;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.server.MinecraftServer;
@@ -57,7 +58,9 @@ public class CreateWorldsMixin {
         if (options == null) {
             return null;
         }
-        return BiomeSuppression.filterOptions(options, key.getValue().toString());
+        return BiomeSuppression.filterOptions(
+                DimensionManager.getInstance().reservedOptionsFor(key.getValue(), options),
+                key.getValue().toString());
     }
 
     @Redirect(
@@ -74,21 +77,22 @@ public class CreateWorldsMixin {
             registry.getEntrySet().stream()
                 .filter(entry -> entry.getKey().equals(DimensionOptions.OVERWORLD)
                         || DimensionConfig.RESERVED_DIMENSION_IDS.contains(entry.getKey().getValue().toString()))
-                // Reserved dimensions are mod-controlled like every other world:
-                // suppress.biomes filters the options vanilla constructs
-                // from, right here at the one seam that defines them.
-                // Construction-only — nothing is written back to the
-                // registry or level.dat. The overworld is skipped: vanilla's
-                // loop skips it too, and the fetch redirect above already
-                // filtered the copy it is actually built from.
+                // Reserved dimensions are mod-controlled like every other
+                // world: their config builds the generator and suppress.biomes
+                // filters it, right here at the one seam that defines them.
+                // Construction-only — nothing is written back to the registry
+                // or level.dat. The overworld is skipped: vanilla's loop skips
+                // it too, and the fetch redirect above already built the copy
+                // it is actually constructed from.
                 .map(entry -> {
                     if (entry.getKey().equals(DimensionOptions.OVERWORLD)) {
                         return entry;
                     }
-                    DimensionOptions withSuppression = BiomeSuppression.filterOptions(
-                            entry.getValue(), entry.getKey().getValue().toString());
-                    return withSuppression == entry.getValue() ? entry
-                            : Map.entry(entry.getKey(), withSuppression);
+                    DimensionOptions built = BiomeSuppression.filterOptions(
+                            DimensionManager.getInstance().reservedOptionsFor(
+                                    entry.getKey().getValue(), entry.getValue()),
+                            entry.getKey().getValue().toString());
+                    return built == entry.getValue() ? entry : Map.entry(entry.getKey(), built);
                 })
                 .collect(Collectors.toSet());
 

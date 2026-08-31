@@ -926,6 +926,69 @@ public class DimensionManager {
     }
 
     /**
+     * The family's own declared source, for a dimension whose live generator
+     * carries none.
+     *
+     * <p>A mod that replaces the nether's or the End's generator leaves that
+     * world with a biome source nothing here can read: no climate sample, no
+     * band placement, and a layout that does not move with the seed. The
+     * datapack entry the replacement displaced still declares that family's
+     * own biomes with their own cells, so restoring it as the source adds no
+     * biome the family did not already have, and needs nothing written in a
+     * config to reach.
+     *
+     * <p>Null when the live source is already multi-noise — there is then
+     * nothing to restore — or when the datapack declares none.
+     */
+    /** Families already reported by {@link #declaredFamilySource}. */
+    private static final java.util.Set<RegistryKey<DimensionOptions>> FAMILY_SOURCE_REPORTED =
+            java.util.concurrent.ConcurrentHashMap.newKeySet();
+
+    private BiomeSource declaredFamilySource(ChunkGenerator baseGenerator) {
+        if (baseGenerator == null || multiNoiseOf(baseGenerator) != null) {
+            return null;
+        }
+        RegistryKey<DimensionOptions> family = reservedFamilyOf(baseGenerator);
+        if (family == null) {
+            return null;
+        }
+        MultiNoiseBiomeSource declared = DatapackDimensions.multiNoiseFor(this.server, family);
+        if (declared == null) {
+            return null;
+        }
+        // The datapack table is NOT the family's biome set. A BCLib family adds
+        // its biomes at runtime through its own BiomeMap, so handing the
+        // declared table back raw drops every biome the datapack never named —
+        // measured: the nether keeps 13 of 40, the End 6 of 27. Mix the LIVE
+        // source's own biomes over it instead, so those that declare cells
+        // hold their windows and the rest are placed as filler by this mod
+        // rather than by the source being replaced.
+        Registry<Biome> biomeRegistry = this.server.getCombinedDynamicRegistries()
+                .getCombinedRegistryManager().get(RegistryKeys.BIOME);
+        String liveList = baseGenerator.getBiomeSource().getBiomes().stream()
+                .map(entry -> entry.getKey().map(RegistryKey::getValue).orElse(null))
+                .filter(id -> id != null)
+                .map(Identifier::toString)
+                .distinct()
+                .collect(Collectors.joining(","));
+        BiomeSource mixed = liveList.isEmpty() ? null
+                : buildMixedSource(declared, biomeRegistry, liveList,
+                        family.getValue().getPath(), List.of(),
+                        declaredCellsForFamily(family, biomeRegistry));
+        // Once per family, not once per build: this runs on the headless path
+        // too, which a roll walks once per seed measured ([T74]).
+        if (FAMILY_SOURCE_REPORTED.add(family)) {
+            MultiverseServer.LOGGER.info(
+                    "Family {}: live source {} is not multi-noise — composed from its own {} "
+                    + "biome(s) over the datapack's {} declared",
+                    family.getValue(), baseGenerator.getBiomeSource().getClass().getSimpleName(),
+                    liveList.isEmpty() ? 0 : liveList.split(",").length,
+                    declared.getBiomes().size());
+        }
+        return mixed != null ? mixed : declared;
+    }
+
+    /**
      * The cells other mods declared for the family {@code base} belongs to,
      * empty for any other source.
      *
@@ -1227,6 +1290,9 @@ public class DimensionManager {
                     // nether's layout (overworld greenery under the roof, end
                     // crystal fields — cross-family is deliberate).
                     BiomeSource mixed = this.resolveListedSource(def, biomeRegistry, gen, overworldOpts.chunkGenerator());
+                    if (mixed == null) {
+                        mixed = this.declaredFamilySource(gen);
+                    }
                     if (mixed != null && gen instanceof NoiseChunkGenerator noiseGen) {
                         gen = new NoiseChunkGenerator(mixed, noiseGen.getSettings());
                     }
@@ -1239,6 +1305,9 @@ public class DimensionManager {
                 if (source != null) {
                     ChunkGenerator gen = source.chunkGenerator();
                     BiomeSource mixed = this.resolveListedSource(def, biomeRegistry, gen, overworldOpts.chunkGenerator());
+                    if (mixed == null) {
+                        mixed = this.declaredFamilySource(gen);
+                    }
                     if (mixed != null && gen instanceof NoiseChunkGenerator noiseGen) {
                         gen = new NoiseChunkGenerator(mixed, noiseGen.getSettings());
                     }
@@ -1324,6 +1393,9 @@ public class DimensionManager {
                     if (source != null) {
                         ChunkGenerator gen = source.chunkGenerator();
                         BiomeSource mixed = this.resolveListedSource(def, biomeRegistry, gen, overworldOpts.chunkGenerator());
+                        if (mixed == null) {
+                            mixed = this.declaredFamilySource(gen);
+                        }
                         if (mixed != null && gen instanceof NoiseChunkGenerator noiseGen) {
                             gen = new NoiseChunkGenerator(mixed, noiseGen.getSettings());
                         }
@@ -1710,6 +1782,40 @@ public class DimensionManager {
     }
 
     /**
+     * The options a RESERVED dimension is constructed from: its own config's,
+     * built by the path every other dimension uses.
+     *
+     * <p>Construction only. {@code CreateWorldsMixin} hands the result to
+     * vanilla's world builder and nothing goes back to the DIMENSION
+     * registry, so level.dat keeps the entry the pack's datapacks wrote and
+     * a jar without this mod still loads the world.
+     *
+     * <p>A config asking for nothing rebuilds to the live generator, so this
+     * is an identity until a reserved file declares a biome list, a patch or
+     * an override. Any failure keeps the live options: a reserved dimension
+     * that fails to build is the overworld failing to exist.
+     */
+    public DimensionOptions reservedOptionsFor(Identifier dimensionId, DimensionOptions live) {
+        if (this.server == null || live == null) {
+            return live;
+        }
+        DimensionConfig def = MultiverseConfig.getInstance()
+                .getReservedDimension(dimensionId.toString());
+        if (def == null) {
+            return live;
+        }
+        try {
+            DimensionOptions built = this.createDimensionOptions(def);
+            return built != null ? built : live;
+        } catch (Exception e) {
+            MultiverseServer.LOGGER.error(
+                    "Reserved dimension {}: config build failed — vanilla's generator stands",
+                    dimensionId, e);
+            return live;
+        }
+    }
+
+    /**
      * The generator and dimension type a config would produce, built without
      * creating (or touching) a ServerWorld. Exists so the seed roller can
      * sample a dimension it has no world for, via the same
@@ -1993,12 +2099,10 @@ public class DimensionManager {
 
     public void requestWorldLoad(String name) {
         // Reserved dimensions queue here too — CreateWorldsMixin defers them
-        // exactly like a custom dimension, so the guard must check
-        // getReservedDimensionBySlug() as well as getCustomDimension(), or a
-        // reserved-dimension load request is silently dropped despite
-        // reporting success.
-        if (MultiverseConfig.getInstance().getCustomDimension(name) != null
-                || MultiverseConfig.getInstance().getReservedDimensionBySlug(name) != null) {
+        // exactly like a custom dimension, so the guard resolves by slug
+        // across both, or a reserved-dimension load request is silently
+        // dropped despite reporting success.
+        if (MultiverseConfig.getInstance().getDimensionBySlug(name) != null) {
             this.pendingWorldLoads.add(name);
         }
     }
