@@ -29,16 +29,22 @@ public final class ProjectedSource {
     /**
      * climate-axes.json's key per axis, in the order a hypercube declares them.
      *
-     * <p>{@code depth} is deliberately absent. It is not a noise field the
-     * router narrows — it is linear in y — so its authored range already means
-     * in this world what it meant where it was written, and remapping it would
-     * move a surface band underground. It is also measured at a single height
-     * ([T58]), so the window recorded for it is not the range the world crosses.
+     * <p>{@code depth} is deliberately absent. Where the router keeps it in
+     * schema it is a surface band, so its authored range already means in this
+     * world what it meant where it was written, and remapping it would move
+     * that band underground. It is also measured at a single height ([T58]),
+     * so the window recorded for it is not the range the world crosses.
+     *
+     * <p>That leaves it authored, not unexamined — see
+     * {@link #depthCarriesNoInformation}.
      */
     private static final String[] AXIS_KEY = {"temp", "humid", "cont", "eros", null, "weird"};
 
     /** The hypercube axis {@link #AXIS_KEY} leaves alone. */
     static final int DEPTH = 4;
+
+    /** The schema every declared parameter is bound to, either side of zero. */
+    private static final double SCHEMA_LIMIT = 2.0;
 
     /**
      * Fewest distinct sampled values an axis needs before it is projected onto.
@@ -53,12 +59,15 @@ public final class ProjectedSource {
 
     private static Map<String, List<WindowProjection.Window>> windows = new LinkedHashMap<>();
 
+    private static Map<String, WindowProjection.Window> depthWindows = new LinkedHashMap<>();
+
     private ProjectedSource() {
     }
 
     /** Reads climate-axes.json. Absent or unreadable leaves every dimension unprojected. */
     public static void load(Path configDir) {
         windows = new LinkedHashMap<>();
+        depthWindows = new LinkedHashMap<>();
         Path file = configDir.resolve("climate-axes.json");
         if (!Files.isRegularFile(file)) {
             MultiverseServer.LOGGER.info(
@@ -69,11 +78,25 @@ public final class ProjectedSource {
         try {
             JsonObject doc = com.google.gson.JsonParser.parseString(Files.readString(file))
                     .getAsJsonObject();
-            windows = parse(doc);
-            MultiverseServer.LOGGER.info("Loaded measured climate windows for {} dimension(s)",
-                    windows.size());
+            apply(doc);
         } catch (Exception e) {
             MultiverseServer.LOGGER.warn("climate-axes.json unreadable — no dimension is projected", e);
+        }
+    }
+
+    /** Takes a parsed climate-axes document as the live measurement set. */
+    static void apply(JsonObject doc) {
+        windows = parse(doc);
+        depthWindows = parseDepth(doc);
+        MultiverseServer.LOGGER.info("Loaded measured climate windows for {} dimension(s)",
+                windows.size());
+        for (Map.Entry<String, WindowProjection.Window> e : depthWindows.entrySet()) {
+            if (depthCarriesNoInformation(e.getValue())) {
+                MultiverseServer.LOGGER.info(
+                        "Dimension {}: sampled depth {}..{} lies outside the declared schema "
+                        + "±{} — depth is opened on every cell and does not place biomes",
+                        e.getKey(), e.getValue().lo(), e.getValue().hi(), SCHEMA_LIMIT);
+            }
         }
     }
 
@@ -106,6 +129,52 @@ public final class ProjectedSource {
         return out;
     }
 
+    /**
+     * The measured depth window per dimension slug. Kept apart from
+     * {@link #parse} because depth is not projected onto: this is read to
+     * decide whether the axis can place anything at all, not to remap it.
+     */
+    static Map<String, WindowProjection.Window> parseDepth(JsonObject doc) {
+        Map<String, WindowProjection.Window> out = new LinkedHashMap<>();
+        JsonElement per = doc.get("perDimension");
+        if (per == null || !per.isJsonObject()) {
+            return out;
+        }
+        for (Map.Entry<String, JsonElement> e : per.getAsJsonObject().entrySet()) {
+            if (!e.getValue().isJsonObject()) {
+                continue;
+            }
+            JsonElement axes = e.getValue().getAsJsonObject().get("axes");
+            if (axes == null || !axes.isJsonObject()) {
+                continue;
+            }
+            WindowProjection.Window depth = windowOf(axes.getAsJsonObject().get("depth"));
+            if (depth != null) {
+                out.put(e.getKey(), depth);
+            }
+        }
+        return out;
+    }
+
+    /**
+     * Whether a sampled depth window can rank one declared cell above another.
+     *
+     * <p>Vanilla binds every declared parameter to ±{@value #SCHEMA_LIMIT}, so a
+     * window disjoint from that puts every cell strictly on the same side of
+     * every sample. What survives is a ranking by which cell declared the
+     * highest bound — the same answer everywhere, carrying nothing about where
+     * in the world the sample came from, and dwarfing the five axes that do
+     * carry something ([T76]).
+     *
+     * <p>Sampled-but-in-schema is left alone even when it overruns slightly:
+     * there the axis still separates cells by position, and opening it would
+     * discard real signal.
+     */
+    static boolean depthCarriesNoInformation(WindowProjection.Window depth) {
+        return depth != null
+                && (depth.hi() < -SCHEMA_LIMIT || depth.lo() > SCHEMA_LIMIT);
+    }
+
     private static WindowProjection.Window windowOf(JsonElement axis) {
         if (axis == null || !axis.isJsonObject()) {
             return null;
@@ -133,13 +202,17 @@ public final class ProjectedSource {
      *
      * <p>Returns the input unchanged when the dimension has no measured window,
      * when nothing is declared, or when no axis survives the collapse filter —
-     * every one of which is a refusal to guess rather than a failure.
+     * every one of which is a refusal to guess rather than a failure. Depth is
+     * opened on every one of those paths where the measurement says it places
+     * nothing, because that judgement is about the axis alone and does not
+     * depend on whether the other five projected.
      */
     public static <T> Projected<T> project(
             List<Pair<MultiNoiseUtil.NoiseHypercube, T>> declared, String dimName) {
+        boolean openDepth = depthCarriesNoInformation(depthWindows.get(dimName));
         List<WindowProjection.Window> window = windows.get(dimName);
         if (window == null || declared == null || declared.isEmpty()) {
-            return new Projected<>(declared, 1.0);
+            return new Projected<>(openDepth ? withOpenDepth(declared) : declared, 1.0);
         }
         List<WindowProjection.Cell<Pair<MultiNoiseUtil.NoiseHypercube, T>>> cells = new ArrayList<>();
         for (Pair<MultiNoiseUtil.NoiseHypercube, T> entry : declared) {
@@ -151,11 +224,11 @@ public final class ProjectedSource {
             MultiverseServer.LOGGER.warn(
                     "Dimension {}: no climate axis carries enough variation to place on — "
                     + "{} declared cell(s) left as authored", dimName, declared.size());
-            return new Projected<>(declared, 1.0);
+            return new Projected<>(openDepth ? withOpenDepth(declared) : declared, 1.0);
         }
         List<Pair<MultiNoiseUtil.NoiseHypercube, T>> out = new ArrayList<>();
         for (WindowProjection.Cell<Pair<MultiNoiseUtil.NoiseHypercube, T>> cell : result.cells()) {
-            out.add(Pair.of(toHypercube(cell), cell.value().getSecond()));
+            out.add(Pair.of(toHypercube(cell, openDepth), cell.value().getSecond()));
         }
         MultiverseServer.LOGGER.info(
                 "Dimension {}: projected {} declared cell(s) into its own window "
@@ -191,15 +264,38 @@ public final class ProjectedSource {
      */
     static <T> MultiNoiseUtil.NoiseHypercube toHypercube(
             WindowProjection.Cell<Pair<MultiNoiseUtil.NoiseHypercube, T>> cell) {
+        return toHypercube(cell, false);
+    }
+
+    /** As above; {@code openDepth} replaces the authored depth with {@link #OPEN}. */
+    static <T> MultiNoiseUtil.NoiseHypercube toHypercube(
+            WindowProjection.Cell<Pair<MultiNoiseUtil.NoiseHypercube, T>> cell, boolean openDepth) {
         MultiNoiseUtil.NoiseHypercube original = cell.value().getFirst();
         return new MultiNoiseUtil.NoiseHypercube(
                 rangeOf(cell.axes().get(0)),
                 rangeOf(cell.axes().get(1)),
                 rangeOf(cell.axes().get(2)),
                 rangeOf(cell.axes().get(3)),
-                original.depth(),
+                openDepth ? OPEN : original.depth(),
                 rangeOf(cell.axes().get(5)),
                 Math.round(Math.min(1.0, cell.offset()) * SCALE));
+    }
+
+    /** Every cell with depth opened and all five other axes exactly as given. */
+    private static <T> List<Pair<MultiNoiseUtil.NoiseHypercube, T>> withOpenDepth(
+            List<Pair<MultiNoiseUtil.NoiseHypercube, T>> declared) {
+        if (declared == null || declared.isEmpty()) {
+            return declared;
+        }
+        List<Pair<MultiNoiseUtil.NoiseHypercube, T>> out = new ArrayList<>(declared.size());
+        for (Pair<MultiNoiseUtil.NoiseHypercube, T> entry : declared) {
+            MultiNoiseUtil.NoiseHypercube h = entry.getFirst();
+            out.add(Pair.of(new MultiNoiseUtil.NoiseHypercube(
+                    h.temperature(), h.humidity(), h.continentalness(),
+                    h.erosion(), OPEN, h.weirdness(), h.offset()),
+                    entry.getSecond()));
+        }
+        return out;
     }
 
     /** The game's fixed point: a climate value is stored as {@code v * 10000}. */

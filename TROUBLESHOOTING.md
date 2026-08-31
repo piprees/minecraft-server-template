@@ -1354,6 +1354,40 @@ measurement of it.
   built under another. Freeze it across the roll; regenerate after a wipe, where
   it reaches only dimensions created later.
 
+<a id="t76"></a>
+### T76 — An End-settings dimension samples depth 40–80, and the highest-declared-depth biome takes the map
+
+- **Symptom:** a dimension built on End settings places one biome almost
+  everywhere. `the_blighted_maw` measured `incendium:infernal_dunes` at 85.6% of
+  1681 cells over 14 distinct biomes, and that biome holds the highest depth
+  bound of the dimension's 40 cells.
+- **Cause:** `end`, `nether_islands` and `sky_islands` all build on
+  `endGen.getSettings()`. Vanilla's End never used multi-noise placement, so
+  `minecraft:end`'s router was never required to emit a normalised depth, and
+  the dimensions borrowing it sample 40–80 where every declared cell is bound to
+  ±2. Every cell is then on the same side of every sample, so the axis ranks
+  purely by which cell declared the highest bound. Against a sample of 70 two
+  cells 0.062 apart differ by `0.062 x 2 x 70 = 8.65` in squared distance, which
+  the five axes that do vary cannot overturn.
+- **Measured at every height, not just the diagnostic's.** `customdim
+  column-ladder` reads the router's own `depth()` per y: 67.04..73.64 across the
+  column, slope -0.0018/block and non-monotone. It is out of schema where the
+  lookup reads it (quart y=16), so it is not a sampling-height artefact.
+- **Fix:** `ProjectedSource.depthCarriesNoInformation` opens depth on every cell
+  where the dimension's measured window in `climate-axes.json` does not
+  intersect ±2. Opening equalises the term rather than removing it — every cell
+  then sits at the same distance — so depth drops out of the ranking and the
+  five informative axes decide. Ten dimensions qualify; the boot log names each.
+- **A dimension whose depth bounds barely vary will not move, and that is
+  correct.** The change is worth the spread of the declared bounds:
+  `the_blighted_maw` (spread 0.750) went to 18 distinct topped at 26.9%, while
+  `the_pale_reach` (9 of 9 cells already open) and `the_shattered_skies` (spread
+  0.005) are unchanged to the digit.
+- **`sample-climate-grid.sh` reports depth at y=0 while `customdim facts`
+  resolves the biome at block y=64.** The header's old advice to subtract 0.5 for
+  the difference assumes a -1/128 gradient that these routers do not have. Do
+  not correct one to the other; sample the height you mean.
+
 <a id="t75"></a>
 ### T75 — Replacing a mod's biome source crash-loops the boot on a mixin that already agreed to stand down
 

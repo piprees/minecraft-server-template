@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -226,5 +227,139 @@ class ProjectedSourceTest {
     void anEmptyPaletteAppliesNoFactor() {
         assertEquals(1.0, ProjectedSource.project(
                 List.<Pair<MultiNoiseUtil.NoiseHypercube, String>>of(), "anything").appliedFactor());
+    }
+
+    // ------------------------------------------------- depth out of schema
+
+    /**
+     * Sampled depth from the ten End-settings dimensions that carry no
+     * {@code noiseSettings} override; every declared cell sits in ±2, so the
+     * axis ranks by declared bound alone and places nothing ([T76]).
+     */
+    private static final String OUT_OF_SCHEMA_DOC = """
+            {"perDimension": {
+              "the_blighted_maw": {"grid": 41, "axes": {
+                 "temp":  {"span": 0.3, "distinct": 255, "min": -0.23, "max": 0.07},
+                 "humid": {"span": 0.6, "distinct": 545, "min": -0.49, "max": 0.13},
+                 "cont":  {"span": 1.7, "distinct": 862, "min": -0.98, "max": 0.77},
+                 "eros":  {"span": 0.7, "distinct": 602, "min": -0.35, "max": 0.35},
+                 "weird": {"span": 1.0, "distinct": 500, "min": -0.5,  "max": 0.5},
+                 "depth": {"span": 40.0, "distinct": 929, "min": 40.0, "max": 80.0}}},
+              "the_catalyst_maw": {"grid": 41, "axes": {
+                 "temp":  {"span": 0.3, "distinct": 255, "min": -0.23, "max": 0.07},
+                 "humid": {"span": 0.6, "distinct": 545, "min": -0.49, "max": 0.13},
+                 "cont":  {"span": 1.7, "distinct": 862, "min": -0.98, "max": 0.77},
+                 "eros":  {"span": 0.7, "distinct": 602, "min": -0.35, "max": 0.35},
+                 "weird": {"span": 1.0, "distinct": 500, "min": -0.5,  "max": 0.5},
+                 "depth": {"span": 1.254, "distinct": 587, "min": 0.046, "max": 1.3}}}}}
+            """;
+
+    @Test
+    void aDepthWindowDisjointFromTheSchemaPlacesNothing() {
+        assertTrue(ProjectedSource.depthCarriesNoInformation(
+                new WindowProjection.Window(40.0, 80.0, 929)),
+                "no declared cell can reach 40..80, so every one is on the same side");
+    }
+
+    @Test
+    void aDepthWindowInsideTheSchemaIsLeftAlone() {
+        assertFalse(ProjectedSource.depthCarriesNoInformation(
+                new WindowProjection.Window(0.046, 1.3, 587)),
+                "depth still separates cells by position here");
+    }
+
+    @Test
+    void aDepthWindowOverrunningTheSchemaSlightlyIsLeftAlone() {
+        // the_amplified_reaches reads 0.264..2.155. It overlaps the schema, so
+        // the axis still ranks by position and opening it would drop real signal.
+        assertFalse(ProjectedSource.depthCarriesNoInformation(
+                new WindowProjection.Window(0.264, 2.155, 551)));
+    }
+
+    @Test
+    void anUnmeasuredDepthWindowIsLeftAlone() {
+        assertFalse(ProjectedSource.depthCarriesNoInformation(null));
+    }
+
+    @Test
+    void anOutOfSchemaDimensionHasDepthOpenedOnEveryCell() {
+        ProjectedSource.apply(JsonParser.parseString(OUT_OF_SCHEMA_DOC).getAsJsonObject());
+        List<Pair<MultiNoiseUtil.NoiseHypercube, String>> declared = List.of(
+                Pair.of(cube(-0.2, -0.1, range(0.25, 0.25), 0.15), "infernal_dunes"),
+                Pair.of(cube(-0.1, 0.0, range(0.188, 0.188), 0.0), "wart_forest"),
+                Pair.of(cube(0.0, 0.05, range(-0.5, -0.5), 0.26), "toxic_heap"));
+
+        for (Pair<MultiNoiseUtil.NoiseHypercube, String> cell
+                : ProjectedSource.project(declared, "the_blighted_maw").cells()) {
+            assertEquals(-20000L, cell.getFirst().depth().min(), cell.getSecond());
+            assertEquals(20000L, cell.getFirst().depth().max(), cell.getSecond());
+        }
+    }
+
+    @Test
+    void anInSchemaDimensionKeepsEveryAuthoredDepth() {
+        // the_catalyst_maw is the control: it carries a noiseSettings override,
+        // reads 0.046..1.3, and must come through this change unmoved.
+        ProjectedSource.apply(JsonParser.parseString(OUT_OF_SCHEMA_DOC).getAsJsonObject());
+        List<Pair<MultiNoiseUtil.NoiseHypercube, String>> declared = List.of(
+                Pair.of(cube(-0.2, -0.1, range(0.25, 0.25), 0.15), "a"),
+                Pair.of(cube(-0.1, 0.0, range(-0.5, -0.5), 0.0), "b"));
+
+        List<Pair<MultiNoiseUtil.NoiseHypercube, String>> out =
+                ProjectedSource.project(declared, "the_catalyst_maw").cells();
+
+        assertEquals(2500L, out.get(0).getFirst().depth().min(), "authored depth kept");
+        assertEquals(2500L, out.get(0).getFirst().depth().max(), "authored depth kept");
+        assertEquals(-5000L, out.get(1).getFirst().depth().min(), "authored depth kept");
+    }
+
+    /**
+     * The defect itself, as arithmetic on the real cells.
+     *
+     * <p>{@code incendium:infernal_dunes} declares the highest depth bound of
+     * the forty cells in {@code the_blighted_maw}. Against a sample of 70 it
+     * beats the next cell by {@code 0.062 x 2 x 70 = 8.65} in squared distance,
+     * which no combination of the five axes that do vary can overturn — so it
+     * takes every column. Opening depth is what lets them decide instead.
+     */
+    @Test
+    void openingDepthStopsTheHighestDeclaredCellTakingEveryColumn() {
+        ProjectedSource.apply(JsonParser.parseString(OUT_OF_SCHEMA_DOC).getAsJsonObject());
+        List<Pair<MultiNoiseUtil.NoiseHypercube, String>> declared = List.of(
+                Pair.of(cube(-0.23, -0.20, range(0.25, 0.25), 0.0), "infernal_dunes"),
+                Pair.of(cube(0.04, 0.07, range(0.188, 0.188), 0.0), "wart_forest"));
+
+        // A sample sitting squarely in wart_forest's temperature band, at the
+        // depth the router actually produces there.
+        long[] sample = {600L, 0L, 0L, 0L, 700000L, 0L};
+
+        assertEquals("infernal_dunes", nearest(declared, sample),
+                "unfixed: the max-depth cell wins even inside another cell's band");
+        assertEquals("wart_forest",
+                nearest(ProjectedSource.project(declared, "the_blighted_maw").cells(), sample),
+                "fixed: the five axes that vary decide it");
+    }
+
+    /** Vanilla's squared distance-to-range over six axes, plus offset squared. */
+    private static String nearest(List<Pair<MultiNoiseUtil.NoiseHypercube, String>> cells,
+                                  long[] point) {
+        String best = null;
+        long bestD = Long.MAX_VALUE;
+        for (Pair<MultiNoiseUtil.NoiseHypercube, String> cell : cells) {
+            MultiNoiseUtil.NoiseHypercube h = cell.getFirst();
+            List<MultiNoiseUtil.ParameterRange> axes = List.of(
+                    h.temperature(), h.humidity(), h.continentalness(),
+                    h.erosion(), h.depth(), h.weirdness());
+            long total = h.offset() * h.offset();
+            for (int i = 0; i < axes.size(); i++) {
+                long d = axes.get(i).getDistance(point[i]);
+                total += d * d;
+            }
+            if (total < bestD) {
+                bestD = total;
+                best = cell.getSecond();
+            }
+        }
+        return best;
     }
 }

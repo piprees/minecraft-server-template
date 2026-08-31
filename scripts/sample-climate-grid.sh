@@ -42,8 +42,11 @@
 #             while a background writer is still filling it produced "all 12
 #             bands empty" once; nothing errored, and 12 of 12 is simply not a
 #             believable answer. Row count is the cheap check: n*n exactly.
-#           - depth is reported at y=0 and is linear in y at -1/128 per block.
-#             `customdim facts` reads block y 64, so subtract 0.5 to compare.
+#           - depth is reported at y=0; `customdim facts` resolves the biome at
+#             block y 64. The two are NOT interconvertible: an End-settings
+#             router's depth is noise-dominated, not a -1/128 gradient (measured
+#             67.04..73.64 down one column, slope -0.0018/block). Sample the
+#             height you mean; see TROUBLESHOOTING.md#t76.
 #
 # Template-only (platform development); not in the bundle MANIFEST.
 set -euo pipefail
