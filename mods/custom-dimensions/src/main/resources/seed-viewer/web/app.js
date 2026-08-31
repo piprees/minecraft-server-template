@@ -631,6 +631,9 @@
       search: p.get('q') || '',
       flagged: p.get('flagged') === '1',
       maxScore: p.get('max-score') || '',
+      size: p.get('size') || '',
+      progress: p.get('progress') || '',
+      scale: p.get('scale') || '',
       shortlisted: p.get('shortlisted') === '1',
       ungrouped: p.get('ungrouped') === '1',
       showHidden: p.get('hidden') === '1',
@@ -647,6 +650,9 @@
     if (s.search) p.set('q', s.search)
     if (s.flagged) p.set('flagged', '1')
     if (s.maxScore) p.set('max-score', s.maxScore)
+    if (s.size) p.set('size', s.size)
+    if (s.progress) p.set('progress', s.progress)
+    if (s.scale) p.set('scale', s.scale)
     if (s.shortlisted) p.set('shortlisted', '1')
     if (s.ungrouped) p.set('ungrouped', '1')
     if (s.showHidden) p.set('hidden', '1')
@@ -689,6 +695,9 @@
   var searchEl = document.getElementById('f-search')
   var flaggedEl = document.getElementById('f-flagged')
   var maxScoreEl = document.getElementById('f-maxscore')
+  var sizeEl = document.getElementById('f-size')
+  var progressEl = document.getElementById('f-progress')
+  var scaleEl = document.getElementById('f-scale')
   var shortlistedEl = document.getElementById('f-shortlisted')
   var ungroupedEl = document.getElementById('f-ungrouped')
   var hiddenEl = document.getElementById('f-hidden')
@@ -703,6 +712,30 @@
   // filter exists to find.
   function below(el, limit) {
     return parseFloat(el.dataset.score || 0) < limit
+  }
+
+  // Where a dimension has got to, which is the roll's work queue: "unpicked"
+  // is everything still needing a decision, "empty" the ones no candidate has
+  // reached at all. data-pinned is written per card and was read by nothing.
+  function matchesProgress(spec, c) {
+    if (!spec) return true
+    if (spec === 'picked') return c.dataset.pinned === '1'
+    if (spec === 'unpicked') return c.dataset.pinned !== '1'
+    if (spec === 'empty') return parseInt(c.dataset.cands || '0', 10) === 0
+    return true
+  }
+
+  // "=1024" exact, "<2048" below, ">2048" above. One control per axis rather
+  // than a pair, because a min and a max that can contradict each other is two
+  // ways to spell an empty grid.
+  function matchesBound(spec, value) {
+    if (!spec) return true
+    if (!isFinite(value)) return false
+    var n = parseFloat(spec.slice(1))
+    if (!isFinite(n)) return true
+    if (spec.charAt(0) === '<') return value < n
+    if (spec.charAt(0) === '>') return value > n
+    return value === n
   }
 
   // A named seed (current, starting, best, shortlisted) keeps the place the
@@ -833,7 +866,8 @@
     if (state.family && state.family !== 'All') type.push(state.family)
     if (state.type) type.push(state.type)
     setMenuLabel('type-label', type.join(' · '))
-    var filters = ['mood', 'flagged', 'maxScore', 'shortlisted']
+    var filters =
+      ['mood', 'flagged', 'maxScore', 'size', 'scale', 'progress', 'shortlisted']
       .filter(function (k) { return state[k] }).length
     setMenuLabel('filters-label', filters ? String(filters) : '')
     var views = ['ungrouped', 'scatter', 'hidden', 'borders']
@@ -854,6 +888,9 @@
     searchEl.value = state.search
     flaggedEl.checked = state.flagged
     maxScoreEl.value = state.maxScore
+    if (sizeEl) sizeEl.value = state.size
+    if (progressEl) progressEl.value = state.progress
+    if (scaleEl) scaleEl.value = state.scale
     shortlistedEl.checked = state.shortlisted
     ungroupedEl.checked = state.ungrouped
     hiddenEl.checked = state.showHidden
@@ -874,9 +911,14 @@
         // The card's score is the dimension's BEST, so this asks "nothing here
         // reaches the bar" — the same question the flag asks at a fixed 80.
         var scr = !state.maxScore || below(c, parseFloat(state.maxScore))
+        var prg = matchesProgress(state.progress, c)
+        var siz = matchesBound(state.size, parseFloat(c.dataset.radius))
+        var scl = matchesBound(state.scale, parseFloat(c.dataset.dimScale))
         var shl = !state.shortlisted || c.querySelector('.cand[data-shortlisted]') !== null
         var hid = state.showHidden || c.dataset.hidden !== '1'
-        c.classList.toggle('hidden', !(fam && typ && moo && txt && flg && scr && shl && hid))
+        c.classList.toggle(
+          'hidden',
+          !(fam && typ && moo && txt && flg && scr && siz && scl && prg && shl && hid))
       })
       var visible = cards.filter(function (c) {
         return !c.classList.contains('hidden')
@@ -894,6 +936,24 @@
             )
           case 'candidates':
             return parseInt(b.dataset.cands) - parseInt(a.dataset.cands)
+          case 'candidates-asc':
+            return parseInt(a.dataset.cands) - parseInt(b.dataset.cands) ||
+              a.dataset.name.localeCompare(b.dataset.name)
+          // Ties are common — 34 of 82 dimensions share a 1024 border and 34
+          // share an 8x scale — so name breaks them rather than leaving the
+          // order to whatever the previous sort happened to leave behind.
+          case 'size-desc':
+            return parseFloat(b.dataset.radius) - parseFloat(a.dataset.radius) ||
+              a.dataset.name.localeCompare(b.dataset.name)
+          case 'size-asc':
+            return parseFloat(a.dataset.radius) - parseFloat(b.dataset.radius) ||
+              a.dataset.name.localeCompare(b.dataset.name)
+          case 'scale-desc':
+            return parseFloat(b.dataset.dimScale) - parseFloat(a.dataset.dimScale) ||
+              a.dataset.name.localeCompare(b.dataset.name)
+          case 'scale-asc':
+            return parseFloat(a.dataset.dimScale) - parseFloat(b.dataset.dimScale) ||
+              a.dataset.name.localeCompare(b.dataset.name)
           default:
             // The four reserved dimensions lead the default sort. Not strictly by
             // name, deliberately: they are the worlds every session starts
@@ -1025,6 +1085,24 @@
     state.maxScore = maxScoreEl.value
     applyState()
   })
+  if (sizeEl) {
+    sizeEl.addEventListener('change', function () {
+      state.size = sizeEl.value
+      applyState()
+    })
+  }
+  if (scaleEl) {
+    scaleEl.addEventListener('change', function () {
+      state.scale = scaleEl.value
+      applyState()
+    })
+  }
+  if (progressEl) {
+    progressEl.addEventListener('change', function () {
+      state.progress = progressEl.value
+      applyState()
+    })
+  }
   shortlistedEl.addEventListener('change', function () {
     state.shortlisted = shortlistedEl.checked
     applyState()

@@ -72,6 +72,38 @@
             >⚠<b>below&nbsp;{{SCORE_THRESHOLD}}</b></span
           ></label
         >
+        <select id="f-size" aria-label="Filter by border size">
+          <option value="">Any size</option>
+          <option value="=256">Exactly 256</option>
+          <option value="=512">Exactly 512</option>
+          <option value="=683">Exactly 683</option>
+          <option value="=1024">Exactly 1024</option>
+          <option value="=2048">Exactly 2048</option>
+          <option value="=4096">Exactly 4096</option>
+          <option value="=8192">Exactly 8192</option>
+          <option value="&lt;1024">Below 1024</option>
+          <option value="&lt;2048">Below 2048</option>
+          <option value="&lt;4096">Below 4096</option>
+          <option value="&gt;1024">Above 1024</option>
+          <option value="&gt;2048">Above 2048</option>
+        </select>
+        <select id="f-scale" aria-label="Filter by coordinate scale">
+          <option value="">Any scale</option>
+          <option value="=1">Exactly 1x</option>
+          <option value="=2">Exactly 2x</option>
+          <option value="=4">Exactly 4x</option>
+          <option value="=8">Exactly 8x</option>
+          <option value="=12">Exactly 12x</option>
+          <option value="=16">Exactly 16x</option>
+          <option value="&lt;8">Below 8x</option>
+          <option value="&gt;8">Above 8x</option>
+        </select>
+        <select id="f-progress" aria-label="Filter by pick progress">
+          <option value="">Any progress</option>
+          <option value="unpicked">Needs a pick</option>
+          <option value="picked">Picked</option>
+          <option value="empty">Nothing banked</option>
+        </select>
         <label class="icon-toggle" title="Shortlisted only">
           <input type="checkbox" id="f-shortlisted" /><span>★<b>shortlist</b></span></label
         >
@@ -86,6 +118,11 @@
       <option value="score-asc">Sort: Score ↑</option>
       <option value="family">Sort: Family</option>
       <option value="candidates">Sort: Most tested</option>
+      <option value="candidates-asc">Sort: Least tested</option>
+      <option value="size-desc">Sort: Size ↓</option>
+      <option value="size-asc">Sort: Size ↑</option>
+      <option value="scale-desc">Sort: Scale ↓</option>
+      <option value="scale-asc">Sort: Scale ↑</option>
     </select>
 
     <!-- View: everything that changes how the same set is DRAWN. -->
