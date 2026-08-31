@@ -178,14 +178,6 @@ public final class RollPipeline {
                     def -> banked(com.customdimensions.command.InputHash.of(def, server),
                             def.getDimensionIdentifier().toString())));
         }
-        // The configured seeds are SCORED first, always — the boards a roll
-        // ranks against are meaningless without them. Their renders are not
-        // waited on: queue order already puts a thumbnail ahead of a detail
-        // map, and the render cores are reserved from the measure budget, so
-        // drawing continues alongside the roll instead of delaying it.
-        if (PRIMING_MEASURE.get()) {
-            return "still scoring the configured seeds - try again when that finishes";
-        }
         if (!RUNNING.compareAndSet(false, true)) {
             return "a roll is already running";
         }
@@ -204,12 +196,58 @@ public final class RollPipeline {
         PASSED.set(0);
         SHORTLISTED.set(0);
         SHORTLIST_DONE.set(0);
-        STAGE.set("rolling");
+        STAGE.set(PRIMING_MEASURE.get() ? "waiting for the configured seeds" : "rolling");
         com.customdimensions.roll.CandidateRender.rolling(true);
-        Thread worker = new Thread(() -> run(server, targets, count), "customdim-roll");
+        Thread worker = new Thread(() -> {
+            if (awaitPriming()) {
+                run(server, targets, count);
+            } else {
+                finishCancelledBeforeStart();
+            }
+        }, "customdim-roll");
         worker.setDaemon(true);
         worker.start();
         return null;
+    }
+
+    /**
+     * Blocks the roll thread until the configured seeds are scored.
+     *
+     * <p>The boards a roll ranks against are meaningless without that
+     * baseline, so the wait is real — but it belongs on this thread rather
+     * than on the caller, who otherwise has to poll a refusal and guess when
+     * to retry. Renders are NOT waited on: the render cores are reserved from
+     * the measure budget, so drawing continues alongside.
+     *
+     * @return false when {@link #stop()} was called while waiting
+     */
+    private static boolean awaitPriming() {
+        boolean logged = false;
+        while (PRIMING_MEASURE.get()) {
+            if (CANCEL.get()) {
+                return false;
+            }
+            if (!logged) {
+                MultiverseServer.LOGGER.info(
+                        "Roll queued behind the configured-seed scoring; it starts when that finishes");
+                logged = true;
+            }
+            try {
+                Thread.sleep(1000L);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                return false;
+            }
+        }
+        STAGE.set("rolling");
+        return true;
+    }
+
+    /** Releases the run flags for a roll cancelled before it began. */
+    private static void finishCancelledBeforeStart() {
+        STAGE.set("idle");
+        com.customdimensions.roll.CandidateRender.rolling(false);
+        RUNNING.set(false);
     }
 
     public static void stop() {

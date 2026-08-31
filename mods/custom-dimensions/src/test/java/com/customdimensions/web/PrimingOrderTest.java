@@ -130,15 +130,31 @@ class PrimingOrderTest {
     }
 
     @Test
-    void aRollIsRefusedWhileTheConfiguredSeedsAreStillBeingScored() throws IOException {
+    void aRollRequestedDuringScoringIsQueuedRatherThanRefused() throws IOException {
         String src = read("RollPipeline.java");
-        int gate = src.indexOf("PRIMING_MEASURE.get()");
+        assertTrue(src.contains("private static boolean awaitPriming()"),
+                "start() must hand the wait to the roll thread");
+        assertTrue(!src.contains("still scoring the configured seeds"),
+                "a caller must not have to poll a refusal and guess when to retry");
         int running = src.indexOf("RUNNING.compareAndSet(false, true)");
-        assertTrue(gate > 0, "start() must check the priming-measure flag");
-        assertTrue(running > 0, "start() must still claim the RUNNING flag");
-        assertTrue(gate < running,
-                "the priming check belongs BEFORE the RUNNING claim, or a refused roll "
-                        + "leaves RUNNING set and every later roll is rejected");
+        int await = src.indexOf("awaitPriming()");
+        assertTrue(running > 0 && await > running,
+                "the wait belongs AFTER the RUNNING claim and on the worker thread, or "
+                        + "the HTTP caller blocks for the whole scoring pass");
+    }
+
+    @Test
+    void aRollCancelledWhileQueuedReleasesTheRunFlag() throws IOException {
+        String src = read("RollPipeline.java");
+        int start = src.indexOf("private static boolean awaitPriming()");
+        assertTrue(start > 0, "awaitPriming must exist");
+        String body = src.substring(start, src.indexOf("\n    }", start));
+        assertTrue(body.contains("CANCEL.get()"),
+                "the wait must break on stop(), or a queued roll cannot be cancelled");
+        assertTrue(src.contains("finishCancelledBeforeStart()")
+                        && src.contains("RUNNING.set(false)"),
+                "a roll cancelled before it began must clear RUNNING, or every later "
+                        + "roll is rejected with 'a roll is already running'");
     }
 
     @Test
