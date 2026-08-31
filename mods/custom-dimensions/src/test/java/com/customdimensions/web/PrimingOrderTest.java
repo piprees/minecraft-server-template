@@ -9,7 +9,8 @@ import java.nio.file.Path;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * The configured seeds are drawn before anything rolls.
+ * The configured seeds are SCORED before anything rolls, and drawn alongside
+ * whatever rolls next.
  *
  * <p>Both invariants live inside a lambda and a guard clause with no seam to
  * inject, so they are pinned against the source. The failure they guard is
@@ -129,14 +130,27 @@ class PrimingOrderTest {
     }
 
     @Test
-    void aRollIsRefusedWhilePrimingIsStillRunning() throws IOException {
+    void aRollIsRefusedWhileTheConfiguredSeedsAreStillBeingScored() throws IOException {
         String src = read("RollPipeline.java");
-        int gate = src.indexOf("RenderQueue.priming()");
+        int gate = src.indexOf("PRIMING_MEASURE.get()");
         int running = src.indexOf("RUNNING.compareAndSet(false, true)");
-        assertTrue(gate > 0, "start() must check the priming flag");
+        assertTrue(gate > 0, "start() must check the priming-measure flag");
         assertTrue(running > 0, "start() must still claim the RUNNING flag");
         assertTrue(gate < running,
                 "the priming check belongs BEFORE the RUNNING claim, or a refused roll "
                         + "leaves RUNNING set and every later roll is rejected");
+    }
+
+    @Test
+    void drawingTheConfiguredSeedsDoesNotHoldTheRollShut() throws IOException {
+        String src = read("RollPipeline.java");
+        int cleared = src.indexOf("PRIMING_MEASURE.set(false);\n                awaitRenders(");
+        assertTrue(cleared > 0,
+                "the measure flag must be cleared BEFORE awaitRenders, or the roll waits on "
+                        + "renders it does not need and the reserved render cores idle through "
+                        + "the whole screen");
+        assertTrue(src.contains("while (!CANCEL.get() && !RUNNING.get())"),
+                "awaitRenders must stand down once a roll owns the queue: pending() is the "
+                        + "whole queue, so it never reaches zero while candidates are banking");
     }
 }

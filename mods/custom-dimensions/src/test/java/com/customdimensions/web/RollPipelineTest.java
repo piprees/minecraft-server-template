@@ -16,7 +16,9 @@ import java.util.concurrent.ExecutorService;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * The pure decisions {@code RollPipeline} makes without a live server — which
@@ -127,7 +129,7 @@ class RollPipelineTest {
     }
 
     @Test
-    @DisplayName("nothing is written when the candidate has no recorded spawn")
+    @DisplayName("no recorded spawn and no banked grid writes nothing")
     void spawnToPromoteIsNullWhenUnmeasured() {
         SeedFacts facts = fixtureFacts(
                 Measured.absent("no safe column found"), Measured.absent("no safe column found"));
@@ -136,7 +138,7 @@ class RollPipelineTest {
     }
 
     @Test
-    @DisplayName("nothing is written when only half the spawn was measured")
+    @DisplayName("half a spawn and no banked grid writes nothing")
     void spawnToPromoteIsNullWhenOnlyHalfMeasured() {
         SeedFacts facts = fixtureFacts(
                 Measured.of(new SeedFacts.Column(1, 2, true)), Measured.absent("surface unmeasured"));
@@ -270,5 +272,133 @@ class RollPipelineTest {
         assertDoesNotThrow(() -> RollPipeline.class.getDeclaredMethod("rollOne",
                 MinecraftServer.class, DimensionConfig.class, int.class,
                 ExecutorService.class, int.class));
+    }
+
+    // --- allLayoutsIdentical: the seed-invariance detector (B6) --------------
+
+    @Test
+    @DisplayName("a board whose candidates all share one biome layout is flagged")
+    void identicalLayoutsAreFlagged() {
+        java.util.Map<String, Double> layout =
+                java.util.Map.of("minecraft:nether_wastes", 0.6, "minecraft:crimson_forest", 0.4);
+        assertTrue(RollPipeline.allLayoutsIdentical(List.of(layout, layout, layout)));
+    }
+
+    @Test
+    @DisplayName("one differing candidate is enough to clear the flag")
+    void oneDifferentLayoutClearsIt() {
+        java.util.Map<String, Double> a = java.util.Map.of("minecraft:nether_wastes", 1.0);
+        java.util.Map<String, Double> b = java.util.Map.of("minecraft:nether_wastes", 0.9,
+                "incendium:quartz_flats", 0.1);
+        assertFalse(RollPipeline.allLayoutsIdentical(List.of(a, a, b)));
+    }
+
+    @Test
+    @DisplayName("equal shares under a different biome set are not identical")
+    void sameSharesDifferentBiomesAreNotIdentical() {
+        assertFalse(RollPipeline.allLayoutsIdentical(List.of(
+                java.util.Map.of("minecraft:the_end", 1.0),
+                java.util.Map.of("nullscape:shadowlands", 1.0))));
+    }
+
+    @Test
+    @DisplayName("one candidate is not a comparison, so it is never flagged")
+    void oneCandidateIsNotEvidence() {
+        assertFalse(RollPipeline.allLayoutsIdentical(
+                List.of(java.util.Map.of("minecraft:the_end", 1.0))));
+    }
+
+    @Test
+    @DisplayName("empty and null layouts are absent measurements, not identical ones")
+    void absentMeasurementsAreNotEvidence() {
+        java.util.List<java.util.Map<String, Double>> empties = new ArrayList<>();
+        empties.add(java.util.Map.of());
+        empties.add(null);
+        empties.add(java.util.Map.of());
+        assertFalse(RollPipeline.allLayoutsIdentical(empties));
+        assertFalse(RollPipeline.allLayoutsIdentical(List.of()));
+        assertFalse(RollPipeline.allLayoutsIdentical(null));
+    }
+
+    @Test
+    @DisplayName("unusable layouts are skipped, and the usable ones still decide")
+    void unusableLayoutsAreSkippedNotCounted() {
+        java.util.Map<String, Double> layout = java.util.Map.of("minecraft:the_end", 1.0);
+        java.util.List<java.util.Map<String, Double>> mixed = new ArrayList<>();
+        mixed.add(null);
+        mixed.add(layout);
+        mixed.add(java.util.Map.of());
+        mixed.add(layout);
+        assertTrue(RollPipeline.allLayoutsIdentical(mixed));
+    }
+
+    // --- B5: an unmeasured declared column must still reach the grid ---------
+
+    @Test
+    @DisplayName("an UNMEASURED declared column falls back to the grid, not to nothing")
+    void spawnToPromoteFallsBackToTheGridWhenTheDeclaredColumnIsUnmeasured() {
+        // The void between islands: the generator answers no surface at all,
+        // so the height is ABSENT rather than a below-floor number. Index 7
+        // is (0,-500) and real.
+        SeedFacts.Grid grid = fixtureGrid(5, List.of(),
+                java.util.Map.of(7, 70), java.util.Map.of());
+        SeedFacts facts = fixtureFacts(1000,
+                Measured.of(new SeedFacts.Column(0, 0, true)),
+                Measured.absent("the generator answered no surface height at spawn"),
+                Measured.of(grid));
+
+        assertArrayEquals(new int[]{0, 70, -500}, RollPipeline.spawnToPromote(facts, PLAIN_DIM));
+    }
+
+    @Test
+    @DisplayName("an absent column and an absent height still reach the grid")
+    void spawnToPromoteFallsBackToTheGridWhenNothingAboutSpawnWasMeasured() {
+        SeedFacts.Grid grid = fixtureGrid(5, List.of(),
+                java.util.Map.of(7, 70), java.util.Map.of());
+        SeedFacts facts = fixtureFacts(1000,
+                Measured.absent("no safe column found"),
+                Measured.absent("no safe column found"),
+                Measured.of(grid));
+
+        assertArrayEquals(new int[]{0, 70, -500}, RollPipeline.spawnToPromote(facts, PLAIN_DIM));
+    }
+
+    @Test
+    @DisplayName("an unmeasured column with a groundless grid still writes nothing")
+    void spawnToPromoteIsNullWhenUnmeasuredAndTheGridHasNoGround() {
+        SeedFacts.Grid grid = fixtureGrid(5, List.of(),
+                java.util.Map.of(12, -64), java.util.Map.of());
+        SeedFacts facts = fixtureFacts(1000,
+                Measured.of(new SeedFacts.Column(0, 0, true)),
+                Measured.absent("the generator answered no surface height at spawn"),
+                Measured.of(grid));
+
+        assertNull(RollPipeline.spawnToPromote(facts, PLAIN_DIM));
+    }
+
+    // --- orchestratorCount: dimensions must finish in waves ------------------
+
+    @Test
+    @DisplayName("a full roll never runs one orchestrator per dimension")
+    void orchestratorCountIsCappedBelowTheTargetCount() {
+        // 81 dimensions, 10 measure workers: 20 in flight, so boards complete
+        // in waves and the render cores have something to draw throughout.
+        assertEquals(20, RollPipeline.orchestratorCount(81, 10));
+        assertTrue(RollPipeline.orchestratorCount(81, 10) < 81,
+                "one orchestrator per dimension is what leaves the render cores idle");
+    }
+
+    @Test
+    @DisplayName("a small roll is never given more orchestrators than dimensions")
+    void orchestratorCountNeverExceedsTheTargets() {
+        assertEquals(3, RollPipeline.orchestratorCount(3, 10));
+        assertEquals(1, RollPipeline.orchestratorCount(1, 10));
+    }
+
+    @Test
+    @DisplayName("a tiny measure budget still runs two dimensions at once")
+    void orchestratorCountKeepsAFloor() {
+        assertEquals(2, RollPipeline.orchestratorCount(81, 1));
+        assertEquals(1, RollPipeline.orchestratorCount(1, 1), "but never more than there are targets");
     }
 }

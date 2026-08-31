@@ -94,6 +94,14 @@ public final class RollPipeline {
             java.util.concurrent.ConcurrentHashMap.newKeySet();
 
     private static final AtomicBoolean RUNNING = new AtomicBoolean(false);
+    /**
+     * True while priming is SCORING the configured seeds — not while it is
+     * drawing them. A roll needs the baseline those measurements establish,
+     * but it does not need the pictures: the render cores are reserved
+     * separately and sit idle through a screen, so making a roll wait on them
+     * spends a quarter of the machine on nothing.
+     */
+    private static final AtomicBoolean PRIMING_MEASURE = new AtomicBoolean(false);
     private static final AtomicBoolean CANCEL = new AtomicBoolean(false);
     private static final AtomicBoolean RENDERING = new AtomicBoolean(false);
 
@@ -170,10 +178,13 @@ public final class RollPipeline {
                     def -> banked(com.customdimensions.command.InputHash.of(def, server),
                             def.getDimensionIdentifier().toString())));
         }
-        // The configured seeds come first, always: rolling now would queue
-        // candidates in front of the renders they are still waiting on.
-        if (RenderQueue.priming()) {
-            return "still drawing the configured seeds - try again when priming finishes";
+        // The configured seeds are SCORED first, always — the boards a roll
+        // ranks against are meaningless without them. Their renders are not
+        // waited on: queue order already puts a thumbnail ahead of a detail
+        // map, and the render cores are reserved from the measure budget, so
+        // drawing continues alongside the roll instead of delaying it.
+        if (PRIMING_MEASURE.get()) {
+            return "still scoring the configured seeds - try again when that finishes";
         }
         if (!RUNNING.compareAndSet(false, true)) {
             return "a roll is already running";
@@ -226,6 +237,10 @@ public final class RollPipeline {
      * nothing.
      */
     public static void primeNamedSeeds(MinecraftServer server) {
+        // Raised HERE, not inside the thread: between this call and the
+        // thread being scheduled the gate would otherwise be open, and a roll
+        // admitted in that window ranks against boards nothing has scored.
+        PRIMING_MEASURE.set(true);
         Thread starter = new Thread(() -> {
             RenderQueue.priming(true);
             // EVERY dimension is measured. A committed thumbnail says what a
@@ -235,6 +250,7 @@ public final class RollPipeline {
             // skips what the bank already holds, so this is free on a restart.
             List<DimensionConfig> targets = BankView.rollTargets();
             if (targets.isEmpty()) {
+                PRIMING_MEASURE.set(false);
                 RenderQueue.priming(false);
                 GENERATION.incrementAndGet();
                 return;
@@ -280,14 +296,16 @@ public final class RollPipeline {
                         MultiverseServer.LOGGER.warn("Priming named seeds failed", e.getCause());
                     }
                 }
-                // Measuring only QUEUES the maps. Priming is not done until
-                // they are drawn, or a roll admitted here would put eighty
-                // dimensions' worth of candidates in front of the renders the
-                // configured seeds are still waiting on.
+                // Scoring is done, so a roll may start from here: it has the
+                // baseline it ranks against. Measuring only QUEUES the maps,
+                // and drawing them runs on the reserved render cores beside
+                // whatever comes next.
+                PRIMING_MEASURE.set(false);
                 awaitRenders(server, targets);
                 // A last pass for whatever landed after the final sweep.
                 exportReady(server, targets);
             } finally {
+                PRIMING_MEASURE.set(false);
                 RenderQueue.priming(false);
                 pool.shutdownNow();
                 GENERATION.incrementAndGet();
@@ -325,7 +343,12 @@ public final class RollPipeline {
         int lastPending = -1;
         long unchangedFor = 0;
         int tick = 0;
-        while (!CANCEL.get()) {
+        // RenderQueue.pending() is the WHOLE queue, so once a roll is banking
+        // candidates this never reaches zero. The roll drives its own
+        // reconcile and export from rollOne, and leaving PRIMING set would
+        // stop a detail map yielding to the candidate thumbnails that fill
+        // the page — so hand the queue over instead of waiting it out.
+        while (!CANCEL.get() && !RUNNING.get()) {
             int pending = RenderQueue.pending();
             if (pending == 0) {
                 return;
@@ -450,12 +473,39 @@ public final class RollPipeline {
                 - com.customdimensions.roll.CandidateRender.renderCores());
     }
 
+    /**
+     * How many dimensions roll at once, given the measure budget.
+     *
+     * <p>Never one per dimension: a dimension that finishes tier 2 banks
+     * candidates and queues thumbnails, and drawing those is what the roll's
+     * reserved render cores are for. All-at-once completes every board at the
+     * same moment, so nothing is drawable until the end and those cores idle
+     * through the entire screen.
+     *
+     * <p>Twice the measure budget rather than the budget itself, because an
+     * orchestrator does its own work between tiers and a 1:1 ratio leaves
+     * {@code measurePool} idle whenever one is between dimensions. Pure, so
+     * the ratio is pinned without a server.
+     */
+    static int orchestratorCount(int targets, int budget) {
+        return Math.max(1, Math.min(targets, Math.max(2, budget * 2)));
+    }
+
     private static void run(MinecraftServer server, List<DimensionConfig> targets, int count) {
         int budget = workers();
-        // One thread per target dimension. These threads mostly block on
-        // measurePool below rather than doing CPU work themselves, so their
-        // count is not the CPU budget and does not need to be capped by it.
-        int orchestrators = targets.size();
+        // Fewer orchestrators than dimensions, so dimensions FINISH in waves
+        // rather than all at the end. A dimension that has finished tier 2
+        // banks candidates and queues its thumbnails, which is what the
+        // reserved render cores (renderCores(), a quarter of the machine
+        // while rolling) exist to draw — with one orchestrator per dimension
+        // every board completed at once, nothing was drawable until then, and
+        // those cores idled through the whole screen.
+        //
+        // Twice the measure budget, not the budget itself: an orchestrator
+        // does its own work between tiers (cullToTop, promoteBest,
+        // reconcile), so a 1:1 ratio leaves measurePool starving whenever one
+        // is between dimensions.
+        int orchestrators = orchestratorCount(targets.size(), budget);
         java.util.concurrent.ExecutorService pool = java.util.concurrent.Executors.newFixedThreadPool(
                 orchestrators, r -> {
                     Thread t = new Thread(r, "customdim-roll");
@@ -694,6 +744,7 @@ public final class RollPipeline {
                     protectedSeeds(def, dimension));
             promoteBest(server, id, hash, dimension, def);
         }
+        warnIfSeedInvariant(hash, dimension, id);
         int got = banked(hash, dimension);
         if (got < WANTED && !CANCEL.get()) {
             STARVED.add(id.getPath() + " (" + got + "/" + WANTED + " from " + count
@@ -708,6 +759,65 @@ public final class RollPipeline {
         // Each finished dimension is a new thing to look at, so the page is
         // told to refresh now rather than at the end of the run.
         GENERATION.incrementAndGet();
+    }
+
+    /**
+     * Whether every candidate describes the SAME biome layout.
+     *
+     * <p>Two seeds of a working dimension differ. A whole board that does not
+     * is the signature of a biome source the seed never reaches: the roll
+     * measures thousands of seeds, ranks them, and is choosing between
+     * copies. It reads as a healthy roll from every counter — seeds screened,
+     * seeds banked, scores assigned — because each of those is true.
+     *
+     * <p>Two non-empty layouts are the minimum that can mean anything. One
+     * candidate is not a comparison, and an empty share map is a measurement
+     * that did not happen rather than a layout that is identical.
+     */
+    static boolean allLayoutsIdentical(List<java.util.Map<String, Double>> layouts) {
+        if (layouts == null) {
+            return false;
+        }
+        List<java.util.Map<String, Double>> usable = layouts.stream()
+                .filter(m -> m != null && !m.isEmpty())
+                .toList();
+        if (usable.size() < 2) {
+            return false;
+        }
+        java.util.Map<String, Double> first = usable.get(0);
+        return usable.stream().allMatch(first::equals);
+    }
+
+    /**
+     * Says so when a dimension's whole board is biome-identical.
+     *
+     * <p>Diagnostic only — it never fails a roll or changes what is banked.
+     * A detector that can end a four-hour sweep is worse than the fault it
+     * looks for, and its own failure must not either, so the gather is
+     * wrapped whole.
+     */
+    private static void warnIfSeedInvariant(String hash, String dimension, Identifier id) {
+        try {
+            List<java.util.Map<String, Double>> layouts = new java.util.ArrayList<>();
+            for (com.customdimensions.roll.SeedBank.CandidateSummary c
+                    : com.customdimensions.roll.SeedBank.leaderboard(hash, dimension)) {
+                com.customdimensions.facts.SeedFacts facts =
+                        com.customdimensions.roll.SeedBank.candidateFacts(hash, dimension, c.seed());
+                if (facts != null && facts.biomes() != null) {
+                    layouts.add(facts.biomes().shares().value());
+                }
+            }
+            if (allLayoutsIdentical(layouts)) {
+                MultiverseServer.LOGGER.warn(
+                        "roll: {} banked {} candidates that all share ONE biome layout ({} biome(s)) "
+                        + "— the seed is not reaching this dimension's biome source, so every "
+                        + "seed it rolls is the same world",
+                        id.getPath(), layouts.size(), layouts.get(0).size());
+            }
+        } catch (RuntimeException e) {
+            MultiverseServer.LOGGER.warn(
+                    "roll: {} seed-invariance check did not run ({})", id.getPath(), e.toString());
+        }
     }
 
     /**
@@ -792,33 +902,47 @@ public final class RollPipeline {
      * unmeasured: an auto-promote must never write half a spawn, or one
      * built from something other than this seed's own facts.
      *
-     * <p>A ceilinged or void/sky dimension has no floor under the declared
-     * column, and vanilla's own heightmap answers the dimension's minimum Y
-     * for one rather than nothing ({@code sampleGrid}'s own comment on this)
-     * — that reading is real (not absent) but not a place to stand, so
-     * writing it verbatim plants the spawn at bedrock. When that happens
-     * {@link #spawnFromGrid} searches the same candidate's banked grid for
-     * a cell that DOES have ground instead. Pure, so the decision is pinned
-     * with no server or filesystem.
+     * <p>The declared column is one column, and a dimension whose void
+     * between islands is the point has no ground under it. It fails in two
+     * different ways and BOTH reach {@link #spawnFromGrid}, which searches
+     * the same candidate's banked grid for a cell that does have ground:
+     *
+     * <ul>
+     *   <li>the generator answers no surface at all, so the height is
+     *       absent — the void case;</li>
+     *   <li>it answers the dimension's minimum Y rather than nothing
+     *       ({@code sampleGrid}'s own comment on this), which is a real
+     *       reading but not a place to stand, and writing it verbatim
+     *       plants the spawn at bedrock.</li>
+     * </ul>
+     *
+     * <p>Null only when the grid has no ground either. Pure, so the decision
+     * is pinned with no server or filesystem.
      */
     static int[] spawnToPromote(com.customdimensions.facts.SeedFacts facts, DimensionConfig def) {
         if (facts == null) {
             return null;
         }
         com.customdimensions.facts.SeedFacts.SpawnFacts spawn = facts.spawn();
-        if (!spawn.column().isPresent() || !spawn.surfaceHeight().isPresent()) {
-            return null;
-        }
-        com.customdimensions.facts.SeedFacts.Column column = spawn.column().value();
-        int height = spawn.surfaceHeight().value();
         int floorY = assumedFloorY(def);
-        if (height > floorY) {
-            return new int[]{column.x(), height, column.z()};
+        if (spawn.column().isPresent() && spawn.surfaceHeight().isPresent()) {
+            com.customdimensions.facts.SeedFacts.Column column = spawn.column().value();
+            int height = spawn.surfaceHeight().value();
+            if (height > floorY) {
+                return new int[]{column.x(), height, column.z()};
+            }
+            MultiverseServer.LOGGER.info(
+                    "roll: {} declared spawn column has no real surface for seed {} (height {} at or "
+                    + "below floor {}) — searching the banked grid for one",
+                    facts.dimension(), facts.seed(), height, floorY);
+        } else {
+            MultiverseServer.LOGGER.info(
+                    "roll: {} declared spawn column was not measured for seed {} ({}) — searching "
+                    + "the banked grid for one",
+                    facts.dimension(), facts.seed(),
+                    spawn.surfaceHeight().isPresent() ? spawn.column().reason()
+                            : spawn.surfaceHeight().reason());
         }
-        MultiverseServer.LOGGER.info(
-                "roll: {} declared spawn column has no real surface for seed {} (height {} at or "
-                + "below floor {}) — searching the banked grid for one",
-                facts.dimension(), facts.seed(), height, floorY);
         int[] fromGrid = spawnFromGrid(facts, def, floorY);
         if (fromGrid == null) {
             MultiverseServer.LOGGER.info(
