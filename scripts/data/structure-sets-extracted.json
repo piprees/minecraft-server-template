@@ -1512,43 +1512,43 @@
   "rarity_class": "legendary"
  },
  {
-  "mod_source": "MoogsTemplesReimagined-1.21-1.1.3.jar",
+  "mod_source": "MoogsTemplesReimagined-universal-1.21-2.0.1.jar",
   "structure_set_id": "mtr:badlands_temple",
   "theme": "landmark",
   "structures": "mtr:badlands_temple(w=1)",
   "placement_type": "moogs_structures:advanced_random_spread",
-  "spacing": "91",
-  "separation": "10",
+  "spacing": "53",
+  "separation": "13",
   "frequency": "1.0",
   "dimensions": "overworld",
-  "rarity_class": "rare"
+  "rarity_class": "uncommon"
  },
  {
-  "mod_source": "MoogsTemplesReimagined-1.21-1.1.3.jar",
+  "mod_source": "MoogsTemplesReimagined-universal-1.21-2.0.1.jar",
   "structure_set_id": "mtr:desert_temple",
   "theme": "landmark",
   "structures": "mtr:desert_temple(w=1)",
   "placement_type": "moogs_structures:advanced_random_spread",
-  "spacing": "83",
+  "spacing": "59",
   "separation": "13",
-  "frequency": "1.0",
+  "frequency": "0.8",
   "dimensions": "overworld",
   "rarity_class": "rare"
  },
  {
-  "mod_source": "MoogsTemplesReimagined-1.21-1.1.3.jar",
+  "mod_source": "MoogsTemplesReimagined-universal-1.21-2.0.1.jar",
   "structure_set_id": "mtr:jungle_temple",
   "theme": "landmark",
   "structures": "mtr:jungle_temple(w=1)",
   "placement_type": "moogs_structures:advanced_random_spread",
-  "spacing": "83",
-  "separation": "50",
-  "frequency": "1.0",
+  "spacing": "51",
+  "separation": "20",
+  "frequency": "0.6",
   "dimensions": "overworld",
   "rarity_class": "rare"
  },
  {
-  "mod_source": "MoogsTemplesReimagined-1.21-1.1.3.jar",
+  "mod_source": "MoogsTemplesReimagined-universal-1.21-2.0.1.jar",
   "structure_set_id": "mtr:nether_temple",
   "theme": "landmark",
   "structures": "mtr:nether_temple(w=1)",
@@ -1560,25 +1560,25 @@
   "rarity_class": "legendary"
  },
  {
-  "mod_source": "MoogsTemplesReimagined-1.21-1.1.3.jar",
+  "mod_source": "MoogsTemplesReimagined-universal-1.21-2.0.1.jar",
   "structure_set_id": "mtr:ocean_temple",
   "theme": "maritime",
   "structures": "mtr:ocean_temple(w=1)",
   "placement_type": "moogs_structures:advanced_random_spread",
-  "spacing": "99",
-  "separation": "50",
-  "frequency": "1.0",
+  "spacing": "20",
+  "separation": "7",
+  "frequency": "0.5",
   "dimensions": "overworld",
-  "rarity_class": "rare"
+  "rarity_class": "common"
  },
  {
-  "mod_source": "MoogsTemplesReimagined-1.21-1.1.3.jar",
+  "mod_source": "MoogsTemplesReimagined-universal-1.21-2.0.1.jar",
   "structure_set_id": "mtr:stronghold",
   "theme": "dungeon",
   "structures": "mtr:stronghold(w=1)",
-  "placement_type": "moogs_structures:advanced_random_spread",
-  "spacing": "248",
-  "separation": "149",
+  "placement_type": "moogs_structures:conditional_concentric_rings",
+  "spacing": "None",
+  "separation": "None",
   "frequency": "1.0",
   "dimensions": "overworld",
   "rarity_class": "endgame"
@@ -4752,7 +4752,7 @@
   "rarity_class": "common"
  },
  {
-  "mod_source": "supplementaries-1.21.1-3.9.3-fabric.jar",
+  "mod_source": "supplementaries-1.21.1-3.9.6-fabric.jar",
   "structure_set_id": "supplementaries:galleons",
   "theme": "landmark",
   "structures": "supplementaries:galleon(w=1)",
@@ -4764,7 +4764,7 @@
   "rarity_class": "common"
  },
  {
-  "mod_source": "supplementaries-1.21.1-3.9.3-fabric.jar",
+  "mod_source": "supplementaries-1.21.1-3.9.6-fabric.jar",
   "structure_set_id": "supplementaries:road_signs",
   "theme": "deco",
   "structures": "supplementaries:road_sign(w=1)",
