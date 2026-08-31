@@ -5,8 +5,11 @@
 #           written against it instead of against the schema's -2..2. TSV to
 #           stdout: x, z, temp, humid, cont, eros, depth, weird.
 #
-# Usage:    scripts/sample-climate-grid.sh <slug> <border> [n]   # n defaults to 41
+# Usage:    scripts/sample-climate-grid.sh <slug|ns:slug> <border> [n]   # n defaults to 41
+#           A bare slug is namespaced adventure:; the reserved four need theirs
+#           passed whole, e.g. minecraft:the_nether.
 #           scripts/sample-climate-grid.sh the_claymarsh 1024 > claymarsh.tsv
+#           scripts/sample-climate-grid.sh minecraft:the_nether 1024 > nether.tsv
 #
 # Context:  borders.player is a RADIUS and the vanilla world border is SQUARE,
 #           so [-B,+B]^2 is exactly the playable area. `customdim sample-noise`
@@ -53,6 +56,13 @@ slug="$1"
 border="$2"
 n="${3:-41}"
 
+# A bare slug is one of ours; the reserved four carry their own namespace and
+# must be passed whole (minecraft:the_nether), or sample-noise cannot find them.
+case "$slug" in
+  *:*) dim="$slug" ;;
+  *)   dim="adventure:$slug" ;;
+esac
+
 coord() {
   awk -v b="$2" -v i="$1" -v n="$3" \
     'BEGIN{printf "%d", int(-b + (2*b*i)/(n-1) + (i*2>=n-1?0.5:-0.5))}'
@@ -67,7 +77,7 @@ while [ "$i" -lt "$n" ]; do
   j=0
   while [ "$j" -lt "$n" ]; do
     z=$(coord "$j" "$border" "$n")
-    printf 'customdim sample-noise adventure:%s %s %s\n' "$slug" "$x" "$z" >> "$cmds"
+    printf 'customdim sample-noise %s %s %s\n' "$dim" "$x" "$z" >> "$cmds"
     j=$(( j + 1 ))
   done
   i=$(( i + 1 ))
