@@ -120,7 +120,11 @@ jobs:
 
       - name: Check all ops/dev commands resolve to manifest entries
         run: |
-          MANIFEST=$(grep -oE "scripts/[^ \")]+\.(sh|py)" scripts/build-stack-bundle.sh | sort -u)
+          # The MANIFEST array itself, not every path the file mentions: the
+          # consumer-scaffold checks below match non-script entries, which a
+          # whole-file grep for scripts/*.sh cannot see.
+          MANIFEST=$(awk '/^MANIFEST=\(/{p=1;next} /^\)/{if(p)exit} p' \
+            scripts/build-stack-bundle.sh | sed 's/#.*//' | tr -d ' \t' | grep -v '^$' | sort -u)
           ERRORS=0
 
           # Anything `dev` execs straight out of the bundle. This job used to
