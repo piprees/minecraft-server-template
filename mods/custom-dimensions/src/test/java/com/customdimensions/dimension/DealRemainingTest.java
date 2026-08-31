@@ -1,6 +1,7 @@
 package com.customdimensions.dimension;
 
 import com.mojang.datafixers.util.Pair;
+import net.minecraft.world.biome.source.util.MultiNoiseUtil;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -108,26 +109,124 @@ class DealRemainingTest {
         assertEquals(List.of(), dealt.foreign());
     }
 
+    private static final MultiNoiseUtil.ParameterRange FULL =
+            MultiNoiseUtil.ParameterRange.of(-2.0f, 2.0f);
+
+    /** A declared cell shaped like the nether's: a point on every axis. */
+    private static MultiNoiseUtil.NoiseHypercube at(float t, float h, float c) {
+        return MultiNoiseUtil.createNoiseHypercube(
+                MultiNoiseUtil.ParameterRange.of(t), MultiNoiseUtil.ParameterRange.of(h),
+                MultiNoiseUtil.ParameterRange.of(c), MultiNoiseUtil.ParameterRange.of(0.0f),
+                MultiNoiseUtil.ParameterRange.of(0.0f), MultiNoiseUtil.ParameterRange.of(0.0f), 0.0f);
+    }
+
+    /** The nether's shape: thirteen points clustered near the middle. */
+    private static List<MultiNoiseUtil.NoiseHypercube> clusteredPoints() {
+        List<MultiNoiseUtil.NoiseHypercube> claimed = new java.util.ArrayList<>();
+        for (int i = 0; i < 13; i++) {
+            claimed.add(at(-0.3f + 0.05f * i, 0.25f - 0.04f * i, -0.2f + 0.03f * i));
+        }
+        return claimed;
+    }
+
     @Test
     @DisplayName("a biome that declares no cell anywhere still gets one")
     void everyUndeclaredBiomeGetsACell() {
         // The nether: 40 wanted, 13 with cells, nothing given up.
-        assertEquals(27, DimensionManager.synthesiseFillerCells(27).size());
-        assertEquals(0, DimensionManager.synthesiseFillerCells(0).size());
-        assertEquals(0, DimensionManager.synthesiseFillerCells(-1).size());
+        assertEquals(27, DimensionManager.synthesiseFillerCells(27, clusteredPoints()).size());
+        assertEquals(27, DimensionManager.synthesiseFillerCells(27, List.of()).size());
+        assertEquals(0, DimensionManager.synthesiseFillerCells(0, List.of()).size());
+        assertEquals(0, DimensionManager.synthesiseFillerCells(-1, List.of()).size());
     }
 
     @Test
-    @DisplayName("synthesised cells are places, not stripes across the world")
-    void synthesisedCellsArePatches() {
-        var cells = DimensionManager.synthesiseFillerCells(9);
+    @DisplayName("filler never spans an axis the declared cells constrain")
+    void fillerIsConfinedToTheDeclaredHull() {
+        // The measured failure: filler spanning continentalness, erosion,
+        // depth and weirdness paid nothing on four axes where every declared
+        // cell paid, and took 93% of the nether and 96% of the End.
+        MultiNoiseUtil.NoiseHypercube a = MultiNoiseUtil.createNoiseHypercube(
+                MultiNoiseUtil.ParameterRange.of(-0.5f), MultiNoiseUtil.ParameterRange.of(0.0f),
+                MultiNoiseUtil.ParameterRange.of(-0.55f), MultiNoiseUtil.ParameterRange.of(0.5f),
+                MultiNoiseUtil.ParameterRange.of(0.0f), MultiNoiseUtil.ParameterRange.of(0.0f), 0.2f);
+        MultiNoiseUtil.NoiseHypercube b = MultiNoiseUtil.createNoiseHypercube(
+                MultiNoiseUtil.ParameterRange.of(0.4f), MultiNoiseUtil.ParameterRange.of(-0.25f),
+                MultiNoiseUtil.ParameterRange.of(0.335f), MultiNoiseUtil.ParameterRange.of(-0.3f),
+                MultiNoiseUtil.ParameterRange.of(0.25f), MultiNoiseUtil.ParameterRange.of(0.0f), 0.15f);
+        List<MultiNoiseUtil.NoiseHypercube> claimed = List.of(a, b);
+
+        for (var cell : DimensionManager.synthesiseFillerCells(9, claimed)) {
+            for (int axis = 0; axis < DimensionManager.AXES; axis++) {
+                long lo = Math.min(DimensionManager.axisOf(a, axis).min(),
+                        DimensionManager.axisOf(b, axis).min());
+                long hi = Math.max(DimensionManager.axisOf(a, axis).max(),
+                        DimensionManager.axisOf(b, axis).max());
+                var range = DimensionManager.axisOf(cell, axis);
+                assertTrue(range.min() >= lo && range.max() <= hi,
+                        "axis " + axis + " escaped the declared hull");
+            }
+        }
+    }
+
+    @Test
+    @DisplayName("filler cells are points, and each is its own place")
+    void fillerCellsArePoints() {
+        var cells = DimensionManager.synthesiseFillerCells(9, clusteredPoints());
         assertEquals(9, cells.size());
-        // 3x3 over temperature x humidity: the first cell must not span the
-        // whole of either axis, or every biome reads as a band.
-        var first = cells.get(0);
-        assertTrue(first.temperature().max() < 1.0f * 10000,
-                "temperature must be a window, not the full span");
+        for (var cell : cells) {
+            // A cell with width beats a point anywhere it reaches, which is
+            // what makes one filler biome swallow a dimension.
+            assertEquals(cell.temperature().min(), cell.temperature().max(),
+                    "temperature must be a point, not a window");
+            assertEquals(cell.humidity().min(), cell.humidity().max(),
+                    "humidity must be a point, not a window");
+            assertEquals(0L, cell.offset(), "the filler floor is stamped downstream");
+        }
         assertEquals(cells.size(), cells.stream().distinct().count(),
-                "each biome needs its own window, or they collide");
+                "each biome needs its own point, or they collide");
+    }
+
+    @Test
+    @DisplayName("an axis every declared cell agrees on is inherited, not spread over")
+    void aSharedAxisIsInherited() {
+        // Every nether cell sits at weirdness 0; filler that wandered off it
+        // would be paying a cost none of them pay, or dodging one they do.
+        var cells = DimensionManager.synthesiseFillerCells(9, clusteredPoints());
+        for (var cell : cells) {
+            assertEquals(0L, cell.weirdness().min());
+            assertEquals(0L, cell.weirdness().max());
+        }
+    }
+
+    @Test
+    @DisplayName("an axis the declared cells already span end to end is left whole")
+    void aSchemaWideAxisStaysWhole() {
+        // The End: its declared cells cover depth from -2 to 2 between them,
+        // so no position on that axis is out of the family's reach.
+        var claimed = List.of(
+                MultiNoiseUtil.createNoiseHypercube(
+                        MultiNoiseUtil.ParameterRange.of(-1.0f), MultiNoiseUtil.ParameterRange.of(-1.0f),
+                        FULL, FULL, MultiNoiseUtil.ParameterRange.of(1.9f, 2.0f), FULL, 0.75f),
+                MultiNoiseUtil.createNoiseHypercube(
+                        MultiNoiseUtil.ParameterRange.of(0.0f), MultiNoiseUtil.ParameterRange.of(-1.0f),
+                        FULL, FULL, MultiNoiseUtil.ParameterRange.of(-2.0f), FULL, 1.0f));
+        for (var cell : DimensionManager.synthesiseFillerCells(6, claimed)) {
+            assertEquals(-20000L, cell.depth().min());
+            assertEquals(20000L, cell.depth().max());
+        }
+    }
+
+    @Test
+    @DisplayName("with nothing to read, filler spreads over the live climate square")
+    void nothingDeclaredSpreadsOverTemperatureAndHumidity() {
+        var cells = DimensionManager.synthesiseFillerCells(9, List.of());
+        assertEquals(9, cells.size());
+        for (var cell : cells) {
+            assertTrue(cell.temperature().min() >= -10000L && cell.temperature().max() <= 10000L,
+                    "a filler point must stay inside the range the router produces");
+            assertEquals(-20000L, cell.continentalness().min(),
+                    "nothing declared constrains continentalness, so nothing here does");
+        }
+        assertEquals(cells.size(), cells.stream().distinct().count());
     }
 }

@@ -357,7 +357,11 @@ public class DimensionManager {
             }
         }
         if (foreignCount > pool.size()) {
-            pool.addAll(synthesiseFillerCells(foreignCount - pool.size()));
+            List<MultiNoiseUtil.NoiseHypercube> claimed = new ArrayList<>();
+            for (Pair<MultiNoiseUtil.NoiseHypercube, RegistryEntry<Biome>> pair : nativeEntries) {
+                claimed.add(pair.getFirst());
+            }
+            pool.addAll(synthesiseFillerCells(foreignCount - pool.size(), claimed));
         }
         Dealt<RegistryEntry<Biome>, MultiNoiseUtil.NoiseHypercube> dealt =
                 dealRemaining(unplaced, biome -> declaredCellsOf(declaredCells, biome), pool);
@@ -736,38 +740,124 @@ public class DimensionManager {
      * <p>Generic over the biome and cell types so the rules are testable: this
      * suite cannot bootstrap Minecraft's registries.
      */
+    /** The climate axes a hypercube constrains, in vanilla's own order. */
+    static final int AXES = 6;
+
+    /** The widest value vanilla's parameter codec encodes, either way. */
+    private static final float SCHEMA_SPAN = 2.0f;
+
+    /** The range the climate router actually produces, either way. */
+    private static final float LIVE_SPAN = 1.0f;
+
+    /** One prime per axis, so successive filler points never line up. */
+    private static final int[] HALTON_BASES = {2, 3, 5, 7, 11, 13};
+
     /**
-     * Cells for biomes that declare none anywhere, as a near-square grid over
-     * temperature x humidity.
+     * Cells for biomes that declare none anywhere, drawn from the geometry the
+     * declared cells already occupy.
      *
-     * <p>A grid rather than stripes on one axis: a biome dealt a full-height
-     * sliver reads as a band across the world, and these are meant to be
-     * places. Full span on the other four axes, offset left at zero — the
-     * filler floor is stamped downstream, so these lose inside a band's own
-     * window exactly like a leftover cell does ([T69]).
+     * <p>A filler cell spanning an axis the declared cells constrain pays
+     * nothing where every one of them pays, so it beats all of them at every
+     * sample and the dimension collapses to one family — measured, filler held
+     * 93% of the nether and 96% of the End while incendium, nullscape and
+     * vanilla held none of either. So each filler cell is confined to the hull
+     * the declared cells occupy on each axis, at a Halton position: a
+     * low-discrepancy sequence spreads N points evenly over that hull at every
+     * N, where a square grid only does so at a perfect square.
+     *
+     * <p>A POINT, never a window. A cell with width wins anywhere it reaches,
+     * which is the whole reason the previous shape took the world.
+     *
+     * <p>Two axis cases fall out of the same hull. One every declared cell
+     * agrees on is inherited, so filler sits where the family sits; one they
+     * already span end to end constrains nothing, and is left whole. With
+     * nothing declared, or nothing varying, there is no geometry to read and
+     * the points spread over the live temperature x humidity square instead.
+     *
+     * <p>Offsets stay at zero — the filler floor is stamped downstream ([T69]).
+     * Nothing here targets a share: what each biome holds falls out of the
+     * seed's own climate noise over the point it was given.
      *
      * <p>Pure, so the partition is pinned without a registry.
      */
-    static List<MultiNoiseUtil.NoiseHypercube> synthesiseFillerCells(int count) {
+    static List<MultiNoiseUtil.NoiseHypercube> synthesiseFillerCells(
+            int count, List<MultiNoiseUtil.NoiseHypercube> claimed) {
         List<MultiNoiseUtil.NoiseHypercube> cells = new ArrayList<>();
         if (count <= 0) {
             return cells;
         }
-        int side = (int) Math.ceil(Math.sqrt(count));
-        MultiNoiseUtil.ParameterRange full = MultiNoiseUtil.ParameterRange.of(-2.0f, 2.0f);
+        List<MultiNoiseUtil.NoiseHypercube> taken = claimed == null ? List.of() : claimed;
+        float[] rangeMin = new float[AXES];
+        float[] rangeMax = new float[AXES];
+        float[] centreMin = new float[AXES];
+        float[] centreMax = new float[AXES];
+        boolean varies = false;
+        for (int axis = 0; axis < AXES; axis++) {
+            rangeMin[axis] = Float.MAX_VALUE;
+            rangeMax[axis] = -Float.MAX_VALUE;
+            centreMin[axis] = Float.MAX_VALUE;
+            centreMax[axis] = -Float.MAX_VALUE;
+            for (MultiNoiseUtil.NoiseHypercube cube : taken) {
+                MultiNoiseUtil.ParameterRange range = axisOf(cube, axis);
+                float lo = range.min() / 10000.0f;
+                float hi = range.max() / 10000.0f;
+                rangeMin[axis] = Math.min(rangeMin[axis], lo);
+                rangeMax[axis] = Math.max(rangeMax[axis], hi);
+                centreMin[axis] = Math.min(centreMin[axis], (lo + hi) / 2.0f);
+                centreMax[axis] = Math.max(centreMax[axis], (lo + hi) / 2.0f);
+            }
+            varies |= centreMax[axis] > centreMin[axis];
+        }
+        boolean fromDeclared = !taken.isEmpty() && varies;
+        MultiNoiseUtil.ParameterRange whole =
+                MultiNoiseUtil.ParameterRange.of(-SCHEMA_SPAN, SCHEMA_SPAN);
         for (int i = 0; i < count; i++) {
-            int gx = i % side;
-            int gy = i / side;
-            float t0 = -1.0f + 2.0f * gx / side;
-            float t1 = -1.0f + 2.0f * (gx + 1) / side;
-            float h0 = -1.0f + 2.0f * gy / side;
-            float h1 = -1.0f + 2.0f * (gy + 1) / side;
+            MultiNoiseUtil.ParameterRange[] axes = new MultiNoiseUtil.ParameterRange[AXES];
+            for (int axis = 0; axis < AXES; axis++) {
+                if (!fromDeclared) {
+                    axes[axis] = axis < 2
+                            ? MultiNoiseUtil.ParameterRange.of(
+                                    -LIVE_SPAN + 2.0f * LIVE_SPAN * halton(i, HALTON_BASES[axis]))
+                            : whole;
+                } else if (rangeMin[axis] <= -SCHEMA_SPAN && rangeMax[axis] >= SCHEMA_SPAN) {
+                    axes[axis] = whole;
+                } else {
+                    axes[axis] = MultiNoiseUtil.ParameterRange.of(centreMin[axis]
+                            + (centreMax[axis] - centreMin[axis]) * halton(i, HALTON_BASES[axis]));
+                }
+            }
             cells.add(MultiNoiseUtil.createNoiseHypercube(
-                    MultiNoiseUtil.ParameterRange.of(t0, t1),
-                    MultiNoiseUtil.ParameterRange.of(h0, h1),
-                    full, full, full, full, 0.0f));
+                    axes[0], axes[1], axes[2], axes[3], axes[4], axes[5], 0.0f));
         }
         return cells;
+    }
+
+    /** One axis of a hypercube by index, in vanilla's own order. */
+    static MultiNoiseUtil.ParameterRange axisOf(MultiNoiseUtil.NoiseHypercube cube, int axis) {
+        return switch (axis) {
+            case 0 -> cube.temperature();
+            case 1 -> cube.humidity();
+            case 2 -> cube.continentalness();
+            case 3 -> cube.erosion();
+            case 4 -> cube.depth();
+            default -> cube.weirdness();
+        };
+    }
+
+    /**
+     * The {@code index}-th value of the Halton sequence in {@code base}, in
+     * [0, 1).
+     */
+    static float halton(int index, int base) {
+        float fraction = 1.0f;
+        float result = 0.0f;
+        int n = index + 1;
+        while (n > 0) {
+            fraction /= base;
+            result += fraction * (n % base);
+            n /= base;
+        }
+        return result;
     }
 
     static <B, C> Dealt<B, C> dealRemaining(List<B> remaining,
