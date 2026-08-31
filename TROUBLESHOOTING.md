@@ -1354,6 +1354,36 @@ measurement of it.
   built under another. Freeze it across the roll; regenerate after a wipe, where
   it reaches only dimensions created later.
 
+<a id="t75"></a>
+### T75 — Replacing a mod's biome source crash-loops the boot on a mixin that already agreed to stand down
+
+- **Symptom:** the server crash-loops immediately after the reserved worlds are
+  built. `docker inspect mc` shows a climbing `RestartCount` and the log carries
+  `java.lang.IllegalStateException: Biome source config is not set` at
+  `org.betterx.betterend.world.generator.TerrainGenerator.initNoise`, reached
+  from `onServerLevelInit` via BetterEnd's `ServerWorld.<init>` mixin. The
+  overworld, `paradise_lost` and the nether all save cleanly first — only the
+  End's construction throws.
+- **Cause:** `TerrainGenerator.onServerLevelInit` decides correctly. A source
+  that is not a `WoverEndBiomeSource` gets `be_setTarget(false)`, and BetterEnd's
+  density hook (`NoiseChunkMixin.be_fillSlice`) then returns early. It goes on
+  to call `initNoise` **unconditionally**, and `initNoise` throws when its static
+  `config` is null — which it is, because that field is only ever set from a
+  Wover source. The decision to stand down is what kills the boot.
+- **Fix:** `BetterEndTerrainInitMixin` (`@Pseudo`, gated on `betterend` by
+  `CompatMixinPlugin`) cancels `initNoise` on exactly the condition BetterEnd
+  itself tests, so behaviour is unchanged wherever BetterEnd IS the target.
+- **Cancelling an init is only safe if nothing reads what it would have built.**
+  Check every entry point before doing it: here `be_fillSlice` gates on the same
+  `be_isTarget` flag — which lives on the `ChunkGeneratorSettings`, not on the
+  biome source — and `makeObsidianPlatform` touches none of the init-only
+  statics. Miss one and the crash moves from boot to chunk generation, where it
+  is far harder to attribute.
+- **The general shape:** a mod that keys its own state off a source it expects to
+  own will throw when that source is replaced, even where it has explicitly
+  handled the replacement. Read the target's bytecode (`javap -p -c`) rather than
+  its behaviour — the guard and the throw were nine bytecode offsets apart.
+
 <a id="t74"></a>
 ### T74 — A long roll flushes the boot log out of the container's ring buffer, and every instrument that reads it goes silent
 
