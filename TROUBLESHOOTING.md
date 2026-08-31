@@ -1386,7 +1386,14 @@ measurement of it.
 - **`sample-climate-grid.sh` reports depth at y=0 while `customdim facts`
   resolves the biome at block y=64.** The header's old advice to subtract 0.5 for
   the difference assumes a -1/128 gradient that these routers do not have. Do
-  not correct one to the other; sample the height you mean.
+  not correct one to the other; sample the height you mean. The classification
+  is robust to the choice regardless: the window misses ±2 at every height in
+  the column, so no height moves a dimension across the threshold.
+- **This decision reads `climate-axes.json`, so [T72] now governs it too.** Which
+  dimensions get depth opened is part of the frozen transform, not a property of
+  the jar. Regenerating that file between a roll and the release that ships it
+  can flip a dimension across the threshold and build production through a
+  different transform than the one the winners were scored under.
 
 <a id="t75"></a>
 ### T75 — Replacing a mod's biome source crash-loops the boot on a mixin that already agreed to stand down
