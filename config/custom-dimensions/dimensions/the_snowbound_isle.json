@@ -1,7 +1,7 @@
 {
   "type": "paradise_lost:paradise_lost",
   "description": "A snowbound island adrift in the sky. Fir forests and drifts on floating ground \u2014 animal country where the cold keeps everything honest. The towers and vaults here grew naturally, like the trees.",
-  "seed": 4699500647495436056,
+  "seed": -3334909585477669424,
   "biomes": [
     {
       "id": "paradise_lost:autumnal_tundra",
@@ -127,8 +127,8 @@
   },
   "spawn": [
     0,
-    97,
-    0
+    126,
+    51
   ],
   "structures": {
     "terrainAdaptation": {

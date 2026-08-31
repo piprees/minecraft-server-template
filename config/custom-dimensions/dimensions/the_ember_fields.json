@@ -1,7 +1,7 @@
 {
   "type": "nether",
   "description": "Rolling ember meadows where piglin villages still tend the geyser fields. The gentlest face of piglin civilisation \u2014 farmers and traders, not soldiers. The fortress at the rim is a precaution, not a threat.",
-  "seed": 4841518254005424643,
+  "seed": 564072063557106840,
   "biomes": [
     {
       "id": "betternether:nether_grasslands",
@@ -179,7 +179,7 @@
   },
   "spawn": [
     -64,
-    64,
+    150,
     320
   ],
   "environment": {

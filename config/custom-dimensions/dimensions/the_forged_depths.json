@@ -1,7 +1,7 @@
 {
   "type": "nether",
   "description": "The last piglin forge still burning. Crimson forges and reactors in a small brutal deep \u2014 the fires here never went out because nobody survived to bank them. The deeper you go, the hotter and harder it gets. The heat comes back through the frame, and anything built beside the portal is fuel.",
-  "seed": 4168137705283918457,
+  "seed": -295827713663215989,
   "biomes": [
     {
       "id": "incendium:quartz_flats",
@@ -140,7 +140,7 @@
   },
   "spawn": [
     64,
-    125,
+    31,
     0
   ],
   "exitPortal": {

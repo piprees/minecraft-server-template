@@ -1,7 +1,7 @@
 {
   "type": "end",
   "description": "Fractured halls \u2014 endermen gate fortresses and enderkeeps in broken crystal country. No cities survived whatever happened here; only the military architecture endured, and moonlight groves have taken the sheltered ground between the ridges. The keeps are still building. What stands beside the portal becomes part of the wall.",
-  "seed": 7509047358173334838,
+  "seed": -4455515362433992200,
   "biomes": [
     {
       "id": "nullscape:shadowlands",
@@ -136,7 +136,7 @@
   },
   "spawn": [
     -204,
-    55,
+    42,
     -204
   ],
   "structures": {

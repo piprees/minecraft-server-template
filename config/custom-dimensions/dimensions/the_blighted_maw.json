@@ -1,7 +1,7 @@
 {
   "type": "nether_islands",
   "description": "A toxic little hell that came apart. Piglin scientists built labs and reactors here to study the sculk infection from the boneyard; the blight won, and took the ground with it. What is left is a tight cluster of floating islands with a long fall between them. Fall off and the blight rejects you rather than killing you. Loot escalates with the danger. The blight is not finished; a build beside the portal is just ground it has not taken yet.",
-  "seed": -4802385692424703726,
+  "seed": -4203435855543360977,
   "biomes": [
     "incendium:toxic_heap",
     "minecraft:soul_sand_valley",
@@ -69,7 +69,7 @@
   },
   "spawn": [
     0,
-    51,
+    46,
     0
   ],
   "settingsOverrides": {

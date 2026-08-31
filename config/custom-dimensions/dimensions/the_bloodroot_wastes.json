@@ -1,7 +1,7 @@
 {
   "type": "nether",
   "description": "Crimson root-country \u2014 the piglins who survived the war retreated here. Forges and fungus in the red haze, a shadow of their former industry. They kept working, but the grandeur is gone.",
-  "seed": -7025329732006169125,
+  "seed": 3644296771794424049,
   "biomes": [
     {
       "id": "minecraft:crimson_forest",
@@ -104,7 +104,7 @@
   },
   "spawn": [
     -64,
-    183,
+    46,
     0
   ]
 }

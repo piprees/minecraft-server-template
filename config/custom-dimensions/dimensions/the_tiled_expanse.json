@@ -1,7 +1,7 @@
 {
   "type": "checkerboard",
   "description": "The endermen's first construction \u2014 a quartz-and-void expanse laid out on a grid, in geometric silence. No cities, no habitation. Pure mathematical architecture, built before they understood what living in a place meant.",
-  "seed": 3216152509379205084,
+  "seed": 8175453958011563902,
   "biomes": [
     "incendium:quartz_flats",
     "nullscape:void_barrens",
@@ -91,7 +91,7 @@
   },
   "spawn": [
     64,
-    46,
+    10,
     -64
   ],
   "checkerboardScale": 3,
