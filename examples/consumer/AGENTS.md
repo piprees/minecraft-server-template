@@ -30,6 +30,22 @@ curl -sL https://raw.githubusercontent.com/piprees/minecraft-server-template/mai
 
 `./dev update` overwrites `dev`, `ops`, `.env.example`, `.gitignore`, this `AGENTS.md`, `commands.json`, and `.github/workflows/{deploy,update,server-power}.yml` — platform-owned, don't customise them. `README.md` (copied only when missing) and `overlay/` are yours. The puller ships in the bundle (`.stack/current/stack/scripts/stack-pull.sh`); a top-level `stack-pull.sh` is old scaffold, and `./dev update` deletes it.
 
+## Config changes need `./dev refresh-config`
+
+`data/config/` is a bind mount seeded **skip-if-exists**. A file that already
+exists is never overwritten, so a changed `overlay/config/` file — or a config
+that arrived in a new bundle — does NOT reach the server on `./dev up` or
+`./dev update` alone. The container boots green on the old file.
+
+```bash
+./dev refresh-config   # copies config in, backs up to data/config.bak.<stamp>
+./dev up               # restart so the mod re-reads it
+```
+
+Verify the served file, never the source: `docker exec mc cat
+/data/config/<path>`. This is the single most common way a local test passes
+against config that is not the config under test.
+
 ## What you change here
 
 - **Server mods:** `overlay/mods-extra.txt` (`slug:versionId` per line), removals in `overlay/mods-remove.txt`. Run the mandatory dependency checklist in the [template AGENTS.md § Mods](https://github.com/piprees/minecraft-server-template/blob/main/AGENTS.md#mods) first. All worldgen/dimension mods must be present from chunk zero. `./dev up` or push.

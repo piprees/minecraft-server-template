@@ -1354,6 +1354,34 @@ measurement of it.
   built under another. Freeze it across the roll; regenerate after a wipe, where
   it reaches only dimensions created later.
 
+<a id="t78"></a>
+### T78 — A config change does not reach the local server, and the boot is green on the old file
+
+- **Symptom:** an `overlay/config/` or platform `config/` change is made, the
+  stack is brought up, and the server behaves as though the change never
+  happened. No error. `docker exec mc cat /data/config/<path>` shows the OLD
+  content while the file on disk shows the new.
+- **Cause:** `data/config/` is a bind mount seeded **skip-if-exists** by
+  `dev-up.sh`. A file that already exists is never overwritten. Neither
+  `./dev up` nor `./dev update` copies over it — `./dev update` refreshes the
+  bundle and the images, not this directory.
+- **Fix:**
+
+  ```bash
+  ./dev refresh-config   # backs up to data/config.bak.<stamp> first
+  ./dev up               # restart so the mod re-reads it
+  ```
+
+- **It bites hardest right after a release**, because the new bundle carries the
+  new default config and the server keeps running the old one. Observed: a
+  freshly released dimension config with a new igniter and a biome patch, on a
+  server that had correctly installed the released JAR — the jar was new, the
+  config was not, and every assertion about the config was measuring history.
+- **Verify the SERVED file, never the source.** `docker exec mc cat
+  /data/config/<path>`. Same rule as the jar ([the served artefact, not the one
+  on disk](#t70) territory): a green boot proves the container started, not that
+  it started on what you changed.
+
 <a id="t77"></a>
 ### T77 — A linked local stack silently runs the mod set of the last released seed image, not the repo's
 

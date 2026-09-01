@@ -10,6 +10,7 @@ Task → file → command lookup. Constraints and traps live in [`AGENTS.md`](..
 | Link a consumer to this checkout | - | `cd ~/Projects/elfydd && ./dev link` (once; `./dev unlink` to restore a release) |
 | Cut a platform release | - | `gh workflow run release.yml -f version=vX.Y.Z` (**never** `gh release create`) |
 | Add a client mod | `modpack/adventure.mrpack.json` | Push (CI rebuilds `.mrpack`) |
+| Change any `config/` file and see it locally | `config/<path>` (or `overlay/config/<path>`) | `./dev refresh-config` **then** `./dev up` — `data/config/` is seeded skip-if-exists, so neither `./dev up` nor `./dev update` alone overwrites a file that already exists |
 | Change a game rule | `config/boring_default_game_rules/config.json` + `scripts/deploy.sh` | Push (full deploy) |
 | Change claim settings | `config/openpartiesandclaims/openpartiesandclaims-server.toml` | Push (full deploy) |
 | Change a player/Discord message | `config/messages.json` | Push |

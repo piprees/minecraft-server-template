@@ -514,6 +514,10 @@ services:
   # ==========================================================================
   unmined-render:
     image: ${IMAGE_REGISTRY:-ghcr.io/piprees/minecraft-server-template}/unmined-render:${IMAGE_TAG:-latest}
+    # The only amd64-only image in the stack: uNmINeD's arm64 dev channel
+    # serves a truncated archive (publish.yml pins it). Without this an arm64
+    # host fails `compose pull` outright, though it runs fine emulated.
+    platform: linux/amd64
     container_name: "${CONTAINER_PREFIX:-}unmined-render"
     environment:
       UNMINED_INTERVAL: "${UNMINED_INTERVAL:-6h}"
