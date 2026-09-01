@@ -61,7 +61,12 @@ fi
 
 # --- build the project structure build-modpack.sh expects --------------------
 PROJECT=/work/project
-mkdir -p "$PROJECT/modpack" "$PROJECT/scripts"
+mkdir -p "$PROJECT/modpack" "$PROJECT/scripts" "$PROJECT/config"
+
+# build-modpack.sh mirrors the SERVER jars from here too, so dev-up.sh can
+# pre-seed data/mods/ from the mirror instead of pulling every jar from
+# Modrinth's CDN. Without this link the mirror holds client jars only.
+ln -sf /defaults/modrinth-mods.txt "$PROJECT/config/modrinth-mods.txt"
 
 ln -sf /work/src/manifest.json "$PROJECT/modpack/adventure.mrpack.json"
 ln -sf /work/src/overrides     "$PROJECT/modpack/overrides"

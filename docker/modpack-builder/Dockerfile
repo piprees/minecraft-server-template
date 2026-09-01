@@ -8,12 +8,14 @@ LABEL org.opencontainers.image.source=${REPO_URL} \
 RUN apk upgrade --no-cache && apk add --no-cache bash curl jq zip python3
 
 COPY modpack/adventure.mrpack.json /defaults/manifest.json
+COPY config/modrinth-mods.txt      /defaults/modrinth-mods.txt
 COPY modpack/overrides/            /defaults/overrides/
 COPY modpack/template/             /defaults/template/
 COPY assets/                       /defaults/assets/
 
 COPY scripts/build-modpack.sh      /app/build-modpack.sh
 COPY scripts/check-pack-coherence.py /app/check-pack-coherence.py
+COPY scripts/check-client-parity.py /app/check-client-parity.py
 COPY scripts/modrinth-api.py       /app/modrinth-api.py
 COPY scripts/lib.sh                /app/lib.sh
 COPY docker/modpack-builder/entrypoint.sh    /app/entrypoint.sh

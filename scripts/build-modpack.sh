@@ -58,44 +58,22 @@ if [[ ! -f "$MANIFEST" ]]; then
 fi
 
 # --- client/server parity lint (warn-only) -------------------------------------
-# Inside the modpack-builder container, entrypoint.sh already auto-strips
-# overlay/mods-remove.txt slugs from _clientMods before this script runs
-# (strip-removed-mods.py) — so in that path $MANIFEST is already clean and
-# this lint normally reports nothing. It stays as a belt-and-braces check
-# for any invocation that bypasses the container (calling this script
-# directly against a manifest that was never passed through the stripper).
-# A slug removed server-side but still in _clientMods.required is a JOIN
-# FAILURE for every player (Fabric registry handshake kick). Warn loudly;
-# never fail the build.
-# This covers ONE direction only. The opposite drift — a server mod the
-# client needs that the pack never shipped — is the same join failure and
-# cannot be checked here: the container has no copy of the server mod list.
-# scripts/check-client-parity.py gates both directions in CI.
-MODS_REMOVE="${MODS_REMOVE:-$PROJECT_DIR/overlay/mods-remove.txt}"
-if [[ -f "$MODS_REMOVE" ]]; then
-  python3 - "$MANIFEST" "$MODS_REMOVE" << 'PARITY'
-import json, sys
-manifest, removes = sys.argv[1], sys.argv[2]
-client = json.load(open(manifest)).get("_clientMods", {})
-required = {m.split(":")[0].strip() for m in client.get("required", [])}
-optional = {m.split(":")[0].strip() for m in client.get("optional", [])}
-removed = set()
-for line in open(removes):
-    slug = line.split("#")[0].strip()
-    if slug:
-        removed.add(slug.rstrip("?"))
-hits_req = sorted(removed & required)
-hits_opt = sorted(removed & optional)
-for slug in hits_req:
-    print(f"  WARNING: '{slug}' is removed server-side but still in _clientMods.required —"
-          f" players carrying it will be KICKED at join (registry mismatch)."
-          f" Remove it from the client manifest too, then rebuild.")
-for slug in hits_opt:
-    print(f"  note: '{slug}' removed server-side is still a client OPTIONAL — harmless"
-          f" if client-only, degraded if it talks to the server.")
-if not hits_req and not hits_opt:
-    print("  client/server parity: no removed server mods present in the client manifest")
-PARITY
+# Both directions of drift are the same Fabric registry-handshake kick for
+# every player: a mod removed server-side but still client-required, and a
+# server mod the client needs that the pack never shipped.
+# Warn-only here. A consumer overlay is the uncertain case and a hard fail
+# would block their pack entirely; the platform's own lists are hard-gated
+# by the same script in test-scripts.sh.
+PARITY_CHECK="${PARITY_CHECK:-$PROJECT_DIR/scripts/check-client-parity.py}"
+SERVER_MODS="${SERVER_MODS:-$PROJECT_DIR/config/modrinth-mods.txt}"
+if [[ -f "$PARITY_CHECK" ]]; then
+  PARITY_ARGS=(--manifest "$MANIFEST")
+  [[ -f "$SERVER_MODS" ]] && PARITY_ARGS+=(--server "$SERVER_MODS")
+  [[ -f "$PROJECT_DIR/overlay/mods-extra.txt" ]] &&
+    PARITY_ARGS+=(--extra "$PROJECT_DIR/overlay/mods-extra.txt")
+  [[ -f "$PROJECT_DIR/overlay/mods-remove.txt" ]] &&
+    PARITY_ARGS+=(--remove "$PROJECT_DIR/overlay/mods-remove.txt")
+  python3 "$PARITY_CHECK" "${PARITY_ARGS[@]}" || true
 fi
 
 echo "==> Building modpack: ${PACK_NAME}.mrpack"

@@ -4,7 +4,7 @@
 
 | Prefix | Range | What it covers |
 | --- | --- | --- |
-| **T** | [T1–T14, T16–T19, T22–T27, T30–T81](#architecture-traps) | Architecture traps — each has caused a real production incident |
+| **T** | [T1–T14, T16–T19, T22–T27, T30–T80](#architecture-traps) | Architecture traps — each has caused a real production incident |
 | **P** | [P1–P5](#macos-local-dev) | macOS local-dev quirks (BSD tooling, toolchain) |
 | **D** | [D1–D6, D8–D9](#dimension-lifecycle) | Custom-dimension lifecycle on a live world |
 | **K** | [K1–K2, K5–K7](#known-issues) | Open issues — unfixed, on the watch list |
@@ -80,7 +80,6 @@ Run this first. It covers deploy drift, disk, every expected container, `ONLINE_
 | A local config change had no effect and the boot was green | [T78](#t78) |
 | `ClassCastException` from Better Caves repeats through chunk generation | [T79](#t79) |
 | Every player is kicked at join: "registry entries that are unknown to this client" | [T80](#t80) |
-| The mod mirror at `mods.DOMAIN/mods/` holds no server-only jars | [T81](#t81) |
 | Config or mod changes didn't take effect after a deploy | [T2](#t2) |
 | `signal only works in main thread` in discord-sync logs | [T3](#t3) |
 | mc crash-loops with Modrinth `429 Too Many Requests` | [T4](#t4) |
@@ -1361,14 +1360,6 @@ measurement of it.
   winners are chosen means winners selected under one transform and a world
   built under another. Freeze it across the roll; regenerate after a wipe, where
   it reaches only dimensions created later.
-
-<a id="t81"></a>
-### T81 — The mod mirror serves client jars only, because the builder has no server mod list
-
-- **Symptom:** `mods.DOMAIN/mods/` holds exactly as many jars as `_clientMods` has entries. No server-only mod (Terralith, Incendium, a YUNG's set) is ever mirrored, and no error says so.
-- **Cause:** `build-modpack.sh`'s server-mirror block reads `$PROJECT_DIR/config/modrinth-mods.txt`. `docker/modpack-builder/entrypoint.sh` builds `$PROJECT` out of symlinks and never creates `config/`, so the `os.path.isfile` guard is false and the whole block is skipped silently. The `modpack-builder` Dockerfile copies no mod list either.
-- **Consequence:** the mirror is a CDN convenience, not a correctness surface — clients fetch client mods, which are all present. Nothing is broken in game.
-- **Fix, when it is wanted:** `COPY config/modrinth-mods.txt /defaults/modrinth-mods.txt` in the Dockerfile and link it into `$PROJECT/config/` in the entrypoint. That also lets the in-container parity lint check both directions instead of one.
 
 <a id="t80"></a>
 ### T80 — A server mod the client needs is absent from the pack, and every player is kicked at join
