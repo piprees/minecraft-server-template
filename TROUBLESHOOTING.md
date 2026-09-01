@@ -4,8 +4,8 @@
 
 | Prefix | Range | What it covers |
 | --- | --- | --- |
-| **T** | [T1–T14, T16–T19, T22–T27, T30–T74](#architecture-traps) | Architecture traps — each has caused a real production incident |
-| **P** | [P1–P4](#macos-local-dev) | macOS local-dev quirks (BSD tooling, toolchain) |
+| **T** | [T1–T14, T16–T19, T22–T27, T30–T79](#architecture-traps) | Architecture traps — each has caused a real production incident |
+| **P** | [P1–P5](#macos-local-dev) | macOS local-dev quirks (BSD tooling, toolchain) |
 | **D** | [D1–D6, D8–D9](#dimension-lifecycle) | Custom-dimension lifecycle on a live world |
 | **K** | [K1–K2, K5–K7](#known-issues) | Open issues — unfixed, on the watch list |
 
@@ -74,6 +74,11 @@ Run this first. It covers deploy drift, disk, every expected container, `ONLINE_
 | A band boundary is moved off a clamp rail, every arm is green, and generation order still decides | [T71](#t71) |
 | A climate window needs measuring at a different seed and every route needs a restart | [T72](#t72) |
 | A grep over `docker logs` finds none of the boot lines on a healthy container | [T74](#t74) |
+| A boot crash-loops with `Biome source config is not set` after a biome source is replaced | [T75](#t75) |
+| An End-settings dimension puts one biome across almost the whole map | [T76](#t76) |
+| A pinned mod is absent from the local server and nothing errored | [T77](#t77) |
+| A local config change had no effect and the boot was green | [T78](#t78) |
+| `ClassCastException` from Better Caves repeats through chunk generation | [T79](#t79) |
 | Config or mod changes didn't take effect after a deploy | [T2](#t2) |
 | `signal only works in main thread` in discord-sync logs | [T3](#t3) |
 | mc crash-loops with Modrinth `429 Too Many Requests` | [T4](#t4) |
@@ -109,6 +114,7 @@ Run this first. It covers deploy drift, disk, every expected container, `ONLINE_
 | A dimension is stuck below 85 however many seeds are rolled | [T39](#t39) |
 | A dimension is full of rivers and lakes; `seedRoll.water` changes nothing | [T40](#t40) |
 | Mod build fails with a misleading Gradle task error | [P4](#p4) |
+| Local mc dies with `SIGBUS`, or every level load fails on the Distant Horizons database | [P5](#p5) |
 | A worldgen config change had no effect | [D2](#d2) |
 | `Tried to read NBT tag that was too big`; `level.dat` growing every boot | [D9](#d9) |
 | Boot hangs after deleting a dimension's world directory | [D3](#d3), [K1](#k1) |
