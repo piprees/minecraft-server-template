@@ -1,7 +1,7 @@
 {
   "type": "multi_biome",
   "description": "The gauntlet \u2014 the hardest overworld there is. Brutal peaks, ancient cities, trial chambers, and a keep. Crystal spires and ash barrens break the ridgelines where other worlds press against this one. Every reward is guarded and nothing here waits for dark. The humans who built here were testing themselves, not settling.",
-  "seed": 8964811397136777366,
+  "seed": -7027121575339057397,
   "noiseSettings": "adventure:compressed",
   "biomes": [
     "minecraft:windswept_hills",
@@ -79,7 +79,16 @@
     "undergroundworlds:underground_desert",
     "wilderwild:dying_mixed_forest",
     "wilderwild:snowy_dying_forest",
-    "wilderwild:snowy_dying_mixed_forest"
+    "wilderwild:snowy_dying_mixed_forest",
+    {
+      "id": "terralith:desert_spires",
+      "parameters": {
+        "weirdness": [
+          -0.33,
+          -0.26
+        ]
+      }
+    }
   ],
   "borders": {
     "player": 2048,
@@ -108,11 +117,23 @@
     "terrainAdaptation": {
       "dungeons_arise:keep_kayra": "pedestal",
       "nova_structures:lone_citadel": "pedestal"
-    }
+    },
+    "rarity": {
+      "minecraft:trial_chambers": "common",
+      "epic:large_dungeons": "common"
+    },
+    "force": [
+      {
+        "structure": "dungeons_arise:scorched_mines",
+        "x": 880,
+        "z": -640,
+        "exclusive": false
+      }
+    ]
   },
   "portal": {
     "frameBlock": "minecraft:oxidized_copper",
-    "igniterItem": "minecraft:diamond",
+    "igniterItem": "minecraft:diamond_sword",
     "color": "7B8B9B",
     "lightLevel": 11,
     "scale": 4.0,
@@ -169,7 +190,22 @@
   },
   "spawn": [
     -128,
-    199,
+    266,
     128
-  ]
+  ],
+  "biomePatches": [
+    {
+      "biome": "terralith:desert_spires",
+      "x": 880,
+      "z": -640,
+      "radius": 260,
+      "blend": 32
+    }
+  ],
+  "exits": {
+    "death": {
+      "action": "respawnAt",
+      "target": "origin"
+    }
+  }
 }

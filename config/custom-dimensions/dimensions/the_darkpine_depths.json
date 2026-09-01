@@ -1,7 +1,7 @@
 {
   "type": "multi_biome",
   "description": "Where the villagers who listened too long to the endermen withdrew. Moonlit spruce dark, graveyards, manors \u2014 the woods keep their own counsel. The witches came from here: students who couldn't stop learning.",
-  "seed": 8959067252986353638,
+  "seed": -209973471820631054,
   "noiseSettings": "adventure:compressed",
   "biomes": [
     {
@@ -9,7 +9,7 @@
       "parameters": {
         "weirdness": [
           -2.0,
-          -0.19
+          -0.3
         ],
         "depth": [
           -2.0,
@@ -21,8 +21,8 @@
       "id": "minecraft:old_growth_spruce_taiga",
       "parameters": {
         "weirdness": [
-          -0.19,
-          -0.1537
+          -0.3,
+          -0.27
         ],
         "depth": [
           -2.0,
@@ -34,8 +34,8 @@
       "id": "natures_spirit:snowy_fir_forest",
       "parameters": {
         "weirdness": [
-          -0.1537,
-          -0.1175
+          -0.27,
+          -0.24
         ],
         "depth": [
           -2.0,
@@ -47,8 +47,34 @@
       "id": "minecraft:dark_forest",
       "parameters": {
         "weirdness": [
-          -0.1175,
-          -0.0812
+          -0.24,
+          -0.17
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "wilderwild:old_growth_dark_forest",
+      "parameters": {
+        "weirdness": [
+          -0.17,
+          -0.1
+        ],
+        "depth": [
+          -2.0,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "wilderwild:dark_birch_forest",
+      "parameters": {
+        "weirdness": [
+          -0.1,
+          -0.05
         ],
         "depth": [
           -2.0,
@@ -60,8 +86,8 @@
       "id": "minecraft:taiga",
       "parameters": {
         "weirdness": [
-          -0.0812,
-          -0.045
+          -0.05,
+          -0.02
         ],
         "depth": [
           -2.0,
@@ -73,8 +99,8 @@
       "id": "natures_spirit:fir_forest",
       "parameters": {
         "weirdness": [
-          -0.045,
-          -0.0087
+          -0.02,
+          0.01
         ],
         "depth": [
           -2.0,
@@ -86,8 +112,8 @@
       "id": "minecraft:old_growth_pine_taiga",
       "parameters": {
         "weirdness": [
-          -0.0087,
-          0.0275
+          0.01,
+          0.04
         ],
         "depth": [
           -2.0,
@@ -99,8 +125,8 @@
       "id": "terralith:birch_taiga",
       "parameters": {
         "weirdness": [
-          0.0275,
-          0.0638
+          0.04,
+          0.07
         ],
         "depth": [
           -2.0,
@@ -112,7 +138,7 @@
       "id": "regions_unexplored:blackwood_taiga",
       "parameters": {
         "weirdness": [
-          0.0638,
+          0.07,
           0.1
         ],
         "depth": [
@@ -174,15 +200,28 @@
   },
   "portal": {
     "frameBlock": "minecraft:cobbled_deepslate",
-    "igniterItem": "minecraft:amethyst_shard",
+    "igniterItem": "minecraft:spruce_sapling",
     "color": "2B5B3B",
     "lightLevel": 11,
     "scale": 8.0,
     "cooldown": 40,
     "sounds": {
-      "ignite": "block.portal.trigger",
-      "enter": "block.portal.travel",
-      "exit": "block.portal.travel"
+      "ignite": "block.respawn_anchor.charge",
+      "enter": "block.azalea_leaves.place",
+      "exit": "block.azalea_leaves.place"
+    },
+    "aura": {
+      "subsume": "natural",
+      "sides": "target",
+      "palette": [
+        "minecraft:podzol",
+        "minecraft:moss_block",
+        "minecraft:mossy_cobblestone"
+      ],
+      "trees": [
+        "minecraft:dark_oak",
+        "minecraft:mega_spruce"
+      ]
     }
   },
   "environment": {
@@ -193,7 +232,9 @@
   "seedRoll": {
     "mood": "adventurous",
     "spawnFilter": [
-      "minecraft:taiga"
+      "wilderwild:dark_taiga",
+      "terralith:moonlight_grove",
+      "minecraft:dark_forest"
     ],
     "wants": {
       "graveyard": "near_spawn",
@@ -212,7 +253,58 @@
   },
   "spawn": [
     0,
-    42,
+    44,
     64
-  ]
+  ],
+  "structures": {
+    "noise": {
+      "dungeons": "natural"
+    },
+    "rarity": {
+      "explorify:dark_forest_settlements": "common",
+      "betterdungeons:zombie_dungeons": "common",
+      "nova_structures:creeping_crypt": "common"
+    }
+  },
+  "biomePatches": [
+    {
+      "biome": "minecraft:dark_forest",
+      "x": -420,
+      "z": -260,
+      "radius": 190,
+      "blend": 24
+    },
+    {
+      "biome": "minecraft:meadow",
+      "x": 0,
+      "z": 190,
+      "radius": 95,
+      "blend": 20
+    },
+    {
+      "biome": "minecraft:meadow",
+      "x": 430,
+      "z": 520,
+      "radius": 110,
+      "blend": 20
+    },
+    {
+      "biome": "terralith:moonlight_valley",
+      "x": -520,
+      "z": 480,
+      "radius": 130,
+      "blend": 24
+    },
+    {
+      "biome": "terralith:moonlight_valley",
+      "x": 610,
+      "z": -430,
+      "radius": 120,
+      "blend": 24
+    }
+  ],
+  "exitShrines": {
+    "enabled": true,
+    "target": "bed"
+  }
 }

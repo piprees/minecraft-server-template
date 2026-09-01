@@ -1,7 +1,7 @@
 {
   "type": "multi_biome",
   "description": "Wide river country crossed at white cliffs \u2014 the ford where the villager trade routes converged. Lighthouses and farms along the water, built where the crossing was easy and the fish were good.",
-  "seed": 724848371774294097,
+  "seed": 3516393557588921874,
   "noiseSettings": "adventure:wide",
   "biomes": [
     {
@@ -205,7 +205,7 @@
   },
   "spawn": [
     128,
-    59,
+    81,
     -576
   ]
 }

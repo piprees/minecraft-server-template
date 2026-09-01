@@ -1,6 +1,6 @@
 {
   "type": "checkerboard",
-  "description": "The endermen's first construction \u2014 a quartz-and-void expanse laid out on a grid, in geometric silence. No cities, no habitation. Pure mathematical architecture, built before they understood what living in a place meant.",
+  "description": "The endermen's first construction \u2014 a quartz-and-void expanse laid out on a grid around a vast basalt square, in geometric silence. No cities, no habitation. Pure mathematical architecture, built before they understood what living in a place meant.",
   "seed": 8175453958011563902,
   "biomes": [
     "incendium:quartz_flats",
@@ -46,9 +46,9 @@
     "particleType": "minecraft:end_rod",
     "shape": "end_exit",
     "sounds": {
-      "ignite": "block.portal.trigger",
-      "enter": "block.portal.travel",
-      "exit": "block.portal.travel"
+      "ignite": "block.end_portal_frame.fill",
+      "enter": "entity.enderman.teleport",
+      "exit": "entity.enderman.teleport"
     },
     "aura": {
       "subsume": "everything",
@@ -56,7 +56,8 @@
         "minecraft:quartz_block",
         "minecraft:end_stone_bricks"
       ]
-    }
+    },
+    "centreBlock": "minecraft:chiseled_quartz_block"
   },
   "environment": {
     "skyColor": "#8B9BAF",
@@ -69,6 +70,8 @@
     "mood": "desolate",
     "allowHazardousSpawn": true,
     "spawnFilter": [
+      "incendium:quartz_flats",
+      "nullscape:void_barrens",
       "minecraft:end_midlands"
     ],
     "wants": {
@@ -85,8 +88,8 @@
     ],
     "terrain": "flat",
     "heightRange": [
-      48,
-      120
+      -32,
+      112
     ]
   },
   "spawn": [
@@ -106,6 +109,52 @@
         "dimension": "adventure:the_pillared_void",
         "arrival": "spawn"
       }
+    },
+    "void": {
+      "action": "teleport",
+      "target": "origin"
     }
-  }
+  },
+  "biomePatches": [
+    {
+      "biome": "minecraft:basalt_deltas",
+      "x": 0,
+      "z": 0,
+      "radius": 1050,
+      "shape": "square",
+      "blend": 0
+    },
+    {
+      "biome": "incendium:quartz_flats",
+      "x": 1550,
+      "z": 0,
+      "radius": 400,
+      "shape": "square",
+      "blend": 0
+    },
+    {
+      "biome": "incendium:quartz_flats",
+      "x": -1550,
+      "z": 0,
+      "radius": 400,
+      "shape": "square",
+      "blend": 0
+    },
+    {
+      "biome": "incendium:quartz_flats",
+      "x": 0,
+      "z": 1550,
+      "radius": 400,
+      "shape": "square",
+      "blend": 0
+    },
+    {
+      "biome": "incendium:quartz_flats",
+      "x": 0,
+      "z": -1550,
+      "radius": 400,
+      "shape": "square",
+      "blend": 0
+    }
+  ]
 }
