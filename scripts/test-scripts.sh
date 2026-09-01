@@ -183,6 +183,19 @@ else
   warn "Biome band partition check failed — run ./scripts/check-biome-bands.py"
 fi
 
+echo "  Checking client/server mod parity..."
+# Either direction of drift is a registry-handshake kick for every player:
+# a mod removed server-side but still client-required, or a server mod the
+# client needs that the pack never shipped. Modrinth unreachable = warn, pass.
+CLIENT_PARITY_ERRORS=0
+CLIENT_PARITY_OUT=$(python3 ./scripts/check-client-parity.py 2>&1) || CLIENT_PARITY_ERRORS=1
+if [[ $CLIENT_PARITY_ERRORS -eq 0 ]]; then
+  echo "$CLIENT_PARITY_OUT" | grep -E "parity:|inconclusive" || true
+else
+  echo "$CLIENT_PARITY_OUT"
+  warn "Client/server mod parity failed — players would be kicked at join"
+fi
+
 echo "  Checking spawn filters name a place..."
 # A filter naming most of a dimension's palette cannot aim a spawn and makes
 # spawn_reads_as_namesake free; a filter biome the dimension never lists scores
@@ -269,7 +282,7 @@ fi
 
 STATIC_ERRORS=$((SHELL_ERRORS + PYTHON_ERRORS + OWNERSHIP_ERRORS + RESOLVE_CACHE_ERRORS
   + BLOCKTAG_ERRORS + OPEN_WATER_ERRORS + BAND_REACH_ERRORS + BIOME_BANDS_ERRORS
-  + SPAWN_FILTER_ERRORS + COMPOSE_ERRORS + YAML_ERRORS))
+  + SPAWN_FILTER_ERRORS + CLIENT_PARITY_ERRORS + COMPOSE_ERRORS + YAML_ERRORS))
 if [[ $STATIC_ERRORS -gt 0 ]]; then
   echo "::error::$STATIC_ERRORS static-analysis check(s) failed"
   exit 1

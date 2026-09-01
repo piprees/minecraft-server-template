@@ -95,7 +95,16 @@
       "regions-unexplored:SffwLsGY",
       "medieval-buildings-end-edition:uCdUbsEn",
       "frozenlib:GdadG0oj",
-      "wilder-wild:LGumUR4U"
+      "wilder-wild:LGumUR4U",
+      "worldweaver:mPmeykPR",
+      "bclib:TxWM7AW8",
+      "betterend:4qhBEg6J",
+      "betternether:M1o6hR2m",
+      "deltaboxlib:jvWocoI8",
+      "pale-garden-backport:AQLqibSn",
+      "otterlib:lMOoBAw6",
+      "attributefix:XwbErf6s",
+      "fabric-seasons-terralith-compat:MJ2OF7eg"
     ],
     "optional": [
       "sodium:QV48eyCs",
@@ -114,7 +123,6 @@
       "freecam:Cg10zLnR",
       "betterf3:phATjGhF",
       "3dskinlayers:IrL0IGkV",
-      "fabric-seasons-terralith-compat:MJ2OF7eg",
       "ambientsounds:wU311vqz",
       "presence-footsteps:CrvsDgLW",
       "visuality:dhKbgdIb",
@@ -147,6 +155,8 @@
     ],
     "_stableOnlyComment": "stableOnly: resolver picks the newest RELEASE for these slugs instead of the newest build of any channel. Use for mods whose pre-release channels have burned us. Everything else gets the newest build - mod authors keep their own latest sets coherent (e.g. supplementaries release requires sodium beta).",
     "stableOnly": [],
+    "_parityExemptComment": "_parityExempt: slugs check-client-parity.py must not fail on, keyed by slug with the reason. A server mod declaring client_side=required that genuinely ships no client registry entries belongs here. Remove an entry only when its stated reason stops being true.",
+    "_parityExempt": {},
     "_holdsComment": "holds: slugs pin-mod-versions.sh must NOT re-pin, keyed by slug with the reason. Remove an entry only when its blocker clears."
   },
   "_shaderPacks": {

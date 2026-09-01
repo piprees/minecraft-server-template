@@ -67,6 +67,10 @@ fi
 # A slug removed server-side but still in _clientMods.required is a JOIN
 # FAILURE for every player (Fabric registry handshake kick). Warn loudly;
 # never fail the build.
+# This covers ONE direction only. The opposite drift — a server mod the
+# client needs that the pack never shipped — is the same join failure and
+# cannot be checked here: the container has no copy of the server mod list.
+# scripts/check-client-parity.py gates both directions in CI.
 MODS_REMOVE="${MODS_REMOVE:-$PROJECT_DIR/overlay/mods-remove.txt}"
 if [[ -f "$MODS_REMOVE" ]]; then
   python3 - "$MANIFEST" "$MODS_REMOVE" << 'PARITY'
