@@ -176,6 +176,11 @@ public final class ViewerPage {
         } else {
             b.append("<div class='no-render'>not rolled</div>");
         }
+        // Roll selection. Outside compact-trigger so clicking it never expands
+        // the card, and title-cased nowhere: the slug is the identity.
+        b.append("<label class='dim-pick' title='Select for rolling'>")
+                .append("<input type='checkbox' class='dim-pick-box' data-pick='")
+                .append(escape(slug)).append("'></label>");
         b.append("<div class='dim-name'>").append(escape(slug)).append("</div>");
         b.append("<div class='dim-meta'>")
                 .append(face == null ? "" : roleBadge(face.role()))

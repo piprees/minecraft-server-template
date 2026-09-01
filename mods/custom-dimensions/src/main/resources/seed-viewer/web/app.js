@@ -1985,9 +1985,26 @@
   // Not a dimension: the sentinel the Filtered option carries. A slug can be
   // any lowercase word, so it is spelled as something no slug can be.
   var FILTERED = '__filtered__'
+  var SELECTED = '__selected__'
 
   function filteredDims () {
     return window.visibleDimensions ? window.visibleDimensions() : []
+  }
+
+  /**
+   * Ticked cards, in grid order. Order matters as much as membership — the
+   * roller takes from the head of the list, so a sorted grid is a work queue.
+   * Hidden cards keep their tick but are not rolled: a filter change must not
+   * silently enlarge a batch somebody chose by hand.
+   */
+  function selectedDims () {
+    var out = []
+    document.querySelectorAll('.dim-card:not(.hidden) .dim-pick-box:checked')
+      .forEach(function (b) {
+        var d = b.getAttribute('data-pick')
+        if (d && out.indexOf(d) < 0) out.push(d)
+      })
+    return out
   }
 
   /**
@@ -1995,7 +2012,25 @@
    * about how big the batch is, and the batch is whatever the filters left —
    * which is the one thing worth knowing before pressing play.
    */
+  function refreshSelectedOption () {
+    var opt = dimEl.querySelector('option[value="' + SELECTED + '"]')
+    if (!opt) return
+    var n = selectedDims().length
+    opt.textContent = n ? 'Selected (' + n + ')' : 'Selected'
+    opt.disabled = n === 0
+  }
+
+  document.addEventListener('change', function (e) {
+    var box = e.target
+    if (!box || !box.classList || !box.classList.contains('dim-pick-box')) return
+    var card = box.closest('.dim-card')
+    if (card) card.classList.toggle('picked', box.checked)
+    refreshSelectedOption()
+    if (box.checked && dimEl.value !== SELECTED) dimEl.value = SELECTED
+  })
+
   function refreshFilteredOption () {
+    refreshSelectedOption()
     var opt = dimEl.querySelector('option[value="' + FILTERED + '"]')
     if (!opt) return
     var n = filteredDims().length
@@ -2154,6 +2189,18 @@
     }
     toggleBtn.disabled = true
     var body = { count: parseInt(countEl.value, 10) || 100, dim: dimEl.value || null }
+    if (dimEl.value === SELECTED) {
+      var picked = selectedDims()
+      if (!picked.length) {
+        if (statusEl) {
+          statusEl.textContent = 'Nothing is ticked — tick a card, or pick All.'
+        }
+        toggleBtn.disabled = false
+        return
+      }
+      body.dim = null
+      body.dims = picked
+    }
     if (dimEl.value === FILTERED) {
       var dims = filteredDims()
       if (!dims.length) {

@@ -850,6 +850,25 @@ h1 {
   max-width: 200px;
   width: 100%;
 }
+.dim-card .dim-pick {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  z-index: 2;
+  cursor: pointer;
+  padding: 2px;
+}
+.dim-card .dim-pick-box {
+  cursor: pointer;
+  width: 15px;
+  height: 15px;
+  accent-color: var(--accent, #7aa2f7);
+}
+.dim-card.picked {
+  outline: 2px solid var(--accent, #7aa2f7);
+  outline-offset: -2px;
+}
+
 .dim-card .dim-name {
   font-size: 0.88rem;
   font-weight: 600;
