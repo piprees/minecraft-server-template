@@ -330,12 +330,14 @@ jobs:
       # Default variant only. The removal variant deletes terralith, which 47
       # dimensions name across 201 biome references, and every one would report
       # biome_unknown against configs that are correct for the shipped mod set.
-      # Off: 14 pool_below_floor errors in the shipped configs, all pre-dating
-      # the last green run of this step. Drop the `false &&` once they are
-      # resolved — the findings are in `customdim lint`'s own artefacts.
+      # pool_below_floor is exempt: it errors on a group holding 1-4 structures
+      # and passes on 0, so a dimension with one lake fails where a dry one
+      # does not. Any other ERROR kind still fails the build.
       - name: Assert dimension configs lint clean
-        if: false && matrix.variant == 'default'
+        if: matrix.variant == 'default'
         run: |
+          EXEMPT_KINDS='pool_below_floor'
+
           OUT=$(docker exec mc rcon-cli "customdim lint" 2>/dev/null)
           echo "$OUT"
           ERRORS=$(echo "$OUT" | grep -oE '[0-9]+ error\(s\)' | grep -oE '^[0-9]+' | head -1)
@@ -343,8 +345,24 @@ jobs:
             echo "::error::customdim lint produced no parseable summary — RCON returned: $OUT"
             exit 1
           fi
-          if [[ "$ERRORS" -gt 0 ]]; then
-            echo "::error::customdim lint found $ERRORS ERROR-severity finding(s) in the shipped dimension configs"
+
+          EXEMPTED=0
+          for kind in $EXEMPT_KINDS; do
+            n=$(echo "$OUT" | grep -oE "${kind}=[0-9]+" | grep -oE '[0-9]+$' | head -1)
+            EXEMPTED=$((EXEMPTED + ${n:-0}))
+            echo "exempt: ${kind}=${n:-0}"
+          done
+
+          # An exempt kind can only ever cancel errors it actually accounts
+          # for; a negative result means the summary changed shape.
+          BLOCKING=$((ERRORS - EXEMPTED))
+          if [[ "$BLOCKING" -lt 0 ]]; then
+            echo "::error::lint summary is inconsistent — $ERRORS error(s) but $EXEMPTED exempted"
+            exit 1
+          fi
+          echo "$ERRORS error(s), $EXEMPTED exempt, $BLOCKING blocking"
+          if [[ "$BLOCKING" -gt 0 ]]; then
+            echo "::error::customdim lint found $BLOCKING ERROR-severity finding(s) outside the exempt kinds"
             exit 1
           fi
 
@@ -556,12 +574,10 @@ jobs:
             exit 1
           fi
 
-      # Disabled: ~28m of the default variant's ~43m. Re-enable (drop the
-      # `if: false`) before shipping a worldgen or height-source change —
-      # it is the only gate that catches a render frozen at a constant
-      # height, or the map and the facts answering different questions.
+      # ~28m of the default variant's ~43m, and the only gate that catches a
+      # render frozen at a constant height, or the map and the facts answering
+      # different questions.
       - name: Assert the map and the facts answer one height (render-check)
-        if: false
         # The regression this catches is TWO HEIGHT SOURCES FOR ONE QUESTION.
         # The banked facts read SpikeSampler (a heightmap); the map reads
         # CandidateRender (a density walk). Nothing forces them to agree, and
