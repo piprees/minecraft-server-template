@@ -157,7 +157,7 @@ Observed shipped patterns: peaceful `mobMultiplier: 0.0` + `hostileSpawning: fal
 | `igniterItem` | Item id that ignites the portal. Multiple dimensions can validly share one igniter — the mod tries all matching candidates. |
 | `color` | 6-digit hex, **no `#`**. Ignored if `particleType` is set. |
 | `lightLevel` | 0-15. Most shipped dims: `11`. |
-| `scale` | Coordinate scale factor, `0.001`-`1000`. `0.125` = classic nether 1:8. Smaller playable-world-via-scale ties into the difficulty philosophy (see main SKILL.md). |
+| `scale` | Coordinate scale factor, `0.001`-`1000`. `8.0` = classic nether 1:8 — one block here is 8 in the overworld. Shipped values are 1, 2, 4, 8, 12 and 16; 34 dimensions use 8. Ties into the difficulty philosophy (see main SKILL.md). |
 | `cooldown` | Teleport cooldown in ticks, `0`-`200`. Default `40` (2s). |
 | `particleType` | Any particle id, overrides `color`. |
 | `orientation` | `"any"` (default) \| `"vertical"` (X/Z) \| `"horizontal"` (Y) \| `"vertical_x"` \| `"vertical_z"`. |

@@ -48,7 +48,7 @@ Every portal is immersive unless it says otherwise. You see the destination's te
   //   "refreshInterval": 4,  // ticks between delta refreshes (min 2)
   //   "activationRange": 24, // blocks from the portal (1-64)
   //   "audio": true,         // far-side biome ambience
-  //   "entityPassthrough": true  // items/projectiles/orbs cross; mobs never do
+  //   "entityPassthrough": true  // any entity crosses, velocity preserved
   // }
 }
 ```
