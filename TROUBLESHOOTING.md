@@ -1354,6 +1354,31 @@ measurement of it.
   built under another. Freeze it across the roll; regenerate after a wipe, where
   it reaches only dimensions created later.
 
+<a id="t79"></a>
+### T79 — Better Caves throws ClassCastException on every affected chunk, and the tick budget pays for it
+
+- **Symptom:** repeated during chunk generation, tens of times per session:
+
+  ```
+  java.lang.ClassCastException: class net.minecraft.class_6350$1 cannot be cast
+  to class com.yungnickyoung.minecraft.bettercaves.duck.ILiquidRegionsProvider
+  ```
+
+  Chunks still generate and the server does not die of it. Observed 41 times in
+  one boot, alongside `NoSuchFileException: ./world/./visited-dimensions.json.tmp`.
+- **Cause:** `class_6350$1` is an anonymous subclass of the aquifer sampler.
+  YUNG's Better Caves mixes its `ILiquidRegionsProvider` duck interface into the
+  outer class, and the anonymous inner one does not carry it — the standard
+  shape of an accessor interface that did not apply where the code expects it
+  ([mods/AGENTS.md § mixin conventions]).
+- **Not diagnosed further.** Whether it costs generation time, silently skips
+  Better Caves' liquid regions in those chunks, or both, is unmeasured. It is
+  recorded because it is undocumented and looks alarming next to a real fault.
+- **It is NOT what kills a server during dimension activation.** That is the
+  watchdog on concurrent first-time chunk generation ([K6]) — a single tick
+  exceeding 180s. The two appear together in the log and the exception is the
+  more eye-catching, which is exactly why this entry exists.
+
 <a id="t78"></a>
 ### T78 — A config change does not reach the local server, and the boot is green on the old file
 
