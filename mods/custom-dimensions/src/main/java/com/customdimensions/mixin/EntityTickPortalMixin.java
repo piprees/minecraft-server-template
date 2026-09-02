@@ -80,6 +80,14 @@ public abstract class EntityTickPortalMixin {
         int now = serverLevel.getServer().getTicks();
         boolean entered = PortalHelper.enteredArrivalPortal(
                 worldKey, player.getUuid(), inPortal, player.getPortalCooldown() > 0, now);
+        // Claimed on CONTACT, not on the arrival edge. A vanilla portal never
+        // fires that edge — vanilla pins the cooldown the moment you touch the
+        // block and teleports within a tick — so a presentation zone would
+        // never be registered for one. claimAttempt dedupes per area per boot.
+        if (inPortal) {
+            com.customdimensions.portal.PortalAdoption.adopt(
+                    serverLevel, PortalHelper.collectPortalArea(serverLevel, pos));
+        }
         if (!inPortal || !entered) {
             return;
         }
@@ -100,12 +108,6 @@ public abstract class EntityTickPortalMixin {
         }
 
         PortalHelper.PortalReturnTarget target = PortalHelper.getPortalTarget(serverLevel.getRegistryKey(), portalBlocks.iterator().next());
-        if (target == null) {
-            // A portal with no owner is matched to a definition and registered
-            // as a source zone; ServerWorldMixin's zone loop takes the
-            // traversal from the next tick. One attempt per area per boot.
-            com.customdimensions.portal.PortalAdoption.adopt(serverLevel, portalBlocks);
-        }
         String exitMode = target != null ? target.exitMode : null;
 
         // Configured exit modes ("bed"/"worldSpawn" — anchor arrivals and
