@@ -34,7 +34,8 @@
     "NoiseStructureSelectionMixin",
     "EndGatewaySuppressionMixin",
     "ChunkTicketManagerAccessor",
-    "ServerChunkManagerAccessor"
+    "ServerChunkManagerAccessor",
+    "PortalDestinationMixin"
   ],
   "injectors": {
     "defaultRequire": 1
