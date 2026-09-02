@@ -2225,10 +2225,16 @@ public class DimensionManager {
             // Every live signal re-stamps, so the window measures time since
             // the LAST one rather than since the world loaded. Portal
             // proximity re-stamps from ServerWorldMixin's per-tick scan.
-            if (!world.getPlayers().isEmpty()
-                    || !world.getForcedChunks().isEmpty()
-                    || holdsChunkTickets(world)) {
+            boolean players = !world.getPlayers().isEmpty();
+            boolean forced = !world.getForcedChunks().isEmpty();
+            boolean tickets = holdsChunkTickets(world);
+            if (players || forced || tickets) {
                 updatePlayerPresence(key, true);
+                // Names WHICH signal held it. A dimension that never idles is
+                // a stuck veto, and the counts say which one without a build.
+                MultiverseServer.LOGGER.debug(
+                        "idle: {} held by players={} forcedChunks={} chunkTickets={}",
+                        key.getValue(), players, forced, tickets);
                 continue;
             }
 

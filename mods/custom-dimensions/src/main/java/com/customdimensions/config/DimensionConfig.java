@@ -3,9 +3,11 @@ package com.customdimensions.config;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import com.google.gson.annotations.JsonAdapter;
 import com.google.gson.annotations.SerializedName;
 import net.minecraft.util.Identifier;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -111,8 +113,10 @@ public class DimensionConfig {
     private String structureDensity;
     @SerializedName("structures")
     private Structures structures;
+    /** One object or an array of them; PortalListAdapter normalises both to a list. */
     @SerializedName("portal")
-    private Portal portal;
+    @JsonAdapter(PortalListAdapter.class)
+    private List<Portal> portals;
     @SerializedName("exitPortal")
     private ExitPortal exitPortal;
     /** Trigger -> exit rule: ways OUT without a portal (boot-re-read). */
@@ -563,9 +567,10 @@ public class DimensionConfig {
         return sb.toString();
     }
 
-    /** Travel scale for every dimension: portal.scale, defaulting to 1.0. */
+    /** Travel scale for every dimension: the primary portal's scale, defaulting to 1.0. */
     public double getScale() {
-        return this.portal != null && this.portal.scale != null ? this.portal.scale : 1.0;
+        Portal primary = this.getPortal();
+        return primary != null && primary.scale != null ? primary.scale : 1.0;
     }
 
     // --- borders / difficulty -----------------------------------------------
@@ -639,14 +644,33 @@ public class DimensionConfig {
 
     // --- portal ---------------------------------------------------------------
 
+    /** The primary portal — first in config order — or null when none is configured. */
     public Portal getPortal() {
-        return this.portal;
+        return this.portals == null || this.portals.isEmpty() ? null : this.portals.get(0);
+    }
+
+    /** Every configured portal, in config order. */
+    public List<Portal> getPortals() {
+        return this.portals != null ? this.portals : List.of();
+    }
+
+    /**
+     * Definition id by config position: the slug for the primary, then
+     * slug#2, slug#3. The primary keeps the bare slug, so a single-portal
+     * dimension's zone records are byte-identical to a one-portal config's.
+     */
+    public String portalId(int index) {
+        return index == 0 ? this.name : this.name + "#" + (index + 1);
     }
 
     public boolean hasPortal() {
-        // Frameless gateway portals are legitimate without any frameBlock.
-        return this.portal != null && (!this.portal.getFrameAcceptForms().isEmpty()
-                || com.customdimensions.portal.PortalShape.END_GATEWAY.equals(this.portal.getShapeName()));
+        return this.getPortals().stream().anyMatch(DimensionConfig::isIgnitable);
+    }
+
+    /** Frameless gateway portals are legitimate without any frameBlock. */
+    private static boolean isIgnitable(Portal portal) {
+        return portal != null && (!portal.getFrameAcceptForms().isEmpty()
+                || com.customdimensions.portal.PortalShape.END_GATEWAY.equals(portal.getShapeName()));
     }
 
     public ExitPortal getExitPortal() {
@@ -682,92 +706,106 @@ public class DimensionConfig {
      * without a world wipe.
      */
     public PortalDefinition toPortalDefinition() {
-        if (this.portal == null) {
-            return null;
+        Portal primary = this.getPortal();
+        return primary != null ? this.toPortalDefinition(primary, this.portalId(0)) : null;
+    }
+
+    /** One definition per ignitable portal, in config order. */
+    public List<PortalDefinition> toPortalDefinitions() {
+        List<PortalDefinition> defs = new ArrayList<>();
+        List<Portal> all = this.getPortals();
+        for (int i = 0; i < all.size(); i++) {
+            if (isIgnitable(all.get(i))) {
+                defs.add(this.toPortalDefinition(all.get(i), this.portalId(i)));
+            }
         }
+        return defs;
+    }
+
+    private PortalDefinition toPortalDefinition(Portal portal, String id) {
         // Primary frame form is ALWAYS a plain, parseable block id — the plain
         // config id, else the placement block, else obsidian. Never a "#tag"
         // form: zone records persist this, and an older jar calls
         // Identifier.of() on it in an uncaught world-tick path — a '#' there
         // crash-loops on downgrade.
-        List<String> accepts = this.portal.getFrameAcceptForms();
-        String plainId = this.portal.getFrameBlockId();
-        String place = this.portal.resolvePlacementBlockId();
+        List<String> accepts = portal.getFrameAcceptForms();
+        String plainId = portal.getFrameBlockId();
+        String place = portal.resolvePlacementBlockId();
         String primary = plainId != null ? plainId
                 : (place != null ? place : "minecraft:obsidian");
         PortalDefinition def = new PortalDefinition(
-                this.name,
+                id,
                 primary,
-                this.portal.igniterItem != null ? this.portal.igniterItem : "",
+                portal.igniterItem != null ? portal.igniterItem : "",
                 this.getDimensionId(),
-                this.portal.color,
-                this.portal.lightLevel != null ? this.portal.lightLevel : 0);
+                portal.color,
+                portal.lightLevel != null ? portal.lightLevel : 0);
         // Only store what the simple form can't express — keeps legacy-shaped
         // definitions (and their persisted zone records) unchanged.
         if (!accepts.equals(List.of(primary))) {
             def.setFrameAccepts(accepts);
         }
-        Map<String, List<String>> parts = this.portal.getFramePartAcceptForms();
+        Map<String, List<String>> parts = portal.getFramePartAcceptForms();
         if (!parts.isEmpty()) {
             def.setFramePartAccepts(parts);
         }
         // Plumb the explicit framePlaceBlock through: without this, a plain
         // frameBlock (e.g. "minecraft:stone") silently overrides a differing
         // explicit framePlaceBlock in getFramePlaceBlock()'s fallback chain.
-        if (this.portal.framePlaceBlock != null && !this.portal.framePlaceBlock.isBlank()) {
-            def.setFramePlaceBlock(this.portal.framePlaceBlock.trim());
+        if (portal.framePlaceBlock != null && !portal.framePlaceBlock.isBlank()) {
+            def.setFramePlaceBlock(portal.framePlaceBlock.trim());
         }
-        if (this.portal.orientation != null && !this.portal.orientation.isBlank()) {
-            def.setOrientation(this.portal.orientation.trim());
+        if (portal.orientation != null && !portal.orientation.isBlank()) {
+            def.setOrientation(portal.orientation.trim());
         }
-        String shapeName = this.portal.getShapeName();
+        String shapeName = portal.getShapeName();
         if (shapeName != null
                 && !com.customdimensions.portal.PortalShape.STANDARD.equals(shapeName)) {
             def.setShape(shapeName);
         }
-        List<String> template = this.portal.getShapeTemplate();
+        List<String> template = portal.getShapeTemplate();
         if (template != null) {
             def.setShape(com.customdimensions.portal.PortalShape.PATTERN);
             def.setShapeTemplate(template);
-            def.setShapeLegend(this.portal.getShapeLegend());
+            def.setShapeLegend(portal.getShapeLegend());
         }
-        if (this.portal.centreBlock != null && !this.portal.centreBlock.isBlank()) {
-            def.setCentreBlock(this.portal.centreBlock.trim());
+        if (portal.centreBlock != null && !portal.centreBlock.isBlank()) {
+            def.setCentreBlock(portal.centreBlock.trim());
         }
-        def.setScale(this.portal.scale != null ? this.portal.scale : 1.0);
-        def.setCooldown(this.portal.cooldown != null ? this.portal.cooldown : 40);
-        def.setParticleType(this.portal.particleType);
-        def.setIgniteSound(this.portal.getIgniteSound());
-        def.setEnterSound(this.portal.getEnterSound());
-        def.setExitSound(this.portal.getExitSound());
-        if (this.portal.anchor != null) {
-            def.setAnchorPos(this.portal.anchor.resolvePos(this.getSpawn()));
-            def.setAnchorExit(this.portal.anchor.getExit());
+        def.setScale(portal.scale != null ? portal.scale : 1.0);
+        def.setCooldown(portal.cooldown != null ? portal.cooldown : 40);
+        def.setParticleType(portal.particleType);
+        def.setIgniteSound(portal.getIgniteSound());
+        def.setEnterSound(portal.getEnterSound());
+        def.setExitSound(portal.getExitSound());
+        if (portal.anchor != null) {
+            def.setAnchorPos(portal.anchor.resolvePos(this.getSpawn()));
+            def.setAnchorExit(portal.anchor.getExit());
         }
-        if (this.portal.singleUse != null && Boolean.TRUE.equals(this.portal.singleUse.enabled)) {
+        if (portal.singleUse != null && Boolean.TRUE.equals(portal.singleUse.enabled)) {
             def.setSingleUse(true);
-            def.setSingleUseDelayTicks(this.portal.singleUse.getDelaySeconds() * 20);
-            def.setSingleUseBreakMode(this.portal.singleUse.getBreakMode());
-            def.setSingleUseDecayMap(this.portal.singleUse.decayMap);
+            def.setSingleUseDelayTicks(portal.singleUse.getDelaySeconds() * 20);
+            def.setSingleUseBreakMode(portal.singleUse.getBreakMode());
+            def.setSingleUseDecayMap(portal.singleUse.decayMap);
         }
-        if (this.portal.aura != null) {
+        if (portal.aura != null) {
             PortalDefinition.AuraSettings aura = new PortalDefinition.AuraSettings();
-            aura.enabled = this.portal.aura.enabled;
-            aura.radius = this.portal.aura.radius;
-            aura.interval = this.portal.aura.interval;
-            aura.blocksPerPass = this.portal.aura.blocksPerPass;
-            aura.budget = this.portal.aura.budget;
-            aura.sides = this.portal.aura.sides;
-            aura.palette = this.portal.aura.palette;
-            aura.flora = this.portal.aura.flora;
-            aura.trees = this.portal.aura.trees;
-            aura.fluids = this.portal.aura.fluids;
-            aura.conversions = this.portal.aura.conversions;
-            aura.fireChance = this.portal.aura.fireChance;
-            aura.subsume = this.portal.aura.subsume;
+            aura.enabled = portal.aura.enabled;
+            aura.radius = portal.aura.radius;
+            aura.interval = portal.aura.interval;
+            aura.blocksPerPass = portal.aura.blocksPerPass;
+            aura.budget = portal.aura.budget;
+            aura.sides = portal.aura.sides;
+            aura.palette = portal.aura.palette;
+            aura.flora = portal.aura.flora;
+            aura.trees = portal.aura.trees;
+            aura.fluids = portal.aura.fluids;
+            aura.conversions = portal.aura.conversions;
+            aura.fireChance = portal.aura.fireChance;
+            aura.subsume = portal.aura.subsume;
             def.setAura(aura);
         }
-        def.setImmersive(this.portal.getImmersiveSettings());
+        def.setImmersive(portal.getImmersiveSettings());
         return def;
     }
 

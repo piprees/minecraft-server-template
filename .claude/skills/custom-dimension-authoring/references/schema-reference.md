@@ -125,6 +125,40 @@ Observed shipped patterns: peaceful `mobMultiplier: 0.0` + `hostileSpawning: fal
 
 ## `portal` object
 
+`portal` takes one object, or an array of them when a dimension has several
+ways in. Every field below is per portal: frame, igniter, colour, scale,
+cooldown, sounds, shape and aura are independent for each entry.
+
+```json
+{
+  "portal": [
+    { "frameBlock": "minecraft:copper_block", "igniterItem": "minecraft:diamond", "scale": 4.0 },
+    { "frameBlock": "minecraft:mud_bricks", "igniterItem": "minecraft:diamond", "scale": 4.0 }
+  ]
+}
+```
+
+**Config order decides everything ambiguous.** The first entry is the
+dimension's PRIMARY portal. It supplies the look and sounds of the return
+portal built inside the dimension, the `aura.subsume` and `immersive` policy
+for both ends of every link, the `exitPortal`/`exitShrines` presentation, the
+anchor, and the dimension's travel scale. When two entries share a frame block
+or an igniter, ignition tries them in config order, entries whose frame matches
+the block that was clicked first.
+
+**Ids.** The first portal is identified by the dimension slug, the rest by
+`<slug>#2`, `<slug>#3`. Ids appear in the boot log and in the portal-adoption
+line.
+
+**Give every entry the same `scale`.** `borders.player` must be
+`overworldBorder / scale`, and each portal applies its OWN scale on entry — a
+second portal with a different scale lands players outside the border, where
+vanilla forbids breaking and placing every block.
+
+**A consumer overlay `"overrides"` deep-merge merges an object `portal`
+key-by-key, but replaces an array wholesale.** To change one entry of an array,
+restate the whole array.
+
 ```json
 {
   "portal": {

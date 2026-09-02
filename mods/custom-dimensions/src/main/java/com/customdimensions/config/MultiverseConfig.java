@@ -85,9 +85,8 @@ public class MultiverseConfig {
             if (!config.isReserved()) {
                 this.managedNamespaces.add(config.getNamespace());
             }
-            if (config.hasPortal()) {
-                this.portals.add(config.toPortalDefinition());
-            }
+            // One definition per configured portal, in config order.
+            this.portals.addAll(config.toPortalDefinitions());
         }
         for (String warning : PortalSafetyValidator.validate(this.configs.values())) {
             MultiverseServer.LOGGER.warn(warning);
@@ -165,19 +164,22 @@ public class MultiverseConfig {
      * unignitable, because ignition would hunt for the wrong frame block.
      */
     public List<PortalDefinition> getPortalsByIgniter(String itemId, String clickedBlockId) {
-        List<PortalDefinition> matches = new ArrayList<>();
+        // Two buckets, concatenated: a clicked-frame match outranks the rest,
+        // and config order decides within each. Prepending instead would
+        // reverse several matches in one dimension.
+        List<PortalDefinition> framed = new ArrayList<>();
+        List<PortalDefinition> others = new ArrayList<>();
         for (PortalDefinition p : this.portals) {
             if (p.getIgniterItem() != null && p.getIgniterItem().equals(itemId)) {
-                // Matcher-aware ordering: tag/list frames count as a clicked-
-                // frame match too (plain ids compare registry-free).
                 if (clickedBlockId != null && p.resolveFrameMatcher().acceptsBlockId(clickedBlockId)) {
-                    matches.add(0, p);
+                    framed.add(p);
                 } else {
-                    matches.add(p);
+                    others.add(p);
                 }
             }
         }
-        return matches;
+        framed.addAll(others);
+        return framed;
     }
 
     /**

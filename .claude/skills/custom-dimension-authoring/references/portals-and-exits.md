@@ -6,6 +6,12 @@ anchored portals, and exit conditions. The portal fields themselves (frame,
 igniter, colour, scale, sounds, shape) are in `schema-reference.md`; the
 scale/border pairing is in `SKILL.md` § Portal scale guide.
 
+A dimension may declare several portals: `portal` is one object, or an array of
+them, each a full definition. The first entry is the primary and governs the
+aura, immersive and exit presentation below for every link into the dimension.
+Ordering, ids and the shared-`scale` rule: `schema-reference.md` § `portal`
+object.
+
 ## `portal.aura.subsume` — what the aura may eat
 
 Every linked portal grows an **aura**: it slowly converts blocks in an annulus around both ends, so the two worlds bleed into each other. `subsume` decides what it is allowed to convert, and **it is a design statement about the dimension, not a safety setting**.

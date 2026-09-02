@@ -181,6 +181,8 @@ reading it here re-skins exactly the wrong biomes.
 
 ## Portal scale guide
 
+`portal` is one object, or an array of them when a dimension has several ways in — the first entry is the primary and governs scale, aura and exit presentation. See `references/schema-reference.md` § `portal` object.
+
 `portal.scale` controls coordinate scaling between the overworld and the custom dimension. **This is a design-level decision, not a cosmetic one — changing it after players have built portals can strand them.**
 
 | Scale | What it means | Playable world size (at 8192 OW border) | Use for | Shipped count |

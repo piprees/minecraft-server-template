@@ -28,8 +28,11 @@ public final class PortalSafetyValidator {
         int sourceRadius = overworldBorderRadius(configs);
         for (DimensionConfig config : configs) {
             validateLinks(config, knownIds, warnings);
-            validateFrameConfig(config, warnings);
-            validateArrivalReachability(config, sourceRadius, warnings);
+            for (DimensionConfig.Portal portal : config.getPortals()) {
+                validateFrameConfig(config, portal, warnings);
+                validateArrivalReachability(config, portal, sourceRadius, warnings);
+                validateStranding(config, portal, warnings);
+            }
             // Death-only exits: a dimension whose ONLY way out is dying is
             // stranding-by-config for anyone who wants to leave alive.
             if (!config.getExits().isEmpty() && config.getPortal() == null
@@ -41,27 +44,32 @@ public final class PortalSafetyValidator {
                         + "config as written; add an \"exitPortal\" or a non-death exit (never auto-fixed).",
                         config.getName()));
             }
-            if (config.getPortal() == null || config.hasExitPortal()) {
-                continue;
-            }
-            DimensionConfig.Portal portal = config.getPortal();
-            if (portal.singleUse != null && Boolean.TRUE.equals(portal.singleUse.enabled)) {
-                warnings.add(String.format(
-                        "Dimension %s: portal.singleUse is enabled with no exitPortal — the way in "
-                        + "crumbles behind the player and nothing guarantees a way home. KEEPING the "
-                        + "config as written; add an \"exitPortal\" block to fix (never auto-fixed).",
-                        config.getName()));
-            }
-            if (portal.anchor != null) {
-                warnings.add(String.format(
-                        "Dimension %s: portal.anchor suppresses per-source return portals and there is "
-                        + "no exitPortal — if the anchor arrival portal breaks, players are stranded "
-                        + "until the next arrival rebuilds it. KEEPING the config as written; add an "
-                        + "\"exitPortal\" block to fix (never auto-fixed).",
-                        config.getName()));
-            }
         }
         return warnings;
+    }
+
+    // A portal that can shut behind the player, or that suppresses per-source
+    // return portals, needs an exitPortal to guarantee a way home.
+    private static void validateStranding(DimensionConfig config, DimensionConfig.Portal portal,
+                                          List<String> warnings) {
+        if (config.hasExitPortal()) {
+            return;
+        }
+        if (portal.singleUse != null && Boolean.TRUE.equals(portal.singleUse.enabled)) {
+            warnings.add(String.format(
+                    "Dimension %s: portal.singleUse is enabled with no exitPortal — the way in "
+                    + "crumbles behind the player and nothing guarantees a way home. KEEPING the "
+                    + "config as written; add an \"exitPortal\" block to fix (never auto-fixed).",
+                    config.getName()));
+        }
+        if (portal.anchor != null) {
+            warnings.add(String.format(
+                    "Dimension %s: portal.anchor suppresses per-source return portals and there is "
+                    + "no exitPortal — if the anchor arrival portal breaks, players are stranded "
+                    + "until the next arrival rebuilds it. KEEPING the config as written; add an "
+                    + "\"exitPortal\" block to fix (never auto-fixed).",
+                    config.getName()));
+        }
     }
 
     /**
@@ -109,13 +117,13 @@ public final class PortalSafetyValidator {
      * entering DIVIDES. {@link com.customdimensions.portal.ArrivalReachability}
      * has the correct arithmetic.
      */
-    private static void validateArrivalReachability(DimensionConfig config, int sourceRadius,
-                                                    List<String> warnings) {
-        DimensionConfig.Portal portal = config.getPortal();
-        if (portal == null || portal.anchor != null) {
+    private static void validateArrivalReachability(DimensionConfig config,
+                                                    DimensionConfig.Portal portal,
+                                                    int sourceRadius, List<String> warnings) {
+        if (portal.anchor != null) {
             return;
         }
-        double scale = config.getScale();
+        double scale = portal.scale != null ? portal.scale : 1.0;
         int destRadius = config.getPlayerBorderRadius();
         if (destRadius <= 0) {
             return; // 0 = explicitly borderless, so nothing can land outside it
@@ -150,11 +158,8 @@ public final class PortalSafetyValidator {
     // Frame-material hygiene: malformed accept forms, unknown colour groups,
     // missing framePlaceBlock on non-plain frames, unknown orientation
     // values. WARN and keep going.
-    private static void validateFrameConfig(DimensionConfig config, List<String> warnings) {
-        DimensionConfig.Portal portal = config.getPortal();
-        if (portal == null) {
-            return;
-        }
+    private static void validateFrameConfig(DimensionConfig config, DimensionConfig.Portal portal,
+                                            List<String> warnings) {
         List<String> forms = portal.getFrameAcceptForms();
         if (portal.frameBlock != null && !portal.frameBlock.isJsonNull() && forms.isEmpty()) {
             warnings.add(String.format(

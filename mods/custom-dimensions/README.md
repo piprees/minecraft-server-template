@@ -221,6 +221,8 @@ An `"environment"` block registers a per-dimension `DimensionType` as `{ns}:{slu
 
 ## Portals
 
+`portal` is one object, or an array of them when a dimension has several ways in — the first entry is the primary and governs scale, aura and exit presentation. See `references/schema-reference.md` § `portal` object.
+
 Frames may be vertical (X or Z) or horizontal (floor and ceiling, Y-axis): build the ring flat on the ground and right-click the top face with the igniter. Particles are a hex `color` per portal, rendered on both sides. `cooldown` is 0-200 ticks. Sound fields (`sounds.ignite`/`enter`/`exit`) are config-file-only and accept any Minecraft sound id. Target-side portals are built automatically and stepping back in returns you.
 
 **The whole `portal` block is re-read every boot** — unlike worldgen, frame materials, shapes, auras, immersive settings, anchors, single-use and exit portals all apply to existing dimensions without a world wipe.
