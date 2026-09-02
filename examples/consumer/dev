@@ -753,7 +753,37 @@ case "$CMD" in
     done
     echo "Re-linking so the farm points at the new jars ..."
     bash "$CONSUMER_DIR/dev" link "$PLATFORM" > /dev/null
-    echo "Done. ./dev up installs the server jars; ./dev pack rebuilds the client pack."
+
+    # An imported Prism instance never re-reads the .mrpack, and packwiz
+    # cannot reach the local pack host, so a rebuilt client jar reaches it
+    # only by being copied in. Without this the next launch tests stale code.
+    set -a
+    # shellcheck disable=SC1091
+    source "$CONSUMER_DIR/.env"
+    set +a
+    INST_DIR="$(resolve_client_instance || true)"
+    if [[ -n "$INST_DIR" && -d "$INST_DIR/mods" ]]; then
+      COPIED=0
+      for j in "$PLATFORM"/mods/*/build/libs/*.jar; do
+        [[ -f "$j" ]] || continue
+        case "$j" in *-dev.jar | *-sources.jar) continue ;; esac
+        if unzip -p "$j" fabric.mod.json 2> /dev/null |
+          tr -d ' \n' | grep '"environment":"client"' > /dev/null; then
+          # Drop older builds of the same mod or the loader sees duplicates.
+          MOD_ID="$(unzip -p "$j" fabric.mod.json 2> /dev/null |
+            tr -d ' \n' | sed -n 's/.*"id":"\([a-z0-9_-]*\)".*/\1/p' | head -1)"
+          if [[ -n "$MOD_ID" ]]; then
+            find "$INST_DIR/mods" -maxdepth 1 -name "${MOD_ID}*.jar" -delete 2> /dev/null || true
+          fi
+          cp -f "$j" "$INST_DIR/mods/"
+          COPIED=$((COPIED + 1))
+        fi
+      done
+      echo "  client-mods: copied $COPIED jar(s) into $(basename "$(dirname "$INST_DIR")")"
+    else
+      echo "  no Prism instance found — client jar not refreshed"
+    fi
+    echo "Done. ./dev up installs the server jar; ./dev launch starts the client."
     ;;
   doctor)
     ensure_docker
