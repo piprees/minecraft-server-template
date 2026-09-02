@@ -129,9 +129,9 @@ let a = CommandLine.arguments
 guard a.count >= 4, let x = Double(a[2]), let y = Double(a[3]) else { exit(2) }
 let p = CGPoint(x: x, y: y)
 
-func post(_ t: CGEventType, _ clicks: Int64) {
+func post(_ t: CGEventType, _ clicks: Int64, _ button: CGMouseButton = .left) {
     guard let e = CGEvent(mouseEventSource: nil, mouseType: t,
-                          mouseCursorPosition: p, mouseButton: .left) else { return }
+                          mouseCursorPosition: p, mouseButton: button) else { return }
     e.setIntegerValueField(.mouseEventClickState, value: clicks)
     e.post(tap: .cghidEventTap)
 }
@@ -147,6 +147,8 @@ case "click":
 case "dblclick":
     post(.leftMouseDown, 1); usleep(40_000); post(.leftMouseUp, 1); usleep(80_000)
     post(.leftMouseDown, 2); usleep(40_000); post(.leftMouseUp, 2)
+case "rightclick":
+    post(.rightMouseDown, 1, .right); usleep(60_000); post(.rightMouseUp, 1, .right)
 default: exit(2)
 }
 SWIFTEOF
@@ -1118,8 +1120,11 @@ MERGE
       echo "  hold <char> <secs>    Hold one key, e.g. 'hold w 3' to walk forward"
       echo "  type <text>           Type a string into whatever is open"
       echo "  chat <text>           Open chat, type, send — runs AS the player, not console"
-      echo "  move|click|dblclick <x> <y>   Move the pointer, click, or double-click"
-      echo "                        Screen coords. Games need the double-click to open a list entry."
+      echo "  move|click|dblclick|rightclick <x> <y>"
+      echo "                        Screen coords. rightclick is USE — igniting a portal,"
+      echo "                        placing a block. Aim with RCON tp <x> <y> <z> <yaw> <pitch>"
+      echo "                        first; the crosshair is fixed and the pointer only picks"
+      echo "                        the window."
       echo ""
       echo "Aim with RCON instead: tp <player> <x> <y> <z> <yaw> <pitch>"
       exit 1
@@ -1205,7 +1210,7 @@ MERGE
         osascript -e 'tell application "System Events" to key code 36'
         echo "Sent as the player: $IN_TEXT"
         ;;
-      click|dblclick|move)
+      click|dblclick|move|rightclick)
         [[ $# -ge 2 ]] || { echo "Usage: ./dev input $IN_ACTION <x> <y>" >&2; exit 1; }
         IN_MOUSE="$(ensure_mouse_helper)" || exit 1
         "$IN_MOUSE" "$IN_ACTION" "$1" "$2"
