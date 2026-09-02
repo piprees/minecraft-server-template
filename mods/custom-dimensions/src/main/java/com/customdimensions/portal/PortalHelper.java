@@ -356,19 +356,16 @@ public class PortalHelper {
     }
 
     /**
-     * A portal this mod owns: a registered cell, or any portal standing in a
-     * dimension of our own namespace. Vanilla's destination for an unowned
-     * portal is the Nether whatever world it is in, so in our dimensions it
-     * never gets to choose.
+     * A portal this mod owns: a registered cell, or any portal in a dimension
+     * this mod configures — the reserved four included, where an obsidian
+     * frame lit with flint and steel is OUR nether portal. Vanilla answers
+     * "the Nether" for every portal it is asked about, so it is never asked.
      */
     public static boolean isManagedPortal(RegistryKey<World> portalWorld, BlockPos pos) {
         if (pos != null && getPortalTarget(portalWorld, pos) != null) {
             return true;
         }
-        Identifier id = portalWorld.getValue();
-        MultiverseConfig config = MultiverseConfig.getInstance();
-        return config.isManagedNamespace(id.getNamespace())
-                && config.getCustomDimension(id.getPath()) != null;
+        return MultiverseConfig.getInstance().getDimension(portalWorld.getValue()) != null;
     }
 
     public static PortalReturnTarget getPortalTarget(RegistryKey<World> portalWorld, BlockPos keyPos) {
