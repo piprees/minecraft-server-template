@@ -1823,7 +1823,11 @@ public class PortalHelper {
             this.definition = definition;
             this.axis = axis;
             this.sourceWorld = sourceWorld;
-            this.targetWorld = targetWorld;
+            // A definition names the world its portal LEADS TO, so lighting
+            // one inside that world is a way back, not a loop — obsidian in
+            // the Nether is vanilla's overworld portal. Normalised here so a
+            // zone read back from disk is corrected too.
+            this.targetWorld = sourceWorld.equals(targetWorld) ? World.OVERWORLD : targetWorld;
         }
     }
 }
