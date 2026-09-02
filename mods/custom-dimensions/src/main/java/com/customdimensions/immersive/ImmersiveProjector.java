@@ -364,13 +364,36 @@ public final class ImmersiveProjector {
 
             ProjectionVolume.TargetMapping mapping = null;
             int arrivalY = NO_ARRIVAL;
+            boolean unresolvedLink = false;
             if (anyoneNear && targetWorld != null) {
-                mapping = mappingFor(zone, def);
-                holdChunks(targetWorld, zone, mapping, immersive, tick);
-                arrivalY = ArrivalResolver.arrivalY(
-                        targetWorld, mapping.arrivalX(), mapping.arrivalZ(), zone.axis);
+                ProjectionVolume.TargetMapping scaled = mappingFor(zone, def);
+                if (def.isVanillaManaged() && !def.hasAnchor()) {
+                    // Vanilla builds its far portal wherever PortalForcer finds
+                    // room, never at the scaled column. No link, no preview.
+                    BlockPos link = VanillaLinkResolver.resolve(targetWorld, zone,
+                            new BlockPos(scaled.arrivalX(), scaled.interiorMinY(), scaled.arrivalZ()),
+                            tick);
+                    unresolvedLink = link == null;
+                    if (link != null) {
+                        mapping = ProjectionVolume.anchorMapping(zone.interior, link.getX(), link.getZ());
+                        holdChunks(targetWorld, zone, mapping, immersive, tick);
+                        arrivalY = link.getY();
+                    }
+                } else {
+                    mapping = scaled;
+                    holdChunks(targetWorld, zone, mapping, immersive, tick);
+                    arrivalY = ArrivalResolver.arrivalY(
+                            targetWorld, mapping.arrivalX(), mapping.arrivalZ(), zone.axis);
+                }
             } else {
                 releaseChunks(zone, running);
+            }
+
+            if (unresolvedLink) {
+                // Torn down, not held: a preview left standing over a portal
+                // vanilla no longer links to is the defect being fixed.
+                cleanupZone(zone);
+                continue;
             }
 
             // Whether at least one player is actually being shown this

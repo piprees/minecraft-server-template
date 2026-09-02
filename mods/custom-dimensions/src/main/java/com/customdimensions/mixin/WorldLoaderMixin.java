@@ -5,6 +5,7 @@ import com.customdimensions.config.MultiverseConfig;
 import com.customdimensions.dimension.DimensionManager;
 import com.customdimensions.immersive.EntityPassthrough;
 import com.customdimensions.immersive.ImmersivePreloader;
+import com.customdimensions.immersive.VanillaLinkResolver;
 import com.customdimensions.immersive.ImmersiveProjector;
 import com.customdimensions.portal.PortalHelper;
 import net.minecraft.server.MinecraftServer;
@@ -43,6 +44,7 @@ public class WorldLoaderMixin {
         MinecraftServer server = (MinecraftServer) (Object) this;
         PortalHelper.savePortalLinks();
         ImmersivePreloader.clear();
+        VanillaLinkResolver.clear();
         ImmersiveProjector.clear();
         EntityPassthrough.clear();
         MultiverseServer.onServerStopping(server);

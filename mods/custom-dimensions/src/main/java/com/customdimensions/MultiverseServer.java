@@ -129,6 +129,7 @@ public class MultiverseServer implements DedicatedServerModInitializer {
         net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents.UNLOAD.register(
             (server, world) -> {
                 com.customdimensions.immersive.ImmersivePreloader.invalidate(world.getRegistryKey());
+                com.customdimensions.immersive.VanillaLinkResolver.invalidate(world.getRegistryKey());
                 // Release (or drop) any preview chunk tickets tied to this
                 // world before its chunk manager closes.
                 com.customdimensions.immersive.ImmersiveProjector.onWorldUnload(world);
