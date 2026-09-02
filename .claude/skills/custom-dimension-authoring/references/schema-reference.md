@@ -185,10 +185,10 @@ restate the whole array.
 
 | Field | Notes |
 | --- | --- |
-| `frameBlock` | Four accepted forms: plain id `"minecraft:obsidian"`; tag `"#minecraft:logs"`; union list `["id", "#tag"]`; colour group `{"colorGroup": "red"}` (16 valid names: white, orange, magenta, light_blue, yellow, lime, pink, gray, light_gray, cyan, purple, blue, brown, green, red, black). |
+| `frameBlock` | Four accepted forms: plain id `"minecraft:obsidian"`; tag `"#minecraft:logs"`; union list `["id", "#tag"]`; colour group `{"colorGroup": "red"}` (16 valid names: white, orange, magenta, light_blue, yellow, lime, pink, gray, light_gray, cyan, purple, blue, brown, green, red, black). **Every form must be unclaimed by every other dimension** — see `portals-and-exits.md` § One frame block, one dimension. |
 | `frameMaterials` | Per-part override: `top`/`sides`/`bottom`, each accepting any `frameBlock` form. Mutually exclusive with `frameBlock` (this wins if both present). Vertical portals only. |
 | `framePlaceBlock` | Concrete block the mod actually places for mod-built frames. **Required if `frameBlock` is tag-only** — otherwise silently falls back to obsidian. |
-| `igniterItem` | Item id that ignites the portal. Multiple dimensions can validly share one igniter — the mod tries all matching candidates. |
+| `igniterItem` | Item id that ignites the portal. Multiple dimensions can validly share one igniter — the mod tries all matching candidates. Frame blocks cannot be shared; igniters can. |
 | `vanillaManaged` | `true` leaves the portal entirely to vanilla: no ignition claim, no adoption, no zone, no destination override, no immersive projection, no `scale`. The entry documents the classic route in the list and nothing more. `the_nether` and `the_end` ship with it; `overworld` does not (its `mossy_stone_bricks` portal is a mod portal leading TO the overworld). |
 | `color` | 6-digit hex, **no `#`**. Ignored if `particleType` is set. |
 | `lightLevel` | 0-15. Most shipped dims: `11`. |

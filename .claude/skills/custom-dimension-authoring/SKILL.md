@@ -60,7 +60,12 @@ overlay/config/custom-dimensions/dimensions/<slug>.json  # consumer override
 4. **Pick biomes** from `references/biome-catalogue.md`. Only use ids listed there — anything else is silently dropped. Match biomes to the dimension's family (see type guide). For `multi_biome`, list 8-20 biomes; the 39 shipped ones run 7 to 32, median 13.
 5. **Set `borders`, `difficulty`, `structureDensity`** per the [size↔difficulty table](#size--difficulty-the-philosophy).
 6. **Set `structures.wants`/`structures.shuns`** using short names from `references/structure-names.md`. See [Traps](#traps-read-this-before-you-write-json) — the two blocks (`structures` vs `seedRoll`) use different value formats.
-7. **Set `portal`** — frame block, igniter, colour/particle, sounds, scale. See [Portal scale guide](#portal-scale-guide). Check `igniterItem` uniqueness: `grep -h igniterItem config/custom-dimensions/dimensions/*.json | sort`.
+7. **Set `portal`** — frame block, igniter, colour/particle, sounds, scale. See [Portal scale guide](#portal-scale-guide). **The frame block must be unused by every other dimension** — check with the command below, which prints nothing when the set is clean. Igniters may be shared freely.
+
+   ```bash
+   awk '/"frameBlock": \[/{L=1;next} L&&/\]/{L=0;next} L||/"frameBlock": "/{print}' \
+     config/custom-dimensions/dimensions/*.json | grep -oE '[a-z_]+:[a-z_/]+' | sort | uniq -d
+   ```
 8. **Set `seedRoll`** — `mood`, `spawnFilter` (the biome that IS the place plus the ground around it; every entry must appear in your `biomes` list AND in `biome-catalogue.md` for that family). A pocket dimension gets one place, a 4096 up to sixteen — see [Traps](#traps-read-this-before-you-write-json) 14.
 9. **Set `spawn`** — `[0, 64, 0]` (roller overwrites this).
 10. **Validate** — see [Validation](#validation-do-not-skip-this).
@@ -457,6 +462,7 @@ Two things to hold in mind when tuning them:
 15. **Immersive is ON when you say nothing** — `"immersive": false` is the opt-out, not `true` the opt-in. Writing `"immersive": true` is harmless but redundant.
 16. **`subsume: "everything"` is destructive by design** and belongs in the dimension's `description` as well as its JSON. Never add it to a peaceful or scenic dimension because a keyword matched — see the `subsume` section.
 17. **Aura `trees` are never inferred, only configured.** Sampling them turned a beach into an impassable thicket.
+18. **One frame block, one dimension.** A block claimed by two portal definitions is an ERROR that fails `customdim lint` and the smoke test, whichever igniters they carry — ignition can tell two definitions apart, adoption cannot. Every form of a list frame counts, and `framePlaceBlock` must be one of them. See [`references/portals-and-exits.md`](references/portals-and-exits.md).
 
 ## Validation (do not skip this)
 

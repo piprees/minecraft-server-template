@@ -142,8 +142,7 @@
   "portal": {
     "frameBlock": [
       "minecraft:purpur_block",
-      "minecraft:purpur_pillar",
-      "minecraft:amethyst_block"
+      "minecraft:purpur_pillar"
     ],
     "igniterItem": "regions_unexplored:lavender_wisteria_sapling",
     "color": "9B5BB0",

@@ -131,7 +131,7 @@
     "hostileSpawning": false
   },
   "portal": {
-    "frameBlock": "minecraft:prismarine_bricks",
+    "frameBlock": "minecraft:diorite",
     "igniterItem": "minecraft:nautilus_shell",
     "color": "4FC3D0",
     "lightLevel": 11,

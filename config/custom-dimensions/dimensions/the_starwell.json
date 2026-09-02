@@ -16,7 +16,7 @@
     "playerLuck": 2.0
   },
   "portal": {
-    "frameBlock": "minecraft:crying_obsidian",
+    "frameBlock": "minecraft:tinted_glass",
     "igniterItem": "minecraft:ender_eye",
     "color": "9B7BD8",
     "lightLevel": 13,

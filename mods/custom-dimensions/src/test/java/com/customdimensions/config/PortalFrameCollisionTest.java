@@ -54,7 +54,7 @@ class PortalFrameCollisionTest {
     }
 
     @Test
-    void sharedFrameWithDifferentIgnitersWarnsAndNamesTheWinner() {
+    void sharedFrameWithDifferentIgnitersIsAnErrorAndNamesTheWinner() {
         DimensionConfig first = parse("the_crystal_vale", """
                 {"portal":{"frameBlock":"minecraft:amethyst_block",
                  "igniterItem":"minecraft:amethyst_shard"}}
@@ -65,7 +65,7 @@ class PortalFrameCollisionTest {
                 """);
         List<PortalSafetyValidator.FrameCollision> found = collisions(first, second);
         assertEquals(1, found.size(), found.toString());
-        assertEquals(PortalSafetyValidator.WARN, found.get(0).severity());
+        assertEquals(PortalSafetyValidator.ERROR, found.get(0).severity());
         assertEquals("portal_frame_shared", found.get(0).check());
         assertEquals("the_violet_spire", found.get(0).dimension());
         assertTrue(found.get(0).message().contains("adopted by the_crystal_vale"));
@@ -83,7 +83,7 @@ class PortalFrameCollisionTest {
                 """);
         List<PortalSafetyValidator.FrameCollision> found = collisions(nether, sanctum);
         assertEquals(1, found.size(), found.toString());
-        assertEquals(PortalSafetyValidator.WARN, found.get(0).severity());
+        assertEquals(PortalSafetyValidator.ERROR, found.get(0).severity());
         assertEquals("portal_frame_reserved", found.get(0).check());
         assertEquals("the_obsidian_sanctum", found.get(0).dimension());
         assertTrue(found.get(0).message().contains("vanillaManaged"));
@@ -132,11 +132,11 @@ class PortalFrameCollisionTest {
     }
 
     /**
-     * The shipped set is the acceptance test: nine frame pairs are deliberate,
-     * and an ERROR here means the rule is wrong rather than the config.
+     * The shipped set is the acceptance test: a frame block belongs to exactly
+     * one portal definition, so any finding here is a config to fix.
      */
     @Test
-    void shippedDimensionsProduceNineWarningsAndNoErrors() throws IOException {
+    void shippedDimensionsShareNoFrameBlock() throws IOException {
         Path dir = Path.of("../../config/custom-dimensions/dimensions");
         assertTrue(Files.isDirectory(dir), "shipped dimension configs not found at " + dir);
         List<DimensionConfig> configs = new ArrayList<>();
@@ -155,11 +155,6 @@ class PortalFrameCollisionTest {
 
         List<PortalSafetyValidator.FrameCollision> found =
                 PortalSafetyValidator.frameCollisions(configs);
-        List<PortalSafetyValidator.FrameCollision> errors = found.stream()
-                .filter(c -> PortalSafetyValidator.ERROR.equals(c.severity())).toList();
-        assertTrue(errors.isEmpty(), "shipped configs must lint clean: " + errors);
-        assertEquals(9, found.size(), found.toString());
-        assertEquals(1, found.stream()
-                .filter(c -> "portal_frame_reserved".equals(c.check())).count(), found.toString());
+        assertTrue(found.isEmpty(), "shipped configs must lint clean: " + found);
     }
 }

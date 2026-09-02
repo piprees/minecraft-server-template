@@ -12,6 +12,24 @@ aura, immersive and exit presentation below for every link into the dimension.
 Ordering, ids and the shared-`scale` rule: `schema-reference.md` § `portal`
 object.
 
+## One frame block, one dimension
+
+A frame block belongs to exactly one portal definition across the whole config
+set. Two definitions sharing one is an ERROR — `portal_frame_shared`,
+`portal_frame_reserved` or `portal_igniter_collision`, all three failing
+`customdim lint` and the smoke-test gate.
+
+A distinct igniter does not rescue a shared frame. Ignition knows which item
+was used and can pick the right definition; an already-lit portal carries no
+record of what lit it, so adoption falls to whichever definition comes first in
+config order. That is how a real vanilla nether portal was adopted as
+`adventure:the_obsidian_sanctum`.
+
+Igniters are unconstrained — 27 dimensions share `minecraft:amethyst_shard`.
+Every form of a list frame is claimed, and `framePlaceBlock` must be one of
+them. Pick from `config/custom-dimensions/extractors/blocks.json`, choose
+something the dimension's own theme argues for, and check it is unclaimed.
+
 ## `vanillaManaged` — the classic route, left alone
 
 `"vanillaManaged": true` on a portal entry means vanilla runs that portal. The
@@ -22,7 +40,9 @@ one opens the portal), the portal is never adopted into a zone, vanilla picks
 the destination, and the entry carries no immersive projection and no `scale`.
 
 `the_nether` (obsidian + flint and steel) and `the_end` (end portal frame +
-ender eye) ship this way. `overworld` does not: its `mossy_stone_bricks` portal
+ender eye) ship this way, and those two blocks are theirs alone — a
+`vanillaManaged` definition holds its frame outright, so the other side of a
+clash is unreachable by adoption and it is always the other side that moves. `overworld` does not: its `mossy_stone_bricks` portal
 is a mod portal leading TO the overworld, not a classic route.
 
 A `vanillaManaged` entry is skipped by the per-target lookups, so a second,

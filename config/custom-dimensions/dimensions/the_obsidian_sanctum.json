@@ -18,7 +18,7 @@
   },
   "structureDensity": "dense",
   "portal": {
-    "frameBlock": "minecraft:obsidian",
+    "frameBlock": "chipped:runic_carved_obsidian",
     "igniterItem": "minecraft:netherite_ingot",
     "color": "4B2B6B",
     "lightLevel": 11,

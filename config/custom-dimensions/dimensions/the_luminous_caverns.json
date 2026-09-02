@@ -141,7 +141,7 @@
   },
   "structureDensity": "sparse",
   "portal": {
-    "frameBlock": "minecraft:glowstone",
+    "frameBlock": "minecraft:ochre_froglight",
     "igniterItem": "minecraft:flint_and_steel",
     "color": "FFD850",
     "lightLevel": 11,

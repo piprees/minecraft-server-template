@@ -440,6 +440,10 @@ public final class PortalSafetyValidator {
     /**
      * Portal definitions that build from the same frame material.
      *
+     * <p>A frame block belongs to exactly one portal definition, so every
+     * overlap is an ERROR — an already-lit portal carries no record of what lit
+     * it, and adoption cannot tell two definitions on one frame apart.
+     *
      * <p>Cross-dimension, so it runs over the whole set rather than inside
      * {@link #validate}'s per-dimension loop. Two entries of one dimension
      * collide the same way two dimensions do — portal ids are positional
@@ -488,14 +492,14 @@ public final class PortalSafetyValidator {
         if (first.vanillaManaged() != second.vanillaManaged()) {
             FrameEntry reserved = first.vanillaManaged() ? first : second;
             FrameEntry loser = first.vanillaManaged() ? second : first;
-            return new FrameCollision(loser.dimension(), WARN, "portal_frame_reserved", form,
+            return new FrameCollision(loser.dimension(), ERROR, "portal_frame_reserved", form,
                     "portal frame " + form + " is also declared by " + reserved.portalId()
                     + ", which is vanillaManaged — that definition holds the frame, so this "
                     + "portal is reached only by deliberate ignition with "
                     + igniterPhrase(loser) + ", never by adopting an existing " + form
                     + " portal",
-                    "give this dimension its own frameBlock to make its frames adoptable, or "
-                    + "accept that it is entered by ignition alone");
+                    "give this dimension its own frameBlock — a frame block belongs to one "
+                    + "portal definition");
         }
         boolean bothVanilla = first.vanillaManaged() && second.vanillaManaged();
         if (bothVanilla || first.igniter().equals(second.igniter())) {
@@ -509,14 +513,14 @@ public final class PortalSafetyValidator {
                     + "adoption alike fall to whichever comes first in config order",
                     "give this dimension its own frameBlock, or its own igniterItem");
         }
-        return new FrameCollision(second.dimension(), WARN, "portal_frame_shared", form,
+        return new FrameCollision(second.dimension(), ERROR, "portal_frame_shared", form,
                 "portal frame " + form + " is shared with " + first.portalId() + " (igniters "
                 + igniterPhrase(first) + " and " + igniterPhrase(second) + ") — ignition tells "
                 + "the two apart by igniter, but an already-lit portal carries no record of "
                 + "what lit it, so every unclaimed " + form + " frame is adopted by "
                 + first.portalId() + ", first in config order",
-                "give this dimension its own frameBlock if it should adopt existing frames; "
-                + "otherwise none is needed — deliberate ignition still reaches it");
+                "give this dimension its own frameBlock — a frame block belongs to one "
+                + "portal definition");
     }
 
     private static String igniterPhrase(FrameEntry entry) {

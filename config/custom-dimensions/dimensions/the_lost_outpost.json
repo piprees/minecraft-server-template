@@ -171,9 +171,8 @@
   "structureDensity": "dense",
   "portal": {
     "frameBlock": [
-      "minecraft:mossy_stone_bricks",
-      "minecraft:cracked_stone_bricks",
-      "minecraft:mossy_cobblestone"
+      "minecraft:cobblestone",
+      "minecraft:stone_bricks"
     ],
     "igniterItem": "minecraft:crossbow",
     "color": "6B8B5B",
@@ -185,7 +184,7 @@
       "enter": "block.portal.travel",
       "exit": "block.portal.travel"
     },
-    "framePlaceBlock": "minecraft:mossy_stone_bricks",
+    "framePlaceBlock": "minecraft:stone_bricks",
     "particleType": "minecraft:ash",
     "singleUse": {
       "enabled": true,

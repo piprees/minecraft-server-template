@@ -322,7 +322,10 @@ jobs:
 
       # customdim lint reads every dimension config and reports unknown biomes,
       # unknown or out-of-border forced structures, malformed radial curves,
-      # unknown portal blocks and igniter collisions. It needs no dimension
+      # unknown portal blocks and portal frame collisions. A frame block
+      # belongs to one portal definition: any two sharing one error here,
+      # whatever their igniters, because adoption cannot tell them apart.
+      # It needs no dimension
       # loaded — targets() reads the configs directly — so it runs here rather
       # than after the load loop, and catches an authoring mistake that would
       # otherwise only ever be a line in a boot log nobody reads.
