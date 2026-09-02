@@ -9,6 +9,7 @@
     "playerLuck": 1.5
   },
   "portal": {
+    "vanillaManaged": true,
     "frameBlock": "minecraft:end_portal_frame",
     "igniterItem": "minecraft:ender_eye",
     "color": "1B0033",

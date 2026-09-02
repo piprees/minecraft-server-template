@@ -170,6 +170,9 @@ public class MultiverseConfig {
         List<PortalDefinition> framed = new ArrayList<>();
         List<PortalDefinition> others = new ArrayList<>();
         for (PortalDefinition p : this.portals) {
+            if (p.isVanillaManaged()) {
+                continue;
+            }
             if (p.getIgniterItem() != null && p.getIgniterItem().equals(itemId)) {
                 if (clickedBlockId != null && p.resolveFrameMatcher().acceptsBlockId(clickedBlockId)) {
                     framed.add(p);
@@ -196,6 +199,9 @@ public class MultiverseConfig {
             return null;
         }
         for (PortalDefinition p : this.portals) {
+            if (p.isVanillaManaged()) {
+                continue;
+            }
             try {
                 if (targetWorld.equals(p.getTargetKey())) {
                     return p.getImmersive();
@@ -225,6 +231,9 @@ public class MultiverseConfig {
             return null;
         }
         for (PortalDefinition p : this.portals) {
+            if (p.isVanillaManaged()) {
+                continue;
+            }
             try {
                 if (targetWorld.equals(p.getTargetKey())) {
                     return p.getAura().getSubsume();
@@ -250,6 +259,9 @@ public class MultiverseConfig {
             return null;
         }
         for (PortalDefinition p : this.portals) {
+            if (p.isVanillaManaged()) {
+                continue;
+            }
             try {
                 if (targetWorld.equals(p.getTargetKey())) {
                     return p;
@@ -263,15 +275,42 @@ public class MultiverseConfig {
 
     public PortalDefinition getDefaultPortalForFrameBlock(String blockId) {
         if (blockId.equals(this.settings.frameOverworld)) {
-            return new PortalDefinition("default_overworld", this.settings.frameOverworld, "", "minecraft:overworld", "#00AAAA", 0);
+            return this.isVanillaManagedTarget("minecraft:overworld") ? null
+                    : new PortalDefinition("default_overworld", this.settings.frameOverworld, "", "minecraft:overworld", "#00AAAA", 0);
         }
         if (blockId.equals(this.settings.frameNether)) {
-            return new PortalDefinition("default_nether", this.settings.frameNether, "", "minecraft:the_nether", "#AA0000", 0);
+            return this.isVanillaManagedTarget("minecraft:the_nether") ? null
+                    : new PortalDefinition("default_nether", this.settings.frameNether, "", "minecraft:the_nether", "#AA0000", 0);
         }
         if (blockId.equals(this.settings.frameEnd)) {
-            return new PortalDefinition("default_end", this.settings.frameEnd, "", "minecraft:the_end", "#00AA00", 0);
+            return this.isVanillaManagedTarget("minecraft:the_end") ? null
+                    : new PortalDefinition("default_end", this.settings.frameEnd, "", "minecraft:the_end", "#00AA00", 0);
         }
         return null;
+    }
+
+    /**
+     * True when the configured route into this dimension is vanilla's own.
+     * The frame fallback must stand back with it, or an obsidian frame keeps
+     * being claimed as this mod's nether portal.
+     */
+    private boolean isVanillaManagedTarget(String dimensionId) {
+        for (PortalDefinition p : this.portals) {
+            if (p.isVanillaManaged() && dimensionId.equals(p.getTargetDimension())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** True when any configured portal is left to vanilla. */
+    public boolean hasVanillaManagedPortals() {
+        for (PortalDefinition p : this.portals) {
+            if (p.isVanillaManaged()) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public String getFrameOverworld() {

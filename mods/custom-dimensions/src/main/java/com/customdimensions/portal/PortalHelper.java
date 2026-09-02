@@ -365,7 +365,23 @@ public class PortalHelper {
         if (pos != null && getPortalTarget(portalWorld, pos) != null) {
             return true;
         }
-        return MultiverseConfig.getInstance().getDimension(portalWorld.getValue()) != null;
+        MultiverseConfig config = MultiverseConfig.getInstance();
+        if (config.getDimension(portalWorld.getValue()) == null) {
+            return false;
+        }
+        // With a vanillaManaged route configured, a cell in no source zone is
+        // vanilla's own portal rather than one this mod declined and left
+        // inert, so vanilla picks its destination.
+        return !config.hasVanillaManagedPortals() || pos == null || isInSourceZone(portalWorld, pos);
+    }
+
+    private static boolean isInSourceZone(RegistryKey<World> portalWorld, BlockPos pos) {
+        for (PortalZone zone : getSourceZones(portalWorld)) {
+            if (zone.interior.contains(pos)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public static PortalReturnTarget getPortalTarget(RegistryKey<World> portalWorld, BlockPos keyPos) {

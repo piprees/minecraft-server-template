@@ -772,7 +772,10 @@ public class DimensionConfig {
         if (portal.centreBlock != null && !portal.centreBlock.isBlank()) {
             def.setCentreBlock(portal.centreBlock.trim());
         }
-        def.setScale(portal.scale != null ? portal.scale : 1.0);
+        def.setVanillaManaged(portal.isVanillaManaged());
+        // Vanilla's own rules apply end to end to a vanillaManaged portal, so
+        // it carries neither a scale transform nor an immersive projection.
+        def.setScale(portal.isVanillaManaged() || portal.scale == null ? 1.0 : portal.scale);
         def.setCooldown(portal.cooldown != null ? portal.cooldown : 40);
         def.setParticleType(portal.particleType);
         def.setIgniteSound(portal.getIgniteSound());
@@ -805,7 +808,9 @@ public class DimensionConfig {
             aura.subsume = portal.aura.subsume;
             def.setAura(aura);
         }
-        def.setImmersive(portal.getImmersiveSettings());
+        if (!portal.isVanillaManaged()) {
+            def.setImmersive(portal.getImmersiveSettings());
+        }
         return def;
     }
 
@@ -1155,6 +1160,18 @@ public class DimensionConfig {
          */
         @SerializedName("shape")
         public JsonElement shape;
+        /**
+         * Vanilla owns this portal end to end. The definition documents the
+         * classic route in the dimension's list; the mod never ignites,
+         * adopts, claims, projects or scales it.
+         */
+        @SerializedName("vanillaManaged")
+        public Boolean vanillaManaged;
+
+        /** True when vanilla, not this mod, runs this portal. */
+        public boolean isVanillaManaged() {
+            return Boolean.TRUE.equals(this.vanillaManaged);
+        }
 
         /** The preset name when shape is a plain string, else null. */
         public String getShapeName() {

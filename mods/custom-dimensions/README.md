@@ -227,6 +227,21 @@ Frames may be vertical (X or Z) or horizontal (floor and ceiling, Y-axis): build
 
 **The whole `portal` block is re-read every boot** — unlike worldgen, frame materials, shapes, auras, immersive settings, anchors, single-use and exit portals all apply to existing dimensions without a world wipe.
 
+### Vanilla-managed portals
+
+`"vanillaManaged": true` leaves a portal to vanilla. The entry documents the classic route in the dimension's list; the mod never claims the frame at ignition, never adopts it, never overrides the destination, and gives it no immersive projection and no `scale`.
+
+```jsonc
+"portal": [
+  { "frameBlock": "minecraft:obsidian", "igniterItem": "minecraft:flint_and_steel",
+    "vanillaManaged": true },
+  { "frameBlock": "minecraft:crying_obsidian", "igniterItem": "minecraft:fire_charge",
+    "scale": 4.0, "immersive": true }
+]
+```
+
+`the_nether` and `the_end` ship vanilla-managed, so the twelve-eye ritual, nether portal linking and the End's exit portal behave exactly as vanilla. A second entry in the same list is an ordinary mod portal and is what the presentation, immersive and aura-subsume lookups answer with for that dimension; the vanilla-managed entry stays the primary for `exitPortal` and `exitShrines` construction.
+
 ### Frame materials and orientation
 
 `frameBlock` accepts four forms — what the frame ACCEPTS at ignition and zone validation:

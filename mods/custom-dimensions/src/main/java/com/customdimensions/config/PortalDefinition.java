@@ -51,6 +51,12 @@ public class PortalDefinition {
      */
     private String centreBlock;
     private String igniterItem;
+    /**
+     * Vanilla owns this portal: no source zone, no adoption, no claim on
+     * vanilla's destination, no immersive projection, no scale override.
+     * A plain boolean, so an older jar ignores the unknown field.
+     */
+    private boolean vanillaManaged;
     private String targetDimension;
     private String color;
     private int lightLevel;
@@ -282,6 +288,15 @@ public class PortalDefinition {
             default:
                 return true;
         }
+    }
+
+    /** True when vanilla, not this mod, runs this portal. */
+    public boolean isVanillaManaged() {
+        return this.vanillaManaged;
+    }
+
+    public void setVanillaManaged(boolean vanillaManaged) {
+        this.vanillaManaged = vanillaManaged;
     }
 
     public String getIgniterItem() {

@@ -98,6 +98,9 @@ public final class PortalAdoption {
             List<PortalDefinition> portals, Collection<String> frameIds) {
         List<PortalDefinition> matches = new ArrayList<>();
         for (PortalDefinition def : portals) {
+            if (def.isVanillaManaged()) {
+                continue;
+            }
             for (String id : frameIds) {
                 if (def.resolveFrameMatcher().acceptsBlockId(id)) {
                     matches.add(def);

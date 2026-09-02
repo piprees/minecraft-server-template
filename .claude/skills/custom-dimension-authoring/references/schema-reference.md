@@ -189,6 +189,7 @@ restate the whole array.
 | `frameMaterials` | Per-part override: `top`/`sides`/`bottom`, each accepting any `frameBlock` form. Mutually exclusive with `frameBlock` (this wins if both present). Vertical portals only. |
 | `framePlaceBlock` | Concrete block the mod actually places for mod-built frames. **Required if `frameBlock` is tag-only** — otherwise silently falls back to obsidian. |
 | `igniterItem` | Item id that ignites the portal. Multiple dimensions can validly share one igniter — the mod tries all matching candidates. |
+| `vanillaManaged` | `true` leaves the portal entirely to vanilla: no ignition claim, no adoption, no zone, no destination override, no immersive projection, no `scale`. The entry documents the classic route in the list and nothing more. `the_nether` and `the_end` ship with it; `overworld` does not (its `mossy_stone_bricks` portal is a mod portal leading TO the overworld). |
 | `color` | 6-digit hex, **no `#`**. Ignored if `particleType` is set. |
 | `lightLevel` | 0-15. Most shipped dims: `11`. |
 | `scale` | Coordinate scale factor, `0.001`-`1000`. `8.0` = classic nether 1:8 — one block here is 8 in the overworld. Shipped values are 1, 2, 4, 8, 12 and 16; 34 dimensions use 8. Ties into the difficulty philosophy (see main SKILL.md). |

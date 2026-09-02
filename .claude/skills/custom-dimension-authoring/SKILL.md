@@ -283,6 +283,11 @@ before writing any `portal` block beyond frame/igniter/colour/scale — the
 aura's `subsume` value is a design statement about the dimension, not a
 safety setting.
 
+`the_nether` and `the_end` carry `"vanillaManaged": true` on their first portal
+entry: the classic route is documented in the list and run entirely by vanilla.
+Never take that flag off, and never add mod behaviour (`immersive`, `scale`,
+`aura`) to the entry that holds it — add a second entry instead.
+
 ## Advanced features (use only when the theme requires them)
 
 These appear in 0-1 of the shipped dimensions. Don't add them speculatively.

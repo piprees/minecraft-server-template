@@ -12,6 +12,27 @@ aura, immersive and exit presentation below for every link into the dimension.
 Ordering, ids and the shared-`scale` rule: `schema-reference.md` § `portal`
 object.
 
+## `vanillaManaged` — the classic route, left alone
+
+`"vanillaManaged": true` on a portal entry means vanilla runs that portal. The
+mod keeps the entry so the dimension's list documents how players actually get
+there, and touches nothing else: the frame is not claimed at ignition (vanilla's
+own `useOnBlock` runs, so an ender eye fills a stronghold socket and the twelfth
+one opens the portal), the portal is never adopted into a zone, vanilla picks
+the destination, and the entry carries no immersive projection and no `scale`.
+
+`the_nether` (obsidian + flint and steel) and `the_end` (end portal frame +
+ender eye) ship this way. `overworld` does not: its `mossy_stone_bricks` portal
+is a mod portal leading TO the overworld, not a classic route.
+
+A `vanillaManaged` entry is skipped by the per-target lookups, so a second,
+ordinary entry in the same list still gives that dimension a full mod route —
+its own frame, igniter, colour, aura and immersive settings — and it is that
+entry the presentation, immersive and aura-subsume lookups answer with. The
+`vanillaManaged` entry does stay the list's primary for `exitPortal` and
+`exitShrines` construction, so a dimension that builds either wants an ordinary
+primary.
+
 ## `portal.aura.subsume` — what the aura may eat
 
 Every linked portal grows an **aura**: it slowly converts blocks in an annulus around both ends, so the two worlds bleed into each other. `subsume` decides what it is allowed to convert, and **it is a design statement about the dimension, not a safety setting**.
