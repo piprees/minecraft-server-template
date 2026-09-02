@@ -229,6 +229,6 @@ class MultiverseConfigTest {
         RegistryKey<World> quietKey = RegistryKey.of(RegistryKeys.WORLD, Identifier.of("adventure:the_quiet"));
         ImmersiveSettings quiet = config.getImmersiveFor(quietKey);
         assertNotNull(quiet);
-        assertEquals(8, quiet.previewDepth());
+        assertEquals(ImmersiveSettings.DEFAULT_PREVIEW_DEPTH, quiet.previewDepth());
     }
 }

@@ -19,10 +19,10 @@ class ImmersiveSettingsTest {
         ImmersiveSettings imm = parsePortal("{\"portal\":{\"frameBlock\":\"b\",\"immersive\":true}}").getImmersive();
         assertNotNull(imm);
         assertTrue(imm.enabled());
-        assertEquals(8, imm.previewDepth());
-        assertEquals(4, imm.previewRadius());
-        assertEquals(4, imm.refreshInterval());
-        assertEquals(24, imm.activationRange());
+        assertEquals(ImmersiveSettings.DEFAULT_PREVIEW_DEPTH, imm.previewDepth());
+        assertEquals(ImmersiveSettings.DEFAULT_PREVIEW_RADIUS, imm.previewRadius());
+        assertEquals(ImmersiveSettings.DEFAULT_REFRESH_INTERVAL, imm.refreshInterval());
+        assertEquals(ImmersiveSettings.DEFAULT_ACTIVATION_RANGE, imm.activationRange());
         assertTrue(imm.audio());
         assertTrue(imm.entityPassthrough());
     }
@@ -39,7 +39,7 @@ class ImmersiveSettingsTest {
         ImmersiveSettings imm = parsePortal("{\"portal\":{\"frameBlock\":\"b\"}}").getImmersive();
         assertNotNull(imm);
         assertTrue(imm.enabled());
-        assertEquals(8, imm.previewDepth());
+        assertEquals(ImmersiveSettings.DEFAULT_PREVIEW_DEPTH, imm.previewDepth());
     }
 
     @Test
@@ -54,10 +54,10 @@ class ImmersiveSettingsTest {
         ImmersiveSettings imm = parsePortal("{\"portal\":{\"frameBlock\":\"b\",\"immersive\":{}}}").getImmersive();
         assertNotNull(imm);
         assertTrue(imm.enabled());
-        assertEquals(8, imm.previewDepth());
-        assertEquals(4, imm.previewRadius());
-        assertEquals(4, imm.refreshInterval());
-        assertEquals(24, imm.activationRange());
+        assertEquals(ImmersiveSettings.DEFAULT_PREVIEW_DEPTH, imm.previewDepth());
+        assertEquals(ImmersiveSettings.DEFAULT_PREVIEW_RADIUS, imm.previewRadius());
+        assertEquals(ImmersiveSettings.DEFAULT_REFRESH_INTERVAL, imm.refreshInterval());
+        assertEquals(ImmersiveSettings.DEFAULT_ACTIVATION_RANGE, imm.activationRange());
         assertTrue(imm.audio());
         assertTrue(imm.entityPassthrough());
     }
@@ -71,9 +71,9 @@ class ImmersiveSettingsTest {
         assertEquals(4, imm.previewDepth());
         assertFalse(imm.audio());
         // Untouched fields keep their defaults.
-        assertEquals(4, imm.previewRadius());
-        assertEquals(4, imm.refreshInterval());
-        assertEquals(24, imm.activationRange());
+        assertEquals(ImmersiveSettings.DEFAULT_PREVIEW_RADIUS, imm.previewRadius());
+        assertEquals(ImmersiveSettings.DEFAULT_REFRESH_INTERVAL, imm.refreshInterval());
+        assertEquals(ImmersiveSettings.DEFAULT_ACTIVATION_RANGE, imm.activationRange());
         assertTrue(imm.entityPassthrough());
     }
 
@@ -84,10 +84,10 @@ class ImmersiveSettingsTest {
                  "refreshInterval":1,"activationRange":9999}}}
                 """).getImmersive();
         assertNotNull(imm);
-        assertEquals(16, imm.previewDepth());
-        assertEquals(0, imm.previewRadius());
-        assertEquals(2, imm.refreshInterval());
-        assertEquals(64, imm.activationRange());
+        assertEquals(ImmersiveSettings.MAX_PREVIEW_DEPTH, imm.previewDepth());
+        assertEquals(ImmersiveSettings.MIN_PREVIEW_RADIUS, imm.previewRadius());
+        assertEquals(ImmersiveSettings.MIN_REFRESH_INTERVAL, imm.refreshInterval());
+        assertEquals(ImmersiveSettings.MAX_ACTIVATION_RANGE, imm.activationRange());
     }
 
     @Test

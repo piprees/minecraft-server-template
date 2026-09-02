@@ -35,26 +35,28 @@ public record ImmersiveSettings(
         boolean audio,
         boolean entityPassthrough) {
 
-    public static final int DEFAULT_PREVIEW_DEPTH = 8;
+    /** Matches DEFAULT_ACTIVATION_RANGE: the preview reaches as far in as the
+     * approach that switches it on, so it never reads as a shallow pocket. */
+    public static final int DEFAULT_PREVIEW_DEPTH = 24;
     public static final int MIN_PREVIEW_DEPTH = 1;
-    public static final int MAX_PREVIEW_DEPTH = 16;
+    public static final int MAX_PREVIEW_DEPTH = ImmersiveSettings.MAX_ACTIVATION_RANGE;
 
     /**
      * How far past the frame the candidate slab extends on both in-plane
      * axes.
      *
      * <p><b>This is the corner budget, not a look.</b> The visible cone
-     * widens with depth, so at 8 blocks deep it needs to reach 4-6 blocks
-     * laterally — a position outside the slab is not a candidate at all, so
-     * no amount of mask work can show it.
+     * widens with depth, so it tracks roughly half the depth — a position
+     * outside the slab is not a candidate at all, so no amount of mask work
+     * can show it, and too small a radius turns the preview into a tunnel.
      *
      * <p>The mask bounds what is SHOWN by real occlusion, so a larger radius
      * only costs mask evaluations: extra candidates are rejected unless
      * genuinely visible through the opening, never leaked geometry.
      */
-    public static final int DEFAULT_PREVIEW_RADIUS = 4;
+    public static final int DEFAULT_PREVIEW_RADIUS = 12;
     public static final int MIN_PREVIEW_RADIUS = 0;
-    public static final int MAX_PREVIEW_RADIUS = 8;
+    public static final int MAX_PREVIEW_RADIUS = 32;
 
     public static final int DEFAULT_REFRESH_INTERVAL = 4;
     public static final int MIN_REFRESH_INTERVAL = 2;
