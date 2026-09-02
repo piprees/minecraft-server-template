@@ -32,7 +32,9 @@
     "WorldLoaderMixin",
     "NetherPortalProtectionMixin",
     "NoiseStructureSelectionMixin",
-    "EndGatewaySuppressionMixin"
+    "EndGatewaySuppressionMixin",
+    "ChunkTicketManagerAccessor",
+    "ServerChunkManagerAccessor"
   ],
   "injectors": {
     "defaultRequire": 1

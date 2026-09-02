@@ -1,7 +1,10 @@
 package com.customdimensions.dimension;
 
 import com.customdimensions.config.DimensionConfig;
+import net.minecraft.registry.RegistryKey;
+import net.minecraft.registry.RegistryKeys;
 import net.minecraft.util.Identifier;
+import net.minecraft.world.World;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -88,6 +91,36 @@ class DimensionManagerTest {
     // RegistryEntry.of's DIRECT entry. The registration itself needs a live
     // dynamic registry and is exercised by the live boot oracle, not unit
     // tests — same limitation as DimensionTypeBuilderTest.
+
+    private static RegistryKey<World> freshWorldKey() {
+        return RegistryKey.of(RegistryKeys.WORLD,
+                Identifier.of("adventure", "presence_probe_" + System.nanoTime()));
+    }
+
+    @Test
+    void presenceIsNeverStampedAtTickZero() {
+        // Tick 0 reads as maximally idle, so a world marked present that way
+        // is unloaded by the very next sweep — the opposite of what the call
+        // means. A world with no server to read ticks from gets no stamp.
+        DimensionManager dm = DimensionManager.getInstance();
+        RegistryKey<World> key = freshWorldKey();
+
+        dm.updatePlayerPresence(key, true);
+
+        Long stamp = dm.lastPresenceTicks(key);
+        assertTrue(stamp == null || stamp > 0L,
+                "presence stamped at tick 0, which reads as maximally idle");
+    }
+
+    @Test
+    void absenceNeverRefreshesTheIdleTimer() {
+        DimensionManager dm = DimensionManager.getInstance();
+        RegistryKey<World> key = freshWorldKey();
+
+        dm.updatePlayerPresence(key, false);
+
+        assertNull(dm.lastPresenceTicks(key));
+    }
 
     @Test
     void idIsDeterministicAcrossRepeatedCalls() {

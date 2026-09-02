@@ -3,8 +3,10 @@ package com.customdimensions.dimension;
 import com.customdimensions.MultiverseServer;
 import com.customdimensions.config.DimensionConfig;
 import com.customdimensions.config.MultiverseConfig;
+import com.customdimensions.mixin.ChunkTicketManagerAccessor;
 import com.customdimensions.mixin.MinecraftServerAccessor;
 import com.customdimensions.mixin.MultiNoiseBiomeSourceAccessor;
+import com.customdimensions.mixin.ServerChunkManagerAccessor;
 import com.customdimensions.mixin.SimpleRegistryAccessor;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents;
 import net.minecraft.registry.DynamicRegistryManager;
@@ -16,7 +18,10 @@ import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.registry.entry.RegistryEntryInfo;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.WorldGenerationProgressListener;
+import net.minecraft.server.world.ChunkTicket;
+import net.minecraft.server.world.ChunkTicketManager;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.util.collection.SortedArraySet;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.util.WorldSavePath;
@@ -2162,9 +2167,33 @@ public class DimensionManager {
         }
     }
 
+    /**
+     * Whether anything is deliberately holding chunks open here — a mod chunk
+     * loader, a running machine, an in-flight portal. A ticket outlives the
+     * player who caused it, which is the whole point of one.
+     */
+    private static boolean holdsChunkTickets(ServerWorld world) {
+        ChunkTicketManager tickets =
+                ((ServerChunkManagerAccessor) world.getChunkManager()).getTicketManager();
+        for (SortedArraySet<ChunkTicket<?>> atPos
+                : ((ChunkTicketManagerAccessor) tickets).getTicketsByPosition().values()) {
+            if (!atPos.isEmpty()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** Test seam: ticks stamped for this world, or null when it has none. */
+    Long lastPresenceTicks(RegistryKey<World> worldKey) {
+        return lastPlayerPresence.get(worldKey);
+    }
+
+    /** Refreshes the idle timer. Also called for a world only being LOOKED into. */
     public void updatePlayerPresence(RegistryKey<World> worldKey, boolean hasPlayers) {
-        if (hasPlayers) {
-            lastPlayerPresence.put(worldKey, server != null ? (long) server.getTicks() : 0L);
+        // A 0 stamp would read as maximally idle — the opposite of presence.
+        if (hasPlayers && server != null) {
+            lastPlayerPresence.put(worldKey, (long) server.getTicks());
         }
     }
 
@@ -2193,10 +2222,13 @@ public class DimensionManager {
             }
 
             ServerWorld world = entry.getValue();
-            if (!world.getPlayers().isEmpty()) {
-                continue;
-            }
-            if (!world.getForcedChunks().isEmpty()) {
+            // Every live signal re-stamps, so the window measures time since
+            // the LAST one rather than since the world loaded. Portal
+            // proximity re-stamps from ServerWorldMixin's per-tick scan.
+            if (!world.getPlayers().isEmpty()
+                    || !world.getForcedChunks().isEmpty()
+                    || holdsChunkTickets(world)) {
+                updatePlayerPresence(key, true);
                 continue;
             }
 

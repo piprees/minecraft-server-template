@@ -105,6 +105,10 @@ public class ServerWorldMixin {
                         DimensionManager.getInstance().requestWorldLoad(targetKey.getValue().getPath());
                         continue;
                     }
+                    // A player looking through a portal is using the world on
+                    // the other side. The idle unloader sees neither them nor
+                    // the preloader's PORTAL tickets, so it closes it in use.
+                    DimensionManager.getInstance().updatePlayerPresence(targetKey, true);
                     ImmersivePreloader.preloadIfNeeded(targetWorld, zone, zone.definition);
                 }
             }
