@@ -35,9 +35,10 @@ public record ImmersiveSettings(
         boolean audio,
         boolean entityPassthrough) {
 
-    /** Matches DEFAULT_ACTIVATION_RANGE: the preview reaches as far in as the
-     * approach that switches it on, so it never reads as a shallow pocket. */
-    public static final int DEFAULT_PREVIEW_DEPTH = 24;
+    /** Deep enough not to read as a pocket, short of the activation range:
+     * every position in the slab costs a line-of-sight test every pass, and
+     * the slab grows with the depth times the square of the radius. */
+    public static final int DEFAULT_PREVIEW_DEPTH = 12;
     public static final int MIN_PREVIEW_DEPTH = 1;
     public static final int MAX_PREVIEW_DEPTH = ImmersiveSettings.MAX_ACTIVATION_RANGE;
 
@@ -54,7 +55,7 @@ public record ImmersiveSettings(
      * only costs mask evaluations: extra candidates are rejected unless
      * genuinely visible through the opening, never leaked geometry.
      */
-    public static final int DEFAULT_PREVIEW_RADIUS = 12;
+    public static final int DEFAULT_PREVIEW_RADIUS = 6;
     public static final int MIN_PREVIEW_RADIUS = 0;
     public static final int MAX_PREVIEW_RADIUS = 32;
 
