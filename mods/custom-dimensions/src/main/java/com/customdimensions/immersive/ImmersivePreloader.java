@@ -62,28 +62,23 @@ public final class ImmersivePreloader {
         MultiverseServer.LOGGER.info("{} for zone in {} -> {}",
                 PRELOAD_MARKER, zone.sourceWorld.getValue(), targetKey.getValue());
 
-        int cx;
-        int cz;
-        if (def.hasAnchor()) {
-            int[] anchor = def.getAnchorPos();
-            cx = anchor[0] >> 4;
-            cz = anchor[2] >> 4;
-        } else {
-            double scale = def.getScale();
-            cx = (int) Math.round(centre.getX() * scale) >> 4;
-            cz = (int) Math.round(centre.getZ() * scale) >> 4;
-        }
+        // The same transform the projection samples with, so the chunks
+        // ticketed here are the chunks the arrival needs. A second copy of
+        // the arithmetic is a second direction to get wrong.
+        ProjectionVolume.TargetMapping mapping = ImmersiveProjector.mappingFor(zone, def);
+        ChunkPos arrival = new ChunkPos(mapping.arrivalX() >> 4, mapping.arrivalZ() >> 4);
 
         for (int dx = -PRELOAD_RADIUS; dx <= PRELOAD_RADIUS; dx++) {
             for (int dz = -PRELOAD_RADIUS; dz <= PRELOAD_RADIUS; dz++) {
-                ChunkPos pos = new ChunkPos(cx + dx, cz + dz);
+                ChunkPos pos = new ChunkPos(arrival.x + dx, arrival.z + dz);
                 targetWorld.getChunkManager().addTicket(
                         ChunkTicketType.PORTAL, pos, 1, pos.getStartPos());
             }
         }
         MultiverseServer.LOGGER.debug(
                 "immersive: requested {} arrival chunks around ({}, {}) in {} for zone {}",
-                (2 * PRELOAD_RADIUS + 1) * (2 * PRELOAD_RADIUS + 1), cx, cz, targetKey.getValue(), key);
+                (2 * PRELOAD_RADIUS + 1) * (2 * PRELOAD_RADIUS + 1),
+                arrival.x, arrival.z, targetKey.getValue(), key);
     }
 
     /** Whether this zone's target has had its arrival chunks requested this session. */

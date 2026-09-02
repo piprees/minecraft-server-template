@@ -226,6 +226,22 @@ public class MultiverseConfig {
     }
 
     /**
+     * A world's own coordinate scale, 1.0 for anything unconfigured.
+     *
+     * <p>Scale describes the DIMENSION, so a transform between two worlds is
+     * vanilla's own rule — {@code pos * sourceScale / targetScale}. Each side
+     * is asked for its own scale; one applied in a fixed direction is right
+     * on the way in and wrong on the way back.
+     */
+    public double getScaleFor(RegistryKey<World> world) {
+        if (world == null) {
+            return 1.0;
+        }
+        DimensionConfig config = this.getDimension(world.getValue());
+        return config != null ? config.getScale() : 1.0;
+    }
+
+    /**
      * The live {@code portal.aura.subsume} policy for the dimension a
      * portal targets, or null when no configured portal targets it.
      *

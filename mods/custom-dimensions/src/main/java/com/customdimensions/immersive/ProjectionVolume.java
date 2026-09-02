@@ -612,6 +612,20 @@ public final class ProjectionVolume {
      * flooring) so preview and arrival never disagree.
      */
     public static TargetMapping scaledMapping(Set<BlockPos> interior, double scale) {
+        return scaledMapping(interior, 1.0, scale);
+    }
+
+    /**
+     * Scaled mapping between two worlds that each have a scale of their own —
+     * vanilla's rule, {@code pos * sourceScale / targetScale}.
+     *
+     * <p>The two-argument form assumes the source side is scale 1, which is
+     * true of every portal whose frame stands in the overworld and false of
+     * the way back: leaving a scale-8 Nether MULTIPLIES. Give both scales
+     * wherever the source world can be the scaled one.
+     */
+    public static TargetMapping scaledMapping(Set<BlockPos> interior, double sourceScale, double targetScale) {
+        double scale = targetScale / sourceScale;
         int centreX = 0;
         int centreZ = 0;
         for (BlockPos p : interior) {

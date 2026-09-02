@@ -1233,12 +1233,35 @@ public final class ImmersiveProjector {
     }
 
     /** The source -&gt; target transform this zone's teleport would use. */
-    private static ProjectionVolume.TargetMapping mappingFor(PortalHelper.PortalZone zone, PortalDefinition def) {
+    static ProjectionVolume.TargetMapping mappingFor(PortalHelper.PortalZone zone, PortalDefinition def) {
         if (def.hasAnchor()) {
             int[] anchor = def.getAnchorPos();
             return ProjectionVolume.anchorMapping(zone.interior, anchor[0], anchor[2]);
         }
-        return ProjectionVolume.scaledMapping(zone.interior, def.getScale());
+        return ProjectionVolume.scaledMapping(zone.interior,
+                scaleOf(zone.sourceWorld, def), scaleOf(zone.targetWorld, def));
+    }
+
+    /**
+     * One side's coordinate scale. A zone lit inside the world its definition
+     * leads to runs backwards through that definition ({@code PortalZone}
+     * normalises its target to the overworld), so the scale cannot be applied
+     * in a fixed direction — each side is asked for its own.
+     *
+     * <p>The definition is the authority for its own dimension and the
+     * config for anything else, so a mod-owned portal keeps answering from
+     * the definition that owns it.
+     */
+    private static double scaleOf(RegistryKey<World> world, PortalDefinition def) {
+        try {
+            if (world != null && world.equals(def.getTargetKey())) {
+                return def.getScale();
+            }
+        } catch (RuntimeException ignored) {
+            // A malformed targetDimension must not break the transform for a
+            // zone that is otherwise fine; fall through to the config.
+        }
+        return MultiverseConfig.getInstance().getScaleFor(world);
     }
 
     /**
