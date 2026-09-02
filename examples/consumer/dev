@@ -38,6 +38,7 @@ usage() {
   echo "  client-log  Snapshot the client's log ([--tail N] [--grep PATTERN])"
   echo "  logs-all    Server + client in one time-ordered view (UTC normalised)"
   echo "  screenshot  Capture the running client window ([--out PATH] [--delay N] [--full])"
+  echo "  input       Drive the client: key/hold/type/chat/click/focus (./dev input for help)"
   echo "  reload   Rebuild the linked checkout's in-house mods and re-stage them"
   echo "  pack     Build the client modpack into ./modpack-dist/"
   echo "  pin      Re-pin overlay/mods-extra.txt to latest mod builds (review with git diff)"
@@ -1021,6 +1022,139 @@ MERGE
       exit 1
     fi
     echo "$SHOT_OUT"
+    ;;
+  input)
+    # Drive the local client's keyboard and mouse, for the client-side half
+    # of a test that RCON cannot reach: menus, the disconnect dialog, and a
+    # real player walking through a portal. A Carpet bot has no client, so it
+    # can never exercise a loading screen.
+    #
+    # Aiming does NOT belong here — "tp <player> <x> <y> <z> <yaw> <pitch>"
+    # sets facing server-side, and a synthetic mouse cannot look around while
+    # the game holds the cursor.
+    #
+    # Synthetic events go to whatever is FOCUSED, so this focuses the client
+    # first and refuses if it cannot. Nothing here is safe to fire blind: it
+    # types into whatever ends up in front.
+    ensure_env
+    set -a
+    # shellcheck disable=SC1091
+    source "$CONSUMER_DIR/.env"
+    set +a
+    if [[ "$(uname -s)" != "Darwin" ]]; then
+      echo "./dev input is macOS only — it drives the local client." >&2
+      exit 1
+    fi
+    IN_ACTION="${1:-}"
+    shift || true
+    if [[ -z "$IN_ACTION" ]]; then
+      echo "Usage: ./dev input <action> [args]"
+      echo ""
+      echo "  focus                 Bring the client to the front"
+      echo "  key <name>...         Press keys: esc t e f3 enter tab space up down left right"
+      echo "  hold <char> <secs>    Hold one key, e.g. 'hold w 3' to walk forward"
+      echo "  type <text>           Type a string into whatever is open"
+      echo "  chat <text>           Open chat, type, send — runs AS the player, not console"
+      echo "  click [<x> <y>]       Click, at screen coords or where the pointer is"
+      echo ""
+      echo "Aim with RCON instead: tp <player> <x> <y> <z> <yaw> <pitch>"
+      exit 1
+    fi
+    IN_INST="$(resolve_client_instance || true)"
+    IN_ID=""
+    [[ -n "$IN_INST" ]] && IN_ID="$(basename "$(dirname "$IN_INST")")"
+    IN_PID=""
+    [[ -n "$IN_ID" ]] && IN_PID="$(prism_client_pid "$IN_ID")"
+    if [[ -z "$IN_PID" ]]; then
+      # Refusing is the whole safety story. Without a client to aim at, every
+      # keystroke below lands in whatever the human happens to have open.
+      echo "No running client for '${IN_ID:-${BRAND_SLUG:-this pack}}' — refusing to send input." >&2
+      echo "Start one with ./dev launch." >&2
+      exit 1
+    fi
+    osascript -e "tell application \"System Events\" to set frontmost of (first process whose unix id is $IN_PID) to true" >/dev/null 2>&1
+    # Focus is asynchronous; without the settle the first event goes to the
+    # window that was in front a moment ago.
+    /bin/sleep 0.5
+    IN_FRONT="$(osascript -e 'tell application "System Events" to get unix id of first process whose frontmost is true' 2>/dev/null || true)"
+    if [[ "$IN_FRONT" != "$IN_PID" ]]; then
+      echo "Could not bring the client to the front (frontmost pid ${IN_FRONT:-unknown}, wanted $IN_PID)." >&2
+      echo "Grant this terminal Accessibility in System Settings > Privacy & Security." >&2
+      exit 1
+    fi
+    case "$IN_ACTION" in
+      focus)
+        echo "Client focused (pid $IN_PID)."
+        ;;
+      key)
+        [[ $# -gt 0 ]] || { echo "Usage: ./dev input key <name>..." >&2; exit 1; }
+        for k in "$@"; do
+          case "$k" in
+            esc|escape) IN_CODE=53 ;;
+            enter|return) IN_CODE=36 ;;
+            tab) IN_CODE=48 ;;
+            space) IN_CODE=49 ;;
+            up) IN_CODE=126 ;;
+            down) IN_CODE=125 ;;
+            left) IN_CODE=123 ;;
+            right) IN_CODE=124 ;;
+            f1) IN_CODE=122 ;;
+            f2) IN_CODE=120 ;;
+            f3) IN_CODE=99 ;;
+            f5) IN_CODE=96 ;;
+            f11) IN_CODE=103 ;;
+            *) IN_CODE="" ;;
+          esac
+          if [[ -n "$IN_CODE" ]]; then
+            osascript -e "tell application \"System Events\" to key code $IN_CODE"
+          else
+            osascript -e "tell application \"System Events\" to keystroke \"$k\""
+          fi
+          /bin/sleep 0.1
+        done
+        echo "Sent: $*"
+        ;;
+      hold)
+        IN_KEY="${1:-}"
+        IN_SECS="${2:-1}"
+        [[ -n "$IN_KEY" ]] || { echo "Usage: ./dev input hold <char> <secs>" >&2; exit 1; }
+        # key down / key up rather than a repeated keystroke: the game reads
+        # held state, and a press-release pair moves nothing.
+        osascript -e "tell application \"System Events\" to key down \"$IN_KEY\""
+        /bin/sleep "$IN_SECS"
+        osascript -e "tell application \"System Events\" to key up \"$IN_KEY\""
+        echo "Held '$IN_KEY' for ${IN_SECS}s."
+        ;;
+      type)
+        [[ $# -gt 0 ]] || { echo "Usage: ./dev input type <text>" >&2; exit 1; }
+        IN_TEXT="$*"
+        osascript -e "tell application \"System Events\" to keystroke \"${IN_TEXT//\"/\\\"}\""
+        echo "Typed: $IN_TEXT"
+        ;;
+      chat)
+        [[ $# -gt 0 ]] || { echo "Usage: ./dev input chat <text>" >&2; exit 1; }
+        IN_TEXT="$*"
+        osascript -e 'tell application "System Events" to keystroke "t"'
+        /bin/sleep 0.4
+        osascript -e "tell application \"System Events\" to keystroke \"${IN_TEXT//\"/\\\"}\""
+        /bin/sleep 0.2
+        osascript -e 'tell application "System Events" to key code 36'
+        echo "Sent as the player: $IN_TEXT"
+        ;;
+      click)
+        if [[ $# -ge 2 ]]; then
+          osascript -e "tell application \"System Events\" to click at {$1, $2}" >/dev/null
+          echo "Clicked at $1,$2."
+        else
+          osascript -e 'tell application "System Events" to click' >/dev/null
+          echo "Clicked at the pointer."
+        fi
+        ;;
+      *)
+        echo "Unknown action '$IN_ACTION'. Run ./dev input for the list." >&2
+        exit 1
+        ;;
+    esac
     ;;
   reload)
     # Rebuild the linked checkout's in-house mods and re-stage them, so the
