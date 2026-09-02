@@ -7,6 +7,7 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.state.property.Properties;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
+import net.minecraft.world.TeleportTarget;
 import net.minecraft.world.World;
 import net.minecraft.world.border.WorldBorder;
 import net.minecraft.world.chunk.WorldChunk;
@@ -18,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -82,7 +84,7 @@ public final class VanillaLinkResolver {
         }
         Map<String, Link> forTarget = LINKS.computeIfAbsent(
                 targetWorld.getRegistryKey(), k -> new ConcurrentHashMap<>());
-        String key = zone.sourceWorld.getValue() + "|" + centre.toShortString();
+        String key = keyFor(zone.sourceWorld, centre);
 
         Link cached = forTarget.get(key);
         if (cached != null && cached.pos != null) {
@@ -97,6 +99,121 @@ public final class VanillaLinkResolver {
         BlockPos found = search(targetWorld, searchPos);
         forTarget.put(key, new Link(found, tick));
         return found;
+    }
+
+    /**
+     * The pair vanilla just used, taken from the traversal itself.
+     *
+     * <p>A crossing is the one moment both ends are known for certain: no
+     * search, no unread-chunk doubt, and nothing loaded that vanilla was not
+     * loading anyway. {@link #search} stays the fallback for a portal nobody
+     * has crossed this session.
+     *
+     * <p>Only a portal a PRESENTATION zone covers is recorded — a route this
+     * mod presents and vanilla owns. A mod-owned portal already knows its own
+     * arrival.
+     */
+    public static void recordVanillaCrossing(
+            ServerWorld sourceWorld, BlockPos sourcePos, TeleportTarget target) {
+        if (target == null || sourcePos == null || target.world() == null) {
+            return;
+        }
+        RegistryKey<World> sourceKey = sourceWorld.getRegistryKey();
+        Set<BlockPos> sourceInterior = presentationInteriorAt(sourceKey, sourcePos);
+        if (sourceInterior == null) {
+            return;
+        }
+        ServerWorld targetWorld = target.world();
+        BlockPos arrival = BlockPos.ofFloored(target.pos());
+        // Vanilla has just built or found the far portal, so its chunk is
+        // resident; an absent one means there is no pair to record.
+        if (targetWorld.getChunkManager()
+                .getWorldChunk(arrival.getX() >> 4, arrival.getZ() >> 4, false) == null) {
+            return;
+        }
+        Set<BlockPos> targetInterior = portalAreaAround(targetWorld, arrival);
+        if (targetInterior.isEmpty()) {
+            return;
+        }
+        recordCrossing(sourceKey, sourceInterior, targetWorld.getRegistryKey(), targetInterior,
+                sourceWorld.getServer().getTicks());
+    }
+
+    /**
+     * Both directions of one confirmed pair. The preview is wanted from either
+     * side, and a zone only ever asks about its OWN target, so each side needs
+     * its own entry.
+     *
+     * <p>In memory only, exactly like the presentation zones it serves: a link
+     * on disk would be read back by an older jar as an ordinary zone and would
+     * reclaim traversal on a vanilla portal.
+     */
+    static void recordCrossing(RegistryKey<World> sourceWorld, Set<BlockPos> sourceInterior,
+            RegistryKey<World> targetWorld, Set<BlockPos> targetInterior, long tick) {
+        BlockPos sourceCentre = PortalShape.centreOf(sourceInterior);
+        BlockPos targetCentre = PortalShape.centreOf(targetInterior);
+        if (sourceCentre == null || targetCentre == null) {
+            return;
+        }
+        link(targetWorld, keyFor(sourceWorld, sourceCentre), floorRow(targetCentre, targetInterior),
+                tick);
+        link(sourceWorld, keyFor(targetWorld, targetCentre), floorRow(sourceCentre, sourceInterior),
+                tick);
+    }
+
+    /** The recorded link for this zone's target, or null. */
+    static BlockPos cachedLink(RegistryKey<World> targetWorld, PortalHelper.PortalZone zone) {
+        BlockPos centre = PortalShape.centreOf(zone.interior);
+        Map<String, Link> forTarget = LINKS.get(targetWorld);
+        if (centre == null || forTarget == null) {
+            return null;
+        }
+        Link cached = forTarget.get(keyFor(zone.sourceWorld, centre));
+        return cached == null ? null : cached.pos;
+    }
+
+    // One expression, every caller: a second copy of this format would drift
+    // and a recorded crossing would be invisible to the approach path.
+    private static String keyFor(RegistryKey<World> sourceWorld, BlockPos centre) {
+        return sourceWorld.getValue() + "|" + centre.toShortString();
+    }
+
+    private static void link(RegistryKey<World> targetWorld, String key, BlockPos pos, long tick) {
+        LINKS.computeIfAbsent(targetWorld, k -> new ConcurrentHashMap<>())
+                .put(key, new Link(pos, tick));
+    }
+
+    /**
+     * The centre column at the portal's bottom row — the row {@code search}
+     * answers with, since its tie-break is the lowest Y, and the row the
+     * projection lands the source interior's floor on.
+     */
+    private static BlockPos floorRow(BlockPos centre, Set<BlockPos> interior) {
+        int minY = Integer.MAX_VALUE;
+        for (BlockPos p : interior) {
+            minY = Math.min(minY, p.getY());
+        }
+        return new BlockPos(centre.getX(), minY, centre.getZ());
+    }
+
+    private static Set<BlockPos> presentationInteriorAt(RegistryKey<World> world, BlockPos pos) {
+        for (PortalHelper.PortalZone zone : PortalHelper.getPresentationZones(world)) {
+            if (zone.interior.contains(pos)) {
+                return zone.interior;
+            }
+        }
+        return null;
+    }
+
+    // An arrival position is the entity's feet inside the portal, so the
+    // block below or above it can be the portal block on an off-by-one.
+    private static Set<BlockPos> portalAreaAround(ServerWorld world, BlockPos pos) {
+        for (BlockPos probe : new BlockPos[] {pos, pos.up(), pos.down()}) {
+            if (PortalHelper.isPortalBlock(world.getBlockState(probe))) {
+                return PortalHelper.collectPortalArea(world, probe);
+            }
+        }
+        return Set.of();
     }
 
     /**

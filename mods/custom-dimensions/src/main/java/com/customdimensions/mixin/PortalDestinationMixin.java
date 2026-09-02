@@ -1,5 +1,6 @@
 package com.customdimensions.mixin;
 
+import com.customdimensions.immersive.VanillaLinkResolver;
 import com.customdimensions.portal.PortalHelper;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
@@ -18,6 +19,10 @@ import org.spongepowered.asm.mixin.injection.At;
  * portals. A null target is a clean no-op — tickPortalTeleportation jumps
  * past the teleport — and resetPortalCooldown has already run, so the
  * cooldown and PortalManager expiry stay outside this decision.
+ *
+ * A destination vanilla DOES pick names both ends of a portal the mod only
+ * presents, so it is handed to VanillaLinkResolver: the preview then knows
+ * where the portal goes without searching for it.
  */
 @Mixin(Entity.class)
 public class PortalDestinationMixin {
@@ -34,6 +39,8 @@ public class PortalDestinationMixin {
         if (PortalHelper.isManagedPortal(world.getRegistryKey(), manager.getPortalPos())) {
             return null;
         }
-        return original.call(manager, world, entity);
+        TeleportTarget target = original.call(manager, world, entity);
+        VanillaLinkResolver.recordVanillaCrossing(world, manager.getPortalPos(), target);
+        return target;
     }
 }
