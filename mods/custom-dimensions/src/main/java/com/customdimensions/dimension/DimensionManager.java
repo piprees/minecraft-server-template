@@ -2173,15 +2173,21 @@ public class DimensionManager {
      * player who caused it, which is the whole point of one.
      */
     private static boolean holdsChunkTickets(ServerWorld world) {
+        return !ticketTypesHeld(world).isEmpty();
+    }
+
+    /** Ticket type names currently held here. Empty means nothing is loading chunks. */
+    private static java.util.Set<String> ticketTypesHeld(ServerWorld world) {
         ChunkTicketManager tickets =
                 ((ServerChunkManagerAccessor) world.getChunkManager()).getTicketManager();
+        java.util.Set<String> types = new java.util.TreeSet<>();
         for (SortedArraySet<ChunkTicket<?>> atPos
                 : ((ChunkTicketManagerAccessor) tickets).getTicketsByPosition().values()) {
-            if (!atPos.isEmpty()) {
-                return true;
+            for (ChunkTicket<?> ticket : atPos) {
+                types.add(String.valueOf(ticket.getType()));
             }
         }
-        return false;
+        return types;
     }
 
     /** Test seam: ticks stamped for this world, or null when it has none. */
@@ -2227,14 +2233,15 @@ public class DimensionManager {
             // proximity re-stamps from ServerWorldMixin's per-tick scan.
             boolean players = !world.getPlayers().isEmpty();
             boolean forced = !world.getForcedChunks().isEmpty();
-            boolean tickets = holdsChunkTickets(world);
-            if (players || forced || tickets) {
+            java.util.Set<String> ticketTypes = ticketTypesHeld(world);
+            if (players || forced || !ticketTypes.isEmpty()) {
                 updatePlayerPresence(key, true);
-                // Names WHICH signal held it. A dimension that never idles is
-                // a stuck veto, and the counts say which one without a build.
+                // Names WHICH signal held it, and which ticket types. A
+                // dimension that never idles is a stuck veto, and this says
+                // which one without another build.
                 MultiverseServer.LOGGER.debug(
-                        "idle: {} held by players={} forcedChunks={} chunkTickets={}",
-                        key.getValue(), players, forced, tickets);
+                        "idle: {} held by players={} forcedChunks={} tickets={}",
+                        key.getValue(), players, forced, ticketTypes);
                 continue;
             }
 
