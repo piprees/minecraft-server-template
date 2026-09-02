@@ -4,7 +4,7 @@
 
 | Prefix | Range | What it covers |
 | --- | --- | --- |
-| **T** | [T1–T14, T16–T19, T22–T27, T30–T80](#architecture-traps) | Architecture traps — each has caused a real production incident |
+| **T** | [T1–T14, T16–T19, T22–T27, T30–T80, T82](#architecture-traps) | Architecture traps — each has caused a real production incident |
 | **P** | [P1–P5](#macos-local-dev) | macOS local-dev quirks (BSD tooling, toolchain) |
 | **D** | [D1–D6, D8–D9](#dimension-lifecycle) | Custom-dimension lifecycle on a live world |
 | **K** | [K1–K2, K5–K7, K9](#known-issues) | Open issues — unfixed, on the watch list |
@@ -80,6 +80,7 @@ Run this first. It covers deploy drift, disk, every expected container, `ONLINE_
 | A local config change had no effect and the boot was green | [T78](#t78) |
 | `ClassCastException` from Better Caves repeats through chunk generation | [T79](#t79) |
 | Every player is kicked at join: "registry entries that are unknown to this client" | [T80](#t80) |
+| Random client crashes near water: `Missing Palette entry`, `be_getWaterColor` in the stack | [T82](#t82) |
 | Config or mod changes didn't take effect after a deploy | [T2](#t2) |
 | `signal only works in main thread` in discord-sync logs | [T3](#t3) |
 | mc crash-loops with Modrinth `429 Too Many Requests` | [T4](#t4) |
@@ -1361,6 +1362,18 @@ measurement of it.
   winners are chosen means winners selected under one transform and a world
   built under another. Freeze it across the roll; regenerate after a wipe, where
   it reaches only dimensions created later.
+
+<a id="t82"></a>
+### T82 — BetterEnd corrupts memory under Sodium on every water block, in every dimension
+
+- **Symptom:** intermittent hard client crashes, minutes to hours apart, anywhere with water. `net.minecraft.world.chunk.EntryMissingException: Missing Palette entry for index N` with `be_getWaterColor` in the stack, sometimes preceded by Sodium's `Encountered exception while building chunk meshes`.
+- **Cause, from `better-end-21.0.11.jar`:** `org.betterx.betterend.mixin.client.BiomeColorsMixin` injects into vanilla `BiomeColors.getAverageWaterColor` and, when `sodium` is loaded, reads `MinecraftClient.getInstance().world` instead of the passed-in `BlockRenderView`. That read happens on Sodium's chunk-build worker threads. Sodium declares `breaks betterend '<=21.0.11'` for exactly this (commit `74612be7`).
+- **It is not a worldgen or End-specific fault.** The unsafe read is at bytecode offset 18; the `EndBlocks.BRIMSTONE` test that makes it BetterEnd-specific is at offset 109. Every water block meshed anywhere reaches the read first, so disabling BetterEnd's worldgen reduces exposure by nothing.
+- **Fix:** `"sulfur_water_color": false` in the CLIENT's `config/betterend/client.json`. The config gate is the first instruction and returns immediately, so the unsafe read is never reached. Shipped at `modpack/overrides/config/betterend/client.json`.
+- **Client-side mixin — editing the server's copy does nothing.** That is the trap: the change looks applied and protects nobody.
+- Cost is one cosmetic tint: water within the 5x5 ring of a brimstone block renders normal biome-blue.
+- Both mods stay in the pack. `modpack/overrides/config/fabric_loader_dependencies.json` removes sodium's `breaks` so they resolve; that override alone leaves the bug armed and is not a fix.
+- No upstream path: BetterEnd issues 428, 519, 554, 566, 577, 589 are open, and sodium's range covers every 1.21.1 build.
 
 <a id="t80"></a>
 ### T80 — A server mod the client needs is absent from the pack, and every player is kicked at join
