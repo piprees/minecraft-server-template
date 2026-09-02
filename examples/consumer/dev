@@ -36,6 +36,7 @@ usage() {
   echo "           (--no-tail to return instead of following the client log)"
   echo "  launch   Start the Minecraft client against this local server"
   echo "  client-log  Snapshot the client's log ([--tail N] [--grep PATTERN])"
+  echo "  logs-all    Server + client in one time-ordered view (UTC normalised)"
   echo "  reload   Rebuild the linked checkout's in-house mods and re-stage them"
   echo "  pack     Build the client modpack into ./modpack-dist/"
   echo "  pin      Re-pin overlay/mods-extra.txt to latest mod builds (review with git diff)"
@@ -757,9 +758,100 @@ case "$CMD" in
     echo ""
     echo "NOTE: Prism uses the account selected in the launcher. --offline is"
     echo "      accepted and ignored, so this plays as YOU, not as a test user."
+    LAUNCH_STAMP="$CONSUMER_DIR/.dev-client-launch"
+    date +%s > "$LAUNCH_STAMP"
+    CLIENT_LOG="$INST_DIR/logs/latest.log"
     "$PRISM" --launch "$INST_ID" --server "localhost:${SERVER_PORT:-25577}" \
       > /dev/null 2>&1 &
-    echo "Launched. Client log: ./dev client-log"
+    # prismlauncher returns 0 the moment it hands off, whether or not a game
+    # starts — an already-running launcher can swallow the request entirely.
+    # Proving a NEW session started is the only honest success signal.
+    STARTED=0
+    for _ in $(seq 1 45); do
+      if pgrep -f 'KnotClient' > /dev/null 2>&1; then
+        if [[ -f "$CLIENT_LOG" ]] &&
+          [[ "$(date -r "$CLIENT_LOG" +%s)" -ge "$(cat "$LAUNCH_STAMP")" ]]; then
+          STARTED=1
+          break
+        fi
+      fi
+      sleep 2
+    done
+    if [[ $STARTED -eq 0 ]]; then
+      echo "" >&2
+      echo "Launch did not produce a running client within 90s." >&2
+      echo "Prism exits 0 on hand-off, so this is not necessarily an error you" >&2
+      echo "would have seen. If the launcher is already open, quit it and retry." >&2
+      exit 1
+    fi
+    echo "Client is running (new session confirmed)."
+    echo "Logs: ./dev client-log   or both sides: ./dev logs-all"
+    ;;
+  logs-all)
+    # Server and client in one time-ordered view. The container logs in UTC
+    # and the client logs in local time, so the server side is converted or
+    # the two interleave an hour apart and read as causally impossible.
+    ensure_env
+    set -a
+    # shellcheck disable=SC1091
+    source "$CONSUMER_DIR/.env"
+    set +a
+    INST_DIR="$(resolve_client_instance || true)"
+    LINES=200
+    PATTERN=""
+    while [[ $# -gt 0 ]]; do
+      case "$1" in
+        --tail) LINES="$2"; shift 2 ;;
+        --grep) PATTERN="$2"; shift 2 ;;
+        *) echo "Usage: ./dev logs-all [--tail N] [--grep PATTERN]" >&2; exit 1 ;;
+      esac
+    done
+    SRV_RAW="$(mktemp)"
+    CLI_RAW="$(mktemp)"
+    trap 'rm -f "$SRV_RAW" "$CLI_RAW"' EXIT
+    docker logs "${CONTAINER_PREFIX:-}mc" --tail "$LINES" -t > "$SRV_RAW" 2>&1 || true
+    if [[ -n "$INST_DIR" && -f "$INST_DIR/logs/latest.log" ]]; then
+      tail -n "$LINES" "$INST_DIR/logs/latest.log" > "$CLI_RAW" 2>/dev/null || true
+    fi
+    PATTERN="$PATTERN" python3 - "$SRV_RAW" "$CLI_RAW" <<'MERGE'
+import os, re, sys, time
+from datetime import datetime, timezone
+
+pattern = os.environ.get("PATTERN") or ""
+rx = re.compile(pattern) if pattern else None
+rows = []
+
+# docker -t gives RFC3339 UTC; convert to the host's local clock so the two
+# sources are comparable. This is the whole point of the command.
+for line in open(sys.argv[1], errors="replace"):
+    m = re.match(r"(\S+)\s(.*)", line.rstrip("\n"))
+    if not m:
+        continue
+    stamp, rest = m.groups()
+    try:
+        ts = datetime.fromisoformat(stamp.replace("Z", "+00:00")).astimezone()
+        rows.append((ts.timestamp(), "SERVER", ts.strftime("%H:%M:%S"), rest))
+    except ValueError:
+        continue
+
+# The client stamps [HH:MM:SS] in local time already; date it to today so the
+# two sort together. A run crossing midnight is not worth the complexity.
+today = datetime.now().astimezone().date()
+for line in open(sys.argv[2], errors="replace") if os.path.exists(sys.argv[2]) else []:
+    m = re.match(r"\[(\d\d):(\d\d):(\d\d)\]\s?(.*)", line.rstrip("\n"))
+    if not m:
+        continue
+    h, mi, sec, rest = m.groups()
+    ts = datetime.combine(today, datetime.min.time()).astimezone().replace(
+        hour=int(h), minute=int(mi), second=int(sec))
+    rows.append((ts.timestamp(), "CLIENT", f"{h}:{mi}:{sec}", rest))
+
+rows.sort(key=lambda r: r[0])
+for _, src, hhmmss, text in rows:
+    line = f"{hhmmss} {src:6} | {text}"
+    if rx is None or rx.search(line):
+        print(line)
+MERGE
     ;;
   client-log)
     # The client's own log, which is where the companion mod's markers land.
