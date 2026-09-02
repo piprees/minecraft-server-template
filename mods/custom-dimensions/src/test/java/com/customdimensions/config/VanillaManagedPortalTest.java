@@ -78,13 +78,16 @@ class VanillaManagedPortalTest {
     }
 
     @Test
-    void aVanillaManagedPortalCarriesNoScaleAndNoProjection() {
+    void aVanillaManagedPortalStatesItsScaleAndCarriesNoProjection() {
+        // scale is the DIMENSION's coordinate ratio, so it survives the flag —
+        // the Nether is 1:8 whoever performs the traversal. Only the
+        // projection, which needs a zone the mod never registers, is dropped.
         DimensionConfig config = new com.google.gson.Gson().fromJson(
                 RESERVED_AND_SIBLING, DimensionConfig.class);
         config.setName("the_nether");
         List<PortalDefinition> defs = config.toPortalDefinitions();
 
-        assertEquals(1.0, defs.get(0).getScale());
+        assertEquals(8.0, defs.get(0).getScale());
         assertNull(defs.get(0).getImmersive());
         assertEquals(4.0, defs.get(1).getScale());
         assertNotNull(defs.get(1).getImmersive());

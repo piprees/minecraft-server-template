@@ -773,9 +773,10 @@ public class DimensionConfig {
             def.setCentreBlock(portal.centreBlock.trim());
         }
         def.setVanillaManaged(portal.isVanillaManaged());
-        // Vanilla's own rules apply end to end to a vanillaManaged portal, so
-        // it carries neither a scale transform nor an immersive projection.
-        def.setScale(portal.isVanillaManaged() || portal.scale == null ? 1.0 : portal.scale);
+        // scale describes the DIMENSION's coordinate ratio, not the portal, so
+        // a vanillaManaged entry still states it: the Nether is 1:8 whoever
+        // performs the traversal.
+        def.setScale(portal.scale == null ? 1.0 : portal.scale);
         def.setCooldown(portal.cooldown != null ? portal.cooldown : 40);
         def.setParticleType(portal.particleType);
         def.setIgniteSound(portal.getIgniteSound());
