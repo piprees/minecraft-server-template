@@ -37,6 +37,7 @@ usage() {
   echo "  launch   Start the Minecraft client against this local server"
   echo "  client-log  Snapshot the client's log ([--tail N] [--grep PATTERN])"
   echo "  logs-all    Server + client in one time-ordered view (UTC normalised)"
+  echo "  screenshot  Capture the running client window ([--out PATH] [--delay N] [--full])"
   echo "  reload   Rebuild the linked checkout's in-house mods and re-stage them"
   echo "  pack     Build the client modpack into ./modpack-dist/"
   echo "  pin      Re-pin overlay/mods-extra.txt to latest mod builds (review with git diff)"
@@ -942,6 +943,84 @@ MERGE
     else
       tail -n "$LINES" "$CLIENT_LOG"
     fi
+    ;;
+  screenshot)
+    # A picture of the running client, so whoever is driving RCON can see what
+    # the player sees instead of asking. macOS only: System Events gives the
+    # window's bounds, screencapture -R takes the pixels. Both need a
+    # permission the terminal is prompted for once (Accessibility, Screen
+    # Recording); without them this prints nothing useful, so it says so.
+    ensure_env
+    set -a
+    # shellcheck disable=SC1091
+    source "$CONSUMER_DIR/.env"
+    set +a
+    SHOT_OUT=""
+    SHOT_DELAY=0
+    SHOT_FULL=0
+    while [[ $# -gt 0 ]]; do
+      case "$1" in
+        --out) SHOT_OUT="$2"; shift 2 ;;
+        --delay) SHOT_DELAY="$2"; shift 2 ;;
+        --full) SHOT_FULL=1; shift ;;
+        *) echo "Usage: ./dev screenshot [--out PATH] [--delay SECONDS] [--full]" >&2; exit 1 ;;
+      esac
+    done
+    if [[ "$(uname -s)" != "Darwin" ]]; then
+      echo "./dev screenshot is macOS only — it captures the local client window." >&2
+      exit 1
+    fi
+    INST_DIR="$(resolve_client_instance || true)"
+    INST_ID=""
+    [[ -n "$INST_DIR" ]] && INST_ID="$(basename "$(dirname "$INST_DIR")")"
+    SHOT_PID=""
+    [[ -n "$INST_ID" ]] && SHOT_PID="$(prism_client_pid "$INST_ID")"
+    if [[ -z "$SHOT_PID" && $SHOT_FULL -eq 0 ]]; then
+      echo "No running client for '${INST_ID:-${BRAND_SLUG:-this pack}}'." >&2
+      echo "Start one with ./dev launch, or use --full to capture the display." >&2
+      exit 1
+    fi
+    if [[ "$SHOT_DELAY" != "0" ]]; then
+      sleep "$SHOT_DELAY"
+    fi
+    if [[ -z "$SHOT_OUT" ]]; then
+      mkdir -p "$CONSUMER_DIR/.dev-screenshots"
+      SHOT_OUT="$CONSUMER_DIR/.dev-screenshots/$(date +%Y%m%d-%H%M%S).png"
+    fi
+    mkdir -p "$(dirname "$SHOT_OUT")"
+    SHOT_BOUNDS=""
+    if [[ $SHOT_FULL -eq 0 ]]; then
+      # The game window is the one whose title starts "Minecraft"; Prism's own
+      # launcher window belongs to a different process, but a crash dialog or
+      # an LWJGL helper window can share this one, and capturing that instead
+      # would be a picture of nothing with no way to tell.
+      SHOT_BOUNDS="$(osascript -e "tell application \"System Events\" to tell (first process whose unix id is $SHOT_PID)
+        repeat with w in windows
+          if name of w starts with \"Minecraft\" then
+            set {px, py} to position of w
+            set {sw, sh} to size of w
+            return (px as text) & \",\" & (py as text) & \",\" & (sw as text) & \",\" & (sh as text)
+          end if
+        end repeat
+        return \"\"
+      end tell" 2>/dev/null || true)"
+    fi
+    if [[ -n "$SHOT_BOUNDS" ]]; then
+      screencapture -x -R"$SHOT_BOUNDS" "$SHOT_OUT"
+    else
+      # No bounds means either --full, or System Events could not see the
+      # window. A whole-display capture still answers the question, so take it
+      # and say which one this is rather than failing.
+      [[ $SHOT_FULL -eq 0 ]] && echo "Window bounds unavailable — capturing the whole display." >&2
+      screencapture -x "$SHOT_OUT"
+    fi
+    if [[ ! -s "$SHOT_OUT" ]]; then
+      rm -f "$SHOT_OUT"
+      echo "screencapture wrote nothing. Grant this terminal Screen Recording in" >&2
+      echo "System Settings > Privacy & Security, then run it again." >&2
+      exit 1
+    fi
+    echo "$SHOT_OUT"
     ;;
   reload)
     # Rebuild the linked checkout's in-house mods and re-stage them, so the

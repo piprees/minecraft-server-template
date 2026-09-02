@@ -71,6 +71,10 @@ config/nginx/nav-proxy-local.conf
 # === Setup wizard state ===
 .setup-state/
 
+# === Local dev runner state ===
+.dev-client-launch
+.dev-screenshots/
+
 pivot/
 __pycache__/
 
