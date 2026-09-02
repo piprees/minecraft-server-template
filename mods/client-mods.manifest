@@ -1,0 +1,7 @@
+# bundle_name|gradle_project|loom_refmap
+# CLIENT-environment mods. These ship in the modpack's overrides/mods/ and must
+# never reach a server's data/mods/ — deploy.sh and dev-up.sh read local-mods
+# only. The class-count floor is 1 here, not 10: a client mod can legitimately
+# be a handful of classes, and the refmap is the gate that actually catches an
+# unremapped jar.
+customdimensionsclient.jar|custom-dimensions-client|customdimensionsclient-refmap.json

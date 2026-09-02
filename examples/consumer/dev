@@ -270,9 +270,10 @@ case "$CMD" in
     ln -sfn "$PLATFORM/.env.example" "$FARM/.env.example"
     ln -sfn "$PLATFORM/docker-compose.yml" "$FARM/docker-compose.yml"
     ln -sfn "$PLATFORM/docker-compose.local.yml" "$FARM/docker-compose.local.yml"
-    rm -rf "$FARM/local-mods"
-    mkdir -p "$FARM/local-mods"
+    rm -rf "$FARM/local-mods" "$FARM/client-mods"
+    mkdir -p "$FARM/local-mods" "$FARM/client-mods"
     JAR_COUNT=0
+    CLIENT_JAR_COUNT=0
     for j in "$PLATFORM"/mods/*/build/libs/*.jar; do
       [[ -f "$j" ]] || continue
       case "$j" in *-dev.jar | *-sources.jar) continue ;; esac
@@ -282,16 +283,29 @@ case "$CMD" in
         echo "  WARNING: $(basename "$j") has no refmap — dev/unremapped jar skipped"
         continue
       fi
+      # Route by the jar's own declared environment, not its name: a client mod
+      # installed onto the server is refused at best and a boot break at worst.
+      if unzip -p "$j" fabric.mod.json 2> /dev/null |
+        tr -d ' \n' | grep '"environment":"client"' > /dev/null; then
+        # Copied, not symlinked: the pack build mounts this directory into a
+        # container, where a symlink to the checkout resolves to nothing.
+        # ./dev pack re-copies, so a rebuild still propagates.
+        cp -f "$j" "$FARM/client-mods/$(basename "$j")"
+        CLIENT_JAR_COUNT=$((CLIENT_JAR_COUNT + 1))
+        continue
+      fi
       # Symlinked like the rest of the farm, so a rebuild needs no re-link.
       ln -sfn "$j" "$FARM/local-mods/$(basename "$j")"
       JAR_COUNT=$((JAR_COUNT + 1))
     done
     echo "dev" > "$FARM/VERSION"
+    echo "$PLATFORM" > "$FARM/PLATFORM"
     ln -sfn dev "$CONSUMER_DIR/.stack/current"
     echo "=================================================================="
     echo "  LINKED TO PLATFORM CHECKOUT"
     echo "  .stack/current -> .stack/dev/stack -> $PLATFORM"
-    echo "  local-mods: $JAR_COUNT built jar(s) from the checkout"
+    echo "  local-mods:  $JAR_COUNT server jar(s) from the checkout"
+    echo "  client-mods: $CLIENT_JAR_COUNT client jar(s) (pack only, never data/mods)"
     echo "  Local only — deploy paths refuse a 'dev' link. Restore with:"
     echo "  ./dev unlink"
     echo "=================================================================="
@@ -435,8 +449,27 @@ case "$CMD" in
     source "$CONSUMER_DIR/.env"
     set +a
     mkdir -p "$CONSUMER_DIR/modpack-dist"
+    # Under a link the farm holds copies, not symlinks (docker resolves a
+    # symlink in the container, where the checkout path does not exist), so
+    # refresh them here or a rebuilt client jar never reaches the pack.
+    FARM_CLIENT_MODS="$CONSUMER_DIR/.stack/current/stack/client-mods"
+    if [[ -f "$CONSUMER_DIR/.stack/current/stack/PLATFORM" ]]; then
+      PLATFORM_PATH="$(cat "$CONSUMER_DIR/.stack/current/stack/PLATFORM")"
+      for j in "$PLATFORM_PATH"/mods/*/build/libs/*.jar; do
+        [[ -f "$j" ]] || continue
+        case "$j" in *-dev.jar | *-sources.jar) continue ;; esac
+        if unzip -p "$j" fabric.mod.json 2> /dev/null |
+          tr -d ' \n' | grep '"environment":"client"' > /dev/null; then
+          cp -f "$j" "$FARM_CLIENT_MODS/$(basename "$j")"
+        fi
+      done
+    fi
+    CLIENT_MODS_ARGS=()
+    [[ -d "$FARM_CLIENT_MODS" ]] &&
+      CLIENT_MODS_ARGS=(-v "$FARM_CLIENT_MODS:/client-mods:ro")
     docker run --rm \
       -v "$CONSUMER_DIR/overlay:/overlay:ro" \
+      "${CLIENT_MODS_ARGS[@]+"${CLIENT_MODS_ARGS[@]}"}" \
       -v "$CONSUMER_DIR/modpack-dist:/work/dist" \
       -e "DOMAIN=${LOCAL_DOMAIN:-${DOMAIN:-localhost}}" \
       -e "BRAND_NAME=${BRAND_NAME:-My Server}" \

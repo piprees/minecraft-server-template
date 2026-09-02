@@ -76,6 +76,18 @@ jobs:
               cp "$JAR" "../../dist/local-mods/$JAR_NAME"
             )
           done < mods/local-mods.manifest
+          # Client-environment mods ship through the modpack, never to a server.
+          [[ -f mods/client-mods.manifest ]] || exit 0
+          mkdir -p dist/client-mods
+          while IFS='|' read -r JAR_NAME PROJECT REF_MAP; do
+            [[ -z "$JAR_NAME" || "$JAR_NAME" == \#* ]] && continue
+            (
+              cd "mods/$PROJECT"
+              gradle build -Pmod_version="$MOD_VERSION"
+              JAR=$(find build/libs -name '*.jar' ! -name '*-sources.jar' ! -name '*-dev.jar')
+              cp "$JAR" "../../dist/client-mods/$JAR_NAME"
+            )
+          done < mods/client-mods.manifest
 
       - name: Verify mod JAR is remapped
         # Guards against the empty/unremapped jar failure mode: the jar must
@@ -95,6 +107,26 @@ jobs:
               exit 1
             fi
           done < mods/local-mods.manifest
+          [[ -f mods/client-mods.manifest ]] || exit 0
+          while IFS='|' read -r JAR_NAME PROJECT REF_MAP; do
+            [[ -z "$JAR_NAME" || "$JAR_NAME" == \#* ]] && continue
+            JAR="dist/client-mods/$JAR_NAME"
+            if ! unzip -l "$JAR" | grep -q "$REF_MAP"; then
+              echo "::error::$JAR is missing $REF_MAP — remapJar produced an unremapped or empty jar"
+              exit 1
+            fi
+            CLASSES=$(unzip -l "$JAR" | grep -c '\.class$' || true)
+            if [[ "$CLASSES" -lt 1 ]]; then
+              echo "::error::$JAR contains no classes — remapJar output is empty"
+              exit 1
+            fi
+            # grep without -q: -q exits at the first match and the resulting
+            # SIGPIPE upstream reads as a pipeline failure under pipefail.
+            if ! unzip -p "$JAR" fabric.mod.json | tr -d ' \n' | grep '"environment":"client"' > /dev/null; then
+              echo "::error::$JAR is in client-mods.manifest but does not declare environment client"
+              exit 1
+            fi
+          done < mods/client-mods.manifest
 
       - name: Stamp version defaults
         # BEFORE the bundle: both .env.example files are in its MANIFEST, so
@@ -113,6 +145,12 @@ jobs:
             tar -tzf "$BUNDLE" | grep -qx "stack/local-mods/$JAR_NAME" \
               || { echo "::error::Bundle is missing $JAR_NAME"; exit 1; }
           done < mods/local-mods.manifest
+          [[ -f mods/client-mods.manifest ]] || exit 0
+          while IFS='|' read -r JAR_NAME PROJECT REF_MAP; do
+            [[ -z "$JAR_NAME" || "$JAR_NAME" == \#* ]] && continue
+            tar -tzf "$BUNDLE" | grep -qx "stack/client-mods/$JAR_NAME" \
+              || { echo "::error::Bundle is missing client mod $JAR_NAME"; exit 1; }
+          done < mods/client-mods.manifest
 
       - name: Generate release notes
         uses: orhun/git-cliff-action@v4.8.0

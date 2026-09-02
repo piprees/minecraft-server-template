@@ -51,7 +51,7 @@ public final class ImmersivePreloader {
             return;
         }
         RegistryKey<World> targetKey = targetWorld.getRegistryKey();
-        String key = zone.sourceWorld.getValue() + "|" + centre.toShortString();
+        String key = keyFor(zone, centre);
         Set<String> keysForTarget = PRELOADED.computeIfAbsent(targetKey, k -> ConcurrentHashMap.newKeySet());
         if (!keysForTarget.add(key)) {
             return;
@@ -81,6 +81,19 @@ public final class ImmersivePreloader {
         MultiverseServer.LOGGER.debug(
                 "immersive: requested {} arrival chunks around ({}, {}) in {} for zone {}",
                 (2 * PRELOAD_RADIUS + 1) * (2 * PRELOAD_RADIUS + 1), cx, cz, targetKey.getValue(), key);
+    }
+
+    /** Whether this zone's target has had its arrival chunks requested this session. */
+    public static boolean hasPreloaded(RegistryKey<World> targetWorld, PortalHelper.PortalZone zone) {
+        BlockPos centre = PortalShape.centreOf(zone.interior);
+        Set<String> keys = PRELOADED.get(targetWorld);
+        return centre != null && keys != null && keys.contains(keyFor(zone, centre));
+    }
+
+    // One expression, both callers: a second copy of this format would drift
+    // and hasPreloaded would silently answer false forever.
+    private static String keyFor(PortalHelper.PortalZone zone, BlockPos centre) {
+        return zone.sourceWorld.getValue() + "|" + centre.toShortString();
     }
 
     /**

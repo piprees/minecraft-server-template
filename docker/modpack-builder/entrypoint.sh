@@ -49,6 +49,26 @@ if [[ -d /defaults/overrides ]]; then
   cp -r /defaults/overrides /work/src/overrides
 fi
 
+# Client-environment in-house mods ride in the pack's overrides, which
+# build-modpack.sh's packwiz walk already indexes, so players auto-update them.
+# Guarded: a server on an older bundle has no client-mods directory.
+# Count what landed rather than discarding the error: a broken mount (a
+# symlink farm resolves to nothing in the container) is otherwise identical
+# to having no client mods at all, and the pack ships silently without them.
+if [[ -d /client-mods ]]; then
+  mkdir -p /work/src/overrides/mods
+  client_copied=0
+  for jar in /client-mods/*.jar; do
+    [[ -r "$jar" ]] || continue
+    cp "$jar" /work/src/overrides/mods/ && client_copied=$((client_copied + 1))
+  done
+  echo "  client-mods: copied $client_copied jar(s)"
+  if [[ $client_copied -eq 0 ]]; then
+    echo "  ! /client-mods is mounted but no readable jar was found —" \
+      "a symlinked mount resolves to nothing inside the container" >&2
+  fi
+fi
+
 if [[ -d /overlay/modpack/overrides ]]; then
   cp -r /overlay/modpack/overrides/* /work/src/overrides/ 2>/dev/null || true
 fi

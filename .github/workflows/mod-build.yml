@@ -64,3 +64,39 @@ jobs:
             cd "$GITHUB_WORKSPACE"
             echo "::endgroup::"
           done < mods/local-mods.manifest
+
+      # Client-environment mods, built and gated the same way but with a floor
+      # of 1 class: a client mod is legitimately small, and the refmap is what
+      # actually catches an unremapped jar.
+      - name: Build & verify client mods from manifest
+        run: |
+          [[ -f mods/client-mods.manifest ]] || exit 0
+          while IFS='|' read -r jar_name project refmap; do
+            [[ "$jar_name" == \#* || -z "$jar_name" ]] && continue
+            echo "::group::Build mods/$project"
+            cd "mods/$project"
+            gradle build
+            JAR=$(find build/libs -name "${jar_name%.jar}-*.jar" ! -name '*-sources.jar' ! -name '*-dev.jar' | head -1)
+            if [[ -z "$JAR" ]]; then
+              echo "::error::No remapped jar found in mods/$project/build/libs"
+              exit 1
+            fi
+            if ! unzip -l "$JAR" | grep -q "$refmap"; then
+              echo "::error::$JAR is missing $refmap — output is unremapped or empty"
+              exit 1
+            fi
+            CLASSES=$(unzip -l "$JAR" | grep -c '\.class$' || true)
+            if [[ "$CLASSES" -lt 1 ]]; then
+              echo "::error::$JAR contains no classes — remapJar output is empty"
+              exit 1
+            fi
+            # grep without -q: -q exits at the first match and the resulting
+            # SIGPIPE upstream reads as a pipeline failure under pipefail.
+            if ! unzip -p "$JAR" fabric.mod.json | tr -d ' \n' | grep '"environment":"client"' > /dev/null; then
+              echo "::error::$JAR is in client-mods.manifest but does not declare environment client"
+              exit 1
+            fi
+            echo "OK: $JAR ($CLASSES classes, $refmap present, environment client)"
+            cd "$GITHUB_WORKSPACE"
+            echo "::endgroup::"
+          done < mods/client-mods.manifest

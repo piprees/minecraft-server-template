@@ -40,8 +40,17 @@ log "Pulling modpack-builder image..."
 docker pull "$MODPACK_IMAGE" 2>/dev/null || warn "Pull failed, using cached image"
 
 log "Building modpack (${GIT_SHA}) via modpack-builder image..."
+# Client jars ship to players through the pack, never to data/mods. Resolved
+# with cd+pwd rather than "$SCRIPT_DIR/..": under ./dev link scripts/ is a
+# symlink, and a bare ".." resolves past it into the platform checkout.
+CLIENT_MODS_DIR="$(cd "$SCRIPT_DIR/.." && pwd)/client-mods"
+CLIENT_MODS_ARGS=()
+[[ -d "$CLIENT_MODS_DIR" ]] &&
+  CLIENT_MODS_ARGS=(-v "$CLIENT_MODS_DIR:/client-mods:ro")
+
 docker run --rm \
   -v "$PROJECT_DIR/overlay:/overlay:ro" \
+  "${CLIENT_MODS_ARGS[@]+"${CLIENT_MODS_ARGS[@]}"}" \
   -v "$PROJECT_DIR/modpack-dist:/work/dist" \
   -e "DOMAIN=${DOMAIN:-localhost}" \
   -e "BRAND_NAME=${BRAND_NAME:-My Server}" \

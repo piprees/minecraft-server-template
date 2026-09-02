@@ -7,7 +7,7 @@
 | **T** | [T1–T14, T16–T19, T22–T27, T30–T80](#architecture-traps) | Architecture traps — each has caused a real production incident |
 | **P** | [P1–P5](#macos-local-dev) | macOS local-dev quirks (BSD tooling, toolchain) |
 | **D** | [D1–D6, D8–D9](#dimension-lifecycle) | Custom-dimension lifecycle on a live world |
-| **K** | [K1–K2, K5–K7](#known-issues) | Open issues — unfixed, on the watch list |
+| **K** | [K1–K2, K5–K7, K9](#known-issues) | Open issues — unfixed, on the watch list |
 
 Related contracts: [`AGENTS.md`](AGENTS.md) (how to behave), [`COMMANDS.md`](COMMANDS.md) (command reference), [`mods/AGENTS.md`](mods/AGENTS.md) (in-house mod development, including portal-subsystem specifics).
 
@@ -125,6 +125,7 @@ Run this first. It covers deploy drift, disk, every expected container, `ONLINE_
 | The map looks imprecise on steep terrain | [K5](#k5) |
 | A chunk never finishes generating; RCON accepted but never answered, one thread pegged, nothing thrown | [K6](#k6) |
 | An analysis says a biome band generates nothing but the game finds it | [K7](#k7) |
+| `Expected directory, got <level>/entities` on a first visit | [K9](#k9) |
 | `locate biome` returns a position but players never reach the biome | [K7](#k7) |
 | Can't connect / server won't start / backups failing / lag | [Common symptoms](#common-symptoms) |
 
@@ -1779,6 +1780,21 @@ The rendered height disagrees with the facts on high-relief columns. The error i
   the caller. `mods/AGENTS.md` forbids sync-loading from a tick path for this
   reason; probe with `getChunkManager().getWorldChunk(cx, cz, false)` or
   register a `ChunkTicketType.PORTAL` ticket and act on a later tick.
+
+<a id="k9"></a>
+### K9 — `Expected directory, got <level>/entities` on a level's first visit
+
+- **Symptom:** during a dimension's first visit, repeated (six times, measured):
+
+  ```
+  java.util.concurrent.CompletionException: java.lang.IllegalArgumentException:
+    Expected directory, got /data/./world/dimensions/adventure/<slug>/entities
+  ```
+
+- **Not confined to custom dimensions.** The same exception appears for the plain overworld (`/data/./world/entities`), so it is not a `custom-dimensions` fault.
+- **Transient and self-healing.** The path is a directory afterwards, world generation completes, and the world is usable. Measured on `adventure:the_crucible`: the portal carved, the arrival landed at its declared column, and the container stayed `Health=healthy Restarts=0`.
+- **Cause not established.** It looks like a race between whoever creates the level's `entities` directory and the entity-storage worker that expects to find one, but nothing has been measured to confirm that ordering.
+- Diagnostic value: it is noise. Do not spend a debugging session chasing it when hunting an unrelated first-boot failure, and do not read it as evidence that a dimension failed to create.
 
 <a id="k7"></a>
 

@@ -240,6 +240,8 @@ public class ServerWorldMixin {
                             player.setPortalCooldown(portalCooldown);
                             PortalHelper.setPlayerOrigin(player.getUuid(), worldKey, pos);
                             double landY = isHorizontal ? existing.getY() + 1 : existing.getY();
+                            com.customdimensions.companion.CompanionNetwork.notifyPreloadedTransfer(
+                                    player, targetWorld, zone, existing.getX(), existing.getZ());
                             player.teleport(targetWorld, existing.getX() + 0.5, landY, existing.getZ() + 0.5, Set.of(), player.getYaw(), player.getPitch());
                             playPortalSound(targetWorld, existing, def.getExitSound());
                             PortalHelper.startSingleUseCountdown(zone);
@@ -267,6 +269,8 @@ public class ServerWorldMixin {
                         player.setPortalCooldown(portalCooldown);
                         PortalHelper.setPlayerOrigin(player.getUuid(), worldKey, pos);
                         double landY = isHorizontal ? surfaceY + 1 : surfaceY;
+                        com.customdimensions.companion.CompanionNetwork.notifyPreloadedTransfer(
+                                player, targetWorld, zone, targetCenterX, targetCenterZ);
                         player.teleport(targetWorld, targetCenterX + 0.5, landY, targetCenterZ + 0.5, Set.of(), player.getYaw(), player.getPitch());
                         playPortalSound(targetWorld, new BlockPos(targetCenterX, (int) landY, targetCenterZ), def.getExitSound());
                         PortalHelper.startSingleUseCountdown(zone);
@@ -408,6 +412,8 @@ public class ServerWorldMixin {
                 ? (isHorizontal ? existing.getY() + 1 : existing.getY())
                 : (isHorizontal ? surfaceY + 1 : surfaceY);
         double landZ = (existing != null ? existing.getZ() : anchorZ) + 0.5;
+        com.customdimensions.companion.CompanionNetwork.notifyPreloadedTransfer(
+                player, targetWorld, zone, (int) Math.floor(landX), (int) Math.floor(landZ));
         player.teleport(targetWorld, landX, landY, landZ, Set.of(), player.getYaw(), player.getPitch());
         playPortalSound(targetWorld, BlockPos.ofFloored(landX, landY, landZ), def.getExitSound());
     }

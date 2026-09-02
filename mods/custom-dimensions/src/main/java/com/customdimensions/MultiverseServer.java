@@ -24,6 +24,7 @@ public class MultiverseServer implements DedicatedServerModInitializer {
     public void onInitializeServer() {
         LOGGER.info("Initializing CustomDimensions (The Multiverse Engine)");
         FabricLoader.getInstance().getObjectShare().put("customdimensions:init", true);
+        com.customdimensions.companion.CompanionNetwork.register();
         // biomePatches: the wrapper source must have a registered codec or
         // vanilla cannot encode the dimension's generator into level.dat at
         // save time (crash on first world save, not at creation).
@@ -148,6 +149,13 @@ public class MultiverseServer implements DedicatedServerModInitializer {
             com.customdimensions.immersive.ImmersiveProjector.forgetPlayer(
                     handler.player.getUuid(), handler.player.getName().getString(),
                     "player disconnected"));
+        // A companion client announces itself after the server's JOIN fires, so
+        // clearing on both edges cannot drop a live record and covers a
+        // DISCONNECT that never arrived.
+        ServerPlayConnectionEvents.JOIN.register((handler, sender, server) ->
+            com.customdimensions.companion.CompanionNetwork.forget(handler.player.getUuid()));
+        ServerPlayConnectionEvents.DISCONNECT.register((handler, server) ->
+            com.customdimensions.companion.CompanionNetwork.forget(handler.player.getUuid()));
         // ...and again on JOIN. A reconnecting client has just been sent
         // REAL chunk data, so any surviving delta baseline is a lie: a
         // player who relogs while still inside activationRange would keep a
@@ -200,6 +208,7 @@ public class MultiverseServer implements DedicatedServerModInitializer {
         com.customdimensions.web.SeedServer.stop();
         com.customdimensions.command.LocateManager.getInstance().shutdown();
         com.customdimensions.command.RenderCheck.clear();
+        com.customdimensions.companion.CompanionNetwork.clear();
         StorageHelper.shutdown();
         LOGGER.info("CustomDimensions shutdown complete");
     }

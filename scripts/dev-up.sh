@@ -682,8 +682,12 @@ if [[ "$HAVE_MRPACK" == "false" || "$CURRENT_INPUTS" != "$PREV_INPUTS" ]]; then
     echo "  Modpack inputs changed — rebuilding..."
   fi
   mkdir -p "$PACK_DIR"
+  CLIENT_MODS_ARGS=()
+  [[ -d "$STACK_DIR/client-mods" ]] &&
+    CLIENT_MODS_ARGS=(-v "$STACK_DIR/client-mods:/client-mods:ro")
   if docker run --rm \
     -v "$CONSUMER_DIR/overlay:/overlay:ro" \
+    "${CLIENT_MODS_ARGS[@]+"${CLIENT_MODS_ARGS[@]}"}" \
     -v "$PACK_DIR:/work/dist" \
     -e "DOMAIN=${LOCAL_DOMAIN:-${DOMAIN:-localhost}}" \
     -e "BRAND_NAME=${BRAND_NAME:-My Server}" \

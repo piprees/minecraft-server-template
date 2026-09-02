@@ -182,6 +182,52 @@ while IFS='|' read -r jar_name project_name refmap_name; do
 done < "$LOCAL_MODS_MANIFEST"
 echo "  Included $expected_count declared in-house mod JAR(s)"
 
+# Client-environment mods ship to players through the modpack's overrides/,
+# never to a server. They are staged in their own directory because every
+# server-install path (deploy.sh, dev-up.sh) reads local-mods and must keep
+# reading only that.
+CLIENT_MODS="$DIST_DIR/client-mods"
+CLIENT_MODS_MANIFEST="$PROJECT_DIR/mods/client-mods.manifest"
+client_count=0
+if [[ -f "$CLIENT_MODS_MANIFEST" ]]; then
+  [[ -d "$CLIENT_MODS" ]] || {
+    echo "ERROR: missing built client mods directory: $CLIENT_MODS" >&2
+    exit 1
+  }
+  while IFS='|' read -r jar_name project_name refmap_name; do
+    [[ -z "$jar_name" || "$jar_name" == \#* ]] && continue
+    [[ -n "$project_name" && -n "$refmap_name" ]] || {
+      echo "ERROR: invalid client mod manifest row: $jar_name" >&2
+      exit 1
+    }
+    [[ -f "$CLIENT_MODS/$jar_name" ]] || {
+      echo "ERROR: missing declared client mod JAR: $jar_name" >&2
+      exit 1
+    }
+    client_count=$((client_count + 1))
+  done < "$CLIENT_MODS_MANIFEST"
+
+  for jar_path in "$CLIENT_MODS"/*.jar; do
+    [[ -f "$jar_path" ]] || continue
+    jar_name="$(basename "$jar_path")"
+    if ! awk -F'|' -v jar="$jar_name" '$1 == jar { found=1 } END { exit !found }' "$CLIENT_MODS_MANIFEST"; then
+      echo "ERROR: undeclared client mod JAR: $jar_name" >&2
+      exit 1
+    fi
+  done
+
+  [[ $client_count -gt 0 ]] || {
+    echo "ERROR: client mods manifest declares no JARs" >&2
+    exit 1
+  }
+  mkdir -p "$STAGING_DIR/stack/client-mods"
+  while IFS='|' read -r jar_name project_name refmap_name; do
+    [[ -z "$jar_name" || "$jar_name" == \#* ]] && continue
+    cp "$CLIENT_MODS/$jar_name" "$STAGING_DIR/stack/client-mods/$jar_name"
+  done < "$CLIENT_MODS_MANIFEST"
+  echo "  Included $client_count declared client mod JAR(s)"
+fi
+
 mkdir -p "$DIST_DIR"
 
 TAR_CMD="tar"
