@@ -49,6 +49,26 @@ class PortalSafetyValidatorTest {
     }
 
     @Test
+    void aGatewayWithNoFrameBlockWarns() {
+        DimensionConfig config = parse("the_open_door", """
+                {"portal":{"shape":"end_gateway"}}
+                """);
+        List<String> warnings = PortalSafetyValidator.validate(List.of(config));
+        assertEquals(1, warnings.size());
+        assertTrue(warnings.get(0).contains("end_gateway"));
+        assertTrue(warnings.get(0).contains("any block"));
+        assertTrue(warnings.get(0).contains("never auto-fixed"));
+    }
+
+    @Test
+    void aGatewayWithAFrameBlockIsSilent() {
+        DimensionConfig config = parse("the_crumbling_reaches", """
+                {"portal":{"frameBlock":"minecraft:mud_bricks","shape":"end_gateway"}}
+                """);
+        assertTrue(PortalSafetyValidator.validate(List.of(config)).isEmpty());
+    }
+
+    @Test
     void unknownShapeWarns() {
         DimensionConfig config = parse("d", """
                 {"portal":{"frameBlock":"b","shape":"hexagon"}}

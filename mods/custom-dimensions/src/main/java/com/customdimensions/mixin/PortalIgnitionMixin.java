@@ -62,7 +62,7 @@ public class PortalIgnitionMixin {
         }
 
         for (PortalDefinition def : candidates) {
-            if (tryIgnite(serverWorld, clickedPos, context, def, cir)) {
+            if (tryIgnite(serverWorld, clickedPos, clickedBlockId, context, def, cir)) {
                 return;
             }
         }
@@ -70,12 +70,15 @@ public class PortalIgnitionMixin {
 
     // Frame detection + zone registration for one candidate definition.
     // Returns true when a portal was ignited (cir is then set to SUCCESS).
-    private static boolean tryIgnite(ServerWorld serverWorld, BlockPos clickedPos, ItemUsageContext context,
-            PortalDefinition def, CallbackInfoReturnable<ActionResult> cir) {
-        // Frameless gateways: click-to-place, no flood-fill, no frame. The
-        // gateway goes on the clicked face (like placing a torch); the
-        // matcher may legitimately be empty for these configs.
+    private static boolean tryIgnite(ServerWorld serverWorld, BlockPos clickedPos, String clickedBlockId,
+            ItemUsageContext context, PortalDefinition def, CallbackInfoReturnable<ActionResult> cir) {
+        // Gateways: click-to-place, no flood-fill. The gateway goes on the
+        // clicked face like a torch, so the clicked block is the only frame
+        // test there is — PortalDefinition.acceptsIgnitionClick.
         if (com.customdimensions.portal.PortalShape.END_GATEWAY.equals(def.getShape())) {
+            if (!def.acceptsIgnitionClick(clickedBlockId)) {
+                return false;
+            }
             BlockPos gatewayPos = clickedPos.offset(context.getSide());
             if (!PortalHelper.isPortalFillable(serverWorld.getBlockState(gatewayPos))) {
                 return false;

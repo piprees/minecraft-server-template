@@ -143,6 +143,26 @@ public class PortalDefinition {
         return this.frameMatcher;
     }
 
+    /**
+     * Whether a click on this block may ignite this definition.
+     *
+     * <p>A gateway is placed on the clicked face with no flood-fill, so the
+     * block clicked IS its frame test: one that declares a frame demands it.
+     * Every other shape finds its frame by flood-fill and does not care what
+     * was clicked.
+     *
+     * <p>A gateway declaring no frame accepts every block, which is ignition
+     * anywhere with the igniter in hand. No shipped config has that shape and
+     * {@code PortalSafetyValidator} warns about one.
+     */
+    public boolean acceptsIgnitionClick(String clickedBlockId) {
+        if (!com.customdimensions.portal.PortalShape.END_GATEWAY.equals(this.getShape())) {
+            return true;
+        }
+        FrameMatcher frame = this.resolveFrameMatcher();
+        return frame.isEmpty() || frame.acceptsBlockId(clickedBlockId);
+    }
+
     /** True when this definition carries per-part frame materials. */
     public boolean hasPartMaterials() {
         return this.framePartAccepts != null && !this.framePartAccepts.isEmpty();
