@@ -766,9 +766,16 @@ case "$CMD" in
     # prismlauncher returns 0 the moment it hands off, whether or not a game
     # starts — an already-running launcher can swallow the request entirely.
     # Proving a NEW session started is the only honest success signal.
+    # The game JVM is Prism's own EntryPoint shim, which reflects into Fabric's
+    # Knot — so KnotClient never appears in a command line. Both terms are
+    # required: the launcher process carries the instance id too, and matching
+    # it alone would call a swallowed request a success.
     STARTED=0
-    for _ in $(seq 1 45); do
-      if pgrep -f 'KnotClient' > /dev/null 2>&1; then
+    for _ in $(seq 1 90); do
+      if pgrep -f 'org.prismlauncher.EntryPoint' 2>/dev/null |
+        while read -r client_pid; do
+          ps -ww -o command= -p "$client_pid" 2>/dev/null | grep -qF "$INST_ID" && echo found
+        done | grep -q found; then
         if [[ -f "$CLIENT_LOG" ]] &&
           [[ "$(date -r "$CLIENT_LOG" +%s)" -ge "$(cat "$LAUNCH_STAMP")" ]]; then
           STARTED=1
@@ -779,7 +786,7 @@ case "$CMD" in
     done
     if [[ $STARTED -eq 0 ]]; then
       echo "" >&2
-      echo "Launch did not produce a running client within 90s." >&2
+      echo "Launch did not produce a running client within 180s." >&2
       echo "Prism exits 0 on hand-off, so this is not necessarily an error you" >&2
       echo "would have seen. If the launcher is already open, quit it and retry." >&2
       exit 1
