@@ -2,6 +2,7 @@ package com.customdimensions.command;
 
 import com.customdimensions.config.DimensionConfig;
 import com.customdimensions.config.MultiverseConfig;
+import com.customdimensions.config.PortalSafetyValidator;
 import com.customdimensions.dimension.NoiseGroupPlan;
 import com.customdimensions.dimension.NoisePoolBuilder;
 import com.customdimensions.dimension.StructureAliases;
@@ -73,7 +74,6 @@ public final class DimensionLint {
     /** Lint every configured dimension, or one named dimension. */
     public static List<Finding> lint(MinecraftServer server, String only) {
         List<Finding> findings = new ArrayList<>();
-        Map<String, List<String>> igniters = new TreeMap<>();
         // Reserved dimensions carry the same structures and seedRoll blocks as any
         // other dimension and are rolled the same way, so they are linted
         // the same way.
@@ -82,10 +82,9 @@ public final class DimensionLint {
                 continue;
             }
             findings.addAll(lintOne(server, def));
-            collectIgniter(igniters, def);
         }
         if (only == null) {
-            findings.addAll(igniterCollisions(igniters));
+            findings.addAll(frameCollisions());
             findings.addAll(checkSuppressList(server));
         }
         return findings;
@@ -785,40 +784,24 @@ public final class DimensionLint {
                 "correct the block id, or add the mod that provides it"));
     }
 
-    // ------------------------------------------------------ igniter collision
-
-    private static void collectIgniter(Map<String, List<String>> into, DimensionConfig def) {
-        DimensionConfig.Portal portal = def.getPortal();
-        if (portal == null || portal.igniterItem == null || portal.igniterItem.isBlank()) {
-            return;
-        }
-        for (String frame : portal.getFrameAcceptForms()) {
-            String key = portal.igniterItem.trim().toLowerCase(Locale.ROOT)
-                    + " + " + frame.trim().toLowerCase(Locale.ROOT);
-            into.computeIfAbsent(key, k -> new ArrayList<>()).add(def.getName());
-        }
-    }
+    // -------------------------------------------------------- frame collision
 
     /**
-     * Sharing an igniter is deliberate and supported — ignition tries every
-     * candidate definition, clicked-frame match first. Sharing an igniter AND
-     * a frame block is the collision: the two are then indistinguishable, and
-     * which dimension a player reaches is decided by config order.
+     * Portal definitions sharing a frame material. Sharing an igniter alone is
+     * deliberate and supported — ignition tries every candidate, clicked-frame
+     * match first. Sharing the FRAME is what adoption cannot resolve, because
+     * an already-lit portal carries no record of what lit it.
+     *
+     * <p>The rules and their severities live in
+     * {@link PortalSafetyValidator#frameCollisions}, which the boot log reads
+     * too — one implementation, one verdict.
      */
-    private static List<Finding> igniterCollisions(Map<String, List<String>> igniters) {
+    private static List<Finding> frameCollisions() {
         List<Finding> out = new ArrayList<>();
-        for (Map.Entry<String, List<String>> e : igniters.entrySet()) {
-            if (e.getValue().size() < 2) {
-                continue;
-            }
-            String dims = String.join(", ", e.getValue());
-            for (String dim : e.getValue()) {
-                out.add(new Finding(dim, WARN, "portal_igniter_collision", e.getKey(),
-                        "the igniter/frame pair '" + e.getKey() + "' is shared with "
-                        + dims + " — a player lighting it reaches whichever "
-                        + "definition matches first, not necessarily this one",
-                        "give this dimension its own igniterItem or frameBlock"));
-            }
+        for (PortalSafetyValidator.FrameCollision c
+                : PortalSafetyValidator.frameCollisions(targets())) {
+            out.add(new Finding(c.dimension(), c.severity(), c.check(), c.subject(),
+                    c.message(), c.fix()));
         }
         return out;
     }

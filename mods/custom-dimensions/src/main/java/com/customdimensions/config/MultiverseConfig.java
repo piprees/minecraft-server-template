@@ -91,6 +91,17 @@ public class MultiverseConfig {
         for (String warning : PortalSafetyValidator.validate(this.configs.values())) {
             MultiverseServer.LOGGER.warn(warning);
         }
+        for (PortalSafetyValidator.FrameCollision collision
+                : PortalSafetyValidator.frameCollisions(this.configs.values())) {
+            String line = String.format(
+                    "Dimension %s: %s. KEEPING the config as written; %s (never auto-fixed).",
+                    collision.dimension(), collision.message(), collision.fix());
+            if (PortalSafetyValidator.ERROR.equals(collision.severity())) {
+                MultiverseServer.LOGGER.error(line);
+            } else {
+                MultiverseServer.LOGGER.warn(line);
+            }
+        }
     }
 
     /** Globally suppressed structure SET ids (settings.json suppress.structures). */

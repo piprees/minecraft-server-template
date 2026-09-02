@@ -420,6 +420,113 @@ public final class PortalSafetyValidator {
         }
     }
 
+    public static final String ERROR = "error";
+    public static final String WARN = "warn";
+
+    /**
+     * Two portal definitions built from the same frame material. Carries the
+     * lint's fields so one implementation serves both the boot log and
+     * {@code customdim lint}.
+     */
+    public record FrameCollision(String dimension, String severity, String check,
+                                 String subject, String message, String fix) {
+    }
+
+    /** One accept form of one portal entry, flattened for comparison. */
+    private record FrameEntry(String dimension, String portalId, String form,
+                              String igniter, boolean vanillaManaged) {
+    }
+
+    /**
+     * Portal definitions that build from the same frame material.
+     *
+     * <p>Cross-dimension, so it runs over the whole set rather than inside
+     * {@link #validate}'s per-dimension loop. Two entries of one dimension
+     * collide the same way two dimensions do — portal ids are positional
+     * ({@code slug}, {@code slug#2}), so both are compared.
+     */
+    public static List<FrameCollision> frameCollisions(Collection<DimensionConfig> configs) {
+        java.util.Map<String, List<FrameEntry>> byForm = new java.util.LinkedHashMap<>();
+        for (DimensionConfig config : configs) {
+            List<DimensionConfig.Portal> portals = config.getPortals();
+            for (int i = 0; i < portals.size(); i++) {
+                DimensionConfig.Portal portal = portals.get(i);
+                String portalId = i == 0 ? config.getName() : config.getName() + "#" + (i + 1);
+                for (String form : portal.getFrameAcceptForms()) {
+                    String key = normalise(form);
+                    if (key.isEmpty()) {
+                        continue;
+                    }
+                    byForm.computeIfAbsent(key, f -> new ArrayList<>())
+                            .add(new FrameEntry(config.getName(), portalId, key,
+                                    normalise(portal.igniterItem), portal.isVanillaManaged()));
+                }
+            }
+        }
+        List<FrameCollision> out = new ArrayList<>();
+        for (List<FrameEntry> group : byForm.values()) {
+            for (int a = 0; a < group.size(); a++) {
+                for (int b = a + 1; b < group.size(); b++) {
+                    FrameCollision collision = compareFrames(group.get(a), group.get(b));
+                    if (collision != null) {
+                        out.add(collision);
+                    }
+                }
+            }
+        }
+        return out;
+    }
+
+    /** {@code first} is earlier in config order, which is what decides ties. */
+    private static FrameCollision compareFrames(FrameEntry first, FrameEntry second) {
+        if (first.portalId().equals(second.portalId())) {
+            return null; // one entry listing the same form twice
+        }
+        String form = first.form();
+        // A vanillaManaged definition holds the frame outright, so the other
+        // side is not a coin flip — it is unreachable by adoption.
+        if (first.vanillaManaged() != second.vanillaManaged()) {
+            FrameEntry reserved = first.vanillaManaged() ? first : second;
+            FrameEntry loser = first.vanillaManaged() ? second : first;
+            return new FrameCollision(loser.dimension(), WARN, "portal_frame_reserved", form,
+                    "portal frame " + form + " is also declared by " + reserved.portalId()
+                    + ", which is vanillaManaged — that definition holds the frame, so this "
+                    + "portal is reached only by deliberate ignition with "
+                    + igniterPhrase(loser) + ", never by adopting an existing " + form
+                    + " portal",
+                    "give this dimension its own frameBlock to make its frames adoptable, or "
+                    + "accept that it is entered by ignition alone");
+        }
+        boolean bothVanilla = first.vanillaManaged() && second.vanillaManaged();
+        if (bothVanilla || first.igniter().equals(second.igniter())) {
+            String cause = bothVanilla
+                    ? "both are vanillaManaged"
+                    : "both use igniter " + igniterPhrase(first);
+            return new FrameCollision(second.dimension(), ERROR, "portal_igniter_collision",
+                    igniterPhrase(first) + " + " + form,
+                    "portal frame " + form + " is shared with " + first.portalId() + " and "
+                    + cause + " — nothing distinguishes the two definitions, so ignition and "
+                    + "adoption alike fall to whichever comes first in config order",
+                    "give this dimension its own frameBlock, or its own igniterItem");
+        }
+        return new FrameCollision(second.dimension(), WARN, "portal_frame_shared", form,
+                "portal frame " + form + " is shared with " + first.portalId() + " (igniters "
+                + igniterPhrase(first) + " and " + igniterPhrase(second) + ") — ignition tells "
+                + "the two apart by igniter, but an already-lit portal carries no record of "
+                + "what lit it, so every unclaimed " + form + " frame is adopted by "
+                + first.portalId() + ", first in config order",
+                "give this dimension its own frameBlock if it should adopt existing frames; "
+                + "otherwise none is needed — deliberate ignition still reaches it");
+    }
+
+    private static String igniterPhrase(FrameEntry entry) {
+        return entry.igniter().isEmpty() ? "(none)" : entry.igniter();
+    }
+
+    private static String normalise(String value) {
+        return value == null ? "" : value.trim().toLowerCase(java.util.Locale.ROOT);
+    }
+
     // Dimension-link hygiene: every exit target that names a dimension must
     // name one that exists (cyclic links are fine — chains and hubs are the
     // point; a link to NOWHERE falls back to the overworld spawn at runtime,
