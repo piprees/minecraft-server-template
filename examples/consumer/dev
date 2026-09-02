@@ -748,6 +748,102 @@ case "$CMD" in
     # Attached: both sides streamed, and Ctrl-C stops the client too.
     exec bash "$CONSUMER_DIR/dev" launch --attach
     ;;
+  launch)
+    # Start the client against the LOCAL server. Prism's own CLI does the
+    # work; this only resolves the instance and the port so nobody has to
+    # remember either.
+    ensure_env
+    set -a
+    # shellcheck disable=SC1091
+    source "$CONSUMER_DIR/.env"
+    set +a
+    PRISM="/Applications/Prism Launcher.app/Contents/MacOS/prismlauncher"
+    if [[ ! -x "$PRISM" ]]; then
+      PRISM="$(command -v prismlauncher || true)"
+    fi
+    if [[ -z "$PRISM" || ! -x "$PRISM" ]]; then
+      echo "Prism Launcher not found. Install it, or launch the pack by hand:"
+      echo "  ./dev pack   then import modpack-dist/*-local-latest.mrpack"
+      exit 1
+    fi
+    ATTACH=0
+    LAUNCH_ARGS=()
+    for a in "$@"; do
+      case "$a" in
+        --attach) ATTACH=1 ;;
+        --no-attach) ATTACH=0 ;;
+        *) LAUNCH_ARGS+=("$a") ;;
+      esac
+    done
+    INST_DIR="$(resolve_client_instance "${LAUNCH_ARGS[0]:-}" || true)"
+    if [[ -z "$INST_DIR" ]]; then
+      echo "No Prism instance found for '${1:-${BRAND_SLUG:-this pack}}'."
+      echo "Build and import the pack first:"
+      echo "  ./dev pack   then import modpack-dist/*-local-latest.mrpack"
+      exit 1
+    fi
+    INST_ID="$(basename "$(dirname "$INST_DIR")")"
+    echo "Instance: $INST_ID"
+    echo "Server:   localhost:${SERVER_PORT:-25577}"
+    echo ""
+    echo "NOTE: Prism uses the account selected in the launcher. --offline is"
+    echo "      accepted and ignored, so this plays as YOU, not as a test user."
+    LAUNCH_STAMP="$CONSUMER_DIR/.dev-client-launch"
+    date +%s > "$LAUNCH_STAMP"
+    CLIENT_LOG="$INST_DIR/logs/latest.log"
+    "$PRISM" --launch "$INST_ID" --server "localhost:${SERVER_PORT:-25577}" \
+      > /dev/null 2>&1 &
+    # prismlauncher returns 0 the moment it hands off, whether or not a game
+    # starts — an already-running launcher can swallow the request entirely.
+    # Proving a NEW session started is the only honest success signal.
+    # The game JVM is Prism's own EntryPoint shim, which reflects into Fabric's
+    # Knot — so KnotClient never appears in a command line. Both terms are
+    # required: the launcher process carries the instance id too, and matching
+    # it alone would call a swallowed request a success.
+    STARTED=0
+    for _ in $(seq 1 90); do
+      if [[ -n "$(prism_client_pid "$INST_ID")" ]]; then
+        if [[ -f "$CLIENT_LOG" ]] &&
+          [[ "$(date -r "$CLIENT_LOG" +%s)" -ge "$(cat "$LAUNCH_STAMP")" ]]; then
+          STARTED=1
+          break
+        fi
+      fi
+      sleep 2
+    done
+    if [[ $STARTED -eq 0 ]]; then
+      echo "" >&2
+      echo "Launch did not produce a running client within 180s." >&2
+      echo "Prism exits 0 on hand-off, so this is not necessarily an error you" >&2
+      echo "would have seen. If the launcher is already open, quit it and retry." >&2
+      exit 1
+    fi
+    echo "Client is running (new session confirmed)."
+    if [[ $ATTACH -eq 0 ]]; then
+      echo "Logs: ./dev client-log   or both sides: ./dev logs-all"
+    else
+      CLIENT_PID="$(prism_client_pid "$INST_ID")"
+      echo "Attached to pid ${CLIENT_PID:-unknown}. Ctrl-C stops the client and this log."
+      echo ""
+      # Unbounded on purpose: an interactive runner follows both sides for as
+      # long as you watch it. Both streams start at the launch, so "all" is
+      # this session rather than the container's whole life.
+      SINCE="$(date -u -r "$(cat "$LAUNCH_STAMP")" '+%Y-%m-%dT%H:%M:%S' 2>/dev/null || echo '0m')"
+      docker logs -f -t --since "$SINCE" "${CONTAINER_PREFIX:-}mc" 2>&1 | stamp_server_stream &
+      SRV_STREAM=$!
+      tail -n +1 -f "$CLIENT_LOG" 2>/dev/null | stamp_client_stream &
+      CLI_STREAM=$!
+      # shellcheck disable=SC2064
+      trap "echo ''; echo 'Stopping the client...'; kill ${CLIENT_PID:-0} 2>/dev/null; kill $SRV_STREAM $CLI_STREAM 2>/dev/null; exit 0" INT TERM
+      # Ends when the game does, the way killing a dev server ends its log.
+      while kill -0 "${CLIENT_PID:-0}" 2>/dev/null; do
+        sleep 2
+      done
+      echo ""
+      echo "Client exited."
+      kill "$SRV_STREAM" "$CLI_STREAM" 2>/dev/null
+    fi
+    ;;
   logs-all)
     # Server and client in one time-ordered view. The container logs in UTC
     # and the client logs in local time, so the server side is converted or
