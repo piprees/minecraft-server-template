@@ -2176,7 +2176,11 @@ public class DimensionManager {
         return !ticketTypesHeld(world).isEmpty();
     }
 
-    /** Ticket type names currently held here. Empty means nothing is loading chunks. */
+    /**
+     * Types deliberately holding chunks open here — a chunk loader, a machine,
+     * a forced chunk. A ticket that expires is the residue of a read, not a
+     * hold: UNKNOWN lasts one tick and follows any sync chunk load.
+     */
     private static java.util.Set<String> ticketTypesHeld(ServerWorld world) {
         ChunkTicketManager tickets =
                 ((ServerChunkManagerAccessor) world.getChunkManager()).getTicketManager();
@@ -2184,7 +2188,9 @@ public class DimensionManager {
         for (SortedArraySet<ChunkTicket<?>> atPos
                 : ((ChunkTicketManagerAccessor) tickets).getTicketsByPosition().values()) {
             for (ChunkTicket<?> ticket : atPos) {
-                types.add(String.valueOf(ticket.getType()));
+                if (ticket.getType().getExpiryTicks() == 0L) {
+                    types.add(String.valueOf(ticket.getType()));
+                }
             }
         }
         return types;
