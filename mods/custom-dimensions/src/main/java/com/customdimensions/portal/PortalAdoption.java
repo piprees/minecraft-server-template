@@ -63,6 +63,22 @@ public final class PortalAdoption {
 
         BlockPos probe = portalBlocks.iterator().next();
         if (adopted == null) {
+            // Nothing this mod would own, so a vanillaManaged definition gets
+            // the last look: it contributes geometry for the preview only and
+            // vanilla still picks the destination.
+            PortalDefinition presented = firstThatFits(world, portalBlocks, axis,
+                    presentationCandidates(config.getPortals(), frameIds));
+            if (presented != null) {
+                boolean added = PortalHelper.registerPresentationZone(new PortalHelper.PortalZone(
+                        portalBlocks, presented, axis, worldKey, presented.getTargetKey()));
+                if (added) {
+                    System.err.println("[customdimensions] Presentation-only zone at "
+                            + probe.toShortString() + " in " + worldKey.getValue() + " as "
+                            + presented.getId() + " (" + portalBlocks.size()
+                            + " cells) - vanilla keeps the traversal");
+                }
+                return false;
+            }
             // Inert, not delegated: vanilla answers "the Nether" for every
             // world it is asked about, and a frame no definition describes
             // has no destination this mod can name.
@@ -99,6 +115,28 @@ public final class PortalAdoption {
         List<PortalDefinition> matches = new ArrayList<>();
         for (PortalDefinition def : portals) {
             if (def.isVanillaManaged()) {
+                continue;
+            }
+            for (String id : frameIds) {
+                if (def.resolveFrameMatcher().acceptsBlockId(id)) {
+                    matches.add(def);
+                    break;
+                }
+            }
+        }
+        return matches;
+    }
+
+    /**
+     * Definitions whose frame accepts one of these block ids AND that hand the
+     * traversal to vanilla — the complement of {@link #candidates}. A match
+     * here produces geometry for the immersive preview and nothing else.
+     */
+    public static List<PortalDefinition> presentationCandidates(
+            List<PortalDefinition> portals, Collection<String> frameIds) {
+        List<PortalDefinition> matches = new ArrayList<>();
+        for (PortalDefinition def : portals) {
+            if (!def.isVanillaManaged() || def.getImmersive() == null) {
                 continue;
             }
             for (String id : frameIds) {

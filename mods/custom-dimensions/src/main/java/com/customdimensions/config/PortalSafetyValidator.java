@@ -32,6 +32,7 @@ public final class PortalSafetyValidator {
                 validateFrameConfig(config, portal, warnings);
                 validateArrivalReachability(config, portal, sourceRadius, warnings);
                 validateStranding(config, portal, warnings);
+                validateVanillaManaged(config, portal, warnings);
             }
             // Death-only exits: a dimension whose ONLY way out is dying is
             // stranding-by-config for anyone who wants to leave alive.
@@ -46,6 +47,38 @@ public final class PortalSafetyValidator {
             }
         }
         return warnings;
+    }
+
+    // Vanilla's own routes, encoded. A vanillaManaged entry documents the
+    // classic portal rather than claiming it, so a field the mod cannot honour
+    // and a value that contradicts what vanilla does are both worth surfacing.
+    private static final java.util.Map<String, Double> VANILLA_SCALES =
+            java.util.Map.of("minecraft:the_nether", 8.0);
+
+    private static void validateVanillaManaged(DimensionConfig config, DimensionConfig.Portal portal,
+                                               List<String> warnings) {
+        if (!portal.isVanillaManaged()) {
+            return;
+        }
+        if (portal.aura != null) {
+            warnings.add(String.format(
+                    "Dimension %s: portal.aura is set on a vanillaManaged portal — auras are linked "
+                    + "when this mod performs the traversal and vanilla performs this one, so "
+                    + "nothing will ever leak. KEEPING the config as written; remove \"aura\" or "
+                    + "\"vanillaManaged\" (never auto-fixed).",
+                    config.getName()));
+        }
+        Double vanillaScale = VANILLA_SCALES.get(config.getDimensionId());
+        double scale = portal.scale != null ? portal.scale : 1.0;
+        if (vanillaScale != null && scale != vanillaScale) {
+            warnings.add(String.format(
+                    "Dimension %s: portal.scale %s on a vanillaManaged portal contradicts vanilla, "
+                    + "which moves this dimension at 1:%s whatever the config says — borders and "
+                    + "immersive previews would be built on a ratio players never travel at. "
+                    + "KEEPING the config as written; set \"scale\": %s (never auto-fixed).",
+                    config.getName(), trimScale(scale), trimScale(vanillaScale),
+                    trimScale(vanillaScale)));
+        }
     }
 
     // A portal that can shut behind the player, or that suppresses per-source

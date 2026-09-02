@@ -10,6 +10,7 @@
   },
   "portal": {
     "vanillaManaged": true,
+    "immersive": true,
     "frameBlock": "minecraft:end_portal_frame",
     "igniterItem": "minecraft:ender_eye",
     "color": "1B0033",

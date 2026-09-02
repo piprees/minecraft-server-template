@@ -809,9 +809,10 @@ public class DimensionConfig {
             aura.subsume = portal.aura.subsume;
             def.setAura(aura);
         }
-        if (!portal.isVanillaManaged()) {
-            def.setImmersive(portal.getImmersiveSettings());
-        }
+        // Immersive settings are rendering only, so a vanillaManaged route
+        // carries them too: the preview is drawn through the frame while
+        // vanilla keeps the traversal.
+        def.setImmersive(portal.getImmersiveSettings());
         return def;
     }
 

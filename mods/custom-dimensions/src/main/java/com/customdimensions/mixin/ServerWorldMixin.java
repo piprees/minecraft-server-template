@@ -38,7 +38,20 @@ public class ServerWorldMixin {
         PortalHelper.restoreZones(world);
 
         List<PortalHelper.PortalZone> sourceZones = PortalHelper.getSourceZones(worldKey);
-        if (!sourceZones.isEmpty()) {
+        // Presentation zones carry a vanillaManaged portal's geometry so the
+        // projector has a plane to draw through. An invalid one is dropped and
+        // nothing else — never break the far end, never clear the interior:
+        // both belong to vanilla, which is also what re-lights the portal.
+        List<PortalHelper.PortalZone> presentationZones = new ArrayList<>();
+        for (PortalHelper.PortalZone zone
+                : new ArrayList<>(PortalHelper.getPresentationZones(worldKey))) {
+            if (PortalHelper.isZoneValid(world, zone)) {
+                presentationZones.add(zone);
+            } else {
+                PortalHelper.removePresentationZone(zone);
+            }
+        }
+        if (!sourceZones.isEmpty() || !presentationZones.isEmpty()) {
             // Snapshot: getSourceZones returns the live backing list;
             // removeZone modifies it, so iterating directly is a CME.
             List<PortalHelper.PortalZone> snapshot = new ArrayList<>(sourceZones);
@@ -88,9 +101,11 @@ public class ServerWorldMixin {
             // pre-generate the arrival chunks, so stepping through feels
             // instant instead of pausing on first visit. Zones without
             // "immersive" configured skip this entirely.
+            List<PortalHelper.PortalZone> previewZones = new ArrayList<>(zones);
+            previewZones.addAll(presentationZones);
             for (ServerPlayerEntity player : world.getPlayers()) {
                 BlockPos playerPos = player.getBlockPos();
-                for (PortalHelper.PortalZone zone : zones) {
+                for (PortalHelper.PortalZone zone : previewZones) {
                     ImmersiveSettings imm = zone.definition.getImmersive();
                     if (imm == null) {
                         continue;

@@ -319,7 +319,10 @@ public final class ImmersiveProjector {
      * the dimension they lead TO.
      */
     private static void tickSourceZones(ServerWorld world, MinecraftServer running, long tick) {
-        List<PortalHelper.PortalZone> sourceZones = PortalHelper.getSourceZones(world.getRegistryKey());
+        // Projection zones, not source zones: a vanillaManaged portal's
+        // presentation zone is drawn through here and nowhere else.
+        List<PortalHelper.PortalZone> sourceZones =
+                PortalHelper.getProjectionZones(world.getRegistryKey());
         if (sourceZones.isEmpty()) {
             return;
         }

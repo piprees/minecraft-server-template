@@ -268,4 +268,59 @@ class PortalSafetyValidatorTest {
                 """);
         assertEquals(1, PortalSafetyValidator.validate(List.of(config)).size());
     }
+
+    @Test
+    void vanillaManagedNetherAtTheWrongScaleWarns() {
+        DimensionConfig config = parse("the_nether", """
+                {"portal":{"frameBlock":"minecraft:obsidian",
+                 "vanillaManaged":true,"scale":1.0}}
+                """);
+        List<String> warnings = PortalSafetyValidator.validate(List.of(config));
+        assertEquals(1, warnings.size(), warnings.toString());
+        assertTrue(warnings.get(0).contains("vanillaManaged"));
+        assertTrue(warnings.get(0).contains("1:8"));
+        assertTrue(warnings.get(0).contains("never auto-fixed"));
+    }
+
+    @Test
+    void vanillaManagedNetherAtEightIsSilent() {
+        DimensionConfig config = parse("the_nether", """
+                {"portal":{"frameBlock":"minecraft:obsidian",
+                 "vanillaManaged":true,"scale":8.0}}
+                """);
+        assertTrue(PortalSafetyValidator.validate(List.of(config)).isEmpty());
+    }
+
+    @Test
+    void anOrdinaryNetherPortalKeepsWhateverScaleItStates() {
+        // The rule encodes what VANILLA does. A mod-owned route into the same
+        // dimension performs its own traversal and may state its own ratio.
+        DimensionConfig config = parse("the_nether", """
+                {"portal":{"frameBlock":"minecraft:obsidian","scale":1.0}}
+                """);
+        assertTrue(PortalSafetyValidator.validate(List.of(config)).isEmpty());
+    }
+
+    @Test
+    void auraOnAVanillaManagedPortalWarns() {
+        DimensionConfig config = parse("the_nether", """
+                {"portal":{"frameBlock":"minecraft:obsidian","vanillaManaged":true,
+                 "scale":8.0,"aura":{"enabled":true,"palette":["minecraft:netherrack"]}}}
+                """);
+        List<String> warnings = PortalSafetyValidator.validate(List.of(config));
+        assertEquals(1, warnings.size(), warnings.toString());
+        assertTrue(warnings.get(0).contains("portal.aura"));
+        assertTrue(warnings.get(0).contains("nothing will ever leak"));
+    }
+
+    @Test
+    void immersiveOnAVanillaManagedPortalIsSilent() {
+        // The preview is drawn through a presentation zone, so it is honoured
+        // rather than dropped — nothing to warn about.
+        DimensionConfig config = parse("the_nether", """
+                {"portal":{"frameBlock":"minecraft:obsidian","vanillaManaged":true,
+                 "scale":8.0,"immersive":true}}
+                """);
+        assertTrue(PortalSafetyValidator.validate(List.of(config)).isEmpty());
+    }
 }

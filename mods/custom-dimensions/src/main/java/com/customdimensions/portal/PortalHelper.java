@@ -63,6 +63,11 @@ public class PortalHelper {
     // boot without forcing its source world to load. ServerWorldMixin claims
     // and validates the route on the world's first tick.
     private static final Map<RegistryKey<World>, List<PortalZone>> PENDING_ZONES = new HashMap<>();
+    // Presentation zones: geometry for a vanillaManaged portal, held so the
+    // immersive projector has a plane to draw through. Never persisted and
+    // never a source zone — ownership, traversal and the End suppressions all
+    // read PORTAL_ZONES, so vanilla keeps both ends of the portal.
+    private static final Map<RegistryKey<World>, List<PortalZone>> PRESENTATION_ZONES = new HashMap<>();
     private static final Map<String, Boolean> PLAYER_IN_ZONE = new HashMap<>();
     private static final Map<UUID, PlayerOrigin> PLAYER_ORIGINS = new HashMap<>();
     // Arrival-portal presence, keyed by entity UUID — see enteredArrivalPortal.
@@ -153,6 +158,7 @@ public class PortalHelper {
         LEGACY_PORTAL_TARGETS.clear();
         PORTAL_ZONES.clear();
         PENDING_ZONES.clear();
+        PRESENTATION_ZONES.clear();
         AURA_SITES.clear();
         // Deferred breaks are per-session: a boot re-reads the registry from
         // disk, and anything a break already deregistered is simply not in it.
@@ -655,6 +661,54 @@ public class PortalHelper {
 
     public static List<PortalZone> getSourceZones(RegistryKey<World> world) {
         return PORTAL_ZONES.getOrDefault(world, Collections.emptyList());
+    }
+
+    /**
+     * Registers presentation-only geometry for a portal vanilla owns; returns
+     * whether one was added. Same (target, axis, interior) identity as
+     * {@link #addZoneIfAbsent}. Nothing here reaches portal_links.json: a jar
+     * predating presentation zones reads no record for them and so cannot
+     * mistake one for a source zone and claim the traversal.
+     */
+    public static boolean registerPresentationZone(PortalZone zone) {
+        List<PortalZone> zones = PRESENTATION_ZONES.computeIfAbsent(zone.sourceWorld, k -> new ArrayList<>());
+        for (PortalZone existing : zones) {
+            if (existing.axis == zone.axis
+                    && existing.targetWorld.equals(zone.targetWorld)
+                    && existing.interior.equals(zone.interior)) {
+                return false;
+            }
+        }
+        zones.add(zone);
+        return true;
+    }
+
+    public static List<PortalZone> getPresentationZones(RegistryKey<World> world) {
+        return PRESENTATION_ZONES.getOrDefault(world, Collections.emptyList());
+    }
+
+    /** Drops the record and its projections. Never touches a block. */
+    public static void removePresentationZone(PortalZone zone) {
+        com.customdimensions.immersive.ImmersiveProjector.cleanupZone(zone);
+        List<PortalZone> zones = PRESENTATION_ZONES.get(zone.sourceWorld);
+        if (zones != null) {
+            zones.remove(zone);
+        }
+    }
+
+    /** Everything the projector may draw through: source plus presentation. */
+    public static List<PortalZone> getProjectionZones(RegistryKey<World> world) {
+        List<PortalZone> presentation = getPresentationZones(world);
+        if (presentation.isEmpty()) {
+            return getSourceZones(world);
+        }
+        List<PortalZone> all = new ArrayList<>(getSourceZones(world));
+        all.addAll(presentation);
+        return all;
+    }
+
+    public static void clearPresentationZones() {
+        PRESENTATION_ZONES.clear();
     }
 
     public static void restoreZones(ServerWorld world) {

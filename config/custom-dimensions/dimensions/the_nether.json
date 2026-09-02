@@ -10,6 +10,7 @@
   },
   "portal": {
     "vanillaManaged": true,
+    "immersive": true,
     "frameBlock": "minecraft:obsidian",
     "igniterItem": "minecraft:flint_and_steel",
     "color": "8000FF",

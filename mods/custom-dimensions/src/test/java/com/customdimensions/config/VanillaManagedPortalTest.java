@@ -23,10 +23,11 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * A "vanillaManaged" portal is documented in the dimension's list and touched
- * by nothing: no ignition candidate, no adoption, no claim on vanilla's
- * destination, no immersive projection, no scale. A sibling entry targeting
- * the same dimension is a normal mod portal.
+ * A "vanillaManaged" portal is documented in the dimension's list and claimed
+ * by nothing: no ignition candidate, no source zone, no claim on vanilla's
+ * destination. It still states its scale and its immersive settings — both
+ * describe the dimension and the view through the frame, not who travels. A
+ * sibling entry targeting the same dimension is a normal mod portal.
  */
 class VanillaManagedPortalTest {
 
@@ -78,17 +79,17 @@ class VanillaManagedPortalTest {
     }
 
     @Test
-    void aVanillaManagedPortalStatesItsScaleAndCarriesNoProjection() {
-        // scale is the DIMENSION's coordinate ratio, so it survives the flag —
-        // the Nether is 1:8 whoever performs the traversal. Only the
-        // projection, which needs a zone the mod never registers, is dropped.
+    void aVanillaManagedPortalStatesItsScaleAndItsProjection() {
+        // scale is the DIMENSION's coordinate ratio and immersive is a
+        // rendering effect in the frame — neither describes who performs the
+        // traversal, so both survive the flag.
         DimensionConfig config = new com.google.gson.Gson().fromJson(
                 RESERVED_AND_SIBLING, DimensionConfig.class);
         config.setName("the_nether");
         List<PortalDefinition> defs = config.toPortalDefinitions();
 
         assertEquals(8.0, defs.get(0).getScale());
-        assertNull(defs.get(0).getImmersive());
+        assertNotNull(defs.get(0).getImmersive());
         assertEquals(4.0, defs.get(1).getScale());
         assertNotNull(defs.get(1).getImmersive());
     }
@@ -208,6 +209,11 @@ class VanillaManagedPortalTest {
         assertTrue(config.getPortal("the_end").isVanillaManaged());
         assertFalse(config.getPortal("overworld").isVanillaManaged());
         assertNull(config.getDefaultPortalForFrameBlock("minecraft:obsidian"));
+        // Vanilla moves the Nether at 1:8 whatever the file says, and both
+        // classic routes ship a preview through the frame.
+        assertEquals(8.0, config.getPortal("the_nether").getScale());
+        assertNotNull(config.getPortal("the_nether").getImmersive());
+        assertNotNull(config.getPortal("the_end").getImmersive());
     }
 
     /** Same file, applied to the singleton PortalHelper reads through. */
