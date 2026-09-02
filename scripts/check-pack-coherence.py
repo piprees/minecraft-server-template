@@ -21,6 +21,7 @@ Usage:
   ssh deploy@HOST 'python3 - ~/server/modpack/dist/mods' < scripts/check-pack-coherence.py
 """
 import json
+import os
 import re
 import sys
 import zipfile
@@ -122,10 +123,35 @@ def main():
             for target, pred in (meta.get(kind) or {}).items():
                 constraints.append((jar.name, kind, target, pred))
 
+    # Honour the same overrides Fabric Loader honours, so the gate and the
+    # runtime cannot disagree. Format is the loader's own
+    # config/fabric_loader_dependencies.json: {"version":1,"overrides":{
+    # "<modid>": {"-breaks": {"<target>": "<range>"}}}}. Only removals are
+    # applied here; an added constraint is the author's problem, not a
+    # conflict we invented.
+    removed = set()
+    ov_path = Path(os.environ.get(
+        "LOADER_DEPENDENCY_OVERRIDES",
+        "modpack/overrides/config/fabric_loader_dependencies.json"))
+    if ov_path.is_file():
+        try:
+            ov = json.loads(ov_path.read_text(encoding="utf-8"))
+            for mod_id, spec in (ov.get("overrides") or {}).items():
+                for key, targets in (spec or {}).items():
+                    if not key.startswith("-"):
+                        continue
+                    for target in (targets or {}):
+                        removed.add((mod_id, key[1:], target))
+        except Exception as exc:
+            print(f"WARNING: could not read {ov_path}: {exc}")
+
     conflicts, skipped = [], 0
     for src, kind, target, pred in constraints:
         if target not in installed:
             continue  # not a pack mod - fabric loader's problem, not ours
+        src_id = next((i for i, (_, j) in installed.items() if j == src), None)
+        if (src_id, kind, target) in removed:
+            continue  # overridden for the loader, so not a conflict here either
         version = installed[target][0]
         result = satisfies(version, pred)
         if result is None:
