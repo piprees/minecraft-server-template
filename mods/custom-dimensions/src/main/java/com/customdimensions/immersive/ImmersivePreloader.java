@@ -26,6 +26,9 @@ import java.util.concurrent.ConcurrentHashMap;
  * parks the main thread on a future nothing is working on ([K1]/[K6]).
  */
 public final class ImmersivePreloader {
+    /** Grepped in the server log to prove a send followed a real pre-load. */
+    public static final String PRELOAD_MARKER = "immersive: proximity pre-load triggered";
+
     /** Chunk radius to pre-generate around the arrival column (2 = 5x5 = 25 chunks). */
     private static final int PRELOAD_RADIUS = 2;
 
@@ -56,8 +59,8 @@ public final class ImmersivePreloader {
         if (!keysForTarget.add(key)) {
             return;
         }
-        MultiverseServer.LOGGER.info("immersive: proximity pre-load triggered for zone in {} -> {}",
-                zone.sourceWorld.getValue(), targetKey.getValue());
+        MultiverseServer.LOGGER.info("{} for zone in {} -> {}",
+                PRELOAD_MARKER, zone.sourceWorld.getValue(), targetKey.getValue());
 
         int cx;
         int cz;

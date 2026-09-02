@@ -827,7 +827,7 @@ jobs:
           DIM=adventure:the_smoke_portal
           docker exec mc rcon-cli "execute in minecraft:overworld run forceload add $((X-4)) $((Z-4)) $((X+4)) $((Z+4))" >/dev/null
           sleep 3
-          # 2x3 cherry_planks frame in the XY plane; interior X..X+1, Y+1..Y+3
+          # 2x3 copper_block frame in the XY plane; interior X..X+1, Y+1..Y+3
           docker exec mc rcon-cli "execute in minecraft:overworld run fill $((X-2)) $Y $Z $((X+3)) $Y $Z minecraft:copper_block" >/dev/null
           docker exec mc rcon-cli "execute in minecraft:overworld run fill $((X-1)) $((Y+1)) $Z $((X-1)) $((Y+3)) $Z minecraft:copper_block" >/dev/null
           docker exec mc rcon-cli "execute in minecraft:overworld run fill $((X+2)) $((Y+1)) $Z $((X+2)) $((Y+3)) $Z minecraft:copper_block" >/dev/null
