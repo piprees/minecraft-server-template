@@ -55,30 +55,32 @@ public final class PortalAdoption {
         Direction.Axis axis = axisOf(world, portalBlocks);
         List<String> frameIds = frameBlockIds(world, portalBlocks, axis);
         MultiverseConfig config = MultiverseConfig.getInstance();
+        BlockPos probe = portalBlocks.iterator().next();
+
+        // A frame a vanillaManaged definition accepts belongs to vanilla, and
+        // it is asked FIRST: reserving the_nether otherwise just hands obsidian
+        // to the next definition that also builds from it.
+        PortalDefinition presented = firstThatFits(world, portalBlocks, axis,
+                presentationCandidates(config.getPortals(), frameIds));
+        if (presented != null) {
+            boolean added = PortalHelper.registerPresentationZone(new PortalHelper.PortalZone(
+                    portalBlocks, presented, axis, worldKey, presented.getTargetKey()));
+            if (added) {
+                System.err.println("[customdimensions] Presentation-only zone at "
+                        + probe.toShortString() + " in " + worldKey.getValue() + " as "
+                        + presented.getId() + " (" + portalBlocks.size()
+                        + " cells) - vanilla keeps the traversal");
+            }
+            return false;
+        }
+
         PortalDefinition adopted = firstThatFits(world, portalBlocks, axis,
                 candidates(config.getPortals(), frameIds));
         if (adopted == null) {
             adopted = firstThatFits(world, portalBlocks, axis, frameDefaults(config, frameIds));
         }
 
-        BlockPos probe = portalBlocks.iterator().next();
         if (adopted == null) {
-            // Nothing this mod would own, so a vanillaManaged definition gets
-            // the last look: it contributes geometry for the preview only and
-            // vanilla still picks the destination.
-            PortalDefinition presented = firstThatFits(world, portalBlocks, axis,
-                    presentationCandidates(config.getPortals(), frameIds));
-            if (presented != null) {
-                boolean added = PortalHelper.registerPresentationZone(new PortalHelper.PortalZone(
-                        portalBlocks, presented, axis, worldKey, presented.getTargetKey()));
-                if (added) {
-                    System.err.println("[customdimensions] Presentation-only zone at "
-                            + probe.toShortString() + " in " + worldKey.getValue() + " as "
-                            + presented.getId() + " (" + portalBlocks.size()
-                            + " cells) - vanilla keeps the traversal");
-                }
-                return false;
-            }
             // Inert, not delegated: vanilla answers "the Nether" for every
             // world it is asked about, and a frame no definition describes
             // has no destination this mod can name.
