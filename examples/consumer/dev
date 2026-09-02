@@ -37,7 +37,7 @@ usage() {
   echo "  launch   Start the Minecraft client against this local server"
   echo "  client-log  Snapshot the client's log ([--tail N] [--grep PATTERN])"
   echo "  logs-all    Server + client in one time-ordered view (UTC normalised)"
-  echo "  screenshot  Capture the running client window ([--out PATH] [--delay N] [--full])"
+  echo "  screenshot  Capture the running client window ([--out PATH] [--delay N] [--full] [--no-focus])"
   echo "  input       Drive the client: key/hold/type/chat/click/focus (./dev input for help)"
   echo "  reload   Rebuild the linked checkout's in-house mods and re-stage them"
   echo "  pack     Build the client modpack into ./modpack-dist/"
@@ -104,6 +104,59 @@ resolve_stack_pin() {
 # Echoes the .minecraft directory; empty and non-zero when there is no match.
 # The game JVM Prism starts. Both terms are required: the launcher process
 # carries the instance id too, and matching it alone finds the launcher.
+# A synthetic click with no preceding MOTION lands wherever the target last
+# thought the pointer was, so AppleScript's "click at" does nothing in a game.
+# CGWarpMouseCursorPosition plus a real event is the only thing that works.
+# Compiled on demand and cached; the source lives here so `dev` stays one file.
+ensure_mouse_helper() {
+  local cache="$CONSUMER_DIR/.dev-cache"
+  local bin="$cache/dev-mouse"
+  local src="$cache/dev-mouse.swift"
+  if [[ -x "$bin" && "$bin" -nt "$CONSUMER_DIR/dev" ]]; then
+    echo "$bin"
+    return 0
+  fi
+  if ! command -v swiftc >/dev/null 2>&1; then
+    echo "swiftc not found — install the Xcode command line tools (xcode-select --install)." >&2
+    return 1
+  fi
+  mkdir -p "$cache"
+  cat > "$src" <<'SWIFTEOF'
+import CoreGraphics
+import Foundation
+
+let a = CommandLine.arguments
+guard a.count >= 4, let x = Double(a[2]), let y = Double(a[3]) else { exit(2) }
+let p = CGPoint(x: x, y: y)
+
+func post(_ t: CGEventType, _ clicks: Int64) {
+    guard let e = CGEvent(mouseEventSource: nil, mouseType: t,
+                          mouseCursorPosition: p, mouseButton: .left) else { return }
+    e.setIntegerValueField(.mouseEventClickState, value: clicks)
+    e.post(tap: .cghidEventTap)
+}
+
+CGWarpMouseCursorPosition(p)
+post(.mouseMoved, 0)
+usleep(150_000)
+
+switch a[1] {
+case "move": break
+case "click":
+    post(.leftMouseDown, 1); usleep(50_000); post(.leftMouseUp, 1)
+case "dblclick":
+    post(.leftMouseDown, 1); usleep(40_000); post(.leftMouseUp, 1); usleep(80_000)
+    post(.leftMouseDown, 2); usleep(40_000); post(.leftMouseUp, 2)
+default: exit(2)
+}
+SWIFTEOF
+  if ! swiftc -O -o "$bin" "$src" 2>/dev/null; then
+    echo "Could not compile the mouse helper." >&2
+    return 1
+  fi
+  echo "$bin"
+}
+
 prism_client_pid() {
   local want="$1" candidate
   pgrep -f 'org.prismlauncher.EntryPoint' 2>/dev/null | while read -r candidate; do
@@ -959,12 +1012,14 @@ MERGE
     SHOT_OUT=""
     SHOT_DELAY=0
     SHOT_FULL=0
+    SHOT_FOCUS=1
     while [[ $# -gt 0 ]]; do
       case "$1" in
         --out) SHOT_OUT="$2"; shift 2 ;;
         --delay) SHOT_DELAY="$2"; shift 2 ;;
         --full) SHOT_FULL=1; shift ;;
-        *) echo "Usage: ./dev screenshot [--out PATH] [--delay SECONDS] [--full]" >&2; exit 1 ;;
+        --no-focus) SHOT_FOCUS=0; shift ;;
+        *) echo "Usage: ./dev screenshot [--out PATH] [--delay SECONDS] [--full] [--no-focus]" >&2; exit 1 ;;
       esac
     done
     if [[ "$(uname -s)" != "Darwin" ]]; then
@@ -980,6 +1035,14 @@ MERGE
       echo "No running client for '${INST_ID:-${BRAND_SLUG:-this pack}}'." >&2
       echo "Start one with ./dev launch, or use --full to capture the display." >&2
       exit 1
+    fi
+    # screencapture -R takes a screen REGION, so anything stacked over the
+    # game is what lands in the file. Raising it first is the difference
+    # between a picture of the world and a picture of the terminal asking
+    # for one.
+    if [[ $SHOT_FOCUS -eq 1 && -n "$SHOT_PID" ]]; then
+      osascript -e "tell application \"System Events\" to set frontmost of (first process whose unix id is $SHOT_PID) to true" >/dev/null 2>&1
+      /bin/sleep 0.4
     fi
     if [[ "$SHOT_DELAY" != "0" ]]; then
       sleep "$SHOT_DELAY"
@@ -1055,7 +1118,8 @@ MERGE
       echo "  hold <char> <secs>    Hold one key, e.g. 'hold w 3' to walk forward"
       echo "  type <text>           Type a string into whatever is open"
       echo "  chat <text>           Open chat, type, send — runs AS the player, not console"
-      echo "  click [<x> <y>]       Click, at screen coords or where the pointer is"
+      echo "  move|click|dblclick <x> <y>   Move the pointer, click, or double-click"
+      echo "                        Screen coords. Games need the double-click to open a list entry."
       echo ""
       echo "Aim with RCON instead: tp <player> <x> <y> <z> <yaw> <pitch>"
       exit 1
@@ -1141,14 +1205,11 @@ MERGE
         osascript -e 'tell application "System Events" to key code 36'
         echo "Sent as the player: $IN_TEXT"
         ;;
-      click)
-        if [[ $# -ge 2 ]]; then
-          osascript -e "tell application \"System Events\" to click at {$1, $2}" >/dev/null
-          echo "Clicked at $1,$2."
-        else
-          osascript -e 'tell application "System Events" to click' >/dev/null
-          echo "Clicked at the pointer."
-        fi
+      click|dblclick|move)
+        [[ $# -ge 2 ]] || { echo "Usage: ./dev input $IN_ACTION <x> <y>" >&2; exit 1; }
+        IN_MOUSE="$(ensure_mouse_helper)" || exit 1
+        "$IN_MOUSE" "$IN_ACTION" "$1" "$2"
+        echo "${IN_ACTION} at $1,$2."
         ;;
       *)
         echo "Unknown action '$IN_ACTION'. Run ./dev input for the list." >&2
