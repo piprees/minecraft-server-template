@@ -32,6 +32,8 @@ usage() {
   echo "  logs     Tail the Minecraft server logs"
   echo "  rcon     Run an RCON command (e.g. ./dev rcon \"list\")"
   echo "  seeds    Open the seed viewer — roll, look, try a candidate out, pick one"
+  echo "  run      Local dev runner: rebuild, install, restart, launch, tail"
+  echo "           (--no-tail to return instead of following the client log)"
   echo "  launch   Start the Minecraft client against this local server"
   echo "  client-log  Snapshot the client's log ([--tail N] [--grep PATTERN])"
   echo "  reload   Rebuild the linked checkout's in-house mods and re-stage them"
@@ -656,6 +658,73 @@ case "$CMD" in
     ensure_stack
     export CONSUMER_DIR
     exec bash "$CONSUMER_DIR/$STACK_SCRIPTS/cache-assets.sh" "$@"
+    ;;
+  run)
+    # The local development runner: rebuild, install, restart, launch, watch.
+    # Everything ./dev reload + up + launch does, in the order that leaves a
+    # client running against the code you just wrote.
+    #
+    # --no-tail returns instead of following the client log, which is what an
+    # automated caller wants — a follow never returns on its own.
+    ensure_env
+    ensure_docker
+    NO_TAIL=0
+    for a in "$@"; do
+      [[ "$a" == "--no-tail" ]] && NO_TAIL=1
+    done
+
+    echo "==> 1/4 rebuild and stage"
+    bash "$CONSUMER_DIR/dev" reload || exit 1
+
+    echo ""
+    echo "==> 2/4 install the server jar and start the stack"
+    bash "$CONSUMER_DIR/dev" up || exit 1
+
+    echo ""
+    echo "==> 3/4 wait for the server to answer"
+    # Bounded: a crashing container never becomes healthy, so this must not
+    # be a wait-forever loop.
+    READY=0
+    for _ in $(seq 1 60); do
+      if docker exec -i "${CONTAINER_PREFIX:-}mc" rcon-cli "list" > /dev/null 2>&1; then
+        READY=1
+        break
+      fi
+      sleep 5
+    done
+    if [[ $READY -eq 0 ]]; then
+      echo "Server did not answer RCON within 5 minutes." >&2
+      echo "Check: ./dev logs" >&2
+      exit 1
+    fi
+    echo "  server is answering"
+
+    echo ""
+    echo "==> 4/4 launch the client"
+    bash "$CONSUMER_DIR/dev" launch || exit 1
+
+    if [[ $NO_TAIL -eq 1 ]]; then
+      echo ""
+      echo "Not tailing (--no-tail). Client log: ./dev client-log"
+      exit 0
+    fi
+
+    echo ""
+    echo "Following the client log — Ctrl-C to stop (the game keeps running)."
+    echo "------------------------------------------------------------------"
+    INST_DIR="$(resolve_client_instance || true)"
+    CLIENT_LOG="${INST_DIR:-}/logs/latest.log"
+    # The client rewrites latest.log on launch, so wait for this run's file
+    # rather than following the previous session's.
+    for _ in $(seq 1 30); do
+      [[ -f "$CLIENT_LOG" ]] && break
+      sleep 2
+    done
+    if [[ ! -f "$CLIENT_LOG" ]]; then
+      echo "No client log appeared. Try: ./dev client-log" >&2
+      exit 1
+    fi
+    exec tail -f "$CLIENT_LOG"
     ;;
   launch)
     # Start the client against the LOCAL server. Prism's own CLI does the
