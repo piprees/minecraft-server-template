@@ -741,6 +741,17 @@ public class PortalHelper {
         return zone.interior.contains(pos);
     }
 
+    /**
+     * Whether a zone's own chunk is resident. Validating a cold zone would
+     * sync-load it from a tick, and a portal nobody is near cannot have been
+     * broken since the last time anybody was.
+     */
+    public static boolean isZoneChunkLoaded(ServerWorld world, PortalZone zone) {
+        BlockPos any = zone.interior.isEmpty() ? null : zone.interior.iterator().next();
+        return any != null
+                && world.getChunkManager().isChunkLoaded(any.getX() >> 4, any.getZ() >> 4);
+    }
+
     public static boolean isZoneValid(ServerWorld world, PortalZone zone) {
         // Frameless gateway zones: valid while the gateway block exists
         // (there is no frame to check and the matcher may be empty).

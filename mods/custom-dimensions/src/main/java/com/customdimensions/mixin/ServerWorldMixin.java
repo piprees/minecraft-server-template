@@ -45,6 +45,9 @@ public class ServerWorldMixin {
         List<PortalHelper.PortalZone> presentationZones = new ArrayList<>();
         for (PortalHelper.PortalZone zone
                 : new ArrayList<>(PortalHelper.getPresentationZones(worldKey))) {
+            if (!PortalHelper.isZoneChunkLoaded(world, zone)) {
+                continue;
+            }
             if (PortalHelper.isZoneValid(world, zone)) {
                 presentationZones.add(zone);
             } else {
@@ -57,6 +60,12 @@ public class ServerWorldMixin {
             List<PortalHelper.PortalZone> snapshot = new ArrayList<>(sourceZones);
             List<PortalHelper.PortalZone> zones = new ArrayList<>();
             for (PortalHelper.PortalZone zone : snapshot) {
+                // A cold zone is skipped whole: validating it would sync-load
+                // its chunk every tick, and its single-use countdown holds
+                // rather than draining while nobody is there to use it.
+                if (!PortalHelper.isZoneChunkLoaded(world, zone)) {
+                    continue;
+                }
                 if (!PortalHelper.isZoneValid(world, zone)) {
                     // A portal is one thing with two ends. Breaking only this
                     // frame would leave the arrival standing in the
