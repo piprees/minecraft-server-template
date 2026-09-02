@@ -27,4 +27,10 @@ class LogMarkerContractTest {
     void preloadMarker() {
         assertEquals("immersive: proximity pre-load triggered", ImmersivePreloader.PRELOAD_MARKER);
     }
+
+    /** The runbook's positive control: without it, silence is undiagnosable. */
+    @Test
+    void acceptMarker() {
+        assertEquals("companion-accept:handshake", CompanionNetwork.ACCEPT_MARKER);
+    }
 }

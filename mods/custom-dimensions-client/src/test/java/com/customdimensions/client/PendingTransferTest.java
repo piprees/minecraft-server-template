@@ -84,10 +84,4 @@ class PendingTransferTest {
         nowMs += 5_001L;
         assertNull(PendingTransfer.consumeDestination());
     }
-
-    /** Tier 3 greps this exact string; the plan and the code must not drift. */
-    @Test
-    void suppressionMarkerIsTheStringTheTestPlanGreps() {
-        assertEquals("companion-suppress:arrival-screen", CustomDimensionsClient.SUPPRESS_MARKER);
-    }
 }

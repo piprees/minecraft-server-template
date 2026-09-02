@@ -34,19 +34,19 @@ class CompanionRegistryTest {
 
     @Test
     void matchingVersionMakesAPlayerCapable() {
-        CompanionNetwork.onHello(PLAYER, CompanionPayloads.PROTOCOL_VERSION);
+        CompanionNetwork.onHello(PLAYER, "Tester",CompanionPayloads.PROTOCOL_VERSION);
         assertTrue(CompanionNetwork.isCompanion(PLAYER));
     }
 
     @Test
     void unknownVersionDegradesToVanilla() {
-        CompanionNetwork.onHello(PLAYER, 999);
+        CompanionNetwork.onHello(PLAYER, "Tester",999);
         assertFalse(CompanionNetwork.isCompanion(PLAYER), "version skew produced a hybrid");
     }
 
     @Test
     void disconnectLeavesNoEntryToLeakIntoTheNextSession() {
-        CompanionNetwork.onHello(PLAYER, CompanionPayloads.PROTOCOL_VERSION);
+        CompanionNetwork.onHello(PLAYER, "Tester",CompanionPayloads.PROTOCOL_VERSION);
         CompanionNetwork.forget(PLAYER);
         assertFalse(CompanionNetwork.isCompanion(PLAYER));
     }

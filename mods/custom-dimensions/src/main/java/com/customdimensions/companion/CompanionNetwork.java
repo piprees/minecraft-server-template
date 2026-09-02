@@ -25,6 +25,9 @@ public final class CompanionNetwork {
     /** Grepped in the server log to prove a vanilla client is sent nothing. */
     public static final String SEND_MARKER = "companion-send:preloaded-transfer";
 
+    /** Grepped in the server log: the positive control that a client handshook. */
+    public static final String ACCEPT_MARKER = "companion-accept:handshake";
+
     private static final Set<UUID> COMPANIONS = ConcurrentHashMap.newKeySet();
 
     private CompanionNetwork() {}
@@ -36,15 +39,18 @@ public final class CompanionNetwork {
                 CompanionPayloads.PreloadedTransfer.ID, CompanionPayloads.PreloadedTransfer.CODEC);
 
         ServerPlayNetworking.registerGlobalReceiver(CompanionPayloads.Hello.ID,
-                (payload, context) -> onHello(context.player().getUuid(), payload.protocolVersion()));
+                (payload, context) -> onHello(context.player().getUuid(),
+                        context.player().getNameForScoreboard(), payload.protocolVersion()));
     }
 
     /** Version skew degrades to vanilla, never to a hybrid. */
-    static void onHello(UUID playerId, int protocolVersion) {
+    static void onHello(UUID playerId, String playerName, int protocolVersion) {
         if (protocolVersion != CompanionPayloads.PROTOCOL_VERSION) {
             return;
         }
         COMPANIONS.add(playerId);
+        MultiverseServer.LOGGER.info("{} player={} protocol={}",
+                ACCEPT_MARKER, playerName, protocolVersion);
     }
 
     public static void forget(UUID playerId) {
