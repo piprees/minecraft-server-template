@@ -297,11 +297,12 @@ public final class PlayerProjectionState {
             // usual reason is a side flip (the player walked round the
             // frame); a depth change now only happens if config is re-read
             // under a live projection.
-            // Carry the old slab's faked positions over rather than
-            // restoring them all now — see staleOutsideVolume. They are
-            // drained under the budget on this and following passes.
-            this.staleOutsideVolume.putAll(this.lastSent);
-            this.lastSent.clear();
+            // The slab's faked positions carry over rather than restoring now
+            // — see staleOutsideVolume. The aperture is excluded: it is an
+            // overlay for the projection's whole life, not part of the slab.
+            for (BlockPos carried : slabCarryOver(this.lastSent.keySet(), this.zone.interior)) {
+                this.staleOutsideVolume.put(carried, this.lastSent.remove(carried));
+            }
             this.normal = wanted;
             this.builtDepth = depth;
             this.volume = ProjectionVolume.computeSourcePositions(this.zone.interior, this.zone.axis,
@@ -476,14 +477,13 @@ public final class PlayerProjectionState {
         //
         // Colour is not available: vanilla block light is white, and tinting
         // it needs a shader.
+        // Re-sent every pass, never diffed against lastSent: any block update
+        // the server broadcasts at an aperture cell repaints the client's copy
+        // with the real portal block, and lastSent cannot see that happen.
         BlockState apertureState = apertureState();
         if (apertureState != null) {
             for (BlockPos pos : this.zone.interior) {
                 lights++;
-                BlockState previous = this.lastSent.get(pos);
-                if (previous == apertureState) {
-                    continue;
-                }
                 handler.sendPacket(new BlockUpdateS2CPacket(pos, apertureState));
                 this.lastSent.put(pos, apertureState);
             }
@@ -600,6 +600,17 @@ public final class PlayerProjectionState {
             interval *= STATIONARY_MULTIPLIER;
         }
         return tick - lastRefreshTick >= interval;
+    }
+
+    /**
+     * Which faked positions a slab rebuild hands to the restore path: the
+     * slab's own, never the aperture's. A restored aperture cell repaints an
+     * arrival's real portal block over the overlay that exists to hide it.
+     */
+    static Set<BlockPos> slabCarryOver(Set<BlockPos> faked, Set<BlockPos> aperture) {
+        Set<BlockPos> carried = new HashSet<>(faked);
+        carried.removeAll(aperture);
+        return carried;
     }
 
     /**

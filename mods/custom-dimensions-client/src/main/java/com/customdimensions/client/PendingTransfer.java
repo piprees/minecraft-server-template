@@ -5,12 +5,11 @@ import net.minecraft.util.Identifier;
 import java.util.function.LongSupplier;
 
 /**
- * The one-shot signal the loading-screen mixin reads.
+ * The signal both loading-screen mixins read.
  *
- * Suppression is only honest while the server has actually preloaded, so the
- * flag is consumed by the first world join that follows and expires on its own
- * if that join never arrives. A stale flag would show a player empty void while
- * chunks stream, which is worse than the screen it replaces.
+ * One crossing installs a terrain screen twice — joinWorld's reset(Screen) and
+ * startWorldLoading's setScreen(Screen) — so reads do not consume. The arm ends
+ * when ArrivalScreen ticks, or on its own after VALID_FOR_MS.
  */
 public final class PendingTransfer {
     /** Generous next to a traversal, short next to a player wandering off. */
@@ -29,19 +28,22 @@ public final class PendingTransfer {
         armedAtMs = clock.getAsLong();
     }
 
-    /** The armed destination at most once per arm, and never after VALID_FOR_MS. */
-    public static Identifier consumeDestination() {
+    /** The armed destination while the window holds, disarming once it lapses. */
+    public static Identifier peekDestination() {
         Identifier armed = destination;
         if (armed == null) {
             return null;
         }
-        destination = null;
-        return clock.getAsLong() - armedAtMs <= VALID_FOR_MS ? armed : null;
+        if (clock.getAsLong() - armedAtMs > VALID_FOR_MS) {
+            destination = null;
+            return null;
+        }
+        return armed;
     }
 
-    /** True at most once per arm, and never after VALID_FOR_MS. */
-    public static boolean consume() {
-        return consumeDestination() != null;
+    /** True while a preloaded arrival is still expected. */
+    public static boolean isArmed() {
+        return peekDestination() != null;
     }
 
     public static void clear() {

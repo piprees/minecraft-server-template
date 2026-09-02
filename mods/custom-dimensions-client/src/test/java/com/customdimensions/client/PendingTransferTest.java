@@ -13,7 +13,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 /**
  * T1.2. The flag decides whether a player sees the loading screen or empty
  * void, so every way it can stay armed when it should not is a case here:
- * never armed, consumed twice, expired, cleared.
+ * never armed, expired, cleared — and every way it can go dark too early,
+ * which is what leaves the second screen of a crossing on display.
  */
 class PendingTransferTest {
     private static final Identifier DESTINATION = Identifier.of("adventure", "the_violet_spire");
@@ -35,53 +36,67 @@ class PendingTransferTest {
 
     @Test
     void neverArmedDoesNotSuppress() {
-        assertFalse(PendingTransfer.consume());
+        assertFalse(PendingTransfer.isArmed());
     }
 
     @Test
-    void armedSuppressesOnce() {
+    void armedSuppresses() {
         PendingTransfer.arm(DESTINATION);
-        assertTrue(PendingTransfer.consume());
+        assertTrue(PendingTransfer.isArmed());
+    }
+
+    /**
+     * onPlayerRespawn installs a terrain screen twice: joinWorld's reset(Screen)
+     * and startWorldLoading's setScreen(Screen). Both must be suppressed.
+     */
+    @Test
+    void oneCrossingSuppressesBothScreenSites() {
+        PendingTransfer.arm(DESTINATION);
+        assertEquals(DESTINATION, PendingTransfer.peekDestination(),
+                "joinWorld -> reset(Screen) was not suppressed");
+        assertEquals(DESTINATION, PendingTransfer.peekDestination(),
+                "startWorldLoading -> setScreen(Screen) was not suppressed");
     }
 
     @Test
-    void armIsOneShot() {
+    void arrivalEndsTheCrossing() {
         PendingTransfer.arm(DESTINATION);
-        assertTrue(PendingTransfer.consume());
-        assertFalse(PendingTransfer.consume(), "a second join reused the same arm");
+        PendingTransfer.peekDestination();
+        PendingTransfer.clear();
+        assertNull(PendingTransfer.peekDestination(), "a later join reused the same arm");
     }
 
     @Test
     void expiresAfterFiveSeconds() {
         PendingTransfer.arm(DESTINATION);
         nowMs += 5_001L;
-        assertFalse(PendingTransfer.consume());
+        assertFalse(PendingTransfer.isArmed());
     }
 
     @Test
     void survivesToTheEdgeOfTheWindow() {
         PendingTransfer.arm(DESTINATION);
         nowMs += 5_000L;
-        assertTrue(PendingTransfer.consume());
+        assertTrue(PendingTransfer.isArmed());
     }
 
     @Test
     void clearDisarms() {
         PendingTransfer.arm(DESTINATION);
         PendingTransfer.clear();
-        assertFalse(PendingTransfer.consume());
+        assertFalse(PendingTransfer.isArmed());
     }
 
     @Test
-    void consumeReportsTheDestinationForTheLogMarker() {
+    void peekReportsTheDestinationForTheLogMarker() {
         PendingTransfer.arm(DESTINATION);
-        assertEquals(DESTINATION, PendingTransfer.consumeDestination());
+        assertEquals(DESTINATION, PendingTransfer.peekDestination());
     }
 
     @Test
-    void expiredConsumeReportsNoDestination() {
+    void expiredPeekReportsNoDestination() {
         PendingTransfer.arm(DESTINATION);
         nowMs += 5_001L;
-        assertNull(PendingTransfer.consumeDestination());
+        assertNull(PendingTransfer.peekDestination());
     }
 }

@@ -100,6 +100,12 @@ public abstract class EntityTickPortalMixin {
         }
 
         PortalHelper.PortalReturnTarget target = PortalHelper.getPortalTarget(serverLevel.getRegistryKey(), portalBlocks.iterator().next());
+        if (target == null) {
+            // A portal with no owner is matched to a definition and registered
+            // as a source zone; ServerWorldMixin's zone loop takes the
+            // traversal from the next tick. One attempt per area per boot.
+            com.customdimensions.portal.PortalAdoption.adopt(serverLevel, portalBlocks);
+        }
         String exitMode = target != null ? target.exitMode : null;
 
         // Configured exit modes ("bed"/"worldSpawn" — anchor arrivals and
