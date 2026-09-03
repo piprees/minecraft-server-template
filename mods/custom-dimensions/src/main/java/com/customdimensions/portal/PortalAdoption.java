@@ -151,6 +151,41 @@ public final class PortalAdoption {
         return matches;
     }
 
+    /**
+     * The portals near enough to a player to be worth offering, in the order
+     * they were found. Pure: the world read that produces {@code known} and
+     * the adoption that consumes the answer both live in the caller.
+     *
+     * <p>{@code isWithinDistance} is the projector's own activation test, so a
+     * portal this refuses is one the preview would not draw anyway.
+     */
+    public static List<BlockPos> dueForPresentation(List<BlockPos> known, BlockPos playerPos,
+            int range, Set<BlockPos> alreadyCovered) {
+        List<BlockPos> due = new ArrayList<>();
+        for (BlockPos pos : known) {
+            if (!alreadyCovered.contains(pos) && pos.isWithinDistance(playerPos, range)) {
+                due.add(pos);
+            }
+        }
+        return due;
+    }
+
+    /**
+     * How far off a portal an approach pass has to look. Approach has no zone
+     * to read a range from — that is the gap it closes — so the widest range
+     * any definition that could produce a presentation zone asks for stands in.
+     * Zero means no definition can, and the pass has nothing to do.
+     */
+    public static int presentationRange(List<PortalDefinition> portals) {
+        int range = 0;
+        for (PortalDefinition def : portals) {
+            if (def.isVanillaManaged() && def.getImmersive() != null) {
+                range = Math.max(range, def.getImmersive().activationRange());
+            }
+        }
+        return range;
+    }
+
     private static List<PortalDefinition> frameDefaults(
             MultiverseConfig config, Collection<String> frameIds) {
         List<PortalDefinition> defaults = new ArrayList<>();

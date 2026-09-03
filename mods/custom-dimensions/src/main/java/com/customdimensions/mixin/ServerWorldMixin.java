@@ -6,6 +6,8 @@ import com.customdimensions.config.MultiverseConfig;
 import com.customdimensions.config.PortalDefinition;
 import com.customdimensions.dimension.DimensionManager;
 import com.customdimensions.immersive.ImmersivePreloader;
+import com.customdimensions.immersive.VanillaLinkResolver;
+import com.customdimensions.portal.PortalAdoption;
 import com.customdimensions.portal.PortalHelper;
 import com.customdimensions.portal.PortalShape;
 import net.minecraft.registry.Registries;
@@ -31,11 +33,21 @@ import java.util.function.BooleanSupplier;
 
 @Mixin(ServerWorld.class)
 public class ServerWorldMixin {
+
+    /** Approach re-scan cadence, matching VanillaLinkResolver's own retry interval. */
+    private static final int APPROACH_SCAN_INTERVAL = 40;
+
     @Inject(method = "tick", at = @At("HEAD"))
     private void onTick(BooleanSupplier hasTimeLeft, CallbackInfo ci) {
         ServerWorld world = (ServerWorld) (Object) this;
         RegistryKey<World> worldKey = world.getRegistryKey();
         PortalHelper.restoreZones(world);
+
+        // Presentation zones for portals vanilla owns, before the lists below
+        // are taken, so one registered this tick is drawn this tick. Outside
+        // the zone block on purpose: a world with no zones at all is exactly
+        // the state this pass exists to leave.
+        adoptPortalsOnApproach(world, worldKey);
 
         List<PortalHelper.PortalZone> sourceZones = PortalHelper.getSourceZones(worldKey);
         // Presentation zones carry a vanillaManaged portal's geometry so the
@@ -395,6 +407,57 @@ public class ServerWorldMixin {
         // MultiverseServer) — never from here: this injection runs inside
         // MinecraftServer.tickWorlds' iteration of the worlds map, and
         // removing worlds mid-iteration is a ConcurrentModificationException.
+    }
+
+    /**
+     * A vanilla portal is adopted on CONTACT everywhere else — the player is
+     * already standing in it, and vanilla teleports them a tick or two later,
+     * so the preview through the frame was never drawn. This offers one on
+     * APPROACH instead, off the nether-portal point-of-interest index vanilla
+     * keeps anyway.
+     *
+     * <p>Resident chunks only, through the index's own residency rule; nothing
+     * here can wait for generation. End portals are not points of interest and
+     * get nothing from this — {@code VanillaLinkResolver.endPlatform} already
+     * answers the End's arrival without an index.
+     */
+    private static void adoptPortalsOnApproach(ServerWorld world, RegistryKey<World> worldKey) {
+        if (world.getServer().getTicks() % APPROACH_SCAN_INTERVAL != 0) {
+            return;
+        }
+        MultiverseConfig config = MultiverseConfig.getInstance();
+        if (!config.hasVanillaManagedPortals()) {
+            return;
+        }
+        int range = PortalAdoption.presentationRange(config.getPortals());
+        if (range <= 0 || world.getPlayers().isEmpty()) {
+            return;
+        }
+
+        int chunkRadius = VanillaLinkResolver.chunkRadiusFor(range);
+        Set<BlockPos> covered = new HashSet<>();
+        for (PortalHelper.PortalZone zone : PortalHelper.getProjectionZones(worldKey)) {
+            covered.addAll(zone.interior);
+        }
+        for (ServerPlayerEntity player : world.getPlayers()) {
+            BlockPos playerPos = player.getBlockPos();
+            List<BlockPos> known =
+                    VanillaLinkResolver.netherPortalsNear(world, playerPos, chunkRadius);
+            for (BlockPos hit : PortalAdoption.dueForPresentation(
+                    known, playerPos, range, covered)) {
+                // One portal is one point of interest per BLOCK, and covered
+                // grows as areas are collected, so each portal is walked once.
+                if (covered.contains(hit)) {
+                    continue;
+                }
+                Set<BlockPos> area = PortalHelper.collectPortalArea(world, hit);
+                if (area.isEmpty()) {
+                    continue;
+                }
+                covered.addAll(area);
+                PortalAdoption.adopt(world, area);
+            }
+        }
     }
 
     // Anchor arrival: skip scaled-coordinate mapping entirely, surface-resolve

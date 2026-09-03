@@ -9,6 +9,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * The decision behind "no point showing a preview of somewhere we are not".
@@ -111,6 +112,37 @@ class VanillaLinkResolverTest {
     void measuresNegativeChunksFromTheirFarEdge() {
         // Chunk -1 spans x -16..-1; a column at x=0 is 1 block from its edge.
         assertEquals(1.0, VanillaLinkResolver.nearestSquaredHorizontal(-1, 0, 0, 0));
+    }
+
+    /**
+     * The chunk square must COVER the block radius from anywhere inside the
+     * centre chunk, or a portal inside activation range is simply never seen
+     * and the preview silently does not appear. Worst case is a column at a
+     * chunk edge, so the square has to reach {@code (15 + radius) / 16} chunks.
+     */
+    @Test
+    void theChunkSquareCoversTheBlockRadiusFromAnyColumnInTheCentreChunk() {
+        for (int radius : new int[] {1, 15, 16, 17, 24, 31, 32, 63, 64, 128}) {
+            int worstCase = (15 + radius) / 16;
+            assertTrue(VanillaLinkResolver.chunkRadiusFor(radius) >= worstCase,
+                    "radius " + radius + " needs at least " + worstCase + " chunks either way");
+        }
+    }
+
+    @Test
+    void theChunkSquareIsNotWiderThanItNeedsToBe() {
+        // One chunk of slack over the worst case is the cost of vanilla's own
+        // rounding; two would quadruple the scan for nothing.
+        for (int radius : new int[] {1, 15, 16, 17, 24, 31, 32, 63, 64, 128}) {
+            assertTrue(VanillaLinkResolver.chunkRadiusFor(radius) <= (15 + radius) / 16 + 1,
+                    "radius " + radius + " scans more chunks than it can reach");
+        }
+    }
+
+    @Test
+    void everyRadiusScansAtLeastItsOwnChunk() {
+        assertEquals(1, VanillaLinkResolver.chunkRadiusFor(0));
+        assertEquals(1, VanillaLinkResolver.chunkRadiusFor(1));
     }
 
     /** The ordering is total, so the same candidates always resolve the same way. */

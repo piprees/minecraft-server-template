@@ -54,7 +54,7 @@ public final class VanillaLinkResolver {
     private static final int SEARCH_RADIUS = 128;
 
     /** Chunk radius covering {@link #SEARCH_RADIUS}, matching vanilla's own rounding. */
-    private static final int SEARCH_CHUNK_RADIUS = (SEARCH_RADIUS >> 4) + 1;
+    private static final int SEARCH_CHUNK_RADIUS = chunkRadiusFor(SEARCH_RADIUS);
 
     /** Ticks before a zone with no link re-scans. A scan is bounded but not free. */
     private static final int RETRY_INTERVAL = 40;
@@ -232,32 +232,66 @@ public final class VanillaLinkResolver {
      * nearest first with the lowest Y breaking ties — over resident chunks only.
      */
     private static BlockPos search(ServerWorld targetWorld, BlockPos searchPos) {
-        PointOfInterestStorage poi = targetWorld.getPointOfInterestStorage();
-        WorldBorder border = targetWorld.getWorldBorder();
-        int centreChunkX = searchPos.getX() >> 4;
-        int centreChunkZ = searchPos.getZ() >> 4;
+        Square square = scan(targetWorld, searchPos, SEARCH_CHUNK_RADIUS);
+        return chooseNearest(square.found, searchPos, square.unknownNearestSq);
+    }
 
-        List<BlockPos> candidates = new ArrayList<>();
+    /**
+     * Every {@code minecraft:nether_portal} point of interest around a column,
+     * in scan order and unranked — one portal contributes one position per
+     * block, so a caller that wants portals rather than cells collects each
+     * hit's area and skips the rest.
+     *
+     * <p>The same query, the same filters and the same residency rule as
+     * {@link #search}. A second copy would drift, and the approach pass and the
+     * link search would disagree about which portals exist.
+     */
+    public static List<BlockPos> netherPortalsNear(ServerWorld world, BlockPos centre,
+            int chunkRadius) {
+        return scan(world, centre, chunkRadius).found;
+    }
+
+    /**
+     * The chunk square covering a block radius from ANY column in the centre
+     * chunk. Vanilla's own rounding, and it over-covers rather than under: a
+     * square one chunk short makes a portal inside activation range invisible,
+     * which shows up as a preview that silently never appears.
+     */
+    public static int chunkRadiusFor(int blockRadius) {
+        return (Math.max(0, blockRadius) >> 4) + 1;
+    }
+
+    private static Square scan(ServerWorld world, BlockPos centre, int chunkRadius) {
+        PointOfInterestStorage poi = world.getPointOfInterestStorage();
+        WorldBorder border = world.getWorldBorder();
+        int centreChunkX = centre.getX() >> 4;
+        int centreChunkZ = centre.getZ() >> 4;
+
+        List<BlockPos> found = new ArrayList<>();
         double unknownNearestSq = Double.MAX_VALUE;
 
-        for (int dx = -SEARCH_CHUNK_RADIUS; dx <= SEARCH_CHUNK_RADIUS; dx++) {
-            for (int dz = -SEARCH_CHUNK_RADIUS; dz <= SEARCH_CHUNK_RADIUS; dz++) {
+        for (int dx = -chunkRadius; dx <= chunkRadius; dx++) {
+            for (int dz = -chunkRadius; dz <= chunkRadius; dz++) {
                 int chunkX = centreChunkX + dx;
                 int chunkZ = centreChunkZ + dz;
-                if (PortalHelper.residentChunk(targetWorld, chunkX, chunkZ) == null) {
+                if (PortalHelper.residentChunk(world, chunkX, chunkZ) == null) {
                     unknownNearestSq = Math.min(unknownNearestSq,
-                            nearestSquaredHorizontal(chunkX, chunkZ, searchPos.getX(), searchPos.getZ()));
+                            nearestSquaredHorizontal(chunkX, chunkZ, centre.getX(), centre.getZ()));
                     continue;
                 }
                 poi.getInChunk(entry -> entry.matchesKey(PointOfInterestTypes.NETHER_PORTAL),
                                 new ChunkPos(chunkX, chunkZ), PointOfInterestStorage.OccupationStatus.ANY)
                         .map(PointOfInterest::getPos)
                         .filter(border::contains)
-                        .filter(pos -> targetWorld.getBlockState(pos).contains(Properties.HORIZONTAL_AXIS))
-                        .forEach(candidates::add);
+                        .filter(pos -> world.getBlockState(pos).contains(Properties.HORIZONTAL_AXIS))
+                        .forEach(found::add);
             }
         }
-        return chooseNearest(candidates, searchPos, unknownNearestSq);
+        return new Square(found, unknownNearestSq);
+    }
+
+    /** One pass of the square: what it read, and how near the nearest unread chunk was. */
+    private record Square(List<BlockPos> found, double unknownNearestSq) {
     }
 
     /**

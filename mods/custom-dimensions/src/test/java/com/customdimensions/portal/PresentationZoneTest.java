@@ -48,6 +48,20 @@ class PresentationZoneTest {
         return config.toPortalDefinition();
     }
 
+    /** As {@link #def}, with an explicit approach range on the immersive block. */
+    private static PortalDefinition def(String slug, String frameBlock,
+                                        boolean vanillaManaged, int activationRange) {
+        String json = String.format(
+                "{\"portal\":{\"frameBlock\":\"%s\",\"igniterItem\":\"minecraft:flint_and_steel\"%s,"
+                        + "\"immersive\":{\"activationRange\":%d}}}",
+                frameBlock, vanillaManaged ? ",\"vanillaManaged\":true" : "", activationRange);
+        com.customdimensions.config.DimensionConfig config =
+                new com.google.gson.Gson().fromJson(
+                        json, com.customdimensions.config.DimensionConfig.class);
+        config.setName(slug);
+        return config.toPortalDefinition();
+    }
+
     private static PortalHelper.PortalZone zone(PortalDefinition def, Set<BlockPos> interior) {
         return new PortalHelper.PortalZone(interior, def, Direction.Axis.X,
                 world("minecraft:overworld"), def.getTargetKey());
@@ -91,6 +105,102 @@ class PresentationZoneTest {
 
         assertEquals(List.of(),
                 PortalAdoption.presentationCandidates(portals, List.of("minecraft:copper_block")));
+    }
+
+    // --- what approach offers -------------------------------------------------
+
+    @Test
+    void aPortalInRangeAndNotYetCoveredIsOffered() {
+        BlockPos near = new BlockPos(10, 64, 10);
+        BlockPos far = new BlockPos(500, 64, 500);
+        BlockPos covered = new BlockPos(12, 64, 10);
+
+        assertEquals(List.of(near), PortalAdoption.dueForPresentation(
+                List.of(near, far, covered), new BlockPos(0, 64, 0), 64, Set.of(covered)));
+    }
+
+    /**
+     * The same predicate the projector's own activation test uses
+     * ({@code isWithinDistance}, strictly less than), so a portal the preview
+     * would not draw is never offered for a zone either.
+     */
+    @Test
+    void theRangeEdgeIsExclusive() {
+        BlockPos player = new BlockPos(0, 64, 0);
+        BlockPos justInside = new BlockPos(9, 64, 0);
+        BlockPos exactlyAtRange = new BlockPos(10, 64, 0);
+
+        assertEquals(List.of(justInside), PortalAdoption.dueForPresentation(
+                List.of(justInside, exactlyAtRange), player, 10, Set.of()));
+    }
+
+    @Test
+    void heightCountsTowardsTheRange() {
+        BlockPos player = new BlockPos(0, 64, 0);
+        BlockPos overhead = new BlockPos(0, 84, 0);
+
+        assertEquals(List.of(), PortalAdoption.dueForPresentation(
+                List.of(overhead), player, 10, Set.of()));
+        assertEquals(List.of(overhead), PortalAdoption.dueForPresentation(
+                List.of(overhead), player, 21, Set.of()));
+    }
+
+    @Test
+    void everyUncoveredPortalInRangeIsOfferedInTheOrderItWasFound() {
+        BlockPos first = new BlockPos(5, 64, 0);
+        BlockPos second = new BlockPos(-3, 64, 4);
+        BlockPos third = new BlockPos(0, 70, 0);
+
+        assertEquals(List.of(first, second, third), PortalAdoption.dueForPresentation(
+                List.of(first, second, third), new BlockPos(0, 64, 0), 32, Set.of()));
+    }
+
+    @Test
+    void nothingIsOfferedWhenEveryPortalIsAlreadyCovered() {
+        BlockPos one = new BlockPos(5, 64, 0);
+        BlockPos two = new BlockPos(6, 64, 0);
+
+        assertEquals(List.of(), PortalAdoption.dueForPresentation(
+                List.of(one, two), new BlockPos(0, 64, 0), 32, Set.of(one, two)));
+    }
+
+    /**
+     * The approach pass has no zone to read a range off — that is the gap it
+     * exists to close — so the range comes from the definitions that could
+     * produce one: vanilla-managed AND immersive, the widest of them.
+     */
+    @Test
+    void theApproachRangeComesFromTheVanillaManagedImmersiveDefinitions() {
+        assertEquals(24, PortalAdoption.presentationRange(List.of(
+                def("the_nether", "minecraft:obsidian", true, true))));
+    }
+
+    @Test
+    void aDefinitionThatCanNeverBePresentedContributesNoRange() {
+        assertEquals(0, PortalAdoption.presentationRange(List.of(
+                // Vanilla-managed but not immersive: nothing to draw.
+                def("the_nether", "minecraft:obsidian", true, false),
+                // Immersive but mod-managed: adopted on ignition, not on approach.
+                def("the_crucible", "minecraft:copper_block", false, true))));
+    }
+
+    @Test
+    void theWidestPresentableRangeWins() {
+        assertEquals(48, PortalAdoption.presentationRange(List.of(
+                def("the_nether", "minecraft:obsidian", true, 16),
+                def("the_end", "minecraft:bedrock", true, 48))));
+    }
+
+    @Test
+    void aModManagedDefinitionNeverWidensTheApproachRange() {
+        assertEquals(16, PortalAdoption.presentationRange(List.of(
+                def("the_nether", "minecraft:obsidian", true, 16),
+                def("the_crucible", "minecraft:copper_block", false, 64))));
+    }
+
+    @Test
+    void noVanillaManagedPortalsMeansNoApproachPassAtAll() {
+        assertEquals(0, PortalAdoption.presentationRange(List.of()));
     }
 
     // --- what the registry does with it ---------------------------------------
