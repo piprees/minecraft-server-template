@@ -4,6 +4,7 @@
   "package": "com.customdimensions.client.mixin",
   "compatibilityLevel": "JAVA_21",
   "client": [
+    "ClientPlayNetworkHandlerTerrainScreenMixin",
     "MinecraftClientJoinWorldMixin"
   ],
   "injectors": {

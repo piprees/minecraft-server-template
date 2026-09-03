@@ -1,11 +1,11 @@
-arguments=--init-script /opt/homebrew/Cellar/jdtls/1.60.0/libexec/configuration/org.eclipse.osgi/57/0/.cp/gradle/init/init.gradle
+arguments=--init-script /Users/pip/.serena/language_servers/static/EclipseJDTLS/workspaces/8e053e285a893627737afc706e7a7a47/config_path/org.eclipse.osgi/59/0/.cp/gradle/init/init.gradle
 auto.sync=false
 build.scans.enabled=false
-connection.gradle.distribution=GRADLE_DISTRIBUTION(WRAPPER)
+connection.gradle.distribution=GRADLE_DISTRIBUTION(LOCAL_INSTALLATION(/Users/pip/.serena/language_servers/static/EclipseJDTLS/gradle-8.14.2))
 connection.project.dir=
 eclipse.preferences.version=1
-gradle.user.home=
-java.home=/Users/pip/.local/share/mise/installs/java/temurin-21.0.11+10.0.LTS
+gradle.user.home=/Users/pip/.gradle
+java.home=/Users/pip/.serena/language_servers/static/EclipseJDTLS/vscode-java-1.54.0-923/extension/jre/21.0.10-macosx-aarch64
 jvm.arguments=
 offline.mode=false
 override.workspace.settings=true
