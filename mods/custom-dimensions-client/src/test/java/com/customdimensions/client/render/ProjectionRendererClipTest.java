@@ -211,22 +211,57 @@ class ProjectionRendererClipTest {
     /**
      * The grid is indexed in SOURCE space with destination contents:
      * {@code ProjectionStream.build} walks source cells, samples
-     * {@code toTarget} of each, and stores at {@code ((x * sizeZ) + z) * sizeY + y}.
-     * The client has to subtract the same source-space origin and use the same
+     * {@code toTarget} of each, and stores them y-fastest, then z, then x. The
+     * client has to subtract the same source-space origin and walk the same
      * order, or {@code ProjectionMesh.build} meshes the wrong cells.
+     *
+     * <p>Asserted as strides rather than by restating the server's expression: a
+     * test that copies the formula it is meant to pin passes whatever the
+     * formula becomes.
      */
     @Test
-    void theGridIsIndexedInSourceSpaceInTheServersOwnOrder() {
+    void steppingTheGridMovesInTheServersOwnOrder() {
         BlockPos origin = new BlockPos(1492, 93, 1501);
         ClientProjection projection = projection(Direction.SOUTH, origin);
+        int base = projection.indexOf(1497, 96, 1508);
 
         assertEquals(0, projection.indexOf(1492, 93, 1501), "the origin is not cell zero");
-        // y varies fastest, then z, then x — written out rather than borrowed.
-        assertEquals(((5 * SIZE_Z) + 7) * SIZE_Y + 3,
-                projection.indexOf(1492 + 5, 93 + 3, 1501 + 7));
+        assertEquals(base + 1, projection.indexOf(1497, 97, 1508), "y is not the fastest axis");
+        assertEquals(base + SIZE_Y, projection.indexOf(1497, 96, 1509),
+                "z does not stride by one row of y");
+        assertEquals(base + SIZE_Y * SIZE_Z, projection.indexOf(1498, 96, 1508),
+                "x does not stride by one whole z-by-y slice");
         assertEquals(SIZE_X * SIZE_Y * SIZE_Z - 1,
                 projection.indexOf(1492 + SIZE_X - 1, 93 + SIZE_Y - 1, 1501 + SIZE_Z - 1),
                 "the far corner is not the last cell");
+    }
+
+    /**
+     * Every cell gets an index of its own and together they fill the array
+     * exactly. The strides and the bounds cases above imply this, so it is a
+     * second opinion rather than new coverage — but it is the only assertion
+     * here that walks all of the cells instead of the few this file picked, so
+     * it survives a rewrite of the formula that the sampled points were updated
+     * to match.
+     */
+    @Test
+    void everyCellOfTheVolumeGetsItsOwnIndex() {
+        BlockPos origin = new BlockPos(1492, 93, 1501);
+        ClientProjection projection = projection(Direction.SOUTH, origin);
+        boolean[] taken = new boolean[SIZE_X * SIZE_Y * SIZE_Z];
+
+        for (int lx = 0; lx < SIZE_X; lx++) {
+            for (int ly = 0; ly < SIZE_Y; ly++) {
+                for (int lz = 0; lz < SIZE_Z; lz++) {
+                    int index = projection.indexOf(
+                            origin.getX() + lx, origin.getY() + ly, origin.getZ() + lz);
+                    assertTrue(index >= 0 && index < taken.length,
+                            "cell " + lx + "," + ly + "," + lz + " indexed to " + index);
+                    assertFalse(taken[index], "two cells share index " + index);
+                    taken[index] = true;
+                }
+            }
+        }
     }
 
     @Test
