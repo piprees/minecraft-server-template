@@ -3,7 +3,7 @@ package com.customdimensions.mixin;
 import com.customdimensions.config.MultiverseConfig;
 import com.customdimensions.config.PortalDefinition;
 import com.customdimensions.dimension.DimensionManager;
-import com.customdimensions.portal.FrameMatcher;
+import com.customdimensions.portal.FrameView;
 import com.customdimensions.portal.IgnitionScan;
 import com.customdimensions.portal.PortalHelper;
 import net.minecraft.item.Item;
@@ -72,48 +72,14 @@ public class PortalIgnitionMixin {
     // Returns true when a portal was ignited (cir is then set to SUCCESS).
     private static boolean tryIgnite(ServerWorld serverWorld, BlockPos clickedPos,
             ItemUsageContext context, PortalDefinition def, CallbackInfoReturnable<ActionResult> cir) {
-        FrameMatcher matcher = def.resolveFrameMatcher();
-        if (matcher.isEmpty()) {
+        IgnitionScan.Site site = IgnitionScan.sweep(
+                FrameView.of(serverWorld), clickedPos, def.resolveFrameMatcher(), def);
+        if (site == null) {
             return false;
         }
-
-        for (Direction dir : Direction.values()) {
-            BlockPos candidate = clickedPos.offset(dir);
-            if (!PortalHelper.isPortalFillable(serverWorld.getBlockState(candidate))) {
-                continue;
-            }
-
-            IgnitionScan fills = IgnitionScan.discover(serverWorld, candidate, matcher, def);
-            if (fills == null) {
-                continue;
-            }
-            // Prefer the axis matching the clicked face, then Y, X, Z.
-            Direction.Axis axis = fills.pick(dir.getAxis());
-            registerAndFinish(serverWorld, clickedPos, context, def, fills.get(axis), axis);
-            cir.setReturnValue(ActionResult.SUCCESS);
-            return true;
-        }
-
-        for (int dx = -3; dx <= 3; dx++) {
-            for (int dy = -3; dy <= 3; dy++) {
-                for (int dz = -3; dz <= 3; dz++) {
-                    BlockPos candidate = clickedPos.add(dx, dy, dz);
-                    if (!PortalHelper.isPortalFillable(serverWorld.getBlockState(candidate))) {
-                        continue;
-                    }
-
-                    IgnitionScan fills = IgnitionScan.discover(serverWorld, candidate, matcher, def);
-                    if (fills == null) {
-                        continue;
-                    }
-                    Direction.Axis axis = fills.pick(null);
-                    registerAndFinish(serverWorld, candidate, context, def, fills.get(axis), axis);
-                    cir.setReturnValue(ActionResult.SUCCESS);
-                    return true;
-                }
-            }
-        }
-        return false;
+        registerAndFinish(serverWorld, site.soundPos(), context, def, site.fill(), site.axis());
+        cir.setReturnValue(ActionResult.SUCCESS);
+        return true;
     }
 
     private static void registerAndFinish(ServerWorld serverWorld, BlockPos soundPos, ItemUsageContext context,

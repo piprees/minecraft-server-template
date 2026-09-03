@@ -46,6 +46,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 public class PortalHelper {
     private static final int MAX_PORTAL_BLOCKS = 128;
@@ -86,7 +88,12 @@ public class PortalHelper {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
 
     public static void setServer(MinecraftServer server) {
-        portalLinksPath = server.getRunDirectory().resolve("config").resolve("portal_links.json");
+        setPortalLinksPath(server.getRunDirectory().resolve("config").resolve("portal_links.json"));
+    }
+
+    /** Where the persisted routes live. Null (no server yet) makes every save a no-op. */
+    static void setPortalLinksPath(Path path) {
+        portalLinksPath = path;
     }
 
     public static void savePortalLinks() {
@@ -743,6 +750,16 @@ public class PortalHelper {
     public static void restoreZones(ServerWorld world) {
         RegistryKey<World> worldKey = world.getRegistryKey();
         restoreArrivalZones(world, worldKey);
+        restorePendingZones(worldKey, zone -> isZoneValid(world, zone), zone -> clearInteriorPortals(world, zone));
+    }
+
+    /**
+     * The source-zone half of the restore, over the two world reads it makes:
+     * whether a persisted zone's frame still stands, and what a dropped zone
+     * leaves standing in its interior.
+     */
+    static void restorePendingZones(RegistryKey<World> worldKey, Predicate<PortalZone> valid,
+            Consumer<PortalZone> clearInterior) {
         List<PortalZone> pending = PENDING_ZONES.remove(worldKey);
         if (pending == null) {
             return;
@@ -755,12 +772,16 @@ public class PortalHelper {
             // set (or changed) still gets it applied — and so turning it
             // off in config takes effect for existing zones too.
             zone.definition.setImmersive(MultiverseConfig.getInstance().getImmersiveFor(zone.targetWorld));
-            if (isZoneValid(world, zone)) {
+            if (valid.test(zone)) {
                 // Same dedupe as registerZone — an older portal_links.json
                 // may still hold duplicate records; collapsing them here and
                 // resaving below removes the duplicate for good.
                 addZoneIfAbsent(zone);
             } else {
+                // A dropped route takes its interior with it. Anything left
+                // standing there is an orphan: no zone and no PORTAL_TARGETS
+                // entry, which is what the gateway suppression gates on.
+                clearInterior.accept(zone);
                 System.err.println("[customdimensions] Dropped invalid persisted portal route in " + worldKey.getValue());
             }
         }
@@ -1686,6 +1707,10 @@ public class PortalHelper {
     }
 
     public static Set<BlockPos> floodFill(ServerWorld world, BlockPos start, FrameMatcher frameMatcher, Direction.Axis axis) {
+        return floodFill(FrameView.of(world), start, frameMatcher, axis);
+    }
+
+    public static Set<BlockPos> floodFill(FrameView view, BlockPos start, FrameMatcher frameMatcher, Direction.Axis axis) {
         HashSet<BlockPos> visited = new HashSet<>();
         ArrayDeque<BlockPos> queue = new ArrayDeque<>();
         queue.add(start);
@@ -1702,11 +1727,10 @@ public class PortalHelper {
                 if (visited.contains(neighbor)) {
                     continue;
                 }
-                BlockState state = world.getBlockState(neighbor);
-                if (frameMatcher.matches(state)) {
+                if (view.matches(neighbor, frameMatcher)) {
                     continue;
                 }
-                if (!isPortalFillable(state)) {
+                if (!view.isFillable(neighbor)) {
                     return Collections.emptySet();
                 }
                 visited.add(neighbor);
@@ -1717,11 +1741,15 @@ public class PortalHelper {
     }
 
     public static boolean isAreaBoundedByFrame(ServerWorld world, Set<BlockPos> portalArea, FrameMatcher frameMatcher, Direction.Axis axis) {
+        return isAreaBoundedByFrame(FrameView.of(world), portalArea, frameMatcher, axis);
+    }
+
+    public static boolean isAreaBoundedByFrame(FrameView view, Set<BlockPos> portalArea, FrameMatcher frameMatcher, Direction.Axis axis) {
         Direction[] directions = planeDirections(axis);
         for (BlockPos pos : portalArea) {
             for (Direction dir : directions) {
                 BlockPos neighbor = pos.offset(dir);
-                if (portalArea.contains(neighbor) || frameMatcher.matches(world.getBlockState(neighbor))) {
+                if (portalArea.contains(neighbor) || view.matches(neighbor, frameMatcher)) {
                     continue;
                 }
                 return false;
@@ -1754,8 +1782,13 @@ public class PortalHelper {
      */
     public static boolean isAreaBoundedByFrameParts(ServerWorld world, Set<BlockPos> portalArea,
             PortalDefinition definition, Direction.Axis axis) {
+        return isAreaBoundedByFrameParts(FrameView.of(world), portalArea, definition, axis);
+    }
+
+    public static boolean isAreaBoundedByFrameParts(FrameView view, Set<BlockPos> portalArea,
+            PortalDefinition definition, Direction.Axis axis) {
         if (!definition.hasPartMaterials() || axis == Direction.Axis.Y) {
-            return isAreaBoundedByFrame(world, portalArea, definition.resolveFrameMatcher(), axis);
+            return isAreaBoundedByFrame(view, portalArea, definition.resolveFrameMatcher(), axis);
         }
         int minY = Integer.MAX_VALUE;
         int maxY = Integer.MIN_VALUE;
@@ -1771,7 +1804,7 @@ public class PortalHelper {
                     continue;
                 }
                 String part = classifyFramePart(neighbor, minY, maxY);
-                if (!definition.resolvePartMatcher(part).matches(world.getBlockState(neighbor))) {
+                if (!view.matches(neighbor, definition.resolvePartMatcher(part))) {
                     return false;
                 }
             }
