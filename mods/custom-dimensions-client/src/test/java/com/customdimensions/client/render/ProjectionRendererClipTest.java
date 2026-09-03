@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -149,6 +150,77 @@ class ProjectionRendererClipTest {
         // x spans -4..7, y spans 2..6.5, z spans 5..9 across the two quads.
         assertEquals("[-4.0..7.0, 2.0..6.5, 5.0..9.0]",
                 ProjectionRenderer.meshBounds(new ProjectionMesh.Layer(null, both, both.length)));
+    }
+
+    /**
+     * Which edge of the opening cut a quad away is the difference between a
+     * destination that is out of sight and a clip that is misbehaving. The
+     * index order is {@code apertureCorners}' walk, so for this upright fixture
+     * it reads left, top, right, bottom — pinned here because the emit line is
+     * unreadable if the order is guessed.
+     */
+    @Test
+    void aRejectedQuadIsCountedAgainstTheEdgeThatCutIt() {
+        // At z = 5 the cone spans -1..3 on both axes. One quad past each edge,
+        // each of them inside the other three.
+        float[] layer = concat(
+                quad(5.0f, -11.0f, -10.0f, 0.0f, 1.0f),
+                quad(5.0f, 0.0f, 1.0f, 10.0f, 11.0f),
+                quad(5.0f, 10.0f, 11.0f, 0.0f, 1.0f),
+                quad(5.0f, 0.0f, 1.0f, -11.0f, -10.0f));
+
+        Recorder drawn = clip(layer);
+
+        assertEquals(0, drawn.count(), "no quad of this layer is inside the cone");
+        assertArrayEquals(new int[] {1, 1, 1, 1}, ProjectionRenderer.rejectedBy);
+    }
+
+    /**
+     * Geometry entirely below the sightline dies on one edge and only that one.
+     * This is the signature that separates "the destination is out of view"
+     * from "the clip is eating the layer".
+     */
+    @Test
+    void geometryBelowTheSightlineDiesOnTheBottomEdgeAlone() {
+        Recorder drawn = clip(concat(
+                quad(5.0f, 0.0f, 1.0f, -20.0f, -19.0f),
+                quad(9.0f, 1.0f, 2.0f, -30.0f, -29.0f)));
+
+        assertEquals(0, drawn.count());
+        assertArrayEquals(new int[] {0, 0, 0, 2}, ProjectionRenderer.rejectedBy);
+    }
+
+    @Test
+    void aSurvivingQuadIsCountedAgainstNoEdge() {
+        clip(quad(5.0f, 0.0f, 1.0f, 0.0f, 1.0f));
+
+        assertArrayEquals(new int[] {0, 0, 0, 0}, ProjectionRenderer.rejectedBy);
+    }
+
+    /**
+     * The counts belong to the layer just emitted. Carried over they would
+     * accumulate across every layer and every frame, and the field would read
+     * as a fault on a portal that is drawing perfectly well.
+     */
+    @Test
+    void theCountsBelongToOneLayerNotToEverySinceStartup() {
+        clip(quad(5.0f, 0.0f, 1.0f, -20.0f, -19.0f));
+        assertArrayEquals(new int[] {0, 0, 0, 1}, ProjectionRenderer.rejectedBy);
+
+        clip(quad(5.0f, 0.0f, 1.0f, 0.0f, 1.0f));
+        assertArrayEquals(new int[] {0, 0, 0, 0}, ProjectionRenderer.rejectedBy,
+                "the previous layer's rejections were carried into this one");
+    }
+
+    @Test
+    void theHighestVertexIsReportedWithItsPosition() {
+        float[] layer = concat(
+                quad(5.0f, 0.0f, 1.0f, 2.0f, 3.0f),
+                quad(9.0f, 6.0f, 7.0f, 4.0f, 8.5f));
+
+        // The top of the second quad: y 8.5, at x 6..7 and z 9.
+        assertEquals("[6.0, 8.5, 9.0]", ProjectionRenderer.highestVertex(
+                new ProjectionMesh.Layer(null, layer, layer.length)));
     }
 
     @Test
@@ -352,6 +424,20 @@ class ProjectionRendererClipTest {
         ProjectionRenderer.emitClipped(new ProjectionMesh.Layer(null, data, data.length),
                 recorder, new MatrixStack().peek());
         return recorder;
+    }
+
+    private static float[] concat(float[]... quads) {
+        int total = 0;
+        for (float[] quad : quads) {
+            total += quad.length;
+        }
+        float[] out = new float[total];
+        int at = 0;
+        for (float[] quad : quads) {
+            System.arraycopy(quad, 0, out, at, quad.length);
+            at += quad.length;
+        }
+        return out;
     }
 
     /** One axis-aligned quad at depth {@code z}, in the volume's own space. */

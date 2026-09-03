@@ -52,6 +52,16 @@ public final class ProjectionRenderer {
     /** Vertices the clip left standing in the last {@link #emitClipped}. */
     static int clipVertices;
 
+    /**
+     * Quads the last {@link #emitClipped} lost at each plane, indexed the way
+     * {@link #apertureCorners} walks the opening: 0 is the low edge on axis A,
+     * 1 the high edge on axis B, 2 the high edge on axis A, 3 the low edge on
+     * axis B. For an upright portal that reads left, top, right, bottom — so
+     * everything landing on 3 means the destination's geometry sits below the
+     * line of sight, which is a view, not a fault.
+     */
+    static final int[] rejectedBy = new int[4];
+
     private ProjectionRenderer() {}
 
     public static void render(WorldRenderContext context) {
@@ -124,7 +134,9 @@ public final class ProjectionRenderer {
                         .append(layer.layer())
                         .append(" quadsIn=").append(layer.floats() / (STRIDE * 4))
                         .append(" geometry=").append(meshBounds(layer))
+                        .append(" highest=").append(highestVertex(layer))
                         .append(" clipVertices=").append(clipVertices)
+                        .append(" rejectedBy=").append(java.util.Arrays.toString(rejectedBy))
                         .append(" emitted=").append(emitted)
                         .append(" consumer=").append(consumer.getClass().getName())
                         .append(" drawn=true");
@@ -279,12 +291,16 @@ public final class ProjectionRenderer {
         float[] data = layer.data();
         int survived = 0;
         int emitted = 0;
+        java.util.Arrays.fill(rejectedBy, 0);
         for (int quad = 0; quad + STRIDE * 4 <= layer.floats(); quad += STRIDE * 4) {
             System.arraycopy(data, quad, POLY_A, 0, STRIDE * 4);
             int count = 4;
             for (int plane = 0; plane < 4 && count >= 3; plane++) {
                 count = clip(POLY_A, count, POLY_B, plane);
                 System.arraycopy(POLY_B, 0, POLY_A, 0, count * STRIDE);
+                if (count < 3) {
+                    rejectedBy[plane]++;
+                }
             }
             if (count < 3) {
                 continue;
@@ -388,6 +404,26 @@ public final class ProjectionRenderer {
             out.append(axis == 0 ? "" : ", ").append(String.format("%.1f..%.1f", min, max));
         }
         return out.append(']').toString();
+    }
+
+    /**
+     * Where the layer's highest vertex sits. A geometry box is a union over
+     * thousands of quads, so its top can belong to a corner of the volume the
+     * opening never sees; this says whether the top is in the middle or at an
+     * edge, which the box on its own cannot.
+     */
+    static String highestVertex(ProjectionMesh.Layer layer) {
+        if (layer.floats() < STRIDE) {
+            return "[empty]";
+        }
+        float[] data = layer.data();
+        int top = 0;
+        for (int at = 0; at < layer.floats(); at += STRIDE) {
+            if (data[at + 1] > data[top + 1]) {
+                top = at;
+            }
+        }
+        return String.format("[%.1f, %.1f, %.1f]", data[top], data[top + 1], data[top + 2]);
     }
 
     private static String volumeBounds(ClientProjection projection) {
