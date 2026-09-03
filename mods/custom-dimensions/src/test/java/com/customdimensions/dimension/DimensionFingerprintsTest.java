@@ -14,6 +14,7 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -246,6 +247,24 @@ class DimensionFingerprintsTest {
 
     // -------------------------------------------------- checkExisting: the missing-fingerprint split
 
+    /**
+     * The recorded baseline, asserted as PRESENT and EQUAL. Asking {@link
+     * DimensionFingerprints#driftedFields} instead cannot answer this: it skips
+     * every field a record does not carry, so it reports no drift for a
+     * baseline that was never written — the one outcome these tests exclude.
+     */
+    private static void assertBaselineRecorded(String dimension, Map<String, String> expected) {
+        Map<String, String> stored = DimensionFingerprints.storedFieldsFor(dimension);
+        assertNotNull(stored, "checkExisting recorded no baseline for " + dimension
+                + " — drift detection is blind from this boot on");
+        assertFalse(stored.isEmpty(), "checkExisting recorded an EMPTY baseline for " + dimension
+                + " — every field is absent, so driftedFields skips all of them and calls it clean");
+        for (Map.Entry<String, String> field : expected.entrySet()) {
+            assertEquals(field.getValue(), stored.get(field.getKey()),
+                    dimension + " baseline field " + field.getKey());
+        }
+    }
+
     @Test
     void aMissingFingerprintOnAFreshWorldWithNoChunksYetStillAdoptsTheCurrentConfig() {
         // "Fresh server" case: this dimension is registered but nobody has
@@ -254,10 +273,8 @@ class DimensionFingerprintsTest {
         DimensionConfig def = config("the_untouched_expanse", "nether", "adventure:wide", "minecraft:crimson_forest");
         DimensionFingerprints.checkExisting(def, false);
 
-        assertEquals(List.of(),
-                DimensionFingerprints.driftedFields(
-                        DimensionFingerprints.storedFieldsFor(def.getName()),
-                        fingerprint("nether", "adventure:wide", "minecraft:crimson_forest")));
+        assertBaselineRecorded(def.getName(),
+                fingerprint("nether", "adventure:wide", "minecraft:crimson_forest"));
     }
 
     @Test
@@ -269,10 +286,8 @@ class DimensionFingerprintsTest {
         DimensionConfig def = config("the_boneyard_recovered", "nether", "adventure:wide", "minecraft:crimson_forest");
         DimensionFingerprints.checkExisting(def, true);
 
-        assertEquals(List.of(),
-                DimensionFingerprints.driftedFields(
-                        DimensionFingerprints.storedFieldsFor(def.getName()),
-                        fingerprint("nether", "adventure:wide", "minecraft:crimson_forest")));
+        assertBaselineRecorded(def.getName(),
+                fingerprint("nether", "adventure:wide", "minecraft:crimson_forest"));
     }
 
     @Test
@@ -280,18 +295,16 @@ class DimensionFingerprintsTest {
         // "Normal boot, config changed" — the policy is warn and keep the
         // world as generated. Overwriting the stored baseline with the
         // drifted config would erase the drift on the very next boot,
-        // defeating the check permanently instead of just once.
+        // defeating the check permanently instead of just once. The baseline
+        // asserted here is the ORIGINAL nether one, not the drifted overworld.
         DimensionConfig def = config("the_settled_reach", "nether", "adventure:wide", "minecraft:crimson_forest");
         DimensionFingerprints.checkExisting(def, false); // establishes the baseline
 
         DimensionConfig changed = config("the_settled_reach", "overworld", "adventure:wide", "minecraft:crimson_forest");
         DimensionFingerprints.checkExisting(changed, false);
 
-        assertEquals(List.of(),
-                DimensionFingerprints.driftedFields(
-                        DimensionFingerprints.storedFieldsFor(def.getName()),
-                        fingerprint("nether", "adventure:wide", "minecraft:crimson_forest")),
-                "the original baseline must survive a drifted boot unchanged");
+        assertBaselineRecorded(def.getName(),
+                fingerprint("nether", "adventure:wide", "minecraft:crimson_forest"));
     }
 
     // ------------------------------------------- record(): the re-registration split
