@@ -1184,15 +1184,40 @@ MERGE
         echo "Sent: $*"
         ;;
       hold)
-        IN_KEY="${1:-}"
+        IN_KEYS="${1:-}"
         IN_SECS="${2:-1}"
-        [[ -n "$IN_KEY" ]] || { echo "Usage: ./dev input hold <char> <secs>" >&2; exit 1; }
+        [[ -n "$IN_KEYS" ]] || { echo "Usage: ./dev input hold <keys> <secs>   e.g. 'w' or 'w space'" >&2; exit 1; }
         # key down / key up rather than a repeated keystroke: the game reads
         # held state, and a press-release pair moves nothing.
-        osascript -e "tell application \"System Events\" to key down \"$IN_KEY\""
+        #
+        # Several keys at once because a standing jump lands where it started
+        # — clearing a one-block rise takes 'w space' held together, and a
+        # walk stops dead on a rise it cannot step.
+        IN_DOWN=()
+        for k in $IN_KEYS; do
+          case "$k" in
+            space) IN_DOWN+=("key code 49") ;;
+            shift) IN_DOWN+=("key code 56") ;;
+            ctrl|control) IN_DOWN+=("key code 59") ;;
+            *) IN_DOWN+=("keystroke-hold $k") ;;
+          esac
+        done
+        for d in "${IN_DOWN[@]}"; do
+          if [[ "$d" == "keystroke-hold "* ]]; then
+            osascript -e "tell application \"System Events\" to key down \"${d#keystroke-hold }\""
+          else
+            osascript -e "tell application \"System Events\" to key down (${d})"
+          fi
+        done
         /bin/sleep "$IN_SECS"
-        osascript -e "tell application \"System Events\" to key up \"$IN_KEY\""
-        echo "Held '$IN_KEY' for ${IN_SECS}s."
+        for d in "${IN_DOWN[@]}"; do
+          if [[ "$d" == "keystroke-hold "* ]]; then
+            osascript -e "tell application \"System Events\" to key up \"${d#keystroke-hold }\""
+          else
+            osascript -e "tell application \"System Events\" to key up (${d})"
+          fi
+        done
+        echo "Held '$IN_KEYS' for ${IN_SECS}s."
         ;;
       type)
         [[ $# -gt 0 ]] || { echo "Usage: ./dev input type <text>" >&2; exit 1; }

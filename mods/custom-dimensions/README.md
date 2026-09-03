@@ -262,7 +262,7 @@ Frames may be vertical (X or Z) or horizontal (floor and ceiling, Y-axis): build
 
 Mixed frames are legal: any combination of accepted blocks bounds a valid portal, and single-use decay resolves each frame block individually. Zones persist the accept forms they were ignited with, so changing a dimension's `frameBlock` later never invalidates existing portals retroactively. Invalid tag ids, unknown colour names and unknown orientations WARN at boot and never crash.
 
-Two rules: **persisted zone records always store a plain block id in `frameBlock`** (accept forms ride in `frameAccepts`) — a `#tag` there crash-loops any server that downgrades to an older jar. And **registered portal blocks are immune to neighbour-update popping** (`NetherPortalProtectionMixin`), because vanilla re-validates portal frames as obsidian-only on ANY adjacent block change and block-converting mods were silently deleting custom-framed arrivals; player-built vanilla portals are untouched.
+Two rules: **persisted zone records always store a plain block id in `frameBlock`** (accept forms ride in `frameAccepts`) — a `#tag` there crash-loops any server that downgrades to an older jar. And **registered positions are immune to neighbour-update popping** (`NetherPortalProtectionMixin`), which is what an adopted vanilla portal inside a managed dimension needs; player-built vanilla portals elsewhere are untouched.
 
 ### Per-part frame materials
 
@@ -290,20 +290,19 @@ An optional `"shape"` constrains the geometry a player must build. Absent (or `"
   "shape": "door",        // exactly 1x2 interior, vertical
   "shape": "doorway",     // exactly 2x3 interior (the vanilla Nether opening), vertical
   "shape": "end_exit",    // horizontal ring (any footprint), end-portal style
-  "shape": "end_gateway", // frameless 1-block teleporter (see below)
+  "shape": "end_gateway", // exactly one interior cell, any plane
 
   "shape": { "type": "pattern",                               // explicit template
              "template": ["FFFFF", "FF.FF", "F...F", "FF.FF", "FFFFF"],
              "legend": { "F": "frame", ".": "interior" } },
-  "centreBlock": "minecraft:dragon_egg"   // end_exit only: pedestal at the centre cell
 }
 ```
 
-Template legend roles are `frame` (must match the frame material), `interior` (must exactly cover the ignited opening), and anything else = don't care. Row-major; for vertical portals the top row is the highest Y and the template auto-tries both X and Z axes, for horizontal portals rows map to +Z. `centreBlock` is source-side scenery placed on ignition — arrival pads and mod-built exit portals never get one, because their intact check requires every interior cell to be a portal block.
+Template legend roles are `frame` (must match the frame material), `interior` (must exactly cover the ignited opening), and anything else = don't care. Row-major; for vertical portals the top row is the highest Y and the template auto-tries both X and Z axes, for horizontal portals rows map to +Z.
 
-**`end_gateway`** is fundamentally different: no frame, no flood-fill — the igniter is used ON a block face (like placing a torch) and a real `END_GATEWAY` block appears there, beam and all. `frameBlock` is not required. Vanilla gateway travel is suppressed for mod-owned gateway positions (`EndGatewaySuppressionMixin`; player-placed vanilla gateways elsewhere keep vanilla rules), and traversal runs through the same zone tick and return-target machinery as every other portal. Zone validity is "the gateway block still exists". Arrivals and exit portals for gateway dimensions are single floating gateway blocks.
+**`end_gateway`** is the smallest opening there is: a frame ringing exactly one cell, found by the same flood-fill as every other shape, and `frameBlock` is required like everywhere else. Its arrival is a standard doorway at an open site, so you can walk out of it.
 
-Shapes imply an orientation default (`door`/`doorway` → vertical, `end_exit` → horizontal); an explicit `"orientation"` always wins, and a contradictory combination WARNs at boot as never-ignitable. Unknown shape names WARN and reject every ignition until fixed. Mod-built frames follow the dimension's shape: `exitPortal` builds 1x2 for `door` dims, the classic 2x3 for `doorway`/`standard`, and a horizontal 3x3 `END_PORTAL` pad ringed in the placement block for `end_exit`. Pre-shape zone records restore as `standard`.
+Shapes imply an orientation default (`door`/`doorway` → vertical, `end_exit` → horizontal); an explicit `"orientation"` always wins, and a contradictory combination WARNs at boot as never-ignitable. Unknown shape names WARN and reject every ignition until fixed. Mod-built frames follow the dimension's shape: `exitPortal` builds 1x2 for `door` dims, 1x1 for `end_gateway`, the classic 2x3 for `doorway`/`standard`, and a horizontal 3x3 ring for `end_exit`. Every one of them is a ring around air. Pre-shape zone records restore as `standard`.
 
 ### Immersive portals
 
@@ -328,7 +327,7 @@ Absent (or `true`) means immersive with all defaults; `"immersive": false` is th
 - **Pass-through.** Items, projectiles, XP orbs, falling blocks and living entities cross with velocity intact — lead a villager through, or build farms across a portal. Leads are detached before crossing (a cross-world leash is unrecoverable in vanilla). Vehicles with passengers are not handled yet.
 - **Interior particles are thinned, not removed** — about a twelfth of the normal density.
 
-Known limits, none of them bugs: vanilla's dimension-change **screen** still appears (pre-loading removes the generation stall, not the screen, which is client-side); lighting is approximated with invisible light at the aperture; water, grass and foliage take the SOURCE biome's colours (the client computes them from the biome it thinks it is in); far-side entities are invisible; gateway portals get particles, not projection. [`client/SPEC.md`](client/SPEC.md) specifies the client mod that would lift each, and which ones a client mod cannot help with either.
+Known limits, none of them bugs: vanilla's dimension-change **screen** still appears (pre-loading removes the generation stall, not the screen, which is client-side); lighting is approximated with invisible light at the aperture; water, grass and foliage take the SOURCE biome's colours (the client computes them from the biome it thinks it is in); far-side entities are invisible. [`client/SPEC.md`](client/SPEC.md) specifies the client mod that would lift each, and which ones a client mod cannot help with either.
 
 ### Portal auras
 
@@ -388,7 +387,7 @@ Guard rails, all enforced: the exclusion set (interior + frame ring + registered
 
 ### State and idle unloading
 
-`portal_links.json` persists the position and metadata of portal zones and target-side portal blocks. Managed automatically; do not edit by hand.
+`portal_links.json` persists source zones, arrival zones, aura sites and the per-cell return routes. Managed automatically; do not edit by hand.
 
 `idleUnloadMinutes` (default 5) controls how long a dimension with no players stays loaded before being saved and removed from memory; it is re-created automatically when a player teleports in. Vanilla dimensions (overworld, nether, end) and paradise_lost are never unloaded, nor are dimensions with forceloaded chunks.
 

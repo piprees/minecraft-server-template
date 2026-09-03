@@ -3,6 +3,9 @@
   "description": "Nether biomes on overworld noise \u2014 a nexus where the crimson bleeds through. Crimson and warped forest, quartz flats and weeping valleys lying over scarred badlands and volcanic rock, under an open sky. A fortress stands where it has no business standing, as if punched through from the other side, and what the portal reaches it converts.",
   "seed": -2221576921009827702,
   "noiseSettings": "adventure:compressed",
+  "settingsOverrides": {
+    "defaultFluid": "minecraft:lava"
+  },
   "biomes": [
     {
       "id": "terralith:warped_mesa",

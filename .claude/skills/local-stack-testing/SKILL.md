@@ -13,7 +13,15 @@ description: |
   skip-if-exists by dev-up.sh), plus the c2me density-function-compiler key
   that must stay false in c2me.toml.
 
-  Also covers the seed viewer's compiled stylesheet: web/app.css is Tailwind
+  Also covers DRIVING THE LOCAL CLIENT from the shell — `./dev screenshot` to
+look at the game, and `./dev input` for keys, held keys, chat, and pointer
+move/click/dblclick/rightclick — so a rendering, UI or traversal claim is
+verified by looking rather than by asking a human. Includes the coordinate
+maths, why the pointer never aims (`tp` sets look direction, the click is only
+the trigger), why no in-game widget is clickable by name, and recovering a
+client a server restart disconnected.
+
+Also covers the seed viewer's compiled stylesheet: web/app.css is Tailwind
   v4 source, the jar ships web/app.built.css, and build-viewer-css.sh is what
   turns one into the other — Gradle never does, so an unbuilt CSS edit rebuilds
   silently with the old styles.
@@ -23,7 +31,9 @@ description: |
   viewer's CSS, markup or JS; testing
   unreleased defaults-seed content; choosing between `./dev up`, `./dev
   refresh-config`, `./dev restart <service>` and a raw `docker restart`; or
-  working out why a local pass didn't reflect the change under test. Consult
+  working out why a local pass didn't reflect the change under test; or
+testing anything that can only be seen on screen — a portal preview, a
+rendered destination, a loading screen, a menu. Consult
   before trusting a `./dev up` boot as proof a change is live, when a Tailwind
   utility class written into the viewer's markup styles nothing, and when
   checking whether a boot honoured
@@ -313,6 +323,105 @@ afterwards rather than expecting `./dev up` to find it.
 `./dev up` prints a LINKED banner for as long as `readlink .stack/current` is
 `dev` (`dev`, the `up)` case's LINKED banner), and `deploy.sh` dies on the same test (`deploy.sh`, the `dev`-link guard),
 so a link cannot reach production.
+
+## Driving the client — you can play the game yourself
+
+The local client is fully drivable from the shell. There is no need to ask a human
+to walk somewhere, press a key, or describe what they see: take the screenshot and
+look at it. **A rendering or UI claim you have not looked at is not a measurement.**
+
+| Command | Does |
+| --- | --- |
+| `./dev launch [--attach]` | starts the client, and proves a NEW session started |
+| `./dev screenshot [--out P] [--delay N] [--full] [--no-focus]` | a PNG of the client window; Read the path to look at it |
+| `./dev input focus` | brings the client to the front |
+| `./dev input key <name>...` | `esc enter tab space up down left right f1 f2 f3 f5 f11`, or any single character |
+| `./dev input hold "<keys>" <secs>` | holds keys together — `hold "w space" 4` walks and jumps |
+| `./dev input type <text>` | types into whatever is open |
+| `./dev input chat <text>` | opens chat, types, sends — runs AS THE PLAYER, not console |
+| `./dev input move\|click\|dblclick\|rightclick <x> <y>` | pointer, at screen coordinates |
+| `./dev client-log [--tail N] [--grep P]` | the client's own log, snapshot only |
+| `./dev logs-all [--tail N] [--grep P]` | both sides on one clock (container logs UTC, client local) |
+
+### The five things that make it work
+
+**Screen coordinates are `window origin + image px / 2` on a retina display.** Read the
+bounds live rather than hard-coding them — the window moves:
+
+```bash
+PID=$(pgrep -f "org.prismlauncher.EntryPoint" | head -1)
+osascript -e "tell application \"System Events\" to tell (first process whose unix id is $PID) to get {position, size} of window 1"
+```
+
+**The pointer picks the window; it never aims.** The crosshair is fixed at screen
+centre and the game reads look direction, so aiming is
+`tp <player> <x> <y> <z> <yaw> <pitch>` over RCON and the click is only the trigger.
+Igniting a portal is: `tp` into the frame looking down (`pitch 90`), then
+`./dev input rightclick <window centre>`.
+
+**No in-game widget can be clicked by name.** The Minecraft window's whole
+accessibility tree is three traffic lights and a title — the UI is an OpenGL canvas.
+Keyboard reaches widget focus (Tab cycles, Enter activates) but cannot select a
+server-list row; that needs `dblclick`. Prism Launcher's own windows ARE native and
+do expose real buttons.
+
+**Recovering a client a restart disconnected**, which every full test run hits:
+
+```bash
+./dev input focus
+./dev input key tab      # clears "Connection Lost" to the server list
+./dev input key enter
+./dev input dblclick <x> <y>              # the server row
+docker exec -i mc rcon-cli "list"         # confirm the join — never by screenshot
+```
+
+**A walk stops dead on a one-block rise.** Vanilla step height is 0.6, so a player
+auto-steps a slab and not a block. Hold `"w space"` together — a standing jump lands
+where it started, so the jump only helps while moving — or flatten the lane. A short
+walk that "worked once" proves the ground was level there, not that walking works.
+
+### Traps that have produced confident wrong answers
+
+- **`screencapture -R` takes a screen REGION, not a window.** Anything stacked over the
+  game is what lands in the file. `./dev screenshot` raises the client first for
+  exactly this reason; `--no-focus` opts out and will photograph whatever is on top.
+- **A synthetic click with no preceding MOTION does nothing in a game.** GLFW tracks its
+  own cursor position and resolves the click wherever it last thought the pointer was.
+  `./dev input` warps the cursor first through a compiled CGEvent helper; AppleScript's
+  `click at` cannot do this.
+- **`hold` for more than a few seconds is unreliable.** Walk in bounded steps and check
+  position between them rather than one long hold.
+- **Ignition needs the item IN HAND.** `give` puts it in the first empty slot and the
+  right-click then does nothing. Use
+  `item replace entity <player> weapon.mainhand with <item>`.
+- **`setblock` into an unloaded chunk answers `That position is not loaded` and does
+  nothing.** Chunks load from a PLAYER, so teleport to the site and settle before
+  building. Treat that answer as its own failure, never as `Test failed`
+  ([T50](../../../TROUBLESHOOTING.md#t50)).
+- **`mc-backup-local` drives the SAME RCON socket** on its backup cycle, issuing
+  `save-off`/`save-all`/`save-on`, and its replies arrive as the answers to your
+  probes. Check `docker logs mc-backup-local --tail 20` first, or stop the container
+  for the test session — its backups of a local test world are worth nothing.
+- **Two agents on one RCON socket interleave their replies.** A `list` can come back
+  carrying another client's `data get` output. Repeating a reading lowers the odds
+  without bounding them; serialise instead, and send one command per `docker exec`
+  because `rcon-cli` joins its arguments into a single command.
+- **A negative block coordinate is centred towards zero.** Block `-3859` spans
+  `[-3859, -3858)` and is centred at `-3858.5`, so `-3859.5` lands in block `-3860`.
+  One block out puts a hitbox in the neighbouring column, which is enough to teleport
+  a player into a portal mid-test.
+- **A mod jar change needs `./dev up`, never `./dev restart mc`** — a restart installs
+  nothing and will boot the OLD jar looking perfectly healthy. Prove it with BOTH
+  halves: served sha == built sha, AND the container's `StartedAt` post-dates the
+  jar's mtime.
+- **A client mod change needs a full client restart.** Copy the built jar into
+  `<instance>/minecraft/mods/` and relaunch; nothing hot-reloads.
+
+### Reading the client's own logging
+
+Client markers below INFO never reach the log — there are zero `DEBUG` lines in a
+normal run. A `LOGGER.debug` marker you are grepping for is invisible, and its absence
+proves nothing. Raise it to INFO while you are diagnosing, and say so.
 
 ## The two local entry points
 

@@ -131,7 +131,7 @@ Full traversal recipes, every assertion pattern, and ~20 gotchas (aiming, ignite
 - RCON `fill`/`setblock` into an unloaded dimension silently does nothing, answering `Unknown dimension` — teleport a player there first to load it.
 - Assert with `data get entity` and log greps, never RCON chat echoes.
 - `touch /data/.skip-pause` or autopause kicks the bot mid-test.
-- Source portal interiors have **no** portal blocks — assert traversal (`Dimension`/`Pos`), never probe the source interior for portal state.
+- No portal has anything inside it, at either end — assert traversal (`Dimension`/`Pos`) and the `portal_links.json` record count, never probe an interior for portal state.
 - Profile an arrival column **before** traversing — probing afterwards measures the portal you just built, not the ground it was built on.
 
 ## 7. Soak time-based paths

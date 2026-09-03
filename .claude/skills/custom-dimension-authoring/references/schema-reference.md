@@ -196,13 +196,12 @@ restate the whole array.
 | `cooldown` | Teleport cooldown in ticks, `0`-`200`. Default `40` (2s). |
 | `particleType` | Any particle id, overrides `color`. |
 | `orientation` | `"any"` (default) \| `"vertical"` (X/Z) \| `"horizontal"` (Y) \| `"vertical_x"` \| `"vertical_z"`. |
-| `shape` | `"standard"` \| `"door"` (1×2) \| `"doorway"` (2×3) \| `"end_exit"` (horizontal ring) \| `"end_gateway"` (frameless single block) \| a custom pattern object. |
-| `centreBlock` | `end_exit` shape only — pedestal block at centre. |
+| `shape` | `"standard"` \| `"door"` (1×2) \| `"doorway"` (2×3) \| `"end_exit"` (horizontal ring) \| `"end_gateway"` (a ring around exactly one cell) \| a custom pattern object. |
 | `sounds` | Any Minecraft sound event id (dot-separated, e.g. `entity.enderman.teleport`), not a file path. Legacy flat keys `igniteSound`/`enterSound`/`exitSound` also work; `sounds` wins if both present. Defaults: ignite `block.portal.trigger`, enter/exit `block.portal.travel`. |
 | `anchor` | Fixed landing point. `pos`: `[x,y,z]` or `"spawn"`. `exit`: `"origin"` (default) \| `"bed"` \| `"worldSpawn"` \| `{"dimension": "ns:slug", "arrival": "anchor"\|"spawn"\|[x,y,z]}`. |
 | `singleUse` | Self-destructing portal. `delaySeconds` (default 10) from first traversal to frame break. `breakMode`: `"destroy"` \| `"decay"` (default, swaps via `decayMap`) \| `"partial"` (1-2 blocks decay, repairable). |
 | `aura` | Environmental particle/sound spread near the portal. `{"enabled": false}` to disable; default is a derived bi-directional leak. |
-| `immersive` | See through the portal into the destination, hear its biome ambience, and throw items/projectiles through. Server-side only — no client mod. `true` for all defaults, absent/`false` for off, or an object to tune: `previewDepth` (1-16, default 8), `previewRadius` (0-4, default 2), `refreshInterval` ticks (min 2, default 4), `activationRange` blocks (1-64, default 24), `audio` (default true), `entityPassthrough` (default true). An explicit `"enabled": false` inside the object means off. Boot-re-read like the rest of `portal`, so changes apply without a world wipe. Excluded for `end_gateway` shapes (no projection plane). |
+| `immersive` | See through the portal into the destination, hear its biome ambience, and throw items/projectiles through. Server-side only — no client mod. `true` for all defaults, absent/`false` for off, or an object to tune: `previewDepth` (1-16, default 8), `previewRadius` (0-4, default 2), `refreshInterval` ticks (min 2, default 4), `activationRange` blocks (1-64, default 24), `audio` (default true), `entityPassthrough` (default true). An explicit `"enabled": false` inside the object means off. Boot-re-read like the rest of `portal`, so changes apply without a world wipe. |
 
 ## `exitPortal` object
 
