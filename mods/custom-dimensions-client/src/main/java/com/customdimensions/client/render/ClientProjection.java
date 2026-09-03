@@ -169,28 +169,33 @@ public final class ClientProjection {
         }
     }
 
-    /** Grid state, air outside the described box. */
-    public BlockState stateAt(int x, int y, int z) {
+    /**
+     * Grid index for a SOURCE-world position, or -1 outside the described box.
+     * Both arrays are indexed in source space with destination contents: the
+     * server walks source cells and samples {@code toTarget} of each, so this
+     * subtracts the source-space {@code origin} and never a destination one.
+     */
+    int indexOf(int x, int y, int z) {
         BlockPos origin = origin();
         int lx = x - origin.getX();
         int ly = y - origin.getY();
         int lz = z - origin.getZ();
         if (lx < 0 || ly < 0 || lz < 0 || lx >= sizeX() || ly >= sizeY() || lz >= sizeZ()) {
-            return Blocks.AIR.getDefaultState();
+            return -1;
         }
-        return this.states[((lx * sizeZ()) + lz) * sizeY() + ly];
+        return ((lx * sizeZ()) + lz) * sizeY() + ly;
+    }
+
+    /** Grid state, air outside the described box. */
+    public BlockState stateAt(int x, int y, int z) {
+        int index = indexOf(x, y, z);
+        return index < 0 ? Blocks.AIR.getDefaultState() : this.states[index];
     }
 
     /** Packed {@code sky << 4 | block}, 0 outside the described box. */
     public int lightAt(int x, int y, int z) {
-        BlockPos origin = origin();
-        int lx = x - origin.getX();
-        int ly = y - origin.getY();
-        int lz = z - origin.getZ();
-        if (lx < 0 || ly < 0 || lz < 0 || lx >= sizeX() || ly >= sizeY() || lz >= sizeZ()) {
-            return 0;
-        }
-        return this.payload.light()[((lx * sizeZ()) + lz) * sizeY() + ly] & 0xFF;
+        int index = indexOf(x, y, z);
+        return index < 0 ? 0 : this.payload.light()[index] & 0xFF;
     }
 
     /** The built mesh, or null while there is not one yet. Never builds. */

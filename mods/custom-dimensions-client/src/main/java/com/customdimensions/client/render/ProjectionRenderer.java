@@ -132,9 +132,9 @@ public final class ProjectionRenderer {
         // Written after the draws, so a line at all means every draw returned.
         if (report != null) {
             lastSampleAt = System.currentTimeMillis();
-            LOGGER.info("{} aperture={} camToPlane={} layers={} {}", EMIT_MARKER,
+            LOGGER.info("{} aperture={} camToPlane={} opening={} volume={} layers={} {}", EMIT_MARKER,
                     projection.apertureOrigin().toShortString(), String.format("%.2f", camToPlane),
-                    mesh.layers().size(), report);
+                    openingBounds(corners), volumeBounds(projection), mesh.layers().size(), report);
         }
 
         matrices.pop();
@@ -344,6 +344,30 @@ public final class ProjectionRenderer {
                 .overlay((int) poly[at + 9], (int) poly[at + 10])
                 .light(((int) poly[at + 11]) << 4, ((int) poly[at + 12]) << 4)
                 .normal(entry, poly[at + 13], poly[at + 14], poly[at + 15]);
+    }
+
+    /**
+     * The opening's own local box. Read against {@link #volumeBounds} in the
+     * emit line: an opening outside the volume means the two are not in one
+     * coordinate frame, and the clip then discards the whole mesh.
+     */
+    private static String openingBounds(double[] corners) {
+        StringBuilder out = new StringBuilder("[");
+        for (int axis = 0; axis < 3; axis++) {
+            double min = Double.MAX_VALUE;
+            double max = -Double.MAX_VALUE;
+            for (int i = 0; i < 4; i++) {
+                min = Math.min(min, corners[i * 3 + axis]);
+                max = Math.max(max, corners[i * 3 + axis]);
+            }
+            out.append(axis == 0 ? "" : ", ").append(String.format("%.1f..%.1f", min, max));
+        }
+        return out.append(']').toString();
+    }
+
+    private static String volumeBounds(ClientProjection projection) {
+        return "[0.0.." + projection.sizeX() + ".0, 0.0.." + projection.sizeY()
+                + ".0, 0.0.." + projection.sizeZ() + ".0]";
     }
 
     private static double axisOf(double x, double y, double z, Direction.Axis axis) {

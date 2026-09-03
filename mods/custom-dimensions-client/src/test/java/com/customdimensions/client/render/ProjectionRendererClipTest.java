@@ -148,9 +148,8 @@ class ProjectionRendererClipTest {
      */
     @Test
     void theOpeningIsMeasuredFromTheSameOriginTheMeshIs() {
-        BlockPos origin = new BlockPos(1492, 93, 1501);
-        double[] corners = ProjectionRenderer.apertureCorners(
-                projection(Direction.SOUTH, origin), origin);
+        ClientProjection projection = projection(Direction.SOUTH, new BlockPos(1492, 93, 1501));
+        double[] corners = ProjectionRenderer.apertureCorners(projection, projection.origin());
 
         // 1500 - 1492 and (1501 + 1) - 1492 on X; 101 - 93 and (103 + 1) - 93 on Y.
         assertEquals(8.0, corners[0], TOLERANCE);
@@ -175,15 +174,99 @@ class ProjectionRendererClipTest {
      */
     @Test
     void theOpeningTracksTheSlabWhenItExtendsTheOtherWay() {
-        BlockPos origin = new BlockPos(1492, 93, 1476);
-        double[] corners = ProjectionRenderer.apertureCorners(
-                projection(Direction.NORTH, origin), origin);
+        ClientProjection projection = projection(Direction.NORTH, new BlockPos(1492, 93, 1476));
+        double[] corners = ProjectionRenderer.apertureCorners(projection, projection.origin());
 
         for (int i = 0; i < 4; i++) {
             assertEquals(24.0, corners[i * 3 + 2], TOLERANCE,
                     "the opening is not on the slab's near face");
         }
     }
+
+    /**
+     * The opening must land INSIDE the volume's own footprint, not merely on its
+     * near face. {@code origin} is the min corner of the SOURCE cells the server
+     * walked, so an origin taken from destination space instead would put the
+     * opening hundreds of blocks outside this box and the clip would then
+     * discard every quad — the reported symptom exactly.
+     */
+    @Test
+    void theOpeningLiesInsideTheVolumeItIsMeasuredAgainst() {
+        ClientProjection projection = projection(Direction.SOUTH, new BlockPos(1492, 93, 1501));
+        double[] corners = ProjectionRenderer.apertureCorners(projection, projection.origin());
+
+        for (int i = 0; i < 4; i++) {
+            assertInside(corners[i * 3], SIZE_X, "x");
+            assertInside(corners[i * 3 + 1], SIZE_Y, "y");
+            assertInside(corners[i * 3 + 2], SIZE_Z, "z");
+        }
+    }
+
+    private static void assertInside(double coordinate, int size, String axis) {
+        assertTrue(coordinate >= 0.0 && coordinate <= size,
+                "the opening's " + axis + " = " + coordinate + " is outside the volume's 0.." + size
+                        + " — the opening and the mesh are not in one coordinate frame");
+    }
+
+    /**
+     * The grid is indexed in SOURCE space with destination contents:
+     * {@code ProjectionStream.build} walks source cells, samples
+     * {@code toTarget} of each, and stores at {@code ((x * sizeZ) + z) * sizeY + y}.
+     * The client has to subtract the same source-space origin and use the same
+     * order, or {@code ProjectionMesh.build} meshes the wrong cells.
+     */
+    @Test
+    void theGridIsIndexedInSourceSpaceInTheServersOwnOrder() {
+        BlockPos origin = new BlockPos(1492, 93, 1501);
+        ClientProjection projection = projection(Direction.SOUTH, origin);
+
+        assertEquals(0, projection.indexOf(1492, 93, 1501), "the origin is not cell zero");
+        // y varies fastest, then z, then x — written out rather than borrowed.
+        assertEquals(((5 * SIZE_Z) + 7) * SIZE_Y + 3,
+                projection.indexOf(1492 + 5, 93 + 3, 1501 + 7));
+        assertEquals(SIZE_X * SIZE_Y * SIZE_Z - 1,
+                projection.indexOf(1492 + SIZE_X - 1, 93 + SIZE_Y - 1, 1501 + SIZE_Z - 1),
+                "the far corner is not the last cell");
+    }
+
+    @Test
+    void aPositionOutsideTheDescribedBoxHasNoCell() {
+        BlockPos origin = new BlockPos(1492, 93, 1501);
+        ClientProjection projection = projection(Direction.SOUTH, origin);
+
+        assertEquals(-1, projection.indexOf(1491, 93, 1501));
+        assertEquals(-1, projection.indexOf(1492, 92, 1501));
+        assertEquals(-1, projection.indexOf(1492, 93, 1500));
+        assertEquals(-1, projection.indexOf(1492 + SIZE_X, 93, 1501));
+        assertEquals(-1, projection.indexOf(1492, 93 + SIZE_Y, 1501));
+        assertEquals(-1, projection.indexOf(1492, 93, 1501 + SIZE_Z));
+    }
+
+    /**
+     * The block directly behind the opening has to be a cell of the volume, and
+     * its local position has to fall within the opening's own rectangle. That is
+     * the two frames touching, over the payload the server actually sends.
+     */
+    @Test
+    void theCellBehindTheOpeningIsUnderTheOpening() {
+        BlockPos origin = new BlockPos(1492, 93, 1501);
+        ClientProjection projection = projection(Direction.SOUTH, origin);
+        double[] corners = ProjectionRenderer.apertureCorners(projection, projection.origin());
+
+        // One block past the plane on the normal axis, centred in the opening.
+        assertTrue(projection.indexOf(1500, 102, 1501) >= 0,
+                "the first slab layer behind the opening is not a cell of the volume");
+        double localX = 1500 - origin.getX();
+        double localY = 102 - origin.getY();
+        assertTrue(localX >= corners[0] && localX <= corners[6],
+                "the cell behind the opening is not under it on X");
+        assertTrue(localY >= corners[1] && localY <= corners[4],
+                "the cell behind the opening is not under it on Y");
+    }
+
+    private static final int SIZE_X = 18;
+    private static final int SIZE_Y = 19;
+    private static final int SIZE_Z = 24;
 
     /** The measured portal: 2 wide, 3 tall, plane Z = 1500, portal axis X. */
     private static ClientProjection projection(Direction normal, BlockPos origin) {
@@ -197,7 +280,7 @@ class ProjectionRendererClipTest {
                 Identifier.of("adventure", "the_crimson_nexus"),
                 aperture.get(0), aperture,
                 Direction.Axis.X.ordinal(), normal.ordinal(),
-                origin, 18, 19, 24,
+                origin, SIZE_X, SIZE_Y, SIZE_Z,
                 new int[0], new byte[0],
                 -1, -1, -1, -1, -1));
     }
