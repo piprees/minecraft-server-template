@@ -133,6 +133,30 @@ class ProjectionRendererClipTest {
         assertEquals(4, drawn.count());
     }
 
+    /**
+     * A layer that clips to nothing is only honest if its geometry was within
+     * reach of the opening in the first place. The emit line reports both boxes
+     * so the two cases can be told apart without another run.
+     */
+    @Test
+    void aLayersGeometryBoxIsTheSpanOfItsOwnVertices() {
+        float[] near = quad(5.0f, 0.0f, 1.0f, 2.0f, 3.0f);
+        float[] far = quad(9.0f, -4.0f, 7.0f, 6.0f, 6.5f);
+        float[] both = new float[near.length + far.length];
+        System.arraycopy(near, 0, both, 0, near.length);
+        System.arraycopy(far, 0, both, near.length, far.length);
+
+        // x spans -4..7, y spans 2..6.5, z spans 5..9 across the two quads.
+        assertEquals("[-4.0..7.0, 2.0..6.5, 5.0..9.0]",
+                ProjectionRenderer.meshBounds(new ProjectionMesh.Layer(null, both, both.length)));
+    }
+
+    @Test
+    void anEmptyLayerSaysSoRatherThanReportingABackwardsBox() {
+        assertEquals("[empty]", ProjectionRenderer.meshBounds(
+                new ProjectionMesh.Layer(null, new float[0], 0)));
+    }
+
     @Test
     void aCameraOnTheFrameEdgeDegeneratesRatherThanBuildingAJunkFrustum() {
         assertFalse(ProjectionRenderer.buildPlanes(APERTURE.clone(), 0.0, 0.0, 0.0),

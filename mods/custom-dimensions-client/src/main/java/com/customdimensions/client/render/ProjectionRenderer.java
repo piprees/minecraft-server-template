@@ -123,6 +123,7 @@ public final class ProjectionRenderer {
                 report.append(report.isEmpty() ? "" : " | ")
                         .append(layer.layer())
                         .append(" quadsIn=").append(layer.floats() / (STRIDE * 4))
+                        .append(" geometry=").append(meshBounds(layer))
                         .append(" clipVertices=").append(clipVertices)
                         .append(" emitted=").append(emitted)
                         .append(" consumer=").append(consumer.getClass().getName())
@@ -359,6 +360,30 @@ public final class ProjectionRenderer {
             for (int i = 0; i < 4; i++) {
                 min = Math.min(min, corners[i * 3 + axis]);
                 max = Math.max(max, corners[i * 3 + axis]);
+            }
+            out.append(axis == 0 ? "" : ", ").append(String.format("%.1f..%.1f", min, max));
+        }
+        return out.append(']').toString();
+    }
+
+    /**
+     * One layer's own geometry box, in the same local space as
+     * {@link #openingBounds}. This is what separates a layer that legitimately
+     * clips to nothing — its blocks are not behind the opening — from one whose
+     * vertices were written somewhere the opening could never see.
+     */
+    static String meshBounds(ProjectionMesh.Layer layer) {
+        if (layer.floats() < STRIDE) {
+            return "[empty]";
+        }
+        float[] data = layer.data();
+        StringBuilder out = new StringBuilder("[");
+        for (int axis = 0; axis < 3; axis++) {
+            float min = Float.MAX_VALUE;
+            float max = -Float.MAX_VALUE;
+            for (int at = axis; at < layer.floats(); at += STRIDE) {
+                min = Math.min(min, data[at]);
+                max = Math.max(max, data[at]);
             }
             out.append(axis == 0 ? "" : ", ").append(String.format("%.1f..%.1f", min, max));
         }
