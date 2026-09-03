@@ -38,7 +38,7 @@ public final class DevServer {
 
     private DevServer() {}
 
-    static void start(int port) {
+    static void start(int port, String source) {
         if (server != null) {
             return;
         }
@@ -56,7 +56,7 @@ public final class DevServer {
             }));
             server.start();
             CustomDimensionsClient.LOGGER.info(
-                    "Dev control surface listening on 127.0.0.1:{}", port);
+                    "Dev control surface listening on 127.0.0.1:{} (port from {})", port, source);
         } catch (IOException e) {
             CustomDimensionsClient.LOGGER.error(
                     "Dev control surface failed to bind port {}", port, e);

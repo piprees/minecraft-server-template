@@ -3,12 +3,17 @@ package com.customdimensions.client.dev;
 import com.customdimensions.client.CustomDimensionsClient;
 import com.customdimensions.client.mixin.MinecraftClientInvoker;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.util.InputUtil;
 import net.minecraft.util.math.Vec3d;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -33,15 +38,39 @@ public final class DevBridge {
 
     /** Off unless a port is named. Nothing is registered when it is not. */
     public static void start() {
-        int port = DevPort.resolve();
-        if (port <= 0) {
+        DevPort.Resolved resolved = DevPort.resolve(
+                System.getProperty(DevPort.PROPERTY),
+                System.getenv(DevPort.ENVIRONMENT),
+                portFile());
+        if (resolved.warning() != null) {
+            CustomDimensionsClient.LOGGER.warn(resolved.warning());
+            return;
+        }
+        if (resolved.port() <= 0) {
             CustomDimensionsClient.LOGGER.info(
-                    "Dev control surface disabled (-D{} and ${} unset)",
-                    DevPort.PROPERTY, DevPort.ENVIRONMENT);
+                    "Dev control surface disabled (-D{}, ${} and config/{} all unset)",
+                    DevPort.PROPERTY, DevPort.ENVIRONMENT, DevPort.FILE_NAME);
             return;
         }
         ClientTickEvents.END_CLIENT_TICK.register(DevBridge::tick);
-        DevServer.start(port);
+        DevServer.start(resolved.port(), resolved.source());
+    }
+
+    /**
+     * The port file, or null when there is none — which is the normal state and
+     * says nothing. Read once, here, so a launch that deleted the file cannot
+     * inherit the previous session's port.
+     */
+    private static String portFile() {
+        Path file = FabricLoader.getInstance().getConfigDir().resolve(DevPort.FILE_NAME);
+        if (!Files.isRegularFile(file)) {
+            return null;
+        }
+        try {
+            return Files.readString(file, StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            return "";
+        }
     }
 
     public static int tick() {
