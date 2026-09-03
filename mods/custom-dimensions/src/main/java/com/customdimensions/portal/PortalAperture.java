@@ -115,12 +115,34 @@ public final class PortalAperture {
     }
 
     /**
-     * Which way this cell's dust leaves the plane on this pass. Broadcast
-     * particles have no viewer, so both sides are fed and the opening leaks
-     * in whichever direction you are standing.
+     * Which way this cell's dust leaves the plane when nobody's position
+     * decides it: an even split, so both sides are fed. The tie-break for
+     * {@link #driftSignToward}, whose viewer is level with the plane.
      */
     public static int driftSign(long tick, BlockPos cell) {
         return unitHash(tick, cell, 0xD6E8FEB86659FD93L) < 0.5 ? -1 : 1;
+    }
+
+    /**
+     * Which way this cell's dust leaves the plane FOR ONE VIEWER: towards
+     * them, so it drifts out of the opening rather than into an immersive
+     * portal's projection, which always stands on their far side. Same
+     * block-coordinate side test as {@code ProjectionVolume.viewerFarSide},
+     * so the drift and the slab can never disagree.
+     *
+     * <p>Outward has no meaning without a viewer, and no single meaning for
+     * two of them standing on opposite sides of one frame — hence a sign per
+     * viewer rather than a rule per pass. Level with the plane is the doorway
+     * itself, which has no near side: {@link #driftSign} feeds both.
+     */
+    public static int driftSignToward(int planeCoord, int viewerCoord, long tick, BlockPos cell) {
+        if (viewerCoord < planeCoord) {
+            return -1;
+        }
+        if (viewerCoord > planeCoord) {
+            return 1;
+        }
+        return driftSign(tick, cell);
     }
 
     /** Hard ceiling on emitting cells per pass, whatever density asks for. */

@@ -64,7 +64,8 @@ class TickPathChunkLoadTest {
      */
     private static final List<String> TICK_ENTRY_CLASSES = List.of(
             "com/customdimensions/mixin/ServerWorldMixin",
-            "com/customdimensions/mixin/EntityTickPortalMixin");
+            "com/customdimensions/mixin/EntityTickPortalMixin",
+            "com/customdimensions/mixin/PortalDestinationMixin");
 
     /**
      * Methods the walk does not traverse THROUGH, because a runtime residency
@@ -321,6 +322,45 @@ class TickPathChunkLoadTest {
                 + "first. collectPortalArea and frameBlockIds both read blocks, and on this path "
                 + "no player is near enough to hold the neighbouring chunks — the fill generates "
                 + "terrain on the tick and the watchdog kills the server ([K1]/[K6])");
+    }
+
+    /**
+     * The other tick path that flood-fills a portal area.
+     * {@code Entity.tickPortalTeleportation} reaches
+     * {@code VanillaLinkResolver.recordVanillaCrossing} for a portal vanilla
+     * owns, and the arrival it is handed is a column in a world nobody may be
+     * standing in. The fill is bounded to
+     * {@link PortalAdoption#FOOTPRINT_RADIUS}, but the START block is read
+     * unconditionally — so the residency probe still has to come first.
+     */
+    @Test
+    void theVanillaCrossingRecordProvesResidencyBeforeItCollectsAPortalArea() throws IOException {
+        Map<MethodRef, List<Call>> graph = callGraph();
+        List<Call> calls = null;
+        for (Map.Entry<MethodRef, List<Call>> entry : graph.entrySet()) {
+            if (entry.getKey().node().equals(
+                    "com/customdimensions/immersive/VanillaLinkResolver#recordVanillaCrossing")) {
+                calls = entry.getValue();
+            }
+        }
+        assertTrue(calls != null, "the vanilla-crossing record has moved or been renamed");
+
+        int probe = -1;
+        int read = -1;
+        for (int i = 0; i < calls.size(); i++) {
+            String name = calls.get(i).target().name();
+            if (probe < 0 && name.equals("isColumnResident")) {
+                probe = i;
+            }
+            if (read < 0 && name.equals("portalAreaAround")) {
+                read = i;
+            }
+        }
+        assertTrue(read >= 0, "the vanilla-crossing record no longer collects a portal area");
+        assertTrue(probe >= 0 && probe < read,
+                "the arrival column is read before it is proved resident — getBlockState "
+                + "resolves through getChunk(create = true) and generates terrain on the tick "
+                + "([K1]/[K6])");
     }
 
     @Test

@@ -13,7 +13,6 @@ import com.google.gson.reflect.TypeToken;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
-import net.minecraft.block.NetherPortalBlock;
 import net.minecraft.particle.DustParticleEffect;
 import net.minecraft.particle.ParticleEffect;
 import net.minecraft.particle.ParticleType;
@@ -21,6 +20,7 @@ import net.minecraft.registry.Registries;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
@@ -1215,29 +1215,96 @@ public class PortalHelper {
      * One pass of an opening's particles: the planned cells, each leaving
      * through the plane. Shared by both directions, so a source portal and
      * the arrival it built read the same from either side.
+     *
+     * <p>Drawn per viewer rather than broadcast — which way is OUT of an
+     * opening is a property of where you stand ({@link #emitToViewers}). The
+     * wire cost is unchanged: vanilla's broadcast overload already loops the
+     * world's players and gates each on 32 blocks, and the per-player
+     * overload applies that same gate.
      */
     static void emitAperture(ServerWorld world, Set<BlockPos> interior, Direction.Axis axis,
             ParticleEffect effect, double density, double edgeBias, long tick, int interval) {
         List<BlockPos> cells = PortalAperture.emittingCells(interior, axis, tick, density, edgeBias);
-        logApertureFill(world, interior, cells.size(), tick, interval);
-        if (cells.isEmpty()) {
+        List<ApertureViewer> viewers = viewersOf(world);
+        logApertureFill(world, interior, cells.size(), viewers.size(), tick, interval);
+        emitToViewers(viewers, cells, axis, effect, tick);
+    }
+
+    /**
+     * The planned cells, emitted to each viewer with the dust drifting
+     * TOWARDS them — out of the opening, rather than into the projection
+     * slab, which always stands on their far side.
+     *
+     * <p>Outward is only definable per viewer: two players either side of one
+     * frame want opposite drift, so any single answer is wrong for one of
+     * them.
+     */
+    static void emitToViewers(List<ApertureViewer> viewers, List<BlockPos> cells,
+            Direction.Axis axis, ParticleEffect effect, long tick) {
+        if (viewers.isEmpty() || cells.isEmpty()) {
             return;
         }
         Direction.Axis normal = PortalAperture.normalAxis(axis);
-        for (BlockPos p : cells) {
-            emitThroughPlane(world, effect, p, normal, PortalAperture.driftSign(tick, p), tick);
+        for (BlockPos cell : cells) {
+            int planeCoord = com.customdimensions.immersive.ProjectionVolume.coordOn(cell, normal);
+            for (ApertureViewer viewer : viewers) {
+                int viewerCoord = com.customdimensions.immersive.ProjectionVolume.coordOn(
+                        viewer.position(), normal);
+                emitThroughPlane(viewer, effect, cell, normal,
+                        PortalAperture.driftSignToward(planeCoord, viewerCoord, tick, cell), tick);
+            }
+        }
+    }
+
+    /**
+     * The players a pass in this world is drawn for. {@link
+     * ApertureViewer#send} carries vanilla's own 32-block range gate, so the
+     * recipients are exactly the broadcast's.
+     */
+    private static List<ApertureViewer> viewersOf(ServerWorld world) {
+        List<ServerPlayerEntity> players = world.getPlayers();
+        if (players.isEmpty()) {
+            return List.of();
+        }
+        List<ApertureViewer> viewers = new ArrayList<>(players.size());
+        for (ServerPlayerEntity player : players) {
+            viewers.add(new PlayerViewer(world, player));
+        }
+        return viewers;
+    }
+
+    /** One player an opening is drawn for: where they stand, and a send that reaches them alone. */
+    public interface ApertureViewer {
+        /** The block they occupy — the side test {@code ProjectionVolume.viewerFarSide} uses. */
+        BlockPos position();
+
+        void send(ParticleEffect effect, double x, double y, double z, int count,
+                double dx, double dy, double dz, double speed);
+    }
+
+    /** A live player. {@code force = false} keeps vanilla's 32-block range gate. */
+    private record PlayerViewer(ServerWorld world, ServerPlayerEntity player) implements ApertureViewer {
+        @Override
+        public BlockPos position() {
+            return player.getBlockPos();
+        }
+
+        @Override
+        public void send(ParticleEffect effect, double x, double y, double z, int count,
+                double dx, double dy, double dz, double speed) {
+            world.spawnParticles(player, effect, false, x, y, z, count, dx, dy, dz, speed);
         }
     }
 
     /**
      * Heartbeat for the one property that decides whether an opening reads as
-     * a window: how much of the plane a pass filled. Particles leave no
-     * server-side trace at all, so this line is the only headless evidence
-     * the pass ran and the only way to see the fill share without a human at
-     * a screen.
+     * a window: how much of the plane a pass filled, and how many viewers it
+     * was drawn for. Particles leave no server-side trace at all, so this
+     * line is the only headless evidence the pass ran and the only way to see
+     * the fill share without a human at a screen.
      */
     private static void logApertureFill(ServerWorld world, Set<BlockPos> interior, int emitted,
-            long tick, int interval) {
+            int viewers, long tick, int interval) {
         // A window one emission interval wide, not a single tick: a zone
         // emitting every sixth tick would otherwise only coincide with an
         // exact multiple of the cadence for some of its phase offsets, and
@@ -1247,8 +1314,8 @@ public class PortalHelper {
         }
         BlockPos anchor = interior.iterator().next();
         com.customdimensions.MultiverseServer.LOGGER.debug(
-                "aperture: emitted {} of {} cells ({}%) in {} at {}",
-                emitted, interior.size(), (emitted * 100) / interior.size(),
+                "aperture: emitted {} of {} cells ({}%) for {} viewer(s) in {} at {}",
+                emitted, interior.size(), (emitted * 100) / interior.size(), viewers,
                 world.getRegistryKey().getValue(), anchor.toShortString());
     }
 
@@ -1264,7 +1331,7 @@ public class PortalHelper {
      * dust drifts out of the opening towards whichever side the viewer is
      * on. The scatter that buys is replaced by {@link PortalAperture#jitter}.
      */
-    private static void emitThroughPlane(ServerWorld world, ParticleEffect effect, BlockPos cell,
+    static void emitThroughPlane(ApertureViewer viewer, ParticleEffect effect, BlockPos cell,
             Direction.Axis normal, int sign, long tick) {
         double x = cell.getX() + 0.5 + (normal == Direction.Axis.X
                 ? PortalAperture.jitter(tick, cell, 0, PLANE_JITTER)
@@ -1275,7 +1342,7 @@ public class PortalHelper {
         double z = cell.getZ() + 0.5 + (normal == Direction.Axis.Z
                 ? PortalAperture.jitter(tick, cell, 2, PLANE_JITTER)
                 : PortalAperture.jitter(tick, cell, 2, CELL_JITTER));
-        world.spawnParticles(effect, x, y, z, 0,
+        viewer.send(effect, x, y, z, 0,
                 normal == Direction.Axis.X ? sign : 0.0,
                 normal == Direction.Axis.Y ? sign : DRIFT_LIFT,
                 normal == Direction.Axis.Z ? sign : 0.0,
@@ -1907,22 +1974,26 @@ public class PortalHelper {
     /**
      * The vanilla portal area around a real portal block — adoption's input.
      * Nothing this mod owns is found here: its interiors are empty.
+     *
+     * <p>Bounded to the square the caller proved resident, and refusing rather
+     * than truncating past it — see {@link #withinProvenFootprint}.
      */
     public static Set<BlockPos> collectPortalArea(ServerWorld world, BlockPos start) {
-        BlockState startState = world.getBlockState(start);
-        if (startState.isOf(Blocks.END_PORTAL)) {
-            return collectHorizontalPortalArea(world, start);
+        return collectPortalArea(PortalBlockView.of(world), start);
+    }
+
+    static Set<BlockPos> collectPortalArea(PortalBlockView view, BlockPos start) {
+        if (view.isEndPortal(start)) {
+            return collectHorizontalPortalArea(view, start);
         }
-        if (!startState.isOf(Blocks.NETHER_PORTAL)) {
-            return Collections.emptySet();
-        }
-        if (!startState.contains(NetherPortalBlock.AXIS)) {
+        Direction.Axis startAxis = view.netherPortalAxis(start);
+        if (startAxis == null) {
             return Collections.emptySet();
         }
 
-        Direction.Axis axis = getEffectiveAxis(world, start);
+        Direction.Axis axis = getEffectiveAxis(start);
         if (axis == null) {
-            axis = startState.get(NetherPortalBlock.AXIS);
+            axis = startAxis;
         }
 
         Direction.Axis effectiveAxis = axis;
@@ -1939,11 +2010,13 @@ public class PortalHelper {
                 if (visited.contains(neighbor)) {
                     continue;
                 }
-                BlockState neighborState = world.getBlockState(neighbor);
-                if (!neighborState.isOf(Blocks.NETHER_PORTAL) || !neighborState.contains(NetherPortalBlock.AXIS)) {
+                if (!withinProvenFootprint(start, neighbor)) {
+                    return Collections.emptySet();
+                }
+                Direction.Axis neighborAxis = view.netherPortalAxis(neighbor);
+                if (neighborAxis == null) {
                     continue;
                 }
-                Direction.Axis neighborAxis = neighborState.get(NetherPortalBlock.AXIS);
                 if (effectiveAxis == Direction.Axis.Y) {
                     if (neighborAxis != Direction.Axis.X && neighborAxis != Direction.Axis.Z) {
                         continue;
@@ -1958,7 +2031,7 @@ public class PortalHelper {
         return visited;
     }
 
-    private static Set<BlockPos> collectHorizontalPortalArea(ServerWorld world, BlockPos start) {
+    private static Set<BlockPos> collectHorizontalPortalArea(PortalBlockView view, BlockPos start) {
         HashSet<BlockPos> visited = new HashSet<>();
         ArrayDeque<BlockPos> queue = new ArrayDeque<>();
         queue.add(start);
@@ -1972,7 +2045,10 @@ public class PortalHelper {
                 if (visited.contains(neighbor)) {
                     continue;
                 }
-                if (!world.getBlockState(neighbor).isOf(Blocks.END_PORTAL)) {
+                if (!withinProvenFootprint(start, neighbor)) {
+                    return Collections.emptySet();
+                }
+                if (!view.isEndPortal(neighbor)) {
                     continue;
                 }
                 visited.add(neighbor);
@@ -1982,7 +2058,28 @@ public class PortalHelper {
         return visited;
     }
 
-    private static Direction.Axis getEffectiveAxis(ServerWorld world, BlockPos pos) {
+    /**
+     * Whether the fill may read this position. {@code World.getBlockState}
+     * resolves through {@code getChunk(create = true)} and generates terrain on
+     * the calling thread ([K1]/[K6]), so the fill may only read the square its
+     * caller proved resident: a per-axis box of {@link
+     * PortalAdoption#FOOTPRINT_RADIUS}, matching {@link
+     * PortalAdoption#footprintResident}'s own chunk-range loop.
+     *
+     * <p>Checked BEFORE the read, and a position outside it refuses the whole
+     * fill rather than truncating it. A truncated area still reaches {@link
+     * PortalAdoption#adopt}, which spends {@code claimAttempt} on it and then
+     * reads its ring — putting the cold reads straight back and leaving the
+     * portal unadoptable for the rest of the boot. Vanilla's widest opening is
+     * 21 across, so no portal a player can build reaches this.
+     */
+    private static boolean withinProvenFootprint(BlockPos start, BlockPos pos) {
+        return Math.abs(pos.getX() - start.getX()) <= PortalAdoption.FOOTPRINT_RADIUS
+                && Math.abs(pos.getY() - start.getY()) <= PortalAdoption.FOOTPRINT_RADIUS
+                && Math.abs(pos.getZ() - start.getZ()) <= PortalAdoption.FOOTPRINT_RADIUS;
+    }
+
+    private static Direction.Axis getEffectiveAxis(BlockPos pos) {
         for (List<PortalZone> zones : PORTAL_ZONES.values()) {
             for (PortalZone zone : zones) {
                 if (zone.axis == Direction.Axis.Y && zone.interior.contains(pos)) {

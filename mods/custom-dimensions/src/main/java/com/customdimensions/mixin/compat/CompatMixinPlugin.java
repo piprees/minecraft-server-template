@@ -2,7 +2,10 @@ package com.customdimensions.mixin.compat;
 
 import com.customdimensions.MultiverseServer;
 import net.fabricmc.loader.api.FabricLoader;
+import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.ClassNode;
+import org.objectweb.asm.tree.InsnNode;
+import org.objectweb.asm.tree.MethodNode;
 import org.spongepowered.asm.mixin.extensibility.IMixinConfigPlugin;
 import org.spongepowered.asm.mixin.extensibility.IMixinInfo;
 
@@ -23,7 +26,20 @@ public class CompatMixinPlugin implements IMixinConfigPlugin {
     /** Compatibility mixin simple name -> the mod id it targets. */
     private static final Map<String, String> MOD_BY_MIXIN = Map.of(
             "SnowBlanketVoidFloorMixin", "wilderwild",
-            "BetterEndTerrainInitMixin", "betterend");
+            "BetterEndTerrainInitMixin", "betterend",
+            "BetterCavesAquiferDuckMixin", "bettercaves");
+
+    /**
+     * Better Caves' duck interface, its one method and that method's exact
+     * descriptor. Written out rather than imported: neither type is on this
+     * mod's compile classpath, and the descriptor is what the mod's
+     * {@code invokeinterface} resolves.
+     */
+    private static final String LIQUID_REGIONS_PROVIDER =
+            "com/yungnickyoung/minecraft/bettercaves/duck/ILiquidRegionsProvider";
+    private static final String GET_LIQUID_REGIONS = "bettercaves$getLiquidRegions";
+    private static final String GET_LIQUID_REGIONS_DESC =
+            "()Lcom/yungnickyoung/minecraft/bettercaves/worldgen/liquidregion/LiquidRegions;";
 
     @Override
     public void onLoad(String mixinPackage) {
@@ -37,7 +53,7 @@ public class CompatMixinPlugin implements IMixinConfigPlugin {
 
     @Override
     public boolean shouldApplyMixin(String targetClassName, String mixinClassName) {
-        String simple = mixinClassName.substring(mixinClassName.lastIndexOf('.') + 1);
+        String simple = simpleName(mixinClassName);
         String modId = MOD_BY_MIXIN.get(simple);
         if (modId == null) {
             MultiverseServer.LOGGER.warn(
@@ -61,11 +77,52 @@ public class CompatMixinPlugin implements IMixinConfigPlugin {
         return null;
     }
 
+    /**
+     * Gives {@code AquiferSampler} Better Caves' {@code ILiquidRegionsProvider}
+     * as a superinterface, with a default method answering null (T79).
+     *
+     * <p>Generated rather than declared because both types belong to Better
+     * Caves and this mod compiles against neither. Null is the mod's own
+     * "no liquid regions here" answer — {@code MasterController.carve} and
+     * {@code NoiseChunkMixin} each null-check the result and fall through to
+     * vanilla aquifers, which is what a dimension absent from
+     * {@code liquidregions.json} already gets.
+     *
+     * <p>Keyed on the mixin, matching {@link #shouldApplyMixin}, because the
+     * target class name arrives intermediary at runtime and named in dev.
+     */
     @Override
-    public void preApply(String targetClassName, ClassNode targetClass, String mixinClassName, IMixinInfo mixinInfo) {
+    public void preApply(String targetClassName, ClassNode targetClass, String mixinClassName,
+            IMixinInfo mixinInfo) {
+        if (!"BetterCavesAquiferDuckMixin".equals(simpleName(mixinClassName))) {
+            return;
+        }
+        if (!targetClass.interfaces.contains(LIQUID_REGIONS_PROVIDER)) {
+            targetClass.interfaces.add(LIQUID_REGIONS_PROVIDER);
+        }
+        for (MethodNode existing : targetClass.methods) {
+            if (GET_LIQUID_REGIONS.equals(existing.name)
+                    && GET_LIQUID_REGIONS_DESC.equals(existing.desc)) {
+                return;
+            }
+        }
+        MethodNode fallback = new MethodNode(Opcodes.ASM9, Opcodes.ACC_PUBLIC,
+                GET_LIQUID_REGIONS, GET_LIQUID_REGIONS_DESC, null, null);
+        fallback.instructions.add(new InsnNode(Opcodes.ACONST_NULL));
+        fallback.instructions.add(new InsnNode(Opcodes.ARETURN));
+        fallback.maxStack = 1;
+        fallback.maxLocals = 1;
+        targetClass.methods.add(fallback);
+        MultiverseServer.LOGGER.info("Compatibility mixin BetterCavesAquiferDuckMixin: {} now "
+                + "provides {} — sea-level samplers answer null instead of failing the cast",
+                targetClass.name, LIQUID_REGIONS_PROVIDER);
     }
 
     @Override
     public void postApply(String targetClassName, ClassNode targetClass, String mixinClassName, IMixinInfo mixinInfo) {
+    }
+
+    private static String simpleName(String mixinClassName) {
+        return mixinClassName.substring(mixinClassName.lastIndexOf('.') + 1);
     }
 }

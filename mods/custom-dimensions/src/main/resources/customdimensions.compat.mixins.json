@@ -5,6 +5,7 @@
   "compatibilityLevel": "JAVA_21",
   "plugin": "com.customdimensions.mixin.compat.CompatMixinPlugin",
   "mixins": [
+    "BetterCavesAquiferDuckMixin",
     "BetterEndTerrainInitMixin",
     "SnowBlanketVoidFloorMixin"
   ],

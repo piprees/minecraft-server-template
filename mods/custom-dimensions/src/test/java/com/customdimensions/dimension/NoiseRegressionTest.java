@@ -9,10 +9,13 @@ import org.junit.jupiter.api.Test;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static com.customdimensions.dimension.TypeDefaultCurves.namedCurve;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -142,7 +145,10 @@ class NoiseRegressionTest {
         double radius = Math.max(1, config.getPlayerBorderRadius() / 16.0);
         long inner = positions.stream().filter(p -> Math.hypot(p.x, p.z) <= radius * 0.5).count();
         double[] curve = group.radial();
-        double expected = curve != null ? curveInnerShare(curve) : 0.25;
+        // A null radial is uniform, and predicting 0.25 against uniform
+        // positions judges nothing.
+        assertNotNull(curve, groupName + " resolved no radial curve for " + config.getName());
+        double expected = curveInnerShare(curve);
         int n = positions.size();
         double observed = inner / (double) n;
         double floor = expected - 2.0 * Math.sqrt(expected * (1 - expected) / n);
@@ -187,12 +193,28 @@ class NoiseRegressionTest {
         NoiseGroupPlan plan = NoiseGroupPlan.resolve(config);
         assertTrue(plan.groups().keySet().containsAll(
                 Set.of("deco", "settlements", "dungeons", "landmarks")));
-        assertEquals(StructureGroupRegistry.curve("inner"),
-                plan.groups().get("settlements").radial());
-        assertEquals(StructureGroupRegistry.curve("outer"),
-                plan.groups().get("dungeons").radial());
-        assertEquals(StructureGroupRegistry.curve("mid"),
-                plan.groups().get("landmarks").radial());
+        assertArrayEquals(namedCurve("inner"), plan.groups().get("settlements").radial(),
+                1e-9, "settlements is on `inner`");
+        assertArrayEquals(namedCurve("outer"), plan.groups().get("dungeons").radial(),
+                1e-9, "dungeons is on `outer`");
+        assertArrayEquals(namedCurve("mid"), plan.groups().get("landmarks").radial(),
+                1e-9, "landmarks is on `mid`");
+    }
+
+    /**
+     * Every curve-mapping assertion here and in {@link NoiseGroupPlanTest}
+     * names one of these four. Identical curves would satisfy all of them
+     * whatever group got which.
+     */
+    @Test
+    void theCurvesTheTypeTableAssignsAreTellableApart() {
+        List<String> names = List.of("inner", "outer", "mid", "even");
+        for (int i = 0; i < names.size(); i++) {
+            for (int j = i + 1; j < names.size(); j++) {
+                assertFalse(Arrays.equals(namedCurve(names.get(i)), namedCurve(names.get(j))),
+                        "`" + names.get(i) + "` and `" + names.get(j) + "` are the same curve");
+            }
+        }
     }
 
     @Test
@@ -323,10 +345,10 @@ class NoiseRegressionTest {
         assertTrue(plan.groups().keySet().containsAll(
                 Set.of("deco", "settlements", "dungeons", "landmarks", "maritime")),
                 plan.groups().keySet().toString());
-        assertEquals(StructureGroupRegistry.curve("inner"),
-                plan.groups().get("settlements").radial());
-        assertEquals(StructureGroupRegistry.curve("outer"),
-                plan.groups().get("dungeons").radial());
+        assertArrayEquals(namedCurve("inner"), plan.groups().get("settlements").radial(),
+                1e-9, "settlements is on `inner`");
+        assertArrayEquals(namedCurve("outer"), plan.groups().get("dungeons").radial(),
+                1e-9, "dungeons is on `outer`");
     }
 
     @Test

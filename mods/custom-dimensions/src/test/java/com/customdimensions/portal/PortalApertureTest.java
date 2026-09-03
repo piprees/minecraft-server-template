@@ -113,7 +113,22 @@ class PortalApertureTest {
             positive |= sign == 1;
             negative |= sign == -1;
         }
-        assertTrue(positive && negative, "a broadcast particle has no viewer, so both sides get fed");
+        assertTrue(positive && negative,
+                "the tie-break for a viewer level with the plane must feed both sides");
+    }
+
+    @Test
+    void driftFollowsTheSideTheViewerIsOn() {
+        BlockPos cell = new BlockPos(3, 70, 9);
+        assertEquals(-1, PortalAperture.driftSignToward(9, 4, 1, cell), "viewer before the plane");
+        assertEquals(1, PortalAperture.driftSignToward(9, 14, 1, cell), "viewer past the plane");
+        assertEquals(-1, PortalAperture.driftSignToward(9, 8, 1, cell), "one block is enough");
+        assertEquals(1, PortalAperture.driftSignToward(9, 10, 1, cell), "one block is enough");
+        for (long tick = 0; tick < 50; tick++) {
+            assertEquals(PortalAperture.driftSign(tick, cell),
+                    PortalAperture.driftSignToward(9, 9, tick, cell),
+                    "level with the plane there is no near side; the split decides");
+        }
     }
 
     @Test

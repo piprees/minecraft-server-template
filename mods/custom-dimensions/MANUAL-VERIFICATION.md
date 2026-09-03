@@ -72,6 +72,9 @@ docker exec -i mc rcon-cli 'execute in <dim> if block <x> <y> <z> minecraft:air'
 - Edges of the aperture are clean — no geometry visible outside the frame at
   grazing angles, from either side, standing and crouching.
 - Particles read as dust drifting out, not as fog obscuring the view.
+- Dust is visible IN FRONT of the projected terrain, from both sides of the
+  frame — it drifts towards whoever is looking, so none of it should be
+  hidden behind the projection.
 
 ### V2 — Audio quality
 **Why manual:** perceptual.

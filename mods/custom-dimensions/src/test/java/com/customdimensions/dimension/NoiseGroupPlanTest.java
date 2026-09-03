@@ -5,6 +5,7 @@ import com.google.gson.Gson;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import static com.customdimensions.dimension.TypeDefaultCurves.namedCurve;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -46,10 +47,10 @@ class NoiseGroupPlanTest {
         // against the named curves rather than against literal values: what
         // this test owns is the MAPPING, so retuning a curve's numbers should
         // not read as a broken precedence chain.
-        assertArrayEquals(StructureGroupRegistry.curve("inner"),
-                p.groups().get("settlements").radial(), 1e-9);
-        assertArrayEquals(StructureGroupRegistry.curve("outer"),
-                p.groups().get("dungeons").radial(), 1e-9);
+        assertArrayEquals(namedCurve("inner"), p.groups().get("settlements").radial(),
+                1e-9, "settlements is on `inner`");
+        assertArrayEquals(namedCurve("outer"), p.groups().get("dungeons").radial(),
+                1e-9, "dungeons is on `outer`");
     }
 
     @Test
@@ -210,11 +211,10 @@ class NoiseGroupPlanTest {
     void hostileWorldsSpreadDungeonsEvenlyAndBringEndgameInwards() {
         NoiseGroupPlan p = plan("{\"type\": \"multi_biome\", "
                 + "\"difficulty\": {\"mobMultiplier\": 2.5}}");
-        assertArrayEquals(StructureGroupRegistry.curve("even"),
-                p.groups().get("dungeons").radial(), 1e-9,
+        assertArrayEquals(namedCurve("even"), p.groups().get("dungeons").radial(), 1e-9,
                 "hostile dungeons should use `even`");
         double[] endgame = p.groups().get("endgame").radial();
-        assertArrayEquals(StructureGroupRegistry.curve("mid"), endgame, 1e-9,
+        assertArrayEquals(namedCurve("mid"), endgame, 1e-9,
                 "hostile endgame should use `mid`");
         assertTrue(endgame[4] > endgame[9], "`mid` peaks away from the border");
     }
@@ -233,8 +233,8 @@ class NoiseGroupPlanTest {
         NoiseGroupPlan p = plan("{\"type\": \"multi_biome\", "
                 + "\"difficulty\": {\"mobMultiplier\": 1.0}}");
         assertTrue(p.groups().containsKey("dungeons"));
-        assertArrayEquals(StructureGroupRegistry.curve("outer"),
-                p.groups().get("dungeons").radial(), 1e-9, "still `outer`");
+        assertArrayEquals(namedCurve("outer"), p.groups().get("dungeons").radial(),
+                1e-9, "still `outer`");
     }
 
     // --- radial overrides --------------------------------------------------
@@ -252,14 +252,13 @@ class NoiseGroupPlanTest {
         // Wrong length
         NoiseGroupPlan shortCurve = plan("{\"type\": \"multi_biome\", "
                 + "\"structures\": {\"radial\": {\"dungeons\": [1.0, 2.0]}}}");
-        assertArrayEquals(StructureGroupRegistry.curve("outer"),
-                shortCurve.groups().get("dungeons").radial(), 1e-9,
-                "a malformed curve falls back to the type default");
+        assertArrayEquals(namedCurve("outer"), shortCurve.groups().get("dungeons").radial(),
+                1e-9, "a malformed curve falls back to the type default");
         // Out of range
         NoiseGroupPlan wild = plan("{\"type\": \"multi_biome\", \"structures\": {\"radial\": "
                 + "{\"dungeons\": [0,0,0,0,0,0,0,0,0,99]}}}");
-        assertArrayEquals(StructureGroupRegistry.curve("outer"),
-                wild.groups().get("dungeons").radial(), 1e-9);
+        assertArrayEquals(namedCurve("outer"), wild.groups().get("dungeons").radial(),
+                1e-9, "an out-of-range curve falls back to the type default");
     }
 
     @Test
@@ -329,7 +328,8 @@ class NoiseGroupPlanTest {
         // shifts must apply to a reserved dimension exactly as to any other dimension.
         NoiseGroupPlan hostile = plan("{\"type\": \"nether\", "
                 + "\"difficulty\": {\"mobMultiplier\": 2.5}}");
-        assertEquals(1.0, hostile.groups().get("dungeons").radial()[0], 1e-6);
+        assertArrayEquals(namedCurve("even"), hostile.groups().get("dungeons").radial(),
+                1e-9, "a reserved dimension takes the hostile dungeons shift onto `even`");
         NoiseGroupPlan peaceful = plan("{\"type\": \"overworld\", "
                 + "\"difficulty\": {\"mobMultiplier\": 0.0}}");
         assertFalse(peaceful.groups().containsKey("dungeons"));
