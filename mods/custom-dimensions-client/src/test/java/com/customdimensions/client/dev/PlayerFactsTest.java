@@ -11,6 +11,7 @@ import java.util.Set;
 import com.customdimensions.client.dev.PlayerFacts.Flag;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -48,7 +49,7 @@ class PlayerFactsTest {
                 "minecraft:overworld",
                 211.705, 130, 327.715,
                 211, 130, 327,
-                new PlayerFacts.Rotation(146.7, 6.6, 146.7, 140.2, "north"),
+                new PlayerFacts.Rotation(146.7, 6.6, 143.1, 140.2),
                 new PlayerFacts.Vitals(20, 20, 18, 4.2, 300, 300, 7, 0.35),
                 new PlayerFacts.Held(DIAMOND, null, 0, hotbar(DIAMOND, null, PICKAXE)),
                 status());
@@ -75,9 +76,124 @@ class PlayerFactsTest {
         Map<?, ?> rotation = (Map<?, ?>) read(facts()).get("rotation");
         assertEquals(146.7, (Double) rotation.get("yaw"));
         assertEquals(6.6, (Double) rotation.get("pitch"));
-        assertEquals(146.7, (Double) rotation.get("headYaw"));
+        assertEquals(143.1, (Double) rotation.get("headYaw"));
         assertEquals(140.2, (Double) rotation.get("bodyYaw"));
         assertEquals("north", rotation.get("facing"));
+    }
+
+    /**
+     * The four a human types into a terminal, kept beside their nested homes.
+     * There is no flat {@code mainHandItem}: a scalar duplicate cannot disagree
+     * with itself, a projection of {@code held.mainHand} can.
+     */
+    @Test
+    void theFlatFieldsSitBesideTheNestedOnes() {
+        Map<String, Object> body = read(facts());
+        assertEquals(146.7, body.get("yaw"));
+        assertEquals(6.6, body.get("pitch"));
+        assertEquals(Boolean.TRUE, body.get("onGround"));
+        assertEquals(20.0, body.get("health"));
+    }
+
+    @Test
+    void theFlatFieldsAgreeWithTheNestedOnes() {
+        Map<String, Object> body = read(facts());
+        Map<?, ?> rotation = (Map<?, ?>) body.get("rotation");
+        assertEquals(body.get("yaw"), rotation.get("yaw"));
+        assertEquals(body.get("pitch"), rotation.get("pitch"));
+        assertEquals(body.get("health"), ((Map<?, ?>) body.get("vitals")).get("health"));
+        assertEquals(body.get("onGround"), ((Map<?, ?>) body.get("status")).get("onGround"));
+    }
+
+    /** {@code held.mainHand.id} replaces it; the alias must not come back. */
+    @Test
+    void thereIsNoFlatMainHandItem() {
+        assertFalse(read(facts()).containsKey("mainHandItem"));
+    }
+
+    // --------------------------------------------------------------- facing
+
+    /**
+     * Vanilla's mapping, pinned by value: yaw 0 is south, not north. Proven
+     * equal to {@code Direction.fromRotation} across 22 yaws by
+     * {@code FacingProbe}, and cross-checked by {@link FacingContractTest}.
+     */
+    @Test
+    void eachCardinalYawFacesItsOwnDirection() {
+        assertEquals("south", PlayerFacts.facing(0));
+        assertEquals("west", PlayerFacts.facing(90));
+        assertEquals("north", PlayerFacts.facing(180));
+        assertEquals("east", PlayerFacts.facing(270));
+    }
+
+    /** The quadrant turns at 45, and the boundary value rounds up. */
+    @Test
+    void theQuadrantBoundaryIsAtFortyFive() {
+        assertEquals("south", PlayerFacts.facing(44.9));
+        assertEquals("west", PlayerFacts.facing(45));
+        assertEquals("west", PlayerFacts.facing(134.9));
+        assertEquals("north", PlayerFacts.facing(135));
+    }
+
+    /**
+     * A real player's yaw accumulates without bound and goes negative. These
+     * are the cases {@code % 4} and a truncating {@code (int)} cast get wrong
+     * while every positive yaw still passes.
+     */
+    @Test
+    void aNegativeYawFacesTheSameWayAsItsPositiveTwin() {
+        assertEquals("east", PlayerFacts.facing(-90));
+        assertEquals("north", PlayerFacts.facing(-180));
+        assertEquals("west", PlayerFacts.facing(-270));
+        assertEquals("east", PlayerFacts.facing(-91));
+        assertEquals("south", PlayerFacts.facing(-1));
+        assertEquals("south", PlayerFacts.facing(-0.0001));
+    }
+
+    /** The boundary on the negative side, where a truncating cast disagrees. */
+    @Test
+    void theQuadrantBoundaryHoldsBelowZeroToo() {
+        assertEquals("south", PlayerFacts.facing(-45));
+        assertEquals("east", PlayerFacts.facing(-45.0001));
+        assertEquals("east", PlayerFacts.facing(-89.9));
+    }
+
+    @Test
+    void anUnboundedYawWrapsRatherThanRunningOffTheTable() {
+        assertEquals("south", PlayerFacts.facing(360));
+        assertEquals("south", PlayerFacts.facing(720));
+        assertEquals("west", PlayerFacts.facing(1170));
+        assertEquals("south", PlayerFacts.facing(-3600));
+    }
+
+    /** A yaw that is not a number is not a direction. */
+    @Test
+    void aNonFiniteYawHasNoFacing() {
+        assertNull(PlayerFacts.facing(Double.NaN));
+        assertNull(PlayerFacts.facing(Double.POSITIVE_INFINITY));
+        assertNull(PlayerFacts.facing(Double.NEGATIVE_INFINITY));
+    }
+
+    @Test
+    void theRotationDerivesItsOwnFacing() {
+        assertEquals("west", new PlayerFacts.Rotation(90, 0, 90, 90).facing());
+    }
+
+    /** Where the player looks, not where the body points. */
+    @Test
+    void facingFollowsYawRatherThanBodyYaw() {
+        assertEquals("north", new PlayerFacts.Rotation(180, 0, 180, 90).facing());
+    }
+
+    @Test
+    void theDerivedFacingReachesTheJson() {
+        PlayerFacts facts = new PlayerFacts(
+                "minecraft:overworld", 0, 0, 0, 0, 0, 0,
+                new PlayerFacts.Rotation(-90, 0, -90, -90),
+                new PlayerFacts.Vitals(20, 20, 20, 5, 300, 300, 0, 0),
+                new PlayerFacts.Held(null, null, 0, hotbar()),
+                status());
+        assertEquals("east", ((Map<?, ?>) read(facts).get("rotation")).get("facing"));
     }
 
     // --------------------------------------------------------------- vitals
@@ -149,7 +265,7 @@ class PlayerFactsTest {
     void aShortHotbarIsPaddedToNine() {
         PlayerFacts facts = new PlayerFacts(
                 "minecraft:overworld", 0, 0, 0, 0, 0, 0,
-                new PlayerFacts.Rotation(0, 0, 0, 0, "north"),
+                new PlayerFacts.Rotation(0, 0, 0, 0),
                 new PlayerFacts.Vitals(20, 20, 20, 5, 300, 300, 0, 0),
                 new PlayerFacts.Held(null, null, 0, List.of(DIAMOND)),
                 status());
@@ -158,11 +274,34 @@ class PlayerFactsTest {
         assertNull(hotbar.get(8));
     }
 
+    /** Slot 0 is the first item, so the whole bar cannot be off by one. */
+    @Test
+    void theFirstHotbarSlotHoldsTheFirstItem() {
+        List<?> hotbar = (List<?>) ((Map<?, ?>) read(facts()).get("held")).get("hotbar");
+        assertEquals("minecraft:diamond", ((Map<?, ?>) hotbar.get(0)).get("id"));
+        assertEquals("minecraft:diamond_pickaxe", ((Map<?, ?>) hotbar.get(2)).get("id"));
+    }
+
+    /** Nine is the whole bar; a longer list is a bug upstream, not more slots. */
+    @Test
+    void aHotbarLongerThanNineIsTruncated() {
+        PlayerFacts.Item[] twelve = new PlayerFacts.Item[12];
+        Arrays.fill(twelve, DIAMOND);
+        PlayerFacts facts = new PlayerFacts(
+                "minecraft:overworld", 0, 0, 0, 0, 0, 0,
+                new PlayerFacts.Rotation(0, 0, 0, 0),
+                new PlayerFacts.Vitals(20, 20, 20, 5, 300, 300, 0, 0),
+                new PlayerFacts.Held(null, null, 0, hotbar(twelve)),
+                status());
+        List<?> hotbar = (List<?>) ((Map<?, ?>) read(facts).get("held")).get("hotbar");
+        assertEquals(9, hotbar.size());
+    }
+
     @Test
     void theSelectedSlotIsCalledOut() {
         PlayerFacts facts = new PlayerFacts(
                 "minecraft:overworld", 0, 0, 0, 0, 0, 0,
-                new PlayerFacts.Rotation(0, 0, 0, 0, "north"),
+                new PlayerFacts.Rotation(0, 0, 0, 0),
                 new PlayerFacts.Vitals(20, 20, 20, 5, 300, 300, 0, 0),
                 new PlayerFacts.Held(PICKAXE, DIAMOND, 4, hotbar()),
                 status());
@@ -235,7 +374,7 @@ class PlayerFactsTest {
     void theDerivedFlagsReachTheJson() {
         PlayerFacts facts = new PlayerFacts(
                 "minecraft:overworld", 0, 0, 0, 0, 0, 0,
-                new PlayerFacts.Rotation(0, 0, 0, 0, "north"),
+                new PlayerFacts.Rotation(0, 0, 0, 0),
                 new PlayerFacts.Vitals(20, 20, 20, 5, 0, 300, 0, 0),
                 new PlayerFacts.Held(null, null, 0, hotbar()),
                 new PlayerFacts.Status("SWIMMING",

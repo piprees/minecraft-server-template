@@ -40,7 +40,10 @@ final class DevState {
                 .toString();
     }
 
-    /** Absent, with the reason, when there is no player rather than a guessed one. */
+    /**
+     * With no player this is {@code {"absent": "..."}} carrying the reason, never
+     * JSON null — so {@code .player == null} is not the test for "no player".
+     */
     private static String player(MinecraftClient client) {
         ClientPlayerEntity player = client.player;
         if (player == null) {
@@ -53,8 +56,7 @@ final class DevState {
                 pos.x, pos.y, pos.z,
                 block.getX(), block.getY(), block.getZ(),
                 new PlayerFacts.Rotation(player.getYaw(), player.getPitch(),
-                        player.getHeadYaw(), player.getBodyYaw(),
-                        player.getHorizontalFacing().asString()),
+                        player.getHeadYaw(), player.getBodyYaw()),
                 new PlayerFacts.Vitals(player.getHealth(), player.getMaxHealth(),
                         player.getHungerManager().getFoodLevel(),
                         player.getHungerManager().getSaturationLevel(),

@@ -32,18 +32,50 @@ public record PlayerFacts(
     /** {@code damage} and {@code maxDamage} are null for anything that cannot wear. */
     public record Item(String id, int count, Integer damage, Integer maxDamage) {}
 
-    public record Rotation(double yaw, double pitch, double headYaw, double bodyYaw,
-                           String facing) {}
+    /**
+     * Derives its own {@code facing} from {@code yaw}. Taking it as a parameter
+     * instead leaves the field untestable, and a test named for it then passes
+     * on a copied fixture string whatever the adapter supplies.
+     */
+    public record Rotation(double yaw, double pitch, double headYaw, double bodyYaw) {
 
+        public String facing() {
+            return PlayerFacts.facing(this.yaw);
+        }
+    }
+
+    /**
+     * {@code saturation} rides {@code HealthUpdateS2CPacket}, which the server
+     * sends only when health, food, or saturation-being-zero changes, so it can
+     * lag {@code data get entity}.
+     */
     public record Vitals(double health, double maxHealth, int food, double saturation,
                          int air, int maxAir, int xpLevel, double xpProgress) {}
 
     /** {@code hotbar} is padded to nine; a null element is an empty slot. */
     public record Held(Item mainHand, Item offHand, int selectedSlot, List<Item> hotbar) {}
 
+    /**
+     * {@code pose} is the raw vanilla enum and names things differently from the
+     * flags: sneaking is {@code CROUCHING}, gliding is {@code FALL_FLYING}, and
+     * {@code SWIMMING} covers crawling. Assert on a flag, not on the pose.
+     */
     public record Status(String pose, Set<Flag> flags, boolean onGround, double fallDistance) {}
 
     private static final int HOTBAR_SLOTS = 9;
+
+    /** Indexed by vanilla's horizontal index, which is not the enum's own order. */
+    private static final String[] FACINGS = {"south", "west", "north", "east"};
+
+    /**
+     * Vanilla's mapping by value: yaw 0 is south. {@code & 3} not {@code % 4},
+     * and a floor not a truncating cast — they differ only on negative yaw.
+     */
+    public static String facing(double yaw) {
+        return Double.isFinite(yaw)
+                ? FACINGS[(int) Math.floor(yaw / 90.0 + 0.5) & 3]
+                : null;
+    }
 
     /** {@code ON_FIRE} to {@code onFire}. */
     public static String flagName(Flag flag) {
@@ -70,11 +102,20 @@ public record PlayerFacts(
         return Json.obj().str("absent", why).toString();
     }
 
+    /**
+     * The flat fields are scalars that are the whole fact, so a duplicate cannot
+     * disagree with its nested copy. {@code held.mainHand} has no flat alias for
+     * exactly that reason — a projection of an object drifts.
+     */
     public String json() {
         return Json.obj()
                 .str("dimension", this.dimension)
                 .raw("pos", Json.numbers(this.x, this.y, this.z))
                 .raw("blockPos", Json.numbers(this.blockX, this.blockY, this.blockZ))
+                .num("yaw", this.rotation.yaw())
+                .num("pitch", this.rotation.pitch())
+                .bool("onGround", this.status.onGround())
+                .num("health", this.vitals.health())
                 .raw("rotation", rotationJson())
                 .raw("vitals", vitalsJson())
                 .raw("held", heldJson())
