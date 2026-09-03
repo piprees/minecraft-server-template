@@ -198,6 +198,46 @@ class ProjectionRendererClipTest {
     }
 
     /**
+     * Every quad is accounted for exactly once: emitted, or charged to the one
+     * edge that cut it. Without this the counts can be read against a quad
+     * total they do not cover, and a shortfall looks like lost geometry when it
+     * is only a seam in the counting.
+     */
+    @Test
+    void everyQuadIsEitherKeptOrChargedToExactlyOneEdge() {
+        float[] layer = concat(
+                quad(5.0f, -11.0f, -10.0f, 0.0f, 1.0f),
+                quad(5.0f, 0.0f, 1.0f, 10.0f, 11.0f),
+                quad(5.0f, 10.0f, 11.0f, 0.0f, 1.0f),
+                quad(5.0f, 0.0f, 1.0f, -11.0f, -10.0f),
+                quad(5.0f, 0.0f, 1.0f, 0.0f, 1.0f),
+                quad(9.0f, 1.0f, 2.0f, 1.0f, 2.0f));
+
+        Recorder drawn = clip(layer);
+
+        int charged = 0;
+        for (int count : ProjectionRenderer.rejectedBy) {
+            charged += count;
+        }
+        assertEquals(4, charged, "a rejected quad was charged to no edge, or to two");
+        assertEquals(8, ProjectionRenderer.clipVertices, "the two quads in view did not survive");
+        assertEquals(6, charged + drawn.count() / 4, "quads in did not equal quads accounted for");
+    }
+
+    /**
+     * A quad the clip merely trims is kept, not rejected. Counting a trim as a
+     * rejection would make a portal that is drawing perfectly well read as one
+     * losing geometry on every edge.
+     */
+    @Test
+    void aQuadTheClipMerelyTrimsIsNotChargedToAnEdge() {
+        Recorder drawn = clip(quad(5.0f, 2.0f, 4.0f, 0.0f, 1.0f));
+
+        assertArrayEquals(new int[] {0, 0, 0, 0}, ProjectionRenderer.rejectedBy);
+        assertEquals(4, drawn.count());
+    }
+
+    /**
      * The counts belong to the layer just emitted. Carried over they would
      * accumulate across every layer and every frame, and the field would read
      * as a fault on a portal that is drawing perfectly well.
