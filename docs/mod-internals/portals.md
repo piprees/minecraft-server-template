@@ -2,6 +2,28 @@
 
 Implementation rules for the portal subsystem. Read [`mods/AGENTS.md`](../../mods/AGENTS.md) first — it carries the short "never" list; this file carries the reasoning and the recipes. Player-facing config schema: [`mods/custom-dimensions/README.md`](../../mods/custom-dimensions/README.md).
 
+## Who owns a portal
+
+The most nuanced part of the subsystem. Read it before changing anything portal-shaped.
+
+**Owning a portal means closing two vanilla entry points, not one.**
+
+- `PortalManager.createTeleportTarget` decides the **destination**. `mixin/PortalDestinationMixin` wraps it; a null return is a clean no-op, because `tickPortalTeleportation` jumps past the teleport and `resetPortalCooldown` has already run, so cooldown and expiry survive.
+- `onEntityCollision` runs **side-effects on contact**, and fires whatever the wrap answers. `EndGatewaySuppressionMixin` and `EndPortalSuppressionMixin` close it. `EndPortalBlock.onEntityCollision` calls `detachForDimensionChange`, which sends `GAME_WON` gated only on `seenCredits` — an unsuppressed End arrival rolls the credits and ejects the player to spawn.
+
+**`vanillaManaged` documents a classic route without claiming it.** An entry marked `"vanillaManaged": true` is no ignition candidate, gets no adoption, no zone and no projection, and `isManagedPortal` answers false for it. It is set on `the_nether` (obsidian + flint and steel) and `the_end` (end_portal_frame + ender eye), and deliberately not on `overworld`, whose `mossy_stone_bricks` + torch portal is a mod route *to* the overworld rather than a classic route.
+
+Two traps sit behind it, and neither is visible from the definition alone:
+
+- `settings.frameNether` is `minecraft:obsidian`, so `getDefaultPortalForFrameBlock` re-claims every obsidian frame independently of the definition. Excluding the definition from `getPortalsByIgniter` alone looks correct and changes nothing.
+- Adoption asks `vanillaManaged` definitions **first**. Ordinary definitions tried first hand a real vanilla nether portal to whichever dimension also builds from obsidian, and give it a traversal zone. Deliberate ignition is unaffected: a netherite ingot on obsidian still makes a sanctum portal, and an already-lit obsidian portal was lit with flint and steel, which is vanilla's route by definition.
+
+**Adoption fires on contact and on approach, never on the arrival edge.** `enteredArrivalPortal` can never be satisfied by a vanilla portal — vanilla pins `portalCooldown` the instant you touch the block — so `EntityTickPortalMixin` keys adoption on `inPortal`, and `ServerWorldMixin.adoptPortalsOnApproach` offers portals off the nether-portal POI index before contact. `claimAttempt` dedupes per area per boot. The approach pass proves every column a fill could reach is resident first: `getBlockState` resolves through `getChunk(create=true)` and generates terrain on the calling thread.
+
+**Presentation zones give a `vanillaManaged` portal a preview without ownership.** `PRESENTATION_ZONES` is a separate in-memory registry parallel to `PORTAL_ZONES`. Every consumer that decides *who teleports* reads `getSourceZones`, so the exclusions fall out of the structure rather than being a list to maintain. **Nothing reaches disk, on purpose**: a presentation zone in `portal_links.json` is read by an older jar as an ordinary zone, which would claim traversal on vanilla portals. Deploys roll back, so persisted state is a compatibility contract.
+
+**`immersive` defaults to ON.** Absent means yes; opting out is an explicit `"immersive": false`, and deleting `"immersive": true` does nothing. That is the lever if preview load on every vanilla nether portal is too much.
+
 ## Zones and creation
 
 - Frames are configurable blocks ignited with configurable items. Flood-fill scans up to 128 blocks in a plane (X or Z axis) bounded by frame blocks. Zones are validated every tick — a broken frame clears the portal.
