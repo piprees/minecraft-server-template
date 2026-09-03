@@ -27,7 +27,8 @@ public class CompatMixinPlugin implements IMixinConfigPlugin {
     private static final Map<String, String> MOD_BY_MIXIN = Map.of(
             "SnowBlanketVoidFloorMixin", "wilderwild",
             "BetterEndTerrainInitMixin", "betterend",
-            "BetterCavesAquiferDuckMixin", "bettercaves");
+            "BetterCavesAquiferDuckMixin", "bettercaves",
+            "BetterCavesCarveFloorMixin", "bettercaves");
 
     /**
      * Better Caves' duck interface, its one method and that method's exact

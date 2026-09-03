@@ -6,6 +6,7 @@
   "plugin": "com.customdimensions.mixin.compat.CompatMixinPlugin",
   "mixins": [
     "BetterCavesAquiferDuckMixin",
+    "BetterCavesCarveFloorMixin",
     "BetterEndTerrainInitMixin",
     "SnowBlanketVoidFloorMixin"
   ],

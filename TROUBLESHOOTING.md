@@ -4,7 +4,7 @@
 
 | Prefix | Range | What it covers |
 | --- | --- | --- |
-| **T** | [T1–T14, T16–T19, T22–T27, T30–T80, T82–T83](#architecture-traps) | Architecture traps — each has caused a real production incident |
+| **T** | [T1–T14, T16–T19, T22–T27, T30–T80, T82–T84](#architecture-traps) | Architecture traps — each has caused a real production incident |
 | **P** | [P1–P6](#macos-local-dev) | macOS local-dev quirks (BSD tooling, toolchain) |
 | **D** | [D1–D6, D8–D9](#dimension-lifecycle) | Custom-dimension lifecycle on a live world |
 | **K** | [K1–K2, K5–K7, K9](#known-issues) | Open issues — unfixed, on the watch list |
@@ -79,6 +79,7 @@ Run this first. It covers deploy drift, disk, every expected container, `ONLINE_
 | A pinned mod is absent from the local server and nothing errored | [T77](#t77) |
 | A local config change had no effect and the boot was green | [T78](#t78) |
 | `ClassCastException` from Better Caves repeats through chunk generation | [T79](#t79) |
+| `IndexOutOfBoundsException: bitIndex < 0` from Better Caves; chunks fail at `minecraft:carvers` | [T84](#t84) |
 | Every player is kicked at join: "registry entries that are unknown to this client" | [T80](#t80) |
 | Random client crashes near water: `Missing Palette entry`, `be_getWaterColor` in the stack | [T82](#t82) |
 | `./dev` answers `No Prism instance found for '--<some flag>'`, and the instance exists | [T83](#t83) |
@@ -1499,6 +1500,40 @@ measurement of it.
   watchdog on concurrent first-time chunk generation ([K6](#k6)) — a single tick
   exceeding 180s. The two appear together in the log and the exception is the
   more eye-catching, which is exactly why this entry exists.
+
+<a id="t84"></a>
+### T84 — Better Caves carves to a configured floor nothing clamps, and the carving mask indexes negatively
+
+- **Symptom:** repeated through chunk generation, alongside
+  `Error upgrading chunk [x, z] to "minecraft:carvers"`:
+
+  ```
+  java.lang.IndexOutOfBoundsException: bitIndex < 0: -7168
+    at java.util.BitSet.set
+    at net.minecraft.class_6643.method_38865
+    at ...bettercaves.worldgen.carver.AbstractCarver.carveBlock(AbstractCarver.java:48)
+  ```
+
+  Measured on one boot: **260 throws over 22 distinct bit indices, and 130
+  failed chunks**. The chunk's whole carver step dies, not one block.
+- **Cause:** `CaveCarver$Builder.fromConfig` (offsets 202-215) assigns
+  `bottomY`/`topY` straight from the carver datapack with no reference to the
+  level, and `better_cave.json` ships `bottom_y: -63` on all four carvers.
+  `carveColumn` loops down to that value; `AbstractCarver.carveBlock`'s FIRST
+  instruction is `CarvingMask.set`, and the mask was built with the CHUNK's
+  `minY`. A dimension on nether or End settings has a floor of 0, so every dig
+  below it indexes the BitSet negatively. The 22 indices decode to 14-48 blocks
+  below the floor.
+- **Not the aquifer duck.** The mask write precedes the replaceable test and
+  the aquifer entirely. [T79](#t79)'s mixin only stopped the earlier
+  `ClassCastException` that was aborting carving before this could be reached.
+- **Fix (in place):** `BetterCavesCarveFloorMixin` cancels `carveBlock` at HEAD
+  when the y is outside `[bottomY, topY)`. Nothing is lost — `ProtoChunk`
+  height-limits both its read and its write, so the mask is the only unguarded
+  operation on the path, which is why it is the thing that throws.
+- **The proof is the count against a DENOMINATOR.** `MASTER CONTROLLER` lines
+  say whether Better Caves carved at all this boot; a zero-throw log with zero
+  controllers has measured nothing ([T63](#t63)).
 
 <a id="t78"></a>
 ### T78 — A config change does not reach the local server, and the boot is green on the old file
