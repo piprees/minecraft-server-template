@@ -58,6 +58,7 @@ import java.util.UUID;
  *   /customdim structure-sizes <dimension> [samples] [budgetSeconds]
  *   /customdim structure-sizes-progress
  *   /customdim render-check-reset
+ *   /customdim use &lt;x&gt; &lt;y&gt; &lt;z&gt; [face]
  *
  * Rolling, banking, rendering and picking a winner are NOT commands — they
  * live on the page the mod hosts (web/SeedServer, `./dev seeds`), which talks
@@ -250,6 +251,20 @@ public class DimensionCommands {
                             () -> Text.literal("render-check: dropped " + n + " job(s)"), false);
                         return 1;
                     }))
+                .then(CommandManager.literal("use")
+                    .then(CommandManager.argument("x", IntegerArgumentType.integer())
+                        .then(CommandManager.argument("y", IntegerArgumentType.integer())
+                            .then(CommandManager.argument("z", IntegerArgumentType.integer())
+                                .executes(ctx -> BlockUseCommand.use(ctx,
+                                    IntegerArgumentType.getInteger(ctx, "x"),
+                                    IntegerArgumentType.getInteger(ctx, "y"),
+                                    IntegerArgumentType.getInteger(ctx, "z"), "up"))
+                                .then(CommandManager.argument("face", StringArgumentType.word())
+                                    .executes(ctx -> BlockUseCommand.use(ctx,
+                                        IntegerArgumentType.getInteger(ctx, "x"),
+                                        IntegerArgumentType.getInteger(ctx, "y"),
+                                        IntegerArgumentType.getInteger(ctx, "z"),
+                                        StringArgumentType.getString(ctx, "face"))))))))
                 .then(CommandManager.literal("eval-df")
                     .then(CommandManager.argument("dimension", IdentifierArgumentType.identifier())
                         .then(CommandManager.argument("df_id", IdentifierArgumentType.identifier())
