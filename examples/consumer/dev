@@ -126,6 +126,31 @@ import CoreGraphics
 import Foundation
 
 let a = CommandLine.arguments
+
+// A game reads held key STATE. AppleScript's `key down` goes through the
+// accessibility API and a game never sees it, so a hold moved nothing while
+// reporting success. A CGEvent at the HID tap is what a keyboard looks like.
+if a.count >= 4, a[1] == "keyhold" {
+    let codes = a[2].split(separator: ",").compactMap { UInt16($0) }
+    guard !codes.isEmpty, let secs = Double(a[3]) else { exit(2) }
+    func key(_ code: UInt16, _ down: Bool) {
+        guard let e = CGEvent(keyboardEventSource: nil,
+                              virtualKey: CGKeyCode(code), keyDown: down) else { return }
+        e.post(tap: .cghidEventTap)
+    }
+    // One keyDown is not a hold: macOS reconciles synthetic key state against
+    // the real keyboard, which has nothing pressed, so the game sees the key
+    // released again within a frame and the player never moves. Repeating the
+    // keyDown is what a held key looks like to the game.
+    let deadline = Date().addingTimeInterval(max(0.0, secs))
+    while Date() < deadline {
+        for c in codes { key(c, true) }
+        usleep(25_000)
+    }
+    for c in codes.reversed() { key(c, false); usleep(20_000) }
+    exit(0)
+}
+
 guard a.count >= 4, let x = Double(a[2]), let y = Double(a[3]) else { exit(2) }
 let p = CGPoint(x: x, y: y)
 
@@ -1187,36 +1212,32 @@ MERGE
         IN_KEYS="${1:-}"
         IN_SECS="${2:-1}"
         [[ -n "$IN_KEYS" ]] || { echo "Usage: ./dev input hold <keys> <secs>   e.g. 'w' or 'w space'" >&2; exit 1; }
-        # key down / key up rather than a repeated keystroke: the game reads
-        # held state, and a press-release pair moves nothing.
+        # Virtual keycodes through the CGEvent helper, because a game reads
+        # held key state and AppleScript's `key down` never reaches one.
         #
         # Several keys at once because a standing jump lands where it started
         # — clearing a one-block rise takes 'w space' held together, and a
         # walk stops dead on a rise it cannot step.
-        IN_DOWN=()
+        IN_CODES=""
         for k in $IN_KEYS; do
           case "$k" in
-            space) IN_DOWN+=("key code 49") ;;
-            shift) IN_DOWN+=("key code 56") ;;
-            ctrl|control) IN_DOWN+=("key code 59") ;;
-            *) IN_DOWN+=("keystroke-hold $k") ;;
+            space) IN_KC=49 ;; shift) IN_KC=56 ;; ctrl | control) IN_KC=59 ;;
+            tab) IN_KC=48 ;; esc) IN_KC=53 ;; enter | return) IN_KC=36 ;;
+            a) IN_KC=0 ;; s) IN_KC=1 ;; d) IN_KC=2 ;; f) IN_KC=3 ;; h) IN_KC=4 ;;
+            g) IN_KC=5 ;; z) IN_KC=6 ;; x) IN_KC=7 ;; c) IN_KC=8 ;; v) IN_KC=9 ;;
+            b) IN_KC=11 ;; q) IN_KC=12 ;; w) IN_KC=13 ;; e) IN_KC=14 ;; r) IN_KC=15 ;;
+            y) IN_KC=16 ;; t) IN_KC=17 ;; o) IN_KC=31 ;; u) IN_KC=32 ;; i) IN_KC=34 ;;
+            p) IN_KC=35 ;; l) IN_KC=37 ;; j) IN_KC=38 ;; k) IN_KC=40 ;; n) IN_KC=45 ;;
+            m) IN_KC=46 ;;
+            *)
+              echo "No keycode for '$k'. Hold takes letters, space, shift, ctrl, tab, esc, enter." >&2
+              exit 1
+              ;;
           esac
+          IN_CODES="${IN_CODES:+$IN_CODES,}$IN_KC"
         done
-        for d in "${IN_DOWN[@]}"; do
-          if [[ "$d" == "keystroke-hold "* ]]; then
-            osascript -e "tell application \"System Events\" to key down \"${d#keystroke-hold }\""
-          else
-            osascript -e "tell application \"System Events\" to key down (${d})"
-          fi
-        done
-        /bin/sleep "$IN_SECS"
-        for d in "${IN_DOWN[@]}"; do
-          if [[ "$d" == "keystroke-hold "* ]]; then
-            osascript -e "tell application \"System Events\" to key up \"${d#keystroke-hold }\""
-          else
-            osascript -e "tell application \"System Events\" to key up (${d})"
-          fi
-        done
+        IN_MOUSE="$(ensure_mouse_helper)" || exit 1
+        "$IN_MOUSE" keyhold "$IN_CODES" "$IN_SECS"
         echo "Held '$IN_KEYS' for ${IN_SECS}s."
         ;;
       type)
