@@ -8,6 +8,8 @@ import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Draws each portal's destination through its own opening.
@@ -26,6 +28,14 @@ import net.minecraft.util.math.Vec3d;
  */
 public final class ProjectionRenderer {
 
+    /** Grepped in the client log for what the emit path did to one portal. */
+    public static final String EMIT_MARKER = "companion-client:emit";
+
+    private static final Logger LOGGER = LoggerFactory.getLogger("customdimensionsclient");
+
+    /** Emit lines are sampled no more often than this, in milliseconds. */
+    private static final long SAMPLE_INTERVAL_MS = 2000L;
+
     private static final int STRIDE = QuadCapture.STRIDE;
     private static final int MAX_POLY = 12;
 
@@ -37,6 +47,10 @@ public final class ProjectionRenderer {
     private static final float[] POLY_B = new float[STRIDE * MAX_POLY];
 
     private static VertexConsumerProvider.Immediate immediate;
+    private static long lastSampleAt;
+
+    /** Vertices the clip left standing in the last {@link #emitClipped}. */
+    static int clipVertices;
 
     private ProjectionRenderer() {}
 
@@ -55,12 +69,16 @@ public final class ProjectionRenderer {
         if (immediate == null) {
             immediate = VertexConsumerProvider.immediate(new BufferAllocator(2 * 1024 * 1024));
         }
+        // Spent when a line is written, not when one is due: no emit line at
+        // all then means drawOne never reached the emit path.
+        boolean sample = System.currentTimeMillis() - lastSampleAt >= SAMPLE_INTERVAL_MS;
         for (ClientProjection projection : ProjectionStore.all()) {
-            drawOne(projection, matrices, camera);
+            drawOne(projection, matrices, camera, sample);
         }
     }
 
-    private static void drawOne(ClientProjection projection, MatrixStack matrices, Vec3d camera) {
+    private static void drawOne(ClientProjection projection, MatrixStack matrices, Vec3d camera,
+            boolean sample) {
         BlockPos origin = projection.origin();
         double camX = camera.x - origin.getX();
         double camY = camera.y - origin.getY();
@@ -96,10 +114,27 @@ public final class ProjectionRenderer {
         MatrixStack.Entry entry = matrices.peek();
 
         drawBackdrop(projection, corners, camX, camY, camZ, planeLocal, facing, entry);
+        StringBuilder report = sample ? new StringBuilder() : null;
         for (ProjectionMesh.Layer layer : mesh.layers()) {
             VertexConsumer consumer = immediate.getBuffer(layer.layer());
-            emitClipped(layer, consumer, entry);
+            int emitted = emitClipped(layer, consumer, entry);
             immediate.draw(layer.layer());
+            if (report != null) {
+                report.append(report.isEmpty() ? "" : " | ")
+                        .append(layer.layer())
+                        .append(" quadsIn=").append(layer.floats() / (STRIDE * 4))
+                        .append(" clipVertices=").append(clipVertices)
+                        .append(" emitted=").append(emitted)
+                        .append(" consumer=").append(consumer.getClass().getName())
+                        .append(" drawn=true");
+            }
+        }
+        // Written after the draws, so a line at all means every draw returned.
+        if (report != null) {
+            lastSampleAt = System.currentTimeMillis();
+            LOGGER.info("{} aperture={} camToPlane={} layers={} {}", EMIT_MARKER,
+                    projection.apertureOrigin().toShortString(), String.format("%.2f", camToPlane),
+                    mesh.layers().size(), report);
         }
 
         matrices.pop();
@@ -109,7 +144,7 @@ public final class ProjectionRenderer {
      * The opening's four corners, in the volume's own space, walked in order
      * so consecutive pairs are edges.
      */
-    private static double[] apertureCorners(ClientProjection projection, BlockPos origin) {
+    static double[] apertureCorners(ClientProjection projection, BlockPos origin) {
         Direction.Axis normalAxis = projection.normalAxis();
         Direction.Axis axisA = projection.axisA();
         Direction.Axis axisB = projection.axisB();
@@ -148,7 +183,7 @@ public final class ProjectionRenderer {
      * the opening's own centre is on the kept side. False when the camera is
      * level with the plane of a corner and the frustum degenerates.
      */
-    private static boolean buildPlanes(double[] corners, double camX, double camY, double camZ) {
+    static boolean buildPlanes(double[] corners, double camX, double camY, double camZ) {
         double cx = 0.0;
         double cy = 0.0;
         double cz = 0.0;
@@ -233,9 +268,16 @@ public final class ProjectionRenderer {
         immediate.draw(PortalRenderLayers.BACKDROP);
     }
 
-    private static void emitClipped(ProjectionMesh.Layer layer, VertexConsumer consumer,
+    /**
+     * Clips every quad of one layer against the opening and emits what
+     * survives. Returns the vertex count handed to {@code consumer}, and leaves
+     * the clip's own survivor count in {@link #clipVertices}.
+     */
+    static int emitClipped(ProjectionMesh.Layer layer, VertexConsumer consumer,
             MatrixStack.Entry entry) {
         float[] data = layer.data();
+        int survived = 0;
+        int emitted = 0;
         for (int quad = 0; quad + STRIDE * 4 <= layer.floats(); quad += STRIDE * 4) {
             System.arraycopy(data, quad, POLY_A, 0, STRIDE * 4);
             int count = 4;
@@ -246,10 +288,12 @@ public final class ProjectionRenderer {
             if (count < 3) {
                 continue;
             }
+            survived += count;
             if (count == 4) {
                 for (int v = 0; v < 4; v++) {
                     emit(consumer, entry, POLY_A, v * STRIDE);
                 }
+                emitted += 4;
                 continue;
             }
             // A clipped polygon has up to MAX_POLY corners; a fan of degenerate
@@ -259,12 +303,15 @@ public final class ProjectionRenderer {
                 emit(consumer, entry, POLY_A, v * STRIDE);
                 emit(consumer, entry, POLY_A, (v + 1) * STRIDE);
                 emit(consumer, entry, POLY_A, (v + 1) * STRIDE);
+                emitted += 4;
             }
         }
+        clipVertices = survived;
+        return emitted;
     }
 
     /** Sutherland-Hodgman against one plane; returns the new vertex count. */
-    private static int clip(float[] in, int count, float[] out, int plane) {
+    static int clip(float[] in, int count, float[] out, int plane) {
         double nx = PLANES[plane * 4];
         double ny = PLANES[plane * 4 + 1];
         double nz = PLANES[plane * 4 + 2];
