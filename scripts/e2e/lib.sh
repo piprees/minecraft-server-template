@@ -15,8 +15,26 @@
 
 set -uo pipefail
 
-CONSUMER_DIR="${CONSUMER_DIR:-/Users/pip/Projects/elfydd}"
-PLAYER="${PLAYER:-FLUXXINATED}"
+CONSUMER_DIR="${CONSUMER_DIR:-$HOME/Projects/elfydd}"
+
+# Whose client the run drives. WHITELIST first, then OPS, first name of either.
+# The local profile disables the whitelist and usually leaves WHITELIST
+# commented out, so OPS is the one that is actually set on a dev consumer.
+# env_first_name reads a commented key as absent, which is what the leading
+# ^[[:space:]]*KEY= anchor buys.
+env_first_name() { # key
+  sed -n "s/^[[:space:]]*$1=//p" "$CONSUMER_DIR/.env" 2>/dev/null |
+    head -1 | tr -d "'\"" | cut -d, -f1 | tr -d '[:space:]'
+}
+if [ -z "${PLAYER:-}" ]; then
+  PLAYER="$(env_first_name WHITELIST)"
+  [ -z "$PLAYER" ] && PLAYER="$(env_first_name OPS)"
+fi
+if [ -z "$PLAYER" ]; then
+  printf '\033[31mREFUSING TO RUN\033[0m — no player name.\n' >&2
+  printf 'Set WHITELIST or OPS in %s/.env, or pass PLAYER=<name>.\n' "$CONSUMER_DIR" >&2
+  exit 1
+fi
 RUN_ROOT="${RUN_ROOT:-/tmp/c0-e2e}"
 RUN_ID="$(date +%Y%m%d-%H%M%S)"
 RUN_DIR="$RUN_ROOT/${SCRIPT_NAME:-run}-$RUN_ID"

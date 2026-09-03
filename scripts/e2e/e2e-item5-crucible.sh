@@ -40,10 +40,10 @@ say "Load the site"
 # Three blocks SOUTH of the frame plane, never inside it: the frame may still
 # be lit from a previous run, and landing in the interior crosses instantly —
 # the site assertion then reads the crucible and every later fill is unloaded.
-rcon "execute in minecraft:overworld run tp FLUXXINATED ${IX_A}.5 $((RING_BOT + 1)) $((IZ + 3)).5" >/dev/null
+rcon "execute in minecraft:overworld run tp $PLAYER ${IX_A}.5 $((RING_BOT + 1)) $((IZ + 3)).5" >/dev/null
 wait_for_chunk "$IX_A" "$((RING_BOT + 1))" "$IZ" minecraft:overworld 60
 assert_contains "player is at the build site" \
-  "data get entity FLUXXINATED Pos" "228"
+  "data get entity $PLAYER Pos" "228"
 
 say "Build the frame"
 BUILD="$(cd "$(dirname "$0")" && pwd)/build-test-frame.sh"
@@ -128,7 +128,7 @@ say "Server-side marker"
 SRV="$RUN_DIR/mc-since.log"
 (cd "$CONSUMER_DIR" && docker logs mc --since 5m > "$SRV" 2>&1) || true
 assert_file_contains "server sent the preloaded transfer" \
-  "$SRV" "companion-send:preloaded-transfer player=FLUXXINATED dimension=adventure:the_crucible"
+  "$SRV" "companion-send:preloaded-transfer player=$PLAYER dimension=adventure:the_crucible"
 
 say "Arrival"
 assert_contains "arrived in the crucible" \

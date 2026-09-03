@@ -15,8 +15,10 @@ cd ~/Projects/elfydd && ./dev up && ./dev launch    # stack + client, then join
 /Users/pip/Projects/minecraft-server-template/scripts/e2e/e2e-item5-crucible.sh
 ```
 
-`CONSUMER_DIR` (default `~/Projects/elfydd`), `PLAYER` (default `FLUXXINATED`)
-and `RUN_ROOT` (default `/tmp/c0-e2e`) are the only knobs. Each run writes a
+`CONSUMER_DIR` (default `~/Projects/elfydd`) and `RUN_ROOT` (default
+`/tmp/c0-e2e`) are the only knobs. The player is resolved from the consumer's
+`.env` — `WHITELIST` first, then `OPS`, first name of either — and the run
+refuses rather than guessing; `PLAYER=<name>` overrides it. Each run writes a
 timestamped directory of screenshots, logs and `assertions.tsv`.
 
 Order matters for two of them: item 4 needs a resident dimension, so run item 5
