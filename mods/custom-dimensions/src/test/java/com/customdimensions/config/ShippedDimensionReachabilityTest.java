@@ -166,11 +166,10 @@ class ShippedDimensionReachabilityTest {
     }
 
     @Test
-    void everyOtherShippedDimensionIsReachable() {
-        // The positive half, stated separately so it cannot be lost in the
-        // allow-list: 70-odd dimensions are authored correctly and the check
-        // is silent about all of them. A check that warns about everything is
-        // not a check.
+    void theShippedSetReallyReachesTheReachabilityArithmetic() {
+        // What makes the sibling's empty result mean something: 40-odd
+        // dimensions take a scaled arrival and are actually measured, so "no
+        // offenders" cannot quietly mean "every config was skipped".
         Map<String, DimensionConfig> dims = shipped();
         int scaled = 0;
         for (DimensionConfig config : dims.values()) {
@@ -180,8 +179,6 @@ class ShippedDimensionReachabilityTest {
         }
 
         assertTrue(scaled > 40, "expected the bulk of the set to use scaled arrivals, got " + scaled);
-        assertTrue(unreachableDimensions(dims).size() * 10 < scaled,
-                "reachability failures must be the rare exception, not the norm");
     }
 
     /**

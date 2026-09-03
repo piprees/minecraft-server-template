@@ -2,10 +2,15 @@ package com.customdimensions.config;
 
 import com.google.gson.Gson;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.List;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 class PortalSafetyValidatorTest {
     private static final Gson GSON = new Gson();
@@ -401,5 +406,61 @@ class PortalSafetyValidatorTest {
                  "scale":8.0,"immersive":true}}
                 """);
         assertTrue(PortalSafetyValidator.validate(List.of(config)).isEmpty());
+    }
+
+    // ------------------------------------------------- unignitable check ids
+
+    /** A portal that lights, so a check id must not fire on everything. */
+    private static final String LIGHTABLE = "{\"portal\":{\"frameBlock\":\"minecraft:obsidian\"}}";
+
+    /**
+     * One config per check id whose verdict is "this portal can never be lit".
+     * {@code ShippedDimensionReachabilityTest} gates the build by filtering the
+     * shipped set through those ids, and the tests above pin the PROSE of these
+     * same checks rather than the id, so nothing else notices a rename: the
+     * filter matches nothing, the gate compares two empty lists, and eight
+     * ignition checks stop guarding anything.
+     */
+    private static Stream<Arguments> unignitableConfigs() {
+        return Stream.of(
+                arguments("portal_no_frame_block", """
+                        {"portal":{"igniterItem":"minecraft:flint_and_steel"}}"""),
+                arguments("frame_block_unusable", """
+                        {"portal":{"frameBlock":{"block":"minecraft:stone"}}}"""),
+                arguments("frame_color_group_unknown", """
+                        {"portal":{"frameBlock":{"colorGroup":"puce"},
+                         "framePlaceBlock":"minecraft:pink_wool"}}"""),
+                arguments("frame_materials_empty", """
+                        {"portal":{"frameBlock":"minecraft:obsidian",
+                         "frameMaterials":{"middle":"minecraft:stone"}}}"""),
+                arguments("portal_shape_unknown", """
+                        {"portal":{"frameBlock":"minecraft:obsidian","shape":"hexagon"}}"""),
+                arguments("portal_shape_not_a_pattern", """
+                        {"portal":{"frameBlock":"minecraft:obsidian","shape":{"type":"blob"}}}"""),
+                arguments("portal_shape_no_interior", """
+                        {"portal":{"frameBlock":"minecraft:obsidian","shape":{"type":"pattern",
+                         "template":["FFF","FFF"],"legend":{"F":"frame"}}}}"""),
+                arguments("portal_shape_orientation_conflict", """
+                        {"portal":{"frameBlock":"minecraft:obsidian","shape":"door",
+                         "orientation":"horizontal"}}"""));
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("unignitableConfigs")
+    void everyUnignitableCheckIsReportedUnderTheIdTheBuildGatesFilterOn(String check, String json) {
+        List<String> tripped = checkIds(parse("the_unlightable", json));
+        assertTrue(tripped.contains(check),
+                "no finding carries check id '" + check + "' — the build gates in "
+                + "ShippedDimensionReachabilityTest filter on that id, so it now matches nothing "
+                + "and they pass having asserted nothing. Findings were: " + tripped);
+
+        assertFalse(checkIds(parse("the_lightable", LIGHTABLE)).contains(check),
+                "'" + check + "' also fires on a portal that lights, so it says nothing about "
+                + "the config it is reported against");
+    }
+
+    private static List<String> checkIds(DimensionConfig config) {
+        return PortalSafetyValidator.findings(List.of(config)).stream()
+                .map(PortalSafetyValidator.SafetyFinding::check).toList();
     }
 }
