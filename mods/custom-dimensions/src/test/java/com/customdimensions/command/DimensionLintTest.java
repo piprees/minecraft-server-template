@@ -454,20 +454,82 @@ class DimensionLintTest {
      * one of them stays green if the single line wiring it into {@code lint()}
      * is deleted — which is the whole defect they exist to close.
      * {@code lint(server, only)} needs a {@code MinecraftServer} no unit test
-     * in this suite has, so the wiring itself is asserted against the source.
+     * in this suite has, so the wiring is asserted against the COMPILED
+     * method: a source-text search is satisfied by the line existing as a
+     * comment, and javac emits neither an instruction nor a line number for a
+     * comment. The line number it does emit is what says WHERE the call is
+     * wired, so the whole-set pass is still checked without trusting the text.
      */
     @Test
     void theLintCallsSafetyFindingsInItsWholeSetPass() throws java.io.IOException {
-        String source = java.nio.file.Files.readString(java.nio.file.Path.of(
+        java.nio.file.Path compiled = java.nio.file.Path.of("build", "classes", "java", "main",
+                "com", "customdimensions", "command", "DimensionLint.class");
+        assertTrue(java.nio.file.Files.isRegularFile(compiled),
+                "compiled DimensionLint not found at " + compiled.toAbsolutePath()
+                        + " — this test reads bytecode, it must never silently skip");
+
+        int callLine = lineOfCallInLint(compiled, "safetyFindings");
+        assertTrue(callLine > 0,
+                "compiled DimensionLint.lint() invokes no safetyFindings — config-safety "
+                + "findings are not wired into the lint, so every validate() warning is back to "
+                + "being a line in the boot log that CI never sees");
+
+        List<String> source = java.nio.file.Files.readAllLines(java.nio.file.Path.of(
                 "src", "main", "java", "com", "customdimensions", "command", "DimensionLint.java"));
+        int wholeSetPass = -1;
+        for (int i = 0; i < source.size(); i++) {
+            if (source.get(i).contains("if (only == null) {")) {
+                wholeSetPass = i + 1;
+            }
+        }
+        assertTrue(wholeSetPass > 0, "lint()'s whole-set pass has moved; update this guard");
+        assertTrue(callLine > wholeSetPass,
+                "safetyFindings is invoked at DimensionLint.java:" + callLine
+                + ", above the whole-set pass at line " + wholeSetPass + " — it must run once "
+                + "over the whole set, not inside the per-dimension loop");
+    }
 
-        int wholeSetPass = source.indexOf("if (only == null) {");
-        int wired = source.indexOf("findings.addAll(safetyFindings(targets()));");
+    /**
+     * The source line the compiled {@code lint(MinecraftServer, String)}
+     * invokes {@code name} from, or -1 when it never does.
+     */
+    private static int lineOfCallInLint(java.nio.file.Path classFile, String name)
+            throws java.io.IOException {
+        int[] found = {-1};
+        try (java.io.InputStream in = java.nio.file.Files.newInputStream(classFile)) {
+            new org.objectweb.asm.ClassReader(in).accept(
+                    new org.objectweb.asm.ClassVisitor(org.objectweb.asm.Opcodes.ASM9) {
+                        @Override
+                        public org.objectweb.asm.MethodVisitor visitMethod(int access,
+                                String method, String descriptor, String signature,
+                                String[] exceptions) {
+                            if (!method.equals("lint")) {
+                                return null;
+                            }
+                            return new org.objectweb.asm.MethodVisitor(
+                                    org.objectweb.asm.Opcodes.ASM9) {
+                                private int line = -1;
 
-        assertTrue(wholeSetPass >= 0, "lint()'s whole-set pass has moved; update this guard");
-        assertTrue(wired > wholeSetPass,
-                "config-safety findings are not wired into lint()'s whole-set pass — every "
-                + "validate() warning is back to being a line in the boot log that CI never sees");
+                                @Override
+                                public void visitLineNumber(int number,
+                                        org.objectweb.asm.Label start) {
+                                    this.line = number;
+                                }
+
+                                @Override
+                                public void visitMethodInsn(int opcode, String owner,
+                                        String callName, String callDesc, boolean isInterface) {
+                                    if (callName.equals(name)
+                                            && owner.equals(
+                                                    "com/customdimensions/command/DimensionLint")) {
+                                        found[0] = this.line;
+                                    }
+                                }
+                            };
+                        }
+                    }, org.objectweb.asm.ClassReader.SKIP_FRAMES);
+        }
+        return found[0];
     }
 
 }

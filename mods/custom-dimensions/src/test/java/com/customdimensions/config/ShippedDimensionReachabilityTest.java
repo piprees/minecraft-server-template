@@ -1,11 +1,13 @@
 package com.customdimensions.config;
 
 import com.customdimensions.portal.ArrivalReachability;
+import com.google.gson.Gson;
 import org.junit.jupiter.api.Test;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -84,22 +86,83 @@ class ShippedDimensionReachabilityTest {
                 + "is not scaled, so the source radius stops mattering).");
     }
 
-    @Test
-    void theBootValidatorAgreesWithThePureCheck() {
-        // Same invariant through the path that actually runs at boot, so a
-        // regression in the WIRING is caught as well as one in the configs.
+    /** The dimensions the boot validator calls unreachable, in name order. */
+    private static List<String> bootValidatorWarnings(Map<String, DimensionConfig> dims) {
         // Keyed on the check id rather than on a phrase in the prose: a
         // substring match silently starts asserting nothing the moment
         // somebody rewords the message.
-        List<String> warned = PortalSafetyValidator.findings(shipped().values()).stream()
+        return PortalSafetyValidator.findings(dims.values()).stream()
                 .filter(f -> "arrival_unreachable".equals(f.check()))
                 .map(PortalSafetyValidator.SafetyFinding::dimension)
                 .sorted()
                 .toList();
+    }
 
-        assertEquals(unreachableDimensions(shipped()).stream().sorted().toList(), warned,
+    /**
+     * Same invariant through the path that actually runs at boot, so a
+     * regression in the WIRING is caught as well as one in the configs — on a
+     * set built to TRIP it. Over the shipped 82 both sides of this comparison
+     * are empty, and empty equals empty whatever the validator does; the
+     * shipped set's own expectations live in
+     * {@link #noShippedDimensionCanStrandAPlayerOutsideItsOwnBorder} (the pure
+     * check) and {@link #theShippedSetTripsExactlyTheSafetyChecksWeAcceptToday}
+     * (the validator, pinned to an exact map).
+     *
+     * <p>Single-portal configs throughout, deliberately: the pure check reads
+     * the PRIMARY portal's scale and the validator reads every entry's, so a
+     * second entry is a divergence by design rather than a fault, and it is
+     * not what this asserts.
+     */
+    @Test
+    void theBootValidatorAgreesWithThePureCheckOnConfigsThatTripIt() {
+        Map<String, DimensionConfig> fixture = arrivalFixture();
+
+        List<String> pure = unreachableDimensions(fixture).stream().sorted().toList();
+        List<String> warned = bootValidatorWarnings(fixture);
+
+        assertEquals(List.of("the_narrow_shell", "the_short_leash"), pure,
+                "the fixture exists to make this check fire; if the pure arithmetic no longer "
+                + "flags these two, either the arithmetic changed or the fixture stopped "
+                + "tripping it — and an agreement asserted over two empty lists proves nothing");
+        assertEquals(pure, warned,
                 "the boot warning must fire for exactly the dimensions the pure check flags — "
                 + "no more (noise) and no fewer (a silent trap)");
+    }
+
+    /**
+     * A source world 8192 wide, and destinations either side of the line.
+     * Entering DIVIDES by scale, so a portal at source radius R arrives at
+     * R / scale and needs {@code destBorder >= R / scale}: 8192 / 8 = 1024
+     * fits a 1024 border exactly, which is how every shipped dimension is
+     * authored, and anything tighter strands somebody.
+     */
+    private static Map<String, DimensionConfig> arrivalFixture() {
+        Map<String, DimensionConfig> dims = new LinkedHashMap<>();
+        put(dims, "overworld", "{\"borders\":{\"player\":8192}}");
+        // 8192 / 8 = 1024 arrives inside 1024. The shipped shape.
+        put(dims, "the_wide_road", "{\"borders\":{\"player\":1024},\"portal\":"
+                + "{\"frameBlock\":\"minecraft:obsidian\",\"scale\":8.0}}");
+        // 8192 / 8 = 1024 against a 512 border: everything past 4096 strands.
+        put(dims, "the_short_leash", "{\"borders\":{\"player\":512},\"portal\":"
+                + "{\"frameBlock\":\"minecraft:obsidian\",\"scale\":8.0}}");
+        // 8192 / 4 = 2048 against a 1024 border: the same fault at a scale
+        // that looks generous.
+        put(dims, "the_narrow_shell", "{\"borders\":{\"player\":1024},\"portal\":"
+                + "{\"frameBlock\":\"minecraft:obsidian\",\"scale\":4.0}}");
+        // Exempt: a fixed arrival is not scaled, however tight the border.
+        put(dims, "the_anchored_hall", "{\"borders\":{\"player\":16},\"portal\":"
+                + "{\"frameBlock\":\"minecraft:obsidian\",\"scale\":8.0,"
+                + "\"anchor\":{\"pos\":[0,64,0]}}}");
+        // Exempt: 0 is explicitly borderless, so nothing can land outside it.
+        put(dims, "the_borderless_deep", "{\"borders\":{\"player\":0},\"portal\":"
+                + "{\"frameBlock\":\"minecraft:obsidian\",\"scale\":64.0}}");
+        return dims;
+    }
+
+    private static void put(Map<String, DimensionConfig> dims, String slug, String json) {
+        DimensionConfig config = new Gson().fromJson(json, DimensionConfig.class);
+        config.setName(slug);
+        dims.put(slug, config);
     }
 
     @Test
