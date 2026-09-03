@@ -1079,7 +1079,32 @@ public class PortalHelper {
     private static final int ARRIVAL_TICKET_RADIUS = 3;
 
     /**
-     * The arrival height for a column, or null when its chunk is not resident.
+     * The only chunk accessor a tick path may use.
+     *
+     * <p><b>{@code getWorldChunk(x, z, false)} is not a non-blocking probe.</b>
+     * It delegates to {@code ServerChunkManager.getChunk(x, z, FULL, create)},
+     * which reaches {@code MainThreadExecutor.runTasks(future::isDone)} and
+     * {@code join()} on every path — {@code create} only decides which future
+     * it waits on. Once a chunk ticket exists the holder is at a sufficient
+     * level, the future is not done, and the call waits for the terrain to
+     * generate. This two-argument form is a cache lookup, then
+     * {@code getChunkHolder} and {@code getOrNull}: it returns null instead.
+     *
+     * @return the resident chunk, or null when it is not loaded right now
+     */
+    public static net.minecraft.world.chunk.WorldChunk residentChunk(ServerWorld world,
+            int chunkX, int chunkZ) {
+        return world.getChunkManager().getWorldChunk(chunkX, chunkZ);
+    }
+
+    /** Whether the chunk holding this block column is resident. Never waits. */
+    public static boolean isColumnResident(ServerWorld world, int blockX, int blockZ) {
+        return residentChunk(world, blockX >> 4, blockZ >> 4) != null;
+    }
+
+    /**
+     * The arrival height for a column, or null when the footprint an arrival
+     * needs is not resident. Reads nothing cold, and never waits.
      *
      * <p>The guard and the read are one call on purpose. Everything an arrival
      * does to a column blocks on a cold chunk, not just the heightmap:
@@ -1090,28 +1115,47 @@ public class PortalHelper {
      * "check, then read" is what let one caller keep the check and another
      * forget it.
      *
-     * <p>Null means NOT YET, never "no surface": the column is ticketed and a
-     * later tick will find it resident. It also means {@link #VOID_FALLBACK_Y}
-     * can only ever come from a real void column, never from a cold chunk
-     * answering {@code bottomY}.
+     * <p>Null means NOT YET, never "no surface". It also means
+     * {@link #VOID_FALLBACK_Y} can only ever come from a real void column,
+     * never from a cold chunk answering {@code bottomY}.
      */
-    public static Integer arrivalSurfaceY(ServerWorld world, int centerX, int centerZ) {
-        if (!arrivalColumnReady(world, centerX, centerZ)) {
+    public static Integer surfaceYIfResident(ServerWorld world, int centerX, int centerZ) {
+        if (!arrivalFootprintResident(world, centerX, centerZ)) {
             return null;
         }
         return findSurfaceY(world, centerX, centerZ);
     }
 
-    /** Resident already, or ticketed so a retry can succeed. */
-    private static boolean arrivalColumnReady(ServerWorld world, int centerX, int centerZ) {
-        net.minecraft.util.math.ChunkPos column =
-                new net.minecraft.util.math.ChunkPos(centerX >> 4, centerZ >> 4);
-        if (world.getChunkManager().getWorldChunk(column.x, column.z, false) != null) {
-            return true;
+    /**
+     * {@link #surfaceYIfResident}, and a chunk ticket when the column is cold
+     * so the caller's retry can eventually succeed. Without the ticket a
+     * skipped arrival would never load and the player would wait forever.
+     */
+    public static Integer arrivalSurfaceY(ServerWorld world, int centerX, int centerZ) {
+        Integer surfaceY = surfaceYIfResident(world, centerX, centerZ);
+        if (surfaceY == null) {
+            net.minecraft.util.math.ChunkPos column =
+                    new net.minecraft.util.math.ChunkPos(centerX >> 4, centerZ >> 4);
+            world.getChunkManager().addTicket(net.minecraft.server.world.ChunkTicketType.PORTAL,
+                    column, ARRIVAL_TICKET_RADIUS, new BlockPos(centerX, 0, centerZ));
         }
-        world.getChunkManager().addTicket(net.minecraft.server.world.ChunkTicketType.PORTAL,
-                column, ARRIVAL_TICKET_RADIUS, new BlockPos(centerX, 0, centerZ));
-        return false;
+        return surfaceY;
+    }
+
+    /**
+     * Every chunk an arrival touches, not just the centre one: the standard
+     * interior runs to {@code centre + STANDARD_PAD} and the egress carve one
+     * further, so a centre near a chunk edge reads into its neighbour.
+     */
+    private static boolean arrivalFootprintResident(ServerWorld world, int centerX, int centerZ) {
+        for (int chunkX = (centerX - 1) >> 4; chunkX <= (centerX + PortalSite.STANDARD_PAD) >> 4; chunkX++) {
+            for (int chunkZ = (centerZ - 1) >> 4; chunkZ <= (centerZ + PortalSite.STANDARD_PAD) >> 4; chunkZ++) {
+                if (residentChunk(world, chunkX, chunkZ) == null) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     // Absolute Y a player should stand at when arriving at (centerX, centerZ)

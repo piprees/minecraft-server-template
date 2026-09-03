@@ -89,7 +89,7 @@ public final class CompanionNetwork {
         }
         // Requested is not resident: a ticket registered moments ago may still
         // be generating. Never force it — a null read means show the screen.
-        if (targetWorld.getChunkManager().getWorldChunk(arrivalX >> 4, arrivalZ >> 4, false) == null) {
+        if (!PortalHelper.isColumnResident(targetWorld, arrivalX, arrivalZ)) {
             return;
         }
         ServerPlayNetworking.send(player, new CompanionPayloads.PreloadedTransfer(targetKey.getValue()));

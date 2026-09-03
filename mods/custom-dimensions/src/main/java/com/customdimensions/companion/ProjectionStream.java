@@ -32,8 +32,9 @@ import java.util.Map;
  * and the slab can be deeper and wider than a projection a player could walk
  * into.
  *
- * <p>Chunks are read with {@code create=false} throughout. An unloaded target
- * chunk contributes air, which reads as a hole rather than as a stall.
+ * <p>Chunks are read through {@link PortalHelper#residentChunk} throughout. An
+ * unloaded target chunk contributes air, which reads as a hole rather than as
+ * a stall.
  */
 public final class ProjectionStream {
 
@@ -165,7 +166,7 @@ public final class ProjectionStream {
         if (cache.containsKey(key)) {
             return cache.get(key);
         }
-        WorldChunk chunk = world.getChunkManager().getWorldChunk(cx, cz, false);
+        WorldChunk chunk = PortalHelper.residentChunk(world, cx, cz);
         cache.put(key, chunk);
         return chunk;
     }

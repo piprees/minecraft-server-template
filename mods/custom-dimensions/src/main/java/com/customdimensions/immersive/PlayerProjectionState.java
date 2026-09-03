@@ -752,10 +752,10 @@ public final class PlayerProjectionState {
         if (cache.containsKey(key)) {
             chunk = cache.get(key);
         } else {
-            // create=false: returns null for an unloaded chunk instead of
-            // synchronously generating it. NEVER pass true here — see
-            // ImmersiveProjector's class comment.
-            chunk = targetWorld.getChunkManager().getWorldChunk(cx, cz, false);
+            // residentChunk, never getWorldChunk(cx, cz, false): the
+            // three-argument form waits for a ticketed chunk to finish
+            // generating, which is a watchdog kill from this pass.
+            chunk = PortalHelper.residentChunk(targetWorld, cx, cz);
             cache.put(key, chunk);
         }
         return chunk != null ? chunk.getBlockState(targetPos) : null;

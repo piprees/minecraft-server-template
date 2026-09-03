@@ -21,9 +21,11 @@ import net.minecraft.world.chunk.WorldChunk;
  * ground — a heightmap-only read drifts upward once a portal has been
  * used.
  *
- * <p>Never sync-loads a chunk: the registry lookup is a pure in-memory read,
- * and the heightmap read uses the non-loading accessor, returning
- * {@link #NO_ARRIVAL} for an unloaded chunk rather than generating one.
+ * <p>Never waits on a chunk: the registry lookup is a pure in-memory read,
+ * and the heightmap read goes through {@link PortalHelper#residentChunk},
+ * returning {@link #NO_ARRIVAL} for an unloaded one. The three-argument
+ * {@code getWorldChunk(x, z, false)} would NOT do — it waits for a ticketed
+ * chunk to finish generating.
  */
 public final class ArrivalResolver {
 
@@ -72,7 +74,7 @@ public final class ArrivalResolver {
      * force-generating one.
      */
     public static int heightmapSurfaceY(ServerWorld targetWorld, int x, int z) {
-        WorldChunk chunk = targetWorld.getChunkManager().getWorldChunk(x >> 4, z >> 4, false);
+        WorldChunk chunk = PortalHelper.residentChunk(targetWorld, x >> 4, z >> 4);
         if (chunk == null) {
             return NO_ARRIVAL;
         }

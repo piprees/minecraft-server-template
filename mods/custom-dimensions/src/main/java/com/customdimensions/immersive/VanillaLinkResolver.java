@@ -38,7 +38,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * <p>Never generates a chunk. {@code PortalForcer.getPortalPos} opens with
  * {@code PointOfInterestStorage.preloadChunks}, which generates, so it is
  * unusable from a tick path (Rule 1). Only chunks already resident are
- * consulted, via the {@code getWorldChunk(x, z, false)} idiom;
+ * consulted, via {@link PortalHelper#residentChunk};
  * {@code getInChunk} still reads through the LOADING section getter, so a
  * resident chunk whose point-of-interest sections are somehow absent costs a
  * region-file read rather than a generation stall.
@@ -127,8 +127,7 @@ public final class VanillaLinkResolver {
         BlockPos arrival = BlockPos.ofFloored(target.pos());
         // Vanilla has just built or found the far portal, so its chunk is
         // resident; an absent one means there is no pair to record.
-        if (targetWorld.getChunkManager()
-                .getWorldChunk(arrival.getX() >> 4, arrival.getZ() >> 4, false) == null) {
+        if (!PortalHelper.isColumnResident(targetWorld, arrival.getX(), arrival.getZ())) {
             return;
         }
         Set<BlockPos> targetInterior = portalAreaAround(targetWorld, arrival);
@@ -223,9 +222,8 @@ public final class VanillaLinkResolver {
      */
     private static BlockPos endPlatform(ServerWorld targetWorld) {
         BlockPos platform = ServerWorld.END_SPAWN_POS;
-        return targetWorld.getChunkManager()
-                .getWorldChunk(platform.getX() >> 4, platform.getZ() >> 4, false) == null
-                ? null : platform;
+        return PortalHelper.isColumnResident(targetWorld, platform.getX(), platform.getZ())
+                ? platform : null;
     }
 
     /**
@@ -246,7 +244,7 @@ public final class VanillaLinkResolver {
             for (int dz = -SEARCH_CHUNK_RADIUS; dz <= SEARCH_CHUNK_RADIUS; dz++) {
                 int chunkX = centreChunkX + dx;
                 int chunkZ = centreChunkZ + dz;
-                if (targetWorld.getChunkManager().getWorldChunk(chunkX, chunkZ, false) == null) {
+                if (PortalHelper.residentChunk(targetWorld, chunkX, chunkZ) == null) {
                     unknownNearestSq = Math.min(unknownNearestSq,
                             nearestSquaredHorizontal(chunkX, chunkZ, searchPos.getX(), searchPos.getZ()));
                     continue;
@@ -300,8 +298,7 @@ public final class VanillaLinkResolver {
      * {@link ArrivalResolver} applies to a registered arrival.
      */
     private static boolean stillLinked(ServerWorld targetWorld, BlockPos pos) {
-        WorldChunk chunk = targetWorld.getChunkManager()
-                .getWorldChunk(pos.getX() >> 4, pos.getZ() >> 4, false);
+        WorldChunk chunk = PortalHelper.residentChunk(targetWorld, pos.getX() >> 4, pos.getZ() >> 4);
         return chunk == null || chunk.getBlockState(pos).contains(Properties.HORIZONTAL_AXIS);
     }
 
