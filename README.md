@@ -176,6 +176,7 @@ Three categories, by where a script ends up and who runs it. Every script has a 
 | `build-mod-update-report.py` | Build the mod-update PR body with changelogs |
 | `client-defaults.sh` | Diff/sync shipped client defaults against the source Prism instance |
 | `test-scripts.sh` | shellcheck + py_compile + compose validation |
+| `e2e/` | End-to-end harness: drives a linked local consumer and the real client through ignition, traversal, idle unload and companion suppression ([`scripts/e2e/README.md`](scripts/e2e/README.md)) |
 | `build-stack-bundle.sh` | Assemble the release tarball |
 | `sync-mod-cache.sh` | Reconcile `mods-cache/` against the pinned mod lists (`--apply`) |
 | `export-seed-winners.py` | Copy rolled winner seeds/spawns from a consumer overlay into the platform dimension configs (`--dry-run` diffs) |
