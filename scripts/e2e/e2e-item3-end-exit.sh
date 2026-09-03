@@ -4,7 +4,7 @@
 # Purpose: prove the natural End exit portal returns the player to the
 #          overworld, and that the mod does not refuse it.
 # Context: run this straight after item 2, while the player is still in the End.
-# Usage:   ./e2e-item3-end-exit.sh
+# Usage:   ./dev launch --dev-bridge   then   ./e2e-item3-end-exit.sh
 # Gotchas: the return lands on the player's OWN spawn, not a projected
 #          position, so an unexpected arrival coordinate is not a defect. The
 #          failure to watch for is still reading minecraft:the_end after
@@ -22,13 +22,15 @@ say "Gates"
 require_backup_idle
 require_mc_healthy
 require_player_online
+require_bridge
 
 say "Precondition — the player is in the End"
-DIM="$(rcon "execute as $PLAYER run data get entity @s Dimension" | tr -d '\r\n')"
+state_refresh
+DIM="$(player_dimension)"
 case "$DIM" in
-  *"minecraft:the_end"*) note "player dimension: $DIM" ;;
+  minecraft:the_end) note "player dimension: $DIM" ;;
   *) printf '\033[31mPRECONDITION NOT MET\033[0m — %s is not in the End.\n' "$PLAYER" >&2
-     printf 'Dimension answered: %s\n' "$DIM" >&2
+     printf 'e2e-state says the dimension is: %s\n' "$DIM" >&2
      printf 'Run item 2 first. This is not a pass.\n' >&2
      exit 1 ;;
 esac
@@ -78,20 +80,20 @@ rcon "execute in minecraft:the_end run tp $PLAYER 0.5 $EXIT_Y 0.5" >/dev/null
 sleep 5
 shot "01-after-contact"
 
-assert_contains "returned to the overworld" \
-  "execute as $PLAYER run data get entity @s Dimension" "minecraft:overworld"
-
-say "Negative control"
 # The arrival COORDINATE is the player's own spawn and is deliberately not
 # asserted. The real failure is the mod refusing the exit portal, which shows
-# as the player still reading the_end after contact.
-assert_not_contains "NEGATIVE: not still in the End after contact" \
-  "execute as $PLAYER run data get entity @s Dimension" "minecraft:the_end"
+# as the player still reading the_end after contact — and the dimension is one
+# exact value, so "returned to the overworld" already excludes it. There is no
+# separate negative to make.
+state_refresh
+assert_player_dimension "returned to the overworld" minecraft:overworld
 
 note "waiting 10s — a single reading on the arrival tick cannot tell a return from a bounce"
 sleep 10
-assert_contains "NEGATIVE: still in the overworld ten seconds later" \
-  "execute as $PLAYER run data get entity @s Dimension" "minecraft:overworld"
+state_refresh
+assert_player_dimension "NEGATIVE: still in the overworld ten seconds later" minecraft:overworld
+bridge_state
+assert_bridge_player "the client agrees the player is in the overworld" '.dimension' minecraft:overworld
 shot "02-settled"
 
 finish

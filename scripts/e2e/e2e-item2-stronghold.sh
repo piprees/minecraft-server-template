@@ -2,8 +2,10 @@
 # RETEST item 2 — the stronghold and the twelve-eye ritual.
 #
 # Purpose: prove the gateway fix (both halves) then run the twelve-eye ritual.
-# Context: drives Pip's real client. Aim is the tp; the click is only a trigger.
-# Usage:   ./e2e-item2-stronghold.sh
+# Context: drives Pip's real client for the screenshots; every socket click goes
+#          through `customdim use`, which is the interaction manager's own
+#          interactBlock — a synthetic right-click does not reach this game.
+# Usage:   ./dev launch --dev-bridge   then   ./e2e-item2-stronghold.sh
 # Gotchas: `give` puts an item in the inventory, not the hand — every ignition
 #          here uses `item replace ... weapon.mainhand` or the click does
 #          nothing. Re-runnable: it counts sockets already filled first.
@@ -42,6 +44,7 @@ say "Gates"
 require_backup_idle
 require_mc_healthy
 require_player_online
+require_bridge
 
 say "Build the rig"
 # Chunks load from a PLAYER, so the player goes first or every setblock answers
@@ -122,8 +125,13 @@ sleep 1
 # proof that one ignited is the zone below — not a block. Asserting a block here
 # tests the behaviour the frame-only rule removed.
 assert_block "framed gateway leaves its interior empty" "$GW_IX" "$GW_IY" "$GW_IZ" "minecraft:end_gateway" absent
-assert_file_contains "a zone was registered for the framed gateway" \
-  "$CONSUMER_DIR/data/config/portal_links.json" "the_crumbling_reaches"
+state_refresh
+assert_source_zone "the framed gateway's zone leads to the crumbling reaches" \
+  "$GW_IX" "$GW_IY" "$GW_IZ" adventure:the_crumbling_reaches
+assert_source_zone_unique "only one source zone over the gateway cell" \
+  "$GW_IX" "$GW_IY" "$GW_IZ"
+assert_source_zone_frame_stands "the framed gateway's own frame stands" \
+  "$GW_IX" "$GW_IY" "$GW_IZ"
 shot "02-half-two"
 
 say "Phase A, half two NEGATIVE — a bare block does not ignite"
@@ -218,12 +226,15 @@ shot "05-lit"
 say "Crossing, and staying"
 rcon "tp $PLAYER $((PORTAL_X)).5 $PORTAL_Y $((PORTAL_Z)).5" >/dev/null
 sleep 4
-assert_contains "arrived in the End" "execute as $PLAYER run data get entity @s Dimension" "minecraft:the_end"
+state_refresh
+assert_player_dimension "arrived in the End" minecraft:the_end
 shot "06-arrived"
 note "waiting 10s — a single reading on the arrival tick cannot tell a fixed arrival from an ejection"
 sleep 10
-assert_contains "NEGATIVE: still in the End ten seconds later" \
-  "execute as $PLAYER run data get entity @s Dimension" "minecraft:the_end"
+state_refresh
+assert_player_dimension "NEGATIVE: still in the End ten seconds later" minecraft:the_end
+bridge_state
+assert_bridge_player "the client is in the End too" '.dimension' minecraft:the_end
 shot "07-still-there"
 
 say "Credits"

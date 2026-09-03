@@ -5,7 +5,7 @@
 # Idempotent: re-running re-asserts every cell. Verifies each placement.
 set -uo pipefail
 export PATH=/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin
-CD=/Users/pip/Projects/elfydd
+CD="${CONSUMER_DIR:-$HOME/Projects/elfydd}"
 DRY="${1:-}"
 FAIL=0
 

@@ -7,8 +7,9 @@
 #          the mesh is built OFF the render thread (thread= on the marker), an
 #          unchanged resend does NOT rebuild it (the marker count stays low),
 #          and the draw path is no longer gated (it draws at all).
-# Usage:   ./e2e-c1-render.sh          (run item 5 first — it builds and lights
-#                                       the frame this views through)
+# Usage:   ./dev launch --dev-bridge   then   ./e2e-c1-render.sh
+#          (run item 5 first — it builds and lights the frame this views
+#          through)
 # Gotchas: RCON CANNOT discriminate. The server-side projection sends fake
 #          block packets to one client; the server's own world is unchanged, so
 #          an `execute if block` probe reports the real world either way. Do
@@ -32,7 +33,7 @@ SCRIPT_NAME="c1-render"
 TEMPLATE_DIR="${TEMPLATE_DIR:-/Users/pip/Projects/minecraft-server-template}"
 CLIENT_JAR="$TEMPLATE_DIR/mods/custom-dimensions-client/build/libs/customdimensionsclient-0.0.0-local.jar"
 
-IZ=297                                   # frame plane
+IX=228; IY=130; IZ=297                   # a cell of the frame's interior
 VIEW_X=229.0; VIEW_Y=130; VIEW_Z=303     # 6 blocks south of the frame, facing it
 VIEW_YAW=180; VIEW_PITCH=0               # yaw 180 = north = straight at the frame
 VIEW_SECONDS=10                          # the static view the mesh count is measured over
@@ -79,9 +80,18 @@ say "Gates"
 require_backup_idle
 require_mc_healthy
 require_player_online
+require_bridge
 STARTED_AT="$(cd "$CONSUMER_DIR" && docker inspect mc --format '{{.State.StartedAt}}')"
-CLIENT_PID_BEFORE="$(client_pid || echo none)"
-note "client pid at start: $CLIENT_PID_BEFORE"
+# The client's own tick counter, which resets to zero when the JVM restarts.
+# It answers even when the render thread is wedged, so it survives exactly the
+# failure this test is looking for.
+CLIENT_TICK_BEFORE="$(json_read "$RUN_DIR/bridge-health.json" '.tick')"
+case "$CLIENT_TICK_BEFORE" in
+  ''|*[!0-9]*)
+    _record fail "the bridge reported a client tick to compare against" "a number" "$CLIENT_TICK_BEFORE"
+    CLIENT_TICK_BEFORE=0 ;;
+esac
+note "client tick at start: $CLIENT_TICK_BEFORE"
 
 say "The artefact under test carries the fix"
 assert_jar_contains "the off-thread mesh builder is in the jar" \
@@ -90,8 +100,10 @@ assert_jar_contains "the jar is remapped (refmap present, not a dev jar)" \
   "$CLIENT_JAR" "customdimensionsclient-refmap.json"
 
 say "Precondition — the crucible frame is lit and registered"
-assert_file_contains "a crucible zone is registered" \
-  "$CONSUMER_DIR/data/config/portal_links.json" "the_crucible"
+state_refresh
+assert_source_zone "the frame's own zone leads to the crucible" \
+  "$IX" "$IY" "$IZ" adventure:the_crucible
+assert_source_zone_frame_stands "the crucible's source frame stands" "$IX" "$IY" "$IZ"
 assert_block "frame ring is intact (west middle)" 227 131 "$IZ" minecraft:copper_block present
 assert_block "source interior is empty (source portals have no blocks)" \
   228 131 "$IZ" minecraft:air present
@@ -106,12 +118,24 @@ CLI_BEFORE_LINES="$(wc -l < "$CLI_BEFORE" | tr -d ' ')"
 note "server baseline $SRV_BEFORE_LINES lines, client baseline $CLI_BEFORE_LINES lines"
 
 say "Put the viewer in front of the portal and hold still for ${VIEW_SECONDS}s"
-# The aim is the tp. The pointer only picks the window; the crosshair is fixed
-# at screen centre and the game reads look direction, not cursor position.
+# The aim is the tp: the game reads look direction, and the tp sets it.
 rcon "execute in minecraft:overworld run tp $PLAYER $VIEW_X $VIEW_Y $VIEW_Z $VIEW_YAW $VIEW_PITCH" >/dev/null
-dev input focus >/dev/null 2>&1
 sleep "$VIEW_SECONDS"
 assert_shot "SHOT A — the portal as the player sees it" "A-through-the-portal"
+
+# The client's own render state, asked rather than inferred from its log: one
+# projection for this portal, its mesh built, and a quad count that is not zero.
+bridge_state
+assert_bridge "the client holds a projection for the crucible" \
+  '[.projections[] | select(.destination=="adventure:the_crucible")] | length' 1
+assert_bridge "its mesh is built" \
+  '.projections[] | select(.destination=="adventure:the_crucible") | .meshReady' true
+assert_bridge_at_least "and carries geometry" \
+  '.projections[] | select(.destination=="adventure:the_crucible") | .quads' 1
+report_metric "client fps during the static view" "$(bridge_read '.client.fps')" \
+  "reported, not asserted — a slow machine is not this defect"
+report_metric "per-layer quads" \
+  "$(bridge_read '.projections[] | select(.destination=="adventure:the_crucible") | .layers | map("\(.layer)=\(.quads)") | join(" ")')"
 
 say "Collect the new log lines"
 SRV_NEW="$RUN_DIR/mc-new.log"
@@ -163,11 +187,16 @@ assert_file_lacks "the render-tick diagnostic is gone" \
   "$RUN_DIR/client-after.log" "companion-client:render-tick"
 
 say "Did the client survive the draw?"
-CLIENT_PID_AFTER="$(client_pid || echo none)"
-if [ "$CLIENT_PID_AFTER" = "$CLIENT_PID_BEFORE" ] && [ "$CLIENT_PID_AFTER" != "none" ]; then
-  _record ok "the client did not crash or restart" "$CLIENT_PID_BEFORE" "$CLIENT_PID_AFTER"
+# A restart resets the counter, and a wedged client stops advancing it, so one
+# reading catches both — and /health answers even while the render thread is
+# stuck, which is the state a pid check cannot see.
+if bridge_request "$RUN_DIR/bridge-health-after.json" GET /health; then
+  assert_json_at_least "the client kept ticking through the draw" \
+    "$RUN_DIR/bridge-health-after.json" '.tick' "$((CLIENT_TICK_BEFORE + 1))"
+  note "client tick: $CLIENT_TICK_BEFORE at the start, $(json_read "$RUN_DIR/bridge-health-after.json" '.tick') at the end"
 else
-  _record fail "the client did not crash or restart" "$CLIENT_PID_BEFORE" "$CLIENT_PID_AFTER"
+  _record fail "the client kept ticking through the draw" ">= $((CLIENT_TICK_BEFORE + 1))" \
+    "the bridge stopped answering: $BRIDGE_REASON"
 fi
 assert_file_lacks "no fatal JVM error in the client log" \
   "$RUN_DIR/client-after.log" "SIGSEGV"
@@ -195,18 +224,16 @@ say "Is it the RIGHT dimension? — the honest visual pair"
 note "crossing to photograph the destination on the same heading"
 rcon "tp $PLAYER 229.0 130 297.5 $VIEW_YAW $VIEW_PITCH" >/dev/null
 sleep 6
-DEST="$(rcon "execute as $PLAYER run data get entity @s Dimension" | tr -d '\r\n')"
-case "$DEST" in
-  *"the_crucible"*)
-    _record ok "the viewer crossed into the destination" "adventure:the_crucible" "$DEST"
-    sleep 2
-    assert_shot "SHOT B — the destination, same heading" "B-inside-the-destination"
-    ;;
-  *)
-    _record fail "the viewer crossed into the destination" "adventure:the_crucible" "$DEST"
-    note "SHOT B skipped — without the crossing there is nothing to compare SHOT A against"
-    ;;
-esac
+state_refresh
+DEST="$(player_dimension)"
+if [ "$DEST" = "adventure:the_crucible" ]; then
+  _record ok "the viewer crossed into the destination" "adventure:the_crucible" "$DEST"
+  sleep 2
+  assert_shot "SHOT B — the destination, same heading" "B-inside-the-destination"
+else
+  _record fail "the viewer crossed into the destination" "adventure:the_crucible" "$DEST"
+  note "SHOT B skipped — without the crossing there is nothing to compare SHOT A against"
+fi
 
 say "Return the viewer"
 rcon "execute in minecraft:overworld run tp $PLAYER $VIEW_X $VIEW_Y $VIEW_Z $VIEW_YAW $VIEW_PITCH" >/dev/null

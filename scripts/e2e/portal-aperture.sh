@@ -3,36 +3,39 @@
 # portal-aperture.sh — does an immersive portal read as an OPENING?
 #
 # Purpose:  End-to-end check of the portal aperture effects against a real
-#           client. Builds a scratch portal, lights it through Pip's own
-#           client, and asserts the three properties the effects exist for:
-#           the opening is never filled, the frame is lit, and the light and
-#           colour reaching it come from the dimension on the other side.
-#           Then walks through it, because a gateway you cannot use is a
-#           picture.
+#           client. Builds a scratch portal, lights it, and asserts the three
+#           properties the effects exist for: the opening is never filled, the
+#           frame is lit, and the light and colour reaching it come from the
+#           dimension on the other side. Then walks through it, because a
+#           gateway you cannot use is a picture.
 #
 # Context:  Local dev stack only (~/Projects/elfydd), linked to a platform
-#           checkout via `./dev link`. Needs Pip's client CONNECTED — every
-#           assertion that involves seeing something is driven through it.
-#           No Carpet bots: this is tested by hand, through the real client.
+#           checkout via `./dev link`. Needs Pip's client CONNECTED with the
+#           dev bridge open — every assertion that involves seeing something
+#           is driven through it. No Carpet bots: a bot has no client.
 #
-# Usage:    ./scripts/e2e/portal-aperture.sh [--keep]
+# Usage:    ./dev launch --dev-bridge   then
+#           ./scripts/e2e/portal-aperture.sh [--keep]
 #             --keep   leave the scratch portal standing for a look
 #
-# Gotchas:  - Screenshots land in $E2E_OUT (default /tmp/c0-e2e/aperture)
-#             and are the point;
-#             read them, the script can only prove they were taken.
+# Gotchas:  - Screenshots land in the run directory and are the point; read
+#             them, the script can only prove they were taken.
 #           - The scratch site is deliberately far from Pip's own portals
 #             and at POSITIVE coordinates: a block's centre is block + 0.5,
 #             and getting that wrong on a negative coordinate has walked
 #             people through portals they meant to stand beside.
+#           - The approach floor is level with the frame's bottom ring, so the
+#             walk has no one-block rise to stop dead on. Vanilla step height
+#             is 0.6: a player auto-steps a slab, never a block.
 #           - Fill share is read from the mod's own `aperture:` heartbeat,
 #             which is DEBUG. A silent run means log level, not a dead pass.
 #
-set -euo pipefail
 
-CONSUMER="${CONSUMER_DIR:-$HOME/Projects/elfydd}"
-OUT="${E2E_OUT:-/tmp/c0-e2e/aperture}"
-PLAYER="${PLAYER:-}"
+# shellcheck disable=SC2034  # lib.sh reads it to name the run dir
+SCRIPT_NAME="aperture"
+# shellcheck source=lib.sh
+. "$(cd "$(dirname "$0")" && pwd)/lib.sh"
+
 KEEP=0
 [ "${1:-}" = "--keep" ] && KEEP=1
 
@@ -41,158 +44,164 @@ SX=2048; SY=90; SZ=2048
 # the_basalt_spires: basalt frame, flint and steel, standard shape.
 FRAME="minecraft:basalt"
 IGNITER="minecraft:flint_and_steel"
+APPROACH_Z=$((SZ - 4))                 # four blocks north of the frame plane
+FILL_SHARE_CEILING=50                  # over half the plane and it reads as a surface
+# The opening's bottom cell, which is how the scratch zone is picked out of
+# every zone the server holds.
+AY=$((SY + 1))
 
-PASSES=0
-FAILURES=0
+banner "portal-aperture — does an immersive portal read as an OPENING?"
 
-pass() { PASSES=$((PASSES + 1)); printf 'PASS  %s\n' "$1"; }
-fail() { FAILURES=$((FAILURES + 1)); printf 'FAIL  %s\n' "$1"; }
-info() { printf '      %s\n' "$1"; }
-check() { if [ "$1" = "0" ]; then pass "$2"; else fail "$2"; fi; }
+say "Gates"
+require_backup_idle
+require_mc_healthy
+require_player_online
+require_bridge
 
-rcon() { docker exec -i mc rcon-cli "$*" 2>&1; }
-
-mkdir -p "$OUT"
-cd "$CONSUMER"
-
-printf '\n== preconditions ==\n'
-
-health="$(docker inspect mc --format '{{.State.Health.Status}}' 2>/dev/null || echo missing)"
-restarts="$(docker inspect mc --format '{{.RestartCount}}' 2>/dev/null || echo -1)"
-if [ "$health" = "healthy" ] && [ "$restarts" = "0" ]; then
-    pass "mc is healthy with no restarts"
+RESTARTS="$(cd "$CONSUMER_DIR" && docker inspect mc --format '{{.RestartCount}}' 2>/dev/null)"
+if [ "$RESTARTS" = "0" ]; then
+  _record ok "mc has not restarted" "0 restarts" "$RESTARTS"
 else
-    fail "mc health=$health restarts=$restarts"
+  _record fail "mc has not restarted" "0 restarts" "${RESTARTS:-unreadable}"
 fi
 
-if docker exec mc sh -c 'unzip -l /data/mods/customdimensions-*.jar' 2>/dev/null \
-        | grep -q 'PortalAperture.class'; then
-    pass "the served jar carries the aperture code under test"
+if (cd "$CONSUMER_DIR" && docker exec mc sh -c 'unzip -l /data/mods/customdimensions-*.jar' 2>/dev/null) \
+    | grep -q 'PortalAperture.class'; then
+  _record ok "the served jar carries the aperture code under test" "PortalAperture.class" "present"
 else
-    fail "the served jar has no PortalAperture — run ./dev up first"
-fi
-
-if [ -z "$PLAYER" ]; then
-    PLAYER="$(rcon list | sed -n 's/.*players online: //p' | tr -d '\r' | cut -d, -f1 | tr -d ' ')"
-fi
-if [ -n "$PLAYER" ]; then
-    pass "client connected as $PLAYER"
-else
-    fail "no player online — launch the client (./dev launch) and join before running this"
-    printf '\n%s passed, %s failed\n' "$PASSES" "$FAILURES"
-    exit 1
+  _record fail "the served jar carries the aperture code under test" "PortalAperture.class" \
+    "absent — run ./dev up first"
 fi
 
 # Every log assertion below reads only lines written after this point.
-MARK="$(docker logs mc 2>&1 | wc -l | tr -d ' ')"
-since() { docker logs mc 2>&1 | tail -n "+$((MARK + 1))"; }
+MARK="$(cd "$CONSUMER_DIR" && docker logs mc 2>&1 | wc -l | tr -d ' ')"
+since() { (cd "$CONSUMER_DIR" && docker logs mc 2>&1 | tail -n "+$((MARK + 1))"); }
 
-printf '\n== build and light a scratch portal ==\n'
-
+say "Build and light a scratch portal"
 rcon "execute in minecraft:overworld run forceload add $SX $SZ" >/dev/null
+rcon "execute in minecraft:overworld run tp $PLAYER $((SX)).5 $((SY + 1)) $((APPROACH_Z)).5 0 0" >/dev/null
+wait_for_chunk "$SX" "$SY" "$SZ" minecraft:overworld 60
 # A standard frame: 4 wide, 5 tall, hollow 2x3 interior, plane along X.
 rcon "execute in minecraft:overworld run fill $((SX-1)) $SY $SZ $((SX+2)) $((SY+4)) $SZ $FRAME" >/dev/null
 rcon "execute in minecraft:overworld run fill $SX $((SY+1)) $SZ $((SX+1)) $((SY+3)) $SZ minecraft:air" >/dev/null
-rcon "execute in minecraft:overworld run fill $((SX-2)) $((SY-1)) $((SZ-4)) $((SX+3)) $((SY-1)) $((SZ+1)) minecraft:smooth_stone" >/dev/null
-interior="$(rcon "execute in minecraft:overworld if block $SX $((SY+1)) $SZ minecraft:air")"
-case "$interior" in
-    *"Test passed"*) pass "frame built with an empty interior" ;;
-    *) fail "frame interior is not air: $interior" ;;
-esac
+# The approach floor sits at the bottom ring's own level and stops one block
+# short of the frame plane, so the player's feet are already level with the
+# interior's lowest cell when they reach it.
+rcon "execute in minecraft:overworld run fill $((SX-1)) $SY $((SZ-6)) $((SX+2)) $SY $((SZ-1)) minecraft:smooth_stone" >/dev/null
+rcon "execute in minecraft:overworld run fill $((SX-1)) $((SY+1)) $((SZ-6)) $((SX+2)) $((SY+2)) $((SZ-1)) minecraft:air" >/dev/null
+assert_block "the frame interior is clear before ignition" \
+  "$SX" "$((SY+1))" "$SZ" minecraft:air present
 
-rcon "give $PLAYER $IGNITER" >/dev/null
-rcon "item replace entity $PLAYER hotbar.0 with $IGNITER" >/dev/null
-# Stand back from the plane, looking at the bottom-left interior cell.
-rcon "tp $PLAYER $((SX)).5 $SY $((SZ-3)).5 0 25" >/dev/null
+rcon "item replace entity $PLAYER weapon.mainhand with $IGNITER 1" >/dev/null
+rcon "execute in minecraft:overworld run tp $PLAYER $((SX)).5 $((SY + 1)) $((APPROACH_Z)).5 0 25" >/dev/null
 sleep 2
+assert_shot "a screenshot of the unlit frame" "1-unlit"
 
-./dev screenshot --out "$OUT/1-unlit.png" >/dev/null 2>&1 || true
-[ -s "$OUT/1-unlit.png" ] && pass "screenshot of the unlit frame" || fail "no unlit screenshot"
-
-./dev input focus >/dev/null 2>&1 || true
-./dev input rightclick 900 500 >/dev/null 2>&1 || true
+# `customdim use` runs the interaction manager's own interactBlock as the
+# player, which is the only use that reaches this game. It needs reach, so the
+# player stands in the opening's bottom cell and uses the ring block below.
+stand_and_use "$SX" "$SY" "$SZ" up
 sleep 3
 
-lit=1
-for _ in 1 2 3 4 5; do
-    if [ "$(rcon "execute in minecraft:overworld if block $SX $((SY+1)) $SZ minecraft:air" \
-            | grep -c 'Test passed')" != "0" ] \
-        && since | grep -q "aperture: emitted"; then
-        lit=0
-        break
-    fi
-    sleep 4
+LIT=0
+WAITED=0
+while [ "$WAITED" -lt 20 ]; do
+  if since | grep -q "aperture: emitted"; then LIT=1; break; fi
+  sleep 4
+  WAITED=$((WAITED + 4))
 done
-check "$lit" "portal lit through the client, and emitting"
-if [ "$lit" != "0" ]; then
-    info "no 'aperture:' heartbeat — the ignition click may have missed the frame"
-fi
-
-printf '\n== the opening reads as an opening ==\n'
-
-# Rule: NOTHING in the frame. The effects are the whole visible portal.
-empty="$(rcon "execute in minecraft:overworld if block $SX $((SY+1)) $SZ minecraft:nether_portal")"
-case "$empty" in
-    *"Test failed"*) pass "no portal blocks in the frame — the frame is the thing" ;;
-    *) fail "a portal block stands in the interior: $empty" ;;
-esac
-
-fillline="$(since | grep 'aperture: emitted' | tail -1 || true)"
-if [ -n "$fillline" ]; then
-    info "$(printf '%s' "$fillline" | sed 's/.*aperture: /aperture: /')"
-    share="$(printf '%s' "$fillline" | sed -n 's/.*(\([0-9]*\)%).*/\1/p')"
-    if [ -n "$share" ] && [ "$share" -lt 50 ]; then
-        pass "fill share ${share}% — under half the plane, so it reads through"
-    else
-        fail "fill share ${share:-unknown}% — an opening this full reads as a surface"
-    fi
+state_refresh
+if [ "$LIT" -eq 1 ]; then
+  _record ok "the portal lit and is emitting" "an 'aperture: emitted' heartbeat" "after ${WAITED}s"
 else
-    fail "no aperture fill heartbeat (is the mod's DEBUG logging on?)"
+  _record fail "the portal lit and is emitting" "an 'aperture: emitted' heartbeat" \
+    "nothing in ${WAITED}s — the ignition may have missed the frame, or DEBUG logging is off"
+fi
+assert_source_zone_unique "one source zone was registered at the scratch site" "$SX" "$AY" "$SZ"
+assert_source_zone_frame_stands "and its frame stands" "$SX" "$AY" "$SZ"
+DESTINATION="$(state_read "$(source_zone_select "$SX" "$AY" "$SZ") | .targetWorld")"
+
+say "The opening reads as an opening"
+# Rule: NOTHING in the frame. The effects are the whole visible portal.
+assert_block "no portal blocks in the frame — the frame is the thing" \
+  "$SX" "$((SY+1))" "$SZ" minecraft:nether_portal absent
+
+FILLLINE="$(since | grep 'aperture: emitted' | tail -1)"
+if [ -n "$FILLLINE" ]; then
+  note "$(printf '%s' "$FILLLINE" | sed 's/.*aperture: /aperture: /')"
+  SHARE="$(printf '%s' "$FILLLINE" | sed -n 's/.*(\([0-9]*\)%).*/\1/p')"
+  case "$SHARE" in
+    ''|*[!0-9]*)
+      _record fail "the opening is under half filled" "< ${FILL_SHARE_CEILING}%" \
+        "no percentage in the heartbeat: $FILLLINE" ;;
+    *)
+      if [ "$SHARE" -lt "$FILL_SHARE_CEILING" ]; then
+        _record ok "the opening is under half filled, so it reads through" \
+          "< ${FILL_SHARE_CEILING}%" "${SHARE}%"
+      else
+        _record fail "the opening is under half filled, so it reads through" \
+          "< ${FILL_SHARE_CEILING}%" "${SHARE}% — an opening this full reads as a surface"
+      fi ;;
+  esac
+else
+  _record fail "the opening is under half filled" "< ${FILL_SHARE_CEILING}%" \
+    "no aperture fill heartbeat (is the mod's DEBUG logging on?)"
 fi
 
 if since | grep -q "immersive: edge particles"; then
-    pass "the frame ring is lit"
-    info "$(since | grep 'immersive: edge particles' | tail -1 | sed 's/.*immersive: /immersive: /')"
+  _record ok "the frame ring is lit" "an 'immersive: edge particles' line" \
+    "$(since | grep 'immersive: edge particles' | tail -1 | sed 's/.*immersive: /immersive: /')"
 else
-    fail "no edge particles — the frame is not being drawn"
+  _record fail "the frame ring is lit" "an 'immersive: edge particles' line" \
+    "none — the frame is not being drawn"
 fi
 
-printf '\n== the light comes from the far side ==\n'
-
-glow="$(since | grep 'immersive: destination glow' | tail -1 || true)"
-if [ -n "$glow" ]; then
-    pass "the destination's light and colour reached the opening"
-    info "$(printf '%s' "$glow" | sed 's/.*immersive: /immersive: /')"
+say "The light comes from the far side"
+GLOW="$(since | grep 'immersive: destination glow' | tail -1)"
+if [ -n "$GLOW" ]; then
+  _record ok "the destination's light and colour reached the opening" \
+    "an 'immersive: destination glow' line" \
+    "$(printf '%s' "$GLOW" | sed 's/.*immersive: /immersive: /')"
 else
-    fail "no destination glow sampled — the opening is showing its configured colour only"
+  _record fail "the destination's light and colour reached the opening" \
+    "an 'immersive: destination glow' line" \
+    "none — the opening is showing its configured colour only"
 fi
 
-./dev screenshot --out "$OUT/2-lit.png" >/dev/null 2>&1 || true
-[ -s "$OUT/2-lit.png" ] && pass "screenshot of the lit opening" || fail "no lit screenshot"
+rcon "execute in minecraft:overworld run tp $PLAYER $((SX)).5 $((SY + 1)) $((APPROACH_Z)).5 0 0" >/dev/null
+sleep 2
+assert_shot "a screenshot of the lit opening" "2-lit"
 
-printf '\n== it is a gateway, not a picture ==\n'
-
-before="$(rcon "execute as $PLAYER run data get entity $PLAYER Dimension")"
-./dev input focus >/dev/null 2>&1 || true
-./dev input hold w 3 >/dev/null 2>&1 || true
-sleep 4
-after="$(rcon "execute as $PLAYER run data get entity $PLAYER Dimension")"
-if [ "$before" != "$after" ]; then
-    pass "walked through into $(printf '%s' "$after" | sed -n 's/.*: *//p')"
+say "It is a gateway, not a picture"
+state_refresh
+BEFORE_DIM="$(player_dimension)"
+note "before the walk: $BEFORE_DIM"
+# Yaw 0 is south, which is the way the frame is from the approach point.
+if bridge_look 0 0; then
+  assert_json "the client is facing the frame" "$BRIDGE_LAST" '.after.player.rotation.facing' south
 else
-    fail "still in the same dimension after walking forward: $after"
+  _record fail "the client is facing the frame" "yaw 0" "$BRIDGE_REASON"
 fi
-
-./dev screenshot --out "$OUT/3-arrival.png" >/dev/null 2>&1 || true
-[ -s "$OUT/3-arrival.png" ] && pass "screenshot of the arrival" || fail "no arrival screenshot"
+case "$DESTINATION" in
+  adventure:*)
+    if walk_to_dimension "$DESTINATION" 6 3; then
+      state_refresh
+      _record ok "the player walked through it" "$BEFORE_DIM -> $DESTINATION on foot" \
+        "arrived in $(player_dimension)"
+    else
+      _record fail "the player walked through it" "$BEFORE_DIM -> $DESTINATION on foot" "$WALK_NOTE"
+    fi ;;
+  *)
+    _record fail "the player walked through it" "a zone naming where it leads" \
+      "no destination to walk to: $DESTINATION" ;;
+esac
+assert_shot "a screenshot of the arrival" "3-arrival"
 
 if [ "$KEEP" = "0" ]; then
-    printf '\n== clean up ==\n'
-    rcon "execute in minecraft:overworld run fill $((SX-1)) $SY $SZ $((SX+2)) $((SY+4)) $SZ minecraft:air" >/dev/null
-    rcon "execute in minecraft:overworld run forceload remove $SX $SZ" >/dev/null
-    info "scratch frame removed"
+  say "Clean up"
+  rcon "execute in minecraft:overworld run fill $((SX-1)) $SY $SZ $((SX+2)) $((SY+4)) $SZ minecraft:air" >/dev/null
+  rcon "execute in minecraft:overworld run forceload remove $SX $SZ" >/dev/null
+  note "scratch frame removed"
 fi
 
-printf '\nScreenshots: %s\n' "$OUT"
-printf '%s passed, %s failed\n' "$PASSES" "$FAILURES"
-[ "$FAILURES" = "0" ]
+finish
