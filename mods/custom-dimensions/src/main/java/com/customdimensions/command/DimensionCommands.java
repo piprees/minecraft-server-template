@@ -49,6 +49,7 @@ import java.util.UUID;
  *   /customdim structure-audit [group]
  *   /customdim structure-census <dimension>
  *   /customdim catalogue
+ *   /customdim e2e-state [player]
  *   /customdim occupant <dimension> <chunkX> <chunkZ>
  *   /customdim eval-df <dimension> <df_id> <x> <y> <z>
  *   /customdim carver-draw <dimension> <chunkX> <chunkZ>
@@ -191,6 +192,11 @@ public class DimensionCommands {
                         .executes(CensusCommands::structureCensus)))
                 .then(CommandManager.literal("catalogue")
                     .executes(CatalogueCommands::catalogue))
+                .then(CommandManager.literal("e2e-state")
+                    .executes(ctx -> E2eState.e2eState(ctx, null))
+                    .then(CommandManager.argument("player", StringArgumentType.word())
+                        .executes(ctx -> E2eState.e2eState(ctx,
+                            StringArgumentType.getString(ctx, "player")))))
                 .then(CommandManager.literal("biome-table")
                     .executes(BiomeTableDump::biomeTable)
                     .then(CommandManager.argument("dimension", IdentifierArgumentType.identifier())
