@@ -157,17 +157,62 @@ public final class PortalAdoption {
      * the adoption that consumes the answer both live in the caller.
      *
      * <p>{@code isWithinDistance} is the projector's own activation test, so a
-     * portal this refuses is one the preview would not draw anyway.
+     * portal this refuses is one the preview would not draw anyway; a portal
+     * whose footprint is not resident is refused too, and offered again on the
+     * next pass.
      */
     public static List<BlockPos> dueForPresentation(List<BlockPos> known, BlockPos playerPos,
-            int range, Set<BlockPos> alreadyCovered) {
+            int range, Set<BlockPos> alreadyCovered, ColumnResidency resident) {
         List<BlockPos> due = new ArrayList<>();
         for (BlockPos pos : known) {
-            if (!alreadyCovered.contains(pos) && pos.isWithinDistance(playerPos, range)) {
+            if (!alreadyCovered.contains(pos) && pos.isWithinDistance(playerPos, range)
+                    && footprintResident(pos, resident)) {
                 due.add(pos);
             }
         }
         return due;
+    }
+
+    /** Whether the chunk holding a block column is loaded right now. */
+    @FunctionalInterface
+    public interface ColumnResidency {
+        boolean isResident(int blockX, int blockZ);
+    }
+
+    /**
+     * How far from one of its blocks a portal area and its frame ring reach.
+     * Vanilla's widest frame is 23 blocks across, so this over-covers whatever
+     * the portal's axis.
+     */
+    public static final int FOOTPRINT_RADIUS = 23;
+
+    /**
+     * Whether every chunk adopting this portal would read is loaded. The fill
+     * and the frame walk both go through {@code World.getBlockState}, which
+     * resolves via {@code getChunk(create = true)} and generates terrain on the
+     * calling thread ([K1]/[K6]). On contact the player is the chunk ticket;
+     * on approach nobody is near the portal, so this has to be asked.
+     */
+    public static boolean footprintResident(BlockPos pos, ColumnResidency resident) {
+        for (int chunkX = (pos.getX() - FOOTPRINT_RADIUS) >> 4;
+                chunkX <= (pos.getX() + FOOTPRINT_RADIUS) >> 4; chunkX++) {
+            for (int chunkZ = (pos.getZ() - FOOTPRINT_RADIUS) >> 4;
+                    chunkZ <= (pos.getZ() + FOOTPRINT_RADIUS) >> 4; chunkZ++) {
+                if (!resident.isResident(chunkX << 4, chunkZ << 4)) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Which tick of the scan interval a world takes. Every world reads one
+     * server tick counter, so unphased they all scan together; this is the
+     * same hash-into-the-interval the projector's particles use.
+     */
+    public static int approachPhase(String worldId, int interval) {
+        return Math.floorMod(worldId.hashCode(), Math.max(1, interval));
     }
 
     /**
@@ -238,8 +283,8 @@ public final class PortalAdoption {
     }
 
     // Frame ring around the interior, read through the same plane walk the
-    // validator uses. Every cell is a neighbour of the area the player is
-    // standing in, so no chunk is loaded to answer this.
+    // validator uses. Every read lands within FOOTPRINT_RADIUS of the area, so
+    // a caller that has no player standing in it proves that square resident.
     private static List<String> frameBlockIds(
             ServerWorld world, Set<BlockPos> cells, Direction.Axis axis) {
         Set<String> ids = new LinkedHashSet<>();

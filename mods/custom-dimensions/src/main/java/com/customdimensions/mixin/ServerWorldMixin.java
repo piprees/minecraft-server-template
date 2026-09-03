@@ -34,7 +34,11 @@ import java.util.function.BooleanSupplier;
 @Mixin(ServerWorld.class)
 public class ServerWorldMixin {
 
-    /** Approach re-scan cadence, matching VanillaLinkResolver's own retry interval. */
+    /**
+     * Approach re-scan cadence, matching VanillaLinkResolver's own retry
+     * interval. Phased per world — the tick counter is the server's, shared by
+     * every loaded dimension.
+     */
     private static final int APPROACH_SCAN_INTERVAL = 40;
 
     @Inject(method = "tick", at = @At("HEAD"))
@@ -416,13 +420,22 @@ public class ServerWorldMixin {
      * APPROACH instead, off the nether-portal point-of-interest index vanilla
      * keeps anyway.
      *
-     * <p>Resident chunks only, through the index's own residency rule; nothing
-     * here can wait for generation. End portals are not points of interest and
-     * get nothing from this — {@code VanillaLinkResolver.endPlatform} already
-     * answers the End's arrival without an index.
+     * <p>Resident chunks only, twice over: the index is read through its own
+     * residency rule, and a hit is skipped unless the whole square adoption
+     * would flood-fill and frame-walk is loaded too. Nothing here waits for
+     * generation, and a skipped hit is offered again on the next pass. End
+     * portals are not points of interest and get nothing from this —
+     * {@code VanillaLinkResolver.endPlatform} already answers the End's
+     * arrival without an index.
      */
     private static void adoptPortalsOnApproach(ServerWorld world, RegistryKey<World> worldKey) {
-        if (world.getServer().getTicks() % APPROACH_SCAN_INTERVAL != 0) {
+        int phase = PortalAdoption.approachPhase(worldKey.getValue().toString(), APPROACH_SCAN_INTERVAL);
+        if ((world.getServer().getTicks() + phase) % APPROACH_SCAN_INTERVAL != 0) {
+            return;
+        }
+        // Players first: most of the loaded dimensions are empty most of the
+        // time, and presentationRange walks every portal definition.
+        if (world.getPlayers().isEmpty()) {
             return;
         }
         MultiverseConfig config = MultiverseConfig.getInstance();
@@ -430,11 +443,12 @@ public class ServerWorldMixin {
             return;
         }
         int range = PortalAdoption.presentationRange(config.getPortals());
-        if (range <= 0 || world.getPlayers().isEmpty()) {
+        if (range <= 0) {
             return;
         }
 
         int chunkRadius = VanillaLinkResolver.chunkRadiusFor(range);
+        PortalAdoption.ColumnResidency resident = PortalHelper.residencyOf(world);
         Set<BlockPos> covered = new HashSet<>();
         for (PortalHelper.PortalZone zone : PortalHelper.getProjectionZones(worldKey)) {
             covered.addAll(zone.interior);
@@ -444,7 +458,7 @@ public class ServerWorldMixin {
             List<BlockPos> known =
                     VanillaLinkResolver.netherPortalsNear(world, playerPos, chunkRadius);
             for (BlockPos hit : PortalAdoption.dueForPresentation(
-                    known, playerPos, range, covered)) {
+                    known, playerPos, range, covered, resident)) {
                 // One portal is one point of interest per BLOCK, and covered
                 // grows as areas are collected, so each portal is walked once.
                 if (covered.contains(hit)) {

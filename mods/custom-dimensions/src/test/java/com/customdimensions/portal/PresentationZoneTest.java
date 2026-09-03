@@ -11,6 +11,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -27,6 +28,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * and PortalHelper.isManagedPortal all consult it.
  */
 class PresentationZoneTest {
+
+    /** Nothing cold: the residency gate has its own tests below. */
+    private static final PortalAdoption.ColumnResidency ALL_RESIDENT = (x, z) -> true;
 
     private static RegistryKey<World> world(String id) {
         return RegistryKey.of(RegistryKeys.WORLD, Identifier.of(id));
@@ -116,7 +120,7 @@ class PresentationZoneTest {
         BlockPos covered = new BlockPos(12, 64, 10);
 
         assertEquals(List.of(near), PortalAdoption.dueForPresentation(
-                List.of(near, far, covered), new BlockPos(0, 64, 0), 64, Set.of(covered)));
+                List.of(near, far, covered), new BlockPos(0, 64, 0), 64, Set.of(covered), ALL_RESIDENT));
     }
 
     /**
@@ -131,7 +135,7 @@ class PresentationZoneTest {
         BlockPos exactlyAtRange = new BlockPos(10, 64, 0);
 
         assertEquals(List.of(justInside), PortalAdoption.dueForPresentation(
-                List.of(justInside, exactlyAtRange), player, 10, Set.of()));
+                List.of(justInside, exactlyAtRange), player, 10, Set.of(), ALL_RESIDENT));
     }
 
     @Test
@@ -140,9 +144,9 @@ class PresentationZoneTest {
         BlockPos overhead = new BlockPos(0, 84, 0);
 
         assertEquals(List.of(), PortalAdoption.dueForPresentation(
-                List.of(overhead), player, 10, Set.of()));
+                List.of(overhead), player, 10, Set.of(), ALL_RESIDENT));
         assertEquals(List.of(overhead), PortalAdoption.dueForPresentation(
-                List.of(overhead), player, 21, Set.of()));
+                List.of(overhead), player, 21, Set.of(), ALL_RESIDENT));
     }
 
     @Test
@@ -152,7 +156,7 @@ class PresentationZoneTest {
         BlockPos third = new BlockPos(0, 70, 0);
 
         assertEquals(List.of(first, second, third), PortalAdoption.dueForPresentation(
-                List.of(first, second, third), new BlockPos(0, 64, 0), 32, Set.of()));
+                List.of(first, second, third), new BlockPos(0, 64, 0), 32, Set.of(), ALL_RESIDENT));
     }
 
     @Test
@@ -161,7 +165,72 @@ class PresentationZoneTest {
         BlockPos two = new BlockPos(6, 64, 0);
 
         assertEquals(List.of(), PortalAdoption.dueForPresentation(
-                List.of(one, two), new BlockPos(0, 64, 0), 32, Set.of(one, two)));
+                List.of(one, two), new BlockPos(0, 64, 0), 32, Set.of(one, two), ALL_RESIDENT));
+    }
+
+    // --- what approach refuses to touch ---------------------------------------
+
+    /**
+     * Adoption turns a hit into a flood fill and a frame-ring walk, both
+     * through World.getBlockState — which resolves via getChunk(create = true)
+     * and generates terrain on the calling thread. On contact the player IS
+     * the chunk ticket; on approach nobody is near the portal, so one cold
+     * neighbour parks the world tick ([K1]/[K6]).
+     */
+    @Test
+    void aPortalWhoseFootprintIsNotResidentIsNeverOffered() {
+        BlockPos hit = new BlockPos(10, 64, 10);
+
+        assertEquals(List.of(), PortalAdoption.dueForPresentation(
+                List.of(hit), new BlockPos(0, 64, 0), 64, Set.of(), (x, z) -> false));
+    }
+
+    @Test
+    void oneColdChunkAnywhereOnTheFootprintIsEnoughToRefuse() {
+        // The hit's own chunk is loaded — the POI index only reports resident
+        // chunks — and the fill still reaches chunk -1, which is not.
+        BlockPos hit = new BlockPos(10, 64, 10);
+        PortalAdoption.ColumnResidency coldToTheNorthWest = (x, z) -> (x >> 4) >= 0 && (z >> 4) >= 0;
+
+        assertTrue(coldToTheNorthWest.isResident(hit.getX(), hit.getZ()));
+        assertEquals(List.of(), PortalAdoption.dueForPresentation(
+                List.of(hit), new BlockPos(0, 64, 0), 64, Set.of(), coldToTheNorthWest));
+    }
+
+    @Test
+    void aPortalWithEveryFootprintChunkResidentIsStillOffered() {
+        BlockPos hit = new BlockPos(10, 64, 10);
+
+        assertEquals(List.of(hit), PortalAdoption.dueForPresentation(
+                List.of(hit), new BlockPos(0, 64, 0), 64, Set.of(), ALL_RESIDENT));
+    }
+
+    /**
+     * Vanilla's widest frame is 23 blocks across including its ring, so a fill
+     * from any one of its blocks reaches a chunk either side whatever the
+     * portal's axis. The gate asks about all of them, not just the hit's.
+     */
+    @Test
+    void theFootprintIsEveryChunkAFillCouldReach() {
+        List<String> asked = new ArrayList<>();
+        PortalAdoption.footprintResident(new BlockPos(8, 64, 8), (x, z) -> {
+            asked.add((x >> 4) + "," + (z >> 4));
+            return true;
+        });
+
+        assertEquals(List.of("-1,-1", "-1,0", "-1,1", "0,-1", "0,0", "0,1", "1,-1", "1,0", "1,1"),
+                asked.stream().sorted().toList());
+    }
+
+    @Test
+    void theFirstColdColumnStopsTheProbe() {
+        // A refusal costs one lookup, not the whole square.
+        List<String> asked = new ArrayList<>();
+        assertFalse(PortalAdoption.footprintResident(new BlockPos(8, 64, 8), (x, z) -> {
+            asked.add((x >> 4) + "," + (z >> 4));
+            return false;
+        }));
+        assertEquals(1, asked.size());
     }
 
     /**

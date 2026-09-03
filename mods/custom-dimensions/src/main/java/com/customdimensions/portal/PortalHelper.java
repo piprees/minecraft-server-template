@@ -1103,6 +1103,14 @@ public class PortalHelper {
     }
 
     /**
+     * This world's residency check as a value, so a caller that must prove a
+     * footprint loaded before reading it stays testable without a ServerWorld.
+     */
+    public static PortalAdoption.ColumnResidency residencyOf(ServerWorld world) {
+        return (blockX, blockZ) -> isColumnResident(world, blockX, blockZ);
+    }
+
+    /**
      * The arrival height for a column, or null when the footprint an arrival
      * needs is not resident. Reads nothing cold, and never waits.
      *

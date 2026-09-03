@@ -285,6 +285,44 @@ class TickPathChunkLoadTest {
         }
     }
 
+    /**
+     * The one tick path that reads blocks nobody is standing near. Adoption
+     * flood-fills through {@code World.getBlockState}, which resolves via
+     * {@code getChunk(..., create = true)} and generates terrain on the calling
+     * thread — a block read, so {@link #blocks} cannot see it and the walk
+     * above never will. The residency probe has to be proved by order instead.
+     */
+    @Test
+    void theApproachPassProvesResidencyBeforeItCollectsAPortalArea() throws IOException {
+        Map<MethodRef, List<Call>> graph = callGraph();
+        List<Call> calls = null;
+        for (Map.Entry<MethodRef, List<Call>> entry : graph.entrySet()) {
+            if (entry.getKey().node()
+                    .equals("com/customdimensions/mixin/ServerWorldMixin#adoptPortalsOnApproach")) {
+                calls = entry.getValue();
+            }
+        }
+        assertTrue(calls != null, "the approach pass has moved or been renamed");
+
+        int probe = -1;
+        int read = -1;
+        for (int i = 0; i < calls.size(); i++) {
+            String name = calls.get(i).target().name();
+            if (probe < 0 && name.equals("residencyOf")) {
+                probe = i;
+            }
+            if (read < 0 && name.equals("collectPortalArea")) {
+                read = i;
+            }
+        }
+        assertTrue(read >= 0, "the approach pass no longer collects a portal area");
+        assertTrue(probe >= 0 && probe < read,
+                "the approach pass collects a portal area without building a residency check "
+                + "first. collectPortalArea and frameBlockIds both read blocks, and on this path "
+                + "no player is near enough to hold the neighbouring chunks — the fill generates "
+                + "terrain on the tick and the watchdog kills the server ([K1]/[K6])");
+    }
+
     @Test
     void everyGuardedBoundaryStillExistsAndSaysWhy() throws IOException {
         // A boundary naming a method that no longer exists would silently stop
