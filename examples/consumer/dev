@@ -35,6 +35,7 @@ usage() {
   echo "  run      Local dev runner: rebuild, install, restart, launch, tail"
   echo "           (--no-tail to return instead of following the client log)"
   echo "  launch   Start the Minecraft client against this local server"
+  echo "             --dev-bridge [port]  open the companion mod's local test API"
   echo "  client-log  Snapshot the client's log ([--tail N] [--grep PATTERN])"
   echo "  logs-all    Server + client in one time-ordered view (UTC normalised)"
   echo "  screenshot  Capture the running client window ([--out PATH] [--delay N] [--full] [--no-focus])"
@@ -849,13 +850,18 @@ case "$CMD" in
       exit 1
     fi
     ATTACH=0
+    DEV_BRIDGE_PORT=""
     LAUNCH_ARGS=()
-    for a in "$@"; do
-      case "$a" in
+    while [[ $# -gt 0 ]]; do
+      case "$1" in
         --attach) ATTACH=1 ;;
         --no-attach) ATTACH=0 ;;
-        *) LAUNCH_ARGS+=("$a") ;;
+        --dev-bridge)
+          DEV_BRIDGE_PORT="8766"
+          case "${2:-}" in [0-9]*) DEV_BRIDGE_PORT="$2"; shift ;; esac ;;
+        *) LAUNCH_ARGS+=("$1") ;;
       esac
+      shift
     done
     INST_DIR="$(resolve_client_instance "${LAUNCH_ARGS[0]:-}" || true)"
     if [[ -z "$INST_DIR" ]]; then
@@ -870,6 +876,18 @@ case "$CMD" in
     echo ""
     echo "NOTE: Prism uses the account selected in the launcher. --offline is"
     echo "      accepted and ignored, so this plays as YOU, not as a test user."
+    # The companion mod's dev bridge: a loopback HTTP API an e2e run drives the
+    # client through, instead of synthetic keystrokes aimed at whatever window
+    # happens to be in front. Written per launch and deleted on a plain one, so
+    # it can never be left switched on.
+    DEV_BRIDGE_FILE="$INST_DIR/config/customdimensionsclient-dev.json"
+    if [[ -n "$DEV_BRIDGE_PORT" ]]; then
+      mkdir -p "$INST_DIR/config"
+      printf '{"port": %s}\n' "$DEV_BRIDGE_PORT" > "$DEV_BRIDGE_FILE"
+      echo "Dev bridge: http://127.0.0.1:$DEV_BRIDGE_PORT (curl /health once in world)"
+    else
+      rm -f "$DEV_BRIDGE_FILE"
+    fi
     LAUNCH_STAMP="$CONSUMER_DIR/.dev-client-launch"
     date +%s > "$LAUNCH_STAMP"
     CLIENT_LOG="$INST_DIR/logs/latest.log"
