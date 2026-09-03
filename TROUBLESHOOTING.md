@@ -1292,10 +1292,18 @@ measurement of it.
   compiled bytes move. `InputHash.hashArtefactPath` hashes the CRC of each jar
   entry under `MEASUREMENT_PATHS`, so the hash moves with them, and the bank is
   keyed by that hash — every scorecard for every dimension becomes unreachable.
-- **Fix:** treat any edit to a file under `com/customdimensions/config/` or
-  `com/customdimensions/dimension/` as measurement-affecting, comments included.
-  Land comment work in its own commit, before a roll or after the tag, never
-  between a roll and the release it ships in.
+- **Fix:** treat any edit under a path in `InputHash.MEASUREMENT_PATHS`
+  (`command/InputHash.java:202`) as measurement-affecting, comments included.
+  Read the list there rather than from memory — it is sixteen prefixes, not the
+  two obvious ones, and it reaches `facts/`, `score/`, `mixin/`, `roll/Roller`,
+  `SpikeSampler` and the jar-baked worldgen JSON as well as `config/` and
+  `dimension/`. A compat mixin re-keys the bank exactly as a scorer change
+  does. Land comment work in its own commit, before a roll or after the tag,
+  never between a roll and the release it ships in.
+- **A re-measure under a new key is this working, not a fault.** The bank is
+  keyed on the hash, so any edit under those paths makes every dimension
+  re-measure. The scores coming back identical is the expected outcome and the
+  cost is the sweep, not the numbers.
 - **Measure control and treatment through the SAME procedure.** Gradle answers
   `Task :compileJava UP-TO-DATE` when a source mtime has not moved, so a naive
   before/after reports an unchanged CRC having recompiled nothing. Delete the
