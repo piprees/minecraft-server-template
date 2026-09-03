@@ -1,6 +1,9 @@
 package com.customdimensions.immersive;
 
 import com.customdimensions.MultiverseServer;
+import com.customdimensions.companion.CompanionNetwork;
+import com.customdimensions.companion.CompanionPayloads;
+import com.customdimensions.companion.ProjectionStream;
 import com.customdimensions.config.ImmersiveSettings;
 import com.customdimensions.portal.PortalHelper;
 import net.minecraft.block.BlockState;
@@ -210,6 +213,19 @@ public final class PlayerProjectionState {
      */
     private static final int OCCLUDER_MARGIN = 3;
 
+    /**
+     * Multiplier on {@code refreshInterval} for a companion client's rebuild.
+     *
+     * <p>The description is view-INDEPENDENT — there is no sightline mask to
+     * follow a walking player — so it only needs re-sampling when the
+     * destination itself changes. Slower than the fake path by design.
+     */
+    private static final int COMPANION_REBUILD_MULTIPLIER = 5;
+
+    /** Last description sent to a companion client, or null. */
+    private CompanionPayloads.Projection lastCompanionPayload;
+    private long lastCompanionBuildTick;
+
     /** 4c: player EYE position and server tick at the last send. */
     private Vec3d lastRefreshEye;
     private long lastRefreshTick;
@@ -270,6 +286,10 @@ public final class PlayerProjectionState {
             long tick, boolean full) {
         ServerPlayNetworkHandler handler = handlerFor(player);
         if (handler == null) {
+            return;
+        }
+        if (CompanionNetwork.isCompanion(this.playerId)) {
+            sendCompanion(player, handler, sourceWorld, targetWorld, settings, mapping, arrivalY, tick, full);
             return;
         }
         Vec3d eye = player.getEyePos();
@@ -468,18 +488,11 @@ public final class PlayerProjectionState {
         // (unlike the first slab layer, which sits on whichever side the
         // slab currently is).
         //
-        // It also solves the arrival side's purple swirl for free: an
-        // arrival aperture is real NETHER_PORTAL blocks, so an invisible
-        // LIGHT over the top removes both its texture and its client-side
-        // particle storm — a client looking at LIGHT has nothing to draw and
-        // no randomDisplayTick to run. The real block is untouched and
-        // traversal is unaffected; restore() hands the portal block back.
-        //
         // Colour is not available: vanilla block light is white, and tinting
         // it needs a shader.
         // Re-sent every pass, never diffed against lastSent: any block update
         // the server broadcasts at an aperture cell repaints the client's copy
-        // with the real portal block, and lastSent cannot see that happen.
+        // with the real block, and lastSent cannot see that happen.
         BlockState apertureState = apertureState();
         if (apertureState != null) {
             for (BlockPos pos : this.zone.interior) {
@@ -511,6 +524,68 @@ public final class PlayerProjectionState {
         // that is what "has this player moved enough to need a new mask?"
         // has to measure.
         this.lastRefreshEye = eye;
+        this.lastRefreshTick = tick;
+    }
+
+    /**
+     * The companion path: describe the destination instead of painting it.
+     *
+     * <p>The two are mutually exclusive per player. A client rendering the
+     * destination itself must not also be shown fake blocks describing the
+     * same space, so anything a previous vanilla-shaped pass left on this
+     * client is handed back on the first companion pass.
+     *
+     * <p>The aperture overlay stays: it is what hides an arrival portal's
+     * purple swirl and carries the portal's own light, and it is a handful of
+     * cells rather than a slab.
+     */
+    private void sendCompanion(ServerPlayerEntity player, ServerPlayNetworkHandler handler,
+            ServerWorld sourceWorld, ServerWorld targetWorld, ImmersiveSettings settings,
+            ProjectionVolume.TargetMapping mapping, int arrivalY, long tick, boolean full) {
+        boolean sameWorld = sourceWorld != null
+                && sourceWorld.getRegistryKey().equals(player.getServerWorld().getRegistryKey());
+        if (sameWorld) {
+            for (BlockPos pos : slabCarryOver(this.lastSent.keySet(), this.zone.interior)) {
+                if (restoreOne(handler, sourceWorld, pos)) {
+                    this.lastSent.remove(pos);
+                }
+            }
+            for (BlockPos pos : new ArrayList<>(this.staleOutsideVolume.keySet())) {
+                if (restoreOne(handler, sourceWorld, pos)) {
+                    this.staleOutsideVolume.remove(pos);
+                }
+            }
+        }
+        this.volume = List.of();
+        this.builtDepth = 0;
+
+        Direction wanted = ProjectionVolume.viewerFarSide(
+                this.zone.interior, this.zone.axis, player.getBlockPos(), this.normal);
+        boolean sideFlip = wanted != this.normal;
+        this.normal = wanted;
+
+        long cadence = Math.max(1, settings.refreshInterval()) * (long) COMPANION_REBUILD_MULTIPLIER;
+        boolean due = full || sideFlip || this.lastCompanionPayload == null
+                || tick - this.lastCompanionBuildTick >= cadence;
+        if (due) {
+            this.lastCompanionBuildTick = tick;
+            CompanionPayloads.Projection built = ProjectionStream.build(
+                    this.zone, wanted, targetWorld, settings, mapping, arrivalY);
+            if (built != null && !ProjectionStream.sameContent(built, this.lastCompanionPayload)) {
+                CompanionNetwork.sendProjection(player, built);
+                this.lastCompanionPayload = built;
+            }
+        }
+
+        BlockState apertureState = apertureState();
+        if (apertureState != null) {
+            for (BlockPos pos : this.zone.interior) {
+                handler.sendPacket(new BlockUpdateS2CPacket(pos, apertureState));
+                this.lastSent.put(pos, apertureState);
+            }
+        }
+
+        this.lastRefreshEye = player.getEyePos();
         this.lastRefreshTick = tick;
     }
 
@@ -553,44 +628,19 @@ public final class PlayerProjectionState {
     }
 
     /**
-     * Is this the ARRIVAL direction, whose aperture is made of real portal
-     * blocks that would otherwise show through the preview?
-     *
-     * <p>Decided from the one structural difference between the two
-     * directions rather than from a flag: only an arrival aperture's cells
-     * are registered portal positions. A source zone's interior carries no
-     * portal blocks at all — that invariant is load-bearing elsewhere in the
-     * mod (mods/AGENTS.md § Portal system) and is what makes source zones
-     * invisible in the first place.
-     */
-    private boolean overlaysPlane() {
-        if (this.zone.interior.isEmpty()) {
-            return false;
-        }
-        return PortalHelper.isRegisteredPortalPosition(
-                this.sourceWorldKey, this.zone.interior.iterator().next());
-    }
-
-    /**
      * What to paint over the aperture, or null to leave it alone.
      *
      * <p>{@code LIGHT} at the portal's configured {@code lightLevel} — the
      * portal lighting itself, from a set of cells that has no side and so
-     * cannot flip as a player walks round. A dimension with
-     * {@code lightLevel: 0} wants no glow, and then the only reason left to
-     * touch the aperture is an ARRIVAL portal's purple swirl: plain air
-     * hides that without adding light. A source zone with no light
-     * configured is left entirely alone, which is exactly the old
-     * behaviour.
+     * cannot flip as a player walks round. Every portal's aperture is empty,
+     * so a dimension with {@code lightLevel: 0} wants nothing painted there
+     * at all.
      */
     private BlockState apertureState() {
         int level = this.zone.definition != null
                 ? Math.max(0, Math.min(15, this.zone.definition.getLightLevel()))
                 : 0;
-        if (level > 0) {
-            return lightState(level);
-        }
-        return overlaysPlane() ? Blocks.AIR.getDefaultState() : null;
+        return level > 0 ? lightState(level) : null;
     }
 
     /** Pure 4c predicate: elapsed ticks against the movement-scaled interval. */
@@ -604,8 +654,8 @@ public final class PlayerProjectionState {
 
     /**
      * Which faked positions a slab rebuild hands to the restore path: the
-     * slab's own, never the aperture's. A restored aperture cell repaints an
-     * arrival's real portal block over the overlay that exists to hide it.
+     * slab's own, never the aperture's. A restored aperture cell repaints
+     * plain air over the light the aperture is carrying.
      */
     static Set<BlockPos> slabCarryOver(Set<BlockPos> faked, Set<BlockPos> aperture) {
         Set<BlockPos> carried = new HashSet<>(faked);
@@ -619,12 +669,17 @@ public final class PlayerProjectionState {
      * nothing in either case.
      */
     public void cleanup(ServerPlayerEntity player, ServerWorld sourceWorld) {
+        if (this.lastCompanionPayload != null && player != null) {
+            CompanionNetwork.clearProjection(player, this.lastCompanionPayload.apertureOrigin());
+        }
         restore(player, sourceWorld);
         forget();
     }
 
     /** Drop all tracking without sending anything. */
     public void forget() {
+        this.lastCompanionPayload = null;
+        this.lastCompanionBuildTick = 0;
         this.lastSent.clear();
         this.staleOutsideVolume.clear();
         this.volume = List.of();
