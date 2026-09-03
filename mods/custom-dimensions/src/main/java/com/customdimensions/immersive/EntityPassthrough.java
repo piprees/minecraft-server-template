@@ -259,12 +259,6 @@ public final class EntityPassthrough {
                 // zero behavioural change.
                 continue;
             }
-            if (PortalShape.END_GATEWAY.equals(def.getShape())) {
-                // Gateway source zones DO contain a real block, so vanilla's
-                // own gateway travel already handles entities standing in
-                // them. Excluded here so the two never race.
-                continue;
-            }
             if (zone.targetWorld.equals(worldKey)) {
                 continue;
             }
@@ -450,14 +444,12 @@ public final class EntityPassthrough {
      *
      * <p>Runs on every non-player entity every tick, so gates are ordered
      * cheapest-and-most-selective first: the class check rejects players and
-     * everything off the allow-list before anything touches the world, and
-     * only then is the block state checked — vanilla caches that per tick.
+     * everything off the allow-list before anything touches the registry.
      *
      * <p>Checks only the entity's own block, not also above and below it
      * (unlike the player path). That is exact for sub-block entities and
      * vertical doorways; the gap is an entity resting ON a horizontal
-     * (END_PORTAL) arrival, whose block position is the air above the
-     * portal.
+     * arrival, whose block position is the air above the aperture.
      *
      * <p>Exit modes are honoured only where they mean something without a
      * player: {@code "worldSpawn"} resolves, a plain link or {@code "origin"}
@@ -471,25 +463,25 @@ public final class EntityPassthrough {
         if (!isEligible(entity)) {
             return false;
         }
-        if (!PortalHelper.isPortalBlock(entity.getBlockStateAtPos())) {
+        // An arrival is a frame with an empty interior, so standing in one is
+        // a registry lookup rather than a block read.
+        RegistryKey<World> worldKey = world.getRegistryKey();
+        BlockPos pos = entity.getBlockPos();
+        if (!PortalHelper.isRegisteredPortalPosition(worldKey, pos)) {
             return false;
         }
 
-        // The gate is the dimension config of the world the portal block is
-        // IN, the same ImmersiveSettings every source zone targeting this
-        // world carries — otherwise non-immersive dimensions' arrival
-        // portals would gain new behaviour.
-        RegistryKey<World> worldKey = world.getRegistryKey();
+        // The gate is the dimension config of the world the arrival is IN,
+        // the same ImmersiveSettings every source zone targeting this world
+        // carries — otherwise non-immersive dimensions' arrival portals would
+        // gain new behaviour.
         MultiverseConfig config = MultiverseConfig.getInstance();
         ImmersiveSettings immersive = config != null ? config.getImmersiveFor(worldKey) : null;
         if (immersive == null || !immersive.entityPassthrough()) {
             return false;
         }
 
-        // Direct lookup rather than a flood fill: every interior block of an
-        // arrival portal is registered individually. A null target means
-        // this is not one of our portals — leave it alone.
-        BlockPos pos = entity.getBlockPos();
+        // Direct lookup: every cell of an arrival is registered individually.
         PortalHelper.PortalReturnTarget target = PortalHelper.getPortalTarget(worldKey, pos);
         if (target == null) {
             return false;

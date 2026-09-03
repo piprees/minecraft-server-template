@@ -1,5 +1,7 @@
 package com.customdimensions.config;
 
+import com.customdimensions.immersive.DestinationGlow;
+import com.customdimensions.portal.PortalAperture;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
@@ -33,7 +35,11 @@ public record ImmersiveSettings(
         int refreshInterval,
         int activationRange,
         boolean audio,
-        boolean entityPassthrough) {
+        boolean entityPassthrough,
+        double particleDensity,
+        double edgeBias,
+        double destinationTint,
+        boolean destinationLight) {
 
     /** Deep enough not to read as a pocket, short of the activation range:
      * every position in the slab costs a line-of-sight test every pass, and
@@ -66,10 +72,30 @@ public record ImmersiveSettings(
     public static final int MIN_ACTIVATION_RANGE = 1;
     public static final int MAX_ACTIVATION_RANGE = 64;
 
+    /**
+     * Share of an opening's cells that may emit on one particle pass.
+     * The effects ARE the portal, so this is the opacity dial: high enough
+     * and the plane reads as a coloured surface, low enough and it reads as
+     * an opening with dust drifting out of it.
+     * {@code PortalAperture.emissionCap} caps it regardless.
+     */
+    public static final double DEFAULT_PARTICLE_DENSITY = PortalAperture.DEFAULT_DENSITY;
+
+    /**
+     * How fast emission falls off away from the frame, per cell of depth.
+     * 1.0 is an even fill; 0.0 emits only on the rim.
+     */
+    public static final double DEFAULT_EDGE_BIAS = PortalAperture.DEFAULT_EDGE_BIAS;
+
+    /** How far the portal's colour moves towards the destination's own. */
+    public static final double DEFAULT_DESTINATION_TINT = DestinationGlow.DEFAULT_TINT;
+
     /** Enabled, every field at its default — "immersive": true or {}. */
     public static final ImmersiveSettings DEFAULTS = new ImmersiveSettings(
             true, DEFAULT_PREVIEW_DEPTH, DEFAULT_PREVIEW_RADIUS,
-            DEFAULT_REFRESH_INTERVAL, DEFAULT_ACTIVATION_RANGE, true, true);
+            DEFAULT_REFRESH_INTERVAL, DEFAULT_ACTIVATION_RANGE, true, true,
+            DEFAULT_PARTICLE_DENSITY, DEFAULT_EDGE_BIAS,
+            DEFAULT_DESTINATION_TINT, true);
 
     /**
      * Parses the raw "immersive" JSON element (boolean or object form, the
@@ -103,7 +129,11 @@ public record ImmersiveSettings(
                 Math.max(MIN_REFRESH_INTERVAL, intOrDefault(obj, "refreshInterval", DEFAULT_REFRESH_INTERVAL)),
                 clampInt(obj, "activationRange", DEFAULT_ACTIVATION_RANGE, MIN_ACTIVATION_RANGE, MAX_ACTIVATION_RANGE),
                 boolOrDefault(obj, "audio", true),
-                boolOrDefault(obj, "entityPassthrough", true));
+                boolOrDefault(obj, "entityPassthrough", true),
+                clampUnit(obj, "particleDensity", DEFAULT_PARTICLE_DENSITY),
+                clampUnit(obj, "edgeBias", DEFAULT_EDGE_BIAS),
+                clampUnit(obj, "destinationTint", DEFAULT_DESTINATION_TINT),
+                boolOrDefault(obj, "destinationLight", true));
     }
 
     /** An explicit "enabled": false inside the object means not immersive. */
@@ -123,6 +153,15 @@ public record ImmersiveSettings(
 
     private static int clampInt(JsonObject obj, String key, int fallback, int min, int max) {
         return Math.max(min, Math.min(max, intOrDefault(obj, key, fallback)));
+    }
+
+    /** A 0..1 field, clamped; anything unparseable falls back to the default. */
+    private static double clampUnit(JsonObject obj, String key, double fallback) {
+        JsonElement e = obj.get(key);
+        if (e != null && e.isJsonPrimitive() && e.getAsJsonPrimitive().isNumber()) {
+            return PortalAperture.clamp01(e.getAsDouble());
+        }
+        return fallback;
     }
 
     private static boolean boolOrDefault(JsonObject obj, String key, boolean fallback) {

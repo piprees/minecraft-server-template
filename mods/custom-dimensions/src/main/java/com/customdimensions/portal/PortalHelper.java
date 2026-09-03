@@ -1,6 +1,7 @@
 package com.customdimensions.portal;
 
 import com.customdimensions.config.DimensionConfig;
+import com.customdimensions.config.ImmersiveSettings;
 import com.customdimensions.config.MultiverseConfig;
 import com.customdimensions.config.PortalDefinition;
 import com.google.gson.Gson;
@@ -68,6 +69,12 @@ public class PortalHelper {
     // never a source zone — ownership, traversal and the End suppressions all
     // read PORTAL_ZONES, so vanilla keeps both ends of the portal.
     private static final Map<RegistryKey<World>, List<PortalZone>> PRESENTATION_ZONES = new HashMap<>();
+    // Arrival zones: the frame this mod built in the destination, around the
+    // same empty interior every portal has. PORTAL_TARGETS still carries the
+    // per-cell return route; this carries the geometry, so an arrival is
+    // validated and broken by its frame exactly like the source that built it.
+    private static final Map<RegistryKey<World>, List<PortalZone>> ARRIVAL_ZONES = new HashMap<>();
+    private static final Map<RegistryKey<World>, List<PortalZone>> PENDING_ARRIVAL_ZONES = new HashMap<>();
     private static final Map<String, Boolean> PLAYER_IN_ZONE = new HashMap<>();
     private static final Map<UUID, PlayerOrigin> PLAYER_ORIGINS = new HashMap<>();
     // Arrival-portal presence, keyed by entity UUID — see enteredArrivalPortal.
@@ -107,6 +114,16 @@ public class PortalHelper {
         for (List<PortalZone> zones : PENDING_ZONES.values()) {
             for (PortalZone zone : zones) {
                 links.add(StoredPortalZone.from(zone));
+            }
+        }
+        for (List<PortalZone> zones : ARRIVAL_ZONES.values()) {
+            for (PortalZone zone : zones) {
+                links.add(StoredPortalZone.fromArrival(zone));
+            }
+        }
+        for (List<PortalZone> zones : PENDING_ARRIVAL_ZONES.values()) {
+            for (PortalZone zone : zones) {
+                links.add(StoredPortalZone.fromArrival(zone));
             }
         }
         for (Map.Entry<RegistryKey<World>, Map<BlockPos, AuraSite>> worldSites : AURA_SITES.entrySet()) {
@@ -159,6 +176,8 @@ public class PortalHelper {
         PORTAL_ZONES.clear();
         PENDING_ZONES.clear();
         PRESENTATION_ZONES.clear();
+        ARRIVAL_ZONES.clear();
+        PENDING_ARRIVAL_ZONES.clear();
         AURA_SITES.clear();
         // Deferred breaks are per-session: a boot re-reads the registry from
         // disk, and anything a break already deregistered is simply not in it.
@@ -178,7 +197,21 @@ public class PortalHelper {
             for (JsonElement element : links) {
                 try {
                     JsonObject link = element.getAsJsonObject();
-                    if (link.has("recordType") && "source-zone-v1".equals(link.get("recordType").getAsString())) {
+                    if (link.has("recordType")
+                            && StoredPortalZone.ARRIVAL_RECORD.equals(link.get("recordType").getAsString())) {
+                        StoredPortalZone stored = GSON.fromJson(link, StoredPortalZone.class);
+                        List<String> failures = PortalStateValidator.validateZone(stored);
+                        if (!failures.isEmpty()) {
+                            System.err.println("[customdimensions] Dropping persisted arrival zone in "
+                                    + stored.sourceWorld + ": " + String.join("; ", failures));
+                            continue;
+                        }
+                        PortalZone zone = stored.toPortalZone();
+                        PENDING_ARRIVAL_ZONES.computeIfAbsent(zone.sourceWorld, k -> new ArrayList<>()).add(zone);
+                        continue;
+                    }
+                    if (link.has("recordType")
+                            && StoredPortalZone.SOURCE_RECORD.equals(link.get("recordType").getAsString())) {
                         StoredPortalZone stored = GSON.fromJson(link, StoredPortalZone.class);
                         List<String> failures = PortalStateValidator.validateZone(stored);
                         if (!failures.isEmpty()) {
@@ -286,20 +319,16 @@ public class PortalHelper {
      * The registered portal block a teleport aimed at this column would land
      * on, or null if there is none in range.
      *
-     * <p>This is {@link #findExistingPortal}'s answer, read out of the
-     * in-memory registry instead of the world. It exists because the immersive
-     * preview and entity pass-through must agree with where a player actually
-     * lands, and the player path lands at an EXISTING arrival portal whenever
-     * one is found — but those two callers may not touch an unloaded chunk,
-     * and {@code findExistingPortal} reads up to 11x11x33 real block states.
-     * No block reads, no chunk access, no mutation: safe from any tick path.
+     * <p>An arrival has no blocks in it, so this registry read is the only
+     * way one is found at all — by the player path, by the immersive preview
+     * and by entity pass-through alike, which is what keeps the three landing
+     * on the same portal. No block reads, no chunk access, no mutation: safe
+     * from any tick path.
      *
-     * <p><b>Search order is load-bearing.</b> {@code findExistingPortal}
-     * iterates dx, then dz, then dy, all ascending, and returns its FIRST hit
-     * — which is the lexicographic minimum by (x, z, y) over the matches. This
-     * reproduces that ordering exactly, so the two pick the same portal when
-     * several are in range. Note it is NOT {@code BlockPos.compareTo}, whose
-     * order is (y, z, x).
+     * <p><b>Search order is load-bearing.</b> dx, then dz, then dy, all
+     * ascending, first hit wins — the lexicographic minimum by (x, z, y) over
+     * the matches. Note it is NOT {@code BlockPos.compareTo}, whose order is
+     * (y, z, x).
      *
      * <p>Legacy position-only records are deliberately excluded: their world
      * is unknown until a return trip claims them, so matching one here could
@@ -325,7 +354,7 @@ public class PortalHelper {
         return best;
     }
 
-    /** (x, z, y) ascending — the order findExistingPortal's loops visit. */
+    /** (x, z, y) ascending — the scan order the three arrival paths share. */
     private static boolean comesFirstInScanOrder(BlockPos candidate, BlockPos current) {
         if (candidate.getX() != current.getX()) {
             return candidate.getX() < current.getX();
@@ -713,6 +742,7 @@ public class PortalHelper {
 
     public static void restoreZones(ServerWorld world) {
         RegistryKey<World> worldKey = world.getRegistryKey();
+        restoreArrivalZones(world, worldKey);
         List<PortalZone> pending = PENDING_ZONES.remove(worldKey);
         if (pending == null) {
             return;
@@ -737,6 +767,142 @@ public class PortalHelper {
         savePortalLinks();
     }
 
+    /**
+     * Arrival zones stand in the world their frame is in, so they are claimed
+     * on that world's first tick — the same lazy restore source zones get.
+     * An arrival whose frame no longer bounds it is closed on the spot.
+     */
+    private static void restoreArrivalZones(ServerWorld world, RegistryKey<World> worldKey) {
+        List<PortalZone> pending = PENDING_ARRIVAL_ZONES.remove(worldKey);
+        if (pending == null) {
+            return;
+        }
+        for (PortalZone zone : pending) {
+            zone.definition.setImmersive(MultiverseConfig.getInstance().getImmersiveFor(zone.targetWorld));
+            addArrivalZoneIfAbsent(zone);
+        }
+        savePortalLinks();
+    }
+
+    /** Arrival zones standing in this world; never the source-side list. */
+    public static List<PortalZone> getArrivalZones(RegistryKey<World> world) {
+        return ARRIVAL_ZONES.getOrDefault(world, Collections.emptyList());
+    }
+
+    /** The arrival zone covering this cell, or null. */
+    public static PortalZone arrivalZoneAt(RegistryKey<World> world, BlockPos pos) {
+        for (PortalZone zone : getArrivalZones(world)) {
+            if (zone.interior.contains(pos)) {
+                return zone;
+            }
+        }
+        return null;
+    }
+
+    private static boolean addArrivalZoneIfAbsent(PortalZone zone) {
+        List<PortalZone> zones = ARRIVAL_ZONES.computeIfAbsent(zone.sourceWorld, k -> new ArrayList<>());
+        for (PortalZone existing : zones) {
+            if (existing.interior.equals(zone.interior) && existing.axis == zone.axis) {
+                return false;
+            }
+        }
+        zones.add(zone);
+        return true;
+    }
+
+    /**
+     * Registers the arrival zone for a frame this mod built (or, on the reuse
+     * path, for one it built before arrival zones were recorded). The cells
+     * must already be in the return-target map — that is what makes them an
+     * arrival rather than an ordinary hole in the ground.
+     */
+    public static PortalZone ensureArrivalZone(RegistryKey<World> arrivalWorld, Set<BlockPos> interior,
+            Direction.Axis axis, PortalDefinition definition, RegistryKey<World> returnWorld) {
+        if (interior.isEmpty() || definition == null || returnWorld == null) {
+            return null;
+        }
+        PortalZone existing = arrivalZoneAt(arrivalWorld, interior.iterator().next());
+        if (existing != null) {
+            return existing;
+        }
+        PortalZone zone = new PortalZone(new HashSet<>(interior), definition, axis, arrivalWorld, returnWorld);
+        zone.definition.setImmersive(MultiverseConfig.getInstance().getImmersiveFor(returnWorld));
+        if (addArrivalZoneIfAbsent(zone)) {
+            savePortalLinks();
+        }
+        return zone;
+    }
+
+    /**
+     * The arrival cells around this one, grown over the REGISTRY rather than
+     * over block states — an arrival interior is empty, so there is nothing
+     * in the world to flood-fill.
+     */
+    public static Set<BlockPos> registeredAperture(RegistryKey<World> world, BlockPos seed, Direction.Axis axis) {
+        Map<BlockPos, PortalReturnTarget> targets = PORTAL_TARGETS.get(world);
+        if (targets == null || !targets.containsKey(seed)) {
+            return Set.of();
+        }
+        Set<BlockPos> aperture = com.customdimensions.immersive.ProjectionVolume.collectAperture(
+                seed, planeDirections(axis), targets::containsKey, MAX_PORTAL_BLOCKS);
+        return aperture.isEmpty() ? Set.of(seed) : aperture;
+    }
+
+    /**
+     * The registered arrival cell a player standing here is in — their own
+     * block, then one above, then one below, matching the reach the block
+     * probe had. Null when they are not in one of our arrivals.
+     */
+    public static BlockPos arrivalCellNear(RegistryKey<World> world, BlockPos pos) {
+        if (isRegisteredPortalPosition(world, pos)) {
+            return pos;
+        }
+        BlockPos up = pos.up();
+        if (isRegisteredPortalPosition(world, up)) {
+            return up;
+        }
+        BlockPos down = pos.down();
+        return isRegisteredPortalPosition(world, down) ? down : null;
+    }
+
+    /**
+     * Closes an arrival: deregisters every cell, drops the zone and its
+     * projections, and closes the source zone that built it. Blocks are never
+     * placed in an arrival, so there is nothing to clear except a fill left
+     * by a jar that predates this rule.
+     *
+     * @return how many cells were deregistered
+     */
+    public static int closeArrival(ServerWorld world, PortalZone zone) {
+        RegistryKey<World> worldKey = world.getRegistryKey();
+        Map<BlockPos, PortalReturnTarget> targets = PORTAL_TARGETS.get(worldKey);
+        PortalReturnTarget broken = null;
+        if (targets != null) {
+            Map<BlockPos, Integer> frames = PORTAL_FRAMES.get(worldKey);
+            for (BlockPos p : zone.interior) {
+                PortalReturnTarget removed = targets.remove(p);
+                if (broken == null) {
+                    broken = removed;
+                }
+                if (frames != null) {
+                    frames.remove(p);
+                }
+            }
+        }
+        clearInteriorPortals(world, zone);
+        List<PortalZone> zones = ARRIVAL_ZONES.get(worldKey);
+        if (zones != null) {
+            zones.remove(zone);
+        }
+        com.customdimensions.immersive.ImmersiveProjector.cleanupZone(zone);
+        int linked = breakLinkedSourceZone(world, broken);
+        savePortalLinks();
+        com.customdimensions.MultiverseServer.LOGGER.info(
+                "Arrival portal broken in {} ({} cells deregistered, {} source zone(s) closed)",
+                worldKey.getValue(), zone.interior.size(), linked);
+        return zone.interior.size();
+    }
+
     public static boolean isInsideZone(BlockPos pos, PortalZone zone) {
         return zone.interior.contains(pos);
     }
@@ -753,12 +919,6 @@ public class PortalHelper {
     }
 
     public static boolean isZoneValid(ServerWorld world, PortalZone zone) {
-        // Frameless gateway zones: valid while the gateway block exists
-        // (there is no frame to check and the matcher may be empty).
-        if (com.customdimensions.portal.PortalShape.END_GATEWAY.equals(zone.definition.getShape())) {
-            BlockPos p = zone.interior.iterator().next();
-            return world.getBlockState(p).isOf(Blocks.END_GATEWAY);
-        }
         // The zone's persisted definition carries the accept forms it was
         // ignited with — validation uses those, not the current config
         // (zones are immutable snapshots of their ignition-time config).
@@ -769,9 +929,15 @@ public class PortalHelper {
         return isAreaBoundedByFrameParts(world, zone.interior, zone.definition, zone.axis);
     }
 
+    /**
+     * Clears anything left standing in a zone interior: vanilla's own blocks
+     * in an adopted portal, or a fill written by a jar that predates the
+     * frame-only rule. A portal this mod built has an empty interior, so this
+     * is a no-op for one.
+     */
     public static void clearInteriorPortals(ServerWorld world, PortalZone zone) {
         for (BlockPos p : zone.interior) {
-            if (isPortalBlock(world.getBlockState(p))) {
+            if (isVanillaPortalBlock(world.getBlockState(p))) {
                 world.setBlockState(p, Blocks.AIR.getDefaultState(), Block.NOTIFY_LISTENERS | Block.FORCE_STATE);
             }
         }
@@ -903,53 +1069,214 @@ public class PortalHelper {
         return Math.min(surfaceY, world.getTopY() - 8);
     }
 
+    /**
+     * The opening's own particles.
+     *
+     * <p>A source zone holds no blocks at all, so these ARE the portal —
+     * which is why they must not fill the plane. {@link PortalAperture} plans
+     * each pass: rim-weighted, density-scaled and capped, so the dust edges
+     * the doorway rather than glazing it, and every particle leaves through
+     * the plane instead of hanging in it. An immersive portal takes its
+     * colour and brightness from the world on the other side, the visual half
+     * of the biome ambience {@code ImmersiveProjector.tickAudio} already
+     * leaks back.
+     */
     public static void spawnParticles(ServerWorld world, PortalZone zone) {
-        // Immersive gateway zones get a denser cloud from the projector
-        // instead of this one — spawning both would just muddle the effect.
-        // True for no other zone, immersive or not.
-        if (com.customdimensions.immersive.ImmersiveProjector.suppliesParticlesFor(zone)) {
+        ImmersiveSettings immersive = zone.definition != null
+                ? zone.definition.getImmersive() : null;
+        int interval = immersive != null ? IMMERSIVE_PARTICLE_INTERVAL : PLAIN_PARTICLE_INTERVAL;
+        long tick = world.getTime();
+        if ((tick + particlePhase(zone, interval)) % interval != 0) {
             return;
         }
-        ParticleEffect effect = resolveParticleEffect(zone.definition);
-        boolean immersive = zone.definition != null && zone.definition.getImmersive() != null;
-        if (immersive) {
-            // An immersive portal thins its interior fill rather than losing
-            // it. The full 2-per-cell-per-tick fill is exactly what you
-            // cannot see through, but suppressing it entirely leaves "a
-            // perfectly hollow box" with nothing to say the doorway is
-            // anything but a hole until the client-side work lands. A
-            // twelfth of the density reads as dust drifting out of the
-            // opening while leaving the view clear.
-            if ((world.getTime() + particlePhase(zone)) % IMMERSIVE_PARTICLE_INTERVAL != 0) {
-                return;
-            }
-            for (BlockPos p : zone.interior) {
-                world.spawnParticles(effect,
-                        p.getX() + 0.5, p.getY() + 0.5, p.getZ() + 0.5,
-                        1, 0.25, 0.25, 0.25, 0.005
-                );
-            }
+        // A plain portal has no projection behind it and no frame glow, so
+        // its opening stays denser: the cap alone thins it, and the drift
+        // still reads it as an opening rather than a pane.
+        double density = immersive != null ? immersive.particleDensity() : PLAIN_DENSITY;
+        double edgeBias = immersive != null ? immersive.edgeBias() : PLAIN_EDGE_BIAS;
+        emitAperture(world, zone.interior, zone.axis,
+                apertureEffect(zone, immersive), density, edgeBias, tick, interval);
+    }
+
+    /**
+     * One pass of an opening's particles: the planned cells, each leaving
+     * through the plane. Shared by both directions, so a source portal and
+     * the arrival it built read the same from either side.
+     */
+    static void emitAperture(ServerWorld world, Set<BlockPos> interior, Direction.Axis axis,
+            ParticleEffect effect, double density, double edgeBias, long tick, int interval) {
+        List<BlockPos> cells = PortalAperture.emittingCells(interior, axis, tick, density, edgeBias);
+        logApertureFill(world, interior, cells.size(), tick, interval);
+        if (cells.isEmpty()) {
             return;
         }
-        // Non-immersive portals are untouched: the fill is their only visual.
-        for (BlockPos p : zone.interior) {
-            world.spawnParticles(effect,
-                    p.getX() + 0.5, p.getY() + 0.5, p.getZ() + 0.5,
-                    2, 0.4, 0.4, 0.4, 0.01
-            );
+        Direction.Axis normal = PortalAperture.normalAxis(axis);
+        for (BlockPos p : cells) {
+            emitThroughPlane(world, effect, p, normal, PortalAperture.driftSign(tick, p), tick);
+        }
+    }
+
+    /**
+     * Heartbeat for the one property that decides whether an opening reads as
+     * a window: how much of the plane a pass filled. Particles leave no
+     * server-side trace at all, so this line is the only headless evidence
+     * the pass ran and the only way to see the fill share without a human at
+     * a screen.
+     */
+    private static void logApertureFill(ServerWorld world, Set<BlockPos> interior, int emitted,
+            long tick, int interval) {
+        // A window one emission interval wide, not a single tick: a zone
+        // emitting every sixth tick would otherwise only coincide with an
+        // exact multiple of the cadence for some of its phase offsets, and
+        // the heartbeat would look like a broken pass for the rest.
+        if (interior.isEmpty() || tick % APERTURE_LOG_INTERVAL >= Math.max(1, interval)) {
+            return;
+        }
+        BlockPos anchor = interior.iterator().next();
+        com.customdimensions.MultiverseServer.LOGGER.debug(
+                "aperture: emitted {} of {} cells ({}%) in {} at {}",
+                emitted, interior.size(), (emitted * 100) / interior.size(),
+                world.getRegistryKey().getValue(), anchor.toShortString());
+    }
+
+    /** Heartbeat cadence (10s) for the aperture fill line. */
+    private static final int APERTURE_LOG_INTERVAL = 200;
+
+    /**
+     * One particle leaving the plane at {@code cell}.
+     *
+     * <p>Spawned with {@code count = 0}, which is what makes the packet's
+     * offset triple a VELOCITY rather than a scatter (verified against
+     * {@code ClientPlayNetworkHandler.onParticle} in the 1.21.1 jar), so the
+     * dust drifts out of the opening towards whichever side the viewer is
+     * on. The scatter that buys is replaced by {@link PortalAperture#jitter}.
+     */
+    private static void emitThroughPlane(ServerWorld world, ParticleEffect effect, BlockPos cell,
+            Direction.Axis normal, int sign, long tick) {
+        double x = cell.getX() + 0.5 + (normal == Direction.Axis.X
+                ? PortalAperture.jitter(tick, cell, 0, PLANE_JITTER)
+                : PortalAperture.jitter(tick, cell, 0, CELL_JITTER));
+        double y = cell.getY() + 0.5 + (normal == Direction.Axis.Y
+                ? PortalAperture.jitter(tick, cell, 1, PLANE_JITTER)
+                : PortalAperture.jitter(tick, cell, 1, CELL_JITTER));
+        double z = cell.getZ() + 0.5 + (normal == Direction.Axis.Z
+                ? PortalAperture.jitter(tick, cell, 2, PLANE_JITTER)
+                : PortalAperture.jitter(tick, cell, 2, CELL_JITTER));
+        world.spawnParticles(effect, x, y, z, 0,
+                normal == Direction.Axis.X ? sign : 0.0,
+                normal == Direction.Axis.Y ? sign : DRIFT_LIFT,
+                normal == Direction.Axis.Z ? sign : 0.0,
+                DRIFT_SPEED);
+    }
+
+    /**
+     * The opening's particle, tinted by the far side when there is one to
+     * take a colour from. A configured {@code particleType} wins outright —
+     * a named effect carries its own colour and is not ours to shade.
+     */
+    private static ParticleEffect apertureEffect(PortalZone zone, ImmersiveSettings immersive) {
+        PortalDefinition def = zone.definition;
+        String typeName = def != null ? def.getParticleType() : null;
+        if (typeName != null && !typeName.isEmpty()) {
+            ParticleEffect resolved = resolveParticleById(typeName);
+            if (resolved != null) {
+                return resolved;
+            }
+        }
+        int colour = parseColor(def != null ? def.getColor() : null);
+        if (immersive != null) {
+            colour = com.customdimensions.immersive.ImmersiveProjector.glowFor(zone)
+                    .applyTo(colour, immersive.destinationTint(), immersive.destinationLight());
+        }
+        return new DustParticleEffect(toDustColor(colour), APERTURE_PARTICLE_SCALE);
+    }
+
+    /**
+     * The return direction's openings: an arrival aperture emitted the same
+     * way its source portal is, tinted by the world it leads back to.
+     *
+     * <p>The colour comes from the arrival's own registered target rather
+     * than a definition — an arrival has no portal config of its own — and
+     * the density from the settings of the dimension the portal STANDS in,
+     * which is what {@code ImmersiveProjector} already projects it with.
+     */
+    private static void emitImmersiveArrivals(ServerWorld level, RegistryKey<World> worldKey) {
+        List<PortalZone> arrivals =
+                com.customdimensions.immersive.ImmersiveProjector.immersiveArrivals(worldKey);
+        if (arrivals.isEmpty()) {
+            return;
+        }
+        ImmersiveSettings settings =
+                com.customdimensions.immersive.ImmersiveProjector.arrivalSettings(worldKey);
+        if (settings == null) {
+            return;
+        }
+        long tick = level.getTime();
+        for (PortalZone zone : arrivals) {
+            if (zone.interior.isEmpty()
+                    || (tick + particlePhase(zone, IMMERSIVE_PARTICLE_INTERVAL))
+                            % IMMERSIVE_PARTICLE_INTERVAL != 0) {
+                continue;
+            }
+            BlockPos any = zone.interior.iterator().next();
+            if (!level.getChunkManager().isChunkLoaded(any.getX() >> 4, any.getZ() >> 4)) {
+                continue;
+            }
+            PortalReturnTarget target = getPortalTarget(worldKey, any);
+            int colour = target != null ? target.color : NEUTRAL_PORTAL_COLOR;
+            colour = com.customdimensions.immersive.ImmersiveProjector
+                    .glowForArrival(worldKey, any)
+                    .applyTo(colour, settings.destinationTint(), settings.destinationLight());
+            ParticleEffect effect = target != null && target.particleType != null
+                    && !target.particleType.isEmpty()
+                    ? resolveParticleFromTarget(target)
+                    : new DustParticleEffect(toDustColor(colour), APERTURE_PARTICLE_SCALE);
+            emitAperture(level, zone.interior, zone.axis, effect,
+                    settings.particleDensity(), settings.edgeBias(), tick,
+                    IMMERSIVE_PARTICLE_INTERVAL);
         }
     }
 
     /** Ticks between the thinned particle passes an immersive portal emits. */
     private static final int IMMERSIVE_PARTICLE_INTERVAL = 6;
 
+    /** A plain portal's opening emits every tick; only the cap thins it. */
+    private static final int PLAIN_PARTICLE_INTERVAL = 1;
+
+    /** A plain portal asks for every cell and lets {@code emissionCap} decide. */
+    private static final double PLAIN_DENSITY = 1.0;
+    private static final double PLAIN_EDGE_BIAS = 1.0;
+
+    /**
+     * Dust scale for the opening. A dust particle's billboard is
+     * {@code 0.75 * scale} of the base sprite and its lifetime scales with it
+     * too (both read off {@code AbstractDustParticle}'s constructor), so one
+     * number below 1.0 buys a smaller, shorter-lived mote — less of what is
+     * behind it covered, for the same emission count.
+     */
+    private static final float APERTURE_PARTICLE_SCALE = 0.8f;
+
+    /** Spread within a cell, in-plane and across the plane. */
+    private static final double CELL_JITTER = 0.42;
+    private static final double PLANE_JITTER = 0.12;
+
+    /**
+     * Outward drift. The client multiplies the packet's velocity by 0.1 and
+     * then decays it 0.96 per tick, so this carries a mote roughly
+     * {@code 2.5 * DRIFT_SPEED} blocks clear of the plane over its life.
+     */
+    private static final double DRIFT_SPEED = 0.25;
+
+    /** A little lift on a vertical plane, so the dust rises out rather than hanging. */
+    private static final double DRIFT_LIFT = 0.35;
+
     /**
      * Per-zone phase offset so several portals in view do not all pulse on
      * the same tick — the same trick the projector's edge particles use.
      */
-    private static int particlePhase(PortalZone zone) {
+    private static int particlePhase(PortalZone zone, int interval) {
         BlockPos any = zone.interior.iterator().next();
-        return Math.floorMod(any.hashCode(), IMMERSIVE_PARTICLE_INTERVAL);
+        return Math.floorMod(any.hashCode(), Math.max(1, interval));
     }
 
     public static void spawnTargetPortalParticles(ServerWorld level) {
@@ -966,23 +1293,18 @@ public class PortalHelper {
                     continue;
                 }
                 PortalReturnTarget rt = entry.getValue();
-                if (!isPortalBlock(level.getBlockState(p))) {
-                    // Deliberately not restored — healing the gap back,
-                    // combined with NetherPortalProtectionMixin's
-                    // neighbour-update protection, would make a portal
-                    // indestructible. Destroying your own portal outranks
-                    // the stranding case, already covered by exit portals,
-                    // shrines, and exit modes.
-                    continue;
+                // A fill written by a jar that predates the frame-only rule.
+                // An arrival interior is empty, so clear it the first time
+                // anyone is near enough for its chunk to be loaded.
+                if (isVanillaPortalBlock(level.getBlockState(p))) {
+                    level.setBlockState(p, Blocks.AIR.getDefaultState(),
+                            Block.NOTIFY_LISTENERS | Block.FORCE_STATE);
                 }
-                // An immersive arrival is a window too — the projector fakes
-                // its portal blocks away so the swirl and vanilla's particles
-                // stop, and a full-rate dust emission here would just put the
-                // haze straight back. Same thinning, same reasoning, as the
-                // source side in spawnParticles.
-                if (com.customdimensions.immersive.ImmersiveProjector.isImmersiveArrival(worldKey, p)
-                        && (level.getTime() + Math.floorMod(p.hashCode(), IMMERSIVE_PARTICLE_INTERVAL))
-                                % IMMERSIVE_PARTICLE_INTERVAL != 0) {
+                // An immersive arrival is an opening, not a set of loose
+                // positions: emitApertures below plans the whole aperture at
+                // once, rim-weighted and capped, so a per-position spawn here
+                // would put back exactly the fill that pass exists to avoid.
+                if (com.customdimensions.immersive.ImmersiveProjector.isImmersiveArrival(worldKey, p)) {
                     continue;
                 }
                 ParticleEffect effect = resolveParticleFromTarget(rt);
@@ -992,6 +1314,7 @@ public class PortalHelper {
                 );
             }
         }
+        emitImmersiveArrivals(level, worldKey);
         Map<BlockPos, Integer> frames = PORTAL_FRAMES.get(worldKey);
         if (frames != null) {
             for (Map.Entry<BlockPos, Integer> entry : frames.entrySet()) {
@@ -1007,71 +1330,6 @@ public class PortalHelper {
                 );
             }
         }
-    }
-
-    /**
-     * A player mined a block; if it was part of one of our arrival portals,
-     * take the whole portal down with it — restoring vanilla's "break one
-     * pane, the whole portal pops" behaviour, which {@code
-     * NetherPortalProtectionMixin} otherwise suppresses (it protects
-     * non-obsidian frames from vanilla's neighbour-update re-validation, so
-     * this is the only place that can tell a deliberate break from a stray
-     * update).
-     *
-     * <p>A missing pane is never healed back — combined with neighbour-update
-     * protection, that would make a portal indestructible. Deregistering
-     * happens first, so no later pass (particles, projection, validity) ever
-     * iterates a position whose block is already gone. Only REGISTERED
-     * positions are touched, so a player-built vanilla portal and a
-     * (blockless) source zone are unaffected.
-     */
-    public static void onPlayerBrokePortalBlock(ServerWorld world, BlockPos pos) {
-        RegistryKey<World> worldKey = world.getRegistryKey();
-        if (!isRegisteredPortalPosition(worldKey, pos)) {
-            return;
-        }
-        Map<BlockPos, PortalReturnTarget> targets = PORTAL_TARGETS.get(worldKey);
-        if (targets == null) {
-            return;
-        }
-        // Read the link BEFORE the aperture is deregistered below — this is
-        // the only record of which source portal built this arrival, and the
-        // removal loop is about to delete it.
-        PortalReturnTarget brokenTarget = targets.get(pos);
-        // Grow over the REGISTRY rather than over block states: the block the
-        // player just broke is already gone, so a state-based flood fill would
-        // stop at the hole and leave the rest of the portal standing.
-        Set<BlockPos> aperture = com.customdimensions.immersive.ProjectionVolume.collectAperture(
-                pos, planeDirections(Direction.Axis.X), targets::containsKey, MAX_PORTAL_BLOCKS);
-        if (aperture.isEmpty()) {
-            aperture = new HashSet<>(Set.of(pos));
-        }
-        for (Direction.Axis axis : new Direction.Axis[]{Direction.Axis.Y, Direction.Axis.Z}) {
-            aperture.addAll(com.customdimensions.immersive.ProjectionVolume.collectAperture(
-                    pos, planeDirections(axis), targets::containsKey, MAX_PORTAL_BLOCKS));
-        }
-
-        Map<BlockPos, Integer> frames = PORTAL_FRAMES.get(worldKey);
-        for (BlockPos p : aperture) {
-            targets.remove(p);
-            if (frames != null) {
-                frames.remove(p);
-            }
-        }
-        for (BlockPos p : aperture) {
-            if (!world.getChunkManager().isChunkLoaded(p.getX() >> 4, p.getZ() >> 4)) {
-                continue;
-            }
-            if (isPortalBlock(world.getBlockState(p))) {
-                world.setBlockState(p, Blocks.AIR.getDefaultState(),
-                        Block.NOTIFY_LISTENERS | Block.FORCE_STATE);
-            }
-        }
-        int linked = breakLinkedSourceZone(world, brokenTarget);
-        savePortalLinks();
-        com.customdimensions.MultiverseServer.LOGGER.info(
-                "Arrival portal broken by a player in {} at {} ({} blocks removed, {} source zone(s) closed)",
-                worldKey.getValue(), pos.toShortString(), aperture.size(), linked);
     }
 
     // ------------------------------------------------------------------
@@ -1156,6 +1414,11 @@ public class PortalHelper {
                 frames.remove(p);
             }
         }
+        PortalZone arrivalZone = arrivalZoneAt(zone.targetWorld, cells.iterator().next());
+        if (arrivalZone != null) {
+            com.customdimensions.immersive.ImmersiveProjector.cleanupZone(arrivalZone);
+            ARRIVAL_ZONES.get(zone.targetWorld).remove(arrivalZone);
+        }
         ServerWorld targetWorld = sourceWorld.getServer() != null
                 ? sourceWorld.getServer().getWorld(zone.targetWorld)
                 : null;
@@ -1192,7 +1455,7 @@ public class PortalHelper {
             if (!world.getChunkManager().isChunkLoaded(p.getX() >> 4, p.getZ() >> 4)) {
                 continue;
             }
-            if (isPortalBlock(world.getBlockState(p))) {
+            if (isVanillaPortalBlock(world.getBlockState(p))) {
                 world.setBlockState(p, Blocks.AIR.getDefaultState(),
                         Block.NOTIFY_LISTENERS | Block.FORCE_STATE);
             }
@@ -1222,7 +1485,7 @@ public class PortalHelper {
             if (!world.getChunkManager().isChunkLoaded(p.getX() >> 4, p.getZ() >> 4)) {
                 continue;
             }
-            if (isPortalBlock(world.getBlockState(p))) {
+            if (isVanillaPortalBlock(world.getBlockState(p))) {
                 world.setBlockState(p, Blocks.AIR.getDefaultState(),
                         Block.NOTIFY_LISTENERS | Block.FORCE_STATE);
             }
@@ -1254,18 +1517,6 @@ public class PortalHelper {
     }
 
     public static void createTargetPortal(ServerWorld targetWorld, Set<BlockPos> interior, Direction.Axis axis, PortalDefinition definition, RegistryKey<World> sourceWorld, int sourceY, String exitMode) {
-        // Frameless gateway arrivals: a single END_GATEWAY block, no frame
-        // ring, no floor dance — vanilla gateways float, ours may too.
-        if (com.customdimensions.portal.PortalShape.END_GATEWAY.equals(definition.getShape())) {
-            BlockPos gatewayPos = interior.iterator().next();
-            targetWorld.setBlockState(gatewayPos, Blocks.END_GATEWAY.getDefaultState(),
-                    Block.NOTIFY_LISTENERS | Block.FORCE_STATE);
-            registerPortal(targetWorld.getRegistryKey(), gatewayPos, sourceWorld, sourceY,
-                    parseColor(definition.getColor()), definition.getCooldown(),
-                    definition.getParticleType(), exitMode);
-            savePortalLinks();
-            return;
-        }
         // Building needs a CONCRETE block: framePlaceBlock (tag/list/group
         // configs), else the plain frameBlock, else obsidian. Accepting is
         // not placing.
@@ -1276,22 +1527,54 @@ public class PortalHelper {
             frameBlock = Blocks.OBSIDIAN;
         }
 
+        // PRESENTATION describes where a portal GOES; MATERIAL describes
+        // where it is. The frame below is built from this dimension's blocks
+        // so it is recognisable on arrival, but the colour and particles
+        // belong to the world on the other side — this portal's job is to
+        // take you back there, and it should say so. Without the lookup an
+        // arrival inherits the presentation of the dimension you are trying
+        // to leave, so the way home out of an ember dimension glowed ember
+        // and read as another door deeper in.
+        PortalDefinition presentation = MultiverseConfig.getInstance().getPortalFor(sourceWorld);
+        // No config for the source world means a RESERVED dimension — the overworld,
+        // in practice, which is where almost every portal comes from. It has
+        // no portal of its own, so falling back to `definition` (the
+        // DESTINATION's portal) would repeat the mistake described above.
+        //
+        // A neutral vanilla presentation is the honest answer: the way back to
+        // the overworld should look like an ordinary portal, not like the
+        // place you are leaving. A CHAINED dimension is unaffected — its
+        // source has a config and getPortalFor returns it.
+        int color = presentation != null
+                ? parseColor(presentation.getColor())
+                : NEUTRAL_PORTAL_COLOR;
+        int cooldown = definition.getCooldown();
+        String particleType = presentation != null ? presentation.getParticleType() : null;
+        RegistryKey<World> portalWorld = targetWorld.getRegistryKey();
+
+        // Register BEFORE any block is touched. Registration is a pure
+        // in-memory map write with no world side effects, and every pass that
+        // reads an arrival — particles, projection, the return trip, the aura
+        // exclusion — asks the registry, so it must be true before the site
+        // is disturbed.
+        for (BlockPos p : interior) {
+            registerPortal(portalWorld, p, sourceWorld, sourceY, color, cooldown, particleType, exitMode);
+        }
+        ensureArrivalZone(portalWorld, interior, axis, definition, sourceWorld);
+
         // Guarantee egress BEFORE the frame goes in: a portal you cannot step
         // out of is the worst failure this code has (see PortalSite).
         PortalSite.carveEgress(targetWorld, interior, axis);
 
         BlockState frameState = frameBlock.getDefaultState();
-        BlockState portalState = axis == Direction.Axis.Y
-            ? Blocks.END_PORTAL.getDefaultState()
-            : Blocks.NETHER_PORTAL.getDefaultState().with(NetherPortalBlock.AXIS, axis);
 
-        // Suppress neighbour updates for ALL arrival-portal blocks (frame
-        // AND portal). NOTIFY_NEIGHBORS cascades to adjacent pistons, and
-        // Supplementaries' captureBeForPistonMove mixin NPEs when a
-        // scheduled piston tick fires with movingPiston=null — crash on
-        // every portal traversal near a piston mechanism. Frame blocks at
-        // the arrival site are structural; they don't need the surrounding
-        // terrain to react to their placement.
+        // Suppress neighbour updates for the arrival frame. NOTIFY_NEIGHBORS
+        // cascades to adjacent pistons, and Supplementaries'
+        // captureBeForPistonMove mixin NPEs when a scheduled piston tick
+        // fires with movingPiston=null — crash on every portal traversal
+        // near a piston mechanism. Frame blocks at the arrival site are
+        // structural; they don't need the surrounding terrain to react to
+        // their placement.
         int frameFlags = Block.NOTIFY_LISTENERS | Block.FORCE_STATE;
         HashSet<BlockPos> interiorSet = new HashSet<>(interior);
         Direction[] planeDirs = planeDirections(axis);
@@ -1349,47 +1632,6 @@ public class PortalHelper {
             }
         }
 
-        // PRESENTATION describes where a portal GOES; MATERIAL describes
-        // where it is. The frame above is built from this dimension's blocks
-        // so it is recognisable on arrival, but the colour and particles
-        // belong to the world on the other side — this portal's job is to
-        // take you back there, and it should say so. Without the lookup an
-        // arrival inherits the presentation of the dimension you are trying
-        // to leave, so the way home out of an ember dimension glowed ember
-        // and read as another door deeper in.
-        PortalDefinition presentation = MultiverseConfig.getInstance().getPortalFor(sourceWorld);
-        // No config for the source world means a RESERVED dimension — the overworld,
-        // in practice, which is where almost every portal comes from. It has
-        // no portal block of its own, so falling back to `definition` (the
-        // DESTINATION's portal) would repeat the mistake described above.
-        //
-        // A neutral vanilla presentation is the honest answer: the way back to
-        // the overworld should look like an ordinary portal, not like the
-        // place you are leaving. A CHAINED dimension is unaffected — its
-        // source has a config and getPortalFor returns it.
-        int color = presentation != null
-                ? parseColor(presentation.getColor())
-                : NEUTRAL_PORTAL_COLOR;
-        int cooldown = definition.getCooldown();
-        String particleType = presentation != null ? presentation.getParticleType() : null;
-        RegistryKey<World> portalWorld = targetWorld.getRegistryKey();
-
-        // Register BEFORE placing the portal blocks, not after.
-        // NetherPortalProtectionMixin only defends positions already present
-        // in the return-target map, so registering afterwards leaves the
-        // whole placement loop unprotected: vanilla
-        // NetherPortalBlock.getStateForNeighborUpdate re-validates against an
-        // OBSIDIAN frame and pops anything else.
-        // Registration is a pure in-memory map write with no world side
-        // effects, so doing it first is safe and strictly better.
-        for (BlockPos p : interior) {
-            registerPortal(portalWorld, p, sourceWorld, sourceY, color, cooldown, particleType, exitMode);
-        }
-
-        int portalFlags = Block.NOTIFY_LISTENERS | Block.FORCE_STATE;
-        for (BlockPos pos : interior) {
-            targetWorld.setBlockState(pos, portalState, portalFlags);
-        }
         Map<BlockPos, Integer> frames = PORTAL_FRAMES.computeIfAbsent(portalWorld, k -> new HashMap<>());
         for (BlockPos p : interior) {
             for (Direction dir : planeDirs) {
@@ -1412,43 +1654,21 @@ public class PortalHelper {
         return block != null && block != Blocks.AIR ? block.getDefaultState() : fallback;
     }
 
-    // radiusV is wider than radiusH so a portal built when the surface sat a
-    // few blocks higher or lower (chunk regen, terrain edits) is still found
-    // and reused instead of double-created.
-    public static BlockPos findExistingPortal(ServerWorld world, int centerX, int centerY, int centerZ, int radiusH, int radiusV, Direction.Axis axis) {
-        for (int dx = -radiusH; dx <= radiusH; dx++) {
-            for (int dz = -radiusH; dz <= radiusH; dz++) {
-                for (int dy = -radiusV; dy <= radiusV; dy++) {
-                    BlockPos pos = new BlockPos(centerX + dx, centerY + dy, centerZ + dz);
-                    BlockState state = world.getBlockState(pos);
-                    if (axis == Direction.Axis.Y) {
-                        if (state.isOf(Blocks.END_PORTAL)) {
-                            return pos;
-                        }
-                        continue;
-                    }
-                    if (state.isOf(Blocks.NETHER_PORTAL) && state.contains(NetherPortalBlock.AXIS) && state.get(NetherPortalBlock.AXIS) == axis) {
-                        return pos;
-                    }
-                }
-            }
+    /**
+     * The vanilla portal cell a player standing here is in — their own block,
+     * then one above, then one below. Only vanilla's portals have blocks, so
+     * this is purely the adoption probe.
+     */
+    public static BlockPos vanillaPortalCellNear(ServerWorld world, BlockPos pos) {
+        if (isVanillaPortalBlock(world.getBlockState(pos))) {
+            return pos;
         }
-        return null;
-    }
-
-    /** Nearest END_GATEWAY block in the search box, else null (gateway reuse). */
-    public static BlockPos findExistingGateway(ServerWorld world, int centerX, int centerY, int centerZ, int radiusH, int radiusV) {
-        for (int dx = -radiusH; dx <= radiusH; dx++) {
-            for (int dz = -radiusH; dz <= radiusH; dz++) {
-                for (int dy = -radiusV; dy <= radiusV; dy++) {
-                    BlockPos pos = new BlockPos(centerX + dx, centerY + dy, centerZ + dz);
-                    if (world.getBlockState(pos).isOf(Blocks.END_GATEWAY)) {
-                        return pos;
-                    }
-                }
-            }
+        BlockPos up = pos.up();
+        if (isVanillaPortalBlock(world.getBlockState(up))) {
+            return up;
         }
-        return null;
+        BlockPos down = pos.down();
+        return isVanillaPortalBlock(world.getBlockState(down)) ? down : null;
     }
 
     public static Direction[] planeDirections(Direction.Axis axis) {
@@ -1559,11 +1779,12 @@ public class PortalHelper {
         return true;
     }
 
+    /**
+     * The vanilla portal area around a real portal block — adoption's input.
+     * Nothing this mod owns is found here: its interiors are empty.
+     */
     public static Set<BlockPos> collectPortalArea(ServerWorld world, BlockPos start) {
         BlockState startState = world.getBlockState(start);
-        if (startState.isOf(Blocks.END_GATEWAY)) {
-            return Set.of(start); // gateways are always exactly one block
-        }
         if (startState.isOf(Blocks.END_PORTAL)) {
             return collectHorizontalPortalArea(world, start);
         }
@@ -1659,7 +1880,13 @@ public class PortalHelper {
         }
     }
 
-    public static boolean isPortalBlock(BlockState state) {
+    /**
+     * Vanilla's own portal blocks. This mod places none of them — a portal it
+     * owns is a frame with an empty interior — so a hit here is a
+     * player-built portal, a structure's, or a fill left by a jar that
+     * predates that rule.
+     */
+    public static boolean isVanillaPortalBlock(BlockState state) {
         return state.isOf(Blocks.NETHER_PORTAL) || state.isOf(Blocks.END_PORTAL)
                 || state.isOf(Blocks.END_GATEWAY);
     }
@@ -1685,16 +1912,6 @@ public class PortalHelper {
         return null;
     }
 
-    private static ParticleEffect resolveParticleEffect(PortalDefinition def) {
-        String typeName = def.getParticleType();
-        if (typeName != null && !typeName.isEmpty()) {
-            ParticleEffect resolved = resolveParticleById(typeName);
-            if (resolved != null) {
-                return resolved;
-            }
-        }
-        return new DustParticleEffect(toDustColor(parseColor(def.getColor())), 2.0f);
-    }
 
     private static Vector3f toDustColor(int color) {
         return new Vector3f(
@@ -1759,7 +1976,11 @@ public class PortalHelper {
     }
 
     public static class StoredPortalZone {
-        String recordType = "source-zone-v1";
+        public static final String SOURCE_RECORD = "source-zone-v1";
+        /** Arrival-side geometry. Older jars log these as malformed and drop them. */
+        public static final String ARRIVAL_RECORD = "arrival-zone-v1";
+
+        String recordType = SOURCE_RECORD;
         String sourceWorld;
         String targetWorld;
         String axis;
@@ -1777,6 +1998,12 @@ public class PortalHelper {
         Integer auraBudgetSpent;
 
         StoredPortalZone() {
+        }
+
+        static StoredPortalZone fromArrival(PortalZone zone) {
+            StoredPortalZone stored = from(zone);
+            stored.recordType = ARRIVAL_RECORD;
+            return stored;
         }
 
         static StoredPortalZone from(PortalZone zone) {

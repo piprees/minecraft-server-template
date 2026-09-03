@@ -667,10 +667,9 @@ public class DimensionConfig {
         return this.getPortals().stream().anyMatch(DimensionConfig::isIgnitable);
     }
 
-    /** Frameless gateway portals are legitimate without any frameBlock. */
+    /** A portal is its frame, so a portal with no frame cannot be lit. */
     private static boolean isIgnitable(Portal portal) {
-        return portal != null && (!portal.getFrameAcceptForms().isEmpty()
-                || com.customdimensions.portal.PortalShape.END_GATEWAY.equals(portal.getShapeName()));
+        return portal != null && !portal.getFrameAcceptForms().isEmpty();
     }
 
     public ExitPortal getExitPortal() {

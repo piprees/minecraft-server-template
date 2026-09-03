@@ -213,12 +213,18 @@ class DimensionConfigTest {
     }
 
     @Test
-    void endGatewayNeedsNoFrameBlock() {
-        DimensionConfig config = parse("d", """
+    void endGatewayNeedsAFrameBlockLikeEveryOtherShape() {
+        // A portal is its frame, so one with no frame can never be lit.
+        assertFalse(parse("d", """
                 {"portal":{"igniterItem":"minecraft:ender_eye","shape":"end_gateway"}}
+                """).hasPortal());
+
+        DimensionConfig framed = parse("d", """
+                {"portal":{"frameBlock":"minecraft:mud_bricks",
+                  "igniterItem":"minecraft:ender_eye","shape":"end_gateway"}}
                 """);
-        assertTrue(config.hasPortal());
-        PortalDefinition def = config.toPortalDefinition();
+        assertTrue(framed.hasPortal());
+        PortalDefinition def = framed.toPortalDefinition();
         assertEquals("end_gateway", def.getShape());
         assertEquals("any", def.getOrientation());
     }

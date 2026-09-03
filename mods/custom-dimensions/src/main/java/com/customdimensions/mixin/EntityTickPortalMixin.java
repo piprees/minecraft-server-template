@@ -1,8 +1,6 @@
 package com.customdimensions.mixin;
 
 import com.customdimensions.portal.PortalHelper;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
 import net.minecraft.entity.Entity;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -50,21 +48,14 @@ public abstract class EntityTickPortalMixin {
             return;
         }
 
+        RegistryKey<World> worldKey = serverLevel.getRegistryKey();
+        // A portal this mod owns is a frame with an empty interior, so
+        // standing in one is a registry question, not a block question.
         BlockPos pos = player.getBlockPos();
-        boolean inPortal = true;
-        BlockState state = serverLevel.getBlockState(pos);
-        if (!PortalHelper.isPortalBlock(state)) {
-            state = serverLevel.getBlockState(pos.up());
-            if (PortalHelper.isPortalBlock(state)) {
-                pos = pos.up();
-            } else {
-                state = serverLevel.getBlockState(pos.down());
-                if (PortalHelper.isPortalBlock(state)) {
-                    pos = pos.down();
-                } else {
-                    inPortal = false;
-                }
-            }
+        BlockPos arrivalCell = PortalHelper.arrivalCellNear(worldKey, pos);
+        boolean inPortal = arrivalCell != null;
+        if (inPortal) {
+            pos = arrivalCell;
         }
 
         // The return gate. Sampled on EVERY tick, in a portal or not, so the
@@ -76,17 +67,19 @@ public abstract class EntityTickPortalMixin {
         // block, so it never clears for a player who arrived INSIDE the
         // arrival portal. The cooldown is still consulted — as the seed that
         // tells a teleport arrival apart from a walk-in — just not as the gate.
-        RegistryKey<World> worldKey = serverLevel.getRegistryKey();
         int now = serverLevel.getServer().getTicks();
         boolean entered = PortalHelper.enteredArrivalPortal(
                 worldKey, player.getUuid(), inPortal, player.getPortalCooldown() > 0, now);
-        // Claimed on CONTACT, not on the arrival edge. A vanilla portal never
-        // fires that edge — vanilla pins the cooldown the moment you touch the
-        // block and teleports within a tick — so a presentation zone would
-        // never be registered for one. claimAttempt dedupes per area per boot.
-        if (inPortal) {
+        // Vanilla's own portals are the only ones with blocks left in them,
+        // and adoption is claimed on CONTACT rather than on the arrival edge:
+        // a vanilla portal never fires that edge — vanilla pins the cooldown
+        // the moment you touch the block and teleports within a tick — so a
+        // presentation zone would never be registered for one. claimAttempt
+        // dedupes per area per boot.
+        BlockPos vanillaCell = PortalHelper.vanillaPortalCellNear(serverLevel, player.getBlockPos());
+        if (vanillaCell != null) {
             com.customdimensions.portal.PortalAdoption.adopt(
-                    serverLevel, PortalHelper.collectPortalArea(serverLevel, pos));
+                    serverLevel, PortalHelper.collectPortalArea(serverLevel, vanillaCell));
         }
         if (!inPortal || !entered) {
             return;
@@ -101,14 +94,12 @@ public abstract class EntityTickPortalMixin {
             return;
         }
 
-        Set<BlockPos> portalBlocks = PortalHelper.collectPortalArea(serverLevel, pos);
-        if (portalBlocks.isEmpty()) {
+        PortalHelper.PortalReturnTarget target = PortalHelper.getPortalTarget(worldKey, pos);
+        if (target == null) {
             PortalHelper.rearmArrivalPortalEntry(worldKey, player.getUuid(), now);
             return;
         }
-
-        PortalHelper.PortalReturnTarget target = PortalHelper.getPortalTarget(serverLevel.getRegistryKey(), portalBlocks.iterator().next());
-        String exitMode = target != null ? target.exitMode : null;
+        String exitMode = target.exitMode;
 
         // Configured exit modes ("bed"/"worldSpawn" — anchor arrivals and
         // mod-built exit portals) win over UUID origin tracking, and clear
@@ -182,7 +173,7 @@ public abstract class EntityTickPortalMixin {
         }
 
         int cooldown = 40;
-        if (targetWorldKey == null && target != null) {
+        if (targetWorldKey == null) {
             if ("origin".equals(exitMode)) {
                 // Explicit origin mode with the origin lost (restart) —
                 // never strand: fall back to the overworld spawn.

@@ -258,12 +258,21 @@ public class ServerWorldMixin {
 
                         boolean isHorizontal = zone.axis == Direction.Axis.Y;
 
-                        BlockPos existing = com.customdimensions.portal.PortalShape.END_GATEWAY.equals(def.getShape())
-                                ? PortalHelper.findExistingGateway(targetWorld, targetCenterX, surfaceY, targetCenterZ, 5, 16)
-                                : PortalHelper.findExistingPortal(targetWorld, targetCenterX, surfaceY, targetCenterZ, 5, 16, zone.axis);
+                        // An arrival has no blocks, so the registry is the
+                        // only record that one is here. findRegisteredPortalNear
+                        // reproduces the old block scan's search order exactly.
+                        BlockPos existing = PortalHelper.findRegisteredPortalNear(
+                                targetKey, targetCenterX, surfaceY, targetCenterZ, 5, 16);
                         int portalCooldown = def.getCooldown();
 
                         if (existing != null) {
+                            Set<BlockPos> aperture = PortalHelper.registeredAperture(
+                                    targetKey, existing, zone.axis);
+                            // An arrival built before arrival zones were
+                            // recorded gets its zone on first reuse, so its
+                            // frame is validated from then on.
+                            PortalHelper.ensureArrivalZone(
+                                    targetKey, aperture, zone.axis, def, worldKey);
                             playPortalSound(world, pos, def.getEnterSound());
                             player.setPortalCooldown(portalCooldown);
                             PortalHelper.setPlayerOrigin(player.getUuid(), worldKey, pos);
@@ -276,7 +285,7 @@ public class ServerWorldMixin {
                             // Older zones may pre-date auras: link them on
                             // first reuse (both worlds loaded right now).
                             com.customdimensions.portal.PortalAuraManager.onLink(
-                                    world, zone, targetWorld, PortalHelper.collectPortalArea(targetWorld, existing));
+                                    world, zone, targetWorld, aperture);
                             continue playerLoop;
                         }
 
@@ -307,6 +316,19 @@ public class ServerWorldMixin {
                     }
                     continue playerLoop;
                 }
+            }
+        }
+
+        // Arrival zones: same frame check the source side gets. Break one
+        // frame block of an arrival and the portal is gone, both ends of it —
+        // there is nothing else it could be, and nothing inside it to break.
+        for (PortalHelper.PortalZone arrival
+                : new ArrayList<>(PortalHelper.getArrivalZones(worldKey))) {
+            if (!PortalHelper.isZoneChunkLoaded(world, arrival)) {
+                continue;
+            }
+            if (!PortalHelper.isZoneValid(world, arrival)) {
+                PortalHelper.closeArrival(world, arrival);
             }
         }
 
@@ -391,16 +413,11 @@ public class ServerWorldMixin {
         }
         surfaceY = siteY;
 
-        BlockPos existing = com.customdimensions.portal.PortalShape.END_GATEWAY.equals(def.getShape())
-                ? PortalHelper.findExistingGateway(targetWorld, anchorX, surfaceY, anchorZ, 5, 16)
-                : PortalHelper.findExistingPortal(targetWorld, anchorX, surfaceY, anchorZ, 5, 16, zone.axis);
-        if (existing == null && zone.axis != Direction.Axis.Y
-                && !com.customdimensions.portal.PortalShape.END_GATEWAY.equals(def.getShape())) {
-            // A previous arrival may have built the portal on the other
-            // horizontal axis (first source's shape wins) — reuse it.
-            Direction.Axis other = zone.axis == Direction.Axis.X ? Direction.Axis.Z : Direction.Axis.X;
-            existing = PortalHelper.findExistingPortal(targetWorld, anchorX, surfaceY, anchorZ, 5, 16, other);
-        }
+        // Axis-agnostic by construction: a previous arrival may have built
+        // the anchor on the other horizontal axis, and the registry does not
+        // care which.
+        BlockPos existing = PortalHelper.findRegisteredPortalNear(
+                targetWorld.getRegistryKey(), anchorX, surfaceY, anchorZ, 5, 16);
 
         boolean isHorizontal = zone.axis == Direction.Axis.Y;
         RegistryKey<World> worldKey = world.getRegistryKey();
@@ -428,8 +445,11 @@ public class ServerWorldMixin {
             // once and the first link wins (immutable snapshot).
             com.customdimensions.portal.PortalAuraManager.onLink(world, zone, targetWorld, anchorInterior);
         } else {
-            com.customdimensions.portal.PortalAuraManager.onLink(
-                    world, zone, targetWorld, PortalHelper.collectPortalArea(targetWorld, existing));
+            Set<BlockPos> aperture = PortalHelper.registeredAperture(
+                    targetWorld.getRegistryKey(), existing, zone.axis);
+            PortalHelper.ensureArrivalZone(
+                    targetWorld.getRegistryKey(), aperture, zone.axis, def, worldKey);
+            com.customdimensions.portal.PortalAuraManager.onLink(world, zone, targetWorld, aperture);
         }
 
         playPortalSound(world, pos, def.getEnterSound());

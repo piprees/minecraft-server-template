@@ -68,14 +68,7 @@ public final class ExitPortalManager {
                 // player next loads the area.
                 return;
             }
-            boolean intact = true;
-            for (BlockPos p : interior) {
-                if (!PortalHelper.isPortalBlock(world.getBlockState(p))) {
-                    intact = false;
-                    break;
-                }
-            }
-            if (intact) {
+            if (frameIntact(world, config, interior)) {
                 return;
             }
             MultiverseServer.LOGGER.info("Exit portal in {} is broken — rebuilding", worldKey.getValue());
@@ -108,17 +101,14 @@ public final class ExitPortalManager {
         }
         int surfaceY = PortalHelper.findSurfaceY(world, baseX, baseZ);
 
-        // Adopt an existing intact portal near the site before building —
-        // otherwise every boot would stack a fresh frame on the old one.
-        // end_exit dimensions build (and search for) horizontal portals.
-        Direction.Axis axis = PortalShape.END_EXIT.equals(shapeOf(config))
-                ? Direction.Axis.Y : Direction.Axis.X;
-        BlockPos existing = PortalShape.END_GATEWAY.equals(shapeOf(config))
-                ? PortalHelper.findExistingGateway(world, baseX, surfaceY, baseZ, 3, 16)
-                : PortalHelper.findExistingPortal(world, baseX, surfaceY, baseZ, 3, 16, axis);
+        // Adopt an existing exit portal near the site before building —
+        // otherwise every boot would stack a fresh frame on the old one. An
+        // exit portal has no blocks in it, so the registry is the record.
+        BlockPos existing = PortalHelper.findRegisteredPortalNear(
+                worldKey, baseX, surfaceY, baseZ, 3, 16);
         Set<BlockPos> newInterior;
         if (existing != null) {
-            newInterior = interiorFrom(existing, world);
+            newInterior = PortalHelper.registeredAperture(worldKey, existing, axisOf(config));
         } else {
             newInterior = buildFrame(world, config, baseX, surfaceY, baseZ);
             MultiverseServer.LOGGER.info("Built exit portal in {} at ({}, {}, {})",
@@ -128,15 +118,40 @@ public final class ExitPortalManager {
         INTERIORS.put(worldKey, newInterior);
     }
 
-    private static Set<BlockPos> interiorFrom(BlockPos anyPortalBlock, ServerWorld world) {
-        Set<BlockPos> collected = PortalHelper.collectPortalArea(world, anyPortalBlock);
-        return collected.isEmpty() ? Set.of(anyPortalBlock) : collected;
+    /** The plane an exit frame is built in: end_exit is flat, the rest stand up. */
+    private static Direction.Axis axisOf(DimensionConfig config) {
+        return PortalShape.END_EXIT.equals(shapeOf(config)) ? Direction.Axis.Y : Direction.Axis.X;
+    }
+
+    /**
+     * Is the ring still whole? An exit portal is a frame with an empty
+     * interior, so its frame is the only thing there is to check — and the
+     * only thing worth rebuilding.
+     */
+    private static boolean frameIntact(ServerWorld world, DimensionConfig config, Set<BlockPos> interior) {
+        Direction.Axis axis = axisOf(config);
+        com.customdimensions.config.PortalDefinition def =
+                config.hasPortal() ? config.toPortalDefinition() : null;
+        if (def != null) {
+            return PortalHelper.isAreaBoundedByFrameParts(world, interior, def, axis);
+        }
+        Block frame = resolveFrameBlock(config);
+        for (BlockPos p : interior) {
+            for (Direction dir : PortalHelper.planeDirections(axis)) {
+                BlockPos neighbour = p.offset(dir);
+                if (!interior.contains(neighbour) && !world.getBlockState(neighbour).isOf(frame)) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     // Frame in the dimension's own frame block and portal shape ("door" =
-    // 1x2, "doorway"/"standard" = 2x3, "end_exit" = horizontal 3x3 ring).
-    // Frames first, portal blocks last with NOTIFY_LISTENERS | FORCE_STATE —
-    // NOTIFY_ALL makes custom-framed portals self-destruct during placement.
+    // 1x2, "end_gateway" = 1x1, "doorway"/"standard" = 2x3, "end_exit" =
+    // horizontal 3x3 ring). Nothing is placed inside it: the frame is the
+    // portal. NOTIFY_LISTENERS | FORCE_STATE, never NOTIFY_ALL, so the
+    // placement cannot cascade into a neighbouring piston.
     private static Set<BlockPos> buildFrame(ServerWorld world, DimensionConfig config, int x, int y, int z) {
         Block frameBlock = resolveFrameBlock(config);
         int flags = Block.NOTIFY_LISTENERS | Block.FORCE_STATE;
@@ -144,14 +159,9 @@ public final class ExitPortalManager {
         if (PortalShape.END_EXIT.equals(shape)) {
             return buildHorizontalFrame(world, frameBlock, x, y, z, flags);
         }
-        if (PortalShape.END_GATEWAY.equals(shape)) {
-            // A single floating gateway — nothing to frame, nothing to decay.
-            BlockPos gatewayPos = new BlockPos(x, y, z);
-            world.setBlockState(gatewayPos, Blocks.END_GATEWAY.getDefaultState(), flags);
-            return Set.of(gatewayPos);
-        }
-        int width = PortalShape.DOOR.equals(shape) ? 1 : INTERIOR_WIDTH;
-        int height = PortalShape.DOOR.equals(shape) ? 2 : INTERIOR_HEIGHT;
+        boolean gateway = PortalShape.END_GATEWAY.equals(shape);
+        int width = gateway || PortalShape.DOOR.equals(shape) ? 1 : INTERIOR_WIDTH;
+        int height = gateway ? 1 : PortalShape.DOOR.equals(shape) ? 2 : INTERIOR_HEIGHT;
         Set<BlockPos> interior = new HashSet<>();
         for (int dx = 0; dx < width; dx++) {
             for (int dy = 0; dy < height; dy++) {
@@ -177,19 +187,12 @@ public final class ExitPortalManager {
                 }
             }
         }
-        net.minecraft.block.BlockState portalState =
-                Blocks.NETHER_PORTAL.getDefaultState().with(NetherPortalBlock.AXIS, Direction.Axis.X);
-        for (BlockPos p : interior) {
-            world.setBlockState(p, portalState, flags);
-        }
         return interior;
     }
 
-    // Horizontal 3x3 END_PORTAL pad with a frame ring at the same level and
-    // a solid floor beneath (same floor rule as createTargetPortal). No
-    // centreBlock pedestal here: the intact-check requires every interior
-    // cell to be a portal block, and a pedestal cell would read as "broken"
-    // and trigger a rebuild loop.
+    // Horizontal 3x3 opening with a frame ring at the same level and a solid
+    // floor beneath (same floor rule as createTargetPortal). Nothing stands
+    // in the opening.
     private static Set<BlockPos> buildHorizontalFrame(ServerWorld world, Block frameBlock,
             int x, int y, int z, int flags) {
         Set<BlockPos> interior = new HashSet<>();
@@ -211,9 +214,6 @@ public final class ExitPortalManager {
             if (!world.getBlockState(below).isSolid()) {
                 world.setBlockState(below, frameBlock.getDefaultState(), flags);
             }
-        }
-        for (BlockPos p : interior) {
-            world.setBlockState(p, Blocks.END_PORTAL.getDefaultState(), flags);
         }
         return interior;
     }

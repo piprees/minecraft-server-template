@@ -24,12 +24,13 @@ import java.util.concurrent.ConcurrentHashMap;
  * carry a BEACON buried under a crying-obsidian portal frame. Chunk-load
  * detection finds the beacon (block entities are a cheap per-chunk map),
  * verifies the frame ring in whichever of the four jigsaw rotations it
- * stands, then — from the world tick, never the load event — lights the
- * interior and registers it as a permanent exit zone with the configured
- * target (default "bed", ExitTarget grammar: any dimension works).
+ * stands, then — from the world tick, never the load event — registers its
+ * interior as a permanent exit zone with the configured target (default
+ * "bed", ExitTarget grammar: any dimension works). Nothing is placed in the
+ * opening: the frame is the portal.
  *
- * Registration is idempotent: re-detecting a lit shrine re-registers the
- * same interior positions over themselves and re-lights no-op states.
+ * Registration is idempotent: re-detecting a shrine re-registers the same
+ * interior positions over themselves.
  * Template contract (scripts/gen-exit-shrine.py): beacon under the first
  * interior column, second column one step along the frame axis, interior
  * 2 wide x 3 tall, rails at beacon+1 and beacon+5.
@@ -93,12 +94,6 @@ public final class ExitShrineManager {
             }
             substituteFrame(world, def, beacon, dir);
             Block frame = world.getBlockState(beacon.up()).getBlock();
-            int flags = Block.NOTIFY_LISTENERS | Block.FORCE_STATE;
-            net.minecraft.block.BlockState portalState = Blocks.NETHER_PORTAL.getDefaultState()
-                    .with(NetherPortalBlock.AXIS, dir.getAxis());
-            for (BlockPos p : interior) {
-                world.setBlockState(p, portalState, flags);
-            }
             String exitMode = def.getExitShrines().getTargetMode();
             int color = PortalHelper.parseColor(def.hasPortal() ? def.getPortal().color : null);
             int cooldown = def.hasPortal() && def.getPortal().cooldown != null
@@ -150,7 +145,7 @@ public final class ExitShrineManager {
     // the shipped template, but any solid block works.
     private static boolean frameRingIntact(ServerWorld world, BlockPos beacon, Direction dir) {
         Block frame = world.getBlockState(beacon.up()).getBlock();
-        if (frame == Blocks.AIR || frame == Blocks.NETHER_PORTAL) {
+        if (frame == Blocks.AIR) {
             return false;
         }
         for (int step = 0; step <= 1; step++) {

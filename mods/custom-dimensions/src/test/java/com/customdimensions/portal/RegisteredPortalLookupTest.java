@@ -23,10 +23,11 @@ import static org.junit.jupiter.api.Assertions.*;
  * the EXISTING portal instead. This lookup is what lets the preview and
  * entity pass-through find that portal without reading a single block.
  *
- * <p>The ordering assertions are not pedantry: {@code
- * ServerWorldMixin}/{@code PortalHelper.findExistingPortal} returns the first
- * hit of nested dx/dz/dy loops, and anything that picks a different portal
- * from the same box puts the preview back out of step with the player.
+ * <p>The ordering assertions are not pedantry: this lookup is the ONLY way
+ * an arrival is found — a portal has no blocks in it to scan for — and the
+ * player path, the preview and entity pass-through must all land on the same
+ * one when several are in the box. The order is the nested dx/dz/dy walk the
+ * block scan used, kept so those three agree.
  */
 class RegisteredPortalLookupTest {
 
@@ -85,9 +86,9 @@ class RegisteredPortalLookupTest {
     }
 
     @Test
-    void scanOrderMatchesFindExistingPortal() {
-        // findExistingPortal iterates dx, then dz, then dy — all ascending —
-        // and returns its first hit. So the winner is the lexicographic
+    void scanOrderIsDxThenDzThenDy() {
+        // dx, then dz, then dy — all ascending — first hit wins. So the
+        // winner is the lexicographic
         // minimum by (x, z, y), NOT the lowest block and NOT BlockPos's own
         // (y, z, x) ordering.
         register(TARGET, 3002, 60, 3000);   // lowest Y, but a larger X

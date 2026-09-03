@@ -62,7 +62,7 @@ public class PortalIgnitionMixin {
         }
 
         for (PortalDefinition def : candidates) {
-            if (tryIgnite(serverWorld, clickedPos, clickedBlockId, context, def, cir)) {
+            if (tryIgnite(serverWorld, clickedPos, context, def, cir)) {
                 return;
             }
         }
@@ -70,25 +70,8 @@ public class PortalIgnitionMixin {
 
     // Frame detection + zone registration for one candidate definition.
     // Returns true when a portal was ignited (cir is then set to SUCCESS).
-    private static boolean tryIgnite(ServerWorld serverWorld, BlockPos clickedPos, String clickedBlockId,
+    private static boolean tryIgnite(ServerWorld serverWorld, BlockPos clickedPos,
             ItemUsageContext context, PortalDefinition def, CallbackInfoReturnable<ActionResult> cir) {
-        // Gateways: click-to-place, no flood-fill. The gateway goes on the
-        // clicked face like a torch, so the clicked block is the only frame
-        // test there is — PortalDefinition.acceptsIgnitionClick.
-        if (com.customdimensions.portal.PortalShape.END_GATEWAY.equals(def.getShape())) {
-            if (!def.acceptsIgnitionClick(clickedBlockId)) {
-                return false;
-            }
-            BlockPos gatewayPos = clickedPos.offset(context.getSide());
-            if (!PortalHelper.isPortalFillable(serverWorld.getBlockState(gatewayPos))) {
-                return false;
-            }
-            serverWorld.setBlockState(gatewayPos, net.minecraft.block.Blocks.END_GATEWAY.getDefaultState(),
-                    net.minecraft.block.Block.NOTIFY_LISTENERS | net.minecraft.block.Block.FORCE_STATE);
-            registerAndFinish(serverWorld, gatewayPos, context, def, Set.of(gatewayPos), Direction.Axis.X);
-            cir.setReturnValue(ActionResult.SUCCESS);
-            return true;
-        }
         FrameMatcher matcher = def.resolveFrameMatcher();
         if (matcher.isEmpty()) {
             return false;
@@ -138,7 +121,6 @@ public class PortalIgnitionMixin {
         RegistryKey<World> worldKey = serverWorld.getRegistryKey();
         PortalHelper.PortalZone zone = new PortalHelper.PortalZone(fill, def, axis, worldKey, def.getTargetKey());
         PortalHelper.registerZone(zone);
-        placeCentreBlock(serverWorld, def, fill, axis);
         prewarmTarget(def);
         PortalHelper.spawnParticles(serverWorld, zone);
         playIgniteSound(serverWorld, soundPos, def);
@@ -146,28 +128,6 @@ public class PortalIgnitionMixin {
         if (context.getPlayer() == null || !context.getPlayer().isCreative()) {
             context.getStack().decrement(1);
         }
-    }
-
-    // end_exit pedestal: a real block at the interior's centre cell (dragon
-    // egg, trophy). Source zones stay invisible otherwise — the pedestal is
-    // scenery, not a portal block, and zone validity only checks the frame
-    // ring, so occupying one interior cell is safe. Placement uses
-    // NOTIFY_LISTENERS | FORCE_STATE like every other frame/portal write.
-    private static void placeCentreBlock(ServerWorld world, PortalDefinition def,
-            Set<BlockPos> fill, Direction.Axis axis) {
-        if (axis != Direction.Axis.Y
-                || !com.customdimensions.portal.PortalShape.END_EXIT.equals(def.getShape())
-                || def.getCentreBlock() == null) {
-            return;
-        }
-        Identifier blockId = Identifier.tryParse(def.getCentreBlock());
-        net.minecraft.block.Block block = blockId != null ? Registries.BLOCK.get(blockId) : null;
-        if (block == null || block == net.minecraft.block.Blocks.AIR) {
-            return;
-        }
-        BlockPos centre = com.customdimensions.portal.PortalShape.centreOf(fill);
-        world.setBlockState(centre, block.getDefaultState(),
-                net.minecraft.block.Block.NOTIFY_LISTENERS | net.minecraft.block.Block.FORCE_STATE);
     }
 
     // Pre-warm the target dimension the moment its portal ignites — world

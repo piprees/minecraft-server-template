@@ -355,13 +355,11 @@ public final class PortalSafetyValidator {
     private static void validateShapeConfig(DimensionConfig config, DimensionConfig.Portal portal,
                                             List<String> warnings) {
         String shape = portal.getShapeName();
-        if (com.customdimensions.portal.PortalShape.END_GATEWAY.equals(shape)
-                && portal.getFrameAcceptForms().isEmpty()) {
+        if (portal.getFrameAcceptForms().isEmpty()) {
             warnings.add(String.format(
-                    "Dimension %s: portal.shape \"end_gateway\" with no frameBlock — a gateway is "
-                    + "placed on the block that was clicked, so with nothing to match it ignites "
-                    + "on any block anywhere the igniter is used. KEEPING the config as written; "
-                    + "set \"frameBlock\" to fix (never auto-fixed).",
+                    "Dimension %s: portal has no frameBlock — a portal is its frame, so this one "
+                    + "can never be lit and the dimension has no way in. KEEPING the config as "
+                    + "written; set \"frameBlock\" to fix (never auto-fixed).",
                     config.getName()));
         }
         if (shape != null

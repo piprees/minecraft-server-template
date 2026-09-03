@@ -49,15 +49,20 @@ class PortalSafetyValidatorTest {
     }
 
     @Test
-    void aGatewayWithNoFrameBlockWarns() {
+    void aPortalWithNoFrameBlockWarns() {
         DimensionConfig config = parse("the_open_door", """
                 {"portal":{"shape":"end_gateway"}}
                 """);
         List<String> warnings = PortalSafetyValidator.validate(List.of(config));
         assertEquals(1, warnings.size());
-        assertTrue(warnings.get(0).contains("end_gateway"));
-        assertTrue(warnings.get(0).contains("any block"));
+        assertTrue(warnings.get(0).contains("no frameBlock"));
         assertTrue(warnings.get(0).contains("never auto-fixed"));
+
+        // Nothing about the shape: a frame is what every portal is made of.
+        DimensionConfig plain = parse("the_other_open_door", """
+                {"portal":{"igniterItem":"minecraft:flint_and_steel"}}
+                """);
+        assertEquals(1, PortalSafetyValidator.validate(List.of(plain)).size());
     }
 
     @Test

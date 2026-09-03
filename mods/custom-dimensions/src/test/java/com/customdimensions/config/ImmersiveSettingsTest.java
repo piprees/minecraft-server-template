@@ -1,6 +1,7 @@
 package com.customdimensions.config;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonParser;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -132,5 +133,57 @@ class ImmersiveSettingsTest {
         assertNull(restored.getImmersive(),
                 "a bare Gson round-trip must NOT resurrect immersive settings — "
                         + "PortalHelper.restoreZones() is responsible for re-stamping them from live config");
+    }
+
+    // ------------------------------------------------------------------
+    // Presentation fields: the opening's opacity and the far side's leak
+    // ------------------------------------------------------------------
+
+    @Test
+    void presentationFieldsHaveDefaultsWithoutBeingNamed() {
+        ImmersiveSettings settings = ImmersiveSettings.fromJson(
+                JsonParser.parseString("{\"previewDepth\": 4}"));
+        assertEquals(ImmersiveSettings.DEFAULT_PARTICLE_DENSITY, settings.particleDensity());
+        assertEquals(ImmersiveSettings.DEFAULT_EDGE_BIAS, settings.edgeBias());
+        assertEquals(ImmersiveSettings.DEFAULT_DESTINATION_TINT, settings.destinationTint());
+        assertTrue(settings.destinationLight());
+    }
+
+    @Test
+    void presentationFieldsAreReadFromTheObjectForm() {
+        ImmersiveSettings settings = ImmersiveSettings.fromJson(JsonParser.parseString(
+                "{\"particleDensity\": 0.1, \"edgeBias\": 0.9,"
+                        + " \"destinationTint\": 0.25, \"destinationLight\": false}"));
+        assertEquals(0.1, settings.particleDensity(), 1e-9);
+        assertEquals(0.9, settings.edgeBias(), 1e-9);
+        assertEquals(0.25, settings.destinationTint(), 1e-9);
+        assertFalse(settings.destinationLight());
+    }
+
+    @Test
+    void anOpeningCanBeTurnedOffWithoutTurningTheProjectionOff() {
+        ImmersiveSettings settings = ImmersiveSettings.fromJson(
+                JsonParser.parseString("{\"particleDensity\": 0}"));
+        assertNotNull(settings, "density 0 is silent, not disabled");
+        assertEquals(0.0, settings.particleDensity(), 1e-9);
+        assertTrue(settings.enabled());
+    }
+
+    @Test
+    void outOfRangePresentationValuesClampRatherThanRejectTheBlock() {
+        ImmersiveSettings high = ImmersiveSettings.fromJson(JsonParser.parseString(
+                "{\"particleDensity\": 40, \"edgeBias\": -3, \"destinationTint\": 8}"));
+        assertEquals(1.0, high.particleDensity(), 1e-9);
+        assertEquals(0.0, high.edgeBias(), 1e-9);
+        assertEquals(1.0, high.destinationTint(), 1e-9);
+    }
+
+    @Test
+    void aMalformedPresentationValueFallsBackRatherThanSilencingThePortal() {
+        ImmersiveSettings settings = ImmersiveSettings.fromJson(JsonParser.parseString(
+                "{\"particleDensity\": \"lots\", \"destinationLight\": \"yes\"}"));
+        assertEquals(ImmersiveSettings.DEFAULT_PARTICLE_DENSITY, settings.particleDensity(),
+                "a typo must not leave a portal invisible");
+        assertTrue(settings.destinationLight());
     }
 }

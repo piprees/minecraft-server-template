@@ -209,7 +209,7 @@ public final class VanillaLinkResolver {
     // block below or above it can be the portal block on an off-by-one.
     private static Set<BlockPos> portalAreaAround(ServerWorld world, BlockPos pos) {
         for (BlockPos probe : new BlockPos[] {pos, pos.up(), pos.down()}) {
-            if (PortalHelper.isPortalBlock(world.getBlockState(probe))) {
+            if (PortalHelper.isVanillaPortalBlock(world.getBlockState(probe))) {
                 return PortalHelper.collectPortalArea(world, probe);
             }
         }

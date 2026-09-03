@@ -466,7 +466,7 @@ public final class PortalSite {
      *
      * <p>{@link #carveEgress} runs inside {@code createTargetPortal}, so it
      * only fires when a portal is first built. Every traversal after that
-     * reuses the existing arrival ({@code findExistingPortal}) and takes no
+     * reuses the existing arrival ({@code findRegisteredPortalNear}) and takes no
      * egress code path — so an arrival buried later (terrain edits, another
      * mod, an aura converting cells against its face) is never repaired
      * without this check.
@@ -487,7 +487,7 @@ public final class PortalSite {
 
     private static void clear(ServerWorld world, BlockPos pos, int flags) {
         BlockState state = world.getBlockState(pos);
-        if (state.isAir() || PortalHelper.isPortalBlock(state) || !isCarveable(world, pos)) {
+        if (state.isAir() || PortalHelper.isVanillaPortalBlock(state) || !isCarveable(world, pos)) {
             // Never punch through bedrock, a portal, or somebody's chest.
             return;
         }

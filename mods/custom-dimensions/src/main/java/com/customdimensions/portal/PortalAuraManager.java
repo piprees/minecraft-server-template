@@ -348,7 +348,7 @@ public final class PortalAuraManager {
 
         // Never touch containers/machines, unbreakables, or portal blocks.
         if (world.getBlockEntity(pos) != null || state.isOf(Blocks.BEDROCK)
-                || PortalHelper.isPortalBlock(state)) {
+                || PortalHelper.isVanillaPortalBlock(state)) {
             return 0;
         }
         // Everything below this line REPLACES a block that is already
