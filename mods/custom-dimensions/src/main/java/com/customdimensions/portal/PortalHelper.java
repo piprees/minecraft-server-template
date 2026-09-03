@@ -1075,11 +1075,51 @@ public class PortalHelper {
      */
     public static final int NEUTRAL_PORTAL_COLOR = 0x8844FF;
 
+    /** Ticket radius for an arrival column: the site scan and frame reach past its own chunk. */
+    private static final int ARRIVAL_TICKET_RADIUS = 3;
+
+    /**
+     * The arrival height for a column, or null when its chunk is not resident.
+     *
+     * <p>The guard and the read are one call on purpose. Everything an arrival
+     * does to a column blocks on a cold chunk, not just the heightmap:
+     * {@code World.getBlockState} resolves through
+     * {@code getChunk(..., create=true)} too, so {@code PortalSite}'s site scan
+     * parks the main thread just as hard. That is [K1]/[K6] — the watchdog
+     * calls the tick crashed and shuts the server down. Splitting them into
+     * "check, then read" is what let one caller keep the check and another
+     * forget it.
+     *
+     * <p>Null means NOT YET, never "no surface": the column is ticketed and a
+     * later tick will find it resident. It also means {@link #VOID_FALLBACK_Y}
+     * can only ever come from a real void column, never from a cold chunk
+     * answering {@code bottomY}.
+     */
+    public static Integer arrivalSurfaceY(ServerWorld world, int centerX, int centerZ) {
+        if (!arrivalColumnReady(world, centerX, centerZ)) {
+            return null;
+        }
+        return findSurfaceY(world, centerX, centerZ);
+    }
+
+    /** Resident already, or ticketed so a retry can succeed. */
+    private static boolean arrivalColumnReady(ServerWorld world, int centerX, int centerZ) {
+        net.minecraft.util.math.ChunkPos column =
+                new net.minecraft.util.math.ChunkPos(centerX >> 4, centerZ >> 4);
+        if (world.getChunkManager().getWorldChunk(column.x, column.z, false) != null) {
+            return true;
+        }
+        world.getChunkManager().addTicket(net.minecraft.server.world.ChunkTicketType.PORTAL,
+                column, ARRIVAL_TICKET_RADIUS, new BlockPos(centerX, 0, centerZ));
+        return false;
+    }
+
     // Absolute Y a player should stand at when arriving at (centerX, centerZ)
     // — one above the heightmap surface. The caller must pass the SCALED
     // target-world column, not source-portal coordinates. Forces generation
     // of the one target chunk because World.getTopY silently reports bottomY
-    // for unloaded chunks, which would put the portal on bedrock.
+    // for unloaded chunks, which would put the portal on bedrock — so a
+    // caller on a tick path must clear arrivalColumnReady first.
     public static int findSurfaceY(ServerWorld world, int centerX, int centerZ) {
         int surfaceY = world.getChunk(centerX >> 4, centerZ >> 4)
                 .sampleHeightmap(Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, centerX & 15, centerZ & 15) + 1;

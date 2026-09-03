@@ -186,7 +186,11 @@ public class ServerWorldMixin {
                         // ever created — the single anchor arrival portal is
                         // built on first arrival and rebuilt if broken.
                         if (def.hasAnchor()) {
-                            teleportToAnchor(world, targetWorld, player, zone, def, pos);
+                            if (!teleportToAnchor(world, targetWorld, player, zone, def, pos)) {
+                                // Anchor column still generating — retry.
+                                PortalHelper.setPlayerInZone(entryKey, false);
+                                continue;
+                            }
                             PortalHelper.startSingleUseCountdown(zone);
                             continue playerLoop;
                         }
@@ -216,7 +220,18 @@ public class ServerWorldMixin {
                         // Arrival height comes from the target column's own
                         // surface — the SCALED centre, since source-portal
                         // coordinates are the wrong column for scale != 1.
-                        int surfaceY = PortalHelper.findSurfaceY(targetWorld, targetCenterX, targetCenterZ);
+                        //
+                        // Nobody has ever been to that column — that is what an
+                        // arrival IS — so on a first traversal its chunk is
+                        // cold and null comes back. Hand the entry edge back and
+                        // let a later tick find it resident.
+                        Integer arrivalY =
+                                PortalHelper.arrivalSurfaceY(targetWorld, targetCenterX, targetCenterZ);
+                        if (arrivalY == null) {
+                            PortalHelper.setPlayerInZone(entryKey, false);
+                            continue;
+                        }
+                        int surfaceY = arrivalY;
 
                         // Arrivals are a STANDARD size at an OPEN site, not a
                         // copy of whatever frame the player built at a
@@ -386,7 +401,12 @@ public class ServerWorldMixin {
     // the anchor column, and reuse (or rebuild) the one anchor arrival portal.
     // Its return targets carry the anchor's exit mode ("origin"/"bed"/
     // "worldSpawn") — EntityTickPortalMixin resolves them on the way out.
-    private static void teleportToAnchor(ServerWorld world, ServerWorld targetWorld,
+    //
+    // Returns false ONLY for "not yet" — the anchor column is still
+    // generating and the caller should retry. A refused traversal (no viable
+    // site) returns true: it has been decided and told the player, and
+    // retrying it every tick would just repeat the message.
+    private static boolean teleportToAnchor(ServerWorld world, ServerWorld targetWorld,
             ServerPlayerEntity player, PortalHelper.PortalZone zone, PortalDefinition def, BlockPos pos) {
         int[] anchor = def.getAnchorPos();
         int anchorX = anchor[0];
@@ -395,8 +415,13 @@ public class ServerWorldMixin {
         // reports the ROOF in a ceilinged dimension (the exact bug
         // PortalSite exists to prevent), so resolve a real site — open
         // pocket first, carve second, refuse third. The anchor's
-        // configured Y stays a hint only.
-        int surfaceY = PortalHelper.findSurfaceY(targetWorld, anchorX, anchorZ);
+        // configured Y stays a hint only. Null is the cold-column answer:
+        // every read below would block the tick until it generates.
+        Integer anchorSurfaceY = PortalHelper.arrivalSurfaceY(targetWorld, anchorX, anchorZ);
+        if (anchorSurfaceY == null) {
+            return false;
+        }
+        int surfaceY = anchorSurfaceY;
         int siteY = com.customdimensions.portal.PortalSite.findArrivalY(
                 targetWorld, anchorX, anchorZ, zone.axis, surfaceY);
         if (siteY == com.customdimensions.portal.PortalSite.NO_SITE) {
@@ -409,7 +434,7 @@ public class ServerWorldMixin {
                     targetWorld.getRegistryKey().getValue(), anchorX, anchorZ);
             player.sendMessage(net.minecraft.text.Text.literal(
                     "The portal cannot find anywhere safe to put you."), true);
-            return;
+            return true;
         }
         surfaceY = siteY;
 
@@ -464,6 +489,7 @@ public class ServerWorldMixin {
                 player, targetWorld, zone, (int) Math.floor(landX), (int) Math.floor(landZ));
         player.teleport(targetWorld, landX, landY, landZ, Set.of(), player.getYaw(), player.getPitch());
         playPortalSound(targetWorld, BlockPos.ofFloored(landX, landY, landZ), def.getExitSound());
+        return true;
     }
 
     private static void playPortalSound(ServerWorld world, BlockPos pos, String soundName) {

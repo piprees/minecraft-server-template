@@ -228,7 +228,13 @@ public final class ExitTarget {
             BlockPos spawn = world.getSpawnPos();
             pos = new int[]{spawn.getX(), spawn.getY(), spawn.getZ()};
         }
-        int surfaceY = PortalHelper.findSurfaceY(world, pos[0], pos[2]);
+        // Both callers are tick paths (ExitConditions.tick and
+        // EntityTickPortalMixin), and reading a cold column blocks until it
+        // generates. Null is the same "not ready, retry" both already handle.
+        Integer surfaceY = PortalHelper.arrivalSurfaceY(world, pos[0], pos[2]);
+        if (surfaceY == null) {
+            return null;
+        }
         return new Destination(world, new Vec3d(pos[0] + 0.5, surfaceY, pos[2] + 0.5));
     }
 
