@@ -40,8 +40,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * fake-block projection of the dimension on the other side of an immersive
  * portal, leaks the target dimension's biome ambience back through the
  * portal plane, and dresses the result with a coloured border on an active
- * preview's frame and a denser particle cloud for gateway zones that have no
- * frame to project through.
+ * preview's frame.
  *
  * <p>Presentation only. It never touches traversal, ignition, zone
  * validation or portal links — the blocks it sends are client-side illusions
@@ -308,9 +307,8 @@ public final class ImmersiveProjector {
 
     /**
      * The far side's light and colour for a zone, or {@link
-     * DestinationGlow#NONE} when none has been sampled — a gateway zone, a
-     * destination whose arrival chunk has not arrived, or a portal nobody is
-     * near. Callers apply it to their own colour; NONE leaves them unchanged.
+     * DestinationGlow#NONE} when none has been sampled — a destination whose
+     * arrival chunk has not arrived, or a portal nobody is near. Callers apply it to their own colour; NONE leaves them unchanged.
      */
     public static DestinationGlow glowFor(PortalHelper.PortalZone zone) {
         GlowSample sample = zone == null ? null : GLOW.get(zone);

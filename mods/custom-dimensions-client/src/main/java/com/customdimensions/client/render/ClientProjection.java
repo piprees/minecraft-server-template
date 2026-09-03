@@ -7,6 +7,9 @@ import net.minecraft.block.Blocks;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 
+import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicBoolean;
+
 /**
  * One portal's destination as this client holds it: the decoded grid, the
  * aperture it is seen through, and the mesh built from it.
@@ -37,7 +40,8 @@ public final class ClientProjection {
     private final double rectMinB;
     private final double rectMaxB;
 
-    private ProjectionMesh mesh;
+    private volatile ProjectionMesh mesh;
+    private final AtomicBoolean building = new AtomicBoolean();
 
     public ClientProjection(CompanionPayloads.Projection payload) {
         this.payload = payload;
@@ -189,14 +193,30 @@ public final class ClientProjection {
         return this.payload.light()[((lx * sizeZ()) + lz) * sizeY() + ly] & 0xFF;
     }
 
-    public ProjectionMesh mesh() {
-        if (this.mesh == null) {
-            this.mesh = ProjectionMesh.build(this);
-        }
+    /** The built mesh, or null while there is not one yet. Never builds. */
+    public ProjectionMesh meshIfReady() {
         return this.mesh;
     }
 
-    public void discardMesh() {
-        this.mesh = null;
+    /**
+     * Queues the mesh build off the render thread, at most one at a time.
+     * Returns null when a build is already running or the mesh is already
+     * built, so a caller that runs every frame queues nothing.
+     */
+    public Future<?> requestMesh() {
+        if (this.mesh != null || !this.building.compareAndSet(false, true)) {
+            return null;
+        }
+        return ProjectionMesh.buildAsync(this);
+    }
+
+    void adoptMesh(ProjectionMesh built) {
+        this.mesh = built;
+        this.building.set(false);
+    }
+
+    /** Frees the claim so a build that could not run is retried next frame. */
+    void abandonBuild() {
+        this.building.set(false);
     }
 }

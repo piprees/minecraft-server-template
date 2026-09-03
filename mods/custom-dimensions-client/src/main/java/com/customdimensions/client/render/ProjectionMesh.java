@@ -6,15 +6,19 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.RenderLayers;
 import net.minecraft.client.render.block.BlockRenderManager;
+import net.minecraft.client.world.ClientWorld;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.fluid.FluidState;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.random.Random;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Future;
 
 /**
  * The destination volume meshed once, in the volume's own coordinate space.
@@ -29,6 +33,11 @@ import java.util.Map;
  * happens per frame, downstream of this.
  */
 public final class ProjectionMesh {
+
+    /** Grepped in the client log to prove a mesh was built, and on which thread. */
+    public static final String BUILD_MARKER = "companion-client:projection-mesh";
+
+    private static final Logger LOGGER = LoggerFactory.getLogger("customdimensionsclient");
 
     /** One render layer's captured quads, {@link QuadCapture#STRIDE} per vertex. */
     public record Layer(RenderLayer layer, float[] data, int floats) {}
@@ -49,13 +58,42 @@ public final class ProjectionMesh {
         return this.quads;
     }
 
-    static ProjectionMesh build(ClientProjection projection) {
-        MinecraftClient client = MinecraftClient.getInstance();
-        if (client.world == null) {
-            return new ProjectionMesh(List.of(), 0);
-        }
-        BlockRenderManager blocks = client.getBlockRenderManager();
-        ProjectionView view = new ProjectionView(projection, client.world);
+    /**
+     * Meshes the volume on {@link MeshBuilder}'s thread and hands the result
+     * back to the projection. Nothing is drawn for that portal until it lands.
+     *
+     * <p>The world is read once, here, and held for the whole build: vanilla's
+     * own chunk builder meshes through this same {@code BlockRenderManager}
+     * off-thread, but it works from a snapshot rather than re-reading a field
+     * that a disconnect can null underneath it.
+     */
+    static Future<?> buildAsync(ClientProjection projection) {
+        return MeshBuilder.submit(() -> {
+            MinecraftClient client = MinecraftClient.getInstance();
+            ClientWorld world = client == null ? null : client.world;
+            if (world == null) {
+                projection.abandonBuild();
+                return;
+            }
+            long startedAt = System.nanoTime();
+            ProjectionMesh built;
+            try {
+                built = build(projection, client.getBlockRenderManager(), world);
+            } catch (Throwable failure) {
+                projection.abandonBuild();
+                LOGGER.warn("{} failed at {}", BUILD_MARKER, projection.apertureOrigin(), failure);
+                return;
+            }
+            projection.adoptMesh(built);
+            LOGGER.info("{} thread={} cells={} quads={} layers={} ms={}", BUILD_MARKER,
+                    Thread.currentThread().getName(), projection.payload().cellCount(),
+                    built.quads(), built.layers().size(),
+                    (System.nanoTime() - startedAt) / 1_000_000L);
+        });
+    }
+
+    static ProjectionMesh build(ClientProjection projection, BlockRenderManager blocks, ClientWorld world) {
+        ProjectionView view = new ProjectionView(projection, world);
         MatrixStack matrices = new MatrixStack();
         Random random = Random.create();
         BlockPos origin = projection.origin();

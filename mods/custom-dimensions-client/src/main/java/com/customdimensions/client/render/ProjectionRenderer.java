@@ -40,21 +40,8 @@ public final class ProjectionRenderer {
 
     private ProjectionRenderer() {}
 
-    /** The draw path segfaults the JVM in the vertex writer; off until fixed. */
-    private static final boolean ENABLED =
-            Boolean.getBoolean("customdimensions.render");
-
-    private static long lastDiag;
-
     public static void render(WorldRenderContext context) {
-        long now = System.currentTimeMillis();
-        if (now - lastDiag > 3000) {
-            lastDiag = now;
-            org.slf4j.LoggerFactory.getLogger("customdimensionsclient").info(
-                    "companion-client:render-tick world={} matrices={} projections={}",
-                    context.world() != null, context.matrixStack() != null, ProjectionStore.count());
-        }
-        if (context.world() == null || ProjectionStore.count() == 0 || !ENABLED) {
+        if (context.world() == null || ProjectionStore.count() == 0) {
             return;
         }
         // BEFORE_ENTITIES supplies no matrix stack, so the world transform is
@@ -95,12 +82,21 @@ public final class ProjectionRenderer {
             return;
         }
 
+        // Nothing at all for this portal until its mesh lands: a backdrop with no
+        // destination behind it is a hole in the world, and waiting for the
+        // build here is the frame that never ends.
+        ProjectionMesh mesh = projection.meshIfReady();
+        if (mesh == null) {
+            projection.requestMesh();
+            return;
+        }
+
         matrices.push();
         matrices.translate(origin.getX() - camera.x, origin.getY() - camera.y, origin.getZ() - camera.z);
         MatrixStack.Entry entry = matrices.peek();
 
         drawBackdrop(projection, corners, camX, camY, camZ, planeLocal, facing, entry);
-        for (ProjectionMesh.Layer layer : projection.mesh().layers()) {
+        for (ProjectionMesh.Layer layer : mesh.layers()) {
             VertexConsumer consumer = immediate.getBuffer(layer.layer());
             emitClipped(layer, consumer, entry);
             immediate.draw(layer.layer());
@@ -109,10 +105,6 @@ public final class ProjectionRenderer {
         matrices.pop();
     }
 
-    /**
-     * The opening's four corners, in the volume's own space, walked in order
-     * so consecutive pairs are edges.
-     */
     /**
      * The opening's four corners, in the volume's own space, walked in order
      * so consecutive pairs are edges.

@@ -76,8 +76,7 @@ public final class PortalShape {
                 // builds is valid — the preset's job is forcing the Y plane.
                 return axis == Direction.Axis.Y;
             case END_GATEWAY:
-                // Frameless single-block teleporter — ignition never
-                // flood-fills for these, but a restored zone still checks.
+                // A frame around a single cell.
                 return interior.size() == 1;
             default:
                 return false;
