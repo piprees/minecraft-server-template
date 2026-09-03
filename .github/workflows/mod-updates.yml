@@ -96,7 +96,7 @@ jobs:
         # case it exists to catch. Build with the pinned toolchain
         # (mods/mise.toml uses Java 21), same setup as mod-build.yml, or the
         # runner's default JDK produces a broken jar.
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: '21'
