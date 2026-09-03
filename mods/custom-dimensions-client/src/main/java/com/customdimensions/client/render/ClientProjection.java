@@ -35,6 +35,7 @@ public final class ClientProjection {
     private final Direction.Axis axisA;
     private final Direction.Axis axisB;
     private final double planeCoord;
+    private final double apertureCoord;
     private final double rectMinA;
     private final double rectMaxA;
     private final double rectMinB;
@@ -71,10 +72,11 @@ public final class ClientProjection {
             minB = Math.min(minB, b);
             maxB = Math.max(maxB, b);
         }
-        // The slab starts one block past the opening, so the boundary between
-        // the two is the aperture's far face — the same arithmetic
-        // ProjectionVolume.computeSourcePositions uses to place the slab.
-        this.planeCoord = isPositive(this.normal) ? plane + 1 : plane;
+        // The portal surface bisects the aperture block, so half the frame's
+        // depth reads on each side. The slab itself still starts one block past
+        // the opening, which puts the surface half a block proud of it.
+        this.apertureCoord = plane;
+        this.planeCoord = plane + 0.5;
         this.rectMinA = minA;
         this.rectMaxA = maxA + 1.0;
         this.rectMinB = minB;
@@ -115,6 +117,16 @@ public final class ClientProjection {
 
     public double planeCoord() {
         return this.planeCoord;
+    }
+
+    /** The aperture block's low face on the normal axis. */
+    public double apertureMinCoord() {
+        return this.apertureCoord;
+    }
+
+    /** The aperture block's high face on the normal axis. */
+    public double apertureMaxCoord() {
+        return this.apertureCoord + 1.0;
     }
 
     public double rectMinA() {

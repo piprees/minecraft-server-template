@@ -19,12 +19,13 @@ import org.slf4j.LoggerFactory;
  * the backdrop quad opens the aperture (see {@link PortalRenderLayers}), then
  * the meshed destination is drawn through it.
  *
- * <p>The clip is the whole trick. Four planes run from the camera through the
- * four edges of the opening; every quad of the destination is cut against them
- * before it is emitted, so the geometry ends exactly at the frame no matter
- * where the camera is. That is per-fragment-accurate in the only sense that
- * matters — nothing is quantised to whole blocks, and nothing pops as you walk
- * past, which is what the server-side mask could never avoid.
+ * <p>The clip is the whole trick, and the opening it clips to is a hole one
+ * block deep rather than a plane: four planes run from the camera through the
+ * edges of each face of the aperture block, and what survives all eight is the
+ * intersection of the two cones. That is what the frame itself does to a
+ * sightline, so from beside the frame the two cones are disjoint and nothing is
+ * drawn. Every quad, and the backdrop, is cut before it is emitted — nothing is
+ * quantised to whole blocks and nothing pops as you walk past.
  */
 public final class ProjectionRenderer {
 
@@ -37,14 +38,20 @@ public final class ProjectionRenderer {
     private static final long SAMPLE_INTERVAL_MS = 2000L;
 
     private static final int STRIDE = QuadCapture.STRIDE;
-    private static final int MAX_POLY = 12;
+
+    /** Four corners plus one cut per plane, and the tunnel has eight planes. */
+    private static final int MAX_POLY = 16;
 
     /** How far past the described slab the backdrop sits, in blocks. */
     private static final double BACKDROP_MARGIN = 2.0;
 
-    private static final double[] PLANES = new double[16];
+    private static final double[] PLANES = new double[32];
+    private static final double[] TUNNEL = new double[24];
     private static final float[] POLY_A = new float[STRIDE * MAX_POLY];
     private static final float[] POLY_B = new float[STRIDE * MAX_POLY];
+
+    /** Planes {@link #buildTunnelPlanes} last wrote into {@link #PLANES}. */
+    private static int planeCount;
 
     private static VertexConsumerProvider.Immediate immediate;
     private static long lastSampleAt;
@@ -106,7 +113,8 @@ public final class ProjectionRenderer {
         }
 
         double[] corners = apertureCorners(projection, origin);
-        if (!buildPlanes(corners, camX, camY, camZ)) {
+        int faces = tunnelFaces(projection, origin, axisOf(camX, camY, camZ, normalAxis), TUNNEL);
+        if (!buildTunnelPlanes(TUNNEL, faces, camX, camY, camZ)) {
             return;
         }
 
@@ -123,7 +131,26 @@ public final class ProjectionRenderer {
         matrices.translate(origin.getX() - camera.x, origin.getY() - camera.y, origin.getZ() - camera.z);
         MatrixStack.Entry entry = matrices.peek();
 
-        drawBackdrop(projection, corners, camX, camY, camZ, planeLocal, facing, entry);
+        int backdrop = backdropPolygon(projection, TUNNEL, camX, camY, camZ, planeLocal, facing,
+                POLY_A, POLY_B);
+        if (backdrop >= 3) {
+            VertexConsumer sky = immediate.getBuffer(PortalRenderLayers.BACKDROP);
+            if (backdrop == 4) {
+                for (int v = 0; v < 4; v++) {
+                    emitFlat(sky, entry, POLY_A, v * STRIDE);
+                }
+            } else {
+                // A fan of degenerate quads renders the polygon without a
+                // second draw mode, the way emitClipped does.
+                for (int v = 1; v + 1 < backdrop; v++) {
+                    emitFlat(sky, entry, POLY_A, 0);
+                    emitFlat(sky, entry, POLY_A, v * STRIDE);
+                    emitFlat(sky, entry, POLY_A, (v + 1) * STRIDE);
+                    emitFlat(sky, entry, POLY_A, (v + 1) * STRIDE);
+                }
+            }
+            immediate.draw(PortalRenderLayers.BACKDROP);
+        }
         StringBuilder report = sample ? new StringBuilder() : null;
         for (ProjectionMesh.Layer layer : mesh.layers()) {
             VertexConsumer consumer = immediate.getBuffer(layer.layer());
@@ -154,30 +181,52 @@ public final class ProjectionRenderer {
     }
 
     /**
-     * The opening's four corners, in the volume's own space, walked in order
-     * so consecutive pairs are edges.
+     * The opening's four corners at the portal surface, in the volume's own
+     * space, walked in order so consecutive pairs are edges.
      */
     static double[] apertureCorners(ClientProjection projection, BlockPos origin) {
-        Direction.Axis normalAxis = projection.normalAxis();
-        Direction.Axis axisA = projection.axisA();
-        Direction.Axis axisB = projection.axisB();
-        double n = projection.planeCoord() - axisOf(origin, normalAxis);
-        double a0 = projection.rectMinA() - axisOf(origin, axisA);
-        double a1 = projection.rectMaxA() - axisOf(origin, axisA);
-        double b0 = projection.rectMinB() - axisOf(origin, axisB);
-        double b1 = projection.rectMaxB() - axisOf(origin, axisB);
-
         double[] out = new double[12];
-        putCorner(out, 0, projection, n, a0, b0);
-        putCorner(out, 1, projection, n, a0, b1);
-        putCorner(out, 2, projection, n, a1, b1);
-        putCorner(out, 3, projection, n, a1, b0);
+        faceCorners(out, 0, projection, origin,
+                projection.planeCoord() - axisOf(origin, projection.normalAxis()));
         return out;
     }
 
-    private static void putCorner(double[] out, int index, ClientProjection projection,
+    /**
+     * The aperture block's faces as clip rectangles, in the volume's own space,
+     * low face first. A face the camera has already crossed frames nothing and
+     * its cone lies behind the camera, so it is left out.
+     */
+    static int tunnelFaces(ClientProjection projection, BlockPos origin, double camNormal,
+            double[] out) {
+        double base = axisOf(origin, projection.normalAxis());
+        double facing = ClientProjection.isPositive(projection.normal()) ? 1.0 : -1.0;
+        int count = 0;
+        for (int face = 0; face < 2; face++) {
+            double local = (face == 0 ? projection.apertureMinCoord()
+                    : projection.apertureMaxCoord()) - base;
+            if ((camNormal - local) * facing >= 0.0) {
+                continue;
+            }
+            faceCorners(out, count * 12, projection, origin, local);
+            count++;
+        }
+        return count;
+    }
+
+    private static void faceCorners(double[] out, int at, ClientProjection projection,
+            BlockPos origin, double normalCoord) {
+        double a0 = projection.rectMinA() - axisOf(origin, projection.axisA());
+        double a1 = projection.rectMaxA() - axisOf(origin, projection.axisA());
+        double b0 = projection.rectMinB() - axisOf(origin, projection.axisB());
+        double b1 = projection.rectMaxB() - axisOf(origin, projection.axisB());
+        putCorner(out, at, projection, normalCoord, a0, b0);
+        putCorner(out, at + 3, projection, normalCoord, a0, b1);
+        putCorner(out, at + 6, projection, normalCoord, a1, b1);
+        putCorner(out, at + 9, projection, normalCoord, a1, b0);
+    }
+
+    private static void putCorner(double[] out, int at, ClientProjection projection,
             double normalCoord, double a, double b) {
-        int at = index * 3;
         out[at] = coordOn(Direction.Axis.X, projection, normalCoord, a, b);
         out[at + 1] = coordOn(Direction.Axis.Y, projection, normalCoord, a, b);
         out[at + 2] = coordOn(Direction.Axis.Z, projection, normalCoord, a, b);
@@ -192,59 +241,85 @@ public final class ProjectionRenderer {
     }
 
     /**
-     * Four planes through the camera and each edge of the opening, oriented so
-     * the opening's own centre is on the kept side. False when the camera is
+     * Four planes through the camera and each edge of one rectangle, oriented so
+     * that rectangle's own centre is on the kept side. False when the camera is
      * level with the plane of a corner and the frustum degenerates.
      */
     static boolean buildPlanes(double[] corners, double camX, double camY, double camZ) {
-        double cx = 0.0;
-        double cy = 0.0;
-        double cz = 0.0;
-        for (int i = 0; i < 4; i++) {
-            cx += corners[i * 3] / 4.0;
-            cy += corners[i * 3 + 1] / 4.0;
-            cz += corners[i * 3 + 2] / 4.0;
+        return buildTunnelPlanes(corners, 1, camX, camY, camZ);
+    }
+
+    /**
+     * The sightline through a hole one block deep: four planes per face of the
+     * aperture block, so what survives is the INTERSECTION of the two cones.
+     * From beside the frame the two are disjoint and the whole destination is
+     * cut, which is what the frame's own block does in the world.
+     */
+    static boolean buildTunnelPlanes(double[] rects, int count,
+            double camX, double camY, double camZ) {
+        planeCount = 0;
+        if (count <= 0) {
+            return false;
         }
-        for (int i = 0; i < 4; i++) {
-            int j = (i + 1) & 3;
-            double ax = corners[i * 3] - camX;
-            double ay = corners[i * 3 + 1] - camY;
-            double az = corners[i * 3 + 2] - camZ;
-            double bx = corners[j * 3] - camX;
-            double by = corners[j * 3 + 1] - camY;
-            double bz = corners[j * 3 + 2] - camZ;
-            double nx = ay * bz - az * by;
-            double ny = az * bx - ax * bz;
-            double nz = ax * by - ay * bx;
-            double length = Math.sqrt(nx * nx + ny * ny + nz * nz);
-            if (length < 1.0e-9) {
-                return false;
+        for (int rect = 0; rect < count; rect++) {
+            int base = rect * 12;
+            double cx = 0.0;
+            double cy = 0.0;
+            double cz = 0.0;
+            for (int i = 0; i < 4; i++) {
+                cx += rects[base + i * 3] / 4.0;
+                cy += rects[base + i * 3 + 1] / 4.0;
+                cz += rects[base + i * 3 + 2] / 4.0;
             }
-            nx /= length;
-            ny /= length;
-            nz /= length;
-            double d = -(nx * camX + ny * camY + nz * camZ);
-            if (nx * cx + ny * cy + nz * cz + d < 0.0) {
-                nx = -nx;
-                ny = -ny;
-                nz = -nz;
-                d = -d;
+            for (int i = 0; i < 4; i++) {
+                int j = (i + 1) & 3;
+                double ax = rects[base + i * 3] - camX;
+                double ay = rects[base + i * 3 + 1] - camY;
+                double az = rects[base + i * 3 + 2] - camZ;
+                double bx = rects[base + j * 3] - camX;
+                double by = rects[base + j * 3 + 1] - camY;
+                double bz = rects[base + j * 3 + 2] - camZ;
+                double nx = ay * bz - az * by;
+                double ny = az * bx - ax * bz;
+                double nz = ax * by - ay * bx;
+                double length = Math.sqrt(nx * nx + ny * ny + nz * nz);
+                if (length < 1.0e-9) {
+                    planeCount = 0;
+                    return false;
+                }
+                nx /= length;
+                ny /= length;
+                nz /= length;
+                double d = -(nx * camX + ny * camY + nz * camZ);
+                if (nx * cx + ny * cy + nz * cz + d < 0.0) {
+                    nx = -nx;
+                    ny = -ny;
+                    nz = -nz;
+                    d = -d;
+                }
+                int at = (rect * 4 + i) * 4;
+                PLANES[at] = nx;
+                PLANES[at + 1] = ny;
+                PLANES[at + 2] = nz;
+                PLANES[at + 3] = d;
             }
-            PLANES[i * 4] = nx;
-            PLANES[i * 4 + 1] = ny;
-            PLANES[i * 4 + 2] = nz;
-            PLANES[i * 4 + 3] = d;
         }
+        planeCount = count * 4;
         return true;
     }
 
     /**
-     * The destination's own sky behind its geometry, drawn on a plane past the
-     * far end of the described slab so it never intersects it.
+     * The destination's own sky behind its geometry: a quad on a plane past the
+     * far end of the described slab, cut against the same tunnel the mesh is.
+     * Returns the corner count left in {@code poly}, 0 for nothing to draw.
+     *
+     * <p>The clip is not optional. This quad writes depth with the test forced
+     * to always pass ({@link PortalRenderLayers}), so uncut it paints the
+     * opening's shape over whatever stands in front of the frame.
      */
-    private static void drawBackdrop(ClientProjection projection, double[] corners,
+    static int backdropPolygon(ClientProjection projection, double[] cone,
             double camX, double camY, double camZ, double planeLocal, double facing,
-            MatrixStack.Entry entry) {
+            float[] poly, float[] scratch) {
         int colour = projection.payload().fogColor() >= 0
                 ? projection.payload().fogColor()
                 : projection.payload().skyColor();
@@ -253,32 +328,41 @@ public final class ProjectionRenderer {
         }
         Direction.Axis axis = projection.normalAxis();
         double target = planeLocal + facing * (projection.depthExtent() + BACKDROP_MARGIN);
-        double[] far = new double[12];
         for (int i = 0; i < 4; i++) {
-            double dx = corners[i * 3] - camX;
-            double dy = corners[i * 3 + 1] - camY;
-            double dz = corners[i * 3 + 2] - camZ;
+            double dx = cone[i * 3] - camX;
+            double dy = cone[i * 3 + 1] - camY;
+            double dz = cone[i * 3 + 2] - camZ;
             double along = axisOf(dx, dy, dz, axis);
             if (Math.abs(along) < 1.0e-5) {
-                return;
+                return 0;
             }
             double t = (target - axisOf(camX, camY, camZ, axis)) / along;
             if (t <= 0.0) {
-                return;
+                return 0;
             }
-            far[i * 3] = camX + dx * t;
-            far[i * 3 + 1] = camY + dy * t;
-            far[i * 3 + 2] = camZ + dz * t;
+            int at = i * STRIDE;
+            java.util.Arrays.fill(poly, at, at + STRIDE, 0.0f);
+            poly[at] = (float) (camX + dx * t);
+            poly[at + 1] = (float) (camY + dy * t);
+            poly[at + 2] = (float) (camZ + dz * t);
+            poly[at + 3] = ((colour >> 16) & 0xFF) / 255.0f;
+            poly[at + 4] = ((colour >> 8) & 0xFF) / 255.0f;
+            poly[at + 5] = (colour & 0xFF) / 255.0f;
+            poly[at + 6] = 1.0f;
         }
-        int red = (colour >> 16) & 0xFF;
-        int green = (colour >> 8) & 0xFF;
-        int blue = colour & 0xFF;
-        VertexConsumer consumer = immediate.getBuffer(PortalRenderLayers.BACKDROP);
-        for (int i = 0; i < 4; i++) {
-            consumer.vertex(entry, (float) far[i * 3], (float) far[i * 3 + 1], (float) far[i * 3 + 2])
-                    .color(red, green, blue, 255);
+        int count = 4;
+        for (int plane = 0; plane < planeCount && count >= 3; plane++) {
+            count = clip(poly, count, scratch, plane);
+            System.arraycopy(scratch, 0, poly, 0, count * STRIDE);
         }
-        immediate.draw(PortalRenderLayers.BACKDROP);
+        return count < 3 ? 0 : count;
+    }
+
+    /** Position and colour only: {@link PortalRenderLayers#BACKDROP} takes no more. */
+    private static void emitFlat(VertexConsumer consumer, MatrixStack.Entry entry, float[] poly,
+            int at) {
+        consumer.vertex(entry, poly[at], poly[at + 1], poly[at + 2])
+                .color(poly[at + 3], poly[at + 4], poly[at + 5], poly[at + 6]);
     }
 
     /**
@@ -295,11 +379,13 @@ public final class ProjectionRenderer {
         for (int quad = 0; quad + STRIDE * 4 <= layer.floats(); quad += STRIDE * 4) {
             System.arraycopy(data, quad, POLY_A, 0, STRIDE * 4);
             int count = 4;
-            for (int plane = 0; plane < 4 && count >= 3; plane++) {
+            for (int plane = 0; plane < planeCount && count >= 3; plane++) {
                 count = clip(POLY_A, count, POLY_B, plane);
                 System.arraycopy(POLY_B, 0, POLY_A, 0, count * STRIDE);
                 if (count < 3) {
-                    rejectedBy[plane]++;
+                    // Both faces charge the same edge of the opening: which of
+                    // the two cut it is not a distinction a viewer can make.
+                    rejectedBy[plane & 3]++;
                 }
             }
             if (count < 3) {

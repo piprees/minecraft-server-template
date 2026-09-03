@@ -17,9 +17,11 @@ import org.lwjgl.opengl.GL11;
  * source world's blocks BEHIND the frame — a portal cut into a hillside is
  * looking at solid stone — stop occluding the destination.
  *
- * <p>The consequence, stated plainly: anything real between the camera and
- * the opening is overdrawn in the opening's shape. The renderer skips the
- * whole draw when the opening is not visible for that reason.
+ * <p>The consequence, stated plainly: anything real between the camera and the
+ * quad is overdrawn where the quad lands. The renderer cuts this quad against
+ * the aperture tunnel first, so the frame's own block is respected — but a
+ * block standing anywhere else between the camera and the opening is still
+ * overdrawn, which no depth test here can prevent.
  */
 public final class PortalRenderLayers {
 

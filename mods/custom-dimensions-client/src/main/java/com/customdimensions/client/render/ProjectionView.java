@@ -24,6 +24,10 @@ import net.minecraft.world.chunk.light.LightingProvider;
  *
  * <p>Face shading and the height limits come from the client's own world:
  * they are properties of the camera and the render, not of the far side.
+ *
+ * <p>The light LEVELS are the destination's; the lightmap that turns a level
+ * into a colour is the client's own, so a destination is drawn at the source
+ * dimension's time of day. A cell outside the grid reads as level 0.
  */
 public final class ProjectionView implements BlockRenderView {
 

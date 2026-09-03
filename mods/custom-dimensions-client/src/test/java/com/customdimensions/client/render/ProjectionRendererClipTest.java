@@ -297,16 +297,15 @@ class ProjectionRendererClipTest {
         assertEquals(10.0, corners[9], TOLERANCE);
         assertEquals(8.0, corners[10], TOLERANCE);
         for (int i = 0; i < 4; i++) {
-            assertEquals(0.0, corners[i * 3 + 2], TOLERANCE,
-                    "the opening is not on the slab's near face");
+            assertEquals(-0.5, corners[i * 3 + 2], TOLERANCE,
+                    "the opening is not at the aperture block's mid-plane");
         }
     }
 
     /**
      * The other side of the same frame. A slab extending towards -Z starts at
      * {@code 1500 - 24}, so the opening sits at the far end of the volume's own
-     * span — and the plane keeps the aperture's own coordinate rather than
-     * gaining the {@code + 1} the positive direction gets.
+     * span, half a block proud of it on the camera's side.
      */
     @Test
     void theOpeningTracksTheSlabWhenItExtendsTheOtherWay() {
@@ -314,17 +313,46 @@ class ProjectionRendererClipTest {
         double[] corners = ProjectionRenderer.apertureCorners(projection, projection.origin());
 
         for (int i = 0; i < 4; i++) {
-            assertEquals(24.0, corners[i * 3 + 2], TOLERANCE,
-                    "the opening is not on the slab's near face");
+            assertEquals(24.5, corners[i * 3 + 2], TOLERANCE,
+                    "the opening is not at the aperture block's mid-plane");
         }
     }
 
     /**
-     * The opening must land INSIDE the volume's own footprint, not merely on its
-     * near face. {@code origin} is the min corner of the SOURCE cells the server
-     * walked, so an origin taken from destination space instead would put the
-     * opening hundreds of blocks outside this box and the clip would then
-     * discard every quad — the reported symptom exactly.
+     * The surface bisects the aperture block rather than sitting against one of
+     * its faces, so half the frame's depth reads on each side. The aperture
+     * block is {@code z = 1500} either way; the answer is {@code 1500.5}
+     * whichever direction the slab runs, which is what a face-relative
+     * expression cannot give.
+     */
+    @Test
+    void theOpeningSitsAtTheApertureBlocksMidPlaneWhicheverWayTheSlabRuns() {
+        assertEquals(1500.5, projection(Direction.SOUTH, new BlockPos(1492, 93, 1501)).planeCoord(),
+                TOLERANCE, "a slab running +Z put the surface on a face of the block");
+        assertEquals(1500.5, projection(Direction.NORTH, new BlockPos(1492, 93, 1476)).planeCoord(),
+                TOLERANCE, "a slab running -Z put the surface on a face of the block");
+    }
+
+    /**
+     * The aperture block's own two faces, which is what the sightline through a
+     * one-block-deep hole is actually bounded by.
+     */
+    @Test
+    void theApertureBlockIsOneBlockDeepOnTheNormalAxis() {
+        ClientProjection projection = projection(Direction.NORTH, new BlockPos(1492, 93, 1476));
+
+        assertEquals(1500.0, projection.apertureMinCoord(), TOLERANCE);
+        assertEquals(1501.0, projection.apertureMaxCoord(), TOLERANCE);
+    }
+
+    /**
+     * The opening must land in the volume's own footprint, not hundreds of
+     * blocks away. {@code origin} is the min corner of the SOURCE cells the
+     * server walked, so an origin taken from destination space instead would put
+     * the opening outside this box and the clip would then discard every quad —
+     * the reported symptom exactly. The normal axis is allowed half a block of
+     * overhang and no more: the slab starts at the aperture block's far face, so
+     * the surface bisecting that block is half a block outside it.
      */
     @Test
     void theOpeningLiesInsideTheVolumeItIsMeasuredAgainst() {
@@ -332,15 +360,15 @@ class ProjectionRendererClipTest {
         double[] corners = ProjectionRenderer.apertureCorners(projection, projection.origin());
 
         for (int i = 0; i < 4; i++) {
-            assertInside(corners[i * 3], SIZE_X, "x");
-            assertInside(corners[i * 3 + 1], SIZE_Y, "y");
-            assertInside(corners[i * 3 + 2], SIZE_Z, "z");
+            assertInside(corners[i * 3], 0.0, SIZE_X, "x");
+            assertInside(corners[i * 3 + 1], 0.0, SIZE_Y, "y");
+            assertInside(corners[i * 3 + 2], -0.5, SIZE_Z + 0.5, "z");
         }
     }
 
-    private static void assertInside(double coordinate, int size, String axis) {
-        assertTrue(coordinate >= 0.0 && coordinate <= size,
-                "the opening's " + axis + " = " + coordinate + " is outside the volume's 0.." + size
+    private static void assertInside(double coordinate, double min, double max, String axis) {
+        assertTrue(coordinate >= min && coordinate <= max,
+                "the opening's " + axis + " = " + coordinate + " is outside " + min + ".." + max
                         + " — the opening and the mesh are not in one coordinate frame");
     }
 
@@ -433,6 +461,150 @@ class ProjectionRendererClipTest {
                 "the cell behind the opening is not under it on X");
         assertTrue(localY >= corners[1] && localY <= corners[4],
                 "the cell behind the opening is not under it on Y");
+    }
+
+    /**
+     * The opening is a hole one block deep, so both faces of the aperture block
+     * frame it and both are in front of a camera standing outside the frame.
+     */
+    @Test
+    void bothFacesOfTheApertureBlockFrameTheOpening() {
+        ClientProjection projection = projection(Direction.NORTH, new BlockPos(1492, 93, 1476));
+        double[] tunnel = new double[24];
+
+        // The aperture block is local z 24..25; the camera is at 25.5.
+        assertEquals(2, ProjectionRenderer.tunnelFaces(projection, projection.origin(), 25.5, tunnel));
+        for (int i = 0; i < 4; i++) {
+            assertEquals(24.0, tunnel[i * 3 + 2], TOLERANCE, "the first face is not the far one");
+            assertEquals(25.0, tunnel[12 + i * 3 + 2], TOLERANCE, "the second face is not the near one");
+        }
+    }
+
+    /**
+     * The reported defect, in numbers. The camera stands beside the frame — 1.5
+     * blocks past the opening's low-X edge and half a block clear of its near
+     * face — so the frame's own block lies on every sightline into the opening
+     * and the destination must not be visible at all.
+     *
+     * <p>At {@code z = 20} the far face's cone spans {@code x 12.0..19.3} and
+     * the near face's spans {@code x 23.0..45.0}; a quad at {@code x 13..15}
+     * therefore sits inside the first and outside the second. Both figures are
+     * read off the fixture: the cone through a rectangle at depth {@code d}
+     * scales about the camera by {@code (camZ - z) / (camZ - d)}.
+     */
+    @Test
+    void aCameraBesideTheFrameSeesNothingThroughItsOwnBlock() {
+        Recorder drawn = tunnelClip(Direction.NORTH, new BlockPos(1492, 93, 1476),
+                6.5, 9.5, 25.5, quad(20.0f, 13.0f, 15.0f, 9.0f, 10.0f));
+
+        assertEquals(0, drawn.count(), "the destination drew through the frame's own block");
+        assertEquals(0, ProjectionRenderer.clipVertices);
+    }
+
+    /**
+     * The other half of the same rule: whichever face is the narrower at a given
+     * depth is the one that binds. From dead in front the FAR face is narrower,
+     * so a quad inside the near face's cone and outside the far face's is cut —
+     * the case a near-face-only clip would let through.
+     *
+     * <p>Camera at the stance the working screenshot was taken from. At
+     * {@code z = 20} the far cone spans {@code x 6.88..11.38} and the near cone
+     * {@code x 5.96..12.50}.
+     */
+    @Test
+    void theNarrowerFaceBindsFromDeadInFrontToo() {
+        Recorder outside = tunnelClip(Direction.NORTH, new BlockPos(1492, 93, 1476),
+                8.9, 9.62, 27.2, quad(20.0f, 11.6f, 12.2f, 9.0f, 10.0f));
+
+        assertEquals(0, outside.count(), "a quad past the far face's cone was drawn anyway");
+        assertArrayEquals(new int[] {0, 0, 1, 0}, ProjectionRenderer.rejectedBy,
+                "the cut was not charged to the opening's high-X edge");
+
+        Recorder inside = tunnelClip(Direction.NORTH, new BlockPos(1492, 93, 1476),
+                8.9, 9.62, 27.2, quad(20.0f, 8.0f, 10.0f, 9.0f, 11.0f));
+
+        assertEquals(4, inside.count(), "the tunnel cut away what the opening actually frames");
+    }
+
+    /**
+     * Stepping into the frame. Once the camera is past a face, that face frames
+     * nothing and its cone is behind the camera — kept, it would discard the
+     * whole destination for the last half block before the crossing.
+     */
+    @Test
+    void aFaceTheCameraHasAlreadyCrossedFramesNothing() {
+        ClientProjection projection = projection(Direction.NORTH, new BlockPos(1492, 93, 1476));
+        double[] tunnel = new double[24];
+
+        // Inside the aperture block, past its near face at local z = 25.
+        assertEquals(1, ProjectionRenderer.tunnelFaces(projection, projection.origin(), 24.8, tunnel));
+        assertEquals(24.0, tunnel[2], TOLERANCE, "the face left standing is not the one ahead");
+
+        Recorder drawn = tunnelClip(Direction.NORTH, new BlockPos(1492, 93, 1476),
+                8.9, 9.62, 24.8, quad(20.0f, 8.0f, 10.0f, 9.0f, 11.0f));
+
+        assertEquals(4, drawn.count(), "the destination vanished as the camera entered the frame");
+    }
+
+    /**
+     * The backdrop writes depth with the test forced to always pass, so an
+     * unclipped one paints the opening's shape straight over whatever stands in
+     * front of the frame — the same defect as the mesh, in flat fog colour. It
+     * goes through the tunnel too.
+     */
+    @Test
+    void theBackdropIsCutByTheSameTunnelTheMeshIs() {
+        ClientProjection projection = projection(Direction.NORTH, new BlockPos(1492, 93, 1476));
+        float[] poly = new float[QuadCapture.STRIDE * 16];
+        float[] scratch = new float[QuadCapture.STRIDE * 16];
+
+        // planeLocal is the surface at local z 24.5; facing is -1 for NORTH.
+        assertEquals(0, backdrop(projection, 6.5, 9.5, 25.5, poly, scratch),
+                "the backdrop covered an opening the frame's own block hides");
+        assertEquals(4, backdrop(projection, 8.9, 9.62, 27.2, poly, scratch),
+                "the backdrop was cut away from dead in front of the opening");
+    }
+
+    /**
+     * The backdrop sits past the far end of the slab. Drawn short of it, it
+     * would cut through the destination's own terrain.
+     */
+    @Test
+    void theBackdropSitsBeyondEveryCellOfTheSlab() {
+        ClientProjection projection = projection(Direction.NORTH, new BlockPos(1492, 93, 1476));
+        float[] poly = new float[QuadCapture.STRIDE * 16];
+        float[] scratch = new float[QuadCapture.STRIDE * 16];
+
+        assertEquals(4, backdrop(projection, 8.9, 9.62, 27.2, poly, scratch));
+        for (int v = 0; v < 4; v++) {
+            // Surface 24.5, slab 24 deep, margin 2: 24.5 - 26 on a -Z normal.
+            assertEquals(-1.5f, poly[v * QuadCapture.STRIDE + 2], TOLERANCE,
+                    "the backdrop landed short of the far end of the slab");
+        }
+    }
+
+    private static int backdrop(ClientProjection projection, double camA, double camB,
+            double camNormal, float[] poly, float[] scratch) {
+        double[] tunnel = new double[24];
+        int faces = ProjectionRenderer.tunnelFaces(projection, projection.origin(), camNormal, tunnel);
+        assertTrue(ProjectionRenderer.buildTunnelPlanes(tunnel, faces, camA, camB, camNormal));
+        double planeLocal = projection.planeCoord() - projection.origin().getZ();
+        return ProjectionRenderer.backdropPolygon(projection, tunnel, camA, camB, camNormal,
+                planeLocal, -1.0, poly, scratch);
+    }
+
+    /** Builds the tunnel for one projection and camera, then clips one layer. */
+    private static Recorder tunnelClip(Direction normal, BlockPos origin,
+            double camA, double camB, double camNormal, float[] data) {
+        ClientProjection projection = projection(normal, origin);
+        double[] tunnel = new double[24];
+        int faces = ProjectionRenderer.tunnelFaces(projection, projection.origin(), camNormal, tunnel);
+        assertTrue(ProjectionRenderer.buildTunnelPlanes(tunnel, faces, camA, camB, camNormal),
+                "the tunnel degenerated for a camera outside the frame");
+        Recorder recorder = new Recorder();
+        ProjectionRenderer.emitClipped(new ProjectionMesh.Layer(null, data, data.length),
+                recorder, new MatrixStack().peek());
+        return recorder;
     }
 
     private static final int SIZE_X = 18;
