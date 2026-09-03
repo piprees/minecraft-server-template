@@ -343,4 +343,131 @@ class DimensionLintTest {
                 "d", Set.of("minecraft:igloo"), Set.of("minecraft:monument")).isEmpty());
     }
 
+    // ------------------------------------------------------- config safety
+
+    private static DimensionConfig config(String slug, String json) {
+        DimensionConfig config = GSON.fromJson(json, DimensionConfig.class);
+        config.setName(slug);
+        return config;
+    }
+
+    @Test
+    void aStrandingConfigReachesTheLintAsAWarning() {
+        // Before this wiring the warning existed only as a line in the boot
+        // log, so a config that strands players shipped green.
+        DimensionConfig anchored = config("the_pit", """
+                {"portal":{"frameBlock":"minecraft:obsidian",
+                 "igniterItem":"minecraft:flint_and_steel","anchor":{"pos":[0,64,0]}}}
+                """);
+
+        List<DimensionLint.Finding> found = DimensionLint.safetyFindings(List.of(anchored));
+
+        assertEquals(List.of("portal_anchor_no_exit_portal"),
+                found.stream().map(DimensionLint.Finding::check).toList());
+        assertEquals(DimensionLint.WARN, found.get(0).severity());
+        assertEquals("the_pit", found.get(0).dimension());
+        assertEveryFindingIsActionable(found);
+    }
+
+    @Test
+    void everySafetyFindingCarriesAFixLikeEveryOtherLintFinding() {
+        // Several of the 28 checks stated no fix at all as boot-log prose.
+        // DimensionLint's contract is that a finding a human cannot act on is
+        // a complaint, so each one had to gain an imperative clause.
+        List<DimensionConfig> faulty = List.of(
+                config("d1", "{\"portal\":{\"frameBlock\":\"b\",\"shape\":\"hexagon\","
+                        + "\"orientation\":\"sideways\",\"centreBlock\":\"NOT AN ID\"}}"),
+                config("d2", "{\"portal\":{\"frameBlock\":\"#minecraft:logs\"}}"),
+                config("d3", "{\"portal\":{\"frameBlock\":\"minecraft:stone\","
+                        + "\"frameMaterials\":{\"sides\":\"minecraft:oak_log\","
+                        + "\"lintel\":\"minecraft:stone\"}}}"),
+                config("d4", "{\"portal\":{\"frameBlock\":\"b\",\"singleUse\":{\"enabled\":true}}}"),
+                config("d5", "{\"exits\":{\"death\":{\"target\":\"bed\"}}}"),
+                config("d6", "{\"exitPortal\":{\"enabled\":true,"
+                        + "\"target\":{\"dimension\":\"adventure:nowhere\"}}}"),
+                config("the_nether", "{\"portal\":{\"frameBlock\":\"minecraft:obsidian\","
+                        + "\"vanillaManaged\":true,\"scale\":1.0,\"aura\":{\"enabled\":true}}}"));
+
+        List<DimensionLint.Finding> found = DimensionLint.safetyFindings(faulty);
+
+        assertTrue(found.size() >= 10, "expected the fixtures to trip many checks, got " + found);
+        assertEveryFindingIsActionable(found);
+    }
+
+    @Test
+    void aReservedPrimaryEntryOnADimensionThatBuildsExitsIsFlagged() {
+        // getPortal() is positional and the exit builders read it, so a
+        // vanillaManaged first entry would have them build a mod exit from
+        // the entry vanilla owns.
+        DimensionConfig config = config("the_nether", """
+                {"portal":[{"frameBlock":"minecraft:obsidian","vanillaManaged":true,"scale":8.0}],
+                 "exitPortal":{"enabled":true}}
+                """);
+
+        List<DimensionLint.Finding> found = DimensionLint.safetyFindings(List.of(config));
+
+        assertEquals(List.of("primary_portal_is_vanilla_managed"),
+                found.stream().map(DimensionLint.Finding::check).toList());
+        assertEquals(DimensionLint.WARN, found.get(0).severity());
+        assertEveryFindingIsActionable(found);
+    }
+
+    @Test
+    void anExitShrineCountsTheSameWayAnExitPortalDoes() {
+        DimensionConfig config = config("the_end", """
+                {"portal":[{"frameBlock":"minecraft:obsidian","vanillaManaged":true}],
+                 "exitShrines":{"enabled":true}}
+                """);
+
+        assertEquals(List.of("primary_portal_is_vanilla_managed"),
+                DimensionLint.safetyFindings(List.of(config)).stream()
+                        .map(DimensionLint.Finding::check).toList());
+    }
+
+    @Test
+    void aReservedPrimaryThatBuildsNoExitsIsSilentAndSoIsAModOwnedOne() {
+        // Both shipped vanillaManaged configs have this shape, which is why
+        // the check trips none of the 82 today.
+        DimensionConfig reservedOnly = config("the_nether", """
+                {"portal":[{"frameBlock":"minecraft:obsidian","vanillaManaged":true,"scale":8.0}]}
+                """);
+        DimensionConfig modOwned = config("the_crucible", """
+                {"portal":[{"frameBlock":"minecraft:crimson_planks",
+                   "igniterItem":"minecraft:flint_and_steel"}],
+                 "exitPortal":{"enabled":true}}
+                """);
+        DimensionConfig disabledExit = config("the_nether", """
+                {"portal":[{"frameBlock":"minecraft:obsidian","vanillaManaged":true,"scale":8.0}],
+                 "exitPortal":{"enabled":false}}
+                """);
+
+        for (DimensionConfig clean : List.of(reservedOnly, modOwned, disabledExit)) {
+            assertTrue(DimensionLint.safetyFindings(List.of(clean)).stream()
+                            .noneMatch(f -> "primary_portal_is_vanilla_managed".equals(f.check())),
+                    clean.getName() + " was flagged: "
+                            + DimensionLint.safetyFindings(List.of(clean)));
+        }
+    }
+
+    /**
+     * The unit tests above all call {@code safetyFindings} directly, so every
+     * one of them stays green if the single line wiring it into {@code lint()}
+     * is deleted — which is the whole defect they exist to close.
+     * {@code lint(server, only)} needs a {@code MinecraftServer} no unit test
+     * in this suite has, so the wiring itself is asserted against the source.
+     */
+    @Test
+    void theLintCallsSafetyFindingsInItsWholeSetPass() throws java.io.IOException {
+        String source = java.nio.file.Files.readString(java.nio.file.Path.of(
+                "src", "main", "java", "com", "customdimensions", "command", "DimensionLint.java"));
+
+        int wholeSetPass = source.indexOf("if (only == null) {");
+        int wired = source.indexOf("findings.addAll(safetyFindings(targets()));");
+
+        assertTrue(wholeSetPass >= 0, "lint()'s whole-set pass has moved; update this guard");
+        assertTrue(wired > wholeSetPass,
+                "config-safety findings are not wired into lint()'s whole-set pass — every "
+                + "validate() warning is back to being a line in the boot log that CI never sees");
+    }
+
 }

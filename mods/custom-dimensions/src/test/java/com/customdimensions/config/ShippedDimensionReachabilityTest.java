@@ -88,9 +88,12 @@ class ShippedDimensionReachabilityTest {
     void theBootValidatorAgreesWithThePureCheck() {
         // Same invariant through the path that actually runs at boot, so a
         // regression in the WIRING is caught as well as one in the configs.
-        List<String> warned = PortalSafetyValidator.validate(shipped().values()).stream()
-                .filter(w -> w.contains("arrive inside this dimension's border"))
-                .map(w -> w.substring("Dimension ".length(), w.indexOf(':')))
+        // Keyed on the check id rather than on a phrase in the prose: a
+        // substring match silently starts asserting nothing the moment
+        // somebody rewords the message.
+        List<String> warned = PortalSafetyValidator.findings(shipped().values()).stream()
+                .filter(f -> "arrival_unreachable".equals(f.check()))
+                .map(PortalSafetyValidator.SafetyFinding::dimension)
                 .sorted()
                 .toList();
 
@@ -118,15 +121,29 @@ class ShippedDimensionReachabilityTest {
                 "reachability failures must be the rare exception, not the norm");
     }
 
+    /**
+     * Every check whose verdict is "this portal cannot be lit at all". Named
+     * by id rather than matched on the phrase "can never ignite", which is
+     * prose seven of these eight happen to share today — and which
+     * {@code portal_no_frame_block} never used, so the phrase match had been
+     * quietly missing the plainest case of all.
+     */
+    private static final List<String> UNIGNITABLE_CHECKS = List.of(
+            "portal_no_frame_block", "frame_block_unusable", "frame_color_group_unknown",
+            "frame_materials_empty", "portal_shape_unknown", "portal_shape_not_a_pattern",
+            "portal_shape_no_interior", "portal_shape_orientation_conflict");
+
     @Test
     void noShippedDimensionIsConfiguredSoItCanNeverIgnite() {
-        // The validator already says "the portal can never ignite" out loud
-        // at boot for a self-contradictory config, but a warning that only
-        // exists in a boot log gets scrolled past. This is the same class
-        // of defect as the reachability check above, so it gets the same
-        // treatment: fail the build.
-        List<String> unignitable = PortalSafetyValidator.validate(shipped().values()).stream()
-                .filter(w -> w.contains("can never ignite"))
+        // The validator already says so out loud at boot for a
+        // self-contradictory config, but a warning that only exists in a boot
+        // log gets scrolled past. This is the same class of defect as the
+        // reachability check above, so it gets the same treatment: fail the
+        // build.
+        List<String> unignitable = PortalSafetyValidator.findings(shipped().values()).stream()
+                .filter(f -> UNIGNITABLE_CHECKS.contains(f.check()))
+                .map(f -> f.dimension() + ": " + f.check())
+                .sorted()
                 .toList();
 
         assertEquals(List.of(), unignitable,
@@ -136,6 +153,34 @@ class ShippedDimensionReachabilityTest {
                 + "end_exit is horizontal), so a dimension that is MEANT to have a floor portal "
                 + "wants the shape dropped instead, leaving free-form flood-fill plus "
                 + "\"orientation\": \"horizontal\".");
+    }
+
+    @Test
+    void theShippedSetTripsExactlyTheSafetyChecksWeAcceptToday() {
+        // Measured by running this validator over config/custom-dimensions:
+        // 82 configs, one finding. Pinned so the next config that trips a
+        // check shows up in a diff rather than in a boot log nobody reads.
+        Map<String, Long> byCheck = PortalSafetyValidator.findings(shipped().values()).stream()
+                .collect(java.util.stream.Collectors.groupingBy(
+                        PortalSafetyValidator.SafetyFinding::check,
+                        java.util.TreeMap::new, java.util.stream.Collectors.counting()));
+
+        assertEquals(Map.of("portal_anchor_no_exit_portal", 1L), byCheck,
+                "a new safety warning on the shipped set is a config decision, not a silent "
+                + "line in a boot log — fix the config, or move this expectation deliberately");
+    }
+
+    @Test
+    void theOneAcceptedWarningIsTheOneWeThinkItIs() {
+        // Naming it, so the count above cannot be satisfied by a DIFFERENT
+        // dimension tripping the same check.
+        List<String> anchored = PortalSafetyValidator.findings(shipped().values()).stream()
+                .filter(f -> "portal_anchor_no_exit_portal".equals(f.check()))
+                .map(PortalSafetyValidator.SafetyFinding::dimension)
+                .sorted()
+                .toList();
+
+        assertEquals(List.of("the_pale_reach"), anchored);
     }
 
     @Test

@@ -339,6 +339,60 @@ class PortalSafetyValidatorTest {
     }
 
     @Test
+    void aScaleTooLargeForItsBorderStrandsArrivalsAndSaysSo() {
+        // The shipped set trips this nowhere, so nothing else exercises the
+        // check id the two build gates in ShippedDimensionReachabilityTest
+        // now key on. Source radius falls back to the 8192 default, so a
+        // 1:8 portal needs 1024 of player border and this config has 64.
+        DimensionConfig config = parse("the_pinhole", """
+                {"portal":{"frameBlock":"minecraft:obsidian","scale":8.0},
+                 "borders":{"player":64}}
+                """);
+
+        List<PortalSafetyValidator.SafetyFinding> findings =
+                PortalSafetyValidator.findings(List.of(config));
+
+        assertEquals(List.of("arrival_unreachable"),
+                findings.stream().map(PortalSafetyValidator.SafetyFinding::check).toList());
+        assertEquals("the_pinhole", findings.get(0).dimension());
+        assertTrue(findings.get(0).message().contains("arrive inside this dimension's border"),
+                findings.get(0).message());
+        assertTrue(findings.get(0).fix().contains("borders.player"), findings.get(0).fix());
+    }
+
+    @Test
+    void aScaleThatFitsItsBorderIsSilent() {
+        DimensionConfig config = parse("the_wide_place", """
+                {"portal":{"frameBlock":"minecraft:obsidian","scale":8.0},
+                 "borders":{"player":1024}}
+                """);
+        assertTrue(PortalSafetyValidator.validate(List.of(config)).isEmpty());
+    }
+
+    @Test
+    void theBootLogRendersEveryFindingWithItsMessageAndItsFix() {
+        // The two build gates in ShippedDimensionReachabilityTest key on
+        // check ids, and DimensionLint reads the fields directly, so nothing
+        // else would notice if this renderer stopped carrying half of what a
+        // finding says. The boot log is the only place it is read as prose.
+        DimensionConfig config = parse("the_well", """
+                {"portal":{"frameBlock":"minecraft:obsidian","anchor":{"exit":"bed"}}}
+                """);
+
+        List<PortalSafetyValidator.SafetyFinding> findings =
+                PortalSafetyValidator.findings(List.of(config));
+        List<String> rendered = PortalSafetyValidator.validate(List.of(config));
+
+        assertEquals(findings.size(), rendered.size(), "one line per finding");
+        assertEquals(1, rendered.size());
+        PortalSafetyValidator.SafetyFinding finding = findings.get(0);
+        assertTrue(rendered.get(0).startsWith("Dimension the_well: "), rendered.get(0));
+        assertTrue(rendered.get(0).contains(finding.message()), rendered.get(0));
+        assertTrue(rendered.get(0).contains(finding.fix()), rendered.get(0));
+        assertTrue(rendered.get(0).endsWith("(never auto-fixed)."), rendered.get(0));
+    }
+
+    @Test
     void immersiveOnAVanillaManagedPortalIsSilent() {
         // The preview is drawn through a presentation zone, so it is honoured
         // rather than dropped — nothing to warn about.

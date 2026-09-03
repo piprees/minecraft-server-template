@@ -5,19 +5,44 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * Boot-time stranding check: a dimension whose portal can shut behind the
- * player (portal.singleUse) or that suppresses per-source return portals
- * (portal.anchor) must carry an exitPortal, or players can be stranded by
- * config. Same policy as the fingerprint drift warning: WARN and keep going —
+ * Config-safety checks: a dimension whose portal can shut behind the player
+ * (portal.singleUse) or that suppresses per-source return portals
+ * (portal.anchor) must carry an exitPortal, plus frame, shape, aura and link
+ * hygiene. Same policy as the fingerprint drift warning: WARN and keep going —
  * never crash the boot, never auto-fix the config.
+ *
+ * <p>One implementation, two renderings, the same shape
+ * {@link #frameCollisions} already uses: {@link #findings} carries the fields
+ * {@code customdim lint} and CI read, and {@link #validate} renders them as
+ * the prose the boot log prints.
  */
 public final class PortalSafetyValidator {
 
     private PortalSafetyValidator() {
     }
 
+    /**
+     * One config-safety fault. {@code subject} is whatever the finding is
+     * about — a field path, an offending id, a scale — so findings can be
+     * diffed between runs without parsing prose.
+     */
+    public record SafetyFinding(String dimension, String severity, String check,
+                                String subject, String message, String fix) {
+    }
+
+    /** The boot log's rendering: one sentence per finding, message then fix. */
     public static List<String> validate(Collection<DimensionConfig> configs) {
-        List<String> warnings = new ArrayList<>();
+        List<String> out = new ArrayList<>();
+        for (SafetyFinding f : findings(configs)) {
+            out.add(String.format(
+                    "Dimension %s: %s. KEEPING the config as written; %s (never auto-fixed).",
+                    f.dimension(), f.message(), f.fix()));
+        }
+        return out;
+    }
+
+    public static List<SafetyFinding> findings(Collection<DimensionConfig> configs) {
+        List<SafetyFinding> out = new ArrayList<>();
         // Known link targets: every configured dimension id + the reserved dimensions.
         java.util.Set<String> knownIds = new java.util.HashSet<>(
                 java.util.Set.of("minecraft:overworld", "minecraft:the_nether",
@@ -27,26 +52,49 @@ public final class PortalSafetyValidator {
         }
         int sourceRadius = overworldBorderRadius(configs);
         for (DimensionConfig config : configs) {
-            validateLinks(config, knownIds, warnings);
+            validateLinks(config, knownIds, out);
             for (DimensionConfig.Portal portal : config.getPortals()) {
-                validateFrameConfig(config, portal, warnings);
-                validateArrivalReachability(config, portal, sourceRadius, warnings);
-                validateStranding(config, portal, warnings);
-                validateVanillaManaged(config, portal, warnings);
+                validateFrameConfig(config, portal, out);
+                validateArrivalReachability(config, portal, sourceRadius, out);
+                validateStranding(config, portal, out);
+                validateVanillaManaged(config, portal, out);
             }
+            validatePrimaryPortal(config, out);
             // Death-only exits: a dimension whose ONLY way out is dying is
             // stranding-by-config for anyone who wants to leave alive.
             if (!config.getExits().isEmpty() && config.getPortal() == null
                     && !config.hasExitPortal()
                     && config.getExits().keySet().stream().allMatch(k -> k.startsWith("death"))) {
-                warnings.add(String.format(
-                        "Dimension %s: the only configured exits are death triggers and there is no "
-                        + "portal or exitPortal — players who want to leave alive cannot. KEEPING the "
-                        + "config as written; add an \"exitPortal\" or a non-death exit (never auto-fixed).",
-                        config.getName()));
+                out.add(new SafetyFinding(config.getName(), WARN, "exits_death_only", "exits",
+                        "the only configured exits are death triggers and there is no portal or "
+                        + "exitPortal — players who want to leave alive cannot",
+                        "add an \"exitPortal\", or a non-death exit"));
             }
         }
-        return warnings;
+        return out;
+    }
+
+    /**
+     * The exit builders read {@code getPortal()} — portal entry 1, by
+     * position, not by eligibility. A reserved first entry on a dimension that
+     * builds its own exits would have them built from the entry vanilla owns.
+     */
+    private static void validatePrimaryPortal(DimensionConfig config, List<SafetyFinding> out) {
+        List<DimensionConfig.Portal> portals = config.getPortals();
+        if (portals.isEmpty() || !portals.get(0).isVanillaManaged()) {
+            return;
+        }
+        if (!config.hasExitPortal() && !config.hasExitShrines()) {
+            return;
+        }
+        out.add(new SafetyFinding(config.getName(), WARN, "primary_portal_is_vanilla_managed",
+                "portal[0]",
+                "the first portal entry is vanillaManaged and this dimension builds its own "
+                + "exits — ExitPortalManager and ExitShrineManager read portal entry 1 by "
+                + "position, so the frame, colour, cooldown and shape of every exit would come "
+                + "from the entry vanilla performs the traversal for",
+                "put the mod-owned portal entry first, or drop exitPortal/exitShrines from a "
+                + "dimension whose only portal vanilla owns"));
     }
 
     // Vanilla's own routes, encoded. A vanillaManaged entry documents the
@@ -56,52 +104,53 @@ public final class PortalSafetyValidator {
             java.util.Map.of("minecraft:the_nether", 8.0);
 
     private static void validateVanillaManaged(DimensionConfig config, DimensionConfig.Portal portal,
-                                               List<String> warnings) {
+                                               List<SafetyFinding> out) {
         if (!portal.isVanillaManaged()) {
             return;
         }
         if (portal.aura != null) {
-            warnings.add(String.format(
-                    "Dimension %s: portal.aura is set on a vanillaManaged portal — auras are linked "
-                    + "when this mod performs the traversal and vanilla performs this one, so "
-                    + "nothing will ever leak. KEEPING the config as written; remove \"aura\" or "
-                    + "\"vanillaManaged\" (never auto-fixed).",
-                    config.getName()));
+            out.add(new SafetyFinding(config.getName(), WARN, "vanilla_managed_aura",
+                    "portal.aura",
+                    "portal.aura is set on a vanillaManaged portal — auras are linked when this "
+                    + "mod performs the traversal and vanilla performs this one, so nothing will "
+                    + "ever leak",
+                    "remove \"aura\", or remove \"vanillaManaged\""));
         }
         Double vanillaScale = VANILLA_SCALES.get(config.getDimensionId());
         double scale = portal.scale != null ? portal.scale : 1.0;
         if (vanillaScale != null && scale != vanillaScale) {
-            warnings.add(String.format(
-                    "Dimension %s: portal.scale %s on a vanillaManaged portal contradicts vanilla, "
-                    + "which moves this dimension at 1:%s whatever the config says — borders and "
-                    + "immersive previews would be built on a ratio players never travel at. "
-                    + "KEEPING the config as written; set \"scale\": %s (never auto-fixed).",
-                    config.getName(), trimScale(scale), trimScale(vanillaScale),
-                    trimScale(vanillaScale)));
+            out.add(new SafetyFinding(config.getName(), WARN, "vanilla_managed_scale_conflict",
+                    trimScale(scale),
+                    String.format(
+                            "portal.scale %s on a vanillaManaged portal contradicts vanilla, which "
+                            + "moves this dimension at 1:%s whatever the config says — borders and "
+                            + "immersive previews would be built on a ratio players never travel at",
+                            trimScale(scale), trimScale(vanillaScale)),
+                    String.format("set \"scale\": %s", trimScale(vanillaScale))));
         }
     }
 
     // A portal that can shut behind the player, or that suppresses per-source
     // return portals, needs an exitPortal to guarantee a way home.
     private static void validateStranding(DimensionConfig config, DimensionConfig.Portal portal,
-                                          List<String> warnings) {
+                                          List<SafetyFinding> out) {
         if (config.hasExitPortal()) {
             return;
         }
         if (portal.singleUse != null && Boolean.TRUE.equals(portal.singleUse.enabled)) {
-            warnings.add(String.format(
-                    "Dimension %s: portal.singleUse is enabled with no exitPortal — the way in "
-                    + "crumbles behind the player and nothing guarantees a way home. KEEPING the "
-                    + "config as written; add an \"exitPortal\" block to fix (never auto-fixed).",
-                    config.getName()));
+            out.add(new SafetyFinding(config.getName(), WARN, "portal_single_use_no_exit_portal",
+                    "portal.singleUse",
+                    "portal.singleUse is enabled with no exitPortal — the way in crumbles behind "
+                    + "the player and nothing guarantees a way home",
+                    "add an \"exitPortal\" block"));
         }
         if (portal.anchor != null) {
-            warnings.add(String.format(
-                    "Dimension %s: portal.anchor suppresses per-source return portals and there is "
-                    + "no exitPortal — if the anchor arrival portal breaks, players are stranded "
-                    + "until the next arrival rebuilds it. KEEPING the config as written; add an "
-                    + "\"exitPortal\" block to fix (never auto-fixed).",
-                    config.getName()));
+            out.add(new SafetyFinding(config.getName(), WARN, "portal_anchor_no_exit_portal",
+                    "portal.anchor",
+                    "portal.anchor suppresses per-source return portals and there is no "
+                    + "exitPortal — if the anchor arrival portal breaks, players are stranded "
+                    + "until the next arrival rebuilds it",
+                    "add an \"exitPortal\" block"));
         }
     }
 
@@ -152,7 +201,7 @@ public final class PortalSafetyValidator {
      */
     private static void validateArrivalReachability(DimensionConfig config,
                                                     DimensionConfig.Portal portal,
-                                                    int sourceRadius, List<String> warnings) {
+                                                    int sourceRadius, List<SafetyFinding> out) {
         if (portal.anchor != null) {
             return;
         }
@@ -169,13 +218,15 @@ public final class PortalSafetyValidator {
                 scale, destRadius, ARRIVAL_MARGIN);
         int required = com.customdimensions.portal.ArrivalReachability.requiredDestBorderRadius(
                 scale, sourceRadius, ARRIVAL_MARGIN);
-        warnings.add(String.format(
-                "Dimension %s: portal.scale %s against borders.player %d means only portals built "
-                + "within %d blocks of origin arrive inside this dimension's border — beyond that a "
-                + "player lands outside it and cannot break or place ANY block, including the portal "
-                + "they arrived through. Raise borders.player to %d, or lower portal.scale. KEEPING "
-                + "the config as written (never auto-fixed).",
-                config.getName(), trimScale(scale), destRadius, usable, required));
+        out.add(new SafetyFinding(config.getName(), WARN, "arrival_unreachable",
+                trimScale(scale),
+                String.format(
+                        "portal.scale %s against borders.player %d means only portals built within "
+                        + "%d blocks of origin arrive inside this dimension's border — beyond that "
+                        + "a player lands outside it and cannot break or place ANY block, "
+                        + "including the portal they arrived through",
+                        trimScale(scale), destRadius, usable),
+                String.format("raise borders.player to %d, or lower portal.scale", required)));
     }
 
     /** "8" rather than "8.0" — these are ratios people say out loud. */
@@ -192,66 +243,74 @@ public final class PortalSafetyValidator {
     // missing framePlaceBlock on non-plain frames, unknown orientation
     // values. WARN and keep going.
     private static void validateFrameConfig(DimensionConfig config, DimensionConfig.Portal portal,
-                                            List<String> warnings) {
+                                            List<SafetyFinding> out) {
+        String name = config.getName();
         List<String> forms = portal.getFrameAcceptForms();
         if (portal.frameBlock != null && !portal.frameBlock.isJsonNull() && forms.isEmpty()) {
-            warnings.add(String.format(
-                    "Dimension %s: portal.frameBlock has an unusable shape (expected a block id, "
-                    + "\"#ns:tag\", a list of those, or {\"colorGroup\": \"<colour>\"}) — the portal "
-                    + "can never ignite. KEEPING the config as written (never auto-fixed).",
-                    config.getName()));
+            out.add(new SafetyFinding(name, WARN, "frame_block_unusable", "portal.frameBlock",
+                    "portal.frameBlock has an unusable shape (expected a block id, \"#ns:tag\", a "
+                    + "list of those, or {\"colorGroup\": \"<colour>\"}) — the portal can never "
+                    + "ignite",
+                    "give frameBlock one of those four shapes"));
             return;
         }
         for (String form : forms) {
             String idPart = form.startsWith("#") ? form.substring(1) : form;
             if (net.minecraft.util.Identifier.tryParse(idPart) == null) {
-                warnings.add(String.format(
-                        "Dimension %s: portal frame form '%s' is not a valid identifier — it will "
-                        + "never match. KEEPING the config as written (never auto-fixed).",
-                        config.getName(), form));
+                out.add(new SafetyFinding(name, WARN, "frame_form_invalid_id", form,
+                        String.format(
+                                "portal frame form '%s' is not a valid identifier — it will never "
+                                + "match", form),
+                        "correct it to a \"namespace:path\" id or a \"#namespace:path\" tag, or "
+                        + "remove it"));
             }
         }
         String colour = portal.getColorGroup();
         if (colour != null && !DimensionConfig.Portal.DYE_COLOURS.contains(colour)) {
-            warnings.add(String.format(
-                    "Dimension %s: portal.frameBlock colorGroup '%s' is not one of the 16 dye "
-                    + "colours — the #adventure:%s_blocks tag does not exist and the portal can "
-                    + "never ignite. KEEPING the config as written (never auto-fixed).",
-                    config.getName(), colour, colour));
+            out.add(new SafetyFinding(name, WARN, "frame_color_group_unknown", colour,
+                    String.format(
+                            "portal.frameBlock colorGroup '%s' is not one of the 16 dye colours — "
+                            + "the #adventure:%s_blocks tag does not exist and the portal can "
+                            + "never ignite", colour, colour),
+                    "use one of the 16 dye colours, or name the frame blocks directly"));
         }
         boolean nonPlain = forms.stream().anyMatch(f -> f.startsWith("#")) || forms.size() > 1;
         if (nonPlain && portal.resolvePlacementBlockId() == null) {
-            warnings.add(String.format(
-                    "Dimension %s: portal.frameBlock accepts tags but no framePlaceBlock is set — "
-                    + "mod-built frames (arrival portals, exitPortal) fall back to obsidian. "
-                    + "KEEPING the config as written; set \"framePlaceBlock\" to fix (never auto-fixed).",
-                    config.getName()));
+            out.add(new SafetyFinding(name, WARN, "frame_tag_no_place_block",
+                    "portal.framePlaceBlock",
+                    "portal.frameBlock accepts tags but no framePlaceBlock is set — mod-built "
+                    + "frames (arrival portals, exitPortal) fall back to obsidian",
+                    "set \"framePlaceBlock\" to the block those frames should be built from"));
         }
         if (portal.orientation != null && !portal.orientation.isBlank()
                 && !ORIENTATIONS.contains(portal.orientation.trim())) {
-            warnings.add(String.format(
-                    "Dimension %s: portal.orientation '%s' is not one of %s — treated as \"any\". "
-                    + "KEEPING the config as written (never auto-fixed).",
-                    config.getName(), portal.orientation.trim(), ORIENTATIONS));
+            out.add(new SafetyFinding(name, WARN, "portal_orientation_unknown",
+                    portal.orientation.trim(),
+                    String.format(
+                            "portal.orientation '%s' is not one of %s — treated as \"any\"",
+                            portal.orientation.trim(), ORIENTATIONS),
+                    "use one of " + ORIENTATIONS + ", or drop the field"));
         }
-        validateShapeConfig(config, portal, warnings);
-        validateFrameMaterials(config, portal, warnings);
-        validateAura(config, portal, warnings);
+        validateShapeConfig(config, portal, out);
+        validateFrameMaterials(config, portal, out);
+        validateAura(config, portal, out);
     }
 
     // Aura hygiene: unknown sides values and unparseable ids. WARN and keep
     // going — a malformed entry just never places anything.
     private static void validateAura(DimensionConfig config, DimensionConfig.Portal portal,
-                                     List<String> warnings) {
+                                     List<SafetyFinding> out) {
+        String name = config.getName();
         DimensionConfig.Aura aura = portal.aura;
         if (aura == null) {
             return;
         }
         if (aura.sides != null && !java.util.Set.of("source", "target", "both").contains(aura.sides)) {
-            warnings.add(String.format(
-                    "Dimension %s: portal.aura.sides '%s' is not source/target/both — treated as "
-                    + "\"both\". KEEPING the config as written (never auto-fixed).",
-                    config.getName(), aura.sides));
+            out.add(new SafetyFinding(name, WARN, "aura_sides_unknown", aura.sides,
+                    String.format(
+                            "portal.aura.sides '%s' is not source/target/both — treated as \"both\"",
+                            aura.sides),
+                    "set \"sides\" to source, target or both, or drop the field"));
         }
         java.util.Map<String, List<String>> idLists = new java.util.LinkedHashMap<>();
         idLists.put("palette", aura.palette);
@@ -264,10 +323,11 @@ public final class PortalSafetyValidator {
             }
             for (String id : list.getValue()) {
                 if (net.minecraft.util.Identifier.tryParse(id) == null) {
-                    warnings.add(String.format(
-                            "Dimension %s: portal.aura.%s entry '%s' is not a valid identifier — "
-                            + "it will never place. KEEPING the config as written (never auto-fixed).",
-                            config.getName(), list.getKey(), id));
+                    out.add(new SafetyFinding(name, WARN, "aura_invalid_id", String.valueOf(id),
+                            String.format(
+                                    "portal.aura.%s entry '%s' is not a valid identifier — it will "
+                                    + "never place", list.getKey(), id),
+                            "correct it to a \"namespace:path\" id, or remove it"));
                 }
             }
         }
@@ -276,11 +336,14 @@ public final class PortalSafetyValidator {
                 String fromId = conv.getKey().startsWith("#") ? conv.getKey().substring(1) : conv.getKey();
                 if (net.minecraft.util.Identifier.tryParse(fromId) == null
                         || net.minecraft.util.Identifier.tryParse(conv.getValue()) == null) {
-                    warnings.add(String.format(
-                            "Dimension %s: portal.aura.conversions entry '%s' -> '%s' has an invalid "
-                            + "identifier — it will never convert. KEEPING the config as written "
-                            + "(never auto-fixed).",
-                            config.getName(), conv.getKey(), conv.getValue()));
+                    out.add(new SafetyFinding(name, WARN, "aura_conversion_invalid_id",
+                            conv.getKey() + " -> " + conv.getValue(),
+                            String.format(
+                                    "portal.aura.conversions entry '%s' -> '%s' has an invalid "
+                                    + "identifier — it will never convert",
+                                    conv.getKey(), conv.getValue()),
+                            "correct both sides to \"namespace:path\" ids (the left may be a "
+                            + "\"#tag\"), or remove the entry"));
                 }
             }
         }
@@ -290,62 +353,70 @@ public final class PortalSafetyValidator {
     // exclusivity, unknown part keys, malformed forms, horizontal misuse,
     // unresolvable per-part placement. WARN and keep going.
     private static void validateFrameMaterials(DimensionConfig config, DimensionConfig.Portal portal,
-                                               List<String> warnings) {
+                                               List<SafetyFinding> out) {
+        String name = config.getName();
         if (portal.frameMaterials == null) {
             return;
         }
         if (portal.frameBlock != null && !portal.frameBlock.isJsonNull()) {
-            warnings.add(String.format(
-                    "Dimension %s: portal.frameBlock and portal.frameMaterials are both set — they "
-                    + "are mutually exclusive and frameMaterials wins. KEEPING the config as "
-                    + "written (never auto-fixed).",
-                    config.getName()));
+            out.add(new SafetyFinding(name, WARN, "frame_materials_conflict",
+                    "portal.frameMaterials",
+                    "portal.frameBlock and portal.frameMaterials are both set — they are mutually "
+                    + "exclusive and frameMaterials wins",
+                    "remove whichever of the two you did not mean"));
         }
         for (String key : portal.frameMaterials.keySet()) {
             if (!DimensionConfig.Portal.FRAME_PARTS.contains(key)) {
-                warnings.add(String.format(
-                        "Dimension %s: portal.frameMaterials key '%s' is not one of %s — ignored. "
-                        + "KEEPING the config as written (never auto-fixed).",
-                        config.getName(), key, DimensionConfig.Portal.FRAME_PARTS));
+                out.add(new SafetyFinding(name, WARN, "frame_materials_key_unknown", key,
+                        String.format(
+                                "portal.frameMaterials key '%s' is not one of %s — ignored",
+                                key, DimensionConfig.Portal.FRAME_PARTS),
+                        "rename it to one of " + DimensionConfig.Portal.FRAME_PARTS
+                        + ", or remove it"));
             }
         }
         java.util.Map<String, List<String>> parts = portal.getFramePartAcceptForms();
         if (parts.isEmpty()) {
-            warnings.add(String.format(
-                    "Dimension %s: portal.frameMaterials has no usable part entries — the portal "
-                    + "can never ignite. KEEPING the config as written (never auto-fixed).",
-                    config.getName()));
+            out.add(new SafetyFinding(name, WARN, "frame_materials_empty",
+                    "portal.frameMaterials",
+                    "portal.frameMaterials has no usable part entries — the portal can never "
+                    + "ignite",
+                    "give at least one of " + DimensionConfig.Portal.FRAME_PARTS
+                    + " a block id, a \"#tag\", or a list of those"));
             return;
         }
         for (java.util.Map.Entry<String, List<String>> part : parts.entrySet()) {
             for (String form : part.getValue()) {
                 String idPart = form.startsWith("#") ? form.substring(1) : form;
                 if (net.minecraft.util.Identifier.tryParse(idPart) == null) {
-                    warnings.add(String.format(
-                            "Dimension %s: portal.frameMaterials.%s form '%s' is not a valid "
-                            + "identifier — it will never match. KEEPING the config as written "
-                            + "(never auto-fixed).",
-                            config.getName(), part.getKey(), form));
+                    out.add(new SafetyFinding(name, WARN, "frame_materials_invalid_id", form,
+                            String.format(
+                                    "portal.frameMaterials.%s form '%s' is not a valid identifier "
+                                    + "— it will never match", part.getKey(), form),
+                            "correct it to a \"namespace:path\" id or a \"#namespace:path\" tag, "
+                            + "or remove it"));
                 }
             }
             boolean noPlain = part.getValue().stream().allMatch(f -> f.startsWith("#"));
             if (noPlain && portal.resolvePlacementBlockId() == null) {
-                warnings.add(String.format(
-                        "Dimension %s: portal.frameMaterials.%s is tag-only and no framePlaceBlock "
-                        + "is set — mod-built frames fall back to obsidian for that part. KEEPING "
-                        + "the config as written; set \"framePlaceBlock\" to fix (never auto-fixed).",
-                        config.getName(), part.getKey()));
+                out.add(new SafetyFinding(name, WARN, "frame_materials_no_place_block",
+                        part.getKey(),
+                        String.format(
+                                "portal.frameMaterials.%s is tag-only and no framePlaceBlock is "
+                                + "set — mod-built frames fall back to obsidian for that part",
+                                part.getKey()),
+                        "set \"framePlaceBlock\" to the block that part should be built from"));
             }
         }
         String orientation = portal.orientation != null ? portal.orientation.trim() : null;
         boolean horizontalOnly = "horizontal".equals(orientation)
                 || com.customdimensions.portal.PortalShape.END_EXIT.equals(portal.getShapeName());
         if (horizontalOnly) {
-            warnings.add(String.format(
-                    "Dimension %s: portal.frameMaterials has no effect on horizontal (Y-axis) "
-                    + "portals — the union of all parts applies instead. KEEPING the config as "
-                    + "written (never auto-fixed).",
-                    config.getName()));
+            out.add(new SafetyFinding(name, WARN, "frame_materials_horizontal",
+                    "portal.frameMaterials",
+                    "portal.frameMaterials has no effect on horizontal (Y-axis) portals — the "
+                    + "union of all parts applies instead",
+                    "drop frameMaterials for a flat portal, or make the portal vertical"));
         }
     }
 
@@ -353,30 +424,32 @@ public final class PortalSafetyValidator {
     // pattern objects, shape/orientation contradictions, and centreBlock
     // misuse. WARN and keep going.
     private static void validateShapeConfig(DimensionConfig config, DimensionConfig.Portal portal,
-                                            List<String> warnings) {
+                                            List<SafetyFinding> out) {
+        String name = config.getName();
         String shape = portal.getShapeName();
         if (portal.getFrameAcceptForms().isEmpty()) {
-            warnings.add(String.format(
-                    "Dimension %s: portal has no frameBlock — a portal is its frame, so this one "
-                    + "can never be lit and the dimension has no way in. KEEPING the config as "
-                    + "written; set \"frameBlock\" to fix (never auto-fixed).",
-                    config.getName()));
+            out.add(new SafetyFinding(name, WARN, "portal_no_frame_block", "portal.frameBlock",
+                    "portal has no frameBlock — a portal is its frame, so this one can never be "
+                    + "lit and the dimension has no way in",
+                    "set \"frameBlock\" to the block the frame is built from"));
         }
         if (shape != null
                 && !com.customdimensions.portal.PortalShape.KNOWN.contains(shape)) {
-            warnings.add(String.format(
-                    "Dimension %s: portal.shape '%s' is not one of %s — the portal can never "
-                    + "ignite. KEEPING the config as written (never auto-fixed).",
-                    config.getName(), shape, com.customdimensions.portal.PortalShape.KNOWN));
+            out.add(new SafetyFinding(name, WARN, "portal_shape_unknown", shape,
+                    String.format(
+                            "portal.shape '%s' is not one of %s — the portal can never ignite",
+                            shape, com.customdimensions.portal.PortalShape.KNOWN),
+                    "use one of " + com.customdimensions.portal.PortalShape.KNOWN
+                    + ", or drop the field for free-form flood-fill"));
         }
         if (portal.shape != null && portal.shape.isJsonObject()) {
             List<String> template = portal.getShapeTemplate();
             if (template == null) {
-                warnings.add(String.format(
-                        "Dimension %s: portal.shape object is not a valid pattern (expected "
-                        + "{\"type\": \"pattern\", \"template\": [rows...]}) — the portal can "
-                        + "never ignite. KEEPING the config as written (never auto-fixed).",
-                        config.getName()));
+                out.add(new SafetyFinding(name, WARN, "portal_shape_not_a_pattern", "portal.shape",
+                        "portal.shape object is not a valid pattern (expected {\"type\": "
+                        + "\"pattern\", \"template\": [rows...]}) — the portal can never ignite",
+                        "give the object a \"type\" of \"pattern\" and a \"template\" array of "
+                        + "rows, or name a preset shape instead"));
             } else {
                 java.util.Map<String, String> legend = portal.getShapeLegend();
                 boolean hasInterior = false;
@@ -389,11 +462,12 @@ public final class PortalSafetyValidator {
                     }
                 }
                 if (!hasInterior) {
-                    warnings.add(String.format(
-                            "Dimension %s: portal.shape pattern has no interior cells (legend %s) — "
-                            + "the portal can never ignite. KEEPING the config as written "
-                            + "(never auto-fixed).",
-                            config.getName(), legend));
+                    out.add(new SafetyFinding(name, WARN, "portal_shape_no_interior",
+                            "portal.shape",
+                            String.format(
+                                    "portal.shape pattern has no interior cells (legend %s) — the "
+                                    + "portal can never ignite", legend),
+                            "mark at least one template cell as \"interior\" in the legend"));
                 }
             }
         }
@@ -406,23 +480,29 @@ public final class PortalSafetyValidator {
             boolean horizontalShape = com.customdimensions.portal.PortalShape.END_EXIT.equals(shape);
             if ((verticalShape && "horizontal".equals(orientation))
                     || (horizontalShape && orientation.startsWith("vertical"))) {
-                warnings.add(String.format(
-                        "Dimension %s: portal.shape '%s' cannot exist under portal.orientation '%s' — "
-                        + "the portal can never ignite. KEEPING the config as written (never auto-fixed).",
-                        config.getName(), shape, orientation));
+                out.add(new SafetyFinding(name, WARN, "portal_shape_orientation_conflict",
+                        shape + " + " + orientation,
+                        String.format(
+                                "portal.shape '%s' cannot exist under portal.orientation '%s' — "
+                                + "the portal can never ignite", shape, orientation),
+                        "drop the orientation (door and doorway are vertical, end_exit is "
+                        + "horizontal, and each implies its own), or choose a shape that fits it"));
             }
         }
         if (portal.centreBlock != null && !portal.centreBlock.isBlank()) {
             if (!com.customdimensions.portal.PortalShape.END_EXIT.equals(shape)) {
-                warnings.add(String.format(
-                        "Dimension %s: portal.centreBlock is set but portal.shape is not \"end_exit\" — "
-                        + "it will never be placed. KEEPING the config as written (never auto-fixed).",
-                        config.getName()));
+                out.add(new SafetyFinding(name, WARN, "centre_block_not_end_exit",
+                        "portal.centreBlock",
+                        "portal.centreBlock is set but portal.shape is not \"end_exit\" — it will "
+                        + "never be placed",
+                        "set \"shape\": \"end_exit\", or remove centreBlock"));
             } else if (net.minecraft.util.Identifier.tryParse(portal.centreBlock.trim()) == null) {
-                warnings.add(String.format(
-                        "Dimension %s: portal.centreBlock '%s' is not a valid identifier — nothing "
-                        + "will be placed. KEEPING the config as written (never auto-fixed).",
-                        config.getName(), portal.centreBlock.trim()));
+                out.add(new SafetyFinding(name, WARN, "centre_block_invalid_id",
+                        portal.centreBlock.trim(),
+                        String.format(
+                                "portal.centreBlock '%s' is not a valid identifier — nothing will "
+                                + "be placed", portal.centreBlock.trim()),
+                        "correct it to a \"namespace:path\" id, or remove it"));
             }
         }
     }
@@ -452,7 +532,7 @@ public final class PortalSafetyValidator {
      * it, and adoption cannot tell two definitions on one frame apart.
      *
      * <p>Cross-dimension, so it runs over the whole set rather than inside
-     * {@link #validate}'s per-dimension loop. Two entries of one dimension
+     * {@link #findings}'s per-dimension loop. Two entries of one dimension
      * collide the same way two dimensions do — portal ids are positional
      * ({@code slug}, {@code slug#2}), so both are compared.
      */
@@ -543,7 +623,7 @@ public final class PortalSafetyValidator {
     // point; a link to NOWHERE falls back to the overworld spawn at runtime,
     // which is safe but almost certainly a typo worth surfacing).
     private static void validateLinks(DimensionConfig config, java.util.Set<String> knownIds,
-                                      List<String> warnings) {
+                                      List<SafetyFinding> out) {
         java.util.Map<String, String> links = new java.util.LinkedHashMap<>();
         if (config.getExitPortal() != null) {
             links.put("exitPortal.target", config.getExitPortal().getTargetMode());
@@ -565,11 +645,13 @@ public final class PortalSafetyValidator {
                 continue;
             }
             if (!knownIds.contains(t.getDimensionId())) {
-                warnings.add(String.format(
-                        "Dimension %s: %s links to '%s', which is not a configured dimension or base "
-                        + "world — players taking it will land at the overworld spawn instead. KEEPING "
-                        + "the config as written (never auto-fixed).",
-                        config.getName(), link.getKey(), t.getDimensionId()));
+                out.add(new SafetyFinding(config.getName(), WARN, "link_unknown_dimension",
+                        link.getKey(),
+                        String.format(
+                                "%s links to '%s', which is not a configured dimension or base "
+                                + "world — players taking it will land at the overworld spawn "
+                                + "instead", link.getKey(), t.getDimensionId()),
+                        "correct the dimension id, or add a config for it"));
             }
         }
     }

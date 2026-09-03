@@ -19,6 +19,7 @@ import net.minecraft.world.biome.Biome;
 import net.minecraft.world.biome.source.BiomeSource;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -85,6 +86,7 @@ public final class DimensionLint {
         }
         if (only == null) {
             findings.addAll(frameCollisions());
+            findings.addAll(safetyFindings(targets()));
             findings.addAll(checkSuppressList(server));
         }
         return findings;
@@ -802,6 +804,26 @@ public final class DimensionLint {
                 : PortalSafetyValidator.frameCollisions(targets())) {
             out.add(new Finding(c.dimension(), c.severity(), c.check(), c.subject(),
                     c.message(), c.fix()));
+        }
+        return out;
+    }
+
+    // ----------------------------------------------------------- config safety
+
+    /**
+     * Stranding, reachability, frame, shape, aura and link hygiene — the same
+     * checks {@link PortalSafetyValidator} prints at boot, in the shape lint
+     * and CI read. All WARN: the smoke test's gate counts ERROR only, so a
+     * config fault here is visible without failing a consumer's build.
+     *
+     * <p>Takes its collection as a parameter, unlike {@link #frameCollisions},
+     * so it is unit-testable with no singleton and no server.
+     */
+    static List<Finding> safetyFindings(Collection<DimensionConfig> configs) {
+        List<Finding> out = new ArrayList<>();
+        for (PortalSafetyValidator.SafetyFinding f : PortalSafetyValidator.findings(configs)) {
+            out.add(new Finding(f.dimension(), f.severity(), f.check(), f.subject(),
+                    f.message(), f.fix()));
         }
         return out;
     }
