@@ -1,5 +1,6 @@
 package com.customdimensions.client;
 
+import com.customdimensions.client.dev.DevBridge;
 import com.customdimensions.client.render.ProjectionRenderer;
 import com.customdimensions.client.render.ProjectionStore;
 import net.fabricmc.api.ClientModInitializer;
@@ -76,6 +77,8 @@ public class CustomDimensionsClient implements ClientModInitializer {
             ProjectionStore.clear();
             HandshakeSender.disarm();
         });
+
+        DevBridge.start();
 
         LOGGER.info("{} protocol={}", INIT_MARKER, CompanionPayloads.PROTOCOL_VERSION);
     }
