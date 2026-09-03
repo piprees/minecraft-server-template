@@ -4,8 +4,8 @@
 
 | Prefix | Range | What it covers |
 | --- | --- | --- |
-| **T** | [T1–T14, T16–T19, T22–T27, T30–T80, T82](#architecture-traps) | Architecture traps — each has caused a real production incident |
-| **P** | [P1–P5](#macos-local-dev) | macOS local-dev quirks (BSD tooling, toolchain) |
+| **T** | [T1–T14, T16–T19, T22–T27, T30–T80, T82–T83](#architecture-traps) | Architecture traps — each has caused a real production incident |
+| **P** | [P1–P6](#macos-local-dev) | macOS local-dev quirks (BSD tooling, toolchain) |
 | **D** | [D1–D6, D8–D9](#dimension-lifecycle) | Custom-dimension lifecycle on a live world |
 | **K** | [K1–K2, K5–K7, K9](#known-issues) | Open issues — unfixed, on the watch list |
 
@@ -81,6 +81,7 @@ Run this first. It covers deploy drift, disk, every expected container, `ONLINE_
 | `ClassCastException` from Better Caves repeats through chunk generation | [T79](#t79) |
 | Every player is kicked at join: "registry entries that are unknown to this client" | [T80](#t80) |
 | Random client crashes near water: `Missing Palette entry`, `be_getWaterColor` in the stack | [T82](#t82) |
+| `./dev` answers `No Prism instance found for '--<some flag>'`, and the instance exists | [T83](#t83) |
 | Config or mod changes didn't take effect after a deploy | [T2](#t2) |
 | `signal only works in main thread` in discord-sync logs | [T3](#t3) |
 | mc crash-loops with Modrinth `429 Too Many Requests` | [T4](#t4) |
@@ -117,6 +118,7 @@ Run this first. It covers deploy drift, disk, every expected container, `ONLINE_
 | A dimension is full of rivers and lakes; `seedRoll.water` changes nothing | [T40](#t40) |
 | Mod build fails with a misleading Gradle task error | [P4](#p4) |
 | Local mc dies with `SIGBUS`, or every level load fails on the Distant Horizons database | [P5](#p5) |
+| The local Minecraft CLIENT dies mid-session, `hs_err_pid*.log` says `SIGBUS` on a `C2 CompilerThread` | [P6](#p6) |
 | A worldgen config change had no effect | [D2](#d2) |
 | `Tried to read NBT tag that was too big`; `level.dat` growing every boot | [D9](#d9) |
 | Boot hangs after deleting a dimension's world directory | [D3](#d3), [K1](#k1) |
@@ -1363,6 +1365,43 @@ measurement of it.
   built under another. Freeze it across the roll; regenerate after a wipe, where
   it reaches only dimensions created later.
 
+<a id="t83"></a>
+### T83 — A consumer's `dev` lags the platform scaffold, and an unknown flag is read as an instance name
+
+- **Symptom:** a `./dev` subcommand rejects a flag the platform's own scaffold
+  documents. `./dev launch --dev-bridge` answers
+
+  ```
+  No Prism instance found for '--dev-bridge'.
+  ```
+
+  on a consumer whose instance exists and whose plain `./dev launch` works. The
+  flag is quoted back as though it were data, so it reads as a missing instance
+  rather than a missing feature.
+- **Cause, two halves.** `examples/consumer/dev` reaches an existing consumer
+  only through the explicit sync loops in its own `update)` case, so a
+  consumer's copy is whatever its last `./dev update` — or a hand-edit — left
+  there. Nothing compares versions and nothing warns. And `launch`'s argument
+  loop ends in `*) LAUNCH_ARGS+=("$1")`, then passes `LAUNCH_ARGS[0]` to
+  `resolve_client_instance`: an unrecognised flag becomes the instance name
+  instead of an error.
+- **`./dev update` repairs it and costs a linked checkout.** `update)` calls
+  `stack_pull` before those loops, which repoints `.stack/current` at a pulled
+  release bundle — the `./dev link` is gone and the next `./dev up` runs
+  released scripts and jars rather than the checkout's ([T30](#t30) is the same
+  directory reached from the other side).
+- **Fix:** copy the one file, backed up first (safety rule 4), and leave
+  `.stack/current` alone.
+
+  ```bash
+  cp <consumer>/dev <consumer>/dev.bak.$(date +%Y%m%d%H%M%S)
+  cp <platform>/examples/consumer/dev <consumer>/dev
+  readlink <consumer>/.stack/current      # confirm the link survived
+  ```
+
+  `diff` the two first where the consumer's copy carries local work: the
+  platform's is not guaranteed to be a superset, and this overwrites it whole.
+
 <a id="t82"></a>
 ### T82 — BetterEnd corrupts memory under Sodium on every water block, in every dimension
 
@@ -1393,27 +1432,56 @@ measurement of it.
 - Modrinth's `client_side` is the mod author's declaration, so it is a proxy rather than proof. It is the only static signal available, and it named all nine of the mods that caused this.
 
 <a id="t79"></a>
-### T79 — Better Caves throws ClassCastException on every affected chunk, and the tick budget pays for it
+### T79 — Better Caves casts every aquifer sampler to its own duck interface, and the anonymous one does not carry it
 
-- **Symptom:** repeated during chunk generation, tens of times per session:
+- **Symptom:** repeated through chunk generation, **per chunk** rather than once
+  per dimension:
 
   ```
   java.lang.ClassCastException: class net.minecraft.class_6350$1 cannot be cast
   to class com.yungnickyoung.minecraft.bettercaves.duck.ILiquidRegionsProvider
   ```
 
-  Chunks still generate and the server does not die of it. Observed 41 times in
-  one boot, alongside `NoSuchFileException: ./world/./visited-dimensions.json.tmp`.
-- **Cause:** `class_6350$1` is an anonymous subclass of the aquifer sampler.
-  YUNG's Better Caves mixes its `ILiquidRegionsProvider` duck interface into the
-  outer class, and the anonymous inner one does not carry it — the standard
-  shape of an accessor interface that did not apply where the code expects it
-  ([mods/AGENTS.md § mixin conventions]).
-- **Not diagnosed further.** Whether it costs generation time, silently skips
-  Better Caves' liquid regions in those chunks, or both, is unmeasured. It is
-  recorded because it is undocumented and looks alarming next to a real fault.
+  Measured without the fix below: **312 occurrences over 25 distinct chunk
+  positions** in one boot. Chunks still generate and nothing on disk is corrupt
+  — vanilla logs `Not saving partially generated broken chunk` — so the code
+  fixes the world with no wipe.
+- **Cause:** `MasterController.carve` in Better Caves 3.1.5 does an
+  unconditional `checkcast` to `ILiquidRegionsProvider` on the `AquiferSampler`
+  it is handed. Better Caves' own `AquiferMixin` targets `AquiferSampler.Impl`
+  only, and `class_6350$1` is an anonymous implementation of the
+  `AquiferSampler` **interface** — the sea-level sampler, built where
+  `aquifers_enabled` is false. It never carries the duck.
+- **Fix (in place):** `BetterCavesAquiferDuckMixin`, a member-less
+  `@Mixin(AquiferSampler.class)` **interface** whose only job is to bring
+  `CompatMixinPlugin.preApply` to that target. The plugin adds
+  `ILiquidRegionsProvider` as a superinterface and generates
+  `bettercaves$getLiquidRegions()` returning null, gated on mod id
+  `bettercaves`. `Impl` is untouched: it is a class, so its own concrete method
+  beats an interface default and the dimensions that do have liquid regions
+  keep them.
+- **The technique needs an interface target.** The duck method is
+  `ACC_PUBLIC, ACC_ABSTRACT`, and it lands as a usable default only because
+  `AquiferSampler` is itself an interface. The same move against a class target
+  adds an abstract method to a concrete class.
+- **Answering null loses no feature.** There is no
+  `instanceof ILiquidRegionsProvider` anywhere in the Better Caves jar — two
+  `checkcast` sites, zero `instanceof` — so a universally applied interface
+  cannot flip a Better Caves decision, only stop a cast throwing. Better Caves
+  already handles the null (`AbstractCarver.carveBlock`).
+- **The `preApply` log line is the only proof it applied.** The mixin carries no
+  injectors, so `defaultRequire: 1` cannot catch a silent non-application. Two
+  lines, in order: `Compatibility mixin BetterCavesAquiferDuckMixin: bettercaves
+  present — applying` from `onLoad`, then `… net/minecraft/class_6350 now
+  provides …ILiquidRegionsProvider — sea-level samplers answer null instead of
+  failing the cast` from `preApply`. Grep for the second, never the first.
+- **Do not pin Better Caves back to 3.1.4.** It has no cast, and it predates the
+  ScopedValue rewrite that exists to fix c2me and Distant Horizons concurrency —
+  this pack runs both, so pinning back trades a deterministic per-chunk failure
+  for the race it fixes. 3.1.5 Fabric ships an empty cloth config, so there is
+  no config lever either.
 - **It is NOT what kills a server during dimension activation.** That is the
-  watchdog on concurrent first-time chunk generation ([K6]) — a single tick
+  watchdog on concurrent first-time chunk generation ([K6](#k6)) — a single tick
   exceeding 180s. The two appear together in the log and the exception is the
   more eye-catching, which is exactly why this entry exists.
 
@@ -1650,6 +1718,44 @@ DH opens one WAL-mode SQLite per level at `<level>/data/DistantHorizons.sqlite`.
 Links are laid down for the three vanilla level paths, every level directory already on disk, and every dimension the config declares — so one created mid-session by `/customdim load` finds its link in place. A level created at runtime by something other than a `custom-dimensions` config file gets its database on the share until the next `./dev up`. `./dev reset-world` and `./dev clean world` remove the `ledger-db` and `dh-db` volumes alongside `data/world`, so a re-rolled world never inherits the previous one's LOD cache or ledger. Both resolve the volume names from `BRAND_SLUG`; neither guesses a project name, because a wrong one removes nothing and still reports success.
 
 Local only — production is ext4 and needs none of this.
+
+<a id="p6"></a>
+### P6 — The local Minecraft client takes a `SIGBUS` inside the JIT compiler and takes the run with it
+
+- **Symptom:** the Prism-launched client dies mid-session with no in-game error,
+  no crash report and nothing in the game log. A driven run loses the dev bridge
+  — `curl: (7)` on its port — and no `prismlauncher` process is left. The
+  evidence is `hs_err_pid*.log` under
+  `~/Library/Application Support/PrismLauncher/instances/<instance>/minecraft/`:
+
+  ```
+  SIGBUS (0xa)
+  Current thread: "C2 CompilerThread<N>"
+  Chunk::chop() -> Arena::destruct_contents() -> Compile::~Compile()
+  ```
+
+- **Cause: a JVM defect, not this pack and not the mods.** The faulting frames
+  are HotSpot's own compiler-arena teardown, and the method being compiled
+  differs every time (`net.minecraft.class_1097::emitBlockQuads`,
+  `net.minecraft.class_765::method_3313`), so no single method is implicated.
+  Measured on Temurin `21.0.11+10` / macOS `26.5.2 (25F84)` / arm64 /
+  `-Xmx12114m`: five crashes in one evening, four in that teardown on a C2
+  compiler thread and one in
+  `ConcurrentHashTable<SymbolTableConfig>::unzip_bucket` on the Service Thread.
+  **The garbage collector is ruled out** — four under `-XX:+UseZGC`, one under
+  `-XX:+UseG1GC` — and so is resource exhaustion: 1.1 TiB disk, 86% of system
+  memory and 1.2 GB swap free at the time.
+- **Distinct from [P5](#p5)**, which is a `SIGBUS` in the SERVER JVM's Server
+  thread on `libsqlitejdbc` and has a fix. This is the client JVM and has none.
+- **Fix: none measured.** What it changes is how a failed run is read. **A
+  client death invalidates every assertion downstream of it, and those failures
+  are not findings about the code** — an e2e script driving the player through
+  RCON after the client is gone fails on the player's absence, one assertion at
+  a time. Check the client is alive before attributing a failure, read the
+  assertions up to the loss as valid, and re-run the rest.
+- **Prism rewrites `instance.cfg` from memory while it runs**, so a JVM-args
+  edit sticks only once the launcher is quit. It also refuses a Java 25 override
+  for a 1.21.1 instance.
 
 ---
 
