@@ -96,3 +96,6 @@ __pycache__/
 
 # Session handoff notes (local scratch, not repo documentation)
 .handoff/
+
+# Eclipse/IDE build output under the mod projects
+mods/*/bin/
