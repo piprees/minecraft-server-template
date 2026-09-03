@@ -8,10 +8,16 @@ import com.customdimensions.client.render.QuadCapture;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.network.ClientPlayerEntity;
+import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.registry.Registries;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
+
+import java.util.ArrayList;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * What the client can be asked, as facts rather than log lines. Render thread
@@ -34,34 +40,80 @@ final class DevState {
                 .toString();
     }
 
+    /** Absent, with the reason, when there is no player rather than a guessed one. */
     private static String player(MinecraftClient client) {
         ClientPlayerEntity player = client.player;
         if (player == null) {
-            return "null";
+            return PlayerFacts.absent("no player in the world");
         }
         Vec3d pos = player.getPos();
         BlockPos block = player.getBlockPos();
-        ItemStack held = player.getMainHandStack();
-        return Json.obj()
-                .str("dimension", player.getWorld().getRegistryKey().getValue().toString())
-                .raw("pos", Json.numbers(pos.x, pos.y, pos.z))
-                .raw("blockPos", Json.numbers(block.getX(), block.getY(), block.getZ()))
-                .num("yaw", player.getYaw())
-                .num("pitch", player.getPitch())
-                .bool("onGround", player.isOnGround())
-                .num("health", player.getHealth())
-                .str("mainHandItem",
-                        held.isEmpty() ? null : Registries.ITEM.getId(held.getItem()).toString())
-                .toString();
+        return new PlayerFacts(
+                player.getWorld().getRegistryKey().getValue().toString(),
+                pos.x, pos.y, pos.z,
+                block.getX(), block.getY(), block.getZ(),
+                new PlayerFacts.Rotation(player.getYaw(), player.getPitch(),
+                        player.getHeadYaw(), player.getBodyYaw(),
+                        player.getHorizontalFacing().asString()),
+                new PlayerFacts.Vitals(player.getHealth(), player.getMaxHealth(),
+                        player.getHungerManager().getFoodLevel(),
+                        player.getHungerManager().getSaturationLevel(),
+                        player.getAir(), player.getMaxAir(),
+                        player.experienceLevel, player.experienceProgress),
+                held(player),
+                new PlayerFacts.Status(player.getPose().name(), flags(player),
+                        player.isOnGround(), player.fallDistance))
+                .json();
     }
 
-    /**
-     * {@code currentScreen} is the runtime class name, which for a VANILLA screen
-     * is its intermediary name ({@code class_424}, not {@code TitleScreen}) —
-     * this mod's own classes are not remapped, so only they read as themselves.
-     * Assert on {@code arrivalScreen}, which is an instance check and cannot be
-     * fooled by remapping, or on {@code screenTitle}, which is text.
-     */
+    private static PlayerFacts.Held held(ClientPlayerEntity player) {
+        PlayerInventory inventory = player.getInventory();
+        List<PlayerFacts.Item> hotbar = new ArrayList<>(PlayerInventory.getHotbarSize());
+        for (int slot = 0; slot < PlayerInventory.getHotbarSize(); slot++) {
+            hotbar.add(item(inventory.getStack(slot)));
+        }
+        return new PlayerFacts.Held(item(player.getMainHandStack()),
+                item(player.getOffHandStack()), inventory.selectedSlot, hotbar);
+    }
+
+    /** Null for an empty slot, and null durability for anything that cannot wear. */
+    private static PlayerFacts.Item item(ItemStack stack) {
+        if (stack == null || stack.isEmpty()) {
+            return null;
+        }
+        boolean wears = stack.isDamageable();
+        return new PlayerFacts.Item(
+                Registries.ITEM.getId(stack.getItem()).toString(),
+                stack.getCount(),
+                wears ? stack.getDamage() : null,
+                wears ? stack.getMaxDamage() : null);
+    }
+
+    private static Set<PlayerFacts.Flag> flags(ClientPlayerEntity player) {
+        Set<PlayerFacts.Flag> flags = EnumSet.noneOf(PlayerFacts.Flag.class);
+        add(flags, PlayerFacts.Flag.SNEAKING, player.isSneaking());
+        add(flags, PlayerFacts.Flag.SPRINTING, player.isSprinting());
+        add(flags, PlayerFacts.Flag.SWIMMING, player.isSwimming());
+        add(flags, PlayerFacts.Flag.CRAWLING, player.isCrawling());
+        add(flags, PlayerFacts.Flag.GLIDING, player.isFallFlying());
+        add(flags, PlayerFacts.Flag.SLEEPING, player.isSleeping());
+        add(flags, PlayerFacts.Flag.RIDING, player.hasVehicle());
+        add(flags, PlayerFacts.Flag.ON_FIRE, player.isOnFire());
+        add(flags, PlayerFacts.Flag.IN_LAVA, player.isInLava());
+        add(flags, PlayerFacts.Flag.IN_WATER, player.isTouchingWater());
+        add(flags, PlayerFacts.Flag.SUBMERGED, player.isSubmergedInWater());
+        add(flags, PlayerFacts.Flag.CLIMBING, player.isClimbing());
+        add(flags, PlayerFacts.Flag.BLOCKING, player.isBlocking());
+        add(flags, PlayerFacts.Flag.SPECTATOR, player.isSpectator());
+        return flags;
+    }
+
+    private static void add(Set<PlayerFacts.Flag> flags, PlayerFacts.Flag flag, boolean on) {
+        if (on) {
+            flags.add(flag);
+        }
+    }
+
     private static String clientState(MinecraftClient client) {
         Screen screen = client.currentScreen;
         return Json.obj()
