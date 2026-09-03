@@ -1,10 +1,12 @@
 package com.customdimensions.client.dev;
 
+import com.customdimensions.client.ArrivalScreen;
 import com.customdimensions.client.render.ClientProjection;
 import com.customdimensions.client.render.ProjectionMesh;
 import com.customdimensions.client.render.ProjectionStore;
 import com.customdimensions.client.render.QuadCapture;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.registry.Registries;
@@ -53,11 +55,19 @@ final class DevState {
                 .toString();
     }
 
+    /**
+     * {@code currentScreen} is the runtime class name, which for a VANILLA screen
+     * is its intermediary name ({@code class_424}, not {@code TitleScreen}) —
+     * this mod's own classes are not remapped, so only they read as themselves.
+     * Assert on {@code arrivalScreen}, which is an instance check and cannot be
+     * fooled by remapping, or on {@code screenTitle}, which is text.
+     */
     private static String clientState(MinecraftClient client) {
+        Screen screen = client.currentScreen;
         return Json.obj()
-                .str("currentScreen",
-                        client.currentScreen == null ? null
-                                : client.currentScreen.getClass().getSimpleName())
+                .str("currentScreen", screen == null ? null : screen.getClass().getSimpleName())
+                .str("screenTitle", screen == null ? null : screen.getTitle().getString())
+                .bool("arrivalScreen", screen instanceof ArrivalScreen)
                 .num("fps", client.getCurrentFps())
                 .num("loadedChunks",
                         client.world == null ? 0 : client.world.getChunkManager().getLoadedChunkCount())

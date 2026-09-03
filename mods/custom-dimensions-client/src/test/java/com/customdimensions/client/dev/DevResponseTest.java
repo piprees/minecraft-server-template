@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -124,10 +125,108 @@ class DevResponseTest {
         assertEquals("unknown action: \"jump\"", body.get("error"));
     }
 
+    /**
+     * Never null and never blank: a harness reading {@code .error} gets a
+     * sentence for every refusal, so "no reason given" cannot be mistaken for
+     * a field that failed to parse.
+     */
     @Test
-    void anErrorWithNoMessageIsStillParseable() {
+    void anErrorWithNoMessageStillCarriesAReadableOne() {
         Map<String, Object> body = read(DevResponse.error(null));
         assertEquals(Boolean.FALSE, body.get("ok"));
-        assertNull(body.get("error"));
+        assertEquals("unknown error", body.get("error"));
+    }
+
+    // --------------------------------------------------------------- timeout
+
+    /**
+     * A timeout is the condition a harness most needs told about, and the one
+     * most easily mistaken for a parse failure at the {@code curl | jq} end. It
+     * gets its own shape, and it is never an empty body.
+     */
+    @Test
+    void aTimeoutIsAJsonErrorNamingTheEndpointAndTheBound() {
+        Map<String, Object> body = read(DevResponse.timeout("/state", 5000));
+        assertEquals(Boolean.FALSE, body.get("ok"));
+        assertEquals("/state", body.get("path"));
+        assertEquals(5000.0, (Double) body.get("timeoutMs"));
+        assertTrue(String.valueOf(body.get("error")).contains("/state"), String.valueOf(body.get("error")));
+        assertTrue(String.valueOf(body.get("error")).contains("5000"), String.valueOf(body.get("error")));
+    }
+
+    /** A shell has to be able to tell a timeout from every other refusal. */
+    @Test
+    void aTimeoutIsFlaggedAsOneAndAsWorthRetrying() {
+        Map<String, Object> body = read(DevResponse.timeout("/state", 5000));
+        assertEquals(Boolean.TRUE, body.get("timeout"));
+        assertEquals(Boolean.TRUE, body.get("retryable"));
+    }
+
+    @Test
+    void anOrdinaryErrorIsNotFlaggedAsATimeout() {
+        Map<String, Object> body = read(DevResponse.error("no player in the world"));
+        assertNull(body.get("timeout"));
+        assertNull(body.get("retryable"));
+    }
+
+    // ---------------------------------------------------------------- reason
+
+    /** The wire format must carry the reason, not a Java class name. */
+    @Test
+    void aThrowableWithAMessageReportsTheMessageAlone() {
+        assertEquals("no player in the world",
+                DevResponse.reasonOf(new IllegalStateException("no player in the world")));
+    }
+
+    @Test
+    void aThrowableWithNoMessageFallsBackToItsType() {
+        assertEquals("IllegalStateException",
+                DevResponse.reasonOf(new IllegalStateException()));
+    }
+
+    @Test
+    void aThrowableWithABlankMessageFallsBackToItsType() {
+        assertEquals("IllegalStateException",
+                DevResponse.reasonOf(new IllegalStateException("   ")));
+    }
+
+    @Test
+    void noThrowableAtAllStillReadsAsSomething() {
+        assertEquals("unknown error", DevResponse.reasonOf(null));
+    }
+
+    // ------------------------------------------------------- never empty
+
+    @Test
+    void aRealBodyPassesThroughUntouched() {
+        assertEquals("{\"ok\":true}", DevResponse.nonEmpty("{\"ok\":true}"));
+    }
+
+    @Test
+    void aNullBodyBecomesAParseableError() {
+        Map<String, Object> body = read(DevResponse.nonEmpty(null));
+        assertEquals(Boolean.FALSE, body.get("ok"));
+        assertNotNull(body.get("error"));
+    }
+
+    @Test
+    void anEmptyBodyBecomesAParseableError() {
+        Map<String, Object> body = read(DevResponse.nonEmpty(""));
+        assertEquals(Boolean.FALSE, body.get("ok"));
+        assertNotNull(body.get("error"));
+    }
+
+    @Test
+    void aWhitespaceOnlyBodyBecomesAParseableError() {
+        Map<String, Object> body = read(DevResponse.nonEmpty("   \n"));
+        assertEquals(Boolean.FALSE, body.get("ok"));
+        assertNotNull(body.get("error"));
+    }
+
+    @Test
+    void anErrorWithABlankMessageStillCarriesSomethingReadable() {
+        Map<String, Object> body = read(DevResponse.error(""));
+        assertNotNull(body.get("error"));
+        assertTrue(String.valueOf(body.get("error")).isBlank() == false);
     }
 }

@@ -41,7 +41,44 @@ public final class DevResponse {
     }
 
     public static String error(String message) {
-        return Json.obj().bool("ok", false).str("error", message).toString();
+        return Json.obj().bool("ok", false).str("error", readable(message)).toString();
+    }
+
+    /**
+     * A bounded wait that expired. Flagged distinctly because a harness needs to
+     * tell "the render thread was busy, ask again" from "this request was wrong",
+     * and because an empty body reads as a parse failure at the jq end.
+     */
+    public static String timeout(String path, long timeoutMs) {
+        return Json.obj()
+                .bool("ok", false)
+                .str("error", path + " timed out after " + timeoutMs
+                        + "ms waiting for the render thread")
+                .bool("timeout", true)
+                .bool("retryable", true)
+                .str("path", path)
+                .num("timeoutMs", timeoutMs)
+                .toString();
+    }
+
+    /** The reason, never the Java class name when there is a message to give. */
+    public static String reasonOf(Throwable thrown) {
+        if (thrown == null) {
+            return "unknown error";
+        }
+        String message = thrown.getMessage();
+        return message == null || message.isBlank()
+                ? thrown.getClass().getSimpleName()
+                : message;
+    }
+
+    /** The last guard: a response body is never empty, whatever went wrong. */
+    public static String nonEmpty(String body) {
+        return body == null || body.isBlank() ? error("empty response") : body;
+    }
+
+    private static String readable(String message) {
+        return message == null || message.isBlank() ? "unknown error" : message;
     }
 
     private static String shots(String before, String after) {

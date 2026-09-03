@@ -66,20 +66,33 @@ public final class DevServer {
 
     // ---------------------------------------------------------------- routes
 
+    /** One answer, one send. Every failure becomes a body rather than a dropped reply. */
     private static void route(HttpExchange exchange) throws IOException {
         String path = exchange.getRequestURI().getPath();
+        Answer answer;
         try {
-            switch (path) {
-                case "/health" -> send(exchange, 200, health());
-                case "/state" -> send(exchange, 200, onRender(DevServer::state));
-                case "/screenshot" -> screenshot(exchange);
-                case "/input" -> input(exchange);
-                default -> send(exchange, 404, error("no such endpoint: " + path));
-            }
-        } catch (RuntimeException e) {
+            answer = answer(exchange, path);
+        } catch (DevTimeout e) {
+            CustomDimensionsClient.LOGGER.warn(
+                    "Dev control surface {} timed out after {}ms", path, e.timeoutMs());
+            answer = new Answer(503, DevResponse.timeout(path, e.timeoutMs()));
+        } catch (RuntimeException | IOException e) {
             CustomDimensionsClient.LOGGER.warn("Dev control surface {} failed", path, e);
-            send(exchange, 500, error(String.valueOf(e)));
+            answer = new Answer(500, DevResponse.error(DevResponse.reasonOf(e)));
         }
+        send(exchange, answer.status(), DevResponse.nonEmpty(answer.body()));
+    }
+
+    private record Answer(int status, String body) {}
+
+    private static Answer answer(HttpExchange exchange, String path) throws IOException {
+        return switch (path) {
+            case "/health" -> new Answer(200, health());
+            case "/state" -> new Answer(200, onRender(DevServer::state));
+            case "/screenshot" -> screenshot(exchange);
+            case "/input" -> input(exchange);
+            default -> new Answer(404, DevResponse.error("no such endpoint: " + path));
+        };
     }
 
     private static String health() {
@@ -96,32 +109,30 @@ public final class DevServer {
         return DevState.json(client, DevBridge.tick());
     }
 
-    private static void screenshot(HttpExchange exchange) throws IOException {
+    private static Answer screenshot(HttpExchange exchange) throws IOException {
         ScreenshotRequest request = ScreenshotRequest.parse(body(exchange));
         if (!request.ok()) {
-            send(exchange, 400, error(request.error()));
-            return;
+            return new Answer(400, DevResponse.error(request.error()));
         }
-        send(exchange, 200, onRender(() ->
+        return new Answer(200, onRender(() ->
                 DevShots.json(MinecraftClient.getInstance(), request.path())));
     }
 
     // ----------------------------------------------------------------- input
 
-    private static void input(HttpExchange exchange) throws IOException {
+    private static Answer input(HttpExchange exchange) throws IOException {
         DevRequest request = DevRequest.parse(body(exchange));
         if (!request.ok()) {
-            send(exchange, 400, error(request.error()));
-            return;
+            return new Answer(400, DevResponse.error(request.error()));
         }
         try {
-            send(exchange, 200, switch (request.action()) {
+            return new Answer(200, switch (request.action()) {
                 case "walk" -> walk(request);
                 case "sneak" -> sneak(request);
                 default -> instant(request);
             });
         } catch (JsonReader.Malformed e) {
-            send(exchange, 400, error(e.getMessage()));
+            return new Answer(400, DevResponse.error(e.getMessage()));
         }
     }
 
@@ -203,8 +214,7 @@ public final class DevServer {
         try {
             return future.get(timeoutMs, TimeUnit.MILLISECONDS);
         } catch (TimeoutException e) {
-            throw new IllegalStateException(
-                    "timed out after " + timeoutMs + "ms waiting for the render thread");
+            throw new DevTimeout(timeoutMs);
         } catch (ExecutionException e) {
             Throwable cause = e.getCause() == null ? e : e.getCause();
             throw new IllegalStateException(cause.getMessage(), cause);
@@ -218,8 +228,19 @@ public final class DevServer {
         return new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
     }
 
-    private static String error(String message) {
-        return DevResponse.error(message);
+    /** Carries the bound that expired, so the answer can name it. */
+    private static final class DevTimeout extends RuntimeException {
+
+        private final long timeoutMs;
+
+        DevTimeout(long timeoutMs) {
+            super("timed out after " + timeoutMs + "ms waiting for the render thread");
+            this.timeoutMs = timeoutMs;
+        }
+
+        long timeoutMs() {
+            return this.timeoutMs;
+        }
     }
 
     private static void send(HttpExchange exchange, int status, String body) throws IOException {
