@@ -1478,8 +1478,15 @@ measurement of it.
 - **Do not pin Better Caves back to 3.1.4.** It has no cast, and it predates the
   ScopedValue rewrite that exists to fix c2me and Distant Horizons concurrency —
   this pack runs both, so pinning back trades a deterministic per-chunk failure
-  for the race it fixes. 3.1.5 Fabric ships an empty cloth config, so there is
-  no config lever either.
+  for the race it fixes.
+- **There is no config route out of it, on either config surface.**
+  `BCConfigFabric` declares one field, `general`, and `ConfigGeneralFabric`
+  declares none — read from the bytecode, so no keyed option exists anywhere in
+  the config object. And `data/config/bettercaves/fabric-1_21_1/liquidregions.json`,
+  the one real per-dimension knob, cannot reach this: `NoiseChunkMixin`'s
+  `WrapOperation` targets the 7-parameter `AquiferSampler.aquifer` only, so with
+  `aquifers_enabled` false that mixin never runs and the sampler is the
+  anonymous sea-level one whatever the file says.
 - **It is NOT what kills a server during dimension activation.** That is the
   watchdog on concurrent first-time chunk generation ([K6](#k6)) — a single tick
   exceeding 180s. The two appear together in the log and the exception is the
