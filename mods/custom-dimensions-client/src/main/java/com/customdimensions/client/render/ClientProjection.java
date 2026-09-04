@@ -41,6 +41,9 @@ public final class ClientProjection {
     private final double rectMinB;
     private final double rectMaxB;
 
+    /** Past this reach the slice no longer covers the opening; see {@link #bandOpens}. */
+    public static final double BAND_LIMIT = 0.95;
+
     private volatile ProjectionMesh mesh;
     private final AtomicBoolean building = new AtomicBoolean();
 
@@ -175,6 +178,39 @@ public final class ClientProjection {
     public double surfaceOffset() {
         double nearFace = isPositive(this.normal) ? 0.0 : depthExtent();
         return (this.planeCoord - axisOf(origin(), normalAxis())) - nearFace;
+    }
+
+    /**
+     * How far past the near face of a {@code depth}-thick frame a sightline
+     * reaches through an opening {@code span} blocks across, maximised over
+     * view angle. The maximum of {@code (span - depth * tan(t)) * sin(t)} is at
+     * {@code tan(t) = t} solving {@code t^3 + 2t = span / depth}.
+     */
+    public static double sightlineReach(double span, double depth) {
+        if (span <= 0.0 || depth <= 0.0) {
+            return 0.0;
+        }
+        double half = span / (2.0 * depth);
+        double root = Math.sqrt(half * half + 8.0 / 27.0);
+        double tangent = Math.cbrt(half + root) + Math.cbrt(half - root);
+        return (span - depth * tangent) * tangent / Math.sqrt(1.0 + tangent * tangent);
+    }
+
+    /** The worse of the opening's two in-plane spans. */
+    public double bandReach() {
+        double depth = apertureMaxCoord() - apertureMinCoord();
+        return Math.max(sightlineReach(this.rectMaxA - this.rectMinA, depth),
+                sightlineReach(this.rectMaxB - this.rectMinB, depth));
+    }
+
+    /**
+     * True when the depth slice cannot cover the opening at every view angle.
+     * The slice is anchored on the nearest aperture corner, so past this the
+     * destination is drawn in front of source terrain seen obliquely through
+     * the far side of the opening.
+     */
+    public boolean bandOpens() {
+        return bandReach() > BAND_LIMIT;
     }
 
     public static boolean isPositive(Direction direction) {

@@ -2,11 +2,14 @@ package com.customdimensions.client.render;
 
 import com.customdimensions.client.CompanionPayloads;
 import net.minecraft.util.math.BlockPos;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -22,7 +25,15 @@ public final class ProjectionStore {
     /** Grepped in the client log to prove a description arrived and decoded. */
     public static final String RECEIVE_MARKER = "companion-client:projection";
 
+    /** Grepped in the client log to prove an oversized opening was reported. */
+    public static final String BAND_MARKER = "companion-client:band";
+
+    private static final Logger LOGGER = LoggerFactory.getLogger("customdimensionsclient");
+
     private static final Map<BlockPos, ClientProjection> PROJECTIONS = new ConcurrentHashMap<>();
+
+    /** One line per opening, not one per resend. */
+    private static final Set<BlockPos> WARNED = ConcurrentHashMap.newKeySet();
 
     private ProjectionStore() {}
 
@@ -32,10 +43,22 @@ public final class ProjectionStore {
      * rebuilt from scratch.
      */
     public static void accept(CompanionPayloads.Projection payload) {
-        PROJECTIONS.compute(payload.apertureOrigin(), (key, held) ->
-                sameContent(held == null ? null : held.payload(), payload)
-                        ? held
-                        : new ClientProjection(payload));
+        PROJECTIONS.compute(payload.apertureOrigin(), (key, held) -> {
+            if (sameContent(held == null ? null : held.payload(), payload)) {
+                return held;
+            }
+            ClientProjection made = new ClientProjection(payload);
+            if (made.bandOpens() && WARNED.add(key)) {
+                LOGGER.warn("{} aperture={} span={}x{} reach={} over {}: seen obliquely, the "
+                                + "destination is drawn in front of source terrain at the far "
+                                + "side of the opening",
+                        BAND_MARKER, key.toShortString(),
+                        String.format("%.0f", made.rectMaxA() - made.rectMinA()),
+                        String.format("%.0f", made.rectMaxB() - made.rectMinB()),
+                        String.format("%.2f", made.bandReach()), ClientProjection.BAND_LIMIT);
+            }
+            return made;
+        });
     }
 
     /**
@@ -70,6 +93,7 @@ public final class ProjectionStore {
 
     public static void clear() {
         PROJECTIONS.clear();
+        WARNED.clear();
     }
 
     public static Collection<ClientProjection> all() {
