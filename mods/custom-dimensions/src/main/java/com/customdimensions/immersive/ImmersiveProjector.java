@@ -864,6 +864,10 @@ public final class ImmersiveProjector {
                 // meantime.
                 state.sendDelta(player, world, destination, settings, mapping, destinationY, tick);
             }
+            // Outside the refresh gate on purpose: a stationary viewer is
+            // throttled to a quarter rate, and the far side moves while they
+            // stand still. The feed holds its own cadence.
+            state.feedEntities(player, destination, mapping, destinationY, tick);
             projecting = true;
         }
         return projecting;

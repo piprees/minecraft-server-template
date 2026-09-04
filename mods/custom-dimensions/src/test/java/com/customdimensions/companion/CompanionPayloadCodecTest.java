@@ -82,7 +82,9 @@ class CompanionPayloadCodecTest {
                 CompanionPayloads.Hello.ID.id().toString());
         assertEquals("customdimensions:preloaded/v1",
                 CompanionPayloads.PreloadedTransfer.ID.id().toString());
-        assertEquals(1, CompanionPayloads.PROTOCOL_VERSION);
+        assertEquals("customdimensions:destination-entities/v1",
+                CompanionPayloads.DestinationEntities.ID.id().toString());
+        assertEquals(2, CompanionPayloads.PROTOCOL_VERSION);
     }
 
     @Test

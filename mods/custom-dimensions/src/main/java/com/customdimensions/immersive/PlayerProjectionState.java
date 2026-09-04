@@ -288,6 +288,29 @@ public final class PlayerProjectionState {
         send(player, sourceWorld, targetWorld, settings, mapping, arrivalY, tick, false);
     }
 
+    /**
+     * The destination's nearby entities, on the feed's OWN cadence rather than
+     * the slab's.
+     *
+     * <p>A viewer standing still is throttled to a quarter rate by {@link
+     * #needsRefresh}, which is right for blocks and wrong for entities: the
+     * whole point of the far side is that it moves while the viewer does not.
+     * So this is driven every tick and gated by
+     * {@link com.customdimensions.companion.DestinationEntityFeed#due} instead.
+     *
+     * <p>Silent for a player still being sent a slab: that path has no way to
+     * draw an entity, and the frame is what says otherwise.
+     */
+    public void feedEntities(ServerPlayerEntity player, ServerWorld targetWorld,
+            ProjectionVolume.TargetMapping mapping, int arrivalY, long tick) {
+        if (player == null || targetWorld == null || mapping == null
+                || this.lastCompanionFrame == null) {
+            return;
+        }
+        com.customdimensions.companion.DestinationEntityFeed.feed(player, targetWorld,
+                mapping.arrivalX() + 0.5, arrivalY, mapping.arrivalZ() + 0.5, tick);
+    }
+
     private void send(ServerPlayerEntity player, ServerWorld sourceWorld, ServerWorld targetWorld,
             ImmersiveSettings settings, ProjectionVolume.TargetMapping mapping, int arrivalY,
             long tick, boolean full) {
@@ -762,6 +785,11 @@ public final class PlayerProjectionState {
                 CompanionNetwork.clearProjection(player, this.lastCompanionFrame.apertureOrigin());
             }
         }
+        // The client drops its copy of the destination on the same teardown,
+        // so the record of what it holds goes with it: a delta against
+        // entities the client no longer has would leave them missing.
+        com.customdimensions.companion.DestinationEntityFeed.forget(
+                this.playerId, this.zone.targetWorld.getValue());
         restore(player, sourceWorld);
         forget();
     }

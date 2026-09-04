@@ -4,6 +4,8 @@ import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.codec.PacketCodecs;
 import net.minecraft.network.packet.s2c.play.ChunkDataS2CPacket;
+import net.minecraft.network.packet.s2c.play.EntitySpawnS2CPacket;
+import net.minecraft.network.packet.s2c.play.EntityTrackerUpdateS2CPacket;
 import net.minecraft.network.packet.CustomPayload;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
@@ -19,7 +21,7 @@ import java.util.List;
  */
 public final class CompanionPayloads {
     /** Bumped only alongside a channel id. */
-    public static final int PROTOCOL_VERSION = 1;
+    public static final int PROTOCOL_VERSION = 2;
 
     private CompanionPayloads() {}
 
@@ -342,6 +344,96 @@ public final class CompanionPayloads {
         @Override
         public CustomPayload.Id<? extends CustomPayload> getId() {
             return ID;
+        }
+    }
+
+    /**
+     * Server to client: the entities standing near one destination's arrival,
+     * for a client drawing that far side itself.
+     *
+     * <p>A whole snapshot, not a stream of events. {@code present} carries
+     * every entity the client should be showing — a spawn and a move are the
+     * same message — and {@code departed} names the ones it should stop
+     * showing. Position and angles are DESTINATION world coordinates, matching
+     * {@link DestinationChunk}; nothing here is mapped through the portal.
+     *
+     * <p>The body of each entry is a plain {@code EntitySpawnS2CPacket} written
+     * by VANILLA's own codec, so the client decodes it with vanilla code and
+     * the two sides cannot drift on the entity format. {@code entityData} is
+     * not available outside an {@code EntityTrackerEntry} and rides as 0, so a
+     * type that renders from it (a falling block, a painting) arrives with its
+     * default; a mob and a player do not read it.
+     *
+     * <p>{@code tracked} carries each entity's non-default tracked data,
+     * matched to {@code present} by entity id and shorter than it whenever an
+     * entity has none. It is not decoration: {@code ItemEntity.tick} answers an
+     * empty stack with {@code discard()}, so an item fed without its tracker
+     * deletes itself on its first tick. It is also what makes a baby a baby, a
+     * sheep the right colour and a pose a pose.
+     */
+    public record DestinationEntities(
+            Identifier destination,
+            List<EntitySpawnS2CPacket> present,
+            List<EntityTrackerUpdateS2CPacket> tracked,
+            int[] departed) implements CustomPayload {
+
+        /** Entries one payload may carry, in either list. */
+        public static final int MAX_ENTRIES = 256;
+
+        public static final CustomPayload.Id<DestinationEntities> ID =
+                new CustomPayload.Id<>(Identifier.of("customdimensions", "destination-entities/v1"));
+
+        public static final PacketCodec<RegistryByteBuf, DestinationEntities> CODEC =
+                PacketCodec.of(DestinationEntities::write, DestinationEntities::read);
+
+        @Override
+        public CustomPayload.Id<? extends CustomPayload> getId() {
+            return ID;
+        }
+
+        private void write(RegistryByteBuf buf) {
+            buf.writeIdentifier(this.destination);
+            buf.writeVarInt(this.present.size());
+            for (EntitySpawnS2CPacket entry : this.present) {
+                EntitySpawnS2CPacket.CODEC.encode(buf, entry);
+            }
+            buf.writeVarInt(this.tracked.size());
+            for (EntityTrackerUpdateS2CPacket entry : this.tracked) {
+                EntityTrackerUpdateS2CPacket.CODEC.encode(buf, entry);
+            }
+            buf.writeVarInt(this.departed.length);
+            for (int id : this.departed) {
+                buf.writeVarInt(id);
+            }
+        }
+
+        private static DestinationEntities read(RegistryByteBuf buf) {
+            Identifier destination = buf.readIdentifier();
+            int presentCount = bounded(buf.readVarInt());
+            List<EntitySpawnS2CPacket> present = new ArrayList<>(presentCount);
+            for (int i = 0; i < presentCount; i++) {
+                present.add(EntitySpawnS2CPacket.CODEC.decode(buf));
+            }
+            int trackedCount = bounded(buf.readVarInt());
+            List<EntityTrackerUpdateS2CPacket> tracked = new ArrayList<>(trackedCount);
+            for (int i = 0; i < trackedCount; i++) {
+                tracked.add(EntityTrackerUpdateS2CPacket.CODEC.decode(buf));
+            }
+            int departedCount = bounded(buf.readVarInt());
+            int[] departed = new int[departedCount];
+            for (int i = 0; i < departedCount; i++) {
+                departed[i] = buf.readVarInt();
+            }
+            return new DestinationEntities(destination, present, tracked, departed);
+        }
+
+        /** A length the sender never writes is a protocol break, not a big frame. */
+        static int bounded(int count) {
+            if (count < 0 || count > MAX_ENTRIES) {
+                throw new IllegalStateException("destination entities names " + count
+                        + " entries, over " + MAX_ENTRIES);
+            }
+            return count;
         }
     }
 

@@ -61,6 +61,9 @@ public final class CompanionNetwork {
         PayloadTypeRegistry.playS2C().register(
                 CompanionPayloads.DestinationChunk.ID, CompanionPayloads.DestinationChunk.CODEC);
         PayloadTypeRegistry.playS2C().register(
+                CompanionPayloads.DestinationEntities.ID,
+                CompanionPayloads.DestinationEntities.CODEC);
+        PayloadTypeRegistry.playS2C().register(
                 CompanionPayloads.ProjectionClear.ID, CompanionPayloads.ProjectionClear.CODEC);
 
         PayloadTypeRegistry.playC2S().register(
@@ -108,6 +111,7 @@ public final class CompanionNetwork {
         COMPANIONS.remove(playerId);
         VIEWS.remove(playerId);
         DestinationFeed.forget(playerId);
+        DestinationEntityFeed.forget(playerId);
     }
 
     public static boolean isCompanion(UUID playerId) {
@@ -129,6 +133,7 @@ public final class CompanionNetwork {
         COMPANIONS.clear();
         VIEWS.clear();
         DestinationFeed.clear();
+        DestinationEntityFeed.clear();
     }
 
     /**

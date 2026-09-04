@@ -4,6 +4,7 @@ import com.customdimensions.client.config.RealtimeControls;
 import com.customdimensions.client.config.RealtimeSettings;
 import com.customdimensions.client.dev.DevBridge;
 import com.customdimensions.client.realtime.DestinationChunks;
+import com.customdimensions.client.realtime.DestinationEntities;
 import com.customdimensions.client.realtime.DestinationWorlds;
 import com.customdimensions.client.realtime.PortalFrames;
 import com.customdimensions.client.realtime.RealtimeView;
@@ -72,6 +73,9 @@ public class CustomDimensionsClient implements ClientModInitializer {
         PayloadTypeRegistry.playS2C().register(
                 CompanionPayloads.DestinationChunk.ID, CompanionPayloads.DestinationChunk.CODEC);
         PayloadTypeRegistry.playS2C().register(
+                CompanionPayloads.DestinationEntities.ID,
+                CompanionPayloads.DestinationEntities.CODEC);
+        PayloadTypeRegistry.playS2C().register(
                 CompanionPayloads.ProjectionClear.ID, CompanionPayloads.ProjectionClear.CODEC);
 
         ClientPlayNetworking.registerGlobalReceiver(CompanionPayloads.PreloadedTransfer.ID,
@@ -81,8 +85,8 @@ public class CustomDimensionsClient implements ClientModInitializer {
                     // One opening is described by one store or the other, never
                     // both, or the far side is drawn twice.
                     PortalFrames.remove(payload.apertureOrigin());
-                    ProjectionStore.accept(payload);
-                    LOGGER.info("{} dimension={} cells={} aperture={}", ProjectionStore.RECEIVE_MARKER,
+                    Repeated.log(LOGGER, ProjectionStore.accept(payload),
+                            "{} dimension={} cells={} aperture={}", ProjectionStore.RECEIVE_MARKER,
                             payload.destination(), payload.cellCount(),
                             payload.apertureOrigin().toShortString());
                 });
@@ -124,6 +128,10 @@ public class CustomDimensionsClient implements ClientModInitializer {
                                 loaded, DestinationWorlds.loadedChunks(payload.destination()));
                     }
                 });
+        ClientPlayNetworking.registerGlobalReceiver(CompanionPayloads.DestinationEntities.ID,
+                (payload, context) -> DestinationEntities.accept(context.client(),
+                        payload.destination(), payload.present(), payload.tracked(),
+                        payload.departed()));
         ClientPlayNetworking.registerGlobalReceiver(CompanionPayloads.ProjectionClear.ID,
                 (payload, context) -> {
                     ProjectionStore.remove(payload.apertureOrigin());
@@ -135,6 +143,7 @@ public class CustomDimensionsClient implements ClientModInitializer {
             ProjectionStore.clear();
             PortalFrames.clear();
             DestinationChunks.clear();
+            DestinationEntities.clear();
             DestinationWorlds.clear();
             RealtimeView.clear();
             SpectatorPass.reset();
@@ -146,6 +155,9 @@ public class CustomDimensionsClient implements ClientModInitializer {
         });
 
         ClientTickEvents.END_CLIENT_TICK.register(RealtimeView::tick);
+        // Before the render: vanilla's own interpolation is spent in
+        // Entity.tick, and nothing else drives a world nobody stands in.
+        ClientTickEvents.END_CLIENT_TICK.register(DestinationEntities::tick);
         ClientTickEvents.END_CLIENT_TICK.register(CustomDimensionsClient::sendHelloWhenReady);
         ClientTickEvents.END_CLIENT_TICK.register(CustomDimensionsClient::declarePortalViewWhenPending);
         ClientTickEvents.END_CLIENT_TICK.register(CustomDimensionsClient::dropProjectionsOnWorldChange);
@@ -160,6 +172,7 @@ public class CustomDimensionsClient implements ClientModInitializer {
             ProjectionStore.clear();
             PortalFrames.clear();
             DestinationChunks.clear();
+            DestinationEntities.clear();
             DestinationWorlds.clear();
             RealtimeView.clear();
             SpectatorPass.reset();
@@ -202,6 +215,7 @@ public class CustomDimensionsClient implements ClientModInitializer {
         ProjectionStore.clear();
         PortalFrames.clear();
         DestinationChunks.clear();
+        DestinationEntities.clear();
         DestinationWorlds.clear();
         RealtimeView.clear();
         SpectatorPass.reset();

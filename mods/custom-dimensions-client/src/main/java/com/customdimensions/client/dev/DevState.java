@@ -5,6 +5,7 @@ import com.customdimensions.client.PortalViewDeclaration;
 import com.customdimensions.client.config.RealtimeControls;
 import com.customdimensions.client.config.RealtimeSettings;
 import com.customdimensions.client.realtime.DestinationChunks;
+import com.customdimensions.client.realtime.DestinationEntities;
 import com.customdimensions.client.realtime.DestinationWorlds;
 import com.customdimensions.client.realtime.PortalFrames;
 import com.customdimensions.client.realtime.SpectatorPass;
@@ -79,6 +80,9 @@ final class DevState {
                     .num("chunksInWorld", held.getOrDefault(destination, 0))
                     .num("chunksReceived", received.getOrDefault(destination, 0))
                     .num("renderedSections", DestinationWorlds.renderedSections(destination))
+                    .num("entities", DestinationEntities.count(destination))
+                    .raw("entityIds", Json.strings(DestinationEntities.heldIds(destination)))
+                    .raw("entityList", Json.strings(DestinationEntities.listing(destination)))
                     .toString());
             first = false;
         }
@@ -94,6 +98,7 @@ final class DevState {
                 .num("destinationWorlds", DestinationWorlds.count())
                 .num("destinationChunks", DestinationChunks.total())
                 .num("renderedSections", DestinationWorlds.renderedSections())
+                .num("destinationEntities", DestinationEntities.total())
                 .num("spectatorPasses", SpectatorPass.passes())
                 .num("spectatorLastUs", SpectatorPass.lastMicros())
                 .num("spectatorMeanUs", SpectatorPass.meanMicros())

@@ -280,6 +280,7 @@ public final class DestinationWorlds {
             }
         }
         DestinationChunks.drop(destination);
+        DestinationEntities.drop(destination);
         CustomDimensionsClient.LOGGER.info("{} dimension={} dropped", WORLD_MARKER, destination);
     }
 

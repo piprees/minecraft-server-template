@@ -57,6 +57,17 @@ public final class Json {
         return out.append(']').toString();
     }
 
+    /** A JSON array of quoted values, each rendered with toString. */
+    public static String strings(Iterable<?> values) {
+        StringBuilder out = new StringBuilder("[");
+        boolean first = true;
+        for (Object value : values) {
+            out.append(first ? "" : ",").append(quote(String.valueOf(value)));
+            first = false;
+        }
+        return out.append(']').toString();
+    }
+
     public static Obj obj() {
         return new Obj();
     }
