@@ -1767,9 +1767,10 @@ public class PortalHelper {
         }
         ensureArrivalZone(portalWorld, interior, axis, definition, sourceWorld);
 
-        // Guarantee egress BEFORE the frame goes in: a portal you cannot step
-        // out of is the worst failure this code has (see PortalSite).
-        PortalSite.carveEgress(targetWorld, interior, axis);
+        // Empty the interior and guarantee egress BEFORE the frame goes in: a
+        // portal you cannot step out of is the worst failure this code has,
+        // and a frame with water standing in it is not a portal.
+        PortalSite.clearArrival(targetWorld, interior, axis);
 
         BlockState frameState = frameBlock.getDefaultState();
 

@@ -395,6 +395,38 @@ public final class PortalSite {
     }
 
     /**
+     * Pure: every cell arrival construction empties — the interior's own cells
+     * and the egress pocket either side of the plane.
+     */
+    public static Set<BlockPos> arrivalCells(Set<BlockPos> interior, Direction.Axis axis, int depth) {
+        Set<BlockPos> out = egressCells(interior, axis, depth);
+        if (interior != null) {
+            out.addAll(interior);
+        }
+        return out;
+    }
+
+    /**
+     * Empty an arrival before its frame ring goes in — a portal is a frame
+     * with nothing inside it, at either end.
+     *
+     * <p>Built on {@link #clear}, which refuses bedrock, block entities and
+     * vanilla portal blocks and writes with the same flags as the rest of the
+     * arrival. The interior-clearing loops in {@code PortalHelper} gate on a
+     * vanilla portal block instead, so they are no-ops against water; the
+     * converse also holds, and this one leaves a vanilla portal block alone.
+     *
+     * <p>A pocket whose walls are water re-floods on the next fluid tick.
+     * Vanilla's force-place writes air and does not seal either.
+     */
+    public static void clearArrival(ServerWorld world, Set<BlockPos> interior, Direction.Axis axis) {
+        int flags = Block.NOTIFY_LISTENERS | Block.FORCE_STATE;
+        for (BlockPos pos : arrivalCells(interior, axis, EGRESS_DEPTH)) {
+            clear(world, pos, flags);
+        }
+    }
+
+    /**
      * Pure: which positions an egress carve covers — {@code depth} cells out
      * from every interior cell along BOTH normals of the portal plane, and
      * nothing else. Never includes an interior cell (the frame ring lies in
