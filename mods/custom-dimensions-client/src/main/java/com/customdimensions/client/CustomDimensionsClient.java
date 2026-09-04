@@ -7,6 +7,7 @@ import com.customdimensions.client.realtime.DestinationChunks;
 import com.customdimensions.client.realtime.DestinationWorlds;
 import com.customdimensions.client.realtime.PortalFrames;
 import com.customdimensions.client.realtime.RealtimeView;
+import com.customdimensions.client.realtime.SpectatorComposite;
 import com.customdimensions.client.realtime.SpectatorPass;
 import com.customdimensions.client.render.ProjectionRenderer;
 import com.customdimensions.client.render.ProjectionStore;
@@ -152,6 +153,7 @@ public class CustomDimensionsClient implements ClientModInitializer {
         // as the failure it was re-armed from.
         ClientTickEvents.END_CLIENT_TICK.register(CustomDimensionsClient::standDownOnRenderFailure);
         WorldRenderEvents.BEFORE_ENTITIES.register(ProjectionRenderer::render);
+        SpectatorComposite.register();
 
         ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
             PendingTransfer.clear();
