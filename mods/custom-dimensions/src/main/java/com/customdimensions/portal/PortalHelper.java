@@ -50,7 +50,8 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 public class PortalHelper {
-    private static final int MAX_PORTAL_BLOCKS = 128;
+    /** The most cells a portal opening may carry. */
+    public static final int MAX_PORTAL_BLOCKS = 128;
     // Keyed by the world the portal block lives IN, then position. A flat
     // BlockPos key collided across dimensions AND made the per-tick particle
     // pass getBlockState foreign-world positions — which synchronously loads
@@ -1870,6 +1871,21 @@ public class PortalHelper {
     }
 
     public static Set<BlockPos> floodFill(FrameView view, BlockPos start, FrameMatcher frameMatcher, Direction.Axis axis) {
+        return floodFillOutcome(view, start, frameMatcher, axis).cells();
+    }
+
+    /**
+     * A flood fill and, when it found no opening, which of the two ways it
+     * failed: the cells leaked out, or there were more than a portal carries.
+     * {@code refusal} is null exactly when {@code cells} is a real opening, and
+     * {@code blockedBy} names the one block that stopped a leaking fill — the
+     * whole answer to the commonest refusal there is.
+     */
+    public record Fill(Set<BlockPos> cells, IgnitionRefusal refusal, int reached, BlockPos blockedBy) {
+    }
+
+    public static Fill floodFillOutcome(FrameView view, BlockPos start, FrameMatcher frameMatcher,
+            Direction.Axis axis) {
         HashSet<BlockPos> visited = new HashSet<>();
         ArrayDeque<BlockPos> queue = new ArrayDeque<>();
         queue.add(start);
@@ -1879,7 +1895,8 @@ public class PortalHelper {
         while (!queue.isEmpty()) {
             BlockPos pos = queue.poll();
             if (visited.size() > MAX_PORTAL_BLOCKS) {
-                return Collections.emptySet();
+                return new Fill(Collections.emptySet(), IgnitionRefusal.OPENING_TOO_LARGE,
+                        visited.size(), null);
             }
             for (Direction dir : directions) {
                 BlockPos neighbor = pos.offset(dir);
@@ -1890,13 +1907,14 @@ public class PortalHelper {
                     continue;
                 }
                 if (!view.isFillable(neighbor)) {
-                    return Collections.emptySet();
+                    return new Fill(Collections.emptySet(), IgnitionRefusal.OPENING_NOT_ENCLOSED,
+                            visited.size(), neighbor);
                 }
                 visited.add(neighbor);
                 queue.add(neighbor);
             }
         }
-        return visited;
+        return new Fill(visited, null, visited.size(), null);
     }
 
     public static boolean isAreaBoundedByFrame(ServerWorld world, Set<BlockPos> portalArea, FrameMatcher frameMatcher, Direction.Axis axis) {

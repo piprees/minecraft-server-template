@@ -4,6 +4,8 @@ import com.customdimensions.config.MultiverseConfig;
 import com.customdimensions.config.PortalDefinition;
 import com.customdimensions.dimension.DimensionManager;
 import com.customdimensions.portal.FrameView;
+import com.customdimensions.portal.IgnitionLog;
+import com.customdimensions.portal.IgnitionRefusal;
 import com.customdimensions.portal.IgnitionScan;
 import com.customdimensions.portal.PortalHelper;
 import net.minecraft.item.Item;
@@ -32,14 +34,16 @@ public class PortalIgnitionMixin {
     @Inject(method = "useOnBlock", at = @At("HEAD"), cancellable = true)
     private void onItemUseOnBlock(ItemUsageContext context, CallbackInfoReturnable<ActionResult> cir) {
         World world = context.getWorld();
+        BlockPos clickedPos = context.getBlockPos();
         if (world.isClient()) {
+            IgnitionLog.refusedEarly(IgnitionRefusal.CLIENT_WORLD, world, clickedPos, context.getStack());
             return;
         }
         if (!(world instanceof ServerWorld serverWorld)) {
+            IgnitionLog.refusedEarly(IgnitionRefusal.NOT_SERVER_WORLD, world, clickedPos, context.getStack());
             return;
         }
 
-        BlockPos clickedPos = context.getBlockPos();
         String clickedBlockId = Registries.BLOCK.getId(serverWorld.getBlockState(clickedPos).getBlock()).toString();
 
         // Igniter items are shared across dimensions (eight dims use
@@ -56,30 +60,24 @@ public class PortalIgnitionMixin {
         if (candidates.isEmpty()) {
             PortalDefinition fallback = MultiverseConfig.getInstance().getDefaultPortalForFrameBlock(clickedBlockId);
             if (fallback == null) {
+                IgnitionLog.refusedEarly(IgnitionRefusal.NO_IGNITER_MATCH, world, clickedPos,
+                        context.getStack());
                 return;
             }
             candidates = List.of(fallback);
         }
 
         for (PortalDefinition def : candidates) {
-            if (tryIgnite(serverWorld, clickedPos, context, def, cir)) {
+            IgnitionScan.Attempt attempt = IgnitionScan.sweepDetailed(
+                    FrameView.of(serverWorld), clickedPos, def.resolveFrameMatcher(), def);
+            if (attempt.site() != null) {
+                IgnitionScan.Site site = attempt.site();
+                registerAndFinish(serverWorld, site.soundPos(), context, def, site.fill(), site.axis());
+                cir.setReturnValue(ActionResult.SUCCESS);
                 return;
             }
+            IgnitionLog.refused(serverWorld, clickedPos, clickedBlockId, def, attempt.refusal());
         }
-    }
-
-    // Frame detection + zone registration for one candidate definition.
-    // Returns true when a portal was ignited (cir is then set to SUCCESS).
-    private static boolean tryIgnite(ServerWorld serverWorld, BlockPos clickedPos,
-            ItemUsageContext context, PortalDefinition def, CallbackInfoReturnable<ActionResult> cir) {
-        IgnitionScan.Site site = IgnitionScan.sweep(
-                FrameView.of(serverWorld), clickedPos, def.resolveFrameMatcher(), def);
-        if (site == null) {
-            return false;
-        }
-        registerAndFinish(serverWorld, site.soundPos(), context, def, site.fill(), site.axis());
-        cir.setReturnValue(ActionResult.SUCCESS);
-        return true;
     }
 
     private static void registerAndFinish(ServerWorld serverWorld, BlockPos soundPos, ItemUsageContext context,

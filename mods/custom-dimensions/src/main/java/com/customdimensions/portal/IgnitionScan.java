@@ -8,11 +8,15 @@ import net.minecraft.util.math.Direction;
 import java.util.Set;
 
 /**
- * Valid flood-fills per axis at one ignition candidate position,
- * respecting the definition's orientation constraint (disallowed axes are
- * never even filled), and the candidate sweep behind a single click. Lives
- * outside PortalIgnitionMixin because mixin classes must stay thin (and
- * nested types in mixins invite synthetic-accessor trouble).
+ * Valid flood-fills per axis at one ignition candidate position, and the
+ * candidate sweep behind a single click. Lives outside PortalIgnitionMixin
+ * because mixin classes must stay thin (and nested types in mixins invite
+ * synthetic-accessor trouble).
+ *
+ * <p>Every gate here answers with an {@link IgnitionRefusal} when it declines,
+ * and a sweep keeps the refusal that got FURTHEST — one click reaches 349
+ * candidate cells on three axes, so the first refusal is noise and the
+ * closest miss is the answer.
  */
 public record IgnitionScan(Set<BlockPos> xFill, Set<BlockPos> zFill, Set<BlockPos> yFill) {
 
@@ -21,6 +25,41 @@ public record IgnitionScan(Set<BlockPos> xFill, Set<BlockPos> zFill, Set<BlockPo
 
     /** What a sweep found: the fill, its axis, and where the ignite sound plays. */
     public record Site(BlockPos soundPos, Set<BlockPos> fill, Direction.Axis axis) {
+    }
+
+    /**
+     * Why a sweep found nothing: the closest miss, the cell it judged, and —
+     * when a single block is the whole answer — that block's position.
+     */
+    public record Refusal(IgnitionRefusal reason, BlockPos at, Direction.Axis axis, int cells,
+            BlockPos blockedBy) {
+
+        public Refusal(IgnitionRefusal reason, BlockPos at, Direction.Axis axis, int cells) {
+            this(reason, at, axis, cells, null);
+        }
+
+        /** The one that came closer to a portal; the earlier wins a tie. */
+        public static Refusal furthest(Refusal a, Refusal b) {
+            if (a == null) {
+                return b;
+            }
+            if (b == null) {
+                return a;
+            }
+            return IgnitionRefusal.furthest(a.reason(), b.reason()) == a.reason() ? a : b;
+        }
+    }
+
+    /** A sweep's outcome: exactly one of {@code site} and {@code refusal} is set. */
+    public record Attempt(Site site, Refusal refusal) {
+    }
+
+    /** One axis at one candidate cell: the fill, or why there is none. */
+    private record AxisFill(Set<BlockPos> fill, Refusal refusal) {
+    }
+
+    /** One candidate cell across all three axes. */
+    private record Scan(IgnitionScan fills, Refusal refusal) {
     }
 
     /** Null when no allowed axis yields a valid bounded fill. */
@@ -32,10 +71,19 @@ public record IgnitionScan(Set<BlockPos> xFill, Set<BlockPos> zFill, Set<BlockPo
     /** Null when no allowed axis yields a valid bounded fill. */
     public static IgnitionScan discover(FrameView view, BlockPos candidate, FrameMatcher matcher,
             PortalDefinition def) {
-        Set<BlockPos> x = validFill(view, candidate, matcher, def, Direction.Axis.X);
-        Set<BlockPos> z = validFill(view, candidate, matcher, def, Direction.Axis.Z);
-        Set<BlockPos> y = validFill(view, candidate, matcher, def, Direction.Axis.Y);
-        return x == null && z == null && y == null ? null : new IgnitionScan(x, z, y);
+        return scan(view, candidate, matcher, def).fills();
+    }
+
+    private static Scan scan(FrameView view, BlockPos candidate, FrameMatcher matcher,
+            PortalDefinition def) {
+        AxisFill x = validFill(view, candidate, matcher, def, Direction.Axis.X);
+        AxisFill z = validFill(view, candidate, matcher, def, Direction.Axis.Z);
+        AxisFill y = validFill(view, candidate, matcher, def, Direction.Axis.Y);
+        if (x.fill() == null && z.fill() == null && y.fill() == null) {
+            return new Scan(null,
+                    Refusal.furthest(Refusal.furthest(x.refusal(), z.refusal()), y.refusal()));
+        }
+        return new Scan(new IgnitionScan(x.fill(), z.fill(), y.fill()), null);
     }
 
     /**
@@ -45,21 +93,31 @@ public record IgnitionScan(Set<BlockPos> xFill, Set<BlockPos> zFill, Set<BlockPo
      * yields a frame this definition accepts — which is what lets an ender
      * eye fall through to vanilla and socket into a stronghold.
      */
-    public static Site sweep(FrameView view, BlockPos clickedPos, FrameMatcher matcher, PortalDefinition def) {
+    public static Site sweep(FrameView view, BlockPos clickedPos, FrameMatcher matcher,
+            PortalDefinition def) {
+        return sweepDetailed(view, clickedPos, matcher, def).site();
+    }
+
+    /** {@link #sweep}, keeping the reason when it finds nothing. */
+    public static Attempt sweepDetailed(FrameView view, BlockPos clickedPos, FrameMatcher matcher,
+            PortalDefinition def) {
         if (matcher.isEmpty()) {
-            return null;
+            return new Attempt(null,
+                    new Refusal(IgnitionRefusal.NO_FRAME_MATERIAL, clickedPos, null, 0));
         }
+        Refusal closest = null;
         for (Direction dir : Direction.values()) {
             BlockPos candidate = clickedPos.offset(dir);
             if (!view.isFillable(candidate)) {
                 continue;
             }
-            IgnitionScan fills = discover(view, candidate, matcher, def);
-            if (fills == null) {
+            Scan found = scan(view, candidate, matcher, def);
+            if (found.fills() == null) {
+                closest = Refusal.furthest(closest, found.refusal());
                 continue;
             }
-            Direction.Axis axis = fills.pick(dir.getAxis());
-            return new Site(clickedPos, fills.get(axis), axis);
+            Direction.Axis axis = found.fills().pick(dir.getAxis());
+            return new Attempt(new Site(clickedPos, found.fills().get(axis), axis), null);
         }
 
         for (int dx = -BOX_RADIUS; dx <= BOX_RADIUS; dx++) {
@@ -69,26 +127,30 @@ public record IgnitionScan(Set<BlockPos> xFill, Set<BlockPos> zFill, Set<BlockPo
                     if (!view.isFillable(candidate)) {
                         continue;
                     }
-                    IgnitionScan fills = discover(view, candidate, matcher, def);
-                    if (fills == null) {
+                    Scan found = scan(view, candidate, matcher, def);
+                    if (found.fills() == null) {
+                        closest = Refusal.furthest(closest, found.refusal());
                         continue;
                     }
-                    Direction.Axis axis = fills.pick(null);
-                    return new Site(candidate, fills.get(axis), axis);
+                    Direction.Axis axis = found.fills().pick(null);
+                    return new Attempt(new Site(candidate, found.fills().get(axis), axis), null);
                 }
             }
         }
-        return null;
+        return new Attempt(null, closest != null ? closest
+                : new Refusal(IgnitionRefusal.NO_CANDIDATE_CELL, clickedPos, null, 0));
     }
 
-    private static Set<BlockPos> validFill(FrameView view, BlockPos candidate, FrameMatcher matcher,
+    private static AxisFill validFill(FrameView view, BlockPos candidate, FrameMatcher matcher,
             PortalDefinition def, Direction.Axis axis) {
-        if (!def.allowsAxis(axis)) {
-            return null;
+        PortalHelper.Fill filled = PortalHelper.floodFillOutcome(view, candidate, matcher, axis);
+        if (filled.refusal() != null) {
+            return new AxisFill(null, new Refusal(filled.refusal(), candidate, axis,
+                    filled.reached(), filled.blockedBy()));
         }
-        Set<BlockPos> fill = PortalHelper.floodFill(view, candidate, matcher, axis);
-        if (fill.isEmpty() || !PortalHelper.isAreaBoundedByFrame(view, fill, matcher, axis)) {
-            return null;
+        Set<BlockPos> fill = filled.cells();
+        if (!PortalHelper.isAreaBoundedByFrame(view, fill, matcher, axis)) {
+            return refuse(IgnitionRefusal.FRAME_INCOMPLETE, candidate, axis, fill.size());
         }
         // Shape presets constrain the geometry the flood-fill found —
         // "standard" (absent) accepts anything, unknown names accept
@@ -98,18 +160,28 @@ public record IgnitionScan(Set<BlockPos> xFill, Set<BlockPos> zFill, Set<BlockPo
         if (PortalShape.PATTERN.equals(def.getShape())) {
             if (!PortalShape.matchesPattern(def.getShapeTemplate(), def.getShapeLegend(),
                     fill, axis, p -> view.matches(p, matcher))) {
-                return null;
+                return refuse(IgnitionRefusal.PATTERN_MISMATCH, candidate, axis, fill.size());
             }
         } else if (!PortalShape.matches(def.getShape(), fill, axis)) {
-            return null;
+            return refuse(IgnitionRefusal.SHAPE_MISMATCH, candidate, axis, fill.size());
         }
         // Per-part materials: each ring position must satisfy ITS part's
         // matcher (uniform frames and Y-axis fills pass through unchanged).
         if (def.hasPartMaterials()
                 && !PortalHelper.isAreaBoundedByFrameParts(view, fill, def, axis)) {
-            return null;
+            return refuse(IgnitionRefusal.FRAME_PART_MISMATCH, candidate, axis, fill.size());
         }
-        return fill;
+        // Orientation is policy, not geometry, so it is asked LAST: a frame
+        // that is right in every other way is told which way it may stand,
+        // instead of being blamed for whichever axis leaked first.
+        if (!def.allowsAxis(axis)) {
+            return refuse(IgnitionRefusal.AXIS_NOT_ALLOWED, candidate, axis, fill.size());
+        }
+        return new AxisFill(fill, null);
+    }
+
+    private static AxisFill refuse(IgnitionRefusal reason, BlockPos at, Direction.Axis axis, int cells) {
+        return new AxisFill(null, new Refusal(reason, at, axis, cells));
     }
 
     /** Clicked-face axis first (when valid), then the Y, X, Z priority. */
