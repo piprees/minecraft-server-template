@@ -813,14 +813,39 @@ public class PortalHelper {
         return ARRIVAL_ZONES.getOrDefault(world, Collections.emptyList());
     }
 
-    /** The arrival zone covering this cell, or null. */
+    /**
+     * The arrival zone covering this cell, or null.
+     *
+     * <p>Searches the pending map too. A persisted arrival waits there until
+     * its own world first ticks, and most never do — so a lookup over the live
+     * map alone answers "no arrival here" for one that demonstrably exists,
+     * which registers it a second time and leaves the first standing when its
+     * source portal breaks.
+     */
     public static PortalZone arrivalZoneAt(RegistryKey<World> world, BlockPos pos) {
         for (PortalZone zone : getArrivalZones(world)) {
             if (zone.interior.contains(pos)) {
                 return zone;
             }
         }
+        for (PortalZone zone : PENDING_ARRIVAL_ZONES.getOrDefault(world, Collections.emptyList())) {
+            if (zone.interior.contains(pos)) {
+                return zone;
+            }
+        }
         return null;
+    }
+
+    /** Drops an arrival zone from whichever map holds it. */
+    static void removeArrivalZone(RegistryKey<World> world, PortalZone zone) {
+        List<PortalZone> live = ARRIVAL_ZONES.get(world);
+        if (live != null) {
+            live.remove(zone);
+        }
+        List<PortalZone> pending = PENDING_ARRIVAL_ZONES.get(world);
+        if (pending != null) {
+            pending.remove(zone);
+        }
     }
 
     private static boolean addArrivalZoneIfAbsent(PortalZone zone) {
@@ -914,10 +939,7 @@ public class PortalHelper {
             }
         }
         clearInteriorPortals(world, zone);
-        List<PortalZone> zones = ARRIVAL_ZONES.get(worldKey);
-        if (zones != null) {
-            zones.remove(zone);
-        }
+        removeArrivalZone(worldKey, zone);
         com.customdimensions.immersive.ImmersiveProjector.cleanupZone(zone);
         int linked = breakLinkedSourceZone(world, broken);
         savePortalLinks();
@@ -1600,7 +1622,7 @@ public class PortalHelper {
         PortalZone arrivalZone = arrivalZoneAt(zone.targetWorld, cells.iterator().next());
         if (arrivalZone != null) {
             com.customdimensions.immersive.ImmersiveProjector.cleanupZone(arrivalZone);
-            ARRIVAL_ZONES.get(zone.targetWorld).remove(arrivalZone);
+            removeArrivalZone(zone.targetWorld, arrivalZone);
         }
         ServerWorld targetWorld = sourceWorld.getServer() != null
                 ? sourceWorld.getServer().getWorld(zone.targetWorld)
