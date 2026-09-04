@@ -4,7 +4,7 @@
 
 | Prefix | Range | What it covers |
 | --- | --- | --- |
-| **T** | [T1–T14, T16–T19, T22–T27, T30–T80, T82–T86](#architecture-traps) | Architecture traps — each has caused a real production incident |
+| **T** | [T1–T14, T16–T19, T22–T27, T30–T80, T82–T88](#architecture-traps) | Architecture traps — each has caused a real production incident |
 | **P** | [P1–P6](#macos-local-dev) | macOS local-dev quirks (BSD tooling, toolchain) |
 | **D** | [D1–D6, D8–D9](#dimension-lifecycle) | Custom-dimension lifecycle on a live world |
 | **K** | [K1–K2, K5–K7, K9](#known-issues) | Open issues — unfixed, on the watch list |
@@ -52,6 +52,7 @@ Run this first. It covers deploy drift, disk, every expected container, `ONLINE_
 | A probe returns nothing, or the same value everywhere | [T50](#t50) |
 | A copper portal frame stops lighting and nothing changed | [T85](#t85) |
 | A subagent shows "running" but has produced nothing for hours | [T86](#t86) |
+| Every mutation "reddens nothing", or a probe reports no activity | [T88](#t88) |
 | Structure spacing arithmetic disagrees with the world | [T51](#t51) |
 | mc watchdog-crashes a few minutes after a local world reset, parked in `save-all` | [T57](#t57) |
 | The same few structures repeat endlessly in one dimension | [T52](#t52) |
@@ -1606,6 +1607,35 @@ measurement of it.
   so ask a direct question first and say plainly that the work is being taken
   back. Kill only after silence plus a zero-artefact window. Never on a hunch —
   but a measured multi-hour gap is a measurement, not a hunch.
+
+<a id="t88"></a>
+### T88 — A result file outlives the run that made it, so a build that never ran reads as a pass
+
+- **Symptom:** every mutation in a sweep "reddens nothing", including ones that
+  delete a line two tests assert on. Or a suite reports green minutes after a
+  change that cannot possibly pass. Or a liveness probe reports no activity
+  across a tree that is being written to.
+- **Cause, one shape three ways.** `compileJava` fails, `test` never runs, and
+  the previous run's `build/test-results/test/TEST-*.xml` stays on disk — a
+  harness that parses the XML reads last time's answer as this time's. Measured
+  in a shared tree with five agents: one agent mid-edit broke the compile and
+  another's nine-mutation sweep silently reported nine survivals.
+- **The same shape without gradle.** `find -newermt '-5 minutes'` is not a valid
+  timestamp for this `find` (BSD/bfs want ISO 8601). It errors to **stderr** and
+  prints nothing to stdout, so a probe piped through `head` shows an empty list
+  — indistinguishable from "nothing has changed". That reading nearly got five
+  working agents terminated.
+- **Fix:** read the tool's OWN verdict, never a file it may not have rewritten.
+  Gradle's `BUILD SUCCESSFUL` / `N tests completed` line is the authority; a
+  background task's exit code is not (a `nohup … &` wrapper exits immediately).
+  For a harness: record the result file's mtime before the run and refuse to
+  answer unless it moves, reporting `DID NOT RUN` with the compiler's own error
+  lines. For a probe: give it a positive control — assert something you know
+  must read true before believing a negative — and do not swallow stderr.
+- **A sweep whose results each name a DIFFERENT test is not affected.** A stale
+  file repeats one answer verbatim; it cannot invent a distinct, correct
+  attribution per mutation. That is how to tell a poisoned sweep from a real one
+  after the fact.
 
 <a id="t78"></a>
 ### T78 — A config change does not reach the local server, and the boot is green on the old file
