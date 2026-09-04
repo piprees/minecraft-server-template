@@ -45,7 +45,10 @@ public enum IgnitionRefusal {
     FRAME_PART_MISMATCH("a frame block is the wrong material for its part of the ring"),
 
     /** The frame is right in every other way, but this portal may not stand this way up. */
-    AXIS_NOT_ALLOWED("this portal may not stand in this orientation");
+    AXIS_NOT_ALLOWED("this portal may not stand in this orientation"),
+
+    /** Nothing is wrong with the frame: it is a lit portal already. */
+    ALREADY_LIT("this frame is already a lit portal, so there was nothing to light");
 
     private final String sentence;
 

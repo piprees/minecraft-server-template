@@ -19,7 +19,6 @@ import net.minecraft.sound.SoundEvent;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
 import net.minecraft.world.World;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -27,7 +26,6 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.List;
-import java.util.Set;
 
 @Mixin(ItemStack.class)
 public class PortalIgnitionMixin {
@@ -72,7 +70,13 @@ public class PortalIgnitionMixin {
                     FrameView.of(serverWorld), clickedPos, def.resolveFrameMatcher(), def);
             if (attempt.site() != null) {
                 IgnitionScan.Site site = attempt.site();
-                registerAndFinish(serverWorld, site.soundPos(), context, def, site.fill(), site.axis());
+                if (!registerAndFinish(serverWorld, site, context, def)) {
+                    IgnitionLog.refused(serverWorld, clickedPos, clickedBlockId, def,
+                            new IgnitionScan.Refusal(IgnitionRefusal.ALREADY_LIT, clickedPos,
+                                    site.axis(), site.fill().size()));
+                }
+                // Cancelled either way. Falling through to vanilla would set
+                // fire to the frame of a portal that is already burning.
                 cir.setReturnValue(ActionResult.SUCCESS);
                 return;
             }
@@ -80,18 +84,25 @@ public class PortalIgnitionMixin {
         }
     }
 
-    private static void registerAndFinish(ServerWorld serverWorld, BlockPos soundPos, ItemUsageContext context,
-            PortalDefinition def, Set<BlockPos> fill, Direction.Axis axis) {
+    // False when this frame is already a lit portal. The zone is deduped on
+    // (target, axis, interior), so a re-light registers nothing — and an
+    // ignition that registers nothing spends no igniter and makes no sound.
+    private static boolean registerAndFinish(ServerWorld serverWorld, IgnitionScan.Site site,
+            ItemUsageContext context, PortalDefinition def) {
         RegistryKey<World> worldKey = serverWorld.getRegistryKey();
-        PortalHelper.PortalZone zone = new PortalHelper.PortalZone(fill, def, axis, worldKey, def.getTargetKey());
-        PortalHelper.registerZone(zone);
+        PortalHelper.PortalZone zone = new PortalHelper.PortalZone(
+                site.fill(), def, site.axis(), worldKey, def.getTargetKey());
+        if (!PortalHelper.registerZone(zone)) {
+            return false;
+        }
         prewarmTarget(def);
         PortalHelper.spawnParticles(serverWorld, zone);
-        playIgniteSound(serverWorld, soundPos, def);
+        playIgniteSound(serverWorld, site.soundPos(), def);
 
         if (context.getPlayer() == null || !context.getPlayer().isCreative()) {
             context.getStack().decrement(1);
         }
+        return true;
     }
 
     // Pre-warm the target dimension the moment its portal ignites — world

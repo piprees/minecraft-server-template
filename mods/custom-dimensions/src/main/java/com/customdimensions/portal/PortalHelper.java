@@ -649,11 +649,13 @@ public class PortalHelper {
         PLAYER_ORIGINS.remove(playerUuid);
     }
 
-    public static void registerZone(PortalZone zone) {
+    /** Registers a zone; false when this frame is already a lit portal. */
+    public static boolean registerZone(PortalZone zone) {
         if (!addZoneIfAbsent(zone)) {
-            return;
+            return false;
         }
         savePortalLinks();
+        return true;
     }
 
     /**

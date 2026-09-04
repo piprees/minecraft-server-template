@@ -10,9 +10,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -34,11 +37,16 @@ class IgnitionLoggingWiredTest {
     private static final Path LOG_CLASS = Path.of("build", "classes", "java", "main",
             "com", "customdimensions", "portal", "IgnitionLog.class");
 
+    private static final String HELPER = "com/customdimensions/portal/PortalHelper";
+
     private static final class Uses extends ClassVisitor {
         final Set<String> refusals = new LinkedHashSet<>();
         final Set<String> logCalls = new LinkedHashSet<>();
         final Set<String> scanCalls = new LinkedHashSet<>();
         final Set<String> loggerCalls = new LinkedHashSet<>();
+        final Set<String> decrementCalls = new LinkedHashSet<>();
+        /** Opcodes seen immediately after a PortalHelper.registerZone call. */
+        final List<Integer> afterRegisterZone = new ArrayList<>();
 
         Uses() {
             super(Opcodes.ASM9);
@@ -48,22 +56,53 @@ class IgnitionLoggingWiredTest {
         public MethodVisitor visitMethod(int access, String name, String descriptor,
                 String signature, String[] exceptions) {
             return new MethodVisitor(Opcodes.ASM9) {
+                private boolean justRegisteredZone;
+
+                private void settle(int opcode) {
+                    if (this.justRegisteredZone) {
+                        Uses.this.afterRegisterZone.add(opcode);
+                        this.justRegisteredZone = false;
+                    }
+                }
+
                 @Override
                 public void visitFieldInsn(int opcode, String owner, String field, String desc) {
+                    settle(opcode);
                     if (opcode == Opcodes.GETSTATIC && REFUSAL.equals(owner)) {
                         Uses.this.refusals.add(field);
                     }
                 }
 
                 @Override
+                public void visitInsn(int opcode) {
+                    settle(opcode);
+                }
+
+                @Override
+                public void visitJumpInsn(int opcode, org.objectweb.asm.Label label) {
+                    settle(opcode);
+                }
+
+                @Override
+                public void visitVarInsn(int opcode, int slot) {
+                    settle(opcode);
+                }
+
+                @Override
                 public void visitMethodInsn(int opcode, String owner, String method,
                         String desc, boolean itf) {
+                    settle(opcode);
                     if (LOG.equals(owner)) {
                         Uses.this.logCalls.add(method);
                     } else if (SCAN.equals(owner)) {
                         Uses.this.scanCalls.add(method);
                     } else if (SLF4J.equals(owner)) {
                         Uses.this.loggerCalls.add(method);
+                    } else if ("decrement".equals(method)) {
+                        Uses.this.decrementCalls.add(owner + "." + method);
+                    }
+                    if (HELPER.equals(owner) && "registerZone".equals(method)) {
+                        this.justRegisteredZone = true;
                     }
                 }
             };
@@ -113,6 +152,40 @@ class IgnitionLoggingWiredTest {
                 "the mixin must take the sweep's reason, not only its site; calls: " + uses.scanCalls);
         assertFalse(uses.scanCalls.contains("sweep"),
                 "plain sweep() throws the reason away — that is the defect, not the fix");
+    }
+
+    @Test
+    void theMixinReadsWhetherTheZoneWasActuallyRegistered() throws IOException {
+        // registerZone answers false for a frame that is already a portal.
+        // Discarding that answer is what let a re-light report SUCCESS, play
+        // the sound and eat the igniter while registering nothing — and in
+        // bytecode, discarding a boolean return is exactly a POP.
+        Uses uses = readMixin();
+
+        assertFalse(uses.afterRegisterZone.isEmpty(),
+                "PortalIgnitionMixin no longer calls PortalHelper.registerZone at all");
+        for (int opcode : uses.afterRegisterZone) {
+            assertTrue(opcode != Opcodes.POP && opcode != Opcodes.POP2,
+                    "registerZone's answer is thrown away; the mixin must branch on it");
+        }
+    }
+
+    @Test
+    void relightingAnAlreadyLitFrameNamesItsReason() throws IOException {
+        Uses uses = readMixin();
+
+        assertTrue(uses.refusals.contains("ALREADY_LIT"),
+                "a re-light registers nothing and must say so; the mixin names " + uses.refusals);
+    }
+
+    @Test
+    void theIgniterIsSpentInExactlyOnePlace() throws IOException {
+        // The consume sits behind the registered-or-not branch. One call site
+        // is what keeps that true — a second one is how it creeps back out.
+        Uses uses = readMixin();
+
+        assertEquals(1, uses.decrementCalls.size(),
+                "expected one ItemStack.decrement in the ignition path, found " + uses.decrementCalls);
     }
 
     @Test
