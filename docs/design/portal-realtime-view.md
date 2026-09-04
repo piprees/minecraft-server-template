@@ -87,16 +87,31 @@ before/after.
 
 **Done when:** the toggle flips between paths in-game without a relaunch.
 
-### P2 — The handshake suppresses the stream
+### P2 — The client declares it draws its own far side
 
-`isCompanion` already gates `sendCompanion`. Extend the handshake so the client
-declares it will render locally (a capability flag, not merely a version), and
-have the server send portal geometry and destination identity only — no block
-payloads — for those players.
+`isCompanion` already gates `sendCompanion`. The client declares it will render
+locally, and the server then sends geometry and destination identity only — no
+block payloads — for those players.
+
+**The declaration is its own payload, not a wider `Hello`.** What is declared
+changes at runtime (a keybind toggles it), while a handshake answers "can you
+speak this protocol" once and never changes; and `CompanionPayloads`' own rule
+is to add a `/v2` beside a record rather than widen one in place. A separate
+payload also means a client that never sends it is served exactly as today, so
+neither a vanilla client nor an older companion needs a branch of its own.
+
+Accept a declaration only from a player already in `COMPANIONS` — one from a
+client that could not receive a projection anyway must not stop the server
+sending one. Suppression skips the sampling too, not only the send.
 
 **Done when:** `companion-send:projection` stops for a companion client while a
 vanilla client on the same server still receives the slab and still renders it.
 Both halves measured in one run; a companion going quiet is only half the proof.
+Assert it as a count over a fixed window, never as an absence ([T63](../../TROUBLESHOOTING.md#t63)).
+
+**A Carpet bot is the vanilla client.** It never handshakes, so it is one by
+construction — both halves in one run with no second real client. Note that a
+bot spawns in CREATIVE; set survival before anything gamemode-sensitive.
 
 ### P3 — The destination world, client-side
 
