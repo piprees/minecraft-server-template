@@ -90,9 +90,6 @@ public final class SpectatorPass {
     public static void render(GameRenderer gameRenderer, RenderTickCounter counter) {
         drawn = false;
         cpuVisible = false;
-        // The in-world half hooks itself the first time the pass runs, so the
-        // entrypoint carries no line for it.
-        SpectatorComposite.register();
         if (disabled || gameRenderer == null || counter == null) {
             return;
         }

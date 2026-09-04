@@ -129,9 +129,9 @@ public final class SpectatorComposite {
     private SpectatorComposite() {}
 
     /**
-     * Hooks the in-world half of the pass. Idempotent, and safe to call from
-     * the entrypoint or from the first pass: the event is registered outside
-     * its own dispatch either way.
+     * Hooks the in-world half of the pass, after {@code ProjectionRenderer} on
+     * the same phase so the composite draws over the meshed opening rather
+     * than under it. Idempotent.
      */
     public static void register() {
         if (hooked) {
