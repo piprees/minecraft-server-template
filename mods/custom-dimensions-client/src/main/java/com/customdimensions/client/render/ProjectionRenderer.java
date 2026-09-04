@@ -22,13 +22,15 @@ import org.slf4j.LoggerFactory;
  * the backdrop quad opens the aperture (see {@link PortalRenderLayers}), then
  * the meshed destination is drawn through it.
  *
- * <p>The clip is the whole trick, and the opening it clips to is a hole one
+ * <p>The clip is the whole trick, and the opening it clips to is a hole HALF a
  * block deep rather than a plane: four planes run from the camera through the
- * edges of each face of the aperture block, and what survives all eight is the
- * intersection of the two cones. That is what the frame itself does to a
- * sightline, so from beside the frame the two cones are disjoint and nothing is
- * drawn. Every quad, and the backdrop, is cut before it is emitted — nothing is
- * quantised to whole blocks and nothing pops as you walk past.
+ * edges of the aperture block's near face and four more through the portal
+ * surface that bisects it, and what survives all eight is the intersection of
+ * the two cones. The frame's material only reaches as far as the surface —
+ * past that a ray is already in the destination — so from beside the frame the
+ * two cones are disjoint and nothing is drawn. Every quad, and the backdrop, is
+ * cut before it is emitted — nothing is quantised to whole blocks and nothing
+ * pops as you walk past.
  */
 public final class ProjectionRenderer {
 
@@ -176,6 +178,7 @@ public final class ProjectionRenderer {
         if (!buildTunnelPlanes(TUNNEL, faces, camX, camY, camZ)) {
             return;
         }
+        String window = windowLabel(projection, origin, faces, TUNNEL);
 
         // Nothing at all for this portal until its mesh lands: a backdrop with no
         // destination behind it is a hole in the world, and waiting for the
@@ -225,6 +228,10 @@ public final class ProjectionRenderer {
                         report.append(report.isEmpty() ? "" : " | ")
                                 .append(layer.layer())
                                 .append(" quadsIn=").append(layer.floats() / (STRIDE * 4))
+                                .append(" light=[")
+                                .append(LightFacts.ofVertices(layer.data(), layer.floats(), STRIDE)
+                                        .label())
+                                .append(']')
                                 .append(" geometry=").append(meshBounds(layer))
                                 .append(" highest=").append(highestVertex(layer))
                                 .append(" clipVertices=").append(clipVertices)
@@ -247,10 +254,10 @@ public final class ProjectionRenderer {
         // Written after the draws, so a line at all means every draw returned.
         if (report != null) {
             lastSampleAt = System.currentTimeMillis();
-            LOGGER.info("{} aperture={} camToPlane={} opening={} volume={} surface={} stamp={} "
-                            + "slice={} frames={} gated={} renderUs={} layers={} {}",
+            LOGGER.info("{} aperture={} camToPlane={} opening={} window={} volume={} surface={} "
+                            + "stamp={} slice={} frames={} gated={} renderUs={} layers={} {}",
                     EMIT_MARKER, projection.apertureOrigin().toShortString(),
-                    String.format("%.2f", camToPlane), openingBounds(corners),
+                    String.format("%.2f", camToPlane), openingBounds(corners), window,
                     volumeBounds(projection), String.format("%.2f", surface), stamp,
                     sliceLabel(slice), spanFrames, spanGated,
                     costSummary(spanFrames, spanNanos, spanPeakNanos),
@@ -300,9 +307,18 @@ public final class ProjectionRenderer {
     }
 
     /**
-     * The aperture block's faces as clip rectangles, in the volume's own space,
-     * low face first. A face the camera has already crossed frames nothing and
-     * its cone lies behind the camera, so it is left out.
+     * The clip rectangles bounding the sightline, in the volume's own space,
+     * low one first: the aperture block's near face and the portal surface. A
+     * face the camera has already crossed frames nothing and its cone lies
+     * behind the camera, so it is left out.
+     *
+     * <p>The block's FAR face is not one of them. The surface has no thickness
+     * and everything past it is the destination, so the far half of the block
+     * frames nothing. Clipping on it puts the window half a block behind the
+     * surface — and because the further of two equal rectangles always subtends
+     * the narrower cone, that face binds at every angle, from either side. The
+     * image then reads as sitting against a face of the block rather than in
+     * its middle.
      */
     static int tunnelFaces(ClientProjection projection, BlockPos origin, double camNormal,
             double[] out) {
@@ -310,8 +326,11 @@ public final class ProjectionRenderer {
         double facing = ClientProjection.isPositive(projection.normal()) ? 1.0 : -1.0;
         int count = 0;
         for (int face = 0; face < 2; face++) {
-            double local = (face == 0 ? projection.apertureMinCoord()
-                    : projection.apertureMaxCoord()) - base;
+            double coord = face == 0 ? projection.apertureMinCoord() : projection.apertureMaxCoord();
+            if ((coord - projection.planeCoord()) * facing > 0.0) {
+                coord = projection.planeCoord();
+            }
+            double local = coord - base;
             if ((camNormal - local) * facing >= 0.0) {
                 continue;
             }
@@ -319,6 +338,31 @@ public final class ProjectionRenderer {
             count++;
         }
         return count;
+    }
+
+    /**
+     * Where on the normal axis each clip rectangle sits, in WORLD coordinates,
+     * as {@code [near, far]}.
+     *
+     * <p>Read out of the array the clip was built from rather than recomputed,
+     * so a rectangle placed on the wrong coordinate prints the wrong number
+     * instead of agreeing with itself. It is the only witness to which
+     * rectangles bound the window: the aperture block's own faces read half a
+     * block apart, the near face and the surface read a quarter of that.
+     */
+    static String windowLabel(ClientProjection projection, BlockPos origin, int faces,
+            double[] cone) {
+        if (faces <= 0) {
+            return "none";
+        }
+        double base = axisOf(origin, projection.normalAxis());
+        int axis = projection.normalAxis().ordinal();
+        StringBuilder out = new StringBuilder("[");
+        for (int face = 0; face < faces; face++) {
+            out.append(face == 0 ? "" : ", ")
+                    .append(String.format("%.2f", cone[face * 12 + axis] + base));
+        }
+        return out.append(']').toString();
     }
 
     private static void faceCorners(double[] out, int at, ClientProjection projection,
@@ -358,10 +402,11 @@ public final class ProjectionRenderer {
     }
 
     /**
-     * The sightline through a hole one block deep: four planes per face of the
-     * aperture block, so what survives is the INTERSECTION of the two cones.
-     * From beside the frame the two are disjoint and the whole destination is
-     * cut, which is what the frame's own block does in the world.
+     * The sightline through a hole half a block deep: four planes per clip
+     * rectangle, so what survives is the INTERSECTION of the two cones. From
+     * beside the frame the two are disjoint and the whole destination is cut,
+     * which is what the frame's own block does to a ray before it reaches the
+     * surface.
      */
     static boolean buildTunnelPlanes(double[] rects, int count,
             double camX, double camY, double camZ) {

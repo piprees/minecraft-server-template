@@ -7,6 +7,7 @@ import net.minecraft.block.Blocks;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 
+import java.util.List;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -94,6 +95,53 @@ public final class ClientProjection {
         return this.payload.apertureOrigin();
     }
 
+    /**
+     * The opening's most central cell — where a light probe belongs. A corner
+     * cell is the one the frame shadows, so it measures the frame rather than
+     * the portal. Ties break on x, then y, then z, so a shuffled aperture set
+     * still answers the same cell.
+     */
+    public BlockPos apertureCentre() {
+        List<BlockPos> cells = this.payload.aperture();
+        if (cells.isEmpty()) {
+            return apertureOrigin();
+        }
+        double cx = 0.0;
+        double cy = 0.0;
+        double cz = 0.0;
+        for (BlockPos cell : cells) {
+            cx += cell.getX() / (double) cells.size();
+            cy += cell.getY() / (double) cells.size();
+            cz += cell.getZ() / (double) cells.size();
+        }
+        BlockPos best = null;
+        double bestDistance = Double.MAX_VALUE;
+        for (BlockPos cell : cells) {
+            double distance = square(cell.getX() - cx) + square(cell.getY() - cy)
+                    + square(cell.getZ() - cz);
+            if (best == null || distance < bestDistance - 1.0e-9
+                    || (distance < bestDistance + 1.0e-9 && earlier(cell, best))) {
+                best = cell;
+                bestDistance = distance;
+            }
+        }
+        return best;
+    }
+
+    private static boolean earlier(BlockPos candidate, BlockPos held) {
+        if (candidate.getX() != held.getX()) {
+            return candidate.getX() < held.getX();
+        }
+        if (candidate.getY() != held.getY()) {
+            return candidate.getY() < held.getY();
+        }
+        return candidate.getZ() < held.getZ();
+    }
+
+    private static double square(double value) {
+        return value * value;
+    }
+
     public BlockPos origin() {
         return this.payload.origin();
     }
@@ -172,8 +220,10 @@ public final class ClientProjection {
     /**
      * How far the slab moves along the normal axis for its near face to land on
      * the portal surface. The server starts the slab at the aperture block's far
-     * face; the surface bisects that block, so the slab arrives half a block
-     * behind the opening and shows the frame's inner faces around the image.
+     * face; the surface bisects that block, so unmoved the slab sits half a
+     * block behind the opening. Half a block towards the camera whichever way
+     * the slab runs — the sign follows the normal because the near face is the
+     * low end of the slab going forwards and the high end going back.
      */
     public double surfaceOffset() {
         double nearFace = isPositive(this.normal) ? 0.0 : depthExtent();

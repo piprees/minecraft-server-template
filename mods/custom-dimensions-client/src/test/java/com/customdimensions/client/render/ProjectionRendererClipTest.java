@@ -468,59 +468,70 @@ class ProjectionRendererClipTest {
     }
 
     /**
-     * The opening is a hole one block deep, so both faces of the aperture block
-     * frame it and both are in front of a camera standing outside the frame.
+     * The sightline is bounded by the aperture block's near face and by the
+     * portal surface — a hole HALF a block deep, not a whole one. Source-world
+     * material past the surface cannot occlude a ray that has already crossed
+     * into the destination, and bounding on the block's far face instead puts
+     * the window half a block behind the surface.
      */
     @Test
-    void bothFacesOfTheApertureBlockFrameTheOpening() {
+    void theNearFaceAndTheSurfaceFrameTheOpening() {
         ClientProjection projection = projection(Direction.NORTH, new BlockPos(1492, 93, 1476));
         double[] tunnel = new double[24];
 
-        // The aperture block is local z 24..25; the camera is at 25.5.
+        // The aperture block is local z 24..25, the surface 24.5, camera 25.5.
         assertEquals(2, ProjectionRenderer.tunnelFaces(projection, projection.origin(), 25.5, tunnel));
         for (int i = 0; i < 4; i++) {
-            assertEquals(24.0, tunnel[i * 3 + 2], TOLERANCE, "the first face is not the far one");
-            assertEquals(25.0, tunnel[12 + i * 3 + 2], TOLERANCE, "the second face is not the near one");
+            assertEquals(24.5, tunnel[i * 3 + 2], TOLERANCE,
+                    "the first rectangle is not the portal surface");
+            assertEquals(25.0, tunnel[12 + i * 3 + 2], TOLERANCE,
+                    "the second rectangle is not the aperture block's near face");
         }
     }
 
     /**
-     * The reported defect, in numbers. The camera stands beside the frame — 1.5
-     * blocks past the opening's low-X edge and half a block clear of its near
-     * face — so the frame's own block lies on every sightline into the opening
-     * and the destination must not be visible at all.
+     * The camera stands beside the frame — 3 blocks past the opening's low-X
+     * edge and half a block clear of its near face — so no ray reaches the
+     * surface through the opening and the destination must not be visible at
+     * all.
      *
-     * <p>At {@code z = 20} the far face's cone spans {@code x 12.0..19.3} and
-     * the near face's spans {@code x 23.0..45.0}; a quad at {@code x 13..15}
-     * therefore sits inside the first and outside the second. Both figures are
-     * read off the fixture: the cone through a rectangle at depth {@code d}
-     * scales about the camera by {@code (camZ - z) / (camZ - d)}.
+     * <p>Read off the fixture. The camera is {@code 0.5} from the near face and
+     * {@code 1.0} from the surface, so a ray reaching the opening's {@code x
+     * 8..10} at the near face has gradient {@code 6..10} while one reaching it
+     * at the surface has {@code 3..5}. Disjoint, so the wedge is empty at every
+     * depth; at {@code z = 20} the two cones span {@code x 38.0..60.0} and
+     * {@code x 21.5..32.5}.
+     *
+     * <p>A half-block-deep hole 2 wide needs a steeper angle to close than a
+     * whole-block one: {@code tan t > 4} rather than {@code > 2}.
      */
     @Test
     void aCameraBesideTheFrameSeesNothingThroughItsOwnBlock() {
         Recorder drawn = tunnelClip(Direction.NORTH, new BlockPos(1492, 93, 1476),
-                6.5, 9.5, 25.5, quad(20.0f, 13.0f, 15.0f, 9.0f, 10.0f));
+                5.0, 9.5, 25.5, quad(20.0f, 13.0f, 15.0f, 9.0f, 10.0f));
 
         assertEquals(0, drawn.count(), "the destination drew through the frame's own block");
         assertEquals(0, ProjectionRenderer.clipVertices);
     }
 
     /**
-     * The other half of the same rule: whichever face is the narrower at a given
-     * depth is the one that binds. From dead in front the FAR face is narrower,
-     * so a quad inside the near face's cone and outside the far face's is cut —
-     * the case a near-face-only clip would let through.
+     * The other half of the same rule: whichever rectangle is the narrower at a
+     * given depth is the one that binds. From dead in front the SURFACE is the
+     * further of the two and therefore the narrower, so a quad inside the near
+     * face's cone and outside the surface's is cut — the case a near-face-only
+     * clip would let through.
      *
-     * <p>Camera at the stance the working screenshot was taken from. At
-     * {@code z = 20} the far cone spans {@code x 6.88..11.38} and the near cone
-     * {@code x 5.96..12.50}.
+     * <p>Camera at the stance the working screenshot was taken from, {@code 2.7}
+     * from the surface and {@code 2.2} from the near face. At {@code z = 20} the
+     * surface's cone spans {@code x 6.50..11.83} and the near face's
+     * {@code x 5.95..12.50}.
      */
     @Test
     void theNarrowerFaceBindsFromDeadInFrontToo() {
         Recorder outside = tunnelClip(Direction.NORTH, new BlockPos(1492, 93, 1476),
-                8.9, 9.62, 27.2, quad(20.0f, 11.6f, 12.2f, 9.0f, 10.0f));
+                8.9, 9.62, 27.2, quad(20.0f, 12.0f, 12.4f, 9.0f, 10.0f));
 
-        assertEquals(0, outside.count(), "a quad past the far face's cone was drawn anyway");
+        assertEquals(0, outside.count(), "a quad past the surface's cone was drawn anyway");
         assertArrayEquals(new int[] {0, 0, 1, 0}, ProjectionRenderer.rejectedBy,
                 "the cut was not charged to the opening's high-X edge");
 
@@ -540,9 +551,10 @@ class ProjectionRendererClipTest {
         ClientProjection projection = projection(Direction.NORTH, new BlockPos(1492, 93, 1476));
         double[] tunnel = new double[24];
 
-        // Inside the aperture block, past its near face at local z = 25.
+        // Inside the aperture block, past its near face at local z = 25 and
+        // still short of the surface at 24.5.
         assertEquals(1, ProjectionRenderer.tunnelFaces(projection, projection.origin(), 24.8, tunnel));
-        assertEquals(24.0, tunnel[2], TOLERANCE, "the face left standing is not the one ahead");
+        assertEquals(24.5, tunnel[2], TOLERANCE, "the rectangle left standing is not the one ahead");
 
         Recorder drawn = tunnelClip(Direction.NORTH, new BlockPos(1492, 93, 1476),
                 8.9, 9.62, 24.8, quad(20.0f, 8.0f, 10.0f, 9.0f, 11.0f));
@@ -563,7 +575,7 @@ class ProjectionRendererClipTest {
         float[] scratch = new float[QuadCapture.STRIDE * 16];
 
         // planeLocal is the surface at local z 24.5; facing is -1 for NORTH.
-        assertEquals(0, backdrop(projection, 6.5, 9.5, 25.5, poly, scratch),
+        assertEquals(0, backdrop(projection, 5.0, 9.5, 25.5, poly, scratch),
                 "the backdrop covered an opening the frame's own block hides");
         assertEquals(4, backdrop(projection, 8.9, 9.62, 27.2, poly, scratch),
                 "the backdrop was cut away from dead in front of the opening");
@@ -645,20 +657,20 @@ class ProjectionRendererClipTest {
     /**
      * Moved and then cut, never cut and then moved. The cone narrows towards
      * the opening, so geometry shifted half a block closer must be clipped where
-     * it now stands: this quad's high-X edge is inside the far cone at
+     * it now stands: this quad's high-X edge is inside the cone at
      * {@code z = 0.0} and outside it at {@code z = -0.5}.
      *
-     * <p>The far face sits at local {@code z = 0} and the camera at
-     * {@code -5}, so the cone scales by {@code (5 + z) / 5} about
-     * {@code x = 9}: half-width 1.0 at {@code z = 0} and 0.9 at {@code -0.5},
-     * putting the high-X edge at {@code 10.0} and {@code 9.9}.
+     * <p>The surface sits at local {@code z = -0.5} and the camera at
+     * {@code -5}, so the cone scales by {@code (5 + z) / 4.5} about
+     * {@code x = 9}: half-width 1.111 at {@code z = 0} and 1.0 at {@code -0.5},
+     * putting the high-X edge at {@code 10.111} and {@code 10.0}.
      */
     @Test
     void theSlabIsClippedWhereItIsDrawnAndNotWhereItWasSent() {
         Recorder drawn = tunnelClip(Direction.SOUTH, new BlockPos(1492, 93, 1501),
-                9.0, 9.5, -5.0, quad(0.0f, 9.0f, 9.95f, 9.0f, 10.0f));
+                9.0, 9.5, -5.0, quad(0.0f, 9.0f, 10.05f, 9.0f, 10.0f));
 
-        assertEquals(9.9f, drawn.max(0), TOLERANCE,
+        assertEquals(10.0f, drawn.max(0), TOLERANCE,
                 "the quad was cut against the cone at the depth it was sent at");
     }
 
@@ -692,7 +704,7 @@ class ProjectionRendererClipTest {
         float[] poly = new float[QuadCapture.STRIDE * 16];
         float[] scratch = new float[QuadCapture.STRIDE * 16];
 
-        assertEquals(0, stamp(projection, 6.5, 9.5, 25.5, poly, scratch),
+        assertEquals(0, stamp(projection, 5.0, 9.5, 25.5, poly, scratch),
                 "the stamp covered an opening the frame's own block hides");
         assertEquals(4, stamp(projection, 8.9, 9.62, 27.2, poly, scratch),
                 "the stamp was cut away from dead in front of the opening");
