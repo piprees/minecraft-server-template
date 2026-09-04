@@ -1695,6 +1695,14 @@ measurement of it.
 <a id="t78"></a>
 ### T78 — A config change does not reach the local server, and the boot is green on the old file
 
+**The config is not the server.** A file synced is not a file re-read, a jar on
+disk is not the jar being served, and a process started before a change does
+not have it. Measured together in one session: a dimension config written at
+17:13 against an mc started at 17:09 still served the old frame; a built jar
+matching its served sha still needed `StartedAt` to post-date the jar's mtime
+to mean anything; and `./dev restart mc` installs nothing at all. Check the
+process, not the file.
+
 - **Symptom:** an `overlay/config/` or platform `config/` change is made, the
   stack is brought up, and the server behaves as though the change never
   happened. No error. `docker exec mc cat /data/config/<path>` shows the OLD
