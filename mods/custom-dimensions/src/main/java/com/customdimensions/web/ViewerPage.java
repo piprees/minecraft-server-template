@@ -104,9 +104,10 @@ public final class ViewerPage {
         }
 
         Map<String, String> frameOwners = frameOwners(views);
+        Map<String, Boolean> igniterDamageable = igniterDamageable(views);
         StringBuilder cards = new StringBuilder();
         for (BankView.DimensionView v : views) {
-            cards.append(card(v, anyoneOnline, frameOwners)).append('\n');
+            cards.append(card(v, anyoneOnline, frameOwners, igniterDamageable)).append('\n');
         }
 
         return template
@@ -144,8 +145,33 @@ public final class ViewerPage {
         return owners;
     }
 
+    /**
+     * Whether each igniter in the pack has durability to spend. An item the
+     * registry does not know is left out rather than guessed at, which the
+     * igniter row renders as both outcomes.
+     */
+    private static Map<String, Boolean> igniterDamageable(List<BankView.DimensionView> views) {
+        Map<String, Boolean> out = new LinkedHashMap<>();
+        for (BankView.DimensionView v : views) {
+            for (DimensionConfig.Portal portal : v.config().getPortals()) {
+                String id = portal.igniterItem;
+                if (id == null || id.isBlank() || out.containsKey(id)) {
+                    continue;
+                }
+                net.minecraft.util.Identifier parsed = net.minecraft.util.Identifier.tryParse(id);
+                if (parsed == null) {
+                    continue;
+                }
+                net.minecraft.registry.Registries.ITEM.getOrEmpty(parsed).ifPresent(item ->
+                        out.put(id, new net.minecraft.item.ItemStack(item).isDamageable()));
+            }
+        }
+        return out;
+    }
+
     private static String card(BankView.DimensionView v, boolean anyoneOnline,
-                               Map<String, String> frameOwners) {
+                               Map<String, String> frameOwners,
+                               Map<String, Boolean> igniterDamageable) {
         DimensionConfig def = v.config();
         String slug = v.slug();
         List<BankView.CandidateView> candidates = v.candidates();
@@ -270,7 +296,8 @@ public final class ViewerPage {
         } else {
             b.append("<div class='all-cands'>");
             for (int i = 0; i < candidates.size(); i++) {
-                b.append(candidate(i, slug, candidates.get(i), v, anyoneOnline, frameOwners));
+                b.append(candidate(i, slug, candidates.get(i), v, anyoneOnline, frameOwners,
+                        igniterDamageable));
             }
             b.append("</div>");
         }
@@ -282,7 +309,8 @@ public final class ViewerPage {
 
     private static String candidate(int idx, String slug, BankView.CandidateView c,
                                     BankView.DimensionView v, boolean anyoneOnline,
-                                    Map<String, String> frameOwners) {
+                                    Map<String, String> frameOwners,
+                                    Map<String, Boolean> igniterDamageable) {
         double pct = c.percentage() == null ? 0.0 : c.percentage();
         boolean onFrontier = v.frontierSeeds().contains(c.seed());
         StringBuilder b = new StringBuilder();
@@ -355,7 +383,7 @@ public final class ViewerPage {
         // in here (exactfacts.js) so it scrolls with the criteria rather than
         // landing under the buttons.
         b.append("<div class='lb-scroll'>");
-        b.append(portals(v.config(), frameOwners));
+        b.append(portals(v.config(), frameOwners, igniterDamageable));
         b.append(config(v.config()));
         b.append(criteria(c.scorecard()));
         b.append("</div>");
@@ -1119,6 +1147,17 @@ public final class ViewerPage {
      *     name no owner" rather than guessing one.
      */
     static String portals(DimensionConfig def, Map<String, String> frameOwners) {
+        return portals(def, frameOwners, Map.of());
+    }
+
+    /**
+     * @param igniterDamageable item id -> whether it has durability to spend.
+     *     Absent means unresolved, and the igniter row then names both
+     *     outcomes instead of picking one: damageability belongs to the item,
+     *     not to the config, so it cannot be read off a dimension file.
+     */
+    static String portals(DimensionConfig def, Map<String, String> frameOwners,
+                          Map<String, Boolean> igniterDamageable) {
         List<DimensionConfig.Portal> all = def.getPortals();
         if (all.isEmpty()) {
             return "";
@@ -1126,14 +1165,16 @@ public final class ViewerPage {
         StringBuilder b = new StringBuilder("<div class='portals'>");
         b.append("<div class='portals-label'>portals</div>");
         for (int i = 0; i < all.size(); i++) {
-            b.append(portal(all.get(i), def.portalId(i), i == 0, def.getName(), frameOwners));
+            b.append(portal(all.get(i), def.portalId(i), i == 0, def.getName(), frameOwners,
+                    igniterDamageable));
         }
         b.append(waysOut(def, all));
         return b.append("</div>").toString();
     }
 
     private static String portal(DimensionConfig.Portal p, String id, boolean primary,
-                                 String slug, Map<String, String> frameOwners) {
+                                 String slug, Map<String, String> frameOwners,
+                                 Map<String, Boolean> igniterDamageable) {
         List<String> accepts = p.getFrameAcceptForms();
         Map<String, List<String>> parts = p.getFramePartAcceptForms();
         StringBuilder b = new StringBuilder("<div class='portal'>");
@@ -1174,7 +1215,8 @@ public final class ViewerPage {
                     + pnote("what the mod places for arrival and exit frames")));
         }
         if (p.igniterItem != null && !p.igniterItem.isBlank()) {
-            b.append(prow("igniter", blocks(List.of(p.igniterItem))));
+            b.append(prow("igniter", blocks(List.of(p.igniterItem))
+                    + igniterCost(p, igniterDamageable.get(p.igniterItem))));
         }
 
         String shape = p.getShapeTemplate() != null
@@ -1216,6 +1258,31 @@ public final class ViewerPage {
         b.append(aura(p.aura));
         b.append(prow("immersive", immersive(p)));
         return b.append("</div>").toString();
+    }
+
+    /**
+     * What lighting this portal costs, mirroring
+     * {@code IgniterSpend.of(damageable, creative, consumesIgniter)}:
+     * consuming beats damageable, and creative pays for nothing on every
+     * path. A null {@code damageable} means the item was not resolved, and
+     * the row then states both outcomes rather than choosing one.
+     */
+    private static String igniterCost(DimensionConfig.Portal p, Boolean damageable) {
+        String cost;
+        if (p.consumesIgniter()) {
+            cost = "<span class='pv-name'>consumed</span>"
+                    + pnote("the item is taken, not damaged");
+        } else if (Boolean.TRUE.equals(damageable)) {
+            cost = "<span class='pv-name'>1 damage</span>"
+                    + pnote("durability, the vanilla flint-and-steel cost");
+        } else if (Boolean.FALSE.equals(damageable)) {
+            cost = "<span class='pv-name'>untouched</span>"
+                    + pnote("no durability to spend");
+        } else {
+            cost = "<span class='pv-name'>damaged if it has durability, "
+                    + "otherwise untouched</span>";
+        }
+        return cost + pnote("creative spends nothing");
     }
 
     /**
@@ -1271,8 +1338,10 @@ public final class ViewerPage {
         int colon = id.indexOf(':');
         String ns = colon < 0 ? "minecraft:" : id.substring(0, colon + 1);
         String path = colon < 0 ? id : id.substring(colon + 1);
+        if (path.startsWith("waxed_")) {
+            return null;
+        }
         switch (path) {
-            case "waxed_copper_block":
             case "copper_block":
                 return ns + "exposed_copper";
             case "exposed_copper":

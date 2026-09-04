@@ -547,4 +547,130 @@ class PortalPanelTest {
                 "the crucible's weathering hazard is not surfaced: " + html);
         assertTrue(html.contains("pv-bad"), "it is a defect, not a note: " + html);
     }
+
+    /**
+     * The oxidation table itself, asserted directly rather than through the
+     * rendered HTML: every claim the weathering row makes rests on this one
+     * function, and a table is cheaper to pin at the function than to infer
+     * from markup.
+     */
+    @Test
+    void theOxidationTableIsExact() {
+        // The plain family is irregular - copper_block weathers to
+        // exposed_copper, not to exposed_copper_block.
+        assertEquals("minecraft:exposed_copper", ViewerPage.weathersTo("minecraft:copper_block"));
+        assertEquals("minecraft:weathered_copper", ViewerPage.weathersTo("minecraft:exposed_copper"));
+        assertEquals("minecraft:oxidized_copper", ViewerPage.weathersTo("minecraft:weathered_copper"));
+        assertNull(ViewerPage.weathersTo("minecraft:oxidized_copper"), "fully oxidised is the end");
+
+        // The shaped families follow the prefix rule.
+        assertEquals("minecraft:exposed_cut_copper", ViewerPage.weathersTo("minecraft:cut_copper"));
+        assertEquals("minecraft:weathered_copper_grate",
+                ViewerPage.weathersTo("minecraft:exposed_copper_grate"));
+        assertEquals("minecraft:oxidized_copper_bulb",
+                ViewerPage.weathersTo("minecraft:weathered_copper_bulb"));
+
+        // Wax freezes the stage, at every stage.
+        for (String waxed : List.of("minecraft:waxed_copper_block", "minecraft:waxed_exposed_copper",
+                "minecraft:waxed_weathered_copper", "minecraft:waxed_oxidized_copper",
+                "minecraft:waxed_cut_copper", "minecraft:waxed_exposed_copper_grate")) {
+            assertNull(ViewerPage.weathersTo(waxed), waxed + " is waxed and cannot oxidise");
+        }
+
+        // Copper that is not an oxidisable block. raw_copper_block is a real
+        // portal frame in this pack, so inventing a stage for it would put a
+        // false warning on a shipped dimension.
+        for (String other : List.of("minecraft:raw_copper_block", "minecraft:copper_ore",
+                "minecraft:deepslate_copper_ore", "minecraft:copper_ingot",
+                "minecraft:raw_copper", "minecraft:lightning_rod")) {
+            assertNull(ViewerPage.weathersTo(other), other + " does not oxidise");
+        }
+
+        // Not blocks at all.
+        assertNull(ViewerPage.weathersTo(null));
+        assertNull(ViewerPage.weathersTo("#minecraft:copper_blocks"), "a tag has no oxidation stage");
+        assertNull(ViewerPage.weathersTo("minecraft:mossy_stone_bricks"));
+    }
+
+    // --- what ignition costs -------------------------------------------------
+
+    private static String renderWithIgniters(String json, java.util.Map<String, Boolean> damageable) {
+        DimensionConfig config = GSON.fromJson(json, DimensionConfig.class);
+        config.setName("the_test");
+        return ViewerPage.portals(config, java.util.Map.of(), damageable);
+    }
+
+    @Test
+    void aConsumingIgniterSaysTheItemIsTaken() {
+        String html = renderWithIgniters(
+                "{\"portal\":{\"frameBlock\":\"minecraft:stone\","
+                        + "\"igniterItem\":\"minecraft:ender_eye\",\"consumesIgniter\":true}}",
+                java.util.Map.of());
+        assertTrue(html.contains("consumed"), "a consuming igniter must say so: " + html);
+        assertTrue(html.contains("taken, not damaged"),
+                "the difference from damage is the whole point: " + html);
+    }
+
+    @Test
+    void aDamageableIgniterSaysItTakesOneDamage() {
+        String html = renderWithIgniters(
+                "{\"portal\":{\"frameBlock\":\"minecraft:stone\","
+                        + "\"igniterItem\":\"minecraft:flint_and_steel\"}}",
+                java.util.Map.of("minecraft:flint_and_steel", true));
+        assertTrue(html.contains("1 damage"), "the vanilla cost is one durability: " + html);
+        assertFalse(html.contains("consumed"), "damaged is not consumed: " + html);
+    }
+
+    @Test
+    void aNonDamageableIgniterSaysItSurvivesUntouched() {
+        String html = renderWithIgniters(
+                "{\"portal\":{\"frameBlock\":\"minecraft:stone\","
+                        + "\"igniterItem\":\"minecraft:diamond\"}}",
+                java.util.Map.of("minecraft:diamond", false));
+        assertTrue(html.contains("untouched"),
+                "a diamond is not spent lighting a portal: " + html);
+        assertFalse(html.contains("1 damage"), "there is no durability to take: " + html);
+    }
+
+    @Test
+    void anUnresolvedIgniterNamesBothOutcomesRatherThanGuessing() {
+        // Damageability is a property of the item, not of the config, so with
+        // no registry the panel must not pick one.
+        String html = renderWithIgniters(
+                "{\"portal\":{\"frameBlock\":\"minecraft:stone\","
+                        + "\"igniterItem\":\"mod:unknown_thing\"}}",
+                java.util.Map.of());
+        assertTrue(html.contains("damaged if it has durability"),
+                "both outcomes must be named: " + html);
+        assertTrue(html.contains("otherwise untouched"), "both outcomes must be named: " + html);
+    }
+
+    @Test
+    void consumingBeatsDamageable() {
+        // IgniterSpend.of checks consumesIgniter before damageable.
+        String html = renderWithIgniters(
+                "{\"portal\":{\"frameBlock\":\"minecraft:stone\","
+                        + "\"igniterItem\":\"minecraft:flint_and_steel\",\"consumesIgniter\":true}}",
+                java.util.Map.of("minecraft:flint_and_steel", true));
+        assertTrue(html.contains("consumed"), "consumesIgniter wins: " + html);
+        assertFalse(html.contains("1 damage"), "the durability path is not taken: " + html);
+    }
+
+    @Test
+    void everyIgniterRowSaysCreativeSpendsNothing() {
+        String html = renderWithIgniters(
+                "{\"portal\":{\"frameBlock\":\"minecraft:stone\","
+                        + "\"igniterItem\":\"minecraft:diamond\"}}",
+                java.util.Map.of("minecraft:diamond", false));
+        assertTrue(html.contains("creative spends nothing"),
+                "the one exception to every path: " + html);
+    }
+
+    @Test
+    void aPortalWithNoIgniterHasNoCostToState() {
+        String html = renderWithIgniters(
+                "{\"portal\":{\"frameBlock\":\"minecraft:stone\"}}", java.util.Map.of());
+        assertFalse(html.contains("creative spends nothing"),
+                "no igniter, nothing to spend: " + html);
+    }
 }

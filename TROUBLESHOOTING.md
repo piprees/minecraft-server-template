@@ -1676,6 +1676,17 @@ measurement of it.
   single-writer**, the same way the local stack is: serialise builds, and treat
   a suite that fails wholesale in unrelated classes as a race until a lone
   re-run says otherwise.
+- **A green build with NO result file is the worst shape of all.** Measured:
+  two `BUILD SUCCESSFUL` runs produced no `build/test-results/test/` at all,
+  because another agent's clean removed it between the write and the read. A
+  harness that counts from that directory sees zero tests, zero failures, and a
+  successful build — nothing looks wrong. Defence: run the build and snapshot
+  the XML to a timestamped directory **in one invocation**, then count from the
+  snapshot, so no other process can clean the source between your write and your
+  read. The four faces are: the file did not change (stale), the classpath moved
+  under it (poisoned), the source tree was half-written (a real compile error in
+  someone else's edit), and the file is not there at all (absent, read as
+  success).
 - **A sweep whose results each name a DIFFERENT test is not affected.** A stale
   file repeats one answer verbatim; it cannot invent a distinct, correct
   attribution per mutation. That is how to tell a poisoned sweep from a real one
