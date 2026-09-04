@@ -3,6 +3,7 @@ package com.customdimensions.client.realtime;
 import com.customdimensions.client.CompanionPayloads;
 import com.customdimensions.client.CustomDimensionsClient;
 import com.customdimensions.client.config.RealtimeControls;
+import com.customdimensions.client.mixin.MinecraftClientFramebufferAccessor;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
@@ -149,7 +150,12 @@ public final class SpectatorPass {
         }
         steps.prepareTarget();
         steps.clearTarget();
-        steps.renderDestination();
+        steps.adoptTarget();
+        try {
+            steps.renderDestination();
+        } finally {
+            steps.releaseTarget();
+        }
         return true;
     }
 
@@ -398,6 +404,7 @@ public final class SpectatorPass {
 
         private ClientWorld source;
         private Framebuffer into;
+        private Framebuffer main;
         private int drawBinding;
         private int readBinding;
         private boolean captured;
@@ -430,6 +437,23 @@ public final class SpectatorPass {
         public void clearTarget() {
             this.into.setClearColor(0.0f, 0.0f, 0.0f, 1.0f);
             this.into.clear(MinecraftClient.IS_SYSTEM_MAC);
+        }
+
+        @Override
+        public void adoptTarget() {
+            this.main = this.client.getFramebuffer();
+            ((MinecraftClientFramebufferAccessor) this.client)
+                    .customdimensionsclient$setFramebuffer(this.into);
+        }
+
+        @Override
+        public void releaseTarget() {
+            if (this.main == null) {
+                return;
+            }
+            ((MinecraftClientFramebufferAccessor) this.client)
+                    .customdimensionsclient$setFramebuffer(this.main);
+            this.main = null;
         }
 
         @Override
@@ -470,6 +494,7 @@ public final class SpectatorPass {
 
         /** Puts back everything the pass swapped, whether or not it got that far. */
         private void restore() {
+            releaseTarget();
             if (this.source != null) {
                 this.client.world = this.source;
                 this.client.getEntityRenderDispatcher().setWorld(this.source);

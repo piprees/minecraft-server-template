@@ -25,6 +25,21 @@ public interface SpectatorSteps {
 
     void clearTarget();
 
+    /**
+     * Points the client's own framebuffer at the target. The render re-binds
+     * the client's framebuffer from inside itself, so everything after that
+     * point lands wherever the client is pointing rather than where the pass
+     * bound.
+     */
+    void adoptTarget();
+
     /** The destination world, through its own renderer, into the target. */
     void renderDestination();
+
+    /**
+     * Puts the client's framebuffer back. Runs even when the render throws:
+     * leaving the client pointed at this pass's target breaks every later
+     * frame, not just this one.
+     */
+    void releaseTarget();
 }

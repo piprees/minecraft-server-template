@@ -7,6 +7,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -43,8 +44,48 @@ class SpectatorPassOrderTest {
     void aVisiblePortalRendersIntoAClearedTarget() {
         Recorder steps = new Recorder();
         assertTrue(SpectatorPass.runPass(steps));
-        assertEquals(List.of("visible", "prepareTarget", "clearTarget", "renderDestination"),
+        assertEquals(List.of("visible", "prepareTarget", "clearTarget",
+                        "adoptTarget", "renderDestination", "releaseTarget"),
                 steps.script);
+    }
+
+    /**
+     * The render re-binds the client's own framebuffer from inside itself, so
+     * everything after that point lands wherever the client is pointing. The
+     * client must therefore be pointing at the target before the render starts,
+     * not merely have the target bound.
+     */
+    @Test
+    void theClientIsPointedAtTheTargetBeforeTheRenderStarts() {
+        Recorder steps = new Recorder();
+        SpectatorPass.runPass(steps);
+        assertTrue(steps.script.contains("adoptTarget"),
+                "nothing pointed the client at the target: " + steps.script);
+        assertTrue(steps.script.indexOf("adoptTarget") < steps.script.indexOf("renderDestination"),
+                "the render ran before the client was pointed at the target: " + steps.script);
+    }
+
+    /**
+     * Leaving the client pointed at this pass's target breaks every later
+     * frame, not just the one that threw.
+     */
+    @Test
+    void theClientGetsItsFramebufferBackWhenTheRenderThrows() {
+        Recorder steps = new Recorder();
+        steps.throwOnRender = true;
+        assertThrows(IllegalStateException.class, () -> SpectatorPass.runPass(steps));
+        assertEquals(List.of("visible", "prepareTarget", "clearTarget",
+                        "adoptTarget", "renderDestination", "releaseTarget"),
+                steps.script);
+    }
+
+    @Test
+    void anOccludedPortalNeverTouchesTheClientsFramebuffer() {
+        Recorder steps = new Recorder();
+        steps.visible = false;
+        SpectatorPass.runPass(steps);
+        assertFalse(steps.script.contains("adoptTarget"),
+                "a gated frame repointed the client: " + steps.script);
     }
 
     /**
@@ -107,11 +148,22 @@ class SpectatorPassOrderTest {
         private final List<String> script = new ArrayList<>();
 
         private boolean visible = true;
+        private boolean throwOnRender;
 
         @Override
         public boolean visible() {
             this.script.add("visible");
             return this.visible;
+        }
+
+        @Override
+        public void adoptTarget() {
+            this.script.add("adoptTarget");
+        }
+
+        @Override
+        public void releaseTarget() {
+            this.script.add("releaseTarget");
         }
 
         @Override
@@ -127,6 +179,9 @@ class SpectatorPassOrderTest {
         @Override
         public void renderDestination() {
             this.script.add("renderDestination");
+            if (this.throwOnRender) {
+                throw new IllegalStateException("the destination render failed");
+            }
         }
 
         @Override
