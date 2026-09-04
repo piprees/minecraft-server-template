@@ -57,6 +57,7 @@ Run this first. It covers deploy drift, disk, every expected container, `ONLINE_
 | A reimplementation of the mod's arithmetic is one block out at negative coordinates | [T87](#t87) |
 | A portal renders once, then draws sky on every approach after a traversal | [T93](#t93), [T94](#t94) |
 | A portal's far side is thin and never fills, at 7 chunks and 0 render sections | [T95](#t95) |
+| A portal's far side does not zoom when a spyglass, a drawn bow or a speed effect zooms the world | [T96](#t96) |
 | Structure spacing arithmetic disagrees with the world | [T51](#t51) |
 | mc watchdog-crashes a few minutes after a local world reset, parked in `save-all` | [T57](#t57) |
 | The same few structures repeat endlessly in one dimension | [T52](#t52) |
@@ -1646,6 +1647,28 @@ measurement of it.
   in Python (`%` on negatives, `>>` on signed ints, float-to-int narrowing) has
   the same trap. Pin it against the Java, not against intuition —
   `scripts/e2e/portal-matrix-selftest.sh` is the worked example.
+
+<a id="t96"></a>
+### T96 — The destination pass draws at the field-of-view option, not the one the source frame uses
+
+- **Symptom:** a spyglass, a drawn bow or anything else that zooms the world
+  moves the source and the portal's frame while the view THROUGH the frame
+  holds still at its old scale. Measured at the rig, source terrain 69.5% of
+  pixels changed against the destination's own corner preview 0.40%.
+- **Cause:** `GameRenderer.renderWorld` draws at
+  `getFov(camera, tickDelta, true)`, which folds in the `fovMultiplier` lerp
+  (spyglass 0.1, bow 0.85 at full draw, movement speed up to 1.5), the death
+  squeeze and the water and lava submersion effect. The pass read
+  `options.getFov()` instead, so it inherited none of them. The composite
+  samples at `gl_FragCoord.xy / ScreenSize` and is in the right place only
+  while the two projections agree.
+- **Fix:** `SpectatorProjection` asks vanilla — `GameRendererFovInvoker` on
+  the private `getFov` — rather than reproducing the arithmetic.
+- **Trap:** drawing and culling take different answers. Vanilla culls the
+  source at `max(getFov(camera, tickDelta, false), option)`, deliberately
+  wider than it draws, so the chunks a spyglass is about to be lowered from
+  are already built. Passing the drawn matrix to `setupFrustum` trades the
+  mismatch for chunk pop-in on unzoom.
 
 <a id="t95"></a>
 ### T95 — The arrival chunk ticket and the client feed want different amounts of the destination
