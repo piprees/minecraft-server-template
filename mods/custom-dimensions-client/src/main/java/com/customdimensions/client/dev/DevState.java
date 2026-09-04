@@ -99,6 +99,9 @@ final class DevState {
                 .num("spectatorMeanUs", SpectatorPass.meanMicros())
                 .bool("spectatorDisabled", SpectatorPass.disabled())
                 .str("spectatorRefusal", SpectatorPass.refusal())
+                .num("spectatorBoundBefore", SpectatorPass.boundBefore())
+                .num("spectatorBoundAfter", SpectatorPass.boundAfter())
+                .num("spectatorRebinds", SpectatorPass.rebinds())
                 .raw("worlds", worlds.append(']').toString())
                 .toString();
     }

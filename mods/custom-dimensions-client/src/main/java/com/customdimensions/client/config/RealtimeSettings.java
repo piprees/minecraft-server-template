@@ -64,11 +64,6 @@ public record RealtimeSettings(
         return !this.renderClientSidePortals && this.renderServerSidePortals;
     }
 
-    /** Reads as the render paths' question: does this client draw the far side. */
-    public boolean enabled() {
-        return this.renderClientSidePortals;
-    }
-
     public RealtimeSettings withRenderClientSidePortals(boolean value) {
         return new RealtimeSettings(value, this.maxRenderDistance, this.distantHorizons,
                 this.renderServerSidePortals);

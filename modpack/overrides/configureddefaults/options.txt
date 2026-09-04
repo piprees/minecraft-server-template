@@ -125,6 +125,7 @@ key_accessories.key.open_accessories_screen:key.keyboard.h
 key_keybinds.bettercombat.feint:key.keyboard.unknown
 key_keybinds.bettercombat.toggle_mine_with_weapons:key.keyboard.unknown
 key_key.carry.desc:key.keyboard.unknown
+key_key.customdimensionsclient.toggle_realtime:key.keyboard.f4
 key_key.entityculling.toggle:key.keyboard.unknown
 key_key.firstperson.toggle:key.keyboard.f6
 key_key.freecam.toggle:key.keyboard.unknown

@@ -84,6 +84,11 @@ public final class SpectatorPass {
     private static long gated;
     private static String refusal = "not-run";
 
+    /** The draw framebuffer either side of the destination render, and how often it moved. */
+    private static int boundBefore = -1;
+    private static int boundAfter = -1;
+    private static long rebinds;
+
     private SpectatorPass() {}
 
     /** Renders one destination into the offscreen target. Never throws. */
@@ -98,7 +103,7 @@ public final class SpectatorPass {
             refusal = "no source world";
             return;
         }
-        if (!RealtimeControls.settings().enabled()) {
+        if (!RealtimeControls.settings().renderClientSidePortals()) {
             refusal = "real-time view disabled";
             return;
         }
@@ -310,6 +315,9 @@ public final class SpectatorPass {
         passes = 0L;
         gated = 0L;
         refusal = "not-run";
+        boundBefore = -1;
+        boundAfter = -1;
+        rebinds = 0L;
         PortalOcclusion.reset();
     }
 
@@ -337,6 +345,41 @@ public final class SpectatorPass {
     /** Empty while the pass is running; otherwise why it did not. */
     public static String refusal() {
         return refusal;
+    }
+
+    /** The draw framebuffer bound going in to the destination render. */
+    public static int boundBefore() {
+        return boundBefore;
+    }
+
+    /** The draw framebuffer bound when the destination render returned. */
+    public static int boundAfter() {
+        return boundAfter;
+    }
+
+    /** Renders that returned with a different draw framebuffer than they were given. */
+    public static long rebinds() {
+        return rebinds;
+    }
+
+    /**
+     * The draw framebuffer either side of {@code WorldRenderer.render}, which
+     * calls {@code client.getFramebuffer().beginWrite} from inside itself on
+     * the fabulous and entity-outline paths. Everything drawn after such a
+     * rebind lands in the main framebuffer instead of this pass's target.
+     */
+    private static void recordBinding(int before, int after) {
+        boundBefore = before;
+        boundAfter = after;
+        if (before == after) {
+            return;
+        }
+        rebinds++;
+        if (rebinds == 1L || rebinds % REPORT_EVERY == 0L) {
+            CustomDimensionsClient.LOGGER.warn(
+                    "{} draw framebuffer moved inside render before={} after={} rebinds={}",
+                    MARKER, before, after, rebinds);
+        }
     }
 
     /**
@@ -416,8 +459,10 @@ public final class SpectatorPass {
             try {
                 this.gameRenderer.loadProjectionMatrix(projection);
                 this.renderer.setupFrustum(new Vec3d(eye[0], eye[1], eye[2]), position, projection);
+                int wrote = GlStateManager._getInteger(GL30.GL_DRAW_FRAMEBUFFER_BINDING);
                 this.renderer.render(this.counter, false, CAMERA, this.gameRenderer,
                         this.gameRenderer.getLightmapTextureManager(), position, projection);
+                recordBinding(wrote, GlStateManager._getInteger(GL30.GL_DRAW_FRAMEBUFFER_BINDING));
             } finally {
                 RenderSystem.restoreProjectionMatrix();
             }

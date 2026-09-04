@@ -55,8 +55,10 @@ public final class RealtimeControls {
 
     public static void register() {
         store().load();
+        // F6 is First-person Model's in this pack; F4 is the only free function
+        // key that is not already claimed in configureddefaults/options.txt.
         toggleKey = KeyBindingHelper.registerKeyBinding(new KeyBinding(
-                TOGGLE_KEY, InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_F6, CATEGORY));
+                TOGGLE_KEY, InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_F4, CATEGORY));
         ClientTickEvents.END_CLIENT_TICK.register(RealtimeControls::pollToggleKey);
     }
 
