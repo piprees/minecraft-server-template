@@ -190,6 +190,25 @@ of `onChunkData` that `loadChunkFromPacket` does not perform.
 (`mods/AGENTS.md` rule 1), so residency round an arrival decays after a boot and
 the feed with it. Any measurement round therefore needs its own server restart.
 
+**The pass must not write `MinecraftClient.world`.** Other mods read that field
+from other threads, so a destination world written into it is observable by code
+that was never told the world exists — Sound Physics Remastered caches a level
+clone per `ClientWorld` and NPEs on ours from the sound-engine thread. The
+destination reaches the render through redirects on the field's reads in
+`render`, `renderSky` and `renderWeather`, plus a held reference for
+`LightmapTextureManager.update`, which takes no world argument.
+
+**With an Iris shader pack loaded, a destination view takes its time and
+celestial uniforms from the source dimension.** Iris reads
+`MinecraftClient.world` directly in `IrisRenderingPipeline`, `ShadowRenderer` and
+its uniform classes. Accepted: it only bites with a pack loaded.
+
+**Entities in a destination world set `ignoreCameraFrustum`.** `EntityRenderer.shouldRender`
+returns on that field before it reaches `Frustum.isVisible`, which is where
+Sodium wraps the cull — so the flag works with Sodium present or absent and needs
+no mixin. The feed is capped and inside the disc by construction, so a frustum
+test buys nothing and only costs the entity.
+
 **THE MOD IS STANDALONE.** Sodium cannot be assumed and must not be depended on.
 Build against the vanilla renderer; anything Sodium does is a consequence, never
 the mechanism.
