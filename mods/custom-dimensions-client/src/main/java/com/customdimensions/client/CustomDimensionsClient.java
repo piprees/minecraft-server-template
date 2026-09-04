@@ -7,6 +7,7 @@ import com.customdimensions.client.realtime.DestinationChunks;
 import com.customdimensions.client.realtime.DestinationWorlds;
 import com.customdimensions.client.realtime.PortalFrames;
 import com.customdimensions.client.realtime.RealtimeView;
+import com.customdimensions.client.realtime.SpectatorPass;
 import com.customdimensions.client.render.ProjectionRenderer;
 import com.customdimensions.client.render.ProjectionStore;
 import net.fabricmc.api.ClientModInitializer;
@@ -132,6 +133,7 @@ public class CustomDimensionsClient implements ClientModInitializer {
             DestinationChunks.clear();
             DestinationWorlds.clear();
             RealtimeView.clear();
+            SpectatorPass.reset();
             HandshakeSender.arm();
             // The join declaration rides with the handshake, which has to land
             // first; a pending one here would race ahead of it and be ignored.
@@ -151,6 +153,7 @@ public class CustomDimensionsClient implements ClientModInitializer {
             DestinationChunks.clear();
             DestinationWorlds.clear();
             RealtimeView.clear();
+            SpectatorPass.reset();
             HandshakeSender.disarm();
         });
 
@@ -176,6 +179,7 @@ public class CustomDimensionsClient implements ClientModInitializer {
         DestinationChunks.clear();
         DestinationWorlds.clear();
         RealtimeView.clear();
+        SpectatorPass.reset();
     }
 
     private static void sendHelloWhenReady(MinecraftClient client) {

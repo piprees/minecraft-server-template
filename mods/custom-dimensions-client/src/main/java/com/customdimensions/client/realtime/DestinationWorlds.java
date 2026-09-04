@@ -80,6 +80,11 @@ public final class DestinationWorlds {
         return WORLDS.size();
     }
 
+    /** The renderer holding this destination's chunk state, for a second pass. */
+    public static WorldRenderer rendererFor(Identifier destination) {
+        return destination == null ? null : RENDERERS.get(destination);
+    }
+
     /** How many chunks this destination's own manager is holding. */
     public static int loadedChunks(Identifier destination) {
         ClientWorld world = get(destination);

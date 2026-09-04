@@ -6,6 +6,7 @@ import com.customdimensions.client.config.RealtimeSettings;
 import com.customdimensions.client.realtime.DestinationChunks;
 import com.customdimensions.client.realtime.DestinationWorlds;
 import com.customdimensions.client.realtime.PortalFrames;
+import com.customdimensions.client.realtime.SpectatorPass;
 import com.customdimensions.client.render.ClientProjection;
 import com.customdimensions.client.render.LightFacts;
 import com.customdimensions.client.render.ProjectionMesh;
@@ -87,6 +88,11 @@ final class DevState {
                 .num("slabProjections", ProjectionStore.count())
                 .num("destinationWorlds", DestinationWorlds.count())
                 .num("destinationChunks", DestinationChunks.total())
+                .num("spectatorPasses", SpectatorPass.passes())
+                .num("spectatorLastUs", SpectatorPass.lastMicros())
+                .num("spectatorMeanUs", SpectatorPass.meanMicros())
+                .bool("spectatorDisabled", SpectatorPass.disabled())
+                .str("spectatorRefusal", SpectatorPass.refusal())
                 .raw("worlds", worlds.append(']').toString())
                 .toString();
     }
