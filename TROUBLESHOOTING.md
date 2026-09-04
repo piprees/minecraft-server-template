@@ -4,10 +4,10 @@
 
 | Prefix | Range | What it covers |
 | --- | --- | --- |
-| **T** | [T1–T14, T16–T19, T22–T27, T30–T80, T82–T94](#architecture-traps) | Architecture traps — each has caused a real production incident |
+| **T** | [T1–T14, T16–T19, T22–T27, T30–T80, T82–T95](#architecture-traps) | Architecture traps — each has caused a real production incident |
 | **P** | [P1–P6](#macos-local-dev) | macOS local-dev quirks (BSD tooling, toolchain) |
 | **D** | [D1–D6, D8–D9](#dimension-lifecycle) | Custom-dimension lifecycle on a live world |
-| **K** | [K1–K2, K5–K7, K9–K10](#known-issues) | Open issues — unfixed, on the watch list |
+| **K** | [K1–K2, K5–K7, K9](#known-issues) | Open issues — unfixed, on the watch list |
 
 Related contracts: [`AGENTS.md`](AGENTS.md) (how to behave), [`COMMANDS.md`](COMMANDS.md) (command reference), [`mods/AGENTS.md`](mods/AGENTS.md) (in-house mod development, including portal-subsystem specifics).
 
@@ -56,7 +56,7 @@ Run this first. It covers deploy drift, disk, every expected container, `ONLINE_
 | Two arrival zones for one destination after a break and re-light | [T89](#t89) |
 | A reimplementation of the mod's arithmetic is one block out at negative coordinates | [T87](#t87) |
 | A portal renders once, then draws sky on every approach after a traversal | [T93](#t93), [T94](#t94) |
-| A portal's far side is thin and never fills, at 7 chunks and 0 render sections | [K10](#k10) |
+| A portal's far side is thin and never fills, at 7 chunks and 0 render sections | [T95](#t95) |
 | Structure spacing arithmetic disagrees with the world | [T51](#t51) |
 | mc watchdog-crashes a few minutes after a local world reset, parked in `save-all` | [T57](#t57) |
 | The same few structures repeat endlessly in one dimension | [T52](#t52) |
@@ -1647,6 +1647,39 @@ measurement of it.
   the same trap. Pin it against the Java, not against intuition —
   `scripts/e2e/portal-matrix-selftest.sh` is the worked example.
 
+<a id="t95"></a>
+### T95 — The arrival chunk ticket and the client feed want different amounts of the destination
+
+- **Symptom:** a portal drawn locally fills on a first approach and shows
+  exactly 7 chunks with `renderedSections: 0` on every approach where the
+  viewer has not just been in the destination. The feed says so in one line:
+
+  ```
+  companion-send:destination-chunks player=X dimension=D sent=0 wanted=4 held=7 radius=16 idlePumps=1
+  ```
+
+  `wanted` above 0 with `sent=0` is the whole diagnosis — the feed asked for
+  four columns and every one was non-resident.
+- **Cause:** two consumers share one ticket. The block slab wants
+  `ProjectionVolume.targetChunks(...)`, a preview box of about six columns;
+  `DestinationFeed` may send only resident chunks and needs the filled 5x5
+  `CORE_RADIUS` core before a renderer will build the middle of a 3x3. Sized
+  for the slab alone, the feed delivers the ticketed set plus the arrival
+  chunk and stops.
+- **Fix:** `holdSet` composes what a zone tickets — the preview box always,
+  plus the feed's core square for a viewer drawing the far side itself, and of
+  that square only what is ALREADY resident. The local-drawer verdict comes
+  from the players in ticket range, not from `ACTIVE`: the ticket is taken
+  before the projection pass rebuilds a viewer's state, so `ACTIVE` names
+  nobody on the first pass after a world change and one refresh is long enough
+  for a destination to drain.
+- **Trap:** a ticket is not a hold. `ChunkTicketManager.addTicket` builds it at
+  `ChunkLevels.getLevelFromType(FULL)` minus the radius and the manager
+  generates whatever reaches that level, so an unfiltered square would force
+  first-time generation at a portal into fresh terrain — [K6](#k6). Filtering
+  to resident columns is what makes it hold-only; `ImmersivePreloader` still
+  owns generation.
+
 <a id="t94"></a>
 ### T94 — A crossing's own frame and chunks arrive before the client tick that clears the old world's
 
@@ -2266,37 +2299,6 @@ The rendered height disagrees with the facts on high-relief columns. The error i
   the caller. `mods/AGENTS.md` forbids sync-loading from a tick path for this
   reason; probe with `getChunkManager().getWorldChunk(cx, cz, false)` or
   register a `ChunkTicketType.PORTAL` ticket and act on a later tick.
-
-<a id="k10"></a>
-### K10 — The arrival chunk ticket is sized for the block slab, so a client-drawn far side stalls at seven chunks
-
-- **Symptom:** a portal drawn locally fills to 29 chunks on a first approach and
-  to exactly 7 on every approach where the viewer has not just been in the
-  destination, with `renderedSections: 0`. The server log stops after two
-  passes and says why:
-
-  ```
-  immersive: requested 25 arrival chunks around (108, 81) in adventure:the_amplified_reaches for zone minecraft:overworld|3464, 81, 2592
-  immersive: holding 6 arrival chunks in adventure:the_amplified_reaches for zone minecraft:overworld [107, 80]
-  companion-send:destination-chunks ... sent=4 held=4
-  companion-send:destination-chunks ... sent=3 held=7
-  ```
-
-- **Cause:** `ImmersiveProjector.holdChunks` tickets
-  `ProjectionVolume.targetChunks(interior, axis, mapping, previewDepth,
-  previewRadius)` — the block slab's preview box, six chunks.
-  `DestinationFeed` may send only resident chunks and needs the filled 5x5
-  `CORE_RADIUS` core, 25, before a renderer will build the middle of a 3x3. So
-  the feed delivers the ticketed set plus the arrival chunk and stops. A first
-  approach reaches 29 only because the viewer's own presence in that dimension
-  had loaded them. `ImmersivePreloader`'s 25 is a one-shot pre-generation, not a
-  ticket.
-- **Not the feed's record** ([T93](#t93)). With that fixed the count restarts
-  from zero and climbs to 7; the ceiling is residency, not bookkeeping.
-- **Unfixed.** The bounded shape is to add the feed's `CORE_RADIUS` square
-  around the arrival chunk to what `holdChunks` tickets while a viewer draws
-  that portal locally — 25 chunks at `TICKET_RADIUS 0`, readable and not
-  ticking, released on the edges `releaseChunks` already covers.
 
 <a id="k9"></a>
 
