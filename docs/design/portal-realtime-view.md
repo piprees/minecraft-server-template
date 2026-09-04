@@ -170,6 +170,48 @@ plane, without jumping, and continues visibly on the far side.
 
 **Done when:** the acceptance test passes, filmed.
 
+### P8 — Distant Horizons LODs through the aperture
+
+**Deferred, not impossible.** A route exists and needs no mixin into DH.
+
+DH renders from `WorldRenderEvents` handlers that write four public mutable
+fields on `ClientApi.RENDER_STATE` — `mcProjectionMatrix`, `mcModelViewMatrix`,
+`partialTickTime`, `clientLevelWrapper` — then call the public
+`ClientApi.INSTANCE.renderLods()`. `RenderParams.update` derives the
+`DhClientLevel`, its `RenderBufferHandler` and the lightmap from
+`clientLevelWrapper` alone. **Choosing the level is a field write, not a hook.**
+
+**The camera is not in that state object.** It comes live from
+`mc.gameRenderer.getCamera()`, so a pass that moves the real camera gets DH's
+culling and LOD centring for free; one that only fakes matrices culls the far
+side against the near side's position.
+
+A keyed wrapper is needed before DH will load the level: send
+`RequestLevelInitMessage(dimensionId)`. The handler checks only that
+`sendLevelKeys` is on and the level is loaded — **not that the player is in
+it**.
+
+**Occupancy was never DH's question.** Measured with DH's own `/dh debug`: five
+tracked levels, one occupied, including a runtime custom dimension — because
+`ServerApi.serverLevelLoadEvent` hangs off `ServerWorldEvents.LOAD`.
+
+**The gap:** `DhServerWorld.getOrLoadLevel` registers no data-request handlers
+for players already online, so a dimension activating after a join serves that
+player no LODs until they reconnect. Fixable from outside by calling
+`level.registerNetworkHandlers(state)` per online player on
+`DhApiLevelLoadEvent`.
+
+**Why it waits.** Everything load-bearing is `core.*`/`common.*`, not DH's
+versioned `api`, so every DH pin bump is a re-verification. The destination must
+stay loaded or there is no key and no data, which idle unload actively fights
+([K6](../../TROUBLESHOOTING.md#k6)). And DH's own integration with the one other
+mod that renders dimensions through portals answers this situation by
+**cancelling the LOD render outright** — possibly a considered correctness
+choice we would otherwise re-learn in production.
+
+**P6's acceptance is met by render distance alone, at zero coupling.** Do this
+after P1–P7, or not at all.
+
 ## Costs
 
 The pass costs ~9us off screen (frustum gate) and ~505us on screen today. Every
