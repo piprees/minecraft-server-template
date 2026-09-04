@@ -152,30 +152,43 @@ puts it. Crucible (4.0) is verified on the TRANSFORM only — the wire offset is
 `(-2445, -25, -2162)`, pure addition, and a local projection builds there — not
 on a landmark, for want of a vantage point at that rig.
 
-### P4a — Why the second pass draws nothing
+### P4a — The pass must own the framebuffer
 
-**Established in bytecode.** The renderer builds a chunk section only when that
-chunk AND its 8 neighbours carry both block-data and light-data status. Two
-independent reasons the destination world never qualifies:
+**`WorldRenderer.render` re-binds the main framebuffer from inside itself.** At
+bytecode 700 it calls `client.getFramebuffer().beginWrite(false)`, guarded only
+by `canDrawEntityOutlines()`:
 
-- **`DestinationWorlds.applyLight`/`updateLighting` (`:194-217`) reimplements
-  vanilla's `updateLighting` rather than calling it**, so nothing ever flags the
-  destination's chunks as having light data. Fix: swap
-  `ClientPlayNetworkHandler.world` behind a `@Mutable @Accessor` for the
-  duration of the load and call **vanilla's** `updateLighting`.
-- **`DestinationFeed.nextChunks` (`DestinationFeed.java:112-146`) sends a
-  visibility CONE** (`chunkThroughOpening`). A cone has no interior, so almost
-  no chunk has all 8 neighbours. **The minimum for one renderable chunk is a
-  filled 3x3.** `ProjectionMesh` never cared because it read blocks directly; a
-  real render pass does.
+```java
+!isRenderingPanorama() && entityOutlinesFramebuffer != null
+    && entityOutlinePostProcessor != null && client.player != null
+```
 
-**Cost, measured over 14,511 passes: 3803us mean, 3611us last** — ~7.5x the
-existing pass. An earlier 46-55ms figure was a 2-sample mean including the
-framebuffer allocation and is withdrawn. With `destinationChunks=0` a pass still
-costs 3611us, so **~3.8ms is fixed per-pass overhead, not terrain**: 
-`SpectatorPass.ensureTarget:206-215` allocates the offscreen target at the MAIN
-framebuffer's full size, so every pass pays a full-resolution clear, a full-res
-sky draw and a full-res -> 288px downsample.
+There is no glowing-entity clause — that guard belongs to the other site at
+1655, and 655 is the fabulous path, which the pass refuses. So 700 fires on
+every ordinary frame. Hand `render` an offscreen target and it returns having
+bound the main one; everything drawn after that point lands there and the source
+world paints over it.
+
+**The fix is to make what they re-bind TO be correct**, rather than enumerating
+who re-binds — the enumeration goes stale every MC version. `MinecraftClient.framebuffer`
+is `private final`, so a `@Mutable @Accessor` swaps it to the pass's target for
+the duration of the render, released in a `finally`: a throw between swap and
+release would leave the whole game drawing to a dead target, and would also trip
+`SpectatorPass.disabled()` into the refusal latch. `spectatorRebinds` on the dev
+bridge is the runtime proof it holds — it reads 0 when the adoption applies.
+
+**Two things a chunk needs before the renderer will build its section**, both
+required and both satisfied by the feed: the chunk AND its 8 neighbours carrying
+block-data and light-data status. `DestinationFeed` sends a filled core
+(`CORE_RADIUS 2`, a 5x5 whose 3x3 interior qualifies) rather than a visibility
+cone, which has no interior. Light goes in through vanilla's own `readLightData`
+with the handler's world swapped to the destination, and each fed chunk marks its
+own sections via vanilla's `setSectionStatus` + `scheduleBlockRenders` — the half
+of `onChunkData` that `loadChunkFromPacket` does not perform.
+
+**The feed sends only RESIDENT chunks and may not load or generate one**
+(`mods/AGENTS.md` rule 1), so residency round an arrival decays after a boot and
+the feed with it. Any measurement round therefore needs its own server restart.
 
 **THE MOD IS STANDALONE.** Sodium cannot be assumed and must not be depended on.
 Build against the vanilla renderer; anything Sodium does is a consequence, never
