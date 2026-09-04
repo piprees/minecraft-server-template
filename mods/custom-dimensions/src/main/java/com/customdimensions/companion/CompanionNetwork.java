@@ -31,7 +31,21 @@ public final class CompanionNetwork {
     /** Grepped in the server log to prove the destination stream left this side. */
     public static final String PROJECTION_MARKER = "companion-send:projection";
 
+    /** Grepped in the server log: which side is drawing this player's portals. */
+    public static final String VIEW_MARKER = "companion-accept:portal-view";
+
+    /** Grepped in the server log to prove the geometry-only send left this side. */
+    public static final String FRAME_MARKER = "companion-send:portal-frame";
+
     private static final Set<UUID> COMPANIONS = ConcurrentHashMap.newKeySet();
+
+    /**
+     * What each companion says it draws for itself. Absent means the server
+     * draws, which is what every vanilla client and every companion built
+     * before this existed gets.
+     */
+    private static final java.util.Map<UUID, PortalViewPreference> VIEWS =
+            new ConcurrentHashMap<>();
 
     private CompanionNetwork() {}
 
@@ -43,11 +57,21 @@ public final class CompanionNetwork {
         PayloadTypeRegistry.playS2C().register(
                 CompanionPayloads.Projection.ID, CompanionPayloads.Projection.CODEC);
         PayloadTypeRegistry.playS2C().register(
+                CompanionPayloads.PortalFrame.ID, CompanionPayloads.PortalFrame.CODEC);
+        PayloadTypeRegistry.playS2C().register(
+                CompanionPayloads.DestinationChunk.ID, CompanionPayloads.DestinationChunk.CODEC);
+        PayloadTypeRegistry.playS2C().register(
                 CompanionPayloads.ProjectionClear.ID, CompanionPayloads.ProjectionClear.CODEC);
+
+        PayloadTypeRegistry.playC2S().register(
+                CompanionPayloads.PortalView.ID, CompanionPayloads.PortalView.CODEC);
 
         ServerPlayNetworking.registerGlobalReceiver(CompanionPayloads.Hello.ID,
                 (payload, context) -> onHello(context.player().getUuid(),
                         context.player().getNameForScoreboard(), payload.protocolVersion()));
+        ServerPlayNetworking.registerGlobalReceiver(CompanionPayloads.PortalView.ID,
+                (payload, context) -> onPortalView(context.player().getUuid(),
+                        context.player().getNameForScoreboard(), payload));
     }
 
     /** Version skew degrades to vanilla, never to a hybrid. */
@@ -60,17 +84,51 @@ public final class CompanionNetwork {
                 ACCEPT_MARKER, playerName, protocolVersion);
     }
 
+    /**
+     * A client saying what it will draw. Honoured only for a player whose
+     * protocol version matched: without one, suppressing the description would
+     * stop the far side reaching a client that has no other way to see it.
+     */
+    static void onPortalView(UUID playerId, String playerName, CompanionPayloads.PortalView payload) {
+        if (!COMPANIONS.contains(playerId)) {
+            return;
+        }
+        PortalViewPreference declared = new PortalViewPreference(
+                payload.renderLocally(), payload.keepSlab(), payload.maxRenderDistance());
+        PortalViewPreference held = VIEWS.put(playerId, declared);
+        if (declared.equals(held)) {
+            return;
+        }
+        MultiverseServer.LOGGER.info("{} player={} rendersLocally={} slab={} maxRenderDistance={}",
+                VIEW_MARKER, playerName, declared.rendersLocally(),
+                declared.streamsSlab() ? "streamed" : "suppressed", declared.maxRenderDistance());
+    }
+
     public static void forget(UUID playerId) {
         COMPANIONS.remove(playerId);
+        VIEWS.remove(playerId);
+        DestinationFeed.forget(playerId);
     }
 
     public static boolean isCompanion(UUID playerId) {
         return COMPANIONS.contains(playerId);
     }
 
+    /** What this player draws for itself; never null. */
+    public static PortalViewPreference portalView(UUID playerId) {
+        return VIEWS.getOrDefault(playerId, PortalViewPreference.SERVER_DRAWN);
+    }
+
+    /** Whether the server still has to describe a far side to this player. */
+    public static boolean streamsSlab(UUID playerId) {
+        return portalView(playerId).streamsSlab();
+    }
+
     /** Drops every record (server shutdown). */
     public static void clear() {
         COMPANIONS.clear();
+        VIEWS.clear();
+        DestinationFeed.clear();
     }
 
     /**
@@ -112,6 +170,22 @@ public final class CompanionNetwork {
         MultiverseServer.LOGGER.debug("{} player={} dimension={} cells={} aperture={}",
                 PROJECTION_MARKER, player.getNameForScoreboard(), projection.destination(),
                 projection.cellCount(), projection.apertureOrigin().toShortString());
+    }
+
+    /**
+     * Hands one portal's geometry to a client that draws the destination
+     * itself. Paired with the block description being skipped for the same
+     * player: both address the same opening, and a client sent both would
+     * draw the far side twice.
+     */
+    public static void sendPortalFrame(ServerPlayerEntity player, CompanionPayloads.PortalFrame frame) {
+        if (frame == null || !COMPANIONS.contains(player.getUuid())) {
+            return;
+        }
+        ServerPlayNetworking.send(player, frame);
+        MultiverseServer.LOGGER.debug("{} player={} dimension={} aperture={} offset=({}, {}, {})",
+                FRAME_MARKER, player.getNameForScoreboard(), frame.destination(),
+                frame.apertureOrigin().toShortString(), frame.dx(), frame.dy(), frame.dz());
     }
 
     /** Tells a companion to drop a projection whose zone has gone. */

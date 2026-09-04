@@ -1,0 +1,6 @@
+{
+  "key.categories.customdimensionsclient": "Custom Dimensions",
+  "key.customdimensionsclient.toggle_realtime": "Toggle real-time portal view",
+  "message.customdimensionsclient.realtime_on": "Portal view: real-time (rendered by this client)",
+  "message.customdimensionsclient.realtime_off": "Portal view: server preview"
+}

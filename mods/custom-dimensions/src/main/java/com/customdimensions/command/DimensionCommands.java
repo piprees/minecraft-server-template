@@ -197,6 +197,8 @@ public class DimensionCommands {
                     .then(CommandManager.argument("player", StringArgumentType.word())
                         .executes(ctx -> E2eState.e2eState(ctx,
                             StringArgumentType.getString(ctx, "player")))))
+                .then(CommandManager.literal("portal-light")
+                    .executes(PortalLightCommand::portalLight))
                 .then(CommandManager.literal("biome-table")
                     .executes(BiomeTableDump::biomeTable)
                     .then(CommandManager.argument("dimension", IdentifierArgumentType.identifier())

@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.UUID;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -49,5 +50,70 @@ class CompanionRegistryTest {
         CompanionNetwork.onHello(PLAYER, "Tester",CompanionPayloads.PROTOCOL_VERSION);
         CompanionNetwork.forget(PLAYER);
         assertFalse(CompanionNetwork.isCompanion(PLAYER));
+    }
+
+    @Test
+    void aPlayerWhoDeclaredNothingIsServerDrawn() {
+        assertEquals(PortalViewPreference.SERVER_DRAWN, CompanionNetwork.portalView(PLAYER));
+        assertTrue(CompanionNetwork.streamsSlab(PLAYER));
+    }
+
+    @Test
+    void aDeclarationFromACompanionIsHonoured() {
+        CompanionNetwork.onHello(PLAYER, "Tester", CompanionPayloads.PROTOCOL_VERSION);
+        CompanionNetwork.onPortalView(PLAYER, "Tester",
+                new CompanionPayloads.PortalView(true, false, 24));
+
+        assertTrue(CompanionNetwork.portalView(PLAYER).rendersLocally());
+        assertEquals(24, CompanionNetwork.portalView(PLAYER).maxRenderDistance());
+        assertFalse(CompanionNetwork.streamsSlab(PLAYER));
+    }
+
+    /**
+     * The declaration is only meaningful alongside a matching protocol
+     * version: without one the server would stop describing a far side to a
+     * client that cannot receive the description either way.
+     */
+    @Test
+    void aDeclarationFromANonCompanionIsIgnored() {
+        CompanionNetwork.onPortalView(PLAYER, "Tester",
+                new CompanionPayloads.PortalView(true, false, 24));
+
+        assertEquals(PortalViewPreference.SERVER_DRAWN, CompanionNetwork.portalView(PLAYER));
+        assertTrue(CompanionNetwork.streamsSlab(PLAYER));
+    }
+
+    @Test
+    void theLatestDeclarationWinsSoAToggleTakesEffect() {
+        CompanionNetwork.onHello(PLAYER, "Tester", CompanionPayloads.PROTOCOL_VERSION);
+        CompanionNetwork.onPortalView(PLAYER, "Tester",
+                new CompanionPayloads.PortalView(true, false, 24));
+        CompanionNetwork.onPortalView(PLAYER, "Tester",
+                new CompanionPayloads.PortalView(false, true, 24));
+
+        assertTrue(CompanionNetwork.streamsSlab(PLAYER), "the toggle back did not restore the slab");
+    }
+
+    @Test
+    void disconnectDropsTheDeclarationTooSoTheNextPlayerOnThatIdIsNotSilenced() {
+        CompanionNetwork.onHello(PLAYER, "Tester", CompanionPayloads.PROTOCOL_VERSION);
+        CompanionNetwork.onPortalView(PLAYER, "Tester",
+                new CompanionPayloads.PortalView(true, false, 24));
+
+        CompanionNetwork.forget(PLAYER);
+
+        assertEquals(PortalViewPreference.SERVER_DRAWN, CompanionNetwork.portalView(PLAYER));
+        assertTrue(CompanionNetwork.streamsSlab(PLAYER));
+    }
+
+    @Test
+    void clearDropsTheDeclarationsAsWellAsTheCompanions() {
+        CompanionNetwork.onHello(PLAYER, "Tester", CompanionPayloads.PROTOCOL_VERSION);
+        CompanionNetwork.onPortalView(PLAYER, "Tester",
+                new CompanionPayloads.PortalView(true, false, 24));
+
+        CompanionNetwork.clear();
+
+        assertTrue(CompanionNetwork.streamsSlab(PLAYER));
     }
 }

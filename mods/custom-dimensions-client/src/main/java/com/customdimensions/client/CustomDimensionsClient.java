@@ -1,6 +1,11 @@
 package com.customdimensions.client;
 
+import com.customdimensions.client.config.RealtimeControls;
+import com.customdimensions.client.config.RealtimeSettings;
 import com.customdimensions.client.dev.DevBridge;
+import com.customdimensions.client.realtime.DestinationChunks;
+import com.customdimensions.client.realtime.DestinationWorlds;
+import com.customdimensions.client.realtime.PortalFrames;
 import com.customdimensions.client.render.ProjectionRenderer;
 import com.customdimensions.client.render.ProjectionStore;
 import net.fabricmc.api.ClientModInitializer;
@@ -36,17 +41,33 @@ public class CustomDimensionsClient implements ClientModInitializer {
     /** Grepped in the client log to turn the screen check into an assertion. */
     public static final String SUPPRESS_MARKER = "companion-suppress:arrival-screen";
 
+    /** Grepped in the client log to prove the declaration left this side. */
+    public static final String VIEW_MARKER = "companion-client:portal-view";
+
     /** The world the store's source coordinates belong to. */
     private static ClientWorld boundWorld;
+
+    /**
+     * A settings change waiting for a tick to declare itself on. The change can
+     * arrive from the dev bridge's own thread, and {@code getNetworkHandler}
+     * is the render thread's to read.
+     */
+    private static volatile boolean viewDeclarationPending;
 
     @Override
     public void onInitializeClient() {
         PayloadTypeRegistry.playC2S().register(
                 CompanionPayloads.Hello.ID, CompanionPayloads.Hello.CODEC);
+        PayloadTypeRegistry.playC2S().register(
+                CompanionPayloads.PortalView.ID, CompanionPayloads.PortalView.CODEC);
         PayloadTypeRegistry.playS2C().register(
                 CompanionPayloads.PreloadedTransfer.ID, CompanionPayloads.PreloadedTransfer.CODEC);
         PayloadTypeRegistry.playS2C().register(
                 CompanionPayloads.Projection.ID, CompanionPayloads.Projection.CODEC);
+        PayloadTypeRegistry.playS2C().register(
+                CompanionPayloads.PortalFrame.ID, CompanionPayloads.PortalFrame.CODEC);
+        PayloadTypeRegistry.playS2C().register(
+                CompanionPayloads.DestinationChunk.ID, CompanionPayloads.DestinationChunk.CODEC);
         PayloadTypeRegistry.playS2C().register(
                 CompanionPayloads.ProjectionClear.ID, CompanionPayloads.ProjectionClear.CODEC);
 
@@ -54,33 +75,84 @@ public class CustomDimensionsClient implements ClientModInitializer {
                 (payload, context) -> PendingTransfer.arm(payload.destination()));
         ClientPlayNetworking.registerGlobalReceiver(CompanionPayloads.Projection.ID,
                 (payload, context) -> {
+                    // One opening is described by one store or the other, never
+                    // both, or the far side is drawn twice.
+                    PortalFrames.remove(payload.apertureOrigin());
                     ProjectionStore.accept(payload);
                     LOGGER.info("{} dimension={} cells={} aperture={}", ProjectionStore.RECEIVE_MARKER,
                             payload.destination(), payload.cellCount(),
                             payload.apertureOrigin().toShortString());
                 });
+        ClientPlayNetworking.registerGlobalReceiver(CompanionPayloads.PortalFrame.ID,
+                (payload, context) -> {
+                    ProjectionStore.remove(payload.apertureOrigin());
+                    boolean changed = PortalFrames.accept(payload);
+                    // The destination's own world, centred on the arrival: a map
+                    // centred anywhere else silently discards every chunk fed to
+                    // it. See ChunkMapWindow.
+                    net.minecraft.util.math.BlockPos origin = payload.apertureOrigin();
+                    DestinationWorlds.ensure(context.client(), payload.destination(),
+                            payload.dimensionType(),
+                            RealtimeControls.settings().maxRenderDistance(),
+                            (origin.getX() + payload.dx()) >> 4,
+                            (origin.getZ() + payload.dz()) >> 4);
+                    if (changed) {
+                        LOGGER.info("{} dimension={} type={} aperture={} offset=({}, {}, {})",
+                                PortalFrames.RECEIVE_MARKER, payload.destination(),
+                                payload.dimensionType(), origin.toShortString(),
+                                payload.dx(), payload.dy(), payload.dz());
+                    }
+                });
+        ClientPlayNetworking.registerGlobalReceiver(CompanionPayloads.DestinationChunk.ID,
+                (payload, context) -> {
+                    int chunkX = payload.chunk().getChunkX();
+                    int chunkZ = payload.chunk().getChunkZ();
+                    boolean loaded = DestinationWorlds.load(payload.destination(), payload.chunk());
+                    if (DestinationChunks.accept(payload.destination(), chunkX, chunkZ)) {
+                        LOGGER.debug("{} dimension={} chunk={},{} received={} loaded={} inWorld={}",
+                                DestinationChunks.RECEIVE_MARKER, payload.destination(),
+                                chunkX, chunkZ, DestinationChunks.count(payload.destination()),
+                                loaded, DestinationWorlds.loadedChunks(payload.destination()));
+                    }
+                });
         ClientPlayNetworking.registerGlobalReceiver(CompanionPayloads.ProjectionClear.ID,
-                (payload, context) -> ProjectionStore.remove(payload.apertureOrigin()));
+                (payload, context) -> {
+                    ProjectionStore.remove(payload.apertureOrigin());
+                    PortalFrames.remove(payload.apertureOrigin());
+                });
 
         ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> {
             PendingTransfer.clear();
             ProjectionStore.clear();
+            PortalFrames.clear();
+            DestinationChunks.clear();
+            DestinationWorlds.clear();
             HandshakeSender.arm();
+            // The join declaration rides with the handshake, which has to land
+            // first; a pending one here would race ahead of it and be ignored.
+            viewDeclarationPending = false;
         });
 
         ClientTickEvents.END_CLIENT_TICK.register(CustomDimensionsClient::sendHelloWhenReady);
+        ClientTickEvents.END_CLIENT_TICK.register(CustomDimensionsClient::declarePortalViewWhenPending);
         ClientTickEvents.END_CLIENT_TICK.register(CustomDimensionsClient::dropProjectionsOnWorldChange);
         WorldRenderEvents.BEFORE_ENTITIES.register(ProjectionRenderer::render);
 
         ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
             PendingTransfer.clear();
             ProjectionStore.clear();
+            PortalFrames.clear();
+            DestinationChunks.clear();
+            DestinationWorlds.clear();
             HandshakeSender.disarm();
         });
 
+        RealtimeControls.register();
+        RealtimeControls.store().onChange(settings -> viewDeclarationPending = true);
         DevBridge.start();
 
-        LOGGER.info("{} protocol={}", INIT_MARKER, CompanionPayloads.PROTOCOL_VERSION);
+        LOGGER.info("{} protocol={} realtime={}", INIT_MARKER,
+                CompanionPayloads.PROTOCOL_VERSION, RealtimeControls.settings().enabled());
     }
 
     /**
@@ -93,6 +165,9 @@ public class CustomDimensionsClient implements ClientModInitializer {
         }
         boundWorld = client.world;
         ProjectionStore.clear();
+        PortalFrames.clear();
+        DestinationChunks.clear();
+        DestinationWorlds.clear();
     }
 
     private static void sendHelloWhenReady(MinecraftClient client) {
@@ -112,5 +187,36 @@ public class CustomDimensionsClient implements ClientModInitializer {
         HandshakeSender.sent();
         LOGGER.info("{} protocol={} serverDeclaredChannel={}",
                 HELLO_MARKER, CompanionPayloads.PROTOCOL_VERSION, declared);
+        // Sent here rather than from the pending flag: the handshake may take
+        // several ticks to land, and a declaration that arrives ahead of it is
+        // dropped by a server that does not yet know this client at all.
+        declarePortalView();
+    }
+
+    /** A runtime settings change, once there is a connection to declare it on. */
+    private static void declarePortalViewWhenPending(MinecraftClient client) {
+        if (!viewDeclarationPending || client.getNetworkHandler() == null) {
+            return;
+        }
+        viewDeclarationPending = false;
+        declarePortalView();
+    }
+
+    /**
+     * Tells the server what this client will draw for itself. A server that
+     * never receives it keeps describing the far side, which is the behaviour
+     * every vanilla client already has.
+     */
+    private static void declarePortalView() {
+        RealtimeSettings settings = RealtimeControls.settings();
+        try {
+            ClientPlayNetworking.send(new CompanionPayloads.PortalView(
+                    settings.enabled(), settings.fallbackToSlab(), settings.maxRenderDistance()));
+        } catch (RuntimeException e) {
+            LOGGER.warn("could not declare the portal view; the server keeps describing it", e);
+            return;
+        }
+        LOGGER.info("{} renderLocally={} keepSlab={} maxRenderDistance={}", VIEW_MARKER,
+                settings.enabled(), settings.fallbackToSlab(), settings.maxRenderDistance());
     }
 }

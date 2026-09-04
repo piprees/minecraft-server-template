@@ -17,12 +17,22 @@ public interface PortalPass {
 
     void restoreDepthRange();
 
-    /** The destination's sky and fog, behind everything the mesh draws. */
-    void drawBackdrop();
+    /**
+     * The destination's sky and fog, behind everything the mesh draws.
+     * {@code planeLocal} is the portal surface on the normal axis, in the
+     * volume's own space, and the backdrop is cast from it.
+     */
+    void drawBackdrop(double planeLocal);
 
-    /** Every layer of the meshed destination. */
-    void drawDestination();
+    /**
+     * Every layer of the meshed destination, moved by the offset that lands its
+     * near face on the surface. Zero on the two in-plane axes.
+     */
+    void drawDestination(double shiftX, double shiftY, double shiftZ);
 
-    /** The opening's own depth. Returns the corner count, 0 when nothing was drawn. */
-    int drawStamp();
+    /**
+     * The opening's own depth, on the surface at {@code planeLocal}. Returns
+     * the corner count, 0 when nothing was drawn.
+     */
+    int drawStamp(double planeLocal);
 }

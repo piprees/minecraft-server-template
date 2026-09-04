@@ -10,6 +10,7 @@ import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.world.LightType;
@@ -137,6 +138,45 @@ public final class ProjectionStream {
                 biome == null ? -1 : biome.getGrassColorAt(arrival.getX(), arrival.getZ()),
                 biome == null ? -1 : biome.getFoliageColor(),
                 biome == null ? -1 : biome.getWaterColor());
+    }
+
+    /**
+     * The geometry-only description a client rendering the destination itself
+     * gets in place of {@link #build}: the same zone and the same mapping,
+     * with no blocks sampled at all.
+     *
+     * <p>Null when the destination's {@code DimensionType} is not a registered
+     * entry. A client cannot stand a world up for one it has no type for, so
+     * that portal keeps its block slab however the player set the toggle.
+     */
+    public static CompanionPayloads.PortalFrame frame(PortalHelper.PortalZone zone,
+            Direction normal, ServerWorld targetWorld,
+            ProjectionVolume.TargetMapping mapping, int arrivalY) {
+        if (zone == null || zone.interior.isEmpty() || normal == null || targetWorld == null) {
+            return null;
+        }
+        Identifier dimensionType = targetWorld.getDimensionEntry().getKey()
+                .map(key -> key.getValue()).orElse(null);
+        if (dimensionType == null) {
+            return null;
+        }
+        Map<Long, WorldChunk> chunks = new HashMap<>();
+        BlockPos arrival = new BlockPos(mapping.arrivalX(), arrivalY, mapping.arrivalZ());
+        Biome biome = biomeAt(targetWorld, arrival, chunks);
+        int configuredSky = configuredColour(targetWorld, true);
+        int configuredFog = configuredColour(targetWorld, false);
+        return new CompanionPayloads.PortalFrame(
+                targetWorld.getRegistryKey().getValue(),
+                dimensionType,
+                ProjectionVolume.minCorner(zone.interior),
+                new ArrayList<>(zone.interior),
+                zone.axis.ordinal(),
+                normal.ordinal(),
+                mapping.dx(),
+                arrivalY - mapping.interiorMinY(),
+                mapping.dz(),
+                configuredSky >= 0 ? configuredSky : biome == null ? -1 : biome.getSkyColor(),
+                configuredFog >= 0 ? configuredFog : biome == null ? -1 : biome.getFogColor());
     }
 
     /** True when two payloads describe the same view; skips a redundant send. */

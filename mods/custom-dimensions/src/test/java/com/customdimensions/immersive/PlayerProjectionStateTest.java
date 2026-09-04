@@ -96,6 +96,43 @@ class PlayerProjectionStateTest {
         assertEquals(faked, PlayerProjectionState.slabCarryOver(faked, Set.of()));
     }
 
+    // ---- what the aperture pass paints ----------------------------------
+
+    /**
+     * The one definition of the level painted over an opening. A diagnostic
+     * that recomputed it could report a light the projector is not painting.
+     */
+    @Test
+    void theApertureCarriesTheConfiguredLevel() {
+        assertEquals(11, PlayerProjectionState.apertureLightLevel(portal(11)));
+        assertEquals(15, PlayerProjectionState.apertureLightLevel(portal(15)));
+    }
+
+    /** Zero paints nothing at all — the aperture is left as it stands. */
+    @Test
+    void zeroPaintsNothing() {
+        assertEquals(0, PlayerProjectionState.apertureLightLevel(portal(0)));
+    }
+
+    /** A zone whose definition has left the config paints nothing, never a default. */
+    @Test
+    void aZoneWithNoDefinitionPaintsNothing() {
+        assertEquals(0, PlayerProjectionState.apertureLightLevel(null));
+    }
+
+    /** {@code Properties.LEVEL_15} throws outside 0..15, so the clamp is load-bearing. */
+    @Test
+    void theLevelIsClampedToWhatALightBlockCanHold() {
+        assertEquals(15, PlayerProjectionState.apertureLightLevel(portal(99)));
+        assertEquals(0, PlayerProjectionState.apertureLightLevel(portal(-4)));
+    }
+
+    private static com.customdimensions.config.PortalDefinition portal(int lightLevel) {
+        return new com.customdimensions.config.PortalDefinition("the_crimson_nexus",
+                "minecraft:nether_bricks", "minecraft:flint_and_steel",
+                "adventure:the_crimson_nexus", "AF2B2B", lightLevel);
+    }
+
     @Test
     void theCarryOverCopies() {
         // send() removes from lastSent while iterating the result; a view onto
@@ -108,5 +145,63 @@ class PlayerProjectionStateTest {
 
         assertEquals(3, faked.size());
         assertEquals(2, APERTURE.size());
+    }
+
+    // ---- the companion fork: who describes the far side ------------------
+
+    /**
+     * A client drawing the destination itself is sent no description of it, on
+     * any pass. Every other reason to rebuild is subordinate to this one — a
+     * full pass and a side flip both stay silent.
+     */
+    @Test
+    void aClientDrawingItsOwnFarSideIsNeverSentOne() {
+        assertFalse(PlayerProjectionState.companionRebuildDue(false, true, true, true, 500, 0, 20));
+        assertFalse(PlayerProjectionState.companionRebuildDue(false, false, false, false, 500, 0, 20));
+    }
+
+    @Test
+    void aClientTakingTheSlabIsSentOneOnEveryUsualTrigger() {
+        assertTrue(PlayerProjectionState.companionRebuildDue(true, true, false, false, 0, 0, 20),
+                "a full pass did not rebuild");
+        assertTrue(PlayerProjectionState.companionRebuildDue(true, false, true, false, 0, 0, 20),
+                "a side flip did not rebuild");
+        assertTrue(PlayerProjectionState.companionRebuildDue(true, false, false, true, 0, 0, 20),
+                "a client holding nothing was left holding nothing");
+        assertTrue(PlayerProjectionState.companionRebuildDue(true, false, false, false, 20, 0, 20),
+                "the cadence elapsed and nothing was rebuilt");
+    }
+
+    @Test
+    void betweenCadencesNothingIsRebuilt() {
+        assertFalse(PlayerProjectionState.companionRebuildDue(true, false, false, false, 19, 0, 20));
+    }
+
+    /**
+     * Toggling the local view ON leaves a description already on that client,
+     * describing the same space it is now drawing itself. It has to be
+     * withdrawn, and only while there is one to withdraw.
+     */
+    /**
+     * A destination the client has no {@code DimensionType} for cannot be
+     * stood up there, so that portal keeps its slab whatever the player asked
+     * for. Per portal, not per player: the same client's other portals are
+     * unaffected.
+     */
+    @Test
+    void aPortalWithNoFrameKeepsItsSlabHoweverTheToggleIsSet() {
+        assertTrue(PlayerProjectionState.streamsSlab(true, false),
+                "a portal that could not be described was silenced anyway");
+        assertFalse(PlayerProjectionState.streamsSlab(true, true));
+        assertTrue(PlayerProjectionState.streamsSlab(false, true));
+        assertTrue(PlayerProjectionState.streamsSlab(false, false));
+    }
+
+    @Test
+    void aDescriptionAlreadySentIsWithdrawnWhenTheClientTakesOver() {
+        assertTrue(PlayerProjectionState.companionPayloadStale(false, true));
+        assertFalse(PlayerProjectionState.companionPayloadStale(false, false),
+                "a clear was sent for a projection the client never had");
+        assertFalse(PlayerProjectionState.companionPayloadStale(true, true));
     }
 }

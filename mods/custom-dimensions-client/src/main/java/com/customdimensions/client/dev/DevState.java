@@ -2,17 +2,21 @@ package com.customdimensions.client.dev;
 
 import com.customdimensions.client.ArrivalScreen;
 import com.customdimensions.client.render.ClientProjection;
+import com.customdimensions.client.render.LightFacts;
 import com.customdimensions.client.render.ProjectionMesh;
 import com.customdimensions.client.render.ProjectionStore;
 import com.customdimensions.client.render.QuadCapture;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.network.ClientPlayerEntity;
+import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.registry.Registries;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.LightType;
 
 import java.util.ArrayList;
 import java.util.EnumSet;
@@ -28,6 +32,13 @@ final class DevState {
     /** Floats per vertex times four vertices. */
     private static final int FLOATS_PER_QUAD = QuadCapture.STRIDE * 4;
 
+    /**
+     * Cells the light profile walks out of the opening, towards the viewer's
+     * side. Block light falls one level per step, so a portal at level 11 is
+     * still above zero at the far end and the whole gradient is one reading.
+     */
+    private static final int PROFILE_CELLS = 8;
+
     private DevState() {}
 
     static String json(MinecraftClient client, int tick) {
@@ -36,7 +47,7 @@ final class DevState {
                 .num("tick", tick)
                 .raw("player", player(client))
                 .raw("client", clientState(client))
-                .raw("projections", projections())
+                .raw("projections", projections(client))
                 .toString();
     }
 
@@ -131,7 +142,8 @@ final class DevState {
     }
 
     /** This mod's own render state: one entry per portal the client holds. */
-    private static String projections() {
+    private static String projections(MinecraftClient client) {
+        ClientWorld world = client == null ? null : client.world;
         StringBuilder out = new StringBuilder("[");
         boolean first = true;
         for (ClientProjection projection : ProjectionStore.all()) {
@@ -144,8 +156,105 @@ final class DevState {
                     .bool("meshReady", mesh != null)
                     .num("quads", mesh == null ? 0 : mesh.quads())
                     .raw("layers", layers(mesh))
+                    .raw("destLight", light(LightFacts.ofPacked(projection.payload().light())))
+                    .raw("meshLight", light(meshLight(mesh)))
+                    .raw("apertureLight", apertureLight(world, projection))
+                    .raw("lightProfile", lightProfile(world, projection))
                     .toString());
             first = false;
+        }
+        return out.append(']').toString();
+    }
+
+    /** Every layer's vertices as one reading — the mesh's own lightmap levels. */
+    private static LightFacts meshLight(ProjectionMesh mesh) {
+        if (mesh == null) {
+            return LightFacts.EMPTY;
+        }
+        LightFacts total = LightFacts.EMPTY;
+        for (ProjectionMesh.Layer layer : mesh.layers()) {
+            LightFacts one = LightFacts.ofVertices(layer.data(), layer.floats(), QuadCapture.STRIDE);
+            total = merge(total, one);
+        }
+        return total;
+    }
+
+    private static LightFacts merge(LightFacts a, LightFacts b) {
+        if (a.cells() == 0) {
+            return b;
+        }
+        if (b.cells() == 0) {
+            return a;
+        }
+        return new LightFacts(a.cells() + b.cells(), a.lit() + b.lit(),
+                Math.min(a.blockMin(), b.blockMin()), Math.max(a.blockMax(), b.blockMax()),
+                a.blockSum() + b.blockSum(),
+                Math.min(a.skyMin(), b.skyMin()), Math.max(a.skyMax(), b.skyMax()),
+                a.skySum() + b.skySum());
+    }
+
+    private static String light(LightFacts facts) {
+        return Json.obj()
+                .num("cells", facts.cells())
+                .num("lit", facts.lit())
+                .num("blockMin", facts.blockMin())
+                .num("blockMax", facts.blockMax())
+                .num("blockMean", facts.blockMean())
+                .num("skyMin", facts.skyMin())
+                .num("skyMax", facts.skyMax())
+                .num("skyMean", facts.skyMean())
+                .toString();
+    }
+
+    /**
+     * What this client's OWN world holds at the opening: the block it is
+     * showing there and the light it is computing from it.
+     *
+     * <p>The aperture's light source is a fake block sent to one player, so it
+     * exists nowhere but here — no server-side probe can see it, and this is
+     * the only place the question can be asked.
+     */
+    private static String apertureLight(ClientWorld world, ClientProjection projection) {
+        if (world == null) {
+            return Json.obj().str("absent", "no world").toString();
+        }
+        StringBuilder cells = new StringBuilder("[");
+        boolean first = true;
+        for (BlockPos pos : projection.payload().aperture()) {
+            cells.append(first ? "" : ",").append(Json.obj()
+                    .raw("at", Json.numbers(pos.getX(), pos.getY(), pos.getZ()))
+                    .str("id", Registries.BLOCK.getId(world.getBlockState(pos).getBlock()).toString())
+                    .num("luminance", world.getBlockState(pos).getLuminance())
+                    .num("block", world.getLightLevel(LightType.BLOCK, pos))
+                    .num("sky", world.getLightLevel(LightType.SKY, pos))
+                    .toString());
+            first = false;
+        }
+        return cells.append(']').toString();
+    }
+
+    /**
+     * Block light stepping out of the opening towards the viewer's side, which
+     * is where a player stands. A portal that is lighting the source world
+     * reads as a gradient falling one level per block; one that is not reads as
+     * whatever the source world was already doing.
+     */
+    private static String lightProfile(ClientWorld world, ClientProjection projection) {
+        if (world == null) {
+            return "[]";
+        }
+        Direction towardsViewer = projection.normal().getOpposite();
+        BlockPos.Mutable probe = projection.apertureCentre().mutableCopy();
+        StringBuilder out = new StringBuilder("[");
+        for (int step = 0; step < PROFILE_CELLS; step++) {
+            out.append(step == 0 ? "" : ",").append(Json.obj()
+                    .num("d", step)
+                    .raw("at", Json.numbers(probe.getX(), probe.getY(), probe.getZ()))
+                    .str("id", Registries.BLOCK.getId(world.getBlockState(probe).getBlock()).toString())
+                    .num("block", world.getLightLevel(LightType.BLOCK, probe))
+                    .num("sky", world.getLightLevel(LightType.SKY, probe))
+                    .toString());
+            probe.move(towardsViewer);
         }
         return out.append(']').toString();
     }

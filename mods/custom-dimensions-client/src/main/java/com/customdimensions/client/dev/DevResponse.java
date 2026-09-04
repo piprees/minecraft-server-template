@@ -40,6 +40,21 @@ public final class DevResponse {
                 .toString();
     }
 
+    /**
+     * The real-time view's settings. No before/after pair and no screenshot:
+     * this action changes what the NEXT frame is drawn from, so a shot taken
+     * inside it would show the path being left rather than the one being taken.
+     */
+    public static String realtime(boolean changed, String settings, String held) {
+        return Json.obj()
+                .bool("ok", true)
+                .str("action", "realtime")
+                .bool("changed", changed)
+                .raw("settings", settings)
+                .raw("held", held)
+                .toString();
+    }
+
     public static String error(String message) {
         return Json.obj().bool("ok", false).str("error", readable(message)).toString();
     }

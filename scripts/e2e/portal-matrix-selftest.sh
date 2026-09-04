@@ -140,10 +140,22 @@ write_dim strangeigniter '{"borders": {"player": 4096},
 write_dim tooborderly '{"borders": {"player": 100},
  "portal": {"frameBlock": "minecraft:calcite", "igniterItem": "minecraft:diamond",
             "scale": 16.0}}'
-note "12 fixture dimensions in $FIX"
+write_dim greedy '{"borders": {"player": 4096},
+ "portal": {"frameBlock": "minecraft:bone_block", "igniterItem": "minecraft:ender_eye",
+            "scale": 2.0, "consumesIgniter": true}}'
+write_dim greedyflint '{"borders": {"player": 4096},
+ "portal": {"frameBlock": "minecraft:deepslate", "igniterItem": "minecraft:flint_and_steel",
+            "scale": 2.0, "consumesIgniter": true}}'
+# A seed-viewer sidecar. There is one per dimension, so counting them halves
+# the meaning of every figure the plan prints.
+write_dim standard_thumb '{"thumb": "not a dimension at all"}'
+note "14 fixture dimensions and 1 viewer sidecar in $FIX"
 
 PY_OUT="$RUN_DIR/planner-selftest.txt"
-MUTATE="$MUTATE" FIX="$FIX" HERE="$HERE" python3 - > "$PY_OUT" 2>&1 <<'PYTHON'
+# PYTHONDONTWRITEBYTECODE: importing the planner as a module must not leave a
+# __pycache__ behind in a tracked directory.
+MUTATE="$MUTATE" FIX="$FIX" HERE="$HERE" PYTHONDONTWRITEBYTECODE=1 \
+  python3 - > "$PY_OUT" 2>&1 <<'PYTHON'
 """Cases for portal-matrix-plan.py. Each prints PASS/FAIL plus what it saw."""
 import importlib.util
 import json
@@ -196,7 +208,8 @@ elif MUTATE == "twin-offset":
         return bay, problem
     plan.build_bay = _narrow
 elif MUTATE == "igniter":
-    plan.resolve_igniter = lambda item, mode: (mode, item, "present", True, None)
+    plan.resolve_igniter = (
+        lambda item, mode, consumes=False: (mode, item, "present", True, None))
 elif MUTATE == "centre":
     plan.centre_column = lambda cells: (
         None if not cells else
@@ -244,6 +257,21 @@ for mode, item, want_expectation, want_verdict, want_assertable in cases:
           expectation == want_expectation and verdict == want_verdict
           and assertable == want_assertable,
           (expectation, predicate, verdict, assertable, why))
+# IgniterSpend.of(damageable, creative, consumesIgniter) checks consumesIgniter
+# BEFORE damageable, so a dimension that asks for the item gets the item even
+# when the item could have taken damage instead.
+_greedy = plan.resolve_igniter("minecraft:ender_eye", "auto", True)
+check("a dimension with consumesIgniter spends the item under auto",
+      (_greedy[0], _greedy[2]) == ("consumed", "absent"), _greedy)
+check("consumesIgniter BEATS damageable, the way IgniterSpend.of orders them",
+      plan.resolve_igniter("minecraft:flint_and_steel", "auto", True)[0] == "consumed",
+      plan.resolve_igniter("minecraft:flint_and_steel", "auto", True))
+check("without consumesIgniter a damageable igniter is damaged, not consumed",
+      plan.resolve_igniter("minecraft:flint_and_steel", "auto", False)[0] == "damaged",
+      plan.resolve_igniter("minecraft:flint_and_steel", "auto", False))
+check("an explicit mode still overrides the dimension's own flag",
+      plan.resolve_igniter("minecraft:ender_eye", "untouched", True)[0] == "untouched",
+      plan.resolve_igniter("minecraft:ender_eye", "untouched", True))
 check("a damaged expectation carries damage=1 in its predicate",
       plan.resolve_igniter("minecraft:flint_and_steel", "auto")[1]
       == "minecraft:flint_and_steel[minecraft:damage=1]",
@@ -334,8 +362,40 @@ bays = {b["id"]: b for b in p["bays"]}
 skipped = {s["slug"]: s["reason"] for s in p["skipped"]}
 
 check("every fixture dimension is either a bay or a skip with a reason",
-      len(set(b["slug"] for b in p["bays"]) | set(skipped)) == 12,
+      len(set(b["slug"] for b in p["bays"]) | set(skipped)) == 14,
       sorted(set(b["slug"] for b in p["bays"]) | set(skipped)))
+# A sidecar counted as a dimension would double the denominator and add a
+# "no portal block" skip for a file that was never a dimension.
+check("a _thumb.json sidecar is not read as a dimension",
+      p["source"]["dimensionsRead"] == 14 and p["source"]["sidecarsIgnored"] == 1,
+      (p["source"]["dimensionsRead"], p["source"]["sidecarsIgnored"]))
+check("and it produces no bay and no skip record of its own",
+      "standard_thumb" not in skipped
+      and all(b["slug"] != "standard_thumb" for b in p["bays"]),
+      sorted(skipped))
+check("a consumesIgniter dimension asserts the item is gone",
+      bays["greedy_x"]["igniterExpectation"] == "consumed"
+      and bays["greedy_x"]["igniterVerdict"] == "absent"
+      and bays["greedy_x"]["consumesIgniter"] is True,
+      (bays["greedy_x"]["igniterExpectation"], bays["greedy_x"]["igniterVerdict"]))
+check("a damageable igniter on a consumesIgniter dimension is consumed, not damaged",
+      bays["greedyflint_x"]["igniterExpectation"] == "consumed",
+      bays["greedyflint_x"]["igniterExpectation"])
+check("accept forms are read from a frameBlock LIST as well as frameAccepts",
+      plan.frame_accepts({"frameBlock": ["minecraft:copper_block",
+                                         "minecraft:exposed_copper"],
+                          "framePlaceBlock": "minecraft:copper_block"})
+      == ["minecraft:copper_block", "minecraft:exposed_copper"],
+      plan.frame_accepts({"frameBlock": ["minecraft:copper_block",
+                                         "minecraft:exposed_copper"]}))
+check("a list frameBlock with an explicit framePlaceBlock builds from the "
+      "concrete one",
+      plan.frame_place_block({"frameBlock": ["#c:copper_blocks",
+                                             "minecraft:exposed_copper"],
+                              "framePlaceBlock": "minecraft:copper_block"})
+      == ("minecraft:copper_block", None),
+      plan.frame_place_block({"frameBlock": ["#c:copper_blocks"],
+                              "framePlaceBlock": "minecraft:copper_block"}))
 check("a dimension with no portal block is skipped, not silently dropped",
       "no portal" in skipped.get("noportal", ""), skipped.get("noportal"))
 check("a vanillaManaged dimension is skipped: vanilla owns its ignition",

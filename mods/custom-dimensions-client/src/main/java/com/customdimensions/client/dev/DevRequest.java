@@ -12,7 +12,8 @@ import java.util.Map;
  */
 public final class DevRequest {
 
-    public static final List<String> ACTIONS = List.of("walk", "look", "use", "sneak", "key");
+    public static final List<String> ACTIONS =
+            List.of("walk", "look", "use", "sneak", "key", "realtime");
 
     private final String action;
     private final Map<String, Object> fields;
@@ -87,6 +88,17 @@ public final class DevRequest {
             throw new JsonReader.Malformed(field + " must be a number");
         }
         return d;
+    }
+
+    public boolean flag(String field, boolean fallback) {
+        Object held = this.fields.get(field);
+        if (held == null) {
+            return fallback;
+        }
+        if (!(held instanceof Boolean b)) {
+            throw new JsonReader.Malformed(field + " must be true or false");
+        }
+        return b;
     }
 
     public String text(String field, String fallback) {

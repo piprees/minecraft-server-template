@@ -149,4 +149,26 @@ class DevRequestTest {
         DevRequest request = DevRequest.parse("{\"key\":\"escape\"}");
         assertEquals(3.0, request.number("ticks", 3));
     }
+
+    @Test
+    void realtimeIsAnAction() {
+        DevRequest request = DevRequest.parse("{\"realtime\":{\"enabled\":true}}");
+        assertTrue(request.ok(), request.error());
+        assertEquals("realtime", request.action());
+        assertTrue(request.flag("enabled", false));
+    }
+
+    @Test
+    void anAbsentFlagFallsBackToItsDefault() {
+        DevRequest request = DevRequest.parse("{\"realtime\":{}}");
+        assertTrue(request.flag("distantHorizons", true));
+        assertFalse(request.flag("distantHorizons", false));
+    }
+
+    /** Same rule as every other field: the wrong type is refused, not guessed. */
+    @Test
+    void aFlagFieldHoldingAStringIsRefused() {
+        DevRequest request = DevRequest.parse("{\"realtime\":{\"enabled\":\"yes\"}}");
+        assertThrows(JsonReader.Malformed.class, () -> request.flag("enabled", false));
+    }
 }

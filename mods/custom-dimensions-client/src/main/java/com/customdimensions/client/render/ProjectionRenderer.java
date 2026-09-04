@@ -163,7 +163,7 @@ public final class ProjectionRenderer {
         double camZ = camera.z - origin.getZ();
 
         Direction.Axis normalAxis = projection.normalAxis();
-        double planeLocal = projection.planeCoord() - axisOf(origin, normalAxis);
+        double planeLocal = planeLocal(projection, origin);
         double facing = ClientProjection.isPositive(projection.normal()) ? 1.0 : -1.0;
         double camToPlane = (axisOf(camX, camY, camZ, normalAxis) - planeLocal) * facing;
         // Past the opening, or exactly in its plane: the far side is no longer
@@ -197,9 +197,6 @@ public final class ProjectionRenderer {
                 position, projectionMatrix);
 
         double surface = projection.surfaceOffset();
-        float shiftX = normalAxis == Direction.Axis.X ? (float) surface : 0.0f;
-        float shiftY = normalAxis == Direction.Axis.Y ? (float) surface : 0.0f;
-        float shiftZ = normalAxis == Direction.Axis.Z ? (float) surface : 0.0f;
         StringBuilder report = sample ? new StringBuilder() : null;
         int stamp = runPass(new PortalPass() {
             @Override
@@ -213,16 +210,17 @@ public final class ProjectionRenderer {
             }
 
             @Override
-            public void drawBackdrop() {
+            public void drawBackdrop(double surfaceLocal) {
                 drawFlat(PortalRenderLayers.BACKDROP, entry, backdropPolygon(projection, TUNNEL,
-                        camX, camY, camZ, planeLocal, facing, POLY_A, POLY_B), false);
+                        camX, camY, camZ, surfaceLocal, facing, POLY_A, POLY_B), false);
             }
 
             @Override
-            public void drawDestination() {
+            public void drawDestination(double shiftX, double shiftY, double shiftZ) {
                 for (ProjectionMesh.Layer layer : mesh.layers()) {
                     VertexConsumer consumer = immediate.getBuffer(layer.layer());
-                    int emitted = emitClipped(layer, consumer, entry, shiftX, shiftY, shiftZ);
+                    int emitted = emitClipped(layer, consumer, entry,
+                            (float) shiftX, (float) shiftY, (float) shiftZ);
                     immediate.draw(layer.layer());
                     if (report != null) {
                         report.append(report.isEmpty() ? "" : " | ")
@@ -244,12 +242,12 @@ public final class ProjectionRenderer {
             }
 
             @Override
-            public int drawStamp() {
+            public int drawStamp(double surfaceLocal) {
                 return drawFlat(PortalRenderLayers.APERTURE_DEPTH, entry,
-                        aperturePolygon(projection, TUNNEL, camX, camY, camZ, planeLocal,
+                        aperturePolygon(projection, TUNNEL, camX, camY, camZ, surfaceLocal,
                                 POLY_A, POLY_B), true);
             }
-        }, slice);
+        }, projection, origin, slice);
 
         // Written after the draws, so a line at all means every draw returned.
         if (report != null) {
@@ -557,19 +555,50 @@ public final class ProjectionRenderer {
      *
      * <p>Returns the stamp's corner count.
      */
-    static int runPass(PortalPass pass, double[] slice) {
+    static int runPass(PortalPass pass, ClientProjection projection, BlockPos origin,
+            double[] slice) {
+        double planeLocal = planeLocal(projection, origin);
+        double[] shift = meshShift(projection);
         if (slice != null) {
             pass.applyDepthRange(slice[0], slice[1]);
         }
         try {
-            pass.drawBackdrop();
-            pass.drawDestination();
+            pass.drawBackdrop(planeLocal);
+            pass.drawDestination(shift[0], shift[1], shift[2]);
         } finally {
             if (slice != null) {
                 pass.restoreDepthRange();
             }
         }
-        return pass.drawStamp();
+        return pass.drawStamp(planeLocal);
+    }
+
+    /**
+     * The portal surface on the normal axis, in the volume's own space. The
+     * backdrop is cast from it and the stamp is drawn on it, so reading it off
+     * a FACE of the aperture block instead moves both half a block.
+     *
+     * <p>Computed here rather than by the caller: {@link #drawOne} needs a
+     * client to run and no test can reach it, so a value it works out for
+     * itself is a value nothing can check.
+     */
+    static double planeLocal(ClientProjection projection, BlockPos origin) {
+        return projection.planeCoord() - axisOf(origin, projection.normalAxis());
+    }
+
+    /**
+     * How far the mesh moves for its near face to land on the surface, split
+     * over the three axes. Zero on the two the opening spans, so a shift that
+     * leaks onto an in-plane axis slides the image sideways.
+     */
+    static double[] meshShift(ClientProjection projection) {
+        Direction.Axis axis = projection.normalAxis();
+        double surface = projection.surfaceOffset();
+        return new double[] {
+            axis == Direction.Axis.X ? surface : 0.0,
+            axis == Direction.Axis.Y ? surface : 0.0,
+            axis == Direction.Axis.Z ? surface : 0.0,
+        };
     }
 
     /**

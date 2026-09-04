@@ -1,5 +1,9 @@
 package com.customdimensions.client.render;
 
+import com.customdimensions.client.CompanionPayloads;
+import net.minecraft.util.Identifier;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Direction;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -22,15 +26,71 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * <p>Both were previously provable only by screenshot, because expressing
  * either in terms of {@link PortalRenderLayers} means loading a class whose
  * static initialiser needs a bootstrapped client.
+ *
+ * <p>The VALUES are recorded here too. {@code drawOne} needs a client to run,
+ * so anything it works out for itself is unreachable: switching the surface
+ * offset or the plane coordinate off there used to redden nothing at all.
+ * {@link ProjectionRenderer#runPass} derives both from the projection instead,
+ * which is what puts them under a test.
  */
 class PortalPassOrderTest {
 
     private static final double[] SLICE = {0.25, 0.75};
 
+    /** The measured portal: 2 wide, 3 tall, plane Z = 1500, slab running +Z. */
+    private static final BlockPos ORIGIN = new BlockPos(1492, 93, 1501);
+    private static final ClientProjection PROJECTION = projection();
+
+    /**
+     * The surface is world {@code z = 1500.5} and the slab starts at
+     * {@code 1501}, so in the volume's own space the surface is {@code -0.5}
+     * and the mesh moves {@code -0.5} on Z to meet it. Read off the fixture:
+     * either number taken from a FACE of the aperture block is half a block out.
+     */
+    @Test
+    void thePassIsGivenTheSurfaceAndTheOffsetTheProjectionAsksFor() {
+        Recorder pass = new Recorder();
+        ProjectionRenderer.runPass(pass, PROJECTION, ORIGIN, SLICE);
+
+        assertEquals(List.of(
+                "drawBackdrop -0.5",
+                "drawDestination 0.0 0.0 -0.5",
+                "drawStamp -0.5"), pass.values);
+    }
+
+    /** The same, with the slab running the other way: the offset flips sign. */
+    @Test
+    void thePassIsGivenTheOffsetForASlabRunningTheOtherWay() {
+        Recorder pass = new Recorder();
+        ProjectionRenderer.runPass(pass, projection(Direction.NORTH, new BlockPos(1492, 93, 1476)),
+                new BlockPos(1492, 93, 1476), SLICE);
+
+        assertEquals(List.of(
+                "drawBackdrop 24.5",
+                "drawDestination 0.0 0.0 0.5",
+                "drawStamp 24.5"), pass.values);
+    }
+
+    /** Nothing moves on the axes the opening spans. */
+    @Test
+    void theOffsetIsZeroOnBothInPlaneAxes() {
+        for (Direction normal : Direction.values()) {
+            double[] shift = ProjectionRenderer.meshShift(projection(normal, ORIGIN));
+            int axis = normal.getAxis().ordinal();
+            for (int i = 0; i < 3; i++) {
+                if (i != axis) {
+                    assertEquals(0.0, shift[i], normal + ": the offset leaked onto an in-plane axis");
+                }
+            }
+            assertEquals(projection(normal, ORIGIN).surfaceOffset(), shift[axis],
+                    normal + ": the offset on the normal axis is not the surface offset");
+        }
+    }
+
     @Test
     void theStampIsDrawnAfterTheRangeIsRestored() {
         Recorder pass = new Recorder();
-        ProjectionRenderer.runPass(pass, SLICE);
+        ProjectionRenderer.runPass(pass, PROJECTION, ORIGIN, SLICE);
         assertEquals(List.of(
                 "applyDepthRange 0.25 0.75",
                 "drawBackdrop",
@@ -42,7 +102,7 @@ class PortalPassOrderTest {
     @Test
     void theBackdropAndDestinationAreDrawnInsideTheRange() {
         Recorder pass = new Recorder();
-        ProjectionRenderer.runPass(pass, SLICE);
+        ProjectionRenderer.runPass(pass, PROJECTION, ORIGIN, SLICE);
         int applied = pass.script.indexOf("applyDepthRange 0.25 0.75");
         int restored = pass.script.indexOf("restoreDepthRange");
         assertTrue(applied >= 0 && restored > applied, "the range was never applied then restored");
@@ -57,7 +117,7 @@ class PortalPassOrderTest {
     @Test
     void theStampIsDrawnOutsideTheRange() {
         Recorder pass = new Recorder();
-        ProjectionRenderer.runPass(pass, SLICE);
+        ProjectionRenderer.runPass(pass, PROJECTION, ORIGIN, SLICE);
         assertTrue(pass.script.indexOf("drawStamp") > pass.script.indexOf("restoreDepthRange"),
                 "the stamp was drawn while the range was still applied: " + pass.script);
     }
@@ -66,7 +126,7 @@ class PortalPassOrderTest {
     @Test
     void noSliceMakesNoRangeCalls() {
         Recorder pass = new Recorder();
-        ProjectionRenderer.runPass(pass, null);
+        ProjectionRenderer.runPass(pass, PROJECTION, ORIGIN, null);
         assertEquals(List.of("drawBackdrop", "drawDestination", "drawStamp"), pass.script);
     }
 
@@ -74,7 +134,7 @@ class PortalPassOrderTest {
     void theStampsCornerCountIsReturned() {
         Recorder pass = new Recorder();
         pass.stampCorners = 4;
-        assertEquals(4, ProjectionRenderer.runPass(pass, SLICE));
+        assertEquals(4, ProjectionRenderer.runPass(pass, PROJECTION, ORIGIN, SLICE));
     }
 
     /**
@@ -86,7 +146,7 @@ class PortalPassOrderTest {
     void aThrowingDestinationStillRestoresTheRange() {
         Recorder pass = new Recorder();
         pass.throwFrom = "drawDestination";
-        assertThrows(IllegalStateException.class, () -> ProjectionRenderer.runPass(pass, SLICE));
+        assertThrows(IllegalStateException.class, () -> ProjectionRenderer.runPass(pass, PROJECTION, ORIGIN, SLICE));
         assertEquals(List.of(
                 "applyDepthRange 0.25 0.75",
                 "drawBackdrop",
@@ -98,21 +158,47 @@ class PortalPassOrderTest {
     void aThrowingBackdropStillRestoresTheRange() {
         Recorder pass = new Recorder();
         pass.throwFrom = "drawBackdrop";
-        assertThrows(IllegalStateException.class, () -> ProjectionRenderer.runPass(pass, SLICE));
+        assertThrows(IllegalStateException.class, () -> ProjectionRenderer.runPass(pass, PROJECTION, ORIGIN, SLICE));
         assertEquals(List.of(
                 "applyDepthRange 0.25 0.75",
                 "drawBackdrop",
                 "restoreDepthRange"), pass.script);
     }
 
+    private static ClientProjection projection() {
+        return projection(Direction.SOUTH, ORIGIN);
+    }
+
+    private static ClientProjection projection(Direction normal, BlockPos origin) {
+        List<BlockPos> aperture = new ArrayList<>();
+        for (int x = 1500; x <= 1501; x++) {
+            for (int y = 101; y <= 103; y++) {
+                aperture.add(new BlockPos(x, y, 1500));
+            }
+        }
+        return new ClientProjection(new CompanionPayloads.Projection(
+                Identifier.of("adventure", "the_crimson_nexus"),
+                aperture.get(0), aperture,
+                Direction.Axis.X.ordinal(), normal.ordinal(),
+                origin, 18, 19, 24,
+                new int[0], new byte[0],
+                -1, -1, -1, -1, -1));
+    }
+
     private static final class Recorder implements PortalPass {
 
+        /** Call names in order, for the ordering assertions. */
         private final List<String> script = new ArrayList<>();
+
+        /** The same calls with the values they were handed. */
+        private final List<String> values = new ArrayList<>();
+
         private int stampCorners;
         private String throwFrom;
 
-        private void record(String call) {
+        private void record(String call, String detail) {
             script.add(call);
+            values.add(call + " " + detail);
             if (call.equals(throwFrom)) {
                 throw new IllegalStateException(call + " failed");
             }
@@ -129,18 +215,18 @@ class PortalPassOrderTest {
         }
 
         @Override
-        public void drawBackdrop() {
-            record("drawBackdrop");
+        public void drawBackdrop(double planeLocal) {
+            record("drawBackdrop", String.valueOf(planeLocal));
         }
 
         @Override
-        public void drawDestination() {
-            record("drawDestination");
+        public void drawDestination(double shiftX, double shiftY, double shiftZ) {
+            record("drawDestination", shiftX + " " + shiftY + " " + shiftZ);
         }
 
         @Override
-        public int drawStamp() {
-            record("drawStamp");
+        public int drawStamp(double planeLocal) {
+            record("drawStamp", String.valueOf(planeLocal));
             return stampCorners;
         }
     }

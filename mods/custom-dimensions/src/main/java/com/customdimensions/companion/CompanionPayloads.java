@@ -3,6 +3,7 @@ package com.customdimensions.companion;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.codec.PacketCodecs;
+import net.minecraft.network.packet.s2c.play.ChunkDataS2CPacket;
 import net.minecraft.network.packet.CustomPayload;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
@@ -30,6 +31,39 @@ public final class CompanionPayloads {
         public static final PacketCodec<RegistryByteBuf, Hello> CODEC = PacketCodec.tuple(
                 PacketCodecs.VAR_INT, Hello::protocolVersion,
                 Hello::new);
+
+        @Override
+        public CustomPayload.Id<? extends CustomPayload> getId() {
+            return ID;
+        }
+    }
+
+    /**
+     * Client to server, on join and again whenever the player changes it: what
+     * this client will draw for itself.
+     *
+     * <p>Not part of {@link Hello} on purpose. The handshake asks "can you
+     * speak this protocol" once and the answer never changes; this is a
+     * setting behind a key the player can press at any moment, so it is its
+     * own message and arrives again every time they press it.
+     *
+     * <p>A client that never sends one is served exactly as it is today — the
+     * server's block slab — so a vanilla client and an older companion both
+     * keep working with no branch of their own.
+     */
+    public record PortalView(
+            boolean renderLocally,
+            boolean keepSlab,
+            int maxRenderDistance) implements CustomPayload {
+
+        public static final CustomPayload.Id<PortalView> ID =
+                new CustomPayload.Id<>(Identifier.of("customdimensions", "portal-view/v1"));
+
+        public static final PacketCodec<RegistryByteBuf, PortalView> CODEC = PacketCodec.tuple(
+                PacketCodecs.BOOL, PortalView::renderLocally,
+                PacketCodecs.BOOL, PortalView::keepSlab,
+                PacketCodecs.VAR_INT, PortalView::maxRenderDistance,
+                PortalView::new);
 
         @Override
         public CustomPayload.Id<? extends CustomPayload> getId() {
@@ -206,6 +240,108 @@ public final class CompanionPayloads {
                 throw new IllegalStateException("projection describes " + at + " of " + cells + " cells");
             }
             return out;
+        }
+    }
+
+    /**
+     * Server to client: one portal's geometry and where it leads, with no
+     * block data at all. What a client rendering the destination itself is
+     * sent in place of {@link Projection} — never both, or the client draws
+     * the far side twice.
+     *
+     * <p>{@code dx}/{@code dy}/{@code dz} are the WHOLE transform:
+     * {@code destination = source + (dx, dy, dz)}, mirroring
+     * {@code ProjectionVolume.toTarget} exactly. The per-dimension scale is
+     * deliberately NOT sent — it is already spent deriving these three
+     * numbers, and a client that re-applied it would divide twice. A preview
+     * is never scaled: a block walked on the far side is a block here.
+     *
+     * <p>{@code dimensionType} names the destination's own
+     * {@code DimensionType}, which is what the client needs to stand a world
+     * up for it. Colours are ARGB, -1 meaning "not configured, use the
+     * client's own".
+     */
+    public record PortalFrame(
+            Identifier destination,
+            Identifier dimensionType,
+            BlockPos apertureOrigin,
+            List<BlockPos> aperture,
+            int portalAxis,
+            int normal,
+            int dx,
+            int dy,
+            int dz,
+            int skyColor,
+            int fogColor) implements CustomPayload {
+
+        public static final CustomPayload.Id<PortalFrame> ID =
+                new CustomPayload.Id<>(Identifier.of("customdimensions", "portal-frame/v1"));
+
+        public static final PacketCodec<RegistryByteBuf, PortalFrame> CODEC =
+                PacketCodec.of(PortalFrame::write, PortalFrame::read);
+
+        @Override
+        public CustomPayload.Id<? extends CustomPayload> getId() {
+            return ID;
+        }
+
+        private void write(RegistryByteBuf buf) {
+            buf.writeIdentifier(this.destination);
+            buf.writeIdentifier(this.dimensionType);
+            buf.writeBlockPos(this.apertureOrigin);
+            buf.writeVarInt(this.aperture.size());
+            for (BlockPos pos : this.aperture) {
+                buf.writeBlockPos(pos);
+            }
+            buf.writeVarInt(this.portalAxis);
+            buf.writeVarInt(this.normal);
+            buf.writeInt(this.dx);
+            buf.writeInt(this.dy);
+            buf.writeInt(this.dz);
+            buf.writeInt(this.skyColor);
+            buf.writeInt(this.fogColor);
+        }
+
+        private static PortalFrame read(RegistryByteBuf buf) {
+            Identifier destination = buf.readIdentifier();
+            Identifier dimensionType = buf.readIdentifier();
+            BlockPos apertureOrigin = buf.readBlockPos();
+            int apertureSize = buf.readVarInt();
+            List<BlockPos> aperture = new ArrayList<>(apertureSize);
+            for (int i = 0; i < apertureSize; i++) {
+                aperture.add(buf.readBlockPos());
+            }
+            return new PortalFrame(destination, dimensionType, apertureOrigin, aperture,
+                    buf.readVarInt(), buf.readVarInt(),
+                    buf.readInt(), buf.readInt(), buf.readInt(),
+                    buf.readInt(), buf.readInt());
+        }
+    }
+
+    /**
+     * Server to client: one chunk of a destination the client is drawing for
+     * itself, addressed by dimension rather than by the connection's own.
+     *
+     * <p>The body is a plain {@code ChunkDataS2CPacket} written by VANILLA's
+     * own codec, so the client decodes it with vanilla code and the two sides
+     * cannot drift on the chunk format. Only the dimension id in front of it
+     * is ours.
+     */
+    public record DestinationChunk(Identifier destination, ChunkDataS2CPacket chunk)
+            implements CustomPayload {
+
+        public static final CustomPayload.Id<DestinationChunk> ID =
+                new CustomPayload.Id<>(Identifier.of("customdimensions", "destination-chunk/v1"));
+
+        public static final PacketCodec<RegistryByteBuf, DestinationChunk> CODEC =
+                PacketCodec.tuple(
+                        Identifier.PACKET_CODEC, DestinationChunk::destination,
+                        ChunkDataS2CPacket.CODEC, DestinationChunk::chunk,
+                        DestinationChunk::new);
+
+        @Override
+        public CustomPayload.Id<? extends CustomPayload> getId() {
+            return ID;
         }
     }
 

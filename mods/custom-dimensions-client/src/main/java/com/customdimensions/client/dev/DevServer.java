@@ -1,6 +1,12 @@
 package com.customdimensions.client.dev;
 
 import com.customdimensions.client.CustomDimensionsClient;
+import com.customdimensions.client.config.RealtimeControls;
+import com.customdimensions.client.config.RealtimeSettings;
+import com.customdimensions.client.realtime.DestinationChunks;
+import com.customdimensions.client.realtime.DestinationWorlds;
+import com.customdimensions.client.realtime.PortalFrames;
+import com.customdimensions.client.render.ProjectionStore;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
 import net.minecraft.SharedConstants;
@@ -129,11 +135,68 @@ public final class DevServer {
             return new Answer(200, switch (request.action()) {
                 case "walk" -> walk(request);
                 case "sneak" -> sneak(request);
+                case "realtime" -> realtime(request);
                 default -> instant(request);
             });
         } catch (JsonReader.Malformed e) {
             return new Answer(400, DevResponse.error(e.getMessage()));
         }
+    }
+
+    /**
+     * Reads the real-time view's settings, and writes the fields the body
+     * names. A body with no fields is a read, so the A/B can record which path
+     * a shot was taken on without changing it.
+     *
+     * <p>Off the render thread on purpose: the store is its own lock and the
+     * game reads it on the next tick, so a settings write never waits on a
+     * frame — which matters when the reason for flipping it is a frame that is
+     * not arriving.
+     */
+    private static String realtime(DevRequest request) {
+        RealtimeSettings before = RealtimeControls.store().current();
+        RealtimeSettings after = before
+                .withEnabled(request.flag("enabled", before.enabled()))
+                .withMaxRenderDistance((int) request.number("maxRenderDistance",
+                        before.maxRenderDistance()))
+                .withDistantHorizons(request.flag("distantHorizons", before.distantHorizons()))
+                .withFallbackToSlab(request.flag("fallbackToSlab", before.fallbackToSlab()));
+        boolean changed = !after.equals(before);
+        if (changed) {
+            RealtimeControls.store().save(after);
+        }
+        return DevResponse.realtime(changed, after.toJson(), held());
+    }
+
+    /**
+     * What the local view actually holds right now: the framed portals and the
+     * destination chunks that have arrived for each dimension. A count, not an
+     * absence of errors — the plan's own bar for the destination world.
+     */
+    private static String held() {
+        Json.Obj chunks = Json.obj();
+        DestinationChunks.counts().forEach((destination, count) ->
+                chunks.num(destination.toString(), count));
+        Json.Obj frames = Json.obj();
+        for (com.customdimensions.client.CompanionPayloads.PortalFrame frame : PortalFrames.all()) {
+            frames.raw(frame.apertureOrigin().toShortString(), Json.obj()
+                    .str("destination", frame.destination().toString())
+                    .str("dimensionType", frame.dimensionType().toString())
+                    .raw("offset", Json.numbers(frame.dx(), frame.dy(), frame.dz()))
+                    .toString());
+        }
+        Json.Obj worlds = Json.obj();
+        DestinationWorlds.loadedCounts().forEach((destination, loaded) ->
+                worlds.num(destination.toString(), loaded));
+        return Json.obj()
+                .num("frames", PortalFrames.count())
+                .num("slabProjections", ProjectionStore.count())
+                .num("destinationWorlds", DestinationWorlds.count())
+                .raw("chunksInWorld", worlds.toString())
+                .num("destinationChunks", DestinationChunks.total())
+                .raw("chunksByDimension", chunks.toString())
+                .raw("framesByAperture", frames.toString())
+                .toString();
     }
 
     /**

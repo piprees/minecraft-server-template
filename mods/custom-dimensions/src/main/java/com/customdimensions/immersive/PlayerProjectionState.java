@@ -226,6 +226,13 @@ public final class PlayerProjectionState {
     private CompanionPayloads.Projection lastCompanionPayload;
     private long lastCompanionBuildTick;
 
+    /**
+     * Last geometry sent to a client drawing the destination itself. Resent
+     * only when it changes: an opening does not move, so a portal's frame is
+     * one packet for the life of the projection.
+     */
+    private CompanionPayloads.PortalFrame lastCompanionFrame;
+
     /** 4c: player EYE position and server tick at the last send. */
     private Vec3d lastRefreshEye;
     private long lastRefreshTick;
@@ -564,10 +571,40 @@ public final class PlayerProjectionState {
         boolean sideFlip = wanted != this.normal;
         this.normal = wanted;
 
+        // A destination whose DimensionType is not a registered entry cannot be
+        // stood up on a client at all, so that portal keeps its block slab
+        // however the player set the toggle. Per portal, not per player.
+        boolean declaredLocal = !CompanionNetwork.streamsSlab(this.playerId);
+        CompanionPayloads.PortalFrame frame = declaredLocal
+                ? ProjectionStream.frame(this.zone, wanted, targetWorld, mapping, arrivalY)
+                : null;
+        boolean streamsSlab = streamsSlab(declaredLocal, frame != null);
+
+        if (frame != null) {
+            if (!frame.equals(this.lastCompanionFrame)) {
+                CompanionNetwork.sendPortalFrame(player, frame);
+                this.lastCompanionFrame = frame;
+            }
+            // The destination's own chunks, in the wedge through the opening,
+            // nearest first and a few per pass. Warms up outward rather than
+            // stalling the tick on one client's whole view.
+            com.customdimensions.companion.DestinationFeed.feed(player, targetWorld,
+                    this.zone.interior, wanted.getAxis(), frame,
+                    CompanionNetwork.portalView(this.playerId).maxRenderDistance(),
+                    com.customdimensions.companion.DestinationFeed.DEFAULT_BUDGET);
+        }
+        if (companionPayloadStale(streamsSlab, this.lastCompanionPayload != null)) {
+            // This client has taken over drawing the far side. What it already
+            // holds describes the same space, so it goes now — leaving it would
+            // draw the destination twice, once live and once as of a moment ago.
+            CompanionNetwork.clearProjection(player, this.lastCompanionPayload.apertureOrigin());
+            this.lastCompanionPayload = null;
+            this.lastCompanionBuildTick = 0;
+        }
+
         long cadence = Math.max(1, settings.refreshInterval()) * (long) COMPANION_REBUILD_MULTIPLIER;
-        boolean due = full || sideFlip || this.lastCompanionPayload == null
-                || tick - this.lastCompanionBuildTick >= cadence;
-        if (due) {
+        if (companionRebuildDue(streamsSlab, full, sideFlip, this.lastCompanionPayload == null,
+                tick, this.lastCompanionBuildTick, cadence)) {
             this.lastCompanionBuildTick = tick;
             CompanionPayloads.Projection built = ProjectionStream.build(
                     this.zone, wanted, targetWorld, settings, mapping, arrivalY);
@@ -637,10 +674,56 @@ public final class PlayerProjectionState {
      * at all.
      */
     private BlockState apertureState() {
-        int level = this.zone.definition != null
-                ? Math.max(0, Math.min(15, this.zone.definition.getLightLevel()))
-                : 0;
+        int level = apertureLightLevel(this.zone.definition);
         return level > 0 ? lightState(level) : null;
+    }
+
+    /**
+     * The level the aperture pass paints for a portal; 0 paints nothing.
+     *
+     * <p>Public because a diagnostic has to answer from the SAME function the
+     * pass paints from — a second copy of the clamp reports a light nobody is
+     * painting. {@code Properties.LEVEL_15} throws outside 0..15, and a
+     * definition that has left the config paints nothing rather than a
+     * default.
+     */
+    public static int apertureLightLevel(com.customdimensions.config.PortalDefinition definition) {
+        return definition == null ? 0 : Math.max(0, Math.min(15, definition.getLightLevel()));
+    }
+
+    /**
+     * Whether this portal still owes this client a block slab.
+     *
+     * <p>Two conditions, and the second is per PORTAL rather than per player:
+     * a destination whose {@code DimensionType} is not a registered entry
+     * yields no frame, and a client cannot stand a world up for one it has no
+     * type for. That portal keeps its slab however the player set the toggle.
+     */
+    static boolean streamsSlab(boolean declaredLocal, boolean frameBuilt) {
+        return !declaredLocal || !frameBuilt;
+    }
+
+    /**
+     * Whether this pass owes the client a fresh description of the far side.
+     *
+     * <p>{@code streamsSlab} outranks every other reason: a client rendering
+     * the destination itself is sent no description of it on any pass, so a
+     * full pass and a side flip both stay silent.
+     */
+    static boolean companionRebuildDue(boolean streamsSlab, boolean full, boolean sideFlip,
+            boolean nothingSent, long tick, long lastBuildTick, long cadence) {
+        if (!streamsSlab) {
+            return false;
+        }
+        return full || sideFlip || nothingSent || tick - lastBuildTick >= cadence;
+    }
+
+    /**
+     * Whether a description already on the client now describes a space that
+     * client is drawing for itself, and has to be withdrawn.
+     */
+    static boolean companionPayloadStale(boolean streamsSlab, boolean anySent) {
+        return !streamsSlab && anySent;
     }
 
     /** Pure 4c predicate: elapsed ticks against the movement-scaled interval. */
@@ -669,8 +752,15 @@ public final class PlayerProjectionState {
      * nothing in either case.
      */
     public void cleanup(ServerPlayerEntity player, ServerWorld sourceWorld) {
-        if (this.lastCompanionPayload != null && player != null) {
-            CompanionNetwork.clearProjection(player, this.lastCompanionPayload.apertureOrigin());
+        if (player != null) {
+            // Both are keyed by the opening's minimum corner and the client
+            // holds them in one store, so whichever was last sent is dropped
+            // by the same clear.
+            if (this.lastCompanionPayload != null) {
+                CompanionNetwork.clearProjection(player, this.lastCompanionPayload.apertureOrigin());
+            } else if (this.lastCompanionFrame != null) {
+                CompanionNetwork.clearProjection(player, this.lastCompanionFrame.apertureOrigin());
+            }
         }
         restore(player, sourceWorld);
         forget();
@@ -679,6 +769,7 @@ public final class PlayerProjectionState {
     /** Drop all tracking without sending anything. */
     public void forget() {
         this.lastCompanionPayload = null;
+        this.lastCompanionFrame = null;
         this.lastCompanionBuildTick = 0;
         this.lastSent.clear();
         this.staleOutsideVolume.clear();

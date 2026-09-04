@@ -316,6 +316,40 @@ public final class ImmersiveProjector {
     }
 
     /**
+     * The tick a zone's glow was last sampled, or -1 for never. A glow of
+     * {@code NONE} and one nobody has sampled read alike without it.
+     */
+    public static long glowSampledAt(PortalHelper.PortalZone zone) {
+        GlowSample sample = zone == null ? null : GLOW.get(zone);
+        return sample == null ? -1L : sample.tick();
+    }
+
+    /**
+     * Who is currently holding a projection of this zone, and how many
+     * positions each client is showing. Read-only, for a diagnostic: the
+     * aperture's light is a fake block sent per viewer, so "is anything being
+     * painted at all" is a question about this map.
+     */
+    public static List<Viewer> viewersOf(PortalHelper.PortalZone zone) {
+        List<Viewer> out = new ArrayList<>();
+        if (zone == null) {
+            return out;
+        }
+        for (Map<PortalHelper.PortalZone, PlayerProjectionState> states : ACTIVE.values()) {
+            PlayerProjectionState state = states.get(zone);
+            if (state != null) {
+                out.add(new Viewer(state.playerName(), state.projectedCount(),
+                        state.pendingCarryOverCount()));
+            }
+        }
+        return out;
+    }
+
+    /** One client's hold on a zone's projection. */
+    public record Viewer(String playerName, int projectedCells, int carryOver) {
+    }
+
+    /**
      * The far side's light and colour for a registered ARRIVAL position —
      * the world a player would go back to, seen through the portal they came
      * out of. Asked by {@code PortalHelper.spawnTargetPortalParticles}, which
