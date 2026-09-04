@@ -141,6 +141,17 @@ both against a known landmark.
 **Done when:** a screenshot pair at both scales puts a known far-side landmark
 where it belongs.
 
+`realtime/RealtimeView.java` reads the destination `ClientWorld` and produces
+the `Projection` shape the render path already takes from the server, so the
+mesh, the cone clip, the backdrop and the depth slice are unchanged. The box
+is `DEPTH` 16 by `RADIUS` 8 against the slab's 12 and 6.
+
+Nexus (2.0) is verified: a glowstone wall 5 blocks past the arrival draws with
+its top edge 80% up the aperture, where a cone from the eye through the opening
+puts it. Crucible (4.0) is verified on the TRANSFORM only — the wire offset is
+`(-2445, -25, -2162)`, pure addition, and a local projection builds there — not
+on a landmark, for want of a vantage point at that rig.
+
 ### P5 — The mask
 
 The destination scene appears only in the opening, and source-world geometry in
