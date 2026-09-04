@@ -63,11 +63,6 @@ public final class ProjectionRenderer {
     /** Planes {@link #buildTunnelPlanes} last wrote into {@link #PLANES}. */
     private static int planeCount;
 
-    private static final Runnable NOTHING = () -> { };
-
-    /** Raw GL11, tracked by no RenderSystem cache and restored by no vanilla phase. */
-    private static final Runnable RESTORE_DEPTH_RANGE = () -> GL11.glDepthRange(0.0, 1.0);
-
     /** The one place that sets the colour mask; see {@link #withColourMaskOff}. */
     private static final java.util.function.Consumer<Boolean> COLOUR_MASK =
             on -> com.mojang.blaze3d.systems.RenderSystem.colorMask(on, on, on, on);
@@ -197,45 +192,57 @@ public final class ProjectionRenderer {
 
         double[] slice = sliceFor(projection, corners, camX, camY, camZ, facing,
                 position, projectionMatrix);
-        Runnable applySlice = slice == null ? NOTHING
-                : () -> GL11.glDepthRange(slice[0], slice[1]);
-        Runnable restoreSlice = slice == null ? NOTHING : RESTORE_DEPTH_RANGE;
 
         double surface = projection.surfaceOffset();
         float shiftX = normalAxis == Direction.Axis.X ? (float) surface : 0.0f;
         float shiftY = normalAxis == Direction.Axis.Y ? (float) surface : 0.0f;
         float shiftZ = normalAxis == Direction.Axis.Z ? (float) surface : 0.0f;
         StringBuilder report = sample ? new StringBuilder() : null;
-        // One apply/restore for the whole pass: glDepthRange is a raw GL state
-        // change and paying for it per layer costs more than the clip does.
-        withGlState(applySlice, restoreSlice, () -> {
-            drawFlat(PortalRenderLayers.BACKDROP, entry, backdropPolygon(projection, TUNNEL,
-                    camX, camY, camZ, planeLocal, facing, POLY_A, POLY_B), false);
-            for (ProjectionMesh.Layer layer : mesh.layers()) {
-                VertexConsumer consumer = immediate.getBuffer(layer.layer());
-                int emitted = emitClipped(layer, consumer, entry, shiftX, shiftY, shiftZ);
-                immediate.draw(layer.layer());
-                if (report != null) {
-                    report.append(report.isEmpty() ? "" : " | ")
-                            .append(layer.layer())
-                            .append(" quadsIn=").append(layer.floats() / (STRIDE * 4))
-                            .append(" geometry=").append(meshBounds(layer))
-                            .append(" highest=").append(highestVertex(layer))
-                            .append(" clipVertices=").append(clipVertices)
-                            .append(" rejectedBy=").append(java.util.Arrays.toString(rejectedBy))
-                            .append(" emitted=").append(emitted)
-                            .append(" consumer=").append(consumer.getClass().getName())
-                            .append(" drawn=true");
+        int stamp = runPass(new PortalPass() {
+            @Override
+            public void applyDepthRange(double near, double far) {
+                GL11.glDepthRange(near, far);
+            }
+
+            @Override
+            public void restoreDepthRange() {
+                GL11.glDepthRange(0.0, 1.0);
+            }
+
+            @Override
+            public void drawBackdrop() {
+                drawFlat(PortalRenderLayers.BACKDROP, entry, backdropPolygon(projection, TUNNEL,
+                        camX, camY, camZ, planeLocal, facing, POLY_A, POLY_B), false);
+            }
+
+            @Override
+            public void drawDestination() {
+                for (ProjectionMesh.Layer layer : mesh.layers()) {
+                    VertexConsumer consumer = immediate.getBuffer(layer.layer());
+                    int emitted = emitClipped(layer, consumer, entry, shiftX, shiftY, shiftZ);
+                    immediate.draw(layer.layer());
+                    if (report != null) {
+                        report.append(report.isEmpty() ? "" : " | ")
+                                .append(layer.layer())
+                                .append(" quadsIn=").append(layer.floats() / (STRIDE * 4))
+                                .append(" geometry=").append(meshBounds(layer))
+                                .append(" highest=").append(highestVertex(layer))
+                                .append(" clipVertices=").append(clipVertices)
+                                .append(" rejectedBy=").append(java.util.Arrays.toString(rejectedBy))
+                                .append(" emitted=").append(emitted)
+                                .append(" consumer=").append(consumer.getClass().getName())
+                                .append(" drawn=true");
+                    }
                 }
             }
-            return null;
-        });
-        // Outside the slice: glDepthRange remaps the stamp to the band's far edge,
-        // which leaves everything inside the band unoccluded. It still replaces the
-        // destination's depth, so vanilla composites against the window.
-        int stamp = drawFlat(PortalRenderLayers.APERTURE_DEPTH, entry,
-                aperturePolygon(projection, TUNNEL, camX, camY, camZ, planeLocal,
-                        POLY_A, POLY_B), true);
+
+            @Override
+            public int drawStamp() {
+                return drawFlat(PortalRenderLayers.APERTURE_DEPTH, entry,
+                        aperturePolygon(projection, TUNNEL, camX, camY, camZ, planeLocal,
+                                POLY_A, POLY_B), true);
+            }
+        }, slice);
 
         // Written after the draws, so a line at all means every draw returned.
         if (report != null) {
@@ -494,10 +501,38 @@ public final class ProjectionRenderer {
     }
 
     /**
-     * Sets GL state, draws, and restores it even when the draw throws. Every
-     * raw GL call this renderer makes goes through here: {@code RenderLayer}
-     * has no exception table, so state set around a draw and restored after it
-     * is state left set for the rest of the frame when anything fails.
+     * One portal pass, in order: the destination inside the applied depth
+     * range, the stamp after it is restored.
+     *
+     * <p>The stamp goes outside because {@code glDepthRange} remaps it along
+     * with everything else and lands it at the band's far edge, leaving
+     * anything inside the band occluded by nothing. A null slice makes no
+     * range calls at all. A draw that throws still restores the range, and the
+     * stamp is not drawn.
+     *
+     * <p>Returns the stamp's corner count.
+     */
+    static int runPass(PortalPass pass, double[] slice) {
+        if (slice != null) {
+            pass.applyDepthRange(slice[0], slice[1]);
+        }
+        try {
+            pass.drawBackdrop();
+            pass.drawDestination();
+        } finally {
+            if (slice != null) {
+                pass.restoreDepthRange();
+            }
+        }
+        return pass.drawStamp();
+    }
+
+    /**
+     * Sets GL state, draws, and restores it even when the draw throws.
+     * {@code RenderLayer} has no exception table, so state set around a draw
+     * and restored after it is state left set for the rest of the frame when
+     * anything fails. The depth range gets the same guarantee from
+     * {@link #runPass}.
      */
     static <T> T withGlState(Runnable apply, Runnable restore,
             java.util.function.Supplier<T> draw) {
