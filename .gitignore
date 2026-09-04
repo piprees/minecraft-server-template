@@ -99,3 +99,6 @@ __pycache__/
 
 # Eclipse/IDE build output under the mod projects
 mods/*/bin/
+
+# Session artefacts: screenshots, jars, probe scripts
+scratchpad/
