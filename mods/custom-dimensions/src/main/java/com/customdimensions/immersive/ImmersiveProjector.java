@@ -491,6 +491,7 @@ public final class ImmersiveProjector {
             // loaded, so waiting for activation to take the ticket would
             // never take it at all.
             boolean anyoneNear = anyoneWithinTicketRange(players, centre, zone, range);
+            boolean localDrawer = anyLocalDrawerInTicketRange(players, centre, zone, range);
 
             ProjectionVolume.TargetMapping mapping = null;
             int arrivalY = NO_ARRIVAL;
@@ -506,12 +507,12 @@ public final class ImmersiveProjector {
                     unresolvedLink = link == null;
                     if (link != null) {
                         mapping = ProjectionVolume.anchorMapping(zone.interior, link.getX(), link.getZ());
-                        holdChunks(targetWorld, zone, mapping, immersive, tick);
+                        holdChunks(targetWorld, zone, mapping, immersive, tick, localDrawer);
                         arrivalY = link.getY();
                     }
                 } else {
                     mapping = scaled;
-                    holdChunks(targetWorld, zone, mapping, immersive, tick);
+                    holdChunks(targetWorld, zone, mapping, immersive, tick, localDrawer);
                     arrivalY = ArrivalResolver.arrivalY(
                             targetWorld, mapping.arrivalX(), mapping.arrivalZ(), zone.axis);
                 }
@@ -636,6 +637,8 @@ public final class ImmersiveProjector {
             }
             boolean anyoneNear = anyoneWithinTicketRange(players, centre, zone,
                     settings.activationRange());
+            boolean localDrawer = anyLocalDrawerInTicketRange(players, centre, zone,
+                    settings.activationRange());
 
             // Portal-destruction teardown. Closing an arrival deregisters
             // every cell of it (PortalHelper.closeArrival), so the registry
@@ -653,7 +656,7 @@ public final class ImmersiveProjector {
 
             ServerWorld destination = running.getWorld(zone.targetWorld);
             if (anyoneNear && destination != null) {
-                holdChunks(destination, zone, arrival.mapping, settings, tick);
+                holdChunks(destination, zone, arrival.mapping, settings, tick, localDrawer);
                 if (arrival.destinationY != NO_ARRIVAL) {
                     sampleGlow(zone, destination, new BlockPos(arrival.mapping.arrivalX(),
                             arrival.destinationY, arrival.mapping.arrivalZ()), tick);
@@ -895,6 +898,27 @@ public final class ImmersiveProjector {
         double ticketSq = (double) (range + margin) * (range + margin);
         for (ServerPlayerEntity player : players) {
             if (centre.getSquaredDistance(player.getBlockPos()) <= ticketSq) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Whether anyone in ticket range draws this zone's far side themselves.
+     *
+     * <p>Asked of the players in range rather than of {@code ACTIVE}: the
+     * ticket is taken before the projection pass rebuilds a viewer's state, so
+     * on the first pass after a world change {@code ACTIVE} names nobody — and
+     * one refresh is long enough for a destination to drain.
+     */
+    private static boolean anyLocalDrawerInTicketRange(List<ServerPlayerEntity> players,
+            BlockPos centre, PortalHelper.PortalZone zone, int range) {
+        int margin = HELD.containsKey(zone) ? TICKET_DROP_MARGIN : TICKET_HOLD_MARGIN;
+        double ticketSq = (double) (range + margin) * (range + margin);
+        for (ServerPlayerEntity player : players) {
+            if (centre.getSquaredDistance(player.getBlockPos()) <= ticketSq
+                    && !com.customdimensions.companion.CompanionNetwork.streamsSlab(player.getUuid())) {
                 return true;
             }
         }
@@ -1213,7 +1237,8 @@ public final class ImmersiveProjector {
      * cadence, not every tick.
      */
     private static void holdChunks(ServerWorld targetWorld, PortalHelper.PortalZone zone,
-            ProjectionVolume.TargetMapping mapping, ImmersiveSettings settings, long tick) {
+            ProjectionVolume.TargetMapping mapping, ImmersiveSettings settings, long tick,
+            boolean localDrawer) {
         RegistryKey<World> targetKey = targetWorld.getRegistryKey();
         HeldChunks held = HELD.get(zone);
         if (held != null && !held.targetWorld.equals(targetKey)) {
@@ -1234,7 +1259,7 @@ public final class ImmersiveProjector {
         // Recomputed every refresh, not cached: the core half is whatever is
         // resident right now, and that changes as a destination drains.
         List<ChunkPos> chunks = holdSet(previewBox,
-                mapping.arrivalX() >> 4, mapping.arrivalZ() >> 4, anyLocalDrawer(zone),
+                mapping.arrivalX() >> 4, mapping.arrivalZ() >> 4, localDrawer,
                 (chunkX, chunkZ) -> PortalHelper.residentChunk(targetWorld, chunkX, chunkZ) != null);
         for (ChunkPos pos : chunks) {
             // Re-adding an identical ticket resets its expiry without
@@ -1288,18 +1313,6 @@ public final class ImmersiveProjector {
             }
         }
         return new ArrayList<>(held);
-    }
-
-    /** Whether any viewer of this zone draws its far side itself. */
-    private static boolean anyLocalDrawer(PortalHelper.PortalZone zone) {
-        for (Map.Entry<UUID, Map<PortalHelper.PortalZone, PlayerProjectionState>> viewer
-                : ACTIVE.entrySet()) {
-            if (viewer.getValue().containsKey(zone)
-                    && !com.customdimensions.companion.CompanionNetwork.streamsSlab(viewer.getKey())) {
-                return true;
-            }
-        }
-        return false;
     }
 
     /** Drop this zone's ticket, keeping chunks another zone still wants. */
