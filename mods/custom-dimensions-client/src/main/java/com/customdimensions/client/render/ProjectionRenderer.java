@@ -208,7 +208,7 @@ public final class ProjectionRenderer {
         StringBuilder report = sample ? new StringBuilder() : null;
         // One apply/restore for the whole pass: glDepthRange is a raw GL state
         // change and paying for it per layer costs more than the clip does.
-        int stamp = withGlState(applySlice, restoreSlice, () -> {
+        withGlState(applySlice, restoreSlice, () -> {
             drawFlat(PortalRenderLayers.BACKDROP, entry, backdropPolygon(projection, TUNNEL,
                     camX, camY, camZ, planeLocal, facing, POLY_A, POLY_B), false);
             for (ProjectionMesh.Layer layer : mesh.layers()) {
@@ -228,13 +228,14 @@ public final class ProjectionRenderer {
                             .append(" drawn=true");
                 }
             }
-            // Last, so it replaces the destination's own depth: everything vanilla
-            // draws after this composites against the window, not against the
-            // source-world coordinates the destination borrowed.
-            return drawFlat(PortalRenderLayers.APERTURE_DEPTH, entry,
-                    aperturePolygon(projection, TUNNEL, camX, camY, camZ, planeLocal,
-                            POLY_A, POLY_B), true);
+            return null;
         });
+        // Outside the slice: glDepthRange remaps the stamp to the band's far edge,
+        // which leaves everything inside the band unoccluded. It still replaces the
+        // destination's depth, so vanilla composites against the window.
+        int stamp = drawFlat(PortalRenderLayers.APERTURE_DEPTH, entry,
+                aperturePolygon(projection, TUNNEL, camX, camY, camZ, planeLocal,
+                        POLY_A, POLY_B), true);
 
         // Written after the draws, so a line at all means every draw returned.
         if (report != null) {
