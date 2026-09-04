@@ -6,26 +6,37 @@ import com.customdimensions.client.dev.JsonReader;
 import java.util.Map;
 
 /**
- * The player's controls over the real-time portal view, as held on disk.
+ * The player's controls over the portal view, as held on disk.
  *
  * <p>No Minecraft types on purpose: everything here is parsed, clamped and
  * rendered without a bootstrapped game, so the rules are unit-testable.
  *
- * <p>{@code enabled} is the whole feature's opt-in and the only field the
- * server is told about (through {@link #fallbackToSlab}); the other three
- * bound the local render and never leave this client.
+ * <p>Two toggles describe the same far side: {@code renderClientSidePortals} is
+ * the enhanced local render, {@code renderServerSidePortals} is the block slab
+ * the server streams. They are redundant, so the local render wins and
+ * {@link #effectiveServerSide()} is the single value that goes on the wire.
+ * The other two fields bound the local render and never leave this client.
  */
 public record RealtimeSettings(
-        boolean enabled,
+        boolean renderClientSidePortals,
         int maxRenderDistance,
         boolean distantHorizons,
-        boolean fallbackToSlab) {
+        boolean renderServerSidePortals) {
+
+    /** The schema this version writes. A file below it is migrated on read. */
+    public static final int CONFIG_VERSION = 1;
 
     /**
      * The enhanced portal is what installing the mod gets you. Turning it off
      * is a choice the player makes.
      */
-    public static final boolean DEFAULT_ENABLED = true;
+    public static final boolean DEFAULT_RENDER_CLIENT_SIDE_PORTALS = true;
+
+    /**
+     * On, so it is already in effect the moment the local render stops:
+     * nothing has to invent a fallback, the slab simply resumes.
+     */
+    public static final boolean DEFAULT_RENDER_SERVER_SIDE_PORTALS = true;
 
     /** Chunks of the destination the local view is allowed to reach. */
     public static final int DEFAULT_RENDER_DISTANCE = 16;
@@ -35,53 +46,65 @@ public record RealtimeSettings(
     /** Extend the far side past the render distance where DH is installed. */
     public static final boolean DEFAULT_DISTANT_HORIZONS = true;
 
-    /**
-     * Hand the far side back to the server. The two paths are exclusive: a
-     * client asking for the slab is not sent a frame or a destination chunk
-     * either, so this turns the local view off however {@code enabled} is set.
-     * An opt-out, so it is off unless the player asks.
-     */
-    public static final boolean DEFAULT_FALLBACK_TO_SLAB = false;
-
     public static final RealtimeSettings DEFAULTS = new RealtimeSettings(
-            DEFAULT_ENABLED, DEFAULT_RENDER_DISTANCE, DEFAULT_DISTANT_HORIZONS,
-            DEFAULT_FALLBACK_TO_SLAB);
+            DEFAULT_RENDER_CLIENT_SIDE_PORTALS, DEFAULT_RENDER_DISTANCE,
+            DEFAULT_DISTANT_HORIZONS, DEFAULT_RENDER_SERVER_SIDE_PORTALS);
 
     public RealtimeSettings {
         maxRenderDistance = Math.max(MIN_RENDER_DISTANCE,
                 Math.min(MAX_RENDER_DISTANCE, maxRenderDistance));
     }
 
-    public RealtimeSettings withEnabled(boolean value) {
+    /**
+     * Whether the server still has to describe the far side. The two views are
+     * redundant, so a client rendering its own is never sent the slab however
+     * the player has set it.
+     */
+    public boolean effectiveServerSide() {
+        return !this.renderClientSidePortals && this.renderServerSidePortals;
+    }
+
+    /** Reads as the render paths' question: does this client draw the far side. */
+    public boolean enabled() {
+        return this.renderClientSidePortals;
+    }
+
+    public RealtimeSettings withRenderClientSidePortals(boolean value) {
         return new RealtimeSettings(value, this.maxRenderDistance, this.distantHorizons,
-                this.fallbackToSlab);
+                this.renderServerSidePortals);
     }
 
     public RealtimeSettings withMaxRenderDistance(int value) {
-        return new RealtimeSettings(this.enabled, value, this.distantHorizons,
-                this.fallbackToSlab);
+        return new RealtimeSettings(this.renderClientSidePortals, value, this.distantHorizons,
+                this.renderServerSidePortals);
     }
 
     public RealtimeSettings withDistantHorizons(boolean value) {
-        return new RealtimeSettings(this.enabled, this.maxRenderDistance, value,
-                this.fallbackToSlab);
+        return new RealtimeSettings(this.renderClientSidePortals, this.maxRenderDistance, value,
+                this.renderServerSidePortals);
     }
 
-    public RealtimeSettings withFallbackToSlab(boolean value) {
-        return new RealtimeSettings(this.enabled, this.maxRenderDistance, this.distantHorizons,
-                value);
+    public RealtimeSettings withRenderServerSidePortals(boolean value) {
+        return new RealtimeSettings(this.renderClientSidePortals, this.maxRenderDistance,
+                this.distantHorizons, value);
     }
 
+    /**
+     * What the key flips. Only the local render: the player's server-side
+     * setting is left alone so it takes effect on its own the moment the
+     * local one goes off.
+     */
     public RealtimeSettings toggled() {
-        return withEnabled(!this.enabled);
+        return withRenderClientSidePortals(!this.renderClientSidePortals);
     }
 
     public String toJson() {
         return Json.obj()
-                .bool("enabled", this.enabled)
+                .num("configVersion", CONFIG_VERSION)
+                .bool("renderClientSidePortals", this.renderClientSidePortals)
                 .num("maxRenderDistance", this.maxRenderDistance)
                 .bool("distantHorizons", this.distantHorizons)
-                .bool("fallbackToSlab", this.fallbackToSlab)
+                .bool("renderServerSidePortals", this.renderServerSidePortals)
                 .toString();
     }
 
@@ -98,11 +121,45 @@ public record RealtimeSettings(
         } catch (JsonReader.Malformed e) {
             return DEFAULTS;
         }
+        if (version(raw) < CONFIG_VERSION) {
+            return migrate(raw);
+        }
         return new RealtimeSettings(
-                bool(raw, "enabled", DEFAULT_ENABLED),
+                bool(raw, "renderClientSidePortals", DEFAULT_RENDER_CLIENT_SIDE_PORTALS),
                 integer(raw, "maxRenderDistance", DEFAULT_RENDER_DISTANCE),
                 bool(raw, "distantHorizons", DEFAULT_DISTANT_HORIZONS),
-                bool(raw, "fallbackToSlab", DEFAULT_FALLBACK_TO_SLAB));
+                bool(raw, "renderServerSidePortals", DEFAULT_RENDER_SERVER_SIDE_PORTALS));
+    }
+
+    /**
+     * Whether reading this text migrated it, so the store rewrites the file and
+     * the stamp lands. A file that will not parse is left exactly as it is.
+     */
+    public static boolean needsMigration(String text) {
+        try {
+            return version(JsonReader.object(text)) < CONFIG_VERSION;
+        } catch (JsonReader.Malformed e) {
+            return false;
+        }
+    }
+
+    /**
+     * An unstamped file, written when the fields were {@code enabled} and
+     * {@code fallbackToSlab}. {@code enabled} is the player's own choice and
+     * carries over; {@code fallbackToSlab} was written false by a default
+     * nobody chose, and an unstamped file was served the slab whenever the
+     * local render was off, so server-side comes back on either way.
+     */
+    private static RealtimeSettings migrate(Map<String, Object> raw) {
+        return new RealtimeSettings(
+                bool(raw, "enabled", DEFAULT_RENDER_CLIENT_SIDE_PORTALS),
+                integer(raw, "maxRenderDistance", DEFAULT_RENDER_DISTANCE),
+                bool(raw, "distantHorizons", DEFAULT_DISTANT_HORIZONS),
+                DEFAULT_RENDER_SERVER_SIDE_PORTALS);
+    }
+
+    private static int version(Map<String, Object> raw) {
+        return integer(raw, "configVersion", 0);
     }
 
     private static boolean bool(Map<String, Object> raw, String key, boolean fallback) {

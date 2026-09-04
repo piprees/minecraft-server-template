@@ -156,11 +156,13 @@ public final class DevServer {
     private static String realtime(DevRequest request) {
         RealtimeSettings before = RealtimeControls.store().current();
         RealtimeSettings after = before
-                .withEnabled(request.flag("enabled", before.enabled()))
+                .withRenderClientSidePortals(request.flag("renderClientSidePortals",
+                        before.renderClientSidePortals()))
                 .withMaxRenderDistance((int) request.number("maxRenderDistance",
                         before.maxRenderDistance()))
                 .withDistantHorizons(request.flag("distantHorizons", before.distantHorizons()))
-                .withFallbackToSlab(request.flag("fallbackToSlab", before.fallbackToSlab()));
+                .withRenderServerSidePortals(request.flag("renderServerSidePortals",
+                        before.renderServerSidePortals()));
         boolean changed = !after.equals(before);
         if (changed) {
             RealtimeControls.store().save(after);

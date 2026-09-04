@@ -14,10 +14,12 @@ class RealtimeSettingsTest {
 
     @Test
     void theEnhancedViewIsWhatTheModDoesWithoutBeingAsked() {
-        assertTrue(RealtimeSettings.DEFAULTS.enabled(),
+        assertTrue(RealtimeSettings.DEFAULTS.renderClientSidePortals(),
                 "installing the mod and changing nothing must give the enhanced portal");
-        assertFalse(RealtimeSettings.DEFAULTS.fallbackToSlab(),
-                "the server-drawn slab is the opt-out, not the default");
+        assertTrue(RealtimeSettings.DEFAULTS.renderServerSidePortals(),
+                "server-side must already be on, so the slab resumes the moment the local one stops");
+        assertFalse(RealtimeSettings.DEFAULTS.effectiveServerSide(),
+                "the local render is on, so the server must not also be describing the far side");
     }
 
     /**
@@ -29,22 +31,37 @@ class RealtimeSettingsTest {
         RealtimeSettings first = new RealtimeSettingsStore(
                 dir.resolve("customdimensions-client.json")).load();
 
-        assertTrue(first.enabled());
-        assertFalse(first.fallbackToSlab());
+        assertTrue(first.renderClientSidePortals());
+        assertFalse(first.effectiveServerSide());
+    }
+
+    @Test
+    void clientSideOnMakesTheServerSideSettingIrrelevant() {
+        assertFalse(new RealtimeSettings(true, 16, true, true).effectiveServerSide());
+        assertFalse(new RealtimeSettings(true, 16, true, false).effectiveServerSide());
+    }
+
+    @Test
+    void clientSideOffLetsTheStoredServerSideSettingTakeEffect() {
+        assertTrue(new RealtimeSettings(false, 16, true, true).effectiveServerSide());
+        assertFalse(new RealtimeSettings(false, 16, true, false).effectiveServerSide(),
+                "both off is a plain portal, not a preview nobody asked for");
     }
 
     /** Both opt-outs survive the defaults moving underneath them. */
     @Test
     void aWrittenConfigWinsOverTheDefaultsInBothDirections() {
         RealtimeSettings optedOut = RealtimeSettings.parse(
-                "{\"enabled\":false,\"fallbackToSlab\":true}");
-        assertFalse(optedOut.enabled(), "a player who turned the feature off got it back");
-        assertTrue(optedOut.fallbackToSlab(), "a player who asked for the slab was refused it");
+                "{\"configVersion\":1,\"renderClientSidePortals\":false,"
+                        + "\"renderServerSidePortals\":false}");
+        assertFalse(optedOut.renderClientSidePortals(), "a player who turned the local render off got it back");
+        assertFalse(optedOut.renderServerSidePortals(), "a player who turned the slab off was given it anyway");
 
         RealtimeSettings optedIn = RealtimeSettings.parse(
-                "{\"enabled\":true,\"fallbackToSlab\":false}");
-        assertTrue(optedIn.enabled());
-        assertFalse(optedIn.fallbackToSlab());
+                "{\"configVersion\":1,\"renderClientSidePortals\":true,"
+                        + "\"renderServerSidePortals\":true}");
+        assertTrue(optedIn.renderClientSidePortals());
+        assertTrue(optedIn.renderServerSidePortals());
     }
 
     @Test
@@ -61,27 +78,33 @@ class RealtimeSettingsTest {
         RealtimeSettings written = new RealtimeSettings(true, 24, false, false);
         RealtimeSettings read = RealtimeSettings.parse(written.toJson());
         assertEquals(written, read);
+        assertFalse(RealtimeSettings.needsMigration(written.toJson()),
+                "what this version writes must not read back as a file to migrate");
     }
 
     @Test
     void aFileWrittenByAnOlderVersionKeepsTheDefaultsItDoesNotMention() {
-        RealtimeSettings read = RealtimeSettings.parse("{\"enabled\":true}");
-        assertTrue(read.enabled());
+        RealtimeSettings read = RealtimeSettings.parse(
+                "{\"configVersion\":1,\"renderClientSidePortals\":true}");
+        assertTrue(read.renderClientSidePortals());
         assertEquals(RealtimeSettings.DEFAULTS.maxRenderDistance(), read.maxRenderDistance());
         assertEquals(RealtimeSettings.DEFAULTS.distantHorizons(), read.distantHorizons());
-        assertEquals(RealtimeSettings.DEFAULTS.fallbackToSlab(), read.fallbackToSlab());
+        assertEquals(RealtimeSettings.DEFAULTS.renderServerSidePortals(),
+                read.renderServerSidePortals());
     }
 
     @Test
     void aKeyThisVersionDoesNotKnowIsIgnoredRatherThanFatal() {
-        RealtimeSettings read = RealtimeSettings.parse("{\"enabled\":true,\"fromTheFuture\":[1,2]}");
-        assertTrue(read.enabled());
+        RealtimeSettings read = RealtimeSettings.parse(
+                "{\"configVersion\":1,\"renderClientSidePortals\":true,\"fromTheFuture\":[1,2]}");
+        assertTrue(read.renderClientSidePortals());
     }
 
     @Test
     void aClampedValueOnDiskIsClampedOnTheWayBackIn() {
         assertEquals(RealtimeSettings.MAX_RENDER_DISTANCE,
-                RealtimeSettings.parse("{\"maxRenderDistance\":900}").maxRenderDistance());
+                RealtimeSettings.parse("{\"configVersion\":1,\"maxRenderDistance\":900}")
+                        .maxRenderDistance());
     }
 
     /**
@@ -95,23 +118,74 @@ class RealtimeSettingsTest {
         assertSame(RealtimeSettings.DEFAULTS, RealtimeSettings.parse(""));
         assertSame(RealtimeSettings.DEFAULTS, RealtimeSettings.parse(null));
         assertSame(RealtimeSettings.DEFAULTS, RealtimeSettings.parse("[1,2,3]"));
+        assertFalse(RealtimeSettings.needsMigration("{not json"),
+                "a file nobody can read must be left exactly as the player left it");
     }
 
     @Test
     void aFieldOfTheWrongTypeFallsBackToItsOwnDefaultAndKeepsTheRest() {
         RealtimeSettings read = RealtimeSettings.parse(
-                "{\"enabled\":\"yes\",\"maxRenderDistance\":24}");
-        assertEquals(RealtimeSettings.DEFAULTS.enabled(), read.enabled());
+                "{\"configVersion\":1,\"renderClientSidePortals\":\"yes\",\"maxRenderDistance\":24}");
+        assertEquals(RealtimeSettings.DEFAULTS.renderClientSidePortals(),
+                read.renderClientSidePortals());
         assertEquals(24, read.maxRenderDistance());
     }
 
+    /**
+     * The key flips the local render only. Leaving server-side alone is what
+     * makes the slab resume on its own rather than needing a special case.
+     */
     @Test
-    void toggleFlipsOnlyTheEnabledFlag() {
-        RealtimeSettings on = new RealtimeSettings(false, 24, false, false).toggled();
-        assertTrue(on.enabled());
+    void toggleFlipsTheLocalRenderAndNothingElse() {
+        RealtimeSettings on = new RealtimeSettings(false, 24, false, true).toggled();
+        assertTrue(on.renderClientSidePortals());
         assertEquals(24, on.maxRenderDistance());
         assertFalse(on.distantHorizons());
-        assertFalse(on.fallbackToSlab());
-        assertFalse(on.toggled().enabled());
+        assertTrue(on.renderServerSidePortals(), "the key must not touch the player's slab setting");
+
+        RealtimeSettings off = on.toggled();
+        assertFalse(off.renderClientSidePortals());
+        assertTrue(off.effectiveServerSide(), "turning the local render off must resume the slab");
+    }
+
+    /**
+     * Every player who ran the previous version has a file on disk holding
+     * {@code enabled} and {@code fallbackToSlab}, so the new defaults reach
+     * nobody without this.
+     */
+    @Test
+    void anUnstampedFileIsMigratedFromTheOldFieldNames() {
+        assertTrue(RealtimeSettings.needsMigration("{\"enabled\":true,\"fallbackToSlab\":false}"));
+
+        RealtimeSettings migrated = RealtimeSettings.parse(
+                "{\"enabled\":true,\"fallbackToSlab\":false,\"maxRenderDistance\":24,"
+                        + "\"distantHorizons\":false}");
+        assertTrue(migrated.renderClientSidePortals());
+        assertEquals(24, migrated.maxRenderDistance());
+        assertFalse(migrated.distantHorizons());
+        assertTrue(migrated.renderServerSidePortals(),
+                "fallbackToSlab was written by a default nobody chose; server-side comes back on");
+    }
+
+    /** A deliberate opt-out is a choice; the migration carries it over. */
+    @Test
+    void aPlayerWhoTurnedTheLocalRenderOffKeepsItOff() {
+        RealtimeSettings migrated = RealtimeSettings.parse(
+                "{\"enabled\":false,\"fallbackToSlab\":false}");
+        assertFalse(migrated.renderClientSidePortals());
+        assertTrue(migrated.effectiveServerSide(),
+                "an old file with the local render off was served the slab and still must be");
+    }
+
+    /**
+     * The stamp, not the keys: a player who turns server-side off AFTER
+     * migrating must not be migrated back on the next boot.
+     */
+    @Test
+    void aStampedFileIsNeverMigratedAgain() {
+        String stamped = "{\"configVersion\":1,\"renderClientSidePortals\":false,"
+                + "\"renderServerSidePortals\":false}";
+        assertFalse(RealtimeSettings.needsMigration(stamped));
+        assertFalse(RealtimeSettings.parse(stamped).renderServerSidePortals());
     }
 }

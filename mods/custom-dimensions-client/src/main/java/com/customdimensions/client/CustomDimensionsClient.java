@@ -94,13 +94,16 @@ public class CustomDimensionsClient implements ClientModInitializer {
                     // centred anywhere else silently discards every chunk fed to
                     // it. See ChunkMapWindow.
                     net.minecraft.util.math.BlockPos origin = payload.apertureOrigin();
-                    DestinationWorlds.ensure(context.client(), payload.destination(),
+                    ClientWorld destination = DestinationWorlds.ensure(context.client(),
+                            payload.destination(),
                             payload.dimensionType(),
                             RealtimeControls.settings().maxRenderDistance(),
                             com.customdimensions.client.realtime.ChunkMapWindow
                                     .centreChunk(origin.getX(), payload.dx()),
                             com.customdimensions.client.realtime.ChunkMapWindow
                                     .centreChunk(origin.getZ(), payload.dz()));
+                    standDownIfRefused(PortalViewDeclaration.destinationRefused(
+                            destination == null));
                     if (changed) {
                         LOGGER.info("{} dimension={} type={} aperture={} offset=({}, {}, {})",
                                 PortalFrames.RECEIVE_MARKER, payload.destination(),
@@ -134,6 +137,7 @@ public class CustomDimensionsClient implements ClientModInitializer {
             DestinationWorlds.clear();
             RealtimeView.clear();
             SpectatorPass.reset();
+            PortalViewDeclaration.clear();
             HandshakeSender.arm();
             // The join declaration rides with the handshake, which has to land
             // first; a pending one here would race ahead of it and be ignored.
@@ -144,6 +148,9 @@ public class CustomDimensionsClient implements ClientModInitializer {
         ClientTickEvents.END_CLIENT_TICK.register(CustomDimensionsClient::sendHelloWhenReady);
         ClientTickEvents.END_CLIENT_TICK.register(CustomDimensionsClient::declarePortalViewWhenPending);
         ClientTickEvents.END_CLIENT_TICK.register(CustomDimensionsClient::dropProjectionsOnWorldChange);
+        // After the world-change reset, so a pass re-armed this tick is not read
+        // as the failure it was re-armed from.
+        ClientTickEvents.END_CLIENT_TICK.register(CustomDimensionsClient::standDownOnRenderFailure);
         WorldRenderEvents.BEFORE_ENTITIES.register(ProjectionRenderer::render);
 
         ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
@@ -154,15 +161,31 @@ public class CustomDimensionsClient implements ClientModInitializer {
             DestinationWorlds.clear();
             RealtimeView.clear();
             SpectatorPass.reset();
+            PortalViewDeclaration.clear();
             HandshakeSender.disarm();
         });
 
         RealtimeControls.register();
-        RealtimeControls.store().onChange(settings -> viewDeclarationPending = true);
+        RealtimeControls.store().onChange(settings -> {
+            // A player who has changed a setting is asking to be tried again.
+            PortalViewDeclaration.clear();
+            viewDeclarationPending = true;
+        });
         DevBridge.start();
 
-        LOGGER.info("{} protocol={} realtime={}", INIT_MARKER,
-                CompanionPayloads.PROTOCOL_VERSION, RealtimeControls.settings().enabled());
+        LOGGER.info("{} protocol={} renderClientSidePortals={}", INIT_MARKER,
+                CompanionPayloads.PROTOCOL_VERSION,
+                RealtimeControls.settings().renderClientSidePortals());
+    }
+
+    /** Queues the one declaration a refusal owes the server. */
+    private static void standDownIfRefused(boolean owed) {
+        if (!owed) {
+            return;
+        }
+        LOGGER.info("{} reason={}", PortalViewDeclaration.REFUSAL_MARKER,
+                PortalViewDeclaration.reason());
+        viewDeclarationPending = true;
     }
 
     /**
@@ -180,6 +203,15 @@ public class CustomDimensionsClient implements ClientModInitializer {
         DestinationWorlds.clear();
         RealtimeView.clear();
         SpectatorPass.reset();
+        PortalViewDeclaration.clear();
+    }
+
+    /**
+     * The local pass disabled itself after a throw, so this client can no
+     * longer draw the far side and asks the server to describe it again.
+     */
+    private static void standDownOnRenderFailure(MinecraftClient client) {
+        standDownIfRefused(PortalViewDeclaration.renderPassDisabled(SpectatorPass.disabled()));
     }
 
     private static void sendHelloWhenReady(MinecraftClient client) {
@@ -220,15 +252,17 @@ public class CustomDimensionsClient implements ClientModInitializer {
      * every vanilla client already has.
      */
     private static void declarePortalView() {
-        RealtimeSettings settings = RealtimeControls.settings();
+        RealtimeSettings settings = PortalViewDeclaration.declared(RealtimeControls.settings());
+        boolean serverSide = settings.effectiveServerSide();
         try {
             ClientPlayNetworking.send(new CompanionPayloads.PortalView(
-                    settings.enabled(), settings.fallbackToSlab(), settings.maxRenderDistance()));
+                    settings.renderClientSidePortals(), serverSide, settings.maxRenderDistance()));
         } catch (RuntimeException e) {
             LOGGER.warn("could not declare the portal view; the server keeps describing it", e);
             return;
         }
-        LOGGER.info("{} renderLocally={} keepSlab={} maxRenderDistance={}", VIEW_MARKER,
-                settings.enabled(), settings.fallbackToSlab(), settings.maxRenderDistance());
+        LOGGER.info("{} renderLocally={} keepSlab={} maxRenderDistance={} refused={}", VIEW_MARKER,
+                settings.renderClientSidePortals(), serverSide, settings.maxRenderDistance(),
+                PortalViewDeclaration.refused());
     }
 }

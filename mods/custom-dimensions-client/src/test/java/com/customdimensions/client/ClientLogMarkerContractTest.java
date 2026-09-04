@@ -30,4 +30,10 @@ class ClientLogMarkerContractTest {
     void suppressMarker() {
         assertEquals("companion-suppress:arrival-screen", CustomDimensionsClient.SUPPRESS_MARKER);
     }
+
+    /** The declared view; keepSlab on it is what the server acts on. */
+    @Test
+    void viewMarker() {
+        assertEquals("companion-client:portal-view", CustomDimensionsClient.VIEW_MARKER);
+    }
 }

@@ -14,7 +14,9 @@ import java.nio.file.Path;
 
 /**
  * The player's way in: a config file under {@code config/}, and a key that
- * flips the real-time view against the server's block slab without a relaunch.
+ * flips the client-side portal view without a relaunch. Server-side is set in
+ * the file — a key that flipped both would be flipping a setting the first one
+ * already overrides.
  *
  * <p>The Minecraft-facing shim over {@link RealtimeSettingsStore}, which holds
  * the rules and is where they are tested. Nothing here decides anything.
@@ -66,12 +68,21 @@ public final class RealtimeControls {
         // toggles twice rather than swallowing one.
         while (toggleKey.wasPressed()) {
             RealtimeSettings now = store().toggle();
-            CustomDimensionsClient.LOGGER.info("{} enabled={}", TOGGLE_MARKER, now.enabled());
+            CustomDimensionsClient.LOGGER.info("{} renderClientSidePortals={} effectiveServerSide={}",
+                    TOGGLE_MARKER, now.renderClientSidePortals(), now.effectiveServerSide());
             if (client.player != null) {
-                client.player.sendMessage(Text.translatable(now.enabled()
-                        ? "message.customdimensionsclient.realtime_on"
-                        : "message.customdimensionsclient.realtime_off"), true);
+                client.player.sendMessage(Text.translatable(messageKey(now)), true);
             }
         }
+    }
+
+    /** The three states the key can leave the player in, in the order they rank. */
+    static String messageKey(RealtimeSettings settings) {
+        if (settings.renderClientSidePortals()) {
+            return "message.customdimensionsclient.portal_view_client";
+        }
+        return settings.renderServerSidePortals()
+                ? "message.customdimensionsclient.portal_view_server"
+                : "message.customdimensionsclient.portal_view_none";
     }
 }

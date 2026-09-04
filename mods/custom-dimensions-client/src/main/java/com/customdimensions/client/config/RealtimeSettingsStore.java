@@ -44,7 +44,9 @@ public final class RealtimeSettingsStore {
 
     /**
      * Reads the file, writing the defaults when there is none so the player has
-     * something to edit. Does not notify — nothing has changed yet.
+     * something to edit. A file below the current schema is migrated and
+     * written back, so the stamp lands and the migration runs once. Does not
+     * notify — nothing has changed yet.
      */
     public RealtimeSettings load() {
         if (!Files.isRegularFile(this.file)) {
@@ -53,8 +55,11 @@ public final class RealtimeSettingsStore {
             return this.current;
         }
         try {
-            this.current = RealtimeSettings.parse(
-                    Files.readString(this.file, StandardCharsets.UTF_8));
+            String text = Files.readString(this.file, StandardCharsets.UTF_8);
+            this.current = RealtimeSettings.parse(text);
+            if (RealtimeSettings.needsMigration(text)) {
+                write(this.current);
+            }
         } catch (IOException e) {
             LOGGER.warn("could not read {}, using defaults", this.file, e);
             this.current = RealtimeSettings.DEFAULTS;
@@ -65,9 +70,11 @@ public final class RealtimeSettingsStore {
     public RealtimeSettings save(RealtimeSettings settings) {
         this.current = settings;
         write(settings);
-        LOGGER.info("{} enabled={} maxRenderDistance={} distantHorizons={} fallbackToSlab={}",
-                CHANGE_MARKER, settings.enabled(), settings.maxRenderDistance(),
-                settings.distantHorizons(), settings.fallbackToSlab());
+        LOGGER.info("{} renderClientSidePortals={} maxRenderDistance={} distantHorizons={} "
+                        + "renderServerSidePortals={} effectiveServerSide={}",
+                CHANGE_MARKER, settings.renderClientSidePortals(), settings.maxRenderDistance(),
+                settings.distantHorizons(), settings.renderServerSidePortals(),
+                settings.effectiveServerSide());
         this.listener.accept(settings);
         return settings;
     }

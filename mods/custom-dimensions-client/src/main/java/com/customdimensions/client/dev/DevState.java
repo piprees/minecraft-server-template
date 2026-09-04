@@ -1,6 +1,7 @@
 package com.customdimensions.client.dev;
 
 import com.customdimensions.client.ArrivalScreen;
+import com.customdimensions.client.PortalViewDeclaration;
 import com.customdimensions.client.config.RealtimeControls;
 import com.customdimensions.client.config.RealtimeSettings;
 import com.customdimensions.client.realtime.DestinationChunks;
@@ -82,8 +83,11 @@ final class DevState {
             first = false;
         }
         return Json.obj()
-                .bool("enabled", settings.enabled())
-                .bool("fallbackToSlab", settings.fallbackToSlab())
+                .bool("renderClientSidePortals", settings.renderClientSidePortals())
+                .bool("renderServerSidePortals", settings.renderServerSidePortals())
+                .bool("effectiveServerSide", settings.effectiveServerSide())
+                .bool("clientSideRefused", PortalViewDeclaration.refused())
+                .str("clientSideRefusal", PortalViewDeclaration.reason())
                 .num("maxRenderDistance", settings.maxRenderDistance())
                 .num("frames", PortalFrames.count())
                 .num("slabProjections", ProjectionStore.count())

@@ -60,7 +60,8 @@ public final class RealtimeView {
     }
 
     public static void tick(MinecraftClient client) {
-        if (client == null || client.world == null || !RealtimeControls.settings().enabled()) {
+        if (client == null || client.world == null
+                || !RealtimeControls.settings().renderClientSidePortals()) {
             return;
         }
         for (Identifier destination : DestinationWorlds.loadedCounts().keySet()) {
