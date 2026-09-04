@@ -1646,6 +1646,24 @@ measurement of it.
   `scripts/e2e/portal-matrix-selftest.sh` is the worked example.
 
 <a id="t89"></a>
+### T91 — A fed entity needs its tracked data before its first tick, and must never read the dirty list
+
+- **Symptom:** entities reach a destination `ClientWorld` and vanish within about
+  a second. The client log names them: `entity=201 left the world (item at
+  1739.5,65.0,1297.5)`, all of one type.
+- **Cause:** a spawn entry carries type and position, not tracked data. An
+  `ItemEntity` therefore arrives holding an empty stack, and `ItemEntity.tick()`
+  opens with `ItemStack.isEmpty()` then `invokevirtual discard:()V`. It deletes
+  itself on its first tick. Any entity whose tick reads tracked data has the
+  same shape.
+- **Fix:** send each entity's tracked data as a vanilla
+  `EntityTrackerUpdateS2CPacket` alongside the spawn entry and apply it BEFORE
+  the entity's first tick. **The ordering is the fix, not the data.** It also
+  buys fidelity for free — a baby is a baby, a sheep is the right colour.
+- **Trap:** read `getChangedEntries()`, **never `getDirtyEntries()`**. The dirty
+  list is consumed by vanilla's own tracker for players actually in that
+  dimension; reading it here steals their update and desynchronises them.
+
 ### T90 — Backgrounding `./dev restart mc` inside a tool kills it mid-recreate and leaves an orphan
 
 - **Symptom:** `mc` disappears. `docker inspect mc` answers `healthy` on the
