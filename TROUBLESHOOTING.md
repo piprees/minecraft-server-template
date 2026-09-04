@@ -1556,10 +1556,19 @@ measurement of it.
   further) and `the_highland_crossing` uses `raw_copper_block` (a mineral
   block, not in the weathering family). Check any NEW copper frame against
   both of those exemptions before assuming it is safe.
-- **Fix (in place):** `the_crucible.json` carries a `frameAccepts` listing all
-  eight forms — four oxidation stages and four waxed. `frameBlock` stays a
-  plain id, never a `#tag`, because `portal_links.json` must stay parseable by
-  every jar that might read it back.
+- **Fix (in place):** `the_crucible.json`'s `frameBlock` is a LIST of all eight
+  forms — four oxidation stages and four waxed — plus an explicit
+  `framePlaceBlock` so mod-built arrival frames stay pristine copper.
+- **There is no `frameAccepts` config key.** `DimensionConfig.Portal` declares
+  `frameBlock` as a `JsonElement` and `getFrameAcceptForms()` reads
+  `acceptFormsFrom(frameBlock)`, which takes a plain id, a `#tag`, a LIST of
+  those, or `{"colorGroup": ...}`. `frameAccepts` is a field on
+  `PortalDefinition` — the runtime and persistence view, populated FROM the
+  parsed `frameBlock` — which is where the name misleads. **Gson drops unknown
+  config keys silently**, so a `frameAccepts` written into a dimension file
+  parses clean, changes nothing, and reads as a fix. Precedent for the list
+  form: `the_lost_outpost` and `the_violet_spire`, both of which also set
+  `framePlaceBlock`.
 - **What the fix does NOT do.** `PortalHelper.isZoneValid` validates a live
   zone against `zone.definition` — the ignition-time snapshot deserialised
   from `portal_links.json` — not against current config. Zones are deliberately

@@ -26,8 +26,9 @@ attributes gets the whole interface working.
 | `web/app.built.css` | What `build-viewer-css.sh` compiles it to. This is what the template links. |
 | `web/criteria.css` | Plain CSS for the scorecard reasoning. No build step. |
 | `web/structures.css` | Plain CSS for the structures panel and map markers. No build step. |
+| `web/portals.css` | Plain CSS for the portals panel above the scorecard. No build step. |
 
-Run `../../../../build-viewer-css.sh` (at the mod root) after editing `app.css`,
+Only `app.css` has a build step. Run `../../../../build-viewer-css.sh` (at the mod root) after editing it,
 and commit `app.built.css` with the change. `mod-build.yml` fails the build when
 the two disagree. Nothing else feeds that build: `app.css` declares
 `source(none)` and names every utility it uses in an `@apply`, so no markup is

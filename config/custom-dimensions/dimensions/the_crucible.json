@@ -247,7 +247,16 @@
   },
   "structureDensity": "dense",
   "portal": {
-    "frameBlock": "minecraft:copper_block",
+    "frameBlock": [
+      "minecraft:copper_block",
+      "minecraft:exposed_copper",
+      "minecraft:weathered_copper",
+      "minecraft:waxed_copper_block",
+      "minecraft:waxed_exposed_copper",
+      "minecraft:waxed_weathered_copper",
+      "minecraft:waxed_oxidized_copper"
+    ],
+    "framePlaceBlock": "minecraft:copper_block",
     "igniterItem": "minecraft:diamond",
     "color": "8BAF5B",
     "lightLevel": 11,

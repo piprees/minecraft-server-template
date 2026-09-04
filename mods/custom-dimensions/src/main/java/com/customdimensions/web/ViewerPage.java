@@ -335,6 +335,7 @@ public final class ViewerPage {
         // in here (exactfacts.js) so it scrolls with the criteria rather than
         // landing under the buttons.
         b.append("<div class='lb-scroll'>");
+        b.append(portals(v.config()));
         b.append(criteria(c.scorecard()));
         b.append("</div>");
         // The two things a person does from here: go and look at it, then
@@ -451,6 +452,401 @@ public final class ViewerPage {
             b.append("</div>");
         }
         b.append("</div>");
+        return b.toString();
+    }
+
+    // ------------------------------------------------------------------ portals
+
+    /**
+     * Every portal a dimension declares, in config order, and the ways the
+     * mod builds out of it.
+     *
+     * <p>Read to answer three questions in front of the map: what do I
+     * build, what lights it, and what happens once it is lit. So a field
+     * the config leaves out is left out here — a row carrying an empty
+     * value reads as a setting, and there is nothing to set.
+     *
+     * <p>Every value is the one the mod resolves, not the one the file
+     * writes: accept forms come from {@code getFrameAcceptForms}, so a key
+     * the schema does not know never appears as something a frame accepts.
+     */
+    static String portals(DimensionConfig def) {
+        List<DimensionConfig.Portal> all = def.getPortals();
+        if (all.isEmpty()) {
+            return "";
+        }
+        StringBuilder b = new StringBuilder("<div class='portals'>");
+        b.append("<div class='portals-label'>portals</div>");
+        for (int i = 0; i < all.size(); i++) {
+            b.append(portal(all.get(i), def.portalId(i), i == 0));
+        }
+        b.append(waysOut(def, all));
+        return b.append("</div>").toString();
+    }
+
+    private static String portal(DimensionConfig.Portal p, String id, boolean primary) {
+        List<String> accepts = p.getFrameAcceptForms();
+        Map<String, List<String>> parts = p.getFramePartAcceptForms();
+        StringBuilder b = new StringBuilder("<div class='portal'>");
+
+        b.append("<div class='portal-head'><span class='portal-id'>").append(escape(id))
+                .append("</span>");
+        if (primary) {
+            b.append("<span class='portal-tag'>primary</span>");
+        }
+        if (p.isVanillaManaged()) {
+            b.append("<span class='portal-tag'>vanilla-managed</span>");
+        }
+        if (accepts.isEmpty()) {
+            b.append("<span class='portal-tag bad'>cannot be lit</span>");
+        }
+        b.append("</div>");
+
+        if (!parts.isEmpty()) {
+            b.append(prow("frame", blocks(accepts)
+                    + pnote("the flood-fill takes any of these; each part is checked below")));
+            for (String part : DimensionConfig.Portal.FRAME_PARTS) {
+                List<String> forms = parts.get(part);
+                b.append(prow(part, forms == null || forms.isEmpty()
+                        ? pnote("any accepted form")
+                        : blocks(forms) + formCount(forms)));
+            }
+        } else {
+            b.append(prow("frame", accepts.isEmpty()
+                    ? pnote("no frame block, so nothing bounds an opening")
+                    : blocks(accepts) + formCount(accepts) + colourGroup(p)));
+        }
+
+        String place = p.resolvePlacementBlockId();
+        if (place != null && placeWorthStating(p, accepts)) {
+            b.append(prow("builds with", blocks(List.of(place))
+                    + pnote("what the mod places for arrival and exit frames")));
+        }
+        if (p.igniterItem != null && !p.igniterItem.isBlank()) {
+            b.append(prow("igniter", blocks(List.of(p.igniterItem))));
+        }
+
+        String shape = p.getShapeTemplate() != null
+                ? com.customdimensions.portal.PortalShape.PATTERN
+                : com.customdimensions.portal.PortalShape.normalise(p.getShapeName());
+        String facing = orientation(p, shape);
+        b.append(prow("shape", "<span class='pv-name'>" + escape(shape) + "</span>"
+                + pnote(shapeBlurb(shape))));
+        b.append(shapeGrid(shape, p));
+        b.append(prow("orientation", "<span class='pv-name'>" + escape(facing)
+                + "</span>" + pnote(orientationBlurb(facing))));
+        if (p.centreBlock != null && !p.centreBlock.isBlank()) {
+            b.append(prow("centre block", blocks(List.of(p.centreBlock))));
+        }
+
+        b.append(prow("look", look(p)));
+        if (p.particleType != null && !p.particleType.isBlank()) {
+            b.append(prow("particles", "<span class='pv-name'>" + escape(p.particleType)
+                    + "</span>" + pnote("overrides the colour")));
+        }
+        b.append(prow("travel", fmt(p.scale == null ? 1.0 : p.scale) + "x scale &middot; "
+                + (p.cooldown == null ? 40 : p.cooldown) + " tick cooldown"));
+        b.append(prow("sounds", sound("ignite", p.getIgniteSound())
+                + sound("enter", p.getEnterSound()) + sound("exit", p.getExitSound())));
+
+        if (p.anchor != null) {
+            b.append(prow("anchor", "<span class='pv-name'>" + anchorPos(p.anchor)
+                    + "</span>" + pnote("every portal here lands at one place, leaving by "
+                    + exitTargetLabel(p.anchor.getExit()))));
+        }
+        if (p.singleUse != null && Boolean.TRUE.equals(p.singleUse.enabled)) {
+            int swaps = p.singleUse.decayMap == null ? 0 : p.singleUse.decayMap.size();
+            String decay = swaps == 0 ? ""
+                    : pnote(swaps + (swaps == 1 ? " decay swap" : " decay swaps"));
+            b.append(prow("single use", "shuts " + p.singleUse.getDelaySeconds()
+                    + "s after the first crossing &middot; frame breaks "
+                    + escape(p.singleUse.getBreakMode()) + decay));
+        }
+        b.append(aura(p.aura));
+        b.append(prow("immersive", immersive(p)));
+        return b.append("</div>").toString();
+    }
+
+    /**
+     * The place block earns a row when it is a choice: an explicit setting,
+     * a frame with several accepted forms, or a tag the mod cannot build
+     * from. A single plain id builds itself and saying so twice is noise.
+     */
+    private static boolean placeWorthStating(DimensionConfig.Portal p, List<String> accepts) {
+        if (p.framePlaceBlock != null && !p.framePlaceBlock.isBlank()) {
+            return true;
+        }
+        return accepts.size() != 1 || accepts.get(0).startsWith("#");
+    }
+
+    /** Whether a frame takes one form or a choice of them — the thing a builder needs. */
+    private static String formCount(List<String> forms) {
+        if (forms.size() > 1) {
+            return pnote("any of " + forms.size());
+        }
+        return pnote(forms.get(0).startsWith("#")
+                ? "any block in this tag" : "the only form it accepts");
+    }
+
+    /** Label first, then the id — the row is read for which sound is which. */
+    private static String sound(String when, String id) {
+        return pnote(when) + "<span class='pv-name'>" + escape(id) + "</span>";
+    }
+
+    private static String colourGroup(DimensionConfig.Portal p) {
+        String colour = p.getColorGroup();
+        return colour == null ? "" : pnote("colour group " + escape(colour));
+    }
+
+    /** The portal's own colour, as a swatch beside the value that made it. */
+    private static String look(DimensionConfig.Portal p) {
+        StringBuilder b = new StringBuilder();
+        if (p.color != null && !p.color.isBlank()) {
+            String hex = p.color.startsWith("#") ? p.color : "#" + p.color;
+            b.append("<span class='pswatch' style='background:").append(escape(hex))
+                    .append("'></span><span class='pv-name'>").append(escape(p.color))
+                    .append("</span>");
+        }
+        b.append("light level ").append(p.lightLevel == null ? 0 : p.lightLevel);
+        return b.toString();
+    }
+
+    private static String shapeBlurb(String shape) {
+        switch (shape) {
+            case com.customdimensions.portal.PortalShape.DOOR:
+                return "a 1 by 2 opening";
+            case com.customdimensions.portal.PortalShape.DOORWAY:
+                return "a 2 by 3 opening, the vanilla Nether one";
+            case com.customdimensions.portal.PortalShape.END_EXIT:
+                return "a flat ring on the ground, any footprint";
+            case com.customdimensions.portal.PortalShape.END_GATEWAY:
+                return "one block of air, ringed";
+            case com.customdimensions.portal.PortalShape.PATTERN:
+                return "the frame must match this template exactly";
+            default:
+                return "any frame-bounded opening up to 128 blocks";
+        }
+    }
+
+    /** The orientation ignition really uses: the field, else the shape's, else any. */
+    private static String orientation(DimensionConfig.Portal p, String shape) {
+        if (p.orientation != null && !p.orientation.isBlank()) {
+            return p.orientation.trim();
+        }
+        String implied = com.customdimensions.portal.PortalShape.impliedOrientation(shape);
+        return implied != null ? implied : "any";
+    }
+
+    private static String orientationBlurb(String orientation) {
+        switch (orientation) {
+            case "vertical":
+                return "standing, on either horizontal axis";
+            case "vertical_x":
+                return "standing, on the X axis only";
+            case "vertical_z":
+                return "standing, on the Z axis only";
+            case "horizontal":
+                return "flat on the ground, lit from above";
+            default:
+                return "standing or flat, whichever the build makes";
+        }
+    }
+
+    /**
+     * The shape as a shape. A preset's grid is the interior it demands
+     * with the ring it needs around it; a pattern's is its own template.
+     * Free-form and any-footprint shapes get no grid — a drawing of one
+     * would state a size the config does not.
+     */
+    private static String shapeGrid(String shape, DimensionConfig.Portal p) {
+        List<String> rows;
+        Map<String, String> legend;
+        if (com.customdimensions.portal.PortalShape.PATTERN.equals(shape)) {
+            rows = p.getShapeTemplate();
+            legend = p.getShapeLegend();
+        } else {
+            rows = presetGrid(shape);
+            legend = Map.of("F", "frame", ".", "interior");
+        }
+        if (rows == null || rows.isEmpty()) {
+            return "";
+        }
+        StringBuilder b = new StringBuilder("<div class='pshape' role='img' aria-label='")
+                .append(escape(shape)).append(" portal, ").append(rows.size())
+                .append(" rows'>");
+        for (String row : rows) {
+            b.append("<div class='pshape-row'>");
+            for (int i = 0; i < row.length(); i++) {
+                String role = legend.get(String.valueOf(row.charAt(i)));
+                String kind = "frame".equals(role) ? "frame"
+                        : ("interior".equals(role) ? "interior" : "any");
+                b.append("<span class='pcell pcell-").append(kind).append("'></span>");
+            }
+            b.append("</div>");
+        }
+        b.append("<div class='pshape-key'><span class='pkey-swatch pkey-frame'></span>frame"
+                + "<span class='pkey-swatch pkey-interior'></span>opening</div>");
+        return b.append("</div>").toString();
+    }
+
+    /** A named preset's fixed geometry; null where the preset fixes none. */
+    private static List<String> presetGrid(String shape) {
+        switch (shape) {
+            case com.customdimensions.portal.PortalShape.DOOR:
+                return List.of("FFF", "F.F", "F.F", "FFF");
+            case com.customdimensions.portal.PortalShape.DOORWAY:
+                return List.of("FFFF", "F..F", "F..F", "F..F", "FFFF");
+            case com.customdimensions.portal.PortalShape.END_GATEWAY:
+                return List.of("FFF", "F.F", "FFF");
+            default:
+                return null;
+        }
+    }
+
+    /**
+     * What the aura does. Absent is not off: each side samples the other's
+     * terrain at link time and leaks it through, which is the behaviour a
+     * dimension gets for writing nothing.
+     */
+    private static String aura(DimensionConfig.Aura a) {
+        if (a != null && Boolean.FALSE.equals(a.enabled)) {
+            return prow("aura", "off");
+        }
+        if (a == null) {
+            return prow("aura", "on" + pnote("leaks the far side's sampled terrain, "
+                    + "converting natural ground within 8 blocks"));
+        }
+        StringBuilder v = new StringBuilder("on");
+        v.append(pnote("eats " + escape(com.customdimensions.portal.AuraPolicy.normalise(a.subsume))));
+        v.append(pnote((a.radius == null ? 8 : a.radius) + " block radius"));
+        v.append(pnote("every " + (a.interval == null ? 40 : a.interval) + " ticks"));
+        v.append(pnote((a.blocksPerPass == null ? 2 : a.blocksPerPass) + " blocks a pass"));
+        int budget = a.budget == null ? 300 : a.budget;
+        v.append(pnote(budget < 0 ? "no budget, endless" : budget + " block budget"));
+        v.append(pnote(a.sides == null ? "both sides" : escape(a.sides) + " side"));
+        if (a.fireChance != null && a.fireChance > 0) {
+            v.append(pnote("sets fires"));
+        }
+        StringBuilder b = new StringBuilder(prow("aura", v.toString()));
+        if (a.palette == null) {
+            b.append(prow("aura emits", pnote("its own sampled terrain")));
+        } else {
+            b.append(prow("aura emits", a.palette.isEmpty()
+                    ? pnote("nothing") : chips(a.palette)));
+        }
+        if (a.flora != null && !a.flora.isEmpty()) {
+            b.append(prow("aura flora", chips(a.flora)));
+        }
+        if (a.trees != null && !a.trees.isEmpty()) {
+            b.append(prow("aura trees", chips(a.trees)));
+        }
+        if (a.fluids != null && !a.fluids.isEmpty()) {
+            b.append(prow("aura fluids", chips(a.fluids)));
+        }
+        if (a.conversions != null && !a.conversions.isEmpty()) {
+            StringBuilder c = new StringBuilder();
+            for (Map.Entry<String, String> e : a.conversions.entrySet()) {
+                c.append("<span class='pchip'>").append(escape(e.getKey()))
+                        .append(" &rarr; ").append(escape(e.getValue())).append("</span>");
+            }
+            b.append(prow("aura swaps", c.toString()));
+        }
+        return b.toString();
+    }
+
+    /** Immersive is on unless the config says otherwise, so state which. */
+    private static String immersive(DimensionConfig.Portal p) {
+        com.customdimensions.config.ImmersiveSettings s = p.getImmersiveSettings();
+        if (s == null) {
+            return "not immersive";
+        }
+        return "on" + pnote(s.previewDepth() + " blocks deep")
+                + pnote(s.previewRadius() + " block padding")
+                + pnote("refreshed every " + s.refreshInterval() + " ticks")
+                + pnote("within " + s.activationRange() + " blocks")
+                + pnote(s.audio() ? "far-side ambience" : "no audio")
+                + pnote(s.entityPassthrough() ? "things cross" : "nothing crosses");
+    }
+
+    /**
+     * The frames the mod builds and maintains itself. A dimension whose
+     * only way in strands a player — an anchor or a single-use portal with
+     * no exit portal — says so here, which is the boot-time safety warning
+     * put where somebody choosing a seed will read it.
+     */
+    private static String waysOut(DimensionConfig def, List<DimensionConfig.Portal> all) {
+        boolean oneWayIn = all.stream().anyMatch(p -> p.anchor != null
+                || (p.singleUse != null && Boolean.TRUE.equals(p.singleUse.enabled)));
+        DimensionConfig.ExitPortal exit = def.getExitPortal();
+        DimensionConfig.ExitShrines shrines = def.getExitShrines();
+        boolean anyShrines = shrines != null;
+        if (exit == null && !anyShrines && !oneWayIn) {
+            return "";
+        }
+        StringBuilder b = new StringBuilder("<div class='pways'>");
+        b.append("<div class='portal-head'><span class='portal-id'>ways out</span></div>");
+        if (def.hasExitPortal()) {
+            int[] at = exit.getExplicitPos();
+            String where = at == null ? "near spawn" : at[0] + ", " + at[1] + ", " + at[2];
+            b.append(prow("exit portal", "<span class='pv-name'>" + escape(where)
+                    + "</span>" + pnote("leads to " + exitTargetLabel(exit.getTargetMode()))));
+        } else if (exit != null) {
+            b.append(prow("exit portal", "disabled"));
+        } else {
+            b.append(prow("exit portal", "<span class='pv-bad'>none</span>"
+                    + pnote("nothing here builds a way back")));
+        }
+        if (anyShrines) {
+            b.append(prow("exit shrines", def.hasExitShrines()
+                    ? "<span class='pv-name'>scattered</span>"
+                            + pnote("leading to " + exitTargetLabel(shrines.getTargetMode()))
+                    : "disabled"));
+        }
+        return b.append("</div>").toString();
+    }
+
+    /** A dimension link's canonical form ({@code dim!ns:slug!spawn}), read as words. */
+    private static String exitTargetLabel(String canonical) {
+        if (!canonical.startsWith("dim!")) {
+            return escape(canonical);
+        }
+        String[] parts = canonical.split("!", 3);
+        return parts.length == 3 ? escape(parts[1]) + " at " + escape(parts[2])
+                : escape(canonical);
+    }
+
+    /** An anchor's own words: a written coordinate, or the dimension's spawn. */
+    private static String anchorPos(DimensionConfig.Anchor a) {
+        if (a.pos != null && a.pos.isJsonArray() && a.pos.getAsJsonArray().size() == 3) {
+            return escape(a.pos.getAsJsonArray().get(0).getAsInt() + ", "
+                    + a.pos.getAsJsonArray().get(1).getAsInt() + ", "
+                    + a.pos.getAsJsonArray().get(2).getAsInt());
+        }
+        return "spawn";
+    }
+
+    private static String prow(String key, String value) {
+        return "<div class='prow'><span class='pk'>" + escape(key) + "</span>"
+                + "<span class='pv'>" + value + "</span></div>";
+    }
+
+    private static String pnote(String text) {
+        return "<span class='pnote'>" + text + "</span>";
+    }
+
+    private static String blocks(List<String> ids) {
+        StringBuilder b = new StringBuilder();
+        for (String id : ids) {
+            b.append("<code class='pblock'>").append(escape(id)).append("</code>");
+        }
+        return b.toString();
+    }
+
+    private static String chips(List<String> ids) {
+        StringBuilder b = new StringBuilder();
+        for (String id : ids) {
+            b.append("<span class='pchip'>").append(escape(id)).append("</span>");
+        }
         return b.toString();
     }
 

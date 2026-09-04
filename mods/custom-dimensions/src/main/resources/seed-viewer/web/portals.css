@@ -1,0 +1,199 @@
+/* The portals panel, above the scorecard in the candidate detail.
+ *
+ * Plain CSS, served as written, on the same terms as criteria.css and
+ * structures.css: app.built.css knows none of these class names, and every
+ * colour here reads a custom property that stylesheet declares rather than
+ * copying a hex value. */
+
+.portals {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.portal,
+.pways {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.portals-label,
+.portals .portal-head {
+  font-size: 0.68rem;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--text-muted, #8b93a1);
+  border-bottom: 1px solid var(--edge, #272c35);
+  padding-bottom: 0.15rem;
+}
+
+.portals .portal-head {
+  display: flex;
+  align-items: baseline;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+  border-bottom-color: color-mix(in srgb, var(--edge, #272c35) 55%, transparent);
+  margin-bottom: 0.1rem;
+}
+
+.portal-id {
+  color: var(--text-heading, #e6e8ec);
+  font-weight: 600;
+}
+
+.portal-tag {
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 0.66rem;
+  padding: 0 0.3rem;
+  border: 1px solid var(--edge, #272c35);
+  border-radius: var(--r-pill, 99px);
+  color: var(--text-muted, #8b93a1);
+}
+
+.portal-tag.bad {
+  color: var(--bad, #e05252);
+  border-color: currentColor;
+}
+
+/* The same two-column rhythm the criteria rows use, so the panel above the
+ * scorecard reads as one list rather than two designs. */
+.prow {
+  display: grid;
+  grid-template-columns: 6.5rem minmax(0, 1fr);
+  gap: 0.1rem 0.5rem;
+  align-items: baseline;
+  padding: 0.15rem 0;
+  font-size: 0.76rem;
+  line-height: 1.45;
+}
+
+.prow + .prow {
+  border-top: 1px solid color-mix(in srgb, var(--edge, #272c35) 55%, transparent);
+}
+
+.pk {
+  color: var(--text-muted, #8b93a1);
+  text-align: right;
+  word-break: break-word;
+}
+
+.pv {
+  color: var(--text, #e6e8ec);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.25rem 0.35rem;
+}
+
+.pv-name {
+  font-weight: 600;
+  color: var(--text-heading, #e6e8ec);
+}
+
+.pv-bad {
+  font-weight: 600;
+  color: var(--bad, #e05252);
+}
+
+.pblock {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.72rem;
+  padding: 0 0.3rem;
+  border: 1px solid var(--edge, #272c35);
+  border-radius: var(--r-md, 0.375rem);
+  color: var(--text-heading, #e6e8ec);
+  word-break: break-all;
+}
+
+.pchip {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.7rem;
+  color: var(--text-muted, #8b93a1);
+  word-break: break-all;
+}
+
+/* Trailing rather than leading, so a list that wraps ends a line with the
+ * separator instead of starting one with it. */
+.pchip:not(:last-child)::after,
+.pnote:has(+ .pnote)::after {
+  content: ' ·';
+  color: var(--rule, #272c35);
+}
+
+.pnote {
+  color: var(--text-muted, #8b93a1);
+}
+
+.pswatch {
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: var(--r-md, 0.375rem);
+  border: 1px solid var(--edge, #272c35);
+  display: inline-block;
+  align-self: center;
+}
+
+/* The shape, drawn. A grid of squares beats a row of characters: the
+ * proportions of a 1x2 door and a 2x3 doorway are the whole difference
+ * between them, and a reader should not have to count dots. */
+/* Not a grid child of .prow — a sibling — so the label column is matched by
+ * hand: 6.5rem of key plus the 0.5rem gap above. */
+.pshape {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0.15rem 0 0.35rem 7rem;
+}
+
+.pshape-row {
+  display: flex;
+  gap: 2px;
+}
+
+.pcell {
+  width: 0.85rem;
+  height: 0.85rem;
+  border-radius: 2px;
+}
+
+.pcell-frame,
+.pkey-frame {
+  background: var(--edge, #272c35);
+  border: 1px solid var(--border-strong, #3a4150);
+}
+
+/* Dashed and neutral, not copper: copper is reserved for actions
+ * (DESIGN.md, the Hearth Rule) and this is a hole in a wall. */
+.pcell-interior,
+.pkey-interior {
+  background: transparent;
+  border: 1px dashed var(--text-muted, #8b93a1);
+}
+
+.pcell-any {
+  background: transparent;
+  border: 1px dotted var(--rule, #272c35);
+}
+
+.pshape-key {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.7rem;
+  color: var(--text-muted, #8b93a1);
+  margin-top: 0.15rem;
+}
+
+.pkey-swatch {
+  width: 0.6rem;
+  height: 0.6rem;
+  border-radius: 2px;
+  display: inline-block;
+}
+
+.pkey-interior {
+  margin-left: 0.4rem;
+}

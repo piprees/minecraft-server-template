@@ -203,20 +203,23 @@ class MultiPortalConfigTest {
 
     @Test
     void aShippedSinglePortalConfigParsesExactlyAsBefore() throws IOException {
-        Path file = SHIPPED_DIMENSIONS.resolve("the_crucible.json");
+        // A plain scalar frameBlock specimen. the_crucible is no longer one:
+        // its frame is a LIST of copper forms so an oxidising frame keeps
+        // working (TROUBLESHOOTING.md#t85).
+        Path file = SHIPPED_DIMENSIONS.resolve("the_crimson_nexus.json");
         assertTrue(Files.exists(file), "shipped config missing: " + file.toAbsolutePath());
         String raw = Files.readString(file);
         JsonObject portal = JsonParser.parseString(raw).getAsJsonObject()
                 .getAsJsonObject("portal");
 
-        DimensionConfig config = parse("the_crucible", raw);
+        DimensionConfig config = parse("the_crimson_nexus", raw);
         assertEquals(1, config.getPortals().size());
         assertEquals(portal.get("scale").getAsDouble(), config.getScale());
 
         List<PortalDefinition> defs = config.toPortalDefinitions();
         assertEquals(1, defs.size());
         PortalDefinition def = defs.get(0);
-        assertEquals("the_crucible", def.getId());
+        assertEquals("the_crimson_nexus", def.getId());
         assertEquals(portal.get("frameBlock").getAsString(), def.getFrameBlock());
         assertEquals(portal.get("igniterItem").getAsString(), def.getIgniterItem());
         assertEquals(portal.get("color").getAsString(), def.getColor());
