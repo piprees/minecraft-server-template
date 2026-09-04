@@ -3,6 +3,7 @@ package com.customdimensions.companion;
 import com.customdimensions.config.DimensionConfig;
 import com.customdimensions.config.ImmersiveSettings;
 import com.customdimensions.config.MultiverseConfig;
+import com.customdimensions.immersive.DestinationGlow;
 import com.customdimensions.immersive.ProjectionVolume;
 import com.customdimensions.portal.PortalHelper;
 import net.minecraft.block.Block;
@@ -133,8 +134,8 @@ public final class ProjectionStream {
                 new BlockPos(minX, minY, minZ),
                 sizeX, sizeY, sizeZ,
                 states, light,
-                configuredSky >= 0 ? configuredSky : biome == null ? -1 : biome.getSkyColor(),
-                configuredFog >= 0 ? configuredFog : biome == null ? -1 : biome.getFogColor(),
+                DestinationGlow.preferConfigured(configuredSky, biome == null ? -1 : biome.getSkyColor()),
+                DestinationGlow.preferConfigured(configuredFog, biome == null ? -1 : biome.getFogColor()),
                 biome == null ? -1 : biome.getGrassColorAt(arrival.getX(), arrival.getZ()),
                 biome == null ? -1 : biome.getFoliageColor(),
                 biome == null ? -1 : biome.getWaterColor());
@@ -175,8 +176,8 @@ public final class ProjectionStream {
                 mapping.dx(),
                 arrivalY - mapping.interiorMinY(),
                 mapping.dz(),
-                configuredSky >= 0 ? configuredSky : biome == null ? -1 : biome.getSkyColor(),
-                configuredFog >= 0 ? configuredFog : biome == null ? -1 : biome.getFogColor());
+                DestinationGlow.preferConfigured(configuredSky, biome == null ? -1 : biome.getSkyColor()),
+                DestinationGlow.preferConfigured(configuredFog, biome == null ? -1 : biome.getFogColor()));
     }
 
     /** True when two payloads describe the same view; skips a redundant send. */
@@ -232,7 +233,7 @@ public final class ProjectionStream {
      * two fields {@code DimensionTypeBuilder} parses and drops because no
      * vanilla {@code DimensionType} component can carry them.
      */
-    private static int configuredColour(ServerWorld world, boolean sky) {
+    public static int configuredColour(ServerWorld world, boolean sky) {
         DimensionConfig config = MultiverseConfig.getInstance()
                 .getCustomDimension(world.getRegistryKey().getValue().getPath());
         if (config == null || config.getEnvironment() == null) {

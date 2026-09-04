@@ -1,5 +1,7 @@
 package com.customdimensions.immersive;
 
+import com.customdimensions.companion.ProjectionStream;
+
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 
@@ -36,16 +38,27 @@ public record DestinationGlow(int light, int tint) {
     }
 
     /**
-     * The destination's light level and biome fog colour at the arrival
-     * column. Light is read one block above the arrival floor row, which is
-     * the air a player stands in rather than the ground they stand on.
+     * Which colour a destination contributes: the dimension config's authored
+     * one when there is one, the biome's otherwise. {@code -1} is the only
+     * sentinel, so an authored {@code #000000} parses to 0 and wins.
+     */
+    public static int preferConfigured(int configured, int biome) {
+        return configured >= 0 ? configured : biome;
+    }
+
+    /**
+     * The destination's light level and fog colour at the arrival column —
+     * the dimension config's authored colour, or the biome's when it authors
+     * none. Light is read one block above the arrival floor row, which is the
+     * air a player stands in rather than the ground they stand on.
      */
     public static DestinationGlow sample(ServerWorld targetWorld, BlockPos arrivalPos) {
         if (targetWorld == null || arrivalPos == null) {
             return NONE;
         }
         int light = Math.max(0, Math.min(15, targetWorld.getLightLevel(arrivalPos.up())));
-        int fog = targetWorld.getBiome(arrivalPos).value().getFogColor() & 0xFFFFFF;
+        int biomeFog = targetWorld.getBiome(arrivalPos).value().getFogColor() & 0xFFFFFF;
+        int fog = preferConfigured(ProjectionStream.configuredColour(targetWorld, false), biomeFog);
         return new DestinationGlow(light, fog);
     }
 
