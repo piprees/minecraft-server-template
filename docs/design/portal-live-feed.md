@@ -19,8 +19,9 @@ snapshot** — correct as of the tick each chunk was serialised, and frozen afte
 
 The feed reaches the client only when a companion declares
 `rendersLocally && !keepSlab` (`companion/PortalViewPreference.java:41`,
-`immersive/PlayerProjectionState.java:577`), which is not the default
-(`client/config/RealtimeSettings.java:29,44`).
+`immersive/PlayerProjectionState.java:577`), which is what a fresh install
+declares: `renderClientSidePortals` is on and the derived wire value drops the
+slab while it is (`client/config/RealtimeSettings.java:63`).
 
 ## The crux: vanilla packets are world-agnostic, vanilla HANDLERS are not
 
