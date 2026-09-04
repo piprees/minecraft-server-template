@@ -14,6 +14,8 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -711,6 +713,61 @@ class ProjectionRendererClipTest {
         assertTrue(poly[2] > SIZE_Z,
                 "the stamp sits behind the slab and would hide the destination");
         assertTrue(poly[2] < 27.2, "the stamp sits behind the camera");
+    }
+
+    /**
+     * The pass's own cost, in microseconds, as mean over the span and peak
+     * single frame. Read against the same figure from another stance — the only
+     * comparison free of what the rest of the scene costs.
+     */
+    @Test
+    void theCostSummaryIsMeanThenPeakInMicroseconds() {
+        // 3 frames totalling 600us, worst of them 400us.
+        assertEquals("200/400", ProjectionRenderer.costSummary(3, 600_000L, 400_000L));
+    }
+
+    /**
+     * A span with no frames in it reports so rather than dividing by zero. A
+     * silent 0 would read as a pass that costs nothing, which is the one answer
+     * that must never come from an absence of measurement.
+     */
+    @Test
+    void aSpanWithNoFramesSaysSoRatherThanReportingZero() {
+        assertEquals("n/a", ProjectionRenderer.costSummary(0, 0L, 0L));
+        assertEquals("n/a", ProjectionRenderer.costSummary(-1, 5_000L, 5_000L));
+    }
+
+    /**
+     * The ordinary path: mask off, draw, mask back on.
+     */
+    @Test
+    void aDepthOnlyDrawTurnsTheColourMaskOffAndBackOn() {
+        List<Boolean> calls = new ArrayList<>();
+
+        ProjectionRenderer.withColourMaskOff(calls::add, () -> { });
+
+        assertEquals(List.of(Boolean.FALSE, Boolean.TRUE), calls);
+    }
+
+    /**
+     * {@code RenderLayer.draw} has no exception table — three instructions, no
+     * try/finally — so a throw out of the draw skips the layer's end action. A
+     * colour mask left off writes no colour for the rest of the frame, which is
+     * a black screen with a log line as its only trace.
+     */
+    @Test
+    void aThrowFromInsideTheDrawStillRestoresTheColourMask() {
+        List<Boolean> calls = new ArrayList<>();
+        RuntimeException boom = new RuntimeException("draw failed");
+
+        RuntimeException thrown = assertThrows(RuntimeException.class,
+                () -> ProjectionRenderer.withColourMaskOff(calls::add, () -> {
+                    throw boom;
+                }));
+
+        assertSame(boom, thrown, "the failure was swallowed instead of propagating");
+        assertEquals(List.of(Boolean.FALSE, Boolean.TRUE), calls,
+                "the colour mask was left off after the draw threw");
     }
 
     private static int stamp(ClientProjection projection, double camA, double camB,

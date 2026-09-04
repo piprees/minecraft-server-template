@@ -53,8 +53,21 @@ public final class ProjectionRenderer {
     /** Planes {@link #buildTunnelPlanes} last wrote into {@link #PLANES}. */
     private static int planeCount;
 
+    /** The one place that sets the colour mask; see {@link #withColourMaskOff}. */
+    private static final java.util.function.Consumer<Boolean> COLOUR_MASK =
+            on -> com.mojang.blaze3d.systems.RenderSystem.colorMask(on, on, on, on);
+
     private static VertexConsumerProvider.Immediate immediate;
     private static long lastSampleAt;
+
+    /**
+     * The pass's own cost since the last emit line. Frame rate cannot measure
+     * it — two viewpoints render different scenes, and that difference is
+     * larger than anything this pass contributes.
+     */
+    private static int spanFrames;
+    private static long spanNanos;
+    private static long spanPeakNanos;
 
     /** Vertices the clip left standing in the last {@link #emitClipped}. */
     static int clipVertices;
@@ -89,9 +102,27 @@ public final class ProjectionRenderer {
         // Spent when a line is written, not when one is due: no emit line at
         // all then means drawOne never reached the emit path.
         boolean sample = System.currentTimeMillis() - lastSampleAt >= SAMPLE_INTERVAL_MS;
+        long startedAt = System.nanoTime();
         for (ClientProjection projection : ProjectionStore.all()) {
             drawOne(projection, matrices, camera, sample);
         }
+        long elapsed = System.nanoTime() - startedAt;
+        spanFrames++;
+        spanNanos += elapsed;
+        spanPeakNanos = Math.max(spanPeakNanos, elapsed);
+    }
+
+    /**
+     * Mean and peak microseconds per frame over one span, as
+     * {@code mean/peak}. Reported on the emit line: read it against the same
+     * figure from another stance, which is the only comparison free of what
+     * the rest of the scene happens to cost.
+     */
+    static String costSummary(int frames, long totalNanos, long peakNanos) {
+        if (frames <= 0) {
+            return "n/a";
+        }
+        return String.format("%.0f/%.0f", totalNanos / 1000.0 / frames, peakNanos / 1000.0);
     }
 
     private static void drawOne(ClientProjection projection, MatrixStack matrices, Vec3d camera,
@@ -132,7 +163,7 @@ public final class ProjectionRenderer {
         MatrixStack.Entry entry = matrices.peek();
 
         drawFlat(PortalRenderLayers.BACKDROP, entry, backdropPolygon(projection, TUNNEL,
-                camX, camY, camZ, planeLocal, facing, POLY_A, POLY_B));
+                camX, camY, camZ, planeLocal, facing, POLY_A, POLY_B), false);
         double surface = projection.surfaceOffset();
         float shiftX = normalAxis == Direction.Axis.X ? (float) surface : 0.0f;
         float shiftY = normalAxis == Direction.Axis.Y ? (float) surface : 0.0f;
@@ -159,17 +190,22 @@ public final class ProjectionRenderer {
         // draws after this composites against the window, not against the
         // source-world coordinates the destination borrowed.
         int stamp = drawFlat(PortalRenderLayers.APERTURE_DEPTH, entry,
-                aperturePolygon(projection, TUNNEL, camX, camY, camZ, planeLocal, POLY_A, POLY_B));
+                aperturePolygon(projection, TUNNEL, camX, camY, camZ, planeLocal, POLY_A, POLY_B),
+                true);
 
         // Written after the draws, so a line at all means every draw returned.
         if (report != null) {
             lastSampleAt = System.currentTimeMillis();
             LOGGER.info("{} aperture={} camToPlane={} opening={} volume={} surface={} stamp={} "
-                            + "layers={} {}",
+                            + "frames={} renderUs={} layers={} {}",
                     EMIT_MARKER, projection.apertureOrigin().toShortString(),
                     String.format("%.2f", camToPlane), openingBounds(corners),
                     volumeBounds(projection), String.format("%.2f", surface), stamp,
+                    spanFrames, costSummary(spanFrames, spanNanos, spanPeakNanos),
                     mesh.layers().size(), report);
+            spanFrames = 0;
+            spanNanos = 0;
+            spanPeakNanos = 0;
         }
 
         matrices.pop();
@@ -375,11 +411,26 @@ public final class ProjectionRenderer {
     }
 
     /**
+     * Runs a depth-only draw with the colour mask off. {@code mask} takes the
+     * write flag; the restore has to survive a throw from inside the draw,
+     * because {@code RenderLayer.draw} has no exception table and a colour mask
+     * left off is a black frame for the rest of the frame.
+     */
+    static void withColourMaskOff(java.util.function.Consumer<Boolean> mask, Runnable draw) {
+        mask.accept(Boolean.FALSE);
+        try {
+            draw.run();
+        } finally {
+            mask.accept(Boolean.TRUE);
+        }
+    }
+
+    /**
      * Draws a clipped polygon left in {@link #POLY_A} on one flat layer and
      * flushes it. Returns the corner count, 0 when there was nothing to draw.
      */
     private static int drawFlat(net.minecraft.client.render.RenderLayer layer,
-            MatrixStack.Entry entry, int corners) {
+            MatrixStack.Entry entry, int corners, boolean depthOnly) {
         if (corners < 3) {
             return 0;
         }
@@ -398,7 +449,11 @@ public final class ProjectionRenderer {
                 emitFlat(consumer, entry, POLY_A, (v + 1) * STRIDE);
             }
         }
-        immediate.draw(layer);
+        if (depthOnly) {
+            withColourMaskOff(COLOUR_MASK, () -> immediate.draw(layer));
+        } else {
+            immediate.draw(layer);
+        }
         return corners;
     }
 

@@ -56,6 +56,12 @@ public final class PortalRenderLayers {
      * window itself. Everything vanilla draws afterwards then composites
      * against the window: in front of it draws, behind it does not, whatever
      * the destination happens to hold along that sightline.
+     *
+     * <p>The colour mask is deliberately NOT set here. {@code RenderLayer.draw}
+     * carries no exception table, so a throw between a layer's start and end
+     * actions skips the end action — and a colour mask left off blanks the rest
+     * of the frame. {@code ProjectionRenderer.withColourMaskOff} owns it and
+     * restores it in a finally.
      */
     public static final RenderLayer APERTURE_DEPTH = new RenderLayer(
             "customdimensions_portal_aperture_depth",
@@ -71,10 +77,8 @@ public final class PortalRenderLayers {
                 RenderSystem.enableDepthTest();
                 RenderSystem.depthFunc(GL11.GL_ALWAYS);
                 RenderSystem.depthMask(true);
-                RenderSystem.colorMask(false, false, false, false);
             },
             () -> {
-                RenderSystem.colorMask(true, true, true, true);
                 RenderSystem.depthFunc(GL11.GL_LEQUAL);
                 RenderSystem.enableCull();
             }) {};
