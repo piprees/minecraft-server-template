@@ -130,9 +130,13 @@ warning, proven by a count, not by absence of error ([T63](../../TROUBLESHOOTING
 Place the camera at the viewer's corresponding position on the far side and
 render into the aperture.
 
-**Scale is the trap.** Per-dimension `scale` — `the_crimson_nexus` 2.0,
-`the_crucible` 4.0 — and entering divides by it. Derive the transform, do not
-guess it, and verify at scale 1 and scale 4 against a known landmark.
+**The scale is already spent, and spending it twice is the trap.** The server
+divides by a dimension's `scale` at `immersive/ProjectionVolume.java:648-649`
+and bakes the result into a flat offset at `:651`; `toTarget` (`:859-863`) is
+then pure addition, and the `dx`/`dy`/`dz` on `CompanionPayloads.PortalFrame`
+are that offset. A camera that divides again is right at scale 1 and wrong at
+`the_crimson_nexus` (2.0) and `the_crucible` (4.0). Add the offset; verify at
+both against a known landmark.
 
 **Done when:** a screenshot pair at both scales puts a known far-side landmark
 where it belongs.

@@ -6,6 +6,7 @@ import com.customdimensions.client.dev.DevBridge;
 import com.customdimensions.client.realtime.DestinationChunks;
 import com.customdimensions.client.realtime.DestinationWorlds;
 import com.customdimensions.client.realtime.PortalFrames;
+import com.customdimensions.client.realtime.RealtimeView;
 import com.customdimensions.client.render.ProjectionRenderer;
 import com.customdimensions.client.render.ProjectionStore;
 import net.fabricmc.api.ClientModInitializer;
@@ -86,6 +87,7 @@ public class CustomDimensionsClient implements ClientModInitializer {
         ClientPlayNetworking.registerGlobalReceiver(CompanionPayloads.PortalFrame.ID,
                 (payload, context) -> {
                     ProjectionStore.remove(payload.apertureOrigin());
+                    RealtimeView.forget(payload.apertureOrigin());
                     boolean changed = PortalFrames.accept(payload);
                     // The destination's own world, centred on the arrival: a map
                     // centred anywhere else silently discards every chunk fed to
@@ -129,12 +131,14 @@ public class CustomDimensionsClient implements ClientModInitializer {
             PortalFrames.clear();
             DestinationChunks.clear();
             DestinationWorlds.clear();
+            RealtimeView.clear();
             HandshakeSender.arm();
             // The join declaration rides with the handshake, which has to land
             // first; a pending one here would race ahead of it and be ignored.
             viewDeclarationPending = false;
         });
 
+        ClientTickEvents.END_CLIENT_TICK.register(RealtimeView::tick);
         ClientTickEvents.END_CLIENT_TICK.register(CustomDimensionsClient::sendHelloWhenReady);
         ClientTickEvents.END_CLIENT_TICK.register(CustomDimensionsClient::declarePortalViewWhenPending);
         ClientTickEvents.END_CLIENT_TICK.register(CustomDimensionsClient::dropProjectionsOnWorldChange);
@@ -146,6 +150,7 @@ public class CustomDimensionsClient implements ClientModInitializer {
             PortalFrames.clear();
             DestinationChunks.clear();
             DestinationWorlds.clear();
+            RealtimeView.clear();
             HandshakeSender.disarm();
         });
 
@@ -170,6 +175,7 @@ public class CustomDimensionsClient implements ClientModInitializer {
         PortalFrames.clear();
         DestinationChunks.clear();
         DestinationWorlds.clear();
+        RealtimeView.clear();
     }
 
     private static void sendHelloWhenReady(MinecraftClient client) {

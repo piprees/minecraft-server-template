@@ -37,9 +37,9 @@ public record RealtimeSettings(
     public static final boolean DEFAULT_DISTANT_HORIZONS = true;
 
     /**
-     * Keep the server's block slab arriving as well, and draw it wherever the
-     * local view has nothing yet. Costs the slab's bandwidth; buys a portal
-     * that is never empty.
+     * Hand the far side back to the server. The two paths are exclusive: a
+     * client asking for the slab is not sent a frame or a destination chunk
+     * either, so this turns the local view off however {@code enabled} is set.
      */
     public static final boolean DEFAULT_FALLBACK_TO_SLAB = true;
 
