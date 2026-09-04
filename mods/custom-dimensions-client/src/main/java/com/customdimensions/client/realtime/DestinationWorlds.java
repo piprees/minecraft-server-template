@@ -13,8 +13,12 @@ import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.math.ChunkPos;
+import net.minecraft.util.math.ChunkSectionPos;
 import net.minecraft.world.Difficulty;
+import net.minecraft.world.chunk.ChunkSection;
 import net.minecraft.world.chunk.WorldChunk;
+import net.minecraft.world.chunk.light.LightingProvider;
 import net.minecraft.world.dimension.DimensionType;
 
 import java.util.List;
@@ -195,7 +199,40 @@ public final class DestinationWorlds {
             return false;
         }
         applyLight(world, chunkX, chunkZ, packet.getLightData());
+        markRenderable(world, chunk, chunkX, chunkZ);
         return true;
+    }
+
+    /**
+     * The second half of vanilla's own chunk load, which
+     * {@code loadChunkFromPacket} does not do:
+     * {@code ClientPlayNetworkHandler.scheduleRenderChunk}, run after the light
+     * as vanilla's chunk-update queue runs it. Without it every fed section
+     * stays flagged not-ready, nothing reaches the chunk builder, and the
+     * destination pass draws sky. {@link SectionRenderStatus} holds the loop.
+     */
+    private static void markRenderable(ClientWorld world, WorldChunk chunk,
+            int chunkX, int chunkZ) {
+        LightingProvider lighting = world.getChunkManager().getLightingProvider();
+        ChunkSection[] sections = chunk.getSectionArray();
+        ChunkPos pos = chunk.getPos();
+        boolean[] empty = new boolean[sections.length];
+        for (int index = 0; index < sections.length; index++) {
+            empty[index] = sections[index].isEmpty();
+        }
+        SectionRenderStatus.mark(chunkX, chunkZ, world.getBottomSectionCoord(), empty,
+                new SectionRenderStatus.Sink() {
+                    @Override
+                    public void sectionStatus(int sectionY, boolean sectionEmpty) {
+                        lighting.setSectionStatus(ChunkSectionPos.from(pos, sectionY),
+                                sectionEmpty);
+                    }
+
+                    @Override
+                    public void scheduleBlockRenders(int x, int sectionY, int z) {
+                        world.scheduleBlockRenders(x, sectionY, z);
+                    }
+                });
     }
 
     /**
