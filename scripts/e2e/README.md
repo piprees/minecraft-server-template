@@ -50,9 +50,32 @@ first; item 3 needs the player in the End, so run item 2 first.
 | `e2e-item4-idle-unload.sh` | Both halves of idle unload: resident while the player is near the frame, gone after a walk-away, polled to a real figure rather than a fixed wait. The only script that needs no client |
 | `e2e-item5-crucible.sh` | The companion chain end to end: build, ignite, walk in on the real client, and require **both** `companion-suppress:arrival-screen` lines (`site=joinWorld` and `site=startWorldLoading` — one line is a fail), the server's `companion-send:preloaded-transfer`, arrival in `adventure:the_crucible`, and no mc restart mid-run |
 | `e2e-c1-render.sh` | The destination render through the aperture: the client's own projection with its mesh built and its quad count, and the emit line's per-layer counts |
+| `e2e-c3-portal-light.sh` | Both of a portal's light paths, separately. The server half proves the aperture's light is a fake block — air with zero luminance and zero block light at the same cells the client is lighting. The client half reads the block-light gradient out of the opening (a shape only a point source there produces), the destination light the server sent, and the light the mesh was built with. Then it forces a server light update in the opening's own chunk section and re-reads, with the light block itself as the positive control. `RIG=nexus` (default) or `RIG=crucible` |
 | `portal-aperture.sh` | A scratch portal at 2048/90/2048 lit, photographed from both sides, and walked through |
 | `build-test-frame.sh` | Builds the copper crucible frame and flattens the approach lane. Called by item 5 |
+| `rig-ready.sh` | Asserts the rig is measurable — mc healthy, RCON answering, bridge up, client actually IN a world — and recovers a dropped client. Run it before and after anything that touches the client |
 | `lib-selftest.sh` | `lib.sh` itself, against fixture artefacts and a stub bridge. No Minecraft, no docker, no RCON |
+
+## Before you measure: `rig-ready.sh`
+
+**A client on "Connection Lost" is invisible to every other instrument.** The
+bridge still answers `/health`, the process is still alive, `mc` is still
+healthy — and a screenshot never arrives. Any `mc` restart drops the client, so
+this is the normal state after a `./dev up`, not an exceptional one.
+
+```bash
+scripts/e2e/rig-ready.sh              # check, and recover if it can
+scripts/e2e/rig-ready.sh --check      # report only, never launches or kills
+```
+
+Run it **before and after** any measurement that touches the client. It asserts
+`mc` healthy, RCON answering, the bridge up, and `worldLoaded` true — that last
+field is the one that matters, and it is false on the Connection Lost screen.
+When the client is stuck it kills the JVM (Prism swallows a `--launch` for an
+instance already running) and relaunches, waiting a capped 180s.
+
+It exits non-zero with the reason NAMED. **Never wait on the client yourself** —
+that is the wait that never ends.
 
 ## What the harness knows that you do not
 
