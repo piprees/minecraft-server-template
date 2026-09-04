@@ -338,7 +338,7 @@ Every claim below is read from 1.21.1 bytecode; the class and member are named.
 
 | Field | Modifier | Pass |
 | --- | --- | --- |
-| `world` | `public` | Set to the destination `ClientWorld` |
+| `world` | `public` | **Never written** — read by other threads; see P4a |
 | `player` | `public` | Left alone — see below |
 | `cameraEntity` | `public` | Set to the stand-in, if one is used |
 | `interactionManager` | `public` | Left alone |
@@ -349,11 +349,14 @@ Every claim below is read from 1.21.1 bytecode; the class and member are named.
 | `blockEntityRenderDispatcher` | **`private final`** | Instance kept; its world is swapped |
 | `bufferBuilders` | **`private final`** | Instance kept; the pass owns a second one |
 
-Swapping `client.world` is what makes the rest correct for free:
-`LightmapTextureManager.update(float)` reads
-`Field MinecraftClient.world` then `ClientWorld.getSkyBrightness(float)` and
-`getLightningTicksLeft()`, and `WorldRenderer.renderSky` reads sky type from
-the client's world. Neither needs its own swap.
+`MinecraftClient.world` reaches the destination render through redirects, never
+a write. `WorldRenderer` reads the field in `render`, `renderSky` and
+`renderWeather` — tick manager, fog world, thick fog, sky type, rain gradient —
+and `WorldRendererDestinationMixin` returns the renderer's own `this.world` at
+each, which is the same object on the client's own renderer.
+`LightmapTextureManager.update(float)` reads the field for
+`getSkyBrightness(float)` and `getLightningTicksLeft()` and takes no world
+argument, so it reads a held reference instead (`DestinationLightmap`).
 
 **The dispatchers do not need a mixin.** `EntityRenderDispatcher.setWorld(World)`
 is public (its `world` field is private); `BlockEntityRenderDispatcher.world` is
