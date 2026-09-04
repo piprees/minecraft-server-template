@@ -37,10 +37,25 @@ class PortalViewPreferenceTest {
         assertTrue(new PortalViewPreference(true, true, 16).streamsSlab());
     }
 
+    /**
+     * Both views off is a request for a plain portal, and it is honoured.
+     * Streaming the slab anyway would hand back the view the player just
+     * switched off.
+     */
     @Test
-    void refusingTheSlabWithoutRenderingLocallyStillGetsIt() {
-        assertTrue(new PortalViewPreference(false, false, 16).streamsSlab(),
-                "a client that draws nothing and is sent nothing would show an empty frame");
+    void bothViewsOffGetsAPlainPortal() {
+        assertFalse(new PortalViewPreference(false, false, 16).streamsSlab());
+    }
+
+    /**
+     * A vanilla client never declares, so it is only ever
+     * {@link PortalViewPreference#SERVER_DRAWN}. It must keep streaming
+     * whatever the rule is.
+     */
+    @Test
+    void aVanillaClientStreamsTheSlab() {
+        assertTrue(PortalViewPreference.SERVER_DRAWN.streamsSlab());
+        assertTrue(PortalViewPreference.SERVER_DRAWN.keepSlab());
     }
 
     @Test
