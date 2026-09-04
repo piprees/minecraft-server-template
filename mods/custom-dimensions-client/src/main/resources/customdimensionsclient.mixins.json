@@ -6,6 +6,7 @@
   "client": [
     "ClientPlayNetworkHandlerLightAccessor",
     "ClientPlayNetworkHandlerTerrainScreenMixin",
+    "GameRendererFovInvoker",
     "GameRendererSpectatorMixin",
     "LightmapTextureManagerDestinationMixin",
     "MinecraftClientFramebufferAccessor",

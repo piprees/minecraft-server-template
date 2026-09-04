@@ -4,6 +4,7 @@ import com.customdimensions.client.CompanionPayloads;
 import com.customdimensions.client.CustomDimensionsClient;
 import com.customdimensions.client.Repeated;
 import com.customdimensions.client.config.RealtimeControls;
+import com.customdimensions.client.mixin.GameRendererFovInvoker;
 import com.customdimensions.client.mixin.MinecraftClientFramebufferAccessor;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -481,8 +482,11 @@ public final class SpectatorPass {
             CAMERA.standIn(this.destination, this.client.player, tickDelta,
                     eye[0], eye[1], eye[2]);
 
-            double fov = this.client.options.getFov().getValue().doubleValue();
-            Matrix4f projection = this.gameRenderer.getBasicProjectionMatrix(fov);
+            SpectatorProjection.ViewFov view = new SourceFov(this.client, this.gameRenderer, tickDelta);
+            Matrix4f projection =
+                    this.gameRenderer.getBasicProjectionMatrix(SpectatorProjection.render(view));
+            Matrix4f culling =
+                    this.gameRenderer.getBasicProjectionMatrix(SpectatorProjection.frustum(view));
             Matrix4f position = new Matrix4f()
                     .rotation(CAMERA.getRotation().conjugate(new Quaternionf()));
 
@@ -490,7 +494,7 @@ public final class SpectatorPass {
             RenderSystem.backupProjectionMatrix();
             try {
                 this.gameRenderer.loadProjectionMatrix(projection);
-                this.renderer.setupFrustum(new Vec3d(eye[0], eye[1], eye[2]), position, projection);
+                this.renderer.setupFrustum(new Vec3d(eye[0], eye[1], eye[2]), position, culling);
                 int wrote = GlStateManager._getInteger(GL30.GL_DRAW_FRAMEBUFFER_BINDING);
                 this.renderer.render(this.counter, false, CAMERA, this.gameRenderer,
                         this.gameRenderer.getLightmapTextureManager(), position, projection);
@@ -514,6 +518,29 @@ public final class SpectatorPass {
                 RenderSystem.enableDepthTest();
                 RenderSystem.depthMask(true);
             }
+        }
+    }
+
+    /**
+     * Vanilla's field-of-view answers for the source frame.
+     *
+     * <p>The camera is the game renderer's own, which the pass reads at the
+     * head of {@code renderWorld} before this frame's {@code Camera.update}.
+     * Only the submersion type can differ by a frame, and a frame of that is
+     * not visible; the multiplier the zoom drives is ticked, not updated here.
+     */
+    private record SourceFov(MinecraftClient client, GameRenderer gameRenderer, float tickDelta)
+            implements SpectatorProjection.ViewFov {
+
+        @Override
+        public double fov(boolean changing) {
+            return ((GameRendererFovInvoker) this.gameRenderer).customdimensionsclient$getFov(
+                    this.gameRenderer.getCamera(), this.tickDelta, changing);
+        }
+
+        @Override
+        public double option() {
+            return this.client.options.getFov().getValue().doubleValue();
         }
     }
 
