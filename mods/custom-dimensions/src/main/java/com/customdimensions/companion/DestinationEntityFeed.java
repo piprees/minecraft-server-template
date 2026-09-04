@@ -218,6 +218,12 @@ public final class DestinationEntityFeed {
         return held == null ? 0 : held.seen().size();
     }
 
+    /** Test seam: record a snapshot as sent, with no world to read one from. */
+    static void remember(UUID playerId, Identifier destination, long tick, List<Seen> seen) {
+        SENT.computeIfAbsent(playerId, id -> new ConcurrentHashMap<Identifier, Snapshot>())
+                .put(destination, new Snapshot(tick, copy(seen)));
+    }
+
     private static Snapshot held(UUID playerId, Identifier destination) {
         Map<Identifier, Snapshot> perDestination = SENT.get(playerId);
         return perDestination == null ? null : perDestination.get(destination);

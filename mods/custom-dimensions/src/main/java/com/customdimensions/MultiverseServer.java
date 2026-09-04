@@ -174,6 +174,10 @@ public class MultiverseServer implements DedicatedServerModInitializer {
                 // dimension on their client.
                 com.customdimensions.immersive.ImmersiveProjector.forgetInWorld(
                         player.getUuid(), player.getName().getString(), origin.getRegistryKey());
+                // The client clears every destination world it holds on this
+                // same edge, so what it is believed to hold goes with them.
+                com.customdimensions.companion.CompanionNetwork.forgetDestinations(
+                        player.getUuid());
             });
         ServerTickEvents.END_SERVER_TICK.register(server -> {
             com.customdimensions.tryout.TryOut.tick(server);

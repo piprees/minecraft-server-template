@@ -114,6 +114,16 @@ public final class CompanionNetwork {
         DestinationEntityFeed.forget(playerId);
     }
 
+    /**
+     * A world change drops every destination record for this player: the client
+     * clears its destination worlds on the same edge, and a kept record makes
+     * the feeds skip what the client no longer holds. The handshake stays.
+     */
+    public static void forgetDestinations(UUID playerId) {
+        DestinationFeed.forget(playerId);
+        DestinationEntityFeed.forget(playerId);
+    }
+
     public static boolean isCompanion(UUID playerId) {
         return COMPANIONS.contains(playerId);
     }

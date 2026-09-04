@@ -200,17 +200,13 @@ public final class DestinationFeed {
         return false;
     }
 
-    /** Drops every record for a player (disconnect, world change, zone gone). */
+    /**
+     * Drops every record for a player. A client that has dropped its
+     * destination worlds must be sent their chunks again, and this record is
+     * the only thing that would stop that.
+     */
     public static void forget(UUID playerId) {
         SENT.remove(playerId);
-    }
-
-    /** Drops one destination's record for one player. */
-    public static void forget(UUID playerId, Identifier destination) {
-        Map<Identifier, Set<Long>> perDestination = SENT.get(playerId);
-        if (perDestination != null) {
-            perDestination.remove(destination);
-        }
     }
 
     /** Drops every record (server shutdown). */
@@ -240,9 +236,7 @@ public final class DestinationFeed {
             return 0;
         }
         Identifier destination = targetWorld.getRegistryKey().getValue();
-        Set<Long> sent = SENT
-                .computeIfAbsent(player.getUuid(), id -> new ConcurrentHashMap<Identifier, Set<Long>>())
-                .computeIfAbsent(destination, id -> ConcurrentHashMap.newKeySet());
+        Set<Long> sent = recordFor(player.getUuid(), destination);
 
         List<Long> wanted = nextChunks(arrivalChunkX, arrivalChunkZ,
                 Math.min(MAX_RADIUS, radius), eyeA, eyeN, a0, a1, planeN, dx, dz,
@@ -323,6 +317,20 @@ public final class DestinationFeed {
                 return pos.getY();
             default:
                 return pos.getZ();
+        }
+    }
+
+    private static Set<Long> recordFor(UUID playerId, Identifier destination) {
+        return SENT
+                .computeIfAbsent(playerId, id -> new ConcurrentHashMap<Identifier, Set<Long>>())
+                .computeIfAbsent(destination, id -> ConcurrentHashMap.newKeySet());
+    }
+
+    /** Test seam: record chunks as sent, with no world to serialise one from. */
+    static void remember(UUID playerId, Identifier destination, long... keys) {
+        Set<Long> sent = recordFor(playerId, destination);
+        for (long key : keys) {
+            sent.add(key);
         }
     }
 
