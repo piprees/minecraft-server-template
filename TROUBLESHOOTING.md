@@ -1569,6 +1569,15 @@ measurement of it.
   parses clean, changes nothing, and reads as a fix. Precedent for the list
   form: `the_lost_outpost` and `the_violet_spire`, both of which also set
   `framePlaceBlock`.
+- **A fully oxidised crucible frame becomes a DIFFERENT dimension's frame.**
+  The accept list stops at `weathered_copper` because `oxidized_copper` is
+  `the_gauntlet`'s only frame block and two dimensions may not share one
+  (`PortalFrameCollisionTest`). So the last weathering step takes the same
+  fourteen blocks out of `the_crucible`'s list and into `the_gauntlet`'s — a
+  portal that changes destination by standing in the rain. Waxing any stage
+  freezes it; all four waxed forms are accepted. This is a design boundary, not
+  an oversight, but it is a live trap for a player who builds in plain copper
+  and leaves it outdoors.
 - **What the fix does NOT do.** `PortalHelper.isZoneValid` validates a live
   zone against `zone.definition` — the ignition-time snapshot deserialised
   from `portal_links.json` — not against current config. Zones are deliberately
