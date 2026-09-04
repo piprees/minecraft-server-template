@@ -125,6 +125,11 @@ public final class ProjectionRenderer {
         long startedAt = System.nanoTime();
         net.minecraft.client.render.Frustum frustum = context.frustum();
         for (ClientProjection projection : ProjectionStore.all()) {
+            // Asked for BEFORE the gate: the build is off-thread and costs this
+            // frame nothing, and a portal first seen with no mesh draws an empty
+            // frame. Gating the request would make every portal's first sight
+            // blank.
+            projection.requestMesh();
             // Everything drawn for a portal is cut to its aperture cone, so an
             // aperture off screen can contribute no pixel. Without this the whole
             // clip runs for a portal behind the camera.
@@ -179,10 +184,10 @@ public final class ProjectionRenderer {
 
         // Nothing at all for this portal until its mesh lands: a backdrop with no
         // destination behind it is a hole in the world, and waiting for the
-        // build here is the frame that never ends.
+        // build here is the frame that never ends. The request is made in
+        // render(), ahead of the gate.
         ProjectionMesh mesh = projection.meshIfReady();
         if (mesh == null) {
-            projection.requestMesh();
             return;
         }
 
