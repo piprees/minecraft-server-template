@@ -49,7 +49,7 @@ public class CustomDimensionsClient implements ClientModInitializer {
     public static final String VIEW_MARKER = "companion-client:portal-view";
 
     /** The world the store's source coordinates belong to. */
-    private static ClientWorld boundWorld;
+    private static final WorldBinding BOUND = new WorldBinding();
 
     /**
      * A settings change waiting for a tick to declare itself on. The change can
@@ -178,6 +178,7 @@ public class CustomDimensionsClient implements ClientModInitializer {
             SpectatorPass.reset();
             PortalViewDeclaration.clear();
             HandshakeSender.disarm();
+            BOUND.clear();
         });
 
         RealtimeControls.register();
@@ -206,12 +207,21 @@ public class CustomDimensionsClient implements ClientModInitializer {
     /**
      * A projection addresses source-world block positions, so the same numbers
      * mean somewhere else the moment the client changes dimension.
+     *
+     * <p>The join itself is where this normally happens — the crossing carries
+     * the new world's frame and first chunks in the same batch, and a reset
+     * after those have landed throws away a far side the server will not send
+     * again. This tick is the backstop for a world arriving any other way.
      */
     private static void dropProjectionsOnWorldChange(MinecraftClient client) {
-        if (client.world == boundWorld) {
+        enterWorld(client.world);
+    }
+
+    /** Drops what the world just left addressed, once per world. */
+    public static void enterWorld(ClientWorld world) {
+        if (!BOUND.bind(world)) {
             return;
         }
-        boundWorld = client.world;
         ProjectionStore.clear();
         PortalFrames.clear();
         DestinationChunks.clear();
