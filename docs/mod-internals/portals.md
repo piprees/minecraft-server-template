@@ -82,7 +82,7 @@ What an aura may convert: `none` | `natural` (default) | `everything`. Pure poli
 
 ## Immersive portals (`portal.immersive`)
 
-A presentation layer over an existing portal — see through it, hear the far side, throw things through. Server-side only; no client mod. Config schema: [README § Immersive portals](../../mods/custom-dimensions/README.md#immersive-portals).
+A presentation layer over an existing portal — see through it, hear the far side, throw things through. Audio, entity pass-through, the aperture's light and the fake blocks are server-side and reach every client. **Seeing through it is drawn by the companion client mod** (`mods/custom-dimensions-client/`): the server streams the destination as a block-state grid and the client meshes it, clips it to the opening and draws it. `CompanionNetwork` sends a projection only to a player whose client announced a matching protocol version, so a vanilla client gets everything except the drawn window. Config schema: [README § Immersive portals](../../mods/custom-dimensions/README.md#immersive-portals).
 
 - **Immersive is ON by default** (`ImmersiveSettings.fromJson(null)` returns `DEFAULTS`). An absent `immersive` field means immersive; `"immersive": false` is the opt-out. A malformed value also falls back to DEFAULTS rather than off — silently disabling a feature is this codebase's worst failure mode.
 - **`immersive` is boot-re-read but `transient` on `PortalDefinition`** and deliberately not serialised into `portal_links.json`, so a restored zone deserialises with it null. `PortalHelper.restoreZones` re-stamps it from live config via `MultiverseConfig.getImmersiveFor(targetWorld)`. Stamping **null** is correct and load-bearing: it is how turning the setting off reaches existing zones.

@@ -583,6 +583,148 @@ class ProjectionRendererClipTest {
         }
     }
 
+    /**
+     * The destination's own near face belongs ON the surface that bisects the
+     * aperture block. The server starts the slab at that block's FAR face, so
+     * drawn at its literal coordinates the image sits half a block back and the
+     * frame's four inner faces show around it.
+     *
+     * <p>The quad is the slab's first layer, {@code z = 0} in the volume's own
+     * space, dead in front of a camera five blocks out. Its emitted depth is the
+     * whole assertion: {@code -0.5} is the surface, {@code 0.0} is the back of
+     * the opening.
+     */
+    @Test
+    void theSlabsNearFaceIsDrawnOnThePortalSurface() {
+        Recorder drawn = tunnelClip(Direction.SOUTH, new BlockPos(1492, 93, 1501),
+                9.0, 9.5, -5.0, quad(0.0f, 8.5f, 9.5f, 9.0f, 10.0f));
+
+        assertEquals(4, drawn.count(), "the slab's first layer clipped away");
+        assertEquals(-0.5f, drawn.min(2), TOLERANCE,
+                "the slab is drawn at the aperture block's far face, not on the surface");
+        assertEquals(-0.5f, drawn.max(2), TOLERANCE);
+    }
+
+    /**
+     * The same face on a slab running the other way. Read off the fixture: the
+     * NORTH slab spans local {@code 0..24} with its camera-facing end at
+     * {@code 24}, and the surface is at {@code 24.5}, so this one moves towards
+     * the camera by the same half block in the opposite direction.
+     */
+    @Test
+    void theSlabsNearFaceIsDrawnOnTheSurfaceWhicheverWayTheSlabRuns() {
+        Recorder drawn = tunnelClip(Direction.NORTH, new BlockPos(1492, 93, 1476),
+                8.9, 9.62, 29.5, quad(24.0f, 8.5f, 9.5f, 9.0f, 10.0f));
+
+        assertEquals(4, drawn.count(), "the slab's first layer clipped away");
+        assertEquals(24.5f, drawn.min(2), TOLERANCE,
+                "the slab is drawn at the aperture block's far face, not on the surface");
+        assertEquals(24.5f, drawn.max(2), TOLERANCE);
+    }
+
+    /**
+     * The offset is the gap between the surface and the slab's camera-facing
+     * end, not a constant with a sign picked per direction. Both numbers below
+     * come from the fixture's own geometry — surface {@code 1500.5} against a
+     * slab ending at {@code 1501} one way and {@code 1500} the other.
+     */
+    @Test
+    void theSurfaceOffsetIsTheGapBetweenTheSurfaceAndTheSlabsNearFace() {
+        assertEquals(-0.5,
+                projection(Direction.SOUTH, new BlockPos(1492, 93, 1501)).surfaceOffset(),
+                TOLERANCE);
+        assertEquals(0.5,
+                projection(Direction.NORTH, new BlockPos(1492, 93, 1476)).surfaceOffset(),
+                TOLERANCE);
+    }
+
+    /**
+     * Moved and then cut, never cut and then moved. The cone narrows towards
+     * the opening, so geometry shifted half a block closer must be clipped where
+     * it now stands: this quad's high-X edge is inside the far cone at
+     * {@code z = 0.0} and outside it at {@code z = -0.5}.
+     *
+     * <p>The far face sits at local {@code z = 0} and the camera at
+     * {@code -5}, so the cone scales by {@code (5 + z) / 5} about
+     * {@code x = 9}: half-width 1.0 at {@code z = 0} and 0.9 at {@code -0.5},
+     * putting the high-X edge at {@code 10.0} and {@code 9.9}.
+     */
+    @Test
+    void theSlabIsClippedWhereItIsDrawnAndNotWhereItWasSent() {
+        Recorder drawn = tunnelClip(Direction.SOUTH, new BlockPos(1492, 93, 1501),
+                9.0, 9.5, -5.0, quad(0.0f, 9.0f, 9.95f, 9.0f, 10.0f));
+
+        assertEquals(9.9f, drawn.max(0), TOLERANCE,
+                "the quad was cut against the cone at the depth it was sent at");
+    }
+
+    /**
+     * The depth stamp goes ON the surface, not at the backdrop's distance and
+     * not at either face of the aperture block. Anything vanilla draws after the
+     * projection is tested against this value, so the surface is the one place
+     * that divides "in front of the window" from "behind it".
+     */
+    @Test
+    void theApertureStampSitsOnThePortalSurface() {
+        ClientProjection projection = projection(Direction.NORTH, new BlockPos(1492, 93, 1476));
+        float[] poly = new float[QuadCapture.STRIDE * 16];
+        float[] scratch = new float[QuadCapture.STRIDE * 16];
+
+        assertEquals(4, stamp(projection, 8.9, 9.62, 27.2, poly, scratch));
+        for (int v = 0; v < 4; v++) {
+            assertEquals(24.5f, poly[v * QuadCapture.STRIDE + 2], TOLERANCE,
+                    "the stamp is not on the surface that bisects the aperture block");
+        }
+    }
+
+    /**
+     * The stamp writes depth with the test forced to always pass, exactly as the
+     * backdrop does, so an uncut one would occlude the world in the opening's
+     * shape well outside the frame. It goes through the tunnel too.
+     */
+    @Test
+    void theApertureStampIsCutByTheSameTunnelTheMeshIs() {
+        ClientProjection projection = projection(Direction.NORTH, new BlockPos(1492, 93, 1476));
+        float[] poly = new float[QuadCapture.STRIDE * 16];
+        float[] scratch = new float[QuadCapture.STRIDE * 16];
+
+        assertEquals(0, stamp(projection, 6.5, 9.5, 25.5, poly, scratch),
+                "the stamp covered an opening the frame's own block hides");
+        assertEquals(4, stamp(projection, 8.9, 9.62, 27.2, poly, scratch),
+                "the stamp was cut away from dead in front of the opening");
+    }
+
+    /**
+     * The stamp has to be nearer the camera than every cell of the slab, or it
+     * would occlude the destination it is meant to publish the depth of. Read
+     * off the fixture: the slab's camera-facing end is local {@code 24} and the
+     * camera is at {@code 27.2}, so the surface at {@code 24.5} is the nearer.
+     */
+    @Test
+    void theApertureStampIsNearerTheCameraThanTheSlabItself() {
+        ClientProjection projection = projection(Direction.NORTH, new BlockPos(1492, 93, 1476));
+        float[] poly = new float[QuadCapture.STRIDE * 16];
+        float[] scratch = new float[QuadCapture.STRIDE * 16];
+        stamp(projection, 8.9, 9.62, 27.2, poly, scratch);
+
+        // The NORTH slab spans local 0..SIZE_Z with its camera-facing end at SIZE_Z.
+        assertTrue(poly[2] > SIZE_Z,
+                "the stamp sits behind the slab and would hide the destination");
+        assertTrue(poly[2] < 27.2, "the stamp sits behind the camera");
+    }
+
+    private static int stamp(ClientProjection projection, double camA, double camB,
+            double camNormal, float[] poly, float[] scratch) {
+        double[] tunnel = new double[24];
+        int faces = ProjectionRenderer.tunnelFaces(projection, projection.origin(), camNormal, tunnel);
+        if (!ProjectionRenderer.buildTunnelPlanes(tunnel, faces, camA, camB, camNormal)) {
+            return 0;
+        }
+        double planeLocal = projection.planeCoord() - projection.origin().getZ();
+        return ProjectionRenderer.aperturePolygon(projection, tunnel, camA, camB, camNormal,
+                planeLocal, poly, scratch);
+    }
+
     private static int backdrop(ClientProjection projection, double camA, double camB,
             double camNormal, float[] poly, float[] scratch) {
         double[] tunnel = new double[24];
@@ -602,8 +744,9 @@ class ProjectionRendererClipTest {
         assertTrue(ProjectionRenderer.buildTunnelPlanes(tunnel, faces, camA, camB, camNormal),
                 "the tunnel degenerated for a camera outside the frame");
         Recorder recorder = new Recorder();
+        float shift = (float) projection.surfaceOffset();
         ProjectionRenderer.emitClipped(new ProjectionMesh.Layer(null, data, data.length),
-                recorder, new MatrixStack().peek());
+                recorder, new MatrixStack().peek(), 0.0f, 0.0f, shift);
         return recorder;
     }
 

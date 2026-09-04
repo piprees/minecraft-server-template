@@ -166,6 +166,17 @@ public final class ClientProjection {
         return axis == Direction.Axis.Y ? sizeY() : sizeZ();
     }
 
+    /**
+     * How far the slab moves along the normal axis for its near face to land on
+     * the portal surface. The server starts the slab at the aperture block's far
+     * face; the surface bisects that block, so the slab arrives half a block
+     * behind the opening and shows the frame's inner faces around the image.
+     */
+    public double surfaceOffset() {
+        double nearFace = isPositive(this.normal) ? 0.0 : depthExtent();
+        return (this.planeCoord - axisOf(origin(), normalAxis())) - nearFace;
+    }
+
     public static boolean isPositive(Direction direction) {
         return direction.getOffsetX() + direction.getOffsetY() + direction.getOffsetZ() > 0;
     }

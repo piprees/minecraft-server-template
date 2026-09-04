@@ -46,4 +46,36 @@ public final class PortalRenderLayers {
                 RenderSystem.depthFunc(GL11.GL_LEQUAL);
                 RenderSystem.enableCull();
             }) {};
+
+    /**
+     * The opening's own depth, written and nothing else.
+     *
+     * <p>Drawn on the portal surface after the destination, it replaces the
+     * destination's depth — which is expressed in SOURCE-world coordinates and
+     * so competes with the source world's own blocks — with the depth of the
+     * window itself. Everything vanilla draws afterwards then composites
+     * against the window: in front of it draws, behind it does not, whatever
+     * the destination happens to hold along that sightline.
+     */
+    public static final RenderLayer APERTURE_DEPTH = new RenderLayer(
+            "customdimensions_portal_aperture_depth",
+            VertexFormats.POSITION_COLOR,
+            VertexFormat.DrawMode.QUADS,
+            1536,
+            false,
+            false,
+            () -> {
+                RenderSystem.setShader(GameRenderer::getPositionColorProgram);
+                RenderSystem.disableBlend();
+                RenderSystem.disableCull();
+                RenderSystem.enableDepthTest();
+                RenderSystem.depthFunc(GL11.GL_ALWAYS);
+                RenderSystem.depthMask(true);
+                RenderSystem.colorMask(false, false, false, false);
+            },
+            () -> {
+                RenderSystem.colorMask(true, true, true, true);
+                RenderSystem.depthFunc(GL11.GL_LEQUAL);
+                RenderSystem.enableCull();
+            }) {};
 }

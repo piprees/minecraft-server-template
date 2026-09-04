@@ -202,4 +202,4 @@ Component tree: [docs/mod-internals/architecture.md](../docs/mod-internals/archi
 
 | Mod | Status | Purpose |
 | --- | --- | --- |
-| `custom-dimensions` | Shipped | Boot-time dimension creation from repo config, custom portal frames and igniters, coordinate scaling, bidirectional travel, per-dimension noise settings and structure density, portal auras, and immersive portals (server-side, no client mod) |
+| `custom-dimensions` | Shipped | Boot-time dimension creation from repo config, custom portal frames and igniters, coordinate scaling, bidirectional travel, per-dimension noise settings and structure density, portal auras, and immersive portals (drawn by the companion client mod) |

@@ -131,30 +131,16 @@ public final class ProjectionRenderer {
         matrices.translate(origin.getX() - camera.x, origin.getY() - camera.y, origin.getZ() - camera.z);
         MatrixStack.Entry entry = matrices.peek();
 
-        int backdrop = backdropPolygon(projection, TUNNEL, camX, camY, camZ, planeLocal, facing,
-                POLY_A, POLY_B);
-        if (backdrop >= 3) {
-            VertexConsumer sky = immediate.getBuffer(PortalRenderLayers.BACKDROP);
-            if (backdrop == 4) {
-                for (int v = 0; v < 4; v++) {
-                    emitFlat(sky, entry, POLY_A, v * STRIDE);
-                }
-            } else {
-                // A fan of degenerate quads renders the polygon without a
-                // second draw mode, the way emitClipped does.
-                for (int v = 1; v + 1 < backdrop; v++) {
-                    emitFlat(sky, entry, POLY_A, 0);
-                    emitFlat(sky, entry, POLY_A, v * STRIDE);
-                    emitFlat(sky, entry, POLY_A, (v + 1) * STRIDE);
-                    emitFlat(sky, entry, POLY_A, (v + 1) * STRIDE);
-                }
-            }
-            immediate.draw(PortalRenderLayers.BACKDROP);
-        }
+        drawFlat(PortalRenderLayers.BACKDROP, entry, backdropPolygon(projection, TUNNEL,
+                camX, camY, camZ, planeLocal, facing, POLY_A, POLY_B));
+        double surface = projection.surfaceOffset();
+        float shiftX = normalAxis == Direction.Axis.X ? (float) surface : 0.0f;
+        float shiftY = normalAxis == Direction.Axis.Y ? (float) surface : 0.0f;
+        float shiftZ = normalAxis == Direction.Axis.Z ? (float) surface : 0.0f;
         StringBuilder report = sample ? new StringBuilder() : null;
         for (ProjectionMesh.Layer layer : mesh.layers()) {
             VertexConsumer consumer = immediate.getBuffer(layer.layer());
-            int emitted = emitClipped(layer, consumer, entry);
+            int emitted = emitClipped(layer, consumer, entry, shiftX, shiftY, shiftZ);
             immediate.draw(layer.layer());
             if (report != null) {
                 report.append(report.isEmpty() ? "" : " | ")
@@ -169,12 +155,21 @@ public final class ProjectionRenderer {
                         .append(" drawn=true");
             }
         }
+        // Last, so it replaces the destination's own depth: everything vanilla
+        // draws after this composites against the window, not against the
+        // source-world coordinates the destination borrowed.
+        int stamp = drawFlat(PortalRenderLayers.APERTURE_DEPTH, entry,
+                aperturePolygon(projection, TUNNEL, camX, camY, camZ, planeLocal, POLY_A, POLY_B));
+
         // Written after the draws, so a line at all means every draw returned.
         if (report != null) {
             lastSampleAt = System.currentTimeMillis();
-            LOGGER.info("{} aperture={} camToPlane={} opening={} volume={} layers={} {}", EMIT_MARKER,
-                    projection.apertureOrigin().toShortString(), String.format("%.2f", camToPlane),
-                    openingBounds(corners), volumeBounds(projection), mesh.layers().size(), report);
+            LOGGER.info("{} aperture={} camToPlane={} opening={} volume={} surface={} stamp={} "
+                            + "layers={} {}",
+                    EMIT_MARKER, projection.apertureOrigin().toShortString(),
+                    String.format("%.2f", camToPlane), openingBounds(corners),
+                    volumeBounds(projection), String.format("%.2f", surface), stamp,
+                    mesh.layers().size(), report);
         }
 
         matrices.pop();
@@ -326,8 +321,29 @@ public final class ProjectionRenderer {
         if (colour < 0) {
             colour = 0;
         }
-        Direction.Axis axis = projection.normalAxis();
         double target = planeLocal + facing * (projection.depthExtent() + BACKDROP_MARGIN);
+        return projectOntoPlane(projection, cone, camX, camY, camZ, target, colour, poly, scratch);
+    }
+
+    /**
+     * The opening itself, on the portal surface, cut against the same tunnel.
+     * Drawn depth-only through {@link PortalRenderLayers#APERTURE_DEPTH}.
+     */
+    static int aperturePolygon(ClientProjection projection, double[] cone,
+            double camX, double camY, double camZ, double planeLocal,
+            float[] poly, float[] scratch) {
+        return projectOntoPlane(projection, cone, camX, camY, camZ, planeLocal, 0, poly, scratch);
+    }
+
+    /**
+     * The cone's first rectangle cast from the camera onto the plane at
+     * {@code target} on the normal axis, then cut by every tunnel plane. Returns
+     * the corner count left in {@code poly}, 0 for nothing to draw.
+     */
+    private static int projectOntoPlane(ClientProjection projection, double[] cone,
+            double camX, double camY, double camZ, double target, int colour,
+            float[] poly, float[] scratch) {
+        Direction.Axis axis = projection.normalAxis();
         for (int i = 0; i < 4; i++) {
             double dx = cone[i * 3] - camX;
             double dy = cone[i * 3 + 1] - camY;
@@ -358,6 +374,34 @@ public final class ProjectionRenderer {
         return count < 3 ? 0 : count;
     }
 
+    /**
+     * Draws a clipped polygon left in {@link #POLY_A} on one flat layer and
+     * flushes it. Returns the corner count, 0 when there was nothing to draw.
+     */
+    private static int drawFlat(net.minecraft.client.render.RenderLayer layer,
+            MatrixStack.Entry entry, int corners) {
+        if (corners < 3) {
+            return 0;
+        }
+        VertexConsumer consumer = immediate.getBuffer(layer);
+        if (corners == 4) {
+            for (int v = 0; v < 4; v++) {
+                emitFlat(consumer, entry, POLY_A, v * STRIDE);
+            }
+        } else {
+            // A fan of degenerate quads renders the polygon without a second
+            // draw mode, the way emitClipped does.
+            for (int v = 1; v + 1 < corners; v++) {
+                emitFlat(consumer, entry, POLY_A, 0);
+                emitFlat(consumer, entry, POLY_A, v * STRIDE);
+                emitFlat(consumer, entry, POLY_A, (v + 1) * STRIDE);
+                emitFlat(consumer, entry, POLY_A, (v + 1) * STRIDE);
+            }
+        }
+        immediate.draw(layer);
+        return corners;
+    }
+
     /** Position and colour only: {@link PortalRenderLayers#BACKDROP} takes no more. */
     private static void emitFlat(VertexConsumer consumer, MatrixStack.Entry entry, float[] poly,
             int at) {
@@ -365,19 +409,35 @@ public final class ProjectionRenderer {
                 .color(poly[at + 3], poly[at + 4], poly[at + 5], poly[at + 6]);
     }
 
+    /** The unshifted layer, for a fixture that describes its own geometry. */
+    static int emitClipped(ProjectionMesh.Layer layer, VertexConsumer consumer,
+            MatrixStack.Entry entry) {
+        return emitClipped(layer, consumer, entry, 0.0f, 0.0f, 0.0f);
+    }
+
     /**
      * Clips every quad of one layer against the opening and emits what
      * survives. Returns the vertex count handed to {@code consumer}, and leaves
      * the clip's own survivor count in {@link #clipVertices}.
+     *
+     * <p>The offset moves the slab onto the portal surface and is applied
+     * BEFORE the clip: the cone narrows towards the opening, so geometry drawn
+     * half a block closer has to be cut where it now stands or it spills past
+     * the frame's edge.
      */
     static int emitClipped(ProjectionMesh.Layer layer, VertexConsumer consumer,
-            MatrixStack.Entry entry) {
+            MatrixStack.Entry entry, float offsetX, float offsetY, float offsetZ) {
         float[] data = layer.data();
         int survived = 0;
         int emitted = 0;
         java.util.Arrays.fill(rejectedBy, 0);
         for (int quad = 0; quad + STRIDE * 4 <= layer.floats(); quad += STRIDE * 4) {
             System.arraycopy(data, quad, POLY_A, 0, STRIDE * 4);
+            for (int v = 0; v < 4; v++) {
+                POLY_A[v * STRIDE] += offsetX;
+                POLY_A[v * STRIDE + 1] += offsetY;
+                POLY_A[v * STRIDE + 2] += offsetZ;
+            }
             int count = 4;
             for (int plane = 0; plane < planeCount && count >= 3; plane++) {
                 count = clip(POLY_A, count, POLY_B, plane);

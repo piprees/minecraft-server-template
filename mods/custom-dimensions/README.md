@@ -13,7 +13,7 @@ Runtime dimension creation for Minecraft 1.21.1 Fabric: custom portal frames, co
 - **12 world types** plus `ns:path` clones of any registered dimension, per-dimension seeds, noise presets, biome patches, per-set structure control.
 - **Custom portals** — any frame block, any igniter, vertical or horizontal, optional shape templates and per-part materials; anchor, single-use and exit variants, exit shrines, and `exits` rules for leaving without a portal.
 - **Portal auras** — each linked pair leaks the other side's sampled nature through, bounded by budgets.
-- **Immersive portals** — see the destination through the frame, hear its biome, walk things through. Server-side only.
+- **Immersive portals** — see the destination through the frame, hear its biome, walk things through. Audio, entity pass-through and the aperture light are server-side; the window itself is drawn by the companion client mod.
 - **Per-dimension difficulty, mob control, borders and dimension types**, and idle unloading of empty worlds.
 
 ## Commands
