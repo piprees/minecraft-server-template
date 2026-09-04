@@ -183,9 +183,9 @@ public final class SpectatorPass {
         }
         int drawBinding = GlStateManager._getInteger(GL30.GL_DRAW_FRAMEBUFFER_BINDING);
         int readBinding = GlStateManager._getInteger(GL30.GL_READ_FRAMEBUFFER_BINDING);
-        // The corner is a share of the SCREEN, and the target is now only as
-        // big as that corner, so its own size cannot answer where it goes.
-        int[] rect = SpectatorCorner.topLeft(client.getFramebuffer().textureWidth,
+        // The preview is a share of the SCREEN, and the target is now only as
+        // big as the preview, so its own size cannot answer where it goes.
+        int[] rect = SpectatorCorner.preview(client.getFramebuffer().textureWidth,
                 client.getFramebuffer().textureHeight);
         GlStateManager._glBindFramebuffer(GL30.GL_READ_FRAMEBUFFER, target.fbo);
         GlStateManager._glBindFramebuffer(GL30.GL_DRAW_FRAMEBUFFER, drawBinding);
