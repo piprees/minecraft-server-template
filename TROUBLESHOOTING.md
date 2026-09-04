@@ -4,7 +4,7 @@
 
 | Prefix | Range | What it covers |
 | --- | --- | --- |
-| **T** | [T1–T14, T16–T19, T22–T27, T30–T80, T82–T88](#architecture-traps) | Architecture traps — each has caused a real production incident |
+| **T** | [T1–T14, T16–T19, T22–T27, T30–T80, T82–T89](#architecture-traps) | Architecture traps — each has caused a real production incident |
 | **P** | [P1–P6](#macos-local-dev) | macOS local-dev quirks (BSD tooling, toolchain) |
 | **D** | [D1–D6, D8–D9](#dimension-lifecycle) | Custom-dimension lifecycle on a live world |
 | **K** | [K1–K2, K5–K7, K9](#known-issues) | Open issues — unfixed, on the watch list |
@@ -53,6 +53,7 @@ Run this first. It covers deploy drift, disk, every expected container, `ONLINE_
 | A copper portal frame stops lighting and nothing changed | [T85](#t85) |
 | A subagent shows "running" but has produced nothing for hours | [T86](#t86) |
 | Every mutation "reddens nothing", or a probe reports no activity | [T88](#t88) |
+| Two arrival zones for one destination after a break and re-light | [T89](#t89) |
 | A reimplementation of the mod's arithmetic is one block out at negative coordinates | [T87](#t87) |
 | Structure spacing arithmetic disagrees with the world | [T51](#t51) |
 | mc watchdog-crashes a few minutes after a local world reset, parked in `save-all` | [T57](#t57) |
@@ -1643,6 +1644,43 @@ measurement of it.
   in Python (`%` on negatives, `>>` on signed ints, float-to-int narrowing) has
   the same trap. Pin it against the Java, not against intuition —
   `scripts/e2e/portal-matrix-selftest.sh` is the worked example.
+
+<a id="t89"></a>
+### T89 — A break cannot remove an arrival zone that has not been promoted yet, and the re-light builds a second
+
+- **Symptom:** breaking a portal and re-lighting it leaves two `arrival-zone-v1`
+  records for one destination, with a derelict arrival frame standing and the
+  live one built directly on top of it. Measured at the nexus: interiors
+  `750-751, 57-59, 750` and `750-751, 61-63, 750`, the two frames sharing y60.
+- **Cause:** persisted arrival zones land in `PENDING_ARRIVAL_ZONES` at boot and
+  are promoted to `ARRIVAL_ZONES` only when their world first **ticks**.
+  `arrivalZoneAt` read the live map only, so breaking a source portal whose
+  destination had not been loaded since the restart found nothing and skipped
+  the removal. The same blind spot made `ensureArrivalZone`'s dedup create a
+  second zone rather than reuse the pending one — **two independent routes to
+  the same symptom**, so fixing only the break leaves registration live.
+- **The server says both halves in one line:** `Source portal broken in
+  <world> — closed its arrival in <dest> (6 cells, 0 cleared now, 6 deferred)`.
+  `0 cleared now` is the cold destination; the cold destination is the
+  never-ticked world that makes the lookup return null.
+- **Fix (in place):** `arrivalZoneAt` searches both maps, with a
+  `removeArrivalZone` helper — not optional, because a world holding only
+  pending zones has no live list and removing from it throws. `getArrivalZones`
+  is deliberately NOT widened: its callers are the tick loop and two diagnostic
+  dumps, and widening it would silently change what those dumps mean.
+- **Why the new arrival rises is NOT established.** The old frame ring is
+  standing, but all six of its interior cells are `minecraft:water`, which is in
+  `#minecraft:replaceable`, so `PortalSite.isClear` would call that space clear.
+  The obvious explanation — "the old frame blocks the carve" — is unsupported by
+  what is actually there. A flooded pocket is a known failure shape here and a
+  standing solid ring is plausible, but nobody has distinguished them. **Start
+  from the water, not the frame.**
+- **Probe technique worth keeping:** identifying an unknown block by a candidate
+  list of ids answered `UNIDENTIFIED` for five of six cells — a negative from a
+  list is only as good as the list, the same fault as a predicate that matches
+  nothing reading as a pass. Asking `#minecraft:replaceable` narrowed it to a
+  family in one call. **Ask tags before ids when you do not know what you are
+  looking at.**
 
 <a id="t88"></a>
 ### T88 — A result file outlives the run that made it, so a build that never ran reads as a pass
