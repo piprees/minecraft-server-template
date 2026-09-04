@@ -5,6 +5,7 @@ import com.customdimensions.client.CustomDimensionsClient;
 import com.customdimensions.client.config.RealtimeControls;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
+import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gl.Framebuffer;
 import net.minecraft.client.gl.SimpleFramebuffer;
@@ -13,21 +14,32 @@ import net.minecraft.client.render.GameRenderer;
 import net.minecraft.client.render.RenderTickCounter;
 import net.minecraft.client.render.WorldRenderer;
 import net.minecraft.client.world.ClientWorld;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL30;
 
+import java.util.Collection;
+
 /**
  * A second world render of the destination, into an offscreen framebuffer,
- * blitted to a screen corner.
+ * composited through the opening's own quad.
  *
- * <h2>What this is for</h2>
- * One thing to render and one thing to look at, with no mask involved: a
- * corner that shows the destination while the source world still looks right
- * says the second {@link WorldRenderer} survives Sodium and Iris. A failure
- * cannot be blamed on a composite that is not there.
+ * <h2>Three parts, in three places, because of where the depth buffer is</h2>
+ * The render runs at the head of {@code GameRenderer.renderWorld}, outside the
+ * source world's own render — every {@code WorldRenderEvents} phase fires
+ * inside it with the shared {@code BufferBuilderStorage} mid-use. The
+ * occlusion query and the composite run inside the source render, which is the
+ * only moment the source world's depth exists: {@code renderWorld} clears it
+ * between {@code WorldRenderer.render} and the hand. The corner preview rides
+ * the return, where it tests nothing and so does not care.
+ *
+ * <p>So the gate reads a query issued one frame earlier. That costs a stale
+ * verdict for one frame when the view changes, and buys a gate that reads real
+ * depth and a result read with no GPU stall.
  *
  * <h2>Fabulous graphics is refused</h2>
  * {@code WorldRenderer.render} calls {@code client.getFramebuffer().beginWrite}
@@ -58,9 +70,18 @@ public final class SpectatorPass {
     private static int depth;
     private static boolean disabled;
     private static boolean drawn;
+
+    /** The opening this frame chose, and its quad in source-world coordinates. */
+    private static BlockPos chosen;
+    private static double[] quad;
+
+    /** Whether the cheap tests allowed a pass this frame, gate or no gate. */
+    private static boolean cpuVisible;
+
     private static long lastNanos;
     private static long totalNanos;
     private static long passes;
+    private static long gated;
     private static String refusal = "not-run";
 
     private SpectatorPass() {}
@@ -68,6 +89,10 @@ public final class SpectatorPass {
     /** Renders one destination into the offscreen target. Never throws. */
     public static void render(GameRenderer gameRenderer, RenderTickCounter counter) {
         drawn = false;
+        cpuVisible = false;
+        // The in-world half hooks itself the first time the pass runs, so the
+        // entrypoint carries no line for it.
+        SpectatorComposite.register();
         if (disabled || gameRenderer == null || counter == null) {
             return;
         }
@@ -88,63 +113,77 @@ public final class SpectatorPass {
             refusal = "fabulous graphics rebinds the main framebuffer mid-render";
             return;
         }
-        CompanionPayloads.PortalFrame frame = pick();
+        CompanionPayloads.PortalFrame frame = pick(client.player.getEyePos());
         if (frame == null) {
-            refusal = "no framed destination standing";
+            quad = null;
+            refusal = "no framed destination standing in front and in range";
             return;
         }
+        Direction normal = facing(frame);
+        if (!frame.apertureOrigin().equals(chosen)) {
+            // The standing verdict belongs to one opening.
+            PortalOcclusion.forget();
+            chosen = frame.apertureOrigin();
+        }
+        quad = CompositeQuad.corners(frame.aperture(), normal);
         ClientWorld destination = DestinationWorlds.get(frame.destination());
         WorldRenderer renderer = DestinationWorlds.rendererFor(frame.destination());
         if (destination == null || renderer == null) {
             refusal = "destination world or renderer missing";
             return;
         }
+        cpuVisible = true;
         refusal = "";
         run(client, gameRenderer, counter, frame, destination, renderer);
+    }
+
+    /**
+     * One pass's own script: the gate, then the target, then the render.
+     * Returns whether the destination was drawn.
+     */
+    static boolean runPass(SpectatorSteps steps) {
+        if (!steps.visible()) {
+            return false;
+        }
+        steps.prepareTarget();
+        steps.clearTarget();
+        steps.renderDestination();
+        return true;
+    }
+
+    /**
+     * Inside the source world's render: the query that answers the next
+     * frame's gate, and this frame's composite through the opening.
+     */
+    static void runComposite(SpectatorPresent steps, boolean allowed, boolean rendered) {
+        if (!allowed) {
+            return;
+        }
+        steps.issueOcclusionQuery();
+        if (rendered) {
+            steps.compositeThroughQuad();
+        }
+    }
+
+    /** After the source world: the scaffold preview, while it is on. */
+    static void runCorner(SpectatorPresent steps, boolean rendered, boolean cornerOn) {
+        if (rendered && cornerOn) {
+            steps.blitCorner();
+        }
     }
 
     private static void run(MinecraftClient client, GameRenderer gameRenderer,
             RenderTickCounter counter, CompanionPayloads.PortalFrame frame,
             ClientWorld destination, WorldRenderer renderer) {
-        ClientWorld source = client.world;
-        int drawBinding = GlStateManager._getInteger(GL30.GL_DRAW_FRAMEBUFFER_BINDING);
-        int readBinding = GlStateManager._getInteger(GL30.GL_READ_FRAMEBUFFER_BINDING);
+        Pass pass = new Pass(client, gameRenderer, counter, frame, destination, renderer);
         long started = System.nanoTime();
         depth++;
         try {
-            Framebuffer into = ensureTarget(client);
-            float tickDelta = counter.getTickDelta(true);
-            double[] eye = PortalCamera.destinationEye(
-                    client.player.getX(),
-                    client.player.getEyeY(),
-                    client.player.getZ(),
-                    frame.dx(), frame.dy(), frame.dz());
-
-            client.world = destination;
-            client.getEntityRenderDispatcher().setWorld(destination);
-            client.getBlockEntityRenderDispatcher().setWorld(destination);
-            gameRenderer.getLightmapTextureManager().update(tickDelta);
-            CAMERA.standIn(destination, client.player, tickDelta, eye[0], eye[1], eye[2]);
-
-            double fov = client.options.getFov().getValue().doubleValue();
-            Matrix4f projection = gameRenderer.getBasicProjectionMatrix(fov);
-            Matrix4f position = new Matrix4f()
-                    .rotation(CAMERA.getRotation().conjugate(new Quaternionf()));
-
-            into.setClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-            into.clear(MinecraftClient.IS_SYSTEM_MAC);
-            into.beginWrite(true);
-            RenderSystem.backupProjectionMatrix();
-            try {
-                gameRenderer.loadProjectionMatrix(projection);
-                Vec3d at = new Vec3d(eye[0], eye[1], eye[2]);
-                renderer.setupFrustum(at, position, projection);
-                renderer.render(counter, false, CAMERA, gameRenderer,
-                        gameRenderer.getLightmapTextureManager(), position, projection);
-            } finally {
-                RenderSystem.restoreProjectionMatrix();
+            drawn = runPass(pass);
+            if (!drawn) {
+                gated++;
+                refusal = "occluded";
             }
-            drawn = true;
         } catch (Throwable failure) {
             disabled = true;
             drawn = false;
@@ -153,74 +192,106 @@ public final class SpectatorPass {
                     "{} dimension={} disabled after a throw", MARKER, frame.destination(), failure);
         } finally {
             depth--;
-            client.world = source;
-            client.getEntityRenderDispatcher().setWorld(source);
-            client.getBlockEntityRenderDispatcher().setWorld(source);
-            GlStateManager._glBindFramebuffer(GL30.GL_READ_FRAMEBUFFER, readBinding);
-            GlStateManager._glBindFramebuffer(GL30.GL_DRAW_FRAMEBUFFER, drawBinding);
-            RenderSystem.enableDepthTest();
-            RenderSystem.depthMask(true);
-            lastNanos = System.nanoTime() - started;
-            totalNanos += lastNanos;
-            passes++;
-            if (passes % REPORT_EVERY == 1) {
-                CustomDimensionsClient.LOGGER.info(
-                        "{} dimension={} passes={} lastUs={} meanUs={} drawn={}",
-                        MARKER, frame.destination(), passes,
-                        lastNanos / 1000L, totalNanos / Math.max(1L, passes) / 1000L, drawn);
+            pass.restore();
+            if (drawn) {
+                lastNanos = System.nanoTime() - started;
+                totalNanos += lastNanos;
+                passes++;
+                if (passes % REPORT_EVERY == 1) {
+                    CustomDimensionsClient.LOGGER.info(
+                            "{} dimension={} passes={} gated={} lastUs={} meanUs={} "
+                                    + "occlusion={} queries={} refusals={} readUs={} composite={}",
+                            MARKER, frame.destination(), passes, gated,
+                            lastNanos / 1000L, totalNanos / Math.max(1L, passes) / 1000L,
+                            PortalOcclusion.path(), PortalOcclusion.issued(),
+                            PortalOcclusion.refusals(), PortalOcclusion.readMicros(),
+                            SpectatorComposite.refusal().isEmpty() ? "on"
+                                    : SpectatorComposite.refusal());
+                }
             }
         }
     }
 
     /**
-     * Copies this frame's destination into the top-left corner of whatever is
-     * bound. Called after the source pass, so the source world is underneath.
+     * The in-world half: this frame's query and composite. Driven from
+     * {@code WorldRenderEvents.BEFORE_ENTITIES}, after the opaque terrain and
+     * before the entities, which is where the depth buffer holds the source
+     * world and nothing else.
      */
-    public static void blit() {
-        MinecraftClient client = MinecraftClient.getInstance();
-        if (!drawn || target == null || client == null) {
+    public static void inWorld(WorldRenderContext context) {
+        if (context == null || quad == null || disabled) {
             return;
         }
-        int drawBinding = GlStateManager._getInteger(GL30.GL_DRAW_FRAMEBUFFER_BINDING);
-        int readBinding = GlStateManager._getInteger(GL30.GL_READ_FRAMEBUFFER_BINDING);
-        // The preview is a share of the SCREEN, and the target is now only as
-        // big as the preview, so its own size cannot answer where it goes.
-        int[] rect = SpectatorCorner.preview(client.getFramebuffer().textureWidth,
-                client.getFramebuffer().textureHeight);
-        GlStateManager._glBindFramebuffer(GL30.GL_READ_FRAMEBUFFER, target.fbo);
-        GlStateManager._glBindFramebuffer(GL30.GL_DRAW_FRAMEBUFFER, drawBinding);
-        GlStateManager._glBlitFrameBuffer(
-                0, 0, target.textureWidth, target.textureHeight,
-                rect[0], rect[1], rect[2], rect[3],
-                GL11.GL_COLOR_BUFFER_BIT, GL11.GL_LINEAR);
-        GlStateManager._glBindFramebuffer(GL30.GL_READ_FRAMEBUFFER, readBinding);
-        GlStateManager._glBindFramebuffer(GL30.GL_DRAW_FRAMEBUFFER, drawBinding);
+        runComposite(new Present(context), cpuVisible, drawn);
     }
 
-    /** The nearest framed opening whose destination world is standing. */
-    private static CompanionPayloads.PortalFrame pick() {
-        for (CompanionPayloads.PortalFrame frame : PortalFrames.all()) {
-            if (DestinationWorlds.get(frame.destination()) != null) {
-                return frame;
-            }
-        }
-        return null;
+    /** The scaffold corner. Called after the source world's own render. */
+    public static void blit() {
+        runCorner(new Present(null), drawn, SpectatorCorner.enabled());
     }
 
     /**
-     * The offscreen target, sized to the corner it is shown in rather than to
-     * the screen. Every pass clears it, draws sky into it and blits it, so a
-     * screen-sized target charges the full window for a preview a twentieth
-     * of its area on a 16:9 screen. The projection matrix still carries the
-     * window's aspect, so what lands in the square corner is unchanged.
+     * The nearest framed opening the camera can see: destination standing, in
+     * front of the surface, inside {@link SpectatorGate#RANGE}.
+     */
+    private static CompanionPayloads.PortalFrame pick(Vec3d eye) {
+        Collection<CompanionPayloads.PortalFrame> held = PortalFrames.all();
+        if (held.isEmpty()) {
+            return null;
+        }
+        CompanionPayloads.PortalFrame[] frames =
+                held.toArray(new CompanionPayloads.PortalFrame[0]);
+        double[] distances = new double[frames.length];
+        boolean[] allowed = new boolean[frames.length];
+        for (int i = 0; i < frames.length; i++) {
+            CompanionPayloads.PortalFrame frame = frames[i];
+            if (DestinationWorlds.get(frame.destination()) == null) {
+                continue;
+            }
+            Direction normal = facing(frame);
+            if (normal == null) {
+                continue;
+            }
+            double[] centre = CompositeQuad.centre(frame.aperture(), normal);
+            if (centre == null) {
+                continue;
+            }
+            distances[i] = SpectatorGate.distanceSquared(
+                    eye.x, eye.y, eye.z, centre[0], centre[1], centre[2]);
+            double surface = CompositeQuad.on(centre[0], centre[1], centre[2], normal.getAxis());
+            allowed[i] = SpectatorGate.withinRange(distances[i])
+                    && SpectatorGate.inFront(surface, CompositeQuad.towardsHigh(normal),
+                            CompositeQuad.on(eye.x, eye.y, eye.z, normal.getAxis()));
+        }
+        int best = SpectatorGate.nearest(distances, allowed);
+        return best < 0 ? null : frames[best];
+    }
+
+    /**
+     * The frame's normal, or null when the wire carried an index no direction
+     * has. The render path runs outside the pass's own try, so a malformed
+     * payload here would take the whole frame down.
+     */
+    private static Direction facing(CompanionPayloads.PortalFrame frame) {
+        int index = frame.normal();
+        return index < 0 || index >= Direction.values().length
+                ? null : Direction.values()[index];
+    }
+
+    /**
+     * The offscreen target, at the MAIN framebuffer's size and never
+     * downsampled. The composite reads it at {@code gl_FragCoord / ScreenSize},
+     * so any other size samples the wrong texel; and it is allocated once,
+     * resized only when the window changes.
      */
     private static Framebuffer ensureTarget(MinecraftClient client) {
-        int side = SpectatorCorner.side(client.getFramebuffer().textureWidth,
-                client.getFramebuffer().textureHeight);
+        Framebuffer main = client.getFramebuffer();
+        int width = Math.max(1, main.textureWidth);
+        int height = Math.max(1, main.textureHeight);
         if (target == null) {
-            target = new SimpleFramebuffer(side, side, true, MinecraftClient.IS_SYSTEM_MAC);
-        } else if (target.textureWidth != side || target.textureHeight != side) {
-            target.resize(side, side, MinecraftClient.IS_SYSTEM_MAC);
+            target = new SimpleFramebuffer(width, height, true, MinecraftClient.IS_SYSTEM_MAC);
+        } else if (target.textureWidth != width || target.textureHeight != height) {
+            target.resize(width, height, MinecraftClient.IS_SYSTEM_MAC);
         }
         return target;
     }
@@ -233,11 +304,16 @@ public final class SpectatorPass {
         }
         disabled = false;
         drawn = false;
+        cpuVisible = false;
         depth = 0;
+        chosen = null;
+        quad = null;
         lastNanos = 0L;
         totalNanos = 0L;
         passes = 0L;
+        gated = 0L;
         refusal = "not-run";
+        PortalOcclusion.reset();
     }
 
     public static boolean disabled() {
@@ -246,6 +322,11 @@ public final class SpectatorPass {
 
     public static long passes() {
         return passes;
+    }
+
+    /** Frames the occlusion gate refused after the cheap tests allowed them. */
+    public static long gated() {
+        return gated;
     }
 
     public static long lastMicros() {
@@ -259,5 +340,147 @@ public final class SpectatorPass {
     /** Empty while the pass is running; otherwise why it did not. */
     public static String refusal() {
         return refusal;
+    }
+
+    /**
+     * The render half, against live GL. Everything it touches is restored by
+     * {@link #restore}, which is a no-op on a frame the gate refused — that is
+     * the whole saving.
+     */
+    private static final class Pass implements SpectatorSteps {
+
+        private final MinecraftClient client;
+        private final GameRenderer gameRenderer;
+        private final RenderTickCounter counter;
+        private final CompanionPayloads.PortalFrame frame;
+        private final ClientWorld destination;
+        private final WorldRenderer renderer;
+
+        private ClientWorld source;
+        private Framebuffer into;
+        private int drawBinding;
+        private int readBinding;
+        private boolean captured;
+
+        private Pass(MinecraftClient client, GameRenderer gameRenderer, RenderTickCounter counter,
+                CompanionPayloads.PortalFrame frame, ClientWorld destination,
+                WorldRenderer renderer) {
+            this.client = client;
+            this.gameRenderer = gameRenderer;
+            this.counter = counter;
+            this.frame = frame;
+            this.destination = destination;
+            this.renderer = renderer;
+        }
+
+        @Override
+        public boolean visible() {
+            return PortalOcclusion.visible();
+        }
+
+        @Override
+        public void prepareTarget() {
+            this.drawBinding = GlStateManager._getInteger(GL30.GL_DRAW_FRAMEBUFFER_BINDING);
+            this.readBinding = GlStateManager._getInteger(GL30.GL_READ_FRAMEBUFFER_BINDING);
+            this.captured = true;
+            this.into = ensureTarget(this.client);
+        }
+
+        @Override
+        public void clearTarget() {
+            this.into.setClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+            this.into.clear(MinecraftClient.IS_SYSTEM_MAC);
+        }
+
+        @Override
+        public void renderDestination() {
+            float tickDelta = this.counter.getTickDelta(true);
+            double[] eye = PortalCamera.destinationEye(
+                    this.client.player.getX(),
+                    this.client.player.getEyeY(),
+                    this.client.player.getZ(),
+                    this.frame.dx(), this.frame.dy(), this.frame.dz());
+
+            this.source = this.client.world;
+            this.client.world = this.destination;
+            this.client.getEntityRenderDispatcher().setWorld(this.destination);
+            this.client.getBlockEntityRenderDispatcher().setWorld(this.destination);
+            this.gameRenderer.getLightmapTextureManager().update(tickDelta);
+            CAMERA.standIn(this.destination, this.client.player, tickDelta,
+                    eye[0], eye[1], eye[2]);
+
+            double fov = this.client.options.getFov().getValue().doubleValue();
+            Matrix4f projection = this.gameRenderer.getBasicProjectionMatrix(fov);
+            Matrix4f position = new Matrix4f()
+                    .rotation(CAMERA.getRotation().conjugate(new Quaternionf()));
+
+            this.into.beginWrite(true);
+            RenderSystem.backupProjectionMatrix();
+            try {
+                this.gameRenderer.loadProjectionMatrix(projection);
+                this.renderer.setupFrustum(new Vec3d(eye[0], eye[1], eye[2]), position, projection);
+                this.renderer.render(this.counter, false, CAMERA, this.gameRenderer,
+                        this.gameRenderer.getLightmapTextureManager(), position, projection);
+            } finally {
+                RenderSystem.restoreProjectionMatrix();
+            }
+        }
+
+        /** Puts back everything the pass swapped, whether or not it got that far. */
+        private void restore() {
+            if (this.source != null) {
+                this.client.world = this.source;
+                this.client.getEntityRenderDispatcher().setWorld(this.source);
+                this.client.getBlockEntityRenderDispatcher().setWorld(this.source);
+            }
+            if (this.captured) {
+                GlStateManager._glBindFramebuffer(GL30.GL_READ_FRAMEBUFFER, this.readBinding);
+                GlStateManager._glBindFramebuffer(GL30.GL_DRAW_FRAMEBUFFER, this.drawBinding);
+                RenderSystem.enableDepthTest();
+                RenderSystem.depthMask(true);
+            }
+        }
+    }
+
+    /** The presentation half: the query, the composite, and the scaffold corner. */
+    private record Present(WorldRenderContext context) implements SpectatorPresent {
+
+        @Override
+        public void issueOcclusionQuery() {
+            SpectatorComposite.probe(this.context, quad);
+        }
+
+        @Override
+        public void compositeThroughQuad() {
+            if (target == null) {
+                return;
+            }
+            SpectatorComposite.composite(this.context, quad, target.getColorAttachment());
+        }
+
+        /**
+         * Copies this frame's destination into a preview against the left
+         * edge of whatever is bound. Called after the source pass, so the
+         * source world is underneath.
+         */
+        @Override
+        public void blitCorner() {
+            MinecraftClient client = MinecraftClient.getInstance();
+            if (target == null || client == null) {
+                return;
+            }
+            int drawBinding = GlStateManager._getInteger(GL30.GL_DRAW_FRAMEBUFFER_BINDING);
+            int readBinding = GlStateManager._getInteger(GL30.GL_READ_FRAMEBUFFER_BINDING);
+            int[] rect = SpectatorCorner.preview(client.getFramebuffer().textureWidth,
+                    client.getFramebuffer().textureHeight);
+            GlStateManager._glBindFramebuffer(GL30.GL_READ_FRAMEBUFFER, target.fbo);
+            GlStateManager._glBindFramebuffer(GL30.GL_DRAW_FRAMEBUFFER, drawBinding);
+            GlStateManager._glBlitFrameBuffer(
+                    0, 0, target.textureWidth, target.textureHeight,
+                    rect[0], rect[1], rect[2], rect[3],
+                    GL11.GL_COLOR_BUFFER_BIT, GL11.GL_LINEAR);
+            GlStateManager._glBindFramebuffer(GL30.GL_READ_FRAMEBUFFER, readBinding);
+            GlStateManager._glBindFramebuffer(GL30.GL_DRAW_FRAMEBUFFER, drawBinding);
+        }
     }
 }

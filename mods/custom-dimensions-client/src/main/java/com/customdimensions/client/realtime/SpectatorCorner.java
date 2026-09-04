@@ -19,7 +19,23 @@ public final class SpectatorCorner {
     /** The preview's share of the shorter screen axis. */
     public static final double SHARE = 0.3;
 
+    /**
+     * Scaffold, and it comes out once the composite is trusted. It shows the
+     * second world's whole frame with no mask involved, which is what tells a
+     * destination that built no terrain apart from a composite that is
+     * drawing the wrong pixels.
+     */
+    private static boolean enabled = true;
+
     private SpectatorCorner() {}
+
+    public static boolean enabled() {
+        return enabled;
+    }
+
+    public static void setEnabled(boolean value) {
+        enabled = value;
+    }
 
     /** {@code {x0, y0, x1, y1}} for {@code glBlitFramebuffer}'s destination. */
     public static int[] preview(int width, int height) {
