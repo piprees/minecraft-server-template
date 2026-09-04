@@ -43,6 +43,23 @@ logs and `assertions.tsv`.
 Order matters for two of them: item 4 needs a resident dimension, so run item 5
 first; item 3 needs the player in the End, so run item 2 first.
 
+The portal matrix is the long one and takes options rather than an order:
+
+```bash
+./scripts/e2e/portal-matrix-selftest.sh                        # its own logic, no server
+./scripts/e2e/e2e-portal-matrix.sh --dry-run                   # the plan and its denominator
+./scripts/e2e/e2e-portal-matrix.sh --only the_crucible         # one dimension end to end
+./scripts/e2e/e2e-portal-matrix.sh --horizontal all --render 8 # every Y-axis frame too
+```
+
+79 dimensions is hours, and worlds are created one at a time on purpose
+([K6](../../TROUBLESHOOTING.md#k6)) — `--limit`, `--only` and `--from` are how
+it is run in pieces. `IGNITER_EXPECTATION` is the one switch for what an
+igniter should look like after a successful ignition: `auto` (the ruled
+contract — damageable igniters take damage, others are untouched),
+`untouched`, `damaged`, or `consumed`. `auto` mirrors `IgniterSpend.of`,
+`consumesIgniter` included.
+
 | Script | Proves |
 | --- | --- |
 | `e2e-item2-stronghold.sh` | Builds its own twelve-socket rig. One eye sockets and spawns no gateway; a ringed cell ignites and a bare block does not; the portal is dark at eleven eyes and lit at twelve; the player reaches the End and is still there ten seconds later; `seenCredits` unchanged |
@@ -53,8 +70,36 @@ first; item 3 needs the player in the End, so run item 2 first.
 | `e2e-c3-portal-light.sh` | Both of a portal's light paths, separately. The server half proves the aperture's light is a fake block — air with zero luminance and zero block light at the same cells the client is lighting. The client half reads the block-light gradient out of the opening (a shape only a point source there produces), the destination light the server sent, and the light the mesh was built with. Then it forces a server light update in the opening's own chunk section and re-reads, with the light block itself as the positive control. `RIG=nexus` (default) or `RIG=crucible` |
 | `portal-aperture.sh` | A scratch portal at 2048/90/2048 lit, photographed from both sides, and walked through |
 | `build-test-frame.sh` | Builds the copper crucible frame and flattens the approach lane. Called by item 5 |
+| `stack-lock.sh` | One writer at a time for the stack. Take it before any container action; a busy lock names the holder and how long they have had it |
 | `rig-ready.sh` | Asserts the rig is measurable — mc healthy, RCON answering, bridge up, client actually IN a world — and recovers a dropped client. Run it before and after anything that touches the client |
+| `e2e-portal-matrix.sh` | The whole lifecycle once per configured dimension: carve a bay, stand a frame and a deliberate near neighbour in it unlit, then ignite, cross, come back, break it, re-light it, and light the neighbour. Every geometry and every expectation comes from the plan, so no coordinate is written here |
+| `portal-matrix-plan.py` | The pure half of the matrix: dimension configs in, a bay per mod-managed portal out — frame geometry, room layout, orientation filtering, and what each assertion should expect. Runs with no server |
+| `portal-matrix-lib.sh` | The matrix's own helpers, apart from the driver so they can be self-tested: `assert_items`, `within_reuse_box`, `near_column`, `place_cells`, the bounded waits |
+| `portal-matrix-selftest.sh` | The planner's arithmetic and those helpers, each proved red and green against fixtures. `--mutate` breaks one piece on purpose to show which case catches it. No Minecraft, no docker, no RCON |
 | `lib-selftest.sh` | `lib.sh` itself, against fixture artefacts and a stub bridge. No Minecraft, no docker, no RCON |
+
+## Before you restart anything: `stack-lock.sh`
+
+**`./dev up` RECREATES mc.** Every client in the world goes to Connection Lost
+and any measurement in flight is invalidated. When several agents share one
+stack, "tell everyone first" does not work — messages arrive batched, so two
+agents can each believe they were cleared. This is the interlock that does.
+
+```bash
+scripts/e2e/stack-lock.sh status
+scripts/e2e/stack-lock.sh acquire <holder> --reason "what for" [--wait 300]
+scripts/e2e/stack-lock.sh release <holder>
+```
+
+`mkdir` is the atomic test-and-set. A busy lock names the holder and how long
+they have had it, so you know who to ask. Releasing a lock you do not hold is
+refused, so a late release cannot free somebody else's slot. A holder that dies
+leaves the lock behind — `status` reports STALE past 15 minutes, and `steal`
+works only then and only with a reason.
+
+It is ADVISORY: it cannot stop `./dev up`, it stops a careful agent racing
+another careful agent. Take it around **any** container action, and around a
+client relaunch.
 
 ## Before you measure: `rig-ready.sh`
 
@@ -147,6 +192,39 @@ reason it now prevents. Read its header comments before changing an assertion.
 - **A walk stops dead on a one-block rise.** Vanilla step height is 0.6, so a
   player auto-steps a slab and not a block. Any test that walks a distance
   flattens its lane to the frame's own bottom-ring level.
+- **`orientation: "horizontal"` is a Y-plane requirement, not a ban on lying
+  flat.** `PortalDefinition.allowsAxis` reads it as "the Y axis and nothing
+  else", so the seven dimensions that carry it refuse a VERTICAL frame and must
+  be built horizontal. The matrix reads the field rather than trying both.
+- **An anchor dimension does not break at both ends.**
+  `PortalHelper.breakLinkedArrival` returns 0 for one, because a single arrival
+  is shared by every source into that dimension. Its bay asserts the arrival
+  SURVIVES the source break, and that a re-light lands back on it.
+- **The reuse box is `(5, 16)` in DESTINATION blocks**
+  (`findRegisteredPortalNear`, mirrored by `ArrivalResolver`), so how close two
+  source frames have to be depends on the dimension's scale. The plan computes
+  the neighbour's offset and refuses to assert proximity for a pair that
+  divides out past the radius.
+- **An arrival coordinate is not stable across a break.** Arrival placement
+  carves when no open site exists, and the broken arrival's frame is left
+  standing, so the heightmap the next one reads has moved. Assert the dimension
+  and the round trip, never a fixed arrival coordinate.
+- **A destination that idled out lists no zones at all.** `e2e-state` reports
+  zones per LOADED world, so every arrival assertion first proves the world is
+  still there rather than reading an unload as an unlink.
+- **`<slug>_thumb.json` is a seed-viewer sidecar, not a dimension.** There is
+  one per dimension, so reading the directory naively doubles the denominator
+  and files 82 "no portal block" skips against things that were never
+  dimensions. The planner filters them and reports `sidecarsIgnored` beside
+  `dimensionsRead`.
+- **An igniter is spent only where a dimension asks for it.** `IgniterSpend.of`
+  checks `consumesIgniter` BEFORE `damageable`, so a dimension that wants the
+  item gets the item even when the item could have taken damage instead. The
+  matrix's `auto` expectation mirrors that order.
+- **Java's integer division truncates toward zero and Python's `//` floors.**
+  `PortalBreakLink.centreColumn` is Java's, and the matrix room stands at
+  negative coordinates, so the planner reimplements the Java rule
+  (`java_int_div`) and the self-test pins both signs.
 - `require_backup_idle` refuses to run while `mc-backup-local` is mid-cycle: it
   drives the same RCON socket and its replies arrive as answers to your probes.
 - An incomplete run is forced to FAIL by the `EXIT` trap, so dying early can
