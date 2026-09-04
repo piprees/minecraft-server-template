@@ -53,6 +53,7 @@ Run this first. It covers deploy drift, disk, every expected container, `ONLINE_
 | A copper portal frame stops lighting and nothing changed | [T85](#t85) |
 | A subagent shows "running" but has produced nothing for hours | [T86](#t86) |
 | Every mutation "reddens nothing", or a probe reports no activity | [T88](#t88) |
+| A reimplementation of the mod's arithmetic is one block out at negative coordinates | [T87](#t87) |
 | Structure spacing arithmetic disagrees with the world | [T51](#t51) |
 | mc watchdog-crashes a few minutes after a local world reset, parked in `save-all` | [T57](#t57) |
 | The same few structures repeat endlessly in one dimension | [T52](#t52) |
@@ -1552,7 +1553,7 @@ measurement of it.
   of a fourteen-block ring, and ignition refused
   `OPENING_NOT_ENCLOSED ... the fill ran into minecraft:exposed_copper`.
 - **Which dimensions are exposed:** only ones whose frame is an unwaxed,
-  non-terminal copper form. Of the 164 shipped configs, `the_crucible` was the
+  non-terminal copper form. Of the 82 shipped configs, `the_crucible` was the
   only one — `the_gauntlet` uses `oxidized_copper` (terminal, cannot weather
   further) and `the_highland_crossing` uses `raw_copper_block` (a mineral
   block, not in the weathering family). Check any NEW copper frame against
@@ -1608,6 +1609,41 @@ measurement of it.
   back. Kill only after silence plus a zero-artefact window. Never on a hunch —
   but a measured multi-hour gap is a measurement, not a hunch.
 
+<a id="t87"></a>
+### T87 — Java integer division truncates and Python's `//` floors, so a port of one disagrees with the other on every negative coordinate
+
+- **Symptom:** a harness or planner that reimplements a piece of the mod's
+  arithmetic agrees with it perfectly in testing and picks the wrong answer in
+  the world. Nothing errors. Every assertion downstream still passes, because
+  they are all consistent with the wrong number.
+- **Cause:** Java's `/` on `int` truncates TOWARDS ZERO; Python's `//` FLOORS.
+  They agree on every positive value and disagree on every negative one that is
+  not exact. `PortalBreakLink.centreColumn` is `x / count` over an interior's
+  block positions, and a portal room at negative coordinates is where a Python
+  copy of it starts answering one block out. `-40785 / 6` is `-6797` in Java and
+  `-6798` in Python. A centre column one block out picks a different arrival,
+  so symmetric breaking matches nothing and a proximity test measures the wrong
+  portal — both silently.
+- **Fix:** port the rule, not the operator.
+
+  ```python
+  def java_int_div(total, count):
+      """Java's `/` on ints: truncate TOWARDS ZERO, not floor."""
+      quotient = abs(total) // count
+      return -quotient if total < 0 else quotient
+  ```
+
+- **Fixture both signs, and put the .5 on an ODD coordinate.** A rectangular
+  2-wide opening averages to `x0 + 0.5`. Python's `round()` is banker's
+  rounding, so at an EVEN `x0` it happens to agree with truncation and the test
+  passes while the code is wrong. `x0 = 228` agrees; `x0 = 229` does not. Every
+  fixture for a ported integer division needs a positive case, a negative case,
+  and a half that lands on an odd coordinate.
+- **This class is not specific to division.** Any Java arithmetic reimplemented
+  in Python (`%` on negatives, `>>` on signed ints, float-to-int narrowing) has
+  the same trap. Pin it against the Java, not against intuition —
+  `scripts/e2e/portal-matrix-selftest.sh` is the worked example.
+
 <a id="t88"></a>
 ### T88 — A result file outlives the run that made it, so a build that never ran reads as a pass
 
@@ -1632,6 +1668,14 @@ measurement of it.
   answer unless it moves, reporting `DID NOT RUN` with the compiler's own error
   lines. For a probe: give it a positive control — assert something you know
   must read true before believing a negative — and do not swallow stderr.
+- **Concurrent gradle on ONE project directory corrupts both runs.** Measured:
+  two builds started together over a tree several agents were also building
+  gave `NoClassDefFoundError` / `ClassNotFoundException` on 288 of 324 tests,
+  in a source file untouched for a day. A clean re-run with nothing else
+  building was `BUILD SUCCESSFUL` with zero failures. **A Gradle project is
+  single-writer**, the same way the local stack is: serialise builds, and treat
+  a suite that fails wholesale in unrelated classes as a race until a lone
+  re-run says otherwise.
 - **A sweep whose results each name a DIFFERENT test is not affected.** A stale
   file repeats one answer verbatim; it cannot invent a distinct, correct
   attribution per mutation. That is how to tell a poisoned sweep from a real one
