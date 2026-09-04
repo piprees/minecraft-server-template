@@ -14,6 +14,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -814,6 +815,83 @@ class ProjectionRendererClipTest {
                 projection(Direction.SOUTH, new BlockPos(1492, 93, 1501)));
 
         assertEquals(1.0, box.maxZ - box.minZ, TOLERANCE);
+    }
+
+    /**
+     * The slice runs from the surface's nearest point to nine tenths of the way
+     * to the nearest point half a block behind it — short of the whole half
+     * block so the backdrop still beats source terrain starting at the aperture
+     * block's far face.
+     */
+    @Test
+    void theDepthSliceStopsShortOfTheHalfBlockBehindTheSurface() {
+        double[] slice = ProjectionRenderer.depthSlice(0.9880, 0.9892);
+
+        assertEquals(0.9880, slice[0], 1.0e-9, "the slice does not start at the surface");
+        assertEquals(0.9880 + 0.0012 * 0.9, slice[1], 1.0e-9,
+                "the slice does not stop short of the half block");
+    }
+
+    /**
+     * A degenerate or out-of-range slice is refused rather than clamped. Applied
+     * as a depth range it would compress the destination into nothing, or invert
+     * it, and the portal would draw as a flat plate or not at all.
+     */
+    @Test
+    void aSliceThatCannotBeFormedIsRefusedRatherThanClamped() {
+        assertNull(ProjectionRenderer.depthSlice(Double.NaN, 0.99), "NaN surface accepted");
+        assertNull(ProjectionRenderer.depthSlice(0.99, Double.NaN), "NaN half block accepted");
+        assertNull(ProjectionRenderer.depthSlice(0.99, 0.99), "a zero-thickness slice was formed");
+        assertNull(ProjectionRenderer.depthSlice(0.99, 0.98), "an inverted slice was formed");
+        assertNull(ProjectionRenderer.depthSlice(-0.01, 0.5), "a slice starting behind the eye");
+        assertNull(ProjectionRenderer.depthSlice(0.5, 1.01), "a slice past the far plane");
+    }
+
+    /**
+     * The whole point, as a number: the destination's depths all land inside the
+     * slice, so a real block in front of the surface — nearer than the slice's
+     * own start — beats every one of them under an ordinary LEQUAL test.
+     */
+    @Test
+    void everyDepthInTheSliceIsBehindABlockInFrontOfTheSurface() {
+        double surface = 0.9880;
+        double blockInFront = 0.9875;
+        double[] slice = ProjectionRenderer.depthSlice(surface, 0.9892);
+
+        assertTrue(slice[0] > blockInFront,
+                "the slice starts nearer than a block in front of the surface");
+        assertTrue(slice[1] > slice[0], "the slice has no depth to sort the destination in");
+        assertTrue(slice[1] < 0.9892, "the slice reaches the half block it must stop short of");
+    }
+
+    /**
+     * The guard restores its state even when the draw throws, whatever the state
+     * is. This is the seam the colour mask and the depth range both go through,
+     * and the depth range has no {@code RenderSystem} cache and no vanilla phase
+     * to put it back.
+     */
+    @Test
+    void theGlStateGuardRestoresAfterAThrowAndReturnsTheDrawsValue() {
+        List<String> calls = new ArrayList<>();
+
+        assertEquals("drawn", ProjectionRenderer.withGlState(
+                () -> calls.add("apply"), () -> calls.add("restore"), () -> {
+                    calls.add("draw");
+                    return "drawn";
+                }));
+        assertEquals(List.of("apply", "draw", "restore"), calls);
+
+        calls.clear();
+        RuntimeException boom = new RuntimeException("draw failed");
+        RuntimeException thrown = assertThrows(RuntimeException.class,
+                () -> ProjectionRenderer.withGlState(
+                        () -> calls.add("apply"), () -> calls.add("restore"), () -> {
+                            throw boom;
+                        }));
+
+        assertSame(boom, thrown, "the failure was swallowed instead of propagating");
+        assertEquals(List.of("apply", "restore"), calls,
+                "the state was left set after the draw threw");
     }
 
     private static int stamp(ClientProjection projection, double camA, double camB,

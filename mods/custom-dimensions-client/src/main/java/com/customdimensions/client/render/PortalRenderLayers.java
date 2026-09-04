@@ -17,11 +17,12 @@ import org.lwjgl.opengl.GL11;
  * source world's blocks BEHIND the frame — a portal cut into a hillside is
  * looking at solid stone — stop occluding the destination.
  *
- * <p>The consequence, stated plainly: anything real between the camera and the
- * quad is overdrawn where the quad lands. The renderer cuts this quad against
- * the aperture tunnel first, so the frame's own block is respected — but a
- * block standing anywhere else between the camera and the opening is still
- * overdrawn, which no depth test here can prevent.
+ * <p>An ordinary depth test is enough because the renderer compresses the whole
+ * pass into a depth slice at the window (`ProjectionRenderer.depthSlice`): the
+ * quad tests at the portal surface rather than at its own distance, so a real
+ * block in front of the frame is nearer and survives, while the source world's
+ * blocks BEHIND the frame — a portal cut into a hillside is looking at solid
+ * stone — are farther and are covered.
  */
 public final class PortalRenderLayers {
 
@@ -40,7 +41,7 @@ public final class PortalRenderLayers {
                 RenderSystem.disableCull();
                 RenderSystem.enableDepthTest();
                 RenderSystem.depthMask(true);
-                RenderSystem.depthFunc(GL11.GL_ALWAYS);
+                RenderSystem.depthFunc(GL11.GL_LEQUAL);
             },
             () -> {
                 RenderSystem.depthFunc(GL11.GL_LEQUAL);

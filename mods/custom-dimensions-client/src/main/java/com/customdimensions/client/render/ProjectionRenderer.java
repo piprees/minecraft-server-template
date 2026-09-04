@@ -8,6 +8,9 @@ import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
+import org.lwjgl.opengl.GL11;
+import org.joml.Matrix4f;
+import org.joml.Vector4f;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,6 +48,13 @@ public final class ProjectionRenderer {
     /** How far past the described slab the backdrop sits, in blocks. */
     private static final double BACKDROP_MARGIN = 2.0;
 
+    /**
+     * How much of the half block behind the surface the destination is
+     * compressed into. Short of the whole of it so the backdrop still wins
+     * against source terrain starting at the aperture block's far face.
+     */
+    private static final double SLICE_FRACTION = 0.9;
+
     private static final double[] PLANES = new double[32];
     private static final double[] TUNNEL = new double[24];
     private static final float[] POLY_A = new float[STRIDE * MAX_POLY];
@@ -52,6 +62,11 @@ public final class ProjectionRenderer {
 
     /** Planes {@link #buildTunnelPlanes} last wrote into {@link #PLANES}. */
     private static int planeCount;
+
+    private static final Runnable NOTHING = () -> { };
+
+    /** Raw GL11, tracked by no RenderSystem cache and restored by no vanilla phase. */
+    private static final Runnable RESTORE_DEPTH_RANGE = () -> GL11.glDepthRange(0.0, 1.0);
 
     /** The one place that sets the colour mask; see {@link #withColourMaskOff}. */
     private static final java.util.function.Consumer<Boolean> COLOUR_MASK =
@@ -104,6 +119,8 @@ public final class ProjectionRenderer {
         }
         // Spent when a line is written, not when one is due: no emit line at
         // all then means drawOne never reached the emit path.
+        Matrix4f position = context.positionMatrix();
+        Matrix4f projectionMatrix = context.projectionMatrix();
         boolean sample = System.currentTimeMillis() - lastSampleAt >= SAMPLE_INTERVAL_MS;
         long startedAt = System.nanoTime();
         net.minecraft.client.render.Frustum frustum = context.frustum();
@@ -115,7 +132,7 @@ public final class ProjectionRenderer {
                 spanGated++;
                 continue;
             }
-            drawOne(projection, matrices, camera, sample);
+            drawOne(projection, matrices, camera, position, projectionMatrix, sample);
         }
         long elapsed = System.nanoTime() - startedAt;
         spanFrames++;
@@ -137,7 +154,7 @@ public final class ProjectionRenderer {
     }
 
     private static void drawOne(ClientProjection projection, MatrixStack matrices, Vec3d camera,
-            boolean sample) {
+            Matrix4f position, Matrix4f projectionMatrix, boolean sample) {
         BlockPos origin = projection.origin();
         double camX = camera.x - origin.getX();
         double camY = camera.y - origin.getY();
@@ -173,36 +190,46 @@ public final class ProjectionRenderer {
         matrices.translate(origin.getX() - camera.x, origin.getY() - camera.y, origin.getZ() - camera.z);
         MatrixStack.Entry entry = matrices.peek();
 
-        drawFlat(PortalRenderLayers.BACKDROP, entry, backdropPolygon(projection, TUNNEL,
-                camX, camY, camZ, planeLocal, facing, POLY_A, POLY_B), false);
+        double[] slice = sliceFor(projection, corners, camX, camY, camZ, facing,
+                position, projectionMatrix);
+        Runnable applySlice = slice == null ? NOTHING
+                : () -> GL11.glDepthRange(slice[0], slice[1]);
+        Runnable restoreSlice = slice == null ? NOTHING : RESTORE_DEPTH_RANGE;
+
         double surface = projection.surfaceOffset();
         float shiftX = normalAxis == Direction.Axis.X ? (float) surface : 0.0f;
         float shiftY = normalAxis == Direction.Axis.Y ? (float) surface : 0.0f;
         float shiftZ = normalAxis == Direction.Axis.Z ? (float) surface : 0.0f;
         StringBuilder report = sample ? new StringBuilder() : null;
-        for (ProjectionMesh.Layer layer : mesh.layers()) {
-            VertexConsumer consumer = immediate.getBuffer(layer.layer());
-            int emitted = emitClipped(layer, consumer, entry, shiftX, shiftY, shiftZ);
-            immediate.draw(layer.layer());
-            if (report != null) {
-                report.append(report.isEmpty() ? "" : " | ")
-                        .append(layer.layer())
-                        .append(" quadsIn=").append(layer.floats() / (STRIDE * 4))
-                        .append(" geometry=").append(meshBounds(layer))
-                        .append(" highest=").append(highestVertex(layer))
-                        .append(" clipVertices=").append(clipVertices)
-                        .append(" rejectedBy=").append(java.util.Arrays.toString(rejectedBy))
-                        .append(" emitted=").append(emitted)
-                        .append(" consumer=").append(consumer.getClass().getName())
-                        .append(" drawn=true");
+        // One apply/restore for the whole pass: glDepthRange is a raw GL state
+        // change and paying for it per layer costs more than the clip does.
+        int stamp = withGlState(applySlice, restoreSlice, () -> {
+            drawFlat(PortalRenderLayers.BACKDROP, entry, backdropPolygon(projection, TUNNEL,
+                    camX, camY, camZ, planeLocal, facing, POLY_A, POLY_B), false);
+            for (ProjectionMesh.Layer layer : mesh.layers()) {
+                VertexConsumer consumer = immediate.getBuffer(layer.layer());
+                int emitted = emitClipped(layer, consumer, entry, shiftX, shiftY, shiftZ);
+                immediate.draw(layer.layer());
+                if (report != null) {
+                    report.append(report.isEmpty() ? "" : " | ")
+                            .append(layer.layer())
+                            .append(" quadsIn=").append(layer.floats() / (STRIDE * 4))
+                            .append(" geometry=").append(meshBounds(layer))
+                            .append(" highest=").append(highestVertex(layer))
+                            .append(" clipVertices=").append(clipVertices)
+                            .append(" rejectedBy=").append(java.util.Arrays.toString(rejectedBy))
+                            .append(" emitted=").append(emitted)
+                            .append(" consumer=").append(consumer.getClass().getName())
+                            .append(" drawn=true");
+                }
             }
-        }
-        // Last, so it replaces the destination's own depth: everything vanilla
-        // draws after this composites against the window, not against the
-        // source-world coordinates the destination borrowed.
-        int stamp = drawFlat(PortalRenderLayers.APERTURE_DEPTH, entry,
-                aperturePolygon(projection, TUNNEL, camX, camY, camZ, planeLocal, POLY_A, POLY_B),
-                true);
+            // Last, so it replaces the destination's own depth: everything vanilla
+            // draws after this composites against the window, not against the
+            // source-world coordinates the destination borrowed.
+            return drawFlat(PortalRenderLayers.APERTURE_DEPTH, entry,
+                    aperturePolygon(projection, TUNNEL, camX, camY, camZ, planeLocal,
+                            POLY_A, POLY_B), true);
+        });
 
         // Written after the draws, so a line at all means every draw returned.
         if (report != null) {
@@ -453,12 +480,93 @@ public final class ProjectionRenderer {
      * left off is a black frame for the rest of the frame.
      */
     static void withColourMaskOff(java.util.function.Consumer<Boolean> mask, Runnable draw) {
-        mask.accept(Boolean.FALSE);
-        try {
+        withGlState(() -> mask.accept(Boolean.FALSE), () -> mask.accept(Boolean.TRUE), () -> {
             draw.run();
+            return null;
+        });
+    }
+
+    /**
+     * Sets GL state, draws, and restores it even when the draw throws. Every
+     * raw GL call this renderer makes goes through here: {@code RenderLayer}
+     * has no exception table, so state set around a draw and restored after it
+     * is state left set for the rest of the frame when anything fails.
+     */
+    static <T> T withGlState(Runnable apply, Runnable restore,
+            java.util.function.Supplier<T> draw) {
+        apply.run();
+        try {
+            return draw.get();
         } finally {
-            mask.accept(Boolean.TRUE);
+            restore.run();
         }
+    }
+
+    /**
+     * Window-space depth of a camera-relative point, or NaN behind the eye.
+     */
+    static double windowDepth(Matrix4f position, Matrix4f projectionMatrix,
+            double x, double y, double z) {
+        Vector4f point = new Vector4f((float) x, (float) y, (float) z, 1.0f);
+        position.transform(point);
+        projectionMatrix.transform(point);
+        if (!(point.w > 0.0f)) {
+            return Double.NaN;
+        }
+        return (point.z / point.w + 1.0) / 2.0;
+    }
+
+    /**
+     * The depth range the destination is compressed into, as
+     * {@code {near, far}}, or null when it cannot be formed.
+     *
+     * <p>{@code surfaceDepth} is the NEAREST point of the portal surface and
+     * {@code halfBlockDepth} the nearest point half a block behind it. Squeezed
+     * between them, every fragment of the destination tests and writes at the
+     * WINDOW's depth instead of at the source-world coordinates it borrowed —
+     * which is what lets a real block in front of the frame survive a pass that
+     * used to overwrite it.
+     *
+     * <p>The surface's depth is not constant across the opening seen
+     * obliquely, so taking the nearest point leaves a residual band the size of
+     * that spread, in which something in front of the frame is still lost.
+     */
+    static double[] depthSlice(double surfaceDepth, double halfBlockDepth) {
+        if (Double.isNaN(surfaceDepth) || Double.isNaN(halfBlockDepth)) {
+            return null;
+        }
+        if (surfaceDepth < 0.0 || halfBlockDepth > 1.0 || halfBlockDepth <= surfaceDepth) {
+            return null;
+        }
+        return new double[] {
+            surfaceDepth,
+            surfaceDepth + (halfBlockDepth - surfaceDepth) * SLICE_FRACTION,
+        };
+    }
+
+    /** The slice for one portal, from its opening's four corners. */
+    private static double[] sliceFor(ClientProjection projection, double[] corners,
+            double camX, double camY, double camZ, double facing,
+            Matrix4f position, Matrix4f projectionMatrix) {
+        Direction.Axis axis = projection.normalAxis();
+        double surface = Double.MAX_VALUE;
+        double behind = Double.MAX_VALUE;
+        for (int i = 0; i < 4; i++) {
+            double x = corners[i * 3] - camX;
+            double y = corners[i * 3 + 1] - camY;
+            double z = corners[i * 3 + 2] - camZ;
+            double near = windowDepth(position, projectionMatrix, x, y, z);
+            double half = windowDepth(position, projectionMatrix,
+                    x + (axis == Direction.Axis.X ? facing * 0.5 : 0.0),
+                    y + (axis == Direction.Axis.Y ? facing * 0.5 : 0.0),
+                    z + (axis == Direction.Axis.Z ? facing * 0.5 : 0.0));
+            if (Double.isNaN(near) || Double.isNaN(half)) {
+                return null;
+            }
+            surface = Math.min(surface, near);
+            behind = Math.min(behind, half);
+        }
+        return depthSlice(surface, behind);
     }
 
     /**
