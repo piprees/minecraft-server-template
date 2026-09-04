@@ -77,6 +77,7 @@ final class DevState {
                     .bool("worldStanding", held.containsKey(destination))
                     .num("chunksInWorld", held.getOrDefault(destination, 0))
                     .num("chunksReceived", received.getOrDefault(destination, 0))
+                    .num("renderedSections", DestinationWorlds.renderedSections(destination))
                     .toString());
             first = false;
         }
@@ -88,6 +89,7 @@ final class DevState {
                 .num("slabProjections", ProjectionStore.count())
                 .num("destinationWorlds", DestinationWorlds.count())
                 .num("destinationChunks", DestinationChunks.total())
+                .num("renderedSections", DestinationWorlds.renderedSections())
                 .num("spectatorPasses", SpectatorPass.passes())
                 .num("spectatorLastUs", SpectatorPass.lastMicros())
                 .num("spectatorMeanUs", SpectatorPass.meanMicros())

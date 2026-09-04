@@ -1,6 +1,7 @@
 package com.customdimensions.client.realtime;
 
 import com.customdimensions.client.CustomDimensionsClient;
+import com.customdimensions.client.mixin.ClientPlayNetworkHandlerLightAccessor;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayNetworkHandler;
 import net.minecraft.client.render.WorldRenderer;
@@ -12,17 +13,10 @@ import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.math.ChunkPos;
-import net.minecraft.util.math.ChunkSectionPos;
 import net.minecraft.world.Difficulty;
-import net.minecraft.world.LightType;
-import net.minecraft.world.chunk.ChunkNibbleArray;
 import net.minecraft.world.chunk.WorldChunk;
-import net.minecraft.world.chunk.light.LightingProvider;
 import net.minecraft.world.dimension.DimensionType;
 
-import java.util.BitSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -47,12 +41,11 @@ import java.util.concurrent.ConcurrentHashMap;
  * {@link ChunkMapWindow} holds the arithmetic.
  *
  * <h2>Light</h2>
- * Vanilla's own light path is {@code ClientPlayNetworkHandler.updateLighting},
- * which takes the {@code LightingProvider} as a parameter and looks
- * world-agnostic. It is not: its last act is
- * {@code this.world.scheduleBlockRenders}, so invoking it would enqueue this
- * destination's light against the SOURCE world's renderers. The loop is
- * reproduced here instead, against public API only.
+ * Light goes in through vanilla's own {@code readLightData} with the handler's
+ * world swapped to the destination, so Sodium's injection on that method flags
+ * the destination's chunk tracker. Without that flag no fed chunk ever becomes
+ * a render section and the second pass draws sky only.
+ * {@link ClientPlayNetworkHandlerLightAccessor} holds the reasoning.
  */
 public final class DestinationWorlds {
 
@@ -83,6 +76,25 @@ public final class DestinationWorlds {
     /** The renderer holding this destination's chunk state, for a second pass. */
     public static WorldRenderer rendererFor(Identifier destination) {
         return destination == null ? null : RENDERERS.get(destination);
+    }
+
+    /**
+     * How many render sections this destination's renderer last drew. Zero
+     * with chunks held means the sections never built — the one number that
+     * separates "the pass ran" from "the pass drew terrain".
+     */
+    public static int renderedSections(Identifier destination) {
+        WorldRenderer renderer = rendererFor(destination);
+        return renderer == null ? 0 : renderer.getCompletedChunkCount();
+    }
+
+    /** Render sections drawn across every standing destination. */
+    public static int renderedSections() {
+        int total = 0;
+        for (WorldRenderer renderer : RENDERERS.values()) {
+            total += renderer.getCompletedChunkCount();
+        }
+        return total;
     }
 
     /** How many chunks this destination's own manager is holding. */
@@ -187,32 +199,32 @@ public final class DestinationWorlds {
     }
 
     /**
-     * Vanilla's {@code readLightData}, against this world's own provider and
-     * this world's own renderers. See the class comment for why the vanilla
-     * method cannot be invoked instead.
+     * Runs vanilla's {@code readLightData} with the handler pointed at this
+     * destination, then puts the source world straight back.
+     *
+     * <p>The method reads {@code this.world} for the lighting provider and for
+     * {@code scheduleBlockRenders}, so the swap is what makes both this
+     * world's. Sodium's injection on the same method reads the same field, so
+     * the swap is also what puts {@code FLAG_HAS_LIGHT_DATA} on this world's
+     * chunk tracker — the flag every render section is gated on.
      */
     private static void applyLight(ClientWorld world, int chunkX, int chunkZ, LightData data) {
         if (data == null) {
             return;
         }
-        LightingProvider provider = world.getChunkManager().getLightingProvider();
-        updateLighting(world, chunkX, chunkZ, provider, LightType.SKY,
-                data.getInitedSky(), data.getUninitedSky(), data.getSkyNibbles().iterator());
-        updateLighting(world, chunkX, chunkZ, provider, LightType.BLOCK,
-                data.getInitedBlock(), data.getUninitedBlock(), data.getBlockNibbles().iterator());
-        provider.setColumnEnabled(new ChunkPos(chunkX, chunkZ), true);
-    }
-
-    private static void updateLighting(ClientWorld world, int chunkX, int chunkZ,
-            LightingProvider provider, LightType type, BitSet inited, BitSet uninited,
-            Iterator<byte[]> nibbles) {
-        int bottomSection = provider.getBottomY();
-        for (LightSteps.Step step : LightSteps.of(provider.getHeight(), inited, uninited)) {
-            int sectionY = bottomSection + step.section();
-            provider.enqueueSectionData(type, ChunkSectionPos.from(chunkX, sectionY, chunkZ),
-                    step.fromWire() ? new ChunkNibbleArray(nibbles.next().clone())
-                            : new ChunkNibbleArray());
-            world.scheduleBlockRenders(chunkX, sectionY, chunkZ);
+        MinecraftClient client = MinecraftClient.getInstance();
+        ClientPlayNetworkHandler handler = client == null ? null : client.getNetworkHandler();
+        if (handler == null) {
+            return;
+        }
+        ClientPlayNetworkHandlerLightAccessor access =
+                (ClientPlayNetworkHandlerLightAccessor) handler;
+        ClientWorld source = access.customdimensionsclient$world();
+        access.customdimensionsclient$setWorld(world);
+        try {
+            access.customdimensionsclient$readLightData(chunkX, chunkZ, data);
+        } finally {
+            access.customdimensionsclient$setWorld(source);
         }
     }
 
