@@ -152,6 +152,35 @@ puts it. Crucible (4.0) is verified on the TRANSFORM only — the wire offset is
 `(-2445, -25, -2162)`, pure addition, and a local projection builds there — not
 on a landmark, for want of a vantage point at that rig.
 
+### P4a — Why the second pass draws nothing
+
+**Established in bytecode.** The renderer builds a chunk section only when that
+chunk AND its 8 neighbours carry both block-data and light-data status. Two
+independent reasons the destination world never qualifies:
+
+- **`DestinationWorlds.applyLight`/`updateLighting` (`:194-217`) reimplements
+  vanilla's `updateLighting` rather than calling it**, so nothing ever flags the
+  destination's chunks as having light data. Fix: swap
+  `ClientPlayNetworkHandler.world` behind a `@Mutable @Accessor` for the
+  duration of the load and call **vanilla's** `updateLighting`.
+- **`DestinationFeed.nextChunks` (`DestinationFeed.java:112-146`) sends a
+  visibility CONE** (`chunkThroughOpening`). A cone has no interior, so almost
+  no chunk has all 8 neighbours. **The minimum for one renderable chunk is a
+  filled 3x3.** `ProjectionMesh` never cared because it read blocks directly; a
+  real render pass does.
+
+**Cost, measured over 14,511 passes: 3803us mean, 3611us last** — ~7.5x the
+existing pass. An earlier 46-55ms figure was a 2-sample mean including the
+framebuffer allocation and is withdrawn. With `destinationChunks=0` a pass still
+costs 3611us, so **~3.8ms is fixed per-pass overhead, not terrain**: 
+`SpectatorPass.ensureTarget:206-215` allocates the offscreen target at the MAIN
+framebuffer's full size, so every pass pays a full-resolution clear, a full-res
+sky draw and a full-res -> 288px downsample.
+
+**THE MOD IS STANDALONE.** Sodium cannot be assumed and must not be depended on.
+Build against the vanilla renderer; anything Sodium does is a consequence, never
+the mechanism.
+
 ### P5 — The mask
 
 The destination scene appears only in the opening, and source-world geometry in
@@ -258,7 +287,7 @@ It still bounds the fallback, so leave those constants alone.
 - The client dies of its own accord ([P6](../../TROUBLESHOOTING.md#p6), a
   HotSpot SIGBUS with no fix). A client death invalidates assertions downstream
   of it and is not a finding about the code.
-- Server mod: 143 suites / 1737 tests. Client mod: 31 suites / 401 tests. Keep
+- Server mod: 147 suites / 1758 tests. Client mod: 405 tests. Keep
   both green. Any test touching a `RenderLayer` dies in `<clinit>`
   (`RenderLayer -> ItemRenderer -> Items -> Blocks -> SoundEvents`).
 
