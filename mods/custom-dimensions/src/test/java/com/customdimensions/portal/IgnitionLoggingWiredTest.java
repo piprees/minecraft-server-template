@@ -45,6 +45,8 @@ class IgnitionLoggingWiredTest {
         final Set<String> scanCalls = new LinkedHashSet<>();
         final Set<String> loggerCalls = new LinkedHashSet<>();
         final Set<String> decrementCalls = new LinkedHashSet<>();
+        /** Call SITES. A set of names collapses N of them into one entry. */
+        int decrementSites;
         /** Opcodes seen immediately after a PortalHelper.registerZone call. */
         final List<Integer> afterRegisterZone = new ArrayList<>();
 
@@ -100,6 +102,7 @@ class IgnitionLoggingWiredTest {
                         Uses.this.loggerCalls.add(method);
                     } else if ("decrement".equals(method)) {
                         Uses.this.decrementCalls.add(owner + "." + method);
+                        Uses.this.decrementSites++;
                     }
                     if (HELPER.equals(owner) && "registerZone".equals(method)) {
                         this.justRegisteredZone = true;
@@ -180,12 +183,16 @@ class IgnitionLoggingWiredTest {
 
     @Test
     void theIgniterIsSpentInExactlyOnePlace() throws IOException {
-        // The consume sits behind the registered-or-not branch. One call site
-        // is what keeps that true — a second one is how it creeps back out.
+        // The one decrement belongs to IgniterSpend.CONSUME, behind the
+        // registered-or-not branch. A second one is how destroying a
+        // damageable igniter creeps back in, so count SITES: a set of callee
+        // names collapses two decrements on ItemStack into a single entry and
+        // reports the regression as a pass.
         Uses uses = readMixin();
 
-        assertEquals(1, uses.decrementCalls.size(),
-                "expected one ItemStack.decrement in the ignition path, found " + uses.decrementCalls);
+        assertEquals(1, uses.decrementSites,
+                "expected one ItemStack.decrement call site in the ignition path, found "
+                + uses.decrementSites + " across " + uses.decrementCalls);
     }
 
     @Test
