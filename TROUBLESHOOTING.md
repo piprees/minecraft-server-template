@@ -1646,6 +1646,21 @@ measurement of it.
   `scripts/e2e/portal-matrix-selftest.sh` is the worked example.
 
 <a id="t89"></a>
+### T90 — Backgrounding `./dev restart mc` inside a tool kills it mid-recreate and leaves an orphan
+
+- **Symptom:** `mc` disappears. `docker inspect mc` answers `healthy` on the
+  first check and `no such object` on the next, and a `Created`-only container
+  named `<hash>_mc` holds nothing. Downtime measured at ~8 minutes.
+- **Cause:** `nohup ./dev restart mc &` inside the Bash tool. Docker compose had
+  already renamed the running container out of the way when the process was
+  killed, so the recreate never completed. The first `inspect` resolved the
+  old container, which is why the healthcheck lied.
+- **Fix:** remove the orphan, then `./dev up` — which also installs the local
+  mod jars. **Never background a compose recreate yourself.** Use the tool's own
+  backgrounding, or run it in the foreground and wait.
+- **Trap:** one healthy `docker inspect` immediately after a restart proves
+  nothing. Poll until `docker ps` shows the container by its real name.
+
 ### T89 — A break cannot remove an arrival zone that has not been promoted yet, and the re-light builds a second
 
 - **Symptom:** breaking a portal and re-lighting it leaves two `arrival-zone-v1`
