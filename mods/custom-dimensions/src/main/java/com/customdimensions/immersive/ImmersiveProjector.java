@@ -1,6 +1,7 @@
 package com.customdimensions.immersive;
 
 import com.customdimensions.MultiverseServer;
+import com.customdimensions.companion.DestinationFeed;
 import com.customdimensions.config.ImmersiveSettings;
 import com.customdimensions.config.MultiverseConfig;
 import com.customdimensions.config.PortalDefinition;
@@ -28,6 +29,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -80,12 +82,13 @@ import java.util.concurrent.ConcurrentHashMap;
  * silently, and the pre-loader would never re-run because its dedupe is only
  * invalidated by a world unload — which never happens, only the chunks do.
  * The two mechanisms would guard each other into a permanent dead state. So
- * the projector holds its own {@link #PREVIEW_TICKET} on exactly the chunk
- * columns {@link ProjectionVolume#targetChunks} names, for as long as any
- * player is in range, and releases it on every teardown path. The ticket
- * also carries an expiry ({@link #TICKET_EXPIRY_TICKS}), refreshed on a
- * cadence while wanted, so a missed release path self-heals instead of
- * pinning chunks forever.
+ * the projector holds its own {@link #PREVIEW_TICKET} on the columns
+ * {@link #holdSet} names — {@link ProjectionVolume#targetChunks} for the block
+ * slab, plus the feed's resident core for a viewer drawing the far side
+ * itself — for as long as any player is in range, and releases it on every
+ * teardown path. The ticket also carries an expiry
+ * ({@link #TICKET_EXPIRY_TICKS}), refreshed on a cadence while wanted, so a
+ * missed release path self-heals instead of pinning chunks forever.
  *
  * <h2>Rule 3: an orderly shutdown is a teardown; a crash is not</h2>
  * {@link #clear()} restores every live projection before dropping its state.
@@ -416,14 +419,22 @@ public final class ImmersiveProjector {
         }
     }
 
-    /** One zone's ticketed chunk columns in one target world. */
+    /**
+     * One zone's ticketed chunk columns in one target world. {@code chunks} is
+     * what carries a ticket and is what {@link #releaseChunks} removes;
+     * {@code previewBox} is the geometric half of it, cached because it does
+     * not move.
+     */
     private static final class HeldChunks {
         private final RegistryKey<World> targetWorld;
+        private final List<ChunkPos> previewBox;
         private final List<ChunkPos> chunks;
-        private long lastRefreshTick;
+        private final long lastRefreshTick;
 
-        private HeldChunks(RegistryKey<World> targetWorld, List<ChunkPos> chunks, long tick) {
+        private HeldChunks(RegistryKey<World> targetWorld, List<ChunkPos> previewBox,
+                List<ChunkPos> chunks, long tick) {
             this.targetWorld = targetWorld;
+            this.previewBox = previewBox;
             this.chunks = chunks;
             this.lastRefreshTick = tick;
         }
@@ -1214,26 +1225,81 @@ public final class ImmersiveProjector {
         if (held != null && tick - held.lastRefreshTick < TICKET_REFRESH_TICKS) {
             return;
         }
-        List<ChunkPos> chunks = held != null ? held.chunks
+        List<ChunkPos> previewBox = held != null ? held.previewBox
                 : ProjectionVolume.targetChunks(zone.interior, zone.axis, mapping,
                         settings.previewDepth(), settings.previewRadius());
-        if (chunks.isEmpty()) {
+        if (previewBox.isEmpty()) {
             return;
         }
+        // Recomputed every refresh, not cached: the core half is whatever is
+        // resident right now, and that changes as a destination drains.
+        List<ChunkPos> chunks = holdSet(previewBox,
+                mapping.arrivalX() >> 4, mapping.arrivalZ() >> 4, anyLocalDrawer(zone),
+                (chunkX, chunkZ) -> PortalHelper.residentChunk(targetWorld, chunkX, chunkZ) != null);
         for (ChunkPos pos : chunks) {
             // Re-adding an identical ticket resets its expiry without
             // touching the chunk level, so this is idempotent and cheap.
             targetWorld.getChunkManager().addTicket(PREVIEW_TICKET, pos, TICKET_RADIUS, pos);
         }
-        if (held == null) {
-            HELD.put(zone, new HeldChunks(targetKey, chunks, tick));
+        boolean sizeChanged = held == null || held.chunks.size() != chunks.size();
+        // Replaced rather than mutated: HELD is read by wantedByAnotherZone
+        // while this zone is being refreshed. A column that has dropped out
+        // keeps a ticket until TICKET_EXPIRY_TICKS retires it.
+        HELD.put(zone, new HeldChunks(targetKey, previewBox, chunks, tick));
+        if (sizeChanged) {
             MultiverseServer.LOGGER.info(
                     "immersive: holding {} arrival chunks in {} for zone {} {}",
                     chunks.size(), targetKey.getValue(), zone.sourceWorld.getValue(),
                     chunks.get(0));
-        } else {
-            held.lastRefreshTick = tick;
         }
+    }
+
+    /** Whether a chunk column is resident, as a value, so the rule stays testable. */
+    interface ChunkResidency {
+        boolean isResident(int chunkX, int chunkZ);
+    }
+
+    /**
+     * The columns one zone tickets: the block slab's preview box always, plus
+     * the feed's {@link DestinationFeed#CORE_RADIUS} square around the arrival
+     * for a viewer drawing the far side itself.
+     *
+     * <p>The core half is filtered to what is ALREADY resident. A ticket sets
+     * a chunk's level and the manager loads or generates whatever reaches it
+     * ({@code ChunkTicketManager.addTicket} builds the ticket at
+     * {@code getLevelFromType(FULL) - radius}), so an unfiltered square would
+     * force first-time generation at a portal into fresh terrain — [K6].
+     * {@code ImmersivePreloader} keeps owning generation on its one-shot path;
+     * this only stops what is loaded from draining.
+     */
+    static List<ChunkPos> holdSet(List<ChunkPos> previewBox, int arrivalChunkX, int arrivalChunkZ,
+            boolean localDrawer, ChunkResidency residency) {
+        LinkedHashSet<ChunkPos> held = new LinkedHashSet<>(previewBox);
+        if (localDrawer) {
+            int core = DestinationFeed.CORE_RADIUS;
+            for (int ox = -core; ox <= core; ox++) {
+                for (int oz = -core; oz <= core; oz++) {
+                    int chunkX = arrivalChunkX + ox;
+                    int chunkZ = arrivalChunkZ + oz;
+                    if (residency.isResident(chunkX, chunkZ)) {
+                        held.add(new ChunkPos(chunkX, chunkZ));
+                    }
+                }
+            }
+        }
+        return new ArrayList<>(held);
+    }
+
+    /** Whether any viewer of this zone draws its far side itself. */
+    private static boolean anyLocalDrawer(PortalHelper.PortalZone zone) {
+        for (Map.Entry<UUID, Map<PortalHelper.PortalZone, PlayerProjectionState>> viewer
+                : ACTIVE.entrySet()) {
+            if (viewer.getValue().containsKey(zone)
+                    && !com.customdimensions.companion.CompanionNetwork.streamsSlab(viewer.getKey())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /** Drop this zone's ticket, keeping chunks another zone still wants. */
