@@ -67,8 +67,19 @@ public final class DestinationFeed {
      */
     public static final int CORE_RADIUS = 2;
 
+    /**
+     * Pumps a destination may write nothing for before it says so again. At
+     * the stationary refresh cadence of 16 ticks this is about a minute, so a
+     * feed that has gone quiet is in any log snapshot rather than only in the
+     * one covering the moment it stopped.
+     */
+    public static final int IDLE_REPEAT_PUMPS = 75;
+
     /** Per player, per destination, the chunk keys already sent. */
     private static final Map<UUID, Map<Identifier, Set<Long>>> SENT = new ConcurrentHashMap<>();
+
+    /** Per player, per destination, consecutive pumps that wrote nothing. */
+    private static final Map<UUID, Map<Identifier, Integer>> IDLE = new ConcurrentHashMap<>();
 
     private DestinationFeed() {}
 
@@ -207,11 +218,13 @@ public final class DestinationFeed {
      */
     public static void forget(UUID playerId) {
         SENT.remove(playerId);
+        IDLE.remove(playerId);
     }
 
     /** Drops every record (server shutdown). */
     public static void clear() {
         SENT.clear();
+        IDLE.clear();
     }
 
     /** How many chunks this client holds for this destination. */
@@ -253,10 +266,18 @@ public final class DestinationFeed {
             sent.add(key);
             written++;
         }
-        if (written > 0) {
-            MultiverseServer.LOGGER.debug("{} player={} dimension={} sent={} held={} radius={}",
+        int idle = nextIdle(idleCount(player.getUuid(), destination), written);
+        IDLE.computeIfAbsent(player.getUuid(), id -> new ConcurrentHashMap<Identifier, Integer>())
+                .put(destination, idle);
+        // A pump reaching here was asked: the projection pass calls this only
+        // for a portal with a live frame. wanted separates a destination that
+        // is fully fed (wanted 0) from one whose chunks are all non-resident
+        // (wanted above 0, written 0) — the state that draws sky forever.
+        if (written > 0 || reportsIdle(idle)) {
+            MultiverseServer.LOGGER.debug(
+                    "{} player={} dimension={} sent={} wanted={} held={} radius={} idlePumps={}",
                     FEED_MARKER, player.getNameForScoreboard(), destination,
-                    written, sent.size(), Math.min(MAX_RADIUS, radius));
+                    written, wanted.size(), sent.size(), Math.min(MAX_RADIUS, radius), idle);
         }
         return written;
     }
@@ -318,6 +339,26 @@ public final class DestinationFeed {
             default:
                 return pos.getZ();
         }
+    }
+
+    /** Consecutive silent pumps after one that wrote {@code written}. */
+    static int nextIdle(int consecutive, int written) {
+        return written > 0 ? 0 : Math.max(0, consecutive) + 1;
+    }
+
+    /**
+     * Whether a pump that wrote nothing says so. The first is what names the
+     * moment a feed went quiet; the repeat is what puts it in a snapshot taken
+     * later.
+     */
+    static boolean reportsIdle(int consecutive) {
+        return consecutive == 1 || (consecutive > 0 && consecutive % IDLE_REPEAT_PUMPS == 0);
+    }
+
+    private static int idleCount(UUID playerId, Identifier destination) {
+        Map<Identifier, Integer> perDestination = IDLE.get(playerId);
+        Integer count = perDestination == null ? null : perDestination.get(destination);
+        return count == null ? 0 : count;
     }
 
     private static Set<Long> recordFor(UUID playerId, Identifier destination) {
