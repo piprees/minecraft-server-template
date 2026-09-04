@@ -4,10 +4,10 @@
 
 | Prefix | Range | What it covers |
 | --- | --- | --- |
-| **T** | [T1–T14, T16–T19, T22–T27, T30–T80, T82–T89](#architecture-traps) | Architecture traps — each has caused a real production incident |
+| **T** | [T1–T14, T16–T19, T22–T27, T30–T80, T82–T94](#architecture-traps) | Architecture traps — each has caused a real production incident |
 | **P** | [P1–P6](#macos-local-dev) | macOS local-dev quirks (BSD tooling, toolchain) |
 | **D** | [D1–D6, D8–D9](#dimension-lifecycle) | Custom-dimension lifecycle on a live world |
-| **K** | [K1–K2, K5–K7, K9](#known-issues) | Open issues — unfixed, on the watch list |
+| **K** | [K1–K2, K5–K7, K9–K10](#known-issues) | Open issues — unfixed, on the watch list |
 
 Related contracts: [`AGENTS.md`](AGENTS.md) (how to behave), [`COMMANDS.md`](COMMANDS.md) (command reference), [`mods/AGENTS.md`](mods/AGENTS.md) (in-house mod development, including portal-subsystem specifics).
 
@@ -55,6 +55,8 @@ Run this first. It covers deploy drift, disk, every expected container, `ONLINE_
 | Every mutation "reddens nothing", or a probe reports no activity | [T88](#t88) |
 | Two arrival zones for one destination after a break and re-light | [T89](#t89) |
 | A reimplementation of the mod's arithmetic is one block out at negative coordinates | [T87](#t87) |
+| A portal renders once, then draws sky on every approach after a traversal | [T93](#t93), [T94](#t94) |
+| A portal's far side is thin and never fills, at 7 chunks and 0 render sections | [K10](#k10) |
 | Structure spacing arithmetic disagrees with the world | [T51](#t51) |
 | mc watchdog-crashes a few minutes after a local world reset, parked in `save-all` | [T57](#t57) |
 | The same few structures repeat endlessly in one dimension | [T52](#t52) |
@@ -1645,6 +1647,58 @@ measurement of it.
   the same trap. Pin it against the Java, not against intuition —
   `scripts/e2e/portal-matrix-selftest.sh` is the worked example.
 
+<a id="t94"></a>
+### T94 — A crossing's own frame and chunks arrive before the client tick that clears the old world's
+
+- **Symptom:** a portal renders the destination on the first approach and draws
+  sky on every approach after a traversal. The dev bridge reports `frames: 0`,
+  `destinationWorlds: 0`, `renderedSections: 0` with `clientSideRefused: false`
+  and an empty `spectatorRefusal`, and the client log shows the frame arriving
+  and the world being dropped in the same second:
+
+  ```
+  companion-client:portal-frame  dimension=adventure:the_amplified_reaches aperture=3464, 80, 2592
+  companion-client:local-projection dimension=adventure:the_amplified_reaches chunks=4
+  companion-client:destination-world dimension=adventure:the_amplified_reaches dropped
+  ```
+
+- **Cause:** the server answers `AFTER_PLAYER_CHANGE_WORLD` by sending the new
+  world's frame and first chunks immediately, and they are processed in the same
+  packet batch as the dimension change. The client's reset compared
+  `MinecraftClient.world` against a bound field on `END_CLIENT_TICK`, one tick
+  later, and cleared what had already landed. Nothing recovers: `sendCompanion`
+  re-sends a frame only when it differs from the one it last sent, and
+  `DestinationFeed` skips every chunk key it believes is held.
+- **Fix:** `WorldBinding` gives the reset one owner per world. The join binds
+  and clears at the head of `MinecraftClient.joinWorld`, before any payload for
+  that world is applied; the tick still calls the same path and finds the world
+  already bound, so it does not clear a second time.
+- **Trap:** a reset driven by comparing the live world against a remembered one
+  is always a tick late. Clear where the world is replaced, not where the change
+  is noticed.
+
+<a id="t93"></a>
+### T93 — The server keeps a record of what a client holds across a world change the client does not survive
+
+- **Symptom:** the destination feed goes silent for the rest of a session after
+  one traversal. The server sends a `companion-send:portal-frame` on every later
+  approach and no `companion-send:destination-chunks` at all, and the client
+  reports `destinationChunks: 0` with no refusal recorded.
+- **Cause:** `DestinationFeed.SENT` and `DestinationEntityFeed.SENT` are per
+  player, per destination, and were dropped only on JOIN, DISCONNECT and
+  shutdown. `ImmersiveProjector.forgetInWorld` answers a world change with
+  `state.forget()`, which touches neither. The client clears every destination
+  world it holds on the same edge, so the server skipped chunk keys the client
+  no longer had. `pump` logs only when it writes something, so the silence
+  leaves no line.
+- **Fix:** `CompanionNetwork.forgetDestinations` drops both feeds for that
+  player and nothing else, called from the `AFTER_PLAYER_CHANGE_WORLD` handler.
+  The handshake and the view declaration stay — the same client in a new
+  dimension must not be put back on the server-drawn slab.
+- **Trap:** the entity feed hides this. Its payload is a full snapshot and
+  `changed()` differs as soon as anything moves, so it self-heals and only a
+  perfectly still far side shows the fault.
+
 <a id="t92"></a>
 ### T92 — A second world render must not point `MinecraftClient.world` at a world no client lifecycle stood up
 
@@ -2213,7 +2267,39 @@ The rendered height disagrees with the facts on high-relief columns. The error i
   reason; probe with `getChunkManager().getWorldChunk(cx, cz, false)` or
   register a `ChunkTicketType.PORTAL` ticket and act on a later tick.
 
+<a id="k10"></a>
+### K10 — The arrival chunk ticket is sized for the block slab, so a client-drawn far side stalls at seven chunks
+
+- **Symptom:** a portal drawn locally fills to 29 chunks on a first approach and
+  to exactly 7 on every approach where the viewer has not just been in the
+  destination, with `renderedSections: 0`. The server log stops after two
+  passes and says why:
+
+  ```
+  immersive: requested 25 arrival chunks around (108, 81) in adventure:the_amplified_reaches for zone minecraft:overworld|3464, 81, 2592
+  immersive: holding 6 arrival chunks in adventure:the_amplified_reaches for zone minecraft:overworld [107, 80]
+  companion-send:destination-chunks ... sent=4 held=4
+  companion-send:destination-chunks ... sent=3 held=7
+  ```
+
+- **Cause:** `ImmersiveProjector.holdChunks` tickets
+  `ProjectionVolume.targetChunks(interior, axis, mapping, previewDepth,
+  previewRadius)` — the block slab's preview box, six chunks.
+  `DestinationFeed` may send only resident chunks and needs the filled 5x5
+  `CORE_RADIUS` core, 25, before a renderer will build the middle of a 3x3. So
+  the feed delivers the ticketed set plus the arrival chunk and stops. A first
+  approach reaches 29 only because the viewer's own presence in that dimension
+  had loaded them. `ImmersivePreloader`'s 25 is a one-shot pre-generation, not a
+  ticket.
+- **Not the feed's record** ([T93](#t93)). With that fixed the count restarts
+  from zero and climbs to 7; the ceiling is residency, not bookkeeping.
+- **Unfixed.** The bounded shape is to add the feed's `CORE_RADIUS` square
+  around the arrival chunk to what `holdChunks` tickets while a viewer draws
+  that portal locally — 25 chunks at `TICKET_RADIUS 0`, readable and not
+  ticking, released on the edges `releaseChunks` already covers.
+
 <a id="k9"></a>
+
 ### K9 — `Expected directory, got <level>/entities` on a level's first visit
 
 - **Symptom:** during a dimension's first visit, repeated (six times, measured):
