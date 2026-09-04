@@ -69,6 +69,9 @@ public final class ProjectionRenderer {
     private static long spanNanos;
     private static long spanPeakNanos;
 
+    /** Portal draws the frustum gate skipped since the last emit line. */
+    private static int spanGated;
+
     /** Vertices the clip left standing in the last {@link #emitClipped}. */
     static int clipVertices;
 
@@ -103,7 +106,15 @@ public final class ProjectionRenderer {
         // all then means drawOne never reached the emit path.
         boolean sample = System.currentTimeMillis() - lastSampleAt >= SAMPLE_INTERVAL_MS;
         long startedAt = System.nanoTime();
+        net.minecraft.client.render.Frustum frustum = context.frustum();
         for (ClientProjection projection : ProjectionStore.all()) {
+            // Everything drawn for a portal is cut to its aperture cone, so an
+            // aperture off screen can contribute no pixel. Without this the whole
+            // clip runs for a portal behind the camera.
+            if (frustum != null && !frustum.isVisible(apertureBox(projection))) {
+                spanGated++;
+                continue;
+            }
             drawOne(projection, matrices, camera, sample);
         }
         long elapsed = System.nanoTime() - startedAt;
@@ -197,18 +208,43 @@ public final class ProjectionRenderer {
         if (report != null) {
             lastSampleAt = System.currentTimeMillis();
             LOGGER.info("{} aperture={} camToPlane={} opening={} volume={} surface={} stamp={} "
-                            + "frames={} renderUs={} layers={} {}",
+                            + "frames={} gated={} renderUs={} layers={} {}",
                     EMIT_MARKER, projection.apertureOrigin().toShortString(),
                     String.format("%.2f", camToPlane), openingBounds(corners),
                     volumeBounds(projection), String.format("%.2f", surface), stamp,
-                    spanFrames, costSummary(spanFrames, spanNanos, spanPeakNanos),
+                    spanFrames, spanGated, costSummary(spanFrames, spanNanos, spanPeakNanos),
                     mesh.layers().size(), report);
             spanFrames = 0;
             spanNanos = 0;
             spanPeakNanos = 0;
+            spanGated = 0;
         }
 
         matrices.pop();
+    }
+
+    /**
+     * The aperture block itself, in WORLD space — the opening's rectangle on
+     * the two in-plane axes, one block deep on the normal. Everything a portal
+     * draws is clipped to the cone through this box, so it is the whole of what
+     * can reach the screen.
+     */
+    static net.minecraft.util.math.Box apertureBox(ClientProjection projection) {
+        double minN = projection.apertureMinCoord();
+        double maxN = projection.apertureMaxCoord();
+        return new net.minecraft.util.math.Box(
+                coordOn(Direction.Axis.X, projection, minN,
+                        projection.rectMinA(), projection.rectMinB()),
+                coordOn(Direction.Axis.Y, projection, minN,
+                        projection.rectMinA(), projection.rectMinB()),
+                coordOn(Direction.Axis.Z, projection, minN,
+                        projection.rectMinA(), projection.rectMinB()),
+                coordOn(Direction.Axis.X, projection, maxN,
+                        projection.rectMaxA(), projection.rectMaxB()),
+                coordOn(Direction.Axis.Y, projection, maxN,
+                        projection.rectMaxA(), projection.rectMaxB()),
+                coordOn(Direction.Axis.Z, projection, maxN,
+                        projection.rectMaxA(), projection.rectMaxB()));
     }
 
     /**

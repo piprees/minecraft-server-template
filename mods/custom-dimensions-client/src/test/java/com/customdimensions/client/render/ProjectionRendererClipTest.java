@@ -770,6 +770,52 @@ class ProjectionRendererClipTest {
                 "the colour mask was left off after the draw threw");
     }
 
+    /**
+     * The box the frustum gate tests, in WORLD space. Read off the fixture: the
+     * aperture cells are x 1500-1501, y 101-103, z 1500, so the block they
+     * occupy runs x 1500..1502, y 101..104, z 1500..1501.
+     */
+    @Test
+    void theApertureBoxIsTheApertureBlockInWorldSpace() {
+        net.minecraft.util.math.Box box = ProjectionRenderer.apertureBox(
+                projection(Direction.SOUTH, new BlockPos(1492, 93, 1501)));
+
+        assertEquals(1500.0, box.minX, TOLERANCE);
+        assertEquals(1502.0, box.maxX, TOLERANCE);
+        assertEquals(101.0, box.minY, TOLERANCE);
+        assertEquals(104.0, box.maxY, TOLERANCE);
+        assertEquals(1500.0, box.minZ, TOLERANCE);
+        assertEquals(1501.0, box.maxZ, TOLERANCE);
+    }
+
+    /**
+     * The same box whichever way the slab runs. The gate is about where the
+     * OPENING is, not where the destination was sampled, so a NORTH-facing
+     * portal on the same frame must produce the same box.
+     */
+    @Test
+    void theApertureBoxDoesNotMoveWithTheSlabsDirection() {
+        net.minecraft.util.math.Box south = ProjectionRenderer.apertureBox(
+                projection(Direction.SOUTH, new BlockPos(1492, 93, 1501)));
+        net.minecraft.util.math.Box north = ProjectionRenderer.apertureBox(
+                projection(Direction.NORTH, new BlockPos(1492, 93, 1476)));
+
+        assertEquals(south, north, "the gate's box followed the slab instead of the opening");
+    }
+
+    /**
+     * A box one block deep on the normal axis and no thinner. Collapsed to the
+     * plane it would fail a frustum test at grazing angles and the portal would
+     * blink out while still visible.
+     */
+    @Test
+    void theApertureBoxIsAWholeBlockDeepOnTheNormalAxis() {
+        net.minecraft.util.math.Box box = ProjectionRenderer.apertureBox(
+                projection(Direction.SOUTH, new BlockPos(1492, 93, 1501)));
+
+        assertEquals(1.0, box.maxZ - box.minZ, TOLERANCE);
+    }
+
     private static int stamp(ClientProjection projection, double camA, double camB,
             double camNormal, float[] poly, float[] scratch) {
         double[] tunnel = new double[24];
