@@ -24,12 +24,17 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Feeds the destination's chunks to a client that draws the far side itself.
  *
- * <h2>A wedge, not a disc</h2>
- * A portal's opening is two or three blocks wide, so the cone through it is
- * narrow — the same cone {@code ProjectionRenderer} clips every quad against.
- * Feeding the disc around the arrival would send an order of magnitude more
- * chunks than can ever be seen through the frame. {@link #throughOpening} is
- * that cone reduced to the horizontal plane, which is where the saving is:
+ * <h2>A filled core, then a wedge</h2>
+ * The client renders the destination itself, and a renderer builds a chunk's
+ * geometry only once that chunk AND all eight of its neighbours have arrived.
+ * A cone of columns has no interior, so a cone alone builds nothing however
+ * many chunks it sends. {@link #CORE_RADIUS} is a filled square around the
+ * arrival that gives the renderer somewhere to start.
+ *
+ * <p>Beyond the core the cone still applies. A portal's opening is two or
+ * three blocks wide, so feeding the whole disc would send an order of
+ * magnitude more chunks than can ever be seen through the frame.
+ * {@link #throughOpening} is that cone reduced to the horizontal plane:
  * a column is fed only if the line from the eye to it crosses the opening.
  *
  * <h2>Nearest first, under a budget</h2>
@@ -54,6 +59,13 @@ public final class DestinationFeed {
 
     /** Ceiling on the fed radius whatever the client asks for, in chunks. */
     public static final int MAX_RADIUS = 16;
+
+    /**
+     * Chunks each side of the arrival fed whatever the cone says. Two gives a
+     * filled 5x5, whose 3x3 interior is the smallest region a renderer can
+     * build anything from — every chunk in it has all eight neighbours.
+     */
+    public static final int CORE_RADIUS = 2;
 
     /** Per player, per destination, the chunk keys already sent. */
     private static final Map<UUID, Map<Identifier, Set<Long>>> SENT = new ConcurrentHashMap<>();
@@ -103,6 +115,8 @@ public final class DestinationFeed {
 
     /**
      * The next chunks to send, nearest-first, skipping what is already sent.
+     * The {@link #CORE_RADIUS} square around the arrival is always a
+     * candidate; everything beyond it must be in the cone.
      *
      * <p>Coordinates are destination chunk coordinates; {@code dx}/{@code dz}
      * are the block offsets from {@link CompanionPayloads.PortalFrame}, so a
@@ -117,9 +131,11 @@ public final class DestinationFeed {
             return picked;
         }
         List<long[]> candidates = new ArrayList<>();
-        for (int ox = -radius; ox <= radius; ox++) {
-            for (int oz = -radius; oz <= radius; oz++) {
-                if (ox * ox + oz * oz > radius * radius) {
+        int span = Math.max(radius, CORE_RADIUS);
+        for (int ox = -span; ox <= span; ox++) {
+            for (int oz = -span; oz <= span; oz++) {
+                boolean core = Math.abs(ox) <= CORE_RADIUS && Math.abs(oz) <= CORE_RADIUS;
+                if (!core && ox * ox + oz * oz > radius * radius) {
                     continue;
                 }
                 int cx = centreChunkX + ox;
@@ -128,7 +144,8 @@ public final class DestinationFeed {
                 if (sent.contains(key)) {
                     continue;
                 }
-                if (!chunkThroughOpening(cx, cz, eyeA, eyeN, a0, a1, planeN, dx, dz, normal)) {
+                if (!core
+                        && !chunkThroughOpening(cx, cz, eyeA, eyeN, a0, a1, planeN, dx, dz, normal)) {
                     continue;
                 }
                 candidates.add(new long[] {(long) (ox * ox + oz * oz), key});

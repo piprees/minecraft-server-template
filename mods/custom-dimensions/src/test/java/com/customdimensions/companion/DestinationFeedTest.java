@@ -13,9 +13,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 /**
  * Which of the destination's chunks a client needs, and in what order.
  *
- * <p>The whole point is that a disc is the wrong answer. A 2-wide opening
- * subtends a narrow wedge, and feeding the disc around it would send an order
- * of magnitude more chunks than can ever be seen through the frame.
+ * <p>A filled square around the arrival, then a wedge. The square is what the
+ * client's renderer builds from; beyond it a 2-wide opening subtends a narrow
+ * wedge, and feeding the whole disc would send an order of magnitude more
+ * chunks than can ever be seen through the frame.
  *
  * <p>Every fixture is the live nexus rig: opening at x 1500..1502 on the
  * z=1500 plane, eye to the south at z=1505, destination offset -750 on both
@@ -188,6 +189,37 @@ class DestinationFeedTest {
         assertTrue(alongX > 0, "an X-normal opening fed nothing");
         assertEquals(alongZ, alongX,
                 "the mirrored case does not match; one of the two axes is hardcoded");
+    }
+
+    /**
+     * A renderer builds a chunk's geometry only once that chunk and all eight
+     * of its neighbours have arrived. A cone of columns has no interior, so
+     * without a filled core nothing is ever buildable however much is fed.
+     */
+    @Test
+    void theFilledCoreGivesTheRendererAThreeByThreeItCanBuild() {
+        Set<Long> fed = new HashSet<>(pick(6, Integer.MAX_VALUE, Set.of()));
+        int buildable = 0;
+        for (int ox = -1; ox <= 1; ox++) {
+            for (int oz = -1; oz <= 1; oz++) {
+                if (hasEveryNeighbour(fed, ARRIVAL_CHUNK + ox, ARRIVAL_CHUNK + oz)) {
+                    buildable++;
+                }
+            }
+        }
+        assertEquals(9, buildable,
+                "the 3x3 around the arrival cannot be built; the feed is a bare cone again");
+    }
+
+    private static boolean hasEveryNeighbour(Set<Long> fed, int chunkX, int chunkZ) {
+        for (int ox = -1; ox <= 1; ox++) {
+            for (int oz = -1; oz <= 1; oz++) {
+                if (!fed.contains(DestinationFeed.chunkKey(chunkX + ox, chunkZ + oz))) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     @Test
