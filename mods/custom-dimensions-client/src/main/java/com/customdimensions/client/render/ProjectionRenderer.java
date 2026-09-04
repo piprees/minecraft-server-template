@@ -1,5 +1,6 @@
 package com.customdimensions.client.render;
 
+import com.customdimensions.client.Repeated;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.VertexConsumerProvider;
@@ -251,8 +252,10 @@ public final class ProjectionRenderer {
 
         // Written after the draws, so a line at all means every draw returned.
         if (report != null) {
+            boolean firstEmit = lastSampleAt == 0L;
             lastSampleAt = System.currentTimeMillis();
-            LOGGER.info("{} aperture={} camToPlane={} opening={} window={} volume={} surface={} "
+            Repeated.log(LOGGER, firstEmit,
+                    "{} aperture={} camToPlane={} opening={} window={} volume={} surface={} "
                             + "stamp={} slice={} frames={} gated={} renderUs={} layers={} {}",
                     EMIT_MARKER, projection.apertureOrigin().toShortString(),
                     String.format("%.2f", camToPlane), openingBounds(corners), window,

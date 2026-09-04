@@ -1645,7 +1645,32 @@ measurement of it.
   the same trap. Pin it against the Java, not against intuition —
   `scripts/e2e/portal-matrix-selftest.sh` is the worked example.
 
-<a id="t89"></a>
+<a id="t92"></a>
+### T92 — A second world render must not point `MinecraftClient.world` at a world no client lifecycle stood up
+
+- **Symptom:** the client log fills at thousands of lines a minute with
+  `[Sound engine/WARN] Can not return client level proxy, client level clone has
+  not been cached. This might only occur once on load.`, each followed by
+  `[Sound engine/ERROR] Error executing task on Sound executor` and a
+  `NullPointerException` in `SoundPhysics.evaluateEnvironment`.
+- **Cause:** Sound Physics Remastered caches a cloned level **per `ClientWorld`
+  instance** and fills that cache only from `MinecraftClient.setWorld` and
+  `ClientWorld.tick`; `getLevelProxy()` then reads `MinecraftClient.world` live,
+  on the sound engine's own thread. A destination `ClientWorld` is constructed
+  directly and never ticked, so its cache is empty — and the spectator pass was
+  writing `client.world` for the length of the destination render, which hands
+  that world to every off-thread reader.
+- **Fix:** the pass never writes `MinecraftClient.world`.
+  `WorldRendererDestinationMixin` redirects the field reads inside `render`,
+  `renderSky` and `renderWeather` to the renderer's own world, and
+  `LightmapTextureManagerDestinationMixin` reads `DestinationLightmap`, held
+  only across the pass's own `update` call and on the render thread.
+- **Trap:** the mod's warning reads as a cache being invalidated. Nothing is
+  invalidated — a different world object is read and it has never had a clone.
+  Every mod holding per-`ClientWorld` state keyed off that field has this shape,
+  so the rule is the field, not the mod.
+
+<a id="t91"></a>
 ### T91 — A fed entity needs its tracked data before its first tick, and must never read the dirty list
 
 - **Symptom:** entities reach a destination `ClientWorld` and vanish within about
@@ -1664,6 +1689,7 @@ measurement of it.
   list is consumed by vanilla's own tracker for players actually in that
   dimension; reading it here steals their update and desynchronises them.
 
+<a id="t90"></a>
 ### T90 — Backgrounding `./dev restart mc` inside a tool kills it mid-recreate and leaves an orphan
 
 - **Symptom:** `mc` disappears. `docker inspect mc` answers `healthy` on the
@@ -1679,6 +1705,7 @@ measurement of it.
 - **Trap:** one healthy `docker inspect` immediately after a restart proves
   nothing. Poll until `docker ps` shows the container by its real name.
 
+<a id="t89"></a>
 ### T89 — A break cannot remove an arrival zone that has not been promoted yet, and the re-light builds a second
 
 - **Symptom:** breaking a portal and re-lighting it leaves two `arrival-zone-v1`

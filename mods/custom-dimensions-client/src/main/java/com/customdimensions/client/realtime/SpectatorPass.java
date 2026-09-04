@@ -2,6 +2,7 @@ package com.customdimensions.client.realtime;
 
 import com.customdimensions.client.CompanionPayloads;
 import com.customdimensions.client.CustomDimensionsClient;
+import com.customdimensions.client.Repeated;
 import com.customdimensions.client.config.RealtimeControls;
 import com.customdimensions.client.mixin.MinecraftClientFramebufferAccessor;
 import com.mojang.blaze3d.platform.GlStateManager;
@@ -206,7 +207,7 @@ public final class SpectatorPass {
                 totalNanos += lastNanos;
                 passes++;
                 if (passes % REPORT_EVERY == 1) {
-                    CustomDimensionsClient.LOGGER.info(
+                    Repeated.log(CustomDimensionsClient.LOGGER, passes == 1L,
                             "{} dimension={} passes={} gated={} lastUs={} meanUs={} "
                                     + "occlusion={} queries={} refusals={} readUs={} composite={}",
                             MARKER, frame.destination(), passes, gated,
@@ -465,11 +466,18 @@ public final class SpectatorPass {
                     this.client.player.getZ(),
                     this.frame.dx(), this.frame.dy(), this.frame.dz());
 
+            // MinecraftClient.world stays the source. Other threads read it —
+            // the sound engine on every sound it starts — and a world no client
+            // lifecycle stood up has no per-world state there (TROUBLESHOOTING.md#t92).
             this.source = this.client.world;
-            this.client.world = this.destination;
             this.client.getEntityRenderDispatcher().setWorld(this.destination);
             this.client.getBlockEntityRenderDispatcher().setWorld(this.destination);
-            this.gameRenderer.getLightmapTextureManager().update(tickDelta);
+            DestinationLightmap.hold(this.destination);
+            try {
+                this.gameRenderer.getLightmapTextureManager().update(tickDelta);
+            } finally {
+                DestinationLightmap.release();
+            }
             CAMERA.standIn(this.destination, this.client.player, tickDelta,
                     eye[0], eye[1], eye[2]);
 
@@ -495,8 +503,8 @@ public final class SpectatorPass {
         /** Puts back everything the pass swapped, whether or not it got that far. */
         private void restore() {
             releaseTarget();
+            DestinationLightmap.release();
             if (this.source != null) {
-                this.client.world = this.source;
                 this.client.getEntityRenderDispatcher().setWorld(this.source);
                 this.client.getBlockEntityRenderDispatcher().setWorld(this.source);
             }

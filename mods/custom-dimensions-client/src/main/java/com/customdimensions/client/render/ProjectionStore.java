@@ -41,9 +41,15 @@ public final class ProjectionStore {
      * A resend that changes nothing keeps the projection already held, mesh
      * included. Replacing it wholesale threw away a built mesh and had it
      * rebuilt from scratch.
+     *
+     * <p>True when this opening had no projection before. The server resends
+     * on its own cadence, so first sight is the bounded event and a resend is
+     * not.
      */
-    public static void accept(CompanionPayloads.Projection payload) {
+    public static boolean accept(CompanionPayloads.Projection payload) {
+        boolean[] firstSight = new boolean[1];
         PROJECTIONS.compute(payload.apertureOrigin(), (key, held) -> {
+            firstSight[0] = held == null;
             if (sameContent(held == null ? null : held.payload(), payload)) {
                 return held;
             }
@@ -59,6 +65,7 @@ public final class ProjectionStore {
             }
             return made;
         });
+        return firstSight[0];
     }
 
     /**
