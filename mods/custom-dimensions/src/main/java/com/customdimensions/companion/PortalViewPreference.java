@@ -33,13 +33,11 @@ public record PortalViewPreference(
     /**
      * Whether the server still has to describe this portal's far side.
      *
-     * <p>The client's own answer, taken at face value. A player who turns both
-     * views off has asked for a plain portal and gets one; streaming the slab
-     * to them anyway would hand back the very thing they switched off.
-     * {@link #SERVER_DRAWN} keeps the slab, so every vanilla client and every
-     * player who has not declared is unaffected.
+     * <p>Only a client that both renders locally AND has turned the fallback
+     * off is sent nothing. Refusing the slab without rendering anything would
+     * be a client asking for an empty frame, so it is not honoured.
      */
     public boolean streamsSlab() {
-        return this.keepSlab;
+        return !this.rendersLocally || this.keepSlab;
     }
 }
