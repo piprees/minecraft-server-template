@@ -4,7 +4,7 @@
 
 | Prefix | Range | What it covers |
 | --- | --- | --- |
-| **T** | [T1–T14, T16–T19, T22–T27, T30–T80, T82–T84](#architecture-traps) | Architecture traps — each has caused a real production incident |
+| **T** | [T1–T14, T16–T19, T22–T27, T30–T80, T82–T86](#architecture-traps) | Architecture traps — each has caused a real production incident |
 | **P** | [P1–P6](#macos-local-dev) | macOS local-dev quirks (BSD tooling, toolchain) |
 | **D** | [D1–D6, D8–D9](#dimension-lifecycle) | Custom-dimension lifecycle on a live world |
 | **K** | [K1–K2, K5–K7, K9](#known-issues) | Open issues — unfixed, on the watch list |
@@ -50,6 +50,8 @@ Run this first. It covers deploy drift, disk, every expected container, `ONLINE_
 | A Moog's structure set's live spacing is larger than its jar and config say | [T48](#t48) |
 | Which structures can spawn where disagrees with the jars | [T49](#t49) |
 | A probe returns nothing, or the same value everywhere | [T50](#t50) |
+| A copper portal frame stops lighting and nothing changed | [T85](#t85) |
+| A subagent shows "running" but has produced nothing for hours | [T86](#t86) |
 | Structure spacing arithmetic disagrees with the world | [T51](#t51) |
 | mc watchdog-crashes a few minutes after a local world reset, parked in `save-all` | [T57](#t57) |
 | The same few structures repeat endlessly in one dimension | [T52](#t52) |
@@ -1534,6 +1536,58 @@ measurement of it.
 - **The proof is the count against a DENOMINATOR.** `MASTER CONTROLLER` lines
   say whether Better Caves carved at all this boot; a zero-throw log with zero
   controllers has measured nothing ([T63](#t63)).
+
+<a id="t85"></a>
+### T85 — An unwaxed copper portal frame weathers out from under itself, and the portal stops working
+
+- **Symptom:** a portal that worked stops lighting, and cannot be re-lit. On an
+  already-lit zone it CLOSES on its own. Nothing in the config changed and
+  nothing in the log said why.
+- **Cause:** vanilla copper oxidation. `minecraft:copper_block` ->
+  `exposed_copper` -> `weathered_copper` -> `oxidized_copper` on random ticks.
+  A `frameBlock` with no `frameAccepts` matches exactly one id, so the first
+  ring block to turn breaks the frame. Measured on the local Crucible rig:
+  `3260, 84, 2883` had weathered to `minecraft:exposed_copper`, one block out
+  of a fourteen-block ring, and ignition refused
+  `OPENING_NOT_ENCLOSED ... the fill ran into minecraft:exposed_copper`.
+- **Which dimensions are exposed:** only ones whose frame is an unwaxed,
+  non-terminal copper form. Of the 164 shipped configs, `the_crucible` was the
+  only one — `the_gauntlet` uses `oxidized_copper` (terminal, cannot weather
+  further) and `the_highland_crossing` uses `raw_copper_block` (a mineral
+  block, not in the weathering family). Check any NEW copper frame against
+  both of those exemptions before assuming it is safe.
+- **Fix (in place):** `the_crucible.json` carries a `frameAccepts` listing all
+  eight forms — four oxidation stages and four waxed. `frameBlock` stays a
+  plain id, never a `#tag`, because `portal_links.json` must stay parseable by
+  every jar that might read it back.
+- **What the fix does NOT do.** `PortalHelper.isZoneValid` validates a live
+  zone against `zone.definition` — the ignition-time snapshot deserialised
+  from `portal_links.json` — not against current config. Zones are deliberately
+  immutable snapshots, so a zone registered BEFORE the config change keeps its
+  old single-form accept list and still closes when its frame weathers. The
+  config fix repairs future ignitions and makes a weathered frame re-lightable;
+  it does not rescue an already-registered zone. Re-lighting is what heals one.
+
+<a id="t86"></a>
+### T86 — A subagent reporting "running" can have been dead for hours; only artefacts say otherwise
+
+- **Symptom:** `ListAgents` shows a teammate as `running`, and it has written
+  nothing for hours. Measured here: an agent reported `running · started 9h ago`
+  with its last artefact 8h24m old, having produced none of the three tasks it
+  was sent.
+- **Why the obvious check fails:** the documented trap is that `idle`,
+  `available` and `finished` signals fire identically whether an agent is
+  working, between turns, exited or empty-handed. `running` is no better — it
+  is not a liveness probe. Queued `idle_notification` messages can also arrive
+  hours late and replay reports already handled, which reads as fresh activity.
+- **What to measure instead:** file mtimes under the work tree, the build
+  outputs (`build/libs/*.jar`, `build/test-results/test/*.xml`), the scratchpad
+  directory, and the live state the agent claimed to change. An agent that
+  changed the world leaves the world changed.
+- **Before killing one:** `SendMessage` resumes an agent with its full history,
+  so ask a direct question first and say plainly that the work is being taken
+  back. Kill only after silence plus a zero-artefact window. Never on a hunch —
+  but a measured multi-hour gap is a measurement, not a hunch.
 
 <a id="t78"></a>
 ### T78 — A config change does not reach the local server, and the boot is green on the old file
