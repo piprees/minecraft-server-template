@@ -68,6 +68,12 @@ public final class SpectatorComposite {
      * The offscreen frame, sampled in screen space. Depth writes on: the
      * opening's surface becomes the depth everything drawn afterwards
      * composites against.
+     *
+     * <p>The polygon offset is not decoration. {@code ProjectionRenderer}
+     * stamps the same opening on the same plane as a differently triangulated
+     * polygon, and two coplanar draws agree on a pixel's depth only to a few
+     * ULPs — without the offset the composite speckles wherever it loses the
+     * tie.
      */
     private static final RenderLayer COMPOSITE = new RenderLayer(
             "customdimensions_portal_composite",
@@ -84,8 +90,12 @@ public final class SpectatorComposite {
                 RenderSystem.enableDepthTest();
                 RenderSystem.depthFunc(GL11.GL_LEQUAL);
                 RenderSystem.depthMask(true);
+                RenderSystem.polygonOffset(-1.0f, -10.0f);
+                RenderSystem.enablePolygonOffset();
             },
             () -> {
+                RenderSystem.disablePolygonOffset();
+                RenderSystem.polygonOffset(0.0f, 0.0f);
                 RenderSystem.depthFunc(GL11.GL_LEQUAL);
                 RenderSystem.enableCull();
             }) {};
