@@ -235,11 +235,12 @@ public final class ProjectionRenderer {
         if (report != null) {
             lastSampleAt = System.currentTimeMillis();
             LOGGER.info("{} aperture={} camToPlane={} opening={} volume={} surface={} stamp={} "
-                            + "frames={} gated={} renderUs={} layers={} {}",
+                            + "slice={} frames={} gated={} renderUs={} layers={} {}",
                     EMIT_MARKER, projection.apertureOrigin().toShortString(),
                     String.format("%.2f", camToPlane), openingBounds(corners),
                     volumeBounds(projection), String.format("%.2f", surface), stamp,
-                    spanFrames, spanGated, costSummary(spanFrames, spanNanos, spanPeakNanos),
+                    sliceLabel(slice), spanFrames, spanGated,
+                    costSummary(spanFrames, spanNanos, spanPeakNanos),
                     mesh.layers().size(), report);
             spanFrames = 0;
             spanNanos = 0;
@@ -542,6 +543,19 @@ public final class ProjectionRenderer {
             surfaceDepth,
             surfaceDepth + (halfBlockDepth - surfaceDepth) * SLICE_FRACTION,
         };
+    }
+
+    /**
+     * The slice bounds as applied, or {@code none} when none could be formed
+     * and the pass fell back to an ordinary depth range.
+     *
+     * <p>Formatted from the array the draws were made under, not recomputed:
+     * a slice built from the wrong corner prints different numbers, which is
+     * the only way that mistake is visible at all. No test in this module
+     * reaches {@code sliceFor}.
+     */
+    static String sliceLabel(double[] slice) {
+        return slice == null ? "none" : String.format("%.6f..%.6f", slice[0], slice[1]);
     }
 
     /** The slice for one portal, from its opening's four corners. */

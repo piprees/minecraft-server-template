@@ -14,6 +14,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -892,6 +893,30 @@ class ProjectionRendererClipTest {
         assertSame(boom, thrown, "the failure was swallowed instead of propagating");
         assertEquals(List.of("apply", "restore"), calls,
                 "the state was left set after the draw threw");
+    }
+
+    /**
+     * Six decimals, because the whole slice is about a thousandth of the depth
+     * range: at three it prints as a single repeated number and a slice built
+     * from the wrong corner reads identically to a correct one.
+     */
+    @Test
+    void theSliceLabelKeepsEnoughDecimalsToTellTwoSlicesApart() {
+        assertEquals("0.988000..0.989080",
+                ProjectionRenderer.sliceLabel(new double[] {0.9880, 0.98908}));
+        assertNotEquals(ProjectionRenderer.sliceLabel(new double[] {0.9880, 0.98908}),
+                ProjectionRenderer.sliceLabel(new double[] {0.9891, 0.99018}),
+                "two slices a thousandth apart printed the same");
+    }
+
+    /**
+     * A pass that formed no slice says so. An absent or blank field would read
+     * as "not measured" where it means "fell back to an ordinary depth range",
+     * which are the two states the log has to separate.
+     */
+    @Test
+    void aPassWithNoSliceSaysNoneRatherThanNothing() {
+        assertEquals("none", ProjectionRenderer.sliceLabel(null));
     }
 
     private static int stamp(ClientProjection projection, double camA, double camB,
