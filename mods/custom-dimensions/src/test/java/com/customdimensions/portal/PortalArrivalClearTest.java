@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Set;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -56,6 +57,17 @@ class PortalArrivalClearTest {
         Set<BlockPos> emptied = PortalSite.arrivalCells(interior, Direction.Axis.Y, DEPTH);
 
         assertTrue(emptied.containsAll(interior));
+    }
+
+    @Test
+    void theUnionAddsTheInteriorAndNothingElse() {
+        Set<BlockPos> interior = PortalSite.standardInterior(10, 60, -5, Direction.Axis.X);
+        Set<BlockPos> egress = PortalSite.egressCells(interior, Direction.Axis.X, DEPTH);
+
+        Set<BlockPos> emptied = PortalSite.arrivalCells(interior, Direction.Axis.X, DEPTH);
+
+        assertEquals(interior.size() + egress.size(), emptied.size(),
+                "every cell once, and not one cell neither carve already wrote");
     }
 
     @Test
