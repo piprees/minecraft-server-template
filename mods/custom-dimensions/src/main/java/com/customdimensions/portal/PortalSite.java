@@ -355,7 +355,21 @@ public final class PortalSite {
 
     private static boolean isClear(ServerWorld world, BlockPos pos) {
         BlockState state = world.getBlockState(pos);
-        return state.isAir() || state.isReplaceable();
+        return isClear(state.isAir(), state.isReplaceable(), !state.getFluidState().isEmpty());
+    }
+
+    /**
+     * May a portal cell occupy a block with these properties? Vanilla's
+     * {@code PortalForcer.isBlockStateValid}: replaceable, and no fluid — a
+     * flooded pocket is otherwise the site this search prefers, because water
+     * is replaceable and the pond bed is the only solid floor under it.
+     *
+     * <p>Takes the three reads rather than a {@code BlockState} because a
+     * plain JUnit JVM cannot initialise {@code Blocks} — the registries are
+     * not bootstrapped outside Loom.
+     */
+    static boolean isClear(boolean air, boolean replaceable, boolean fluid) {
+        return (air || replaceable) && !fluid;
     }
 
     /**
