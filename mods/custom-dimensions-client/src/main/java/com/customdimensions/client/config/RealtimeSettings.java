@@ -22,11 +22,10 @@ public record RealtimeSettings(
         boolean fallbackToSlab) {
 
     /**
-     * Off until the local renderer exists. Declaring the capability stops the
-     * server streaming the block slab, so an on-by-default flag would trade a
-     * working portal for a blank one.
+     * The enhanced portal is what installing the mod gets you. Turning it off
+     * is a choice the player makes.
      */
-    public static final boolean DEFAULT_ENABLED = false;
+    public static final boolean DEFAULT_ENABLED = true;
 
     /** Chunks of the destination the local view is allowed to reach. */
     public static final int DEFAULT_RENDER_DISTANCE = 16;
@@ -40,8 +39,9 @@ public record RealtimeSettings(
      * Hand the far side back to the server. The two paths are exclusive: a
      * client asking for the slab is not sent a frame or a destination chunk
      * either, so this turns the local view off however {@code enabled} is set.
+     * An opt-out, so it is off unless the player asks.
      */
-    public static final boolean DEFAULT_FALLBACK_TO_SLAB = true;
+    public static final boolean DEFAULT_FALLBACK_TO_SLAB = false;
 
     public static final RealtimeSettings DEFAULTS = new RealtimeSettings(
             DEFAULT_ENABLED, DEFAULT_RENDER_DISTANCE, DEFAULT_DISTANT_HORIZONS,

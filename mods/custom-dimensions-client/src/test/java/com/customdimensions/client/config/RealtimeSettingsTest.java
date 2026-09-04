@@ -1,6 +1,9 @@
 package com.customdimensions.client.config;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+
+import java.nio.file.Path;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -10,11 +13,38 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class RealtimeSettingsTest {
 
     @Test
-    void theRealtimeViewIsOffUntilItCanRender() {
-        assertFalse(RealtimeSettings.DEFAULTS.enabled(),
-                "a default-on real-time view would suppress the slab before anything replaces it");
-        assertTrue(RealtimeSettings.DEFAULTS.fallbackToSlab(),
-                "the fallback is what keeps a portal showing something at all");
+    void theEnhancedViewIsWhatTheModDoesWithoutBeingAsked() {
+        assertTrue(RealtimeSettings.DEFAULTS.enabled(),
+                "installing the mod and changing nothing must give the enhanced portal");
+        assertFalse(RealtimeSettings.DEFAULTS.fallbackToSlab(),
+                "the server-drawn slab is the opt-out, not the default");
+    }
+
+    /**
+     * The fresh-install case: no config file at all. The store writes the
+     * defaults and returns them, so this is what a player gets on first run.
+     */
+    @Test
+    void aClientWithNoConfigFileGetsTheEnhancedPath(@TempDir Path dir) {
+        RealtimeSettings first = new RealtimeSettingsStore(
+                dir.resolve("customdimensions-client.json")).load();
+
+        assertTrue(first.enabled());
+        assertFalse(first.fallbackToSlab());
+    }
+
+    /** Both opt-outs survive the defaults moving underneath them. */
+    @Test
+    void aWrittenConfigWinsOverTheDefaultsInBothDirections() {
+        RealtimeSettings optedOut = RealtimeSettings.parse(
+                "{\"enabled\":false,\"fallbackToSlab\":true}");
+        assertFalse(optedOut.enabled(), "a player who turned the feature off got it back");
+        assertTrue(optedOut.fallbackToSlab(), "a player who asked for the slab was refused it");
+
+        RealtimeSettings optedIn = RealtimeSettings.parse(
+                "{\"enabled\":true,\"fallbackToSlab\":false}");
+        assertTrue(optedIn.enabled());
+        assertFalse(optedIn.fallbackToSlab());
     }
 
     @Test

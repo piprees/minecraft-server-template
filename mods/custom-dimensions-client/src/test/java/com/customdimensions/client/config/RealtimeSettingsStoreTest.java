@@ -10,7 +10,6 @@ import java.nio.file.Path;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -42,15 +41,15 @@ class RealtimeSettingsStoreTest {
     void aToggleChangesTheLiveValueAndReachesDisk(@TempDir Path dir) {
         Path file = dir.resolve("customdimensions-client.json");
         RealtimeSettingsStore store = new RealtimeSettingsStore(file);
-        store.load();
+        boolean loaded = store.load().enabled();
 
-        assertTrue(store.toggle().enabled());
-        assertTrue(store.current().enabled());
-        assertTrue(new RealtimeSettingsStore(file).load().enabled(),
+        assertEquals(!loaded, store.toggle().enabled());
+        assertEquals(!loaded, store.current().enabled());
+        assertEquals(!loaded, new RealtimeSettingsStore(file).load().enabled(),
                 "the toggle did not survive a restart");
 
-        assertFalse(store.toggle().enabled());
-        assertFalse(new RealtimeSettingsStore(file).load().enabled());
+        assertEquals(loaded, store.toggle().enabled());
+        assertEquals(loaded, new RealtimeSettingsStore(file).load().enabled());
     }
 
     @Test
@@ -77,8 +76,9 @@ class RealtimeSettingsStoreTest {
         RealtimeSettingsStore store = new RealtimeSettingsStore(blocked.resolve("nested.json"));
 
         assertEquals(RealtimeSettings.DEFAULTS, store.load());
-        assertTrue(store.toggle().enabled());
-        assertTrue(store.current().enabled());
+        boolean flipped = !RealtimeSettings.DEFAULTS.enabled();
+        assertEquals(flipped, store.toggle().enabled());
+        assertEquals(flipped, store.current().enabled());
     }
 
     @Test
