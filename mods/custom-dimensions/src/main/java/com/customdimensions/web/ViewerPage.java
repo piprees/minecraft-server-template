@@ -103,9 +103,10 @@ public final class ViewerPage {
             moodOptions.append("<option>").append(escape(m)).append("</option>");
         }
 
+        Map<String, String> frameOwners = frameOwners(views);
         StringBuilder cards = new StringBuilder();
         for (BankView.DimensionView v : views) {
-            cards.append(card(v, anyoneOnline)).append('\n');
+            cards.append(card(v, anyoneOnline, frameOwners)).append('\n');
         }
 
         return template
@@ -126,7 +127,25 @@ public final class ViewerPage {
 
     // ------------------------------------------------------------------ card
 
-    private static String card(BankView.DimensionView v, boolean anyoneOnline) {
+    /**
+     * Every frame accept form in the pack, mapped to the dimension that
+     * claims it. First claim wins, matching how ignition resolves; the
+     * weathering check reads it to name where a defecting frame would go.
+     */
+    private static Map<String, String> frameOwners(List<BankView.DimensionView> views) {
+        Map<String, String> owners = new LinkedHashMap<>();
+        for (BankView.DimensionView v : views) {
+            for (DimensionConfig.Portal portal : v.config().getPortals()) {
+                for (String form : portal.getFrameAcceptForms()) {
+                    owners.putIfAbsent(form, v.slug());
+                }
+            }
+        }
+        return owners;
+    }
+
+    private static String card(BankView.DimensionView v, boolean anyoneOnline,
+                               Map<String, String> frameOwners) {
         DimensionConfig def = v.config();
         String slug = v.slug();
         List<BankView.CandidateView> candidates = v.candidates();
@@ -251,7 +270,7 @@ public final class ViewerPage {
         } else {
             b.append("<div class='all-cands'>");
             for (int i = 0; i < candidates.size(); i++) {
-                b.append(candidate(i, slug, candidates.get(i), v, anyoneOnline));
+                b.append(candidate(i, slug, candidates.get(i), v, anyoneOnline, frameOwners));
             }
             b.append("</div>");
         }
@@ -262,7 +281,8 @@ public final class ViewerPage {
     // ------------------------------------------------------------------ candidate
 
     private static String candidate(int idx, String slug, BankView.CandidateView c,
-                                    BankView.DimensionView v, boolean anyoneOnline) {
+                                    BankView.DimensionView v, boolean anyoneOnline,
+                                    Map<String, String> frameOwners) {
         double pct = c.percentage() == null ? 0.0 : c.percentage();
         boolean onFrontier = v.frontierSeeds().contains(c.seed());
         StringBuilder b = new StringBuilder();
@@ -335,7 +355,8 @@ public final class ViewerPage {
         // in here (exactfacts.js) so it scrolls with the criteria rather than
         // landing under the buttons.
         b.append("<div class='lb-scroll'>");
-        b.append(portals(v.config()));
+        b.append(portals(v.config(), frameOwners));
+        b.append(config(v.config()));
         b.append(criteria(c.scorecard()));
         b.append("</div>");
         // The two things a person does from here: go and look at it, then
@@ -455,6 +476,623 @@ public final class ViewerPage {
         return b.toString();
     }
 
+    // ------------------------------------------------------------------ config
+
+    /**
+     * What this dimension IS, beside the seed being judged: the whole config
+     * bar the portal block, which has a panel of its own.
+     *
+     * <p>Every block carries the timing of the fields in it, because that is
+     * the fact a reader would act on. A frozen field is baked into
+     * {@code level.dat} at creation and editing it does nothing, ever,
+     * without a world wipe ({@code TROUBLESHOOTING.md#d2}); a "new chunks"
+     * field rebuilds at boot but leaves generated chunks as they are; a live
+     * field takes effect on the next boot everywhere. Two more markers exist
+     * because the schema can express things nothing reads: {@code tooling}
+     * for what only scripts consume, and {@code inert} for fields parsed and
+     * then read by nobody.
+     */
+    static String config(DimensionConfig def) {
+        StringBuilder b = new StringBuilder("<div class='portals dimconf'>");
+        b.append("<div class='portals-label'>config</div>");
+        b.append("<div class='conf-legend'>")
+                .append(timing(FROZEN)).append("creation-time &mdash; changing it needs a world wipe")
+                .append(timing(CHUNKS)).append("rebuilt at boot, generated chunks keep what they have")
+                .append(timing(LIVE)).append("applies on the next boot")
+                .append(timing(TOOLING)).append("read by scripts, never by the world")
+                .append(timing(INERT)).append("parsed, then read by nothing")
+                .append("</div>");
+        b.append(worldBlock(def));
+        b.append(terrainBlock(def));
+        b.append(biomesBlock(def));
+        b.append(boundsBlock(def));
+        b.append(difficultyBlock(def));
+        b.append(structuresBlock(def));
+        b.append(environmentBlock(def));
+        b.append(exitsBlock(def));
+        b.append(rollBlock(def));
+        return b.append("</div>").toString();
+    }
+
+    private static final String FROZEN = "frozen";
+    private static final String CHUNKS = "new chunks";
+    private static final String LIVE = "live";
+    private static final String TOOLING = "tooling";
+    private static final String INERT = "inert";
+
+    private static String timing(String kind) {
+        return "<span class='ptime ptime-" + kind.replace(' ', '-') + "'>"
+                + kind + "</span>";
+    }
+
+    /** A sub-block, or nothing when it has no rows — an empty heading says less than none. */
+    private static String block(String name, String kind, String rows) {
+        if (rows.isEmpty()) {
+            return "";
+        }
+        return "<div class='pways'><div class='portal-head'><span class='portal-id'>"
+                + escape(name) + "</span>" + timing(kind) + "</div>" + rows + "</div>";
+    }
+
+    // --- world ----------------------------------------------------------------
+
+    private static String worldBlock(DimensionConfig def) {
+        StringBuilder b = new StringBuilder();
+        if (def.getType() != null) {
+            b.append(prow("type", "<span class='pv-name'>" + escape(def.getType()) + "</span>"));
+        }
+        if (def.getNoiseSettings() != null && !def.getNoiseSettings().isBlank()) {
+            b.append(prow("noise settings", "<span class='pv-name'>"
+                    + escape(def.getNoiseSettings()) + "</span>"));
+        }
+        com.google.gson.JsonElement seed = def.getRawSeed();
+        if (seed != null && !seed.isJsonNull()) {
+            boolean env = seed.isJsonPrimitive() && seed.getAsJsonPrimitive().isString();
+            b.append(prow("seed", env
+                    ? "<span class='pv-name'>env</span>"
+                            + pnote("reads the SEED environment variable")
+                    : "<span class='pv-name'>" + escape(seed.getAsString()) + "</span>"));
+        }
+        int[] spawn = def.getSpawn();
+        if (spawn != null) {
+            b.append(prow("spawn", "<span class='pv-name'>" + spawn[0] + ", " + spawn[1]
+                    + ", " + spawn[2] + "</span>" + timing(LIVE)
+                    + pnote("the roller overwrites this when a seed is picked")));
+        }
+        return block("world", FROZEN, b.toString());
+    }
+
+    // --- terrain --------------------------------------------------------------
+
+    private static String terrainBlock(DimensionConfig def) {
+        StringBuilder b = new StringBuilder();
+        DimensionConfig.SettingsOverrides so = def.getSettingsOverrides();
+        if (so != null) {
+            if (so.seaLevel != null) {
+                b.append(prow("sea level", "<span class='pv-name'>" + so.seaLevel + "</span>"));
+            }
+            if (so.defaultBlock != null && !so.defaultBlock.isBlank()) {
+                b.append(prow("default block", blocks(List.of(so.defaultBlock))
+                        + pnote("what solid terrain is made of")));
+            }
+            if (so.defaultFluid != null && !so.defaultFluid.isBlank()) {
+                b.append(prow("default fluid", blocks(List.of(so.defaultFluid))
+                        + pnote("what fills below sea level")));
+            }
+            if (Boolean.TRUE.equals(so.disableMobGeneration)) {
+                b.append(prow("mob generation", "no mobs generate with the terrain"));
+            }
+            if (so.endIsland != null) {
+                b.append(prow("end island", Boolean.TRUE.equals(so.endIsland)
+                        ? "the End's origin island and void moat"
+                        : "no origin island"));
+            }
+        }
+        if (def.getCheckerboardScale() != null) {
+            int cells = 1 << (def.getCheckerboardScale() + 4);
+            b.append(prow("checkerboard", "<span class='pv-name'>" + cells
+                    + " block cells</span>" + pnote("scale " + def.getCheckerboardScale())));
+        }
+        if (def.getFlatBiome() != null && !def.getFlatBiome().isBlank()) {
+            b.append(prow("flat biome", blocks(List.of(def.getFlatBiome()))));
+        }
+        List<DimensionConfig.FlatLayer> layers = def.getLayers();
+        if (layers != null && !layers.isEmpty()) {
+            StringBuilder v = new StringBuilder();
+            for (DimensionConfig.FlatLayer l : layers) {
+                if (l.block != null) {
+                    v.append("<span class='pchip'>").append(escape(l.block))
+                            .append(l.height == null ? "" : " x" + l.height).append("</span>");
+                }
+            }
+            b.append(prow("layers", v + pnote("bottom up")));
+        }
+        return block("terrain", FROZEN, b.toString());
+    }
+
+    // --- biomes ---------------------------------------------------------------
+
+    private static String biomesBlock(DimensionConfig def) {
+        StringBuilder b = new StringBuilder();
+        List<String> ids = def.getBiomes();
+        if (ids != null && !ids.isEmpty()) {
+            b.append(prow("listed", chips(ids) + pnote(ids.size() + " biomes")));
+        }
+        for (DimensionConfig.BiomeBand band : def.getBiomeBands()) {
+            StringBuilder axes = new StringBuilder();
+            for (String axis : band.parameters().keySet()) {
+                axes.append("<span class='pchip'>").append(escape(axis)).append(' ')
+                        .append(interval(band.parameters().get(axis))).append("</span>");
+            }
+            b.append(prow("banded", blocks(List.of(band.id())) + axes));
+        }
+        List<DimensionConfig.BiomePatch> patches = def.getBiomePatches();
+        if (patches != null) {
+            for (DimensionConfig.BiomePatch p : patches) {
+                if (p.biome == null) {
+                    continue;
+                }
+                StringBuilder v = new StringBuilder(blocks(List.of(p.biome)));
+                if (p.x != null && p.z != null) {
+                    v.append(pnote("at " + p.x + ", " + p.z));
+                }
+                if (p.radius != null) {
+                    v.append(pnote("radius " + p.radius));
+                }
+                if (p.shape != null && !p.shape.isBlank()) {
+                    v.append(pnote(escape(p.shape)));
+                }
+                if (p.replace != null && !p.replace.isBlank()) {
+                    v.append(pnote("replacing " + escape(p.replace)));
+                }
+                if (p.scope != null && !p.scope.isBlank()) {
+                    v.append(pnote(escape(p.scope) + " scope"));
+                }
+                if (p.blend != null) {
+                    v.append(pnote(p.blend + " block edge jitter"));
+                }
+                b.append(prow("patch", v.toString()));
+            }
+        }
+        return block("biomes", FROZEN, b.toString());
+    }
+
+    // --- bounds ---------------------------------------------------------------
+
+    private static String boundsBlock(DimensionConfig def) {
+        int player = def.getPlayerBorderRadius();
+        int generation = def.getGenerationBorderRadius();
+        double scale = def.getScale();
+        StringBuilder b = new StringBuilder();
+        b.append(prow("player border", "<span class='pv-name'>" + player + "</span>"
+                + pnote("radius, so " + (player * 2) + " blocks across")
+                + pnote("reaches " + Math.round(player * scale)
+                        + " blocks of the source world at " + num(scale) + "x scale")));
+        b.append(prow("generation", "<span class='pv-name'>" + generation + "</span>"
+                + timing(TOOLING)
+                + pnote("never applied to the world &mdash; the map renderer's clamp, "
+                        + "Chunky's extent and the roller's locate cap read it")));
+        return block("bounds", LIVE, b.toString());
+    }
+
+    // --- difficulty -----------------------------------------------------------
+
+    private static String difficultyBlock(DimensionConfig def) {
+        DimensionConfig.Difficulty d = def.getDifficulty();
+        if (d == null) {
+            return "";
+        }
+        StringBuilder b = new StringBuilder();
+        if (d.hostileSpawning != null) {
+            b.append(prow("hostile spawning", Boolean.TRUE.equals(d.hostileSpawning)
+                    ? "on" : "off" + pnote("effectively peaceful")));
+        }
+        if (d.mobMultiplier != null) {
+            b.append(prow("mob multiplier", "<span class='pv-name'>" + num(d.mobMultiplier)
+                    + "</span>" + pnote(d.mobMultiplier >= 2.0
+                            ? "at or above 2.0, which spreads dungeons and pulls endgame in"
+                            : (d.mobMultiplier <= 0.5
+                                    ? "at or below 0.5, which suppresses dungeons and endgame"
+                                    : "scales hostile mobs at spawn"))));
+        }
+        if (d.playerLuck != null) {
+            b.append(prow("player luck", "<span class='pv-name'>" + num(d.playerLuck)
+                    + "</span>" + pnote("flat loot bonus while inside")));
+        }
+        if (d.attributes != null) {
+            StringBuilder on = new StringBuilder();
+            appendFlag(on, "health", d.attributes.health);
+            appendFlag(on, "damage", d.attributes.damage);
+            appendFlag(on, "armor", d.attributes.armor);
+            appendFlag(on, "speed", d.attributes.speed);
+            appendFlag(on, "knockback", d.attributes.knockback);
+            b.append(prow("attributes", on.length() == 0
+                    ? pnote("none") : on + pnote("what the multiplier touches")));
+        }
+        DimensionConfig.DepthScaling ds = d.depthScaling;
+        if (ds != null && !Boolean.FALSE.equals(ds.enabled)) {
+            double base = d.mobMultiplier == null ? 1.0 : d.mobMultiplier;
+            double lo = ds.minMultiplier == null ? 1.0 : ds.minMultiplier;
+            double hi = ds.maxMultiplier == null ? 1.0 : ds.maxMultiplier;
+            b.append(prow("depth scaling", "<span class='pv-name'>y "
+                    + (ds.startY == null ? 0 : ds.startY) + " to "
+                    + (ds.endY == null ? 0 : ds.endY) + "</span>"
+                    + pnote("factor " + num(lo) + " to " + num(hi))
+                    + pnote("so the effective multiplier runs " + num(base * lo)
+                            + " to " + num(base * hi))));
+        }
+        return block("difficulty", LIVE, b.toString());
+    }
+
+    private static void appendFlag(StringBuilder b, String name, Boolean on) {
+        if (Boolean.TRUE.equals(on)) {
+            b.append("<span class='pchip'>").append(name).append("</span>");
+        }
+    }
+
+    // --- structures -----------------------------------------------------------
+
+    private static String structuresBlock(DimensionConfig def) {
+        StringBuilder b = new StringBuilder();
+        if (def.getStructureDensity() != null && !def.getStructureDensity().isBlank()) {
+            b.append(prow("density", "<span class='pv-name'>"
+                    + escape(def.getStructureDensity()) + "</span>"
+                    + pnote("the profile every group starts from")));
+        }
+        DimensionConfig.Structures s = def.getStructures();
+        if (s != null) {
+            b.append(noiseRows(s));
+            b.append(wantShunRows(s));
+            b.append(placementRows(s));
+        }
+        return block("structures", CHUNKS, b.toString());
+    }
+
+    private static String noiseRows(DimensionConfig.Structures s) {
+        StringBuilder b = new StringBuilder();
+        if (s.noise != null && !s.noise.isJsonNull()) {
+            if (s.noise.isJsonObject()) {
+                StringBuilder v = new StringBuilder();
+                for (String group : s.noise.getAsJsonObject().keySet()) {
+                    v.append("<span class='pchip'>").append(escape(group)).append(' ')
+                            .append(escape(s.noise.getAsJsonObject().get(group).getAsString()))
+                            .append("</span>");
+                }
+                b.append(prow("noise plan", v.toString()));
+            } else {
+                b.append(prow("noise plan", "<span class='pv-name'>"
+                        + escape(s.noise.getAsString()) + "</span>"));
+            }
+        }
+        if (s.radial != null) {
+            for (Map.Entry<String, List<Double>> e : s.radial.entrySet()) {
+                StringBuilder v = new StringBuilder();
+                for (Double d : e.getValue()) {
+                    v.append("<span class='pchip'>").append(num(d)).append("</span>");
+                }
+                b.append(prow("radial " + e.getKey(),
+                        v + pnote("spawn to border, ten bands")));
+            }
+        }
+        if (s.rarity != null && !s.rarity.isEmpty()) {
+            StringBuilder v = new StringBuilder();
+            for (Map.Entry<String, String> e : s.rarity.entrySet()) {
+                v.append("<span class='pchip'>").append(escape(e.getKey())).append(' ')
+                        .append(escape(e.getValue())).append("</span>");
+            }
+            b.append(prow("rarity", v.toString()));
+        }
+        if (s.exclude != null && !s.exclude.isEmpty()) {
+            b.append(prow("excluded", chips(s.exclude) + pnote("out of the pool entirely")));
+        }
+        if (s.include != null && !s.include.isEmpty()) {
+            b.append(prow("included", chips(s.include) + pnote("in, past the biome filter")));
+        }
+        return b.toString();
+    }
+
+    private static String wantShunRows(DimensionConfig.Structures s) {
+        StringBuilder b = new StringBuilder();
+        if (s.wants != null && !s.wants.isEmpty()) {
+            StringBuilder v = new StringBuilder();
+            for (Map.Entry<String, DimensionConfig.StructureWant> e : s.wants.entrySet()) {
+                v.append("<span class='pchip'>").append(escape(e.getKey()));
+                if (e.getValue() != null && e.getValue().min != null && e.getValue().max != null) {
+                    v.append(' ').append(e.getValue().min).append('-').append(e.getValue().max);
+                }
+                v.append("</span>");
+            }
+            b.append(prow("wants", v + pnote("pool weight x1.2, and past the biome filter")));
+        }
+        if (s.shuns != null && !s.shuns.isEmpty()) {
+            b.append(prow("shuns", chips(new ArrayList<>(s.shuns.keySet()))
+                    + pnote("pool weight divided by 1.5, never to zero")));
+            for (DimensionConfig.StructureShun shun : s.shuns.values()) {
+                if (shun != null && shun.minDistance != null) {
+                    b.append(prow("shun distance", "<span class='pv-name'>"
+                            + shun.minDistance + "</span>" + timing(INERT)
+                            + pnote("the value is discarded; every shun behaves as {}")));
+                    break;
+                }
+            }
+        }
+        if (s.wants != null && s.shuns != null) {
+            List<String> both = new ArrayList<>(s.wants.keySet());
+            both.retainAll(s.shuns.keySet());
+            if (!both.isEmpty()) {
+                b.append(prow("conflict", "<span class='pv-bad'>" + escape(String.join(", ", both))
+                        + "</span>" + pnote("named in wants and shuns, so the two cancel")));
+            }
+        }
+        if (s.endgame != null) {
+            b.append(prow("endgame", "<span class='pv-name'>"
+                    + (Boolean.FALSE.equals(s.endgame.allow) ? "banned" : "allowed")
+                    + (s.endgame.safeRadius == null ? ""
+                            : ", safe radius " + s.endgame.safeRadius) + "</span>"
+                    + timing(INERT) + pnote("read by nothing; clearSpawnRadius is the live lever")));
+        }
+        return b.toString();
+    }
+
+    private static String placementRows(DimensionConfig.Structures s) {
+        StringBuilder b = new StringBuilder();
+        if (s.mode != null && !s.mode.isBlank()) {
+            b.append(prow("filter", "<span class='pv-name'>" + escape(s.mode) + "</span>"
+                    + (s.list == null || s.list.isEmpty() ? "" : chips(s.list))));
+        }
+        if (s.spacing != null && !s.spacing.isEmpty()) {
+            StringBuilder v = new StringBuilder();
+            for (Map.Entry<String, DimensionConfig.SpacingOverride> e : s.spacing.entrySet()) {
+                v.append("<span class='pchip'>").append(escape(e.getKey())).append(' ')
+                        .append(e.getValue().spacing).append('/').append(e.getValue().separation)
+                        .append("</span>");
+            }
+            b.append(prow("spacing", v + pnote("grid-placed sets only")));
+        }
+        if (s.force != null) {
+            for (DimensionConfig.ForcedStructure f : s.force) {
+                if (f.structure == null) {
+                    continue;
+                }
+                StringBuilder v = new StringBuilder(blocks(List.of(f.structure)));
+                if (f.x != null && f.z != null) {
+                    v.append(pnote("at " + f.x + ", " + f.z));
+                }
+                if (f.y != null) {
+                    v.append(pnote("pinned to y " + f.y));
+                }
+                v.append(pnote(f.isExclusive()
+                        ? "and nowhere else" : "organic copies kept too"));
+                b.append(prow("forced", v.toString()));
+            }
+        }
+        if (s.terrainAdaptation != null && !s.terrainAdaptation.isEmpty()) {
+            StringBuilder v = new StringBuilder();
+            for (Map.Entry<String, String> e : s.terrainAdaptation.entrySet()) {
+                v.append("<span class='pchip'>").append(escape(e.getKey())).append(' ')
+                        .append(escape(e.getValue())).append("</span>");
+            }
+            b.append(prow("adaptation", v + pnote("how each structure meets the ground")));
+        }
+        if (s.clearSpawnRadius != null) {
+            b.append(prow("clear spawn", "<span class='pv-name'>" + s.clearSpawnRadius
+                    + "</span>" + pnote("groups kept this far from spawn")));
+        }
+        return b.toString();
+    }
+
+    // --- environment ----------------------------------------------------------
+
+    private static String environmentBlock(DimensionConfig def) {
+        DimensionConfig.Environment e = def.getEnvironment();
+        if (e == null) {
+            return "";
+        }
+        StringBuilder b = new StringBuilder();
+        if (e.skyColor != null || e.fogColor != null) {
+            StringBuilder v = new StringBuilder();
+            if (e.skyColor != null) {
+                v.append(swatch(e.skyColor)).append(pnote("sky"));
+            }
+            if (e.fogColor != null) {
+                v.append(swatch(e.fogColor)).append(pnote("fog"));
+            }
+            b.append(prow("colours", v + pnote("client-side only; a plain client sees neither")));
+        }
+        if (e.ambientLight != null) {
+            b.append(prow("ambient light", "<span class='pv-name'>"
+                    + num(e.ambientLight) + "</span>"));
+        }
+        if (e.fixedTime != null) {
+            b.append(prow("fixed time", "<span class='pv-name'>" + e.fixedTime + "</span>"
+                    + pnote("the sun never moves")));
+        }
+        StringBuilder flags = new StringBuilder();
+        appendState(flags, "hasCeiling", e.hasCeiling);
+        appendState(flags, "hasSkylight", e.hasSkylight);
+        appendState(flags, "ultraWarm", e.ultraWarm);
+        appendState(flags, "natural", e.natural);
+        appendState(flags, "bedWorks", e.bedWorks);
+        appendState(flags, "respawnAnchorWorks", e.respawnAnchorWorks);
+        appendState(flags, "piglinSafe", e.piglinSafe);
+        appendState(flags, "hasRaids", e.hasRaids);
+        if (flags.length() > 0) {
+            b.append(prow("flags", flags.toString()));
+        }
+        if (e.effects != null && !e.effects.isBlank()) {
+            b.append(prow("sky effects", "<span class='pv-name'>" + escape(e.effects)
+                    + "</span>" + pnote("which sky the client draws")));
+        }
+        if (e.infiniburn != null && !e.infiniburn.isBlank()) {
+            b.append(prow("infiniburn", blocks(List.of(e.infiniburn))
+                    + pnote("blocks fire burns on forever")));
+        }
+        if (e.monsterSpawnLightLevel != null && !e.monsterSpawnLightLevel.isJsonNull()) {
+            b.append(prow("spawn light", "<span class='pv-name'>"
+                    + escape(e.monsterSpawnLightLevel.toString()) + "</span>"));
+        }
+        if (e.monsterSpawnBlockLightLimit != null) {
+            b.append(prow("block light limit", "<span class='pv-name'>"
+                    + e.monsterSpawnBlockLightLimit + "</span>"));
+        }
+        StringBuilder shape = new StringBuilder();
+        if (e.minY != null) {
+            shape.append("<span class='pchip'>minY ").append(e.minY).append("</span>");
+        }
+        if (e.height != null) {
+            shape.append("<span class='pchip'>height ").append(e.height).append("</span>");
+        }
+        if (e.logicalHeight != null) {
+            shape.append("<span class='pchip'>logicalHeight ").append(e.logicalHeight)
+                    .append("</span>");
+        }
+        if (shape.length() > 0) {
+            b.append(prow("build height", shape + timing(FROZEN)
+                    + pnote("chunk storage shape; the rest of this block is not")));
+        }
+        return block("environment", LIVE, b.toString());
+    }
+
+    private static String swatch(String hex) {
+        String css = hex.startsWith("#") ? hex : "#" + hex;
+        return "<span class='pswatch' style='background:" + escape(css)
+                + "'></span><span class='pv-name'>" + escape(hex) + "</span>";
+    }
+
+    /** A tri-state flag: shown as set-true or set-false, absent when unset. */
+    private static void appendState(StringBuilder b, String name, Boolean value) {
+        if (value != null) {
+            b.append("<span class='pchip'>").append(name).append(' ')
+                    .append(value ? "yes" : "no").append("</span>");
+        }
+    }
+
+    // --- exits ----------------------------------------------------------------
+
+    private static String exitsBlock(DimensionConfig def) {
+        StringBuilder b = new StringBuilder();
+        for (Map.Entry<String, DimensionConfig.ExitRule> e : def.getExits().entrySet()) {
+            DimensionConfig.ExitRule r = e.getValue();
+            if (r == null) {
+                continue;
+            }
+            StringBuilder v = new StringBuilder("<span class='pv-name'>")
+                    .append(escape(r.getAction())).append("</span>");
+            if (r.target != null && !r.target.isJsonNull()) {
+                v.append(pnote("to " + exitTargetLabel(
+                        com.customdimensions.dimension.ExitTarget.canonicalise(r.target, "origin"))));
+            }
+            if ("fallFrom".equals(e.getKey())) {
+                v.append(pnote("after falling " + r.getMinHeight() + " blocks"));
+            }
+            b.append(prow(e.getKey(), v.toString()));
+        }
+        DimensionConfig.ExitShrines shrines = def.getExitShrines();
+        if (shrines != null) {
+            b.append(prow("exit shrines", def.hasExitShrines()
+                    ? "<span class='pv-name'>scattered</span>"
+                            + pnote("leading to " + exitTargetLabel(shrines.getTargetMode()))
+                    : "disabled"));
+        }
+        return block("exits", LIVE, b.toString());
+    }
+
+    // --- roll intent ----------------------------------------------------------
+
+    private static String rollBlock(DimensionConfig def) {
+        DimensionConfig.SeedRoll r = def.getSeedRoll();
+        if (r == null) {
+            return "";
+        }
+        StringBuilder b = new StringBuilder();
+        if (Boolean.TRUE.equals(r.skip)) {
+            b.append(prow("skip", "<span class='pv-bad'>not rolled</span>"
+                    + pnote("the roller ignores this dimension entirely")));
+        }
+        if (r.mood != null && !r.mood.isBlank()) {
+            b.append(prow("mood", "<span class='pv-name'>" + escape(r.mood) + "</span>"));
+        }
+        if (r.family != null && !r.family.isBlank()) {
+            b.append(prow("family", "<span class='pv-name'>" + escape(r.family) + "</span>"
+                    + pnote("overrides the family inferred from type")));
+        }
+        if (r.spawnFilter != null && !r.spawnFilter.isEmpty()) {
+            b.append(prow("spawn filter", chips(r.spawnFilter)
+                    + pnote("the biomes this dimension is named after")));
+        }
+        if (r.water != null && !r.water.isBlank()) {
+            b.append(prow("water", "<span class='pv-name'>" + escape(r.water) + "</span>"));
+        }
+        if (r.terrain != null && !r.terrain.isBlank()) {
+            b.append(prow("terrain", "<span class='pv-name'>" + escape(r.terrain) + "</span>"));
+        }
+        if (r.heightRange != null && r.heightRange.length == 2) {
+            b.append(prow("height range", "<span class='pv-name'>" + r.heightRange[0] + " to "
+                    + r.heightRange[1] + "</span>"
+                    + pnote("an envelope the terrain should live inside, not a quota")));
+        }
+        if (Boolean.TRUE.equals(r.allowHazardousSpawn)) {
+            b.append(prow("hazardous spawn", "allowed"
+                    + pnote("withdraws both spawn safety criteria")));
+        }
+        if (r.wants != null && !r.wants.keySet().isEmpty()) {
+            StringBuilder v = new StringBuilder();
+            for (String k : r.wants.keySet()) {
+                v.append("<span class='pchip'>").append(escape(k)).append(' ')
+                        .append(escape(r.wants.get(k).getAsString())).append("</span>");
+            }
+            b.append(prow("roll wants", v + pnote("scored on the nearest instance's distance")));
+        }
+        if (r.shuns != null && !r.shuns.isJsonNull()) {
+            StringBuilder v = new StringBuilder();
+            if (r.shuns.isJsonArray()) {
+                for (com.google.gson.JsonElement s : r.shuns.getAsJsonArray()) {
+                    v.append("<span class='pchip'>").append(escape(s.getAsString()))
+                            .append("</span>");
+                }
+            } else if (r.shuns.isJsonObject()) {
+                for (String k : r.shuns.getAsJsonObject().keySet()) {
+                    v.append("<span class='pchip'>").append(escape(k)).append("</span>");
+                }
+            }
+            if (v.length() > 0) {
+                b.append(prow("roll shuns", v.toString()));
+            }
+        }
+        if (r.spawnRadius != null) {
+            b.append(prow("spawn radius", "<span class='pv-name'>" + r.spawnRadius + "</span>"
+                    + timing(INERT) + pnote("read by nothing")));
+        }
+        if (r.locateCap != null) {
+            b.append(prow("locate cap", "<span class='pv-name'>" + r.locateCap + "</span>"
+                    + timing(INERT) + pnote("nothing calls getLocateCap; the search is fixed")));
+        }
+        if (r.allowEndgameNearSpawn != null) {
+            b.append(prow("endgame near spawn", "<span class='pv-name'>"
+                    + r.allowEndgameNearSpawn + "</span>" + timing(INERT)
+                    + pnote("there is no penalty for it to lift")));
+        }
+        return block("roll intent", "scoring", b.toString());
+    }
+
+    /** A climate interval as words: {@code [-0.5, 0.2]} reads "-0.5 to 0.2". */
+    private static String interval(com.google.gson.JsonElement e) {
+        if (e.isJsonArray() && e.getAsJsonArray().size() == 2) {
+            return escape(e.getAsJsonArray().get(0).getAsString()) + " to "
+                    + escape(e.getAsJsonArray().get(1).getAsString());
+        }
+        return escape(e.toString());
+    }
+
+    /** Up to two decimals, never fewer than one — 2.0 stays 2.0, 3.75 stays 3.75. */
+    private static String num(double v) {
+        String s = String.format(Locale.ROOT, "%.2f", v);
+        while (s.endsWith("0") && !s.endsWith(".0")) {
+            s = s.substring(0, s.length() - 1);
+        }
+        return s;
+    }
+
     // ------------------------------------------------------------------ portals
 
     /**
@@ -471,6 +1109,16 @@ public final class ViewerPage {
      * the schema does not know never appears as something a frame accepts.
      */
     static String portals(DimensionConfig def) {
+        return portals(def, Map.of());
+    }
+
+    /**
+     * @param frameOwners accept form -> the dimension whose frame it is,
+     *     across the whole pack. Needed only to name the dimension a
+     *     weathering frame would defect to; empty means "say it weathers,
+     *     name no owner" rather than guessing one.
+     */
+    static String portals(DimensionConfig def, Map<String, String> frameOwners) {
         List<DimensionConfig.Portal> all = def.getPortals();
         if (all.isEmpty()) {
             return "";
@@ -478,13 +1126,14 @@ public final class ViewerPage {
         StringBuilder b = new StringBuilder("<div class='portals'>");
         b.append("<div class='portals-label'>portals</div>");
         for (int i = 0; i < all.size(); i++) {
-            b.append(portal(all.get(i), def.portalId(i), i == 0));
+            b.append(portal(all.get(i), def.portalId(i), i == 0, def.getName(), frameOwners));
         }
         b.append(waysOut(def, all));
         return b.append("</div>").toString();
     }
 
-    private static String portal(DimensionConfig.Portal p, String id, boolean primary) {
+    private static String portal(DimensionConfig.Portal p, String id, boolean primary,
+                                 String slug, Map<String, String> frameOwners) {
         List<String> accepts = p.getFrameAcceptForms();
         Map<String, List<String>> parts = p.getFramePartAcceptForms();
         StringBuilder b = new StringBuilder("<div class='portal'>");
@@ -516,6 +1165,8 @@ public final class ViewerPage {
                     ? pnote("no frame block, so nothing bounds an opening")
                     : blocks(accepts) + formCount(accepts) + colourGroup(p)));
         }
+
+        b.append(weathering(accepts, slug, frameOwners));
 
         String place = p.resolvePlacementBlockId();
         if (place != null && placeWorthStating(p, accepts)) {
@@ -566,6 +1217,89 @@ public final class ViewerPage {
         b.append(prow("immersive", immersive(p)));
         return b.append("</div>").toString();
     }
+
+    /**
+     * Copper frames oxidise, and an oxidation step can carry a built frame
+     * out of the dimension that owns it — into another dimension's frame,
+     * or out of every frame at once ({@code TROUBLESHOOTING.md#t85}). Wax
+     * freezes the stage, so a waxed form never appears here.
+     */
+    private static String weathering(List<String> accepts, String slug,
+                                     Map<String, String> frameOwners) {
+        StringBuilder stays = new StringBuilder();
+        StringBuilder b = new StringBuilder();
+        for (String form : accepts) {
+            String next = weathersTo(form);
+            if (next == null) {
+                continue;
+            }
+            if (accepts.contains(next)) {
+                stays.append("<span class='pchip'>").append(escape(form)).append(" &rarr; ")
+                        .append(escape(next)).append("</span>");
+                continue;
+            }
+            String owner = frameOwners.get(next);
+            boolean defects = owner != null && !owner.equals(slug);
+            b.append(prow("weathers", "<span class='" + (defects ? "pv-bad" : "pv-name") + "'>"
+                    + escape(form) + " &rarr; " + escape(next) + "</span>"
+                    + pnote(defects
+                            ? "which is " + escape(owner) + "'s frame, so a built portal "
+                                    + "changes destination in the rain"
+                            : "which this frame does not accept, so the portal is "
+                                    + "no longer this portal once it oxidises")
+                    + pnote("wax it to freeze the stage")));
+        }
+        if (stays.length() > 0) {
+            b.append(prow("weathers", stays + pnote("all stages accepted here")));
+        }
+        return b.toString();
+    }
+
+    /**
+     * The next oxidation stage of a copper block, or null when it has none.
+     *
+     * <p>Only the nine oxidisable families count: deriving a stage from the
+     * name alone turns {@code raw_copper_block} — a real portal frame in
+     * this pack — into {@code exposed_raw_copper_block}, which is not a
+     * block. The plain family is irregular ({@code copper_block} weathers to
+     * {@code exposed_copper}, not to {@code exposed_copper_block}).
+     */
+    static String weathersTo(String id) {
+        if (id == null || id.startsWith("#") || !id.contains("copper")) {
+            return null;
+        }
+        int colon = id.indexOf(':');
+        String ns = colon < 0 ? "minecraft:" : id.substring(0, colon + 1);
+        String path = colon < 0 ? id : id.substring(colon + 1);
+        switch (path) {
+            case "waxed_copper_block":
+            case "copper_block":
+                return ns + "exposed_copper";
+            case "exposed_copper":
+                return ns + "weathered_copper";
+            case "weathered_copper":
+                return ns + "oxidized_copper";
+            default:
+                break;
+        }
+        String base = path;
+        String stage = "exposed_";
+        if (path.startsWith("exposed_")) {
+            base = path.substring("exposed_".length());
+            stage = "weathered_";
+        } else if (path.startsWith("weathered_")) {
+            base = path.substring("weathered_".length());
+            stage = "oxidized_";
+        } else if (path.startsWith("oxidized_")) {
+            return null;
+        }
+        return OXIDISABLE.contains(base) ? ns + stage + base : null;
+    }
+
+    /** The shaped copper families that oxidise; the plain block is handled above. */
+    private static final Set<String> OXIDISABLE = Set.of(
+            "cut_copper", "cut_copper_stairs", "cut_copper_slab", "chiseled_copper",
+            "copper_grate", "copper_bulb", "copper_door", "copper_trapdoor");
 
     /**
      * The place block earns a row when it is a choice: an explicit setting,

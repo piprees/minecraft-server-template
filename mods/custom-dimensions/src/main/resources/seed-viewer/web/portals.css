@@ -127,6 +127,44 @@
   color: var(--text-muted, #8b93a1);
 }
 
+/* Timing markers. The config panel's main claim is which fields a reader can
+ * still change, so the five states are colour-coded rather than left as text:
+ * frozen is the one that costs a world, inert is the one that costs nothing
+ * because nothing reads it. */
+.ptime {
+  font-size: 0.62rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 0 0.3rem;
+  border: 1px solid currentColor;
+  border-radius: var(--r-pill, 99px);
+  white-space: nowrap;
+  align-self: center;
+  color: var(--text-muted, #8b93a1);
+}
+
+.ptime-frozen {
+  color: var(--bad, #e05252);
+}
+
+.ptime-new-chunks {
+  color: var(--warn, #e8a735);
+}
+
+.ptime-live {
+  color: var(--good, #6ec96e);
+}
+
+.conf-legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.2rem 0.5rem;
+  font-size: 0.7rem;
+  color: var(--text-muted, #8b93a1);
+  padding-bottom: 0.25rem;
+}
+
 .pswatch {
   width: 0.7rem;
   height: 0.7rem;

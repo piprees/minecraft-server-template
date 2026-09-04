@@ -40,6 +40,18 @@ class PortalPanelTest {
         return n;
     }
 
+
+    /**
+     * A placeholder in a VALUE position, not merely the letters. Real ids
+     * carry the substring — {@code nullscape:void_barrens} is a shipped
+     * biome — so a bare contains("null") fails on a correct render.
+     */
+    private static boolean leaksToken(String html, String token) {
+        return java.util.regex.Pattern
+                .compile("(?<![A-Za-z0-9_:.\\-])" + token + "(?![A-Za-z0-9_:.\\-])")
+                .matcher(html).find();
+    }
+
     // --- nothing to show ------------------------------------------------------
 
     @Test
@@ -194,8 +206,8 @@ class PortalPanelTest {
     @Test
     void absentFieldsAreOmittedRatherThanPrintedAsNothing() {
         String html = render("the_test", "{\"portal\":{\"frameBlock\":\"minecraft:stone\"}}");
-        assertFalse(html.contains("null"), "a null leaked into the panel: " + html);
-        assertFalse(html.contains("undefined"), "an undefined leaked into the panel: " + html);
+        assertFalse(leaksToken(html, "null"), "a null leaked into the panel: " + html);
+        assertFalse(leaksToken(html, "undefined"), "an undefined leaked into the panel: " + html);
         assertFalse(html.contains("anchor"), "no anchor is configured: " + html);
         assertFalse(html.contains("single use"), "no single-use is configured: " + html);
         assertFalse(html.contains("particles"), "no particle type is configured: " + html);
@@ -380,9 +392,9 @@ class PortalPanelTest {
                     continue;
                 }
                 rendered++;
-                assertFalse(html.contains("null"), slug + " leaked a null: " + html);
-                assertFalse(html.contains("undefined"), slug + " leaked an undefined: " + html);
-                assertFalse(html.contains("NaN"), slug + " leaked a NaN: " + html);
+                assertFalse(leaksToken(html, "null"), slug + " leaked a null: " + html);
+                assertFalse(leaksToken(html, "undefined"), slug + " leaked an undefined: " + html);
+                assertFalse(leaksToken(html, "NaN"), slug + " leaked a NaN: " + html);
                 assertTrue(html.contains("class='portals'"), slug + " rendered no panel");
                 assertTrue(html.contains(">" + slug + "<"), slug + " does not name its portal");
             }
@@ -415,5 +427,124 @@ class PortalPanelTest {
             assertTrue(count(html, "class='pblock'>" + form + "<") >= 1,
                     form + " must be an accepted frame form: " + html);
         }
+    }
+
+    // --- weathering (T85) -----------------------------------------------------
+
+    private static String renderWithOwners(String slug, String json, java.util.Map<String, String> owners) {
+        DimensionConfig config = GSON.fromJson(json, DimensionConfig.class);
+        config.setName(slug);
+        return ViewerPage.portals(config, owners);
+    }
+
+    @Test
+    void aFrameThatWeathersIntoAnotherDimensionsFrameIsFlaggedRed() {
+        String html = renderWithOwners("the_crucible",
+                "{\"portal\":{\"frameBlock\":[\"minecraft:copper_block\",\"minecraft:exposed_copper\","
+                        + "\"minecraft:weathered_copper\"]}}",
+                java.util.Map.of("minecraft:oxidized_copper", "the_gauntlet"));
+        assertTrue(html.contains("weathers"), "no weathering row: " + html);
+        assertTrue(html.contains("minecraft:oxidized_copper"), "the next stage is not named: " + html);
+        assertTrue(html.contains("the_gauntlet"),
+                "the dimension that would claim the frame is not named: " + html);
+        assertTrue(html.contains("pv-bad"), "a frame that changes owner is a defect: " + html);
+    }
+
+    @Test
+    void aFrameWhoseWholeChainItAcceptsIsNotAWarning() {
+        String html = renderWithOwners("the_test",
+                "{\"portal\":{\"frameBlock\":[\"minecraft:copper_block\",\"minecraft:exposed_copper\","
+                        + "\"minecraft:weathered_copper\",\"minecraft:oxidized_copper\"]}}",
+                java.util.Map.of());
+        assertFalse(html.contains("pv-bad"),
+                "every stage is accepted here, so nothing is lost: " + html);
+        // One grouped row, not one per stage: a chain that stays inside its
+        // own frame is a single fact, and asserting only that "weathers"
+        // appears cannot tell the grouped row from three separate warnings.
+        assertEquals(1, count(html, ">weathers<"),
+                "a self-contained chain is one row: " + html);
+        assertTrue(html.contains("all stages accepted here"),
+                "the chain must say it stays inside this frame: " + html);
+    }
+
+    @Test
+    void aFrameThatWeathersOutOfEveryDimensionSaysThePortalStops() {
+        String html = renderWithOwners("the_test",
+                "{\"portal\":{\"frameBlock\":\"minecraft:weathered_copper\"}}",
+                java.util.Map.of());
+        assertTrue(html.contains("minecraft:oxidized_copper"), "the next stage is not named: " + html);
+        assertTrue(html.contains("no longer this portal"),
+                "a frame that weathers out of every accept form stops being a portal: " + html);
+    }
+
+    @Test
+    void waxedCopperDoesNotWeather() {
+        String html = renderWithOwners("the_test",
+                "{\"portal\":{\"frameBlock\":[\"minecraft:waxed_copper_block\","
+                        + "\"minecraft:waxed_exposed_copper\",\"minecraft:waxed_oxidized_copper\"]}}",
+                java.util.Map.of("minecraft:oxidized_copper", "the_gauntlet"));
+        assertFalse(html.contains("weathers"), "wax freezes the oxidation stage: " + html);
+    }
+
+    @Test
+    void copperThatDoesNotOxidiseIsNeverCalledWeathering() {
+        // raw_copper_block is the_highland_crossing's frame and does not
+        // oxidise; deriving a next stage from the name alone would invent
+        // "exposed_raw_copper_block", which is not a block.
+        for (String id : List.of("minecraft:raw_copper_block", "minecraft:copper_ore",
+                "minecraft:deepslate_copper_ore", "minecraft:copper_ingot")) {
+            String html = renderWithOwners("the_test",
+                    "{\"portal\":{\"frameBlock\":\"" + id + "\"}}", java.util.Map.of());
+            assertFalse(html.contains("weathers"), id + " does not oxidise: " + html);
+        }
+    }
+
+    @Test
+    void aNonCopperFrameHasNoWeatheringRow() {
+        String html = renderWithOwners("the_test",
+                "{\"portal\":{\"frameBlock\":\"minecraft:mossy_stone_bricks\"}}", java.util.Map.of());
+        assertFalse(html.contains("weathers"), "stone does not weather: " + html);
+    }
+
+    @Test
+    void theOneArgumentFormStillRendersAndClaimsNoOwner() {
+        String html = render("the_test",
+                "{\"portal\":{\"frameBlock\":\"minecraft:weathered_copper\"}}");
+        assertTrue(html.contains("weathers"), "the chain is still shown: " + html);
+        assertFalse(html.contains("the_gauntlet"),
+                "with no ownership map the panel must name no dimension: " + html);
+    }
+
+    /**
+     * The shipped hazard, pinned: the crucible's accept list stops at
+     * weathered_copper and the_gauntlet's only frame is oxidized_copper, so
+     * an unwaxed crucible frame changes destination in the rain (T85).
+     */
+    @Test
+    void theShippedCrucibleWeathersIntoTheGauntlet() throws IOException {
+        java.util.Map<String, String> owners = new java.util.HashMap<>();
+        try (var files = Files.list(SHIPPED_DIMENSIONS)) {
+            for (Path file : files.filter(p -> p.toString().endsWith(".json")).toList()) {
+                String slug = file.getFileName().toString().replace(".json", "");
+                if (slug.endsWith("_thumb")) {
+                    continue;
+                }
+                DimensionConfig def = GSON.fromJson(Files.readString(file), DimensionConfig.class);
+                def.setName(slug);
+                for (DimensionConfig.Portal portal : def.getPortals()) {
+                    for (String form : portal.getFrameAcceptForms()) {
+                        owners.putIfAbsent(form, slug);
+                    }
+                }
+            }
+        }
+        assertEquals("the_gauntlet", owners.get("minecraft:oxidized_copper"),
+                "the shipped claim on oxidized_copper moved; re-read the configs");
+
+        String html = renderWithOwners("the_crucible",
+                Files.readString(SHIPPED_DIMENSIONS.resolve("the_crucible.json")), owners);
+        assertTrue(html.contains("the_gauntlet"),
+                "the crucible's weathering hazard is not surfaced: " + html);
+        assertTrue(html.contains("pv-bad"), "it is a defect, not a note: " + html);
     }
 }
