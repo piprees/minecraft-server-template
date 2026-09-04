@@ -243,6 +243,201 @@ It still bounds the fallback, so leave those constants alone.
 - The client dies of its own accord ([P6](../../TROUBLESHOOTING.md#p6), a
   HotSpot SIGBUS with no fix). A client death invalidates assertions downstream
   of it and is not a finding about the code.
-- Server mod: 134 suites / 1599 tests. Client mod: 18 suites / 304 tests. Keep
+- Server mod: 143 suites / 1737 tests. Client mod: 31 suites / 401 tests. Keep
   both green. Any test touching a `RenderLayer` dies in `<clinit>`
   (`RenderLayer -> ItemRenderer -> Items -> Blocks -> SoundEvents`).
+
+## The spectator pass
+
+A second camera stands in the destination at the corresponding position,
+renders that world as a complete frame, and the result is composited into the
+aperture. Not a projection drawn into the source scene — a separate view
+masked into this one.
+
+Every claim below is read from 1.21.1 bytecode; the class and member are named.
+
+### 1. The swap set
+
+`net.minecraft.client.MinecraftClient`, field modifiers as declared:
+
+| Field | Modifier | Pass |
+| --- | --- | --- |
+| `world` | `public` | Set to the destination `ClientWorld` |
+| `player` | `public` | Left alone — see below |
+| `cameraEntity` | `public` | Set to the stand-in, if one is used |
+| `interactionManager` | `public` | Left alone |
+| `worldRenderer` | **`public final`** | Never reassigned — the second renderer is driven directly |
+| `gameRenderer` | **`public final`** | Not swapped |
+| `particleManager` | **`public final`** | Not swapped |
+| `entityRenderDispatcher` | **`private final`** | Instance kept; its world is swapped |
+| `blockEntityRenderDispatcher` | **`private final`** | Instance kept; its world is swapped |
+| `bufferBuilders` | **`private final`** | Instance kept; the pass owns a second one |
+
+Swapping `client.world` is what makes the rest correct for free:
+`LightmapTextureManager.update(float)` reads
+`Field MinecraftClient.world` then `ClientWorld.getSkyBrightness(float)` and
+`getLightningTicksLeft()`, and `WorldRenderer.renderSky` reads sky type from
+the client's world. Neither needs its own swap.
+
+**The dispatchers do not need a mixin.** `EntityRenderDispatcher.setWorld(World)`
+is public (its `world` field is private); `BlockEntityRenderDispatcher.world` is
+a `public` non-final field and `setWorld(World)` is public. Both also expose
+`configure(World, Camera, …)`, which is the per-frame call `GameRenderer`
+already makes.
+
+**`WorldRenderer.setWorld` is destructive and must not be used per frame.** Its
+body calls `entityRenderDispatcher.setWorld`, assigns `this.world`, then
+`reload()`, `BuiltChunkStorage.clear()` and `ChunkBuilder.stop()` — a full
+teardown and rebuild of chunk render state. A **second `WorldRenderer`** is
+required, which `DestinationWorlds` already constructs
+(`client/realtime/DestinationWorlds.java:129-130`).
+
+**No mixin is needed to drive it.** `WorldRenderer.render(RenderTickCounter,
+boolean, Camera, GameRenderer, LightmapTextureManager, Matrix4f, Matrix4f)` is
+public, so the second renderer is called directly and the final
+`MinecraftClient.worldRenderer` field is never touched.
+
+### 2. The camera
+
+`Camera.update(BlockView area, Entity focusedEntity, boolean thirdPerson,
+boolean inverseView, float tickDelta)` stores `area` and `focusedEntity`, then
+immediately dereferences the entity — `getYaw(f)`, `getPitch(f)`, `prevX`,
+`getX()`. **A null focused entity is an NPE, not a no-op.** `setPos` and
+`setRotation` are `protected`.
+
+No stand-in entity is needed. `area` takes the destination world; the focused
+entity stays `client.player`, whose yaw and pitch are exactly the ones wanted
+(the destination frame is on the source's own axis — no rotation, see
+`client/realtime/PortalCamera.java`); a `Camera` subclass then calls the
+protected `setPos` with the translated position from
+`PortalCamera.destinationEye`.
+
+The player is not in the destination world, so `WorldRenderer`'s six
+`getFocusedEntity()` checks simply never match — the first-person suppression
+they drive has nothing to suppress. **Unestablished:** whether any of those six
+requires the entity to be resident in `area`. Read them before relying on this.
+
+### 3. The entry point
+
+`GameRenderer.renderWorld(RenderTickCounter)` does the per-frame setup in this
+order: `LightmapTextureManager.update`, `getCameraEntity`/`setCameraEntity`,
+`Camera.update`, then the world render. The spectator pass reproduces that
+sequence for the destination.
+
+**The destination render must happen outside `WorldRenderer.render`, not inside
+it.** Every `WorldRenderEvents` phase — `START`, `AFTER_SETUP`,
+`BEFORE_ENTITIES`, `AFTER_ENTITIES`, `BEFORE_BLOCK_OUTLINE`, `BLOCK_OUTLINE`,
+`BEFORE_DEBUG_RENDER`, `AFTER_TRANSLUCENT`, `LAST`, `END` — fires from inside
+the source world's `WorldRenderer.render`, with its matrices set, its
+framebuffer bound and the shared `BufferBuilderStorage` mid-use. So:
+
+- **Destination render:** a mixin at the HEAD of `GameRenderer.renderWorld`,
+  before the source pass begins, drawing into an offscreen framebuffer.
+- **Composite:** inside the source pass, where the aperture geometry is known.
+  `ProjectionRenderer` draws at `BEFORE_ENTITIES` today
+  (`client/render/ProjectionRenderer.java:20`), which is exactly why source
+  entities paint over it. A composite belongs after entities.
+  **Unestablished:** whether `AFTER_ENTITIES` or `AFTER_TRANSLUCENT` is
+  correct. Translucent ordering is what will be wrong, and it needs a
+  screenshot, not a reading.
+
+### 4. The mask
+
+**1.21.1's framebuffer has no stencil attachment.** `net.minecraft.client.gl.Framebuffer`
+declares `public final boolean useDepthAttachment` and `protected int
+depthAttachment`; there is no stencil field and no stencil method.
+`Framebuffer.initFbo(int, int, boolean)` creates the depth texture with
+internal format `6402` (`GL_DEPTH_COMPONENT`) — not `35056`
+(`GL_DEPTH24_STENCIL8`) and not `34041` (`GL_DEPTH_STENCIL`), neither of which
+appears. `SimpleFramebuffer(int, int, boolean, boolean)` inherits that.
+
+**The stencil operations exist and have nothing to write into.**
+`RenderSystem.stencilFunc(int, int, int)`, `stencilMask(int)`,
+`stencilOp(int, int, int)` and `clearStencil(int)` are public, backed by
+`GlStateManager._stencil*` and a `StencilState`. On MC's own framebuffer there
+are zero stencil bits to test.
+
+| Route | Verdict |
+| --- | --- |
+| Own framebuffer with a packed depth-stencil attachment | Possible, raw GL through `GlStateManager`, and the pass then owns resize and lifecycle |
+| **Offscreen framebuffer, composited into the aperture polygon** | **Recommended.** No stencil: the aperture geometry is the mask, and the composite draw depth-tests normally, so source geometry in front of the portal occludes it |
+| Depth pre-pass gate | Cheapest to reach and re-buys the half-block depth error the slice exists to manage |
+
+### 5. Restore guarantees
+
+An exception mid-pass must not leave the client pointing at the destination.
+That is an unrecoverable client, and it reads as a crash in someone else's mod.
+
+Every swap is set inside `try` and restored in `finally`, innermost last:
+
+| `finally` restores | To |
+| --- | --- |
+| `client.world` | The source `ClientWorld` captured before the pass |
+| `client.cameraEntity` | The captured value, even if it was null |
+| `entityRenderDispatcher.setWorld` | The source world |
+| `blockEntityRenderDispatcher.setWorld` | The source world |
+| Framebuffer binding | The framebuffer bound on entry, via `endWrite` |
+| GL depth/blend state | The values captured on entry |
+
+The `finally` runs even for `Error`, and the pass swallows nothing: it restores,
+logs once per portal, disables itself for that portal, and rethrows nothing into
+the frame. **A pass that has failed once does not run again until the frame
+counter resets** — a per-frame exception is a per-frame log flood.
+
+### 6. Re-entrancy
+
+A portal visible through the aperture renders another pass. Bound it.
+
+- The depth counter lives on the pass itself, incremented on entry and
+  decremented in the same `finally` as the swaps.
+- **Default 1** — one level of nesting, so a portal seen through a portal draws
+  its aperture as a flat fallback rather than recursing. Immersive Portals
+  bounds the same way.
+- The second `BufferBuilderStorage` matters here: `BufferBuilderStorage(int)`
+  has a public constructor, and `getEntityVertexConsumers()` returns a shared
+  `VertexConsumerProvider.Immediate`. Re-entering the source pass's Immediate
+  mid-draw is the concrete failure this bound prevents.
+
+### 7. What of the depth machinery survives
+
+The maintainer's ruling: **no source bleed-through wins**, at the cost of half a
+block of depth error. Against a composited pass:
+
+| Piece | What it holds | Under a composite |
+| --- | --- | --- |
+| `GL_LEQUAL` on BACKDROP | Stops source terrain being erased by destination fragments that borrowed source coordinates | **Redundant** — a composited texture borrows no source coordinates. The aperture polygon has its own real depth |
+| `SLICE_FRACTION = 0.9` depth slice | Makes `GL_LEQUAL` survivable by dragging the test depth onto the portal surface | **Redundant with the above**, and its 0.46-block shortfall at a 2x3 opening goes with it |
+| The aperture stamp | Writes the portal surface into depth so what is behind it is not drawn over | **Still needed** — it is what gives the composite polygon a depth to test against |
+| The clip against the aperture cone | Bounds what the destination may show | **Still needed in the destination pass**, as a clip plane on the far side of the portal plane (`PortalCamera.depthBeyondPlane`) |
+
+Both redundancies are conditional on the composite actually carrying its own
+depth. **Do not delete either until a screenshot pair shows the torch and
+pedestal cases behaving on the new path** — that is P5's acceptance and it is
+unchanged.
+
+### 8. Cost
+
+A full second world render is roughly a second frame: chunk draws, entity
+draws, sky and lightmap for the destination, at the destination's own render
+distance.
+
+| Bound | Where |
+| --- | --- |
+| The frustum gate that already exists | ~9us off screen against ~505us on screen — the pass runs only for an aperture actually in view |
+| The pass's own render distance | Independent of the player's; `RealtimeSettings.maxRenderDistance` already carries it (`client/config/RealtimeSettings.java:32`, default 16, clamped 2..32) |
+| Nesting depth | 1 (above) |
+| Portals in view | **Unbounded today.** Two apertures in frame is two full passes. Cap the number of passes per frame and pick the nearest |
+
+**Unestablished:** the actual per-frame cost. It has to be measured, not
+estimated, and reported the way every other phase reports its own — the plan
+says the number is wanted, not hidden.
+
+### Unestablished
+
+- Whether any of `WorldRenderer`'s six `getFocusedEntity()` uses requires the
+  entity to be resident in the camera's `area`.
+- Whether the composite belongs at `AFTER_ENTITIES` or `AFTER_TRANSLUCENT`.
+- The per-frame cost of one pass, and the cap on passes per frame.
+- Whether Sodium and Iris, both in the pack, tolerate a second `WorldRenderer`
+  driven outside `GameRenderer.renderWorld`. This is the largest unknown in the
+  whole design and nothing above has been checked against either mod.

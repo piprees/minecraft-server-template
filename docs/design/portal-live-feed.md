@@ -193,12 +193,80 @@ The dev bridge already reports `destinationWorlds` and `destinationChunks`
 4. **Applying to the wrong world.** Every apply goes through
    `DestinationWorlds`, keyed by destination `Identifier`. Never hand a
    destination packet to `ClientPlayNetworkHandler`.
-5. **Entity id collision.** Server entity ids are unique per server, not per
-   world, so ids from the destination cannot collide with the source world's
-   own. **Unestablished** — confirm against `ServerWorld`'s id allocator before
-   relying on it. If it does not hold, the payload carries a namespaced id.
-6. **The `SENT` expiry is a resend, not a diff.** Expiring too fast turns the
+5. **The `SENT` expiry is a resend, not a diff.** Expiring too fast turns the
    feed into a chunk-rate stream. Start slow and measure.
+
+## Entity identity across two worlds
+
+Two `ClientWorld`s are live at once and the server has one id space. Read from
+1.21.1 bytecode, `net.minecraft.client.world.ClientWorld`:
+
+- **The index is per-world.** `ClientWorld` holds its own
+  `private final ClientEntityManager<Entity> entityManager` and its own
+  `final EntityList entityList`; `getEntityById(int)` resolves through
+  `getEntityLookup()` into that world's manager, and `removeEntity(int,
+  RemovalReason)` does the same. **A destination id colliding with a
+  source-world id is harmless** — each lookup hits its own map. Nothing
+  consults more than one world.
+- **`addEntity` replaces silently.** `ClientWorld.addEntity(Entity)` first
+  calls `removeEntity(entity.getId(), RemovalReason.DISCARDED)` **on itself**,
+  then `entityManager.addEntity`. Within one world, re-adding an id discards
+  the incumbent with no error. That is convenient for a snapshot re-apply and
+  dangerous if an id is ever reused for a different entity in the same
+  destination.
+- **`addEntity` does NOT reassign the entity's world.** It only touches the
+  manager. An entity constructed against `client.world` and added to a
+  destination has a `getWorld()` that disagrees with the world holding it, and
+  that disagreement surfaces differently in ticking, rendering and removal.
+  **Construct against the destination world:** `EntityType.create(World)` takes
+  the world and is the only place the reference is set.
+
+**Removal.** Three exits, all of which must be specified:
+
+| Trigger | Action |
+| --- | --- |
+| Entity absent from a snapshot | `destinationWorld.removeEntity(id, DISCARDED)` |
+| Portal frame cleared | `PortalFrames.remove` already fires (`client/CustomDimensionsClient.java:121`); the entity map for that destination goes with it |
+| Destination torn down | `DestinationWorlds.drop` (`client/realtime/DestinationWorlds.java:198`) drops the world and its manager wholesale |
+
+An entity left in a destination world that is later dropped is collected with
+the world, so the failure mode is a slow leak within a live destination, never
+a crash. It still needs the snapshot-absent rule or a mob that wanders out of
+the box stands there forever.
+
+## The crossing seam
+
+**The identity does not survive the crossing, and that is vanilla, not ours.**
+`EntityPassthrough.moveEntity` uses `Entity.teleportTo(TeleportTarget)` and
+documents why (`immersive/EntityPassthrough.java:371-376`): a cross-dimension
+move **recreates** a non-player entity in the destination world and leaves the
+original removed, returning the live arrival
+(`immersive/EntityPassthrough.java:407-409`).
+
+So at the instant of crossing:
+
+1. Source world: the original entity is removed. Vanilla sends its own
+   `EntitiesDestroyS2CPacket`, and the client's source world drops it.
+2. Destination: a **different** entity with a **different network id** exists,
+   and the feed picks it up on its next pass.
+
+There is therefore no shared identity, no duplicate id, and no two-index
+confusion. What there is instead is a **gap**: the source copy vanishes at the
+plane and the destination copy appears one feed pass later. That gap is exactly
+what P7 forbids — *"without vanishing at the plane, without jumping"*.
+
+**Unestablished, and the builder must decide it deliberately.** Three options,
+none measured:
+
+| Option | Cost |
+| --- | --- |
+| Shorten the entity cadence so the gap is under a frame or two | Bandwidth, and it never reaches zero |
+| Have the server name the handover explicitly — old id, new id, tick — so the client can carry the fed copy across | A new payload and a seam the client has to interpolate |
+| Accept the gap | A visible stutter at exactly the moment the acceptance test watches |
+
+The second is the only one that can actually satisfy P7's wording. It is also
+the one closest to "simulating an event", so it is a maintainer decision, not a
+builder's.
 
 ## Unestablished
 
@@ -209,5 +277,6 @@ The dev bridge already reports `destinationWorlds` and `destinationChunks`
   entities, particles and sounds, which is a cost and a correctness question of
   its own. **This is the largest open design decision in P3b.**
 - Whether `getOtherEntities` can touch a non-resident chunk (hazard 2).
-- Whether server entity ids are unique across worlds (hazard 5).
+- How the crossing seam is closed — the three options above are unmeasured and
+  the choice is the maintainer's.
 - The per-tick serialisation cost at realistic companion counts.
