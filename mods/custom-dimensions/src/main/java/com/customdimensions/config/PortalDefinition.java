@@ -52,6 +52,12 @@ public class PortalDefinition {
     private String centreBlock;
     private String igniterItem;
     /**
+     * Ignition takes the igniter itself, eye-of-ender style, instead of the
+     * vanilla point of durability. A plain boolean, so an older jar ignores
+     * the unknown field.
+     */
+    private boolean consumesIgniter;
+    /**
      * Vanilla owns this portal: no source zone, no adoption, no claim on
      * vanilla's destination, no immersive projection, no scale override.
      * A plain boolean, so an older jar ignores the unknown field.
@@ -305,6 +311,15 @@ public class PortalDefinition {
 
     public void setIgniterItem(String igniterItem) {
         this.igniterItem = igniterItem;
+    }
+
+    /** True when ignition takes the igniter rather than damaging it. */
+    public boolean consumesIgniter() {
+        return this.consumesIgniter;
+    }
+
+    public void setConsumesIgniter(boolean consumesIgniter) {
+        this.consumesIgniter = consumesIgniter;
     }
 
     public String getTargetDimension() {

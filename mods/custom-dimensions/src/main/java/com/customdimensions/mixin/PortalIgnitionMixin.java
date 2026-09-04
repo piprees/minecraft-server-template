@@ -4,10 +4,13 @@ import com.customdimensions.config.MultiverseConfig;
 import com.customdimensions.config.PortalDefinition;
 import com.customdimensions.dimension.DimensionManager;
 import com.customdimensions.portal.FrameView;
+import com.customdimensions.portal.IgniterSpend;
 import com.customdimensions.portal.IgnitionLog;
 import com.customdimensions.portal.IgnitionRefusal;
 import com.customdimensions.portal.IgnitionScan;
 import com.customdimensions.portal.PortalHelper;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemUsageContext;
@@ -99,10 +102,30 @@ public class PortalIgnitionMixin {
         PortalHelper.spawnParticles(serverWorld, zone);
         playIgniteSound(serverWorld, site.soundPos(), def);
 
-        if (context.getPlayer() == null || !context.getPlayer().isCreative()) {
-            context.getStack().decrement(1);
-        }
+        spendIgniter(serverWorld, context, def);
         return true;
+    }
+
+    // Vanilla damages a flint and steel; it does not destroy it, and a
+    // flint and steel is a stack of one. The decision is IgniterSpend's;
+    // this only applies it.
+    private static void spendIgniter(ServerWorld serverWorld, ItemUsageContext context,
+            PortalDefinition def) {
+        ItemStack stack = context.getStack();
+        PlayerEntity player = context.getPlayer();
+        switch (IgniterSpend.of(stack.isDamageable(), player != null && player.isCreative(),
+                def.consumesIgniter())) {
+            case DAMAGE -> {
+                if (player != null) {
+                    stack.damage(1, player, LivingEntity.getSlotForHand(context.getHand()));
+                } else {
+                    // A dispenser has no player, and the overload above needs one.
+                    stack.damage(1, serverWorld, null, item -> { });
+                }
+            }
+            case CONSUME -> stack.decrement(1);
+            case NOTHING -> { }
+        }
     }
 
     // Pre-warm the target dimension the moment its portal ignites — world

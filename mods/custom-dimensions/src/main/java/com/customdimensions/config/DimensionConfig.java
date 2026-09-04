@@ -771,6 +771,7 @@ public class DimensionConfig {
         if (portal.centreBlock != null && !portal.centreBlock.isBlank()) {
             def.setCentreBlock(portal.centreBlock.trim());
         }
+        def.setConsumesIgniter(portal.consumesIgniter());
         def.setVanillaManaged(portal.isVanillaManaged());
         // scale describes the DIMENSION's coordinate ratio, not the portal, so
         // a vanillaManaged entry still states it: the Nether is 1:8 whoever
@@ -1174,6 +1175,11 @@ public class DimensionConfig {
             return Boolean.TRUE.equals(this.vanillaManaged);
         }
 
+        /** True when ignition takes the igniter rather than damaging it. */
+        public boolean consumesIgniter() {
+            return Boolean.TRUE.equals(this.consumesIgniter);
+        }
+
         /** The preset name when shape is a plain string, else null. */
         public String getShapeName() {
             if (this.shape != null && this.shape.isJsonPrimitive()
@@ -1234,6 +1240,13 @@ public class DimensionConfig {
         public String centreBlock;
         @SerializedName("igniterItem")
         public String igniterItem;
+        /**
+         * Take the igniter itself on a successful ignition, eye-of-ender
+         * style. Absent = false: vanilla damages a flint and steel by one
+         * and destroys nothing, so an igniter survives lighting a portal.
+         */
+        @SerializedName("consumesIgniter")
+        public Boolean consumesIgniter;
         @SerializedName("color")
         public String color;
         @SerializedName("lightLevel")

@@ -30,6 +30,12 @@ Every form of a list frame is claimed, and `framePlaceBlock` must be one of
 them. Pick from `config/custom-dimensions/extractors/blocks.json`, choose
 something the dimension's own theme argues for, and check it is unclaimed.
 
+**Lighting a portal does not cost the igniter.** A damageable one loses a
+point of durability, as vanilla treats a flint and steel; anything else is
+untouched. `"consumesIgniter": true` takes the item instead — eye-of-ender
+semantics, and a design statement that entry is priced. Nothing ships with it,
+so a dimension that wants it is saying something new about itself.
+
 ## `vanillaManaged` — the classic route, left alone
 
 `"vanillaManaged": true` on a portal entry means vanilla runs that portal. The

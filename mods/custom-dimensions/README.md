@@ -225,6 +225,8 @@ An `"environment"` block registers a per-dimension `DimensionType` as `{ns}:{slu
 
 Frames may be vertical (X or Z) or horizontal (floor and ceiling, Y-axis): build the ring flat on the ground and right-click the top face with the igniter. Particles are a hex `color` per portal, rendered on both sides. `cooldown` is 0-200 ticks. Sound fields (`sounds.ignite`/`enter`/`exit`) are config-file-only and accept any Minecraft sound id. Target-side portals are built automatically and stepping back in returns you.
 
+**Lighting a portal costs nothing.** A damageable igniter loses one point of durability, exactly as vanilla treats a flint and steel; anything else is untouched, and a creative player pays neither. `"consumesIgniter": true` takes the item instead, for a portal that wants eye-of-ender semantics. No shipped dimension sets it.
+
 **The whole `portal` block is re-read every boot** — unlike worldgen, frame materials, shapes, auras, immersive settings, anchors, single-use and exit portals all apply to existing dimensions without a world wipe.
 
 ### Vanilla-managed portals
