@@ -177,12 +177,16 @@ public final class SpectatorPass {
      * bound. Called after the source pass, so the source world is underneath.
      */
     public static void blit() {
-        if (!drawn || target == null) {
+        MinecraftClient client = MinecraftClient.getInstance();
+        if (!drawn || target == null || client == null) {
             return;
         }
         int drawBinding = GlStateManager._getInteger(GL30.GL_DRAW_FRAMEBUFFER_BINDING);
         int readBinding = GlStateManager._getInteger(GL30.GL_READ_FRAMEBUFFER_BINDING);
-        int[] rect = SpectatorCorner.topLeft(target.textureWidth, target.textureHeight);
+        // The corner is a share of the SCREEN, and the target is now only as
+        // big as that corner, so its own size cannot answer where it goes.
+        int[] rect = SpectatorCorner.topLeft(client.getFramebuffer().textureWidth,
+                client.getFramebuffer().textureHeight);
         GlStateManager._glBindFramebuffer(GL30.GL_READ_FRAMEBUFFER, target.fbo);
         GlStateManager._glBindFramebuffer(GL30.GL_DRAW_FRAMEBUFFER, drawBinding);
         GlStateManager._glBlitFrameBuffer(
@@ -203,13 +207,20 @@ public final class SpectatorPass {
         return null;
     }
 
+    /**
+     * The offscreen target, sized to the corner it is shown in rather than to
+     * the screen. Every pass clears it, draws sky into it and blits it, so a
+     * screen-sized target charges the full window for a preview a twentieth
+     * of its area on a 16:9 screen. The projection matrix still carries the
+     * window's aspect, so what lands in the square corner is unchanged.
+     */
     private static Framebuffer ensureTarget(MinecraftClient client) {
-        int width = client.getFramebuffer().textureWidth;
-        int height = client.getFramebuffer().textureHeight;
+        int side = SpectatorCorner.side(client.getFramebuffer().textureWidth,
+                client.getFramebuffer().textureHeight);
         if (target == null) {
-            target = new SimpleFramebuffer(width, height, true, MinecraftClient.IS_SYSTEM_MAC);
-        } else if (target.textureWidth != width || target.textureHeight != height) {
-            target.resize(width, height, MinecraftClient.IS_SYSTEM_MAC);
+            target = new SimpleFramebuffer(side, side, true, MinecraftClient.IS_SYSTEM_MAC);
+        } else if (target.textureWidth != side || target.textureHeight != side) {
+            target.resize(side, side, MinecraftClient.IS_SYSTEM_MAC);
         }
         return target;
     }
