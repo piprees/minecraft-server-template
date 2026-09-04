@@ -1,6 +1,11 @@
 package com.customdimensions.client.dev;
 
 import com.customdimensions.client.ArrivalScreen;
+import com.customdimensions.client.config.RealtimeControls;
+import com.customdimensions.client.config.RealtimeSettings;
+import com.customdimensions.client.realtime.DestinationChunks;
+import com.customdimensions.client.realtime.DestinationWorlds;
+import com.customdimensions.client.realtime.PortalFrames;
 import com.customdimensions.client.render.ClientProjection;
 import com.customdimensions.client.render.LightFacts;
 import com.customdimensions.client.render.ProjectionMesh;
@@ -13,6 +18,7 @@ import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.registry.Registries;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
@@ -21,6 +27,7 @@ import net.minecraft.world.LightType;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -48,6 +55,39 @@ final class DevState {
                 .raw("player", player(client))
                 .raw("client", clientState(client))
                 .raw("projections", projections(client))
+                .raw("realtime", realtime())
+                .toString();
+    }
+
+    /**
+     * The real-time path's own counters. {@code projections} above is the
+     * server-drawn slab, so the two together say which path a portal is on
+     * without reading a log at a level the client does not print.
+     */
+    private static String realtime() {
+        RealtimeSettings settings = RealtimeControls.settings();
+        Map<Identifier, Integer> held = DestinationWorlds.loadedCounts();
+        Map<Identifier, Integer> received = DestinationChunks.counts();
+        StringBuilder worlds = new StringBuilder("[");
+        boolean first = true;
+        for (Identifier destination : received.keySet()) {
+            worlds.append(first ? "" : ",").append(Json.obj()
+                    .str("dimension", destination.toString())
+                    .bool("worldStanding", held.containsKey(destination))
+                    .num("chunksInWorld", held.getOrDefault(destination, 0))
+                    .num("chunksReceived", received.getOrDefault(destination, 0))
+                    .toString());
+            first = false;
+        }
+        return Json.obj()
+                .bool("enabled", settings.enabled())
+                .bool("fallbackToSlab", settings.fallbackToSlab())
+                .num("maxRenderDistance", settings.maxRenderDistance())
+                .num("frames", PortalFrames.count())
+                .num("slabProjections", ProjectionStore.count())
+                .num("destinationWorlds", DestinationWorlds.count())
+                .num("destinationChunks", DestinationChunks.total())
+                .raw("worlds", worlds.append(']').toString())
                 .toString();
     }
 

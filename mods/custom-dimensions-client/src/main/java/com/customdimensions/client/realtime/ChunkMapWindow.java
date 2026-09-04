@@ -38,4 +38,14 @@ public final class ChunkMapWindow {
     public static int loadDistanceFor(int feedRadius) {
         return Math.max(2, feedRadius);
     }
+
+    /**
+     * The chunk the map is centred on: one source-world block coordinate of
+     * the opening, carried onto the far side by the frame's offset. An
+     * arithmetic shift floors, so a negative destination coordinate lands on
+     * the chunk it is in rather than the one towards zero.
+     */
+    public static int centreChunk(int sourceCoord, int offset) {
+        return (sourceCoord + offset) >> 4;
+    }
 }

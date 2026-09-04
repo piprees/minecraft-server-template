@@ -31,13 +31,13 @@ import java.util.concurrent.ConcurrentHashMap;
  * The destination dimensions this client holds locally, one {@link ClientWorld}
  * per destination however many portals lead there.
  *
- * <h2>What is deliberately NOT done here</h2>
- * {@link WorldRenderer#setWorld} is never called. It re-points the client's
- * ONE shared {@code EntityRenderDispatcher} at whatever world it is given, so
- * calling it here would leave the player's own world rendering its entities
- * against a dimension they are not in. The renderer's chunk machinery is a
- * rendering concern; the chunks themselves live in the world's own
- * {@code ClientChunkManager} and need none of it.
+ * <h2>Each destination owns its renderer</h2>
+ * A destination's {@link WorldRenderer} is given that world with
+ * {@code setWorld} and the client's own is put straight back into the ONE
+ * shared {@code EntityRenderDispatcher} the call re-points. Both halves are
+ * load-bearing: without the first, every fed chunk NPEs in the renderer's
+ * chunk-rendering state; without the second, the player's own world renders
+ * its entities against a dimension they are not in.
  *
  * <h2>The centring trap</h2>
  * A chunk map centred where a world was constructed accepts nothing near a
@@ -63,6 +63,9 @@ public final class DestinationWorlds {
     public static final String REFUSED_MARKER = "companion-client:destination-refused";
 
     private static final Map<Identifier, ClientWorld> WORLDS = new ConcurrentHashMap<>();
+
+    /** Each destination's own renderer, so dropping one frees its chunk builder. */
+    private static final Map<Identifier, WorldRenderer> RENDERERS = new ConcurrentHashMap<>();
 
     /** Destinations already refused, so the reason is logged once, not per chunk. */
     private static final java.util.Set<Identifier> REFUSED = ConcurrentHashMap.newKeySet();
@@ -118,6 +121,8 @@ public final class DestinationWorlds {
             return null;
         }
         int loadDistance = ChunkMapWindow.loadDistanceFor(feedRadius);
+        WorldRenderer renderer = new WorldRenderer(client, client.getEntityRenderDispatcher(),
+                client.getBlockEntityRenderDispatcher(), client.getBufferBuilders());
         ClientWorld made = new ClientWorld(
                 handler,
                 new ClientWorld.Properties(Difficulty.NORMAL, false, false),
@@ -126,15 +131,32 @@ public final class DestinationWorlds {
                 loadDistance,
                 loadDistance,
                 client::getProfiler,
-                new WorldRenderer(client, client.getEntityRenderDispatcher(),
-                        client.getBlockEntityRenderDispatcher(), client.getBufferBuilders()),
+                renderer,
                 false,
                 0L);
+        adopt(client, renderer, made);
         made.getChunkManager().setChunkMapCenter(centreChunkX, centreChunkZ);
         WORLDS.put(destination, made);
+        RENDERERS.put(destination, renderer);
         CustomDimensionsClient.LOGGER.info("{} dimension={} type={} loadDistance={} centre={},{}",
                 WORLD_MARKER, destination, dimensionType, loadDistance, centreChunkX, centreChunkZ);
         return made;
+    }
+
+    /**
+     * Gives the destination's renderer its world, then puts the client's own
+     * back where the call moved it.
+     *
+     * <p>{@code loadChunkFromPacket} ends inside the renderer's
+     * {@code ChunkRenderingDataPreparer}, whose state is null until
+     * {@code setWorld} builds it, so an unadopted renderer NPEs on every fed
+     * chunk. {@code setWorld} also re-points the ONE shared
+     * {@code EntityRenderDispatcher}; left there, the player's own world would
+     * render its entities against a dimension they are not in.
+     */
+    private static void adopt(MinecraftClient client, WorldRenderer renderer, ClientWorld made) {
+        renderer.setWorld(made);
+        client.getEntityRenderDispatcher().setWorld(client.world);
     }
 
     /**
@@ -179,18 +201,13 @@ public final class DestinationWorlds {
     private static void updateLighting(ClientWorld world, int chunkX, int chunkZ,
             LightingProvider provider, LightType type, BitSet inited, BitSet uninited,
             Iterator<byte[]> nibbles) {
-        int sections = provider.getHeight();
         int bottomSection = provider.getBottomY();
-        for (int section = 0; section < sections; section++) {
-            boolean isInited = inited.get(section);
-            boolean isUninited = uninited.get(section);
-            if (!isInited && !isUninited) {
-                continue;
-            }
-            ChunkSectionPos at = ChunkSectionPos.from(chunkX, bottomSection + section, chunkZ);
-            provider.enqueueSectionData(type, at,
-                    isInited ? new ChunkNibbleArray(nibbles.next().clone()) : new ChunkNibbleArray());
-            world.scheduleBlockRenders(chunkX, bottomSection + section, chunkZ);
+        for (LightSteps.Step step : LightSteps.of(provider.getHeight(), inited, uninited)) {
+            int sectionY = bottomSection + step.section();
+            provider.enqueueSectionData(type, ChunkSectionPos.from(chunkX, sectionY, chunkZ),
+                    step.fromWire() ? new ChunkNibbleArray(nibbles.next().clone())
+                            : new ChunkNibbleArray());
+            world.scheduleBlockRenders(chunkX, sectionY, chunkZ);
         }
     }
 
@@ -199,6 +216,14 @@ public final class DestinationWorlds {
         ClientWorld gone = destination == null ? null : WORLDS.remove(destination);
         if (gone == null) {
             return;
+        }
+        WorldRenderer renderer = RENDERERS.remove(destination);
+        if (renderer != null) {
+            MinecraftClient client = MinecraftClient.getInstance();
+            renderer.setWorld(null);
+            if (client != null) {
+                client.getEntityRenderDispatcher().setWorld(client.world);
+            }
         }
         DestinationChunks.drop(destination);
         CustomDimensionsClient.LOGGER.info("{} dimension={} dropped", WORLD_MARKER, destination);
@@ -210,6 +235,7 @@ public final class DestinationWorlds {
             drop(destination);
         }
         WORLDS.clear();
+        RENDERERS.clear();
         REFUSED.clear();
     }
 

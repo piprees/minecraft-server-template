@@ -94,8 +94,10 @@ public class CustomDimensionsClient implements ClientModInitializer {
                     DestinationWorlds.ensure(context.client(), payload.destination(),
                             payload.dimensionType(),
                             RealtimeControls.settings().maxRenderDistance(),
-                            (origin.getX() + payload.dx()) >> 4,
-                            (origin.getZ() + payload.dz()) >> 4);
+                            com.customdimensions.client.realtime.ChunkMapWindow
+                                    .centreChunk(origin.getX(), payload.dx()),
+                            com.customdimensions.client.realtime.ChunkMapWindow
+                                    .centreChunk(origin.getZ(), payload.dz()));
                     if (changed) {
                         LOGGER.info("{} dimension={} type={} aperture={} offset=({}, {}, {})",
                                 PortalFrames.RECEIVE_MARKER, payload.destination(),

@@ -38,19 +38,46 @@ class PortalCameraTest {
     }
 
     /**
+     * The nexus offset as the SERVER put it on the wire, read from
+     * {@code companion-send:portal-frame ... offset=(-750, -36, -750)} for the
+     * opening at overworld 1500, 101, 1500 at scale 2. A fixture, not a sum
+     * the test does for itself.
+     */
+    private static final int NEXUS_DX = -750;
+    private static final int NEXUS_DY = -36;
+    private static final int NEXUS_DZ = -750;
+
+    /**
+     * The crucible rig: source overworld 3260, 85, 2883 arrives at 815, 60,
+     * 721 at scale 4. Also a fixture — the differences, not a formula.
+     */
+    private static final int CRUCIBLE_DX = 815 - 3260;
+    private static final int CRUCIBLE_DZ = 721 - 2883;
+
+    /**
      * Scale 4 differs only in the NUMBERS, never in the shape of the sum. A
      * camera that divided by the scale would be right at scale 1 and wrong
      * here, which is the whole trap.
      */
     @Test
     void scaleFourIsTheSameArithmeticWithDifferentNumbers() {
-        // the_crucible: overworld column 3260 at scale 4 arrives at 815.
-        int dx = Math.round(3260 / 4.0f) - 3260;
-        assertEquals(-2445, dx);
-        assertEquals(815.5, PortalCamera.translate(3260.5, dx), TOLERANCE);
+        assertEquals(815.5, PortalCamera.translate(3260.5, CRUCIBLE_DX), TOLERANCE);
+        assertEquals(721.5, PortalCamera.translate(2883.5, CRUCIBLE_DZ), TOLERANCE);
 
         // Scale 1: the offset is zero and the camera does not move at all.
         assertEquals(3260.5, PortalCamera.translate(3260.5, 0), TOLERANCE);
+    }
+
+    /**
+     * The offset the server actually sent, applied to the rig camera. A
+     * transform that divided by the scale would put the eye at 375.75 here.
+     */
+    @Test
+    void theWireOffsetPutsTheRigCameraOnTheFarSide() {
+        assertArrayEquals(new double[] {751.5, 64.0, 745.5},
+                PortalCamera.destinationEye(1501.5, 100.0, 1495.5,
+                        NEXUS_DX, NEXUS_DY, NEXUS_DZ), TOLERANCE);
+        assertEquals(750.5, PortalCamera.destinationPlane(1500, NEXUS_DZ), TOLERANCE);
     }
 
     @Test
