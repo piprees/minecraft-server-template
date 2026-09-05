@@ -257,6 +257,7 @@ public final class DevServer {
                         request.number("yaw", client.player == null ? 0 : client.player.getYaw()),
                         request.number("pitch", client.player == null ? 0 : client.player.getPitch()));
                 case "use" -> DevBridge.use(client);
+                case "hud" -> DevBridge.hud(client, request.flag("hidden", true));
                 case "key" -> DevBridge.tap(client,
                         request.value() != null ? request.value() : request.text("name", null));
                 default -> throw new IllegalStateException("unhandled action " + action);

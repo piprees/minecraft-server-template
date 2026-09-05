@@ -142,6 +142,15 @@ public final class DevBridge {
     }
 
     /**
+     * The HUD is a plain {@code GameOptions} field the render thread reads every
+     * frame, not a key binding — F1 writes it from {@code Keyboard.onKey}, so
+     * this write belongs on that thread too.
+     */
+    static void hud(MinecraftClient client, boolean hidden) {
+        client.options.hudHidden = hidden;
+    }
+
+    /**
      * Escape is not a key binding — the game handles it in {@code Keyboard.onKey}
      * by closing the open screen or opening the game menu, and that is the path
      * taken here. Everything else is a tap on the binding the game reads.

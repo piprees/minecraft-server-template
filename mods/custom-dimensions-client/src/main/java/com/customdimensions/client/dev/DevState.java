@@ -320,6 +320,7 @@ final class DevState {
                         client.world == null ? 0 : client.world.getChunkManager().getLoadedChunkCount())
                 .bool("worldLoaded", client.world != null)
                 .bool("paused", client.isPaused())
+                .bool("hudHidden", client.options.hudHidden)
                 .toString();
     }
 
