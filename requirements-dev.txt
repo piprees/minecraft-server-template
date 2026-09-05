@@ -10,3 +10,7 @@
 # amulet-rocksdb, none of which ship wheels for current Python, plus a
 # numpy~=1.17 pin. A C toolchain everywhere for speed we do not need.
 nbtlib==2.0.4
+
+# Pillow reads the sweep's PNGs. camera-sweep-check.py turns a camera pan into
+# a verdict, and without it every view-stability row reads as unreadable.
+Pillow==11.3.0
