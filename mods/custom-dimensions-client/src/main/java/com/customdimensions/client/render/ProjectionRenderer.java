@@ -135,7 +135,8 @@ public final class ProjectionRenderer {
                 spanGated++;
                 continue;
             }
-            drawOne(projection, matrices, camera, position, projectionMatrix, sample);
+            drawOne(projection, matrices, camera, position, projectionMatrix, sample,
+                    context.tickCounter().getTickDelta(true));
         }
         long elapsed = System.nanoTime() - startedAt;
         spanFrames++;
@@ -157,7 +158,7 @@ public final class ProjectionRenderer {
     }
 
     private static void drawOne(ClientProjection projection, MatrixStack matrices, Vec3d camera,
-            Matrix4f position, Matrix4f projectionMatrix, boolean sample) {
+            Matrix4f position, Matrix4f projectionMatrix, boolean sample, float tickDelta) {
         BlockPos origin = projection.origin();
         double camX = camera.x - origin.getX();
         double camY = camera.y - origin.getY();
@@ -240,6 +241,10 @@ public final class ProjectionRenderer {
                                 .append(" drawn=true");
                     }
                 }
+                // After the terrain and inside the same slice: an actor tests at
+                // the window's own depth, against the ground it is standing on.
+                DestinationActors.draw(projection, matrices, immediate, TUNNEL, faces,
+                        camX, camY, camZ, tickDelta);
             }
 
             @Override
@@ -262,7 +267,7 @@ public final class ProjectionRenderer {
                     volumeBounds(projection), String.format("%.2f", surface), stamp,
                     sliceLabel(slice), spanFrames, spanGated,
                     costSummary(spanFrames, spanNanos, spanPeakNanos),
-                    mesh.layers().size(), report);
+                    mesh.layers().size(), DestinationActors.summary() + " " + report);
             spanFrames = 0;
             spanNanos = 0;
             spanPeakNanos = 0;
