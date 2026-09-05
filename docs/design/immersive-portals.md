@@ -44,55 +44,49 @@ and watch where it goes.
 
 # Part 1 — The geometry must line up
 
-## The defect, in the maintainer's words
+## The surface is the aperture block's destination-side face
 
-> Currently we render the destination dimension AT the halfway point between the
-> camera-side and the far-side faces. But we aren't rendering the portal frame's
-> "destination side" half; as in, the block does not appear to be whole, despite
-> both sides of the portal having the same block. So we appear to be projecting a
-> view of the destination that is 1 whole block away, and we are doing it 0.5
-> blocks shorter than we should. Then when you walk around the portal, you get a
-> weird effect around the edge.
+The opening cell spans `[plane, plane + 1)` on the normal axis. **The destination
+surface sits on the face the destination lies behind** — `plane + 1` where the
+normal points high, `plane + 0` where it points low. `CompositeQuad.surface`
+owns that, and every reader calls it.
 
-## What is actually happening
+That single choice is what makes the doorway read as a doorway:
 
-The opening cell spans `[plane, plane + 1)` on the normal axis. The destination
-image is planted on a surface that **bisects** that cell, at `plane + 0.5`
-(`ClientProjection.java:83`). The frame ring around the opening is real blocks,
-one block thick, and their inner faces are real source geometry.
+- **The frame ring's inner faces are drawn for their full one-block depth, from
+  both sides.** The block is whole because all of it is drawn. A surface that
+  bisected the cell would paint over the far half of every inner face, and the
+  wall would read half a block thick from either side — visibly so at a grazing
+  angle, where the covered fraction changes as you walk past.
+- **The destination begins exactly where the wall ends.** That is what a doorway
+  is.
+- **The two clip rectangles are the hole's two real mouths**, at `plane` and
+  `plane + 1`. Looking obliquely through a hole in a thick wall, the far mouth
+  limits your view, exactly as in life. `windowLabel` prints both on the emit
+  line; two distinct values one block apart is the runtime witness that the
+  tunnel is intact.
+- **Every normal-axis coordinate is an integer block face**, so no half block
+  enters any depth calculation.
 
-So the destination image is painted across the middle of the hole. The far half
-of every inner face — the half of the wall's thickness past the mid-plane — is
-covered by the picture. **The wall reads as half a block thick from either side,
-and the block is never whole.** Walk past at an angle and the covered fraction
-changes with the viewing angle, which is the weird edge effect.
+**The surface is also the slab's own near face, so nothing has to be moved to
+meet it.** `surfaceOffset()` is exactly 0.0 on both signs and `meshShift` is
+`{0, 0, 0}` — the destination mesh draws precisely where the server placed it.
+The renderer prints `surface=0.00`; anything else means the server's layout has
+moved and the arithmetic, not a constant, is what will catch it.
 
-## The resolution
+**The depth band is the aperture block's own thickness**, `[plane, plane + 0.9]`,
+fixed by two invariants: it must start no nearer than the camera-side face, so a
+real block in front of the frame is nearer and wins, and end short of `plane + 1`,
+where source geometry behind the opening begins. `SLICE_FRACTION` is 0.9 of that
+block and `BAND_LIMIT` is the same reach measured from the near face, pinned to
+each other by test. `sliceFor` derives the band from
+`apertureMaxCoord - apertureMinCoord` — the block's own measured depth — so there
+is no literal that can drift out of step with the geometry.
 
-**The destination surface belongs on the far face — `plane + 1` measured from
-the camera side.** Then:
-
-- The frame's inner faces are drawn for their full one-block depth, from both
-  sides. The block is whole because all of it is drawn.
-- The destination begins exactly where the wall ends. That is what a doorway is.
-- The two clip rectangles become the hole's two real mouths, at `plane` and
-  `plane + 1`. The tunnel is preserved, and it is now the honest one: looking
-  obliquely through a hole in a thick wall, the far mouth limits your view,
-  exactly as in life.
-- **Every normal-axis coordinate becomes an integer block face.** The half block
-  leaves the depth calculations entirely, which is what the change is for.
-
-`ProjectionRenderer.tunnelFaces`' javadoc currently argues against clipping on
-the far face, because doing so "puts the window half a block behind the surface".
-That reasoning is sound *while the surface stays at the middle*. Once the surface
-**is** the far face, there is no half block to be behind, and the objection
-dissolves rather than being overruled.
-
-**Re-derive before implementing.** `SLICE_FRACTION`, the `ProjectionRenderer:884-886`
-probe literal and `BAND_LIMIT` were all costed against a *near*-face reading and
-do not transfer. The server slab already starts at `plane + 1` on a positive
-normal, so the far-face reading may need no shift at all — that is a derivation
-to perform, not an assumption to carry.
+**`bandOpens()` still warns on a 3x2 opening** (`reach=1.41 over 0.9`): seen
+obliquely enough, the slice cannot cover the whole opening and the destination is
+drawn in front of source terrain at the far side. It is a one-shot WARN with no
+behaviour hanging off it, and it is not cleared.
 
 ## The convention drifted because it was written down four times
 
