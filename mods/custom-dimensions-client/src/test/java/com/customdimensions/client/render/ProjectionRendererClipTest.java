@@ -542,7 +542,7 @@ class ProjectionRendererClipTest {
     /**
      * Stepping into the frame. Once the camera is past a face, that face frames
      * nothing and its cone is behind the camera — kept, it would discard the
-     * whole destination for the last half block before the crossing.
+     * whole destination for the last block before the crossing.
      */
     @Test
     void aFaceTheCameraHasAlreadyCrossedFramesNothing() {

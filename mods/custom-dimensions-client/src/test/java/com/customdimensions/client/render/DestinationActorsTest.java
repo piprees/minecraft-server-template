@@ -40,9 +40,10 @@ class DestinationActorsTest {
     }
 
     /**
-     * The mesh is drawn half a block proud of where it was sampled so its near
-     * face lands on the portal surface. An actor gets the same move or it stands
-     * half a block behind the ground it is on.
+     * Whatever move puts the mesh's near face on the portal surface, an actor
+     * gets the same one or it stands behind the ground it is on. Driven with a
+     * shift of its own in both directions: the production shift is zero, and a
+     * routing that dropped it would read as correct.
      */
     @Test
     void theSurfaceShiftMovesAnActorWithTheTerrainUnderIt() {
