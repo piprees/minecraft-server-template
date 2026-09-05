@@ -162,6 +162,12 @@ services:
       # consumer overlay, so it belongs on a trusted LAN only — the local
       # profile sets a real port, and nothing in the cloud profile does.
       SEED_VIEWER_PORT: ${SEED_VIEWER_PORT:-0}
+      # Boot priming draws every configured dimension and takes the machine for
+      # hours; the two render gates start that resolution paused. Set any to
+      # false to keep a box quiet — the viewer stays usable either way.
+      SEED_PRIME: ${SEED_PRIME:-true}
+      SEED_RENDER_HIGH: ${SEED_RENDER_HIGH:-true}
+      SEED_RENDER_LOW: ${SEED_RENDER_LOW:-true}
       # Consumer namespace for consumer-added dimension files in
       # overlay/config/custom-dimensions/ (custom-dimensions mod).
       BRAND_SLUG: ${BRAND_SLUG:-}

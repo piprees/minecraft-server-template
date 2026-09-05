@@ -109,6 +109,31 @@ public final class RenderQueue {
     }
 
     /**
+     * Env gates, read once at start. An explicit false starts that resolution
+     * paused; the viewer's own pause and resume still apply afterwards.
+     */
+    public static void applyEnvironment() {
+        setLowPaused(!flag(System.getenv("SEED_RENDER_LOW"), true));
+        setHighPaused(!flag(System.getenv("SEED_RENDER_HIGH"), true));
+    }
+
+    /** Unset means {@code fallback}; false, 0, no and off are the only ways to say no. */
+    static boolean flag(String raw, boolean fallback) {
+        if (raw == null || raw.isBlank()) {
+            return fallback;
+        }
+        switch (raw.trim().toLowerCase(java.util.Locale.ROOT)) {
+            case "false":
+            case "0":
+            case "no":
+            case "off":
+                return false;
+            default:
+                return true;
+        }
+    }
+
+    /**
      * The dimension a viewer has open, or empty. Its maps are drawn first —
      * a render nobody is looking at can wait for one somebody is.
      */

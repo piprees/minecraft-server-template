@@ -45,6 +45,9 @@ services:
       # Turns the roller's listener on for local dev; the shared compose file
       # defaults it to 0 so it never binds in the cloud profile.
       SEED_VIEWER_PORT: ${SEED_VIEWER_PORT:-8765}
+      SEED_PRIME: ${SEED_PRIME:-true}
+      SEED_RENDER_HIGH: ${SEED_RENDER_HIGH:-true}
+      SEED_RENDER_LOW: ${SEED_RENDER_LOW:-true}
       ONLINE_MODE: "FALSE"
       ENABLE_WHITELIST: "FALSE"
       ENFORCE_WHITELIST: "FALSE"

@@ -58,6 +58,18 @@ public final class SeedServer {
             }));
             server.start();
             MultiverseServer.LOGGER.info("Seed viewer listening on port {}", port);
+            RenderQueue.applyEnvironment();
+            if (RenderQueue.lowPaused() || RenderQueue.highPaused()) {
+                MultiverseServer.LOGGER.info("Render queue starts paused (low={}, high={})",
+                        RenderQueue.lowPaused(), RenderQueue.highPaused());
+            }
+            // Priming draws every configured dimension and takes the machine
+            // for hours. SEED_PRIME=false leaves the viewer usable and rolls
+            // nothing until somebody asks.
+            if (!RenderQueue.flag(System.getenv("SEED_PRIME"), true)) {
+                MultiverseServer.LOGGER.info("Seed priming disabled (SEED_PRIME); no boot render batch");
+                return;
+            }
             // What the pack looks like RIGHT NOW, before anybody rolls
             // anything: every dimension has a configured world, and on a fresh
             // bank its seed is the only one there is to score or look at.
