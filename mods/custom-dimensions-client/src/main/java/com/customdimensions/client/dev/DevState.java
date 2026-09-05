@@ -1,6 +1,7 @@
 package com.customdimensions.client.dev;
 
 import com.customdimensions.client.ArrivalScreen;
+import com.customdimensions.client.CompanionPayloads;
 import com.customdimensions.client.PortalViewDeclaration;
 import com.customdimensions.client.config.RealtimeControls;
 import com.customdimensions.client.config.RealtimeSettings;
@@ -339,12 +340,45 @@ final class DevState {
                     .raw("destLight", light(LightFacts.ofPacked(projection.payload().light())))
                     .raw("meshLight", light(meshLight(mesh)))
                     .raw("ambient", ambient(projection, mesh))
+                    .raw("tints", tints(projection))
                     .raw("apertureLight", apertureLight(world, projection))
                     .raw("lightProfile", lightProfile(world, projection))
                     .toString());
             first = false;
         }
         return out.append(']').toString();
+    }
+
+    /**
+     * The per-column tints as they arrived: how many distinct triples the
+     * palette holds and how many columns carry one. More than one entry is a
+     * view spanning more than one biome; a single entry over every column is
+     * the whole volume wearing one biome's grass.
+     */
+    private static String tints(ClientProjection projection) {
+        CompanionPayloads.Projection payload = projection.payload();
+        int columns = payload.columnCount();
+        int carried = 0;
+        Set<Integer> grasses = new LinkedHashSet<>();
+        for (int column = 0; column < columns; column++) {
+            int grass = payload.columnTint(column, CompanionPayloads.Projection.TINT_GRASS);
+            if (grass >= 0) {
+                carried++;
+            }
+            grasses.add(grass);
+        }
+        List<String> swatches = new ArrayList<>();
+        for (int grass : grasses) {
+            swatches.add(grass < 0 ? "none" : String.format("#%06X", grass & 0xFFFFFF));
+        }
+        return Json.obj()
+                .num("columns", columns)
+                .num("carried", carried)
+                .num("paletteEntries",
+                        payload.tintPalette().length / CompanionPayloads.Projection.TINT_CHANNELS)
+                .num("distinctGrass", grasses.size())
+                .raw("grass", Json.strings(swatches))
+                .toString();
     }
 
     /**
