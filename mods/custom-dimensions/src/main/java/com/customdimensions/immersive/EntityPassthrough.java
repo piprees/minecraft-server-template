@@ -233,10 +233,15 @@ public final class EntityPassthrough {
     // ------------------------------------------------------------------
 
     /**
-     * Per-world tick. Called from {@code ServerWorldMixin.onTick} after the
-     * player teleport loop (so a player who stepped through this tick is
-     * already gone) and after {@code ImmersiveProjector.tick} (so entities
-     * cross the same zone state the projection was built from).
+     * Per-world tick, at the TAIL of {@code ServerWorld.tick} — after this
+     * tick's own entity movement, so {@code prevX}/{@code getX} describe the
+     * step that is being tested. From the HEAD they describe the PREVIOUS
+     * step, and every crossing is teleported a tick after it happened.
+     *
+     * <p>Still after the player teleport loop (so a player who stepped through
+     * this tick is already gone) and after {@code ImmersiveProjector.tick} (so
+     * entities cross the same zone state the projection was built from): both
+     * run from the HEAD of this same tick.
      */
     public static void tick(ServerWorld world) {
         RegistryKey<World> worldKey = world.getRegistryKey();
@@ -403,6 +408,10 @@ public final class EntityPassthrough {
 
         detachLeashBeforeCrossing(entity);
 
+        // The id the crossing entity had. teleportTo destroys it and builds a
+        // different one, so this is unreadable a line later and it is half of
+        // what the handover names.
+        int sourceId = entity.getId();
         Vec3d velocity = entity.getVelocity();
         Entity arrived = entity.teleportTo(new TeleportTarget(
                 targetWorld, new Vec3d(tx, ty, tz), velocity,
@@ -415,11 +424,16 @@ public final class EntityPassthrough {
         arrived.velocityModified = true;
         arrived.setPortalCooldown(def.getCooldown());
         applyArrivalDifficulty(arrived);
+        int now = world.getServer().getTicks();
         // The far side of a source zone IS an arrival portal. Record it as
         // already standing there, or the arrival-side return reads the next
         // tick as an entry edge and throws it straight back.
-        PortalHelper.markArrivedInPortal(
-                targetWorld.getRegistryKey(), arrived.getUuid(), world.getServer().getTicks());
+        PortalHelper.markArrivedInPortal(targetWorld.getRegistryKey(), arrived.getUuid(), now);
+        // Every viewer drawing this destination is told the correspondence
+        // now, because nothing can recover it later: the source entity is
+        // already gone and the arrival carries an unrelated network id.
+        com.customdimensions.companion.DestinationEntityFeed.handover(
+                world.getServer(), targetWorld, sourceId, arrived, now);
 
         MultiverseServer.LOGGER.debug(
                 "immersive: entity {} crossed {} -> {} at ({}, {}, {}) velocity ({}, {}, {})",

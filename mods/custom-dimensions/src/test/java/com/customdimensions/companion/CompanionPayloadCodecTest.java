@@ -10,6 +10,7 @@ import java.nio.charset.StandardCharsets;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * T1.1, server half. The two mods hold independent copies of these records and
@@ -86,7 +87,24 @@ class CompanionPayloadCodecTest {
                 CompanionPayloads.DestinationEntities.ID.id().toString());
         assertEquals("customdimensions:projection/v2",
                 CompanionPayloads.Projection.ID.id().toString());
-        assertEquals(3, CompanionPayloads.PROTOCOL_VERSION);
+        assertEquals("customdimensions:entity-handover/v1",
+                CompanionPayloads.EntityHandover.ID.id().toString());
+        assertEquals(4, CompanionPayloads.PROTOCOL_VERSION);
+    }
+
+    /**
+     * A length the sender never writes is a protocol break. The handover
+     * carries one entity, so anything past one tracker entry means the two
+     * copies of the record have stopped agreeing and the rest of the buffer is
+     * being read as something it is not.
+     */
+    @Test
+    void aHandoverRefusesMoreTrackerEntriesThanOneEntityCanHave() {
+        assertEquals(1, CompanionPayloads.EntityHandover.boundedTracked(1));
+        assertThrows(IllegalStateException.class,
+                () -> CompanionPayloads.EntityHandover.boundedTracked(2));
+        assertThrows(IllegalStateException.class,
+                () -> CompanionPayloads.EntityHandover.boundedTracked(-1));
     }
 
     @Test

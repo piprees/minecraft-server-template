@@ -6,6 +6,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.data.DataTracker;
 import net.minecraft.network.packet.s2c.play.EntitySpawnS2CPacket;
 import net.minecraft.network.packet.s2c.play.EntityTrackerUpdateS2CPacket;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.Identifier;
@@ -186,6 +187,9 @@ public final class DestinationEntityFeed {
     /** Grepped in the server log for what one destination's entities did. */
     public static final String FEED_MARKER = "companion-send:destination-entities";
 
+    /** Grepped in the server log for a crossing named to the clients drawing it. */
+    public static final String HANDOVER_MARKER = "companion-send:entity-handover";
+
     /** Per player, per destination: the last snapshot sent and when. */
     private static final Map<UUID, Map<Identifier, Snapshot>> SENT = new ConcurrentHashMap<>();
 
@@ -290,6 +294,65 @@ public final class DestinationEntityFeed {
                 FEED_MARKER, player.getNameForScoreboard(), key,
                 present.size(), tracked.size(), departed.length, candidates.size());
         return present.size();
+    }
+
+    /**
+     * Names one crossing to every viewer being fed that destination, so the
+     * client inserts the carried copy at the crossing instead of waiting up to
+     * {@link #INTERVAL} ticks for a snapshot to carry it.
+     *
+     * <p>The audience is {@link #SENT} itself: a record exists only for a
+     * player {@link #feed} has run for, which is a companion whose portal frame
+     * names this destination — so its client already holds a world to put the
+     * arrival in.
+     *
+     * <p>{@link #SENT} is deliberately not updated here. The next snapshot
+     * carries the new id in {@code present}, the client already holds it, and
+     * {@code EntityFeedPlan.apply} answers a held id with a move rather than a
+     * spawn — so a handover the client could not apply self-heals on the
+     * following pass rather than leaving a hole.
+     *
+     * @return how many viewers were told
+     */
+    public static int handover(MinecraftServer server, ServerWorld destination,
+            int fromId, Entity arrived, long tick) {
+        if (server == null || destination == null || arrived == null) {
+            return 0;
+        }
+        Identifier key = destination.getRegistryKey().getValue();
+        List<UUID> viewers = new ArrayList<>();
+        for (Map.Entry<UUID, Map<Identifier, Snapshot>> entry : SENT.entrySet()) {
+            if (entry.getValue().containsKey(key)) {
+                viewers.add(entry.getKey());
+            }
+        }
+        if (viewers.isEmpty()) {
+            return 0;
+        }
+        // getChangedEntries, never getDirtyEntries, for the reason feed() gives.
+        List<EntityTrackerUpdateS2CPacket> tracked = new ArrayList<>(1);
+        List<DataTracker.SerializedEntry<?>> entries =
+                arrived.getDataTracker().getChangedEntries();
+        if (entries != null && !entries.isEmpty()) {
+            tracked.add(new EntityTrackerUpdateS2CPacket(arrived.getId(), entries));
+        }
+        CompanionPayloads.EntityHandover payload = new CompanionPayloads.EntityHandover(
+                key, fromId, tick, spawnPacket(arrived), tracked);
+        int told = 0;
+        for (UUID viewer : viewers) {
+            ServerPlayerEntity player = server.getPlayerManager().getPlayer(viewer);
+            if (player == null || !CompanionNetwork.isCompanion(viewer)) {
+                continue;
+            }
+            ServerPlayNetworking.send(player, payload);
+            told++;
+        }
+        if (told > 0) {
+            MultiverseServer.LOGGER.debug("{} viewers={} dimension={} from={} to={} tick={} type={}",
+                    HANDOVER_MARKER, told, key, fromId, payload.toId(), tick,
+                    arrived.getType().getUntranslatedName());
+        }
+        return told;
     }
 
     /** What a viewer could see: alive, and not a spectator. */

@@ -137,6 +137,8 @@ final class DevState {
                 .num("entitiesMoved", DestinationEntities.moved())
                 .num("entitiesRemoved", DestinationEntities.removed())
                 .num("entitiesRefused", DestinationEntities.refused())
+                .num("entityHandovers", DestinationEntities.handovers())
+                .num("entityHandoversDropped", DestinationEntities.handoversDropped())
                 .num("apertureEntities", DestinationActors.entities())
                 .num("apertureBlockEntities", DestinationActors.blockEntities())
                 .num("apertureQuadsIn", DestinationActors.quadsIn())

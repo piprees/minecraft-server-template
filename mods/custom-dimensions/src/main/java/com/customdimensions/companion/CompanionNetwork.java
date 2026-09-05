@@ -64,6 +64,8 @@ public final class CompanionNetwork {
                 CompanionPayloads.DestinationEntities.ID,
                 CompanionPayloads.DestinationEntities.CODEC);
         PayloadTypeRegistry.playS2C().register(
+                CompanionPayloads.EntityHandover.ID, CompanionPayloads.EntityHandover.CODEC);
+        PayloadTypeRegistry.playS2C().register(
                 CompanionPayloads.ProjectionClear.ID, CompanionPayloads.ProjectionClear.CODEC);
 
         PayloadTypeRegistry.playC2S().register(

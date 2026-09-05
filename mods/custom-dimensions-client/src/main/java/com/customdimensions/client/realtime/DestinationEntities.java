@@ -46,6 +46,9 @@ public final class DestinationEntities {
     /** Grepped in the client log for what one destination's entities did. */
     public static final String RECEIVE_MARKER = "companion-client:destination-entities";
 
+    /** Grepped in the client log for a crossing carried across at the seam. */
+    public static final String HANDOVER_MARKER = "companion-client:entity-handover";
+
     /**
      * Ticks a lerp is spread over, matching the server's own snapshot
      * interval. Shorter and the entity arrives early and stops; longer and it
@@ -78,6 +81,8 @@ public final class DestinationEntities {
     private static final AtomicLong MOVED = new AtomicLong();
     private static final AtomicLong REMOVED = new AtomicLong();
     private static final AtomicLong REFUSED = new AtomicLong();
+    private static final AtomicLong HANDOVERS = new AtomicLong();
+    private static final AtomicLong HANDOVERS_DROPPED = new AtomicLong();
 
     private DestinationEntities() {}
 
@@ -106,6 +111,16 @@ public final class DestinationEntities {
     /** Entities a snapshot named that this client could not build. */
     public static long refused() {
         return REFUSED.get();
+    }
+
+    /** Crossings the server named to this client. */
+    public static long handovers() {
+        return HANDOVERS.get();
+    }
+
+    /** Crossings named with no world standing for their destination. */
+    public static long handoversDropped() {
+        return HANDOVERS_DROPPED.get();
     }
 
     public static int count(Identifier destination) {
@@ -166,6 +181,56 @@ public final class DestinationEntities {
                     RECEIVE_MARKER, destination, sink.spawned, sink.moved, sink.removed,
                     sink.refused.size(), after.size(), sink.reasons);
         }
+    }
+
+    /**
+     * Puts one carried copy into its destination at the crossing, under the id
+     * it will answer to from now on.
+     *
+     * <p>This is the whole point of the payload: a snapshot cannot arrive for
+     * up to {@code DestinationEntityFeed.INTERVAL} ticks, and the source copy
+     * is destroyed at the plane, so the entity is drawn by neither side in
+     * between. Holding the new id here is also what makes the next snapshot a
+     * move rather than a spawn — {@link EntityFeedPlan#apply} branches on the
+     * held set alone, so there is no flicker and no second entity.
+     *
+     * <p>The client's own copy in the SOURCE world is deliberately left alone.
+     * Vanilla destroys it a tick later of its own accord, and the two are the
+     * same entity at the same place, so the overlap is invisible — while
+     * dropping it early would open exactly the gap this exists to close.
+     */
+    public static void handover(MinecraftClient client, Identifier destination,
+            int fromId, EntitySpawnS2CPacket arrival,
+            List<EntityTrackerUpdateS2CPacket> tracked, long tick) {
+        HANDOVERS.incrementAndGet();
+        ClientWorld world = DestinationWorlds.get(destination);
+        if (world == null || arrival == null) {
+            HANDOVERS_DROPPED.incrementAndGet();
+            return;
+        }
+        int id = arrival.getEntityId();
+        Map<Integer, EntityTrackerUpdateS2CPacket> data = new java.util.HashMap<>();
+        if (tracked != null) {
+            for (EntityTrackerUpdateS2CPacket packet : tracked) {
+                data.put(packet.id(), packet);
+            }
+        }
+        Live sink = new Live(client, world, Map.of(id, arrival), data);
+        if (world.getEntityById(id) == null) {
+            sink.spawn(id);
+        } else {
+            sink.move(id);
+        }
+        if (sink.refused.isEmpty()) {
+            HELD.computeIfAbsent(destination, key -> new LinkedHashSet<>()).add(id);
+        }
+        SPAWNED.addAndGet(sink.spawned);
+        MOVED.addAndGet(sink.moved);
+        REFUSED.addAndGet(sink.refused.size());
+        CustomDimensionsClient.LOGGER.info(
+                "{} dimension={} from={} to={} tick={} spawned={} moved={} refused={} holding={}",
+                HANDOVER_MARKER, destination, fromId, id, tick,
+                sink.spawned, sink.moved, sink.refused.size(), count(destination));
     }
 
     /**

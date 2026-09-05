@@ -21,7 +21,7 @@ import java.util.List;
  */
 public final class CompanionPayloads {
     /** Bumped only alongside a channel id. */
-    public static final int PROTOCOL_VERSION = 3;
+    public static final int PROTOCOL_VERSION = 4;
 
     private CompanionPayloads() {}
 
@@ -440,6 +440,89 @@ public final class CompanionPayloads {
             if (count < 0 || count > MAX_ENTRIES) {
                 throw new IllegalStateException("destination entities names " + count
                         + " entries, over " + MAX_ENTRIES);
+            }
+            return count;
+        }
+    }
+
+    /**
+     * Server to client, on the tick a non-player entity crosses into a
+     * destination this viewer is drawing: the id it had, the entity it became,
+     * and the tick it happened on.
+     *
+     * <p>Separate from {@link DestinationEntities} and never folded into it.
+     * A snapshot describes who is standing near an arrival and a later poll
+     * rediscovers the same fact; this names a correspondence between two
+     * network ids that stops existing before the next poll —
+     * {@code Entity.teleportTo} destroys the source entity and builds a
+     * different one, and nothing on the wire links the two.
+     *
+     * <p>{@code arrival} is the new entity as vanilla's own spawn packet, in
+     * DESTINATION world coordinates, so the client inserts the carried copy
+     * itself at the crossing instead of waiting up to
+     * {@code DestinationEntityFeed.INTERVAL} ticks for a snapshot to carry it.
+     * The new id is {@link #toId()} — it lives in the packet and is not
+     * repeated as a field of its own.
+     *
+     * <p>{@code tracked} is the arrival's non-default tracked data, for the
+     * same reason {@link DestinationEntities} carries it: an item fed without
+     * its stack answers its first tick with {@code discard()}.
+     */
+    public record EntityHandover(
+            Identifier destination,
+            int fromId,
+            long tick,
+            EntitySpawnS2CPacket arrival,
+            List<EntityTrackerUpdateS2CPacket> tracked) implements CustomPayload {
+
+        /** Tracker entries one handover may carry: one entity's, and no more. */
+        public static final int MAX_TRACKED = 1;
+
+        public static final CustomPayload.Id<EntityHandover> ID =
+                new CustomPayload.Id<>(Identifier.of("customdimensions", "entity-handover/v1"));
+
+        public static final PacketCodec<RegistryByteBuf, EntityHandover> CODEC =
+                PacketCodec.of(EntityHandover::write, EntityHandover::read);
+
+        @Override
+        public CustomPayload.Id<? extends CustomPayload> getId() {
+            return ID;
+        }
+
+        /** The id the entity carries on the far side. */
+        public int toId() {
+            return this.arrival.getEntityId();
+        }
+
+        private void write(RegistryByteBuf buf) {
+            buf.writeIdentifier(this.destination);
+            buf.writeVarInt(this.fromId);
+            buf.writeVarLong(this.tick);
+            EntitySpawnS2CPacket.CODEC.encode(buf, this.arrival);
+            buf.writeVarInt(this.tracked.size());
+            for (EntityTrackerUpdateS2CPacket entry : this.tracked) {
+                EntityTrackerUpdateS2CPacket.CODEC.encode(buf, entry);
+            }
+        }
+
+        private static EntityHandover read(RegistryByteBuf buf) {
+            Identifier destination = buf.readIdentifier();
+            int fromId = buf.readVarInt();
+            long tick = buf.readVarLong();
+            EntitySpawnS2CPacket arrival = EntitySpawnS2CPacket.CODEC.decode(buf);
+            int trackedCount = boundedTracked(buf.readVarInt());
+            List<EntityTrackerUpdateS2CPacket> tracked = new ArrayList<>(trackedCount);
+            for (int i = 0; i < trackedCount; i++) {
+                tracked.add(EntityTrackerUpdateS2CPacket.CODEC.decode(buf));
+            }
+            return new EntityHandover(destination, fromId, tick, arrival, tracked);
+        }
+
+        /** A length the sender never writes is a protocol break, not a big frame. */
+        static int boundedTracked(int count) {
+            if (count < 0 || count > MAX_TRACKED) {
+                throw new IllegalStateException("entity handover names " + count
+                        + " tracker entries, over " + MAX_TRACKED);
             }
             return count;
         }

@@ -394,13 +394,6 @@ public class ServerWorldMixin {
         // immediately when none are immersive.
         com.customdimensions.immersive.ImmersiveProjector.tick(world);
 
-        // Immersive portals: items, projectiles, XP orbs and falling blocks
-        // crossing an immersive source zone with their velocity intact.
-        // After the projector so a crossing entity sees the same zone state
-        // the projection was built from, and before ExitConditions. Fetches
-        // its own zones and does nothing at all for non-immersive ones.
-        com.customdimensions.immersive.EntityPassthrough.tick(world);
-
         // Exit conditions ("exits" block): void + fallFrom triggers. Runs
         // at tick HEAD, so a configured void exit fires BEFORE vanilla void
         // damage (Entity.tickInVoid runs later, during entity ticking).
@@ -416,6 +409,23 @@ public class ServerWorldMixin {
         // MultiverseServer) — never from here: this injection runs inside
         // MinecraftServer.tickWorlds' iteration of the worlds map, and
         // removing worlds mid-iteration is a ConcurrentModificationException.
+    }
+
+    /**
+     * Immersive portals: items, projectiles, XP orbs and falling blocks
+     * crossing an immersive source zone with their velocity intact.
+     *
+     * <p>At the TAIL rather than with the rest of the immersive pass, because
+     * {@code ServerWorld.tick} moves entities near its end: from the HEAD the
+     * swept test reads the PREVIOUS tick's step and every crossing teleports a
+     * tick late, which the client sees as the entity flying on past the
+     * opening. Ordering against the projector and the player loop is unchanged
+     * — both run from the HEAD of this same tick. It cannot race
+     * {@code ExitConditions}, which only ever touches players.
+     */
+    @Inject(method = "tick", at = @At("TAIL"))
+    private void onTickEnd(BooleanSupplier hasTimeLeft, CallbackInfo ci) {
+        com.customdimensions.immersive.EntityPassthrough.tick((ServerWorld) (Object) this);
     }
 
     /**

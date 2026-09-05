@@ -76,6 +76,8 @@ public class CustomDimensionsClient implements ClientModInitializer {
                 CompanionPayloads.DestinationEntities.ID,
                 CompanionPayloads.DestinationEntities.CODEC);
         PayloadTypeRegistry.playS2C().register(
+                CompanionPayloads.EntityHandover.ID, CompanionPayloads.EntityHandover.CODEC);
+        PayloadTypeRegistry.playS2C().register(
                 CompanionPayloads.ProjectionClear.ID, CompanionPayloads.ProjectionClear.CODEC);
 
         ClientPlayNetworking.registerGlobalReceiver(CompanionPayloads.PreloadedTransfer.ID,
@@ -133,6 +135,10 @@ public class CustomDimensionsClient implements ClientModInitializer {
                 (payload, context) -> DestinationEntities.accept(context.client(),
                         payload.destination(), payload.present(), payload.tracked(),
                         payload.departed()));
+        ClientPlayNetworking.registerGlobalReceiver(CompanionPayloads.EntityHandover.ID,
+                (payload, context) -> DestinationEntities.handover(context.client(),
+                        payload.destination(), payload.fromId(), payload.arrival(),
+                        payload.tracked(), payload.tick()));
         ClientPlayNetworking.registerGlobalReceiver(CompanionPayloads.ProjectionClear.ID,
                 (payload, context) -> {
                     ProjectionStore.remove(payload.apertureOrigin());
