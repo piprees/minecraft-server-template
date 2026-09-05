@@ -337,10 +337,11 @@ public final class DestinationEntities {
                 refuse(id, "cannot build " + packet.getEntityType());
                 return;
             }
-            // Vanilla's own spawn application: position, both angles, the id,
-            // the uuid and the velocity, with lastRender set so the first
-            // frame draws it where it is rather than lerping it in from zero.
+            // Vanilla's own spawn application: position, both angles, the id
+            // and the uuid, with lastRender set so the first frame draws it
+            // where it is rather than lerping it in from zero.
             entity.onSpawnPacket(packet);
+            applyVelocity(entity, packet);
             applyTracked(entity, id);
             puppet(entity);
             this.world.addEntity(entity);
@@ -363,6 +364,7 @@ public final class DestinationEntities {
             entity.updateTrackedPositionAndAngles(packet.getX(), packet.getY(), packet.getZ(),
                     packet.getYaw(), packet.getPitch(), INTERPOLATION_STEPS);
             entity.updateTrackedHeadRotation(packet.getHeadYaw(), INTERPOLATION_STEPS);
+            applyVelocity(entity, packet);
             this.moved++;
         }
 
@@ -371,6 +373,26 @@ public final class DestinationEntities {
             this.world.removeEntity(id, Entity.RemovalReason.DISCARDED);
             PLACED.remove(id);
             this.removed++;
+        }
+
+        /**
+         * The velocity the snapshot carries, so a copy dead-reckons between
+         * snapshots and each snapshot corrects drift instead of teleporting
+         * it the whole per-window displacement.
+         *
+         * <p>{@code Entity.onSpawnPacket} applies position, both angles, the
+         * id and the uuid, and drops the packet's velocity;
+         * {@code LivingEntity} overrides it and calls {@code setVelocity}.
+         * So a mob or player copy already moved and an arrow, item,
+         * experience orb or falling block sat at rest — and the error scales
+         * with speed, which makes a bow arrow the worst case there is.
+         *
+         * <p>A move is refreshed from the same packet: the feed re-sends a
+         * full spawn packet for every present entity every snapshot, and
+         * {@code EntityTrackerUpdateS2CPacket} carries no velocity at all.
+         */
+        private static void applyVelocity(Entity entity, EntitySpawnS2CPacket packet) {
+            entity.setVelocity(packet.getVelocityX(), packet.getVelocityY(), packet.getVelocityZ());
         }
 
         /**
