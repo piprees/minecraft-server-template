@@ -224,4 +224,52 @@ class RealtimeSettingsTest {
         assertTrue(on.withRenderServerSidePortals(false).spectatorPass());
         assertTrue(on.toggled().spectatorPass());
     }
+
+    /**
+     * The three depth stages ship on, and ship together: the flat stamps on
+     * their own read below the unstamped baseline and the mesh depth is what
+     * repairs them, so any one of the three going off is a regression.
+     */
+    @Test
+    void theThreeDepthStagesShipOnAndShipTogether() {
+        assertTrue(RealtimeSettings.DEFAULT_APERTURE_FAR_STAMP);
+        assertTrue(RealtimeSettings.DEFAULT_APERTURE_FAR_STAMP_EARLY);
+        assertTrue(RealtimeSettings.DEFAULT_APERTURE_MESH_DEPTH);
+
+        assertTrue(RealtimeSettings.DEFAULTS.apertureFarStamp(),
+                "the composite passes must read the far end of the captured volume");
+        assertTrue(RealtimeSettings.DEFAULTS.apertureFarStampEarly(),
+                "the deferred programs must read it too, and they read earlier");
+        assertTrue(RealtimeSettings.DEFAULTS.apertureMeshDepth(),
+                "without the per-pixel depth the flat stamps fog the near field");
+    }
+
+    /** A file from before these keys existed gets them, same as a fresh install. */
+    @Test
+    void aFileThatDoesNotMentionTheDepthStagesGetsThemOn() {
+        RealtimeSettings stamped = RealtimeSettings.parse("{\"configVersion\":1}");
+        assertTrue(stamped.apertureFarStamp());
+        assertTrue(stamped.apertureFarStampEarly());
+        assertTrue(stamped.apertureMeshDepth());
+
+        RealtimeSettings migrated = RealtimeSettings.parse("{\"enabled\":true}");
+        assertTrue(migrated.apertureFarStamp());
+        assertTrue(migrated.apertureFarStampEarly());
+        assertTrue(migrated.apertureMeshDepth());
+    }
+
+    /** Turning one off is a choice, and it survives the defaults moving. */
+    @Test
+    void aPlayerWhoTurnedADepthStageOffKeepsItOff() {
+        RealtimeSettings read = RealtimeSettings.parse(
+                "{\"configVersion\":1,\"apertureFarStamp\":false,"
+                        + "\"apertureFarStampEarly\":false,\"apertureMeshDepth\":false}");
+        assertFalse(read.apertureFarStamp());
+        assertFalse(read.apertureFarStampEarly());
+        assertFalse(read.apertureMeshDepth());
+
+        RealtimeSettings off = RealtimeSettings.DEFAULTS.withApertureMeshDepth(false);
+        assertFalse(RealtimeSettings.parse(off.toJson()).apertureMeshDepth());
+        assertTrue(off.apertureFarStamp(), "setting one stage must not clear another");
+    }
 }

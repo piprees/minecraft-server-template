@@ -70,29 +70,25 @@ public record RealtimeSettings(
     public static final boolean DEFAULT_APERTURE_TERRAIN = true;
 
     /**
-     * Off. The far stamp rewrites the opening's depth once more at the end of
-     * the frame, after every draw that depth-tests, so a shader pack's
-     * composite passes read the far end of the captured volume instead of the
-     * portal surface a couple of blocks away.
+     * The opening's depth rewritten far at the end of the frame, after every
+     * draw that depth-tests, so a shader pack's composite passes read the far
+     * end of the captured volume rather than the portal surface.
      */
-    public static final boolean DEFAULT_APERTURE_FAR_STAMP = false;
+    public static final boolean DEFAULT_APERTURE_FAR_STAMP = true;
 
     /**
-     * Off. The same far depth written at the portal's own draw instead, where
-     * a shader pack's deferred programs and its pre-translucent depth copy read
-     * it. The source world's own depth is put back before anything tests
-     * against it, which needs a mixin because no render phase sits in that
-     * window.
+     * The same far depth at the portal's own draw, where a pack's deferred
+     * programs and its pre-translucent depth copy read it. A mixin restores the
+     * source world's depth before anything tests against it.
      */
-    public static final boolean DEFAULT_APERTURE_FAR_STAMP_EARLY = false;
+    public static final boolean DEFAULT_APERTURE_FAR_STAMP_EARLY = true;
 
     /**
-     * Off. The meshed destination drawn once more, depth only, at its own true
-     * depth after the far stamp. One flat stamp tells every pixel in the
-     * opening the same distance, which is right for one of them; this gives
-     * each the distance of the geometry actually visible there.
+     * The meshed destination drawn once more, depth only, at its own true depth
+     * after the far stamp. The flat stamps alone fog near destination terrain;
+     * this is what keeps the near field, so the three move together.
      */
-    public static final boolean DEFAULT_APERTURE_MESH_DEPTH = false;
+    public static final boolean DEFAULT_APERTURE_MESH_DEPTH = true;
 
     public static final RealtimeSettings DEFAULTS = new RealtimeSettings(
             DEFAULT_RENDER_CLIENT_SIDE_PORTALS, DEFAULT_RENDER_DISTANCE,
