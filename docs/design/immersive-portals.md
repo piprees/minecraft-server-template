@@ -94,10 +94,10 @@ do not transfer. The server slab already starts at `plane + 1` on a positive
 normal, so the far-face reading may need no shift at all — that is a derivation
 to perform, not an assumption to carry.
 
-## The convention drifted because it was written down five times
+## The convention drifted because it was written down four times
 
-There is no shared constant for "where the surface is". There are five
-independent `+ 0.5` literals, which is precisely how a convention rots:
+There was no shared constant for "where the surface is", and four independent
+`+ 0.5` literals carried it — which is precisely how a convention rots:
 
 | site | side | role |
 | --- | --- | --- |
@@ -105,15 +105,20 @@ independent `+ 0.5` literals, which is precisely how a convention rots:
 | `CompositeQuad.java:34` | client | the spectator composite quad |
 | `PortalCamera.java:49` | client | `destinationPlane`; staged for the composited path, currently unwired |
 | `DestinationFeed.java:308` | server | `planeN` — gates which chunks are sent at all |
-| `ProjectionVolume.java:292` | server | the source-block occlusion mask |
+
+**`ProjectionVolume.java:292` looks like a fifth and is not.** Its `+ 0.5` is the
+aperture cell's CENTRE, compared against block centres (`blockN + 0.5`) as a side
+discriminator in `seesThroughOpening`'s source-block occlusion mask. Moving it to
+a face would misclassify a source block sitting in the aperture cell's own layer.
+It does not call the helper and it is not a reader of the surface convention.
 
 `DestinationFeed` is the sharpest illustration: `:306-307` sets `a1 = onA + 1.0`
 under the comment *"A block spans `[n, n+1)`; the opening's far edge is the far
 face"*, and `:308` immediately sets `planeN = coord + 0.5`. **Far-face tangential
 bounds and a bisecting normal, in one loop.**
 
-**Rule going forward: one helper owns the surface coordinate and all five call
-it.** A sixth reader added without one is how this drifts again.
+**Rule going forward: one helper owns the surface coordinate and every reader
+calls it.** A new reader added without one is how this drifts again.
 
 ## What does not move
 
