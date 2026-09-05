@@ -1694,10 +1694,24 @@ measurement of it.
   `(140,117,65)` to a cold `(95,131,126)`, which is the fog colour rather than
   the ground.
 - **Why: one plane cannot describe a whole opening.** The stamp tells every pixel
-  the same distance, so it is right for exactly one of them. The destination's
-  own per-pixel depth is the shape that would not have this, and it is the open
-  work.
-- **Both switches ship OFF** for that reason.
+  the same distance, so it is right for exactly one of them.
+- **`apertureMeshDepth` is the shape that does not have that.** The meshed
+  destination is drawn once more, depth only, over the far stamp, so each pixel
+  carries the distance of the geometry visible there and the stamp only fills
+  where no mesh does. It restores the near field exactly and improves the
+  opening past the unstamped baseline:
+
+  | | opening std | near-field std | near-field mean |
+  | --- | --- | --- | --- |
+  | no pack | 69.4 | 27.4 | `(140,117,65)` |
+  | stamp off | 23.1 | 13.6 | `(59.0, 75.6, 50.5)` |
+  | flat stamp | 16.4 | 8.5 | `(95,131,126)` — fog |
+  | **plus `apertureMeshDepth`** | **32.9** | **13.5** | **`(59.0, 75.7, 50.6)`** |
+
+- **Its cost is the pass running the clip a second time**: the emit line's
+  `renderUs` goes 1727 -> 4238 microseconds per frame at the measurement camera,
+  about 2.5 ms. That is the mod's own pass, not the whole frame.
+- **All three switches ship OFF.**
 - **With no pack the switch is bit-identical** — 0 changed pixels, maxDelta 0,
   inside the opening and out, on the same jar with `enableShaders` flipped.
 - **Not fixed by this.** An entity drawn through the opening still shades from
