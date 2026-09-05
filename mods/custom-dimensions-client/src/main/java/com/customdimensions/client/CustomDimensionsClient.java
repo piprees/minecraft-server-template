@@ -85,6 +85,7 @@ public class CustomDimensionsClient implements ClientModInitializer {
                     // One opening is described by one store or the other, never
                     // both, or the far side is drawn twice.
                     PortalFrames.remove(payload.apertureOrigin());
+                    DestinationEntities.retain(PortalFrames.destinations());
                     Repeated.log(LOGGER, ProjectionStore.accept(payload),
                             "{} dimension={} cells={} aperture={}", ProjectionStore.RECEIVE_MARKER,
                             payload.destination(), payload.cellCount(),
@@ -136,6 +137,10 @@ public class CustomDimensionsClient implements ClientModInitializer {
                 (payload, context) -> {
                     ProjectionStore.remove(payload.apertureOrigin());
                     PortalFrames.remove(payload.apertureOrigin());
+                    // Nothing draws an unframed destination and no snapshot
+                    // will ever name its entities departed; tick would drive
+                    // them for the rest of the session.
+                    DestinationEntities.retain(PortalFrames.destinations());
                 });
 
         ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> {

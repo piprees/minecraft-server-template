@@ -31,6 +31,28 @@ public final class EntityFeedPlan {
     }
 
     /**
+     * The held destinations no frame names any more.
+     *
+     * <p>Entities are the one fed thing with a running cost — every one is
+     * ticked once per client tick — and a destination nothing frames is drawn
+     * by nobody. Chunks are deliberately not treated this way: the server's
+     * own {@code SENT} survives a viewer leaving a zone, so a destination
+     * dropped and re-entered would never be sent its chunks again.
+     */
+    public static <T> Set<T> unframed(Set<T> held, Set<T> framed) {
+        Set<T> out = new LinkedHashSet<>();
+        if (held == null) {
+            return out;
+        }
+        for (T one : held) {
+            if (framed == null || !framed.contains(one)) {
+                out.add(one);
+            }
+        }
+        return out;
+    }
+
+    /**
      * Applies one snapshot and answers what the world holds afterwards.
      *
      * <p>{@code present} is the whole truth about who is standing near that

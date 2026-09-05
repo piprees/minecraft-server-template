@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * The entities each destination world holds, put there by the server's
@@ -58,7 +59,47 @@ public final class DestinationEntities {
     /** What each held id was when it went in, for the line that says it left. */
     private static final Map<Integer, String> PLACED = new ConcurrentHashMap<>();
 
+    /**
+     * Monotonic for the life of the process, so two readings subtract to a
+     * count over a window and a reading of zero means the path never ran.
+     * A join or disconnect does not reset them: a delta that can go negative
+     * is worth less than one that cannot ([T63]).
+     */
+    private static final AtomicLong SNAPSHOTS = new AtomicLong();
+    private static final AtomicLong SNAPSHOTS_DROPPED = new AtomicLong();
+    private static final AtomicLong SPAWNED = new AtomicLong();
+    private static final AtomicLong MOVED = new AtomicLong();
+    private static final AtomicLong REMOVED = new AtomicLong();
+    private static final AtomicLong REFUSED = new AtomicLong();
+
     private DestinationEntities() {}
+
+    /** Snapshots this client has decoded, whatever became of them. */
+    public static long snapshots() {
+        return SNAPSHOTS.get();
+    }
+
+    /** Snapshots decoded with no world standing for their destination. */
+    public static long snapshotsDropped() {
+        return SNAPSHOTS_DROPPED.get();
+    }
+
+    public static long spawned() {
+        return SPAWNED.get();
+    }
+
+    public static long moved() {
+        return MOVED.get();
+    }
+
+    public static long removed() {
+        return REMOVED.get();
+    }
+
+    /** Entities a snapshot named that this client could not build. */
+    public static long refused() {
+        return REFUSED.get();
+    }
 
     public static int count(Identifier destination) {
         Set<Integer> held = destination == null ? null : HELD.get(destination);
@@ -74,15 +115,19 @@ public final class DestinationEntities {
     }
 
     /**
-     * Applies one snapshot to its destination world. Silent when no world is
-     * standing for it — the chunks have not arrived either, and the next
-     * snapshot four ticks later carries the same entities.
+     * Applies one snapshot to its destination world. Applies nothing when no
+     * world is standing for it — the chunks have not arrived either, and the
+     * next snapshot four ticks later carries the same entities — but counts
+     * it, so a feed nobody could apply reads differently from one that never
+     * arrived.
      */
     public static void accept(MinecraftClient client, Identifier destination,
             List<EntitySpawnS2CPacket> present, List<EntityTrackerUpdateS2CPacket> tracked,
             int[] departed) {
+        SNAPSHOTS.incrementAndGet();
         ClientWorld world = DestinationWorlds.get(destination);
         if (world == null || present == null) {
+            SNAPSHOTS_DROPPED.incrementAndGet();
             return;
         }
         Map<Integer, EntitySpawnS2CPacket> byId = new java.util.HashMap<>();
@@ -104,6 +149,10 @@ public final class DestinationEntities {
         // list entry has not arrived yet is retried on the next snapshot.
         after.removeAll(sink.refused);
         HELD.put(destination, new LinkedHashSet<>(after));
+        SPAWNED.addAndGet(sink.spawned);
+        MOVED.addAndGet(sink.moved);
+        REMOVED.addAndGet(sink.removed);
+        REFUSED.addAndGet(sink.refused.size());
         if (sink.spawned > 0 || sink.removed > 0 || !sink.refused.isEmpty()) {
             CustomDimensionsClient.LOGGER.info(
                     "{} dimension={} spawned={} moved={} removed={} refused={} holding={} why={}",
@@ -153,19 +202,42 @@ public final class DestinationEntities {
         }
     }
 
-    /** Drops one destination's entities from its world and from the record. */
+    /**
+     * Drops one destination's entities from its world and from the record.
+     *
+     * <p>The world may already be gone — {@code DestinationWorlds.drop} removes
+     * it before calling here, and its manager takes the entities wholesale.
+     * The record still goes, or the diagnostic map grows for the session.
+     */
     public static void drop(Identifier destination) {
         if (destination == null) {
             return;
         }
         Set<Integer> held = HELD.remove(destination);
-        ClientWorld world = DestinationWorlds.get(destination);
-        if (held == null || world == null) {
+        if (held == null) {
             return;
         }
+        ClientWorld world = DestinationWorlds.get(destination);
         for (Integer id : held) {
-            world.removeEntity(id, Entity.RemovalReason.DISCARDED);
+            if (world != null) {
+                world.removeEntity(id, Entity.RemovalReason.DISCARDED);
+            }
             PLACED.remove(id);
+        }
+    }
+
+    /**
+     * Drops the entities of every destination no portal frame names any more.
+     *
+     * <p>A cleared frame is not a world teardown: the destination stays
+     * standing with its chunks, because the server's chunk feed never re-sends
+     * what it has already sent. Its entities cannot stay — nothing draws them,
+     * no snapshot ever names them departed once the server has forgotten this
+     * viewer, and {@link #tick} would drive them for the rest of the session.
+     */
+    public static void retain(Set<Identifier> framed) {
+        for (Identifier destination : EntityFeedPlan.unframed(HELD.keySet(), framed)) {
+            drop(destination);
         }
     }
 

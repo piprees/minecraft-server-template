@@ -124,4 +124,29 @@ class EntityFeedPlanTest {
         EntityFeedPlan.apply(held(), List.of(), new int[0], recorder);
         assertEquals(List.of(), recorder.calls);
     }
+
+    @Test
+    void aDestinationNoFrameNamesIsUnframed() {
+        assertEquals(Set.of("b"), EntityFeedPlan.unframed(
+                new LinkedHashSet<>(List.of("a", "b")), Set.of("a")));
+    }
+
+    /** Two portals onto one dimension: one closing must not strip the other. */
+    @Test
+    void aDestinationAnotherFrameStillNamesIsKept() {
+        assertTrue(EntityFeedPlan.unframed(Set.of("a"), Set.of("a", "c")).isEmpty(),
+                "a destination another portal still frames was dropped");
+    }
+
+    @Test
+    void everyDestinationIsUnframedWhenNothingIsFramed() {
+        assertEquals(Set.of("a", "b"), EntityFeedPlan.unframed(
+                new LinkedHashSet<>(List.of("a", "b")), Set.of()));
+    }
+
+    @Test
+    void nothingHeldIsNothingUnframed() {
+        assertTrue(EntityFeedPlan.unframed(null, Set.of("a")).isEmpty());
+        assertTrue(EntityFeedPlan.unframed(Set.of(), null).isEmpty());
+    }
 }

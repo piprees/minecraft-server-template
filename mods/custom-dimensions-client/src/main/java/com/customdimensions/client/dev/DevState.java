@@ -33,6 +33,7 @@ import net.minecraft.world.LightType;
 
 import java.util.ArrayList;
 import java.util.EnumSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -75,9 +76,15 @@ final class DevState {
         RealtimeSettings settings = RealtimeControls.settings();
         Map<Identifier, Integer> held = DestinationWorlds.loadedCounts();
         Map<Identifier, Integer> received = DestinationChunks.counts();
+        // Every destination anything is known about: one holding entities and
+        // no chunks is the shape of a feed half-arrived, and keying on chunks
+        // alone hides it entirely.
+        Set<Identifier> named = new LinkedHashSet<>(received.keySet());
+        named.addAll(held.keySet());
+        named.addAll(DestinationEntities.counts().keySet());
         StringBuilder worlds = new StringBuilder("[");
         boolean first = true;
-        for (Identifier destination : received.keySet()) {
+        for (Identifier destination : named) {
             worlds.append(first ? "" : ",").append(Json.obj()
                     .str("dimension", destination.toString())
                     .bool("worldStanding", held.containsKey(destination))
@@ -111,6 +118,14 @@ final class DevState {
                 .num("destinationChunks", DestinationChunks.total())
                 .num("renderedSections", DestinationWorlds.renderedSections())
                 .num("destinationEntities", DestinationEntities.total())
+                // Monotonic. Two readings subtract to a count over a window;
+                // zero means the path never ran.
+                .num("entitySnapshots", DestinationEntities.snapshots())
+                .num("entitySnapshotsDropped", DestinationEntities.snapshotsDropped())
+                .num("entitiesSpawned", DestinationEntities.spawned())
+                .num("entitiesMoved", DestinationEntities.moved())
+                .num("entitiesRemoved", DestinationEntities.removed())
+                .num("entitiesRefused", DestinationEntities.refused())
                 .num("apertureEntities", DestinationActors.entities())
                 .num("apertureBlockEntities", DestinationActors.blockEntities())
                 .num("apertureQuadsIn", DestinationActors.quadsIn())
