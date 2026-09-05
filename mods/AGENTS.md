@@ -55,7 +55,7 @@ by tests — if a change makes one fail, the change is wrong, not the test.
 
 ## Portal system
 
-Full internals, plus the aura and immersive rules: [docs/mod-internals/portals.md](../docs/mod-internals/portals.md).
+**Read [docs/design/immersive-portals.md](../docs/design/immersive-portals.md) before changing anything here.** It is the governing document: a portal is a doorway in a wall of reality, and every geometry, lighting, entity and shader decision is judged against it. Full internals, plus the aura and immersive rules: [docs/mod-internals/portals.md](../docs/mod-internals/portals.md).
 
 - **Portal config is NOT creation-time-only.** Unlike worldgen it re-reads every boot, so frame, shape, anchor, singleUse, exitPortal, aura and immersive changes apply to existing dimensions without a world wipe.
 - **Anything serialised into `portal_links.json` must stay parseable by every jar that might read it back** — deploys roll back. `PortalDefinition.frameBlock` is always a plain id, never a `#tag`; accept forms ride in `frameAccepts`.

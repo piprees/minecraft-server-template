@@ -17,6 +17,7 @@ In-house mod internals, split out of [mods/AGENTS.md](../mods/AGENTS.md):
 | --- | --- |
 | Design intent: what placement is FOR | [design/README.md](design/README.md) |
 | Component tree | [mod-internals/architecture.md](mod-internals/architecture.md) |
+| How the portal view should work — read before changing it | [design/immersive-portals.md](design/immersive-portals.md) |
 | Portal creation, arrival, carve, break, auras | [mod-internals/portals.md](mod-internals/portals.md) |
 | Worldgen self-containment, noise placement, occupancy | [mod-internals/worldgen-structures.md](mod-internals/worldgen-structures.md) |
 | Diagnostic artefacts, render-check, seed-rolling internals | [mod-internals/diagnostics.md](mod-internals/diagnostics.md) |
