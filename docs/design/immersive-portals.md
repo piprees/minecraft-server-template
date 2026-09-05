@@ -207,8 +207,23 @@ later, which is exactly what the acceptance test forbids.
 | The server names the handover explicitly — old id, new id, tick — so the client carries the fed copy across | A new payload, and a seam the client interpolates |
 | Accept the gap | A visible stutter at exactly the moment the acceptance test watches |
 
-Only the second can satisfy the acceptance wording. It is also closest to
-"simulating an event", which the approach below otherwise forbids.
+**RULED: the server names the handover.** Old id, new id, tick — so the client
+can carry the fed copy across instead of watching it vanish and reappear.
+
+**Why this does not breach the no-simulated-events rule.** That rule exists
+because reproducing block updates, entity spawns, weather and time as individual
+synchronised events is a *simulation of world state*, and a simulation always lags
+the world it copies — so we poll and send what changed. **A crossing handover is
+not state.** It is a correspondence between two ids that exists at exactly one
+instant, which the server uniquely knows, and which **polling cannot recover even
+in principle**: by the time the next snapshot arrives the source entity is gone
+and the destination entity carries a different network id with nothing linking
+them. A poll can describe the world; it cannot describe an identity that was
+destroyed between two polls.
+
+That is the test for any future event-shaped payload: **if a poll could eventually
+discover the same fact, poll for it. If the fact stops existing before the next
+poll, it has to be named.**
 
 ## Entity identity across two live worlds
 
