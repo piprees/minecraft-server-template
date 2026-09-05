@@ -95,7 +95,10 @@ public final class PortalRenderLayers {
      * carries no exception table, so a throw between a layer's start and end
      * actions skips the end action — and a colour mask left off blanks the rest
      * of the frame. {@code ProjectionRenderer.withColourMaskOff} owns it and
-     * restores it in a finally.
+     * restores it in a finally. The {@code GL_ALWAYS} depth function is set
+     * here because the draw needs it, and
+     * {@code ProjectionRenderer.withDepthStateRestored} puts it back in a
+     * finally for the same reason.
      */
     public static final RenderLayer APERTURE_DEPTH = new RenderLayer(
             "customdimensions_portal_aperture_depth",

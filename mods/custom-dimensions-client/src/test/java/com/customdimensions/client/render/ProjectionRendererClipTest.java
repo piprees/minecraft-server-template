@@ -785,6 +785,40 @@ class ProjectionRendererClipTest {
     }
 
     /**
+     * {@code APERTURE_DEPTH} sets {@code GL_ALWAYS} for the stamp and restores
+     * {@code GL_LEQUAL} in an end action {@code RenderLayer.draw} skips on a
+     * throw. Left set, every later depth test passes whatever the buffer holds
+     * — this frame's translucents and the next frame's shadow pass alike.
+     */
+    @Test
+    void aThrowFromInsideTheStampStillRestoresTheDepthState() {
+        List<String> calls = new ArrayList<>();
+        RuntimeException boom = new RuntimeException("draw failed");
+
+        RuntimeException thrown = assertThrows(RuntimeException.class,
+                () -> ProjectionRenderer.withDepthStateRestored(() -> calls.add("restore"),
+                        () -> {
+                            calls.add("draw");
+                            throw boom;
+                        }));
+
+        assertSame(boom, thrown, "the failure was swallowed instead of propagating");
+        assertEquals(List.of("draw", "restore"), calls,
+                "the depth state was left set after the draw threw");
+    }
+
+    /** The ordinary path: draw, then restore. */
+    @Test
+    void theStampsDepthStateIsRestoredAfterAnOrdinaryDraw() {
+        List<String> calls = new ArrayList<>();
+
+        ProjectionRenderer.withDepthStateRestored(() -> calls.add("restore"),
+                () -> calls.add("draw"));
+
+        assertEquals(List.of("draw", "restore"), calls);
+    }
+
+    /**
      * The box the frustum gate tests, in WORLD space. Read off the fixture: the
      * aperture cells are x 1500-1501, y 101-103, z 1500, so the block they
      * occupy runs x 1500..1502, y 101..104, z 1500..1501.

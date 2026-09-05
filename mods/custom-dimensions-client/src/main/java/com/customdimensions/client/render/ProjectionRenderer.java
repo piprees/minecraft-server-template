@@ -71,6 +71,12 @@ public final class ProjectionRenderer {
     private static final java.util.function.Consumer<Boolean> COLOUR_MASK =
             on -> com.mojang.blaze3d.systems.RenderSystem.colorMask(on, on, on, on);
 
+    /** The one place that restores the depth state; see {@link #withDepthStateRestored}. */
+    private static final Runnable DEPTH_STATE = () -> {
+        com.mojang.blaze3d.systems.RenderSystem.depthFunc(GL11.GL_LEQUAL);
+        com.mojang.blaze3d.systems.RenderSystem.enableCull();
+    };
+
     private static VertexConsumerProvider.Immediate immediate;
     private static long lastSampleAt;
 
@@ -514,6 +520,20 @@ public final class ProjectionRenderer {
     }
 
     /**
+     * Runs the stamp's draw and puts its depth state back even when the draw
+     * throws. {@link PortalRenderLayers#APERTURE_DEPTH} sets {@code GL_ALWAYS}
+     * in a start action and restores {@code GL_LEQUAL} in an end action, and
+     * {@code RenderLayer.draw} has no exception table — so a throw between the
+     * two leaves every later depth test passing, this frame and the next.
+     */
+    static void withDepthStateRestored(Runnable restore, Runnable draw) {
+        withGlState(() -> { }, restore, () -> {
+            draw.run();
+            return null;
+        });
+    }
+
+    /**
      * One portal pass, in order: the destination inside the applied depth
      * range, the stamp after it is restored.
      *
@@ -693,7 +713,8 @@ public final class ProjectionRenderer {
             }
         }
         if (depthOnly) {
-            withColourMaskOff(COLOUR_MASK, () -> immediate.draw(layer));
+            withDepthStateRestored(DEPTH_STATE,
+                    () -> withColourMaskOff(COLOUR_MASK, () -> immediate.draw(layer)));
         } else {
             immediate.draw(layer);
         }
