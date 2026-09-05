@@ -10,7 +10,19 @@
 #          explicit centre and an explicit --confirm; there is no default site
 #          and it refuses to guess one.
 # Usage:   build-test-arena.sh --dim DIM --centre "X Y Z" --confirm
-#                              [--radius 24] [--floor minecraft:white_concrete]
+#                              [--radius 24] [--floor minecraft:gray_concrete]
+#                              [--walls|--no-walls] [--height 24]
+#                              [--marker "X Y Z"]   magenta ring round an aperture
+#
+#          Walls box the scene in so no distant terrain, sky gradient or Distant
+#          Horizons tile is in frame — those move between poses and none of them
+#          is the thing under test.
+#
+#          --marker rings an aperture in magenta concrete. That makes the
+#          opening findable BY COLOUR in the image, so a crop no longer depends
+#          on apertureSample being correct. It does NOT change the dimension's
+#          frameBlock: doing that would stop every portal already built from the
+#          old block being recognised.
 # Gotchas: FREEZE LAST. `/tick freeze` stops the server building the projection,
 #          so the scene must be built and the projection settled BEFORE the
 #          freeze, or you photograph an empty opening. The script freezes at the
@@ -20,13 +32,20 @@
 set -euo pipefail
 
 CONSUMER_DIR="${CONSUMER_DIR:-$HOME/Projects/elfydd}"
-DIM=""; CENTRE=""; RADIUS=24; FLOOR="minecraft:white_concrete"; CONFIRM=0
+DIM=""; CENTRE=""; RADIUS=24; FLOOR="minecraft:gray_concrete"; CONFIRM=0
+WALLS=1; HEIGHT=24; WALL="minecraft:gray_concrete"; MARKER=""
+MARKER_BLOCK="minecraft:magenta_concrete"
 while [ $# -gt 0 ]; do
   case "$1" in
     --dim) DIM="$2"; shift 2;;
     --centre) CENTRE="$2"; shift 2;;
     --radius) RADIUS="$2"; shift 2;;
     --floor) FLOOR="$2"; shift 2;;
+    --walls) WALLS=1; shift;;
+    --no-walls) WALLS=0; shift;;
+    --height) HEIGHT="$2"; shift 2;;
+    --wall-block) WALL="$2"; shift 2;;
+    --marker) MARKER="$2"; shift 2;;
     --confirm) CONFIRM=1; shift;;
     *) echo "unknown argument: $1" >&2; exit 2;;
   esac
@@ -77,6 +96,23 @@ rc "execute in $DIM run fill $X0 $CY $Z0 $X1 $CY $Z1 $FLOOR" >/dev/null
 # One block below too, so a hole in the original terrain cannot show through.
 rc "execute in $DIM run fill $X0 $((CY - 1)) $Z0 $X1 $((CY - 1)) $Z1 $FLOOR" >/dev/null
 
+if [ "$WALLS" -eq 1 ]; then
+  say "walling the scene in ($WALL, ${HEIGHT} high) so no distant terrain is in frame"
+  WTOP=$((CY + HEIGHT))
+  rc "execute in $DIM run fill $X0 $CY $Z0 $X0 $WTOP $Z1 $WALL" >/dev/null
+  rc "execute in $DIM run fill $X1 $CY $Z0 $X1 $WTOP $Z1 $WALL" >/dev/null
+  rc "execute in $DIM run fill $X0 $CY $Z0 $X1 $WTOP $Z0 $WALL" >/dev/null
+  rc "execute in $DIM run fill $X0 $CY $Z1 $X1 $WTOP $Z1 $WALL" >/dev/null
+fi
+
+if [ -n "$MARKER" ]; then
+  # shellcheck disable=SC2086  # deliberate split: --marker is "x y z"
+  set -- $MARKER
+  MX="$1"; MY="$2"; MZ="$3"
+  say "magenta ring round the aperture at $MX $MY $MZ — the crop can key on colour"
+  rc "execute in $DIM run fill $((MX - 1)) $((MY - 1)) $((MZ - 1)) $((MX + 1)) $((MY + 1)) $((MZ + 1)) $MARKER_BLOCK hollow" >/dev/null
+fi
+
 say "verifying, not assuming"
 FAIL=0
 for probe in "$CX $CY $CZ" "$X0 $CY $Z0" "$X1 $CY $Z1" "$CX $((CY + 1)) $CZ"; do
@@ -93,7 +129,9 @@ done
 
 cat <<EOF
 
-[arena] built. Stations for a camera sweep, on the +X approach:
+[arena] built: ${RADIUS}-block radius, floor $FLOOR, walls $([ "$WALLS" -eq 1 ] && echo "$WALL ${HEIGHT} high" || echo "none").
+
+[arena] Stations for a camera sweep, on the +X approach:
           $((CX - 2)) $((CY + 1)) $CZ    $((CX - 4)) $((CY + 1)) $CZ
           $((CX - 8)) $((CY + 1)) $CZ    $((CX - 16)) $((CY + 1)) $CZ
 
