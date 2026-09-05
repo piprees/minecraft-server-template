@@ -1648,6 +1648,48 @@ measurement of it.
   the same trap. Pin it against the Java, not against intuition —
   `scripts/e2e/portal-matrix-selftest.sh` is the worked example.
 
+<a id="t100"></a>
+### T100 — A shader pack shades a portal's whole opening from the doorway
+
+- **Symptom:** with a pack loaded the view through a portal is dull and flat
+  while the world beside the frame is brightly lit, a hard-edged light shaft
+  crosses the terrain with the opening lit differently from outside it, and a
+  hard vertical edge runs the full height of the frame. At noon the opening's
+  Rec.709 luma is 0.36x the source sand's beside it, against 1.12x with no pack.
+- **Cause:** the destination is compressed into a depth slice at the portal
+  surface (`ProjectionRenderer.depthSlice`), and a pack reconstructs a
+  fragment's position from its screen coordinates and its depth and nothing
+  else — it never reads the matrices the draw was submitted with. The whole
+  opening therefore reports one point at the doorway.
+  `/state.realtime.apertureSample` prints it: 1.637 blocks, on a block with no
+  sky access, for a window onto terrain tens of blocks away.
+- **Fix:** `apertureFarStamp` and `apertureFarStampEarly`. The stamp closing the
+  pass writes `ProjectionRenderer.FAR_STAMP_DEPTH` instead of the surface's
+  depth, and `WorldRendererApertureDepthMixin` puts the surface depth back at
+  the translucent terrain draw so nothing that depth-tests behaves differently.
+- **Two read points, not one, which is why one stamp cannot serve both.** Iris
+  copies `depthtex1` and runs its deferred programs at the `translucent`
+  profiler constant, bytecode 2213 of `WorldRenderer.render`; its composite and
+  final passes run at RETURN. Every depth-testing draw in the frame sits
+  between them — translucent terrain 2235/2370, particles 2317/2435, clouds
+  2496, weather 2533/2599 — and no render phase sits in the gap, which is why
+  the restore is a mixin. Fabric's `BEFORE_DEBUG_RENDER` is 2077 and its
+  `AFTER_TRANSLUCENT` is 2445, both on the wrong side.
+- **Measured:** opening 99.97% changed at noon, luma 66.7 -> 121.8, ratio 0.36
+  -> 0.66; source-terrain controls 0.00% at three cameras. With no pack the
+  same switch is bit-identical — 0 changed pixels, maxDelta 0, inside the
+  opening and out.
+- **Sixteen blocks is not enough and 1.0 is too far.** The captured volume's own
+  backdrop plane reconstructs to about 20 blocks and changed no pixel at all.
+  1.0 is what a cleared depth buffer holds, so a pack reads it as sky and hands
+  the opening the SOURCE world's sky instead of the destination's.
+- **The cost:** atmospheric fog is then computed for a distance of a few hundred
+  blocks, so destination terrain close to the frame reads hazed. A flat plane is
+  the blunt form of this; the destination's own per-pixel depth is the shape
+  that would not have it.
+- **Not fixed by this.** An entity drawn through the opening still shades from
+  its own fragment's depth in the forward pass, which no stamp touches.
+
 <a id="t99"></a>
 ### T99 — An entity layer shades a portal's backdrop with the SOURCE world's light and fog
 
