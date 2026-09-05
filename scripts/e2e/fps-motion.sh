@@ -5,9 +5,11 @@
 #          measures many stationary poses. A player pans continuously, which
 #          never lets the projection finish rebuilding. That is the condition
 #          the maintainer plays in and the one no instrument here has sampled.
-# Context: template-only. A mean fps is not the complaint — a stall is. This
-#          reports min, p5 and the count of samples at or below 2 fps, because
-#          a stall is felt and a mean is not.
+# Context: template-only. A mean fps is not the complaint — a stall is, and
+#          `client.getCurrentFps()` is ALREADY a one-second mean, so it smooths
+#          away exactly what is felt. This differences the monotonic frame
+#          counter against the wall clock instead, and reports the worst
+#          interval and the seconds spent under 10 fps.
 # Usage:   fps-motion.sh --label L [--seconds 60] [--degrees-per-step 3]
 #          Run it where the portal fills a good part of the view; it does not
 #          move the player, only the look.
@@ -77,7 +79,7 @@ c=d.get('client') or {}
 r=d.get('realtime') or {}
 print(json.dumps({'i':$i,'wall':time.time(),'yaw':$yaw,
   'fps':c.get('fps'),'frames':c.get('frames'),'tick':d.get('tick'),
-  'renderUs':r.get('renderUs'),'destinationChunks':r.get('destinationChunks')}))" \
+  'renderUs':r.get('apertureRenderUs'),'destinationChunks':r.get('destinationChunks')}))" \
     >> "$ROWS" 2>/dev/null || true
 done
 
@@ -92,19 +94,46 @@ for line in open(sys.argv[1]):
             rows.append(json.loads(line))
         except ValueError:
             pass
-fps = [r["fps"] for r in rows if isinstance(r.get("fps"), (int, float))]
-if not fps:
-    print("  no fps readings — the bridge did not answer, which is itself a result")
+# client.getCurrentFps() is ALREADY a one-second mean, so it smooths away the
+# stalls that are actually felt. The frames counter is monotonic: differencing
+# it against the wall clock gives the true rate over each interval.
+pairs = [(r["wall"], r["frames"]) for r in rows
+         if isinstance(r.get("wall"), (int, float))
+         and isinstance(r.get("frames"), (int, float))]
+if len(pairs) < 2:
+    print("  fewer than two frame-counter samples — nothing to difference.")
+    fps = [r["fps"] for r in rows if isinstance(r.get("fps"), (int, float))]
+    if fps:
+        print(f"  reported fps only: n={len(fps)} mean={st.fmean(fps):.2f} min={min(fps)}")
     raise SystemExit
-s = sorted(fps)
-p5 = s[max(0, int(len(s) * 0.05) - 1)]
-stalls = sum(1 for v in fps if v <= 2)
-print(f"  n={len(fps)} mean={st.fmean(fps):.2f} median={st.median(fps):.1f} "
-      f"min={min(fps)} p5={p5} max={max(fps)}")
-print(f"  samples at <=2 fps: {stalls} ({100.0*stalls/len(fps):.1f}%)   <- the felt number")
-walls = [r["wall"] for r in rows if r.get("wall")]
-if len(walls) > 1:
-    span = max(walls) - min(walls)
-    print(f"  sampler managed {len(rows)/span:.2f} rows/s over {span:.1f}s "
-          f"— a low rate here is the stall, not a script fault")
+pairs.sort()
+rates, worst = [], None
+for (w0, f0), (w1, f1) in zip(pairs, pairs[1:]):
+    dt, df = w1 - w0, f1 - f0
+    if dt <= 0 or df < 0:
+        continue
+    r = df / dt
+    rates.append(r)
+    if worst is None or r < worst[0]:
+        worst = (r, dt, w0)
+if not rates:
+    print("  no usable intervals")
+    raise SystemExit
+srt = sorted(rates)
+p5 = srt[max(0, int(len(srt) * 0.05) - 1)]
+span = pairs[-1][0] - pairs[0][0]
+frames_total = pairs[-1][1] - pairs[0][1]
+print(f"  TRUE rate from the frame counter over {len(rates)} intervals, {span:.1f}s:")
+print(f"    mean={frames_total/span:6.2f}  median={st.median(rates):6.2f}"
+      f"  p5={p5:6.2f}  worst={min(rates):6.2f}")
+bad = sum(1 for r in rates if r < 10)
+lost = sum(dt for (w0, f0), (w1, f1) in zip(pairs, pairs[1:])
+           for dt in [w1 - w0] if dt > 0 and (f1 - f0) / dt < 10)
+print(f"    intervals under 10 fps: {bad} ({100.0*bad/len(rates):.1f}%), "
+      f"{lost:.1f}s of {span:.1f}s spent there   <- the felt number")
+print(f"    worst interval {worst[0]:.2f} fps over {worst[1]:.2f}s")
+reported = [r["fps"] for r in rows if isinstance(r.get("fps"), (int, float))]
+if reported:
+    print(f"  client.getCurrentFps() said: mean={st.fmean(reported):.2f} "
+          f"min={min(reported)}  <- a 1s mean; it cannot show a short freeze")
 PY
