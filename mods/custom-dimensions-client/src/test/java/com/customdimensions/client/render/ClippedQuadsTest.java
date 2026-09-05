@@ -127,6 +127,56 @@ class ClippedQuadsTest {
         assertEquals(4, sink.vertices.size());
     }
 
+    /**
+     * A model's normal has to survive the cut, including at a corner the clip
+     * invented. A shader pack shades a model from its normal, so a normal
+     * dropped or interpolated to zero here is a model the pack cannot light —
+     * which reads as a dark silhouette and not as a mask fault.
+     */
+    @Test
+    void theNormalSurvivesTheCutAtEveryCornerIncludingAnInventedOne() {
+        Recorder sink = new Recorder();
+        ClippedQuads quads = new ClippedQuads(planes(), sink);
+
+        // Cut on the cone at x = 3, so two of the four corners are invented.
+        feed(quads, 5.0f, 2.0f, 4.0f, 0.0f, 1.0f);
+
+        assertEquals(4, sink.vertices.size());
+        for (float[] vertex : sink.vertices) {
+            assertEquals(0.0f, vertex[13], TOLERANCE);
+            assertEquals(0.0f, vertex[14], TOLERANCE);
+            assertEquals(1.0f, vertex[15], TOLERANCE, "the normal was lost at a cut corner");
+        }
+    }
+
+    /**
+     * A quad whose corners disagree about their normal keeps a normal of
+     * useful length through the cut. Linear interpolation shortens it, and a
+     * shortened normal dims a model rather than losing it.
+     */
+    @Test
+    void anInterpolatedNormalKeepsUsefulLength() {
+        Recorder sink = new Recorder();
+        ClippedQuads quads = new ClippedQuads(planes(), sink);
+
+        float[] quad = quad(5.0f, 2.0f, 4.0f, 0.0f, 1.0f);
+        // Two corners facing +z, two facing +x: a 90 degree disagreement is the
+        // worst a quad of a curved model produces.
+        for (int v = 2; v < 4; v++) {
+            quad[v * STRIDE + 13] = 1.0f;
+            quad[v * STRIDE + 15] = 0.0f;
+        }
+        for (int v = 0; v < 4; v++) {
+            quads.add(quad, v * STRIDE);
+        }
+
+        for (float[] vertex : sink.vertices) {
+            double length = Math.sqrt(vertex[13] * vertex[13] + vertex[14] * vertex[14]
+                    + vertex[15] * vertex[15]);
+            assertTrue(length > 0.7, "an interpolated normal collapsed to length " + length);
+        }
+    }
+
     private static AperturePlanes planes() {
         AperturePlanes planes = new AperturePlanes(9, STRIDE);
         assertTrue(planes.build(OPENING.clone(), 1, 1.0, 1.0, -5.0));
