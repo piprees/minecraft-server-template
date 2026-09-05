@@ -33,4 +33,10 @@ class LogMarkerContractTest {
     void acceptMarker() {
         assertEquals("companion-accept:handshake", CompanionNetwork.ACCEPT_MARKER);
     }
+
+    /** The negative control: a companion refused for its release names both. */
+    @Test
+    void refuseMarker() {
+        assertEquals("companion-refuse:handshake", CompanionNetwork.REFUSE_MARKER);
+    }
 }

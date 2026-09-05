@@ -1,6 +1,7 @@
 package com.customdimensions.companion;
 
 import com.customdimensions.MultiverseServer;
+import com.customdimensions.command.Artefacts;
 import com.customdimensions.immersive.ImmersivePreloader;
 import com.customdimensions.portal.PortalHelper;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
@@ -27,6 +28,9 @@ public final class CompanionNetwork {
 
     /** Grepped in the server log: the positive control that a client handshook. */
     public static final String ACCEPT_MARKER = "companion-accept:handshake";
+
+    /** Grepped in the server log: a companion whose release is not this one. */
+    public static final String REFUSE_MARKER = "companion-refuse:handshake";
 
     /** Grepped in the server log to prove the destination stream left this side. */
     public static final String PROJECTION_MARKER = "companion-send:projection";
@@ -73,20 +77,27 @@ public final class CompanionNetwork {
 
         ServerPlayNetworking.registerGlobalReceiver(CompanionPayloads.Hello.ID,
                 (payload, context) -> onHello(context.player().getUuid(),
-                        context.player().getNameForScoreboard(), payload.protocolVersion()));
+                        context.player().getNameForScoreboard(), payload.modVersion()));
         ServerPlayNetworking.registerGlobalReceiver(CompanionPayloads.PortalView.ID,
                 (payload, context) -> onPortalView(context.player().getUuid(),
                         context.player().getNameForScoreboard(), payload));
     }
 
-    /** Version skew degrades to vanilla, never to a hybrid. */
-    static void onHello(UUID playerId, String playerName, int protocolVersion) {
-        if (protocolVersion != CompanionPayloads.PROTOCOL_VERSION) {
+    /**
+     * Version skew degrades to vanilla, never to a hybrid. The release that
+     * built each jar is the protocol version, so nothing is maintained by hand
+     * and a client shipped with this server always matches it.
+     */
+    static void onHello(UUID playerId, String playerName, String clientVersion) {
+        String ownVersion = Artefacts.stackVersion();
+        if (!ownVersion.equals(clientVersion)) {
+            MultiverseServer.LOGGER.info("{} player={} client={} server={}",
+                    REFUSE_MARKER, playerName, clientVersion, ownVersion);
             return;
         }
         COMPANIONS.add(playerId);
-        MultiverseServer.LOGGER.info("{} player={} protocol={}",
-                ACCEPT_MARKER, playerName, protocolVersion);
+        MultiverseServer.LOGGER.info("{} player={} version={}",
+                ACCEPT_MARKER, playerName, ownVersion);
     }
 
     /**

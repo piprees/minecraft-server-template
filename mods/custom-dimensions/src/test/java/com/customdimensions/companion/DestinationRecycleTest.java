@@ -1,5 +1,6 @@
 package com.customdimensions.companion;
 
+import com.customdimensions.command.Artefacts;
 import net.minecraft.util.Identifier;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -93,7 +94,7 @@ class DestinationRecycleTest {
      */
     @Test
     void theHandshakeAndTheDeclarationSurviveAWorldChange() {
-        CompanionNetwork.onHello(PLAYER, "Tester", CompanionPayloads.PROTOCOL_VERSION);
+        CompanionNetwork.onHello(PLAYER, "Tester", Artefacts.stackVersion());
         CompanionNetwork.onPortalView(PLAYER, "Tester",
                 new CompanionPayloads.PortalView(true, false, 16));
         DestinationFeed.remember(PLAYER, FAR_SIDE, keys(29));

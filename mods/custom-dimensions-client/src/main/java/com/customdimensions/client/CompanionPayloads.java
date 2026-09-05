@@ -20,18 +20,24 @@ import java.util.List;
  * Never widen a record in place — add /v2 beside it.
  */
 public final class CompanionPayloads {
-    /** Bumped only alongside a channel id. */
-    public static final int PROTOCOL_VERSION = 4;
-
     private CompanionPayloads() {}
 
-    /** Client to server, once on join: "I can handle companion payloads." */
-    public record Hello(int protocolVersion) implements CustomPayload {
+    /**
+     * Client to server, once on join: "I can handle companion payloads, and
+     * this is the release I was built from."
+     *
+     * <p>{@code modVersion} is the sender's own {@code fabric.mod.json}
+     * version, which is the whole of the protocol version — one release tag
+     * stamps both mods. The server admits a client whose string equals its own
+     * and serves every other one as vanilla, so the two sides never speak a
+     * format only one of them was built for.
+     */
+    public record Hello(String modVersion) implements CustomPayload {
         public static final CustomPayload.Id<Hello> ID =
-                new CustomPayload.Id<>(Identifier.of("customdimensions", "handshake/v1"));
+                new CustomPayload.Id<>(Identifier.of("customdimensions", "handshake/v2"));
 
         public static final PacketCodec<RegistryByteBuf, Hello> CODEC = PacketCodec.tuple(
-                PacketCodecs.VAR_INT, Hello::protocolVersion,
+                PacketCodecs.STRING, Hello::modVersion,
                 Hello::new);
 
         @Override

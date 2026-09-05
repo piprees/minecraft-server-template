@@ -303,8 +303,8 @@ Two things not to trip over: **`retain` drops an unframed destination's
 entities**, so a handover landing in the same tick as a `ProjectionClear` for the
 last frame naming that destination would apply to entities just dropped — order
 the handover first, or let it count as naming the destination. And **do not widen
-`destination-entities/v1`**; the handover is a new record beside it, and
-`PROTOCOL_VERSION` goes 3 -> 4.
+`destination-entities/v1`**; the handover is a new record beside it, under a
+channel id of its own.
 
 **Why this does not breach the no-simulated-events rule.** That rule exists
 because reproducing block updates, entity spawns, weather and time as individual
@@ -367,8 +367,12 @@ the radius"*) is a server-streaming constraint that does not bound a local rende
 but it still bounds the fallback: leave those constants alone.
 
 The companion gate is a handshake: `CompanionNetwork` registers a C2S
-`Hello(protocolVersion)` and a player joins `COMPANIONS` only on an exact version
-match, so version skew degrades to vanilla rather than to a hybrid. A Carpet bot
+`Hello(modVersion)` carrying the release that built the client jar, and a player
+joins `COMPANIONS` only when it equals the release that built the server's, so
+version skew degrades to vanilla rather than to a hybrid. Nothing here is
+maintained by hand — `release.yml` stamps one tag into both mods'
+`fabric.mod.json`, the client reads its own through `CompanionVersion.current()`
+and the server reads its own through `Artefacts.stackVersion()`. A Carpet bot
 never handshakes, so **it is a vanilla client by construction** — which is how
 both halves of a fallback assertion get measured in one run.
 
@@ -747,8 +751,8 @@ removal; none is a defect against this document today.
   far stamps are on; `DESTINATION_FAR`/`NEAR_DEPTH`/`FAR_DEPTH` are the live ones.
 - **The dev bridge** on `127.0.0.1:8766` — `/state`, `/screenshot` (path required),
   `/input`, which takes exactly one top-level key.
-- **Log markers:** `companion-accept:handshake`, `companion-send:projection`,
-  `companion-client:emit`.
+- **Log markers:** `companion-accept:handshake`, `companion-refuse:handshake`
+  (names both releases), `companion-send:projection`, `companion-client:emit`.
 - **Assert counts over a fixed window, never an absence.**
 - **A client mod change needs a client relaunch**, not `./dev up`. Confirm the
   install by hash before relaunching.

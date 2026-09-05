@@ -214,8 +214,8 @@ public class CustomDimensionsClient implements ClientModInitializer {
         });
         DevBridge.start();
 
-        LOGGER.info("{} protocol={} renderClientSidePortals={}", INIT_MARKER,
-                CompanionPayloads.PROTOCOL_VERSION,
+        LOGGER.info("{} version={} renderClientSidePortals={}", INIT_MARKER,
+                CompanionVersion.current(),
                 RealtimeControls.settings().renderClientSidePortals());
     }
 
@@ -273,15 +273,14 @@ public class CustomDimensionsClient implements ClientModInitializer {
         // could suppress a send that would otherwise have succeeded.
         boolean declared = ClientPlayNetworking.canSend(CompanionPayloads.Hello.ID);
         try {
-            ClientPlayNetworking.send(
-                    new CompanionPayloads.Hello(CompanionPayloads.PROTOCOL_VERSION));
+            ClientPlayNetworking.send(new CompanionPayloads.Hello(CompanionVersion.current()));
         } catch (RuntimeException e) {
             LOGGER.warn("companion handshake send failed, retrying while attempts remain", e);
             return;
         }
         HandshakeSender.sent();
-        LOGGER.info("{} protocol={} serverDeclaredChannel={}",
-                HELLO_MARKER, CompanionPayloads.PROTOCOL_VERSION, declared);
+        LOGGER.info("{} version={} serverDeclaredChannel={}",
+                HELLO_MARKER, CompanionVersion.current(), declared);
         // Sent here rather than from the pending flag: the handshake may take
         // several ticks to land, and a declaration that arrives ahead of it is
         // dropped by a server that does not yet know this client at all.

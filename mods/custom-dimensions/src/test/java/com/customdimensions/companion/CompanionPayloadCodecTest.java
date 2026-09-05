@@ -37,8 +37,9 @@ class CompanionPayloadCodecTest {
     @Test
     void helloRoundTrips() {
         RegistryByteBuf buf = buf();
-        CompanionPayloads.Hello.CODEC.encode(buf, new CompanionPayloads.Hello(1));
-        assertEquals(new CompanionPayloads.Hello(1), CompanionPayloads.Hello.CODEC.decode(buf));
+        CompanionPayloads.Hello.CODEC.encode(buf, new CompanionPayloads.Hello("5.4.1"));
+        assertEquals(new CompanionPayloads.Hello("5.4.1"),
+                CompanionPayloads.Hello.CODEC.decode(buf));
         assertEquals(0, buf.readableBytes(), "decode did not consume everything encode wrote");
     }
 
@@ -57,11 +58,12 @@ class CompanionPayloadCodecTest {
     }
 
     @Test
-    void helloIsAVarIntOnTheWire() {
+    void helloIsALengthPrefixedStringOnTheWire() {
         RegistryByteBuf buf = buf();
-        CompanionPayloads.Hello.CODEC.encode(buf, new CompanionPayloads.Hello(300));
-        assertArrayEquals(new byte[] {(byte) 0xAC, 0x02}, drain(buf),
-                "protocol version is not a VAR_INT any more");
+        CompanionPayloads.Hello.CODEC.encode(buf, new CompanionPayloads.Hello("0.0.0-local"));
+        assertArrayEquals(
+                new byte[] {11, '0', '.', '0', '.', '0', '-', 'l', 'o', 'c', 'a', 'l'},
+                drain(buf), "the handshake version is not a length-prefixed string any more");
     }
 
     @Test
@@ -79,7 +81,7 @@ class CompanionPayloadCodecTest {
 
     @Test
     void channelIdsAreTheAgreedLiterals() {
-        assertEquals("customdimensions:handshake/v1",
+        assertEquals("customdimensions:handshake/v2",
                 CompanionPayloads.Hello.ID.id().toString());
         assertEquals("customdimensions:preloaded/v1",
                 CompanionPayloads.PreloadedTransfer.ID.id().toString());
@@ -89,7 +91,6 @@ class CompanionPayloadCodecTest {
                 CompanionPayloads.Projection.ID.id().toString());
         assertEquals("customdimensions:entity-handover/v1",
                 CompanionPayloads.EntityHandover.ID.id().toString());
-        assertEquals(4, CompanionPayloads.PROTOCOL_VERSION);
     }
 
     /**

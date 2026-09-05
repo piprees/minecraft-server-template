@@ -1,5 +1,7 @@
 package com.customdimensions.companion;
 
+import com.customdimensions.command.Artefacts;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -35,19 +37,19 @@ class CompanionRegistryTest {
 
     @Test
     void matchingVersionMakesAPlayerCapable() {
-        CompanionNetwork.onHello(PLAYER, "Tester",CompanionPayloads.PROTOCOL_VERSION);
+        CompanionNetwork.onHello(PLAYER, "Tester", Artefacts.stackVersion());
         assertTrue(CompanionNetwork.isCompanion(PLAYER));
     }
 
     @Test
     void unknownVersionDegradesToVanilla() {
-        CompanionNetwork.onHello(PLAYER, "Tester",999);
+        CompanionNetwork.onHello(PLAYER, "Tester", "0.0.0-not-this-jar");
         assertFalse(CompanionNetwork.isCompanion(PLAYER), "version skew produced a hybrid");
     }
 
     @Test
     void disconnectLeavesNoEntryToLeakIntoTheNextSession() {
-        CompanionNetwork.onHello(PLAYER, "Tester",CompanionPayloads.PROTOCOL_VERSION);
+        CompanionNetwork.onHello(PLAYER, "Tester", Artefacts.stackVersion());
         CompanionNetwork.forget(PLAYER);
         assertFalse(CompanionNetwork.isCompanion(PLAYER));
     }
@@ -60,7 +62,7 @@ class CompanionRegistryTest {
 
     @Test
     void aDeclarationFromACompanionIsHonoured() {
-        CompanionNetwork.onHello(PLAYER, "Tester", CompanionPayloads.PROTOCOL_VERSION);
+        CompanionNetwork.onHello(PLAYER, "Tester", Artefacts.stackVersion());
         CompanionNetwork.onPortalView(PLAYER, "Tester",
                 new CompanionPayloads.PortalView(true, false, 24));
 
@@ -85,7 +87,7 @@ class CompanionRegistryTest {
 
     @Test
     void theLatestDeclarationWinsSoAToggleTakesEffect() {
-        CompanionNetwork.onHello(PLAYER, "Tester", CompanionPayloads.PROTOCOL_VERSION);
+        CompanionNetwork.onHello(PLAYER, "Tester", Artefacts.stackVersion());
         CompanionNetwork.onPortalView(PLAYER, "Tester",
                 new CompanionPayloads.PortalView(true, false, 24));
         CompanionNetwork.onPortalView(PLAYER, "Tester",
@@ -96,7 +98,7 @@ class CompanionRegistryTest {
 
     @Test
     void disconnectDropsTheDeclarationTooSoTheNextPlayerOnThatIdIsNotSilenced() {
-        CompanionNetwork.onHello(PLAYER, "Tester", CompanionPayloads.PROTOCOL_VERSION);
+        CompanionNetwork.onHello(PLAYER, "Tester", Artefacts.stackVersion());
         CompanionNetwork.onPortalView(PLAYER, "Tester",
                 new CompanionPayloads.PortalView(true, false, 24));
 
@@ -108,7 +110,7 @@ class CompanionRegistryTest {
 
     @Test
     void clearDropsTheDeclarationsAsWellAsTheCompanions() {
-        CompanionNetwork.onHello(PLAYER, "Tester", CompanionPayloads.PROTOCOL_VERSION);
+        CompanionNetwork.onHello(PLAYER, "Tester", Artefacts.stackVersion());
         CompanionNetwork.onPortalView(PLAYER, "Tester",
                 new CompanionPayloads.PortalView(true, false, 24));
 
