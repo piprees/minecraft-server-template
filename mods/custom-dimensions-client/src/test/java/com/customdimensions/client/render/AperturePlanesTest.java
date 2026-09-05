@@ -112,6 +112,51 @@ class AperturePlanesTest {
         assertEquals(4, planes.count());
     }
 
+    /**
+     * The reaches portal's own geometry, measured off the dev bridge: an
+     * opening three tall and two wide in the plane {@code x = 0}, the camera
+     * 5.5 back on the normal and 9.5 along the opening's width. A ground quad
+     * 20 blocks out at the height of that destination's water plain.
+     *
+     * <p>Eye height alone decides whether it survives, and that is the whole
+     * behaviour: an eye level with the sill sees nothing below the sill, and
+     * every block the view holds below eye level is held because the sightline
+     * through the bottom edge has descended far enough to reach it.
+     */
+    private static final double[] REACHES_OPENING = {
+        0.0, 8.0, 8.0,
+        0.0, 8.0, 10.0,
+        0.0, 11.0, 10.0,
+        0.0, 11.0, 8.0,
+    };
+
+    @Test
+    void groundBelowTheSillSurvivesAStandingEyeAndNotOneBeneathTheSill() {
+        AperturePlanes planes = new AperturePlanes(8, STRIDE);
+        float[] scratch = new float[STRIDE * AperturePlanes.MAX_POLY];
+
+        planes.build(REACHES_OPENING.clone(), 1, -5.5, 9.62, 9.5);
+        assertEquals(4, planes.clipAll(ground(), 4, scratch),
+                "a standing eye 1.62 above the sill cannot reach ground 20 out");
+
+        planes.build(REACHES_OPENING.clone(), 1, -5.5, 7.62, 9.5);
+        assertEquals(0, planes.clipAll(ground(), 4, scratch),
+                "an eye below the sill kept ground every sightline rises away from");
+    }
+
+    /** The destination's water plain, 20 blocks past the opening. */
+    private static float[] ground() {
+        float[][] corners = {{18.0f, 9.0f}, {18.0f, 10.0f}, {22.0f, 10.0f}, {22.0f, 9.0f}};
+        float[] data = new float[STRIDE * AperturePlanes.MAX_POLY];
+        for (int i = 0; i < 4; i++) {
+            data[i * STRIDE] = corners[i][0];
+            data[i * STRIDE + 1] = 3.9f;
+            data[i * STRIDE + 2] = corners[i][1];
+            data[i * STRIDE + 3] = 1.0f;
+        }
+        return data;
+    }
+
     private static float min(float[] poly, int corners, int axis) {
         float out = Float.MAX_VALUE;
         for (int i = 0; i < corners; i++) {

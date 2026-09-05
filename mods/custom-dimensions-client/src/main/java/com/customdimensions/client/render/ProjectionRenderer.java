@@ -325,6 +325,10 @@ public final class ProjectionRenderer {
 
         double surface = projection.surfaceOffset();
         StringBuilder report = sample ? new StringBuilder() : null;
+        if (report != null) {
+            ClipTally.open(projection.apertureOrigin(), camX, camY, camZ, camToPlane,
+                    PLANES.count());
+        }
         // Worked out before the draw so the read below knows its pixel, and read
         // after it so the value is the one the destination's own fragments left.
         double[] ndc = report != null && slice != null
@@ -375,6 +379,9 @@ public final class ProjectionRenderer {
                             (float) shiftX, (float) shiftY, (float) shiftZ);
                     immediate.draw(target);
                     if (report != null) {
+                        ClipTally.layer(projection.apertureOrigin(),
+                                String.valueOf(layer.layer()), layer.floats() / (STRIDE * 4),
+                                emitted, rejectedBy);
                         report.append(report.isEmpty() ? "" : " | ")
                                 .append(layer.layer())
                                 .append(" quadsIn=").append(layer.floats() / (STRIDE * 4))

@@ -12,6 +12,7 @@ import com.customdimensions.client.realtime.PortalFrames;
 import com.customdimensions.client.realtime.SpectatorPass;
 import com.customdimensions.client.render.AmbientLift;
 import com.customdimensions.client.render.ClientProjection;
+import com.customdimensions.client.render.ClipTally;
 import com.customdimensions.client.render.DepthReconstruction;
 import com.customdimensions.client.render.LightFacts;
 import com.customdimensions.client.render.ProjectionMesh;
@@ -337,6 +338,7 @@ final class DevState {
                     .bool("meshReady", mesh != null)
                     .num("quads", mesh == null ? 0 : mesh.quads())
                     .raw("layers", layers(mesh))
+                    .raw("clip", clip(aperture))
                     .raw("destLight", light(LightFacts.ofPacked(projection.payload().light())))
                     .raw("meshLight", light(meshLight(mesh)))
                     .raw("ambient", ambient(projection, mesh))
@@ -490,6 +492,36 @@ final class DevState {
             probe.move(towardsViewer);
         }
         return out.append(']').toString();
+    }
+
+    /**
+     * What the clip did on the last frame it sampled: the camera in the
+     * volume's own space, and per layer what went in, what came out, and which
+     * edge of the opening cut the rest.
+     */
+    private static String clip(BlockPos aperture) {
+        ClipTally.Portal portal = ClipTally.of(aperture);
+        if (portal == null) {
+            return "null";
+        }
+        StringBuilder layers = new StringBuilder("[");
+        boolean first = true;
+        for (ClipTally.Layer layer : portal.layers()) {
+            layers.append(first ? "" : ",").append(Json.obj()
+                    .str("layer", layer.layer())
+                    .num("quadsIn", layer.quadsIn())
+                    .num("emitted", layer.emitted())
+                    .raw("rejectedBy", Json.numbers(layer.rejectedBy()[0], layer.rejectedBy()[1],
+                            layer.rejectedBy()[2], layer.rejectedBy()[3]))
+                    .toString());
+            first = false;
+        }
+        return Json.obj()
+                .raw("cam", Json.numbers(portal.cam()[0], portal.cam()[1], portal.cam()[2]))
+                .num("camToPlane", portal.camToPlane())
+                .num("planes", portal.planes())
+                .raw("layers", layers.append(']').toString())
+                .toString();
     }
 
     private static String layers(ProjectionMesh mesh) {

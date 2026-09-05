@@ -39,10 +39,20 @@ public final class RealtimeView {
     /** Grepped in the client log to prove a local projection was built. */
     public static final String BUILD_MARKER = "companion-client:local-projection";
 
-    /** How far past the opening the local view reaches, in blocks. */
-    public static final int DEPTH = 16;
+    /**
+     * How far past the opening the local view reaches, in blocks. A standing
+     * eye a few blocks back sees the ground only where the sightline through
+     * the opening's bottom edge has descended to meet it, so this is what
+     * decides how much ground a level view holds rather than sky.
+     */
+    public static final int DEPTH = 24;
 
-    /** How far the box is widened on the two in-plane axes. */
+    /**
+     * How far the box is widened on the two in-plane axes. The sightline
+     * widens with depth, so this bounds {@link #DEPTH}: past the point where
+     * the cone leaves the box sideways the view gains a straight edge, and how
+     * far that is depends on how close the eye stands to the opening.
+     */
     public static final int RADIUS = 8;
 
     /** Chunks held at the last build, per opening. A rebuild needs new ones. */
