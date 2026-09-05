@@ -50,6 +50,13 @@ public final class DestinationEntities {
      * Ticks a lerp is spread over, matching the server's own snapshot
      * interval. Shorter and the entity arrives early and stops; longer and it
      * is still moving when the next snapshot overrides it.
+     *
+     * <p><b>Only a {@code LivingEntity} honours it.</b> Read from 1.21.1
+     * bytecode: {@code Entity.updateTrackedPositionAndAngles} and
+     * {@code PersistentProjectileEntity}'s override both ignore the argument
+     * and call {@code setPosition} plus {@code setRotation}. An arrow, an item
+     * and a falling block are therefore SNAPPED to each snapshot and carried
+     * between them by their own tick.
      */
     public static final int INTERPOLATION_STEPS = 4;
 
@@ -374,6 +381,12 @@ public final class DestinationEntities {
          * {@code Entity.attemptTickInVoid} answers a long fall with
          * {@code discard()} — the entity leaves the world and never comes
          * back, because a still scene sends no new snapshot to rebuild it.
+         *
+         * <p>{@code noClip} does not reach an arrow: on a client world
+         * {@code PersistentProjectileEntity.isNoClip} reads the tracked
+         * projectile flags, not the field, so a fed arrow still collides with
+         * the destination's fed blocks and is snapped back by the next
+         * snapshot.
          *
          * <p>{@code ignoreCameraFrustum} is what gets it DRAWN.
          * {@code EntityRenderer.shouldRender} returns true on that field
