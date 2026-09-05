@@ -18,10 +18,11 @@ import org.slf4j.LoggerFactory;
 /**
  * Draws each portal's destination through its own opening.
  *
- * <p>Runs after the opaque terrain and before entities, which is the one
- * moment the depth buffer holds the source world and nothing else. Per portal:
- * the backdrop quad opens the aperture (see {@link PortalRenderLayers}), then
- * the meshed destination is drawn through it.
+ * <p>Runs at {@code WorldRenderEvents.BEFORE_BLOCK_OUTLINE}, bytecode 1952 of
+ * {@code WorldRenderer.render}: every opaque draw of the source world is in the
+ * depth buffer and nothing translucent has been written. Per portal: the
+ * backdrop quad opens the aperture (see {@link PortalRenderLayers}), then the
+ * meshed destination is drawn through it.
  *
  * <p>The clip is the whole trick, and the opening it clips to is a hole HALF a
  * block deep rather than a plane: four planes run from the camera through the
@@ -103,12 +104,12 @@ public final class ProjectionRenderer {
         if (context.world() == null || ProjectionStore.count() == 0) {
             return;
         }
-        // BEFORE_ENTITIES supplies no matrix stack, so the world transform is
-        // rebuilt from the position matrix the context always carries.
+        // Vanilla's own camera-relative stack, empty at this phase — the
+        // position matrix is already on the model-view stack, so multiplying it
+        // in here would rotate the far side twice.
         MatrixStack matrices = context.matrixStack();
         if (matrices == null) {
-            matrices = new MatrixStack();
-            matrices.multiplyPositionMatrix(context.positionMatrix());
+            return;
         }
         Vec3d camera = context.camera().getPos();
         if (immediate == null) {

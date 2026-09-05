@@ -164,7 +164,15 @@ public class CustomDimensionsClient implements ClientModInitializer {
         // After the world-change reset, so a pass re-armed this tick is not read
         // as the failure it was re-armed from.
         ClientTickEvents.END_CLIENT_TICK.register(CustomDimensionsClient::standDownOnRenderFailure);
-        WorldRenderEvents.BEFORE_ENTITIES.register(ProjectionRenderer::render);
+        // BEFORE_BLOCK_OUTLINE, not BEFORE_ENTITIES: read from the Fabric mixin,
+        // it is @At(FIELD, MinecraftClient.crosshairTarget, ordinal=1, AFTER),
+        // which is bytecode 1952 of WorldRenderer.render — past the last opaque
+        // checkEmpty at 1942, so the source world's entities and block entities
+        // are already in the depth buffer and occlude the far side.
+        WorldRenderEvents.BEFORE_BLOCK_OUTLINE.register((context, hit) -> {
+            ProjectionRenderer.render(context);
+            return true;
+        });
         SpectatorComposite.register();
 
         ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
