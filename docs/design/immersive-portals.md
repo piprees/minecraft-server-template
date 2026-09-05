@@ -549,6 +549,34 @@ work.
 - Its clipping against a portal plane, and how it handles the wall's own thickness.
 - Its coordinate transform for scaled and rotated portals.
 
+**The sources, and the licence position.**
+
+- Upstream: `iPortalTeam/ImmersivePortalsMod`, **Apache-2.0**.
+- A community fork on a 1.21 branch: `DigitalWolf1313/ImmersivePortalsMod-Updated`,
+  Fabric, ~3,100 commits, stated goals of compatibility fixes and bug fixes. Its
+  README notes it contains some AI-generated code — a provenance caveat, not a
+  licence one, and a reason to read what you take rather than lift it.
+
+**Apache-2.0 is compatible with this project's MIT.** Borrowing is allowed, and it
+carries obligations: retain the copyright notice, include the licence, and
+document what was changed. Anything taken goes in its own file with an Apache
+header and a note saying what was modified — never pasted unattributed into an
+existing file.
+
+**Do not expect a shader fix from them.** The fork's own README says the portal
+rendering is *"roughly compatible with some versions of Sodium and Iris"*. That is
+the same qualified position upstream has always held, and it is precisely the bar
+this project already cleared. **What we solved is still their open problem**, so
+the shader work is not a place to look for borrowed answers — the borrowing runs
+the other way.
+
+**What is worth taking is what we have NOT solved:** the entity handover across
+the threshold (Part 3's crossing seam), and how they hold two worlds live on the
+client at once. Read those against our architecture rather than porting them —
+our destination is drawn inside the source frame's own pass and theirs is not, so
+their rendering-side answers may not transfer even where their state-management
+ones do.
+
 **What not to take:**
 
 - **Its Iris version pin.** That is the wall it hit and the one we are clearing.
