@@ -83,9 +83,11 @@ public final class DestinationWorlds {
     }
 
     /**
-     * How many render sections this destination's renderer last drew. Zero
-     * with chunks held means the sections never built — the one number that
-     * separates "the pass ran" from "the pass drew terrain".
+     * How many render sections this destination's SPECTATOR renderer last drew.
+     * It says nothing about the aperture path, which draws the far side in its
+     * DESTINATION_FAR stage and leaves this at zero. With {@code spectatorPass}
+     * off — the shipped default — there is no renderer and this is always 0,
+     * at a portal that renders correctly and at one that does not alike.
      */
     public static int renderedSections(Identifier destination) {
         WorldRenderer renderer = rendererFor(destination);
