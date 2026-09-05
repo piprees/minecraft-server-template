@@ -49,6 +49,16 @@ The `Updates` workflow (`.github/workflows/update.yml`) does the same weekly and
 
 `./dev seeds` opens the seed viewer the mod hosts. Roll candidate seeds for any dimension, compare their maps and scores, fly around the best two in a throwaway world, and pick one — the chosen seed (and where you were standing) is written into that dimension's overlay config.
 
+**When you have picked your seeds, turn the renders off.** Every server start draws a map for every configured dimension so the viewer has something to show — measured at 2118% CPU for a few hours on a 82-dimension pack, against 44% with it off. That is the price of having the viewer ready to browse, and it is worth paying while you are still choosing. Once you have locked your seeds in, it is pure waste on every boot. Put these in `.env`:
+
+```bash
+SEED_PRIME=false          # stop drawing every dimension at startup
+SEED_RENDER_HIGH=false    # stop the full-size maps
+SEED_RENDER_LOW=false     # stop the thumbnails
+```
+
+The viewer still opens and still rolls when you ask it to — you are turning off the automatic batch, not the tool. Delete the lines (or set them back to `true`) whenever you want to roll again. If your server feels slow for the first few hours after a restart and you have never set these, this is the first thing to check.
+
 ## Going to production
 
 The `ops` script delegates to the bundle's operational scripts with your consumer environment loaded:
