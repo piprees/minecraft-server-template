@@ -61,11 +61,15 @@ public final class ProjectionRenderer {
     private static final double SLICE_FRACTION = 0.9;
 
     /**
-     * The window depth the far stamp writes. The far plane: a window onto a
-     * world whose end the captured volume never reaches is better described as
-     * unbounded than as sixteen blocks.
+     * The window depth the far stamp writes: just short of the far plane.
+     *
+     * <p>A window onto a world whose end the captured volume never reaches is
+     * better described as very distant than as sixteen blocks. The far plane
+     * itself is not the same claim: 1.0 is what a cleared depth buffer holds,
+     * the value of a pixel nothing opaque was drawn to, which is how the sky
+     * reads. A portal is not the sky.
      */
-    public static final double FAR_STAMP_DEPTH = 1.0;
+    public static final double FAR_STAMP_DEPTH = 0.9999;
 
     /** The two clip rectangles' eight planes, shared with the actor draw. */
     private static final AperturePlanes PLANES = new AperturePlanes(8, STRIDE);

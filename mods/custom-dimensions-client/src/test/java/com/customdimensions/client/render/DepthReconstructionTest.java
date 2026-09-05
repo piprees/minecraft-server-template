@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -132,6 +133,29 @@ class DepthReconstructionTest {
     void aSingularTransformYieldsNoPositionRatherThanNaN() {
         assertNull(DepthReconstruction.unproject(POSITION, new Matrix4f().zero(),
                 0.0, 0.0, 0.5));
+    }
+
+    /**
+     * The far stamp's depth says "a long way off", not "nothing here".
+     *
+     * <p>Strictly under 1.0, because 1.0 is what a cleared depth buffer holds —
+     * the value of a pixel nothing opaque was drawn to, which is how the sky
+     * reads — and the portal did draw something. The distance bound is an order
+     * of magnitude past the sixteen-block capture volume, which is the reach
+     * the stamp exists to escape.
+     */
+    @Test
+    void theFarStampIsShortOfThePlaneAndReconstructsWellBeyondTheVolume() {
+        double depth = ProjectionRenderer.FAR_STAMP_DEPTH;
+
+        assertTrue(depth < 1.0,
+                "the far stamp writes the value of a pixel nothing was drawn to");
+
+        double[] point = DepthReconstruction.unproject(POSITION, PROJECTION, 0.0, 0.0, depth);
+
+        assertNotNull(point, "the far stamp's depth has no reconstructed position at all");
+        assertTrue(DepthReconstruction.distance(point) > 160.0,
+                "the far stamp reconstructs within reach of the captured volume");
     }
 
     /** One point's window coordinates, through the same forward transform. */
