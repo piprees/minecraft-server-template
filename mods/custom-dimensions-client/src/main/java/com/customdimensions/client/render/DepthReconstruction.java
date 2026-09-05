@@ -23,11 +23,13 @@ public final class DepthReconstruction {
     /**
      * One reconstruction, as {@code /state} reports it. {@code distance} is the
      * number a pack compares against its shadow distance and integrates its
-     * light shafts to.
+     * light shafts to, and {@code farDistance} is what the far stamp's own
+     * plane reconstructs to down the same pixel.
      */
     public record Sample(double windowZ, double ndcX, double ndcY,
             double x, double y, double z, double distance,
-            int blockX, int blockY, int blockZ) {}
+            int blockX, int blockY, int blockZ,
+            double farDistance) {}
 
     private static volatile Sample last;
 

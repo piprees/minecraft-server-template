@@ -14,6 +14,7 @@ import com.customdimensions.client.render.DepthReconstruction;
 import com.customdimensions.client.render.LightFacts;
 import com.customdimensions.client.render.ProjectionMesh;
 import com.customdimensions.client.render.DestinationActors;
+import com.customdimensions.client.render.ProjectionRenderer;
 import com.customdimensions.client.render.ProjectionStore;
 import com.customdimensions.client.render.QuadCapture;
 import net.minecraft.client.MinecraftClient;
@@ -96,6 +97,7 @@ final class DevState {
                 .bool("apertureTerrain", settings.apertureTerrain())
                 .bool("apertureFarStamp", settings.apertureFarStamp())
                 .bool("apertureFarStampEarly", settings.apertureFarStampEarly())
+                .str("apertureStamps", ProjectionRenderer.stampSummary())
                 .bool("effectiveServerSide", settings.effectiveServerSide())
                 .bool("clientSideRefused", PortalViewDeclaration.refused())
                 .str("clientSideRefusal", PortalViewDeclaration.reason())
@@ -145,6 +147,8 @@ final class DevState {
                 .num("ndcX", sample.ndcX())
                 .num("ndcY", sample.ndcY())
                 .num("distance", sample.distance())
+                .num("farDistance", sample.farDistance())
+                .raw("farWindowZ", String.format("%.6f", ProjectionRenderer.FAR_STAMP_DEPTH))
                 .raw("cameraRelative", Json.numbers(sample.x(), sample.y(), sample.z()))
                 .raw("at", Json.numbers(pos.getX(), pos.getY(), pos.getZ()));
         if (world == null) {

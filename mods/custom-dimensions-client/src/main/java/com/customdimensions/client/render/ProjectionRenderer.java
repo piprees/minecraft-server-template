@@ -60,6 +60,13 @@ public final class ProjectionRenderer {
      */
     private static final double SLICE_FRACTION = 0.9;
 
+    /**
+     * The window depth the far stamp writes. The far plane: a window onto a
+     * world whose end the captured volume never reaches is better described as
+     * unbounded than as sixteen blocks.
+     */
+    public static final double FAR_STAMP_DEPTH = 1.0;
+
     /** The two clip rectangles' eight planes, shared with the actor draw. */
     private static final AperturePlanes PLANES = new AperturePlanes(8, STRIDE);
 
@@ -94,6 +101,27 @@ public final class ProjectionRenderer {
 
     /** Vertices the clip left standing in the last {@link #emitClipped}. */
     static int clipVertices;
+
+    /**
+     * Times each stage has run and the corner count its stamp last drew.
+     *
+     * <p>A stamp that never runs and a stamp that runs and changes nothing look
+     * identical in a screenshot, and the emit line cannot separate them —
+     * {@code Repeated.log} prints one line per session at INFO. This can.
+     */
+    private static final long[] stampCalls = new long[PortalPass.Stage.values().length];
+    private static final int[] stampCorners = new int[PortalPass.Stage.values().length];
+
+    /** Each stage as {@code NAME=calls/corners}. */
+    public static String stampSummary() {
+        StringBuilder out = new StringBuilder();
+        for (PortalPass.Stage stage : PortalPass.Stage.values()) {
+            out.append(out.isEmpty() ? "" : " ").append(stage).append('=')
+                    .append(stampCalls[stage.ordinal()]).append('/')
+                    .append(stampCorners[stage.ordinal()]);
+        }
+        return out.toString();
+    }
 
     /**
      * Quads the last {@link #emitClipped} lost at each plane, indexed the way
@@ -282,7 +310,8 @@ public final class ProjectionRenderer {
         double surface = projection.surfaceOffset();
         StringBuilder report = sample ? new StringBuilder() : null;
         if (report != null && slice != null) {
-            recordSample(corners, camX, camY, camZ, camera, position, projectionMatrix, slice);
+            recordSample(projection, corners, camX, camY, camZ, facing, camera, position,
+                    projectionMatrix, slice);
         }
         int stamp = runPass(new PortalPass() {
             @Override
@@ -349,11 +378,18 @@ public final class ProjectionRenderer {
 
             @Override
             public int drawFarStamp(double surfaceLocal) {
-                return drawFlat(PortalRenderLayers.APERTURE_DEPTH, entry,
-                        backdropPolygon(projection, TUNNEL, camX, camY, camZ, surfaceLocal,
-                                facing, POLY_A, POLY_B), true);
+                int corners = backdropPolygon(projection, TUNNEL, camX, camY, camZ,
+                        surfaceLocal, facing, POLY_A, POLY_B);
+                // The layer's own GL_ALWAYS makes the test irrelevant, so the
+                // collapsed range only decides what is WRITTEN.
+                return withGlState(
+                        () -> GL11.glDepthRange(FAR_STAMP_DEPTH, FAR_STAMP_DEPTH),
+                        () -> GL11.glDepthRange(0.0, 1.0),
+                        () -> drawFlat(PortalRenderLayers.APERTURE_DEPTH, entry, corners, true));
             }
         }, projection, origin, slice, stage);
+        stampCalls[stage.ordinal()]++;
+        stampCorners[stage.ordinal()] = stamp;
 
         // Written after the draws, so a line at all means every draw returned.
         if (report != null) {
@@ -770,7 +806,8 @@ public final class ProjectionRenderer {
      * the defect the slice causes and the reason the block it lands on is worth
      * printing.
      */
-    private static void recordSample(double[] corners, double camX, double camY, double camZ,
+    private static void recordSample(ClientProjection projection, double[] corners,
+            double camX, double camY, double camZ, double facing,
             Vec3d camera, Matrix4f position, Matrix4f projectionMatrix, double[] slice) {
         double[] ndc = DepthReconstruction.centreNdc(position, projectionMatrix, corners,
                 camX, camY, camZ);
@@ -782,11 +819,15 @@ public final class ProjectionRenderer {
         if (point == null) {
             return;
         }
+        double[] far = DepthReconstruction.unproject(position, projectionMatrix,
+                ndc[0], ndc[1], FAR_STAMP_DEPTH);
+        double farDistance = far == null ? Double.NaN : DepthReconstruction.distance(far);
         DepthReconstruction.record(new DepthReconstruction.Sample(slice[0], ndc[0], ndc[1],
                 point[0], point[1], point[2], DepthReconstruction.distance(point),
                 (int) Math.floor(camera.x + point[0]),
                 (int) Math.floor(camera.y + point[1]),
-                (int) Math.floor(camera.z + point[2])));
+                (int) Math.floor(camera.z + point[2]),
+                farDistance));
     }
 
     /** The slice for one portal, from its opening's four corners. */
