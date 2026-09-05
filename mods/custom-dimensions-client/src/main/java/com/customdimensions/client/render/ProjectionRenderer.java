@@ -46,7 +46,7 @@ public final class ProjectionRenderer {
     private static final int STRIDE = QuadCapture.STRIDE;
 
     /** Four corners plus one cut per plane, and the tunnel has eight planes. */
-    private static final int MAX_POLY = 16;
+    private static final int MAX_POLY = AperturePlanes.MAX_POLY;
 
     /** How far past the described slab the backdrop sits, in blocks. */
     private static final double BACKDROP_MARGIN = 2.0;
@@ -58,13 +58,12 @@ public final class ProjectionRenderer {
      */
     private static final double SLICE_FRACTION = 0.9;
 
-    private static final double[] PLANES = new double[32];
+    /** The two clip rectangles' eight planes, shared with the actor draw. */
+    private static final AperturePlanes PLANES = new AperturePlanes(8, STRIDE);
+
     private static final double[] TUNNEL = new double[24];
     private static final float[] POLY_A = new float[STRIDE * MAX_POLY];
     private static final float[] POLY_B = new float[STRIDE * MAX_POLY];
-
-    /** Planes {@link #buildTunnelPlanes} last wrote into {@link #PLANES}. */
-    private static int planeCount;
 
     /** The one place that sets the colour mask; see {@link #withColourMaskOff}. */
     private static final java.util.function.Consumer<Boolean> COLOUR_MASK =
@@ -411,55 +410,7 @@ public final class ProjectionRenderer {
      */
     static boolean buildTunnelPlanes(double[] rects, int count,
             double camX, double camY, double camZ) {
-        planeCount = 0;
-        if (count <= 0) {
-            return false;
-        }
-        for (int rect = 0; rect < count; rect++) {
-            int base = rect * 12;
-            double cx = 0.0;
-            double cy = 0.0;
-            double cz = 0.0;
-            for (int i = 0; i < 4; i++) {
-                cx += rects[base + i * 3] / 4.0;
-                cy += rects[base + i * 3 + 1] / 4.0;
-                cz += rects[base + i * 3 + 2] / 4.0;
-            }
-            for (int i = 0; i < 4; i++) {
-                int j = (i + 1) & 3;
-                double ax = rects[base + i * 3] - camX;
-                double ay = rects[base + i * 3 + 1] - camY;
-                double az = rects[base + i * 3 + 2] - camZ;
-                double bx = rects[base + j * 3] - camX;
-                double by = rects[base + j * 3 + 1] - camY;
-                double bz = rects[base + j * 3 + 2] - camZ;
-                double nx = ay * bz - az * by;
-                double ny = az * bx - ax * bz;
-                double nz = ax * by - ay * bx;
-                double length = Math.sqrt(nx * nx + ny * ny + nz * nz);
-                if (length < 1.0e-9) {
-                    planeCount = 0;
-                    return false;
-                }
-                nx /= length;
-                ny /= length;
-                nz /= length;
-                double d = -(nx * camX + ny * camY + nz * camZ);
-                if (nx * cx + ny * cy + nz * cz + d < 0.0) {
-                    nx = -nx;
-                    ny = -ny;
-                    nz = -nz;
-                    d = -d;
-                }
-                int at = (rect * 4 + i) * 4;
-                PLANES[at] = nx;
-                PLANES[at + 1] = ny;
-                PLANES[at + 2] = nz;
-                PLANES[at + 3] = d;
-            }
-        }
-        planeCount = count * 4;
-        return true;
+        return PLANES.build(rects, count, camX, camY, camZ);
     }
 
     /**
@@ -526,7 +477,7 @@ public final class ProjectionRenderer {
             poly[at + 6] = 1.0f;
         }
         int count = 4;
-        for (int plane = 0; plane < planeCount && count >= 3; plane++) {
+        for (int plane = 0; plane < PLANES.count() && count >= 3; plane++) {
             count = clip(poly, count, scratch, plane);
             System.arraycopy(scratch, 0, poly, 0, count * STRIDE);
         }
@@ -770,7 +721,7 @@ public final class ProjectionRenderer {
                 POLY_A[v * STRIDE + 2] += offsetZ;
             }
             int count = 4;
-            for (int plane = 0; plane < planeCount && count >= 3; plane++) {
+            for (int plane = 0; plane < PLANES.count() && count >= 3; plane++) {
                 count = clip(POLY_A, count, POLY_B, plane);
                 System.arraycopy(POLY_B, 0, POLY_A, 0, count * STRIDE);
                 if (count < 3) {
@@ -806,29 +757,7 @@ public final class ProjectionRenderer {
 
     /** Sutherland-Hodgman against one plane; returns the new vertex count. */
     static int clip(float[] in, int count, float[] out, int plane) {
-        double nx = PLANES[plane * 4];
-        double ny = PLANES[plane * 4 + 1];
-        double nz = PLANES[plane * 4 + 2];
-        double d = PLANES[plane * 4 + 3];
-        int written = 0;
-        for (int i = 0; i < count; i++) {
-            int a = i * STRIDE;
-            int b = ((i + 1) % count) * STRIDE;
-            double da = nx * in[a] + ny * in[a + 1] + nz * in[a + 2] + d;
-            double db = nx * in[b] + ny * in[b + 1] + nz * in[b + 2] + d;
-            if (da >= 0.0 && written < MAX_POLY) {
-                System.arraycopy(in, a, out, written * STRIDE, STRIDE);
-                written++;
-            }
-            if ((da >= 0.0) != (db >= 0.0) && written < MAX_POLY) {
-                float t = (float) (da / (da - db));
-                for (int e = 0; e < STRIDE; e++) {
-                    out[written * STRIDE + e] = in[a + e] + (in[b + e] - in[a + e]) * t;
-                }
-                written++;
-            }
-        }
-        return written;
+        return PLANES.clip(in, count, out, plane);
     }
 
     private static void emit(VertexConsumer consumer, MatrixStack.Entry entry, float[] poly, int at) {
