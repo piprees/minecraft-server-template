@@ -1648,6 +1648,33 @@ measurement of it.
   the same trap. Pin it against the Java, not against intuition —
   `scripts/e2e/portal-matrix-selftest.sh` is the worked example.
 
+<a id="t98"></a>
+### T98 — Terrain render layers submitted from a mod's own buffer draw nothing under a shader pack
+
+- **Symptom:** a portal's destination shows only its flat fog colour with a
+  shader pack loaded, and its real terrain with shaders off. The draw reports
+  success: 2792 vertices emitted across solid, translucent and cutout_mipped in
+  the same frame the opening reads as one uniform colour.
+- **Bisected, not guessed.** With the backdrop quad switched off the opening is
+  pixel-identical to the opening with BOTH halves off — so the terrain
+  contributes nothing, and the backdrop was not covering it. Three families of
+  draw at the same seam in the same frame: entity layers through
+  `EntityRenderDispatcher` render; `POSITION_COLOR` renders and is tonemapped;
+  `RenderLayers.getBlockLayer(state)` renders nothing.
+- **Cause (INFERRED, not read from the pack):** `gbuffers_terrain` is written
+  for chunk geometry and reads vertex attributes — `mc_Entity`, `at_midBlock` —
+  that Iris supplies for Sodium's chunk geometry and not for a mod submitting
+  through a `VertexConsumerProvider.Immediate`.
+- **Fix:** `PortalRenderLayers.forDestination` draws captured block quads on the
+  ENTITY layers over `SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE` instead —
+  `getEntitySolid`, `getEntityCutoutNoCull`, `getEntityTranslucentCull`. The
+  `ENTITY` vertex format is position, colour, uv, overlay, light, normal, which
+  is exactly what `QuadCapture` already writes.
+- **Cost:** there is no mipmapped entity cutout layer, so leaves and grass seen
+  through a portal lose mipmapping.
+- **Diagnosis without a rebuild:** `apertureBackdrop` and `apertureTerrain` on
+  the dev bridge draw the two halves separately.
+
 <a id="t97"></a>
 ### T97 — A second `WorldRenderer.render` drives a shader pack's whole pipeline twice in one frame
 

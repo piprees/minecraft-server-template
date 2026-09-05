@@ -5,6 +5,7 @@ import net.minecraft.client.render.GameRenderer;
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.VertexFormat;
 import net.minecraft.client.render.VertexFormats;
+import net.minecraft.client.texture.SpriteAtlasTexture;
 import org.lwjgl.opengl.GL11;
 
 /**
@@ -27,6 +28,35 @@ import org.lwjgl.opengl.GL11;
 public final class PortalRenderLayers {
 
     private PortalRenderLayers() {}
+
+    /**
+     * The layer a captured block quad is DRAWN on, which is not the layer it
+     * was captured for.
+     *
+     * <p>The mesh is built through vanilla's block renderer, so it comes back
+     * keyed by {@code RenderLayers.getBlockLayer} — a terrain layer. A shader
+     * pack's {@code gbuffers_terrain} is written for chunk geometry and reads
+     * vertex attributes that only chunk geometry carries; a mod submitting
+     * terrain layers through a {@code VertexConsumerProvider.Immediate} supplies
+     * none of them, and under Complementary Reimagined the result reaches no
+     * pixel at all ({@code TROUBLESHOOTING.md#t98}).
+     *
+     * <p>The entity layers over the block atlas take the same
+     * {@code VertexFormats.ENTITY} the capture already writes — position,
+     * colour, uv, overlay, light, normal — and are the same class of draw as
+     * any mod's custom model, which is what the pack shades. Cutout loses
+     * mipmapping: there is no mipmapped entity cutout layer.
+     */
+    public static RenderLayer forDestination(RenderLayer captured) {
+        if (captured == RenderLayer.getTranslucent()
+                || captured == RenderLayer.getTranslucentMovingBlock()) {
+            return RenderLayer.getEntityTranslucentCull(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE);
+        }
+        if (captured == RenderLayer.getCutout() || captured == RenderLayer.getCutoutMipped()) {
+            return RenderLayer.getEntityCutoutNoCull(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE);
+        }
+        return RenderLayer.getEntitySolid(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE);
+    }
 
     public static final RenderLayer BACKDROP = new RenderLayer(
             "customdimensions_portal_backdrop",

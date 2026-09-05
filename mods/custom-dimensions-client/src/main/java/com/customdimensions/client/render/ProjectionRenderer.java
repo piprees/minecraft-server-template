@@ -226,10 +226,12 @@ public final class ProjectionRenderer {
                 for (ProjectionMesh.Layer layer :
                         RealtimeControls.settings().apertureTerrain()
                                 ? mesh.layers() : java.util.List.<ProjectionMesh.Layer>of()) {
-                    VertexConsumer consumer = immediate.getBuffer(layer.layer());
+                    net.minecraft.client.render.RenderLayer target =
+                            PortalRenderLayers.forDestination(layer.layer());
+                    VertexConsumer consumer = immediate.getBuffer(target);
                     int emitted = emitClipped(layer, consumer, entry,
                             (float) shiftX, (float) shiftY, (float) shiftZ);
-                    immediate.draw(layer.layer());
+                    immediate.draw(target);
                     if (report != null) {
                         report.append(report.isEmpty() ? "" : " | ")
                                 .append(layer.layer())
