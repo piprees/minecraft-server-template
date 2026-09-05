@@ -167,7 +167,9 @@ public final class DevServer {
                 .withApertureBackdrop(request.flag("apertureBackdrop", before.apertureBackdrop()))
                 .withApertureTerrain(request.flag("apertureTerrain", before.apertureTerrain()))
                 .withApertureFarStamp(request.flag("apertureFarStamp",
-                        before.apertureFarStamp()));
+                        before.apertureFarStamp()))
+                .withApertureFarStampEarly(request.flag("apertureFarStampEarly",
+                        before.apertureFarStampEarly()));
         boolean changed = !after.equals(before);
         if (changed) {
             RealtimeControls.store().save(after);

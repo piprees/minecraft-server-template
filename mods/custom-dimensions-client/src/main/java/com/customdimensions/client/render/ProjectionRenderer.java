@@ -107,8 +107,43 @@ public final class ProjectionRenderer {
 
     private ProjectionRenderer() {}
 
+    /**
+     * The frame's own context, for the depth restore that has no render phase
+     * to hang on. Cleared at {@code WorldRenderEvents.END} so it can never
+     * outlive the frame that set it.
+     */
+    private static WorldRenderContext frame;
+
     public static void render(WorldRenderContext context) {
-        pass(context, PortalPass.Stage.DESTINATION);
+        frame = context;
+        pass(context, RealtimeControls.settings().apertureFarStampEarly()
+                ? PortalPass.Stage.DESTINATION_FAR
+                : PortalPass.Stage.DESTINATION);
+    }
+
+    /**
+     * The opening's own depth put back, before anything in the frame tests
+     * against it.
+     *
+     * <p>Called from {@code WorldRendererApertureDepthMixin} at the translucent
+     * terrain draw, bytecode 2235 and 2370 of {@code WorldRenderer.render}. It
+     * exists only for {@code DESTINATION_FAR}: that stage leaves the far end of
+     * the volume in the depth buffer for the deferred programs and the
+     * pre-translucent depth copy at 2213, and the source world's translucents,
+     * particles, clouds and weather would all draw over the opening if it
+     * stayed there.
+     */
+    public static void stampNear() {
+        WorldRenderContext context = frame;
+        if (context == null || !RealtimeControls.settings().apertureFarStampEarly()) {
+            return;
+        }
+        pass(context, PortalPass.Stage.NEAR_DEPTH);
+    }
+
+    /** Drops the frame's context. Registered on {@code WorldRenderEvents.END}. */
+    public static void endFrame(WorldRenderContext context) {
+        frame = null;
     }
 
     /**
@@ -152,7 +187,7 @@ public final class ProjectionRenderer {
         // all then means drawOne never reached the emit path.
         Matrix4f position = context.positionMatrix();
         Matrix4f projectionMatrix = context.projectionMatrix();
-        boolean destination = stage == PortalPass.Stage.DESTINATION;
+        boolean destination = stage.drawsDestination();
         boolean sample = destination
                 && System.currentTimeMillis() - lastSampleAt >= SAMPLE_INTERVAL_MS;
         long startedAt = System.nanoTime();
@@ -239,7 +274,7 @@ public final class ProjectionRenderer {
         matrices.translate(origin.getX() - camera.x, origin.getY() - camera.y, origin.getZ() - camera.z);
         MatrixStack.Entry entry = matrices.peek();
 
-        double[] slice = stage == PortalPass.Stage.DESTINATION
+        double[] slice = stage.drawsDestination()
                 ? sliceFor(projection, corners, camX, camY, camZ, facing,
                         position, projectionMatrix)
                 : null;
@@ -592,15 +627,18 @@ public final class ProjectionRenderer {
      * range calls at all. A draw that throws still restores the range, and the
      * stamp is not drawn.
      *
-     * <p>{@code FAR_DEPTH} draws the far stamp and nothing else: it runs after
-     * every draw in the frame that depth-tests, so any colour it painted would
-     * land on top of them, and the depth range is already restored by then.
+     * <p>The two depth-only stages draw one stamp and nothing else: they run
+     * after the destination is already on screen, so any colour they painted
+     * would land on top of it, and the depth range is restored by then.
      *
      * <p>Returns the stamp's corner count.
      */
     static int runPass(PortalPass pass, ClientProjection projection, BlockPos origin,
             double[] slice, PortalPass.Stage stage) {
         double planeLocal = planeLocal(projection, origin);
+        if (stage == PortalPass.Stage.NEAR_DEPTH) {
+            return pass.drawStamp(planeLocal);
+        }
         if (stage == PortalPass.Stage.FAR_DEPTH) {
             return pass.drawFarStamp(planeLocal);
         }
@@ -616,7 +654,9 @@ public final class ProjectionRenderer {
                 pass.restoreDepthRange();
             }
         }
-        return pass.drawStamp(planeLocal);
+        return stage == PortalPass.Stage.DESTINATION_FAR
+                ? pass.drawFarStamp(planeLocal)
+                : pass.drawStamp(planeLocal);
     }
 
     /**

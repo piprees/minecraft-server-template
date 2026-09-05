@@ -212,6 +212,52 @@ class PortalPassOrderTest {
                 "the two stamps are cast from different surfaces: " + near.values);
     }
 
+    /**
+     * The near-depth stage draws one stamp and nothing else. It runs at the
+     * translucent terrain draw, with the destination already on screen, so
+     * anything else it drew would land on top of the frame so far.
+     */
+    @Test
+    void theNearDepthStageDrawsTheSurfaceStampAndNothingElse() {
+        Recorder pass = new Recorder();
+
+        ProjectionRenderer.runPass(pass, PROJECTION, ORIGIN, SLICE, PortalPass.Stage.NEAR_DEPTH);
+
+        assertEquals(List.of("drawStamp"), pass.script);
+    }
+
+    /**
+     * The far variant of the destination stage changes what the DEPTH BUFFER
+     * reports and nothing a viewer sees. Every colour draw is identical and in
+     * the same order; only the stamp that closes the pass differs.
+     */
+    @Test
+    void theFarVariantOfTheDestinationStageDiffersOnlyInItsStamp() {
+        Recorder near = new Recorder();
+        Recorder far = new Recorder();
+
+        ProjectionRenderer.runPass(near, PROJECTION, ORIGIN, SLICE, PortalPass.Stage.DESTINATION);
+        ProjectionRenderer.runPass(far, PROJECTION, ORIGIN, SLICE,
+                PortalPass.Stage.DESTINATION_FAR);
+
+        assertEquals(near.script.subList(0, near.script.size() - 1),
+                far.script.subList(0, far.script.size() - 1),
+                "the two variants draw different colour: " + near.script + " vs " + far.script);
+        assertEquals("drawStamp", near.script.get(near.script.size() - 1));
+        assertEquals("drawFarStamp", far.script.get(far.script.size() - 1));
+    }
+
+    /** Only the two destination stages draw the destination. */
+    @Test
+    void onlyTheDestinationStagesDrawTheDestination() {
+        for (PortalPass.Stage stage : PortalPass.Stage.values()) {
+            Recorder pass = new Recorder();
+            ProjectionRenderer.runPass(pass, PROJECTION, ORIGIN, SLICE, stage);
+            assertEquals(stage.drawsDestination(), pass.script.contains("drawDestination"),
+                    stage + ": drawsDestination() disagrees with what the pass drew");
+        }
+    }
+
     private static ClientProjection projection() {
         return projection(Direction.SOUTH, ORIGIN);
     }

@@ -178,6 +178,7 @@ public class CustomDimensionsClient implements ClientModInitializer {
         // the clouds at 2496 and the weather at 2533. AFTER_TRANSLUCENT is 2445
         // and a far depth written there lets both draw over the opening.
         WorldRenderEvents.LAST.register(ProjectionRenderer::stampFar);
+        WorldRenderEvents.END.register(ProjectionRenderer::endFrame);
         SpectatorComposite.register();
 
         ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {

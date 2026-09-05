@@ -12,6 +12,7 @@
     "MinecraftClientFramebufferAccessor",
     "MinecraftClientInvoker",
     "MinecraftClientJoinWorldMixin",
+    "WorldRendererApertureDepthMixin",
     "WorldRendererDestinationMixin"
   ],
   "injectors": {

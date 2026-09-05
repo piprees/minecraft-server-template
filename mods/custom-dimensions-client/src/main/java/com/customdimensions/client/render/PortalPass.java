@@ -19,8 +19,19 @@ public interface PortalPass {
         /** The destination inside its depth slice, then the surface's own depth. */
         DESTINATION,
 
+        /** The same, closed with the volume's far depth instead of the surface's. */
+        DESTINATION_FAR,
+
+        /** The surface's own depth, and nothing else. */
+        NEAR_DEPTH,
+
         /** The far end of the captured volume, depth only, and nothing else. */
-        FAR_DEPTH,
+        FAR_DEPTH;
+
+        /** Whether this stage draws the destination as well as a stamp. */
+        public boolean drawsDestination() {
+            return this == DESTINATION || this == DESTINATION_FAR;
+        }
     }
 
     void applyDepthRange(double near, double far);
