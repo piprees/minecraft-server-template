@@ -183,36 +183,65 @@ flicker at the threshold.
 covers items, projectiles, experience orbs, falling blocks, vehicles and leashed
 entities, driven per tick by `mixin/EntityTickPortalMixin.java`.
 
-## A fed projectile steps, and the cause is physics rather than cadence
+## A fed entity is FROZEN between snapshots — the velocity is discarded
 
-A fed entity is set `setNoGravity(true)` so it cannot fall out of the world over
-an unfed column. The server copy still arcs at `0.05` blocks/tick². Over one
-`INTERVAL` = 4 window the two diverge by `0.05 * k(k-1)/2` = **0.30 blocks**,
-corrected as a hard snap five times a second on an object half a block long.
-Shortening the interval reduces it quadratically and never removes it.
+**MEASURED, 251 samples.** A fed entity does not move at all between snapshots,
+on any axis. Every held sample reads `dy = +0.00` exactly; each snapshot then
+teleports it the whole distance the real entity travelled.
 
-**RULED: suppress `attemptTickInVoid` rather than gravity**, so the client's
-physics matches the server's and the snap corrects only network jitter. The
-maintainer's standing preference decides it: *"the smoother and most immersive
-option would be best where possible, even if it's a little bit of a performance
-hit or a little more work to get it right."*
+```
+tick   y       dy      x        z
+21592  106.8           3466.6   2597.7
+21593  106.8   +0.00   3466.6   2597.7   HELD
+21596  106.8   +0.00   3466.6   2597.7   HELD
+21597  104.3   -2.50   3465.5   2597.0   moved
+21605   97.2   -3.80   3463.6   2595.7   moved
+21617   81.8   -5.70   3460.9   2593.9   moved
+```
 
-Dropping `setNoGravity(true)` on its own is NOT the fix and must not be done
-alone: an entity over an unfed column has no floor, `attemptTickInVoid` answers a
-long fall with `discard()`, and no later snapshot rebuilds it because a still
-scene sends nothing. **Gravity may only be restored once the void discard is
-suppressed for fed entities** — the two changes are one change.
+**The x axis settles it.** Gravity has no x component, so a copy that was merely
+missing gravity would still track truth in x. Measured x jumps are **-1.1, -1.0,
+-0.9, -0.8** — the full per-window displacement, decaying with the 0.99 drag.
+
+**The cause: the server sends velocity and the client discards it.**
+`DestinationEntityFeed.java:310` puts `entity.getVelocity()` into the spawn
+packet. `DestinationEntities.java` never calls `setVelocity` — the word does not
+appear in the file. So the copy sits at velocity zero forever, `tickEntity` moves
+it by nothing, and `updateTrackedPositionAndAngles` teleports it on each
+snapshot.
+
+**The error is the entire per-window displacement**, `v*k + 0.05*k(k-1)/2`, which
+**scales with speed and has no ceiling.** Measured jumps of 2.5-5.7 blocks at
+~1.4 blocks/tick; a full-draw bow arrow at 3.0 blocks/tick would jump ~12. A
+walking mob barely moves in a window and is nearly unaffected — **the artefact is
+proportional to speed, so the acceptance test's own entity is the worst case in
+the game.**
+
+**The fix is to apply the velocity that already crosses the wire**, so the copy
+dead-reckons between snapshots and the snapshot corrects only drift. That is
+also what makes the gravity question real: with velocity applied, matching the
+server's gravity matters; without it, gravity was never the binding term.
 
 **Only a `LivingEntity` interpolates.** `Entity.updateTrackedPositionAndAngles`
 and `PersistentProjectileEntity`'s override both ignore the step count and call
-`setPosition` plus `setRotation`, so a mob through the opening moves smoothly and
-the acceptance test's own entity does not.
+`setPosition` plus `setRotation`.
 
-**`puppet()`'s `noClip` does not reach an arrow** either —
+**`puppet()`'s `noClip` does not reach an arrow** —
 `PersistentProjectileEntity.isNoClip()` reads bit 2 of the tracked
 `PROJECTILE_FLAGS`, not the field the client sets — so a fed arrow runs its full
-collision path against fed blocks and may stick until the next snapshot corrects
-it.
+collision path against fed blocks.
+
+## The destination ticks only when someone is standing in it
+
+**MEASURED.** With a Carpet bot at the arrival: `entitySnapshots` 1 -> 70,
+`entitiesSpawned` 24 -> 109, `entitiesMoved` 0 -> 1548, `entitiesRemoved`
+0 -> 60, `apertureEntities` 0 -> 2, `destinationChunks` 6 -> 68. Without one,
+nothing moves and `changed()` correctly suppresses every snapshot after the
+first.
+
+**So an acceptance bar counting snapshots must say who is standing where.** A
+still destination yields one snapshot however long you wait, and that is correct
+behaviour rather than a defect.
 
 ## The crossing seam — the identity does not survive, and that is vanilla
 
