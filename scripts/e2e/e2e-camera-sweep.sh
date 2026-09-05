@@ -103,7 +103,7 @@ r=d.get('realtime') or {}
 s=r.get('apertureSample') or {}
 row={'tag':'$tag','station':'$1','eyeX':$2,'eyeZ':$3,'yaw':$4,'pitch':$5,
      'dist':$6,'side':'$7','wall':time.time(),
-     'tick':d.get('tick'),'fps':c.get('fps'),'renderUs':r.get('renderUs'),
+     'tick':d.get('tick'),'fps':c.get('fps'),'renderUs':r.get('apertureRenderUs'),
      'destinationChunks':r.get('destinationChunks'),
      'apertureEntities':r.get('apertureEntities'),
      'projections':len(d.get('projections') or []),

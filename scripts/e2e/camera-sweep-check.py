@@ -90,8 +90,15 @@ def main():
         print(f"  n={len(fps)}  mean={st.fmean(fps):.2f}  median={st.median(fps):.1f}"
               f"  min={min(fps)}  p5={p5}  max={max(fps)}")
         stalls = sum(1 for v in fps if v <= 2)
-        print(f"  frames at <=2 fps: {stalls} ({100.0*stalls/len(fps):.1f}%)"
-              f"   <- a stall is felt, a mean is not\n")
+        print(f"  frames at <=2 fps: {stalls} ({100.0*stalls/len(fps):.1f}%)")
+        # One reading per pose, and `getCurrentFps` is already averaged over the
+        # preceding second, so a freeze shorter than the pose interval falls
+        # between readings and a freeze inside a fast second is averaged away.
+        # Measured at a FIXED pose, 1 Hz for 40 s: 13-45 fps, mean 27.8 — wider
+        # than any difference this table can resolve.
+        print("  A zero here is not an absence of stalls: this samples once per")
+        print("  pose and the underlying counter is a one-second mean. Read the")
+        print("  spread, never the mean, and never as a rig description.\n")
     else:
         print("FRAMERATE: no fps field in any frame — the bridge did not report it\n")
 
