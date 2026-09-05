@@ -203,12 +203,21 @@ tick   y       dy      x        z
 missing gravity would still track truth in x. Measured x jumps are **-1.1, -1.0,
 -0.9, -0.8** — the full per-window displacement, decaying with the 0.99 drag.
 
-**The cause: the server sends velocity and the client discards it.**
-`DestinationEntityFeed.java:310` puts `entity.getVelocity()` into the spawn
-packet. `DestinationEntities.java` never calls `setVelocity` — the word does not
-appear in the file. So the copy sits at velocity zero forever, `tickEntity` moves
-it by nothing, and `updateTrackedPositionAndAngles` teleports it on each
-snapshot.
+**The cause, and it is narrower than "the client discards velocity".**
+`Entity.onSpawnPacket` applies id, position, pitch, yaw and uuid — and **no
+`setVelocity`**. `LivingEntity` OVERRIDES it and does call
+`setVelocity(getVelocityX/Y/Z)`. `MobEntity` and `PersistentProjectileEntity`
+declare no override.
+
+**So a mob, villager or player copy already had its velocity; an arrow, item,
+experience orb or falling block did not.** The acceptance test's own entity is
+exactly the class that loses it, which is why every held sample read
+`dy = +0.00`.
+
+`DestinationEntities.Live.applyVelocity` now applies the spawn packet's velocity
+from BOTH `spawn` and `move`. The feed re-sends a full `EntitySpawnS2CPacket` for
+every present entity every snapshot, so a move has one to read;
+`EntityTrackerUpdateS2CPacket` has no velocity accessor at all.
 
 **The error is the entire per-window displacement**, `v*k + 0.05*k(k-1)/2`, which
 **scales with speed and has no ceiling.** Measured jumps of 2.5-5.7 blocks at
@@ -217,10 +226,15 @@ walking mob barely moves in a window and is nearly unaffected — **the artefact
 proportional to speed, so the acceptance test's own entity is the worst case in
 the game.**
 
-**The fix is to apply the velocity that already crosses the wire**, so the copy
-dead-reckons between snapshots and the snapshot corrects only drift. That is
-also what makes the gravity question real: with velocity applied, matching the
-server's gravity matters; without it, gravity was never the binding term.
+**Fixed at `4fc3af06`.** With the velocity applied, **x and z now track exactly**
+— the copy runs the same drag in its own tick — and the residual is y only:
+`0.05 * k(k-1)/2` = **0.30 blocks worst case at k=4**, corrected by the next
+snapshot.
+
+**That 0.30-block sawtooth was real all along, buried under an error 8-19x
+larger.** Matching the server's gravity is what removes it, and it stays bundled
+with suppressing `attemptTickInVoid` — restoring gravity alone loses entities
+over unfed columns unrecoverably.
 
 **Only a `LivingEntity` interpolates.** `Entity.updateTrackedPositionAndAngles`
 and `PersistentProjectileEntity`'s override both ignore the step count and call
