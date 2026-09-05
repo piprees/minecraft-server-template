@@ -183,6 +183,32 @@ flicker at the threshold.
 covers items, projectiles, experience orbs, falling blocks, vehicles and leashed
 entities, driven per tick by `mixin/EntityTickPortalMixin.java`.
 
+## A fed projectile steps, and the cause is physics rather than cadence
+
+A fed entity is set `setNoGravity(true)` so it cannot fall out of the world over
+an unfed column. The server copy still arcs at `0.05` blocks/tick². Over one
+`INTERVAL` = 4 window the two diverge by `0.05 * k(k-1)/2` = **0.30 blocks**,
+corrected as a hard snap five times a second on an object half a block long.
+Shortening the interval reduces it quadratically and never removes it.
+
+**The fix is to suppress `attemptTickInVoid` rather than gravity**, so the
+client's physics matches the server's and the snap corrects only network jitter.
+Dropping `setNoGravity(true)` on its own would trade a bounded, self-correcting
+sawtooth for an unrecoverable loss: an entity over an unfed column has no floor,
+`attemptTickInVoid` answers a long fall with `discard()`, and no later snapshot
+rebuilds it because a still scene sends nothing.
+
+**Only a `LivingEntity` interpolates.** `Entity.updateTrackedPositionAndAngles`
+and `PersistentProjectileEntity`'s override both ignore the step count and call
+`setPosition` plus `setRotation`, so a mob through the opening moves smoothly and
+the acceptance test's own entity does not.
+
+**`puppet()`'s `noClip` does not reach an arrow** either —
+`PersistentProjectileEntity.isNoClip()` reads bit 2 of the tracked
+`PROJECTILE_FLAGS`, not the field the client sets — so a fed arrow runs its full
+collision path against fed blocks and may stick until the next snapshot corrects
+it.
+
 ## The crossing seam — the identity does not survive, and that is vanilla
 
 `EntityPassthrough.moveEntity` uses `Entity.teleportTo(TeleportTarget)`. A
@@ -209,6 +235,25 @@ later, which is exactly what the acceptance test forbids.
 
 **RULED: the server names the handover.** Old id, new id, tick — so the client
 can carry the fed copy across instead of watching it vanish and reappear.
+
+**And naming it is not sufficient on its own.** At 3 blocks/tick an arrow crosses
+the plane and the destination feed does not see it for up to `INTERVAL` = 4
+ticks — **up to 12 blocks past the opening before the first snapshot carries
+it**, with the source copy already gone. So the handover must let the client
+**insert the carried copy itself at the crossing tick**, not merely learn what to
+rename when a snapshot eventually arrives.
+
+The existing code supports that with no reshaping: if the client pre-inserts the
+carried entity under the NEW id, `EntityFeedPlan.apply` sees that id already held
+on the next snapshot and issues a move rather than a spawn — no flicker, no
+double entity. `anIdInBothListsStays` already pins the boundary case.
+
+Two things not to trip over: **`retain` drops an unframed destination's
+entities**, so a handover landing in the same tick as a `ProjectionClear` for the
+last frame naming that destination would apply to entities just dropped — order
+the handover first, or let it count as naming the destination. And **do not widen
+`destination-entities/v1`**; the handover is a new record beside it, and
+`PROTOCOL_VERSION` goes 3 -> 4.
 
 **Why this does not breach the no-simulated-events rule.** That rule exists
 because reproducing block updates, entity spawns, weather and time as individual
