@@ -931,6 +931,61 @@ class ProjectionRendererClipTest {
         assertEquals("none", ProjectionRenderer.sliceLabel(null));
     }
 
+    /**
+     * The backdrop carries a normal and a lightmap because an entity layer
+     * reads them. Left at zero — which is what the projection leaves them at —
+     * a shader pack has nothing to shade the quad with and it lands blown out
+     * instead of fog-coloured.
+     */
+    @Test
+    void theBackdropCarriesANormalFacingTheCameraAndTheDestinationsSky() {
+        float[] poly = new float[QuadCapture.STRIDE * 16];
+
+        // A -Z normal, so the destination lies towards lower Z and the camera
+        // is on the high side: the quad faces +Z.
+        ProjectionRenderer.dressBackdrop(poly, 4, 2, -1.0);
+
+        for (int v = 0; v < 4; v++) {
+            int at = v * QuadCapture.STRIDE;
+            assertEquals(0.5f, poly[at + 7], TOLERANCE, "u is not the white texel");
+            assertEquals(0.5f, poly[at + 8], TOLERANCE, "v is not the white texel");
+            assertEquals(0.0f, poly[at + 9], TOLERANCE);
+            assertEquals(10.0f, poly[at + 10], TOLERANCE, "overlay is not the default");
+            assertEquals(0.0f, poly[at + 11], TOLERANCE, "the backdrop took block light");
+            assertEquals(15.0f, poly[at + 12], TOLERANCE, "the backdrop is not lit by the sky");
+            assertEquals(0.0f, poly[at + 13], TOLERANCE);
+            assertEquals(0.0f, poly[at + 14], TOLERANCE);
+            assertEquals(1.0f, poly[at + 15], TOLERANCE, "the normal does not face the camera");
+        }
+    }
+
+    @Test
+    void theBackdropsNormalFollowsTheOpeningsOwnAxis() {
+        float[] poly = new float[QuadCapture.STRIDE * 16];
+
+        ProjectionRenderer.dressBackdrop(poly, 1, 0, 1.0);
+
+        assertEquals(-1.0f, poly[13], TOLERANCE, "an X-normal opening faced the wrong way");
+        assertEquals(0.0f, poly[14], TOLERANCE);
+        assertEquals(0.0f, poly[15], TOLERANCE);
+    }
+
+    /**
+     * Only the corners the clip left standing are dressed. Past them the array
+     * still holds the previous polygon, and a vertex written there would be
+     * emitted at a position nothing computed.
+     */
+    @Test
+    void onlyTheCornersTheClipLeftAreDressed() {
+        float[] poly = new float[QuadCapture.STRIDE * 16];
+        poly[4 * QuadCapture.STRIDE + 15] = 7.0f;
+
+        ProjectionRenderer.dressBackdrop(poly, 4, 2, -1.0);
+
+        assertEquals(7.0f, poly[4 * QuadCapture.STRIDE + 15], TOLERANCE,
+                "the fifth corner was dressed although the clip discarded it");
+    }
+
     private static int stamp(ClientProjection projection, double camA, double camB,
             double camNormal, float[] poly, float[] scratch) {
         double[] tunnel = new double[24];

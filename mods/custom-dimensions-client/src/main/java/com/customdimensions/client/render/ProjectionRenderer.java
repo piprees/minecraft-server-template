@@ -217,8 +217,10 @@ public final class ProjectionRenderer {
                 if (!RealtimeControls.settings().apertureBackdrop()) {
                     return;
                 }
-                drawFlat(PortalRenderLayers.BACKDROP, entry, backdropPolygon(projection, TUNNEL,
-                        camX, camY, camZ, surfaceLocal, facing, POLY_A, POLY_B), false);
+                int corners = backdropPolygon(projection, TUNNEL, camX, camY, camZ,
+                        surfaceLocal, facing, POLY_A, POLY_B);
+                dressBackdrop(POLY_A, corners, projection.normalAxis().ordinal(), facing);
+                drawShaded(PortalRenderLayers.backdrop(), entry, corners);
             }
 
             @Override
@@ -432,9 +434,9 @@ public final class ProjectionRenderer {
      * far end of the described slab, cut against the same tunnel the mesh is.
      * Returns the corner count left in {@code poly}, 0 for nothing to draw.
      *
-     * <p>The clip is not optional. This quad writes depth with the test forced
-     * to always pass ({@link PortalRenderLayers}), so uncut it paints the
-     * opening's shape over whatever stands in front of the frame.
+     * <p>The clip is not optional. This quad writes depth inside the pass's own
+     * slice, so uncut it paints the opening's shape over whatever stands in
+     * front of the frame.
      */
     static int backdropPolygon(ClientProjection projection, double[] cone,
             double camX, double camY, double camZ, double planeLocal, double facing,
@@ -698,11 +700,60 @@ public final class ProjectionRenderer {
         return corners;
     }
 
-    /** Position and colour only: {@link PortalRenderLayers#BACKDROP} takes no more. */
+    /** Position and colour only: {@link PortalRenderLayers#APERTURE_DEPTH} takes no more. */
     private static void emitFlat(VertexConsumer consumer, MatrixStack.Entry entry, float[] poly,
             int at) {
         consumer.vertex(entry, poly[at], poly[at + 1], poly[at + 2])
                 .color(poly[at + 3], poly[at + 4], poly[at + 5], poly[at + 6]);
+    }
+
+    /**
+     * Fills the attributes an entity layer reads and {@link #projectOntoPlane}
+     * leaves at zero: the white texture's one texel, no overlay, the
+     * destination's own sky, and a normal facing the camera.
+     *
+     * <p>A quad with a zero normal and no lightmap is geometry a shader pack
+     * has nothing to shade, and it lands blown out rather than fog-coloured.
+     */
+    static void dressBackdrop(float[] poly, int corners, int normalAxis, double facing) {
+        for (int corner = 0; corner < corners; corner++) {
+            int at = corner * STRIDE;
+            poly[at + 7] = 0.5f;
+            poly[at + 8] = 0.5f;
+            poly[at + 9] = 0.0f;
+            poly[at + 10] = 10.0f;
+            poly[at + 11] = 0.0f;
+            poly[at + 12] = 15.0f;
+            poly[at + 13] = normalAxis == 0 ? (float) -facing : 0.0f;
+            poly[at + 14] = normalAxis == 1 ? (float) -facing : 0.0f;
+            poly[at + 15] = normalAxis == 2 ? (float) -facing : 0.0f;
+        }
+    }
+
+    /**
+     * Draws a clipped polygon left in {@link #POLY_A} on a layer that reads the
+     * whole vertex, and flushes it. Returns the corner count.
+     */
+    private static int drawShaded(net.minecraft.client.render.RenderLayer layer,
+            MatrixStack.Entry entry, int corners) {
+        if (corners < 3) {
+            return 0;
+        }
+        VertexConsumer consumer = immediate.getBuffer(layer);
+        if (corners == 4) {
+            for (int v = 0; v < 4; v++) {
+                emit(consumer, entry, POLY_A, v * STRIDE);
+            }
+        } else {
+            for (int v = 1; v + 1 < corners; v++) {
+                emit(consumer, entry, POLY_A, 0);
+                emit(consumer, entry, POLY_A, v * STRIDE);
+                emit(consumer, entry, POLY_A, (v + 1) * STRIDE);
+                emit(consumer, entry, POLY_A, (v + 1) * STRIDE);
+            }
+        }
+        immediate.draw(layer);
+        return corners;
     }
 
     /** The unshifted layer, for a fixture that describes its own geometry. */

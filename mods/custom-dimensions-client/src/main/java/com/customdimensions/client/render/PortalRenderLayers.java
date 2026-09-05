@@ -6,24 +6,23 @@ import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.VertexFormat;
 import net.minecraft.client.render.VertexFormats;
 import net.minecraft.client.texture.SpriteAtlasTexture;
+import net.minecraft.util.Identifier;
 import org.lwjgl.opengl.GL11;
 
 /**
- * The layer that opens the portal.
+ * The layers a portal draws on.
  *
- * <p>A quad drawn at the far end of the cone through the opening, with the
- * depth test forced to always pass and depth writing on. It does two jobs at
- * once: it paints the destination's own sky and fog colour behind whatever
- * geometry follows, and it resets the depth buffer inside the opening so the
- * source world's blocks BEHIND the frame — a portal cut into a hillside is
- * looking at solid stone — stop occluding the destination.
+ * <p>The backdrop paints the destination's own sky and fog colour behind
+ * whatever geometry follows. An ordinary {@code LEQUAL} test is enough because
+ * the renderer compresses the whole pass into a depth slice at the window
+ * ({@code ProjectionRenderer.depthSlice}): every fragment tests at the portal
+ * surface rather than at its own distance, so a real block in front of the
+ * frame is nearer and survives, while the source world's blocks BEHIND the
+ * frame — a portal cut into a hillside is looking at solid stone — are farther
+ * and are covered.
  *
- * <p>An ordinary depth test is enough because the renderer compresses the whole
- * pass into a depth slice at the window (`ProjectionRenderer.depthSlice`): the
- * quad tests at the portal surface rather than at its own distance, so a real
- * block in front of the frame is nearer and survives, while the source world's
- * blocks BEHIND the frame — a portal cut into a hillside is looking at solid
- * stone — are farther and are covered.
+ * <p>{@link #forDestination} and {@link #backdrop} both answer the same
+ * question: which layer does a shader pack treat as ordinary world geometry.
  */
 public final class PortalRenderLayers {
 
@@ -58,25 +57,29 @@ public final class PortalRenderLayers {
         return RenderLayer.getEntitySolid(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE);
     }
 
-    public static final RenderLayer BACKDROP = new RenderLayer(
-            "customdimensions_portal_backdrop",
-            VertexFormats.POSITION_COLOR,
-            VertexFormat.DrawMode.QUADS,
-            1536,
-            false,
-            false,
-            () -> {
-                RenderSystem.setShader(GameRenderer::getPositionColorProgram);
-                RenderSystem.disableBlend();
-                RenderSystem.disableCull();
-                RenderSystem.enableDepthTest();
-                RenderSystem.depthMask(true);
-                RenderSystem.depthFunc(GL11.GL_LEQUAL);
-            },
-            () -> {
-                RenderSystem.depthFunc(GL11.GL_LEQUAL);
-                RenderSystem.enableCull();
-            }) {};
+    /**
+     * Vanilla's 1x1 white texture, so the quad's own colour is what reaches the
+     * screen and no atlas sprite is sampled.
+     */
+    private static final Identifier WHITE = Identifier.ofVanilla("textures/misc/white.png");
+
+    /**
+     * The backdrop's layer: an entity layer, over white, no culling.
+     *
+     * <p>Drawn through {@code position_color} it is geometry with no normal and
+     * no lightmap, which a shader pack has nothing to shade: measured under
+     * Complementary Reimagined, the destination's fog colour {@code
+     * (192,216,255)} reaches the screen as {@code (248,244,246)}, a blown-out
+     * white filling the opening. On an entity layer, with a normal facing the
+     * camera and the destination's sky light, it is shaded like any model.
+     *
+     * <p>No culling because the quad is cast from the camera through the
+     * opening's corners and its winding follows the aperture rather than the
+     * view.
+     */
+    public static RenderLayer backdrop() {
+        return RenderLayer.getEntityCutoutNoCull(WHITE);
+    }
 
     /**
      * The opening's own depth, written and nothing else.
