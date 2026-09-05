@@ -160,7 +160,6 @@ public final class ProjectionStream {
                 targetWorld.getDimension().ambientLight());
     }
 
-
     /**
      * The geometry-only description a client rendering the destination itself
      * gets in place of {@link #build}: the same zone and the same mapping,
