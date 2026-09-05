@@ -233,6 +233,9 @@ public final class PlayerProjectionState {
      */
     private CompanionPayloads.PortalFrame lastCompanionFrame;
 
+    /** Which store held this opening on the client last pass (null = no pass yet). */
+    private Boolean lastStreamsSlab;
+
     /** 4c: player EYE position and server tick at the last send. */
     private Vec3d lastRefreshEye;
     private long lastRefreshTick;
@@ -603,6 +606,29 @@ public final class PlayerProjectionState {
                 : null;
         boolean streamsSlab = streamsSlab(declaredLocal, frame != null);
 
+        // Which store owns this opening on the client has changed hands, and
+        // the arriving payload drops the other one there. Nothing acks that,
+        // so lastCompanionFrame stops standing in for what the client holds
+        // and the next frame goes out unconditionally.
+        if (companionCacheStale(this.lastStreamsSlab, streamsSlab)) {
+            this.lastCompanionFrame = null;
+        }
+        this.lastStreamsSlab = streamsSlab;
+
+        if (companionPayloadStale(streamsSlab, this.lastCompanionPayload != null)) {
+            // This client has taken over drawing the far side. What it already
+            // holds describes the same space, so it goes now — leaving it would
+            // draw the destination twice, once live and once as of a moment ago.
+            //
+            // Ahead of the frame below, never after it: the client's
+            // ProjectionClear handler drops the PortalFrame at the same
+            // aperture, so a clear sent second erases the frame sent first.
+            CompanionNetwork.clearProjection(player, this.lastCompanionPayload.apertureOrigin());
+            this.lastCompanionPayload = null;
+            this.lastCompanionBuildTick = 0;
+            this.lastCompanionFrame = null;
+        }
+
         if (frame != null) {
             if (!frame.equals(this.lastCompanionFrame)) {
                 CompanionNetwork.sendPortalFrame(player, frame);
@@ -615,14 +641,6 @@ public final class PlayerProjectionState {
                     this.zone.interior, wanted, frame,
                     CompanionNetwork.portalView(this.playerId).maxRenderDistance(),
                     com.customdimensions.companion.DestinationFeed.DEFAULT_BUDGET);
-        }
-        if (companionPayloadStale(streamsSlab, this.lastCompanionPayload != null)) {
-            // This client has taken over drawing the far side. What it already
-            // holds describes the same space, so it goes now — leaving it would
-            // draw the destination twice, once live and once as of a moment ago.
-            CompanionNetwork.clearProjection(player, this.lastCompanionPayload.apertureOrigin());
-            this.lastCompanionPayload = null;
-            this.lastCompanionBuildTick = 0;
         }
 
         long cadence = Math.max(1, settings.refreshInterval()) * (long) COMPANION_REBUILD_MULTIPLIER;
@@ -749,6 +767,21 @@ public final class PlayerProjectionState {
         return !streamsSlab && anySent;
     }
 
+    /**
+     * Whether the record of the last frame sent has stopped describing what
+     * the client holds.
+     *
+     * <p>A client drops its {@code PortalFrame} for an opening whenever a
+     * {@code Projection} or a {@code ProjectionClear} arrives for the same
+     * aperture, and it acks neither. Both are consequences of this pass
+     * changing which store owns the opening, so the change of hands is the
+     * signal: hold the cache and the frame is never resent, and the opening
+     * stays blank for the rest of the session.
+     */
+    static boolean companionCacheStale(Boolean lastStreamsSlab, boolean streamsSlab) {
+        return lastStreamsSlab != null && lastStreamsSlab != streamsSlab;
+    }
+
     /** Pure 4c predicate: elapsed ticks against the movement-scaled interval. */
     static boolean shouldRefresh(long tick, long lastRefreshTick, double movedSq, int refreshInterval) {
         long interval = Math.max(1, refreshInterval);
@@ -798,6 +831,7 @@ public final class PlayerProjectionState {
     public void forget() {
         this.lastCompanionPayload = null;
         this.lastCompanionFrame = null;
+        this.lastStreamsSlab = null;
         this.lastCompanionBuildTick = 0;
         this.lastSent.clear();
         this.staleOutsideVolume.clear();

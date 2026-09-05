@@ -204,4 +204,24 @@ class PlayerProjectionStateTest {
                 "a clear was sent for a projection the client never had");
         assertFalse(PlayerProjectionState.companionPayloadStale(true, true));
     }
+
+    /**
+     * A client that stops drawing the far side and starts again drops its
+     * {@code PortalFrame} on the way through, and acks nothing. Hold the cache
+     * across that and the frame is never resent — the opening stays blank for
+     * the rest of the session.
+     */
+    @Test
+    void theFrameCacheIsDroppedWhenTheOpeningChangesStoresOnTheClient() {
+        assertTrue(PlayerProjectionState.companionCacheStale(false, true),
+                "the client took a Projection, which drops its frame, and the cache was kept");
+        assertTrue(PlayerProjectionState.companionCacheStale(true, false),
+                "the client took a ProjectionClear, which drops its frame, and the cache was kept");
+        assertFalse(PlayerProjectionState.companionCacheStale(null, false),
+                "a first pass has nothing cached to invalidate");
+        assertFalse(PlayerProjectionState.companionCacheStale(null, true));
+        assertFalse(PlayerProjectionState.companionCacheStale(false, false),
+                "a steady pass resent a frame the client still holds");
+        assertFalse(PlayerProjectionState.companionCacheStale(true, true));
+    }
 }
