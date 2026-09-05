@@ -1714,8 +1714,21 @@ measurement of it.
 - **All three switches ship OFF.**
 - **With no pack the switch is bit-identical** — 0 changed pixels, maxDelta 0,
   inside the opening and out, on the same jar with `enableShaders` flipped.
-- **Not fixed by this.** An entity drawn through the opening still shades from
-  its own fragment's depth in the forward pass, which no stamp touches.
+- **An entity needs a different fix from the terrain, because it reads a
+  different thing.** Terrain shading comes from the deferred passes, which read
+  the depth BUFFER the stamps repair. An entity is shaded in the forward pass,
+  from its OWN fragment's `gl_FragCoord.z`, which no stamp reaches. Measured on
+  one cow, camera H, 25-chunk feed, all three switches off then on: the opening
+  moves 23.52% of its pixels against a 0.68% floor and its luma std 24.3 -> 32.3,
+  while the cow moves 1.1 luma against a 0.8 floor.
+- **`drawActors` is that fix.** With `apertureFarStampEarly` and
+  `apertureMeshDepth` both on, the actors are drawn after the far stamp and the
+  mesh's own per-pixel depth, outside the slice, so they rasterise at their true
+  depth and test against the mesh's. The cow's white patch — 90th-percentile
+  luma, which does not move with the box — goes 71.2 to 107.8 head-on, and
+  head-on and oblique then agree at 107.8 against 106.1, a 1.7 gap on an
+  1.8 same-camera floor. Off without both switches: the mesh's own depth is the
+  only thing an actor at true depth can test against.
 
 <a id="t99"></a>
 ### T99 — An entity layer shades a portal's backdrop with the SOURCE world's light and fog

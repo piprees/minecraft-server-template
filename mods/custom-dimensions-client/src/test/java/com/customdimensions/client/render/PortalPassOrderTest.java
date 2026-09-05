@@ -56,6 +56,7 @@ class PortalPassOrderTest {
         assertEquals(List.of(
                 "drawBackdrop 0.0",
                 "drawDestination 0.0 0.0 0.0",
+                "drawActors",
                 "drawStamp 0.0"), pass.values);
     }
 
@@ -73,6 +74,7 @@ class PortalPassOrderTest {
         assertEquals(List.of(
                 "drawBackdrop 24.0",
                 "drawDestination 0.0 0.0 0.0",
+                "drawActors",
                 "drawStamp 24.0"), pass.values);
     }
 
@@ -100,6 +102,7 @@ class PortalPassOrderTest {
                 "applyDepthRange 0.25 0.75",
                 "drawBackdrop",
                 "drawDestination",
+                "drawActors",
                 "restoreDepthRange",
                 "drawStamp"), pass.script);
     }
@@ -132,7 +135,8 @@ class PortalPassOrderTest {
     void noSliceMakesNoRangeCalls() {
         Recorder pass = new Recorder();
         ProjectionRenderer.runPass(pass, PROJECTION, ORIGIN, null, PortalPass.Stage.DESTINATION);
-        assertEquals(List.of("drawBackdrop", "drawDestination", "drawStamp"), pass.script);
+        assertEquals(List.of("drawBackdrop", "drawDestination", "drawActors", "drawStamp"),
+                pass.script);
     }
 
     @Test
@@ -310,6 +314,81 @@ class PortalPassOrderTest {
         }
     }
 
+    /**
+     * An actor is shaded in the forward pass, from its own fragment's depth.
+     * Inside the slice that depth says "at the doorway" whatever the actor's
+     * real distance, and a pack shades it from there, so it goes after the
+     * range is restored and after the mesh's own depth it tests against.
+     */
+    @Test
+    void theActorsGoAfterTheDestinationsOwnDepthWhenThePassAsksForIt() {
+        Recorder pass = new Recorder();
+        pass.actorsAtTrueDepth = true;
+
+        ProjectionRenderer.runPass(pass, PROJECTION, ORIGIN, SLICE,
+                PortalPass.Stage.DESTINATION_FAR);
+
+        assertEquals(List.of(
+                "applyDepthRange 0.25 0.75",
+                "drawBackdrop",
+                "drawDestination",
+                "restoreDepthRange",
+                "drawFarStamp",
+                "drawDestinationDepth",
+                "drawActors"), pass.script);
+    }
+
+    /** Unasked, they stay where the terrain is: inside the range. */
+    @Test
+    void theActorsStayInsideTheRangeWhenThePassDoesNotAskForIt() {
+        for (PortalPass.Stage stage :
+                List.of(PortalPass.Stage.DESTINATION, PortalPass.Stage.DESTINATION_FAR)) {
+            Recorder pass = new Recorder();
+
+            ProjectionRenderer.runPass(pass, PROJECTION, ORIGIN, SLICE, stage);
+
+            int actors = pass.script.indexOf("drawActors");
+            assertTrue(actors > pass.script.indexOf("applyDepthRange 0.25 0.75")
+                            && actors < pass.script.indexOf("restoreDepthRange"),
+                    stage + ": the actors left the applied range: " + pass.script);
+        }
+    }
+
+    /**
+     * Only the far stage can honour it. The near stage closes with a stamp on
+     * the surface, so an actor at its true depth is behind that stamp and draws
+     * nothing at all.
+     */
+    @Test
+    void theNearDestinationStageKeepsTheActorsInsideTheRangeEvenWhenAsked() {
+        Recorder pass = new Recorder();
+        pass.actorsAtTrueDepth = true;
+
+        ProjectionRenderer.runPass(pass, PROJECTION, ORIGIN, SLICE, PortalPass.Stage.DESTINATION);
+
+        int actors = pass.script.indexOf("drawActors");
+        assertTrue(actors > pass.script.indexOf("applyDepthRange 0.25 0.75")
+                        && actors < pass.script.indexOf("restoreDepthRange"),
+                "the near stage moved the actors past its own stamp: " + pass.script);
+    }
+
+    /** Once per stage that draws the destination, and never anywhere else. */
+    @Test
+    void theActorsAreDrawnOnceByEveryStageThatDrawsTheDestination() {
+        for (PortalPass.Stage stage : PortalPass.Stage.values()) {
+            for (boolean trueDepth : List.of(false, true)) {
+                Recorder pass = new Recorder();
+                pass.actorsAtTrueDepth = trueDepth;
+
+                ProjectionRenderer.runPass(pass, PROJECTION, ORIGIN, SLICE, stage);
+
+                long drawn = pass.script.stream().filter("drawActors"::equals).count();
+                assertEquals(stage.drawsDestination() ? 1L : 0L, drawn,
+                        stage + " trueDepth=" + trueDepth + ": " + pass.script);
+            }
+        }
+    }
+
     /** Everything a pass draws before it closes with a stamp. */
     private static List<String> colour(List<String> script) {
         for (int i = 0; i < script.size(); i++) {
@@ -350,10 +429,11 @@ class PortalPassOrderTest {
 
         private int stampCorners;
         private String throwFrom;
+        private boolean actorsAtTrueDepth;
 
         private void record(String call, String detail) {
             script.add(call);
-            values.add(call + " " + detail);
+            values.add(detail.isEmpty() ? call : call + " " + detail);
             if (call.equals(throwFrom)) {
                 throw new IllegalStateException(call + " failed");
             }
@@ -394,6 +474,16 @@ class PortalPassOrderTest {
         @Override
         public void drawDestinationDepth(double shiftX, double shiftY, double shiftZ) {
             record("drawDestinationDepth", shiftX + " " + shiftY + " " + shiftZ);
+        }
+
+        @Override
+        public void drawActors() {
+            record("drawActors", "");
+        }
+
+        @Override
+        public boolean actorsAtTrueDepth() {
+            return actorsAtTrueDepth;
         }
     }
 }

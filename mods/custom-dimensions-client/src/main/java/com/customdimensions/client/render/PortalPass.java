@@ -52,6 +52,29 @@ public interface PortalPass {
     void drawDestination(double shiftX, double shiftY, double shiftZ);
 
     /**
+     * The far side's mobs, players and block entities, through the same opening.
+     *
+     * <p>Drawn on its own rather than with the mesh because the two want
+     * different depths. The mesh's colour can sit in the compressed slice — a
+     * pack shades terrain from the depth BUFFER, which the stamps repair. An
+     * actor is shaded in the forward pass, from its OWN fragment's
+     * {@code gl_FragCoord.z}, which no stamp reaches
+     * ({@code TROUBLESHOOTING.md#t100}).
+     */
+    void drawActors();
+
+    /**
+     * Whether {@link #drawActors} goes after the destination's own per-pixel
+     * depth instead of inside the slice.
+     *
+     * <p>Only meaningful for {@link Stage#DESTINATION_FAR}: it is the one stage
+     * that leaves the mesh's true depth in the buffer, which is what an actor
+     * at its true depth must test against. Anywhere else the actor is behind
+     * the surface stamp and draws nothing.
+     */
+    boolean actorsAtTrueDepth();
+
+    /**
      * The opening's own depth, on the surface at {@code planeLocal}. Returns
      * the corner count, 0 when nothing was drawn.
      */

@@ -375,10 +375,21 @@ public final class ProjectionRenderer {
                                 .append(" drawn=true");
                     }
                 }
-                // After the terrain and inside the same slice: an actor tests at
-                // the window's own depth, against the ground it is standing on.
+            }
+
+            @Override
+            public void drawActors() {
                 DestinationActors.draw(projection, matrices, immediate, TUNNEL, faces,
                         camX, camY, camZ, tickDelta);
+            }
+
+            @Override
+            public boolean actorsAtTrueDepth() {
+                // Both, or the actor draws over destination terrain that should
+                // hide it: the mesh's own depth is the only thing in the buffer
+                // an actor at true depth can test against.
+                return RealtimeControls.settings().apertureMeshDepth()
+                        && RealtimeControls.settings().apertureFarStampEarly();
             }
 
             @Override
@@ -690,6 +701,13 @@ public final class ProjectionRenderer {
      * after the destination is already on screen, so any colour they painted
      * would land on top of it, and the depth range is restored by then.
      *
+     * <p>The actors go last and outside the range when the pass asks for it,
+     * which only {@code DESTINATION_FAR} can honour: their shading is computed
+     * in the forward pass from their own fragment depth, so a slice that hides
+     * the distance from a pack darkens them ({@code TROUBLESHOOTING.md#t100}).
+     * They still need something to test against, which is the mesh's own depth
+     * that stage leaves behind.
+     *
      * <p>Returns the stamp's corner count.
      */
     static int runPass(PortalPass pass, ClientProjection projection, BlockPos origin,
@@ -702,20 +720,30 @@ public final class ProjectionRenderer {
         if (stage == PortalPass.Stage.FAR_DEPTH) {
             return farDepth(pass, planeLocal, shift);
         }
+        boolean actorsLast = stage == PortalPass.Stage.DESTINATION_FAR
+                && pass.actorsAtTrueDepth();
         if (slice != null) {
             pass.applyDepthRange(slice[0], slice[1]);
         }
         try {
             pass.drawBackdrop(planeLocal);
             pass.drawDestination(shift[0], shift[1], shift[2]);
+            if (!actorsLast) {
+                pass.drawActors();
+            }
         } finally {
             if (slice != null) {
                 pass.restoreDepthRange();
             }
         }
-        return stage == PortalPass.Stage.DESTINATION_FAR
-                ? farDepth(pass, planeLocal, shift)
-                : pass.drawStamp(planeLocal);
+        if (stage != PortalPass.Stage.DESTINATION_FAR) {
+            return pass.drawStamp(planeLocal);
+        }
+        int corners = farDepth(pass, planeLocal, shift);
+        if (actorsLast) {
+            pass.drawActors();
+        }
+        return corners;
     }
 
     /**
