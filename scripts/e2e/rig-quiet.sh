@@ -62,30 +62,43 @@ case "$BOTS" in
   *bot*|*Bot*) say "  WARNING: a bot is online and may be in frame";;
 esac
 
-# --- portal particles land IN the opening ----------------------------------
-# Per-dimension config, so this can only report. `minecraft:cloud` on the
-# overworld portal puts smoke exactly where the crop is.
+# --- every portal effect that alters a frame -------------------------------
+# Checked in the DEPLOYED config the server reads, not the overlay source: the
+# two differ until `./dev refresh-config` runs, and a whole session was measured
+# against configs nobody had deployed.
+# A consumer-added dimension lands under overlay/dimensions/, a platform one
+# under dimensions/. Look in both or an e2e dim reads as "no config".
 for d in $DIMS; do
   slug="${d#*:}"
-  f="$CONSUMER_DIR/data/config/custom-dimensions/dimensions/$slug.json"
-  [ -f "$f" ] || continue
-  p="$(python3 -c "
-import json,sys
-try: print(json.load(open('$f')).get('portal',{}).get('particleType'))
-except Exception: print('unreadable')" 2>/dev/null)"
-  if [ "$p" = "None" ] || [ -z "$p" ]; then
-    say "$d portal particles: OFF"
-  else
-    say "$d portal particles: $p  <- lands IN the opening; measurements will swing"
-    say "  fix: overlay/config/custom-dimensions/dimensions/$slug.json"
-    say '        {"overrides": {"portal": {"particleType": null}}}'
-    say "  then ./dev refresh-config && ./dev up"
+  f=""
+  for cand in \
+    "$CONSUMER_DIR/data/config/custom-dimensions/overlay/dimensions/$slug.json" \
+    "$CONSUMER_DIR/data/config/custom-dimensions/dimensions/$slug.json"; do
+    [ -f "$cand" ] && { f="$cand"; break; }
+  done
+  if [ -z "$f" ]; then
+    say "$d: NO DEPLOYED CONFIG FOUND — it cannot have been refreshed"
     FAIL=1
+    continue
   fi
+  read -r particles light aura <<EOF
+$(python3 -c "
+import json
+d = json.load(open('$f'))
+p = (d.get('overrides') or d).get('portal') or {}
+if isinstance(p, list):
+    p = p[0] if p else {}
+a = p.get('aura') or {}
+print(p.get('particleType'), p.get('lightLevel'), a.get('enabled'))" 2>/dev/null)
+EOF
+  say "$d ($(basename "$(dirname "$(dirname "$f")")")): particles=$particles lightLevel=$light aura.enabled=$aura"
+  [ "$particles" = "None" ] || { say "  REFUSED: particles land IN the opening, which is the box every crop uses"; FAIL=1; }
+  [ "$light" = "0" ] || { say "  REFUSED: lightLevel $light is a light source beside the thing being measured"; FAIL=1; }
+  [ "$aura" = "False" ] || { say "  REFUSED: the aura REWRITES terrain around the portal between frames"; FAIL=1; }
 done
 
 if [ "$FAIL" -ne 0 ]; then
   say "NOT QUIET — fix the refusals above before quoting a number."
   exit 1
 fi
-say "quiet. Time frozen at 6000, weather clear, queue idle, no portal particles."
+say "quiet. Time frozen at 6000, weather clear, queue idle, no particles, no portal light, no aura."
