@@ -37,10 +37,12 @@ import java.util.concurrent.ConcurrentHashMap;
  * passes run over it. {@link #due} holds the cadence to {@link #INTERVAL} even
  * when the projection pass runs more often.
  *
- * <h2>Resident entities only</h2>
- * {@code World.getOtherEntities} answers from the in-memory entity lookup, so
- * an entity in an unloaded chunk does not exist to ask about and nothing here
- * loads or generates one (mods/AGENTS.md, Rule 1).
+ * <h2>Resident entities only, and the box needs no clipping</h2>
+ * {@code World.getOtherEntities} reaches {@code SectionedEntityCache.forEachInBox},
+ * which takes a {@code subSet} of the section keys the cache already holds and
+ * reads each with a plain map {@code get}. That class holds no chunk manager,
+ * so no path through it can load or generate a chunk (mods/AGENTS.md, Rule 1).
+ * An unloaded region contributes no sections and therefore no entities.
  */
 public final class DestinationEntityFeed {
 
@@ -290,11 +292,7 @@ public final class DestinationEntityFeed {
         return present.size();
     }
 
-    /**
-     * What a viewer could see: alive, not a spectator, and not the destination
-     * world's own weather or marker entities, which have no renderer worth the
-     * bandwidth.
-     */
+    /** What a viewer could see: alive, and not a spectator. */
     private static boolean renderable(Entity entity) {
         return entity != null && entity.isAlive() && !entity.isSpectator();
     }

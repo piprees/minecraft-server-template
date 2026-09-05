@@ -457,9 +457,12 @@ Serialisation is the shared part and is not pooled.
    `isColumnResident` only. `TickPathChunkLoadTest` walks the compiled call graph
    from every tick entry and fails the build on a violation — enforced, not
    advisory.
-2. **`getOtherEntities` on a non-resident region.** Establish before building
-   whether it can touch an unloaded chunk. If it can, clip the box to resident
-   columns first. **Unestablished.**
+2. **`getOtherEntities` on a non-resident region cannot load a chunk, so the box
+   needs no clipping.** Read from 1.21.1 bytecode: it reaches
+   `SectionedEntityCache.forEachInBox`, which takes a `subSet` of the section
+   keys the cache already holds and reads each with a plain map `get`. That
+   class holds no chunk manager. An unloaded region contributes no sections and
+   therefore no entities.
 3. **`ConcurrentModificationException`.** Never mutate the worlds map, or any
    collection vanilla iterates per tick, from a world-tick path. Defer to
    `ServerTickEvents.END_SERVER_TICK`.
