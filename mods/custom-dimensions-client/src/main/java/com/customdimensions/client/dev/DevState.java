@@ -22,11 +22,13 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.world.ClientWorld;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.registry.Registries;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.LightType;
@@ -53,6 +55,12 @@ final class DevState {
      * still above zero at the far end and the whole gradient is one reading.
      */
     private static final int PROFILE_CELLS = 8;
+
+    /** Blocks each way from the camera {@link #sourceEntities} reaches. */
+    private static final double SOURCE_ENTITY_REACH = 24.0;
+
+    /** Rows {@link #sourceEntities} prints, however many stand in reach. */
+    private static final int SOURCE_ENTITY_CAP = 24;
 
     private DevState() {}
 
@@ -132,6 +140,7 @@ final class DevState {
                 .num("apertureQuadsOut", DestinationActors.quadsOut())
                 .str("apertureEntityLight", DestinationActors.lastLight())
                 .raw("apertureSample", apertureSample(client == null ? null : client.world))
+                .raw("sourceEntityList", Json.strings(sourceEntities(client)))
                 .num("spectatorPasses", SpectatorPass.passes())
                 .num("spectatorLastUs", SpectatorPass.lastMicros())
                 .num("spectatorMeanUs", SpectatorPass.meanMicros())
@@ -142,6 +151,30 @@ final class DevState {
                 .num("spectatorRebinds", SpectatorPass.rebinds())
                 .raw("worlds", worlds.append(']').toString())
                 .toString();
+    }
+
+    /**
+     * What the SOURCE world holds near the camera, as {@code id type x,y,z} —
+     * the near half of a crossing, so one reading says which side of a portal
+     * is holding an entity and which side is not.
+     */
+    private static List<String> sourceEntities(MinecraftClient client) {
+        List<String> out = new ArrayList<>();
+        ClientWorld world = client == null ? null : client.world;
+        ClientPlayerEntity player = client == null ? null : client.player;
+        if (world == null || player == null) {
+            return out;
+        }
+        Box box = player.getBoundingBox().expand(SOURCE_ENTITY_REACH);
+        for (Entity entity : world.getOtherEntities(player, box)) {
+            if (out.size() >= SOURCE_ENTITY_CAP) {
+                break;
+            }
+            out.add(String.format("%d %s %.3f,%.3f,%.3f", entity.getId(),
+                    entity.getType().getUntranslatedName(),
+                    entity.getX(), entity.getY(), entity.getZ()));
+        }
+        return out;
     }
 
     /**

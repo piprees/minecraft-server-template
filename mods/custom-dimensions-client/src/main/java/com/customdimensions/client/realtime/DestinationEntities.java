@@ -269,7 +269,7 @@ public final class DestinationEntities {
             return out;
         }
         for (Entity entity : world.getEntities()) {
-            out.add(String.format("%d %s %.1f,%.1f,%.1f", entity.getId(),
+            out.add(String.format("%d %s %.3f,%.3f,%.3f", entity.getId(),
                     entity.getType().getUntranslatedName(),
                     entity.getX(), entity.getY(), entity.getZ()));
         }
