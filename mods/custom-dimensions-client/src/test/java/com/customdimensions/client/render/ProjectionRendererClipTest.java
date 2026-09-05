@@ -1088,6 +1088,108 @@ class ProjectionRendererClipTest {
         return recorder;
     }
 
+    /**
+     * The same physical portal and the same physical scene, described once with
+     * the normal on Z and once on X — the whole thing turned a quarter turn
+     * about the vertical. {@code axisA} is horizontal at one and vertical at
+     * the other, so the two descriptions disagree about which edge is which
+     * INDEX while agreeing about every edge's position.
+     *
+     * <p>The probe stands past the opening's high horizontal edge. That edge is
+     * {@code axisA} at the Z-normal portal and {@code axisB} at the X-normal
+     * one, so the identical cut is charged to plane 2 at the first and plane 1
+     * at the second. Both drop the quad; only the label moves.
+     */
+    @Test
+    void aQuarterTurnMovesWhichPlaneIndexCutsAndNotWhetherItIsCut() {
+        Recorder zOutside = tunnelClip(Direction.NORTH, new BlockPos(1492, 93, 1476),
+                8.9, 9.62, 27.2, quad(20.0f, 12.0f, 12.4f, 9.0f, 10.0f));
+        assertEquals(0, zOutside.count());
+        assertArrayEquals(new int[] {0, 0, 1, 0}, ProjectionRenderer.rejectedBy,
+                "the Z-normal portal did not charge its high-X edge");
+
+        Recorder xOutside = xTunnelClip(new BlockPos(1476, 93, 1492),
+                27.2, 9.62, 8.9, quadOnX(20.0f, 12.0f, 12.4f, 9.0f, 10.0f));
+        assertEquals(0, xOutside.count(), "the same quad survived a quarter turn");
+        assertArrayEquals(new int[] {0, 1, 0, 0}, ProjectionRenderer.rejectedBy,
+                "the X-normal portal did not charge its high-Z edge");
+
+        assertEquals(4, tunnelClip(Direction.NORTH, new BlockPos(1492, 93, 1476),
+                8.9, 9.62, 27.2, quad(20.0f, 8.0f, 10.0f, 9.0f, 11.0f)).count());
+        assertEquals(4, xTunnelClip(new BlockPos(1476, 93, 1492),
+                27.2, 9.62, 8.9, quadOnX(20.0f, 8.0f, 10.0f, 9.0f, 11.0f)).count(),
+                "the X-normal portal cut what the same opening frames on Z");
+    }
+
+    /**
+     * The opening's TOP, at both orientations. It is {@code axisB} at a
+     * Z-normal portal and {@code axisA} at an X-normal one, so the same
+     * overhead quad is plane 1 at the first and plane 2 at the second.
+     *
+     * <p>Read off the fixture: the camera is 3.2 from the surface with its eye
+     * at 9.62 and the opening's top at 11, so the cone's top edge stands at
+     * {@code 9.62 + (11 - 9.62) / 3.2 * 7.2 = 12.73} at a depth of 20. The
+     * quad at 13.0 clears it.
+     */
+    @Test
+    void theTopOfTheOpeningCutsAtBothOrientationsUnderADifferentIndex() {
+        Recorder zAbove = tunnelClip(Direction.NORTH, new BlockPos(1492, 93, 1476),
+                8.9, 9.62, 27.2, quad(20.0f, 9.0f, 9.5f, 13.0f, 13.4f));
+        assertEquals(0, zAbove.count());
+        assertArrayEquals(new int[] {0, 1, 0, 0}, ProjectionRenderer.rejectedBy,
+                "the top of a Z-normal opening is its high-B edge");
+
+        Recorder xAbove = xTunnelClip(new BlockPos(1476, 93, 1492),
+                27.2, 9.62, 8.9, quadOnX(20.0f, 9.0f, 9.5f, 13.0f, 13.4f));
+        assertEquals(0, xAbove.count(), "an X-normal opening kept what stands over its cone");
+        assertArrayEquals(new int[] {0, 0, 1, 0}, ProjectionRenderer.rejectedBy,
+                "the top of an X-normal opening is its high-A edge");
+    }
+
+    /** {@link #tunnelClip} with the normal on X: the camera is (n, b, a). */
+    private static Recorder xTunnelClip(BlockPos origin,
+            double camNormal, double camA, double camB, float[] data) {
+        ClientProjection projection = xNormalProjection(origin);
+        double[] tunnel = new double[24];
+        int faces = ProjectionRenderer.tunnelFaces(projection, projection.origin(), camNormal, tunnel);
+        assertTrue(ProjectionRenderer.buildTunnelPlanes(tunnel, faces, camNormal, camA, camB),
+                "the tunnel degenerated for a camera outside the frame");
+        Recorder recorder = new Recorder();
+        float shift = (float) projection.surfaceOffset();
+        ProjectionRenderer.emitClipped(new ProjectionMesh.Layer(null, data, data.length),
+                recorder, new MatrixStack().peek(), shift, 0.0f, 0.0f);
+        return recorder;
+    }
+
+    /** The measured portal turned a quarter: 2 wide on Z, 3 tall, plane X = 1500. */
+    private static ClientProjection xNormalProjection(BlockPos origin) {
+        List<BlockPos> aperture = new ArrayList<>();
+        for (int z = 1500; z <= 1501; z++) {
+            for (int y = 101; y <= 103; y++) {
+                aperture.add(new BlockPos(1500, y, z));
+            }
+        }
+        return new ClientProjection(new CompanionPayloads.Projection(
+                Identifier.of("adventure", "the_crimson_nexus"),
+                aperture.get(0), aperture,
+                Direction.Axis.Z.ordinal(), Direction.WEST.ordinal(),
+                origin, SIZE_Z, SIZE_Y, SIZE_X,
+                new int[0], new byte[0],
+                -1, -1, new int[0], new int[0], -1.0f));
+    }
+
+    /** {@link #quad} turned a quarter: depth on X, width on Z. */
+    private static float[] quadOnX(float x, float z0, float z1, float y0, float y1) {
+        float[] data = quad(x, z0, z1, y0, y1);
+        for (int i = 0; i < 4; i++) {
+            int at = i * QuadCapture.STRIDE;
+            float z = data[at];
+            data[at] = data[at + 2];
+            data[at + 2] = z;
+        }
+        return data;
+    }
+
     private static final int SIZE_X = 18;
     private static final int SIZE_Y = 19;
     private static final int SIZE_Z = 24;
