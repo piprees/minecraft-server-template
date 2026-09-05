@@ -167,7 +167,7 @@ public class ServerWorldMixin {
                         break;
                     }
                 }
-                String entryKey = worldKey.toString() + "|" + player.getUuid();
+                String entryKey = PortalHelper.zoneEntryKey(worldKey, player.getUuid());
                 boolean wasInside = PortalHelper.wasPlayerInZone(entryKey);
                 PortalHelper.setPlayerInZone(entryKey, insideAny);
                 if (!insideAny || wasInside) {
@@ -322,6 +322,40 @@ public class ServerWorldMixin {
                             // first reuse (both worlds loaded right now).
                             com.customdimensions.portal.PortalAuraManager.onLink(
                                     world, zone, targetWorld, aperture);
+                            continue playerLoop;
+                        }
+
+                        // The portal the player lit at THIS end, leading back
+                        // where they came from. It is a source zone, so the
+                        // registry lookup above cannot see it and building here
+                        // would raise a second frame beside theirs — which
+                        // PortalSite.clearArrival then carves into. Link to it
+                        // instead: no arrival zone, no return-target cells, no
+                        // aura. Nothing here is ours to own.
+                        PortalHelper.ZoneCell counterpart = PortalHelper.findSourceZoneNear(
+                                targetKey, worldKey, targetCenterX, surfaceY, targetCenterZ, 5, 16);
+                        if (counterpart != null) {
+                            BlockPos land = counterpart.cell();
+                            playPortalSound(world, pos, def.getEnterSound());
+                            player.setPortalCooldown(portalCooldown);
+                            PortalHelper.setPlayerOrigin(player.getUuid(), worldKey, pos);
+                            // Landing in a source zone means standing in one.
+                            // Consume the destination's entry edge or its own
+                            // traversal fires the moment the cooldown clears
+                            // and sends the player straight back.
+                            PortalHelper.setPlayerInZone(
+                                    PortalHelper.zoneEntryKey(targetKey, player.getUuid()), true);
+                            double counterpartY = counterpart.zone().axis == Direction.Axis.Y
+                                    ? land.getY() + 1 : land.getY();
+                            com.customdimensions.companion.CompanionNetwork.notifyPreloadedTransfer(
+                                    player, targetWorld, zone, land.getX(), land.getZ());
+                            player.teleport(targetWorld, land.getX() + 0.5, counterpartY,
+                                    land.getZ() + 0.5, Set.of(), player.getYaw(), player.getPitch());
+                            playPortalSound(targetWorld, land, def.getExitSound());
+                            MultiverseServer.LOGGER.info(
+                                    "Linked to the portal already standing in {} at ({}, {}, {})",
+                                    targetKey.getValue(), land.getX(), land.getY(), land.getZ());
+                            PortalHelper.startSingleUseCountdown(zone);
                             continue playerLoop;
                         }
 

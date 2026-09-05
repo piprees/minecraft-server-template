@@ -373,6 +373,55 @@ public class PortalHelper {
         return candidate.getY() < current.getY();
     }
 
+    /** A source zone and the cell of it an arriving player should land on. */
+    public record ZoneCell(PortalZone zone, BlockPos cell) {
+    }
+
+    /**
+     * The portal a player lit at THIS end that leads back where the traveller
+     * came from, inside the same search box {@link #findRegisteredPortalNear}
+     * uses.
+     *
+     * <p>That lookup reads {@code PORTAL_TARGETS}, which holds arrival cells
+     * only — ignition writes a source zone and nothing else. So a frame the
+     * player built is invisible to it, and the traversal builds a second frame
+     * beside theirs; {@code PortalSite.clearArrival} then carves that footprint
+     * and eats the frame it landed on.
+     *
+     * <p>{@code returnWorld} is required, not optional: a zone leading
+     * somewhere else is a different doorway that happens to stand nearby.
+     * Same (x, z, y) order as a registered arrival, so both paths pick their
+     * landing cell the same way.
+     */
+    public static ZoneCell findSourceZoneNear(RegistryKey<World> world, RegistryKey<World> returnWorld,
+            int centerX, int centerY, int centerZ, int radiusH, int radiusV) {
+        if (returnWorld == null) {
+            return null;
+        }
+        ZoneCell best = null;
+        for (PortalZone zone : getSourceZones(world)) {
+            if (!returnWorld.equals(zone.targetWorld)) {
+                continue;
+            }
+            for (BlockPos pos : zone.interior) {
+                if (Math.abs(pos.getX() - centerX) > radiusH
+                        || Math.abs(pos.getZ() - centerZ) > radiusH
+                        || Math.abs(pos.getY() - centerY) > radiusV) {
+                    continue;
+                }
+                if (best == null || comesFirstInScanOrder(pos, best.cell())) {
+                    best = new ZoneCell(zone, pos);
+                }
+            }
+        }
+        return best;
+    }
+
+    /** The key a player's source-zone entry edge is tracked under, per world. */
+    public static String zoneEntryKey(RegistryKey<World> world, UUID playerId) {
+        return world.toString() + "|" + playerId;
+    }
+
     /**
      * Record which source column an arrival belongs to, for every cell of it.
      * Called straight after {@link #createTargetPortal}; separate from
