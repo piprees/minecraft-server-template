@@ -71,10 +71,10 @@ public final class RealtimeSettingsStore {
         this.current = settings;
         write(settings);
         LOGGER.info("{} renderClientSidePortals={} maxRenderDistance={} distantHorizons={} "
-                        + "renderServerSidePortals={} effectiveServerSide={}",
+                        + "renderServerSidePortals={} effectiveServerSide={} spectatorPass={}",
                 CHANGE_MARKER, settings.renderClientSidePortals(), settings.maxRenderDistance(),
                 settings.distantHorizons(), settings.renderServerSidePortals(),
-                settings.effectiveServerSide());
+                settings.effectiveServerSide(), settings.spectatorPass());
         this.listener.accept(settings);
         return settings;
     }

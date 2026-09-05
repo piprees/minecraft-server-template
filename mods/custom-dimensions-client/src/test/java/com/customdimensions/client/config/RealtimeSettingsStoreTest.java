@@ -31,7 +31,7 @@ class RealtimeSettingsStoreTest {
     void whatWasSavedIsWhatComesBack(@TempDir Path dir) {
         Path file = dir.resolve("customdimensions-client.json");
         RealtimeSettingsStore store = new RealtimeSettingsStore(file);
-        RealtimeSettings written = new RealtimeSettings(true, 24, false, false);
+        RealtimeSettings written = new RealtimeSettings(true, 24, false, false, false);
 
         store.save(written);
 

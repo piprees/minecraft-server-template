@@ -15,13 +15,14 @@ import java.util.Map;
  * the enhanced local render, {@code renderServerSidePortals} is the block slab
  * the server streams. They are redundant, so the local render wins and
  * {@link #effectiveServerSide()} is the single value that goes on the wire.
- * The other two fields bound the local render and never leave this client.
+ * The other three fields bound the local render and never leave this client.
  */
 public record RealtimeSettings(
         boolean renderClientSidePortals,
         int maxRenderDistance,
         boolean distantHorizons,
-        boolean renderServerSidePortals) {
+        boolean renderServerSidePortals,
+        boolean spectatorPass) {
 
     /** The schema this version writes. A file below it is migrated on read. */
     public static final int CONFIG_VERSION = 1;
@@ -46,9 +47,19 @@ public record RealtimeSettings(
     /** Extend the far side past the render distance where DH is installed. */
     public static final boolean DEFAULT_DISTANT_HORIZONS = true;
 
+    /**
+     * Off. The spectator pass draws the far side through a second
+     * {@code WorldRenderer}, which calls {@code WorldRenderer.render} a second
+     * time in one frame and so drives a shader pack's whole pipeline twice
+     * ({@code TROUBLESHOOTING.md#t97}). The aperture path draws the same far
+     * side inside the source frame's own pass.
+     */
+    public static final boolean DEFAULT_SPECTATOR_PASS = false;
+
     public static final RealtimeSettings DEFAULTS = new RealtimeSettings(
             DEFAULT_RENDER_CLIENT_SIDE_PORTALS, DEFAULT_RENDER_DISTANCE,
-            DEFAULT_DISTANT_HORIZONS, DEFAULT_RENDER_SERVER_SIDE_PORTALS);
+            DEFAULT_DISTANT_HORIZONS, DEFAULT_RENDER_SERVER_SIDE_PORTALS,
+            DEFAULT_SPECTATOR_PASS);
 
     public RealtimeSettings {
         maxRenderDistance = Math.max(MIN_RENDER_DISTANCE,
@@ -66,22 +77,27 @@ public record RealtimeSettings(
 
     public RealtimeSettings withRenderClientSidePortals(boolean value) {
         return new RealtimeSettings(value, this.maxRenderDistance, this.distantHorizons,
-                this.renderServerSidePortals);
+                this.renderServerSidePortals, this.spectatorPass);
     }
 
     public RealtimeSettings withMaxRenderDistance(int value) {
         return new RealtimeSettings(this.renderClientSidePortals, value, this.distantHorizons,
-                this.renderServerSidePortals);
+                this.renderServerSidePortals, this.spectatorPass);
     }
 
     public RealtimeSettings withDistantHorizons(boolean value) {
         return new RealtimeSettings(this.renderClientSidePortals, this.maxRenderDistance, value,
-                this.renderServerSidePortals);
+                this.renderServerSidePortals, this.spectatorPass);
     }
 
     public RealtimeSettings withRenderServerSidePortals(boolean value) {
         return new RealtimeSettings(this.renderClientSidePortals, this.maxRenderDistance,
-                this.distantHorizons, value);
+                this.distantHorizons, value, this.spectatorPass);
+    }
+
+    public RealtimeSettings withSpectatorPass(boolean value) {
+        return new RealtimeSettings(this.renderClientSidePortals, this.maxRenderDistance,
+                this.distantHorizons, this.renderServerSidePortals, value);
     }
 
     /**
@@ -100,6 +116,7 @@ public record RealtimeSettings(
                 .num("maxRenderDistance", this.maxRenderDistance)
                 .bool("distantHorizons", this.distantHorizons)
                 .bool("renderServerSidePortals", this.renderServerSidePortals)
+                .bool("spectatorPass", this.spectatorPass)
                 .toString();
     }
 
@@ -123,7 +140,8 @@ public record RealtimeSettings(
                 bool(raw, "renderClientSidePortals", DEFAULT_RENDER_CLIENT_SIDE_PORTALS),
                 integer(raw, "maxRenderDistance", DEFAULT_RENDER_DISTANCE),
                 bool(raw, "distantHorizons", DEFAULT_DISTANT_HORIZONS),
-                bool(raw, "renderServerSidePortals", DEFAULT_RENDER_SERVER_SIDE_PORTALS));
+                bool(raw, "renderServerSidePortals", DEFAULT_RENDER_SERVER_SIDE_PORTALS),
+                bool(raw, "spectatorPass", DEFAULT_SPECTATOR_PASS));
     }
 
     /**
@@ -150,7 +168,8 @@ public record RealtimeSettings(
                 bool(raw, "enabled", DEFAULT_RENDER_CLIENT_SIDE_PORTALS),
                 integer(raw, "maxRenderDistance", DEFAULT_RENDER_DISTANCE),
                 bool(raw, "distantHorizons", DEFAULT_DISTANT_HORIZONS),
-                DEFAULT_RENDER_SERVER_SIDE_PORTALS);
+                DEFAULT_RENDER_SERVER_SIDE_PORTALS,
+                DEFAULT_SPECTATOR_PASS);
     }
 
     private static int version(Map<String, Object> raw) {

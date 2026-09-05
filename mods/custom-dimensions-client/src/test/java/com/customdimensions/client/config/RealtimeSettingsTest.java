@@ -37,14 +37,14 @@ class RealtimeSettingsTest {
 
     @Test
     void clientSideOnMakesTheServerSideSettingIrrelevant() {
-        assertFalse(new RealtimeSettings(true, 16, true, true).effectiveServerSide());
-        assertFalse(new RealtimeSettings(true, 16, true, false).effectiveServerSide());
+        assertFalse(new RealtimeSettings(true, 16, true, true, false).effectiveServerSide());
+        assertFalse(new RealtimeSettings(true, 16, true, false, false).effectiveServerSide());
     }
 
     @Test
     void clientSideOffLetsTheStoredServerSideSettingTakeEffect() {
-        assertTrue(new RealtimeSettings(false, 16, true, true).effectiveServerSide());
-        assertFalse(new RealtimeSettings(false, 16, true, false).effectiveServerSide(),
+        assertTrue(new RealtimeSettings(false, 16, true, true, false).effectiveServerSide());
+        assertFalse(new RealtimeSettings(false, 16, true, false, false).effectiveServerSide(),
                 "both off is a plain portal, not a preview nobody asked for");
     }
 
@@ -75,7 +75,7 @@ class RealtimeSettingsTest {
 
     @Test
     void everyFieldSurvivesAJsonRoundTrip() {
-        RealtimeSettings written = new RealtimeSettings(true, 24, false, false);
+        RealtimeSettings written = new RealtimeSettings(true, 24, false, false, false);
         RealtimeSettings read = RealtimeSettings.parse(written.toJson());
         assertEquals(written, read);
         assertFalse(RealtimeSettings.needsMigration(written.toJson()),
@@ -137,7 +137,7 @@ class RealtimeSettingsTest {
      */
     @Test
     void toggleFlipsTheLocalRenderAndNothingElse() {
-        RealtimeSettings on = new RealtimeSettings(false, 24, false, true).toggled();
+        RealtimeSettings on = new RealtimeSettings(false, 24, false, true, false).toggled();
         assertTrue(on.renderClientSidePortals());
         assertEquals(24, on.maxRenderDistance());
         assertFalse(on.distantHorizons());
@@ -187,5 +187,41 @@ class RealtimeSettingsTest {
                 + "\"renderServerSidePortals\":false}";
         assertFalse(RealtimeSettings.needsMigration(stamped));
         assertFalse(RealtimeSettings.parse(stamped).renderServerSidePortals());
+    }
+
+    /**
+     * The second-render path is off unless a file asks for it. On, it calls
+     * {@code WorldRenderer.render} twice in one frame and drives a shader
+     * pack's whole pipeline a second time.
+     */
+    @Test
+    void theSpectatorPassIsOffByDefault() {
+        assertFalse(RealtimeSettings.DEFAULTS.spectatorPass());
+        assertFalse(RealtimeSettings.parse("{\"configVersion\": 1}").spectatorPass(),
+                "a file that does not mention it turned it on");
+    }
+
+    @Test
+    void theSpectatorPassRoundTripsThroughTheFile() {
+        RealtimeSettings on = RealtimeSettings.DEFAULTS.withSpectatorPass(true);
+
+        assertTrue(RealtimeSettings.parse(on.toJson()).spectatorPass());
+        assertEquals(on, RealtimeSettings.parse(on.toJson()));
+    }
+
+    /**
+     * Setting one field leaves the rest alone. Without this the measurement
+     * switch is silently cleared by any other write, which reads as the path
+     * having been changed rather than the setting.
+     */
+    @Test
+    void settingOneFieldLeavesTheSpectatorPassWhereItWas() {
+        RealtimeSettings on = RealtimeSettings.DEFAULTS.withSpectatorPass(true);
+
+        assertTrue(on.withRenderClientSidePortals(false).spectatorPass());
+        assertTrue(on.withMaxRenderDistance(8).spectatorPass());
+        assertTrue(on.withDistantHorizons(false).spectatorPass());
+        assertTrue(on.withRenderServerSidePortals(false).spectatorPass());
+        assertTrue(on.toggled().spectatorPass());
     }
 }

@@ -4,6 +4,7 @@ import com.customdimensions.client.CompanionPayloads;
 import com.customdimensions.client.CustomDimensionsClient;
 import com.customdimensions.client.Repeated;
 import com.customdimensions.client.config.RealtimeControls;
+import com.customdimensions.client.config.RealtimeSettings;
 import com.customdimensions.client.mixin.GameRendererFovInvoker;
 import com.customdimensions.client.mixin.MinecraftClientFramebufferAccessor;
 import com.mojang.blaze3d.platform.GlStateManager;
@@ -106,8 +107,13 @@ public final class SpectatorPass {
             refusal = "no source world";
             return;
         }
-        if (!RealtimeControls.settings().renderClientSidePortals()) {
+        RealtimeSettings settings = RealtimeControls.settings();
+        if (!settings.renderClientSidePortals()) {
             refusal = "real-time view disabled";
+            return;
+        }
+        if (!settings.spectatorPass()) {
+            refusal = "the aperture path draws the far side";
             return;
         }
         if (depth > 0) {

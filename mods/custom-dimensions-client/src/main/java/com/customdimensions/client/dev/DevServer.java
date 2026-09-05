@@ -162,7 +162,8 @@ public final class DevServer {
                         before.maxRenderDistance()))
                 .withDistantHorizons(request.flag("distantHorizons", before.distantHorizons()))
                 .withRenderServerSidePortals(request.flag("renderServerSidePortals",
-                        before.renderServerSidePortals()));
+                        before.renderServerSidePortals()))
+                .withSpectatorPass(request.flag("spectatorPass", before.spectatorPass()));
         boolean changed = !after.equals(before);
         if (changed) {
             RealtimeControls.store().save(after);

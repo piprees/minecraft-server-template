@@ -89,6 +89,7 @@ final class DevState {
         return Json.obj()
                 .bool("renderClientSidePortals", settings.renderClientSidePortals())
                 .bool("renderServerSidePortals", settings.renderServerSidePortals())
+                .bool("spectatorPass", settings.spectatorPass())
                 .bool("effectiveServerSide", settings.effectiveServerSide())
                 .bool("clientSideRefused", PortalViewDeclaration.refused())
                 .str("clientSideRefusal", PortalViewDeclaration.reason())
