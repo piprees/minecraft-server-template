@@ -44,10 +44,12 @@ public final class ProjectionMesh {
 
     private final List<Layer> layers;
     private final int quads;
+    private final float sourceAmbient;
 
-    private ProjectionMesh(List<Layer> layers, int quads) {
+    private ProjectionMesh(List<Layer> layers, int quads, float sourceAmbient) {
         this.layers = layers;
         this.quads = quads;
+        this.sourceAmbient = sourceAmbient;
     }
 
     public List<Layer> layers() {
@@ -56,6 +58,16 @@ public final class ProjectionMesh {
 
     public int quads() {
         return this.quads;
+    }
+
+    /**
+     * The source ambient light these levels were lifted against. Read beside
+     * the payload's own on the emit line: the pair is what says the
+     * destination's value arrived and was applied, rather than a picture
+     * looking different.
+     */
+    public float sourceAmbient() {
+        return this.sourceAmbient;
     }
 
     /**
@@ -151,6 +163,6 @@ public final class ProjectionMesh {
             layers.add(new Layer(entry.getKey(), capture.data(), capture.floatCount()));
             quads += capture.quadCount();
         }
-        return new ProjectionMesh(layers, quads);
+        return new ProjectionMesh(layers, quads, view.sourceAmbient());
     }
 }

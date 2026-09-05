@@ -172,7 +172,8 @@ public final class RealtimeView {
                 frame.portalAxis(), frame.normal(),
                 new BlockPos(origin[0], origin[1], origin[2]), sizeX, sizeY, sizeZ,
                 states, light,
-                frame.skyColor(), frame.fogColor(), -1, -1, -1);
+                frame.skyColor(), frame.fogColor(), -1, -1, -1,
+                destination.getDimension().ambientLight());
     }
 
     private static int on(BlockPos pos, Direction.Axis axis) {

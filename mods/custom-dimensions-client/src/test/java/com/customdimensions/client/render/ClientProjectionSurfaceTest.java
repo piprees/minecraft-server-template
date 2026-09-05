@@ -150,7 +150,7 @@ class ClientProjectionSurfaceTest {
                 sizeOn(Direction.Axis.Y, normalAxis, axisA, axisB, sizeA, sizeB),
                 sizeOn(Direction.Axis.Z, normalAxis, axisA, axisB, sizeA, sizeB),
                 new int[0], new byte[0],
-                -1, -1, -1, -1, -1));
+                -1, -1, -1, -1, -1, -1.0f));
     }
 
     private static int sizeOn(Direction.Axis axis, Direction.Axis normalAxis,

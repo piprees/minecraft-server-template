@@ -21,7 +21,7 @@ import java.util.List;
  */
 public final class CompanionPayloads {
     /** Bumped only alongside a channel id. */
-    public static final int PROTOCOL_VERSION = 2;
+    public static final int PROTOCOL_VERSION = 3;
 
     private CompanionPayloads() {}
 
@@ -110,6 +110,11 @@ public final class CompanionPayloads {
      * configured, use the client's own"; sky and fog come from the dimension
      * config's {@code environment} block, the three tints from the biome at the
      * arrival column.
+     *
+     * <p>{@code ambientLight} is the destination {@code DimensionType}'s own,
+     * -1 meaning "unset". The levels above are the destination's but the
+     * lightmap colouring them is the source's, which is where a dimension's
+     * ambient floor lives; the client re-expresses one in the other.
      */
     public record Projection(
             Identifier destination,
@@ -127,10 +132,11 @@ public final class CompanionPayloads {
             int fogColor,
             int grassColor,
             int foliageColor,
-            int waterColor) implements CustomPayload {
+            int waterColor,
+            float ambientLight) implements CustomPayload {
 
         public static final CustomPayload.Id<Projection> ID =
-                new CustomPayload.Id<>(Identifier.of("customdimensions", "projection/v1"));
+                new CustomPayload.Id<>(Identifier.of("customdimensions", "projection/v2"));
 
         public static final PacketCodec<RegistryByteBuf, Projection> CODEC =
                 PacketCodec.of(Projection::write, Projection::read);
@@ -164,6 +170,7 @@ public final class CompanionPayloads {
             buf.writeInt(this.grassColor);
             buf.writeInt(this.foliageColor);
             buf.writeInt(this.waterColor);
+            buf.writeFloat(this.ambientLight);
         }
 
         private static Projection read(RegistryByteBuf buf) {
@@ -189,7 +196,8 @@ public final class CompanionPayloads {
             }
             return new Projection(destination, apertureOrigin, aperture, portalAxis, normal, origin,
                     sizeX, sizeY, sizeZ, states, light,
-                    buf.readInt(), buf.readInt(), buf.readInt(), buf.readInt(), buf.readInt());
+                    buf.readInt(), buf.readInt(), buf.readInt(), buf.readInt(), buf.readInt(),
+                    buf.readFloat());
         }
 
         private static int[] unsigned(byte[] values) {

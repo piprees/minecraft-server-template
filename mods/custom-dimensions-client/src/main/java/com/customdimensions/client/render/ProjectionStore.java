@@ -91,7 +91,8 @@ public final class ProjectionStore {
                 && a.fogColor() == b.fogColor()
                 && a.grassColor() == b.grassColor()
                 && a.foliageColor() == b.foliageColor()
-                && a.waterColor() == b.waterColor();
+                && a.waterColor() == b.waterColor()
+                && Float.compare(a.ambientLight(), b.ambientLight()) == 0;
     }
 
     public static void remove(BlockPos apertureOrigin) {

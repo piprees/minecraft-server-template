@@ -25,18 +25,26 @@ import net.minecraft.world.chunk.light.LightingProvider;
  * <p>Face shading and the height limits come from the client's own world:
  * they are properties of the camera and the render, not of the far side.
  *
- * <p>The light LEVELS are the destination's; the lightmap that turns a level
- * into a colour is the client's own, so a destination is drawn at the source
- * dimension's time of day. A cell outside the grid reads as level 0.
+ * <p>The light LEVELS are the destination's and the lightmap that turns a level
+ * into a colour is the client's own, so {@link AmbientLift} re-expresses each
+ * level as the source level that shades to the destination's own brightness.
+ * Time of day stays the source's. A cell outside the grid reads as level 0.
  */
 public final class ProjectionView implements BlockRenderView {
 
     private final ClientProjection projection;
     private final ClientWorld world;
+    private final float sourceAmbient;
 
     public ProjectionView(ClientProjection projection, ClientWorld world) {
         this.projection = projection;
         this.world = world;
+        this.sourceAmbient = world.getDimension().ambientLight();
+    }
+
+    /** The ambient light the mesh was lifted against, for the emit line. */
+    public float sourceAmbient() {
+        return this.sourceAmbient;
     }
 
     @Override
@@ -78,7 +86,9 @@ public final class ProjectionView implements BlockRenderView {
     @Override
     public int getLightLevel(LightType type, BlockPos pos) {
         int packed = this.projection.lightAt(pos.getX(), pos.getY(), pos.getZ());
-        return type == LightType.SKY ? (packed >> 4) & 0xF : packed & 0xF;
+        int level = type == LightType.SKY ? (packed >> 4) & 0xF : packed & 0xF;
+        return AmbientLift.lift(level, this.projection.payload().ambientLight(),
+                this.sourceAmbient);
     }
 
     @Override

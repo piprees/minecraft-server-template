@@ -424,11 +424,14 @@ public final class ProjectionRenderer {
             lastSampleAt = System.currentTimeMillis();
             Repeated.log(LOGGER, firstEmit,
                     "{} aperture={} camToPlane={} opening={} window={} volume={} surface={} "
-                            + "stamp={} slice={} frames={} gated={} renderUs={} layers={} {}",
+                            + "stamp={} slice={} ambient={} frames={} gated={} renderUs={} "
+                            + "layers={} {}",
                     EMIT_MARKER, projection.apertureOrigin().toShortString(),
                     String.format("%.2f", camToPlane), openingBounds(corners), window,
                     volumeBounds(projection), String.format("%.2f", surface), stamp,
-                    sliceLabel(slice), spanFrames, spanGated,
+                    sliceLabel(slice),
+                    AmbientLift.label(projection.payload().ambientLight(), mesh.sourceAmbient()),
+                    spanFrames, spanGated,
                     lastCost = costSummary(spanFrames, spanNanos, spanPeakNanos),
                     mesh.layers().size(), DestinationActors.summary() + " " + report);
             spanFrames = 0;

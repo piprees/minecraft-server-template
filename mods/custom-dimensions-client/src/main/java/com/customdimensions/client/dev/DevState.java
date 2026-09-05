@@ -9,6 +9,7 @@ import com.customdimensions.client.realtime.DestinationEntities;
 import com.customdimensions.client.realtime.DestinationWorlds;
 import com.customdimensions.client.realtime.PortalFrames;
 import com.customdimensions.client.realtime.SpectatorPass;
+import com.customdimensions.client.render.AmbientLift;
 import com.customdimensions.client.render.ClientProjection;
 import com.customdimensions.client.render.DepthReconstruction;
 import com.customdimensions.client.render.LightFacts;
@@ -271,12 +272,31 @@ final class DevState {
                     .raw("layers", layers(mesh))
                     .raw("destLight", light(LightFacts.ofPacked(projection.payload().light())))
                     .raw("meshLight", light(meshLight(mesh)))
+                    .raw("ambient", ambient(projection, mesh))
                     .raw("apertureLight", apertureLight(world, projection))
                     .raw("lightProfile", lightProfile(world, projection))
                     .toString());
             first = false;
         }
         return out.append(']').toString();
+    }
+
+    /**
+     * The destination's ambient light beside the source's, and the lift between
+     * them at three levels. {@code destination} of -1 with a built mesh means
+     * the value never reached the payload; an equal pair with {@code lift}
+     * reading {@code 0>0} means it arrived and the two dimensions agree.
+     */
+    private static String ambient(ClientProjection projection, ProjectionMesh mesh) {
+        if (mesh == null) {
+            return Json.obj().str("absent", "no mesh").toString();
+        }
+        float destination = projection.payload().ambientLight();
+        return Json.obj()
+                .num("destination", destination)
+                .num("source", mesh.sourceAmbient())
+                .str("lift", AmbientLift.label(destination, mesh.sourceAmbient()))
+                .toString();
     }
 
     /** Every layer's vertices as one reading — the mesh's own lightmap levels. */

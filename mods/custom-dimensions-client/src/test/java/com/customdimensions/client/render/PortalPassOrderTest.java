@@ -337,7 +337,7 @@ class PortalPassOrderTest {
                 Direction.Axis.X.ordinal(), normal.ordinal(),
                 origin, 18, 19, 24,
                 new int[0], new byte[0],
-                -1, -1, -1, -1, -1));
+                -1, -1, -1, -1, -1, -1.0f));
     }
 
     private static final class Recorder implements PortalPass {

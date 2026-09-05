@@ -81,7 +81,9 @@ class CompanionPayloadCodecTest {
                 CompanionPayloads.PreloadedTransfer.ID.id().toString());
         assertEquals("customdimensions:destination-entities/v1",
                 CompanionPayloads.DestinationEntities.ID.id().toString());
-        assertEquals(2, CompanionPayloads.PROTOCOL_VERSION);
+        assertEquals("customdimensions:projection/v2",
+                CompanionPayloads.Projection.ID.id().toString());
+        assertEquals(3, CompanionPayloads.PROTOCOL_VERSION);
     }
 
     @Test
@@ -143,6 +145,43 @@ class CompanionPayloadCodecTest {
         assertEquals(-750, back.dx());
         assertEquals(-44, back.dy());
         assertEquals(-750, back.dz());
+    }
+
+    /**
+     * {@code ambientLight} is the destination dimension's own and the field the
+     * client lights the far side by, so it is pinned on the wire like the
+     * colours beside it. The record compares its arrays by reference, so the
+     * fields are read back one at a time.
+     */
+    @Test
+    void projectionRoundTripsItsAmbientLight() {
+        RegistryByteBuf buf = buf();
+        CompanionPayloads.Projection sent = new CompanionPayloads.Projection(
+                Identifier.of(DESTINATION_ID), new BlockPos(1500, 101, 1500),
+                java.util.List.of(new BlockPos(1500, 101, 1500)),
+                2, 5, new BlockPos(1490, 95, 1490), 2, 1, 1,
+                new int[] {3, 3}, new byte[] {(byte) 0xF0, 0x00},
+                0xAF2B2B, 0x0E2A44, -1, -1, -1, 0.15f);
+        CompanionPayloads.Projection.CODEC.encode(buf, sent);
+
+        CompanionPayloads.Projection back = CompanionPayloads.Projection.CODEC.decode(buf);
+
+        assertEquals(0.15f, back.ambientLight(), 0.0f);
+        assertEquals(0x0E2A44, back.fogColor());
+        assertArrayEquals(new int[] {3, 3}, back.states());
+        assertEquals(0, buf.readableBytes(), "decode did not consume everything encode wrote");
+    }
+
+    /** -1 is "unset", and it must survive as -1 rather than clamping to 0. */
+    @Test
+    void projectionCarriesAnUnsetAmbientLight() {
+        RegistryByteBuf buf = buf();
+        CompanionPayloads.Projection.CODEC.encode(buf, new CompanionPayloads.Projection(
+                Identifier.of(DESTINATION_ID), BlockPos.ORIGIN, java.util.List.of(),
+                2, 5, BlockPos.ORIGIN, 1, 1, 1, new int[] {0}, new byte[] {0},
+                -1, -1, -1, -1, -1, -1.0f));
+
+        assertEquals(-1.0f, CompanionPayloads.Projection.CODEC.decode(buf).ambientLight(), 0.0f);
     }
 
     @Test

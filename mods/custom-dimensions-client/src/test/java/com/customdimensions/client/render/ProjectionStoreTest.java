@@ -31,6 +31,7 @@ class ProjectionStoreTest {
     private static final int SIZE_Y = 5;
     private static final int SIZE_Z = 6;
     private static final int CELLS = SIZE_X * SIZE_Y * SIZE_Z;
+    private static final float AMBIENT = 0.15f;
 
     private static int[] states() {
         int[] states = new int[CELLS];
@@ -57,7 +58,7 @@ class ProjectionStoreTest {
         return new CompanionPayloads.Projection(
                 DESTINATION, APERTURE_ORIGIN, aperture(), 0, 2, ORIGIN,
                 SIZE_X, SIZE_Y, SIZE_Z, states(), light(),
-                0x78A7FF, 0xC0D8FF, 0x79C05A, 0x59AE30, 0x3F76E4);
+                0x78A7FF, 0xC0D8FF, 0x79C05A, 0x59AE30, 0x3F76E4, AMBIENT);
     }
 
     @Test
@@ -90,7 +91,7 @@ class ProjectionStoreTest {
         assertFalse(ProjectionStore.sameContent(payload(), new CompanionPayloads.Projection(
                 DESTINATION, APERTURE_ORIGIN, aperture(), 0, 2, ORIGIN,
                 SIZE_X, SIZE_Y, SIZE_Z, changed, light(),
-                0x78A7FF, 0xC0D8FF, 0x79C05A, 0x59AE30, 0x3F76E4)));
+                0x78A7FF, 0xC0D8FF, 0x79C05A, 0x59AE30, 0x3F76E4, AMBIENT)));
     }
 
     @Test
@@ -100,7 +101,7 @@ class ProjectionStoreTest {
         assertFalse(ProjectionStore.sameContent(payload(), new CompanionPayloads.Projection(
                 DESTINATION, APERTURE_ORIGIN, aperture(), 0, 2, ORIGIN,
                 SIZE_X, SIZE_Y, SIZE_Z, states(), darker,
-                0x78A7FF, 0xC0D8FF, 0x79C05A, 0x59AE30, 0x3F76E4)));
+                0x78A7FF, 0xC0D8FF, 0x79C05A, 0x59AE30, 0x3F76E4, AMBIENT)));
     }
 
     /** The three tints are meshed into the vertices, so a change must rebuild. */
@@ -109,7 +110,7 @@ class ProjectionStoreTest {
         assertFalse(ProjectionStore.sameContent(payload(), new CompanionPayloads.Projection(
                 DESTINATION, APERTURE_ORIGIN, aperture(), 0, 2, ORIGIN,
                 SIZE_X, SIZE_Y, SIZE_Z, states(), light(),
-                0x78A7FF, 0xC0D8FF, 0x79C05A, 0x59AE30, 0x123456)));
+                0x78A7FF, 0xC0D8FF, 0x79C05A, 0x59AE30, 0x123456, AMBIENT)));
     }
 
     /** The backdrop is drawn from these, not from the mesh. */
@@ -118,7 +119,7 @@ class ProjectionStoreTest {
         assertFalse(ProjectionStore.sameContent(payload(), new CompanionPayloads.Projection(
                 DESTINATION, APERTURE_ORIGIN, aperture(), 0, 2, ORIGIN,
                 SIZE_X, SIZE_Y, SIZE_Z, states(), light(),
-                0x78A7FF, 0x010203, 0x79C05A, 0x59AE30, 0x3F76E4)));
+                0x78A7FF, 0x010203, 0x79C05A, 0x59AE30, 0x3F76E4, AMBIENT)));
     }
 
     /** The opening grew: the clip rectangle the mesh is cut against is stale. */
@@ -128,7 +129,7 @@ class ProjectionStoreTest {
                 DESTINATION, APERTURE_ORIGIN,
                 List.of(APERTURE_ORIGIN, APERTURE_ORIGIN.up(), APERTURE_ORIGIN.up(2), APERTURE_ORIGIN.up(3)),
                 0, 2, ORIGIN, SIZE_X, SIZE_Y, SIZE_Z, states(), light(),
-                0x78A7FF, 0xC0D8FF, 0x79C05A, 0x59AE30, 0x3F76E4)));
+                0x78A7FF, 0xC0D8FF, 0x79C05A, 0x59AE30, 0x3F76E4, AMBIENT)));
     }
 
     @Test
@@ -136,7 +137,7 @@ class ProjectionStoreTest {
         assertFalse(ProjectionStore.sameContent(payload(), new CompanionPayloads.Projection(
                 DESTINATION, APERTURE_ORIGIN, aperture(), 0, 2, ORIGIN.east(),
                 SIZE_X, SIZE_Y, SIZE_Z, states(), light(),
-                0x78A7FF, 0xC0D8FF, 0x79C05A, 0x59AE30, 0x3F76E4)));
+                0x78A7FF, 0xC0D8FF, 0x79C05A, 0x59AE30, 0x3F76E4, AMBIENT)));
     }
 
     @Test
@@ -144,7 +145,7 @@ class ProjectionStoreTest {
         assertFalse(ProjectionStore.sameContent(payload(), new CompanionPayloads.Projection(
                 DESTINATION, APERTURE_ORIGIN, aperture(), 0, 3, ORIGIN,
                 SIZE_X, SIZE_Y, SIZE_Z, states(), light(),
-                0x78A7FF, 0xC0D8FF, 0x79C05A, 0x59AE30, 0x3F76E4)));
+                0x78A7FF, 0xC0D8FF, 0x79C05A, 0x59AE30, 0x3F76E4, AMBIENT)));
     }
 
     @Test
@@ -152,7 +153,16 @@ class ProjectionStoreTest {
         assertFalse(ProjectionStore.sameContent(payload(), new CompanionPayloads.Projection(
                 Identifier.of("adventure", "the_violet_spire"), APERTURE_ORIGIN, aperture(), 0, 2, ORIGIN,
                 SIZE_X, SIZE_Y, SIZE_Z, states(), light(),
-                0x78A7FF, 0xC0D8FF, 0x79C05A, 0x59AE30, 0x3F76E4)));
+                0x78A7FF, 0xC0D8FF, 0x79C05A, 0x59AE30, 0x3F76E4, AMBIENT)));
+    }
+
+    /** The lift is baked into the mesh's light levels, so a change must rebuild. */
+    @Test
+    void aChangedAmbientLightIsADifferentView() {
+        assertFalse(ProjectionStore.sameContent(payload(), new CompanionPayloads.Projection(
+                DESTINATION, APERTURE_ORIGIN, aperture(), 0, 2, ORIGIN,
+                SIZE_X, SIZE_Y, SIZE_Z, states(), light(),
+                0x78A7FF, 0xC0D8FF, 0x79C05A, 0x59AE30, 0x3F76E4, 0.4f)));
     }
 
     /** Nothing held yet is not a match; the first payload must be stored. */

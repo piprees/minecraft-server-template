@@ -138,7 +138,8 @@ public final class ProjectionStream {
                 DestinationGlow.preferConfigured(configuredFog, biome == null ? -1 : biome.getFogColor()),
                 biome == null ? -1 : biome.getGrassColorAt(arrival.getX(), arrival.getZ()),
                 biome == null ? -1 : biome.getFoliageColor(),
-                biome == null ? -1 : biome.getWaterColor());
+                biome == null ? -1 : biome.getWaterColor(),
+                targetWorld.getDimension().ambientLight());
     }
 
     /**
