@@ -85,7 +85,7 @@ done
 
 say "$(wc -l < "$ROWS" | tr -d ' ') samples over ${SECONDS_TOTAL}s -> $ROWS"
 python3 - "$ROWS" <<'PY'
-import json, statistics as st, sys
+import json, statistics as st, sys  # noqa: F401
 rows = []
 for line in open(sys.argv[1]):
     line = line.strip()
@@ -101,11 +101,17 @@ pairs = [(r["wall"], r["frames"]) for r in rows
          if isinstance(r.get("wall"), (int, float))
          and isinstance(r.get("frames"), (int, float))]
 if len(pairs) < 2:
-    print("  fewer than two frame-counter samples — nothing to difference.")
-    fps = [r["fps"] for r in rows if isinstance(r.get("fps"), (int, float))]
-    if fps:
-        print(f"  reported fps only: n={len(fps)} mean={st.fmean(fps):.2f} min={min(fps)}")
-    raise SystemExit
+    # REFUSE rather than fall through. This script existed for a week reading
+    # client.frames, which /state has never carried, so it silently reported
+    # the one-second mean it was written to replace. A quiet fallback here is
+    # the failure mode, not the safety net.
+    print("  REFUSED: no monotonic frame counter in /state.", file=sys.stderr)
+    print("  /state.client carries only currentScreen, screenTitle, arrivalScreen,", file=sys.stderr)
+    print("  fps, loadedChunks, worldLoaded, paused — and `fps` is a ONE-SECOND", file=sys.stderr)
+    print("  MEAN that cannot show a short freeze.", file=sys.stderr)
+    print("  Use scripts/e2e/shimmer-trace.sh instead: it differences", file=sys.stderr)
+    print("  realtime.apertureStamps, which rises once per portal per drawn frame.", file=sys.stderr)
+    raise SystemExit(1)
 pairs.sort()
 rates, worst = [], None
 for (w0, f0), (w1, f1) in zip(pairs, pairs[1:]):
