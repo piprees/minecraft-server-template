@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -50,7 +51,7 @@ class PortalPassOrderTest {
     @Test
     void thePassIsGivenTheSurfaceAndTheOffsetTheProjectionAsksFor() {
         Recorder pass = new Recorder();
-        ProjectionRenderer.runPass(pass, PROJECTION, ORIGIN, SLICE);
+        ProjectionRenderer.runPass(pass, PROJECTION, ORIGIN, SLICE, PortalPass.Stage.DESTINATION);
 
         assertEquals(List.of(
                 "drawBackdrop -0.5",
@@ -63,7 +64,7 @@ class PortalPassOrderTest {
     void thePassIsGivenTheOffsetForASlabRunningTheOtherWay() {
         Recorder pass = new Recorder();
         ProjectionRenderer.runPass(pass, projection(Direction.NORTH, new BlockPos(1492, 93, 1476)),
-                new BlockPos(1492, 93, 1476), SLICE);
+                new BlockPos(1492, 93, 1476), SLICE, PortalPass.Stage.DESTINATION);
 
         assertEquals(List.of(
                 "drawBackdrop 24.5",
@@ -90,7 +91,7 @@ class PortalPassOrderTest {
     @Test
     void theStampIsDrawnAfterTheRangeIsRestored() {
         Recorder pass = new Recorder();
-        ProjectionRenderer.runPass(pass, PROJECTION, ORIGIN, SLICE);
+        ProjectionRenderer.runPass(pass, PROJECTION, ORIGIN, SLICE, PortalPass.Stage.DESTINATION);
         assertEquals(List.of(
                 "applyDepthRange 0.25 0.75",
                 "drawBackdrop",
@@ -102,7 +103,7 @@ class PortalPassOrderTest {
     @Test
     void theBackdropAndDestinationAreDrawnInsideTheRange() {
         Recorder pass = new Recorder();
-        ProjectionRenderer.runPass(pass, PROJECTION, ORIGIN, SLICE);
+        ProjectionRenderer.runPass(pass, PROJECTION, ORIGIN, SLICE, PortalPass.Stage.DESTINATION);
         int applied = pass.script.indexOf("applyDepthRange 0.25 0.75");
         int restored = pass.script.indexOf("restoreDepthRange");
         assertTrue(applied >= 0 && restored > applied, "the range was never applied then restored");
@@ -117,7 +118,7 @@ class PortalPassOrderTest {
     @Test
     void theStampIsDrawnOutsideTheRange() {
         Recorder pass = new Recorder();
-        ProjectionRenderer.runPass(pass, PROJECTION, ORIGIN, SLICE);
+        ProjectionRenderer.runPass(pass, PROJECTION, ORIGIN, SLICE, PortalPass.Stage.DESTINATION);
         assertTrue(pass.script.indexOf("drawStamp") > pass.script.indexOf("restoreDepthRange"),
                 "the stamp was drawn while the range was still applied: " + pass.script);
     }
@@ -126,7 +127,7 @@ class PortalPassOrderTest {
     @Test
     void noSliceMakesNoRangeCalls() {
         Recorder pass = new Recorder();
-        ProjectionRenderer.runPass(pass, PROJECTION, ORIGIN, null);
+        ProjectionRenderer.runPass(pass, PROJECTION, ORIGIN, null, PortalPass.Stage.DESTINATION);
         assertEquals(List.of("drawBackdrop", "drawDestination", "drawStamp"), pass.script);
     }
 
@@ -134,7 +135,7 @@ class PortalPassOrderTest {
     void theStampsCornerCountIsReturned() {
         Recorder pass = new Recorder();
         pass.stampCorners = 4;
-        assertEquals(4, ProjectionRenderer.runPass(pass, PROJECTION, ORIGIN, SLICE));
+        assertEquals(4, ProjectionRenderer.runPass(pass, PROJECTION, ORIGIN, SLICE, PortalPass.Stage.DESTINATION));
     }
 
     /**
@@ -146,7 +147,7 @@ class PortalPassOrderTest {
     void aThrowingDestinationStillRestoresTheRange() {
         Recorder pass = new Recorder();
         pass.throwFrom = "drawDestination";
-        assertThrows(IllegalStateException.class, () -> ProjectionRenderer.runPass(pass, PROJECTION, ORIGIN, SLICE));
+        assertThrows(IllegalStateException.class, () -> ProjectionRenderer.runPass(pass, PROJECTION, ORIGIN, SLICE, PortalPass.Stage.DESTINATION));
         assertEquals(List.of(
                 "applyDepthRange 0.25 0.75",
                 "drawBackdrop",
@@ -158,11 +159,57 @@ class PortalPassOrderTest {
     void aThrowingBackdropStillRestoresTheRange() {
         Recorder pass = new Recorder();
         pass.throwFrom = "drawBackdrop";
-        assertThrows(IllegalStateException.class, () -> ProjectionRenderer.runPass(pass, PROJECTION, ORIGIN, SLICE));
+        assertThrows(IllegalStateException.class, () -> ProjectionRenderer.runPass(pass, PROJECTION, ORIGIN, SLICE, PortalPass.Stage.DESTINATION));
         assertEquals(List.of(
                 "applyDepthRange 0.25 0.75",
                 "drawBackdrop",
                 "restoreDepthRange"), pass.script);
+    }
+
+    /**
+     * The far stamp draws alone. It runs after every draw in the frame that
+     * depth-tests, so a backdrop or a destination drawn again there would land
+     * on top of the source world's translucents, its particles, its clouds and
+     * its weather.
+     */
+    @Test
+    void theFarDepthStageDrawsTheFarStampAndNothingElse() {
+        Recorder pass = new Recorder();
+
+        ProjectionRenderer.runPass(pass, PROJECTION, ORIGIN, SLICE, PortalPass.Stage.FAR_DEPTH);
+
+        assertEquals(List.of("drawFarStamp"), pass.script);
+    }
+
+    /**
+     * No depth range either. The range is restored before the destination stage
+     * returns, and applying the slice again would remap the far stamp back into
+     * the band it exists to escape.
+     */
+    @Test
+    void theFarDepthStageTouchesTheDepthRangeNotAtAll() {
+        Recorder pass = new Recorder();
+
+        ProjectionRenderer.runPass(pass, PROJECTION, ORIGIN, SLICE, PortalPass.Stage.FAR_DEPTH);
+
+        assertFalse(pass.script.stream().anyMatch(call -> call.startsWith("applyDepthRange")),
+                "the far stamp was drawn inside an applied depth range: " + pass.script);
+        assertFalse(pass.script.contains("restoreDepthRange"),
+                "the far stamp restored a range it never applied: " + pass.script);
+    }
+
+    /** Both stamps are cast from the same surface the destination is drawn against. */
+    @Test
+    void theFarStampIsGivenTheSameSurfaceAsTheNearOne() {
+        Recorder near = new Recorder();
+        Recorder far = new Recorder();
+
+        ProjectionRenderer.runPass(near, PROJECTION, ORIGIN, SLICE, PortalPass.Stage.DESTINATION);
+        ProjectionRenderer.runPass(far, PROJECTION, ORIGIN, SLICE, PortalPass.Stage.FAR_DEPTH);
+
+        assertEquals(List.of("drawFarStamp -0.5"), far.values);
+        assertTrue(near.values.contains("drawStamp -0.5"),
+                "the two stamps are cast from different surfaces: " + near.values);
     }
 
     private static ClientProjection projection() {
@@ -227,6 +274,12 @@ class PortalPassOrderTest {
         @Override
         public int drawStamp(double planeLocal) {
             record("drawStamp", String.valueOf(planeLocal));
+            return stampCorners;
+        }
+
+        @Override
+        public int drawFarStamp(double planeLocal) {
+            record("drawFarStamp", String.valueOf(planeLocal));
             return stampCorners;
         }
     }

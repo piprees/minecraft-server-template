@@ -165,7 +165,9 @@ public final class DevServer {
                         before.renderServerSidePortals()))
                 .withSpectatorPass(request.flag("spectatorPass", before.spectatorPass()))
                 .withApertureBackdrop(request.flag("apertureBackdrop", before.apertureBackdrop()))
-                .withApertureTerrain(request.flag("apertureTerrain", before.apertureTerrain()));
+                .withApertureTerrain(request.flag("apertureTerrain", before.apertureTerrain()))
+                .withApertureFarStamp(request.flag("apertureFarStamp",
+                        before.apertureFarStamp()));
         boolean changed = !after.equals(before);
         if (changed) {
             RealtimeControls.store().save(after);

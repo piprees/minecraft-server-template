@@ -173,6 +173,11 @@ public class CustomDimensionsClient implements ClientModInitializer {
             ProjectionRenderer.render(context);
             return true;
         });
+        // LAST, not AFTER_TRANSLUCENT: read from the Fabric mixin, LAST is
+        // @At(INVOKE, WorldRenderer.renderChunkDebugInfo) = bytecode 2617, past
+        // the clouds at 2496 and the weather at 2533. AFTER_TRANSLUCENT is 2445
+        // and a far depth written there lets both draw over the opening.
+        WorldRenderEvents.LAST.register(ProjectionRenderer::stampFar);
         SpectatorComposite.register();
 
         ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {

@@ -74,7 +74,7 @@ class PortalViewDeclarationTest {
         PortalViewDeclaration.destinationRefused(true);
 
         RealtimeSettings declared = PortalViewDeclaration.declared(
-                new RealtimeSettings(true, 16, true, false, false, true, true));
+                new RealtimeSettings(true, 16, true, false, false, true, true, false));
 
         assertFalse(declared.renderClientSidePortals());
         assertFalse(declared.effectiveServerSide());

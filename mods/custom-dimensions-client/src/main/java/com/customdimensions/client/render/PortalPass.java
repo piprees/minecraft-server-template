@@ -13,6 +13,16 @@ package com.customdimensions.client.render;
  */
 public interface PortalPass {
 
+    /** Which of a portal's draws one pass makes. */
+    enum Stage {
+
+        /** The destination inside its depth slice, then the surface's own depth. */
+        DESTINATION,
+
+        /** The far end of the captured volume, depth only, and nothing else. */
+        FAR_DEPTH,
+    }
+
     void applyDepthRange(double near, double far);
 
     void restoreDepthRange();
@@ -35,4 +45,11 @@ public interface PortalPass {
      * the corner count, 0 when nothing was drawn.
      */
     int drawStamp(double planeLocal);
+
+    /**
+     * The far end of the captured volume, cast from the surface at
+     * {@code planeLocal}, depth only. Returns the corner count, 0 when nothing
+     * was drawn.
+     */
+    int drawFarStamp(double planeLocal);
 }

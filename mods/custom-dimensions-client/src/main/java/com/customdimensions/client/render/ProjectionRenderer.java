@@ -108,6 +108,32 @@ public final class ProjectionRenderer {
     private ProjectionRenderer() {}
 
     public static void render(WorldRenderContext context) {
+        pass(context, PortalPass.Stage.DESTINATION);
+    }
+
+    /**
+     * The opening's depth rewritten at the far end of the captured volume.
+     *
+     * <p>Runs at {@code WorldRenderEvents.LAST}, bytecode 2617 of
+     * {@code WorldRenderer.render}: past the translucent terrain at 2235/2370,
+     * the particles at 2317/2435, the clouds at 2496 and the weather at
+     * 2533/2599, so nothing that depth-tests is left to draw over the opening —
+     * and before Iris's own {@code @At(RETURN)}, so the composite passes read
+     * it. A shader pack reconstructs a fragment's position from the depth
+     * buffer, and a window onto terrain tens of blocks away should not report
+     * the two blocks the slice pins it to ({@code TROUBLESHOOTING.md#t100}).
+     *
+     * <p>{@code AFTER_TRANSLUCENT} is bytecode 2445, before the clouds and the
+     * weather, so it is the wrong phase for this.
+     */
+    public static void stampFar(WorldRenderContext context) {
+        if (!RealtimeControls.settings().apertureFarStamp()) {
+            return;
+        }
+        pass(context, PortalPass.Stage.FAR_DEPTH);
+    }
+
+    private static void pass(WorldRenderContext context, PortalPass.Stage stage) {
         if (context.world() == null || ProjectionStore.count() == 0) {
             return;
         }
@@ -126,7 +152,9 @@ public final class ProjectionRenderer {
         // all then means drawOne never reached the emit path.
         Matrix4f position = context.positionMatrix();
         Matrix4f projectionMatrix = context.projectionMatrix();
-        boolean sample = System.currentTimeMillis() - lastSampleAt >= SAMPLE_INTERVAL_MS;
+        boolean destination = stage == PortalPass.Stage.DESTINATION;
+        boolean sample = destination
+                && System.currentTimeMillis() - lastSampleAt >= SAMPLE_INTERVAL_MS;
         long startedAt = System.nanoTime();
         net.minecraft.client.render.Frustum frustum = context.frustum();
         for (ClientProjection projection : ProjectionStore.all()) {
@@ -134,19 +162,27 @@ public final class ProjectionRenderer {
             // frame nothing, and a portal first seen with no mesh draws an empty
             // frame. Gating the request would make every portal's first sight
             // blank.
-            projection.requestMesh();
+            if (destination) {
+                projection.requestMesh();
+            }
             // Everything drawn for a portal is cut to its aperture cone, so an
             // aperture off screen can contribute no pixel. Without this the whole
             // clip runs for a portal behind the camera.
             if (frustum != null && !frustum.isVisible(apertureBox(projection))) {
-                spanGated++;
+                if (destination) {
+                    spanGated++;
+                }
                 continue;
             }
             drawOne(projection, matrices, camera, position, projectionMatrix, sample,
-                    context.tickCounter().getTickDelta(true));
+                    context.tickCounter().getTickDelta(true), stage);
         }
         long elapsed = System.nanoTime() - startedAt;
-        spanFrames++;
+        // Every phase this pass runs in belongs to the same frame, so only the
+        // first of them counts one.
+        if (destination) {
+            spanFrames++;
+        }
         spanNanos += elapsed;
         spanPeakNanos = Math.max(spanPeakNanos, elapsed);
     }
@@ -165,7 +201,8 @@ public final class ProjectionRenderer {
     }
 
     private static void drawOne(ClientProjection projection, MatrixStack matrices, Vec3d camera,
-            Matrix4f position, Matrix4f projectionMatrix, boolean sample, float tickDelta) {
+            Matrix4f position, Matrix4f projectionMatrix, boolean sample, float tickDelta,
+            PortalPass.Stage stage) {
         BlockPos origin = projection.origin();
         double camX = camera.x - origin.getX();
         double camY = camera.y - origin.getY();
@@ -202,8 +239,10 @@ public final class ProjectionRenderer {
         matrices.translate(origin.getX() - camera.x, origin.getY() - camera.y, origin.getZ() - camera.z);
         MatrixStack.Entry entry = matrices.peek();
 
-        double[] slice = sliceFor(projection, corners, camX, camY, camZ, facing,
-                position, projectionMatrix);
+        double[] slice = stage == PortalPass.Stage.DESTINATION
+                ? sliceFor(projection, corners, camX, camY, camZ, facing,
+                        position, projectionMatrix)
+                : null;
 
         double surface = projection.surfaceOffset();
         StringBuilder report = sample ? new StringBuilder() : null;
@@ -272,7 +311,14 @@ public final class ProjectionRenderer {
                         aperturePolygon(projection, TUNNEL, camX, camY, camZ, surfaceLocal,
                                 POLY_A, POLY_B), true);
             }
-        }, projection, origin, slice);
+
+            @Override
+            public int drawFarStamp(double surfaceLocal) {
+                return drawFlat(PortalRenderLayers.APERTURE_DEPTH, entry,
+                        backdropPolygon(projection, TUNNEL, camX, camY, camZ, surfaceLocal,
+                                facing, POLY_A, POLY_B), true);
+            }
+        }, projection, origin, slice, stage);
 
         // Written after the draws, so a line at all means every draw returned.
         if (report != null) {
@@ -546,11 +592,18 @@ public final class ProjectionRenderer {
      * range calls at all. A draw that throws still restores the range, and the
      * stamp is not drawn.
      *
+     * <p>{@code FAR_DEPTH} draws the far stamp and nothing else: it runs after
+     * every draw in the frame that depth-tests, so any colour it painted would
+     * land on top of them, and the depth range is already restored by then.
+     *
      * <p>Returns the stamp's corner count.
      */
     static int runPass(PortalPass pass, ClientProjection projection, BlockPos origin,
-            double[] slice) {
+            double[] slice, PortalPass.Stage stage) {
         double planeLocal = planeLocal(projection, origin);
+        if (stage == PortalPass.Stage.FAR_DEPTH) {
+            return pass.drawFarStamp(planeLocal);
+        }
         double[] shift = meshShift(projection);
         if (slice != null) {
             pass.applyDepthRange(slice[0], slice[1]);

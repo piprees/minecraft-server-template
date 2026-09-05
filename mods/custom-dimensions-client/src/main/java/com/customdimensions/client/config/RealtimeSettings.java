@@ -15,7 +15,7 @@ import java.util.Map;
  * the enhanced local render, {@code renderServerSidePortals} is the block slab
  * the server streams. They are redundant, so the local render wins and
  * {@link #effectiveServerSide()} is the single value that goes on the wire.
- * The other three fields bound the local render and never leave this client.
+ * The other fields bound the local render and never leave this client.
  */
 public record RealtimeSettings(
         boolean renderClientSidePortals,
@@ -24,7 +24,8 @@ public record RealtimeSettings(
         boolean renderServerSidePortals,
         boolean spectatorPass,
         boolean apertureBackdrop,
-        boolean apertureTerrain) {
+        boolean apertureTerrain,
+        boolean apertureFarStamp) {
 
     /** The schema this version writes. A file below it is migrated on read. */
     public static final int CONFIG_VERSION = 1;
@@ -66,10 +67,19 @@ public record RealtimeSettings(
     public static final boolean DEFAULT_APERTURE_BACKDROP = true;
     public static final boolean DEFAULT_APERTURE_TERRAIN = true;
 
+    /**
+     * Off. The far stamp rewrites the opening's depth once more at the end of
+     * the frame, after every draw that depth-tests, so a shader pack's
+     * composite passes read the far end of the captured volume instead of the
+     * portal surface a couple of blocks away.
+     */
+    public static final boolean DEFAULT_APERTURE_FAR_STAMP = false;
+
     public static final RealtimeSettings DEFAULTS = new RealtimeSettings(
             DEFAULT_RENDER_CLIENT_SIDE_PORTALS, DEFAULT_RENDER_DISTANCE,
             DEFAULT_DISTANT_HORIZONS, DEFAULT_RENDER_SERVER_SIDE_PORTALS,
-            DEFAULT_SPECTATOR_PASS, DEFAULT_APERTURE_BACKDROP, DEFAULT_APERTURE_TERRAIN);
+            DEFAULT_SPECTATOR_PASS, DEFAULT_APERTURE_BACKDROP, DEFAULT_APERTURE_TERRAIN,
+            DEFAULT_APERTURE_FAR_STAMP);
 
     public RealtimeSettings {
         maxRenderDistance = Math.max(MIN_RENDER_DISTANCE,
@@ -88,31 +98,31 @@ public record RealtimeSettings(
     public RealtimeSettings withRenderClientSidePortals(boolean value) {
         return new RealtimeSettings(value, this.maxRenderDistance, this.distantHorizons,
                 this.renderServerSidePortals, this.spectatorPass, this.apertureBackdrop,
-                this.apertureTerrain);
+                this.apertureTerrain, this.apertureFarStamp);
     }
 
     public RealtimeSettings withMaxRenderDistance(int value) {
         return new RealtimeSettings(this.renderClientSidePortals, value, this.distantHorizons,
                 this.renderServerSidePortals, this.spectatorPass, this.apertureBackdrop,
-                this.apertureTerrain);
+                this.apertureTerrain, this.apertureFarStamp);
     }
 
     public RealtimeSettings withDistantHorizons(boolean value) {
         return new RealtimeSettings(this.renderClientSidePortals, this.maxRenderDistance, value,
                 this.renderServerSidePortals, this.spectatorPass, this.apertureBackdrop,
-                this.apertureTerrain);
+                this.apertureTerrain, this.apertureFarStamp);
     }
 
     public RealtimeSettings withRenderServerSidePortals(boolean value) {
         return new RealtimeSettings(this.renderClientSidePortals, this.maxRenderDistance,
                 this.distantHorizons, value, this.spectatorPass, this.apertureBackdrop,
-                this.apertureTerrain);
+                this.apertureTerrain, this.apertureFarStamp);
     }
 
     public RealtimeSettings withSpectatorPass(boolean value) {
         return new RealtimeSettings(this.renderClientSidePortals, this.maxRenderDistance,
                 this.distantHorizons, this.renderServerSidePortals, value, this.apertureBackdrop,
-                this.apertureTerrain);
+                this.apertureTerrain, this.apertureFarStamp);
     }
 
     /**
@@ -127,13 +137,19 @@ public record RealtimeSettings(
     public RealtimeSettings withApertureBackdrop(boolean value) {
         return new RealtimeSettings(this.renderClientSidePortals, this.maxRenderDistance,
                 this.distantHorizons, this.renderServerSidePortals, this.spectatorPass, value,
-                this.apertureTerrain);
+                this.apertureTerrain, this.apertureFarStamp);
     }
 
     public RealtimeSettings withApertureTerrain(boolean value) {
         return new RealtimeSettings(this.renderClientSidePortals, this.maxRenderDistance,
                 this.distantHorizons, this.renderServerSidePortals, this.spectatorPass,
-                this.apertureBackdrop, value);
+                this.apertureBackdrop, value, this.apertureFarStamp);
+    }
+
+    public RealtimeSettings withApertureFarStamp(boolean value) {
+        return new RealtimeSettings(this.renderClientSidePortals, this.maxRenderDistance,
+                this.distantHorizons, this.renderServerSidePortals, this.spectatorPass,
+                this.apertureBackdrop, this.apertureTerrain, value);
     }
 
     public String toJson() {
@@ -146,6 +162,7 @@ public record RealtimeSettings(
                 .bool("spectatorPass", this.spectatorPass)
                 .bool("apertureBackdrop", this.apertureBackdrop)
                 .bool("apertureTerrain", this.apertureTerrain)
+                .bool("apertureFarStamp", this.apertureFarStamp)
                 .toString();
     }
 
@@ -172,7 +189,8 @@ public record RealtimeSettings(
                 bool(raw, "renderServerSidePortals", DEFAULT_RENDER_SERVER_SIDE_PORTALS),
                 bool(raw, "spectatorPass", DEFAULT_SPECTATOR_PASS),
                 bool(raw, "apertureBackdrop", DEFAULT_APERTURE_BACKDROP),
-                bool(raw, "apertureTerrain", DEFAULT_APERTURE_TERRAIN));
+                bool(raw, "apertureTerrain", DEFAULT_APERTURE_TERRAIN),
+                bool(raw, "apertureFarStamp", DEFAULT_APERTURE_FAR_STAMP));
     }
 
     /**
@@ -202,7 +220,8 @@ public record RealtimeSettings(
                 DEFAULT_RENDER_SERVER_SIDE_PORTALS,
                 DEFAULT_SPECTATOR_PASS,
                 DEFAULT_APERTURE_BACKDROP,
-                DEFAULT_APERTURE_TERRAIN);
+                DEFAULT_APERTURE_TERRAIN,
+                DEFAULT_APERTURE_FAR_STAMP);
     }
 
     private static int version(Map<String, Object> raw) {
