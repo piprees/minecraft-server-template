@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -103,6 +104,36 @@ class RealtimeSettingsStoreTest {
 
         assertFalse(migrated.renderClientSidePortals(), "a deliberate opt-out was thrown away");
         assertTrue(migrated.renderServerSidePortals());
+        String rewritten = Files.readString(file, StandardCharsets.UTF_8);
+        assertFalse(RealtimeSettings.needsMigration(rewritten),
+                "the stamp never reached the file, so this migrates again every boot");
+        assertEquals(migrated, new RealtimeSettingsStore(file).load());
+    }
+
+    /**
+     * The round trip the schema exists for. A file at the previous version
+     * holding three kinds of key: one the player chose, one the writer filled
+     * in from a default that has since moved, and one it never named. The
+     * chosen key is kept, the other two take today's defaults, and the
+     * rewritten file carries the record so the next move behaves the same.
+     */
+    @Test
+    void aFileFromTheOldSchemaKeepsWhatWasChosenAndRefreshesWhatWasNot(@TempDir Path dir)
+            throws IOException {
+        Path file = dir.resolve("customdimensions-client.json");
+        Files.writeString(file, "{\"configVersion\":" + (RealtimeSettings.CONFIG_VERSION - 1)
+                + ",\"apertureTerrain\":false,\"apertureBackdrop\":false,"
+                + "\"chosen\":[\"apertureTerrain\"]}\n", StandardCharsets.UTF_8);
+
+        RealtimeSettings migrated = new RealtimeSettingsStore(file).load();
+
+        assertFalse(migrated.apertureTerrain(), "a key the player chose was reset to the default");
+        assertEquals(RealtimeSettings.DEFAULT_APERTURE_BACKDROP, migrated.apertureBackdrop(),
+                "a key nobody chose kept a default that has moved since it was written");
+        assertEquals(RealtimeSettings.DEFAULT_RENDER_DISTANCE, migrated.maxRenderDistance(),
+                "a key the old file never named must take today's default");
+        assertEquals(Set.of("apertureTerrain"), migrated.chosen());
+
         String rewritten = Files.readString(file, StandardCharsets.UTF_8);
         assertFalse(RealtimeSettings.needsMigration(rewritten),
                 "the stamp never reached the file, so this migrates again every boot");

@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import java.nio.file.Path;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -183,10 +184,88 @@ class RealtimeSettingsTest {
      */
     @Test
     void aStampedFileIsNeverMigratedAgain() {
-        String stamped = "{\"configVersion\":1,\"renderClientSidePortals\":false,"
-                + "\"renderServerSidePortals\":false}";
+        String stamped = "{\"configVersion\":" + RealtimeSettings.CONFIG_VERSION
+                + ",\"renderClientSidePortals\":false,\"renderServerSidePortals\":false}";
         assertFalse(RealtimeSettings.needsMigration(stamped));
         assertFalse(RealtimeSettings.parse(stamped).renderServerSidePortals());
+    }
+
+    /**
+     * The defect this schema exists for: a file that names every key can never
+     * be reached by a changed default, because the per-field fallback only
+     * fires on an absent key. What the player set is kept; what the writer
+     * filled in from a default that has since moved is not.
+     */
+    @Test
+    void aDefaultThatMovedReachesAKeyNobodyChoseAndLeavesTheChosenOneAlone() {
+        String below = "{\"configVersion\":" + (RealtimeSettings.CONFIG_VERSION - 1)
+                + ",\"apertureTerrain\":false,\"apertureBackdrop\":false,"
+                + "\"chosen\":[\"apertureTerrain\"]}";
+
+        RealtimeSettings read = RealtimeSettings.parse(below);
+
+        assertFalse(read.apertureTerrain(),
+                "a key the file records as chosen was overwritten by the default");
+        assertEquals(RealtimeSettings.DEFAULT_APERTURE_BACKDROP, read.apertureBackdrop(),
+                "a key nobody chose kept the default in force when the file was written");
+        assertEquals(Set.of("apertureTerrain"), read.chosen(),
+                "reading must not invent a choice for a key that only held a default");
+    }
+
+    /**
+     * A stamped file still wins on a key it names but does not record, so
+     * hand-editing the file does what it looks like it does. Only a schema
+     * below the current one lets the default through.
+     */
+    @Test
+    void aHandEditedKeyIsHonouredWhileTheStampIsCurrent() {
+        String current = "{\"configVersion\":" + RealtimeSettings.CONFIG_VERSION
+                + ",\"apertureBackdrop\":false,\"chosen\":[]}";
+
+        assertFalse(RealtimeSettings.parse(current).apertureBackdrop());
+    }
+
+    /**
+     * A file from before choices were recorded cannot say which of its values
+     * anybody picked, so every key it names is read as one. It keeps what the
+     * player has at the cost of never following a default again.
+     */
+    @Test
+    void aFileThatRecordsNoChoicesHasEveryKeyItNamesTreatedAsOne() {
+        RealtimeSettings read = RealtimeSettings.parse(
+                "{\"configVersion\":1,\"apertureTerrain\":false,\"spectatorPass\":true}");
+
+        assertFalse(read.apertureTerrain());
+        assertTrue(read.spectatorPass());
+        assertEquals(Set.of("apertureTerrain", "spectatorPass"), read.chosen());
+        assertTrue(RealtimeSettings.needsMigration(
+                "{\"configVersion\":1,\"apertureTerrain\":false}"),
+                "a file below the current schema must be rewritten so the record lands");
+    }
+
+    /** Setting a field records it; re-asserting the value it already holds does not. */
+    @Test
+    void onlyAChangeCountsAsAChoice() {
+        assertEquals(Set.of(), RealtimeSettings.DEFAULTS
+                .withApertureTerrain(RealtimeSettings.DEFAULT_APERTURE_TERRAIN).chosen(),
+                "the dev bridge re-asserts every field on every call, which would pin the lot");
+
+        RealtimeSettings off = RealtimeSettings.DEFAULTS.withApertureTerrain(false);
+        assertEquals(Set.of("apertureTerrain"), off.chosen());
+        assertEquals(Set.of("apertureTerrain"), off.withApertureTerrain(true).chosen(),
+                "turning it back on is still a choice, and stays recorded as one");
+    }
+
+    /** What was chosen survives the file, or the next schema forgets it. */
+    @Test
+    void theChosenKeysRoundTripThroughTheFile() {
+        RealtimeSettings set = RealtimeSettings.DEFAULTS
+                .withSpectatorPass(true)
+                .withMaxRenderDistance(24);
+
+        assertEquals(set, RealtimeSettings.parse(set.toJson()));
+        assertEquals(Set.of("spectatorPass", "maxRenderDistance"),
+                RealtimeSettings.parse(set.toJson()).chosen());
     }
 
     /**
