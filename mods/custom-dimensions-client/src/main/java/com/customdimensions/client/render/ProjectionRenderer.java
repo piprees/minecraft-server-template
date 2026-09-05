@@ -219,7 +219,7 @@ public final class ProjectionRenderer {
                 }
                 int corners = backdropPolygon(projection, TUNNEL, camX, camY, camZ,
                         surfaceLocal, facing, POLY_A, POLY_B);
-                dressBackdrop(POLY_A, corners, projection.normalAxis().ordinal(), facing);
+                dressBackdrop(POLY_A, corners);
                 drawShaded(PortalRenderLayers.backdrop(), entry, corners);
             }
 
@@ -708,14 +708,26 @@ public final class ProjectionRenderer {
     }
 
     /**
+     * The one direction for which vanilla's diffuse shading is the identity.
+     * {@code DiffuseLighting.enableForLevel} passes {@code normalize(0.2, 1,
+     * -0.7)} and its exact negation, so {@code minecraft_mix_light} reduces to
+     * {@code min(1, 0.6 * |d0 . n| + 0.4)} and a normal parallel to {@code d0}
+     * leaves the colour alone.
+     */
+    static final float[] BACKDROP_NORMAL = {0.161690f, 0.808452f, -0.565916f};
+
+    /**
      * Fills the attributes an entity layer reads and {@link #projectOntoPlane}
      * leaves at zero: the white texture's one texel, no overlay, the
-     * destination's own sky, and a normal facing the camera.
+     * destination's own sky, and {@link #BACKDROP_NORMAL}.
      *
      * <p>A quad with a zero normal and no lightmap is geometry a shader pack
      * has nothing to shade, and it lands blown out rather than fog-coloured.
+     * The fog colour arriving from the destination is already finished, so the
+     * normal gives a pack something to read without vanilla shading it a second
+     * time ({@code TROUBLESHOOTING.md#t99}).
      */
-    static void dressBackdrop(float[] poly, int corners, int normalAxis, double facing) {
+    static void dressBackdrop(float[] poly, int corners) {
         for (int corner = 0; corner < corners; corner++) {
             int at = corner * STRIDE;
             poly[at + 7] = 0.5f;
@@ -724,9 +736,9 @@ public final class ProjectionRenderer {
             poly[at + 10] = 10.0f;
             poly[at + 11] = 0.0f;
             poly[at + 12] = 15.0f;
-            poly[at + 13] = normalAxis == 0 ? (float) -facing : 0.0f;
-            poly[at + 14] = normalAxis == 1 ? (float) -facing : 0.0f;
-            poly[at + 15] = normalAxis == 2 ? (float) -facing : 0.0f;
+            poly[at + 13] = BACKDROP_NORMAL[0];
+            poly[at + 14] = BACKDROP_NORMAL[1];
+            poly[at + 15] = BACKDROP_NORMAL[2];
         }
     }
 

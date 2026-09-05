@@ -938,12 +938,10 @@ class ProjectionRendererClipTest {
      * instead of fog-coloured.
      */
     @Test
-    void theBackdropCarriesANormalFacingTheCameraAndTheDestinationsSky() {
+    void theBackdropCarriesANormalAndTheDestinationsSky() {
         float[] poly = new float[QuadCapture.STRIDE * 16];
 
-        // A -Z normal, so the destination lies towards lower Z and the camera
-        // is on the high side: the quad faces +Z.
-        ProjectionRenderer.dressBackdrop(poly, 4, 2, -1.0);
+        ProjectionRenderer.dressBackdrop(poly, 4);
 
         for (int v = 0; v < 4; v++) {
             int at = v * QuadCapture.STRIDE;
@@ -953,21 +951,31 @@ class ProjectionRendererClipTest {
             assertEquals(10.0f, poly[at + 10], TOLERANCE, "overlay is not the default");
             assertEquals(0.0f, poly[at + 11], TOLERANCE, "the backdrop took block light");
             assertEquals(15.0f, poly[at + 12], TOLERANCE, "the backdrop is not lit by the sky");
-            assertEquals(0.0f, poly[at + 13], TOLERANCE);
-            assertEquals(0.0f, poly[at + 14], TOLERANCE);
-            assertEquals(1.0f, poly[at + 15], TOLERANCE, "the normal does not face the camera");
+            assertEquals(ProjectionRenderer.BACKDROP_NORMAL[0], poly[at + 13], TOLERANCE);
+            assertEquals(ProjectionRenderer.BACKDROP_NORMAL[1], poly[at + 14], TOLERANCE);
+            assertEquals(ProjectionRenderer.BACKDROP_NORMAL[2], poly[at + 15], TOLERANCE);
         }
     }
 
+    /**
+     * The number that matters is not the constant but what vanilla's own
+     * diffuse function does with it: {@code minecraft_mix_light} is
+     * {@code min(1, 0.6 * (max(0, d0.n) + max(0, d1.n)) + 0.4)} and
+     * {@code DiffuseLighting.enableForLevel} passes {@code d1 = -d0}, so only a
+     * unit normal parallel to {@code d0} leaves the fog colour untouched.
+     */
     @Test
-    void theBackdropsNormalFollowsTheOpeningsOwnAxis() {
-        float[] poly = new float[QuadCapture.STRIDE * 16];
+    void theBackdropsNormalMakesVanillasDiffuseTheIdentity() {
+        float[] d0 = {0.2f, 1.0f, -0.7f};
+        float length = (float) Math.sqrt(d0[0] * d0[0] + d0[1] * d0[1] + d0[2] * d0[2]);
+        float[] n = ProjectionRenderer.BACKDROP_NORMAL;
 
-        ProjectionRenderer.dressBackdrop(poly, 1, 0, 1.0);
+        assertEquals(1.0f, n[0] * n[0] + n[1] * n[1] + n[2] * n[2], 1.0e-5f,
+                "the backdrop's normal is not a unit vector");
 
-        assertEquals(-1.0f, poly[13], TOLERANCE, "an X-normal opening faced the wrong way");
-        assertEquals(0.0f, poly[14], TOLERANCE);
-        assertEquals(0.0f, poly[15], TOLERANCE);
+        float dot = (n[0] * d0[0] + n[1] * d0[1] + n[2] * d0[2]) / length;
+        float lightAccum = (float) Math.min(1.0, 0.6 * Math.abs(dot) + 0.4);
+        assertEquals(1.0f, lightAccum, 1.0e-5f, "vanilla's diffuse shades the backdrop");
     }
 
     /**
@@ -980,7 +988,7 @@ class ProjectionRendererClipTest {
         float[] poly = new float[QuadCapture.STRIDE * 16];
         poly[4 * QuadCapture.STRIDE + 15] = 7.0f;
 
-        ProjectionRenderer.dressBackdrop(poly, 4, 2, -1.0);
+        ProjectionRenderer.dressBackdrop(poly, 4);
 
         assertEquals(7.0f, poly[4 * QuadCapture.STRIDE + 15], TOLERANCE,
                 "the fifth corner was dressed although the clip discarded it");

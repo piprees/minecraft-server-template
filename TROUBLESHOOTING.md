@@ -1648,6 +1648,31 @@ measurement of it.
   the same trap. Pin it against the Java, not against intuition —
   `scripts/e2e/portal-matrix-selftest.sh` is the worked example.
 
+<a id="t99"></a>
+### T99 — An entity layer shades a portal's backdrop with the SOURCE world's light and fog
+
+- **Symptom:** the destination's fog colour reaches the screen at 0.59x its
+  authored value with NO shader pack loaded — `(192,216,255)` measured as
+  `(113,128,151)` — while a pack renders it correctly. The opposite way round
+  from the defect that put the backdrop on an entity layer in the first place.
+- **Cause:** `rendertype_entity_cutout_no_cull.fsh` applies three modifiers
+  `position_color.fsh` does not — `minecraft_mix_light` diffuse shading, the
+  lightmap texel, and `linear_fog` toward the SOURCE world's fog colour. The
+  colour arriving from the destination is already finished, so each is applied
+  a second time.
+- **Fix:** `ProjectionRenderer.BACKDROP_NORMAL` is `normalize(0.2, 1, -0.7)`.
+  `DiffuseLighting.enableForLevel` passes that vector and its exact negation,
+  so `minecraft_mix_light` reduces to `min(1, 0.6 * |d0 . n| + 0.4)` and a
+  normal parallel to `d0` is the one orientation for which vanilla's diffuse is
+  the identity. Measured `(189,213,251)`, 0.98x, with the pack case unchanged
+  at `(56,98,136)` — opening 5.78% and control 3.82% against a same-condition
+  floor of 8.54% and 5.20%.
+- **Residual:** `linear_fog` is in the layer's own fragment shader and no
+  choice of normal removes it. It costs the remaining 1.6%.
+- **A pack never sees any of it.** Iris replaces the vanilla program, so the
+  normal reaches only the pack's own `gbuffers_entities` — which is why the
+  fix is free with a pack loaded and worth 41% without one.
+
 <a id="t98"></a>
 ### T98 — Terrain render layers submitted from a mod's own buffer draw nothing under a shader pack
 
