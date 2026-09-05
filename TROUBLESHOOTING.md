@@ -1675,18 +1675,31 @@ measurement of it.
   2496, weather 2533/2599 — and no render phase sits in the gap, which is why
   the restore is a mixin. Fabric's `BEFORE_DEBUG_RENDER` is 2077 and its
   `AFTER_TRANSLUCENT` is 2445, both on the wrong side.
-- **Measured:** opening 99.97% changed at noon, luma 66.7 -> 121.8, ratio 0.36
-  -> 0.66; source-terrain controls 0.00% at three cameras. With no pack the
-  same switch is bit-identical — 0 changed pixels, maxDelta 0, inside the
-  opening and out.
-- **Sixteen blocks is not enough and 1.0 is too far.** The captured volume's own
-  backdrop plane reconstructs to about 20 blocks and changed no pixel at all.
-  1.0 is what a cleared depth buffer holds, so a pack reads it as sky and hands
-  the opening the SOURCE world's sky instead of the destination's.
-- **The cost:** atmospheric fog is then computed for a distance of a few hundred
-  blocks, so destination terrain close to the frame reads hazed. A flat plane is
-  the blunt form of this; the destination's own per-pixel depth is the shape
-  that would not have it.
+- **Measured, and it is a TRADE rather than a cure.** The opening changes
+  essentially completely — 99.99% at noon on a 25-chunk feed — and the source
+  terrain beside it 0.00%. Mean luminance rises and the ratio to the source sand
+  goes 0.41 -> 0.61 against 1.12 with no pack. **But the contrast falls with it.**
+  Rec.709 luma standard deviation over the opening, all at noon, camera H:
+
+  | | 6-chunk feed | 25-chunk feed |
+  | --- | --- | --- |
+  | no pack | 69.4 | — |
+  | pack, stamp off | 26.4 | 40.4 |
+  | pack, stamp on | **34.5** | **16.4** |
+
+  Where the destination behind the opening is genuinely far the flat depth helps;
+  where it is near it hurts, and which wins depends on how much near terrain the
+  opening holds. In the near-field band the stamp always hurts — 22.6 -> 8.5 and
+  15.9 -> 8.5 against 27.4 with no pack — and the mean goes from a warm ground
+  `(140,117,65)` to a cold `(95,131,126)`, which is the fog colour rather than
+  the ground.
+- **Why: one plane cannot describe a whole opening.** The stamp tells every pixel
+  the same distance, so it is right for exactly one of them. The destination's
+  own per-pixel depth is the shape that would not have this, and it is the open
+  work.
+- **Both switches ship OFF** for that reason.
+- **With no pack the switch is bit-identical** — 0 changed pixels, maxDelta 0,
+  inside the opening and out, on the same jar with `enableShaders` flipped.
 - **Not fixed by this.** An entity drawn through the opening still shades from
   its own fragment's depth in the forward pass, which no stamp touches.
 
