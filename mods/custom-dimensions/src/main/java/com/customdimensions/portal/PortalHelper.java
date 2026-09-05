@@ -399,20 +399,18 @@ public class PortalHelper {
     }
 
     /**
-     * The column a return teleport lands on: the recorded source portal's,
-     * when the record carries one, else the arrival aperture's own. Guarded
-     * exactly as {@link com.customdimensions.immersive.ProjectionVolume#returnMapping}
-     * guards it, so the place a portal SHOWS and the place it PUTS you are one
-     * answer — a legacy record with no column keeps the translation-free
-     * behaviour rather than guessing.
+     * The column a return teleport lands on, resolved through the projection's
+     * own guard so the two cannot drift apart. The fallback is the cell the
+     * entity is standing in, not the aperture centre a projection falls back
+     * to: a teleport moves the thing that is standing there.
      *
      * @return {@code {x, z}}, never null
      */
-    public static int[] returnColumn(PortalReturnTarget target, BlockPos aperture) {
-        if (target != null && target.sourceX != null && target.sourceZ != null) {
-            return new int[]{target.sourceX, target.sourceZ};
-        }
-        return new int[]{aperture.getX(), aperture.getZ()};
+    public static int[] returnColumn(PortalReturnTarget target, BlockPos cell) {
+        return com.customdimensions.immersive.ProjectionVolume.resolveReturnColumn(
+                target != null ? target.sourceX : null,
+                target != null ? target.sourceZ : null,
+                cell.getX(), cell.getZ());
     }
 
     /**

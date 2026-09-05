@@ -709,12 +709,30 @@ public final class ProjectionVolume {
         int count = aperture.size();
         centreX /= count;
         centreZ /= count;
+        int[] arrival = resolveReturnColumn(sourceX, sourceZ, centreX, centreZ);
+        return new TargetMapping(arrival[0] - centreX, arrival[1] - centreZ,
+                minOn(aperture, Direction.Axis.Y), arrival[0], arrival[1]);
+    }
+
+    /**
+     * The column a return leads to: the recorded source portal's when the
+     * record carries one, else the fallback the caller offers — the aperture
+     * centre for a projection, the cell an entity stands in for a teleport.
+     *
+     * <p>The single guard the projection and both return teleports share, so
+     * the place a portal SHOWS and the place it PUTS you cannot disagree.
+     * {@code sourceX}/{@code sourceZ} are boxed and written only as a pair, so
+     * a record predating them reads null here and keeps the translation-free
+     * fallback rather than landing on the world origin.
+     *
+     * @return {@code {x, z}}, never null
+     */
+    public static int[] resolveReturnColumn(Integer sourceX, Integer sourceZ,
+            int fallbackX, int fallbackZ) {
         if (sourceX == null || sourceZ == null) {
-            // Pre-column record: translate by zero, as before.
-            return new TargetMapping(0, 0, minOn(aperture, Direction.Axis.Y), centreX, centreZ);
+            return new int[]{fallbackX, fallbackZ};
         }
-        return new TargetMapping(sourceX - centreX, sourceZ - centreZ,
-                minOn(aperture, Direction.Axis.Y), sourceX, sourceZ);
+        return new int[]{sourceX, sourceZ};
     }
 
     /**
