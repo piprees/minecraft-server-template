@@ -109,6 +109,6 @@ class DestinationActorsTest {
                 Direction.Axis.X.ordinal(), Direction.SOUTH.ordinal(),
                 new BlockPos(1492, 93, 1501), SIZE_X, SIZE_Y, SIZE_Z,
                 new int[0], new byte[0],
-                -1, -1, -1, -1, -1, -1.0f));
+                -1, -1, new int[0], new int[0], -1.0f));
     }
 }

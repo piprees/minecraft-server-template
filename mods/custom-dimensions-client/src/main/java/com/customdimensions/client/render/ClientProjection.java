@@ -312,6 +312,21 @@ public final class ClientProjection {
         return index < 0 ? 0 : this.payload.light()[index] & 0xFF;
     }
 
+    /**
+     * The destination biome tint for the column a SOURCE-world position stands
+     * in, -1 outside the described box or where none was resolved. Per column,
+     * so a view spanning two biomes tints each of them its own.
+     */
+    public int tintAt(int x, int z, int channel) {
+        BlockPos origin = origin();
+        int lx = x - origin.getX();
+        int lz = z - origin.getZ();
+        if (lx < 0 || lz < 0 || lx >= sizeX() || lz >= sizeZ()) {
+            return -1;
+        }
+        return this.payload.columnTint((lx * sizeZ()) + lz, channel);
+    }
+
     /** The built mesh, or null while there is not one yet. Never builds. */
     public ProjectionMesh meshIfReady() {
         return this.mesh;

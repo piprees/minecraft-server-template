@@ -53,7 +53,7 @@ class PortalPassOrderTest {
         ProjectionRenderer.runPass(pass, PROJECTION, ORIGIN, SLICE, PortalPass.Stage.DESTINATION);
 
         assertEquals(List.of(
-                "drawBackdrop 0.0",
+                "drawBackdrop 0.0 writeDepth=true",
                 "drawDestination 0.0 0.0 0.0",
                 "drawActors",
                 "drawStamp 0.0"), pass.values);
@@ -71,7 +71,7 @@ class PortalPassOrderTest {
                 new BlockPos(1492, 93, 1476), SLICE, PortalPass.Stage.DESTINATION);
 
         assertEquals(List.of(
-                "drawBackdrop 24.0",
+                "drawBackdrop 24.0 writeDepth=true",
                 "drawDestination 0.0 0.0 0.0",
                 "drawActors",
                 "drawStamp 24.0"), pass.values);
@@ -362,13 +362,15 @@ class PortalPassOrderTest {
     /**
      * The mesh reaches a pack on entity layers, so it is shaded in the forward
      * pass from its own fragment's depth exactly as an actor is. Inside the
-     * slice that depth says "at the doorway" for every pixel of the opening, so
-     * the colour draw goes after the far stamp — which is what then covers the
-     * source world's blocks behind the opening — and before the mesh's own
-     * depth, which an actor tests against.
+     * slice that depth says "at the doorway" for every pixel of the opening.
+     *
+     * <p>It goes BEFORE the far stamp, unlike an actor. The stamp writes with
+     * an always-pass test, so after it the colour draw tests against a buffer
+     * with every near occluder erased and paints the destination through solid
+     * walls ({@code TROUBLESHOOTING.md#t100}).
      */
     @Test
-    void theDestinationGoesAfterTheFarStampWhenThePassAsksForIt() {
+    void theDestinationGoesBeforeTheFarStampWhenThePassAsksForIt() {
         Recorder pass = new Recorder();
         pass.destinationAtTrueDepth = true;
         pass.actorsAtTrueDepth = true;
@@ -380,10 +382,29 @@ class PortalPassOrderTest {
                 "applyDepthRange 0.25 0.75",
                 "drawBackdrop",
                 "restoreDepthRange",
-                "drawFarStamp",
                 "drawDestination",
+                "drawFarStamp",
                 "drawDestinationDepth",
                 "drawActors"), pass.script);
+    }
+
+    /**
+     * The backdrop is drawn inside the slice, so it writes ≈the doorway across
+     * the whole opening. A destination that then leaves the slice has to beat
+     * that value and cannot, so the write is suppressed exactly when it does.
+     */
+    @Test
+    void theBackdropsDepthWriteIsSuppressedOnlyWhenTheDestinationLeavesTheRange() {
+        for (boolean trueDepth : List.of(false, true)) {
+            Recorder pass = new Recorder();
+            pass.destinationAtTrueDepth = trueDepth;
+
+            ProjectionRenderer.runPass(pass, PROJECTION, ORIGIN, SLICE,
+                    PortalPass.Stage.DESTINATION_FAR);
+
+            assertTrue(pass.values.contains("drawBackdrop 0.0 writeDepth=" + !trueDepth),
+                    "trueDepth=" + trueDepth + ": " + pass.values);
+        }
     }
 
     /**
@@ -499,7 +520,7 @@ class PortalPassOrderTest {
                 Direction.Axis.X.ordinal(), normal.ordinal(),
                 origin, 18, 19, 24,
                 new int[0], new byte[0],
-                -1, -1, -1, -1, -1, -1.0f));
+                -1, -1, new int[0], new int[0], -1.0f));
     }
 
     private static final class Recorder implements PortalPass {
@@ -534,8 +555,8 @@ class PortalPassOrderTest {
         }
 
         @Override
-        public void drawBackdrop(double planeLocal) {
-            record("drawBackdrop", String.valueOf(planeLocal));
+        public void drawBackdrop(double planeLocal, boolean writeDepth) {
+            record("drawBackdrop", planeLocal + " writeDepth=" + writeDepth);
         }
 
         @Override

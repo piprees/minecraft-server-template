@@ -112,10 +112,17 @@ public final class CompanionPayloads {
      * order — vertical runs of stone and air are what make the payload small.
      *
      * <p>{@code light} packs the destination's own sky and block light as
-     * {@code sky << 4 | block}. The colours are ARGB with -1 meaning "not
-     * configured, use the client's own"; sky and fog come from the dimension
-     * config's {@code environment} block, the three tints from the biome at the
-     * arrival column.
+     * {@code sky << 4 | block}. {@code skyColor} and {@code fogColor} are ARGB
+     * with -1 meaning "not configured, use the client's own", and come from the
+     * dimension config's {@code environment} block over the arrival biome's.
+     *
+     * <p>Grass, foliage and water are per COLUMN, so a view spanning two biomes
+     * tints each of them its own. {@code tintPalette} holds the distinct triples
+     * flattened in {@link #TINT_GRASS}, {@link #TINT_FOLIAGE}, {@link #TINT_WATER}
+     * order; {@code columnTints} is one palette index per column, indexed
+     * {@code x * sizeZ + z} and run-length encoded along that order. A column
+     * whose destination chunk is not resident indexes a triple of -1, and holds
+     * no blocks to draw either.
      *
      * <p>{@code ambientLight} is the destination {@code DimensionType}'s own,
      * -1 meaning "unset". The levels above are the destination's but the
@@ -136,13 +143,18 @@ public final class CompanionPayloads {
             byte[] light,
             int skyColor,
             int fogColor,
-            int grassColor,
-            int foliageColor,
-            int waterColor,
+            int[] tintPalette,
+            int[] columnTints,
             float ambientLight) implements CustomPayload {
 
+        /** Channels in one column's tint, and their order in the palette. */
+        public static final int TINT_CHANNELS = 3;
+        public static final int TINT_GRASS = 0;
+        public static final int TINT_FOLIAGE = 1;
+        public static final int TINT_WATER = 2;
+
         public static final CustomPayload.Id<Projection> ID =
-                new CustomPayload.Id<>(Identifier.of("customdimensions", "projection/v2"));
+                new CustomPayload.Id<>(Identifier.of("customdimensions", "projection/v3"));
 
         public static final PacketCodec<RegistryByteBuf, Projection> CODEC =
                 PacketCodec.of(Projection::write, Projection::read);
@@ -154,6 +166,20 @@ public final class CompanionPayloads {
 
         public int cellCount() {
             return this.sizeX * this.sizeY * this.sizeZ;
+        }
+
+        public int columnCount() {
+            return this.sizeX * this.sizeZ;
+        }
+
+        /** One column's tint on one channel, -1 where none was resolved. */
+        public int columnTint(int column, int channel) {
+            if (column < 0 || column >= this.columnTints.length
+                    || channel < 0 || channel >= TINT_CHANNELS) {
+                return -1;
+            }
+            int at = this.columnTints[column] * TINT_CHANNELS + channel;
+            return at < 0 || at >= this.tintPalette.length ? -1 : this.tintPalette[at];
         }
 
         private void write(RegistryByteBuf buf) {
@@ -173,9 +199,11 @@ public final class CompanionPayloads {
             writeRuns(buf, unsigned(this.light));
             buf.writeInt(this.skyColor);
             buf.writeInt(this.fogColor);
-            buf.writeInt(this.grassColor);
-            buf.writeInt(this.foliageColor);
-            buf.writeInt(this.waterColor);
+            buf.writeVarInt(this.tintPalette.length);
+            for (int value : this.tintPalette) {
+                buf.writeInt(value);
+            }
+            writeRuns(buf, this.columnTints);
             buf.writeFloat(this.ambientLight);
         }
 
@@ -200,10 +228,93 @@ public final class CompanionPayloads {
             for (int i = 0; i < cells; i++) {
                 light[i] = (byte) lightValues[i];
             }
+            int skyColor = buf.readInt();
+            int fogColor = buf.readInt();
+            int columns = sizeX * sizeZ;
+            int[] tintPalette = new int[boundedPalette(buf.readVarInt(), columns)];
+            for (int i = 0; i < tintPalette.length; i++) {
+                tintPalette[i] = buf.readInt();
+            }
+            int[] columnTints = readRuns(buf, columns);
             return new Projection(destination, apertureOrigin, aperture, portalAxis, normal, origin,
                     sizeX, sizeY, sizeZ, states, light,
-                    buf.readInt(), buf.readInt(), buf.readInt(), buf.readInt(), buf.readInt(),
+                    skyColor, fogColor, tintPalette, columnTints,
                     buf.readFloat());
+        }
+
+        /**
+         * A palette carrying part of a triple, or more triples than the columns
+         * plus the unresolved one, is a protocol break rather than a big frame.
+         */
+        static int boundedPalette(int length, int columns) {
+            if (length < 0 || length % TINT_CHANNELS != 0
+                    || length > (columns + 1) * TINT_CHANNELS) {
+                throw new IllegalStateException("projection palette names " + length
+                        + " tint values for " + columns + " columns");
+            }
+            return length;
+        }
+
+        /**
+         * The highest cell in one column of a {@code states} grid holding
+         * anything but air, or -1. That block's biome is the one whose grass,
+         * foliage and water the column shows; a column of air shows none, and
+         * has nothing to draw them on either.
+         */
+        public static int topSolid(int[] states, int sizeY, int sizeZ, int x, int z, int airId) {
+            int base = ((x * sizeZ) + z) * sizeY;
+            for (int y = sizeY - 1; y >= 0; y--) {
+                if (states[base + y] != airId) {
+                    return y;
+                }
+            }
+            return -1;
+        }
+
+        /**
+         * Builds {@code tintPalette} and {@code columnTints} for one volume.
+         * Entry 0 is the unresolved triple, so a column nothing is set for
+         * reads as -1 on every channel. Distinct triples are few, so the
+         * palette is scanned rather than hashed.
+         */
+        public static final class TintGrid {
+            private final int sizeZ;
+            private final int[] columns;
+            private final List<int[]> entries = new ArrayList<>();
+
+            public TintGrid(int sizeX, int sizeZ) {
+                this.sizeZ = sizeZ;
+                this.columns = new int[sizeX * sizeZ];
+                this.entries.add(new int[] {-1, -1, -1});
+            }
+
+            public void set(int x, int z, int grass, int foliage, int water) {
+                this.columns[(x * this.sizeZ) + z] = entryFor(grass, foliage, water);
+            }
+
+            private int entryFor(int grass, int foliage, int water) {
+                for (int i = 0; i < this.entries.size(); i++) {
+                    int[] entry = this.entries.get(i);
+                    if (entry[TINT_GRASS] == grass && entry[TINT_FOLIAGE] == foliage
+                            && entry[TINT_WATER] == water) {
+                        return i;
+                    }
+                }
+                this.entries.add(new int[] {grass, foliage, water});
+                return this.entries.size() - 1;
+            }
+
+            public int[] palette() {
+                int[] out = new int[this.entries.size() * TINT_CHANNELS];
+                for (int i = 0; i < this.entries.size(); i++) {
+                    System.arraycopy(this.entries.get(i), 0, out, i * TINT_CHANNELS, TINT_CHANNELS);
+                }
+                return out;
+            }
+
+            public int[] columns() {
+                return this.columns;
+            }
         }
 
         private static int[] unsigned(byte[] values) {

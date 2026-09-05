@@ -84,7 +84,7 @@ class CompanionPayloadCodecTest {
                 CompanionPayloads.PreloadedTransfer.ID.id().toString());
         assertEquals("customdimensions:destination-entities/v1",
                 CompanionPayloads.DestinationEntities.ID.id().toString());
-        assertEquals("customdimensions:projection/v2",
+        assertEquals("customdimensions:projection/v3",
                 CompanionPayloads.Projection.ID.id().toString());
         assertEquals("customdimensions:entity-handover/v1",
                 CompanionPayloads.EntityHandover.ID.id().toString());
@@ -180,7 +180,9 @@ class CompanionPayloadCodecTest {
                 java.util.List.of(new BlockPos(1500, 101, 1500)),
                 2, 5, new BlockPos(1490, 95, 1490), 2, 1, 1,
                 new int[] {3, 3}, new byte[] {(byte) 0xF0, 0x00},
-                0xAF2B2B, 0x0E2A44, -1, -1, -1, 0.15f);
+                0xAF2B2B, 0x0E2A44,
+                new int[] {-1, -1, -1, 0x79C05A, 0x59AE30, 0x3F76E4}, new int[] {0, 1},
+                0.15f);
         CompanionPayloads.Projection.CODEC.encode(buf, sent);
 
         CompanionPayloads.Projection back = CompanionPayloads.Projection.CODEC.decode(buf);
@@ -198,7 +200,7 @@ class CompanionPayloadCodecTest {
         CompanionPayloads.Projection.CODEC.encode(buf, new CompanionPayloads.Projection(
                 Identifier.of(DESTINATION_ID), BlockPos.ORIGIN, java.util.List.of(),
                 2, 5, BlockPos.ORIGIN, 1, 1, 1, new int[] {0}, new byte[] {0},
-                -1, -1, -1, -1, -1, -1.0f));
+                -1, -1, new int[] {-1, -1, -1}, new int[] {0}, -1.0f));
 
         assertEquals(-1.0f, CompanionPayloads.Projection.CODEC.decode(buf).ambientLight(), 0.0f);
     }

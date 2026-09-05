@@ -1106,7 +1106,7 @@ class ProjectionRendererClipTest {
                 Direction.Axis.X.ordinal(), normal.ordinal(),
                 origin, SIZE_X, SIZE_Y, SIZE_Z,
                 new int[0], new byte[0],
-                -1, -1, -1, -1, -1, -1.0f));
+                -1, -1, new int[0], new int[0], -1.0f));
     }
 
     /** Runs the production emit path over one layer and records what it drew. */

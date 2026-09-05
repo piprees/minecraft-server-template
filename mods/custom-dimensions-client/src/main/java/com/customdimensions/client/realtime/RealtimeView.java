@@ -5,12 +5,14 @@ import com.customdimensions.client.CustomDimensionsClient;
 import com.customdimensions.client.config.RealtimeControls;
 import com.customdimensions.client.render.ProjectionStore;
 import net.minecraft.block.Block;
+import net.minecraft.block.Blocks;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.world.LightType;
+import net.minecraft.world.biome.Biome;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -167,12 +169,31 @@ public final class RealtimeView {
                 }
             }
         }
+        CompanionPayloads.Projection.TintGrid tints =
+                new CompanionPayloads.Projection.TintGrid(sizeX, sizeZ);
+        int airId = Block.getRawIdFromState(Blocks.AIR.getDefaultState());
+        for (int lx = 0; lx < sizeX; lx++) {
+            for (int lz = 0; lz < sizeZ; lz++) {
+                int top = CompanionPayloads.Projection.topSolid(states, sizeY, sizeZ, lx, lz, airId);
+                if (top < 0) {
+                    continue;
+                }
+                at.set(origin[0] + lx + frame.dx(),
+                        origin[1] + top + frame.dy(),
+                        origin[2] + lz + frame.dz());
+                Biome biome = destination.getBiome(at).value();
+                tints.set(lx, lz, biome.getGrassColorAt(at.getX(), at.getZ()),
+                        biome.getFoliageColor(), biome.getWaterColor());
+            }
+        }
+
         return new CompanionPayloads.Projection(
                 frame.destination(), frame.apertureOrigin(), frame.aperture(),
                 frame.portalAxis(), frame.normal(),
                 new BlockPos(origin[0], origin[1], origin[2]), sizeX, sizeY, sizeZ,
                 states, light,
-                frame.skyColor(), frame.fogColor(), -1, -1, -1,
+                frame.skyColor(), frame.fogColor(),
+                tints.palette(), tints.columns(),
                 destination.getDimension().ambientLight());
     }
 

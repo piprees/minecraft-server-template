@@ -1,5 +1,6 @@
 package com.customdimensions.client.render;
 
+import com.customdimensions.client.CompanionPayloads;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.client.color.world.BiomeColors;
@@ -18,9 +19,9 @@ import net.minecraft.world.chunk.light.LightingProvider;
  *
  * <p>Two answers are deliberately not the client's own: {@link #getLightLevel}
  * returns the DESTINATION's sky and block light, and {@link #getColor} returns
- * the destination biome's tint. Those are the two things a fake-block
- * projection can never get right, because a vanilla client colours and lights
- * whatever it believes it is standing in.
+ * the destination biome's tint for the column the position stands in. Those are
+ * the two things a fake-block projection can never get right, because a vanilla
+ * client colours and lights whatever it believes it is standing in.
  *
  * <p>Face shading and the height limits come from the client's own world:
  * they are properties of the camera and the render, not of the far side.
@@ -93,14 +94,19 @@ public final class ProjectionView implements BlockRenderView {
 
     @Override
     public int getColor(BlockPos pos, ColorResolver resolver) {
-        int tint = -1;
-        if (resolver == BiomeColors.GRASS_COLOR) {
-            tint = this.projection.payload().grassColor();
-        } else if (resolver == BiomeColors.FOLIAGE_COLOR) {
-            tint = this.projection.payload().foliageColor();
-        } else if (resolver == BiomeColors.WATER_COLOR) {
-            tint = this.projection.payload().waterColor();
-        }
+        int channel = channelOf(resolver);
+        int tint = channel < 0 ? -1 : this.projection.tintAt(pos.getX(), pos.getZ(), channel);
         return tint >= 0 ? tint : this.world.getColor(pos, resolver);
+    }
+
+    private static int channelOf(ColorResolver resolver) {
+        if (resolver == BiomeColors.GRASS_COLOR) {
+            return CompanionPayloads.Projection.TINT_GRASS;
+        }
+        if (resolver == BiomeColors.FOLIAGE_COLOR) {
+            return CompanionPayloads.Projection.TINT_FOLIAGE;
+        }
+        return resolver == BiomeColors.WATER_COLOR
+                ? CompanionPayloads.Projection.TINT_WATER : -1;
     }
 }

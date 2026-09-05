@@ -33,6 +33,18 @@ class ProjectionStoreTest {
     private static final int CELLS = SIZE_X * SIZE_Y * SIZE_Z;
     private static final float AMBIENT = 0.15f;
 
+    /** Two biomes over the columns: a palette of two triples and an index per column. */
+    private static final int[] TINTS = {0x79C05A, 0x59AE30, 0x3F76E4, 0x8AB689, 0x6DA36B, 0x4E7BC8};
+    private static final int[] COLUMNS = columns(1);
+
+    private static int[] columns(int second) {
+        int[] out = new int[SIZE_X * SIZE_Z];
+        for (int i = SIZE_Z; i < out.length; i++) {
+            out[i] = second;
+        }
+        return out;
+    }
+
     private static int[] states() {
         int[] states = new int[CELLS];
         for (int i = 0; i < CELLS; i++) {
@@ -58,7 +70,7 @@ class ProjectionStoreTest {
         return new CompanionPayloads.Projection(
                 DESTINATION, APERTURE_ORIGIN, aperture(), 0, 2, ORIGIN,
                 SIZE_X, SIZE_Y, SIZE_Z, states(), light(),
-                0x78A7FF, 0xC0D8FF, 0x79C05A, 0x59AE30, 0x3F76E4, AMBIENT);
+                0x78A7FF, 0xC0D8FF, TINTS, COLUMNS, AMBIENT);
     }
 
     @Test
@@ -91,7 +103,7 @@ class ProjectionStoreTest {
         assertFalse(ProjectionStore.sameContent(payload(), new CompanionPayloads.Projection(
                 DESTINATION, APERTURE_ORIGIN, aperture(), 0, 2, ORIGIN,
                 SIZE_X, SIZE_Y, SIZE_Z, changed, light(),
-                0x78A7FF, 0xC0D8FF, 0x79C05A, 0x59AE30, 0x3F76E4, AMBIENT)));
+                0x78A7FF, 0xC0D8FF, TINTS, COLUMNS, AMBIENT)));
     }
 
     @Test
@@ -101,16 +113,30 @@ class ProjectionStoreTest {
         assertFalse(ProjectionStore.sameContent(payload(), new CompanionPayloads.Projection(
                 DESTINATION, APERTURE_ORIGIN, aperture(), 0, 2, ORIGIN,
                 SIZE_X, SIZE_Y, SIZE_Z, states(), darker,
-                0x78A7FF, 0xC0D8FF, 0x79C05A, 0x59AE30, 0x3F76E4, AMBIENT)));
+                0x78A7FF, 0xC0D8FF, TINTS, COLUMNS, AMBIENT)));
     }
 
-    /** The three tints are meshed into the vertices, so a change must rebuild. */
+    /** The tints are meshed into the vertices, so a change must rebuild. */
     @Test
     void aChangedTintIsADifferentView() {
         assertFalse(ProjectionStore.sameContent(payload(), new CompanionPayloads.Projection(
                 DESTINATION, APERTURE_ORIGIN, aperture(), 0, 2, ORIGIN,
                 SIZE_X, SIZE_Y, SIZE_Z, states(), light(),
-                0x78A7FF, 0xC0D8FF, 0x79C05A, 0x59AE30, 0x123456, AMBIENT)));
+                0x78A7FF, 0xC0D8FF,
+                new int[] {0x79C05A, 0x59AE30, 0x3F76E4, 0x123456, 0x654321, 0x0000FF},
+                COLUMNS, AMBIENT)));
+    }
+
+    /**
+     * The palette is unchanged and the columns index a different entry of it:
+     * a comparison that read only the palette would miss a whole biome moving.
+     */
+    @Test
+    void aColumnPointedAtADifferentTintIsADifferentView() {
+        assertFalse(ProjectionStore.sameContent(payload(), new CompanionPayloads.Projection(
+                DESTINATION, APERTURE_ORIGIN, aperture(), 0, 2, ORIGIN,
+                SIZE_X, SIZE_Y, SIZE_Z, states(), light(),
+                0x78A7FF, 0xC0D8FF, TINTS, columns(0), AMBIENT)));
     }
 
     /** The backdrop is drawn from these, not from the mesh. */
@@ -119,7 +145,7 @@ class ProjectionStoreTest {
         assertFalse(ProjectionStore.sameContent(payload(), new CompanionPayloads.Projection(
                 DESTINATION, APERTURE_ORIGIN, aperture(), 0, 2, ORIGIN,
                 SIZE_X, SIZE_Y, SIZE_Z, states(), light(),
-                0x78A7FF, 0x010203, 0x79C05A, 0x59AE30, 0x3F76E4, AMBIENT)));
+                0x78A7FF, 0x010203, TINTS, COLUMNS, AMBIENT)));
     }
 
     /** The opening grew: the clip rectangle the mesh is cut against is stale. */
@@ -129,7 +155,7 @@ class ProjectionStoreTest {
                 DESTINATION, APERTURE_ORIGIN,
                 List.of(APERTURE_ORIGIN, APERTURE_ORIGIN.up(), APERTURE_ORIGIN.up(2), APERTURE_ORIGIN.up(3)),
                 0, 2, ORIGIN, SIZE_X, SIZE_Y, SIZE_Z, states(), light(),
-                0x78A7FF, 0xC0D8FF, 0x79C05A, 0x59AE30, 0x3F76E4, AMBIENT)));
+                0x78A7FF, 0xC0D8FF, TINTS, COLUMNS, AMBIENT)));
     }
 
     @Test
@@ -137,7 +163,7 @@ class ProjectionStoreTest {
         assertFalse(ProjectionStore.sameContent(payload(), new CompanionPayloads.Projection(
                 DESTINATION, APERTURE_ORIGIN, aperture(), 0, 2, ORIGIN.east(),
                 SIZE_X, SIZE_Y, SIZE_Z, states(), light(),
-                0x78A7FF, 0xC0D8FF, 0x79C05A, 0x59AE30, 0x3F76E4, AMBIENT)));
+                0x78A7FF, 0xC0D8FF, TINTS, COLUMNS, AMBIENT)));
     }
 
     @Test
@@ -145,7 +171,7 @@ class ProjectionStoreTest {
         assertFalse(ProjectionStore.sameContent(payload(), new CompanionPayloads.Projection(
                 DESTINATION, APERTURE_ORIGIN, aperture(), 0, 3, ORIGIN,
                 SIZE_X, SIZE_Y, SIZE_Z, states(), light(),
-                0x78A7FF, 0xC0D8FF, 0x79C05A, 0x59AE30, 0x3F76E4, AMBIENT)));
+                0x78A7FF, 0xC0D8FF, TINTS, COLUMNS, AMBIENT)));
     }
 
     @Test
@@ -153,7 +179,7 @@ class ProjectionStoreTest {
         assertFalse(ProjectionStore.sameContent(payload(), new CompanionPayloads.Projection(
                 Identifier.of("adventure", "the_violet_spire"), APERTURE_ORIGIN, aperture(), 0, 2, ORIGIN,
                 SIZE_X, SIZE_Y, SIZE_Z, states(), light(),
-                0x78A7FF, 0xC0D8FF, 0x79C05A, 0x59AE30, 0x3F76E4, AMBIENT)));
+                0x78A7FF, 0xC0D8FF, TINTS, COLUMNS, AMBIENT)));
     }
 
     /** The lift is baked into the mesh's light levels, so a change must rebuild. */
@@ -162,7 +188,7 @@ class ProjectionStoreTest {
         assertFalse(ProjectionStore.sameContent(payload(), new CompanionPayloads.Projection(
                 DESTINATION, APERTURE_ORIGIN, aperture(), 0, 2, ORIGIN,
                 SIZE_X, SIZE_Y, SIZE_Z, states(), light(),
-                0x78A7FF, 0xC0D8FF, 0x79C05A, 0x59AE30, 0x3F76E4, 0.4f)));
+                0x78A7FF, 0xC0D8FF, TINTS, COLUMNS, 0.4f)));
     }
 
     /** Nothing held yet is not a match; the first payload must be stored. */

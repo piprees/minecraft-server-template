@@ -121,6 +121,26 @@ public final class ProjectionStream {
             }
         }
 
+        CompanionPayloads.Projection.TintGrid tints =
+                new CompanionPayloads.Projection.TintGrid(sizeX, sizeZ);
+        for (int x = 0; x < sizeX; x++) {
+            for (int z = 0; z < sizeZ; z++) {
+                int top = CompanionPayloads.Projection.topSolid(states, sizeY, sizeZ, x, z, airId);
+                if (top < 0) {
+                    continue;
+                }
+                source.set(minX + x, minY + top, minZ + z);
+                BlockPos target = ProjectionVolume.toTarget(source, mapping, arrivalY);
+                Biome biome = biomeAt(targetWorld, target, chunks);
+                if (biome != null) {
+                    tints.set(x, z,
+                            biome.getGrassColorAt(target.getX(), target.getZ()),
+                            biome.getFoliageColor(),
+                            biome.getWaterColor());
+                }
+            }
+        }
+
         BlockPos arrival = new BlockPos(mapping.arrivalX(), arrivalY, mapping.arrivalZ());
         Biome biome = biomeAt(targetWorld, arrival, chunks);
         int configuredSky = configuredColour(targetWorld, true);
@@ -136,11 +156,10 @@ public final class ProjectionStream {
                 states, light,
                 DestinationGlow.preferConfigured(configuredSky, biome == null ? -1 : biome.getSkyColor()),
                 DestinationGlow.preferConfigured(configuredFog, biome == null ? -1 : biome.getFogColor()),
-                biome == null ? -1 : biome.getGrassColorAt(arrival.getX(), arrival.getZ()),
-                biome == null ? -1 : biome.getFoliageColor(),
-                biome == null ? -1 : biome.getWaterColor(),
+                tints.palette(), tints.columns(),
                 targetWorld.getDimension().ambientLight());
     }
+
 
     /**
      * The geometry-only description a client rendering the destination itself
@@ -214,10 +233,9 @@ public final class ProjectionStream {
     }
 
     /**
-     * The destination biome at the arrival column. One biome for the whole
-     * volume rather than one per cell: a portal frames a place, and a per-cell
-     * biome grid would treble the payload for a difference visible only across
-     * a biome edge inside the preview.
+     * The destination biome at one position, null when its chunk is not
+     * resident. Reads the cache the block sweep already filled, so a column
+     * that contributed blocks costs no lookup of its own.
      */
     private static Biome biomeAt(ServerWorld world, BlockPos at, Map<Long, WorldChunk> chunks) {
         WorldChunk chunk = chunkAt(world, at, chunks);

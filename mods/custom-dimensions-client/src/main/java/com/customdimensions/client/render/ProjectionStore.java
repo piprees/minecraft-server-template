@@ -89,9 +89,8 @@ public final class ProjectionStore {
                 && Arrays.equals(a.light(), b.light())
                 && a.skyColor() == b.skyColor()
                 && a.fogColor() == b.fogColor()
-                && a.grassColor() == b.grassColor()
-                && a.foliageColor() == b.foliageColor()
-                && a.waterColor() == b.waterColor()
+                && Arrays.equals(a.tintPalette(), b.tintPalette())
+                && Arrays.equals(a.columnTints(), b.columnTints())
                 && Float.compare(a.ambientLight(), b.ambientLight()) == 0;
     }
 

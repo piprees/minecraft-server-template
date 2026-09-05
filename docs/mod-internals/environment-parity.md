@@ -60,27 +60,29 @@ sync or is explicitly on the wire.
 as the seed roller's assumed floor. `skyColor` and `fogColor` have a third:
 the seed viewer draws them as swatches (`web/ViewerPage.java:56-57`, `:920-926`).
 
-## The five colours on the wire
+## The colours on the wire
 
-Sky and fog prefer the CONFIG; the three tints are biome-only.
+Sky and fog prefer the CONFIG and serve the whole volume; the three tints are
+biome-only and are carried per COLUMN.
 
 | wire field | source | file:line |
 | --- | --- | --- |
-| `skyColor` | `environment.skyColor` when it parses as six hex digits, else the arrival biome's `getSkyColor()` | `ProjectionStream:136`, `:178` |
-| `fogColor` | `environment.fogColor` when it parses, else the arrival biome's `getFogColor()` | `ProjectionStream:137`, `:179` |
-| `grassColor` | biome at the arrival column, always | `ProjectionStream:138` |
-| `foliageColor` | biome at the arrival column, always | `ProjectionStream:139` |
-| `waterColor` | biome at the arrival column, always | `ProjectionStream:140` |
+| `skyColor` | `environment.skyColor` when it parses as six hex digits, else the arrival biome's `getSkyColor()` | `ProjectionStream:157`, `:199` |
+| `fogColor` | `environment.fogColor` when it parses, else the arrival biome's `getFogColor()` | `ProjectionStream:158`, `:200` |
+| `tintPalette` / `columnTints` | grass, foliage and water of the biome at each column's TOP NON-AIR block | `ProjectionStream:129-146` |
 
-`configuredColour` (`:235-243`) returns -1 for an absent, blank, non-six-digit
+`configuredColour` (`:255-263`) returns -1 for an absent, blank, non-six-digit
 or non-hex value, which is the same sentinel as "no biome resolved", so an
-unparseable authored colour falls back to the biome silently. One biome serves
-the whole volume — the arrival column's, sampled once per payload
-(`ProjectionStream.biomeAt:220-228`). There are no `grassColor`, `foliageColor`
-or `waterColor` fields in `Environment` to override them with.
+unparseable authored colour falls back to the biome silently. There are no
+grass, foliage or water fields in `Environment` to override the tints with.
 
-The client consumes them at `render/ProjectionView.getColor:85-95` (the three
-tints, falling through to the source world when -1) and
+A column whose destination chunk is not resident, or that holds no blocks,
+indexes the palette's -1 triple; it has no surface to draw a tint on either.
+`ProjectionStream.biomeAt:240-248` reads the chunk cache the block sweep
+already filled and never loads.
+
+The client consumes them at `render/ProjectionView.getColor:95-108` (the tints,
+by column, falling through to the source world when -1) and
 `render/ProjectionRenderer.backdropPolygon:474-478` (fog, falling back to sky,
 then to black).
 

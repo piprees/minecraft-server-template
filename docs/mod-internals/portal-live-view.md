@@ -15,11 +15,12 @@ wire format, and says which. The nexus rig is the reference: overworld frame at
 ```
 destination, apertureOrigin, aperture, portalAxis, normal, origin,
 sizeX, sizeY, sizeZ, states[], light[], skyColor, fogColor,
-grassColor, foliageColor, waterColor
+tintPalette[], columnTints[], ambientLight
 ```
 
-**Only `states[]` and `light[]` can change.** The five colours are sampled once
-per payload, the rest is geometry. Nothing in the record can carry an entity, a
+**Only `states[]` and `light[]` can change.** The colours are sampled once per
+payload — sky and fog for the whole volume, grass, foliage and water per column
+from the biome at that column's top block — and the rest is geometry. Nothing in the record can carry an entity, a
 sky, a time of day or a weather state, so those are absent by construction
 rather than slow — no refresh rate reaches them.
 

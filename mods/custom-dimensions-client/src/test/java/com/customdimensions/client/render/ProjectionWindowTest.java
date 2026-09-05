@@ -166,7 +166,7 @@ class ProjectionWindowTest {
                 sizeOn(Direction.Axis.Y, normalAxis, axisA),
                 sizeOn(Direction.Axis.Z, normalAxis, axisA),
                 new int[0], new byte[0],
-                -1, -1, -1, -1, -1, -1.0f));
+                -1, -1, new int[0], new int[0], -1.0f));
     }
 
     private static int sizeOn(Direction.Axis axis, Direction.Axis normalAxis, Direction.Axis axisA) {

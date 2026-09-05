@@ -115,6 +115,6 @@ class ClientProjectionBandTest {
                 Direction.Axis.X.ordinal(), Direction.SOUTH.ordinal(),
                 new BlockPos(1492, 93, 1501), 18, 19, 24,
                 new int[0], new byte[0],
-                -1, -1, -1, -1, -1, -1.0f));
+                -1, -1, new int[0], new int[0], -1.0f));
     }
 }
