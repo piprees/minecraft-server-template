@@ -321,10 +321,13 @@ public final class ProjectionRenderer {
 
         double surface = projection.surfaceOffset();
         StringBuilder report = sample ? new StringBuilder() : null;
-        if (report != null && slice != null) {
-            recordSample(projection, corners, camX, camY, camZ, facing, camera, position,
-                    projectionMatrix, slice);
-        }
+        // Worked out before the draw so the read below knows its pixel, and read
+        // after it so the value is the one the destination's own fragments left.
+        double[] ndc = report != null && slice != null
+                ? DepthReconstruction.centreNdc(position, projectionMatrix, corners,
+                        camX, camY, camZ)
+                : null;
+        double[] drawnDepth = {Double.NaN};
         int stamp = runPass(new PortalPass() {
             @Override
             public void applyDepthRange(double near, double far) {
@@ -375,6 +378,9 @@ public final class ProjectionRenderer {
                                 .append(" drawn=true");
                     }
                 }
+                if (ndc != null) {
+                    drawnDepth[0] = DepthReconstruction.readWindowDepth(ndc[0], ndc[1]);
+                }
             }
 
             @Override
@@ -390,6 +396,16 @@ public final class ProjectionRenderer {
                 // an actor at true depth can test against.
                 return RealtimeControls.settings().apertureMeshDepth()
                         && RealtimeControls.settings().apertureFarStampEarly();
+            }
+
+            @Override
+            public boolean destinationAtTrueDepth() {
+                // Off. It fixes the shading and costs an X-ray: the far stamp
+                // it tests against writes with an always-pass test, so anything
+                // standing between the eye and the doorway loses its depth and
+                // the destination paints over it ({@code TROUBLESHOOTING.md#t100}).
+                // Measured on a glowstone wall in front of the frame, both jars.
+                return false;
             }
 
             @Override
@@ -428,6 +444,9 @@ public final class ProjectionRenderer {
         }, projection, origin, slice, stage);
         stampCalls[stage.ordinal()]++;
         stampCorners[stage.ordinal()] = stamp;
+        if (ndc != null) {
+            recordSample(camera, position, projectionMatrix, ndc, slice[0], drawnDepth[0]);
+        }
 
         // Written after the draws, so a line at all means every draw returned.
         if (report != null) {
@@ -701,12 +720,17 @@ public final class ProjectionRenderer {
      * after the destination is already on screen, so any colour they painted
      * would land on top of it, and the depth range is restored by then.
      *
-     * <p>The actors go last and outside the range when the pass asks for it,
-     * which only {@code DESTINATION_FAR} can honour: their shading is computed
-     * in the forward pass from their own fragment depth, so a slice that hides
-     * the distance from a pack darkens them ({@code TROUBLESHOOTING.md#t100}).
-     * They still need something to test against, which is the mesh's own depth
-     * that stage leaves behind.
+     * <p>The destination and the actors alike go last and outside the range when
+     * the pass asks for it, which only {@code DESTINATION_FAR} can honour: both
+     * are shaded in the forward pass from their own fragment depth, so a slice
+     * that hides the distance from a pack shades the whole opening at the
+     * doorway ({@code TROUBLESHOOTING.md#t100}). The far stamp runs before them
+     * and is what covers the source world's own blocks behind the opening,
+     * which is the other thing the slice was doing.
+     *
+     * <p>The backdrop stays inside the range. It is the destination's sky, cast
+     * onto a plane past the far end of the slab, and at its own depth it loses
+     * to the source world's terrain the moment the portal is cut into anything.
      *
      * <p>Returns the stamp's corner count.
      */
@@ -718,16 +742,19 @@ public final class ProjectionRenderer {
             return pass.drawStamp(planeLocal);
         }
         if (stage == PortalPass.Stage.FAR_DEPTH) {
-            return farDepth(pass, planeLocal, shift);
+            return farDepth(pass, planeLocal, shift, false);
         }
-        boolean actorsLast = stage == PortalPass.Stage.DESTINATION_FAR
-                && pass.actorsAtTrueDepth();
+        boolean far = stage == PortalPass.Stage.DESTINATION_FAR;
+        boolean actorsLast = far && pass.actorsAtTrueDepth();
+        boolean destinationLast = far && pass.destinationAtTrueDepth();
         if (slice != null) {
             pass.applyDepthRange(slice[0], slice[1]);
         }
         try {
             pass.drawBackdrop(planeLocal);
-            pass.drawDestination(shift[0], shift[1], shift[2]);
+            if (!destinationLast) {
+                pass.drawDestination(shift[0], shift[1], shift[2]);
+            }
             if (!actorsLast) {
                 pass.drawActors();
             }
@@ -736,10 +763,10 @@ public final class ProjectionRenderer {
                 pass.restoreDepthRange();
             }
         }
-        if (stage != PortalPass.Stage.DESTINATION_FAR) {
+        if (!far) {
             return pass.drawStamp(planeLocal);
         }
-        int corners = farDepth(pass, planeLocal, shift);
+        int corners = farDepth(pass, planeLocal, shift, destinationLast);
         if (actorsLast) {
             pass.drawActors();
         }
@@ -747,12 +774,19 @@ public final class ProjectionRenderer {
     }
 
     /**
-     * The far stamp, then the destination's own depth over it. The order is the
-     * invariant: the stamp writes with an always-pass test, so drawn second it
-     * erases the per-pixel depth it exists to be a fallback for.
+     * The far stamp, the destination's colour where the pass asked for it at its
+     * own depth, then the destination's own depth over both. Two orderings are
+     * invariants: the stamp writes with an always-pass test, so drawn after the
+     * mesh depth it erases the per-pixel depth it exists to be a fallback for;
+     * and the colour draw needs the stamp already down, or it tests against
+     * whatever the source world holds behind the opening and is cut away.
      */
-    private static int farDepth(PortalPass pass, double planeLocal, double[] shift) {
+    private static int farDepth(PortalPass pass, double planeLocal, double[] shift,
+            boolean colour) {
         int corners = pass.drawFarStamp(planeLocal);
+        if (colour) {
+            pass.drawDestination(shift[0], shift[1], shift[2]);
+        }
         pass.drawDestinationDepth(shift[0], shift[1], shift[2]);
         return corners;
     }
@@ -859,38 +893,35 @@ public final class ProjectionRenderer {
     }
 
     /**
-     * Where a screen-space pass puts the middle of this opening: the aperture's
-     * centre in window coordinates at the slice's near depth, inverted back
-     * through the frame's own matrices. Recorded on the emit line's cadence and
-     * read by {@code /state}.
+     * Where a screen-space pass puts the middle of this opening: the depth the
+     * buffer holds at the aperture's centre once the destination has drawn,
+     * inverted back through the frame's own matrices. Recorded on the emit
+     * line's cadence and read by {@code /state}.
      *
-     * <p>The whole opening reconstructs to about this one point, a couple of
-     * blocks from the eye, whatever the destination behind it holds — which is
-     * the defect the slice causes and the reason the block it lands on is worth
-     * printing.
+     * <p>{@code sliceZ} is carried alongside it because it is what the same
+     * pixel reports when the destination is drawn inside the compressed range:
+     * the whole opening reconstructing to one point a couple of blocks from the
+     * eye, whatever the destination behind it holds.
      */
-    private static void recordSample(ClientProjection projection, double[] corners,
-            double camX, double camY, double camZ, double facing,
-            Vec3d camera, Matrix4f position, Matrix4f projectionMatrix, double[] slice) {
-        double[] ndc = DepthReconstruction.centreNdc(position, projectionMatrix, corners,
-                camX, camY, camZ);
-        if (ndc == null) {
-            return;
-        }
+    private static void recordSample(Vec3d camera, Matrix4f position, Matrix4f projectionMatrix,
+            double[] ndc, double sliceZ, double windowZ) {
         double[] point = DepthReconstruction.unproject(position, projectionMatrix,
-                ndc[0], ndc[1], slice[0]);
+                ndc[0], ndc[1], Double.isNaN(windowZ) ? sliceZ : windowZ);
         if (point == null) {
             return;
         }
         double[] far = DepthReconstruction.unproject(position, projectionMatrix,
                 ndc[0], ndc[1], FAR_STAMP_DEPTH);
-        double farDistance = far == null ? Double.NaN : DepthReconstruction.distance(far);
-        DepthReconstruction.record(new DepthReconstruction.Sample(slice[0], ndc[0], ndc[1],
+        double[] atSlice = DepthReconstruction.unproject(position, projectionMatrix,
+                ndc[0], ndc[1], sliceZ);
+        DepthReconstruction.record(new DepthReconstruction.Sample(windowZ, ndc[0], ndc[1],
                 point[0], point[1], point[2], DepthReconstruction.distance(point),
                 (int) Math.floor(camera.x + point[0]),
                 (int) Math.floor(camera.y + point[1]),
                 (int) Math.floor(camera.z + point[2]),
-                farDistance));
+                far == null ? Double.NaN : DepthReconstruction.distance(far),
+                sliceZ,
+                atSlice == null ? Double.NaN : DepthReconstruction.distance(atSlice)));
     }
 
     /**

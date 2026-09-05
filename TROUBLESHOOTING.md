@@ -1711,16 +1711,16 @@ measurement of it.
 - **Its cost is the pass running the clip a second time**: the emit line's
   `renderUs` goes 1727 -> 4238 microseconds per frame at the measurement camera,
   about 2.5 ms. That is the mod's own pass, not the whole frame.
-- **All three switches ship OFF.**
+- **All five aperture switches ship ON** (`RealtimeSettings` defaults).
 - **With no pack the switch is bit-identical** — 0 changed pixels, maxDelta 0,
   inside the opening and out, on the same jar with `enableShaders` flipped.
-- **An entity needs a different fix from the terrain, because it reads a
-  different thing.** Terrain shading comes from the deferred passes, which read
-  the depth BUFFER the stamps repair. An entity is shaded in the forward pass,
-  from its OWN fragment's `gl_FragCoord.z`, which no stamp reaches. Measured on
-  one cow, camera H, 25-chunk feed, all three switches off then on: the opening
-  moves 23.52% of its pixels against a 0.68% floor and its luma std 24.3 -> 32.3,
-  while the cow moves 1.1 luma against a 0.8 floor.
+- **The stamps repair the depth BUFFER, and the forward pass never reads it.**
+  The mesh is submitted on entity layers ([T98](#t98)), so a pack shades it in
+  `gbuffers_entities` from its own fragment's `gl_FragCoord.z` exactly as it
+  shades an actor — and inside the slice that value says "at the doorway".
+  Measured on one cow, camera H, 25-chunk feed, all three switches off then on:
+  the opening moves 23.52% of its pixels against a 0.68% floor and its luma std
+  24.3 -> 32.3, while the cow moves 1.1 luma against a 0.8 floor.
 - **`drawActors` is that fix.** With `apertureFarStampEarly` and
   `apertureMeshDepth` both on, the actors are drawn after the far stamp and the
   mesh's own per-pixel depth, outside the slice, so they rasterise at their true
@@ -1729,6 +1729,38 @@ measurement of it.
   head-on and oblique then agree at 107.8 against 106.1, a 1.7 gap on an
   1.8 same-camera floor. Off without both switches: the mesh's own depth is the
   only thing an actor at true depth can test against.
+- **The same move on the TERRAIN fixes the shading and costs an X-ray, so it
+  ships off.** `PortalPass.destinationAtTrueDepth` draws the destination's colour
+  after the far stamp instead of inside the slice. Measured by camera sweep at
+  four stations, reconstruction against the doorway distance:
+
+  | station | doorway | in the slice | at true depth |
+  | --- | --- | --- | --- |
+  | front6 | 6.0 | 5.73 | 16.09 |
+  | back6 | 6.0 | 4.74 | 14.37 |
+  | front10 | 10.0 | 8.44 | 17.42 |
+  | back10 | 10.0 | 8.72 | 19.65 |
+
+  Every station goes from PINNED to BEHIND THE DOORWAY and the reconstructed
+  block moves from the portal block to real projected geometry 8-12 blocks past
+  it. **The cost:** the far stamp it now tests against writes with an always-pass
+  test, so anything between the eye and the doorway loses its depth and the
+  projection paints over it. A glowstone wall filling the sightline is solid on
+  the slice draw and transparent on the true-depth draw
+  (`scratchpad/sweeps/after-mortise/bleed-wall*.png`). Actors already have this
+  cost; giving it to the terrain trades a shadow for seeing through walls.
+- **The instrument is `/state.realtime.apertureSample`.** `windowZ`/`distance`
+  are READ back from the depth buffer at the opening's centre the moment the
+  colour draw returns — what a screen-space pass reads, not a model of it — and
+  `sliceZ`/`sliceDistance` carry the same pixel's slice-compressed figure beside
+  them. `scripts/e2e/e2e-camera-sweep.sh` sweeps yaw and pitch from a fixed eye
+  and `camera-sweep-check.py` prints both columns with the verdict.
+- **A fix that keeps both is not expressible in fixed-function depth.** It needs
+  "write far only where nothing is in front", which is a conditional depth write;
+  1.21.1's framebuffer has no stencil ([T97](#t97)). The untried shape is drawing
+  the colour BEFORE the far stamp with the backdrop's depth write suppressed —
+  near occluders survive, at the cost of the destination losing to source terrain
+  the opening is cut into.
 
 <a id="t99"></a>
 ### T99 — An entity layer shades a portal's backdrop with the SOURCE world's light and fog

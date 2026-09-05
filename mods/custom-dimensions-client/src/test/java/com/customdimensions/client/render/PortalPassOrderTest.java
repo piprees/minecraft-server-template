@@ -20,9 +20,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * <p>Two invariants live here that nothing else in this module can reach. The
  * stamp must be drawn AFTER the depth range is restored, or {@code
  * glDepthRange} remaps it to the band's far edge and it occludes nothing
- * inside the band. The backdrop and the destination must be drawn INSIDE the
- * range, or the backdrop tests at its own distance twenty-odd blocks behind
- * the plane and loses to everything.
+ * inside the band. The backdrop must be drawn INSIDE the range, or it tests at
+ * its own distance twenty-odd blocks behind the plane and loses to everything.
  *
  * <p>Both were previously provable only by screenshot, because expressing
  * either in terms of {@link PortalRenderLayers} means loading a class whose
@@ -107,16 +106,38 @@ class PortalPassOrderTest {
                 "drawStamp"), pass.script);
     }
 
+    /**
+     * The backdrop always, whatever either true-depth flag says. It is the
+     * destination's sky on a plane past the far end of the slab, and at its own
+     * depth it loses to any source terrain the opening is cut into.
+     */
     @Test
-    void theBackdropAndDestinationAreDrawnInsideTheRange() {
+    void theBackdropIsDrawnInsideTheRangeWhateverElseLeavesIt() {
+        for (boolean trueDepth : List.of(false, true)) {
+            Recorder pass = new Recorder();
+            pass.destinationAtTrueDepth = trueDepth;
+            pass.actorsAtTrueDepth = trueDepth;
+
+            ProjectionRenderer.runPass(pass, PROJECTION, ORIGIN, SLICE,
+                    PortalPass.Stage.DESTINATION_FAR);
+
+            int applied = pass.script.indexOf("applyDepthRange 0.25 0.75");
+            int restored = pass.script.indexOf("restoreDepthRange");
+            assertTrue(applied >= 0 && restored > applied,
+                    "the range was never applied then restored: " + pass.script);
+            assertTrue(pass.script.indexOf("drawBackdrop") > applied
+                            && pass.script.indexOf("drawBackdrop") < restored,
+                    "the backdrop was drawn outside the applied range: " + pass.script);
+        }
+    }
+
+    /** Unasked, the destination stays where the backdrop is: inside the range. */
+    @Test
+    void theDestinationStaysInsideTheRangeWhenThePassDoesNotAskForIt() {
         Recorder pass = new Recorder();
         ProjectionRenderer.runPass(pass, PROJECTION, ORIGIN, SLICE, PortalPass.Stage.DESTINATION);
         int applied = pass.script.indexOf("applyDepthRange 0.25 0.75");
         int restored = pass.script.indexOf("restoreDepthRange");
-        assertTrue(applied >= 0 && restored > applied, "the range was never applied then restored");
-        assertTrue(pass.script.indexOf("drawBackdrop") > applied
-                        && pass.script.indexOf("drawBackdrop") < restored,
-                "the backdrop was drawn outside the applied range: " + pass.script);
         assertTrue(pass.script.indexOf("drawDestination") > applied
                         && pass.script.indexOf("drawDestination") < restored,
                 "the destination was drawn outside the applied range: " + pass.script);
@@ -338,6 +359,68 @@ class PortalPassOrderTest {
                 "drawActors"), pass.script);
     }
 
+    /**
+     * The mesh reaches a pack on entity layers, so it is shaded in the forward
+     * pass from its own fragment's depth exactly as an actor is. Inside the
+     * slice that depth says "at the doorway" for every pixel of the opening, so
+     * the colour draw goes after the far stamp — which is what then covers the
+     * source world's blocks behind the opening — and before the mesh's own
+     * depth, which an actor tests against.
+     */
+    @Test
+    void theDestinationGoesAfterTheFarStampWhenThePassAsksForIt() {
+        Recorder pass = new Recorder();
+        pass.destinationAtTrueDepth = true;
+        pass.actorsAtTrueDepth = true;
+
+        ProjectionRenderer.runPass(pass, PROJECTION, ORIGIN, SLICE,
+                PortalPass.Stage.DESTINATION_FAR);
+
+        assertEquals(List.of(
+                "applyDepthRange 0.25 0.75",
+                "drawBackdrop",
+                "restoreDepthRange",
+                "drawFarStamp",
+                "drawDestination",
+                "drawDestinationDepth",
+                "drawActors"), pass.script);
+    }
+
+    /**
+     * Only the far stage can honour it. The near stage closes with a stamp on
+     * the surface and never draws a far one, so a destination at its own depth
+     * would test against the source world's blocks behind the opening.
+     */
+    @Test
+    void theNearDestinationStageKeepsTheDestinationInsideTheRangeEvenWhenAsked() {
+        Recorder pass = new Recorder();
+        pass.destinationAtTrueDepth = true;
+
+        ProjectionRenderer.runPass(pass, PROJECTION, ORIGIN, SLICE, PortalPass.Stage.DESTINATION);
+
+        int destination = pass.script.indexOf("drawDestination");
+        assertTrue(destination > pass.script.indexOf("applyDepthRange 0.25 0.75")
+                        && destination < pass.script.indexOf("restoreDepthRange"),
+                "the near stage moved the destination past its own stamp: " + pass.script);
+    }
+
+    /** Once per stage that draws it, whichever depth it is drawn at. */
+    @Test
+    void theDestinationIsDrawnOnceByEveryStageThatDrawsIt() {
+        for (PortalPass.Stage stage : PortalPass.Stage.values()) {
+            for (boolean trueDepth : List.of(false, true)) {
+                Recorder pass = new Recorder();
+                pass.destinationAtTrueDepth = trueDepth;
+
+                ProjectionRenderer.runPass(pass, PROJECTION, ORIGIN, SLICE, stage);
+
+                long drawn = pass.script.stream().filter("drawDestination"::equals).count();
+                assertEquals(stage.drawsDestination() ? 1L : 0L, drawn,
+                        stage + " trueDepth=" + trueDepth + ": " + pass.script);
+            }
+        }
+    }
+
     /** Unasked, they stay where the terrain is: inside the range. */
     @Test
     void theActorsStayInsideTheRangeWhenThePassDoesNotAskForIt() {
@@ -430,6 +513,7 @@ class PortalPassOrderTest {
         private int stampCorners;
         private String throwFrom;
         private boolean actorsAtTrueDepth;
+        private boolean destinationAtTrueDepth;
 
         private void record(String call, String detail) {
             script.add(call);
@@ -484,6 +568,11 @@ class PortalPassOrderTest {
         @Override
         public boolean actorsAtTrueDepth() {
             return actorsAtTrueDepth;
+        }
+
+        @Override
+        public boolean destinationAtTrueDepth() {
+            return destinationAtTrueDepth;
         }
     }
 }

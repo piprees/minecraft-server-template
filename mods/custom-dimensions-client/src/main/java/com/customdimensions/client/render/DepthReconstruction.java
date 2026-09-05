@@ -2,6 +2,7 @@ package com.customdimensions.client.render;
 
 import org.joml.Matrix4f;
 import org.joml.Vector4f;
+import org.lwjgl.opengl.GL11;
 
 /**
  * Where a screen-space pass puts one of our fragments.
@@ -21,15 +22,22 @@ public final class DepthReconstruction {
     private DepthReconstruction() {}
 
     /**
-     * One reconstruction, as {@code /state} reports it. {@code distance} is the
-     * number a pack compares against its shadow distance and integrates its
-     * light shafts to, and {@code farDistance} is what the far stamp's own
-     * plane reconstructs to down the same pixel.
+     * One reconstruction, as {@code /state} reports it. {@code windowZ} is READ
+     * back from the depth buffer at the opening's centre the moment the
+     * destination's colour draw finishes, so {@code distance} is the number a
+     * pack compares against its shadow distance and integrates its light shafts
+     * to. {@code farDistance} is what the far stamp's own plane reconstructs to
+     * down the same pixel.
+     *
+     * <p>{@code sliceZ} and {@code sliceDistance} are the same reconstruction at
+     * the near edge of the compressed slice — where the draw lands when it is
+     * made inside the range rather than at its own depth. The two sit side by
+     * side because the difference between them is the whole defect.
      */
     public record Sample(double windowZ, double ndcX, double ndcY,
             double x, double y, double z, double distance,
             int blockX, int blockY, int blockZ,
-            double farDistance) {}
+            double farDistance, double sliceZ, double sliceDistance) {}
 
     private static volatile Sample last;
 
@@ -92,6 +100,35 @@ public final class DepthReconstruction {
             }
         }
         return out;
+    }
+
+    /**
+     * The depth the bound framebuffer holds at one point in normalised device
+     * coordinates, or NaN off screen. This is the value itself, not a model of
+     * it: a screen-space pass reads the same texel.
+     *
+     * <p>The viewport is asked for rather than the window size, because under a
+     * shader pack the framebuffer being drawn into is the pack's own and need
+     * not match either the window or vanilla's main target.
+     *
+     * <p>A one-pixel read synchronises the pipeline, so it belongs on the emit
+     * line's cadence and nowhere near every frame.
+     */
+    static double readWindowDepth(double ndcX, double ndcY) {
+        int[] viewport = new int[4];
+        GL11.glGetIntegerv(GL11.GL_VIEWPORT, viewport);
+        if (viewport[2] <= 0 || viewport[3] <= 0) {
+            return Double.NaN;
+        }
+        int x = (int) Math.round((ndcX + 1.0) / 2.0 * viewport[2]);
+        int y = (int) Math.round((ndcY + 1.0) / 2.0 * viewport[3]);
+        if (x < 0 || y < 0 || x >= viewport[2] || y >= viewport[3]) {
+            return Double.NaN;
+        }
+        float[] depth = new float[1];
+        GL11.glReadPixels(viewport[0] + x, viewport[1] + y, 1, 1,
+                GL11.GL_DEPTH_COMPONENT, GL11.GL_FLOAT, depth);
+        return depth[0];
     }
 
     /** How far from the eye a camera-relative point is. */

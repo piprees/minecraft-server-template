@@ -105,7 +105,8 @@ def main():
     print("RECONSTRUCTED DEPTH OF THE OPENING (what a pack reads, in blocks)")
     print("  The station distance is how far the doorway is. The projection")
     print("  behind it is tens of blocks further, and reads as neither.\n")
-    print(f"  {'station':<20} {'n':>3} {'dist':>6} {'recon':>7} {'swing':>7} {'far':>9}")
+    print(f"  {'station':<20} {'n':>3} {'dist':>6} {'recon':>7} {'swing':>7} {'slice':>7}"
+          f" {'far':>9}")
     for name, group in sorted(stations.items()):
         vals = [r["reconDistance"] for r in group
                 if isinstance(r.get("reconDistance"), (int, float))]
@@ -114,8 +115,14 @@ def main():
             continue
         far = [r["farDistance"] for r in group
                if isinstance(r.get("farDistance"), (int, float))]
+        # What the same pixel reports when the destination is drawn inside the
+        # compressed range instead. Absent from a sweep taken before the field
+        # existed, and then simply blank.
+        sl = [r["sliceDistance"] for r in group
+              if isinstance(r.get("sliceDistance"), (int, float))]
         print(f"  {name:<20} {len(vals):>3} {group[0].get('dist', 0):>6}"
               f" {st.fmean(vals):>7.2f} {max(vals) - min(vals):>7.2f}"
+              f" {(f'{st.fmean(sl):.2f}' if sl else '-'):>7}"
               f" {(st.fmean(far) if far else float('nan')):>9.1f}")
     print()
 

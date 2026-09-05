@@ -52,13 +52,29 @@ public interface PortalPass {
     void drawDestination(double shiftX, double shiftY, double shiftZ);
 
     /**
+     * Whether {@link #drawDestination} goes after the far stamp at its own
+     * depth instead of inside the slice.
+     *
+     * <p>The mesh is submitted on entity layers, so a pack shades it in the
+     * forward pass from its own fragment's {@code gl_FragCoord.z} exactly as it
+     * shades an actor, and inside {@code glDepthRange(slice)} that value says
+     * "at the doorway" for the whole opening whatever the terrain behind it
+     * holds ({@code TROUBLESHOOTING.md#t100}). No stamp reaches it: the stamps
+     * repair the depth BUFFER, which a forward pass never reads.
+     *
+     * <p>Only {@link Stage#DESTINATION_FAR} can honour it. The far stamp has to
+     * run first — it is what puts the source world's own blocks behind the
+     * opening, which the slice otherwise does.
+     */
+    boolean destinationAtTrueDepth();
+
+    /**
      * The far side's mobs, players and block entities, through the same opening.
      *
-     * <p>Drawn on its own rather than with the mesh because the two want
-     * different depths. The mesh's colour can sit in the compressed slice — a
-     * pack shades terrain from the depth BUFFER, which the stamps repair. An
-     * actor is shaded in the forward pass, from its OWN fragment's
-     * {@code gl_FragCoord.z}, which no stamp reaches
+     * <p>Drawn on its own rather than with the mesh because an actor has to
+     * test against the mesh's own depth, which only exists once the mesh has
+     * been drawn. Both are shaded in the forward pass from their own fragment's
+     * {@code gl_FragCoord.z} and both go outside the slice for it
      * ({@code TROUBLESHOOTING.md#t100}).
      */
     void drawActors();

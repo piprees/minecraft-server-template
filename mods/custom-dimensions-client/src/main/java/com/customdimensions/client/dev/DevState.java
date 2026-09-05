@@ -196,9 +196,10 @@ final class DevState {
      * Where a screen-space pass puts the middle of the last opening drawn, and
      * what the SOURCE world holds there.
      *
-     * <p>A pack reconstructs a fragment's position from its depth, and the
-     * destination is compressed into a slice at the portal surface, so this one
-     * block is what the whole opening is shaded from.
+     * <p>{@code windowZ} is read back from the depth buffer where the opening's
+     * centre landed; {@code sliceZ} is what the same pixel reports when the
+     * destination is drawn inside the compressed range instead, which pins the
+     * whole opening to one block at the doorway.
      */
     private static String apertureSample(ClientWorld world) {
         DepthReconstruction.Sample sample = DepthReconstruction.last();
@@ -213,6 +214,8 @@ final class DevState {
                 .num("ndcX", sample.ndcX())
                 .num("ndcY", sample.ndcY())
                 .num("distance", sample.distance())
+                .raw("sliceZ", String.format("%.6f", sample.sliceZ()))
+                .num("sliceDistance", sample.sliceDistance())
                 .num("farDistance", sample.farDistance())
                 .raw("farWindowZ", String.format("%.6f", ProjectionRenderer.FAR_STAMP_DEPTH))
                 .raw("cameraRelative", Json.numbers(sample.x(), sample.y(), sample.z()))
