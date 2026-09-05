@@ -551,11 +551,14 @@ work.
   README notes it contains some AI-generated code — a provenance caveat, not a
   licence one, and a reason to read what you take rather than lift it.
 
-**Apache-2.0 is compatible with this project's MIT.** Borrowing is allowed, and it
-carries obligations: retain the copyright notice, include the licence, and
-document what was changed. Anything taken goes in its own file with an Apache
-header and a note saying what was modified — never pasted unattributed into an
-existing file.
+**Read them for insight; implement everything here.** Apache-2.0 is compatible
+with this project's MIT, so lifting code would be permitted — but the ruling is
+that we do not. Nobody owns *how* a problem is solved, and an approach understood
+and then written from scratch against our own architecture is worth more than a
+port: it carries no attribution surface, no provenance question about
+AI-generated sections, and no boundary to maintain between borrowed and native
+code. Where a source's technique informs something here, cite it in the commit
+message as the insight it was, not as a licence obligation.
 
 **Do not expect a shader fix from them.** The fork's own README says the portal
 rendering is *"roughly compatible with some versions of Sodium and Iris"*. That is
