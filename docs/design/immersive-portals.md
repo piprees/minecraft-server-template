@@ -191,12 +191,17 @@ an unfed column. The server copy still arcs at `0.05` blocks/tick². Over one
 corrected as a hard snap five times a second on an object half a block long.
 Shortening the interval reduces it quadratically and never removes it.
 
-**The fix is to suppress `attemptTickInVoid` rather than gravity**, so the
-client's physics matches the server's and the snap corrects only network jitter.
-Dropping `setNoGravity(true)` on its own would trade a bounded, self-correcting
-sawtooth for an unrecoverable loss: an entity over an unfed column has no floor,
-`attemptTickInVoid` answers a long fall with `discard()`, and no later snapshot
-rebuilds it because a still scene sends nothing.
+**RULED: suppress `attemptTickInVoid` rather than gravity**, so the client's
+physics matches the server's and the snap corrects only network jitter. The
+maintainer's standing preference decides it: *"the smoother and most immersive
+option would be best where possible, even if it's a little bit of a performance
+hit or a little more work to get it right."*
+
+Dropping `setNoGravity(true)` on its own is NOT the fix and must not be done
+alone: an entity over an unfed column has no floor, `attemptTickInVoid` answers a
+long fall with `discard()`, and no later snapshot rebuilds it because a still
+scene sends nothing. **Gravity may only be restored once the void discard is
+suppressed for fed entities** — the two changes are one change.
 
 **Only a `LivingEntity` interpolates.** `Entity.updateTrackedPositionAndAngles`
 and `PersistentProjectileEntity`'s override both ignore the step count and call
@@ -233,8 +238,11 @@ later, which is exactly what the acceptance test forbids.
 | The server names the handover explicitly — old id, new id, tick — so the client carries the fed copy across | A new payload, and a seam the client interpolates |
 | Accept the gap | A visible stutter at exactly the moment the acceptance test watches |
 
-**RULED: the server names the handover.** Old id, new id, tick — so the client
-can carry the fed copy across instead of watching it vanish and reappear.
+**RULED: the server names the handover, and the client INSERTS on it.** Old id,
+new id, tick. The maintainer's standing preference — smoothest and most immersive,
+accepting a performance cost and more work — settles the two open choices here:
+the client carries the copy across itself rather than waiting for a snapshot, and
+the cadence is not merely shortened to hide the gap.
 
 **And naming it is not sufficient on its own.** At 3 blocks/tick an arrow crosses
 the plane and the destination feed does not see it for up to `INTERVAL` = 4
