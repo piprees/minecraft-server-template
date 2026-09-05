@@ -1,6 +1,7 @@
 package com.customdimensions.client.render;
 
 import com.customdimensions.client.Repeated;
+import com.customdimensions.client.config.RealtimeControls;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.VertexConsumerProvider;
@@ -213,13 +214,18 @@ public final class ProjectionRenderer {
 
             @Override
             public void drawBackdrop(double surfaceLocal) {
+                if (!RealtimeControls.settings().apertureBackdrop()) {
+                    return;
+                }
                 drawFlat(PortalRenderLayers.BACKDROP, entry, backdropPolygon(projection, TUNNEL,
                         camX, camY, camZ, surfaceLocal, facing, POLY_A, POLY_B), false);
             }
 
             @Override
             public void drawDestination(double shiftX, double shiftY, double shiftZ) {
-                for (ProjectionMesh.Layer layer : mesh.layers()) {
+                for (ProjectionMesh.Layer layer :
+                        RealtimeControls.settings().apertureTerrain()
+                                ? mesh.layers() : java.util.List.<ProjectionMesh.Layer>of()) {
                     VertexConsumer consumer = immediate.getBuffer(layer.layer());
                     int emitted = emitClipped(layer, consumer, entry,
                             (float) shiftX, (float) shiftY, (float) shiftZ);

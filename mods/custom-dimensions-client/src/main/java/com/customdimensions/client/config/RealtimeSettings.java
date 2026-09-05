@@ -22,7 +22,9 @@ public record RealtimeSettings(
         int maxRenderDistance,
         boolean distantHorizons,
         boolean renderServerSidePortals,
-        boolean spectatorPass) {
+        boolean spectatorPass,
+        boolean apertureBackdrop,
+        boolean apertureTerrain) {
 
     /** The schema this version writes. A file below it is migrated on read. */
     public static final int CONFIG_VERSION = 1;
@@ -56,10 +58,18 @@ public record RealtimeSettings(
      */
     public static final boolean DEFAULT_SPECTATOR_PASS = false;
 
+    /**
+     * The two halves of what the opening draws, separable so a portal showing
+     * the wrong thing can be bisected without a rebuild: the fog-coloured quad
+     * behind the far side, and the meshed destination in front of it.
+     */
+    public static final boolean DEFAULT_APERTURE_BACKDROP = true;
+    public static final boolean DEFAULT_APERTURE_TERRAIN = true;
+
     public static final RealtimeSettings DEFAULTS = new RealtimeSettings(
             DEFAULT_RENDER_CLIENT_SIDE_PORTALS, DEFAULT_RENDER_DISTANCE,
             DEFAULT_DISTANT_HORIZONS, DEFAULT_RENDER_SERVER_SIDE_PORTALS,
-            DEFAULT_SPECTATOR_PASS);
+            DEFAULT_SPECTATOR_PASS, DEFAULT_APERTURE_BACKDROP, DEFAULT_APERTURE_TERRAIN);
 
     public RealtimeSettings {
         maxRenderDistance = Math.max(MIN_RENDER_DISTANCE,
@@ -77,27 +87,32 @@ public record RealtimeSettings(
 
     public RealtimeSettings withRenderClientSidePortals(boolean value) {
         return new RealtimeSettings(value, this.maxRenderDistance, this.distantHorizons,
-                this.renderServerSidePortals, this.spectatorPass);
+                this.renderServerSidePortals, this.spectatorPass, this.apertureBackdrop,
+                this.apertureTerrain);
     }
 
     public RealtimeSettings withMaxRenderDistance(int value) {
         return new RealtimeSettings(this.renderClientSidePortals, value, this.distantHorizons,
-                this.renderServerSidePortals, this.spectatorPass);
+                this.renderServerSidePortals, this.spectatorPass, this.apertureBackdrop,
+                this.apertureTerrain);
     }
 
     public RealtimeSettings withDistantHorizons(boolean value) {
         return new RealtimeSettings(this.renderClientSidePortals, this.maxRenderDistance, value,
-                this.renderServerSidePortals, this.spectatorPass);
+                this.renderServerSidePortals, this.spectatorPass, this.apertureBackdrop,
+                this.apertureTerrain);
     }
 
     public RealtimeSettings withRenderServerSidePortals(boolean value) {
         return new RealtimeSettings(this.renderClientSidePortals, this.maxRenderDistance,
-                this.distantHorizons, value, this.spectatorPass);
+                this.distantHorizons, value, this.spectatorPass, this.apertureBackdrop,
+                this.apertureTerrain);
     }
 
     public RealtimeSettings withSpectatorPass(boolean value) {
         return new RealtimeSettings(this.renderClientSidePortals, this.maxRenderDistance,
-                this.distantHorizons, this.renderServerSidePortals, value);
+                this.distantHorizons, this.renderServerSidePortals, value, this.apertureBackdrop,
+                this.apertureTerrain);
     }
 
     /**
@@ -109,6 +124,18 @@ public record RealtimeSettings(
         return withRenderClientSidePortals(!this.renderClientSidePortals);
     }
 
+    public RealtimeSettings withApertureBackdrop(boolean value) {
+        return new RealtimeSettings(this.renderClientSidePortals, this.maxRenderDistance,
+                this.distantHorizons, this.renderServerSidePortals, this.spectatorPass, value,
+                this.apertureTerrain);
+    }
+
+    public RealtimeSettings withApertureTerrain(boolean value) {
+        return new RealtimeSettings(this.renderClientSidePortals, this.maxRenderDistance,
+                this.distantHorizons, this.renderServerSidePortals, this.spectatorPass,
+                this.apertureBackdrop, value);
+    }
+
     public String toJson() {
         return Json.obj()
                 .num("configVersion", CONFIG_VERSION)
@@ -117,6 +144,8 @@ public record RealtimeSettings(
                 .bool("distantHorizons", this.distantHorizons)
                 .bool("renderServerSidePortals", this.renderServerSidePortals)
                 .bool("spectatorPass", this.spectatorPass)
+                .bool("apertureBackdrop", this.apertureBackdrop)
+                .bool("apertureTerrain", this.apertureTerrain)
                 .toString();
     }
 
@@ -141,7 +170,9 @@ public record RealtimeSettings(
                 integer(raw, "maxRenderDistance", DEFAULT_RENDER_DISTANCE),
                 bool(raw, "distantHorizons", DEFAULT_DISTANT_HORIZONS),
                 bool(raw, "renderServerSidePortals", DEFAULT_RENDER_SERVER_SIDE_PORTALS),
-                bool(raw, "spectatorPass", DEFAULT_SPECTATOR_PASS));
+                bool(raw, "spectatorPass", DEFAULT_SPECTATOR_PASS),
+                bool(raw, "apertureBackdrop", DEFAULT_APERTURE_BACKDROP),
+                bool(raw, "apertureTerrain", DEFAULT_APERTURE_TERRAIN));
     }
 
     /**
@@ -169,7 +200,9 @@ public record RealtimeSettings(
                 integer(raw, "maxRenderDistance", DEFAULT_RENDER_DISTANCE),
                 bool(raw, "distantHorizons", DEFAULT_DISTANT_HORIZONS),
                 DEFAULT_RENDER_SERVER_SIDE_PORTALS,
-                DEFAULT_SPECTATOR_PASS);
+                DEFAULT_SPECTATOR_PASS,
+                DEFAULT_APERTURE_BACKDROP,
+                DEFAULT_APERTURE_TERRAIN);
     }
 
     private static int version(Map<String, Object> raw) {

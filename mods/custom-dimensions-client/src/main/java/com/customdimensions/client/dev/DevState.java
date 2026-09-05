@@ -91,6 +91,8 @@ final class DevState {
                 .bool("renderClientSidePortals", settings.renderClientSidePortals())
                 .bool("renderServerSidePortals", settings.renderServerSidePortals())
                 .bool("spectatorPass", settings.spectatorPass())
+                .bool("apertureBackdrop", settings.apertureBackdrop())
+                .bool("apertureTerrain", settings.apertureTerrain())
                 .bool("effectiveServerSide", settings.effectiveServerSide())
                 .bool("clientSideRefused", PortalViewDeclaration.refused())
                 .str("clientSideRefusal", PortalViewDeclaration.reason())

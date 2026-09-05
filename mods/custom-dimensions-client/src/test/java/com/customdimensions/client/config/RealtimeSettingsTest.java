@@ -37,14 +37,14 @@ class RealtimeSettingsTest {
 
     @Test
     void clientSideOnMakesTheServerSideSettingIrrelevant() {
-        assertFalse(new RealtimeSettings(true, 16, true, true, false).effectiveServerSide());
-        assertFalse(new RealtimeSettings(true, 16, true, false, false).effectiveServerSide());
+        assertFalse(new RealtimeSettings(true, 16, true, true, false, true, true).effectiveServerSide());
+        assertFalse(new RealtimeSettings(true, 16, true, false, false, true, true).effectiveServerSide());
     }
 
     @Test
     void clientSideOffLetsTheStoredServerSideSettingTakeEffect() {
-        assertTrue(new RealtimeSettings(false, 16, true, true, false).effectiveServerSide());
-        assertFalse(new RealtimeSettings(false, 16, true, false, false).effectiveServerSide(),
+        assertTrue(new RealtimeSettings(false, 16, true, true, false, true, true).effectiveServerSide());
+        assertFalse(new RealtimeSettings(false, 16, true, false, false, true, true).effectiveServerSide(),
                 "both off is a plain portal, not a preview nobody asked for");
     }
 
@@ -75,7 +75,7 @@ class RealtimeSettingsTest {
 
     @Test
     void everyFieldSurvivesAJsonRoundTrip() {
-        RealtimeSettings written = new RealtimeSettings(true, 24, false, false, false);
+        RealtimeSettings written = new RealtimeSettings(true, 24, false, false, false, true, true);
         RealtimeSettings read = RealtimeSettings.parse(written.toJson());
         assertEquals(written, read);
         assertFalse(RealtimeSettings.needsMigration(written.toJson()),
@@ -137,7 +137,7 @@ class RealtimeSettingsTest {
      */
     @Test
     void toggleFlipsTheLocalRenderAndNothingElse() {
-        RealtimeSettings on = new RealtimeSettings(false, 24, false, true, false).toggled();
+        RealtimeSettings on = new RealtimeSettings(false, 24, false, true, false, true, true).toggled();
         assertTrue(on.renderClientSidePortals());
         assertEquals(24, on.maxRenderDistance());
         assertFalse(on.distantHorizons());

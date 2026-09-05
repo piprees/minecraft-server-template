@@ -163,7 +163,9 @@ public final class DevServer {
                 .withDistantHorizons(request.flag("distantHorizons", before.distantHorizons()))
                 .withRenderServerSidePortals(request.flag("renderServerSidePortals",
                         before.renderServerSidePortals()))
-                .withSpectatorPass(request.flag("spectatorPass", before.spectatorPass()));
+                .withSpectatorPass(request.flag("spectatorPass", before.spectatorPass()))
+                .withApertureBackdrop(request.flag("apertureBackdrop", before.apertureBackdrop()))
+                .withApertureTerrain(request.flag("apertureTerrain", before.apertureTerrain()));
         boolean changed = !after.equals(before);
         if (changed) {
             RealtimeControls.store().save(after);
