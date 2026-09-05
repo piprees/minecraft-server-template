@@ -379,9 +379,17 @@ lands directly on the acceptance test, because the arrow is an entity.
 
 The chunk feed sends resident chunks near the arrival, nearest-first, on a budget.
 `DestinationFeed.pump` records every chunk key in `SENT` and never re-sends it, so
-**the destination world is a one-shot snapshot** — correct as of the tick each
-chunk was serialised, and frozen after. Nothing yet feeds entities, block updates,
-time or weather.
+**blocks are a one-shot snapshot** — correct as of the tick each chunk was
+serialised, and frozen after.
+
+**Entities ARE fed.** `destination-entities/v1` carries them
+(`CompanionPayloads.DestinationEntities`), `DestinationEntityFeed` enumerates them
+server-side, and `DestinationEntities` applies them client-side against the
+destination world through `EntityType.create` / `addEntity` / `removeEntity`.
+Whether that stream satisfies the arrow acceptance test is a separate question
+from whether it exists.
+
+**Not fed: block updates after the first send, time, and weather.**
 
 **Two things a chunk needs before the renderer will build its section**, both
 satisfied by the feed: the chunk AND its 8 neighbours carrying block-data and
