@@ -1648,6 +1648,51 @@ measurement of it.
   the same trap. Pin it against the Java, not against intuition —
   `scripts/e2e/portal-matrix-selftest.sh` is the worked example.
 
+<a id="t97"></a>
+### T97 — A second `WorldRenderer.render` drives a shader pack's whole pipeline twice in one frame
+
+- **Symptom:** with an Iris shader pack loaded, stepping out of a portal smears
+  a second world's geometry across the ENTIRE screen — stretched vertical
+  streaks and black wedges over ground, frame, hillside and sky. It rotates
+  with the camera, does not translate, is identical looking 180 degrees away
+  from the portal, and survives the pass being switched off. Only a shader
+  reload or a client relaunch clears it. Measured on the right-hand source
+  hillside: 98.14% of pixels changed with the pass running, 99.65% after it
+  stopped, against a ~7% noise floor.
+- **Cause:** `net.irisshaders.iris.mixin.MixinLevelRenderer` injects four
+  global per-frame handlers into `WorldRenderer.render` —
+  `iris$setupPipeline`, `iris$beginLevelRender`, `iris$renderTerrainShadows`,
+  `iris$endLevelRender`. Calling `render` on a second `WorldRenderer` runs the
+  pack's shadow pass and final composite a second time over one set of GPU
+  targets. Iris has exactly two representable pass states, main and shadow, on
+  public statics in `ShadowRenderer`; there is no third for a second world.
+- **Fix:** the destination is not rendered as a second world at all. It is
+  drawn as ordinary geometry inside the source frame's single `render` call, at
+  `WorldRenderEvents.BEFORE_BLOCK_OUTLINE` — bytecode 1952, past the last
+  opaque `checkEmpty` at 1942 and before the translucent clear at 2194 — and
+  clipped to the portal opening. The pack shades it for the same reason it
+  shades any other geometry, with no reference to Iris anywhere in the mod.
+- **Trap:** `WorldRenderEvents.AFTER_ENTITIES` is NOT in that window. Its `@At`
+  is `CONSTANT stringValue=blockentities ordinal=0`, bytecode 1137, before the
+  block-entity loop. Read the offset out of Fabric's own mixin; the phase name
+  does not give it.
+- **Trap:** at `BEFORE_ENTITIES` the context's `matrixStack()` is null and the
+  position matrix has to be multiplied in by hand. At 1952 it is already on the
+  `RenderSystem` model-view stack, so doing it again rotates the far side twice.
+- **Trap:** 1.21.1's framebuffer has no stencil attachment, so a model drawn by
+  a vanilla dispatcher cannot be masked by the hardware. `ClippedConsumers`
+  catches each quad and clips it against the opening instead.
+- **Trap:** every plane of the aperture cone runs through the camera, so the
+  cone reaches back to the eye. The meshed volume starts at the portal surface
+  and does not care; an entity can stand short of it, so the actor path adds
+  the surface half-space.
+- **Still open, MEASURED:** under a pack a destination entity renders as a dark
+  silhouette. With shaders off the same code draws it correctly lit, so the
+  light lookup is not the cause. Most likely the pack shades destination
+  geometry from the SOURCE world's shadow map, which calls the actor's
+  source-space position occluded. `apertureEntityLight` on the dev bridge
+  reports what it was drawn at.
+
 <a id="t96"></a>
 ### T96 — The destination pass draws at the field-of-view option, not the one the source frame uses
 
