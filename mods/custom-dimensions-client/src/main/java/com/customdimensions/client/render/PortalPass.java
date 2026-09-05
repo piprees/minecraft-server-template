@@ -63,4 +63,12 @@ public interface PortalPass {
      * was drawn.
      */
     int drawFarStamp(double planeLocal);
+
+    /**
+     * The meshed destination again, depth only, at its own true depth.
+     *
+     * <p>Always after {@link #drawFarStamp}: that one writes with an always-pass
+     * test, so drawn the other way round it erases this.
+     */
+    void drawDestinationDepth(double shiftX, double shiftY, double shiftZ);
 }

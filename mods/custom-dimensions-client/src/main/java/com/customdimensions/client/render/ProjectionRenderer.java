@@ -116,6 +116,14 @@ public final class ProjectionRenderer {
     private static final long[] stampCalls = new long[PortalPass.Stage.values().length];
     private static final int[] stampCorners = new int[PortalPass.Stage.values().length];
 
+    /** The last cost line written, as {@code mean/peak} microseconds per frame. */
+    private static volatile String lastCost = "n/a";
+
+    /** What the emit line last reported for {@code renderUs}. */
+    public static String lastCost() {
+        return lastCost;
+    }
+
     /** Each stage as {@code NAME=calls/corners}. */
     public static String stampSummary() {
         StringBuilder out = new StringBuilder();
@@ -381,6 +389,21 @@ public final class ProjectionRenderer {
             }
 
             @Override
+            public void drawDestinationDepth(double shiftX, double shiftY, double shiftZ) {
+                if (!RealtimeControls.settings().apertureMeshDepth()) {
+                    return;
+                }
+                VertexConsumer consumer =
+                        immediate.getBuffer(PortalRenderLayers.DESTINATION_DEPTH);
+                for (ProjectionMesh.Layer layer : mesh.layers()) {
+                    emitClipped(layer, consumer, entry, (float) shiftX, (float) shiftY,
+                            (float) shiftZ, ProjectionRenderer::emitFlat);
+                }
+                withDepthStateRestored(DEPTH_STATE, () -> withColourMaskOff(COLOUR_MASK,
+                        () -> immediate.draw(PortalRenderLayers.DESTINATION_DEPTH)));
+            }
+
+            @Override
             public int drawFarStamp(double surfaceLocal) {
                 int corners = backdropPolygon(projection, TUNNEL, camX, camY, camZ,
                         surfaceLocal, facing, POLY_A, POLY_B);
@@ -406,7 +429,7 @@ public final class ProjectionRenderer {
                     String.format("%.2f", camToPlane), openingBounds(corners), window,
                     volumeBounds(projection), String.format("%.2f", surface), stamp,
                     sliceLabel(slice), spanFrames, spanGated,
-                    costSummary(spanFrames, spanNanos, spanPeakNanos),
+                    lastCost = costSummary(spanFrames, spanNanos, spanPeakNanos),
                     mesh.layers().size(), DestinationActors.summary() + " " + report);
             spanFrames = 0;
             spanNanos = 0;
@@ -676,13 +699,13 @@ public final class ProjectionRenderer {
     static int runPass(PortalPass pass, ClientProjection projection, BlockPos origin,
             double[] slice, PortalPass.Stage stage) {
         double planeLocal = planeLocal(projection, origin);
+        double[] shift = meshShift(projection);
         if (stage == PortalPass.Stage.NEAR_DEPTH) {
             return pass.drawStamp(planeLocal);
         }
         if (stage == PortalPass.Stage.FAR_DEPTH) {
-            return pass.drawFarStamp(planeLocal);
+            return farDepth(pass, planeLocal, shift);
         }
-        double[] shift = meshShift(projection);
         if (slice != null) {
             pass.applyDepthRange(slice[0], slice[1]);
         }
@@ -695,8 +718,19 @@ public final class ProjectionRenderer {
             }
         }
         return stage == PortalPass.Stage.DESTINATION_FAR
-                ? pass.drawFarStamp(planeLocal)
+                ? farDepth(pass, planeLocal, shift)
                 : pass.drawStamp(planeLocal);
+    }
+
+    /**
+     * The far stamp, then the destination's own depth over it. The order is the
+     * invariant: the stamp writes with an always-pass test, so drawn second it
+     * erases the per-pixel depth it exists to be a fallback for.
+     */
+    private static int farDepth(PortalPass pass, double planeLocal, double[] shift) {
+        int corners = pass.drawFarStamp(planeLocal);
+        pass.drawDestinationDepth(shift[0], shift[1], shift[2]);
+        return corners;
     }
 
     /**
@@ -978,6 +1012,18 @@ public final class ProjectionRenderer {
      */
     static int emitClipped(ProjectionMesh.Layer layer, VertexConsumer consumer,
             MatrixStack.Entry entry, float offsetX, float offsetY, float offsetZ) {
+        return emitClipped(layer, consumer, entry, offsetX, offsetY, offsetZ,
+                ProjectionRenderer::emit);
+    }
+
+    /**
+     * The same clip, writing each survivor through {@code writer}. A depth-only
+     * pass wants position and colour and nothing else, and the clip itself is
+     * the same work either way.
+     */
+    static int emitClipped(ProjectionMesh.Layer layer, VertexConsumer consumer,
+            MatrixStack.Entry entry, float offsetX, float offsetY, float offsetZ,
+            VertexEmit writer) {
         float[] data = layer.data();
         int survived = 0;
         int emitted = 0;
@@ -1005,7 +1051,7 @@ public final class ProjectionRenderer {
             survived += count;
             if (count == 4) {
                 for (int v = 0; v < 4; v++) {
-                    emit(consumer, entry, POLY_A, v * STRIDE);
+                    writer.write(consumer, entry, POLY_A, v * STRIDE);
                 }
                 emitted += 4;
                 continue;
@@ -1013,15 +1059,20 @@ public final class ProjectionRenderer {
             // A clipped polygon has up to MAX_POLY corners; a fan of degenerate
             // quads renders it as triangles without a second draw mode.
             for (int v = 1; v + 1 < count; v++) {
-                emit(consumer, entry, POLY_A, 0);
-                emit(consumer, entry, POLY_A, v * STRIDE);
-                emit(consumer, entry, POLY_A, (v + 1) * STRIDE);
-                emit(consumer, entry, POLY_A, (v + 1) * STRIDE);
+                writer.write(consumer, entry, POLY_A, 0);
+                writer.write(consumer, entry, POLY_A, v * STRIDE);
+                writer.write(consumer, entry, POLY_A, (v + 1) * STRIDE);
+                writer.write(consumer, entry, POLY_A, (v + 1) * STRIDE);
                 emitted += 4;
             }
         }
         clipVertices = survived;
         return emitted;
+    }
+
+    /** How one clipped vertex reaches a consumer. */
+    interface VertexEmit {
+        void write(VertexConsumer consumer, MatrixStack.Entry entry, float[] poly, int at);
     }
 
     /** Sutherland-Hodgman against one plane; returns the new vertex count. */

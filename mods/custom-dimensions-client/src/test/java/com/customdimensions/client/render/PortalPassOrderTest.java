@@ -178,7 +178,7 @@ class PortalPassOrderTest {
 
         ProjectionRenderer.runPass(pass, PROJECTION, ORIGIN, SLICE, PortalPass.Stage.FAR_DEPTH);
 
-        assertEquals(List.of("drawFarStamp"), pass.script);
+        assertEquals(List.of("drawFarStamp", "drawDestinationDepth"), pass.script);
     }
 
     /**
@@ -207,7 +207,8 @@ class PortalPassOrderTest {
         ProjectionRenderer.runPass(near, PROJECTION, ORIGIN, SLICE, PortalPass.Stage.DESTINATION);
         ProjectionRenderer.runPass(far, PROJECTION, ORIGIN, SLICE, PortalPass.Stage.FAR_DEPTH);
 
-        assertEquals(List.of("drawFarStamp -0.5"), far.values);
+        assertTrue(far.values.contains("drawFarStamp -0.5"),
+                "the far stamp is cast from the wrong surface: " + far.values);
         assertTrue(near.values.contains("drawStamp -0.5"),
                 "the two stamps are cast from different surfaces: " + near.values);
     }
@@ -240,11 +241,10 @@ class PortalPassOrderTest {
         ProjectionRenderer.runPass(far, PROJECTION, ORIGIN, SLICE,
                 PortalPass.Stage.DESTINATION_FAR);
 
-        assertEquals(near.script.subList(0, near.script.size() - 1),
-                far.script.subList(0, far.script.size() - 1),
+        assertEquals(colour(near.script), colour(far.script),
                 "the two variants draw different colour: " + near.script + " vs " + far.script);
-        assertEquals("drawStamp", near.script.get(near.script.size() - 1));
-        assertEquals("drawFarStamp", far.script.get(far.script.size() - 1));
+        assertEquals("drawStamp", near.script.get(colour(near.script).size()));
+        assertEquals("drawFarStamp", far.script.get(colour(far.script).size()));
     }
 
     /** Only the two destination stages draw the destination. */
@@ -256,6 +256,64 @@ class PortalPassOrderTest {
             assertEquals(stage.drawsDestination(), pass.script.contains("drawDestination"),
                     stage + ": drawsDestination() disagrees with what the pass drew");
         }
+    }
+
+    /**
+     * The far stamp writes with an always-pass test, so the destination's own
+     * depth has to follow it. Reversed, the stamp erases the per-pixel depth it
+     * exists to be the fallback for, and every pixel in the opening reports one
+     * distance again.
+     */
+    @Test
+    void theDestinationsOwnDepthIsDrawnAfterTheFarStampInBothFarStages() {
+        for (PortalPass.Stage stage :
+                List.of(PortalPass.Stage.FAR_DEPTH, PortalPass.Stage.DESTINATION_FAR)) {
+            Recorder pass = new Recorder();
+
+            ProjectionRenderer.runPass(pass, PROJECTION, ORIGIN, SLICE, stage);
+
+            int stamp = pass.script.indexOf("drawFarStamp");
+            int depth = pass.script.indexOf("drawDestinationDepth");
+            assertTrue(stamp >= 0, stage + ": no far stamp was drawn");
+            assertTrue(depth > stamp,
+                    stage + ": the destination's depth was drawn before the stamp that erases it: "
+                            + pass.script);
+        }
+    }
+
+    /** The depth pass is handed the same offset the destination was drawn with. */
+    @Test
+    void theDestinationsOwnDepthUsesTheSameOffsetAsItsColour() {
+        Recorder pass = new Recorder();
+
+        ProjectionRenderer.runPass(pass, PROJECTION, ORIGIN, SLICE,
+                PortalPass.Stage.DESTINATION_FAR);
+
+        assertTrue(pass.values.contains("drawDestination 0.0 0.0 -0.5"), pass.values.toString());
+        assertTrue(pass.values.contains("drawDestinationDepth 0.0 0.0 -0.5"),
+                "the depth pass moved the mesh somewhere the colour pass did not: " + pass.values);
+    }
+
+    /** Neither near stage draws it. */
+    @Test
+    void theNearStagesDoNotDrawTheDestinationsOwnDepth() {
+        for (PortalPass.Stage stage :
+                List.of(PortalPass.Stage.DESTINATION, PortalPass.Stage.NEAR_DEPTH)) {
+            Recorder pass = new Recorder();
+            ProjectionRenderer.runPass(pass, PROJECTION, ORIGIN, SLICE, stage);
+            assertFalse(pass.script.contains("drawDestinationDepth"),
+                    stage + ": drew a far-depth step");
+        }
+    }
+
+    /** Everything a pass draws before it closes with a stamp. */
+    private static List<String> colour(List<String> script) {
+        for (int i = 0; i < script.size(); i++) {
+            if (script.get(i).equals("drawStamp") || script.get(i).equals("drawFarStamp")) {
+                return script.subList(0, i);
+            }
+        }
+        return script;
     }
 
     private static ClientProjection projection() {
@@ -327,6 +385,11 @@ class PortalPassOrderTest {
         public int drawFarStamp(double planeLocal) {
             record("drawFarStamp", String.valueOf(planeLocal));
             return stampCorners;
+        }
+
+        @Override
+        public void drawDestinationDepth(double shiftX, double shiftY, double shiftZ) {
+            record("drawDestinationDepth", shiftX + " " + shiftY + " " + shiftZ);
         }
     }
 }

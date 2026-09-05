@@ -82,6 +82,34 @@ public final class PortalRenderLayers {
     }
 
     /**
+     * The destination's own depth, written and nothing else.
+     *
+     * <p>{@code LEQUAL} rather than {@link #APERTURE_DEPTH}'s always-pass,
+     * because the mesh's quads overlap on screen and the nearest has to win —
+     * an always-pass test settles that by draw order instead. The far stamp
+     * runs first and puts the whole opening behind this, so every fragment
+     * here passes on its first write.
+     */
+    public static final RenderLayer DESTINATION_DEPTH = new RenderLayer(
+            "customdimensions_portal_destination_depth",
+            VertexFormats.POSITION_COLOR,
+            VertexFormat.DrawMode.QUADS,
+            1536,
+            false,
+            false,
+            () -> {
+                RenderSystem.setShader(GameRenderer::getPositionColorProgram);
+                RenderSystem.disableBlend();
+                RenderSystem.disableCull();
+                RenderSystem.enableDepthTest();
+                RenderSystem.depthFunc(GL11.GL_LEQUAL);
+                RenderSystem.depthMask(true);
+            },
+            () -> {
+                RenderSystem.enableCull();
+            }) {};
+
+    /**
      * The opening's own depth, written and nothing else.
      *
      * <p>Drawn on the portal surface after the destination, it replaces the
