@@ -34,11 +34,14 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.LightType;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.ToDoubleFunction;
 
 /**
  * What the client can be asked, as facts rather than log lines. Render thread
@@ -166,15 +169,25 @@ final class DevState {
             return out;
         }
         Box box = player.getBoundingBox().expand(SOURCE_ENTITY_REACH);
-        for (Entity entity : world.getOtherEntities(player, box)) {
-            if (out.size() >= SOURCE_ENTITY_CAP) {
-                break;
-            }
+        for (Entity entity : nearestFirst(world.getOtherEntities(player, box),
+                entity -> entity.squaredDistanceTo(player), SOURCE_ENTITY_CAP)) {
             out.add(String.format("%d %s %.3f,%.3f,%.3f", entity.getId(),
                     entity.getType().getUntranslatedName(),
                     entity.getX(), entity.getY(), entity.getZ()));
         }
         return out;
+    }
+
+    /**
+     * The {@code cap} nearest, nearest first. The world hands entities back in
+     * section order, so capping that order keeps whatever sits furthest into the
+     * box and drops what is standing beside the camera — which is the entity any
+     * crossing is about.
+     */
+    static <T> List<T> nearestFirst(Collection<T> items, ToDoubleFunction<T> distanceSq, int cap) {
+        List<T> sorted = new ArrayList<>(items);
+        sorted.sort(Comparator.comparingDouble(distanceSq));
+        return cap < sorted.size() ? new ArrayList<>(sorted.subList(0, cap)) : sorted;
     }
 
     /**
