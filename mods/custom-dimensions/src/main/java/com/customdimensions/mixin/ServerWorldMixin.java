@@ -211,7 +211,6 @@ public class ServerWorldMixin {
                             continue playerLoop;
                         }
 
-                        double scale = def.getScale();
                         // Shared with PortalBreakLink so symmetric breaking
                         // matches on the same number setSourceColumn stamps.
                         // Two copies of this average would drift and the break
@@ -220,10 +219,16 @@ public class ServerWorldMixin {
                                 com.customdimensions.portal.PortalBreakLink.centreColumn(zone.interior);
                         int portalCenterX = sourceColumn != null ? sourceColumn[0] : 0;
                         int portalCenterZ = sourceColumn != null ? sourceColumn[1] : 0;
-                        // DIVIDE on entry — "8 nether : 1 over". See
-                        // ProjectionVolume.scaledMapping for the full note.
-                        int targetCenterX = (int) Math.round(portalCenterX / scale);
-                        int targetCenterZ = (int) Math.round(portalCenterZ / scale);
+                        // Scale describes the DIMENSION, so the transform asks
+                        // each side for its own: entering a scale-8 world
+                        // divides by 8, leaving one multiplies by 8. The same
+                        // call the projection draws with, so the place this
+                        // portal SHOWS and the place it PUTS you cannot
+                        // disagree.
+                        com.customdimensions.immersive.ProjectionVolume.TargetMapping mapping =
+                                com.customdimensions.immersive.ImmersiveProjector.mappingFor(zone, def);
+                        int targetCenterX = mapping.arrivalX();
+                        int targetCenterZ = mapping.arrivalZ();
                         // NB: there is deliberately no dx/dz here. The
                         // difference (targetCentre - portalCentre) is the
                         // PROJECTION offset — what ProjectionVolume adds to a

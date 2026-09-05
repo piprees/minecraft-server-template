@@ -118,6 +118,29 @@ class PortalScaleDirectionTest {
                 "returned to z" + back.arrivalZ() + ", not the column it left");
     }
 
+    @Test
+    void aScaleFourRoundTripComesHomeToTheColumnItLeft() {
+        // The whole point, on round numbers: out divides, back multiplies, and
+        // the player lands on the column they left. A fixed-direction divide
+        // brings x2000 home to x125 instead — the round trip shrinks the
+        // coordinate and keeps it shrunk.
+        PortalDefinition def = new PortalDefinition("the_crucible", "minecraft:cobblestone",
+                "minecraft:torch", "adventure:the_crucible", "#8844FF", 0);
+        def.setScale(4.0);
+        RegistryKey<World> crucible =
+                RegistryKey.of(RegistryKeys.WORLD, Identifier.of("adventure", "the_crucible"));
+
+        ProjectionVolume.TargetMapping out = ImmersiveProjector.mappingFor(
+                zone(interior(2000, 64, 1600, 2, 3), def, OVERWORLD, crucible), def);
+        assertEquals(500, out.arrivalX());
+        assertEquals(400, out.arrivalZ());
+
+        ProjectionVolume.TargetMapping back = ImmersiveProjector.mappingFor(
+                zone(interior(out.arrivalX(), 64, out.arrivalZ(), 2, 3), def, crucible, crucible), def);
+        assertEquals(2000, back.arrivalX());
+        assertEquals(1600, back.arrivalZ());
+    }
+
     // === why it survived ================================================
 
     @Test

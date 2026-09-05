@@ -1360,8 +1360,17 @@ public final class ImmersiveProjector {
         return false;
     }
 
-    /** The source -&gt; target transform this zone's teleport would use. */
-    static ProjectionVolume.TargetMapping mappingFor(PortalHelper.PortalZone zone, PortalDefinition def) {
+    /**
+     * The source -&gt; target transform for one zone, shared by the preview and
+     * by every teleport through it — the player traversal in {@code
+     * ServerWorldMixin} and the entity crossing in {@code EntityPassthrough}.
+     *
+     * <p>A second copy of this expression is how a portal comes to SHOW one
+     * place and PUT you in another: a fixed-direction {@code /
+     * def.getScale()} is right leaving the overworld and wrong leaving the
+     * scaled world, and the two answers are {@code scale^2} apart.
+     */
+    public static ProjectionVolume.TargetMapping mappingFor(PortalHelper.PortalZone zone, PortalDefinition def) {
         if (def.hasAnchor()) {
             int[] anchor = def.getAnchorPos();
             return ProjectionVolume.anchorMapping(zone.interior, anchor[0], anchor[2]);

@@ -383,7 +383,7 @@ public final class EntityPassthrough {
      */
     private static void passThrough(ServerWorld world, ServerWorld targetWorld, Entity entity,
             PortalHelper.PortalZone zone, PortalDefinition def) {
-        ProjectionVolume.TargetMapping mapping = mappingFor(zone, def);
+        ProjectionVolume.TargetMapping mapping = ImmersiveProjector.mappingFor(zone, def);
         int arrivalY = ArrivalResolver.arrivalY(
                 targetWorld, mapping.arrivalX(), mapping.arrivalZ(), zone.axis);
         if (arrivalY == NO_ARRIVAL) {
@@ -611,15 +611,6 @@ public final class EntityPassthrough {
         if (arrived instanceof MobEntity mob) {
             DifficultyManager.applyMobModifiers(mob);
         }
-    }
-
-    /** The source -&gt; target transform this zone's player teleport would use. */
-    private static ProjectionVolume.TargetMapping mappingFor(PortalHelper.PortalZone zone, PortalDefinition def) {
-        if (def.hasAnchor()) {
-            int[] anchor = def.getAnchorPos();
-            return ProjectionVolume.anchorMapping(zone.interior, anchor[0], anchor[2]);
-        }
-        return ProjectionVolume.scaledMapping(zone.interior, def.getScale());
     }
 
     private static void markInside(RegistryKey<World> worldKey, UUID entityId) {
