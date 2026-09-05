@@ -17,11 +17,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * axis.
  *
  * <p>A cone through the further of two parallel rectangles of the same size is
- * always the narrower, so the far one always binds. Built from the aperture
- * block's two faces, the window is therefore the FACE furthest from the eye —
- * half a block behind the portal surface, and the other face when read from the
- * other side. The portal surface has no thickness, so the far half of the
- * aperture block is behind it and frames nothing.
+ * always the narrower, so the far one always binds. The window is the aperture
+ * block's two faces — the hole's two real mouths — and the far mouth is the
+ * portal surface seen from in front of the frame.
  */
 class ProjectionWindowTest {
 
@@ -32,11 +30,12 @@ class ProjectionWindowTest {
     private static final int PAD = 8;
 
     /**
-     * The two clip rectangles are the aperture block's camera-side face and the
-     * portal surface — never its far face, which is behind the surface.
+     * The two clip rectangles are the aperture block's own faces, a whole block
+     * apart, whichever direction the opening faces. The destination-side one is
+     * the portal surface.
      */
     @Test
-    void theWindowIsBoundedByTheSurfaceAndNotByTheApertureBlocksFarFace() {
+    void theWindowIsTheApertureBlocksTwoFaces() {
         for (Direction normal : Direction.values()) {
             ClientProjection projection = projection(normal);
             double[] out = new double[24];
@@ -49,19 +48,22 @@ class ProjectionWindowTest {
                 out[normal.getAxis().ordinal()] + base,
                 out[12 + normal.getAxis().ordinal()] + base,
             };
-            double nearFace = ClientProjection.isPositive(normal) ? PLANE : PLANE + 1.0;
-            assertEquals(Math.min(nearFace, PLANE + 0.5), Math.min(coords[0], coords[1]),
-                    TOLERANCE, normal + ": the low clip rectangle moved");
-            assertEquals(Math.max(nearFace, PLANE + 0.5), Math.max(coords[0], coords[1]),
-                    TOLERANCE, normal + ": the far clip rectangle is not the portal surface");
+            assertEquals(PLANE, Math.min(coords[0], coords[1]),
+                    TOLERANCE, normal + ": the low clip rectangle is not the block's low face");
+            assertEquals(PLANE + 1.0, Math.max(coords[0], coords[1]),
+                    TOLERANCE, normal + ": the high clip rectangle is not the block's high face");
+            assertEquals(projection.planeCoord(),
+                    ClientProjection.isPositive(normal)
+                            ? Math.max(coords[0], coords[1]) : Math.min(coords[0], coords[1]),
+                    TOLERANCE, normal + ": the destination-side rectangle is not the surface");
         }
     }
 
     /**
      * The emit line's own witness. No pixel measurement separates the clip from
      * the destination's content, so this is the only reading that says which
-     * rectangles bound the window: half a block apart is the aperture block's
-     * own faces, a quarter of a block is the near face and the surface.
+     * rectangles bound the window: two entries a whole block apart are the
+     * aperture block's own faces.
      */
     @Test
     void theEmitLineReportsTheRectanglesTheClipWasBuiltFrom() {
@@ -73,21 +75,21 @@ class ProjectionWindowTest {
             String label = ProjectionRenderer.windowLabel(projection, projection.origin(),
                     faces, out);
 
-            String expected = ClientProjection.isPositive(normal)
-                    ? "[1500.00, 1500.50]" : "[1500.50, 1501.00]";
-            assertEquals(expected, label, normal + ": the emit line names the wrong rectangles");
+            assertEquals("[1500.00, 1501.00]", label,
+                    normal + ": the emit line names the wrong rectangles");
         }
     }
 
     /**
      * The consequence, stated in what a viewer sees: an eye off to one side
-     * still sees the destination right up to the surface's own edge. Bounded on
-     * the far FACE it stops half a block short, which reads as the image sitting
-     * inside the frame rather than in its middle.
+     * still sees the destination right up to the surface's own edge, because
+     * the surface is one of the two clip rectangles rather than something behind
+     * them.
      *
      * <p>The probe is a point on the surface, one hundredth of a block inside
-     * the opening's high-A edge, seen from an eye offset towards low A. Under a
-     * far-face window that point is outside the cone.
+     * the opening's high-A edge, seen from an eye three blocks towards low A.
+     * The near face's cone is the wider at that depth, so this fails only if
+     * the near face binds where the surface should.
      */
     @Test
     void anObliqueEyeSeesTheDestinationUpToTheSurfacesOwnEdge() {

@@ -25,15 +25,14 @@ import org.slf4j.LoggerFactory;
  * backdrop quad opens the aperture (see {@link PortalRenderLayers}), then the
  * meshed destination is drawn through it.
  *
- * <p>The clip is the whole trick, and the opening it clips to is a hole HALF a
+ * <p>The clip is the whole trick, and the opening it clips to is a hole one
  * block deep rather than a plane: four planes run from the camera through the
- * edges of the aperture block's near face and four more through the portal
- * surface that bisects it, and what survives all eight is the intersection of
- * the two cones. The frame's material only reaches as far as the surface —
- * past that a ray is already in the destination — so from beside the frame the
- * two cones are disjoint and nothing is drawn. Every quad, and the backdrop, is
- * cut before it is emitted — nothing is quantised to whole blocks and nothing
- * pops as you walk past.
+ * edges of the aperture block's near face and four more through its
+ * destination-side face, which is the portal surface, and what survives all
+ * eight is the intersection of the two cones. They are the hole's two real
+ * mouths, so from beside the frame they are disjoint and nothing is drawn.
+ * Every quad, and the backdrop, is cut before it is emitted — nothing is
+ * quantised to whole blocks and nothing pops as you walk past.
  */
 public final class ProjectionRenderer {
 
@@ -54,11 +53,12 @@ public final class ProjectionRenderer {
     private static final double BACKDROP_MARGIN = 2.0;
 
     /**
-     * How much of the half block behind the surface the destination is
-     * compressed into. Short of the whole of it so the backdrop still wins
-     * against source terrain starting at the aperture block's far face.
+     * How much of the aperture block's own depth the destination is compressed
+     * into, from its near face towards the surface. Short of the whole of it so
+     * the backdrop still wins against source terrain, which can start at the
+     * surface and no nearer.
      */
-    private static final double SLICE_FRACTION = 0.9;
+    static final double SLICE_FRACTION = 0.9;
 
     /**
      * The window depth the far stamp writes: just short of the far plane.
@@ -477,17 +477,14 @@ public final class ProjectionRenderer {
 
     /**
      * The clip rectangles bounding the sightline, in the volume's own space,
-     * low one first: the aperture block's near face and the portal surface. A
-     * face the camera has already crossed frames nothing and its cone lies
-     * behind the camera, so it is left out.
+     * low one first: the aperture block's two faces, which are the hole's two
+     * real mouths. The destination-side one is the portal surface. A face the
+     * camera has already crossed frames nothing and its cone lies behind the
+     * camera, so it is left out.
      *
-     * <p>The block's FAR face is not one of them. The surface has no thickness
-     * and everything past it is the destination, so the far half of the block
-     * frames nothing. Clipping on it puts the window half a block behind the
-     * surface — and because the further of two equal rectangles always subtends
-     * the narrower cone, that face binds at every angle, from either side. The
-     * image then reads as sitting against a face of the block rather than in
-     * its middle.
+     * <p>Looking obliquely through a hole in a wall one block thick, the far
+     * mouth limits the view — the further of two equal rectangles always
+     * subtends the narrower cone — which is what a doorway does in life.
      */
     static int tunnelFaces(ClientProjection projection, BlockPos origin, double camNormal,
             double[] out) {
@@ -496,9 +493,6 @@ public final class ProjectionRenderer {
         int count = 0;
         for (int face = 0; face < 2; face++) {
             double coord = face == 0 ? projection.apertureMinCoord() : projection.apertureMaxCoord();
-            if ((coord - projection.planeCoord()) * facing > 0.0) {
-                coord = projection.planeCoord();
-            }
             double local = coord - base;
             if ((camNormal - local) * facing >= 0.0) {
                 continue;
@@ -516,8 +510,8 @@ public final class ProjectionRenderer {
      * <p>Read out of the array the clip was built from rather than recomputed,
      * so a rectangle placed on the wrong coordinate prints the wrong number
      * instead of agreeing with itself. It is the only witness to which
-     * rectangles bound the window: the aperture block's own faces read half a
-     * block apart, the near face and the surface read a quarter of that.
+     * rectangles bound the window: two entries one block apart are the aperture
+     * block's own faces, and one entry means the camera is inside that block.
      */
     static String windowLabel(ClientProjection projection, BlockPos origin, int faces,
             double[] cone) {
@@ -571,11 +565,10 @@ public final class ProjectionRenderer {
     }
 
     /**
-     * The sightline through a hole half a block deep: four planes per clip
+     * The sightline through a hole one block deep: four planes per clip
      * rectangle, so what survives is the INTERSECTION of the two cones. From
      * beside the frame the two are disjoint and the whole destination is cut,
-     * which is what the frame's own block does to a ray before it reaches the
-     * surface.
+     * which is what the wall's own thickness does to a ray.
      */
     static boolean buildTunnelPlanes(double[] rects, int count,
             double camX, double camY, double camZ) {
@@ -734,9 +727,10 @@ public final class ProjectionRenderer {
     }
 
     /**
-     * The portal surface on the normal axis, in the volume's own space. The
-     * backdrop is cast from it and the stamp is drawn on it, so reading it off
-     * a FACE of the aperture block instead moves both half a block.
+     * The portal surface on the normal axis, in the volume's own space — the
+     * aperture block's destination-side face. The backdrop is cast from it and
+     * the stamp is drawn on it, so reading it off the block's other face
+     * instead moves both a whole block.
      *
      * <p>Computed here rather than by the caller: {@link #drawOne} needs a
      * client to run and no test can reach it, so a value it works out for
@@ -796,27 +790,27 @@ public final class ProjectionRenderer {
      * The depth range the destination is compressed into, as
      * {@code {near, far}}, or null when it cannot be formed.
      *
-     * <p>{@code surfaceDepth} is the NEAREST point of the portal surface and
-     * {@code halfBlockDepth} the nearest point half a block behind it. Squeezed
-     * between them, every fragment of the destination tests and writes at the
-     * WINDOW's depth instead of at the source-world coordinates it borrowed —
-     * which is what lets a real block in front of the frame survive a pass that
-     * used to overwrite it.
+     * <p>{@code nearFaceDepth} is the NEAREST point of the aperture block's
+     * near face and {@code surfaceDepth} the nearest point of the surface, one
+     * block behind it. Squeezed between them, every fragment of the destination
+     * tests and writes at the WINDOW's depth instead of at the source-world
+     * coordinates it borrowed — which is what lets a real block in front of the
+     * frame survive a pass that would otherwise overwrite it.
      *
-     * <p>The surface's depth is not constant across the opening seen
-     * obliquely, so taking the nearest point leaves a residual band the size of
-     * that spread, in which something in front of the frame is still lost.
+     * <p>Neither depth is constant across the opening seen obliquely, so taking
+     * the nearest point leaves a residual band the size of that spread, in which
+     * something in front of the frame is still lost.
      */
-    static double[] depthSlice(double surfaceDepth, double halfBlockDepth) {
-        if (Double.isNaN(surfaceDepth) || Double.isNaN(halfBlockDepth)) {
+    static double[] depthSlice(double nearFaceDepth, double surfaceDepth) {
+        if (Double.isNaN(nearFaceDepth) || Double.isNaN(surfaceDepth)) {
             return null;
         }
-        if (surfaceDepth < 0.0 || halfBlockDepth > 1.0 || halfBlockDepth <= surfaceDepth) {
+        if (nearFaceDepth < 0.0 || surfaceDepth > 1.0 || surfaceDepth <= nearFaceDepth) {
             return null;
         }
         return new double[] {
-            surfaceDepth,
-            surfaceDepth + (halfBlockDepth - surfaceDepth) * SLICE_FRACTION,
+            nearFaceDepth,
+            nearFaceDepth + (surfaceDepth - nearFaceDepth) * SLICE_FRACTION,
         };
     }
 
@@ -868,29 +862,35 @@ public final class ProjectionRenderer {
                 farDistance));
     }
 
-    /** The slice for one portal, from its opening's four corners. */
+    /**
+     * The slice for one portal, from its opening's four corners. The corners sit
+     * on the surface, so the near face is one whole block back towards the
+     * camera — the aperture block's own depth is the band, and nothing here
+     * reads a fraction of a block.
+     */
     private static double[] sliceFor(ClientProjection projection, double[] corners,
             double camX, double camY, double camZ, double facing,
             Matrix4f position, Matrix4f projectionMatrix) {
         Direction.Axis axis = projection.normalAxis();
+        double back = -facing * (projection.apertureMaxCoord() - projection.apertureMinCoord());
+        double nearFace = Double.MAX_VALUE;
         double surface = Double.MAX_VALUE;
-        double behind = Double.MAX_VALUE;
         for (int i = 0; i < 4; i++) {
             double x = corners[i * 3] - camX;
             double y = corners[i * 3 + 1] - camY;
             double z = corners[i * 3 + 2] - camZ;
-            double near = windowDepth(position, projectionMatrix, x, y, z);
-            double half = windowDepth(position, projectionMatrix,
-                    x + (axis == Direction.Axis.X ? facing * 0.5 : 0.0),
-                    y + (axis == Direction.Axis.Y ? facing * 0.5 : 0.0),
-                    z + (axis == Direction.Axis.Z ? facing * 0.5 : 0.0));
-            if (Double.isNaN(near) || Double.isNaN(half)) {
+            double onSurface = windowDepth(position, projectionMatrix, x, y, z);
+            double onNearFace = windowDepth(position, projectionMatrix,
+                    x + (axis == Direction.Axis.X ? back : 0.0),
+                    y + (axis == Direction.Axis.Y ? back : 0.0),
+                    z + (axis == Direction.Axis.Z ? back : 0.0));
+            if (Double.isNaN(onSurface) || Double.isNaN(onNearFace)) {
                 return null;
             }
-            surface = Math.min(surface, near);
-            behind = Math.min(behind, half);
+            surface = Math.min(surface, onSurface);
+            nearFace = Math.min(nearFace, onNearFace);
         }
-        return depthSlice(surface, behind);
+        return depthSlice(nearFace, surface);
     }
 
     /**
@@ -1007,8 +1007,8 @@ public final class ProjectionRenderer {
      *
      * <p>The offset moves the slab onto the portal surface and is applied
      * BEFORE the clip: the cone narrows towards the opening, so geometry drawn
-     * half a block closer has to be cut where it now stands or it spills past
-     * the frame's edge.
+     * closer has to be cut where it now stands or it spills past the frame's
+     * edge.
      */
     static int emitClipped(ProjectionMesh.Layer layer, VertexConsumer consumer,
             MatrixStack.Entry entry, float offsetX, float offsetY, float offsetZ) {

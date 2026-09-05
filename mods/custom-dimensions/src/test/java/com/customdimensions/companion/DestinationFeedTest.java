@@ -37,6 +37,17 @@ class DestinationFeedTest {
         return DestinationFeed.throughOpening(eyeA, eyeN, A0, A1, PLANE, colA, colN);
     }
 
+    /**
+     * The wedge's apex plane is the aperture block's destination-side face —
+     * the same face the client clips against. A mid-plane reads alike for both
+     * directions and admits columns the client's clip then cuts.
+     */
+    @Test
+    void theSurfaceIsTheApertureBlocksDestinationSideFace() {
+        assertEquals(1501.0, DestinationFeed.surface(1500.0, true), 1.0e-9);
+        assertEquals(1500.0, DestinationFeed.surface(1500.0, false), 1.0e-9);
+    }
+
     private static List<Long> pick(int radius, int budget, Set<Long> sent) {
         return DestinationFeed.nextChunks(ARRIVAL_CHUNK, ARRIVAL_CHUNK, radius,
                 EYE_A, EYE_N, A0, A1, PLANE, DX, DZ, sent, budget, DestinationFeed.Normal.Z);

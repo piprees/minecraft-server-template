@@ -16,10 +16,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 /**
  * The composite quad's geometry.
  *
- * <p>The measured portal: 2 wide, 3 tall, its aperture blocks at z 1500, so
- * the surface is z 1500.5. Every number here is read off that fixture — a
- * corner taken from a FACE of the aperture block instead reads 1500.0 or
- * 1501.0 and puts the image half a block off the opening.
+ * <p>The measured portal: 2 wide, 3 tall, its aperture blocks at z 1500, so the
+ * surface is z 1501 facing SOUTH and z 1500 facing NORTH — the block's
+ * destination-side face. Every number here is read off that fixture; a
+ * mid-plane reads 1500.5 for both and covers half the frame's inner faces.
  */
 class CompositeQuadTest {
 
@@ -31,9 +31,15 @@ class CompositeQuadTest {
         assertArrayEquals(new double[] {1500.0, 1502.0, 101.0, 104.0, 1500.0}, rect, 1.0e-9);
     }
 
+    /**
+     * The destination-side face, so the answer differs by direction. A literal
+     * per side: an expression self-consistent with the corners it produces would
+     * satisfy the corner test below with either sign.
+     */
     @Test
-    void theSurfaceBisectsTheApertureBlock() {
-        assertEquals(1500.5, CompositeQuad.surface(1500.0), 1.0e-9);
+    void theSurfaceIsTheApertureBlocksDestinationSideFace() {
+        assertEquals(1501.0, CompositeQuad.surface(1500.0, true), 1.0e-9);
+        assertEquals(1500.0, CompositeQuad.surface(1500.0, false), 1.0e-9);
     }
 
     @Test
@@ -41,7 +47,7 @@ class CompositeQuadTest {
         for (Direction normal : Direction.values()) {
             double[] corners = CompositeQuad.corners(aperture(normal), normal);
             double[] rect = CompositeQuad.rect(aperture(normal), normal);
-            double surface = CompositeQuad.surface(rect[4]);
+            double surface = CompositeQuad.surface(rect[4], CompositeQuad.towardsHigh(normal));
             for (int i = 0; i < 4; i++) {
                 assertEquals(surface,
                         CompositeQuad.on(corners[i * 3], corners[i * 3 + 1], corners[i * 3 + 2],
@@ -55,10 +61,10 @@ class CompositeQuadTest {
     void theFourCornersAreTheRectanglesOwn() {
         double[] corners = CompositeQuad.corners(APERTURE, Direction.SOUTH);
         assertArrayEquals(new double[] {
-            1500.0, 101.0, 1500.5,
-            1500.0, 104.0, 1500.5,
-            1502.0, 104.0, 1500.5,
-            1502.0, 101.0, 1500.5,
+            1500.0, 101.0, 1501.0,
+            1500.0, 104.0, 1501.0,
+            1502.0, 104.0, 1501.0,
+            1502.0, 101.0, 1501.0,
         }, corners, 1.0e-9);
     }
 
@@ -81,7 +87,7 @@ class CompositeQuadTest {
     @Test
     void theCentreIsOnTheSurfaceInTheMiddleOfTheOpening() {
         double[] centre = CompositeQuad.centre(APERTURE, Direction.SOUTH);
-        assertArrayEquals(new double[] {1501.0, 102.5, 1500.5}, centre, 1.0e-9);
+        assertArrayEquals(new double[] {1501.0, 102.5, 1501.0}, centre, 1.0e-9);
     }
 
     @Test

@@ -283,17 +283,34 @@ public final class DestinationFeed {
     }
 
     /**
+     * The opening's surface on the normal axis: the aperture block's
+     * destination-side face, from the block's own coordinate. The client reads
+     * the same face, so a chunk the wedge admits is one the client's clip can
+     * draw.
+     */
+    public static double surface(double planeBlock, boolean towardsHigh) {
+        return planeBlock + (towardsHigh ? 1.0 : 0.0);
+    }
+
+    /**
      * Feeds one portal's destination to one viewer. Everything the wedge needs
      * is derived here from the zone's own geometry and the frame the client
      * was already sent, so the projection pass stays one line.
+     *
+     * <p>Every bound is a block face: a cell spans {@code [n, n + 1)}, so the
+     * tangential bounds run face to face and the wedge's apex plane is the
+     * surface {@link #surface} names.
      */
     public static int feed(ServerPlayerEntity player, ServerWorld targetWorld,
-            Set<BlockPos> interior, Direction.Axis normalAxis,
+            Set<BlockPos> interior, Direction normal,
             CompanionPayloads.PortalFrame frame, int radius, int budget) {
         if (player == null || targetWorld == null || frame == null
-                || interior == null || interior.isEmpty() || normalAxis == null) {
+                || interior == null || interior.isEmpty() || normal == null) {
             return 0;
         }
+        Direction.Axis normalAxis = normal.getAxis();
+        boolean towardsHigh =
+                normal.getOffsetX() + normal.getOffsetY() + normal.getOffsetZ() > 0;
         Direction.Axis axisA = normalAxis == Direction.Axis.Z ? Direction.Axis.X : Direction.Axis.Z;
         double a0 = Double.MAX_VALUE;
         double a1 = -Double.MAX_VALUE;
@@ -303,9 +320,8 @@ public final class DestinationFeed {
         for (BlockPos cell : interior) {
             double onA = coordOn(cell, axisA);
             a0 = Math.min(a0, onA);
-            // A block spans [n, n+1); the opening's far edge is the far face.
             a1 = Math.max(a1, onA + 1.0);
-            planeN = coordOn(cell, normalAxis) + 0.5;
+            planeN = surface(coordOn(cell, normalAxis), towardsHigh);
             minX = Math.min(minX, cell.getX());
             minZ = Math.min(minZ, cell.getZ());
         }

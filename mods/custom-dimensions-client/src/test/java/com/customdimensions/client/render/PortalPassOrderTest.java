@@ -43,10 +43,10 @@ class PortalPassOrderTest {
     private static final ClientProjection PROJECTION = projection();
 
     /**
-     * The surface is world {@code z = 1500.5} and the slab starts at
-     * {@code 1501}, so in the volume's own space the surface is {@code -0.5}
-     * and the mesh moves {@code -0.5} on Z to meet it. Read off the fixture:
-     * either number taken from a FACE of the aperture block is half a block out.
+     * The surface is world {@code z = 1501} and the slab starts at {@code 1501},
+     * so in the volume's own space the surface is {@code 0} and the mesh does
+     * not move. Read off the fixture: the surface taken from the block's other
+     * face is a whole block out, and a mid-plane is half of one.
      */
     @Test
     void thePassIsGivenTheSurfaceAndTheOffsetTheProjectionAsksFor() {
@@ -54,12 +54,16 @@ class PortalPassOrderTest {
         ProjectionRenderer.runPass(pass, PROJECTION, ORIGIN, SLICE, PortalPass.Stage.DESTINATION);
 
         assertEquals(List.of(
-                "drawBackdrop -0.5",
-                "drawDestination 0.0 0.0 -0.5",
-                "drawStamp -0.5"), pass.values);
+                "drawBackdrop 0.0",
+                "drawDestination 0.0 0.0 0.0",
+                "drawStamp 0.0"), pass.values);
     }
 
-    /** The same, with the slab running the other way: the offset flips sign. */
+    /**
+     * The same, with the slab running the other way: the surface is world
+     * {@code z = 1500} against a slab starting at {@code 1476}, so it is local
+     * {@code 24} and the mesh again does not move.
+     */
     @Test
     void thePassIsGivenTheOffsetForASlabRunningTheOtherWay() {
         Recorder pass = new Recorder();
@@ -67,9 +71,9 @@ class PortalPassOrderTest {
                 new BlockPos(1492, 93, 1476), SLICE, PortalPass.Stage.DESTINATION);
 
         assertEquals(List.of(
-                "drawBackdrop 24.5",
-                "drawDestination 0.0 0.0 0.5",
-                "drawStamp 24.5"), pass.values);
+                "drawBackdrop 24.0",
+                "drawDestination 0.0 0.0 0.0",
+                "drawStamp 24.0"), pass.values);
     }
 
     /** Nothing moves on the axes the opening spans. */
@@ -207,9 +211,9 @@ class PortalPassOrderTest {
         ProjectionRenderer.runPass(near, PROJECTION, ORIGIN, SLICE, PortalPass.Stage.DESTINATION);
         ProjectionRenderer.runPass(far, PROJECTION, ORIGIN, SLICE, PortalPass.Stage.FAR_DEPTH);
 
-        assertTrue(far.values.contains("drawFarStamp -0.5"),
+        assertTrue(far.values.contains("drawFarStamp 0.0"),
                 "the far stamp is cast from the wrong surface: " + far.values);
-        assertTrue(near.values.contains("drawStamp -0.5"),
+        assertTrue(near.values.contains("drawStamp 0.0"),
                 "the two stamps are cast from different surfaces: " + near.values);
     }
 
@@ -289,8 +293,8 @@ class PortalPassOrderTest {
         ProjectionRenderer.runPass(pass, PROJECTION, ORIGIN, SLICE,
                 PortalPass.Stage.DESTINATION_FAR);
 
-        assertTrue(pass.values.contains("drawDestination 0.0 0.0 -0.5"), pass.values.toString());
-        assertTrue(pass.values.contains("drawDestinationDepth 0.0 0.0 -0.5"),
+        assertTrue(pass.values.contains("drawDestination 0.0 0.0 0.0"), pass.values.toString());
+        assertTrue(pass.values.contains("drawDestinationDepth 0.0 0.0 0.0"),
                 "the depth pass moved the mesh somewhere the colour pass did not: " + pass.values);
     }
 

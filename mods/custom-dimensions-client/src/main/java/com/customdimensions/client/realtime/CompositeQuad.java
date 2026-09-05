@@ -8,10 +8,10 @@ import java.util.List;
 /**
  * The opening as a quad on the portal surface, in source-world coordinates.
  *
- * <p>The surface bisects the aperture block, which is the plane
- * {@code ClientProjection.planeCoord} puts it on and where the meshed path
- * already draws — a quad read off a FACE of the block instead sits half a block
- * out and reads as the image being stuck to the frame.
+ * <p>The surface is the aperture block's destination-side face, which is the
+ * plane {@code ClientProjection.planeCoord} puts it on and where the meshed
+ * path already draws. {@link #surface} owns that coordinate for every reader on
+ * this side.
  *
  * <p>Corners are walked so consecutive pairs are edges. The composite layer
  * draws with culling off, so the winding carries no meaning of its own.
@@ -29,9 +29,14 @@ public final class CompositeQuad {
         return normal == Direction.Axis.Z ? Direction.Axis.Y : Direction.Axis.Z;
     }
 
-    /** The surface on the normal axis, from the aperture block's own coordinate. */
-    public static double surface(double planeBlock) {
-        return planeBlock + 0.5;
+    /**
+     * The opening's surface on the normal axis: the aperture block's
+     * destination-side face, from the block's own coordinate. The destination
+     * lies towards the normal, so that is the block's high face on a normal
+     * pointing high and its low face on one pointing low.
+     */
+    public static double surface(double planeBlock, boolean towardsHigh) {
+        return planeBlock + (towardsHigh ? 1.0 : 0.0);
     }
 
     /**
@@ -73,7 +78,7 @@ public final class CompositeQuad {
         Direction.Axis normalAxis = normal.getAxis();
         Direction.Axis axisA = axisA(normalAxis);
         Direction.Axis axisB = axisB(normalAxis);
-        double plane = surface(rect[4]);
+        double plane = surface(rect[4], towardsHigh(normal));
         double[] out = new double[12];
         putCorner(out, 0, normalAxis, axisA, axisB, plane, rect[0], rect[2]);
         putCorner(out, 3, normalAxis, axisA, axisB, plane, rect[0], rect[3]);
@@ -90,7 +95,8 @@ public final class CompositeQuad {
         }
         Direction.Axis normalAxis = normal.getAxis();
         double[] out = new double[3];
-        putCorner(out, 0, normalAxis, axisA(normalAxis), axisB(normalAxis), surface(rect[4]),
+        putCorner(out, 0, normalAxis, axisA(normalAxis), axisB(normalAxis),
+                surface(rect[4], towardsHigh(normal)),
                 (rect[0] + rect[1]) / 2.0, (rect[2] + rect[3]) / 2.0);
         return out;
     }

@@ -35,12 +35,18 @@ class ClientProjectionSurfaceTest {
     /** Lateral padding the server adds around the opening. */
     private static final int PAD = 8;
 
+    /**
+     * The surface is the aperture block's destination-side face, so it is the
+     * high face on a normal pointing high and the low face on one pointing low.
+     * A mid-plane expression gives the same answer for both and misses this.
+     */
     @Test
-    void theSurfaceBisectsTheApertureBlockOnEveryAxisAndBothSigns() {
+    void theSurfaceIsTheDestinationSideFaceOnEveryAxisAndBothSigns() {
         for (Direction normal : Direction.values()) {
             ClientProjection projection = projection(normal);
-            assertEquals(PLANE + 0.5, projection.planeCoord(), TOLERANCE,
-                    normal + ": the surface is not at the aperture block's mid-plane");
+            assertEquals(ClientProjection.isPositive(normal) ? PLANE + 1.0 : PLANE,
+                    projection.planeCoord(), TOLERANCE,
+                    normal + ": the surface is not the aperture block's destination-side face");
             assertEquals(PLANE, projection.apertureMinCoord(), TOLERANCE,
                     normal + ": the aperture block's low face moved");
             assertEquals(PLANE + 1.0, projection.apertureMaxCoord(), TOLERANCE,
@@ -65,18 +71,19 @@ class ClientProjectionSurfaceTest {
     }
 
     /**
-     * Half a block, towards the camera, whichever way the slab runs. The sign
-     * follows the normal because the near face is the low end of the slab on a
-     * positive normal and the high end on a negative one.
+     * Nothing, on every axis and both signs. The server starts the slab at the
+     * aperture block's destination-side face and the surface is that face, so
+     * the slab is already where it belongs. Stated per direction rather than in
+     * a loop: a sign error that cancels itself reads as zero on one side only.
      */
     @Test
-    void theOffsetIsHalfABlockTowardsTheCameraOnEveryAxisAndBothSigns() {
-        assertEquals(-0.5, projection(Direction.EAST).surfaceOffset(), TOLERANCE);
-        assertEquals(0.5, projection(Direction.WEST).surfaceOffset(), TOLERANCE);
-        assertEquals(-0.5, projection(Direction.UP).surfaceOffset(), TOLERANCE);
-        assertEquals(0.5, projection(Direction.DOWN).surfaceOffset(), TOLERANCE);
-        assertEquals(-0.5, projection(Direction.SOUTH).surfaceOffset(), TOLERANCE);
-        assertEquals(0.5, projection(Direction.NORTH).surfaceOffset(), TOLERANCE);
+    void theOffsetIsZeroOnEveryAxisAndBothSigns() {
+        assertEquals(0.0, projection(Direction.EAST).surfaceOffset(), TOLERANCE);
+        assertEquals(0.0, projection(Direction.WEST).surfaceOffset(), TOLERANCE);
+        assertEquals(0.0, projection(Direction.UP).surfaceOffset(), TOLERANCE);
+        assertEquals(0.0, projection(Direction.DOWN).surfaceOffset(), TOLERANCE);
+        assertEquals(0.0, projection(Direction.SOUTH).surfaceOffset(), TOLERANCE);
+        assertEquals(0.0, projection(Direction.NORTH).surfaceOffset(), TOLERANCE);
     }
 
     /**

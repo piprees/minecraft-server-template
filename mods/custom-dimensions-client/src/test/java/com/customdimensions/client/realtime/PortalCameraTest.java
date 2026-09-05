@@ -77,7 +77,7 @@ class PortalCameraTest {
         assertArrayEquals(new double[] {751.5, 64.0, 745.5},
                 PortalCamera.destinationEye(1501.5, 100.0, 1495.5,
                         NEXUS_DX, NEXUS_DY, NEXUS_DZ), TOLERANCE);
-        assertEquals(750.5, PortalCamera.destinationPlane(1500, NEXUS_DZ), TOLERANCE);
+        assertEquals(751.0, PortalCamera.destinationPlane(1500, NEXUS_DZ, true), TOLERANCE);
     }
 
     @Test
@@ -88,9 +88,15 @@ class PortalCameraTest {
 
     // ---- the near plane -------------------------------------------------
 
+    /**
+     * The offset moves the plane, and the surface is the aperture block's
+     * destination-side face — so the same block gives a different plane
+     * depending on which way the opening faces.
+     */
     @Test
     void thePlaneMovesWithTheSameOffsetTheCameraDoes() {
-        assertEquals(750.5, PortalCamera.destinationPlane(1500, -750), TOLERANCE);
+        assertEquals(751.0, PortalCamera.destinationPlane(1500, -750, true), TOLERANCE);
+        assertEquals(750.0, PortalCamera.destinationPlane(1500, -750, false), TOLERANCE);
     }
 
     /**

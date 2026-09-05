@@ -17,10 +17,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * How far a sightline reaches past an opening, and which openings the depth
  * slice can no longer cover.
  *
- * <p>The slice is anchored on the nearest aperture corner and is 0.45 blocks
- * of view depth deep. Seen obliquely, an opening spans far more depth than
- * that, and the destination is then drawn in front of source terrain visible
- * through the far side.
+ * <p>The slice is anchored on the nearest point of the aperture block's near
+ * face and is 0.9 blocks of view depth deep. Seen obliquely, an opening spans
+ * far more depth than that, and the destination is then drawn in front of
+ * source terrain visible through the far side.
  */
 class ClientProjectionBandTest {
 
@@ -42,9 +42,9 @@ class ClientProjectionBandTest {
     }
 
     @Test
-    void theLimitIsCrossedJustOverTwoAndAThird() {
-        assertTrue(ClientProjection.sightlineReach(2.31, 1.0) < ClientProjection.BAND_LIMIT);
-        assertTrue(ClientProjection.sightlineReach(2.33, 1.0) > ClientProjection.BAND_LIMIT);
+    void theLimitIsCrossedJustShortOfTwoAndAQuarter() {
+        assertTrue(ClientProjection.sightlineReach(2.22, 1.0) < ClientProjection.BAND_LIMIT);
+        assertTrue(ClientProjection.sightlineReach(2.25, 1.0) > ClientProjection.BAND_LIMIT);
     }
 
     /** Only the ratio matters: a 4-wide opening in a 2-thick frame is 2x a 2-in-1. */

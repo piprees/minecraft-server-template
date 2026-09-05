@@ -42,11 +42,13 @@ public final class PortalCamera {
 
     /**
      * The portal plane in destination space, on the opening's normal axis.
-     * The opening's own block spans {@code [coord, coord + 1)}, and the
-     * surface bisects it, which is where the source renderer puts it too.
+     * The opening's own block spans {@code [coord, coord + 1)} and the surface
+     * is its destination-side face, through {@link CompositeQuad#surface} —
+     * the same function the source renderer reads it from.
      */
-    public static double destinationPlane(int sourcePlaneBlock, int offsetOnNormal) {
-        return sourcePlaneBlock + offsetOnNormal + 0.5;
+    public static double destinationPlane(int sourcePlaneBlock, int offsetOnNormal,
+            boolean towardsHigh) {
+        return CompositeQuad.surface(sourcePlaneBlock + offsetOnNormal, towardsHigh);
     }
 
     /**

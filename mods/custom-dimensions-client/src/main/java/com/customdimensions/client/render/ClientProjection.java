@@ -1,6 +1,7 @@
 package com.customdimensions.client.render;
 
 import com.customdimensions.client.CompanionPayloads;
+import com.customdimensions.client.realtime.CompositeQuad;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
@@ -42,8 +43,13 @@ public final class ClientProjection {
     private final double rectMinB;
     private final double rectMaxB;
 
-    /** Past this reach the slice no longer covers the opening; see {@link #bandOpens}. */
-    public static final double BAND_LIMIT = 0.95;
+    /**
+     * How far past the aperture block's near face the depth slice reaches:
+     * {@code ProjectionRenderer.SLICE_FRACTION} of the block's own one-block
+     * depth. Past this reach the slice no longer covers the opening; see
+     * {@link #bandOpens}.
+     */
+    public static final double BAND_LIMIT = 0.90;
 
     private volatile ProjectionMesh mesh;
     private final AtomicBoolean building = new AtomicBoolean();
@@ -76,11 +82,11 @@ public final class ClientProjection {
             minB = Math.min(minB, b);
             maxB = Math.max(maxB, b);
         }
-        // The portal surface bisects the aperture block, so half the frame's
-        // depth reads on each side. The slab itself still starts one block past
-        // the opening, which puts the surface half a block proud of it.
+        // The destination begins where the wall ends, so the surface is the
+        // aperture block's destination-side face and the frame's inner faces
+        // are drawn for their full depth from both sides.
         this.apertureCoord = plane;
-        this.planeCoord = plane + 0.5;
+        this.planeCoord = CompositeQuad.surface(plane, isPositive(this.normal));
         this.rectMinA = minA;
         this.rectMaxA = maxA + 1.0;
         this.rectMinB = minB;
@@ -219,11 +225,10 @@ public final class ClientProjection {
 
     /**
      * How far the slab moves along the normal axis for its near face to land on
-     * the portal surface. The server starts the slab at the aperture block's far
-     * face; the surface bisects that block, so unmoved the slab sits half a
-     * block behind the opening. Half a block towards the camera whichever way
-     * the slab runs — the sign follows the normal because the near face is the
-     * low end of the slab going forwards and the high end going back.
+     * the portal surface. The server starts the slab at the aperture block's
+     * destination-side face, which is where the surface is, so the shift is
+     * zero — kept as arithmetic rather than a constant because it is the server's
+     * layout that makes it so, and the assertion is what would catch that moving.
      */
     public double surfaceOffset() {
         double nearFace = isPositive(this.normal) ? 0.0 : depthExtent();
@@ -255,9 +260,9 @@ public final class ClientProjection {
 
     /**
      * True when the depth slice cannot cover the opening at every view angle.
-     * The slice is anchored on the nearest aperture corner, so past this the
-     * destination is drawn in front of source terrain seen obliquely through
-     * the far side of the opening.
+     * The slice is anchored on the nearest point of the aperture block's near
+     * face, so past this the destination is drawn in front of source terrain
+     * seen obliquely through the far side of the opening.
      */
     public boolean bandOpens() {
         return bandReach() > BAND_LIMIT;
