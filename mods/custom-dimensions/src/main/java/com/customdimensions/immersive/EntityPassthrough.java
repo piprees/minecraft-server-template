@@ -509,9 +509,10 @@ public final class EntityPassthrough {
             tz = spawn.getZ() + 0.5;
         } else if (target.exitMode == null || "origin".equals(target.exitMode)) {
             destination = world.getServer().getWorld(target.sourceWorld);
-            tx = pos.getX() + 0.5;
+            int[] column = PortalHelper.returnColumn(target, pos);
+            tx = column[0] + 0.5;
             ty = target.sourceY;
-            tz = pos.getZ() + 0.5;
+            tz = column[1] + 0.5;
         } else {
             // "bed" and "dim!ns:slug!arrival" resolve against a player and
             // can never succeed for an entity; the entry edge stays CONSUMED

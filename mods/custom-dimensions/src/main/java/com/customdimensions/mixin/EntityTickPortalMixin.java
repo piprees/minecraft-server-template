@@ -187,7 +187,10 @@ public abstract class EntityTickPortalMixin {
                 return;
             }
             targetWorldKey = target.sourceWorld;
+            int[] column = PortalHelper.returnColumn(target, pos);
+            tx = column[0] + 0.5;
             ty = target.sourceY;
+            tz = column[1] + 0.5;
             cooldown = target.cooldown;
         }
 

@@ -399,6 +399,23 @@ public class PortalHelper {
     }
 
     /**
+     * The column a return teleport lands on: the recorded source portal's,
+     * when the record carries one, else the arrival aperture's own. Guarded
+     * exactly as {@link com.customdimensions.immersive.ProjectionVolume#returnMapping}
+     * guards it, so the place a portal SHOWS and the place it PUTS you are one
+     * answer — a legacy record with no column keeps the translation-free
+     * behaviour rather than guessing.
+     *
+     * @return {@code {x, z}}, never null
+     */
+    public static int[] returnColumn(PortalReturnTarget target, BlockPos aperture) {
+        if (target != null && target.sourceX != null && target.sourceZ != null) {
+            return new int[]{target.sourceX, target.sourceZ};
+        }
+        return new int[]{aperture.getX(), aperture.getZ()};
+    }
+
+    /**
      * A portal this mod owns: a registered cell, or any portal in a dimension
      * this mod configures — the reserved four included, where an obsidian
      * frame lit with flint and steel is OUR nether portal. Vanilla answers
