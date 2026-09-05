@@ -82,6 +82,10 @@ public final class ProjectionRenderer {
     private static final java.util.function.Consumer<Boolean> COLOUR_MASK =
             on -> com.mojang.blaze3d.systems.RenderSystem.colorMask(on, on, on, on);
 
+    /** The one place that sets the depth write mask. */
+    private static final java.util.function.Consumer<Boolean> DEPTH_MASK =
+            on -> com.mojang.blaze3d.systems.RenderSystem.depthMask(on);
+
     /** The one place that restores the depth state; see {@link #withDepthStateRestored}. */
     private static final Runnable DEPTH_STATE = () -> {
         com.mojang.blaze3d.systems.RenderSystem.depthFunc(GL11.GL_LEQUAL);
@@ -340,14 +344,23 @@ public final class ProjectionRenderer {
             }
 
             @Override
-            public void drawBackdrop(double surfaceLocal) {
+            public void drawBackdrop(double surfaceLocal, boolean writeDepth) {
                 if (!RealtimeControls.settings().apertureBackdrop()) {
                     return;
                 }
                 int corners = backdropPolygon(projection, TUNNEL, camX, camY, camZ,
                         surfaceLocal, facing, POLY_A, POLY_B);
                 dressBackdrop(POLY_A, corners);
-                drawShaded(PortalRenderLayers.backdrop(), entry, corners);
+                if (writeDepth) {
+                    drawShaded(PortalRenderLayers.backdrop(), entry, corners);
+                    return;
+                }
+                withGlState(() -> DEPTH_MASK.accept(Boolean.FALSE),
+                        () -> DEPTH_MASK.accept(Boolean.TRUE),
+                        () -> {
+                            drawShaded(PortalRenderLayers.backdrop(), entry, corners);
+                            return null;
+                        });
             }
 
             @Override
@@ -400,11 +413,12 @@ public final class ProjectionRenderer {
 
             @Override
             public boolean destinationAtTrueDepth() {
-                // Off. It fixes the shading and costs an X-ray: the far stamp
-                // it tests against writes with an always-pass test, so anything
-                // standing between the eye and the doorway loses its depth and
-                // the destination paints over it ({@code TROUBLESHOOTING.md#t100}).
-                // Measured on a glowstone wall in front of the frame, both jars.
+                // Off, and UNMEASURED. Drawn before the far stamp the colour
+                // tests against the source world's own depth, so a near
+                // occluder survives — but source terrain beyond the opening
+                // then wins wherever it is nearer than the mesh
+                // ({@code TROUBLESHOOTING.md#t100}). Nobody has photographed
+                // that yet.
                 return false;
             }
 
@@ -720,17 +734,23 @@ public final class ProjectionRenderer {
      * after the destination is already on screen, so any colour they painted
      * would land on top of it, and the depth range is restored by then.
      *
-     * <p>The destination and the actors alike go last and outside the range when
-     * the pass asks for it, which only {@code DESTINATION_FAR} can honour: both
-     * are shaded in the forward pass from their own fragment depth, so a slice
-     * that hides the distance from a pack shades the whole opening at the
-     * doorway ({@code TROUBLESHOOTING.md#t100}). The far stamp runs before them
-     * and is what covers the source world's own blocks behind the opening,
-     * which is the other thing the slice was doing.
+     * <p>The destination and the actors alike leave the range when the pass asks
+     * for it, which only {@code DESTINATION_FAR} can honour: both are shaded in
+     * the forward pass from their own fragment depth, so a slice that hides the
+     * distance from a pack shades the whole opening at the doorway
+     * ({@code TROUBLESHOOTING.md#t100}). They go on opposite sides of the far
+     * stamp. An actor tests against the mesh's own depth, which only exists once
+     * the mesh has been drawn, so it goes after. The destination goes BEFORE:
+     * the stamp writes with an always-pass test, so after it the colour draw
+     * tests against a buffer with every near occluder erased and paints through
+     * solid walls.
      *
      * <p>The backdrop stays inside the range. It is the destination's sky, cast
      * onto a plane past the far end of the slab, and at its own depth it loses
      * to the source world's terrain the moment the portal is cut into anything.
+     * Its depth WRITE is suppressed when the destination leaves the range,
+     * because ≈the doorway written across the whole opening is what the
+     * destination would then have to beat.
      *
      * <p>Returns the stamp's corner count.
      */
@@ -742,7 +762,7 @@ public final class ProjectionRenderer {
             return pass.drawStamp(planeLocal);
         }
         if (stage == PortalPass.Stage.FAR_DEPTH) {
-            return farDepth(pass, planeLocal, shift, false);
+            return farDepth(pass, planeLocal, shift);
         }
         boolean far = stage == PortalPass.Stage.DESTINATION_FAR;
         boolean actorsLast = far && pass.actorsAtTrueDepth();
@@ -751,7 +771,7 @@ public final class ProjectionRenderer {
             pass.applyDepthRange(slice[0], slice[1]);
         }
         try {
-            pass.drawBackdrop(planeLocal);
+            pass.drawBackdrop(planeLocal, !destinationLast);
             if (!destinationLast) {
                 pass.drawDestination(shift[0], shift[1], shift[2]);
             }
@@ -766,7 +786,10 @@ public final class ProjectionRenderer {
         if (!far) {
             return pass.drawStamp(planeLocal);
         }
-        int corners = farDepth(pass, planeLocal, shift, destinationLast);
+        if (destinationLast) {
+            pass.drawDestination(shift[0], shift[1], shift[2]);
+        }
+        int corners = farDepth(pass, planeLocal, shift);
         if (actorsLast) {
             pass.drawActors();
         }
@@ -774,19 +797,12 @@ public final class ProjectionRenderer {
     }
 
     /**
-     * The far stamp, the destination's colour where the pass asked for it at its
-     * own depth, then the destination's own depth over both. Two orderings are
-     * invariants: the stamp writes with an always-pass test, so drawn after the
-     * mesh depth it erases the per-pixel depth it exists to be a fallback for;
-     * and the colour draw needs the stamp already down, or it tests against
-     * whatever the source world holds behind the opening and is cut away.
+     * The far stamp, then the destination's own depth over it. The order is an
+     * invariant: the stamp writes with an always-pass test, so drawn after the
+     * mesh depth it erases the per-pixel depth it exists to be a fallback for.
      */
-    private static int farDepth(PortalPass pass, double planeLocal, double[] shift,
-            boolean colour) {
+    private static int farDepth(PortalPass pass, double planeLocal, double[] shift) {
         int corners = pass.drawFarStamp(planeLocal);
-        if (colour) {
-            pass.drawDestination(shift[0], shift[1], shift[2]);
-        }
         pass.drawDestinationDepth(shift[0], shift[1], shift[2]);
         return corners;
     }

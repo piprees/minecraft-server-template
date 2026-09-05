@@ -42,8 +42,13 @@ public interface PortalPass {
      * The destination's sky and fog, behind everything the mesh draws.
      * {@code planeLocal} is the portal surface on the normal axis, in the
      * volume's own space, and the backdrop is cast from it.
+     *
+     * <p>{@code writeDepth} false paints it and leaves the depth buffer alone.
+     * Inside the slice it otherwise writes ≈the doorway across the whole
+     * opening, and a destination drawn afterwards at its own depth then fails
+     * {@code LEQUAL} on every pixel and draws nothing at all.
      */
-    void drawBackdrop(double planeLocal);
+    void drawBackdrop(double planeLocal, boolean writeDepth);
 
     /**
      * Every layer of the meshed destination, moved by the offset that lands its
@@ -52,7 +57,7 @@ public interface PortalPass {
     void drawDestination(double shiftX, double shiftY, double shiftZ);
 
     /**
-     * Whether {@link #drawDestination} goes after the far stamp at its own
+     * Whether {@link #drawDestination} goes before the far stamp at its own
      * depth instead of inside the slice.
      *
      * <p>The mesh is submitted on entity layers, so a pack shades it in the
@@ -62,9 +67,12 @@ public interface PortalPass {
      * holds ({@code TROUBLESHOOTING.md#t100}). No stamp reaches it: the stamps
      * repair the depth BUFFER, which a forward pass never reads.
      *
-     * <p>Only {@link Stage#DESTINATION_FAR} can honour it. The far stamp has to
-     * run first — it is what puts the source world's own blocks behind the
-     * opening, which the slice otherwise does.
+     * <p>Only {@link Stage#DESTINATION_FAR} can honour it, and it goes BEFORE
+     * the far stamp: that stamp writes with an always-pass test, so a colour
+     * draw after it tests against a buffer with every near occluder erased and
+     * paints the destination through solid walls. Before it, the colour draw
+     * tests against the source world's own depth — at the cost of source
+     * terrain beyond the opening winning where it is nearer than the mesh.
      */
     boolean destinationAtTrueDepth();
 
