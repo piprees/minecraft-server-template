@@ -74,6 +74,23 @@ class DestinationActorsTest {
                 "an actor one block outside the box was dropped with its model still in view");
     }
 
+    /**
+     * The packed lightmap coordinate an actor was drawn at, so a silhouette
+     * against a bright destination can be told from a bright one the pack
+     * shaded dark. Vanilla packs sky in bits 20-23 and block in bits 4-7.
+     */
+    @Test
+    void theActorLightIsReadBackAsSkyAndBlock() {
+        assertEquals("sky=15 block=0", DestinationActors.lightLabel(15 << 20));
+        assertEquals("sky=0 block=14", DestinationActors.lightLabel(14 << 4));
+        assertEquals("sky=4 block=7", DestinationActors.lightLabel((4 << 20) | (7 << 4)));
+    }
+
+    @Test
+    void aDrawThatLitNothingSaysSoRatherThanReportingDarkness() {
+        assertEquals("none", DestinationActors.lightLabel(-1));
+    }
+
     private static final int SIZE_X = 18;
     private static final int SIZE_Y = 19;
     private static final int SIZE_Z = 24;

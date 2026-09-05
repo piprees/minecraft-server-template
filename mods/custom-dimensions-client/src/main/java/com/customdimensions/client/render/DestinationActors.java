@@ -50,6 +50,7 @@ public final class DestinationActors {
     private static int blockEntities;
     private static int quadsIn;
     private static int quadsOut;
+    private static int light = -1;
     private static String failure = "";
 
     private DestinationActors() {}
@@ -58,7 +59,44 @@ public final class DestinationActors {
     public static String summary() {
         return "entities=" + entities + " blockEntities=" + blockEntities
                 + " actorQuads=" + quadsOut + "/" + quadsIn
+                + " light=[" + lightLabel(light) + "]"
                 + (failure.isEmpty() ? "" : " failed=" + failure);
+    }
+
+    /** Entities the last draw submitted. */
+    public static int entities() {
+        return entities;
+    }
+
+    /** Block entities the last draw submitted. */
+    public static int blockEntities() {
+        return blockEntities;
+    }
+
+    /** Quads the last draw offered the opening. */
+    public static int quadsIn() {
+        return quadsIn;
+    }
+
+    /** Quads the opening let through, whole or trimmed. */
+    public static int quadsOut() {
+        return quadsOut;
+    }
+
+    /**
+     * The light the last entity was drawn at, as the destination reported it.
+     * A silhouette where the destination is bright is this reading low.
+     */
+    public static String lastLight() {
+        return lightLabel(light);
+    }
+
+    /** A packed lightmap coordinate as {@code sky/block}, or {@code none}. */
+    static String lightLabel(int packed) {
+        if (packed < 0) {
+            return "none";
+        }
+        return "sky=" + ((packed >> 20) & 0xF) + " block=" + ((packed >> 4) & 0xF);
     }
 
     /**
@@ -78,6 +116,7 @@ public final class DestinationActors {
         blockEntities = 0;
         quadsIn = 0;
         quadsOut = 0;
+        light = -1;
         failure = "";
 
         CompanionPayloads.PortalFrame frame = PortalFrames.get(projection.apertureOrigin());
@@ -138,9 +177,10 @@ public final class DestinationActors {
                 continue;
             }
             float yaw = MathHelper.lerp(tickDelta, entity.prevYaw, entity.getYaw());
-            int light = WorldRenderer.getLightmapCoordinates(destination, entity.getBlockPos());
+            int packed = WorldRenderer.getLightmapCoordinates(destination, entity.getBlockPos());
+            DestinationActors.light = packed;
             client.getEntityRenderDispatcher().render(entity, x, y, z, yaw, tickDelta,
-                    matrices, consumers, light);
+                    matrices, consumers, packed);
             entities++;
         }
     }

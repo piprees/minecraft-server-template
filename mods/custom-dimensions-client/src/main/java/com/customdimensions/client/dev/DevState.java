@@ -12,6 +12,7 @@ import com.customdimensions.client.realtime.SpectatorPass;
 import com.customdimensions.client.render.ClientProjection;
 import com.customdimensions.client.render.LightFacts;
 import com.customdimensions.client.render.ProjectionMesh;
+import com.customdimensions.client.render.DestinationActors;
 import com.customdimensions.client.render.ProjectionStore;
 import com.customdimensions.client.render.QuadCapture;
 import net.minecraft.client.MinecraftClient;
@@ -100,6 +101,11 @@ final class DevState {
                 .num("destinationChunks", DestinationChunks.total())
                 .num("renderedSections", DestinationWorlds.renderedSections())
                 .num("destinationEntities", DestinationEntities.total())
+                .num("apertureEntities", DestinationActors.entities())
+                .num("apertureBlockEntities", DestinationActors.blockEntities())
+                .num("apertureQuadsIn", DestinationActors.quadsIn())
+                .num("apertureQuadsOut", DestinationActors.quadsOut())
+                .str("apertureEntityLight", DestinationActors.lastLight())
                 .num("spectatorPasses", SpectatorPass.passes())
                 .num("spectatorLastUs", SpectatorPass.lastMicros())
                 .num("spectatorMeanUs", SpectatorPass.meanMicros())
