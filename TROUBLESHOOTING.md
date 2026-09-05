@@ -1672,6 +1672,11 @@ measurement of it.
 - **A pack never sees any of it.** Iris replaces the vanilla program, so the
   normal reaches only the pack's own `gbuffers_entities` — which is why the
   fix is free with a pack loaded and worth 41% without one.
+- **Two conditions nobody has been in.** `lightMapColor` is
+  `texelFetch(Sampler2, UV2/16, 0)` on the SOURCE world's lightmap, which is
+  ~1.0 at sky 15 and midday and is not at night or with the source underground.
+  And `linear_fog` grows with `vertexDistance`, so a portal seen from a hundred
+  blocks away takes the SOURCE world's fog colour across the whole opening.
 
 <a id="t98"></a>
 ### T98 — Terrain render layers submitted from a mod's own buffer draw nothing under a shader pack
@@ -1738,12 +1743,20 @@ measurement of it.
   cone reaches back to the eye. The meshed volume starts at the portal surface
   and does not care; an entity can stand short of it, so the actor path adds
   the surface half-space.
-- **Still open, MEASURED:** under a pack a destination entity renders as a dark
-  silhouette. With shaders off the same code draws it correctly lit, so the
-  light lookup is not the cause. Most likely the pack shades destination
-  geometry from the SOURCE world's shadow map, which calls the actor's
-  source-space position occluded. `apertureEntityLight` on the dev bridge
-  reports what it was drawn at.
+- **Open, and the cause is measured rather than suspected: a pack shades
+  destination geometry from the SOURCE world's shadow map and sun direction.**
+  One entity, one light value, one jar, one frame renders as a dark silhouette
+  head-on and correctly textured at 45 degrees oblique, and the destination
+  carries a hard vertical brightness step across both its sky band and its
+  water. A view-angle dependence and a shadow edge; destination geometry is
+  drawn at SOURCE coordinates and the actor's source-space position sits inside
+  the hillside behind the frame.
+- **Two candidates are eliminated by measurement — start past them.** The light
+  handed to the dispatcher is correct (`apertureEntityLight` reports `sky=15
+  block=0`), and the clip is a no-op on the model (`apertureQuadsIn ==
+  apertureQuadsOut`, so the interpolating branch never runs). What remains is a
+  design question — whether destination geometry can stop being drawn at source
+  coordinates — not a tuning one.
 
 <a id="t96"></a>
 ### T96 — The destination pass draws at the field-of-view option, not the one the source frame uses

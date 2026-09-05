@@ -114,10 +114,15 @@ scripts/e2e/rig-ready.sh --check      # report only, never launches or kills
 ```
 
 Run it **before and after** any measurement that touches the client. It asserts
-`mc` healthy, RCON answering, the bridge up, and `worldLoaded` true — that last
-field is the one that matters, and it is false on the Connection Lost screen.
-When the client is stuck it kills the JVM (Prism swallows a `--launch` for an
-instance already running) and relaunches, waiting a capped 180s.
+`mc` healthy, RCON answering, the bridge up, and `worldLoaded` true, which is
+false on the Connection Lost screen. When the client is stuck it kills the JVM
+(Prism swallows a `--launch` for an instance already running) and relaunches,
+waiting a capped 180s.
+
+**`worldLoaded` alone is not a settle gate.** It reads true on a loading screen
+with `fps=0`, and a screenshot taken there is a void that looks like a
+measurement. Poll `worldLoaded && currentScreen == null && fps > 0` before every
+shot; `rig-ready.sh` checks only the first.
 
 It exits non-zero with the reason NAMED. **Never wait on the client yourself** —
 that is the wait that never ends.
@@ -127,6 +132,17 @@ that is the wait that never ends.
 `lib.sh` carries these as helpers, each written after a run failed for the
 reason it now prevents. Read its header comments before changing an assertion.
 
+- **A jar's sha identifies its commit.** The Gradle build here is
+  deterministic: `git archive <commit> mods | tar -x` into a scratch tree and
+  rebuild gives a jar that hashes identical to one built from that commit in
+  place. Re-read the installed hash immediately BEFORE every install rather than
+  once at the start — that is what catches a jar swapped underneath a
+  measurement.
+- **With no shader pack the frame is deterministic.** Two shots of one condition
+  at one camera differ by 0 pixels on the source control, so there is no noise
+  floor to argue about and any non-zero control is a real change. With a pack
+  loaded there is one and it has to be measured per session — recent
+  same-condition floors are 5.20%, 5.25% and 6.63%.
 - **A read that has no value says so in words.** `json_read` returns the value,
   or a sentence — and keeps three cases apart: a filter that does not compile
   (a harness bug), a filter that matches nothing (the fact is absent), and a
