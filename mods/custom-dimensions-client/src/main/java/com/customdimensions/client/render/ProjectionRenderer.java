@@ -207,6 +207,9 @@ public final class ProjectionRenderer {
 
         double surface = projection.surfaceOffset();
         StringBuilder report = sample ? new StringBuilder() : null;
+        if (report != null && slice != null) {
+            recordSample(corners, camX, camY, camZ, camera, position, projectionMatrix, slice);
+        }
         int stamp = runPass(new PortalPass() {
             @Override
             public void applyDepthRange(double near, double far) {
@@ -661,6 +664,36 @@ public final class ProjectionRenderer {
      */
     static String sliceLabel(double[] slice) {
         return slice == null ? "none" : String.format("%.6f..%.6f", slice[0], slice[1]);
+    }
+
+    /**
+     * Where a screen-space pass puts the middle of this opening: the aperture's
+     * centre in window coordinates at the slice's near depth, inverted back
+     * through the frame's own matrices. Recorded on the emit line's cadence and
+     * read by {@code /state}.
+     *
+     * <p>The whole opening reconstructs to about this one point, a couple of
+     * blocks from the eye, whatever the destination behind it holds — which is
+     * the defect the slice causes and the reason the block it lands on is worth
+     * printing.
+     */
+    private static void recordSample(double[] corners, double camX, double camY, double camZ,
+            Vec3d camera, Matrix4f position, Matrix4f projectionMatrix, double[] slice) {
+        double[] ndc = DepthReconstruction.centreNdc(position, projectionMatrix, corners,
+                camX, camY, camZ);
+        if (ndc == null) {
+            return;
+        }
+        double[] point = DepthReconstruction.unproject(position, projectionMatrix,
+                ndc[0], ndc[1], slice[0]);
+        if (point == null) {
+            return;
+        }
+        DepthReconstruction.record(new DepthReconstruction.Sample(slice[0], ndc[0], ndc[1],
+                point[0], point[1], point[2], DepthReconstruction.distance(point),
+                (int) Math.floor(camera.x + point[0]),
+                (int) Math.floor(camera.y + point[1]),
+                (int) Math.floor(camera.z + point[2])));
     }
 
     /** The slice for one portal, from its opening's four corners. */

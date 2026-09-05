@@ -10,6 +10,7 @@ import com.customdimensions.client.realtime.DestinationWorlds;
 import com.customdimensions.client.realtime.PortalFrames;
 import com.customdimensions.client.realtime.SpectatorPass;
 import com.customdimensions.client.render.ClientProjection;
+import com.customdimensions.client.render.DepthReconstruction;
 import com.customdimensions.client.render.LightFacts;
 import com.customdimensions.client.render.ProjectionMesh;
 import com.customdimensions.client.render.DestinationActors;
@@ -59,7 +60,7 @@ final class DevState {
                 .raw("player", player(client))
                 .raw("client", clientState(client))
                 .raw("projections", projections(client))
-                .raw("realtime", realtime())
+                .raw("realtime", realtime(client))
                 .toString();
     }
 
@@ -68,7 +69,7 @@ final class DevState {
      * server-drawn slab, so the two together say which path a portal is on
      * without reading a log at a level the client does not print.
      */
-    private static String realtime() {
+    private static String realtime(MinecraftClient client) {
         RealtimeSettings settings = RealtimeControls.settings();
         Map<Identifier, Integer> held = DestinationWorlds.loadedCounts();
         Map<Identifier, Integer> received = DestinationChunks.counts();
@@ -108,6 +109,7 @@ final class DevState {
                 .num("apertureQuadsIn", DestinationActors.quadsIn())
                 .num("apertureQuadsOut", DestinationActors.quadsOut())
                 .str("apertureEntityLight", DestinationActors.lastLight())
+                .raw("apertureSample", apertureSample(client == null ? null : client.world))
                 .num("spectatorPasses", SpectatorPass.passes())
                 .num("spectatorLastUs", SpectatorPass.lastMicros())
                 .num("spectatorMeanUs", SpectatorPass.meanMicros())
@@ -117,6 +119,40 @@ final class DevState {
                 .num("spectatorBoundAfter", SpectatorPass.boundAfter())
                 .num("spectatorRebinds", SpectatorPass.rebinds())
                 .raw("worlds", worlds.append(']').toString())
+                .toString();
+    }
+
+    /**
+     * Where a screen-space pass puts the middle of the last opening drawn, and
+     * what the SOURCE world holds there.
+     *
+     * <p>A pack reconstructs a fragment's position from its depth, and the
+     * destination is compressed into a slice at the portal surface, so this one
+     * block is what the whole opening is shaded from.
+     */
+    private static String apertureSample(ClientWorld world) {
+        DepthReconstruction.Sample sample = DepthReconstruction.last();
+        if (sample == null) {
+            return Json.obj().str("absent", "no portal drawn inside a depth slice").toString();
+        }
+        BlockPos pos = new BlockPos(sample.blockX(), sample.blockY(), sample.blockZ());
+        Json.Obj out = Json.obj()
+                // Six decimals: the whole slice is about a thousandth of the
+                // depth range, and three prints every value the same.
+                .raw("windowZ", String.format("%.6f", sample.windowZ()))
+                .num("ndcX", sample.ndcX())
+                .num("ndcY", sample.ndcY())
+                .num("distance", sample.distance())
+                .raw("cameraRelative", Json.numbers(sample.x(), sample.y(), sample.z()))
+                .raw("at", Json.numbers(pos.getX(), pos.getY(), pos.getZ()));
+        if (world == null) {
+            return out.str("absent", "no world").toString();
+        }
+        return out
+                .str("id", Registries.BLOCK.getId(world.getBlockState(pos).getBlock()).toString())
+                .bool("skyVisible", world.isSkyVisible(pos))
+                .num("sky", world.getLightLevel(LightType.SKY, pos))
+                .num("block", world.getLightLevel(LightType.BLOCK, pos))
                 .toString();
     }
 
