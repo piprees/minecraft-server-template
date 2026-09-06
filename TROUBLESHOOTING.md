@@ -58,6 +58,7 @@ Run this first. It covers deploy drift, disk, every expected container, `ONLINE_
 | A portal renders once, then draws sky on every approach after a traversal | [T93](#t93), [T94](#t94) |
 | A portal's far side is thin and never fills, at 7 chunks and 0 render sections | [T95](#t95) |
 | A portal's far side does not zoom when a spyglass, a drawn bow or a speed effect zooms the world | [T96](#t96) |
+| The portal flashes while you walk near it and is steady when you stand still | [T103](#t103) |
 | Two screenshots of a frozen, empty scene still differ; a flat wall reports 40-70% of its pixels changed | [T102](#t102) |
 | Portal dust still drifts in the opening with `"particleType": null`, and a quiet-gate says the rig is quiet | [T101](#t101) |
 | Structure spacing arithmetic disagrees with the world | [T51](#t51) |
@@ -1649,6 +1650,37 @@ measurement of it.
   in Python (`%` on negatives, `>>` on signed ints, float-to-int narrowing) has
   the same trap. Pin it against the Java, not against intuition —
   `scripts/e2e/portal-matrix-selftest.sh` is the worked example.
+
+<a id="t103"></a>
+### T103 — Every change in the destination chunk feed blanks the portal entirely
+
+- **Symptom:** the projection flashes or drops out while a player moves near a
+  portal, and is rock steady once they stand still.
+- **Cause:** `RealtimeView.rebuildIfFed` rebuilds only when
+  `DestinationChunks.count()` changes, a rebuild replaces the held
+  `ClientProjection` with one whose mesh is not yet built, and
+  `ProjectionRenderer` returns on `meshIfReady() == null` **before the backdrop,
+  before the destination and before the stamp**. Nothing is drawn for that
+  portal until the off-thread build lands, so the opening shows raw source
+  world. `MeshBuilder.POOL` is a single shared thread, so with more than one
+  portal the blank window is the sum of the builds queued ahead.
+- **Measured** at the overworld source portal `3464, 80, 2592`, same camera,
+  same session, by differencing `realtime.apertureStamps` DESTINATION_FAR
+  against the client's own frame rate — a frame that returns at `mesh == null`
+  never reaches the stamp:
+
+  | condition | chunks | slab | stamps/s | fps | blank frames/s |
+  | --- | --- | --- | --- | --- | --- |
+  | settled | 6 | 1 | 62.6 | 61.8 | 0.0 |
+  | feed rebuilding | 2->6 | 0->1 | 48.6 | 58.8 | **10.2** |
+  | settled again | 6 | 1 | 62.8 | 62.1 | 0.0 |
+
+- **Why a static test rig cannot see it.** A settled feed never rebuilds, so the
+  path is dormant. A benchmark that holds the chunk feed constant holds constant
+  the exact variable this is gated on, and will report a clean negative.
+- **Not established:** that this is the whole of the flicker a player reports.
+  It is one mechanism producing a full-aperture blank, measured once with a
+  before/after control.
 
 <a id="t102"></a>
 ### T102 — A scene cannot be photographed twice identically while a shader pack is loaded
