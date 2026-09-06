@@ -1745,6 +1745,13 @@ measurement of it.
   [T103](#t103) exists to prevent. Treat that as a deliberate trade, not a
   discovery: a narrower box costs a rebuild per movement, and the flicker that
   buys back is the one measured at 54% of rendered frames.
+- **Outside the box is unread world, not dark world.** `ClientProjection.lightAt`
+  clamps to the nearest cell inside; answering 0 there lit the boundary against
+  a neighbour claiming pitch black, and vanilla's smooth lighting samples a
+  2x2x2 neighbourhood per vertex, so it reached a block deep on the inside of
+  every face. A rim is not a uniform dim: if the whole opening reads low with no
+  gradient, read `destLight` and `ambient` on the dev bridge before suspecting
+  the boundary.
 - **A slice budget's unit is a promise.** `RealtimeView.UNITS_PER_TICK` bounds a
   tick by counting cells and columns, which holds only while a unit is bounded
   work. A per-column cost that grows with what came before it — a palette

@@ -340,10 +340,27 @@ public final class ClientProjection {
         return index < 0 ? Blocks.AIR.getDefaultState() : this.states[index];
     }
 
-    /** Packed {@code sky << 4 | block}, 0 outside the described box. */
+    /**
+     * Packed {@code sky << 4 | block}, from the nearest cell inside the box
+     * when the position is outside it.
+     *
+     * <p>Outside is unread world, not dark world. Answering 0 there lit the
+     * boundary against a neighbour claiming pitch black, and vanilla's smooth
+     * lighting samples a 2x2x2 neighbourhood per vertex, so the darkness
+     * reached a block deep on the inside of every face ({@code
+     * TROUBLESHOOTING.md#t108}).
+     */
     public int lightAt(int x, int y, int z) {
-        int index = indexOf(x, y, z);
-        return index < 0 ? 0 : this.payload.light()[index] & 0xFF;
+        BlockPos origin = origin();
+        int lx = clamp(x - origin.getX(), sizeX());
+        int ly = clamp(y - origin.getY(), sizeY());
+        int lz = clamp(z - origin.getZ(), sizeZ());
+        return this.payload.light()[((lx * sizeZ()) + lz) * sizeY() + ly] & 0xFF;
+    }
+
+    /** A local coordinate held inside {@code 0..size-1}. */
+    static int clamp(int local, int size) {
+        return Math.max(0, Math.min(size - 1, local));
     }
 
     /**
