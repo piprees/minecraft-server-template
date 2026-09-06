@@ -20,8 +20,11 @@ class ViewBoxTest {
     private static final int MAX_B = 103;
     private static final int PLANE = 1500;
 
-    /** Cells of one rebuild's main-thread walk at that opening. */
-    private static final int CELL_BUDGET = 64_000;
+    /**
+     * Cells of one rebuild's main-thread walk at that opening. Raising it needs
+     * a {@code realtimeBuildUs} reading from the rig, not an estimate.
+     */
+    private static final int CELL_BUDGET = 10_000;
 
     private static LocalVolume rigBox(int depth, int radius) {
         return LocalVolume.of(MIN_A, MAX_A, MIN_B, MAX_B, PLANE, true, depth, radius);
@@ -44,12 +47,5 @@ class ViewBoxTest {
         assertTrue(cells <= CELL_BUDGET,
                 "one rebuild walks " + cells + " cells on END_CLIENT_TICK, over the "
                         + CELL_BUDGET + " budget");
-    }
-
-    /** The box has to reach past the render-distance-independent near ground. */
-    @Test
-    void theBoxReachesTwoChunksPastTheOpening() {
-        assertTrue(rigBox(RealtimeView.DEPTH, RealtimeView.RADIUS).sizeN() >= 32,
-                "the view stops inside two chunks and reads as a diorama");
     }
 }

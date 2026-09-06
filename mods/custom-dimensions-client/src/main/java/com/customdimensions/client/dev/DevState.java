@@ -9,6 +9,7 @@ import com.customdimensions.client.realtime.DestinationChunks;
 import com.customdimensions.client.realtime.DestinationEntities;
 import com.customdimensions.client.realtime.DestinationWorlds;
 import com.customdimensions.client.realtime.PortalFrames;
+import com.customdimensions.client.realtime.RealtimeView;
 import com.customdimensions.client.realtime.SpectatorPass;
 import com.customdimensions.client.render.AmbientLift;
 import com.customdimensions.client.render.ClientProjection;
@@ -121,6 +122,7 @@ final class DevState {
                 .bool("apertureMeshDepth", settings.apertureMeshDepth())
                 .str("apertureStamps", ProjectionRenderer.stampSummary())
                 .str("apertureRenderUs", ProjectionRenderer.lastCost())
+                .str("realtimeBuildUs", RealtimeView.buildCost())
                 .bool("effectiveServerSide", settings.effectiveServerSide())
                 .bool("clientSideRefused", PortalViewDeclaration.refused())
                 .str("clientSideRefusal", PortalViewDeclaration.reason())

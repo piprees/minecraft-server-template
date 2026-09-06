@@ -39,8 +39,18 @@ public final class PortalFrames {
         if (frame == null) {
             return false;
         }
-        CompanionPayloads.PortalFrame held = FRAMES.put(frame.apertureOrigin(), frame);
-        return !frame.equals(held);
+        return supersedes(frame, FRAMES.put(frame.apertureOrigin(), frame));
+    }
+
+    /**
+     * True when an arriving frame describes a different opening from the one
+     * held, so the projection and build bookmark built from it must go. An
+     * unchanged resend supersedes nothing: dropping them there empties the
+     * store for a tick or two and the portal draws raw source world (T103).
+     */
+    public static boolean supersedes(CompanionPayloads.PortalFrame arriving,
+            CompanionPayloads.PortalFrame held) {
+        return arriving != null && !arriving.equals(held);
     }
 
     public static CompanionPayloads.PortalFrame get(BlockPos apertureOrigin) {

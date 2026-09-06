@@ -36,6 +36,51 @@ class PortalFramesTest {
         PortalFrames.clear();
     }
 
+    /**
+     * The measured T103 case: the server resends the same frame on its own
+     * cadence. Dropping the projection there empties the store until the next
+     * tick rebuilds it, and the opening shows raw source world meanwhile.
+     */
+    @Test
+    void anUnchangedResendSupersedesNothing() {
+        assertFalse(PortalFrames.supersedes(frame(NEXUS, "adventure:the_crucible", 12),
+                        frame(NEXUS, "adventure:the_crucible", 12)),
+                "an unchanged resend dropped the projection and blanked the portal");
+    }
+
+    /** Nothing held: the arriving frame is the first description of this opening. */
+    @Test
+    void firstSightSupersedes() {
+        assertTrue(PortalFrames.supersedes(frame(NEXUS, "adventure:the_crucible", 12), null));
+    }
+
+    /** A moved offset addresses different destination blocks; the built view is wrong. */
+    @Test
+    void aMovedOffsetSupersedes() {
+        assertTrue(PortalFrames.supersedes(frame(NEXUS, "adventure:the_crucible", 12),
+                frame(NEXUS, "adventure:the_crucible", 13)));
+    }
+
+    @Test
+    void aRetargetedFrameSupersedes() {
+        assertTrue(PortalFrames.supersedes(frame(NEXUS, "adventure:the_crucible", 12),
+                frame(NEXUS, "adventure:the_violet_spire", 12)));
+    }
+
+    /** Nothing arriving drops nothing: only a real frame invalidates a held view. */
+    @Test
+    void nothingArrivingSupersedesNothing() {
+        assertFalse(PortalFrames.supersedes(null, frame(NEXUS, "adventure:the_crucible", 12)));
+    }
+
+    /** The gate the receiver reads is accept's own answer, so it must agree. */
+    @Test
+    void acceptAnswersTheSameAsSupersedes() {
+        assertTrue(PortalFrames.accept(frame(NEXUS, "adventure:the_crucible", 12)));
+        assertFalse(PortalFrames.accept(frame(NEXUS, "adventure:the_crucible", 12)));
+        assertTrue(PortalFrames.accept(frame(NEXUS, "adventure:the_crucible", 13)));
+    }
+
     @Test
     void anEmptyStoreAnswersNothingRatherThanNull() {
         assertEquals(0, PortalFrames.count());

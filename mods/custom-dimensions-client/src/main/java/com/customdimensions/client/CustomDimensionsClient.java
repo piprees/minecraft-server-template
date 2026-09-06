@@ -95,9 +95,13 @@ public class CustomDimensionsClient implements ClientModInitializer {
                 });
         ClientPlayNetworking.registerGlobalReceiver(CompanionPayloads.PortalFrame.ID,
                 (payload, context) -> {
-                    ProjectionStore.remove(payload.apertureOrigin());
-                    RealtimeView.forget(payload.apertureOrigin());
                     boolean changed = PortalFrames.accept(payload);
+                    // Only a frame describing a different opening invalidates
+                    // what was built from the last one.
+                    if (changed) {
+                        ProjectionStore.remove(payload.apertureOrigin());
+                        RealtimeView.forget(payload.apertureOrigin());
+                    }
                     // The destination's own world, centred on the arrival: a map
                     // centred anywhere else silently discards every chunk fed to
                     // it. See ChunkMapWindow.

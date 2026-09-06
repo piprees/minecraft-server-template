@@ -44,7 +44,7 @@ public final class RealtimeView {
      * the opening's top edge sees floor all the way to here, so this is how far
      * the ground runs before the window ends.
      */
-    public static final int DEPTH = 48;
+    public static final int DEPTH = 24;
 
     /**
      * The eye-distance-to-opening-half-width ratio the box holds the sightline
@@ -62,6 +62,32 @@ public final class RealtimeView {
 
     /** Chunks held at the last build, per opening. A rebuild needs new ones. */
     private static final Map<BlockPos, Integer> BUILT_AT = new HashMap<>();
+
+    private static volatile int builds;
+    private static volatile long buildNanos;
+    private static volatile long peakBuildNanos;
+    private static volatile int lastCells;
+
+    /**
+     * What {@link #build} has cost on END_CLIENT_TICK since the last read, as
+     * {@code builds=N avg=Aus peak=Pus cells=C}. Reading it clears the window,
+     * so two reads bracket a span. This is the budget DEPTH and RADIUS spend.
+     */
+    public static String buildCost() {
+        int spanBuilds = builds;
+        long spanNanos = buildNanos;
+        long spanPeak = peakBuildNanos;
+        builds = 0;
+        buildNanos = 0;
+        peakBuildNanos = 0;
+        if (spanBuilds == 0) {
+            return "builds=0 avg=n/a peak=n/a cells=" + lastCells;
+        }
+        return "builds=" + spanBuilds
+                + " avg=" + (spanNanos / spanBuilds / 1000) + "us"
+                + " peak=" + (spanPeak / 1000) + "us"
+                + " cells=" + lastCells;
+    }
 
     private RealtimeView() {}
 
@@ -114,10 +140,16 @@ public final class RealtimeView {
         if (builtAt != null && builtAt == held) {
             return;
         }
+        long startedAt = System.nanoTime();
         CompanionPayloads.Projection built = build(frame);
+        long elapsed = System.nanoTime() - startedAt;
         if (built == null) {
             return;
         }
+        builds++;
+        buildNanos += elapsed;
+        peakBuildNanos = Math.max(peakBuildNanos, elapsed);
+        lastCells = built.states().length;
         BUILT_AT.put(frame.apertureOrigin(), held);
         ProjectionStore.accept(built);
         CustomDimensionsClient.LOGGER.info("{} dimension={} aperture={} cells={} chunks={}",
