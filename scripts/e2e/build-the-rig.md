@@ -125,9 +125,9 @@ frame ring    x 3-6, y -61..-57, z 4
 through) and pitch 6 (just below level). **It is not centred on the opening.**
 The interior cells are x 4 and x 5, so the opening spans x 4..6 and its centre is
 x 5.0; 5.5 is the centre of cell x=5 alone. That is half a block, 121 px at this
-distance, and it biases every left/right comparison taken here. `experiment.sh`,
-`reset-the-rig.sh` and the reference crop below are all calibrated to 5.5, so the
-pose and all three move together or not at all.
+distance, and it biases every left/right comparison taken here. The reference
+crop below is calibrated to 5.5, so the pose and the crop move together or not
+at all.
 
 At pitch 6 the sightline does not reach the destination FLOOR until about z 16, so
 the aperture is filled by the exposed cut face of the block at z 7 — a **side**
