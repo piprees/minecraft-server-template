@@ -22,6 +22,9 @@
     "igniterItem": "minecraft:amethyst_shard",
     "color": "5B6B7B",
     "lightLevel": 11,
+    "immersive": {
+      "particleDensity": 0
+    },
     "scale": 2.0,
     "cooldown": 40,
     "sounds": {

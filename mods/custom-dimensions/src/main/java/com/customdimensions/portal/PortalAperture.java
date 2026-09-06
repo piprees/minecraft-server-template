@@ -145,6 +145,15 @@ public final class PortalAperture {
         return driftSign(tick, cell);
     }
 
+    /**
+     * Whether a portal may emit anything at all at this density. The single
+     * switch behind every emitter — the opening, the frame ring and an
+     * arrival's loose dust — so one dimension config silences all of them.
+     */
+    public static boolean emitsAtAll(double density) {
+        return clamp01(density) > 0.0;
+    }
+
     /** Hard ceiling on emitting cells per pass, whatever density asks for. */
     public static int emissionCap(int interiorSize) {
         if (interiorSize <= 0) {
@@ -168,7 +177,7 @@ public final class PortalAperture {
             return List.of();
         }
         double scaled = clamp01(density);
-        if (scaled <= 0.0) {
+        if (!emitsAtAll(scaled)) {
             return List.of();
         }
         Map<BlockPos, Integer> depths = rimDepths(interior, axis);

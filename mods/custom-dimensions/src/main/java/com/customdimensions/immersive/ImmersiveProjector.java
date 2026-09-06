@@ -5,6 +5,7 @@ import com.customdimensions.companion.DestinationFeed;
 import com.customdimensions.config.ImmersiveSettings;
 import com.customdimensions.config.MultiverseConfig;
 import com.customdimensions.config.PortalDefinition;
+import com.customdimensions.portal.PortalAperture;
 import com.customdimensions.portal.PortalHelper;
 import com.customdimensions.portal.PortalShape;
 import net.minecraft.block.BlockState;
@@ -959,6 +960,11 @@ public final class ImmersiveProjector {
      */
     private static void spawnEdgeParticles(ServerWorld world, PortalHelper.PortalZone zone,
             PortalDefinition def, ImmersiveSettings settings, BlockPos centre, long tick) {
+        // The ring is part of the opening, so it answers to the same density:
+        // a portal asked for no particles has none on its frame either.
+        if (!PortalAperture.emitsAtAll(settings.particleDensity())) {
+            return;
+        }
         long phased = tick + particlePhase(centre, EDGE_PARTICLE_INTERVAL);
         if (phased % EDGE_PARTICLE_INTERVAL != 0) {
             return;

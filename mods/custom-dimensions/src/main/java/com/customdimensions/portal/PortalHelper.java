@@ -1548,9 +1548,26 @@ public class PortalHelper {
         return Math.floorMod(any.hashCode(), Math.max(1, interval));
     }
 
+    /**
+     * Whether this world's registered arrival cells and their frames may spawn
+     * their loose particles, governed by the config of the dimension they
+     * STAND in — the same settings {@link #emitImmersiveArrivals} reads. A
+     * world no portal targets keeps the plain look.
+     */
+    private static boolean looseArrivalParticles(RegistryKey<World> world) {
+        ImmersiveSettings settings = MultiverseConfig.getInstance().getImmersiveFor(world);
+        return settings == null || PortalAperture.emitsAtAll(settings.particleDensity());
+    }
+
     public static void spawnTargetPortalParticles(ServerWorld level) {
         RegistryKey<World> worldKey = level.getRegistryKey();
         Map<BlockPos, PortalReturnTarget> targets = PORTAL_TARGETS.get(worldKey);
+        Map<BlockPos, Integer> frames = PORTAL_FRAMES.get(worldKey);
+        boolean nothingToEmit = (targets == null || targets.isEmpty())
+                && (frames == null || frames.isEmpty());
+        // One config read per pass, and only where there is something to gate:
+        // getImmersiveFor walks every portal definition.
+        boolean loose = nothingToEmit || looseArrivalParticles(worldKey);
         if (targets != null) {
             for (Map.Entry<BlockPos, PortalReturnTarget> entry : targets.entrySet()) {
                 BlockPos p = entry.getKey();
@@ -1576,6 +1593,9 @@ public class PortalHelper {
                 if (com.customdimensions.immersive.ImmersiveProjector.isImmersiveArrival(worldKey, p)) {
                     continue;
                 }
+                if (!loose) {
+                    continue;
+                }
                 ParticleEffect effect = resolveParticleFromTarget(rt);
                 level.spawnParticles(effect,
                         p.getX() + 0.5, p.getY() + 0.5, p.getZ() + 0.5,
@@ -1584,8 +1604,7 @@ public class PortalHelper {
             }
         }
         emitImmersiveArrivals(level, worldKey);
-        Map<BlockPos, Integer> frames = PORTAL_FRAMES.get(worldKey);
-        if (frames != null) {
+        if (loose && frames != null) {
             for (Map.Entry<BlockPos, Integer> entry : frames.entrySet()) {
                 BlockPos p = entry.getKey();
                 if (!level.getChunkManager().isChunkLoaded(p.getX() >> 4, p.getZ() >> 4)) {
