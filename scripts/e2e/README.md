@@ -156,6 +156,21 @@ reason it now prevents. Read its header comments before changing an assertion.
   against ten minutes of wall clock. A mechanism argument that there is no
   decay path does not shorten this. It tells you what a failure would MEAN if
   you see one, which is a different thing from telling you not to look.
+- **A Carpet bot can hold chunks and can never stand in for a companion
+  client.** It counts for `anyoneWithinTicketRange`, so it keeps a zone's
+  ticket alive; it never counts for `localDrawerFarSides`, which requires
+  `!CompanionNetwork.streamsSlab(uuid)`, and an undeclared player falls to
+  `PortalViewPreference.SERVER_DRAWN` — `rendersLocally` false, `keepSlab`
+  true, so `streamsSlab()` is true. A bot never sends `portal-view/v1`. So the
+  core is never ticketed for one, and any local-drawer test built on a bot
+  measures the slab path while looking like it measures the other.
+- **One residency probe is not a residency reading.** `execute in DIM if block`
+  distinguishes `That position is not loaded` from a real answer, and the same
+  column can give both minutes apart: an arrival chunk read not-loaded once and
+  then loaded on 20 consecutive samples. Sample repeatedly and say how many.
+  Control it in the same run — a known-loaded position in another dimension
+  must pass while a genuinely remote column must report not-loaded, which is
+  what separates "the method is broken" from "the residency moved".
 - **A read that has no value says so in words.** `json_read` returns the value,
   or a sentence — and keeps three cases apart: a filter that does not compile
   (a harness bug), a filter that matches nothing (the fact is absent), and a
