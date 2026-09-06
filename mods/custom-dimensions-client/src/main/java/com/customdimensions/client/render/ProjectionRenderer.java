@@ -395,6 +395,11 @@ public final class ProjectionRenderer {
             public void drawDestination(double shiftX, double shiftY, double shiftZ) {
                 boolean unshaded = RealtimeControls.settings().apertureUnshadedDestination();
                 float ambient = mesh.sourceAmbient();
+                // The grid's levels are the destination's own. The unshaded
+                // target samples no lightmap, so it shades from them against
+                // the destination's ambient; the shaded one has to express
+                // them as source-lightmap levels first.
+                float destinationAmbient = projection.payload().ambientLight();
                 for (java.util.Map.Entry<net.minecraft.client.render.RenderLayer,
                         java.util.List<ProjectionMesh.Layer>> group :
                         (RealtimeControls.settings().apertureTerrain()
@@ -426,7 +431,7 @@ public final class ProjectionRenderer {
                         emitted += unshaded
                                 ? emitClipped(layer, consumer, entry, (float) shiftX,
                                         (float) shiftY, (float) shiftZ,
-                                        (c, e, poly, at) -> emitUnshaded(c, e, poly, at, ambient))
+                                        (c, e, poly, at) -> emitUnshaded(c, e, poly, at, destinationAmbient))
                                 : emitClipped(layer, consumer, entry,
                                         (float) shiftX, (float) shiftY, (float) shiftZ);
                         survivors += clipVertices;
@@ -1282,6 +1287,23 @@ public final class ProjectionRenderer {
     /** Sutherland-Hodgman against one plane; returns the new vertex count. */
     static int clip(float[] in, int count, float[] out, int plane) {
         return PLANES.clip(in, count, out, plane);
+    }
+
+    /**
+     * A shaded target's vertex: the destination's levels expressed as the
+     * source-lightmap levels that shade like them, because this layer samples
+     * that texture.
+     */
+    private static void emitLifted(VertexConsumer consumer, MatrixStack.Entry entry, float[] poly,
+            int at, float destinationAmbient, float sourceAmbient) {
+        int block = AmbientLift.lift((int) poly[at + 11], destinationAmbient, sourceAmbient);
+        int sky = AmbientLift.lift((int) poly[at + 12], destinationAmbient, sourceAmbient);
+        consumer.vertex(entry, poly[at], poly[at + 1], poly[at + 2])
+                .color(poly[at + 3], poly[at + 4], poly[at + 5], poly[at + 6])
+                .texture(poly[at + 7], poly[at + 8])
+                .overlay((int) poly[at + 9], (int) poly[at + 10])
+                .light(block << 4, sky << 4)
+                .normal(entry, poly[at + 13], poly[at + 14], poly[at + 15]);
     }
 
     private static void emit(VertexConsumer consumer, MatrixStack.Entry entry, float[] poly, int at) {

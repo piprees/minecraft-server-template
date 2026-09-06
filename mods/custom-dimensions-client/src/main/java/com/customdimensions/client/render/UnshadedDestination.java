@@ -78,9 +78,10 @@ public final class UnshadedDestination {
      * destination's own block and sky levels. Vanilla's own brightness curve,
      * the brighter channel winning, exactly as the lightmap composes them.
      *
-     * <p>The levels reaching here are already in source-lightmap space
-     * ({@link AmbientLift}), so {@code ambient} is the SOURCE ambient the mesh
-     * was lifted against and the pair reproduces the texel the lightmap holds.
+     * <p>The levels reaching here are the destination's own, so {@code ambient}
+     * is the DESTINATION's. Routing them through source-lightmap space first
+     * would lose them entirely to a saturated source, which is the one thing
+     * this target does not have to care about.
      */
     public static float scale(int block, int sky, float ambient) {
         float floor = Math.max(0.0f, Math.min(1.0f, ambient));

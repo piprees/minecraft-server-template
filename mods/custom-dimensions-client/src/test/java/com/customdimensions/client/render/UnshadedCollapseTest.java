@@ -29,19 +29,42 @@ class UnshadedCollapseTest {
     }
 
     /**
-     * A saturated source flattens the curve completely: sky 0 and sky 15 come
-     * back identical, so nothing the destination reports about its own light
-     * survives to the screen. This is the state the grey box measures in —
-     * {@code e2e_one} declares {@code ambientLight: 1.0}.
+     * A saturated ambient flattens the curve completely — every level returns
+     * one. That is correct for a destination whose own ambient saturates it,
+     * and catastrophic for one merely VIEWED from such a source, which is why
+     * this target takes the destination's ambient and not the source's.
      */
     @Test
-    void aSaturatedSourceCollapsesEveryLevelToOne() {
+    void aSaturatedAmbientCollapsesEveryLevelToOne() {
         for (int level = 0; level <= 15; level++) {
             assertEquals(1.0f, UnshadedDestination.scale(0, level, 1.0f), 1.0e-6f,
-                    "sky " + level + " scaled to something other than 1 at a saturated source");
+                    "sky " + level + " scaled to something other than 1 at a saturated ambient");
             assertEquals(1.0f, UnshadedDestination.scale(level, 0, 1.0f), 1.0e-6f,
-                    "block " + level + " scaled to something other than 1 at a saturated source");
+                    "block " + level + " scaled to something other than 1 at a saturated ambient");
         }
+    }
+
+    /**
+     * The saturated SOURCE is the case the grey box measures in. A destination
+     * at ambient 0 seen from a source at ambient 1 must still spread its own
+     * levels — routing them through source-lightmap space first is what lost
+     * them, and that is the composition this target no longer performs.
+     */
+    @Test
+    void aDarkDestinationSeenFromASaturatedSourceKeepsItsLevels() {
+        float dark = UnshadedDestination.scale(0, 0, 0.0f);
+        float bright = UnshadedDestination.scale(0, 15, 0.0f);
+        assertTrue(bright - dark > 0.5f,
+                "a destination at ambient 0 cannot tell its own levels apart");
+
+        // What the discarded composition produced: lift into a saturated
+        // source first, then shade against that source.
+        float liftedDark = UnshadedDestination.scale(
+                0, AmbientLift.lift(0, 0.0f, 1.0f), 1.0f);
+        float liftedBright = UnshadedDestination.scale(
+                0, AmbientLift.lift(15, 0.0f, 1.0f), 1.0f);
+        assertEquals(liftedDark, liftedBright, 1.0e-6f,
+                "the old composition is no longer flat; this test describes nothing");
     }
 
     /** The brighter channel wins, as the lightmap composes them. */
