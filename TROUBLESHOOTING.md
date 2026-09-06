@@ -59,6 +59,7 @@ Run this first. It covers deploy drift, disk, every expected container, `ONLINE_
 | A portal's far side is thin and never fills, at 7 chunks and 0 render sections | [T95](#t95) |
 | A portal's far side does not zoom when a spyglass, a drawn bow or a speed effect zooms the world | [T96](#t96) |
 | The portal flashes while you walk near it and is steady when you stand still | [T103](#t103) |
+| Nearly every quad of the portal mesh is clipped away each frame | [T108](#t108) |
 | A second WorldRenderer for the destination smears the screen, and re-entering lower does not fix it | [T104](#t104) |
 | A brightness ramp crosses the portal opening and moves with camera yaw alone | [T105](#t105) |
 | No portal draws its destination and the mc log has no `immersive:` line at all | [T107](#t107) |
@@ -1653,6 +1654,36 @@ measurement of it.
   in Python (`%` on negatives, `>>` on signed ints, float-to-int narrowing) has
   the same trap. Pin it against the Java, not against intuition —
   `scripts/e2e/portal-matrix-selftest.sh` is the worked example.
+
+<a id="t108"></a>
+### T108 — Almost the whole portal mesh is clipped away every frame, and no draw-time change recovers it
+
+- **Symptom:** the clip tally reports nearly all of a layer's quads rejected —
+  measured at the reaches source portal, `solid quadsIn 2314 emitted 0` and
+  `translucent quadsIn 1189 emitted 128` (vertices, so 32 quads). Rejecting
+  whole buckets against the opening cuts roughly half of it and no more.
+- **Cause:** `RealtimeView.NEAR_RADIUS = 16` holds the capture box at full
+  width for the first `NEAR_RADIUS * CONE_RATIO` = 48 blocks, so a 34-wide slab
+  of terrain is read and meshed where an eye five blocks back sees a cone a few
+  blocks across. The floor exists because an eye against the opening sees far
+  wider than the cone at that depth, and the box is per-opening, not per-frame.
+- **What bucketing can and cannot do.** Buckets must be bounded on all three
+  axes: a slice perpendicular to the normal spans the box's full lateral extent
+  and so always contains the cone's own cross-section, measured as
+  `slabsGated=0` and true at every eye distance. Bounded as boxes, rejection
+  reaches 46% of the quad-bearing footprint at an eye 5 blocks back and 63% at
+  10 (`ProjectionMesh.SLAB = 8`; halving it buys about ten points more). The
+  residual is geometry inside buckets that straddle the cone.
+- **The only thing that recovers the rest** is sizing the box to the actual eye
+  distance, which means rebuilding it as the player moves — the churn
+  [T103](#t103) exists to prevent. Treat that as a deliberate trade, not a
+  discovery: a narrower box costs a rebuild per movement, and the flicker that
+  buys back is the one measured at 54% of rendered frames.
+- **Read it per pose from the dev bridge**, never from the emit line:
+  `projections[].clip.layers[]` carries `bucketsKept`, `bucketsTotal`,
+  `quadsIn` and `emitted` every sampled frame, while the emit line is on a
+  wall-clock cadence and `Repeated` drops it to DEBUG after the first of a
+  session — a `grep | tail -1` returns that first line at every later pose.
 
 <a id="t107"></a>
 ### T107 — A dead player leaves `world.getPlayers()`, and every per-player projection stops

@@ -436,11 +436,10 @@ public final class ProjectionRenderer {
                     immediate.draw(target);
                     if (report != null) {
                         ClipTally.layer(projection.apertureOrigin(),
-                                String.valueOf(group.getKey()), quadsIn, emitted, rejectedBy);
+                                String.valueOf(group.getKey()), kept, group.getValue().size(),
+                                quadsIn, emitted, rejectedBy);
                         report.append(report.isEmpty() ? "" : " | ")
                                 .append(group.getKey())
-                                .append(" buckets=").append(kept).append('/')
-                                .append(group.getValue().size())
                                 .append(" quadsIn=").append(quadsIn)
                                 .append(" light=[")
                                 .append(first == null ? "none"

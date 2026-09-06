@@ -517,6 +517,8 @@ final class DevState {
         for (ClipTally.Layer layer : portal.layers()) {
             layers.append(first ? "" : ",").append(Json.obj()
                     .str("layer", layer.layer())
+                    .num("bucketsKept", layer.kept())
+                    .num("bucketsTotal", layer.total())
                     .num("quadsIn", layer.quadsIn())
                     .num("emitted", layer.emitted())
                     .raw("rejectedBy", Json.numbers(layer.rejectedBy()[0], layer.rejectedBy()[1],
