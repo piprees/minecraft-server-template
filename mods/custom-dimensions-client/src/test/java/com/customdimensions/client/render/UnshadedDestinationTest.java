@@ -15,6 +15,7 @@ import java.util.Set;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -66,6 +67,29 @@ class UnshadedDestinationTest {
                 UnshadedDestination.of(UnshadedDestination.Captured.CUTOUT, true));
         assertEquals(UnshadedDestination.Target.UNSHADED_BLENDED,
                 UnshadedDestination.of(UnshadedDestination.Captured.TRANSLUCENT, true));
+    }
+
+    @Test
+    void theBackdropFollowsTheSameSwitch() {
+        assertEquals(UnshadedDestination.Target.ENTITY_BACKDROP,
+                UnshadedDestination.backdrop(false));
+        assertEquals(UnshadedDestination.Target.UNSHADED_BACKDROP,
+                UnshadedDestination.backdrop(true));
+    }
+
+    /** One flip has to move both halves of the opening, or an A/B measures a mixture. */
+    @Test
+    void neitherHalfIsLeftOnAnEntityLayerWhenTheSwitchIsOn() {
+        Set<UnshadedDestination.Target> shaded = Set.of(
+                UnshadedDestination.Target.ENTITY_SOLID,
+                UnshadedDestination.Target.ENTITY_CUTOUT_NO_CULL,
+                UnshadedDestination.Target.ENTITY_TRANSLUCENT_CULL,
+                UnshadedDestination.Target.ENTITY_BACKDROP);
+        for (UnshadedDestination.Captured captured : UnshadedDestination.Captured.values()) {
+            assertFalse(shaded.contains(UnshadedDestination.of(captured, true)),
+                    captured.toString());
+        }
+        assertFalse(shaded.contains(UnshadedDestination.backdrop(true)));
     }
 
     // ------------------------------------------------------------------
@@ -127,9 +151,25 @@ class UnshadedDestinationTest {
         Set<String> calls = calls(LAYERS);
         assertTrue(calls.contains("com/customdimensions/client/render/UnshadedDestination.of"),
                 "forDestination must route through the choice: " + calls);
+        assertTrue(calls.contains("com/customdimensions/client/render/UnshadedDestination.backdrop"),
+                "backdrop must route through the choice too: " + calls);
         Set<String> fields = fields(LAYERS);
         assertTrue(fields.contains("UNSHADED_OPAQUE"), fields.toString());
         assertTrue(fields.contains("UNSHADED_BLENDED"), fields.toString());
+        assertTrue(fields.contains("UNSHADED_BACKDROP"), fields.toString());
+    }
+
+    /** The flag has to REACH the backdrop's layer choice, not just exist beside it. */
+    @Test
+    void theBackdropDrawPassesTheSwitchToTheLayerChoice() {
+        Set<String> calls = new LinkedHashSet<>();
+        for (Path file : innerClasses(RENDERER)) {
+            calls.addAll(callsIn(file));
+        }
+        assertTrue(calls.contains("com/customdimensions/client/render/PortalRenderLayers.backdrop"
+                        + "(Z)Lnet/minecraft/client/render/RenderLayer;"),
+                "the backdrop layer must be chosen from the switch: "
+                        + calls.size() + " calls scanned");
     }
 
     @Test
@@ -161,6 +201,7 @@ class UnshadedDestinationTest {
                     public void visitMethodInsn(int opcode, String owner, String method,
                             String descriptor, boolean isInterface) {
                         found.add(owner + "." + method);
+                        found.add(owner + "." + method + descriptor);
                     }
                 };
             }

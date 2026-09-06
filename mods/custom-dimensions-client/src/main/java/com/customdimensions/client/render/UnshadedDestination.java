@@ -22,7 +22,9 @@ public final class UnshadedDestination {
         ENTITY_CUTOUT_NO_CULL,
         ENTITY_TRANSLUCENT_CULL,
         UNSHADED_OPAQUE,
-        UNSHADED_BLENDED
+        UNSHADED_BLENDED,
+        ENTITY_BACKDROP,
+        UNSHADED_BACKDROP
     }
 
     private UnshadedDestination() {}
@@ -41,6 +43,15 @@ public final class UnshadedDestination {
             case CUTOUT -> Target.ENTITY_CUTOUT_NO_CULL;
             case SOLID -> Target.ENTITY_SOLID;
         };
+    }
+
+    /**
+     * The layer behind the destination. Its colour is the destination's own fog
+     * colour, already finished, so an unshaded target is the one that shows it:
+     * no lightmap texel, no diffuse, nothing to apply a second time.
+     */
+    public static Target backdrop(boolean unshaded) {
+        return unshaded ? Target.UNSHADED_BACKDROP : Target.ENTITY_BACKDROP;
     }
 
     /**

@@ -29,6 +29,12 @@ public final class PortalRenderLayers {
     private PortalRenderLayers() {}
 
     /**
+     * Vanilla's 1x1 white texture, so the quad's own colour is what reaches the
+     * screen and no atlas sprite is sampled.
+     */
+    private static final Identifier WHITE = Identifier.ofVanilla("textures/misc/white.png");
+
+    /**
      * The layer a captured block quad is DRAWN on, which is not the layer it
      * was captured for.
      *
@@ -70,6 +76,8 @@ public final class PortalRenderLayers {
             case ENTITY_SOLID -> RenderLayer.getEntitySolid(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE);
             case UNSHADED_OPAQUE -> UNSHADED_OPAQUE;
             case UNSHADED_BLENDED -> UNSHADED_BLENDED;
+            case ENTITY_BACKDROP -> RenderLayer.getEntityCutoutNoCull(WHITE);
+            case UNSHADED_BACKDROP -> UNSHADED_BACKDROP;
         };
     }
 
@@ -87,7 +95,20 @@ public final class PortalRenderLayers {
     public static final RenderLayer UNSHADED_BLENDED =
             unshaded("customdimensions_portal_unshaded_blended", true);
 
+    /**
+     * The same, over the white texture and unculled, for the backdrop: its
+     * winding follows the aperture rather than the view, and its colour is the
+     * destination's fog colour rather than a sprite.
+     */
+    public static final RenderLayer UNSHADED_BACKDROP =
+            unshaded("customdimensions_portal_unshaded_backdrop", WHITE, false, false);
+
     private static RenderLayer unshaded(String name, boolean blend) {
+        return unshaded(name, SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE, blend, true);
+    }
+
+    private static RenderLayer unshaded(String name, Identifier texture, boolean blend,
+            boolean cull) {
         return new RenderLayer(
                 name,
                 VertexFormats.POSITION_COLOR_TEXTURE_LIGHT,
@@ -97,7 +118,7 @@ public final class PortalRenderLayers {
                 blend,
                 () -> {
                     RenderSystem.setShader(GameRenderer::getRenderTypeBeaconBeamProgram);
-                    RenderSystem.setShaderTexture(0, SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE);
+                    RenderSystem.setShaderTexture(0, texture);
                     if (blend) {
                         RenderSystem.enableBlend();
                         RenderSystem.defaultBlendFunc();
@@ -109,35 +130,32 @@ public final class PortalRenderLayers {
                     // Written, so the mesh self-occludes inside the slice as it
                     // does on the entity layers.
                     RenderSystem.depthMask(true);
-                    RenderSystem.enableCull();
+                    if (cull) {
+                        RenderSystem.enableCull();
+                    } else {
+                        RenderSystem.disableCull();
+                    }
                 },
                 () -> {
                     RenderSystem.disableBlend();
+                    RenderSystem.enableCull();
                 }) {};
     }
 
     /**
-     * Vanilla's 1x1 white texture, so the quad's own colour is what reaches the
-     * screen and no atlas sprite is sampled.
-     */
-    private static final Identifier WHITE = Identifier.ofVanilla("textures/misc/white.png");
-
-    /**
-     * The backdrop's layer: an entity layer, over white, no culling.
-     *
-     * <p>Drawn through {@code position_color} it is geometry with no normal and
-     * no lightmap, which a shader pack has nothing to shade: measured under
-     * Complementary Reimagined, the destination's fog colour {@code
-     * (192,216,255)} reaches the screen as {@code (248,244,246)}, a blown-out
-     * white filling the opening. On an entity layer, with a normal facing the
-     * camera and the destination's sky light, it is shaded like any model.
-     *
-     * <p>No culling because the quad is cast from the camera through the
-     * opening's corners and its winding follows the aperture rather than the
+     * The backdrop's layer, over white so the quad's own colour is what reaches
+     * the screen, and unculled because the quad is cast from the camera through
+     * the opening's corners and its winding follows the aperture rather than the
      * view.
+     *
+     * <p>Unshaded it is the destination's fog colour flat, which is what the
+     * colour already is: on an entity layer a lightmap texel and a diffuse term
+     * are applied to a finished colour a second time
+     * ({@code TROUBLESHOOTING.md#t99}), and a pack shadows it from the source
+     * world as it shades any model.
      */
-    public static RenderLayer backdrop() {
-        return RenderLayer.getEntityCutoutNoCull(WHITE);
+    public static RenderLayer backdrop(boolean unshaded) {
+        return layerFor(UnshadedDestination.backdrop(unshaded));
     }
 
     /**

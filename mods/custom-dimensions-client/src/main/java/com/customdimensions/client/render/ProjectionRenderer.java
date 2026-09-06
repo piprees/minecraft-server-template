@@ -355,14 +355,21 @@ public final class ProjectionRenderer {
                 int corners = backdropPolygon(projection, TUNNEL, camX, camY, camZ,
                         surfaceLocal, facing, POLY_A, POLY_B);
                 dressBackdrop(POLY_A, corners);
+                boolean unshaded = RealtimeControls.settings().apertureUnshadedDestination();
+                net.minecraft.client.render.RenderLayer layer =
+                        PortalRenderLayers.backdrop(unshaded);
+                // The fog colour is finished when it arrives, so unshaded it is
+                // written straight out; the entity layer needs the dressing.
+                VertexEmit writer = unshaded
+                        ? ProjectionRenderer::emitUnshadedSurface : ProjectionRenderer::emit;
                 if (writeDepth) {
-                    drawShaded(PortalRenderLayers.backdrop(), entry, corners);
+                    drawShaded(layer, entry, corners, writer);
                     return;
                 }
                 withGlState(() -> DEPTH_MASK.accept(Boolean.FALSE),
                         () -> DEPTH_MASK.accept(Boolean.TRUE),
                         () -> {
-                            drawShaded(PortalRenderLayers.backdrop(), entry, corners);
+                            drawShaded(layer, entry, corners, writer);
                             return null;
                         });
             }
@@ -1029,8 +1036,21 @@ public final class ProjectionRenderer {
         consumer.vertex(entry, poly[at], poly[at + 1], poly[at + 2])
                 .color(poly[at + 3] * lit, poly[at + 4] * lit, poly[at + 5] * lit, poly[at + 6])
                 .texture(poly[at + 7], poly[at + 8])
-                .light(net.minecraft.client.render.LightmapTextureManager.MAX_LIGHT_COORDINATE);
+                .light(FULL_BRIGHT);
     }
+
+    /** The same vertex with the colour untouched: the backdrop's is finished. */
+    private static void emitUnshadedSurface(VertexConsumer consumer, MatrixStack.Entry entry,
+            float[] poly, int at) {
+        consumer.vertex(entry, poly[at], poly[at + 1], poly[at + 2])
+                .color(poly[at + 3], poly[at + 4], poly[at + 5], poly[at + 6])
+                .texture(poly[at + 7], poly[at + 8])
+                .light(FULL_BRIGHT);
+    }
+
+    /** No lightmap phase on an unshaded layer, so nothing downstream dims it. */
+    private static final int FULL_BRIGHT =
+            net.minecraft.client.render.LightmapTextureManager.MAX_LIGHT_COORDINATE;
 
     /** Position and colour only: {@link PortalRenderLayers#APERTURE_DEPTH} takes no more. */
     private static void emitFlat(VertexConsumer consumer, MatrixStack.Entry entry, float[] poly,
@@ -1079,21 +1099,21 @@ public final class ProjectionRenderer {
      * whole vertex, and flushes it. Returns the corner count.
      */
     private static int drawShaded(net.minecraft.client.render.RenderLayer layer,
-            MatrixStack.Entry entry, int corners) {
+            MatrixStack.Entry entry, int corners, VertexEmit writer) {
         if (corners < 3) {
             return 0;
         }
         VertexConsumer consumer = immediate.getBuffer(layer);
         if (corners == 4) {
             for (int v = 0; v < 4; v++) {
-                emit(consumer, entry, POLY_A, v * STRIDE);
+                writer.write(consumer, entry, POLY_A, v * STRIDE);
             }
         } else {
             for (int v = 1; v + 1 < corners; v++) {
-                emit(consumer, entry, POLY_A, 0);
-                emit(consumer, entry, POLY_A, v * STRIDE);
-                emit(consumer, entry, POLY_A, (v + 1) * STRIDE);
-                emit(consumer, entry, POLY_A, (v + 1) * STRIDE);
+                writer.write(consumer, entry, POLY_A, 0);
+                writer.write(consumer, entry, POLY_A, v * STRIDE);
+                writer.write(consumer, entry, POLY_A, (v + 1) * STRIDE);
+                writer.write(consumer, entry, POLY_A, (v + 1) * STRIDE);
             }
         }
         immediate.draw(layer);
