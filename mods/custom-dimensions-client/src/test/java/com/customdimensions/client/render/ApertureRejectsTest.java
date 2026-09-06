@@ -108,6 +108,55 @@ class ApertureRejectsTest {
         return survivors;
     }
 
+    /**
+     * Why the buckets are boxes and not slices. A slice perpendicular to the
+     * normal spans the whole lateral extent, so it contains the cone's own
+     * cross-section at its depth however deep it is — measured at the rig as
+     * slabsGated=0, and true at every eye distance.
+     */
+    @Test
+    void aSliceSpanningTheWholeWidthIsNeverRejected() {
+        AperturePlanes planes = cone();
+        for (int depth = 0; depth < 64; depth += 8) {
+            assertFalse(planes.rejects(-23.0, -23.5, depth, 23.0, 23.5, depth + 8.0),
+                    "a full-width slice at depth " + depth + " was rejected, so depth slabs "
+                            + "would have worked and this bucketing is more than it needs to be");
+        }
+    }
+
+    /** Bound the same region on every axis and its outer corner does fall away. */
+    @Test
+    void aBucketBoundedOnEveryAxisIsRejected() {
+        assertTrue(cone().rejects(15.0, 15.0, 8.0, 23.0, 23.5, 16.0),
+                "a bucket in the box's outer corner was kept, so bucketing saves nothing");
+    }
+
+    /**
+     * The wiring: a bucket's index becomes the box the cone is tested against.
+     * A bucket in the box's outer corner falls away; the one over the aperture
+     * does not.
+     */
+    @Test
+    void aBucketIndexBecomesTheBoxItIsTestedAs() {
+        AperturePlanes planes = cone();
+        int slab = ProjectionMesh.SLAB;
+        // Volume-local: the aperture sits at the centre of a 46 x 47 box, and
+        // the shift moves it onto the cone's own coordinates.
+        double shiftX = -23.0;
+        double shiftY = -23.5;
+        double shiftZ = 0.0;
+        assertFalse(ProjectionRenderer.bucketRejected(planes, 46, 47, 64,
+                        bucket(23 / slab, 23 / slab, 0), shiftX, shiftY, shiftZ),
+                "the bucket over the aperture was skipped, which would blank the view");
+        assertTrue(ProjectionRenderer.bucketRejected(planes, 46, 47, 64,
+                        bucket(0, 0, 1), shiftX, shiftY, shiftZ),
+                "a bucket in the near field's outer corner was clipped quad by quad");
+    }
+
+    private static ProjectionMesh.Layer bucket(int bx, int by, int bz) {
+        return new ProjectionMesh.Layer(null, bx, by, bz, new float[0], 0);
+    }
+
     /** No planes means no information, so nothing may be skipped on their word. */
     @Test
     void anEmptyConeRejectsNothing() {

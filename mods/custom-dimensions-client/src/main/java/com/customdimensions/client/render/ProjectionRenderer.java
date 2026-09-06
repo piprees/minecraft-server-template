@@ -395,40 +395,63 @@ public final class ProjectionRenderer {
             public void drawDestination(double shiftX, double shiftY, double shiftZ) {
                 boolean unshaded = RealtimeControls.settings().apertureUnshadedDestination();
                 float ambient = mesh.sourceAmbient();
-                for (ProjectionMesh.Layer layer :
-                        RealtimeControls.settings().apertureTerrain()
-                                ? mesh.layers() : java.util.List.<ProjectionMesh.Layer>of()) {
-                    // A slab wholly outside the cone cannot contribute a pixel,
-                    // and clipping its quads one at a time is most of what this
-                    // pass costs.
-                    if (slabRejected(projection, layer.slab(), shiftX, shiftY, shiftZ)) {
-                        slabsGated++;
-                        continue;
-                    }
+                for (java.util.Map.Entry<net.minecraft.client.render.RenderLayer,
+                        java.util.List<ProjectionMesh.Layer>> group :
+                        (RealtimeControls.settings().apertureTerrain()
+                                ? mesh.targets()
+                                : java.util.Map.<net.minecraft.client.render.RenderLayer,
+                                        java.util.List<ProjectionMesh.Layer>>of()).entrySet()) {
                     net.minecraft.client.render.RenderLayer target =
-                            PortalRenderLayers.forDestination(layer.layer(), unshaded);
+                            PortalRenderLayers.forDestination(group.getKey(), unshaded);
                     VertexConsumer consumer = immediate.getBuffer(target);
-                    int emitted = unshaded
-                            ? emitClipped(layer, consumer, entry, (float) shiftX, (float) shiftY,
-                                    (float) shiftZ,
-                                    (c, e, poly, at) -> emitUnshaded(c, e, poly, at, ambient))
-                            : emitClipped(layer, consumer, entry,
-                                    (float) shiftX, (float) shiftY, (float) shiftZ);
+                    int emitted = 0;
+                    int quadsIn = 0;
+                    int survivors = 0;
+                    int kept = 0;
+                    ProjectionMesh.Layer first = null;
+                    for (ProjectionMesh.Layer layer : group.getValue()) {
+                        // A bucket wholly outside the cone cannot contribute a
+                        // pixel, and clipping its quads one at a time is most of
+                        // what this pass costs.
+                        if (bucketRejected(PLANES, projection.sizeX(), projection.sizeY(),
+                                projection.sizeZ(), layer, shiftX, shiftY, shiftZ)) {
+                            slabsGated++;
+                            continue;
+                        }
+                        kept++;
+                        if (first == null) {
+                            first = layer;
+                        }
+                        quadsIn += layer.floats() / (STRIDE * 4);
+                        emitted += unshaded
+                                ? emitClipped(layer, consumer, entry, (float) shiftX,
+                                        (float) shiftY, (float) shiftZ,
+                                        (c, e, poly, at) -> emitUnshaded(c, e, poly, at, ambient))
+                                : emitClipped(layer, consumer, entry,
+                                        (float) shiftX, (float) shiftY, (float) shiftZ);
+                        survivors += clipVertices;
+                    }
+                    // One submit per layer however many buckets fed it: a draw
+                    // per bucket costs more than the clip it saves.
                     immediate.draw(target);
                     if (report != null) {
                         ClipTally.layer(projection.apertureOrigin(),
-                                String.valueOf(layer.layer()), layer.floats() / (STRIDE * 4),
-                                emitted, rejectedBy);
+                                String.valueOf(group.getKey()), quadsIn, emitted, rejectedBy);
                         report.append(report.isEmpty() ? "" : " | ")
-                                .append(layer.layer())
-                                .append(" quadsIn=").append(layer.floats() / (STRIDE * 4))
+                                .append(group.getKey())
+                                .append(" buckets=").append(kept).append('/')
+                                .append(group.getValue().size())
+                                .append(" quadsIn=").append(quadsIn)
                                 .append(" light=[")
-                                .append(LightFacts.ofVertices(layer.data(), layer.floats(), STRIDE)
-                                        .label())
+                                .append(first == null ? "none"
+                                        : LightFacts.ofVertices(first.data(), first.floats(),
+                                                STRIDE).label())
                                 .append(']')
-                                .append(" geometry=").append(meshBounds(layer))
-                                .append(" highest=").append(highestVertex(layer))
-                                .append(" clipVertices=").append(clipVertices)
+                                .append(" geometry=")
+                                .append(first == null ? "none" : meshBounds(first))
+                                .append(" highest=")
+                                .append(first == null ? "none" : highestVertex(first))
+                                .append(" clipVertices=").append(survivors)
                                 .append(" rejectedBy=").append(java.util.Arrays.toString(rejectedBy))
                                 .append(" emitted=").append(emitted)
                                 .append(" consumer=").append(consumer.getClass().getName())
@@ -1240,23 +1263,21 @@ public final class ProjectionRenderer {
     }
 
     /**
-     * One slab's own box against the opening's cone. The box spans the whole
-     * volume on the two in-plane axes and just the slab on the normal one, and
-     * carries the same shift the quads are clipped under.
+     * One bucket's own box against the opening's cone, under the same shift the
+     * quads are clipped with. Bounded on all three axes: a box spanning the
+     * volume on any axis the cone crosses always straddles.
      */
-    static boolean slabRejected(ClientProjection projection, int slab,
-            double shiftX, double shiftY, double shiftZ) {
-        int axis = projection.normalAxis().ordinal();
-        double[] min = {shiftX, shiftY, shiftZ};
-        double[] max = {projection.sizeX() + shiftX, projection.sizeY() + shiftY,
-                projection.sizeZ() + shiftZ};
-        int extent = axis == 0 ? projection.sizeX()
-                : axis == 1 ? projection.sizeY() : projection.sizeZ();
-        double shift = axis == 0 ? shiftX : axis == 1 ? shiftY : shiftZ;
-        double low = Math.min((double) slab * ProjectionMesh.SLAB, extent);
-        min[axis] = low + shift;
-        max[axis] = Math.min(low + ProjectionMesh.SLAB, extent) + shift;
-        return PLANES.rejects(min[0], min[1], min[2], max[0], max[1], max[2]);
+    static boolean bucketRejected(AperturePlanes planes, int sizeX, int sizeY, int sizeZ,
+            ProjectionMesh.Layer layer, double shiftX, double shiftY, double shiftZ) {
+        int slab = ProjectionMesh.SLAB;
+        double x0 = (double) layer.bx() * slab;
+        double y0 = (double) layer.by() * slab;
+        double z0 = (double) layer.bz() * slab;
+        return planes.rejects(
+                x0 + shiftX, y0 + shiftY, z0 + shiftZ,
+                Math.min(x0 + slab, sizeX) + shiftX,
+                Math.min(y0 + slab, sizeY) + shiftY,
+                Math.min(z0 + slab, sizeZ) + shiftZ);
     }
 
     /** Sutherland-Hodgman against one plane; returns the new vertex count. */

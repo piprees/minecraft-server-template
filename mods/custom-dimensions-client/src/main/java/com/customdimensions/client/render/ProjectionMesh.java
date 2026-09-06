@@ -39,7 +39,11 @@ public final class ProjectionMesh {
 
     private static final Logger LOGGER = LoggerFactory.getLogger("customdimensionsclient");
 
-    /** Blocks of the normal axis one slab covers. */
+    /**
+     * Blocks a bucket covers on each axis. Buckets are boxes, not slices: a
+     * slice perpendicular to the normal spans the whole opening's cone at its
+     * own depth, so it always straddles and can never be rejected.
+     */
     public static final int SLAB = 8;
 
     /**
@@ -48,17 +52,18 @@ public final class ProjectionMesh {
      * reject a whole slab against the opening instead of clipping its quads
      * one at a time — almost none of them survive.
      */
-    public record Layer(RenderLayer layer, int slab, float[] data, int floats) {
+    public record Layer(RenderLayer layer, int bx, int by, int bz, float[] data, int floats) {
 
         /** One undivided layer, which is how the clip's own tests hold a mesh. */
         public Layer(RenderLayer layer, float[] data, int floats) {
-            this(layer, 0, data, floats);
+            this(layer, 0, 0, 0, data, floats);
         }
     }
 
-    private record Bucket(RenderLayer layer, int slab) {}
+    private record Bucket(RenderLayer layer, int bx, int by, int bz) {}
 
     private final List<Layer> layers;
+    private final Map<RenderLayer, List<Layer>> targets;
     private final int quads;
     private final float sourceAmbient;
 
@@ -66,10 +71,23 @@ public final class ProjectionMesh {
         this.layers = layers;
         this.quads = quads;
         this.sourceAmbient = sourceAmbient;
+        Map<RenderLayer, List<Layer>> grouped = new LinkedHashMap<>();
+        for (Layer layer : layers) {
+            grouped.computeIfAbsent(layer.layer(), key -> new ArrayList<>()).add(layer);
+        }
+        this.targets = grouped;
     }
 
     public List<Layer> layers() {
         return this.layers;
+    }
+
+    /**
+     * The buckets grouped by the layer they draw into, so a pass fetches one
+     * buffer and submits one draw however many buckets survive.
+     */
+    public Map<RenderLayer, List<Layer>> targets() {
+        return this.targets;
     }
 
     public int quads() {
@@ -127,7 +145,6 @@ public final class ProjectionMesh {
         BlockPos origin = projection.origin();
         BlockPos.Mutable pos = new BlockPos.Mutable();
         Map<Bucket, QuadCapture> captures = new LinkedHashMap<>();
-        int normalOrdinal = projection.normalAxis().ordinal();
 
         for (int lx = 0; lx < projection.sizeX(); lx++) {
             for (int ly = 0; ly < projection.sizeY(); ly++) {
@@ -141,15 +158,13 @@ public final class ProjectionMesh {
                     }
                     pos.set(x, y, z);
 
-                    int slab = (switch (normalOrdinal) {
-                        case 0 -> lx;
-                        case 1 -> ly;
-                        default -> lz;
-                    }) / SLAB;
+                    int bx = lx / SLAB;
+                    int by = ly / SLAB;
+                    int bz = lz / SLAB;
 
                     if (state.getRenderType() == BlockRenderType.MODEL) {
                         QuadCapture capture = captures.computeIfAbsent(
-                                new Bucket(RenderLayers.getBlockLayer(state), slab),
+                                new Bucket(RenderLayers.getBlockLayer(state), bx, by, bz),
                                 key -> new QuadCapture());
                         capture.setOffset(0.0f, 0.0f, 0.0f);
                         matrices.push();
@@ -161,7 +176,7 @@ public final class ProjectionMesh {
                     FluidState fluid = state.getFluidState();
                     if (!fluid.isEmpty()) {
                         QuadCapture capture = captures.computeIfAbsent(
-                                new Bucket(RenderLayers.getFluidLayer(fluid), slab),
+                                new Bucket(RenderLayers.getFluidLayer(fluid), bx, by, bz),
                                 key -> new QuadCapture());
                         // FluidRenderer writes at chunk-relative coordinates
                         // and takes no matrix, so the section corner is added
@@ -185,7 +200,8 @@ public final class ProjectionMesh {
             if (capture.floatCount() == 0) {
                 continue;
             }
-            layers.add(new Layer(entry.getKey().layer(), entry.getKey().slab(),
+            layers.add(new Layer(entry.getKey().layer(), entry.getKey().bx(),
+                    entry.getKey().by(), entry.getKey().bz(),
                     capture.data(), capture.floatCount()));
             quads += capture.quadCount();
         }
