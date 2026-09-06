@@ -2312,8 +2312,9 @@ measurement of it.
   companion-send:destination-chunks player=X dimension=D sent=0 wanted=4 held=7 radius=16 idlePumps=1
   ```
 
-  `wanted` above 0 with `sent=0` is the whole diagnosis — the feed asked for
-  four columns and every one was non-resident.
+  `wanted` above 0 with `sent=0` says the feed asked for four columns and
+  every one was non-resident. Read `held` to know whether that matters — see
+  the note below.
 - **Cause:** two consumers share one ticket. The block slab wants
   `ProjectionVolume.targetChunks(...)`, a preview box of about six columns;
   `DestinationFeed` may send only resident chunks, and the client's own box
@@ -2339,6 +2340,15 @@ measurement of it.
   not. Do not restore a residency filter over the core to make it "hold-only":
   the held set then depends on itself, drains to the preview box on the first
   quiet minute, and has no path back.
+- **What `idlePumps` climbing does NOT mean.** The feed's radius is
+  `maxRenderDistance` chunks — 16, so 256 blocks — while the client's box
+  reads 64. The feed therefore keeps asking for wedge columns no box draws,
+  and `sent=0 wanted=N idlePumps=` climbing is the NORMAL steady state once
+  the core is ticketed and the view is complete. `held` is what separates the
+  two: at or above the ticketed set (preview box plus the core, 27 columns for
+  an upright 2x3 opening on one side) the view is full and the line is noise;
+  stuck at about the preview box alone, it is starvation. The radius is
+  deliberately wider than the box so a deeper box needs no constant re-widening.
 
 <a id="t94"></a>
 ### T94 — A crossing's own frame and chunks arrive before the client tick that clears the old world's
