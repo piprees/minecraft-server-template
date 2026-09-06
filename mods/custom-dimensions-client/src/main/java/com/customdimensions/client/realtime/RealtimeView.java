@@ -44,7 +44,7 @@ public final class RealtimeView {
      * the opening's top edge sees floor all the way to here, so this is how far
      * the ground runs before the window ends.
      */
-    public static final int DEPTH = 48;
+    public static final int DEPTH = 64;
 
     /**
      * The eye-distance-to-opening-half-width ratio the box holds the sightline
@@ -54,17 +54,27 @@ public final class RealtimeView {
     public static final int CONE_RATIO = 3;
 
     /**
-     * How far the box is widened on the two in-plane axes. It bounds
-     * {@link #DEPTH} through {@link #CONE_RATIO}: past that the cone leaves the
-     * box sideways and the view gains a straight edge.
+     * How far the box is widened on the two in-plane axes — the cone's width at
+     * the far edge, so the array holds every cell the shape can want.
      */
     public static final int RADIUS = (DEPTH + CONE_RATIO - 1) / CONE_RATIO;
+
+    /**
+     * Half-width held at full width regardless of depth. The cone is narrow
+     * near the opening and an eye pressed against it sees wider than the cone
+     * allows, so the first {@code NEAR_RADIUS * CONE_RATIO} blocks keep the
+     * whole box. Below this the near field would lose ground at the edges.
+     */
+    public static final int NEAR_RADIUS = 16;
 
     /**
      * Cells and columns one tick may read. The walk resumes across ticks, so
      * this is what END_CLIENT_TICK costs — the box no longer sets it.
      */
     public static final int UNITS_PER_TICK = 4_096;
+
+    /** Indices a slice may step over per budgeted read before it yields. */
+    private static final int SKIP_CAP = 16;
 
     /** Chunks held at the last build, per opening. A rebuild needs new ones. */
     private static final Map<BlockPos, Integer> BUILT_AT = new HashMap<>();
@@ -204,6 +214,15 @@ public final class RealtimeView {
         private final int sizeX;
         private final int sizeY;
         private final int sizeZ;
+        private final int ordinalA;
+        private final int ordinalB;
+        private final int normalOrdinal;
+        private final int leadA;
+        private final int leadB;
+        private final int spanA;
+        private final int spanB;
+        private final int sizeN;
+        private final boolean towardsHigh;
         private final int[] states;
         private final byte[] light;
         private final CompanionPayloads.Projection.TintGrid tints;
@@ -211,10 +230,21 @@ public final class RealtimeView {
         private BoxScan progress;
 
         private Scan(CompanionPayloads.PortalFrame frame, int chunksAtStart,
-                int[] origin, int sizeX, int sizeY, int sizeZ) {
+                int[] origin, int sizeX, int sizeY, int sizeZ,
+                int ordinalA, int ordinalB, int normalOrdinal,
+                int leadA, int leadB, int spanA, int spanB, int sizeN, boolean towardsHigh) {
             this.frame = frame;
             this.chunksAtStart = chunksAtStart;
             this.origin = origin;
+            this.ordinalA = ordinalA;
+            this.ordinalB = ordinalB;
+            this.normalOrdinal = normalOrdinal;
+            this.leadA = leadA;
+            this.leadB = leadB;
+            this.spanA = spanA;
+            this.spanB = spanB;
+            this.sizeN = sizeN;
+            this.towardsHigh = towardsHigh;
             this.sizeX = sizeX;
             this.sizeY = sizeY;
             this.sizeZ = sizeZ;
@@ -261,31 +291,48 @@ public final class RealtimeView {
             size[axisB.ordinal()] = volume.sizeB();
             origin[normalAxis.ordinal()] = volume.originN();
             size[normalAxis.ordinal()] = volume.sizeN();
-            return new Scan(frame, chunksAtStart, origin, size[0], size[1], size[2]);
+            return new Scan(frame, chunksAtStart, origin, size[0], size[1], size[2],
+                    axisA.ordinal(), axisB.ordinal(), normalAxis.ordinal(),
+                    minA - volume.originA(), minB - volume.originB(),
+                    maxA - minA + 1, maxB - minB + 1, volume.sizeN(), towardsHigh);
         }
 
         /**
-         * Reads up to {@code budget} units. Returns the payload on the unit
-         * that finishes the walk, and null while there is more to read.
+         * Reads up to {@code budget} cells. A cell outside the shape costs a
+         * bounds check rather than a read, so a slice skips over far corners
+         * cheaply — capped anyway, so a slice that reads nothing still ends.
          */
         CompanionPayloads.Projection advance(ClientWorld destination, int budget) {
             int cells = this.progress.cells();
-            int end = this.progress.end(budget);
-            for (int unit = this.progress.cursor(); unit < end; unit++) {
+            int units = this.progress.units();
+            int cap = Math.max(1, budget) * SKIP_CAP;
+            int reads = 0;
+            int stepped = 0;
+            int unit = this.progress.cursor();
+            while (unit < units && reads < budget && stepped < cap) {
                 if (unit < cells) {
-                    readCell(destination, unit);
+                    if (readCell(destination, unit)) {
+                        reads++;
+                    }
                 } else {
                     readColumn(destination, unit, cells);
+                    reads++;
                 }
+                unit++;
+                stepped++;
             }
-            this.progress = this.progress.advancedTo(end);
+            this.progress = this.progress.advancedTo(unit);
             return this.progress.done() ? payload(destination) : null;
         }
 
-        private void readCell(ClientWorld destination, int index) {
+        /** False when the cell is outside the cone, which leaves it air. */
+        private boolean readCell(ClientWorld destination, int index) {
             int lx = BoxScan.localX(index, this.sizeY, this.sizeZ);
             int ly = BoxScan.localY(index, this.sizeY);
             int lz = BoxScan.localZ(index, this.sizeY, this.sizeZ);
+            if (!inShape(lx, ly, lz)) {
+                return false;
+            }
             this.at.set(this.origin[0] + lx + this.frame.dx(),
                     this.origin[1] + ly + this.frame.dy(),
                     this.origin[2] + lz + this.frame.dz());
@@ -293,9 +340,26 @@ public final class RealtimeView {
             this.light[index] = (byte)
                     ((destination.getLightLevel(LightType.SKY, this.at) << 4)
                             | destination.getLightLevel(LightType.BLOCK, this.at));
+            return true;
+        }
+
+        /**
+         * The three local indices against the cone at their own depth. The
+         * normal axis carries the depth; the other two carry the width.
+         */
+        private boolean inShape(int lx, int ly, int lz) {
+            int[] local = {lx, ly, lz};
+            int depthIndex = this.towardsHigh
+                    ? local[this.normalOrdinal]
+                    : this.sizeN - 1 - local[this.normalOrdinal];
+            int half = ViewShape.halfWidthAt(depthIndex, NEAR_RADIUS, CONE_RATIO);
+            return ViewShape.withinAxis(local[this.ordinalA], this.leadA, this.spanA, half)
+                    && ViewShape.withinAxis(local[this.ordinalB], this.leadB, this.spanB, half);
         }
 
         private void readColumn(ClientWorld destination, int unit, int cells) {
+            // Columns follow the cells, so a column with no read cell under it
+            // has no top surface and answers below.
             int lx = BoxScan.columnX(unit, cells, this.sizeZ);
             int lz = BoxScan.columnZ(unit, cells, this.sizeZ);
             int airId = Block.getRawIdFromState(Blocks.AIR.getDefaultState());

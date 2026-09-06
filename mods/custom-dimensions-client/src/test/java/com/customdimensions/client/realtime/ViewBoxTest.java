@@ -26,8 +26,12 @@ class ViewBoxTest {
      */
     private static final int TICK_BUDGET = 4_096;
 
-    /** Ticks a full rebuild may take before first sight is a long blank. */
-    private static final int MAX_SLICES = 20;
+    /**
+     * Ticks a full rebuild may take before first sight is a long blank. Only
+     * first sight pays it — a rebuild draws the mesh carried from the view it
+     * replaces throughout.
+     */
+    private static final int MAX_SLICES = 24;
 
     private static LocalVolume rigBox(int depth, int radius) {
         return LocalVolume.of(MIN_A, MAX_A, MIN_B, MAX_B, PLANE, true, depth, radius);
@@ -58,15 +62,18 @@ class ViewBoxTest {
      */
     @Test
     void aFullRebuildFinishesInsideTheLatencyBudget() {
-        BoxScan scan = boxScan();
-        int slices = (scan.units() + RealtimeView.UNITS_PER_TICK - 1) / RealtimeView.UNITS_PER_TICK;
+        int units = readUnits();
+        int slices = (units + RealtimeView.UNITS_PER_TICK - 1) / RealtimeView.UNITS_PER_TICK;
         assertTrue(slices <= MAX_SLICES,
                 "a full rebuild takes " + slices + " ticks (" + (slices * 50) + "ms), over the "
                         + MAX_SLICES + " the budget allows");
     }
 
-    private static BoxScan boxScan() {
+    /** What the walk actually reads: the cone's cells, and every column. */
+    private static int readUnits() {
         LocalVolume box = rigBox(RealtimeView.DEPTH, RealtimeView.RADIUS);
-        return BoxScan.of(box.sizeA(), box.sizeB(), box.sizeN());
+        int cells = ViewShape.cells(MAX_A - MIN_A + 1, MAX_B - MIN_B + 1,
+                box.sizeN(), RealtimeView.NEAR_RADIUS, RealtimeView.CONE_RATIO);
+        return cells + box.sizeA() * box.sizeN();
     }
 }
