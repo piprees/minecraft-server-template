@@ -1683,6 +1683,13 @@ measurement of it.
   not move there — `slabProjections` toggling 0<->1 is the whole-projection drop
   and rebuild, not feed-in.
 
+- **Two causes, and the measurement above does not separate them.**
+  `slabProjections` is `ProjectionStore.count()`, so a 0<->1 toggle is the store
+  EMPTYING (dropped out of activation range, `forget`,
+  `DestinationChunks.drop()`) and being re-added — the renderer then has no
+  projection at all. That is a different path from `mesh == null` on a
+  replacement, and the figures above were sampled at ~3 Hz, which cannot tell
+  them apart. Ordinary walking about produces the store-empty case.
 - **Why a static test rig cannot see it.** A settled feed never rebuilds, so the
   path is dormant. A benchmark that holds the chunk feed constant holds constant
   the exact variable this is gated on, and will report a clean negative.
