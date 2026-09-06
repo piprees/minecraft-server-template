@@ -22,6 +22,7 @@ import com.customdimensions.client.render.DestinationActors;
 import com.customdimensions.client.render.ProjectionRenderer;
 import com.customdimensions.client.render.ProjectionStore;
 import com.customdimensions.client.render.QuadCapture;
+import com.customdimensions.client.render.UnshadedDestination;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.network.ClientPlayerEntity;
@@ -399,8 +400,9 @@ final class DevState {
     }
 
     /**
-     * The destination's ambient light beside the source's, and the lift between
-     * them at three levels. {@code destination} of -1 with a built mesh means
+     * The destination's ambient light beside the source's, the lift between
+     * them at three levels, and what the unshaded target scales those levels
+     * by. {@code destination} of -1 with a built mesh means
      * the value never reached the payload; an equal pair with {@code lift}
      * reading {@code 0>0} means it arrived and the two dimensions agree.
      */
@@ -413,6 +415,7 @@ final class DevState {
                 .num("destination", destination)
                 .num("source", mesh.sourceAmbient())
                 .str("lift", AmbientLift.label(destination, mesh.sourceAmbient()))
+                .str("unshaded", UnshadedDestination.label(destination))
                 .toString();
     }
 

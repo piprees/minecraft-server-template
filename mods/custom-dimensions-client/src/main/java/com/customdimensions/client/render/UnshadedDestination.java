@@ -89,6 +89,22 @@ public final class UnshadedDestination {
                 AmbientLift.brightness(clamp(sky), floor));
     }
 
+    /**
+     * The scale at three levels, shaped like {@link AmbientLift#label}. Three
+     * equal values mean the destination is drawn without its own light.
+     */
+    public static String label(float destinationAmbient) {
+        if (destinationAmbient < 0.0f) {
+            return "unset";
+        }
+        return probe(0, destinationAmbient) + "," + probe(7, destinationAmbient)
+                + "," + probe(15, destinationAmbient);
+    }
+
+    private static String probe(int level, float ambient) {
+        return level + ">" + String.format("%.3f", scale(0, level, ambient));
+    }
+
     private static int clamp(int level) {
         return Math.max(0, Math.min(15, level));
     }

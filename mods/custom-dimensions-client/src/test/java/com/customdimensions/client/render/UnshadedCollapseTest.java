@@ -3,6 +3,7 @@ package com.customdimensions.client.render;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -83,5 +84,29 @@ class UnshadedCollapseTest {
                 UnshadedDestination.scale(0, 99, 0.0f), 1.0e-6f);
         assertEquals(UnshadedDestination.scale(0, 0, 0.0f),
                 UnshadedDestination.scale(0, -4, 0.0f), 1.0e-6f);
+    }
+
+    /**
+     * What the dev bridge reports. The reading has to distinguish a collapsed
+     * ambient from a spread one on sight, or a re-baseline cannot tell whether
+     * the fixture exercised this target at all.
+     */
+    @Test
+    void theLabelShowsWhetherTheLevelsAreSpreadOrFlat() {
+        String flat = UnshadedDestination.label(1.0f);
+        assertEquals("0>1.000,7>1.000,15>1.000", flat,
+                "a saturated ambient does not read as flat");
+
+        String spread = UnshadedDestination.label(0.25f);
+        assertTrue(spread.startsWith("0>0.250"), "level 0 does not read the ambient floor");
+        assertTrue(spread.endsWith("15>1.000"), "full sky does not read full brightness");
+        assertNotEquals(flat, spread, "0.25 and 1.0 report the same scale");
+    }
+
+    /** An ambient that never reached the payload must not read as a real floor. */
+    @Test
+    void anUnsetAmbientSaysSoRatherThanReadingAsZero() {
+        assertEquals("unset", UnshadedDestination.label(-1.0f),
+                "an unset ambient reports a scale it does not have");
     }
 }
