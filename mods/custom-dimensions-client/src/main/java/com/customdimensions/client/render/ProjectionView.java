@@ -33,6 +33,9 @@ import net.minecraft.world.chunk.light.LightingProvider;
  */
 public final class ProjectionView implements BlockRenderView {
 
+    private static final java.util.concurrent.atomic.AtomicInteger LIGHTING_READS =
+            new java.util.concurrent.atomic.AtomicInteger();
+
     private final ClientProjection projection;
     private final ClientWorld world;
     private final float sourceAmbient;
@@ -78,10 +81,23 @@ public final class ProjectionView implements BlockRenderView {
         return this.world.getBrightness(direction, shaded);
     }
 
-    /** Never consulted: {@link #getLightLevel} answers from the grid instead. */
+    /**
+     * The SOURCE world's, which is wrong for every destination position — the
+     * grid is what {@link #getLightLevel} answers from. Nothing in this mod
+     * calls it and vanilla's block renderer is not seen to, but that is an
+     * assumption about someone else's code, so it is counted rather than
+     * trusted: {@code viewLightingReads} above zero means a caller took the
+     * source world's lighting for a destination block.
+     */
     @Override
     public LightingProvider getLightingProvider() {
+        LIGHTING_READS.incrementAndGet();
         return this.world.getLightingProvider();
+    }
+
+    /** Monotonic: one read at any point in the session falsifies the assumption. */
+    public static int lightingReads() {
+        return LIGHTING_READS.get();
     }
 
     @Override

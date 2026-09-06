@@ -17,6 +17,7 @@ import com.customdimensions.client.render.ClipTally;
 import com.customdimensions.client.render.DepthReconstruction;
 import com.customdimensions.client.render.LightFacts;
 import com.customdimensions.client.render.ProjectionMesh;
+import com.customdimensions.client.render.ProjectionView;
 import com.customdimensions.client.render.DestinationActors;
 import com.customdimensions.client.render.ProjectionRenderer;
 import com.customdimensions.client.render.ProjectionStore;
@@ -128,6 +129,7 @@ final class DevState {
                 .str("apertureRenderUs", ProjectionRenderer.lastCost())
                 .str("realtimeBuildUs", RealtimeView.buildCost())
                 .str("meshBuildUs", ClientProjection.meshCost())
+                .num("viewLightingReads", ProjectionView.lightingReads())
                 .bool("effectiveServerSide", settings.effectiveServerSide())
                 .bool("clientSideRefused", PortalViewDeclaration.refused())
                 .str("clientSideRefusal", PortalViewDeclaration.reason())
