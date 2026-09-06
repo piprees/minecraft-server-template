@@ -101,8 +101,8 @@ class UnshadedDestinationTest {
     /** The whole point: an unlit layer that draws everything full-bright is a different defect. */
     @Test
     void aDarkCellReadsDarkAndALitCellReadsBright() {
-        float dark = UnshadedDestination.scale(0, 0, 0.0f, 0.0f);
-        float lit = UnshadedDestination.scale(15, 15, 0.0f, 0.0f);
+        float dark = UnshadedDestination.scale(0, 0, 0.0f);
+        float lit = UnshadedDestination.scale(15, 15, 0.0f);
         assertTrue(dark < 0.05f, "a cave with no light must not read full-bright: " + dark);
         assertEquals(1.0f, lit, 0.0001f);
         assertTrue(lit > dark * 4.0f, "level 15 must be far brighter than level 0");
@@ -110,10 +110,10 @@ class UnshadedDestinationTest {
 
     @Test
     void theBrighterChannelWins() {
-        assertEquals(UnshadedDestination.scale(15, 0, 0.0f, 0.0f),
-                UnshadedDestination.scale(0, 15, 0.0f, 0.0f), 0.0001f);
-        assertEquals(UnshadedDestination.scale(15, 15, 0.0f, 0.0f),
-                UnshadedDestination.scale(15, 0, 0.0f, 0.0f), 0.0001f);
+        assertEquals(UnshadedDestination.scale(15, 0, 0.0f),
+                UnshadedDestination.scale(0, 15, 0.0f), 0.0001f);
+        assertEquals(UnshadedDestination.scale(15, 15, 0.0f),
+                UnshadedDestination.scale(15, 0, 0.0f), 0.0001f);
     }
 
     @Test
@@ -121,7 +121,7 @@ class UnshadedDestinationTest {
         for (float ambient : new float[] {0.0f, 0.1f, 0.5f, 1.0f}) {
             float previous = -1.0f;
             for (int level = 0; level <= 15; level++) {
-                float value = UnshadedDestination.scale(level, 0, ambient, 0.0f);
+                float value = UnshadedDestination.scale(level, 0, ambient);
                 assertTrue(value >= previous, "level " + level + " at ambient " + ambient);
                 assertTrue(value >= 0.0f && value <= 1.0f, "out of range at level " + level);
                 previous = value;
@@ -132,16 +132,16 @@ class UnshadedDestinationTest {
     /** A level off either end is the end, not a colour multiplier outside 0..1. */
     @Test
     void levelsOutsideTheRangeClamp() {
-        assertEquals(UnshadedDestination.scale(0, 0, 0.0f, 0.0f),
-                UnshadedDestination.scale(-4, -4, 0.0f, 0.0f), 0.0001f);
-        assertEquals(UnshadedDestination.scale(15, 15, 0.0f, 0.0f),
-                UnshadedDestination.scale(99, 99, 0.0f, 0.0f), 0.0001f);
+        assertEquals(UnshadedDestination.scale(0, 0, 0.0f),
+                UnshadedDestination.scale(-4, -4, 0.0f), 0.0001f);
+        assertEquals(UnshadedDestination.scale(15, 15, 0.0f),
+                UnshadedDestination.scale(99, 99, 0.0f), 0.0001f);
     }
 
     /** The lift already put the levels in source space, so the ambient floor still applies. */
     @Test
     void anAmbientFloorLiftsTheDarkEnd() {
-        assertTrue(UnshadedDestination.scale(0, 0, 0.15f, 0.0f) > UnshadedDestination.scale(0, 0, 0.0f, 0.0f));
+        assertTrue(UnshadedDestination.scale(0, 0, 0.15f) > UnshadedDestination.scale(0, 0, 0.0f));
     }
 
     // ------------------------------------------------------------------
@@ -373,22 +373,5 @@ class UnshadedDestinationTest {
                 "a destination declaring neither reports a colour it does not have");
         assertEquals(0x000000, UnshadedDestination.backdropColour(0xFFFFFF, -1, 0.0),
                 "gain zero does not black the colour");
-    }
-
-    @Test
-    void theCurveIsLiftedTheWayTheLightmapItReplacesIsLifted() {
-        // Vanilla brightens the lightmap toward easeOutQuart by the client's
-        // gamma. Drawing the raw curve instead is short by exactly that lift,
-        // which measured 0.814-0.829 of the terrain pass at the shipped 0.5.
-        assertEquals(0.70f, UnshadedDestination.lightmapped(0.70f, 0.0f), 1.0e-6f,
-                "gamma 0 has to be identity or every dark destination changes");
-        assertEquals(1.0f, UnshadedDestination.lightmapped(1.0f, 1.0f), 1.0e-6f,
-                "a fully lit destination cannot be lifted past saturation");
-
-        float raw = 0.70f;
-        float lit = UnshadedDestination.lightmapped(raw, 0.5f);
-        assertEquals(0.8459f, lit, 1.0e-3f, "the lift is vanilla's, not ours to choose");
-        assertEquals(0.827f, raw / lit, 5.0e-3f,
-                "this ratio IS the measured deficit; if it moves, the fix has drifted");
     }
 }
