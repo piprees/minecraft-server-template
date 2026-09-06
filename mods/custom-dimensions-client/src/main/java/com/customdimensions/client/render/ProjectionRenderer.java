@@ -336,7 +336,18 @@ public final class ProjectionRenderer {
                         camX, camY, camZ)
                 : null;
         double[] drawnDepth = {Double.NaN};
-        int stamp = runPass(new PortalPass() {
+        // Every unshaded program still runs vanilla's linear_fog toward whatever
+        // FogColor is bound, and the source world's is the wrong world.
+        float[] ownFog = RealtimeControls.settings().apertureUnshadedDestination()
+                ? UnshadedDestination.fogColour(projection.payload().fogColor(),
+                        projection.payload().skyColor(),
+                        RealtimeControls.settings().apertureBackdropGain())
+                : null;
+        float[] fogWas = ownFog == null
+                ? null
+                : com.mojang.blaze3d.systems.RenderSystem.getShaderFogColor().clone();
+        int stamp = withGlState(() -> setFog(ownFog, fogWas), () -> setFog(fogWas, fogWas),
+                () -> runPass(new PortalPass() {
             @Override
             public void applyDepthRange(double near, double far) {
                 GL11.glDepthRange(near, far);
@@ -477,7 +488,7 @@ public final class ProjectionRenderer {
                         () -> GL11.glDepthRange(0.0, 1.0),
                         () -> drawFlat(PortalRenderLayers.APERTURE_DEPTH, entry, corners, true));
             }
-        }, projection, origin, slice, stage);
+        }, projection, origin, slice, stage));
         stampCalls[stage.ordinal()]++;
         stampCorners[stage.ordinal()] = stamp;
         if (ndc != null) {
@@ -856,6 +867,14 @@ public final class ProjectionRenderer {
             axis == Direction.Axis.Y ? surface : 0.0,
             axis == Direction.Axis.Z ? surface : 0.0,
         };
+    }
+
+    /** No-op when the destination declares no colour of its own. */
+    private static void setFog(float[] colour, float[] alpha) {
+        if (colour != null && alpha != null) {
+            com.mojang.blaze3d.systems.RenderSystem.setShaderFogColor(
+                    colour[0], colour[1], colour[2], alpha[3]);
+        }
     }
 
     /**

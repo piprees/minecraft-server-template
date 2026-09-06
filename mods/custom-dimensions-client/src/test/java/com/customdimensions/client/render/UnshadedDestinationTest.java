@@ -14,9 +14,11 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.stream.Stream;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -184,7 +186,47 @@ class UnshadedDestinationTest {
                 "the unshaded emit must multiply the destination's own light in");
     }
 
+    // ------------------------------------------------------------------
+    // The fog the destination fades toward
+    // ------------------------------------------------------------------
+
+    /** Same fallback rule as the backdrop's own colour, or the two disagree. */
+    @Test
+    void theFogColourFollowsTheBackdropsOwnFallback() {
+        assertArrayEquals(new float[] {1.0f, 0.5f, 0.0f},
+                UnshadedDestination.fogColour(0xFF8000, 0x000000, 1.0), 0.004f);
+        assertArrayEquals(new float[] {0.0f, 0.0f, 1.0f},
+                UnshadedDestination.fogColour(-1, 0x0000FF, 1.0), 0.004f);
+        assertNull(UnshadedDestination.fogColour(-1, -1, 1.0),
+                "no declared colour must leave the source world's fog alone");
+    }
+
+    /** It converges with the backdrop, so it takes the same attenuation. */
+    @Test
+    void theFogColourTakesTheSameGainAndClampsWithIt() {
+        assertArrayEquals(new float[] {0.5f, 0.25f, 0.0f},
+                UnshadedDestination.fogColour(0xFF8000, -1, 0.5), 0.004f);
+        assertArrayEquals(new float[] {0.0f, 0.0f, 0.0f},
+                UnshadedDestination.fogColour(0xFF8000, -1, 0.0), 0.0f);
+        assertArrayEquals(UnshadedDestination.fogColour(0xFF8000, -1, 1.0),
+                UnshadedDestination.fogColour(0xFF8000, -1, 9.0), 0.0f);
+    }
+
     /** Compensation is only compensation if the draw actually reads it. */
+    @Test
+    void theDrawPathBindsTheDestinationsOwnFogAndPutsTheSourcesBack() {
+        Set<String> calls = new LinkedHashSet<>();
+        for (Path file : innerClasses(RENDERER)) {
+            calls.addAll(callsIn(file));
+        }
+        assertTrue(calls.contains("com/customdimensions/client/render/UnshadedDestination.fogColour"),
+                "the pass must resolve the destination's own fog: " + calls.size() + " scanned");
+        assertTrue(calls.contains("com/mojang/blaze3d/systems/RenderSystem.setShaderFogColor"),
+                "and bind it");
+        assertTrue(calls.contains("com/mojang/blaze3d/systems/RenderSystem.getShaderFogColor"),
+                "reading the source's first is what allows it to be put back");
+    }
+
     @Test
     void theBackdropDrawReadsTheGain() {
         Set<String> calls = new LinkedHashSet<>();

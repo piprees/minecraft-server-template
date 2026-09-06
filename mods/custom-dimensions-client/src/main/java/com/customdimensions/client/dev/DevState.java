@@ -122,6 +122,7 @@ final class DevState {
                 .bool("apertureMeshDepth", settings.apertureMeshDepth())
                 .bool("apertureUnshadedDestination", settings.apertureUnshadedDestination())
                 .num("apertureBackdropGain", settings.apertureBackdropGain())
+                .str("backdropColors", backdropColors())
                 .str("apertureStamps", ProjectionRenderer.stampSummary())
                 .str("apertureRenderUs", ProjectionRenderer.lastCost())
                 .str("realtimeBuildUs", RealtimeView.buildCost())
@@ -543,5 +544,23 @@ final class DevState {
             first = false;
         }
         return out.append(']').toString();
+    }
+
+    /**
+     * The authored colour each portal's backdrop is drawn in, as
+     * {@code <origin>=#RRGGBB}. It is what a pack-off frame's opening should
+     * read, so it is the value a gain has to land on.
+     */
+    private static String backdropColors() {
+        StringBuilder out = new StringBuilder();
+        for (com.customdimensions.client.CompanionPayloads.PortalFrame frame
+                : PortalFrames.all()) {
+            int argb = frame.fogColor() >= 0 ? frame.fogColor() : frame.skyColor();
+            out.append(out.isEmpty() ? "" : " ")
+                    .append(frame.apertureOrigin().toShortString())
+                    .append('=')
+                    .append(argb < 0 ? "unset" : String.format("#%06X", argb & 0xFFFFFF));
+        }
+        return out.toString();
     }
 }

@@ -55,6 +55,25 @@ public final class UnshadedDestination {
     }
 
     /**
+     * The colour the destination's own fog fades toward — its authored fog
+     * colour, falling back to its sky colour exactly as the backdrop's own
+     * does, attenuated by the same gain so the two converge. Null when the
+     * destination declares neither, which leaves the source world's fog alone.
+     */
+    public static float[] fogColour(int fogColor, int skyColor, double gain) {
+        int argb = fogColor >= 0 ? fogColor : skyColor;
+        if (argb < 0) {
+            return null;
+        }
+        float scale = (float) Math.max(0.0, Math.min(1.0, gain));
+        return new float[] {
+            ((argb >> 16) & 0xFF) / 255.0f * scale,
+            ((argb >> 8) & 0xFF) / 255.0f * scale,
+            (argb & 0xFF) / 255.0f * scale,
+        };
+    }
+
+    /**
      * The multiplier an unshaded target puts on a vertex colour, from the
      * destination's own block and sky levels. Vanilla's own brightness curve,
      * the brighter channel winning, exactly as the lightmap composes them.
