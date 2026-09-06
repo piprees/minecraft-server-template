@@ -1684,10 +1684,31 @@ measurement of it.
   self-occludes by depth inside the slice, so on a depth-less layer the
   destination reorders itself by draw order. The layer is hand-built to keep the
   unshaded program with `depthMask(true)`.
-- **Open cost, which is why the switch defaults OFF:** a pack treats
-  beacon-beam as EMISSIVE, so the backdrop saturates — sky band `mean 255.0`,
-  pure white, blooming past the frame. The terrain half is unaffected and
-  correct. The backdrop wants an unshaded program that is not emissive.
+- **The backdrop needs attenuating, and it is NOT a program flag.** The same
+  program draws the terrain correctly, so nothing is marked emissive; the
+  difference is the value going in. A terrain fragment is an atlas texel times
+  vertex colour times the light bake, ~0.2-0.3; the backdrop is a white texture
+  times a near-white fog colour, ~0.85 up — over a luminance-keyed bloom knee.
+  The entity layer only ever stayed under that knee by ACCIDENT: T99 measures it
+  delivering 0.59x the authored colour. `apertureBackdropGain` supplies the
+  attenuation deliberately.
+- **Measured gain response**, sky band, one pose:
+
+  | gain | mean | distinct colours |
+  | --- | --- | --- |
+  | 1.0 | 255.0 | 3 (saturated) |
+  | 0.5 | 203.6 | 53 |
+  | 0.0 | 83.0 | 784 |
+
+  Gain 0 is not black because beacon-beam's fragment shader still applies
+  `linear_fog` toward the SOURCE world's fog colour — the residual T99 records,
+  unchanged by any of this and the next thing to attack.
+- **At `apertureBackdropGain: 0.5`, across the same five yaw angles:** sky band
+  spread **0.58** and mean drift 203.8 -> 203.2; water spread 9.64. Against
+  20.40 / 15.8 / 49.82 before. No bloom halo on the surrounding stone.
+- **The gain is PACK-SPECIFIC and 1.0 is correct with no pack** — the authored
+  colour arriving as authored is what T99 asks for. So it cannot ship as a
+  default without a shaders-off frame beside it.
 - **Two further costs, stated rather than discovered:** the vertex bake does not
   carry the day/night sky factor, so a night destination reads as daytime; and
   cutout foliage has no alpha test on this program, so leaves and grass
