@@ -61,6 +61,7 @@ Run this first. It covers deploy drift, disk, every expected container, `ONLINE_
 | The portal flashes while you walk near it and is steady when you stand still | [T103](#t103) |
 | A second WorldRenderer for the destination smears the screen, and re-entering lower does not fix it | [T104](#t104) |
 | A brightness ramp crosses the portal opening and moves with camera yaw alone | [T105](#t105) |
+| No portal draws its destination and the mc log has no `immersive:` line at all | [T107](#t107) |
 | Two screenshots of a frozen, empty scene still differ; a flat wall reports 40-70% of its pixels changed | [T102](#t102) |
 | Portal dust still drifts in the opening with `"particleType": null`, and a quiet-gate says the rig is quiet | [T101](#t101) |
 | Structure spacing arithmetic disagrees with the world | [T51](#t51) |
@@ -1652,6 +1653,33 @@ measurement of it.
   in Python (`%` on negatives, `>>` on signed ints, float-to-int narrowing) has
   the same trap. Pin it against the Java, not against intuition —
   `scripts/e2e/portal-matrix-selftest.sh` is the worked example.
+
+<a id="t107"></a>
+### T107 — A dead player leaves `world.getPlayers()`, and every per-player projection stops
+
+- **Symptom:** no portal anywhere draws its destination. The dev bridge reads
+  `frames 0`, `destinationChunks 0`, `slabProjections 0` with
+  `clientSideRefused: false`, the client log carries the companion handshake and
+  no `companion-client:portal-frame`, and `docker logs mc` has not one
+  `immersive:` line — not even the CLEAR path's `projection cleared`. `list` and
+  `data get entity <player> Pos` both answer normally, so the player looks
+  present and correctly placed.
+- **Cause:** the player is on the death screen. A dead `ServerPlayerEntity` is
+  not in `ServerWorld.getPlayers()` while `PlayerManager.getPlayerList()` still
+  counts it, so `ImmersiveProjector.tickSourceZones` iterates an empty player
+  list: `anyoneNear` is false, no chunk ticket is taken, no destination is
+  resolved and `projectToPlayers` visits nobody. Every log line in the projector
+  is inside that loop, which is why the failure is completely silent.
+- **Fix:** respawn. Measured at the reaches source portal, same eye, same tick
+  loop: dead reads `players=0 serverPlayers=1 near=false projecting=false`;
+  alive reads `players=1 near=true arrivalY=67 projecting=true`, 25 arrival
+  chunks held, and the bridge answers `frames 1 destinationChunks 27
+  slabProjections 1`.
+- **Trap:** it survives a server restart and a client reconnect, because the
+  rejoin lands back on the death screen. Before diagnosing a silent projection,
+  read the client's screen (`./dev screenshot`) or `data get entity <player>
+  Health` — neither `list` nor a position read distinguishes a dead player from
+  a live one.
 
 <a id="t106"></a>
 ### T106 — There is no sky program to draw a portal's backdrop through
