@@ -60,6 +60,8 @@ Run this first. It covers deploy drift, disk, every expected container, `ONLINE_
 | A portal's far side does not zoom when a spyglass, a drawn bow or a speed effect zooms the world | [T96](#t96) |
 | The portal flashes while you walk near it and is steady when you stand still | [T103](#t103) |
 | Nearly every quad of the portal mesh is clipped away each frame | [T108](#t108) |
+| `data get entity` says `No entity was found` for a player `list` shows online | [T110](#t110) |
+| `Unknown dimension` for a dimension the boot log registered | [T109](#t109) |
 | A second WorldRenderer for the destination smears the screen, and re-entering lower does not fix it | [T104](#t104) |
 | A brightness ramp crosses the portal opening and moves with camera yaw alone | [T105](#t105) |
 | No portal draws its destination and the mc log has no `immersive:` line at all | [T107](#t107) |
@@ -1654,6 +1656,42 @@ measurement of it.
   in Python (`%` on negatives, `>>` on signed ints, float-to-int narrowing) has
   the same trap. Pin it against the Java, not against intuition —
   `scripts/e2e/portal-matrix-selftest.sh` is the worked example.
+
+<a id="t110"></a>
+### T110 — `data get entity` batched into one `rcon-cli` answers for the wrong command
+
+- **Symptom:** `data get entity <player> Health` answers `No entity was found`
+  for a player `list` shows online, and a screenshot shows alive at full health
+  in the expected place. Reads exactly like [T107](#t107), and sends you
+  bisecting jars against a corpse that is not there.
+- **Cause:** several commands piped into ONE `docker exec -i mc rcon-cli`. The
+  replies come back in order but do not line up with the commands that produced
+  them, so a later command reads an earlier one's answer.
+- **Fix:** one command per `rcon-cli` invocation for anything whose answer you
+  will act on. Batching `execute if block` IS safe, because the answers are
+  positional and `scripts/e2e/verify-arena.py` refuses when the answer count
+  differs from the probe count — copy that guard rather than trusting the order.
+
+<a id="t109"></a>
+### T109 — A consumer dimension is not under the configured namespace, and registering it does not create it
+
+- **Symptom:** `execute in adventure:<slug> run seed` answers
+  `Unknown dimension 'adventure:<slug>'` although `settings.json` sets
+  `namespace: adventure` and the boot log clearly registered the dimension.
+  Probing it answers `That position is not loaded` for every position.
+- **Cause:** two independent things, and fixing one leaves the other. A
+  consumer-ADDED slug takes its namespace from `BRAND_SLUG`, not from
+  `settings.json` (`DimensionConfigLoader`), so the boot log reads
+  `Registered dimension: ResourceKey[minecraft:dimension / elfydd:<slug>]`
+  while every platform dimension reads `adventure:`. And registration is not
+  creation — the runtime `ServerWorld` is built on demand, so a registered
+  dimension is still `Unknown` to `execute in` until something asks for it.
+- **Fix:** use the consumer slug, then ask for the world:
+  `customdim load <slug>` answers `Queued load for <ns>:<slug>` and drains on
+  `END_SERVER_TICK` (about 25s). Load them ONE AT A TIME — concurrent
+  first-time generation wedges the main thread ([K6](#k6)). Chunks are still
+  player-driven afterwards: without a player or Carpet bot standing there every
+  probe answers `That position is not loaded`, which is silence, not a pass.
 
 <a id="t108"></a>
 ### T108 — Almost the whole portal mesh is clipped away every frame, and no draw-time change recovers it
