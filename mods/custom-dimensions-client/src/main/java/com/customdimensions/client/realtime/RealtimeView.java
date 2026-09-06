@@ -69,12 +69,17 @@ public final class RealtimeView {
 
     /**
      * Cells and columns one tick may read. The walk resumes across ticks, so
-     * this is what END_CLIENT_TICK costs — the box no longer sets it.
+     * this is what END_CLIENT_TICK costs — the box no longer sets it. Measured
+     * at 173ns a unit, so this slice is about 1.4ms.
      */
-    public static final int UNITS_PER_TICK = 4_096;
+    public static final int UNITS_PER_TICK = 8_192;
 
-    /** Indices a slice may step over per budgeted read before it yields. */
-    private static final int SKIP_CAP = 16;
+    /**
+     * Indices a slice may step over per budgeted read before it yields. A cell
+     * outside the cone costs a bounds check, so the product with the budget is
+     * what bounds a slice that reads almost nothing.
+     */
+    private static final int SKIP_CAP = 8;
 
     /** Chunks held at the last build, per opening. A rebuild needs new ones. */
     private static final Map<BlockPos, Integer> BUILT_AT = new HashMap<>();

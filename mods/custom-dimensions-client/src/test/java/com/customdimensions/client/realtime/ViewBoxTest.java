@@ -20,11 +20,11 @@ class ViewBoxTest {
     private static final int PLANE = 1500;
 
     /**
-     * Units one tick may read. Measured at DEPTH 24: 8,208 cells cost 3,305us
-     * average and 6,132us peak, so a unit is about 400ns and this budget is
-     * about 1.6ms. Raising it needs a {@code realtimeBuildUs} reading.
+     * Units one tick may read. Measured sliced: 4,096 units cost 273us average
+     * and 713us peak, so a unit is 173ns and this budget is about 1.4ms.
+     * Raising it needs a fresh {@code realtimeBuildUs} reading.
      */
-    private static final int TICK_BUDGET = 4_096;
+    private static final int TICK_BUDGET = 8_192;
 
     /**
      * Ticks a full rebuild may take before first sight is a long blank. Only
