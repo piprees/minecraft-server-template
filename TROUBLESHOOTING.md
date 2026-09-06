@@ -1694,6 +1694,10 @@ measurement of it.
   part of the destination floor drops it to sky 11-13, and the ratio of shaded
   to open floor in ONE frame is `UnshadedDestination.scale(level)`: about 0.63
   raw against 0.80 lifted at sky 12, which no fixture at sky 15 can separate.
+- **A block's authored luma is measured, never estimated.** `gray_concrete` is
+  a dark slate at RGB(55, 58, 62), luma 57.3 — not a mid grey. Read the palette
+  out of the client jar; two figures that both divide by a wrong reference agree
+  with each other to a few percent, and that agreement reads as evidence.
 - **An agreement with a vanilla constant is a hypothesis, not a confirmation.**
   The face shades are 1.0 / 0.8 / 0.6 / 0.5 and the brightness curve passes
   near them at several levels, so a crop landing on one has at least two
