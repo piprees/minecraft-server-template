@@ -95,8 +95,15 @@ public final class UnshadedDestination {
 
     /**
      * The multiplier an unshaded target puts on a vertex colour, from the
-     * destination's own block and sky levels. Vanilla's own brightness curve,
-     * the brighter channel winning, exactly as the lightmap composes them.
+     * destination's own block and sky levels: vanilla's brightness curve, the
+     * brighter level winning.
+     *
+     * <p>An approximation. Vanilla's lightmap is a 2D RGB texture over
+     * (block, sky), mixed per channel and lifted by the client's gamma, so a
+     * scalar over the max carries no block-light colour and reads low wherever
+     * that lift is not identity. Level 15 is where the two agree, which is why
+     * the e2e fixture cannot see the difference
+     * ({@code TROUBLESHOOTING.md#t113}).
      *
      * <p>The levels reaching here are the destination's own, so {@code ambient}
      * is the DESTINATION's. Routing them through source-lightmap space first
