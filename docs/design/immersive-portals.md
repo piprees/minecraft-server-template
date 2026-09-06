@@ -155,20 +155,26 @@ it bites only with a pack loaded.
 ## What the client needs and does not have
 
 **The client mod needs the destination dimension's environment config the same
-way the server has it.** Today it receives little more than `fogColor` and
-`skyColor` (`CompanionPayloads.Projection`). To light the far side as its own
-place it needs at minimum:
+way the server has it.** `projection/v3` carries `skyColor`, `fogColor`,
+`ambientLight`, `tintPalette` and `columnTints`. What is still missing:
 
-- ambient light level and sky type
-- fog colour, density and distance profile
-- weather and time, or the fact that the dimension fixes them
-- biome tint data for the captured volume — grass, foliage and water colours are
-  per-biome and currently come out flat or wrong
+- sky type
+- fog density and distance profile
+- **time and weather.** `RealtimeView.syncClock` sets the destination's time,
+  time-of-day, rain and thunder from the SOURCE player's world, so a dimension
+  declaring `environment.fixedTime` renders at the viewer's time instead. This
+  is Part 2's first failure by construction — the far side lit by the near
+  side's sun — and it is the one to fix first, because a fixed-time dimension
+  is the case the config already describes and the client already ignores.
 - whatever `settingsOverrides` the dimension declares that affect appearance
 
+A destination `ClientWorld` is built with no time in it and vanilla's time
+packet updates the player's own world only, so an unfed destination renders at
+time 0 forever; borrowing the viewer's clock is what stops that. The fix is to
+carry the destination's own clock rather than to stop syncing.
+
 `custom-dimensions` already owns every one of these server-side, in the dimension
-config it reads at boot. **Getting them to the client is plumbing, not research**,
-and it is the highest-value unstarted work in this document.
+config it reads at boot. **Getting them to the client is plumbing, not research.**
 
 ---
 
