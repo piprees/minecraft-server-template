@@ -60,6 +60,7 @@ Run this first. It covers deploy drift, disk, every expected container, `ONLINE_
 | A portal's far side does not zoom when a spyglass, a drawn bow or a speed effect zooms the world | [T96](#t96) |
 | The portal flashes while you walk near it and is steady when you stand still | [T103](#t103) |
 | Nearly every quad of the portal mesh is clipped away each frame | [T108](#t108) |
+| A new client-mod field reads null on /state though the jar has it | [T112](#t112) |
 | Luma numbers through a portal disagree between runs or regress | [T111](#t111) |
 | `data get entity` says `No entity was found` for a player `list` shows online | [T110](#t110) |
 | `Unknown dimension` for a dimension the boot log registered | [T109](#t109) |
@@ -1657,6 +1658,26 @@ measurement of it.
   in Python (`%` on negatives, `>>` on signed ints, float-to-int narrowing) has
   the same trap. Pin it against the Java, not against intuition —
   `scripts/e2e/portal-matrix-selftest.sh` is the worked example.
+
+<a id="t112"></a>
+### T112 — A rebuilt CLIENT mod does not reach the running client, and every reading is then a jar behind
+
+- **Symptom:** a counter or field just added to the client mod reads `null` on
+  `/state`, or a just-shipped render fix has no effect, while the Gradle build
+  said `BUILD SUCCESSFUL` and the jar in `build/libs/` provably contains it.
+  Nothing in any log says the client is stale.
+- **Cause:** client mods take a different route from server mods. `dev`'s farm
+  loop SYMLINKS a server jar — so a rebuild propagates with no re-link — but
+  **copies** a jar whose `fabric.mod.json` declares `"environment": "client"`,
+  because the pack build mounts that directory into a container where a symlink
+  to the checkout resolves to nothing. The copy into the Prism instance happens
+  in `./dev link`. `./dev launch` only starts what is already installed, and
+  `./dev up` never touches the client at all.
+- **Fix:** after rebuilding a client mod, `./dev link`, THEN relaunch the
+  client. Verify the artefact rather than the build — compare
+  `shasum -a 256` of `build/libs/<mod>.jar` against the jar in the Prism
+  instance's `mods/`, or unzip the installed class and grep for the new symbol.
+  A client mod change never propagates through `./dev up`.
 
 <a id="t111"></a>
 ### T111 — The live portal view is not a benchmark, so a luma number taken in it needs its own noise floor beside it
