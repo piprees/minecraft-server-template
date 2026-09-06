@@ -19,6 +19,8 @@ Gotchas: `That position is not loaded` is its own failure, NOT a passing probe
          A forceload is NOT enough: chunks are player-driven, and this refuses
          with ~1050/1213 UNLOADED until a player stands in the dimension.
          --except-box needs an = sign: a bare leading minus reads as an option.
+         --floor defaults to gray_concrete, so pointing this at an arena built
+         from anything else refuses in the hundreds and reads like demolition.
          Exemptions that remove no probes are free: compare the per-label counts
          with and without them. Same count means the grid never sampled the
          exempt cells and the gate was not loosened to earn its exit code.
@@ -151,6 +153,16 @@ def main():
         print(f"  ... and {len(bad) - args.show} more")
     if unloaded:
         print("  Unloaded chunks answer nothing and place nothing. Forceload, then rebuild.")
+
+    # A wrong --floor looks exactly like a demolished arena. Say so before
+    # anyone concludes the fixture broke.
+    wrong = [b for b in bad if b[5] == "WRONG BLOCK" and b[0] in ("floor", "wall-xlow",
+             "wall-xhigh", "wall-zlow", "wall-zhigh")]
+    if len(wrong) > len(plan) // 8:
+        print(f"  {len(wrong)} of these are WRONG BLOCK on floor/wall probes, which is what a"
+              f" mismatched --floor/--wall looks like.")
+        print(f"  This run expected floor={args.floor} wall={wall}. Check that is the arena's"
+              f" own material before concluding it was demolished.")
     return 1
 
 
