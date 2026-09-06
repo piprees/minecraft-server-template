@@ -6,7 +6,14 @@
 # Context: template-only. Called at the top of a measurement run; safe to run
 #          twice. It changes world state (time, weather, gamerules), so it is
 #          for the local rig and refuses to touch anything else.
-# Usage:   rig-quiet.sh [--dim DIM ...]   (repeatable; defaults to the rig pair)
+# Usage:   rig-quiet.sh [--dim DIM ...] [--live]   (repeatable; defaults to the e2e rig)
+# DANGER:  `doDaylightCycle` and `doWeatherCycle` are SAVE-WIDE gamerules, so
+#          this freezes the clock and weather for EVERY dimension including a
+#          maintainer's live world — and it applies them BEFORE deciding whether
+#          it can certify, so a refusal still leaves them set. It restores
+#          nothing. Pointing it at a non-rig dimension needs --live, and after
+#          that you restore play yourself:
+#            gamerule doDaylightCycle true ; gamerule doWeatherCycle true
 # Gotchas: `particleType` is NOT the particle switch. A null or absent one falls
 #          through to a default dust in all three of PortalHelper.java:1460, :1502
 #          and :2230. The switch is `portal.immersive.particleDensity`, which
@@ -25,10 +32,27 @@ DIMS=""
 while [ $# -gt 0 ]; do
   case "$1" in
     --dim) DIMS="$DIMS $2"; shift 2;;
+    --live) LIVE=1; shift;;
     *) echo "unknown argument: $1" >&2; exit 2;;
   esac
 done
-[ -n "$DIMS" ] || DIMS="minecraft:overworld adventure:the_amplified_reaches"
+[ -n "$DIMS" ] || DIMS="elfydd:e2e_one elfydd:e2e_two"
+
+# The gamerules below are save-wide, so a run aimed at a live dimension freezes
+# the maintainer's sky. Refuse unless it was asked for by name.
+for d in $DIMS; do
+  case "$d" in
+    *e2e_*) ;;
+    *) if [ "${LIVE:-0}" != "1" ]; then
+         printf '[rig-quiet] REFUSED: %s is not an e2e rig dimension.\n' "$d" >&2
+         printf '[rig-quiet]   doDaylightCycle and doWeatherCycle are SAVE-WIDE. Running here\n' >&2
+         printf '[rig-quiet]   freezes the clock and weather for every dimension, including a\n' >&2
+         printf '[rig-quiet]   live world, and this script restores nothing. Pass --live if you\n' >&2
+         printf '[rig-quiet]   mean it, then put it back yourself afterwards.\n' >&2
+         exit 2
+       fi;;
+  esac
+done
 
 say() { printf '[rig-quiet] %s\n' "$1"; }
 rcon() { docker exec -i mc rcon-cli "$1" 2>&1 | tr -d '\r'; }
@@ -36,6 +60,7 @@ rcon() { docker exec -i mc rcon-cli "$1" 2>&1 | tr -d '\r'; }
 FAIL=0
 
 # --- the sun must not move, and it must not rain ---------------------------
+[ "${LIVE:-0}" = "1" ] && say "WARNING: --live given. Save-wide gamerules are being changed; restore them yourself."
 rcon "gamerule doDaylightCycle false" >/dev/null
 rcon "time set 6000" >/dev/null
 rcon "gamerule doWeatherCycle false" >/dev/null
