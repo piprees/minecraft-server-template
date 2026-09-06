@@ -1659,7 +1659,7 @@ measurement of it.
   `scripts/e2e/portal-matrix-selftest.sh` is the worked example.
 
 <a id="t111"></a>
-### T111 — The live portal view is not a benchmark, so every luma number taken in it is void
+### T111 — The live portal view is not a benchmark, so a luma number taken in it needs its own noise floor beside it
 
 - **Symptom:** shadow, contrast and brightness figures taken through a portal
   disagree between runs, or improve after a change and then come back. Running
@@ -1673,7 +1673,10 @@ measurement of it.
   which is why even a sky-band crop moves. A portal aura ([D-series aura
   settings](#t50)) rewrites terrain around the frame between passes and adds a
   third if it is enabled, and `aura.enabled` ABSENT means the aura RUNS.
-- **Fix:** measure in the e2e rig, not the live world. Flat untintable concrete
+- **Fix:** measure in the e2e rig, not the live world. A figure quoted with a
+  same-condition floor measured beside it in the same session is still evidence
+  — "200 changed pixels against a floor of 25,207" is a result. A figure quoted
+  bare is not, however carefully it was taken. Flat untintable concrete
   under `fixedTime`, `portal.lightLevel: 0`, `portal.aura.enabled: false`,
   `portal.immersive.particleDensity: 0`, and no water, grass, leaves, lava or
   ice in either dimension. Gate every session with
