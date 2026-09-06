@@ -1742,6 +1742,12 @@ measurement of it.
   [T103](#t103) exists to prevent. Treat that as a deliberate trade, not a
   discovery: a narrower box costs a rebuild per movement, and the flicker that
   buys back is the one measured at 54% of rendered frames.
+- **A slice budget's unit is a promise.** `RealtimeView.UNITS_PER_TICK` bounds a
+  tick by counting cells and columns, which holds only while a unit is bounded
+  work. A per-column cost that grows with what came before it — a palette
+  scanned linearly, a list appended to and searched — breaks that silently: the
+  count stays right and the tick stops being bounded. Anything added inside that
+  walk has to be O(1) in the columns already read.
 - **Read it per pose from the dev bridge**, never from the emit line:
   `projections[].clip.layers[]` carries `bucketsKept`, `bucketsTotal`,
   `quadsIn` and `emitted` every sampled frame, while the emit line is on a

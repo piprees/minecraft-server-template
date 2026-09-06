@@ -11,7 +11,9 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * The wire contract between this mod and the custom-dimensions-client
@@ -278,30 +280,42 @@ public final class CompanionPayloads {
          * palette is scanned rather than hashed.
          */
         public static final class TintGrid {
+
+            /** One column's three colours, so a repeat is found by lookup. */
+            private record Triple(int grass, int foliage, int water) {}
+
             private final int sizeZ;
             private final int[] columns;
             private final List<int[]> entries = new ArrayList<>();
+
+            /**
+             * Triple to its palette index. A view holds as many distinct
+             * triples as it has columns — {@code getGrassColorAt} takes a
+             * position — so a scan over the palette is quadratic in them.
+             */
+            private final Map<Triple, Integer> index = new HashMap<>();
 
             public TintGrid(int sizeX, int sizeZ) {
                 this.sizeZ = sizeZ;
                 this.columns = new int[sizeX * sizeZ];
                 this.entries.add(new int[] {-1, -1, -1});
+                this.index.put(new Triple(-1, -1, -1), 0);
             }
 
             public void set(int x, int z, int grass, int foliage, int water) {
                 this.columns[(x * this.sizeZ) + z] = entryFor(grass, foliage, water);
             }
 
+            /** Indices are handed out in first-seen order, which the palette keeps. */
             private int entryFor(int grass, int foliage, int water) {
-                for (int i = 0; i < this.entries.size(); i++) {
-                    int[] entry = this.entries.get(i);
-                    if (entry[TINT_GRASS] == grass && entry[TINT_FOLIAGE] == foliage
-                            && entry[TINT_WATER] == water) {
-                        return i;
-                    }
+                Integer held = this.index.get(new Triple(grass, foliage, water));
+                if (held != null) {
+                    return held;
                 }
                 this.entries.add(new int[] {grass, foliage, water});
-                return this.entries.size() - 1;
+                int made = this.entries.size() - 1;
+                this.index.put(new Triple(grass, foliage, water), made);
+                return made;
             }
 
             public int[] palette() {
