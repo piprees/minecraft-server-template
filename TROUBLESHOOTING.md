@@ -1762,6 +1762,11 @@ measurement of it.
   reaches 46% of the quad-bearing footprint at an eye 5 blocks back and 63% at
   10 (`ProjectionMesh.SLAB = 8`; halving it buys about ten points more). The
   residual is geometry inside buckets that straddle the cone.
+- **The floor is the dominant term at a full feed.** The rejection figures above
+  were taken against a box holding 2,443 quads; a fed box holds 12,159, and the
+  near-field slab is most of the difference. The measurement is still right and
+  its weight is not — price any of these numbers against the quad count they
+  were taken at.
 - **The only thing that recovers the rest** is sizing the box to the actual eye
   distance, which means rebuilding it as the player moves — the churn
   [T103](#t103) exists to prevent. Treat that as a deliberate trade, not a
