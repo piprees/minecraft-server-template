@@ -384,16 +384,16 @@ public final class ProjectionRenderer {
                     return;
                 }
                 int corners = backdropPolygon(projection, TUNNEL, camX, camY, camZ,
-                        surfaceLocal, facing, POLY_A, POLY_B);
+                        surfaceLocal, facing,
+                        RealtimeControls.settings().apertureBackdropGain(), POLY_A, POLY_B);
                 dressBackdrop(POLY_A, corners);
                 boolean unshaded = RealtimeControls.settings().apertureUnshadedBackdrop();
                 net.minecraft.client.render.RenderLayer layer =
                         PortalRenderLayers.backdrop(unshaded);
-                // The fog colour is finished when it arrives, so unshaded it is
-                // written straight out; the entity layer needs the dressing.
-                double gain = RealtimeControls.settings().apertureBackdropGain();
+                // The colour arrives attenuated, so unshaded it is written
+                // straight out; the entity layer needs the dressing.
                 VertexEmit writer = unshaded
-                        ? (c, e, poly, at) -> emitUnshadedSurface(c, e, poly, at, (float) gain)
+                        ? ProjectionRenderer::emitUnshadedSurface
                         : ProjectionRenderer::emit;
                 if (writeDepth) {
                     drawShaded(layer, entry, corners, writer);
@@ -535,7 +535,8 @@ public final class ProjectionRenderer {
             @Override
             public int drawFarStamp(double surfaceLocal) {
                 int corners = backdropPolygon(projection, TUNNEL, camX, camY, camZ,
-                        surfaceLocal, facing, POLY_A, POLY_B);
+                        surfaceLocal, facing,
+                        RealtimeControls.settings().apertureBackdropGain(), POLY_A, POLY_B);
                 // The layer's own GL_ALWAYS makes the test irrelevant, so the
                 // collapsed range only decides what is WRITTEN.
                 return withGlState(
@@ -722,10 +723,9 @@ public final class ProjectionRenderer {
      */
     static int backdropPolygon(ClientProjection projection, double[] cone,
             double camX, double camY, double camZ, double planeLocal, double facing,
-            float[] poly, float[] scratch) {
-        int colour = projection.payload().fogColor() >= 0
-                ? projection.payload().fogColor()
-                : projection.payload().skyColor();
+            double gain, float[] poly, float[] scratch) {
+        int colour = UnshadedDestination.backdropColour(
+                projection.payload().fogColor(), projection.payload().skyColor(), gain);
         if (colour < 0) {
             colour = 0;
         }
@@ -1122,10 +1122,9 @@ public final class ProjectionRenderer {
      * near-white quad past saturation, not a correction of the colour.
      */
     private static void emitUnshadedSurface(VertexConsumer consumer, MatrixStack.Entry entry,
-            float[] poly, int at, float gain) {
+            float[] poly, int at) {
         consumer.vertex(entry, poly[at], poly[at + 1], poly[at + 2])
-                .color(poly[at + 3] * gain, poly[at + 4] * gain, poly[at + 5] * gain,
-                        poly[at + 6])
+                .color(poly[at + 3], poly[at + 4], poly[at + 5], poly[at + 6])
                 .texture(poly[at + 7], poly[at + 8])
                 .light(FULL_BRIGHT);
     }

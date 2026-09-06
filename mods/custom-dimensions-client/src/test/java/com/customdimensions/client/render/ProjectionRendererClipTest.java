@@ -1070,7 +1070,7 @@ class ProjectionRendererClipTest {
         assertTrue(ProjectionRenderer.buildTunnelPlanes(tunnel, faces, camA, camB, camNormal));
         double planeLocal = projection.planeCoord() - projection.origin().getZ();
         return ProjectionRenderer.backdropPolygon(projection, tunnel, camA, camB, camNormal,
-                planeLocal, -1.0, poly, scratch);
+                planeLocal, -1.0, 1.0, poly, scratch);
     }
 
     /** Builds the tunnel for one projection and camera, then clips one layer. */

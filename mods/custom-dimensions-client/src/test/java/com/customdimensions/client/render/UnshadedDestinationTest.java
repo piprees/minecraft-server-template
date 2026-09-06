@@ -331,4 +331,47 @@ class UnshadedDestinationTest {
             throw new AssertionError("unreadable class " + file, e);
         }
     }
+
+    /**
+     * The divergence gate. The fog binding and the backdrop draw take the
+     * destination's colour from one definition; if they stop agreeing, a gain
+     * reaches one and misses the other and nothing else notices.
+     */
+    @Test
+    void theFogAndTheBackdropAgreeOnTheColourAtEveryGain() {
+        int[] colours = {0x000000, 0x0000FF, 0x78A7FF, 0xC0D8FF, 0xFF8000, 0xFFFFFF};
+        double[] gains = {0.0, 0.25, 0.5, 0.75, 1.0};
+        for (int colour : colours) {
+            for (double gain : gains) {
+                int argb = UnshadedDestination.backdropColour(colour, -1, gain);
+                float[] fog = UnshadedDestination.fogColour(colour, -1, gain);
+                assertArrayEquals(new float[] {
+                    ((argb >> 16) & 0xFF) / 255.0f,
+                    ((argb >> 8) & 0xFF) / 255.0f,
+                    (argb & 0xFF) / 255.0f,
+                }, fog, 0.0f, "fog and backdrop disagree at colour "
+                        + Integer.toHexString(colour) + " gain " + gain);
+            }
+        }
+    }
+
+    /** A gain of one must not touch a single channel, or it is not a no-op. */
+    @Test
+    void aGainOfOneLeavesTheColourExactlyAlone() {
+        for (int colour : new int[] {0x000000, 0x010203, 0x78A7FF, 0xFF8000, 0xFFFFFF}) {
+            assertEquals(colour, UnshadedDestination.backdropColour(colour, -1, 1.0),
+                    "gain 1.0 changed " + Integer.toHexString(colour));
+        }
+    }
+
+    /** Sky stands in for an undeclared fog, and neither declared reads absent. */
+    @Test
+    void theColourFallsBackToSkyAndThenToAbsent() {
+        assertEquals(0x0000FF, UnshadedDestination.backdropColour(-1, 0x0000FF, 1.0),
+                "sky does not stand in for an undeclared fog");
+        assertEquals(-1, UnshadedDestination.backdropColour(-1, -1, 1.0),
+                "a destination declaring neither reports a colour it does not have");
+        assertEquals(0x000000, UnshadedDestination.backdropColour(0xFFFFFF, -1, 0.0),
+                "gain zero does not black the colour");
+    }
 }

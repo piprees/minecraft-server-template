@@ -61,16 +61,36 @@ public final class UnshadedDestination {
      * destination declares neither, which leaves the source world's fog alone.
      */
     public static float[] fogColour(int fogColor, int skyColor, double gain) {
-        int argb = fogColor >= 0 ? fogColor : skyColor;
+        int argb = backdropColour(fogColor, skyColor, gain);
         if (argb < 0) {
             return null;
         }
-        float scale = (float) Math.max(0.0, Math.min(1.0, gain));
         return new float[] {
-            ((argb >> 16) & 0xFF) / 255.0f * scale,
-            ((argb >> 8) & 0xFF) / 255.0f * scale,
-            (argb & 0xFF) / 255.0f * scale,
+            ((argb >> 16) & 0xFF) / 255.0f,
+            ((argb >> 8) & 0xFF) / 255.0f,
+            (argb & 0xFF) / 255.0f,
         };
+    }
+
+    /**
+     * The one definition of the destination's own colour: its fog, or its sky
+     * when it declares no fog, attenuated by the gain. -1 when it declares
+     * neither. The fog binding and the backdrop draw both read this, so a gain
+     * cannot reach one and miss the other.
+     */
+    public static int backdropColour(int fogColor, int skyColor, double gain) {
+        int argb = fogColor >= 0 ? fogColor : skyColor;
+        if (argb < 0) {
+            return -1;
+        }
+        double scale = Math.max(0.0, Math.min(1.0, gain));
+        return (attenuate((argb >> 16) & 0xFF, scale) << 16)
+                | (attenuate((argb >> 8) & 0xFF, scale) << 8)
+                | attenuate(argb & 0xFF, scale);
+    }
+
+    private static int attenuate(int channel, double scale) {
+        return (int) Math.round(channel * scale);
     }
 
     /**
