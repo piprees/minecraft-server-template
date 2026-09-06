@@ -59,6 +59,7 @@ Run this first. It covers deploy drift, disk, every expected container, `ONLINE_
 | A portal's far side is thin and never fills, at 7 chunks and 0 render sections | [T95](#t95) |
 | A portal's far side does not zoom when a spyglass, a drawn bow or a speed effect zooms the world | [T96](#t96) |
 | The portal flashes while you walk near it and is steady when you stand still | [T103](#t103) |
+| A second WorldRenderer for the destination smears the screen, and re-entering lower does not fix it | [T104](#t104) |
 | Two screenshots of a frozen, empty scene still differ; a flat wall reports 40-70% of its pixels changed | [T102](#t102) |
 | Portal dust still drifts in the opening with `"particleType": null`, and a quiet-gate says the rig is quiet | [T101](#t101) |
 | Structure spacing arithmetic disagrees with the world | [T51](#t51) |
@@ -1650,6 +1651,61 @@ measurement of it.
   in Python (`%` on negatives, `>>` on signed ints, float-to-int narrowing) has
   the same trap. Pin it against the Java, not against intuition —
   `scripts/e2e/portal-matrix-selftest.sh` is the worked example.
+
+<a id="t104"></a>
+### T104 — A second `WorldRenderer` cannot draw the destination, for two independent reasons
+
+- **Symptom:** the spectator pass (`SpectatorPass.java`, a real `WorldRenderer`
+  per destination rendering into an offscreen `SimpleFramebuffer`) smears a
+  second world across the screen under a pack ([T97](#t97)), and is shipped off.
+  The obvious repair — re-enter below `WorldRenderer.render` so the pack's
+  per-frame handlers do not run twice — does not rescue it.
+- **The re-entry point does exist.** Read off Iris's own remapped mixin
+  annotations: of 28 handlers in `MixinLevelRenderer`, all sit in
+  `method_22710` (renderLevel) or `method_3257` (sky) except
+  `iris$beginTerrainLayer`/`iris$endTerrainLayer` on `method_3251`
+  (renderSectionLayer) and one `@ModifyArg` on weather. `method_3273`
+  (setupRender) and `method_22977` (renderEntity) carry none.
+  `ShadowRenderer.renderShadows` re-enters through exactly that triple, which is
+  Iris's own proof the four per-frame handlers do not fire from it.
+- **Wall 1: the pipeline field.** `iris$beginTerrainLayer` is
+  `aload_0; getfield pipeline; invokeinterface setPhase`. `pipeline` is
+  `@Unique`, per-instance, and its only `putfield` is at HEAD of
+  `method_22710`. A second `WorldRenderer` that has never run `renderLevel`
+  throws NPE there, pack or no pack. Setting it requires naming Iris, which the
+  standing ruling forbids.
+- **Wall 2: the gbuffer rebind, and it is the decisive one.**
+  `MixinShaderChunkRenderer.redirectIrisProgram` `@Redirect`s Sodium's
+  `ShaderChunkRenderer.begin` -> `compileProgram`, and its body binds
+  `getSodiumPrograms().getFramebuffer(pass)` from the GLOBAL pipeline. `begin`
+  calls `compileProgram` unconditionally, so **every terrain pass of every draw
+  batch rebinds Iris's gbuffer**, whichever renderer issued it. No offscreen
+  target survives a terrain draw.
+- **A third pass state is not representable.** Pass state is the single boolean
+  `ShadowRenderer.ACTIVE`; `SodiumPrograms.mapTerrainRenderPass` is a pure
+  function of (pass x ACTIVE) into six values and throws on anything else.
+- **Consequence:** the destination stays inside the source frame's single
+  `renderLevel`, drawn as ordinary clipped geometry. This bounds the view to the
+  capture volume and leaves the pack shading it as source-world geometry.
+  `docs/design/immersive-portals.md` Part 4 promises the companion path "client
+  render distance + DH"; that is not reachable while Iris owns the binding.
+- **The ramp is the pack, proven by control.** Same eye, same five yaw angles,
+  7.2 degrees of PURE YAW at the overworld source portal, left-to-right luma
+  ramp inside the opening:
+
+  | region | pack OFF, spread across poses | pack ON, spread |
+  | --- | --- | --- |
+  | sky band | **0.00** (one flat colour, std 0.00) | **20.40** |
+  | water band | 7.75 | **49.39** |
+
+  Frames verified live, 5 of 5 unique. Our geometry is uniform there; the pack
+  alone makes it ramp, and the ramp moves with yaw from a fixed eye — which a
+  window onto a real place cannot do. `scripts/e2e/shadow-gradient.py`.
+- **Drawing at destination coordinates does not help.** `createShadowModelView`
+  is camera-centred (`getUnshiftedCameraPosition` feeds only an interval snap),
+  and Iris shades camera-relative. Where the geometry must appear on screen and
+  at what depth pins its camera-relative position, which pins the shadow texel.
+  Compensating with a portal view transform lands on the same texel.
 
 <a id="t103"></a>
 ### T103 — Every change in the destination chunk feed blanks the portal entirely
