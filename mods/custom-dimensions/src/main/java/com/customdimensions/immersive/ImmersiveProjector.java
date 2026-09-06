@@ -810,8 +810,10 @@ public final class ImmersiveProjector {
 
     /**
      * The per-player half of a projection, shared by BOTH directions:
-     * activate, refresh, or tear down each nearby player's fake-block view of
-     * one aperture. Returns whether anyone is being shown it right now.
+     * activate, refresh, hold or tear down each nearby player's fake-block view
+     * of one aperture. Returns whether anyone is being shown it right now — a
+     * projection held through {@link ProjectionPresence} counts, since the
+     * client is still drawing it and the frame ring still frames it.
      *
      * Factoring this out is what makes the arrival direction cost so little:
      * the sightline mask, the delta pass, the activation hysteresis, the
@@ -828,20 +830,24 @@ public final class ImmersiveProjector {
             ImmersiveSettings settings, List<ServerPlayerEntity> players, BlockPos centre,
             long tick, String direction) {
         int range = settings.activationRange();
-        double activateSq = (double) range * range;
-        double deactivateSq = (double) (range + DEACTIVATE_MARGIN) * (range + DEACTIVATE_MARGIN);
         boolean projecting = false;
 
         for (ServerPlayerEntity player : players) {
             Map<PortalHelper.PortalZone, PlayerProjectionState> states = ACTIVE.get(player.getUuid());
             PlayerProjectionState state = states != null ? states.get(zone) : null;
             double distanceSq = centre.getSquaredDistance(player.getBlockPos());
-            boolean inRange = distanceSq <= (state == null ? activateSq : deactivateSq);
+            // Held only inside the ticket's own band, so grace never outlives
+            // the chunks that would refresh it.
+            ProjectionPresence.Presence presence = destination == null
+                    ? ProjectionPresence.Presence.CLEAR
+                    : ProjectionPresence.of(distanceSq, range, range + DEACTIVATE_MARGIN,
+                            range + TICKET_DROP_MARGIN, state != null, tick,
+                            state != null ? state.outOfRangeSince() : ProjectionPresence.NOT_LEFT);
 
             // Destination world unloaded mid-projection (the idle unloader
             // closes pre-loaded-but-unvisited worlds) is treated exactly
             // like walking away: restore the real blocks.
-            if (!inRange || destination == null) {
+            if (presence == ProjectionPresence.Presence.CLEAR) {
                 if (state != null) {
                     state.cleanup(player, world);
                     states.remove(zone);
@@ -853,6 +859,24 @@ public final class ImmersiveProjector {
                             destination == null ? "destination world unloaded" : "out of range");
                 }
                 continue;
+            }
+
+            if (presence == ProjectionPresence.Presence.HOLD) {
+                // Nothing is sent and nothing is sampled: the client keeps
+                // drawing what it has until the window expires or they return.
+                if (state.outOfRangeSince() == ProjectionPresence.NOT_LEFT) {
+                    state.setOutOfRangeSince(tick);
+                    MultiverseServer.LOGGER.debug(
+                            "immersive: {} projection held for {} at {} {} ({} ticks)",
+                            direction, player.getName().getString(),
+                            world.getRegistryKey().getValue(), centre.toShortString(),
+                            ProjectionPresence.GRACE_TICKS);
+                }
+                projecting = true;
+                continue;
+            }
+            if (state != null) {
+                state.setOutOfRangeSince(ProjectionPresence.NOT_LEFT);
             }
 
             if (destinationY == NO_ARRIVAL) {

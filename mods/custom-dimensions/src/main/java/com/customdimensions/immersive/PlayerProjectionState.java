@@ -236,6 +236,9 @@ public final class PlayerProjectionState {
     /** Which store held this opening on the client last pass (null = no pass yet). */
     private Boolean lastStreamsSlab;
 
+    /** Tick this player left the activation band, or {@code NOT_LEFT}. */
+    private long outOfRangeSince = ProjectionPresence.NOT_LEFT;
+
     /** 4c: player EYE position and server tick at the last send. */
     private Vec3d lastRefreshEye;
     private long lastRefreshTick;
@@ -259,6 +262,15 @@ public final class PlayerProjectionState {
 
     public RegistryKey<World> sourceWorldKey() {
         return this.sourceWorldKey;
+    }
+
+    /** When this player left the band, or {@link ProjectionPresence#NOT_LEFT}. */
+    public long outOfRangeSince() {
+        return this.outOfRangeSince;
+    }
+
+    public void setOutOfRangeSince(long tick) {
+        this.outOfRangeSince = tick;
     }
 
     /**
@@ -841,6 +853,7 @@ public final class PlayerProjectionState {
         this.lastRefreshEye = null;
         this.lastRefreshTick = 0;
         this.lastStationary = false;
+        this.outOfRangeSince = ProjectionPresence.NOT_LEFT;
     }
 
     /**
