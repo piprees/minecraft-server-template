@@ -13,7 +13,7 @@ import java.util.Map;
 public final class DevRequest {
 
     public static final List<String> ACTIONS =
-            List.of("walk", "look", "use", "sneak", "key", "realtime", "hud");
+            List.of("walk", "look", "use", "sneak", "key", "realtime", "hud", "rebuild");
 
     private final String action;
     private final Map<String, Object> fields;

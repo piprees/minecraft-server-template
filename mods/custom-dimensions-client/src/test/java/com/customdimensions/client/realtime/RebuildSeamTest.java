@@ -1,6 +1,8 @@
 package com.customdimensions.client.realtime;
 
 import net.minecraft.util.math.BlockPos;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -18,6 +20,19 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  * this module's test classpath cannot bootstrap.
  */
 class RebuildSeamTest {
+
+    /**
+     * The dispatch case is unreachable without this entry: DevRequest refuses an
+     * unlisted action before DevServer ever sees it, so the seam looks wired and
+     * silently does nothing.
+     */
+    @Test
+    void theRebuildActionIsReachableFromTheBridge() {
+        assertTrue(com.customdimensions.client.dev.DevRequest.ACTIONS.contains("rebuild"),
+                "rebuild is dispatched in DevServer but missing from DevRequest.ACTIONS, "
+                        + "so /input refuses it before the case runs");
+    }
+
 
     @Test
     void anEmptyViewHasNothingToRebuild() {
