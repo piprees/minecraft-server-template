@@ -114,6 +114,25 @@ bounds and a bisecting normal, in one loop.**
 **Rule going forward: one helper owns the surface coordinate and every reader
 calls it.** A new reader added without one is how this drifts again.
 
+**And the rule is not about the surface coordinate.** It is about any quantity
+two sites compute separately, and it has since been broken three more times in
+this subsystem:
+
+| quantity | the two sites | how it surfaced |
+| --- | --- | --- |
+| the destination fog | `ownFog` keyed on the unshaded toggles, while the layer was chosen elsewhere | one flag moved both, so an A/B measured two variables and read as one |
+| the feed's core | `ImmersiveProjector.holdSet` ticketed a FORWARD core; `DestinationFeed.nextChunks` bypassed the wedge for the CENTRED one | the feed queued columns nobody ticketed, never sent them, and stalled at `sent=0 wanted=N` forever |
+| `apertureBackdropGain` | attenuates the bound fog for every destination stage; attenuates the BACKDROP only when `apertureUnshadedBackdrop` is on | latent — identity at gain 1.0, so nothing observable has diverged yet |
+
+**Two definitions agree until one of them moves.** Every one of these compiled,
+passed its suite, and looked correct for as long as both sides happened to say
+the same thing. The failure is not a wrong value; it is a second definition.
+
+So: a setting, a shape, a coordinate or a predicate that more than one site
+needs is a **function somewhere with one owner**, and a test that fails when the
+sites disagree — not a test that pins today's shape, which passes on the day
+they diverge.
+
 ## What does not move
 
 The portal's block mechanics are integer cells end to end. `PortalSite` —
