@@ -126,7 +126,9 @@ A push to `main` in a consumer repo triggers the caller workflow, which invokes 
 
 ## Problems, traps, and known issues
 
-All of it lives in [`TROUBLESHOOTING.md`](TROUBLESHOOTING.md) — architecture traps (T1–T80 and T82–T116, no T15, T20, T21, T28, T29, T81), macOS local-dev quirks (P1–P6), dimension lifecycle (D1–D9, no D7), open issues (K1–K11, no K3, K4, K8, K10, K11). Every entry has a permanent anchor; cite them precisely (`TROUBLESHOOTING.md#t14`). Start any diagnosis with `./ops doctor`; the forbidden-actions list is at the top of that file.
+All of it lives in [`TROUBLESHOOTING.md`](TROUBLESHOOTING.md) — architecture traps (T1–T116), macOS local-dev quirks (P1–P6), dimension lifecycle (D1–D9), open issues (K1–K11). Every entry has a permanent anchor; cite them precisely (`TROUBLESHOOTING.md#t14`). Start any diagnosis with `./ops doctor`; the forbidden-actions list is at the top of that file.
+
+**A retired id is never reused.** Retired: T15, T20, T21, T22, T23, T26, T28, T29, T81, T86, T89, T93, T94, T96; D1, D4, D5, D7; K3, K4, K8, K10, K11. A new entry takes the next number above the prefix's highest, never a gap.
 
 |  |  |
 | --- | --- |

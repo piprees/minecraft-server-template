@@ -101,7 +101,7 @@ public final class RealtimeView {
 
     /**
      * The destination revision at the last build, per opening. Keying on the
-     * chunk COUNT instead freezes the view on a resend ([K11]): a replaced
+     * chunk COUNT instead freezes the view on a resend: a replaced
      * chunk leaves the count identical, so the walk never restarts.
      */
     private static final Map<BlockPos, Integer> BUILT_AT = new HashMap<>();

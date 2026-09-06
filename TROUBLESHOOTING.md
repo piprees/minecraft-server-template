@@ -4,9 +4,9 @@
 
 | Prefix | Range | What it covers |
 | --- | --- | --- |
-| **T** | [T1–T14, T16–T19, T22–T27, T30–T80, T82–T116](#architecture-traps) | Architecture traps — each has caused a real production incident |
+| **T** | [T1–T14, T16–T19, T24–T25, T27, T30–T80, T82–T85, T87–T88, T90–T92, T95, T97–T116](#architecture-traps) | Architecture traps — each has caused a real production incident |
 | **P** | [P1–P6](#macos-local-dev) | macOS local-dev quirks (BSD tooling, toolchain) |
-| **D** | [D1–D6, D8–D9](#dimension-lifecycle) | Custom-dimension lifecycle on a live world |
+| **D** | [D2–D3, D6, D8–D9](#dimension-lifecycle) | Custom-dimension lifecycle on a live world |
 | **K** | [K1–K2, K5–K7, K9](#known-issues) | Open issues — unfixed, on the watch list |
 
 Related contracts: [`AGENTS.md`](AGENTS.md) (how to behave), [`COMMANDS.md`](COMMANDS.md) (command reference), [`mods/AGENTS.md`](mods/AGENTS.md) (in-house mod development, including portal-subsystem specifics).
@@ -51,13 +51,9 @@ Run this first. It covers deploy drift, disk, every expected container, `ONLINE_
 | Which structures can spawn where disagrees with the jars | [T49](#t49) |
 | A probe returns nothing, or the same value everywhere | [T50](#t50) |
 | A copper portal frame stops lighting and nothing changed | [T85](#t85) |
-| A subagent shows "running" but has produced nothing for hours | [T86](#t86) |
 | Every mutation "reddens nothing", or a probe reports no activity | [T88](#t88) |
-| Two arrival zones for one destination after a break and re-light | [T89](#t89) |
 | A reimplementation of the mod's arithmetic is one block out at negative coordinates | [T87](#t87) |
-| A portal renders once, then draws sky on every approach after a traversal | [T93](#t93), [T94](#t94) |
 | A portal's far side is thin and never fills, at 7 chunks and 0 render sections | [T95](#t95) |
-| A portal's far side does not zoom when a spyglass, a drawn bow or a speed effect zooms the world | [T96](#t96) |
 | The portal flashes while you walk near it and is steady when you stand still | [T103](#t103) |
 | Nearly every quad of the portal mesh is clipped away each frame | [T108](#t108) |
 | A new client-mod field reads null on /state though the jar has it | [T112](#t112) |
@@ -121,11 +117,8 @@ Run this first. It covers deploy drift, disk, every expected container, `ONLINE_
 | RCON output truncated, concatenated, or empty; `/locate` never returns | [T17](#t17) |
 | `Unknown dimension 'adventure:<slug>'` on a healthy server | [T18](#t18) |
 | One listed biome covers a whole dimension; the rest never appear | [T19](#t19) |
-| Structures generating in a void/superflat dimension | [T22](#t22) |
-| `structures.mode`/`exclude` listing a Moog's/YUNG's set does nothing | [T23](#t23) |
 | A `structures.force` position never generates its structure; vanilla fortresses/mineshafts/strongholds never found organically | [T25](#t25) |
 | A RETURN/`@ModifyReturnValue` hook on StructureWeightSampler never fires | [T24](#t24) |
-| Flat slabs of terrain under floating-island structures; buildings on cliff shelves or sunk into the floor | [T26](#t26) |
 | A fill kernel makes solid terrain in open sky | [T27](#t27) |
 | A fix verified in `.stack/` is missing later; `current` moved | [T30](#t30) |
 | New seed set but the world regenerates the old terrain; an overlay `seed`/`spawn` override looks ignored | [T31](#t31) |
@@ -303,16 +296,6 @@ Launchers download HTML instead of mod JARs, or packwiz auto-update serves stale
   small one as a defect.
 - **Rank candidate axes by DISTRIBUTION, not span.** `the_red_monument` (`adventure:void`) gives weirdness a span of 2.000 across just THREE distinct values, seven of eleven samples pinned at -0.50 — the widest span and the worst possible axis. Count distinct values across the radius before choosing. `biomes` is creation-time worldgen config ([D2](#d2)) and changing it re-keys the generation fingerprint, so every affected dimension needs a re-roll, not a rescore.
 
-<a id="t22"></a>
-### T22 — `"groups": []` suppressed noise only, so void/superflat dims generated every structure set
-
-Structures — villages, towers, ships, all 367 sets — generating in `void`/`superflat` dimensions on vanilla grid placement; dimensions carrying an explicit `structureDensity: "none"` masked it, any relying on the type's `"groups": []` alone leaked. `NoiseGroupPlan.resolve()` answered "suppressed" for a type enabling no groups, and the legacy density path then returned `null` for a default config — which keeps the world's original `StructurePlacementCalculator` intact. Now `suppressesAllSets()` is true only for "type enables no groups" (and "no world type"), and `DimensionStructures.transformed()` drops every organic set; exit shrines keep their opt-in handling and `structures.force` still appends. The boot line states the reason: `density=normal+suppressed(type void enables no groups)`. `structureDensity: "none"`, `structures.mode: "none"` and `structures.noise: false` keep their own meanings (the last deliberately keeps the vanilla grids).
-
-<a id="t23"></a>
-### T23 — `structures.mode`/`structures.exclude` never reached pass-through sets on the noise path
-
-`structures.mode: "reject"` listing a custom-placement set (Moog's `mvs:`/`mns:`/`mes:`/`mss:`, YUNG's, Supplementaries galleons) does nothing, and `structures.exclude` never applies to those sets in any path. The mode filter ran only on the legacy density path and exclude only inside `NoisePoolBuilder`, but the 227 custom-placement sets never enter the pool builder and the noise path's pass-through loop re-added them unfiltered. Fixed by one shared filter, `DimensionStructures.keepSet(setId, mode, modeList, exclude)`, applied in both the legacy mode check and the pass-through loop. The census artefact records a `passThrough` array, so a filtered set must be ABSENT from it.
-
 <a id="t25"></a>
 ### T25 — Third-party HEAD cancels ate forced structure starts; the mod now performs them itself
 
@@ -327,13 +310,6 @@ Structures — villages, towers, ships, all 367 sets — generating in `void`/`s
 - **Symptom:** an `@Inject` at RETURN (or a MixinExtras `@ModifyReturnValue`) on `StructureWeightSampler.createStructureWeightSampler` or `sample` merges cleanly into the class but never runs, at any priority. A counter placed there reads zero.
 - **Cause:** five mods transform the class (c2me accessors, YungsApi enhanced beardifier + aquifer masks, Moog's Structures enhanced beardifier, lithostitched adaptation override, custom-dimensions). Moog's replaces the factory's return value from a cancellable RETURN callback — a Mixin cancel emits an immediate return that skips callbacks inserted after it, and the instance the noise fill samples is Moog's rebuild, not the one a RETURN-side hook decorated.
 - **Fix:** hook this class at HEAD or a constructor only — `KernelDensity` delivers kernel density via `ChunkNoiseSampler.<init>` for exactly this reason. Treat a silent RETURN-side instrument as *unmeasured*, never as evidence the code path is dead: a HEAD counter on `sample` logs ~37M invocations per boot, and a controlled two-world A/B (`beard_box`/`beard_thin` vs `none`; 46/46 piece-sets placement-identical, 312 identical probe columns) shows terrain filled below structure bases exactly where vanilla adaptation puts it. **Vanilla `BEARD_THIN`/`BEARD_BOX` work on this stack** — `structures.terrainAdaptation` and the shipped theme defaults are live behaviour, not dead config.
-
-<a id="t26"></a>
-### T26 — A theme default read `none` as "unset" and bearded 130 structure authors who meant it
-
-- **Symptom:** flat rectangular slabs of terrain hanging in mid-air beneath structures on Terralith Skylands islands (overworld, y≈250–320); village buildings raised on shelves cut into cliffsides; other buildings sunk into the floor.
-- **Cause:** `structure_type_defaults.json`'s `terrainAdaptation` table mapped `settlements → beard_thin`, `dungeons → bury`, `landmarks`/`endgame → beard_box`, applied by `TerrainAdaptationOverride.resolveName` wherever the structure's registry value was `none`. Vanilla's codec defaults that field to `none`, so "chose none" and "wrote nothing" are indistinguishable — and 23 of vanilla 1.21.1's 34 structures declare nothing, while every structure that wants a beard declares one (`village_* → beard_thin`, `ancient_city → beard_box`, `stronghold → bury`). The table overruled authors: `Dimension overworld: terrain adaptation overridden for 130 structure(s)`. `beard_box` fills a structure's whole bounding box, so on a floating island the box hangs below the island as a free-standing slab.
-- **Fix (in place):** theme defaults are blend-strength only — `settlements` and `landmarks` map to the `ground_blend` kernel, `dungeons` and `endgame` to nothing; see [T27](#t27) for why magnitude is the whole mechanism. Note the granularity trap: this is the OVERWORLD, and Terralith puts Skylands biomes inside it, so a fix keyed on dimension type cannot work — one dimension holds both normal ground and floating islands.
 
 <a id="t27"></a>
 ### T27 — Fill kernels do not self-exempt at altitude; 0.4583 is the entire mechanism
@@ -366,7 +342,7 @@ A world regenerates with the old terrain after a reset that set a new seed, or t
 - **Cause:** a structure decides whether it can generate by asking the chunk generator for the ground height. `type: "void"` produces no terrain at any column, so the answer is "nowhere" and the structure declines. Neither `structureDensity` nor `structures.mode` is involved — a controlled A/B on `the_red_monument` with both pinned at `none` and only `type` changed (void → end) went from 5 of 5 rejected to 0. Terrain adaptation cannot rescue it either: `pedestal` is an unconditional fill ([T27](#t27)) but it runs during the noise fill, a chunk-status *after* the start decision, so a declined start never reaches it.
 - **Fix (in place):** `structures.force[].y`. Set it and `ForcedGroundLevel` pins every height query for the duration of that one start attempt, so the structure places at that height with nothing beneath it. Omit it and the old behaviour stands, which is what a placement meant to sit on terrain wants. `customdim lint` reports `force_needs_y` (ERROR) for a `void` dimension whose force entry omits it.
 - **Known limit:** a structure whose start height is an absolute constant never asks for ground, so `y` cannot move it. The WARN says so explicitly when a pinned attempt still fails.
-- **History worth keeping:** this is the residue of K3, which was *"structures.force generates no starts in fresh chunks"* — one symptom, two causes. [T25](#t25) fixed the third-party-cancel cause and closed the whole issue; the no-ground cause survived unnamed and untested for a release. Both causes looked identical before T25 added the WARN that distinguishes them.
+- **A refused forced start has two causes and one symptom.** [T25](#t25) is the third-party cancel; this is the no-ground refusal. Only the WARN distinguishes them — read it before attributing either.
 
 <a id="t34"></a>
 ### T34 — A region-injecting mod repaints managed dimensions from the second boot onwards
@@ -526,7 +502,7 @@ A world regenerates with the old terrain after a reset that set a new seed, or t
 
 - **Symptom:** a placement-time rule keyed on "what structure is at this site"
   costs real world content and does not move the statistic it targets.
-- **Built and reverted**, 2026-08-30: a minimum separation between copies of
+- **Built and reverted:** a minimum separation between copies of
   the SAME structure, to fix the measured tail where two copies of one
   structure sit 72–122 blocks apart. It keyed on
   {@code StructurePick.assignedStructure}. Measured on the full-border
@@ -905,7 +881,7 @@ A seed's map and its banked facts appear to contradict each other — the thumbn
   reads the noise router and needs no loaded chunks — only the ServerWorld must
   exist — so a grid costs nothing in generation. At ~46 ms per RCON call an
   11x11 grid is ~14 s per dimension. Harness:
-  `.handoff/band-verdicts/grid-sample.sh`.
+  `scripts/sample-climate-grid.sh <slug> <border> [n]`.
 - **A wide span can be a clamped axis rather than a rich one.** Read `distinct`
   beside `min`/`max`: an axis reporting span 2.000 bounded at exactly +-1.000
   across a third of its samples has points pinned at the rails. `distinct` also
@@ -916,6 +892,17 @@ A seed's map and its banked facts appear to contradict each other — the thumbn
   correct — but it collects every pinned point and the biome takes a
   disproportionate share, which is [T19](#t19) reached by another route. Two
   different questions; answering one does not answer the other.
+- **Measured, on `the_frozen_strait`.** `minecraft:frozen_ocean` on
+  `"weirdness": [-1.0, -0.996]` — 0.004 wide, against that dimension's own
+  measured weirdness of `min -1.0, max 0.95, span 1.95` over 1681 samples, whose
+  min sits exactly on the rail. The band covers 0.205% of the axis the world
+  crosses and the banked 41x41 measurement gives it 19.8% of the ground: a 97x
+  over-representation, which reads as a biome that has started generating.
+  **The tell, before you have a probe:** an endpoint of exactly `-1.0`, `-0.5`,
+  `+0.5` or `+1.0`, a width that is a small fraction of the dimension's measured
+  span, and a large share — all three on one band. **The probe:** move it
+  strictly inside the measured range and re-measure; a share that collapses
+  toward the band's width was the rail's ground, not the biome's.
 - **Only a `perDimension` entry can produce a `cannot generate` verdict.**
   Adding rows to `axes[]` never converts an INDICATIVE finding, whatever the
   row contains — `measured_range` returns `"representative"` for all of them.
@@ -926,12 +913,11 @@ A seed's map and its banked facts appear to contradict each other — the thumbn
   out of biomes and hands the rest of the axis to one wide catch-all, so judging
   widths across a whole chain finds nothing: at `7f5c5e98` `the_crucible`'s tail
   is 1.5215 against a 0.0694 body. The run is the signal, the tail is noise.
-- **It was generated, not hand-written.** `the_highland_crossing` is 27 x 0.0889
-  and `the_frozen_hearth` 21 x 0.1143, both ending at +0.4003 to four decimals —
-  two band counts and one endpoint is computed output. The tool was
-  `scripts/seed/biome_sampler.py` with `scripts/seed/biome_source_mixing.py`
-  (which writes `[-2.0, 2.0]` directly), deleted at `89f9202c`. Whether it
-  should return is open; that it existed is not.
+- **The shape is machine-fitted, not hand-written.** `the_highland_crossing` is
+  27 x 0.0889 and `the_frozen_hearth` 21 x 0.1143, both ending at +0.4003 to
+  four decimals — two band counts and one endpoint agreeing to that precision is
+  computed output. Read a run of equal steps ending on a shared endpoint as a
+  fitter's work, and check it against the dimension's own measured range.
 - `check-biome-bands.py` catches the shape with no measurement, which is what a
   new dimension needs because it has no `perDimension` entry yet. Measured: 10
   dimension/axis pairs over 167 bands at `7f5c5e98`, and zero on eight clean
@@ -1226,7 +1212,7 @@ A seed's map and its banked facts appear to contradict each other — the thumbn
   `C2MEStorageThread.scheduleChunkRead`. `Files.isDirectory` is false for a path
   that does not exist yet, and c2me's rewritten chunk IO surfaces that as a
   failed read rather than an empty one. `world/entities` appears seconds later
-  and the message does not recur.
+  and the message does not recur; it is not confined to a fresh world ([K9](#k9)).
 - **`Failed fixing Level-Data` is the datafixer on a `level.dat` that has no
   content to fix.** Fresh world, nothing to migrate.
 - **All three are first-boot-only.** Measured: one occurrence on the boot that
@@ -1239,36 +1225,6 @@ A seed's map and its banked facts appear to contradict each other — the thumbn
   `grep -c "Expected directory, got\|SQLITE_READONLY_DBMOVED" data/logs/latest.log`
   must be 0, and the dimension's database must now exist on the volume
   (`docker run --rm -v <project>_dh-db:/l alpine ls -la /l`).
-
----
-
-## T58 addendum — the rail effect, with a number
-
-To be appended to [T58](../../TROUBLESHOOTING.md#t58), which states this in prose
-("a band containing a rail value still generates — but it collects every pinned
-point and the biome takes a disproportionate share") and has never carried a
-measurement of it.
-
-- **Measured, on `the_frozen_strait`.** Commit `9a2ca470` re-fitted its
-  weirdness partition and gave `minecraft:frozen_ocean` the band
-  `"weirdness": [-1.0, -0.996]` — **0.004 wide**. That dimension's own measured
-  weirdness is `min -1.0, max 0.95, span 1.95` over 1681 samples
-  (`config/custom-dimensions/climate-axes.json`), and the min sits **exactly**
-  on the rail. So the band covers **0.205% of the axis the world crosses**.
-  The banked 41x41 measurement of that config gives `frozen_ocean`
-  **19.8% of the ground** — a **97x** over-representation.
-- **Why it matters more than a share statistic.** The biome read as having
-  started generating: it held nothing before the re-fit and a fifth of the
-  world after it. That looks like a fix and is not one. The band did not find
-  the biome room; it parked on the point where the noise saturates and
-  collected every pinned sample.
-- **The probe:** move the band off the rail — anywhere strictly inside
-  `(-1.0, 0.95)` — and re-measure. If the share collapses toward the band's
-  width, the ground was the rail's and not the biome's.
-- **The tell, before you have a probe:** a band whose endpoint is exactly
-  `-1.0`, `-0.5`, `+0.5` or `+1.0`, whose width is a small fraction of the
-  dimension's measured span, and whose share is a large one. All three
-  together, on the same band.
 
 <a id="t69"></a>
 ### T69 — A dimension listing a dozen biomes generates one, and the boot line's `mixed-in` field says why
@@ -1605,27 +1561,6 @@ measurement of it.
   config fix repairs future ignitions and makes a weathered frame re-lightable;
   it does not rescue an already-registered zone. Re-lighting is what heals one.
 
-<a id="t86"></a>
-### T86 — A subagent reporting "running" can have been dead for hours; only artefacts say otherwise
-
-- **Symptom:** `ListAgents` shows a teammate as `running`, and it has written
-  nothing for hours. Measured here: an agent reported `running · started 9h ago`
-  with its last artefact 8h24m old, having produced none of the three tasks it
-  was sent.
-- **Why the obvious check fails:** the documented trap is that `idle`,
-  `available` and `finished` signals fire identically whether an agent is
-  working, between turns, exited or empty-handed. `running` is no better — it
-  is not a liveness probe. Queued `idle_notification` messages can also arrive
-  hours late and replay reports already handled, which reads as fresh activity.
-- **What to measure instead:** file mtimes under the work tree, the build
-  outputs (`build/libs/*.jar`, `build/test-results/test/*.xml`), the scratchpad
-  directory, and the live state the agent claimed to change. An agent that
-  changed the world leaves the world changed.
-- **Before killing one:** `SendMessage` resumes an agent with its full history,
-  so ask a direct question first and say plainly that the work is being taken
-  back. Kill only after silence plus a zero-artefact window. Never on a hunch —
-  but a measured multi-hour gap is a measurement, not a hunch.
-
 <a id="t87"></a>
 ### T87 — Java integer division truncates and Python's `//` floors, so a port of one disagrees with the other on every negative coordinate
 
@@ -1676,8 +1611,9 @@ measurement of it.
   player walking away from a portal produces.
 - **Fix:** read the player's dimension before interpreting any projection number,
   and read the zone and the destination on a `holding` line before reading its
-  count. Six held chunks means the old core defect at a portal somebody is
-  standing at, and correct behaviour at one they have left.
+  count. A count at about the preview box alone is starvation only where a
+  player is standing at that portal ([T95](#t95)); at one they have left it is
+  the expected drop to the preview box.
 
 <a id="t115"></a>
 ### T115 — A luma ratio against the terrain pass measures the shader pack, not the portal
@@ -1776,9 +1712,9 @@ measurement of it.
   own **animated blocks** — water is the usual one — redraw every frame, which
   the difference map shows as a dense regular grid. Over them a shader pack's
   **temporal accumulation** lays about a 1-level wash across the whole frame,
-  which is why even a sky-band crop moves. A portal aura ([D-series aura
-  settings](#t50)) rewrites terrain around the frame between passes and adds a
-  third if it is enabled, and `aura.enabled` ABSENT means the aura RUNS.
+  which is why even a sky-band crop moves. A portal aura rewrites terrain around the frame between
+  passes and adds a third if it is enabled, and an ABSENT `portal.aura.enabled`
+  means the aura RUNS.
 - **Fix:** measure in the e2e rig, not the live world. A figure quoted with a
   same-condition floor measured beside it in the same session is still evidence
   — "200 changed pixels against a floor of 25,207" is a result. A figure quoted
@@ -2377,28 +2313,6 @@ measurement of it.
   design question — whether destination geometry can stop being drawn at source
   coordinates — not a tuning one.
 
-<a id="t96"></a>
-### T96 — The destination pass draws at the field-of-view option, not the one the source frame uses
-
-- **Symptom:** a spyglass, a drawn bow or anything else that zooms the world
-  moves the source and the portal's frame while the view THROUGH the frame
-  holds still at its old scale. Measured at the rig, source terrain 69.5% of
-  pixels changed against the destination's own corner preview 0.40%.
-- **Cause:** `GameRenderer.renderWorld` draws at
-  `getFov(camera, tickDelta, true)`, which folds in the `fovMultiplier` lerp
-  (spyglass 0.1, bow 0.85 at full draw, movement speed up to 1.5), the death
-  squeeze and the water and lava submersion effect. The pass read
-  `options.getFov()` instead, so it inherited none of them. The composite
-  samples at `gl_FragCoord.xy / ScreenSize` and is in the right place only
-  while the two projections agree.
-- **Fix:** `SpectatorProjection` asks vanilla — `GameRendererFovInvoker` on
-  the private `getFov` — rather than reproducing the arithmetic.
-- **Trap:** drawing and culling take different answers. Vanilla culls the
-  source at `max(getFov(camera, tickDelta, false), option)`, deliberately
-  wider than it draws, so the chunks a spyglass is about to be lowered from
-  are already built. Passing the drawn matrix to `setupFrustum` trades the
-  mismatch for chunk pop-in on unzoom.
-
 <a id="t95"></a>
 ### T95 — The arrival chunk ticket and the client feed want different amounts of the destination
 
@@ -2455,58 +2369,6 @@ measurement of it.
   an upright 2x3 opening on one side) the view is full and the line is noise;
   stuck at about the preview box alone, it is starvation. The radius is
   deliberately wider than the box so a deeper box needs no constant re-widening.
-
-<a id="t94"></a>
-### T94 — A crossing's own frame and chunks arrive before the client tick that clears the old world's
-
-- **Symptom:** a portal renders the destination on the first approach and draws
-  sky on every approach after a traversal. The dev bridge reports `frames: 0`,
-  `destinationWorlds: 0`, `renderedSections: 0` with `clientSideRefused: false`
-  and an empty `spectatorRefusal`, and the client log shows the frame arriving
-  and the world being dropped in the same second:
-
-  ```
-  companion-client:portal-frame  dimension=adventure:the_amplified_reaches aperture=3464, 80, 2592
-  companion-client:local-projection dimension=adventure:the_amplified_reaches chunks=4
-  companion-client:destination-world dimension=adventure:the_amplified_reaches dropped
-  ```
-
-- **Cause:** the server answers `AFTER_PLAYER_CHANGE_WORLD` by sending the new
-  world's frame and first chunks immediately, and they are processed in the same
-  packet batch as the dimension change. The client's reset compared
-  `MinecraftClient.world` against a bound field on `END_CLIENT_TICK`, one tick
-  later, and cleared what had already landed. Nothing recovers: `sendCompanion`
-  re-sends a frame only when it differs from the one it last sent, and
-  `DestinationFeed` skips every chunk key it believes is held.
-- **Fix:** `WorldBinding` gives the reset one owner per world. The join binds
-  and clears at the head of `MinecraftClient.joinWorld`, before any payload for
-  that world is applied; the tick still calls the same path and finds the world
-  already bound, so it does not clear a second time.
-- **Trap:** a reset driven by comparing the live world against a remembered one
-  is always a tick late. Clear where the world is replaced, not where the change
-  is noticed.
-
-<a id="t93"></a>
-### T93 — The server keeps a record of what a client holds across a world change the client does not survive
-
-- **Symptom:** the destination feed goes silent for the rest of a session after
-  one traversal. The server sends a `companion-send:portal-frame` on every later
-  approach and no `companion-send:destination-chunks` at all, and the client
-  reports `destinationChunks: 0` with no refusal recorded.
-- **Cause:** `DestinationFeed.SENT` and `DestinationEntityFeed.SENT` are per
-  player, per destination, and were dropped only on JOIN, DISCONNECT and
-  shutdown. `ImmersiveProjector.forgetInWorld` answers a world change with
-  `state.forget()`, which touches neither. The client clears every destination
-  world it holds on the same edge, so the server skipped chunk keys the client
-  no longer had. `pump` logs only when it writes something, so the silence
-  leaves no line.
-- **Fix:** `CompanionNetwork.forgetDestinations` drops both feeds for that
-  player and nothing else, called from the `AFTER_PLAYER_CHANGE_WORLD` handler.
-  The handshake and the view declaration stay — the same client in a new
-  dimension must not be put back on the server-drawn slab.
-- **Trap:** the entity feed hides this. Its payload is a full snapshot and
-  `changed()` differs as soon as anything moves, so it self-heals and only a
-  perfectly still far side shows the fault.
 
 <a id="t92"></a>
 ### T92 — A second world render must not point `MinecraftClient.world` at a world no client lifecycle stood up
@@ -2567,43 +2429,6 @@ measurement of it.
   backgrounding, or run it in the foreground and wait.
 - **Trap:** one healthy `docker inspect` immediately after a restart proves
   nothing. Poll until `docker ps` shows the container by its real name.
-
-<a id="t89"></a>
-### T89 — A break cannot remove an arrival zone that has not been promoted yet, and the re-light builds a second
-
-- **Symptom:** breaking a portal and re-lighting it leaves two `arrival-zone-v1`
-  records for one destination, with a derelict arrival frame standing and the
-  live one built directly on top of it. Measured at the nexus: interiors
-  `750-751, 57-59, 750` and `750-751, 61-63, 750`, the two frames sharing y60.
-- **Cause:** persisted arrival zones land in `PENDING_ARRIVAL_ZONES` at boot and
-  are promoted to `ARRIVAL_ZONES` only when their world first **ticks**.
-  `arrivalZoneAt` read the live map only, so breaking a source portal whose
-  destination had not been loaded since the restart found nothing and skipped
-  the removal. The same blind spot made `ensureArrivalZone`'s dedup create a
-  second zone rather than reuse the pending one — **two independent routes to
-  the same symptom**, so fixing only the break leaves registration live.
-- **The server says both halves in one line:** `Source portal broken in
-  <world> — closed its arrival in <dest> (6 cells, 0 cleared now, 6 deferred)`.
-  `0 cleared now` is the cold destination; the cold destination is the
-  never-ticked world that makes the lookup return null.
-- **Fix (in place):** `arrivalZoneAt` searches both maps, with a
-  `removeArrivalZone` helper — not optional, because a world holding only
-  pending zones has no live list and removing from it throws. `getArrivalZones`
-  is deliberately NOT widened: its callers are the tick loop and two diagnostic
-  dumps, and widening it would silently change what those dumps mean.
-- **Why the new arrival rises is NOT established.** The old frame ring is
-  standing, but all six of its interior cells are `minecraft:water`, which is in
-  `#minecraft:replaceable`, so `PortalSite.isClear` would call that space clear.
-  The obvious explanation — "the old frame blocks the carve" — is unsupported by
-  what is actually there. A flooded pocket is a known failure shape here and a
-  standing solid ring is plausible, but nobody has distinguished them. **Start
-  from the water, not the frame.**
-- **Probe technique worth keeping:** identifying an unknown block by a candidate
-  list of ids answered `UNIDENTIFIED` for five of six cells — a negative from a
-  list is only as good as the list, the same fault as a predicate that matches
-  nothing reading as a pass. Asking `#minecraft:replaceable` narrowed it to a
-  family in one call. **Ask tags before ids when you do not know what you are
-  looking at.**
 
 <a id="t88"></a>
 ### T88 — A result file outlives the run that made it, so a build that never ran reads as a pass
@@ -2939,11 +2764,6 @@ Local only — production is ext4 and needs none of this.
 
 Operating on dimensions that already exist on a live world. For authoring the JSON see `.claude/skills/custom-dimension-authoring/SKILL.md`.
 
-<a id="d1"></a>
-### D1 — Per-dimension seeds only apply at world creation time
-
-Changing a seed in config has no effect on an existing dimension — the seed baked into level data at creation persists. Local dev: wipe `data/world` to test seed changes.
-
 <a id="d2"></a>
 ### D2 — ALL worldgen config is creation-time-only, and survives everything short of a full world wipe
 
@@ -2953,16 +2773,6 @@ Changing a seed in config has no effect on an existing dimension — the seed ba
 ### D3 — Fully removing a dimension requires a level.dat scrub
 
 World-dir deletion alone is a boot wedge: a lingering `Data.WorldGenSettings.dimensions` entry re-creates the dim every boot, and with the world dir gone it REGENERATES spawn chunks each time, which can hit [K1](#k1) on the boot itself. **Order matters — every file must be gone BEFORE `docker start`:** stop mc; back up `data/world/level.dat`; `pip install nbtlib` in a scratch venv; delete the dimension keys from `Data.WorldGenSettings.dimensions`; delete the world dirs, config files, `custom-dimensions-fingerprints.json` entries and `portal_links.json` records referencing the dims; start mc.
-
-<a id="d4"></a>
-### D4 — `dev-up.sh` skip-if-exists blocks config upgrades
-
-Config files are seeded with `if [[ ! -f "$dest" ]]`, so a consumer upgrading across a schema change keeps the old file without the new fields. Delete the target under `data/config/` before `./dev up`, or copy the new config over by hand.
-
-<a id="d5"></a>
-### D5 — Template and consumer configs must stay in sync
-
-The platform copy under `config/` is the source of truth; the consumer copy under `data/config/` must be an exact copy. After any config edit, **always copy, never diff-and-decide**.
 
 <a id="d6"></a>
 ### D6 — c2me DFC: self-patching; verify via log grep, not config inspection
@@ -3173,7 +2983,7 @@ The rendered height disagrees with the facts on high-relief columns. The error i
   at 41x41 and is a floor. A script samples at whatever density it chooses and
   is a floor under that. **None of the three answers encounterability** — that
   is a question about share, and presence and encounterability are different
-  questions ([biome-placement.md](../docs/design/biome-placement.md)).
+  questions ([biome-placement.md](docs/design/biome-placement.md)).
 - **`the_claymarsh` is the counter-example, not the model.** Four biomes hold
   96% of it and eleven share 3% at a tenth of a percent each; `minecraft:swamp`
   is one cell of 1257. Every check passes and a player crossing that world meets
@@ -3329,7 +3139,6 @@ The rendered height disagrees with the facts on high-relief columns. The error i
 - **Fix:** leave the block where it is. It rates flow-opening packets only, which is
   the intent.
 
-
 <a id="t57"></a>
 ### T57 — The backup sidecar's first run collides with a fresh world's priming pass
 
@@ -3425,7 +3234,7 @@ The rendered height disagrees with the facts on high-relief columns. The error i
 
 ## Adding an entry
 
-1. Pick the next unused number in the right prefix. **Never reuse a retired ID.**
+1. Pick the next number above that prefix's highest — never a gap, because a gap is a retired id and **a retired id is never reused**. The list is in [AGENTS.md](AGENTS.md#problems-traps-and-known-issues).
 2. Add `<a id="tN"></a>` immediately above the heading — the anchor is the contract, the title is not.
 3. Write **symptom → cause → fix**, in that order, and nothing else. The symptom carries the exact error string so it is greppable. No discovery story, no dates, no what-was-tried-first.
 4. Add a row to the [symptom index](#symptom-index).

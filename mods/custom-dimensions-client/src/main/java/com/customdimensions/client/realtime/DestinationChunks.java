@@ -26,7 +26,7 @@ public final class DestinationChunks {
     /**
      * Per destination, a counter every accepted chunk bumps — a re-accept of a
      * key already held included. That re-accept is a resend of changed blocks
-     * ([K11]) and leaves {@link #count} identical, so the count cannot say the
+     * and leaves {@link #count} identical, so the count cannot say the
      * view is stale and this can.
      */
     private static final Map<Identifier, Integer> REVISIONS = new ConcurrentHashMap<>();

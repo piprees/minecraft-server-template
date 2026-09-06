@@ -132,7 +132,7 @@ informative).
 blend-strength — `settlements` and `landmarks` map to `ground_blend`,
 `dungeons` and `endgame` to nothing. A guarantee-strength default overrules
 ~130 structure authors per overworld and manufactures terrain they meant to
-leave alone ([TROUBLESHOOTING.md#t26](../../../TROUBLESHOOTING.md#t26)).
+leave alone.
 
 | Kernel | overworld | paradise_lost | cave | nether | end | sky_islands |
 | --- | --- | --- | --- | --- | --- | --- |

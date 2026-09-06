@@ -87,7 +87,7 @@ target_paths() {
       echo "data/unmined-web/manifest.json"
       echo "data/dynamic-data-pack-cache"
       echo "data/config/chunky/tasks"
-      # Seeded skip-if-exists (D4), so keeping it regenerates the new world
+      # Seeded skip-if-exists (T78), so keeping it regenerates the new world
       # from the old seeds and spawn.
       echo "data/config/custom-dimensions"
       echo "data/.chunky-complete"

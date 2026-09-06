@@ -478,7 +478,7 @@ case "$CMD" in
     # nothing to delete here): the per-dimension deploy-setup markers.
     # data/config/custom-dimensions goes too: it is seeded skip-if-exists,
     # so keeping it regenerates the new world from the OLD seeds and spawn
-    # (D4), which reads as a passing test of a change that never applied.
+    # (T78), which reads as a passing test of a change that never applied.
     # Keeps .env, mods, the rest of data/config, overlay/ and the seed
     # bank. Change SEED in .env before ./dev up if a new seed is wanted.
     ensure_env

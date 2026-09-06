@@ -287,7 +287,7 @@ public final class DestinationFeed {
 
     /**
      * Drops one chunk from every viewer's record of this destination, so the
-     * next pass sends it again ([K11]). Without it a chunk is sent once and a
+     * next pass sends it again. Without it a chunk is sent once and a
      * build on the far side never reaches anyone looking through the frame.
      *
      * <p>Called from every block change in every world, so the empty-record

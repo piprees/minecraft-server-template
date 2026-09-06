@@ -95,7 +95,7 @@ class DestinationChunksTest {
     }
 
     /**
-     * The case the count misses ([K11]): a resent chunk replaces one already
+     * The case the count misses: a resent chunk replaces one already
      * held, so the size holds and only the revision moves.
      */
     @Test

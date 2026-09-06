@@ -14,7 +14,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * A block change in a destination has to reach every client already holding
- * that chunk ([K11]). Nothing but a disconnect or a world change dropped a
+ * that chunk. Nothing but a disconnect or a world change dropped a
  * sent record, so the feed skipped the changed chunk forever and the view
  * through the frame stayed as it was when it first arrived.
  *

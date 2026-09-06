@@ -11,7 +11,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 /**
  * Marks a changed chunk for resending to anyone watching this world through
- * an immersive portal ([K11]).
+ * an immersive portal.
  *
  * <p>{@code updateListeners} is vanilla's per-block-change broadcast, so this
  * runs for every block change in every world. It neither cancels nor allocates:

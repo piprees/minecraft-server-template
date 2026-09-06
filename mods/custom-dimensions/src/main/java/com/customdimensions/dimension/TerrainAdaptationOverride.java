@@ -47,7 +47,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * 1.21.1's 34 structures declare no adaptation, mansion and desert_pyramid
  * among them, while every structure that wants a beard declares one. A
  * guarantee-strength default therefore overrules ~130 authors per overworld
- * and manufactures terrain where they meant none (T26).
+ * and manufactures terrain where they meant none.
  *
  * Maps are installed per world at calculator-rebuild time
  * ({@link DimensionStructures}) and only carry entries that DIFFER from the
