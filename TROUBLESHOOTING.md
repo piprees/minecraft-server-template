@@ -3036,6 +3036,38 @@ The rendered height disagrees with the facts on high-relief columns. The error i
   reason; probe with `getChunkManager().getWorldChunk(cx, cz, false)` or
   register a `ChunkTicketType.PORTAL` ticket and act on a later tick.
 
+<a id="k11"></a>
+### K11 — A block change in a destination never reaches anyone watching through the portal
+
+- **Symptom:** build, break or light anything on the far side of an immersive
+  portal and the view through the frame does not change. A viewer sees the
+  destination as it was when their feed first covered it. Leaving the world and
+  returning is the only thing that updates it.
+- **Two independent gates, either of which alone freezes the view.** Both read
+  from source; not yet demonstrated in game, but there is no code path by which
+  a change could arrive.
+- **Server —** `DestinationFeed.SENT` is the per-player, per-destination set of
+  chunk keys already sent, and `nextChunks` skips anything in it. It is cleared
+  only by `forget(playerId)` (`CompanionNetwork:129` on disconnect, `:139` on a
+  world change) and by `clear()` at shutdown. Nothing invalidates a chunk when
+  its blocks change, so a changed chunk is never resent.
+- **Client —** `RealtimeView.rebuildIfFed` early-returns when
+  `builtAt == held`, where `held` is `DestinationChunks.count()` — a set SIZE.
+  Replacing a chunk the client already holds leaves the size identical, so the
+  walk never restarts. Its own javadoc says it: the walk advances when the
+  destination has GAINED chunks.
+- **The fix is two-sided and neither half is worth shipping alone** — either one
+  on its own changes nothing observable while looking like a fix. Server: drop
+  the changed chunk's key from each viewer's `SENT`, with a coalescing window,
+  since the 4-per-pass budget rate-limits the resend but a busy destination
+  would thrash. Client: key `rebuildIfFed` on a per-destination revision counter
+  bumped on every accepted chunk, not on the count.
+- **Acceptance test:** gate on `destinationChunks` >= 20, `fill` an unmissable
+  volume in the sightline, wait, screenshot; then cycle the player to another
+  world and back — the only thing that calls `forget` — and screenshot again.
+  Confirmed if the change appears only after the cycle. See [T114](#t114) for
+  why a fixture script can report success while writing nothing.
+
 <a id="k9"></a>
 
 ### K9 — `Expected directory, got <level>/entities` on a level's first visit
