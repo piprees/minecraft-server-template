@@ -4,7 +4,7 @@
 
 | Prefix | Range | What it covers |
 | --- | --- | --- |
-| **T** | [T1–T14, T16–T19, T22–T27, T30–T80, T82–T95](#architecture-traps) | Architecture traps — each has caused a real production incident |
+| **T** | [T1–T14, T16–T19, T22–T27, T30–T80, T82–T116](#architecture-traps) | Architecture traps — each has caused a real production incident |
 | **P** | [P1–P6](#macos-local-dev) | macOS local-dev quirks (BSD tooling, toolchain) |
 | **D** | [D1–D6, D8–D9](#dimension-lifecycle) | Custom-dimension lifecycle on a live world |
 | **K** | [K1–K2, K5–K7, K9](#known-issues) | Open issues — unfixed, on the watch list |
@@ -62,6 +62,8 @@ Run this first. It covers deploy drift, disk, every expected container, `ONLINE_
 | Nearly every quad of the portal mesh is clipped away each frame | [T108](#t108) |
 | A new client-mod field reads null on /state though the jar has it | [T112](#t112) |
 | Luma numbers through a portal disagree between runs or regress | [T111](#t111) |
+| A brightness ratio against the terrain beside a portal is the same under every condition | [T115](#t115) |
+| A projection number collapses at one portal, or `holding 6` reads as starvation | [T116](#t116) |
 | `data get entity` says `No entity was found` for a player `list` shows online | [T110](#t110) |
 | `Unknown dimension` for a dimension the boot log registered | [T109](#t109) |
 | A second WorldRenderer for the destination smears the screen, and re-entering lower does not fix it | [T104](#t104) |
@@ -1659,6 +1661,44 @@ measurement of it.
   the same trap. Pin it against the Java, not against intuition —
   `scripts/e2e/portal-matrix-selftest.sh` is the worked example.
 
+<a id="t116"></a>
+### T116 — A projection figure that names no portal is the sum of all of them
+
+- **Symptom:** a `/state` reading taken while standing at one portal reports a
+  collapse — `chunks 59` where 35 was steady, `carried 0` — or a server line
+  reading `immersive: holding 6 arrival chunks` is read as the feed starving.
+  Nothing is wrong at either site.
+- **Cause:** `realtime.destinationChunks` is `DestinationChunks.total()` and sums
+  every standing destination, so it moves when any other portal's feed does; the
+  per-portal figure is `projections[].worlds[].chunksReceived`. And a `holding`
+  line is per ZONE: `holdSet` drops the core to the unconditional preview box the
+  moment `localDrawerFarSides` returns empty for that zone, which is what a
+  player walking away from a portal produces.
+- **Fix:** read the player's dimension before interpreting any projection number,
+  and read the zone and the destination on a `holding` line before reading its
+  count. Six held chunks means the old core defect at a portal somebody is
+  standing at, and correct behaviour at one they have left.
+
+<a id="t115"></a>
+### T115 — A luma ratio against the terrain pass measures the shader pack, not the portal
+
+- **Symptom:** an opening's brightness expressed as a fraction of the source
+  terrain beside it comes out the same under every condition tried, which reads
+  as a mechanism. Switch the pack off and the ordering it puts two render paths
+  in reverses.
+- **Cause:** a pack does not preserve authored colour ratios — measured, an
+  authored 0.43 between two blocks arrives at 0.89–0.95. The destination draws on
+  hand-built layers ([T105](#t105)) and the terrain draws through
+  `gbuffers_terrain`, so a ratio between them measures the distance between two
+  passes rather than the portal's own error. Two wrong numbers over one wrong
+  divisor are constant, and that constancy is what a method error looks like.
+- **An authored luma is not a reference either.** Dividing by a colour taken from
+  the block's name rather than its palette ([T113](#t113)), or against a
+  different face orientation, puts a second artefact under the first.
+- **Fix:** compare a block against ITSELF — same block, same face, same frame,
+  same pack state, once through the opening and once directly — so exposure and
+  the pack cancel. A cross-pass ratio cancels neither.
+
 <a id="t114"></a>
 ### T114 — A configured dimension is created by `/customdim load`, and every write behind an `execute in` silently does nothing
 
@@ -3035,38 +3075,6 @@ The rendered height disagrees with the facts on high-relief columns. The error i
   the caller. `mods/AGENTS.md` forbids sync-loading from a tick path for this
   reason; probe with `getChunkManager().getWorldChunk(cx, cz, false)` or
   register a `ChunkTicketType.PORTAL` ticket and act on a later tick.
-
-<a id="k11"></a>
-### K11 — A block change in a destination never reaches anyone watching through the portal
-
-- **Symptom:** build, break or light anything on the far side of an immersive
-  portal and the view through the frame does not change. A viewer sees the
-  destination as it was when their feed first covered it. Leaving the world and
-  returning is the only thing that updates it.
-- **Two independent gates, either of which alone freezes the view.** Both read
-  from source; not yet demonstrated in game, but there is no code path by which
-  a change could arrive.
-- **Server —** `DestinationFeed.SENT` is the per-player, per-destination set of
-  chunk keys already sent, and `nextChunks` skips anything in it. It is cleared
-  only by `forget(playerId)` (`CompanionNetwork:129` on disconnect, `:139` on a
-  world change) and by `clear()` at shutdown. Nothing invalidates a chunk when
-  its blocks change, so a changed chunk is never resent.
-- **Client —** `RealtimeView.rebuildIfFed` early-returns when
-  `builtAt == held`, where `held` is `DestinationChunks.count()` — a set SIZE.
-  Replacing a chunk the client already holds leaves the size identical, so the
-  walk never restarts. Its own javadoc says it: the walk advances when the
-  destination has GAINED chunks.
-- **The fix is two-sided and neither half is worth shipping alone** — either one
-  on its own changes nothing observable while looking like a fix. Server: drop
-  the changed chunk's key from each viewer's `SENT`, with a coalescing window,
-  since the 4-per-pass budget rate-limits the resend but a busy destination
-  would thrash. Client: key `rebuildIfFed` on a per-destination revision counter
-  bumped on every accepted chunk, not on the count.
-- **Acceptance test:** gate on `destinationChunks` >= 20, `fill` an unmissable
-  volume in the sightline, wait, screenshot; then cycle the player to another
-  world and back — the only thing that calls `forget` — and screenshot again.
-  Confirmed if the change appears only after the cycle. See [T114](#t114) for
-  why a fixture script can report success while writing nothing.
 
 <a id="k9"></a>
 

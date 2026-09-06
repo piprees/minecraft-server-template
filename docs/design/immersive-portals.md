@@ -115,7 +115,7 @@ bounds and a bisecting normal, in one loop.**
 calls it.** A new reader added without one is how this drifts again.
 
 **And the rule is not about the surface coordinate.** It is about any quantity
-two sites compute separately, and it has since been broken five more times in
+two sites compute separately, and it has since been broken six more times in
 this subsystem:
 
 | quantity | the two sites | how it surfaced |
@@ -125,6 +125,7 @@ this subsystem:
 | `apertureBackdropGain` | attenuates the bound fog for every destination stage; attenuates the BACKDROP only when `apertureUnshadedBackdrop` is on | latent — identity at gain 1.0, so nothing observable has diverged yet |
 | the destination's view depth | `RealtimeView.DEPTH` in blocks on the client; `DestinationFeed.CORE_DEPTH` in chunks on the server; two more ceilings above both | three of the four allowed 32 chunks and the fourth drew 64 blocks, so raising the setting a player can see changed nothing |
 | the destination's lightmap | `DestinationLightmap` runs vanilla's own `update` against the destination world; `UnshadedDestination.scale` approximates it as a scalar over `max(block, sky)` | the correct one has three call sites, all in a pass that is off by default, while the approximation is on the shipped path |
+| the destination's face shades | `ProjectionView.getBrightness` (`:80`) delegates to the SOURCE world; the constants belong to the destination's own `DimensionEffects` | latent — both rig dimensions take overworld effects, so nothing has diverged yet. A Nether on either side separates them |
 
 **Two definitions agree until one of them moves.** Every one of these compiled,
 passed its suite, and looked correct for as long as both sides happened to say
@@ -196,6 +197,89 @@ carry the destination's own clock rather than to stop syncing.
 
 `custom-dimensions` already owns every one of these server-side, in the dimension
 config it reads at boot. **Getting them to the client is plumbing, not research.**
+
+## The light term: what is eliminated, and what is left
+
+Eliminated by measurement, not argument: the capture path, `scale`,
+`AmbientLift`, the fog binding, `apertureBackdropGain`, `getLightingProvider`,
+the shader pack, the box-boundary dark rim, the light round trip (256/256 pairs
+exact) and the destination's own light.
+
+**The backdrop draws its declared colour exactly.** Backdrop alone, pack off,
+`apertureUnshadedBackdrop` on at gain 1.0: a declared `#C0D8FF` measures
+`RGB(192.00, 216.00, 255.00)`, sd 0.000 across the whole opening, on both frames.
+That kills the global-state hypothesis — an inherited `setShaderColor` multiplying
+every portal draw would multiply the backdrop too — so `ColorModulator`, the
+program, the inherited GL state, the framebuffer and the sRGB round trip are all
+faithful. Any loss is in the atlas sample or the mesh's vertex colour and nowhere
+else. The declared value is `backdropColors`, plural, `DevState.java:131`.
+
+**The unshaded layers never set the texture filter, and today it costs nothing.**
+`PortalRenderLayers.unshaded(...)` calls `RenderSystem.setShaderTexture(0, tex)`
+alone, where vanilla's `RenderPhase$Texture` begin action is
+`getTexture(id).setFilter(blur, mipmap)` and then the bind. The block atlas is one
+shared GL object whose filter is flipped several times a frame, so the draw
+samples it with whatever the previous phase left — filtering that depends on draw
+order rather than on anything chosen. Measured: what the layer inherits is already
+`NEAREST_MIPMAP_LINEAR` / `NEAREST`, exactly what `MIPMAP_BLOCK_ATLAS_TEXTURE`
+sets for the terrain pass, and forcing it changes no pixel in the aperture.
+Latent, like `apertureBackdropGain`.
+
+**Face shades come from the SOURCE world.**
+`ClientWorld.getBrightness(Direction, boolean)` branches on
+`getDimensionEffects().isDarkened()`, **not** on `hasSkyLight()` — `darkened` is
+true for `DimensionEffects$Nether` only, with `Overworld` and `End` both passing
+false. Darkened returns a flat 0.9 for every face; otherwise the usual 1.0 top /
+0.5 bottom / 0.8 north-south / 0.6 east-west. So a portal whose source is the
+Nether shades DESTINATION geometry flat 0.9, and one whose destination is the
+Nether shades it with overworld constants.
+
+## The lightmap is a 2D texture and `scale` is a scalar — OPEN
+
+`UnshadedDestination.scale` replaces the lightmap texel and `emitUnshaded` writes
+`.light(FULL_BRIGHT)`, so the beacon-beam program samples no lightmap and the
+vertex colour carries the whole light term. For parity `scale` must equal the
+texel vanilla would have supplied. It does not, and the gap is wider than a
+missing constant. From the 1.21.1 bytecode of `LightmapTextureManager.update`:
+two desaturating lerps toward `(0.75, 0.75, 0.75)` at 0.04, an `easeOutQuart` per
+channel lerped in by the client's gamma, a clamp, and per-channel mixing of the
+sky contribution against the block one — plus flicker, night-vision and darkness
+terms.
+
+**The lightmap is therefore a function of (block, sky) with colour mixing, and
+`scale` is a scalar function of `max(block, sky)`.** Sky-only and block-only at
+the same numeric level are indistinguishable to it and are not to vanilla. That
+is a modelling gap, so reproducing the chain by hand is not the fix — sampling or
+mirroring the real texture is.
+
+Settled at no cost: `lerp(x, easeOutQuart(x), g)` is strictly monotonic
+(`d/dx = (1-g) + 4g(1-x)^3 > 0`), so it commutes with `max` and
+`lift(max(a, b)) == max(lift(a), lift(b))` exactly. Composing then lifting is the
+cheaper of two identical answers.
+
+**It cannot be measured in the grey box.** `brightness(15, a)` is 1.0 for every
+ambient and the gamma lift is identity there, so every reading at the e2e fixture
+is blind to this by construction
+([T113](../../TROUBLESHOOTING.md#t113)). The live reaches portal has the
+condition — sky 0–15 over 76,468 mesh cells, mean 11.6 — and at level 7 the raw
+curve gives 0.179 where the lift gives 0.363. **The test:** photograph a reaches
+surface through the portal, then the same surface directly at the same sun angle,
+each against a source reference in its own frame so exposure cancels
+([T115](../../TROUBLESHOOTING.md#t115)). The destination is correct when the two
+ratios agree.
+
+## What the shaded layer buys has never been measured
+
+`apertureUnshadedDestination` exists because a shaded layer let the pack shade the
+destination as source geometry, and the cure discards the destination's light
+almost entirely. **What that layer buys can only be measured where the shaded path
+FAILS** — a sun angle, and something casting a shadow. The grey box has neither,
+so "turn it off" does not follow from a fixture that cannot see the thing the
+switch exists for.
+
+One measurement argues the other way: **the unshaded path is the pack-sensitive
+one**, changing sixfold between pack on and off against the shaded path's
+1.5–2.5x. A path that fragile is a poor default.
 
 ---
 
@@ -564,7 +648,7 @@ event subscription and is the thing ruled out. **Whole-chunk resend first.**
 | | Bound | Failure shape |
 | --- | --- | --- |
 | Slab (fallback) | depth 12, radius 6, refresh 4 ticks | cubic in volume |
-| Chunk feed | `MAX_RADIUS` 16 chunks, budget 4 per pass, wedge-filtered | linear in chunks, rate-limited |
+| Chunk feed | `MAX_RADIUS` 32 chunks, budget 4 per pass, wedge-filtered | linear in chunks, rate-limited |
 | Entity feed | **Proposed:** a hard cap of N nearest inside the wedge box, the rest dropped | linear in entity count, **uncapped without N** |
 
 **A mob farm is the failure case.** Entity count near an arrival is unbounded and
@@ -575,6 +659,35 @@ near ones are what is seen through a 2x3 opening.
 **N companions, one destination.** The wedge is per portal and per viewer and
 `SENT` is keyed per player, so cost is linear in viewers with no sharing.
 Serialisation is the shared part and is not pooled.
+
+## The view depth is one quantity, and the default stays 64
+
+`RealtimeSettings.viewDepth` — `[32, 192]`, default 64 — is the client's own box
+in blocks, sent on `portal-view/v2`. Everything else derives from it, so no
+constant survives for a second site to read independently:
+
+```
+RealtimeView.DEPTH        64 blocks    the client's local box
+RealtimeView.RADIUS       22 blocks    (DEPTH + CONE_RATIO - 1) / CONE_RATIO, ratio 3
+DestinationFeed.coreDepth  5 chunks    ceil(depth / 16) + 1
+DestinationFeed.CORE_RADIUS 2 chunks
+holdSet                   35 chunks    7 forward x 5 across
+```
+
+Cells go roughly as `DEPTH x (2 x RADIUS)^2` with `RADIUS = DEPTH / 3`, so about
+`DEPTH^3 / 2.25`; the box at 64 is 84,002 cells. Measured at the live reaches
+portal, one pose, pack off:
+
+| viewDepth | coreDepth | chunks | quadsIn | emitted | apertureRenderUs |
+| --- | --- | --- | --- | --- | --- |
+| 64 | 5 | 35 | 12,239 | 28,832 | 10,708 |
+| 96 | 7 | 45 | 28,562 | 74,248 | 21,892 (2.0x) |
+| 128 | 9 | 55 | 48,187 | 149,444 | 39,515 (3.7x) |
+
+**At 64 the aperture already costs 10.7 ms of a 16.7 ms frame budget**, so 96 puts
+it over on its own and 128 nearly triples it. The knob exists for anyone with
+headroom, and the route to a deeper view that is also affordable is optimising the
+aperture render, not enlarging the box.
 
 ## Hazards
 
@@ -827,6 +940,14 @@ removal; none is a defect against this document today.
   far stamps are on; `DESTINATION_FAR`/`NEAR_DEPTH`/`FAR_DEPTH` are the live ones.
 - **The dev bridge** on `127.0.0.1:8766` — `/state`, `/screenshot` (path required),
   `/input`, which takes exactly one top-level key.
+- **`realtime.destinationChunks` is every destination's total**, so the per-portal
+  figure is `projections[].worlds[].chunksReceived`
+  ([T116](../../TROUBLESHOOTING.md#t116)).
+- **`PortalRenderLayers`' filter probe reports `draws` per layer, and only a
+  monotonic `draws` says the layer drew in the window.** `unshaded_blended` sits
+  flat through an ordinary aperture measurement, so its filter reading is the
+  last one from whenever it did draw — do not quote it beside
+  `unshaded_opaque`'s.
 - **Log markers:** `companion-accept:handshake`, `companion-refuse:handshake`
   (names both releases), `companion-send:projection`, `companion-client:emit`.
 - **Assert counts over a fixed window, never an absence.**

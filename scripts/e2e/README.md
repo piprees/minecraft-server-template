@@ -201,6 +201,11 @@ reason it now prevents. Read its header comments before changing an assertion.
   against ten minutes of wall clock. A mechanism argument that there is no
   decay path does not shorten this. It tells you what a failure would MEAN if
   you see one, which is a different thing from telling you not to look.
+- **A soak must include a world-change cycle, then hold.** A stalled hold set is
+  re-negotiated only on a release-and-re-hold, which needs the player to leave
+  and come back — so a soak that holds still measures the stationary case and
+  nothing else. One defect survived a 21-minute stationary soak and showed
+  itself eight seconds into the cycle.
 - **A Carpet bot can hold chunks and can never stand in for a companion
   client.** It counts for `anyoneWithinTicketRange`, so it keeps a zone's
   ticket alive; it never counts for `localDrawerFarSides`, which requires
@@ -316,5 +321,13 @@ reason it now prevents. Read its header comments before changing an assertion.
   (`java_int_div`) and the self-test pins both signs.
 - `require_backup_idle` refuses to run while `mc-backup-local` is mid-cycle: it
   drives the same RCON socket and its replies arrive as answers to your probes.
+- **A settle gate on repeated identical readings must exclude zero.** "Six
+  consecutive identical readings" calls a feed that never started settled, and
+  writes a row that looks like data. Require a count above zero and say VOID
+  otherwise ([T63](../../TROUBLESHOOTING.md#t63)).
+- **Never edit a shell script while it is running.** Bash reads the file
+  incrementally, so an in-place patch mid-run produces `syntax error near
+  unexpected token 'done'` in a file that passes `bash -n`. Copy to a new name
+  and run that.
 - An incomplete run is forced to FAIL by the `EXIT` trap, so dying early can
   never look like a pass.
