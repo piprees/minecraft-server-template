@@ -2,8 +2,8 @@
 
 The governing document for the portal view: what it is FOR, how it is built, and
 what it must survive. `docs/mod-internals/portals.md` covers the portal
-subsystem's internals; `TROUBLESHOOTING.md` carries the traps; `.handoff/SHADERS.md`
-carries the shader measurements and their conditions.
+subsystem's internals; `TROUBLESHOOTING.md` carries the traps. Every measurement
+below carries its own conditions beside it.
 
 **Every portal decision — geometry, lighting, entities, shaders, Distant
 Horizons, performance — is judged against this document.** Where a proposal and
@@ -259,8 +259,9 @@ cheaper of two identical answers.
 
 **It cannot be measured in the grey box.** `brightness(15, a)` is 1.0 for every
 ambient and the gamma lift is identity there, so every reading at the e2e fixture
-is blind to this by construction. The live reaches portal has the condition — sky
-0–15 over 76,468 mesh cells, mean 11.6 — and at level 7 the raw curve gives 0.179
+is blind to this by construction. The live reaches portal has the condition — a
+`/state` meshLight census reads sky 0–15 over 76,468 mesh cells, 59,141 of them
+lit, skyMean 11.60, blockMax 7 — and at level 7 the raw curve gives 0.179
 where the lift gives 0.363. **The test:** photograph a reaches surface through the
 portal, then the same surface directly at the same sun angle, each against a
 source reference in its own frame so exposure cancels. The destination is correct
@@ -280,6 +281,12 @@ switch exists for.
 One measurement argues the other way: **the unshaded path is the pack-sensitive
 one**, changing sixfold between pack on and off against the shaded path's
 1.5–2.5x. A path that fragile is a poor default.
+
+Its conditions: the grey box, destination luma over a near source reference and
+over a matched one. Unshaded 0.0855 / 0.1486 with the pack on against 0.8136 /
+0.8294 with it off; shaded 0.2585 / 0.4491 against 0.6461 / 0.6586. The pack is
+toggled by `enableShaders=false` in `iris.properties` and a client relaunch, and
+the toggle is proved by the source floor halving, 108.55 to 56.26.
 
 ---
 
@@ -505,7 +512,11 @@ right at scale 1 and wrong at `the_crimson_nexus` (2.0) and `the_crucible` (4.0)
 **Any architecture that calls `WorldRenderer.render` twice in a frame is dead on
 arrival.** This was established by measurement, not inference: a second render
 per frame produced whole-screen corruption tracking camera rotation, and removing
-it (`387d986e`) took the source control from 98.14% to 3.24%.
+it (`387d986e`) took the source control from 98.14% to 3.24%. The control is the
+share of pixels changed in a box outside the aperture, against a clean reference,
+shaders on. **3.24% is under that session's own same-condition floor of
+5.25–6.63%**, so the aperture path is indistinguishable from drawing nothing
+there; 98.14% is 81,403 changed pixels in the same box.
 
 The mechanism, from bytecode: Iris's Sodium compatibility rebinds *its own*
 gbuffer for every terrain draw from *any* `WorldRenderer`, choosing the terrain
@@ -676,7 +687,9 @@ holdSet                   35 chunks    7 forward x 5 across
 
 Cells go roughly as `DEPTH x (2 x RADIUS)^2` with `RADIUS = DEPTH / 3`, so about
 `DEPTH^3 / 2.25`; the box at 64 is 84,002 cells. Measured at the live reaches
-portal, one pose, pack off:
+portal, pack off, from one pose that is not recorded — so the three rows compare
+with each other and with nothing else. Run-to-run spread at 64 is
+10,618 / 10,909 / 10,708 µs across three separate deploys:
 
 | viewDepth | coreDepth | chunks | quadsIn | emitted | apertureRenderUs |
 | --- | --- | --- | --- | --- | --- |
@@ -905,10 +918,13 @@ Stated plainly so nobody mistakes intent for status.
 - The backdrop is no longer blown white (`4c8613ad`), and that fix costs nothing
   with no pack (`836c4fb8`).
 - The opening is shaded per pixel from the destination's own depth, on by default
-  (`fe233d71`, `b764d02f`). Opening contrast 31.25 against a 23.1 unstamped bar
-  and a 69.4 no-pack truth.
-- Shaders-OFF does not regress: 200 changed pixels against a same-condition floor
-  of 25,207.
+  (`fe233d71`, `b764d02f`). Opening luma std 31.25 against a 23.1 unstamped bar
+  and a 69.4 no-pack truth — camera H, time 6000, a 6-chunk feed, shaders on, all
+  three depth stages true. Every quoted figure reads a bright-pixel share of
+  0.00%: a particle cloud swings the same measurement from 23.3 to 44.9, which is
+  larger than the effect, so a contaminated shot is discarded rather than used.
+- Shaders-OFF does not regress: 200 changed pixels at maxDelta 46, two orders
+  under a same-condition floor of 25,207 px at the same camera. Not bit-identical.
 - The camera transform is verified at scale 2.0 against a known landmark, and at
   4.0 on the transform only.
 
@@ -918,7 +934,20 @@ Stated plainly so nobody mistakes intent for status.
 - **Light** — Part 2. The dark entity, and the client's missing environment config.
 - **Passage** — Part 3. The entity stream, and the crossing seam.
 - **Crossing** — Part 6. The pipeline reload and the DH reload.
-- **Framerate** — 18-23 fps with everything on, unattributed. `.handoff/PERF.md`.
+- **Framerate** — 19.46 fps mean with everything on, **and it is not the portal.**
+  Turning the whole client-side portal path off moves it −1.97 fps against a
+  1.89 fps instrument floor, and the mod's own aperture pass is 2.3% of a frame.
+  Conditions: the maintainer's own pose at the reaches portal
+  (`3460.88, 80, 2593.042` yaw −99.893 pitch 15.644), Complementary Reimagined
+  r5.8.1 + EuphoriaPatches 1.9.3, DH 3.2.0-b, Sodium 0.8.13-beta.2, Iris
+  1.8.14-beta.1, renderDistance 12, a quiet box with the render pipeline idle;
+  97 samples over three runs, one independent second per sample. The render
+  thread is on-CPU in Java about 7% of wall time, so no CPU-side change in this
+  repo can move it. **What is open** is sizing the pack and DH directly — both
+  need a client restart, since `DevBridge.binding` cannot reach Iris's toggle
+  key — and the stutter, which is the better target: the client swings 0 to 40
+  fps second to second, and one sampled second carried zero frames with the
+  client tick counter stalled through it.
 
 **Accepted costs, named rather than discovered:** no mipmapped entity cutout layer,
 so leaves and grass lose mipmapping through a portal; no sun, moon or stars, with a
@@ -971,8 +1000,9 @@ spending another. A change that lines the geometry up and blows the lighting out
 has not moved forward.
 
 **Before quoting a number:** every measurement here belongs to a jar, a camera, a
-time of day and a feed size. `.handoff/SHADERS.md` carries the conditions. A
-number without its condition is not evidence.
+time of day and a feed size, and states them beside itself. A number without its
+condition is not evidence — so a figure whose conditions cannot be stated here is
+deleted rather than left standing.
 
 **Standard of proof:** a mechanism read from source or bytecode is not a
 measurement — label it static and require a runtime rung before building on it. A

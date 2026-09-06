@@ -121,9 +121,15 @@ frame ring    x 3-6, y -61..-57, z 4
 /execute in elfydd:e2e_one run tp FLUXXINATED 5.5 -60 1.0 0 6
 ```
 
-`5.5 -60 1.0` is three blocks back from the frame, centred on the opening, with
-yaw 0 (facing +z, straight through) and pitch 6 (just below level). At this
-pitch the sightline does not reach the destination FLOOR until about z 16, so
+`5.5 -60 1.0` is three blocks back from the frame with yaw 0 (facing +z, straight
+through) and pitch 6 (just below level). **It is not centred on the opening.**
+The interior cells are x 4 and x 5, so the opening spans x 4..6 and its centre is
+x 5.0; 5.5 is the centre of cell x=5 alone. That is half a block, 121 px at this
+distance, and it biases every left/right comparison taken here. `experiment.sh`,
+`reset-the-rig.sh` and the reference crop below are all calibrated to 5.5, so the
+pose and all three move together or not at all.
+
+At pitch 6 the sightline does not reach the destination FLOOR until about z 16, so
 the aperture is filled by the exposed cut face of the block at z 7 — a **side**
 face at vanilla's 0.8 shade, not a floor at 1.0. Comparing it against a source
 floor is comparing two orientations, which is what produced a phantom "18%
