@@ -2,8 +2,11 @@
 """shadow-gradient.py - Is there a shadow across the projection, at any pose?
 
 Purpose: score against "there is no shadow", not "the shadow tracks the world".
-         A window onto a real place has no left-right luma ramp of its own, and
-         whatever ramp it does have must not change when only the camera moves.
+         Sweep YAW ONLY, from ONE fixed eye. From a fixed eye the set of rays
+         through the aperture is fixed by eye and frame geometry, so rotating the
+         camera cannot change what a real window shows — only which pixels it
+         lands on. Any ramp that moves with yaw alone is therefore shading tied
+         to view direction, with no parallax explanation available.
 Context: template-only. Read-only; it takes frames somebody else captured.
 Usage:   shadow-gradient.py --box x0,y0,x1,y1 FRAME.png [FRAME.png ...]
                             [--rows N] [--label NAME]
@@ -73,6 +76,8 @@ def main():
     if len(horiz) < 2:
         print("    ONE POSE PROVES NOTHING — the defect is a difference BETWEEN poses.")
         return 2
+    if spread <= 3.0 and worst > 3.0:
+        pass
     if worst <= 3.0 and spread <= 3.0:
         print("    NO SHADOW. The ramp is flat and does not move with the camera.")
         return 0
