@@ -1659,6 +1659,26 @@ measurement of it.
   the same trap. Pin it against the Java, not against intuition —
   `scripts/e2e/portal-matrix-selftest.sh` is the worked example.
 
+<a id="t114"></a>
+### T114 — A configured dimension is created by `/customdim load`, and every write behind an `execute in` silently does nothing
+
+- **Symptom:** a fixture script reports success at every step and changes
+  nothing. `fill` answers `Unknown dimension` or `That position is not loaded`,
+  the screenshots come back identical, and the run is read as a null result
+  rather than as a script that never ran.
+- **Cause:** dimensions are created on demand. `/customdim load <name>` queues
+  the creation (`DimensionCommands.java:773`, "Queued load for ..."); nothing
+  else does. `execute in <ns>:<name> run ...` does NOT create one — it fails,
+  and the command behind it never executes.
+- **A destination's chunks are resident only while its projection is up.** Even
+  after a load, RCON cannot `setblock` or `data get` into `e2e_two` unless a
+  player is at the aperture with the feed running. Gate a fixture change on
+  `destinationChunks` from the dev bridge, never on a fixed sleep.
+- **Trust the fill's own count, not the read-back.** A `data get` probe answers
+  "That position is not loaded" for a chunk a `fill` has just written
+  successfully, so `Successfully filled N block(s)` is the evidence and the
+  verification probe is not.
+
 <a id="t113"></a>
 ### T113 — At full sky both light curves read 1.0, so the grey box cannot see a light-term defect at all
 

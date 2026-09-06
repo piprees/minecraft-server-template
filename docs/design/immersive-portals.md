@@ -115,7 +115,7 @@ bounds and a bisecting normal, in one loop.**
 calls it.** A new reader added without one is how this drifts again.
 
 **And the rule is not about the surface coordinate.** It is about any quantity
-two sites compute separately, and it has since been broken three more times in
+two sites compute separately, and it has since been broken five more times in
 this subsystem:
 
 | quantity | the two sites | how it surfaced |
@@ -123,6 +123,8 @@ this subsystem:
 | the destination fog | `ownFog` keyed on the unshaded toggles, while the layer was chosen elsewhere | one flag moved both, so an A/B measured two variables and read as one |
 | the feed's core | `ImmersiveProjector.holdSet` ticketed a FORWARD core; `DestinationFeed.nextChunks` bypassed the wedge for the CENTRED one | the feed queued columns nobody ticketed, never sent them, and stalled at `sent=0 wanted=N` forever |
 | `apertureBackdropGain` | attenuates the bound fog for every destination stage; attenuates the BACKDROP only when `apertureUnshadedBackdrop` is on | latent — identity at gain 1.0, so nothing observable has diverged yet |
+| the destination's view depth | `RealtimeView.DEPTH` in blocks on the client; `DestinationFeed.CORE_DEPTH` in chunks on the server; two more ceilings above both | three of the four allowed 32 chunks and the fourth drew 64 blocks, so raising the setting a player can see changed nothing |
+| the destination's lightmap | `DestinationLightmap` runs vanilla's own `update` against the destination world; `UnshadedDestination.scale` approximates it as a scalar over `max(block, sky)` | the correct one has three call sites, all in a pass that is off by default, while the approximation is on the shipped path |
 
 **Two definitions agree until one of them moves.** Every one of these compiled,
 passed its suite, and looked correct for as long as both sides happened to say
