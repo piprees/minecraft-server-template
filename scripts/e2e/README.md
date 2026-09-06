@@ -147,6 +147,15 @@ reason it now prevents. Read its header comments before changing an assertion.
   floor to argue about and any non-zero control is a real change. With a pack
   loaded there is one and it has to be measured per session — recent
   same-condition floors are 5.20%, 5.25% and 6.63%.
+- **A soak must outlast the failure it tests for by a margin, not a whisker.**
+  Take the elapsed time of the observed failure from the log rather than from
+  memory of it, and run to at least twice that. A hold set that collapsed at
+  11m07s was nearly signed off by an 11-minute soak: beating a failure by 5% is
+  a coin toss dressed as a null result, and the asymmetry is what decides it —
+  a false pass ships a fix that still breaks and nobody looks again for weeks,
+  against ten minutes of wall clock. A mechanism argument that there is no
+  decay path does not shorten this. It tells you what a failure would MEAN if
+  you see one, which is a different thing from telling you not to look.
 - **A read that has no value says so in words.** `json_read` returns the value,
   or a sentence — and keeps three cases apart: a filter that does not compile
   (a harness bug), a filter that matches nothing (the fact is absent), and a
