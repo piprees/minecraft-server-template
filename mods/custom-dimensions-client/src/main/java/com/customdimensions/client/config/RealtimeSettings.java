@@ -36,6 +36,7 @@ public record RealtimeSettings(
         boolean apertureFarStamp,
         boolean apertureFarStampEarly,
         boolean apertureMeshDepth,
+        boolean apertureUnshadedDestination,
         Set<String> chosen) {
 
     /**
@@ -56,6 +57,7 @@ public record RealtimeSettings(
     static final String KEY_APERTURE_FAR_STAMP = "apertureFarStamp";
     static final String KEY_APERTURE_FAR_STAMP_EARLY = "apertureFarStampEarly";
     static final String KEY_APERTURE_MESH_DEPTH = "apertureMeshDepth";
+    static final String KEY_APERTURE_UNSHADED_DESTINATION = "apertureUnshadedDestination";
 
     /** The field name a schema below 1 held the local render under. */
     private static final String LEGACY_KEY_ENABLED = "enabled";
@@ -118,6 +120,13 @@ public record RealtimeSettings(
      */
     public static final boolean DEFAULT_APERTURE_MESH_DEPTH = true;
 
+    /**
+     * The destination drawn unshaded, lit from its own levels in the vertex
+     * colour instead of the source world's lightmap and shadow map
+     * ({@code TROUBLESHOOTING.md#t104}). Off: it is measured, not chosen.
+     */
+    public static final boolean DEFAULT_APERTURE_UNSHADED_DESTINATION = false;
+
     public static final RealtimeSettings DEFAULTS = new RealtimeSettings(
             DEFAULT_RENDER_CLIENT_SIDE_PORTALS, DEFAULT_RENDER_DISTANCE,
             DEFAULT_DISTANT_HORIZONS, DEFAULT_RENDER_SERVER_SIDE_PORTALS,
@@ -139,7 +148,8 @@ public record RealtimeSettings(
                             boolean apertureFarStampEarly, boolean apertureMeshDepth) {
         this(renderClientSidePortals, maxRenderDistance, distantHorizons,
                 renderServerSidePortals, spectatorPass, apertureBackdrop, apertureTerrain,
-                apertureFarStamp, apertureFarStampEarly, apertureMeshDepth, Set.of());
+                apertureFarStamp, apertureFarStampEarly, apertureMeshDepth,
+                DEFAULT_APERTURE_UNSHADED_DESTINATION, Set.of());
     }
 
     /**
@@ -169,7 +179,7 @@ public record RealtimeSettings(
         return new RealtimeSettings(value, this.maxRenderDistance, this.distantHorizons,
                 this.renderServerSidePortals, this.spectatorPass, this.apertureBackdrop,
                 this.apertureTerrain, this.apertureFarStamp, this.apertureFarStampEarly,
-                this.apertureMeshDepth,
+                this.apertureMeshDepth, this.apertureUnshadedDestination,
                 choosing(KEY_RENDER_CLIENT_SIDE_PORTALS, value != this.renderClientSidePortals));
     }
 
@@ -177,7 +187,7 @@ public record RealtimeSettings(
         return new RealtimeSettings(this.renderClientSidePortals, value, this.distantHorizons,
                 this.renderServerSidePortals, this.spectatorPass, this.apertureBackdrop,
                 this.apertureTerrain, this.apertureFarStamp, this.apertureFarStampEarly,
-                this.apertureMeshDepth,
+                this.apertureMeshDepth, this.apertureUnshadedDestination,
                 choosing(KEY_MAX_RENDER_DISTANCE, value != this.maxRenderDistance));
     }
 
@@ -185,7 +195,7 @@ public record RealtimeSettings(
         return new RealtimeSettings(this.renderClientSidePortals, this.maxRenderDistance, value,
                 this.renderServerSidePortals, this.spectatorPass, this.apertureBackdrop,
                 this.apertureTerrain, this.apertureFarStamp, this.apertureFarStampEarly,
-                this.apertureMeshDepth,
+                this.apertureMeshDepth, this.apertureUnshadedDestination,
                 choosing(KEY_DISTANT_HORIZONS, value != this.distantHorizons));
     }
 
@@ -193,7 +203,7 @@ public record RealtimeSettings(
         return new RealtimeSettings(this.renderClientSidePortals, this.maxRenderDistance,
                 this.distantHorizons, value, this.spectatorPass, this.apertureBackdrop,
                 this.apertureTerrain, this.apertureFarStamp, this.apertureFarStampEarly,
-                this.apertureMeshDepth,
+                this.apertureMeshDepth, this.apertureUnshadedDestination,
                 choosing(KEY_RENDER_SERVER_SIDE_PORTALS, value != this.renderServerSidePortals));
     }
 
@@ -201,7 +211,7 @@ public record RealtimeSettings(
         return new RealtimeSettings(this.renderClientSidePortals, this.maxRenderDistance,
                 this.distantHorizons, this.renderServerSidePortals, value, this.apertureBackdrop,
                 this.apertureTerrain, this.apertureFarStamp, this.apertureFarStampEarly,
-                this.apertureMeshDepth,
+                this.apertureMeshDepth, this.apertureUnshadedDestination,
                 choosing(KEY_SPECTATOR_PASS, value != this.spectatorPass));
     }
 
@@ -218,7 +228,7 @@ public record RealtimeSettings(
         return new RealtimeSettings(this.renderClientSidePortals, this.maxRenderDistance,
                 this.distantHorizons, this.renderServerSidePortals, this.spectatorPass, value,
                 this.apertureTerrain, this.apertureFarStamp, this.apertureFarStampEarly,
-                this.apertureMeshDepth,
+                this.apertureMeshDepth, this.apertureUnshadedDestination,
                 choosing(KEY_APERTURE_BACKDROP, value != this.apertureBackdrop));
     }
 
@@ -226,7 +236,7 @@ public record RealtimeSettings(
         return new RealtimeSettings(this.renderClientSidePortals, this.maxRenderDistance,
                 this.distantHorizons, this.renderServerSidePortals, this.spectatorPass,
                 this.apertureBackdrop, value, this.apertureFarStamp, this.apertureFarStampEarly,
-                this.apertureMeshDepth,
+                this.apertureMeshDepth, this.apertureUnshadedDestination,
                 choosing(KEY_APERTURE_TERRAIN, value != this.apertureTerrain));
     }
 
@@ -234,7 +244,7 @@ public record RealtimeSettings(
         return new RealtimeSettings(this.renderClientSidePortals, this.maxRenderDistance,
                 this.distantHorizons, this.renderServerSidePortals, this.spectatorPass,
                 this.apertureBackdrop, this.apertureTerrain, value, this.apertureFarStampEarly,
-                this.apertureMeshDepth,
+                this.apertureMeshDepth, this.apertureUnshadedDestination,
                 choosing(KEY_APERTURE_FAR_STAMP, value != this.apertureFarStamp));
     }
 
@@ -242,7 +252,7 @@ public record RealtimeSettings(
         return new RealtimeSettings(this.renderClientSidePortals, this.maxRenderDistance,
                 this.distantHorizons, this.renderServerSidePortals, this.spectatorPass,
                 this.apertureBackdrop, this.apertureTerrain, this.apertureFarStamp, value,
-                this.apertureMeshDepth,
+                this.apertureMeshDepth, this.apertureUnshadedDestination,
                 choosing(KEY_APERTURE_FAR_STAMP_EARLY, value != this.apertureFarStampEarly));
     }
 
@@ -250,8 +260,17 @@ public record RealtimeSettings(
         return new RealtimeSettings(this.renderClientSidePortals, this.maxRenderDistance,
                 this.distantHorizons, this.renderServerSidePortals, this.spectatorPass,
                 this.apertureBackdrop, this.apertureTerrain, this.apertureFarStamp,
-                this.apertureFarStampEarly, value,
+                this.apertureFarStampEarly, value, this.apertureUnshadedDestination,
                 choosing(KEY_APERTURE_MESH_DEPTH, value != this.apertureMeshDepth));
+    }
+
+    public RealtimeSettings withApertureUnshadedDestination(boolean value) {
+        return new RealtimeSettings(this.renderClientSidePortals, this.maxRenderDistance,
+                this.distantHorizons, this.renderServerSidePortals, this.spectatorPass,
+                this.apertureBackdrop, this.apertureTerrain, this.apertureFarStamp,
+                this.apertureFarStampEarly, this.apertureMeshDepth, value,
+                choosing(KEY_APERTURE_UNSHADED_DESTINATION,
+                        value != this.apertureUnshadedDestination));
     }
 
     public String toJson() {
@@ -269,6 +288,7 @@ public record RealtimeSettings(
                 .bool(KEY_APERTURE_FAR_STAMP, this.apertureFarStamp)
                 .bool(KEY_APERTURE_FAR_STAMP_EARLY, this.apertureFarStampEarly)
                 .bool(KEY_APERTURE_MESH_DEPTH, this.apertureMeshDepth)
+                .bool(KEY_APERTURE_UNSHADED_DESTINATION, this.apertureUnshadedDestination)
                 .raw(KEY_CHOSEN, Json.strings(recorded))
                 .toString();
     }
@@ -302,6 +322,8 @@ public record RealtimeSettings(
                 stored.bool(KEY_APERTURE_FAR_STAMP, DEFAULT_APERTURE_FAR_STAMP),
                 stored.bool(KEY_APERTURE_FAR_STAMP_EARLY, DEFAULT_APERTURE_FAR_STAMP_EARLY),
                 stored.bool(KEY_APERTURE_MESH_DEPTH, DEFAULT_APERTURE_MESH_DEPTH),
+                stored.bool(KEY_APERTURE_UNSHADED_DESTINATION,
+                        DEFAULT_APERTURE_UNSHADED_DESTINATION),
                 stored.chosen());
     }
 
@@ -347,6 +369,7 @@ public record RealtimeSettings(
                 DEFAULT_APERTURE_FAR_STAMP,
                 DEFAULT_APERTURE_FAR_STAMP_EARLY,
                 DEFAULT_APERTURE_MESH_DEPTH,
+                DEFAULT_APERTURE_UNSHADED_DESTINATION,
                 chosen);
     }
 

@@ -171,7 +171,9 @@ public final class DevServer {
                 .withApertureFarStampEarly(request.flag("apertureFarStampEarly",
                         before.apertureFarStampEarly()))
                 .withApertureMeshDepth(request.flag("apertureMeshDepth",
-                        before.apertureMeshDepth()));
+                        before.apertureMeshDepth()))
+                .withApertureUnshadedDestination(request.flag("apertureUnshadedDestination",
+                        before.apertureUnshadedDestination()));
         boolean changed = !after.equals(before);
         if (changed) {
             RealtimeControls.store().save(after);

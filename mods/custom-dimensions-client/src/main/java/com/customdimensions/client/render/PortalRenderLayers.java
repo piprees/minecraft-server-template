@@ -46,15 +46,74 @@ public final class PortalRenderLayers {
      * any mod's custom model, which is what the pack shades. Cutout loses
      * mipmapping: there is no mipmapped entity cutout layer.
      */
-    public static RenderLayer forDestination(RenderLayer captured) {
+    public static RenderLayer forDestination(RenderLayer captured, boolean unshaded) {
+        return layerFor(UnshadedDestination.of(classify(captured), unshaded));
+    }
+
+    private static UnshadedDestination.Captured classify(RenderLayer captured) {
         if (captured == RenderLayer.getTranslucent()
                 || captured == RenderLayer.getTranslucentMovingBlock()) {
-            return RenderLayer.getEntityTranslucentCull(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE);
+            return UnshadedDestination.Captured.TRANSLUCENT;
         }
         if (captured == RenderLayer.getCutout() || captured == RenderLayer.getCutoutMipped()) {
-            return RenderLayer.getEntityCutoutNoCull(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE);
+            return UnshadedDestination.Captured.CUTOUT;
         }
-        return RenderLayer.getEntitySolid(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE);
+        return UnshadedDestination.Captured.SOLID;
+    }
+
+    private static RenderLayer layerFor(UnshadedDestination.Target target) {
+        return switch (target) {
+            case ENTITY_TRANSLUCENT_CULL ->
+                    RenderLayer.getEntityTranslucentCull(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE);
+            case ENTITY_CUTOUT_NO_CULL ->
+                    RenderLayer.getEntityCutoutNoCull(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE);
+            case ENTITY_SOLID -> RenderLayer.getEntitySolid(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE);
+            case UNSHADED_OPAQUE -> UNSHADED_OPAQUE;
+            case UNSHADED_BLENDED -> UNSHADED_BLENDED;
+        };
+    }
+
+    /**
+     * The destination on vanilla's beacon-beam program: position, colour, uv
+     * and a lightmap coordinate the program never samples. No normal and no
+     * lightmap phase, so neither vanilla's diffuse nor the source world's
+     * lightmap texel can reach it, and its light comes from
+     * {@link UnshadedDestination#scale} in the vertex colour instead.
+     */
+    public static final RenderLayer UNSHADED_OPAQUE =
+            unshaded("customdimensions_portal_unshaded_opaque", false);
+
+    /** The same, blended, for the captured layers that carry alpha. */
+    public static final RenderLayer UNSHADED_BLENDED =
+            unshaded("customdimensions_portal_unshaded_blended", true);
+
+    private static RenderLayer unshaded(String name, boolean blend) {
+        return new RenderLayer(
+                name,
+                VertexFormats.POSITION_COLOR_TEXTURE_LIGHT,
+                VertexFormat.DrawMode.QUADS,
+                1536,
+                false,
+                blend,
+                () -> {
+                    RenderSystem.setShader(GameRenderer::getRenderTypeBeaconBeamProgram);
+                    RenderSystem.setShaderTexture(0, SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE);
+                    if (blend) {
+                        RenderSystem.enableBlend();
+                        RenderSystem.defaultBlendFunc();
+                    } else {
+                        RenderSystem.disableBlend();
+                    }
+                    RenderSystem.enableDepthTest();
+                    RenderSystem.depthFunc(GL11.GL_LEQUAL);
+                    // Written, so the mesh self-occludes inside the slice as it
+                    // does on the entity layers.
+                    RenderSystem.depthMask(true);
+                    RenderSystem.enableCull();
+                },
+                () -> {
+                    RenderSystem.disableBlend();
+                }) {};
     }
 
     /**

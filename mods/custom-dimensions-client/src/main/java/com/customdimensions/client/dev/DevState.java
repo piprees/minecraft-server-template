@@ -120,6 +120,7 @@ final class DevState {
                 .bool("apertureFarStamp", settings.apertureFarStamp())
                 .bool("apertureFarStampEarly", settings.apertureFarStampEarly())
                 .bool("apertureMeshDepth", settings.apertureMeshDepth())
+                .bool("apertureUnshadedDestination", settings.apertureUnshadedDestination())
                 .str("apertureStamps", ProjectionRenderer.stampSummary())
                 .str("apertureRenderUs", ProjectionRenderer.lastCost())
                 .str("realtimeBuildUs", RealtimeView.buildCost())

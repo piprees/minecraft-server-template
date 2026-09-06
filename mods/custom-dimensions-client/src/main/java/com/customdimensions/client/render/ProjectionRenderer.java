@@ -369,14 +369,20 @@ public final class ProjectionRenderer {
 
             @Override
             public void drawDestination(double shiftX, double shiftY, double shiftZ) {
+                boolean unshaded = RealtimeControls.settings().apertureUnshadedDestination();
+                float ambient = mesh.sourceAmbient();
                 for (ProjectionMesh.Layer layer :
                         RealtimeControls.settings().apertureTerrain()
                                 ? mesh.layers() : java.util.List.<ProjectionMesh.Layer>of()) {
                     net.minecraft.client.render.RenderLayer target =
-                            PortalRenderLayers.forDestination(layer.layer());
+                            PortalRenderLayers.forDestination(layer.layer(), unshaded);
                     VertexConsumer consumer = immediate.getBuffer(target);
-                    int emitted = emitClipped(layer, consumer, entry,
-                            (float) shiftX, (float) shiftY, (float) shiftZ);
+                    int emitted = unshaded
+                            ? emitClipped(layer, consumer, entry, (float) shiftX, (float) shiftY,
+                                    (float) shiftZ,
+                                    (c, e, poly, at) -> emitUnshaded(c, e, poly, at, ambient))
+                            : emitClipped(layer, consumer, entry,
+                                    (float) shiftX, (float) shiftY, (float) shiftZ);
                     immediate.draw(target);
                     if (report != null) {
                         ClipTally.layer(projection.apertureOrigin(),
@@ -1009,6 +1015,21 @@ public final class ProjectionRenderer {
             immediate.draw(layer);
         }
         return corners;
+    }
+
+    /**
+     * A vertex for {@link PortalRenderLayers#UNSHADED_OPAQUE}: no normal and no
+     * overlay, and the destination's own light multiplied into the colour
+     * because the layer never samples a lightmap. The coordinate written is
+     * full-bright so nothing downstream dims it a second time.
+     */
+    private static void emitUnshaded(VertexConsumer consumer, MatrixStack.Entry entry, float[] poly,
+            int at, float ambient) {
+        float lit = UnshadedDestination.scale((int) poly[at + 11], (int) poly[at + 12], ambient);
+        consumer.vertex(entry, poly[at], poly[at + 1], poly[at + 2])
+                .color(poly[at + 3] * lit, poly[at + 4] * lit, poly[at + 5] * lit, poly[at + 6])
+                .texture(poly[at + 7], poly[at + 8])
+                .light(net.minecraft.client.render.LightmapTextureManager.MAX_LIGHT_COORDINATE);
     }
 
     /** Position and colour only: {@link PortalRenderLayers#APERTURE_DEPTH} takes no more. */
