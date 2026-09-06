@@ -103,26 +103,41 @@ public final class UnshadedDestination {
      * would lose them entirely to a saturated source, which is the one thing
      * this target does not have to care about.
      */
-    public static float scale(int block, int sky, float ambient) {
+    public static float scale(int block, int sky, float ambient, float gamma) {
         float floor = Math.max(0.0f, Math.min(1.0f, ambient));
-        return Math.max(AmbientLift.brightness(clamp(block), floor),
-                AmbientLift.brightness(clamp(sky), floor));
+        return lightmapped(Math.max(AmbientLift.brightness(clamp(block), floor),
+                AmbientLift.brightness(clamp(sky), floor)), gamma);
+    }
+
+    /**
+     * The brightness curve as the LIGHTMAP carries it. A terrain fragment
+     * samples a texture vanilla has already brightened toward
+     * {@code easeOutQuart} by the client's gamma
+     * ({@code LightmapTextureManager.update}); this target replaces that
+     * sample, so the curve alone is short by exactly that lift. Gamma 0 is
+     * identity, and a fully lit destination is unaffected either way.
+     */
+    public static float lightmapped(float lit, float gamma) {
+        float remainder = 1.0f - lit;
+        float eased = 1.0f - remainder * remainder * remainder * remainder;
+        float g = Math.max(0.0f, Math.min(1.0f, gamma));
+        return Math.max(0.0f, Math.min(1.0f, lit + g * (eased - lit)));
     }
 
     /**
      * The scale at three levels, shaped like {@link AmbientLift#label}. Three
      * equal values mean the destination is drawn without its own light.
      */
-    public static String label(float destinationAmbient) {
+    public static String label(float destinationAmbient, float gamma) {
         if (destinationAmbient < 0.0f) {
             return "unset";
         }
-        return probe(0, destinationAmbient) + "," + probe(7, destinationAmbient)
-                + "," + probe(15, destinationAmbient);
+        return probe(0, destinationAmbient, gamma) + "," + probe(7, destinationAmbient, gamma)
+                + "," + probe(15, destinationAmbient, gamma);
     }
 
-    private static String probe(int level, float ambient) {
-        return level + ">" + String.format("%.3f", scale(0, level, ambient));
+    private static String probe(int level, float ambient, float gamma) {
+        return level + ">" + String.format("%.3f", scale(0, level, ambient, gamma));
     }
 
     private static int clamp(int level) {

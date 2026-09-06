@@ -3,6 +3,7 @@ package com.customdimensions.client.render;
 import com.customdimensions.client.Repeated;
 import com.customdimensions.client.config.RealtimeControls;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.util.BufferAllocator;
@@ -416,6 +417,7 @@ public final class ProjectionRenderer {
                 // the destination's ambient; the shaded one has to express
                 // them as source-lightmap levels first.
                 float destinationAmbient = projection.payload().ambientLight();
+                float lightmapGamma = lightmapGamma();
                 for (java.util.Map.Entry<net.minecraft.client.render.RenderLayer,
                         java.util.List<ProjectionMesh.Layer>> group :
                         (RealtimeControls.settings().apertureTerrain()
@@ -448,7 +450,9 @@ public final class ProjectionRenderer {
                         emitted += unshaded
                                 ? emitClipped(layer, consumer, entry, (float) shiftX,
                                         (float) shiftY, (float) shiftZ,
-                                        (c, e, poly, at) -> emitUnshaded(c, e, poly, at, destinationAmbient))
+                                        (c, e, poly, at) ->
+                                                emitUnshaded(c, e, poly, at, destinationAmbient,
+                                                        lightmapGamma))
                                 : emitClipped(layer, consumer, entry,
                                         (float) shiftX, (float) shiftY, (float) shiftZ);
                         survivors += clipVertices;
@@ -1107,9 +1111,15 @@ public final class ProjectionRenderer {
      * because the layer never samples a lightmap. The coordinate written is
      * full-bright so nothing downstream dims it a second time.
      */
+    /** The client's own lightmap gamma, which the unshaded target has to reapply. */
+    private static float lightmapGamma() {
+        return MinecraftClient.getInstance().options.getGamma().getValue().floatValue();
+    }
+
     private static void emitUnshaded(VertexConsumer consumer, MatrixStack.Entry entry, float[] poly,
-            int at, float ambient) {
-        float lit = UnshadedDestination.scale((int) poly[at + 11], (int) poly[at + 12], ambient);
+            int at, float ambient, float gamma) {
+        float lit = UnshadedDestination.scale((int) poly[at + 11], (int) poly[at + 12], ambient,
+                gamma);
         consumer.vertex(entry, poly[at], poly[at + 1], poly[at + 2])
                 .color(poly[at + 3] * lit, poly[at + 4] * lit, poly[at + 5] * lit, poly[at + 6])
                 .texture(poly[at + 7], poly[at + 8])

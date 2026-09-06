@@ -56,6 +56,11 @@ import java.util.function.ToDoubleFunction;
 final class DevState {
 
     /** Samples per axis of the destination-world light probe. */
+    /** The client's own lightmap gamma, the same lift the unshaded target applies. */
+    private static float lightmapGamma() {
+        return MinecraftClient.getInstance().options.getGamma().getValue().floatValue();
+    }
+
     private static final int LIGHT_LATTICE = 5;
 
     /** Floats per vertex times four vertices. */
@@ -419,7 +424,7 @@ final class DevState {
                 .num("destination", destination)
                 .num("source", mesh.sourceAmbient())
                 .str("lift", AmbientLift.label(destination, mesh.sourceAmbient()))
-                .str("unshaded", UnshadedDestination.label(destination))
+                .str("unshaded", UnshadedDestination.label(destination, lightmapGamma()))
                 .toString();
     }
 
