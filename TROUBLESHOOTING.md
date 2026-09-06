@@ -2335,15 +2335,23 @@ measurement of it.
   reads 64 blocks forward of the opening. Sized for the slab alone, the feed
   delivers the ticketed set plus the arrival chunk and stops.
 - **Fix:** `holdSet` composes what a zone tickets — the preview box always,
-  plus, for each side a local drawer is standing on, the core running FORWARD
-  from the arrival: `DestinationFeed.CORE_DEPTH` columns along that side's
-  normal, `CORE_RADIUS` either side of the line. Forward because a square
-  centred on the arrival spends nearly half its columns behind the aperture
-  plane, which no box reads. The local-drawer verdict comes from the players
-  in ticket range, not from `ACTIVE`: the ticket is taken before the
+  plus, for each side a local drawer is standing on, the core that
+  `DestinationFeed.inCore` names: `CORE_DEPTH` columns forward of the arrival
+  along that side's normal, `CORE_RADIUS` either side of the line, and
+  `CORE_RADIUS` back of it. Forward for the client's box, which reaches 64
+  blocks past the opening; back so the arrival's own 3x3 keeps the filled
+  neighbourhood a section build needs. The local-drawer verdict comes from the
+  players in ticket range, not from `ACTIVE`: the ticket is taken before the
   projection pass rebuilds a viewer's state, so `ACTIVE` names nobody on the
   first pass after a world change and one refresh is long enough for a
   destination to drain.
+- **The ticket and the feed read ONE definition of the core.** `inCore` is it;
+  `holdSet` enumerates it and `nextChunks` uses it as the wedge bypass. Give
+  them separate definitions and the feed's nearest-first queue fills with
+  columns nothing tickets: never resident, never recorded as sent, holding the
+  budget on every pass after. The symptom is this entry's own — `sent=0
+  wanted=N` for ever, with resident columns sitting unsent behind the jam.
+  `CoreAgreementTest` asserts the two agree rather than pinning a shape.
 - **Trap:** a ticket generates. `ChunkTicketManager.addTicket` builds it at
   `ChunkLevels.getLevelFromType(FULL)` minus the radius and the manager
   generates whatever reaches that level. That is the point — a column nobody

@@ -138,7 +138,7 @@ class DestinationRecycleTest {
     private static List<Long> wedge(Set<Long> sent) {
         return DestinationFeed.nextChunks(ARRIVAL_CHUNK_X, ARRIVAL_CHUNK_Z, 16,
                 EYE_A, EYE_N, A0, A1, PLANE, DX, DZ, sent, Integer.MAX_VALUE,
-                DestinationFeed.Normal.Z);
+                DestinationFeed.Normal.Z, false);
     }
 
     private static Set<Long> held() {

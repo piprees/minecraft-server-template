@@ -1339,7 +1339,7 @@ public final class ImmersiveProjector {
      * the client's own — this widens the server feed because the feed is what
      * exists today, not because feeding more is the destination.
      */
-    static List<ChunkPos> holdSet(List<ChunkPos> previewBox, int arrivalChunkX, int arrivalChunkZ,
+    public static List<ChunkPos> holdSet(List<ChunkPos> previewBox, int arrivalChunkX, int arrivalChunkZ,
             Collection<Direction> farSides) {
         LinkedHashSet<ChunkPos> held = new LinkedHashSet<>(previewBox);
         for (Direction side : farSides) {
@@ -1349,29 +1349,23 @@ public final class ImmersiveProjector {
     }
 
     /**
-     * One viewer side's core: {@link DestinationFeed#CORE_DEPTH} columns out
-     * from the arrival along {@code side}, {@link DestinationFeed#CORE_RADIUS}
-     * either side of that line. A vertical portal's box runs down rather than
-     * out, so there is no forward to run in and the footprint is the square.
+     * One viewer side's core, from {@link DestinationFeed#inCore} — the same
+     * predicate the feed's wedge bypass reads, so the two cannot name
+     * different columns.
      */
     private static void addCore(Set<ChunkPos> held, int arrivalChunkX, int arrivalChunkZ,
             Direction side) {
-        int radius = DestinationFeed.CORE_RADIUS;
-        if (side == null || side.getAxis() == Direction.Axis.Y) {
-            for (int ox = -radius; ox <= radius; ox++) {
-                for (int oz = -radius; oz <= radius; oz++) {
+        DestinationFeed.Normal normal = side == null
+                ? DestinationFeed.Normal.Y
+                : DestinationFeed.normalOf(side.getAxis());
+        boolean towardsHigh = side != null
+                && side.getOffsetX() + side.getOffsetY() + side.getOffsetZ() > 0;
+        int span = Math.max(DestinationFeed.CORE_RADIUS, DestinationFeed.CORE_DEPTH);
+        for (int ox = -span; ox <= span; ox++) {
+            for (int oz = -span; oz <= span; oz++) {
+                if (DestinationFeed.inCore(ox, oz, normal, towardsHigh)) {
                     held.add(new ChunkPos(arrivalChunkX + ox, arrivalChunkZ + oz));
                 }
-            }
-            return;
-        }
-        int stepX = side.getOffsetX();
-        int stepZ = side.getOffsetZ();
-        for (int forward = 0; forward < DestinationFeed.CORE_DEPTH; forward++) {
-            for (int across = -radius; across <= radius; across++) {
-                held.add(new ChunkPos(
-                        arrivalChunkX + stepX * forward + (stepX == 0 ? across : 0),
-                        arrivalChunkZ + stepZ * forward + (stepZ == 0 ? across : 0)));
             }
         }
     }

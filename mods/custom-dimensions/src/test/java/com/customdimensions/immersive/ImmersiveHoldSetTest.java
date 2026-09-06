@@ -18,9 +18,13 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  *
  * <p>The block slab needs its preview box; a client drawing the far side itself
  * needs the columns its own box reads, or the feed sends the ticketed handful
- * and stops. The core runs FORWARD from the arrival along the viewer's far
- * side: a square centred on the arrival spends nearly half its columns behind
- * the aperture plane, where no box ever reads.
+ * and stops. The core runs {@link DestinationFeed#CORE_DEPTH} columns FORWARD
+ * from the arrival along the viewer's far side and {@link
+ * DestinationFeed#CORE_RADIUS} back of it — forward for the box, back so the
+ * arrival's own 3x3 has the filled neighbourhood a section build needs.
+ *
+ * <p>The shape itself lives in {@link DestinationFeed#inCore}, which the feed
+ * reads too; {@code CoreAgreementTest} is what holds the two together.
  *
  * <p>Fixtures are the live rig: arrival column 1732,1296 — chunk 108,81 — a
  * six-column preview box beside it, and a viewer west of the plane, so the far
@@ -31,6 +35,11 @@ class ImmersiveHoldSetTest {
     private static final int ARRIVAL_CHUNK_X = 108;
     private static final int ARRIVAL_CHUNK_Z = 81;
 
+    /** Columns one far side's core holds: its depth and its full width. */
+    private static final int CORE_COLUMNS =
+            (DestinationFeed.CORE_RADIUS + DestinationFeed.CORE_DEPTH)
+                    * (2 * DestinationFeed.CORE_RADIUS + 1);
+
     private static final List<ChunkPos> PREVIEW_BOX = List.of(
             new ChunkPos(107, 80), new ChunkPos(107, 81), new ChunkPos(107, 82),
             new ChunkPos(108, 80), new ChunkPos(108, 81), new ChunkPos(108, 82));
@@ -38,13 +47,6 @@ class ImmersiveHoldSetTest {
     private static List<ChunkPos> held(Direction... farSides) {
         return ImmersiveProjector.holdSet(PREVIEW_BOX, ARRIVAL_CHUNK_X, ARRIVAL_CHUNK_Z,
                 Set.of(farSides));
-    }
-
-    /** What the core added, which is the only part these rules govern. */
-    private static Set<ChunkPos> addedBy(Direction... farSides) {
-        Set<ChunkPos> added = new HashSet<>(held(farSides));
-        added.removeAll(PREVIEW_BOX);
-        return added;
     }
 
     @Test
@@ -58,18 +60,6 @@ class ImmersiveHoldSetTest {
                 assertTrue(holding.contains(want),
                         "column " + want + " carries no ticket, so the feed can never send it");
             }
-        }
-    }
-
-    /**
-     * The refinement that costs nothing: the same 25 columns, in front of the
-     * opening instead of wrapped around it.
-     */
-    @Test
-    void theCoreRunsForwardOfTheArrivalAndNotBehindIt() {
-        for (ChunkPos added : addedBy(Direction.EAST)) {
-            assertTrue(added.x >= ARRIVAL_CHUNK_X,
-                    "column " + added + " sits behind the aperture plane, where no box reads");
         }
     }
 
@@ -93,6 +83,24 @@ class ImmersiveHoldSetTest {
     }
 
     /**
+     * The core reaches back exactly far enough to fill the arrival's own
+     * neighbourhood, and no further. The box never reads behind the plane, so
+     * every column back of {@link DestinationFeed#CORE_RADIUS} is spent on
+     * nothing.
+     */
+    @Test
+    void theCoreReachesBackOnlyAsFarAsTheNeighbourhoodNeeds() {
+        Set<ChunkPos> holding = new HashSet<>(held(Direction.EAST));
+
+        assertTrue(holding.contains(new ChunkPos(
+                        ARRIVAL_CHUNK_X - DestinationFeed.CORE_RADIUS, ARRIVAL_CHUNK_Z)),
+                "the arrival's own 3x3 has no filled neighbourhood behind it");
+        assertFalse(holding.contains(new ChunkPos(
+                        ARRIVAL_CHUNK_X - DestinationFeed.CORE_RADIUS - 1, ARRIVAL_CHUNK_Z)),
+                "the core reaches further behind the plane than a section build needs");
+    }
+
+    /**
      * The behaviour this replaces. Filtering the core to what was already
      * resident made the hold set a function of itself: the columns drained,
      * the filter found nothing left to hold, and the set collapsed to the
@@ -101,21 +109,8 @@ class ImmersiveHoldSetTest {
      */
     @Test
     void aColumnThatHasToBeGeneratedIsStillTicketed() {
-        assertEquals(DestinationFeed.CORE_DEPTH * (2 * DestinationFeed.CORE_RADIUS + 1),
-                addedBy(Direction.EAST).size() + overlapWithPreviewBox(),
-                "the core no longer holds a column the destination has yet to generate");
-    }
-
-    /** Core columns the preview box already carries, so they are not "added". */
-    private static int overlapWithPreviewBox() {
-        int shared = 0;
-        for (ChunkPos pos : PREVIEW_BOX) {
-            if (pos.x >= ARRIVAL_CHUNK_X && pos.x < ARRIVAL_CHUNK_X + DestinationFeed.CORE_DEPTH
-                    && Math.abs(pos.z - ARRIVAL_CHUNK_Z) <= DestinationFeed.CORE_RADIUS) {
-                shared++;
-            }
-        }
-        return shared;
+        assertEquals(CORE_COLUMNS, held(Direction.EAST).size(),
+                "the core no longer holds every column, resident or not");
     }
 
     /**
@@ -171,14 +166,15 @@ class ImmersiveHoldSetTest {
         assertTrue(holding.containsAll(PREVIEW_BOX), "the slab's own box fell out of the hold");
     }
 
-    /** The cost, asserted rather than assumed: 25 columns per far side. */
+    /** The cost, asserted rather than assumed. */
     @Test
-    void oneFarSideCostsTwentyFiveColumns() {
-        assertEquals(25, DestinationFeed.CORE_DEPTH * (2 * DestinationFeed.CORE_RADIUS + 1));
+    void oneFarSideCostsItsOwnCoreAndNoMore() {
+        assertEquals(35, CORE_COLUMNS);
 
-        assertTrue(held(Direction.EAST).size() <= PREVIEW_BOX.size() + 25,
-                "one far side ticketed more than its own 25 columns");
-        assertTrue(held(Direction.EAST, Direction.WEST).size() <= PREVIEW_BOX.size() + 45,
-                "two opposed far sides ticketed more than the 45 columns they share");
+        assertTrue(held(Direction.EAST).size() <= PREVIEW_BOX.size() + CORE_COLUMNS,
+                "one far side ticketed more than its own core");
+        assertTrue(held(Direction.EAST, Direction.WEST).size()
+                        <= PREVIEW_BOX.size() + 2 * CORE_COLUMNS,
+                "two opposed far sides ticketed more than the cores they share");
     }
 }

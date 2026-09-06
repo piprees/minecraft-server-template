@@ -50,7 +50,7 @@ class DestinationFeedTest {
 
     private static List<Long> pick(int radius, int budget, Set<Long> sent) {
         return DestinationFeed.nextChunks(ARRIVAL_CHUNK, ARRIVAL_CHUNK, radius,
-                EYE_A, EYE_N, A0, A1, PLANE, DX, DZ, sent, budget, DestinationFeed.Normal.Z);
+                EYE_A, EYE_N, A0, A1, PLANE, DX, DZ, sent, budget, DestinationFeed.Normal.Z, false);
     }
 
     @Test
@@ -175,7 +175,7 @@ class DestinationFeedTest {
         int radius = 4;
         int fed = DestinationFeed.nextChunks(ARRIVAL_CHUNK, ARRIVAL_CHUNK, radius,
                 EYE_A, EYE_N, A0, A1, PLANE, DX, DZ, Set.of(), Integer.MAX_VALUE,
-                DestinationFeed.Normal.Y).size();
+                DestinationFeed.Normal.Y, false).size();
         int disc = 0;
         for (int x = -radius; x <= radius; x++) {
             for (int z = -radius; z <= radius; z++) {
@@ -192,10 +192,10 @@ class DestinationFeedTest {
     void anOpeningWhoseNormalRunsAlongXIsFedToo() {
         int alongZ = DestinationFeed.nextChunks(ARRIVAL_CHUNK, ARRIVAL_CHUNK, 6,
                 EYE_A, EYE_N, A0, A1, PLANE, DX, DZ, Set.of(), Integer.MAX_VALUE,
-                DestinationFeed.Normal.Z).size();
+                DestinationFeed.Normal.Z, false).size();
         int alongX = DestinationFeed.nextChunks(ARRIVAL_CHUNK, ARRIVAL_CHUNK, 6,
                 EYE_A, EYE_N, A0, A1, PLANE, DX, DZ, Set.of(), Integer.MAX_VALUE,
-                DestinationFeed.Normal.X).size();
+                DestinationFeed.Normal.X, false).size();
 
         assertTrue(alongX > 0, "an X-normal opening fed nothing");
         assertEquals(alongZ, alongX,

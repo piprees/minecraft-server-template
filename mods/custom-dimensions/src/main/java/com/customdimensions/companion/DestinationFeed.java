@@ -146,16 +146,16 @@ public final class DestinationFeed {
      */
     public static List<Long> nextChunks(int centreChunkX, int centreChunkZ, int radius,
             double eyeA, double eyeN, double a0, double a1, double planeN,
-            int dx, int dz, Set<Long> sent, int budget, Normal normal) {
+            int dx, int dz, Set<Long> sent, int budget, Normal normal, boolean towardsHigh) {
         List<Long> picked = new ArrayList<>();
         if (budget <= 0 || radius <= 0) {
             return picked;
         }
         List<long[]> candidates = new ArrayList<>();
-        int span = Math.max(radius, CORE_RADIUS);
+        int span = Math.max(radius, Math.max(CORE_RADIUS, CORE_DEPTH));
         for (int ox = -span; ox <= span; ox++) {
             for (int oz = -span; oz <= span; oz++) {
-                boolean core = Math.abs(ox) <= CORE_RADIUS && Math.abs(oz) <= CORE_RADIUS;
+                boolean core = inCore(ox, oz, normal, towardsHigh);
                 if (!core && ox * ox + oz * oz > radius * radius) {
                     continue;
                 }
@@ -193,6 +193,38 @@ public final class DestinationFeed {
      */
     public enum Normal {
         X, Y, Z
+    }
+
+    /**
+     * Whether an offset from the arrival chunk is in the core:
+     * {@link #CORE_DEPTH} columns forward along the viewer's far side,
+     * {@link #CORE_RADIUS} either side of that line, and {@code CORE_RADIUS}
+     * BACK of the arrival. A vertical portal's box runs down rather than out,
+     * so it has no forward and keeps the square.
+     *
+     * <p>The backward reach is not wasted on the box, which never reads behind
+     * the plane. It is what keeps the arrival's own 3x3 buildable: a section is
+     * built only once its chunk and all eight neighbours have arrived, so the
+     * chunks nearest the opening need a filled neighbourhood on both sides of
+     * it.
+     *
+     * <p><b>One definition, two readers.</b> The ticket
+     * ({@code ImmersiveProjector.holdSet}) and the feed ({@link #nextChunks})
+     * must name the same columns. A column one leaves out is one the other can
+     * never send: the nearest-first queue puts an untickable column at its
+     * head, it is never resident, it is never recorded as sent, and it holds
+     * the budget on every pass after. Four {@code + 0.5} literals carried
+     * "where the surface is" until they rotted; this is the same rule.
+     */
+    public static boolean inCore(int ox, int oz, Normal normal, boolean towardsHigh) {
+        if (normal == Normal.Y) {
+            return Math.abs(ox) <= CORE_RADIUS && Math.abs(oz) <= CORE_RADIUS;
+        }
+        int along = normal == Normal.X ? ox : oz;
+        int across = normal == Normal.X ? oz : ox;
+        int forward = towardsHigh ? along : -along;
+        return forward >= -CORE_RADIUS && forward < CORE_DEPTH
+                && Math.abs(across) <= CORE_RADIUS;
     }
 
     /**
@@ -254,7 +286,8 @@ public final class DestinationFeed {
      */
     public static int pump(ServerPlayerEntity player, ServerWorld targetWorld, int radius,
             double eyeA, double eyeN, double a0, double a1, double planeN,
-            int dx, int dz, int arrivalChunkX, int arrivalChunkZ, int budget, Normal normal) {
+            int dx, int dz, int arrivalChunkX, int arrivalChunkZ, int budget, Normal normal,
+            boolean towardsHigh) {
         if (player == null || targetWorld == null) {
             return 0;
         }
@@ -263,7 +296,7 @@ public final class DestinationFeed {
 
         List<Long> wanted = nextChunks(arrivalChunkX, arrivalChunkZ,
                 Math.min(MAX_RADIUS, radius), eyeA, eyeN, a0, a1, planeN, dx, dz,
-                sent, budget, normal);
+                sent, budget, normal, towardsHigh);
         int written = 0;
         for (long key : wanted) {
             WorldChunk chunk = PortalHelper.residentChunk(targetWorld, chunkX(key), chunkZ(key));
@@ -342,10 +375,10 @@ public final class DestinationFeed {
         return pump(player, targetWorld, radius, eyeA, eyeN, a0, a1, planeN,
                 frame.dx(), frame.dz(),
                 (minX + frame.dx()) >> 4, (minZ + frame.dz()) >> 4,
-                budget, normalOf(normalAxis));
+                budget, normalOf(normalAxis), towardsHigh);
     }
 
-    static Normal normalOf(Direction.Axis axis) {
+    public static Normal normalOf(Direction.Axis axis) {
         switch (axis) {
             case X:
                 return Normal.X;
