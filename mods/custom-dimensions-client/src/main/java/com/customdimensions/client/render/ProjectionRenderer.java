@@ -107,6 +107,9 @@ public final class ProjectionRenderer {
     /** Portal draws the frustum gate skipped since the last emit line. */
     private static int spanGated;
 
+    /** Slabs skipped whole this frame, rather than clipped quad by quad. */
+    private static int slabsGated;
+
     /** Vertices the clip left standing in the last {@link #emitClipped}. */
     static int clipVertices;
 
@@ -395,6 +398,13 @@ public final class ProjectionRenderer {
                 for (ProjectionMesh.Layer layer :
                         RealtimeControls.settings().apertureTerrain()
                                 ? mesh.layers() : java.util.List.<ProjectionMesh.Layer>of()) {
+                    // A slab wholly outside the cone cannot contribute a pixel,
+                    // and clipping its quads one at a time is most of what this
+                    // pass costs.
+                    if (slabRejected(projection, layer.slab(), shiftX, shiftY, shiftZ)) {
+                        slabsGated++;
+                        continue;
+                    }
                     net.minecraft.client.render.RenderLayer target =
                             PortalRenderLayers.forDestination(layer.layer(), unshaded);
                     VertexConsumer consumer = immediate.getBuffer(target);
@@ -502,20 +512,21 @@ public final class ProjectionRenderer {
             lastSampleAt = System.currentTimeMillis();
             Repeated.log(LOGGER, firstEmit,
                     "{} aperture={} camToPlane={} opening={} window={} volume={} surface={} "
-                            + "stamp={} slice={} ambient={} frames={} gated={} renderUs={} "
+                            + "stamp={} slice={} ambient={} frames={} gated={} slabsGated={} renderUs={} "
                             + "layers={} {}",
                     EMIT_MARKER, projection.apertureOrigin().toShortString(),
                     String.format("%.2f", camToPlane), openingBounds(corners), window,
                     volumeBounds(projection), String.format("%.2f", surface), stamp,
                     sliceLabel(slice),
                     AmbientLift.label(projection.payload().ambientLight(), mesh.sourceAmbient()),
-                    spanFrames, spanGated,
+                    spanFrames, spanGated, slabsGated,
                     lastCost = costSummary(spanFrames, spanNanos, spanPeakNanos),
                     mesh.layers().size(), DestinationActors.summary() + " " + report);
             spanFrames = 0;
             spanNanos = 0;
             spanPeakNanos = 0;
             spanGated = 0;
+            slabsGated = 0;
         }
 
         matrices.pop();
@@ -1226,6 +1237,26 @@ public final class ProjectionRenderer {
     /** How one clipped vertex reaches a consumer. */
     interface VertexEmit {
         void write(VertexConsumer consumer, MatrixStack.Entry entry, float[] poly, int at);
+    }
+
+    /**
+     * One slab's own box against the opening's cone. The box spans the whole
+     * volume on the two in-plane axes and just the slab on the normal one, and
+     * carries the same shift the quads are clipped under.
+     */
+    static boolean slabRejected(ClientProjection projection, int slab,
+            double shiftX, double shiftY, double shiftZ) {
+        int axis = projection.normalAxis().ordinal();
+        double[] min = {shiftX, shiftY, shiftZ};
+        double[] max = {projection.sizeX() + shiftX, projection.sizeY() + shiftY,
+                projection.sizeZ() + shiftZ};
+        int extent = axis == 0 ? projection.sizeX()
+                : axis == 1 ? projection.sizeY() : projection.sizeZ();
+        double shift = axis == 0 ? shiftX : axis == 1 ? shiftY : shiftZ;
+        double low = Math.min((double) slab * ProjectionMesh.SLAB, extent);
+        min[axis] = low + shift;
+        max[axis] = Math.min(low + ProjectionMesh.SLAB, extent) + shift;
+        return PLANES.rejects(min[0], min[1], min[2], max[0], max[1], max[2]);
     }
 
     /** Sutherland-Hodgman against one plane; returns the new vertex count. */

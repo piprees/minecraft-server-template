@@ -119,6 +119,31 @@ public final class AperturePlanes {
         this.planes[at + 3] = d;
     }
 
+    /**
+     * True when an axis-aligned box lies wholly on the cut side of any one
+     * plane, so nothing inside it can survive the clip. Conservative: a box
+     * straddling every plane answers false whether or not it holds geometry.
+     *
+     * <p>The corner furthest along a plane's normal decides it — if even that
+     * one is cut, all eight are.
+     */
+    public boolean rejects(double minX, double minY, double minZ,
+            double maxX, double maxY, double maxZ) {
+        for (int plane = 0; plane < this.count; plane++) {
+            double nx = this.planes[plane * 4];
+            double ny = this.planes[plane * 4 + 1];
+            double nz = this.planes[plane * 4 + 2];
+            double furthest = (nx > 0.0 ? nx * maxX : nx * minX)
+                    + (ny > 0.0 ? ny * maxY : ny * minY)
+                    + (nz > 0.0 ? nz * maxZ : nz * minZ)
+                    + this.planes[plane * 4 + 3];
+            if (furthest < 0.0) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     /** Sutherland-Hodgman against one plane; returns the new vertex count. */
     public int clip(float[] in, int vertices, float[] out, int plane) {
         double nx = this.planes[plane * 4];

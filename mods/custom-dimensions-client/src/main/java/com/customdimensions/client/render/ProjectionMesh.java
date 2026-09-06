@@ -39,8 +39,24 @@ public final class ProjectionMesh {
 
     private static final Logger LOGGER = LoggerFactory.getLogger("customdimensionsclient");
 
-    /** One render layer's captured quads, {@link QuadCapture#STRIDE} per vertex. */
-    public record Layer(RenderLayer layer, float[] data, int floats) {}
+    /** Blocks of the normal axis one slab covers. */
+    public static final int SLAB = 8;
+
+    /**
+     * One render layer's captured quads for one depth slab,
+     * {@link QuadCapture#STRIDE} per vertex. Split by slab so the draw can
+     * reject a whole slab against the opening instead of clipping its quads
+     * one at a time — almost none of them survive.
+     */
+    public record Layer(RenderLayer layer, int slab, float[] data, int floats) {
+
+        /** One undivided layer, which is how the clip's own tests hold a mesh. */
+        public Layer(RenderLayer layer, float[] data, int floats) {
+            this(layer, 0, data, floats);
+        }
+    }
+
+    private record Bucket(RenderLayer layer, int slab) {}
 
     private final List<Layer> layers;
     private final int quads;
@@ -110,7 +126,8 @@ public final class ProjectionMesh {
         Random random = Random.create();
         BlockPos origin = projection.origin();
         BlockPos.Mutable pos = new BlockPos.Mutable();
-        Map<RenderLayer, QuadCapture> captures = new LinkedHashMap<>();
+        Map<Bucket, QuadCapture> captures = new LinkedHashMap<>();
+        int normalOrdinal = projection.normalAxis().ordinal();
 
         for (int lx = 0; lx < projection.sizeX(); lx++) {
             for (int ly = 0; ly < projection.sizeY(); ly++) {
@@ -124,9 +141,16 @@ public final class ProjectionMesh {
                     }
                     pos.set(x, y, z);
 
+                    int slab = (switch (normalOrdinal) {
+                        case 0 -> lx;
+                        case 1 -> ly;
+                        default -> lz;
+                    }) / SLAB;
+
                     if (state.getRenderType() == BlockRenderType.MODEL) {
                         QuadCapture capture = captures.computeIfAbsent(
-                                RenderLayers.getBlockLayer(state), layer -> new QuadCapture());
+                                new Bucket(RenderLayers.getBlockLayer(state), slab),
+                                key -> new QuadCapture());
                         capture.setOffset(0.0f, 0.0f, 0.0f);
                         matrices.push();
                         matrices.translate(lx, ly, lz);
@@ -137,7 +161,8 @@ public final class ProjectionMesh {
                     FluidState fluid = state.getFluidState();
                     if (!fluid.isEmpty()) {
                         QuadCapture capture = captures.computeIfAbsent(
-                                RenderLayers.getFluidLayer(fluid), layer -> new QuadCapture());
+                                new Bucket(RenderLayers.getFluidLayer(fluid), slab),
+                                key -> new QuadCapture());
                         // FluidRenderer writes at chunk-relative coordinates
                         // and takes no matrix, so the section corner is added
                         // back here to land the quads in volume space.
@@ -154,13 +179,14 @@ public final class ProjectionMesh {
 
         List<Layer> layers = new ArrayList<>(captures.size());
         int quads = 0;
-        for (Map.Entry<RenderLayer, QuadCapture> entry : captures.entrySet()) {
+        for (Map.Entry<Bucket, QuadCapture> entry : captures.entrySet()) {
             QuadCapture capture = entry.getValue();
             capture.finish();
             if (capture.floatCount() == 0) {
                 continue;
             }
-            layers.add(new Layer(entry.getKey(), capture.data(), capture.floatCount()));
+            layers.add(new Layer(entry.getKey().layer(), entry.getKey().slab(),
+                    capture.data(), capture.floatCount()));
             quads += capture.quadCount();
         }
         return new ProjectionMesh(layers, quads, view.sourceAmbient());
