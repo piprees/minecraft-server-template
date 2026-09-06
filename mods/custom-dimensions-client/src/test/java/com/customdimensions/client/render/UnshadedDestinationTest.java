@@ -164,14 +164,10 @@ class UnshadedDestinationTest {
     /** The flag has to REACH the backdrop's layer choice, not just exist beside it. */
     @Test
     void theBackdropDrawPassesTheSwitchToTheLayerChoice() {
-        Set<String> calls = new LinkedHashSet<>();
-        for (Path file : innerClasses(RENDERER)) {
-            calls.addAll(callsIn(file));
-        }
+        Set<String> calls = callsIn(RENDERER, "drawBackdrop");
         assertTrue(calls.contains("com/customdimensions/client/render/PortalRenderLayers.backdrop"
                         + "(Z)Lnet/minecraft/client/render/RenderLayer;"),
-                "the backdrop layer must be chosen from the switch: "
-                        + calls.size() + " calls scanned");
+                "the backdrop layer must be chosen from the switch: " + calls);
     }
 
     @Test
@@ -212,6 +208,19 @@ class UnshadedDestinationTest {
                 UnshadedDestination.fogColour(0xFF8000, -1, 9.0), 0.0f);
     }
 
+    /**
+     * The two halves trade differently, so the backdrop must read its own
+     * switch. Reading the terrain's would put them back on one flip.
+     */
+    @Test
+    void theBackdropDrawReadsItsOwnSwitch() {
+        Set<String> calls = callsIn(RENDERER, "drawBackdrop");
+        assertTrue(calls.stream().anyMatch(c -> c.endsWith(".apertureUnshadedBackdrop")),
+                "the backdrop must read its own switch: " + calls);
+        assertFalse(calls.stream().anyMatch(c -> c.endsWith(".apertureUnshadedDestination")),
+                "and not the terrain's, or one flip moves both: " + calls);
+    }
+
     /** Compensation is only compensation if the draw actually reads it. */
     @Test
     void theDrawPathBindsTheDestinationsOwnFogAndPutsTheSourcesBack() {
@@ -229,15 +238,37 @@ class UnshadedDestinationTest {
 
     @Test
     void theBackdropDrawReadsTheGain() {
-        Set<String> calls = new LinkedHashSet<>();
-        for (Path file : innerClasses(RENDERER)) {
-            calls.addAll(callsIn(file));
-        }
+        Set<String> calls = callsIn(RENDERER, "drawBackdrop");
         assertTrue(calls.stream().anyMatch(c -> c.endsWith(".apertureBackdropGain")),
-                "the backdrop draw must read the gain: " + calls.size() + " calls scanned");
+                "the backdrop draw must read the gain: " + calls);
     }
 
     // ------------------------------------------------------------------
+
+    /** One method's call set, across the class and every anonymous class in it. */
+    private static Set<String> callsIn(String internalName, String method) {
+        Set<String> found = new LinkedHashSet<>();
+        for (Path file : innerClasses(internalName)) {
+            read(file, new ClassVisitor(Opcodes.ASM9) {
+                @Override
+                public MethodVisitor visitMethod(int access, String name, String descriptor,
+                        String signature, String[] exceptions) {
+                    if (!name.equals(method)) {
+                        return null;
+                    }
+                    return new MethodVisitor(Opcodes.ASM9) {
+                        @Override
+                        public void visitMethodInsn(int opcode, String owner, String called,
+                                String descriptor, boolean isInterface) {
+                            found.add(owner + "." + called);
+                            found.add(owner + "." + called + descriptor);
+                        }
+                    };
+                }
+            });
+        }
+        return found;
+    }
 
     private static Set<String> calls(String internalName) {
         return callsIn(CLASSES.resolve(internalName + ".class"));

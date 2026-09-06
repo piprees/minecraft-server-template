@@ -122,6 +122,7 @@ final class DevState {
                 .bool("apertureMeshDepth", settings.apertureMeshDepth())
                 .bool("apertureUnshadedDestination", settings.apertureUnshadedDestination())
                 .num("apertureBackdropGain", settings.apertureBackdropGain())
+                .bool("apertureUnshadedBackdrop", settings.apertureUnshadedBackdrop())
                 .str("backdropColors", backdropColors())
                 .str("apertureStamps", ProjectionRenderer.stampSummary())
                 .str("apertureRenderUs", ProjectionRenderer.lastCost())

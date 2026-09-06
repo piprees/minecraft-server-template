@@ -175,7 +175,9 @@ public final class DevServer {
                 .withApertureUnshadedDestination(request.flag("apertureUnshadedDestination",
                         before.apertureUnshadedDestination()))
                 .withApertureBackdropGain(request.number("apertureBackdropGain",
-                        before.apertureBackdropGain()));
+                        before.apertureBackdropGain()))
+                .withApertureUnshadedBackdrop(request.flag("apertureUnshadedBackdrop",
+                        before.apertureUnshadedBackdrop()));
         boolean changed = !after.equals(before);
         if (changed) {
             RealtimeControls.store().save(after);

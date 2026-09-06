@@ -339,6 +339,7 @@ public final class ProjectionRenderer {
         // Every unshaded program still runs vanilla's linear_fog toward whatever
         // FogColor is bound, and the source world's is the wrong world.
         float[] ownFog = RealtimeControls.settings().apertureUnshadedDestination()
+                        || RealtimeControls.settings().apertureUnshadedBackdrop()
                 ? UnshadedDestination.fogColour(projection.payload().fogColor(),
                         projection.payload().skyColor(),
                         RealtimeControls.settings().apertureBackdropGain())
@@ -366,7 +367,7 @@ public final class ProjectionRenderer {
                 int corners = backdropPolygon(projection, TUNNEL, camX, camY, camZ,
                         surfaceLocal, facing, POLY_A, POLY_B);
                 dressBackdrop(POLY_A, corners);
-                boolean unshaded = RealtimeControls.settings().apertureUnshadedDestination();
+                boolean unshaded = RealtimeControls.settings().apertureUnshadedBackdrop();
                 net.minecraft.client.render.RenderLayer layer =
                         PortalRenderLayers.backdrop(unshaded);
                 // The fog colour is finished when it arrives, so unshaded it is

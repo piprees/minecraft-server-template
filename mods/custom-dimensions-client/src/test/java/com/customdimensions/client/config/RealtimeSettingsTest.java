@@ -381,4 +381,29 @@ class RealtimeSettingsTest {
         assertEquals(1.0,
                 RealtimeSettings.parse("{\"configVersion\":1}").apertureBackdropGain(), 0.0);
     }
+
+    /**
+     * One flip must not move the other half: unshaded terrain is shippable on
+     * its own, the backdrop carries a trade that terrain does not.
+     */
+    @Test
+    void theTwoUnshadedHalvesAreIndependent() {
+        RealtimeSettings terrain = RealtimeSettings.DEFAULTS.withApertureUnshadedDestination(true);
+        assertTrue(terrain.apertureUnshadedDestination());
+        assertFalse(terrain.apertureUnshadedBackdrop());
+
+        RealtimeSettings backdrop = RealtimeSettings.DEFAULTS.withApertureUnshadedBackdrop(true);
+        assertTrue(backdrop.apertureUnshadedBackdrop());
+        assertFalse(backdrop.apertureUnshadedDestination());
+    }
+
+    @Test
+    void bothUnshadedHalvesDefaultOffAndSurviveAWriteAndARead() {
+        assertFalse(RealtimeSettings.DEFAULTS.apertureUnshadedBackdrop());
+        RealtimeSettings both = RealtimeSettings.DEFAULTS
+                .withApertureUnshadedDestination(true).withApertureUnshadedBackdrop(true);
+        RealtimeSettings read = RealtimeSettings.parse(both.toJson());
+        assertTrue(read.apertureUnshadedDestination());
+        assertTrue(read.apertureUnshadedBackdrop());
+    }
 }
