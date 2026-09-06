@@ -46,7 +46,7 @@ public record RealtimeSettings(
      * a key that file did not record as chosen takes the current default —
      * which is the only way a changed default reaches a file that names it.
      */
-    public static final int CONFIG_VERSION = 2;
+    public static final int CONFIG_VERSION = 3;
 
     static final String KEY_CHOSEN = "chosen";
     static final String KEY_RENDER_CLIENT_SIDE_PORTALS = "renderClientSidePortals";
@@ -125,11 +125,11 @@ public record RealtimeSettings(
     public static final boolean DEFAULT_APERTURE_MESH_DEPTH = true;
 
     /**
-     * The destination drawn unshaded, lit from its own levels in the vertex
-     * colour instead of the source world's lightmap and shadow map
-     * ({@code TROUBLESHOOTING.md#t104}). Off: it is measured, not chosen.
+     * The destination lit from its own levels rather than the source world's
+     * lightmap and shadow map: free with no pack, and it removes a
+     * yaw-dependent shadow ramp under one ({@code TROUBLESHOOTING.md#t104}).
      */
-    public static final boolean DEFAULT_APERTURE_UNSHADED_DESTINATION = false;
+    public static final boolean DEFAULT_APERTURE_UNSHADED_DESTINATION = true;
 
     /**
      * Compensation, not correction: an unshaded backdrop is the authored fog
@@ -139,9 +139,9 @@ public record RealtimeSettings(
     public static final double DEFAULT_APERTURE_BACKDROP_GAIN = 1.0;
 
     /**
-     * Separate from the terrain's switch because the two do not trade the
-     * same way: unshaded terrain is a texel times a light bake, unshaded
-     * backdrop is the authored sky colour at full value.
+     * Off: the authored sky colour at full value is exactly right with no pack
+     * and blooms under one, and the same value is emitted in both, so no
+     * constant serves both. {@link #DEFAULT_APERTURE_BACKDROP_GAIN} is the knob.
      */
     public static final boolean DEFAULT_APERTURE_UNSHADED_BACKDROP = false;
 

@@ -394,16 +394,50 @@ class RealtimeSettingsTest {
 
         RealtimeSettings backdrop = RealtimeSettings.DEFAULTS.withApertureUnshadedBackdrop(true);
         assertTrue(backdrop.apertureUnshadedBackdrop());
-        assertFalse(backdrop.apertureUnshadedDestination());
+        assertEquals(RealtimeSettings.DEFAULTS.apertureUnshadedDestination(),
+                backdrop.apertureUnshadedDestination());
     }
 
     @Test
-    void bothUnshadedHalvesDefaultOffAndSurviveAWriteAndARead() {
+    void theBackdropHalfDefaultsOffAndBothSurviveAWriteAndARead() {
         assertFalse(RealtimeSettings.DEFAULTS.apertureUnshadedBackdrop());
         RealtimeSettings both = RealtimeSettings.DEFAULTS
                 .withApertureUnshadedDestination(true).withApertureUnshadedBackdrop(true);
         RealtimeSettings read = RealtimeSettings.parse(both.toJson());
         assertTrue(read.apertureUnshadedDestination());
         assertTrue(read.apertureUnshadedBackdrop());
+    }
+
+    /** The terrain half is free with no pack and decisive with one, so it ships on. */
+    @Test
+    void theTerrainHalfDefaultsOnAndTheBackdropHalfDoesNot() {
+        assertTrue(RealtimeSettings.DEFAULTS.apertureUnshadedDestination());
+        assertFalse(RealtimeSettings.DEFAULTS.apertureUnshadedBackdrop());
+    }
+
+    /**
+     * A file written before the default moved carries the OLD value and does
+     * not name it as a choice. Without the version bump that stale false pins
+     * every existing client to the old behaviour.
+     */
+    @Test
+    void aStaleUnchosenValueTakesTheNewDefaultRatherThanPinningTheClient() {
+        String stale = "{\"configVersion\":" + (RealtimeSettings.CONFIG_VERSION - 1)
+                + ",\"apertureUnshadedDestination\":false,\"chosen\":[\"maxRenderDistance\"]}";
+        RealtimeSettings read = RealtimeSettings.parse(stale);
+
+        assertTrue(read.apertureUnshadedDestination(),
+                "an unchosen key must follow the current default");
+        assertTrue(read.apertureMeshDepth(), "and every other unchosen key keeps its own default");
+        assertFalse(read.apertureUnshadedBackdrop());
+    }
+
+    /** A value somebody actually set is theirs, whatever the default becomes. */
+    @Test
+    void aChosenValueSurvivesTheDefaultMoving() {
+        String chosen = "{\"configVersion\":" + (RealtimeSettings.CONFIG_VERSION - 1)
+                + ",\"apertureUnshadedDestination\":false,"
+                + "\"chosen\":[\"apertureUnshadedDestination\"]}";
+        assertFalse(RealtimeSettings.parse(chosen).apertureUnshadedDestination());
     }
 }
