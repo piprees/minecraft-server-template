@@ -6,6 +6,7 @@ import com.customdimensions.client.config.RealtimeSettings;
 import com.customdimensions.client.realtime.DestinationChunks;
 import com.customdimensions.client.realtime.DestinationWorlds;
 import com.customdimensions.client.realtime.PortalFrames;
+import com.customdimensions.client.realtime.RealtimeView;
 import com.customdimensions.client.render.ProjectionStore;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
@@ -270,6 +271,7 @@ public final class DevServer {
                         request.number("yaw", client.player == null ? 0 : client.player.getYaw()),
                         request.number("pitch", client.player == null ? 0 : client.player.getPitch()));
                 case "use" -> DevBridge.use(client);
+                case "rebuild" -> RealtimeView.rebuildAll();
                 case "hud" -> DevBridge.hud(client, request.flag("hidden", true));
                 case "key" -> DevBridge.tap(client,
                         request.value() != null ? request.value() : request.text("name", null));

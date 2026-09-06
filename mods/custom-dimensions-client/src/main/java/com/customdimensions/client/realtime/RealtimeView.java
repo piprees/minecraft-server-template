@@ -117,8 +117,22 @@ public final class RealtimeView {
     private RealtimeView() {}
 
     public static void clear() {
+        rebuildAll();
+    }
+
+    /**
+     * Drops every opening's build bookmark so the next tick walks the box
+     * again, without touching the projections themselves — the held view keeps
+     * drawing while the rebuild runs. Returns the openings dropped.
+     *
+     * <p>The measurement seam for {@code meshBuildUs}: a rebuild otherwise
+     * needs the chunk feed to move, which needs the player to.
+     */
+    public static int rebuildAll() {
+        int dropped = BUILT_AT.size();
         BUILT_AT.clear();
         SCANS.clear();
+        return dropped;
     }
 
     /** Forces one opening's next tick to rebuild, its held view having gone. */
