@@ -60,6 +60,7 @@ Run this first. It covers deploy drift, disk, every expected container, `ONLINE_
 | A portal's far side does not zoom when a spyglass, a drawn bow or a speed effect zooms the world | [T96](#t96) |
 | The portal flashes while you walk near it and is steady when you stand still | [T103](#t103) |
 | A second WorldRenderer for the destination smears the screen, and re-entering lower does not fix it | [T104](#t104) |
+| A brightness ramp crosses the portal opening and moves with camera yaw alone | [T105](#t105) |
 | Two screenshots of a frozen, empty scene still differ; a flat wall reports 40-70% of its pixels changed | [T102](#t102) |
 | Portal dust still drifts in the opening with `"particleType": null`, and a quiet-gate says the rig is quiet | [T101](#t101) |
 | Structure spacing arithmetic disagrees with the world | [T51](#t51) |
@@ -1651,6 +1652,46 @@ measurement of it.
   in Python (`%` on negatives, `>>` on signed ints, float-to-int narrowing) has
   the same trap. Pin it against the Java, not against intuition —
   `scripts/e2e/portal-matrix-selftest.sh` is the worked example.
+
+<a id="t105"></a>
+### T105 — The portal's shadow is the render LAYER, and it is removable
+
+- **Symptom:** a brightness ramp crosses the opening and moves with camera YAW
+  from a fixed standing position. From a fixed eye the rays through the aperture
+  are fixed by eye and frame geometry, so pure rotation cannot change what a
+  real window shows. A hard shaft crosses the sky band and a shadow edge cuts
+  the destination terrain.
+- **Cause:** the destination and its backdrop were submitted on vanilla ENTITY
+  layers ([T99](#t99)). An entity layer binds the SOURCE world's lightmap and
+  carries a normal, so vanilla's diffuse term and the pack's shadow lookup both
+  apply to geometry that belongs to another world.
+- **Fix:** `apertureUnshadedDestination`. Both halves draw on hand-built layers
+  over `GameRenderer::getRenderTypeBeaconBeamProgram`. The format
+  `POSITION_COLOR_TEXTURE_LIGHT` carries **no normal**, so the diffuse term has
+  nothing to read, and the layers set **no lightmap phase**, so the source
+  lightmap is never bound. The destination's own block and sky levels are
+  multiplied into vertex colour, so a dark cave still reads dark.
+- **Measured**, one eye, five yaw angles, pack ON, 5/5 unique frames, spread of
+  the left-to-right luma ramp across poses (`scripts/e2e/shadow-gradient.py`):
+
+  | region | switch OFF | switch ON | pack-OFF control |
+  | --- | --- | --- | --- |
+  | sky band (backdrop) | 20.40 | **0.00** | 0.00 |
+  | destination terrain | 49.82 | **8.70** | 7.75 |
+
+- **Do not retry these:** `getEntityTranslucentEmissive`, `getEyes` and
+  `getBeaconBeam(_, true)` are all `COLOR_MASK` and write no depth. The mesh
+  self-occludes by depth inside the slice, so on a depth-less layer the
+  destination reorders itself by draw order. The layer is hand-built to keep the
+  unshaded program with `depthMask(true)`.
+- **Open cost, which is why the switch defaults OFF:** a pack treats
+  beacon-beam as EMISSIVE, so the backdrop saturates — sky band `mean 255.0`,
+  pure white, blooming past the frame. The terrain half is unaffected and
+  correct. The backdrop wants an unshaded program that is not emissive.
+- **Two further costs, stated rather than discovered:** the vertex bake does not
+  carry the day/night sky factor, so a night destination reads as daytime; and
+  cutout foliage has no alpha test on this program, so leaves and grass
+  alpha-blend rather than cut.
 
 <a id="t104"></a>
 ### T104 — A second `WorldRenderer` cannot draw the destination, for two independent reasons
