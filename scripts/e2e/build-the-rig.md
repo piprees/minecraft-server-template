@@ -78,6 +78,21 @@ Expected: a non-zero count, `elfydd:e2e_two` at aperture `[4, -60, 4]`, and
 **`destinationChunks 0` means there is no instrument.** Abort; do not read the
 frame as evidence of anything.
 
+**But `destinationChunks` is every standing destination's total, not this
+portal's.** It is `DestinationChunks.total()`, so it moves when any other
+portal's feed does; the per-portal figure is
+`projections[].worlds[].chunksReceived`. **Check which dimension the player is in
+before reading any projection number** — a snapshot taken while they stood in
+`e2e_one` was a correct reading of the live reaches portal and looked like a
+catastrophic regression at the rig.
+
+**A server `immersive: holding N arrival chunks in <dest> for zone <zone>` line
+is per ZONE.** `holdSet` drops the core to the unconditional preview box the
+moment `localDrawerFarSides` returns empty for that zone, which is exactly what a
+player walking away produces. So `holding 6` means the old core defect at a
+portal somebody is standing at, and correct behaviour at one they have left —
+read the zone and the destination on the line before reading the count.
+
 
 ## Coordinates, and how to stand in them
 
@@ -153,6 +168,57 @@ eye).
 mechanism from the pack; on is what the player actually sees. Numbers taken in
 one mode do not transfer to the other, and most of this repo's mechanism figures
 are pack-off.
+
+## Taking a reading
+
+### Hide the HUD first
+
+```bash
+curl -X POST http://127.0.0.1:8766/input -d '{"hud":{"hidden":true}}'
+```
+
+`/screenshot` captures the game's framebuffer as it stands, so the F3 overlay,
+the hotbar and the minimap land in the frame and corrupt any whole-image
+assertion. Nothing strips them afterwards.
+
+### The reference is the same block against ITSELF
+
+A figure through the opening means nothing alone; it needs a reference in the
+same frame, and only one kind works — **the same block, the same face
+orientation, the same pack state, once through the opening and once directly.**
+A ratio taken that way cancels exposure and cancels the pack.
+
+Two references that look reasonable and are not:
+
+- **The terrain beside the frame.** The destination draws on hand-built layers
+  and the terrain draws through `gbuffers_terrain`, so a ratio between them
+  measures the distance between two passes rather than the portal's own error.
+  A pack does not preserve authored colour ratios either — measured, an authored
+  0.43 between two blocks arrives at 0.89–0.95.
+- **The block's authored colour.** Read the palette out of the client jar, never
+  from the name: `gray_concrete` is a dark slate at RGB(55, 58, 62), luma 57.3,
+  not a mid grey — `light_gray_concrete` is the pale one.
+
+**Face orientation is part of the reference.** Vanilla shades 1.0 top / 0.8
+north–south / 0.6 east–west / 0.5 bottom, so a crop on a wall against a crop on a
+floor is 0.8 against 1.0 before anything else has been measured.
+
+### Readings that have been withdrawn, and why
+
+Each of these looked like a result, and re-deriving any of them costs the same
+day again.
+
+| the reading | why it fell |
+| --- | --- |
+| a ~4x light "deficit", constant across every condition tried | it divided by an AUTHORED luma the pack does not preserve. Two wrong numbers over one wrong divisor are constant, and that constancy read as a mechanism |
+| "both render paths are wrong", from a ratio against the terrain pass | under a pack that ratio measures distance-from-the-terrain-pass; the ordering it produced reverses with the pack off |
+| a 0.814–0.829 band read as a light-term shortfall | a destination SIDE face cropped against a source TOP face. One vanilla shade step is the whole of it — 45.77 / 57.268 = 0.799 over 176 rows at sd 0.21 |
+| a fix shipped on that band, then reverted | two mechanisms fit the same two significant figures, and the gamma one is identity at sky 15, so it cannot have produced the reading at all |
+
+**The rule that cost the most:** an agreement with a vanilla constant is a
+hypothesis, not a confirmation, and the test that could kill it comes before the
+commit rather than after. Three mechanisms died on two-significant-figure
+agreement in one day — sky 14, a face-shade guess, and mipmap arithmetic.
 
 ## Changing the fixture once it is up
 

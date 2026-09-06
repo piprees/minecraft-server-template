@@ -259,14 +259,14 @@ cheaper of two identical answers.
 
 **It cannot be measured in the grey box.** `brightness(15, a)` is 1.0 for every
 ambient and the gamma lift is identity there, so every reading at the e2e fixture
-is blind to this by construction
-([T113](../../TROUBLESHOOTING.md#t113)). The live reaches portal has the
-condition — sky 0–15 over 76,468 mesh cells, mean 11.6 — and at level 7 the raw
-curve gives 0.179 where the lift gives 0.363. **The test:** photograph a reaches
-surface through the portal, then the same surface directly at the same sun angle,
-each against a source reference in its own frame so exposure cancels
-([T115](../../TROUBLESHOOTING.md#t115)). The destination is correct when the two
-ratios agree.
+is blind to this by construction. The live reaches portal has the condition — sky
+0–15 over 76,468 mesh cells, mean 11.6 — and at level 7 the raw curve gives 0.179
+where the lift gives 0.363. **The test:** photograph a reaches surface through the
+portal, then the same surface directly at the same sun angle, each against a
+source reference in its own frame so exposure cancels. The destination is correct
+when the two ratios agree. Both constraints, and the references that do not work,
+are in
+[`scripts/e2e/build-the-rig.md`](../../scripts/e2e/build-the-rig.md).
 
 ## What the shaded layer buys has never been measured
 
@@ -941,8 +941,9 @@ removal; none is a defect against this document today.
 - **The dev bridge** on `127.0.0.1:8766` — `/state`, `/screenshot` (path required),
   `/input`, which takes exactly one top-level key.
 - **`realtime.destinationChunks` is every destination's total**, so the per-portal
-  figure is `projections[].worlds[].chunksReceived`
-  ([T116](../../TROUBLESHOOTING.md#t116)).
+  figure is `projections[].worlds[].chunksReceived`, and a `holding N` line is per
+  ZONE. Read the player's dimension, and the zone on the line, before
+  interpreting either.
 - **`PortalRenderLayers`' filter probe reports `draws` per layer, and only a
   monotonic `draws` says the layer drew in the window.** `unshaded_blended` sits
   flat through an ordinary aperture measurement, so its filter reading is the
