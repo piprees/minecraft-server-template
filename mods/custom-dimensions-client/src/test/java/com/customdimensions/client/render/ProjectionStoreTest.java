@@ -191,6 +191,73 @@ class ProjectionStoreTest {
                 0x78A7FF, 0xC0D8FF, TINTS, COLUMNS, 0.4f)));
     }
 
+    /**
+     * The measured T103 case: the local feed gained chunks, so the states move
+     * and nothing else does. Without the carry the replacement's null mesh
+     * blanks the whole opening until the off-thread build lands.
+     */
+    @Test
+    void aRebuiltFeedKeepsTheMeshOfTheViewItReplaces() {
+        int[] changed = states();
+        changed[CELLS / 2] = 42;
+        assertTrue(ProjectionStore.holdsMeshThrough(payload(), new CompanionPayloads.Projection(
+                DESTINATION, APERTURE_ORIGIN, aperture(), 0, 2, ORIGIN,
+                SIZE_X, SIZE_Y, SIZE_Z, changed, light(),
+                0x78A7FF, 0xC0D8FF, TINTS, COLUMNS, AMBIENT)),
+                "a content-only rebuild dropped the built mesh and blanked the portal");
+    }
+
+    /** The renderer places the mesh at the projection's origin, so a moved box misplaces it. */
+    @Test
+    void aMovedBoxCannotBorrowTheOldMesh() {
+        assertFalse(ProjectionStore.holdsMeshThrough(payload(), new CompanionPayloads.Projection(
+                DESTINATION, APERTURE_ORIGIN, aperture(), 0, 2, ORIGIN.east(),
+                SIZE_X, SIZE_Y, SIZE_Z, states(), light(),
+                0x78A7FF, 0xC0D8FF, TINTS, COLUMNS, AMBIENT)));
+    }
+
+    /** The mesh indexes the grid by these, so a resized box reads it wrongly. */
+    @Test
+    void aResizedBoxCannotBorrowTheOldMesh() {
+        int cells = SIZE_X * (SIZE_Y + 1) * SIZE_Z;
+        assertFalse(ProjectionStore.holdsMeshThrough(payload(), new CompanionPayloads.Projection(
+                DESTINATION, APERTURE_ORIGIN, aperture(), 0, 2, ORIGIN,
+                SIZE_X, SIZE_Y + 1, SIZE_Z, new int[cells], new byte[cells],
+                0x78A7FF, 0xC0D8FF, TINTS, COLUMNS, AMBIENT)));
+    }
+
+    @Test
+    void aChangedApertureCannotBorrowTheOldMesh() {
+        assertFalse(ProjectionStore.holdsMeshThrough(payload(), new CompanionPayloads.Projection(
+                DESTINATION, APERTURE_ORIGIN,
+                List.of(APERTURE_ORIGIN, APERTURE_ORIGIN.up(), APERTURE_ORIGIN.up(2), APERTURE_ORIGIN.up(3)),
+                0, 2, ORIGIN, SIZE_X, SIZE_Y, SIZE_Z, states(), light(),
+                0x78A7FF, 0xC0D8FF, TINTS, COLUMNS, AMBIENT)));
+    }
+
+    @Test
+    void aFlippedNormalCannotBorrowTheOldMesh() {
+        assertFalse(ProjectionStore.holdsMeshThrough(payload(), new CompanionPayloads.Projection(
+                DESTINATION, APERTURE_ORIGIN, aperture(), 0, 3, ORIGIN,
+                SIZE_X, SIZE_Y, SIZE_Z, states(), light(),
+                0x78A7FF, 0xC0D8FF, TINTS, COLUMNS, AMBIENT)));
+    }
+
+    @Test
+    void anotherDestinationCannotBorrowTheOldMesh() {
+        assertFalse(ProjectionStore.holdsMeshThrough(payload(), new CompanionPayloads.Projection(
+                Identifier.of("adventure", "the_violet_spire"), APERTURE_ORIGIN, aperture(), 0, 2,
+                ORIGIN, SIZE_X, SIZE_Y, SIZE_Z, states(), light(),
+                0x78A7FF, 0xC0D8FF, TINTS, COLUMNS, AMBIENT)));
+    }
+
+    /** First sight, and every deliberate drop, leave nothing to carry: draw nothing. */
+    @Test
+    void nothingHeldCarriesNoMesh() {
+        assertFalse(ProjectionStore.holdsMeshThrough(null, payload()));
+        assertFalse(ProjectionStore.holdsMeshThrough(payload(), null));
+    }
+
     /** Nothing held yet is not a match; the first payload must be stored. */
     @Test
     void nothingHeldIsNotAMatch() {

@@ -40,20 +40,25 @@ public final class RealtimeView {
     public static final String BUILD_MARKER = "companion-client:local-projection";
 
     /**
-     * How far past the opening the local view reaches, in blocks. A standing
-     * eye a few blocks back sees the ground only where the sightline through
-     * the opening's bottom edge has descended to meet it, so this is what
-     * decides how much ground a level view holds rather than sky.
+     * How far past the opening the local view reaches, in blocks. An eye below
+     * the opening's top edge sees floor all the way to here, so this is how far
+     * the ground runs before the window ends.
      */
-    public static final int DEPTH = 24;
+    public static final int DEPTH = 48;
 
     /**
-     * How far the box is widened on the two in-plane axes. The sightline
-     * widens with depth, so this bounds {@link #DEPTH}: past the point where
-     * the cone leaves the box sideways the view gains a straight edge, and how
-     * far that is depends on how close the eye stands to the opening.
+     * The eye-distance-to-opening-half-width ratio the box holds the sightline
+     * cone for. At depth {@code d} the cone spans the half-width times
+     * {@code (e + d) / e}, so it stays inside the box while {@code d <= r * e / w}.
      */
-    public static final int RADIUS = 8;
+    public static final int CONE_RATIO = 3;
+
+    /**
+     * How far the box is widened on the two in-plane axes. It bounds
+     * {@link #DEPTH} through {@link #CONE_RATIO}: past that the cone leaves the
+     * box sideways and the view gains a straight edge.
+     */
+    public static final int RADIUS = (DEPTH + CONE_RATIO - 1) / CONE_RATIO;
 
     /** Chunks held at the last build, per opening. A rebuild needs new ones. */
     private static final Map<BlockPos, Integer> BUILT_AT = new HashMap<>();

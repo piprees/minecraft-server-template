@@ -52,6 +52,10 @@ public final class ClientProjection {
     public static final double BAND_LIMIT = 0.90;
 
     private volatile ProjectionMesh mesh;
+
+    /** The replaced view's mesh, drawn until this one's own build lands (T103). */
+    private volatile ProjectionMesh standIn;
+
     private final AtomicBoolean building = new AtomicBoolean();
 
     public ClientProjection(CompanionPayloads.Projection payload) {
@@ -327,9 +331,23 @@ public final class ClientProjection {
         return this.payload.columnTint((lx * sizeZ()) + lz, channel);
     }
 
-    /** The built mesh, or null while there is not one yet. Never builds. */
+    /**
+     * The built mesh, the carried one while this build runs, or null when there
+     * has never been one for this opening. Never builds.
+     */
     public ProjectionMesh meshIfReady() {
-        return this.mesh;
+        ProjectionMesh built = this.mesh;
+        return built != null ? built : this.standIn;
+    }
+
+    /**
+     * Draws the replaced view's mesh until this one's lands. A window a few
+     * ticks stale beats the hole in the world a null mesh leaves (T103).
+     */
+    void carryMeshFrom(ClientProjection previous) {
+        if (this.mesh == null && previous != null) {
+            this.standIn = previous.meshIfReady();
+        }
     }
 
     /**
@@ -346,6 +364,7 @@ public final class ClientProjection {
 
     void adoptMesh(ProjectionMesh built) {
         this.mesh = built;
+        this.standIn = null;
         this.building.set(false);
     }
 

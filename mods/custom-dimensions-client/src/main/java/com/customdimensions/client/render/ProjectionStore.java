@@ -42,6 +42,9 @@ public final class ProjectionStore {
      * included. Replacing it wholesale threw away a built mesh and had it
      * rebuilt from scratch.
      *
+     * <p>A resend that changes only content carries the replaced view's mesh
+     * forward until its own build lands; see {@link #holdsMeshThrough}.
+     *
      * <p>True when this opening had no projection before. The server resends
      * on its own cadence, so first sight is the bounded event and a resend is
      * not.
@@ -54,6 +57,9 @@ public final class ProjectionStore {
                 return held;
             }
             ClientProjection made = new ClientProjection(payload);
+            if (holdsMeshThrough(held == null ? null : held.payload(), payload)) {
+                made.carryMeshFrom(held);
+            }
             if (made.bandOpens() && WARNED.add(key)) {
                 LOGGER.warn("{} aperture={} span={}x{} reach={} over {}: seen obliquely, the "
                                 + "destination is drawn in front of source terrain at the far "
@@ -92,6 +98,28 @@ public final class ProjectionStore {
                 && Arrays.equals(a.tintPalette(), b.tintPalette())
                 && Arrays.equals(a.columnTints(), b.columnTints())
                 && Float.compare(a.ambientLight(), b.ambientLight()) == 0;
+    }
+
+    /**
+     * True when the replaced view was seen through the same opening from the
+     * same box, so its mesh is stale content in the right place and is drawn
+     * until the replacement's own build lands (T103). Anything that moves the
+     * box or the opening would draw it in the wrong place.
+     */
+    public static boolean holdsMeshThrough(CompanionPayloads.Projection held,
+            CompanionPayloads.Projection made) {
+        if (held == null || made == null) {
+            return false;
+        }
+        return held.destination().equals(made.destination())
+                && held.apertureOrigin().equals(made.apertureOrigin())
+                && held.aperture().equals(made.aperture())
+                && held.portalAxis() == made.portalAxis()
+                && held.normal() == made.normal()
+                && held.origin().equals(made.origin())
+                && held.sizeX() == made.sizeX()
+                && held.sizeY() == made.sizeY()
+                && held.sizeZ() == made.sizeZ();
     }
 
     public static void remove(BlockPos apertureOrigin) {
