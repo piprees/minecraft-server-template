@@ -1,9 +1,13 @@
 #!/usr/bin/env python3
-"""verify-arena.py - Prove an arena is the box it claims to be, block by block.
+"""verify-arena.py - Is the arena the shape it claims to be?
 
 Purpose: a four-corner probe passes on an arena with a hole in the middle of a
-         wall. This samples the floor, all four wall faces, the interior air and
-         the absent ceiling, and refuses on the first disagreement.
+         wall. This SAMPLES the floor, all four wall faces, the interior air and
+         the absent ceiling on a --step grid, and refuses on any disagreement.
+         It answers "the box is the right shape", NOT "every block is right":
+         at the default --step 4 the floor grid is 169 of 2401 cells, 7%, so a
+         defect smaller than about 16 contiguous cells fits between the probes.
+         For "every block", run --step 1 and read the answer count.
 Context: template-only, local rig. Read-only — it places no blocks.
 Usage:   verify-arena.py --dim DIM --centre "X Y Z" [--radius 24] [--height 24]
                          [--floor minecraft:gray_concrete] [--wall BLOCK]
@@ -15,6 +19,13 @@ Gotchas: `That position is not loaded` is its own failure, NOT a passing probe
          A forceload is NOT enough: chunks are player-driven, and this refuses
          with ~1050/1213 UNLOADED until a player stands in the dimension.
          --except-box needs an = sign: a bare leading minus reads as an option.
+         Exemptions that remove no probes are free: compare the per-label counts
+         with and without them. Same count means the grid never sampled the
+         exempt cells and the gate was not loosened to earn its exit code.
+         RCON is a shared socket. A reply from another driver can be spliced
+         into this run's answers, shifting every later answer by one and
+         inventing a failure; the answer-count guard catches a DROPPED reply but
+         not an interleaved one. Hold the stack lock while probing.
 """
 from __future__ import annotations
 
