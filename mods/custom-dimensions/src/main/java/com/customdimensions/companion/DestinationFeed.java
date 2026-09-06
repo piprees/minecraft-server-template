@@ -57,8 +57,11 @@ public final class DestinationFeed {
      */
     public static final int DEFAULT_BUDGET = 4;
 
-    /** Ceiling on the fed radius whatever the client asks for, in chunks. */
-    public static final int MAX_RADIUS = 16;
+    /**
+     * Ceiling on the fed radius, in chunks. The same number the client may ask
+     * for, so the depth a player sets is the depth they get.
+     */
+    public static final int MAX_RADIUS = PortalViewPreference.MAX_RENDER_DISTANCE;
 
     /**
      * Chunks each side of the arrival fed whatever the cone says. Two gives a
