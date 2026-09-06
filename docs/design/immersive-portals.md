@@ -617,14 +617,52 @@ Any path adding or removing a `ServerWorld` must fire them: skipping `LOAD` NPEs
 DH on the first portal teleport into a runtime dimension and has locked a player
 out of production once.
 
-**LODs through the aperture are deferred, not impossible**, and the route needs no
-mixin into DH. DH renders from `WorldRenderEvents` handlers that write four public
-mutable fields on `ClientApi.RENDER_STATE` and then call the public
-`renderLods()`. `RenderParams.update` derives the level, its `RenderBufferHandler`
-and the lightmap from `clientLevelWrapper` alone — **choosing the level is a field
-write, not a hook.** The camera is not in that state object; it comes live from
-`mc.gameRenderer.getCamera()`, so a pass that moves the real camera gets DH's
-culling and LOD centring for free.
+**LODs through the aperture need no mixin into DH, and the blocker is not the
+camera — it is the mask.** Read from the 3.2.0-b jar's bytecode; label anything
+built on it static until a runtime rung exists.
+
+**Choosing the level is a field write.** `ClientApi.RENDER_STATE` is a
+`public static final DhRenderState` with five public mutable fields —
+`mcModelViewMatrix`, `mcProjectionMatrix`, `partialTickTime`, `clientLevelWrapper`,
+`vanillaFogEnabled`. `RenderParams.update` derives the level, its
+`RenderBufferHandler`, its `IDhGenericRenderer` and the lightmap from
+`clientLevelWrapper` alone.
+
+**The camera is not among them, and on the render thread DH reads the real one.**
+`RenderParams.update` takes everything else from the state it is passed, then
+reads `MC_RENDER.getCameraExactPosition()` live, which falls through to
+`MinecraftClient.gameRenderer.getCamera().getPos()`. There is one override —
+`IImmersivePortalsAccessor.getActualCameraPos()` — gated on
+`!RenderThreadTaskHandler.isCurrentThread()`, so it is skipped on the render
+thread, which is where `renderLods()` runs. Registering as that accessor is
+impersonating a mod we are not and is ruled out regardless.
+
+**A camera CAN be supplied without moving the real one, one level below
+`ClientApi`.** All four `ClientApi` entry points — `renderLods`,
+`renderDeferredLodsForShaders`, `renderFadeOpaque`, `renderFadeTransparent` — are
+no-arg. But `LodRenderer.INSTANCE` is public and
+`render(RenderParams, IProfilerWrapper)` takes `RenderParams`, whose
+`exactCameraPosition` is a public mutable field on a class with a public
+constructor. Build a `RenderParams`, `update` it, overwrite the camera, call
+`LodRenderer.render` directly. The modelView matrix must be written to match, or
+the geometry is positioned against a camera the transform does not expect.
+Unverified: that `exactCameraPosition` is what the terrain renderer uses for LOD
+selection and origin. It is set and passed; that it is *consulted* is the next
+probe. And `core.render.renderer` is deeper than `ClientApi`, so the pin-bump
+re-verification below applies harder here, not less.
+
+**The unsolved blocker is masking.** 1.21.1's framebuffer carries no stencil
+attachment and the aperture mask is CPU-side quad clipping in `ClippedConsumers`.
+DH draws its own buffers with its own shaders, so its geometry cannot be clipped
+the way ours is, and a scissor rectangle cannot describe an opening seen
+obliquely. **There is no known mechanism to confine a DH draw to a 2x3 opening.**
+That, not the camera, is what the route waits on.
+
+**`spectatorPass` is a warning here, not a prohibition.** What made that path
+unshippable is the second `WorldRenderer.render` per frame; `renderLods()` is not
+`WorldRenderer.render`, so Part 4's rule is not breached by calling it. But
+`SpectatorCamera` is the only camera-moving code in the client mod and it is on
+that dead path, so there is no live precedent to lean on either.
 
 A keyed wrapper is needed before DH will load the level (`RequestLevelInitMessage`);
 its handler checks only that `sendLevelKeys` is on and the level is loaded, **not
@@ -637,12 +675,23 @@ players already online, so a dimension activating after a join serves that playe
 no LODs until they reconnect. Fixable from outside by calling
 `level.registerNetworkHandlers(state)` per online player on `DhApiLevelLoadEvent`.
 
-**Why it waits.** Everything load-bearing is `core.*`/`common.*`, not DH's
-versioned `api`, so every pin bump is a re-verification. The destination must stay
-loaded or there is no key and no data, which idle unload actively fights. And DH's
-own integration with the one other mod that renders dimensions through portals
-answers this situation by **cancelling the LOD render outright** — possibly a
-considered correctness choice we would otherwise re-learn in production.
+**Why it waits.** The mask, first and above everything else — no mechanism
+confines a DH draw to the opening. Then: everything load-bearing is
+`core.*`/`common.*`, not DH's versioned `api`, so every pin bump is a
+re-verification. And the destination must stay loaded or there is no key and no
+data, which idle unload actively fights.
+
+**DH does not cancel the LOD render for portals.** Its ImmersivePortals
+integration is two accommodations, neither of which suppresses a draw:
+`MixinImmersivePortalsRenderStates.preRender` calls `saveVolatileOriginals()`,
+stashing the player's own level, block pos, chunk pos and camera into statics for
+off-render-thread use; and inside `renderLodLayer`, `isRenderingPortal()` gates
+the camera-speed rolling average so a portal pass's camera jumps do not pollute
+that heuristic. **This is not a reason to stay away and must not be quoted as
+one.** Scope of the reading: `ClientApi`, `RenderParams`,
+`MinecraftRenderWrapper_fabric` and the whole IP accessor and mixin surface — not
+every class in a 28.8 MB jar, so "not found" is weaker than "not there". Anyone
+reinstating a cancel-shaped argument must find the cancel first.
 
 ---
 
