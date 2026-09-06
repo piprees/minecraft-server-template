@@ -1653,6 +1653,38 @@ measurement of it.
   the same trap. Pin it against the Java, not against intuition —
   `scripts/e2e/portal-matrix-selftest.sh` is the worked example.
 
+<a id="t106"></a>
+### T106 — There is no sky program to draw a portal's backdrop through
+
+- **Symptom:** an unshaded backdrop reaches the authored fog colour exactly with
+  no pack and saturates to 255 under one, blooming onto the terrain beside the
+  frame. The real sky is at least as bright and does not bloom, which suggests
+  drawing the backdrop through whatever path the sky uses.
+- **There is no such path to bind.** 1.21.1 ships 167 programs under
+  `assets/minecraft/shaders/core/` and none of them is a sky program.
+  `WorldRenderer.renderSky` draws the dome and the stars with
+  `GameRenderer.getPositionProgram` (bytecode 983) and supplies the colour
+  through `RenderSystem.setShaderColor`, the `ColorModulator` uniform. `position`
+  is the same family as `position_color`, which [T99](#t99) measured arriving at
+  `(248,244,246)` — the same blown-out white. Binding it re-runs a measured
+  failure with one fewer vertex attribute.
+- **And the sky pass cannot hold the draw.** `renderSky` sets
+  `RenderSystem.depthMask(false)` (`iconst_0` at bytecode 162) and runs before
+  terrain, so a quad drawn there is painted over by every opaque draw — the
+  hillside a portal is cut into included, which is the case the pass's depth
+  slice exists for. It also sits outside `runPass`, so the slice, both stamps
+  and `writeDepth` are unreachable from it.
+- **Consequence:** a pack treats sky as sky because of WHERE it is drawn in the
+  frame, not because of a program name vanilla exposes. Being treated as sky
+  means being inside `renderSky`, which the depth ordering forbids; anything
+  else means setting the renderer's own phase state, which is detection.
+- **What ships instead:** `apertureUnshadedBackdrop` defaults off, so the
+  backdrop stays on its entity layer — no bloom, and a yaw spread of 18.39
+  across the opening's sky band under a pack against a 0.00 no-pack control.
+  `apertureBackdropGain` attenuates it for anyone who turns the switch on;
+  ~0.52 lands Complementary Reimagined at the reaches, 1.0 is correct with no
+  pack, and no single value serves both.
+
 <a id="t105"></a>
 ### T105 — The portal's shadow is the render LAYER, and it is removable
 
