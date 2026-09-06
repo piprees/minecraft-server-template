@@ -32,6 +32,9 @@ logs/
 # === Seed-rolling artefacts ===
 /.seed-rolling/
 
+# === E2E rig run data (readings, reports) ===
+/.e2e/
+
 __pycache__
 */__pycache__/*
 
