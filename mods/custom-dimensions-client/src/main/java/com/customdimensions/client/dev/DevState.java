@@ -128,6 +128,7 @@ final class DevState {
                 .num("apertureBackdropGain", settings.apertureBackdropGain())
                 .bool("apertureUnshadedBackdrop", settings.apertureUnshadedBackdrop())
                 .str("backdropColors", backdropColors())
+                .bool("bucketRejection", ProjectionRenderer.bucketRejection())
                 .str("apertureStamps", ProjectionRenderer.stampSummary())
                 .str("apertureRenderUs", ProjectionRenderer.lastCost())
                 .str("realtimeBuildUs", RealtimeView.buildCost())

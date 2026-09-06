@@ -272,6 +272,7 @@ public final class DevServer {
                         request.number("pitch", client.player == null ? 0 : client.player.getPitch()));
                 case "use" -> DevBridge.use(client);
                 case "rebuild" -> rebuild();
+                case "buckets" -> buckets(request);
                 case "hud" -> DevBridge.hud(client, request.flag("hidden", true));
                 case "key" -> DevBridge.tap(client,
                         request.value() != null ? request.value() : request.text("name", null));
@@ -279,6 +280,18 @@ public final class DevServer {
             }
             return "{}";
         }));
+    }
+
+    /**
+     * Turns bucket rejection off or on for a measurement. Defaults to on, so a
+     * body with no flag restores it rather than silently leaving it off.
+     */
+    private static String buckets(DevRequest request) {
+        boolean reject = request.flag("reject", true);
+        com.customdimensions.client.render.ProjectionRenderer.bucketRejection(reject);
+        com.customdimensions.client.CustomDimensionsClient.LOGGER.info(
+                "{} bucketRejection={}", REBUILD_MARKER, reject);
+        return "{}";
     }
 
     /** Grepped in the client log to prove a forced rebuild did both halves. */

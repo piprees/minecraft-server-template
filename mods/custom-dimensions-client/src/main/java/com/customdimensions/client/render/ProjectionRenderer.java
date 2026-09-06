@@ -110,6 +110,22 @@ public final class ProjectionRenderer {
     /** Slabs skipped whole this frame, rather than clipped quad by quad. */
     private static int slabsGated;
 
+    /**
+     * Whether a bucket outside the cone is skipped. Off, every bucket is
+     * clipped quad by quad — the same pose and the same content with the
+     * rejection removed, which is the only way to measure what it saves.
+     * A measurement seam, not a preference: it is not persisted.
+     */
+    private static volatile boolean bucketRejection = true;
+
+    public static boolean bucketRejection() {
+        return bucketRejection;
+    }
+
+    public static void bucketRejection(boolean reject) {
+        bucketRejection = reject;
+    }
+
     /** Vertices the clip left standing in the last {@link #emitClipped}. */
     static int clipVertices;
 
@@ -418,8 +434,9 @@ public final class ProjectionRenderer {
                         // A bucket wholly outside the cone cannot contribute a
                         // pixel, and clipping its quads one at a time is most of
                         // what this pass costs.
-                        if (bucketRejected(PLANES, projection.sizeX(), projection.sizeY(),
-                                projection.sizeZ(), layer, shiftX, shiftY, shiftZ)) {
+                        if (bucketRejection
+                                && bucketRejected(PLANES, projection.sizeX(), projection.sizeY(),
+                                        projection.sizeZ(), layer, shiftX, shiftY, shiftZ)) {
                             slabsGated++;
                             continue;
                         }
