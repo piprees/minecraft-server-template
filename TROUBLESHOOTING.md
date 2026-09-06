@@ -1785,6 +1785,11 @@ measurement of it.
   `UNITS_PER_TICK` only stops a slice whose every unit skips. Bounding the peak
   by unit count instead would need about 2,000 units, which is 45 ticks of
   assembly at DEPTH 64.
+- **Meshing is one thread for every opening.** `MeshBuilder.POOL` is a
+  `newSingleThreadExecutor`, and a full-feed mesh measured 219ms on it, so a
+  second portal's mesh waits behind the first's for that long before it starts.
+  Bucket rejection is the only lever that removes work from the mesher itself;
+  clip-time rejection removes work already done.
 - **A slice budget's unit is still a promise about the WALK.** Anything added
   inside it has to be O(1) in the columns already read — a palette scanned
   linearly, a list appended to and searched, breaks the walk's shape rather than
