@@ -99,7 +99,11 @@ public final class RealtimeView {
      */
     private static final int SKIP_CAP = 8;
 
-    /** Chunks held at the last build, per opening. A rebuild needs new ones. */
+    /**
+     * The destination revision at the last build, per opening. Keying on the
+     * chunk COUNT instead freezes the view on a resend ([K11]): a replaced
+     * chunk leaves the count identical, so the walk never restarts.
+     */
     private static final Map<BlockPos, Integer> BUILT_AT = new HashMap<>();
 
     /** Walks in progress, one per opening, resumed a slice at a time. */
@@ -192,23 +196,25 @@ public final class RealtimeView {
     }
 
     /**
-     * Advances one opening's walk when its destination has gained chunks,
-     * a slice per tick. A walk already running is resumed rather than
-     * restarted; only when it finishes does the projection change.
+     * Advances one opening's walk when its destination has taken any chunk it
+     * did not hold at the last build — a new one or a resent one — a slice per
+     * tick. A walk already running is resumed rather than restarted; only when
+     * it finishes does the projection change.
      */
     private static void rebuildIfFed(CompanionPayloads.PortalFrame frame) {
         int held = DestinationChunks.count(frame.destination());
         if (held == 0) {
             return;
         }
+        int revision = DestinationChunks.revision(frame.destination());
         BlockPos key = frame.apertureOrigin();
         Scan scan = SCANS.get(key);
         if (scan == null) {
             Integer builtAt = BUILT_AT.get(key);
-            if (builtAt != null && builtAt == held) {
+            if (builtAt != null && builtAt == revision) {
                 return;
             }
-            scan = Scan.start(frame, held);
+            scan = Scan.start(frame, revision);
             if (scan == null) {
                 return;
             }
@@ -234,11 +240,12 @@ public final class RealtimeView {
         }
         SCANS.remove(key);
         lastCells = built.states().length;
-        BUILT_AT.put(key, scan.chunksAtStart);
+        BUILT_AT.put(key, scan.revisionAtStart);
         ProjectionStore.accept(built);
-        CustomDimensionsClient.LOGGER.info("{} dimension={} aperture={} cells={} chunks={}",
+        CustomDimensionsClient.LOGGER.info(
+                "{} dimension={} aperture={} cells={} chunks={} revision={}",
                 BUILD_MARKER, frame.destination(), key.toShortString(),
-                built.states().length, held);
+                built.states().length, held, scan.revisionAtStart);
     }
 
     /**
@@ -253,7 +260,7 @@ public final class RealtimeView {
     private static final class Scan {
 
         private final CompanionPayloads.PortalFrame frame;
-        private final int chunksAtStart;
+        private final int revisionAtStart;
         private final int[] origin;
         private final int sizeX;
         private final int sizeY;
@@ -273,12 +280,12 @@ public final class RealtimeView {
         private final BlockPos.Mutable at = new BlockPos.Mutable();
         private BoxScan progress;
 
-        private Scan(CompanionPayloads.PortalFrame frame, int chunksAtStart,
+        private Scan(CompanionPayloads.PortalFrame frame, int revisionAtStart,
                 int[] origin, int sizeX, int sizeY, int sizeZ,
                 int ordinalA, int ordinalB, int normalOrdinal,
                 int leadA, int leadB, int spanA, int spanB, int sizeN, boolean towardsHigh) {
             this.frame = frame;
-            this.chunksAtStart = chunksAtStart;
+            this.revisionAtStart = revisionAtStart;
             this.origin = origin;
             this.ordinalA = ordinalA;
             this.ordinalB = ordinalB;
@@ -299,7 +306,7 @@ public final class RealtimeView {
         }
 
         /** The box's shape and its arrays. Reads no blocks. */
-        static Scan start(CompanionPayloads.PortalFrame frame, int chunksAtStart) {
+        static Scan start(CompanionPayloads.PortalFrame frame, int revisionAtStart) {
             if (frame.aperture().isEmpty()) {
                 return null;
             }
@@ -336,7 +343,7 @@ public final class RealtimeView {
             size[axisB.ordinal()] = volume.sizeB();
             origin[normalAxis.ordinal()] = volume.originN();
             size[normalAxis.ordinal()] = volume.sizeN();
-            return new Scan(frame, chunksAtStart, origin, size[0], size[1], size[2],
+            return new Scan(frame, revisionAtStart, origin, size[0], size[1], size[2],
                     axisA.ordinal(), axisB.ordinal(), normalAxis.ordinal(),
                     minA - volume.originA(), minB - volume.originB(),
                     maxA - minA + 1, maxB - minB + 1, volume.sizeN(), towardsHigh);

@@ -20,6 +20,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Feeds the destination's chunks to a client that draws the far side itself.
@@ -96,6 +97,13 @@ public final class DestinationFeed {
 
     /** Per player, per destination, consecutive pumps that wrote nothing. */
     private static final Map<UUID, Map<Identifier, Integer>> IDLE = new ConcurrentHashMap<>();
+
+    /**
+     * Records dropped by {@link #invalidate}. Monotonic for the life of the
+     * process, so two readings subtract to a count over a window and a reading
+     * of zero means no block change ever reached a viewer.
+     */
+    private static final AtomicLong INVALIDATED = new AtomicLong();
 
     private DestinationFeed() {}
 
@@ -277,6 +285,34 @@ public final class DestinationFeed {
         IDLE.clear();
     }
 
+    /**
+     * Drops one chunk from every viewer's record of this destination, so the
+     * next pass sends it again ([K11]). Without it a chunk is sent once and a
+     * build on the far side never reaches anyone looking through the frame.
+     *
+     * <p>Called from every block change in every world, so the empty-record
+     * guard is the whole cost on a server nobody is watching a portal on.
+     * Repeated calls for one chunk between passes collapse to a single resend:
+     * the key is already gone by the second.
+     */
+    public static void invalidate(Identifier destination, int chunkX, int chunkZ) {
+        if (destination == null || SENT.isEmpty()) {
+            return;
+        }
+        long key = chunkKey(chunkX, chunkZ);
+        for (Map<Identifier, Set<Long>> perDestination : SENT.values()) {
+            Set<Long> sent = perDestination.get(destination);
+            if (sent != null && sent.remove(key)) {
+                INVALIDATED.incrementAndGet();
+            }
+        }
+    }
+
+    /** Chunk records dropped for resending. */
+    public static long invalidations() {
+        return INVALIDATED.get();
+    }
+
     /** How many chunks this client holds for this destination. */
     public static int sentCount(UUID playerId, Identifier destination) {
         Map<Identifier, Set<Long>> perDestination = SENT.get(playerId);
@@ -326,9 +362,11 @@ public final class DestinationFeed {
         // (wanted above 0, written 0) — the state that draws sky forever.
         if (written > 0 || reportsIdle(idle)) {
             MultiverseServer.LOGGER.debug(
-                    "{} player={} dimension={} sent={} wanted={} held={} radius={} idlePumps={}",
+                    "{} player={} dimension={} sent={} wanted={} held={} radius={} idlePumps={} "
+                            + "invalidated={}",
                     FEED_MARKER, player.getNameForScoreboard(), destination,
-                    written, wanted.size(), sent.size(), Math.min(MAX_RADIUS, radius), idle);
+                    written, wanted.size(), sent.size(), Math.min(MAX_RADIUS, radius), idle,
+                    INVALIDATED.get());
         }
         return written;
     }

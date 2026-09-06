@@ -110,6 +110,9 @@ final class DevState {
                     .bool("worldStanding", held.containsKey(destination))
                     .num("chunksInWorld", held.getOrDefault(destination, 0))
                     .num("chunksReceived", received.getOrDefault(destination, 0))
+                    // Climbs on a resend while chunksReceived holds, which is
+                    // what separates a redrawn view from a lucky repaint.
+                    .num("chunkRevision", DestinationChunks.revision(destination))
                     .num("renderedSections", DestinationWorlds.renderedSections(destination))
                     .num("entities", DestinationEntities.count(destination))
                     .raw("entityIds", Json.strings(DestinationEntities.heldIds(destination)))
@@ -151,6 +154,7 @@ final class DevState {
                 .num("destinationEntities", DestinationEntities.total())
                 // Monotonic. Two readings subtract to a count over a window;
                 // zero means the path never ran.
+                .num("destinationChunkAccepts", DestinationChunks.accepts())
                 .num("entitySnapshots", DestinationEntities.snapshots())
                 .num("entitySnapshotsDropped", DestinationEntities.snapshotsDropped())
                 .num("entitiesSpawned", DestinationEntities.spawned())

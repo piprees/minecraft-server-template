@@ -20,6 +20,7 @@
     "PlayerRespawnRedirectMixin",
     "PortalIgnitionMixin",
     "ServerChunkLoadingManagerMixin",
+    "ServerWorldBlockChangeMixin",
     "ServerWorldMixin",
     "ServerWorldSeedMixin",
     "SimpleRegistryAccessor",
