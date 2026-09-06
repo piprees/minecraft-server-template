@@ -8,6 +8,51 @@ loading-screen suppression.
 Not shipped in the stack bundle, not referenced by `ops` or `dev`, so it is
 absent from `build-stack-bundle.sh`'s `MANIFEST` by design.
 
+## Build the rig before you measure anything — [`build-the-rig.md`](build-the-rig.md)
+
+**The rig is the only fixture whose blocks may be edited**, and every
+destination-side measurement reads through it: light curves, face shades, view
+depth, the companion feed. It is three parts — the dimension pair, the arena,
+and the portal between them — and each one missing fails *silently*.
+
+```bash
+./scripts/e2e/build-e2e-portal.sh     # PORTAL-BUILT, or the two things to check
+```
+
+Full instructions, the load-bearing build order, and the three-way verification:
+**[`build-the-rig.md`](build-the-rig.md)**.
+
+### Why this has its own document
+
+A missing rig does not look like a missing rig. It looks like a null result.
+
+`fill` answers `That position is not loaded` and returns success. `execute in`
+answers `Unknown dimension` and the command behind it never runs. A screenshot
+comes back correctly exposed, correctly framed, and of the wrong portal. Nothing
+in a run's output says "there is no instrument here" unless you check
+`destinationChunks` and refuse to read the frame when it is zero.
+
+### What it has cost
+
+`portal_links.json` held 43 links and **not one** mentioning `e2e_one` or
+`e2e_two`. The rig portal was simply gone, and nothing reported it.
+
+In one session that cost **four fixture runs that produced nothing** — two
+occluder attempts, an orientation test and a feed-staleness test — at roughly
+five minutes each plus the analysis spent on void data. Worse than the time:
+**two of those runs silently measured the live reaches portal instead of the
+grey box**, came back with clean-looking numbers, and were within one step of
+being written up as grey-box findings. The whole light-term investigation was
+unmeasurable for the same reason, and was handed on unresolved.
+
+An earlier session recorded the same disappearance as "the rig's e2e portal zone
+loss is unexplained" and moved on. It has now happened at least twice, so
+treat rebuilding as routine rather than as evidence something is wrong.
+
+**Run `rig-ready.sh` and check `destinationChunks` before believing any
+reading.** A frame photographed through a portal that does not exist is not a
+measurement of anything.
+
 ## The two instruments
 
 Every assertion reads one of these. Nothing parses an RCON reply for data, and
