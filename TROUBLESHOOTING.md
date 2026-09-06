@@ -58,6 +58,8 @@ Run this first. It covers deploy drift, disk, every expected container, `ONLINE_
 | A portal renders once, then draws sky on every approach after a traversal | [T93](#t93), [T94](#t94) |
 | A portal's far side is thin and never fills, at 7 chunks and 0 render sections | [T95](#t95) |
 | A portal's far side does not zoom when a spyglass, a drawn bow or a speed effect zooms the world | [T96](#t96) |
+| Two screenshots of a frozen, empty scene still differ; a flat wall reports 40-70% of its pixels changed | [T102](#t102) |
+| Portal dust still drifts in the opening with `"particleType": null`, and a quiet-gate says the rig is quiet | [T101](#t101) |
 | Structure spacing arithmetic disagrees with the world | [T51](#t51) |
 | mc watchdog-crashes a few minutes after a local world reset, parked in `save-all` | [T57](#t57) |
 | The same few structures repeat endlessly in one dimension | [T52](#t52) |
@@ -1647,6 +1649,54 @@ measurement of it.
   in Python (`%` on negatives, `>>` on signed ints, float-to-int narrowing) has
   the same trap. Pin it against the Java, not against intuition —
   `scripts/e2e/portal-matrix-selftest.sh` is the worked example.
+
+<a id="t102"></a>
+### T102 — A scene cannot be photographed twice identically while a shader pack is loaded
+
+- **Symptom:** two screenshots of a scene with nothing in it moving — time
+  frozen, weather clear, `tick freeze` on, no mobs, no growth — still differ.
+  A flat concrete wall reports 42-69% of its pixels changed between frames.
+- **Cause:** the pack's own per-frame temporal noise. It is zero-mean and
+  symmetric (`+29.1%` of pixels up against `-26.9%` down, mean `+0.003`), it
+  survives `tick freeze`, and its amplitude varies by surface, so a wall washes
+  at 60% while a floor in the same frame sits at 2%. Signed-mean per box is what
+  separates it from exposure, tonemap or colour-profile drift, which are
+  whole-frame and one-signed.
+- **Measured:** peak channel delta 3 on walls with the pack loaded; **0 across
+  every box with `enableShaders=false` and `tick freeze`** — same camera, same
+  scene, three frames.
+- **So there are two benchmarks, not one.** Shaders off plus `tick freeze` is
+  bit-identical and is what a geometry, clip or presence question is measured
+  in. Shaders on has a noise floor that must be measured from control boxes on
+  the same pair, and an effect only counts if it exceeds it. Do not quote a
+  shader-on number without its floor, and do not report a shader-off number as
+  describing what a player sees.
+- `scripts/e2e/frame-identity.py` is the acceptance test. Threshold 0, per box.
+
+<a id="t101"></a>
+### T101 — `particleType: null` turns portal particles ON, and the frame ring has no switch at all
+
+- **Symptom:** a dimension config sets `"particleType": null` and dust still
+  drifts in the opening and on every frame block. A gate reading that key
+  reports the rig quiet while the particles are on screen.
+- **Cause:** null and absent both fall through to a default `DustParticleEffect`
+  — `PortalHelper.apertureEffect:1460`, `emitImmersiveArrivals:1502` and
+  `resolveParticleFromTarget:2230`. The aperture's real floor is
+  `PortalAperture.emittingCells:170`, which returns nothing at
+  `particleDensity <= 0`; that value comes from `portal.immersive` on the
+  **target** world's config (`PortalHelper:841`), and an ABSENT `immersive` key
+  means enabled at 0.35, not off.
+- **Fix:** `"immersive": {"particleDensity": 0}` in the target dimension's
+  config, then `./dev refresh-config` ([T78](#t78)). Every other immersive field
+  keeps its absent-key default, so the projection is unchanged.
+- **Never use `"immersive": false`.** That returns null and `spawnParticles`
+  falls to `PLAIN_DENSITY = 1.0` on a 1-tick interval — strictly worse.
+- **Two frame-ring emitters ignore density entirely:** `PortalHelper:1587` and
+  `ImmersiveProjector.spawnEdgeParticles:960`, the second gated only on
+  `projecting`. **The ring is emitted if and only if the projection is active**,
+  so a still frame ring and a live projection cannot both be had. Crop the ring
+  out of any measured box and carry its noise floor, or accept that the
+  benchmark is not showing a player's view.
 
 <a id="t100"></a>
 ### T100 — A shader pack shades a portal's whole opening from the doorway
