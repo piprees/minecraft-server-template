@@ -122,6 +122,24 @@ public final class ProjectionStore {
                 && held.sizeZ() == made.sizeZ();
     }
 
+    /**
+     * Queues a fresh mesh for every held projection, each drawing the one it
+     * replaces until the new one lands. Returns how many were queued.
+     *
+     * <p>An unchanged box produces an identical payload, which {@link
+     * #sameContent} keeps — so a forced walk alone never builds a mesh, and
+     * this is what makes the build measurable without editing the world.
+     */
+    public static int remeshAll() {
+        int queued = 0;
+        for (ClientProjection projection : PROJECTIONS.values()) {
+            if (projection.remesh()) {
+                queued++;
+            }
+        }
+        return queued;
+    }
+
     public static void remove(BlockPos apertureOrigin) {
         PROJECTIONS.remove(apertureOrigin);
     }

@@ -398,6 +398,24 @@ public final class ClientProjection {
         peakMeshNanos = Math.max(peakMeshNanos, waited);
     }
 
+    /**
+     * Hands the built mesh to the stand-in slot and clears it, so the next
+     * frame builds it again while the old one keeps drawing. The stand-in is
+     * set before the mesh is cleared, so no frame sees neither.
+     *
+     * <p>False when there is nothing to displace or a build is already
+     * running — the measurement seam, not a render path.
+     */
+    boolean remesh() {
+        ProjectionMesh built = this.mesh;
+        if (built == null || this.building.get()) {
+            return false;
+        }
+        this.standIn = built;
+        this.mesh = null;
+        return true;
+    }
+
     /** Frees the claim so a build that could not run is retried next frame. */
     void abandonBuild() {
         this.building.set(false);

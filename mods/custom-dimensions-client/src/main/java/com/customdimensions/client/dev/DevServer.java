@@ -271,7 +271,7 @@ public final class DevServer {
                         request.number("yaw", client.player == null ? 0 : client.player.getYaw()),
                         request.number("pitch", client.player == null ? 0 : client.player.getPitch()));
                 case "use" -> DevBridge.use(client);
-                case "rebuild" -> RealtimeView.rebuildAll();
+                case "rebuild" -> rebuild();
                 case "hud" -> DevBridge.hud(client, request.flag("hidden", true));
                 case "key" -> DevBridge.tap(client,
                         request.value() != null ? request.value() : request.text("name", null));
@@ -279,6 +279,21 @@ public final class DevServer {
             }
             return "{}";
         }));
+    }
+
+    /** Grepped in the client log to prove a forced rebuild did both halves. */
+    public static final String REBUILD_MARKER = "companion-client:rebuild";
+
+    /**
+     * Both halves of a forced rebuild: the box walk, and the mesh it feeds.
+     * The walk alone re-reads the same blocks and the store keeps the mesh it
+     * already holds, so nothing would be built.
+     */
+    private static void rebuild() {
+        int walked = RealtimeView.rebuildAll();
+        int remeshed = com.customdimensions.client.render.ProjectionStore.remeshAll();
+        com.customdimensions.client.CustomDimensionsClient.LOGGER.info(
+                "{} openings={} remeshed={}", REBUILD_MARKER, walked, remeshed);
     }
 
     /** Before and after, both ways, for every action that is not a walk. */

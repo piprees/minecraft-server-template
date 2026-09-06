@@ -36,4 +36,14 @@ class ClientLogMarkerContractTest {
     void viewMarker() {
         assertEquals("companion-client:portal-view", CustomDimensionsClient.VIEW_MARKER);
     }
+
+    /**
+     * A forced rebuild reports both halves. Zero remeshed with openings above
+     * zero means the walk ran and the store kept the mesh it already had.
+     */
+    @Test
+    void rebuildMarker() {
+        assertEquals("companion-client:rebuild",
+                com.customdimensions.client.dev.DevServer.REBUILD_MARKER);
+    }
 }
