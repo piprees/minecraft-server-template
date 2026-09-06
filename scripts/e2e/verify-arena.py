@@ -12,7 +12,8 @@ Usage:   verify-arena.py --dim DIM --centre "X Y Z" [--radius 24] [--height 24]
 Gotchas: `That position is not loaded` is its own failure, NOT a passing probe
          and NOT `Test failed` — an unloaded chunk answers every question with
          silence and is how an arena gets declared built when nothing was placed.
-         Forceload the region before running this.
+         A forceload is NOT enough: chunks are player-driven, and this refuses
+         with ~1050/1213 UNLOADED until a player stands in the dimension.
          --except-box needs an = sign: a bare leading minus reads as an option.
 """
 from __future__ import annotations
