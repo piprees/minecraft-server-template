@@ -50,10 +50,6 @@ public final class QuadCapture implements VertexConsumer {
         return this.size;
     }
 
-    public boolean isEmpty() {
-        return this.size == 0 && !this.started;
-    }
-
     @Override
     public VertexConsumer vertex(float x, float y, float z) {
         commit();
