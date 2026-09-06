@@ -7,13 +7,17 @@
 #          twice. It changes world state (time, weather, gamerules), so it is
 #          for the local rig and refuses to touch anything else.
 # Usage:   rig-quiet.sh [--dim DIM ...]   (repeatable; defaults to the rig pair)
-# Gotchas: portal particles are per-dimension config, not a gamerule — the
-#          overworld ships `minecraft:cloud` and it lands IN the opening, which
-#          is the box most measurements crop. This reports it and cannot fix it
-#          without a config change plus `./dev refresh-config`.
-#          Hiding the HUD is NOT possible from the bridge yet: DevBridge.binding
-#          exposes vanilla `client.options.*Key` only, and hide-GUI lives in
-#          Keyboard.onKey. `options.hudHidden` needs a bridge command.
+# Gotchas: `particleType` is NOT the particle switch. A null or absent one falls
+#          through to a default dust in all three of PortalHelper.java:1460, :1502
+#          and :2230. The switch is `portal.immersive.particleDensity`, which
+#          PortalAperture.emittingCells floors at <= 0; an ABSENT `immersive` key
+#          means enabled at 0.35, not off. `"immersive": false` is worse still —
+#          it falls to PLAIN_DENSITY 1.0 every tick.
+#          Two frame-ring emitters ignore density entirely: PortalHelper.java:1587
+#          and ImmersiveProjector.spawnEdgeParticles:960. The second is gated only
+#          on `projecting`, so the RING CANNOT BE SILENCED while the projection is
+#          active. Crop it out and carry its noise floor; do not expect it static.
+#          Settings come from the TARGET world's config (PortalHelper.java:841).
 set -euo pipefail
 
 CONSUMER_DIR="${CONSUMER_DIR:-$HOME/Projects/elfydd}"
@@ -81,7 +85,7 @@ for d in $DIMS; do
     FAIL=1
     continue
   fi
-  read -r particles light aura <<EOF
+  read -r density light aura <<EOF
 $(python3 -c "
 import json
 d = json.load(open('$f'))
@@ -89,10 +93,23 @@ p = (d.get('overrides') or d).get('portal') or {}
 if isinstance(p, list):
     p = p[0] if p else {}
 a = p.get('aura') or {}
-print(p.get('particleType'), p.get('lightLevel'), a.get('enabled'))" 2>/dev/null)
+imm = p.get('immersive')
+# Absent or true means enabled at the default density; false falls to PLAIN 1.0.
+if imm is None or imm is True:
+    density = 0.35
+elif imm is False:
+    density = 1.0
+else:
+    density = imm.get('particleDensity', 0.35)
+print(density, p.get('lightLevel'), a.get('enabled'))" 2>/dev/null)
 EOF
-  say "$d ($(basename "$(dirname "$(dirname "$f")")")): particles=$particles lightLevel=$light aura.enabled=$aura"
-  [ "$particles" = "None" ] || { say "  REFUSED: particles land IN the opening, which is the box every crop uses"; FAIL=1; }
+  say "$d ($(basename "$(dirname "$(dirname "$f")")")): particleDensity=$density lightLevel=$light aura.enabled=$aura"
+  case "$density" in
+    0|0.0|0.00) ;;
+    *) say "  REFUSED: particleDensity $density emits dust INTO the opening, which is the box every crop uses"
+       say "           set portal.immersive.particleDensity to 0 in the TARGET world's config, then ./dev refresh-config"
+       FAIL=1;;
+  esac
   [ "$light" = "0" ] || { say "  REFUSED: lightLevel $light is a light source beside the thing being measured"; FAIL=1; }
   [ "$aura" = "False" ] || { say "  REFUSED: the aura REWRITES terrain around the portal between frames"; FAIL=1; }
 done
@@ -101,4 +118,7 @@ if [ "$FAIL" -ne 0 ]; then
   say "NOT QUIET — fix the refusals above before quoting a number."
   exit 1
 fi
-say "quiet. Time frozen at 6000, weather clear, queue idle, no particles, no portal light, no aura."
+say "quiet. Time frozen at 6000, weather clear, queue idle, no aperture dust, no portal light, no aura."
+say "STILL MOVING, and no config silences it: the frame ring. ImmersiveProjector"
+say "  .spawnEdgeParticles:960 dusts every frame block every 10 ticks whenever the"
+say "  projection is active. Crop the ring out of any measured box."
