@@ -1659,6 +1659,26 @@ measurement of it.
   the same trap. Pin it against the Java, not against intuition —
   `scripts/e2e/portal-matrix-selftest.sh` is the worked example.
 
+<a id="t113"></a>
+### T113 — At full sky both light curves read 1.0, so the grey box cannot see a light-term defect at all
+
+- **Symptom:** a change to the portal's light term reads byte-identical in the
+  e2e fixture, and a reading taken there is quoted as evidence the term is
+  correct. A defect that only appears below full sky passes every test.
+- **Cause:** `AmbientLift.brightness(15, ambient)` is exactly `1.0` for every
+  ambient, and vanilla's lightmap gamma lift is identity at `1.0`. At sky 15
+  the raw curve and the lifted curve agree whatever else differs between them.
+  `e2e_one` and `e2e_two` are open superflats — `destWorldLight` reads sky 15
+  in 125 of 125 cells — so the whole fixture sits at that one level.
+- **Measure a light-curve claim under an occluder.** A slab two blocks over
+  part of the destination floor drops it to sky 11-13, and the ratio of shaded
+  to open floor in ONE frame is `UnshadedDestination.scale(level)`: about 0.63
+  raw against 0.80 lifted at sky 12, which no fixture at sky 15 can separate.
+- **An agreement with a vanilla constant is a hypothesis, not a confirmation.**
+  The face shades are 1.0 / 0.8 / 0.6 / 0.5 and the brightness curve passes
+  near them at several levels, so a crop landing on one has at least two
+  explanations. Run the test that could kill it before committing the fix.
+
 <a id="t112"></a>
 ### T112 — A rebuilt CLIENT mod does not reach the running client, and every reading is then a jar behind
 
