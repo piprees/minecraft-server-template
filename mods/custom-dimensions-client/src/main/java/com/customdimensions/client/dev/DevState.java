@@ -53,6 +53,9 @@ import java.util.function.ToDoubleFunction;
  */
 final class DevState {
 
+    /** Samples per axis of the destination-world light probe. */
+    private static final int LIGHT_LATTICE = 5;
+
     /** Floats per vertex times four vertices. */
     private static final int FLOATS_PER_QUAD = QuadCapture.STRIDE * 4;
 
@@ -350,6 +353,7 @@ final class DevState {
                     .raw("layers", layers(mesh))
                     .raw("clip", clip(aperture))
                     .raw("destLight", light(LightFacts.ofPacked(projection.payload().light())))
+                    .raw("destWorldLight", light(destinationWorldLight(projection)))
                     .raw("meshLight", light(meshLight(mesh)))
                     .raw("ambient", ambient(projection, mesh))
                     .raw("tints", tints(projection))
@@ -412,6 +416,51 @@ final class DevState {
     }
 
     /** Every layer's vertices as one reading — the mesh's own lightmap levels. */
+    /**
+     * What the destination world reports NOW across the box, against
+     * {@code destLight}'s record of what it reported when the box was walked.
+     *
+     * <p>Both low: the world has no light and no rebuild will help. This high
+     * and {@code destLight} low: the walk ran before the light arrived, and a
+     * {@code rebuild} recovers it. Sampled on a lattice, not every cell — the
+     * bridge is read from the render thread.
+     */
+    private static LightFacts destinationWorldLight(ClientProjection projection) {
+        ClientWorld destination = DestinationWorlds.get(projection.payload().destination());
+        if (destination == null) {
+            return LightFacts.EMPTY;
+        }
+        // The offset into the destination lives on the frame, not the payload;
+        // without one this opening is server-described and has no local box.
+        CompanionPayloads.PortalFrame frame =
+                PortalFrames.get(projection.apertureOrigin());
+        if (frame == null) {
+            return LightFacts.EMPTY;
+        }
+        BlockPos origin = projection.origin();
+        byte[] packed = new byte[LIGHT_LATTICE * LIGHT_LATTICE * LIGHT_LATTICE];
+        BlockPos.Mutable at = new BlockPos.Mutable();
+        int written = 0;
+        for (int i = 0; i < LIGHT_LATTICE; i++) {
+            for (int j = 0; j < LIGHT_LATTICE; j++) {
+                for (int k = 0; k < LIGHT_LATTICE; k++) {
+                    at.set(origin.getX() + span(i, projection.sizeX()) + frame.dx(),
+                            origin.getY() + span(j, projection.sizeY()) + frame.dy(),
+                            origin.getZ() + span(k, projection.sizeZ()) + frame.dz());
+                    packed[written++] = (byte)
+                            ((destination.getLightLevel(LightType.SKY, at) << 4)
+                                    | destination.getLightLevel(LightType.BLOCK, at));
+                }
+            }
+        }
+        return LightFacts.ofPacked(packed);
+    }
+
+    /** Lattice step {@code i} of {@code LIGHT_LATTICE} across an axis. */
+    private static int span(int step, int size) {
+        return size <= 1 ? 0 : step * (size - 1) / (LIGHT_LATTICE - 1);
+    }
+
     private static LightFacts meshLight(ProjectionMesh mesh) {
         if (mesh == null) {
             return LightFacts.EMPTY;
