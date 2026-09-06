@@ -60,6 +60,7 @@ Run this first. It covers deploy drift, disk, every expected container, `ONLINE_
 | A portal's far side does not zoom when a spyglass, a drawn bow or a speed effect zooms the world | [T96](#t96) |
 | The portal flashes while you walk near it and is steady when you stand still | [T103](#t103) |
 | Nearly every quad of the portal mesh is clipped away each frame | [T108](#t108) |
+| Luma numbers through a portal disagree between runs or regress | [T111](#t111) |
 | `data get entity` says `No entity was found` for a player `list` shows online | [T110](#t110) |
 | `Unknown dimension` for a dimension the boot log registered | [T109](#t109) |
 | A second WorldRenderer for the destination smears the screen, and re-entering lower does not fix it | [T104](#t104) |
@@ -1656,6 +1657,30 @@ measurement of it.
   in Python (`%` on negatives, `>>` on signed ints, float-to-int narrowing) has
   the same trap. Pin it against the Java, not against intuition —
   `scripts/e2e/portal-matrix-selftest.sh` is the worked example.
+
+<a id="t111"></a>
+### T111 — The live portal view is not a benchmark, so every luma number taken in it is void
+
+- **Symptom:** shadow, contrast and brightness figures taken through a portal
+  disagree between runs, or improve after a change and then come back. Running
+  `scripts/e2e/frame-identity.py` over three screenshots of the view with
+  NOTHING touched — no input, no movement — prints `NOT A BENCHMARK` with
+  46-51% of the opening's pixels differing and a peak channel delta of 105.
+- **Cause:** two movers, neither of them the thing under test. The destination's
+  own **animated blocks** — water is the usual one — redraw every frame, which
+  the difference map shows as a dense regular grid. Over them a shader pack's
+  **temporal accumulation** lays about a 1-level wash across the whole frame,
+  which is why even a sky-band crop moves. A portal aura ([D-series aura
+  settings](#t50)) rewrites terrain around the frame between passes and adds a
+  third if it is enabled, and `aura.enabled` ABSENT means the aura RUNS.
+- **Fix:** measure in the e2e rig, not the live world. Flat untintable concrete
+  under `fixedTime`, `portal.lightLevel: 0`, `portal.aura.enabled: false`,
+  `portal.immersive.particleDensity: 0`, and no water, grass, leaves, lava or
+  ice in either dimension. Gate every session with
+  `scripts/e2e/rig-quiet.sh` and then `frame-identity.py` at threshold 0, and
+  quote no number until both pass. With a pack loaded, threshold 0 may be
+  unreachable at all — then the frame-identity figure taken at the SAME pose is
+  the noise floor, and a result only counts above it.
 
 <a id="t110"></a>
 ### T110 — `data get entity` batched into one `rcon-cli` answers for the wrong command
