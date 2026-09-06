@@ -47,12 +47,19 @@ capture, and it surrounds the thing being measured — so it is the ruler.
 
 ### The procedure, per captured frame
 
-1. **Find the frame.** Match pixels against the frame block's exact known RGB.
-   That RGB is itself a MEASURED value from the base state (Step 4), not an
-   assumed one.
+1. **Find the frame.** Match against the whole **MAGENTA class** — every shade
+   variant of the frame block, not one RGB. A cube has faces at different
+   shades and they are all the frame. Each variant's value is MEASURED in the
+   base state (Step 4), never assumed.
 2. **Derive the opening from the frame.** The matched pixels form the ring.
    The opening is the region it encloses. Its corners and edges are read from
    the ring, in pixels, in this frame.
+**The frame's own colour legitimately appears INSIDE the enclosed region.** At
+   oblique angles the ring's inner faces project into the opening — the frame is
+   a block thick and you are seeing through a short tunnel. That is correct
+   rendering, not leakage, and any assertion phrased as "nothing but the
+   destination inside the ring" is false as stated.
+
 3. **Place the sample points relative to that opening.** Each named sample
    point is defined by its position *within the located opening* — its
    corners, its centre, its edge midpoints, and named insets from them.
@@ -80,9 +87,31 @@ capture, and it surrounds the thing being measured — so it is the ruler.
 - Present and fully visible in **every** frame in the matrix, or that frame is
   out of scope.
 
+### The ring is not visible from every pose — that is planned, not rejected
+
+At 70 degrees FOV with the 8 cardinal directions, **most poses cannot see the
+whole ring**, and positions due east and west see an X-axis frame edge-on with
+no opening at all.
+
+So **an in-view predicate is computed for every pose before capture** and
+written into the run plan:
+
+| `ring_in_view` | assertions that apply |
+| --- | --- |
+| `true` | ring located, interior classified, full assertion set |
+| `false` | **global assertions only** — no destination colour anywhere in frame, `OTHER` count and location |
+
+**No frame is discarded for not showing the ring.** A pose facing away from the
+portal is still evidence: the destination's colour must not appear in it, and
+`OTHER` must be empty. That is a real assertion and it catches leakage that a
+portal-facing pose cannot.
+
+Rejection below is for frames that **should** show the ring and do not.
+
 ### Rejection is part of the measurement
 
-A frame is discarded, and produces no readings, if:
+A frame **whose pose says `ring_in_view: true`** is discarded, and produces no
+readings, if:
 
 - the frame colour is not found;
 - the matched pixels are not one connected ring;
@@ -192,11 +221,21 @@ real player can actually occupy — see Step 10.
 
 **540 positions x 8 directions = 4,320 frames per pass.**
 
-### Repeats
+### Repeats — up to 3, per assertion, to absorb flakiness
 
-The full cycle runs **3 times**, to expose animation, timing and any
-non-determinism. A value that is not identical across all three repeats is a
-finding in itself.
+**Not** "run the whole matrix three times and demand identical values".
+
+An assertion that fails is **retried, up to 3 attempts, on its own**. Particles,
+animation and random variation should not fail a run, and re-running the entire
+session to settle one value is waste.
+
+- Only the **failing assertion** retries. Nothing else re-runs.
+- If all 3 attempts fail, **only that assertion fails**.
+- **The run continues** — a failed assertion never ends the session.
+- The only thing that stops a run is a **blocking failure that physically
+  prevents continuing** (client gone, server gone, fixture unbuildable).
+- The attempt count and each attempt's value are recorded, so a value that
+  needed 3 tries is visibly less solid than one that passed first time.
 
 ### The passes
 
@@ -344,8 +383,8 @@ The only difference between them is the portal. That is what makes them
 subtractable: any pixel that differs between the unlit and lit frame at the
 same position, angle and coordinate is the portal's doing and nothing else.
 
-`540 positions x 8 directions x 3 repeats x 2 frame-states x 2 shader-states`,
-**run in BOTH dimensions**. See Step 9 for the full count.
+`540 positions x 8 directions x 2 frame-states x 2 shader-states`, **run in
+BOTH dimensions**. See Step 9 for the count.
 
 ### What can OTHER possibly be?
 
@@ -498,12 +537,19 @@ in the source has a same-named counterpart in the destination.
 ```
 540 positions
   x 8 directions
-  x 3 repeats
   x 2 frame states   (unlit, lit)
   x 2 shader states  (off, on)
   x 2 dimensions
-= 155,520 frames per complete e2e test
+= 34,560 poses per complete e2e test
 ```
+
+Repeats are **retries on failure**, not a multiplier on the whole matrix, so
+they do not enter this count. A clean run captures 34,560 poses; a run with
+failures captures a few more.
+
+**How long that takes is unknown and is not estimated here.** It cannot be
+known until the capture path exists and one pose has been timed. Measure it,
+then decide whether the matrix needs a fast tier.
 
 ### Output: one `.jsonl` per complete e2e test
 
@@ -526,16 +572,15 @@ Comparing two runs is a join on
 
 Rebuilt before **every repeat**, not just every pass.
 
+A rebuild clears and rebuilds **both dimensions at once**, so it is not
+per-dimension:
+
 ```
-per dimension:  2 frame states x 2 shader states x 3 repeats = 12 rebuilds
-both dimensions:                                              24 rebuilds
+2 frame states x 2 shader states = 4 rebuilds per complete test
 ```
 
-This is what makes the three repeats meaningful. If they shared a build, they
-would only prove the renderer is deterministic given identical state — which is
-not the question. Rebuilding between them means a value identical across all
-three was reproduced from scratch three times, and any difference is real
-non-determinism rather than accumulated drift.
+An assertion retry does **not** rebuild — it re-reads the same pose on the same
+fixture, which is what makes it a retry rather than a new test.
 
 ### The rebuild, in full
 
@@ -652,7 +697,7 @@ far side, the mod would need a configuration for every ordered pair of
 dimensions — millions of them. The rules below are what make that tractable, so
 they are load-bearing behaviour, not a convenience.
 
-### What the pair must do — six tests
+### What the pair must do — seven tests
 
 Throughout: **magenta** = the `e2e_two` portal, built in `e2e_one`.
 **Orange** = the `e2e_one` portal, built in `e2e_two`.
@@ -1058,6 +1103,118 @@ never had, and it costs no game time at all.
 
 ---
 
+## Step 19 — Preconditions, provenance, and the baseline
+
+### Nothing is sampled until the frame is safe to sample
+
+A **settle gate**, checked before every capture:
+
+- world loaded
+- no screen open (`currentScreen == null`) — a loading screen is not a frame
+- frame rate above zero
+- **destination residency confirmed** — a black opening looks identical whether
+  the renderer is broken or `e2e_two` is simply idle-unloaded. Record the
+  destination's chunk residency per frame and **refuse the reading at zero**.
+  This matters most at the outer circles, which may sit beyond the portal's
+  ticket range.
+
+A gate that can be satisfied by zero is not a gate.
+
+### A positive control on the capture path itself
+
+Every assertion's failure state is currently **identical to "the bridge
+returned a stale or void frame"**. That is exactly how the previous method
+produced a wrong answer with confidence.
+
+So, once per run: **place yellow concrete physically inside the unlit ring** and
+require the capture to report YELLOW there. If that fails, **the run is void and
+the mod is not implicated** — the instrument is broken.
+
+### Provenance recorded in every run header
+
+Without this, two runs can silently be the same build.
+
+- **mod jar sha256**, read from inside the `mc` container — not from the build
+  directory, which may be ahead of what is deployed
+- the **whole `options.txt`, hashed**, with the load-bearing keys asserted
+  individually: resolution, FOV, render distance, brightness, smooth lighting,
+  mipmap levels, biome blend, view bobbing. Every one changes either the RGB or
+  the pixel coordinates.
+- shader pack filename, its settings hash, Iris version
+- server and client versions
+
+**Set mipmap to 0 and smooth lighting off.** Both exist to blend, and blending
+is what creates values that belong to no class.
+
+### Particles
+
+Portal ambience inside the opening would land in `OTHER` and can break the
+locator. **Off** — `portal.immersive.particleDensity: 0` in both dimension
+configs. Not a class, not a tolerance; absent.
+
+### The rig takes the stack lock
+
+It wipes the shared `elfydd` world and rebuilds between tests. `stack-lock.sh`
+is taken for the whole run, not per operation.
+
+### Expectations baseline: CHANGED, not just RED
+
+Several assertions are **expected to fail today** — the linkage tests describe
+design behaviour the mod does not implement. Without declaring that, the report
+is permanently red and "did my change help" is lost, which is the entire point.
+
+Each assertion declares its **expected state**, committed:
+
+```
+A1  destination visible in ring      expect FAIL   (opening is black)
+A6  arrival portal created and lit   expect FAIL   (not implemented)
+A3  no destination colour outside    expect PASS
+```
+
+The report says **CHANGED / UNCHANGED against that baseline**. An assertion
+that flips from expected-FAIL to PASS is the win condition, and it is visible
+at a glance rather than buried in a red wall.
+
+**The baseline is committed, and once the rig is finished it blocks
+regressions.** Work is not pushed while the rig itself is being built — it lands
+complete, and from then on an UNCHANGED-to-worse result is a blocker.
+
+### Interrupt-safety needs three things
+
+1. **Line-buffered, flushed writes.** Every reading hits disk as it is taken.
+2. **A plan manifest written at start**, listing every intended assertion.
+   Without it, `skipped` and "never existed" are indistinguishable.
+3. **Report generation as a separate offline command** over `(plan, readings)`.
+   A `SIGKILL` cannot write a report — so the report must be reconstructable
+   from what is already on disk, at any time, by a second command.
+
+### Damage states must be verified as the state intended
+
+An explosion that also removes a ring block turns SHATTERED into BROKEN, and
+the test then measures the wrong mechanism while appearing to pass.
+
+**Probe the world after damaging and before asserting**, and confirm the
+fixture is in the state the test names. If it is not, the setup failed — that
+is not a result about the mod.
+
+### `jump_apex` is reached by teleport, not by timing
+
+Turn view bobbing off and **teleport to the apex eye height**. Same eye
+position, no frame-accurate input, no timing problem across a third of the
+matrix.
+
+### Wall height
+
+Derived, and it is not small. From the outermost circle at radius 32, looking
+across at the far wall 80 blocks away, an upward ray at the steepest pitch in
+the matrix clears anything under **~58 blocks**. Computing it against the
+*near* wall gives ~13 and puts sky in half the frames.
+
+Compute it from the **worst case in the matrix**, assert it at build time, and
+recompute it if the matrix ever gains a wider angle or a higher eye.
+
+---
+
 ## How it gets built
 
 ### One agent builds the whole thing
@@ -1111,7 +1268,7 @@ rebuilt from nothing.
 | 5 | ring location from the frame colour | sample points resolve from the frame, at any pose |
 | 6 | assertions, `.jsonl` writer, markdown report | a verdict and a record survive an interrupt |
 | 7 | the matrix driver | positions, angles, heights, repeats, passes, both dimensions |
-| 8 | linkage and damage-state tests | the six linkage cases and the four damage states |
+| 8 | linkage and damage-state tests | the seven linkage cases and the four damage states |
 | 9 | traversal | the cardinal walk-through, both directions |
 
 ---
