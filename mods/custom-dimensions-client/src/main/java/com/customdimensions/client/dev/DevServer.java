@@ -173,12 +173,19 @@ public final class DevServer {
                 .withApertureMeshDepth(request.flag("apertureMeshDepth",
                         before.apertureMeshDepth()))
                 .withApertureUnshadedDestination(request.flag("apertureUnshadedDestination",
-                        before.apertureUnshadedDestination()));
+                        before.apertureUnshadedDestination()))
+                .withApertureBackdropGain(request.number("apertureBackdropGain",
+                        before.apertureBackdropGain()));
         boolean changed = !after.equals(before);
         if (changed) {
             RealtimeControls.store().save(after);
         }
         return DevResponse.realtime(changed, after.toJson(), held());
+    }
+
+    /** The backdrop's authored colour, to read against a frame's own pixels. */
+    private static String hex(int argb) {
+        return argb < 0 ? "unset" : String.format("#%06X", argb & 0xFFFFFF);
     }
 
     /**
@@ -195,6 +202,8 @@ public final class DevServer {
             frames.raw(frame.apertureOrigin().toShortString(), Json.obj()
                     .str("destination", frame.destination().toString())
                     .str("dimensionType", frame.dimensionType().toString())
+                    .str("backdropColor", hex(frame.fogColor() >= 0
+                            ? frame.fogColor() : frame.skyColor()))
                     .raw("offset", Json.numbers(frame.dx(), frame.dy(), frame.dz()))
                     .toString());
         }

@@ -360,8 +360,10 @@ public final class ProjectionRenderer {
                         PortalRenderLayers.backdrop(unshaded);
                 // The fog colour is finished when it arrives, so unshaded it is
                 // written straight out; the entity layer needs the dressing.
+                double gain = RealtimeControls.settings().apertureBackdropGain();
                 VertexEmit writer = unshaded
-                        ? ProjectionRenderer::emitUnshadedSurface : ProjectionRenderer::emit;
+                        ? (c, e, poly, at) -> emitUnshadedSurface(c, e, poly, at, (float) gain)
+                        : ProjectionRenderer::emit;
                 if (writeDepth) {
                     drawShaded(layer, entry, corners, writer);
                     return;
@@ -1039,11 +1041,16 @@ public final class ProjectionRenderer {
                 .light(FULL_BRIGHT);
     }
 
-    /** The same vertex with the colour untouched: the backdrop's is finished. */
+    /**
+     * The backdrop's vertex: its colour is already finished, so the only thing
+     * applied is {@code gain}, which is compensation for a pack that blooms a
+     * near-white quad past saturation, not a correction of the colour.
+     */
     private static void emitUnshadedSurface(VertexConsumer consumer, MatrixStack.Entry entry,
-            float[] poly, int at) {
+            float[] poly, int at, float gain) {
         consumer.vertex(entry, poly[at], poly[at + 1], poly[at + 2])
-                .color(poly[at + 3], poly[at + 4], poly[at + 5], poly[at + 6])
+                .color(poly[at + 3] * gain, poly[at + 4] * gain, poly[at + 5] * gain,
+                        poly[at + 6])
                 .texture(poly[at + 7], poly[at + 8])
                 .light(FULL_BRIGHT);
     }

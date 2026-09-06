@@ -184,6 +184,17 @@ class UnshadedDestinationTest {
                 "the unshaded emit must multiply the destination's own light in");
     }
 
+    /** Compensation is only compensation if the draw actually reads it. */
+    @Test
+    void theBackdropDrawReadsTheGain() {
+        Set<String> calls = new LinkedHashSet<>();
+        for (Path file : innerClasses(RENDERER)) {
+            calls.addAll(callsIn(file));
+        }
+        assertTrue(calls.stream().anyMatch(c -> c.endsWith(".apertureBackdropGain")),
+                "the backdrop draw must read the gain: " + calls.size() + " calls scanned");
+    }
+
     // ------------------------------------------------------------------
 
     private static Set<String> calls(String internalName) {

@@ -351,4 +351,34 @@ class RealtimeSettingsTest {
         assertFalse(RealtimeSettings.parse(off.toJson()).apertureMeshDepth());
         assertTrue(off.apertureFarStamp(), "setting one stage must not clear another");
     }
+
+    /**
+     * The gain is an attenuation and nothing else: above 1 it can only make a
+     * saturating backdrop worse, and 1 is the value that changes no pixel.
+     */
+    @Test
+    void theBackdropGainDefaultsToNoChangeAndClampsToZeroOne() {
+        assertEquals(1.0, RealtimeSettings.DEFAULTS.apertureBackdropGain(), 0.0);
+        assertEquals(1.0,
+                RealtimeSettings.DEFAULTS.withApertureBackdropGain(4.0).apertureBackdropGain(),
+                0.0);
+        assertEquals(0.0,
+                RealtimeSettings.DEFAULTS.withApertureBackdropGain(-2.0).apertureBackdropGain(),
+                0.0);
+        assertEquals(0.35,
+                RealtimeSettings.DEFAULTS.withApertureBackdropGain(0.35).apertureBackdropGain(),
+                1.0e-9);
+    }
+
+    @Test
+    void theBackdropGainSurvivesAWriteAndARead() {
+        RealtimeSettings chosen = RealtimeSettings.DEFAULTS.withApertureBackdropGain(0.4);
+        assertEquals(0.4, RealtimeSettings.parse(chosen.toJson()).apertureBackdropGain(), 1.0e-9);
+    }
+
+    @Test
+    void aFileThatNamesNoGainTakesTheDefault() {
+        assertEquals(1.0,
+                RealtimeSettings.parse("{\"configVersion\":1}").apertureBackdropGain(), 0.0);
+    }
 }
