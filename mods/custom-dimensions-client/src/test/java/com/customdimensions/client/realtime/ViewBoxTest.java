@@ -5,11 +5,10 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * What the local view box is allowed to cost and what shape it has to keep.
+ * What the local view box has to keep, and what one tick of reading it costs.
  *
- * <p>{@code RealtimeView.build} walks every cell of it on END_CLIENT_TICK, so
- * the budget is a main-thread budget: holding the old mesh across a rebuild
- * hides the mesh build, not this walk.
+ * <p>The walk is sliced across ticks, so the box no longer sets the frame
+ * budget — {@code UNITS_PER_TICK} does, and that is what this holds down.
  */
 class ViewBoxTest {
 
@@ -21,10 +20,14 @@ class ViewBoxTest {
     private static final int PLANE = 1500;
 
     /**
-     * Cells of one rebuild's main-thread walk at that opening. Raising it needs
-     * a {@code realtimeBuildUs} reading from the rig, not an estimate.
+     * Units one tick may read. Measured at DEPTH 24: 8,208 cells cost 3,305us
+     * average and 6,132us peak, so a unit is about 400ns and this budget is
+     * about 1.6ms. Raising it needs a {@code realtimeBuildUs} reading.
      */
-    private static final int CELL_BUDGET = 10_000;
+    private static final int TICK_BUDGET = 4_096;
+
+    /** Ticks a full rebuild may take before first sight is a long blank. */
+    private static final int MAX_SLICES = 20;
 
     private static LocalVolume rigBox(int depth, int radius) {
         return LocalVolume.of(MIN_A, MAX_A, MIN_B, MAX_B, PLANE, true, depth, radius);
@@ -41,11 +44,29 @@ class ViewBoxTest {
                         + ": the cone leaves the box before the far edge");
     }
 
+    /** The tick pays the slice, never the box. */
     @Test
-    void theRigBoxStaysInsideItsMainThreadBudget() {
-        int cells = rigBox(RealtimeView.DEPTH, RealtimeView.RADIUS).cells();
-        assertTrue(cells <= CELL_BUDGET,
-                "one rebuild walks " + cells + " cells on END_CLIENT_TICK, over the "
-                        + CELL_BUDGET + " budget");
+    void oneTickReadsNoMoreThanTheBudget() {
+        assertTrue(RealtimeView.UNITS_PER_TICK <= TICK_BUDGET,
+                "a tick reads " + RealtimeView.UNITS_PER_TICK + " units, over the "
+                        + TICK_BUDGET + " budget");
+    }
+
+    /**
+     * Latency is what the box costs now. A rebuild is hidden by the mesh
+     * carried from the view it replaces, but first sight is blank throughout.
+     */
+    @Test
+    void aFullRebuildFinishesInsideTheLatencyBudget() {
+        BoxScan scan = boxScan();
+        int slices = (scan.units() + RealtimeView.UNITS_PER_TICK - 1) / RealtimeView.UNITS_PER_TICK;
+        assertTrue(slices <= MAX_SLICES,
+                "a full rebuild takes " + slices + " ticks (" + (slices * 50) + "ms), over the "
+                        + MAX_SLICES + " the budget allows");
+    }
+
+    private static BoxScan boxScan() {
+        LocalVolume box = rigBox(RealtimeView.DEPTH, RealtimeView.RADIUS);
+        return BoxScan.of(box.sizeA(), box.sizeB(), box.sizeN());
     }
 }

@@ -44,7 +44,7 @@ public final class RealtimeView {
      * the opening's top edge sees floor all the way to here, so this is how far
      * the ground runs before the window ends.
      */
-    public static final int DEPTH = 24;
+    public static final int DEPTH = 48;
 
     /**
      * The eye-distance-to-opening-half-width ratio the box holds the sightline
@@ -60,45 +60,57 @@ public final class RealtimeView {
      */
     public static final int RADIUS = (DEPTH + CONE_RATIO - 1) / CONE_RATIO;
 
+    /**
+     * Cells and columns one tick may read. The walk resumes across ticks, so
+     * this is what END_CLIENT_TICK costs — the box no longer sets it.
+     */
+    public static final int UNITS_PER_TICK = 4_096;
+
     /** Chunks held at the last build, per opening. A rebuild needs new ones. */
     private static final Map<BlockPos, Integer> BUILT_AT = new HashMap<>();
 
-    private static volatile int builds;
-    private static volatile long buildNanos;
-    private static volatile long peakBuildNanos;
+    /** Walks in progress, one per opening, resumed a slice at a time. */
+    private static final Map<BlockPos, Scan> SCANS = new HashMap<>();
+
+    private static volatile int slices;
+    private static volatile long sliceNanos;
+    private static volatile long peakSliceNanos;
     private static volatile int lastCells;
 
     /**
-     * What {@link #build} has cost on END_CLIENT_TICK since the last read, as
-     * {@code builds=N avg=Aus peak=Pus cells=C}. Reading it clears the window,
-     * so two reads bracket a span. This is the budget DEPTH and RADIUS spend.
+     * What the box walk has cost on END_CLIENT_TICK since the last read, as
+     * {@code slices=N avg=Aus peak=Pus cells=C scans=S}. Reading clears the
+     * window. {@code peak} is the frame impact; {@code cells} is the whole box.
      */
     public static String buildCost() {
-        int spanBuilds = builds;
-        long spanNanos = buildNanos;
-        long spanPeak = peakBuildNanos;
-        builds = 0;
-        buildNanos = 0;
-        peakBuildNanos = 0;
-        if (spanBuilds == 0) {
-            return "builds=0 avg=n/a peak=n/a cells=" + lastCells;
+        int spanSlices = slices;
+        long spanNanos = sliceNanos;
+        long spanPeak = peakSliceNanos;
+        slices = 0;
+        sliceNanos = 0;
+        peakSliceNanos = 0;
+        if (spanSlices == 0) {
+            return "slices=0 avg=n/a peak=n/a cells=" + lastCells + " scans=" + SCANS.size();
         }
-        return "builds=" + spanBuilds
-                + " avg=" + (spanNanos / spanBuilds / 1000) + "us"
+        return "slices=" + spanSlices
+                + " avg=" + (spanNanos / spanSlices / 1000) + "us"
                 + " peak=" + (spanPeak / 1000) + "us"
-                + " cells=" + lastCells;
+                + " cells=" + lastCells
+                + " scans=" + SCANS.size();
     }
 
     private RealtimeView() {}
 
     public static void clear() {
         BUILT_AT.clear();
+        SCANS.clear();
     }
 
     /** Forces one opening's next tick to rebuild, its held view having gone. */
     public static void forget(BlockPos apertureOrigin) {
         if (apertureOrigin != null) {
             BUILT_AT.remove(apertureOrigin);
+            SCANS.remove(apertureOrigin);
         }
     }
 
@@ -127,121 +139,190 @@ public final class RealtimeView {
     }
 
     /**
-     * Rebuilds one opening's view when its destination has gained chunks.
-     * Rebuilding on a tick that gained nothing would walk the whole box to
-     * produce the payload already held.
+     * Advances one opening's walk when its destination has gained chunks,
+     * a slice per tick. A walk already running is resumed rather than
+     * restarted; only when it finishes does the projection change.
      */
     private static void rebuildIfFed(CompanionPayloads.PortalFrame frame) {
         int held = DestinationChunks.count(frame.destination());
         if (held == 0) {
             return;
         }
-        Integer builtAt = BUILT_AT.get(frame.apertureOrigin());
-        if (builtAt != null && builtAt == held) {
+        BlockPos key = frame.apertureOrigin();
+        Scan scan = SCANS.get(key);
+        if (scan == null) {
+            Integer builtAt = BUILT_AT.get(key);
+            if (builtAt != null && builtAt == held) {
+                return;
+            }
+            scan = Scan.start(frame, held);
+            if (scan == null) {
+                return;
+            }
+            SCANS.put(key, scan);
+        }
+        ClientWorld destination = DestinationWorlds.get(frame.destination());
+        if (destination == null) {
+            // The world went while the walk was in flight; what is half-read
+            // describes nothing. The held projection keeps drawing.
+            SCANS.remove(key);
             return;
         }
+
         long startedAt = System.nanoTime();
-        CompanionPayloads.Projection built = build(frame);
+        CompanionPayloads.Projection built = scan.advance(destination, UNITS_PER_TICK);
         long elapsed = System.nanoTime() - startedAt;
+        slices++;
+        sliceNanos += elapsed;
+        peakSliceNanos = Math.max(peakSliceNanos, elapsed);
         if (built == null) {
             return;
         }
-        builds++;
-        buildNanos += elapsed;
-        peakBuildNanos = Math.max(peakBuildNanos, elapsed);
+        SCANS.remove(key);
         lastCells = built.states().length;
-        BUILT_AT.put(frame.apertureOrigin(), held);
+        BUILT_AT.put(key, scan.chunksAtStart);
         ProjectionStore.accept(built);
         CustomDimensionsClient.LOGGER.info("{} dimension={} aperture={} cells={} chunks={}",
-                BUILD_MARKER, frame.destination(), frame.apertureOrigin().toShortString(),
+                BUILD_MARKER, frame.destination(), key.toShortString(),
                 built.states().length, held);
     }
 
     /**
-     * One opening's destination box, read out of the world this client holds
-     * and expressed in source coordinates — the shape the render path already
-     * takes from the server.
+     * One opening's box read out of the world this client holds, a slice of it
+     * per tick, and expressed in source coordinates — the shape the render path
+     * already takes from the server.
+     *
+     * <p>Every read is on the client thread. The destination world is mutated
+     * there too, by {@code DestinationWorlds.load}, so a walk on another thread
+     * would race chunk insertion and the light swap it does.
      */
-    static CompanionPayloads.Projection build(CompanionPayloads.PortalFrame frame) {
-        ClientWorld destination = DestinationWorlds.get(frame.destination());
-        if (destination == null || frame.aperture().isEmpty()) {
-            return null;
+    private static final class Scan {
+
+        private final CompanionPayloads.PortalFrame frame;
+        private final int chunksAtStart;
+        private final int[] origin;
+        private final int sizeX;
+        private final int sizeY;
+        private final int sizeZ;
+        private final int[] states;
+        private final byte[] light;
+        private final CompanionPayloads.Projection.TintGrid tints;
+        private final BlockPos.Mutable at = new BlockPos.Mutable();
+        private BoxScan progress;
+
+        private Scan(CompanionPayloads.PortalFrame frame, int chunksAtStart,
+                int[] origin, int sizeX, int sizeY, int sizeZ) {
+            this.frame = frame;
+            this.chunksAtStart = chunksAtStart;
+            this.origin = origin;
+            this.sizeX = sizeX;
+            this.sizeY = sizeY;
+            this.sizeZ = sizeZ;
+            this.states = new int[sizeX * sizeY * sizeZ];
+            this.light = new byte[this.states.length];
+            this.tints = new CompanionPayloads.Projection.TintGrid(sizeX, sizeZ);
+            this.progress = BoxScan.of(sizeX, sizeY, sizeZ);
         }
-        Direction normal = Direction.values()[frame.normal()];
-        Direction.Axis normalAxis = normal.getAxis();
-        Direction.Axis axisA = normalAxis == Direction.Axis.X ? Direction.Axis.Y : Direction.Axis.X;
-        Direction.Axis axisB = normalAxis == Direction.Axis.Z ? Direction.Axis.Y : Direction.Axis.Z;
 
-        int minA = Integer.MAX_VALUE;
-        int maxA = Integer.MIN_VALUE;
-        int minB = Integer.MAX_VALUE;
-        int maxB = Integer.MIN_VALUE;
-        int plane = 0;
-        for (BlockPos cell : frame.aperture()) {
-            minA = Math.min(minA, on(cell, axisA));
-            maxA = Math.max(maxA, on(cell, axisA));
-            minB = Math.min(minB, on(cell, axisB));
-            maxB = Math.max(maxB, on(cell, axisB));
-            plane = on(cell, normalAxis);
+        /** The box's shape and its arrays. Reads no blocks. */
+        static Scan start(CompanionPayloads.PortalFrame frame, int chunksAtStart) {
+            if (frame.aperture().isEmpty()) {
+                return null;
+            }
+            Direction normal = Direction.values()[frame.normal()];
+            Direction.Axis normalAxis = normal.getAxis();
+            Direction.Axis axisA = normalAxis == Direction.Axis.X
+                    ? Direction.Axis.Y : Direction.Axis.X;
+            Direction.Axis axisB = normalAxis == Direction.Axis.Z
+                    ? Direction.Axis.Y : Direction.Axis.Z;
+
+            int minA = Integer.MAX_VALUE;
+            int maxA = Integer.MIN_VALUE;
+            int minB = Integer.MAX_VALUE;
+            int maxB = Integer.MIN_VALUE;
+            int plane = 0;
+            for (BlockPos cell : frame.aperture()) {
+                minA = Math.min(minA, on(cell, axisA));
+                maxA = Math.max(maxA, on(cell, axisA));
+                minB = Math.min(minB, on(cell, axisB));
+                maxB = Math.max(maxB, on(cell, axisB));
+                plane = on(cell, normalAxis);
+            }
+            boolean towardsHigh =
+                    normal.getOffsetX() + normal.getOffsetY() + normal.getOffsetZ() > 0;
+            LocalVolume volume = LocalVolume.of(minA, maxA, minB, maxB, plane, towardsHigh,
+                    DEPTH, RADIUS);
+
+            int[] origin = new int[3];
+            int[] size = new int[3];
+            origin[axisA.ordinal()] = volume.originA();
+            size[axisA.ordinal()] = volume.sizeA();
+            origin[axisB.ordinal()] = volume.originB();
+            size[axisB.ordinal()] = volume.sizeB();
+            origin[normalAxis.ordinal()] = volume.originN();
+            size[normalAxis.ordinal()] = volume.sizeN();
+            return new Scan(frame, chunksAtStart, origin, size[0], size[1], size[2]);
         }
-        boolean towardsHigh = normal.getOffsetX() + normal.getOffsetY() + normal.getOffsetZ() > 0;
-        LocalVolume volume = LocalVolume.of(minA, maxA, minB, maxB, plane, towardsHigh,
-                DEPTH, RADIUS);
 
-        int[] origin = new int[3];
-        int[] size = new int[3];
-        origin[axisA.ordinal()] = volume.originA();
-        size[axisA.ordinal()] = volume.sizeA();
-        origin[axisB.ordinal()] = volume.originB();
-        size[axisB.ordinal()] = volume.sizeB();
-        origin[normalAxis.ordinal()] = volume.originN();
-        size[normalAxis.ordinal()] = volume.sizeN();
-
-        int sizeX = size[0];
-        int sizeY = size[1];
-        int sizeZ = size[2];
-        int[] states = new int[sizeX * sizeY * sizeZ];
-        byte[] light = new byte[states.length];
-        BlockPos.Mutable at = new BlockPos.Mutable();
-        for (int lx = 0; lx < sizeX; lx++) {
-            for (int ly = 0; ly < sizeY; ly++) {
-                for (int lz = 0; lz < sizeZ; lz++) {
-                    at.set(origin[0] + lx + frame.dx(),
-                            origin[1] + ly + frame.dy(),
-                            origin[2] + lz + frame.dz());
-                    int index = ((lx * sizeZ) + lz) * sizeY + ly;
-                    states[index] = Block.getRawIdFromState(destination.getBlockState(at));
-                    light[index] = (byte) ((destination.getLightLevel(LightType.SKY, at) << 4)
-                            | destination.getLightLevel(LightType.BLOCK, at));
+        /**
+         * Reads up to {@code budget} units. Returns the payload on the unit
+         * that finishes the walk, and null while there is more to read.
+         */
+        CompanionPayloads.Projection advance(ClientWorld destination, int budget) {
+            int cells = this.progress.cells();
+            int end = this.progress.end(budget);
+            for (int unit = this.progress.cursor(); unit < end; unit++) {
+                if (unit < cells) {
+                    readCell(destination, unit);
+                } else {
+                    readColumn(destination, unit, cells);
                 }
             }
-        }
-        CompanionPayloads.Projection.TintGrid tints =
-                new CompanionPayloads.Projection.TintGrid(sizeX, sizeZ);
-        int airId = Block.getRawIdFromState(Blocks.AIR.getDefaultState());
-        for (int lx = 0; lx < sizeX; lx++) {
-            for (int lz = 0; lz < sizeZ; lz++) {
-                int top = CompanionPayloads.Projection.topSolid(states, sizeY, sizeZ, lx, lz, airId);
-                if (top < 0) {
-                    continue;
-                }
-                at.set(origin[0] + lx + frame.dx(),
-                        origin[1] + top + frame.dy(),
-                        origin[2] + lz + frame.dz());
-                Biome biome = destination.getBiome(at).value();
-                tints.set(lx, lz, biome.getGrassColorAt(at.getX(), at.getZ()),
-                        biome.getFoliageColor(), biome.getWaterColor());
-            }
+            this.progress = this.progress.advancedTo(end);
+            return this.progress.done() ? payload(destination) : null;
         }
 
-        return new CompanionPayloads.Projection(
-                frame.destination(), frame.apertureOrigin(), frame.aperture(),
-                frame.portalAxis(), frame.normal(),
-                new BlockPos(origin[0], origin[1], origin[2]), sizeX, sizeY, sizeZ,
-                states, light,
-                frame.skyColor(), frame.fogColor(),
-                tints.palette(), tints.columns(),
-                destination.getDimension().ambientLight());
+        private void readCell(ClientWorld destination, int index) {
+            int lx = BoxScan.localX(index, this.sizeY, this.sizeZ);
+            int ly = BoxScan.localY(index, this.sizeY);
+            int lz = BoxScan.localZ(index, this.sizeY, this.sizeZ);
+            this.at.set(this.origin[0] + lx + this.frame.dx(),
+                    this.origin[1] + ly + this.frame.dy(),
+                    this.origin[2] + lz + this.frame.dz());
+            this.states[index] = Block.getRawIdFromState(destination.getBlockState(this.at));
+            this.light[index] = (byte)
+                    ((destination.getLightLevel(LightType.SKY, this.at) << 4)
+                            | destination.getLightLevel(LightType.BLOCK, this.at));
+        }
+
+        private void readColumn(ClientWorld destination, int unit, int cells) {
+            int lx = BoxScan.columnX(unit, cells, this.sizeZ);
+            int lz = BoxScan.columnZ(unit, cells, this.sizeZ);
+            int airId = Block.getRawIdFromState(Blocks.AIR.getDefaultState());
+            int top = CompanionPayloads.Projection.topSolid(
+                    this.states, this.sizeY, this.sizeZ, lx, lz, airId);
+            if (top < 0) {
+                return;
+            }
+            this.at.set(this.origin[0] + lx + this.frame.dx(),
+                    this.origin[1] + top + this.frame.dy(),
+                    this.origin[2] + lz + this.frame.dz());
+            Biome biome = destination.getBiome(this.at).value();
+            this.tints.set(lx, lz, biome.getGrassColorAt(this.at.getX(), this.at.getZ()),
+                    biome.getFoliageColor(), biome.getWaterColor());
+        }
+
+        private CompanionPayloads.Projection payload(ClientWorld destination) {
+            return new CompanionPayloads.Projection(
+                    this.frame.destination(), this.frame.apertureOrigin(), this.frame.aperture(),
+                    this.frame.portalAxis(), this.frame.normal(),
+                    new BlockPos(this.origin[0], this.origin[1], this.origin[2]),
+                    this.sizeX, this.sizeY, this.sizeZ,
+                    this.states, this.light,
+                    this.frame.skyColor(), this.frame.fogColor(),
+                    this.tints.palette(), this.tints.columns(),
+                    destination.getDimension().ambientLight());
+        }
     }
 
     private static int on(BlockPos pos, Direction.Axis axis) {

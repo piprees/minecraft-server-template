@@ -57,6 +57,31 @@ public final class ClientProjection {
     private volatile ProjectionMesh standIn;
 
     private final AtomicBoolean building = new AtomicBoolean();
+    private volatile long requestedAt;
+
+    private static volatile int meshes;
+    private static volatile long meshNanos;
+    private static volatile long peakMeshNanos;
+
+    /**
+     * Queue plus build latency for meshes landed since the last read, as
+     * {@code meshes=N avg=Aus peak=Pus}. One shared builder thread serves every
+     * projection, so a second portal's wait includes the first one's build.
+     */
+    public static String meshCost() {
+        int spanMeshes = meshes;
+        long spanNanos = meshNanos;
+        long spanPeak = peakMeshNanos;
+        meshes = 0;
+        meshNanos = 0;
+        peakMeshNanos = 0;
+        if (spanMeshes == 0) {
+            return "meshes=0 avg=n/a peak=n/a";
+        }
+        return "meshes=" + spanMeshes
+                + " avg=" + (spanNanos / spanMeshes / 1000) + "us"
+                + " peak=" + (spanPeak / 1000) + "us";
+    }
 
     public ClientProjection(CompanionPayloads.Projection payload) {
         this.payload = payload;
@@ -359,13 +384,18 @@ public final class ClientProjection {
         if (this.mesh != null || !this.building.compareAndSet(false, true)) {
             return null;
         }
+        this.requestedAt = System.nanoTime();
         return ProjectionMesh.buildAsync(this);
     }
 
     void adoptMesh(ProjectionMesh built) {
+        long waited = System.nanoTime() - this.requestedAt;
         this.mesh = built;
         this.standIn = null;
         this.building.set(false);
+        meshes++;
+        meshNanos += waited;
+        peakMeshNanos = Math.max(peakMeshNanos, waited);
     }
 
     /** Frees the claim so a build that could not run is retried next frame. */
