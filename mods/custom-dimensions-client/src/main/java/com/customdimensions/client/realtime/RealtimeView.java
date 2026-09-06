@@ -68,9 +68,19 @@ public final class RealtimeView {
     public static final int NEAR_RADIUS = 16;
 
     /**
-     * Cells and columns one tick may read. The walk resumes across ticks, so
-     * this is what END_CLIENT_TICK costs — the box no longer sets it. Measured
-     * at 173ns a unit, so this slice is about 1.4ms.
+     * Wall clock a slice may spend on END_CLIENT_TICK. This is the frame
+     * guarantee: a unit costs between 27ns and 710ns depending on whether it
+     * skips, reads an unloaded chunk or reads a populated one, so a count
+     * cannot bound a duration and only the clock can.
+     */
+    public static final long SLICE_BUDGET_NANOS = 1_500_000L;
+
+    /** Units between clock reads. Power of two; nanoTime is not free per unit. */
+    private static final int CLOCK_EVERY = 256;
+
+    /**
+     * The hard cap on units a slice may read however cheap they are. The clock
+     * is what normally stops a slice; this stops one whose every unit skips.
      */
     public static final int UNITS_PER_TICK = 8_192;
 
@@ -324,14 +334,16 @@ public final class RealtimeView {
         }
 
         /**
-         * Reads up to {@code budget} cells. A cell outside the shape costs a
-         * bounds check rather than a read, so a slice skips over far corners
-         * cheaply — capped anyway, so a slice that reads nothing still ends.
+         * Reads until the slice's time is spent, or {@code budget} cells are
+         * read, or the walk ends. A cell outside the shape costs a bounds
+         * check rather than a read, so a slice skips over far corners cheaply;
+         * the clock is what stops one whose cells are dense.
          */
         CompanionPayloads.Projection advance(ClientWorld destination, int budget) {
             int cells = this.progress.cells();
             int units = this.progress.units();
             int cap = Math.max(1, budget) * SKIP_CAP;
+            long deadline = System.nanoTime() + SLICE_BUDGET_NANOS;
             int reads = 0;
             int stepped = 0;
             int unit = this.progress.cursor();
@@ -346,6 +358,9 @@ public final class RealtimeView {
                 }
                 unit++;
                 stepped++;
+                if ((stepped & (CLOCK_EVERY - 1)) == 0 && System.nanoTime() >= deadline) {
+                    break;
+                }
             }
             this.progress = this.progress.advancedTo(unit);
             return this.progress.done() ? payload(destination) : null;

@@ -20,11 +20,17 @@ class ViewBoxTest {
     private static final int PLANE = 1500;
 
     /**
-     * Units one tick may read. Measured sliced: 4,096 units cost 273us average
-     * and 713us peak, so a unit is 173ns and this budget is about 1.4ms.
-     * Raising it needs a fresh {@code realtimeBuildUs} reading.
+     * Units one tick may read however cheap they are. The clock is the real
+     * bound; this only stops a slice whose every unit skips.
      */
     private static final int TICK_BUDGET = 8_192;
+
+    /**
+     * Wall clock a slice may spend on END_CLIENT_TICK. A sixteen-millisecond
+     * frame cannot afford much of one, and a unit's cost spans 27ns to 710ns
+     * depending on what it reads, so this is the only bound that holds.
+     */
+    private static final long SLICE_CEILING_NANOS = 2_000_000L;
 
     /**
      * Ticks a full rebuild may take before first sight is a long blank. Only
@@ -56,9 +62,20 @@ class ViewBoxTest {
                         + TICK_BUDGET + " budget");
     }
 
+    /** The frame guarantee. A count cannot bound a duration; the clock can. */
+    @Test
+    void aSliceIsBoundedByTheClock() {
+        assertTrue(RealtimeView.SLICE_BUDGET_NANOS <= SLICE_CEILING_NANOS,
+                "a slice may spend " + RealtimeView.SLICE_BUDGET_NANOS / 1000
+                        + "us on the client thread, over the "
+                        + SLICE_CEILING_NANOS / 1000 + "us ceiling");
+        assertTrue(RealtimeView.SLICE_BUDGET_NANOS > 0, "the clock bound is off");
+    }
+
     /**
-     * Latency is what the box costs now. A rebuild is hidden by the mesh
-     * carried from the view it replaces, but first sight is blank throughout.
+     * Latency when the reads are cheap. This is a FLOOR: a slice stopped by
+     * the clock reads fewer units, so a dense box takes more ticks than this,
+     * and how many is a measurement rather than arithmetic.
      */
     @Test
     void aFullRebuildFinishesInsideTheLatencyBudget() {

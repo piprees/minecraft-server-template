@@ -1774,12 +1774,16 @@ measurement of it.
   every face. A rim is not a uniform dim: if the whole opening reads low with no
   gradient, read `destLight` and `ambient` on the dev bridge before suspecting
   the boundary.
-- **A slice budget's unit is a promise.** `RealtimeView.UNITS_PER_TICK` bounds a
-  tick by counting cells and columns, which holds only while a unit is bounded
-  work. A per-column cost that grows with what came before it — a palette
-  scanned linearly, a list appended to and searched — breaks that silently: the
-  count stays right and the tick stops being bounded. Anything added inside that
-  walk has to be O(1) in the columns already read.
+- **A count cannot bound a duration.** A unit of the box walk costs 27ns when it
+  skips, and 710ns when it reads a populated cell — measured, a 26x spread on
+  one pose. `RealtimeView.SLICE_BUDGET_NANOS` is the frame guarantee and
+  `UNITS_PER_TICK` only stops a slice whose every unit skips. Bounding the peak
+  by unit count instead would need about 2,000 units, which is 45 ticks of
+  assembly at DEPTH 64.
+- **A slice budget's unit is still a promise about the WALK.** Anything added
+  inside it has to be O(1) in the columns already read — a palette scanned
+  linearly, a list appended to and searched, breaks the walk's shape rather than
+  its clock, and the count stays right while the work per unit grows.
 - **Read it per pose from the dev bridge**, never from the emit line:
   `projections[].clip.layers[]` carries `bucketsKept`, `bucketsTotal`,
   `quadsIn` and `emitted` every sampled frame, while the emit line is on a
