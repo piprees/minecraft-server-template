@@ -62,23 +62,28 @@ public final class ClientProjection {
     private static volatile int meshes;
     private static volatile long meshNanos;
     private static volatile long peakMeshNanos;
+    private static volatile long leastMeshNanos = Long.MAX_VALUE;
 
     /**
      * Queue plus build latency for meshes landed since the last read, as
-     * {@code meshes=N avg=Aus peak=Pus}. One shared builder thread serves every
-     * projection, so a second portal's wait includes the first one's build.
+     * {@code meshes=N min=Lus avg=Aus peak=Pus}. One shared builder thread
+     * serves every projection, so a second portal's wait includes the first
+     * one's build. One sample has no spread — force several before reading.
      */
     public static String meshCost() {
         int spanMeshes = meshes;
         long spanNanos = meshNanos;
         long spanPeak = peakMeshNanos;
+        long spanLeast = leastMeshNanos;
         meshes = 0;
         meshNanos = 0;
         peakMeshNanos = 0;
+        leastMeshNanos = Long.MAX_VALUE;
         if (spanMeshes == 0) {
-            return "meshes=0 avg=n/a peak=n/a";
+            return "meshes=0 min=n/a avg=n/a peak=n/a";
         }
         return "meshes=" + spanMeshes
+                + " min=" + (spanLeast / 1000) + "us"
                 + " avg=" + (spanNanos / spanMeshes / 1000) + "us"
                 + " peak=" + (spanPeak / 1000) + "us";
     }
@@ -396,6 +401,7 @@ public final class ClientProjection {
         meshes++;
         meshNanos += waited;
         peakMeshNanos = Math.max(peakMeshNanos, waited);
+        leastMeshNanos = Math.min(leastMeshNanos, waited);
     }
 
     /**

@@ -90,24 +90,30 @@ public final class RealtimeView {
     private static volatile int slices;
     private static volatile long sliceNanos;
     private static volatile long peakSliceNanos;
+    private static volatile long leastSliceNanos = Long.MAX_VALUE;
     private static volatile int lastCells;
 
     /**
      * What the box walk has cost on END_CLIENT_TICK since the last read, as
-     * {@code slices=N avg=Aus peak=Pus cells=C scans=S}. Reading clears the
-     * window. {@code peak} is the frame impact; {@code cells} is the whole box.
+     * {@code slices=N min=Lus avg=Aus peak=Pus cells=C scans=S}. Reading clears
+     * the window. {@code peak} is the frame impact, and min against peak is the
+     * spread — one sample has none, so read over several.
      */
     public static String buildCost() {
         int spanSlices = slices;
         long spanNanos = sliceNanos;
         long spanPeak = peakSliceNanos;
+        long spanLeast = leastSliceNanos;
         slices = 0;
         sliceNanos = 0;
         peakSliceNanos = 0;
+        leastSliceNanos = Long.MAX_VALUE;
         if (spanSlices == 0) {
-            return "slices=0 avg=n/a peak=n/a cells=" + lastCells + " scans=" + SCANS.size();
+            return "slices=0 min=n/a avg=n/a peak=n/a cells=" + lastCells
+                    + " scans=" + SCANS.size();
         }
         return "slices=" + spanSlices
+                + " min=" + (spanLeast / 1000) + "us"
                 + " avg=" + (spanNanos / spanSlices / 1000) + "us"
                 + " peak=" + (spanPeak / 1000) + "us"
                 + " cells=" + lastCells
@@ -204,6 +210,7 @@ public final class RealtimeView {
         slices++;
         sliceNanos += elapsed;
         peakSliceNanos = Math.max(peakSliceNanos, elapsed);
+        leastSliceNanos = Math.min(leastSliceNanos, elapsed);
         if (built == null) {
             return;
         }
