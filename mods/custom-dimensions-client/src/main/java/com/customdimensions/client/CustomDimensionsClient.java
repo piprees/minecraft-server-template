@@ -310,13 +310,15 @@ public class CustomDimensionsClient implements ClientModInitializer {
         boolean serverSide = settings.effectiveServerSide();
         try {
             ClientPlayNetworking.send(new CompanionPayloads.PortalView(
-                    settings.renderClientSidePortals(), serverSide, settings.maxRenderDistance()));
+                    settings.renderClientSidePortals(), serverSide, settings.maxRenderDistance(),
+                    settings.viewDepth()));
         } catch (RuntimeException e) {
             LOGGER.warn("could not declare the portal view; the server keeps describing it", e);
             return;
         }
-        LOGGER.info("{} renderLocally={} keepSlab={} maxRenderDistance={} refused={}", VIEW_MARKER,
-                settings.renderClientSidePortals(), serverSide, settings.maxRenderDistance(),
+        LOGGER.info("{} renderLocally={} keepSlab={} maxRenderDistance={} viewDepth={} refused={}",
+                VIEW_MARKER, settings.renderClientSidePortals(), serverSide,
+                settings.maxRenderDistance(), settings.viewDepth(),
                 PortalViewDeclaration.refused());
     }
 }

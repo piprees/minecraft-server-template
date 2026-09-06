@@ -494,7 +494,7 @@ public final class ImmersiveProjector {
             // loaded, so waiting for activation to take the ticket would
             // never take it at all.
             boolean anyoneNear = anyoneWithinTicketRange(players, centre, zone, range);
-            Set<Direction> localFarSides = localDrawerFarSides(players, centre, zone, range);
+            LocalDrawers drawers = localDrawers(players, centre, zone, range);
 
             ProjectionVolume.TargetMapping mapping = null;
             int arrivalY = NO_ARRIVAL;
@@ -510,12 +510,12 @@ public final class ImmersiveProjector {
                     unresolvedLink = link == null;
                     if (link != null) {
                         mapping = ProjectionVolume.anchorMapping(zone.interior, link.getX(), link.getZ());
-                        holdChunks(targetWorld, zone, mapping, immersive, tick, localFarSides);
+                        holdChunks(targetWorld, zone, mapping, immersive, tick, drawers);
                         arrivalY = link.getY();
                     }
                 } else {
                     mapping = scaled;
-                    holdChunks(targetWorld, zone, mapping, immersive, tick, localFarSides);
+                    holdChunks(targetWorld, zone, mapping, immersive, tick, drawers);
                     arrivalY = ArrivalResolver.arrivalY(
                             targetWorld, mapping.arrivalX(), mapping.arrivalZ(), zone.axis);
                 }
@@ -640,7 +640,7 @@ public final class ImmersiveProjector {
             }
             boolean anyoneNear = anyoneWithinTicketRange(players, centre, zone,
                     settings.activationRange());
-            Set<Direction> localFarSides = localDrawerFarSides(players, centre, zone,
+            LocalDrawers drawers = localDrawers(players, centre, zone,
                     settings.activationRange());
 
             // Portal-destruction teardown. Closing an arrival deregisters
@@ -659,7 +659,7 @@ public final class ImmersiveProjector {
 
             ServerWorld destination = running.getWorld(zone.targetWorld);
             if (anyoneNear && destination != null) {
-                holdChunks(destination, zone, arrival.mapping, settings, tick, localFarSides);
+                holdChunks(destination, zone, arrival.mapping, settings, tick, drawers);
                 if (arrival.destinationY != NO_ARRIVAL) {
                     sampleGlow(zone, destination, new BlockPos(arrival.mapping.arrivalX(),
                             arrival.destinationY, arrival.mapping.arrivalZ()), tick);
@@ -945,20 +945,32 @@ public final class ImmersiveProjector {
      * volumes: {@link #holdSet} runs the core forward from the arrival, and
      * forward is only defined once you know which side the eye is on.
      */
-    private static Set<Direction> localDrawerFarSides(List<ServerPlayerEntity> players,
+    private static LocalDrawers localDrawers(List<ServerPlayerEntity> players,
             BlockPos centre, PortalHelper.PortalZone zone, int range) {
         int margin = HELD.containsKey(zone) ? TICKET_DROP_MARGIN : TICKET_HOLD_MARGIN;
         double ticketSq = (double) (range + margin) * (range + margin);
         Set<Direction> sides = EnumSet.noneOf(Direction.class);
+        int coreDepth = DestinationFeed.coreDepth(
+                com.customdimensions.companion.PortalViewPreference.DEFAULT_VIEW_DEPTH);
         for (ServerPlayerEntity player : players) {
+            com.customdimensions.companion.PortalViewPreference view =
+                    com.customdimensions.companion.CompanionNetwork.portalView(player.getUuid());
             if (centre.getSquaredDistance(player.getBlockPos()) <= ticketSq
-                    && !com.customdimensions.companion.CompanionNetwork.streamsSlab(player.getUuid())) {
+                    && !view.streamsSlab()) {
                 sides.add(ProjectionVolume.viewerFarSide(
                         zone.interior, zone.axis, player.getBlockPos(), null));
+                coreDepth = Math.max(coreDepth, DestinationFeed.coreDepth(view.viewDepth()));
             }
         }
-        return sides;
+        return new LocalDrawers(sides, coreDepth);
     }
+
+    /**
+     * The sides local drawers stand on and the core depth their declared views
+     * need, off one pass over the same players. The deepest wins, so every
+     * viewer's own core is inside the columns this zone tickets.
+     */
+    private record LocalDrawers(Set<Direction> sides, int coreDepth) {}
 
     /**
      * Is this registered portal position part of an immersive ARRIVAL, whose
@@ -1278,7 +1290,7 @@ public final class ImmersiveProjector {
      */
     private static void holdChunks(ServerWorld targetWorld, PortalHelper.PortalZone zone,
             ProjectionVolume.TargetMapping mapping, ImmersiveSettings settings, long tick,
-            Collection<Direction> localFarSides) {
+            LocalDrawers drawers) {
         RegistryKey<World> targetKey = targetWorld.getRegistryKey();
         HeldChunks held = HELD.get(zone);
         if (held != null && !held.targetWorld.equals(targetKey)) {
@@ -1299,7 +1311,8 @@ public final class ImmersiveProjector {
         // Recomputed every refresh, not cached: the core runs forward from the
         // arrival on each side a local drawer is standing, and they move.
         List<ChunkPos> chunks = holdSet(previewBox,
-                mapping.arrivalX() >> 4, mapping.arrivalZ() >> 4, localFarSides);
+                mapping.arrivalX() >> 4, mapping.arrivalZ() >> 4,
+                drawers.sides(), drawers.coreDepth());
         for (ChunkPos pos : chunks) {
             // Re-adding an identical ticket resets its expiry without
             // touching the chunk level, so this is idempotent and cheap.
@@ -1323,8 +1336,9 @@ public final class ImmersiveProjector {
      * the columns a local drawer's own box reads, once per side anyone is
      * looking from.
      *
-     * <p>The core runs FORWARD from the arrival —
-     * {@link DestinationFeed#CORE_DEPTH} columns along the far side's normal,
+     * <p>The core runs FORWARD from the arrival — {@code coreDepth} columns
+     * along the far side's normal, sized by the deepest view any local drawer
+     * declared,
      * {@link DestinationFeed#CORE_RADIUS} either side of it. A square centred
      * on the arrival spends nearly half its columns behind the aperture plane,
      * which no box reads, and reaches a third of the depth the client draws.
@@ -1340,10 +1354,10 @@ public final class ImmersiveProjector {
      * exists today, not because feeding more is the destination.
      */
     public static List<ChunkPos> holdSet(List<ChunkPos> previewBox, int arrivalChunkX, int arrivalChunkZ,
-            Collection<Direction> farSides) {
+            Collection<Direction> farSides, int coreDepth) {
         LinkedHashSet<ChunkPos> held = new LinkedHashSet<>(previewBox);
         for (Direction side : farSides) {
-            addCore(held, arrivalChunkX, arrivalChunkZ, side);
+            addCore(held, arrivalChunkX, arrivalChunkZ, side, coreDepth);
         }
         return new ArrayList<>(held);
     }
@@ -1354,16 +1368,16 @@ public final class ImmersiveProjector {
      * different columns.
      */
     private static void addCore(Set<ChunkPos> held, int arrivalChunkX, int arrivalChunkZ,
-            Direction side) {
+            Direction side, int coreDepth) {
         DestinationFeed.Normal normal = side == null
                 ? DestinationFeed.Normal.Y
                 : DestinationFeed.normalOf(side.getAxis());
         boolean towardsHigh = side != null
                 && side.getOffsetX() + side.getOffsetY() + side.getOffsetZ() > 0;
-        int span = Math.max(DestinationFeed.CORE_RADIUS, DestinationFeed.CORE_DEPTH);
+        int span = Math.max(DestinationFeed.CORE_RADIUS, coreDepth);
         for (int ox = -span; ox <= span; ox++) {
             for (int oz = -span; oz <= span; oz++) {
-                if (DestinationFeed.inCore(ox, oz, normal, towardsHigh)) {
+                if (DestinationFeed.inCore(ox, oz, normal, towardsHigh, coreDepth)) {
                     held.add(new ChunkPos(arrivalChunkX + ox, arrivalChunkZ + oz));
                 }
             }

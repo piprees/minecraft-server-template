@@ -3,6 +3,7 @@ package com.customdimensions.client.realtime;
 import com.customdimensions.client.CompanionPayloads;
 import com.customdimensions.client.CustomDimensionsClient;
 import com.customdimensions.client.config.RealtimeControls;
+import com.customdimensions.client.config.RealtimeSettings;
 import com.customdimensions.client.render.ProjectionStore;
 import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
@@ -42,9 +43,11 @@ public final class RealtimeView {
     /**
      * How far past the opening the local view reaches, in blocks. An eye below
      * the opening's top edge sees floor all the way to here, so this is how far
-     * the ground runs before the window ends.
+     * the ground runs before the window ends. The setting's default; the live
+     * value is {@code RealtimeSettings.viewDepth}, and the server sizes the
+     * chunk core it feeds from the same number.
      */
-    public static final int DEPTH = 64;
+    public static final int DEPTH = RealtimeSettings.DEFAULT_VIEW_DEPTH;
 
     /**
      * The eye-distance-to-opening-half-width ratio the box holds the sightline
@@ -57,7 +60,12 @@ public final class RealtimeView {
      * How far the box is widened on the two in-plane axes — the cone's width at
      * the far edge, so the array holds every cell the shape can want.
      */
-    public static final int RADIUS = (DEPTH + CONE_RATIO - 1) / CONE_RATIO;
+    public static final int RADIUS = radiusFor(DEPTH);
+
+    /** The cone's half-width at the far edge of a box {@code depth} deep. */
+    public static int radiusFor(int depth) {
+        return (depth + CONE_RATIO - 1) / CONE_RATIO;
+    }
 
     /**
      * Half-width held at full width regardless of depth. The cone is narrow
@@ -316,8 +324,9 @@ public final class RealtimeView {
             }
             boolean towardsHigh =
                     normal.getOffsetX() + normal.getOffsetY() + normal.getOffsetZ() > 0;
+            int depth = RealtimeControls.settings().viewDepth();
             LocalVolume volume = LocalVolume.of(minA, maxA, minB, maxB, plane, towardsHigh,
-                    DEPTH, RADIUS);
+                    depth, radiusFor(depth));
 
             int[] origin = new int[3];
             int[] size = new int[3];

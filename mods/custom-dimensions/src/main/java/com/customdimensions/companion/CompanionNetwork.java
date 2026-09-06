@@ -110,14 +110,17 @@ public final class CompanionNetwork {
             return;
         }
         PortalViewPreference declared = new PortalViewPreference(
-                payload.renderLocally(), payload.keepSlab(), payload.maxRenderDistance());
+                payload.renderLocally(), payload.keepSlab(), payload.maxRenderDistance(),
+                payload.viewDepth());
         PortalViewPreference held = VIEWS.put(playerId, declared);
         if (declared.equals(held)) {
             return;
         }
-        MultiverseServer.LOGGER.info("{} player={} rendersLocally={} slab={} maxRenderDistance={}",
+        MultiverseServer.LOGGER.info(
+                "{} player={} rendersLocally={} slab={} maxRenderDistance={} viewDepth={} coreDepth={}",
                 VIEW_MARKER, playerName, declared.rendersLocally(),
-                declared.streamsSlab() ? "streamed" : "suppressed", declared.maxRenderDistance());
+                declared.streamsSlab() ? "streamed" : "suppressed", declared.maxRenderDistance(),
+                declared.viewDepth(), DestinationFeed.coreDepth(declared.viewDepth()));
     }
 
     public static void forget(UUID playerId) {

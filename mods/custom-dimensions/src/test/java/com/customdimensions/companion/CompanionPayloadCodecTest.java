@@ -111,7 +111,7 @@ class CompanionPayloadCodecTest {
     @Test
     void portalViewRoundTrips() {
         RegistryByteBuf buf = buf();
-        CompanionPayloads.PortalView sent = new CompanionPayloads.PortalView(true, false, 24);
+        CompanionPayloads.PortalView sent = new CompanionPayloads.PortalView(true, false, 24, 64);
         CompanionPayloads.PortalView.CODEC.encode(buf, sent);
 
         assertEquals(sent, CompanionPayloads.PortalView.CODEC.decode(buf));
@@ -119,17 +119,17 @@ class CompanionPayloadCodecTest {
     }
 
     @Test
-    void portalViewIsTwoBooleansThenAVarIntOnTheWire() {
+    void portalViewIsTwoBooleansThenTwoVarIntsOnTheWire() {
         RegistryByteBuf buf = buf();
         CompanionPayloads.PortalView.CODEC.encode(
-                buf, new CompanionPayloads.PortalView(true, false, 300));
-        assertArrayEquals(new byte[] {1, 0, (byte) 0xAC, 0x02}, drain(buf),
+                buf, new CompanionPayloads.PortalView(true, false, 300, 64));
+        assertArrayEquals(new byte[] {1, 0, (byte) 0xAC, 0x02, 0x40}, drain(buf),
                 "the two halves of the pack no longer agree on the portal-view wire shape");
     }
 
     @Test
     void portalViewChannelIdIsTheAgreedLiteral() {
-        assertEquals("customdimensions:portal-view/v1",
+        assertEquals("customdimensions:portal-view/v2",
                 CompanionPayloads.PortalView.ID.id().toString());
     }
 

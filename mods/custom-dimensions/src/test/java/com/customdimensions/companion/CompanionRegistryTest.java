@@ -64,7 +64,7 @@ class CompanionRegistryTest {
     void aDeclarationFromACompanionIsHonoured() {
         CompanionNetwork.onHello(PLAYER, "Tester", Artefacts.stackVersion());
         CompanionNetwork.onPortalView(PLAYER, "Tester",
-                new CompanionPayloads.PortalView(true, false, 24));
+                new CompanionPayloads.PortalView(true, false, 24, 64));
 
         assertTrue(CompanionNetwork.portalView(PLAYER).rendersLocally());
         assertEquals(24, CompanionNetwork.portalView(PLAYER).maxRenderDistance());
@@ -79,7 +79,7 @@ class CompanionRegistryTest {
     @Test
     void aDeclarationFromANonCompanionIsIgnored() {
         CompanionNetwork.onPortalView(PLAYER, "Tester",
-                new CompanionPayloads.PortalView(true, false, 24));
+                new CompanionPayloads.PortalView(true, false, 24, 64));
 
         assertEquals(PortalViewPreference.SERVER_DRAWN, CompanionNetwork.portalView(PLAYER));
         assertTrue(CompanionNetwork.streamsSlab(PLAYER));
@@ -89,9 +89,9 @@ class CompanionRegistryTest {
     void theLatestDeclarationWinsSoAToggleTakesEffect() {
         CompanionNetwork.onHello(PLAYER, "Tester", Artefacts.stackVersion());
         CompanionNetwork.onPortalView(PLAYER, "Tester",
-                new CompanionPayloads.PortalView(true, false, 24));
+                new CompanionPayloads.PortalView(true, false, 24, 64));
         CompanionNetwork.onPortalView(PLAYER, "Tester",
-                new CompanionPayloads.PortalView(false, true, 24));
+                new CompanionPayloads.PortalView(false, true, 24, 64));
 
         assertTrue(CompanionNetwork.streamsSlab(PLAYER), "the toggle back did not restore the slab");
     }
@@ -100,7 +100,7 @@ class CompanionRegistryTest {
     void disconnectDropsTheDeclarationTooSoTheNextPlayerOnThatIdIsNotSilenced() {
         CompanionNetwork.onHello(PLAYER, "Tester", Artefacts.stackVersion());
         CompanionNetwork.onPortalView(PLAYER, "Tester",
-                new CompanionPayloads.PortalView(true, false, 24));
+                new CompanionPayloads.PortalView(true, false, 24, 64));
 
         CompanionNetwork.forget(PLAYER);
 
@@ -112,7 +112,7 @@ class CompanionRegistryTest {
     void clearDropsTheDeclarationsAsWellAsTheCompanions() {
         CompanionNetwork.onHello(PLAYER, "Tester", Artefacts.stackVersion());
         CompanionNetwork.onPortalView(PLAYER, "Tester",
-                new CompanionPayloads.PortalView(true, false, 24));
+                new CompanionPayloads.PortalView(true, false, 24, 64));
 
         CompanionNetwork.clear();
 

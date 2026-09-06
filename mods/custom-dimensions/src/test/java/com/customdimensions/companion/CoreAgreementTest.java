@@ -42,15 +42,28 @@ class CoreAgreementTest {
      */
     private static final double PLANE = 0.0;
 
+    /** The core the default declared view sizes, which both sides read. */
+    private static final int CORE_DEPTH =
+            DestinationFeed.coreDepth(PortalViewPreference.DEFAULT_VIEW_DEPTH);
+
     private static Set<String> ticketedCore(Direction farSide) {
+        return ticketedCore(farSide, CORE_DEPTH);
+    }
+
+    private static Set<String> ticketedCore(Direction farSide, int coreDepth) {
         return names(ImmersiveProjector.holdSet(List.of(), ARRIVAL_X, ARRIVAL_Z,
-                Set.of(farSide)));
+                Set.of(farSide), coreDepth));
     }
 
     private static Set<String> fedCore(DestinationFeed.Normal normal, boolean towardsHigh) {
+        return fedCore(normal, towardsHigh, CORE_DEPTH);
+    }
+
+    private static Set<String> fedCore(DestinationFeed.Normal normal, boolean towardsHigh,
+            int coreDepth) {
         List<Long> keys = DestinationFeed.nextChunks(ARRIVAL_X, ARRIVAL_Z, 16,
                 0.0, PLANE, -1.0, 1.0, PLANE, 0, 0, new HashSet<>(), 1000, normal,
-                towardsHigh);
+                towardsHigh, coreDepth);
         Set<String> out = new TreeSet<>();
         for (long key : keys) {
             out.add(DestinationFeed.chunkX(key) + "," + DestinationFeed.chunkZ(key));
@@ -78,6 +91,22 @@ class CoreAgreementTest {
         assertEquals(ticketedCore(Direction.WEST), fedCore(DestinationFeed.Normal.X, false));
     }
 
+    /**
+     * A declared depth other than the default. Agreement at 64 alone would
+     * still hold with the depth threaded to one reader and left constant at
+     * the other; this is what says both of them moved.
+     */
+    @Test
+    void theTicketAndTheFeedAgreeAtADeeperDeclaredView() {
+        int deeper = DestinationFeed.coreDepth(128);
+        assertTrue(deeper > CORE_DEPTH, "a deeper view did not widen the core");
+        assertEquals(ticketedCore(Direction.EAST, deeper),
+                fedCore(DestinationFeed.Normal.X, true, deeper));
+        assertTrue(fedCore(DestinationFeed.Normal.X, true, deeper).size()
+                        > fedCore(DestinationFeed.Normal.X, true).size(),
+                "the deeper core fed no more columns than the default");
+    }
+
     @Test
     void theTicketAndTheFeedNameTheSameCoreLookingSouth() {
         assertEquals(ticketedCore(Direction.SOUTH), fedCore(DestinationFeed.Normal.Z, true));
@@ -99,10 +128,11 @@ class CoreAgreementTest {
     @Test
     void theTicketNamesThePredicatesCoreLookingDown() {
         Set<String> predicate = new TreeSet<>();
-        int span = Math.max(DestinationFeed.CORE_RADIUS, DestinationFeed.CORE_DEPTH);
+        int span = Math.max(DestinationFeed.CORE_RADIUS, CORE_DEPTH);
         for (int ox = -span; ox <= span; ox++) {
             for (int oz = -span; oz <= span; oz++) {
-                if (DestinationFeed.inCore(ox, oz, DestinationFeed.Normal.Y, false)) {
+                if (DestinationFeed.inCore(ox, oz, DestinationFeed.Normal.Y, false,
+                        CORE_DEPTH)) {
                     predicate.add((ARRIVAL_X + ox) + "," + (ARRIVAL_Z + oz));
                 }
             }

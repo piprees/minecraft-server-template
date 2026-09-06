@@ -180,10 +180,16 @@ public final class DevServer {
                 .withApertureUnshadedBackdrop(request.flag("apertureUnshadedBackdrop",
                         before.apertureUnshadedBackdrop()))
                 .withApertureAtlasFilter((int) request.number("apertureAtlasFilter",
-                        before.apertureAtlasFilter()));
+                        before.apertureAtlasFilter()))
+                .withViewDepth((int) request.number("viewDepth", before.viewDepth()));
         boolean changed = !after.equals(before);
         if (changed) {
             RealtimeControls.store().save(after);
+        }
+        if (after.viewDepth() != before.viewDepth()) {
+            // The box's shape is read at the start of a walk, so a held view
+            // keeps the old depth until its bookmark is dropped.
+            RealtimeView.rebuildAll();
         }
         return DevResponse.realtime(changed, after.toJson(), held());
     }

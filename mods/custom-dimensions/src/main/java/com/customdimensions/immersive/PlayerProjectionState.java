@@ -651,7 +651,7 @@ public final class PlayerProjectionState {
             // stalling the tick on one client's whole view.
             com.customdimensions.companion.DestinationFeed.feed(player, targetWorld,
                     this.zone.interior, wanted, frame,
-                    CompanionNetwork.portalView(this.playerId).maxRenderDistance(),
+                    CompanionNetwork.portalView(this.playerId),
                     com.customdimensions.companion.DestinationFeed.DEFAULT_BUDGET);
         }
 

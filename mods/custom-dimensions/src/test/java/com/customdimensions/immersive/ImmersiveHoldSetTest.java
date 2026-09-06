@@ -1,6 +1,7 @@
 package com.customdimensions.immersive;
 
 import com.customdimensions.companion.DestinationFeed;
+import com.customdimensions.companion.PortalViewPreference;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.util.math.Direction;
 import org.junit.jupiter.api.Test;
@@ -18,7 +19,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  *
  * <p>The block slab needs its preview box; a client drawing the far side itself
  * needs the columns its own box reads, or the feed sends the ticketed handful
- * and stops. The core runs {@link DestinationFeed#CORE_DEPTH} columns FORWARD
+ * and stops. The core runs {@link DestinationFeed#coreDepth} columns FORWARD
  * from the arrival along the viewer's far side and {@link
  * DestinationFeed#CORE_RADIUS} back of it — forward for the box, back so the
  * arrival's own 3x3 has the filled neighbourhood a section build needs.
@@ -35,9 +36,13 @@ class ImmersiveHoldSetTest {
     private static final int ARRIVAL_CHUNK_X = 108;
     private static final int ARRIVAL_CHUNK_Z = 81;
 
+    /** The core the default declared view sizes. */
+    private static final int CORE_DEPTH =
+            DestinationFeed.coreDepth(PortalViewPreference.DEFAULT_VIEW_DEPTH);
+
     /** Columns one far side's core holds: its depth and its full width. */
     private static final int CORE_COLUMNS =
-            (DestinationFeed.CORE_RADIUS + DestinationFeed.CORE_DEPTH)
+            (DestinationFeed.CORE_RADIUS + CORE_DEPTH)
                     * (2 * DestinationFeed.CORE_RADIUS + 1);
 
     private static final List<ChunkPos> PREVIEW_BOX = List.of(
@@ -46,14 +51,14 @@ class ImmersiveHoldSetTest {
 
     private static List<ChunkPos> held(Direction... farSides) {
         return ImmersiveProjector.holdSet(PREVIEW_BOX, ARRIVAL_CHUNK_X, ARRIVAL_CHUNK_Z,
-                Set.of(farSides));
+                Set.of(farSides), CORE_DEPTH);
     }
 
     @Test
     void aLocalDrawerHoldsTheColumnsItsOwnBoxReads() {
         Set<ChunkPos> holding = new HashSet<>(held(Direction.EAST));
 
-        for (int forward = 0; forward < DestinationFeed.CORE_DEPTH; forward++) {
+        for (int forward = 0; forward < CORE_DEPTH; forward++) {
             for (int side = -DestinationFeed.CORE_RADIUS; side <= DestinationFeed.CORE_RADIUS;
                     side++) {
                 ChunkPos want = new ChunkPos(ARRIVAL_CHUNK_X + forward, ARRIVAL_CHUNK_Z + side);
@@ -64,7 +69,7 @@ class ImmersiveHoldSetTest {
     }
 
     /**
-     * {@link DestinationFeed#CORE_DEPTH} columns cover the client's 64-block
+     * The default view's core covers the client's 64-block
      * box wherever the aperture sits inside its own chunk. Stopping at the
      * feed's tangential radius would leave the far half of every view empty.
      */
@@ -74,11 +79,11 @@ class ImmersiveHoldSetTest {
 
         assertTrue(
                 holding.contains(new ChunkPos(
-                        ARRIVAL_CHUNK_X + DestinationFeed.CORE_DEPTH - 1, ARRIVAL_CHUNK_Z)),
+                        ARRIVAL_CHUNK_X + CORE_DEPTH - 1, ARRIVAL_CHUNK_Z)),
                 "the core stops short of the box's far end");
         assertFalse(
                 holding.contains(new ChunkPos(
-                        ARRIVAL_CHUNK_X + DestinationFeed.CORE_DEPTH, ARRIVAL_CHUNK_Z)),
+                        ARRIVAL_CHUNK_X + CORE_DEPTH, ARRIVAL_CHUNK_Z)),
                 "the core reaches past the box, ticketing a column nothing reads");
     }
 
@@ -133,9 +138,9 @@ class ImmersiveHoldSetTest {
         Set<ChunkPos> holding = new HashSet<>(held(Direction.EAST, Direction.WEST));
 
         assertTrue(holding.contains(new ChunkPos(
-                ARRIVAL_CHUNK_X + DestinationFeed.CORE_DEPTH - 1, ARRIVAL_CHUNK_Z)));
+                ARRIVAL_CHUNK_X + CORE_DEPTH - 1, ARRIVAL_CHUNK_Z)));
         assertTrue(holding.contains(new ChunkPos(
-                ARRIVAL_CHUNK_X - DestinationFeed.CORE_DEPTH + 1, ARRIVAL_CHUNK_Z)));
+                ARRIVAL_CHUNK_X - CORE_DEPTH + 1, ARRIVAL_CHUNK_Z)));
     }
 
     /** A portal in the floor: the box runs down, so its footprint is the square. */

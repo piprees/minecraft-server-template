@@ -96,7 +96,7 @@ class DestinationRecycleTest {
     void theHandshakeAndTheDeclarationSurviveAWorldChange() {
         CompanionNetwork.onHello(PLAYER, "Tester", Artefacts.stackVersion());
         CompanionNetwork.onPortalView(PLAYER, "Tester",
-                new CompanionPayloads.PortalView(true, false, 16));
+                new CompanionPayloads.PortalView(true, false, 16, 64));
         DestinationFeed.remember(PLAYER, FAR_SIDE, keys(29));
 
         CompanionNetwork.forgetDestinations(PLAYER);
@@ -138,7 +138,8 @@ class DestinationRecycleTest {
     private static List<Long> wedge(Set<Long> sent) {
         return DestinationFeed.nextChunks(ARRIVAL_CHUNK_X, ARRIVAL_CHUNK_Z, 16,
                 EYE_A, EYE_N, A0, A1, PLANE, DX, DZ, sent, Integer.MAX_VALUE,
-                DestinationFeed.Normal.Z, false);
+                DestinationFeed.Normal.Z, false,
+                DestinationFeed.coreDepth(PortalViewPreference.DEFAULT_VIEW_DEPTH));
     }
 
     private static Set<Long> held() {

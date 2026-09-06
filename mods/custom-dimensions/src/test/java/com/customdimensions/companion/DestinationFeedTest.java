@@ -48,9 +48,34 @@ class DestinationFeedTest {
         assertEquals(1500.0, DestinationFeed.surface(1500.0, false), 1.0e-9);
     }
 
+    /** The core the default declared view sizes: today's shape. */
+    private static final int CORE_DEPTH =
+            DestinationFeed.coreDepth(PortalViewPreference.DEFAULT_VIEW_DEPTH);
+
+    /**
+     * The default view is 64 blocks: four chunks, plus one because the aperture
+     * sits anywhere inside its own chunk. Five columns is what the live portal
+     * holds, so this is the number a settable depth must not move.
+     */
+    @Test
+    void theDefaultViewDepthSizesTheCoreAtFiveColumns() {
+        assertEquals(5, DestinationFeed.coreDepth(64));
+        assertEquals(5, CORE_DEPTH);
+    }
+
+    /** A deeper declared view buys columns; a shallower one gives them back. */
+    @Test
+    void theCoreFollowsTheDeclaredDepth() {
+        assertEquals(3, DestinationFeed.coreDepth(32));
+        assertEquals(6, DestinationFeed.coreDepth(65));
+        assertEquals(9, DestinationFeed.coreDepth(128));
+        assertEquals(13, DestinationFeed.coreDepth(192));
+    }
+
     private static List<Long> pick(int radius, int budget, Set<Long> sent) {
         return DestinationFeed.nextChunks(ARRIVAL_CHUNK, ARRIVAL_CHUNK, radius,
-                EYE_A, EYE_N, A0, A1, PLANE, DX, DZ, sent, budget, DestinationFeed.Normal.Z, false);
+                EYE_A, EYE_N, A0, A1, PLANE, DX, DZ, sent, budget, DestinationFeed.Normal.Z, false,
+                CORE_DEPTH);
     }
 
     @Test
@@ -175,7 +200,7 @@ class DestinationFeedTest {
         int radius = 4;
         int fed = DestinationFeed.nextChunks(ARRIVAL_CHUNK, ARRIVAL_CHUNK, radius,
                 EYE_A, EYE_N, A0, A1, PLANE, DX, DZ, Set.of(), Integer.MAX_VALUE,
-                DestinationFeed.Normal.Y, false).size();
+                DestinationFeed.Normal.Y, false, CORE_DEPTH).size();
         int disc = 0;
         for (int x = -radius; x <= radius; x++) {
             for (int z = -radius; z <= radius; z++) {
@@ -192,10 +217,10 @@ class DestinationFeedTest {
     void anOpeningWhoseNormalRunsAlongXIsFedToo() {
         int alongZ = DestinationFeed.nextChunks(ARRIVAL_CHUNK, ARRIVAL_CHUNK, 6,
                 EYE_A, EYE_N, A0, A1, PLANE, DX, DZ, Set.of(), Integer.MAX_VALUE,
-                DestinationFeed.Normal.Z, false).size();
+                DestinationFeed.Normal.Z, false, CORE_DEPTH).size();
         int alongX = DestinationFeed.nextChunks(ARRIVAL_CHUNK, ARRIVAL_CHUNK, 6,
                 EYE_A, EYE_N, A0, A1, PLANE, DX, DZ, Set.of(), Integer.MAX_VALUE,
-                DestinationFeed.Normal.X, false).size();
+                DestinationFeed.Normal.X, false, CORE_DEPTH).size();
 
         assertTrue(alongX > 0, "an X-normal opening fed nothing");
         assertEquals(alongZ, alongX,

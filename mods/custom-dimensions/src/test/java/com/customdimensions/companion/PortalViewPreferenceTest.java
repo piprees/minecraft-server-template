@@ -51,4 +51,18 @@ class PortalViewPreferenceTest {
                 new PortalViewPreference(true, false, 4096).maxRenderDistance());
         assertEquals(16, new PortalViewPreference(true, false, 16).maxRenderDistance());
     }
+
+    /** A depth outside the settable range, and the depth a client that names none holds. */
+    @org.junit.jupiter.api.Test
+    void theViewDepthIsClampedAndDefaults() {
+        assertEquals(PortalViewPreference.MIN_VIEW_DEPTH,
+                new PortalViewPreference(true, false, 16, 8).viewDepth());
+        assertEquals(PortalViewPreference.MAX_VIEW_DEPTH,
+                new PortalViewPreference(true, false, 16, 4096).viewDepth());
+        assertEquals(128, new PortalViewPreference(true, false, 16, 128).viewDepth());
+        assertEquals(PortalViewPreference.DEFAULT_VIEW_DEPTH,
+                new PortalViewPreference(true, false, 16).viewDepth());
+        assertEquals(PortalViewPreference.DEFAULT_VIEW_DEPTH,
+                PortalViewPreference.SERVER_DRAWN.viewDepth());
+    }
 }

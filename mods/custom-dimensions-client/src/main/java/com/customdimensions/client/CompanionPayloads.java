@@ -60,19 +60,27 @@ public final class CompanionPayloads {
      * <p>A client that never sends one is served exactly as it is today — the
      * server's block slab — so a vanilla client and an older companion both
      * keep working with no branch of their own.
+     *
+     * <p>{@code viewDepth} is how far past the opening this client's own view
+     * reaches, in blocks; the server sizes the chunk core it feeds from it. The
+     * id carries /v2 because that field widened the record: a jar knowing only
+     * /v1 sends on an id this one never registers, which is discarded rather
+     * than mis-decoded, and the handshake already serves that pair as vanilla.
      */
     public record PortalView(
             boolean renderLocally,
             boolean keepSlab,
-            int maxRenderDistance) implements CustomPayload {
+            int maxRenderDistance,
+            int viewDepth) implements CustomPayload {
 
         public static final CustomPayload.Id<PortalView> ID =
-                new CustomPayload.Id<>(Identifier.of("customdimensions", "portal-view/v1"));
+                new CustomPayload.Id<>(Identifier.of("customdimensions", "portal-view/v2"));
 
         public static final PacketCodec<RegistryByteBuf, PortalView> CODEC = PacketCodec.tuple(
                 PacketCodecs.BOOL, PortalView::renderLocally,
                 PacketCodecs.BOOL, PortalView::keepSlab,
                 PacketCodecs.VAR_INT, PortalView::maxRenderDistance,
+                PacketCodecs.VAR_INT, PortalView::viewDepth,
                 PortalView::new);
 
         @Override

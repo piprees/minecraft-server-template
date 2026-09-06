@@ -130,6 +130,7 @@ final class DevState {
                 .num("apertureBackdropGain", settings.apertureBackdropGain())
                 .bool("apertureUnshadedBackdrop", settings.apertureUnshadedBackdrop())
                 .num("apertureAtlasFilter", settings.apertureAtlasFilter())
+                .num("viewDepth", settings.viewDepth())
                 .str("atlasFilter", PortalRenderLayers.atlasFilters())
                 .str("backdropColors", backdropColors())
                 .bool("bucketRejection", ProjectionRenderer.bucketRejection())
