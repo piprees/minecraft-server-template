@@ -355,10 +355,10 @@ public final class ProjectionRenderer {
                         camX, camY, camZ)
                 : null;
         double[] drawnDepth = {Double.NaN};
-        // Every unshaded program still runs vanilla's linear_fog toward whatever
-        // FogColor is bound, and the source world's is the wrong world.
-        float[] ownFog = RealtimeControls.settings().apertureUnshadedDestination()
-                        || RealtimeControls.settings().apertureUnshadedBackdrop()
+        // Every program here runs vanilla's linear_fog toward whatever FogColor
+        // is bound, and the source world's is the wrong world. Which program
+        // draws the destination does not change which fog it needs.
+        float[] ownFog = stage.drawsDestination()
                 ? UnshadedDestination.fogColour(projection.payload().fogColor(),
                         projection.payload().skyColor(),
                         RealtimeControls.settings().apertureBackdropGain())
