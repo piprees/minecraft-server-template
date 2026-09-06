@@ -68,6 +68,16 @@ public final class DestinationFeed {
     public static final int CORE_RADIUS = 2;
 
     /**
+     * Chunk columns the core runs FORWARD from the arrival, along the far
+     * side's normal. The client's local box reaches 64 blocks past the
+     * opening and the aperture sits anywhere inside its own chunk, so five
+     * columns cover it from either edge. Held here beside {@link #CORE_RADIUS}
+     * because the ticket set and the feed have to agree on the same shape: a
+     * chunk one of them leaves out is one the other can never send.
+     */
+    public static final int CORE_DEPTH = 5;
+
+    /**
      * Pumps a destination may write nothing for before it says so again. At
      * the stationary refresh cadence of 16 ticks this is about a minute, so a
      * feed that has gone quiet is in any log snapshot rather than only in the

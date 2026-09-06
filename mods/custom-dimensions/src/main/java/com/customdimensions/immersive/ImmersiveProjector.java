@@ -26,7 +26,9 @@ import net.minecraft.world.chunk.WorldChunk;
 import org.joml.Vector3f;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -85,9 +87,9 @@ import java.util.concurrent.ConcurrentHashMap;
  * The two mechanisms would guard each other into a permanent dead state. So
  * the projector holds its own {@link #PREVIEW_TICKET} on the columns
  * {@link #holdSet} names — {@link ProjectionVolume#targetChunks} for the block
- * slab, plus the feed's resident core for a viewer drawing the far side
- * itself — for as long as any player is in range, and releases it on every
- * teardown path. The ticket also carries an expiry
+ * slab, plus the core running forward from the arrival for a viewer drawing
+ * the far side itself — for as long as any player is in range, and releases it
+ * on every teardown path. The ticket also carries an expiry
  * ({@link #TICKET_EXPIRY_TICKS}), refreshed on a cadence while wanted, so a
  * missed release path self-heals instead of pinning chunks forever.
  *
@@ -492,7 +494,7 @@ public final class ImmersiveProjector {
             // loaded, so waiting for activation to take the ticket would
             // never take it at all.
             boolean anyoneNear = anyoneWithinTicketRange(players, centre, zone, range);
-            boolean localDrawer = anyLocalDrawerInTicketRange(players, centre, zone, range);
+            Set<Direction> localFarSides = localDrawerFarSides(players, centre, zone, range);
 
             ProjectionVolume.TargetMapping mapping = null;
             int arrivalY = NO_ARRIVAL;
@@ -508,12 +510,12 @@ public final class ImmersiveProjector {
                     unresolvedLink = link == null;
                     if (link != null) {
                         mapping = ProjectionVolume.anchorMapping(zone.interior, link.getX(), link.getZ());
-                        holdChunks(targetWorld, zone, mapping, immersive, tick, localDrawer);
+                        holdChunks(targetWorld, zone, mapping, immersive, tick, localFarSides);
                         arrivalY = link.getY();
                     }
                 } else {
                     mapping = scaled;
-                    holdChunks(targetWorld, zone, mapping, immersive, tick, localDrawer);
+                    holdChunks(targetWorld, zone, mapping, immersive, tick, localFarSides);
                     arrivalY = ArrivalResolver.arrivalY(
                             targetWorld, mapping.arrivalX(), mapping.arrivalZ(), zone.axis);
                 }
@@ -638,7 +640,7 @@ public final class ImmersiveProjector {
             }
             boolean anyoneNear = anyoneWithinTicketRange(players, centre, zone,
                     settings.activationRange());
-            boolean localDrawer = anyLocalDrawerInTicketRange(players, centre, zone,
+            Set<Direction> localFarSides = localDrawerFarSides(players, centre, zone,
                     settings.activationRange());
 
             // Portal-destruction teardown. Closing an arrival deregisters
@@ -657,7 +659,7 @@ public final class ImmersiveProjector {
 
             ServerWorld destination = running.getWorld(zone.targetWorld);
             if (anyoneNear && destination != null) {
-                holdChunks(destination, zone, arrival.mapping, settings, tick, localDrawer);
+                holdChunks(destination, zone, arrival.mapping, settings, tick, localFarSides);
                 if (arrival.destinationY != NO_ARRIVAL) {
                     sampleGlow(zone, destination, new BlockPos(arrival.mapping.arrivalX(),
                             arrival.destinationY, arrival.mapping.arrivalZ()), tick);
@@ -930,24 +932,32 @@ public final class ImmersiveProjector {
     }
 
     /**
-     * Whether anyone in ticket range draws this zone's far side themselves.
+     * Which sides of this zone are being drawn locally, as the far side each
+     * viewer's own box reads. Empty when nobody in ticket range draws the far
+     * side themselves.
      *
      * <p>Asked of the players in range rather than of {@code ACTIVE}: the
      * ticket is taken before the projection pass rebuilds a viewer's state, so
      * on the first pass after a world change {@code ACTIVE} names nobody — and
      * one refresh is long enough for a destination to drain.
+     *
+     * <p>A side rather than a flag because the two mouths read two different
+     * volumes: {@link #holdSet} runs the core forward from the arrival, and
+     * forward is only defined once you know which side the eye is on.
      */
-    private static boolean anyLocalDrawerInTicketRange(List<ServerPlayerEntity> players,
+    private static Set<Direction> localDrawerFarSides(List<ServerPlayerEntity> players,
             BlockPos centre, PortalHelper.PortalZone zone, int range) {
         int margin = HELD.containsKey(zone) ? TICKET_DROP_MARGIN : TICKET_HOLD_MARGIN;
         double ticketSq = (double) (range + margin) * (range + margin);
+        Set<Direction> sides = EnumSet.noneOf(Direction.class);
         for (ServerPlayerEntity player : players) {
             if (centre.getSquaredDistance(player.getBlockPos()) <= ticketSq
                     && !com.customdimensions.companion.CompanionNetwork.streamsSlab(player.getUuid())) {
-                return true;
+                sides.add(ProjectionVolume.viewerFarSide(
+                        zone.interior, zone.axis, player.getBlockPos(), null));
             }
         }
-        return false;
+        return sides;
     }
 
     /**
@@ -1268,7 +1278,7 @@ public final class ImmersiveProjector {
      */
     private static void holdChunks(ServerWorld targetWorld, PortalHelper.PortalZone zone,
             ProjectionVolume.TargetMapping mapping, ImmersiveSettings settings, long tick,
-            boolean localDrawer) {
+            Collection<Direction> localFarSides) {
         RegistryKey<World> targetKey = targetWorld.getRegistryKey();
         HeldChunks held = HELD.get(zone);
         if (held != null && !held.targetWorld.equals(targetKey)) {
@@ -1286,11 +1296,10 @@ public final class ImmersiveProjector {
         if (previewBox.isEmpty()) {
             return;
         }
-        // Recomputed every refresh, not cached: the core half is whatever is
-        // resident right now, and that changes as a destination drains.
+        // Recomputed every refresh, not cached: the core runs forward from the
+        // arrival on each side a local drawer is standing, and they move.
         List<ChunkPos> chunks = holdSet(previewBox,
-                mapping.arrivalX() >> 4, mapping.arrivalZ() >> 4, localDrawer,
-                (chunkX, chunkZ) -> PortalHelper.residentChunk(targetWorld, chunkX, chunkZ) != null);
+                mapping.arrivalX() >> 4, mapping.arrivalZ() >> 4, localFarSides);
         for (ChunkPos pos : chunks) {
             // Re-adding an identical ticket resets its expiry without
             // touching the chunk level, so this is idempotent and cheap.
@@ -1309,40 +1318,62 @@ public final class ImmersiveProjector {
         }
     }
 
-    /** Whether a chunk column is resident, as a value, so the rule stays testable. */
-    interface ChunkResidency {
-        boolean isResident(int chunkX, int chunkZ);
+    /**
+     * The columns one zone tickets: the block slab's preview box always, plus
+     * the columns a local drawer's own box reads, once per side anyone is
+     * looking from.
+     *
+     * <p>The core runs FORWARD from the arrival —
+     * {@link DestinationFeed#CORE_DEPTH} columns along the far side's normal,
+     * {@link DestinationFeed#CORE_RADIUS} either side of it. A square centred
+     * on the arrival spends nearly half its columns behind the aperture plane,
+     * which no box reads, and reaches a third of the depth the client draws.
+     *
+     * <p>A column is ticketed whether or not it is resident, because a ticket
+     * is how the far side comes to exist: the manager generates whatever the
+     * level reaches ({@code ChunkTicketManager.addTicket} builds it at
+     * {@code getLevelFromType(FULL) - radius}). Generation is asynchronous and
+     * this never waits on it, which is what keeps it off [K6];
+     * {@code ImmersivePreloader} does the same thing with a heavier ticket on
+     * the approach path. The companion path's block source is meant to become
+     * the client's own — this widens the server feed because the feed is what
+     * exists today, not because feeding more is the destination.
+     */
+    static List<ChunkPos> holdSet(List<ChunkPos> previewBox, int arrivalChunkX, int arrivalChunkZ,
+            Collection<Direction> farSides) {
+        LinkedHashSet<ChunkPos> held = new LinkedHashSet<>(previewBox);
+        for (Direction side : farSides) {
+            addCore(held, arrivalChunkX, arrivalChunkZ, side);
+        }
+        return new ArrayList<>(held);
     }
 
     /**
-     * The columns one zone tickets: the block slab's preview box always, plus
-     * the feed's {@link DestinationFeed#CORE_RADIUS} square around the arrival
-     * for a viewer drawing the far side itself.
-     *
-     * <p>The core half is filtered to what is ALREADY resident. A ticket sets
-     * a chunk's level and the manager loads or generates whatever reaches it
-     * ({@code ChunkTicketManager.addTicket} builds the ticket at
-     * {@code getLevelFromType(FULL) - radius}), so an unfiltered square would
-     * force first-time generation at a portal into fresh terrain — [K6].
-     * {@code ImmersivePreloader} keeps owning generation on its one-shot path;
-     * this only stops what is loaded from draining.
+     * One viewer side's core: {@link DestinationFeed#CORE_DEPTH} columns out
+     * from the arrival along {@code side}, {@link DestinationFeed#CORE_RADIUS}
+     * either side of that line. A vertical portal's box runs down rather than
+     * out, so there is no forward to run in and the footprint is the square.
      */
-    static List<ChunkPos> holdSet(List<ChunkPos> previewBox, int arrivalChunkX, int arrivalChunkZ,
-            boolean localDrawer, ChunkResidency residency) {
-        LinkedHashSet<ChunkPos> held = new LinkedHashSet<>(previewBox);
-        if (localDrawer) {
-            int core = DestinationFeed.CORE_RADIUS;
-            for (int ox = -core; ox <= core; ox++) {
-                for (int oz = -core; oz <= core; oz++) {
-                    int chunkX = arrivalChunkX + ox;
-                    int chunkZ = arrivalChunkZ + oz;
-                    if (residency.isResident(chunkX, chunkZ)) {
-                        held.add(new ChunkPos(chunkX, chunkZ));
-                    }
+    private static void addCore(Set<ChunkPos> held, int arrivalChunkX, int arrivalChunkZ,
+            Direction side) {
+        int radius = DestinationFeed.CORE_RADIUS;
+        if (side == null || side.getAxis() == Direction.Axis.Y) {
+            for (int ox = -radius; ox <= radius; ox++) {
+                for (int oz = -radius; oz <= radius; oz++) {
+                    held.add(new ChunkPos(arrivalChunkX + ox, arrivalChunkZ + oz));
                 }
             }
+            return;
         }
-        return new ArrayList<>(held);
+        int stepX = side.getOffsetX();
+        int stepZ = side.getOffsetZ();
+        for (int forward = 0; forward < DestinationFeed.CORE_DEPTH; forward++) {
+            for (int across = -radius; across <= radius; across++) {
+                held.add(new ChunkPos(
+                        arrivalChunkX + stepX * forward + (stepX == 0 ? across : 0),
+                        arrivalChunkZ + stepZ * forward + (stepZ == 0 ? across : 0)));
+            }
+        }
     }
 
     /** Drop this zone's ticket, keeping chunks another zone still wants. */

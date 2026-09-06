@@ -2316,23 +2316,29 @@ measurement of it.
   four columns and every one was non-resident.
 - **Cause:** two consumers share one ticket. The block slab wants
   `ProjectionVolume.targetChunks(...)`, a preview box of about six columns;
-  `DestinationFeed` may send only resident chunks and needs the filled 5x5
-  `CORE_RADIUS` core before a renderer will build the middle of a 3x3. Sized
-  for the slab alone, the feed delivers the ticketed set plus the arrival
-  chunk and stops.
+  `DestinationFeed` may send only resident chunks, and the client's own box
+  reads 64 blocks forward of the opening. Sized for the slab alone, the feed
+  delivers the ticketed set plus the arrival chunk and stops.
 - **Fix:** `holdSet` composes what a zone tickets — the preview box always,
-  plus the feed's core square for a viewer drawing the far side itself, and of
-  that square only what is ALREADY resident. The local-drawer verdict comes
-  from the players in ticket range, not from `ACTIVE`: the ticket is taken
-  before the projection pass rebuilds a viewer's state, so `ACTIVE` names
-  nobody on the first pass after a world change and one refresh is long enough
-  for a destination to drain.
-- **Trap:** a ticket is not a hold. `ChunkTicketManager.addTicket` builds it at
+  plus, for each side a local drawer is standing on, the core running FORWARD
+  from the arrival: `DestinationFeed.CORE_DEPTH` columns along that side's
+  normal, `CORE_RADIUS` either side of the line. Forward because a square
+  centred on the arrival spends nearly half its columns behind the aperture
+  plane, which no box reads. The local-drawer verdict comes from the players
+  in ticket range, not from `ACTIVE`: the ticket is taken before the
+  projection pass rebuilds a viewer's state, so `ACTIVE` names nobody on the
+  first pass after a world change and one refresh is long enough for a
+  destination to drain.
+- **Trap:** a ticket generates. `ChunkTicketManager.addTicket` builds it at
   `ChunkLevels.getLevelFromType(FULL)` minus the radius and the manager
-  generates whatever reaches that level, so an unfiltered square would force
-  first-time generation at a portal into fresh terrain — [K6](#k6). Filtering
-  to resident columns is what makes it hold-only; `ImmersivePreloader` still
-  owns generation.
+  generates whatever reaches that level. That is the point — a column nobody
+  tickets is a column the feed can never send — and it stays clear of
+  [K6](#k6) because generation is asynchronous and nothing here waits on it.
+  What is forbidden is a synchronous load from the tick path, which is a
+  different call: `getWorldChunk(cx, cz, false)` waits, `residentChunk` does
+  not. Do not restore a residency filter over the core to make it "hold-only":
+  the held set then depends on itself, drains to the preview box on the first
+  quiet minute, and has no path back.
 
 <a id="t94"></a>
 ### T94 — A crossing's own frame and chunks arrive before the client tick that clears the old world's
