@@ -1673,11 +1673,12 @@ measurement of it.
   to the checkout resolves to nothing. The copy into the Prism instance happens
   in `./dev link`. `./dev launch` only starts what is already installed, and
   `./dev up` never touches the client at all.
-- **Fix:** after rebuilding a client mod, `./dev link`, THEN relaunch the
-  client. Verify the artefact rather than the build — compare
-  `shasum -a 256` of `build/libs/<mod>.jar` against the jar in the Prism
-  instance's `mods/`, or unzip the installed class and grep for the new symbol.
-  A client mod change never propagates through `./dev up`.
+- **Fix:** `./dev reload` — it rebuilds the mods AND copies the client jar into
+  the Prism instance — then relaunch the client. **`./dev link` is not enough:**
+  it repopulates the farm only, and leaves the instance on its old jar.
+  Verify the artefact rather than the build: `shasum -a 256` of
+  `build/libs/<mod>.jar` must equal the jar in the Prism instance's `mods/`.
+  A client mod change never propagates through `./dev up` or `./dev launch`.
 
 <a id="t111"></a>
 ### T111 — The live portal view is not a benchmark, so a luma number taken in it needs its own noise floor beside it
