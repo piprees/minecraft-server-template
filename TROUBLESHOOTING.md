@@ -1664,23 +1664,31 @@ measurement of it.
   portal until the off-thread build lands, so the opening shows raw source
   world. `MeshBuilder.POOL` is a single shared thread, so with more than one
   portal the blank window is the sum of the builds queued ahead.
-- **Measured** at the overworld source portal `3464, 80, 2592`, same camera,
-  same session, by differencing `realtime.apertureStamps` DESTINATION_FAR
-  against the client's own frame rate — a frame that returns at `mesh == null`
-  never reaches the stamp:
+- **Measured** by differencing `realtime.apertureStamps` DESTINATION_FAR against
+  the client's own frame rate — a frame that returns at `mesh == null` never
+  reaches the stamp, so `fps - stamps/s` IS the blank-frame rate, at the render
+  rate with no compositor and no sampling aliasing (`scratchpad/stamprate.py`).
 
-  | condition | chunks | slab | stamps/s | fps | blank frames/s |
-  | --- | --- | --- | --- | --- | --- |
-  | settled | 6 | 1 | 62.6 | 61.8 | 0.0 |
-  | feed rebuilding | 2->6 | 0->1 | 48.6 | 58.8 | **10.2** |
-  | settled again | 6 | 1 | 62.8 | 62.1 | 0.0 |
+  | site | condition | chunks | slab | stamps/s | fps | blank frames/s |
+  | --- | --- | --- | --- | --- | --- | --- |
+  | overworld `3464, 80, 2592` | settled | 6 | 1 | 62.6 | 61.8 | 0.0 |
+  | overworld `3464, 80, 2592` | feed rebuilding | 2->6 | 0->1 | 48.6 | 58.8 | **10.2** |
+  | overworld `3464, 80, 2592` | settled again | 6 | 1 | 62.8 | 62.1 | 0.0 |
+  | `e2e_one` doorway-6 | settled | 4 | 1 | 99.8 | 99.5 | 0.0 |
+  | `e2e_one` doorway-6 | in and out of range | 4 | 0<->1 | 43.3 | 94.1 | **50.9** |
+  | `e2e_one` doorway-6 | settled again | 4 | 1 | 96.6 | 95.9 | 0.0 |
+
+  **54% of rendered frames drew nothing** while the projection was dropped and
+  rebuilt, at the same station that reads 0.0 when settled. The chunk count did
+  not move there — `slabProjections` toggling 0<->1 is the whole-projection drop
+  and rebuild, not feed-in.
 
 - **Why a static test rig cannot see it.** A settled feed never rebuilds, so the
   path is dormant. A benchmark that holds the chunk feed constant holds constant
   the exact variable this is gated on, and will report a clean negative.
 - **Not established:** that this is the whole of the flicker a player reports.
-  It is one mechanism producing a full-aperture blank, measured once with a
-  before/after control.
+  It is one mechanism producing a full-aperture blank, measured at two sites
+  with a settled control either side of each.
 
 <a id="t102"></a>
 ### T102 — A scene cannot be photographed twice identically while a shader pack is loaded
