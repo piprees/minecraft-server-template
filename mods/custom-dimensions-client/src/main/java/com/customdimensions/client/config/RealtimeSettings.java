@@ -39,6 +39,7 @@ public record RealtimeSettings(
         boolean apertureUnshadedDestination,
         double apertureBackdropGain,
         boolean apertureUnshadedBackdrop,
+        int apertureAtlasFilter,
         Set<String> chosen) {
 
     /**
@@ -62,6 +63,7 @@ public record RealtimeSettings(
     static final String KEY_APERTURE_UNSHADED_DESTINATION = "apertureUnshadedDestination";
     static final String KEY_APERTURE_BACKDROP_GAIN = "apertureBackdropGain";
     static final String KEY_APERTURE_UNSHADED_BACKDROP = "apertureUnshadedBackdrop";
+    static final String KEY_APERTURE_ATLAS_FILTER = "apertureAtlasFilter";
 
     /** The field name a schema below 1 held the local render under. */
     private static final String LEGACY_KEY_ENABLED = "enabled";
@@ -145,6 +147,13 @@ public record RealtimeSettings(
      */
     public static final boolean DEFAULT_APERTURE_UNSHADED_BACKDROP = false;
 
+    /**
+     * -1 inherits whatever filter the shared block atlas was last left with; 0
+     * is plain, 1 mipmapped. The backdrop's white.png carries no mip levels and
+     * takes plain under either.
+     */
+    public static final int DEFAULT_APERTURE_ATLAS_FILTER = -1;
+
     public static final RealtimeSettings DEFAULTS = new RealtimeSettings(
             DEFAULT_RENDER_CLIENT_SIDE_PORTALS, DEFAULT_RENDER_DISTANCE,
             DEFAULT_DISTANT_HORIZONS, DEFAULT_RENDER_SERVER_SIDE_PORTALS,
@@ -158,6 +167,9 @@ public record RealtimeSettings(
         apertureBackdropGain = Double.isNaN(apertureBackdropGain)
                 ? DEFAULT_APERTURE_BACKDROP_GAIN
                 : Math.max(0.0, Math.min(1.0, apertureBackdropGain));
+        apertureAtlasFilter = apertureAtlasFilter == 0 || apertureAtlasFilter == 1
+                ? apertureAtlasFilter
+                : DEFAULT_APERTURE_ATLAS_FILTER;
         chosen = chosen == null ? Set.of() : Set.copyOf(chosen);
     }
 
@@ -171,7 +183,7 @@ public record RealtimeSettings(
                 renderServerSidePortals, spectatorPass, apertureBackdrop, apertureTerrain,
                 apertureFarStamp, apertureFarStampEarly, apertureMeshDepth,
                 DEFAULT_APERTURE_UNSHADED_DESTINATION, DEFAULT_APERTURE_BACKDROP_GAIN,
-                DEFAULT_APERTURE_UNSHADED_BACKDROP, Set.of());
+                DEFAULT_APERTURE_UNSHADED_BACKDROP, DEFAULT_APERTURE_ATLAS_FILTER, Set.of());
     }
 
     /**
@@ -202,6 +214,7 @@ public record RealtimeSettings(
                 this.renderServerSidePortals, this.spectatorPass, this.apertureBackdrop,
                 this.apertureTerrain, this.apertureFarStamp, this.apertureFarStampEarly,
                 this.apertureMeshDepth, this.apertureUnshadedDestination, this.apertureBackdropGain, this.apertureUnshadedBackdrop,
+                this.apertureAtlasFilter,
                 choosing(KEY_RENDER_CLIENT_SIDE_PORTALS, value != this.renderClientSidePortals));
     }
 
@@ -210,6 +223,7 @@ public record RealtimeSettings(
                 this.renderServerSidePortals, this.spectatorPass, this.apertureBackdrop,
                 this.apertureTerrain, this.apertureFarStamp, this.apertureFarStampEarly,
                 this.apertureMeshDepth, this.apertureUnshadedDestination, this.apertureBackdropGain, this.apertureUnshadedBackdrop,
+                this.apertureAtlasFilter,
                 choosing(KEY_MAX_RENDER_DISTANCE, value != this.maxRenderDistance));
     }
 
@@ -218,6 +232,7 @@ public record RealtimeSettings(
                 this.renderServerSidePortals, this.spectatorPass, this.apertureBackdrop,
                 this.apertureTerrain, this.apertureFarStamp, this.apertureFarStampEarly,
                 this.apertureMeshDepth, this.apertureUnshadedDestination, this.apertureBackdropGain, this.apertureUnshadedBackdrop,
+                this.apertureAtlasFilter,
                 choosing(KEY_DISTANT_HORIZONS, value != this.distantHorizons));
     }
 
@@ -226,6 +241,7 @@ public record RealtimeSettings(
                 this.distantHorizons, value, this.spectatorPass, this.apertureBackdrop,
                 this.apertureTerrain, this.apertureFarStamp, this.apertureFarStampEarly,
                 this.apertureMeshDepth, this.apertureUnshadedDestination, this.apertureBackdropGain, this.apertureUnshadedBackdrop,
+                this.apertureAtlasFilter,
                 choosing(KEY_RENDER_SERVER_SIDE_PORTALS, value != this.renderServerSidePortals));
     }
 
@@ -234,6 +250,7 @@ public record RealtimeSettings(
                 this.distantHorizons, this.renderServerSidePortals, value, this.apertureBackdrop,
                 this.apertureTerrain, this.apertureFarStamp, this.apertureFarStampEarly,
                 this.apertureMeshDepth, this.apertureUnshadedDestination, this.apertureBackdropGain, this.apertureUnshadedBackdrop,
+                this.apertureAtlasFilter,
                 choosing(KEY_SPECTATOR_PASS, value != this.spectatorPass));
     }
 
@@ -251,6 +268,7 @@ public record RealtimeSettings(
                 this.distantHorizons, this.renderServerSidePortals, this.spectatorPass, value,
                 this.apertureTerrain, this.apertureFarStamp, this.apertureFarStampEarly,
                 this.apertureMeshDepth, this.apertureUnshadedDestination, this.apertureBackdropGain, this.apertureUnshadedBackdrop,
+                this.apertureAtlasFilter,
                 choosing(KEY_APERTURE_BACKDROP, value != this.apertureBackdrop));
     }
 
@@ -259,6 +277,7 @@ public record RealtimeSettings(
                 this.distantHorizons, this.renderServerSidePortals, this.spectatorPass,
                 this.apertureBackdrop, value, this.apertureFarStamp, this.apertureFarStampEarly,
                 this.apertureMeshDepth, this.apertureUnshadedDestination, this.apertureBackdropGain, this.apertureUnshadedBackdrop,
+                this.apertureAtlasFilter,
                 choosing(KEY_APERTURE_TERRAIN, value != this.apertureTerrain));
     }
 
@@ -267,6 +286,7 @@ public record RealtimeSettings(
                 this.distantHorizons, this.renderServerSidePortals, this.spectatorPass,
                 this.apertureBackdrop, this.apertureTerrain, value, this.apertureFarStampEarly,
                 this.apertureMeshDepth, this.apertureUnshadedDestination, this.apertureBackdropGain, this.apertureUnshadedBackdrop,
+                this.apertureAtlasFilter,
                 choosing(KEY_APERTURE_FAR_STAMP, value != this.apertureFarStamp));
     }
 
@@ -275,6 +295,7 @@ public record RealtimeSettings(
                 this.distantHorizons, this.renderServerSidePortals, this.spectatorPass,
                 this.apertureBackdrop, this.apertureTerrain, this.apertureFarStamp, value,
                 this.apertureMeshDepth, this.apertureUnshadedDestination, this.apertureBackdropGain, this.apertureUnshadedBackdrop,
+                this.apertureAtlasFilter,
                 choosing(KEY_APERTURE_FAR_STAMP_EARLY, value != this.apertureFarStampEarly));
     }
 
@@ -283,6 +304,7 @@ public record RealtimeSettings(
                 this.distantHorizons, this.renderServerSidePortals, this.spectatorPass,
                 this.apertureBackdrop, this.apertureTerrain, this.apertureFarStamp,
                 this.apertureFarStampEarly, value, this.apertureUnshadedDestination, this.apertureBackdropGain, this.apertureUnshadedBackdrop,
+                this.apertureAtlasFilter,
                 choosing(KEY_APERTURE_MESH_DEPTH, value != this.apertureMeshDepth));
     }
 
@@ -292,6 +314,7 @@ public record RealtimeSettings(
                 this.apertureBackdrop, this.apertureTerrain, this.apertureFarStamp,
                 this.apertureFarStampEarly, this.apertureMeshDepth, value,
                 this.apertureBackdropGain, this.apertureUnshadedBackdrop,
+                this.apertureAtlasFilter,
                 choosing(KEY_APERTURE_UNSHADED_DESTINATION,
                         value != this.apertureUnshadedDestination));
     }
@@ -302,6 +325,7 @@ public record RealtimeSettings(
                 this.apertureBackdrop, this.apertureTerrain, this.apertureFarStamp,
                 this.apertureFarStampEarly, this.apertureMeshDepth,
                 this.apertureUnshadedDestination, value, this.apertureUnshadedBackdrop,
+                this.apertureAtlasFilter,
                 choosing(KEY_APERTURE_BACKDROP_GAIN, value != this.apertureBackdropGain));
     }
 
@@ -311,7 +335,18 @@ public record RealtimeSettings(
                 this.apertureBackdrop, this.apertureTerrain, this.apertureFarStamp,
                 this.apertureFarStampEarly, this.apertureMeshDepth,
                 this.apertureUnshadedDestination, this.apertureBackdropGain, value,
+                this.apertureAtlasFilter,
                 choosing(KEY_APERTURE_UNSHADED_BACKDROP, value != this.apertureUnshadedBackdrop));
+    }
+
+    public RealtimeSettings withApertureAtlasFilter(int value) {
+        return new RealtimeSettings(this.renderClientSidePortals, this.maxRenderDistance,
+                this.distantHorizons, this.renderServerSidePortals, this.spectatorPass,
+                this.apertureBackdrop, this.apertureTerrain, this.apertureFarStamp,
+                this.apertureFarStampEarly, this.apertureMeshDepth,
+                this.apertureUnshadedDestination, this.apertureBackdropGain,
+                this.apertureUnshadedBackdrop, value,
+                choosing(KEY_APERTURE_ATLAS_FILTER, value != this.apertureAtlasFilter));
     }
 
     public String toJson() {
@@ -332,6 +367,7 @@ public record RealtimeSettings(
                 .bool(KEY_APERTURE_UNSHADED_DESTINATION, this.apertureUnshadedDestination)
                 .num(KEY_APERTURE_BACKDROP_GAIN, this.apertureBackdropGain)
                 .bool(KEY_APERTURE_UNSHADED_BACKDROP, this.apertureUnshadedBackdrop)
+                .num(KEY_APERTURE_ATLAS_FILTER, this.apertureAtlasFilter)
                 .raw(KEY_CHOSEN, Json.strings(recorded))
                 .toString();
     }
@@ -370,6 +406,7 @@ public record RealtimeSettings(
                 stored.decimal(KEY_APERTURE_BACKDROP_GAIN, DEFAULT_APERTURE_BACKDROP_GAIN),
                 stored.bool(KEY_APERTURE_UNSHADED_BACKDROP,
                         DEFAULT_APERTURE_UNSHADED_BACKDROP),
+                stored.integer(KEY_APERTURE_ATLAS_FILTER, DEFAULT_APERTURE_ATLAS_FILTER),
                 stored.chosen());
     }
 
@@ -418,6 +455,7 @@ public record RealtimeSettings(
                 DEFAULT_APERTURE_UNSHADED_DESTINATION,
                 DEFAULT_APERTURE_BACKDROP_GAIN,
                 DEFAULT_APERTURE_UNSHADED_BACKDROP,
+                DEFAULT_APERTURE_ATLAS_FILTER,
                 chosen);
     }
 

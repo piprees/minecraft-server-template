@@ -1,6 +1,9 @@
 package com.customdimensions.client.render;
 
+import com.customdimensions.client.config.RealtimeControls;
+import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.GameRenderer;
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.VertexFormat;
@@ -8,6 +11,10 @@ import net.minecraft.client.render.VertexFormats;
 import net.minecraft.client.texture.SpriteAtlasTexture;
 import net.minecraft.util.Identifier;
 import org.lwjgl.opengl.GL11;
+
+import java.util.Map;
+import java.util.TreeMap;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * The layers a portal draws on.
@@ -118,7 +125,9 @@ public final class PortalRenderLayers {
                 blend,
                 () -> {
                     RenderSystem.setShader(GameRenderer::getRenderTypeBeaconBeamProgram);
+                    applyAtlasFilter(texture);
                     RenderSystem.setShaderTexture(0, texture);
+                    recordAtlasFilter(name, texture);
                     if (blend) {
                         RenderSystem.enableBlend();
                         RenderSystem.defaultBlendFunc();
@@ -140,6 +149,71 @@ public final class PortalRenderLayers {
                     RenderSystem.disableBlend();
                     RenderSystem.enableCull();
                 }) {};
+    }
+
+    /** Per unshaded layer, the filter its own texture object carried at draw. */
+    private static final Map<String, Probe> ATLAS_FILTERS = new ConcurrentHashMap<>();
+
+    private record Probe(int min, int mag, long draws) {
+
+        Probe next(int min, int mag) {
+            return new Probe(min, mag, this.draws + 1);
+        }
+
+        @Override
+        public String toString() {
+            return String.format("min=0x%04X %s mag=0x%04X %s draws=%d",
+                    this.min, filterName(this.min), this.mag, filterName(this.mag), this.draws);
+        }
+    }
+
+    /**
+     * The block atlas is one shared GL texture object, so a layer that only
+     * binds it draws with whatever filter the last phase left on it.
+     * {@code apertureAtlasFilter} -1 inherits that, 0 is plain, 1 mipmapped.
+     */
+    private static void applyAtlasFilter(Identifier texture) {
+        int mode = RealtimeControls.settings().apertureAtlasFilter();
+        if (mode < 0) {
+            return;
+        }
+        MinecraftClient.getInstance().getTextureManager().getTexture(texture)
+                .setFilter(false, mode == 1 && !WHITE.equals(texture));
+    }
+
+    /**
+     * Read off the texture object rather than assumed, because the answer is
+     * whatever ran last. The binding is restored so nothing downstream sees it.
+     */
+    private static void recordAtlasFilter(String name, Identifier texture) {
+        int glId = MinecraftClient.getInstance().getTextureManager().getTexture(texture).getGlId();
+        int bound = GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D);
+        GlStateManager._bindTexture(glId);
+        int min = GL11.glGetTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER);
+        int mag = GL11.glGetTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER);
+        GlStateManager._bindTexture(bound);
+        ATLAS_FILTERS.compute(name,
+                (key, held) -> held == null ? new Probe(min, mag, 1) : held.next(min, mag));
+    }
+
+    /** A rising draw count is what says the layer drew in a given window. */
+    public static String atlasFilters() {
+        StringBuilder out = new StringBuilder();
+        new TreeMap<>(ATLAS_FILTERS).forEach((name, probe) ->
+                out.append(out.isEmpty() ? "" : "; ").append(name).append(' ').append(probe));
+        return out.isEmpty() ? "none" : out.toString();
+    }
+
+    private static String filterName(int filter) {
+        return switch (filter) {
+            case GL11.GL_NEAREST -> "NEAREST";
+            case GL11.GL_LINEAR -> "LINEAR";
+            case GL11.GL_NEAREST_MIPMAP_NEAREST -> "NEAREST_MIPMAP_NEAREST";
+            case GL11.GL_LINEAR_MIPMAP_NEAREST -> "LINEAR_MIPMAP_NEAREST";
+            case GL11.GL_NEAREST_MIPMAP_LINEAR -> "NEAREST_MIPMAP_LINEAR";
+            case GL11.GL_LINEAR_MIPMAP_LINEAR -> "LINEAR_MIPMAP_LINEAR";
+            default -> "UNKNOWN";
+        };
     }
 
     /**

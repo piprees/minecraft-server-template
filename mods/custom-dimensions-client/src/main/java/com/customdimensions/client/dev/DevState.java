@@ -16,6 +16,7 @@ import com.customdimensions.client.render.ClientProjection;
 import com.customdimensions.client.render.ClipTally;
 import com.customdimensions.client.render.DepthReconstruction;
 import com.customdimensions.client.render.LightFacts;
+import com.customdimensions.client.render.PortalRenderLayers;
 import com.customdimensions.client.render.ProjectionMesh;
 import com.customdimensions.client.render.ProjectionView;
 import com.customdimensions.client.render.DestinationActors;
@@ -128,6 +129,8 @@ final class DevState {
                 .bool("apertureUnshadedDestination", settings.apertureUnshadedDestination())
                 .num("apertureBackdropGain", settings.apertureBackdropGain())
                 .bool("apertureUnshadedBackdrop", settings.apertureUnshadedBackdrop())
+                .num("apertureAtlasFilter", settings.apertureAtlasFilter())
+                .str("atlasFilter", PortalRenderLayers.atlasFilters())
                 .str("backdropColors", backdropColors())
                 .bool("bucketRejection", ProjectionRenderer.bucketRejection())
                 .str("apertureStamps", ProjectionRenderer.stampSummary())
