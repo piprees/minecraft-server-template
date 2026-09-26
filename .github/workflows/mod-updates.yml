@@ -67,6 +67,7 @@ jobs:
 
       - name: Split regular and worldgen updates
         run: |
+          mkdir -p variants
           python3 scripts/dep_review/partition.py --old-ref HEAD --out-dir variants \
             --cache "$RUNNER_TEMP/jar-cache" | tee variants/partition.log
           mkdir -p variants/before/config variants/before/modpack

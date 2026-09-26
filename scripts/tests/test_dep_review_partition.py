@@ -304,6 +304,16 @@ class RealFilesTest(unittest.TestCase):
         self.assertEqual(variants["worldgen"], self.OLD)
         self.assertEqual(variants["regular"], new)
 
+    def test_carried_hold_with_nothing_regular_does_not_break_the_invariant(self):
+        m = json.loads(self.OLD[1])
+        m["_holds"]["tectonic"] = "3.1 changes erosion defaults (dep-review: PR #30)"
+        carried = (self.OLD[0], partition.dump_manifest(m))
+        new = repin(*carried, server={"tectonic": "TECT0002"})
+        report, variants = run(self.OLD, new)
+        self.assertEqual(report["regular"], [])
+        self.assertEqual(json.loads(variants["regular"][1])["_holds"], m["_holds"])
+        self.assertEqual(variants["regular"][0], self.OLD[0])
+
     def test_added_and_removed_slugs_restore_old_bytes(self):
         lines = REAL_TXT.split("\n")
         carpet = partition._find(lines, "carpet")

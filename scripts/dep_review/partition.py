@@ -41,8 +41,9 @@ Gotchas:
   - Jars are cached in --cache by sha1 and verified on every read; without
     --cache they go to a temporary directory.
   - The script exits non-zero if the two variants together do not reproduce
-    the new pins exactly, or if a variant with no changes is not
-    byte-identical to the old file.
+    the new pins exactly, or if a variant with no changes differs from the
+    old files anywhere but `_holds`. Both variants carry the new `_holds`
+    (mod-updates.yml carries dep-review's holds in before re-pinning).
   - Standard library only.
 """
 import argparse
@@ -398,6 +399,14 @@ def pin_state(txt, manifest_text):
     return state
 
 
+def _sans_holds(files):
+    """(server list, manifest without `_holds`): both variants carry the carried-over holds."""
+    txt, manifest = files
+    obj = json.loads(manifest)
+    obj.pop("_holds", None)
+    return txt, dump_manifest(obj)
+
+
 def check_invariant(old, new, regular, worldgen, reg_keys, wg_keys):
     """Raise AssertionError unless each variant carries exactly its own slugs' new pins."""
     problems = []
@@ -415,7 +424,7 @@ def check_invariant(old, new, regular, worldgen, reg_keys, wg_keys):
         if r != want_r or w != want_w:
             problems.append(f"{key}: regular={r} worldgen={w}, want {want_r}/{want_w}")
     for name, keys, files in (("regular", reg_keys, regular), ("worldgen", wg_keys, worldgen)):
-        if not keys and files != old:
+        if not keys and _sans_holds(files) != _sans_holds(old):
             problems.append(f"{name} variant has no changes but differs from the old files")
     if problems:
         raise AssertionError("partition invariant broken:\n  " + "\n  ".join(problems))
