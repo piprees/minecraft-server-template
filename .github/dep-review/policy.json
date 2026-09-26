@@ -28,7 +28,7 @@
     "config/datapacks/",
     "config/datapack-presets/",
     "config/custom-dimensions/",
-    "mods/custom-dimensions/",
+    "mods/custom-dimensions/src/main/resources/",
     "scripts/data/structure-sets-extracted.json"
   ]
 }

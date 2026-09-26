@@ -39,9 +39,6 @@ concurrency:
   group: release-train
   cancel-in-progress: false
 
-env:
-  GIT_CLIFF_VERSION: '2.14.2'
-
 jobs:
   worldgen:
     name: Merge the monthly worldgen batch
@@ -129,7 +126,7 @@ jobs:
           persist-credentials: false
 
       - name: Install git-cliff
-        run: pip install --quiet "git-cliff==${GIT_CLIFF_VERSION}"
+        run: pip install --quiet "git-cliff==$(tr -d '[:space:]' < .github/git-cliff-version)"
 
       - name: Compute the next version
         id: version

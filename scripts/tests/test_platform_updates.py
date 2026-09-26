@@ -54,8 +54,7 @@ def texts():
         "mods/a/gradle.properties": GRADLE,
         "mods/b/gradle.properties": GRADLE,
         pu.TAILWIND_FILE: TAILWIND,
-        ".github/workflows/release.yml": "      - uses: orhun/git-cliff-action@v4\n        with:\n          version: v2.14.2\n",
-        ".github/workflows/release-train.yml": "env:\n  GIT_CLIFF_VERSION: '2.14.2'\n",
+        ".github/git-cliff-version": "2.14.2\n",
         "examples/consumer/.github/workflows/server-power.yml": "        env:\n          DOCTL_VERSION: '1.175.0'\n",
     }
 
@@ -217,9 +216,11 @@ class ScanTest(unittest.TestCase):
 
     def test_allowed_path(self):
         for path in ("docker-compose.yml", "mods/custom-dimensions/gradle.properties", pu.TAILWIND_FILE,
-                     ".github/workflows/release.yml", "examples/consumer/.github/workflows/server-power.yml"):
+                     ".github/git-cliff-version", "examples/consumer/.github/workflows/server-power.yml"):
             self.assertTrue(pu.allowed_path(path), path)
-        for path in ("mods/x/build.gradle", ".github/workflows/deploy.yml", "mods/a/b/gradle.properties"):
+        # Root workflows are never pins: GITHUB_TOKEN cannot push them.
+        for path in ("mods/x/build.gradle", ".github/workflows/deploy.yml", ".github/workflows/release.yml",
+                     "mods/a/b/gradle.properties"):
             self.assertFalse(pu.allowed_path(path), path)
 
     def test_repo_pins_are_found_and_aligned(self):
@@ -270,8 +271,7 @@ class PlanApplyTest(unittest.TestCase):
         self.assertEqual(pu.tailwind_sums(new[pu.TAILWIND_FILE]),
                          {"tailwindcss-linux-x64": "c" * 64, "tailwindcss-macos-arm64": "d" * 64})
         self.assertIn('TAILWIND_VERSION="4.4.0"', new[pu.TAILWIND_FILE])
-        self.assertIn("version: v2.15.0", new[".github/workflows/release.yml"])
-        self.assertIn("GIT_CLIFF_VERSION: '2.15.0'", new[".github/workflows/release-train.yml"])
+        self.assertEqual(new[".github/git-cliff-version"], "2.15.0\n")
         self.assertEqual(pu.scan(pu.apply_plan(new, [])), pu.scan(new))
 
     def test_missing_published_checksum_fails(self):

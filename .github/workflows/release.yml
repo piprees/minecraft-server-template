@@ -175,10 +175,16 @@ jobs:
               || { echo "::error::Bundle is missing client mod $JAR_NAME"; exit 1; }
           done < mods/client-mods.manifest
 
+      # One pin for release.yml and release-train.yml, kept in a plain file so
+      # platform-updates.yml can bump it (GITHUB_TOKEN cannot push workflows).
+      - name: Read the git-cliff version
+        id: cliff
+        run: echo "version=v$(tr -d '[:space:]' < .github/git-cliff-version)" >> "$GITHUB_OUTPUT"
+
       - name: Generate release notes
         uses: orhun/git-cliff-action@v4.8.0
         with:
-          version: v2.14.2
+          version: ${{ steps.cliff.outputs.version }}
           # --unreleased --tag, not --latest: this runs BEFORE the release
           # is created, so the version being cut has no tag yet and --latest
           # resolves to the PREVIOUS release (v4.3.1 shipped v4.3.0's notes).
@@ -195,7 +201,7 @@ jobs:
         # in a run step fails with exit 127 (broke the first v3.1.0 cut).
         uses: orhun/git-cliff-action@v4.8.0
         with:
-          version: v2.14.2
+          version: ${{ steps.cliff.outputs.version }}
           # --tag for the same reason: without it the version being released
           # lands under an "Unreleased" heading in CHANGELOG.md.
           args: --tag ${{ inputs.version }} -o CHANGELOG.md

@@ -72,6 +72,7 @@ MANIFEST=(
   scripts/modrinth-api.py
   # Resolves stack/VERSION for every artefact stamp and cache key.
   scripts/stack_version.py
+  scripts/stack_update.py
   scripts/gen-suppress-catalogue.py
   scripts/server-power.sh
   scripts/discord-notify.sh
@@ -91,6 +92,7 @@ MANIFEST=(
   # bundle — its copy loops are guarded by [[ -f "$src" ]] and silently
   # skip missing sources.
   examples/consumer/.env.example
+  examples/consumer/.stack-version
   examples/consumer/.gitignore
   examples/consumer/AGENTS.md
   examples/consumer/commands.json
@@ -98,6 +100,7 @@ MANIFEST=(
   examples/consumer/.github/workflows/deploy.yml
   examples/consumer/.github/workflows/update.yml
   examples/consumer/.github/workflows/server-power.yml
+  examples/consumer/.github/dependabot.yml
 )
 
 echo "Building stack bundle v${VERSION}..."

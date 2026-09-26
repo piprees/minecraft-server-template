@@ -77,10 +77,10 @@ PINS = (
         re.compile(r'^(TAILWIND_VERSION=")([0-9][\w.-]*)("\s*)$')),
     Pin("tool", "packwiz-installer-bootstrap", "scripts/build-modpack.sh",
         re.compile(r'^(PACKWIZ_BOOTSTRAP_VERSION=")([0-9][\w.-]*)("\s*)$')),
-    Pin("tool", "git-cliff", ".github/workflows/release.yml",
-        re.compile(r"^(\s+version:\s*v)([0-9][\w.-]*)(\s*)$")),
-    Pin("tool", "git-cliff", ".github/workflows/release-train.yml",
-        re.compile(r"^(\s+GIT_CLIFF_VERSION:\s*')([0-9][\w.-]*)('\s*)$")),
+    # release.yml and release-train.yml read this file: GITHUB_TOKEN cannot
+    # push a change to a workflow file.
+    Pin("tool", "git-cliff", ".github/git-cliff-version",
+        re.compile(r"^()([0-9][\w.-]*)(\s*)$")),
     Pin("tool", "doctl", "examples/consumer/.github/workflows/server-power.yml",
         re.compile(r"^(\s+DOCTL_VERSION:\s*')([0-9][\w.-]*)('\s*)$")),
 )

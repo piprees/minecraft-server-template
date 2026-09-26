@@ -45,6 +45,11 @@ import urllib.request
 REPO = "piprees/minecraft-server-template"
 API = "https://api.github.com/repos/%s/releases" % REPO
 
+#: GitHub rejects a PR body over 65,536 characters; release notes stop
+#: short of it and the whole body is cut hard at the limit.
+BODY_LIMIT = 65000
+BODY_BUDGET = 60000
+
 _SEMVER = re.compile(r"^v?(\d+)\.(\d+)\.(\d+)$")
 _DEPLOY_REF = re.compile(r"deploy-reusable\.yml@v(\d+)\b")
 _IMAGE_LINE = re.compile(r"^\s*image:\s*(\S+)\s*$")
@@ -200,12 +205,22 @@ def render_body(current, target, releases, deploy_major=None, migrated_from=None
             lines += ["#### %s" % tag, "", _demote(text), ""]
     if notes:
         lines += ["### Release notes", ""]
-        for rel in notes:
+        size = len("\n".join(lines))
+        for i, rel in enumerate(notes):
             _, rest = split_breaking(rel.get("body"))
             rest = re.sub(r"^##\s+v\d+\.\d+\.\d+.*\n+", "", rest)
-            lines += ["#### [%s](%s)" % (rel["tag_name"], rel.get("html_url", "")), ""]
-            lines += [_demote(rest) or "_No notes._", ""]
-    return "\n".join(lines).rstrip() + "\n"
+            block = ["#### [%s](%s)" % (rel["tag_name"], rel.get("html_url", "")), "",
+                     _demote(rest) or "_No notes._", ""]
+            if size + len("\n".join(block)) > BODY_BUDGET:
+                lines.append("_...and %d older releases down to %s: https://github.com/%s/releases_"
+                             % (len(notes) - i, notes[-1]["tag_name"], REPO))
+                break
+            lines += block
+            size += len("\n".join(block)) + 1
+    body = "\n".join(lines).rstrip() + "\n"
+    if len(body) > BODY_LIMIT:
+        body = body[:BODY_LIMIT - 200] + "\n\n_Truncated: https://github.com/%s/releases_\n" % REPO
+    return body
 
 
 def _substitute(text, env):

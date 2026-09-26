@@ -837,5 +837,30 @@ class SchemaTests(unittest.TestCase):
             stack += list(node.get("properties", {}).values())
 
 
+
+class PlatformFloorTests(unittest.TestCase):
+    """Floors for platform-updates.yml's changes (images, loader, gradle, tools)."""
+
+    def floor(self, eco, name="x", flags=()):
+        return apply.release_floor({"ecosystem": eco, "name": name, "flags": list(flags)}, "platform")[0]
+
+    def test_loader_change_is_major(self):
+        self.assertEqual(self.floor("loader", "fabric-loader"), "major")
+
+    def test_image_patch_is_patch_and_major_is_minor(self):
+        self.assertEqual(self.floor("image", "nginx"), "patch")
+        self.assertEqual(self.floor("image", "itzg/minecraft-server", ["major"]), "minor")
+
+    def test_gradle_and_runtime_tools_are_patch(self):
+        self.assertEqual(self.floor("gradle", "fabric-api"), "patch")
+        self.assertEqual(self.floor("tool", "tailwindcss"), "patch")
+
+    def test_release_tooling_releases_nothing(self):
+        self.assertEqual(self.floor("tool", "git-cliff"), "none")
+
+    def test_platform_is_a_known_source(self):
+        self.assertIn("platform", apply.SOURCES)
+
+
 if __name__ == "__main__":
     unittest.main()

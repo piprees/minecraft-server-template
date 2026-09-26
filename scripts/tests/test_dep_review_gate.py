@@ -327,7 +327,8 @@ class PlatformSource(unittest.TestCase):
         self.assertTrue(r["ok"], r["reason"])
         self.assertEqual(r["source"], "platform")
         self.assertTrue(r["needs_smoke"])
-        self.assertIn("mods/custom-dimensions/gradle.properties", r["worldgen_paths"])
+        # A toolchain pin is not worldgen: only the mod's generated resources are.
+        self.assertNotIn("mods/custom-dimensions/gradle.properties", r["worldgen_paths"])
 
     def test_manifest_loader_only(self):
         files = [{"filename": "modpack/adventure.mrpack.json", "status": "modified",

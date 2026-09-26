@@ -10,11 +10,13 @@ carries credential-like text, and can only make a PR less mergeable than
 
 Release impact: every change gets a semver impact (none|patch|minor|major).
 FLOOR_RULES is the deterministic floor, the highest row that matches:
-  none   a GitHub Actions bump (CI only)
+  none   CI only: a GitHub Actions bump, or release tooling (git-cliff)
   patch  any other change: server-only mod, docker or pip bump, security fix
   minor  a client-side mod (sides include "client", or unknown) or any pack;
-         a new mod or pack ("added"); a docker/pip major ("major")
+         a new mod or pack ("added"); a docker, pip or compose-image major
+         ("major")
   major  a worldgen change (source "worldgen" or flag "never-automerge");
+         a Fabric loader change (ecosystem "loader");
          a mod or pack removed ("removed", or no new version)
 The reviewer's release_impact can raise a change above its floor, never lower
 it; a missing or invalid value means the floor. The PR's impact is the highest
@@ -89,7 +91,7 @@ SECRET_MARKERS = ("sk-ant-", "ghp_", "ghs_", "gho_", "github_pat_", "-----BEGIN"
 WITHHELD = "verdict withheld: contained credential-like text"
 SLUG_RE = re.compile(r"[a-z0-9_-]{1,64}")
 RUN_URL_RE = re.compile(r"https://[A-Za-z0-9._~:/?#@!$&'*+,;=%-]+")
-SOURCES = ("mods", "worldgen", "actions", "docker", "pip")
+SOURCES = ("mods", "worldgen", "actions", "docker", "pip", "platform")
 # Sources whose PR carries mod pins and may have holds edited.
 MOD_SOURCES = ("mods", "worldgen")
 HOLD_ECOSYSTEMS = ("mod", "pack")
@@ -591,6 +593,14 @@ def _is_removed(change):
         "removed" in _flags(change) or change.get("new") is None or change["key"].endswith("@removed"))
 
 
+# Release tooling the running stack never sees.
+CI_ONLY_TOOLS = ("git-cliff",)
+
+
+def _ci_only(change):
+    return _eco(change) == "action" or (_eco(change) == "tool" and change.get("name") in CI_ONLY_TOOLS)
+
+
 def _is_client_side(change):
     sides = change.get("sides")
     return _eco(change) == "pack" or (_eco(change) == "mod" and (sides is None or "client" in sides))
@@ -603,11 +613,12 @@ def _is_worldgen(change, source):
 # (impact, why, test(change, source)). A change's floor is the highest impact
 # among the rows whose test matches.
 FLOOR_RULES = (
-    ("none", "GitHub Actions bump", lambda c, s: _eco(c) == "action"),
-    ("patch", "update", lambda c, s: _eco(c) != "action"),
+    ("none", "CI only", lambda c, s: _ci_only(c)),
+    ("patch", "update", lambda c, s: not _ci_only(c)),
     ("minor", "client-side", lambda c, s: _is_client_side(c)),
     ("minor", "new", lambda c, s: _eco(c) in HOLD_ECOSYSTEMS and "added" in _flags(c)),
-    ("minor", "dependency major", lambda c, s: _eco(c) in ("docker", "pip") and "major" in _flags(c)),
+    ("minor", "dependency major", lambda c, s: _eco(c) in ("docker", "pip", "image") and "major" in _flags(c)),
+    ("major", "Fabric loader", lambda c, s: _eco(c) == "loader"),
     ("major", "worldgen", lambda c, s: _is_worldgen(c, s)),
     ("major", "removed", lambda c, s: _is_removed(c)),
 )
