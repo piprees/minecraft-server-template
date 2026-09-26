@@ -21,7 +21,8 @@
     "boss dungeons & extra structures"
   ],
   "worldgen_slugs": [
-    "c2me-fabric"
+    "c2me-fabric",
+    "pale-garden-backport"
   ],
   "never_automerge_paths": [
     "config/datapacks/",

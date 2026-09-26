@@ -31,7 +31,7 @@ Anything with a version this repo did not write.
 | Discord bot Python packages | `scripts/requirements-discord-sync.txt` (`==`) | Dependabot `pip` |
 | Template-only Python packages | `requirements-dev.txt`; kuma-init's inline `pip install` | By hand |
 | Minecraft | `MC_VERSION` (compose default `1.21.1`) | Fixed |
-| Fabric loader | `modpack/adventure.mrpack.json` (`dependencies.fabric-loader`); `mods/*/gradle.properties` (`loader_version`); the server's is not pinned (compose sets only `TYPE: FABRIC`) | By hand |
+| Fabric loader | `docker-compose.yml` (`FABRIC_LOADER_VERSION`), `modpack/adventure.mrpack.json` (`dependencies.fabric-loader`) and `mods/*/gradle.properties` (`loader_version`), all equal | By hand |
 | In-house mod toolchain | `mods/*/gradle.properties`, `mods/*/build.gradle`, the Gradle wrapper, `mods/mise.toml` (Java 21) | By hand |
 | Dev tools | `mise.toml` (Python 3.13; shellcheck, yamllint, jq float on `latest`) | By hand |
 | Other hand-pinned tools | Tailwind CLI in `mods/custom-dimensions/build-viewer-css.sh`; packwiz bootstrap in `scripts/build-modpack.sh` | By hand |
@@ -55,8 +55,8 @@ Anything with a version this repo did not write.
 
 | PR | Branch | Commit | Holds | Merged by |
 | --- | --- | --- | --- | --- |
-| Regular updates | `mod-updates/auto` | `chore: update N mod version(s)` | everything that is not worldgen | dep-review, when the policy allows |
-| Next major | `mod-updates/next-major` | `feat(mods)!:` with a `BREAKING CHANGE:` footer | worldgen updates, the regenerated presets (`gen-structure-presets.py`, `gen-terrain-presets.py`) and the structure census (`gen-structure-groups.py`) | the month's first release train, or a human cutting a major |
+| Regular updates | `mod-updates/auto` | retitled by dep-review to `fix(deps):` or `feat(deps):` by release impact | everything that is not worldgen | dep-review, when the policy allows |
+| Next major | `mod-updates/next-major` | `feat(deps)!:` with a `BREAKING CHANGE:` footer | worldgen updates, the regenerated presets (`gen-structure-presets.py`, `gen-terrain-presets.py`) and the structure census (`gen-structure-groups.py`) | the month's first release train, or a human cutting a major |
 
 A mod update is **worldgen** when the mod sits under a `policy.json` `never_automerge_sections` header in `config/modrinth-mods.txt`, is named in `worldgen_slugs`, or its jar's `data/*/worldgen`, `structure(s)`, `tags/worldgen` or biome-modifier files differ between the two versions. A mod added or removed, or a jar that cannot be compared, counts as worldgen.
 
@@ -66,7 +66,7 @@ Merging the regular PR re-runs `mod-updates.yml`, so the next-major PR stays mer
 
 ### Dependabot
 
-`.github/dependabot.yml` opens grouped PRs every Monday, with a cooldown before a new version is proposed (longer for a major):
+`.github/dependabot.yml` opens grouped PRs every Monday, with a cooldown before a new version is proposed (longer for a major). dep-review retitles each one by release impact, so the prefix below is only Dependabot's first title:
 
 | Ecosystem | Directory | Group | Commit prefix |
 | --- | --- | --- | --- |
@@ -117,7 +117,7 @@ Minecraft stays 1.21.1. Changing it is outside this contract: it overturns a fix
 
 Within a major, consumers keep the overlay contract (directory structure and merge semantics), the env contract (`.env` variables, GitHub environment vars and secrets) and the reusable workflow's inputs and secrets.
 
-**Enforcement.** The commit type carries the class: `!` or a `BREAKING CHANGE:` footer is major, `feat:` minor, any other releasable type patch, and `ci`, `docs`, `test`, `style` and `chore` release nothing (`cliff.toml` `[bump]`). Land every change with the type its class needs; a breaking change that is not worldgen carries `!` or the footer itself. `scripts/check-release-version.sh`, the first job of `release.yml`, refuses a release that keeps the major over a breaking commit; the merged next-major PR is one.
+**Enforcement.** The commit type carries the class: `!` or a `BREAKING CHANGE:` footer is major, `feat:` minor, any other releasable type patch, and `ci`, `docs`, `test`, `style` and `chore` release nothing (`cliff.toml` `[bump]`). For dependency PRs, dep-review sets the class: `apply.py` applies floors from this table (Actions none; other updates patch; client-side changes, packs, new mods and docker or pip majors minor; worldgen and removed mods major), the reviewer may raise a change above its floor but never lower it, and the PR is retitled `ci(deps)`, `fix(deps)`, `feat(deps)` or `feat(deps)!` with the reviewer's consumer note as the `BREAKING CHANGE:` footer. Land every other change with the type its class needs; a breaking change that is not worldgen carries `!` or the footer itself. `scripts/check-release-version.sh`, the first job of `release.yml`, refuses a release that keeps the major over a breaking commit; the merged next-major PR is one.
 
 **Cutting a major.** The month's first release train merges a next-major PR labelled `dep-review:ready-for-major`; by hand, merge it and dispatch `vN.0.0`. Re-enable the smoke test's render-check before a worldgen release ([AGENTS.md safety rule 12](AGENTS.md#safety-rules)). What a consumer must do goes in the breaking commit's `BREAKING CHANGE:` footer; git-cliff lists it under "Breaking changes" in the release notes.
 
@@ -155,7 +155,7 @@ Mods reach the server through the seed, never through the Modrinth API at boot (
 
 ### Libraries
 
-A library is any mod another mod requires. Most sit in the `# === dependency libraries ===` section of `config/modrinth-mods.txt`: `almanac`, `architectury-api`, `athena-ctm`, `bookshelf-lib`, `cloth-config`, `collective`, `cristel-lib`, `deimos`, `deltaboxlib`, `forge-config-api-port`, `frozenlib`, `geckolib`, `kambrik`, `moonlight`, `otterlib`, `playeranimator`, `prickle`, `puzzles-lib`, `resourceful-config`, `resourceful-lib`, `terrablender`, `villagerapi`, `yacl`. Five more sit beside the mods that need them: `fabric-api` and `fabric-language-kotlin` (core), `lithostitched` (terrain), `yungs-api` (structures) and `trinkets` (accessories).
+A library is any mod another mod requires. Most sit in the `# === dependency libraries ===` section of `config/modrinth-mods.txt`: `almanac`, `architectury-api`, `athena-ctm`, `bookshelf-lib`, `cloth-config`, `collective`, `cristel-lib`, `deimos`, `deltaboxlib`, `forge-config-api-port`, `frozenlib`, `geckolib`, `kambrik`, `moonlight`, `otterlib`, `playeranimator`, `prickle`, `puzzles-lib`, `resourceful-config`, `resourceful-lib`, `terrablender`, `villagerapi`, `yacl`. Five more sit beside the mods that need them: `fabric-api` and `fabric-language-kotlin` (core), `lithostitched` (terrain), `yungs-api` (structures) and `trinkets` (accessories). `pale-garden-backport` sits in the libraries section because others depend on it, but places a biome through TerraBlender, so it is a `worldgen_slugs` entry.
 
 - Required, never `?`.
 - Judge a library bump by its dependants: find every mod in the pack that requires it. If a newer build breaks one, hold the library and name the dependant in the reason.
@@ -198,7 +198,7 @@ Dependabot groups minor and patch bumps; a major arrives as its own PR. `GITHUB_
 ### Minecraft, Fabric and the in-house mod toolchain
 
 - Everything follows 1.21.1: every Modrinth pin, yarn `1.21.1+build.N`, fabric-api `+1.21.1` builds and datapack `pack_format` 48.
-- A Fabric loader change is a major. Three pins exist: the client pack's `dependencies.fabric-loader`, the in-house mods' `loader_version`, and the server's, which the itzg image chooses.
+- A Fabric loader change is a major. The server (`FABRIC_LOADER_VERSION` in compose), the client pack and the in-house mods pin the same loader; move all three together.
 - `mods/custom-dimensions` and `mods/custom-dimensions-client` share `gradle.properties` (`yarn_mappings`, `loader_version`, `fabric_version`), Loom in `build.gradle`, and the Gradle wrapper; bump them as a pair. Java 21 comes from `mods/mise.toml`, and builds need `mise exec` ([P4](TROUBLESHOOTING.md#p4)). Build contract: [mods/AGENTS.md](mods/AGENTS.md).
 
 #### Changing the Minecraft version
@@ -253,7 +253,7 @@ Before bumping, removing or pairing one of these, read the linked entry. The com
 | `betterend` with client `sodium` | The client pack removes Sodium's `breaks: betterend` in `modpack/overrides/config/fabric_loader_dependencies.json`; re-check on either bump | [T82](TROUBLESHOOTING.md#t82) |
 | `natures-spirit`, `terrablender` | Region injection repaints managed dimensions | [T34](TROUBLESHOOTING.md#t34) |
 | `yungs-better-caves` | Aquifer sampler cast; unclamped carving floor | [T79](TROUBLESHOOTING.md#t79), [T84](TROUBLESHOOTING.md#t84) |
-| `c2me-fabric` | A `worldgen_slugs` entry; self-patching config; chunk-generation wedges; removal is the only lever for its CME | [D6](TROUBLESHOOTING.md#d6), [K1](TROUBLESHOOTING.md#k1), [K2](TROUBLESHOOTING.md#k2) |
+| `c2me-fabric` | A `worldgen_slugs` entry (chunk-generation engine); self-patching config; chunk-generation wedges; removal is the only lever for its CME | [D6](TROUBLESHOOTING.md#d6), [K1](TROUBLESHOOTING.md#k1), [K2](TROUBLESHOOTING.md#k2) |
 | `carpet` with `supplementaries` | Carpet's piston mixin is stripped; re-run the reproduction on a carpet bump | [carpet-supplementaries-piston-crash.md](docs/known-issues/carpet-supplementaries-piston-crash.md) |
 | `xaeros-minimap`, `xaeros-world-map` | Era pair: move together | live `_holds` |
 | `tectonic`, `terralith`, `incendium`, `nullscape` | `custom-dimensions` reads their generator settings; a bump regenerates the terrain presets | [AGENTS.md § Dimensions](AGENTS.md#dimensions) |
