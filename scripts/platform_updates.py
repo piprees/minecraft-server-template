@@ -196,6 +196,28 @@ def classify_line(path, line):
     return None
 
 
+def mask_line(path, line):
+    """The line with its version (or checksum) replaced by "<v>", or None when it pins nothing.
+
+    Two lines with the same mask differ only in the value this script moves.
+    """
+    line = line.rstrip("\n")
+    if path == IMAGE_FILE:
+        m = IMAGE_LINE.match(line)
+        if m:
+            return f"{m.group(1)}{m.group(2)}:<v>{m.group(4)}"
+    if path == TAILWIND_FILE:
+        m = TAILWIND_SUM_LINE.match(line)
+        if m:
+            return f"{m.group(1)}{m.group(2)}{m.group(3)}<v>{m.group(5)}"
+    for pin in PINS:
+        if glob_regex(pin.path).match(path):
+            m = pin.regex.match(line)
+            if m:
+                return f"{m.group(1)}<v>{m.group(3)}"
+    return None
+
+
 def scan_text(path, text):
     """Occurrences of every pin in one file's text."""
     found = []

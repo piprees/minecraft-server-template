@@ -1,0 +1,161 @@
+name: Platform Updates
+
+# Weekly updates for the platform pins Dependabot cannot parse, as one PR on
+# platform-updates/auto: the third-party images in docker-compose.yml, the
+# Fabric loader (server, client pack and in-house mod builds together), yarn
+# and fabric-api for the in-house mods, and the Tailwind CLI,
+# packwiz-installer-bootstrap, git-cliff and doctl pins. The resolvers and the
+# list of files they may touch are scripts/platform_updates.py; gate.py reads
+# the same table, so this PR can change nothing else.
+#
+# New image tags are mirrored to GHCR before the PR exists, so compose never
+# points at a mirror tag that is missing; a failed mirror stops the run. The
+# PR goes to dep-review.yml like every other dependency PR. Never touches
+# production directly.
+on:
+  schedule:
+    - cron: '0 6 * * 2' # Tuesday 06:00 UTC, the day after mod-updates.yml
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: platform-updates
+  cancel-in-progress: false
+
+env:
+  BRANCH: platform-updates/auto
+
+jobs:
+  resolve:
+    name: Resolve updates
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    outputs:
+      count: ${{ steps.apply.outputs.count }}
+      images: ${{ steps.apply.outputs.images }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: '3.13'
+
+      - name: Apply the latest platform versions
+        id: apply
+        run: |
+          set -euo pipefail
+          mkdir -p out
+          python3 scripts/platform_updates.py --apply --json out/updates.json --markdown out/body.md
+          git diff > out/changes.patch
+          COUNT=$(jq length out/updates.json)
+          IMAGES=$(jq -r '[.[] | select(.ecosystem == "image") | "\(.name):\(.new)"] | join(" ")' out/updates.json)
+          echo "count=$COUNT" >> "$GITHUB_OUTPUT"
+          echo "images=$IMAGES" >> "$GITHUB_OUTPUT"
+          git diff --stat
+
+      - name: Upload the update
+        uses: actions/upload-artifact@v7
+        with:
+          name: platform-updates
+          path: out/
+          retention-days: 7
+
+  mirror:
+    name: Mirror new image tags
+    needs: resolve
+    if: needs.resolve.outputs.images != ''
+    permissions:
+      contents: read
+      packages: write
+    uses: ./.github/workflows/mirror-images.yml
+    with:
+      images: ${{ needs.resolve.outputs.images }}
+
+  pr:
+    name: Open or update the PR
+    needs: [resolve, mirror]
+    if: >-
+      !cancelled() && needs.resolve.result == 'success'
+      && (needs.mirror.result == 'success' || needs.mirror.result == 'skipped')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      pull-requests: write
+      actions: write
+    env:
+      COUNT: ${{ needs.resolve.outputs.count }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Close stale PR (no updates)
+        if: needs.resolve.outputs.count == '0'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          PR_NUM=$(gh pr list --head "$BRANCH" --state open --json number --jq '.[0].number // empty')
+          if [[ -n "$PR_NUM" ]]; then
+            gh pr comment "$PR_NUM" --body "Every platform pin now matches its latest release on \`main\` - closing, nothing left to update."
+            gh pr close "$PR_NUM" --delete-branch
+            echo "Closed stale PR #$PR_NUM"
+          else
+            echo "No platform updates available."
+          fi
+
+      - name: Download the update
+        if: needs.resolve.outputs.count != '0'
+        uses: actions/download-artifact@v8
+        with:
+          name: platform-updates
+          path: /tmp/platform-updates
+
+      - name: Commit and push
+        if: needs.resolve.outputs.count != '0'
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -B "$BRANCH"
+          git apply --index /tmp/platform-updates/changes.patch
+          git commit -m "chore: platform updates ($COUNT)"
+          git push --force origin "$BRANCH"
+
+      - name: Open or update PR
+        if: needs.resolve.outputs.count != '0'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          TITLE="chore: platform updates ($COUNT)"
+          gh label create dependencies --color B8EE55 --force
+          gh label create platform --color 1D76DB --description "Platform images, loader and build tools" --force
+          PR_NUM=$(gh pr list --head "$BRANCH" --state open --json number --jq '.[0].number // empty')
+          if [[ -n "$PR_NUM" ]]; then
+            gh pr edit "$PR_NUM" --title "$TITLE" --body-file /tmp/platform-updates/body.md
+            gh pr comment "$PR_NUM" --body "Refreshed with the latest platform versions ($(date -u +%Y-%m-%d))."
+            echo "Updated PR #$PR_NUM"
+          else
+            gh pr create --title "$TITLE" --body-file /tmp/platform-updates/body.md \
+              --base main --head "$BRANCH" --label dependencies --label platform
+            echo "Opened new PR"
+          fi
+
+      - name: Request dependency review
+        # PRs opened or pushed with GITHUB_TOKEN trigger no pull_request
+        # workflows; dispatch is the exception.
+        if: needs.resolve.outputs.count != '0'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          PR_NUM=$(gh pr list --head "$BRANCH" --state open --json number --jq '.[0].number // empty')
+          gh workflow run dep-review.yml --ref main -f pr="$PR_NUM"

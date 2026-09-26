@@ -1,15 +1,15 @@
 name: Updates
 
-# Weekly maintenance PR for your server:
-#   - re-pins overlay/mods-extra.txt to the latest builds for your MC version
-#   - reports the latest stack (template) release in the PR body
-#
-# Stack version: the deploy workflow uses `vars.STACK_VERSION || 'latest'`.
-# Unset floats on the latest release and a major pin like v2 floats on the
-# latest v2.x.y - no action needed to stay current. If you pin an exact
-# version (v2.0.1) in the STACK_VERSION repository variable for
-# reproducibility, this PR tells you when a newer release exists so you can
-# bump the variable deliberately.
+# Weekly maintenance PRs for your server:
+#   - "Re-pin extra mods" (branch updates/auto) re-pins overlay/mods-extra.txt
+#     to the latest builds for your MC version.
+#   - "Stack update" (branch updates/stack) moves .stack-version to the
+#     highest template release. A patch or minor bump that passes every check
+#     (bundle downloads, every image exists, no workflow file changed, same
+#     major as deploy.yml's @vN) merges itself and dispatches a deploy; a
+#     major, or anything that needs a hand, stays open with a checklist. A
+#     repo without .stack-version gets a PR that creates it from the version
+#     its STACK_VERSION repository variable resolves to.
 on:
   schedule:
     - cron: '0 6 * * 1' # Monday 06:00 UTC
@@ -38,19 +38,11 @@ jobs:
         uses: actions/checkout@v7
 
       - name: Pull stack bundle
+        # .stack-version wins; the repository variable only counts without it.
         env:
           GITHUB_TOKEN: ${{ github.token }}
           STACK_VERSION: ${{ vars.STACK_VERSION || 'latest' }}
         run: ./dev pull
-
-      - name: Report stack versions
-        id: stack
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          echo "current=$(readlink .stack/current)" >> "$GITHUB_OUTPUT"
-          latest=$(gh api /repos/piprees/minecraft-server-template/releases/latest --jq .tag_name 2>/dev/null || echo "unknown")
-          echo "latest=$latest" >> "$GITHUB_OUTPUT"
 
       - name: Re-pin extra mods
         id: pin
@@ -91,9 +83,6 @@ jobs:
             git diff -- overlay/mods-extra.txt | tail -n +5
             echo '```'
             echo ""
-            echo "**Stack**: running \`${{ steps.stack.outputs.current }}\`, latest release \`${{ steps.stack.outputs.latest }}\`."
-            echo "Deploys track \`${{ vars.STACK_VERSION || 'latest' }}\` (set the \`STACK_VERSION\` repository variable to pin)."
-            echo ""
             echo "Merging triggers a deploy; grep the FIXME lines below for mods with no build for this MC version (kept as-is)."
             grep -n "FIXME" overlay/mods-extra.txt || true
           } > /tmp/pr-body.md
@@ -124,3 +113,219 @@ jobs:
               --base main \
               --head "$BRANCH"
           fi
+
+  stack:
+    name: Stack update
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: write
+      pull-requests: write
+      actions: write # dispatch deploy.yml after an auto-merge
+    env:
+      STACK_BRANCH: updates/stack
+      RELEASES: /tmp/stack-releases.json
+      STACK_UPDATE: /tmp/stack_update.py
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Fetch the newest stack tooling and the release list
+        # stack_update.py ships in the bundle; the newest release's copy
+        # plans the bump. The repo's own pin is moved aside so this pull
+        # resolves `latest`, then put back untouched.
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          STACK_VERSION: latest
+        run: |
+          if [[ -f .stack-version ]]; then mv .stack-version /tmp/stack-version.keep; fi
+          ./dev pull
+          if [[ -f /tmp/stack-version.keep ]]; then mv /tmp/stack-version.keep .stack-version; fi
+          cp .stack/current/stack/scripts/stack_update.py "$STACK_UPDATE"
+          python3 "$STACK_UPDATE" fetch --out "$RELEASES"
+
+      - name: Plan the bump
+        id: plan
+        env:
+          OLD_PIN: ${{ vars.STACK_VERSION }}
+        run: |
+          deploy_major=$(python3 "$STACK_UPDATE" deploy-major .github/workflows/deploy.yml || true)
+          migrated=false
+          if [[ -f .stack-version ]]; then
+            current=$(grep -vE '^[[:space:]]*(#|$)' .stack-version | head -1 | tr -d '[:space:]') || true
+            if [[ ! "$current" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+              echo "::notice::.stack-version is '${current}', a floating pin - bump PRs need an exact vX.Y.Z."
+              echo "act=false" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+          else
+            # Migration: pin exactly what a deploy resolves today - the
+            # repository variable, with `latest` held to deploy.yml's major
+            # as deploy-reusable.yml holds it.
+            migrated=true
+            old="${OLD_PIN:-latest}"
+            if [[ "$old" == "latest" && -n "$deploy_major" ]]; then old="v${deploy_major}"; fi
+            current=$(python3 "$STACK_UPDATE" resolve --releases "$RELEASES" --pin "$old")
+          fi
+          python3 "$STACK_UPDATE" plan --releases "$RELEASES" --current "$current" > /tmp/stack-plan.txt
+          cat /tmp/stack-plan.txt
+          bump=$(grep '^bump=' /tmp/stack-plan.txt | cut -d= -f2)
+          act=true
+          if [[ "$bump" == "none" && "$migrated" == "false" ]]; then act=false; fi
+          {
+            cat /tmp/stack-plan.txt
+            echo "deploy_major=${deploy_major}"
+            echo "migrated=${migrated}"
+            echo "old_pin=${OLD_PIN:-latest}"
+            echo "act=${act}"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Close stale PR (up to date)
+        if: steps.plan.outputs.act == 'false'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          PR_NUM=$(gh pr list --head "$STACK_BRANCH" --state open --json number --jq '.[0].number // empty')
+          if [[ -n "$PR_NUM" ]]; then
+            gh pr comment "$PR_NUM" --body "\`.stack-version\` already names the newest template release - closing."
+            gh pr close "$PR_NUM" --delete-branch
+          else
+            echo "Template is up to date."
+          fi
+
+      - name: Move the pin and sync scaffold files
+        id: apply
+        if: steps.plan.outputs.act == 'true'
+        # ./dev update pulls the target bundle (proving it downloads and
+        # verifies) and syncs the scaffold. GITHUB_TOKEN cannot push
+        # .github/workflows changes, so those are reverted here and listed
+        # in the PR as a manual step.
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          TARGET: ${{ steps.plan.outputs.target }}
+        run: |
+          printf '%s\n' "$TARGET" > .stack-version
+          STACK_VERSION="$TARGET" ./dev update --scaffold-only
+          running=$(basename "$(readlink .stack/current)")
+          if [[ "$running" != "$TARGET" ]]; then
+            echo "::error::./dev update installed ${running}, not ${TARGET}"
+            exit 1
+          fi
+          {
+            git diff --name-only -- .github/workflows
+            git ls-files --others --exclude-standard -- .github/workflows
+          } | sort -u > /tmp/stack-workflow-files.txt
+          git checkout -- .github/workflows
+          git clean -fq -- .github/workflows
+          if [[ -s /tmp/stack-workflow-files.txt ]]; then
+            echo "workflows_changed=true" >> "$GITHUB_OUTPUT"
+            echo "Workflow files the release changes:"
+            cat /tmp/stack-workflow-files.txt
+          else
+            echo "workflows_changed=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Check every image exists at the new version
+        id: images
+        if: steps.plan.outputs.act == 'true'
+        env:
+          TARGET: ${{ steps.plan.outputs.target }}
+        run: |
+          if python3 "$STACK_UPDATE" images --check --tag "${TARGET#v}" --extra modpack-builder \
+            .stack/current/stack/docker-compose.yml | tee /tmp/stack-images.txt; then
+            echo "verified=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "verified=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::Some images for ${TARGET} are missing - the PR stays open."
+          fi
+
+      - name: Build PR body
+        id: body
+        if: steps.plan.outputs.act == 'true'
+        env:
+          CURRENT: ${{ steps.plan.outputs.current }}
+          TARGET: ${{ steps.plan.outputs.target }}
+          BUMP: ${{ steps.plan.outputs.bump }}
+          TARGET_MAJOR: ${{ steps.plan.outputs.target_major }}
+          DEPLOY_MAJOR: ${{ steps.plan.outputs.deploy_major }}
+          MIGRATED: ${{ steps.plan.outputs.migrated }}
+          OLD_PIN: ${{ steps.plan.outputs.old_pin }}
+          WORKFLOWS_CHANGED: ${{ steps.apply.outputs.workflows_changed }}
+          VERIFIED: ${{ steps.images.outputs.verified }}
+        run: |
+          args=(--releases "$RELEASES" --current "$CURRENT" --target "$TARGET")
+          if [[ -n "$DEPLOY_MAJOR" ]]; then args+=(--deploy-major "$DEPLOY_MAJOR"); fi
+          if [[ "$MIGRATED" == "true" ]]; then args+=(--migrated-from "$OLD_PIN"); fi
+          while IFS= read -r f; do
+            if [[ -n "$f" ]]; then args+=(--workflow-file "$f"); fi
+          done < /tmp/stack-workflow-files.txt
+          images=$(grep -c . /tmp/stack-images.txt || true)
+          if [[ "$VERIFIED" == "true" ]]; then
+            args+=(--verification "the ${TARGET} bundle downloads and verifies; all ${images} images exist.")
+          else
+            args+=(--verification "FAILED - $(grep -c '^MISSING' /tmp/stack-images.txt || true) of ${images} images are missing at ${TARGET#v}; wait for the release's image build before merging.")
+          fi
+          auto=false
+          if [[ ("$BUMP" == "patch" || "$BUMP" == "minor") && "$VERIFIED" == "true" \
+            && "$WORKFLOWS_CHANGED" == "false" && "$DEPLOY_MAJOR" == "$TARGET_MAJOR" ]]; then
+            auto=true
+            args+=(--auto-merge)
+          fi
+          python3 "$STACK_UPDATE" body "${args[@]}" > /tmp/stack-pr-body.md
+          echo "auto_merge=${auto}" >> "$GITHUB_OUTPUT"
+          if [[ "$BUMP" == "none" ]]; then
+            echo "title=chore(stack): pin template at ${TARGET}" >> "$GITHUB_OUTPUT"
+          else
+            echo "title=chore(stack): bump template to ${TARGET}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Commit and push
+        if: steps.plan.outputs.act == 'true'
+        env:
+          TITLE: ${{ steps.body.outputs.title }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -B "$STACK_BRANCH"
+          git add -A
+          git commit -m "$TITLE"
+          git push --force origin "$STACK_BRANCH"
+
+      - name: Open or update PR
+        id: pr
+        if: steps.plan.outputs.act == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TITLE: ${{ steps.body.outputs.title }}
+          BUMP: ${{ steps.plan.outputs.bump }}
+        run: |
+          PR_NUM=$(gh pr list --head "$STACK_BRANCH" --state open --json number --jq '.[0].number // empty')
+          if [[ -n "$PR_NUM" ]]; then
+            gh pr edit "$PR_NUM" --title "$TITLE" --body-file /tmp/stack-pr-body.md
+          else
+            gh pr create --title "$TITLE" --body-file /tmp/stack-pr-body.md --base main --head "$STACK_BRANCH"
+            PR_NUM=$(gh pr list --head "$STACK_BRANCH" --state open --json number --jq '.[0].number')
+          fi
+          gh label create stack-update --color 0E8A16 --description "Template (stack) version bump" --force || true
+          labels=(--add-label stack-update)
+          if [[ "$BUMP" == "major" ]]; then
+            gh label create stack-major --color B60205 --description "Template major - read the breaking changes" --force || true
+            labels+=(--add-label stack-major)
+          fi
+          gh pr edit "$PR_NUM" "${labels[@]}" || echo "::warning::Could not label PR #${PR_NUM}"
+          echo "number=${PR_NUM}" >> "$GITHUB_OUTPUT"
+
+      - name: Merge and deploy
+        # A merge by GITHUB_TOKEN starts no push workflow; a dispatch is the
+        # one event it may trigger, so the deploy is started explicitly.
+        if: steps.body.outputs.auto_merge == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUM: ${{ steps.pr.outputs.number }}
+        run: |
+          if ! gh pr merge "$PR_NUM" --squash --delete-branch; then
+            echo "::warning::Auto-merge of #${PR_NUM} failed (branch protection?) - merge it by hand."
+            exit 0
+          fi
+          gh workflow run deploy.yml --ref main

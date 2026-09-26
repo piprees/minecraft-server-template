@@ -154,6 +154,11 @@ if [[ -f "$CONSUMER_DIR/.env" ]]; then
   source "$CONSUMER_DIR/.env"
   set +a
 fi
+# The tracked pin file beats a deprecated STACK_VERSION in .env, as in `dev`.
+if [[ -f "$CONSUMER_DIR/.stack-version" ]]; then
+  STACK_PIN_FILE=$(grep -vE '^[[:space:]]*(#|$)' "$CONSUMER_DIR/.stack-version" | head -1 | tr -d '[:space:]') || true
+  [[ -z "$STACK_PIN_FILE" ]] || export STACK_VERSION="$STACK_PIN_FILE"
+fi
 
 # --- Resolve variables --------------------------------------------------------
 # Pin images to the stack version so local dev uses the same images as

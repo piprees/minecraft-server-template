@@ -377,6 +377,51 @@ class DockerParsing(unittest.TestCase):
         self.assertEqual(c["name"], "localhost:5000/img")
 
 
+IMG = "    image: ${MIRROR_REGISTRY:-ghcr.io/piprees/mirrors}/"
+
+
+class PlatformParsing(unittest.TestCase):
+    PAIRS = [
+        ("docker-compose.yml",
+         f"{IMG}itzg/minecraft-server:2026.7.0-java21\n{IMG}nginx:1.30.3-alpine\n{IMG}itzg/mc-backup:2026.7.0\n"
+         f"{IMG}itzg/mc-backup:2026.7.0\n      FABRIC_LOADER_VERSION: ${{FABRIC_LOADER_VERSION:-0.19.3}}\n",
+         f"{IMG}itzg/minecraft-server:2027.1.0-java21\n{IMG}nginx:1.30.3-alpine\n{IMG}itzg/mc-backup:2026.9.2\n"
+         f"{IMG}itzg/mc-backup:2026.9.2\n      FABRIC_LOADER_VERSION: ${{FABRIC_LOADER_VERSION:-0.19.5}}\n"),
+        ("mods/custom-dimensions/gradle.properties",
+         "yarn_mappings=1.21.1+build.3\nloader_version=0.16.14\nfabric_version=0.115.0+1.21.1\n",
+         "yarn_mappings=1.21.1+build.3\nloader_version=0.19.5\nfabric_version=0.116.15+1.21.1\n"),
+        ("mods/custom-dimensions/build-viewer-css.sh",
+         f'TAILWIND_VERSION="4.3.3"\n    tailwindcss-linux-x64) echo "{"a" * 64}" ;;\n',
+         f'TAILWIND_VERSION="5.0.0-beta.1"\n    tailwindcss-linux-x64) echo "{"b" * 64}" ;;\n'),
+    ]
+
+    def test_changes_and_flags(self):
+        got = {c["key"]: c for c in collect.platform_changes(self.PAIRS)}
+        self.assertEqual(sorted(got), [
+            "gradle:fabric-api@0.116.15+1.21.1", "image:itzg/mc-backup@2026.9.2",
+            "image:itzg/minecraft-server@2027.1.0-java21", "loader:fabric-loader@0.19.5",
+            "tool:tailwindcss@5.0.0-beta.1"])
+        loader = got["loader:fabric-loader@0.19.5"]
+        self.assertEqual(loader["old"], "0.16.14, 0.19.3")
+        self.assertEqual(loader["files"], ["docker-compose.yml", "mods/custom-dimensions/gradle.properties"])
+        self.assertEqual(loader["flags"], [])
+        self.assertEqual(loader["details"]["release_notes"],
+                         "https://github.com/FabricMC/fabric-loader/releases/tag/0.19.5")
+        self.assertEqual(got["image:itzg/minecraft-server@2027.1.0-java21"]["flags"], ["major"])
+        self.assertEqual(got["image:itzg/mc-backup@2026.9.2"]["flags"], [])
+        self.assertEqual(sorted(got["tool:tailwindcss@5.0.0-beta.1"]["flags"]), ["major", "prerelease"])
+
+    def test_collect_platform_source(self):
+        texts = {("old", p): o for p, o, _ in self.PAIRS} | {("head", p): n for p, _, n in self.PAIRS}
+        gate = {"pr": 40, "source": "platform", "head_sha": "head", "base_sha": "base",
+                "files": [p for p, _, _ in self.PAIRS], "previous_state": None}
+        context, md, _ = collect.collect(gate, {}, client=None, now=NOW, show=lambda ref, path: texts[(ref, path)],
+                                         resolve_old=lambda base, head, notes: "old", pr_body="body")
+        self.assertEqual(context["pr"]["source"], "platform")
+        self.assertEqual(len(context["work"]), 5)
+        self.assertIn("Release notes: https://github.com/FabricMC/fabric-loader/releases/tag/0.19.5", md)
+
+
 class ActionsAndPip(unittest.TestCase):
     def test_actions_version_comment(self):
         old = "      - uses: actions/checkout@0123456789abcdef0123456789abcdef01234567  # v4.2.2\n"

@@ -48,6 +48,9 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import common  # noqa: E402
 
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+import platform_updates  # noqa: E402
+
 API = "https://api.modrinth.com/v2"
 USER_AGENT = "adventure/dep-review"
 TARGET_MC = "1.21.1"
@@ -640,6 +643,51 @@ def version_changes(pairs, ecosystem, parser, prerelease_re):
     return _group(records, ecosystem, flags)
 
 
+def platform_changes(pairs):
+    """pairs: [(path, old_text, new_text)] of a platform-updates PR, read with platform_updates.PINS.
+
+    One change per dependency and new version, whatever number of files carry
+    it; Tailwind's checksum lines belong to the tailwindcss change.
+    """
+    records = []
+    for path, old_text, new_text in pairs:
+        sides = []
+        for text in (old_text, new_text):
+            found = {}
+            for occ in platform_updates.scan_text(path, text or ""):
+                found.setdefault((occ.ecosystem, occ.name), set()).add(occ.version)
+            sides.append(found)
+        old, new = sides
+        for dep in sorted(set(old) | set(new)):
+            o, n = old.get(dep, set()), new.get(dep, set())
+            if o == n:
+                continue
+            for nv in sorted(n - o) or [None]:
+                for ov in sorted(o - n) or [None]:
+                    records.append((dep, ov, nv, path))
+    by_eco = {}
+    for (eco, name), ov, nv, path in records:
+        by_eco.setdefault(eco, []).append((name, ov, nv, path))
+
+    def flags(old, new):
+        out = []
+        if new is None or old is None:
+            out.append("unparsed")
+        if new and PRERELEASE_RE.search(new):
+            out.append("prerelease")
+        if is_major(old, new):
+            out.append("major")
+        return out
+
+    changes = []
+    for eco in sorted(by_eco):
+        for c in _group(by_eco[eco], eco, flags):
+            if c["new"]:
+                c["details"]["release_notes"] = platform_updates.notes_url(eco, c["name"], c["new"])
+            changes.append(c)
+    return changes
+
+
 # --- diff -------------------------------------------------------------------------------
 
 def build_diff(old, head, files, limit=DIFF_MAX):
@@ -686,7 +734,8 @@ def render_change(i, c):
     for label, key in (("Version type", "version_type"), ("Published", "date_published"),
                        ("Age (days)", "age_days"), ("Section", "section"), ("Optional on server", "optional"),
                        ("Inline list comment", "inline_comment"), ("Client pin when it differs", "old_client"),
-                       ("Pin on the other side", "other_side_pin"), ("Note", "note")):
+                       ("Pin on the other side", "other_side_pin"), ("Note", "note"),
+                       ("Release notes", "release_notes")):
         if d.get(key) not in (None, "", [], False):
             lines.append(f"- {label}: {md_inline(d[key])}")
     if d.get("game_versions"):
@@ -788,6 +837,8 @@ def collect(gate, policy, *, client, now, offline=False, pr_body=None, show=git_
             changes = version_changes(pairs, "action", _uses, PRERELEASE_RE)
         elif source == "pip":
             changes = version_changes(pairs, "pip", _pip, PIP_PRERELEASE_RE)
+        elif source == "platform":
+            changes = platform_changes(pairs)
     if not changes:
         notes.append("No dependency changes were parsed from the changed files.")
 

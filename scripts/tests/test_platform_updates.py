@@ -205,6 +205,16 @@ class ScanTest(unittest.TestCase):
         self.assertEqual(pu.classify_line(pu.TAILWIND_FILE, '    tailwindcss-linux-x64) echo "' + "f" * 64 + '" ;;'),
                          ("sha256", "tailwindcss-linux-x64"))
 
+    def test_mask_line_hides_only_the_version(self):
+        line = COMPOSE.splitlines()[2]
+        bumped = line.replace("2026.7.0", "2026.9.2")
+        moved = line.replace("ghcr.io/piprees/mirrors", "evil.example/x")
+        self.assertEqual(pu.mask_line("docker-compose.yml", line), pu.mask_line("docker-compose.yml", bumped))
+        self.assertNotEqual(pu.mask_line("docker-compose.yml", line), pu.mask_line("docker-compose.yml", moved))
+        self.assertIsNone(pu.mask_line("docker-compose.yml", "    command: rm -rf /"))
+        s1 = '    tailwindcss-linux-x64) echo "' + "a" * 64 + '" ;;'
+        self.assertEqual(pu.mask_line(pu.TAILWIND_FILE, s1), pu.mask_line(pu.TAILWIND_FILE, s1.replace("a" * 64, "b" * 64)))
+
     def test_allowed_path(self):
         for path in ("docker-compose.yml", "mods/custom-dimensions/gradle.properties", pu.TAILWIND_FILE,
                      ".github/workflows/release.yml", "examples/consumer/.github/workflows/server-power.yml"):

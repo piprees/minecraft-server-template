@@ -152,7 +152,7 @@ jobs:
           done < mods/client-mods.manifest
 
       - name: Stamp version defaults
-        # BEFORE the bundle: both .env.example files are in its MANIFEST, so
+        # BEFORE the bundle: every stamped file is in its MANIFEST, so
         # stamping here means the tarball ships a correct pin even when the
         # commit-back below loses its race and no-ops.
         run: ./scripts/stamp-version-defaults.sh "${{ inputs.version }}"
@@ -221,6 +221,11 @@ jobs:
             CHANGELOG.md
             .env.example
             examples/consumer/.env.example
+            examples/consumer/.stack-version
+            examples/consumer/.github/workflows/deploy.yml
+          # Every version default is a dotfile or under .github; without this
+          # the artefact carries CHANGELOG.md alone.
+          include-hidden-files: true
           retention-days: 7
 
   # Rebuild all container images from this exact commit. publish.yml is
@@ -269,7 +274,8 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add CHANGELOG.md .env.example examples/consumer/.env.example
+          git add CHANGELOG.md .env.example examples/consumer/.env.example \
+            examples/consumer/.stack-version examples/consumer/.github/workflows/deploy.yml
           if ! git diff --cached --quiet; then
             git commit -m "chore: update CHANGELOG.md and version defaults for ${{ inputs.version }}"
             for attempt in 1 2 3; do

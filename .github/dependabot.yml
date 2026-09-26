@@ -6,10 +6,20 @@ version: 2
 #
 # docker-compose.yml is not listed: its images are written as
 # ${MIRROR_REGISTRY:-…}/image:tag, which Dependabot cannot parse.
+# scripts/platform_updates.py (platform-updates.yml) updates those, plus the
+# Fabric loader, yarn, fabric-api and the pinned build tools.
+#
+# Gradle is not listed either: Dependabot reads plugin repositories only from
+# a settings file's dependencyResolutionManagement block, and Loom and every
+# net.fabricmc artefact live on maven.fabricmc.net, declared in
+# pluginManagement and added by Loom at build time.
 
 updates:
+  # The platform's workflows and the consumer scaffold's copies.
   - package-ecosystem: github-actions
-    directory: /
+    directories:
+      - /
+      - /examples/consumer
     schedule:
       interval: weekly
       day: monday
@@ -46,9 +56,13 @@ updates:
       - dependencies
       - docker
 
-  # Python: deps for the Discord sync bot
+  # Python: the Discord sync bot (scripts/), template tooling
+  # (requirements-dev.txt) and kuma-init's image (docker/kuma-init/).
   - package-ecosystem: pip
-    directory: /scripts
+    directories:
+      - /
+      - /scripts
+      - /docker/kuma-init
     schedule:
       interval: weekly
       day: monday

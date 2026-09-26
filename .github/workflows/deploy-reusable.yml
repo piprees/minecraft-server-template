@@ -3,9 +3,18 @@ name: Deploy
 on:
   workflow_call:
     inputs:
-      stack_version:
-        required: true
+      # The stack pin, first match wins: stack_version_override (a one-off
+      # deploy of another release, e.g. a rollback from a manual dispatch),
+      # the consumer's .stack-version file, stack_version (deprecated: the
+      # STACK_VERSION repository variable of older scaffolds), then latest.
+      stack_version_override:
+        required: false
         type: string
+        default: ''
+      stack_version:
+        required: false
+        type: string
+        default: ''
       environment:
         type: string
         default: production
@@ -94,34 +103,90 @@ jobs:
 
       - name: Resolve stack version
         id: stack
-        # inputs.stack_version is usually SYMBOLIC ("v2", "latest") — it
-        # resolves to a different concrete release over time. Tier detection
-        # must compare concrete tags, or a platform release never registers
-        # as a change (symbolic == symbolic forever, the historical bug that
-        # made consumer pushes always land in pull tier). Resolution mirrors
-        # stack-pull.sh: highest semver release matching the pin.
+        # Tier detection compares CONCRETE tags, so a symbolic pin (v5,
+        # latest) is resolved here: highest stable vX.Y.Z release matching
+        # it, the rule stack-pull.sh applies. The override input beats the
+        # committed file so a dispatch can deploy another release for one
+        # run; the next push deploys .stack-version again. The legacy input
+        # only counts when the repo has no .stack-version, because older
+        # scaffolds pass `vars.STACK_VERSION || 'latest'` on every event.
+        #
+        # The resolved major must equal this workflow's own tag major
+        # (deploy-reusable.yml@vN): a bundle from another major expects a
+        # different workflow. A floating `latest` stays inside that major.
+        # A branch or sha ref (template testing) skips the check.
         env:
           GH_TOKEN: ${{ github.token }}
-          PIN: ${{ inputs.stack_version }}
+          PIN_OVERRIDE: ${{ inputs.stack_version_override }}
+          PIN_INPUT: ${{ inputs.stack_version }}
+          JOB_CONTEXT: ${{ toJSON(job) }}
         run: |
-          pin="${PIN#v}"
-          tags=$(gh api /repos/piprees/minecraft-server-template/releases --paginate \
-            --jq '.[].tag_name' \
-            | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' \
-            | sort -t. -k1,1nr -k2,2nr -k3,3nr)
-          if [[ -z "$pin" || "$pin" == "latest" ]]; then
-            resolved=$(head -1 <<< "$tags")
-          elif [[ "$pin" == *.*.* ]]; then
-            resolved=$(grep -xF "$pin" <<< "$tags" | head -1)
-          else
-            resolved=$(grep -E "^${pin//./\\.}\." <<< "$tags" | head -1)
+          pin="" source=""
+          if [[ -n "$PIN_OVERRIDE" ]]; then
+            pin="$PIN_OVERRIDE" source="stack_version_override input"
+          elif [[ -f .stack-version ]]; then
+            pin=$(grep -vE '^[[:space:]]*(#|$)' .stack-version | head -1 | tr -d '[:space:]') || true
+            source=".stack-version"
+            if [[ -n "$PIN_INPUT" && "$PIN_INPUT" != "latest" && "$PIN_INPUT" != "$pin" ]]; then
+              echo "::warning::.stack-version (${pin}) wins over stack_version=${PIN_INPUT}; delete the STACK_VERSION repository variable"
+            fi
+          elif [[ -n "$PIN_INPUT" ]]; then
+            pin="$PIN_INPUT" source="stack_version input (deprecated: commit a .stack-version file)"
           fi
-          if [[ -z "$resolved" ]]; then
-            echo "::error::No platform release matches STACK_VERSION=${PIN}"
+          pin="${pin:-latest}"
+          if [[ ! "$pin" =~ ^(latest|v?[0-9]+(\.[0-9]+){0,2})$ ]]; then
+            echo "::error::Stack pin '${pin}' (from ${source}) is not latest, vN, vN.M or vN.M.P"
             exit 1
           fi
-          echo "resolved=v${resolved}" >> "$GITHUB_OUTPUT"
-          echo "Stack pin '${PIN}' resolved to v${resolved}"
+
+          workflow_ref=$(jq -r '.workflow_ref // empty' <<< "$JOB_CONTEXT")
+          ref="${workflow_ref##*@}"
+          workflow_major=""
+          case "$ref" in
+            refs/tags/v[0-9]*)
+              workflow_major="${ref#refs/tags/v}"
+              workflow_major="${workflow_major%%.*}"
+              ;;
+            refs/heads/*)
+              echo "::notice::deploy-reusable.yml runs from branch ${ref#refs/heads/}; stack major check skipped"
+              ;;
+            *)
+              echo "::notice::deploy-reusable.yml ref '${workflow_ref:-unknown}' is not a version tag; stack major check skipped"
+              ;;
+          esac
+
+          bare="${pin#v}"
+          if [[ "$bare" == "latest" || -z "$bare" ]] && [[ -n "$workflow_major" ]]; then
+            bare="$workflow_major"
+          fi
+          tags=$(gh api /repos/piprees/minecraft-server-template/releases --paginate \
+            --jq '.[] | select((.draft or .prerelease) | not) | .tag_name' \
+            | grep -xE 'v[0-9]+\.[0-9]+\.[0-9]+' | sed 's/^v//' \
+            | sort -t. -k1,1nr -k2,2nr -k3,3nr) || true
+          if [[ "$bare" == "latest" || -z "$bare" ]]; then
+            resolved=$(head -1 <<< "$tags")
+          elif [[ "$bare" == *.*.* ]]; then
+            resolved=$(grep -xF "$bare" <<< "$tags" | head -1) || true
+          else
+            resolved=$(grep -E "^${bare//./\\.}\." <<< "$tags" | head -1) || true
+          fi
+          if [[ -z "$resolved" ]]; then
+            echo "::error::No platform release matches stack pin '${pin}' (from ${source:-default})"
+            exit 1
+          fi
+          resolved_major="${resolved%%.*}"
+          if [[ -n "$workflow_major" && "$resolved_major" != "$workflow_major" ]]; then
+            msg="Stack v${resolved} (pin '${pin}' from ${source:-default}) is major ${resolved_major}"
+            msg+=", but this deploy runs deploy-reusable.yml@v${workflow_major}."
+            msg+=" Update .github/workflows/deploy.yml to deploy-reusable.yml@v${resolved_major}"
+            echo "::error::${msg}, run ./dev update, and push both."
+            exit 1
+          fi
+          {
+            echo "resolved=v${resolved}"
+            echo "pin=${pin}"
+          } >> "$GITHUB_OUTPUT"
+          echo "Stack pin '${pin}' (from ${source:-default}) resolved to v${resolved}"
 
       - name: Determine deploy tier
         id: tier
@@ -436,12 +501,14 @@ jobs:
         # the sha after a FAILED deploy makes the next run diff against a
         # sha that never deployed and silently downgrade to pull tier.
         if: success() && steps.tier.outputs.tier != ''
+        env:
+          STACK_PIN: ${{ steps.stack.outputs.pin }}
         run: |
           ssh -i ~/.ssh/deploy_key ${{ vars.DEPLOY_USER }}@${{ vars.DROPLET_HOST }} \
             "printf 'consumer_sha=%s\nstack_version=%s\nstack_pin=%s\n' \
               '${{ steps.meta.outputs.full_sha }}' \
               '${{ steps.stack.outputs.resolved }}' \
-              '${{ inputs.stack_version }}' \
+              '${STACK_PIN}' \
               > ~/server/.deployed" || true
 
       - name: Rebuild modpack

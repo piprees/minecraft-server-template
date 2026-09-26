@@ -2,9 +2,9 @@
 """gate.py - decide whether a dependency-update PR may enter dep-review, and whether it needs reviewing.
 
 Context: first step of .github/workflows/dep-review.yml. The repository is
-public, so this is a security boundary: only PRs opened by Dependabot or by
-mod-updates.yml, touching only the files their tool is allowed to touch and
-changing only the lines that tool changes, get past it. Every check fails
+public, so this is a security boundary: only PRs opened by Dependabot, by
+mod-updates.yml or by platform-updates.yml, touching only the files their tool
+is allowed to touch and changing only the lines that tool changes, get past it. Every check fails
 closed. `evaluate()` holds all the logic and is pure; the `gh api` fetch
 layer around it is kept thin so tests drive `evaluate()` directly.
 
@@ -16,7 +16,7 @@ Usage:
   are reused.
   python3 scripts/dep_review/gate.py --from-dir DIR --repo OWNER/NAME --out gate.json
       DIR holds pr.json, commits.json, files.json, comments.json in GitHub API
-      shape, plus manifest-base.json and manifest-head.json for a mod PR
+      shape, plus manifest-base.json and manifest-head.json for a mod or platform PR
       (local debugging; needs no gh and no token).
 
 Exit 0 whenever a verdict was written, including ok=false; the workflow reads
@@ -39,6 +39,9 @@ Gotchas:
     trusts whatever email a pusher writes into a commit.
   - The mod PR's manifest is compared as JSON, not line by line: a
     "key": "value" line pattern would also pass an injected download URL.
+  - The platform PR's allowed files and lines are platform_updates.py's own
+    pin table (PINS, IMAGE_LINE, classify_line), read from main's checkout,
+    so the gate and the updater cannot drift apart.
   - The fingerprint covers changed lines only; a rebase that changes no
     content keeps it, so the previous review is reused (skip=true).
 """
@@ -53,6 +56,9 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import common  # noqa: E402
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+import platform_updates  # noqa: E402
 
 MAX_COMMITS = 50
 MAX_FILES = 300
@@ -71,6 +77,7 @@ ALLOWED_AUTHORS = {
     "pip": {DEPENDABOT},
     "mods": {ACTIONS_BOT},
     "worldgen": {ACTIONS_BOT},
+    "platform": {ACTIONS_BOT},
 }
 ALLOWED_COMMITTERS = {
     "actions": {DEPENDABOT, WEB_FLOW},
@@ -78,11 +85,15 @@ ALLOWED_COMMITTERS = {
     "pip": {DEPENDABOT, WEB_FLOW},
     "mods": {ACTIONS_BOT},
     "worldgen": {ACTIONS_BOT},
+    "platform": {ACTIONS_BOT},
 }
 # mod-updates.yml's two branches: regular updates, and the worldgen updates
 # held for the next major release.
 MOD_BRANCHES = {"mod-updates/auto": "mods", "mod-updates/next-major": "worldgen"}
 MOD_SOURCES = tuple(MOD_BRANCHES.values())
+# platform-updates.yml's branch: compose images, Fabric loader/yarn/fabric-api, build tools.
+PLATFORM_BRANCH = "platform-updates/auto"
+PLATFORM = "platform"
 MANIFEST = "modpack/adventure.mrpack.json"
 # Lists mod-updates.yml re-pins in place; every other part of the manifest
 # except `_holds` must be identical on both sides.
@@ -91,9 +102,9 @@ PINNED_LISTS = (("_clientMods", "required"), ("_clientMods", "optional"),
 PIN_ID = re.compile(r":[A-Za-z0-9]{8}$")
 
 FILE_PATTERNS = {
-    "actions": re.compile(r"^\.github/workflows/[^/]+\.ya?ml$"),
+    "actions": re.compile(r"^(examples/consumer/)?\.github/workflows/[^/]+\.ya?ml$"),
     "docker": re.compile(r"^docker/[^/]+/Dockerfile$"),
-    "pip": re.compile(r"^scripts/requirements[^/]*\.txt$"),
+    "pip": re.compile(r"^(scripts/requirements[^/]*|requirements-dev|docker/[^/]+/requirements)\.txt$"),
 }
 
 # The exact `git add` list of mod-updates.yml's "Commit and push" step.
@@ -174,6 +185,8 @@ def identify_source(pr):
         return source, None
     if login == ACTIONS_BOT and ref in MOD_BRANCHES:
         return MOD_BRANCHES[ref], None
+    if login == ACTIONS_BOT and ref == PLATFORM_BRANCH:
+        return PLATFORM, None
     return None, f"PR by {login!r} on branch {ref!r} is not a recognised dependency-update source"
 
 
@@ -253,6 +266,15 @@ def check_files(source, files):
                 if reason:
                     return reason
             continue
+        if source == PLATFORM:
+            if not platform_updates.allowed_path(name):
+                return f"{name} is outside what platform-updates.yml may change"
+            if status != "modified":
+                return f"{name} is {status!r}; platform updates only modify files"
+            reason = check_platform_patch(f)
+            if reason:
+                return reason
+            continue
         if not FILE_PATTERNS[source].match(name):
             return f"{name} is outside what a Dependabot {source} update may change"
         if status != "modified":
@@ -277,6 +299,42 @@ def check_dependabot_patch(source, f):
         (added if line[0] == "+" else removed).append(dependency_name(source, line))
     if sorted(added) != sorted(removed):
         return f"{name}: dependency names differ between removed {sorted(set(removed))} and added {sorted(set(added))}"
+    return None
+
+
+def check_platform_patch(f):
+    """Every changed line is a pin platform_updates.py rewrites, and the lines differ only in their versions."""
+    name = f["filename"]
+    if f.get("patch") is None:
+        return f"{name} has no patch to inspect"
+    lines = changed_lines(f["patch"])
+    if not lines:
+        return f"{name} has no changed lines"
+    removed, added = [], []
+    for line in lines:
+        masked = platform_updates.mask_line(name, line[1:])
+        if masked is None:
+            return f"{name}: changed line is not a platform pin: {line[:160]!r}"
+        (added if line[0] == "+" else removed).append(masked)
+    if sorted(added) != sorted(removed):
+        return f"{name}: lines differ in more than their versions: removed {sorted(set(removed))} added {sorted(set(added))}"
+    return None
+
+
+def check_platform_manifest(base, head):
+    """The platform PR may change the manifest's fabric-loader dependency and nothing else."""
+    if not isinstance(base, dict) or not isinstance(head, dict):
+        return f"{MANIFEST} could not be read on both sides"
+    loader = (head.get("dependencies") or {}).get("fabric-loader")
+    if not isinstance(loader, str) or not re.fullmatch(r"\d+(\.\d+)+", loader):
+        return f"{MANIFEST}: fabric-loader {loader!r} is not a release version"
+    sides = []
+    for side in (base, head):
+        side = json.loads(json.dumps(side))
+        (side.get("dependencies") or {}).pop("fabric-loader", None)
+        sides.append(side)
+    if sides[0] != sides[1]:
+        return f"{MANIFEST} changes more than the fabric-loader dependency"
     return None
 
 
@@ -327,6 +385,8 @@ def evaluate(pr, commits, files, comments, repo, policy, force=False, manifests=
             reason = check_commits(source, commits or []) or check_files(source, files or [])
         if not reason and source in MOD_SOURCES and MANIFEST in names:
             reason = check_manifest(*manifests)
+        if not reason and source == PLATFORM and MANIFEST in names:
+            reason = check_platform_manifest(*manifests)
     except (AttributeError, IndexError, KeyError, TypeError, ValueError) as exc:
         reason = f"malformed API data: {exc!r}"
     if reason:
@@ -341,7 +401,7 @@ def evaluate(pr, commits, files, comments, repo, policy, force=False, manifests=
         fingerprint=fingerprint(files),
         state_comment_id=comment_id,
         previous_state=state,
-        needs_smoke=source in MOD_SOURCES or "docker/defaults-seed/Dockerfile" in names,
+        needs_smoke=source in MOD_SOURCES or source == PLATFORM or "docker/defaults-seed/Dockerfile" in names,
         dockerfiles=[n for n in names if n.endswith("/Dockerfile")],
         worldgen_paths=[n for n in names if prefixes and n.startswith(prefixes)],
     )
