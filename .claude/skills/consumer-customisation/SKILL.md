@@ -123,7 +123,9 @@ Consumers override any of these via `overlay/config/` (same relative paths).
 | -------------------- | ----------------------------------------------- | ---------------------------- |
 | Add a server mod     | `overlay/mods-extra.txt` (`slug:versionId`)     | `./dev up` or push to `main` |
 | Remove a default mod | `overlay/mods-remove.txt` (one slug per line)   | Same                         |
-| Client mod           | `modpack/adventure.mrpack.json` (`_clientMods`) | Push (CI rebuilds `.mrpack`) |
+| Client mod           | `overlay/modpack/manifest.json` (`add.required` / `add.optional` / `remove`, existing catalogue slugs) | Push (CI rebuilds `.mrpack`) |
+
+Rules for adding, removing and pinning: [DEPENDENCIES.md](../../../DEPENDENCIES.md#adding-a-mod); consumers follow the same checklist.
 
 **Every default mod is removable** without breaking the boot — this is a platform promise, guarded by CI's smoke test removal-matrix. The structures datapack strips removed mods' overrides automatically via `ownership.json`.
 

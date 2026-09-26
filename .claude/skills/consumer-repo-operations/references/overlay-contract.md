@@ -54,7 +54,7 @@ Applied by `seed.sh` against `/defaults/modrinth-mods.txt` (the platform's `conf
 
 Format for both files: `slug:versionId` (Modrinth slug and version ID), one per line, `#` comments and blank lines ignored, trailing `?` marks a mod optional (boot doesn't fail if it can't resolve).
 
-Removing a mod's dependents is on you — `seed.sh` doesn't do dependency resolution, it's a flat text merge. See the mandatory dependency checklist in the template repo's `AGENTS.md#mods` before adding anything.
+Removing a mod's dependents is on you — `seed.sh` doesn't do dependency resolution, it's a flat text merge. See the mandatory dependency checklist in the template repo's [DEPENDENCIES.md § Adding a mod](https://github.com/piprees/minecraft-server-template/blob/main/DEPENDENCIES.md#adding-a-mod) before adding anything.
 
 ## `overlay/assets/`
 

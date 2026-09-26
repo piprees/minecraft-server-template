@@ -7,7 +7,7 @@
   "files": [],
   "dependencies": {
     "minecraft": "1.21.1",
-    "fabric-loader": "0.19.3"
+    "fabric-loader": "0.19.5"
   },
   "_comment": "This manifest is the source for build-modpack.sh. The 'files' array is populated at build time from the client mod list below. Only 'both' and 'client' side mods go in the pack - server-only mods are excluded.",
   "_holds": {

@@ -102,7 +102,7 @@ A single `sleep N` outside a loop, for a known duration, is fine. Any loop that 
 
 ## Versions: never trust training data
 
-Before pinning any Docker image tag, GitHub Actions `uses:`, CLI tool, or library version, look it up live (`gh release list --repo <owner/repo> --limit 5`, Context7, or the project's releases page). Two traps: `gh release list --limit 1` returns the most _recently published_ release, not the highest semver (backported patches republish old minors) — use `--limit 5` and filter on `isLatest`. And a GitHub release tag doesn't guarantee a matching Docker Hub tag — some projects stop pushing to Docker Hub while still cutting GitHub releases; verify with `docker pull` before pinning.
+Before pinning any Docker image tag, GitHub Actions `uses:`, CLI tool, or library version, look it up live: [DEPENDENCIES.md § Looking up versions](../../../DEPENDENCIES.md#looking-up-versions).
 
 ## User-facing strings
 
@@ -123,7 +123,7 @@ Run this before every push. CI's `lint.yml` runs the same plus `yamllint -c .yam
 3. **A consumer scaffold file missing from the `update)` sync list never reaches existing consumers.** New consumers created via `degit`/curl get everything under `examples/consumer/` for free; existing consumers only receive what the explicit copy loops in `examples/consumer/dev`'s `update)` case name. `README.md` and `overlay/` are excluded on purpose — don't "fix" that.
 4. **`cp` over a running script corrupts it.** Bash reads a script incrementally as it executes; `cp` rewrites the destination inode in place, and an interpreter mid-execution hits shifted bytes and dies with a bogus `unexpected EOF`/parse error. Use write-to-temp + `mv` — see the executable-entry-points loop in `examples/consumer/dev`'s `update)` case, which does exactly this because that loop replaces the very script bash is executing.
 5. **Never write a raw `KEY=$value` into `.env`.** Go through `set_env_var`/`env_quote` — see lib.sh above.
-6. **Never trust training data for a version number.** Look it up live; `--limit 1` gets you most-recently-published, not highest; a GitHub tag existing doesn't mean a Docker Hub tag does.
+6. **Never trust training data for a version number** — see "Versions" above.
 7. **Idempotent means safe to run twice, and back up before overwriting.** Both matter because wizards and CI re-run these scripts constantly — `setup.sh`, `deploy.sh`, and `dev-up.sh` all assume a second run is safe.
 8. **User-facing strings belong in `config/messages.json`**, never hard-coded in a script.
 

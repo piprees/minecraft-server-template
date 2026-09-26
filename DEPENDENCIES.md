@@ -56,7 +56,7 @@ Anything with a version this repo did not write.
 | PR | Branch | Commit | Holds | Merged by |
 | --- | --- | --- | --- | --- |
 | Regular updates | `mod-updates/auto` | `chore: update N mod version(s)` | everything that is not worldgen | dep-review, when the policy allows |
-| Next major | `mod-updates/next-major` | `feat(mods)!:` with a `BREAKING CHANGE:` footer | worldgen updates, the regenerated presets (`gen-structure-presets.py`, `gen-terrain-presets.py`) and the structure census (`gen-structure-groups.py`) | a human cutting the next major |
+| Next major | `mod-updates/next-major` | `feat(mods)!:` with a `BREAKING CHANGE:` footer | worldgen updates, the regenerated presets (`gen-structure-presets.py`, `gen-terrain-presets.py`) and the structure census (`gen-structure-groups.py`) | the month's first release train, or a human cutting a major |
 
 A mod update is **worldgen** when the mod sits under a `policy.json` `never_automerge_sections` header in `config/modrinth-mods.txt`, is named in `worldgen_slugs`, or its jar's `data/*/worldgen`, `structure(s)`, `tags/worldgen` or biome-modifier files differ between the two versions. A mod added or removed, or a jar that cannot be compared, counts as worldgen.
 
@@ -91,7 +91,7 @@ The reviewer can only make a PR less mergeable. On a mod PR one blocked mod bloc
 
 ### Holds
 
-A hold keeps a mod, client mod or pack at its current pin. Holds live in `modpack/adventure.mrpack.json` → `_holds`, slug → reason, and cover the server list and the client manifest alike: both re-pin loops in `pin-mod-versions.sh` skip a held slug and print `<slug> - HELD`.
+A hold keeps a mod, client mod or pack at its current pin. Holds live in `modpack/adventure.mrpack.json` → `_holds`, slug → reason, and cover the server list and the client manifest alike: both re-pin loops in `pin-mod-versions.sh` skip a held slug and log it as `HELD`.
 
 - **Who writes them:** a human, or the reviewer through `apply.py`, which edits `_holds` on the mod PR's branch and re-dispatches `mod-updates.yml`; `carry_holds.py` carries both branches' holds across the re-pin.
 - **The reason names its release condition**, for example "pre-release; release when a release build for 1.21.1 ships".
@@ -100,7 +100,7 @@ A hold keeps a mod, client mod or pack at its current pin. Holds live in `modpac
 
 ### What reaches servers
 
-A merge to `main` makes `publish.yml` rebuild the images tagged `latest`. Nothing reaches a consumer until a release is cut (`gh workflow run release.yml -f version=vX.Y.Z`, after a human confirms; see [AGENTS.md § Cutting a release](AGENTS.md#cutting-a-release-platform-repo-only)). The consumer's next push then resolves its pin to the new release and runs a full deploy ([README § Deploy to production](README.md#deploy-to-production)).
+A merge to `main` makes `publish.yml` rebuild the images tagged `latest`; deploys pull only released versions. Nothing reaches a consumer until a release: `release-train.yml` cuts one every Wednesday from what landed (a major waits for approval in the `release-major` environment), or a human dispatches `release.yml` ([AGENTS.md § Cutting a release](AGENTS.md#cutting-a-release-platform-repo-only)). The consumer's next push then resolves its pin to the new release and runs a full deploy ([README § Deploy to production](README.md#deploy-to-production)).
 
 ## Versioning contract
 
@@ -117,9 +117,9 @@ Minecraft stays 1.21.1. Changing it is outside this contract: it overturns a fix
 
 Within a major, consumers keep the overlay contract (directory structure and merge semantics), the env contract (`.env` variables, GitHub environment vars and secrets) and the reusable workflow's inputs and secrets.
 
-**Enforcement.** `scripts/check-release-version.sh`, the first job of `release.yml`, refuses a release that keeps the major when any commit since the last release is breaking (`type!:` or a `BREAKING CHANGE:` footer). The merged next-major PR is such a commit. Nothing checks minor against patch: commit prefixes don't decide it (Dependabot and the regular mod PR commit as `ci:` and `chore:`), so read what changed against the table. A breaking change that is not worldgen must carry `!` or the footer itself, or the check cannot see it.
+**Enforcement.** The commit type carries the class: `!` or a `BREAKING CHANGE:` footer is major, `feat:` minor, any other releasable type patch, and `ci`, `docs`, `test`, `style` and `chore` release nothing (`cliff.toml` `[bump]`). Land every change with the type its class needs; a breaking change that is not worldgen carries `!` or the footer itself. `scripts/check-release-version.sh`, the first job of `release.yml`, refuses a release that keeps the major over a breaking commit; the merged next-major PR is one.
 
-**Cutting a major.** Merge the next-major PR, re-enable the smoke test's render-check ([AGENTS.md safety rule 12](AGENTS.md#safety-rules)), then `gh workflow run release.yml -f version=vN.0.0`. Write what a consumer must do in the breaking commit's `BREAKING CHANGE:` footer; git-cliff lists it under "Breaking changes" in the release notes.
+**Cutting a major.** The month's first release train merges a next-major PR labelled `dep-review:ready-for-major`; by hand, merge it and dispatch `vN.0.0`. Re-enable the smoke test's render-check before a worldgen release ([AGENTS.md safety rule 12](AGENTS.md#safety-rules)). What a consumer must do goes in the breaking commit's `BREAKING CHANGE:` footer; git-cliff lists it under "Breaking changes" in the release notes.
 
 ## Looking up versions
 
@@ -155,7 +155,7 @@ Mods reach the server through the seed, never through the Modrinth API at boot (
 
 ### Libraries
 
-A library is any mod another mod requires. Most sit in the `# === dependency libraries ===` section of `config/modrinth-mods.txt`: `architectury-api`, `athena-ctm`, `almanac`, `bookshelf-lib`, `cloth-config`, `collective`, `cristel-lib`, `deimos`, `deltaboxlib`, `forge-config-api-port`, `frozenlib`, `geckolib`, `kambrik`, `moonlight`, `otterlib`, `playeranimator`, `prickle`, `puzzles-lib`, `resourceful-config`, `resourceful-lib`, `terrablender`, `villagerapi`, `yacl`. Five more sit beside the mods that need them: `fabric-api` and `fabric-language-kotlin` (core), `lithostitched` (terrain), `yungs-api` (structures) and `trinkets` (accessories).
+A library is any mod another mod requires. Most sit in the `# === dependency libraries ===` section of `config/modrinth-mods.txt`: `almanac`, `architectury-api`, `athena-ctm`, `bookshelf-lib`, `cloth-config`, `collective`, `cristel-lib`, `deimos`, `deltaboxlib`, `forge-config-api-port`, `frozenlib`, `geckolib`, `kambrik`, `moonlight`, `otterlib`, `playeranimator`, `prickle`, `puzzles-lib`, `resourceful-config`, `resourceful-lib`, `terrablender`, `villagerapi`, `yacl`. Five more sit beside the mods that need them: `fabric-api` and `fabric-language-kotlin` (core), `lithostitched` (terrain), `yungs-api` (structures) and `trinkets` (accessories).
 
 - Required, never `?`.
 - Judge a library bump by its dependants: find every mod in the pack that requires it. If a newer build breaks one, hold the library and name the dependant in the reason.
@@ -174,7 +174,7 @@ Modrinth datapacks are `datapack:slug:versionId` lines in `config/modrinth-mods.
 
 ### Sidecar base images
 
-Dependabot proposes one PR per base image; dep-review's quick job builds every changed Dockerfile, and the smoke test runs for `defaults-seed`. A base-OS move (Alpine, Python or Debian release) needs a look at that Dockerfile's `apk`, `pip` and `apt` pins: `unmined-render` installs `libicu72`, which only bookworm ships. `debian:bookworm-slim` is a codename tag Dependabot never bumps. A base-image bump is a patch.
+Dependabot proposes one PR per base image; dep-review's quick job builds every changed Dockerfile, and the smoke test runs for `defaults-seed`. A base-OS move (Alpine, Python or Debian release) needs a look at that Dockerfile's `apk`, `pip` and `apt` pins: `unmined-render` installs `libicu72`, which only bookworm ships. `debian:bookworm-slim` is a codename tag Dependabot never bumps. A base-image bump is a patch, or a minor for a major version.
 
 ### Compose images
 
@@ -193,7 +193,7 @@ Dependabot groups minor and patch bumps; a major arrives as its own PR. `GITHUB_
 
 ### Python
 
-`scripts/requirements-discord-sync.txt` is pinned with `==` and bumped by Dependabot; `discord.py` constrains `aiohttp`, so they move together. A bump rebuilds the `discord-sync` image: a patch. `requirements-dev.txt` is template-only (`mise run deps`). Dev tooling runs on Python 3.13 ([CONTRIBUTING § Local development environment](CONTRIBUTING.md#local-development-environment)).
+`scripts/requirements-discord-sync.txt` is pinned with `==` and bumped by Dependabot; `discord.py` constrains `aiohttp`, so they move together. A bump rebuilds the `discord-sync` image: a patch, or a minor for a major version. `requirements-dev.txt` is template-only (`mise run deps`). Dev tooling runs on Python 3.13 ([CONTRIBUTING § Local development environment](CONTRIBUTING.md#local-development-environment)).
 
 ### Minecraft, Fabric and the in-house mod toolchain
 
@@ -203,7 +203,7 @@ Dependabot groups minor and patch bumps; a major arrives as its own PR. `GITHUB_
 
 #### Changing the Minecraft version
 
-A fixed decision: only with the user's agreement, and only as a major. Every server and client mod must support the target first; one that can't moves blocks the change until it is dropped or replaced by a maintained fork.
+A fixed decision: only with the user's agreement, and only as a major. Every server and client mod must support the target first; one that can't move blocks the change until it is dropped or replaced by a maintained fork.
 
 1. Back up: `./ops backup`.
 2. `./scripts/check-modrinth-compat.sh --version <target>`.

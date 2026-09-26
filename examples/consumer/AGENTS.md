@@ -48,7 +48,7 @@ against config that is not the config under test.
 
 ## What you change here
 
-- **Server mods:** `overlay/mods-extra.txt` (`slug:versionId` per line), removals in `overlay/mods-remove.txt`. Run the mandatory dependency checklist in the [template AGENTS.md § Mods](https://github.com/piprees/minecraft-server-template/blob/main/AGENTS.md#mods) first. All worldgen/dimension mods must be present from chunk zero. `./dev up` or push.
+- **Server mods:** `overlay/mods-extra.txt` (`slug:versionId` per line), removals in `overlay/mods-remove.txt`. Run the mandatory dependency checklist in the [template DEPENDENCIES.md § Adding a mod](https://github.com/piprees/minecraft-server-template/blob/main/DEPENDENCIES.md#adding-a-mod) first. All worldgen/dimension mods must be present from chunk zero. `./dev up` or push.
 - **Client mods:** `overlay/modpack/manifest.json` (`add.required` / `add.optional` / `remove`), existing catalogue slugs only — a mod new to the ecosystem needs a template PR first. Patch schema: [`overlay/modpack/README.md`](overlay/modpack/README.md).
 - **Never hand-place or delete anything in `data/mods/`.** `./dev up` and the deploy install the bundle's `stack/local-mods/` jars and prune what they can't account for.
 - **Config overrides:** `overlay/config/<path>` mirrors the platform's `config/` path and replaces that file. **Branding:** `.env` (`BRAND_NAME`, `MOTD`, …) plus `overlay/assets/`.

@@ -8,6 +8,9 @@ you say. When you are unsure, hold.
 
 ## What you have
 
+- `DEPENDENCIES.md` (repository root): the playbook to follow. It holds
+  the versioning contract, what counts as worldgen, holds, the situation
+  playbooks and the mods with standing constraints.
 - `review/context.md`: start here. It lists every change to judge (the
   `work` list), with versions, deterministic flags, dependency data, the
   comment block the repo keeps above each mod, and the upstream changelogs
@@ -47,8 +50,9 @@ Look for:
    it is safe (for example a mixin the pack strips, or a pairing with
    another mod). If the update invalidates that reasoning, hold.
 4. **Pairs and dependants**: a library bump can break a mod that depends on
-   it. Check `AGENTS.md` § Mods and the `server-mod-management` skill for
-   pairs that must move together, and look for dependants in the pack.
+   it. Check `DEPENDENCIES.md` § Mods with standing constraints and
+   § Situation playbooks for pairs that must move together, and look for
+   dependants in the pack.
 5. **Worldgen**: a change to terrain, biome, structure or dimension
    behaviour affects new chunks only. The policy already refuses to
    auto-merge these; judge the change on its merits and say what a human

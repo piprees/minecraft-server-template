@@ -4,11 +4,17 @@ name: Mirror Docker Hub Images
 # limits and outages. The compose file references these mirrors via
 # MIRROR_REGISTRY (defaults to ghcr.io/piprees/mirrors).
 #
-# Runs weekly and on manual dispatch. Uses `docker buildx imagetools create`
-# to copy the full multi-arch manifest (amd64 + arm64) from Docker Hub to
-# GHCR without pulling layers locally — faster and preserves all platforms.
+# The image list is docker-compose.yml: every `image:` written as
+# ${MIRROR_REGISTRY:-…}/<upstream>:<tag> is mirrored, so adding an image to
+# compose is all it takes. platform-updates.yml calls this with `images` to
+# mirror new tags before its PR points compose at them.
 #
-# To add an image: append to the matrix below and update docker-compose.yml.
+# Runs weekly, on manual dispatch and as a reusable workflow. Uses
+# `docker buildx imagetools create` to copy the full multi-arch manifest
+# (amd64 + arm64) from Docker Hub to GHCR without pulling layers locally.
+# An upstream tag that no longer exists on Docker Hub is kept as long as its
+# mirror copy exists (MinIO stopped publishing to Docker Hub).
+#
 # To override the mirror at deploy time: set MIRROR_REGISTRY in .env.
 
 on:
@@ -16,26 +22,74 @@ on:
     # Weekly on Sundays at 04:00 UTC
     - cron: '0 4 * * 0'
   workflow_dispatch:
+    inputs:
+      images:
+        description: 'Space-separated upstream refs (e.g. "nginx:1.30.5-alpine"); empty mirrors everything in docker-compose.yml'
+        required: false
+        default: ''
+  workflow_call:
+    inputs:
+      images:
+        description: 'Space-separated upstream refs; empty mirrors everything in docker-compose.yml'
+        type: string
+        required: false
+        default: ''
 
-permissions:
-  packages: write
+permissions: {}
 
 jobs:
+  list:
+    name: List images
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    outputs:
+      matrix: ${{ steps.list.outputs.matrix }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Build the image matrix
+        id: list
+        env:
+          IMAGES: ${{ inputs.images }}
+        run: |
+          set -euo pipefail
+          if [[ -n "${IMAGES// /}" ]]; then
+            # shellcheck disable=SC2086 # word-splitting the list is the point
+            printf '%s\n' $IMAGES > /tmp/images.txt
+          else
+            sed -nE 's/^[[:space:]]*image:[[:space:]]*"?\$\{MIRROR_REGISTRY:-[^}]*\}\/([^"[:space:]]+)"?[[:space:]]*$/\1/p' \
+              docker-compose.yml | sort -u > /tmp/images.txt
+          fi
+          if [[ ! -s /tmp/images.txt ]]; then
+            echo "::error::No images to mirror"
+            exit 1
+          fi
+          while IFS= read -r ref; do
+            if ! [[ "$ref" =~ ^[a-z0-9][a-z0-9._/-]*:[A-Za-z0-9_][A-Za-z0-9_.-]*$ ]]; then
+              echo "::error::Not an upstream image:tag reference: $ref"
+              exit 1
+            fi
+          done < /tmp/images.txt
+          MATRIX=$(jq -Rnc '[inputs | select(length > 0) | {source: .}]' < /tmp/images.txt)
+          echo "matrix=$MATRIX" >> "$GITHUB_OUTPUT"
+          echo "$MATRIX" | jq -r '.[].source'
+
   mirror:
-    name: Mirror images
+    name: ${{ matrix.source }}
+    needs: list
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    permissions:
+      packages: write
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - source: itzg/minecraft-server:2026.7.0-java21
-          - source: itzg/mc-backup:2026.7.0
-          - source: minio/minio:RELEASE.2025-09-07T16-13-09Z
-          - source: minio/mc:RELEASE.2025-08-13T08-35-41Z
-          - source: louislam/uptime-kuma:2.4.0
-          - source: nginx:1.30.3-alpine
-          - source: cloudflare/cloudflared:2026.6.1
+        include: ${{ fromJSON(needs.list.outputs.matrix) }}
     steps:
       - name: Log in to GHCR
         uses: docker/login-action@v4
@@ -45,8 +99,15 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Copy multi-arch manifest to GHCR
+        env:
+          REF: ${{ matrix.source }}
         run: |
-          SOURCE="docker.io/${{ matrix.source }}"
-          TARGET="ghcr.io/piprees/mirrors/${{ matrix.source }}"
+          SOURCE="docker.io/${REF}"
+          TARGET="ghcr.io/piprees/mirrors/${REF}"
+          if ! docker buildx imagetools inspect "${SOURCE}" > /dev/null 2>&1 \
+            && docker buildx imagetools inspect "${TARGET}" > /dev/null 2>&1; then
+            echo "::warning::${SOURCE} is gone upstream; keeping the existing mirror ${TARGET}"
+            exit 0
+          fi
           echo "Mirroring ${SOURCE} → ${TARGET}"
           docker buildx imagetools create --tag "${TARGET}" "${SOURCE}"

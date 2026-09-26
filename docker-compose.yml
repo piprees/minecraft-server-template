@@ -134,6 +134,8 @@ services:
       EULA: "TRUE"
       TYPE: FABRIC
       VERSION: ${MC_VERSION:-1.21.1}
+      # Same loader as the client pack and the in-house mod builds; platform_updates.py moves all of them together.
+      FABRIC_LOADER_VERSION: ${FABRIC_LOADER_VERSION:-0.19.5}
       MEMORY: ${MEMORY:-5G}
       USE_AIKAR_FLAGS: "TRUE"
 
