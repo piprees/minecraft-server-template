@@ -318,6 +318,14 @@ jobs:
             gh api --method POST "repos/$GITHUB_REPOSITORY/issues/$PR/comments" -F body=@comment.md > /dev/null
           fi
 
+      # The title carries the release impact (ci/fix/feat/feat!), so a
+      # squash-merge by hand versions the release as the review decided.
+      - name: Title the PR with its release impact
+        if: steps.moved.outputs.moved != 'true'
+        run: |
+          TITLE=$(jq -r '.commit_title // empty' plan.json)
+          [[ -n "$TITLE" ]] && gh pr edit "$PR" --title "$TITLE"
+
       - name: Label
         if: steps.moved.outputs.moved != 'true'
         run: |
@@ -336,7 +344,8 @@ jobs:
         if: steps.moved.outputs.moved != 'true'
         run: |
           [[ "$(jq -r .action plan.json)" == "merge" ]] || exit 0
-          if ! OUT=$(gh pr merge "$PR" --squash --match-head-commit "$HEAD_SHA" 2>&1); then
+          if ! OUT=$(gh pr merge "$PR" --squash --match-head-commit "$HEAD_SHA" \
+            --subject "$(jq -r .commit_title plan.json)" --body "$(jq -r .commit_body plan.json)" 2>&1); then
             echo "::warning::GitHub refused the merge: $OUT"
             printf 'Review passed, but GitHub refused the automatic merge, so this needs merging by hand:\n\n~~~\n%s\n~~~\n' "$OUT" \
               | gh pr comment "$PR" --body-file -

@@ -48,9 +48,9 @@ Gotchas:
     again.
   - Cached keys carry no flags in context.json; their flags come from the
     stored state, and a cached key with no recorded flags blocks the merge.
-    Their release impact is the stored one, raised to this run's floor; with
-    none stored it is the floor. A cached mod's sides are unknown, so its
-    floor is at least minor.
+    Their release impact is the stored one, raised to this run's flag-based
+    floor. With none stored it is the floor, and as a cached mod's sides are
+    unknown that floor is at least minor.
   - Every action gets an impact and a commit title, close and human included,
     so a PR retitled from plan.json squash-merges with the right message.
   - Text reaching comment.md is escaped so it cannot open HTML, forge the
@@ -324,11 +324,11 @@ def str_list(value):
     return [plain(v) for v in value if isinstance(v, str)] if isinstance(value, list) else None
 
 
-def version_number(change):
+def version_number(change, side="new"):
     """The human version of a mod pin (Modrinth version_number), or None."""
     details = change.get("details") if isinstance(change.get("details"), dict) else {}
     numbers = details.get("version_number") if isinstance(details.get("version_number"), dict) else {}
-    value = numbers.get("new")
+    value = numbers.get(side)
     return plain(value) or None if isinstance(value, str) else None
 
 
@@ -344,7 +344,8 @@ def build_final(context, gate, verdict):
         entry = {"key": key, "name": change.get("name"), "old": change.get("old"),
                  "new": change.get("new"), "ecosystem": change.get("ecosystem"),
                  "flags": str_list(change.get("flags")), "sides": str_list(change.get("sides")),
-                 "version": version_number(change), "origin": "placeholder",
+                 "version": version_number(change), "old_version": version_number(change, "old"),
+                 "origin": "placeholder",
                  "decision": "hold", "risk": "high", "reason": UNJUDGED, "evidence": [],
                  "claimed_impact": None}
         if verdict["ok"]:
@@ -374,12 +375,17 @@ def build_final(context, gate, verdict):
         if flags is None:
             flags = str_list(record.get("flags"))
         impact = record.get("release_impact")
+        impact = impact if isinstance(impact, str) and impact in IMPACT_ORDER else None
+        sides = str_list(cached.get("sides"))
+        if sides is None and impact:
+            # The stored impact was set when the sides were known.
+            sides = []
         entry = {"key": key, "name": name, "old": None, "new": version,
-                 "ecosystem": key.partition(":")[0], "flags": flags, "sides": str_list(cached.get("sides")),
+                 "ecosystem": key.partition(":")[0], "flags": flags, "sides": sides,
                  "version": None, "origin": "cached", "evidence": [],
                  "decision": cached.get("decision"), "risk": cached.get("risk"),
                  "reason": truncate(plain(cached.get("reason")), REASON_MAX),
-                 "claimed_impact": impact if isinstance(impact, str) and impact in IMPACT_ORDER else None}
+                 "claimed_impact": impact}
         if entry["decision"] not in common.DECISIONS or not isinstance(entry["risk"], str) \
                 or entry["risk"] not in common.RISK_ORDER:
             entry.update(decision="hold", risk="high", origin="placeholder",
@@ -718,7 +724,7 @@ def _body_line(e):
     elif e["origin"] == "cached":
         change = f"-> {commit_text(e.get('version') or e.get('new') or '?')}"
     else:
-        old = commit_text(e.get("old")) or "none"
+        old = commit_text(e.get("old_version") or e.get("old")) or "none"
         new = commit_text(e.get("version") or e.get("new")) or "?"
         change = "added" if "added" in _flags(e) else f"{old} -> {new}"
     return f"- {name}: {change} ({e['release_impact']})"

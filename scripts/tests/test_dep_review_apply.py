@@ -538,3 +538,304 @@ class NextMajorTests(ApplyCase):
         a = change("tectonic", flags=["never-automerge"])
         plan = self.run_apply([a], verdict([judged(a)]), source="mods")
         self.assertHuman(plan, "never-automerge")
+
+
+def rchange(name, eco="mod", old="1.0.0", new="1.1.0", sides=("server",), flags=(), version=None,
+            old_version=None):
+    c = change(name, eco=eco, old=old, new=new, flags=flags)
+    c["key"] = common.change_key(eco, name, new or "removed")
+    c["sides"] = list(sides)
+    if version:
+        c["details"] = {"version_number": {"old": old_version, "new": version}}
+    return c
+
+
+def impact(ch, value, **kw):
+    item = judged(ch, **kw)
+    item["release_impact"] = value
+    return item
+
+
+def floor(c, source="mods"):
+    return apply.release_floor({"key": c["key"], "ecosystem": c["ecosystem"], "flags": c["flags"],
+                                "sides": c.get("sides"), "new": c["new"]}, source)[0]
+
+
+class ReleaseFloorTests(unittest.TestCase):
+    def test_actions_are_none_whatever_their_flags(self):
+        self.assertEqual(floor(rchange("actions/checkout", eco="action", sides=(), flags=["major"]),
+                               "actions"), "none")
+        self.assertEqual(floor(rchange("actions/x", eco="action", new=None, sides=(), flags=["unparsed"]),
+                               "actions"), "none")
+
+    def test_server_only_mod_and_plain_bumps_are_patch(self):
+        self.assertEqual(floor(rchange("lithium")), "patch")
+        self.assertEqual(floor(rchange("python", eco="docker", sides=()), "docker"), "patch")
+        self.assertEqual(floor(rchange("requests", eco="pip", sides=()), "pip"), "patch")
+        self.assertEqual(floor(rchange("docker/x/Dockerfile", eco="docker", new=None, sides=(),
+                                       flags=["unparsed"]), "docker"), "patch")
+
+    def test_client_side_and_packs_are_minor(self):
+        self.assertEqual(floor(rchange("sodium", sides=("server", "client"))), "minor")
+        self.assertEqual(floor(rchange("sodium", sides=("client",))), "minor")
+        self.assertEqual(floor(rchange("faithful", eco="pack", sides=("client",))), "minor")
+        c = rchange("lithium")
+        c["sides"] = None
+        self.assertEqual(floor(c), "minor", "unknown sides count as client-side")
+
+    def test_new_mod_and_dependency_major_are_minor(self):
+        self.assertEqual(floor(rchange("lithium", old=None, flags=["added", "unparsed"])), "minor")
+        self.assertEqual(floor(rchange("python", eco="docker", sides=(), flags=["major"]), "docker"), "minor")
+        self.assertEqual(floor(rchange("requests", eco="pip", sides=(), flags=["major"]), "pip"), "minor")
+
+    def test_worldgen_and_removals_are_major(self):
+        self.assertEqual(floor(rchange("lithium"), "worldgen"), "major")
+        self.assertEqual(floor(rchange("tectonic", flags=["never-automerge"])), "major")
+        self.assertEqual(floor(rchange("lithium", new=None, flags=["removed", "unparsed"])), "major")
+        self.assertEqual(floor(rchange("lithium", new=None)), "major")
+        self.assertEqual(floor(rchange("faithful", eco="pack", flags=["removed"])), "major")
+
+    def test_floor_reports_why(self):
+        self.assertEqual(apply.release_floor({"key": "mod:x@removed", "ecosystem": "mod", "flags": ["removed"],
+                                              "sides": ["server"], "new": None}, "worldgen"),
+                         ("major", ["worldgen", "removed"]))
+
+
+class ReleaseImpactTests(ApplyCase):
+    def previous(self, key, **record):
+        base = {"decision": "accept", "risk": "low", "reason": "fine", "flags": []}
+        return {"v": 1, "fingerprint": "fp0", "head_sha": "c" * 40, "verdicts": {key: {**base, **record}}}
+
+    def test_reviewer_raises_above_the_floor(self):
+        a = rchange("lithium")
+        plan = self.run_apply([a], verdict([impact(a, "major")], summary="x") | {"consumer_note": "Re-run X."})
+        self.assertEqual(plan["action"], "merge", "impact never changes the action")
+        self.assertEqual(plan["release_impact"], "major")
+        self.assertEqual(plan["state"]["verdicts"][a["key"]]["release_impact"], "major")
+        self.assertIn("| major (reviewer) |", self.comment)
+
+    def test_reviewer_cannot_lower_below_the_floor(self):
+        a = rchange("tectonic", flags=["never-automerge"])
+        plan = self.run_apply([a], verdict([impact(a, "patch")]), source="worldgen")
+        self.assertEqual(plan["action"], "ready")
+        self.assertEqual(plan["release_impact"], "major")
+        b = rchange("sodium", sides=("client",))
+        self.assertEqual(self.run_apply([b], verdict([impact(b, "none")]))["release_impact"], "minor")
+
+    def test_missing_or_invalid_impact_uses_the_floor(self):
+        a = rchange("sodium", sides=("server", "client"))
+        for value in (None, "huge", 3, ["major"]):
+            item = judged(a) if value is None else impact(a, value)
+            plan = self.run_apply([a], verdict([item]))
+            self.assertEqual(plan["action"], "merge", value)
+            self.assertEqual(plan["release_impact"], "minor", value)
+            self.assertTrue(any("Used the release floor" in n for n in plan["notes"]), value)
+
+    def test_placeholders_use_the_floor(self):
+        a = rchange("sodium", sides=("client",))
+        plan = self.run_apply([a], verdict_text="{")
+        self.assertEqual((plan["action"], plan["release_impact"]), ("human", "minor"))
+
+    def test_cached_keys_keep_their_stored_impact(self):
+        key = "mod:lithium@2.0.0"
+        cached = [{"key": key, "decision": "accept", "risk": "low", "reason": "fine", "flags": []}]
+        plan = self.run_apply([], verdict([]), cached=cached,
+                              previous_state=self.previous(key, release_impact="major"))
+        self.assertEqual(plan["release_impact"], "major")
+        self.assertEqual(plan["state"]["verdicts"][key]["release_impact"], "major")
+        plan = self.run_apply([], verdict([]), cached=cached,
+                              previous_state=self.previous(key, release_impact="patch"))
+        self.assertEqual(plan["release_impact"], "patch")
+
+    def test_cached_keys_without_an_impact_use_the_floor(self):
+        key = "mod:lithium@2.0.0"
+        cached = [{"key": key, "decision": "accept", "risk": "low", "reason": "fine", "flags": []}]
+        plan = self.run_apply([], verdict([]), cached=cached, previous_state=self.previous(key))
+        self.assertEqual(plan["release_impact"], "minor", "a cached mod's sides are unknown")
+        plan = self.run_apply([], verdict([]), cached=cached,
+                              previous_state=self.previous(key, release_impact="bogus"))
+        self.assertEqual(plan["release_impact"], "minor")
+        akey = "action:actions/checkout@v7"
+        plan = self.run_apply([], verdict([]), source="actions",
+                              cached=[{"key": akey, "decision": "accept", "risk": "low", "reason": "x", "flags": []}],
+                              previous_state=self.previous(akey))
+        self.assertEqual(plan["release_impact"], "none")
+
+    def test_a_cached_impact_is_raised_to_the_current_floor(self):
+        key = "mod:tectonic@2.0.0"
+        cached = [{"key": key, "decision": "accept", "risk": "low", "reason": "x", "flags": ["never-automerge"]}]
+        plan = self.run_apply([], verdict([]), cached=cached,
+                              previous_state=self.previous(key, release_impact="patch"))
+        self.assertEqual(plan["release_impact"], "major")
+
+    def test_pr_impact_is_the_highest_change(self):
+        a, b, c = rchange("lithium"), rchange("sodium", sides=("client",)), rchange("ferritecore")
+        plan = self.run_apply([a, b, c], verdict([judged(a), judged(b), judged(c)]))
+        self.assertEqual(plan["release_impact"], "minor")
+        self.assertEqual(plan["commit_title"], "feat(deps): update 3 mods")
+
+    def test_close_and_human_still_carry_impact_and_title(self):
+        a = rchange("requests", eco="pip", sides=(), old="2.32.0", new="2.33.0")
+        plan = self.run_apply([a], verdict([judged(a, decision="reject", risk="high")]), source="pip")
+        self.assertEqual(plan["action"], "close")
+        self.assertEqual(plan["commit_title"], "fix(deps): bump requests to 2.33.0")
+        b = rchange("sodium", sides=("client",))
+        plan = self.run_apply([b], verdict([judged(b, decision="hold")]))
+        self.assertEqual((plan["action"], plan["release_impact"]), ("human", "minor"))
+        self.assertTrue(plan["commit_title"].startswith("feat(deps): "))
+
+    def test_comment_shows_impact_and_title_under_the_outcome(self):
+        a = rchange("lithium")
+        self.run_apply([a], verdict([judged(a)]))
+        lines = self.comment.splitlines()
+        i = next(n for n, line in enumerate(lines) if line.startswith("Auto-merging:"))
+        self.assertEqual(lines[i + 1], "Release impact: **patch**. Commit title: `fix(deps): update lithium`")
+        self.assertIn("| Dependency | Change (old → new) | Decision | Risk | Release | Flags | Reason |", lines)
+        self.assertIn("| patch |", self.comment)
+
+
+class CommitMessageTests(ApplyCase):
+    def titled(self, work, source="mods", **kw):
+        return self.run_apply(work, verdict([judged(c) for c in work]), source=source, **kw)
+
+    def test_titles_for_each_impact_and_source(self):
+        cases = [
+            ([rchange("actions/setup-java", eco="action", old="v5", new="v6", sides=())], "actions",
+             "ci(deps): bump actions/setup-java to v6"),
+            ([rchange(f"actions/a{i}", eco="action", sides=()) for i in range(3)], "actions",
+             "ci(deps): bump 3 actions"),
+            ([rchange("python", eco="docker", old="3.14.7-alpine3.24", new="3.14.8-alpine3.24", sides=())],
+             "docker", "fix(deps): bump python to 3.14.8-alpine3.24"),
+            ([rchange("python", eco="docker", old="3.13", new="4.0@sha256:" + "f" * 64, sides=(),
+                      flags=["major"])], "docker", "feat(deps): bump python to 4.0"),
+            ([rchange("requests", eco="pip", sides=()), rchange("urllib3", eco="pip", sides=())], "pip",
+             "fix(deps): bump 2 python packages"),
+            ([rchange("actions/checkout", eco="action", new="0123456789abcdef0123456789abcdef01234567",
+                      sides=())], "actions", "ci(deps): bump actions/checkout to 0123456"),
+            ([rchange("lithium", version="mc1.21.1-0.15.1")], "mods", "fix(deps): update lithium to mc1.21.1-0.15.1"),
+            ([rchange(f"m{i}") for i in range(28)], "mods", "fix(deps): update 28 mods"),
+            ([rchange("lithium", old=None, flags=["added"])], "mods", "feat(deps): add lithium"),
+            ([rchange("faithful", eco="pack", sides=("client",)), rchange("sodium", sides=("client",))], "mods",
+             "feat(deps): update 2 mods and packs"),
+            ([rchange(f"w{i}", flags=["never-automerge"]) for i in range(12)], "worldgen",
+             "feat(deps)!: update 12 worldgen mods for the next major"),
+            ([rchange("a"), rchange("b"), rchange("c", old=None, flags=["added"]),
+              rchange("d", new=None, flags=["removed"])], "mods", "feat(deps)!: update 2 mods, add 1, remove 1"),
+        ]
+        for work, source, title in cases:
+            plan = self.titled(work, source)
+            self.assertEqual(plan["commit_title"], title)
+
+    def test_titles_never_exceed_72_characters(self):
+        long_name = "ghcr.io/" + "x" * 80
+        plan = self.titled([rchange(long_name, eco="docker", new="1." + "9" * 70, sides=())], "docker")
+        self.assertEqual(plan["commit_title"], "fix(deps): bump 1 docker image")
+        plan = self.titled([rchange("lithium", version="v" * 70)])
+        self.assertEqual(plan["commit_title"], "fix(deps): update lithium")
+        for plan in (plan, self.titled([rchange("y" * 64, new=None, flags=["removed"])], "worldgen")):
+            self.assertLessEqual(len(plan["commit_title"]), apply.TITLE_MAX)
+            self.assertRegex(plan["commit_title"], r"^[a-z]+\(deps\)!?: [a-z]")
+
+    def test_breaking_change_footer_only_for_major(self):
+        a = rchange("tectonic", flags=["never-automerge"])
+        v = verdict([judged(a)]) | {"consumer_note": "Pre-generate spawn again."}
+        plan = self.run_apply([a], v, source="worldgen")
+        self.assertEqual(plan["commit_body"].split("\n\n")[-1], "BREAKING CHANGE: Pre-generate spawn again.")
+        self.assertEqual(plan["commit_body"].count("BREAKING CHANGE: "), 1)
+        for work, source in (([rchange("lithium")], "mods"), ([rchange("sodium", sides=("client",))], "mods"),
+                             ([rchange("actions/x", eco="action", sides=())], "actions")):
+            plan = self.run_apply(work, verdict([judged(c) for c in work]) | {"consumer_note": "Nothing."},
+                                  source=source)
+            self.assertNotIn("BREAKING", plan["commit_body"])
+            self.assertIn("Consumers: Nothing.", plan["commit_body"])
+
+    def test_fallback_note_when_major_has_no_consumer_note(self):
+        a, b = rchange("tectonic", flags=["never-automerge"]), rchange("terralith", flags=["never-automerge"])
+        plan = self.run_apply([a, b], verdict([judged(a), judged(b)]), source="worldgen")
+        self.assertEqual(plan["consumer_note"], "Worldgen updates: tectonic, terralith. New chunks generate "
+                                                "differently; existing chunks are unchanged.")
+        self.assertTrue(plan["commit_body"].endswith("\n\nBREAKING CHANGE: " + plan["consumer_note"]))
+        c = rchange("lithium", new=None, flags=["removed"])
+        plan = self.run_apply([c], verdict([judged(c)]))
+        self.assertEqual(plan["consumer_note"], "Mods removed: lithium.")
+        d = rchange("fabric-loader", eco="docker", sides=())
+        plan = self.run_apply([d], verdict([impact(d, "major")]), source="docker")
+        self.assertEqual(plan["consumer_note"], "Rated a breaking change by dep-review: fabric-loader.")
+        self.assertIn("Consumer note: Rated a breaking change", self.comment)
+
+    def test_body_lists_changes_and_truncates_with_a_count(self):
+        a = rchange("lithium", old="AAAA", new="BBBB", version="0.15.1")
+        plan = self.titled([a])
+        self.assertEqual(plan["commit_body"], "- lithium: AAAA -> 0.15.1 (patch)")
+        b = rchange("lithium", old="AAAA", new="BBBB", version="0.15.1", old_version="0.15.0")
+        self.assertEqual(self.titled([b])["commit_body"], "- lithium: 0.15.0 -> 0.15.1 (patch)")
+        work = [rchange(f"m{i:02d}") for i in range(60)]
+        body = self.titled(work)["commit_body"].split("\n")
+        self.assertEqual(len(body), apply.BODY_LINES)
+        self.assertEqual(body[-1], "- and 11 more")
+
+    def test_consumer_note_is_sanitised_and_capped(self):
+        a = rchange("lithium")
+        note = "<b>Ping @team</b>\n[x](http://e) " + "z" * 2000
+        plan = self.run_apply([a], verdict([impact(a, "major")]) | {"consumer_note": note})
+        self.assertEqual(len(plan["consumer_note"]), apply.CONSUMER_NOTE_MAX)
+        self.assertNotIn("<", plan["consumer_note"])
+        self.assertNotIn("\n", plan["consumer_note"])
+        self.assertNotIn("@team", plan["consumer_note"] + plan["commit_body"] + self.comment)
+        self.assertNotIn("<b>", self.comment)
+        self.assertIn("\\[x\\]", self.comment)
+        plan = self.run_apply([a], verdict([judged(a)]) | {"consumer_note": 5})
+        self.assertEqual(plan["consumer_note"], "")
+        self.assertTrue(any("consumer_note" in n for n in plan["notes"]))
+
+    def test_a_ready_plan_stores_the_commit_in_the_state(self):
+        a = rchange("tectonic", flags=["never-automerge"])
+        plan = self.run_apply([a], verdict([judged(a)]), source="worldgen")
+        self.assertEqual(plan["action"], "ready")
+        commit = common.decode_state(self.comment)["commit"]
+        self.assertTrue(commit["title"].startswith("feat(deps)!:"))
+        self.assertIn("BREAKING CHANGE: ", commit["body"])
+        self.assertEqual(commit, {"title": plan["commit_title"], "body": plan["commit_body"],
+                                  "release_impact": "major"})
+
+    def test_a_long_stored_body_keeps_its_footer_last(self):
+        body = "\n".join(f"- {'m' * 60}{i}: 1 -> 2 (major)" for i in range(50))
+        release = {"commit_title": "t", "release_impact": "major",
+                   "commit_body": body + "\n\nBREAKING CHANGE: " + "n" * 790}
+        stored = apply.stored_commit(release)["body"]
+        self.assertLessEqual(len(stored), apply.STATE_BODY_MAX)
+        self.assertTrue(stored.endswith("\n\nBREAKING CHANGE: " + "n" * 790))
+
+
+@unittest.skipUnless(shutil.which("check-jsonschema"), "check-jsonschema is not installed")
+class SchemaTests(unittest.TestCase):
+    SCHEMA = common.REPO_ROOT / ".github" / "dep-review" / "verdict.schema.json"
+
+    def check(self, *args):
+        import subprocess
+        return subprocess.run(["check-jsonschema", *args], capture_output=True, text=True)
+
+    def test_schema_is_valid_and_accepts_a_sample(self):
+        self.assertEqual(self.check("--check-metaschema", str(self.SCHEMA)).returncode, 0)
+        with tempfile.TemporaryDirectory() as tmp:
+            good = verdict([impact(change("lithium"), "patch")]) | {"consumer_note": ""}
+            bad = verdict([judged(change("lithium"))]) | {"consumer_note": ""}
+            worse = verdict([impact(change("lithium"), "huge")])
+            for name, obj, code in (("good", good, 0), ("bad", bad, 1), ("worse", worse, 1)):
+                path = Path(tmp) / f"{name}.json"
+                path.write_text(json.dumps(obj))
+                result = self.check("--schemafile", str(self.SCHEMA), str(path))
+                self.assertEqual(result.returncode, code, name + result.stdout + result.stderr)
+
+    def test_schema_uses_only_decoder_safe_keywords(self):
+        allowed = {"$schema", "title", "type", "additionalProperties", "required", "properties", "items", "enum"}
+        stack = [json.loads(self.SCHEMA.read_text())]
+        while stack:
+            node = stack.pop()
+            self.assertLessEqual(set(node) - {"properties"}, allowed)
+            stack += [v for k, v in node.items() if k in ("items", "additionalProperties") and isinstance(v, dict)]
+            stack += list(node.get("properties", {}).values())
+
+
+if __name__ == "__main__":
+    unittest.main()
