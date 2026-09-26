@@ -1,0 +1,9 @@
+[
+ {
+  "id": 5092914741,
+  "user": {
+   "login": "dependabot[bot]"
+  },
+  "body": "### Labels\n\nThe following labels could not be found: `python`. Please create it before Dependabot can add it to a pull request.\n\n\nPlease fix the above issues or remove invalid values from `dependabot.yml`."
+ }
+]

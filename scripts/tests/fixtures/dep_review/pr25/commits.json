@@ -1,0 +1,23 @@
+[
+  {
+    "sha": "9f999cfef5cf9b8e5efa22a1a4d9c98cb8139e63",
+    "author": {
+      "login": "dependabot[bot]"
+    },
+    "committer": {
+      "login": "web-flow"
+    },
+    "parents": [
+      {
+        "sha": "93cfa3f959c3983eb55fd7bbd9576278607f9efb"
+      }
+    ],
+    "commit": {
+      "message": "chore: bump python in /docker/kuma-init\n\nBumps python from 3.14.6-alpine3.24 to 3.14.7-alpine3.24.\n\n---\nupdated-dependencies:\n- dependency-name: python\n  dependency-version: 3.14.7-alpine3.24\n  depend",
+      "verification": {
+        "verified": true,
+        "reason": "valid"
+      }
+    }
+  }
+]

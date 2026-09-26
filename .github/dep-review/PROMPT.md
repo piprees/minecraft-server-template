@@ -11,7 +11,9 @@ you say. When you are unsure, hold.
 - `review/context.md`: start here. It lists every change to judge (the
   `work` list), with versions, deterministic flags, dependency data, the
   comment block the repo keeps above each mod, and the upstream changelogs
-  for every version skipped since the old pin.
+  for every version skipped since the old pin. It runs to thousands of
+  lines, more than one Read returns: read it in pages with `offset` and
+  `limit` until you reach the end, so no change goes unread.
 - `review/context.json`: the same data, structured.
 - `review/diff.patch`: the PR's diff (generated files as a stat only).
 - The repository at `main` in the working directory: `AGENTS.md`,
@@ -63,6 +65,12 @@ something you could not assess.
 Decision: `accept`, `hold` (keep the current version for now; for mods and
 packs, name it in `holds_add` so the next refresh keeps it back) or
 `reject` (for Dependabot PRs: this version should never be taken).
+
+On the mod PR, one blocked mod blocks the whole PR, so hold back each mod
+flagged `prerelease`, `not-target-mc`, `not-fabric` or `missing-deps`, or
+that you judge risky, with a `holds_add` reason that names the condition for
+releasing it (for example "pre-release; release when a release build for
+1.21.1 ships"). Don't hold for `too-new` alone: it clears within days.
 
 ## Holds
 

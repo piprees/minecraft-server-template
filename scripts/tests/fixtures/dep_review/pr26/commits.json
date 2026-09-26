@@ -1,0 +1,19 @@
+[
+ {
+  "sha": "8b30829074bc19001e6917eacfa4226e599aac59",
+  "author": {
+   "login": "github-actions[bot]"
+  },
+  "committer": {
+   "login": "github-actions[bot]"
+  },
+  "parents": [
+   {
+    "sha": "67e2d6d2bb47a5b136c91caab8607f4dcd3754fc"
+   }
+  ],
+  "commit": {
+   "message": "chore: update 28 mod version(s)"
+  }
+ }
+]

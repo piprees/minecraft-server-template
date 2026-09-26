@@ -1,0 +1,43 @@
+[
+  {
+    "sha": "113c95dd720d88a97770dbd810dbae001329ac18",
+    "author": {
+      "login": "dependabot[bot]"
+    },
+    "committer": {
+      "login": "web-flow"
+    },
+    "parents": [
+      {
+        "sha": "2f4f9cc4ad1f1e87273e869c6b5f772082e0f51b"
+      }
+    ],
+    "commit": {
+      "message": "chore: bump aiohttp from 3.14.1 to 3.14.3 in /scripts\n\n---\nupdated-dependencies:\n- dependency-name: aiohttp\n  dependency-version: 3.14.3\n  dependency-type: direct:production\n  update-type: version-upd",
+      "verification": {
+        "verified": true,
+        "reason": "valid"
+      }
+    }
+  },
+  {
+    "sha": "1cca1156d60cd586dfad484a4c90d13da5610b57",
+    "author": {
+      "login": "piprees"
+    },
+    "committer": {
+      "login": "web-flow"
+    },
+    "parents": [
+      {
+        "sha": "113c95dd720d88a97770dbd810dbae001329ac18"
+      },
+      {
+        "sha": "b8f9b7871e247b323ab362a18aaeed12a19287d4"
+      }
+    ],
+    "commit": {
+      "message": "Merge branch 'main' into dependabot/pip/scripts/aiohttp-3.14.3"
+    }
+  }
+]
