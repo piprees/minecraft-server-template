@@ -200,22 +200,71 @@ jobs:
           # lands under an "Unreleased" heading in CHANGELOG.md.
           args: --tag ${{ inputs.version }} -o CHANGELOG.md
 
-      - name: Create draft release with assets, then publish
+      - name: Create the draft release with its assets
+        # Stays a draft until the images job has built every version-tagged
+        # image: consumers resolve pins through the releases API, which
+        # never lists drafts, so no consumer can pick up a bundle whose
+        # images do not exist yet.
         run: |
           gh release create "${{ inputs.version }}" \
             dist/stack-*.tar.gz dist/stack-*.sha256 \
             --draft --notes-file dist/RELEASE_NOTES.md --target "${GITHUB_SHA}" \
             --title "${{ inputs.version }}"
-          gh release edit "${{ inputs.version }}" --draft=false
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Keep the changelog and version defaults for the publish job
+        uses: actions/upload-artifact@v7
+        with:
+          name: release-files
+          path: |
+            CHANGELOG.md
+            .env.example
+            examples/consumer/.env.example
+          retention-days: 7
+
+  # Rebuild all container images from this exact commit. publish.yml is
+  # reusable (workflow_call); calling it here means the release run won't
+  # complete until images are built — no more stale `latest` on deploy.
+  # The push-to-main trigger on publish.yml also fires independently
+  # (safety net for between-release fixes), but this is the authoritative
+  # build for a release.
+  images:
+    name: Container images
+    needs: bundle
+    uses: ./.github/workflows/publish.yml
+    with:
+      version: ${{ inputs.version }}
+    permissions:
+      contents: read
+      packages: write
+
+  publish:
+    name: Publish the release
+    needs: [bundle, images]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Publish the draft
+        run: gh release edit "${{ inputs.version }}" --draft=false
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Restore the changelog and version defaults
+        uses: actions/download-artifact@v8
+        with:
+          name: release-files
+
       - name: Commit CHANGELOG.md and version defaults
-        # Best-effort AFTER the release is published: main can move during a
-        # release (another merge landing mid-run made this push non-fast-
-        # forward and failed the whole job — v3.1.0, 2026-07-22 — which
-        # skipped the images job and shipped a release with no version-tagged
-        # images). Rebase-and-retry, and never fail the job over a changelog.
+        # Best-effort after publishing: main can move during a release, so
+        # rebase-and-retry and never fail the release over a changelog.
         continue-on-error: true
         run: |
           git config user.name "github-actions[bot]"
@@ -233,28 +282,14 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Advance major tag
-        # Also best-effort: consumers resolve symbolic pins via the releases
-        # API, not this tag — it must never block the images job.
+        # Best-effort: consumers resolve symbolic pins via the releases API,
+        # not this tag.
         continue-on-error: true
+        env:
+          VERSION: ${{ inputs.version }}
         run: |
-          MAJOR=$(echo "${{ inputs.version }}" | grep -oE '^v[0-9]+')
+          MAJOR=$(echo "$VERSION" | grep -oE '^v[0-9]+')
           if [[ -n "$MAJOR" ]]; then
             git tag -f "$MAJOR" "${GITHUB_SHA}"
             git push origin "$MAJOR" --force
           fi
-
-  # Rebuild all container images from this exact commit. publish.yml is
-  # reusable (workflow_call); calling it here means the release run won't
-  # complete until images are built — no more stale `latest` on deploy.
-  # The push-to-main trigger on publish.yml also fires independently
-  # (safety net for between-release fixes), but this is the authoritative
-  # build for a release.
-  images:
-    name: Container images
-    needs: bundle
-    uses: ./.github/workflows/publish.yml
-    with:
-      version: ${{ inputs.version }}
-    permissions:
-      contents: read
-      packages: write

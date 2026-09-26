@@ -247,7 +247,9 @@ jobs:
           V_BACKUP_INITIAL_DELAY: ${{ vars.BACKUP_INITIAL_DELAY }}
           V_CLOUD_PROVIDER: ${{ vars.CLOUD_PROVIDER }}
           V_IMAGE_REGISTRY: ${{ vars.IMAGE_REGISTRY }}
-          V_STACK_VERSION: ${{ inputs.stack_version }}
+          # The resolved tag, never the symbolic pin: deploy.sh derives
+          # IMAGE_TAG from it, and `latest` would pull main-branch images.
+          V_STACK_VERSION: ${{ steps.stack.outputs.resolved }}
           V_BRAND_ICON_URL: ${{ vars.BRAND_ICON_URL }}
           V_DISCORD_ADMIN_ROLE_ID: ${{ vars.DISCORD_ADMIN_ROLE_ID }}
           V_DISCORD_PLAYER_ROLE_ID: ${{ vars.DISCORD_PLAYER_ROLE_ID }}
