@@ -1,91 +1,45 @@
 version: 2
 
+# Every PR opened here is reviewed by dep-review.yml, one agent run per
+# distinct version set, so each group below is one review instead of many.
+# The cooldown keeps day-one releases out of the auto-merge path.
+#
+# docker-compose.yml is not listed: its images are written as
+# ${MIRROR_REGISTRY:-…}/image:tag, which Dependabot cannot parse.
+
 updates:
-  # GitHub Actions: pin actions to latest major/minor
   - package-ecosystem: github-actions
     directory: /
     schedule:
       interval: weekly
       day: monday
+    cooldown:
+      default-days: 3
+      semver-major-days: 7
+    groups:
+      actions-minor:
+        patterns: ["*"]
+        update-types: [minor, patch]
     commit-message:
       prefix: "ci"
     labels:
       - dependencies
       - ci
 
-  # Docker: compose file (third-party images: itzg, nginx, kuma, etc.)
+  # Sidecar Dockerfiles: one PR per base image across every directory
+  # (python:… in two, alpine:… in four).
   - package-ecosystem: docker
-    directory: /
+    directories:
+      - /docker/*
     schedule:
       interval: weekly
       day: monday
-    commit-message:
-      prefix: "chore"
-    labels:
-      - dependencies
-      - docker
-
-  # Docker: custom sidecar Dockerfiles
-  - package-ecosystem: docker
-    directory: /docker/discord-sync
-    schedule:
-      interval: weekly
-      day: monday
-    commit-message:
-      prefix: "chore"
-    labels:
-      - dependencies
-      - docker
-
-  - package-ecosystem: docker
-    directory: /docker/kuma-init
-    schedule:
-      interval: weekly
-      day: monday
-    commit-message:
-      prefix: "chore"
-    labels:
-      - dependencies
-      - docker
-
-  - package-ecosystem: docker
-    directory: /docker/mod-checker
-    schedule:
-      interval: weekly
-      day: monday
-    commit-message:
-      prefix: "chore"
-    labels:
-      - dependencies
-      - docker
-
-  - package-ecosystem: docker
-    directory: /docker/idle-tasks
-    schedule:
-      interval: weekly
-      day: monday
-    commit-message:
-      prefix: "chore"
-    labels:
-      - dependencies
-      - docker
-
-  - package-ecosystem: docker
-    directory: /docker/defaults-seed
-    schedule:
-      interval: weekly
-      day: monday
-    commit-message:
-      prefix: "chore"
-    labels:
-      - dependencies
-      - docker
-
-  - package-ecosystem: docker
-    directory: /docker/modpack-builder
-    schedule:
-      interval: weekly
-      day: monday
+    cooldown:
+      default-days: 3
+      semver-major-days: 7
+    groups:
+      base-images:
+        group-by: dependency-name
     commit-message:
       prefix: "chore"
     labels:
@@ -98,6 +52,13 @@ updates:
     schedule:
       interval: weekly
       day: monday
+    cooldown:
+      default-days: 3
+      semver-major-days: 7
+    groups:
+      python-minor:
+        patterns: ["*"]
+        update-types: [minor, patch]
     commit-message:
       prefix: "chore"
     labels:

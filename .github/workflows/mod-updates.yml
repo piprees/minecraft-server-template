@@ -26,6 +26,7 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
+      actions: write
 
     steps:
       - name: Checkout
@@ -49,6 +50,21 @@ jobs:
         run: |
           cp config/modrinth-mods.txt /tmp/modrinth-mods.before.txt
           cp modpack/adventure.mrpack.json /tmp/adventure.mrpack.before.json
+
+      - name: Carry holds from the open PR
+        # dep-review.yml holds mods back (or releases them) by editing _holds on
+        # the PR branch; the re-pin below starts from main, so those edits come
+        # across first or the held versions would return.
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          PR_NUM=$(gh pr list --head "$BRANCH" --state open --json number --jq '.[0].number // empty')
+          [[ -n "$PR_NUM" ]] || exit 0
+          git fetch --no-tags origin "$BRANCH"
+          git show FETCH_HEAD:modpack/adventure.mrpack.json > /tmp/holds-branch.json
+          git show "$(git merge-base HEAD FETCH_HEAD):modpack/adventure.mrpack.json" > /tmp/holds-base.json
+          python3 scripts/dep_review/carry_holds.py --manifest modpack/adventure.mrpack.json \
+            --branch /tmp/holds-branch.json --base /tmp/holds-base.json
 
       - name: Resolve latest mod versions (server + client manifest)
         run: ./scripts/pin-mod-versions.sh --apply
@@ -263,3 +279,13 @@ jobs:
               --label minecraft
             echo "Opened new PR"
           fi
+
+      - name: Request dependency review
+        # PRs opened or pushed with GITHUB_TOKEN trigger no pull_request
+        # workflows; dispatch is the exception.
+        if: steps.overall.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          PR_NUM=$(gh pr list --head "$BRANCH" --state open --json number --jq '.[0].number // empty')
+          gh workflow run dep-review.yml --ref main -f pr="$PR_NUM"

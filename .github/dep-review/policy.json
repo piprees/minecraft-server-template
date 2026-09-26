@@ -1,0 +1,28 @@
+{
+  "_comment": "Deterministic auto-merge policy for dep-review.yml, enforced by scripts/dep_review/apply.py whatever the reviewer decides. The reviewer can only make a PR less mergeable than this allows, never more.",
+  "automerge_max_risk": "low",
+  "min_age_days": 3,
+  "blocking_flags": [
+    "prerelease",
+    "major",
+    "not-target-mc",
+    "not-fabric",
+    "missing-deps",
+    "too-new",
+    "never-automerge",
+    "unparsed"
+  ],
+  "never_automerge_sections": [
+    "terrain & biomes",
+    "BetterX family (chunk-zero only)",
+    "caves & underground",
+    "dimensions"
+  ],
+  "never_automerge_paths": [
+    "config/datapacks/",
+    "config/datapack-presets/",
+    "config/custom-dimensions/",
+    "mods/custom-dimensions/",
+    "scripts/data/structure-sets-extracted.json"
+  ]
+}

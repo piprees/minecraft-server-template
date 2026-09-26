@@ -11,6 +11,12 @@ name: Smoke Test
 
 on:
   workflow_call:
+    inputs:
+      ref:
+        description: "Commit to boot instead of the caller's ref (dep-review.yml passes the PR head)"
+        required: false
+        type: string
+        default: ''
   workflow_dispatch:
   pull_request:
     paths:
@@ -23,8 +29,11 @@ on:
 permissions:
   contents: read
 
+# Keyed on the booted commit when one is passed: a dispatched dep-review run
+# has github.ref == main, the same group as release.yml's smoke gate, and
+# would otherwise cancel it.
 concurrency:
-  group: smoke-test-${{ github.ref }}
+  group: smoke-test-${{ inputs.ref || github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -47,6 +56,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.ref }}
+          persist-credentials: false
 
       - name: Build defaults-seed image
         run: |
