@@ -326,13 +326,13 @@ class SanitiserTests(ApplyCase):
         self.assertEqual(apply.md("\\|"), "\\\\\\|")
         self.assertEqual(apply.md("`x`"), "\\`x\\`")
 
-    def test_table_rows_stay_one_line_with_six_cells(self):
+    def test_table_rows_stay_one_line_with_seven_cells(self):
         a = change("so|dium\n@team", old="1|0", new="2\n3")
         self.run_apply([a], verdict([judged(a, reason="line one\nline | two @here")]))
         rows = [line for line in self.comment.splitlines() if line.startswith("| ") and "---" not in line]
         self.assertEqual(len(rows), 2)
         for row in rows:
-            self.assertEqual(row.replace("\\|", "").count("|"), 7, row)
+            self.assertEqual(row.replace("\\|", "").count("|"), 8, row)
         self.assertNotIn("@here", self.comment)
         self.assertIn("@​here", self.comment)
 
@@ -475,7 +475,7 @@ class OutputShapeTests(ApplyCase):
         self.assertEqual(plan["state"]["head_sha"], HEAD)
         self.assertEqual(plan["state"]["verdicts"][a["key"]],
                          {"decision": "accept", "risk": "low", "reason": "Changelog is bug fixes only.",
-                          "flags": ["client-only"]})
+                          "flags": ["client-only"], "release_impact": "patch"})
         self.assertIn("### Dependency review", self.comment)
         self.assertIn("> All routine.", self.comment)
 
@@ -500,10 +500,6 @@ class OutputShapeTests(ApplyCase):
         self.assertEqual(common.decode_state(self.comment), plan["state"])
         self.assertEqual(len(plan["state"]["verdicts"]), 300)
         self.assertTrue(self.comment.rstrip().endswith("</sub>"))
-
-
-if __name__ == "__main__":
-    unittest.main()
 
 
 class NextMajorTests(ApplyCase):

@@ -47,7 +47,7 @@ Then push to `main` — `.github/workflows/deploy.yml` calls the reusable workfl
 
 ## Upgrading
 
-Bump `STACK_VERSION` in `.env` (or leave it as `v5` to track the latest v5.x.y), then `./dev update && ./dev up`. Each release `vX.Y.Z` tags every GHCR image (`X.Y.Z`, `X.Y`, `X`, `latest`) and attaches a **stack bundle** tarball: compose files, all host-side operational scripts, default configs, and the in-house mod JARs (`local-mods/`, CI-built and remap-verified, installed into `data/mods/` by `deploy.sh` and `./dev up`). **Compatibility:** a major bump is breaking (`.env` keys, overlay contract, compose structure) and ships a migration guide; `v5.1` → `v5.2` adds features, default mods, and config, backwards-compatible; `v5.1.0` → `v5.1.1` is drop-in. Pinning `STACK_VERSION=v5` picks up minors and patches automatically. Cutting a release: the `platform-release-management` skill.
+Bump `STACK_VERSION` in `.env` and in the `STACK_VERSION` repository variable that CI deploys from (or leave both as `v5` to track the latest v5.x.y), then `./dev update && ./dev up`. Each release `vX.Y.Z` tags every GHCR image (`X.Y.Z`, `X.Y`, `X`, `latest`) and attaches a **stack bundle** tarball: compose files, all host-side operational scripts, default configs, and the in-house mod JARs (`local-mods/`, CI-built and remap-verified, installed into `data/mods/` by `deploy.sh` and `./dev up`). What each bump class may contain: [DEPENDENCIES.md § Versioning contract](DEPENDENCIES.md#versioning-contract). Cutting a release: the `platform-release-management` skill.
 
 ## Architecture
 
@@ -205,11 +205,11 @@ Task → file → command lookup: [`docs/common-tasks.md`](docs/common-tasks.md)
 
 ### Add or remove mods
 
-Server mods go in `overlay/mods-extra.txt` (consumer) or `config/modrinth-mods.txt` (platform), removals in `overlay/mods-remove.txt`, client mods in `modpack/adventure.mrpack.json`. Everything must target **Fabric for 1.21.1**, and resolving a mod's dependencies before adding it is mandatory — that checklist, version holds, and the offline delivery model are in the `server-mod-management` skill. Clients auto-update via **packwiz**: the build generates `dist/packwiz/` (pack.toml + per-mod metafiles pointing at the mirror) and the one-click Prism instance zip runs `packwiz-installer` as a pre-launch task, so every launch hash-syncs mods and pack configs from the CDN.
+Adding, removing, pinning or holding a mod: [`DEPENDENCIES.md`](DEPENDENCIES.md). Clients auto-update via **packwiz**: the build generates `dist/packwiz/` (pack.toml + per-mod metafiles pointing at the mirror) and the one-click Prism instance zip runs `packwiz-installer` as a pre-launch task, so every launch hash-syncs mods and pack configs from the CDN.
 
 ### Update Minecraft version
 
-A big job — all ~150 server mods and ~110 client mods must support the target first. Procedure: [`docs/minecraft-version-upgrade.md`](docs/minecraft-version-upgrade.md).
+Minecraft 1.21.1 is a fixed decision. Changing it: [DEPENDENCIES.md § Changing the Minecraft version](DEPENDENCIES.md#changing-the-minecraft-version).
 
 ### Deploy to production
 

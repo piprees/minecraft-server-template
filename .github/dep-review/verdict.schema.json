@@ -5,12 +5,16 @@
   "additionalProperties": false,
   "required": [
     "summary",
+    "consumer_note",
     "changes",
     "holds_add",
     "holds_remove"
   ],
   "properties": {
     "summary": {
+      "type": "string"
+    },
+    "consumer_note": {
       "type": "string"
     },
     "changes": {
@@ -22,6 +26,7 @@
           "key",
           "decision",
           "risk",
+          "release_impact",
           "reason",
           "evidence"
         ],
@@ -41,6 +46,14 @@
               "low",
               "medium",
               "high"
+            ]
+          },
+          "release_impact": {
+            "enum": [
+              "none",
+              "patch",
+              "minor",
+              "major"
             ]
           },
           "reason": {

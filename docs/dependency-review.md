@@ -3,7 +3,8 @@
 `dep-review.yml` reviews every dependency-update PR (Dependabot's, and the
 weekly mod PR from `mod-updates.yml`) with Claude, then merges it, closes it,
 holds mods back, or labels it for a human. It runs on the maintainer's Claude
-subscription through `anthropics/claude-code-action`.
+subscription through `anthropics/claude-code-action`. This file covers the
+pipeline; the rules it applies are in [`DEPENDENCIES.md`](../DEPENDENCIES.md).
 
 ## Setup
 
@@ -28,64 +29,16 @@ last review.
 | review | `collect.py` fetches every changelog, flag and dependency into `review/`; Claude judges it with Read, Grep and Glob only and returns a schema-checked verdict | read, OAuth token |
 | apply | `apply.py` enforces `.github/dep-review/policy.json` and acts | write |
 
-The review comment on the PR carries the verdicts. On a refresh, only
+A merge made with `GITHUB_TOKEN` triggers no push workflows, so `apply.py`
+dispatches `publish.yml` after merging. The review comment on the PR carries
+the verdicts. On a refresh, only
 versions not already judged go to Claude; earlier verdicts are reused.
 
-## Two mod PRs
+## Policy
 
-`mod-updates.yml` re-pins every mod each Monday, then `partition.py` splits the
-result:
-
-| PR | Branch | Holds | Merged by |
-| --- | --- | --- | --- |
-| Regular updates | `mod-updates/auto` | everything else | dep-review, when the policy allows |
-| Next major | `mod-updates/next-major` | worldgen updates, the regenerated presets and the structure census | a human cutting the next major release |
-
-A mod update is worldgen when the mod sits in a `never_automerge_sections`
-section of `config/modrinth-mods.txt` (terrain, BetterX, caves, dimensions,
-structures, boss dungeons), is named in `worldgen_slugs`, or its jar's
-`data/*/worldgen`, `structure(s)`, `tags/worldgen` or biome-modifier files
-differ between the old and new version. A mod added or removed, or a jar that
-cannot be compared, counts as worldgen.
-
-Consumers pinned to a major (`STACK_VERSION=v5`) take every release in it, and
-worldgen cannot be undone on generated chunks, so worldgen ships only in a
-major. The next-major PR's commit is `feat(mods)!:` with a `BREAKING CHANGE:`
-footer, and `scripts/check-release-version.sh` makes `release.yml` refuse any
-release after it that keeps the major. dep-review reviews every refresh, holds
-mods back on it like on the regular PR, never merges it, and labels it
-`dep-review:ready-for-major` when everything but its worldgen status passes.
-Merging the regular PR re-runs `mod-updates.yml`, so the next-major PR stays
-mergeable.
-
-To release it: merge the next-major PR, then
-`gh workflow run release.yml -f version=vN.0.0`.
-
-## What merges automatically
-
-All of these, checked by `apply.py` whatever the reviewer says:
-
-- every update accepted, none above `automerge_max_risk` (`low`)
-- quick checks, smoke test and Docker builds green, and every other check on
-  the PR head completed green
-- no blocking flag: pre-release, major version, wrong Minecraft version or
-  loader, a missing required dependency, fewer than `min_age_days` (3) since
-  release, or a worldgen mod (`never_automerge_sections`, `worldgen_slugs`)
-- no change under `never_automerge_paths` (regenerated worldgen presets and
-  the structure census)
-
-A merge dispatches `publish.yml`, because a merge made with `GITHUB_TOKEN`
-triggers no push workflows. Releases stay manual, so nothing reaches a
-server until a release is cut.
-
-## Holds
-
-On either mod PR, the reviewer holds a mod at its current version when it is a
-pre-release, targets the wrong game version or loader, misses a dependency, or
-looks risky, and releases an existing hold whose blocker has cleared.
-`apply.py` edits `_holds` on the PR branch and dispatches `mod-updates.yml`,
-which re-pins from main with both branches' holds carried over
-(`carry_holds.py`) and asks for the next review.
+What counts as worldgen, the two mod PRs, what merges automatically, holds
+and the versioning contract: [`DEPENDENCIES.md`](../DEPENDENCIES.md#automation).
+The numbers are in `.github/dep-review/policy.json`.
 
 ## Who can start it
 
@@ -119,5 +72,4 @@ down.
   `.github/workflows/` (GitHub Actions bumps). The run then comments with
   GitHub's error and the PR stays labelled `dep-review:safe` for a manual
   merge.
-- Images in `docker-compose.yml` are written as `${MIRROR_REGISTRY:-…}/image:tag`,
-  which Dependabot cannot parse, so they are not updated by this flow.
+- Compose images are outside this flow ([DEPENDENCIES.md § Compose images](../DEPENDENCIES.md#compose-images)).

@@ -8,10 +8,27 @@ its verdict is untrusted input: it is validated strictly, discarded whole if it
 carries credential-like text, and can only make a PR less mergeable than
 .github/dep-review/policy.json allows, never more.
 
+Release impact: every change gets a semver impact (none|patch|minor|major).
+FLOOR_RULES is the deterministic floor, the highest row that matches:
+  none   a GitHub Actions bump (CI only)
+  patch  any other change: server-only mod, docker or pip bump, security fix
+  minor  a client-side mod (sides include "client", or unknown) or any pack;
+         a new mod or pack ("added"); a docker/pip major ("major")
+  major  a worldgen change (source "worldgen" or flag "never-automerge");
+         a mod or pack removed ("removed", or no new version)
+The reviewer's release_impact can raise a change above its floor, never lower
+it; a missing or invalid value means the floor. The PR's impact is the highest
+over every change, cached ones included. It picks the squash-commit title
+prefix (ci/fix/feat/feat!) and, for major, a `BREAKING CHANGE: ` footer that
+git-cliff and scripts/check-release-version.sh read. The footer text is the
+reviewer's consumer_note, or a note built from the major changes when the
+reviewer left it empty.
+
 Outputs:
-  --out      plan.json: action (merge|close|human|rehold), reasons, labels,
-             publish_images, holds_changed, and the state stored in the
-             sticky comment for the next run.
+  --out      plan.json: action (merge|close|human|rehold|ready), reasons,
+             labels, publish_images, holds_changed, release_impact,
+             consumer_note, commit_title, commit_body, and the state stored
+             in the sticky comment for the next run.
   --comment  comment.md: the sticky review comment, state marker first line.
   --manifest edited in place only when the action is "rehold".
 
@@ -31,6 +48,11 @@ Gotchas:
     again.
   - Cached keys carry no flags in context.json; their flags come from the
     stored state, and a cached key with no recorded flags blocks the merge.
+    Their release impact is the stored one, raised to this run's floor; with
+    none stored it is the floor. A cached mod's sides are unknown, so its
+    floor is at least minor.
+  - Every action gets an impact and a commit title, close and human included,
+    so a PR retitled from plan.json squash-merges with the right message.
   - Text reaching comment.md is escaped so it cannot open HTML, forge the
     state marker, mention anyone, start a link or break a table row.
   - The manifest round-trips through json.dumps(indent=2, ensure_ascii=False)
@@ -54,9 +76,14 @@ REASON_MAX = 600
 EVIDENCE_ITEMS = 5
 EVIDENCE_MAX = 300
 HOLD_REASON_MAX = 400
+CONSUMER_NOTE_MAX = 800
+TITLE_MAX = 72
+BODY_LINES = 50
+NOTE_NAMES = 10
 COMMENT_MAX = 60000
 REASON_BULLET_MAX = 500
 STATE_BUDGET = 30000
+STATE_BODY_MAX = 2000
 
 SECRET_MARKERS = ("sk-ant-", "ghp_", "ghs_", "gho_", "github_pat_", "-----BEGIN")
 WITHHELD = "verdict withheld: contained credential-like text"
@@ -80,6 +107,13 @@ ALL_OUTCOME_LABELS = ("dep-review:safe", "dep-review:attention", "dep-review:rej
                       "dep-review:ready-for-major")
 
 UNJUDGED = "Not judged by the reviewer."
+
+IMPACTS = ("none", "patch", "minor", "major")
+IMPACT_ORDER = {name: i for i, name in enumerate(IMPACTS)}
+TITLE_PREFIX = {"none": "ci(deps): ", "patch": "fix(deps): ", "minor": "feat(deps): ",
+                "major": "feat(deps)!: "}
+# Impact of a PR with nothing in it, by source.
+EMPTY_IMPACT = {"actions": "none", "worldgen": "major"}
 _BIDI = set("‎‏‪‫‬‭‮⁦⁧⁨⁩")
 
 
@@ -125,6 +159,12 @@ def md_code_or_text(text):
     if text and not any(ch in text for ch in "`<>&"):
         return f"`{text}`"
     return md(text)
+
+
+def commit_text(text):
+    """One line of untrusted text for a commit message: no markup, no mentions."""
+    text = plain(text).replace("<", "").replace(">", "")
+    return text.replace("@", "@\u200b")
 
 
 def contains_secret(value):
@@ -194,9 +234,11 @@ def validate_change(item):
         return None, "reason is not text"
     if not isinstance(evidence, list) or not all(isinstance(e, str) for e in evidence):
         return None, "evidence is not a list of text"
+    impact = item.get("release_impact")
     return {
         "decision": decision,
         "risk": risk,
+        "release_impact": impact if isinstance(impact, str) and impact in IMPACT_ORDER else None,
         "reason": truncate(plain(reason), REASON_MAX),
         "evidence": [truncate(plain(e), EVIDENCE_MAX) for e in evidence[:EVIDENCE_ITEMS]],
         "evidence_dropped": max(0, len(evidence) - EVIDENCE_ITEMS),
@@ -219,7 +261,7 @@ def validate_holds(items, label, notes):
 
 def validate_verdict(raw, work_keys):
     """Check the verdict against the schema and the limits the schema omits."""
-    result = {"ok": False, "error": None, "summary": "", "judged": {}, "invalid": {},
+    result = {"ok": False, "error": None, "summary": "", "consumer_note": "", "judged": {}, "invalid": {},
               "duplicates": set(), "holds_add": [], "holds_remove": [], "notes": []}
     if not isinstance(raw, dict):
         result["error"] = "Reviewer verdict is not a JSON object."
@@ -231,6 +273,11 @@ def validate_verdict(raw, work_keys):
         return result
     notes = result["notes"]
     result["summary"] = truncate(plain_lines(summary), SUMMARY_MAX)
+    consumer_note = raw.get("consumer_note")
+    if isinstance(consumer_note, str):
+        result["consumer_note"] = truncate(commit_text(consumer_note), CONSUMER_NOTE_MAX)
+    else:
+        notes.append("Ignored consumer_note: it is missing or not text.")
     keyed = []
     for item in changes:
         if not isinstance(item, dict) or not isinstance(item.get("key"), str):
@@ -255,6 +302,8 @@ def validate_verdict(raw, work_keys):
             continue
         if entry["evidence_dropped"]:
             notes.append(f"Kept the first {EVIDENCE_ITEMS} evidence items for {key}.")
+        if entry["release_impact"] is None:
+            notes.append(f"Used the release floor for {key}: release_impact is missing or invalid.")
         result["judged"][key] = entry
     result["holds_add"] = validate_holds(holds_add, "holds_add", notes)
     result["holds_remove"] = validate_holds(holds_remove, "holds_remove", notes)
@@ -275,6 +324,14 @@ def str_list(value):
     return [plain(v) for v in value if isinstance(v, str)] if isinstance(value, list) else None
 
 
+def version_number(change):
+    """The human version of a mod pin (Modrinth version_number), or None."""
+    details = change.get("details") if isinstance(change.get("details"), dict) else {}
+    numbers = details.get("version_number") if isinstance(details.get("version_number"), dict) else {}
+    value = numbers.get("new")
+    return plain(value) or None if isinstance(value, str) else None
+
+
 def build_final(context, gate, verdict):
     """Merge cached verdicts with this run's judgements, keyed by change key."""
     final = {}
@@ -286,13 +343,15 @@ def build_final(context, gate, verdict):
             continue
         entry = {"key": key, "name": change.get("name"), "old": change.get("old"),
                  "new": change.get("new"), "ecosystem": change.get("ecosystem"),
-                 "flags": str_list(change.get("flags")), "origin": "placeholder",
-                 "decision": "hold", "risk": "high", "reason": UNJUDGED, "evidence": []}
+                 "flags": str_list(change.get("flags")), "sides": str_list(change.get("sides")),
+                 "version": version_number(change), "origin": "placeholder",
+                 "decision": "hold", "risk": "high", "reason": UNJUDGED, "evidence": [],
+                 "claimed_impact": None}
         if verdict["ok"]:
             if key in verdict["judged"]:
                 j = verdict["judged"][key]
                 entry.update(decision=j["decision"], risk=j["risk"], reason=j["reason"],
-                             evidence=j["evidence"], origin="new")
+                             evidence=j["evidence"], origin="new", claimed_impact=j["release_impact"])
             elif key in verdict["duplicates"]:
                 entry["reason"] = "The reviewer judged this more than once; its verdicts were ignored."
             elif key in verdict["invalid"]:
@@ -310,13 +369,17 @@ def build_final(context, gate, verdict):
         if key in final:
             continue
         name, version = parse_key(key)
+        record = stored.get(key) if isinstance(stored.get(key), dict) else {}
         flags = str_list(cached.get("flags"))
-        if flags is None and isinstance(stored.get(key), dict):
-            flags = str_list(stored[key].get("flags"))
-        entry = {"key": key, "name": name, "old": None, "new": version, "ecosystem": key.partition(":")[0],
-                 "flags": flags, "origin": "cached", "evidence": [],
+        if flags is None:
+            flags = str_list(record.get("flags"))
+        impact = record.get("release_impact")
+        entry = {"key": key, "name": name, "old": None, "new": version,
+                 "ecosystem": key.partition(":")[0], "flags": flags, "sides": str_list(cached.get("sides")),
+                 "version": None, "origin": "cached", "evidence": [],
                  "decision": cached.get("decision"), "risk": cached.get("risk"),
-                 "reason": truncate(plain(cached.get("reason")), REASON_MAX)}
+                 "reason": truncate(plain(cached.get("reason")), REASON_MAX),
+                 "claimed_impact": impact if isinstance(impact, str) and impact in IMPACT_ORDER else None}
         if entry["decision"] not in common.DECISIONS or not isinstance(entry["risk"], str) \
                 or entry["risk"] not in common.RISK_ORDER:
             entry.update(decision="hold", risk="high", origin="placeholder",
@@ -478,19 +541,210 @@ def decide(source, verdict, final, adds, removes, blockers):
     return "merge", []
 
 
-def state_for(gate, final):
-    """The stored state: genuine judgements only, shrunk to fit the comment."""
+def stored_commit(release):
+    """The commit a later run squash-merges with; the body is capped, its footer kept."""
+    body = release["commit_body"]
+    if len(body) > STATE_BODY_MAX:
+        paragraphs = body.split("\n\n")
+        footer = "\n\n".join(p for p in paragraphs if p.startswith("BREAKING CHANGE: "))
+        rest = "\n\n".join(p for p in paragraphs if not p.startswith("BREAKING CHANGE: "))
+        if footer:
+            body = truncate(rest, max(0, STATE_BODY_MAX - len(footer) - 2)).rstrip() + "\n\n" + footer
+        body = truncate(body.strip(), STATE_BODY_MAX)
+    return {"title": release["commit_title"], "body": body, "release_impact": release["release_impact"]}
+
+
+def state_for(gate, final, release):
+    """The stored state: genuine judgements and the commit, shrunk to fit the comment."""
     kept = {k: e for k, e in final.items() if e["origin"] in ("new", "cached")}
     for limit in (200, 80, 0):
         verdicts = {k: {"decision": e["decision"], "risk": e["risk"],
                         "reason": truncate(e["reason"], limit) if limit else "",
-                        "flags": e["flags"] if e["flags"] is not None else []}
+                        "flags": e["flags"] if e["flags"] is not None else [],
+                        "release_impact": e["release_impact"]}
                     for k, e in kept.items()}
         state = {"v": common.STATE_VERSION, "fingerprint": gate.get("fingerprint"),
-                 "head_sha": gate.get("head_sha"), "verdicts": verdicts}
+                 "head_sha": gate.get("head_sha"), "verdicts": verdicts, "commit": stored_commit(release)}
         if len(common.encode_state(state)) <= STATE_BUDGET:
             break
     return state
+
+
+# --- release impact --------------------------------------------------------
+
+def _eco(change):
+    return change.get("ecosystem")
+
+
+def _flags(change):
+    return change.get("flags") or []
+
+
+def _is_removed(change):
+    return _eco(change) in HOLD_ECOSYSTEMS and (
+        "removed" in _flags(change) or change.get("new") is None or change["key"].endswith("@removed"))
+
+
+def _is_client_side(change):
+    sides = change.get("sides")
+    return _eco(change) == "pack" or (_eco(change) == "mod" and (sides is None or "client" in sides))
+
+
+def _is_worldgen(change, source):
+    return source == "worldgen" or "never-automerge" in _flags(change)
+
+
+# (impact, why, test(change, source)). A change's floor is the highest impact
+# among the rows whose test matches.
+FLOOR_RULES = (
+    ("none", "GitHub Actions bump", lambda c, s: _eco(c) == "action"),
+    ("patch", "update", lambda c, s: _eco(c) != "action"),
+    ("minor", "client-side", lambda c, s: _is_client_side(c)),
+    ("minor", "new", lambda c, s: _eco(c) in HOLD_ECOSYSTEMS and "added" in _flags(c)),
+    ("minor", "dependency major", lambda c, s: _eco(c) in ("docker", "pip") and "major" in _flags(c)),
+    ("major", "worldgen", lambda c, s: _is_worldgen(c, s)),
+    ("major", "removed", lambda c, s: _is_removed(c)),
+)
+
+
+def release_floor(change, source):
+    """Return (impact, [why...]) for one change: the highest matching FLOOR_RULES row."""
+    matched = [(impact, why) for impact, why, test in FLOOR_RULES if test(change, source)]
+    top = max((impact for impact, _ in matched), key=IMPACT_ORDER.get, default="patch")
+    return top, [why for impact, why in matched if impact == top]
+
+
+def higher(a, b):
+    return a if IMPACT_ORDER[a] >= IMPACT_ORDER[b] else b
+
+
+def assign_impacts(final, source):
+    """Set floor, release_impact and raised_by_reviewer on every entry."""
+    for e in final.values():
+        floor, why = release_floor(e, source)
+        claimed = e.get("claimed_impact")
+        e["floor"], e["floor_why"] = floor, why
+        e["release_impact"] = higher(claimed, floor) if claimed else floor
+        e["raised_by_reviewer"] = bool(claimed) and IMPACT_ORDER[claimed] > IMPACT_ORDER[floor]
+
+
+def pr_impact(final, source):
+    impacts = [e["release_impact"] for e in final.values()]
+    return max(impacts, key=IMPACT_ORDER.get) if impacts else EMPTY_IMPACT.get(source, "patch")
+
+
+def _names(entries):
+    names = [commit_text(e.get("name") or e["key"]) for e in entries]
+    shown = ", ".join(names[:NOTE_NAMES])
+    return shown + (f" and {len(names) - NOTE_NAMES} more" if len(names) > NOTE_NAMES else "")
+
+
+def fallback_note(final, source):
+    """A consumer note built from the changes that make the PR major."""
+    major = [e for e in final.values() if e["release_impact"] == "major"]
+    worldgen = [e for e in major if _is_worldgen(e, source)]
+    removed = [e for e in major if _is_removed(e) and e not in worldgen]
+    reviewer = [e for e in major if e not in worldgen and e not in removed]
+    parts = []
+    if worldgen:
+        parts.append(f"Worldgen updates: {_names(worldgen)}. "
+                     "New chunks generate differently; existing chunks are unchanged.")
+    if removed:
+        parts.append(f"Mods removed: {_names(removed)}.")
+    if reviewer:
+        parts.append(f"Rated a breaking change by dep-review: {_names(reviewer)}.")
+    return truncate(" ".join(parts), CONSUMER_NOTE_MAX)
+
+
+def short_version(version):
+    version = plain(version).split("@", 1)[0]
+    return version[:7] if re.fullmatch(r"[0-9a-f]{40}", version) else version
+
+
+def _count_phrase(verb, entries, source):
+    kinds = {_eco(e) for e in entries}
+    one, many = ("mod", "mods") if kinds <= {"mod"} else ("pack", "packs") if kinds <= {"pack"} \
+        else ("mod or pack", "mods and packs")
+    prefix = "worldgen " if source == "worldgen" else ""
+    return f"{verb} {len(entries)} {prefix}{one if len(entries) == 1 else many}"
+
+
+def title_candidates(source, entries):
+    """Descriptions for the commit title, most specific first."""
+    if not entries:
+        return ["update dependencies"]
+    if source in MOD_SOURCES:
+        suffix = " for the next major" if source == "worldgen" else ""
+        if len(entries) == 1:
+            e = entries[0]
+            name = plain(e.get("name") or e["key"])
+            if _is_removed(e):
+                return [f"remove {name}{suffix}", f"remove 1 mod{suffix}"]
+            verb = "add" if "added" in _flags(e) else "update"
+            out = [f"{verb} {name} to {short_version(e['version'])}{suffix}"] if e.get("version") else []
+            return out + [f"{verb} {name}{suffix}", _count_phrase(verb, entries, source) + suffix]
+        added = [e for e in entries if "added" in _flags(e) and not _is_removed(e)]
+        removed = [e for e in entries if _is_removed(e)]
+        updated = [e for e in entries if e not in added and e not in removed]
+        if source == "worldgen" or not (added or removed):
+            return [_count_phrase("update", entries, source) + suffix]
+        parts = []
+        for verb, group in (("update", updated), ("add", added), ("remove", removed)):
+            if group:
+                parts.append(_count_phrase(verb, group, source) if not parts else f"{verb} {len(group)}")
+        return [", ".join(parts), _count_phrase("change", entries, source)]
+    noun = {"actions": ("action", "actions"), "docker": ("docker image", "docker images"),
+            "pip": ("python package", "python packages")}.get(source, ("dependency", "dependencies"))
+    if len(entries) == 1:
+        e = entries[0]
+        name = plain(e.get("name") or e["key"])
+        out = [f"bump {name} to {short_version(e['new'])}"] if e.get("new") else []
+        return out + [f"bump {name}", f"bump 1 {noun[0]}"]
+    return [f"bump {len(entries)} {noun[1]}"]
+
+
+def commit_title(impact, source, entries):
+    prefix = TITLE_PREFIX[impact]
+    for description in title_candidates(source, entries):
+        if len(prefix) + len(description) <= TITLE_MAX:
+            return prefix + description
+    return truncate(prefix + description, TITLE_MAX)
+
+
+def _body_line(e):
+    name = commit_text(e.get("name") or e["key"])
+    if _is_removed(e):
+        change = "removed"
+    elif e["origin"] == "cached":
+        change = f"-> {commit_text(e.get('version') or e.get('new') or '?')}"
+    else:
+        old = commit_text(e.get("old")) or "none"
+        new = commit_text(e.get("version") or e.get("new")) or "?"
+        change = "added" if "added" in _flags(e) else f"{old} -> {new}"
+    return f"- {name}: {change} ({e['release_impact']})"
+
+
+def commit_body(impact, entries, consumer_note):
+    lines = [_body_line(e) for e in entries]
+    if len(lines) > BODY_LINES:
+        lines = lines[: BODY_LINES - 1] + [f"- and {len(entries) - (BODY_LINES - 1)} more"]
+    paragraphs = ["\n".join(lines)] if lines else []
+    if impact == "major":
+        paragraphs.append(f"BREAKING CHANGE: {consumer_note}")
+    elif consumer_note:
+        paragraphs.append(f"Consumers: {consumer_note}")
+    return "\n\n".join(paragraphs)
+
+
+def release_fields(final, source, consumer_note):
+    """plan.json's release_impact, consumer_note, commit_title and commit_body."""
+    impact = pr_impact(final, source)
+    if impact == "major" and not consumer_note:
+        consumer_note = fallback_note(final, source) or "Needs consumer action; see the dep-review comment."
+    entries = list(final.values())
+    return {"release_impact": impact, "consumer_note": consumer_note,
+            "commit_title": commit_title(impact, source, entries),
+            "commit_body": commit_body(impact, entries, consumer_note)}
 
 
 # --- comment ---------------------------------------------------------------
@@ -533,14 +787,20 @@ def table_rows(entries):
             name += " (earlier review)"
         change = change_cell(e) if e["origin"] != "cached" else f"→ {md(e.get('new') or '?')}"
         flags = ", ".join(md(f) for f in e["flags"]) if e["flags"] else ("unknown" if e["flags"] is None else "—")
-        rows.append(f"| {name} | {change} | {e['decision']} | {e['risk']} | {flags} | {md(e['reason'])} |")
+        impact = e["release_impact"] + (" (reviewer)" if e["raised_by_reviewer"] else "")
+        rows.append(f"| {name} | {change} | {e['decision']} | {e['risk']} | {impact} | {flags} "
+                    f"| {md(e['reason'])} |")
     return rows
 
 
 def render_comment(plan, final, summary, notes, run_url, adds, removes,
                    evidence=True, summarise_accepts=False, max_rows=None):
     lines = [common.encode_state(plan["state"]), "", "### Dependency review", "",
-             outcome_line(plan["action"], final, plan["reasons"], adds, removes), ""]
+             outcome_line(plan["action"], final, plan["reasons"], adds, removes),
+             f"Release impact: **{plan['release_impact']}**. Commit title: {md_code_or_text(plan['commit_title'])}",
+             ""]
+    if plan["consumer_note"]:
+        lines += [f"Consumer note: {md(plan['consumer_note'])}", ""]
     if plan["action"] != "merge" and plan["reasons"] and (plan["action"] != "human" or len(plan["reasons"]) > 1):
         lines += [f"- {md(truncate(r, REASON_BULLET_MAX))}" for r in plan["reasons"]] + [""]
 
@@ -554,8 +814,8 @@ def render_comment(plan, final, summary, notes, run_url, adds, removes,
     else:
         omitted = 0
     if rows:
-        lines += ["| Dependency | Change (old → new) | Decision | Risk | Flags | Reason |",
-                  "| --- | --- | --- | --- | --- | --- |"] + rows + [""]
+        lines += ["| Dependency | Change (old → new) | Decision | Risk | Release | Flags | Reason |",
+                  "| --- | --- | --- | --- | --- | --- | --- |"] + rows + [""]
     if hidden_accepts:
         lines += [f"{plural(hidden_accepts, 'further update')} accepted; rows omitted for length.", ""]
     if omitted:
@@ -594,7 +854,7 @@ def fit_comment(plan, final, summary, notes, run_url, adds, removes):
     rows = len(final)
     while rows > 0:
         rows //= 2
-        body = render_comment(plan, final, summary, notes[:5], run_url, adds, removes,
+        body = render_comment(plan, final, "", [], run_url, adds, removes,
                               evidence=False, summarise_accepts=True, max_rows=rows)
         if len(body) <= COMMENT_MAX:
             return body
@@ -609,12 +869,14 @@ def build(gate, context, verdict_path, tests, policy, manifest_path, run_url, no
     work_keys = {c["key"] for c in context.get("work") or [] if isinstance(c, dict) and isinstance(c.get("key"), str)}
     raw, error = load_verdict(verdict_path)
     verdict = validate_verdict(raw, work_keys) if error is None else {
-        "ok": False, "error": error, "summary": "", "judged": {}, "invalid": {}, "duplicates": set(),
+        "ok": False, "error": error, "summary": "", "consumer_note": "", "judged": {}, "invalid": {},
+        "duplicates": set(),
         "holds_add": [], "holds_remove": [], "notes": []}
     notes = [truncate(plain(n), REASON_BULLET_MAX) for n in context.get("notes") or [] if isinstance(n, str)]
     notes += verdict["notes"]
     final = build_final(context, gate, verdict)
     source = gate.get("source")
+    assign_impacts(final, source)
 
     adds, removes = [], []
     manifest = None
@@ -638,6 +900,7 @@ def build(gate, context, verdict_path, tests, policy, manifest_path, run_url, no
     if action != "rehold":
         adds, removes = [], []
 
+    release = release_fields(final, source, verdict["consumer_note"])
     plan = {
         "action": action,
         "reasons": reasons,
@@ -647,12 +910,13 @@ def build(gate, context, verdict_path, tests, policy, manifest_path, run_url, no
         "holds_changed": bool(adds or removes),
         "holds_added": adds,
         "holds_removed": removes,
+        **release,
         "verdict_ok": verdict["ok"],
         "notes": notes,
         "pr": gate.get("pr"),
         "head_sha": gate.get("head_sha"),
         "generated_at": now,
-        "state": state_for(gate, final),
+        "state": state_for(gate, final, release),
     }
     comment = fit_comment(plan, final, verdict["summary"], notes, run_url, adds, removes)
     new_manifest = edited_manifest(manifest, adds, removes) if adds or removes else None
@@ -697,7 +961,8 @@ def main(argv=None):
         Path(args.manifest).write_text(new_manifest, encoding="utf-8")
     Path(args.out).write_text(json.dumps(plan, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     Path(args.comment).write_text(comment, encoding="utf-8")
-    print(f"dep-review apply: action={plan['action']} reasons={len(plan['reasons'])}")
+    print(f"dep-review apply: action={plan['action']} reasons={len(plan['reasons'])} "
+          f"release_impact={plan['release_impact']}")
     return 0
 
 
