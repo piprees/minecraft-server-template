@@ -117,6 +117,12 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
+      # Same interpreter as mod-updates.yml; some scripts need 3.12+ syntax.
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: '3.13'
+
       - name: Unit tests
         run: python3 -B -m unittest discover -s scripts/tests -p 'test_*.py'
 
@@ -319,6 +325,8 @@ jobs:
           gh label create dep-review:safe --color 0E8A16 --force
           gh label create dep-review:attention --color FBCA04 --force
           gh label create dep-review:rejected --color B60205 --force
+          gh label create dep-review:ready-for-major --color 5319E7 --force \
+            --description "Worldgen updates reviewed and green; merge only when cutting the next major"
           ARGS=()
           while IFS= read -r l; do ARGS+=(--add-label "$l"); done < <(jq -r '.labels_add[]' plan.json)
           while IFS= read -r l; do ARGS+=(--remove-label "$l"); done < <(jq -r '.labels_remove[]' plan.json)
@@ -336,6 +344,10 @@ jobs:
           fi
           # A GITHUB_TOKEN merge triggers no push workflows; rebuild main's images.
           gh workflow run publish.yml --ref main
+          # The next-major PR shares the manifest; re-pinning now keeps it mergeable.
+          if [[ "$(jq -r .source gate.json)" == "mods" ]]; then
+            gh workflow run mod-updates.yml --ref main
+          fi
 
       - name: Close
         if: steps.moved.outputs.moved != 'true'
@@ -346,11 +358,13 @@ jobs:
 
       - name: Hold mods back and regenerate the PR
         if: steps.moved.outputs.moved != 'true'
-        env:
-          HEAD_REF: mod-updates/auto
         run: |
           [[ "$(jq -r .action plan.json)" == "rehold" ]] || exit 0
-          [[ "$(jq -r .source gate.json)" == "mods" ]] || { echo "::error::rehold on a non-mod PR"; exit 1; }
+          HEAD_REF=$(jq -r .head_ref gate.json)
+          case "$HEAD_REF" in
+            mod-updates/auto | mod-updates/next-major) ;;
+            *) echo "::error::rehold on $HEAD_REF, which is not a mod-updates branch"; exit 1 ;;
+          esac
           git fetch --no-tags origin "$HEAD_REF"
           git checkout --detach FETCH_HEAD
           [[ "$(git rev-parse HEAD)" == "$HEAD_SHA" ]] || { echo "::notice::branch moved"; exit 0; }

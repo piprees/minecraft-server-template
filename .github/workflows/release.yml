@@ -18,8 +18,31 @@ permissions:
   contents: write
 
 jobs:
+  # Consumers pinned to a major (STACK_VERSION=v5) take every release in it,
+  # so a breaking commit (`type!:` or a BREAKING CHANGE footer; the merged
+  # next-major worldgen PR is one) may only ship in a new major.
+  semver:
+    name: Version matches the changes
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+          persist-credentials: false
+
+      - name: Refuse a non-major release over breaking changes
+        env:
+          VERSION: ${{ inputs.version }}
+        run: ./scripts/check-release-version.sh "$VERSION"
+
   smoke-test:
     name: Smoke test
+    needs: semver
     uses: ./.github/workflows/smoke-test.yml
     permissions:
       contents: read

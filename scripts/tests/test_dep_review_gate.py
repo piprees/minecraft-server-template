@@ -216,6 +216,21 @@ class Provenance(unittest.TestCase):
         self.assertIn("not an allowed bot", result["reason"])
 
 
+class NextMajorBranch(unittest.TestCase):
+    def test_next_major_branch_is_the_worldgen_source(self):
+        pr, commits, files, comments = load(26)
+        pr["head"]["ref"] = "mod-updates/next-major"
+        result = evaluate(pr, commits, files, comments, REPO, POLICY)
+        self.assertTrue(result["ok"], result["reason"])
+        self.assertEqual(result["source"], "worldgen")
+        self.assertTrue(result["needs_smoke"])
+
+    def test_other_mod_branches_are_rejected(self):
+        pr, commits, files, comments = load(26)
+        pr["head"]["ref"] = "mod-updates/other"
+        self.assertFalse(evaluate(pr, commits, files, comments, REPO, POLICY)["ok"])
+
+
 class Manifest(unittest.TestCase):
     """The mod PR may re-pin manifest entries and edit holds, nothing else."""
 

@@ -62,7 +62,9 @@ SECRET_MARKERS = ("sk-ant-", "ghp_", "ghs_", "gho_", "github_pat_", "-----BEGIN"
 WITHHELD = "verdict withheld: contained credential-like text"
 SLUG_RE = re.compile(r"[a-z0-9_-]{1,64}")
 RUN_URL_RE = re.compile(r"https://[A-Za-z0-9._~:/?#@!$&'*+,;=%-]+")
-SOURCES = ("mods", "actions", "docker", "pip")
+SOURCES = ("mods", "worldgen", "actions", "docker", "pip")
+# Sources whose PR carries mod pins and may have holds edited.
+MOD_SOURCES = ("mods", "worldgen")
 HOLD_ECOSYSTEMS = ("mod", "pack")
 GREEN_CONCLUSIONS = ("success", "skipped", "neutral")
 
@@ -72,8 +74,10 @@ OUTCOME_LABELS = {
     "human": "dep-review:attention",
     "rehold": "dep-review:attention",
     "close": "dep-review:rejected",
+    "ready": "dep-review:ready-for-major",
 }
-ALL_OUTCOME_LABELS = ("dep-review:safe", "dep-review:attention", "dep-review:rejected")
+ALL_OUTCOME_LABELS = ("dep-review:safe", "dep-review:attention", "dep-review:rejected",
+                      "dep-review:ready-for-major")
 
 UNJUDGED = "Not judged by the reviewer."
 _BIDI = set("‎‏‪‫‬‭‮⁦⁧⁨⁩")
@@ -343,6 +347,21 @@ def integrity_problems(gate, context, policy, final):
     return problems
 
 
+def _ready_gate_policy(source, gate, policy, tests):
+    """(gate, tests, policy) as merge_blockers should see them for this source.
+
+    The next-major PR exists to carry worldgen changes and is only ever merged
+    by hand, so for it the worldgen blockers are dropped and every other rule
+    decides whether it is ready.
+    """
+    if source != "worldgen":
+        return gate, tests, policy
+    gate = {**gate, "worldgen_paths": [], "files": []}
+    policy = {**policy, "never_automerge_paths": [],
+              "blocking_flags": [f for f in policy.get("blocking_flags") or [] if f != "never-automerge"]}
+    return gate, tests, policy
+
+
 def merge_blockers(gate, tests, policy, final):
     """Every reason the deterministic policy forbids an automatic merge."""
     reasons = []
@@ -443,9 +462,9 @@ def decide(source, verdict, final, adds, removes, blockers):
     not_accepted = [k for k, e in final.items() if e["decision"] != "accept"]
     if not verdict["ok"]:
         return "human", [verdict["error"]]
-    if source == "mods" and (adds or removes):
+    if source in MOD_SOURCES and (adds or removes):
         return "rehold", []
-    if source != "mods":
+    if source not in MOD_SOURCES:
         if final and all(e["decision"] == "reject" for e in final.values()):
             return "close", [f"The reviewer rejected every update: {', '.join(final)}."]
         if not_accepted:
@@ -454,6 +473,8 @@ def decide(source, verdict, final, adds, removes, blockers):
         return "human", [f"Not accepted by the reviewer: {', '.join(not_accepted)}."]
     if blockers:
         return "human", blockers
+    if source == "worldgen":
+        return "ready", []
     return "merge", []
 
 
@@ -482,6 +503,9 @@ def outcome_line(action, final, reasons, adds, removes):
         return f"Auto-merging: {plural(n, 'update')} accepted, {risk}, tests green."
     if action == "close":
         return f"Closing: the reviewer rejected all {plural(n, 'update')}."
+    if action == "ready":
+        return (f"Ready for the next major release: {plural(n, 'update')} accepted, tests green. "
+                "Merge this only when cutting the next major version.")
     if action == "rehold":
         parts = []
         if adds:
@@ -596,7 +620,7 @@ def build(gate, context, verdict_path, tests, policy, manifest_path, run_url, no
     manifest = None
     problems = integrity_problems(gate, context, policy, final)
     if verdict["ok"] and (verdict["holds_add"] or verdict["holds_remove"]):
-        if source != "mods":
+        if source not in MOD_SOURCES:
             notes.append("Ignored hold changes: holds apply only to mod PRs.")
         elif not problems:
             manifest = read_optional_json(manifest_path)
@@ -610,7 +634,7 @@ def build(gate, context, verdict_path, tests, policy, manifest_path, run_url, no
         adds, removes = [], []
     else:
         action, reasons = decide(source, verdict, final, adds, removes,
-                                 merge_blockers(gate, tests, policy, final))
+                                 merge_blockers(*_ready_gate_policy(source, gate, policy, tests), final))
     if action != "rehold":
         adds, removes = [], []
 

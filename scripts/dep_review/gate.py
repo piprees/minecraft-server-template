@@ -70,13 +70,19 @@ ALLOWED_AUTHORS = {
     "docker": {DEPENDABOT},
     "pip": {DEPENDABOT},
     "mods": {ACTIONS_BOT},
+    "worldgen": {ACTIONS_BOT},
 }
 ALLOWED_COMMITTERS = {
     "actions": {DEPENDABOT, WEB_FLOW},
     "docker": {DEPENDABOT, WEB_FLOW},
     "pip": {DEPENDABOT, WEB_FLOW},
     "mods": {ACTIONS_BOT},
+    "worldgen": {ACTIONS_BOT},
 }
+# mod-updates.yml's two branches: regular updates, and the worldgen updates
+# held for the next major release.
+MOD_BRANCHES = {"mod-updates/auto": "mods", "mod-updates/next-major": "worldgen"}
+MOD_SOURCES = tuple(MOD_BRANCHES.values())
 MANIFEST = "modpack/adventure.mrpack.json"
 # Lists mod-updates.yml re-pins in place; every other part of the manifest
 # except `_holds` must be identical on both sides.
@@ -166,8 +172,8 @@ def identify_source(pr):
         if not source:
             return None, f"unsupported Dependabot ecosystem {segment!r} (branch {ref})"
         return source, None
-    if login == ACTIONS_BOT and ref == "mod-updates/auto":
-        return "mods", None
+    if login == ACTIONS_BOT and ref in MOD_BRANCHES:
+        return MOD_BRANCHES[ref], None
     return None, f"PR by {login!r} on branch {ref!r} is not a recognised dependency-update source"
 
 
@@ -239,7 +245,7 @@ def check_files(source, files):
         return f"PR changes {len(files)} files (limit {MAX_FILES})"
     for f in files:
         name, status = f.get("filename") or "", f.get("status")
-        if source == "mods":
+        if source in MOD_SOURCES:
             if not mod_file_allowed(name, status):
                 return f"{name} ({status}) is outside what mod-updates.yml may change"
             if name == "config/modrinth-mods.txt":
@@ -319,7 +325,7 @@ def evaluate(pr, commits, files, comments, repo, policy, force=False, manifests=
         if not reason:
             result["source"] = source
             reason = check_commits(source, commits or []) or check_files(source, files or [])
-        if not reason and source == "mods" and MANIFEST in names:
+        if not reason and source in MOD_SOURCES and MANIFEST in names:
             reason = check_manifest(*manifests)
     except (AttributeError, IndexError, KeyError, TypeError, ValueError) as exc:
         reason = f"malformed API data: {exc!r}"
@@ -335,7 +341,7 @@ def evaluate(pr, commits, files, comments, repo, policy, force=False, manifests=
         fingerprint=fingerprint(files),
         state_comment_id=comment_id,
         previous_state=state,
-        needs_smoke=source == "mods" or "docker/defaults-seed/Dockerfile" in names,
+        needs_smoke=source in MOD_SOURCES or "docker/defaults-seed/Dockerfile" in names,
         dockerfiles=[n for n in names if n.endswith("/Dockerfile")],
         worldgen_paths=[n for n in names if prefixes and n.startswith(prefixes)],
     )

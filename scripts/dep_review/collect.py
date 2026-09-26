@@ -389,7 +389,8 @@ class Enricher:
         d, flags = change["details"], change["flags"]
         kind = d.get("kind")
         d["config_paths"] = [p for p in self.config_files if change["name"].lower() in p.lower()][:CONFIG_PATHS_MAX]
-        if d.get("section") in self.policy.get("never_automerge_sections", []):
+        if d.get("section") in self.policy.get("never_automerge_sections", []) \
+                or change["name"] in self.policy.get("worldgen_slugs", []):
             flags.append("never-automerge")
         old_v = self.versions.get(change["old"]) if change["old"] else None
         new_v = self.versions.get(change["new"]) if change["new"] else None
@@ -772,7 +773,7 @@ def collect(gate, policy, *, client, now, offline=False, pr_body=None, show=git_
     old = (resolve_old or old_side)(base, head, notes)
     source, files = gate["source"], gate.get("files") or []
     changes = []
-    if source == "mods":
+    if source in ("mods", "worldgen"):
         old_txt, new_txt = show(old, MODS_TXT), show(head, MODS_TXT)
         old_man, new_man = show(old, MANIFEST), show(head, MANIFEST)
         changes = mod_changes(old_txt, new_txt, old_man, new_man)
@@ -797,7 +798,7 @@ def collect(gate, policy, *, client, now, offline=False, pr_body=None, show=git_
     cached_changes = [c for c in changes if isinstance(verdicts.get(c["key"]), dict)]
 
     holds = []
-    if source == "mods":
+    if source in ("mods", "worldgen"):
         new_txt, new_man = show(head, MODS_TXT), show(head, MANIFEST)
         server, manifest = parse_server_list(new_txt), parse_manifest(new_man)
         head_slugs = set(server) | set(manifest["client"]) | set(manifest["packs"])
@@ -817,7 +818,7 @@ def collect(gate, policy, *, client, now, offline=False, pr_body=None, show=git_
                       "old_sha": old},
                "target_mc": TARGET_MC, "work": work, "cached": cached, "holds": holds, "notes": notes}
     body = None
-    if pr_body and source != "mods":
+    if pr_body and source not in ("mods", "worldgen"):
         body = pr_body if len(pr_body) <= PR_BODY_MAX else pr_body[:PR_BODY_MAX] + "\n[PR body truncated]"
     return context, render(context, body), old
 

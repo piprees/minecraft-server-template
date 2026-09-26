@@ -174,7 +174,8 @@ Three categories, by where a script ends up and who runs it. Every script has a 
 | `pin-mod-versions.sh` | Re-pin every mod to its latest build (used by mod-updates.yml) |
 | `check-modrinth-compat.sh` | Check the mod list against a target MC version/loader |
 | `build-mod-update-report.py` | Build the mod-update PR body with changelogs |
-| `dep_review/` | The deterministic halves of `dep-review.yml`: `gate.py` admits a bot PR, `collect.py` bundles its changelogs and flags, `apply.py` enforces the merge policy, `carry_holds.py` keeps review holds across the weekly re-pin ([`docs/dependency-review.md`](docs/dependency-review.md)) |
+| `dep_review/` | The deterministic halves of `dep-review.yml`: `gate.py` admits a bot PR, `collect.py` bundles its changelogs and flags, `apply.py` enforces the merge policy, `carry_holds.py` keeps review holds across the weekly re-pin, `partition.py` splits the weekly mod update into the regular PR and the next-major worldgen PR ([`docs/dependency-review.md`](docs/dependency-review.md)) |
+| `check-release-version.sh` | First job of release.yml: refuses a release that keeps the major version when a commit since the last release is breaking (`type!:` or a `BREAKING CHANGE:` footer) |
 | `client-defaults.sh` | Diff/sync shipped client defaults against the source Prism instance |
 | `test-scripts.sh` | shellcheck + py_compile + compose validation |
 | `e2e/` | End-to-end harness: drives a linked local consumer and the real client through ignition, traversal, idle unload and companion suppression ([`scripts/e2e/README.md`](scripts/e2e/README.md)) |

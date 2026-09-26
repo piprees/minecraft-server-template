@@ -188,6 +188,8 @@ Server list: `config/modrinth-mods.txt` (`slug:versionId`, `?` = optional, `data
 
 **Never bump a slug listed in `_holds`** (top level of `modpack/adventure.mrpack.json`, slug → reason; `pin-mod-versions.sh` reads it for the server list and the client manifest alike). Remove a hold only when its stated blocker clears, and move era-pairs together — Xaero's minimap and world map share code. Holds and resource/shader pack manifests (`_resourcePacks`/`_shaderPacks`, filename-pinned in `options.txt`): the `server-mod-management` and `consumer-customisation` skills.
 
+**Worldgen mod updates ship only in a major.** `mod-updates.yml` opens two PRs: `mod-updates/auto` (regular updates, auto-merged by `dep-review.yml` when policy allows) and `mod-updates/next-major` (worldgen updates, merged only by a human cutting the next major; `release.yml` refuses a minor release after it). Never merge the next-major PR otherwise. Flow, policy and setup: [`docs/dependency-review.md`](docs/dependency-review.md).
+
 ## Config sync
 
 Mod configs live in `config/<modname>/`, or flat `config/<file>` when the mod reads a bare path — verify against the jar (Tectonic reads `config/tectonic.json`). `deploy.sh` step 8 copies them into `data/config/` on every full deploy and `dev-up.sh` does it locally skip-if-exists, both **before mc starts** so no mod writes its own defaults first. Adding a mod with config means two places: the files in `config/<modname>/`, and a `COPY` line in `docker/defaults-seed/Dockerfile` so the seed volume carries the default for the consumer overlay to merge over.

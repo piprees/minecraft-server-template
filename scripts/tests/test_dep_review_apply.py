@@ -504,3 +504,41 @@ class OutputShapeTests(ApplyCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class NextMajorTests(ApplyCase):
+    """The worldgen PR is readied for a human-cut major, never merged."""
+
+    def test_clean_worldgen_pr_is_ready_not_merged(self):
+        a = change("tectonic", flags=["never-automerge"])
+        plan = self.run_apply([a], verdict([judged(a)]), source="worldgen",
+                              head_ref="mod-updates/next-major",
+                              worldgen_paths=["config/datapack-presets/x.json"],
+                              files=["config/datapack-presets/x.json"])
+        self.assertEqual(plan["action"], "ready")
+        self.assertIn("dep-review:ready-for-major", plan["labels_add"])
+        self.assertIn("dep-review:safe", plan["labels_remove"])
+        self.assertIn("Merge this only when cutting the next major version.", self.comment)
+
+    def test_other_blockers_still_apply(self):
+        a = change("tectonic", flags=["never-automerge", "prerelease"])
+        plan = self.run_apply([a], verdict([judged(a)]), source="worldgen")
+        self.assertHuman(plan, "prerelease")
+
+    def test_a_failed_smoke_test_is_not_ready(self):
+        a = change("terralith", flags=["never-automerge"])
+        plan = self.run_apply([a], verdict([judged(a)]), source="worldgen", needs_smoke=True,
+                              tests={**GREEN, "smoke": "failure"})
+        self.assertHuman(plan, "Smoke test")
+
+    def test_holds_apply_to_the_worldgen_pr(self):
+        a = change("tectonic", flags=["never-automerge"])
+        v = verdict([judged(a, decision="hold", risk="high")],
+                    holds_add=[{"slug": "tectonic", "reason": "3.1 changes erosion defaults"}])
+        plan = self.run_apply([a], v, source="worldgen")
+        self.assertEqual(plan["action"], "rehold")
+
+    def test_worldgen_flag_still_blocks_the_regular_pr(self):
+        a = change("tectonic", flags=["never-automerge"])
+        plan = self.run_apply([a], verdict([judged(a)]), source="mods")
+        self.assertHuman(plan, "never-automerge")

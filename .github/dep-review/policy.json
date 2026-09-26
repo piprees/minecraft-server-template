@@ -1,5 +1,5 @@
 {
-  "_comment": "Deterministic auto-merge policy for dep-review.yml, enforced by scripts/dep_review/apply.py whatever the reviewer decides. The reviewer can only make a PR less mergeable than this allows, never more.",
+  "_comment": "Deterministic policy for dep-review.yml and the mod-update split. apply.py enforces the merge rules whatever the reviewer decides; the reviewer can only make a PR less mergeable. never_automerge_sections and worldgen_slugs also decide which mod updates go to the next-major PR (scripts/dep_review/partition.py), alongside any mod whose jar's worldgen data changed.",
   "automerge_max_risk": "low",
   "min_age_days": 3,
   "blocking_flags": [
@@ -16,7 +16,12 @@
     "terrain & biomes",
     "BetterX family (chunk-zero only)",
     "caves & underground",
-    "dimensions"
+    "dimensions",
+    "structures (need yungs-api)",
+    "boss dungeons & extra structures"
+  ],
+  "worldgen_slugs": [
+    "c2me-fabric"
   ],
   "never_automerge_paths": [
     "config/datapacks/",

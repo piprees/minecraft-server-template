@@ -22,7 +22,7 @@ last review.
 
 | Job | What it does | Token |
 | --- | --- | --- |
-| gate | `gate.py`: admits only open, non-fork PRs by `dependabot[bot]` (`dependabot/*` branches) or `github-actions[bot]` (`mod-updates/auto`) whose commits are bot-authored and whose diff touches version lines only. Skips when the version set matches the last review. | read |
+| gate | `gate.py`: admits only open, non-fork PRs by `dependabot[bot]` (`dependabot/*` branches, GitHub-signed commits) or `github-actions[bot]` (`mod-updates/auto`, `mod-updates/next-major`) whose diff changes version lines only; the mod PRs' manifest may change pins and holds and nothing else. Skips when the version set matches the last review. | read |
 | quick | Unit tests, ShellCheck, changed-JSON validity, and a build of every changed Dockerfile, on the PR head | read, no secrets |
 | smoke | `smoke-test.yml` on the PR head, for the mod PR and `defaults-seed` bumps | read, no secrets |
 | review | `collect.py` fetches every changelog, flag and dependency into `review/`; Claude judges it with Read, Grep and Glob only and returns a schema-checked verdict | read, OAuth token |
@@ -30,6 +30,36 @@ last review.
 
 The review comment on the PR carries the verdicts. On a refresh, only
 versions not already judged go to Claude; earlier verdicts are reused.
+
+## Two mod PRs
+
+`mod-updates.yml` re-pins every mod each Monday, then `partition.py` splits the
+result:
+
+| PR | Branch | Holds | Merged by |
+| --- | --- | --- | --- |
+| Regular updates | `mod-updates/auto` | everything else | dep-review, when the policy allows |
+| Next major | `mod-updates/next-major` | worldgen updates, the regenerated presets and the structure census | a human cutting the next major release |
+
+A mod update is worldgen when the mod sits in a `never_automerge_sections`
+section of `config/modrinth-mods.txt` (terrain, BetterX, caves, dimensions,
+structures, boss dungeons), is named in `worldgen_slugs`, or its jar's
+`data/*/worldgen`, `structure(s)`, `tags/worldgen` or biome-modifier files
+differ between the old and new version. A mod added or removed, or a jar that
+cannot be compared, counts as worldgen.
+
+Consumers pinned to a major (`STACK_VERSION=v5`) take every release in it, and
+worldgen cannot be undone on generated chunks, so worldgen ships only in a
+major. The next-major PR's commit is `feat(mods)!:` with a `BREAKING CHANGE:`
+footer, and `scripts/check-release-version.sh` makes `release.yml` refuse any
+release after it that keeps the major. dep-review reviews every refresh, holds
+mods back on it like on the regular PR, never merges it, and labels it
+`dep-review:ready-for-major` when everything but its worldgen status passes.
+Merging the regular PR re-runs `mod-updates.yml`, so the next-major PR stays
+mergeable.
+
+To release it: merge the next-major PR, then
+`gh workflow run release.yml -f version=vN.0.0`.
 
 ## What merges automatically
 
@@ -40,8 +70,7 @@ All of these, checked by `apply.py` whatever the reviewer says:
   the PR head completed green
 - no blocking flag: pre-release, major version, wrong Minecraft version or
   loader, a missing required dependency, fewer than `min_age_days` (3) since
-  release, or a mod in a `never_automerge_sections` section of
-  `config/modrinth-mods.txt` (terrain, BetterX, caves, dimensions)
+  release, or a worldgen mod (`never_automerge_sections`, `worldgen_slugs`)
 - no change under `never_automerge_paths` (regenerated worldgen presets and
   the structure census)
 
@@ -51,10 +80,12 @@ server until a release is cut.
 
 ## Holds
 
-For the mod PR, the reviewer can hold a mod at its current version or release
-an existing hold whose blocker has cleared. `apply.py` edits `_holds` on the
-PR branch and dispatches `mod-updates.yml`, which re-pins from main with those
-holds carried over (`carry_holds.py`) and asks for the next review.
+On either mod PR, the reviewer holds a mod at its current version when it is a
+pre-release, targets the wrong game version or loader, misses a dependency, or
+looks risky, and releases an existing hold whose blocker has cleared.
+`apply.py` edits `_holds` on the PR branch and dispatches `mod-updates.yml`,
+which re-pins from main with both branches' holds carried over
+(`carry_holds.py`) and asks for the next review.
 
 ## Who can start it
 
@@ -65,7 +96,7 @@ another ref, and the environment keeps the token on main.
 - Dependabot PRs: `dep-review-relay.yml` dispatches for `pull_request` events
   whose actor and author are both `dependabot[bot]`. Its token can only
   dispatch; fork PRs get a read-only token and cannot.
-- The mod PR: `mod-updates.yml` dispatches after opening or refreshing it.
+- The mod PRs: `mod-updates.yml` dispatches after opening or refreshing each.
 - Anything else fails the gate, which re-reads the PR from the API.
 
 The reviewer never sees the PR as a checkout: the job's working tree is
