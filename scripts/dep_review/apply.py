@@ -428,7 +428,7 @@ def _ready_gate_policy(source, gate, policy, tests):
     if source != "worldgen":
         return gate, tests, policy
     gate = {**gate, "worldgen_paths": [], "files": []}
-    policy = {**policy, "never_automerge_paths": [],
+    policy = {**policy, "never_automerge_paths": [], "automerge_majors": True,
               "blocking_flags": [f for f in policy.get("blocking_flags") or [] if f != "never-automerge"]}
     return gate, tests, policy
 
@@ -436,6 +436,11 @@ def _ready_gate_policy(source, gate, policy, tests):
 def merge_blockers(gate, tests, policy, final):
     """Every reason the deterministic policy forbids an automatic merge."""
     reasons = []
+    # A major lands deliberately: the release train's monthly worldgen merge
+    # or a human, never as a side effect of a routine update.
+    majors = sorted(k for k, e in final.items() if e.get("release_impact") == "major")
+    if majors and not policy.get("automerge_majors", False):
+        reasons.append(f"Release impact is major ({', '.join(majors)}); majors merge by hand or through the monthly release train.")
     tests = tests if isinstance(tests, dict) else {}
     required = [("quick", "Quick checks")]
     if gate.get("needs_smoke"):

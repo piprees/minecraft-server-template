@@ -47,7 +47,7 @@ Then push to `main` — `.github/workflows/deploy.yml` calls the reusable workfl
 
 ## Upgrading
 
-Bump `STACK_VERSION` in `.env` and in the `STACK_VERSION` repository variable that CI deploys from (or leave both as `v5` to track the latest v5.x.y), then `./dev update && ./dev up`. Each release `vX.Y.Z` tags every GHCR image (`X.Y.Z`, `X.Y`, `X`, `latest`) and attaches a **stack bundle** tarball: compose files, all host-side operational scripts, default configs, and the in-house mod JARs (`local-mods/`, CI-built and remap-verified, installed into `data/mods/` by `deploy.sh` and `./dev up`). What each bump class may contain: [DEPENDENCIES.md § Versioning contract](DEPENDENCIES.md#versioning-contract). Cutting a release: the `platform-release-management` skill.
+A consumer's committed `.stack-version` names the release it runs; the weekly `Updates` workflow opens a PR moving it to the newest release, and merges a patch or minor itself ([DEPENDENCIES.md § For consumers](DEPENDENCIES.md#for-consumers)). Locally, `./dev update && ./dev up`. Each release `vX.Y.Z` tags every GHCR image (`X.Y.Z`, `X.Y`, `X`, `latest`) and attaches a **stack bundle** tarball: compose files, all host-side operational scripts, default configs, and the in-house mod JARs (`local-mods/`, CI-built and remap-verified, installed into `data/mods/` by `deploy.sh` and `./dev up`). What each bump class may contain: [DEPENDENCIES.md § Versioning contract](DEPENDENCIES.md#versioning-contract). Cutting a release: the `platform-release-management` skill.
 
 ## Architecture
 
@@ -154,6 +154,7 @@ Three categories, by where a script ends up and who runs it. Every script has a 
 | `map-render.sh` | Mac | Drive the unmined-render sidecar: status, force a render pass |
 | `force-toml-key.py` | server, Mac | Force one key in a mod's TOML to a value, re-applied every deploy because mods rewrite their own config |
 | `lib.sh` | (sourced) | Shared utilities: env loading, bounded RCON, the deploy lock, provider detection |
+| `stack_update.py` | CI (consumer) | The `Updates` workflow's stack job: picks the highest stable release, sizes the bump, writes the PR body, checks every image exists at the target version |
 
 ### Image scripts (baked into GHCR images, not run directly)
 
@@ -175,6 +176,7 @@ Three categories, by where a script ends up and who runs it. Every script has a 
 | `check-modrinth-compat.sh` | Check the mod list against a target MC version/loader |
 | `build-mod-update-report.py` | Build the mod-update PR body with changelogs |
 | `dep_review/` | The deterministic halves of `dep-review.yml`: `gate.py` admits a bot PR, `collect.py` bundles its changelogs and flags, `apply.py` enforces the merge policy, `carry_holds.py` keeps review holds across the weekly re-pin, `partition.py` splits the weekly mod update into the regular PR and the next-major worldgen PR ([`docs/dependency-review.md`](docs/dependency-review.md)) |
+| `platform_updates.py` | Resolve and apply the weekly platform updates (compose images, Fabric loader, yarn, fabric-api, build and release tools) for `platform-updates.yml`; its tables are the list `gate.py` admits |
 | `check-release-version.sh` | First job of release.yml: refuses a release that keeps the major version when a commit since the last release is breaking (`type!:` or a `BREAKING CHANGE:` footer) |
 | `client-defaults.sh` | Diff/sync shipped client defaults against the source Prism instance |
 | `test-scripts.sh` | shellcheck + py_compile + compose validation |
@@ -213,15 +215,15 @@ Minecraft 1.21.1 is a fixed decision. Changing it: [DEPENDENCIES.md § Changing 
 
 ### Deploy to production
 
-Pushing to `main` in a consumer repo triggers the caller workflow, which invokes the reusable `deploy-reusable.yml` from this platform repo. It resolves the symbolic `STACK_VERSION` pin (`v5`, `latest`) to a concrete release tag, compares it against the bundle the server is actually running (`readlink .stack/current`), then diffs consumer files against the server's deployed commit and picks a tier:
+Pushing to `main` in a consumer repo triggers the caller workflow, which invokes the reusable `deploy-reusable.yml` from this platform repo. It resolves the stack pin (the consumer's `.stack-version`, or a manual dispatch's `stack_version`) to a concrete release tag, refuses one from another major than its own `@vN`, compares it against the bundle the server is actually running (`readlink .stack/current`), then diffs consumer files against the server's deployed commit and picks a tier:
 
 | Mode | Trigger | What happens |
 | --- | --- | --- |
-| **Full** | A new platform release matching the pin (resolved tag ≠ running bundle), `overlay/config/`, `overlay/mods-extra.txt`, `overlay/mods-remove.txt`, manual dispatch, releases | Secrets uploaded → stack bundle pinned to the resolved tag → deploy.sh: countdown → kick → whitelist-block → save → restart → regenerate .env → config sync → permissions → whitelist restore → Discord notify |
+| **Full** | The resolved pin differs from the running bundle, `overlay/config/`, `overlay/mods-extra.txt`, `overlay/mods-remove.txt`, manual dispatch, releases | Secrets uploaded → stack bundle pinned to the resolved tag → deploy.sh: countdown → kick → whitelist-block → save → restart → regenerate .env → config sync → permissions → whitelist restore → Discord notify |
 | **Infra** | Other `overlay/` changes (assets, branding) | Image pull + compose up (mc untouched) + force-recreate sidecars |
 | **Pull** | Docs, CI, everything else — and no stack change | Nothing touches the server |
 
-Consumer repos have almost no deployable files of their own, so **most full deploys are driven by the resolved-tag comparison**, not by consumer file diffs: a consumer push made after a platform release lands is what rolls it out. CI rebuilds the `.mrpack` + download page after every full deploy. Monitoring and recovery: the `deploy-pipeline-operations` skill.
+Consumer repos have almost no deployable files of their own, so **most full deploys are driven by the resolved-tag comparison**, not by consumer file diffs: the push (or the dispatched deploy) that moves `.stack-version` is what rolls a release out. CI rebuilds the `.mrpack` + download page after every full deploy. Monitoring and recovery: the `deploy-pipeline-operations` skill.
 
 ### Backups
 

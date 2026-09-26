@@ -8,8 +8,9 @@ name: Updates
 #     (bundle downloads, every image exists, no workflow file changed, same
 #     major as deploy.yml's @vN) merges itself and dispatches a deploy; a
 #     major, or anything that needs a hand, stays open with a checklist. A
-#     repo without .stack-version gets a PR that creates it from the version
-#     its STACK_VERSION repository variable resolves to.
+#     repo without .stack-version gets a PR that creates it at the newest
+#     release, classed against what its STACK_VERSION repository variable
+#     deploys today.
 on:
   schedule:
     - cron: '0 6 * * 1' # Monday 06:00 UTC
@@ -160,9 +161,9 @@ jobs:
               exit 0
             fi
           else
-            # Migration: pin exactly what a deploy resolves today - the
-            # repository variable, with `latest` held to deploy.yml's major
-            # as deploy-reusable.yml holds it.
+            # Migration: the bump is measured from what a deploy resolves
+            # today - the repository variable, with `latest` held to
+            # deploy.yml's major as deploy-reusable.yml holds it.
             migrated=true
             old="${OLD_PIN:-latest}"
             if [[ "$old" == "latest" && -n "$deploy_major" ]]; then old="v${deploy_major}"; fi

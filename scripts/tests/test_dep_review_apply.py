@@ -608,11 +608,11 @@ class ReleaseImpactTests(ApplyCase):
 
     def test_reviewer_raises_above_the_floor(self):
         a = rchange("lithium")
-        plan = self.run_apply([a], verdict([impact(a, "major")], summary="x") | {"consumer_note": "Re-run X."})
-        self.assertEqual(plan["action"], "merge", "impact never changes the action")
-        self.assertEqual(plan["release_impact"], "major")
-        self.assertEqual(plan["state"]["verdicts"][a["key"]]["release_impact"], "major")
-        self.assertIn("| major (reviewer) |", self.comment)
+        plan = self.run_apply([a], verdict([impact(a, "minor")], summary="x"))
+        self.assertEqual(plan["action"], "merge", "below major, impact never changes the action")
+        self.assertEqual(plan["release_impact"], "minor")
+        self.assertEqual(plan["state"]["verdicts"][a["key"]]["release_impact"], "minor")
+        self.assertIn("| minor (reviewer) |", self.comment)
 
     def test_reviewer_cannot_lower_below_the_floor(self):
         a = rchange("tectonic", flags=["never-automerge"])
@@ -860,6 +860,27 @@ class PlatformFloorTests(unittest.TestCase):
 
     def test_platform_is_a_known_source(self):
         self.assertIn("platform", apply.SOURCES)
+
+
+
+class MajorGateTests(ApplyCase):
+    """A major never auto-merges; the next-major PR still becomes ready."""
+
+    def test_loader_patch_bump_waits_for_a_human(self):
+        a = change("fabric-loader", eco="loader", old="0.19.5", new="0.19.6")
+        plan = self.run_apply([a], verdict([judged(a)]), source="platform")
+        self.assertHuman(plan, "Release impact is major")
+        self.assertEqual(plan["release_impact"], "major")
+
+    def test_reviewer_raising_to_major_blocks_the_merge(self):
+        a = change("sodium")
+        plan = self.run_apply([a], verdict([dict(judged(a), release_impact="major")]))
+        self.assertHuman(plan, "Release impact is major")
+
+    def test_worldgen_pr_still_becomes_ready(self):
+        a = change("tectonic", flags=["never-automerge"])
+        plan = self.run_apply([a], verdict([judged(a)]), source="worldgen")
+        self.assertEqual(plan["action"], "ready")
 
 
 if __name__ == "__main__":

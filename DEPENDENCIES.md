@@ -24,17 +24,17 @@ Anything with a version this repo did not write.
 | Modrinth datapacks | `config/modrinth-mods.txt` (`datapack:` lines) | By hand (the re-pin passes them through) |
 | Client mods, resource packs, shader packs | `modpack/adventure.mrpack.json` (`_clientMods`, `_resourcePacks`, `_shaderPacks`) | `mod-updates.yml`, weekly |
 | Holds on any of the above | `modpack/adventure.mrpack.json` (`_holds`) | Humans and the dep-review reviewer |
-| Sidecar base images | `docker/*/Dockerfile` (`FROM`) | Dependabot `docker` |
-| Compose images | `docker-compose.yml` (`image:`) and `.github/workflows/mirror-images.yml` | By hand |
-| GitHub Actions | `.github/workflows/*.yml` (`uses:`) | Dependabot `github-actions` |
-| Consumer scaffold workflows | `examples/consumer/.github/workflows/` | By hand |
-| Discord bot Python packages | `scripts/requirements-discord-sync.txt` (`==`) | Dependabot `pip` |
-| Template-only Python packages | `requirements-dev.txt`; kuma-init's inline `pip install` | By hand |
+| Sidecar base images | `docker/*/Dockerfile` (`FROM`) | Dependabot `docker`, weekly |
+| Compose images | `docker-compose.yml` (`image:`), mirrored to GHCR by `.github/workflows/mirror-images.yml` | `platform-updates.yml`, weekly; MinIO is frozen |
+| GitHub Actions | `.github/workflows/*.yml` and `examples/consumer/.github/workflows/*.yml` (`uses:`) | Dependabot `github-actions`, weekly |
+| Python packages | `scripts/requirements-discord-sync.txt`, `requirements-dev.txt`, `docker/kuma-init/requirements.txt` | Dependabot `pip`, weekly |
 | Minecraft | `MC_VERSION` (compose default `1.21.1`) | Fixed |
-| Fabric loader | `docker-compose.yml` (`FABRIC_LOADER_VERSION`), `modpack/adventure.mrpack.json` (`dependencies.fabric-loader`) and `mods/*/gradle.properties` (`loader_version`), all equal | By hand |
-| In-house mod toolchain | `mods/*/gradle.properties`, `mods/*/build.gradle`, the Gradle wrapper, `mods/mise.toml` (Java 21) | By hand |
+| Fabric loader | Five places, all equal: `docker-compose.yml` (`FABRIC_LOADER_VERSION`), `modpack/adventure.mrpack.json` (`dependencies.fabric-loader`), the fallback in `scripts/build-modpack.sh`, and both `mods/*/gradle.properties` (`loader_version`) | `platform-updates.yml`, weekly |
+| yarn and fabric-api for the in-house mods | `mods/*/gradle.properties` (`yarn_mappings`, `fabric_version`) | `platform-updates.yml`, weekly |
+| Build and release tools | Tailwind CLI and its sha256 lines (`mods/custom-dimensions/build-viewer-css.sh`), `PACKWIZ_BOOTSTRAP_VERSION` (`scripts/build-modpack.sh`), git-cliff (`.github/git-cliff-version`), `DOCTL_VERSION` (`examples/consumer/.github/workflows/server-power.yml`) | `platform-updates.yml`, weekly |
+| Gradle toolchain | Loom (`mods/*/build.gradle`), the Gradle wrapper and the workflows' `gradle-version: '8.13'` inputs, JUnit, Java 21 (`mods/mise.toml`) | By hand |
+| hcloud CLI | `examples/consumer/.github/workflows/server-power.yml` downloads its latest release | Unpinned |
 | Dev tools | `mise.toml` (Python 3.13; shellcheck, yamllint, jq float on `latest`) | By hand |
-| Other hand-pinned tools | Tailwind CLI in `mods/custom-dimensions/build-viewer-css.sh`; packwiz bootstrap in `scripts/build-modpack.sh` | By hand |
 
 ## Ground rules
 
@@ -70,15 +70,30 @@ Merging the regular PR re-runs `mod-updates.yml`, so the next-major PR stays mer
 
 | Ecosystem | Directory | Group | Commit prefix |
 | --- | --- | --- | --- |
-| `github-actions` | `/` (root workflows only) | `actions-minor`: minor and patch together; majors separately | `ci` |
+| `github-actions` | `/` and `/examples/consumer` (the scaffold's workflows) | `actions-minor`: minor and patch together; majors separately | `ci` |
 | `docker` | `/docker/*` | `base-images`: one PR per base image across every Dockerfile | `chore` |
-| `pip` | `/scripts` | `python-minor`: minor and patch together | `chore` |
+| `pip` | `/` (`requirements-dev.txt`), `/scripts`, `/docker/kuma-init` | `python-minor`: minor and patch together | `chore` |
 
-Not covered, so updated by hand: compose images, the consumer scaffold's workflows, `requirements-dev.txt`, kuma-init's inline pip install, the Gradle toolchain, the Fabric loader and `mise.toml`.
+Not covered: compose images, the Fabric loader, yarn, fabric-api and the build and release tools, which [the weekly platform update](#the-weekly-platform-update) moves; and, by hand, the Gradle toolchain, hcloud and `mise.toml`. Dependabot's Gradle support reads plugin repositories only from `dependencyResolutionManagement`, and Loom and every `net.fabricmc` artefact come from `maven.fabricmc.net` through `pluginManagement`.
+
+### The weekly platform update
+
+`platform-updates.yml` runs every Tuesday at 06:00 UTC (or on `gh workflow run platform-updates.yml`). `scripts/platform_updates.py` resolves every pin in its `PINS` and `IMAGE_RULES` tables and opens one PR, `platform-updates/auto`, titled `chore: platform updates (N)`; dep-review reviews it like any other. `gate.py` reads the same tables, so the PR can change nothing else.
+
+| Ecosystem | Pins | Source |
+| --- | --- | --- |
+| `image` | every `${MIRROR_REGISTRY:-…}/<image>:<tag>` in `docker-compose.yml` | Docker Hub; the tag keeps its shape: `itzg/minecraft-server` keeps `-java21`, `nginx` stays on its stable (even-minor) line, MinIO is frozen |
+| `loader` | the Fabric loader's five places | `meta.fabricmc.net`, the build marked stable |
+| `gradle` | `yarn_mappings`; `fabric_version` | the newest 1.21.1 yarn build; `fabric_version` follows the pack's `fabric-api` pin in `config/modrinth-mods.txt`, so the in-house mods build against the fabric-api the server runs |
+| `tool` | Tailwind CLI (with the sha256 lines from the release's `sha256sums.txt`), packwiz-installer-bootstrap, git-cliff, doctl | GitHub releases; git-cliff must also be on PyPI |
+
+- Every occurrence of a dependency moves to the same version. It never downgrades, never takes a pre-release, and never leaves 1.21.1. A resolver that fails writes nothing.
+- New image tags are mirrored to GHCR (`mirror-images.yml`) before the PR is opened, so compose never names a missing mirror tag; a failed mirror stops the run.
+- git-cliff's version lives in `.github/git-cliff-version`, which `release.yml` and `release-train.yml` read, because `GITHUB_TOKEN` cannot push a change to a workflow file.
 
 ### dep-review and what merges automatically
 
-`dep-review.yml` reviews every Dependabot PR and both mod PRs, then merges, closes, holds mods back, or labels the PR for a human. Setup, jobs, security and cost: [`docs/dependency-review.md`](docs/dependency-review.md).
+`dep-review.yml` reviews every Dependabot PR, both mod PRs and the platform PR, then merges, closes, holds mods back, or labels the PR for a human. Setup, jobs, security and cost: [`docs/dependency-review.md`](docs/dependency-review.md).
 
 `apply.py` merges a PR only when all of these hold, whatever the reviewer says, with every threshold read from `policy.json`:
 
@@ -86,6 +101,7 @@ Not covered, so updated by hand: compose images, the consumer scaffold's workflo
 - the quick checks, smoke test and Docker builds green, and every other check on the PR head completed green;
 - no `blocking_flags` flag: pre-release, major version, wrong Minecraft version or loader, a missing required dependency, released fewer than `min_age_days` ago, or worldgen;
 - no change under `never_automerge_paths`.
+- a release impact below major (`automerge_majors` is false): a major lands through the release train's monthly worldgen merge or a human, never as a side effect of a routine update.
 
 The reviewer can only make a PR less mergeable. On a mod PR one blocked mod blocks the whole PR, so the reviewer holds each blocked mod back instead. The next-major PR is never merged by dep-review; it is labelled `dep-review:ready-for-major` when everything but its worldgen status passes.
 
@@ -100,7 +116,7 @@ A hold keeps a mod, client mod or pack at its current pin. Holds live in `modpac
 
 ### What reaches servers
 
-A merge to `main` makes `publish.yml` rebuild the images tagged `latest`; deploys pull only released versions. Nothing reaches a consumer until a release: `release-train.yml` cuts one every Wednesday from what landed (a major waits for approval in the `release-major` environment), or a human dispatches `release.yml` ([AGENTS.md § Cutting a release](AGENTS.md#cutting-a-release-platform-repo-only)). The consumer's next push then resolves its pin to the new release and runs a full deploy ([README § Deploy to production](README.md#deploy-to-production)).
+A merge to `main` makes `publish.yml` rebuild the images tagged `latest`; deploys pull only released versions. Nothing reaches a consumer until a release: `release-train.yml` cuts one every Wednesday at 06:00 UTC from what landed, versioned by `git-cliff --bumped-version` from the commit types, releasing a patch or minor straight away and holding a major for approval in the `release-major` environment; or a human dispatches `release.yml` ([AGENTS.md § Cutting a release](AGENTS.md#cutting-a-release-platform-repo-only)). Each consumer's weekly `update.yml` then opens a PR moving its `.stack-version` to the new release; a patch or minor whose images all exist merges itself and dispatches a full deploy ([For consumers](#for-consumers)).
 
 ## Versioning contract
 
@@ -117,7 +133,7 @@ Minecraft stays 1.21.1. Changing it is outside this contract: it overturns a fix
 
 Within a major, consumers keep the overlay contract (directory structure and merge semantics), the env contract (`.env` variables, GitHub environment vars and secrets) and the reusable workflow's inputs and secrets.
 
-**Enforcement.** The commit type carries the class: `!` or a `BREAKING CHANGE:` footer is major, `feat:` minor, any other releasable type patch, and `ci`, `docs`, `test`, `style` and `chore` release nothing (`cliff.toml` `[bump]`). For dependency PRs, dep-review sets the class: `apply.py` applies floors from this table (Actions none; other updates patch; client-side changes, packs, new mods and docker or pip majors minor; worldgen and removed mods major), the reviewer may raise a change above its floor but never lower it, and the PR is retitled `ci(deps)`, `fix(deps)`, `feat(deps)` or `feat(deps)!` with the reviewer's consumer note as the `BREAKING CHANGE:` footer. Land every other change with the type its class needs; a breaking change that is not worldgen carries `!` or the footer itself. `scripts/check-release-version.sh`, the first job of `release.yml`, refuses a release that keeps the major over a breaking commit; the merged next-major PR is one.
+**Enforcement.** The commit type carries the class: `!` or a `BREAKING CHANGE:` footer is major, `feat:` minor, any other releasable type patch, and `ci`, `docs`, `test`, `style` and `chore` release nothing (`cliff.toml` `[bump]`). For dependency PRs, dep-review sets the class: `apply.py` applies floors from this table (`FLOOR_RULES`: GitHub Actions and git-cliff none; every other update patch; client-side mods, packs, new mods, and docker, pip or compose-image majors minor; worldgen, including the `worldgen_slugs`, removed mods and any Fabric loader change major), the reviewer may raise a change above its floor but never lower it, and the PR is retitled `ci(deps)`, `fix(deps)`, `feat(deps)` or `feat(deps)!` with the reviewer's consumer note as the `BREAKING CHANGE:` footer. Land every other change with the type its class needs; a breaking change that is not worldgen carries `!` or the footer itself. `scripts/check-release-version.sh`, the first job of `release.yml`, refuses a release that keeps the major over a breaking commit; the merged next-major PR is one.
 
 **Cutting a major.** The month's first release train merges a next-major PR labelled `dep-review:ready-for-major`; by hand, merge it and dispatch `vN.0.0`. Re-enable the smoke test's render-check before a worldgen release ([AGENTS.md safety rule 12](AGENTS.md#safety-rules)). What a consumer must do goes in the breaking commit's `BREAKING CHANGE:` footer; git-cliff lists it under "Breaking changes" in the release notes.
 
@@ -174,32 +190,34 @@ Modrinth datapacks are `datapack:slug:versionId` lines in `config/modrinth-mods.
 
 ### Sidecar base images
 
-Dependabot proposes one PR per base image; dep-review's quick job builds every changed Dockerfile, and the smoke test runs for `defaults-seed`. A base-OS move (Alpine, Python or Debian release) needs a look at that Dockerfile's `apk`, `pip` and `apt` pins: `unmined-render` installs `libicu72`, which only bookworm ships. `debian:bookworm-slim` is a codename tag Dependabot never bumps. A base-image bump is a patch, or a minor for a major version.
+Dependabot proposes one PR per base image; dep-review's quick job builds every changed Dockerfile, and the smoke test runs for `defaults-seed`. A base-OS move (Alpine, Python or Debian release) needs a look at that Dockerfile's `apk`, `pip` and `apt` pins. `unmined-render` is on a numeric Debian tag (`debian:12.x-slim`) so Dependabot proposes its point releases; it installs `libicu72`, Debian 12's ICU package, so a Debian 13 PR fails its build until a human swaps in Debian 13's package (`libicu76`) on the PR. A base-image bump is a patch, or a minor for a major version.
 
 ### Compose images
 
-Dependabot cannot parse `${MIRROR_REGISTRY:-…}/image:tag`, so these move by hand, in order:
+`docker-compose.yml` is the one list of third-party images: `mirror-images.yml` (Sundays at 04:00 UTC, and on dispatch) mirrors every `${MIRROR_REGISTRY:-…}/<image>:<tag>` in it to GHCR, and `scripts/cache-assets.sh` caches the same list. [The weekly platform update](#the-weekly-platform-update) moves the tags, every occurrence together, and mirrors each new tag before its PR exists; the PR body links each image's release notes.
 
-1. Look the tag up and `docker pull` it.
-2. Change it in `.github/workflows/mirror-images.yml`'s source list and in the fallback list in `scripts/cache-assets.sh`.
-3. Dispatch `gh workflow run mirror-images.yml` (otherwise it runs Sundays at 04:00 UTC) and confirm the GHCR mirror tag exists.
-4. Change every `image:` line in `docker-compose.yml`: `nginx` and `itzg/mc-backup` each appear twice.
+What a human still does:
 
-`itzg/minecraft-server` owns the mc container's lifecycle: read its release notes for env-var, autopause and Fabric-install changes, and keep the `-java21` suffix. Class the bump by the [versioning contract](#versioning-contract): anything consumers must act on is a major.
+- **Read `itzg/minecraft-server`'s release notes** for env-var, autopause and Fabric-install changes: it owns the mc container's lifecycle. Anything consumers must act on is a major; the reviewer raises it.
+- **MinIO (`minio/minio`, `minio/mc`) is frozen.** MinIO stopped publishing images to Docker Hub; the GHCR mirror keeps the pinned tags, and `mirror-images.yml` keeps an existing mirror, with a warning, when its upstream tag is gone. Moving off it means replacing the image.
+- **Adding an image:** write it as `${MIRROR_REGISTRY:-ghcr.io/piprees/mirrors}/<image>:<tag>`, look the tag up and `docker pull` it, then dispatch `gh workflow run mirror-images.yml` and confirm the mirror tag exists before pushing the compose change. A new image with its own tag scheme may need an `IMAGE_RULES` entry in `scripts/platform_updates.py`.
+
+A compose-image bump is a patch, or at least a minor for a major version ([versioning contract](#versioning-contract)).
 
 ### GitHub Actions
 
-Dependabot groups minor and patch bumps; a major arrives as its own PR. `GITHUB_TOKEN` may be refused the merge of a PR that changes `.github/workflows/` ([known limits](docs/dependency-review.md#known-limits)), leaving it for a manual merge. The consumer scaffold's workflows are bumped by hand and reach consumers only through `./dev update` ([AGENTS.md § Scripts](AGENTS.md#scripts)). No release unless the scaffold changed.
+Dependabot groups minor and patch bumps for the root workflows and the consumer scaffold's; a major arrives as its own PR. `GITHUB_TOKEN` may be refused the merge of a PR that changes `.github/workflows/` ([known limits](docs/dependency-review.md#known-limits)), leaving it for a manual merge. An Actions bump releases nothing (`ci(deps)`); a scaffold change rides in the next release's bundle and reaches a consumer through `./dev update`, which its stack PR lists as a manual step ([For consumers](#for-consumers)).
 
 ### Python
 
-`scripts/requirements-discord-sync.txt` is pinned with `==` and bumped by Dependabot; `discord.py` constrains `aiohttp`, so they move together. A bump rebuilds the `discord-sync` image: a patch, or a minor for a major version. `requirements-dev.txt` is template-only (`mise run deps`). Dev tooling runs on Python 3.13 ([CONTRIBUTING § Local development environment](CONTRIBUTING.md#local-development-environment)).
+Dependabot bumps three requirement files. `scripts/requirements-discord-sync.txt` is pinned with `==`; `discord.py` constrains `aiohttp`, so they move together, and a bump rebuilds the `discord-sync` image. `docker/kuma-init/requirements.txt` pins `uptime-kuma-api` for the `kuma-init` image. Either is a patch, or a minor for a major version. `requirements-dev.txt` is template-only (`mise run deps`). Dev tooling runs on Python 3.13 ([CONTRIBUTING § Local development environment](CONTRIBUTING.md#local-development-environment)).
 
 ### Minecraft, Fabric and the in-house mod toolchain
 
 - Everything follows 1.21.1: every Modrinth pin, yarn `1.21.1+build.N`, fabric-api `+1.21.1` builds and datapack `pack_format` 48.
-- A Fabric loader change is a major. The server (`FABRIC_LOADER_VERSION` in compose), the client pack and the in-house mods pin the same loader; move all three together.
-- `mods/custom-dimensions` and `mods/custom-dimensions-client` share `gradle.properties` (`yarn_mappings`, `loader_version`, `fabric_version`), Loom in `build.gradle`, and the Gradle wrapper; bump them as a pair. Java 21 comes from `mods/mise.toml`, and builds need `mise exec` ([P4](TROUBLESHOOTING.md#p4)). Build contract: [mods/AGENTS.md](mods/AGENTS.md).
+- A Fabric loader change is a major. The server (`FABRIC_LOADER_VERSION` in compose), the client pack (`dependencies.fabric-loader`, and the fallback in `scripts/build-modpack.sh`) and both in-house mods pin the same loader; [the weekly platform update](#the-weekly-platform-update) moves all five together.
+- The same update moves yarn and `fabric_version` in both `mods/*/gradle.properties`; `fabric_version` follows the pack's `fabric-api` pin, never runs ahead of it. A change under `mods/custom-dimensions/src/main/resources/` is a `never_automerge_paths` entry; a `gradle.properties` bump is not.
+- By hand, as a pair across `mods/custom-dimensions` and `mods/custom-dimensions-client`: Loom in `build.gradle`, the Gradle wrapper with the workflows' `gradle-version: '8.13'` inputs, and JUnit. Java 21 comes from `mods/mise.toml`, and builds need `mise exec` ([P4](TROUBLESHOOTING.md#p4)). Build contract: [mods/AGENTS.md](mods/AGENTS.md).
 
 #### Changing the Minecraft version
 
@@ -268,10 +286,14 @@ Before bumping, removing or pairing one of these, read the linked entry. The com
 
 ## For consumers
 
-- **The pin.** CI deploys the release named by the `STACK_VERSION` **repository variable**; local `./dev` reads `STACK_VERSION` in `.env`. Keep them equal. `v5` floats on the newest `v5.x.y`, `v5.6.1` holds exactly, and unset tracks the newest release across majors, worldgen majors included: pin a major. The scaffold's `deploy.yml` calls `deploy-reusable.yml@v5`.
-- **When a release arrives.** The next push to the consumer repo, even a docs-only one, resolves the pin and runs a full deploy ([README § Deploy to production](README.md#deploy-to-production)). Before moving to a new major, read its release notes' "Breaking changes".
-- **Updating locally.** `./dev update` pulls the bundle and images, `./dev rollback` lists or restores a version, and `./ops sync` pushes the local `.env` to GitHub and deploys. `./ops update` and `./dev update` refresh different machines ([T46](TROUBLESHOOTING.md#t46)); a `dev` behind the scaffold misreads new flags ([T83](TROUBLESHOOTING.md#t83)); a hand-patched `.stack/<version>/` is discarded when a newer release resolves ([T30](TROUBLESHOOTING.md#t30)).
-- **Your own mods.** `overlay/mods-extra.txt` follows [the same checklist](#adding-a-mod); `./dev pin` re-pins it, and the weekly `update.yml` PR does the same and notes a new stack release. Client mods go in `overlay/modpack/manifest.json`. Removing a default: `overlay/mods-remove.txt`, keeping the client pack in sync ([consumer scaffold README](examples/consumer/README.md)).
+- **The pin is `.stack-version`**, a committed file at the consumer root holding an exact `vX.Y.Z`. Deploys and `./dev` both read it. A deploy takes, first match wins: the `stack_version` input of a manual `deploy.yml` dispatch (one run only), `.stack-version`, the `STACK_VERSION` repository variable that older scaffolds pass, then the newest release. `vN` and `latest` in the file still float, but get no bump PRs; a floating `latest` stays inside the deploy workflow's own major. Locally, `STACK_VERSION` in `.env` counts only when the file is absent.
+- **The major guard.** The scaffold's `deploy.yml` calls `deploy-reusable.yml@vN`, and a release stamps both `examples/consumer/.stack-version` and that `@vN`. A deploy whose pin resolves to another major fails before touching the server, naming the `@vN` to set; update `deploy.yml`, run `./dev update`, and push both. A branch or sha ref skips the guard with a notice.
+- **The weekly stack PR.** `update.yml`'s Stack job targets the highest stable `vX.Y.Z` release (never GitHub's "latest" flag) and opens `chore(stack): bump template to vX.Y.Z` on `updates/stack`, labelled `stack-update` (and `stack-major` for a major), carrying the release notes. It pulls the target bundle, checks every image exists at that version, and runs `./dev update --scaffold-only`; `GITHUB_TOKEN` cannot push workflow files, so changed files under `.github/workflows/` are reverted and listed as a manual step: run `./dev update` locally and commit `.github/workflows`.
+- **What merges itself.** A patch or minor merges itself and dispatches `deploy.yml` when every image exists, no workflow file changed and `deploy.yml`'s `@vN` matches the target's major. Anything else waits for a human with a checklist. A major always waits: read its release notes' "Breaking changes", then merge it together with the consumer Dependabot PR that bumps `deploy-reusable.yml@vN` (the scaffold's `.github/dependabot.yml` proposes it).
+- **Migrating a repo without `.stack-version`.** The first stack PR creates the file at the newest release, sizing the bump against what a deploy installs today (the repository variable, with `latest` held to `deploy.yml`'s major); when the two match it is titled `chore(stack): pin template at vX.Y.Z`. That PR always changes `deploy.yml`, so it never merges itself: run `./dev update` locally once and commit. Once it merges, delete the `STACK_VERSION` repository variable; `github-env-sync.sh` still pushes it, and `.stack-version` wins over it.
+- **Rolling back.** Dispatch `deploy.yml` with `stack_version` set to the older release for a one-off full deploy; the next push deploys `.stack-version` again. To stay on it, commit the older version to `.stack-version`. `./dev rollback` switches the local bundle only.
+- **Updating locally.** `./dev update` pulls the bundle and images and re-syncs the scaffold, and `./ops sync` pushes the local `.env` to GitHub and deploys. `./ops update` and `./dev update` refresh different machines ([T46](TROUBLESHOOTING.md#t46)); a `dev` behind the scaffold misreads new flags ([T83](TROUBLESHOOTING.md#t83)); a hand-patched `.stack/<version>/` is discarded when a newer release resolves ([T30](TROUBLESHOOTING.md#t30)).
+- **Your own mods.** `overlay/mods-extra.txt` follows [the same checklist](#adding-a-mod); `./dev pin` re-pins it, and `update.yml`'s weekly re-pin PR (`updates/auto`) does the same. Client mods go in `overlay/modpack/manifest.json`. Removing a default: `overlay/mods-remove.txt`, keeping the client pack in sync ([consumer scaffold README](examples/consumer/README.md)).
 
 ## Where the rest lives
 

@@ -2,6 +2,7 @@
   "_comment": "Deterministic policy for dep-review.yml and the mod-update split. apply.py enforces the merge rules whatever the reviewer decides; the reviewer can only make a PR less mergeable. never_automerge_sections and worldgen_slugs also decide which mod updates go to the next-major PR (scripts/dep_review/partition.py), alongside any mod whose jar's worldgen data changed.",
   "automerge_max_risk": "low",
   "min_age_days": 3,
+  "automerge_majors": false,
   "blocking_flags": [
     "prerelease",
     "major",
