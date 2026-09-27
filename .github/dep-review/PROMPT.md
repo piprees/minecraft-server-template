@@ -76,6 +76,21 @@ that you judge risky, with a `holds_add` reason that names the condition for
 releasing it (for example "pre-release; release when a release build for
 1.21.1 ships"). Don't hold for `too-new` alone: it clears within days.
 
+## Release impact
+
+Give every change a `release_impact` from `DEPENDENCIES.md` § Versioning
+contract: `none`, `patch`, `minor` or `major`. The policy has already set a
+floor for each change from its type; you may raise a change above that
+floor, never lower it. Raise it when the changelog shows something the
+floor cannot see: a removed item, block or command, a config or save format
+change, or anything a server operator must act on. When nothing changes,
+agree with the floor.
+
+`consumer_note` is one or two plain sentences for server operators, saying
+what they must do or will notice after this release. Leave it `""` when the
+answer is nothing. It becomes the release notes' "Breaking changes" entry
+for a major, so name the action, not the mechanism.
+
 ## Holds
 
 `context.md` lists every current hold with its stated blocker and the
