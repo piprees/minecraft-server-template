@@ -1,0 +1,17 @@
+# Weekly action bumps for this repo's workflows, in one grouped PR. It also
+# proposes deploy-reusable.yml@vN -> @vN+1 when the template tags a new major:
+# merge that together with the Updates workflow's stack-major PR, because a
+# deploy refuses a .stack-version from another major than the workflow's.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    commit-message:
+      prefix: ci
+    groups:
+      github-actions:
+        patterns:
+          - '*'

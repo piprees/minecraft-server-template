@@ -757,17 +757,19 @@ if [[ $SKIP_CREDENTIALS -eq 0 ]]; then
   persist_secret SPAWN_Y "$SPAWN_Y"
   persist_secret SPAWN_Z "$SPAWN_Z"
 
-  # Record the stack release line this server runs, so the pin is explicit
-  # in .env rather than an invisible default. Derived from the bundle in use
-  # (.stack/current -> v2.0.1 -> v2); a major pin floats on the latest
-  # release of that line, exact pins (v2.0.1) are a manual .env edit. If no
-  # bundle is resolved yet, leave it unset - stack-pull then tracks the
-  # latest release.
-  if [[ -z "${STACK_VERSION:-}" ]]; then
-    STACK_VERSION="$(basename "$(readlink "$PROJECT_DIR/.stack/current" 2>/dev/null || true)" 2>/dev/null | cut -d. -f1)" || true
-  fi
-  if [[ -n "${STACK_VERSION:-}" ]]; then
-    persist_secret STACK_VERSION "$STACK_VERSION"
+  # Record the exact stack release this server runs in .stack-version, the
+  # tracked pin deploys, ./dev and the weekly Updates PR all read. Derived
+  # from the bundle in use (.stack/current -> v2.0.1). An existing file is
+  # the consumer's choice and is never rewritten; a linked checkout or no
+  # bundle yet leaves it absent, and stack-pull then tracks the latest
+  # release. A STACK_VERSION already in .env stays as the deprecated
+  # fallback - the file wins wherever both exist.
+  if [[ ! -f "$PROJECT_DIR/.stack-version" ]]; then
+    running_stack="$(basename "$(readlink "$PROJECT_DIR/.stack/current" 2>/dev/null || true)" 2>/dev/null)" || true
+    if [[ "$running_stack" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+      printf '%s\n' "$running_stack" > "$PROJECT_DIR/.stack-version"
+      info "Pinned the stack to $running_stack in .stack-version - commit it."
+    fi
   fi
 
   step "Ports"

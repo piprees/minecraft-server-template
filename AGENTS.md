@@ -9,7 +9,7 @@ A fun, adapted default Minecraft server with no rough edges — stable enough to
 ## Quick reference
 
 - `./scripts/test-scripts.sh --quick` before pushing.
-- Mod changes: the dependency checklist is MANDATORY ([§ Mods](#mods)).
+- Mod changes: the dependency checklist is MANDATORY ([DEPENDENCIES.md § Adding a mod](DEPENDENCIES.md#adding-a-mod)).
 - Never `gh release create` — use `gh workflow run release.yml -f version=vX.Y.Z`.
 - Never stream logs, pipe a filter into tailed output, or use unbounded loops — snapshot only (`--tail N`, `gh run view --json`); safety rules 10–11.
 - Subagent idle/finished signals mean nothing — verify from artefacts.
@@ -20,6 +20,7 @@ A fun, adapted default Minecraft server with no rough edges — stable enough to
 | Every known trap, quirk, and open issue (T/P/D/K ids) | [`TROUBLESHOOTING.md`](TROUBLESHOOTING.md) |
 | Task → file → command lookup | [`docs/common-tasks.md`](docs/common-tasks.md) |
 | Architecture, services, full script catalogue, how-tos | [`README.md`](README.md) |
+| Dependencies: adding, updating, holding, versioning, releasing | [`DEPENDENCIES.md`](DEPENDENCIES.md) |
 | Which network calls exist and how each is mitigated | [`docs/network-dependencies.md`](docs/network-dependencies.md) |
 | Web page markup, styles, nav injection | [`docs/web-surfaces.md`](docs/web-surfaces.md); tokens in [`DESIGN.md`](DESIGN.md) |
 | In-house mod development contract | [`mods/AGENTS.md`](mods/AGENTS.md) |
@@ -111,7 +112,7 @@ agent-related error, the key resolution in `lib.sh` already passes
 
 ## CI discipline
 
-A push to `main` in a consumer repo triggers the caller workflow, which invokes `deploy-reusable.yml`. Tier detection is two-stage: the symbolic `STACK_VERSION` pin is resolved to a concrete release tag and compared against the bundle the server actually runs (`readlink .stack/current`) — any difference forces a full deploy, and this is what rolls platform releases out; then consumer files are diffed against the server's deployed commit, with `FULL_PATTERNS` in the reusable workflow listing the consumer paths that force a full restart (`overlay/config/`, mod lists). See the [deploy modes table](README.md#deploy-to-production) and the `deploy-pipeline-operations` skill.
+A push to `main` in a consumer repo triggers the caller workflow, which invokes `deploy-reusable.yml`. Tier detection is two-stage: the stack pin (the consumer's committed `.stack-version`) is resolved to a concrete release tag and compared against the bundle the server actually runs (`readlink .stack/current`) — any difference forces a full deploy, and this is what rolls platform releases out; then consumer files are diffed against the server's deployed commit, with `FULL_PATTERNS` in the reusable workflow listing the consumer paths that force a full restart (`overlay/config/`, mod lists). See the [deploy modes table](README.md#deploy-to-production) and the `deploy-pipeline-operations` skill.
 
 **Before pushing:** `gh run list --limit 3` — if a run is in progress, **wait** (concurrent deploys race: SSH timeouts, broken healthchecks). Check who's online if the change is full-tier (`ssh ... 'docker exec -i mc rcon-cli "list"'`) — the countdown handles players, but don't restart mid-event. Batch related changes into one commit; each push is a deploy.
 
@@ -121,7 +122,7 @@ A push to `main` in a consumer repo triggers the caller workflow, which invokes 
 
 - Full procedure, compatibility promise and consumer impact: the `platform-release-management` skill.
 - **Never use `gh release create`** — use `gh workflow run release.yml -f version=vX.Y.Z`. Releases are immutable, so assets can't be attached after publish and a hand-created release ships with no bundle.
-- **Avoid pushing to `main` while release.yml is in progress.** A versioned image build has its own concurrency group and `cancel-in-progress: false` (`publish.yml`), so a push cannot cancel it — but the bundle job commits `CHANGELOG.md` back to `main` with three rebase attempts, and a push still races that. If an images job ends up cancelled or failed for any reason, the release and tag are unaffected once the bundle job succeeded: `gh run rerun <release-run-id> --failed` rebuilds only those jobs. Production pulls version tags via `IMAGE_TAG="${STACK_VERSION#v}"`, so a release without its version-tagged images is broken for every consumer who upgrades.
+- **Avoid pushing to `main` while release.yml is in progress.** A versioned image build has its own concurrency group and `cancel-in-progress: false` (`publish.yml`), so a push cannot cancel it, but the `publish` job commits `CHANGELOG.md` back to `main` with three rebase attempts, and a push races that. The release stays a draft until its version-tagged images exist, so a failed `images` job leaves an unpublished draft: `gh run rerun <release-run-id> --failed` finishes it. Production pulls version tags via `IMAGE_TAG="${STACK_VERSION#v}"`.
 - A published tag can't be reused, even after deleting the release. Fix the cause and cut the **next patch version** — a release without a bundle is broken; never delete and re-cut the same tag. Draft releases stay mutable, so validate every asset before publishing.
 
 ## Problems, traps, and known issues
@@ -168,7 +169,7 @@ Three categories, catalogued in [README § Scripts](README.md#scripts): **bundle
 
 **Git:** conventional commits, imperative mood (`fix:`, `feat:`, `chore:`). Commit straight to main (no PRs/worktrees); park unfinished work as a WIP commit, never `git stash` (the stash stack is shared across agent sessions); after any release refresh the major tag with `git fetch origin '+refs/tags/v4:refs/tags/v4'`. The local consumer server (`~/Projects/elfydd`) is shared — check nobody is mid-test before restarting its containers.
 
-**Versions (images, actions, tools):** never take a version number from training data. Look it up live — `gh release list --repo <owner/repo> --limit 5`, Context7 (`npx ctx7@latest docs`), or the project's releases page — for every `image:` tag in compose, every `uses:` in a workflow, and every pinned version in a script. Two traps: `--limit 1` returns the most recently _published_ release, not the highest version, so use `--limit 5 --json tagName,isLatest`; and a GitHub release tag doesn't guarantee a Docker Hub tag, so verify with `docker pull` before pinning.
+**Versions (images, actions, tools):** never take a version number from training data — look it up live for every `image:` tag, `uses:` ref and pinned version ([DEPENDENCIES.md § Looking up versions](DEPENDENCIES.md#looking-up-versions)).
 
 ## In-house mods
 
@@ -180,13 +181,15 @@ Three categories, catalogued in [README § Scripts](README.md#scripts): **bundle
 
 ## Mods
 
-Server list: `config/modrinth-mods.txt` (`slug:versionId`, `?` = optional, `datapack:` prefix for datapacks). Client list: `modpack/adventure.mrpack.json` `_clientMods`. All worldgen/dimension mods must be present from chunk zero. **Never guess a config key or command syntax** — fetch the mod's current docs (`npx ctx7@latest docs`, Modrinth, the mod's wiki) before editing configs or using commands.
+Rules with their reasons, the semver contract and every playbook: [`DEPENDENCIES.md`](DEPENDENCIES.md).
 
-**The dependency checklist is mandatory before adding any mod** — the Modrinth API queries that resolve a mod's dependencies are in the `server-mod-management` skill. Every required dependency must already be in the pack or be added alongside; libraries (`fabric-api`, `yungs-api`, `moonlight`, `balm`, `lithostitched`, `fabric-language-kotlin`) go in required, never optional. Verify the resolved version really targets 1.21.1 — Modrinth metadata is sometimes wrong. Then pin: `./scripts/pin-mod-versions.sh --apply`.
+- **The dependency checklist is mandatory before adding any mod** — [§ Adding a mod](DEPENDENCIES.md#adding-a-mod). Libraries go in required, never optional.
+- **All worldgen/dimension mods must be present from chunk zero**, and worldgen updates ship only in a major ([§ Versioning contract](DEPENDENCIES.md#versioning-contract)).
+- **Never guess a config key or command syntax** — fetch the mod's current docs (`npx ctx7@latest docs`, Modrinth, the mod's wiki) before editing configs or using commands.
+- **Never bump a slug listed in `_holds` by hand** — [§ Holds](DEPENDENCIES.md#holds).
+- **Never merge the `mod-updates/next-major` PR** except when cutting a major.
 
 **BetterX family (`betterend`, `betternether`, `bclib`, `worldweaver`) — chunk-zero only.** `org.betterx.bclib.mixin.common.ChunkGeneratorMixin` rotates the feature-placement seed for every decoration in every dimension (`required: true`, no mixin plugin, no config key, targets `ChunkGenerator`), so it never goes onto a world that already has generated chunks. `wover:normal` replaces the Nether's and End's DIMENSION entries via a world preset; the overworld stays `minecraft:noise`. Neither replacement is multi-noise, so `CreateWorldsMixin` builds those two worlds from their configs like every other dimension: `settings` stays `minecraft:nether`/`minecraft:end` and only the biome source changes, to the family's own datapack-declared table (13 nether, 6 end). Construction only — the registry entry and `level.dat` keep the preset's, so a jar without this mod still loads the world. BetterEnd's `TerrainGenerator` stands itself down on a non-Wover End source; `BetterEndTerrainInitMixin` stops it throwing while it does ([T75](TROUBLESHOOTING.md#t75)). No shim: BetterEnd inherits from 132 `wover:` and 167 `bclib:` classes. One jar registers 18 Fabric mod ids plus a nested `wunderlib`.
-
-**Never bump a slug listed in `_holds`** (top level of `modpack/adventure.mrpack.json`, slug → reason; `pin-mod-versions.sh` reads it for the server list and the client manifest alike). Remove a hold only when its stated blocker clears, and move era-pairs together — Xaero's minimap and world map share code. Holds and resource/shader pack manifests (`_resourcePacks`/`_shaderPacks`, filename-pinned in `options.txt`): the `server-mod-management` and `consumer-customisation` skills.
 
 ## Config sync
 

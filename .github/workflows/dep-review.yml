@@ -1,0 +1,388 @@
+name: Dependency Review
+
+# Reviews one dependency-update PR (Dependabot's, or mod-updates.yml's weekly
+# mod PR), then merges it, closes it, holds mods back, or hands it to a human.
+#
+# Entry is workflow_dispatch only, so what runs is always main's definition
+# and only a writer can start it: dep-review-relay.yml dispatches for
+# Dependabot PRs, mod-updates.yml dispatches after it opens or refreshes its
+# PR, and a maintainer can dispatch by hand.
+#
+#   gate    scripts/dep_review/gate.py: the PR must be a bot PR from this repo
+#           touching only version lines; skips when the version set matches
+#           the last review (a rebase)
+#   quick   unit tests, ShellCheck, JSON validity, Dockerfile builds (PR code,
+#           no secrets)
+#   smoke   smoke-test.yml against the PR head (mods and defaults-seed)
+#   review  collect.py bundles every changelog and flag; Claude judges the
+#           bundle with Read/Grep/Glob only (no shell, no network)
+#   apply   scripts/dep_review/apply.py enforces .github/dep-review/policy.json
+#           and acts; the only job with a write token
+#
+# Setup: a `dep-review` environment restricted to the main branch, holding the
+# CLAUDE_CODE_OAUTH_TOKEN secret (`claude setup-token`, valid about a year).
+# Spend per run is capped by --max-budget-usd, --max-turns and the job timeout.
+#
+# Gotchas:
+#   - Merges and pushes made with GITHUB_TOKEN trigger no workflows, so apply
+#     dispatches publish.yml after a merge and mod-updates.yml after a hold
+#     change itself.
+#   - Check runs on the PR head are the pull_request workflows (lint.yml etc.);
+#     this run's own jobs sit on main's commit and are read from `needs`.
+
+on:
+  workflow_dispatch:
+    inputs:
+      pr:
+        description: "Pull request number to review"
+        required: true
+        type: number
+      force:
+        description: "Review even if the version set matches the last review"
+        required: false
+        type: boolean
+        default: false
+
+permissions: {}
+
+concurrency:
+  group: dep-review-${{ inputs.pr }}
+  cancel-in-progress: false
+
+env:
+  PR: ${{ inputs.pr }}
+
+jobs:
+  gate:
+    name: Gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      pull-requests: read
+      issues: read
+    outputs:
+      ok: ${{ steps.gate.outputs.ok }}
+      skip: ${{ steps.gate.outputs.skip }}
+      source: ${{ steps.gate.outputs.source }}
+      head_sha: ${{ steps.gate.outputs.head_sha }}
+      base_sha: ${{ steps.gate.outputs.base_sha }}
+      needs_smoke: ${{ steps.gate.outputs.needs_smoke }}
+      dockerfiles: ${{ steps.gate.outputs.dockerfiles }}
+    steps:
+      - name: Refuse any ref but main
+        if: github.ref != 'refs/heads/main'
+        run: |
+          echo "::error::dep-review runs from main only (got $GITHUB_REF)"
+          exit 1
+
+      - name: Checkout main
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Gate the PR
+        id: gate
+        env:
+          GH_TOKEN: ${{ github.token }}
+          FORCE: ${{ inputs.force }}
+        run: |
+          ARGS=()
+          [[ "$FORCE" == "true" ]] && ARGS+=(--force)
+          python3 scripts/dep_review/gate.py --pr "$PR" --repo "$GITHUB_REPOSITORY" \
+            --out gate.json --github-output "$GITHUB_OUTPUT" "${ARGS[@]}"
+          jq -r '"PR #\(.pr) \(.source // "?"): ok=\(.ok) skip=\(.skip) — \(.reason // "")"' gate.json \
+            >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload gate result
+        uses: actions/upload-artifact@v7
+        with:
+          name: dep-review-gate
+          path: gate.json
+          retention-days: 14
+
+  quick:
+    name: Quick checks
+    needs: gate
+    if: needs.gate.outputs.ok == 'true' && needs.gate.outputs.skip != 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout PR head
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.gate.outputs.head_sha }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      # Same interpreter as mod-updates.yml; some scripts need 3.12+ syntax.
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: '3.13'
+
+      - name: Unit tests
+        run: python3 -B -m unittest discover -s scripts/tests -p 'test_*.py'
+
+      - name: ShellCheck
+        run: |
+          find scripts docker examples/consumer -type f \( -name '*.sh' -o -name dev -o -name ops \) -print0 \
+            | xargs -0 shellcheck --severity=warning
+
+      # Changed files only: some tracked .json files are JSON-with-comments.
+      - name: JSON validity
+        env:
+          BASE_SHA: ${{ needs.gate.outputs.base_sha }}
+        run: |
+          git diff -z --name-only --diff-filter=AM "$BASE_SHA" HEAD -- '*.json' \
+            | xargs -0 -r -n1 python3 -m json.tool > /dev/null
+
+      - name: Build changed Dockerfiles
+        env:
+          DOCKERFILES: ${{ needs.gate.outputs.dockerfiles }}
+        run: |
+          jq -r '.[]' <<< "${DOCKERFILES:-[]}" | while IFS= read -r dockerfile; do
+            echo "::group::docker build -f $dockerfile ."
+            docker build -f "$dockerfile" .
+            echo "::endgroup::"
+          done
+
+  smoke:
+    name: Smoke test
+    needs: gate
+    if: needs.gate.outputs.ok == 'true' && needs.gate.outputs.skip != 'true' && needs.gate.outputs.needs_smoke == 'true'
+    permissions:
+      contents: read
+    uses: ./.github/workflows/smoke-test.yml
+    with:
+      ref: ${{ needs.gate.outputs.head_sha }}
+
+  review:
+    name: Review
+    needs: [gate, quick, smoke]
+    if: always() && needs.gate.outputs.ok == 'true' && needs.gate.outputs.skip != 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    environment: dep-review
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Fetch the PR head as data
+        run: git fetch --no-tags origin "+refs/pull/${PR}/head:refs/remotes/pr/head"
+
+      - name: Download gate result
+        uses: actions/download-artifact@v8
+        with:
+          name: dep-review-gate
+
+      - name: Collect evidence
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/pulls/$PR" --jq '.body // ""' > pr-body.md
+          python3 scripts/dep_review/collect.py --gate gate.json --out-dir review --pr-body-file pr-body.md
+          rm pr-body.md
+          du -sh review >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Load verdict schema
+        id: schema
+        run: echo "json=$(jq -c . .github/dep-review/verdict.schema.json)" >> "$GITHUB_OUTPUT"
+
+      - name: Review with Claude
+        id: claude
+        uses: anthropics/claude-code-action@756cc22e19660d20e8cc9496b4f242475a7f7790 # v1.0.235
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          github_token: ${{ github.token }}
+          allowed_bots: dependabot[bot],github-actions[bot]
+          prompt: |
+            Follow .github/dep-review/PROMPT.md to review pull request #${{ inputs.pr }}
+            (source: ${{ needs.gate.outputs.source }}). The evidence bundle is in review/.
+            Test results on the PR head: quick checks ${{ needs.quick.result }},
+            smoke test ${{ needs.smoke.result }}.
+          claude_args: >-
+            --model claude-opus-5-5
+            --max-turns 60
+            --max-budget-usd 20
+            --permission-mode dontAsk
+            --disallowedTools Bash,Edit,Write,MultiEdit,NotebookEdit,WebFetch,WebSearch,Task,TodoWrite "mcp__*"
+            --disallowedTools "Read(//proc/**)" "Read(//sys/**)" "Read(//etc/**)" "Read(//tmp/**)" "Read(~/.claude/**)" "Read(~/.config/**)" "Read(//home/runner/work/_temp/**)"
+            --strict-mcp-config
+            --json-schema '${{ steps.schema.outputs.json }}'
+
+      - name: Save verdict
+        if: always()
+        env:
+          VERDICT: ${{ steps.claude.outputs.structured_output }}
+        run: printf '%s' "$VERDICT" > review/verdict.json
+
+      - name: Upload review bundle
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: dep-review-bundle
+          path: review/
+          retention-days: 14
+
+  apply:
+    name: Apply
+    needs: [gate, quick, smoke, review]
+    if: always() && needs.gate.outputs.ok == 'true' && needs.gate.outputs.skip != 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+      actions: write
+      checks: read
+    env:
+      GH_TOKEN: ${{ github.token }}
+      HEAD_SHA: ${{ needs.gate.outputs.head_sha }}
+    steps:
+      # Keeps credentials for the hold push; this job runs main's code only.
+      - name: Checkout main
+        uses: actions/checkout@v7
+
+      - name: Download gate result
+        uses: actions/download-artifact@v8
+        with:
+          name: dep-review-gate
+
+      - name: Read the PR's manifest
+        run: |
+          git fetch --no-tags origin "+refs/pull/${PR}/head:refs/remotes/pr/head"
+          git show "$HEAD_SHA:modpack/adventure.mrpack.json" > pr-manifest.json
+
+      - name: Download review bundle
+        continue-on-error: true
+        uses: actions/download-artifact@v8
+        with:
+          name: dep-review-bundle
+          path: review
+
+      - name: Record test and check results
+        env:
+          QUICK: ${{ needs.quick.result }}
+          SMOKE: ${{ needs.smoke.result }}
+        run: |
+          mkdir -p review
+          [[ -s review/verdict.json ]] || : > review/verdict.json
+          [[ -f review/context.json ]] || echo '{"work":[],"cached":[],"holds":[],"notes":["collect did not run"]}' > review/context.json
+          # The PR's own workflows (lint.yml etc.) may still be running; wait
+          # up to 10 minutes, then record whatever state they are in.
+          for _ in $(seq 20); do
+            PENDING=$(gh api --paginate "repos/$GITHUB_REPOSITORY/commits/$HEAD_SHA/check-runs" \
+              --jq '[.check_runs[] | select(.status != "completed")] | length' | jq -s add)
+            [[ "${PENDING:-0}" -eq 0 ]] && break
+            sleep 30
+          done
+          gh api --paginate "repos/$GITHUB_REPOSITORY/commits/$HEAD_SHA/check-runs" \
+            --jq '.check_runs[] | {name, status, conclusion}' | jq -s . > checks.json
+          # quick builds the Dockerfiles, so its result covers docker_build.
+          jq -n --arg quick "$QUICK" --arg smoke "$SMOKE" --slurpfile checks checks.json \
+            '{quick: $quick, smoke: $smoke, docker_build: $quick, checks: $checks[0]}' > tests.json
+
+      - name: Decide
+        run: |
+          python3 scripts/dep_review/apply.py --gate gate.json --context review/context.json \
+            --verdict review/verdict.json --tests tests.json --out plan.json --comment comment.md \
+            --manifest pr-manifest.json --run-url "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+          jq -r '"Action: \(.action)", (.reasons[] | "- \(.)")' plan.json >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Stop if the PR moved
+        id: moved
+        run: |
+          CURRENT=$(gh api "repos/$GITHUB_REPOSITORY/pulls/$PR" --jq .head.sha)
+          if [[ "$CURRENT" != "$HEAD_SHA" ]]; then
+            echo "::notice::PR head moved from $HEAD_SHA to $CURRENT; the newer push gets its own review"
+            echo "moved=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Post the review comment
+        if: steps.moved.outputs.moved != 'true'
+        run: |
+          COMMENT_ID=$(jq -r '.state_comment_id // empty' gate.json)
+          if [[ -n "$COMMENT_ID" ]]; then
+            gh api --method PATCH "repos/$GITHUB_REPOSITORY/issues/comments/$COMMENT_ID" -F body=@comment.md > /dev/null
+          else
+            gh api --method POST "repos/$GITHUB_REPOSITORY/issues/$PR/comments" -F body=@comment.md > /dev/null
+          fi
+
+      # The title carries the release impact (ci/fix/feat/feat!), so a
+      # squash-merge by hand versions the release as the review decided.
+      - name: Title the PR with its release impact
+        if: steps.moved.outputs.moved != 'true'
+        run: |
+          TITLE=$(jq -r '.commit_title // empty' plan.json)
+          [[ -n "$TITLE" ]] && gh pr edit "$PR" --title "$TITLE"
+
+      - name: Label
+        if: steps.moved.outputs.moved != 'true'
+        run: |
+          gh label create dep-review:reviewed --color C5DEF5 --force
+          gh label create dep-review:safe --color 0E8A16 --force
+          gh label create dep-review:attention --color FBCA04 --force
+          gh label create dep-review:rejected --color B60205 --force
+          gh label create dep-review:ready-for-major --color 5319E7 --force \
+            --description "Worldgen updates reviewed and green; merge only when cutting the next major"
+          ARGS=()
+          while IFS= read -r l; do ARGS+=(--add-label "$l"); done < <(jq -r '.labels_add[]' plan.json)
+          while IFS= read -r l; do ARGS+=(--remove-label "$l"); done < <(jq -r '.labels_remove[]' plan.json)
+          gh pr edit "$PR" "${ARGS[@]}"
+
+      - name: Merge
+        if: steps.moved.outputs.moved != 'true'
+        run: |
+          [[ "$(jq -r .action plan.json)" == "merge" ]] || exit 0
+          if ! OUT=$(gh pr merge "$PR" --squash --match-head-commit "$HEAD_SHA" \
+            --subject "$(jq -r .commit_title plan.json)" --body "$(jq -r .commit_body plan.json)" 2>&1); then
+            echo "::warning::GitHub refused the merge: $OUT"
+            printf 'Review passed, but GitHub refused the automatic merge, so this needs merging by hand:\n\n~~~\n%s\n~~~\n' "$OUT" \
+              | gh pr comment "$PR" --body-file -
+            exit 0
+          fi
+          # A GITHUB_TOKEN merge triggers no push workflows; rebuild main's images.
+          gh workflow run publish.yml --ref main
+          # The next-major PR shares the manifest; re-pinning now keeps it mergeable.
+          if [[ "$(jq -r .source gate.json)" == "mods" ]]; then
+            gh workflow run mod-updates.yml --ref main
+          fi
+
+      - name: Close
+        if: steps.moved.outputs.moved != 'true'
+        run: |
+          [[ "$(jq -r .action plan.json)" == "close" ]] || exit 0
+          [[ "$(gh api "repos/$GITHUB_REPOSITORY/pulls/$PR" --jq .head.sha)" == "$HEAD_SHA" ]] || exit 0
+          gh pr close "$PR"
+
+      - name: Hold mods back and regenerate the PR
+        if: steps.moved.outputs.moved != 'true'
+        run: |
+          [[ "$(jq -r .action plan.json)" == "rehold" ]] || exit 0
+          HEAD_REF=$(jq -r .head_ref gate.json)
+          case "$HEAD_REF" in
+            mod-updates/auto | mod-updates/next-major) ;;
+            *) echo "::error::rehold on $HEAD_REF, which is not a mod-updates branch"; exit 1 ;;
+          esac
+          git fetch --no-tags origin "$HEAD_REF"
+          git checkout --detach FETCH_HEAD
+          [[ "$(git rev-parse HEAD)" == "$HEAD_SHA" ]] || { echo "::notice::branch moved"; exit 0; }
+          cp pr-manifest.json modpack/adventure.mrpack.json
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add modpack/adventure.mrpack.json
+          git commit -m "chore: update mod version holds (dep-review)"
+          git push origin "HEAD:refs/heads/$HEAD_REF"
+          # mod-updates re-pins from main with this branch's holds carried over,
+          # then dispatches the next review.
+          gh workflow run mod-updates.yml --ref main

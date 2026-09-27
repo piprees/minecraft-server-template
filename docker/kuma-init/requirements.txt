@@ -1,0 +1,2 @@
+# uptime-kuma-api for kuma-provision.py and kuma-maintenance.py; Dependabot (pip) keeps it current.
+uptime-kuma-api==1.2.1

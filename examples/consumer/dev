@@ -44,7 +44,8 @@ usage() {
   echo "  pack     Build the client modpack into ./modpack-dist/"
   echo "  pin      Re-pin overlay/mods-extra.txt to latest mod builds (review with git diff)"
   echo "  pull     Fetch the stack bundle only (first boot / cache recovery)"
-  echo "  update   Pull the latest stack bundle + Docker images"
+  echo "  update   Pull the pinned stack bundle + Docker images, sync scaffold files"
+  echo "           (--scaffold-only: sync files, skip .env and images - for CI)"
   echo "  refresh-config Force-refresh platform config defaults (backs up data/config; overlay wins)"
   echo "  clean    Delete regenerable state by target (./dev clean --list)."
   echo "           Default: stack pack cache mods config. --dry-run to preview"
@@ -82,21 +83,30 @@ ensure_env() {
 # only the .stack/current symlink moves. bootstrap_stack below is the
 # minimal first-ever pull for when no bundle exists yet.
 
-# The pin the puller resolves comes from .env when the file carries one —
-# a STACK_VERSION already exported into this shell (an earlier `set -a;
-# source .env`, a wrapper, direnv) must never beat a fresh .env edit. The
-# ambient variable only decides when .env has no pin. For a one-off pull of
-# a different version, run the bundle's scripts/stack-pull.sh directly.
+# The pin the puller resolves, first match wins: .stack-version (the tracked
+# file deploys read too), STACK_VERSION in .env (deprecated), a STACK_VERSION
+# already exported into this shell, then latest. A file always beats the
+# ambient variable - an earlier `set -a; source .env`, a wrapper or direnv
+# must never beat a fresh edit. For a one-off pull of a different version,
+# run the bundle's scripts/stack-pull.sh directly.
+read_stack_pin_file() {
+  [[ -f "$CONSUMER_DIR/.stack-version" ]] || return 0
+  grep -vE '^[[:space:]]*(#|$)' "$CONSUMER_DIR/.stack-version" | head -1 | tr -d '[:space:]' || true
+}
+
 resolve_stack_pin() {
-  local env_pin=""
-  if [[ -f "$CONSUMER_DIR/.env" ]]; then
+  local file_pin env_pin=""
+  file_pin=$(read_stack_pin_file)
+  if [[ -z "$file_pin" && -f "$CONSUMER_DIR/.env" ]]; then
     env_pin=$(grep -E '^STACK_VERSION=' "$CONSUMER_DIR/.env" | head -1 | cut -d= -f2- | tr -d '"' | tr -d "'") || true
   fi
-  if [[ -n "$env_pin" ]]; then
-    if [[ -n "${STACK_VERSION:-}" && "$STACK_VERSION" != "$env_pin" ]]; then
-      echo "NOTE: using STACK_VERSION=$env_pin from .env (ignoring exported STACK_VERSION=$STACK_VERSION)" >&2
+  local pin="${file_pin:-$env_pin}" from=".stack-version"
+  [[ -n "$file_pin" ]] || from=".env"
+  if [[ -n "$pin" ]]; then
+    if [[ -n "${STACK_VERSION:-}" && "$STACK_VERSION" != "$pin" ]]; then
+      echo "NOTE: using STACK_VERSION=$pin from $from (ignoring exported STACK_VERSION=$STACK_VERSION)" >&2
     fi
-    export STACK_VERSION="$env_pin"
+    export STACK_VERSION="$pin"
   fi
 }
 
@@ -257,12 +267,8 @@ stack_pull() {
 
 bootstrap_stack() {
   local repo="piprees/minecraft-server-template"
-  local pin=""
-  if [[ -f "$CONSUMER_DIR/.env" ]]; then
-    pin=$(grep -E '^STACK_VERSION=' "$CONSUMER_DIR/.env" | head -1 | cut -d= -f2- | tr -d '"' | tr -d "'") || true
-  fi
-  pin="${pin:-${STACK_VERSION:-}}"
-  pin="${pin:-latest}"
+  resolve_stack_pin
+  local pin="${STACK_VERSION:-latest}"
   pin="${pin#v}"
   [[ "$pin" == "latest" ]] && pin=""
   echo "Bootstrapping stack bundle (pin: ${pin:-latest})..."
@@ -686,16 +692,25 @@ case "$CMD" in
     fi
     # Workflows (mkdir -p for first-time consumers without .github/).
     mkdir -p "$CONSUMER_DIR/.github/workflows"
-    for f in .github/workflows/deploy.yml .github/workflows/update.yml .github/workflows/server-power.yml; do
+    for f in .github/workflows/deploy.yml .github/workflows/update.yml .github/workflows/server-power.yml .github/dependabot.yml; do
       src="$STACK_DIR/examples/consumer/$f"
       [[ -f "$src" ]] && cp "$src" "$CONSUMER_DIR/$f"
     done
+    # CI (the Updates workflow's stack job) needs the scaffold only: no .env,
+    # no Docker.
+    if [[ "${1:-}" == "--scaffold-only" ]]; then
+      echo "Scaffold synced from $(basename "$(readlink "$CONSUMER_DIR/.stack/current")")."
+      exit 0
+    fi
     ensure_env
     ensure_docker
     set -a
     # shellcheck disable=SC1091
     source "$CONSUMER_DIR/.env"
     set +a
+    # .env may carry a deprecated STACK_VERSION; the pin file still wins.
+    file_pin=$(read_stack_pin_file)
+    [[ -z "$file_pin" ]] || export STACK_VERSION="$file_pin"
     # Same derivation dev-up.sh applies, and it has to happen here too: the
     # compose files resolve images as ${IMAGE_TAG:-latest}, so a pull without
     # it fetches :latest while every later boot runs :${STACK_VERSION#v}. The

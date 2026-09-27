@@ -29,6 +29,9 @@ logs/
 *.log
 *.lock
 
+# === pin-mod-versions.sh review output ===
+config/modrinth-mods.pinned.txt
+
 # === Seed-rolling artefacts ===
 /.seed-rolling/
 

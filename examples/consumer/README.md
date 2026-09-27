@@ -26,14 +26,18 @@ Connect at `mc.<LOCAL_DOMAIN>:<SERVER_PORT>` (default `mc.myserver.local:25577`)
 
 ### Update the platform
 
-`STACK_VERSION` in `.env` pins the platform release: a major pin like `v2` floats on the latest `v2.x.y`, an exact pin (`v2.0.1`) holds it, and unset tracks the latest release. `./ops setup` records the line in use.
+`.stack-version` pins the platform release: one exact `vX.Y.Z`, committed at the repo root. Deploys and `./dev` both read it, and `./ops setup` writes it. `.env` does not choose the release a deploy installs.
+
+Every Monday the `Updates` workflow opens a PR moving `.stack-version` to the newest release, with its release notes. A patch or minor merges itself and deploys when every image exists and no workflow file changed. A major, or a release that changes `.github/workflows/`, waits for you: follow the PR's checklist, run `./dev update` locally and commit `.github/workflows` with it. For a major, also merge Dependabot's PR bumping `deploy-reusable.yml@vN` in the same go; a deploy refuses a release from another major than its `@vN`.
 
 ```bash
-./dev update                  # re-pull the bundle + Docker images
+./dev update                  # re-pull the bundle + Docker images, re-sync scaffold files
 ./dev up                      # restart on the new version
-./dev rollback                # list versions; "./dev rollback v2.6.0" reverts to one
+./dev rollback                # local only: list versions; "./dev rollback v2.6.0" switches to one
 ./ops sync                    # local down → update → .env to GitHub → server deploy → local up
 ```
+
+**Rolling production back:** run the `Deploy` workflow by hand with `stack_version` set to the older release (e.g. `gh workflow run deploy.yml -f stack_version=v5.6.1`). That deploys it once; the next push deploys `.stack-version` again, so commit the older version there to stay on it.
 
 ### Update your extra mods
 
@@ -43,7 +47,7 @@ git diff overlay/mods-extra.txt
 ./dev up                      # or push to main to deploy
 ```
 
-The `Updates` workflow (`.github/workflows/update.yml`) does the same weekly and opens a PR with the diff, plus a note when a new stack release is available.
+The `Updates` workflow (`.github/workflows/update.yml`) does the same weekly and opens a PR with the diff.
 
 ### Seed rolling
 
@@ -85,7 +89,7 @@ Add server mods to `overlay/mods-extra.txt` (one `slug:versionId` per line, e.g.
 
 Every default mod is removable without breaking the boot — including the worldgen pair (Tectonic, Terralith): the platform's structure datapacks strip removed mods' overrides automatically, and the custom-dimension noise presets are self-contained. Two caveats: remove a mod's dependents with it (`fabric-seasons-terralith-compat` goes when `terralith` goes), and removing a worldgen mod changes NEW terrain only — existing chunks keep their shape and new ones generate with vanilla semantics, so expect borders. CI's smoke removal matrix guards this promise.
 
-**Keep the CLIENT pack in sync.** The client manifest is yours (forked), and ~50 default mods are required on BOTH sides — removing one of those server-side while clients still carry it gets every player kicked at the Fabric handshake ("Incompatible mod set"). Per removed slug: check `_clientMods.required` in `modpack/adventure.mrpack.json`, remove it there too along with any client-only dependents (removing `trinkets` also takes `charm-of-undying` and `elytra-slot`), then rebuild the pack — the coherence check catches dangling dependencies, and the build warns when a slug in `mods-remove.txt` is still required client-side.
+**The client pack follows server removals.** About 50 default mods are required on both sides, and a client still carrying one the server dropped is kicked at the Fabric handshake ("Incompatible mod set"). The pack builder strips every `mods-remove.txt` slug from the client manifest before it builds. Client-only dependents are yours to remove, in `overlay/modpack/manifest.json`'s `remove` (removing `trinkets` also takes `charm-of-undying` and `elytra-slot`): the build doesn't check for them, and a client mod left without its dependency stops the game at launch.
 
 ### Config, worldgen, and branding
 
@@ -158,7 +162,8 @@ For in-game commands, RCON recipes, Discord `/mc` commands, and the LuckPerms pe
 ├── dev                         # local dev commands (up/down/logs/rcon/pack/sync)
 ├── ops                         # operational commands (setup/provision/deploy/...)
 ├── .github/workflows/deploy.yml # CI/CD caller workflow
-├── .github/workflows/update.yml # weekly mod re-pin PR + stack release notes
+├── .github/workflows/update.yml # weekly PRs: mod re-pin + stack version bump
+├── .stack-version              # the platform release this server runs (exact vX.Y.Z)
 ├── .stack/                     # git-ignored bundle cache
 ├── data/                       # git-ignored world + server state
 ├── modpack-dist/               # git-ignored built modpack

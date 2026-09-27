@@ -17,6 +17,7 @@ COPY scripts/build-modpack.sh      /app/build-modpack.sh
 COPY scripts/check-pack-coherence.py /app/check-pack-coherence.py
 COPY scripts/check-client-parity.py /app/check-client-parity.py
 COPY scripts/modrinth-api.py       /app/modrinth-api.py
+COPY scripts/pack_files.py         /app/pack_files.py
 COPY scripts/lib.sh                /app/lib.sh
 COPY docker/modpack-builder/entrypoint.sh    /app/entrypoint.sh
 COPY docker/modpack-builder/merge-manifest.py /app/merge-manifest.py

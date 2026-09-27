@@ -1,103 +1,78 @@
 version: 2
 
+# Every PR opened here is reviewed by dep-review.yml, one agent run per
+# distinct version set, so each group below is one review instead of many.
+# The cooldown keeps day-one releases out of the auto-merge path.
+#
+# docker-compose.yml is not listed: its images are written as
+# ${MIRROR_REGISTRY:-…}/image:tag, which Dependabot cannot parse.
+# scripts/platform_updates.py (platform-updates.yml) updates those, plus the
+# Fabric loader, yarn, fabric-api and the pinned build tools.
+#
+# Gradle is not listed either: Dependabot reads plugin repositories only from
+# a settings file's dependencyResolutionManagement block, and Loom and every
+# net.fabricmc artefact live on maven.fabricmc.net, declared in
+# pluginManagement and added by Loom at build time.
+
 updates:
-  # GitHub Actions: pin actions to latest major/minor
+  # The platform's workflows and the consumer scaffold's copies.
   - package-ecosystem: github-actions
-    directory: /
+    directories:
+      - /
+      - /examples/consumer
     schedule:
       interval: weekly
       day: monday
+    cooldown:
+      default-days: 3
+      semver-major-days: 7
+    groups:
+      actions-minor:
+        patterns: ["*"]
+        update-types: [minor, patch]
     commit-message:
       prefix: "ci"
     labels:
       - dependencies
       - ci
 
-  # Docker: compose file (third-party images: itzg, nginx, kuma, etc.)
+  # Sidecar Dockerfiles: one PR per base image across every directory
+  # (python:… in two, alpine:… in four).
   - package-ecosystem: docker
-    directory: /
+    directories:
+      - /docker/*
     schedule:
       interval: weekly
       day: monday
+    cooldown:
+      default-days: 3
+      semver-major-days: 7
+    groups:
+      base-images:
+        group-by: dependency-name
     commit-message:
       prefix: "chore"
     labels:
       - dependencies
       - docker
 
-  # Docker: custom sidecar Dockerfiles
-  - package-ecosystem: docker
-    directory: /docker/discord-sync
-    schedule:
-      interval: weekly
-      day: monday
-    commit-message:
-      prefix: "chore"
-    labels:
-      - dependencies
-      - docker
-
-  - package-ecosystem: docker
-    directory: /docker/kuma-init
-    schedule:
-      interval: weekly
-      day: monday
-    commit-message:
-      prefix: "chore"
-    labels:
-      - dependencies
-      - docker
-
-  - package-ecosystem: docker
-    directory: /docker/mod-checker
-    schedule:
-      interval: weekly
-      day: monday
-    commit-message:
-      prefix: "chore"
-    labels:
-      - dependencies
-      - docker
-
-  - package-ecosystem: docker
-    directory: /docker/idle-tasks
-    schedule:
-      interval: weekly
-      day: monday
-    commit-message:
-      prefix: "chore"
-    labels:
-      - dependencies
-      - docker
-
-  - package-ecosystem: docker
-    directory: /docker/defaults-seed
-    schedule:
-      interval: weekly
-      day: monday
-    commit-message:
-      prefix: "chore"
-    labels:
-      - dependencies
-      - docker
-
-  - package-ecosystem: docker
-    directory: /docker/modpack-builder
-    schedule:
-      interval: weekly
-      day: monday
-    commit-message:
-      prefix: "chore"
-    labels:
-      - dependencies
-      - docker
-
-  # Python: deps for the Discord sync bot
+  # Python: the Discord sync bot (scripts/), template tooling
+  # (requirements-dev.txt) and kuma-init's image (docker/kuma-init/).
   - package-ecosystem: pip
-    directory: /scripts
+    directories:
+      - /
+      - /scripts
+      - /docker/kuma-init
     schedule:
       interval: weekly
       day: monday
+    cooldown:
+      default-days: 3
+      semver-major-days: 7
+    groups:
+      python-minor:
+        patterns: ["*"]
+        update-types: [minor, patch]
     commit-message:
       prefix: "chore"
     labels:

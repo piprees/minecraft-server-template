@@ -229,8 +229,11 @@ if [[ -f "$MANIFEST" ]]; then
   echo ""
   echo "==> Re-pinning client manifest ($MANIFEST)..."
 
-  python3 - "$MANIFEST" "$TARGET_VERSION" "$FALLBACK_CSV" << 'MANIFEST_PIN'
-import json, sys, time, urllib.request
+  PACK_FILES_DIR="$SCRIPT_DIR" python3 - "$MANIFEST" "$TARGET_VERSION" "$FALLBACK_CSV" << 'MANIFEST_PIN'
+import json, os, sys, time, urllib.request
+
+sys.path.insert(0, os.environ["PACK_FILES_DIR"])
+from pack_files import choose_version, primary_filename
 
 manifest_path, target, fallback_csv = sys.argv[1:4]
 fallbacks = fallback_csv.split(",")
@@ -282,29 +285,43 @@ for key in ("required", "optional"):
         time.sleep(0.35)
     m["_clientMods"][key] = new_entries
 
-def resolve_pack(slug):
-    """Resolve a resource/shader pack — no loader filter, MC version preferred."""
-    for mc in fallbacks:
-        url = f"https://api.modrinth.com/v2/project/{slug}/version?game_versions=%5B%22{mc}%22%5D&limit=1"
+def fetch_json(url):
+    req = urllib.request.Request(url, headers={"User-Agent": ua})
+    return json.loads(urllib.request.urlopen(req, timeout=30).read())
+
+def resolve_pack(slug, pinned_vid=None):
+    """Resolve a resource/shader pack — no loader filter, MC version preferred.
+
+    Returns (version_id, version_number, matched_mc), None when nothing
+    resolves, or ("keep", filename) when a pinned pack's newest build is a
+    different style variant: a re-pin stays on the pinned file's pack_key.
+    """
+    current_filename = None
+    if pinned_vid:
         try:
-            req = urllib.request.Request(url, headers={"User-Agent": ua})
-            versions = json.loads(urllib.request.urlopen(req, timeout=30).read())
-            if versions:
-                v = versions[0]
-                return v["id"], v["version_number"], mc
+            current_filename = primary_filename(fetch_json(f"https://api.modrinth.com/v2/version/{pinned_vid}"))
         except Exception:
             pass
-        time.sleep(0.35)
-    # Fallback: no MC version filter (some packs aren't tagged)
-    url = f"https://api.modrinth.com/v2/project/{slug}/version?limit=1"
-    try:
-        req = urllib.request.Request(url, headers={"User-Agent": ua})
-        versions = json.loads(urllib.request.urlopen(req, timeout=30).read())
+        if not current_filename:
+            return None
+    limit = 20 if current_filename else 1
+    queries = [(f"game_versions=%5B%22{mc}%22%5D&", mc) for mc in fallbacks]
+    # Last resort: no MC version filter (some packs aren't tagged)
+    queries.append(("", "any"))
+    for query, mc in queries:
+        try:
+            versions = fetch_json(f"https://api.modrinth.com/v2/project/{slug}/version?{query}limit={limit}")
+        except Exception:
+            versions = []
         if versions:
-            v = versions[0]
-            return v["id"], v["version_number"], "any"
-    except Exception:
-        pass
+            if not current_filename:
+                v = versions[0]
+                return v["id"], v["version_number"], mc
+            v = choose_version(current_filename, versions)
+            if v:
+                return v["id"], v["version_number"], mc
+            return "keep", primary_filename(versions[0])
+        time.sleep(0.35)
     return None
 
 def repin_packs(section_name):
@@ -316,8 +333,10 @@ def repin_packs(section_name):
         if isinstance(p, dict):
             slug_field = p.get("slug", "")
             slug = slug_field.split(":")[0]
-            result = resolve_pack(slug)
-            if result:
+            result = resolve_pack(slug, slug_field.split(":")[1] if ":" in slug_field else None)
+            if result and result[0] == "keep":
+                print(f"  {slug}: newest build is a different variant ({result[1]}) - keeping {slug_field.split(':')[1]}")
+            elif result:
                 vid, ver, mc = result
                 old_vid = slug_field.split(":")[1] if ":" in slug_field else "unpinned"
                 if old_vid != vid:
@@ -332,8 +351,11 @@ def repin_packs(section_name):
             time.sleep(0.35)
         elif isinstance(p, str):
             slug = p.split(":")[0]
-            result = resolve_pack(slug)
-            if result:
+            result = resolve_pack(slug, p.split(":")[1] if ":" in p else None)
+            if result and result[0] == "keep":
+                print(f"  {slug}: newest build is a different variant ({result[1]}) - keeping {p.split(':')[1]}")
+                new_packs.append(p)
+            elif result:
                 vid, ver, mc = result
                 old_vid = p.split(":")[1] if ":" in p else "unpinned"
                 if old_vid != vid:
