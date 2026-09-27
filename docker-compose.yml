@@ -450,6 +450,10 @@ services:
   uptime-kuma:
     image: ${MIRROR_REGISTRY:-ghcr.io/piprees/mirrors}/louislam/uptime-kuma:2.4.0
     container_name: "${CONTAINER_PREFIX:-}uptime-kuma"
+    environment:
+      # Kuma 2.x otherwise opens on a database-choice page and serves no API
+      # until someone answers it, so kuma-init cannot provision a fresh install.
+      UPTIME_KUMA_DB_TYPE: sqlite
     ports:
       # Bound to localhost - not accessible from the internet.
       # Cloudflared reaches Kuma via Docker network DNS, not this port.

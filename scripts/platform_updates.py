@@ -18,7 +18,8 @@ covers Dockerfiles, actions and pip; this covers what it cannot parse:
           build against the fabric-api the server runs
   tool    Tailwind CLI (+ its sha256 lines, from the release's own
           sha256sums.txt), packwiz-installer-bootstrap, git-cliff
-          (release.yml + release-train.yml; must also be on PyPI), doctl
+          (release.yml + release-train.yml; must also be on PyPI), doctl,
+          hcloud
 
 Usage:
   python3 scripts/platform_updates.py --check            # list updates, change nothing
@@ -83,6 +84,8 @@ PINS = (
         re.compile(r"^()([0-9][\w.-]*)(\s*)$")),
     Pin("tool", "doctl", "examples/consumer/.github/workflows/server-power.yml",
         re.compile(r"^(\s+DOCTL_VERSION:\s*')([0-9][\w.-]*)('\s*)$")),
+    Pin("tool", "hcloud", "examples/consumer/.github/workflows/server-power.yml",
+        re.compile(r"^(\s+HCLOUD_VERSION:\s*')([0-9][\w.-]*)('\s*)$")),
 )
 IMAGE_FILE = "docker-compose.yml"
 # Groups: prefix, upstream image, tag, trailing space.
@@ -97,6 +100,7 @@ GITHUB_REPOS = {
     "packwiz-installer-bootstrap": "packwiz/packwiz-installer-bootstrap",
     "git-cliff": "orhun/git-cliff",
     "doctl": "digitalocean/doctl",
+    "hcloud": "hetznercloud/cli",
 }
 
 # Per-image tag rules. Without a rule an image keeps its tag's shape: the same
@@ -139,6 +143,7 @@ NOTES = {
         "https://github.com/packwiz/packwiz-installer-bootstrap/releases/tag/v{version}",
     ("tool", "git-cliff"): "https://github.com/orhun/git-cliff/releases/tag/v{version}",
     ("tool", "doctl"): "https://github.com/digitalocean/doctl/releases/tag/v{version}",
+    ("tool", "hcloud"): "https://github.com/hetznercloud/cli/releases/tag/v{version}",
 }
 
 PRERELEASE = re.compile(r"(?i)(alpha|beta|rc|dev|pre|preview|nightly|snapshot|canary|next|edge|test)")

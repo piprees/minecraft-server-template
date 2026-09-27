@@ -6,7 +6,11 @@ Usage: merge-manifest.py <default.json> <patch.json> <output.json>
 Patch keys (all optional):
   name, versionId          — replace at top level
   remove[]                 — slugs to drop from _clientMods required+optional
-  add.required/optional[]  — slugs to append (skip duplicates)
+  add.required/optional[]  — slug:versionId entries to add; one already listed
+                             under the same slug is replaced, in either list
+
+Entries match by slug, the part before ":", so "remove": ["sodium"] drops
+"sodium:QV48eyCs".
   _resourcePacks           — replace entire section
   _shaderPacks             — replace entire section
 """
@@ -14,23 +18,27 @@ import json
 import sys
 
 
+def slug_of(entry):
+    return entry.split(":", 1)[0]
+
+
 def merge(default, patch):
-    removes = set(patch.get("remove", []))
+    removes = {slug_of(e) for e in patch.get("remove", [])}
 
     if removes:
         cm = default.get("_clientMods", {})
         for key in ("required", "optional"):
-            cm[key] = [s for s in cm.get(key, []) if s not in removes]
+            cm[key] = [s for s in cm.get(key, []) if slug_of(s) not in removes]
         default["_clientMods"] = cm
 
     add = patch.get("add", {})
     if add:
         cm = default.setdefault("_clientMods", {})
         for key in ("required", "optional"):
-            existing = set(cm.get(key, []))
-            for slug in add.get(key, []):
-                if slug not in existing:
-                    cm.setdefault(key, []).append(slug)
+            for entry in add.get(key, []):
+                for other in ("required", "optional"):
+                    cm[other] = [s for s in cm.get(other, []) if slug_of(s) != slug_of(entry)]
+                cm[key].append(entry)
 
     for scalar in ("name", "versionId"):
         if scalar in patch:

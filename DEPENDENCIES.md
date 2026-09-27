@@ -85,7 +85,7 @@ Not covered: compose images, the Fabric loader, yarn, fabric-api and the build a
 | `image` | every `${MIRROR_REGISTRY:-…}/<image>:<tag>` in `docker-compose.yml` | Docker Hub; the tag keeps its shape: `itzg/minecraft-server` keeps `-java21`, `nginx` stays on its stable (even-minor) line, MinIO is frozen |
 | `loader` | the Fabric loader's five places | `meta.fabricmc.net`, the build marked stable |
 | `gradle` | `yarn_mappings`; `fabric_version` | the newest 1.21.1 yarn build; `fabric_version` follows the pack's `fabric-api` pin in `config/modrinth-mods.txt`, so the in-house mods build against the fabric-api the server runs |
-| `tool` | Tailwind CLI (with the sha256 lines from the release's `sha256sums.txt`), packwiz-installer-bootstrap, git-cliff, doctl | GitHub releases; git-cliff must also be on PyPI |
+| `tool` | Tailwind CLI (with the sha256 lines from the release's `sha256sums.txt`), packwiz-installer-bootstrap, git-cliff, doctl, hcloud | GitHub releases; git-cliff must also be on PyPI |
 
 - Every occurrence of a dependency moves to the same version. It never downgrades, never takes a pre-release, and never leaves 1.21.1. A resolver that fails writes nothing.
 - New image tags are mirrored to GHCR (`mirror-images.yml`) before the PR is opened, so compose never names a missing mirror tag; a failed mirror stops the run.
@@ -180,7 +180,7 @@ A library is any mod another mod requires. Most sit in the `# === dependency lib
 ### Client mods, resource packs and shader packs
 
 - `_clientMods.required` / `.optional` in `modpack/adventure.mrpack.json`; `stableOnly` makes the re-pin take the newest release instead of the newest build for a slug whose pre-releases have misbehaved.
-- `modpack/overrides/configureddefaults/options.txt` names resource packs by filename, and the build fails when a bump renames one: update the filename. The shader's filename in `configureddefaults/config/iris.properties` has no such check; update it with the pin.
+- `modpack/overrides/configureddefaults/options.txt` enables resource packs by filename and `configureddefaults/config/iris.properties` selects the shader by filename. The build (`scripts/pack_files.py`) points each at the pinned download, so a version bump needs no edit: an `options.txt` entry follows its pack's renamed file, and `shaderPack` is Complementary plus Euphoria Patches when the Euphoria jar's `-r<version>-` matches the shipped Complementary, else the plain Complementary zip with a warning. The build fails only when an enabled pack has no same-named download. A re-pin keeps a pack's style variant: when the newest build is a different variant (`os-colorful-grasses` publishes Short, Tall and Mix as separate versions), the old pin stays.
 - Shipped client defaults must not clobber player settings ([T10](TROUBLESHOOTING.md#t10)); `modpack/dist/` is build output ([T16](TROUBLESHOOTING.md#t16)).
 - Any client-side change is at least a minor.
 
@@ -293,7 +293,7 @@ Before bumping, removing or pairing one of these, read the linked entry. The com
 - **Migrating a repo without `.stack-version`.** The first stack PR creates the file at the newest release, sizing the bump against what a deploy installs today (the repository variable, with `latest` held to `deploy.yml`'s major); when the two match it is titled `chore(stack): pin template at vX.Y.Z`. That PR always changes `deploy.yml`, so it never merges itself: run `./dev update` locally once and commit. Once it merges, delete the `STACK_VERSION` repository variable; `github-env-sync.sh` still pushes it, and `.stack-version` wins over it.
 - **Rolling back.** Dispatch `deploy.yml` with `stack_version` set to the older release for a one-off full deploy; the next push deploys `.stack-version` again. To stay on it, commit the older version to `.stack-version`. `./dev rollback` switches the local bundle only.
 - **Updating locally.** `./dev update` pulls the bundle and images and re-syncs the scaffold, and `./ops sync` pushes the local `.env` to GitHub and deploys. `./ops update` and `./dev update` refresh different machines ([T46](TROUBLESHOOTING.md#t46)); a `dev` behind the scaffold misreads new flags ([T83](TROUBLESHOOTING.md#t83)); a hand-patched `.stack/<version>/` is discarded when a newer release resolves ([T30](TROUBLESHOOTING.md#t30)).
-- **Your own mods.** `overlay/mods-extra.txt` follows [the same checklist](#adding-a-mod); `./dev pin` re-pins it, and `update.yml`'s weekly re-pin PR (`updates/auto`) does the same. Client mods go in `overlay/modpack/manifest.json`. Removing a default: `overlay/mods-remove.txt`, keeping the client pack in sync ([consumer scaffold README](examples/consumer/README.md)).
+- **Your own mods.** `overlay/mods-extra.txt` follows [the same checklist](#adding-a-mod); `./dev pin` re-pins it, and `update.yml`'s weekly re-pin PR (`updates/auto`) does the same. Client mods go in `overlay/modpack/manifest.json`. Removing a default: `overlay/mods-remove.txt`; the client pack drops the same slugs on its own, and client-only dependents go in the manifest's `remove` ([consumer scaffold README](examples/consumer/README.md)).
 
 ## Where the rest lives
 

@@ -40,10 +40,11 @@ jobs:
       - name: Install CLI
         env:
           DOCTL_VERSION: '1.175.0'
+          HCLOUD_VERSION: '1.69.0'
         run: |
           case "${{ steps.provider.outputs.provider }}" in
             hetzner)
-              curl -sL https://github.com/hetznercloud/cli/releases/latest/download/hcloud-linux-amd64.tar.gz \
+              curl -fsSL "https://github.com/hetznercloud/cli/releases/download/v${HCLOUD_VERSION}/hcloud-linux-amd64.tar.gz" \
                 | tar xz -C /usr/local/bin hcloud
               ;;
             digitalocean)

@@ -166,7 +166,7 @@
     ]
   },
   "_resourcePacks": {
-    "_comment": "Modrinth resource packs. Pinned as slug:versionId (like _clientMods) so builds are reproducible and weekly updates don't silently change filenames. An entry may also be an object {slug: 'slug:vid', files: [...]} for named companion files. pin-mod-versions.sh re-pins on --apply. Packs are ENABLED by exact filename in overrides/configureddefaults/options.txt; the build fails if an enabled filename wasn't downloaded.",
+    "_comment": "Modrinth resource packs. Pinned as slug:versionId (like _clientMods) so builds are reproducible and weekly updates don't silently change filenames. An entry may also be an object {slug: 'slug:vid', files: [...]} for named companion files. pin-mod-versions.sh re-pins on --apply. Packs are ENABLED by filename in overrides/configureddefaults/options.txt; the build points each entry at the downloaded file of the same pack with its new version, and fails only when an enabled pack has no such download. A re-pin stays on the pinned style variant (os-colorful-grasses publishes Short, Tall, Mix... as separate versions).",
     "packs": [
       "better-leaves:XWtayRKd",
       "dramatic-skys:obHItVKX",

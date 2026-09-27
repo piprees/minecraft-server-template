@@ -55,7 +55,8 @@ def texts():
         "mods/b/gradle.properties": GRADLE,
         pu.TAILWIND_FILE: TAILWIND,
         ".github/git-cliff-version": "2.14.2\n",
-        "examples/consumer/.github/workflows/server-power.yml": "        env:\n          DOCTL_VERSION: '1.175.0'\n",
+        "examples/consumer/.github/workflows/server-power.yml":
+            "        env:\n          DOCTL_VERSION: '1.175.0'\n          HCLOUD_VERSION: '1.68.0'\n",
     }
 
 
@@ -104,7 +105,8 @@ def full_net(**overrides):
         tags=overrides.pop("tags", {"tailwindlabs/tailwindcss": ["v4.3.3", "v4.4.0", "v5.0.0-beta.1"],
                                     "packwiz/packwiz-installer-bootstrap": ["v0.0.3"],
                                     "orhun/git-cliff": ["v2.14.2", "v2.15.0", "v2.16.0"],
-                                    "digitalocean/doctl": ["v1.175.0", "v1.176.0"]}),
+                                    "digitalocean/doctl": ["v1.175.0", "v1.176.0"],
+                                    "hetznercloud/cli": ["v1.68.0", "v1.69.0", "v1.70.0-rc.1"]}),
         docs=docs)
 
 
@@ -186,7 +188,8 @@ class ScanTest(unittest.TestCase):
         self.assertEqual(found, {("image", "itzg/minecraft-server"), ("image", "itzg/mc-backup"),
                                  ("image", "minio/minio"), ("loader", "fabric-loader"), ("gradle", "yarn"),
                                  ("gradle", "fabric-api"), ("tool", "tailwindcss"),
-                                 ("tool", "packwiz-installer-bootstrap"), ("tool", "git-cliff"), ("tool", "doctl")})
+                                 ("tool", "packwiz-installer-bootstrap"), ("tool", "git-cliff"), ("tool", "doctl"),
+                                 ("tool", "hcloud")})
 
     def test_missing_pin_line_fails(self):
         t = texts()
@@ -248,6 +251,7 @@ class PlanApplyTest(unittest.TestCase):
         self.assertEqual(got[("tool", "tailwindcss")], (["4.3.3"], "4.4.0"))
         self.assertEqual(got[("tool", "git-cliff")], (["2.14.2"], "2.15.0"))  # 2.16.0 is not on PyPI
         self.assertEqual(got[("tool", "doctl")], (["1.175.0"], "1.176.0"))
+        self.assertEqual(got[("tool", "hcloud")], (["1.68.0"], "1.69.0"))
         self.assertNotIn(("image", "minio/minio"), got)
         self.assertNotIn(("tool", "packwiz-installer-bootstrap"), got)
         loader = next(u for u in updates if u["name"] == "fabric-loader")

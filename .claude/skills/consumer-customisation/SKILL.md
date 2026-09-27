@@ -129,10 +129,10 @@ Rules for adding, removing and pinning: [DEPENDENCIES.md](../../../DEPENDENCIES.
 
 **Every default mod is removable** without breaking the boot — this is a platform promise, guarded by CI's smoke test removal-matrix. The structures datapack strips removed mods' overrides automatically via `ownership.json`.
 
-**Two consumer responsibilities when removing:**
+**When removing:**
 
-1. Remove dependents together (e.g. `fabric-seasons-terralith-compat` goes when `terralith` goes)
-2. Keep the client pack in sync — a slug in `mods-remove.txt` that's still in `_clientMods.required` gets players kicked at the Fabric handshake
+1. Remove dependents together (e.g. `fabric-seasons-terralith-compat` goes when `terralith` goes).
+2. The client pack follows on its own: the pack builder strips every `overlay/mods-remove.txt` slug from the client manifest (`strip-removed-mods.py`). A client-only mod, absent from the server list, is removed with `remove` in `overlay/modpack/manifest.json`.
 
 ## Resource packs
 
@@ -140,7 +140,7 @@ Full reference: [references/resource-packs.md](references/resource-packs.md).
 
 Declared in `modpack/adventure.mrpack.json` under `_resourcePacks.packs`. Two entry forms: plain slug (primary file) or `{"slug": "...", "files": ["companion.zip"]}` for micropacks.
 
-**Enabled by exact filename** in `modpack/overrides/configureddefaults/options.txt`. The build **fails with a filename-drift error** when an enabled filename doesn't match a downloaded pack — this is deliberate, not a bug.
+**Enabled by filename** in `modpack/overrides/configureddefaults/options.txt`. The build points each entry at the downloaded file of the same pack, so a version bump needs no edit; it **fails** only when an enabled pack has no same-named download (removed from `_resourcePacks`, or two downloads that could both match).
 
 ## Multi-instance
 
@@ -161,7 +161,7 @@ Use `config/.env` (gitignored) for: Discord snowflake IDs, domain, player userna
 1. **`overlay/config/` is full-file replacement, not a merge** (except `"overrides"` deep-merge in dimension configs). A partial `tectonic.json` silently falls back to factory defaults for missing keys.
 2. **The loading screen config JSON is one level UP** from the `customsplashscreen/` directory — `config/customsplashscreen.json`, not `config/customsplashscreen/customsplashscreen.json`.
 3. **Removing a worldgen mod changes NEW terrain only.** Existing chunks keep their shape; expect visible borders.
-4. **Resource pack filenames change on version bumps.** The build fails deliberately — update `options.txt` when you see a filename-drift error.
+4. **Resource pack filenames change on version bumps.** The build rewrites the `options.txt` entry to the new filename; a pack whose newest build is a different style variant keeps its old pin.
 5. **`/starterkit set` captures full NBT** — damaged gear, enchantments, modded items, even written books all survive. But `NCR-Encryption.json` in the instance config contains a secret — never bulk-copy a Prism instance's config directory.
 6. **Panorama faces must be square at exactly 90° FOV** (`fov:0.5` in options.txt). Non-square or wrong-FOV images cause visible seams.
 

@@ -580,29 +580,6 @@ for f in picked:
       echo "  ! $slug - no ${MC_VERSION} build found" >&2
     fi
   done <<< "$RESOURCE_PACKS"
-
-  # options.txt enables packs by exact filename. When a pack updates on
-  # Modrinth the filename changes, and a stale options.txt entry would ship
-  # the pack silently disabled - fail the build so the entry gets refreshed.
-  OPTIONS_TXT="$WORK_DIR/overrides/configureddefaults/options.txt"
-  if [[ -f "$OPTIONS_TXT" ]]; then
-    python3 - "$OPTIONS_TXT" "$WORK_DIR/overrides/resourcepacks" << 'DRIFTEOF'
-import json, os, sys
-options_path, rp_dir = sys.argv[1], sys.argv[2]
-line = next((l for l in open(options_path, encoding='utf-8')
-             if l.startswith('resourcePacks:')), None)
-if line:
-    entries = json.loads(line.split(':', 1)[1])
-    have = set(os.listdir(rp_dir))
-    missing = [e[5:] for e in entries
-               if e.startswith('file/') and e.endswith('.zip') and e[5:] not in have]
-    for m in missing:
-        print(f"  ✗ options.txt enables '{m}' but no such file was downloaded"
-              " (pack updated on Modrinth? refresh the filename)", file=sys.stderr)
-    if missing:
-        sys.exit(1)
-DRIFTEOF
-  fi
 fi
 
 # --- download shader packs into overrides --------------------------------------
@@ -665,6 +642,13 @@ for f in v.get('files', []):
     fi
   done <<< "$SHADER_PACKS"
 fi
+
+# --- point the client configs at the shipped pack files ---------------------
+# options.txt and iris.properties select packs by filename; the pinned
+# filenames carry versions, so pack_files.py re-points them at the downloads.
+echo ""
+echo "==> Enabling packs in options.txt and iris.properties..."
+python3 "$SCRIPT_DIR/pack_files.py" enable "$WORK_DIR"
 
 # --- package as .mrpack (ZIP with modrinth.index.json + overrides) ------------
 echo ""

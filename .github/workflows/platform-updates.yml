@@ -4,7 +4,7 @@ name: Platform Updates
 # platform-updates/auto: the third-party images in docker-compose.yml, the
 # Fabric loader (server, client pack and in-house mod builds together), yarn
 # and fabric-api for the in-house mods, and the Tailwind CLI,
-# packwiz-installer-bootstrap, git-cliff and doctl pins. The resolvers and the
+# packwiz-installer-bootstrap, git-cliff, doctl and hcloud pins. The resolvers and the
 # list of files they may touch are scripts/platform_updates.py; gate.py reads
 # the same table, so this PR can change nothing else.
 #

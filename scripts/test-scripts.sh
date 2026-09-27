@@ -11,6 +11,9 @@
 # Usage:
 #   ./scripts/test-scripts.sh              # full test suite
 #   ./scripts/test-scripts.sh --quick      # syntax + lint only (no container)
+#
+# Exits 1 on any static failure, failed hardening check or lib.sh load
+# failure.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -389,10 +392,12 @@ fi
 echo ""
 log "Testing lib.sh..."
 docker cp scripts/lib.sh "${TEST_CONTAINER}:/root/lib.sh"
+LIB_ERRORS=0
 if run_in_test "SCRIPT_DIR=/root source /root/lib.sh && echo \"\$PROJECT_DIR\" && detect_provider" 2>&1 | tail -2; then
   echo "  ✓ lib.sh loads and runs"
 else
   warn "lib.sh failed"
+  LIB_ERRORS=1
 fi
 
 # =============================================================================
@@ -401,8 +406,9 @@ fi
 echo ""
 echo "=================================================================="
 log "Test suite complete"
-echo "  Shell analysis:     $([[ $SHELL_ERRORS -eq 0 ]] && echo "PASS" || echo "WARN ($SHELL_ERRORS issues)")"
-echo "  Python syntax:      PASS"
-echo "  Compose validation: PASS"
-echo "  Hardening tests:    $([[ ${ERRORS:-0} -eq 0 ]] && echo "PASS" || echo "WARN ($ERRORS issues)")"
+# Static failures exit before Phase 2, so reaching here means they passed.
+echo "  Static analysis:    PASS ($SHELL_TOTAL shell scripts)"
+echo "  Hardening tests:    $([[ $ERRORS -eq 0 ]] && echo "PASS" || echo "FAIL ($ERRORS checks)")"
+echo "  lib.sh loading:     $([[ $LIB_ERRORS -eq 0 ]] && echo "PASS" || echo "FAIL")"
 echo "=================================================================="
+[[ $((ERRORS + LIB_ERRORS)) -eq 0 ]]

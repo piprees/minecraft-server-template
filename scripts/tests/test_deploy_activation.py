@@ -10,6 +10,7 @@ has no activation path and the smoke test boots the local profile.
 The invariant under test is serialisation: one dimension's chunk must be on disk
 before the next is started (K6).
 """
+import os
 import re
 import subprocess
 import tempfile
@@ -441,6 +442,7 @@ class DeployLockTests(unittest.TestCase):
         proc, _ = self.run_lock(flock_rc=0)
         self.assertIn("stderr-marker", proc.stderr)
 
+    @unittest.skipIf(os.geteuid() == 0, "root writes through a read-only mode")
     def test_an_unwritable_lock_file_warns_rather_than_failing_silently(self):
         """A root-owned lock file must not disable exclusion without saying so."""
         tmp = tempfile.TemporaryDirectory()
