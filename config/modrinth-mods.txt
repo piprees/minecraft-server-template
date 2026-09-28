@@ -2,12 +2,12 @@
 # Re-pin: ./scripts/pin-mod-versions.sh --version 1.21.1
 
 # === core / performance ===
-fabric-api:Nlt8gI9z
-fabric-language-kotlin:bdhiINYC
+fabric-api:Mys3P7lK
+fabric-language-kotlin:eRRZzGMc
 lithium:N08Z8wog
 ferrite-core:sOzRw3CG
 krypton:Acz3ttTp
-c2me-fabric:gRm1ZAvc
+c2me-fabric:RMHYO1LJ
 # carpet — server admin/testing tool: fake players for the headless
 # verification loop (ops-gated commands; no client counterpart).
 #
@@ -38,14 +38,14 @@ modernfix:NnNX8LBn
 clumps:3ene3W1l
 
 # === distance ===
-distanthorizons:ZpKb4kZp
+distanthorizons:Ez3cx7Yd
 
 # === terrain & biomes ===
-tectonic:L87Phsbl
-lithostitched:vPyJwd70
+tectonic:WdDiEKMn
+lithostitched:eN30OQaU
 terralith:eWDLFabb
 wwoo:JBbDOEnc
-geophilic:jDzSPLta
+geophilic:5kFV8CEz
 # regions-unexplored places its biomes through TerraBlender regions, which
 # reach the overworld only — a managed dimension takes them by naming them in
 # its own "biomes" list (TROUBLESHOOTING T34).
@@ -66,7 +66,7 @@ betternether:M1o6hR2m
 # === caves & underground ===
 galosphere:jviVa3qz
 yungs-cave-biomes:geZa9lJS
-yungs-better-caves:wwXr6B2n
+yungs-better-caves:E2kXKiNY
 subsurface:JdF0yLTy
 # re-adds the andesite/diorite/granite blobs Terralith's cave generation removes.
 # Hard-depends on terralith >=2.0.0 despite Modrinth declaring no dependency —
@@ -94,7 +94,7 @@ medieval-buildings-end-edition:uCdUbsEn
 true-ending:FBAAEUsA
 
 # === structures (need yungs-api) ===
-yungs-api:okaPlkwI
+yungs-api:9rzwORd6
 yungs-bridges:8h9N9fvs
 towns-and-towers:DZxwgj6V
 when-dungeons-arise:g8oglmT0
@@ -119,36 +119,36 @@ simply-houses:imyvF030
 # === boss dungeons & extra structures ===
 deadly-deadly-dungeon:MlHPA0g5
 adventure-dungeons:EIun1fbq
-epic-structures-dungeons:xR2jWhmr
+epic-structures-dungeons:tcsK0UPh
 dungeons+:m8RPwRlg
-dungeonsreborn:PIK4U4ip
+dungeonsreborn:ChWk3p5I
 datapack:ati-structures-fabricforge:K7cpaKjN  # ATI structures, ruins, towers, camps
-moogs-structure-lib:6YYQZweF
-moogs-voyager-structures:uEZeTQ4b
-mes-moogs-end-structures:JW80uvhz
-mns-moogs-nether-structures:RFeEhpv4
-mss-moogs-soaring-structures:i1RQPVjQ
-mtr-moogs-temples-reimagined:pI3PZZrR
+moogs-structure-lib:qTdCLRyk
+moogs-voyager-structures:PiFoSPXI
+mes-moogs-end-structures:S7bUhX4n
+mns-moogs-nether-structures:OLTqXnsN
+mss-moogs-soaring-structures:O20bIWkj
+mtr-moogs-temples-reimagined:RvfqP9Zb
 
 # === mobs & animals ===
 friends-and-foes:UaBxLkkc
-untitled-duck-mod:1iG0fXae
+untitled-duck-mod:e8WLrDbM
 critters-and-companions:p19ZPlZD
 creeper-overhaul:O6yuPiE8
 
 # === villager overhaul ===
-more-villagers-re-employed:6A4P2wqq
+more-villagers-re-employed:5RpqFKaT
 villager-names-serilum:2PLlKTES
 guard-villagers-(fabricquilt):ea8J4gbH
 
 # === cosy village life ===
-lets-do-vinery:BV45cdzS
+lets-do-vinery:zump1BXr
 
 # === dependency libraries ===
 resourceful-lib:Hf91FuVF
 athena-ctm:JfyYsWKP
-geckolib:dnJdtm0u
-villagerapi:5cNuAKiT
+geckolib:tmxM7U4W
+villagerapi:8bqyZx1n
 terrablender:XNtIBXyQ
 # Pale Garden is a 1.21.4 vanilla biome; this backport brings it, the pale oak
 # blocks and the Creaking to 1.21.1. It registers as palegardenbackport:pale_garden,
@@ -157,11 +157,11 @@ terrablender:XNtIBXyQ
 # and needs none.
 deltaboxlib:jvWocoI8
 pale-garden-backport:AQLqibSn
-collective:4XRlrKGN
+collective:aP0sKWst
 cristel-lib:K1dyr5gj
 architectury-api:Pzc2FP5K
 forge-config-api-port:N5qzq0XV
-moonlight:Ic9GXl0K
+moonlight:FrIMIBv6
 kambrik:eMIEIbFZ
 playeranimator:CkedfDp3
 almanac:hUgNmeCO
@@ -170,7 +170,7 @@ bookshelf-lib:kpkjWpa5
 prickle:Ef7P6Rb7
 otterlib:lMOoBAw6
 resourceful-config:dQh99ERC
-puzzles-lib:pqCNhF6A
+puzzles-lib:Imj7cG2D
 yacl:o3cDn8Vp
 # required by the YUNG's cave/extras mods and stoneholm
 cloth-config:HpMb5wGb
@@ -184,13 +184,13 @@ frozenlib:GdadG0oj
 trinkets:JagCscwi
 charm-of-undying:RX60LMvX
 elytra-slot:jxx2pc4h
-artifacts:Z0AbY3eY
+artifacts:cTss6Iq4
 inmis:iE11BIfP
 
 # === variety ===
 immersive-armors:4m0lwLNO
 3d-placeable-food:F9DGEOfs
-supplementaries:8HLe7fdX
+supplementaries:h8FyJ2as
 natures-spirit:TRMapjpU
 macaws-bridges:pl1CA7dW
 macaws-doors:Zsfvgzu6
@@ -201,8 +201,8 @@ chipped:6h2mVZcb
 dramatic-doors:X5oMCwaA
 # universal-sawmill: provides the woodworks:sawmill recipe type dramatic-doors
 # references (kills the boot recipe-parse errors). Dep: moonlight (present).
-universal-sawmill:1Z66lBRN
-farmers-delight-refabricated:6Q2bg2Oh
+universal-sawmill:vpZZ1D50
+farmers-delight-refabricated:wbVXT4Ua
 appleskin:b5ZiCjAr
 
 # === seasons ===
@@ -219,7 +219,7 @@ pause-day-cycle:KQWm3NrZ
 fallingtree:wxGXaJMA
 carry-on:iDV62vEU
 bountiful:LFm1BWOE
-lootr:rNCVo4w9
+lootr:nar56EsW
 better-combat:JJQpBecL
 stack-refill:5RkgQCwL
 softer-hay-bales:RnWSv8yZ
@@ -230,7 +230,7 @@ natures-compass:dtrDpgsF
 explorers-compass:qSRKiE4D
 animal_feeding_trough:BgW2cRLu
 sit!:wstK3UaY
-amendments:O8U6IzEM
+amendments:TuWUel70
 smarter-farmers-farmers-replant:bsYbob1i
 grabby-mobs:a40un6os
 name-tag-tweaks:IFWMImfs
@@ -280,8 +280,8 @@ sound-physics-remastered:tVu2EZ4u
 
 # === admin / community ===
 luckperms:l47d4ZWk
-open-parties-and-claims:y7JKBy6O
-simple-voice-chat:VS5X7jZd
+open-parties-and-claims:IGnNGC9H
+simple-voice-chat:6PKCVne5
 ledger:t1AtqfxZ
 styled-chat:4e1xZSk3
 essential-commands:kev3hDqV
