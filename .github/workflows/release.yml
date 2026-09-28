@@ -153,7 +153,7 @@ jobs:
           done < mods/client-mods.manifest
 
       - name: Generate release notes
-        uses: orhun/git-cliff-action@v4.8.0
+        uses: orhun/git-cliff-action@v4.9.1
         with:
           version: v2.13.1
           # --unreleased --tag, not --latest: this runs BEFORE the release
@@ -170,7 +170,7 @@ jobs:
         # Must go through the action: git-cliff-action downloads the binary
         # into its own step and does NOT leave it on PATH — a bare git-cliff
         # in a run step fails with exit 127 (broke the first v3.1.0 cut).
-        uses: orhun/git-cliff-action@v4.8.0
+        uses: orhun/git-cliff-action@v4.9.1
         with:
           version: v2.13.1
           # --tag for the same reason: without it the version being released
