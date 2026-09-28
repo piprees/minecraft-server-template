@@ -1,5 +1,5 @@
 {
-  "count": 426,
+  "count": 423,
   "structure_sets": {
     "adventure:exit_shrines": {
       "source": "customdimensions.jar",
@@ -772,7 +772,7 @@
       "rarity": "common"
     },
     "epic:large_dungeons": {
-      "source": "epic-structures-dungeons-1.2.4.jar",
+      "source": "epic-structures-dungeons-1.2.5.jar",
       "theme": "dungeon",
       "structures": [
         "epic:large_dungeon",
@@ -786,8 +786,23 @@
       "dimension": "overworld",
       "rarity": "endgame"
     },
+    "epic:large_dungeons_obelisks": {
+      "source": "epic-structures-dungeons-1.2.5.jar",
+      "theme": "dungeon",
+      "structures": [
+        "epic:ice_obelisk",
+        "epic:sand_obelisk",
+        "epic:plains_obelisk"
+      ],
+      "placementType": "minecraft:random_spread",
+      "spacing": 61,
+      "separation": 60,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "endgame"
+    },
     "epic:medium_dungeons": {
-      "source": "epic-structures-dungeons-1.2.4.jar",
+      "source": "epic-structures-dungeons-1.2.5.jar",
       "theme": "dungeon",
       "structures": [
         "epic:medium_sand_dungeon",
@@ -802,7 +817,7 @@
       "rarity": "uncommon"
     },
     "epic:small_dungeons": {
-      "source": "epic-structures-dungeons-1.2.4.jar",
+      "source": "epic-structures-dungeons-1.2.5.jar",
       "theme": "dungeon",
       "structures": [
         "epic:small_ice_dungeon",
@@ -1149,7 +1164,7 @@
       "rarity": "common"
     },
     "mes:astral_hideaway": {
-      "source": "MoogsEndStructures-1.21-2.0.3.jar",
+      "source": "MoogsEndStructures-universal-1.21-2.1.1.jar",
       "theme": "landmark",
       "structures": [
         "mes:astral_hideaway"
@@ -1162,7 +1177,7 @@
       "rarity": "rare"
     },
     "mes:astral_meteorite": {
-      "source": "MoogsEndStructures-1.21-2.0.3.jar",
+      "source": "MoogsEndStructures-universal-1.21-2.1.1.jar",
       "theme": "landmark",
       "structures": [
         "mes:astral_meteorite"
@@ -1175,7 +1190,7 @@
       "rarity": "uncommon"
     },
     "mes:ender_spire": {
-      "source": "MoogsEndStructures-1.21-2.0.3.jar",
+      "source": "MoogsEndStructures-universal-1.21-2.1.1.jar",
       "theme": "landmark",
       "structures": [
         "mes:ender_spire"
@@ -1188,7 +1203,7 @@
       "rarity": "rare"
     },
     "mes:enderbloom_grove": {
-      "source": "MoogsEndStructures-1.21-2.0.3.jar",
+      "source": "MoogsEndStructures-universal-1.21-2.1.1.jar",
       "theme": "landmark",
       "structures": [
         "mes:enderbloom_grove"
@@ -1201,7 +1216,7 @@
       "rarity": "rare"
     },
     "mes:enderkeep_courtyard": {
-      "source": "MoogsEndStructures-1.21-2.0.3.jar",
+      "source": "MoogsEndStructures-universal-1.21-2.1.1.jar",
       "theme": "landmark",
       "structures": [
         "mes:enderkeep_courtyard"
@@ -1214,7 +1229,7 @@
       "rarity": "rare"
     },
     "mes:enderpin_spikes": {
-      "source": "MoogsEndStructures-1.21-2.0.3.jar",
+      "source": "MoogsEndStructures-universal-1.21-2.1.1.jar",
       "theme": "landmark",
       "structures": [
         "mes:enderpin_spikes"
@@ -1227,7 +1242,7 @@
       "rarity": "uncommon"
     },
     "mes:enderskog": {
-      "source": "MoogsEndStructures-1.21-2.0.3.jar",
+      "source": "MoogsEndStructures-universal-1.21-2.1.1.jar",
       "theme": "landmark",
       "structures": [
         "mes:enderskog"
@@ -1240,7 +1255,7 @@
       "rarity": "rare"
     },
     "mes:enderwatch_tower": {
-      "source": "MoogsEndStructures-1.21-2.0.3.jar",
+      "source": "MoogsEndStructures-universal-1.21-2.1.1.jar",
       "theme": "landmark",
       "structures": [
         "mes:enderwatch_tower"
@@ -1253,7 +1268,7 @@
       "rarity": "rare"
     },
     "mes:endscraps": {
-      "source": "MoogsEndStructures-1.21-2.0.3.jar",
+      "source": "MoogsEndStructures-universal-1.21-2.1.1.jar",
       "theme": "landmark",
       "structures": [
         "mes:endscraps"
@@ -1266,7 +1281,7 @@
       "rarity": "rare"
     },
     "mes:manuscript_shrine": {
-      "source": "MoogsEndStructures-1.21-2.0.3.jar",
+      "source": "MoogsEndStructures-universal-1.21-2.1.1.jar",
       "theme": "landmark",
       "structures": [
         "mes:manuscript_shrine"
@@ -1279,7 +1294,7 @@
       "rarity": "rare"
     },
     "mes:mega_ship": {
-      "source": "MoogsEndStructures-1.21-2.0.3.jar",
+      "source": "MoogsEndStructures-universal-1.21-2.1.1.jar",
       "theme": "maritime",
       "structures": [
         "mes:mega_ship"
@@ -1292,7 +1307,7 @@
       "rarity": "endgame"
     },
     "mes:mega_ship_basic": {
-      "source": "MoogsEndStructures-1.21-2.0.3.jar",
+      "source": "MoogsEndStructures-universal-1.21-2.1.1.jar",
       "theme": "maritime",
       "structures": [
         "mes:mega_ship_basic"
@@ -1305,7 +1320,7 @@
       "rarity": "endgame"
     },
     "mes:mega_ship_crashed": {
-      "source": "MoogsEndStructures-1.21-2.0.3.jar",
+      "source": "MoogsEndStructures-universal-1.21-2.1.1.jar",
       "theme": "maritime",
       "structures": [
         "mes:mega_ship_crashed"
@@ -1318,7 +1333,7 @@
       "rarity": "endgame"
     },
     "mes:mega_ship_crashed_2": {
-      "source": "MoogsEndStructures-1.21-2.0.3.jar",
+      "source": "MoogsEndStructures-universal-1.21-2.1.1.jar",
       "theme": "maritime",
       "structures": [
         "mes:mega_ship_crashed_2"
@@ -1331,7 +1346,7 @@
       "rarity": "endgame"
     },
     "mes:mega_ship_crashed_deepslate": {
-      "source": "MoogsEndStructures-1.21-2.0.3.jar",
+      "source": "MoogsEndStructures-universal-1.21-2.1.1.jar",
       "theme": "maritime",
       "structures": [
         "mes:mega_ship_crashed_deepslate"
@@ -1344,7 +1359,7 @@
       "rarity": "endgame"
     },
     "mes:mega_ship_deepslate": {
-      "source": "MoogsEndStructures-1.21-2.0.3.jar",
+      "source": "MoogsEndStructures-universal-1.21-2.1.1.jar",
       "theme": "maritime",
       "structures": [
         "mes:mega_ship_deepslate"
@@ -1357,7 +1372,7 @@
       "rarity": "endgame"
     },
     "mes:mega_ship_deepslate_2": {
-      "source": "MoogsEndStructures-1.21-2.0.3.jar",
+      "source": "MoogsEndStructures-universal-1.21-2.1.1.jar",
       "theme": "maritime",
       "structures": [
         "mes:mega_ship_deepslate_2"
@@ -1370,7 +1385,7 @@
       "rarity": "endgame"
     },
     "mes:mega_ship_deepslate_3": {
-      "source": "MoogsEndStructures-1.21-2.0.3.jar",
+      "source": "MoogsEndStructures-universal-1.21-2.1.1.jar",
       "theme": "maritime",
       "structures": [
         "mes:mega_ship_deepslate_3"
@@ -1383,7 +1398,7 @@
       "rarity": "endgame"
     },
     "mes:monolith": {
-      "source": "MoogsEndStructures-1.21-2.0.3.jar",
+      "source": "MoogsEndStructures-universal-1.21-2.1.1.jar",
       "theme": "landmark",
       "structures": [
         "mes:monolith"
@@ -1396,7 +1411,7 @@
       "rarity": "rare"
     },
     "mes:mystical_archway": {
-      "source": "MoogsEndStructures-1.21-2.0.3.jar",
+      "source": "MoogsEndStructures-universal-1.21-2.1.1.jar",
       "theme": "deco",
       "structures": [
         "mes:mystical_archway"
@@ -1409,7 +1424,7 @@
       "rarity": "rare"
     },
     "mes:mythic_garden": {
-      "source": "MoogsEndStructures-1.21-2.0.3.jar",
+      "source": "MoogsEndStructures-universal-1.21-2.1.1.jar",
       "theme": "deco",
       "structures": [
         "mes:mythic_garden"
@@ -1422,7 +1437,7 @@
       "rarity": "rare"
     },
     "mes:phantom_citadel": {
-      "source": "MoogsEndStructures-1.21-2.0.3.jar",
+      "source": "MoogsEndStructures-universal-1.21-2.1.1.jar",
       "theme": "landmark",
       "structures": [
         "mes:phantom_citadel"
@@ -1435,7 +1450,7 @@
       "rarity": "endgame"
     },
     "mes:placid_prairie": {
-      "source": "MoogsEndStructures-1.21-2.0.3.jar",
+      "source": "MoogsEndStructures-universal-1.21-2.1.1.jar",
       "theme": "landmark",
       "structures": [
         "mes:placid_prairie"
@@ -1448,7 +1463,7 @@
       "rarity": "uncommon"
     },
     "mes:ruined_pillar": {
-      "source": "MoogsEndStructures-1.21-2.0.3.jar",
+      "source": "MoogsEndStructures-universal-1.21-2.1.1.jar",
       "theme": "ruins",
       "structures": [
         "mes:ruined_pillar"
@@ -1461,7 +1476,7 @@
       "rarity": "common"
     },
     "mes:starlight_voyager": {
-      "source": "MoogsEndStructures-1.21-2.0.3.jar",
+      "source": "MoogsEndStructures-universal-1.21-2.1.1.jar",
       "theme": "maritime",
       "structures": [
         "mes:starlight_voyager"
@@ -1749,7 +1764,7 @@
       "rarity": "endgame"
     },
     "mns:bridge_1": {
-      "source": "MoogsNetherStructures-1.21-3.0.0.jar",
+      "source": "MoogsNetherStructures-universal-1.21-3.1.1.jar",
       "theme": "deco",
       "structures": [
         "mns:bridge_1"
@@ -1762,7 +1777,7 @@
       "rarity": "very_rare"
     },
     "mns:bridge_2": {
-      "source": "MoogsNetherStructures-1.21-3.0.0.jar",
+      "source": "MoogsNetherStructures-universal-1.21-3.1.1.jar",
       "theme": "deco",
       "structures": [
         "mns:bridge_2"
@@ -1775,7 +1790,7 @@
       "rarity": "very_rare"
     },
     "mns:bridge_3": {
-      "source": "MoogsNetherStructures-1.21-3.0.0.jar",
+      "source": "MoogsNetherStructures-universal-1.21-3.1.1.jar",
       "theme": "deco",
       "structures": [
         "mns:bridge_3"
@@ -1788,7 +1803,7 @@
       "rarity": "very_rare"
     },
     "mns:bridge_4": {
-      "source": "MoogsNetherStructures-1.21-3.0.0.jar",
+      "source": "MoogsNetherStructures-universal-1.21-3.1.1.jar",
       "theme": "deco",
       "structures": [
         "mns:bridge_4"
@@ -1801,7 +1816,7 @@
       "rarity": "very_rare"
     },
     "mns:bridge_5": {
-      "source": "MoogsNetherStructures-1.21-3.0.0.jar",
+      "source": "MoogsNetherStructures-universal-1.21-3.1.1.jar",
       "theme": "deco",
       "structures": [
         "mns:bridge_5"
@@ -1814,7 +1829,7 @@
       "rarity": "very_rare"
     },
     "mns:bridge_6": {
-      "source": "MoogsNetherStructures-1.21-3.0.0.jar",
+      "source": "MoogsNetherStructures-universal-1.21-3.1.1.jar",
       "theme": "deco",
       "structures": [
         "mns:bridge_6"
@@ -1827,7 +1842,7 @@
       "rarity": "very_rare"
     },
     "mns:circle_blackstone": {
-      "source": "MoogsNetherStructures-1.21-3.0.0.jar",
+      "source": "MoogsNetherStructures-universal-1.21-3.1.1.jar",
       "theme": "landmark",
       "structures": [
         "mns:circle_blackstone"
@@ -1840,7 +1855,7 @@
       "rarity": "uncommon"
     },
     "mns:circle_nether_brick": {
-      "source": "MoogsNetherStructures-1.21-3.0.0.jar",
+      "source": "MoogsNetherStructures-universal-1.21-3.1.1.jar",
       "theme": "landmark",
       "structures": [
         "mns:circle_nether_brick"
@@ -1853,7 +1868,7 @@
       "rarity": "uncommon"
     },
     "mns:copper_tower": {
-      "source": "MoogsNetherStructures-1.21-3.0.0.jar",
+      "source": "MoogsNetherStructures-universal-1.21-3.1.1.jar",
       "theme": "landmark",
       "structures": [
         "mns:copper_tower"
@@ -1866,7 +1881,7 @@
       "rarity": "very_rare"
     },
     "mns:crimson_forge": {
-      "source": "MoogsNetherStructures-1.21-3.0.0.jar",
+      "source": "MoogsNetherStructures-universal-1.21-3.1.1.jar",
       "theme": "landmark",
       "structures": [
         "mns:crimson_forge"
@@ -1879,7 +1894,7 @@
       "rarity": "uncommon"
     },
     "mns:crimson_lava_well": {
-      "source": "MoogsNetherStructures-1.21-3.0.0.jar",
+      "source": "MoogsNetherStructures-universal-1.21-3.1.1.jar",
       "theme": "deco",
       "structures": [
         "mns:crimson_lava_well"
@@ -1892,7 +1907,7 @@
       "rarity": "uncommon"
     },
     "mns:giant_skull": {
-      "source": "MoogsNetherStructures-1.21-3.0.0.jar",
+      "source": "MoogsNetherStructures-universal-1.21-3.1.1.jar",
       "theme": "landmark",
       "structures": [
         "mns:giant_skull"
@@ -1905,7 +1920,7 @@
       "rarity": "rare"
     },
     "mns:grave_yard": {
-      "source": "MoogsNetherStructures-1.21-3.0.0.jar",
+      "source": "MoogsNetherStructures-universal-1.21-3.1.1.jar",
       "theme": "landmark",
       "structures": [
         "mns:grave_yard"
@@ -1918,7 +1933,7 @@
       "rarity": "rare"
     },
     "mns:large_blackstone_pillars": {
-      "source": "MoogsNetherStructures-1.21-3.0.0.jar",
+      "source": "MoogsNetherStructures-universal-1.21-3.1.1.jar",
       "theme": "landmark",
       "structures": [
         "mns:large_blackstone_pillars"
@@ -1931,7 +1946,7 @@
       "rarity": "uncommon"
     },
     "mns:large_blackstone_walls": {
-      "source": "MoogsNetherStructures-1.21-3.0.0.jar",
+      "source": "MoogsNetherStructures-universal-1.21-3.1.1.jar",
       "theme": "landmark",
       "structures": [
         "mns:large_blackstone_walls"
@@ -1944,7 +1959,7 @@
       "rarity": "uncommon"
     },
     "mns:large_house_1": {
-      "source": "MoogsNetherStructures-1.21-3.0.0.jar",
+      "source": "MoogsNetherStructures-universal-1.21-3.1.1.jar",
       "theme": "settlement",
       "structures": [
         "mns:large_house_1"
@@ -1957,7 +1972,7 @@
       "rarity": "rare"
     },
     "mns:large_nether_brick": {
-      "source": "MoogsNetherStructures-1.21-3.0.0.jar",
+      "source": "MoogsNetherStructures-universal-1.21-3.1.1.jar",
       "theme": "landmark",
       "structures": [
         "mns:large_nether_brick"
@@ -1970,7 +1985,7 @@
       "rarity": "uncommon"
     },
     "mns:lava_pool": {
-      "source": "MoogsNetherStructures-1.21-3.0.0.jar",
+      "source": "MoogsNetherStructures-universal-1.21-3.1.1.jar",
       "theme": "landmark",
       "structures": [
         "mns:lava_pool"
@@ -1983,7 +1998,7 @@
       "rarity": "rare"
     },
     "mns:leafy_rubble": {
-      "source": "MoogsNetherStructures-1.21-3.0.0.jar",
+      "source": "MoogsNetherStructures-universal-1.21-3.1.1.jar",
       "theme": "landmark",
       "structures": [
         "mns:leafy_rubble"
@@ -1996,7 +2011,7 @@
       "rarity": "uncommon"
     },
     "mns:medium_blackstone": {
-      "source": "MoogsNetherStructures-1.21-3.0.0.jar",
+      "source": "MoogsNetherStructures-universal-1.21-3.1.1.jar",
       "theme": "landmark",
       "structures": [
         "mns:medium_blackstone"
@@ -2009,7 +2024,7 @@
       "rarity": "uncommon"
     },
     "mns:medium_crimson_fungus": {
-      "source": "MoogsNetherStructures-1.21-3.0.0.jar",
+      "source": "MoogsNetherStructures-universal-1.21-3.1.1.jar",
       "theme": "landmark",
       "structures": [
         "mns:medium_crimson_fungus",
@@ -2023,7 +2038,7 @@
       "rarity": "uncommon"
     },
     "mns:medium_crimson_well": {
-      "source": "MoogsNetherStructures-1.21-3.0.0.jar",
+      "source": "MoogsNetherStructures-universal-1.21-3.1.1.jar",
       "theme": "deco",
       "structures": [
         "mns:medium_crimson_well"
@@ -2036,7 +2051,7 @@
       "rarity": "uncommon"
     },
     "mns:medium_house": {
-      "source": "MoogsNetherStructures-1.21-3.0.0.jar",
+      "source": "MoogsNetherStructures-universal-1.21-3.1.1.jar",
       "theme": "settlement",
       "structures": [
         "mns:medium_house"
@@ -2049,7 +2064,7 @@
       "rarity": "rare"
     },
     "mns:medium_house_2": {
-      "source": "MoogsNetherStructures-1.21-3.0.0.jar",
+      "source": "MoogsNetherStructures-universal-1.21-3.1.1.jar",
       "theme": "settlement",
       "structures": [
         "mns:medium_house_2"
@@ -2062,7 +2077,7 @@
       "rarity": "rare"
     },
     "mns:medium_warped_fungus": {
-      "source": "MoogsNetherStructures-1.21-3.0.0.jar",
+      "source": "MoogsNetherStructures-universal-1.21-3.1.1.jar",
       "theme": "landmark",
       "structures": [
         "mns:medium_warped_fungus",
@@ -2076,7 +2091,7 @@
       "rarity": "uncommon"
     },
     "mns:medium_warped_well": {
-      "source": "MoogsNetherStructures-1.21-3.0.0.jar",
+      "source": "MoogsNetherStructures-universal-1.21-3.1.1.jar",
       "theme": "deco",
       "structures": [
         "mns:medium_warped_well"
@@ -2089,7 +2104,7 @@
       "rarity": "uncommon"
     },
     "mns:mega_arenas": {
-      "source": "MoogsNetherStructures-1.21-3.0.0.jar",
+      "source": "MoogsNetherStructures-universal-1.21-3.1.1.jar",
       "theme": "landmark",
       "structures": [
         "mns:small_arena",
@@ -2104,7 +2119,7 @@
       "rarity": "endgame"
     },
     "mns:mega_fortress": {
-      "source": "MoogsNetherStructures-1.21-3.0.0.jar",
+      "source": "MoogsNetherStructures-universal-1.21-3.1.1.jar",
       "theme": "landmark",
       "structures": [
         "mns:mega_fortress"
@@ -2117,7 +2132,7 @@
       "rarity": "endgame"
     },
     "mns:nether_tower": {
-      "source": "MoogsNetherStructures-1.21-3.0.0.jar",
+      "source": "MoogsNetherStructures-universal-1.21-3.1.1.jar",
       "theme": "landmark",
       "structures": [
         "mns:nether_tower"
@@ -2130,7 +2145,7 @@
       "rarity": "legendary"
     },
     "mns:nether_wart_farm": {
-      "source": "MoogsNetherStructures-1.21-3.0.0.jar",
+      "source": "MoogsNetherStructures-universal-1.21-3.1.1.jar",
       "theme": "settlement",
       "structures": [
         "mns:nether_wart_farm"
@@ -2143,7 +2158,7 @@
       "rarity": "very_rare"
     },
     "mns:ruined_portal": {
-      "source": "MoogsNetherStructures-1.21-3.0.0.jar",
+      "source": "MoogsNetherStructures-universal-1.21-3.1.1.jar",
       "theme": "ruins",
       "structures": [
         "mns:ruined_portal"
@@ -2156,7 +2171,7 @@
       "rarity": "uncommon"
     },
     "mns:sandy_skull": {
-      "source": "MoogsNetherStructures-1.21-3.0.0.jar",
+      "source": "MoogsNetherStructures-universal-1.21-3.1.1.jar",
       "theme": "landmark",
       "structures": [
         "mns:sandy_skull"
@@ -2169,7 +2184,7 @@
       "rarity": "rare"
     },
     "mns:shrine": {
-      "source": "MoogsNetherStructures-1.21-3.0.0.jar",
+      "source": "MoogsNetherStructures-universal-1.21-3.1.1.jar",
       "theme": "landmark",
       "structures": [
         "mns:shrine",
@@ -2183,7 +2198,7 @@
       "rarity": "uncommon"
     },
     "mns:small_nether_brick": {
-      "source": "MoogsNetherStructures-1.21-3.0.0.jar",
+      "source": "MoogsNetherStructures-universal-1.21-3.1.1.jar",
       "theme": "deco",
       "structures": [
         "mns:small_nether_brick"
@@ -2196,7 +2211,7 @@
       "rarity": "uncommon"
     },
     "mns:soul_fire": {
-      "source": "MoogsNetherStructures-1.21-3.0.0.jar",
+      "source": "MoogsNetherStructures-universal-1.21-3.1.1.jar",
       "theme": "landmark",
       "structures": [
         "mns:soul_fire"
@@ -2209,7 +2224,7 @@
       "rarity": "uncommon"
     },
     "mns:sword": {
-      "source": "MoogsNetherStructures-1.21-3.0.0.jar",
+      "source": "MoogsNetherStructures-universal-1.21-3.1.1.jar",
       "theme": "landmark",
       "structures": [
         "mns:sword"
@@ -2222,7 +2237,7 @@
       "rarity": "rare"
     },
     "mns:train": {
-      "source": "MoogsNetherStructures-1.21-3.0.0.jar",
+      "source": "MoogsNetherStructures-universal-1.21-3.1.1.jar",
       "theme": "landmark",
       "structures": [
         "mns:train"
@@ -2235,7 +2250,7 @@
       "rarity": "very_rare"
     },
     "mns:very_small_blackstone": {
-      "source": "MoogsNetherStructures-1.21-3.0.0.jar",
+      "source": "MoogsNetherStructures-universal-1.21-3.1.1.jar",
       "theme": "deco",
       "structures": [
         "mns:very_small_blackstone",
@@ -2251,7 +2266,7 @@
       "rarity": "uncommon"
     },
     "mns:very_small_nether_brick": {
-      "source": "MoogsNetherStructures-1.21-3.0.0.jar",
+      "source": "MoogsNetherStructures-universal-1.21-3.1.1.jar",
       "theme": "deco",
       "structures": [
         "mns:very_small_nether_brick",
@@ -2266,7 +2281,7 @@
       "rarity": "uncommon"
     },
     "mns:warped_dome": {
-      "source": "MoogsNetherStructures-1.21-3.0.0.jar",
+      "source": "MoogsNetherStructures-universal-1.21-3.1.1.jar",
       "theme": "landmark",
       "structures": [
         "mns:warped_dome"
@@ -2279,7 +2294,7 @@
       "rarity": "rare"
     },
     "mns:warped_house": {
-      "source": "MoogsNetherStructures-1.21-3.0.0.jar",
+      "source": "MoogsNetherStructures-universal-1.21-3.1.1.jar",
       "theme": "settlement",
       "structures": [
         "mns:warped_house"
@@ -2292,7 +2307,7 @@
       "rarity": "rare"
     },
     "mns:warped_pool": {
-      "source": "MoogsNetherStructures-1.21-3.0.0.jar",
+      "source": "MoogsNetherStructures-universal-1.21-3.1.1.jar",
       "theme": "landmark",
       "structures": [
         "mns:warped_pool"
@@ -2305,7 +2320,7 @@
       "rarity": "uncommon"
     },
     "mss:arena": {
-      "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
+      "source": "MoogsSoaringStructures-universal-1.21-2.2.0.jar",
       "theme": "landmark",
       "structures": [
         "mss:arena"
@@ -2318,7 +2333,7 @@
       "rarity": "endgame"
     },
     "mss:birch_river": {
-      "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
+      "source": "MoogsSoaringStructures-universal-1.21-2.2.0.jar",
       "theme": "landmark",
       "structures": [
         "mss:birch_river"
@@ -2331,7 +2346,7 @@
       "rarity": "very_rare"
     },
     "mss:calcite_house": {
-      "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
+      "source": "MoogsSoaringStructures-universal-1.21-2.2.0.jar",
       "theme": "settlement",
       "structures": [
         "mss:calcite_house"
@@ -2339,12 +2354,12 @@
       "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 112,
       "separation": 45,
-      "frequency": 1.0,
+      "frequency": 0.6,
       "dimension": "overworld",
       "rarity": "very_rare"
     },
     "mss:castle_ruin": {
-      "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
+      "source": "MoogsSoaringStructures-universal-1.21-2.2.0.jar",
       "theme": "ruins",
       "structures": [
         "mss:castle_ruin"
@@ -2352,12 +2367,12 @@
       "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 177,
       "separation": 92,
-      "frequency": 1.0,
+      "frequency": 0.6,
       "dimension": "overworld",
-      "rarity": "very_rare"
+      "rarity": "legendary"
     },
     "mss:castle_tower": {
-      "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
+      "source": "MoogsSoaringStructures-universal-1.21-2.2.0.jar",
       "theme": "landmark",
       "structures": [
         "mss:castle_tower"
@@ -2365,12 +2380,12 @@
       "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 188,
       "separation": 86,
-      "frequency": 1.0,
+      "frequency": 0.6,
       "dimension": "overworld",
       "rarity": "legendary"
     },
     "mss:cherry_river": {
-      "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
+      "source": "MoogsSoaringStructures-universal-1.21-2.2.0.jar",
       "theme": "landmark",
       "structures": [
         "mss:cherry_river"
@@ -2383,7 +2398,7 @@
       "rarity": "rare"
     },
     "mss:desert_pyramid": {
-      "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
+      "source": "MoogsSoaringStructures-universal-1.21-2.2.0.jar",
       "theme": "ruins",
       "structures": [
         "mss:desert_pyramid"
@@ -2396,7 +2411,7 @@
       "rarity": "very_rare"
     },
     "mss:desert_well": {
-      "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
+      "source": "MoogsSoaringStructures-universal-1.21-2.2.0.jar",
       "theme": "deco",
       "structures": [
         "mss:desert_well"
@@ -2409,7 +2424,7 @@
       "rarity": "very_rare"
     },
     "mss:diorite_house": {
-      "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
+      "source": "MoogsSoaringStructures-universal-1.21-2.2.0.jar",
       "theme": "settlement",
       "structures": [
         "mss:diorite_house"
@@ -2422,7 +2437,7 @@
       "rarity": "legendary"
     },
     "mss:frozen_pond": {
-      "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
+      "source": "MoogsSoaringStructures-universal-1.21-2.2.0.jar",
       "theme": "landmark",
       "structures": [
         "mss:frozen_pond"
@@ -2435,7 +2450,7 @@
       "rarity": "very_rare"
     },
     "mss:jungle": {
-      "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
+      "source": "MoogsSoaringStructures-universal-1.21-2.2.0.jar",
       "theme": "landmark",
       "structures": [
         "mss:jungle"
@@ -2448,7 +2463,7 @@
       "rarity": "very_rare"
     },
     "mss:large_tower": {
-      "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
+      "source": "MoogsSoaringStructures-universal-1.21-2.2.0.jar",
       "theme": "landmark",
       "structures": [
         "mss:large_tower"
@@ -2461,7 +2476,7 @@
       "rarity": "legendary"
     },
     "mss:leaf_hollow": {
-      "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
+      "source": "MoogsSoaringStructures-universal-1.21-2.2.0.jar",
       "theme": "landmark",
       "structures": [
         "mss:leaf_hollow"
@@ -2469,12 +2484,12 @@
       "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 172,
       "separation": 102,
-      "frequency": 1.0,
+      "frequency": 0.6,
       "dimension": "overworld",
-      "rarity": "very_rare"
+      "rarity": "legendary"
     },
     "mss:mangrove": {
-      "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
+      "source": "MoogsSoaringStructures-universal-1.21-2.2.0.jar",
       "theme": "landmark",
       "structures": [
         "mss:mangrove"
@@ -2487,7 +2502,7 @@
       "rarity": "very_rare"
     },
     "mss:muddy_water_hole": {
-      "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
+      "source": "MoogsSoaringStructures-universal-1.21-2.2.0.jar",
       "theme": "landmark",
       "structures": [
         "mss:muddy_water_hole"
@@ -2500,7 +2515,7 @@
       "rarity": "legendary"
     },
     "mss:mushroom": {
-      "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
+      "source": "MoogsSoaringStructures-universal-1.21-2.2.0.jar",
       "theme": "landmark",
       "structures": [
         "mss:mushroom"
@@ -2513,7 +2528,7 @@
       "rarity": "legendary"
     },
     "mss:nether_portal": {
-      "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
+      "source": "MoogsSoaringStructures-universal-1.21-2.2.0.jar",
       "theme": "landmark",
       "structures": [
         "mss:nether_portal"
@@ -2521,12 +2536,12 @@
       "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 163,
       "separation": 86,
-      "frequency": 1.0,
+      "frequency": 0.6,
       "dimension": "nether",
-      "rarity": "very_rare"
+      "rarity": "legendary"
     },
     "mss:palm_island": {
-      "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
+      "source": "MoogsSoaringStructures-universal-1.21-2.2.0.jar",
       "theme": "landmark",
       "structures": [
         "mss:palm_island"
@@ -2539,7 +2554,7 @@
       "rarity": "very_rare"
     },
     "mss:red_sand": {
-      "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
+      "source": "MoogsSoaringStructures-universal-1.21-2.2.0.jar",
       "theme": "landmark",
       "structures": [
         "mss:red_sand"
@@ -2552,7 +2567,7 @@
       "rarity": "legendary"
     },
     "mss:small_deepslate_house": {
-      "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
+      "source": "MoogsSoaringStructures-universal-1.21-2.2.0.jar",
       "theme": "settlement",
       "structures": [
         "mss:small_deepslate_house"
@@ -2565,7 +2580,7 @@
       "rarity": "legendary"
     },
     "mss:small_oak_house": {
-      "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
+      "source": "MoogsSoaringStructures-universal-1.21-2.2.0.jar",
       "theme": "settlement",
       "structures": [
         "mss:small_oak_house"
@@ -2573,12 +2588,12 @@
       "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 173,
       "separation": 58,
-      "frequency": 1.0,
+      "frequency": 0.6,
       "dimension": "overworld",
-      "rarity": "very_rare"
+      "rarity": "legendary"
     },
     "mss:small_pond": {
-      "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
+      "source": "MoogsSoaringStructures-universal-1.21-2.2.0.jar",
       "theme": "deco",
       "structures": [
         "mss:small_pond"
@@ -2586,12 +2601,12 @@
       "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 152,
       "separation": 30,
-      "frequency": 1.0,
+      "frequency": 0.6,
       "dimension": "overworld",
-      "rarity": "very_rare"
+      "rarity": "legendary"
     },
     "mss:small_tower": {
-      "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
+      "source": "MoogsSoaringStructures-universal-1.21-2.2.0.jar",
       "theme": "landmark",
       "structures": [
         "mss:small_tower"
@@ -2599,12 +2614,12 @@
       "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 178,
       "separation": 76,
-      "frequency": 1.0,
+      "frequency": 0.6,
       "dimension": "overworld",
-      "rarity": "very_rare"
+      "rarity": "legendary"
     },
     "mss:spruce_huts": {
-      "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
+      "source": "MoogsSoaringStructures-universal-1.21-2.2.0.jar",
       "theme": "settlement",
       "structures": [
         "mss:spruce_huts"
@@ -2617,7 +2632,7 @@
       "rarity": "legendary"
     },
     "mss:taiga": {
-      "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
+      "source": "MoogsSoaringStructures-universal-1.21-2.2.0.jar",
       "theme": "landmark",
       "structures": [
         "mss:taiga"
@@ -2629,112 +2644,28 @@
       "dimension": "overworld",
       "rarity": "very_rare"
     },
-    "mss:tree_1": {
-      "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
+    "mss:trees": {
+      "source": "MoogsSoaringStructures-universal-1.21-2.2.0.jar",
       "theme": "landmark",
       "structures": [
-        "mss:tree_1"
-      ],
-      "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 243,
-      "separation": 120,
-      "frequency": 1.0,
-      "dimension": "overworld",
-      "rarity": "legendary"
-    },
-    "mss:tree_2": {
-      "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
-      "theme": "landmark",
-      "structures": [
-        "mss:tree_2"
-      ],
-      "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 244,
-      "separation": 122,
-      "frequency": 1.0,
-      "dimension": "overworld",
-      "rarity": "legendary"
-    },
-    "mss:tree_3": {
-      "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
-      "theme": "landmark",
-      "structures": [
-        "mss:tree_3"
-      ],
-      "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 290,
-      "separation": 112,
-      "frequency": 1.0,
-      "dimension": "overworld",
-      "rarity": "legendary"
-    },
-    "mss:tree_4": {
-      "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
-      "theme": "landmark",
-      "structures": [
-        "mss:tree_4"
-      ],
-      "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 262,
-      "separation": 135,
-      "frequency": 1.0,
-      "dimension": "overworld",
-      "rarity": "legendary"
-    },
-    "mss:tree_5": {
-      "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
-      "theme": "landmark",
-      "structures": [
-        "mss:tree_5"
-      ],
-      "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 289,
-      "separation": 163,
-      "frequency": 1.0,
-      "dimension": "overworld",
-      "rarity": "legendary"
-    },
-    "mss:tree_6": {
-      "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
-      "theme": "landmark",
-      "structures": [
-        "mss:tree_6"
-      ],
-      "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 300,
-      "separation": 111,
-      "frequency": 1.0,
-      "dimension": "overworld",
-      "rarity": "legendary"
-    },
-    "mss:tree_7": {
-      "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
-      "theme": "landmark",
-      "structures": [
-        "mss:tree_7"
-      ],
-      "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 307,
-      "separation": 135,
-      "frequency": 1.0,
-      "dimension": "overworld",
-      "rarity": "legendary"
-    },
-    "mss:tree_8": {
-      "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
-      "theme": "landmark",
-      "structures": [
+        "mss:tree_1",
+        "mss:tree_2",
+        "mss:tree_3",
+        "mss:tree_4",
+        "mss:tree_5",
+        "mss:tree_6",
+        "mss:tree_7",
         "mss:tree_8"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 257,
-      "separation": 106,
-      "frequency": 1.0,
+      "spacing": 96,
+      "separation": 48,
+      "frequency": 0.6,
       "dimension": "overworld",
-      "rarity": "legendary"
+      "rarity": "very_rare"
     },
     "mss:volcano": {
-      "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
+      "source": "MoogsSoaringStructures-universal-1.21-2.2.0.jar",
       "theme": "landmark",
       "structures": [
         "mss:volcano"
@@ -2747,7 +2678,7 @@
       "rarity": "legendary"
     },
     "mss:white_house": {
-      "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
+      "source": "MoogsSoaringStructures-universal-1.21-2.2.0.jar",
       "theme": "settlement",
       "structures": [
         "mss:white_house"
@@ -2760,46 +2691,46 @@
       "rarity": "legendary"
     },
     "mtr:badlands_temple": {
-      "source": "MoogsTemplesReimagined-1.21-1.1.3.jar",
+      "source": "MoogsTemplesReimagined-universal-1.21-2.0.4.jar",
       "theme": "landmark",
       "structures": [
         "mtr:badlands_temple"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 91,
-      "separation": 10,
+      "spacing": 53,
+      "separation": 13,
       "frequency": 1.0,
       "dimension": "overworld",
-      "rarity": "rare"
+      "rarity": "uncommon"
     },
     "mtr:desert_temple": {
-      "source": "MoogsTemplesReimagined-1.21-1.1.3.jar",
+      "source": "MoogsTemplesReimagined-universal-1.21-2.0.4.jar",
       "theme": "landmark",
       "structures": [
         "mtr:desert_temple"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 83,
+      "spacing": 59,
       "separation": 13,
-      "frequency": 1.0,
+      "frequency": 0.8,
       "dimension": "overworld",
       "rarity": "rare"
     },
     "mtr:jungle_temple": {
-      "source": "MoogsTemplesReimagined-1.21-1.1.3.jar",
+      "source": "MoogsTemplesReimagined-universal-1.21-2.0.4.jar",
       "theme": "landmark",
       "structures": [
         "mtr:jungle_temple"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 83,
-      "separation": 50,
-      "frequency": 1.0,
+      "spacing": 51,
+      "separation": 20,
+      "frequency": 0.6,
       "dimension": "overworld",
       "rarity": "rare"
     },
     "mtr:nether_temple": {
-      "source": "MoogsTemplesReimagined-1.21-1.1.3.jar",
+      "source": "MoogsTemplesReimagined-universal-1.21-2.0.4.jar",
       "theme": "landmark",
       "structures": [
         "mtr:nether_temple"
@@ -2812,33 +2743,33 @@
       "rarity": "legendary"
     },
     "mtr:ocean_temple": {
-      "source": "MoogsTemplesReimagined-1.21-1.1.3.jar",
+      "source": "MoogsTemplesReimagined-universal-1.21-2.0.4.jar",
       "theme": "maritime",
       "structures": [
         "mtr:ocean_temple"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 99,
-      "separation": 50,
-      "frequency": 1.0,
+      "spacing": 20,
+      "separation": 7,
+      "frequency": 0.5,
       "dimension": "overworld",
-      "rarity": "rare"
+      "rarity": "common"
     },
     "mtr:stronghold": {
-      "source": "MoogsTemplesReimagined-1.21-1.1.3.jar",
+      "source": "MoogsTemplesReimagined-universal-1.21-2.0.4.jar",
       "theme": "dungeon",
       "structures": [
         "mtr:stronghold"
       ],
-      "placementType": "moogs_structures:advanced_random_spread",
-      "spacing": 248,
-      "separation": 149,
+      "placementType": "moogs_structures:conditional_concentric_rings",
+      "spacing": null,
+      "separation": null,
       "frequency": 1.0,
       "dimension": "overworld",
       "rarity": "endgame"
     },
     "mvs:acacia_log_pile": {
-      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
       "theme": "landmark",
       "structures": [
         "mvs:acacia_log_pile"
@@ -2851,7 +2782,7 @@
       "rarity": "uncommon"
     },
     "mvs:acacia_tree": {
-      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
       "theme": "landmark",
       "structures": [
         "mvs:acacia_tree"
@@ -2864,7 +2795,7 @@
       "rarity": "common"
     },
     "mvs:azelea_house": {
-      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
       "theme": "settlement",
       "structures": [
         "mvs:azelea_house"
@@ -2877,7 +2808,7 @@
       "rarity": "rare"
     },
     "mvs:barn": {
-      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
       "theme": "landmark",
       "structures": [
         "mvs:barn"
@@ -2890,7 +2821,7 @@
       "rarity": "uncommon"
     },
     "mvs:beach_bar": {
-      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
       "theme": "landmark",
       "structures": [
         "mvs:beach_bar"
@@ -2903,7 +2834,7 @@
       "rarity": "rare"
     },
     "mvs:bee_dome": {
-      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
       "theme": "landmark",
       "structures": [
         "mvs:bee_dome"
@@ -2916,7 +2847,7 @@
       "rarity": "uncommon"
     },
     "mvs:bench": {
-      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
       "theme": "deco",
       "structures": [
         "mvs:bench"
@@ -2929,7 +2860,7 @@
       "rarity": "common"
     },
     "mvs:big_oak_tree": {
-      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
       "theme": "landmark",
       "structures": [
         "mvs:big_oak_tree"
@@ -2942,7 +2873,7 @@
       "rarity": "rare"
     },
     "mvs:birch_log_pile": {
-      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
       "theme": "landmark",
       "structures": [
         "mvs:birch_log_pile"
@@ -2955,7 +2886,7 @@
       "rarity": "uncommon"
     },
     "mvs:birch_tree": {
-      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
       "theme": "landmark",
       "structures": [
         "mvs:birch_tree"
@@ -2968,7 +2899,7 @@
       "rarity": "common"
     },
     "mvs:boulder": {
-      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
       "theme": "landmark",
       "structures": [
         "mvs:boulder"
@@ -2981,7 +2912,7 @@
       "rarity": "rare"
     },
     "mvs:campsite": {
-      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
       "theme": "settlement",
       "structures": [
         "mvs:campsite"
@@ -2994,7 +2925,7 @@
       "rarity": "rare"
     },
     "mvs:cart": {
-      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
       "theme": "landmark",
       "structures": [
         "mvs:cart"
@@ -3007,7 +2938,7 @@
       "rarity": "uncommon"
     },
     "mvs:cartographer_tower": {
-      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
       "theme": "landmark",
       "structures": [
         "mvs:cartographer_tower"
@@ -3020,7 +2951,7 @@
       "rarity": "very_rare"
     },
     "mvs:castle_ruins": {
-      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
       "theme": "ruins",
       "structures": [
         "mvs:castle_ruins"
@@ -3033,7 +2964,7 @@
       "rarity": "rare"
     },
     "mvs:cathedral": {
-      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
       "theme": "landmark",
       "structures": [
         "mvs:cathedral"
@@ -3046,7 +2977,7 @@
       "rarity": "very_rare"
     },
     "mvs:cherry_tree": {
-      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
       "theme": "landmark",
       "structures": [
         "mvs:cherry_tree"
@@ -3059,7 +2990,7 @@
       "rarity": "common"
     },
     "mvs:crimson_enchanting_table": {
-      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
       "theme": "landmark",
       "structures": [
         "mvs:crimson_enchanting_table"
@@ -3072,7 +3003,7 @@
       "rarity": "very_rare"
     },
     "mvs:crystal": {
-      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
       "theme": "landmark",
       "structures": [
         "mvs:crystal"
@@ -3085,7 +3016,7 @@
       "rarity": "legendary"
     },
     "mvs:dark_oak_log_pile": {
-      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
       "theme": "landmark",
       "structures": [
         "mvs:dark_oak_log_pile"
@@ -3098,7 +3029,7 @@
       "rarity": "uncommon"
     },
     "mvs:dark_oak_tree": {
-      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
       "theme": "landmark",
       "structures": [
         "mvs:dark_oak_tree"
@@ -3111,7 +3042,7 @@
       "rarity": "common"
     },
     "mvs:dead_tree_acacia": {
-      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
       "theme": "landmark",
       "structures": [
         "mvs:dead_tree_acacia"
@@ -3124,7 +3055,7 @@
       "rarity": "uncommon"
     },
     "mvs:dead_tree_birch": {
-      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
       "theme": "landmark",
       "structures": [
         "mvs:dead_tree_birch"
@@ -3137,7 +3068,7 @@
       "rarity": "uncommon"
     },
     "mvs:dead_tree_cherry": {
-      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
       "theme": "landmark",
       "structures": [
         "mvs:dead_tree_cherry"
@@ -3150,7 +3081,7 @@
       "rarity": "uncommon"
     },
     "mvs:dead_tree_dark_oak": {
-      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
       "theme": "landmark",
       "structures": [
         "mvs:dead_tree_dark_oak"
@@ -3163,7 +3094,7 @@
       "rarity": "uncommon"
     },
     "mvs:dead_tree_jungle": {
-      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
       "theme": "landmark",
       "structures": [
         "mvs:dead_tree_jungle"
@@ -3176,7 +3107,7 @@
       "rarity": "uncommon"
     },
     "mvs:dead_tree_mangrove": {
-      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
       "theme": "landmark",
       "structures": [
         "mvs:dead_tree_mangrove"
@@ -3189,7 +3120,7 @@
       "rarity": "uncommon"
     },
     "mvs:dead_tree_oak": {
-      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
       "theme": "landmark",
       "structures": [
         "mvs:dead_tree_oak"
@@ -3201,8 +3132,21 @@
       "dimension": "overworld",
       "rarity": "uncommon"
     },
+    "mvs:dead_tree_spruce": {
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
+      "theme": "landmark",
+      "structures": [
+        "mvs:dead_tree_spruce"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
+      "spacing": 46,
+      "separation": 40,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
     "mvs:deepslate_house": {
-      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
       "theme": "settlement",
       "structures": [
         "mvs:deepslate_house"
@@ -3215,7 +3159,7 @@
       "rarity": "rare"
     },
     "mvs:desert_house": {
-      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
       "theme": "settlement",
       "structures": [
         "mvs:desert_house"
@@ -3228,7 +3172,7 @@
       "rarity": "rare"
     },
     "mvs:desert_pump": {
-      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
       "theme": "landmark",
       "structures": [
         "mvs:desert_pump"
@@ -3241,7 +3185,7 @@
       "rarity": "uncommon"
     },
     "mvs:diorite_and_deepslate_house": {
-      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
       "theme": "settlement",
       "structures": [
         "mvs:diorite_and_deepslate_house"
@@ -3254,7 +3198,7 @@
       "rarity": "rare"
     },
     "mvs:diorite_tower": {
-      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
       "theme": "landmark",
       "structures": [
         "mvs:diorite_tower"
@@ -3267,7 +3211,7 @@
       "rarity": "rare"
     },
     "mvs:duck": {
-      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
       "theme": "landmark",
       "structures": [
         "mvs:duck"
@@ -3280,7 +3224,7 @@
       "rarity": "very_rare"
     },
     "mvs:fire_camp": {
-      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
       "theme": "settlement",
       "structures": [
         "mvs:fire_camp"
@@ -3293,7 +3237,7 @@
       "rarity": "uncommon"
     },
     "mvs:floating_islands": {
-      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
       "theme": "landmark",
       "structures": [
         "mvs:floating_islands"
@@ -3306,7 +3250,7 @@
       "rarity": "very_rare"
     },
     "mvs:flower_hole": {
-      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
       "theme": "deco",
       "structures": [
         "mvs:flower_hole"
@@ -3319,7 +3263,7 @@
       "rarity": "rare"
     },
     "mvs:fox_hut": {
-      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
       "theme": "settlement",
       "structures": [
         "mvs:fox_hut"
@@ -3332,7 +3276,7 @@
       "rarity": "rare"
     },
     "mvs:gallows": {
-      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
       "theme": "landmark",
       "structures": [
         "mvs:gallows"
@@ -3345,7 +3289,7 @@
       "rarity": "rare"
     },
     "mvs:haystack": {
-      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
       "theme": "landmark",
       "structures": [
         "mvs:haystack"
@@ -3358,7 +3302,7 @@
       "rarity": "common"
     },
     "mvs:horse_campsite": {
-      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
       "theme": "settlement",
       "structures": [
         "mvs:horse_campsite"
@@ -3371,7 +3315,7 @@
       "rarity": "common"
     },
     "mvs:horse_pen": {
-      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
       "theme": "landmark",
       "structures": [
         "mvs:horse_pen"
@@ -3384,7 +3328,7 @@
       "rarity": "rare"
     },
     "mvs:house": {
-      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
       "theme": "settlement",
       "structures": [
         "mvs:house"
@@ -3397,7 +3341,7 @@
       "rarity": "rare"
     },
     "mvs:jungle_log_pile": {
-      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
       "theme": "landmark",
       "structures": [
         "mvs:jungle_log_pile"
@@ -3410,7 +3354,7 @@
       "rarity": "uncommon"
     },
     "mvs:jungle_palm_tree": {
-      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
       "theme": "landmark",
       "structures": [
         "mvs:jungle_palm_tree"
@@ -3423,7 +3367,7 @@
       "rarity": "common"
     },
     "mvs:jungle_tower": {
-      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
       "theme": "landmark",
       "structures": [
         "mvs:jungle_tower"
@@ -3436,7 +3380,7 @@
       "rarity": "very_rare"
     },
     "mvs:jungle_tree": {
-      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
       "theme": "landmark",
       "structures": [
         "mvs:jungle_tree"
@@ -3449,7 +3393,7 @@
       "rarity": "common"
     },
     "mvs:lamp_chest": {
-      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
       "theme": "loot",
       "structures": [
         "mvs:lamp_chest"
@@ -3462,7 +3406,7 @@
       "rarity": "rare"
     },
     "mvs:large_cart_1": {
-      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
       "theme": "landmark",
       "structures": [
         "mvs:large_cart_1"
@@ -3475,7 +3419,7 @@
       "rarity": "rare"
     },
     "mvs:large_cart_2": {
-      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
       "theme": "landmark",
       "structures": [
         "mvs:large_cart_2"
@@ -3488,7 +3432,7 @@
       "rarity": "rare"
     },
     "mvs:large_floating_island": {
-      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
       "theme": "landmark",
       "structures": [
         "mvs:large_floating_island"
@@ -3501,7 +3445,7 @@
       "rarity": "very_rare"
     },
     "mvs:large_mushroom": {
-      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
       "theme": "landmark",
       "structures": [
         "mvs:large_mushroom"
@@ -3514,7 +3458,7 @@
       "rarity": "very_rare"
     },
     "mvs:large_warped_tower": {
-      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
       "theme": "landmark",
       "structures": [
         "mvs:large_warped_tower"
@@ -3527,7 +3471,7 @@
       "rarity": "rare"
     },
     "mvs:lecturn_garden": {
-      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
       "theme": "deco",
       "structures": [
         "mvs:lecturn_garden"
@@ -3539,8 +3483,21 @@
       "dimension": "overworld",
       "rarity": "rare"
     },
+    "mvs:lil_house": {
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
+      "theme": "settlement",
+      "structures": [
+        "mvs:lil_house"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
+      "spacing": 56,
+      "separation": 33,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
     "mvs:log_ruin": {
-      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
       "theme": "ruins",
       "structures": [
         "mvs:log_ruin"
@@ -3553,7 +3510,7 @@
       "rarity": "rare"
     },
     "mvs:medium_bamboo_cart": {
-      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
       "theme": "landmark",
       "structures": [
         "mvs:medium_bamboo_cart"
@@ -3566,7 +3523,7 @@
       "rarity": "common"
     },
     "mvs:medium_igloo_1": {
-      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
       "theme": "ruins",
       "structures": [
         "mvs:medium_igloo_1"
@@ -3578,8 +3535,21 @@
       "dimension": "overworld",
       "rarity": "uncommon"
     },
+    "mvs:medium_igloo_2": {
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
+      "theme": "ruins",
+      "structures": [
+        "mvs:medium_igloo_2"
+      ],
+      "placementType": "moogs_structures:advanced_random_spread",
+      "spacing": 51,
+      "separation": 43,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
     "mvs:medium_oak_lantern": {
-      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
       "theme": "deco",
       "structures": [
         "mvs:medium_oak_lantern"
@@ -3592,7 +3562,7 @@
       "rarity": "uncommon"
     },
     "mvs:mine_with_campsite": {
-      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
       "theme": "settlement",
       "structures": [
         "mvs:mine_with_campsite"
@@ -3605,7 +3575,7 @@
       "rarity": "rare"
     },
     "mvs:mud_brick_house_1": {
-      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
       "theme": "settlement",
       "structures": [
         "mvs:mud_brick_house_1"
@@ -3618,7 +3588,7 @@
       "rarity": "rare"
     },
     "mvs:mushroom_pond": {
-      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
       "theme": "landmark",
       "structures": [
         "mvs:mushroom_pond"
@@ -3631,7 +3601,7 @@
       "rarity": "rare"
     },
     "mvs:mushroom_statue": {
-      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
       "theme": "landmark",
       "structures": [
         "mvs:mushroom_statue"
@@ -3644,7 +3614,7 @@
       "rarity": "very_rare"
     },
     "mvs:mushroom_well": {
-      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
       "theme": "deco",
       "structures": [
         "mvs:mushroom_well"
@@ -3657,7 +3627,7 @@
       "rarity": "very_rare"
     },
     "mvs:nether_devil": {
-      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
       "theme": "landmark",
       "structures": [
         "mvs:nether_devil"
@@ -3670,7 +3640,7 @@
       "rarity": "very_rare"
     },
     "mvs:nether_well": {
-      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
       "theme": "deco",
       "structures": [
         "mvs:nether_well"
@@ -3683,7 +3653,7 @@
       "rarity": "rare"
     },
     "mvs:oak_log_pile": {
-      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
       "theme": "landmark",
       "structures": [
         "mvs:oak_log_pile"
@@ -3696,7 +3666,7 @@
       "rarity": "uncommon"
     },
     "mvs:oak_tree": {
-      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
       "theme": "landmark",
       "structures": [
         "mvs:oak_tree"
@@ -3709,7 +3679,7 @@
       "rarity": "common"
     },
     "mvs:ocean_tower": {
-      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
       "theme": "maritime",
       "structures": [
         "mvs:ocean_tower"
@@ -3722,7 +3692,7 @@
       "rarity": "rare"
     },
     "mvs:other_wells": {
-      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
       "theme": "landmark",
       "structures": [
         "mvs:small_well",
@@ -3736,7 +3706,9 @@
         "mvs:dark_oak_well",
         "mvs:spruce_well",
         "mvs:jungle_well",
-        "mvs:acacia_well"
+        "mvs:acacia_well",
+        "mvs:desert_well",
+        "mvs:snowy_well"
       ],
       "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 40,
@@ -3746,7 +3718,7 @@
       "rarity": "uncommon"
     },
     "mvs:out_house": {
-      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
       "theme": "settlement",
       "structures": [
         "mvs:out_house"
@@ -3759,7 +3731,7 @@
       "rarity": "rare"
     },
     "mvs:paths": {
-      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
       "theme": "landmark",
       "structures": [
         "mvs:paths"
@@ -3772,7 +3744,7 @@
       "rarity": "rare"
     },
     "mvs:pile": {
-      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
       "theme": "landmark",
       "structures": [
         "mvs:pile"
@@ -3785,7 +3757,7 @@
       "rarity": "common"
     },
     "mvs:prismarine_house_1": {
-      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
       "theme": "settlement",
       "structures": [
         "mvs:prismarine_house_1"
@@ -3798,7 +3770,7 @@
       "rarity": "rare"
     },
     "mvs:prismarine_house_2": {
-      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
       "theme": "settlement",
       "structures": [
         "mvs:prismarine_house_2"
@@ -3811,7 +3783,7 @@
       "rarity": "rare"
     },
     "mvs:railway": {
-      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
       "theme": "landmark",
       "structures": [
         "mvs:railway"
@@ -3824,7 +3796,7 @@
       "rarity": "rare"
     },
     "mvs:rare_well": {
-      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
       "theme": "deco",
       "structures": [
         "mvs:rare_well"
@@ -3837,7 +3809,7 @@
       "rarity": "very_rare"
     },
     "mvs:red_tower": {
-      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
       "theme": "landmark",
       "structures": [
         "mvs:red_tower"
@@ -3850,7 +3822,7 @@
       "rarity": "very_rare"
     },
     "mvs:ruined_beacon": {
-      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
       "theme": "ruins",
       "structures": [
         "mvs:ruined_beacon"
@@ -3863,7 +3835,7 @@
       "rarity": "very_rare"
     },
     "mvs:shed": {
-      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
       "theme": "landmark",
       "structures": [
         "mvs:shed"
@@ -3876,7 +3848,7 @@
       "rarity": "rare"
     },
     "mvs:small_acacia_lantern": {
-      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
       "theme": "deco",
       "structures": [
         "mvs:small_acacia_lantern"
@@ -3889,7 +3861,7 @@
       "rarity": "uncommon"
     },
     "mvs:small_bamboo_lantern": {
-      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
       "theme": "deco",
       "structures": [
         "mvs:small_bamboo_lantern"
@@ -3902,7 +3874,7 @@
       "rarity": "uncommon"
     },
     "mvs:small_birch_lantern": {
-      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
       "theme": "deco",
       "structures": [
         "mvs:small_birch_lantern"
@@ -3915,7 +3887,7 @@
       "rarity": "uncommon"
     },
     "mvs:small_campfire_lantern": {
-      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
       "theme": "settlement",
       "structures": [
         "mvs:small_campfire_lantern"
@@ -3928,7 +3900,7 @@
       "rarity": "uncommon"
     },
     "mvs:small_cherry_lantern": {
-      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
       "theme": "deco",
       "structures": [
         "mvs:small_cherry_lantern"
@@ -3941,7 +3913,7 @@
       "rarity": "uncommon"
     },
     "mvs:small_dark_oak_lantern": {
-      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
       "theme": "deco",
       "structures": [
         "mvs:small_dark_oak_lantern"
@@ -3954,7 +3926,7 @@
       "rarity": "uncommon"
     },
     "mvs:small_igloo": {
-      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
       "theme": "ruins",
       "structures": [
         "mvs:small_igloo"
@@ -3967,7 +3939,7 @@
       "rarity": "uncommon"
     },
     "mvs:small_jungle_lantern": {
-      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
       "theme": "deco",
       "structures": [
         "mvs:small_jungle_lantern"
@@ -3980,7 +3952,7 @@
       "rarity": "uncommon"
     },
     "mvs:small_mangrove_lantern": {
-      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
       "theme": "deco",
       "structures": [
         "mvs:small_mangrove_lantern"
@@ -3993,7 +3965,7 @@
       "rarity": "uncommon"
     },
     "mvs:small_oak_lantern": {
-      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
       "theme": "deco",
       "structures": [
         "mvs:small_oak_lantern"
@@ -4006,7 +3978,7 @@
       "rarity": "uncommon"
     },
     "mvs:small_oak_pond": {
-      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
       "theme": "deco",
       "structures": [
         "mvs:small_oak_pond"
@@ -4019,7 +3991,7 @@
       "rarity": "rare"
     },
     "mvs:small_pillager_tower": {
-      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
       "theme": "landmark",
       "structures": [
         "mvs:small_pillager_tower"
@@ -4032,7 +4004,7 @@
       "rarity": "uncommon"
     },
     "mvs:small_ruin": {
-      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
       "theme": "ruins",
       "structures": [
         "mvs:small_ruin"
@@ -4045,7 +4017,7 @@
       "rarity": "rare"
     },
     "mvs:small_ship": {
-      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
       "theme": "maritime",
       "structures": [
         "mvs:small_ship"
@@ -4058,7 +4030,7 @@
       "rarity": "uncommon"
     },
     "mvs:small_spruce_lantern": {
-      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
       "theme": "deco",
       "structures": [
         "mvs:small_spruce_lantern"
@@ -4071,7 +4043,7 @@
       "rarity": "uncommon"
     },
     "mvs:small_swamp_house": {
-      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
       "theme": "settlement",
       "structures": [
         "mvs:small_swamp_house"
@@ -4084,7 +4056,7 @@
       "rarity": "very_rare"
     },
     "mvs:small_tower_well": {
-      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
       "theme": "landmark",
       "structures": [
         "mvs:small_tower_well"
@@ -4097,7 +4069,7 @@
       "rarity": "uncommon"
     },
     "mvs:snowy_dog_hut": {
-      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
       "theme": "settlement",
       "structures": [
         "mvs:snowy_dog_hut"
@@ -4110,7 +4082,7 @@
       "rarity": "uncommon"
     },
     "mvs:snowy_fossil": {
-      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
       "theme": "ruins",
       "structures": [
         "mvs:snowy_fossil"
@@ -4123,7 +4095,7 @@
       "rarity": "uncommon"
     },
     "mvs:spruce_log_pile": {
-      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
       "theme": "landmark",
       "structures": [
         "mvs:spruce_log_pile"
@@ -4136,7 +4108,7 @@
       "rarity": "uncommon"
     },
     "mvs:spruce_tree": {
-      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
       "theme": "landmark",
       "structures": [
         "mvs:spruce_tree"
@@ -4149,7 +4121,7 @@
       "rarity": "common"
     },
     "mvs:stalls": {
-      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
       "theme": "landmark",
       "structures": [
         "mvs:red_stall",
@@ -4165,7 +4137,7 @@
       "rarity": "uncommon"
     },
     "mvs:statue_ruins": {
-      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
       "theme": "ruins",
       "structures": [
         "mvs:statue_ruins"
@@ -4178,7 +4150,7 @@
       "rarity": "rare"
     },
     "mvs:stone_fountain": {
-      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
       "theme": "deco",
       "structures": [
         "mvs:stone_fountain"
@@ -4191,7 +4163,7 @@
       "rarity": "rare"
     },
     "mvs:stone_pillars": {
-      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
       "theme": "landmark",
       "structures": [
         "mvs:stone_pillars"
@@ -4204,7 +4176,7 @@
       "rarity": "rare"
     },
     "mvs:stone_rock": {
-      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
       "theme": "landmark",
       "structures": [
         "mvs:stone_rock"
@@ -4217,7 +4189,7 @@
       "rarity": "common"
     },
     "mvs:sunzi_gate": {
-      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
       "theme": "landmark",
       "structures": [
         "mvs:sunzi_gate"
@@ -4230,7 +4202,7 @@
       "rarity": "rare"
     },
     "mvs:tall_house": {
-      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
       "theme": "settlement",
       "structures": [
         "mvs:tall_house"
@@ -4243,7 +4215,7 @@
       "rarity": "rare"
     },
     "mvs:tree_monument": {
-      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
       "theme": "landmark",
       "structures": [
         "mvs:tree_monument"
@@ -4256,7 +4228,7 @@
       "rarity": "very_rare"
     },
     "mvs:villager_statue": {
-      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
       "theme": "settlement",
       "structures": [
         "mvs:villager_statue"
@@ -4269,7 +4241,7 @@
       "rarity": "rare"
     },
     "mvs:warped_house": {
-      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
       "theme": "settlement",
       "structures": [
         "mvs:warped_house"
@@ -4282,7 +4254,7 @@
       "rarity": "rare"
     },
     "mvs:wheat_grain_bin": {
-      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
       "theme": "landmark",
       "structures": [
         "mvs:wheat_grain_bin"
@@ -4295,7 +4267,7 @@
       "rarity": "uncommon"
     },
     "mvs:windmill": {
-      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
       "theme": "settlement",
       "structures": [
         "mvs:windmill"
@@ -4308,7 +4280,7 @@
       "rarity": "uncommon"
     },
     "mvs:wooden_wheat_farm": {
-      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "source": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
       "theme": "settlement",
       "structures": [
         "mvs:wooden_wheat_farm"
@@ -5547,7 +5519,7 @@
       "rarity": "common"
     },
     "supplementaries:galleons": {
-      "source": "supplementaries-1.21.1-3.9.3-fabric.jar",
+      "source": "supplementaries-1.21.1-3.9.9-fabric.jar",
       "theme": "landmark",
       "structures": [
         "supplementaries:galleon"
@@ -5560,7 +5532,7 @@
       "rarity": "common"
     },
     "supplementaries:road_signs": {
-      "source": "supplementaries-1.21.1-3.9.3-fabric.jar",
+      "source": "supplementaries-1.21.1-3.9.9-fabric.jar",
       "theme": "deco",
       "structures": [
         "supplementaries:road_sign"
