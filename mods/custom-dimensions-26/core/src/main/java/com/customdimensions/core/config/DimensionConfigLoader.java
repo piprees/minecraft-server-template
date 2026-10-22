@@ -1,0 +1,346 @@
+package com.customdimensions.core.config;
+
+import com.customdimensions.core.Log;
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
+import com.google.gson.JsonParser;
+
+import java.io.IOException;
+import java.nio.file.DirectoryStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.TreeMap;
+
+/**
+ * Directory-based config loading for config/custom-dimensions/:
+ *
+ *   settings.json            global defaults (namespace, idle unload, frames,
+ *                            defaults.borders / defaults.difficulty / defaults.frameBlock)
+ *   dimensions/{slug}.json   one self-contained file per dimension
+ *   overlay/dimensions/      consumer overrides (placed there by deploy.sh /
+ *                            dev-up.sh from overlay/config/custom-dimensions/)
+ *
+ * Consumer overlay resolution per slug:
+ *   - overlay file with top-level "overrides" -> deep-merge over the platform default
+ *   - overlay file without "overrides"        -> replaces the platform default entirely
+ *   - overlay file that is empty {}           -> dimension skipped entirely
+ *   - no overlay file                         -> platform default
+ *
+ * Consumer-added slugs (overlay-only) get their namespace from the
+ * BRAND_SLUG environment variable, falling back to the platform namespace.
+ * Reserved slugs keep their existing dimension ids regardless of namespace.
+
+ */
+public final class DimensionConfigLoader {
+
+    private static final Gson GSON = new Gson();
+
+    private DimensionConfigLoader() {
+    }
+
+    /** Global settings (settings.json, consumer overlay merged over it). */
+    public static class Settings {
+        public String namespace = "adventure";
+        public int idleUnloadMinutes = 5;
+        public String frameOverworld = "minecraft:mossy_stone_bricks";
+        public String frameNether = "minecraft:obsidian";
+        public String frameEnd = "minecraft:end_stone_bricks";
+        /** Raw "defaults" block, merged under every dimension. */
+        public JsonObject defaults = new JsonObject();
+        /**
+         * Structure SET ids removed from every dimension's pools and
+         * pass-throughs ({@code "suppress": {"structures": [...]}}) — the
+         * global counterpart of a dimension's {@code structures.exclude}.
+         * Applied through the same filters (DimensionStructures.keepSet +
+         * NoisePoolBuilder). Unknown ids WARN at boot rather than failing.
+         */
+        public java.util.List<String> suppressStructures = java.util.List.of();
+        /**
+         * Biome ids removed from every world's biome source ({@code
+         * "suppress": {"biomes": [...]}}) — applied by BiomeSuppression to
+         * listed sources, full-source dims, and the reserved dimensions alike.
+         * Unknown ids WARN at boot.
+         */
+        public java.util.List<String> suppressBiomes = java.util.List.of();
+    }
+
+    /** Settings + resolved dimension map (reserved dimensions included, keyed by slug). */
+    public record LoadResult(Settings settings, Map<String, DimensionConfig> dimensions) {
+    }
+
+    // ------------------------------------------------------------------------
+    // Directory format
+    // ------------------------------------------------------------------------
+
+    /** Prompt-facing surface: env-driven BRAND_SLUG, no settings defaults. */
+    public static Map<String, DimensionConfig> loadAll(Path configDir, Path overlayDir, String namespace) {
+        Settings settings = loadSettings(configDir.resolve("settings.json"),
+                overlayDir != null ? overlayDir.resolve("settings.json") : null);
+        if (namespace != null && !namespace.isBlank()) {
+            settings.namespace = namespace;
+        }
+        return loadDimensions(configDir, overlayDir, settings, System.getenv("BRAND_SLUG"));
+    }
+
+    public static LoadResult loadAllWithSettings(Path configDir, Path overlayDir) {
+        Settings settings = loadSettings(configDir.resolve("settings.json"),
+                overlayDir != null ? overlayDir.resolve("settings.json") : null);
+        Map<String, DimensionConfig> dims =
+                loadDimensions(configDir, overlayDir, settings, System.getenv("BRAND_SLUG"));
+        return new LoadResult(settings, dims);
+    }
+
+    static Settings loadSettings(Path settingsFile) {
+        return loadSettings(settingsFile, null);
+    }
+
+    /**
+     * Platform settings with the consumer overlay's settings.json merged
+     * over them (deepMerge: overlay scalars win, objects merge key-by-key).
+     */
+    static Settings loadSettings(Path settingsFile, Path overlayFile) {
+        Settings settings = new Settings();
+        JsonObject json = readJsonObject(settingsFile);
+        JsonObject overlay = overlayFile != null ? readJsonObject(overlayFile) : null;
+        if (json == null) {
+            json = overlay;
+        } else if (overlay != null) {
+            json = deepMerge(json, overlay);
+            Log.info("Consumer overlay settings.json merged over platform settings");
+        }
+        if (json == null) {
+            return settings;
+        }
+        if (json.has("namespace") && json.get("namespace").isJsonPrimitive()) {
+            settings.namespace = json.get("namespace").getAsString();
+        }
+        if (json.has("idleUnloadMinutes") && json.get("idleUnloadMinutes").isJsonPrimitive()) {
+            int minutes = json.get("idleUnloadMinutes").getAsInt();
+            if (minutes > 0) {
+                settings.idleUnloadMinutes = minutes;
+            }
+        }
+        JsonObject frames = json.has("frames") && json.get("frames").isJsonObject()
+                ? json.getAsJsonObject("frames") : new JsonObject();
+        settings.frameOverworld = stringOr(frames, "overworld", settings.frameOverworld);
+        settings.frameNether = stringOr(frames, "nether", settings.frameNether);
+        settings.frameEnd = stringOr(frames, "end", settings.frameEnd);
+        if (json.has("defaults") && json.get("defaults").isJsonObject()) {
+            settings.defaults = json.getAsJsonObject("defaults");
+        }
+        if (json.has("suppress") && json.get("suppress").isJsonObject()) {
+            JsonObject suppress = json.getAsJsonObject("suppress");
+            settings.suppressStructures = idList(suppress.get("structures"));
+            settings.suppressBiomes = idList(suppress.get("biomes"));
+        }
+        return settings;
+    }
+
+    /** Non-blank strings from a JSON array; empty list for anything else. */
+    private static java.util.List<String> idList(JsonElement list) {
+        if (list == null || !list.isJsonArray()) {
+            return java.util.List.of();
+        }
+        java.util.List<String> ids = new java.util.ArrayList<>();
+        for (JsonElement e : list.getAsJsonArray()) {
+            if (e.isJsonPrimitive() && e.getAsJsonPrimitive().isString()
+                    && !e.getAsString().isBlank()) {
+                ids.add(e.getAsString().trim());
+            }
+        }
+        return java.util.List.copyOf(ids);
+    }
+
+    /**
+     * Core resolution, testable without environment access: scan platform +
+     * overlay dimension files, apply the overlay rules, merge settings
+     * defaults under each result, stamp slug + namespace.
+     */
+    static Map<String, DimensionConfig> loadDimensions(Path configDir, Path overlayDir,
+                                                       Settings settings, String brandSlug) {
+        Map<String, JsonObject> platform = readDimensionFiles(configDir.resolve("dimensions"));
+        Map<String, JsonObject> overlay = overlayDir != null
+                ? readDimensionFiles(overlayDir.resolve("dimensions"))
+                : Map.of();
+
+        Map<String, JsonObject> resolved = new TreeMap<>();
+        for (Map.Entry<String, JsonObject> entry : platform.entrySet()) {
+            String slug = entry.getKey();
+            JsonObject over = overlay.get(slug);
+            if (over == null) {
+                resolved.put(slug, entry.getValue());
+                Log.info("Dimension {}: platform default", slug);
+            } else if (over.entrySet().isEmpty()) {
+                Log.info("Dimension {}: skipped by consumer overlay (empty {})", slug, "{}");
+            } else if (over.has("overrides") && over.get("overrides").isJsonObject()) {
+                resolved.put(slug, deepMerge(entry.getValue(), over.getAsJsonObject("overrides")));
+                Log.info("Dimension {}: platform default + consumer overrides", slug);
+            } else {
+                resolved.put(slug, over);
+                Log.info("Dimension {}: replaced by consumer overlay", slug);
+            }
+        }
+        for (Map.Entry<String, JsonObject> entry : overlay.entrySet()) {
+            String slug = entry.getKey();
+            if (platform.containsKey(slug)) {
+                continue;
+            }
+            JsonObject over = entry.getValue();
+            if (over.entrySet().isEmpty()) {
+                Log.info("Dimension {}: empty consumer file with no platform default — ignored", slug);
+                continue;
+            }
+            // "overrides" with nothing underneath still means "start from defaults".
+            JsonObject body = over.has("overrides") && over.get("overrides").isJsonObject()
+                    ? over.getAsJsonObject("overrides") : over;
+            resolved.put(slug, body);
+            Log.info("Dimension {}: consumer-added", slug);
+        }
+
+        String consumerNamespace = brandSlug != null && !brandSlug.isBlank()
+                ? brandSlug : settings.namespace;
+        Map<String, DimensionConfig> result = new LinkedHashMap<>();
+        for (Map.Entry<String, JsonObject> entry : resolved.entrySet()) {
+            String slug = entry.getKey();
+            JsonObject merged = deepMerge(defaultsFor(settings, entry.getValue()), entry.getValue());
+            DimensionConfig config;
+            try {
+                config = GSON.fromJson(merged, DimensionConfig.class);
+            } catch (JsonParseException e) {
+                Log.error("Dimension {}: config invalid — skipped", slug, e);
+                continue;
+            }
+            if (config == null) {
+                continue;
+            }
+            config.setName(slug);
+            config.setNamespace(platform.containsKey(slug) ? settings.namespace : consumerNamespace);
+            result.put(slug, config);
+        }
+        return result;
+    }
+
+    /**
+     * Settings defaults merged UNDER a dimension: borders + difficulty always;
+     * defaults.frameBlock only when the dimension actually declares a portal
+     * (merging a frame into a portal-less dimension would invent one).
+     */
+    private static JsonObject defaultsFor(Settings settings, JsonObject dimension) {
+        JsonObject base = new JsonObject();
+        if (settings.defaults.has("borders") && settings.defaults.get("borders").isJsonObject()) {
+            base.add("borders", settings.defaults.getAsJsonObject("borders").deepCopy());
+        }
+        if (settings.defaults.has("difficulty") && settings.defaults.get("difficulty").isJsonObject()) {
+            base.add("difficulty", settings.defaults.getAsJsonObject("difficulty").deepCopy());
+        }
+        if (dimension.has("portal") && dimension.get("portal").isJsonObject()
+                && settings.defaults.has("frameBlock")
+                // A dimension declaring per-part materials owns its whole
+                // frame — merging the default frameBlock under it would
+                // trip the frameBlock/frameMaterials exclusivity warning.
+                && !dimension.getAsJsonObject("portal").has("frameMaterials")) {
+            JsonObject portal = new JsonObject();
+            portal.add("frameBlock", settings.defaults.get("frameBlock"));
+            base.add("portal", portal);
+        }
+        return base;
+    }
+
+    /** Recursive object merge: `over` wins; nested objects merge key-by-key. */
+    static JsonObject deepMerge(JsonObject base, JsonObject over) {
+        JsonObject result = base.deepCopy();
+        for (Map.Entry<String, JsonElement> entry : over.entrySet()) {
+            JsonElement existing = result.get(entry.getKey());
+            JsonElement value = entry.getValue();
+            if (existing != null && existing.isJsonObject() && value.isJsonObject()) {
+                result.add(entry.getKey(), deepMerge(existing.getAsJsonObject(), value.getAsJsonObject()));
+            } else {
+                result.add(entry.getKey(), value.deepCopy());
+            }
+        }
+        return result;
+    }
+
+    /** Suffix of the stamp {@code com.customdimensions.web.Picker} writes beside a committed thumbnail pair. */
+    private static final String THUMBNAIL_STAMP_SUFFIX = "_thumb";
+
+    private static Map<String, JsonObject> readDimensionFiles(Path dir) {
+        Map<String, JsonObject> files = new TreeMap<>();
+        if (!Files.isDirectory(dir)) {
+            return files;
+        }
+        try (DirectoryStream<Path> stream = Files.newDirectoryStream(dir, "*.json")) {
+            for (Path file : stream) {
+                String slug = file.getFileName().toString();
+                slug = slug.substring(0, slug.length() - ".json".length()).toLowerCase();
+                // Picker stamps <slug>_thumb.json beside the committed PNGs in
+                // this directory: thumbnail provenance, not a dimension.
+                if (slug.endsWith(THUMBNAIL_STAMP_SUFFIX)) {
+                    continue;
+                }
+                JsonObject json = readJsonObject(file);
+                if (json != null) {
+                    files.put(slug, json);
+                } else {
+                    Log.warn("Dimension file unreadable or not an object — skipped: {}", file);
+                }
+            }
+        } catch (IOException e) {
+            Log.error("Failed to scan dimension directory: {}", dir, e);
+        }
+        return files;
+    }
+
+    /**
+     * The JSONC contract, readers-first: a line whose first non-blank
+     * characters are {@code //} is blanked (line numbers preserved for
+     * parse errors). Trailing comments are deliberately NOT supported —
+     * a {@code //} inside a string (URLs) must never be a comment, and
+     * the whole-line rule needs no string-state tracking. Gson otherwise
+     * stays in strict (non-lenient) mode.
+     */
+    public static String stripJsonComments(String text) {
+        if (text == null || !text.contains("//")) {
+            return text;
+        }
+        StringBuilder out = new StringBuilder(text.length());
+        int start = 0;
+        int length = text.length();
+        while (start <= length) {
+            int end = text.indexOf('\n', start);
+            String line = end < 0 ? text.substring(start) : text.substring(start, end);
+            if (!line.strip().startsWith("//")) {
+                out.append(line);
+            }
+            if (end < 0) {
+                break;
+            }
+            out.append('\n');
+            start = end + 1;
+        }
+        return out.toString();
+    }
+
+    private static JsonObject readJsonObject(Path file) {
+        if (!Files.isRegularFile(file)) {
+            return null;
+        }
+        try {
+            String text = stripJsonComments(Files.readString(file));
+            JsonElement parsed = JsonParser.parseString(text);
+            return parsed != null && parsed.isJsonObject() ? parsed.getAsJsonObject() : null;
+        } catch (IOException | JsonParseException e) {
+            Log.error("Failed to parse JSON file: {}", file, e);
+            return null;
+        }
+    }
+
+    private static String stringOr(JsonObject json, String key, String fallback) {
+        return json.has(key) && json.get(key).isJsonPrimitive() ? json.get(key).getAsString() : fallback;
+    }
+}
