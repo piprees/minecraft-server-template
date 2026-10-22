@@ -1,0 +1,127 @@
+{
+  "schemaVersion": 2,
+  "description": "Where the endermen first taught the villagers. Amethyst rainforest and emerald peaks — wizard towers mark where the lessons happened. No war was ever fought here; this place was too beautiful to ruin.",
+  "seed": 3494254938116585195,
+  "spawn": [192, 141, -448],
+  "generator": {
+    "type": "noise",
+    "preset": "overworld"
+  },
+  "terrain": {
+    "base": null
+  },
+  "biomes": [
+    "terralith:amethyst_rainforest",
+    "terralith:amethyst_canyon",
+    "terralith:emerald_peaks",
+    "minecraft:grove",
+    "minecraft:meadow",
+    "terralith:moonlight_grove",
+    {
+      "id": "regions_unexplored:alpha_grove",
+      "climate": {
+        "humidity": [-0.48, -0.33]
+      }
+    },
+    {
+      "id": "regions_unexplored:rocky_meadow",
+      "climate": {
+        "humidity": [-0.25, -0.1]
+      }
+    },
+    {
+      "id": "regions_unexplored:temperate_grove",
+      "climate": {
+        "humidity": [-0.02, 0.13]
+      }
+    },
+    {
+      "id": "regions_unexplored:prismachasm",
+      "climate": {
+        "humidity": [0.21, 0.36]
+      }
+    },
+    {
+      "id": "regions_unexplored:hyacinth_deeps",
+      "climate": {
+        "humidity": [0.44, 0.59]
+      }
+    },
+    "minecraft:lush_caves",
+    "terralith:cave/diorite_caves"
+  ],
+  "zones": [
+    {
+      "shape": "circle",
+      "centre": [120, -90],
+      "radius": 96,
+      "blend": 24,
+      "biomes": [
+        "terralith:moonlight_grove"
+      ]
+    }
+  ],
+  "atmosphere": {
+    "skyColor": "#C9A8E8",
+    "ambientLight": 0.15
+  },
+  "borders": {
+    "player": 1024,
+    "generation": 1024
+  },
+  "difficulty": {
+    "mobMultiplier": 0.0,
+    "playerLuck": 2.5,
+    "hostileSpawning": false
+  },
+  "structures": {
+    "terrainAdaptation": {
+      "structory_towers:wizard_tower": "pedestal"
+    },
+    "force": [
+      {
+        "structure": "structory_towers:wizard_tower",
+        "x": 120,
+        "z": -90,
+        "exclusive": false
+      }
+    ]
+  },
+  "portals": [
+    {
+      "frameBlock": "minecraft:amethyst_block",
+      "igniterItem": "minecraft:amethyst_shard",
+      "color": "9B6BC8",
+      "lightLevel": 11,
+      "scale": 8.0,
+      "cooldown": 40,
+      "particleType": "minecraft:enchant",
+      "sounds": {
+        "ignite": "block.portal.trigger",
+        "enter": "block.portal.travel",
+        "exit": "block.portal.travel"
+      }
+    }
+  ],
+  "roll": {
+    "mood": "scenic",
+    "spawnFilter": [
+      "terralith:amethyst_rainforest",
+      "terralith:amethyst_canyon"
+    ],
+    "wants": {
+      "wizard_tower": "spread",
+      "relic_temple": "near_border",
+      "guide_post_warm": "near_spawn",
+      "abandoned_chapel": "spread",
+      "shrine_tower": "spread"
+    },
+    "shuns": [
+      "monument",
+      "mansion",
+      "coliseum",
+      "trial_chambers",
+      "ancient_city"
+    ]
+  }
+}

@@ -9,5 +9,21 @@ dependencies {
 
 	testImplementation platform("org.junit:junit-bom:${project.junit_version}")
 	testImplementation 'org.junit.jupiter:junit-jupiter'
+	testImplementation "com.networknt:json-schema-validator:${project.json_schema_validator_version}"
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+// Rewrites definitions/ (schema v2) and its conversion report from the 1.21.1
+// definitions in config/custom-dimensions/. The repository root is three levels up.
+tasks.register('convertDefinitions', JavaExec) {
+	group = 'custom-dimensions'
+	description = 'Converts config/custom-dimensions/ into the schema v2 set in definitions/.'
+	classpath = sourceSets.main.runtimeClasspath
+	mainClass = 'com.customdimensions.compiler.convert.ConvertDefinitions'
+	def repoRoot = file('../../..').canonicalFile
+	def design = new File(repoRoot, 'docs/design/rebuild-26')
+	args '--config', new File(repoRoot, 'config/custom-dimensions').path,
+			'--register', new File(design, 'mod-register.csv').path,
+			'--namespaces', new File(design, 'namespaces.csv').path,
+			'--out', file('../definitions').canonicalPath
 }

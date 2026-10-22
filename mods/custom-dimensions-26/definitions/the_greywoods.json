@@ -1,0 +1,136 @@
+{
+  "schemaVersion": 2,
+  "description": "Gloomy cedar woodland where the fog sits low. The witches' territory — graveyards, chapels, and a manor that should probably be left alone. They came from the darkpine depths and brought their knowledge with them.",
+  "seed": 2547886677637201395,
+  "spawn": [0, 66, 64],
+  "generator": {
+    "type": "noise",
+    "preset": "overworld"
+  },
+  "biomes": [
+    {
+      "id": "natures_spirit:cedar_thicket",
+      "climate": {
+        "weirdness": [-2.0, -0.19],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "minecraft:dark_forest",
+      "climate": {
+        "weirdness": [-0.19, -0.1486],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "terralith:birch_taiga",
+      "climate": {
+        "weirdness": [-0.1486, -0.1071],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "natures_spirit:fir_forest",
+      "climate": {
+        "weirdness": [-0.1071, -0.0657],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "terralith:moonlight_grove",
+      "climate": {
+        "weirdness": [-0.0657, -0.0243],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "minecraft:swamp",
+      "climate": {
+        "weirdness": [-0.0243, 0.0171],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "regions_unexplored:fungal_fen",
+      "climate": {
+        "weirdness": [0.0171, 0.0586],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "wilderwild:dying_forest",
+      "climate": {
+        "weirdness": [0.0586, 0.1],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "wilderwild:dark_birch_forest",
+      "climate": {
+        "weirdness": [0.1, 2.0],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "minecraft:deep_dark",
+      "climate": {
+        "weirdness": [-2.0, -0.045],
+        "depth": [0.1, 2.0]
+      }
+    },
+    {
+      "id": "terralith:cave/infested_caves",
+      "climate": {
+        "weirdness": [-0.045, 2.0],
+        "depth": [0.1, 2.0]
+      }
+    }
+  ],
+  "atmosphere": {
+    "fogColor": "#8B968B",
+    "ambientLight": 0.1
+  },
+  "borders": {
+    "player": 1024,
+    "generation": 1024
+  },
+  "difficulty": {
+    "mobMultiplier": 1.3,
+    "playerLuck": 1.4
+  },
+  "portals": [
+    {
+      "frameBlock": "minecraft:polished_andesite",
+      "igniterItem": "minecraft:amethyst_shard",
+      "color": "7A8B7A",
+      "lightLevel": 11,
+      "scale": 8.0,
+      "cooldown": 40,
+      "sounds": {
+        "ignite": "block.portal.trigger",
+        "enter": "block.portal.travel",
+        "exit": "block.portal.travel"
+      }
+    }
+  ],
+  "roll": {
+    "mood": "adventurous",
+    "spawnFilter": [
+      "terralith:birch_taiga"
+    ],
+    "wants": {
+      "graveyard": "near_spawn",
+      "abandoned_chapel": "spread",
+      "zombie_dungeon": "spread",
+      "old_manor": "near_border",
+      "skeleton_dungeon": "near_border",
+      "dark_settlement": "spread",
+      "mausoleum": "near_border",
+      "swamp_ruin": "spread"
+    },
+    "shuns": [
+      "monument",
+      "coliseum"
+    ]
+  }
+}

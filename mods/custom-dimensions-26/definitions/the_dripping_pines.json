@@ -1,0 +1,126 @@
+{
+  "schemaVersion": 2,
+  "description": "Rain-soaked taiga, moss on everything, ruins rotting under the pines. A place people passed through but never stayed — the damp took their camps and the forest closed behind them.",
+  "seed": -110531497654782041,
+  "spawn": [-384, 61, -512],
+  "generator": {
+    "type": "noise",
+    "preset": "overworld"
+  },
+  "biomes": [
+    {
+      "id": "terralith:siberian_taiga",
+      "climate": {
+        "weirdness": [-2.0, -0.19],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "natures_spirit:boreal_taiga",
+      "climate": {
+        "weirdness": [-0.19, -0.1417],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "minecraft:old_growth_pine_taiga",
+      "climate": {
+        "weirdness": [-0.1417, -0.0933],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "minecraft:taiga",
+      "climate": {
+        "weirdness": [-0.0933, -0.045],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "minecraft:old_growth_spruce_taiga",
+      "climate": {
+        "weirdness": [-0.045, 0.0033],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "natures_spirit:fir_forest",
+      "climate": {
+        "weirdness": [0.0033, 0.0517],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "regions_unexplored:pine_slopes",
+      "climate": {
+        "weirdness": [0.0517, 0.1],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "wilderwild:temperate_rainforest",
+      "climate": {
+        "weirdness": [0.1, 2.0],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "minecraft:dripstone_caves",
+      "climate": {
+        "weirdness": [-2.0, -0.045],
+        "depth": [0.1, 2.0]
+      }
+    },
+    {
+      "id": "terralith:cave/tuff_caves",
+      "climate": {
+        "weirdness": [-0.045, 2.0],
+        "depth": [0.1, 2.0]
+      }
+    }
+  ],
+  "atmosphere": {
+    "fogColor": "#6B8B7B"
+  },
+  "borders": {
+    "player": 1024,
+    "generation": 1024
+  },
+  "difficulty": {
+    "mobMultiplier": 0.8,
+    "playerLuck": 1.6
+  },
+  "portals": [
+    {
+      "frameBlock": "minecraft:dripstone_block",
+      "igniterItem": "minecraft:amethyst_shard",
+      "color": "4B8B7B",
+      "lightLevel": 11,
+      "scale": 8.0,
+      "cooldown": 40,
+      "sounds": {
+        "ignite": "block.portal.trigger",
+        "enter": "block.portal.travel",
+        "exit": "block.portal.travel"
+      }
+    }
+  ],
+  "roll": {
+    "mood": "scenic",
+    "spawnFilter": [
+      "minecraft:taiga"
+    ],
+    "wants": {
+      "foraging_outpost": "near_spawn",
+      "taiga_ruin_deep": "spread",
+      "mouldy_dungeon": "spread",
+      "abandoned_camp": "spread",
+      "northern_ruin": "spread",
+      "coldlair": "near_border"
+    },
+    "shuns": [
+      "monument",
+      "coliseum"
+    ]
+  }
+}

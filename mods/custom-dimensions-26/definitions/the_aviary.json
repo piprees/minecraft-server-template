@@ -1,0 +1,56 @@
+{
+  "schemaVersion": 2,
+  "description": "The oldest living world — skylands where towers and vaults grew like coral long before anyone named them. Wisteria drifts on the updrafts between plateaus. Whatever built this place wasn't human, wasn't piglin, wasn't enderman. It just grew.",
+  "seed": 7826077224469180302,
+  "spawn": [0, 79, -408],
+  "generator": {
+    "type": "noise",
+    "preset": "floating_islands"
+  },
+  "borders": {
+    "player": 4096,
+    "generation": 2048
+  },
+  "difficulty": {
+    "mobMultiplier": 0.8,
+    "playerLuck": 1.5
+  },
+  "structures": {
+    "noise": {
+      "dungeons": "sparse"
+    }
+  },
+  "portals": [
+    {
+      "frameBlock": "minecraft:glowstone",
+      "igniterItem": "minecraft:water_bucket",
+      "color": "F5E8B8",
+      "lightLevel": 15,
+      "scale": 2,
+      "cooldown": 40,
+      "particleType": "minecraft:end_rod",
+      "sounds": {
+        "ignite": "item.bucket.empty",
+        "enter": "block.portal.travel",
+        "exit": "block.portal.travel"
+      }
+    }
+  ],
+  "roll": {
+    "mood": "scenic",
+    "spawnFilter": [
+      "paradise_lost:highlands",
+      "paradise_lost:highlands_forest",
+      "paradise_lost:wisteria_woods",
+      "paradise_lost:tradewinds"
+    ],
+    "wants": {
+      "para_remains": "near_spawn",
+      "birdcage": "near_spawn",
+      "aurel_tower": "spread",
+      "para_vault": "spread",
+      "para_palace": "near_border"
+    },
+    "shuns": []
+  }
+}

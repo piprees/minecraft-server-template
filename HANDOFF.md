@@ -11,8 +11,8 @@ lasting record is `docs/design/rebuild-26/` and `TROUBLESHOOTING.md`.
 - Blocked on the owner: merging PR #29 and the Dependabot PRs into `main`
   (refused by the session's permission rules), then the private switch in the
   order recorded in the log.
-- Rebuild: F0 and F1 done; F2 (carry over the core) in progress, then F3
-  (schema v2 and conversion of the 82 definitions).
+- Rebuild: F0–F3 done. Next: the M, W and P streams from work-plan.md
+  (M1 compiler, M2 levels; W1 terrain library; P1 version in one place).
 - Plan of record: `docs/design/rebuild-26/README.md`.
 
 ## Log
@@ -57,3 +57,6 @@ lasting record is `docs/design/rebuild-26/` and `TROUBLESHOOTING.md`.
 - 10-22 — Quirk: core's `Log` writes through `System.Logger` (java.util.logging on a Fabric server, not Log4j). The server module installs a `System.LoggerFinder` routing to SLF4J, or core log lines miss latest.log.
 - 10-22 — Not tested side by side: old and new loader output (the old mod needs Java 21 + Loom 1.x). Equivalence rests on word-for-word carry plus the 82-definition test.
 - 10-22 — F3 handed to a subagent per schema-v2.md, with decisions: convert raw JSON (no baked defaults) but require v1 loading to pass; settings.json converts too; immersive true/absent → no preview, false → preview:false, object → preview object; terrain.base:null only where v1 named wide/compressed; adventure:paradise_lost references rewrite to adventure:the_aviary; a namespace is flagged when none of its owners is kept; deterministic output. Progress: /tmp/claude-0/f3-progress.log.
+- 10-22 — F3 DONE (verified): v2 model and reader in `core.definition`, `schema/definition.schema.json` (2020-12), `:compiler:convertDefinitions` writing `mods/custom-dimensions-26/definitions/` (82 files; `paradise_lost` → `the_aviary`), `settings.json` and `conversion-report.md`. 563 tests pass. Re-run is byte-identical (sha1 over the folder). Flag counts match an independent regex over the raw v1 text (terralith 301, regions_unexplored 131, incendium 105, natures_spirit 55, paradise_lost 39, wilderwild 33, nullscape 32). Totals: 790 occurrences of 313 distinct ids in 24 namespaces; 9 dropped fields (seedRoll.family 6, endIsland on sky_islands 3); 27 W8 decisions (22 terrain.base null, 4 paradise_lost clones, 1 base-world rename). JSON Schema validator: com.networknt:json-schema-validator 3.0.8 (test only).
+- 10-22 — Converter rules recorded in schema-v2.md § Converter rules.
+- 10-22 — Note for W8: "waiting" structure mods (dungeons_arise 13, explorify 4, betterdungeons 3, …) are flagged too; their ids come back unflagged once their 26.3 builds land and the register says kept.

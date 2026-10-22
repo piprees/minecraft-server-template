@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 2,
+  "description": "The nether — piglin heartland, 1:8 compressed. Fortresses and bastions in reach, Incendium's sanctum near the rim. Every civilisation that touched this place left infrastructure; only the piglins called it home.",
+  "seed": -6876984017876508741,
+  "spawn": [0, 92, -64],
+  "generator": {
+    "type": "noise",
+    "preset": "nether"
+  },
+  "borders": {
+    "player": 1024,
+    "generation": 1024
+  },
+  "difficulty": {
+    "mobMultiplier": 1.3,
+    "playerLuck": 1.4
+  },
+  "portals": [
+    {
+      "vanillaManaged": true,
+      "frameBlock": "minecraft:obsidian",
+      "igniterItem": "minecraft:flint_and_steel",
+      "color": "8000FF",
+      "lightLevel": 11,
+      "scale": 8.0,
+      "cooldown": 40,
+      "particleType": "minecraft:portal",
+      "sounds": {
+        "ignite": "block.portal.trigger",
+        "enter": "block.portal.travel",
+        "exit": "block.portal.travel"
+      }
+    }
+  ],
+  "roll": {
+    "mood": "adventurous",
+    "spawnFilter": [
+      "minecraft:nether_wastes",
+      "minecraft:warped_forest",
+      "incendium:quartz_flats"
+    ],
+    "wants": {
+      "fortress": "spread",
+      "bastion": "spread",
+      "piglin_village": "spread",
+      "sanctum": "near_border",
+      "nether_bridge": "spread"
+    },
+    "shuns": []
+  }
+}

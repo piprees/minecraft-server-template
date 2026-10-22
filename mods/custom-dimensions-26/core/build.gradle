@@ -7,6 +7,7 @@ dependencies {
 
 	testImplementation platform("org.junit:junit-bom:${project.junit_version}")
 	testImplementation 'org.junit.jupiter:junit-jupiter'
+	testImplementation "com.networknt:json-schema-validator:${project.json_schema_validator_version}"
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 

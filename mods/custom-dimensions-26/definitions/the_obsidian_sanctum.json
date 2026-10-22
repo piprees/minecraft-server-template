@@ -1,0 +1,68 @@
+{
+  "schemaVersion": 2,
+  "description": "The sanctum is the point. Incendium's cathedral dungeons in a small, dark world — altars and forbidden castles saturating the space. The piglins built their holiest places here, and the obsidian remembers every prayer.",
+  "seed": 8949861888281359583,
+  "spawn": [0, 57, 0],
+  "generator": {
+    "type": "noise",
+    "preset": "nether"
+  },
+  "biomes": [
+    "minecraft:soul_sand_valley",
+    "minecraft:nether_wastes",
+    "incendium:withered_forest",
+    "minecraft:basalt_deltas"
+  ],
+  "atmosphere": {
+    "skyColor": "#1B0B2B",
+    "fogColor": "#1B0B2B",
+    "ambientLight": 0.05
+  },
+  "borders": {
+    "player": 1024,
+    "generation": 1024
+  },
+  "difficulty": {
+    "mobMultiplier": 1.8,
+    "playerLuck": 1.8
+  },
+  "structures": {
+    "density": "dense"
+  },
+  "portals": [
+    {
+      "frameBlock": "chipped:runic_carved_obsidian",
+      "igniterItem": "minecraft:netherite_ingot",
+      "color": "4B2B6B",
+      "lightLevel": 11,
+      "scale": 8.0,
+      "cooldown": 40,
+      "shape": "doorway",
+      "sounds": {
+        "ignite": "block.portal.trigger",
+        "enter": "block.portal.travel",
+        "exit": "block.portal.travel"
+      }
+    }
+  ],
+  "roll": {
+    "mood": "hard",
+    "spawnFilter": [
+      "minecraft:soul_sand_valley",
+      "minecraft:nether_wastes"
+    ],
+    "wants": {
+      "sanctum": "near_spawn",
+      "infernal_altar": "near_spawn",
+      "forbidden_castle": "near_border",
+      "nether_temple": "spread"
+    },
+    "shuns": [
+      "piglin_village",
+      "crimson_fungus",
+      "crimson_forge",
+      "warped_outpost",
+      "bastion"
+    ]
+  }
+}

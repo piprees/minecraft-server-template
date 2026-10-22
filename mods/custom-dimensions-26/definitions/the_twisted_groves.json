@@ -1,0 +1,161 @@
+{
+  "schemaVersion": 2,
+  "description": "Warped groves stacked into ridges and gorges under a nether sky with no sun, dry to the bedrock. The piglins avoided this place; the fungus here is older than their civilisation. Only the marsh at the heart of it holds still water, and whoever cleared it left a greatsword behind.",
+  "seed": 7730707883975153929,
+  "spawn": [192, 36, -192],
+  "generator": {
+    "type": "noise",
+    "preset": "overworld"
+  },
+  "terrain": {
+    "base": null
+  },
+  "biomes": [
+    {
+      "id": "incendium:withered_forest",
+      "climate": {
+        "weirdness": [-2.0, -0.19],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "incendium:toxic_heap",
+      "climate": {
+        "weirdness": [-0.19, -0.1479],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "minecraft:soul_sand_valley",
+      "climate": {
+        "weirdness": [-0.1479, -0.1058],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "terralith:warped_mesa",
+      "climate": {
+        "weirdness": [-0.1058, -0.0637],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "minecraft:warped_forest",
+      "climate": {
+        "weirdness": [-0.0637, 0.0205],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "incendium:inverted_forest",
+      "climate": {
+        "weirdness": [0.0205, 0.0626],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "regions_unexplored:marsh",
+      "climate": {
+        "weirdness": [0.0626, 0.1],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "incendium:ash_barrens",
+      "climate": {
+        "weirdness": [0.1, 2.0],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "terralith:cave/fungal_caves",
+      "climate": {
+        "weirdness": [-2.0, -0.045],
+        "depth": [0.1, 2.0]
+      }
+    },
+    {
+      "id": "minecraft:deep_dark",
+      "climate": {
+        "weirdness": [-0.045, 2.0],
+        "depth": [0.1, 2.0]
+      }
+    }
+  ],
+  "liquids": {
+    "seaLevel": -60
+  },
+  "zones": [
+    {
+      "shape": "circle",
+      "centre": [0, 0],
+      "radius": 96,
+      "blend": 20,
+      "biomes": [
+        "regions_unexplored:marsh"
+      ]
+    }
+  ],
+  "dimensionType": {
+    "hasSkylight": false
+  },
+  "atmosphere": {
+    "fogColor": "#1B4B44",
+    "ambientLight": 0.12,
+    "effects": "minecraft:the_nether"
+  },
+  "borders": {
+    "player": 1024,
+    "generation": 1024
+  },
+  "difficulty": {
+    "mobMultiplier": 1.6,
+    "playerLuck": 1.6
+  },
+  "structures": {
+    "density": "dense",
+    "clearSpawnRadius": 64,
+    "force": [
+      {
+        "structure": "structory_towers:warped_greatsword",
+        "x": 620,
+        "z": -470
+      }
+    ]
+  },
+  "portals": [
+    {
+      "frameBlock": "minecraft:warped_nylium",
+      "igniterItem": "minecraft:flint_and_steel",
+      "color": "1B8B7B",
+      "lightLevel": 11,
+      "scale": 8.0,
+      "cooldown": 40,
+      "particleType": "minecraft:warped_spore",
+      "sounds": {
+        "ignite": "block.portal.trigger",
+        "enter": "block.portal.travel",
+        "exit": "block.portal.travel"
+      }
+    }
+  ],
+  "roll": {
+    "mood": "hard",
+    "spawnFilter": [
+      "regions_unexplored:marsh"
+    ],
+    "wants": {
+      "warped_outpost": "near_spawn",
+      "strange_outpost": "spread",
+      "crimson_fungus": "near_border"
+    },
+    "shuns": [
+      "bastion",
+      "fortress",
+      "sanctum"
+    ],
+    "terrain": "hilly",
+    "heightRange": [-40, 260],
+    "water": "none"
+  }
+}

@@ -1,0 +1,186 @@
+{
+  "schemaVersion": 2,
+  "description": "Soul-sand drifting into shadow. The surface scar where the underground sculk infection broke through from the ancient cities — nether ash and soul valleys over a deep dark that shouldn't be this close to the surface. The drift does not stop at the portal: what it reaches, it takes, and a build near the frame is part of what it reaches.",
+  "seed": -7532638359217139357,
+  "spawn": [512, 54, 256],
+  "generator": {
+    "type": "noise",
+    "preset": "overworld"
+  },
+  "biomes": [
+    "terralith:ashen_savanna",
+    "minecraft:eroded_badlands",
+    "terralith:gravel_desert",
+    "terralith:volcanic_crater",
+    "minecraft:badlands",
+    "terralith:basalt_cliffs",
+    "terralith:moonlight_grove",
+    "minecraft:deep_dark",
+    "terralith:white_cliffs",
+    {
+      "id": "nullscape:shadowlands",
+      "climate": {
+        "weirdness": [-2.0, -0.7]
+      }
+    },
+    {
+      "id": "minecraft:soul_sand_valley",
+      "climate": {
+        "weirdness": [-0.56, -0.475]
+      }
+    },
+    {
+      "id": "incendium:ash_barrens",
+      "climate": {
+        "weirdness": [-0.475, -0.42]
+      }
+    },
+    {
+      "id": "regions_unexplored:redstone_abyss",
+      "climate": {
+        "weirdness": [-0.42, -0.37]
+      }
+    },
+    {
+      "id": "minecraft:basalt_deltas",
+      "climate": {
+        "weirdness": [-0.155, -0.115]
+      }
+    },
+    {
+      "id": "incendium:toxic_heap",
+      "climate": {
+        "weirdness": [-0.115, -0.075]
+      }
+    },
+    {
+      "id": "minecraft:nether_wastes",
+      "climate": {
+        "weirdness": [-0.075, -0.035]
+      }
+    },
+    {
+      "id": "incendium:infernal_dunes",
+      "climate": {
+        "weirdness": [-0.035, 0.045]
+      }
+    },
+    {
+      "id": "incendium:volcanic_deltas",
+      "climate": {
+        "weirdness": [0.2, 0.3]
+      }
+    },
+    {
+      "id": "regions_unexplored:mycotoxic_undergrowth",
+      "climate": {
+        "weirdness": [0.3, 0.55]
+      }
+    },
+    {
+      "id": "regions_unexplored:redstone_caves",
+      "climate": {
+        "weirdness": [0.55, 0.85]
+      }
+    },
+    {
+      "id": "regions_unexplored:prismachasm",
+      "climate": {
+        "weirdness": [0.85, 2.0]
+      }
+    },
+    "wilderwild:dying_mixed_forest"
+  ],
+  "zones": [
+    {
+      "shape": "circle",
+      "centre": [540, -420],
+      "radius": 180,
+      "blend": 40,
+      "biomes": [
+        "minecraft:soul_sand_valley"
+      ]
+    }
+  ],
+  "atmosphere": {
+    "skyColor": "#3A2E3E",
+    "fogColor": "#241B2E",
+    "ambientLight": 0.25,
+    "fixedTime": 13000
+  },
+  "borders": {
+    "player": 4096,
+    "generation": 2048
+  },
+  "difficulty": {
+    "mobMultiplier": 1.8,
+    "playerLuck": 1.6,
+    "depthScaling": {
+      "enabled": true,
+      "startY": 50,
+      "endY": -10,
+      "minMultiplier": 1.0,
+      "maxMultiplier": 1.7
+    }
+  },
+  "structures": {
+    "force": [
+      {
+        "structure": "minecraft:ancient_city",
+        "x": 540,
+        "z": -420
+      }
+    ]
+  },
+  "portals": [
+    {
+      "frameBlock": "minecraft:soul_sand",
+      "igniterItem": "minecraft:flint_and_steel",
+      "color": "8B9BAF",
+      "lightLevel": 11,
+      "scale": 2.0,
+      "cooldown": 40,
+      "sounds": {
+        "ignite": "block.portal.trigger",
+        "enter": "block.portal.travel",
+        "exit": "block.portal.travel"
+      },
+      "aura": {
+        "subsume": "everything",
+        "palette": [
+          "minecraft:soul_sand",
+          "minecraft:soul_soil",
+          "minecraft:blackstone",
+          "minecraft:basalt",
+          "minecraft:sculk"
+        ],
+        "flora": [
+          "minecraft:dead_bush"
+        ],
+        "fireChance": 0.03
+      }
+    }
+  ],
+  "roll": {
+    "mood": "desolate",
+    "spawnFilter": [
+      "terralith:ashen_savanna",
+      "minecraft:eroded_badlands",
+      "terralith:volcanic_crater",
+      "minecraft:deep_dark",
+      "minecraft:soul_sand_valley"
+    ],
+    "wants": {
+      "graveyard": "near_spawn",
+      "mausoleum": "spread",
+      "dusty_tomb": "spread",
+      "black_spiral": "near_border",
+      "scorched_tomb": "spread",
+      "ancient_ruins": "near_border",
+      "ruins_standard": "spread"
+    },
+    "shuns": [
+      "village"
+    ]
+  }
+}

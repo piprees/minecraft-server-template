@@ -1,0 +1,148 @@
+{
+  "schemaVersion": 2,
+  "description": "Blossom cliffs over white stone — wisteria, sakura and chapels on the bluffs. Villager country at its most scenic, where people built for beauty rather than survival. The shrine towers are pilgrimage sites, not defences.",
+  "seed": 8415069866197551149,
+  "spawn": [-320, 57, -64],
+  "generator": {
+    "type": "noise",
+    "preset": "overworld"
+  },
+  "biomes": [
+    {
+      "id": "natures_spirit:wisteria_forest",
+      "climate": {
+        "weirdness": [-2.0, -0.19],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "terralith:sakura_grove",
+      "climate": {
+        "weirdness": [-0.19, -0.1578],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "minecraft:cherry_grove",
+      "climate": {
+        "weirdness": [-0.1578, -0.1256],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "terralith:lavender_forest",
+      "climate": {
+        "weirdness": [-0.1256, -0.0933],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "terralith:white_cliffs",
+      "climate": {
+        "continentalness": [-0.6, -0.05],
+        "weirdness": [-0.0933, -0.0611],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "minecraft:flower_forest",
+      "climate": {
+        "weirdness": [-0.0611, -0.0289],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "minecraft:meadow",
+      "climate": {
+        "weirdness": [-0.0289, 0.0033],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "terralith:blooming_valley",
+      "climate": {
+        "weirdness": [0.0033, 0.0356],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "minecraft:birch_forest",
+      "climate": {
+        "weirdness": [0.0356, 0.0678],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "regions_unexplored:wisteria_grove",
+      "climate": {
+        "weirdness": [0.0678, 0.1],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "regions_unexplored:magnolia_woodland",
+      "climate": {
+        "weirdness": [0.1, 2.0],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "minecraft:lush_caves",
+      "climate": {
+        "weirdness": [-2.0, -0.045],
+        "depth": [0.1, 2.0]
+      }
+    },
+    {
+      "id": "terralith:cave/diorite_caves",
+      "climate": {
+        "weirdness": [-0.045, 2.0],
+        "depth": [0.1, 2.0]
+      }
+    }
+  ],
+  "atmosphere": {
+    "fogColor": "#E8D0C8"
+  },
+  "borders": {
+    "player": 1024,
+    "generation": 1024
+  },
+  "difficulty": {
+    "mobMultiplier": 0.7,
+    "playerLuck": 1.8
+  },
+  "portals": [
+    {
+      "frameBlock": "minecraft:polished_granite",
+      "igniterItem": "minecraft:amethyst_shard",
+      "color": "C28B7A",
+      "lightLevel": 11,
+      "scale": 8.0,
+      "cooldown": 40,
+      "sounds": {
+        "ignite": "block.portal.trigger",
+        "enter": "block.portal.travel",
+        "exit": "block.portal.travel"
+      }
+    }
+  ],
+  "roll": {
+    "mood": "scenic",
+    "spawnFilter": [
+      "minecraft:meadow"
+    ],
+    "wants": {
+      "abandoned_chapel": "spread",
+      "guide_post_warm": "near_spawn",
+      "village": "near_border",
+      "shrine_tower": "spread"
+    },
+    "shuns": [
+      "mansion",
+      "monument",
+      "ancient_city",
+      "coliseum"
+    ]
+  }
+}

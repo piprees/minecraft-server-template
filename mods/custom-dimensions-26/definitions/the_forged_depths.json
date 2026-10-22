@@ -1,0 +1,131 @@
+{
+  "schemaVersion": 2,
+  "description": "The last piglin forge still burning. Crimson forges and reactors in a small brutal deep — the fires here never went out because nobody survived to bank them. The deeper you go, the hotter and harder it gets. The heat comes back through the frame, and anything built beside the portal is fuel.",
+  "seed": -295827713663215989,
+  "spawn": [64, 31, 0],
+  "generator": {
+    "type": "noise",
+    "preset": "nether"
+  },
+  "biomes": [
+    {
+      "id": "incendium:quartz_flats",
+      "climate": {
+        "temperature": [-2.0, -0.6683]
+      }
+    },
+    {
+      "id": "minecraft:nether_wastes",
+      "climate": {
+        "temperature": [-0.6683, -0.5841]
+      }
+    },
+    {
+      "id": "betternether:crimson_pinewood",
+      "climate": {
+        "temperature": [-0.5841, -0.5424]
+      }
+    },
+    {
+      "id": "betternether:crimson_glowing_woods",
+      "climate": {
+        "temperature": [-0.5424, -0.5064]
+      }
+    },
+    {
+      "id": "minecraft:basalt_deltas",
+      "climate": {
+        "temperature": [-0.5064, -0.3832]
+      }
+    },
+    {
+      "id": "betternether:magma_land",
+      "climate": {
+        "temperature": [-0.3832, -0.3125]
+      }
+    },
+    {
+      "id": "incendium:volcanic_deltas",
+      "climate": {
+        "temperature": [-0.3125, -0.1988]
+      }
+    },
+    {
+      "id": "regions_unexplored:inferno",
+      "climate": {
+        "temperature": [-0.1988, 2.0]
+      }
+    }
+  ],
+  "atmosphere": {
+    "fogColor": "#4B2B1B",
+    "ambientLight": 0.08
+  },
+  "borders": {
+    "player": 683,
+    "generation": 683
+  },
+  "difficulty": {
+    "mobMultiplier": 2.5,
+    "playerLuck": 2.2,
+    "depthScaling": {
+      "enabled": true,
+      "startY": 90,
+      "endY": 10,
+      "minMultiplier": 1.5,
+      "maxMultiplier": 3.5
+    }
+  },
+  "structures": {
+    "density": "dense"
+  },
+  "portals": [
+    {
+      "frameBlock": "minecraft:polished_blackstone_bricks",
+      "igniterItem": "minecraft:diamond",
+      "color": "6B7B8B",
+      "lightLevel": 11,
+      "scale": 12.0,
+      "cooldown": 40,
+      "shape": "door",
+      "sounds": {
+        "ignite": "block.portal.trigger",
+        "enter": "block.portal.travel",
+        "exit": "block.portal.travel"
+      },
+      "aura": {
+        "subsume": "everything"
+      },
+      "anchor": {
+        "pos": "spawn",
+        "exit": "bed"
+      }
+    }
+  ],
+  "exitPortal": {
+    "enabled": true,
+    "pos": "spawn",
+    "target": "bed"
+  },
+  "roll": {
+    "mood": "hard",
+    "allowHazardousSpawn": true,
+    "spawnFilter": [
+      "minecraft:basalt_deltas",
+      "incendium:volcanic_deltas",
+      "incendium:quartz_flats"
+    ],
+    "wants": {
+      "crimson_forge": "near_spawn",
+      "nether_reactor": "spread",
+      "bastion": "spread",
+      "fortress": "spread",
+      "ruined_lab": "spread"
+    },
+    "shuns": [
+      "piglin_village",
+      "crimson_fungus",
+      "warped_outpost"
+    ]
+  }
+}

@@ -1,0 +1,270 @@
+{
+  "schemaVersion": 2,
+  "description": "The mountain crossing — guide posts and fire towers marking passes between dramatic highlands. The human-villager trade route, built to connect the sun kingdoms to the frozen hearth. The keeps at the border guarded the passes.",
+  "seed": -5138543198715489891,
+  "spawn": [-384, 67, 256],
+  "generator": {
+    "type": "noise",
+    "preset": "overworld"
+  },
+  "terrain": {
+    "base": null
+  },
+  "biomes": [
+    {
+      "id": "minecraft:windswept_hills",
+      "climate": {
+        "weirdness": [-2.0, -0.999]
+      }
+    },
+    {
+      "id": "minecraft:windswept_forest",
+      "climate": {
+        "weirdness": [-0.999, -0.9263]
+      }
+    },
+    {
+      "id": "minecraft:windswept_gravelly_hills",
+      "climate": {
+        "weirdness": [-0.9263, -0.5959]
+      }
+    },
+    {
+      "id": "minecraft:stony_peaks",
+      "climate": {
+        "weirdness": [-0.5959, -0.499]
+      }
+    },
+    {
+      "id": "minecraft:meadow",
+      "climate": {
+        "weirdness": [-0.499, -0.496]
+      }
+    },
+    {
+      "id": "minecraft:plains",
+      "climate": {
+        "weirdness": [-0.496, -0.492]
+      }
+    },
+    {
+      "id": "minecraft:stony_shore",
+      "climate": {
+        "weirdness": [-0.492, -0.488]
+      }
+    },
+    {
+      "id": "terralith:highlands",
+      "climate": {
+        "weirdness": [-0.488, -0.484]
+      }
+    },
+    {
+      "id": "terralith:temperate_highlands",
+      "climate": {
+        "weirdness": [-0.484, -0.4658]
+      }
+    },
+    {
+      "id": "terralith:forested_highlands",
+      "climate": {
+        "weirdness": [-0.4658, -0.4426]
+      }
+    },
+    {
+      "id": "terralith:rocky_mountains",
+      "climate": {
+        "weirdness": [-0.4426, -0.3914]
+      }
+    },
+    {
+      "id": "terralith:haze_mountain",
+      "climate": {
+        "weirdness": [-0.3914, -0.3297]
+      }
+    },
+    {
+      "id": "terralith:white_cliffs",
+      "climate": {
+        "weirdness": [-0.3297, -0.2213]
+      }
+    },
+    {
+      "id": "terralith:caldera",
+      "climate": {
+        "weirdness": [-0.2213, -0.1716]
+      }
+    },
+    {
+      "id": "terralith:blooming_plateau",
+      "climate": {
+        "weirdness": [-0.1716, -0.1155]
+      }
+    },
+    {
+      "id": "minecraft:river",
+      "climate": {
+        "temperature": [-0.45, 0.55],
+        "weirdness": [-0.1155, -0.0865]
+      }
+    },
+    {
+      "id": "terralith:granite_cliffs",
+      "climate": {
+        "temperature": [0.2, 1.0],
+        "weirdness": [-0.0865, -0.0378]
+      }
+    },
+    {
+      "id": "terralith:basalt_cliffs",
+      "climate": {
+        "temperature": [0.2, 0.55],
+        "humidity": [-1.0, 0.565],
+        "weirdness": [-0.0378, 0.0155]
+      }
+    },
+    {
+      "id": "natures_spirit:red_peaks",
+      "climate": {
+        "temperature": [0.2, 1.0],
+        "humidity": [-1.0, -0.1],
+        "weirdness": [0.0155, 0.0637]
+      }
+    },
+    {
+      "id": "terralith:yosemite_cliffs",
+      "climate": {
+        "temperature": [-0.45, 0.2],
+        "humidity": [-1.0, -0.35],
+        "weirdness": [0.0637, 0.1034]
+      }
+    },
+    {
+      "id": "terralith:windswept_spires",
+      "climate": {
+        "temperature": [-0.45, -0.155],
+        "weirdness": [0.1034, 0.2289]
+      }
+    },
+    {
+      "id": "regions_unexplored:pine_slopes",
+      "climate": {
+        "weirdness": [0.2289, 0.3355]
+      }
+    },
+    {
+      "id": "regions_unexplored:mauve_hills",
+      "climate": {
+        "weirdness": [0.3355, 0.4374]
+      }
+    },
+    {
+      "id": "regions_unexplored:mountains",
+      "climate": {
+        "weirdness": [0.4374, 0.4735]
+      }
+    },
+    {
+      "id": "regions_unexplored:towering_cliffs",
+      "climate": {
+        "weirdness": [0.4735, 0.501]
+      }
+    },
+    {
+      "id": "regions_unexplored:highland_fields",
+      "climate": {
+        "weirdness": [0.501, 0.504]
+      }
+    },
+    {
+      "id": "regions_unexplored:spires",
+      "climate": {
+        "weirdness": [0.504, 0.508]
+      }
+    },
+    {
+      "id": "regions_unexplored:fen",
+      "climate": {
+        "weirdness": [0.508, 0.512]
+      }
+    },
+    {
+      "id": "natures_spirit:heather_fields",
+      "climate": {
+        "weirdness": [0.512, 0.5337]
+      }
+    },
+    {
+      "id": "minecraft:forest",
+      "climate": {
+        "temperature": [-0.45, 0.55],
+        "humidity": [-0.1, 0.1],
+        "weirdness": [0.5337, 0.7775]
+      }
+    },
+    {
+      "id": "minecraft:windswept_hills",
+      "climate": {
+        "weirdness": [0.7775, 2.0]
+      }
+    }
+  ],
+  "borders": {
+    "player": 4096,
+    "generation": 2048
+  },
+  "difficulty": {
+    "mobMultiplier": 1.5,
+    "playerLuck": 1.6,
+    "depthScaling": {
+      "enabled": true,
+      "startY": 128,
+      "endY": 0,
+      "minMultiplier": 0.8,
+      "maxMultiplier": 1.5
+    }
+  },
+  "structures": {
+    "terrainAdaptation": {
+      "landmarks": "platform_skirt"
+    }
+  },
+  "portals": [
+    {
+      "frameBlock": "minecraft:raw_copper_block",
+      "igniterItem": "minecraft:amethyst_shard",
+      "color": "B08B5B",
+      "lightLevel": 11,
+      "scale": 2.0,
+      "cooldown": 40,
+      "sounds": {
+        "ignite": "block.portal.trigger",
+        "enter": "block.portal.travel",
+        "exit": "block.portal.travel"
+      }
+    }
+  ],
+  "roll": {
+    "mood": "dramatic",
+    "spawnFilter": [
+      "minecraft:windswept_hills",
+      "minecraft:windswept_gravelly_hills",
+      "regions_unexplored:fen",
+      "natures_spirit:heather_fields"
+    ],
+    "wants": {
+      "guide_post_cold": "near_spawn",
+      "taiga_outpost": "near_spawn",
+      "firetower": "spread",
+      "engineer_tower": "spread",
+      "keep_kayra": "near_border",
+      "nomad_outpost": "spread",
+      "campsite": "near_spawn",
+      "watchtower": "spread",
+      "lighthouse": "near_border"
+    },
+    "shuns": [
+      "monument"
+    ]
+  }
+}

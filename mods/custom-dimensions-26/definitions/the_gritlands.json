@@ -1,0 +1,191 @@
+{
+  "schemaVersion": 2,
+  "description": "Gravel, basalt, and ash where it all went wrong. A ruined portal near the border, stone ruins, a dead mineshaft — the remains of something that tried to exist here and couldn't. Nobody could live here. Nothing organised survives.",
+  "seed": 8286382283624820051,
+  "spawn": [102, 73, 51],
+  "generator": {
+    "type": "noise",
+    "preset": "overworld"
+  },
+  "terrain": {
+    "base": null
+  },
+  "biomes": [
+    {
+      "id": "regions_unexplored:outback",
+      "climate": {
+        "weirdness": [-2.0, -0.5963],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "terralith:gravel_desert",
+      "climate": {
+        "weirdness": [-0.5963, -0.499],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "terralith:basalt_cliffs",
+      "climate": {
+        "weirdness": [-0.499, -0.478],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "terralith:ashen_savanna",
+      "climate": {
+        "weirdness": [-0.478, -0.468],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "terralith:volcanic_peaks",
+      "climate": {
+        "weirdness": [-0.468, -0.4237],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "minecraft:windswept_gravelly_hills",
+      "climate": {
+        "weirdness": [-0.4237, -0.2017],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "minecraft:stony_shore",
+      "climate": {
+        "weirdness": [-0.2017, -0.0915],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "terralith:rocky_shrubland",
+      "climate": {
+        "weirdness": [-0.0915, 0.0068],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "terralith:cold_shrubland",
+      "climate": {
+        "weirdness": [0.0068, 0.1964],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "regions_unexplored:mauve_hills",
+      "climate": {
+        "weirdness": [0.1964, 0.499],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "regions_unexplored:chalk_cliffs",
+      "climate": {
+        "weirdness": [0.499, 2.0],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "terralith:cave/andesite_caves",
+      "climate": {
+        "weirdness": [-2.0, -0.334],
+        "depth": [0.1, 2.0]
+      }
+    },
+    {
+      "id": "minecraft:dripstone_caves",
+      "climate": {
+        "weirdness": [-0.334, 2.0],
+        "depth": [0.1, 2.0]
+      }
+    }
+  ],
+  "zones": [
+    {
+      "shape": "circle",
+      "centre": [678, -412],
+      "radius": 96,
+      "blend": 24,
+      "biomes": [
+        "minecraft:eroded_badlands"
+      ]
+    }
+  ],
+  "atmosphere": {
+    "fogColor": "#8B7B6B",
+    "ambientLight": 0.18
+  },
+  "rules": {
+    "bedsWork": false
+  },
+  "borders": {
+    "player": 1024,
+    "generation": 1024
+  },
+  "difficulty": {
+    "mobMultiplier": 1.3,
+    "playerLuck": 1.6
+  },
+  "structures": {
+    "density": "none",
+    "force": [
+      {
+        "structure": "minecraft:ruined_portal_mountain",
+        "x": 678,
+        "z": -412
+      },
+      {
+        "structure": "philipsruins:field_stone_ruins",
+        "x": -592,
+        "z": 701
+      },
+      {
+        "structure": "minecraft:mineshaft",
+        "x": -718,
+        "z": -389
+      },
+      {
+        "structure": "betterdungeons:zombie_dungeon",
+        "x": 678,
+        "z": -412
+      }
+    ],
+    "clearSpawnRadius": 256
+  },
+  "portals": [
+    {
+      "frameBlock": "minecraft:coarse_dirt",
+      "igniterItem": "minecraft:amethyst_shard",
+      "color": "A89070",
+      "lightLevel": 11,
+      "scale": 8.0,
+      "cooldown": 40,
+      "sounds": {
+        "ignite": "block.portal.trigger",
+        "enter": "block.portal.travel",
+        "exit": "block.portal.travel"
+      }
+    }
+  ],
+  "roll": {
+    "mood": "desolate",
+    "spawnFilter": [
+      "minecraft:windswept_gravelly_hills",
+      "terralith:gravel_desert",
+      "terralith:volcanic_peaks"
+    ],
+    "water": "none",
+    "shuns": [
+      "village",
+      "tavern",
+      "trial_chambers",
+      "ancient_city",
+      "mansion",
+      "monument",
+      "coliseum"
+    ]
+  }
+}

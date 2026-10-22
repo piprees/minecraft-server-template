@@ -1,0 +1,166 @@
+{
+  "schemaVersion": 2,
+  "description": "Quiet wetland wilderness. Reed beds, drowned ruins, things half-sunk in the clay. Nobody settles here; the marsh keeps what it takes. Whatever civilisation these ruins belonged to, the swamp claimed it centuries ago.",
+  "seed": -375315198706708750,
+  "spawn": [-640, 66, 128],
+  "generator": {
+    "type": "noise",
+    "preset": "overworld"
+  },
+  "biomes": [
+    {
+      "id": "natures_spirit:marsh",
+      "climate": {
+        "weirdness": [-2.0, -0.19],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "minecraft:swamp",
+      "climate": {
+        "weirdness": [-0.19, -0.1636],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "minecraft:mangrove_swamp",
+      "climate": {
+        "weirdness": [-0.1636, -0.1373],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "terralith:orchid_swamp",
+      "climate": {
+        "weirdness": [-0.1373, -0.1109],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "natures_spirit:bamboo_wetlands",
+      "climate": {
+        "weirdness": [-0.1109, -0.0845],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "minecraft:river",
+      "climate": {
+        "weirdness": [-0.0845, -0.0582],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "minecraft:beach",
+      "climate": {
+        "continentalness": [-0.6, -0.05],
+        "weirdness": [-0.0582, -0.0318],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "minecraft:dark_forest",
+      "climate": {
+        "weirdness": [-0.0318, -0.0055],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "terralith:moonlight_valley",
+      "climate": {
+        "weirdness": [-0.0055, 0.0209],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "regions_unexplored:marsh",
+      "climate": {
+        "weirdness": [0.0209, 0.0473],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "regions_unexplored:fen",
+      "climate": {
+        "weirdness": [0.0473, 0.0736],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "regions_unexplored:muddy_river",
+      "climate": {
+        "weirdness": [0.0736, 0.1],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "wilderwild:cypress_wetlands",
+      "climate": {
+        "weirdness": [0.1, 2.0],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "minecraft:lush_caves",
+      "climate": {
+        "weirdness": [-2.0, -0.045],
+        "depth": [0.1, 2.0]
+      }
+    },
+    {
+      "id": "terralith:cave/fungal_caves",
+      "climate": {
+        "weirdness": [-0.045, 2.0],
+        "depth": [0.1, 2.0]
+      }
+    }
+  ],
+  "borders": {
+    "player": 1024,
+    "generation": 1024
+  },
+  "difficulty": {
+    "mobMultiplier": 1.0,
+    "playerLuck": 1.3
+  },
+  "structures": {
+    "density": "sparse",
+    "clearSpawnRadius": 96
+  },
+  "portals": [
+    {
+      "frameBlock": "minecraft:clay",
+      "igniterItem": "minecraft:amethyst_shard",
+      "color": "9B8B7A",
+      "lightLevel": 11,
+      "scale": 8.0,
+      "cooldown": 40,
+      "sounds": {
+        "ignite": "block.portal.trigger",
+        "enter": "block.portal.travel",
+        "exit": "block.portal.travel"
+      }
+    }
+  ],
+  "roll": {
+    "mood": "serene",
+    "spawnFilter": [
+      "natures_spirit:marsh"
+    ],
+    "water": "high",
+    "wants": {
+      "swamp_ruin": "spread",
+      "mangrove_hut": "near_spawn",
+      "muddy_dungeon": "near_border",
+      "graveyard": "spread",
+      "abandoned_camp": "spread",
+      "ruins_standard": "near_border"
+    },
+    "shuns": [
+      "village",
+      "mansion",
+      "trial_chambers",
+      "ancient_city"
+    ]
+  }
+}

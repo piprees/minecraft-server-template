@@ -1,0 +1,194 @@
+{
+  "schemaVersion": 2,
+  "description": "Violet spires in the sky — where endermen architecture meets the natural skylands. Wisteria islands and amethyst canyons, aurel towers and birdcages. Arcane but not hostile; a place where two worlds overlapped and neither broke.",
+  "seed": 4125527150931361467,
+  "spawn": [0, 134, -34],
+  "generator": {
+    "type": "clone",
+    "of": "paradise_lost:paradise_lost"
+  },
+  "biomes": [
+    {
+      "id": "terralith:amethyst_canyon",
+      "climate": {
+        "continentalness": [-2.0, -0.12]
+      }
+    },
+    {
+      "id": "terralith:windswept_spires",
+      "climate": {
+        "continentalness": [-0.12, -0.0983]
+      }
+    },
+    {
+      "id": "nullscape:crystal_peaks",
+      "climate": {
+        "continentalness": [-0.0983, -0.0767]
+      }
+    },
+    {
+      "id": "terralith:haze_mountain",
+      "climate": {
+        "continentalness": [-0.0767, -0.055]
+      }
+    },
+    {
+      "id": "terralith:skylands_spring",
+      "climate": {
+        "continentalness": [-0.055, -0.0333]
+      }
+    },
+    {
+      "id": "paradise_lost:highlands",
+      "climate": {
+        "continentalness": [-0.0333, -0.0117]
+      }
+    },
+    {
+      "id": "paradise_lost:highlands_thicket",
+      "climate": {
+        "continentalness": [-0.0117, 0.01]
+      }
+    },
+    {
+      "id": "paradise_lost:wisteria_woods",
+      "climate": {
+        "continentalness": [0.01, 0.0317]
+      }
+    },
+    {
+      "id": "paradise_lost:highlands_forest",
+      "climate": {
+        "continentalness": [0.0317, 0.0533]
+      }
+    },
+    {
+      "id": "minecraft:cherry_grove",
+      "climate": {
+        "continentalness": [0.0533, 0.075]
+      }
+    },
+    {
+      "id": "natures_spirit:lavender_fields",
+      "climate": {
+        "continentalness": [0.075, 2.0]
+      }
+    }
+  ],
+  "zones": [
+    {
+      "shape": "circle",
+      "centre": [-240, 200],
+      "radius": 110,
+      "blend": 32,
+      "biomes": [
+        "nullscape:crystal_peaks"
+      ]
+    },
+    {
+      "shape": "circle",
+      "centre": [-420, -230],
+      "radius": 85,
+      "blend": 24,
+      "biomes": [
+        "minecraft:sparse_jungle"
+      ]
+    }
+  ],
+  "atmosphere": {
+    "skyColor": "#6B4B9B",
+    "fogColor": "#3A2352",
+    "ambientLight": 0.25
+  },
+  "borders": {
+    "player": 683,
+    "generation": 683
+  },
+  "difficulty": {
+    "mobMultiplier": 1.0,
+    "playerLuck": 1.6
+  },
+  "structures": {
+    "force": [
+      {
+        "structure": "paradise_lost:aurel_tower",
+        "x": 60,
+        "z": 60,
+        "exclusive": false
+      },
+      {
+        "structure": "mes:mystical_archway",
+        "x": -300,
+        "z": 180,
+        "exclusive": false
+      }
+    ],
+    "terrainAdaptation": {
+      "paradise_lost:aurel_tower": "pedestal"
+    },
+    "rarity": {
+      "paradise_lost:birdcage": "common",
+      "paradise_lost:aurel_tower": "common",
+      "structory_towers:rare_towers": "common",
+      "mes:mystical_archway": "common"
+    },
+    "noise": {
+      "landmarks": "dense"
+    }
+  },
+  "portals": [
+    {
+      "frameBlock": [
+        "minecraft:purpur_block",
+        "minecraft:purpur_pillar"
+      ],
+      "igniterItem": "regions_unexplored:lavender_wisteria_sapling",
+      "color": "9B5BB0",
+      "lightLevel": 11,
+      "scale": 12.0,
+      "cooldown": 40,
+      "shape": "door",
+      "sounds": {
+        "ignite": "block.end_portal_frame.fill",
+        "enter": "entity.enderman.teleport",
+        "exit": "entity.enderman.teleport"
+      },
+      "framePlaceBlock": "minecraft:purpur_block",
+      "aura": {
+        "subsume": "natural",
+        "palette": [
+          "minecraft:amethyst_block",
+          "minecraft:purpur_block",
+          "minecraft:calcite"
+        ]
+      }
+    }
+  ],
+  "exits": {
+    "void": {
+      "action": "teleport",
+      "target": "origin"
+    }
+  },
+  "roll": {
+    "mood": "dramatic",
+    "spawnFilter": [
+      "natures_spirit:lavender_fields",
+      "terralith:amethyst_canyon"
+    ],
+    "wants": {
+      "aurel_tower": "near_spawn",
+      "birdcage": "spread",
+      "wizard_tower": "spread",
+      "para_palace": "near_border",
+      "relic_temple": "near_border",
+      "shrine_tower": "spread",
+      "mystical_archway": "spread"
+    },
+    "shuns": [
+      "village",
+      "monument"
+    ],
+    "terrain": "islands"
+  }
+}

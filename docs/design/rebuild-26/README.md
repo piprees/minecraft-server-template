@@ -2,7 +2,7 @@
 
 The plan for rebuilding the `custom-dimensions` mod on Minecraft 26.3 and the pack around it: keep every feature players and admins use and every lesson in `TROUBLESHOOTING.md`, rebuild the Minecraft-facing half around what 26.x made data, own all of the worldgen, and keep the mod small enough that a new Minecraft release is a routine job. The result is a fresh world on 26.3, open to unmodded Java clients, the optional pack and Bedrock.
 
-**Status:** F0 and F1 done. All three spikes passed on 26.3: a ring zone in pure vanilla data ([spike/f0-ring-zone.png](spike/f0-ring-zone.png)), Fantasy's lazy levels, and the Polymer portal block's server half (RB-27, RB-28). The client's view of the portal block still needs a real client. The project skeleton lives in [`mods/custom-dimensions-26/`](../../../mods/custom-dimensions-26/README.md) with its first component, zones, tested end to end. Next: F2 (carry over the core) and F3 (schema v2 and conversion).
+**Status:** F0–F3 done. The spikes passed on 26.3 (RB-27, RB-28). [`mods/custom-dimensions-26/`](../../../mods/custom-dimensions-26/README.md) carries the 1.21.1 core with 563 tests. Its `definitions/` holds the 82 v2 definitions converted from the 1.21.1 set, with [`conversion-report.md`](../../../mods/custom-dimensions-26/definitions/conversion-report.md) listing the 790 ids from mods the register doesn't keep, which W8 replaces. Next: the M, W and P streams (week 4 onwards in [work-plan.md](work-plan.md)).
 
 ## Principles
 

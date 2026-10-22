@@ -1,0 +1,152 @@
+{
+  "schemaVersion": 2,
+  "description": "The pale desolate reach — calcite crags floating in white silence. The skylands' frozen edge, where even the animal kingdoms thin out. Remains and birdcages drift in the whiteness, built by hands that left no other trace.",
+  "seed": -1788836604001161885,
+  "spawn": [0, 54, -136],
+  "generator": {
+    "type": "noise",
+    "preset": "floating_islands"
+  },
+  "biomes": [
+    {
+      "id": "terralith:skylands_winter",
+      "climate": {
+        "weirdness": [-2.0, -0.5082]
+      }
+    },
+    {
+      "id": "terralith:frozen_cliffs",
+      "climate": {
+        "weirdness": [-0.5082, -0.4877]
+      }
+    },
+    {
+      "id": "terralith:wintry_lowlands",
+      "climate": {
+        "weirdness": [-0.4877, -0.3996]
+      }
+    },
+    {
+      "id": "nullscape:void_barrens",
+      "climate": {
+        "weirdness": [-0.3996, -0.3089]
+      }
+    },
+    {
+      "id": "minecraft:ice_spikes",
+      "climate": {
+        "weirdness": [-0.3089, -0.243]
+      }
+    },
+    {
+      "id": "terralith:white_cliffs",
+      "climate": {
+        "weirdness": [-0.243, -0.2023]
+      }
+    },
+    {
+      "id": "paradise_lost:calcite_craglands",
+      "climate": {
+        "weirdness": [-0.2023, -0.1272]
+      }
+    },
+    {
+      "id": "minecraft:snowy_slopes",
+      "climate": {
+        "weirdness": [-0.1272, 0.0066]
+      }
+    },
+    {
+      "id": "minecraft:frozen_peaks",
+      "climate": {
+        "weirdness": [0.0066, 2.0]
+      }
+    }
+  ],
+  "liquids": {
+    "seaLevel": -64,
+    "defaultFluid": "minecraft:water"
+  },
+  "materials": {
+    "defaultBlock": "minecraft:stone"
+  },
+  "zones": [
+    {
+      "shape": "circle",
+      "centre": [520, -480],
+      "radius": 110,
+      "blend": 28,
+      "biomes": [
+        "palegardenbackport:pale_garden"
+      ]
+    }
+  ],
+  "atmosphere": {
+    "skyColor": "#E8F0F5",
+    "fogColor": "#E8F0F5",
+    "ambientLight": 0.3,
+    "fixedTime": 6000
+  },
+  "borders": {
+    "player": 683,
+    "generation": 683
+  },
+  "difficulty": {
+    "mobMultiplier": 1.0,
+    "playerLuck": 1.6
+  },
+  "structures": {
+    "density": "sparse",
+    "clearSpawnRadius": 96,
+    "noise": {
+      "dungeons": "sparse"
+    },
+    "terrainAdaptation": {
+      "paradise_lost:vault": "pedestal"
+    },
+    "force": [
+      {
+        "structure": "paradise_lost:vault",
+        "x": -460,
+        "z": 420
+      }
+    ]
+  },
+  "portals": [
+    {
+      "frameBlock": "minecraft:end_stone",
+      "igniterItem": "minecraft:gold_ingot",
+      "color": "E0D8C0",
+      "lightLevel": 11,
+      "scale": 12.0,
+      "cooldown": 40,
+      "anchor": {
+        "pos": [520, 37, -480],
+        "exit": "origin"
+      },
+      "sounds": {
+        "ignite": "block.portal.trigger",
+        "enter": "block.portal.travel",
+        "exit": "block.portal.travel"
+      }
+    }
+  ],
+  "roll": {
+    "mood": "desolate",
+    "spawnFilter": [
+      "minecraft:snowy_slopes"
+    ],
+    "wants": {
+      "para_remains": "spread",
+      "birdcage": "spread",
+      "frozen_dungeon": "near_border",
+      "aurel_tower": "spread"
+    },
+    "shuns": [
+      "village",
+      "tavern",
+      "monument"
+    ],
+    "terrain": "islands"
+  }
+}

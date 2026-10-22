@@ -1,0 +1,129 @@
+{
+  "schemaVersion": 2,
+  "description": "Citadel country — where the endermen built their densest urban centres. End cities and phantom citadels saturate the highlands. No ruins here; this is still maintained. Maintenance does not stop at the frame — build beside the portal and the citadel absorbs it.",
+  "seed": 8874355793109233333,
+  "spawn": [-204, 58, 0],
+  "generator": {
+    "type": "noise",
+    "preset": "end",
+    "endIsland": false
+  },
+  "biomes": [
+    {
+      "id": "minecraft:end_highlands",
+      "climate": {
+        "continentalness": [0.1084, 0.2115]
+      }
+    },
+    {
+      "id": "nullscape:crystal_peaks",
+      "climate": {
+        "continentalness": [0.3204, 2.0]
+      }
+    },
+    {
+      "id": "minecraft:end_midlands",
+      "climate": {
+        "continentalness": [0.013, 0.1084]
+      }
+    },
+    {
+      "id": "minecraft:the_end",
+      "climate": {
+        "continentalness": [-0.0871, 0.013]
+      }
+    },
+    {
+      "id": "minecraft:end_barrens",
+      "climate": {
+        "continentalness": [-0.1949, -0.0871]
+      }
+    },
+    {
+      "id": "nullscape:void_barrens",
+      "climate": {
+        "continentalness": [0.2115, 0.3204]
+      }
+    },
+    {
+      "id": "minecraft:small_end_islands",
+      "climate": {
+        "continentalness": [-2.0, -0.1949]
+      }
+    }
+  ],
+  "borders": {
+    "player": 4096,
+    "generation": 2048
+  },
+  "difficulty": {
+    "mobMultiplier": 2.0,
+    "playerLuck": 1.8
+  },
+  "structures": {
+    "density": "dense",
+    "terrainAdaptation": {
+      "landmarks": "pedestal"
+    },
+    "exclude": [
+      "mes:ruined_pillar"
+    ]
+  },
+  "portals": [
+    {
+      "frameBlock": "minecraft:end_stone_bricks",
+      "igniterItem": "minecraft:ender_eye",
+      "color": "D8DF90",
+      "lightLevel": 11,
+      "scale": 2.0,
+      "cooldown": 40,
+      "particleType": "minecraft:end_rod",
+      "shape": "doorway",
+      "sounds": {
+        "ignite": "block.portal.trigger",
+        "enter": "block.portal.travel",
+        "exit": "block.portal.travel"
+      },
+      "aura": {
+        "subsume": "everything"
+      },
+      "anchor": {
+        "pos": "spawn",
+        "exit": "bed"
+      }
+    }
+  ],
+  "exitPortal": {
+    "enabled": true,
+    "pos": "spawn",
+    "target": "bed"
+  },
+  "exits": {
+    "death": {
+      "action": "respawnAt",
+      "target": {
+        "dimension": "adventure:the_end_citadel",
+        "arrival": "spawn"
+      }
+    }
+  },
+  "roll": {
+    "mood": "hard",
+    "allowHazardousSpawn": true,
+    "spawnFilter": [
+      "minecraft:end_highlands"
+    ],
+    "wants": {
+      "end_city": "near_spawn",
+      "phantom_citadel": "spread",
+      "enderwatch_tower": "near_spawn",
+      "end_tower": "spread",
+      "monolith": "spread"
+    },
+    "shuns": [
+      "dragon_skeleton",
+      "ruined_pillar",
+      "end_ruins"
+    ]
+  }
+}

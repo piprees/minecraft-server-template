@@ -108,6 +108,16 @@ needs a decision in W8 (`terrain.base: null` where v1 named a preset, clones
 of cut dimensions). Totals at the top. Its counts are checked against a grep of
 the v1 files.
 
+## Converter rules
+
+- It converts each file's own JSON, so `settings.json` defaults are not baked into every file, and it refuses a file the v1 loader can't load.
+- An unknown v1 field stops the conversion with an error naming it (top level, `settingsOverrides`, `environment`, biome patches and biome objects); `structures` and `seedRoll` pass through.
+- Flagging scans object keys as well as string values (`structures.rarity` and `terrainAdaptation` key on ids).
+- `settingsOverrides.endIsland` is kept only with the `end` preset; elsewhere it is a no-op and is dropped and reported.
+- Shun distances are dropped and reported; list-form `roll.shuns` stays a list.
+- A zone converted from a biome patch is `{shape (default "circle"), centre: [x, z], radius, blend, biomes: [id]}`.
+- Output is deterministic: two-space indent, number and boolean arrays on one line, numbers keep their source text, stale files are deleted.
+
 ## Validation
 
 `schema/definition.schema.json` (JSON Schema 2020-12) describes v2. Editors
