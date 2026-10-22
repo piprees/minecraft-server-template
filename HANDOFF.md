@@ -8,9 +8,12 @@ lasting record is `docs/design/rebuild-26/` and `TROUBLESHOOTING.md`.
 
 - Branch: `claude/minecraft-dependency-automation-n1w79q` (PR #29). `main` has
   not moved since the branch was cut.
-- Blocked on the owner: merging PR #29 and the Dependabot PRs into `main`, and
-  switching the repository to private. Both were refused by the session's
-  permission rules; see the log.
+- Blocked on the owner: merging PR #29 and the Dependabot PRs into `main`
+  (refused by the session's permission rules), then the private switch in the
+  order recorded in the log.
+- Rebuild: F0 and F1 done; next is F2 (carry over the core) and F3 (schema v2
+  and conversion of the 82 definitions). Open question for the owner:
+  vanilla-client previews (`docs/design/rebuild-26/risks.md`).
 - Plan of record: `docs/design/rebuild-26/README.md`.
 
 ## Log
@@ -42,3 +45,6 @@ lasting record is `docs/design/rebuild-26/` and `TROUBLESHOOTING.md`.
 - 10-22 — F1 skeleton: `mods/custom-dimensions-26/` with `core` (zone model and maths), `compiler` (zone mask as 26.3 density-function JSON, vanilla types only), `server` (Fabric mod `customdimensions`, start-up self-test). 11 unit tests pass; the self-test boots 26.3 and vanilla's sampler matches core to 5e-7 over 2,000 points. core and compiler nest in the jar.
 - 10-22 — CI: `mod26.yml` (build, tests, self-test boot on 26.3) and `mod26-canary.yml` (weekly build against the newest snapshot; opens an issue on failure). Locally the canary resolved 26.4-snapshot-5 + Fabric API 0.164.1+26.4 and built green.
 - 10-22 — Bug fixed: `platform_updates.py` required Yarn and fabric_version pins in every `mods/*/gradle.properties`, so the rebuild's file broke its scan. The rebuild is `OUT_OF_SCOPE` (bumped by hand until the switch); test added; 422 tests pass.
+- 10-22 — Closed #26 (superseded; worldgen bumps belong in a major; the new pipeline re-proposes them after #29 merges). Updated #29's title and description to cover everything on the branch.
+- 10-22 — CI green on f5896327: "Mod build (26.3)" (build, tests, self-test boot), Lint, Mod build. Smoke Test was still running at the time of writing.
+- 10-22 — Production load check: the jar on a plain Fabric 26.3 server (installer 1.1.2, Loader 0.19.5, Fabric API 0.164.0+26.3) loads with core and compiler as nested mods (`com_customdimensions_core`, `com_customdimensions_compiler`), and the self-test passes.
