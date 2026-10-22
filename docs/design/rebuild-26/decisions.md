@@ -12,7 +12,7 @@ Rejected: content mods that need their client (furniture, backpacks, creatures a
 
 **RB-03 — The companion client mod is optional and effect-only; it is the only path for rendered previews.**
 Why: it renders the far side of a portal live; nothing depends on it, and vanilla clients get a coloured portal, particles and a title instead ([portals.md](portals.md)).
-Rejected: the fake-block projection painted into each player's world (the `immersive` package, 4,840 lines).
+Rejected: the fake-block projection painted into each player's world (the `immersive` package, 4,840 lines), chosen by the owner over keeping it as the vanilla-client fallback. The slab rule in [immersive-portals.md](../immersive-portals.md) governs the 1.21.1 mod only.
 
 **RB-04 — Same repository, additive until one cutover.**
 Why: the new mod lives in `mods/custom-dimensions-26/` beside the 1.21.1 mod and stays out of the release bundle until the switch; `.minecraft-version` selects the Minecraft version, mod list and image.

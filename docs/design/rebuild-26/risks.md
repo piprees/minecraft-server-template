@@ -21,8 +21,3 @@ In order; the private-repository switch is [decisions.md](decisions.md) RB-06.
 3. Add the `STACK_READ_TOKEN` secret and the new `deploy.yml` lines to elfydd.
 4. Switch the repository's visibility to private.
 5. Set Actions access to "user".
-
-## Open with the owner
-
-- **Vanilla-client previews.** [`immersive-portals.md`](../immersive-portals.md) holds that the server-side block slab is the fallback for vanilla clients and must keep working unchanged. This plan (RB-03) cuts it and makes previews companion-only. One of the two changes before M6 starts.
-

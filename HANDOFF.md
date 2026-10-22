@@ -11,9 +11,8 @@ lasting record is `docs/design/rebuild-26/` and `TROUBLESHOOTING.md`.
 - Blocked on the owner: merging PR #29 and the Dependabot PRs into `main`
   (refused by the session's permission rules), then the private switch in the
   order recorded in the log.
-- Rebuild: F0 and F1 done; next is F2 (carry over the core) and F3 (schema v2
-  and conversion of the 82 definitions). Open question for the owner:
-  vanilla-client previews (`docs/design/rebuild-26/risks.md`).
+- Rebuild: F0 and F1 done; F2 (carry over the core) in progress, then F3
+  (schema v2 and conversion of the 82 definitions).
 - Plan of record: `docs/design/rebuild-26/README.md`.
 
 ## Log
@@ -48,3 +47,5 @@ lasting record is `docs/design/rebuild-26/` and `TROUBLESHOOTING.md`.
 - 10-22 — Closed #26 (superseded; worldgen bumps belong in a major; the new pipeline re-proposes them after #29 merges). Updated #29's title and description to cover everything on the branch.
 - 10-22 — CI green on f5896327: "Mod build (26.3)" (build, tests, self-test boot), Lint, Mod build. Smoke Test was still running at the time of writing.
 - 10-22 — Production load check: the jar on a plain Fabric 26.3 server (installer 1.1.2, Loader 0.19.5, Fabric API 0.164.0+26.3) loads with core and compiler as nested mods (`com_customdimensions_core`, `com_customdimensions_compiler`), and the self-test passes.
+- 10-22 — Owner decisions: previews are companion-only (RB-03 stands; immersive-portals.md's slab rule is scoped to the 1.21.1 mod). Next work: F2 then F3.
+- 10-22 — F2 handed to a subagent: carry config, score, SeedFacts/Measured/Json, NoiseFieldIndex, StructureNoise, PortalShape, AuraPolicy and FrameMatcher's accept forms into `core` with Minecraft types replaced; port their tests; add a test loading all 82 shipped configs. Progress lines in `/tmp/claude-0/f2-progress.log`.
