@@ -41,7 +41,7 @@ jobs:
       - name: Pull stack bundle
         # .stack-version wins; the repository variable only counts without it.
         env:
-          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ secrets.STACK_READ_TOKEN || github.token }}
           STACK_VERSION: ${{ vars.STACK_VERSION || 'latest' }}
         run: ./dev pull
 
@@ -137,7 +137,7 @@ jobs:
         # plans the bump. The repo's own pin is moved aside so this pull
         # resolves `latest`, then put back untouched.
         env:
-          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ secrets.STACK_READ_TOKEN || github.token }}
           STACK_VERSION: latest
         run: |
           if [[ -f .stack-version ]]; then mv .stack-version /tmp/stack-version.keep; fi
@@ -203,7 +203,7 @@ jobs:
         # .github/workflows changes, so those are reverted here and listed
         # in the PR as a manual step.
         env:
-          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ secrets.STACK_READ_TOKEN || github.token }}
           TARGET: ${{ steps.plan.outputs.target }}
         run: |
           printf '%s\n' "$TARGET" > .stack-version

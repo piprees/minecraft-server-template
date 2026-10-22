@@ -38,5 +38,7 @@ jobs:
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
       CLOUDFLARE_ZONE_ID: ${{ secrets.CLOUDFLARE_ZONE_ID }}
       CLOUDFLARE_TUNNEL_ID: ${{ secrets.CLOUDFLARE_TUNNEL_ID }}
+      # Read access to the platform repo while it is private.
+      STACK_READ_TOKEN: ${{ secrets.STACK_READ_TOKEN }}
       KUMA_API_KEY: ${{ secrets.KUMA_API_KEY }}
       KUMA_PASSWORD: ${{ secrets.KUMA_PASSWORD }}

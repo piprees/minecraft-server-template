@@ -55,6 +55,11 @@ on:
         required: false
       KUMA_PASSWORD:
         required: false
+      # Read access to this repository's releases (a fine-grained token with
+      # Contents: read on piprees/minecraft-server-template). Required while
+      # the template is private: the caller's own token can't see it.
+      STACK_READ_TOKEN:
+        required: false
 
 concurrency:
   group: deploy-${{ inputs.environment }}
@@ -116,7 +121,7 @@ jobs:
         # different workflow. A floating `latest` stays inside that major.
         # A branch or sha ref (template testing) skips the check.
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ secrets.STACK_READ_TOKEN || github.token }}
           PIN_OVERRIDE: ${{ inputs.stack_version_override }}
           PIN_INPUT: ${{ inputs.stack_version }}
           JOB_CONTEXT: ${{ toJSON(job) }}
@@ -442,23 +447,32 @@ jobs:
         # The puller lives in the bundle itself (scripts/stack-pull.sh);
         # for servers on a pre-v2.12.1 bundle, fetch the resolved tag's copy
         # from GitHub. The legacy root-level stack-pull.sh is removed.
+        # The read token travels on stdin, never on the remote command line.
         env:
           RESOLVED: ${{ steps.stack.outputs.resolved }}
+          STACK_READ_TOKEN: ${{ secrets.STACK_READ_TOKEN }}
         run: |
           HOST="${{ vars.DEPLOY_USER }}@${{ vars.DROPLET_HOST }}"
-          ssh -i ~/.ssh/deploy_key "$HOST" "RESOLVED='${RESOLVED}' bash -s" << 'EOF'
+          {
+            if [[ -n "$STACK_READ_TOKEN" ]]; then
+              printf 'export GITHUB_TOKEN=%q\n' "$STACK_READ_TOKEN"
+            fi
+            cat << 'EOF'
           set -euo pipefail
           cd ~/server
           rm -f stack-pull.sh
           PULLER=".stack/current/stack/scripts/stack-pull.sh"
           if [[ ! -f "$PULLER" ]]; then
             PULLER="$(mktemp)"
-            curl -fsSL --connect-timeout 10 --max-time 60 \
+            auth=()
+            [[ -n "${GITHUB_TOKEN:-}" ]] && auth=(-H "Authorization: Bearer ${GITHUB_TOKEN}")
+            curl -fsSL --connect-timeout 10 --max-time 60 ${auth[@]+"${auth[@]}"} \
               -o "$PULLER" \
               "https://raw.githubusercontent.com/piprees/minecraft-server-template/${RESOLVED}/scripts/stack-pull.sh"
           fi
           STACK_VERSION="$RESOLVED" bash "$PULLER"
           EOF
+          } | ssh -i ~/.ssh/deploy_key "$HOST" "RESOLVED='${RESOLVED}' bash -s"
 
       - name: Full deploy (countdown + restart)
         if: steps.tier.outputs.tier == 'full'

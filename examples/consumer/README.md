@@ -79,6 +79,8 @@ The `ops` script delegates to the bundle's operational scripts with your consume
 
 Then push to `main` — the caller workflow in `.github/workflows/deploy.yml` handles CI/CD via the platform's reusable workflow.
 
+The platform repo is private, so CI needs a token to read its releases. Create a fine-grained token with access to `piprees/minecraft-server-template` only and **Contents: Read**, then store it as a repository secret: `gh secret set STACK_READ_TOKEN --repo <you>/<this-repo>`. Without it, the deploy stops at "No platform release matches stack pin". Your repo must be private too: a public repo can't call a private repo's workflows.
+
 Day to day: `./ops doctor` (full health triage — start here), `./ops ssh`, `./ops status`, `./ops logs mc --tail 200`, `./ops backup`, `./ops chunky`.
 
 ## Customising your server
