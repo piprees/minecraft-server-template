@@ -21,6 +21,8 @@ The plan for rebuilding the `custom-dimensions` mod on Minecraft 26.3 and the pa
 | [worldgen.md](worldgen.md) | The layer table, zones, the lessons it is built around, clean-room rule, firewall and bridges |
 | [roller.md](roller.md) | `customdim render`, `roll` and `pick`: the sampler, scoring and the agreement gate |
 | [portals.md](portals.md) | Frames, orientations, shapes, the portal block, travel, auras and previews |
+| [schema-v2.md](schema-v2.md) | The v2 definition format, the field map from v1, and the F3 converter |
+| [namespaces.csv](namespaces.csv) | Each data namespace in the 1.21.1 pack and the mod that owns it, with the register's decision |
 | [pack.md](pack.md) | The inclusion rule, counts by group and decision, and the additions |
 | [mod-register.csv](mod-register.csv) | All 235 projects with their decision, reason and replacement |
 | [work-plan.md](work-plan.md) | Every work package with size and check, the calendar, the cut order and totals |
