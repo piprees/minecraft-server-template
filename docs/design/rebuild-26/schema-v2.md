@@ -59,7 +59,7 @@ writes the v2 set. At the switch the v2 set moves to
 | `environment.skyColor`, `fogColor`, `ambientLight`, `fixedTime`, `effects` | `atmosphere` | The compiler writes environment attributes and a timeline. |
 | `environment.bedWorks`, `respawnAnchorWorks`, `piglinSafe`, `ultraWarm`, `natural`, `hasRaids` | `rules` | Renamed to read as rules: `bedsWork`, `respawnAnchorsWork`, `piglinsZombify` (= not `piglinSafe`), `ultraWarm`, `natural`, `raids`. |
 | `structureDensity` | `structures.density` | |
-| `structures` | `structures` | Carried whole for W4: `wants`, `shuns`, `spacing`, `mode`, `list`, `force`, `clearSpawnRadius`, `terrainAdaptation`, `noise`, `radial`, `rarity`, `exclude`. `shuns` values are always `{}`. |
+| `structures` | `structures` | Carried whole for W4: `wants`, `shuns`, `spacing`, `mode`, `list`, `force`, `clearSpawnRadius`, `terrainAdaptation`, `noise`, `radial`, `rarity`, `exclude`, `include`. `shuns` values are always `{}`. |
 | `portal` (object or array) | `portals` (array) | Each entry unchanged except `immersive` → `preview` (companion tuning; the vanilla slab is gone). |
 | `exitPortal`, `exits`, `exitShrines` | same | Unchanged. |
 | `seedRoll` | `roll` | `mood`, `spawnFilter`, `water`, `terrain`, `heightRange`, `wants`, `shuns`, `allowHazardousSpawn`, `skip`. `family` is dropped: the generator decides it. |
