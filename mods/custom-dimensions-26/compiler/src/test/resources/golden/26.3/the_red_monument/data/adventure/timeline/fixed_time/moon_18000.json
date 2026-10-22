@@ -1,0 +1,22 @@
+{
+  "clock": "minecraft:overworld",
+  "tracks": {
+    "minecraft:gameplay/surface_slime_spawn_chance": {
+      "keyframes": [
+        {
+          "ticks": 0,
+          "value": 0.5
+        }
+      ],
+      "modifier": "maximum"
+    },
+    "minecraft:visual/moon_phase": {
+      "keyframes": [
+        {
+          "ticks": 0,
+          "value": "full_moon"
+        }
+      ]
+    }
+  }
+}

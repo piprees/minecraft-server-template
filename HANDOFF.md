@@ -11,8 +11,7 @@ lasting record is `docs/design/rebuild-26/` and `TROUBLESHOOTING.md`.
 - Blocked on the owner: merging PR #29 and the Dependabot PRs into `main`
   (refused by the session's permission rules), then the private switch in the
   order recorded in the log.
-- Rebuild: F0–F3 done. Next: the M, W and P streams from work-plan.md
-  (M1 compiler, M2 levels; W1 terrain library; P1 version in one place).
+- Rebuild: F0–F3 and M1 done. Next: M2 (lazy levels on Fantasy).
 - Plan of record: `docs/design/rebuild-26/README.md`.
 
 ## Log
@@ -63,3 +62,5 @@ lasting record is `docs/design/rebuild-26/` and `TROUBLESHOOTING.md`.
 - 10-22 — Owner picked M1 + M2 next. M1 handed to a subagent: vanilla data extracted at build time (`:compiler:vanillaData`, never committed), DatapackCompiler (dimension types with environment attributes, noise settings variants for liquids/default block, multi_noise biome sources filtered from vanilla's reported parameter lists, level stems: base worlds in data/*/dimension, others in data/customdimensions/lazy_dimension), VersionTable (26.3 baseline, 26.4 default_block), golden tests, self-test decoding every file with vanilla codecs, and a vanilla boot check. Progress: /tmp/claude-0/m1-progress.log. M2 (Fantasy lazy levels) follows M1's lazy_dimension output.
 - 10-22 — M1 returned: 636 tests; self-test decodes 12 timelines, 78 dimension types, 24 noise settings, 78 level stems with vanilla codecs (plus a negative control); vanilla boot check passes (and fails on a bad aviary height). Golden files embedded Mojang data (full noise settings, climate parameters, attributes): sent back to store diffs against vanilla and sha1s of vanilla parameter objects. Added vanilla-data cache and the vanilla boot check to mod26.yml.
 - 10-22 — Parked M1 as a WIP commit without its golden files (they held Mojang data and are being rewritten as diffs); the golden folder is in .git/info/exclude locally until then, so GoldenFileTest fails in CI on this commit.
+- 10-22 — M1 DONE (verified): goldens hold diffs from vanilla (`GoldenForm`: base + changed/removed; vanilla objects and climate parameters as sha1), 47 KB of content, grep clean of noise_router/material_rule/parameters/bed rules; 636 tests pass; self-test decodes 12 timelines, 78 dimension types, 24 noise settings, 78 level stems; vanilla boot check passes with all four base worlds entered. Compile totals: 78 compiled, 4 clones reported, 74 lazy stems, 596 skipped biome references, 6 plains fallbacks, 482 unsupported fields (runtime or later packages).
+- 10-22 — Finding: vanilla 26.3's overworld biome list overlaps (dripstone_caves/lush_caves/sulfur_caves); 26.4 forbids overlap, so `MultiNoise.carve` cuts later overlapping entries outside earlier ones. M1 mapping choices: natural → nether_portal_spawns_piglin; fixedTime → frozen one-keyframe copies of the type's periodic timelines + has_fixed_time; effects → copy skybox/cardinal_light/cloud/fog attributes from that world's type; ultraWarm → water_evaporates + fast_lava; 26.4 data pack format 125.

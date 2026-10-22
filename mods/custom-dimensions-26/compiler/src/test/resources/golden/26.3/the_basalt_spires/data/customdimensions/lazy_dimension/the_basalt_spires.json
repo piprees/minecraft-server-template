@@ -1,0 +1,16 @@
+{
+  "type": "adventure:the_basalt_spires",
+  "generator": {
+    "type": "minecraft:noise",
+    "biome_source": {
+      "type": "minecraft:multi_noise",
+      "biomes": [
+        {
+          "biome": "minecraft:plains",
+          "parameters": "sha1:bd785970fec32db46ad748d45c3772c00efb284a"
+        }
+      ]
+    },
+    "settings": "adventure:the_basalt_spires"
+  }
+}

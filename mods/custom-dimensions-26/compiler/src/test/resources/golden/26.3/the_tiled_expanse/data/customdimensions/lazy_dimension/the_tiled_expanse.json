@@ -1,0 +1,15 @@
+{
+  "type": "adventure:the_tiled_expanse",
+  "generator": {
+    "type": "minecraft:noise",
+    "biome_source": {
+      "type": "minecraft:checkerboard",
+      "biomes": [
+        "minecraft:end_midlands",
+        "minecraft:the_end"
+      ],
+      "scale": 3
+    },
+    "settings": "adventure:the_tiled_expanse"
+  }
+}
