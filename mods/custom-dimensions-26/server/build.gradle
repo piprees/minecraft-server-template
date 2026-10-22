@@ -31,6 +31,13 @@ loom {
 			programArg '--nogui'
 			// -PselfTest=<file> runs the start-up self-test, writes its report and stops the server.
 			vmArg "-Dcustomdimensions.selftest=${project.findProperty('selfTest') ?: ''}"
+			// The self-test compiles definitions/ against vanilla's files and decodes the result.
+			vmArg "-Dcustomdimensions.definitions=${file('../definitions').canonicalPath}"
+			vmArg "-Dcustomdimensions.vanilla=${project(':compiler').layout.buildDirectory.dir("vanilla/${project.minecraft_version}").get().asFile.absolutePath}"
 		}
 	}
+}
+
+tasks.matching { it.name == 'runServer' }.configureEach {
+	dependsOn ':compiler:vanillaData'
 }

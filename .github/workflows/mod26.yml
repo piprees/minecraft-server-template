@@ -30,8 +30,22 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v6
 
+      # The compiler's vanilla input (server jar, its data and reports) is
+      # ~50 MB per Minecraft version; download it once per version.
+      - name: Cache vanilla data
+        uses: actions/cache@v6
+        with:
+          path: mods/custom-dimensions-26/compiler/build/vanilla
+          key: vanilla-${{ hashFiles('mods/custom-dimensions-26/gradle.properties') }}
+
       - name: Build and unit tests
         run: ./gradlew build
+
+      # The compiled pack must load on an unmodded server.
+      - name: Vanilla boot check
+        run: |
+          ./gradlew :compiler:compileDatapack
+          scripts/vanilla-boot-check.sh
 
       # Boots a real 26.3 server with the mod, runs SelfTest and stops.
       # A missing report means the server never reached SERVER_STARTED.

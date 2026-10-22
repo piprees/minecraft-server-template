@@ -13,6 +13,21 @@ dependencies {
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
+// The compiler stays free of Minecraft and Fabric, as core does; only server touches the game.
+def noMinecraft = tasks.register('checkNoMinecraftImports') {
+	def sources = fileTree('src') { include '**/*.java' }
+	inputs.files(sources)
+	doLast {
+		def pattern = ~/(?m)^\s*import\s+(static\s+)?net\.(minecraft|fabricmc)\./
+		def offenders = sources.files.findAll { pattern.matcher(it.text).find() }
+		if (!offenders.isEmpty()) {
+			throw new GradleException("compiler must not import Minecraft or Fabric:\n  "
+					+ offenders.collect { projectDir.toPath().relativize(it.toPath()) }.join('\n  '))
+		}
+	}
+}
+tasks.named('check') { dependsOn noMinecraft }
+
 // Rewrites definitions/ (schema v2) and its conversion report from the 1.21.1
 // definitions in config/custom-dimensions/. The repository root is three levels up.
 tasks.register('convertDefinitions', JavaExec) {
@@ -26,4 +41,89 @@ tasks.register('convertDefinitions', JavaExec) {
 			'--register', new File(design, 'mod-register.csv').path,
 			'--namespaces', new File(design, 'namespaces.csv').path,
 			'--out', file('../definitions').canonicalPath
+}
+
+// Mojang's data files are inputs, never committed: this fetches the server jar
+// for minecraft_version, checks its sha1, extracts data/minecraft/** and runs
+// the report generator (biome parameter lists, registries) beside it.
+def vanillaDir = layout.buildDirectory.dir("vanilla/${project.minecraft_version}")
+def vanillaData = tasks.register('vanillaData') {
+	group = 'custom-dimensions'
+	description = "Downloads the ${project.minecraft_version} server jar and extracts its worldgen data and reports."
+	def version = project.minecraft_version
+	def dir = vanillaDir.get().asFile
+	inputs.property 'minecraftVersion', version
+	outputs.dir dir
+	onlyIf {
+		!new File(dir, 'reports/biome_parameters/minecraft/overworld.json').exists()
+				|| !new File(dir, 'data/minecraft/dimension_type/overworld.json').exists()
+	}
+	doLast {
+		dir.mkdirs()
+		def slurp = { String url -> new groovy.json.JsonSlurper().parse(new URL(url)) }
+		def entry = slurp('https://piston-meta.mojang.com/mc/game/version_manifest_v2.json')
+				.versions.find { it.id == version }
+		if (entry == null) {
+			throw new GradleException("Minecraft ${version} is not in Mojang's version manifest")
+		}
+		def server = slurp(entry.url).downloads.server
+		def jar = new File(dir, 'server.jar')
+		def sha1 = { File f ->
+			def digest = java.security.MessageDigest.getInstance('SHA-1')
+			f.withInputStream { s -> s.eachByte(1 << 16) { buf, n -> digest.update(buf, 0, n) } }
+			digest.digest().encodeHex().toString()
+		}
+		if (!jar.exists() || sha1(jar) != server.sha1) {
+			new URL(server.url).withInputStream { s -> jar.withOutputStream { it << s } }
+			def actual = sha1(jar)
+			if (actual != server.sha1) {
+				jar.delete()
+				throw new GradleException("server jar sha1 ${actual} does not match the manifest's ${server.sha1}")
+			}
+		}
+		// The bundler unpacks versions/ and libraries/ into its working directory. The
+		// generator deletes whatever else is in its output directory, so it gets its own.
+		def bundler = new File(dir, 'bundler')
+		def generated = new File(dir, 'generated')
+		bundler.mkdirs()
+		providers.javaexec {
+			workingDir = bundler
+			mainClass = '-jar'
+			classpath = files()
+			jvmArgs '-DbundlerMainClass=net.minecraft.data.Main'
+			args jar.absolutePath, '--reports', '--output', generated.absolutePath
+		}.result.get().assertNormalExitValue()
+		def inner = new File(bundler, "versions/${version}/server-${version}.jar")
+		copy {
+			from(zipTree(inner)) { include 'data/minecraft/**' }
+			from(generated) { include 'reports/**' }
+			into dir
+		}
+	}
+}
+
+tasks.named('test') {
+	dependsOn vanillaData
+	systemProperty 'customdimensions.vanilla', vanillaDir.get().asFile.absolutePath
+	systemProperty 'customdimensions.definitions', file('../definitions').canonicalPath
+	// Golden files are read from, and with -PupdateGolden=true rewritten into, the source tree.
+	systemProperty 'customdimensions.golden', file('src/test/resources/golden').absolutePath
+	systemProperty 'customdimensions.updateGolden', project.findProperty('updateGolden') ?: 'false'
+	inputs.dir file('../definitions')
+	inputs.dir file('src/test/resources/golden')
+}
+
+// Compiles definitions/ into build/datapack/customdimensions/ and its report.
+tasks.register('compileDatapack', JavaExec) {
+	group = 'custom-dimensions'
+	description = 'Compiles definitions/ into a datapack and compile-report.md under build/datapack/.'
+	dependsOn vanillaData
+	classpath = sourceSets.main.runtimeClasspath
+	mainClass = 'com.customdimensions.compiler.datapack.DatapackCompiler'
+	def out = file('../build/datapack')
+	args '--definitions', file('../definitions').canonicalPath,
+			'--vanilla', vanillaDir.get().asFile.absolutePath,
+			'--pack', new File(out, 'customdimensions').path,
+			'--report', new File(out, 'compile-report.md').path,
+			'--version', project.minecraft_version
 }
