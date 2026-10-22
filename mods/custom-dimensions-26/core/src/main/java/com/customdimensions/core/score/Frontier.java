@@ -24,7 +24,7 @@ import java.util.Set;
  * <p>Only {@link Scorecard.Verdict#SCORED} cards are eligible.
  * {@code REJECTED} carries no comparable achievement and {@code
  * INVALID_CONFIG} carries none either; both are dropped before dominance is
- * even considered, the same way they are excluded from ranking today.
+ * even considered, the same way they are excluded from ranking.
  *
  * <p>Comparison never crosses dimensions: candidates are grouped by {@link
  * Scorecard#dimension()} first, and the frontier is computed independently
@@ -113,7 +113,7 @@ public final class Frontier {
      * value qualify: {@code not_applicable} is always null (the config never
      * posed the question), every gate outcome (pass/fail/unmeasured) is also
      * null (a gate is binary and a SCORED card never carries a failed one),
-     * and {@link Scorer} now excludes an {@code unmeasured} GRADED criterion
+     * and {@link Scorer} excludes an {@code unmeasured} GRADED criterion
      * the same way (null, not a defaulted zero) — an absent measurement is
      * not evidence of quality, so treating it as a real zero would make a
      * candidate whose measurement partly failed look worse than one that

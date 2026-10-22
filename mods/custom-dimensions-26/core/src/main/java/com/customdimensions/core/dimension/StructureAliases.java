@@ -16,8 +16,7 @@ import java.util.Map;
  * {@code "structory_towers:wizard_tower"}.
  *
  * <p>Dimension configs name wanted structures by a short, human name; the
- * registry knows only ids. Nothing in the mod needed the mapping until lint
- * did, so it lived in the seed roller. It is baked into the jar as
+ * registry knows only ids. It is baked into the jar as
  * {@code structure_aliases.json} for the same reason the structure themes are:
  * a config-shaped answer that must not depend on a file the server may not
  * have.

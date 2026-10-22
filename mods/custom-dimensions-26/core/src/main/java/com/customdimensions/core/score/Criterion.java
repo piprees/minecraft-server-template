@@ -6,11 +6,8 @@ import com.customdimensions.core.facts.SeedFacts;
 /**
  * One named, separately arguable judgement about a seed.
  *
- * <p>The thing this replaces is a weighted mean of four components whose
- * meaning was an emergent property of six interacting constant tables. Nobody
- * could hold that in their head and nothing tested it. A criterion is a class
- * with a name, a stated target, and a result that carries the facts it was
- * computed from — so a disagreement about scoring is a disagreement about one
+ * <p>A criterion is a class with a name, a stated target, and a result that
+ * carries the facts it was computed from — so a disagreement about scoring is a disagreement about one
  * function, and a pull request can settle it.
  *
  * <p>A criterion NEVER reads a world, a registry or a seed. It reads facts. If

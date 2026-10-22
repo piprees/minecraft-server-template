@@ -167,4 +167,21 @@ public final class StructureNoise {
             default -> -z * NORMALISE;
         };
     }
+
+    /**
+     * Per-dimension and per-group noise salt. A plain String.hashCode would
+     * give neighbouring names neighbouring salts (and it is only 32 bits), so
+     * the noise fields of two similarly-named dimensions would correlate.
+     */
+    public static long saltOf(String name) {
+        if (name == null) {
+            return 0L;
+        }
+        long h = 0xCBF29CE484222325L;   // FNV-1a 64
+        for (int i = 0; i < name.length(); i++) {
+            h ^= name.charAt(i);
+            h *= 0x100000001B3L;
+        }
+        return mix64(h);
+    }
 }

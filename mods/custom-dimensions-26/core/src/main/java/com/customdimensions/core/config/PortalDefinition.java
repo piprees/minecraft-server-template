@@ -10,8 +10,8 @@ import java.util.Map;
 public class PortalDefinition {
     private String id;
     /**
-     * Primary frame form: a plain block id for simple configs (today's
-     * shape, unchanged in zone records), or the first accept form
+     * Primary frame form: a plain block id for simple configs (the shape
+     * zone records persist), or the first accept form
      * ("#ns:tag" included) for tag/list/colour-group configs.
      */
     private String frameBlock;
@@ -32,7 +32,7 @@ public class PortalDefinition {
     /**
      * "vertical" (X/Z) | "horizontal" (Y) | "vertical_x" | "vertical_z" |
      * "any". Null defers to the shape's implied orientation (door/doorway
-     * vertical, end_exit horizontal), else "any" — today's behaviour.
+     * vertical, end_exit horizontal), else "any".
      */
     private String orientation;
     /**
@@ -217,7 +217,7 @@ public class PortalDefinition {
     /**
      * Effective orientation: the explicit field always wins; otherwise the
      * shape's implication (door/doorway → "vertical", end_exit →
-     * "horizontal"); otherwise "any" (today's behaviour).
+     * "horizontal"); otherwise "any".
      */
     public String getOrientation() {
         if (this.orientation != null && !this.orientation.isBlank()) {

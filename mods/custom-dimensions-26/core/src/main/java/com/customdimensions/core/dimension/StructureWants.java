@@ -89,7 +89,7 @@ public final class StructureWants {
      *
      * <p>Here rather than in the scorer because two readers of one config
      * field drift, and this one is read by the scorer, the facts layer and
-     * {@code NoisePoolBuilder.shunnedStructureIds}.
+     * {@link #shunnedStructureIds}.
      */
     public static List<String> shunNames(DimensionConfig def) {
         DimensionConfig.Structures block = def == null ? null : def.getStructures();
@@ -110,6 +110,22 @@ public final class StructureWants {
             }
         } else if (sr.shuns.isJsonObject()) {
             out.addAll(sr.shuns.getAsJsonObject().keySet());
+        }
+        return out;
+    }
+
+    /**
+     * The structure ids this config shuns, aliases resolved and tags left
+     * out — the set the server's pool builder lowers the draw weight of and
+     * the scorer marks a seed down for.
+     */
+    public static java.util.Set<String> shunnedStructureIds(DimensionConfig def) {
+        java.util.Set<String> out = new java.util.HashSet<>();
+        for (String name : shunNames(def)) {
+            String id = StructureAliases.resolve(name);
+            if (id != null && !id.startsWith("#")) {
+                out.add(id);
+            }
         }
         return out;
     }

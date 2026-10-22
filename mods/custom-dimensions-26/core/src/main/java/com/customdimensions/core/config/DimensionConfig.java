@@ -369,7 +369,7 @@ public class DimensionConfig {
      *
      * <p>This is a property of the CONFIG, not of the code: any dimension is
      * one edit away from flipping, so it is computed per dimension rather
-     * than encoding today's split.
+     * than encoding the current split.
      */
     public boolean defaultOffsetCanAct() {
         List<BiomeBand> bands = this.getBiomeBands();
@@ -1147,8 +1147,8 @@ public class DimensionConfig {
         public String framePlaceBlock;
         /**
          * Ignition orientation constraint: "vertical" (X/Z) | "horizontal"
-         * (Y) | "vertical_x" | "vertical_z" | "any". Absent = "any" —
-         * identical to today's behaviour (all three axes attempted).
+         * (Y) | "vertical_x" | "vertical_z" | "any". Absent = "any"
+         * (all three axes attempted).
          */
         @SerializedName("orientation")
         public String orientation;

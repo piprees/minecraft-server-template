@@ -9,7 +9,7 @@ import java.util.Locale;
 import java.util.Map;
 
 /**
- * The criteria that consume facts the engine actually measures today.
+ * The criteria that consume facts the engine measures.
  *
  * <p>A criterion that reads a fact nothing computes is a number invented at
  * scoring time, so a criterion arrives only with its facts. Traversability,
@@ -126,15 +126,9 @@ public final class Criteria {
     /**
      * Does the dimension look like itself where a player arrives?
      *
-     * <p>GRADED, not a gate, and the change is deliberate. As a gate this
-     * rejected the seed outright, and it was one of the three gates that
-     * between them left eight dimensions with no candidate at all after
-     * hundreds of seeds each — several Nether seeds scoring above 3 out of 5
-     * died here because spawn landed in an Incendium biome the config's
-     * four-entry {@code spawnFilter} did not list.
-     *
-     * <p>Rejecting on it was also measuring the wrong thing. The spawn column
-     * is not fixed: picking a candidate writes the position you were standing
+     * <p>GRADED, not a gate: a gate on the origin column rejects good worlds
+     * whose spawn lands in a biome the config's {@code spawnFilter} does not
+     * list. The spawn column is not fixed: picking a candidate writes the position you were standing
      * in as the dimension's spawn, so a world with a namesake biome anywhere
      * in it can be given a namesake spawn. What ranks is therefore not "did
      * the origin happen to land in one" but "how much of this world is the
@@ -182,8 +176,8 @@ public final class Criteria {
          * penalises naming a biome the world does not have at all, without
          * annihilating a world that merely misses one.
          *
-         * <p>Bounded by construction rather than by clamping — a cap is what
-         * made the old form blind above a third.
+         * <p>Bounded by construction rather than by clamping — a cap would
+         * make the mark blind above it.
          */
         static double namesakeMark(double[] shares, boolean spawnIsNamesake) {
             double logSum = 0.0;
@@ -391,11 +385,10 @@ public final class Criteria {
          *
          * <p>Read against {@code edgeDensityNearSpawn}, which is sampled at a
          * fixed 48-block step, so the number means the same thing in a pocket
-         * dimension as in a full-sized one. The old 0.35 was read against the
-         * playable grid's own step — 51 blocks at a 1024 border and 409 at an
-         * 8192 one — where the six highest-scoring dimensions in the bank were
-         * all the largest and the six lowest were all pockets, ranking them by
-         * their sampling step rather than by anything about the worlds.
+         * dimension as in a full-sized one. Read against the playable grid's
+         * own step (51 blocks at a 1024 border, 409 at an 8192 one) the same
+         * threshold would rank worlds by their sampling step rather than by
+         * anything about the worlds.
          *
          * <p>At a 48-block step a boundary falls between two samples about as
          * often as 48 blocks fits into a biome's width, so a world of ordinary
@@ -617,20 +610,12 @@ public final class Criteria {
     /**
      * Terrain should match what {@code seedRoll.terrain} asked for.
      *
-     * <p>The field speaks TWO vocabularies, and until now the criterion knew
-     * only one of them. Six words describe how much vertical spread the
-     * terrain has; two — {@code islands} and {@code void} — describe whether
-     * there is ground under you at all, which is a different axis entirely.
-     * Every config that actually sets the field uses the second vocabulary
-     * (nine say {@code islands}, three say {@code void}), so a criterion that
-     * knew only relief words was {@code not_applicable} on all 2349 banked
-     * candidates: authored intent, measured by nothing.
-     *
-     * <p>The ground words are read against {@code terrain.groundFraction},
-     * which exists for this. Neither vocabulary was deleted — a relief word
-     * still means a relief band — and neither was invented: the relief bands
-     * are the hand-calibrated ones already here, and the ground bands say the
-     * obvious thing about the two words in plain arithmetic.
+     * <p>The field speaks TWO vocabularies. Six words describe how much
+     * vertical spread the terrain has; two — {@code islands} and {@code void}
+     * — describe whether there is ground under you at all, which is a
+     * different axis. Relief words are read against the hand-calibrated
+     * relief bands; the ground words are read against
+     * {@code terrain.groundFraction}.
      */
     static final class TerrainMatchesPreset implements Criterion {
         /** word -> (relief low, relief high). Blocks of vertical spread. */
@@ -882,21 +867,10 @@ public final class Criteria {
      * translation, and a band would only be a threshold invented on top of a
      * number that already means something on its own.
      *
-     * <p>It used to read {@code grid.heightMeasured() / grid.sampled()},
-     * which is a different and much weaker question — did the generator
-     * ANSWER, not is there ground. Vanilla's {@code getHeight} answers the
-     * world floor for an empty column, so that ratio is 1.0 for every
-     * dimension without a ceiling however empty it is: it read 1.000 for
-     * {@code the_icebound_rift}, a void whose every sampled column sits at
-     * exactly -64.
-     *
-     * <p>Not applicable when {@code seedRoll.terrain} states {@code "void"}
-     * or {@code "islands"}. That is not a gap: those two words are exactly
-     * what {@link TerrainMatchesPreset} reads, against the same fact, with a
-     * band the author chose. The two criteria's applicability is disjoint by
-     * construction and every dimension is asked one of them — this one asks
-     * whether a world that never said otherwise has a floor, and that one
-     * asks whether a world that did got the floor it asked for.
+     * <p>Not {@code grid.heightMeasured() / grid.sampled()}: that asks whether
+     * the generator ANSWERED, not whether there is ground. Vanilla's
+     * {@code getHeight} answers the world floor for an empty column, so that
+     * ratio is 1.0 for every dimension without a ceiling however empty it is.
      */
     static final class PlayableGroundCoversTheDisc implements Criterion {
         public String id() {
@@ -991,9 +965,9 @@ public final class Criteria {
     /**
      * The End's fraction is the WHOLE radius, and the difference is structural
      * rather than a softening. End cities generate only in the outer islands,
-     * so half the radius excludes most of the ground they can occupy: the gate
-     * was demanding a city in the ring where the central island and the void
-     * gap are the only things that exist. What progression actually requires is
+     * so half the radius excludes most of the ground they can occupy — the
+     * ring where the central island and the void gap are the only things
+     * that exist. What progression actually requires is
      * an end city somewhere a player can reach at all, and the border is that.
      */
     public static final double END_REACHABLE_FRACTION = 1.0;
@@ -1143,27 +1117,16 @@ public final class Criteria {
     /**
      * Is there anywhere here a player could be put down?
      *
-     * <p>GRADED, and it replaces two gates that between them were the last
-     * structural rejection in the model. Both asked about the ORIGIN column —
-     * one for a cliff, one for lava and somewhere to stand — and both rejected
-     * the seed outright. {@code the_bloodroot_wastes} seed 999 scored 72 for
-     * intent and 81 for quality and was thrown away for a 64-block drop at a
-     * column nobody stands in.
+     * <p>GRADED, not a gate on the origin column. The spawn column is not
+     * fixed: picking a candidate writes the position you were standing in as
+     * the dimension's spawn, so a world with a usable column anywhere near the
+     * origin can simply be given one. {@code spawn.safeColumnFraction} probes
+     * a lattice of candidate columns with three tests — no cliff, no
+     * hazardous fluid, at least half the footprint solid — and reports how
+     * many passed.
      *
-     * <p>They were measuring the wrong thing, in the same way
-     * {@link SpawnReadsAsNamesake} was. The spawn column is not fixed: picking
-     * a candidate writes the position you were standing in as the dimension's
-     * spawn, so a world with a usable column anywhere near the origin can
-     * simply be given one. {@code spawn.safeColumnFraction} probes a lattice
-     * of candidate columns with the same three tests the gates carried — no
-     * cliff, no hazardous fluid, at least half the footprint solid — and
-     * reports how many passed. Nothing was relaxed; the question moved from
-     * one column to the neighbourhood a picker actually chooses from.
-     *
-     * <p>Zero is still zero, and that is not a softened gate: a world with no
-     * safe column anywhere near its spawn has nowhere to arrive, and now says
-     * so with a mark rather than by vanishing from the board with the reason
-     * discarded.
+     * <p>Zero is zero: a world with no safe column anywhere near its spawn
+     * has nowhere to arrive, and says so with a mark.
      */
     static final class SpawnIsPlayable implements Criterion {
         /**
@@ -1321,13 +1284,10 @@ public final class Criteria {
     /**
      * One {@code seedRoll.wants} entry: this structure, in that band.
      *
-     * <p>486 of these are authored across the pack and none of them was read
-     * by anything. Everything the judgement needs was already measured or
-     * resolvable — {@code StructureAliases} maps the short name to a
-     * structure id or a tag, {@code facts.structures.nearestByStructure}
-     * carries the distance, {@code structures.tagMembers} says what a tag
-     * holds, and {@code borders.player} sets the scale — so this is a wire
-     * that was missing, not a measurement that was.
+     * <p>{@code StructureAliases} maps the short name to a structure id or a
+     * tag, {@code facts.structures.nearestByStructure} carries the distance,
+     * {@code structures.tagMembers} says what a tag holds, and
+     * {@code borders.player} sets the scale.
      */
     static final class WantedStructure implements Criterion {
         private final String name;

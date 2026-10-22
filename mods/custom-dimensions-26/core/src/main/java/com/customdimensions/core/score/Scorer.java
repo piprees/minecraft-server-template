@@ -139,7 +139,7 @@ public final class Scorer {
                     failedGate + ": " + failedGateReason,
                     achieved, ceiling, entries, tiers);
         }
-        // Checked from config alone, not the accumulated (now measured-only)
+        // Checked from config alone, not the accumulated (measured-only)
         // `ceiling` above: that variable is 0.0 whenever nothing was measured
         // this seed even though the config poses real questions, and the two
         // INVALID_CONFIG reasons below would be indistinguishable otherwise.
