@@ -25,6 +25,7 @@ A fun, adapted default Minecraft server with no rough edges — stable enough to
 | Web page markup, styles, nav injection | [`docs/web-surfaces.md`](docs/web-surfaces.md); tokens in [`DESIGN.md`](DESIGN.md) |
 | In-house mod development contract | [`mods/AGENTS.md`](mods/AGENTS.md) |
 | Procedures (release, provisioning, mods, dimensions, triage) | `.claude/skills/` |
+| The 26.3 rebuild of custom-dimensions (plan of record, decisions, work packages) | [`docs/design/rebuild-26/`](docs/design/rebuild-26/README.md) |
 
 ## Operating contract
 

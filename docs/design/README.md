@@ -17,3 +17,9 @@ does, and `TROUBLESHOOTING.md` carries the traps.
 | Document | What it covers |
 | --- | --- |
 | [immersive-portals.md](immersive-portals.md) | **The single portal design document.** A portal is a doorway in a wall of reality: the geometry, the lighting, what must pass through, the architecture and feed, and what the stack must survive. Every portal decision is judged against it |
+
+## The 26.3 rebuild
+
+| Document | What it covers |
+| --- | --- |
+| [rebuild-26/README.md](rebuild-26/README.md) | The plan of record for rebuilding `custom-dimensions` on Minecraft 26.3: requirements, decisions, architecture, worldgen and zones, the roller, portals, the pack, the work plan and risks |
