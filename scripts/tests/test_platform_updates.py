@@ -234,7 +234,14 @@ class ScanTest(unittest.TestCase):
             by_dep.setdefault((o.ecosystem, o.name), set()).add(o.version)
         self.assertEqual(len(by_dep[("loader", "fabric-loader")]), 1, by_dep[("loader", "fabric-loader")])
         self.assertEqual(len(by_dep[("tool", "git-cliff")]), 1)
-        self.assertEqual(sum(1 for o in occ if o.name == "fabric-loader"), 3 + len(list(REPO.glob("mods/*/gradle.properties"))))
+        gradle = [p for p in REPO.glob("mods/*/gradle.properties")
+                  if not p.relative_to(REPO).as_posix().startswith(pu.OUT_OF_SCOPE)]
+        self.assertEqual(sum(1 for o in occ if o.name == "fabric-loader"), 3 + len(gradle))
+
+    def test_the_rebuild_is_out_of_scope(self):
+        self.assertFalse(pu.allowed_path("mods/custom-dimensions-26/gradle.properties"))
+        self.assertIsNone(pu.classify_line("mods/custom-dimensions-26/gradle.properties", "loader_version=0.19.5"))
+        self.assertNotIn("mods/custom-dimensions-26/gradle.properties", pu.pin_files(REPO))
 
 
 class PlanApplyTest(unittest.TestCase):

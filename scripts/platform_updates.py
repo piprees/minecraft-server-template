@@ -15,7 +15,8 @@ covers Dockerfiles, actions and pip; this covers what it cannot parse:
   gradle  yarn_mappings (newest 1.21.1 build) and fabric_version in
           mods/*/gradle.properties; fabric_version follows the pack's
           fabric-api pin in config/modrinth-mods.txt, so the in-house mods
-          build against the fabric-api the server runs
+          build against the fabric-api the server runs. The 26.3 rebuild
+          (mods/custom-dimensions-26/) is out of scope: OUT_OF_SCOPE
   tool    Tailwind CLI (+ its sha256 lines, from the release's own
           sha256sums.txt), packwiz-installer-bootstrap, git-cliff
           (release.yml + release-train.yml; must also be on PyPI), doctl,
@@ -157,6 +158,16 @@ class UpdateError(Exception):
 
 # --- files ---------------------------------------------------------------------------
 
+# The 26.3 rebuild pins its own toolchain (Mojang names, no Yarn) and is bumped
+# by hand until the switch retargets this script at 26.3.
+OUT_OF_SCOPE = ("mods/custom-dimensions-26/",)
+
+
+def pin_matches(pin, path):
+    """True when `path` is one of the files `pin` lives in."""
+    return bool(glob_regex(pin.path).match(path)) and not path.startswith(OUT_OF_SCOPE)
+
+
 def glob_regex(pattern):
     """A PINS path (with at most `*` per segment) as an anchored regex over repo paths."""
     return re.compile("^" + "/".join(
@@ -167,7 +178,7 @@ def pin_files(root):
     """Every existing file PINS names, relative to root, sorted."""
     out = set()
     for pin in PINS:
-        matches = sorted(root.glob(pin.path))
+        matches = sorted(p for p in root.glob(pin.path) if pin_matches(pin, p.relative_to(root).as_posix()))
         if not matches:
             raise UpdateError(f"{pin.path}: no file holds the {pin.name} pin")
         out.update(p.relative_to(root).as_posix() for p in matches)
@@ -177,7 +188,7 @@ def pin_files(root):
 
 def allowed_path(path):
     """True when `path` is a file this script may change."""
-    return path == IMAGE_FILE or any(glob_regex(pin.path).match(path) for pin in PINS)
+    return path == IMAGE_FILE or any(pin_matches(pin, path) for pin in PINS)
 
 
 def classify_line(path, line):
@@ -196,7 +207,7 @@ def classify_line(path, line):
         if m:
             return ("sha256", m.group(2))
     for pin in PINS:
-        if glob_regex(pin.path).match(path) and pin.regex.match(line):
+        if pin_matches(pin, path) and pin.regex.match(line):
             return (pin.ecosystem, pin.name)
     return None
 
@@ -216,7 +227,7 @@ def mask_line(path, line):
         if m:
             return f"{m.group(1)}{m.group(2)}{m.group(3)}<v>{m.group(5)}"
     for pin in PINS:
-        if glob_regex(pin.path).match(path):
+        if pin_matches(pin, path):
             m = pin.regex.match(line)
             if m:
                 return f"{m.group(1)}<v>{m.group(3)}"
@@ -233,7 +244,7 @@ def scan_text(path, text):
                 found.append(Occurrence("image", m.group(2), path, lineno, m.group(3)))
                 continue
         for pin in PINS:
-            if glob_regex(pin.path).match(path):
+            if pin_matches(pin, path):
                 m = pin.regex.match(line)
                 if m:
                     found.append(Occurrence(pin.ecosystem, pin.name, path, lineno, m.group(2)))
@@ -247,8 +258,7 @@ def scan(texts):
     for path in sorted(texts):
         found.extend(scan_text(path, texts[path]))
     for pin in PINS:
-        rx = glob_regex(pin.path)
-        paths = [p for p in texts if rx.match(p)]
+        paths = [p for p in texts if pin_matches(pin, p)]
         for path in paths:
             if not any(o.path == path and (o.ecosystem, o.name) == (pin.ecosystem, pin.name) for o in found):
                 raise UpdateError(f"{path}: the {pin.name} pin line is missing or not in the expected form")
@@ -280,7 +290,7 @@ def rewrite(texts, targets, sums=None):
                     lines[i] = f"{m.group(1)}{m.group(2)}{m.group(3)}{sums[m.group(2)]}{m.group(5)}{end}"
                     continue
             for pin in PINS:
-                if (pin.ecosystem, pin.name) in targets and glob_regex(pin.path).match(path):
+                if (pin.ecosystem, pin.name) in targets and pin_matches(pin, path):
                     m = pin.regex.match(line)
                     if m:
                         lines[i] = f"{m.group(1)}{targets[(pin.ecosystem, pin.name)]}{m.group(3)}{end}"

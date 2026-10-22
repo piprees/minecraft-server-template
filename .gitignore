@@ -57,6 +57,8 @@ mods/*/build/
 mods/*/.gradle/
 mods/*/run/
 mods/*/.fabric/
+mods/*/*/build/
+mods/*/*/run/
 
 # === Built mod JARs (produced by CI, never committed) ===
 dist/local-mods/

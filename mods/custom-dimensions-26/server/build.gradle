@@ -1,0 +1,36 @@
+plugins {
+	id 'net.fabricmc.fabric-loom'
+}
+
+base {
+	archivesName = 'customdimensions'
+}
+
+dependencies {
+	minecraft "com.mojang:minecraft:${project.minecraft_version}"
+	implementation "net.fabricmc:fabric-loader:${project.loader_version}"
+	implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+
+	implementation project(':core')
+	implementation project(':compiler')
+	include project(':core')
+	include project(':compiler')
+}
+
+processResources {
+	def version = project.version
+	inputs.property 'version', version
+	filesMatching('fabric.mod.json') {
+		expand 'version': version
+	}
+}
+
+loom {
+	runs {
+		server {
+			programArg '--nogui'
+			// -PselfTest=<file> runs the start-up self-test, writes its report and stops the server.
+			vmArg "-Dcustomdimensions.selftest=${project.findProperty('selfTest') ?: ''}"
+		}
+	}
+}

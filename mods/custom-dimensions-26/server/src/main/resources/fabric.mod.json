@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "id": "customdimensions",
+  "version": "${version}",
+  "name": "Custom Dimensions",
+  "description": "Server-side dimensions, worldgen, portals and rules for the Adventure Server.",
+  "license": "All-Rights-Reserved",
+  "environment": "*",
+  "entrypoints": {
+    "main": ["com.customdimensions.server.CustomDimensions"]
+  },
+  "depends": {
+    "fabricloader": ">=0.19.5",
+    "minecraft": "~26.3",
+    "java": ">=25",
+    "fabric-api": "*"
+  }
+}
