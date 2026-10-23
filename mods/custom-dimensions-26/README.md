@@ -27,11 +27,16 @@ one line per check to the report; a line starting `FAIL` is a failure. It activa
 unloads every lazy dimension in turn, so it runs for a few minutes; it sets
 `pause-when-empty-seconds` to 0 while it runs, because an empty server stops ticking.
 
+`runServer` also loads Open Parties and Claims and its Forge Config API Port
+dependency from the Modrinth maven (`localRuntime`, versions in
+`gradle.properties`), so the aura claim veto is exercised; neither is a compile
+dependency or nested in the jar.
+
 The persistence check takes two boots of the same world:
 
 ```bash
-./gradlew :server:runServer -PselfTest=/tmp/st.txt -PselfTestPersist=write   # places a marker, records 8 surface heights, lights a portal
-./gradlew :server:runServer -PselfTest=/tmp/st.txt -PselfTestPersist=verify  # reopens the level, compares them, finds the portal and its link
+./gradlew :server:runServer -PselfTest=/tmp/st.txt -PselfTestPersist=write   # places a marker, records 8 surface heights, lights a portal, sets its aura budgets
+./gradlew :server:runServer -PselfTest=/tmp/st.txt -PselfTestPersist=verify  # reopens the level, compares them, finds the portal, its link and its aura budgets
 ``` CI runs
 both (`.github/workflows/mod26.yml`), and a weekly canary builds against the
 newest snapshot (`.github/workflows/mod26-canary.yml`).
@@ -97,8 +102,42 @@ are game-free in `core/.../portal/`.
 | `Portals` | Per-level pass: single-use countdown, particles in the portal's colour, frame check (a covered nylium or grass block that decays still counts, T124); a frame break closes both ends |
 | `ExitPortals` | `exitPortal`: built near spawn while the level is open, rebuilt when broken |
 | `PortalTickets` | Arrival and exit-portal chunk tickets, released before `LevelManager` unloads a level |
+| `PortalAuras` | Each end of a link slowly takes on the far side's nature (below) |
+| `ClaimsCompat` | Open Parties and Claims' server API by reflection: fail-open, one WARN and off if a lookup throws |
+
+### Auras
+
+The first time a source portal links to an arrival (an existing one, the far
+end's own lit portal or a new one), both ends are sampled: the top five solid
+blocks, plants, logs as their `worldgen/feature` trees and still fluids in a
+9x7x9 box. The source zone keeps the far side's sample and an aura site at the
+arrival keeps the source's. An `aura.palette` replaces a sample, and a side
+with nothing resident to sample takes its definition's `materials.defaultBlock`.
+Nothing loads a chunk to sample.
+
+Passes run from the level's own tick, so a lazy level that is not ticking runs
+none and an aura holds no ticket. Every `interval` ticks a pass tries
+`blocksPerPass` random cells within `radius` (and 4 below to 5 above), until
+the lifetime `budget` is spent: fire at `fireChance`, a fluid only in a hollow
+(two units), a configured `aura.trees` feature, a plant, an `aura.conversions`
+entry, or the dominant palette block on an exposed solid face. `sides` picks
+the ends. Writes use `UPDATE_CLIENTS | UPDATE_KNOWN_SHAPE`.
+
+What an aura may replace is the live `subsume` of the dimension whose nature
+leaks (the link's target, at both ends): `none` replaces nothing and adds no
+fire or fluid, `natural` (the default) spares `#adventure:aura_protected`, and
+`everything` replaces anything. Under every policy it never touches a claimed
+chunk, the opening and its neighbours (the frame), a block entity, bedrock or a
+portal. The tag lists crafted blocks and is checked against the 26.3 block list
+by `AuraDataTest`. Budgets and palettes are saved with the portal links every
+1200 ticks while they change, on exhaustion and at shutdown; 1.21.1 aura fields
+and `aura-site-v1` records load.
 
 The self-test's portal matrix lights a bay for every definition's portal in
 the overworld, plus a flat bay where the definition allows one, drops an item
 through, follows it back, breaks one frame block and checks both ends closed.
+The aura checks stand a portal into a `none`, a `natural` and an `everything`
+dimension in a cobblestone box with planks and stone set in it, drive 300
+seeded passes each, then repeat it in claimed chunks, and check the frames,
+the per-pass and lifetime budgets, link sampling and the palette fallback.
 

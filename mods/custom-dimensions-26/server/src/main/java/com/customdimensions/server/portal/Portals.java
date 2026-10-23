@@ -103,6 +103,7 @@ public final class Portals {
         }
         clearPending(level);
         ExitPortals.tick(level);
+        PortalAuras.tick(level);
     }
 
     /** Every chunk under the opening and its frame is resident, so checking it loads nothing. */

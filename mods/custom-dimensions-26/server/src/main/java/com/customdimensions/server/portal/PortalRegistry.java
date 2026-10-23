@@ -1,5 +1,8 @@
 package com.customdimensions.server.portal;
 
+import com.customdimensions.core.config.PortalDefinition;
+import com.customdimensions.core.portal.Aura;
+import com.customdimensions.core.portal.AuraState;
 import com.customdimensions.core.portal.PortalLinksFile;
 import com.customdimensions.server.CustomDimensions;
 import com.google.gson.JsonElement;
@@ -25,7 +28,7 @@ import net.minecraft.world.level.storage.LevelResource;
 /**
  * Every lit portal on the server: source zones, arrival zones and the per-cell
  * return targets, keyed by the world they stand in, plus where each player
- * came from. Persisted to {@code <world>/data/customdimensions/portal_links.json}
+ * came from, and the aura sites at the far ends of links. Persisted to {@code <world>/data/customdimensions/portal_links.json}
  * in the 1.21.1 record format; on a world that has none yet, a 1.21.1 file at
  * {@code config/portal_links.json} is read instead.
  * <p>
@@ -41,10 +44,22 @@ public final class PortalRegistry {
     private final List<PortalLinksFile.ReturnLink> unkeyed = new ArrayList<>();
     private final List<JsonElement> foreign = new ArrayList<>();
     private final Map<ResourceKey<Level>, Set<BlockPos>> pendingClears = new HashMap<>();
+    private final Map<ResourceKey<Level>, Map<BlockPos, AuraSite>> auraSites = new HashMap<>();
     private Path file;
 
     /** Where a player stepped into a source portal, for the way back. */
     public record Origin(ResourceKey<Level> world, BlockPos pos) {
+    }
+
+    /** The aura around a link's far end, keyed by the opening's minimum corner. */
+    public record AuraSite(Set<BlockPos> interior, AuraState state, PortalDefinition.AuraSettings settings) {
+        public AuraSite {
+            interior = Set.copyOf(interior);
+        }
+
+        public BlockPos key() {
+            return Pos.mc(Aura.minCorner(PortalAuras.core(interior)));
+        }
     }
 
     public static PortalRegistry get() {
@@ -87,10 +102,15 @@ public final class PortalRegistry {
             if (stored.singleUseTicksLeft() != null) {
                 zone.singleUseTicksLeft = stored.singleUseTicksLeft();
             }
+            zone.aura = stored.aura();
             addIfAbsent(zone);
         }
+        for (PortalLinksFile.AuraSite stored : contents.auraSites()) {
+            putAuraSite(key(stored.world()), new AuraSite(Pos.mc(stored.interior()), stored.state(), stored.settings()));
+        }
         foreign.addAll(contents.other());
-        CustomDimensions.LOG.info("portal links: {} zones, {} return cells from {}", zoneCount(), targetCount(), source);
+        CustomDimensions.LOG.info("portal links: {} zones, {} return cells, {} aura sites from {}", zoneCount(),
+                targetCount(), auraSites.values().stream().mapToInt(Map::size).sum(), source);
     }
 
     public void clear() {
@@ -100,6 +120,7 @@ public final class PortalRegistry {
         unkeyed.clear();
         foreign.clear();
         pendingClears.clear();
+        auraSites.clear();
     }
 
     public void save() {
@@ -113,9 +134,12 @@ public final class PortalRegistry {
         List<PortalLinksFile.Zone> stored = new ArrayList<>();
         zones.values().forEach(list -> list.forEach(z -> stored.add(new PortalLinksFile.Zone(z.arrival,
                 z.world.identifier().toString(), z.target.identifier().toString(), Pos.core(z.axis), z.definition,
-                z.coreInterior(), z.singleUseTicksLeft >= 0 ? z.singleUseTicksLeft : null))));
+                z.coreInterior(), z.singleUseTicksLeft >= 0 ? z.singleUseTicksLeft : null, z.aura))));
+        List<PortalLinksFile.AuraSite> sites = new ArrayList<>();
+        auraSites.forEach((world, map) -> map.values().forEach(s -> sites.add(new PortalLinksFile.AuraSite(
+                world.identifier().toString(), PortalAuras.core(s.interior()), s.state(), s.settings()))));
         try {
-            PortalLinksFile.write(file, new PortalLinksFile.Contents(links, stored, foreign, List.of()));
+            PortalLinksFile.write(file, new PortalLinksFile.Contents(links, stored, sites, foreign, List.of()));
         } catch (IOException e) {
             CustomDimensions.LOG.warn("portal links not saved to {}: {}", file, e.toString());
         }
@@ -137,11 +161,13 @@ public final class PortalRegistry {
         return true;
     }
 
+    /** Unlights a zone; the aura site around the same opening goes with it. */
     public void remove(PortalZone zone) {
         List<PortalZone> list = zones.get(zone.world);
         if (list != null) {
             list.remove(zone);
         }
+        removeAuraSite(zone.world, Pos.mc(Aura.minCorner(zone.coreInterior())));
     }
 
     /** Whether {@code zone} is still lit; a pass over a copy of the list skips zones broken earlier in it. */
@@ -226,10 +252,31 @@ public final class PortalRegistry {
         zones.remove(world);
         targets.remove(world);
         pendingClears.remove(world);
+        auraSites.remove(world);
         if (dropped > 0) {
             CustomDimensions.LOG.info("portal links: dropped {} zones in deleted {}", dropped, world.identifier());
             save();
         }
+    }
+
+    public AuraSite auraSite(ResourceKey<Level> world, BlockPos key) {
+        return auraSites.getOrDefault(world, Map.of()).get(key);
+    }
+
+    public void putAuraSite(ResourceKey<Level> world, AuraSite site) {
+        auraSites.computeIfAbsent(world, k -> new java.util.LinkedHashMap<>()).put(site.key(), site);
+    }
+
+    public void removeAuraSite(ResourceKey<Level> world, BlockPos key) {
+        Map<BlockPos, AuraSite> map = auraSites.get(world);
+        if (map != null) {
+            map.remove(key);
+        }
+    }
+
+    /** A copy of {@code world}'s aura sites by key. */
+    public Map<BlockPos, AuraSite> auraSites(ResourceKey<Level> world) {
+        return Map.copyOf(auraSites.getOrDefault(world, Map.of()));
     }
 
     public void setOrigin(UUID id, ResourceKey<Level> world, BlockPos pos) {

@@ -29,7 +29,8 @@ import net.minecraft.world.phys.Vec3;
  * existing arrival there, the portal a player lit at that end, or a new
  * arrival at an open or carved site. Out of an arrival: its exit mode
  * ({@code bed}, {@code worldSpawn}, {@code origin}, a dimension link), the
- * player's origin, or the column of the portal that built it.
+ * player's origin, or the column of the portal that built it. Each of the
+ * three ways out is a link, and the first link samples both ends' auras.
  * <p>
  * Nothing here waits. A player bound for a lazy destination opens it through
  * {@link LevelManager#activate}; anything else crosses only into a level that
@@ -125,11 +126,13 @@ public final class PortalTravel {
         BlockPos landing;
         if (existing != null) {
             landing = existing.landing();
+            PortalAuras.onLink(level, zone, target, existing.interior);
         } else {
             PortalZone counterpart = def.hasAnchor() ? null
                     : PortalRegistry.get().sourceNear(target.dimension(), zone.world, x, z, REUSE_RADIUS);
             if (counterpart != null) {
                 landing = counterpart.landing();
+                PortalAuras.onLink(level, zone, target, counterpart.interior);
             } else {
                 PortalZone built = buildArrival(target, zone, pos, x, z, exitMode);
                 if (built == null) {
@@ -141,6 +144,7 @@ public final class PortalTravel {
                     return null;
                 }
                 landing = built.landing();
+                PortalAuras.onLink(level, zone, target, built.interior);
             }
         }
         if (entity instanceof ServerPlayer) {

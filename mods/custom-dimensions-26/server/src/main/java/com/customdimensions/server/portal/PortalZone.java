@@ -1,6 +1,7 @@
 package com.customdimensions.server.portal;
 
 import com.customdimensions.core.config.PortalDefinition;
+import com.customdimensions.core.portal.AuraState;
 import com.customdimensions.core.portal.PortalGeometry;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -25,6 +26,8 @@ public final class PortalZone {
     public final boolean arrival;
     /** Single-use countdown: -1 never traversed, above 0 ticking, 0 expires this tick. */
     public int singleUseTicksLeft = -1;
+    /** A source zone's aura, the far side's nature; null until the zone first links. */
+    public AuraState aura;
 
     public PortalZone(Set<BlockPos> interior, PortalDefinition definition, Direction.Axis axis,
                       ResourceKey<Level> world, ResourceKey<Level> target, boolean arrival) {

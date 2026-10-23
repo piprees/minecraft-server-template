@@ -11,6 +11,13 @@ repositories {
 		name = 'Nucleoid'
 		url = 'https://maven.nucleoid.xyz/'
 	}
+	maven {
+		name = 'Modrinth'
+		url = 'https://api.modrinth.com/maven'
+		content {
+			includeGroup 'maven.modrinth'
+		}
+	}
 }
 
 dependencies {
@@ -27,6 +34,10 @@ dependencies {
 		implementation "eu.pb4:${module}:${project.polymer_version}"
 		include "eu.pb4:${module}:${project.polymer_version}"
 	}
+
+	// Open Parties and Claims, for the aura claim veto in runServer only; the mod reaches it by reflection.
+	localRuntime "maven.modrinth:open-parties-and-claims:${project.opac_version}"
+	localRuntime "maven.modrinth:forge-config-api-port:${project.forge_config_api_port_version}"
 
 	implementation project(':core')
 	implementation project(':compiler')
@@ -64,4 +75,11 @@ loom {
 
 tasks.matching { it.name == 'runServer' }.configureEach {
 	dependsOn ':compiler:vanillaData'
+}
+
+tasks.named('test') {
+	dependsOn ':compiler:vanillaData'
+	systemProperty 'customdimensions.vanilla',
+			project(':compiler').layout.buildDirectory.dir("vanilla/${project.minecraft_version}").get().asFile.absolutePath
+	systemProperty 'customdimensions.definitions', file('../definitions').canonicalPath
 }

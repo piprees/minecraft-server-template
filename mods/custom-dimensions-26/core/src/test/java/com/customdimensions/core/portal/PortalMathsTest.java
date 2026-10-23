@@ -115,7 +115,7 @@ class PortalMathsTest {
                         "minecraft:overworld", 70, 0x8844FF, 40, null, "bed", 4, 9)),
                 List.of(new PortalLinksFile.Zone(false, "minecraft:overworld", "adventure:the_ashgrove",
                         Direction.Axis.Z, def, interior, 120)),
-                List.of(JsonParser.parseString("{\"recordType\":\"aura-site-v1\",\"world\":\"minecraft:overworld\"}")),
+                List.of(JsonParser.parseString("{\"recordType\":\"future-record-v1\",\"world\":\"minecraft:overworld\"}")),
                 List.of());
         Path file = dir.resolve("portal_links.json");
         PortalLinksFile.write(file, contents);
@@ -146,7 +146,7 @@ class PortalMathsTest {
                    "interior": [{"x": 80, "y": 68, "z": -32}, {"x": 81, "y": 68, "z": -32}]},
                   {"recordType": "source-zone-v1", "sourceWorld": "not an id!", "targetWorld": "a:b", "axis": "X",
                    "definition": {}, "interior": [{"x": 0, "y": 0, "z": 0}]},
-                  {"recordType": "aura-site-v1", "world": "minecraft:overworld"}
+                  {"recordType": "future-record-v1", "world": "minecraft:overworld"}
                 ]""";
         PortalLinksFile.Contents c = PortalLinksFile.parse(JsonParser.parseString(saved));
         assertEquals(2, c.links().size());

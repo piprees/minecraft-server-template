@@ -129,6 +129,7 @@ public final class PortalSelfTest {
                 .thenCompose(v -> refusals())
                 .thenCompose(v -> vanilla())
                 .thenCompose(v -> standingAndCrossing())
+                .thenRun(() -> lines.addAll(AuraSelfTest.run(server)))
                 .thenCompose(v -> matrix())
                 .thenRun(() -> lines.add(noneActive()))
                 .handle((v, error) -> {
@@ -703,16 +704,17 @@ public final class PortalSelfTest {
                             arrived.getBlockX(), arrived.getBlockZ(), 6, a -> true);
                     arrived.discard();
                     if (arrival == null) throw new IllegalStateException("no arrival registered");
+                    String aura = AuraSelfTest.persistWrite(lit.zone(), arrival);
                     PortalRegistry.get().save();
                     try {
                         Files.writeString(file, lit.zone().landingCell().toShortString() + "\n"
-                                + arrival.landingCell().toShortString() + "\n");
+                                + arrival.landingCell().toShortString() + "\n" + aura + "\n");
                     } catch (IOException e) {
                         throw new CompletionException(e);
                     }
                     return "PASS " + name + ": " + PERSIST_PORTAL + " lit at " + lit.zone().landingCell().toShortString()
                             + ", arrival in " + target.identifier() + " at " + arrival.landingCell().toShortString()
-                            + "; " + PortalRegistry.get().zoneCount() + " zones saved";
+                            + "; " + PortalRegistry.get().zoneCount() + " zones saved; aura spent " + aura;
                 });
             }
             return verify(level, def, target, file, name);
@@ -739,6 +741,7 @@ public final class PortalSelfTest {
         if (blocks != zone.interior.size()) {
             throw new IllegalStateException(blocks + "/" + zone.interior.size() + " source portal blocks intact");
         }
+        String aura = AuraSelfTest.persistVerify(zone, target, arrivalCell, recorded.size() > 2 ? recorded.get(2) : "");
         PortalZone.ReturnTarget back = PortalRegistry.get().target(target, arrivalCell);
         if (back == null || !back.leadsTo().equals(level.dimension())) {
             throw new IllegalStateException("arrival link at " + arrivalCell.toShortString() + " missing");
@@ -754,7 +757,7 @@ public final class PortalSelfTest {
                 if (!built) throw new IllegalStateException("arrival portal block at " + arrivalCell.toShortString() + " gone");
                 return "PASS " + name + ": " + PERSIST_PORTAL + " source zone and its " + blocks
                         + " portal blocks intact at " + source.toShortString() + "; arrival in " + target.identifier()
-                        + " at " + arrivalCell.toShortString() + " linked back and built";
+                        + " at " + arrivalCell.toShortString() + " linked back and built; " + aura;
             });
         });
     }
