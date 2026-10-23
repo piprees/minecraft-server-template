@@ -62,4 +62,4 @@ Fabric API, Fantasy (LGPL, bundled inside our jar) and Polymer, all kept current
 
 - **Base four, eager:** `minecraft:overworld`, `minecraft:the_nether`, `minecraft:the_end` and `adventure:the_aviary` come from generated entries and load at start. The Sift, when a snapshot adds it, becomes a fifth base world the same way.
 - **The other 78, lazy:** Fantasy's persistent levels open on first entry, one first-time generation at a time ([K6](../../../TROUBLESHOOTING.md#k6)), and unload when idle.
-- **Deletion:** deleting a dimension edits `data/minecraft/world_gen_settings.dat`, which holds what 1.21.1 kept in `level.dat`.
+- **Deletion:** Fantasy's delete unregisters the level stem and removes `dimensions/<ns>/<slug>/`. Fantasy never writes runtime levels to `data/minecraft/world_gen_settings.dat`, so that file needs no edit.

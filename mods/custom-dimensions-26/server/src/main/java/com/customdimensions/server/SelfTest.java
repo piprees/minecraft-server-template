@@ -6,6 +6,7 @@ import com.customdimensions.compiler.datapack.VersionTable;
 import com.customdimensions.compiler.zone.ZoneDensity;
 import com.customdimensions.core.zone.ZoneMask;
 import com.customdimensions.core.zone.ZoneShape;
+import com.customdimensions.server.level.LevelSelfTest;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import com.mojang.serialization.Codec;
@@ -22,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.BiConsumer;
 import java.util.stream.Stream;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
@@ -49,7 +51,8 @@ import net.minecraft.world.timeline.Timeline;
  * Start-up checks against the running game, enabled by
  * {@code -Dcustomdimensions.selftest=<report file>}: the server writes the
  * report and stops. CI boots the mod this way; a line starting {@code FAIL}
- * fails the build. The compiled-pack checks read the definitions from
+ * fails the build. The runtime-level checks ({@link LevelSelfTest}) run across
+ * ticks, so the report is written when they finish. The compiled-pack checks read the definitions from
  * {@code -Dcustomdimensions.definitions} and vanilla's files from
  * {@code -Dcustomdimensions.vanilla}.
  */
@@ -70,13 +73,22 @@ final class SelfTest {
         List<String> lines = new ArrayList<>();
         lines.add(check("zone mask parses and samples like core", () -> zoneMask(server)));
         lines.addAll(compiledPack(server));
+        CompletableFuture<List<String>> levels;
         try {
-            Files.write(report, lines);
-        } catch (IOException e) {
-            CustomDimensions.LOG.error("self-test report not written", e);
+            levels = LevelSelfTest.run(server);
+        } catch (Throwable t) {
+            levels = CompletableFuture.completedFuture(List.of("FAIL runtime levels: " + t));
         }
-        lines.forEach(CustomDimensions.LOG::info);
-        server.halt(false);
+        levels.whenComplete((more, error) -> {
+            lines.addAll(error == null ? more : List.of("FAIL runtime levels: " + error));
+            try {
+                Files.write(report, lines);
+            } catch (IOException e) {
+                CustomDimensions.LOG.error("self-test report not written", e);
+            }
+            lines.forEach(CustomDimensions.LOG::info);
+            server.halt(false);
+        });
     }
 
     private static String check(String name, Check check) {

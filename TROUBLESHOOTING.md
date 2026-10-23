@@ -1596,6 +1596,34 @@ A seed's map and its banked facts appear to contradict each other — the thumbn
   the same trap. Pin it against the Java, not against intuition —
   `scripts/e2e/portal-matrix-selftest.sh` is the worked example.
 
+<a id="t120"></a>
+### T120 — On 26.x a server-thread task longer than 60 seconds kills the server
+
+- **Symptom:** a render, roll or self-test started from a server event runs for a minute, then the log reads `A single server tick took 60.00 seconds` and the server shuts itself down with a crash report.
+- **Cause:** vanilla's watchdog (`max-tick-time`, default 60000 ms) counts any work done on the server thread, and a whole-area sample (160,000 columns at 370–474 µs each) is far longer than that.
+- **Fix:** rendering and rolling run off the server thread (rebuild RB-28). A test boot that must do long work on the thread sets `max-tick-time=-1` in its own `server.properties`; production never does.
+
+<a id="t119"></a>
+### T119 — On an empty 26.x server, tick-driven work stops
+
+- **Symptom:** in the 26.3 mod, a queued dimension activation never finishes, a lazy level never unloads, or an idle timer never fires, but only when nobody is online.
+- **Cause:** `pause-when-empty-seconds` (default 60) stops `tickServer` before `END_SERVER_TICK` and before any level ticks, so every tick-driven callback freezes until a player joins.
+- **Fix:** nothing in production: with nobody online there is nothing to activate or unload. A self-test that drives activations without players sets the pause to 0 through `DedicatedServer.setPauseWhenEmptySeconds` and restores it afterwards (`LevelSelfTest`).
+
+<a id="t118"></a>
+### T118 — A Fantasy level held by our ticket never unloads
+
+- **Symptom:** in the 26.3 mod, `RuntimeLevelHandle.unload()` returns but the level stays in `server.levelKeys()` indefinitely; or the tick that unloads a freshly generated level takes most of a second.
+- **Cause:** Fantasy finishes an unload only once the level has no loaded chunks and its chunk map is idle, so the spawn ticket (`customdimensions:lazy_spawn`) keeps it alive. Its unload also saves with flush on the tick, which held one tick for 720 ms after a first-time generation.
+- **Fix:** `LevelManager` removes its ticket, saves without flushing 20 ticks ahead, then calls `unload()` and polls `levelKeys()` with a cap; it never assumes the unload happened. Measured: 21 ticks to leave, longest tick 93 ms.
+
+<a id="t117"></a>
+### T117 — 26.x has no always-loaded spawn chunks
+
+- **Symptom:** on 26.3, an entity placed near 0,0 after start-up never moves or ticks. Its removal reason is `UNLOADED_TO_CHUNK`: it was saved to disk with its chunk.
+- **Cause:** spawn chunks are not kept loaded on 26.x, so nothing near spawn ticks without a player or a ticket.
+- **Fix:** anything that must keep ticking (a portal under test, a lazy level's spawn, an arrival site) holds an explicit ticket: `setChunkForced`, `TeleportTransition.PLACE_PORTAL_TICKET`, or a ticket type of ours through `ServerChunkCache.addTicketAndLoadWithRadius`.
+
 <a id="t116"></a>
 ### T116 — A projection figure that names no portal is the sum of all of them
 

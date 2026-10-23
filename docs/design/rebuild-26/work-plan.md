@@ -53,7 +53,7 @@ Check: golden-file tests per version; the generated pack loads on a vanilla 26.3
 ### M2 · Levels — 4 days · agent
 
 - The four base worlds come from generated entries for `minecraft:overworld`, `the_nether`, `the_end` and `adventure:the_aviary`, loaded at start. The other 78 open lazily through Fantasy's persistent levels, one first-time generation at a time (K6), and unload when idle.
-- Deleting a dimension edits `data/minecraft/world_gen_settings.dat`.
+- Deleting a dimension uses Fantasy's delete, which removes the folder and the stem; `world_gen_settings.dat` never holds runtime levels.
 
 Check: 82 dimensions visited in turn by a Carpet fake player; memory returns to baseline after idle unload.
 

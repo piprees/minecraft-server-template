@@ -1,5 +1,8 @@
 package com.customdimensions.server;
 
+import com.customdimensions.server.level.LevelCommands;
+import com.customdimensions.server.level.LevelManager;
+import com.customdimensions.server.level.PackInstaller;
 import net.fabricmc.api.ModInitializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,6 +13,9 @@ public final class CustomDimensions implements ModInitializer {
 
     @Override
     public void onInitialize() {
+        PackInstaller.install();
+        LevelManager.register();
+        LevelCommands.register();
         SelfTest.register();
     }
 }

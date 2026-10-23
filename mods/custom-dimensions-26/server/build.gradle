@@ -6,15 +6,30 @@ base {
 	archivesName = 'customdimensions'
 }
 
+repositories {
+	maven {
+		name = 'Nucleoid'
+		url = 'https://maven.nucleoid.xyz/'
+	}
+}
+
 dependencies {
 	minecraft "com.mojang:minecraft:${project.minecraft_version}"
 	implementation "net.fabricmc:fabric-loader:${project.loader_version}"
 	implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
 
+	// Runtime levels (decisions.md RB-10). LGPL, nested unmodified.
+	implementation "xyz.nucleoid:fantasy:${project.fantasy_version}"
+	include "xyz.nucleoid:fantasy:${project.fantasy_version}"
+
 	implementation project(':core')
 	implementation project(':compiler')
 	include project(':core')
 	include project(':compiler')
+
+	testImplementation platform("org.junit:junit-bom:${project.junit_version}")
+	testImplementation 'org.junit.jupiter:junit-jupiter'
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
 processResources {
@@ -31,8 +46,11 @@ loom {
 			programArg '--nogui'
 			// -PselfTest=<file> runs the start-up self-test, writes its report and stops the server.
 			vmArg "-Dcustomdimensions.selftest=${project.findProperty('selfTest') ?: ''}"
+			// -PselfTestPersist=write|verify: the two-boot persistence check, run with the self-test.
+			vmArg "-Dcustomdimensions.selftest.persist=${project.findProperty('selfTestPersist') ?: ''}"
 			// The self-test compiles definitions/ against vanilla's files and decodes the result.
-			vmArg "-Dcustomdimensions.definitions=${file('../definitions').canonicalPath}"
+			// -Pdefinitions=<dir> runs against another definitions folder.
+			vmArg "-Dcustomdimensions.definitions=${project.findProperty('definitions') ?: file('../definitions').canonicalPath}"
 			vmArg "-Dcustomdimensions.vanilla=${project(':compiler').layout.buildDirectory.dir("vanilla/${project.minecraft_version}").get().asFile.absolutePath}"
 		}
 	}

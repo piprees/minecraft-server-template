@@ -11,7 +11,7 @@ lasting record is `docs/design/rebuild-26/` and `TROUBLESHOOTING.md`.
 - Blocked on the owner: merging PR #29 and the Dependabot PRs into `main`
   (refused by the session's permission rules), then the private switch in the
   order recorded in the log.
-- Rebuild: F0–F3 and M1 done. Next: M2 (lazy levels on Fantasy).
+- Rebuild: F0–F3, M1 and M2 done. Next: owner's pick (M3–M10, W1+, P1+).
 - Plan of record: `docs/design/rebuild-26/README.md`.
 
 ## Log
@@ -65,3 +65,6 @@ lasting record is `docs/design/rebuild-26/` and `TROUBLESHOOTING.md`.
 - 10-22 — M1 DONE (verified): goldens hold diffs from vanilla (`GoldenForm`: base + changed/removed; vanilla objects and climate parameters as sha1), 47 KB of content, grep clean of noise_router/material_rule/parameters/bed rules; 636 tests pass; self-test decodes 12 timelines, 78 dimension types, 24 noise settings, 78 level stems; vanilla boot check passes with all four base worlds entered. Compile totals: 78 compiled, 4 clones reported, 74 lazy stems, 596 skipped biome references, 6 plains fallbacks, 482 unsupported fields (runtime or later packages).
 - 10-22 — Finding: vanilla 26.3's overworld biome list overlaps (dripstone_caves/lush_caves/sulfur_caves); 26.4 forbids overlap, so `MultiNoise.carve` cuts later overlapping entries outside earlier ones. M1 mapping choices: natural → nether_portal_spawns_piglin; fixedTime → frozen one-keyframe copies of the type's periodic timelines + has_fixed_time; effects → copy skybox/cardinal_light/cloud/fog attributes from that world's type; ultraWarm → water_evaporates + fast_lava; 26.4 data pack format 125.
 - 10-22 — M2 handed to a subagent: LevelIndex (decode lazy stems from resources), LevelManager (Fantasy activation queue per K6, non-blocking spawn-chunk generation with a ticket, polled unload, idle unload, delete incl. world_gen_settings.dat check), per-dimension borders, temporary /customdim list|activate|tp|unload, self-test activating all 74 lazy dimensions one at a time, two-boot persistence check. Progress: /tmp/claude-0/m2-progress.log.
+- 10-23 — M2 DONE (verified on a fresh world): 656 tests; self-test 13/13 PASS, including all 74 lazy dimensions activated and unloaded one at a time (74 first-time, 88.3 s total, mean 1.19 s, worst 2.8 s), world_gen_settings.dat holding no lazy level, delete leaving nothing, temporary /customdim commands. The agent's two-boot persistence check passed (a marker block proves the void chunk reloaded rather than regenerated); latest.log has no ERROR or Exception. Lazy levels mirror the overworld's rules, clocks and difficulty; seed "env" or absent uses the world seed.
+- 10-23 — Quirks recorded as TROUBLESHOOTING T117 (no spawn chunks), T118 (Fantasy unload blocked by our ticket; save ahead), T119 (pause-when-empty freezes tick work), T120 (watchdog). architecture.md and work-plan.md corrected: Fantasy never writes runtime levels to world_gen_settings.dat. mod26.yml timeout raised to 35 min (the self-test adds ~3 min).
+- 10-23 — Not yet run: `/customdim tp` with a real player (no client here); the two-boot persistence check is not in CI.
