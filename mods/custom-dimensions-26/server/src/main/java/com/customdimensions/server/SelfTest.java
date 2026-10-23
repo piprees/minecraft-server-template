@@ -7,6 +7,7 @@ import com.customdimensions.compiler.zone.ZoneDensity;
 import com.customdimensions.core.zone.ZoneMask;
 import com.customdimensions.core.zone.ZoneShape;
 import com.customdimensions.server.level.LevelSelfTest;
+import com.customdimensions.server.portal.PortalSelfTest;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import com.mojang.serialization.Codec;
@@ -79,8 +80,17 @@ final class SelfTest {
         } catch (Throwable t) {
             levels = CompletableFuture.completedFuture(List.of("FAIL runtime levels: " + t));
         }
-        levels.whenComplete((more, error) -> {
+        levels.handle((more, error) -> {
             lines.addAll(error == null ? more : List.of("FAIL runtime levels: " + error));
+            return null;
+        }).thenCompose(v -> {
+            try {
+                return PortalSelfTest.run(server);
+            } catch (Throwable t) {
+                return CompletableFuture.completedFuture(List.of("FAIL portals: " + t));
+            }
+        }).whenComplete((more, error) -> {
+            lines.addAll(error == null ? more : List.of("FAIL portals: " + error));
             try {
                 Files.write(report, lines);
             } catch (IOException e) {

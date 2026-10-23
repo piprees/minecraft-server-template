@@ -68,8 +68,8 @@ public class MultiverseConfig {
         this.applyLoadResult(result);
     }
 
-    /** Also the test seam: apply a LoadResult without a live server. */
-    void applyLoadResult(DimensionConfigLoader.LoadResult result) {
+    /** Applies a LoadResult: the server builds one from the v2 definitions, tests from fixtures. */
+    public void applyLoadResult(DimensionConfigLoader.LoadResult result) {
         this.settings = result.settings();
         this.configs = new LinkedHashMap<>(result.dimensions());
         this.portals = new ArrayList<>();

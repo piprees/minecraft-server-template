@@ -67,6 +67,8 @@ public final class LevelManager {
     public record Activation(String slug, ServerLevel level, long millis, boolean firstTime) {}
 
     private static LevelManager instance;
+    private static final List<java.util.function.Consumer<ServerLevel>> CLOSE_LISTENERS = new ArrayList<>();
+    private static final List<java.util.function.Consumer<ResourceKey<Level>>> DELETE_LISTENERS = new ArrayList<>();
 
     private final MinecraftServer server;
     private final LevelIndex index;
@@ -123,6 +125,19 @@ public final class LevelManager {
         CustomDimensions.LOG.info("level index: {} lazy dimensions, {} paired with a definition, in {} ms; idle unload {}",
                 index.lazy().size(), index.paired(), (System.nanoTime() - begin) / 1_000_000,
                 instance.idle.enabled() ? index.idleUnloadMinutes() + " min" : "off");
+    }
+
+    /**
+     * Runs {@code listener} on a level just before it unloads or is deleted,
+     * so whoever placed a ticket in it can remove it (TROUBLESHOOTING.md T118).
+     */
+    public static void onClose(java.util.function.Consumer<ServerLevel> listener) {
+        CLOSE_LISTENERS.add(listener);
+    }
+
+    /** Runs {@code listener} with a level's key when {@link #delete} removes it, so records of its blocks can go. */
+    public static void onDelete(java.util.function.Consumer<ResourceKey<Level>> listener) {
+        DELETE_LISTENERS.add(listener);
     }
 
     /** The manager for the running server, once SERVER_STARTED has run. */
@@ -188,6 +203,7 @@ public final class LevelManager {
         idle.forget(slug);
         ServerLevel level = o.handle.asLevel();
         level.getChunkSource().removeTicketWithRadius(SPAWN_TICKET, o.spawn, TICKET_RADIUS);
+        CLOSE_LISTENERS.forEach(l -> l.accept(level));
         level.save(null, false, false);
         Closing closing = new Closing(level.dimension(), false);
         closing.unload = o.handle;
@@ -212,12 +228,17 @@ public final class LevelManager {
         if (o != null) {
             idle.forget(slug);
             o.handle.asLevel().getChunkSource().removeTicketWithRadius(SPAWN_TICKET, o.spawn, TICKET_RADIUS);
+            CLOSE_LISTENERS.forEach(l -> l.accept(o.handle.asLevel()));
             handle = o.handle;
         } else {
-            if (!Files.exists(dimensionPath(entry.get().key()))) return CompletableFuture.completedFuture(0);
+            if (!Files.exists(dimensionPath(entry.get().key()))) {
+                DELETE_LISTENERS.forEach(l -> l.accept(entry.get().key()));
+                return CompletableFuture.completedFuture(0);
+            }
             handle = Fantasy.get(server).getOrOpenPersistentLevel(entry.get().key().identifier(), config(entry.get()));
         }
         handle.delete();
+        DELETE_LISTENERS.forEach(l -> l.accept(entry.get().key()));
         Closing closing = new Closing(handle.getRegistryKey(), true);
         this.closing.put(slug, closing);
         return closing.done;
@@ -353,6 +374,11 @@ public final class LevelManager {
 
     private static com.customdimensions.core.BlockPos spawnOf(LevelIndex.Entry entry) {
         return entry.definition() == null ? null : entry.definition().spawn();
+    }
+
+    /** The lazy dimension whose level is {@code key}, if it is one. */
+    public Optional<String> slugOf(ResourceKey<Level> key) {
+        return index.lazy().values().stream().filter(e -> e.key().equals(key)).map(LevelIndex.Entry::slug).findFirst();
     }
 
     /** The definition's spawn, or none. */

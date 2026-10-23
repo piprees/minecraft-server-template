@@ -22,6 +22,12 @@ dependencies {
 	implementation "xyz.nucleoid:fantasy:${project.fantasy_version}"
 	include "xyz.nucleoid:fantasy:${project.fantasy_version}"
 
+	// The portal block (decisions.md RB-11, RB-26). Loom's include is not transitive, so each module is nested.
+	for (module in ['polymer-core', 'polymer-common', 'polymer-networking', 'polymer-reg-sync-manipulator']) {
+		implementation "eu.pb4:${module}:${project.polymer_version}"
+		include "eu.pb4:${module}:${project.polymer_version}"
+	}
+
 	implementation project(':core')
 	implementation project(':compiler')
 	include project(':core')

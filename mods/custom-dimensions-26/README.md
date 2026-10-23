@@ -30,8 +30,8 @@ unloads every lazy dimension in turn, so it runs for a few minutes; it sets
 The persistence check takes two boots of the same world:
 
 ```bash
-./gradlew :server:runServer -PselfTest=/tmp/st.txt -PselfTestPersist=write   # places a marker, records 8 surface heights
-./gradlew :server:runServer -PselfTest=/tmp/st.txt -PselfTestPersist=verify  # reopens the level, compares them
+./gradlew :server:runServer -PselfTest=/tmp/st.txt -PselfTestPersist=write   # places a marker, records 8 surface heights, lights a portal
+./gradlew :server:runServer -PselfTest=/tmp/st.txt -PselfTestPersist=verify  # reopens the level, compares them, finds the portal and its link
 ``` CI runs
 both (`.github/workflows/mod26.yml`), and a weekly canary builds against the
 newest snapshot (`.github/workflows/mod26-canary.yml`).
@@ -80,4 +80,25 @@ border is `2 × borders.player` around 0,0; a definition without one takes
 `settings.json`'s `defaults.borders.player`. Fantasy never writes its level
 stems to `world_gen_settings.dat`, so a deleted or unloaded level is not loaded
 on the next boot.
+
+## Portals
+
+`server/.../portal/` runs every portal through one Polymer block,
+`customdimensions:portal`, implementing vanilla's `Portal`. Upright on X or Z a
+vanilla client sees a Nether portal; flat it sees an End portal. The geometry,
+ignition sweep, refusal reasons, arrival-site search, decay and the links file
+are game-free in `core/.../portal/`.
+
+| Piece | What it does |
+| --- | --- |
+| `Ignition` | Fabric's use-block event: igniter on a frame, every definition the item lights a candidate, the closest refusal logged (`portal ignition refused`) |
+| `PortalTravel` | The destination: scaled column or anchor, an existing arrival, the far end's own lit portal, or a new arrival at an open or carved site; the way back by exit mode, origin or source column. A lazy target opens through `LevelManager` and the entity waits in the portal until it is ready |
+| `PortalRegistry` | Source and arrival zones and per-cell return targets, saved to `<world>/data/customdimensions/portal_links.json` in the 1.21.1 record format; a world without one reads `config/portal_links.json` |
+| `Portals` | Per-level pass: single-use countdown, particles in the portal's colour, frame check; a frame break closes both ends |
+| `ExitPortals` | `exitPortal`: built near spawn while the level is open, rebuilt when broken |
+| `PortalTickets` | Arrival and exit-portal chunk tickets, released before `LevelManager` unloads a level |
+
+The self-test's portal matrix lights a bay for every definition's portal in
+the overworld, plus a flat bay where the definition allows one, drops an item
+through, follows it back, breaks one frame block and checks both ends closed.
 
