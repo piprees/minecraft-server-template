@@ -144,6 +144,11 @@ public final class PortalRegistry {
         }
     }
 
+    /** Whether {@code zone} is still lit; a pass over a copy of the list skips zones broken earlier in it. */
+    public boolean contains(PortalZone zone) {
+        return zones.getOrDefault(zone.world, List.of()).contains(zone);
+    }
+
     public List<PortalZone> zones(ResourceKey<Level> world) {
         return List.copyOf(zones.getOrDefault(world, List.of()));
     }

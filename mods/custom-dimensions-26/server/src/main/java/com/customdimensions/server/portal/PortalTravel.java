@@ -31,8 +31,10 @@ import net.minecraft.world.phys.Vec3;
  * ({@code bed}, {@code worldSpawn}, {@code origin}, a dimension link), the
  * player's origin, or the column of the portal that built it.
  * <p>
- * Nothing here waits. A lazy destination goes through
- * {@link LevelManager#activate}, a cold arrival column gets a ticket, and
+ * Nothing here waits. A player bound for a lazy destination opens it through
+ * {@link LevelManager#activate}; anything else crosses only into a level that
+ * is already open, so a mob or a hopper line never keeps one loaded. A cold
+ * arrival column gets a ticket, and
  * until both are ready the answer is "not yet": no transition, and the
  * entity's portal cooldown is cleared so the next tick asks again.
  */
@@ -66,14 +68,17 @@ public final class PortalTravel {
         return null;
     }
 
-    /** The level behind {@code key}, opening it through the manager when it is lazy; empty until ready. */
-    static Optional<ServerLevel> ready(MinecraftServer server, ResourceKey<Level> key) {
+    /** The level behind {@code key}; a lazy one is opened for a player and empty until ready. */
+    static Optional<ServerLevel> ready(MinecraftServer server, ResourceKey<Level> key, Entity entity) {
         Optional<LevelManager> manager = LevelManager.get();
         Optional<String> slug = manager.flatMap(m -> m.slugOf(key));
         if (slug.isPresent()) {
             LevelManager m = manager.get();
             if (m.state(slug.get()) == LevelManager.State.ACTIVE) {
                 return m.level(slug.get());
+            }
+            if (!(entity instanceof ServerPlayer)) {
+                return Optional.empty();
             }
             m.activate(slug.get()).whenComplete((a, error) -> {
                 if (error != null && LOGGED_FAILURES.add(slug.get())) {
@@ -87,7 +92,7 @@ public final class PortalTravel {
 
     private static TeleportTransition out(ServerLevel level, Entity entity, BlockPos pos, PortalZone zone) {
         PortalDefinition def = zone.definition;
-        Optional<ServerLevel> found = ready(level.getServer(), zone.target);
+        Optional<ServerLevel> found = ready(level.getServer(), zone.target, entity);
         if (found.isEmpty()) {
             return hold(entity);
         }
@@ -261,7 +266,7 @@ public final class PortalTravel {
         if (worldKey.equals(level.dimension())) {
             return null;
         }
-        Optional<ServerLevel> found = ready(server, worldKey);
+        Optional<ServerLevel> found = ready(server, worldKey, entity);
         if (found.isEmpty()) {
             return hold(entity);
         }
@@ -300,7 +305,7 @@ public final class PortalTravel {
     private static TeleportTransition dimensionLink(MinecraftServer server, Entity entity, ExitTarget link,
                                                     TeleportTransition.PostTeleportTransition after) {
         ResourceKey<Level> key = PortalRegistry.key(link.getDimensionId());
-        Optional<ServerLevel> found = ready(server, key);
+        Optional<ServerLevel> found = ready(server, key, entity);
         if (found.isEmpty()) {
             return hold(entity);
         }

@@ -50,7 +50,13 @@ public final class PortalWorld {
         return state.isAir() || state.is(Blocks.LIGHT) || isPortal(state);
     }
 
+    /** The view ignition reads: a frame block must be an accepted form. */
     public static FrameView frameView(ServerLevel level) {
+        return frameView(level, false);
+    }
+
+    /** {@code standing} also accepts covered decay (nylium to netherrack), for checking a lit frame. */
+    public static FrameView frameView(ServerLevel level, boolean standing) {
         return new FrameView() {
             @Override
             public boolean isFillable(com.customdimensions.core.BlockPos pos) {
@@ -59,7 +65,8 @@ public final class PortalWorld {
 
             @Override
             public boolean matches(com.customdimensions.core.BlockPos pos, FrameForms frame) {
-                return frame.acceptsBlockId(blockId(level.getBlockState(Pos.mc(pos))));
+                String id = blockId(level.getBlockState(Pos.mc(pos)));
+                return standing ? frame.keepsStanding(id) : frame.acceptsBlockId(id);
             }
         };
     }
@@ -197,7 +204,7 @@ public final class PortalWorld {
 
     public static boolean frameIntact(ServerLevel level, PortalZone zone) {
         Set<com.customdimensions.core.BlockPos> core = zone.coreInterior();
-        FrameView view = frameView(level);
+        FrameView view = frameView(level, true);
         com.customdimensions.core.Direction.Axis axis = Pos.core(zone.axis);
         if (zone.arrival) {
             return PortalGeometry.isBoundedByFrame(view, core, validationForms(zone.definition, true), axis);

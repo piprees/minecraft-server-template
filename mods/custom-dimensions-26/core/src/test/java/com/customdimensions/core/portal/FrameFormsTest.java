@@ -70,4 +70,15 @@ class FrameFormsTest {
         }
         assertFalse(m.acceptsBlockId("minecraft:oak_log"));
     }
+
+    @Test
+    void aCoveredFrameBlockKeepsStandingAfterItDecays() {
+        FrameForms nylium = FrameForms.of(List.of("minecraft:warped_nylium"));
+        assertFalse(nylium.acceptsBlockId("minecraft:netherrack"));
+        assertTrue(nylium.keepsStanding("minecraft:netherrack"));
+        assertTrue(nylium.keepsStanding("minecraft:warped_nylium"));
+        assertFalse(nylium.keepsStanding("minecraft:dirt"));
+        assertTrue(FrameForms.of(List.of("minecraft:grass_block")).keepsStanding("minecraft:dirt"));
+        assertFalse(FrameForms.of(List.of("minecraft:stone")).keepsStanding("minecraft:netherrack"));
+    }
 }

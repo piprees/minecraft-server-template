@@ -92,9 +92,9 @@ are game-free in `core/.../portal/`.
 | Piece | What it does |
 | --- | --- |
 | `Ignition` | Fabric's use-block event: igniter on a frame, every definition the item lights a candidate, the closest refusal logged (`portal ignition refused`) |
-| `PortalTravel` | The destination: scaled column or anchor, an existing arrival, the far end's own lit portal, or a new arrival at an open or carved site; the way back by exit mode, origin or source column. A lazy target opens through `LevelManager` and the entity waits in the portal until it is ready |
+| `PortalTravel` | The destination: scaled column or anchor, an existing arrival, the far end's own lit portal, or a new arrival at an open or carved site; the way back by exit mode, origin or source column. Every entity crosses; a lazy target opens through `LevelManager` for a player only, and the entity waits in the portal until it is ready (RB-29) |
 | `PortalRegistry` | Source and arrival zones and per-cell return targets, saved to `<world>/data/customdimensions/portal_links.json` in the 1.21.1 record format; a world without one reads `config/portal_links.json` |
-| `Portals` | Per-level pass: single-use countdown, particles in the portal's colour, frame check; a frame break closes both ends |
+| `Portals` | Per-level pass: single-use countdown, particles in the portal's colour, frame check (a covered nylium or grass block that decays still counts, T124); a frame break closes both ends |
 | `ExitPortals` | `exitPortal`: built near spawn while the level is open, rebuilt when broken |
 | `PortalTickets` | Arrival and exit-portal chunk tickets, released before `LevelManager` unloads a level |
 

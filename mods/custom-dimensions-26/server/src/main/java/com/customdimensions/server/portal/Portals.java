@@ -84,7 +84,7 @@ public final class Portals {
         long time = level.getGameTime();
         PortalRegistry registry = PortalRegistry.get();
         for (PortalZone zone : registry.zones(level.dimension())) {
-            if (!loaded(level, zone)) {
+            if (!registry.contains(zone) || !loaded(level, zone)) {
                 continue;
             }
             if (zone.singleUseTicksLeft > 0) {

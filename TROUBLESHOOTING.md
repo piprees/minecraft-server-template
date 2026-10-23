@@ -1596,6 +1596,34 @@ A seed's map and its banked facts appear to contradict each other — the thumbn
   the same trap. Pin it against the Java, not against intuition —
   `scripts/e2e/portal-matrix-selftest.sh` is the worked example.
 
+<a id="t124"></a>
+### T124 — A lit nylium or grass portal frame decays under its own blocks
+
+- **Symptom:** in the 26.3 mod, a portal framed in warped or crimson nylium, grass or mycelium goes dark at both ends a few minutes after lighting, with `portal broken` in the log and nobody near it.
+- **Cause:** a frame block covered by another frame block decays on a random tick (nylium to netherrack, grass and mycelium to dirt), so the frame no longer matches its definition.
+- **Fix:** a lit frame is checked with `FrameForms.keepsStanding`, which also accepts the covered-decay form; ignition stays strict. Any other block in the ring still breaks the portal. Checked by the self-test line "a lit frame survives covered decay".
+
+<a id="t123"></a>
+### T123 — On 26.x, finding a player's respawn point can spend a respawn anchor charge
+
+- **Symptom:** a `bed` exit portal on 26.x drains a charge from the player's respawn anchor on every crossing.
+- **Cause:** `ServerPlayer.findRespawnPositionAndUseSpawnBlock(boolean, …)` spends the anchor's charge when its first argument is `true`; vanilla's respawn passes `!keepAllPlayerData`.
+- **Fix:** `PortalTravel` passes `false`. Any new caller that only needs the position passes `false` too.
+
+<a id="t122"></a>
+### T122 — A 26.x portal that answers "not yet" locks the entity out
+
+- **Symptom:** an entity stands in one of our portals and never crosses, even after the destination level has opened.
+- **Cause:** `Entity.handlePortal` sets the portal cooldown before it calls `Portal.getPortalDestination`, and `setAsInsidePortal` keeps the cooldown pinned while the entity stays inside. A `null` answer leaves the cooldown running, so the next attempt never comes.
+- **Fix:** a destination that is not ready clears the cooldown (`entity.setPortalCooldown(0)`) before returning `null` (`PortalTravel.hold`), so the next tick asks again.
+
+<a id="t121"></a>
+### T121 — On 26.x a radius-1 chunk ticket loads a chunk but never ticks its entities
+
+- **Symptom:** an item or mob sent to an arrival site in the 26.3 mod freezes in mid-air; the chunk is loaded, but nothing in it moves.
+- **Cause:** `addTicketAndLoadWithRadius(type, pos, 1)` brings the centre chunk to block-ticking level, not entity-ticking.
+- **Fix:** tickets that must tick entities use radius 2 (`PortalTickets.RADIUS`). A radius-1 ticket only holds blocks (`LevelManager.TICKET_RADIUS`, a lazy level's spawn chunk).
+
 <a id="t120"></a>
 ### T120 — On 26.x a server-thread task longer than 60 seconds kills the server
 

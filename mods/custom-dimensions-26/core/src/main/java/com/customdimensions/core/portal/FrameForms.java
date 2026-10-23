@@ -4,6 +4,7 @@ import com.customdimensions.core.Id;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * What a portal frame ACCEPTS, as parsed config: a union of plain block ids
@@ -90,6 +91,28 @@ public final class FrameForms {
      */
     public boolean acceptsBlockId(String blockId) {
         return this.acceptsBlockId(blockId, tagMembership);
+    }
+
+    /** The block a covered frame block decays into on a random tick, and the blocks that decay into it. */
+    static final Map<String, List<String>> COVERED_DECAY = Map.of(
+            "minecraft:netherrack", List.of("minecraft:crimson_nylium", "minecraft:warped_nylium"),
+            "minecraft:dirt", List.of("minecraft:grass_block", "minecraft:mycelium"));
+
+    /**
+     * Whether a block keeps a lit frame standing: an accepted block, or what an
+     * accepted block decays into once another frame block covers it. Ignition
+     * stays strict ({@link #acceptsBlockId(String)}).
+     */
+    public boolean keepsStanding(String blockId) {
+        if (this.acceptsBlockId(blockId)) {
+            return true;
+        }
+        for (String from : COVERED_DECAY.getOrDefault(blockId, List.of())) {
+            if (this.acceptsBlockId(from)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /** {@link #acceptsBlockId(String)} with an explicit tag lookup. */

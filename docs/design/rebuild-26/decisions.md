@@ -102,3 +102,7 @@ Rejected: a custom density-function type for every shape, kept only for shapes d
 
 **RB-28 — Rendering and rolling run off the server thread.**
 Why: a 160,000-column render took 59–76 s and a server-thread task over 60 s trips the watchdog, which kills the server. Sampling costs 370 µs per column without zones on one thread here.
+
+**RB-29 — Every entity crosses our portals; only a player opens a lazy level.**
+Why: the 26.3 portal block uses vanilla's `Portal` rules, so mobs, items and projectiles cross as they do through a Nether portal. A lazy destination opens only for a player; anything else waits until the level is already open, so a mob farm or hopper line beside a portal never keeps a level loaded.
+Rejected: players only (the 1.21.1 zone traversal), which needs a mixin and breaks the vanilla expectation that items and mobs follow players through.

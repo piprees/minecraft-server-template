@@ -128,6 +128,7 @@ public final class PortalSelfTest {
         return chain
                 .thenCompose(v -> refusals())
                 .thenCompose(v -> vanilla())
+                .thenCompose(v -> standingAndCrossing())
                 .thenCompose(v -> matrix())
                 .thenRun(() -> lines.add(noneActive()))
                 .handle((v, error) -> {
@@ -561,6 +562,66 @@ public final class PortalSelfTest {
             unforce(level, b);
             unforce(level, c);
         });
+    }
+
+    /**
+     * A lit nylium frame stays lit once its covered blocks decay to netherrack
+     * and breaks on a wrong block; an item never opens a lazy level, so it
+     * waits at a portal whose target is closed.
+     */
+    private CompletableFuture<Void> standingAndCrossing() {
+        ServerLevel level = server.overworld();
+        PortalDefinition def = portal("the_twisted_groves");
+        ResourceKey<Level> target = PortalRegistry.key(def.getTargetDimension());
+        BlockPos at = nextBayOrigin();
+        PortalZone[] lit = new PortalZone[1];
+        UUID[] item = new UUID[1];
+        List<String> results = new ArrayList<>();
+        boolean[] ok = {true};
+        return load(level, at).thenCompose(x -> {
+            Ignition.Outcome outcome = ignite(build(level, def, Direction.Axis.X, at, null));
+            if (outcome.zone() == null) {
+                throw new IllegalStateException("not lit: " + outcome.refusal());
+            }
+            lit[0] = outcome.zone();
+            return settleAndDeactivate(target);
+        }).thenCompose(x -> {
+            PortalZone zone = lit[0];
+            int decayed = 0;
+            for (com.customdimensions.core.BlockPos c : PortalGeometry.frameRing(zone.coreInterior(), Pos.core(zone.axis))) {
+                BlockPos p = Pos.mc(c);
+                if (level.getBlockState(p).is(Blocks.WARPED_NYLIUM)) {
+                    level.setBlock(p, Blocks.NETHERRACK.defaultBlockState(), PortalWorld.QUIET);
+                    decayed++;
+                }
+            }
+            Portals.validate(level, zone);
+            boolean standing = decayed > 0 && PortalRegistry.get().contains(zone)
+                    && zone.interior.stream().allMatch(p -> PortalWorld.isPortal(level.getBlockState(p)));
+            ok[0] &= standing;
+            results.add(decayed + " covered nylium blocks decayed to netherrack: " + (standing ? "still lit" : "broke"));
+            item[0] = drop(level, zone.interior, zone.axis).getUUID();
+            return ticks(60);
+        }).thenAccept(x -> {
+            PortalZone zone = lit[0];
+            Entity waiting = find(item[0]);
+            String state = LevelManager.get().flatMap(m -> m.slugOf(target)).map(slug -> LevelManager.get().get()
+                    .state(slug).name()).orElse("none");
+            boolean held = waiting != null && waiting.level() == level && "LAZY".equals(state);
+            ok[0] &= held;
+            results.add("an item at a portal into a closed lazy level after 60 ticks: "
+                    + (waiting == null ? "gone" : waiting.level().dimension().identifier()) + ", target " + state);
+            if (waiting != null) waiting.discard();
+            com.customdimensions.core.BlockPos first = PortalGeometry.frameRing(zone.coreInterior(), Pos.core(zone.axis)).get(0);
+            level.setBlock(Pos.mc(first), Blocks.COBBLESTONE.defaultBlockState(), PortalWorld.QUIET);
+            Portals.validate(level, zone);
+            boolean broken = !PortalRegistry.get().contains(zone)
+                    && zone.interior.stream().noneMatch(p -> PortalWorld.isPortal(level.getBlockState(p)));
+            ok[0] &= broken;
+            results.add("one frame block swapped for cobblestone: " + (broken ? "broke" : "still lit"));
+            lines.add((ok[0] ? "PASS" : "FAIL") + " a lit frame survives covered decay and items never open a lazy level: "
+                    + String.join("; ", results));
+        }).whenComplete((v, e) -> unforce(level, at));
     }
 
     private CompletableFuture<Void> vanilla() {
