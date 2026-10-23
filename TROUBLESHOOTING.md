@@ -1596,6 +1596,20 @@ A seed's map and its banked facts appear to contradict each other — the thumbn
   the same trap. Pin it against the Java, not against intuition —
   `scripts/e2e/portal-matrix-selftest.sh` is the worked example.
 
+<a id="t126"></a>
+### T126 — On 26.x, `ServerLevel.getBlockState` loads the chunk it reads
+
+- **Symptom:** a pass that only means to look (a portal aura, a frame check) loads chunks far from any player, and a lazy level never goes idle.
+- **Cause:** `ServerLevel.getBlockState` goes through `getChunk`, which loads or generates a missing chunk.
+- **Fix:** code that must not load chunks reads through `getChunkSource().getChunkNow(x >> 4, z >> 4)` and the chunk's own `getBlockState`, treating a missing chunk as unreadable (`LevelAuraWorld`), and checks residency again before every write.
+
+<a id="t125"></a>
+### T125 — The Modrinth maven resolves a shared version number to another loader's jar
+
+- **Symptom:** a dev-only runtime mod from `maven.modrinth` fails to load with `HARD_DEP_NO_CANDIDATE ... forgeconfigapiport`, although the dependency is declared.
+- **Cause:** when Fabric, Forge and NeoForge files share a version number (`forge-config-api-port` `26.3.1`), the maven serves one of them, not necessarily the Fabric file.
+- **Fix:** pin such a dependency by its Modrinth version id (`forge_config_api_port_version=JpKvrr9J` in `mods/custom-dimensions-26/gradle.properties`), looked up from the project's version list filtered to `fabric`.
+
 <a id="t124"></a>
 ### T124 — A lit nylium or grass portal frame decays under its own blocks
 
