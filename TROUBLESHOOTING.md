@@ -1596,6 +1596,20 @@ A seed's map and its banked facts appear to contradict each other — the thumbn
   the same trap. Pin it against the Java, not against intuition —
   `scripts/e2e/portal-matrix-selftest.sh` is the worked example.
 
+<a id="t132"></a>
+### T132 — Fabric's entity-load event fires for mobs read back from disk, and a fresh spawn is untracked for a few ticks
+
+- **Symptom:** a check that counts spawns in a dimension finds monsters the spawner never made, or reports a just-spawned mob missing.
+- **Cause:** `ServerEntityEvents.ENTITY_LOAD` fires for every entity that joins a level, including those a chunk load reads back from disk; a mob added to a chunk that was only just force-loaded is not returned by `level.getEntity(uuid)` until it is tracked, a few ticks later.
+- **Fix:** anything run once per mob marks it (the `customdimensions:difficulty_scaled` attachment). A count waits out a settle window after its chunks load, and a check reads a mob once it is tracked, not one tick after spawning it (`DifficultySelfTest`).
+
+<a id="t131"></a>
+### T131 — On 26.3 a level's monster spawning is reset every tick
+
+- **Symptom:** a peaceful dimension in the 26.3 mod spawns monsters again a tick after its spawning was turned off.
+- **Cause:** spawn settings live on `ServerChunkCache.setSpawnSettings`, not on `ServerLevel`, and `MinecraftServer.updateMobSpawningFlags` writes them for every level from the difficulty and game rules each tick.
+- **Fix:** `DimensionDifficulty` turns monster spawning off on each peaceful level every level tick, and discards any monster that enters before it ticks.
+
 <a id="t130"></a>
 ### T130 — Geyser picks a dimension's Bedrock heights from its sky
 
