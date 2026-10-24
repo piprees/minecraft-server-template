@@ -1,6 +1,6 @@
 # Admin and Discord parity on 26.3
 
-Every admin and Discord feature the stack runs on 1.21.1, how it is checked on 26.3, and the result (P6). `scripts/admin-parity-check.sh` runs the RCON half headless against the 26.3 smoke stack; `smoke-test-26.yml` runs it with no player online and again while the vanilla client is connected (`--player`). `scripts/smoke-26.sh check` is the boot half. Results below are from the local 26.3 stack (MC 26.3, Fabric Loader 0.20.1, the 73-mod list, custom-dimensions-26).
+Every admin and Discord feature the stack runs on 1.21.1, how it is checked on 26.3, and the result (P6). `scripts/admin-parity-check.sh` runs the RCON half headless against the 26.3 smoke stack; `smoke-test-26.yml` runs it with no player online and again while the vanilla client is connected (`--player`). `scripts/smoke-26.sh check` is the boot half. Results below are from the local 26.3 stack (MC 26.3, Fabric Loader 0.20.1, the 26.3 list, custom-dimensions-26): 47 of 47 checks pass with no player online, 41 of 46 with the client connected (the five Essential Commands rows).
 
 | Feature | Source | How it is checked on 26.3 | Result |
 | --- | --- | --- | --- |
@@ -8,7 +8,8 @@ Every admin and Discord feature the stack runs on 1.21.1, how it is checked on 2
 | `/mc status`: `list`, `chunky progress`, `data get entity <p> Pos` | discord-sync.py | admin-parity-check.sh | Pass |
 | `/mc status`: TPS, MSPT and memory from `spark health` | discord-sync.py | admin-parity-check.sh reads the log: spark 26.3 answers with an upload to spark.lucko.me, after RCON has returned | RCON gets nothing; discord-sync falls back to vanilla `tick query` (TPS, MSPT). Memory shows `?` on 26.3 |
 | `/mc say`, `whisper`, `weather`, `tempban` (`kick`, `ban`), `pardon`, `kill`, `give`, `effect`, `gamemode`, `xp` | discord-sync.py | admin-parity-check.sh | Pass |
-| `/mc heal`, `feed`, `fly`, `invuln`, `extinguish`, `enchant` (Essential Commands) | discord-sync.py | admin-parity-check.sh; with no player online Essential Commands answers "A player is required" or "No player was found" | Parse: pass. Against a connected player: blocked by the join gate (below) |
+| `/mc heal`, `feed`, `fly`, `invuln`, `extinguish` (Essential Commands) | discord-sync.py sends `<command> <player>` | admin-parity-check.sh with the vanilla client connected | Fails: Essential Commands 26.3 answers "A player is required to run this command here" to `heal <player>` from RCON although `help heal` lists `/heal [<target_player>]`. `execute as <player> run heal` works (Health 15.5 to 20.0, measured). Needs the owner: discord-sync sending `execute as <player> run <command>` changes 1.21.1 too |
+| `/mc enchant` (`execute as <p> run ec enchant`) | discord-sync.py | admin-parity-check.sh | Pass |
 | `/mc claims`: `lp user <p> permission set xaero.pac_max_claims <n>` | discord-sync.py | admin-parity-check.sh: parses, LuckPerms replies asynchronously (no RCON reply, as on 1.21.1) | Pass (accepted) |
 | `/mc border`: `worldborder get/center/set` | discord-sync.py | admin-parity-check.sh | Pass |
 | `/mc border`: `chunky border add` | discord-sync.py | RCON | Fails: chunkyborder has no 26.x build (register: replaced by per-dimension borders our compiler sets); cutover-removals.md |
@@ -25,4 +26,4 @@ Every admin and Discord feature the stack runs on 1.21.1, how it is checked on 2
 | Essential Commands | essential-commands | boot gate (loaded); `ec` root parses | Pass |
 | Open Parties and Claims | open-parties-and-claims | boot gate (loaded); its claim limit through LuckPerms | Pass |
 | Autopause | itzg `ENABLE_AUTOPAUSE` in docker-compose.yml | the same image family and compose block on the java25 tag | Needs the owner: leave a 26.3 server empty for `AUTOPAUSE_TIMEOUT_EST` and see "Pausing Java process" in `docker logs mc` |
-| Vanilla client join | RB-02 | `scripts/e2e/vanilla-join.sh` | Fails on the current list: Fabric's registry sync refuses the client, naming `bookshelf`, `brigadier` and `farmersdelight` |
+| Vanilla client join | RB-02 | `scripts/e2e/vanilla-join.sh` | Pass: the unmodded 26.3 client joins in 30 s and stays 60 s. It needs `farmers-delight-polymer` in the list, and `bookshelf-lib` out of it: Bookshelf registers the command argument type `bookshelf:font`, and Fabric's registry sync then refuses vanilla clients, naming every namespace of that registry, the vanilla `brigadier` types included |

@@ -96,6 +96,9 @@ EOF
     cp -r "$pack" "data/world/datapacks/$(basename "$pack")"
   done
   python3 scripts/filter-datapacks.py data/world/datapacks "$(mc_mod_list .)" overlay
+  # itzg chowns /data to its UID only when /data itself is foreign; a world
+  # directory recreated by root under an already-chowned data/ stays root's.
+  if [[ "$(id -u)" -eq 0 ]]; then chown -R "${SMOKE_UID:-1000}:${SMOKE_UID:-1000}" data; fi
 
   echo "==> Seed image $SEED_IMAGE"
   # shellcheck disable=SC2086 # SEED_BUILD_FLAGS is a word list
