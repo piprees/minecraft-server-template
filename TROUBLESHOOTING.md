@@ -1596,6 +1596,13 @@ A seed's map and its banked facts appear to contradict each other — the thumbn
   the same trap. Pin it against the Java, not against intuition —
   `scripts/e2e/portal-matrix-selftest.sh` is the worked example.
 
+<a id="t133"></a>
+### T133 — 26.x merges experience orbs of one value into a single orb with a count
+
+- **Symptom:** adding up `ExperienceOrb.getValue` over the orbs a death dropped comes out short at random (69 of 70).
+- **Cause:** `ExperienceOrb.award` merges a new orb into a nearby orb of the same value at random (`tryMergeToExisting`), raising that orb's private `count`, which has no getter.
+- **Fix:** count an orb as value × count (`ExitSelfTest.experience` reads the field by name; 26.x is not obfuscated).
+
 <a id="t132"></a>
 ### T132 — Fabric's entity-load event fires for mobs read back from disk, and a fresh spawn is untracked for a few ticks
 
