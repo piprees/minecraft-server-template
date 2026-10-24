@@ -236,7 +236,7 @@ class ScanTest(unittest.TestCase):
         self.assertEqual(len(by_dep[("tool", "git-cliff")]), 1)
         gradle = [p for p in REPO.glob("mods/*/gradle.properties")
                   if not p.relative_to(REPO).as_posix().startswith(pu.OUT_OF_SCOPE)]
-        self.assertEqual(sum(1 for o in occ if o.name == "fabric-loader"), 3 + len(gradle))
+        self.assertEqual(sum(1 for o in occ if o.name == "fabric-loader"), 4 + len(gradle))
 
     def test_the_rebuild_is_out_of_scope(self):
         self.assertFalse(pu.allowed_path("mods/custom-dimensions-26/gradle.properties"))

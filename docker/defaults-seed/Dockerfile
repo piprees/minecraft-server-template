@@ -81,6 +81,17 @@ COPY config/essentialcommands/         /defaults/config/essentialcommands/
 COPY config/starterkit/                /defaults/config/starterkit/
 COPY config/servercore/                /defaults/config/servercore/
 COPY config/bountiful/                 /defaults/config/bountiful/
+# The version's config overlay (version_config_files in scripts/lib.sh):
+# config/versions/<version>/<path> replaces /defaults/config/<path> where the
+# COPY lines above put one; the overlay adds no file of its own here.
+COPY config/versions/ /tmp/config-versions/
+RUN d="/tmp/config-versions/$(cat /defaults/.minecraft-version)" \
+ && if [ -d "$d" ]; then \
+      (cd "$d" && find . -type f) | while IFS= read -r f; do \
+        [ ! -f "/defaults/config/$f" ] || cp "$d/$f" "/defaults/config/$f"; \
+      done; \
+    fi \
+ && rm -rf /tmp/config-versions
 
 COPY docker/defaults-seed/seed.sh /seed.sh
 COPY docker/defaults-seed/resolve-mods.py /resolve-mods.py

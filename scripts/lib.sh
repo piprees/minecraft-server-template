@@ -27,8 +27,9 @@ PROJECT_DIR="${CONSUMER_DIR:-${PROJECT_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")
 # --- Minecraft version ----------------------------------------------------------
 # .minecraft-version (one line, beside scripts/ in the template and the bundle)
 # selects the Minecraft version; scripts/minecraft-versions.tsv maps it to the
-# Java release, the itzg image tag and the game versions a pin may target. The
-# file wins over an MC_VERSION in .env: consumers move version by moving major.
+# Java release, the itzg image tag, the server's Fabric loader and the game
+# versions a pin may target. The file wins over an MC_VERSION in .env:
+# consumers move version by moving major.
 LIB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 mc_version() {
@@ -42,14 +43,15 @@ mc_version() {
   echo "$v"
 }
 
-# mc_version_field <java|image|accepted> [version] - one column of the table.
+# mc_version_field <java|image|loader|accepted> [version] - one column of the table.
 mc_version_field() {
   local field="$1" version="${2:-}" col
   [[ -n "$version" ]] || version="$(mc_version)" || return 1
   case "$field" in
     java) col=2 ;;
     image) col=3 ;;
-    accepted) col=4 ;;
+    loader) col=4 ;;
+    accepted) col=5 ;;
     *)
       echo "ERROR: mc_version_field: unknown field '$field'" >&2
       return 1
@@ -81,11 +83,13 @@ mc_mod_list() { mc_versioned_path "$1/config" modrinth-mods .txt "${2:-}"; }
 # mc_manifest <base-dir> [version] - the pack manifest for the version.
 mc_manifest() { mc_versioned_path "$1/modpack" adventure .mrpack.json "${2:-}"; }
 
-# export_mc_version - MC_VERSION and MC_IMAGE_TAG for compose and child scripts.
+# export_mc_version - MC_VERSION, MC_IMAGE_TAG and FABRIC_LOADER_VERSION for
+# compose and child scripts.
 export_mc_version() {
   MC_VERSION="$(mc_version)" || return 1
   MC_IMAGE_TAG="$(mc_version_field image "$MC_VERSION")" || return 1
-  export MC_VERSION MC_IMAGE_TAG
+  FABRIC_LOADER_VERSION="$(mc_version_field loader "$MC_VERSION")" || return 1
+  export MC_VERSION MC_IMAGE_TAG FABRIC_LOADER_VERSION
 }
 
 # --- Colours (safe for piped output) -----------------------------------------
@@ -244,9 +248,11 @@ acquire_deploy_lock() {
 # templates are bind-mounted, datapacks go through the seed container, kuma
 # and cloudflare configs are applied by their own scripts, the extractor and
 # candidate trees are generated, and the mod lists and messages.json are read
-# from the bundle directly. deploy.sh and dev-up.sh (twice) all consume this.
+# from the bundle directly. versions/ holds the per-version overlay that
+# version_config_files lists. deploy.sh and dev-up.sh (twice) all consume both.
 platform_config_files() {
   find . -type f \
+    -not -path './versions/*' \
     -not -path './nginx/*' \
     -not -path './datapacks/*' \
     -not -path './datapack-presets/*' \
@@ -260,6 +266,17 @@ platform_config_files() {
     -not -name 'modrinth-mods*.pinned.txt' \
     -not -name 'messages.json' \
     -not -name '1password.env'
+}
+
+# version_config_files [version] - the selected version's config overlay,
+# relative to config/ (cd there first): each versions/<version>/<path>
+# replaces <path> from platform_config_files. The destination is the path
+# with "./versions/<version>/" stripped.
+version_config_files() {
+  local version="${1:-}"
+  [[ -n "$version" ]] || version="$(mc_version)" || return 1
+  [[ -d "./versions/$version" ]] || return 0
+  find "./versions/$version" -type f
 }
 
 # --- Distant Horizons -----------------------------------------------------

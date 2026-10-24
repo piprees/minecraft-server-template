@@ -298,8 +298,7 @@ except:
     # Write a minimal modrinth.index.json (no download URLs needed -
     # the JARs are baked into the pack via overrides/)
     FABRIC_LOADER_VERSION=$(docker exec mc cat /data/fabric-loader-version 2> /dev/null \
-      || curl -s "https://meta.fabricmc.net/v2/versions/loader" | python3 -c "import sys,json; print(json.load(sys.stdin)[0]['version'])" 2> /dev/null \
-      || echo "0.16.14")
+      || mc_version_field loader "$MC_VERSION")
 
     cat > "$WORK_DIR/modrinth.index.json" << EOF
 {

@@ -2,13 +2,13 @@
 """The Minecraft version this checkout or bundle targets, for Python scripts.
 
 Context: .minecraft-version (one line, beside scripts/) selects the version;
-scripts/minecraft-versions.tsv maps it to the Java release, the itzg image tag
-and the game versions a pin may target. scripts/lib.sh carries the same rules
+scripts/minecraft-versions.tsv maps it to the Java release, the itzg image tag,
+the server's Fabric loader and the game versions a pin may target. scripts/lib.sh carries the same rules
 for bash (mc_version, mc_version_field, mc_mod_list, mc_manifest).
 
 Usage:
   python3 scripts/minecraft_version.py                 # the version
-  python3 scripts/minecraft_version.py java|image|accepted [--version V]
+  python3 scripts/minecraft_version.py java|image|loader|accepted [--version V]
   python3 scripts/minecraft_version.py mod-list|manifest [--root DIR]
 
 Gotchas:
@@ -25,7 +25,7 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 VERSION_FILE = HERE.parent / ".minecraft-version"
 TABLE = HERE / "minecraft-versions.tsv"
-FIELDS = ("java", "image", "accepted")
+FIELDS = ("java", "image", "loader", "accepted")
 
 
 def current(version_file=VERSION_FILE):
@@ -43,12 +43,12 @@ def current(version_file=VERSION_FILE):
 
 
 def info(version=None, table=TABLE):
-    """{'java': '21', 'image': '...', 'accepted': ('1.21.1', '1.21')} for the version."""
+    """{'java': '21', 'image': '...', 'loader': '0.19.5', 'accepted': ('1.21.1', '1.21')} for the version."""
     version = version or current()
     for line in Path(table).read_text().splitlines():
         cols = line.split()
         if cols and not cols[0].startswith("#") and cols[0] == version:
-            return {"java": cols[1], "image": cols[2], "accepted": tuple(cols[3].split(","))}
+            return {"java": cols[1], "image": cols[2], "loader": cols[3], "accepted": tuple(cols[4].split(","))}
     raise SystemExit(f"Minecraft {version} has no row in {Path(table).name}")
 
 

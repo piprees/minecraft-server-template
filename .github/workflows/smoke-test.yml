@@ -69,6 +69,7 @@ jobs:
           {
             echo "version=$v"
             echo "image=$(mc_version_field image "$v")"
+            echo "loader=$(mc_version_field loader "$v")"
             echo "java=$(mc_version_field java "$v")"
             echo "mod_list=$(mc_mod_list . "$v" | sed 's|^\./||')"
           } >> "$GITHUB_OUTPUT"
@@ -83,6 +84,7 @@ jobs:
           cat > .env <<'EOF'
           MC_VERSION=${{ steps.mc.outputs.version }}
           MC_IMAGE_TAG=${{ steps.mc.outputs.image }}
+          FABRIC_LOADER_VERSION=${{ steps.mc.outputs.loader }}
           MEMORY=4G
           SEED=0
           RCON_PASSWORD=smoketest

@@ -134,7 +134,8 @@ services:
       EULA: "TRUE"
       TYPE: FABRIC
       VERSION: ${MC_VERSION:-1.21.1}
-      # Same loader as the client pack and the in-house mod builds; platform_updates.py moves all of them together.
+      # The selected version's loader from minecraft-versions.tsv (export_mc_version); the fallback is the 1.21.1 row's.
+      # platform_updates.py moves it with that row, the client pack and the in-house mod builds.
       FABRIC_LOADER_VERSION: ${FABRIC_LOADER_VERSION:-0.19.5}
       MEMORY: ${MEMORY:-5G}
       USE_AIKAR_FLAGS: "TRUE"

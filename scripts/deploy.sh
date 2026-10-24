@@ -469,9 +469,11 @@ docker compose --project-directory "$SERVER_DIR" -f "$COMPOSE_FILE" \
 # =============================================================================
 # Platform defaults always overwrite — consumers customise via the overlay,
 # not by editing defaults in data/config/. Force-copy ensures every deploy
-# gets the latest bundle configs (starter kits, mod settings, etc.).
-# This MUST run before mc starts — mods that auto-generate config on first
-# boot would otherwise create defaults that block the bundle's version.
+# gets the latest bundle configs (starter kits, mod settings, etc.). The
+# selected version's overlay (config/versions/<version>/) then replaces the
+# paths it carries. This MUST run before mc starts — mods that auto-generate
+# config on first boot would otherwise create defaults that block the
+# bundle's version.
 echo ""
 echo "==> Seeding default mod configs into data/config/..."
 BUNDLE_CONFIG="$STACK_DIR/config"
@@ -481,6 +483,11 @@ if [[ -d "$BUNDLE_CONFIG" ]]; then
   cd "$BUNDLE_CONFIG"
   platform_config_files | while IFS= read -r f; do
     dest="$local_data_cfg/${f#./}"
+    mkdir -p "$(dirname "$dest")"
+    cp "$f" "$dest"
+  done
+  version_config_files "$MC_VERSION" | while IFS= read -r f; do
+    dest="$local_data_cfg/${f#./versions/"$MC_VERSION"/}"
     mkdir -p "$(dirname "$dest")"
     cp "$f" "$dest"
   done

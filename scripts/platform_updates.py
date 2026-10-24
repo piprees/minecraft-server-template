@@ -9,9 +9,10 @@ covers Dockerfiles, actions and pip; this covers what it cannot parse:
 
   image   every ${MIRROR_REGISTRY:-…}/<upstream>:<tag> in docker-compose.yml
           (Docker Hub tags; the tag keeps its shape, rules in IMAGE_RULES)
-  loader  Fabric loader: compose FABRIC_LOADER_VERSION, the client pack's
+  loader  Fabric loader: compose FABRIC_LOADER_VERSION, the selected
+          version's row in minecraft-versions.tsv, the client pack's
           dependencies, build-modpack.sh's fallback, mods/*/gradle.properties
-          (meta.fabricmc.net, the build marked stable for 1.21.1)
+          (meta.fabricmc.net, the build marked stable for that version)
   gradle  yarn_mappings (newest 1.21.1 build) and fabric_version in
           mods/*/gradle.properties; fabric_version follows the pack's
           fabric-api pin in config/modrinth-mods.txt, so the in-house mods
@@ -37,7 +38,11 @@ Gotchas:
   - Never downgrades, never proposes a pre-release. Minecraft stays the
     version in .minecraft-version and itzg/minecraft-server keeps the -java<N>
     suffix minecraft-versions.tsv gives it; the image tag moves in compose's
-    MC_IMAGE_TAG fallback and that version's table row together.
+    MC_IMAGE_TAG fallback and that version's table row together, as the
+    loader does in compose's FABRIC_LOADER_VERSION fallback and the same row.
+    Other versions' rows are never read or written.
+  - One line may carry several pins (a table row holds the image and the
+    loader); each is scanned and rewritten on its own.
   - Yarn marks only the newest Minecraft version's builds stable, so for
     1.21.1 the newest build is taken.
   - GitHub tags come from `git ls-remote`, not the REST API, whose
@@ -95,6 +100,9 @@ PINS = (
         re.compile(r"^(\s+HCLOUD_VERSION:\s*')([0-9][\w.-]*)('\s*)$")),
     Pin("image", "itzg/minecraft-server", "scripts/minecraft-versions.tsv",
         re.compile(r"^(" + re.escape(TARGET_MC) + r"\s+\d+\s+)([A-Za-z0-9_][A-Za-z0-9_.-]*)(\s.*)$")),
+    # After the image pin: mask_line matches this against the row with the image masked.
+    Pin("loader", "fabric-loader", "scripts/minecraft-versions.tsv",
+        re.compile(r"^(" + re.escape(TARGET_MC) + r"\s+\d+\s+\S+\s+)([0-9][\w.+-]*)(\s.*)$")),
 )
 IMAGE_FILE = "docker-compose.yml"
 # Groups: prefix, upstream image, separator (":" or ":${VAR:-"), tag, trailing
@@ -236,12 +244,13 @@ def mask_line(path, line):
         m = TAILWIND_SUM_LINE.match(line)
         if m:
             return f"{m.group(1)}{m.group(2)}{m.group(3)}<v>{m.group(5)}"
+    masked = None
     for pin in PINS:
         if pin_matches(pin, path):
-            m = pin.regex.match(line)
+            m = pin.regex.match(masked or line)
             if m:
-                return f"{m.group(1)}<v>{m.group(3)}"
-    return None
+                masked = f"{m.group(1)}<v>{m.group(3)}"
+    return masked
 
 
 def scan_text(path, text):
@@ -258,7 +267,6 @@ def scan_text(path, text):
                 m = pin.regex.match(line)
                 if m:
                     found.append(Occurrence(pin.ecosystem, pin.name, path, lineno, m.group(2)))
-                    break
     return found
 
 
@@ -303,8 +311,8 @@ def rewrite(texts, targets, sums=None):
                 if (pin.ecosystem, pin.name) in targets and pin_matches(pin, path):
                     m = pin.regex.match(line)
                     if m:
-                        lines[i] = f"{m.group(1)}{targets[(pin.ecosystem, pin.name)]}{m.group(3)}{end}"
-                        break
+                        line = f"{m.group(1)}{targets[(pin.ecosystem, pin.name)]}{m.group(3)}"
+                        lines[i] = f"{line}{end}"
         out[path] = "".join(lines)
     return out
 
