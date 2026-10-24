@@ -1596,6 +1596,20 @@ A seed's map and its banked facts appear to contradict each other — the thumbn
   the same trap. Pin it against the Java, not against intuition —
   `scripts/e2e/portal-matrix-selftest.sh` is the worked example.
 
+<a id="t128"></a>
+### T128 — Fabric's after-death event fires after a player's drops
+
+- **Symptom:** a per-dimension keep-inventory rule in the 26.3 mod hands nothing back, because the items are already on the ground.
+- **Cause:** `ServerLivingEntityEvents.AFTER_DEATH` runs at the end of `ServerPlayer.die`, after `dropAllDeathLoot`.
+- **Fix:** keep or drop rules act in a late phase of `ALLOW_DEATH`, which runs before the totem check and the drops, take nothing when a totem will save the player, and hand back through `ServerPlayerEvents.COPY_FROM` (`DeathRules`).
+
+<a id="t127"></a>
+### T127 — Fabric's FakePlayer cannot stand in for a real player everywhere
+
+- **Symptom:** a self-test that drives deaths, respawns or advancements with `net.fabricmc.fabric.api.entity.FakePlayer` never earns the advancement, never dies, or crashes the server tick.
+- **Cause:** Fabric's `PlayerAdvancementsMixin` refuses `award` and `setPlayer` for any FakePlayer; `FakePlayer.isInvulnerableTo` returns true and it never ticks, so spawn invulnerability never runs out; a FakePlayer added to the `PlayerList` without a login (as `PlayerList.respawn` does) throws an NPE in Open Parties and Claims' `ServerSpreadoutTaskHandler`.
+- **Fix:** `ExitSelfTest` uses a FakePlayer subclass with damage that bypasses invulnerability for deaths, a plain `ServerPlayer` on Fabric's no-op packet listener for advancements, and replays respawn (`restoreFrom` and the after-respawn event) instead of calling `PlayerList.respawn`.
+
 <a id="t126"></a>
 ### T126 — On 26.x, `ServerLevel.getBlockState` loads the chunk it reads
 
