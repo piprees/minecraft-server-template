@@ -1,5 +1,6 @@
 package com.customdimensions.server;
 
+import com.customdimensions.server.companion.CompanionNetwork;
 import com.customdimensions.server.exit.ExitHooks;
 import com.customdimensions.server.difficulty.DimensionDifficulty;
 import com.customdimensions.server.level.LevelCommands;
@@ -20,6 +21,7 @@ public final class CustomDimensions implements ModInitializer {
         LevelManager.register();
         LevelCommands.register();
         Portals.register();
+        CompanionNetwork.register();
         ExitHooks.register();
         DimensionDifficulty.register();
         SelfTest.register();

@@ -8,6 +8,7 @@ import com.customdimensions.core.portal.PortalScaling;
 import com.customdimensions.core.messages.Messages;
 import com.customdimensions.server.CustomDimensions;
 import com.customdimensions.server.MessageFile;
+import com.customdimensions.server.companion.CompanionNetwork;
 import com.customdimensions.server.level.LevelManager;
 import java.util.HashSet;
 import java.util.Optional;
@@ -148,8 +149,9 @@ public final class PortalTravel {
                 PortalAuras.onLink(level, zone, target, built.interior);
             }
         }
-        if (entity instanceof ServerPlayer) {
+        if (entity instanceof ServerPlayer player) {
             PortalRegistry.get().setOrigin(entity.getUUID(), zone.world, pos);
+            CompanionNetwork.preloaded(player, target.dimension());
         }
         Portals.playSound(level, pos, def.getEnterSound());
         Portals.startSingleUse(zone);
@@ -159,6 +161,38 @@ public final class PortalTravel {
             e.setPortalCooldown(cooldown);
             Portals.playSound(target, landing, exitSound);
         });
+    }
+
+    /**
+     * The column a zone's far side stands on in its target, from the registry
+     * and the scaling maths alone; null for an arrival that leads anywhere but
+     * back to the portal that built it.
+     */
+    public static int[] farColumn(PortalZone zone) {
+        if (zone.definition == null) {
+            return null;
+        }
+        if (zone.arrival) {
+            PortalZone.ReturnTarget t = PortalRegistry.get().target(zone.world, zone.landingCell());
+            return t == null || !t.breaksSymmetrically() ? null : returnColumn(t, zone.landingCell(), zone, zone.world);
+        }
+        PortalDefinition def = zone.definition;
+        return def.hasAnchor() ? new int[]{def.getAnchorPos()[0], def.getAnchorPos()[2]}
+                : PortalScaling.arrivalColumn(zone.coreInterior(), PortalCatalogue.scaleOf(zone.world, def),
+                        PortalCatalogue.scaleOf(zone.target, def));
+    }
+
+    /** The recorded opening at {@code zone}'s far side near {@code column}, or null before a crossing builds one. */
+    public static PortalZone farZone(PortalZone zone, int[] column) {
+        PortalRegistry registry = PortalRegistry.get();
+        if (zone.arrival) {
+            return registry.sourceNear(zone.target, zone.world, column[0], column[1], REUSE_RADIUS);
+        }
+        String exitMode = zone.definition.hasAnchor() ? zone.definition.getAnchorExit() : null;
+        PortalZone found = registry.arrivalNear(zone.target, column[0], column[1], REUSE_RADIUS,
+                a -> leadsBackTo(a, zone.world, exitMode));
+        return found != null || zone.definition.hasAnchor() ? found
+                : registry.sourceNear(zone.target, zone.world, column[0], column[1], REUSE_RADIUS);
     }
 
     private static boolean leadsBackTo(PortalZone arrival, ResourceKey<Level> world, String exitMode) {
