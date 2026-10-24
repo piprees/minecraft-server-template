@@ -53,7 +53,8 @@ jobs:
         run: |
           mkdir -p server/run
           echo 'eula=true' > server/run/eula.txt
-          printf 'online-mode=false\nmax-tick-time=-1\nview-distance=4\nsimulation-distance=4\n' > server/run/server.properties
+          # A fixed seed keeps the variant checks comparing the same terrain every run.
+          printf 'online-mode=false\nmax-tick-time=-1\nview-distance=4\nsimulation-distance=4\nlevel-seed=20261022\n' > server/run/server.properties
           report="$RUNNER_TEMP/selftest.txt"
           ./gradlew :server:runServer -PselfTest="$report"
           if [[ ! -s "$report" ]]; then

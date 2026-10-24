@@ -150,14 +150,49 @@ public final class GeneratorSelfTest {
                 + (sea - 1) + "); " + c.biomes().size() + " surface biomes, " + pct(c.biomeEdgeShare()) + " of neighbouring samples differ");
     }
 
+    /**
+     * This level's noise against the plain overworld preset at its own seed and
+     * biome source, so only the climate scale differs; sampled from the biome
+     * source, so no chunk is loaded.
+     */
     private String largeBiomes(Columns c) {
-        if (overworld == null) return "FAIL no overworld sample to compare with";
-        int ours = c.biomes().size();
-        int theirs = overworld.biomes().size();
-        boolean pass = ours < theirs || c.biomeEdgeShare() < overworld.biomeEdgeShare();
-        return verdict(pass, "same " + c.area() + ", seed " + c.level.getSeed() + " vs the overworld's " + overworld.level.getSeed()
-                + ": " + ours + " surface biomes vs " + theirs + "; neighbouring samples differ in " + pct(c.biomeEdgeShare())
-                + " vs " + pct(overworld.biomeEdgeShare()));
+        long seed = c.level.getSeed();
+        double large = biomeChangeRate(c.level, ownSettings(c.level), seed);
+        double normal = biomeChangeRate(c.level, vanillaSettings(c.level, "minecraft:overworld"), seed);
+        return verdict(large > 0 && large * 2 < normal, "seed " + seed + ", " + BIOME_LINE_STEPS + " samples "
+                + BIOME_LINE_STEP + " blocks apart: biome changes on " + pct(large) + " of steps against "
+                + pct(normal) + " with the overworld preset (needs under half); " + c.biomes().size()
+                + " surface biomes in " + c.area());
+    }
+
+    static final int BIOME_LINE_STEPS = 2048;
+    static final int BIOME_LINE_STEP = 16;
+
+    /** Share of steps along a line on which the surface biome changes, for one preset's noise at {@code seed}. */
+    private static net.minecraft.world.level.levelgen.NoiseGeneratorSettings ownSettings(ServerLevel level) {
+        return ((NoiseBasedChunkGenerator) level.getChunkSource().getGenerator()).generatorSettings().value();
+    }
+
+    private static net.minecraft.world.level.levelgen.NoiseGeneratorSettings vanillaSettings(ServerLevel level, String id) {
+        return level.registryAccess().lookupOrThrow(net.minecraft.core.registries.Registries.NOISE_SETTINGS)
+                .getValue(net.minecraft.resources.Identifier.parse(id));
+    }
+
+    private static double biomeChangeRate(ServerLevel level, net.minecraft.world.level.levelgen.NoiseGeneratorSettings settings,
+                                          long seed) {
+        net.minecraft.core.RegistryAccess registries = level.registryAccess();
+        net.minecraft.world.level.levelgen.RandomState state = net.minecraft.world.level.levelgen.RandomState.create(
+                registries.lookupOrThrow(net.minecraft.core.registries.Registries.NOISE), seed, settings);
+        net.minecraft.world.level.biome.BiomeResolver resolver = level.getChunkSource().getGenerator().getBiomeSource()
+                .createUncachedResolver(state);
+        int changes = 0;
+        Holder<Biome> last = null;
+        for (int i = 0; i < BIOME_LINE_STEPS; i++) {
+            Holder<Biome> biome = resolver.getNoiseBiome(QuartPos.fromBlock(i * BIOME_LINE_STEP), QuartPos.fromBlock(64), 0);
+            if (last != null && !biome.equals(last)) changes++;
+            last = biome;
+        }
+        return (double) changes / (BIOME_LINE_STEPS - 1);
     }
 
     private String amplified(Columns c) {
