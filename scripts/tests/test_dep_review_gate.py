@@ -9,6 +9,7 @@ fixtures under fixtures/dep_review/ are trimmed real API responses (PR 17 pip,
 import copy
 import json
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -54,6 +55,16 @@ class AcceptsRealShapes(unittest.TestCase):
         r = self.check(27, "actions")
         self.assertFalse(r["needs_smoke"])
         self.assertEqual(r["dockerfiles"], [])
+
+    def test_the_26_3_join_gate_follows_its_paths(self):
+        r = self.check(27, "actions")
+        self.assertFalse(r["needs_join_26"])
+        self.assertEqual(gate.JOIN_26_PATHS, ("config/modrinth-mods-26.3.txt", "scripts/minecraft-versions.tsv"))
+        out = Path(tempfile.mkdtemp()) / "out"
+        gate.write_github_output(out, {**r, "needs_join_26": True})
+        self.assertIn("needs_join_26=true\n", out.read_text())
+        gate.write_github_output(out, r)
+        self.assertIn("needs_join_26=false\n", out.read_text())
 
     def test_docker(self):
         r = self.check(25, "docker")

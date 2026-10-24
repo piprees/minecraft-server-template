@@ -527,6 +527,17 @@ class NextMajorTests(ApplyCase):
                               tests={**GREEN, "smoke": "failure"})
         self.assertHuman(plan, "Smoke test")
 
+    def test_a_failed_26_3_join_gate_is_not_ready(self):
+        a = change("terralith", flags=["never-automerge"])
+        plan = self.run_apply([a], verdict([judged(a)]), source="worldgen", needs_join_26=True,
+                              tests={**GREEN, "join26": "failure"})
+        self.assertHuman(plan, "26.3 boot, vanilla join and admin parity")
+
+    def test_the_26_3_join_gate_is_only_required_when_the_gate_asks(self):
+        a = change("terralith", flags=["never-automerge"])
+        plan = self.run_apply([a], verdict([judged(a)]), source="worldgen", tests=GREEN)
+        self.assertNotIn("26.3 boot", json.dumps(plan))
+
     def test_holds_apply_to_the_worldgen_pr(self):
         a = change("tectonic", flags=["never-automerge"])
         v = verdict([judged(a, decision="hold", risk="high")],

@@ -557,7 +557,7 @@ class ShippedTextTests(unittest.TestCase):
         """The trap and the happy path must not drift apart."""
         text = DEPLOY_SH.read_text()
         self.assertEqual(
-            text.count('rcon "gamerule doMobSpawning true"'),
+            text.count('rcon "gamerule $(mc_game_rule doMobSpawning true)"'),
             1,
             "the live game-rule list is duplicated",
         )

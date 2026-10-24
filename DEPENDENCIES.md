@@ -99,6 +99,7 @@ Not covered: compose images, the Fabric loader, yarn, fabric-api and the build a
 
 - every update accepted, none riskier than `automerge_max_risk`;
 - the quick checks, smoke test and Docker builds green, and every other check on the PR head completed green;
+- for a change to `config/modrinth-mods-26.3.txt` or `scripts/minecraft-versions.tsv`, `smoke-test-26.yml` green: the 26.3 stack boots, the unmodded 26.3 client joins and stays 60 s, and the admin parity check passes (the `join26` job);
 - no `blocking_flags` flag: pre-release, major version, wrong Minecraft version or loader, a missing required dependency, released fewer than `min_age_days` ago, or worldgen;
 - no change under `never_automerge_paths`.
 - a release impact below major (`automerge_majors` is false): a major lands through the release train's monthly worldgen merge or a human, never as a side effect of a routine update.

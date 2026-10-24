@@ -34,6 +34,8 @@ Method: every key in our file looked up as a string in the 26.3 jar the list pin
 
 On every load, Collective `26.3.0-8.64` moves `config/<modid>.json5`, `<modid>.json`, `<modid>-common.toml`, `<modid>.json.unreadable` and the `config/<modid>/` directory into `config/serilum/`, replacing what is there, then moves `config/serilum/<modid>.json5` onto `config/serilum/<modid>.json`. A flat base file therefore arrives at the read path with the overlay's values on every boot; a subdirectory base file lands unread at `config/serilum/<modid>/`, and starter-kit's `kits/` and `descriptions/` land at `config/serilum/starterkit/`, where it reads them.
 
+| `servercore/config.yml` | Three mob categories (`GLARES`, `RASCALS`, `WATERFOWL`) belong to mods the 26.3 list does not carry; ServerCore rejects the first unknown category and discards the whole file | `config/versions/26.3/servercore/config.yml`, the base without those three blocks, replaces the base file |
+
 No other kept config differs: fallingtree, essential-commands, servercore (both files), spark, simple-voice-chat, open-parties-and-claims and c2me.
 
 ## Version plumbing
@@ -48,3 +50,10 @@ No other kept config differs: fallingtree, essential-commands, servercore (both 
 - The 1.21.1 row of `scripts/minecraft-versions.tsv` goes with the 1.21.1 mod list. `platform_updates.py` then bumps the 26.3 row's image tag and loader.
 - `mirror-images.yml` mirrors every image tag in the table, so the java25 image reaches the GHCR mirror on its next run, before any 26.3 stack pulls it.
 - Comments in `config/modrinth-mods.txt` that only explain 1.21.1 pins go with that file. The carpet mixin strip in `scripts/patch-mod-data.py` exists because of Supplementaries, which 26.3 does not run.
+- The in-house mod manifests: `mods/local-mods-26.3.manifest` replaces `mods/local-mods.manifest`, and `mods/client-mods-26.3.manifest` (no rows) replaces `mods/client-mods.manifest` until a 26.3 companion ships. `release.yml`, `mod-build.yml` and `build-stack-bundle.sh` already read them through `mc_local_mods_manifest` and `mc_client_mods_manifest`, and the release JDK through the table's java column.
+- The v2 definitions in `mods/custom-dimensions-26/definitions/` replace `config/custom-dimensions/dimensions/` (schema-v2.md). `scripts/smoke-26.sh` makes the same replacement in `data/config/` for every 26.3 boot until then; it goes with that step.
+- `scripts/game-rules.tsv` keeps its 26.3 rows; `mc_game_rule` in deploy.sh's enforcement block then reads the 26.3 ids. The 1.21.1 names in the block stay as its keys until the block is rewritten with the ids.
+- `smoke-test-26.yml` becomes the smoke test: its boot gate, vanilla join gate and admin parity check move into `smoke-test.yml` (or replace it), `MC_VERSION_OVERRIDE` goes, and dep-review's `join26` job folds into `smoke`.
+- `config/datapacks/adventure-mob-sweep/data/adventure/tags/entity_type/despawnable_hostile.json` names `creeperoverhaul:*` entities without `"required": false`; with no creeperoverhaul on 26.3 the tag fails to load (the boot log's one `Couldn't load tag` line). The entries take `{"id": ..., "required": false}` at the switch.
+- discord-sync's `/mc border` runs `chunky border add`, which needs chunkyborder; chunkyborder has no 26.x build and the register replaces it with vanilla per-dimension borders our compiler sets. The `chunky border add` lines go.
+- discord-sync's `/mc status` sends `spark health`; on 26.3 spark answers by uploading a report to spark.lucko.me and RCON gets nothing back, so the status falls back to vanilla `tick query`. `spark health` leaves the batch, and with it the memory figure, which `tick query` does not give.

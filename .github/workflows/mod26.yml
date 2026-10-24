@@ -4,11 +4,15 @@ on:
   pull_request:
     paths:
       - 'mods/custom-dimensions-26/**'
+      - 'mods/local-mods-26.3.manifest'
+      - 'scripts/local-mods.sh'
       - '.github/workflows/mod26.yml'
   push:
     branches: [main]
     paths:
       - 'mods/custom-dimensions-26/**'
+      - 'mods/local-mods-26.3.manifest'
+      - 'scripts/local-mods.sh'
       - '.github/workflows/mod26.yml'
 
 jobs:
@@ -40,6 +44,16 @@ jobs:
 
       - name: Build and unit tests
         run: ./gradlew build
+
+      # The jar the 26.3 bundle ships, through release.yml's gate: no refmap
+      # (Loom's non-remapping plugin), compiled classes, a server mod.
+      - name: Verify the shipped jar
+        working-directory: .
+        env:
+          MC_VERSION_OVERRIDE: '26.3'
+        run: |
+          ./scripts/local-mods.sh build server "$RUNNER_TEMP/local-mods" --skip-tests
+          ./scripts/local-mods.sh verify server "$RUNNER_TEMP/local-mods"
 
       # The compiled pack must load on an unmodded server.
       - name: Vanilla boot check
