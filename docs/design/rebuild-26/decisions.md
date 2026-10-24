@@ -106,3 +106,12 @@ Why: a 160,000-column render took 59–76 s and a server-thread task over 60 s t
 **RB-29 — Every entity crosses our portals; only a player opens a lazy level.**
 Why: the 26.3 portal block uses vanilla's `Portal` rules, so mobs, items and projectiles cross as they do through a Nether portal. A lazy destination opens only for a player; anything else waits until the level is already open, so a mob farm or hopper line beside a portal never keeps a level loaded.
 Rejected: players only (the 1.21.1 zone traversal), which needs a mixin and breaks the vanilla expectation that items and mobs follow players through.
+
+**RB-30 — A win is a vanilla advancement the mod grants.**
+Each entry in a definition's `wins` names a trigger (`enter`, `reach` a point within a radius, `kill` an entity or tag a number of times, `obtain` an item or tag, `survive` a number of ticks, or earn a vanilla `advancement`) and how it reads (`title`, `description`, `icon`, `frame`). The compiler writes it as `adventure:wins/<slug>/<id>` with an `impossible` criterion under one `adventure:wins/root` tab; the mod grants it when the trigger fires, then sends the `message` key from `config/messages.json` and, when `exit` is set, sends the player on by the `ExitTarget` grammar.
+Why: a vanilla or Bedrock client shows the toast and the advancement tab with nothing installed, and the advancement is the once-per-player record, so wins need no store of their own.
+Rejected: a scoreboard or a file of our own, which the client cannot show.
+
+**RB-31 — A dimension can keep or drop what a player carries when they die there.**
+`deaths.inventory` and `deaths.experience` are `keep` or `drop`; absent, the `keepInventory` game rule decides. Kept items and levels are taken before the drop and handed back on respawn, through Fabric's death and respawn events.
+Why: the game rule is server-wide, and a dimension built as a trial or a gallery needs its own rule.
