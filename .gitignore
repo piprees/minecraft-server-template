@@ -31,6 +31,7 @@ logs/
 
 # === pin-mod-versions.sh review output ===
 config/modrinth-mods*.pinned.txt
+modpack/adventure*.pinned.json
 
 # === Seed-rolling artefacts ===
 /.seed-rolling/

@@ -1,4 +1,5 @@
 """The Minecraft version helpers: scripts/minecraft_version.py and lib.sh's mc_* functions."""
+import json
 import os
 import re
 import subprocess
@@ -194,6 +195,33 @@ def test_pin_apply_writes_only_the_versioned_list(pin_tree):
     assert r.returncode == 0, r.stderr
     assert (pin_tree / "config/modrinth-mods-26.3.txt").read_text() == "# 26.3\nheld:HELDX\nfree:FREEX\n"
     assert "Applied to: config/modrinth-mods-26.3.txt" in r.stdout
+
+
+MANIFEST_BEFORE = '{"_holds": {"held": "1.21.1 reason"}, "_clientMods": {}}\n'
+
+
+def test_pin_review_leaves_the_manifest_and_writes_a_pinned_copy(pin_tree):
+    r = run_pin(pin_tree)
+    assert r.returncode == 0, r.stderr
+    assert (pin_tree / "modpack/adventure.mrpack.json").read_text() == MANIFEST_BEFORE
+    assert json.loads((pin_tree / "modpack/adventure.mrpack.pinned.json").read_text())["_holds"] == {"held": "1.21.1 reason"}
+
+
+def test_pin_apply_rewrites_the_manifest(pin_tree):
+    r = run_pin(pin_tree, "--apply")
+    assert r.returncode == 0, r.stderr
+    assert not (pin_tree / "modpack/adventure.mrpack.pinned.json").exists()
+    assert (pin_tree / "modpack/adventure.mrpack.json").read_text() != MANIFEST_BEFORE
+    assert json.loads((pin_tree / "modpack/adventure.mrpack.json").read_text())["_holds"] == {"held": "1.21.1 reason"}
+
+
+def test_pin_file_mode_leaves_the_platform_manifest_alone(pin_tree):
+    overlay = pin_tree / "mods-extra.txt"
+    overlay.write_text("free:OLD\n")
+    r = run_pin(pin_tree, "--file", str(overlay))
+    assert r.returncode == 0, r.stderr
+    assert (pin_tree / "modpack/adventure.mrpack.json").read_text() == MANIFEST_BEFORE
+    assert not (pin_tree / "modpack/adventure.mrpack.pinned.json").exists()
 
 
 def test_pin_untabled_version_walks_the_1_21_chain(pin_tree):

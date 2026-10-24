@@ -20,10 +20,11 @@
 #
 # Usage:
 #   ./scripts/pin-mod-versions.sh                   # .minecraft-version; writes
-#                                                   # config/modrinth-mods.pinned.txt for review
+#                                                   # config/modrinth-mods.pinned.txt and
+#                                                   # modpack/adventure.mrpack.pinned.json for review
 #   ./scripts/pin-mod-versions.sh --version 26.3    # override target version; writes
 #                                                   # config/modrinth-mods-26.3.pinned.txt
-#   ./scripts/pin-mod-versions.sh --apply           # also overwrite the mod list
+#   ./scripts/pin-mod-versions.sh --apply           # also overwrite the mod list and manifest
 #   ./scripts/pin-mod-versions.sh --file <path>     # re-pin an arbitrary mod list
 #                                                   # IN PLACE (consumer overlay
 #                                                   # mods-extra.txt; review via git diff)
@@ -249,20 +250,24 @@ echo "  cp $OUTPUT_REL $MODS_REL"
 # e.g. a client mod whose mixin breaks against a newer dependency). Resource/shader packs are left alone (they
 # follow their own resolution in build-modpack.sh and don't cause registry
 # mismatches).
+# --apply rewrites the manifest; a review run writes adventure*.pinned.json
+# beside it, as the mod list gets its .pinned.txt.
+MANIFEST_OUT="$MANIFEST"
+[[ $APPLY -eq 1 ]] || MANIFEST_OUT="${MANIFEST%.json}.pinned.json"
 if [[ $MANIFEST_PAIRED -eq 0 ]]; then
   echo ""
   echo "==> Client manifest skipped: $MODS_REL has no adventure-$TARGET_VERSION.mrpack.json beside it"
 elif [[ -f "$MANIFEST" ]]; then
   echo ""
-  echo "==> Re-pinning client manifest ($MANIFEST)..."
+  echo "==> Re-pinning client manifest ($MANIFEST -> $MANIFEST_OUT)..."
 
-  PACK_FILES_DIR="$SCRIPT_DIR" python3 - "$MANIFEST" "$TARGET_VERSION" "$FALLBACK_CSV" << 'MANIFEST_PIN'
+  PACK_FILES_DIR="$SCRIPT_DIR" python3 - "$MANIFEST" "$TARGET_VERSION" "$FALLBACK_CSV" "$MANIFEST_OUT" << 'MANIFEST_PIN'
 import json, os, sys, time, urllib.request
 
 sys.path.insert(0, os.environ["PACK_FILES_DIR"])
 from pack_files import choose_version, primary_filename
 
-manifest_path, target, fallback_csv = sys.argv[1:4]
+manifest_path, target, fallback_csv, out_path = sys.argv[1:5]
 fallbacks = fallback_csv.split(",")
 m = json.load(open(manifest_path))
 ua = "adventure/pin-mod-versions"
@@ -403,9 +408,9 @@ def repin_packs(section_name):
 rp_count = repin_packs("_resourcePacks") if "_resourcePacks" in m else 0
 sp_count = repin_packs("_shaderPacks") if "_shaderPacks" in m else 0
 
-with open(manifest_path, "w") as f:
+with open(out_path, "w") as f:
     json.dump(m, f, indent=2)
     f.write("\n")
-print(f"\n  {updated} client mod(s), {rp_count} resource pack(s), {sp_count} shader pack(s) updated in {manifest_path}")
+print(f"\n  {updated} client mod(s), {rp_count} resource pack(s), {sp_count} shader pack(s) updated in {out_path}")
 MANIFEST_PIN
 fi
