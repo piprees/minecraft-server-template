@@ -3142,7 +3142,7 @@ The rendered height disagrees with the facts on high-relief columns. The error i
 
 - **Symptom:** double-doors, fire-spread-tweaks, healing-campfire, name-tag-tweaks, nutritious-milk and your-items-are-safe behave as their jar defaults on the 1.21.1 server, whatever `config/<modid>/<modid>.json5` says.
 - **Cause:** Collective 1.21.1 (8.39) reads `config/<modid>.json5` only, and these configs sit in a subdirectory. fire-spread-tweaks also reads `MinRandomExtraBurnTicks`/`MaxRandomExtraBurnTicks`, while our file spells them with a lower-case first letter, so its -60/60 is ignored and -100/100 applies.
-- **Status:** open, waiting on the owner — fixing it changes live gameplay to the values the files intend. On 26.3 the version overlay seeds the read paths (T136).
+- **Status:** kept as it is on 1.21.1 by the owner's choice; the 26.3 switch reads the intended values, since the version overlay seeds the read paths (T136).
 
 ## Common symptoms
 
