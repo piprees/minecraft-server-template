@@ -2,7 +2,7 @@ package com.customdimensions.server;
 
 import com.customdimensions.server.exit.ExitHooks;
 import com.customdimensions.server.difficulty.DimensionDifficulty;
-import com.customdimensions.server.level.LevelCommands;
+import com.customdimensions.server.command.CustomDimCommands;
 import com.customdimensions.server.level.LevelManager;
 import com.customdimensions.server.level.PackInstaller;
 import com.customdimensions.server.portal.Portals;
@@ -18,7 +18,7 @@ public final class CustomDimensions implements ModInitializer {
     public void onInitialize() {
         PackInstaller.install();
         LevelManager.register();
-        LevelCommands.register();
+        CustomDimCommands.register();
         Portals.register();
         ExitHooks.register();
         DimensionDifficulty.register();

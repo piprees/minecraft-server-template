@@ -38,7 +38,7 @@ import net.minecraft.world.level.dimension.LevelStem;
 public final class LevelIndex {
     public static final String DEFINITIONS_PROPERTY = "customdimensions.definitions";
     /** Where definitions live when the property is unset, under the game directory. */
-    public static final String DEFINITIONS_FALLBACK = "config/customdimensions/definitions";
+    public static final String DEFINITIONS_FALLBACK = "config/custom-dimensions/dimensions";
     public static final String DEFAULT_NAMESPACE = "adventure";
 
     /** A lazy dimension: its stem as compiled, its definition (null when missing) and its border radius. */
@@ -124,7 +124,7 @@ public final class LevelIndex {
     }
 
     /** Base worlds by slug, in load order: the level id vanilla gives each. */
-    static Map<String, String> baseWorldKeys(String namespace) {
+    public static Map<String, String> baseWorldKeys(String namespace) {
         Map<String, String> keys = new java.util.LinkedHashMap<>();
         keys.put("overworld", "minecraft:overworld");
         keys.put("the_nether", "minecraft:the_nether");

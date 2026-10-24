@@ -30,7 +30,7 @@ unloads every lazy dimension in turn, so it runs for a few minutes; it sets
 With `-PselfTest`, `runServer` reads a copy of `definitions/` with the fixture
 dimensions in `server/src/selftest/definitions/` added (a void death, a kept
 inventory, every win trigger). The fixtures are never in the release jar.
-`-PselfTestOnly=exits` runs only the compiled-pack and exit sections.
+`-PselfTestOnly=exits` runs only the compiled-pack and exit sections; `-PselfTestOnly=commands` the compiled-pack and command sections.
 
 `runServer` also loads Open Parties and Claims and its Forge Config API Port
 dependency from the Modrinth maven (`localRuntime`, versions in
@@ -116,17 +116,50 @@ from the pack; every lazy stem is opened through Fantasy as a persistent level
 
 | Piece | What it does |
 | --- | --- |
-| `PackInstaller` | With `-Dcustomdimensions.definitions` set, compiles the pack into `<world>/datapacks/customdimensions/` at mod initialisation, before the world loads |
+| `PackInstaller` | Compiles the definitions into `<world>/datapacks/customdimensions/` at mod initialisation, before the world loads ([below](#the-pack-at-start-up)) |
 | `LevelIndex` | At start, decodes every lazy stem from the server's resources and pairs it with its definition (seed, spawn, borders) |
 | `LevelManager` | Activation queue, one at a time (K6); spawn chunk loaded through a ticket, never on the tick; unload and delete polled until the level leaves `levelKeys()`; idle unload after `idleUnloadMinutes` |
-| `LevelCommands` | `/customdim list`, `activate <slug>`, `tp <slug>`, `unload <slug>` (permission level 2) |
 
 `-Pdefinitions=<dir>` points `runServer` at another definitions folder. Definitions are read from `-Dcustomdimensions.definitions`, else from
-`config/customdimensions/definitions/` under the game directory. Each level's
+`config/custom-dimensions/dimensions/` (with its `settings.json`) under the game directory. Each level's
 border is `2 × borders.player` around 0,0; a definition without one takes
 `settings.json`'s `defaults.borders.player`. Fantasy never writes its level
 stems to `world_gen_settings.dat`, so a deleted or unloaded level is not loaded
 on the next boot.
+
+### The pack at start-up
+
+The mod compiles its own pack (RB-33). `PackInstaller` reads vanilla's
+`data/minecraft/**` from the Minecraft jar the server runs and builds the
+multi-noise parameter lists from `MultiNoiseBiomeSourceParameterList.knownPresets()`
+with the codec of the data generator's biome-parameters report
+(`RuntimeVanilla`); `-Dcustomdimensions.vanilla=<dir>` swaps in an extracted
+copy. The pack carries `inputs.sha256`, the hash of every definition file,
+`settings.json`, the mod version and the Minecraft version, and is rewritten
+only when that hash changes. A rewrite that changes a dimension's noise
+settings or level-stem generator while its region folder holds chunks logs one
+WARN naming [D2](../../TROUBLESHOOTING.md#d2) per dimension. Without a
+definitions folder the mod logs one INFO and the world keeps the pack it has.
+`runServer` takes this path; the self-test's equivalence line compiles the
+definitions from `-Dcustomdimensions.vanilla.reference` (the
+`:compiler:vanillaData` folder) and from the running game and compares the
+files byte for byte.
+
+### Commands
+
+`/customdim`, permission level 4. Replies are the `customdim.*` templates in
+`config/messages.json`. One class per concern in `server/.../command/`.
+
+| Command | What it does |
+| --- | --- |
+| `list` | Every dimension: slug, state (`base`, `lazy`, `queued`, `opening`, `active`, `unloading`, `deleting`), players in it, loaded chunks |
+| `info <dimension>` | Generator (type, preset or clone source), seed, dimension type height, difficulty, peaceful, portals (frame, igniter), exits, wins, borders, state and any Bedrock height warning |
+| `tp <dimension> [player]` | To the spawn column's surface (0,0 without a spawn), opening a lazy level first; a level with a ceiling or an empty column keeps the spawn's y. The console names the player |
+| `activate <dimension>`, `unload <dimension>` | Open or close a lazy level; a base world is always loaded |
+| `delete <dimension> [confirm]` | Without `confirm`, says which level folder would go; with it, `LevelManager.delete`. Base worlds are refused; the definition stays |
+| `create <slug> [template]` | Writes `<definitions>/<slug>.json` from the template (default `overworld`) with a fresh seed and one new portal colour, without the template's `spawn`, portal `anchor`s and `wins`; reads it back, compiles it with the other definitions in a temporary folder, and replies that it opens after the next restart (RB-34). The copy keeps the template's frame and igniter |
+| `audit` | Writes `<world>/customdimensions/audit.md`: definitions compiled afresh against the pack (stale, missing, in the pack with no definition), level folders with no definition, portal links to unknown dimensions, frame blocks and igniters the server lacks, Bedrock height warnings, skipped biomes and unsupported fields |
+| `catalogue` | Writes `../.seed-rolling/catalogue/registries.json` beside the game directory for `scripts/extract-registries.py`: biomes, biome tags, structures, structure sets (placement as the game's codec writes it), blocks, items, features, placed features, entity types, and every tag of those registries with its members |
 
 ## Difficulty
 

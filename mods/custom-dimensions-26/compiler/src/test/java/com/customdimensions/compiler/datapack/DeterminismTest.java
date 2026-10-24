@@ -22,7 +22,7 @@ class DeterminismTest {
     void repeatRunsAreByteIdentical(@TempDir Path tmp) throws IOException {
         DatapackCompiler.Output first = DatapackCompiler.compile(Fixtures.definitions(), Fixtures.vanilla(), VersionTable.V26_3);
         DatapackCompiler.Output second = DatapackCompiler.compile(Fixtures.definitions(),
-                new VanillaData(Fixtures.vanilla().root()), VersionTable.V26_3);
+                new VanillaData(Fixtures.vanilla().source()), VersionTable.V26_3);
         assertEquals(first.files(), second.files());
         assertEquals(first.reportText(), second.reportText());
 

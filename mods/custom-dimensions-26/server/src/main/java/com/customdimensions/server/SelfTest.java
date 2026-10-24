@@ -6,7 +6,10 @@ import com.customdimensions.compiler.datapack.VersionTable;
 import com.customdimensions.compiler.zone.ZoneDensity;
 import com.customdimensions.core.zone.ZoneMask;
 import com.customdimensions.core.zone.ZoneShape;
+import com.customdimensions.server.command.CommandSelfTest;
 import com.customdimensions.server.exit.ExitSelfTest;
+import com.customdimensions.server.level.PackInstaller;
+import com.customdimensions.server.level.RuntimeVanilla;
 import com.customdimensions.server.level.GeneratorSelfTest;
 import com.customdimensions.server.difficulty.DifficultySelfTest;
 import com.customdimensions.server.level.LevelSelfTest;
@@ -56,17 +59,21 @@ import net.minecraft.world.timeline.Timeline;
  * Start-up checks against the running game, enabled by
  * {@code -Dcustomdimensions.selftest=<report file>}: the server writes the
  * report and stops. CI boots the mod this way; a line starting {@code FAIL}
- * fails the build. The runtime-level checks ({@link LevelSelfTest}), then the
- * generator checks ({@link GeneratorSelfTest}), the portal and exit checks and
- * {@link DifficultySelfTest} run across ticks, so the report is written when they finish. The compiled-pack checks read the definitions from
- * {@code -Dcustomdimensions.definitions} and vanilla's files from
- * {@code -Dcustomdimensions.vanilla}.
+ * fails the build. The pack-install and pack-equivalence lines come first,
+ * then the compiled-pack checks; the runtime-level checks ({@link LevelSelfTest}),
+ * the generator checks ({@link GeneratorSelfTest}), the portal and exit checks,
+ * {@link DifficultySelfTest} and {@link CommandSelfTest} run across ticks, so
+ * the report is written when they finish. The compiled-pack checks read the
+ * definitions from {@code -Dcustomdimensions.definitions} and vanilla's files
+ * from the running game; the equivalence line also reads
+ * {@code -Dcustomdimensions.vanilla.reference}.
  */
 final class SelfTest {
     private static final String PROPERTY = "customdimensions.selftest";
     private static final String DEFINITIONS = "customdimensions.definitions";
-    private static final String VANILLA = "customdimensions.vanilla";
-    /** {@code exits} runs the compiled-pack and exit sections only, for iterating on them. */
+    /** An extracted vanilla folder the runtime source is compared against; {@code -Dcustomdimensions.vanilla} also counts. */
+    private static final String REFERENCE = "customdimensions.vanilla.reference";
+    /** {@code exits} or {@code commands} runs the compiled-pack section and that one only, for iterating on it. */
     private static final String ONLY = "customdimensions.selftest.only";
 
     private SelfTest() {}
@@ -80,8 +87,12 @@ final class SelfTest {
     private static void run(MinecraftServer server, Path report) {
         List<String> lines = new ArrayList<>();
         lines.add(check("zone mask parses and samples like core", () -> zoneMask(server)));
+        lines.add(check("pack installed at start-up by the mod", SelfTest::packInstall));
+        lines.add(equivalence());
         lines.addAll(compiledPack(server));
-        boolean exitsOnly = "exits".equals(System.getProperty(ONLY, ""));
+        String only = System.getProperty(ONLY, "");
+        boolean commandsOnly = "commands".equals(only);
+        boolean exitsOnly = "exits".equals(only) || commandsOnly;
         CompletableFuture<List<String>> levels;
         try {
             levels = exitsOnly ? CompletableFuture.completedFuture(List.of()) : LevelSelfTest.run(server);
@@ -111,7 +122,7 @@ final class SelfTest {
             return null;
         }).thenCompose(v -> {
             try {
-                return ExitSelfTest.run(server);
+                return commandsOnly ? CompletableFuture.completedFuture(List.<String>of()) : ExitSelfTest.run(server);
             } catch (Throwable t) {
                 return CompletableFuture.completedFuture(List.of("FAIL exits: " + t));
             }
@@ -124,8 +135,17 @@ final class SelfTest {
             } catch (Throwable t) {
                 return CompletableFuture.completedFuture(List.of("FAIL difficulty: " + t));
             }
-        }).whenComplete((more, error) -> {
+        }).handle((more, error) -> {
             lines.addAll(error == null ? more : List.of("FAIL difficulty: " + error));
+            return null;
+        }).thenCompose(v -> {
+            try {
+                return exitsOnly && !commandsOnly ? CompletableFuture.completedFuture(List.<String>of()) : CommandSelfTest.run(server);
+            } catch (Throwable t) {
+                return CompletableFuture.completedFuture(List.of("FAIL commands: " + t));
+            }
+        }).whenComplete((more, error) -> {
+            lines.addAll(error == null ? more : List.of("FAIL commands: " + error));
             try {
                 Files.write(report, lines);
             } catch (IOException e) {
@@ -141,6 +161,69 @@ final class SelfTest {
             return "PASS " + name + ": " + check.run();
         } catch (Throwable t) {
             return "FAIL " + name + ": " + t;
+        }
+    }
+
+    /** The pack in the world holds what the mod compiled at initialisation, from the source it names. */
+    private static String packInstall() {
+        PackInstaller.Result result = PackInstaller.last().orElseThrow(() -> new AssertionError("the installer did not run"));
+        if (!java.nio.file.Files.isRegularFile(result.pack().resolve("pack.mcmeta"))) throw new AssertionError("no pack.mcmeta in " + result.pack());
+        String hash = com.customdimensions.compiler.datapack.PackInputs.read(result.pack()).orElse("");
+        if (!hash.equals(result.hash())) throw new AssertionError("pack hash " + hash + ", inputs " + result.hash());
+        return (result.compiled() ? "compiled " + result.files() + " files from " + result.vanilla()
+                : "current, " + result.files() + " files kept") + ", inputs " + hash.substring(0, 12)
+                + ", " + result.drift().size() + " drift warnings";
+    }
+
+    /**
+     * The shipped definitions compiled from the extracted vanilla folder and
+     * from the running game give the same files, byte for byte, and the same report.
+     */
+    private static String equivalence() {
+        String reference = System.getProperty(REFERENCE, System.getProperty(PackInstaller.VANILLA_PROPERTY, ""));
+        if (reference.isEmpty()) {
+            return "SKIP pack equivalence: no -D" + REFERENCE + " to compare the running game against";
+        }
+        return check("pack equivalence: extracted vanilla and the running game compile the same pack", () -> {
+            Path definitions = Path.of(requiredProperty(DEFINITIONS));
+            VersionTable.Version version = VersionTable.forId(PackInstaller.minecraftVersion());
+            RuntimeVanilla runtime = RuntimeVanilla.load();
+            DatapackCompiler.Output extracted = DatapackCompiler.compile(definitions, new VanillaData(Path.of(reference)), version);
+            DatapackCompiler.Output live = DatapackCompiler.compile(definitions, new VanillaData(runtime), version);
+            Path dir = Files.createTempDirectory("customdim-equivalence");
+            DatapackCompiler.write(extracted, dir.resolve("extracted"), dir.resolve("extracted.md"));
+            DatapackCompiler.write(live, dir.resolve("runtime"), dir.resolve("runtime.md"));
+            List<String> a = tree(dir.resolve("extracted"));
+            List<String> b = tree(dir.resolve("runtime"));
+            if (!a.equals(b)) {
+                List<String> onlyA = new ArrayList<>(a);
+                onlyA.removeAll(b);
+                List<String> onlyB = new ArrayList<>(b);
+                onlyB.removeAll(a);
+                throw new AssertionError("file sets differ: extracted only " + onlyA + ", runtime only " + onlyB);
+            }
+            for (String path : a) {
+                if (!java.util.Arrays.equals(Files.readAllBytes(dir.resolve("extracted").resolve(path)),
+                        Files.readAllBytes(dir.resolve("runtime").resolve(path)))) {
+                    throw new AssertionError("first difference: " + path);
+                }
+            }
+            if (!Files.readString(dir.resolve("extracted.md")).equals(Files.readString(dir.resolve("runtime.md")))) {
+                throw new AssertionError("the compile reports differ");
+            }
+            for (String report : runtime.reportPaths()) {
+                java.nio.file.Path file = Path.of(reference).resolve(report);
+                if (!JsonParser.parseString(Files.readString(file)).equals(JsonParser.parseString(runtime.read(report).orElseThrow()))) {
+                    throw new AssertionError(report + " differs from the data generator's report");
+                }
+            }
+            return a.size() + " files identical; " + runtime.reportPaths().size() + " parameter lists equal the reports";
+        });
+    }
+
+    private static List<String> tree(Path root) throws IOException {
+        try (Stream<Path> walk = Files.walk(root)) {
+            return walk.filter(Files::isRegularFile).map(p -> root.relativize(p).toString().replace('\\', '/')).sorted().toList();
         }
     }
 
@@ -176,7 +259,7 @@ final class SelfTest {
         Path pack;
         try {
             Path definitions = Path.of(requiredProperty(DEFINITIONS));
-            VanillaData vanilla = new VanillaData(Path.of(requiredProperty(VANILLA)));
+            VanillaData vanilla = PackInstaller.vanilla();
             DatapackCompiler.Output output = DatapackCompiler.compile(definitions, vanilla,
                     VersionTable.forId(server.getServerVersion()));
             Path dir = Files.createTempDirectory("customdim-pack");

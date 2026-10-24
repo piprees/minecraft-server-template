@@ -45,5 +45,8 @@ class MessagesTest {
         Messages m = Messages.load(Path.of("../../../config/messages.json"));
         assertEquals(Messages.defaults().template(Messages.PORTAL_NO_SITE), m.template(Messages.PORTAL_NO_SITE));
         assertEquals(Messages.defaults().template(Messages.WIN_EARNED), m.template(Messages.WIN_EARNED));
+        for (String key : Messages.defaultKeys()) {
+            assertEquals(Messages.defaults().template(key), m.template(key), key);
+        }
     }
 }

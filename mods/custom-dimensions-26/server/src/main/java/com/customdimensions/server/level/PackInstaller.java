@@ -1,49 +1,139 @@
 package com.customdimensions.server.level;
 
 import com.customdimensions.compiler.datapack.DatapackCompiler;
+import com.customdimensions.compiler.datapack.PackDrift;
+import com.customdimensions.compiler.datapack.PackInputs;
 import com.customdimensions.compiler.datapack.VanillaData;
 import com.customdimensions.compiler.datapack.VersionTable;
+import com.customdimensions.core.definition.DefinitionReader;
+import com.customdimensions.core.definition.DefinitionSettings;
 import com.customdimensions.server.CustomDimensions;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 import java.util.Properties;
+import java.util.stream.Stream;
 import net.fabricmc.loader.api.FabricLoader;
 
 /**
- * Compiles the definitions into {@code <game dir>/<level-name>/datapacks/customdimensions/}
- * at mod initialisation, before the world loads, when
- * {@code -Dcustomdimensions.definitions} is set ({@code -Dcustomdimensions.vanilla}
- * names vanilla's extracted files). Vanilla enables a new pack in that folder
- * on its own. Without the property nothing is compiled and the world keeps the
- * pack it has.
+ * Compiles the definitions ({@link LevelIndex#definitionsDir()}) into
+ * {@code <game dir>/<level-name>/datapacks/customdimensions/} at mod
+ * initialisation, before the world loads; vanilla enables a new pack in that
+ * folder on its own. Vanilla's files come from the running game
+ * ({@link RuntimeVanilla}), or from {@code -Dcustomdimensions.vanilla} when it
+ * names an extracted copy. The pack carries the hash of its inputs and is
+ * rewritten only when that hash changes. A rewrite that changes the worldgen
+ * of a dimension whose region folder already holds chunks logs one WARN per
+ * dimension (D2). Without a definitions folder the world keeps the pack it has.
  */
 public final class PackInstaller {
     public static final String VANILLA_PROPERTY = "customdimensions.vanilla";
     public static final String PACK_NAME = "customdimensions";
+    /** Bytes of a region file's location and timestamp tables; a longer file holds at least one chunk. */
+    static final long REGION_HEADER = 8192;
+
+    /** What the last {@link #install()} did: compiled or found current, with its file count and vanilla source. */
+    public record Result(boolean compiled, Path pack, String hash, int files, String vanilla, List<String> drift) {}
+
+    private static Result last;
 
     private PackInstaller() {}
 
+    public static Optional<Result> last() {
+        return Optional.ofNullable(last);
+    }
+
     public static void install() {
-        String definitions = System.getProperty(LevelIndex.DEFINITIONS_PROPERTY, "");
-        if (definitions.isEmpty()) return;
-        String vanilla = System.getProperty(VANILLA_PROPERTY, "");
-        if (vanilla.isEmpty()) {
-            throw new IllegalStateException("-D" + LevelIndex.DEFINITIONS_PROPERTY + " is set but -D" + VANILLA_PROPERTY
-                    + " is not; the pack cannot be compiled");
-        }
         Path gameDir = FabricLoader.getInstance().getGameDir();
-        Path pack = packDir(gameDir, levelName(gameDir.resolve("server.properties")));
-        String version = FabricLoader.getInstance().getModContainer("minecraft").orElseThrow()
-                .getMetadata().getVersion().getFriendlyString();
+        Optional<Path> definitions = LevelIndex.definitionsDir();
+        if (definitions.isEmpty()) {
+            CustomDimensions.LOG.info("no definitions at {}; the world keeps the pack it has",
+                    gameDir.resolve(LevelIndex.DEFINITIONS_FALLBACK));
+            return;
+        }
+        String levelName = levelName(gameDir.resolve("server.properties"));
+        Path world = gameDir.resolve(levelName);
+        Path pack = packDir(gameDir, levelName);
+        String minecraft = minecraftVersion();
+        String hash = PackInputs.hash(definitions.get(), modVersion(), minecraft);
+        if (PackInputs.read(pack).filter(hash::equals).isPresent() && Files.isRegularFile(pack.resolve("pack.mcmeta"))) {
+            CustomDimensions.LOG.info("the pack in {} is current (inputs {})", pack, hash.substring(0, 12));
+            last = new Result(false, pack, hash, PackDrift.read(pack).size() + 1, "", List.of());
+            return;
+        }
         long start = System.nanoTime();
-        DatapackCompiler.Output output = DatapackCompiler.compile(Path.of(definitions), new VanillaData(Path.of(vanilla)),
-                VersionTable.forId(version));
+        VanillaData vanilla = vanilla();
+        DatapackCompiler.Output output = DatapackCompiler.compile(definitions.get(), vanilla, VersionTable.forId(minecraft));
+        List<String> changed = PackDrift.changed(PackDrift.read(pack), output);
+        List<String> warnings = driftWarnings(world, namespace(definitions.get()), changed);
+        warnings.forEach(CustomDimensions.LOG::warn);
         DatapackCompiler.write(output, pack, pack.resolve(DatapackCompiler.REPORT_FILE));
-        CustomDimensions.LOG.info("compiled {} files into {} in {} ms", output.files().size(), pack,
-                (System.nanoTime() - start) / 1_000_000);
+        PackInputs.write(pack, hash);
+        CustomDimensions.LOG.info("compiled {} files into {} from {} in {} ms", output.files().size(), pack,
+                vanilla.source().describe(), (System.nanoTime() - start) / 1_000_000);
+        last = new Result(true, pack, hash, output.files().size(), vanilla.source().describe(), warnings);
+    }
+
+    /** {@code -Dcustomdimensions.vanilla} when set, else the running game. */
+    public static VanillaData vanilla() {
+        String property = System.getProperty(VANILLA_PROPERTY, "");
+        return property.isEmpty() ? new VanillaData(RuntimeVanilla.load()) : new VanillaData(Path.of(property));
+    }
+
+    public static String minecraftVersion() {
+        return FabricLoader.getInstance().getModContainer("minecraft").orElseThrow()
+                .getMetadata().getVersion().getFriendlyString();
+    }
+
+    public static String modVersion() {
+        return FabricLoader.getInstance().getModContainer(CustomDimensions.ID)
+                .map(m -> m.getMetadata().getVersion().getFriendlyString()).orElse("unknown");
+    }
+
+    static String namespace(Path definitions) {
+        DefinitionSettings settings = DefinitionReader.readSettings(definitions.resolve("settings.json"));
+        return settings.namespace() != null ? settings.namespace() : LevelIndex.DEFAULT_NAMESPACE;
+    }
+
+    /** One warning for each changed dimension whose region folder holds chunks. */
+    static List<String> driftWarnings(Path world, String namespace, List<String> changed) {
+        List<String> out = new ArrayList<>();
+        for (String slug : changed) {
+            if (holdsChunks(regionDir(world, namespace, slug))) {
+                out.add(slug + ": the recompiled pack changes its worldgen and its region folder already holds chunks;"
+                        + " generated chunks keep the old terrain and new ones get the new (D2, TROUBLESHOOTING.md#d2)");
+            }
+        }
+        return out;
+    }
+
+    /** {@code <world>/dimensions/<namespace>/<path>/region} for a base world's level id or a lazy level's. */
+    static Path regionDir(Path world, String namespace, String slug) {
+        String id = LevelIndex.baseWorldKeys(namespace).getOrDefault(slug, namespace + ":" + slug);
+        int colon = id.indexOf(':');
+        return world.resolve("dimensions").resolve(id.substring(0, colon)).resolve(id.substring(colon + 1)).resolve("region");
+    }
+
+    static boolean holdsChunks(Path region) {
+        if (!Files.isDirectory(region)) return false;
+        try (Stream<Path> files = Files.list(region)) {
+            return files.anyMatch(f -> f.getFileName().toString().endsWith(".mca") && size(f) > REGION_HEADER);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    private static long size(Path file) {
+        try {
+            return Files.size(file);
+        } catch (IOException e) {
+            return 0;
+        }
     }
 
     static Path packDir(Path gameDir, String levelName) {

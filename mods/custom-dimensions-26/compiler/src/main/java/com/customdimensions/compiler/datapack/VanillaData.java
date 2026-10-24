@@ -5,9 +5,6 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -16,29 +13,36 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.stream.Stream;
 
 /**
  * Read access to the vanilla files the compiler starts from: the server jar's
- * {@code data/minecraft/**} and the data generator's {@code reports/}, both
- * extracted by {@code :compiler:vanillaData}. Every getter returns a copy.
+ * {@code data/minecraft/**} and the data generator's multi-noise parameter
+ * lists, from a {@link VanillaSource}. Every getter returns a copy.
  */
 public final class VanillaData {
 
-    private final Path root;
-    private final Map<Path, JsonElement> cache = new HashMap<>();
+    private static final String PROBE = "data/minecraft/dimension_type/overworld.json";
+    private static final String PROBE_REPORT = "reports/biome_parameters/minecraft/overworld.json";
+
+    private final VanillaSource source;
+    private final Map<String, JsonElement> cache = new HashMap<>();
     private Set<String> biomeIds;
 
+    /** The files {@code :compiler:vanillaData} extracted into {@code root}. */
     public VanillaData(Path root) {
-        this.root = root;
-        if (!Files.isRegularFile(root.resolve("data/minecraft/dimension_type/overworld.json"))
-                || !Files.isDirectory(root.resolve("reports/biome_parameters"))) {
-            throw new IllegalArgumentException(root + " holds no vanilla data; run ./gradlew :compiler:vanillaData");
+        this(VanillaSource.directory(root));
+    }
+
+    public VanillaData(VanillaSource source) {
+        this.source = source;
+        if (source.read(PROBE).isEmpty() || source.read(PROBE_REPORT).isEmpty()) {
+            throw new IllegalArgumentException(source.describe()
+                    + " holds no vanilla data; run ./gradlew :compiler:vanillaData");
         }
     }
 
-    public Path root() {
-        return root;
+    public VanillaSource source() {
+        return source;
     }
 
     /** {@code data/minecraft/dimension_type/<name>.json}. */
@@ -65,13 +69,9 @@ public final class VanillaData {
     public Set<String> biomeIds() {
         if (biomeIds == null) {
             Set<String> ids = new TreeSet<>();
-            try (Stream<Path> files = Files.list(root.resolve("data/minecraft/worldgen/biome"))) {
-                files.map(p -> p.getFileName().toString())
-                        .filter(n -> n.endsWith(".json"))
-                        .forEach(n -> ids.add("minecraft:" + n.substring(0, n.length() - 5)));
-            } catch (IOException e) {
-                throw new UncheckedIOException(e);
-            }
+            source.list("data/minecraft/worldgen/biome").stream()
+                    .filter(n -> n.endsWith(".json"))
+                    .forEach(n -> ids.add("minecraft:" + n.substring(0, n.length() - 5)));
             biomeIds = Set.copyOf(ids);
         }
         return biomeIds;
@@ -121,14 +121,8 @@ public final class VanillaData {
     }
 
     private JsonObject object(String relative) {
-        Path file = root.resolve(relative);
-        JsonElement parsed = cache.computeIfAbsent(file, f -> {
-            try {
-                return JsonParser.parseString(Files.readString(f));
-            } catch (IOException e) {
-                throw new UncheckedIOException("vanilla file missing: " + f, e);
-            }
-        });
+        JsonElement parsed = cache.computeIfAbsent(relative, path -> JsonParser.parseString(source.read(path)
+                .orElseThrow(() -> new IllegalStateException("vanilla file missing: " + path + " in " + source.describe()))));
         return parsed.getAsJsonObject().deepCopy();
     }
 }

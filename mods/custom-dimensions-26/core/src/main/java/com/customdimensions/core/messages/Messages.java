@@ -19,14 +19,54 @@ public final class Messages {
     public static final String PORTAL_NO_SITE = "portal.no_site";
     public static final String WIN_EARNED = "win.earned";
 
-    private static final Map<String, String> DEFAULTS = Map.of(
-            PORTAL_NO_SITE, "The portal cannot find anywhere safe to put you.",
-            WIN_EARNED, "§6{player} §rearned §e{win}§r in {dimension}.");
+    private static final Map<String, String> DEFAULTS = Map.ofEntries(
+            Map.entry(PORTAL_NO_SITE, "The portal cannot find anywhere safe to put you."),
+            Map.entry(WIN_EARNED, "§6{player} §rearned §e{win}§r in {dimension}."),
+            Map.entry("customdim.no_manager", "The level manager has not started."),
+            Map.entry("customdim.unknown", "There is no dimension called {dimension}."),
+            Map.entry("customdim.write_failed", "Could not write {path}: {reason}"),
+            Map.entry("customdim.list.header", "{count} dimensions: {base} base, {lazy} lazy, {open} open."),
+            Map.entry("customdim.list.line", "{dimension}: {state}, {players} players, {chunks} chunks loaded"),
+            Map.entry("customdim.info.header", "{dimension} ({state})"),
+            Map.entry("customdim.info.generator", "Generator: {generator}"),
+            Map.entry("customdim.info.seed", "Seed: {seed}"),
+            Map.entry("customdim.info.height", "Height: y {minY} to {maxY} ({height} blocks)"),
+            Map.entry("customdim.info.difficulty", "Difficulty: mobs x{mobs}, player luck x{luck}, depth scaling {depth}, hostile spawning {hostile}"),
+            Map.entry("customdim.info.peaceful", "Peaceful: {peaceful}"),
+            Map.entry("customdim.info.portals", "Portals: {count} {portals}"),
+            Map.entry("customdim.info.exits", "Exits: {exits}"),
+            Map.entry("customdim.info.wins", "Wins: {wins}"),
+            Map.entry("customdim.info.borders", "Borders: player {player}, generation {generation}"),
+            Map.entry("customdim.info.bedrock", "Bedrock: {warning}"),
+            Map.entry("customdim.tp.console", "Name a player to teleport from the console."),
+            Map.entry("customdim.tp.done", "Teleported {player} to {dimension}."),
+            Map.entry("customdim.activate.started", "Opening {dimension}..."),
+            Map.entry("customdim.activate.done", "{dimension} is open ({millis} ms)."),
+            Map.entry("customdim.activate.failed", "Could not open {dimension}: {reason}"),
+            Map.entry("customdim.base_world", "{dimension} is a base world; it is always loaded."),
+            Map.entry("customdim.unload.done", "{dimension} unloaded after {ticks} ticks."),
+            Map.entry("customdim.unload.failed", "Could not unload {dimension}: {reason}"),
+            Map.entry("customdim.delete.base", "{dimension} is a base world and cannot be deleted."),
+            Map.entry("customdim.delete.preview", "This deletes {dimension}'s level folder {path} and forgets its portals; the definition stays. Run /customdim delete {dimension} confirm to do it."),
+            Map.entry("customdim.delete.done", "{dimension} deleted."),
+            Map.entry("customdim.delete.failed", "Could not delete {dimension}: {reason}"),
+            Map.entry("customdim.create.invalid_slug", "{slug} is not a valid name: use 1 to 64 lower-case letters, digits and underscores."),
+            Map.entry("customdim.create.exists", "A dimension called {slug} already exists."),
+            Map.entry("customdim.create.unknown_template", "There is no definition called {template} to copy."),
+            Map.entry("customdim.create.invalid", "The new definition for {slug} does not validate: {reason}"),
+            Map.entry("customdim.create.done", "Wrote {path} from {template} with seed {seed} and portal colour {colour}. {slug} opens after the next restart."),
+            Map.entry("customdim.audit.done", "Audit written to {path}: {stale} stale, {missing} missing, {removed} removed, {orphans} orphans, {links} broken portal links, {ids} unknown ids, {bedrock} Bedrock warnings, {warnings} compile warnings."),
+            Map.entry("customdim.catalogue.done", "Catalogue written to {path}: {blocks} blocks, {items} items, {biomes} biomes, {structures} structures, {features} features, {entities} entity types, {tags} tags."));
 
     private final Map<String, String> entries;
 
     private Messages(Map<String, String> entries) {
         this.entries = entries;
+    }
+
+    /** Every key with a built-in default. */
+    public static java.util.Set<String> defaultKeys() {
+        return DEFAULTS.keySet();
     }
 
     public static Messages defaults() {

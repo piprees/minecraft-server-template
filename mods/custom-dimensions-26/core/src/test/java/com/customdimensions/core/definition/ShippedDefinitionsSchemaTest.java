@@ -61,6 +61,31 @@ class ShippedDefinitionsSchemaTest {
     }
 
     @Test
+    void everyDefinitionCreateDerivesValidatesAndLoads() throws IOException {
+        List<String> failures = new ArrayList<>();
+        java.util.Random random = new java.util.Random(7);
+        for (Path file : definitionFiles()) {
+            com.google.gson.JsonObject template = com.google.gson.JsonParser.parseString(Files.readString(file)).getAsJsonObject();
+            String colour = DefinitionTemplate.freshColour(random, DefinitionTemplate.colours(template));
+            com.google.gson.JsonObject derived = DefinitionTemplate.derive(template, random.nextLong(), colour);
+            String text = derived.toString();
+            schema.validate(text, InputFormat.JSON).forEach(e -> failures.add(file.getFileName() + ": " + e));
+            Definition read = DefinitionReader.read(text, file.toString());
+            assertTrue(read.portals().stream().allMatch(p -> colour.equals(p.get("color").getAsString())
+                    && !p.has("anchor")), file.toString());
+            assertTrue(read.spawn() == null && read.wins().isEmpty(), file.toString());
+        }
+        assertEquals(List.of(), failures);
+        assertTrue(Files.exists(DEFINITIONS.resolve(DefinitionTemplate.DEFAULT + ".json")));
+        assertTrue(DefinitionTemplate.validSlug("the_new_one_2"));
+        assertFalse(DefinitionTemplate.validSlug("The_New"));
+        assertFalse(DefinitionTemplate.validSlug("a/b"));
+        assertFalse(DefinitionTemplate.validSlug(""));
+        assertFalse(DefinitionTemplate.validSlug("settings"));
+        assertEquals("ABCDEF".length(), DefinitionTemplate.freshColour(random, List.of()).length());
+    }
+
+    @Test
     void shippedSettingsLoad() {
         DefinitionSettings settings = DefinitionReader.readSettings(DEFINITIONS.resolve("settings.json"));
         assertEquals(2, settings.schemaVersion());

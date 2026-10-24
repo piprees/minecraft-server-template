@@ -73,14 +73,15 @@ loom {
 			programArg '--nogui'
 			// -PselfTest=<file> runs the start-up self-test, writes its report and stops the server.
 			vmArg "-Dcustomdimensions.selftest=${project.findProperty('selfTest') ?: ''}"
-			// -PselfTestOnly=exits: the compiled-pack and exit sections only.
+			// -PselfTestOnly=exits|commands: the compiled-pack section and that one only.
 			vmArg "-Dcustomdimensions.selftest.only=${project.findProperty('selfTestOnly') ?: ''}"
 			// -PselfTestPersist=write|verify: the two-boot persistence check, run with the self-test.
 			vmArg "-Dcustomdimensions.selftest.persist=${project.findProperty('selfTestPersist') ?: ''}"
-			// The self-test compiles definitions/ against vanilla's files and decodes the result.
-			// -Pdefinitions=<dir> runs against another definitions folder.
+			// The mod compiles definitions/ into the world's pack at start-up from the running game's vanilla files,
+			// as in production. -Pdefinitions=<dir> runs against another definitions folder.
 			vmArg "-Dcustomdimensions.definitions=${project.findProperty('definitions') ?: (selfTestRun ? selfTestDefinitions.get().asFile.absolutePath : file('../definitions').canonicalPath)}"
-			vmArg "-Dcustomdimensions.vanilla=${project(':compiler').layout.buildDirectory.dir("vanilla/${project.minecraft_version}").get().asFile.absolutePath}"
+			// The extracted vanilla files, only for the self-test's equivalence line against the running game.
+			vmArg "-Dcustomdimensions.vanilla.reference=${project(':compiler').layout.buildDirectory.dir("vanilla/${project.minecraft_version}").get().asFile.absolutePath}"
 		}
 	}
 }
