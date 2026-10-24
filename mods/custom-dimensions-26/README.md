@@ -86,6 +86,33 @@ border is `2 × borders.player` around 0,0; a definition without one takes
 stems to `world_gen_settings.dat`, so a deleted or unloaded level is not loaded
 on the next boot.
 
+## Difficulty
+
+`server/.../difficulty/` applies each definition's `difficulty` block over
+`settings.json`'s `defaults.difficulty`, read into core's `Difficulty`. Fabric
+events only; no mixin.
+
+| Field | What it does |
+| --- | --- |
+| `mobMultiplier` | A monster-category mob takes `customdimensions:dimension_difficulty` (`add_multiplied_total`, multiplier − 1) the first time it enters any level; 0 or less leaves it unscaled |
+| `attributes` | `health`, `damage`, `armor` on unless set false; `speed` (a quarter of the excess) and `knockback` off unless set true |
+| `depthScaling` | Multiplies `mobMultiplier` linearly from `minMultiplier` at `startY` (default 64, 1.0) to `maxMultiplier` at `endY` (default −64, 1.5), by the mob's height when it is scaled |
+| `playerLuck` | `customdimensions:dimension_luck`, `playerLuck − 1` added to luck, set on join, respawn and every level change, removed in a dimension without it |
+| `hostileSpawning: false` | The natural spawner skips the monster category there, and any monster that enters (spawner, egg, command, portal, chunk load) is discarded before it ticks |
+
+A mob is scaled once: the persistent `customdimensions:difficulty_scaled`
+attachment marks it, so a chunk reload or a dimension change keeps the scaling
+it spawned with (RB-32). A scaled mob starts at full health. Per-dimension spawn
+tables are not written: no definition field asks for one, and vanilla's
+`gameplay/natural_mob_spawns` attribute cannot make a dimension peaceful (RB-32).
+
+The self-test scales a zombie in the dimension with the highest
+`mobMultiplier`, unloads and reloads its chunk, moves it to the overworld, checks
+the overworld's depth factor at two heights, runs a peaceful dimension's natural
+spawner for 1200 ticks against a 600-tick control with the rule lifted, places a
+spawn-egg and a spawner zombie there, and moves a Fabric fake player in and out
+to check its luck.
+
 ## Portals
 
 `server/.../portal/` runs every portal through one Polymer block,

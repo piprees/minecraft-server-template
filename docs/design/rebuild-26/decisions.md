@@ -115,3 +115,9 @@ Rejected: a scoreboard or a file of our own, which the client cannot show.
 **RB-31 — A dimension can keep or drop what a player carries when they die there.**
 `deaths.inventory` and `deaths.experience` are `keep` or `drop`; absent, the `keepInventory` game rule decides. Kept items and levels are taken before the drop and handed back on respawn, through Fabric's death and respawn events.
 Why: the game rule is server-wide, and a dimension built as a trial or a gallery needs its own rule.
+
+**RB-32 — A mob is scaled once, when it first enters a level, and keeps that scaling.**
+Scaling follows Fabric's entity-load event and a persistent attachment marks the mob, so a reload or a dimension change never scales it again; a zombie from the hardest dimension stays hard in the overworld. A peaceful dimension turns off its level's monster spawning and discards any monster that enters before it ticks, base worlds included.
+Why: the event and the attachment need no mixin, and re-scaling on arrival (the 1.21.1 behaviour) let a mob walked out of a hard dimension keep or lose its boost depending on the destination.
+Rejected: peaceful through 26.3's `gameplay/natural_mob_spawns` attribute. A timeline track overlaying an empty `monster` list does sit above the biome layer, but `NaturalSpawner.mobsAt` answers from a structure's spawn overrides (fortress, monument, outpost, swamp hut) before it reads the attribute, so those monsters would still spawn; and the event route needs no mixin to remove.
+

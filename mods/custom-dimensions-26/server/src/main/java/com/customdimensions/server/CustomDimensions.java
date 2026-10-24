@@ -1,5 +1,6 @@
 package com.customdimensions.server;
 
+import com.customdimensions.server.difficulty.DimensionDifficulty;
 import com.customdimensions.server.level.LevelCommands;
 import com.customdimensions.server.level.LevelManager;
 import com.customdimensions.server.level.PackInstaller;
@@ -18,6 +19,7 @@ public final class CustomDimensions implements ModInitializer {
         LevelManager.register();
         LevelCommands.register();
         Portals.register();
+        DimensionDifficulty.register();
         SelfTest.register();
     }
 }

@@ -6,6 +6,7 @@ import com.customdimensions.compiler.datapack.VersionTable;
 import com.customdimensions.compiler.zone.ZoneDensity;
 import com.customdimensions.core.zone.ZoneMask;
 import com.customdimensions.core.zone.ZoneShape;
+import com.customdimensions.server.difficulty.DifficultySelfTest;
 import com.customdimensions.server.level.LevelSelfTest;
 import com.customdimensions.server.portal.PortalSelfTest;
 import com.google.gson.JsonElement;
@@ -53,7 +54,8 @@ import net.minecraft.world.timeline.Timeline;
  * {@code -Dcustomdimensions.selftest=<report file>}: the server writes the
  * report and stops. CI boots the mod this way; a line starting {@code FAIL}
  * fails the build. The runtime-level checks ({@link LevelSelfTest}) run across
- * ticks, so the report is written when they finish. The compiled-pack checks read the definitions from
+ * ticks, so the report is written when they finish; the portal checks and
+ * then {@link DifficultySelfTest} follow them. The compiled-pack checks read the definitions from
  * {@code -Dcustomdimensions.definitions} and vanilla's files from
  * {@code -Dcustomdimensions.vanilla}.
  */
@@ -89,8 +91,15 @@ final class SelfTest {
             } catch (Throwable t) {
                 return CompletableFuture.completedFuture(List.of("FAIL portals: " + t));
             }
+        }).thenCompose(more -> {
+            lines.addAll(more);
+            try {
+                return DifficultySelfTest.run(server);
+            } catch (Throwable t) {
+                return CompletableFuture.completedFuture(List.of("FAIL difficulty: " + t));
+            }
         }).whenComplete((more, error) -> {
-            lines.addAll(error == null ? more : List.of("FAIL portals: " + error));
+            lines.addAll(error == null ? more : List.of("FAIL portals or difficulty: " + error));
             try {
                 Files.write(report, lines);
             } catch (IOException e) {
