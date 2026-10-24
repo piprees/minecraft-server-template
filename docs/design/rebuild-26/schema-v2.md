@@ -85,7 +85,7 @@ writes the v2 set. At the switch the v2 set moves to
 | `superflat` | `flat` |
 | `checkerboard` | `checkerboard` |
 | `single_biome` | `single_biome` (`generator.biome`) |
-| `ns:path` (a clone) | `clone`, `of: "ns:path"`; `paradise_lost:paradise_lost` is reported, since that mod is cut |
+| `ns:path` (a clone) | `clone`, `of: "ns:path"`; `paradise_lost:paradise_lost` becomes `of: "adventure:the_aviary"` (a rewrite in the report), since The Aviary replaces it |
 | absent (a base world) | the base world's own preset |
 
 ## Base worlds
@@ -118,8 +118,32 @@ the v1 files.
 - A zone converted from a biome patch is `{shape (default "circle"), centre: [x, z], radius, blend, biomes: [id]}`.
 - Output is deterministic: two-space indent, number and boolean arrays on one line, numbers keep their source text, stale files are deleted.
 
+## Clones
+
+A clone takes the generator, biome list and terrain of the definition its
+`of` names, and keeps its own seed, spawn, dimension type, atmosphere, rules
+and everything else. Its own `liquids` and `materials` apply over the
+source's, field by field; its own `biomes` are not used, and the compile
+report says so. The compiler resolves `of` to a slug: `paradise_lost:paradise_lost`
+to `the_aviary`, a base world's level stem (`minecraft:overworld`,
+`minecraft:the_nether`, `minecraft:the_end`) to its slug, and
+`<namespace>:<slug>` to that definition. A clone of a clone follows the chain;
+a chain that returns to a slug is a compile error naming it
+(`clone cycle: a -> b -> a`). A clone whose `of` no definition provides (a
+dimension of a cut mod) is reported and not compiled.
+
 ## Validation
 
 `schema/definition.schema.json` (JSON Schema 2020-12) describes v2. Editors
 autocomplete from it, and a core test validates every converted file against
 it. The loader rejects a v1 file with a message naming the converter.
+
+The compile report lints heights to Bedrock's limits (requirement R2). Geyser
+shows a dimension type outside the `minecraft` namespace as the Bedrock
+dimension its `skybox` names (`none` the Nether, `end` the End, anything else
+the Overworld), and Bedrock builds from y -64 to 320 in the Overworld, 0 to 128
+in the Nether and 0 to 256 in the End ([`JavaDimension`](https://github.com/GeyserMC/Geyser/blob/master/core/src/main/java/org/geysermc/geyser/level/JavaDimension.java),
+[`BedrockDimension`](https://github.com/GeyserMC/Geyser/blob/master/core/src/main/java/org/geysermc/geyser/level/BedrockDimension.java)).
+A type whose `min_y` is below its range, or whose top is above it (not
+checked for the Nether, as Geyser does not), is listed under "Bedrock" with a
+warning; the compile does not fail.

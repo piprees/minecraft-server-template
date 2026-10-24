@@ -26,6 +26,8 @@ public final class CompileReport {
         private final List<String> skippedBiomes = new ArrayList<>();
         private final List<String> unsupported = new ArrayList<>();
         private final List<String> notes = new ArrayList<>();
+        private final List<String> bedrock = new ArrayList<>();
+        private String cloneOf;
 
         Entry(String slug) {
             this.slug = slug;
@@ -50,6 +52,24 @@ public final class CompileReport {
 
         void note(String note) {
             notes.add(note);
+        }
+
+        void bedrock(String warning) {
+            bedrock.add(warning);
+        }
+
+        void cloneOf(String id) {
+            cloneOf = id;
+        }
+
+        /** The dimension a compiled clone takes its generator from, or null. */
+        public String cloneOf() {
+            return cloneOf;
+        }
+
+        /** Where the dimension's height leaves Bedrock's range for the dimension Geyser shows it as. */
+        public List<String> bedrock() {
+            return List.copyOf(bedrock);
         }
 
         public String slug() {
@@ -104,6 +124,7 @@ public final class CompileReport {
         Map<String, Integer> totals = new java.util.LinkedHashMap<>();
         totals.put("Definitions", entries.size());
         totals.put("Compiled", count(k -> k != Kind.CLONE));
+        totals.put("Clones compiled", (int) entries.values().stream().filter(e -> e.cloneOf != null).count());
         totals.put("Clones (not compiled)", count(k -> k == Kind.CLONE));
         totals.put("Base worlds (loaded at start)", count(k -> k == Kind.BASE_WORLD));
         totals.put("Lazy level stems", count(k -> k == Kind.LAZY));
@@ -114,6 +135,7 @@ public final class CompileReport {
         totals.put("Fallback biome sources", (int) entries.values().stream()
                 .filter(e -> e.notes.stream().anyMatch(n -> n.startsWith(DatapackCompiler.FALLBACK_NOTE))).count());
         totals.put("Unsupported fields", entries.values().stream().mapToInt(e -> e.unsupported.size()).sum());
+        totals.put("Bedrock height warnings", (int) entries.values().stream().filter(e -> !e.bedrock.isEmpty()).count());
         return totals;
     }
 
@@ -139,6 +161,7 @@ public final class CompileReport {
             list(out, "Skipped biomes", e.skippedBiomes);
             list(out, "Unsupported", e.unsupported);
             list(out, "Notes", e.notes);
+            list(out, "Bedrock", e.bedrock);
         }
         return out.toString();
     }

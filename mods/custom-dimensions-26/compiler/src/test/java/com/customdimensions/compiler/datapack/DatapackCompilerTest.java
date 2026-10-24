@@ -225,13 +225,17 @@ class DatapackCompilerTest {
     }
 
     @Test
-    void minecraft264OmitsDefaultBlockAndReportsIt() {
+    void minecraft264OmitsDefaultBlockAndMakesItTheMaterialRulesFallback() {
         DatapackCompiler.Output out = Fixtures.compile("t", OVERWORLD
                 + ", \"liquids\": {\"seaLevel\": 50}, \"materials\": {\"defaultBlock\": \"minecraft:deepslate\"}", VersionTable.V26_4);
         JsonObject settings = file(out, "data/adventure/worldgen/noise_settings/t.json");
         assertFalse(settings.has("default_block"));
-        assertTrue(out.report().entry("t").unsupported().stream()
-                .anyMatch(u -> u.startsWith("`materials.defaultBlock`") && u.contains("W3")));
+        JsonObject rule = settings.getAsJsonObject("material_rule");
+        assertEquals("minecraft:sequence", rule.get("type").getAsString());
+        JsonArray sequence = rule.getAsJsonArray("sequence");
+        assertEquals("minecraft:overworld", sequence.get(0).getAsString());
+        assertEquals("minecraft:deepslate", sequence.get(1).getAsJsonObject().get("result_state").getAsString());
+        assertTrue(out.report().entry("t").unsupported().isEmpty(), out.report().entry("t").unsupported().toString());
     }
 
     // ---- biome sources -------------------------------------------------------------------------
@@ -281,13 +285,12 @@ class DatapackCompilerTest {
 
     @Test
     void endPresetUsesTheEndSourceAndReportsAList() {
-        DatapackCompiler.Output out = Fixtures.compile("t", "\"generator\": {\"type\": \"noise\", \"preset\": \"end\", "
-                + "\"endIsland\": false}, \"biomes\": [\"minecraft:end_highlands\"]");
+        DatapackCompiler.Output out = Fixtures.compile("t", "\"generator\": {\"type\": \"noise\", \"preset\": \"end\"}, "
+                + "\"biomes\": [\"minecraft:end_highlands\"]");
         assertEquals("minecraft:the_end", biomeSource(out, "t").get("type").getAsString());
         assertEquals("minecraft:end", stem(out, "t").getAsJsonObject("generator").get("settings").getAsString());
         List<String> unsupported = out.report().entry("t").unsupported();
         assertTrue(unsupported.stream().anyMatch(u -> u.startsWith("`biomes`")));
-        assertTrue(unsupported.stream().anyMatch(u -> u.startsWith("`generator.endIsland`")));
     }
 
     @Test
@@ -375,7 +378,7 @@ class DatapackCompilerTest {
     }
 
     @Test
-    void clonesAreReportedNotCompiled() {
+    void aCloneOfAnUnprovidedDimensionIsReportedNotCompiled() {
         DatapackCompiler.Output out = Fixtures.compile("t", "\"generator\": {\"type\": \"clone\", \"of\": \"paradise_lost:paradise_lost\"}");
         assertTrue(out.files().isEmpty());
         assertEquals(CompileReport.Kind.CLONE, out.report().entry("t").kind());

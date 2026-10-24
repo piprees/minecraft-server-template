@@ -1,0 +1,11 @@
+{
+  "type": "adventure:the_abyssal_shrine",
+  "generator": {
+    "type": "minecraft:noise",
+    "biome_source": {
+      "type": "minecraft:multi_noise",
+      "preset": "minecraft:overworld"
+    },
+    "settings": "adventure:the_abyssal_shrine"
+  }
+}

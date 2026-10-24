@@ -66,11 +66,23 @@ public final class DatapackCompiler {
     static final List<String> EFFECT_ATTRIBUTES = List.of("minecraft:visual/cloud_color", "minecraft:visual/cloud_height",
             "minecraft:visual/fog_start_distance", "minecraft:visual/fog_end_distance");
 
+    /** Clone targets whose dimension the pack replaces: {@code of} to the slug that stands in for it. */
+    static final Map<String, String> CLONE_ALIASES = Map.of("paradise_lost:paradise_lost", "the_aviary");
+
+    /** Vanilla's End terrain references, and the copies an End without its central island uses instead. */
+    static final String END_ISLANDS = "minecraft:end/islands";
+    static final String END_SLOPED_CHEESE = "minecraft:end/sloped_cheese";
+    static final String NO_CENTRAL_ISLAND = "end_without_central_island";
+
     /** Vanilla's checkerboard {@code scale} when a definition sets no {@code cellScale}. */
     static final int DEFAULT_CHECKERBOARD_SCALE = 2;
 
-    /** The compiled pack: pack-relative path to file text, and the report. */
-    public record Output(SortedMap<String, String> files, CompileReport report, String reportText) {
+    /**
+     * The compiled pack: pack-relative path to file text, the report, and each
+     * compiled definition as the compiler saw it (a clone with its source's generator).
+     */
+    public record Output(SortedMap<String, String> files, CompileReport report, String reportText,
+                         Map<String, Definition> compiled) {
     }
 
     private final VanillaData vanilla;
@@ -78,6 +90,8 @@ public final class DatapackCompiler {
     private final String namespace;
     private final SortedMap<String, String> files = new TreeMap<>();
     private final CompileReport report;
+    private final Map<String, Definition> definitions = new TreeMap<>();
+    private final Map<String, Definition> compiled = new TreeMap<>();
 
     private DatapackCompiler(VanillaData vanilla, VersionTable.Version version, String namespace) {
         this.vanilla = vanilla;
@@ -90,21 +104,29 @@ public final class DatapackCompiler {
     public static Output compile(Path definitionsDir, VanillaData vanilla, VersionTable.Version version) {
         DefinitionSettings settings = DefinitionReader.readSettings(definitionsDir.resolve("settings.json"));
         String namespace = settings.namespace() != null ? settings.namespace() : "adventure";
-        DatapackCompiler compiler = new DatapackCompiler(vanilla, version, namespace);
+        Map<String, Definition> definitions = new TreeMap<>();
         for (Path file : definitionFiles(definitionsDir)) {
             String name = file.getFileName().toString();
-            compiler.compile(name.substring(0, name.length() - ".json".length()), DefinitionReader.read(file));
+            definitions.put(name.substring(0, name.length() - ".json".length()), DefinitionReader.read(file));
         }
-        compiler.files.put("pack.mcmeta", JsonWriter.write(packMeta(version, compiler.report.entries().size())));
-        return new Output(compiler.files, compiler.report, compiler.report.markdown(compiler.files));
+        Output output = compileAll(namespace, definitions, vanilla, version);
+        output.files().put("pack.mcmeta", JsonWriter.write(packMeta(version, output.report().entries().size())));
+        return output;
+    }
+
+    /** Compiles a set of definitions by slug, clones resolved against each other; no {@code pack.mcmeta}. */
+    static Output compileAll(String namespace, Map<String, Definition> definitions, VanillaData vanilla,
+                             VersionTable.Version version) {
+        DatapackCompiler compiler = new DatapackCompiler(vanilla, version, namespace);
+        compiler.definitions.putAll(definitions);
+        compiler.definitions.keySet().forEach(compiler::compile);
+        return new Output(compiler.files, compiler.report, compiler.report.markdown(compiler.files), compiler.compiled);
     }
 
     /** Compiles one definition on its own, for tests of a single mapping. */
     static Output compileOne(String namespace, String slug, Definition definition, VanillaData vanilla,
                              VersionTable.Version version) {
-        DatapackCompiler compiler = new DatapackCompiler(vanilla, version, namespace);
-        compiler.compile(slug, definition);
-        return new Output(compiler.files, compiler.report, compiler.report.markdown(compiler.files));
+        return compileAll(namespace, Map.of(slug, definition), vanilla, version);
     }
 
     /**
@@ -147,25 +169,44 @@ public final class DatapackCompiler {
         output.report().totals(output.files()).forEach((k, v) -> System.out.println("  " + k + ": " + v));
     }
 
-    private void compile(String slug, Definition def) {
+    private void compile(String slug) {
         CompileReport.Entry entry = report.add(slug);
-        Generator generator = def.generator();
-        if (Generator.CLONE.equals(generator.type())) {
-            entry.kind(CompileReport.Kind.CLONE, "copies `" + generator.of() + "`; the runtime or W8 decides it");
-            return;
+        Definition def = definitions.get(slug);
+        String cloneNote = "";
+        if (Generator.CLONE.equals(def.generator().type())) {
+            List<String> chain = cloneChain(slug);
+            String last = chain.getLast();
+            if (!definitions.containsKey(last)) {
+                entry.kind(CompileReport.Kind.CLONE, "copies `" + def.generator().of() + "`, which no definition provides"
+                        + (chain.size() > 2 ? " (via " + String.join(" -> ", chain.subList(1, chain.size() - 1)) + ")" : "")
+                        + "; not compiled");
+                return;
+            }
+            String of = def.generator().of();
+            def = cloned(def, definitions.get(last), entry);
+            entry.cloneOf(namespace + ":" + last);
+            cloneNote = ", clone of `" + namespace + ":" + last + "`"
+                    + (CLONE_ALIASES.containsKey(of) ? ", which stands in for `" + of + "`" : "")
+                    + (chain.size() > 2 ? " via " + String.join(" -> ", chain.subList(1, chain.size() - 1)) : "");
         }
+        compiled.put(slug, def);
+        Generator generator = def.generator();
         String typeId = namespace + ":" + slug;
         String stemPath;
         if (BASE_WORLDS.containsKey(slug)) {
             String stemId = BASE_WORLDS.get(slug).isEmpty() ? namespace + ":" + slug : BASE_WORLDS.get(slug);
             stemPath = dataPath(stemId, "dimension");
-            entry.kind(CompileReport.Kind.BASE_WORLD, "`" + stemId + "`");
+            entry.kind(CompileReport.Kind.BASE_WORLD, "`" + stemId + "`" + cloneNote);
         } else {
             stemPath = "data/" + RUNTIME_NAMESPACE + "/" + LAZY_FOLDER + "/" + slug + ".json";
-            entry.kind(CompileReport.Kind.LAZY, "`" + typeId + "`");
+            entry.kind(CompileReport.Kind.LAZY, "`" + typeId + "`" + cloneNote);
         }
 
         JsonObject type = dimensionType(def, entry);
+        String bedrock = BedrockHeights.check(type);
+        if (bedrock != null) {
+            entry.bedrock(bedrock);
+        }
         put(dataPath(typeId, "dimension_type"), sorted(type), entry);
 
         JsonObject stem = new JsonObject();
@@ -174,6 +215,81 @@ public final class DatapackCompiler {
         put(stemPath, stem, entry);
 
         reportRuntimeFields(def, entry);
+    }
+
+    // ---- clones -----------------------------------------------------------------------------
+
+    /**
+     * The slugs a clone resolves through, starting with itself and ending with
+     * the first non-clone, or with the unresolved {@code of} when no definition
+     * provides it. A chain that returns to a slug is a compile error naming it.
+     */
+    List<String> cloneChain(String slug) {
+        List<String> chain = new ArrayList<>(List.of(slug));
+        Definition def = definitions.get(slug);
+        while (def != null && Generator.CLONE.equals(def.generator().type())) {
+            String of = def.generator().of();
+            String next = cloneTarget(of);
+            if (next == null) {
+                chain.add(of);
+                return chain;
+            }
+            if (chain.contains(next)) {
+                chain.add(next);
+                throw new IllegalStateException("clone cycle: " + String.join(" -> ", chain));
+            }
+            chain.add(next);
+            def = definitions.get(next);
+            if (def == null) {
+                chain.set(chain.size() - 1, of);
+                return chain;
+            }
+        }
+        return chain;
+    }
+
+    /** The slug a clone's {@code of} names: an alias, a base world's level stem, or a pack dimension; else null. */
+    String cloneTarget(String of) {
+        if (CLONE_ALIASES.containsKey(of)) {
+            return CLONE_ALIASES.get(of);
+        }
+        for (Map.Entry<String, String> base : BASE_WORLDS.entrySet()) {
+            if (of.equals(base.getValue())) {
+                return base.getKey();
+            }
+        }
+        String prefix = namespace + ":";
+        return of.startsWith(prefix) ? of.substring(prefix.length()) : null;
+    }
+
+    /**
+     * The clone with its source's generator, biome list and terrain; its own
+     * seed, dimension type, atmosphere and rules; its own liquids and default
+     * block over the source's, field by field.
+     */
+    private static Definition cloned(Definition clone, Definition source, CompileReport.Entry entry) {
+        if (!clone.biomes().isEmpty()) {
+            entry.unsupported("biomes", "a clone takes its source's biome source; its own " + clone.biomes().size()
+                    + " biome(s) are not used");
+        }
+        Liquids own = clone.liquids();
+        Liquids theirs = source.liquids();
+        Liquids liquids = own == null ? theirs : theirs == null ? own : new Liquids(
+                own.seaLevel() != null ? own.seaLevel() : theirs.seaLevel(),
+                own.defaultFluid() != null ? own.defaultFluid() : theirs.defaultFluid());
+        JsonObject materials = source.materials() == null ? null : source.materials().deepCopy();
+        if (clone.materials() != null) {
+            if (materials == null) {
+                materials = new JsonObject();
+            }
+            for (Map.Entry<String, JsonElement> e : clone.materials().entrySet()) {
+                materials.add(e.getKey(), e.getValue().deepCopy());
+            }
+        }
+        return new Definition(clone.schemaVersion(), clone.description(), clone.seed(), clone.spawn(), source.generator(),
+                source.terrain(), source.biomes(), liquids, materials, clone.zones(), clone.dimensionType(),
+                clone.atmosphere(), clone.rules(), clone.borders(), clone.difficulty(), clone.structures(), clone.portals(),
+                clone.exitPortal(), clone.exits(), clone.exitShrines(), clone.roll());
     }
 
     // ---- dimension type ---------------------------------------------------------------------
@@ -340,10 +456,14 @@ public final class DatapackCompiler {
         Liquids liquids = def.liquids();
         String defaultBlock = defaultBlock(def);
         boolean changesLiquids = liquids != null && (liquids.seaLevel() != null || liquids.defaultFluid() != null);
-        if (!changesLiquids && defaultBlock == null) {
+        boolean removesIsland = "end".equals(preset) && Boolean.FALSE.equals(def.generator().endIsland());
+        if (!changesLiquids && defaultBlock == null && !removesIsland) {
             return "minecraft:" + preset;
         }
         JsonObject settings = vanilla.noiseSettings(preset);
+        if (removesIsland) {
+            settings = withoutCentralIsland(settings, entry);
+        }
         if (liquids != null && liquids.seaLevel() != null) {
             settings.addProperty("sea_level", liquids.seaLevel());
         }
@@ -357,13 +477,65 @@ public final class DatapackCompiler {
         } else {
             settings.remove("default_block");
             if (defaultBlock != null) {
-                entry.unsupported("materials.defaultBlock", "Minecraft " + version.id()
-                        + " noise settings have no `default_block`; W3's material rules supply it");
+                settings.add("material_rule", withFallback(settings.get("material_rule"), defaultBlock));
             }
         }
         String id = namespace + ":" + slug;
         put(dataPath(id, "worldgen/noise_settings"), sorted(settings), entry);
         return id;
+    }
+
+    /** The material rule, then {@code block} as the last entry of a sequence: what no earlier rule claims. */
+    static JsonObject withFallback(JsonElement rule, String block) {
+        JsonObject fallback = new JsonObject();
+        fallback.addProperty("type", "minecraft:block");
+        fallback.addProperty("result_state", block);
+        JsonArray sequence = new JsonArray();
+        sequence.add(rule.deepCopy());
+        sequence.add(fallback);
+        JsonObject out = new JsonObject();
+        out.addProperty("type", "minecraft:sequence");
+        out.add("sequence", sequence);
+        return out;
+    }
+
+    /**
+     * The End's noise settings with vanilla's island function replaced by a copy
+     * that keeps only {@code end_outer_islands}: vanilla's is the maximum of a
+     * {@code distance_to_point} dome around 0,0 and the outer islands.
+     */
+    private JsonObject withoutCentralIsland(JsonObject settings, CompileReport.Entry entry) {
+        JsonObject islands = vanilla.densityFunction("end/islands");
+        JsonObject max = islands.getAsJsonObject("input");
+        if (!"minecraft:max".equals(max.get("type").getAsString())) {
+            throw new IllegalStateException("vanilla's end/islands is no longer a max; the central island cannot be removed");
+        }
+        islands.add("input", max.get("right"));
+        String islandsId = namespace + ":" + NO_CENTRAL_ISLAND + "/islands";
+        String cheeseId = namespace + ":" + NO_CENTRAL_ISLAND + "/sloped_cheese";
+        JsonObject cheese = vanilla.densityFunction("end/sloped_cheese");
+        JsonElement replaced = replaceIds(cheese, Map.of(END_ISLANDS, islandsId));
+        put(dataPath(islandsId, "worldgen/density_function"), sorted(islands), entry);
+        put(dataPath(cheeseId, "worldgen/density_function"), sorted(replaced.getAsJsonObject()), entry);
+        return replaceIds(settings, Map.of(END_ISLANDS, islandsId, END_SLOPED_CHEESE, cheeseId)).getAsJsonObject();
+    }
+
+    /** A copy of {@code e} with every string equal to a key replaced by its value. */
+    static JsonElement replaceIds(JsonElement e, Map<String, String> ids) {
+        if (e.isJsonPrimitive() && e.getAsJsonPrimitive().isString() && ids.containsKey(e.getAsString())) {
+            return new com.google.gson.JsonPrimitive(ids.get(e.getAsString()));
+        }
+        if (e.isJsonObject()) {
+            JsonObject out = new JsonObject();
+            e.getAsJsonObject().entrySet().forEach(kv -> out.add(kv.getKey(), replaceIds(kv.getValue(), ids)));
+            return out;
+        }
+        if (e.isJsonArray()) {
+            JsonArray out = new JsonArray();
+            e.getAsJsonArray().forEach(v -> out.add(replaceIds(v, ids)));
+            return out;
+        }
+        return e.deepCopy();
     }
 
     private static String defaultBlock(Definition def) {
@@ -382,9 +554,6 @@ public final class DatapackCompiler {
         }
         if ("nether".equals(preset)) {
             return biomes.isEmpty() ? multiNoisePreset("nether") : filtered("nether", biomes, entry);
-        }
-        if (Boolean.FALSE.equals(def.generator().endIsland())) {
-            entry.unsupported("generator.endIsland", "removing the central island is terrain, W1");
         }
         if (isNetherIslands(biomes)) {
             entry.note("Nether biomes in End terrain (nether_islands): the Nether parameter list is kept, "

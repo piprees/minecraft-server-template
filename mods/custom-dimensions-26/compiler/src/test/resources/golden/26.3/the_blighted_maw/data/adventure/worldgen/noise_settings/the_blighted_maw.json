@@ -1,0 +1,8 @@
+{
+  "base": "minecraft:end",
+  "changed": {
+    "default_block": "minecraft:netherrack",
+    "default_fluid": "minecraft:lava",
+    "sea_level": -60
+  }
+}

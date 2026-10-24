@@ -1,0 +1,12 @@
+{
+  "base": "minecraft:overworld_caves",
+  "changed": {
+    "ambient_light": 0.06,
+    "attributes": {
+      "changed": {
+        "minecraft:visual/fog_color": "#1b2b1b"
+      }
+    },
+    "has_skylight": false
+  }
+}

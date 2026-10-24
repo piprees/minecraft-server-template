@@ -1,0 +1,20 @@
+{
+  "type": "adventure:the_blighted_maw",
+  "generator": {
+    "type": "minecraft:noise",
+    "biome_source": {
+      "type": "minecraft:multi_noise",
+      "biomes": [
+        {
+          "biome": "minecraft:nether_wastes",
+          "parameters": "sha1:42d0c5c070a37a4b8c9214d3054fa246a46a6fa9"
+        },
+        {
+          "biome": "minecraft:soul_sand_valley",
+          "parameters": "sha1:93049578c721c80d8ffe141198d1620a8519281b"
+        }
+      ]
+    },
+    "settings": "adventure:the_blighted_maw"
+  }
+}
