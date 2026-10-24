@@ -71,7 +71,7 @@ public final class PortalSelfTest {
     private record Waiter(BooleanSupplier done, CompletableFuture<Boolean> future, long deadline) {}
 
     /** A built frame: the opening, the frame block a player would click, and the ring. */
-    record Bay(ServerLevel level, PortalDefinition def, Set<BlockPos> interior, Direction.Axis axis, BlockPos clicked,
+    public record Bay(ServerLevel level, PortalDefinition def, Set<BlockPos> interior, Direction.Axis axis, BlockPos clicked,
                List<BlockPos> ring) {}
 
     private PortalSelfTest(MinecraftServer server) {
@@ -192,7 +192,7 @@ public final class PortalSelfTest {
     }
 
     /** Builds the frame with the definition's own blocks and empties the opening. */
-    static Bay build(ServerLevel level, PortalDefinition def, Direction.Axis axis, BlockPos at, Block frameOverride) {
+    public static Bay build(ServerLevel level, PortalDefinition def, Direction.Axis axis, BlockPos at, Block frameOverride) {
         String shape = PortalShape.normalise(def.getShape());
         Set<BlockPos> interior = opening(shape, axis, at);
         Set<com.customdimensions.core.BlockPos> core = new HashSet<>();

@@ -8,7 +8,7 @@ release bundle until the `v6.0.0` switch; the plan of record is
 | --- | --- | --- |
 | `core` | The definition model and its maths (zones, …) | No |
 | `compiler` | Definitions to datapack JSON, using vanilla function types | No |
-| `server` | The Fabric mod: runtime levels, portals, rules, the self-test | Yes |
+| `server` | The Fabric mod: runtime levels, portals, rules, the companion feed, the self-test | Yes |
 
 `core` and `compiler` ship nested inside the mod jar (`META-INF/jars/`).
 
@@ -271,3 +271,58 @@ ender-pearl rule reaches `the_tiled_expanse`; a hand-built shrine registers and
 leads to the overworld; each of the six win triggers fires once and never
 twice. The persistence pass records a shrine and a granted win and finds both
 after the restart.
+
+## Companion feed
+
+`server/.../companion/` streams a portal's far side to clients running the
+optional companion mod, the only path for rendered previews (RB-03). A vanilla
+client is sent nothing from this package: every payload leaves through
+`CompanionNetwork.send`, which refuses any player whose hello did not name this
+jar's exact version. The choices are game-free in `core/.../companion/`.
+
+| Piece | What it does |
+| --- | --- |
+| `CompanionNetwork` | Registers the payloads; admits a client whose `Hello` names this release, serves any other as vanilla; holds each companion's declared view |
+| `CompanionFeed` | Every 4 ticks, for each companion whose view draws locally: the nearest lit opening within 16 blocks, its `PortalFrame`, its destination chunks nearest-first through the opening, the entities within 48 blocks of the far portal, and a `ProjectionClear` when the companion walks off, the portal breaks, the view is declined or the destination unloads |
+| `FeedPlan` (core) | The chunk order: a filled core round the arrival, then the wedge through the opening, capped at the declared render distance |
+| `FeedBudget` (core) | Per companion: 4 chunks a pass and a 256 KiB/s byte bucket holding one second; frames, snapshots and clears always go and are charged |
+| `EntitySnapshot` (core) | Up to 24 entities nearest the far portal; a snapshot equal to the last at wire resolution sends nothing |
+
+Reads never load a chunk (T126): chunks come from `getChunkNow`, entities from
+the entity sections already held. The one load is the pre-load: while a
+companion watches, `PortalTickets` holds the arrival's 5x5 chunks (refreshed
+every 100 ticks, released before `LevelManager` unloads the level, T118). A lazy
+destination opens only for a companion that draws it, once per approach
+(RB-29); after an unload it reopens only when the companion leaves and comes
+back. A block change reaches viewers through one mixin on
+`ServerChunkCache.blockChanged`, which drops that chunk from every viewer's sent
+set. The destination's time needs no payload: 26.3's world clocks are
+server-wide and vanilla syncs them to every client.
+
+The self-test's companion section lights a portal into an open lazy dimension
+and stands a companion, a vanilla player and a mismatched-version companion at
+it, each on a listener recording every custom payload. It checks that only the
+companion is fed, within the budget; that live payloads round-trip with the
+server's registries; that a block changed on the far side is sent again; that
+an item crossing is handed over; that walking away,
+breaking the frame and unloading the destination each send a clear; that the
+pre-load opens a lazy destination only for a declared companion and does not
+reopen one unloaded while the companion stays; and that no lazy level is left
+active.
+
+## Wire contract
+
+Channel ids and field order match the 1.21.1 mod's. Bodies marked vanilla are
+written by the running game's own codec. The release that built each jar is
+the protocol version (`Hello`).
+
+| Channel (`customdimensions:`) | Direction | Fields | When |
+| --- | --- | --- | --- |
+| `handshake/v2` | client to server | `modVersion` string | Once on join |
+| `portal-view/v2` | client to server | `renderLocally` bool, `keepSlab` bool, `maxRenderDistance` varint, `viewDepth` varint | On join and on every change; only `renderLocally` true is fed, `keepSlab` is the client's own setting |
+| `preloaded/v1` | server to client | `destination` id | Just before a companion crosses into a destination whose arrival is resident |
+| `portal-frame/v1` | server to client | `destination` id, `dimensionType` id, `apertureOrigin` pos, `aperture` varint count + pos, `portalAxis` varint, `normal` varint, `dx` `dy` `dz` int, `skyColor` `fogColor` int RGB (-1 unset) | When a watch starts and whenever the frame changes (the viewer crosses to the other side) |
+| `destination-chunk/v1` | server to client | `destination` id, vanilla `ClientboundLevelChunkWithLightPacket` | Up to the budget each pass, until the wedge is sent; again after a block in it changes |
+| `destination-entities/v1` | server to client | `destination` id, varint count + vanilla `ClientboundAddEntityPacket`, varint count + vanilla `ClientboundSetEntityDataPacket`, varint count + varint departed ids (each at most 256) | The first pass of a watch, then every 4 ticks when anything moved or left |
+| `entity-handover/v1` | server to client | `destination` id, `fromId` varint, `tick` varlong, vanilla `ClientboundAddEntityPacket`, varint count (at most 1) + vanilla `ClientboundSetEntityDataPacket` | The tick a non-player entity crosses into a destination the companion is watching |
+| `projection-clear/v1` | server to client | `apertureOrigin` pos | When a watch stops |

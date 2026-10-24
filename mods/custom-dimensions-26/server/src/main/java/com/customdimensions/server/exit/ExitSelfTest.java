@@ -367,8 +367,13 @@ public final class ExitSelfTest {
         ExitShrines.onChunkLoad(level, level.getChunkAt(beacon));
         BlockPos cell = beacon.above(2);
         // Past one frame validation pass, so a ring the arrival check refuses would already be closed.
+        // A portal asks again every tick while the world spawn chunk loads (T117), so the check does too.
+        Mortal waiting = mortal(level, cell, new GameProfile(UUID.randomUUID(), "cd-shrine-wait"));
         return step("exit shrine", until(() -> PortalRegistry.get().zoneAt(level.dimension(), cell) != null, 20 * 10)
-                .thenCompose(found -> ticks(120).thenApply(x -> found)), found -> {
+                .thenCompose(found -> ticks(120).thenApply(x -> found))
+                .thenCompose(found -> until(() -> PortalRegistry.get().zoneAt(level.dimension(), cell) != null
+                        && PortalTravel.destination(level, waiting, cell) != null, 20 * 10).thenApply(x -> found)),
+                found -> {
             PortalZone zone = PortalRegistry.get().zoneAt(level.dimension(), cell);
             int portalBlocks = zone == null ? 0
                     : (int) zone.interior.stream().filter(c -> PortalWorld.isPortal(level.getBlockState(c))).count();

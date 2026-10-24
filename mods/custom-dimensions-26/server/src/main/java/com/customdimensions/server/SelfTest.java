@@ -14,6 +14,7 @@ import com.customdimensions.server.level.GeneratorSelfTest;
 import com.customdimensions.server.difficulty.DifficultySelfTest;
 import com.customdimensions.server.level.LevelSelfTest;
 import com.customdimensions.server.portal.PortalSelfTest;
+import com.customdimensions.server.companion.CompanionSelfTest;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import com.mojang.serialization.Codec;
@@ -119,6 +120,15 @@ final class SelfTest {
             }
         }).handle((more, error) -> {
             lines.addAll(error == null ? more : List.of("FAIL portals: " + error));
+            return null;
+        }).thenCompose(v -> {
+            try {
+                return exitsOnly ? CompletableFuture.completedFuture(List.<String>of()) : CompanionSelfTest.run(server);
+            } catch (Throwable t) {
+                return CompletableFuture.completedFuture(List.of("FAIL companion: " + t));
+            }
+        }).handle((more, error) -> {
+            lines.addAll(error == null ? more : List.of("FAIL companion: " + error));
             return null;
         }).thenCompose(v -> {
             try {
