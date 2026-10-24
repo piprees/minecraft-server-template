@@ -220,6 +220,17 @@ public final class ExitSelfTest {
         }
     }
 
+    /** An orb's value times its count: orbs of one value merge into one orb with a count, which has no getter. */
+    private static int experience(ExperienceOrb orb) {
+        try {
+            java.lang.reflect.Field count = ExperienceOrb.class.getDeclaredField("count");
+            count.setAccessible(true);
+            return orb.getValue() * count.getInt(orb);
+        } catch (ReflectiveOperationException e) {
+            throw new IllegalStateException("ExperienceOrb.count is not readable", e);
+        }
+    }
+
     private int surface(ServerLevel level, int x, int z) {
         return PortalWorld.surfaceY(level, x, z);
     }
@@ -256,7 +267,7 @@ public final class ExitSelfTest {
             AABB box = new AABB(at).inflate(4);
             int dropped = level.getEntitiesOfClass(ItemEntity.class, box).stream()
                     .filter(e -> e.getItem().is(Items.DIAMOND)).mapToInt(e -> e.getItem().getCount()).sum();
-            int orbs = level.getEntitiesOfClass(ExperienceOrb.class, box).stream().mapToInt(ExperienceOrb::getValue).sum();
+            int orbs = level.getEntitiesOfClass(ExperienceOrb.class, box).stream().mapToInt(ExitSelfTest::experience).sum();
             boolean dead = p.isDeadOrDying();
             rules.set(GameRules.KEEP_INVENTORY, before, server);
             lines.add(dead && dropped == 5 && orbs == 70 && p.getInventory().isEmpty() && p.experienceLevel == 0

@@ -232,7 +232,7 @@ public final class DifficultySelfTest {
             forceArea(level, at, true);
             int[] freed = {0};
             return ticks(SETTLE_TICKS).thenCompose(t -> {
-                for (Entity e : level.getAllEntities()) {
+                for (Entity e : entities(level)) {
                     if (e instanceof Mob m && m.getType().getCategory() != MobCategory.MONSTER) {
                         m.discard();
                         freed[0]++;
@@ -249,7 +249,7 @@ public final class DifficultySelfTest {
                 stop.run();
                 DimensionDifficulty.suspendPeaceful(level.dimension(), false);
                 int cleared = 0;
-                for (Entity e : level.getAllEntities()) {
+                for (Entity e : entities(level)) {
                     if (e instanceof Mob m && m.getType().getCategory() == MobCategory.MONSTER) {
                         m.discard();
                         cleared++;
@@ -428,6 +428,13 @@ public final class DifficultySelfTest {
     private CompletableFuture<Boolean> ticks(int n) {
         long end = server.getTickCount() + n;
         return until(() -> server.getTickCount() >= end, n + 1);
+    }
+
+    /** A copy of the level's entities, so a loop may discard them; the live view shrinks under it. */
+    private static List<Entity> entities(ServerLevel level) {
+        List<Entity> all = new ArrayList<>();
+        level.getAllEntities().forEach(all::add);
+        return all;
     }
 
     private CompletableFuture<Void> guard(String name, Supplier<CompletableFuture<Void>> step) {
