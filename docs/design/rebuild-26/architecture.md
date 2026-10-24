@@ -53,8 +53,8 @@ Fabric API, Fantasy (LGPL, bundled inside our jar) and Polymer, all kept current
 ## The compiler
 
 - **Input:** definitions validated against the schema v2 JSON Schema (F3).
-- **Output:** `world/datapacks/customdim-generated/` — dimension types with attributes, timelines and a clock; per-dimension borders; noise settings; material rules; biome layouts; structure-set overrides.
-- **When:** before the server starts, from `deploy.sh` and `dev-up.sh`, and again inside the mod at start-up to confirm the pack on disk matches.
+- **Output:** `world/datapacks/customdimensions/` — dimension types with attributes, timelines and a clock; per-dimension borders; noise settings; material rules; biome layouts; structure-set overrides.
+- **When:** inside the mod at start-up, before the world loads, from the game's own vanilla files; the pack is rewritten only when its inputs change (RB-33).
 - **Version table:** each 26.x release's field names, so a renamed field is a table entry. It covers the 26.3 and 26.4-snapshot differences: `default_block` gone, no overlapping multi-noise entries.
 - **Tests:** golden files per version; the generated pack loads on a vanilla 26.3 server with no mods.
 

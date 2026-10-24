@@ -121,3 +121,11 @@ Scaling follows Fabric's entity-load event and a persistent attachment marks the
 Why: the event and the attachment need no mixin, and re-scaling on arrival (the 1.21.1 behaviour) let a mob walked out of a hard dimension keep or lose its boost depending on the destination.
 Rejected: peaceful through 26.3's `gameplay/natural_mob_spawns` attribute. A timeline track overlaying an empty `monster` list does sit above the biome layer, but `NaturalSpawner.mobsAt` answers from a structure's spawn overrides (fortress, monument, outpost, swamp hut) before it reads the attribute, so those monsters would still spawn; and the event route needs no mixin to remove.
 
+
+**RB-33 — The mod compiles its own pack at start-up from the game it runs in.**
+Before the world loads, the mod compiles `config/custom-dimensions/dimensions/` into `<world>/datapacks/customdimensions/`, reading vanilla's files from the game's own jar and the multi-noise parameter lists from the game's code. It rewrites the pack only when its inputs change, and warns when a change touches worldgen on a dimension that already has chunks (D2).
+Why: one compiler path for production, `./dev up` and the self-test, no Java toolchain or extraction step in `deploy.sh` and `dev-up.sh`, and no Mojang file shipped or committed.
+Rejected: compiling from `deploy.sh` and `dev-up.sh` with the Gradle-extracted vanilla data, which puts a second runtime on every server and a step that can drift from the jar the server runs.
+
+**RB-34 — `/customdim create` writes a definition; the dimension opens after the next restart.**
+Dimension types are a synced registry frozen once the world loads, so a new dimension's type cannot be added to a running server. `create` writes the definition from a template with a fresh seed, compiles it to prove it, and says it opens after a restart.
