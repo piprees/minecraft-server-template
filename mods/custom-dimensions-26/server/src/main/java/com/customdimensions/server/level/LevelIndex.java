@@ -52,10 +52,12 @@ public final class LevelIndex {
     private final SortedMap<String, Entry> lazy;
     private final List<BaseWorld> baseWorlds;
     private final List<String> problems;
+    private final com.google.gson.JsonObject defaults;
 
     private LevelIndex(String namespace, Integer idleUnloadMinutes, SortedMap<String, Entry> lazy,
-                       List<BaseWorld> baseWorlds, List<String> problems) {
+                       List<BaseWorld> baseWorlds, List<String> problems, com.google.gson.JsonObject defaults) {
         this.namespace = namespace;
+        this.defaults = defaults == null ? new com.google.gson.JsonObject() : defaults;
         this.idleUnloadMinutes = idleUnloadMinutes;
         this.lazy = Collections.unmodifiableSortedMap(lazy);
         this.baseWorlds = List.copyOf(baseWorlds);
@@ -118,7 +120,7 @@ public final class LevelIndex {
             base.add(new BaseWorld(world.getKey(), ResourceKey.create(Registries.DIMENSION, Identifier.parse(world.getValue())),
                     definition, radius));
         }
-        return new LevelIndex(namespace, idle, lazy, base, problems);
+        return new LevelIndex(namespace, idle, lazy, base, problems, defaults);
     }
 
     /** Base worlds by slug, in load order: the level id vanilla gives each. */
@@ -152,6 +154,11 @@ public final class LevelIndex {
     /** Decodes a fresh stem for one opening; the index has already checked that it decodes. */
     public LevelStem decode(MinecraftServer server, Entry entry) {
         return LevelStem.CODEC.parse(RegistryOps.create(JsonOps.INSTANCE, server.registryAccess()), entry.stem()).getOrThrow();
+    }
+
+    /** {@code settings.json}'s {@code defaults}, merged under every definition; empty when absent. */
+    public com.google.gson.JsonObject defaults() {
+        return defaults;
     }
 
     public String namespace() {
