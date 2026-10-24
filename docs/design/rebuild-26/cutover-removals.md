@@ -25,11 +25,16 @@ Method: every key in our file looked up as a string in the 26.3 jar the list pin
 
 | File | Difference | Action at the switch |
 | --- | --- | --- |
-| `collective/collective.json5` and `collective.json5` | `loopsAmountUsedToGetAllEntityDrops` has no counterpart in Collective `26.3.0-8.64`, which generates entity drops from the loot table over time | `config/versions/26.3/collective/collective.json5` and `config/versions/26.3/collective.json5`, the same files without that key, replace the base files; `config/versions/26.3/` then goes |
+| `collective/collective.json5` and `collective.json5` | `loopsAmountUsedToGetAllEntityDrops` has no counterpart in Collective `26.3.0-8.64`, which generates entity drops from the loot table over time | `config/versions/26.3/collective/collective.json5` and `config/versions/26.3/collective.json5`, the same files without that key, replace the base files |
+| Serilum configs: `collective.json5`, `doubledoors/`, `firespreadtweaks/`, `healingcampfire/`, `nametagtweaks/`, `nutritiousmilk/`, `youritemsaresafe/`, `starterkit.json5` | Collective `26.3.0-8.64` reads every Serilum mod's settings from `config/serilum/<modid>.json` | `config/versions/26.3/serilum/<modid>.json` replaces each base file; the base files and subdirectories go |
+| `firespreadtweaks/firespreadtweaks.json5` | The jar reads `MinRandomExtraBurnTicks` and `MaxRandomExtraBurnTicks`; the base spells them with a lower-case first letter | The 26.3 overlay carries the jar's spelling |
+| `healingcampfire/healingcampfire.json5` | `regenerationDuration`, `requireLitCampfire` and `enableSoulCampfireHealing` are not keys of healing-campfire `26.3.0-6.4`; its `effectDurationSeconds` (60), `campfireMustBeLit` (true) and `enableEffectForSoulCampfires` (true) default to what they set | The 26.3 overlay leaves them out |
 
-Collective `26.3.0-8.64` reads `config/serilum/collective.json5`. On every load it moves `config/collective.json5` and the `config/collective/` directory into `config/serilum/`, replacing what is there, so the flat file `deploy.sh` seeds is the one it reads and `collective/collective.json5` lands unread at `config/serilum/collective/`.
+`config/versions/26.3/` then goes.
 
-No other kept config differs: double-doors, fire-spread-tweaks, healing-campfire, your-items-are-safe, nutritious-milk, name-tag-tweaks, fallingtree, essential-commands, starter-kit, servercore (both files), spark, simple-voice-chat, open-parties-and-claims and c2me.
+On every load, Collective `26.3.0-8.64` moves `config/<modid>.json5`, `<modid>.json`, `<modid>-common.toml`, `<modid>.json.unreadable` and the `config/<modid>/` directory into `config/serilum/`, replacing what is there, then moves `config/serilum/<modid>.json5` onto `config/serilum/<modid>.json`. A flat base file therefore arrives at the read path with the overlay's values on every boot; a subdirectory base file lands unread at `config/serilum/<modid>/`, and starter-kit's `kits/` and `descriptions/` land at `config/serilum/starterkit/`, where it reads them.
+
+No other kept config differs: fallingtree, essential-commands, servercore (both files), spark, simple-voice-chat, open-parties-and-claims and c2me.
 
 ## Version plumbing
 

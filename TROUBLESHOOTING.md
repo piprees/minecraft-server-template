@@ -1596,6 +1596,13 @@ A seed's map and its banked facts appear to contradict each other — the thumbn
   the same trap. Pin it against the Java, not against intuition —
   `scripts/e2e/portal-matrix-selftest.sh` is the worked example.
 
+<a id="t136"></a>
+### T136 — On 26.3, Collective moves every Serilum mod's config under `config/serilum/`
+
+- **Symptom:** a Serilum mod (double-doors, healing-campfire, fire-spread-tweaks and the rest) runs on its jar defaults on 26.3 although its config is seeded.
+- **Cause:** Collective 26.3 reads `config/serilum/<modid>.json` and on every boot moves `config/<modid>.json`, `.json5`, `-common.toml` and the whole `config/<modid>/` directory into `config/serilum/`, replacing what is there, then moves `serilum/<modid>.json5` onto `serilum/<modid>.json`. A config kept in a subdirectory ends up at `config/serilum/<modid>/<modid>.json5`, which nothing reads.
+- **Fix:** the 26.3 version overlay seeds each Serilum config at its read path, `config/versions/26.3/serilum/<modid>.json`, with keys the 26.3 jars no longer read removed and fire-spread-tweaks' keys under the jar's spelling (`scripts/tests/test_minecraft_version.py` checks each against its base). A two-boot 26.3 run read the seeded values back on both boots.
+
 <a id="t135"></a>
 ### T135 — Recording what a 26.x server sends a test player needs a listener of our own
 
@@ -3128,6 +3135,14 @@ The rendered height disagrees with the facts on high-relief columns. The error i
   takes about five seconds to make one.
 - **Narrow is not empty, and small is not a defect.** The target is that no
   listed biome is ignored, never that shares are equal.
+
+<a id="k12"></a>
+
+### K12 — Six Serilum configs and two fire-spread-tweaks keys are not read on 1.21.1
+
+- **Symptom:** double-doors, fire-spread-tweaks, healing-campfire, name-tag-tweaks, nutritious-milk and your-items-are-safe behave as their jar defaults on the 1.21.1 server, whatever `config/<modid>/<modid>.json5` says.
+- **Cause:** Collective 1.21.1 (8.39) reads `config/<modid>.json5` only, and these configs sit in a subdirectory. fire-spread-tweaks also reads `MinRandomExtraBurnTicks`/`MaxRandomExtraBurnTicks`, while our file spells them with a lower-case first letter, so its -60/60 is ignored and -100/100 applies.
+- **Status:** open, waiting on the owner — fixing it changes live gameplay to the values the files intend. On 26.3 the version overlay seeds the read paths (T136).
 
 ## Common symptoms
 

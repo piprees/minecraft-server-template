@@ -298,15 +298,49 @@ def test_version_config_files(cfg_tree):
     assert r.stdout.strip() == "2"
 
 
-def test_repo_version_overlay_is_the_base_minus_one_key():
+# Each 26.3 overlay file: (base file, keys the pinned 26.3 jar no longer reads).
+# RENAMED_26_3 maps a base key to the spelling the 26.3 jar reads.
+# Collective 26.3 reads config/serilum/<modid>.json; the flat collective.json5
+# and its unread subdirectory copy follow it there on every boot.
+OVERLAY_26_3 = {
+    "collective.json5": ("collective.json5", {"loopsAmountUsedToGetAllEntityDrops"}),
+    "collective/collective.json5": ("collective/collective.json5", {"loopsAmountUsedToGetAllEntityDrops"}),
+    "serilum/collective.json": ("collective.json5", {"loopsAmountUsedToGetAllEntityDrops"}),
+    "serilum/doubledoors.json": ("doubledoors/doubledoors.json5", set()),
+    "serilum/firespreadtweaks.json": ("firespreadtweaks/firespreadtweaks.json5", set()),
+    "serilum/healingcampfire.json": ("healingcampfire/healingcampfire.json5",
+                                     {"regenerationDuration", "requireLitCampfire", "enableSoulCampfireHealing"}),
+    "serilum/nametagtweaks.json": ("nametagtweaks/nametagtweaks.json5", set()),
+    "serilum/nutritiousmilk.json": ("nutritiousmilk/nutritiousmilk.json5", set()),
+    "serilum/youritemsaresafe.json": ("youritemsaresafe/youritemsaresafe.json5", set()),
+    "serilum/starterkit.json": ("starterkit.json5", set()),
+}
+
+
+RENAMED_26_3 = {
+    "serilum/firespreadtweaks.json": {"minRandomExtraBurnTicks": "MinRandomExtraBurnTicks",
+                                      "maxRandomExtraBurnTicks": "MaxRandomExtraBurnTicks"},
+}
+
+
+def _dusk_json(path):
+    """A Serilum config as Collective reads it: comments and trailing commas tolerated."""
+    text = re.sub(r"(?m)^\s*//.*$", "", path.read_text())
+    return json.loads(re.sub(r",(\s*[}\]])", r"\1", text))
+
+
+def test_repo_version_overlay_is_the_base_minus_documented_keys():
     cfg = REPO / "config"
     r = bash(f'cd "{cfg}" && version_config_files 26.3 | sort')
-    assert r.stdout.split() == ["./versions/26.3/collective.json5", "./versions/26.3/collective/collective.json5"]
-    for rel in ("collective.json5", "collective/collective.json5"):
-        base = (cfg / rel).read_text().splitlines()
-        assert [ln for ln in base if "loopsAmountUsedToGetAllEntityDrops" not in ln] == \
-            (cfg / "versions/26.3" / rel).read_text().splitlines()
-        assert len(base) == len((cfg / "versions/26.3" / rel).read_text().splitlines()) + 1
+    assert r.stdout.split() == sorted(f"./versions/26.3/{rel}" for rel in OVERLAY_26_3)
+    for rel, (base_rel, removed) in OVERLAY_26_3.items():
+        base = _dusk_json(cfg / base_rel)
+        assert removed <= set(base), (rel, removed - set(base))
+        renamed = RENAMED_26_3.get(rel, {})
+        assert set(renamed) <= set(base), rel
+        want = {renamed.get(k, k): v for k, v in base.items() if k not in removed}
+        got = _dusk_json(cfg / "versions/26.3" / rel)
+        assert list(got.items()) == list(want.items()), rel
     assert bash(f'cd "{cfg}" && version_config_files 1.21.1').stdout == ""
 
 

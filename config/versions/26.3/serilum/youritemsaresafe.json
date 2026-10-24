@@ -1,0 +1,17 @@
+{
+	"mustHaveItemsInInventoryForCreation": true,
+	"addPlayerHeadToArmorStand": true,
+	"createArmorStand": true,
+	"createSignWithPlayerName": true,
+	"needChestMaterials": false,
+	"needArmorStandMaterials": false,
+	"needSignMaterials": false,
+	"ignoreStoneMaterialNeed": true,
+	"createChestAboveVoid": true,
+	"createVoidPlatform": true,
+	"sendMessageOnCreationFailure": true,
+	"sendMessageOnCreationSuccess": true,
+	"sendDeathCoordinatesInChat": true,
+	"creationFailureMessage": "Your items are not safe due to having insufficient materials. Missing: %plankamount% planks.",
+	"creationSuccessMessage": "Your items are safe at your death location."
+}
