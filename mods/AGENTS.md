@@ -4,7 +4,7 @@ Fabric mods built and maintained as part of this platform. Each subdirectory is 
 
 ## The 26.3 rebuild
 
-`custom-dimensions-26/` is the rebuild on Minecraft 26.3: Java 25 from its own `mise.toml`, Mojang names, Loom without remapping, and three Gradle modules (`core`, `compiler`, `server`). It is not in `local-mods.manifest`, so `release.yml` and `mod-build.yml` skip it; `mod26.yml` builds it, runs its tests and boots its self-test on a 26.3 server. Its mod id is `customdimensions`, the same as the mod it replaces, so the directory name breaks the id-matches-directory rule until the switch. Plan and decisions: [`docs/design/rebuild-26/`](../docs/design/rebuild-26/README.md). The rest of this file describes the 1.21.1 mod.
+`custom-dimensions-26/` is the rebuild on Minecraft 26.3: Java 25 from its own `mise.toml`, Mojang names, Loom without remapping, and three Gradle modules (`core`, `compiler`, `server`). It is not in `local-mods.manifest`, so `release.yml` and `mod-build.yml` skip it; `mod26.yml` builds it, runs its tests and boots its self-test on a 26.3 server. Its mod id is `customdimensions`, the same as the mod it replaces, so the directory name breaks the id-matches-directory rule until the switch. Its optional companion client, `custom-dimensions-client-26/` (mod id `customdimensionsclient`, no mixins), builds and tests in `mod26.yml`'s companion job, is in neither manifest, and carries its own screenshot rig ([README](custom-dimensions-client-26/README.md)). Plan and decisions: [`docs/design/rebuild-26/`](../docs/design/rebuild-26/README.md). The rest of this file describes the 1.21.1 mod.
 
 ## Environment
 

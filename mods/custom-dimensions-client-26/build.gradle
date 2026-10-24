@@ -1,0 +1,81 @@
+plugins {
+	id 'net.fabricmc.fabric-loom'
+}
+
+group = project.maven_group
+version = project.mod_version
+
+base {
+	archivesName = 'customdimensionsclient'
+}
+
+java {
+	sourceCompatibility = JavaVersion.VERSION_25
+	targetCompatibility = JavaVersion.VERSION_25
+}
+
+tasks.withType(JavaCompile).configureEach {
+	it.options.release = 25
+	it.options.encoding = 'UTF-8'
+}
+
+repositories {
+	mavenCentral()
+	maven {
+		name = 'Modrinth'
+		url = 'https://api.modrinth.com/maven'
+		content {
+			includeGroup 'maven.modrinth'
+		}
+	}
+}
+
+dependencies {
+	minecraft "com.mojang:minecraft:${project.minecraft_version}"
+	implementation "net.fabricmc:fabric-loader:${project.loader_version}"
+	implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+
+	// Rig only: shader and LOD compatibility runs.
+	if (project.hasProperty('iris')) {
+		localRuntime "maven.modrinth:iris:${project.iris_version}"
+		localRuntime "maven.modrinth:sodium:${project.sodium_version}"
+	}
+	if (project.hasProperty('dh')) {
+		localRuntime "maven.modrinth:distanthorizons:${project.distant_horizons_version}"
+	}
+
+	testImplementation platform("org.junit:junit-bom:${project.junit_version}")
+	testImplementation 'org.junit.jupiter:junit-jupiter'
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+tasks.withType(Test).configureEach {
+	useJUnitPlatform()
+}
+
+processResources {
+	def version = project.version
+	inputs.property 'version', version
+	filesMatching('fabric.mod.json') {
+		expand 'version': version
+	}
+}
+
+// The rig (scripts/rig.sh): -Prig=<server port> joins that server on start-up as the offline player Rig and runs
+// the dev script; -Pcompanion=off keeps the hello unsent, which is what an unmodded client sees.
+loom {
+	runs {
+		client {
+			if (project.hasProperty('rig')) {
+				programArgs '--username', 'Rig', '--quickPlayMultiplayer', "localhost:${project.rig}", '--width', '1280', '--height', '720'
+				vmArg "-Dcustomdimensions.rig.shots=${project.findProperty('rigShots') ?: ''}"
+				vmArg "-Dcustomdimensions.rig.label=${project.findProperty('rigLabel') ?: 'shot'}"
+				vmArg "-Dcustomdimensions.companion=${project.findProperty('companion') ?: 'on'}"
+				// Xvfb offers no sRGB-capable GLX visual; the rig's GL shim (rig/srgbshim.c) stands in for libGL.
+				if (project.hasProperty('rigGl')) {
+					vmArg "-Dorg.lwjgl.opengl.libname=${project.rigGl}"
+				}
+			}
+		}
+	}
+}

@@ -17,7 +17,8 @@ covers Dockerfiles, actions and pip; this covers what it cannot parse:
           mods/*/gradle.properties; fabric_version follows the pack's
           fabric-api pin in config/modrinth-mods.txt, so the in-house mods
           build against the fabric-api the server runs. The 26.3 rebuild
-          (mods/custom-dimensions-26/) is out of scope: OUT_OF_SCOPE
+          (mods/custom-dimensions-26/ and mods/custom-dimensions-client-26/)
+          is out of scope: OUT_OF_SCOPE
   tool    Tailwind CLI (+ its sha256 lines, from the release's own
           sha256sums.txt), packwiz-installer-bootstrap, git-cliff
           (release.yml + release-train.yml; must also be on PyPI), doctl,
@@ -178,7 +179,7 @@ class UpdateError(Exception):
 
 # The 26.3 rebuild pins its own toolchain (Mojang names, no Yarn) and is bumped
 # by hand until the switch retargets this script at 26.3.
-OUT_OF_SCOPE = ("mods/custom-dimensions-26/",)
+OUT_OF_SCOPE = ("mods/custom-dimensions-26/", "mods/custom-dimensions-client-26/")
 
 
 def pin_matches(pin, path):
