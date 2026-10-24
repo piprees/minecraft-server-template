@@ -34,8 +34,10 @@ resolver failed or duplicates could not be aligned - nothing is written then.
 Gotchas:
   - Every occurrence of a dependency moves to the same version. A dependency
     whose occurrences disagree and that resolves to nothing fails the run.
-  - Never downgrades, never proposes a pre-release. Minecraft stays 1.21.1 and
-    itzg/minecraft-server stays -java21 (AGENTS.md § Fixed decisions).
+  - Never downgrades, never proposes a pre-release. Minecraft stays the
+    version in .minecraft-version and itzg/minecraft-server keeps the -java<N>
+    suffix minecraft-versions.tsv gives it; the image tag moves in compose's
+    MC_IMAGE_TAG fallback and that version's table row together.
   - Yarn marks only the newest Minecraft version's builds stable, so for
     1.21.1 the newest build is taken.
   - GitHub tags come from `git ls-remote`, not the REST API, whose
@@ -53,7 +55,11 @@ from collections import namedtuple
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-TARGET_MC = "1.21.1"
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import minecraft_version  # noqa: E402
+
+TARGET_MC = minecraft_version.current()
+TARGET_JAVA = minecraft_version.info(TARGET_MC)["java"]
 USER_AGENT = "adventure/platform-updates"
 HTTP_TIMEOUT = 30
 HUB_PAGES = 3
@@ -87,11 +93,15 @@ PINS = (
         re.compile(r"^(\s+DOCTL_VERSION:\s*')([0-9][\w.-]*)('\s*)$")),
     Pin("tool", "hcloud", "examples/consumer/.github/workflows/server-power.yml",
         re.compile(r"^(\s+HCLOUD_VERSION:\s*')([0-9][\w.-]*)('\s*)$")),
+    Pin("image", "itzg/minecraft-server", "scripts/minecraft-versions.tsv",
+        re.compile(r"^(" + re.escape(TARGET_MC) + r"\s+\d+\s+)([A-Za-z0-9_][A-Za-z0-9_.-]*)(\s.*)$")),
 )
 IMAGE_FILE = "docker-compose.yml"
-# Groups: prefix, upstream image, tag, trailing space.
+# Groups: prefix, upstream image, separator (":" or ":${VAR:-"), tag, trailing
+# ("}" when the tag is a variable's fallback, then space).
 IMAGE_LINE = re.compile(
-    r"^(\s+image:\s*\$\{MIRROR_REGISTRY:-[^}\s]+\}/)([a-z0-9][a-z0-9._/-]*):([A-Za-z0-9_][A-Za-z0-9_.-]*)(\s*)$")
+    r"^(\s+image:\s*\$\{MIRROR_REGISTRY:-[^}\s]+\}/)([a-z0-9][a-z0-9._/-]*)(:(?:\$\{[A-Z_]+:-)?)"
+    r"([A-Za-z0-9_][A-Za-z0-9_.-]*)((?:(?<=[A-Za-z0-9_.-])\})?\s*)$")
 TAILWIND_FILE = "mods/custom-dimensions/build-viewer-css.sh"
 # Groups: indent, asset, text before the hash, hash, text after.
 TAILWIND_SUM_LINE = re.compile(r'^(\s+)(tailwindcss-[a-z0-9-]+)(\) echo ")([0-9a-f]{64})(" ;;\s*)$')
@@ -114,7 +124,7 @@ GITHUB_REPOS = {
 #   notes    release-notes URL; {tag} is the tag, {version} its numeric part
 IMAGE_RULES = {
     "itzg/minecraft-server": {
-        "suffix": "-java21",
+        "suffix": f"-java{TARGET_JAVA}",
         "notes": "https://github.com/itzg/docker-minecraft-server/releases/tag/{version}",
     },
     "itzg/mc-backup": {"notes": "https://github.com/itzg/docker-mc-backup/releases/tag/{tag}"},
@@ -221,7 +231,7 @@ def mask_line(path, line):
     if path == IMAGE_FILE:
         m = IMAGE_LINE.match(line)
         if m:
-            return f"{m.group(1)}{m.group(2)}:<v>{m.group(4)}"
+            return f"{m.group(1)}{m.group(2)}{m.group(3)}<v>{m.group(5)}"
     if path == TAILWIND_FILE:
         m = TAILWIND_SUM_LINE.match(line)
         if m:
@@ -241,7 +251,7 @@ def scan_text(path, text):
         if path == IMAGE_FILE:
             m = IMAGE_LINE.match(line)
             if m:
-                found.append(Occurrence("image", m.group(2), path, lineno, m.group(3)))
+                found.append(Occurrence("image", m.group(2), path, lineno, m.group(4)))
                 continue
         for pin in PINS:
             if pin_matches(pin, path):
@@ -280,7 +290,7 @@ def rewrite(texts, targets, sums=None):
             if path == IMAGE_FILE:
                 m = IMAGE_LINE.match(line)
                 if m and ("image", m.group(2)) in targets:
-                    lines[i] = f"{m.group(1)}{m.group(2)}:{targets[('image', m.group(2))]}{m.group(4)}{end}"
+                    lines[i] = f"{m.group(1)}{m.group(2)}{m.group(3)}{targets[('image', m.group(2))]}{m.group(5)}{end}"
                     continue
             if path == TAILWIND_FILE and sums:
                 m = TAILWIND_SUM_LINE.match(line)

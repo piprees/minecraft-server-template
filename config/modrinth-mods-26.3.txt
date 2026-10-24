@@ -1,0 +1,176 @@
+# Server mods for Minecraft 26.3 - slug:versionId (Modrinth)
+# Re-pin: ./scripts/pin-mod-versions.sh --version 26.3
+# .minecraft-version selects this list (mc_mod_list in scripts/lib.sh). It holds
+# every server-side kept row of docs/design/rebuild-26/mod-register.csv and each
+# replaced row's Modrinth replacement; rows rebuilt by us live in our own mod.
+
+# === core / performance ===
+fabric-api:EQKgpeKu
+fabric-language-kotlin:SKW1BTL3
+lithium:xS0Q8LSi
+ferrite-core:d5ddUdiB
+c2me-fabric:gKKkuSYc
+# carpet — server admin/testing tool: fake players for the headless
+# verification loop (ops-gated commands; no client counterpart).
+carpet:yt9oDFOj
+servercore:LCG1Bm84
+chunky:4Eotm6ov
+spark:e3hsPc1o
+clumps:J4I1wxJZ
+packet-fixer:dTKbGYbb
+
+# === distance ===
+distanthorizons:TGgEbP9A
+
+# === caves & underground ===
+cave-spider-spawn:pQaJLh9R
+underground-beacons:yLVoFQG4
+
+# === structures ===
+towns-and-towers:yajFnGZS
+dungeons-and-taverns:WilF7nqU
+
+# === boss dungeons & extra structures ===
+deadly-deadly-dungeon:RBo0UYF5
+epic-structures-dungeons:NK6Uptyi
+# ATI structures, ruins, towers, camps (a Fabric mod on 26.3)
+ati-structures-fabricforge:vhuSIT7K
+moogs-structure-lib:SkD4H9XM
+moogs-voyager-structures:PiFoSPXI
+mes-moogs-end-structures:S7bUhX4n
+mns-moogs-nether-structures:OLTqXnsN
+mss-moogs-soaring-structures:O20bIWkj
+mtr-moogs-temples-reimagined:RvfqP9Zb
+# slashloot replaces lootr: per-player structure loot, server-side
+slashloot:qznIF17T
+
+# === mobs & animals ===
+datapack:clucking-ducks:YOMwWbSG
+
+# === villager overhaul ===
+villager-names-serilum:QxLRvQUU
+
+# === cosy village life ===
+# polydecorations replaces handcrafted, macaws-furniture and supplementaries
+# (Polymer: vanilla clients see vanilla blocks)
+polydecorations:sQwcggNm
+
+# === dependency libraries ===
+almanac:lYr0UQEP
+deimos:DqsrgsEE
+architectury-api:1pMaB6So
+bookshelf-lib:gXFicDKO
+# required by cristel-lib
+cloth-config:fg2uyxOW
+collective:SLDUG1Rg
+cristel-lib:rWxmPrGC
+forge-config-api-port:JpKvrr9J
+prickle:aPdekuq6
+puzzles-lib:68hLXNWE
+resourceful-lib:P6Jq77km
+yacl:s9SjoFu1
+# required by polydecorations
+polymer:G0fTdl8M
+
+# === variety ===
+farmers-delight-refabricated:W0KeKCgk
+appleskin:PHjDtQay
+
+# === quality of life ===
+bouncier-beds:SbFLlDE6
+carry-on:6kJQXHUF
+double-doors:KicqUZ57
+easy-elytra-takeoff:FlbM5sr1
+fallingtree:D0B62UJ5
+grabby-mobs:hRj0HB4J
+healing-campfire:w96063IU
+name-tag-tweaks:Tn5DLqVv
+no-animal-tempt-delay:m9DHzh44
+nutritious-milk:lSyNIuDI
+softer-hay-bales:fEpQZvli
+stack-refill:2ApxamAM
+# polydex replaces emi: recipes for every client, served by the server
+polydex:hUejnkI9
+# elytra-armor replaces elytra-slot: armour and elytra together, server-side
+elytra-armor:Oe6DS1BQ
+# gm4-double-doors replaces dramatic-doors and macaws-doors
+datapack:gm4-double-doors:wT7DJkGG
+
+# === archery ===
+fire-arrows-ignite-fire:2XfaCEEp
+
+# === death & safety ===
+your-items-are-safe:7zZaTRpy
+# inventory-totem replaces charm-of-undying: a totem works from anywhere in the inventory
+inventory-totem:w3KKAn4J
+
+# === fire & griefing ===
+fire-spread-tweaks:Gsc5QZeR
+
+# === enchanting ===
+enchanting-commands:ITQXemvY
+
+# === chat ===
+hide-invis-msgs:pOE7WQ6g
+
+# === spawn & new player ===
+starter-kit:MAMRzlEH
+
+# === difficulty ===
+attributefix:zJLURVLx?
+
+# === server defaults ===
+configured-defaults:frAVVzBj
+
+# === admin / community ===
+luckperms:DzQPkkXY
+open-parties-and-claims:KBCCg0os
+simple-voice-chat:yuPrCKIE
+ledger:pxv5cN0d
+styled-chat:HQ91YnMY
+essential-commands:KANmt7ie
+lmd:soddf0iE
+
+# =============================================================================
+# Waiting for a 26.3 build (mod-register.csv "waiting", and abridged, which
+# replaces macaws-bridges); each joins when its author ships one (RB-09)
+# =============================================================================
+# dcintegration                               # No 26
+# no-chat-reports                             # No 26
+# friends-and-foes                            # Kept server-side through the friends-and-foes-polymer patch once both have 26
+# borrow-their-arrows                         # No 26
+# ender-dragon-destroys-end-island            # No 26
+# expanded-bow-enchanting                     # No 26
+# ground-clear                                # No 26
+# overstacked-enchantments                    # No 26
+# pause-day-cycle                             # No 26
+# sit!                                        # No 26
+# otterlib                                    # Library for sit!
+# yungs-api                                   # Library for travelers-titles, yungs-better-desert-temples, yungs-better-dungeons, yungs-better-end-island and 8 more
+# krypton                                     # No 26
+# modernfix                                   # No 26
+# adventure-dungeons                          # Vanilla blocks only, so it is welcome; no 26
+# dungeons+                                   # Vanilla blocks only, so it is welcome; no 26
+# explorify                                   # Vanilla blocks only, so it is welcome; no 26
+# hellish-trials                              # Vanilla blocks only, so it is welcome; no 26
+# medieval-buildings-end-edition              # Vanilla blocks only, so it is welcome; no 26
+# simply-houses                               # Vanilla blocks only, so it is welcome; no 26
+# sky-villages                                # Vanilla blocks only, so it is welcome; no 26
+# stoneholm                                   # Vanilla blocks only, so it is welcome; no 26
+# subsurface                                  # Vanilla blocks only, so it is welcome; no 26
+# true-ending                                 # Vanilla blocks only, so it is welcome; no 26
+# underground-bunkers                         # Vanilla blocks only, so it is welcome; no 26
+# when-dungeons-arise                         # Vanilla blocks only, so it is welcome; no 26
+# when-dungeons-arise-seven-seas              # Vanilla blocks only, so it is welcome; no 26
+# yungs-better-desert-temples                 # Vanilla blocks only, so it is welcome; no 26
+# yungs-better-dungeons                       # Vanilla blocks only, so it is welcome; no 26
+# yungs-better-end-island                     # Vanilla blocks only, so it is welcome; no 26
+# yungs-better-jungle-temples                 # Vanilla blocks only, so it is welcome; no 26
+# yungs-better-mineshafts                     # Vanilla blocks only, so it is welcome; no 26
+# yungs-better-nether-fortresses              # Vanilla blocks only, so it is welcome; no 26
+# yungs-better-ocean-monuments                # Vanilla blocks only, so it is welcome; no 26
+# yungs-better-strongholds                    # Vanilla blocks only, so it is welcome; no 26
+# yungs-better-witch-huts                     # Vanilla blocks only, so it is welcome; no 26
+# yungs-bridges                               # Vanilla blocks only, so it is welcome; no 26
+# yungs-extras                                # Vanilla blocks only, so it is welcome; no 26
+# abridged                                    # Replaces macaws-bridges; no 26

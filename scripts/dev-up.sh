@@ -154,6 +154,7 @@ if [[ -f "$CONSUMER_DIR/.env" ]]; then
   source "$CONSUMER_DIR/.env"
   set +a
 fi
+export_mc_version
 # The tracked pin file beats a deprecated STACK_VERSION in .env, as in `dev`.
 if [[ -f "$CONSUMER_DIR/.stack-version" ]]; then
   STACK_PIN_FILE=$(grep -vE '^[[:space:]]*(#|$)' "$CONSUMER_DIR/.stack-version" | head -1 | tr -d '[:space:]') || true
@@ -210,7 +211,7 @@ fi
 # --- Print /etc/hosts lines --------------------------------------------------
 echo ""
 echo "Starting Minecraft server (local profile, project: ${COMPOSE_PROJECT_NAME})..."
-echo "  Version:  ${MC_VERSION:-1.21.1}"
+echo "  Version:  ${MC_VERSION}"
 echo "  Game:     mc.${LOCAL_DOMAIN}:${GAME_PORT}"
 echo "  Voice:    mc.${LOCAL_DOMAIN}:${VOICE_PORT} (UDP)"
 echo "  Web:      http://${LOCAL_DOMAIN}:${WEB_PORT}"
@@ -287,7 +288,7 @@ fi
 # deploy.sh.
 if [[ -d "$dp_dir" ]]; then
   python3 "$SCRIPT_DIR/filter-datapacks.py" "$dp_dir" \
-    "$STACK_DIR/config/modrinth-mods.txt" "$CONSUMER_DIR/overlay" || true
+    "$(mc_mod_list "$STACK_DIR")" "$CONSUMER_DIR/overlay" || true
 fi
 
 # --- Enforce c2me density-function-compiler OFF -------------------------------
@@ -335,9 +336,7 @@ fi
 # The tag comes from the compose file rather than a second copy here: a
 # duplicated pin silently stops matching when the compose one moves, and the
 # only symptom is the SQLITE_CANTOPEN crash this exists to prevent.
-MC_IMAGE="$(sed -n 's|.*image: .*/\(itzg/minecraft-server:[^ ]*\).*|\1|p' \
-  "$STACK_DIR/docker-compose.yml" | head -1)"
-MC_IMAGE="${MIRROR_REGISTRY:-ghcr.io/piprees/mirrors}/${MC_IMAGE:-itzg/minecraft-server:latest}"
+MC_IMAGE="${MIRROR_REGISTRY:-ghcr.io/piprees/mirrors}/itzg/minecraft-server:${MC_IMAGE_TAG}"
 
 # $1 = volume suffix, $2 = mount path, $3 = what breaks if the chown fails.
 chown_sqlite_volume() {
@@ -697,7 +696,7 @@ if [[ "$HAVE_MRPACK" == "false" || "$CURRENT_INPUTS" != "$PREV_INPUTS" ]]; then
     -e "DOMAIN=${LOCAL_DOMAIN:-${DOMAIN:-localhost}}" \
     -e "BRAND_NAME=${BRAND_NAME:-My Server}" \
     -e "BRAND_SLUG=${BRAND_SLUG:-myserver}" \
-    -e "MC_VERSION=${MC_VERSION:-1.21.1}" \
+    -e "MC_VERSION=${MC_VERSION}" \
     -e "SERVER_PORT=${SERVER_PORT:-25577}" \
     -e "LOCAL_DOMAIN=${LOCAL_DOMAIN:-localhost}" \
     -e "GIT_SHA=${GIT_SHA:-local}" \

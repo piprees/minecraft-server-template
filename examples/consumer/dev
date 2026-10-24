@@ -427,6 +427,7 @@ case "$CMD" in
     mkdir -p "$FARM"
     ln -sfn "$PLATFORM/config" "$FARM/config"
     ln -sfn "$PLATFORM/scripts" "$FARM/scripts"
+    ln -sfn "$PLATFORM/.minecraft-version" "$FARM/.minecraft-version"
     ln -sfn "$PLATFORM/examples" "$FARM/examples"
     ln -sfn "$PLATFORM/.env.example" "$FARM/.env.example"
     ln -sfn "$PLATFORM/docker-compose.yml" "$FARM/docker-compose.yml"
@@ -635,7 +636,7 @@ case "$CMD" in
       -e "DOMAIN=${LOCAL_DOMAIN:-${DOMAIN:-localhost}}" \
       -e "BRAND_NAME=${BRAND_NAME:-My Server}" \
       -e "BRAND_SLUG=${BRAND_SLUG:-myserver}" \
-      -e "MC_VERSION=${MC_VERSION:-1.21.1}" \
+      -e "MC_VERSION=$(cat "$CONSUMER_DIR/.stack/current/stack/.minecraft-version" 2> /dev/null || echo "${MC_VERSION:-1.21.1}")" \
       -e "SERVER_PORT=${SERVER_PORT:-25577}" \
       -e "LOCAL_DOMAIN=${LOCAL_DOMAIN:-localhost}" \
       -e "GIT_SHA=${GIT_SHA:-local}" \

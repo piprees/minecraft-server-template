@@ -60,6 +60,19 @@ jobs:
           ref: ${{ inputs.ref }}
           persist-credentials: false
 
+      - name: Read the Minecraft version
+        id: mc
+        # .minecraft-version through scripts/lib.sh, the one reader.
+        run: |
+          source scripts/lib.sh
+          v="$(mc_version)"
+          {
+            echo "version=$v"
+            echo "image=$(mc_version_field image "$v")"
+            echo "java=$(mc_version_field java "$v")"
+            echo "mod_list=$(mc_mod_list . "$v" | sed 's|^\./||')"
+          } >> "$GITHUB_OUTPUT"
+
       - name: Build defaults-seed image
         run: |
           docker build -t ghcr.io/${{ github.repository }}/defaults-seed:ci \
@@ -68,7 +81,8 @@ jobs:
       - name: Create minimal .env
         run: |
           cat > .env <<'EOF'
-          MC_VERSION=1.21.1
+          MC_VERSION=${{ steps.mc.outputs.version }}
+          MC_IMAGE_TAG=${{ steps.mc.outputs.image }}
           MEMORY=4G
           SEED=0
           RCON_PASSWORD=smoketest
@@ -92,7 +106,7 @@ jobs:
           # jar and is never pruned, so both variants share one entry and
           # Modrinth sees one download instead of two.
           path: ${{ github.workspace }}/.modcache
-          key: mc-jars-${{ hashFiles('config/modrinth-mods.txt') }}
+          key: mc-jars-${{ hashFiles(steps.mc.outputs.mod_list) }}
           restore-keys: mc-jars-
 
       - name: Write consumer mods-remove overlay (removal variant)

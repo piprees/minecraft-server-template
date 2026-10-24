@@ -66,10 +66,24 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
+      - name: Read the Minecraft version
+        id: mc
+        # .minecraft-version through scripts/lib.sh, the one reader.
+        run: |
+          source scripts/lib.sh
+          v="$(mc_version)"
+          {
+            echo "version=$v"
+            echo "image=$(mc_version_field image "$v")"
+            echo "java=$(mc_version_field java "$v")"
+            echo "mod_list=$(mc_mod_list . "$v" | sed 's|^\./||')"
+          } >> "$GITHUB_OUTPUT"
+
       - name: Create minimal .env for validation
         run: |
           cat > .env <<'EOF'
-          MC_VERSION=1.21.1
+          MC_VERSION=${{ steps.mc.outputs.version }}
+          MC_IMAGE_TAG=${{ steps.mc.outputs.image }}
           MEMORY=4G
           SEED=0
           RCON_PASSWORD=dummy
