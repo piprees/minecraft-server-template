@@ -17,6 +17,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Properties;
+import java.util.SortedMap;
+import java.util.TreeMap;
 import java.util.stream.Stream;
 import net.fabricmc.loader.api.FabricLoader;
 
@@ -26,8 +28,10 @@ import net.fabricmc.loader.api.FabricLoader;
  * initialisation, before the world loads; vanilla enables a new pack in that
  * folder on its own. Vanilla's files come from the running game
  * ({@link RuntimeVanilla}), or from {@code -Dcustomdimensions.vanilla} when it
- * names an extracted copy. The pack carries the hash of its inputs and is
- * rewritten only when that hash changes. A rewrite that changes the worldgen
+ * names an extracted copy. The pack is compiled at every start-up and
+ * rewritten only when the result differs from the files on disk, so a
+ * compiler change reaches the pack whatever the mod's version; the pack
+ * records the hash of its inputs. A rewrite that changes the worldgen
  * of a dimension whose region folder already holds chunks logs one WARN per
  * dimension (D2). Without a definitions folder the world keeps the pack it has.
  */
@@ -61,15 +65,17 @@ public final class PackInstaller {
         Path pack = packDir(gameDir, levelName);
         String minecraft = minecraftVersion();
         String hash = PackInputs.hash(definitions.get(), modVersion(), minecraft);
-        if (PackInputs.read(pack).filter(hash::equals).isPresent() && Files.isRegularFile(pack.resolve("pack.mcmeta"))) {
-            CustomDimensions.LOG.info("the pack in {} is current (inputs {})", pack, hash.substring(0, 12));
-            last = new Result(false, pack, hash, PackDrift.read(pack).size() + 1, "", List.of());
-            return;
-        }
         long start = System.nanoTime();
         VanillaData vanilla = vanilla();
         DatapackCompiler.Output output = DatapackCompiler.compile(definitions.get(), vanilla, VersionTable.forId(minecraft));
-        List<String> changed = PackDrift.changed(PackDrift.read(pack), output);
+        SortedMap<String, String> before = PackDrift.read(pack);
+        if (before.equals(dataFiles(output)) && Files.isRegularFile(pack.resolve("pack.mcmeta"))) {
+            CustomDimensions.LOG.info("the pack in {} is current ({} files, inputs {})", pack, output.files().size(),
+                    hash.substring(0, 12));
+            last = new Result(false, pack, hash, output.files().size(), vanilla.source().describe(), List.of());
+            return;
+        }
+        List<String> changed = PackDrift.changed(before, output);
         List<String> warnings = driftWarnings(world, namespace(definitions.get()), changed);
         warnings.forEach(CustomDimensions.LOG::warn);
         DatapackCompiler.write(output, pack, pack.resolve(DatapackCompiler.REPORT_FILE));
@@ -77,6 +83,13 @@ public final class PackInstaller {
         CustomDimensions.LOG.info("compiled {} files into {} from {} in {} ms", output.files().size(), pack,
                 vanilla.source().describe(), (System.nanoTime() - start) / 1_000_000);
         last = new Result(true, pack, hash, output.files().size(), vanilla.source().describe(), warnings);
+    }
+
+    /** The compiled files under {@code data/}, the part {@link PackDrift#read} reads back from disk. */
+    static SortedMap<String, String> dataFiles(DatapackCompiler.Output output) {
+        SortedMap<String, String> data = new TreeMap<>(output.files());
+        data.keySet().removeIf(path -> !path.startsWith("data/"));
+        return data;
     }
 
     /** {@code -Dcustomdimensions.vanilla} when set, else the running game. */

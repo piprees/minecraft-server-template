@@ -287,7 +287,8 @@ public final class LevelSelfTest {
         CommandSourceStack console = server.createCommandSourceStack();
         try {
             int listed = dispatcher.execute("customdim list", console);
-            if (listed != manager.index().lazy().size()) throw new IllegalStateException("list returned " + listed);
+            int dimensions = manager.index().baseWorlds().size() + manager.index().lazy().size();
+            if (listed != dimensions) throw new IllegalStateException("list returned " + listed + ", not " + dimensions);
             dispatcher.execute("customdim activate " + slug, console);
             if (manager.state(slug) != LevelManager.State.QUEUED) throw new IllegalStateException("activate left " + manager.state(slug));
         } catch (Exception e) {
@@ -307,7 +308,7 @@ public final class LevelSelfTest {
                 if (manager.state(slug) != LevelManager.State.LAZY) throw new IllegalStateException("unload left " + manager.state(slug));
                 int tp = dispatcher.execute("customdim tp " + slug, console);
                 if (tp != 0) throw new IllegalStateException("tp from the console returned " + tp);
-                lines.add("PASS " + name + ": list " + manager.index().lazy().size() + ", " + slug
+                lines.add("PASS " + name + ": list " + (manager.index().baseWorlds().size() + manager.index().lazy().size()) + ", " + slug
                         + " activated and unloaded, tp refused without a player");
             } catch (Exception e) {
                 lines.add("FAIL " + name + ": " + e.getMessage());

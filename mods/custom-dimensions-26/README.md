@@ -134,9 +134,11 @@ The mod compiles its own pack (RB-33). `PackInstaller` reads vanilla's
 multi-noise parameter lists from `MultiNoiseBiomeSourceParameterList.knownPresets()`
 with the codec of the data generator's biome-parameters report
 (`RuntimeVanilla`); `-Dcustomdimensions.vanilla=<dir>` swaps in an extracted
-copy. The pack carries `inputs.sha256`, the hash of every definition file,
-`settings.json`, the mod version and the Minecraft version, and is rewritten
-only when that hash changes. A rewrite that changes a dimension's noise
+copy. The pack is compiled at every start-up (about 3 s) and rewritten only
+when the result differs from the files on disk, so a compiler change reaches
+the pack whatever the mod's version; `inputs.sha256` records the hash of the
+definition files, `settings.json`, the mod version and the Minecraft version.
+A rewrite that changes a dimension's noise
 settings or level-stem generator while its region folder holds chunks logs one
 WARN naming [D2](../../TROUBLESHOOTING.md#d2) per dimension. Without a
 definitions folder the mod logs one INFO and the world keeps the pack it has.
