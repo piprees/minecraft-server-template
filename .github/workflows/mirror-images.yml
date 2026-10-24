@@ -62,8 +62,13 @@ jobs:
             # shellcheck disable=SC2086 # word-splitting the list is the point
             printf '%s\n' $IMAGES > /tmp/images.txt
           else
-            sed -nE 's/^[[:space:]]*image:[[:space:]]*"?\$\{MIRROR_REGISTRY:-[^}]*\}\/([^"[:space:]]+)"?[[:space:]]*$/\1/p' \
-              docker-compose.yml | sort -u > /tmp/images.txt
+            # A tag written as ${VAR:-tag} mirrors its fallback; every
+            # itzg/minecraft-server tag in minecraft-versions.tsv is mirrored too.
+            {
+              sed -nE 's/^[[:space:]]*image:[[:space:]]*"?\$\{MIRROR_REGISTRY:-[^}]*\}\/([^"[:space:]]+)"?[[:space:]]*$/\1/p' \
+                docker-compose.yml | sed -E 's/:\$\{[A-Z_]+:-([^}]+)\}$/:\1/'
+              awk '!/^[[:space:]]*#/ && NF >= 3 { print "itzg/minecraft-server:" $3 }' scripts/minecraft-versions.tsv
+            } | sort -u > /tmp/images.txt
           fi
           if [[ ! -s /tmp/images.txt ]]; then
             echo "::error::No images to mirror"

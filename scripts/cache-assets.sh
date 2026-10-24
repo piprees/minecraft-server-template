@@ -11,6 +11,8 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="${CONSUMER_DIR:-$(cd "$SCRIPT_DIR/.." && pwd)}"
+# shellcheck source=lib.sh
+source "$SCRIPT_DIR/lib.sh"
 cd "$PROJECT_DIR"
 
 # --- load .env ----------------------------------------------------------------
@@ -21,7 +23,7 @@ if [[ -f .env ]]; then
   set +a
 fi
 
-MC_VERSION="${MC_VERSION:-1.21.1}"
+MC_VERSION="$(mc_version)"
 PACK_VERSION="$(git rev-parse --short HEAD 2> /dev/null || echo unknown)"
 PACK_NAME="${BRAND_SLUG:-adventure}-${MC_VERSION}-v${PACK_VERSION}"
 
@@ -38,7 +40,7 @@ COMPOSE_SRC="$SCRIPT_DIR/../docker-compose.yml"
 
 # Pack manifest: platform checkouts have it in modpack/; consumers extract
 # it from the modpack-builder image (where it is baked as the default).
-MANIFEST="$PROJECT_DIR/modpack/adventure.mrpack.json"
+MANIFEST="$(mc_manifest "$PROJECT_DIR" "$MC_VERSION")"
 if [[ ! -f "$MANIFEST" ]]; then
   MANIFEST="$CACHE_DIR/.manifest.json"
   mkdir -p "$CACHE_DIR"

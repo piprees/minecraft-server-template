@@ -62,7 +62,7 @@ COMPOSE_FILE="$STACK_DIR/docker-compose.yml"
 
 # --- deploy banner ----------------------------------------------------------
 BUNDLE_VERSION="v$(cat "$STACK_DIR/VERSION" 2> /dev/null || echo '?')"
-show_banner "deploy" "stack ${BUNDLE_VERSION} | mc ${MC_VERSION:-1.21.1} | $(date '+%Y-%m-%d %H:%M %Z')${DEPLOY_COMMIT:+ | commit ${DEPLOY_COMMIT}}"
+show_banner "deploy" "stack ${BUNDLE_VERSION} | mc $(mc_version) | $(date '+%Y-%m-%d %H:%M %Z')${DEPLOY_COMMIT:+ | commit ${DEPLOY_COMMIT}}"
 
 # --- timestamped output ---------------------------------------------------
 # Deploys are long and the captured log is the primary forensic artefact:
@@ -81,6 +81,7 @@ if [[ -f .env ]]; then
   source .env
   set +a
 fi
+export_mc_version
 
 # --- flags --------------------------------------------------------------------
 export NON_INTERACTIVE=0
@@ -563,7 +564,7 @@ fi
 # covered too; only packs carrying an ownership.json are touched.
 if [[ -d "$SERVER_DIR/data/world/datapacks" ]]; then
   python3 "$SCRIPT_DIR/filter-datapacks.py" "$SERVER_DIR/data/world/datapacks" \
-    "$STACK_DIR/config/modrinth-mods.txt" "$SERVER_DIR/overlay" || true
+    "$(mc_mod_list "$STACK_DIR")" "$SERVER_DIR/overlay" || true
 fi
 
 # =============================================================================

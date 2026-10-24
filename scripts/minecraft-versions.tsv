@@ -1,0 +1,11 @@
+# Per-version facts for the version named in .minecraft-version.
+# Read by mc_version_field (scripts/lib.sh), scripts/minecraft_version.py and
+# the workflows through them. Columns are separated by whitespace.
+#   java      the Java release the server image and Gradle builds run
+#   image     the itzg/minecraft-server tag; docker-compose.yml's MC_IMAGE_TAG
+#             fallback carries the 1.21.1 row's tag (test_minecraft_version.py
+#             holds them equal)
+#   accepted  Modrinth game versions a pin may target, best first
+# version  java  image              accepted
+1.21.1     21    2026.7.0-java21    1.21.1,1.21
+26.3       25    2026.10.0-java25   26.3

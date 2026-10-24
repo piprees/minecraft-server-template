@@ -53,8 +53,8 @@ import platform_updates  # noqa: E402
 
 API = "https://api.modrinth.com/v2"
 USER_AGENT = "adventure/dep-review"
-TARGET_MC = "1.21.1"
-MC_ACCEPTED = ("1.21.1", "1.21")
+TARGET_MC = platform_updates.TARGET_MC
+MC_ACCEPTED = platform_updates.minecraft_version.info(TARGET_MC)["accepted"]
 BULK_CHUNK = 100
 PER_PROJECT_SLEEP = 0.25
 HTTP_TIMEOUT = 20

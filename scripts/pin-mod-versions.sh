@@ -1,19 +1,29 @@
 #!/usr/bin/env bash
-# pin-mod-versions.sh - Re-pin every mod in modrinth-mods.txt to its latest
-# Modrinth build for the target MC version (exact match first, then falling
-# back down the 1.21.x chain). Pinning makes deploys reproducible - the itzg
-# image downloads exactly slug:versionId, never "latest".
+# pin-mod-versions.sh - Re-pin every mod in the version's mod list to its
+# latest Modrinth build for the target MC version (exact match first, then
+# the fallbacks in the "accepted" column of scripts/minecraft-versions.tsv;
+# a version without a row falls back down its 1.21.x chain). Pinning makes
+# deploys reproducible - the itzg image downloads exactly slug:versionId,
+# never "latest".
+#
+# The target is .minecraft-version unless --version names another. The mod
+# list follows the target (mc_mod_list in lib.sh): config/modrinth-mods-<v>.txt
+# when it exists, else config/modrinth-mods.txt. The client manifest and its
+# _holds follow it the same way (mc_manifest), and are skipped when the mod
+# list is versioned but the manifest is not - a 26.3 list must never re-pin
+# or be held by the 1.21.1 pack.
 #
 # This is what the weekly mod-updates.yml workflow runs (--apply) to build
-# its dependency-update PR; run it manually when bumping MC_VERSION.
-# Mods with no 1.21.x build are kept as-is with a "# FIXME" comment above
-# them (which build-mod-update-report.py surfaces in the PR body).
+# its dependency-update PR.
+# Mods with no build for the target are kept as-is with a "# FIXME" comment
+# above them (which build-mod-update-report.py surfaces in the PR body).
 #
 # Usage:
-#   ./scripts/pin-mod-versions.sh                   # uses MC_VERSION; writes
+#   ./scripts/pin-mod-versions.sh                   # .minecraft-version; writes
 #                                                   # config/modrinth-mods.pinned.txt for review
-#   ./scripts/pin-mod-versions.sh --version 1.21.1  # override target version
-#   ./scripts/pin-mod-versions.sh --apply           # also overwrite modrinth-mods.txt
+#   ./scripts/pin-mod-versions.sh --version 26.3    # override target version; writes
+#                                                   # config/modrinth-mods-26.3.pinned.txt
+#   ./scripts/pin-mod-versions.sh --apply           # also overwrite the mod list
 #   ./scripts/pin-mod-versions.sh --file <path>     # re-pin an arbitrary mod list
 #                                                   # IN PLACE (consumer overlay
 #                                                   # mods-extra.txt; review via git diff)
@@ -25,6 +35,8 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="${CONSUMER_DIR:-$(cd "$SCRIPT_DIR/.." && pwd)}"
 cd "$PROJECT_DIR"
+# shellcheck source=lib.sh
+source "$SCRIPT_DIR/lib.sh"
 
 # --- load .env ----------------------------------------------------------------
 if [[ -f .env ]]; then
@@ -34,10 +46,10 @@ if [[ -f .env ]]; then
   set +a
 fi
 
-TARGET_VERSION="${MC_VERSION:-1.21.1}"
+TARGET_VERSION="$(mc_version)"
 APPLY=0
 FILE_OVERRIDE=0
-MODS_FILE="$PROJECT_DIR/config/modrinth-mods.txt"
+MODS_FILE=""
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -58,40 +70,52 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
+[[ -n "$MODS_FILE" ]] || MODS_FILE="$(mc_mod_list "$PROJECT_DIR" "$TARGET_VERSION")"
+MODS_REL="config/$(basename "$MODS_FILE")"
+MANIFEST="$(mc_manifest "$PROJECT_DIR" "$TARGET_VERSION")"
+# A versioned mod list pairs only with a versioned manifest.
+MANIFEST_PAIRED=1
+if [[ "$MODS_FILE" == *"/modrinth-mods-$TARGET_VERSION.txt" && "$MANIFEST" != *"/adventure-$TARGET_VERSION.mrpack.json" ]]; then
+  MANIFEST_PAIRED=0
+fi
+
 if [[ ! -f "$MODS_FILE" ]]; then
   echo "ERROR: mod list not found: $MODS_FILE" >&2
   exit 1
 fi
 
-# Build a list of 1.21.x versions to try, in priority order:
-# exact match first, then descending from 1.21.1 down to 1.21
-FALLBACK_VERSIONS=("$TARGET_VERSION")
-# Extract minor number (e.g. 11 from 1.21.1)
-MINOR="${TARGET_VERSION##1.21.}"
-if [[ "$MINOR" == "$TARGET_VERSION" ]]; then
-  MINOR="0"
-fi
-for ((i = MINOR - 1; i >= 0; i--)); do
-  if [[ $i -eq 0 ]]; then
-    FALLBACK_VERSIONS+=("1.21")
-  else
-    FALLBACK_VERSIONS+=("1.21.$i")
+# Versions to try, in priority order: the table's accepted list, else the
+# exact version then descending down the 1.21.x chain (1.21.4 .. 1.21).
+if ACCEPTED="$(mc_version_field accepted "$TARGET_VERSION" 2> /dev/null)"; then
+  IFS=, read -r -a FALLBACK_VERSIONS <<< "$ACCEPTED"
+else
+  FALLBACK_VERSIONS=("$TARGET_VERSION")
+  MINOR="${TARGET_VERSION##1.21.}"
+  if [[ "$MINOR" == "$TARGET_VERSION" ]]; then
+    MINOR="0"
   fi
-done
+  for ((i = MINOR - 1; i >= 0; i--)); do
+    if [[ $i -eq 0 ]]; then
+      FALLBACK_VERSIONS+=("1.21")
+    else
+      FALLBACK_VERSIONS+=("1.21.$i")
+    fi
+  done
+fi
+BRANCH="${TARGET_VERSION%.*}.x"
 
 # --- load version holds -------------------------------------------------------
 # Holds protect specific mods from automatic re-pinning, and they are a
 # statement about a MOD rather than about a distribution channel — so they live
 # at the manifest's top level and both loops below read the same map.
-_holds_manifest="${PROJECT_DIR}/modpack/adventure.mrpack.json"
 HELD_SLUGS=""
-if [[ -f "$_holds_manifest" ]]; then
+if [[ $MANIFEST_PAIRED -eq 1 && -f "$MANIFEST" ]]; then
   HELD_SLUGS=$(python3 -c "
 import json, sys
 m = json.load(open(sys.argv[1]))
 for slug in m.get('_holds', {}):
     print(slug)
-" "$_holds_manifest" 2>/dev/null || true)
+" "$MANIFEST" 2>/dev/null || true)
 fi
 
 echo "Target: $TARGET_VERSION"
@@ -175,8 +199,8 @@ for i in "${!LINE_TYPES[@]}"; do
     echo "  $slug - ? API error ($error) - keeping as-is"
     OUTPUT_LINES+=("${LINE_ORIGINALS[$i]}")
   else
-    echo "  $slug - ✗ no 1.21.x build found - keeping as-is"
-    OUTPUT_LINES+=("# FIXME: no 1.21.x build - $slug")
+    echo "  $slug - ✗ no $BRANCH build found - keeping as-is"
+    OUTPUT_LINES+=("# FIXME: no $BRANCH build - $slug")
     OUTPUT_LINES+=("${LINE_ORIGINALS[$i]}")
   fi
 done
@@ -193,13 +217,14 @@ if [[ $FILE_OVERRIDE -eq 1 ]]; then
   exit 0
 fi
 
-OUTPUT_FILE="$PROJECT_DIR/config/modrinth-mods.pinned.txt"
+OUTPUT_FILE="${MODS_FILE%.txt}.pinned.txt"
+OUTPUT_REL="config/$(basename "$OUTPUT_FILE")"
 printf '%s\n' "${OUTPUT_LINES[@]}" > "$OUTPUT_FILE"
-echo "Pinned mod list written to: config/modrinth-mods.pinned.txt"
+echo "Pinned mod list written to: $OUTPUT_REL"
 
 if [[ $APPLY -eq 1 ]]; then
   cp "$OUTPUT_FILE" "$MODS_FILE"
-  echo "Applied to: config/modrinth-mods.txt"
+  echo "Applied to: $MODS_REL"
 
   # Refresh the offline resolve cache in the same breath. A pin change is the
   # ONLY thing that invalidates it, and a cold cache means the seed calls the
@@ -214,7 +239,7 @@ fi
 
 echo ""
 echo "Review the output, then apply with:"
-echo "  cp config/modrinth-mods.pinned.txt config/modrinth-mods.txt"
+echo "  cp $OUTPUT_REL $MODS_REL"
 
 # --- re-pin the client manifest (adventure.mrpack.json) -----------------------
 # Every slug:versionId entry in _clientMods gets its versionId bumped to the
@@ -224,8 +249,10 @@ echo "  cp config/modrinth-mods.pinned.txt config/modrinth-mods.txt"
 # e.g. a client mod whose mixin breaks against a newer dependency). Resource/shader packs are left alone (they
 # follow their own resolution in build-modpack.sh and don't cause registry
 # mismatches).
-MANIFEST="$PROJECT_DIR/modpack/adventure.mrpack.json"
-if [[ -f "$MANIFEST" ]]; then
+if [[ $MANIFEST_PAIRED -eq 0 ]]; then
+  echo ""
+  echo "==> Client manifest skipped: $MODS_REL has no adventure-$TARGET_VERSION.mrpack.json beside it"
+elif [[ -f "$MANIFEST" ]]; then
   echo ""
   echo "==> Re-pinning client manifest ($MANIFEST)..."
 

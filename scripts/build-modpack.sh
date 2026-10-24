@@ -38,9 +38,9 @@ if [[ -f .env ]]; then
   set +a
 fi
 
-MC_VERSION="${MC_VERSION:-1.21.1}"
+MC_VERSION="$(mc_version)"
 PACK_VERSION="${GIT_SHA:-$(git rev-parse --short HEAD 2> /dev/null || echo unknown)}"
-MANIFEST="${MANIFEST:-$PROJECT_DIR/modpack/adventure.mrpack.json}"
+MANIFEST="${MANIFEST:-$(mc_manifest "$PROJECT_DIR" "$MC_VERSION")}"
 FABRIC_LOADER_VERSION=$(python3 -c "import json; print(json.load(open('$MANIFEST'))['dependencies']['fabric-loader'])" 2> /dev/null || echo "0.19.5")
 DIST_DIR="$PROJECT_DIR/modpack/dist"
 WORK_DIR="$(mktemp -d)"
@@ -65,7 +65,7 @@ fi
 # would block their pack entirely; the platform's own lists are hard-gated
 # by the same script in test-scripts.sh.
 PARITY_CHECK="${PARITY_CHECK:-$PROJECT_DIR/scripts/check-client-parity.py}"
-SERVER_MODS="${SERVER_MODS:-$PROJECT_DIR/config/modrinth-mods.txt}"
+SERVER_MODS="${SERVER_MODS:-$(mc_mod_list "$PROJECT_DIR" "$MC_VERSION")}"
 if [[ -f "$PARITY_CHECK" ]]; then
   PARITY_ARGS=(--manifest "$MANIFEST")
   [[ -f "$SERVER_MODS" ]] && PARITY_ARGS+=(--server "$SERVER_MODS")
@@ -355,7 +355,7 @@ for entry in files:
         modrinth_only += 1
 
 # --- Mirror server mod JARs ---
-server_mods_file = '$PROJECT_DIR/config/modrinth-mods.txt'
+server_mods_file = '$(mc_mod_list "$PROJECT_DIR" "$MC_VERSION")'
 server_fetched = 0
 if os.path.isfile(server_mods_file):
     slug_vid_pairs = []
