@@ -1596,6 +1596,13 @@ A seed's map and its banked facts appear to contradict each other — the thumbn
   the same trap. Pin it against the Java, not against intuition —
   `scripts/e2e/portal-matrix-selftest.sh` is the worked example.
 
+<a id="t135"></a>
+### T135 — Recording what a 26.x server sends a test player needs a listener of our own
+
+- **Symptom:** a self-test cannot see which custom payloads reached a test player, or the server tick throws when one is added.
+- **Cause:** Fabric's `FakePlayerPacketListener` is final and drops everything; a plain `ServerPlayer` needs a game packet listener before anything is sent to it.
+- **Fix:** subclass `ServerGamePacketListenerImpl` over `new Connection(PacketFlow.SERVERBOUND)`, implement `UntrackedPacketListener`, and record in `send` (`CompanionSelfTest`). Fabric API 0.164 registers payloads through `PayloadTypeRegistry.serverboundPlay()` and `clientboundPlay()`.
+
 <a id="t134"></a>
 ### T134 — Vanilla's data-generator reports sort their keys; a codec does not
 
