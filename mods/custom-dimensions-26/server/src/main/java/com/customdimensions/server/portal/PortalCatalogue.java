@@ -27,7 +27,7 @@ import net.minecraft.world.level.Level;
 
 /**
  * The portal side of the v2 definitions: each definition's {@code portals},
- * {@code spawn} and {@code exitPortal} read into a {@link DimensionConfig},
+ * {@code spawn}, {@code exitPortal}, {@code exits} and {@code exitShrines} read into a {@link DimensionConfig},
  * the shape core's {@link MultiverseConfig} answers portal questions from
  * (igniter candidates, presentation, scale, the default frames).
  */
@@ -80,6 +80,12 @@ public final class PortalCatalogue {
         json.add("portal", portals);
         if (definition.exitPortal() != null) {
             json.add("exitPortal", definition.exitPortal());
+        }
+        if (definition.exits() != null) {
+            json.add("exits", definition.exits());
+        }
+        if (definition.exitShrines() != null) {
+            json.add("exitShrines", definition.exitShrines());
         }
         DimensionConfig config = GSON.fromJson(json, DimensionConfig.class);
         config.setName(slug);

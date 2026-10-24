@@ -138,4 +138,44 @@ class DefinitionReaderTest {
         assertEquals(5, settings.idleUnloadMinutes());
         assertTrue(settings.defaults().isEmpty());
     }
+
+    @Test
+    void readsDeathsAndWins() {
+        Definition d = read("{'schemaVersion': 2, 'generator': {'type': 'void'},"
+                + " 'deaths': {'inventory': 'keep', 'experience': 'drop'},"
+                + " 'wins': [{'id': 'summit', 'title': 'Summit', 'trigger': {'type': 'reach', 'pos': [1, 2, 3], 'radius': 5},"
+                + " 'exit': {'dimension': 'adventure:the_canvas', 'arrival': 'spawn'}},"
+                + " {'id': 'cull', 'title': 'Cull', 'frame': 'challenge', 'trigger': {'type': 'kill', 'entity': '#minecraft:undead', 'count': 4}},"
+                + " {'id': 'endure', 'title': 'Endure', 'trigger': {'type': 'survive', 'ticks': 1200}}]}");
+        assertEquals(Deaths.Rule.KEEP, d.deaths().inventory());
+        assertEquals(Deaths.Rule.DROP, d.deaths().experience());
+        assertEquals(3, d.wins().size());
+        Win summit = d.wins().get(0);
+        assertEquals(Win.Type.REACH, summit.trigger().type());
+        assertEquals(new com.customdimensions.core.BlockPos(1, 2, 3), summit.trigger().pos());
+        assertEquals(5, summit.trigger().radius());
+        assertTrue(summit.exit().isJsonObject());
+        assertEquals("#minecraft:undead", d.wins().get(1).trigger().target());
+        assertEquals(4, d.wins().get(1).trigger().count());
+        assertEquals(1200, d.wins().get(2).trigger().ticks());
+        assertEquals(java.util.List.of(), read("{'schemaVersion': 2, 'generator': {'type': 'void'}}").wins());
+    }
+
+    @Test
+    void refusesMalformedDeathsAndWins() {
+        assertTrue(refused("{'schemaVersion': 2, 'generator': {'type': 'void'}, 'deaths': {'inventory': 'maybe'}}")
+                .getMessage().contains("deaths.inventory"));
+        refused("{'schemaVersion': 2, 'generator': {'type': 'void'}, 'deaths': {'armour': 'keep'}}");
+        String head = "{'schemaVersion': 2, 'generator': {'type': 'void'}, 'wins': [";
+        assertTrue(refused(head + "{'id': 'a', 'title': 'A', 'trigger': {'type': 'fly'}}]}").getMessage().contains("wins[0].trigger.type"));
+        refused(head + "{'id': 'a', 'title': 'A', 'trigger': {'type': 'reach'}}]}");
+        refused(head + "{'id': 'a', 'title': 'A', 'trigger': {'type': 'kill'}}]}");
+        refused(head + "{'id': 'a', 'title': 'A', 'trigger': {'type': 'survive'}}]}");
+        refused(head + "{'id': 'a', 'title': 'A', 'trigger': {'type': 'enter'}}, {'id': 'a', 'title': 'B', 'trigger': {'type': 'enter'}}]}");
+        refused(head + "{'id': 'Bad', 'title': 'A', 'trigger': {'type': 'enter'}}]}");
+        refused(head + "{'id': 'a', 'trigger': {'type': 'enter'}}]}");
+        refused(head + "{'id': 'a', 'title': 'A', 'frame': 'gold', 'trigger': {'type': 'enter'}}]}");
+        refused(head + "{'id': 'a', 'title': 'A', 'exit': 'nowhere', 'trigger': {'type': 'enter'}}]}");
+        refused(head + "{'id': 'a', 'title': 'A', 'trigger': {'type': 'obtain', 'item': 'minecraft:diamond', 'count': 0}}]}");
+    }
 }

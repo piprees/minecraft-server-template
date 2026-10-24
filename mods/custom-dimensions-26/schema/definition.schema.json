@@ -185,6 +185,32 @@
       "additionalProperties": true
     },
     "exitShrines": { "type": "object", "additionalProperties": true },
+    "deaths": {
+      "description": "What a player who dies here keeps (decisions.md RB-31). Absent, the keepInventory game rule decides.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "inventory": {
+          "enum": [
+            "keep",
+            "drop"
+          ]
+        },
+        "experience": {
+          "enum": [
+            "keep",
+            "drop"
+          ]
+        }
+      }
+    },
+    "wins": {
+      "description": "Wins (decisions.md RB-30): each grants the advancement <namespace>:wins/<slug>/<id> when its trigger fires.",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/win"
+      }
+    },
     "roll": {
       "description": "What the seed roller scores.",
       "type": "object",
@@ -212,6 +238,184 @@
     }
   },
   "$defs": {
+    "win": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "trigger",
+        "title"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9_]+$"
+        },
+        "trigger": {
+          "$ref": "#/$defs/winTrigger"
+        },
+        "title": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "icon": {
+          "type": "string",
+          "description": "An item id; default minecraft:nether_star."
+        },
+        "frame": {
+          "enum": [
+            "task",
+            "goal",
+            "challenge"
+          ]
+        },
+        "message": {
+          "type": "string",
+          "description": "A key in config/messages.json; default win.earned. Variables: {player} {dimension} {win}."
+        },
+        "exit": {
+          "description": "Where the player is sent after the win, in the ExitTarget grammar.",
+          "oneOf": [
+            {
+              "enum": [
+                "bed",
+                "worldSpawn",
+                "origin"
+              ]
+            },
+            {
+              "type": "object",
+              "required": [
+                "dimension"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "winTrigger": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type"
+      ],
+      "properties": {
+        "type": {
+          "enum": [
+            "enter",
+            "reach",
+            "kill",
+            "obtain",
+            "survive",
+            "advancement"
+          ]
+        },
+        "pos": {
+          "type": "array",
+          "items": {
+            "type": "integer"
+          },
+          "minItems": 3,
+          "maxItems": 3
+        },
+        "radius": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "entity": {
+          "type": "string"
+        },
+        "item": {
+          "type": "string"
+        },
+        "advancement": {
+          "type": "string"
+        },
+        "count": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000
+        },
+        "ticks": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "reach"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "pos"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "kill"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "entity"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "obtain"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "item"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "survive"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "ticks"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "advancement"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "advancement"
+            ]
+          }
+        }
+      ]
+    },
     "id": {
       "description": "A namespaced id, or a #tag.",
       "type": "string",

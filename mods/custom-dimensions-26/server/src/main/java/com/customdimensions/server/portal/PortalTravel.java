@@ -5,7 +5,9 @@ import com.customdimensions.core.config.PortalDefinition;
 import com.customdimensions.core.dimension.ExitTarget;
 import com.customdimensions.core.portal.ArrivalSite;
 import com.customdimensions.core.portal.PortalScaling;
+import com.customdimensions.core.messages.Messages;
 import com.customdimensions.server.CustomDimensions;
+import com.customdimensions.server.MessageFile;
 import com.customdimensions.server.level.LevelManager;
 import java.util.HashSet;
 import java.util.Optional;
@@ -40,8 +42,6 @@ import net.minecraft.world.phys.Vec3;
  * entity's portal cooldown is cleared so the next tick asks again.
  */
 public final class PortalTravel {
-    /** The one player-facing line: a literal, as in the 1.21.1 mod; config/messages.json has no portal keys. */
-    static final String NO_SITE_MESSAGE = "The portal cannot find anywhere safe to put you.";
     /** How far from the target column an existing arrival or lit portal is reused. */
     static final int REUSE_RADIUS = 5;
 
@@ -139,7 +139,8 @@ public final class PortalTravel {
                     CustomDimensions.LOG.error("No viable arrival site in {} at column ({}, {}); refusing traversal",
                             target.dimension().identifier(), x, z);
                     if (entity instanceof ServerPlayer player) {
-                        player.sendSystemMessage(Component.literal(NO_SITE_MESSAGE), true);
+                        player.sendSystemMessage(Component.literal(
+                                MessageFile.get().template(Messages.PORTAL_NO_SITE)), true);
                     }
                     return null;
                 }
@@ -282,6 +283,77 @@ public final class PortalTravel {
         return transition(home, land, entity, after);
     }
 
+    /**
+     * Where an exit target ({@code bed}, {@code worldSpawn}, {@code origin}, a
+     * dimension link) puts {@code entity}; null while it is not ready, and the
+     * next call asks again.
+     */
+    public static TeleportTransition exitTransition(MinecraftServer server, Entity entity, ExitTarget target,
+                                                    TeleportTransition.PostTeleportTransition after) {
+        switch (target.getKind()) {
+            case BED:
+                if (entity instanceof ServerPlayer player) {
+                    return player.findRespawnPositionAndUseSpawnBlock(false, after);
+                }
+                return worldSpawn(server, entity, after);
+            case WORLD_SPAWN:
+                return worldSpawn(server, entity, after);
+            case DIMENSION:
+                return dimensionLink(server, entity, target, after);
+            default:
+                break;
+        }
+        PortalRegistry.Origin origin = PortalRegistry.get().origin(entity.getUUID());
+        if (origin == null) {
+            return worldSpawn(server, entity, after);
+        }
+        Optional<ServerLevel> found = ready(server, origin.world(), entity);
+        if (found.isEmpty()) {
+            return hold(entity);
+        }
+        ServerLevel home = found.get();
+        BlockPos land = origin.pos();
+        PortalTickets.hold(home, land.getX(), land.getZ());
+        if (!PortalWorld.resident(home, land.getX(), land.getZ(), land.getX(), land.getZ())) {
+            return hold(entity);
+        }
+        return transition(home, land, entity, after);
+    }
+
+    /**
+     * Holds a ticket on an exit target's arrival column when its level is
+     * already open, so a death exit can leave on the tick it happens. Opens
+     * nothing; {@code bed} and {@code origin} depend on the player and are left alone.
+     */
+    public static void warmExit(MinecraftServer server, ExitTarget target) {
+        if (target.getKind() == ExitTarget.Kind.WORLD_SPAWN) {
+            BlockPos spawn = server.overworld().getRespawnData().pos();
+            PortalTickets.hold(server.overworld(), spawn.getX(), spawn.getZ());
+        } else if (target.getKind() == ExitTarget.Kind.DIMENSION) {
+            ResourceKey<Level> key = PortalRegistry.key(target.getDimensionId());
+            ServerLevel level = server.getLevel(key);
+            if (level != null) {
+                int[] pos = arrivalColumn(key, target);
+                PortalTickets.hold(level, pos[0], pos[2]);
+            }
+        }
+    }
+
+    /** A dimension link's arrival: the explicit position, the anchor, the definition's spawn, else 0 64 0. */
+    private static int[] arrivalColumn(ResourceKey<Level> key, ExitTarget link) {
+        int[] pos = link.getArrivalPos();
+        DimensionConfig config = PortalCatalogue.dimension(key);
+        if (pos == null && "anchor".equals(link.getArrival()) && config != null && config.toPortalDefinition() != null
+                && config.toPortalDefinition().hasAnchor()) {
+            pos = config.toPortalDefinition().getAnchorPos();
+        }
+        if (pos == null) {
+            int[] spawn = config != null ? config.getSpawn() : null;
+            pos = spawn != null ? spawn : new int[]{0, 64, 0};
+        }
+        return pos;
+    }
+
     /** The source portal's column when the arrival recorded it, else the arrival's own column scaled back. */
     static int[] returnColumn(PortalZone.ReturnTarget t, BlockPos cell, PortalZone zone, ResourceKey<Level> here) {
         if (t.sourceX() != null && t.sourceZ() != null) {
@@ -314,16 +386,7 @@ public final class PortalTravel {
             return hold(entity);
         }
         ServerLevel level = found.get();
-        int[] pos = link.getArrivalPos();
-        DimensionConfig config = PortalCatalogue.dimension(key);
-        if (pos == null && "anchor".equals(link.getArrival()) && config != null && config.toPortalDefinition() != null
-                && config.toPortalDefinition().hasAnchor()) {
-            pos = config.toPortalDefinition().getAnchorPos();
-        }
-        if (pos == null) {
-            int[] spawn = config != null ? config.getSpawn() : null;
-            pos = spawn != null ? spawn : new int[]{0, 64, 0};
-        }
+        int[] pos = arrivalColumn(key, link);
         PortalTickets.hold(level, pos[0], pos[2]);
         if (!PortalWorld.resident(level, pos[0], pos[2], pos[0], pos[2])) {
             return hold(entity);

@@ -4,6 +4,7 @@ import com.customdimensions.compiler.convert.JsonWriter;
 import com.customdimensions.core.definition.Atmosphere;
 import com.customdimensions.core.definition.BiomeEntry;
 import com.customdimensions.core.definition.Definition;
+import com.customdimensions.core.definition.Win;
 import com.customdimensions.core.definition.DefinitionReader;
 import com.customdimensions.core.definition.DefinitionSettings;
 import com.customdimensions.core.definition.DimensionTypeFields;
@@ -149,6 +150,7 @@ public final class DatapackCompiler {
 
     private void compile(String slug, Definition def) {
         CompileReport.Entry entry = report.add(slug);
+        wins(slug, def, entry);
         Generator generator = def.generator();
         if (Generator.CLONE.equals(generator.type())) {
             entry.kind(CompileReport.Kind.CLONE, "copies `" + generator.of() + "`; the runtime or W8 decides it");
@@ -174,6 +176,77 @@ public final class DatapackCompiler {
         put(stemPath, stem, entry);
 
         reportRuntimeFields(def, entry);
+    }
+
+    // ---- wins ------------------------------------------------------------------------------
+
+    /**
+     * Each win as an advancement under one {@code wins/root} tab (decisions.md
+     * RB-30). Every criterion is {@code minecraft:impossible}: the mod grants
+     * them, one per kill for a counted {@code kill} win.
+     */
+    private void wins(String slug, Definition def, CompileReport.Entry entry) {
+        if (def.wins().isEmpty()) {
+            return;
+        }
+        String rootId = namespace + ":" + Win.ROOT;
+        put(dataPath(rootId, "advancement"), winRoot(), entry);
+        for (Win win : def.wins()) {
+            JsonObject json = new JsonObject();
+            json.addProperty("parent", rootId);
+            json.add("criteria", impossible(win.criteria()));
+            JsonObject display = new JsonObject();
+            JsonObject icon = new JsonObject();
+            icon.addProperty("id", win.icon() != null ? win.icon() : Win.DEFAULT_ICON);
+            display.add("icon", icon);
+            display.addProperty("title", win.title());
+            display.addProperty("description", win.description() != null ? win.description() : win.title());
+            display.addProperty("frame", win.frame() != null ? win.frame() : "goal");
+            display.addProperty("show_toast", true);
+            display.addProperty("announce_to_chat", false);
+            json.add("display", display);
+            json.add("requirements", requirements(win.criteria()));
+            put(dataPath(namespace + ":" + win.advancementPath(slug), "advancement"), json, entry);
+        }
+        entry.note(def.wins().size() + " win(s) as advancements under `" + rootId + "`");
+    }
+
+    private static JsonObject winRoot() {
+        JsonObject root = new JsonObject();
+        root.add("criteria", impossible(List.of("root")));
+        JsonObject display = new JsonObject();
+        JsonObject icon = new JsonObject();
+        icon.addProperty("id", Win.DEFAULT_ICON);
+        display.add("icon", icon);
+        display.addProperty("title", "Wins");
+        display.addProperty("description", "What you have won across the dimensions");
+        display.addProperty("background", "minecraft:gui/advancements/backgrounds/end");
+        display.addProperty("show_toast", false);
+        display.addProperty("announce_to_chat", false);
+        root.add("display", display);
+        root.add("requirements", requirements(List.of("root")));
+        return root;
+    }
+
+    private static JsonObject impossible(List<String> names) {
+        JsonObject criteria = new JsonObject();
+        for (String name : names) {
+            JsonObject c = new JsonObject();
+            c.addProperty("trigger", "minecraft:impossible");
+            criteria.add(name, c);
+        }
+        return criteria;
+    }
+
+    /** Every criterion required: one group per criterion. */
+    private static JsonArray requirements(List<String> names) {
+        JsonArray out = new JsonArray();
+        for (String name : names) {
+            JsonArray group = new JsonArray();
+            group.add(name);
+            out.add(group);
+        }
+        return out;
     }
 
     // ---- dimension type ---------------------------------------------------------------------

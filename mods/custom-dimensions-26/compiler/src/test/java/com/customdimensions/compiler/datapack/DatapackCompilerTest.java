@@ -400,4 +400,31 @@ class DatapackCompilerTest {
         assertEquals(121, pack.get("max_format").getAsInt());
         assertEquals(125, DatapackCompiler.packMeta(VersionTable.V26_4, 82).getAsJsonObject("pack").get("max_format").getAsInt());
     }
+
+    // ---- wins ----------------------------------------------------------------------------------
+
+    @Test
+    void eachWinIsAnImpossibleAdvancementUnderOneRoot() {
+        DatapackCompiler.Output out = Fixtures.compile("the_x", OVERWORLD + ", \"wins\": ["
+                + "{\"id\": \"summit\", \"title\": \"Summit\", \"description\": \"Climb it.\", \"icon\": \"minecraft:spyglass\", \"frame\": \"task\","
+                + " \"trigger\": {\"type\": \"reach\", \"pos\": [0, 100, 0]}},"
+                + "{\"id\": \"cull\", \"title\": \"Cull\", \"trigger\": {\"type\": \"kill\", \"entity\": \"minecraft:zombie\", \"count\": 3}}]");
+        JsonObject root = file(out, "data/adventure/advancement/wins/root.json");
+        assertEquals("minecraft:impossible", root.getAsJsonObject("criteria").getAsJsonObject("root").get("trigger").getAsString());
+        JsonObject summit = file(out, "data/adventure/advancement/wins/the_x/summit.json");
+        assertEquals("adventure:wins/root", summit.get("parent").getAsString());
+        assertEquals("minecraft:spyglass", summit.getAsJsonObject("display").getAsJsonObject("icon").get("id").getAsString());
+        assertEquals("task", summit.getAsJsonObject("display").get("frame").getAsString());
+        assertEquals("Climb it.", summit.getAsJsonObject("display").get("description").getAsString());
+        JsonObject cull = file(out, "data/adventure/advancement/wins/the_x/cull.json");
+        assertEquals(3, cull.getAsJsonObject("criteria").size());
+        assertEquals(3, cull.getAsJsonArray("requirements").size());
+        assertEquals("goal", cull.getAsJsonObject("display").get("frame").getAsString());
+    }
+
+    @Test
+    void noWinsNoAdvancements() {
+        DatapackCompiler.Output out = Fixtures.compile("the_x", OVERWORLD);
+        assertTrue(out.files().keySet().stream().noneMatch(p -> p.contains("/advancement/")), out.files().keySet().toString());
+    }
 }
