@@ -2,6 +2,7 @@ package com.customdimensions.core.definition;
 
 import com.customdimensions.core.BlockPos;
 import com.customdimensions.core.config.DimensionConfigLoader;
+import com.customdimensions.core.dimension.ExitTarget;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -40,6 +41,11 @@ public final class DefinitionReader {
     public static final List<String> RULES_FIELDS =
             List.of("bedsWork", "respawnAnchorsWork", "piglinsZombify", "ultraWarm", "natural", "raids");
     public static final List<String> BORDERS_FIELDS = List.of("player", "generation");
+    public static final List<String> DEATHS_FIELDS = List.of("inventory", "experience");
+    public static final List<String> WIN_FIELDS =
+            List.of("id", "trigger", "title", "description", "icon", "frame", "message", "exit");
+    public static final List<String> TRIGGER_FIELDS =
+            List.of("type", "pos", "radius", "entity", "item", "advancement", "count", "ticks");
 
     private DefinitionReader() {
     }
@@ -90,6 +96,9 @@ public final class DefinitionReader {
                 ctx.object(root, "exitPortal"),
                 ctx.object(root, "exits"),
                 ctx.object(root, "exitShrines"),
+                ctx.closed(root, "deaths", DEATHS_FIELDS, (c, o) -> new Deaths(
+                        deathRule(c, o, "inventory"), deathRule(c, o, "experience"))),
+                wins(ctx, root.get("wins")),
                 ctx.object(root, "roll"));
     }
 
@@ -142,6 +151,114 @@ public final class DefinitionReader {
             }
         }
         throw ctx.fail("seed", "must be a whole number or \"env\", got " + value);
+    }
+
+    private static Deaths.Rule deathRule(Ctx ctx, JsonObject o, String key) {
+        String value = ctx.string(o, key);
+        if (value == null) {
+            return null;
+        }
+        Deaths.Rule rule = Deaths.Rule.parse(value);
+        if (rule == null) {
+            throw ctx.fail(key, "must be \"keep\" or \"drop\", got \"" + value + "\"");
+        }
+        return rule;
+    }
+
+    private static List<Win> wins(Ctx ctx, JsonElement value) {
+        if (value == null || value.isJsonNull()) {
+            return List.of();
+        }
+        if (!value.isJsonArray()) {
+            throw ctx.fail("wins", "must be an array");
+        }
+        List<Win> out = new ArrayList<>();
+        Set<String> ids = new LinkedHashSet<>();
+        JsonArray array = value.getAsJsonArray();
+        for (int i = 0; i < array.size(); i++) {
+            Ctx c = new Ctx(ctx.source(), ctx.prefix() + "wins[" + i + "].");
+            if (!array.get(i).isJsonObject()) {
+                throw ctx.fail("wins[" + i + "]", "must be an object");
+            }
+            JsonObject o = array.get(i).getAsJsonObject();
+            c.onlyKeys(o, c.prefix(), WIN_FIELDS);
+            String id = c.string(o, "id");
+            if (id == null || !id.matches("[a-z0-9_]+")) {
+                throw c.fail("id", "is required and must match [a-z0-9_]+, got " + id);
+            }
+            if (!ids.add(id)) {
+                throw c.fail("id", "\"" + id + "\" is used twice");
+            }
+            JsonObject t = c.object(o, "trigger");
+            if (t == null) {
+                throw c.fail("trigger", "is required");
+            }
+            Win.Trigger trigger = trigger(new Ctx(c.source(), c.prefix() + "trigger."), t);
+            String frame = c.string(o, "frame");
+            if (frame != null && !Win.FRAMES.contains(frame)) {
+                throw c.fail("frame", "must be one of " + Win.FRAMES + ", got \"" + frame + "\"");
+            }
+            JsonElement exit = o.get("exit");
+            if (exit != null && !exit.isJsonNull() && ExitTarget.parse(exit) == null) {
+                throw c.fail("exit", "is not an exit target: " + exit);
+            }
+            String title = c.string(o, "title");
+            if (title == null) {
+                throw c.fail("title", "is required");
+            }
+            out.add(new Win(id, trigger, title, c.string(o, "description"), c.string(o, "icon"), frame,
+                    c.string(o, "message"), exit == null || exit.isJsonNull() ? null : exit));
+        }
+        return out;
+    }
+
+    private static Win.Trigger trigger(Ctx c, JsonObject t) {
+        c.onlyKeys(t, c.prefix(), TRIGGER_FIELDS);
+        String typeName = c.string(t, "type");
+        Win.Type type = typeName == null ? null : Win.Type.parse(typeName);
+        if (type == null) {
+            throw c.fail("type", "must be one of enter, reach, kill, obtain, survive, advancement, got " + typeName);
+        }
+        Integer count = c.integer(t, "count");
+        Integer radius = c.integer(t, "radius");
+        Integer ticks = c.integer(t, "ticks");
+        BlockPos pos = null;
+        String target = null;
+        switch (type) {
+            case REACH -> {
+                pos = t.has("pos") ? spawnLike(c, t.get("pos"), "pos") : null;
+                if (pos == null) throw c.fail("pos", "is required for reach");
+            }
+            case KILL -> target = required(c, t, "entity", type);
+            case OBTAIN -> target = required(c, t, "item", type);
+            case ADVANCEMENT -> target = required(c, t, "advancement", type);
+            case SURVIVE -> {
+                if (ticks == null || ticks < 1) throw c.fail("ticks", "is required for survive and must be at least 1");
+            }
+            case ENTER -> { }
+        }
+        if (count != null && (count < 1 || count > 1000)) {
+            throw c.fail("count", "must be 1 to 1000, got " + count);
+        }
+        return new Win.Trigger(type, pos, radius != null ? Math.max(0, radius) : 3, target,
+                count != null ? count : 1, ticks != null ? ticks : 0);
+    }
+
+    private static String required(Ctx c, JsonObject t, String key, Win.Type type) {
+        String value = c.string(t, key);
+        if (value == null || com.customdimensions.core.Id.tryParse(value.startsWith("#") ? value.substring(1) : value) == null) {
+            throw c.fail(key, "is required for " + type.json() + " and must be an id or #tag, got " + value);
+        }
+        return value;
+    }
+
+    private static BlockPos spawnLike(Ctx ctx, JsonElement value, String key) {
+        if (!value.isJsonArray() || value.getAsJsonArray().size() != 3) {
+            throw ctx.fail(key, "must be [x, y, z], got " + value);
+        }
+        JsonArray xyz = value.getAsJsonArray();
+        return new BlockPos(ctx.intOf(xyz.get(0), key + "[0]"), ctx.intOf(xyz.get(1), key + "[1]"),
+                ctx.intOf(xyz.get(2), key + "[2]"));
     }
 
     private static BlockPos spawn(Ctx ctx, JsonElement value) {

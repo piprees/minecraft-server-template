@@ -27,6 +27,11 @@ one line per check to the report; a line starting `FAIL` is a failure. It activa
 unloads every lazy dimension in turn, so it runs for a few minutes; it sets
 `pause-when-empty-seconds` to 0 while it runs, because an empty server stops ticking.
 
+With `-PselfTest`, `runServer` reads a copy of `definitions/` with the fixture
+dimensions in `server/src/selftest/definitions/` added (a void death, a kept
+inventory, every win trigger). The fixtures are never in the release jar.
+`-PselfTestOnly=exits` runs only the compiled-pack and exit sections.
+
 `runServer` also loads Open Parties and Claims and its Forge Config API Port
 dependency from the Modrinth maven (`localRuntime`, versions in
 `gradle.properties`), so the aura claim veto is exercised; neither is a compile
@@ -141,3 +146,29 @@ dimension in a cobblestone box with planks and stone set in it, drive 300
 seeded passes each, then repeat it in claimed chunks, and check the frames,
 the per-pass and lifetime budgets, link sampling and the palette fallback.
 
+## Exits, deaths and wins
+
+`server/.../exit/` runs a definition's `exits`, `deaths` and `wins` through
+Fabric's events; the mod has no mixin for them.
+
+| Piece | What it does |
+| --- | --- |
+| `ExitConditions` | `exits`: `void` (8 blocks below the floor, from the start of the level's tick), `fallFrom` (`minHeight`, default 100), `enderPearl` (the throw is cancelled and the pearl kept), `death`, `death:<damage type>` and `death:mob:<entity>`, most specific first. `teleport` leaves at once and cancels a death, `respawnAt` moves the respawned player once the target is ready, `kill` keeps vanilla's death. A 100-tick cooldown per player stops loops; sky drops arrive with slow falling |
+| `DeathRules` | `deaths.inventory` and `deaths.experience`: kept ones are taken in a late allow-death phase and handed back by the copy-from event; dropped ones fall even with `keepInventory` on. A death a totem will stop, or that another listener cancels, takes nothing |
+| `Wins` | Grants `<namespace>:wins/<slug>/<id>` and the root tab, broadcasts the `message` key from `config/messages.json`, sends the player on when `exit` is set. `kill` counts through the advancement's criteria; the other triggers are checked every 10 ticks for players in the level |
+| `ExitShrines` (`portal/`) | `exitShrines`: a beacon under a 2x3 frame ring, found on chunk load, registered from the level's tick as a permanent exit zone with the shrine's target, its ring laid in the dimension's frame block; saved with the portal links |
+| `ExitHooks` | Registers the events |
+
+Exit targets resolve through `PortalTravel.exitTransition`, the same code
+an arrival's exit mode uses. `MessageFile` reads `config/messages.json` under
+the server directory once; a missing key or file falls back to built-in
+defaults (`portal.no_site`, `win.earned`).
+
+The self-test's exit section uses Fabric's fake player in the fixtures: a void
+death with `keepInventory` on drops everything and respawns in
+`selftest_wins`; a death in `selftest_keep` keeps the inventory and level; the
+void and `death:lava` rules send the player to world spawn; `the_pillared_void`'s
+ender-pearl rule reaches `the_tiled_expanse`; a hand-built shrine registers and
+leads to the overworld; each of the six win triggers fires once and never
+twice. The persistence pass records a shrine and a granted win and finds both
+after the restart.

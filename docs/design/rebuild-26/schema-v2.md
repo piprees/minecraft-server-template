@@ -36,6 +36,8 @@ writes the v2 set. At the switch the v2 set moves to
   "structures": { "density": "normal", … },
   "portals": [ { … } ],                // always an array
   "exitPortal": { … }, "exits": { … }, "exitShrines": { … },
+  "deaths": { "inventory": "keep", "experience": "drop" },
+  "wins": [ { "id": "summit", "trigger": { "type": "reach", "pos": [0, 120, 0], "radius": 3 }, "title": "Summit", … } ],
   "roll": { … }
 }
 ```
@@ -62,12 +64,40 @@ writes the v2 set. At the switch the v2 set moves to
 | `structures` | `structures` | Carried whole for W4: `wants`, `shuns`, `spacing`, `mode`, `list`, `force`, `clearSpawnRadius`, `terrainAdaptation`, `noise`, `radial`, `rarity`, `exclude`, `include`. `shuns` values are always `{}`. |
 | `portal` (object or array) | `portals` (array) | Each entry unchanged except `immersive` → `preview` (companion tuning; the vanilla slab is gone). |
 | `exitPortal`, `exits`, `exitShrines` | same | Unchanged. |
+| *(none)* | `deaths` | `inventory` and `experience`, each `keep` or `drop`; absent, the `keepInventory` game rule decides (RB-31). |
+| *(none)* | `wins` | Advancements the mod grants (RB-30); see below. |
 | `seedRoll` | `roll` | `mood`, `spawnFilter`, `water`, `terrain`, `heightRange`, `wants`, `shuns`, `allowHazardousSpawn`, `skip`. `family` is dropped: the generator decides it. |
 
 **Dropped** (parsed and inert in v1, or legacy): `dimensionId`, top-level
 `hostileSpawning`, top-level `scale`, `structures.endgame`, `shuns` distances,
 `seedRoll.spawnRadius`, `seedRoll.locateCap`, `seedRoll.allowEndgameNearSpawn`,
 `inputHash`. The converter reports each one it drops.
+
+## Deaths and wins
+
+`deaths` decides what a player who dies in the dimension keeps (RB-31).
+Kept items and levels return on respawn; dropped ones fall where vanilla
+drops them, whatever the game rule says.
+
+Each `wins` entry is one advancement, `<namespace>:wins/<slug>/<id>`, in a
+single `<namespace>:wins/root` tab (RB-30). Its criteria are
+`minecraft:impossible`; the mod grants them, so a vanilla client shows the
+toast and the tab, and the advancement is the once-per-player record.
+
+| Field | Meaning |
+| --- | --- |
+| `id` | `[a-z0-9_]+`, unique in the definition. Required. |
+| `trigger.type` | `enter` the dimension; `reach` within `radius` (default 3) of `pos`; `kill` `entity` (id or `#tag`) `count` times; `obtain` `count` of `item` (id or `#tag`) at once; `survive` `ticks` in the dimension without dying or leaving; earn the vanilla `advancement` while there. |
+| `title`, `description` | The advancement's text. `title` is required; `description` defaults to the title. |
+| `icon` | An item id; default `minecraft:nether_star`. |
+| `frame` | `task`, `goal` (default) or `challenge`. |
+| `message` | A key in `config/messages.json`, broadcast when the win fires with `{player}`, `{dimension}` (the slug) and `{win}` (the title); default `win.earned`. |
+| `exit` | Where the player goes next, in the exit-target grammar (`bed`, `worldSpawn`, `origin`, `{"dimension": …, "arrival": …}`). |
+
+A `kill` win with a `count` above 1 gets one criterion per kill, so the
+advancement's own progress counts the kills. The converter has no v1 source
+for either field, so no shipped definition carries them; the self-test's
+fixtures in `server/src/selftest/definitions/` do.
 
 ## Generator types
 

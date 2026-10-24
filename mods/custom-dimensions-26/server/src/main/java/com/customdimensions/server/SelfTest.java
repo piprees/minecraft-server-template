@@ -6,6 +6,7 @@ import com.customdimensions.compiler.datapack.VersionTable;
 import com.customdimensions.compiler.zone.ZoneDensity;
 import com.customdimensions.core.zone.ZoneMask;
 import com.customdimensions.core.zone.ZoneShape;
+import com.customdimensions.server.exit.ExitSelfTest;
 import com.customdimensions.server.level.LevelSelfTest;
 import com.customdimensions.server.portal.PortalSelfTest;
 import com.google.gson.JsonElement;
@@ -28,6 +29,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.BiConsumer;
 import java.util.stream.Stream;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
+import net.minecraft.advancements.Advancement;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderGetter;
 import net.minecraft.core.HolderLookup;
@@ -52,8 +54,8 @@ import net.minecraft.world.timeline.Timeline;
  * Start-up checks against the running game, enabled by
  * {@code -Dcustomdimensions.selftest=<report file>}: the server writes the
  * report and stops. CI boots the mod this way; a line starting {@code FAIL}
- * fails the build. The runtime-level checks ({@link LevelSelfTest}) run across
- * ticks, so the report is written when they finish. The compiled-pack checks read the definitions from
+ * fails the build. The runtime-level checks ({@link LevelSelfTest}), then the
+ * portal and exit checks, run across ticks, so the report is written when they finish. The compiled-pack checks read the definitions from
  * {@code -Dcustomdimensions.definitions} and vanilla's files from
  * {@code -Dcustomdimensions.vanilla}.
  */
@@ -61,6 +63,8 @@ final class SelfTest {
     private static final String PROPERTY = "customdimensions.selftest";
     private static final String DEFINITIONS = "customdimensions.definitions";
     private static final String VANILLA = "customdimensions.vanilla";
+    /** {@code exits} runs the compiled-pack and exit sections only, for iterating on them. */
+    private static final String ONLY = "customdimensions.selftest.only";
 
     private SelfTest() {}
 
@@ -74,9 +78,10 @@ final class SelfTest {
         List<String> lines = new ArrayList<>();
         lines.add(check("zone mask parses and samples like core", () -> zoneMask(server)));
         lines.addAll(compiledPack(server));
+        boolean exitsOnly = "exits".equals(System.getProperty(ONLY, ""));
         CompletableFuture<List<String>> levels;
         try {
-            levels = LevelSelfTest.run(server);
+            levels = exitsOnly ? CompletableFuture.completedFuture(List.of()) : LevelSelfTest.run(server);
         } catch (Throwable t) {
             levels = CompletableFuture.completedFuture(List.of("FAIL runtime levels: " + t));
         }
@@ -85,12 +90,21 @@ final class SelfTest {
             return null;
         }).thenCompose(v -> {
             try {
-                return PortalSelfTest.run(server);
+                return exitsOnly ? CompletableFuture.completedFuture(List.<String>of()) : PortalSelfTest.run(server);
             } catch (Throwable t) {
                 return CompletableFuture.completedFuture(List.of("FAIL portals: " + t));
             }
-        }).whenComplete((more, error) -> {
+        }).handle((more, error) -> {
             lines.addAll(error == null ? more : List.of("FAIL portals: " + error));
+            return null;
+        }).thenCompose(v -> {
+            try {
+                return ExitSelfTest.run(server);
+            } catch (Throwable t) {
+                return CompletableFuture.completedFuture(List.of("FAIL exits: " + t));
+            }
+        }).whenComplete((more, error) -> {
+            lines.addAll(error == null ? more : List.of("FAIL exits: " + error));
             try {
                 Files.write(report, lines);
             } catch (IOException e) {
@@ -137,7 +151,7 @@ final class SelfTest {
      * and settings). One line per kind.
      */
     private static List<String> compiledPack(MinecraftServer server) {
-        List<String> kinds = List.of("timelines", "dimension types", "noise settings", "level stems");
+        List<String> kinds = List.of("timelines", "dimension types", "noise settings", "level stems", "advancements");
         Path pack;
         try {
             Path definitions = Path.of(requiredProperty(DEFINITIONS));
@@ -169,6 +183,13 @@ final class SelfTest {
         List<PackFile> stems = new ArrayList<>(files(pack, "dimension"));
         stems.addAll(files(pack, DatapackCompiler.LAZY_FOLDER));
         lines.add(decodeAll("level stems", stems, LevelStem.CODEC, withPack, (id, v) -> {}));
+        List<PackFile> advancements = files(pack, "advancement");
+        lines.add(advancements.isEmpty() ? "PASS compiled advancements decode: the definitions have no wins"
+                : decodeAll("advancements", advancements, Advancement.CODEC, withPack, (id, v) -> {
+                    if (server.getAdvancements().get(id) == null) {
+                        throw new IllegalStateException(id + " decodes but the server did not load it");
+                    }
+                }));
         lines.add(check("compiled-pack decoding refuses an unknown reference", () -> {
             com.google.gson.JsonObject stem = new com.google.gson.JsonObject();
             stem.addProperty("type", "customdimensions:not_in_the_pack");

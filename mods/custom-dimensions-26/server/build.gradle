@@ -57,17 +57,29 @@ processResources {
 	}
 }
 
+// -PselfTest adds the fixture dimensions in src/selftest/definitions to a copy of
+// definitions/; runServer reads that copy. The release jar never carries them.
+def selfTestRun = project.hasProperty('selfTest') && !project.hasProperty('definitions')
+def selfTestDefinitions = layout.buildDirectory.dir('selftest-definitions')
+tasks.register('selfTestDefinitions', Sync) {
+	from file('../definitions')
+	from file('src/selftest/definitions')
+	into selfTestDefinitions
+}
+
 loom {
 	runs {
 		server {
 			programArg '--nogui'
 			// -PselfTest=<file> runs the start-up self-test, writes its report and stops the server.
 			vmArg "-Dcustomdimensions.selftest=${project.findProperty('selfTest') ?: ''}"
+			// -PselfTestOnly=exits: the compiled-pack and exit sections only.
+			vmArg "-Dcustomdimensions.selftest.only=${project.findProperty('selfTestOnly') ?: ''}"
 			// -PselfTestPersist=write|verify: the two-boot persistence check, run with the self-test.
 			vmArg "-Dcustomdimensions.selftest.persist=${project.findProperty('selfTestPersist') ?: ''}"
 			// The self-test compiles definitions/ against vanilla's files and decodes the result.
 			// -Pdefinitions=<dir> runs against another definitions folder.
-			vmArg "-Dcustomdimensions.definitions=${project.findProperty('definitions') ?: file('../definitions').canonicalPath}"
+			vmArg "-Dcustomdimensions.definitions=${project.findProperty('definitions') ?: (selfTestRun ? selfTestDefinitions.get().asFile.absolutePath : file('../definitions').canonicalPath)}"
 			vmArg "-Dcustomdimensions.vanilla=${project(':compiler').layout.buildDirectory.dir("vanilla/${project.minecraft_version}").get().asFile.absolutePath}"
 		}
 	}
@@ -75,6 +87,9 @@ loom {
 
 tasks.matching { it.name == 'runServer' }.configureEach {
 	dependsOn ':compiler:vanillaData'
+	if (selfTestRun) {
+		dependsOn 'selfTestDefinitions'
+	}
 }
 
 tasks.named('test') {

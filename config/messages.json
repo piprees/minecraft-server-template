@@ -1,5 +1,5 @@
 {
-  "_comment": "Centralised message templates. Variables use {variable} syntax. Used by discord-notify.sh (--key), deploy.yml, and deploy.sh.",
+  "_comment": "Centralised message templates. Variables use {variable} syntax. Used by discord-notify.sh (--key), deploy.yml, deploy.sh and the custom-dimensions mod (portal.*, win.*).",
 
   "deploy.starting": "**Deploy starting** ({deploy_mode}): `{commit_sha}` {commit_msg}",
   "deploy.successful": "**Deploy successful** ({deploy_mode}): `{commit_sha}` {commit_msg}",
@@ -18,6 +18,9 @@
   "restart.kick": "§eServer's restarting for an update. Back in a few minutes.",
   "restart.kick_forced": "§cKicked for a server update. Won't be long.",
   "restart.welcome_back": "§a§l[Server] §rUpdate complete, welcome back!",
+
+  "portal.no_site": "The portal cannot find anywhere safe to put you.",
+  "win.earned": "§6{player} §rearned §e{win}§r in {dimension}.",
 
   "updates.available": "{admin_ping}**Mod updates available** ({count}):\n{mod_list}\nFull status on the mods page.",
 

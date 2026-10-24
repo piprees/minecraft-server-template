@@ -10,8 +10,8 @@ import java.util.List;
  * layers later work packages extend ({@code terrain}, {@code materials},
  * {@code zones}, {@code structures}, {@code difficulty}, {@code portals},
  * the exits and {@code roll}) stay JSON here until those packages type them.
- * Absent fields are null; {@code biomes}, {@code zones} and {@code portals}
- * are empty lists when absent.
+ * Absent fields are null; {@code biomes}, {@code zones}, {@code portals} and
+ * {@code wins} are empty lists when absent.
  */
 public record Definition(
         int schemaVersion,
@@ -34,6 +34,8 @@ public record Definition(
         JsonObject exitPortal,
         JsonObject exits,
         JsonObject exitShrines,
+        Deaths deaths,
+        List<Win> wins,
         JsonObject roll) {
 
     public static final int SCHEMA_VERSION = 2;
@@ -45,11 +47,12 @@ public record Definition(
     public static final List<String> FIELD_ORDER = List.of(
             "schemaVersion", "description", "seed", "spawn", "generator", "terrain", "biomes",
             "liquids", "materials", "zones", "dimensionType", "atmosphere", "rules", "borders",
-            "difficulty", "structures", "portals", "exitPortal", "exits", "exitShrines", "roll");
+            "difficulty", "structures", "portals", "exitPortal", "exits", "exitShrines", "deaths", "wins", "roll");
 
     public Definition {
         biomes = biomes == null ? List.of() : List.copyOf(biomes);
         zones = zones == null ? List.of() : List.copyOf(zones);
         portals = portals == null ? List.of() : List.copyOf(portals);
+        wins = wins == null ? List.of() : List.copyOf(wins);
     }
 }

@@ -71,6 +71,30 @@ class ShippedDefinitionsSchemaTest {
     }
 
     @Test
+    void theSelfTestFixturesValidateAndLoad() throws IOException {
+        List<String> failures = new ArrayList<>();
+        try (Stream<Path> files = Files.list(Path.of("../server/src/selftest/definitions"))) {
+            for (Path file : files.sorted().toList()) {
+                String text = Files.readString(file);
+                schema.validate(text, InputFormat.JSON).forEach(e -> failures.add(file.getFileName() + ": " + e));
+                DefinitionReader.read(text, file.toString());
+            }
+        }
+        assertEquals(List.of(), failures);
+    }
+
+    @Test
+    void theSchemaChecksDeathsAndWins() {
+        assertTrue(valid("{'schemaVersion': 2, 'generator': {'type': 'void'}, 'deaths': {'inventory': 'keep'},"
+                + " 'wins': [{'id': 'a', 'title': 'A', 'trigger': {'type': 'kill', 'entity': '#minecraft:undead', 'count': 3}}]}"));
+        assertFalse(valid("{'schemaVersion': 2, 'generator': {'type': 'void'}, 'deaths': {'inventory': 'maybe'}}"));
+        assertFalse(valid("{'schemaVersion': 2, 'generator': {'type': 'void'},"
+                + " 'wins': [{'id': 'a', 'title': 'A', 'trigger': {'type': 'reach'}}]}"));
+        assertFalse(valid("{'schemaVersion': 2, 'generator': {'type': 'void'},"
+                + " 'wins': [{'id': 'A b', 'title': 'A', 'trigger': {'type': 'enter'}}]}"));
+    }
+
+    @Test
     void theSchemaAcceptsAMinimalDefinition() {
         assertTrue(valid("{'schemaVersion': 2, 'generator': {'type': 'void'}}"));
         assertTrue(valid("{'schemaVersion': 2, 'generator': {'type': 'noise', 'preset': 'end', 'endIsland': false}}"));

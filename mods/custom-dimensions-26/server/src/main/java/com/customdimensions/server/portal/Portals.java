@@ -10,6 +10,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerChunkEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Registry;
@@ -76,8 +77,10 @@ public final class Portals {
             PortalRegistry.get().clear();
             PortalTickets.clear();
             ExitPortals.clear();
+            ExitShrines.clear();
         });
         ServerTickEvents.END_LEVEL_TICK.register(Portals::tick);
+        ServerChunkEvents.CHUNK_LOAD.register((level, chunk, generated) -> ExitShrines.onChunkLoad(level, chunk));
     }
 
     private static void tick(ServerLevel level) {
@@ -102,6 +105,7 @@ public final class Portals {
             }
         }
         clearPending(level);
+        ExitShrines.tick(level);
         ExitPortals.tick(level);
         PortalAuras.tick(level);
     }
