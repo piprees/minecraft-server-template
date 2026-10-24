@@ -13,8 +13,8 @@ id used as an object key. Flagged ids are carried unchanged; W8 replaces them.
 - Files: 82 definitions and settings.json
 - Flagged ids: 790 occurrences of 313 distinct ids in 24 namespaces
 - Dropped fields: 9
-- Rewrites: 0
-- W8 decisions: 27
+- Rewrites: 4
+- W8 decisions: 23
 
 ### Flagged ids by namespace
 
@@ -54,14 +54,15 @@ id used as an object key. Flagged ids are carried unchanged; W8 replaces them.
 
 ### Rewrites
 
-None.
+| Rewrite | Count |
+| --- | ---: |
+| `paradise_lost:paradise_lost` → `adventure:the_aviary` | 4 |
 
 ### W8 decisions
 
 | Decision | Count |
 | --- | ---: |
 | base world paradise_lost converts to the_aviary | 1 |
-| clone of a dimension from a flagged mod | 4 |
 | terrain.base: null where v1 named a preset | 22 |
 
 ## overworld.json
@@ -107,9 +108,9 @@ Dropped:
 
 - `seedRoll.family: "overworld"`
 
-W8 decisions:
+Rewrites:
 
-- generator clones paradise_lost:paradise_lost; the paradise_lost namespace is rebuilt by us
+- `generator.of`: `paradise_lost:paradise_lost` → `adventure:the_aviary`
 
 ## the_amplified_reaches.json
 
@@ -1120,9 +1121,9 @@ Dropped:
 
 - `seedRoll.family: "overworld"`
 
-W8 decisions:
+Rewrites:
 
-- generator clones paradise_lost:paradise_lost; the paradise_lost namespace is rebuilt by us
+- `generator.of`: `paradise_lost:paradise_lost` → `adventure:the_aviary`
 
 ## the_souldrift.json
 
@@ -1241,9 +1242,9 @@ Dropped:
 
 - `seedRoll.family: "overworld"`
 
-W8 decisions:
+Rewrites:
 
-- generator clones paradise_lost:paradise_lost; the paradise_lost namespace is rebuilt by us
+- `generator.of`: `paradise_lost:paradise_lost` → `adventure:the_aviary`
 
 ## the_teal_corruption.json
 
@@ -1368,9 +1369,9 @@ Dropped:
 
 - `seedRoll.family: "overworld"`
 
-W8 decisions:
+Rewrites:
 
-- generator clones paradise_lost:paradise_lost; the paradise_lost namespace is rebuilt by us
+- `generator.of`: `paradise_lost:paradise_lost` → `adventure:the_aviary`
 
 ## the_wailing_narrows.json
 

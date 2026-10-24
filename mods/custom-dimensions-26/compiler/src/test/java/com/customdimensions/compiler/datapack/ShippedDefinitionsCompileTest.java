@@ -20,7 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/** Every shipped definition compiles, or is a clone and is reported as one. */
+/** Every shipped definition compiles; each clone compiles from the dimension it names. */
 class ShippedDefinitionsCompileTest {
 
     private static List<Path> definitionFiles() throws IOException {
@@ -31,7 +31,7 @@ class ShippedDefinitionsCompileTest {
     }
 
     @Test
-    void everyDefinitionCompilesOrIsAReportedClone() throws IOException {
+    void everyDefinitionCompilesAndEveryCloneResolves() throws IOException {
         DatapackCompiler.Output out = DatapackCompiler.compile(Fixtures.definitions(), Fixtures.vanilla(), VersionTable.V26_3);
         List<Path> files = definitionFiles();
         assertEquals(82, files.size());
@@ -45,9 +45,8 @@ class ShippedDefinitionsCompileTest {
             assertTrue(out.reportText().contains("### " + slug + "\n"), slug + " missing from the report");
             if (Generator.CLONE.equals(def.generator().type())) {
                 clones++;
-                assertEquals(CompileReport.Kind.CLONE, entry.kind(), slug);
-                assertTrue(entry.emitted().isEmpty(), slug);
-                continue;
+                assertEquals("adventure:the_aviary", entry.cloneOf(), slug);
+                assertTrue(out.reportText().contains("clone of `adventure:the_aviary`"), slug);
             }
             String stem = entry.kind() == CompileReport.Kind.BASE_WORLD ? null
                     : "data/customdimensions/lazy_dimension/" + slug + ".json";

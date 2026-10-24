@@ -5,7 +5,7 @@
   "spawn": [64, 131, -192],
   "generator": {
     "type": "clone",
-    "of": "paradise_lost:paradise_lost"
+    "of": "adventure:the_aviary"
   },
   "biomes": [
     {

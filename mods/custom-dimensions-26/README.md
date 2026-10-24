@@ -63,13 +63,50 @@ scripts/vanilla-boot-check.sh                 # boot that pack on vanilla, no mo
 | Output | Where |
 | --- | --- |
 | Dimension types | `data/adventure/dimension_type/<slug>.json` |
-| Noise settings (liquids or default block changed) | `data/adventure/worldgen/noise_settings/<slug>.json` |
+| Noise settings (liquids, default block or `endIsland: false`) | `data/adventure/worldgen/noise_settings/<slug>.json` |
+| The End's terrain without its central island | `data/adventure/worldgen/density_function/end_without_central_island/{islands,sloped_cheese}.json` |
 | Fixed time of day | `data/adventure/timeline/fixed_time/<timeline>_<tick>.json` |
 | Base worlds, loaded at start | `data/minecraft/dimension/{overworld,the_nether,the_end}.json`, `data/adventure/dimension/the_aviary.json` |
 | Every other dimension, opened lazily by the runtime | `data/customdimensions/lazy_dimension/<slug>.json` |
 
 Per-release format differences live in `VersionTable`; the self-test decodes
 every emitted file with the game's own codecs.
+
+### Generators
+
+Every generator starts from the vanilla file of record and changes only what
+the definition sets.
+
+| `generator` | Compiles to | Tuning |
+| --- | --- | --- |
+| `noise`, preset `overworld`, `large_biomes`, `amplified`, `caves`, `floating_islands`, `nether`, `end` | `minecraft:noise` with the preset's noise settings; the overworld family and the Nether filter vanilla's multi-noise list to the definition's `biomes`; the End keeps `minecraft:the_end` | `liquids.seaLevel` → `sea_level`, `liquids.defaultFluid` → `default_fluid`, `materials.defaultBlock` → `default_block` on 26.3 and the last entry of the material rule on 26.4; `endIsland: false` (End only) swaps vanilla's `end/islands` for a copy that keeps only `end_outer_islands` |
+| `checkerboard` | overworld noise, `minecraft:checkerboard` source | `cellScale` → `scale`: cells of 2^(cellScale+4) blocks |
+| `single_biome` | overworld noise, `minecraft:fixed` source | `biome` |
+| `flat` | `minecraft:flat`, no features or lakes | `layers`, `biome` |
+| `void` | `minecraft:flat` with no layers | its first vanilla biome, else `minecraft:the_void` |
+| `clone` | the generator of the definition `of` names, under the clone's own dimension type, seed and atmosphere | its own `liquids` and `materials` over the source's; its own `biomes` are reported unused |
+
+A clone's `of` resolves to a slug: `paradise_lost:paradise_lost` to
+`the_aviary`, a base world's level stem (`minecraft:the_nether`) to its slug,
+and `<namespace>:<slug>` to that definition. A clone of a clone resolves
+through the chain; a cycle stops the compile with the chain in the message.
+A clone whose `of` no definition provides is reported and not compiled.
+
+The compile report flags every dimension type whose height leaves the range
+of the Bedrock dimension Geyser shows it as (`BedrockHeights`): the type's
+`skybox` picks it (`none` the Nether, y 0–128, bottom only; `end` the End,
+y 0–256; otherwise the Overworld, y -64–320). It is a warning; the pack is
+written either way.
+
+The self-test's generator section (`GeneratorSelfTest`, after the runtime-level
+checks) opens one shipped definition per variant, force-loads a fixed area,
+and reads its heightmaps, blocks and biomes: overworld heights and water,
+large biomes against the overworld, amplified heights, the caves ceiling,
+floating-island undersides, a clone against The Aviary, the Nether's roof and
+lava sea, the End's island and void ring, the flat layer stack, checkerboard
+cells, an empty void and the definition whose `liquids.seaLevel` departs
+furthest from its preset's. No shipped definition uses `single_biome`, so its
+line reads `SKIP` and `GeneratorVariantsTest` covers it.
 
 ## Runtime levels
 

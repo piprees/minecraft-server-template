@@ -1,7 +1,6 @@
 package com.customdimensions.compiler.datapack;
 
 import com.customdimensions.core.definition.Definition;
-import com.customdimensions.core.definition.DefinitionReader;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -29,7 +28,8 @@ class GoldenFileTest {
 
     private static final Map<VersionTable.Version, List<String>> SLUGS = Map.of(
             VersionTable.V26_3, List.of("overworld", "the_nether", "the_end", "the_aviary", "the_wuthering_wisteria",
-                    "the_basalt_spires", "the_red_monument", "the_tiled_expanse", "the_canvas"),
+                    "the_basalt_spires", "the_red_monument", "the_tiled_expanse", "the_canvas", "the_abyssal_shrine",
+                    "the_violet_spire", "the_endless_expanse", "the_amplified_reaches", "the_underdark", "the_blighted_maw"),
             VersionTable.V26_4, List.of("overworld", "the_basalt_spires"));
     private static final Map<VersionTable.Version, DatapackCompiler.Output> OUTPUTS = new HashMap<>();
 
@@ -50,7 +50,7 @@ class GoldenFileTest {
         DatapackCompiler.Output output = output(version);
         Set<String> emitted = new TreeSet<>(output.report().entry(slug).emitted());
         Path dir = Path.of(System.getProperty("customdimensions.golden")).resolve(versionId).resolve(slug);
-        Definition definition = DefinitionReader.read(Fixtures.definitions().resolve(slug + ".json"));
+        Definition definition = output.compiled().get(slug);
         Map<String, String> forms = new HashMap<>();
         for (String path : emitted) {
             forms.put(path, GoldenForm.of(path, output.files().get(path), definition, Fixtures.vanilla()));

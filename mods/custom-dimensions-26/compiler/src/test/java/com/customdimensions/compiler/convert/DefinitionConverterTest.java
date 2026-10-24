@@ -125,14 +125,23 @@ class DefinitionConverterTest {
 
     @Test
     void aCloneNamesWhatItCopiesAndAFlaggedOneIsAW8Decision() {
-        DefinitionConverter.Converted c = convert("the_x", "{'type': 'paradise_lost:paradise_lost'}");
+        DefinitionConverter.Converted c = convert("the_x", "{'type': 'terralith:void'}");
         JsonObject gen = c.json().getAsJsonObject("generator");
         assertEquals("clone", gen.get("type").getAsString());
-        assertEquals("paradise_lost:paradise_lost", gen.get("of").getAsString());
+        assertEquals("terralith:void", gen.get("of").getAsString());
         assertEquals(List.of("clone of a dimension from a flagged mod"), categories(c.report()));
 
         assertTrue(convert("the_x", "{'type': 'create:somewhere'}").report().decisions().isEmpty());
         assertThrows(ConversionException.class, () -> convert("the_x", "{'type': 'not_a_type'}"));
+    }
+
+    @Test
+    void aParadiseLostCloneClonesTheAviary() {
+        DefinitionConverter.Converted c = convert("the_x", "{'type': 'paradise_lost:paradise_lost'}");
+        assertEquals("adventure:the_aviary", c.json().getAsJsonObject("generator").get("of").getAsString());
+        assertTrue(c.report().decisions().isEmpty());
+        assertEquals(List.of(new FileReport.Rewrite("generator.of", "paradise_lost:paradise_lost", "adventure:the_aviary")),
+                c.report().rewrites());
     }
 
     @Test

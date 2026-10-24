@@ -7,6 +7,7 @@ import com.customdimensions.compiler.zone.ZoneDensity;
 import com.customdimensions.core.zone.ZoneMask;
 import com.customdimensions.core.zone.ZoneShape;
 import com.customdimensions.server.exit.ExitSelfTest;
+import com.customdimensions.server.level.GeneratorSelfTest;
 import com.customdimensions.server.level.LevelSelfTest;
 import com.customdimensions.server.portal.PortalSelfTest;
 import com.google.gson.JsonElement;
@@ -55,7 +56,8 @@ import net.minecraft.world.timeline.Timeline;
  * {@code -Dcustomdimensions.selftest=<report file>}: the server writes the
  * report and stops. CI boots the mod this way; a line starting {@code FAIL}
  * fails the build. The runtime-level checks ({@link LevelSelfTest}), then the
- * portal and exit checks, run across ticks, so the report is written when they finish. The compiled-pack checks read the definitions from
+ * generator checks ({@link GeneratorSelfTest}), the portal and exit checks
+ * run across ticks, so the report is written when they finish. The compiled-pack checks read the definitions from
  * {@code -Dcustomdimensions.definitions} and vanilla's files from
  * {@code -Dcustomdimensions.vanilla}.
  */
@@ -87,6 +89,15 @@ final class SelfTest {
         }
         levels.handle((more, error) -> {
             lines.addAll(error == null ? more : List.of("FAIL runtime levels: " + error));
+            return null;
+        }).thenCompose(v -> {
+            try {
+                return exitsOnly ? CompletableFuture.completedFuture(List.<String>of()) : GeneratorSelfTest.run(server);
+            } catch (Throwable t) {
+                return CompletableFuture.completedFuture(List.of("FAIL generators: " + t));
+            }
+        }).handle((more, error) -> {
+            lines.addAll(error == null ? more : List.of("FAIL generators: " + error));
             return null;
         }).thenCompose(v -> {
             try {

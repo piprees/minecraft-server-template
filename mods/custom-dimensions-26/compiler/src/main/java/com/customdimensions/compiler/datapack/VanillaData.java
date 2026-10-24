@@ -51,6 +51,11 @@ public final class VanillaData {
         return object("data/minecraft/worldgen/noise_settings/" + name + ".json");
     }
 
+    /** {@code data/minecraft/worldgen/density_function/<path>.json}. */
+    public JsonObject densityFunction(String path) {
+        return object("data/minecraft/worldgen/density_function/" + path + ".json");
+    }
+
     /** The entries of {@code reports/biome_parameters/minecraft/<list>.json}, in vanilla's order. */
     public JsonArray biomeParameters(String list) {
         return object("reports/biome_parameters/minecraft/" + list + ".json").getAsJsonArray("biomes");

@@ -1,0 +1,6 @@
+{
+  "base": "minecraft:floating_islands",
+  "changed": {
+    "sea_level": 90
+  }
+}

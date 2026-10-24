@@ -30,6 +30,8 @@ public final class DefinitionConverter {
     public static final String PARADISE_LOST_SLUG = "paradise_lost";
     public static final String PARADISE_LOST_ID = "adventure:paradise_lost";
     public static final String AVIARY_ID = "adventure:the_aviary";
+    /** Paradise Lost's own dimension; a v1 clone of it clones The Aviary, which replaces it. */
+    public static final String PARADISE_LOST_DIMENSION = "paradise_lost:paradise_lost";
 
     /** A whole string that is a namespaced id, optionally a {@code #tag}. */
     public static final Pattern ID = Pattern.compile("#?([a-z0-9_.-]+):([a-z0-9_./-]+)");
@@ -250,8 +252,13 @@ public final class DefinitionConverter {
                         throw new ConversionException(source + ": unknown type " + type);
                     }
                     gen.addProperty("type", Generator.CLONE);
-                    gen.addProperty("of", type);
-                    if (register.isFlagged(id.group(1))) {
+                    if (PARADISE_LOST_DIMENSION.equals(type)) {
+                        gen.addProperty("of", AVIARY_ID);
+                        report.rewrite("generator.of", type, AVIARY_ID);
+                    } else {
+                        gen.addProperty("of", type);
+                    }
+                    if (register.isFlagged(id.group(1)) && !PARADISE_LOST_DIMENSION.equals(type)) {
                         report.decide("clone of a dimension from a flagged mod",
                                 "generator clones " + type + "; the " + id.group(1) + " namespace is "
                                         + register.decisions(id.group(1)));
