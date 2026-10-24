@@ -1,0 +1,583 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:custom-dimensions:definition:2",
+  "title": "Dimension definition, schema v2",
+  "description": "One dimension of the custom-dimensions mod for Minecraft 26.3. Field map: docs/design/rebuild-26/schema-v2.md. A file without \"schemaVersion\": 2 is a 1.21.1 definition; convert it with ./gradlew :compiler:convertDefinitions.",
+  "type": "object",
+  "required": ["schemaVersion", "generator"],
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": {
+      "description": "Always 2. The 26.3 mod refuses a file without it.",
+      "const": 2
+    },
+    "description": {
+      "description": "What the dimension is, for players and the viewer.",
+      "type": "string"
+    },
+    "seed": {
+      "description": "The world seed, or \"env\" for the server's SEED environment variable.",
+      "oneOf": [
+        { "type": "integer" },
+        { "const": "env" }
+      ]
+    },
+    "spawn": {
+      "description": "The spawn point, [x, y, z].",
+      "type": "array",
+      "items": { "type": "integer" },
+      "minItems": 3,
+      "maxItems": 3
+    },
+    "generator": { "$ref": "#/$defs/generator" },
+    "terrain": {
+      "description": "The terrain layer. base null keeps the preset's own terrain.",
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "base": {
+          "description": "The base terrain; null is the generator preset's own.",
+          "type": ["string", "object", "null"]
+        }
+      }
+    },
+    "biomes": {
+      "description": "Biome ids, or {id, climate} entries placing a biome by multi-noise climate.",
+      "type": "array",
+      "items": {
+        "oneOf": [
+          { "$ref": "#/$defs/id" },
+          {
+            "type": "object",
+            "required": ["id"],
+            "additionalProperties": false,
+            "properties": {
+              "id": { "$ref": "#/$defs/id" },
+              "climate": { "$ref": "#/$defs/climate" }
+            }
+          }
+        ]
+      }
+    },
+    "liquids": {
+      "description": "Sea level and the fluid below it.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "seaLevel": { "type": "integer" },
+        "defaultFluid": { "$ref": "#/$defs/id" }
+      }
+    },
+    "materials": {
+      "description": "The material layer: the fallback block, and palettes as W3 adds them.",
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "defaultBlock": { "$ref": "#/$defs/id" }
+      }
+    },
+    "zones": {
+      "description": "Shapes that replace layers inside them, in order.",
+      "type": "array",
+      "items": { "$ref": "#/$defs/zone" }
+    },
+    "dimensionType": {
+      "description": "Dimension-type fields; unset ones keep the base type's.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "minY": { "type": "integer" },
+        "height": { "type": "integer", "minimum": 16 },
+        "logicalHeight": { "type": "integer", "minimum": 0 },
+        "hasSkylight": { "type": "boolean" },
+        "hasCeiling": { "type": "boolean" },
+        "infiniburn": { "$ref": "#/$defs/id" },
+        "monsterSpawnLightLevel": {
+          "description": "A light level, or an int provider object.",
+          "oneOf": [
+            { "type": "integer", "minimum": 0, "maximum": 15 },
+            { "type": "object" }
+          ]
+        },
+        "monsterSpawnBlockLightLimit": { "type": "integer", "minimum": 0, "maximum": 15 }
+      }
+    },
+    "atmosphere": {
+      "description": "Sky, fog, light and time.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "skyColor": { "$ref": "#/$defs/colour" },
+        "fogColor": { "$ref": "#/$defs/colour" },
+        "ambientLight": { "type": "number", "minimum": 0, "maximum": 1 },
+        "fixedTime": { "type": "integer", "minimum": 0 },
+        "effects": { "$ref": "#/$defs/id" }
+      }
+    },
+    "rules": {
+      "description": "What works here; unset rules keep the base type's.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "bedsWork": { "type": "boolean" },
+        "respawnAnchorsWork": { "type": "boolean" },
+        "piglinsZombify": { "type": "boolean" },
+        "ultraWarm": { "type": "boolean" },
+        "natural": { "type": "boolean" },
+        "raids": { "type": "boolean" }
+      }
+    },
+    "borders": {
+      "description": "World-border radius for players, and the pre-generation radius, in blocks.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "player": { "type": "integer", "minimum": 1 },
+        "generation": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "difficulty": {
+      "description": "Mob scaling and player luck.",
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "hostileSpawning": { "type": "boolean" },
+        "mobMultiplier": { "type": "number", "minimum": 0 },
+        "playerLuck": { "type": "number" },
+        "attributes": { "type": "object" },
+        "depthScaling": { "type": "object" }
+      }
+    },
+    "structures": {
+      "description": "Structure density, wants, shuns and placement.",
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "density": { "enum": ["dense", "normal", "sparse", "none"] },
+        "wants": { "type": "object" },
+        "shuns": {
+          "type": "object",
+          "additionalProperties": { "type": "object", "maxProperties": 0 }
+        },
+        "spacing": { "type": "object" },
+        "mode": { "enum": ["allow", "reject", "none"] },
+        "list": { "type": "array", "items": { "type": "string" } },
+        "force": { "type": "array", "items": { "type": "object" } },
+        "clearSpawnRadius": { "type": "integer", "minimum": 0 },
+        "terrainAdaptation": { "type": "object" },
+        "noise": { "type": ["string", "object", "boolean"] },
+        "radial": { "type": "object" },
+        "rarity": { "type": "object" },
+        "exclude": { "type": "array", "items": { "type": "string" } },
+        "include": { "type": "array", "items": { "type": "string" } },
+        "endgame": false
+      }
+    },
+    "portals": {
+      "description": "The ways in. The first entry is the primary portal.",
+      "type": "array",
+      "items": { "$ref": "#/$defs/portal" }
+    },
+    "exitPortal": { "type": "object", "additionalProperties": true },
+    "exits": {
+      "description": "Exit rules by trigger: void, death, death:<cause>, enderPearl, fallFrom.",
+      "type": "object",
+      "additionalProperties": true
+    },
+    "exitShrines": { "type": "object", "additionalProperties": true },
+    "deaths": {
+      "description": "What a player who dies here keeps (decisions.md RB-31). Absent, the keepInventory game rule decides.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "inventory": {
+          "enum": [
+            "keep",
+            "drop"
+          ]
+        },
+        "experience": {
+          "enum": [
+            "keep",
+            "drop"
+          ]
+        }
+      }
+    },
+    "wins": {
+      "description": "Wins (decisions.md RB-30): each grants the advancement <namespace>:wins/<slug>/<id> when its trigger fires.",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/win"
+      }
+    },
+    "roll": {
+      "description": "What the seed roller scores.",
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "skip": { "type": "boolean" },
+        "mood": { "enum": ["hard", "adventurous", "dramatic", "scenic", "pastoral", "serene", "desolate", "standard"] },
+        "spawnFilter": { "type": "array", "items": { "$ref": "#/$defs/id" } },
+        "water": { "enum": ["none", "high", "sea"] },
+        "terrain": { "type": "string" },
+        "heightRange": {
+          "type": "array",
+          "items": { "type": "integer" },
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "wants": { "type": "object" },
+        "shuns": { "type": ["array", "object"] },
+        "allowHazardousSpawn": { "type": "boolean" },
+        "family": false,
+        "spawnRadius": false,
+        "locateCap": false,
+        "allowEndgameNearSpawn": false
+      }
+    }
+  },
+  "$defs": {
+    "win": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "trigger",
+        "title"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9_]+$"
+        },
+        "trigger": {
+          "$ref": "#/$defs/winTrigger"
+        },
+        "title": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "icon": {
+          "type": "string",
+          "description": "An item id; default minecraft:nether_star."
+        },
+        "frame": {
+          "enum": [
+            "task",
+            "goal",
+            "challenge"
+          ]
+        },
+        "message": {
+          "type": "string",
+          "description": "A key in config/messages.json; default win.earned. Variables: {player} {dimension} {win}."
+        },
+        "exit": {
+          "description": "Where the player is sent after the win, in the ExitTarget grammar.",
+          "oneOf": [
+            {
+              "enum": [
+                "bed",
+                "worldSpawn",
+                "origin"
+              ]
+            },
+            {
+              "type": "object",
+              "required": [
+                "dimension"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "winTrigger": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type"
+      ],
+      "properties": {
+        "type": {
+          "enum": [
+            "enter",
+            "reach",
+            "kill",
+            "obtain",
+            "survive",
+            "advancement"
+          ]
+        },
+        "pos": {
+          "type": "array",
+          "items": {
+            "type": "integer"
+          },
+          "minItems": 3,
+          "maxItems": 3
+        },
+        "radius": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "entity": {
+          "type": "string"
+        },
+        "item": {
+          "type": "string"
+        },
+        "advancement": {
+          "type": "string"
+        },
+        "count": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000
+        },
+        "ticks": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "reach"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "pos"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "kill"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "entity"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "obtain"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "item"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "survive"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "ticks"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "advancement"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "advancement"
+            ]
+          }
+        }
+      ]
+    },
+    "id": {
+      "description": "A namespaced id, or a #tag.",
+      "type": "string",
+      "pattern": "^#?([a-z0-9_.-]+:)?[a-z0-9_./-]+$"
+    },
+    "colour": {
+      "description": "#RRGGBB.",
+      "type": "string",
+      "pattern": "^#[0-9A-Fa-f]{6}$"
+    },
+    "climateValue": {
+      "oneOf": [
+        { "type": "number" },
+        {
+          "type": "array",
+          "items": { "type": "number" },
+          "minItems": 2,
+          "maxItems": 2
+        }
+      ]
+    },
+    "climate": {
+      "description": "Multi-noise placement: a point or a [min, max] range per parameter.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "temperature": { "$ref": "#/$defs/climateValue" },
+        "humidity": { "$ref": "#/$defs/climateValue" },
+        "continentalness": { "$ref": "#/$defs/climateValue" },
+        "erosion": { "$ref": "#/$defs/climateValue" },
+        "depth": { "$ref": "#/$defs/climateValue" },
+        "weirdness": { "$ref": "#/$defs/climateValue" },
+        "offset": { "type": "number" }
+      }
+    },
+    "generator": {
+      "description": "What builds the chunks.",
+      "type": "object",
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "enum": ["noise", "void", "flat", "checkerboard", "single_biome", "clone"] },
+        "preset": {
+          "description": "The noise settings, for type noise.",
+          "enum": ["overworld", "large_biomes", "amplified", "caves", "floating_islands", "nether", "end"]
+        },
+        "of": {
+          "description": "The dimension a clone copies.",
+          "$ref": "#/$defs/id"
+        },
+        "cellScale": {
+          "description": "Checkerboard cell size: 2^(cellScale + 4) blocks.",
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 62
+        },
+        "biome": {
+          "description": "The biome of a flat or single_biome world.",
+          "$ref": "#/$defs/id"
+        },
+        "layers": {
+          "description": "A flat world's layers, bottom up.",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["block", "height"],
+            "additionalProperties": false,
+            "properties": {
+              "block": { "$ref": "#/$defs/id" },
+              "height": { "type": "integer", "minimum": 1 }
+            }
+          }
+        },
+        "endIsland": {
+          "description": "False removes the End's island at the origin. End preset only.",
+          "type": "boolean"
+        }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "type": { "const": "noise" } } },
+          "then": { "required": ["preset"] },
+          "else": { "properties": { "preset": false } }
+        },
+        {
+          "if": { "properties": { "type": { "const": "clone" } } },
+          "then": { "required": ["of"] },
+          "else": { "properties": { "of": false } }
+        },
+        {
+          "if": { "properties": { "type": { "const": "checkerboard" } } },
+          "else": { "properties": { "cellScale": false } }
+        },
+        {
+          "if": { "properties": { "type": { "const": "flat" } } },
+          "else": { "properties": { "layers": false } }
+        },
+        {
+          "if": { "properties": { "type": { "const": "single_biome" } } },
+          "then": { "required": ["biome"] }
+        },
+        {
+          "if": { "properties": { "type": { "enum": ["flat", "single_biome"] } } },
+          "else": { "properties": { "biome": false } }
+        },
+        {
+          "if": { "required": ["preset"], "properties": { "preset": { "const": "end" } } },
+          "else": { "properties": { "endIsland": false } }
+        }
+      ]
+    },
+    "zone": {
+      "description": "A shape around spawn or a point that replaces layers inside it.",
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "shape": { "type": ["string", "object"] },
+        "centre": {
+          "oneOf": [
+            {
+              "type": "array",
+              "items": { "type": "number" },
+              "minItems": 2,
+              "maxItems": 2
+            },
+            { "const": "spawn" }
+          ]
+        },
+        "radius": { "type": "number", "exclusiveMinimum": 0 },
+        "blend": { "type": "number", "minimum": 0 },
+        "biomes": { "type": "array", "items": { "$ref": "#/$defs/id" } }
+      }
+    },
+    "portal": {
+      "description": "One way in.",
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "frameBlock": {},
+        "frameMaterials": { "type": "object" },
+        "framePlaceBlock": { "$ref": "#/$defs/id" },
+        "igniterItem": { "$ref": "#/$defs/id" },
+        "consumesIgniter": { "type": "boolean" },
+        "vanillaManaged": { "type": "boolean" },
+        "color": { "type": "string", "pattern": "^[0-9A-Fa-f]{6}$" },
+        "lightLevel": { "type": "integer", "minimum": 0, "maximum": 15 },
+        "scale": { "type": "number", "minimum": 0.001, "maximum": 1000 },
+        "cooldown": { "type": "integer", "minimum": 0, "maximum": 200 },
+        "particleType": { "$ref": "#/$defs/id" },
+        "orientation": { "enum": ["any", "vertical", "horizontal", "vertical_x", "vertical_z"] },
+        "shape": { "type": ["string", "object"] },
+        "centreBlock": { "$ref": "#/$defs/id" },
+        "sounds": { "type": "object" },
+        "anchor": { "type": "object" },
+        "singleUse": { "type": "object" },
+        "aura": { "type": "object" },
+        "preview": {
+          "description": "See through the portal. On unless false; an object tunes it.",
+          "type": ["boolean", "object"]
+        },
+        "immersive": false
+      }
+    }
+  }
+}

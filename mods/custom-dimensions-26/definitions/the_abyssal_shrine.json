@@ -1,0 +1,132 @@
+{
+  "schemaVersion": 2,
+  "description": "A shrine over the abyss — plateau islands ringing deep drowned hollows. Something is worshipped here, or was. Guardians circle below; the sky above is indifferent.",
+  "seed": -2851350029895099402,
+  "spawn": [64, 131, -192],
+  "generator": {
+    "type": "clone",
+    "of": "adventure:the_aviary"
+  },
+  "biomes": [
+    {
+      "id": "nullscape:shadowlands",
+      "climate": {
+        "continentalness": [-2.0, -0.0918]
+      }
+    },
+    {
+      "id": "minecraft:deep_ocean",
+      "climate": {
+        "continentalness": [-0.0918, -0.0806]
+      }
+    },
+    {
+      "id": "minecraft:deep_cold_ocean",
+      "climate": {
+        "continentalness": [-0.0806, -0.0525]
+      }
+    },
+    {
+      "id": "paradise_lost:continental_plateau",
+      "climate": {
+        "continentalness": [-0.0525, 0.0045]
+      }
+    },
+    {
+      "id": "paradise_lost:highlands_grand_glade",
+      "climate": {
+        "continentalness": [0.0045, 0.1027]
+      }
+    },
+    {
+      "id": "minecraft:deep_dark",
+      "climate": {
+        "continentalness": [0.1027, 0.1675]
+      }
+    },
+    {
+      "id": "minecraft:dripstone_caves",
+      "climate": {
+        "continentalness": [0.1675, 0.1902]
+      }
+    },
+    {
+      "id": "paradise_lost:highlands_thicket",
+      "climate": {
+        "continentalness": [0.1902, 0.1946]
+      }
+    },
+    {
+      "id": "paradise_lost:calcite_craglands",
+      "climate": {
+        "continentalness": [0.1946, 2.0]
+      }
+    }
+  ],
+  "liquids": {
+    "seaLevel": 90
+  },
+  "atmosphere": {
+    "skyColor": "#1B3B6B",
+    "fogColor": "#0E2A44",
+    "ambientLight": 0.15
+  },
+  "borders": {
+    "player": 512,
+    "generation": 512
+  },
+  "difficulty": {
+    "mobMultiplier": 1.0,
+    "playerLuck": 1.5
+  },
+  "structures": {
+    "density": "dense",
+    "noise": {
+      "dungeons": "dense",
+      "maritime": "dense"
+    },
+    "force": [
+      {
+        "structure": "paradise_lost:vault",
+        "x": 180,
+        "z": -140
+      }
+    ]
+  },
+  "portals": [
+    {
+      "frameBlock": "minecraft:dark_prismarine",
+      "igniterItem": "minecraft:gold_ingot",
+      "color": "1B3B6B",
+      "lightLevel": 11,
+      "scale": 16.0,
+      "cooldown": 40,
+      "shape": "end_exit",
+      "sounds": {
+        "ignite": "block.portal.trigger",
+        "enter": "block.portal.travel",
+        "exit": "block.portal.travel"
+      }
+    }
+  ],
+  "roll": {
+    "mood": "adventurous",
+    "spawnFilter": [
+      "paradise_lost:calcite_craglands",
+      "paradise_lost:continental_plateau",
+      "paradise_lost:highlands_grand_glade"
+    ],
+    "water": "sea",
+    "wants": {
+      "monument": "spread",
+      "para_palace": "spread",
+      "deepwater_dungeon": "spread",
+      "sculk_dungeon": "near_border"
+    },
+    "shuns": [
+      "village",
+      "tavern"
+    ],
+    "terrain": "islands"
+  }
+}

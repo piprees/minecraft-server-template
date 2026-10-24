@@ -1,0 +1,155 @@
+{
+  "schemaVersion": 2,
+  "description": "Rolling ember meadows where piglin villages still tend the geyser fields. The gentlest face of piglin civilisation — farmers and traders, not soldiers. The fortress at the rim is a precaution, not a threat.",
+  "seed": 564072063557106840,
+  "spawn": [-64, 150, 320],
+  "generator": {
+    "type": "noise",
+    "preset": "nether"
+  },
+  "biomes": [
+    {
+      "id": "betternether:nether_grasslands",
+      "climate": {
+        "temperature": [-2.0, -0.5106]
+      }
+    },
+    {
+      "id": "betternether:poor_nether_grasslands",
+      "climate": {
+        "temperature": [-0.5106, -0.4514]
+      }
+    },
+    {
+      "id": "regions_unexplored:glistering_meadow",
+      "climate": {
+        "temperature": [-0.4514, -0.2045]
+      }
+    },
+    {
+      "id": "betternether:wart_forest_edge",
+      "climate": {
+        "temperature": [-0.2045, -0.1908]
+      }
+    },
+    {
+      "id": "betternether:nether_mushroom_forest",
+      "climate": {
+        "temperature": [-0.1908, -0.1715]
+      }
+    },
+    {
+      "id": "betterend:sulphur_springs",
+      "climate": {
+        "temperature": [-0.1715, -0.1036]
+      }
+    },
+    {
+      "id": "terralith:yellowstone",
+      "climate": {
+        "temperature": [-0.1036, -0.0304]
+      }
+    },
+    {
+      "id": "incendium:quartz_flats",
+      "climate": {
+        "temperature": [-0.0304, 0.0059]
+      }
+    },
+    {
+      "id": "incendium:weeping_valley",
+      "climate": {
+        "temperature": [0.0059, 0.0354]
+      }
+    },
+    {
+      "id": "minecraft:crimson_forest",
+      "climate": {
+        "temperature": [0.0354, 0.1007]
+      }
+    },
+    {
+      "id": "minecraft:nether_wastes",
+      "climate": {
+        "temperature": [0.1007, 0.1586]
+      }
+    },
+    {
+      "id": "incendium:infernal_dunes",
+      "climate": {
+        "temperature": [0.1586, 0.2916]
+      }
+    },
+    {
+      "id": "incendium:volcanic_deltas",
+      "climate": {
+        "temperature": [0.2916, 2.0]
+      }
+    }
+  ],
+  "atmosphere": {
+    "fogColor": "#E8A05A",
+    "ambientLight": 0.25
+  },
+  "rules": {
+    "bedsWork": true
+  },
+  "borders": {
+    "player": 1024,
+    "generation": 1024
+  },
+  "difficulty": {
+    "mobMultiplier": 1.0,
+    "playerLuck": 1.4
+  },
+  "structures": {
+    "terrainAdaptation": {
+      "betterfortresses:fortress": "pedestal"
+    },
+    "force": [
+      {
+        "structure": "incendium:piglin_village",
+        "x": 256,
+        "z": 120,
+        "exclusive": false
+      }
+    ]
+  },
+  "portals": [
+    {
+      "frameBlock": "minecraft:magma_block",
+      "igniterItem": "minecraft:flint_and_steel",
+      "color": "FF5B1B",
+      "lightLevel": 11,
+      "scale": 8.0,
+      "cooldown": 40,
+      "particleType": "minecraft:flame",
+      "sounds": {
+        "ignite": "block.portal.trigger",
+        "enter": "block.portal.travel",
+        "exit": "block.portal.travel"
+      }
+    }
+  ],
+  "roll": {
+    "mood": "scenic",
+    "water": "none",
+    "spawnFilter": [
+      "minecraft:crimson_forest",
+      "incendium:infernal_dunes",
+      "incendium:volcanic_deltas"
+    ],
+    "wants": {
+      "piglin_village": "spread",
+      "crimson_well": "near_spawn",
+      "fortress": "near_border",
+      "nether_bridge": "spread",
+      "infernal_altar": "near_border",
+      "crimson_fungus": "near_spawn"
+    },
+    "shuns": [
+      "sanctum",
+      "forbidden_castle"
+    ]
+  }
+}

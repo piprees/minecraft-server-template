@@ -42,7 +42,7 @@ Each preset pack carries an `ownership.json` mapping override files to their own
 
 ## Staying in sync with mod updates
 
-The weekly `mod-updates.yml` PR regenerates these presets (and the jar-baked terrain presets + theme map) from freshly re-pinned jars. Generator drift warnings appear in the PR body. Consumer-added structure mods are deliberately NOT covered — they keep their mod defaults. Consumers theme them for per-dimension density via `overlay/config/structure_themes.json` (see [consumer customisation](../../consumer-customisation/SKILL.md)).
+The weekly `mod-updates.yml` next-major PR regenerates these presets ([DEPENDENCIES.md § The weekly mod re-pin](../../../../DEPENDENCIES.md#the-weekly-mod-re-pin)) (and the jar-baked terrain presets + theme map) from freshly re-pinned jars. Generator drift warnings appear in the PR body. Consumer-added structure mods are deliberately NOT covered — they keep their mod defaults. Consumers theme them for per-dimension density via `overlay/config/structure_themes.json` (see [consumer customisation](../../consumer-customisation/SKILL.md)).
 
 ## Placement mechanics (1.21.1)
 

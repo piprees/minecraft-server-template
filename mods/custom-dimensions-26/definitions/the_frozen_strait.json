@@ -1,0 +1,166 @@
+{
+  "schemaVersion": 2,
+  "description": "Frozen channels between ice sheets. Igloos and cold dungeons mark where people tried to cross; shipwrecks mark where they failed. The sea is the road, and the road is cruel. The cold crosses back through the frame; whatever you leave beside the portal freezes into the sheet.",
+  "seed": -8709595174541673551,
+  "spawn": [0, 5, -128],
+  "generator": {
+    "type": "noise",
+    "preset": "overworld"
+  },
+  "terrain": {
+    "base": null
+  },
+  "biomes": [
+    {
+      "id": "minecraft:deep_frozen_ocean",
+      "climate": {
+        "continentalness": [-2.0, -0.9061]
+      }
+    },
+    {
+      "id": "minecraft:frozen_ocean",
+      "climate": {
+        "continentalness": [-0.9061, -0.5407]
+      }
+    },
+    {
+      "id": "minecraft:frozen_river",
+      "climate": {
+        "continentalness": [-0.5407, -0.5333]
+      }
+    },
+    {
+      "id": "minecraft:snowy_beach",
+      "climate": {
+        "continentalness": [-0.5333, -0.5245]
+      }
+    },
+    {
+      "id": "terralith:ice_marsh",
+      "climate": {
+        "continentalness": [-0.5245, -0.5152]
+      }
+    },
+    {
+      "id": "regions_unexplored:frozen_tundra",
+      "climate": {
+        "continentalness": [-0.5152, -0.4452]
+      }
+    },
+    {
+      "id": "wilderwild:tundra",
+      "climate": {
+        "continentalness": [-0.4452, -0.433]
+      }
+    },
+    {
+      "id": "minecraft:snowy_plains",
+      "climate": {
+        "continentalness": [-0.433, -0.3654]
+      }
+    },
+    {
+      "id": "minecraft:snowy_taiga",
+      "climate": {
+        "continentalness": [-0.3654, -0.3467]
+      }
+    },
+    {
+      "id": "regions_unexplored:icy_heights",
+      "climate": {
+        "continentalness": [-0.3467, -0.2376]
+      }
+    },
+    {
+      "id": "terralith:frozen_cliffs",
+      "climate": {
+        "continentalness": [-0.2376, -0.1639]
+      }
+    },
+    {
+      "id": "terralith:cave/frostfire_caves",
+      "climate": {
+        "continentalness": [-0.1639, -0.1333]
+      }
+    },
+    {
+      "id": "minecraft:dripstone_caves",
+      "climate": {
+        "continentalness": [-0.1333, 2.0]
+      }
+    }
+  ],
+  "liquids": {
+    "seaLevel": 72
+  },
+  "borders": {
+    "player": 512,
+    "generation": 512
+  },
+  "difficulty": {
+    "mobMultiplier": 2.2,
+    "playerLuck": 2.0
+  },
+  "structures": {
+    "force": [
+      {
+        "structure": "minecraft:igloo",
+        "x": 48,
+        "z": 32,
+        "exclusive": false
+      }
+    ]
+  },
+  "portals": [
+    {
+      "frameBlock": "minecraft:packed_ice",
+      "igniterItem": "minecraft:netherite_scrap",
+      "color": "7BB8DF",
+      "lightLevel": 11,
+      "scale": 16.0,
+      "cooldown": 40,
+      "particleType": "minecraft:snowflake",
+      "sounds": {
+        "ignite": "block.portal.trigger",
+        "enter": "block.portal.travel",
+        "exit": "block.portal.travel"
+      },
+      "aura": {
+        "subsume": "everything"
+      },
+      "anchor": {
+        "pos": "spawn",
+        "exit": "bed"
+      }
+    }
+  ],
+  "exitPortal": {
+    "enabled": true,
+    "pos": "spawn",
+    "target": "bed"
+  },
+  "roll": {
+    "mood": "desolate",
+    "allowHazardousSpawn": true,
+    "spawnFilter": [
+      "minecraft:frozen_ocean",
+      "regions_unexplored:frozen_tundra"
+    ],
+    "water": "sea",
+    "wants": {
+      "igloo": "near_spawn",
+      "guide_post_cold": "near_spawn",
+      "ice_dungeon_m": "spread",
+      "frozen_dungeon": "spread",
+      "shipwreck": "spread",
+      "buried_treasure": "near_border",
+      "ocean_ruins": "spread",
+      "lighthouse": "near_border"
+    },
+    "shuns": [
+      "village",
+      "mansion",
+      "coliseum"
+    ]
+  }
+}

@@ -1,0 +1,108 @@
+{
+  "schemaVersion": 2,
+  "description": "A toxic little hell that came apart. Piglin scientists built labs and reactors here to study the sculk infection from the boneyard; the blight won, and took the ground with it. What is left is a tight cluster of floating islands with a long fall between them. Fall off and the blight rejects you rather than killing you. Loot escalates with the danger. The blight is not finished; a build beside the portal is just ground it has not taken yet.",
+  "seed": -4203435855543360977,
+  "spawn": [0, 46, 0],
+  "generator": {
+    "type": "noise",
+    "preset": "end"
+  },
+  "biomes": [
+    "incendium:toxic_heap",
+    "minecraft:soul_sand_valley",
+    "incendium:withered_forest",
+    "incendium:ash_barrens",
+    "minecraft:nether_wastes"
+  ],
+  "liquids": {
+    "seaLevel": -60,
+    "defaultFluid": "minecraft:lava"
+  },
+  "materials": {
+    "defaultBlock": "minecraft:netherrack"
+  },
+  "atmosphere": {
+    "fogColor": "#3B1B1B",
+    "ambientLight": 0.08
+  },
+  "borders": {
+    "player": 1024,
+    "generation": 2048
+  },
+  "difficulty": {
+    "mobMultiplier": 1.8,
+    "playerLuck": 2.0,
+    "depthScaling": {
+      "enabled": true,
+      "startY": 100,
+      "endY": 10,
+      "minMultiplier": 1.2,
+      "maxMultiplier": 2.2
+    }
+  },
+  "structures": {
+    "density": "dense",
+    "terrainAdaptation": {
+      "incendium:nether_reactor": "platform_skirt"
+    },
+    "force": [
+      {
+        "structure": "incendium:nether_reactor",
+        "x": -380,
+        "z": 290,
+        "exclusive": false
+      },
+      {
+        "structure": "philipsruins:sculk_dungeon",
+        "x": -364,
+        "z": 274
+      }
+    ]
+  },
+  "portals": [
+    {
+      "frameBlock": "minecraft:nether_wart_block",
+      "igniterItem": "minecraft:flint_and_steel",
+      "color": "8B2B2B",
+      "lightLevel": 11,
+      "scale": 8.0,
+      "cooldown": 40,
+      "sounds": {
+        "ignite": "block.portal.trigger",
+        "enter": "block.portal.travel",
+        "exit": "block.portal.travel"
+      },
+      "aura": {
+        "subsume": "everything"
+      }
+    }
+  ],
+  "exits": {
+    "void": {
+      "action": "teleport",
+      "target": "origin"
+    }
+  },
+  "roll": {
+    "mood": "hard",
+    "spawnFilter": [
+      "incendium:toxic_heap",
+      "minecraft:soul_sand_valley",
+      "incendium:withered_forest"
+    ],
+    "wants": {
+      "ruined_lab": "near_spawn",
+      "nether_reactor": "spread",
+      "bastion": "spread",
+      "fortress": "spread",
+      "pipeline": "spread"
+    },
+    "shuns": [
+      "piglin_village",
+      "crimson_fungus",
+      "warped_outpost"
+    ],
+    "terrain": "islands",
+    "water": "none"
+  }
+}

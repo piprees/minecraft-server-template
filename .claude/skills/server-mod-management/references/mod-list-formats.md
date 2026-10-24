@@ -1,6 +1,6 @@
 ---
 title: Mod List Formats
-description: The exact syntax of modrinth-mods.txt, mods-extra.txt, mods-remove.txt, the ? optional marker, the datapack: prefix, and version holds — with real counts from the shipped list
+description: The exact syntax of modrinth-mods.txt, mods-extra.txt, mods-remove.txt, the ? optional marker, the datapack: prefix, and version holds
 tags: [modrinth-mods.txt, mods-extra.txt, mods-remove.txt, holds, datapack, optional]
 ---
 
@@ -8,19 +8,19 @@ tags: [modrinth-mods.txt, mods-extra.txt, mods-remove.txt, holds, datapack, opti
 
 ## `config/modrinth-mods.txt` (platform defaults)
 
-One entry per line: `slug:versionId`. Comments start with `#`; blank lines are ignored. As of this writing the file has 156 active (non-comment, non-blank) entries, of which 2 use the `datapack:` prefix (`datapack:ati-structures-fabricforge:K7cpaKjN` and `datapack:borrow-their-arrows:Qq8BwuBw`).
+One entry per line: `slug:versionId`. Comments start with `#`; blank lines are ignored. `datapack:slug:versionId` lines are Modrinth datapacks; `pin-mod-versions.sh` passes them through unchanged.
 
 ```
-fabric-api:aUrTRV7H
+fabric-api:Nlt8gI9z
 carpet:f2mvlGrg
 datapack:borrow-their-arrows:Qq8BwuBw         # pick up arrows shot by mobs
 ```
 
-**Trailing `?` marks a mod optional** — a failed resolution skips it instead of failing the seed/boot. The convention is `slug:versionId?`, e.g. a hypothetical `some-experimental-mod:AANobbMI?`. One entry in the shipped list deviates from this convention: `attributefix?:XwbErf6s` has the `?` positioned _before_ the colon rather than at the end of the line. `pin-mod-versions.sh`'s optional-detection (`[[ "$stripped" == *\? ]]`) checks whether the whole stripped line ends in `?` — this line doesn't, so it is **not** treated as optional by the re-pin tooling despite the `?` character being present. It happens to still resolve correctly today because `resolve-mods.py` looks up the pin by `versionId` (immutable), not by slug, so the malformed slug never reaches the API — but don't copy this pattern. Always put `?` as the very last character of the line.
+**Trailing `?` marks a mod optional** — a failed resolution skips it instead of failing the seed/boot. The convention is `slug:versionId?` (e.g. `attributefix:XwbErf6s?`). `pin-mod-versions.sh`'s optional-detection (`[[ "$stripped" == *\? ]]`) checks whether the whole stripped line ends in `?`, so a `?` anywhere else is not treated as optional. Always put `?` as the very last character of the line.
 
-**Commented-out entries carry their removal reason** as an inline comment, e.g. `# balm:jR9x1yws  # removed: only dep was waystones+netherportalfix (both removed)`. Follow this convention when disabling a mod rather than deleting the line outright — it's the only record of _why_ for the next person (or agent) who wonders whether it should come back.
+**A disabled mod keeps its reason.** When commenting a line out rather than deleting it, give the reason in the comment — it is the only record of _why_ for the next person (or agent) who wonders whether it should come back.
 
-**Section headers** (`# === core / performance ===`) are purely organisational — nothing parses them. Keep new entries under the most relevant existing header rather than inventing a new one, unless a whole new category is genuinely starting.
+**Section headers** (`# === core / performance ===`) are load-bearing: `.github/dep-review/policy.json` `never_automerge_sections` matches them by exact text, and `scripts/dep_review/partition.py` uses that to send a mod's updates to the next-major PR. Never rename a header, and file a worldgen mod under a worldgen header ([DEPENDENCIES.md § The weekly mod re-pin](../../../../DEPENDENCIES.md#the-weekly-mod-re-pin)). Keep new entries under the most relevant existing header.
 
 ## `overlay/mods-extra.txt` (consumer additions)
 
@@ -61,19 +61,15 @@ One **slug only** per line (no version ID) — must match a slug that exists in 
 
 ## Version holds (`modpack/adventure.mrpack.json` → `_holds`)
 
-Not a separate file — a top-level JSON object in the client pack manifest, keyed by slug with a free-text reason as the value. It governs both mod lists: the server list and the client manifest are re-pinned by the same script, and both loops read this map.
+Not a separate file — a top-level JSON object in the client pack manifest, slug → free-text reason naming the release condition. Both of `pin-mod-versions.sh`'s re-pin loops read it (server list and client manifest), leave a held slug's `versionId` untouched and log it as `HELD`.
 
 ```jsonc
 "_holds": {
-  "critters-and-companions": "2.6.x claims 1.21.1 but is built against a newer Architectury ...",
-  "xaeros-world-map": "1.42.0 removed Waypoint's int x/y/z fields; ...",
-  "xaeros-minimap": "era-pair of xaeros-world-map 1.41.2 - held at 26.1.0 ..."
+  "some-mod": "pre-release; release when a release build for 1.21.1 ships"
 }
 ```
 
-Read the live object rather than this example — holds come and go.
-
-Only consulted by `pin-mod-versions.sh`'s **client-manifest** re-pin loop (the Python block that rewrites `_clientMods.required`/`.optional`) — a slug in `holds` there is skipped entirely, its current `versionId` left untouched. The bash loop that rewrites `config/modrinth-mods.txt` (the server list) does not read this object at all; see the "Version holds" trap in the main `SKILL.md` for what that means in practice for a server-only held mod.
+Rules: [DEPENDENCIES.md § Holds](../../../../DEPENDENCIES.md#holds). Read the live object for the current holds.
 
 ## Two-place config rule: the flat-path exception
 

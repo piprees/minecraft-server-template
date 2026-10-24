@@ -62,7 +62,7 @@ COMPOSE_FILE="$STACK_DIR/docker-compose.yml"
 
 # --- deploy banner ----------------------------------------------------------
 BUNDLE_VERSION="v$(cat "$STACK_DIR/VERSION" 2> /dev/null || echo '?')"
-show_banner "deploy" "stack ${BUNDLE_VERSION} | mc ${MC_VERSION:-1.21.1} | $(date '+%Y-%m-%d %H:%M %Z')${DEPLOY_COMMIT:+ | commit ${DEPLOY_COMMIT}}"
+show_banner "deploy" "stack ${BUNDLE_VERSION} | mc $(mc_version) | $(date '+%Y-%m-%d %H:%M %Z')${DEPLOY_COMMIT:+ | commit ${DEPLOY_COMMIT}}"
 
 # --- timestamped output ---------------------------------------------------
 # Deploys are long and the captured log is the primary forensic artefact:
@@ -81,6 +81,7 @@ if [[ -f .env ]]; then
   source .env
   set +a
 fi
+export_mc_version
 
 # --- flags --------------------------------------------------------------------
 export NON_INTERACTIVE=0
@@ -468,9 +469,11 @@ docker compose --project-directory "$SERVER_DIR" -f "$COMPOSE_FILE" \
 # =============================================================================
 # Platform defaults always overwrite — consumers customise via the overlay,
 # not by editing defaults in data/config/. Force-copy ensures every deploy
-# gets the latest bundle configs (starter kits, mod settings, etc.).
-# This MUST run before mc starts — mods that auto-generate config on first
-# boot would otherwise create defaults that block the bundle's version.
+# gets the latest bundle configs (starter kits, mod settings, etc.). The
+# selected version's overlay (config/versions/<version>/) then replaces the
+# paths it carries. This MUST run before mc starts — mods that auto-generate
+# config on first boot would otherwise create defaults that block the
+# bundle's version.
 echo ""
 echo "==> Seeding default mod configs into data/config/..."
 BUNDLE_CONFIG="$STACK_DIR/config"
@@ -480,6 +483,11 @@ if [[ -d "$BUNDLE_CONFIG" ]]; then
   cd "$BUNDLE_CONFIG"
   platform_config_files | while IFS= read -r f; do
     dest="$local_data_cfg/${f#./}"
+    mkdir -p "$(dirname "$dest")"
+    cp "$f" "$dest"
+  done
+  version_config_files "$MC_VERSION" | while IFS= read -r f; do
+    dest="$local_data_cfg/${f#./versions/"$MC_VERSION"/}"
     mkdir -p "$(dirname "$dest")"
     cp "$f" "$dest"
   done
@@ -563,7 +571,7 @@ fi
 # covered too; only packs carrying an ownership.json are touched.
 if [[ -d "$SERVER_DIR/data/world/datapacks" ]]; then
   python3 "$SCRIPT_DIR/filter-datapacks.py" "$SERVER_DIR/data/world/datapacks" \
-    "$STACK_DIR/config/modrinth-mods.txt" "$SERVER_DIR/overlay" || true
+    "$(mc_mod_list "$STACK_DIR")" "$SERVER_DIR/overlay" || true
 fi
 
 # =============================================================================

@@ -1,0 +1,130 @@
+{
+  "schemaVersion": 2,
+  "description": "Vast desert kingdoms — what humans and villagers built together at their peak. Walled villages, sand dungeons, desert shrines, and a keep on the horizon. The civilisation here still stands; the bandits at its edges are the only threat.",
+  "seed": -6262147993359831425,
+  "spawn": [640, 42, -768],
+  "generator": {
+    "type": "noise",
+    "preset": "overworld"
+  },
+  "terrain": {
+    "base": null
+  },
+  "biomes": [
+    "minecraft:savanna",
+    "minecraft:savanna_plateau",
+    "minecraft:wooded_badlands",
+    "terralith:arid_highlands",
+    "terralith:hot_shrubland",
+    "terralith:fractured_savanna",
+    "terralith:savanna_badlands",
+    "terralith:brushland",
+    "terralith:steppe",
+    "terralith:shrubland",
+    "minecraft:badlands",
+    "minecraft:eroded_badlands",
+    "terralith:lush_desert",
+    "terralith:desert_oasis",
+    "terralith:desert_canyon",
+    "terralith:red_oasis",
+    "terralith:savanna_slopes",
+    {
+      "id": "natures_spirit:stratified_desert",
+      "climate": {
+        "humidity": [-0.67, -0.51],
+        "erosion": [-2.0, 0.2]
+      }
+    },
+    {
+      "id": "natures_spirit:oak_savanna",
+      "climate": {
+        "humidity": [-0.43, -0.27]
+      }
+    },
+    "terralith:ancient_sands",
+    {
+      "id": "wilderwild:oasis",
+      "climate": {
+        "humidity": [-0.19, -0.03]
+      }
+    },
+    {
+      "id": "wilderwild:parched_forest",
+      "climate": {
+        "humidity": [0.04, 0.2]
+      }
+    },
+    {
+      "id": "regions_unexplored:baobab_savanna",
+      "climate": {
+        "humidity": [0.28, 0.44]
+      }
+    },
+    "minecraft:plains",
+    {
+      "id": "regions_unexplored:joshua_desert",
+      "climate": {
+        "humidity": [0.52, 0.68]
+      }
+    },
+    "terralith:desert_spires",
+    {
+      "id": "natures_spirit:scorched_dunes",
+      "climate": {
+        "humidity": [0.76, 0.92]
+      }
+    },
+    "minecraft:desert"
+  ],
+  "borders": {
+    "player": 4096,
+    "generation": 2048
+  },
+  "difficulty": {
+    "mobMultiplier": 1.0,
+    "playerLuck": 1.3
+  },
+  "structures": {
+    "terrainAdaptation": {
+      "dungeons_arise:keep_kayra": "pedestal"
+    }
+  },
+  "portals": [
+    {
+      "frameBlock": "minecraft:sandstone",
+      "igniterItem": "minecraft:amethyst_shard",
+      "color": "D4B050",
+      "lightLevel": 11,
+      "scale": 2.0,
+      "cooldown": 40,
+      "shape": "doorway",
+      "sounds": {
+        "ignite": "block.portal.trigger",
+        "enter": "block.portal.travel",
+        "exit": "block.portal.travel"
+      }
+    }
+  ],
+  "roll": {
+    "mood": "adventurous",
+    "spawnFilter": [
+      "minecraft:desert"
+    ],
+    "water": "none",
+    "wants": {
+      "village": "near_spawn",
+      "desert_shrine": "near_spawn",
+      "bandit_village": "spread",
+      "sand_dungeon_l": "spread",
+      "keep_kayra": "near_border",
+      "desert_pyramid": "spread",
+      "dusty_tomb": "near_border",
+      "watchtower": "spread",
+      "nomad_outpost": "spread",
+      "mirage_outpost": "spread"
+    },
+    "shuns": [
+      "monument"
+    ]
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 2,
+  "description": "The end — the endermen's current home, not their origin. Cities and citadels within honest reach of the gateways, built after they moved on from the older void dimensions.",
+  "seed": -1727347169663540530,
+  "spawn": [0, 57, 0],
+  "generator": {
+    "type": "noise",
+    "preset": "end"
+  },
+  "borders": {
+    "player": 4096,
+    "generation": 2048
+  },
+  "difficulty": {
+    "mobMultiplier": 1.5,
+    "playerLuck": 1.5
+  },
+  "portals": [
+    {
+      "vanillaManaged": true,
+      "frameBlock": "minecraft:end_portal_frame",
+      "igniterItem": "minecraft:ender_eye",
+      "color": "1B0033",
+      "lightLevel": 15,
+      "scale": 2,
+      "cooldown": 40,
+      "particleType": "minecraft:portal",
+      "shape": "end_exit",
+      "sounds": {
+        "ignite": "block.end_portal_frame.fill",
+        "enter": "block.portal.travel",
+        "exit": "block.portal.travel"
+      }
+    }
+  ],
+  "roll": {
+    "mood": "hard",
+    "terrain": "islands",
+    "water": "none",
+    "spawnFilter": [
+      "minecraft:end_highlands",
+      "minecraft:the_end",
+      "minecraft:end_midlands"
+    ],
+    "wants": {
+      "end_city": "near_spawn",
+      "phantom_citadel": "near_spawn",
+      "enderkeep": "spread",
+      "monolith": "spread"
+    },
+    "shuns": []
+  }
+}

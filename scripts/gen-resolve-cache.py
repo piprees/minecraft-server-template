@@ -22,7 +22,7 @@ from importlib.machinery import SourceFileLoader  # noqa: E402
 rm = SourceFileLoader("rm", str(ROOT / "docker/defaults-seed/resolve-mods.py")).load_module()
 
 CACHE = ROOT / "config/modrinth-resolve-cache.json"
-MODS = ROOT / "config/modrinth-mods.txt"
+MODS = SourceFileLoader("minecraft_version", str(ROOT / "scripts/minecraft_version.py")).load_module().mod_list(ROOT)
 
 
 def main():

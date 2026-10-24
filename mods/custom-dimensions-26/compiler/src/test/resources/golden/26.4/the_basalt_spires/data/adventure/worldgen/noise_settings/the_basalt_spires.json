@@ -1,0 +1,11 @@
+{
+  "base": "minecraft:overworld",
+  "changed": {
+    "default_fluid": "minecraft:lava",
+    "material_rule": "sha1:1caa6d80bf11a2ced3bbdf363dcdc7c78afa820c",
+    "sea_level": 40
+  },
+  "removed": [
+    "default_block"
+  ]
+}

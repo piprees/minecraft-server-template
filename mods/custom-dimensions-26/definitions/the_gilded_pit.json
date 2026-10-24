@@ -1,0 +1,165 @@
+{
+  "schemaVersion": 2,
+  "description": "The piglin capital. Every portal drops you at the same ledge overlooking what remains: a bastion, a forge, a palace, a forbidden castle — gold in every wall, treasure in every ruin. Nothing within arm's reach of the landing. Greed pays and costs.",
+  "seed": -7161067373243224201,
+  "spawn": [0, 24, -128],
+  "generator": {
+    "type": "noise",
+    "preset": "nether"
+  },
+  "biomes": [
+    {
+      "id": "betternether:gravel_desert",
+      "climate": {
+        "temperature": [-2.0, -0.4798]
+      }
+    },
+    {
+      "id": "betternether:poor_nether_grasslands",
+      "climate": {
+        "temperature": [-0.4798, -0.3511]
+      }
+    },
+    {
+      "id": "minecraft:nether_wastes",
+      "climate": {
+        "temperature": [-0.3511, 0.0781]
+      }
+    },
+    {
+      "id": "minecraft:basalt_deltas",
+      "climate": {
+        "temperature": [0.0781, 0.3411]
+      }
+    },
+    {
+      "id": "minecraft:crimson_forest",
+      "climate": {
+        "temperature": [0.3411, 0.5234]
+      }
+    },
+    {
+      "id": "regions_unexplored:inferno",
+      "climate": {
+        "temperature": [0.5234, 2.0]
+      }
+    }
+  ],
+  "borders": {
+    "player": 683,
+    "generation": 683
+  },
+  "difficulty": {
+    "mobMultiplier": 2.5,
+    "playerLuck": 3.0,
+    "depthScaling": {
+      "enabled": true,
+      "startY": 64,
+      "endY": -10,
+      "minMultiplier": 1.0,
+      "maxMultiplier": 1.6
+    }
+  },
+  "structures": {
+    "density": "dense",
+    "terrainAdaptation": {
+      "dungeons_arise:shiraz_palace": "pedestal",
+      "incendium:forbidden_castle": "pedestal",
+      "dungeons_arise:keep_kayra": "platform_skirt"
+    },
+    "force": [
+      {
+        "structure": "minecraft:bastion_remnant",
+        "x": 278,
+        "z": 31
+      },
+      {
+        "structure": "betterfortresses:fortress",
+        "x": -291,
+        "z": -47
+      },
+      {
+        "structure": "incendium:forbidden_castle",
+        "x": 52,
+        "z": 326
+      },
+      {
+        "structure": "mns:crimson_forge",
+        "x": -38,
+        "z": -342
+      },
+      {
+        "structure": "minecraft:trial_chambers",
+        "x": 237,
+        "z": 218
+      },
+      {
+        "structure": "dungeons_arise:shiraz_palace",
+        "x": -263,
+        "z": 229
+      },
+      {
+        "structure": "dungeons_arise:foundry",
+        "x": 241,
+        "z": -234
+      },
+      {
+        "structure": "dungeons_arise:keep_kayra",
+        "x": 372,
+        "z": 411
+      },
+      {
+        "structure": "philipsruins:antiquus_crypta",
+        "x": -389,
+        "z": 358
+      }
+    ],
+    "clearSpawnRadius": 64
+  },
+  "portals": [
+    {
+      "frameBlock": "minecraft:gilded_blackstone",
+      "igniterItem": "minecraft:diamond",
+      "color": "D4A020",
+      "lightLevel": 11,
+      "scale": 12.0,
+      "cooldown": 40,
+      "shape": "doorway",
+      "anchor": {
+        "pos": [-412, 64, 217],
+        "exit": "bed"
+      },
+      "sounds": {
+        "ignite": "block.portal.trigger",
+        "enter": "block.portal.travel",
+        "exit": "block.portal.travel"
+      },
+      "aura": {
+        "subsume": "everything",
+        "palette": [
+          "minecraft:gilded_blackstone",
+          "minecraft:blackstone",
+          "minecraft:gold_block"
+        ]
+      }
+    }
+  ],
+  "exitPortal": {
+    "enabled": true,
+    "pos": "spawn",
+    "target": "bed"
+  },
+  "roll": {
+    "mood": "hard",
+    "allowHazardousSpawn": true,
+    "spawnFilter": [
+      "minecraft:nether_wastes",
+      "minecraft:basalt_deltas"
+    ],
+    "wants": {
+      "sanctum": "near_border",
+      "blackstone_walls": "near_border",
+      "nether_tower": "near_border"
+    }
+  }
+}

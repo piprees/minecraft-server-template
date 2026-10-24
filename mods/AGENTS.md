@@ -2,6 +2,10 @@
 
 Fabric mods built and maintained as part of this platform. Each subdirectory is a standalone Gradle project producing a JAR for the server's mod list. This file is what you must know **before** touching one. Subsystem detail lives in `docs/mod-internals/`: [portals](../docs/mod-internals/portals.md), [worldgen & structures](../docs/mod-internals/worldgen-structures.md), [noise placement design intent](../docs/design/noise-placement.md), [diagnostics & seed rolling](../docs/mod-internals/diagnostics.md), [architecture](../docs/mod-internals/architecture.md). Player-facing config schema: [`custom-dimensions/README.md`](custom-dimensions/README.md).
 
+## The 26.3 rebuild
+
+`custom-dimensions-26/` is the rebuild on Minecraft 26.3: Java 25 from its own `mise.toml`, Mojang names, Loom without remapping, and three Gradle modules (`core`, `compiler`, `server`). It is not in `local-mods.manifest`, so `release.yml` and `mod-build.yml` skip it; `mod26.yml` builds it, runs its tests and boots its self-test on a 26.3 server. Its mod id is `customdimensions`, the same as the mod it replaces, so the directory name breaks the id-matches-directory rule until the switch. Plan and decisions: [`docs/design/rebuild-26/`](../docs/design/rebuild-26/README.md). The rest of this file describes the 1.21.1 mod.
+
 ## Environment
 
 Java 21 (temurin), pinned by `mise.toml` in this directory. Fabric Loom handles Yarn mappings and mixin annotation processing.

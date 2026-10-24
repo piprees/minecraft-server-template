@@ -1,0 +1,181 @@
+{
+  "schemaVersion": 2,
+  "description": "Sculk-eaten caverns. The deep dark outlived the world it consumed and tunnelled on — this is where the underground sculk broke through from the ancient cities. The humans who explored too deep triggered this, and the infection never stopped. It does not stop at the portal either: what stands near the frame is what it eats next.",
+  "seed": 5300382733225892811,
+  "spawn": [128, 16, 128],
+  "generator": {
+    "type": "noise",
+    "preset": "caves"
+  },
+  "biomes": [
+    {
+      "id": "regions_unexplored:redstone_abyss",
+      "climate": {
+        "temperature": [-2.0, -0.2012]
+      }
+    },
+    {
+      "id": "minecraft:deep_dark",
+      "climate": {
+        "temperature": [-0.2012, -0.1339]
+      }
+    },
+    {
+      "id": "terralith:cave/infested_caves",
+      "climate": {
+        "temperature": [-0.1339, -0.0822]
+      }
+    },
+    {
+      "id": "terralith:cave/mantle_caves",
+      "climate": {
+        "temperature": [-0.0822, -0.0743]
+      }
+    },
+    {
+      "id": "nullscape:shadowlands",
+      "climate": {
+        "temperature": [-0.0743, -0.0676]
+      }
+    },
+    {
+      "id": "terralith:cave/fungal_caves",
+      "climate": {
+        "temperature": [-0.0676, -0.0523]
+      }
+    },
+    {
+      "id": "terralith:cave/tuff_caves",
+      "climate": {
+        "temperature": [-0.0523, -0.0104]
+      }
+    },
+    {
+      "id": "terralith:cave/deep_caves",
+      "climate": {
+        "temperature": [-0.0104, 0.0633]
+      }
+    },
+    {
+      "id": "incendium:withered_forest",
+      "climate": {
+        "temperature": [0.0633, 0.0674]
+      }
+    },
+    {
+      "id": "regions_unexplored:mycotoxic_undergrowth",
+      "climate": {
+        "temperature": [0.0674, 0.0723]
+      }
+    },
+    {
+      "id": "regions_unexplored:bioshroom_caves",
+      "climate": {
+        "temperature": [0.0723, 0.0857]
+      }
+    },
+    {
+      "id": "undergroundworlds:spider_cave",
+      "climate": {
+        "temperature": [0.0857, 2.0]
+      }
+    }
+  ],
+  "dimensionType": {
+    "hasSkylight": false,
+    "hasCeiling": true,
+    "monsterSpawnLightLevel": 15
+  },
+  "atmosphere": {
+    "fogColor": "#0B2B3B",
+    "ambientLight": 0.03
+  },
+  "borders": {
+    "player": 512,
+    "generation": 512
+  },
+  "difficulty": {
+    "mobMultiplier": 3.0,
+    "playerLuck": 2.5,
+    "depthScaling": {
+      "enabled": true,
+      "startY": 64,
+      "endY": -64,
+      "minMultiplier": 1.5,
+      "maxMultiplier": 2.5
+    }
+  },
+  "structures": {
+    "force": [
+      {
+        "structure": "philipsruins:sculk_dungeon",
+        "x": 176,
+        "z": 64,
+        "exclusive": false
+      },
+      {
+        "structure": "minecraft:ancient_city",
+        "x": -256,
+        "z": 384,
+        "exclusive": false
+      }
+    ]
+  },
+  "portals": [
+    {
+      "frameBlock": "minecraft:sculk",
+      "igniterItem": "minecraft:netherite_scrap",
+      "color": "0B4B5B",
+      "lightLevel": 11,
+      "scale": 16.0,
+      "cooldown": 40,
+      "particleType": "minecraft:sculk_soul",
+      "sounds": {
+        "ignite": "block.portal.trigger",
+        "enter": "block.portal.travel",
+        "exit": "block.portal.travel"
+      },
+      "aura": {
+        "subsume": "everything",
+        "palette": [
+          "minecraft:sculk",
+          "minecraft:sculk_vein",
+          "minecraft:deepslate"
+        ],
+        "flora": [
+          "minecraft:sculk_vein"
+        ]
+      }
+    }
+  ],
+  "exits": {
+    "death": {
+      "action": "respawnAt",
+      "target": {
+        "dimension": "adventure:the_underdark",
+        "arrival": "spawn"
+      }
+    }
+  },
+  "roll": {
+    "mood": "hard",
+    "allowHazardousSpawn": true,
+    "spawnFilter": [
+      "minecraft:deep_dark",
+      "terralith:cave/infested_caves"
+    ],
+    "wants": {
+      "sculk_dungeon": "near_spawn",
+      "trial_chambers": "spread",
+      "ancient_city": "near_border",
+      "bone_dungeon": "spread",
+      "underground_camp": "near_spawn"
+    },
+    "shuns": [
+      "village",
+      "tavern",
+      "farmstead",
+      "piglin_village"
+    ]
+  }
+}

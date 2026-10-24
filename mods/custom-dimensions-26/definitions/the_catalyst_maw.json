@@ -1,0 +1,186 @@
+{
+  "schemaVersion": 2,
+  "description": "The sculk that fed on the boneyard war escaped here — corrupted end terrain bleeding into dark overworld, oppressive and chaotic. The catalyst is still feeding, still growing. The reactors and bastions it consumed are unrecognisable, and what it reaches near the portal it takes.",
+  "seed": -8220001285587080739,
+  "spawn": [-128, 174, 128],
+  "generator": {
+    "type": "noise",
+    "preset": "end"
+  },
+  "terrain": {
+    "base": null
+  },
+  "biomes": [
+    "minecraft:basalt_deltas",
+    "minecraft:soul_sand_valley",
+    "incendium:toxic_heap",
+    "incendium:withered_forest",
+    "minecraft:nether_wastes",
+    "incendium:ash_barrens",
+    {
+      "id": "nullscape:shadowlands",
+      "climate": {
+        "weirdness": [-2.0, -0.435]
+      }
+    },
+    {
+      "id": "minecraft:deep_dark",
+      "climate": {
+        "weirdness": [-0.435, -0.3]
+      }
+    },
+    {
+      "id": "terralith:moonlight_valley",
+      "climate": {
+        "weirdness": [-0.02, 0.12]
+      }
+    },
+    {
+      "id": "minecraft:mangrove_swamp",
+      "climate": {
+        "weirdness": [0.345, 0.39]
+      }
+    },
+    {
+      "id": "minecraft:dark_forest",
+      "climate": {
+        "weirdness": [0.39, 0.42]
+      }
+    },
+    {
+      "id": "terralith:moonlight_grove",
+      "climate": {
+        "weirdness": [0.495, 0.53]
+      }
+    },
+    {
+      "id": "minecraft:end_midlands",
+      "climate": {
+        "weirdness": [0.53, 0.6]
+      }
+    },
+    {
+      "id": "minecraft:end_highlands",
+      "climate": {
+        "weirdness": [0.6, 0.7]
+      }
+    },
+    {
+      "id": "terralith:volcanic_crater",
+      "climate": {
+        "weirdness": [0.7, 0.79]
+      }
+    },
+    {
+      "id": "terralith:caldera",
+      "climate": {
+        "weirdness": [0.79, 2.0]
+      }
+    }
+  ],
+  "zones": [
+    {
+      "shape": "circle",
+      "centre": [1180, -860],
+      "radius": 200,
+      "blend": 40,
+      "biomes": [
+        "minecraft:deep_dark"
+      ]
+    }
+  ],
+  "dimensionType": {
+    "hasCeiling": false,
+    "monsterSpawnLightLevel": 15
+  },
+  "atmosphere": {
+    "fogColor": "#0B2B3B",
+    "ambientLight": 0.06,
+    "effects": "minecraft:the_end"
+  },
+  "borders": {
+    "player": 4096,
+    "generation": 2048
+  },
+  "difficulty": {
+    "mobMultiplier": 2.5,
+    "playerLuck": 1.8
+  },
+  "structures": {
+    "density": "dense",
+    "force": [
+      {
+        "structure": "philipsruins:sculk_dungeon",
+        "x": 140,
+        "z": 96,
+        "exclusive": false
+      },
+      {
+        "structure": "incendium:nether_reactor",
+        "x": 1180,
+        "z": -860,
+        "exclusive": false
+      }
+    ]
+  },
+  "portals": [
+    {
+      "frameBlock": "minecraft:sculk_catalyst",
+      "igniterItem": "minecraft:ender_eye",
+      "color": "1B5B6B",
+      "lightLevel": 11,
+      "scale": 2.0,
+      "cooldown": 40,
+      "particleType": "minecraft:end_rod",
+      "sounds": {
+        "ignite": "block.portal.trigger",
+        "enter": "block.portal.travel",
+        "exit": "block.portal.travel"
+      },
+      "aura": {
+        "subsume": "everything",
+        "palette": [
+          "minecraft:sculk",
+          "minecraft:sculk_catalyst",
+          "minecraft:blackstone"
+        ],
+        "flora": [
+          "minecraft:sculk_vein"
+        ]
+      }
+    }
+  ],
+  "exits": {
+    "death": {
+      "action": "respawnAt",
+      "target": {
+        "dimension": "adventure:the_sculked_beyond",
+        "arrival": "spawn"
+      }
+    }
+  },
+  "roll": {
+    "mood": "hard",
+    "allowHazardousSpawn": true,
+    "spawnFilter": [
+      "minecraft:basalt_deltas",
+      "minecraft:soul_sand_valley",
+      "incendium:toxic_heap",
+      "incendium:withered_forest",
+      "nullscape:shadowlands",
+      "minecraft:deep_dark"
+    ],
+    "wants": {
+      "sculk_dungeon": "near_spawn",
+      "nether_reactor": "spread",
+      "bastion": "spread",
+      "fortress": "near_border",
+      "ruined_lab": "spread"
+    },
+    "shuns": [
+      "piglin_village",
+      "crimson_fungus",
+      "warped_outpost"
+    ]
+  }
+}

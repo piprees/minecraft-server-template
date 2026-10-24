@@ -29,6 +29,11 @@ MANIFEST=(
   docker-compose.yml
   docker-compose.local.yml
   .env.example
+  # The Minecraft version and its facts: lib.sh's mc_version reads them
+  # beside scripts/, and minecraft_version.py is the Python reader.
+  .minecraft-version
+  scripts/minecraft-versions.tsv
+  scripts/minecraft_version.py
   scripts/lib.sh
   scripts/force-toml-key.py
   scripts/deploy.sh
@@ -72,6 +77,7 @@ MANIFEST=(
   scripts/modrinth-api.py
   # Resolves stack/VERSION for every artefact stamp and cache key.
   scripts/stack_version.py
+  scripts/stack_update.py
   scripts/gen-suppress-catalogue.py
   scripts/server-power.sh
   scripts/discord-notify.sh
@@ -91,6 +97,7 @@ MANIFEST=(
   # bundle — its copy loops are guarded by [[ -f "$src" ]] and silently
   # skip missing sources.
   examples/consumer/.env.example
+  examples/consumer/.stack-version
   examples/consumer/.gitignore
   examples/consumer/AGENTS.md
   examples/consumer/commands.json
@@ -98,6 +105,7 @@ MANIFEST=(
   examples/consumer/.github/workflows/deploy.yml
   examples/consumer/.github/workflows/update.yml
   examples/consumer/.github/workflows/server-power.yml
+  examples/consumer/.github/dependabot.yml
 )
 
 echo "Building stack bundle v${VERSION}..."
@@ -130,7 +138,7 @@ done
 # (platform-internal: 2.3 MB that only check-band-share.py reads).
 rsync -a \
   --exclude='1password.env' \
-  --exclude='modrinth-mods.pinned.txt' \
+  --exclude='modrinth-mods*.pinned.txt' \
   --exclude='grids-41' \
   "$PROJECT_DIR/config/" "$STAGING_DIR/stack/config/"
 

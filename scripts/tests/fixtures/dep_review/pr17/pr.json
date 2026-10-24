@@ -1,0 +1,23 @@
+{
+ "number": 17,
+ "title": "chore: bump aiohttp from 3.14.1 to 3.14.3 in /scripts",
+ "state": "closed",
+ "draft": false,
+ "user": {
+  "login": "dependabot[bot]"
+ },
+ "base": {
+  "ref": "main",
+  "sha": "b8f9b7871e247b323ab362a18aaeed12a19287d4",
+  "repo": {
+   "full_name": "piprees/minecraft-server-template"
+  }
+ },
+ "head": {
+  "ref": "dependabot/pip/scripts/aiohttp-3.14.3",
+  "sha": "1cca1156d60cd586dfad484a4c90d13da5610b57",
+  "repo": {
+   "full_name": "piprees/minecraft-server-template"
+  }
+ }
+}

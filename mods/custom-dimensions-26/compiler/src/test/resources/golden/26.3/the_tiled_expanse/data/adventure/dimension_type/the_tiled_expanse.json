@@ -1,0 +1,18 @@
+{
+  "base": "minecraft:overworld",
+  "changed": {
+    "ambient_light": 0.25,
+    "attributes": {
+      "changed": {
+        "minecraft:gameplay/nether_portal_spawns_piglin": false,
+        "minecraft:visual/fog_color": "#8b9baf",
+        "minecraft:visual/sky_color": "#8b9baf"
+      },
+      "removed": [
+        "minecraft:visual/cloud_color",
+        "minecraft:visual/cloud_height"
+      ]
+    },
+    "skybox": "end"
+  }
+}

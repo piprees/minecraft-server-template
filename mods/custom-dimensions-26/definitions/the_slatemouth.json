@@ -1,0 +1,124 @@
+{
+  "schemaVersion": 2,
+  "description": "A basalt-and-soul void, and nothing else — no floor, no horizon, no lava left to reflect a sky. Whatever was here, the void consumed it completely. The piglins' word for this place translates roughly as 'the mouth that swallowed', and it does not kill what it swallows: it puts it down in the capital.",
+  "seed": -5323308325963958712,
+  "spawn": [-64, -64, -128],
+  "generator": {
+    "type": "void"
+  },
+  "biomes": [
+    {
+      "id": "minecraft:nether_wastes",
+      "climate": {
+        "weirdness": [-2.0, -0.5538]
+      }
+    },
+    {
+      "id": "minecraft:basalt_deltas",
+      "climate": {
+        "weirdness": [-0.5538, -0.5271]
+      }
+    },
+    {
+      "id": "incendium:quartz_flats",
+      "climate": {
+        "weirdness": [-0.5271, -0.508]
+      }
+    },
+    {
+      "id": "incendium:toxic_heap",
+      "climate": {
+        "weirdness": [-0.508, -0.4792]
+      }
+    },
+    {
+      "id": "nullscape:void_barrens",
+      "climate": {
+        "weirdness": [-0.4792, -0.3709]
+      }
+    },
+    {
+      "id": "minecraft:soul_sand_valley",
+      "climate": {
+        "weirdness": [-0.3709, -0.2942]
+      }
+    },
+    {
+      "id": "nullscape:shadowlands",
+      "climate": {
+        "weirdness": [-0.2942, 2.0]
+      }
+    }
+  ],
+  "liquids": {
+    "defaultFluid": "minecraft:lava"
+  },
+  "atmosphere": {
+    "skyColor": "#1B0B0B",
+    "fogColor": "#1B0B0B",
+    "ambientLight": 0.05,
+    "effects": "minecraft:the_nether"
+  },
+  "rules": {
+    "bedsWork": false,
+    "respawnAnchorsWork": true,
+    "ultraWarm": true,
+    "natural": false
+  },
+  "borders": {
+    "player": 512,
+    "generation": 512
+  },
+  "difficulty": {
+    "mobMultiplier": 2.5,
+    "playerLuck": 2.0
+  },
+  "structures": {
+    "density": "none"
+  },
+  "portals": [
+    {
+      "frameBlock": "minecraft:deepslate",
+      "igniterItem": "minecraft:netherite_scrap",
+      "color": "4B5B6B",
+      "lightLevel": 11,
+      "scale": 16.0,
+      "cooldown": 40,
+      "sounds": {
+        "ignite": "block.portal.trigger",
+        "enter": "block.portal.travel",
+        "exit": "block.portal.travel"
+      },
+      "aura": {
+        "subsume": "everything",
+        "palette": [
+          "minecraft:basalt",
+          "minecraft:soul_soil",
+          "minecraft:blackstone"
+        ]
+      }
+    }
+  ],
+  "exitPortal": {
+    "enabled": true,
+    "pos": "spawn",
+    "target": "bed"
+  },
+  "exits": {
+    "void": {
+      "action": "teleport",
+      "target": {
+        "dimension": "adventure:the_gilded_pit",
+        "arrival": "anchor"
+      }
+    }
+  },
+  "roll": {
+    "mood": "hard",
+    "allowHazardousSpawn": true,
+    "spawnFilter": [
+      "minecraft:nether_wastes"
+    ],
+    "terrain": "void"
+  }
+}

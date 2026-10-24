@@ -1,0 +1,185 @@
+{
+  "schemaVersion": 2,
+  "description": "The breadbasket. Rolling prairie and sunflowers where villagers and humans built the first joint settlements. Taverns close to spawn, honest mineshafts — a place to live, not to fight.",
+  "seed": 5150668443288750586,
+  "spawn": [128, 61, 0],
+  "generator": {
+    "type": "noise",
+    "preset": "overworld"
+  },
+  "terrain": {
+    "base": null
+  },
+  "biomes": [
+    {
+      "id": "regions_unexplored:clover_plains",
+      "climate": {
+        "weirdness": [-2.0, -0.19],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "minecraft:sunflower_plains",
+      "climate": {
+        "weirdness": [-0.19, -0.1658],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "minecraft:meadow",
+      "climate": {
+        "weirdness": [-0.1658, -0.1417],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "minecraft:plains",
+      "climate": {
+        "weirdness": [-0.1417, -0.1175],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "terralith:brushland",
+      "climate": {
+        "weirdness": [-0.1175, -0.0933],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "terralith:steppe",
+      "climate": {
+        "weirdness": [-0.0933, -0.0692],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "minecraft:savanna",
+      "climate": {
+        "weirdness": [-0.0692, -0.045],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "terralith:shield_clearing",
+      "climate": {
+        "weirdness": [-0.045, -0.0208],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "terralith:highlands",
+      "climate": {
+        "weirdness": [-0.0208, 0.0033],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "regions_unexplored:barley_fields",
+      "climate": {
+        "weirdness": [0.0033, 0.0275],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "regions_unexplored:poppy_fields",
+      "climate": {
+        "weirdness": [0.0275, 0.0517],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "regions_unexplored:prairie",
+      "climate": {
+        "weirdness": [0.0517, 0.0758],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "regions_unexplored:grassland",
+      "climate": {
+        "weirdness": [0.0758, 0.1],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "regions_unexplored:pumpkin_fields",
+      "climate": {
+        "weirdness": [0.1, 2.0],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "minecraft:lush_caves",
+      "climate": {
+        "weirdness": [-2.0, -0.045],
+        "depth": [0.1, 2.0]
+      }
+    },
+    {
+      "id": "terralith:cave/tuff_caves",
+      "climate": {
+        "weirdness": [-0.045, 2.0],
+        "depth": [0.1, 2.0]
+      }
+    }
+  ],
+  "liquids": {
+    "seaLevel": 34
+  },
+  "borders": {
+    "player": 1024,
+    "generation": 1024
+  },
+  "difficulty": {
+    "mobMultiplier": 1.0,
+    "playerLuck": 1.2
+  },
+  "portals": [
+    {
+      "frameBlock": "minecraft:grass_block",
+      "igniterItem": "minecraft:amethyst_shard",
+      "color": "5DAF45",
+      "lightLevel": 11,
+      "scale": 8.0,
+      "cooldown": 40,
+      "anchor": {
+        "pos": "spawn",
+        "exit": "bed"
+      },
+      "sounds": {
+        "ignite": "block.portal.trigger",
+        "enter": "block.portal.travel",
+        "exit": "block.portal.travel"
+      },
+      "orientation": "horizontal"
+    }
+  ],
+  "exitPortal": {
+    "enabled": true,
+    "pos": "spawn",
+    "target": "bed"
+  },
+  "roll": {
+    "mood": "pastoral",
+    "spawnFilter": [
+      "regions_unexplored:clover_plains",
+      "minecraft:sunflower_plains"
+    ],
+    "wants": {
+      "village": "near_spawn",
+      "tavern": "near_spawn",
+      "farmstead": "near_spawn",
+      "watchtower": "spread",
+      "mineshaft": "spread",
+      "guide_post_warm": "near_spawn",
+      "campsite": "near_spawn",
+      "lighthouse": "near_border"
+    },
+    "shuns": [
+      "ancient_city",
+      "coliseum",
+      "mansion"
+    ]
+  }
+}

@@ -1,0 +1,145 @@
+{
+  "schemaVersion": 2,
+  "description": "Untouched wilds that whisper. Redwoods, moon groves, abandoned camps of those who didn't stay — the forest was here before anyone arrived and it'll be here after everyone leaves. The whisper is the wind in old growth that's never been cut.",
+  "seed": 631749786967184250,
+  "spawn": [704, 114, 64],
+  "generator": {
+    "type": "noise",
+    "preset": "overworld"
+  },
+  "biomes": [
+    "minecraft:dark_forest",
+    "minecraft:old_growth_spruce_taiga",
+    "minecraft:old_growth_pine_taiga",
+    "minecraft:swamp",
+    "minecraft:mangrove_swamp",
+    "minecraft:taiga",
+    "minecraft:jungle",
+    "minecraft:sparse_jungle",
+    "minecraft:mushroom_fields",
+    "minecraft:river",
+    "terralith:moonlight_valley",
+    "terralith:orchid_swamp",
+    "terralith:shield",
+    "terralith:birch_taiga",
+    "terralith:moonlight_grove",
+    "terralith:cloud_forest",
+    "terralith:shield_clearing",
+    {
+      "id": "natures_spirit:cedar_thicket",
+      "climate": {
+        "humidity": [-0.7, -0.58]
+      }
+    },
+    {
+      "id": "regions_unexplored:redwoods",
+      "climate": {
+        "humidity": [-0.53, -0.41]
+      }
+    },
+    {
+      "id": "regions_unexplored:old_growth_forest",
+      "climate": {
+        "humidity": [-0.35, -0.24]
+      }
+    },
+    {
+      "id": "regions_unexplored:silver_birch_forest",
+      "climate": {
+        "humidity": [-0.18, -0.07]
+      }
+    },
+    {
+      "id": "regions_unexplored:sparse_redwoods",
+      "climate": {
+        "humidity": [-0.01, 0.11]
+      }
+    },
+    {
+      "id": "regions_unexplored:alpha_grove",
+      "climate": {
+        "humidity": [0.16, 0.28]
+      }
+    },
+    {
+      "id": "natures_spirit:aspen_forest",
+      "climate": {
+        "humidity": [0.33, 0.45]
+      }
+    },
+    {
+      "id": "natures_spirit:redwood_forest",
+      "climate": {
+        "humidity": [0.51, 0.62]
+      }
+    }
+  ],
+  "atmosphere": {
+    "fogColor": "#2B4B2B"
+  },
+  "borders": {
+    "player": 4096,
+    "generation": 2048
+  },
+  "difficulty": {
+    "mobMultiplier": 1.2,
+    "playerLuck": 1.5
+  },
+  "structures": {
+    "density": "sparse",
+    "clearSpawnRadius": 96,
+    "terrainAdaptation": {
+      "structory:dense_forest_ruin": "bury",
+      "structory:northern_ruin": "bury",
+      "structory:taiga_ruin_surface": "bury"
+    },
+    "force": [
+      {
+        "structure": "structory:old_manor",
+        "x": 2800,
+        "z": -1200
+      },
+      {
+        "structure": "philipsruins:sculk_dungeon",
+        "x": 2800,
+        "z": -1200
+      }
+    ]
+  },
+  "portals": [
+    {
+      "frameBlock": "minecraft:dark_oak_planks",
+      "igniterItem": "minecraft:amethyst_shard",
+      "color": "2B4B2B",
+      "lightLevel": 11,
+      "scale": 2.0,
+      "cooldown": 40,
+      "sounds": {
+        "ignite": "block.portal.trigger",
+        "enter": "block.portal.travel",
+        "exit": "block.portal.travel"
+      }
+    }
+  ],
+  "roll": {
+    "mood": "desolate",
+    "spawnFilter": [
+      "natures_spirit:redwood_forest"
+    ],
+    "wants": {
+      "abandoned_camp": "near_spawn",
+      "forest_ruin": "spread",
+      "firetower": "spread",
+      "campsite": "near_spawn",
+      "northern_ruin": "spread",
+      "taiga_ruin": "spread",
+      "foraging_outpost": "near_spawn"
+    },
+    "shuns": [
+      "village",
+      "tavern",
+      "mansion",
+      "coliseum"
+    ]
+  }
+}

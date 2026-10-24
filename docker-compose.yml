@@ -121,7 +121,7 @@ services:
   # a valid Mojang session for throwaway test worlds.
   # ==========================================================================
   mc:
-    image: ${MIRROR_REGISTRY:-ghcr.io/piprees/mirrors}/itzg/minecraft-server:2026.7.0-java21
+    image: ${MIRROR_REGISTRY:-ghcr.io/piprees/mirrors}/itzg/minecraft-server:${MC_IMAGE_TAG:-2026.7.0-java21}
     container_name: "${CONTAINER_PREFIX:-}mc"
     ports:
       # Game port - non-default to reduce automated 25565 scanning noise.
@@ -134,6 +134,9 @@ services:
       EULA: "TRUE"
       TYPE: FABRIC
       VERSION: ${MC_VERSION:-1.21.1}
+      # The selected version's loader from minecraft-versions.tsv (export_mc_version); the fallback is the 1.21.1 row's.
+      # platform_updates.py moves it with that row, the client pack and the in-house mod builds.
+      FABRIC_LOADER_VERSION: ${FABRIC_LOADER_VERSION:-0.19.5}
       MEMORY: ${MEMORY:-5G}
       USE_AIKAR_FLAGS: "TRUE"
 
@@ -448,6 +451,10 @@ services:
   uptime-kuma:
     image: ${MIRROR_REGISTRY:-ghcr.io/piprees/mirrors}/louislam/uptime-kuma:2.4.0
     container_name: "${CONTAINER_PREFIX:-}uptime-kuma"
+    environment:
+      # Kuma 2.x otherwise opens on a database-choice page and serves no API
+      # until someone answers it, so kuma-init cannot provision a fresh install.
+      UPTIME_KUMA_DB_TYPE: sqlite
     ports:
       # Bound to localhost - not accessible from the internet.
       # Cloudflared reaches Kuma via Docker network DNS, not this port.

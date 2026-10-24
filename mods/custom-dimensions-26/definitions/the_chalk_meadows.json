@@ -1,0 +1,153 @@
+{
+  "schemaVersion": 2,
+  "description": "Rolling chalk downs in heather and carnation. Villager country — settlements in the hollows, nothing sinister for miles. The people here never went looking for ancient cities, and the ancient cities never found them.",
+  "seed": 2066632607198100573,
+  "spawn": [-192, 65, 320],
+  "generator": {
+    "type": "noise",
+    "preset": "overworld"
+  },
+  "biomes": [
+    {
+      "id": "natures_spirit:heather_fields",
+      "climate": {
+        "weirdness": [-2.0, -0.19],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "natures_spirit:carnation_fields",
+      "climate": {
+        "weirdness": [-0.19, -0.1537],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "terralith:blooming_plateau",
+      "climate": {
+        "weirdness": [-0.1537, -0.1175],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "minecraft:meadow",
+      "climate": {
+        "weirdness": [-0.1175, -0.0812],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "minecraft:plains",
+      "climate": {
+        "weirdness": [-0.0812, -0.045],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "minecraft:sunflower_plains",
+      "climate": {
+        "weirdness": [-0.045, -0.0087],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "minecraft:flower_forest",
+      "climate": {
+        "weirdness": [-0.0087, 0.0275],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "natures_spirit:lavender_fields",
+      "climate": {
+        "weirdness": [0.0275, 0.0638],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "regions_unexplored:chalk_cliffs",
+      "climate": {
+        "weirdness": [0.0638, 0.1],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "regions_unexplored:clover_plains",
+      "climate": {
+        "weirdness": [0.1, 2.0],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "minecraft:lush_caves",
+      "climate": {
+        "weirdness": [-2.0, -0.045],
+        "depth": [0.1, 2.0]
+      }
+    },
+    {
+      "id": "terralith:cave/tuff_caves",
+      "climate": {
+        "weirdness": [-0.045, 2.0],
+        "depth": [0.1, 2.0]
+      }
+    }
+  ],
+  "borders": {
+    "player": 1024,
+    "generation": 1024
+  },
+  "difficulty": {
+    "mobMultiplier": 1.0,
+    "playerLuck": 1.2
+  },
+  "structures": {
+    "terrainAdaptation": {
+      "landmarks": "moat"
+    }
+  },
+  "portals": [
+    {
+      "frameBlock": "minecraft:calcite",
+      "igniterItem": "minecraft:amethyst_shard",
+      "color": "C8D8C0",
+      "lightLevel": 11,
+      "scale": 8.0,
+      "cooldown": 40,
+      "anchor": {
+        "pos": [571, 64, -314],
+        "exit": "bed"
+      },
+      "sounds": {
+        "ignite": "block.portal.trigger",
+        "enter": "block.portal.travel",
+        "exit": "block.portal.travel"
+      },
+      "orientation": "horizontal"
+    }
+  ],
+  "exitPortal": {
+    "enabled": true,
+    "pos": "spawn",
+    "target": "bed"
+  },
+  "roll": {
+    "mood": "pastoral",
+    "spawnFilter": [
+      "minecraft:meadow"
+    ],
+    "wants": {
+      "village": "near_spawn",
+      "farmstead": "near_spawn",
+      "guide_post_warm": "near_spawn",
+      "tavern": "spread",
+      "campsite": "near_spawn",
+      "abandoned_chapel": "spread"
+    },
+    "shuns": [
+      "ancient_city",
+      "mansion",
+      "coliseum"
+    ]
+  }
+}

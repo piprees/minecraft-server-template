@@ -1,0 +1,103 @@
+{
+  "schemaVersion": 2,
+  "description": "Floating garden islands — sakura and skylands adrift in a void slowly winning. The animals' paradise, where nothing was ever built to last and nothing needs to. Sky houses and castle ruins dot the islands like driftwood.",
+  "seed": -2068817936672598070,
+  "spawn": [0, 42, 0],
+  "generator": {
+    "type": "noise",
+    "preset": "floating_islands"
+  },
+  "biomes": [
+    "minecraft:plains",
+    "minecraft:forest",
+    "minecraft:birch_forest",
+    "minecraft:meadow",
+    "minecraft:flower_forest",
+    "minecraft:cherry_grove",
+    "terralith:blooming_valley",
+    "terralith:sakura_valley",
+    "terralith:sakura_grove",
+    "terralith:alpine_grove",
+    "terralith:lush_valley",
+    "terralith:lavender_valley",
+    "terralith:blooming_plateau",
+    "terralith:shrubland",
+    "terralith:skylands_spring",
+    "terralith:skylands_autumn",
+    "terralith:skylands_summer",
+    "terralith:skylands_winter",
+    "terralith:mirage_isles",
+    "minecraft:sunflower_plains"
+  ],
+  "liquids": {
+    "seaLevel": -64,
+    "defaultFluid": "minecraft:water"
+  },
+  "materials": {
+    "defaultBlock": "minecraft:stone"
+  },
+  "borders": {
+    "player": 4096,
+    "generation": 2048
+  },
+  "difficulty": {
+    "mobMultiplier": 1.5,
+    "playerLuck": 1.5
+  },
+  "structures": {
+    "noise": {
+      "endgame": "sparse"
+    }
+  },
+  "portals": [
+    {
+      "frameBlock": "minecraft:quartz_block",
+      "igniterItem": "minecraft:amethyst_shard",
+      "color": "B0D8F0",
+      "lightLevel": 11,
+      "scale": 2.0,
+      "cooldown": 40,
+      "particleType": "minecraft:end_rod",
+      "sounds": {
+        "ignite": "block.portal.trigger",
+        "enter": "block.portal.travel",
+        "exit": "block.portal.travel"
+      },
+      "aura": {
+        "subsume": "natural"
+      }
+    }
+  ],
+  "roll": {
+    "mood": "scenic",
+    "spawnFilter": [
+      "minecraft:cherry_grove",
+      "minecraft:flower_forest",
+      "terralith:skylands_spring",
+      "terralith:blooming_valley",
+      "minecraft:plains",
+      "minecraft:meadow",
+      "minecraft:forest",
+      "minecraft:birch_forest",
+      "terralith:sakura_grove",
+      "terralith:lush_valley"
+    ],
+    "wants": {
+      "sky_house": "near_spawn",
+      "sky_castle_ruin": "spread",
+      "sky_arena": "spread",
+      "sky_volcano": "near_border",
+      "sky_castle_tower": "near_border",
+      "guide_post_warm": "near_spawn",
+      "abandoned_camp": "near_spawn"
+    },
+    "shuns": [
+      "ancient_city",
+      "trial_chambers",
+      "mansion",
+      "monument",
+      "coliseum"
+    ],
+    "terrain": "islands"
+  }
+}

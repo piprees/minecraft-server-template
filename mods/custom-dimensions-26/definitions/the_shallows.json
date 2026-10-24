@@ -1,0 +1,147 @@
+{
+  "schemaVersion": 2,
+  "description": "Broad warm shallows and mirage isles. Wrecks and drowned ruins under clear water — ships that tried to cross and didn't make it. The ocean doesn't care about civilisation; it just collects the debris.",
+  "seed": -8451995168785269352,
+  "spawn": [64, 63, -256],
+  "generator": {
+    "type": "noise",
+    "preset": "overworld"
+  },
+  "terrain": {
+    "base": null
+  },
+  "biomes": [
+    {
+      "id": "terralith:mirage_isles",
+      "climate": {
+        "weirdness": [-2.0, -0.19],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "minecraft:warm_ocean",
+      "climate": {
+        "weirdness": [-0.19, -0.1486],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "minecraft:lukewarm_ocean",
+      "climate": {
+        "weirdness": [-0.1486, -0.1071],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "natures_spirit:tropical_shores",
+      "climate": {
+        "weirdness": [-0.1071, -0.0657],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "terralith:deep_warm_ocean",
+      "climate": {
+        "weirdness": [-0.0657, -0.0243],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "minecraft:beach",
+      "climate": {
+        "weirdness": [-0.0243, 0.0171],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "regions_unexplored:tropical_river",
+      "climate": {
+        "weirdness": [0.0171, 0.0586],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "regions_unexplored:rocky_reef",
+      "climate": {
+        "weirdness": [0.0586, 0.1],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "wilderwild:warm_beach",
+      "climate": {
+        "weirdness": [0.1, 2.0],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "minecraft:lush_caves",
+      "climate": {
+        "weirdness": [-2.0, -0.045],
+        "depth": [0.1, 2.0]
+      }
+    },
+    {
+      "id": "terralith:cave/tuff_caves",
+      "climate": {
+        "weirdness": [-0.045, 2.0],
+        "depth": [0.1, 2.0]
+      }
+    }
+  ],
+  "borders": {
+    "player": 512,
+    "generation": 512
+  },
+  "difficulty": {
+    "mobMultiplier": 0.7,
+    "playerLuck": 1.8
+  },
+  "portals": [
+    {
+      "frameBlock": "minecraft:prismarine",
+      "igniterItem": "minecraft:nautilus_shell",
+      "color": "3BAFAF",
+      "lightLevel": 11,
+      "scale": 16.0,
+      "cooldown": 40,
+      "anchor": {
+        "pos": [327, 64, -189],
+        "exit": "bed"
+      },
+      "sounds": {
+        "ignite": "block.portal.trigger",
+        "enter": "block.portal.travel",
+        "exit": "block.portal.travel"
+      },
+      "orientation": "horizontal"
+    }
+  ],
+  "exitPortal": {
+    "enabled": true,
+    "pos": "spawn",
+    "target": "bed"
+  },
+  "roll": {
+    "mood": "serene",
+    "spawnFilter": [
+      "minecraft:beach"
+    ],
+    "water": "sea",
+    "wants": {
+      "shipwreck": "near_spawn",
+      "buried_treasure": "near_spawn",
+      "ocean_ruins": "spread",
+      "lighthouse": "spread",
+      "ocean_pillar": "spread",
+      "ocean_fortress": "near_border"
+    },
+    "shuns": [
+      "village",
+      "mansion",
+      "coliseum",
+      "ancient_city",
+      "trial_chambers"
+    ]
+  }
+}

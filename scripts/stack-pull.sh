@@ -17,9 +17,10 @@
 #   STACK_VERSION=v2.1 ./stack-pull.sh         # resolve latest v2.1.x
 #   STACK_VERSION=v2.1.3 ./stack-pull.sh       # exact pin
 #
-# Reads STACK_VERSION from the environment or from .env in the current
-# directory (unset or 'latest' = the newest release of any major;
-# ./ops setup records the major line in use so upgrades stay deliberate).
+# The pin, first match wins: STACK_VERSION in the environment (`dev` exports
+# the consumer's resolved pin), .stack-version in the current directory (the
+# tracked pin a consumer commits), STACK_VERSION in .env (deprecated), then
+# latest - the newest release of any major.
 # Downloads the bundle + sha256 checksum to .stack/<version>/,
 # verifies the checksum, unpacks, and atomically repoints .stack/current.
 #
@@ -159,12 +160,15 @@ _load_resolved_cache() {
   return 1
 }
 
+if [[ -z "${STACK_VERSION:-}" ]] && [[ -f ".stack-version" ]]; then
+  STACK_VERSION=$(grep -vE '^[[:space:]]*(#|$)' .stack-version | head -1 | tr -d '[:space:]') || true
+fi
 if [[ -z "${STACK_VERSION:-}" ]] && [[ -f ".env" ]]; then
   STACK_VERSION=$(grep -E '^STACK_VERSION=' .env 2>/dev/null | head -1 | cut -d= -f2- | tr -d '"' | tr -d "'") || true
 fi
 
-# Default: track the latest release. Pin STACK_VERSION in .env (v2 = latest
-# v2.x.y, v2.1.3 = exact) to hold a line - ./ops setup records this for you.
+# Default: track the latest release. .stack-version holds an exact pin
+# (v2.1.3); v2 = latest v2.x.y.
 STACK_VERSION="${STACK_VERSION:-latest}"
 
 echo "Resolving STACK_VERSION=${STACK_VERSION}..."

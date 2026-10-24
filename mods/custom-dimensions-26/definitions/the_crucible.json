@@ -1,0 +1,259 @@
+{
+  "schemaVersion": 2,
+  "description": "A compressed jungle gauntlet where the wild reclaimed everything. Infested temples and webbed dungeons in terrain that fights back, and crimson fungus rooted in the canopy where the nether leaked in. Whatever was built here was consumed long ago — the jungle doesn't negotiate, and what it reaches through the portal it keeps.",
+  "seed": -1677720627089150295,
+  "spawn": [320, 67, -192],
+  "generator": {
+    "type": "noise",
+    "preset": "overworld"
+  },
+  "terrain": {
+    "base": null
+  },
+  "biomes": [
+    {
+      "id": "minecraft:dark_forest",
+      "climate": {
+        "weirdness": [-2.0, -0.5887]
+      }
+    },
+    {
+      "id": "minecraft:mangrove_swamp",
+      "climate": {
+        "weirdness": [-0.5887, -0.5463]
+      }
+    },
+    {
+      "id": "minecraft:swamp",
+      "climate": {
+        "weirdness": [-0.5463, -0.5068]
+      }
+    },
+    {
+      "id": "minecraft:sparse_jungle",
+      "climate": {
+        "weirdness": [-0.5068, -0.4837]
+      }
+    },
+    {
+      "id": "minecraft:river",
+      "climate": {
+        "weirdness": [-0.4837, -0.4605]
+      }
+    },
+    {
+      "id": "minecraft:beach",
+      "climate": {
+        "weirdness": [-0.4605, -0.4373]
+      }
+    },
+    {
+      "id": "minecraft:lush_caves",
+      "climate": {
+        "weirdness": [-0.4373, -0.4141]
+      }
+    },
+    {
+      "id": "terralith:orchid_swamp",
+      "climate": {
+        "weirdness": [-0.4141, -0.3909]
+      }
+    },
+    {
+      "id": "terralith:moonlight_grove",
+      "climate": {
+        "weirdness": [-0.3909, -0.3677]
+      }
+    },
+    {
+      "id": "terralith:mirage_isles",
+      "climate": {
+        "weirdness": [-0.3677, -0.3445]
+      }
+    },
+    {
+      "id": "terralith:moonlight_valley",
+      "climate": {
+        "weirdness": [-0.3445, -0.3213]
+      }
+    },
+    {
+      "id": "terralith:rocky_jungle",
+      "climate": {
+        "weirdness": [-0.3213, -0.2976]
+      }
+    },
+    {
+      "id": "terralith:cave/underground_jungle",
+      "climate": {
+        "weirdness": [-0.2976, -0.2735]
+      }
+    },
+    {
+      "id": "wilderwild:rainforest",
+      "climate": {
+        "weirdness": [-0.2735, -0.2495]
+      }
+    },
+    {
+      "id": "wilderwild:birch_jungle",
+      "climate": {
+        "weirdness": [-0.2495, -0.2144]
+      }
+    },
+    {
+      "id": "regions_unexplored:tropical_river",
+      "climate": {
+        "weirdness": [-0.2144, -0.1758]
+      }
+    },
+    {
+      "id": "regions_unexplored:sparse_rainforest",
+      "climate": {
+        "weirdness": [-0.1758, -0.1371]
+      }
+    },
+    {
+      "id": "minecraft:jungle",
+      "climate": {
+        "weirdness": [-0.1371, 0.0589]
+      }
+    },
+    {
+      "id": "minecraft:bamboo_jungle",
+      "climate": {
+        "weirdness": [0.0589, 0.2096]
+      }
+    },
+    {
+      "id": "terralith:cloud_forest",
+      "climate": {
+        "weirdness": [0.2096, 0.2876]
+      }
+    },
+    {
+      "id": "undergroundworlds:underground_jungle",
+      "climate": {
+        "weirdness": [0.2876, 0.3356]
+      }
+    },
+    {
+      "id": "wilderwild:sparse_birch_jungle",
+      "climate": {
+        "weirdness": [0.3356, 0.3818]
+      }
+    },
+    {
+      "id": "incendium:inverted_forest",
+      "climate": {
+        "weirdness": [0.3818, 0.4433]
+      }
+    },
+    {
+      "id": "terralith:tropical_jungle",
+      "climate": {
+        "weirdness": [0.4433, 0.4785]
+      }
+    },
+    {
+      "id": "regions_unexplored:tropics",
+      "climate": {
+        "weirdness": [0.4785, 2.0]
+      }
+    }
+  ],
+  "atmosphere": {
+    "skyColor": "#1E3A1E",
+    "fogColor": "#2B4B2B",
+    "ambientLight": 0.1
+  },
+  "borders": {
+    "player": 2048,
+    "generation": 2048
+  },
+  "difficulty": {
+    "mobMultiplier": 2.5,
+    "playerLuck": 2.0,
+    "depthScaling": {
+      "enabled": true,
+      "startY": 64,
+      "endY": -32,
+      "minMultiplier": 1.0,
+      "maxMultiplier": 2.0
+    }
+  },
+  "structures": {
+    "density": "dense",
+    "force": [
+      {
+        "structure": "dungeons_arise:jungle_tree_house",
+        "x": 180,
+        "z": -70,
+        "exclusive": false
+      }
+    ]
+  },
+  "portals": [
+    {
+      "frameBlock": [
+        "minecraft:copper_block",
+        "minecraft:exposed_copper",
+        "minecraft:weathered_copper",
+        "minecraft:waxed_copper_block",
+        "minecraft:waxed_exposed_copper",
+        "minecraft:waxed_weathered_copper",
+        "minecraft:waxed_oxidized_copper"
+      ],
+      "framePlaceBlock": "minecraft:copper_block",
+      "igniterItem": "minecraft:diamond",
+      "color": "8BAF5B",
+      "lightLevel": 11,
+      "scale": 4.0,
+      "cooldown": 40,
+      "sounds": {
+        "ignite": "block.portal.trigger",
+        "enter": "block.portal.travel",
+        "exit": "block.portal.travel"
+      },
+      "aura": {
+        "subsume": "everything",
+        "palette": [
+          "minecraft:moss_block",
+          "minecraft:mud",
+          "minecraft:rooted_dirt",
+          "minecraft:podzol"
+        ],
+        "flora": [
+          "minecraft:fern",
+          "minecraft:large_fern",
+          "minecraft:moss_carpet"
+        ]
+      }
+    }
+  ],
+  "roll": {
+    "mood": "hard",
+    "allowHazardousSpawn": true,
+    "spawnFilter": [
+      "minecraft:jungle",
+      "minecraft:bamboo_jungle",
+      "terralith:cloud_forest",
+      "terralith:tropical_jungle"
+    ],
+    "wants": {
+      "jungle_ruin": "near_spawn",
+      "jungle_tree_house": "near_spawn",
+      "infested_temple": "spread",
+      "webbed_dungeon": "spread",
+      "trial_chambers": "spread",
+      "murkydungeon": "spread",
+      "lush_dungeon": "spread",
+      "underground_camp": "near_spawn"
+    },
+    "shuns": [
+      "village",
+      "tavern",
+      "farmstead"
+    ]
+  }
+}
