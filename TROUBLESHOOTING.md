@@ -1596,6 +1596,13 @@ A seed's map and its banked facts appear to contradict each other — the thumbn
   the same trap. Pin it against the Java, not against intuition —
   `scripts/e2e/portal-matrix-selftest.sh` is the worked example.
 
+<a id="t134"></a>
+### T134 — Vanilla's data-generator reports sort their keys; a codec does not
+
+- **Symptom:** the pack the 26.3 mod compiles from the running game differs byte for byte from the one compiled from `:compiler:vanillaData`, first in a multi-noise level stem.
+- **Cause:** the data generator writes reports through `DataProvider.KEY_COMPARATOR`, so `reports/biome_parameters/*.json` has sorted keys; encoding the same parameter list with its codec keeps the codec's field order.
+- **Fix:** `RuntimeVanilla` writes the lists through `GsonHelper.writeValue` with `DataProvider.KEY_COMPARATOR`. The self-test's pack-equivalence line compares the two sources on every run.
+
 <a id="t133"></a>
 ### T133 — 26.x merges experience orbs of one value into a single orb with a count
 
