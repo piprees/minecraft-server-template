@@ -33,7 +33,7 @@ Commands: `/customdim create | list | info | tp | render | roll | pick | audit`.
 
 ## Mixins
 
-**Stay (the budget):** mob attribute scaling at spawn; respawn redirect; forced structure starts; noise structure selection; terrain adaptation around structures; End gateway, End portal and Nether portal suppression where a definition asks for it; frame-break detection for portal decay; two accessors for a level generator's fluid rule and per-biome feature lists (lava level, ores added and removed per dimension).
+**Stay (the budget):** mob attribute scaling at spawn; respawn redirect; forced structure starts; noise structure selection; terrain adaptation around structures; End gateway, End portal and Nether portal suppression where a definition asks for it; frame-break detection for portal decay; two accessors for a level generator's fluid rule and per-biome feature lists (lava level, ores added and removed per dimension); the firewall's structure-set switch-off in `ChunkGeneratorStructureState.createForNormal`.
 
 **Go:**
 

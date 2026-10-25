@@ -25,3 +25,10 @@ def noMinecraft = tasks.register('checkNoMinecraftImports') {
 	}
 }
 tasks.named('check') { dependsOn noMinecraft }
+
+// -Pjar=<structure mod jar or datapack zip> -Pout=<dir> [-Pmod=<id>]: writes a first, unreviewed bridge for a human to tag.
+tasks.register('bridge', JavaExec) {
+	classpath = sourceSets.main.runtimeClasspath
+	mainClass = 'com.customdimensions.core.firewall.BridgeGenerator'
+	args = [project.findProperty('jar') ?: '', project.findProperty('out') ?: '', project.findProperty('mod') ?: ''].findAll { it }
+}

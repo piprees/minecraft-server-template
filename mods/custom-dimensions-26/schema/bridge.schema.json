@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:custom-dimensions:bridge:1",
+  "title": "custom-dimensions bridge",
+  "description": "One mod's bridge, config/custom-dimensions/bridges/<mod>.json: what of that mod's worldgen this pack adopts. Only a reviewed bridge counts. docs/design/rebuild-26/bridges.md.",
+  "type": "object",
+  "required": ["mod"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string" },
+    "mod": { "type": "string", "pattern": "^[a-z0-9_.-]+$", "description": "The Fabric mod id; the file is named <mod>.json." },
+    "reviewed": { "type": "boolean", "default": false, "description": "True once a human has tagged it; an unreviewed bridge adopts nothing." },
+    "structureSets": { "$ref": "#/$defs/ids", "description": "Structure sets that keep placing; every other set outside the pack's namespaces is switched off." },
+    "structures": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "$ref": "#/$defs/id" },
+          "set": { "$ref": "#/$defs/id" },
+          "size": {
+            "type": "object",
+            "additionalProperties": false,
+            "description": "The measured footprint in blocks (T54); null until measured.",
+            "properties": {
+              "x": { "$ref": "#/$defs/slot" },
+              "y": { "$ref": "#/$defs/slot" },
+              "z": { "$ref": "#/$defs/slot" }
+            }
+          },
+          "mood": { "$ref": "#/$defs/tags", "items": { "enum": ["hard", "adventurous", "dramatic", "scenic", "pastoral", "serene", "desolate", "standard"] } },
+          "climate": { "$ref": "#/$defs/tags", "items": { "enum": ["frozen", "cold", "temperate", "warm", "hot", "arid", "wet"] } },
+          "depth": { "$ref": "#/$defs/tags", "items": { "enum": ["sky", "surface", "underground", "deep", "underwater"] } }
+        }
+      }
+    },
+    "features": { "$ref": "#/$defs/ids", "description": "Placed features this mod adds to biomes that stay." },
+    "spawns": { "$ref": "#/$defs/ids", "description": "Entity types this mod adds to biome spawns that stay." },
+    "mixins": { "type": "array", "items": { "type": "string" }, "uniqueItems": true, "description": "Mixin configs of this mod reviewed and allowed to enter worldgen classes." },
+    "registries": { "$ref": "#/$defs/ids", "description": "Dimensions, dimension types, noise settings, biome source and chunk generator types of this mod that are allowed." }
+  },
+  "$defs": {
+    "id": { "type": "string", "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$" },
+    "ids": { "type": "array", "items": { "$ref": "#/$defs/id" }, "uniqueItems": true },
+    "tags": { "type": "array", "uniqueItems": true },
+    "slot": { "type": ["integer", "null"], "minimum": 1 }
+  }
+}

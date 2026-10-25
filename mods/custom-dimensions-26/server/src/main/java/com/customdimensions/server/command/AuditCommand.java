@@ -264,6 +264,7 @@ final class AuditCommand {
         section(out, "Ids this server does not have", a.idUses());
         section(out, "Bedrock height warnings", a.bedrock());
         section(out, "Compile warnings", a.warnings());
+        out.append(com.customdimensions.server.firewall.WorldgenFirewall.markdown());
         return out.toString();
     }
 

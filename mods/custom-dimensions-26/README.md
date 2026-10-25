@@ -30,12 +30,13 @@ unloads every lazy dimension in turn, so it runs for a few minutes; it sets
 With `-PselfTest`, `runServer` reads a copy of `definitions/` with the fixture
 dimensions in `server/src/selftest/definitions/` added (a void death, a kept
 inventory, every win trigger, dry and flooded aquifers, a palette and an ore set). The fixtures are never in the release jar.
-`-PselfTestOnly=exits` runs only the compiled-pack and exit sections; `-PselfTestOnly=commands` the compiled-pack and command sections; `-PselfTestOnly=materials` the compiled-pack and materials sections; `-PselfTestOnly=render` the compiled-pack and render sections.
+`-PselfTestOnly=exits` runs only the compiled-pack and exit sections; `-PselfTestOnly=commands` the compiled-pack and command sections; `-PselfTestOnly=materials` the compiled-pack and materials sections; `-PselfTestOnly=render` the compiled-pack and render sections; `-PselfTestOnly=firewall` the compiled-pack and firewall sections.
 
 `runServer` also loads Open Parties and Claims and its Forge Config API Port
 dependency from the Modrinth maven (`localRuntime`, versions in
 `gradle.properties`), so the aura claim veto is exercised; neither is a compile
-dependency or nested in the jar.
+dependency or nested in the jar. `-PfirewallProbe` adds The Lost Cities, a 26.3
+Fabric mod whose `lostcities:lostcity` dimension the firewall refuses.
 
 The persistence check takes two boots of the same world:
 
@@ -175,7 +176,7 @@ files byte for byte.
 | `activate <dimension>`, `unload <dimension>` | Open or close a lazy level; a base world is always loaded |
 | `delete <dimension> [confirm]` | Without `confirm`, says which level folder would go; with it, `LevelManager.delete`. Base worlds are refused; the definition stays |
 | `create <slug> [template]` | Writes `<definitions>/<slug>.json` from the template (default `overworld`) with a fresh seed and one new portal colour, without the template's `spawn`, portal `anchor`s and `wins`; reads it back, compiles it with the other definitions in a temporary folder, and replies that it opens after the next restart (RB-34). The copy keeps the template's frame and igniter |
-| `audit` | Writes `<world>/customdimensions/audit.md`: definitions compiled afresh against the pack (stale, missing, in the pack with no definition), level folders with no definition, portal links to unknown dimensions, frame blocks and igniters the server lacks, Bedrock height warnings, skipped biomes and unsupported fields |
+| `audit` | Writes `<world>/customdimensions/audit.md`: definitions compiled afresh against the pack (stale, missing, in the pack with no definition), level folders with no definition, portal links to unknown dimensions, frame blocks and igniters the server lacks, Bedrock height warnings, skipped biomes and unsupported fields, and the firewall's allowed mods, unreviewed bridges, switched-off structure sets and biome removals |
 | `catalogue` | Writes `../.seed-rolling/catalogue/registries.json` beside the game directory for `scripts/extract-registries.py`: biomes, biome tags, structures, structure sets (placement as the game's codec writes it), blocks, items, features, placed features, entity types, and every tag of those registries with its members |
 | `render <dimension> [seed] [radius] [step]` | Draws the dimension top-down from the `Sampler` into `renders/<dimension>/` under the game directory, off the server thread, without generating chunks ([below](#rendering)). One render at a time |
 
@@ -240,6 +241,27 @@ column no class explains fails; each dimension's columns and classes are written
 to `renders/<dimension>/accuracy.tsv`. It also checks that the sampler's noise
 columns equal the live level generator's, renders the overworld at radius
 1024, step 8 while counting the server's ticks, and checks the refusals.
+
+## Firewall
+
+`server/.../firewall/` keeps every generator this mod's (worldgen.md §
+[Firewall and bridges](../../docs/design/rebuild-26/worldgen.md#firewall-and-bridges));
+the rules are game-free in `core/.../firewall/`.
+
+| Piece | What it does |
+| --- | --- |
+| `WorldgenFirewall` | At SERVER_STARTING, before any level exists: reads the mods, their mixin targets, the level stems, dimension types, noise settings, biome source and chunk generator types; refuses to start (logs the findings at ERROR and throws, so the server writes a crash report and exits 0) or logs the allowed mods and every switched-off structure set by namespace |
+| `MixinTargets` | Each mod's mixin configs from its `fabric.mod.json` and the targets of each `@Mixin` annotation, read with ASM; Mixin's own config registry is empty by then |
+| `StructureStateMixin` | Drops switched-off sets from `ChunkGeneratorStructureState.createForNormal`, for base and Fantasy levels alike |
+| Biome modification | Fabric's `POST_PROCESSING` phase: in each vanilla biome, removes placed features, and entries of the `natural_mob_spawns` attribute, that vanilla's biome file and the reviewed bridges lack |
+| `AllowList`, `WorldgenClasses`, `Firewall` (core) | The allow list, the worldgen class set and the verdict, in one place each |
+| `BridgeReader`, `BridgeGenerator` (core) | Bridges in `config/custom-dimensions/bridges/` (or `-Dcustomdimensions.bridges=<dir>`), [bridges.md](../../docs/design/rebuild-26/bridges.md); `:core:bridge -Pjar=… -Pout=…` writes a first one from a jar |
+
+A malformed bridge also refuses the start, naming the file and field. The
+self-test's firewall section checks the audit passed, that switching off
+`minecraft:villages` removes it from a fresh overworld structure state while
+`pillager_outposts` stays, and that every vanilla biome's features match
+vanilla's file.
 
 ## Difficulty
 

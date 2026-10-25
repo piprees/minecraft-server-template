@@ -38,6 +38,10 @@ dependencies {
 	// Open Parties and Claims, for the aura claim veto in runServer only; the mod reaches it by reflection.
 	localRuntime "maven.modrinth:open-parties-and-claims:${project.opac_version}"
 	localRuntime "maven.modrinth:forge-config-api-port:${project.forge_config_api_port_version}"
+	// -PfirewallProbe: The Lost Cities, a 26.3 Fabric mod adding the dimension lostcities:lostcity, so the firewall refuses to start.
+	if (project.hasProperty('firewallProbe')) {
+		localRuntime "maven.modrinth:the-lost-cities:${project.lostcities_version}"
+	}
 
 	implementation project(':core')
 	implementation project(':compiler')
@@ -73,7 +77,7 @@ loom {
 			programArg '--nogui'
 			// -PselfTest=<file> runs the start-up self-test, writes its report and stops the server.
 			vmArg "-Dcustomdimensions.selftest=${project.findProperty('selfTest') ?: ''}"
-			// -PselfTestOnly=exits|commands|materials|render: the compiled-pack section and that one only.
+			// -PselfTestOnly=exits|commands|materials|render|firewall: the compiled-pack section and that one only.
 			vmArg "-Dcustomdimensions.selftest.only=${project.findProperty('selfTestOnly') ?: ''}"
 			// -PselfTestPersist=write|verify: the two-boot persistence check, run with the self-test.
 			vmArg "-Dcustomdimensions.selftest.persist=${project.findProperty('selfTestPersist') ?: ''}"
