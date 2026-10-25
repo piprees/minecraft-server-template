@@ -23,6 +23,9 @@
 #     that is not online.
 #   - spark and LuckPerms reply asynchronously, after rcon-cli has returned,
 #     so RCON gets nothing back; their checks read the server log instead.
+#   - `execute as <name> run ...` answers nothing whether or not the player
+#     is online, so the Essential Commands checks prove the parse; Essential
+#     Commands' own replies go to the player, not to RCON.
 #   - Every call is capped at 30 s (K6).
 set -euo pipefail
 
@@ -92,8 +95,8 @@ logged() {
   FAILED=1
 }
 
-# Essential Commands answers a missing target with its own phrase.
-ok_target="No player was found|No entity was found|A player is required to run this command here"
+# A command that names a player who is not online answers with one of these.
+ok_target="No player was found|No entity was found"
 [[ -n "$PLAYER" ]] && ok_target="^$"
 echo "# Admin parity: Minecraft $(mc_version), target ${PLAYER:-<none online>}" >> "$OUT"
 
@@ -117,11 +120,11 @@ expect "/mc weather" "weather clear" "Set the weather to clear"
 expect "/mc tempban: kick" "kick $ABSENT Temporarily banned for 1 minutes" "No player was found"
 expect "/mc tempban: ban" "ban $ABSENT Temporarily banned for 1 minutes" "Banned "
 expect "/mc pardon" "pardon $ABSENT" "Unbanned "
-expect "/mc heal (Essential Commands)" "heal $TARGET" "[Hh]eal|$ok_target"
-expect "/mc feed (Essential Commands)" "feed $TARGET" "[Ff]e[ed]|$ok_target"
-expect "/mc fly (Essential Commands)" "fly $TARGET true" "[Ff]l|$ok_target"
-expect "/mc invuln (Essential Commands)" "invuln $TARGET true" "[Ii]nvul|$ok_target"
-expect "/mc extinguish (Essential Commands)" "extinguish $TARGET" "[Ee]xtinguish|$ok_target"
+expect "/mc heal (Essential Commands)" "execute as $TARGET run heal" "^$"
+expect "/mc feed (Essential Commands)" "execute as $TARGET run feed" "^$"
+expect "/mc fly (Essential Commands)" "execute as $TARGET run fly @s true" "^$"
+expect "/mc invuln (Essential Commands)" "execute as $TARGET run invuln @s true" "^$"
+expect "/mc extinguish (Essential Commands)" "execute as $TARGET run extinguish" "^$"
 expect "/mc kill" "kill $ABSENT" "No entity was found"
 expect "/mc give" "give $TARGET minecraft:bread 1" "Gave 1|$ok_target"
 expect "/mc effect" "effect give $TARGET minecraft:speed 5 0" "Applied effect|$ok_target"
