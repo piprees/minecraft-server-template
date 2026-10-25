@@ -2,6 +2,7 @@ package com.customdimensions.server;
 
 import com.customdimensions.server.companion.CompanionNetwork;
 import com.customdimensions.server.exit.ExitHooks;
+import com.customdimensions.server.firewall.WorldgenFirewall;
 import com.customdimensions.server.difficulty.DimensionDifficulty;
 import com.customdimensions.server.command.CustomDimCommands;
 import com.customdimensions.server.level.LevelManager;
@@ -17,6 +18,7 @@ public final class CustomDimensions implements ModInitializer {
 
     @Override
     public void onInitialize() {
+        WorldgenFirewall.register();
         PackInstaller.install();
         LevelManager.register();
         CustomDimCommands.register();

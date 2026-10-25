@@ -108,7 +108,7 @@ public final class PackInstaller {
                 .map(m -> m.getMetadata().getVersion().getFriendlyString()).orElse("unknown");
     }
 
-    static String namespace(Path definitions) {
+    public static String namespace(Path definitions) {
         DefinitionSettings settings = DefinitionReader.readSettings(definitions.resolve("settings.json"));
         return settings.namespace() != null ? settings.namespace() : LevelIndex.DEFAULT_NAMESPACE;
     }

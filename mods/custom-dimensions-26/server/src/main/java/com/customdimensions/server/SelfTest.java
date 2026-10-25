@@ -74,7 +74,7 @@ final class SelfTest {
     private static final String DEFINITIONS = "customdimensions.definitions";
     /** An extracted vanilla folder the runtime source is compared against; {@code -Dcustomdimensions.vanilla} also counts. */
     private static final String REFERENCE = "customdimensions.vanilla.reference";
-    /** {@code exits} or {@code commands} runs the compiled-pack section and that one only, for iterating on it. */
+    /** {@code exits}, {@code commands} or {@code firewall} runs the compiled-pack section and that one only, for iterating on it. */
     private static final String ONLY = "customdimensions.selftest.only";
 
     private SelfTest() {}
@@ -91,9 +91,11 @@ final class SelfTest {
         lines.add(check("pack installed at start-up by the mod", SelfTest::packInstall));
         lines.add(equivalence());
         lines.addAll(compiledPack(server));
+        lines.addAll(com.customdimensions.server.firewall.FirewallSelfTest.run(server));
         String only = System.getProperty(ONLY, "");
+        boolean firewallOnly = "firewall".equals(only);
         boolean commandsOnly = "commands".equals(only);
-        boolean exitsOnly = "exits".equals(only) || commandsOnly;
+        boolean exitsOnly = "exits".equals(only) || commandsOnly || firewallOnly;
         CompletableFuture<List<String>> levels;
         try {
             levels = exitsOnly ? CompletableFuture.completedFuture(List.of()) : LevelSelfTest.run(server);
@@ -132,7 +134,7 @@ final class SelfTest {
             return null;
         }).thenCompose(v -> {
             try {
-                return commandsOnly ? CompletableFuture.completedFuture(List.<String>of()) : ExitSelfTest.run(server);
+                return commandsOnly || firewallOnly ? CompletableFuture.completedFuture(List.<String>of()) : ExitSelfTest.run(server);
             } catch (Throwable t) {
                 return CompletableFuture.completedFuture(List.of("FAIL exits: " + t));
             }
@@ -150,7 +152,7 @@ final class SelfTest {
             return null;
         }).thenCompose(v -> {
             try {
-                return exitsOnly && !commandsOnly ? CompletableFuture.completedFuture(List.<String>of()) : CommandSelfTest.run(server);
+                return exitsOnly && !commandsOnly || firewallOnly ? CompletableFuture.completedFuture(List.<String>of()) : CommandSelfTest.run(server);
             } catch (Throwable t) {
                 return CompletableFuture.completedFuture(List.of("FAIL commands: " + t));
             }

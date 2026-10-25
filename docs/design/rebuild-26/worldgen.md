@@ -57,12 +57,23 @@ Nobody, human or agent, reads Terralith, Incendium, Nullscape, Structory or any 
 
 ## Firewall and bridges
 
-Any mod may be installed; another worldgen owner may not. At start-up the mod audits the loaded game and refuses to start, listing what it found, if any of these appear without a bridge:
+Any mod may be installed; another worldgen owner may not. At SERVER_STARTING, before any level exists, the mod audits the loaded game and refuses to start, listing each finding as `mod: what where`, if any of these appear without a reviewed bridge:
 
-- a dimension, noise setting or biome source from another namespace;
-- a mixin into worldgen classes from a mod not on the allow list (C2ME, Lithium and ServerCore are on it);
+- a dimension, dimension type or noise setting in a namespace other than `minecraft`, `adventure`, `customdimensions`, `fantasy` and the definitions' own, or a biome source or chunk generator type registered outside them;
+- a mixin into worldgen classes from a mod not on the allow list;
 - TerraBlender, Biolith or Lithostitched.
 
-Features or spawns added to biomes by another mod are removed and logged.
+Worldgen classes are `net.minecraft.world.level.levelgen..`, `..level.biome..`, `..level.chunk.ChunkGenerator*`, `..level.chunk.status..`, `..level.dimension..` and `net.minecraft.data.worldgen..`, except the runtime classes `PatrolSpawner`, `PhantomSpawner`, `Heightmap`, `Biome`, `MobSpawnSettings` and `EnderDragonFight` (`core/.../firewall/WorldgenClasses`). Mixin targets are read from each mod's `fabric.mod.json`, its mixin configs and each mixin's `@Mixin` annotation.
 
-A bridge is one JSON file per mod in `config/custom-dimensions/bridges/`. It adopts that mod's structures (with measured sizes and our tags for mood, climate and depth), features and, once content starts, its blocks' Polymer and Bedrock mappings. Structure sets without a bridge are switched off. W5 generates a first bridge from each structure mod's jar for a human to tag.
+The allow list (`core/.../firewall/AllowList`):
+
+| Mod | Why |
+| --- | --- |
+| `c2me*`, `lithium`, `servercore` | Performance; same output |
+| `fabric-*` | Fabric API; its hooks act only for mods that call them |
+| `customdimensions`, `fantasy` | This mod and its runtime-level library |
+| `distanthorizons`, `moogs_structures`, `carpet` | On the 26.3 server list; awaiting the owner's ruling |
+
+A structure set outside those namespaces and in no reviewed bridge is switched off: it never enters a level's structure state, so it places nothing and `/locate` cannot find it. Placed features and spawns that another mod adds to a vanilla biome, compared with vanilla's own biome file, are removed; each removal is logged once with its biome count. `/customdim audit` lists the allowed mods, unreviewed bridges, switched-off sets and removals.
+
+A bridge ([bridges.md](bridges.md)) is one JSON file per mod in `config/custom-dimensions/bridges/`. It adopts that mod's structure sets and structures (with measured sizes and our tags for mood, climate and depth), features, spawns, reviewed mixin configs and registry entries, and once content starts, its blocks' Polymer and Bedrock mappings. `:core:bridge` writes a first, unreviewed bridge from a structure mod's jar for a human to tag.
