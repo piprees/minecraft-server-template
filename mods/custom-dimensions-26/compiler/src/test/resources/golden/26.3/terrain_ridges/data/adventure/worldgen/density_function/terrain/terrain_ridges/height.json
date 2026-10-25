@@ -114,72 +114,86 @@
     },
     "right": {
       "left": {
-        "input": {
-          "input": {
-            "left": {
+        "spline": {
+          "coordinate": {
+            "input": {
               "left": {
-                "input": {
-                  "left": {
-                    "left": "adventure:terrain/terrain_ridges/ridges_folded",
-                    "right": -0.2,
-                    "type": "minecraft:add"
+                "left": {
+                  "input": {
+                    "left": {
+                      "left": "adventure:terrain/terrain_ridges/ridges_folded",
+                      "right": -0.2,
+                      "type": "minecraft:add"
+                    },
+                    "right": 1.25,
+                    "type": "minecraft:mul"
                   },
-                  "right": 1.25,
-                  "type": "minecraft:mul"
+                  "max": 1.0,
+                  "min": 0.0,
+                  "type": "minecraft:clamp"
                 },
-                "max": 1.0,
-                "min": 0.0,
-                "type": "minecraft:clamp"
+                "right": {
+                  "input": {
+                    "left": {
+                      "left": "adventure:terrain/terrain_ridges/continents",
+                      "right": 0.1,
+                      "type": "minecraft:add"
+                    },
+                    "right": 4.0,
+                    "type": "minecraft:mul"
+                  },
+                  "max": 1.0,
+                  "min": 0.0,
+                  "type": "minecraft:clamp"
+                },
+                "type": "minecraft:mul"
               },
               "right": {
-                "input": {
-                  "left": {
-                    "left": "adventure:terrain/terrain_ridges/continents",
-                    "right": 0.1,
-                    "type": "minecraft:add"
-                  },
-                  "right": 4.0,
-                  "type": "minecraft:mul"
+                "spline": {
+                  "coordinate": "adventure:terrain/terrain_ridges/erosion",
+                  "points": [
+                    {
+                      "derivative": 0.0,
+                      "location": -1.0,
+                      "value": 1.0
+                    },
+                    {
+                      "derivative": 0.0,
+                      "location": 0.0,
+                      "value": 0.8
+                    },
+                    {
+                      "derivative": 0.0,
+                      "location": 0.5,
+                      "value": 0.45
+                    },
+                    {
+                      "derivative": 0.0,
+                      "location": 1.0,
+                      "value": 0.25
+                    }
+                  ]
                 },
-                "max": 1.0,
-                "min": 0.0,
-                "type": "minecraft:clamp"
+                "type": "minecraft:spline"
               },
               "type": "minecraft:mul"
             },
-            "right": {
-              "spline": {
-                "coordinate": "adventure:terrain/terrain_ridges/erosion",
-                "points": [
-                  {
-                    "derivative": 0.0,
-                    "location": -1.0,
-                    "value": 1.0
-                  },
-                  {
-                    "derivative": 0.0,
-                    "location": -0.2,
-                    "value": 0.9
-                  },
-                  {
-                    "derivative": 0.0,
-                    "location": 0.3,
-                    "value": 0.25
-                  },
-                  {
-                    "derivative": 0.0,
-                    "location": 1.0,
-                    "value": 0.1
-                  }
-                ]
-              },
-              "type": "minecraft:spline"
-            },
-            "type": "minecraft:mul"
+            "type": "minecraft:cache"
           },
-          "type": "minecraft:cache"
+          "points": [
+            {
+              "derivative": 0.0,
+              "location": 0.0,
+              "value": 0.0
+            },
+            {
+              "derivative": 0.0,
+              "location": 1.0,
+              "value": 1.0
+            }
+          ]
         },
-        "type": "minecraft:square"
+        "type": "minecraft:spline"
       },
       "right": 70.0,
       "type": "minecraft:mul"

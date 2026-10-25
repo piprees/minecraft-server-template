@@ -8,6 +8,7 @@ import net.minecraft.resources.RegistryOps;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.dedicated.DedicatedServer;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.FluidTags;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.biome.BiomeResolver;
@@ -52,8 +53,8 @@ public final class TerrainSelfTest {
     static final int GALLERY_RADIUS = 1024;
     static final int GALLERY_STEP = 8;
     static final int GALLERY_THREADS = 3;
-    /** A terrace tread: at least this many columns of the sample within 1 block of one tread level. */
-    static final int TREAD_COLUMNS = 20;
+    /** Erosion's residual hills: land this many blocks above the basin floor. */
+    static final int HILL_RISE = 16;
     /** Single precision: two terrains also rendered block by block around 30,000, -30,000 to show any banding or seam. */
     static final int FAR = 30_000;
     static final List<String> FAR_RENDERS = List.of("terrain_terraces_default", "terrain_canyons_default");
@@ -84,12 +85,18 @@ public final class TerrainSelfTest {
     private final List<Load> loading = new ArrayList<>();
     private final ExecutorService worker = Executors.newSingleThreadExecutor(r -> new Thread(r, "terrain-selftest"));
     private final Map<String, Double> costs = new TreeMap<>();
-    private final Map<String, Double> crackShare = new TreeMap<>();
+    /** The control: the continents fixture measured in each area picker's area. */
+    private final Map<String, Measure> controls = new TreeMap<>();
+    private final Map<String, Function<Scan, Area>> pickers = new java.util.LinkedHashMap<>();
     private double overworldCost;
 
     private TerrainSelfTest(MinecraftServer server, LevelManager manager) {
         this.server = server;
         this.manager = manager;
+        pickers.put("spaced", this::spaced);
+        pickers.put("highest", this::highest);
+        pickers.put("riverBed", this::riverBed);
+        pickers.put("firstVoid", this::firstVoid);
     }
 
     public static CompletableFuture<List<String>> run(MinecraftServer server) {
@@ -116,17 +123,18 @@ public final class TerrainSelfTest {
                             + " columns, second of two scans)");
                 }, server));
         chain = chain.thenCompose(v -> noiseSpread());
-        chain = family(chain, "continents", this::continents, this::spaced);
-        chain = family(chain, "erosion", this::erosion, this::spaced);
-        chain = family(chain, "ridges", this::ridges, this::highest);
-        chain = family(chain, "terraces", this::terraces, this::highest);
-        chain = family(chain, "canyons", this::canyons, this::deepestCut);
-        chain = family(chain, "rivers", this::rivers, this::riverBed);
-        chain = family(chain, "floating_islands", this::floatingIslands, this::spaced);
-        chain = family(chain, "islands", this::islands, this::spaced);
-        chain = family(chain, "voids", this::voids, this::firstVoid);
-        chain = family(chain, "shattered", this::shattered, this::spaced);
-        chain = family(chain, "spires", this::spires, this::highest);
+        chain = chain.thenCompose(v -> controls());
+        chain = family(chain, "continents", this::continents, "spaced");
+        chain = family(chain, "erosion", this::erosion, "spaced");
+        chain = family(chain, "ridges", this::ridges, "highest");
+        chain = family(chain, "terraces", this::terraces, "spaced");
+        chain = family(chain, "canyons", this::canyons, "spaced");
+        chain = family(chain, "rivers", this::rivers, "riverBed");
+        chain = family(chain, "floating_islands", this::floatingIslands, "spaced");
+        chain = family(chain, "islands", this::islands, "spaced");
+        chain = family(chain, "voids", this::voids, "firstVoid");
+        chain = family(chain, "shattered", this::shattered, "spaced");
+        chain = family(chain, "spires", this::spires, "highest");
         chain = chain.thenRun(this::performance);
         String gallery = System.getProperty(GALLERY, "");
         if (!gallery.isEmpty()) {
@@ -144,8 +152,37 @@ public final class TerrainSelfTest {
 
     private record Area(Scan scan, List<ChunkPos> chunks, BlockPos centre) {}
 
-    private CompletableFuture<Void> family(CompletableFuture<Void> chain, String family, Function<Measure, String> check,
-                                           Function<Scan, Area> where) {
+    /** The continents fixture, scanned once and loaded in every picker's area, as the control each claim is set against. */
+    private CompletableFuture<Void> controls() {
+        String slug = "terrain_continents_default";
+        if (!manager.index().lazy().containsKey(slug)) {
+            lines.add("FAIL terrain control: no gallery fixture " + slug + " in the definitions");
+            return CompletableFuture.completedFuture(null);
+        }
+        return manager.activate(slug).thenCompose(a -> {
+            ServerLevel level = a.level();
+            return CompletableFuture.supplyAsync(() -> scan(level, SCAN_RADIUS, SCAN_STEP), worker).thenComposeAsync(scan -> {
+                CompletableFuture<Void> loads = CompletableFuture.completedFuture(null);
+                for (Map.Entry<String, Function<Scan, Area>> picker : pickers.entrySet()) {
+                    loads = loads.thenCompose(v -> {
+                        Area area = picker.getValue().apply(scan);
+                        return load(level, area.chunks()).thenAccept(chunks -> {
+                            controls.put(picker.getKey(), new Measure(level, chunks, area));
+                            area.chunks().forEach(c -> level.setChunkForced(c.x(), c.z(), false));
+                        });
+                    });
+                }
+                return loads;
+            }, server);
+        }).thenCompose(x -> manager.deactivate(slug).thenAccept(t -> {})).exceptionally(error -> {
+            lines.add("FAIL terrain control (" + slug + "): " + cause(error));
+            return null;
+        });
+    }
+
+    private CompletableFuture<Void> family(CompletableFuture<Void> chain, String family,
+                                           java.util.function.BiFunction<Measure, Measure, String> check, String picker) {
+        Function<Scan, Area> where = pickers.get(picker);
         String slug = "terrain_" + family + "_default";
         String name = "terrain " + family + " (" + slug + ")";
         return chain.thenCompose(v -> {
@@ -164,8 +201,10 @@ public final class TerrainSelfTest {
                                 try {
                                     if (error != null) throw new IllegalStateException(cause(error));
                                     Measure m = new Measure(level, chunks, area);
+                                    Measure control = controls.get(picker);
+                                    if (control == null) throw new IllegalStateException("no control measured in the " + picker + " area");
                                     String bedrock = m.bedrock();
-                                    line = check.apply(m);
+                                    line = check.apply(m, control);
                                     if (bedrock != null) line = "FAIL " + bedrock + "; " + line.replaceFirst("^(PASS|FAIL) ", "");
                                 } catch (RuntimeException e) {
                                     line = "FAIL " + e;
@@ -193,26 +232,6 @@ public final class TerrainSelfTest {
             }
         }
         return new Area(scan, out, BlockPos.ZERO);
-    }
-
-    /** 5 by 5 chunks around the scan point lying furthest below the mean of the points 48 blocks away. */
-    private Area deepestCut(Scan scan) {
-        int best = Integer.MIN_VALUE;
-        int bi = 0, bj = 0;
-        int off = 3;
-        for (int i = off; i < scan.size() - off; i++) {
-            for (int j = off; j < scan.size() - off; j++) {
-                int[][] h = scan.heights();
-                int around = (h[i - off][j] + h[i + off][j] + h[i][j - off] + h[i][j + off]) / 4;
-                int cut = around - h[i][j];
-                if (cut > best) {
-                    best = cut;
-                    bi = i;
-                    bj = j;
-                }
-            }
-        }
-        return around(scan, scan.x(bi), scan.x(bj));
     }
 
     /** 5 by 5 chunks around the scan point nearest the centre lying below sea level with land 48 blocks away on all four sides. */
@@ -282,116 +301,167 @@ public final class TerrainSelfTest {
 
     // ---- claims ------------------------------------------------------------------------------------
 
-    private String continents(Measure m) {
-        double land = m.share(c -> c.surface >= m.sea);
-        double ocean = m.share(c -> c.water);
-        crackShare.put("continents", m.dropShare());
+    private String continents(Measure m, Measure c) {
+        double land = m.share(col -> col.surface >= m.sea);
+        double ocean = m.share(col -> col.water);
         return verdict(land >= 0.05 && ocean >= 0.05, m.area() + ": " + pct(land) + " land at or above sea level "
-                + m.sea + ", " + pct(ocean) + " open water (each needs 5%); surface " + m.range());
-    }
-
-    private String erosion(Measure m) {
-        double basin = m.share(c -> c.surface >= m.sea + 1 && c.surface <= m.sea + 4);
-        return verdict(basin >= 0.05, m.area() + ": " + pct(basin) + " of columns on basin floors at y " + (m.sea + 1)
-                + ".." + (m.sea + 4) + " (needs 5%); surface " + m.range());
-    }
-
-    private String ridges(Measure m) {
-        int rise = m.max() - m.min();
-        return verdict(rise >= 40, "5x5 chunks at the highest scanned point " + m.centre() + ": surface " + m.min() + ".." + m.max()
-                + ", " + rise + " blocks of relief (needs 40)");
+                + m.sea + ", " + pct(ocean) + " open water (each needs 5%); surface " + m.range()
+                + "; this fixture is the control every line below is measured against");
     }
 
     /**
-     * Treads lie a whole step (10 blocks by default) apart: on the highest hill
-     * the best phase puts land within 1 block of a tread more often than the
-     * 30% chance gives, on at least three treads.
+     * Worn land is two-level: a flat basin floor (within a block of the
+     * commonest land height) and the hills left standing well above it.
      */
-    private String terraces(Measure m) {
-        int step = 10;
-        List<Column> land = m.columns.stream().filter(c -> c.surface > m.sea + 2).toList();
-        int[] byPhase = new int[step];
-        land.forEach(c -> byPhase[Math.floorMod(c.surface, step)]++);
-        int phase = 0;
-        int best = -1;
-        for (int p = 0; p < step; p++) {
-            int near = byPhase[Math.floorMod(p - 1, step)] + byPhase[p] + byPhase[(p + 1) % step];
-            if (near > best) {
-                best = near;
-                phase = p;
+    private String erosion(Measure m, Measure c) {
+        double floor = m.floorShare();
+        double hills = m.landShare(col -> col.floor >= m.modalLand() + HILL_RISE);
+        double controlFloor = c.floorShare();
+        double controlHills = c.landShare(col -> col.floor >= c.modalLand() + HILL_RISE);
+        return verdict(floor >= 0.2 && hills >= 0.2 && hills >= 2 * controlHills, m.area() + ": " + pct(floor)
+                + " of land columns on the basin floor within 1 block of y " + m.modalLand() + " (needs 20%; continents "
+                + pct(controlFloor) + " at y " + c.modalLand() + "), " + pct(hills) + " on hills " + HILL_RISE
+                + "+ blocks above it (needs 20% and twice continents' " + pct(controlHills) + "); surface " + m.range());
+    }
+
+    private String ridges(Measure m, Measure c) {
+        int rise = m.max() - m.min();
+        int control = c.max() - c.min();
+        return verdict(rise >= 40 && rise >= control + 20, "5x5 chunks at the highest scanned point " + m.centre() + ": surface "
+                + m.min() + ".." + m.max() + ", " + rise + " blocks of relief (needs 40 and 20 more than continents' "
+                + control + " at its highest point)");
+    }
+
+    /**
+     * Terraced land is a stair of flat treads: over the whole scan's base
+     * heights, a tread is a level whose 3-block window holds 0.5%+ of the land
+     * and 2.5 times the mean of the windows 4 blocks below and above it, the
+     * highest within 3 blocks. Rolling land has a tread at its plain and few
+     * others.
+     */
+    private String terraces(Measure m, Measure c) {
+        List<Integer> treads = treadLevels(m.area.scan());
+        List<Integer> control = treadLevels(c.area.scan());
+        return verdict(treads.size() >= 4 && treads.size() >= 2 * control.size(), "over the scan's base heights " + treads.size()
+                + " treads at y " + treads + " (needs 4 and twice continents' " + control.size() + " at y " + control + ")");
+    }
+
+    static List<Integer> treadLevels(Scan scan) {
+        Map<Integer, Integer> count = new TreeMap<>();
+        int land = 0;
+        for (int[] row : scan.heights()) {
+            for (int h : row) {
+                if (h <= 64) continue;
+                land++;
+                count.merge(h, 1, Integer::sum);
             }
         }
-        int tread = phase;
-        double share = land.isEmpty() ? 0 : (double) best / land.size();
-        long distinct = land.stream().filter(c -> Math.abs(Math.floorMod(c.surface - tread + 1, step) - 1) <= 1)
-                .collect(java.util.stream.Collectors.groupingBy(c -> Math.floorDiv(c.surface - tread + 1, step),
-                        java.util.stream.Collectors.counting()))
-                .values().stream().filter(n -> n >= TREAD_COLUMNS).count();
-        return verdict(share >= 0.4 && distinct >= 3, "5x5 chunks at the highest scanned point " + m.centre() + ": " + pct(share) + " of " + land.size()
-                + " land columns within 1 block of a tread (top blocks at y = " + phase + " mod " + step
-                + "; needs 40% on a hillside of treads and risers, 30% by chance); " + distinct + " treads of at least " + TREAD_COLUMNS + " columns (needs 3)");
+        java.util.function.IntUnaryOperator w = y -> count.getOrDefault(y - 1, 0) + count.getOrDefault(y, 0) + count.getOrDefault(y + 1, 0);
+        List<Integer> out = new ArrayList<>();
+        for (int y : count.keySet()) {
+            int here = w.applyAsInt(y);
+            boolean highest = true;
+            for (int d = -3; d <= 3; d++) {
+                if (d != 0 && (w.applyAsInt(y + d) > here || w.applyAsInt(y + d) == here && d < 0)) highest = false;
+            }
+            double side = (w.applyAsInt(y - 4) + w.applyAsInt(y + 4)) / 2.0;
+            if (highest && here >= 0.005 * land && here >= 2.5 * side) out.add(y);
+        }
+        return out;
     }
 
-    private String canyons(Measure m) {
+    /**
+     * Canyons are a network: over the whole scan, points lying 20+ below both
+     * points 48 blocks away on one axis, where continents has only an
+     * occasional ravine or cave mouth; and the deepest cut in the loaded areas.
+     */
+    private String canyons(Measure m, Measure c) {
+        double share = trenchShare(m.area.scan());
+        double controlShare = trenchShare(c.area.scan());
+        int[] t = m.trench(12, 20);
+        int[] control = c.trench(12, 20);
+        return verdict(t[2] >= 25 && share >= 0.01 && share >= 3 * controlShare, m.area() + ": over the scan " + pct(share)
+                + " of points by land lie 20+ below both points 48 blocks away on one axis (needs 1% and three times continents' "
+                + pct(controlShare) + "); deepest cut below both columns 12 blocks away " + t[2] + " blocks (needs 25; continents "
+                + control[2] + ", a ravine)");
+    }
+
+    /** Of the scan points next to land, those with both neighbours 48 blocks away on one axis 20+ above them: inside a trench. */
+    private static double trenchShare(Scan scan) {
+        int[][] h = scan.heights();
+        int off = 3;
+        int land = 0;
+        int trench = 0;
+        for (int i = off; i < scan.size() - off; i++) {
+            for (int j = off; j < scan.size() - off; j++) {
+                int p = h[i][j];
+                if (Math.max(Math.max(h[i - off][j], h[i + off][j]), Math.max(h[i][j - off], h[i][j + off])) < 63) continue;
+                land++;
+                boolean acrossX = h[i - off][j] - p >= 20 && h[i + off][j] - p >= 20;
+                boolean acrossZ = h[i][j - off] - p >= 20 && h[i][j + off] - p >= 20;
+                if (acrossX || acrossZ) trench++;
+            }
+        }
+        return land == 0 ? 0 : (double) trench / land;
+    }
+
+    private String rivers(Measure m, Measure c) {
+        double water = m.share(col -> col.water && col.surface == m.sea - 1);
+        double land = m.share(col -> col.surface >= m.sea);
         int floor = m.centreSurface(8);
-        int rim = m.borderMedian();
-        int cut = rim - floor;
-        return verdict(cut >= 25, "5x5 chunks at " + m.centre() + ": canyon floor y " + floor + ", " + cut
-                + " blocks below the median of the area's border columns, y " + rim + " (needs 25)");
+        double controlWater = c.share(col -> col.water && col.surface == c.sea - 1);
+        double controlLand = c.share(col -> col.surface >= c.sea);
+        return verdict(water >= 0.01 && land >= 0.2 && floor < m.sea, "5x5 chunks at " + m.centre() + ": water at sea level on "
+                + pct(water) + " of columns (needs 1%; continents " + pct(controlWater) + "), land on " + pct(land)
+                + " (needs 20%; continents " + pct(controlLand) + "), lowest centre surface y " + floor
+                + " (needs below sea level " + m.sea + "; continents y " + c.centreSurface(8) + ")");
     }
 
-    private String rivers(Measure m) {
-        double water = m.share(c -> c.water && c.surface == m.sea - 1);
-        double land = m.share(c -> c.surface >= m.sea);
-        int floor = m.centreSurface(8);
-        return verdict(water >= 0.01 && land >= 0.2 && floor < m.sea, "5x5 chunks at " + m.centre() + ": river water at sea level on "
-                + pct(water) + " of columns (needs 1%), land on " + pct(land) + " (needs 20%), lowest centre column y "
-                + floor + " (needs below sea level " + m.sea + ")");
+    private String floatingIslands(Measure m, Measure c) {
+        double[] here = m.hanging();
+        double[] control = c.hanging();
+        return verdict(here[0] >= 0.05 && here[1] >= 0.9 && here[2] >= 0.3, m.area() + ": " + pct(here[0])
+                + " of columns carry land (needs 5%; continents " + pct(control[0]) + "); " + pct(here[1])
+                + " of those have only air below the island down to y " + (m.minY + 8) + " (needs 90%; continents "
+                + pct(control[1]) + "); " + pct(here[2]) + " are empty to the bottom (needs 30%; continents " + pct(control[2])
+                + "); lowest block y " + m.columns.stream().filter(col -> col.lowest != null).mapToInt(col -> col.lowest).min().orElse(m.minY));
     }
 
-    private String floatingIslands(Measure m) {
-        List<Column> land = m.columns.stream().filter(c -> c.lowest != null).toList();
-        double islands = (double) land.size() / m.columns.size();
-        long hanging = land.stream().filter(c -> c.lowest > m.minY + 8).count();
-        double open = land.isEmpty() ? 0 : (double) hanging / land.size();
-        double empty = m.share(c -> c.lowest == null);
-        return verdict(islands >= 0.05 && open >= 0.9 && empty >= 0.3, m.area() + ": " + pct(islands)
-                + " of columns carry land (needs 5%); " + pct(open) + " of those have only air below the island down to y "
-                + (m.minY + 8) + " (needs 90%); " + pct(empty) + " are empty to the bottom (needs 30%); lowest block y "
-                + land.stream().mapToInt(c -> c.lowest).min().orElse(m.minY));
+    private String islands(Measure m, Measure c) {
+        double water = m.share(col -> col.water);
+        double land = m.share(col -> col.surface >= m.sea);
+        double controlWater = c.share(col -> col.water);
+        return verdict(water >= 0.4 && water >= controlWater + 0.2 && land >= 0.03, m.area() + ": " + pct(water)
+                + " open water (needs 40% and 20 points over continents' " + pct(controlWater) + "), " + pct(land)
+                + " island land (needs 3%); surface " + m.range());
     }
 
-    private String islands(Measure m) {
-        double water = m.share(c -> c.water);
-        double land = m.share(c -> c.surface >= m.sea);
-        return verdict(water >= 0.4 && land >= 0.03, m.area() + ": " + pct(water) + " open water (needs 40%), "
-                + pct(land) + " island land (needs 3%); surface " + m.range());
-    }
-
-    private String voids(Measure m) {
-        long empty = m.columns.stream().filter(c -> c.lowest == null).count();
-        int median = m.landMedian();
-        int rise = m.max() - median;
+    private String voids(Measure m, Measure c) {
+        long empty = m.columns.stream().filter(col -> col.lowest == null).count();
+        long controlEmpty = c.columns.stream().filter(col -> col.lowest == null).count();
+        int rise = m.max() - m.landMedian();
+        int controlRise = c.max() - c.landMedian();
         return verdict(empty >= 1 && rise >= 5, "5x5 chunks at " + m.centre() + ": " + empty
-                + " columns with no block from top to bottom (needs 1); highest rim y " + m.max() + ", " + rise
-                + " above the median land y " + median + " (needs 5)");
+                + " columns with no block from top to bottom (needs 1; continents " + controlEmpty + "); highest rim y " + m.max()
+                + ", " + rise + " above the median land y " + m.landMedian() + " (needs 5; continents " + controlRise + ")");
     }
 
-    /** A crack: a land column whose top solid block lies 6 or more below both columns 2 blocks away on one axis (aquifers fill cracks below sea level). */
-    private String shattered(Measure m) {
-        double cracked = m.dropShare();
-        Double baseline = crackShare.get("continents");
-        return verdict(cracked >= 0.05 && (baseline == null || cracked >= 2 * baseline), m.area() + ": " + pct(cracked)
-                + " of land columns sit in a crack 6+ blocks below both neighbours 2 blocks away on one axis (needs 5% and twice continents' "
-                + (baseline == null ? "?" : pct(baseline)) + ")");
+    /** Broken land: a sharp step of 8 or more blocks in the top solid block to a column 2 blocks away, which cliffs and chasms make. */
+    private String shattered(Measure m, Measure c) {
+        double broken = m.brokenShare();
+        double control = c.brokenShare();
+        return verdict(broken >= 0.1 && broken >= 3 * control, m.area() + ": " + pct(broken)
+                + " of land columns have a top solid block 8+ blocks above or below a column 2 blocks away (cliff or chasm; "
+                + "needs 10% and three times continents' " + pct(control) + ")");
     }
 
-    private String spires(Measure m) {
+    private String spires(Measure m, Measure c) {
         int rise = m.max() - m.median();
-        double tall = m.share(c -> c.surface > m.median() + 20);
-        return verdict(rise >= 40 && tall <= 0.3, "5x5 chunks at " + m.centre() + ": top y " + m.max() + ", " + rise
-                + " above the area's median " + m.median() + " (needs 40); " + pct(tall)
-                + " of the area stands 20 above the median (a spire, not a plateau: needs at most 30%)");
+        int control = c.max() - c.median();
+        double tall = m.share(col -> col.surface > m.median() + 20);
+        return verdict(rise >= 40 && rise >= 2 * control && tall <= 0.3, "5x5 chunks at " + m.centre() + ": top y " + m.max() + ", "
+                + rise + " above the area's median " + m.median() + " (needs 40 and twice continents' " + control
+                + " at its highest point); " + pct(tall) + " of the area stands 20 above the median (a spire, not a plateau: needs at most 30%)");
     }
 
     private void performance() {
@@ -576,10 +646,10 @@ public final class TerrainSelfTest {
                 + "img{width:257px;image-rendering:pixelated}</style><h1>Terrain gallery</h1>"
                 + "<p>Ocean-floor height at radius 1,024 blocks, one pixel per 8: blue below sea level (darker is deeper), "
                 + "grey from sea level (dark) to y 256 (white), red a column with no block.</p>"
-                + "<table><tr><th></th><th>gentle</th><th>default</th><th>extreme</th></tr>");
+                + "<table><tr><th></th><th>gentle</th><th>default</th><th>extreme</th><th>wide</th><th>compressed</th></tr>");
         for (Map.Entry<String, Map<String, String>> row : grid.entrySet()) {
             sb.append("<tr><th>").append(row.getKey()).append("</th>");
-            for (String s : List.of("gentle", "default", "extreme")) {
+            for (String s : List.of("gentle", "default", "extreme", "wide", "compressed")) {
                 String slug = row.getValue().get(s);
                 sb.append("<td>").append(slug == null ? "" : "<img src=\"" + slug + ".png\" alt=\"" + slug + "\">").append("</td>");
             }
@@ -595,7 +665,7 @@ public final class TerrainSelfTest {
 
     // ---- reading chunks -----------------------------------------------------------------------------
 
-    /** One column: world-surface top block y, whether it is water, the lowest block (null: none), the top solid block y. */
+    /** One column: world-surface top block y, whether it is water, the lowest block (null: none), the ground: the top solid block that is not a tree. */
     private record Column(int x, int z, int surface, boolean water, Integer lowest, int floor) {}
 
     private final class Measure {
@@ -628,8 +698,13 @@ public final class TerrainSelfTest {
                                 }
                             }
                         }
-                        columns.add(new Column(x, z, surface, top.getFluidState().is(FluidTags.WATER), lowest,
-                                chunk.getHeight(Heightmap.Types.OCEAN_FLOOR, x, z)));
+                        int ground = surface;
+                        while (ground >= minY) {
+                            BlockState s = chunk.getBlockState(new BlockPos(x, ground, z));
+                            if (s.isSolid() && !s.is(BlockTags.LEAVES) && !s.is(BlockTags.LOGS)) break;
+                            ground--;
+                        }
+                        columns.add(new Column(x, z, surface, top.getFluidState().is(FluidTags.WATER), lowest, ground));
                     }
                 }
             }
@@ -647,23 +722,94 @@ public final class TerrainSelfTest {
             return columns.isEmpty() ? 0 : (double) columns.stream().filter(p).count() / columns.size();
         }
 
-        double dropShare() {
+        /** Share of non-ocean columns with a top solid block 8+ blocks off a column 2 blocks away on either axis. */
+        double brokenShare() {
             Map<Long, Integer> byPos = new java.util.HashMap<>();
             columns.forEach(c -> byPos.put(BlockPos.asLong(c.x, 0, c.z), c.floor));
             long land = 0;
-            long drops = 0;
+            long broken = 0;
             for (Column c : columns) {
-                if (c.surface < sea || c.water && c.floor < sea - 8) continue;
+                int[][] offsets = {{-2, 0}, {2, 0}, {0, -2}, {0, 2}};
+                int highest = c.floor;
+                boolean sharp = false;
+                for (int[] o : offsets) {
+                    Integer n = byPos.get(BlockPos.asLong(c.x + o[0], 0, c.z + o[1]));
+                    if (n == null) continue;
+                    highest = Math.max(highest, n);
+                    sharp |= Math.abs(n - c.floor) >= 8;
+                }
+                if (highest < sea) continue;
                 land++;
-                Integer west = byPos.get(BlockPos.asLong(c.x - 2, 0, c.z));
-                Integer east = byPos.get(BlockPos.asLong(c.x + 2, 0, c.z));
-                Integer north = byPos.get(BlockPos.asLong(c.x, 0, c.z - 2));
-                Integer south = byPos.get(BlockPos.asLong(c.x, 0, c.z + 2));
-                boolean acrossX = west != null && east != null && west - c.floor >= 6 && east - c.floor >= 6;
-                boolean acrossZ = north != null && south != null && north - c.floor >= 6 && south - c.floor >= 6;
-                if (acrossX || acrossZ) drops++;
+                if (sharp) broken++;
             }
-            return land == 0 ? 0 : (double) drops / land;
+            return land == 0 ? 0 : (double) broken / land;
+        }
+
+        private List<Column> dryLand() {
+            return columns.stream().filter(c -> !c.water && c.surface > sea).toList();
+        }
+
+        int modalLand() {
+            Map<Integer, Long> counts = dryLand().stream().collect(java.util.stream.Collectors.groupingBy(c -> c.floor,
+                    java.util.stream.Collectors.counting()));
+            int best = sea;
+            long n = -1;
+            for (Map.Entry<Integer, Long> e : counts.entrySet()) {
+                long near = e.getValue() + counts.getOrDefault(e.getKey() - 1, 0L) + counts.getOrDefault(e.getKey() + 1, 0L);
+                if (near > n) {
+                    n = near;
+                    best = e.getKey();
+                }
+            }
+            return best;
+        }
+
+        double landShare(java.util.function.Predicate<Column> p) {
+            List<Column> land = dryLand();
+            return land.isEmpty() ? 0 : (double) land.stream().filter(p).count() / land.size();
+        }
+
+        /** Share of dry land with its ground within 1 block of {@link #modalLand()}, the commonest ground height. */
+        double floorShare() {
+            List<Column> land = dryLand();
+            int mode = modalLand();
+            return land.isEmpty() ? 0 : (double) land.stream().filter(c -> Math.abs(c.floor - mode) <= 1).count() / land.size();
+        }
+
+            /** The height a trench is measured on: the ground, or sea level over water. */
+        int level(Column c) {
+            return c.water ? Math.max(c.floor, sea - 1) : c.floor;
+        }
+
+        /** Share of columns, and the deepest, lying {@code depth}+ below both columns {@code off} blocks away on one axis. */
+        int[] trench(int off, int depth) {
+            Map<Long, Integer> byPos = new java.util.HashMap<>();
+            columns.forEach(c -> byPos.put(BlockPos.asLong(c.x, 0, c.z), level(c)));
+            int in = 0;
+            int deepest = 0;
+            int counted = 0;
+            for (Column c : columns) {
+                int h = level(c);
+                int best = Integer.MIN_VALUE;
+                for (int[] axis : new int[][] {{off, 0}, {0, off}}) {
+                    Integer a = byPos.get(BlockPos.asLong(c.x - axis[0], 0, c.z - axis[1]));
+                    Integer b = byPos.get(BlockPos.asLong(c.x + axis[0], 0, c.z + axis[1]));
+                    if (a != null && b != null) best = Math.max(best, Math.min(a, b) - h);
+                }
+                if (best == Integer.MIN_VALUE) continue;
+                counted++;
+                deepest = Math.max(deepest, best);
+                if (best >= depth) in++;
+            }
+            return new int[] {in, counted, deepest};
+        }
+
+        /** Share of columns carrying land, of those the share with only air below to minY + 8, and the share empty to the bottom. */
+        double[] hanging() {
+            List<Column> land = columns.stream().filter(c -> c.lowest != null).toList();
+            long hung = land.stream().filter(c -> c.lowest > minY + 8).count();
+            return new double[] {(double) land.size() / Math.max(1, columns.size()), land.isEmpty() ? 0 : (double) hung / land.size(),
+                    share(c -> c.lowest == null)};
         }
 
         int min() {

@@ -73,7 +73,7 @@ class TerrainLibraryTest {
                         + "\"left\":\"adventure:terrain/t/height\",\"right\":0.0078125},\"right\":-1.0}}",
                 text(c.files().get(P + "offset.json")));
         assertFalse(c.settings().has("debug_functions"));
-        for (String noise : Set.of("altitude", "channel", "detail", "gorge", "islands", "shatter", "spires", "voids")) {
+        for (String noise : Set.of("altitude", "channel", "detail", "gorge", "islands", "plates", "shatter", "spires", "voids", "wear")) {
             String file = "data/adventure/worldgen/noise/terrain/" + noise + ".json";
             assertEquals(all.contains("\"adventure:terrain/" + noise + "\""), c.files().containsKey(file), file);
         }
@@ -146,6 +146,35 @@ class TerrainLibraryTest {
         assertTrue(h.contains("\"type\":\"minecraft:floor\""));
         assertTrue(h.contains("\"right\":0.125"), "divides by the step");
         assertTrue(h.contains("\"right\":150.0"), "caps at the plateau");
+    }
+
+    @Test
+    void erosionRaisesHillsAboveTheBasinShareQuantileOverARiseSetBySteepness() {
+        double sigma = Noises.sigma("wear");
+        String rolling = text(compile("{\"base\": \"erosion\", \"params\": {\"basinShare\": 0.5, \"steepness\": 0}}").files().get(P + "height.json"));
+        assertTrue(rolling.contains("\"noise\":\"adventure:terrain/wear\""));
+        assertTrue(rolling.contains("{\"derivative\":0.0,\"location\":0.0,\"value\":0.0},{\"derivative\":0.0,\"location\":" + (float) (2.5 * sigma) + ",\"value\":1.0}"), rolling);
+        String mesas = text(compile("{\"base\": \"erosion\", \"params\": {\"basinShare\": 0.5, \"steepness\": 1}}").files().get(P + "height.json"));
+        assertTrue(mesas.contains("{\"derivative\":0.0,\"location\":0.0,\"value\":0.0},{\"derivative\":0.0,\"location\":" + (float) (0.1 * sigma) + ",\"value\":1.0}"), mesas);
+        assertTrue(mesas.contains("\"location\":1.5,\"value\":70.0"), "the basin floor lies at landHeight inland");
+    }
+
+    @Test
+    void shatteredTiltsBlocksBetweenFaultsAndFloorsItsChasms() {
+        TerrainLibrary.Compiled c = compile("{\"base\": \"shattered\", \"params\": {\"faultHeight\": 20, \"chasmDepth\": 10, \"crackScale\": 1}}");
+        String h = text(c.files().get(P + "height.json"));
+        assertTrue(h.contains("adventure:terrain/plates") && h.contains("\"type\":\"minecraft:floor\""), h);
+        assertTrue(h.contains("\"right\":20.0"), "the sawtooth rises by faultHeight");
+        String cheese = text(c.files().get(P + "sloped_cheese.json"));
+        assertTrue(cheese.contains("\"y_scale\":0.25"), "chasms are four times taller than wide");
+        assertTrue(cheese.contains("\"right\":53.0"), "the chasm floor is chasmDepth below sea level");
+        assertTrue(c.files().containsKey("data/adventure/worldgen/noise/terrain/plates.json"));
+    }
+
+    @Test
+    void terracesDampVanillas3dNoiseSoTreadsStayFlat() {
+        assertTrue(text(compile("{\"base\": \"terraces\"}").files().get(P + "sloped_cheese.json"))
+                .contains("{\"type\":\"minecraft:mul\",\"left\":\"minecraft:overworld/base_3d_noise\",\"right\":0.15}"));
     }
 
     @Test

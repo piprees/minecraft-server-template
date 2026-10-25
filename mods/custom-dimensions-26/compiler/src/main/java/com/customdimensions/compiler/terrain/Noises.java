@@ -22,9 +22,11 @@ public final class Noises {
             "detail", new Spec(-6, new double[]{1, 0.5, 0.25}, 0.248),
             "gorge", new Spec(-8, new double[]{1, 0.5, 0.25}, 0.248),
             "islands", new Spec(-7, new double[]{1, 1, 0.5, 0.25}, 0.293),
+            "plates", new Spec(-7, new double[]{1, 0.5}, 0.274),
             "shatter", new Spec(-6, new double[]{1, 0.5, 0.25}, 0.251),
             "spires", new Spec(-5, new double[]{1, 0.3}, 0.254),
-            "voids", new Spec(-7, new double[]{1, 0.5, 0.25}, 0.252)));
+            "voids", new Spec(-7, new double[]{1, 0.5, 0.25}, 0.252),
+            "wear", new Spec(-8, new double[]{1, 0.5, 0.25}, 0.248)));
 
     private Noises() {
     }

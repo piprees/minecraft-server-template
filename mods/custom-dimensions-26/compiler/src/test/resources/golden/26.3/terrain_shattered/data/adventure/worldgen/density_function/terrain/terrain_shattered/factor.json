@@ -1,6 +1,6 @@
 {
   "input": {
-    "alpha": 0.5,
+    "alpha": 0.3,
     "first": 7.0,
     "second": 1.2,
     "type": "minecraft:lerp"

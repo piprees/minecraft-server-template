@@ -22,7 +22,6 @@ import static com.customdimensions.compiler.terrain.Df.negY;
 import static com.customdimensions.compiler.terrain.Df.ramp;
 import static com.customdimensions.compiler.terrain.Df.spline;
 import static com.customdimensions.compiler.terrain.Df.sqrt;
-import static com.customdimensions.compiler.terrain.Df.square;
 import static com.customdimensions.compiler.terrain.Df.sub;
 
 /**
@@ -42,12 +41,13 @@ public enum TerrainFamily {
             Map.of("relief", 100.0, "landHeight", 130.0, "roughness", 0.75, "coast", 0.0),
             false, ctx -> ctx.land()),
 
-    EROSION("erosion", "Broad worn basins where erosion is high, flat-floored and smooth.",
-            List.of(new TerrainParam("basinDepth", 0, 80, 24, "Blocks the most eroded land sinks, never below sea level + 2"),
-                    new TerrainParam("basinWidth", 0.05, 1, 0.4, "Share of the erosion range that forms basins")),
-            Map.of("relief", 40.0),
-            Map.of("basinDepth", 10.0, "basinWidth", 0.25),
-            Map.of("basinDepth", 70.0, "basinWidth", 0.7, "relief", 80.0),
+    EROSION("erosion", "Land worn down to flat basin floors at landHeight, with the hills that remain between them.",
+            List.of(new TerrainParam("basinShare", 0.02, 0.9, 0.4, "Share of the land worn down to the flat basin floor"),
+                    new TerrainParam("hillHeight", 0, 160, 40, "Blocks the remaining hills rise above the basin floor"),
+                    new TerrainParam("steepness", 0, 1, 0.55, "0 is soft rolling hills, 1 is cliff-sided flat-topped mesas")),
+            Map.of("landHeight", 70.0, "relief", 0.0, "roughness", 0.3),
+            Map.of("basinShare", 0.1, "hillHeight", 16.0, "steepness", 0.0, "relief", 8.0),
+            Map.of("basinShare", 0.7, "hillHeight", 80.0, "steepness", 0.95),
             false, TerrainFamily::erosion),
 
     RIDGES("ridges", "Mountain ranges along the ridges noise, with jagged peaks.",
@@ -55,17 +55,17 @@ public enum TerrainFamily {
                     new TerrainParam("jaggedness", 0, 1.5, 0.35, "Spikiness of the peaks (vanilla's jaggedness)"),
                     new TerrainParam("rangeWidth", 0.05, 1, 0.4, "Share of the ridges range that is mountain")),
             Map.of(),
-            Map.of("peakHeight", 30.0, "jaggedness", 0.1, "rangeWidth", 0.3),
-            Map.of("peakHeight", 170.0, "jaggedness", 1.2, "rangeWidth", 0.55),
+            Map.of("peakHeight", 45.0, "jaggedness", 0.15, "rangeWidth", 0.35),
+            Map.of("peakHeight", 150.0, "jaggedness", 1.2, "rangeWidth", 0.55),
             false, TerrainFamily::ridges),
 
     TERRACES("terraces", "Land stepped into flat terraces, capped by a plateau height.",
-            List.of(new TerrainParam("stepHeight", 3, 48, 10, "Blocks between terrace levels"),
-                    new TerrainParam("riser", 0.05, 0.95, 0.35, "Share of each step that is slope rather than flat"),
+            List.of(new TerrainParam("stepHeight", 3, 48, 8, "Blocks between terrace levels"),
+                    new TerrainParam("riser", 0.05, 0.95, 0.2, "Share of each step that is slope rather than flat"),
                     new TerrainParam("plateauHeight", 64, 256, 256, "Height above which land is cut flat")),
-            Map.of("relief", 50.0, "roughness", 0.15),
-            Map.of("stepHeight", 4.0, "riser", 0.6, "relief", 30.0),
-            Map.of("stepHeight", 28.0, "riser", 0.12, "relief", 110.0, "plateauHeight", 180.0),
+            Map.of("relief", 72.0, "landHeight", 96.0, "roughness", 0.15),
+            Map.of("stepHeight", 4.0, "riser", 0.5, "relief", 40.0),
+            Map.of("stepHeight", 24.0, "riser", 0.1, "relief", 110.0, "plateauHeight", 190.0),
             false, TerrainFamily::terraces),
 
     CANYONS("canyons", "Deep meandering cuts through the land, flat-floored and steep-walled.",
@@ -119,13 +119,16 @@ public enum TerrainFamily {
             Map.of("coverage", 0.3, "rimHeight", 50.0, "rimWidth", 0.15, "size", 2.0),
             true, TerrainFamily::voids),
 
-    SHATTERED("shattered", "Land split by 3D cracks, with overhangs and loose floating shards.",
-            List.of(new TerrainParam("crackWidth", 0.01, 0.3, 0.13, "Crack width, as a share of the crack noise"),
-                    new TerrainParam("crackScale", 0.25, 4, 1, "Crack spacing; higher is wider apart"),
-                    new TerrainParam("lift", 0, 1, 0.5, "How far the ground breaks into overhangs and shards")),
-            Map.of("relief", 36.0),
-            Map.of("crackWidth", 0.04, "lift", 0.15),
-            Map.of("crackWidth", 0.2, "lift", 0.9, "crackScale", 2.0, "relief", 60.0),
+    SHATTERED("shattered", "Land broken into tilted blocks by fault cliffs and split by deep near-vertical chasms.",
+            List.of(new TerrainParam("faultHeight", 0, 48, 16, "Blocks each tilted block rises to before its fault cliff drops"),
+                    new TerrainParam("faultSpacing", 0.25, 4, 1, "Fault spacing; higher is larger blocks"),
+                    new TerrainParam("crackWidth", 0.01, 0.3, 0.1, "Chasm width, as a share of the crack noise"),
+                    new TerrainParam("crackScale", 0.25, 4, 1.3, "Chasm spacing; higher is wider apart"),
+                    new TerrainParam("chasmDepth", 4, 60, 24, "Blocks a chasm floor lies below sea level"),
+                    new TerrainParam("lift", 0, 1, 0.3, "How far the ground breaks into overhangs and shards")),
+            Map.of("relief", 36.0, "landHeight", 88.0),
+            Map.of("faultHeight", 5.0, "crackWidth", 0.04, "lift", 0.1, "chasmDepth", 8.0),
+            Map.of("faultHeight", 32.0, "faultSpacing", 0.7, "crackWidth", 0.16, "lift", 0.8, "relief", 50.0),
             false, TerrainFamily::shattered),
 
     SPIRES("spires", "Tall stone columns rising from the land.",
@@ -134,7 +137,7 @@ public enum TerrainFamily {
                     new TerrainParam("thickness", 0.25, 4, 1, "Spire girth; higher is thicker"),
                     new TerrainParam("taper", 0, 1, 0.5, "0 is straight-sided columns, 1 is cones")),
             Map.of("roughness", 0.4),
-            Map.of("spireHeight", 20.0, "coverage", 0.02, "taper", 0.8),
+            Map.of("spireHeight", 36.0, "coverage", 0.03, "taper", 0.6, "thickness", 1.4),
             Map.of("spireHeight", 180.0, "coverage", 0.08, "taper", 0.1, "thickness", 0.7),
             false, TerrainFamily::spires);
 
@@ -233,14 +236,27 @@ public enum TerrainFamily {
         }
     }
 
+    /**
+     * The basin floor is flat at {@code landHeight} inland; the wear noise
+     * raises hills out of it wherever it lies above its {@code basinShare}
+     * quantile, over a rise that narrows from rolling (steepness 0) to a cliff
+     * with a flat mesa top (steepness 1).
+     */
     private static Shape erosion(Ctx ctx) {
-        Shape land = ctx.land();
-        double width = ctx.p("basinWidth");
-        JsonElement worn = mul(Df.ramp(ctx.erosion(), 0.35 - width, 0.35), ctx.landMask());
-        JsonElement sunk = sub(land.height(), mul(worn, ctx.p("basinDepth")));
-        JsonElement floorLevel = min(land.height(), c(ctx.sea() + 2));
-        return land.withHeight(max(sunk, floorLevel))
-                .withFactor(lerp(worn, land.factor(), mul(land.factor(), 2.5)));
+        double sea = ctx.sea();
+        double coast = ctx.p("coast");
+        double sigma = Noises.sigma("wear");
+        double floorAt = Noises.threshold(1 - ctx.p("basinShare"), sigma);
+        double rise = sigma * (0.1 + 2.4 * (1 - ctx.p("steepness")));
+        JsonElement n = ctx.noise("wear", 1, 0);
+        JsonElement hill = spline(n, -1.5, 0, floorAt, 0, floorAt + rise, 1, 1.5, 1);
+        JsonElement floorLevel = spline(ctx.continents(), -1.5, ctx.p("seaFloor") - 20, coast - 0.25, ctx.p("seaFloor"),
+                coast - 0.04, sea - 5, coast, sea, coast + 0.06, sea + 3, coast + 0.2, ctx.p("landHeight"), 1.5, ctx.p("landHeight"));
+        JsonElement land = ctx.landMask();
+        JsonElement h = add(add(floorLevel, mul(mul(hill, land), ctx.p("hillHeight"))),
+                mul(mul(land, ctx.hills()), ctx.p("relief")));
+        Shape base = ctx.land();
+        return new Shape(h, ctx.factor(), c(0), null, null, base.continents(), 0.5);
     }
 
     private static Shape ridges(Ctx ctx) {
@@ -248,9 +264,9 @@ public enum TerrainFamily {
         double w = ctx.p("rangeWidth");
         JsonElement onRidge = ramp(ctx.peaksValleys(), 1 - 2 * w, 1);
         JsonElement inland = ramp(ctx.continents(), ctx.p("coast") + 0.05, ctx.p("coast") + 0.3);
-        JsonElement rugged = spline(ctx.erosion(), -1, 1, -0.2, 0.9, 0.3, 0.25, 1, 0.1);
+        JsonElement rugged = spline(ctx.erosion(), -1, 1, 0, 0.8, 0.5, 0.45, 1, 0.25);
         JsonElement mountain = Df.cache(mul(mul(onRidge, inland), rugged));
-        JsonElement h = add(land.height(), mul(square(mountain), ctx.p("peakHeight")));
+        JsonElement h = add(land.height(), mul(spline(mountain, 0, 0, 1, 1), ctx.p("peakHeight")));
         return new Shape(h, land.factor(), mul(mountain, ctx.p("jaggedness")), null, null, land.continents(), 1);
     }
 
@@ -263,7 +279,8 @@ public enum TerrainFamily {
         JsonElement frac = sub(above, level);
         JsonElement rise = spline(frac, 0, 0, 1 - riser, 0, 1, 1);
         JsonElement stepped = add(mul(add(level, rise), step), ctx.sea());
-        return land.withHeight(min(stepped, c(ctx.p("plateauHeight"))));
+        return new Shape(min(stepped, c(ctx.p("plateauHeight"))), land.factor(), land.jaggedness(), null, null,
+                land.continents(), 0.15);
     }
 
     private static Shape canyons(Ctx ctx) {
@@ -332,14 +349,27 @@ public enum TerrainFamily {
         return new Shape(h, land.factor(), land.jaggedness(), cut, null, land.continents(), land.noise3d());
     }
 
+    /**
+     * A sawtooth of the plates noise tilts the land up by {@code faultHeight}
+     * across each block and drops it at a fault cliff; a crack noise stretched
+     * four times taller than wide cuts near-vertical chasms through the land
+     * down to {@code chasmDepth} below sea level.
+     */
     private static Shape shattered(Ctx ctx) {
         Shape land = ctx.land();
-        double sigma = Noises.sigma("shatter");
         double lift = ctx.p("lift");
-        JsonElement crack = abs(ctx.noise("shatter", 1 / ctx.p("crackScale"), 1 / ctx.p("crackScale")));
-        JsonElement cut = mul(add(crack, -ctx.p("crackWidth") * sigma / 0.3), 12 / sigma);
+        JsonElement q = mul(ctx.noise("plates", 1 / ctx.p("faultSpacing"), 0), 1 / (0.5 * Noises.sigma("plates")));
+        JsonElement tilt = sub(q, floor(q));
+        JsonElement h = add(land.height(), mul(mul(tilt, ctx.landMask()), ctx.p("faultHeight")));
+        double sigma = Noises.sigma("shatter");
+        double xz = 1 / ctx.p("crackScale");
+        JsonElement crack = abs(ctx.noise("shatter", xz, 0.25 * xz));
+        JsonElement chasm = mul(add(crack, -ctx.p("crackWidth") * sigma / 0.3), 12 / sigma);
+        JsonElement floorBelow = mul(add(negY(ctx.minY(), ctx.maxY()), ctx.sea() - ctx.p("chasmDepth")), 0.2);
+        JsonElement offshore = mul(sub(c(1), ctx.landMask()), 10);
+        JsonElement cut = max(max(chasm, floorBelow), offshore);
         JsonElement factor = lerp(c(lift), land.factor(), c(1.2));
-        return new Shape(land.height(), factor, land.jaggedness(), cut, null, land.continents(), 1 + 2.5 * lift);
+        return new Shape(h, factor, land.jaggedness(), cut, null, land.continents(), 0.6 + 2.5 * lift);
     }
 
     private static Shape spires(Ctx ctx) {

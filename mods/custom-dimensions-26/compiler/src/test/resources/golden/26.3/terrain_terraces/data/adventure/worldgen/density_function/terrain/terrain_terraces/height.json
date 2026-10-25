@@ -39,12 +39,12 @@
                         {
                           "derivative": 0.0,
                           "location": 0.15,
-                          "value": 73.5
+                          "value": 81.5
                         },
                         {
                           "derivative": 0.0,
                           "location": 1.5,
-                          "value": 80.0
+                          "value": 96.0
                         }
                       ]
                     },
@@ -113,7 +113,7 @@
                       },
                       "type": "minecraft:mul"
                     },
-                    "right": 50.0,
+                    "right": 72.0,
                     "type": "minecraft:mul"
                   },
                   "type": "minecraft:add"
@@ -121,7 +121,7 @@
                 "right": -63.0,
                 "type": "minecraft:add"
               },
-              "right": 0.1,
+              "right": 0.125,
               "type": "minecraft:mul"
             },
             "type": "minecraft:floor"
@@ -164,12 +164,12 @@
                             {
                               "derivative": 0.0,
                               "location": 0.15,
-                              "value": 73.5
+                              "value": 81.5
                             },
                             {
                               "derivative": 0.0,
                               "location": 1.5,
-                              "value": 80.0
+                              "value": 96.0
                             }
                           ]
                         },
@@ -238,7 +238,7 @@
                           },
                           "type": "minecraft:mul"
                         },
-                        "right": 50.0,
+                        "right": 72.0,
                         "type": "minecraft:mul"
                       },
                       "type": "minecraft:add"
@@ -246,7 +246,7 @@
                     "right": -63.0,
                     "type": "minecraft:add"
                   },
-                  "right": 0.1,
+                  "right": 0.125,
                   "type": "minecraft:mul"
                 },
                 "right": {
@@ -285,12 +285,12 @@
                               {
                                 "derivative": 0.0,
                                 "location": 0.15,
-                                "value": 73.5
+                                "value": 81.5
                               },
                               {
                                 "derivative": 0.0,
                                 "location": 1.5,
-                                "value": 80.0
+                                "value": 96.0
                               }
                             ]
                           },
@@ -359,7 +359,7 @@
                             },
                             "type": "minecraft:mul"
                           },
-                          "right": 50.0,
+                          "right": 72.0,
                           "type": "minecraft:mul"
                         },
                         "type": "minecraft:add"
@@ -367,7 +367,7 @@
                       "right": -63.0,
                       "type": "minecraft:add"
                     },
-                    "right": 0.1,
+                    "right": 0.125,
                     "type": "minecraft:mul"
                   },
                   "type": "minecraft:floor"
@@ -382,7 +382,7 @@
                 },
                 {
                   "derivative": 0.0,
-                  "location": 0.65,
+                  "location": 0.8,
                   "value": 0.0
                 },
                 {
@@ -396,7 +396,7 @@
           },
           "type": "minecraft:add"
         },
-        "right": 10.0,
+        "right": 8.0,
         "type": "minecraft:mul"
       },
       "right": 63.0,
