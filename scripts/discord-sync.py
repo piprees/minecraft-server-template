@@ -153,6 +153,23 @@ def validate_player(name: str) -> str | None:
     return None
 
 
+def ec_as_player(command: str, player: str, toggle: str | None = None) -> str:
+    """An Essential Commands admin command run as the player.
+
+    Essential Commands answers its `<command> <player>` forms from a console
+    source with "A player is required to run this command here", so the
+    player is the source; `@s <true|false>` sets a toggle explicitly, since
+    `invuln` has no bare true/false form.
+    """
+    suffix = f" @s {toggle}" if toggle is not None else ""
+    return f"execute as {player} run {command}{suffix}"
+
+
+def player_offline(reply: str | None) -> bool:
+    """A command that names a player who is not online answers with one of these."""
+    return reply is not None and ("No entity was found" in reply or "No player was found" in reply)
+
+
 def validate_identifier(raw: str) -> str | None:
     """Validate and normalise a Minecraft identifier (item, effect, enchantment, entity)."""
     raw = raw.lower().strip()
@@ -262,6 +279,18 @@ async def get_online_players() -> list[str]:
     if not match or not match.group(1).strip():
         return []
     return [p.strip() for p in match.group(1).split(",") if p.strip()]
+
+
+async def rcon_as_online_player(player: str, cmd: str) -> bool:
+    """Send cmd if player is online; False when they are not.
+
+    `execute as <player>` answers nothing for a missing player, so the check
+    is a probe that names the player directly.
+    """
+    if player_offline(await async_rcon(f"data get entity {player} Pos")):
+        return False
+    await async_rcon(cmd)
+    return True
 
 
 async def get_player_pos(player: str) -> tuple[int, int, int] | None:
@@ -945,7 +974,7 @@ async def mc_whisper(interaction: discord.Interaction, player: str, message: str
         await interaction.response.send_message("Message is empty after sanitisation.", ephemeral=True)
         return
     result = await async_rcon(f"msg {player} [{interaction.user.display_name}] {clean}")
-    if result is not None and "No entity was found" in result:
+    if player_offline(result):
         await interaction.response.send_message(f"**{player}** is not online.", ephemeral=True)
         return
     await interaction.response.send_message(f"Whispered to **{player}**: {clean}", ephemeral=True)
@@ -1123,8 +1152,7 @@ async def mc_heal(interaction: discord.Interaction, player: str) -> None:
     if not validate_player(player):
         await interaction.response.send_message("Invalid player name.", ephemeral=True)
         return
-    result = await async_rcon(f"heal {player}")
-    if result is not None and "No entity was found" in result:
+    if not await rcon_as_online_player(player, ec_as_player("heal", player)):
         await interaction.response.send_message(f"**{player}** is not online.", ephemeral=True)
         return
     await interaction.response.send_message(f"Healed **{player}**.", ephemeral=True)
@@ -1140,8 +1168,7 @@ async def mc_feed(interaction: discord.Interaction, player: str) -> None:
     if not validate_player(player):
         await interaction.response.send_message("Invalid player name.", ephemeral=True)
         return
-    result = await async_rcon(f"feed {player}")
-    if result is not None and "No entity was found" in result:
+    if not await rcon_as_online_player(player, ec_as_player("feed", player)):
         await interaction.response.send_message(f"**{player}** is not online.", ephemeral=True)
         return
     await interaction.response.send_message(f"Fed **{player}**.", ephemeral=True)
@@ -1161,7 +1188,9 @@ async def mc_fly(interaction: discord.Interaction, player: str, toggle: app_comm
     if not validate_player(player):
         await interaction.response.send_message("Invalid player name.", ephemeral=True)
         return
-    await async_rcon(f"fly {player} {toggle.value}")
+    if not await rcon_as_online_player(player, ec_as_player("fly", player, toggle.value)):
+        await interaction.response.send_message(f"**{player}** is not online.", ephemeral=True)
+        return
     state = "on" if toggle.value == "true" else "off"
     await interaction.response.send_message(f"Flight **{state}** for **{player}**.", ephemeral=True)
     await audit(interaction, f"set flight **{state}** for **{player}**")
@@ -1180,7 +1209,9 @@ async def mc_invuln(interaction: discord.Interaction, player: str, toggle: app_c
     if not validate_player(player):
         await interaction.response.send_message("Invalid player name.", ephemeral=True)
         return
-    await async_rcon(f"invuln {player} {toggle.value}")
+    if not await rcon_as_online_player(player, ec_as_player("invuln", player, toggle.value)):
+        await interaction.response.send_message(f"**{player}** is not online.", ephemeral=True)
+        return
     state = "on" if toggle.value == "true" else "off"
     await interaction.response.send_message(f"Invulnerability **{state}** for **{player}**.", ephemeral=True)
     await audit(interaction, f"set invulnerability **{state}** for **{player}**")
@@ -1195,7 +1226,9 @@ async def mc_extinguish(interaction: discord.Interaction, player: str) -> None:
     if not validate_player(player):
         await interaction.response.send_message("Invalid player name.", ephemeral=True)
         return
-    await async_rcon(f"extinguish {player}")
+    if not await rcon_as_online_player(player, ec_as_player("extinguish", player)):
+        await interaction.response.send_message(f"**{player}** is not online.", ephemeral=True)
+        return
     await interaction.response.send_message(f"Extinguished **{player}**.", ephemeral=True)
     await audit(interaction, f"extinguished **{player}**")
 
@@ -1242,7 +1275,7 @@ async def mc_give(interaction: discord.Interaction, player: str, item: str, coun
         return
     count = max(1, min(64, count))
     result = await async_rcon(f"give {player} {item_id} {count}")
-    if result is not None and "No entity was found" in result:
+    if player_offline(result):
         await interaction.response.send_message(f"**{player}** is not online.", ephemeral=True)
         return
     await interaction.response.send_message(
@@ -1277,7 +1310,7 @@ async def mc_effect(
     seconds = max(1, min(3600, seconds))
     amplifier = max(0, min(5, amplifier))
     result = await async_rcon(f"effect give {player} {effect_id} {seconds} {amplifier}")
-    if result is not None and "No entity was found" in result:
+    if player_offline(result):
         await interaction.response.send_message(f"**{player}** is not online.", ephemeral=True)
         return
     await interaction.response.send_message(
@@ -1310,8 +1343,7 @@ async def mc_enchant(interaction: discord.Interaction, player: str, enchantment:
         )
         return
     level = max(1, min(255, level))
-    result = await async_rcon(f"execute as {player} run ec enchant {ench_id} {level}")
-    if result is not None and "No entity was found" in result:
+    if not await rcon_as_online_player(player, f"execute as {player} run ec enchant {ench_id} {level}"):
         await interaction.response.send_message(f"**{player}** is not online.", ephemeral=True)
         return
     await interaction.response.send_message(
@@ -1346,7 +1378,7 @@ async def mc_gamemode(
         return
 
     result = await async_rcon(f"gamemode {mode.value} {player}")
-    if result is not None and "No entity was found" in result:
+    if player_offline(result):
         await interaction.response.send_message(f"**{player}** is not online.", ephemeral=True)
         return
 
@@ -1389,7 +1421,7 @@ async def mc_xp(interaction: discord.Interaction, player: str, amount: int) -> N
         return
     amount = max(1, min(100, amount))
     result = await async_rcon(f"experience add {player} {amount} levels")
-    if result is not None and "No entity was found" in result:
+    if player_offline(result):
         await interaction.response.send_message(f"**{player}** is not online.", ephemeral=True)
         return
     await interaction.response.send_message(
