@@ -33,7 +33,7 @@ public final class DefinitionReader {
 
     public static final List<String> GENERATOR_FIELDS =
             List.of("type", "preset", "of", "cellScale", "biome", "layers", "endIsland");
-    public static final List<String> LIQUIDS_FIELDS = List.of("seaLevel", "defaultFluid");
+    public static final List<String> LIQUIDS_FIELDS = List.of("seaLevel", "lavaLevel", "defaultFluid", "aquifers");
     public static final List<String> DIMENSION_TYPE_FIELDS = List.of("minY", "height", "logicalHeight",
             "hasSkylight", "hasCeiling", "infiniburn", "monsterSpawnLightLevel", "monsterSpawnBlockLightLimit");
     public static final List<String> ATMOSPHERE_FIELDS =
@@ -75,8 +75,10 @@ public final class DefinitionReader {
                 ctx.object(root, "terrain"),
                 biomes(ctx, root.get("biomes")),
                 ctx.closed(root, "liquids", LIQUIDS_FIELDS, (c, o) -> new Liquids(
-                        c.integer(o, "seaLevel"), c.string(o, "defaultFluid"))),
+                        c.integer(o, "seaLevel"), c.integer(o, "lavaLevel"), c.string(o, "defaultFluid"),
+                        c.string(o, "aquifers"))),
                 ctx.object(root, "materials"),
+                ctx.object(root, "ores"),
                 ctx.objectList(root, "zones"),
                 ctx.closed(root, "dimensionType", DIMENSION_TYPE_FIELDS, (c, o) -> new DimensionTypeFields(
                         c.integer(o, "minY"), c.integer(o, "height"), c.integer(o, "logicalHeight"),

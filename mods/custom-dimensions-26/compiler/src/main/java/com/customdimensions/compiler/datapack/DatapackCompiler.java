@@ -32,7 +32,8 @@ import java.util.stream.Stream;
 
 /**
  * Compiles schema v2 definitions into an ordinary datapack: a dimension type
- * per definition, noise settings where liquids or the default block change,
+ * per definition, noise settings and a material rule where liquids, the default
+ * block, palettes or ore veins change, runtime worldgen files and added ores,
  * level stems for the base worlds where vanilla loads them, and level stems
  * for every other dimension under {@code data/customdimensions/lazy_dimension/},
  * a folder vanilla ignores and the runtime opens on first entry. Every file
@@ -205,6 +206,13 @@ public final class DatapackCompiler {
         }
 
         JsonObject type = dimensionType(def, entry);
+        boolean noiseBased = !Generator.FLAT.equals(generator.type()) && !Generator.VOID.equals(generator.type());
+        if (noiseBased) {
+            String seaNote = LiquidsCompiler.validate(slug, def.liquids(), type);
+            if (seaNote != null) {
+                entry.note(seaNote);
+            }
+        }
         String bedrock = BedrockHeights.check(type);
         if (bedrock != null) {
             entry.bedrock(bedrock);
@@ -215,6 +223,10 @@ public final class DatapackCompiler {
         stem.addProperty("type", typeId);
         stem.add("generator", generator(slug, def, entry));
         put(stemPath, stem, entry);
+        if (noiseBased) {
+            String levelId = BASE_WORLDS.containsKey(slug) && !BASE_WORLDS.get(slug).isEmpty() ? BASE_WORLDS.get(slug) : typeId;
+            RuntimeWorldgen.files(namespace, slug, levelId, def, vanilla).forEach((path, json) -> put(path, sorted(json), entry));
+        }
 
         reportRuntimeFields(def, entry);
     }
@@ -349,20 +361,29 @@ public final class DatapackCompiler {
         Liquids theirs = source.liquids();
         Liquids liquids = own == null ? theirs : theirs == null ? own : new Liquids(
                 own.seaLevel() != null ? own.seaLevel() : theirs.seaLevel(),
-                own.defaultFluid() != null ? own.defaultFluid() : theirs.defaultFluid());
-        JsonObject materials = source.materials() == null ? null : source.materials().deepCopy();
-        if (clone.materials() != null) {
-            if (materials == null) {
-                materials = new JsonObject();
-            }
-            for (Map.Entry<String, JsonElement> e : clone.materials().entrySet()) {
-                materials.add(e.getKey(), e.getValue().deepCopy());
-            }
-        }
+                own.lavaLevel() != null ? own.lavaLevel() : theirs.lavaLevel(),
+                own.defaultFluid() != null ? own.defaultFluid() : theirs.defaultFluid(),
+                own.aquifers() != null ? own.aquifers() : theirs.aquifers());
+        JsonObject materials = overlay(source.materials(), clone.materials());
+        JsonObject ores = overlay(source.ores(), clone.ores());
         return new Definition(clone.schemaVersion(), clone.description(), clone.seed(), clone.spawn(), source.generator(),
-                source.terrain(), source.biomes(), liquids, materials, clone.zones(), clone.dimensionType(),
+                source.terrain(), source.biomes(), liquids, materials, ores, clone.zones(), clone.dimensionType(),
                 clone.atmosphere(), clone.rules(), clone.borders(), clone.difficulty(), clone.structures(), clone.portals(),
                 clone.exitPortal(), clone.exits(), clone.exitShrines(), clone.deaths(), clone.wins(), clone.roll());
+    }
+
+    /** {@code theirs} with each of {@code own}'s fields over it; null when both are. */
+    private static JsonObject overlay(JsonObject theirs, JsonObject own) {
+        JsonObject out = theirs == null ? null : theirs.deepCopy();
+        if (own != null) {
+            if (out == null) {
+                out = new JsonObject();
+            }
+            for (Map.Entry<String, JsonElement> e : own.entrySet()) {
+                out.add(e.getKey(), e.getValue().deepCopy());
+            }
+        }
+        return out;
     }
 
     // ---- dimension type ---------------------------------------------------------------------
@@ -522,26 +543,33 @@ public final class DatapackCompiler {
 
     /**
      * The noise settings id: the preset's vanilla settings (each preset is named
-     * after them), or {@code <ns>:<slug>} written from them when liquids or the
-     * default block change.
+     * after them), or {@code <ns>:<slug>} written from them when liquids, the
+     * default block, the material palette or the ore veins change; a changed
+     * material rule is written as {@code <ns>:<slug>} too.
      */
     private String noiseSettings(String slug, Definition def, String preset, CompileReport.Entry entry) {
         Liquids liquids = def.liquids();
         String defaultBlock = defaultBlock(def);
-        boolean changesLiquids = liquids != null && (liquids.seaLevel() != null || liquids.defaultFluid() != null);
+        boolean changesLiquids = LiquidsCompiler.changesSettings(liquids);
         boolean removesIsland = "end".equals(preset) && Boolean.FALSE.equals(def.generator().endIsland());
-        if (!changesLiquids && defaultBlock == null && !removesIsland) {
+        JsonObject settings = vanilla.noiseSettings(preset);
+        int seaLevel = liquids != null && liquids.seaLevel() != null ? liquids.seaLevel() : settings.get("sea_level").getAsInt();
+        JsonObject materialRule = MaterialsCompiler.compose(vanilla, settings.get("material_rule").getAsString(),
+                MaterialsCompiler.read(slug, def.materials()), OresCompiler.veins(OresCompiler.read(slug, def.ores()), vanilla),
+                seaLevel);
+        if (!changesLiquids && defaultBlock == null && !removesIsland && materialRule == null) {
             return "minecraft:" + preset;
         }
-        JsonObject settings = vanilla.noiseSettings(preset);
         if (removesIsland) {
             settings = withoutCentralIsland(settings, entry);
         }
-        if (liquids != null && liquids.seaLevel() != null) {
-            settings.addProperty("sea_level", liquids.seaLevel());
+        if (liquids != null) {
+            LiquidsCompiler.apply(slug, preset, liquids, settings);
         }
-        if (liquids != null && liquids.defaultFluid() != null) {
-            settings.addProperty("default_fluid", liquids.defaultFluid());
+        String id = namespace + ":" + slug;
+        if (materialRule != null) {
+            put(dataPath(id, "worldgen/material_rule"), sorted(materialRule), entry);
+            settings.addProperty("material_rule", id);
         }
         if (version.noiseSettingsDefaultBlock()) {
             if (defaultBlock != null) {
@@ -553,7 +581,6 @@ public final class DatapackCompiler {
                 settings.add("material_rule", withFallback(settings.get("material_rule"), defaultBlock));
             }
         }
-        String id = namespace + ":" + slug;
         put(dataPath(id, "worldgen/noise_settings"), sorted(settings), entry);
         return id;
     }
@@ -781,8 +808,13 @@ public final class DatapackCompiler {
         if (def.liquids() != null) {
             entry.unsupported("liquids", "a flat generator has no sea level or fluid");
         }
-        if (defaultBlock(def) != null) {
-            entry.unsupported("materials.defaultBlock", "a flat generator is made of its layers");
+        if (def.materials() != null) {
+            for (String key : def.materials().keySet()) {
+                entry.unsupported("materials." + key, "a flat generator is made of its layers");
+            }
+        }
+        if (def.ores() != null) {
+            entry.unsupported("ores", "a flat generator places no features");
         }
         JsonObject settings = new JsonObject();
         settings.addProperty("biome", biome);
@@ -814,14 +846,6 @@ public final class DatapackCompiler {
         JsonObject terrain = def.terrain();
         if (terrain != null && terrain.has("base") && !terrain.get("base").isJsonNull()) {
             entry.unsupported("terrain.base", "named terrain compiles in W1");
-        }
-        JsonObject materials = def.materials();
-        if (materials != null) {
-            for (String key : materials.keySet()) {
-                if (!"defaultBlock".equals(key)) {
-                    entry.unsupported("materials." + key, "material palettes compile in W3");
-                }
-            }
         }
         if (def.structures() != null && !def.structures().isEmpty()) {
             entry.unsupported("structures", "structure control is W4");

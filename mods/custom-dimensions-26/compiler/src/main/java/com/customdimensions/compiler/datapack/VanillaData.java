@@ -60,6 +60,17 @@ public final class VanillaData {
         return object("data/minecraft/worldgen/density_function/" + path + ".json");
     }
 
+    /** A material rule by id ({@code minecraft:overworld/surface}): {@code data/minecraft/worldgen/material_rule/<path>.json}. */
+    public JsonObject materialRule(String id) {
+        return object("data/minecraft/worldgen/material_rule/" + path(id) + ".json");
+    }
+
+    /** Whether vanilla has the placed feature {@code id}. */
+    public boolean hasPlacedFeature(String id) {
+        return id.startsWith("minecraft:")
+                && source.read("data/minecraft/worldgen/placed_feature/" + path(id) + ".json").isPresent();
+    }
+
     /** The entries of {@code reports/biome_parameters/minecraft/<list>.json}, in vanilla's order. */
     public JsonArray biomeParameters(String list) {
         return object("reports/biome_parameters/minecraft/" + list + ".json").getAsJsonArray("biomes");

@@ -25,8 +25,9 @@ writes the v2 set. At the switch the v2 set moves to
   "generator": { "type": "noise", "preset": "overworld" },
   "terrain": { "base": null },         // W1 fills it; null = the preset's own terrain
   "biomes": ["minecraft:plains", { "id": "…", "climate": { … } }],
-  "liquids": { "seaLevel": 63, "defaultFluid": "minecraft:water" },
-  "materials": { "defaultBlock": "minecraft:stone" },   // W3 adds palettes
+  "liquids": { "seaLevel": 63, "lavaLevel": -54, "defaultFluid": "minecraft:water", "aquifers": "on" },
+  "materials": { "defaultBlock": "minecraft:stone", "top": "minecraft:moss_block", "biomes": { "#minecraft:is_badlands": { "top": "minecraft:red_sand" } } },
+  "ores": { "veins": true, "add": [ { "id": "gilded", "block": "minecraft:gold_ore", "count": 8, "minY": -32, "maxY": 32 } ], "remove": ["minecraft:ore_diamond"] },
   "zones": [ … ],
   "dimensionType": { "minY": -64, "height": 384, "hasCeiling": false, … },
   "atmosphere": { "skyColor": "#4A2C6B", "fogColor": "#2A1A3E", "ambientLight": 0.3, "fixedTime": 18000, "effects": "minecraft:the_end" },
@@ -53,7 +54,7 @@ writes the v2 set. At the switch the v2 set moves to
 | `biomes` | `biomes` | Object entries' `parameters` become `climate`. Ids from cut mods are kept and reported; W8 replaces them. |
 | `checkerboardScale` | `generator.cellScale` | `checkerboard` only. |
 | `layers`, `flatBiome` | `generator.layers`, `generator.biome` | `flat` only. |
-| `settingsOverrides.seaLevel`, `.defaultFluid` | `liquids.seaLevel`, `liquids.defaultFluid` | |
+| `settingsOverrides.seaLevel`, `.defaultFluid` | `liquids.seaLevel`, `liquids.defaultFluid` | `liquids.lavaLevel` and `liquids.aquifers` have no v1 source; see [Materials, liquids and ores](#materials-liquids-and-ores). |
 | `settingsOverrides.defaultBlock` | `materials.defaultBlock` | 26.4 removes `default_block` from noise settings; the compiler emits it as the material rules' fallback. |
 | `settingsOverrides.endIsland` | `generator.endIsland` | `end` preset only. |
 | `biomePatches` | `zones` | Each patch becomes a circle zone that sets `biomes` only: `x`/`z` → `centre`, `radius`, `blend`, `shape` kept. |
@@ -72,6 +73,24 @@ writes the v2 set. At the switch the v2 set moves to
 `hostileSpawning`, top-level `scale`, `structures.endgame`, `shuns` distances,
 `seedRoll.spawnRadius`, `seedRoll.locateCap`, `seedRoll.allowEndgameNearSpawn`,
 `inputHash`. The converter reports each one it drops.
+
+## Materials, liquids and ores
+
+| Field | Meaning |
+| --- | --- |
+| `liquids.seaLevel` | `sea_level`: open cells below it hold `defaultFluid`. Above the dimension type's top is a compile error; below its floor is reported (the dimension has no sea). |
+| `liquids.lavaLevel` | Open cells below the lower of it and sea level are lava; the generator's own level is -54. Outside the dimension type's range is a compile error. The runtime applies it. |
+| `liquids.defaultFluid` | `default_fluid`. |
+| `liquids.aquifers` | `on`: the preset's `aquifers` object (overworld, large biomes and amplified have one; any other preset is a compile error). `off`: no `aquifers` object, so every open cell below sea level holds `defaultFluid`. `flooded`: the same, and air as the fluid is an error. `dry`: no `aquifers` object, `default_fluid` air, and the runtime removes `minecraft:spring_water` and `minecraft:dripstone_cluster`. Absent: the preset's own. |
+| `materials.defaultBlock` | `default_block` on 26.3; the material rule's last entry on 26.4. |
+| `materials.top`, `filler`, `deep`, `cliffs`, `beaches`, `ceilings` | Blocks for the floor block not under water, the surface depth below a floor, every other solid block, steep floors, floors from sea level − 4 to + 2, and the blocks over an open space. Floor fields are gated on `minecraft:above_preliminary_surface` where the preset's rule is, so cave floors keep vanilla's. |
+| `materials.biomes` | A palette per biome id or `#tag`, checked before the dimension's palette; a field it leaves unset falls through to the dimension's palette, then vanilla. |
+| `ores.veins` | `true` or absent keeps the preset's copper and iron veins, `false` removes them, a list replaces them: `like` (`copper` or `iron`, whose shape and heights it takes), `ore`, `rawOre` (default `ore`), `filler`, `rawOreChance`. |
+| `ores.add` | `id`, `block`, `deepBlock` (on deepslate; default `block`), `size` (default 8), `count` per chunk, `minY`, `maxY`, `shape` (`uniform` or `trapezoid`), `airExposure` (default 0). Each becomes `<ns>:ores/<slug>/<id>`, replacing stone and deepslate ore replaceables and the palette's own blocks, added to every biome's underground-ores step in that dimension only. |
+| `ores.remove` | Placed feature ids taken out of every biome in that dimension only; an unknown `minecraft:` id is a compile error. |
+
+Errors name the slug and the field (`the_x: ores.add[1].id: ...`). A flat or
+void generator reports palettes and ores as unsupported.
 
 ## Deaths and wins
 
