@@ -1,0 +1,160 @@
+{
+  "mod": "mr_epic_structuresdungeons",
+  "reviewed": true,
+  "structureSets": [
+    "epic:large_dungeons",
+    "epic:large_dungeons_obelisks",
+    "epic:medium_dungeons",
+    "epic:small_dungeons"
+  ],
+  "structures": [
+    {
+      "id": "epic:ice_obelisk",
+      "set": "epic:large_dungeons_obelisks",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "epic:large_dungeon",
+      "set": "epic:large_dungeons",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "epic:large_ice_dungeon",
+      "set": "epic:large_dungeons",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "epic:large_sand_dungeon",
+      "set": "epic:large_dungeons",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "epic:medium_ice_dungeon",
+      "set": "epic:medium_dungeons",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "epic:medium_plains_dungeon",
+      "set": "epic:medium_dungeons",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "epic:medium_sand_dungeon",
+      "set": "epic:medium_dungeons",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "epic:plains_obelisk",
+      "set": "epic:large_dungeons_obelisks",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "epic:sand_obelisk",
+      "set": "epic:large_dungeons_obelisks",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "epic:small_ice_dungeon",
+      "set": "epic:small_dungeons",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "epic:small_plains_dungeon",
+      "set": "epic:small_dungeons",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "epic:small_sand_dungeon",
+      "set": "epic:small_dungeons",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    }
+  ],
+  "features": [],
+  "spawns": [],
+  "mixins": [],
+  "registries": []
+}

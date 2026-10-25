@@ -26,6 +26,32 @@ Tags:
 | `climate` | `frozen`, `cold`, `temperate`, `warm`, `hot`, `arid`, `wet` |
 | `depth` | `sky`, `surface`, `underground`, `deep`, `underwater` |
 
+## The committed bridges
+
+`mods/custom-dimensions-26/bridges/` holds one reviewed bridge for every mod and
+datapack on the 26.3 list whose structure sets, placed features or biome spawns
+the firewall would otherwise switch off or remove. Each is the generator's output
+with `"reviewed": true`, sizes null and tags empty: everything it lists is adopted
+as-is and places exactly as it does without the firewall. W4 fills sizes and tags,
+and may drop sets per dimension. A bridge for a mod that is not installed adopts
+ids nobody registers and changes nothing.
+
+| Bridge | Archive | Hand-added |
+| --- | --- | --- |
+| `mr_ati_structuresfabricforge` | ATi Structures | |
+| `mr_epic_structuresdungeons` | Epic Structures: Dungeons | |
+| `mr_deadly_deadlydungeon` | Deadly Deadly Dungeon | |
+| `mr_dungeons_andtaverns` | Dungeons and Taverns | `nova_structures:deepslate_camp`, `villages_birch`, `villages_jungle`, `villages_swamp`: sets the pack's `config/datapacks/structures/` adds in the mod's namespace |
+| `t_and_t` | Towns and Towers | |
+| `mes`, `mns`, `mss`, `mtr`, `mvs` | Moog's End, Nether, Soaring, Temples and Voyager structures | |
+| `farmersdelight` | Farmer's Delight Refabricated | |
+| `clucking-ducks` | the clucking-ducks datapack (its Modrinth slug) | `minecraft:chicken` in `spawns`: the duck is a chicken variant its `minecraft:river` override spawns |
+
+`core`'s `ShippedBridgesTest` checks every file against the schema and the reader,
+and that together they adopt every id in `firewall/unbridged-26.3.txt`, what the
+firewall takes from the 26.3 list's smoke stack with no bridge installed.
+`runServer` reads this folder; `-Pbridges=<dir>` reads another.
+
 ## Writing a first bridge
 
 ```bash

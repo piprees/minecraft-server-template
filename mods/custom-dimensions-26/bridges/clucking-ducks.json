@@ -1,0 +1,12 @@
+{
+  "mod": "clucking-ducks",
+  "reviewed": true,
+  "structureSets": [],
+  "structures": [],
+  "features": [],
+  "spawns": [
+    "minecraft:chicken"
+  ],
+  "mixins": [],
+  "registries": []
+}

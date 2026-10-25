@@ -1,0 +1,1888 @@
+{
+  "mod": "mr_dungeons_andtaverns",
+  "reviewed": true,
+  "structureSets": [
+    "nova_structures:badlands_miner_outpost",
+    "nova_structures:badlands_miner_outpost_mineshafts",
+    "nova_structures:bunker",
+    "nova_structures:common_remnants",
+    "nova_structures:conduit_ruin",
+    "nova_structures:crypts",
+    "nova_structures:deepslate_camp",
+    "nova_structures:desert_structures",
+    "nova_structures:end_castle",
+    "nova_structures:end_lighthouses",
+    "nova_structures:end_ship",
+    "nova_structures:firewatch_towers",
+    "nova_structures:illager_barracks",
+    "nova_structures:illager_camps",
+    "nova_structures:illager_hideout",
+    "nova_structures:illager_manor",
+    "nova_structures:jungle_ruins",
+    "nova_structures:mangrove_witch_hut",
+    "nova_structures:nether_encampments",
+    "nova_structures:nether_structures",
+    "nova_structures:ocean_structures",
+    "nova_structures:pale_residence",
+    "nova_structures:remnants",
+    "nova_structures:ruin_town",
+    "nova_structures:shrine_tower",
+    "nova_structures:shrines",
+    "nova_structures:small_cave_structures",
+    "nova_structures:small_overworld_dungeons",
+    "nova_structures:stray_big_structures",
+    "nova_structures:strongholds_bunker",
+    "nova_structures:swamp_structure",
+    "nova_structures:taverns",
+    "nova_structures:trident_trial_monument",
+    "nova_structures:villages",
+    "nova_structures:villages_birch",
+    "nova_structures:villages_jungle",
+    "nova_structures:villages_swamp",
+    "nova_structures:wells",
+    "nova_structures:wild_ruin"
+  ],
+  "structures": [
+    {
+      "id": "nova_structures:badlands_miner_outpost",
+      "set": "nova_structures:badlands_miner_outpost",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:bogged_camp",
+      "set": "nova_structures:small_overworld_dungeons",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:bunker",
+      "set": "nova_structures:bunker",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:catacomb",
+      "set": "nova_structures:crypts",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:cave_chamber",
+      "set": "nova_structures:small_cave_structures",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:cave_chamber_archeology_ruins",
+      "set": "nova_structures:small_cave_structures",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:cave_chamber_colony",
+      "set": "nova_structures:small_cave_structures",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:cave_chamber_dungeon_colony",
+      "set": "nova_structures:small_cave_structures",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:cave_hut",
+      "set": "nova_structures:small_cave_structures",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:conduit_ruin",
+      "set": "nova_structures:ocean_structures",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:creeping_crypt",
+      "set": "nova_structures:crypts",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:dappled_townhall",
+      "set": "nova_structures:villages",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:deepslate_camp",
+      "set": "nova_structures:small_cave_structures",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:desert_ruins",
+      "set": "nova_structures:desert_structures",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:end_castle",
+      "set": "nova_structures:end_castle",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:end_lighthouse",
+      "set": "nova_structures:end_lighthouses",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:end_ship",
+      "set": "nova_structures:end_ship",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:firewatch_tower_birch",
+      "set": "nova_structures:firewatch_towers",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:firewatch_tower_cherry",
+      "set": "nova_structures:firewatch_towers",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:firewatch_tower_dappled",
+      "set": "nova_structures:firewatch_towers",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:firewatch_tower_dark_oak",
+      "set": "nova_structures:firewatch_towers",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:firewatch_tower_forest",
+      "set": "nova_structures:firewatch_towers",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:firewatch_tower_jungle",
+      "set": "nova_structures:firewatch_towers",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:firewatch_tower_mangrove",
+      "set": "nova_structures:firewatch_towers",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:firewatch_tower_pale",
+      "set": "nova_structures:firewatch_towers",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:firewatch_tower_savanna",
+      "set": "nova_structures:firewatch_towers",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:firewatch_tower_swamp",
+      "set": "nova_structures:firewatch_towers",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:firewatch_tower_taiga",
+      "set": "nova_structures:firewatch_towers",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:hamlet",
+      "set": "nova_structures:nether_structures",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:illager_barracks",
+      "set": "nova_structures:illager_barracks",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:illager_camp",
+      "set": "nova_structures:illager_barracks",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:illager_hideout",
+      "set": "nova_structures:illager_hideout",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:illager_manor",
+      "set": "nova_structures:illager_manor",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:illager_treehouse",
+      "set": "nova_structures:illager_barracks",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:jungle_ruins",
+      "set": "nova_structures:jungle_ruins",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:lone_citadel",
+      "set": "nova_structures:stray_big_structures",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:mangrove_witch_hut",
+      "set": "nova_structures:mangrove_witch_hut",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:nether_keep",
+      "set": "nova_structures:nether_structures",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:nether_port",
+      "set": "nova_structures:nether_structures",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:nether_skeleton_camp_crimson",
+      "set": "nova_structures:nether_encampments",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:nether_skeleton_camp_fort",
+      "set": "nova_structures:nether_encampments",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:nether_skeleton_camp_soul",
+      "set": "nova_structures:nether_encampments",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:nether_skeleton_camp_warped",
+      "set": "nova_structures:nether_encampments",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:nether_skeleton_tower_crimson",
+      "set": "nova_structures:nether_encampments",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:nether_skeleton_tower_fort",
+      "set": "nova_structures:nether_encampments",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:nether_skeleton_tower_soul",
+      "set": "nova_structures:nether_encampments",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:nether_skeleton_tower_warped",
+      "set": "nova_structures:nether_encampments",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:pale_residence",
+      "set": "nova_structures:pale_residence",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:parched_camp",
+      "set": "nova_structures:small_overworld_dungeons",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:piglin_camp",
+      "set": "nova_structures:nether_encampments",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:piglin_camp_collony",
+      "set": "nova_structures:nether_encampments",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:piglin_donjon",
+      "set": "nova_structures:nether_structures",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:piglin_outstation",
+      "set": "nova_structures:nether_structures",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:remnant_bee_keeper",
+      "set": "nova_structures:remnants",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:remnant_big_remnant",
+      "set": "nova_structures:remnants",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:remnant_big_remnant_2",
+      "set": "nova_structures:remnants",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:remnant_big_remnant_3",
+      "set": "nova_structures:remnants",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:remnant_birch_graveyard",
+      "set": "nova_structures:remnants",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:remnant_bridge_remnant",
+      "set": "nova_structures:remnants",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:remnant_bundle_tent",
+      "set": "nova_structures:remnants",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:remnant_bunny_base",
+      "set": "nova_structures:remnants",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:remnant_classic_village",
+      "set": "nova_structures:common_remnants",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:remnant_creeper_homestead",
+      "set": "nova_structures:remnants",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:remnant_desert_remnant",
+      "set": "nova_structures:remnants",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:remnant_forest_smith",
+      "set": "nova_structures:remnants",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:remnant_frog_ranch",
+      "set": "nova_structures:remnants",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:remnant_graveyard",
+      "set": "nova_structures:remnants",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:remnant_lava_chicken",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:remnant_lone_shrine_sentinel",
+      "set": "nova_structures:remnants",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:remnant_medium_remnant",
+      "set": "nova_structures:remnants",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:remnant_medium_remnant_2",
+      "set": "nova_structures:remnants",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:remnant_miner_hut",
+      "set": "nova_structures:common_remnants",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:remnant_mud_brick_constructor",
+      "set": "nova_structures:remnants",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:remnant_ominous_shop",
+      "set": "nova_structures:remnants",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:remnant_ruin_farmer",
+      "set": "nova_structures:remnants",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:remnant_ruin_smith",
+      "set": "nova_structures:remnants",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:remnant_sawmill",
+      "set": "nova_structures:remnants",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:remnant_school_remnant",
+      "set": "nova_structures:remnants",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:remnant_shrine_research_station",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:remnant_shrine_sentinel_mass_grave",
+      "set": "nova_structures:remnants",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:remnant_taiga_castle",
+      "set": "nova_structures:remnants",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:remnant_woodland_hud",
+      "set": "nova_structures:remnants",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:remnant_youth_spring",
+      "set": "nova_structures:remnants",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:remnant_zombie_horse_ranch",
+      "set": "nova_structures:remnants",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:ruin_town",
+      "set": "nova_structures:ruin_town",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:sealing_halls",
+      "set": "nova_structures:nether_structures",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:shrine_biome_tier_1",
+      "set": "nova_structures:shrines",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:shrine_biome_tier_2",
+      "set": "nova_structures:shrines",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:shrine_biome_tier_3",
+      "set": "nova_structures:shrines",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:shrine_biome_tier_4",
+      "set": "nova_structures:shrines",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:shrine_biome_tier_5",
+      "set": "nova_structures:shrines",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:shrine_combat_tier_1",
+      "set": "nova_structures:shrines",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:shrine_combat_tier_2",
+      "set": "nova_structures:shrines",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:shrine_combat_tier_3",
+      "set": "nova_structures:shrines",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:shrine_combat_tier_4",
+      "set": "nova_structures:shrines",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:shrine_combat_tier_5",
+      "set": "nova_structures:shrines",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:shrine_combat_tier_6",
+      "set": "nova_structures:shrines",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:shrine_tower",
+      "set": "nova_structures:shrine_tower",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:small_conduit_ruin_cold",
+      "set": "nova_structures:conduit_ruin",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:small_conduit_ruin_warm",
+      "set": "nova_structures:conduit_ruin",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:small_creeping_crypt",
+      "set": "nova_structures:small_overworld_dungeons",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:small_undead_crypt",
+      "set": "nova_structures:small_overworld_dungeons",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:stray_camp",
+      "set": "nova_structures:small_overworld_dungeons",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:stray_fort",
+      "set": "nova_structures:stray_big_structures",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:stray_outlook",
+      "set": "nova_structures:stray_big_structures",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:surface_dungeon_default",
+      "set": "nova_structures:small_overworld_dungeons",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:surface_dungeon_desert",
+      "set": "nova_structures:small_overworld_dungeons",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:surface_dungeon_snowy",
+      "set": "nova_structures:small_overworld_dungeons",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:surface_dungeon_swamp",
+      "set": "nova_structures:small_overworld_dungeons",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:surface_trial_dungeon_default",
+      "set": "nova_structures:small_overworld_dungeons",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:surface_trial_dungeon_desert",
+      "set": "nova_structures:small_overworld_dungeons",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:surface_trial_dungeon_snowy",
+      "set": "nova_structures:small_overworld_dungeons",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:surface_trial_dungeon_swamp",
+      "set": "nova_structures:small_overworld_dungeons",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:tavern_acacia",
+      "set": "nova_structures:taverns",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:tavern_birch",
+      "set": "nova_structures:taverns",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:tavern_cherry",
+      "set": "nova_structures:taverns",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:tavern_dappled",
+      "set": "nova_structures:taverns",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:tavern_dark_oak",
+      "set": "nova_structures:taverns",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:tavern_desert",
+      "set": "nova_structures:taverns",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:tavern_jungle",
+      "set": "nova_structures:taverns",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:tavern_mangrove",
+      "set": "nova_structures:taverns",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:tavern_oak",
+      "set": "nova_structures:taverns",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:tavern_pale",
+      "set": "nova_structures:taverns",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:tavern_snowy",
+      "set": "nova_structures:taverns",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:tavern_spruce",
+      "set": "nova_structures:taverns",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:tavern_swamp",
+      "set": "nova_structures:taverns",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:toxic_lair",
+      "set": "nova_structures:swamp_structure",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:trial_dungeon",
+      "set": "nova_structures:small_cave_structures",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:trident_trial_monument",
+      "set": "nova_structures:trident_trial_monument",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:undead_crypt",
+      "set": "nova_structures:crypts",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:underground_house",
+      "set": "nova_structures:small_cave_structures",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:village_birch",
+      "set": "nova_structures:villages",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:village_dappled",
+      "set": "nova_structures:villages",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:village_jungle",
+      "set": "nova_structures:villages",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:village_swamp",
+      "set": "nova_structures:villages",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:well_birch",
+      "set": "nova_structures:wells",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:well_cherry",
+      "set": "nova_structures:wells",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:well_dappled",
+      "set": "nova_structures:wells",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:well_dark_oak",
+      "set": "nova_structures:wells",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:well_desert",
+      "set": "nova_structures:wells",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:well_jungle",
+      "set": "nova_structures:wells",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:well_mangrove",
+      "set": "nova_structures:wells",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:well_oak",
+      "set": "nova_structures:wells",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:well_pale",
+      "set": "nova_structures:wells",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:well_savanna",
+      "set": "nova_structures:wells",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:well_snowy",
+      "set": "nova_structures:wells",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:well_spruce",
+      "set": "nova_structures:wells",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:well_swamp",
+      "set": "nova_structures:wells",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:wild_ruin",
+      "set": "nova_structures:wild_ruin",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "nova_structures:witch_villa",
+      "set": "nova_structures:swamp_structure",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    }
+  ],
+  "features": [
+    "nova_structures:basalt_base",
+    "nova_structures:blackstone_base",
+    "nova_structures:blackstone_bricks_base",
+    "nova_structures:cave_chamber_base",
+    "nova_structures:chorus_plant",
+    "nova_structures:cobblestone_base",
+    "nova_structures:cobblestone_toxic_base",
+    "nova_structures:combat_shrine_base",
+    "nova_structures:conduit_ruin_base",
+    "nova_structures:crimson_stem_base",
+    "nova_structures:crimson_stem_stripped_base",
+    "nova_structures:dark_oak_fence_base",
+    "nova_structures:dark_oak_log_base",
+    "nova_structures:dark_oak_planks_base",
+    "nova_structures:deepslate_brick_base",
+    "nova_structures:deepslate_camp_base",
+    "nova_structures:desert_ruins_base",
+    "nova_structures:iron_chain_hanging",
+    "nova_structures:jungle_ruins_base",
+    "nova_structures:monument_base",
+    "nova_structures:nether_bricks_base",
+    "nova_structures:netherrack_base",
+    "nova_structures:oak_log_base",
+    "nova_structures:pale_oak",
+    "nova_structures:polished_andesite_base",
+    "nova_structures:polished_tuff_base",
+    "nova_structures:remnant_bridge_base",
+    "nova_structures:spruce_log_base",
+    "nova_structures:stone_bricks_citadel_base",
+    "nova_structures:stone_bricks_toxic_base",
+    "nova_structures:stray_fort_wall_log",
+    "nova_structures:stray_fort_wall_planks",
+    "nova_structures:stray_heavy_frost",
+    "nova_structures:stray_light_frost",
+    "nova_structures:sulfur_foundation",
+    "nova_structures:tier_6_shrine_base",
+    "nova_structures:warped_stem_base",
+    "nova_structures:warped_stem_stripped_base"
+  ],
+  "spawns": [],
+  "mixins": [],
+  "registries": []
+}

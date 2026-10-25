@@ -1,0 +1,738 @@
+{
+  "mod": "t_and_t",
+  "reviewed": true,
+  "structureSets": [
+    "towns_and_towers:other",
+    "towns_and_towers:towers",
+    "towns_and_towers:towns"
+  ],
+  "structures": [
+    {
+      "id": "towns_and_towers:exclusives/pillager_outpost_classic",
+      "set": "towns_and_towers:towers",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "towns_and_towers:exclusives/pillager_outpost_iberian",
+      "set": "towns_and_towers:towers",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "towns_and_towers:exclusives/pillager_outpost_mediterranean",
+      "set": "towns_and_towers:towers",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "towns_and_towers:exclusives/pillager_outpost_nilotic",
+      "set": "towns_and_towers:towers",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "towns_and_towers:exclusives/pillager_outpost_oriental",
+      "set": "towns_and_towers:towers",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "towns_and_towers:exclusives/pillager_outpost_rustic",
+      "set": "towns_and_towers:towers",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "towns_and_towers:exclusives/pillager_outpost_swedish",
+      "set": "towns_and_towers:towers",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "towns_and_towers:exclusives/pillager_outpost_tudor",
+      "set": "towns_and_towers:towers",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "towns_and_towers:exclusives/village_classic",
+      "set": "towns_and_towers:towns",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "towns_and_towers:exclusives/village_iberian",
+      "set": "towns_and_towers:towns",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "towns_and_towers:exclusives/village_mediterranean",
+      "set": "towns_and_towers:towns",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "towns_and_towers:exclusives/village_nilotic",
+      "set": "towns_and_towers:towns",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "towns_and_towers:exclusives/village_piglin",
+      "set": "towns_and_towers:towns",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "towns_and_towers:exclusives/village_rustic",
+      "set": "towns_and_towers:towns",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "towns_and_towers:exclusives/village_swedish",
+      "set": "towns_and_towers:towns",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "towns_and_towers:exclusives/village_tudor",
+      "set": "towns_and_towers:towns",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "towns_and_towers:exclusives/village_wandering_trader_camp",
+      "set": "towns_and_towers:towns",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "towns_and_towers:mimic_desert",
+      "set": "towns_and_towers:other",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "towns_and_towers:pillager_outpost_badlands",
+      "set": "towns_and_towers:towers",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "towns_and_towers:pillager_outpost_beach",
+      "set": "towns_and_towers:towers",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "towns_and_towers:pillager_outpost_birch_forest",
+      "set": "towns_and_towers:towers",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "towns_and_towers:pillager_outpost_desert",
+      "set": "towns_and_towers:towers",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "towns_and_towers:pillager_outpost_flower_forest",
+      "set": "towns_and_towers:towers",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "towns_and_towers:pillager_outpost_forest",
+      "set": "towns_and_towers:towers",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "towns_and_towers:pillager_outpost_grove",
+      "set": "towns_and_towers:towers",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "towns_and_towers:pillager_outpost_jungle",
+      "set": "towns_and_towers:towers",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "towns_and_towers:pillager_outpost_meadow",
+      "set": "towns_and_towers:towers",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "towns_and_towers:pillager_outpost_mushroom_fields",
+      "set": "towns_and_towers:towers",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "towns_and_towers:pillager_outpost_ocean",
+      "set": "towns_and_towers:towers",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "towns_and_towers:pillager_outpost_old_growth_taiga",
+      "set": "towns_and_towers:towers",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "towns_and_towers:pillager_outpost_savanna",
+      "set": "towns_and_towers:towers",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "towns_and_towers:pillager_outpost_savanna_plateau",
+      "set": "towns_and_towers:towers",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "towns_and_towers:pillager_outpost_snowy_beach",
+      "set": "towns_and_towers:towers",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "towns_and_towers:pillager_outpost_snowy_plains",
+      "set": "towns_and_towers:towers",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "towns_and_towers:pillager_outpost_snowy_slopes",
+      "set": "towns_and_towers:towers",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "towns_and_towers:pillager_outpost_snowy_taiga",
+      "set": "towns_and_towers:towers",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "towns_and_towers:pillager_outpost_sparse_jungle",
+      "set": "towns_and_towers:towers",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "towns_and_towers:pillager_outpost_sunflower_plains",
+      "set": "towns_and_towers:towers",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "towns_and_towers:pillager_outpost_swamp",
+      "set": "towns_and_towers:towers",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "towns_and_towers:pillager_outpost_taiga",
+      "set": "towns_and_towers:towers",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "towns_and_towers:pillager_outpost_wooded_badlands",
+      "set": "towns_and_towers:towers",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "towns_and_towers:village_badlands",
+      "set": "towns_and_towers:towns",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "towns_and_towers:village_beach",
+      "set": "towns_and_towers:towns",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "towns_and_towers:village_birch_forest",
+      "set": "towns_and_towers:towns",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "towns_and_towers:village_flower_forest",
+      "set": "towns_and_towers:towns",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "towns_and_towers:village_forest",
+      "set": "towns_and_towers:towns",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "towns_and_towers:village_grove",
+      "set": "towns_and_towers:towns",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "towns_and_towers:village_jungle",
+      "set": "towns_and_towers:towns",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "towns_and_towers:village_meadow",
+      "set": "towns_and_towers:towns",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "towns_and_towers:village_mushroom_fields",
+      "set": "towns_and_towers:towns",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "towns_and_towers:village_ocean",
+      "set": "towns_and_towers:towns",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "towns_and_towers:village_old_growth_taiga",
+      "set": "towns_and_towers:towns",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "towns_and_towers:village_savanna_plateau",
+      "set": "towns_and_towers:towns",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "towns_and_towers:village_snowy_slopes",
+      "set": "towns_and_towers:towns",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "towns_and_towers:village_snowy_taiga",
+      "set": "towns_and_towers:towns",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "towns_and_towers:village_sparse_jungle",
+      "set": "towns_and_towers:towns",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "towns_and_towers:village_sunflower_plains",
+      "set": "towns_and_towers:towns",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "towns_and_towers:village_swamp",
+      "set": "towns_and_towers:towns",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "towns_and_towers:village_wooded_badlands",
+      "set": "towns_and_towers:towns",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "towns_and_towers:wreckage_ocean",
+      "set": "towns_and_towers:other",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    }
+  ],
+  "features": [
+    "kaisyn:patch_grass",
+    "kaisyn:patch_tall_grass"
+  ],
+  "spawns": [],
+  "mixins": [],
+  "registries": []
+}

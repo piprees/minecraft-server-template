@@ -255,7 +255,7 @@ the rules are game-free in `core/.../firewall/`.
 | `StructureStateMixin` | Drops switched-off sets from `ChunkGeneratorStructureState.createForNormal`, for base and Fantasy levels alike |
 | Biome modification | Fabric's `POST_PROCESSING` phase: in each vanilla biome, removes placed features, and entries of the `natural_mob_spawns` attribute, that vanilla's biome file and the reviewed bridges lack |
 | `AllowList`, `WorldgenClasses`, `Firewall` (core) | The allow list, the worldgen class set and the verdict, in one place each |
-| `BridgeReader`, `BridgeGenerator` (core) | Bridges in `config/custom-dimensions/bridges/` (or `-Dcustomdimensions.bridges=<dir>`), [bridges.md](../../docs/design/rebuild-26/bridges.md); `:core:bridge -Pjar=… -Pout=…` writes a first one from a jar |
+| `BridgeReader`, `BridgeGenerator` (core) | Bridges in `config/custom-dimensions/bridges/` (or `-Dcustomdimensions.bridges=<dir>`; `runServer` reads the reviewed set in `bridges/`), [bridges.md](../../docs/design/rebuild-26/bridges.md); `:core:bridge -Pjar=… -Pout=…` writes a first one from a jar |
 
 A malformed bridge also refuses the start, naming the file and field. The
 self-test's firewall section checks the audit passed, that switching off

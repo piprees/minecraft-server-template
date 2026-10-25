@@ -12,7 +12,9 @@
 # and the in-house mods of the version's manifest (local-mods.sh). The 26.3
 # mod reads v2 definitions from config/custom-dimensions/dimensions/, so the
 # v2 set in mods/custom-dimensions-26/definitions/ replaces the 1.21.1 folder
-# there (cutover-removals.md: the same move at the switch).
+# there, and mods/custom-dimensions-26/bridges/ fills
+# config/custom-dimensions/bridges/ beside it (cutover-removals.md: the same
+# move at the switch).
 #
 # Usage:
 #   scripts/smoke-26.sh prepare      # .env, data/, config, datapacks, seed image, in-house mods
@@ -87,6 +89,13 @@ EOF
     mkdir -p data/config/custom-dimensions/dimensions
     cp "$defs"/*.json data/config/custom-dimensions/dimensions/
     echo "  v2 definitions: $(find data/config/custom-dimensions/dimensions -name '*.json' | wc -l | tr -d ' ') files"
+  fi
+  local bridges="mods/custom-dimensions-26/bridges"
+  if [[ -d "$bridges" ]]; then
+    rm -rf data/config/custom-dimensions/bridges
+    mkdir -p data/config/custom-dimensions/bridges
+    cp "$bridges"/*.json data/config/custom-dimensions/bridges/
+    echo "  bridges: $(find data/config/custom-dimensions/bridges -name '*.json' | wc -l | tr -d ' ') files"
   fi
 
   echo "==> Datapacks (deploy.sh's sync and ownership filter)"
