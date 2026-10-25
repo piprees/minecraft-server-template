@@ -1,4 +1,7 @@
 # bundle_name|gradle_project|loom_refmap
-# Minecraft 26.3 ships no in-house client mod: the server needs none to join
-# (decisions.md RB-02, RB-03). An empty list keeps the 1.21.1 client out of a
-# 26.3 bundle.
+# Minecraft 26.3's in-house client mods, selected like the mod list
+# (mc_client_mods_manifest in scripts/lib.sh). The companion is optional and
+# effect-only: the server needs no client mod to join (decisions.md RB-02,
+# RB-03). "-" in the refmap column: the project builds with Loom's
+# non-remapping plugin, so the jar carries no refmap.
+customdimensionsclient.jar|custom-dimensions-client-26|-

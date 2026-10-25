@@ -314,6 +314,37 @@ version_config_files() {
   find "./versions/$version" -type f
 }
 
+# pack_version_overrides <versions-dir> <overrides-dir> [version] - lay the
+# version's client pack overrides over a copied overrides tree. Each path in
+# <versions-dir>/<version>/overrides-remove.txt (relative to overrides/, one
+# per line, # comments) is left out, then each
+# <versions-dir>/<version>/overrides/<path> replaces or adds <path>. A version
+# without a directory changes nothing.
+pack_version_overrides() {
+  local versions="$1" dest="$2" version="${3:-}" src line
+  [[ -n "$version" ]] || version="$(mc_version)" || return 1
+  src="$versions/$version"
+  if [[ -f "$src/overrides-remove.txt" ]]; then
+    while IFS= read -r line || [[ -n "$line" ]]; do
+      line="${line%%#*}"
+      line="${line#"${line%%[![:space:]]*}"}"
+      line="${line%"${line##*[![:space:]]}"}"
+      [[ -n "$line" ]] || continue
+      case "$line" in
+        /* | *..*)
+          echo "ERROR: $src/overrides-remove.txt: '$line' is not a path inside overrides/" >&2
+          return 1
+          ;;
+      esac
+      rm -rf "${dest:?}/$line"
+    done < "$src/overrides-remove.txt"
+  fi
+  if [[ -d "$src/overrides" ]]; then
+    cp -R "$src/overrides/." "$dest/"
+  fi
+  return 0
+}
+
 # --- Distant Horizons -----------------------------------------------------
 # The four warning keys DH logs on every tick when a server disables explicit
 # GC. Both deploy.sh and dev-up.sh silence these; each keeps its own extra

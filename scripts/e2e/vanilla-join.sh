@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# vanilla-join.sh - Join a running server with the real, unmodded Minecraft client.
+# vanilla-join.sh - Join a running server with the real Minecraft client, unmodded or with a client pack.
 #
 # Context: template-only (smoke-test-26.yml and dep-review.yml run it; not in
 # MANIFEST). The gate for RB-02: a vanilla client must join the 26.3 server and
@@ -18,10 +18,19 @@
 # client's disconnect screen text, or the timeout) goes to --out/summary.md,
 # which CI appends to the job summary.
 #
+# With --mrpack the same client runs a built client pack instead: the pack's
+# overrides land in the game directory, every file in its modrinth.index.json
+# is fetched (each download URL in order, sha1-checked), and the client starts
+# through the Fabric loader the index names (meta.fabricmc.net profile, each
+# library checked against its sha1, or its Maven .sha1). The pack's configureddefaults/options.txt
+# is the starting options.txt, windowed. --expect adds a pass condition: the
+# server log since the client started must match the regex.
+#
 # Usage:
 #   scripts/e2e/vanilla-join.sh [--version V] [--server host:port] [--name N]
 #       [--hold SECONDS] [--join-timeout SECONDS] [--cache DIR] [--out DIR]
 #       [--container mc] [--during 'command run once joined']
+#       [--mrpack FILE] [--expect REGEX]
 #
 #   --version       default: mc_version (MC_VERSION_OVERRIDE, else .minecraft-version)
 #   --server        default 127.0.0.1:25577 (docker-compose.yml's SERVER_PORT)
@@ -29,6 +38,8 @@
 #   --join-timeout  default 600: software GL takes minutes to reach the title screen
 #   --during        runs after the join, while the client stays connected (the
 #                   admin parity check with --player uses it)
+#   --mrpack        a built .mrpack (scripts/build-modpack.sh) to install and run
+#   --expect        a regex the server log must show by the end of the hold
 #
 # Gotchas:
 #   - Linux only (Xvfb with GLX, Mesa). The client renders through SDL3 with
@@ -39,6 +50,8 @@
 #   - The server log is read with `docker logs <container>` since the client
 #     started; a container name other than mc needs --container.
 #   - Bounded throughout: every download has a timeout and every wait a limit.
+#   - --mrpack runs on OpenGL through mods/custom-dimensions-client-26/rig/srgbshim.c
+#     (built here with gcc; T138): Sodium and Iris need the GL backend.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -54,6 +67,9 @@ CACHE="${XDG_CACHE_HOME:-$HOME/.cache}/vanilla-client"
 OUT="vanilla-join"
 CONTAINER="mc"
 DURING=""
+MRPACK=""
+EXPECT=""
+KIND="Vanilla"
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --version) VERSION="$2" ;;
@@ -65,6 +81,8 @@ while [[ $# -gt 0 ]]; do
     --out) OUT="$2" ;;
     --container) CONTAINER="$2" ;;
     --during) DURING="$2" ;;
+    --mrpack) MRPACK="$2" ;;
+    --expect) EXPECT="$2" ;;
     *)
       sed -n '/^# Usage:/,/^# Gotchas:/p' "$0" | sed '$d' | sed 's/^# \{0,1\}//' >&2
       exit 2
@@ -75,13 +93,14 @@ done
 [[ -n "$VERSION" ]] || VERSION="$(mc_version)"
 mkdir -p "$OUT" "$CACHE"
 OUT="$(cd "$OUT" && pwd)"
+CACHE="$(cd "$CACHE" && pwd)"
 SUMMARY="$OUT/summary.md"
 JAVA="${JAVA_HOME:+$JAVA_HOME/bin/}java"
 MANIFEST_URL="https://piston-meta.mojang.com/mc/game/version_manifest_v2.json"
 
 fail() {
   {
-    echo "### Vanilla $VERSION client join: FAIL"
+    echo "### $KIND $VERSION client join: FAIL"
     echo ""
     echo "$1"
   } > "$SUMMARY"
@@ -169,10 +188,87 @@ if [[ -s "$missing" ]]; then
     < <(sed "s|\$| $VDIR/assets/objects|" "$missing") || fail "an asset object failed to download or verify"
 fi
 
-echo "==> Launching as $NAME -> $SERVER"
 GAME="$OUT/game"
 mkdir -p "$GAME"
-printf 'onboardAccessibility:false\npauseOnLostFocus:false\nsoundCategory_master:0.0\nnarrator:0\ntutorialStep:none\nskipMultiplayerWarning:true\njoinedFirstServer:true\n' > "$GAME/options.txt"
+FIRST_RUN_OPTIONS='onboardAccessibility:false\npauseOnLostFocus:false\nsoundCategory_master:0.0\nnarrator:0\ntutorialStep:none\nskipMultiplayerWarning:true\njoinedFirstServer:true\n'
+printf '%b' "$FIRST_RUN_OPTIONS" > "$GAME/options.txt"
+MAIN="$MAIN_CLASS"
+JVM_EXTRA=()
+if [[ -n "$MRPACK" ]]; then
+  KIND="Pack"
+  [[ -f "$MRPACK" ]] || fail "no pack at $MRPACK"
+  echo "==> Installing $(basename "$MRPACK")"
+  python3 - "$MRPACK" "$GAME" > "$OUT/pack-install.txt" 2>&1 << 'PY' || fail "the pack did not install: $(tail -3 "$OUT/pack-install.txt")"
+import hashlib, json, os, sys, urllib.request, zipfile
+pack, game = sys.argv[1], sys.argv[2]
+z = zipfile.ZipFile(pack)
+index = json.loads(z.read("modrinth.index.json"))
+for name in z.namelist():
+    if name.startswith("overrides/") and not name.endswith("/"):
+        dest = os.path.join(game, name[len("overrides/"):])
+        os.makedirs(os.path.dirname(dest), exist_ok=True)
+        with open(dest, "wb") as fh:
+            fh.write(z.read(name))
+for f in index["files"]:
+    dest = os.path.join(game, f["path"])
+    os.makedirs(os.path.dirname(dest), exist_ok=True)
+    want = f["hashes"]["sha1"]
+    if os.path.isfile(dest) and hashlib.sha1(open(dest, "rb").read()).hexdigest() == want:
+        continue
+    for url in f["downloads"]:
+        try:
+            req = urllib.request.Request(url, headers={"User-Agent": "minecraft-server-template/vanilla-join"})
+            body = urllib.request.urlopen(req, timeout=120).read()
+        except Exception:
+            continue
+        if hashlib.sha1(body).hexdigest() == want:
+            open(dest, "wb").write(body)
+            break
+    else:
+        sys.exit(f"no download of {f['path']} matched its sha1")
+print(index["dependencies"]["fabric-loader"])
+PY
+  LOADER="$(tail -1 "$OUT/pack-install.txt")"
+  echo "  $(find "$GAME/mods" -name '*.jar' | wc -l | tr -d ' ') mods; Fabric loader $LOADER"
+  if [[ -f "$GAME/configureddefaults/options.txt" ]]; then
+    { grep -vE '^(fullscreen|onboardAccessibility|pauseOnLostFocus|soundCategory_master|narrator|tutorialStep|skipMultiplayerWarning|joinedFirstServer):' \
+      "$GAME/configureddefaults/options.txt" || true; echo "fullscreen:false"; printf '%b' "$FIRST_RUN_OPTIONS"; } > "$GAME/options.txt"
+  fi
+  curl -fsSL --max-time 60 "https://meta.fabricmc.net/v2/versions/loader/$VERSION/$LOADER/profile/json" -o "$VDIR/fabric-$LOADER.json" ||
+    fail "meta.fabricmc.net has no Fabric $LOADER profile for $VERSION"
+  python3 - "$VDIR/fabric-$LOADER.json" "$VDIR" > "$VDIR/fabric-$LOADER.txt" << 'PY'
+import json, sys
+p = json.load(open(sys.argv[1]))
+for lib in p["libraries"]:
+    group, artifact, version = lib["name"].split(":")[:3]
+    path = f"{group.replace('.', '/')}/{artifact}/{version}/{artifact}-{version}.jar"
+    print("LIB", lib["url"].rstrip("/") + "/" + path, lib.get("sha1", "-"), f"{sys.argv[2]}/libraries/{path}")
+print("MAIN", p["mainClass"])
+for arg in p.get("arguments", {}).get("jvm", []):
+    print("JVM", arg)
+PY
+  FABRIC_CP=""
+  while read -r kind url sha dest; do
+    [[ "$kind" == LIB ]] || continue
+    # A library the profile lists without a sha1 is checked against its Maven .sha1.
+    [[ "$sha" != "-" ]] || sha="$(curl -fsSL --max-time 60 "$url.sha1" | cut -c1-40)" || fail "no sha1 for $url"
+    fetch "$url" "$sha" "$dest"
+    FABRIC_CP="${FABRIC_CP:+$FABRIC_CP:}$dest"
+  done < "$VDIR/fabric-$LOADER.txt"
+  CP="$FABRIC_CP:$CP"
+  MAIN="$(sed -n 's/^MAIN //p' "$VDIR/fabric-$LOADER.txt")"
+  while IFS= read -r arg; do JVM_EXTRA+=("$arg"); done < <(sed -n 's/^JVM //p' "$VDIR/fabric-$LOADER.txt")
+  SHIM_SRC="$SCRIPT_DIR/../../mods/custom-dimensions-client-26/rig/srgbshim.c"
+  SHIM="$CACHE/libsrgbshim.so"
+  if [[ ! -f "$SHIM" || "$SHIM_SRC" -nt "$SHIM" ]]; then
+    gcc -shared -fPIC -O2 "$SHIM_SRC" -o "$SHIM" -Wl,--no-as-needed /usr/lib/x86_64-linux-gnu/libGL.so.1 -ldl ||
+      fail "the sRGB GL shim did not build (T138)"
+  fi
+  JVM_EXTRA+=("-Dorg.lwjgl.opengl.libname=$SHIM")
+  export SDL_OPENGL_LIBRARY="$SHIM"
+fi
+
+echo "==> Launching as $NAME -> $SERVER"
 DISPLAY_NUM=":$((90 + RANDOM % 9))"
 # GLX and RENDER give SDL a GL visual; 24-bit depth is what Mesa's llvmpipe offers.
 Xvfb "$DISPLAY_NUM" -screen 0 854x480x24 +extension GLX +render -nolisten tcp > "$OUT/xvfb.log" 2>&1 &
@@ -187,7 +283,11 @@ since="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 UUID="$(python3 -c 'import hashlib,sys,uuid; h=bytearray(hashlib.md5(("OfflinePlayer:"+sys.argv[1]).encode()).digest()); h[6]=h[6]&0x0f|0x30; h[8]=h[8]&0x3f|0x80; print(uuid.UUID(bytes=bytes(h)))' "$NAME")"
 export XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:-$(mktemp -d)}"
 chmod 700 "$XDG_RUNTIME_DIR"
-DISPLAY="$DISPLAY_NUM" LIBGL_ALWAYS_SOFTWARE=1 "$JAVA" -Xmx2G -cp "$CP" "$MAIN_CLASS" \
+# From the game directory, as a launcher runs it: Configured Defaults copies
+# into the working directory. A UTF-8 locale lets Java open pack files whose
+# names carry a § (LowOnFire).
+cd "$GAME"
+DISPLAY="$DISPLAY_NUM" LIBGL_ALWAYS_SOFTWARE=1 LC_ALL=C.UTF-8 "$JAVA" -Xmx2G ${JVM_EXTRA[@]+"${JVM_EXTRA[@]}"} -cp "$CP" "$MAIN" \
   --username "$NAME" --uuid "$UUID" --accessToken 0 --userType legacy --version "$VERSION" \
   --versionType release --gameDir "$GAME" --assetsDir "$VDIR/assets" --assetIndex "$ASSET_ID" \
   --width 854 --height 480 --quickPlayMultiplayer "$SERVER" > "$OUT/client.log" 2>&1 &
@@ -243,10 +343,15 @@ while [[ $held -lt $HOLD ]]; do
   fi
 done
 
+if [[ -n "$EXPECT" ]] && ! server_log | grep -qE "$EXPECT"; then
+  fail "the server log never matched '$EXPECT' while the client held ${HOLD}s"
+fi
+
 {
-  echo "### Vanilla $VERSION client join: PASS"
+  echo "### $KIND $VERSION client join: PASS"
   echo ""
   echo "\`$NAME\` joined $SERVER after ${waited}s and stayed connected for ${HOLD}s."
+  [[ -z "$MRPACK" ]] || echo "Client pack: \`$(basename "$MRPACK")\`${EXPECT:+; the server log matched \`$EXPECT\`}."
   [[ -f "$OUT/screenshot.png" ]] && echo "Screenshot: \`screenshot.png\` in the artifact." || echo "No screenshot (neither xdotool nor ImageMagick on PATH)."
 } > "$SUMMARY"
 cat "$SUMMARY"

@@ -94,8 +94,9 @@ def test_local_mods_manifests_follow_the_version():
     rows = [r for r in (REPO / "mods" / "local-mods-26.3.manifest").read_text().splitlines()
             if r and not r.startswith("#")]
     assert rows == ["customdimensions.jar|custom-dimensions-26|-"]
-    assert not [r for r in (REPO / "mods" / "client-mods-26.3.manifest").read_text().splitlines()
-                if r and not r.startswith("#")]
+    client_rows = [r for r in (REPO / "mods" / "client-mods-26.3.manifest").read_text().splitlines()
+                   if r and not r.startswith("#")]
+    assert client_rows == ["customdimensionsclient.jar|custom-dimensions-client-26|-"]
 
 
 def test_file_wins_over_env(tmp_path, monkeypatch):
@@ -454,3 +455,69 @@ def test_game_rules_take_the_26_3_ids():
     assert bash("mc_game_rule keepInventory true", MC_VERSION_OVERRIDE="26.3").stdout.strip() == "keepInventory true"
     assert bash("mc_game_rule doMobSpawning true", MC_VERSION_OVERRIDE="26.3").stdout.strip() == "spawn_mobs true"
     assert f.is_file()
+
+
+def _overrides_tree(tmp_path):
+    base = tmp_path / "overrides"
+    (base / "config" / "betterend").mkdir(parents=True)
+    (base / "config" / "betterend" / "client.json").write_text("{}")
+    (base / "config" / "keep.json").write_text("base")
+    (base / "options.txt").write_text("version:3955\n")
+    v = tmp_path / "versions" / "26.3"
+    (v / "overrides").mkdir(parents=True)
+    (v / "overrides" / "options.txt").write_text("version:5023\n")
+    (v / "overrides" / "new.txt").write_text("added")
+    (v / "overrides-remove.txt").write_text("# leave out\nconfig/betterend   # cut\n\n")
+    return base
+
+
+def test_pack_version_overrides_replace_add_and_remove(tmp_path):
+    base = _overrides_tree(tmp_path)
+    r = bash(f'pack_version_overrides "{tmp_path}/versions" "{base}" 26.3')
+    assert r.returncode == 0, r.stderr
+    assert (base / "options.txt").read_text() == "version:5023\n"
+    assert (base / "new.txt").read_text() == "added"
+    assert (base / "config" / "keep.json").read_text() == "base"
+    assert not (base / "config" / "betterend").exists()
+
+
+def test_pack_version_overrides_leave_other_versions_alone(tmp_path):
+    base = _overrides_tree(tmp_path)
+    before = sorted(p.relative_to(base).as_posix() for p in base.rglob("*"))
+    r = bash(f'pack_version_overrides "{tmp_path}/versions" "{base}" 1.21.1')
+    assert r.returncode == 0, r.stderr
+    assert sorted(p.relative_to(base).as_posix() for p in base.rglob("*")) == before
+    assert (base / "options.txt").read_text() == "version:3955\n"
+
+
+def test_pack_version_overrides_refuse_paths_outside(tmp_path):
+    base = _overrides_tree(tmp_path)
+    (tmp_path / "versions" / "26.3" / "overrides-remove.txt").write_text("../escape\n")
+    (tmp_path / "escape").write_text("x")
+    r = bash(f'pack_version_overrides "{tmp_path}/versions" "{base}" 26.3')
+    assert r.returncode == 1
+    assert "not a path inside overrides/" in r.stderr
+    assert (tmp_path / "escape").exists()
+
+
+def test_26_3_pack_manifest():
+    import csv
+    import json
+    m = json.loads((REPO / "modpack" / "adventure-26.3.mrpack.json").read_text())
+    assert m["dependencies"] == {"minecraft": "26.3",
+                                 "fabric-loader": minecraft_version.info("26.3")["loader"]}
+    reg = {r["slug"]: r for r in csv.DictReader((REPO / "docs/design/rebuild-26/mod-register.csv").open())}
+    slugs = [e.split(":")[0] for b in ("required", "optional") for e in m["_clientMods"][b]]
+    assert all(":" in e for b in ("required", "optional") for e in m["_clientMods"][b])
+    for s in slugs:
+        assert reg[s]["decision"] == "kept" and reg[s]["side"] in ("client", "optional", "library"), s
+    for s in m["_waiting"]:
+        # bibliophilia is a pack.md addition with no register row.
+        assert s not in slugs and (s not in reg or reg[s]["decision"] == "waiting"), s
+    assert {"sodium", "iris", "distanthorizons", "euphoria-patches"} <= set(slugs)
+    assert [p.split(":")[0] for p in m["_shaderPacks"]["packs"]] == ["complementary-reimagined"]
+    remove = REPO / "modpack" / "versions" / "26.3" / "overrides-remove.txt"
+    for line in remove.read_text().splitlines():
+        line = line.split("#")[0].strip()
+        if line:
+            assert (REPO / "modpack" / "overrides" / line).exists(), line
