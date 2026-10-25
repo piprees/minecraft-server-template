@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 2,
+  "description": "Self-test fixture: overworld terrain with dry aquifers and lava below y -40.",
+  "seed": 31,
+  "spawn": [0, 64, 0],
+  "generator": {
+    "type": "noise",
+    "preset": "overworld"
+  },
+  "liquids": {
+    "lavaLevel": -40,
+    "aquifers": "dry"
+  },
+  "borders": {
+    "player": 256
+  }
+}

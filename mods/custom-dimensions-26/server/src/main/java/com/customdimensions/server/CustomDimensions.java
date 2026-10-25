@@ -5,6 +5,7 @@ import com.customdimensions.server.exit.ExitHooks;
 import com.customdimensions.server.difficulty.DimensionDifficulty;
 import com.customdimensions.server.command.CustomDimCommands;
 import com.customdimensions.server.level.LevelManager;
+import com.customdimensions.server.level.WorldgenRuntime;
 import com.customdimensions.server.level.PackInstaller;
 import com.customdimensions.server.portal.Portals;
 import net.fabricmc.api.ModInitializer;
@@ -19,6 +20,7 @@ public final class CustomDimensions implements ModInitializer {
     public void onInitialize() {
         PackInstaller.install();
         LevelManager.register();
+        WorldgenRuntime.register();
         CustomDimCommands.register();
         Portals.register();
         CompanionNetwork.register();

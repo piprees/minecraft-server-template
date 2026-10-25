@@ -29,8 +29,8 @@ unloads every lazy dimension in turn, so it runs for a few minutes; it sets
 
 With `-PselfTest`, `runServer` reads a copy of `definitions/` with the fixture
 dimensions in `server/src/selftest/definitions/` added (a void death, a kept
-inventory, every win trigger). The fixtures are never in the release jar.
-`-PselfTestOnly=exits` runs only the compiled-pack and exit sections; `-PselfTestOnly=commands` the compiled-pack and command sections.
+inventory, every win trigger, dry and flooded aquifers, a palette and an ore set). The fixtures are never in the release jar.
+`-PselfTestOnly=exits` runs only the compiled-pack and exit sections; `-PselfTestOnly=commands` the compiled-pack and command sections; `-PselfTestOnly=materials` the compiled-pack and materials sections.
 
 `runServer` also loads Open Parties and Claims and its Forge Config API Port
 dependency from the Modrinth maven (`localRuntime`, versions in
@@ -63,7 +63,10 @@ scripts/vanilla-boot-check.sh                 # boot that pack on vanilla, no mo
 | Output | Where |
 | --- | --- |
 | Dimension types | `data/adventure/dimension_type/<slug>.json` |
-| Noise settings (liquids, default block or `endIsland: false`) | `data/adventure/worldgen/noise_settings/<slug>.json` |
+| Noise settings (liquids, default block, palette, veins or `endIsland: false`) | `data/adventure/worldgen/noise_settings/<slug>.json` |
+| Material rules (palettes, veins) | `data/adventure/worldgen/material_rule/<slug>.json` |
+| Added ores | `data/adventure/worldgen/{feature,placed_feature}/ores/<slug>/<id>.json` |
+| What the runtime applies to a level's generator (lava level, added ores, removed features) | `data/customdimensions/worldgen_runtime/<slug>.json` |
 | The End's terrain without its central island | `data/adventure/worldgen/density_function/end_without_central_island/{islands,sloped_cheese}.json` |
 | Fixed time of day | `data/adventure/timeline/fixed_time/<timeline>_<tick>.json` |
 | Base worlds, loaded at start | `data/minecraft/dimension/{overworld,the_nether,the_end}.json`, `data/adventure/dimension/the_aviary.json` |
@@ -79,9 +82,9 @@ the definition sets.
 
 | `generator` | Compiles to | Tuning |
 | --- | --- | --- |
-| `noise`, preset `overworld`, `large_biomes`, `amplified`, `caves`, `floating_islands`, `nether`, `end` | `minecraft:noise` with the preset's noise settings; the overworld family and the Nether filter vanilla's multi-noise list to the definition's `biomes`; the End keeps `minecraft:the_end` | `liquids.seaLevel` → `sea_level`, `liquids.defaultFluid` → `default_fluid`, `materials.defaultBlock` → `default_block` on 26.3 and the last entry of the material rule on 26.4; `endIsland: false` (End only) swaps vanilla's `end/islands` for a copy that keeps only `end_outer_islands` |
-| `checkerboard` | overworld noise, `minecraft:checkerboard` source | `cellScale` → `scale`: cells of 2^(cellScale+4) blocks |
-| `single_biome` | overworld noise, `minecraft:fixed` source | `biome` |
+| `noise`, preset `overworld`, `large_biomes`, `amplified`, `caves`, `floating_islands`, `nether`, `end` | `minecraft:noise` with the preset's noise settings; the overworld family and the Nether filter vanilla's multi-noise list to the definition's `biomes`; the End keeps `minecraft:the_end` | `liquids.seaLevel` → `sea_level`, `liquids.defaultFluid` → `default_fluid`, `liquids.aquifers` → the `aquifers` object kept (`on`), removed (`off`, `flooded`) or removed with air as the fluid (`dry`), `liquids.lavaLevel` → the runtime; `materials.defaultBlock` → `default_block` on 26.3 and the last entry of the material rule on 26.4; palettes (`top`, `filler`, `deep`, `cliffs`, `beaches`, `ceilings`, per-biome `biomes`) and `ores.veins` → the dimension's material rule; `ores.add` and `ores.remove` → placed features and the runtime; `endIsland: false` (End only) swaps vanilla's `end/islands` for a copy that keeps only `end_outer_islands`. Fields: [schema-v2.md](../../docs/design/rebuild-26/schema-v2.md#materials-liquids-and-ores) |
+| `checkerboard` | overworld noise, `minecraft:checkerboard` source | `cellScale` → `scale`: cells of 2^(cellScale+4) blocks; `liquids`, `materials` and `ores` as for `noise` |
+| `single_biome` | overworld noise, `minecraft:fixed` source | `biome`; `liquids`, `materials` and `ores` as for `noise` |
 | `flat` | `minecraft:flat`, no features or lakes | `layers`, `biome` |
 | `void` | `minecraft:flat` with no layers | its first vanilla biome, else `minecraft:the_void` |
 | `clone` | the generator of the definition `of` names, under the clone's own dimension type, seed and atmosphere | its own `liquids` and `materials` over the source's; its own `biomes` are reported unused |
@@ -108,6 +111,17 @@ cells, an empty void and the definition whose `liquids.seaLevel` departs
 furthest from its preset's. No shipped definition uses `single_biome`, so its
 line reads `SKIP` and `GeneratorVariantsTest` covers it.
 
+The materials section (`MaterialsSelfTest`) opens the fixtures
+`selftest_dry`, `selftest_flooded`, `selftest_palette` and `selftest_ores` and
+scans every block of a 64x64 area: no water below sea level in the dry one,
+lava below its lava level and none above, water in at least 95% of open cells
+below sea level in the flooded one, the palette's top and filler in at least
+95% of plains land columns and its deep block in at least 90% (ore veins
+and blobs take some), the desert's own top only in the desert, and the added
+ore present with the removed diamonds and the vein blocks absent, against the
+overworld's same area. `-PselfTestOnly=materials` runs the compiled-pack and
+materials sections only.
+
 ## Runtime levels
 
 `server/.../level/` opens the dimensions. The four base worlds load at start
@@ -118,6 +132,7 @@ from the pack; every lazy stem is opened through Fantasy as a persistent level
 | --- | --- |
 | `PackInstaller` | Compiles the definitions into `<world>/datapacks/customdimensions/` at mod initialisation, before the world loads ([below](#the-pack-at-start-up)) |
 | `LevelIndex` | At start, decodes every lazy stem from the server's resources and pairs it with its definition (seed, spawn, borders) |
+| `WorldgenRuntime` | Applies `worldgen_runtime/` to a level's generator before it generates: base worlds at server start, a lazy level as its stem is decoded. A lava level replaces the generator's fluid rule; added and removed placed features replace that generator's per-biome feature lists, leaving the shared biomes alone. Two accessor mixins reach the fields |
 | `LevelManager` | Activation queue, one at a time (K6); spawn chunk loaded through a ticket, never on the tick; unload and delete polled until the level leaves `levelKeys()`; idle unload after `idleUnloadMinutes` |
 
 `-Pdefinitions=<dir>` points `runServer` at another definitions folder. Definitions are read from `-Dcustomdimensions.definitions`, else from

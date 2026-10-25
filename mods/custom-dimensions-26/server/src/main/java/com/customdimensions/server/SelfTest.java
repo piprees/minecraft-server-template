@@ -11,6 +11,7 @@ import com.customdimensions.server.exit.ExitSelfTest;
 import com.customdimensions.server.level.PackInstaller;
 import com.customdimensions.server.level.RuntimeVanilla;
 import com.customdimensions.server.level.GeneratorSelfTest;
+import com.customdimensions.server.level.MaterialsSelfTest;
 import com.customdimensions.server.difficulty.DifficultySelfTest;
 import com.customdimensions.server.level.LevelSelfTest;
 import com.customdimensions.server.portal.PortalSelfTest;
@@ -62,7 +63,8 @@ import net.minecraft.world.timeline.Timeline;
  * report and stops. CI boots the mod this way; a line starting {@code FAIL}
  * fails the build. The pack-install and pack-equivalence lines come first,
  * then the compiled-pack checks; the runtime-level checks ({@link LevelSelfTest}),
- * the generator checks ({@link GeneratorSelfTest}), the portal and exit checks,
+ * the generator checks ({@link GeneratorSelfTest}), the materials, liquids and ores scans
+ * ({@link MaterialsSelfTest}), the portal and exit checks,
  * {@link DifficultySelfTest} and {@link CommandSelfTest} run across ticks, so
  * the report is written when they finish. The compiled-pack checks read the
  * definitions from {@code -Dcustomdimensions.definitions} and vanilla's files
@@ -92,8 +94,9 @@ final class SelfTest {
         lines.add(equivalence());
         lines.addAll(compiledPack(server));
         String only = System.getProperty(ONLY, "");
+        boolean materialsOnly = "materials".equals(only);
         boolean commandsOnly = "commands".equals(only);
-        boolean exitsOnly = "exits".equals(only) || commandsOnly;
+        boolean exitsOnly = "exits".equals(only) || commandsOnly || materialsOnly;
         CompletableFuture<List<String>> levels;
         try {
             levels = exitsOnly ? CompletableFuture.completedFuture(List.of()) : LevelSelfTest.run(server);
@@ -111,6 +114,15 @@ final class SelfTest {
             }
         }).handle((more, error) -> {
             lines.addAll(error == null ? more : List.of("FAIL generators: " + error));
+            return null;
+        }).thenCompose(v -> {
+            try {
+                return exitsOnly && !materialsOnly ? CompletableFuture.completedFuture(List.<String>of()) : MaterialsSelfTest.run(server);
+            } catch (Throwable t) {
+                return CompletableFuture.completedFuture(List.of("FAIL materials: " + t));
+            }
+        }).handle((more, error) -> {
+            lines.addAll(error == null ? more : List.of("FAIL materials: " + error));
             return null;
         }).thenCompose(v -> {
             try {
@@ -132,7 +144,7 @@ final class SelfTest {
             return null;
         }).thenCompose(v -> {
             try {
-                return commandsOnly ? CompletableFuture.completedFuture(List.<String>of()) : ExitSelfTest.run(server);
+                return commandsOnly || materialsOnly ? CompletableFuture.completedFuture(List.<String>of()) : ExitSelfTest.run(server);
             } catch (Throwable t) {
                 return CompletableFuture.completedFuture(List.of("FAIL exits: " + t));
             }

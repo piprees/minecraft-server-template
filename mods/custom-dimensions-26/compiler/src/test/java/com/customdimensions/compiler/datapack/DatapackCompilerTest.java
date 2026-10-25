@@ -388,10 +388,9 @@ class DatapackCompilerTest {
     @Test
     void runtimeAndLaterFieldsAreReported() {
         DatapackCompiler.Output out = Fixtures.compile("t", "\"seed\": 5, \"spawn\": [0, 64, 0], " + OVERWORLD
-                + ", \"borders\": {\"player\": 4096}, \"zones\": [{\"shape\": \"circle\"}], \"terrain\": {\"base\": \"adventure:x\"}, "
-                + "\"materials\": {\"palette\": {}}");
+                + ", \"borders\": {\"player\": 4096}, \"zones\": [{\"shape\": \"circle\"}], \"terrain\": {\"base\": \"adventure:x\"}");
         List<String> unsupported = out.report().entry("t").unsupported();
-        for (String field : List.of("borders", "seed", "spawn", "zones", "terrain.base", "materials.palette")) {
+        for (String field : List.of("borders", "seed", "spawn", "zones", "terrain.base")) {
             assertTrue(unsupported.stream().anyMatch(u -> u.startsWith("`" + field + "`")), field + " in " + unsupported);
         }
     }
