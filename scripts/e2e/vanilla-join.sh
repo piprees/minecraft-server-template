@@ -286,11 +286,10 @@ chmod 700 "$XDG_RUNTIME_DIR"
 # From the game directory, as a launcher runs it: Configured Defaults copies
 # into the working directory. A UTF-8 locale lets Java open pack files whose
 # names carry a § (LowOnFire).
-cd "$GAME"
-DISPLAY="$DISPLAY_NUM" LIBGL_ALWAYS_SOFTWARE=1 LC_ALL=C.UTF-8 "$JAVA" -Xmx2G ${JVM_EXTRA[@]+"${JVM_EXTRA[@]}"} -cp "$CP" "$MAIN" \
+(cd "$GAME" && exec env DISPLAY="$DISPLAY_NUM" LIBGL_ALWAYS_SOFTWARE=1 LC_ALL=C.UTF-8 "$JAVA" -Xmx2G ${JVM_EXTRA[@]+"${JVM_EXTRA[@]}"} -cp "$CP" "$MAIN" \
   --username "$NAME" --uuid "$UUID" --accessToken 0 --userType legacy --version "$VERSION" \
   --versionType release --gameDir "$GAME" --assetsDir "$VDIR/assets" --assetIndex "$ASSET_ID" \
-  --width 854 --height 480 --quickPlayMultiplayer "$SERVER" > "$OUT/client.log" 2>&1 &
+  --width 854 --height 480 --quickPlayMultiplayer "$SERVER") > "$OUT/client.log" 2>&1 &
 CLIENT_PID=$!
 
 server_log() { docker logs "$CONTAINER" --since "$since" 2>&1 || true; }
