@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 2,
+  "description": "Terrain gallery: v1's adventure:compressed re-expressed: tight, steep land.",
+  "seed": 20261025,
+  "spawn": [0, 64, 0],
+  "generator": {
+    "type": "noise",
+    "preset": "overworld"
+  },
+  "terrain": {
+    "base": "continents",
+    "params": {"relief": 90, "roughness": 0.7},
+    "scale": 0.6,
+    "heightMultiplier": 1.3
+  },
+  "borders": {
+    "player": 2048
+  }
+}

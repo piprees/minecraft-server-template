@@ -1,6 +1,8 @@
 package com.customdimensions.compiler.datapack;
 
 import com.customdimensions.compiler.convert.JsonWriter;
+import com.customdimensions.compiler.terrain.TerrainLibrary;
+import com.customdimensions.compiler.terrain.TerrainSpec;
 import com.customdimensions.core.definition.Atmosphere;
 import com.customdimensions.core.definition.BiomeEntry;
 import com.customdimensions.core.definition.Definition;
@@ -552,12 +554,16 @@ public final class DatapackCompiler {
         String defaultBlock = defaultBlock(def);
         boolean changesLiquids = LiquidsCompiler.changesSettings(liquids);
         boolean removesIsland = "end".equals(preset) && Boolean.FALSE.equals(def.generator().endIsland());
+        TerrainSpec terrain = TerrainSpec.parse(slug, def.terrain());
         JsonObject settings = vanilla.noiseSettings(preset);
+        if (terrain != null) {
+            settings = terrain(slug, preset, terrain, settings, liquids, entry);
+        }
         int seaLevel = liquids != null && liquids.seaLevel() != null ? liquids.seaLevel() : settings.get("sea_level").getAsInt();
         JsonObject materialRule = MaterialsCompiler.compose(vanilla, settings.get("material_rule").getAsString(),
                 MaterialsCompiler.read(slug, def.materials()), OresCompiler.veins(OresCompiler.read(slug, def.ores()), vanilla),
                 seaLevel);
-        if (!changesLiquids && defaultBlock == null && !removesIsland && materialRule == null) {
+        if (!changesLiquids && defaultBlock == null && !removesIsland && materialRule == null && terrain == null) {
             return "minecraft:" + preset;
         }
         if (removesIsland) {
@@ -583,6 +589,17 @@ public final class DatapackCompiler {
         }
         put(dataPath(id, "worldgen/noise_settings"), sorted(settings), entry);
         return id;
+    }
+
+    /** The settings with a library terrain's router; its density functions and noises go into the pack. */
+    private JsonObject terrain(String slug, String preset, TerrainSpec terrain, JsonObject settings, Liquids liquids,
+                               CompileReport.Entry entry) {
+        TerrainLibrary.Compiled compiled = TerrainLibrary.compile(slug, namespace, slug, terrain, preset, settings,
+                liquids != null ? liquids.seaLevel() : null, vanilla);
+        compiled.files().forEach((path, json) -> put(path, sorted(json), entry));
+        entry.note("Terrain `" + terrain.family().id() + "` (" + terrain.setting() + ") under `" + namespace + ":terrain/"
+                + slug + "/`" + (terrain.family().airborne() ? ", over a void with no aquifers" : ""));
+        return compiled.settings();
     }
 
     /** The material rule, then {@code block} as the last entry of a sequence: what no earlier rule claims. */
@@ -844,8 +861,10 @@ public final class DatapackCompiler {
             entry.unsupported("zones", def.zones().size() + " zone(s); zones compile in W2b");
         }
         JsonObject terrain = def.terrain();
-        if (terrain != null && terrain.has("base") && !terrain.get("base").isJsonNull()) {
-            entry.unsupported("terrain.base", "named terrain compiles in W1");
+        String type = def.generator().type();
+        if (terrain != null && terrain.has("base") && !terrain.get("base").isJsonNull()
+                && (Generator.FLAT.equals(type) || Generator.VOID.equals(type))) {
+            entry.unsupported("terrain", "a " + type + " generator has no noise terrain");
         }
         if (def.structures() != null && !def.structures().isEmpty()) {
             entry.unsupported("structures", "structure control is W4");

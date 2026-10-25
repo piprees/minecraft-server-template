@@ -65,9 +65,14 @@ processResources {
 // definitions/; runServer reads that copy. The release jar never carries them.
 def selfTestRun = project.hasProperty('selfTest') && !project.hasProperty('definitions')
 def selfTestDefinitions = layout.buildDirectory.dir('selftest-definitions')
+// It also adds each library terrain's default from src/selftest/gallery; -PterrainGallery=<dir> adds every
+// gallery setting and renders them all into <dir>.
 tasks.register('selfTestDefinitions', Sync) {
 	from file('../definitions')
 	from file('src/selftest/definitions')
+	from(file('src/selftest/gallery')) {
+		if (!project.hasProperty('terrainGallery')) include '*_default.json'
+	}
 	into selfTestDefinitions
 }
 
@@ -77,8 +82,9 @@ loom {
 			programArg '--nogui'
 			// -PselfTest=<file> runs the start-up self-test, writes its report and stops the server.
 			vmArg "-Dcustomdimensions.selftest=${project.findProperty('selfTest') ?: ''}"
-			// -PselfTestOnly=exits|commands|materials|render|firewall: the compiled-pack section and that one only.
+			// -PselfTestOnly=exits|commands|materials|render|firewall|terrain: the compiled-pack section and that one only.
 			vmArg "-Dcustomdimensions.selftest.only=${project.findProperty('selfTestOnly') ?: ''}"
+			vmArg "-Dcustomdimensions.selftest.gallery=${project.findProperty('terrainGallery') ?: ''}"
 			// -PselfTestPersist=write|verify: the two-boot persistence check, run with the self-test.
 			vmArg "-Dcustomdimensions.selftest.persist=${project.findProperty('selfTestPersist') ?: ''}"
 			// The mod compiles definitions/ into the world's pack at start-up from the running game's vanilla files,
