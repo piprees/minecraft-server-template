@@ -313,7 +313,10 @@ active.
 ## Wire contract
 
 Channel ids and field order match the 1.21.1 mod's. Bodies marked vanilla are
-written by the running game's own codec. The release that built each jar is
+written by the running game's own codec. The bytes of every channel are pinned in
+`server/src/test/resources/companion-fixtures/` (`CompanionWireFixturesTest`;
+`-PwriteFixtures` rewrites them), and `mods/custom-dimensions-client-26` keeps a
+copy its own codecs must decode and re-encode. The release that built each jar is
 the protocol version (`Hello`).
 
 | Channel (`customdimensions:`) | Direction | Fields | When |

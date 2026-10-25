@@ -98,4 +98,7 @@ tasks.named('test') {
 	systemProperty 'customdimensions.vanilla',
 			project(':compiler').layout.buildDirectory.dir("vanilla/${project.minecraft_version}").get().asFile.absolutePath
 	systemProperty 'customdimensions.definitions', file('../definitions').canonicalPath
+	// -PwriteFixtures rewrites the companion wire fixtures, which the companion client keeps a copy of.
+	systemProperty 'customdimensions.fixtures.write',
+			project.hasProperty('writeFixtures') ? file('src/test/resources/companion-fixtures').absolutePath : ''
 }

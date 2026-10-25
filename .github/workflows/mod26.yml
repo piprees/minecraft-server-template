@@ -4,14 +4,41 @@ on:
   pull_request:
     paths:
       - 'mods/custom-dimensions-26/**'
+      - 'mods/custom-dimensions-client-26/**'
       - '.github/workflows/mod26.yml'
   push:
     branches: [main]
     paths:
       - 'mods/custom-dimensions-26/**'
+      - 'mods/custom-dimensions-client-26/**'
       - '.github/workflows/mod26.yml'
 
 jobs:
+  companion:
+    name: Companion client build and tests on 26.3
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: mods/custom-dimensions-client-26
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '25'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v6
+
+      # The wire fixtures are a copy of the server mod's; a drift between the two copies fails here or in its suite.
+      - name: Fixtures match the server mod's
+        run: diff -r src/test/resources/companion-fixtures ../custom-dimensions-26/server/src/test/resources/companion-fixtures
+
+      - name: Build and unit tests
+        run: ./gradlew build
+
   build:
     name: Build, test and self-test on 26.3
     runs-on: ubuntu-latest
