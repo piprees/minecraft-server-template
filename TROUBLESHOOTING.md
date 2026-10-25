@@ -1596,6 +1596,20 @@ A seed's map and its banked facts appear to contradict each other — the thumbn
   the same trap. Pin it against the Java, not against intuition —
   `scripts/e2e/portal-matrix-selftest.sh` is the worked example.
 
+<a id="t138"></a>
+### T138 — The 26.3 client cannot open a window on Xvfb's OpenGL
+
+- **Symptom:** a 26.3 client under Xvfb with Mesa exits at start-up when it creates its window on the OpenGL backend.
+- **Cause:** the client asks SDL for an sRGB-capable framebuffer, and Xvfb's GLX offers no visual with that attribute.
+- **Fix:** `mods/custom-dimensions-client-26/rig/srgbshim.c` is preloaded in front of libGL and drops the sRGB attribute from the visual request (`scripts/rig.sh` builds and loads it). The Vulkan backend on lavapipe runs without it, but Iris needs OpenGL.
+
+<a id="t137"></a>
+### T137 — One command argument type from a mod makes a 26.3 server refuse vanilla clients
+
+- **Symptom:** an unmodded 26.3 client is disconnected while joining, and the message lists every namespace of the command argument type registry, the vanilla `brigadier` types included.
+- **Cause:** Fabric's registry sync checks the argument type registry against the client's. A mod that registers its own type (Bookshelf's `bookshelf:font`) puts a namespace in it that a vanilla client lacks, and the server refuses the client whole.
+- **Fix:** no server mod in the 26.3 list registers an argument type: Bookshelf is cut (`mod-register.csv`), and `scripts/e2e/vanilla-join.sh` (smoke-test-26.yml) fails on any mod that adds one. Before adding a mod, check its jar for a call to Fabric's `ArgumentTypeRegistry.registerArgumentType`.
+
 <a id="t136"></a>
 ### T136 — On 26.3, Collective moves every Serilum mod's config under `config/serilum/`
 
