@@ -27,6 +27,8 @@ public final class CompileReport {
         private final List<String> unsupported = new ArrayList<>();
         private final List<String> notes = new ArrayList<>();
         private final List<String> bedrock = new ArrayList<>();
+        private final List<String> structures = new ArrayList<>();
+        private final List<String> structureWarnings = new ArrayList<>();
         private String cloneOf;
 
         Entry(String slug) {
@@ -36,6 +38,22 @@ public final class CompileReport {
         void kind(Kind kind, String detail) {
             this.kind = kind;
             this.detail = detail;
+        }
+
+        void structure(String applied) {
+            structures.add(applied);
+        }
+
+        void structureWarning(String warning) {
+            structureWarnings.add(warning);
+        }
+
+        public List<String> structures() {
+            return List.copyOf(structures);
+        }
+
+        public List<String> structureWarnings() {
+            return List.copyOf(structureWarnings);
         }
 
         void emitted(String path) {
@@ -135,6 +153,7 @@ public final class CompileReport {
         totals.put("Fallback biome sources", (int) entries.values().stream()
                 .filter(e -> e.notes.stream().anyMatch(n -> n.startsWith(DatapackCompiler.FALLBACK_NOTE))).count());
         totals.put("Unsupported fields", entries.values().stream().mapToInt(e -> e.unsupported.size()).sum());
+        totals.put("Structure warnings", entries.values().stream().mapToInt(e -> e.structureWarnings.size()).sum());
         totals.put("Bedrock height warnings", (int) entries.values().stream().filter(e -> !e.bedrock.isEmpty()).count());
         return totals;
     }
@@ -161,6 +180,8 @@ public final class CompileReport {
             list(out, "Skipped biomes", e.skippedBiomes);
             list(out, "Unsupported", e.unsupported);
             list(out, "Notes", e.notes);
+            list(out, "Structures", e.structures);
+            list(out, "Structure warnings", e.structureWarnings);
             list(out, "Bedrock", e.bedrock);
         }
         return out.toString();

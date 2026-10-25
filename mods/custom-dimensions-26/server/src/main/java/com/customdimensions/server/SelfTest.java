@@ -78,7 +78,7 @@ final class SelfTest {
     private static final String DEFINITIONS = "customdimensions.definitions";
     /** An extracted vanilla folder the runtime source is compared against; {@code -Dcustomdimensions.vanilla} also counts. */
     private static final String REFERENCE = "customdimensions.vanilla.reference";
-    /** {@code exits}, {@code commands}, {@code materials}, {@code render}, {@code firewall} or {@code terrain} runs the compiled-pack section and that one only, for iterating on it. */
+    /** {@code exits}, {@code commands}, {@code materials}, {@code render}, {@code firewall}, {@code terrain} or {@code structures} runs the compiled-pack section and that one only, for iterating on it. */
     private static final String ONLY = "customdimensions.selftest.only";
 
     private SelfTest() {}
@@ -102,7 +102,8 @@ final class SelfTest {
         boolean commandsOnly = "commands".equals(only);
         boolean renderOnly = "render".equals(only);
         boolean terrainOnly = "terrain".equals(only);
-        boolean exitsOnly = "exits".equals(only) || commandsOnly || materialsOnly || renderOnly || firewallOnly || terrainOnly;
+        boolean structuresOnly = "structures".equals(only);
+        boolean exitsOnly = "exits".equals(only) || commandsOnly || materialsOnly || renderOnly || firewallOnly || terrainOnly || structuresOnly;
         CompletableFuture<List<String>> levels;
         try {
             levels = exitsOnly ? CompletableFuture.completedFuture(List.of()) : LevelSelfTest.run(server);
@@ -141,6 +142,16 @@ final class SelfTest {
             return null;
         }).thenCompose(v -> {
             try {
+                return exitsOnly && !structuresOnly ? CompletableFuture.completedFuture(List.<String>of())
+                        : com.customdimensions.server.structure.StructureSelfTest.run(server);
+            } catch (Throwable t) {
+                return CompletableFuture.completedFuture(List.of("FAIL structures: " + t));
+            }
+        }).handle((more, error) -> {
+            lines.addAll(error == null ? more : List.of("FAIL structures: " + error));
+            return null;
+        }).thenCompose(v -> {
+            try {
                 return exitsOnly && !renderOnly ? CompletableFuture.completedFuture(List.<String>of()) : RenderSelfTest.run(server);
             } catch (Throwable t) {
                 return CompletableFuture.completedFuture(List.of("FAIL render: " + t));
@@ -168,7 +179,7 @@ final class SelfTest {
             return null;
         }).thenCompose(v -> {
             try {
-                return commandsOnly || materialsOnly || renderOnly || firewallOnly || terrainOnly ? CompletableFuture.completedFuture(List.<String>of()) : ExitSelfTest.run(server);
+                return commandsOnly || materialsOnly || renderOnly || firewallOnly || terrainOnly || structuresOnly ? CompletableFuture.completedFuture(List.<String>of()) : ExitSelfTest.run(server);
             } catch (Throwable t) {
                 return CompletableFuture.completedFuture(List.of("FAIL exits: " + t));
             }

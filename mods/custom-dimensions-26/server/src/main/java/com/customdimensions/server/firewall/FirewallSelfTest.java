@@ -54,7 +54,10 @@ public final class FirewallSelfTest {
         if (possible.stream().anyMatch(h -> h.is(villages))) throw new AssertionError("villages still in the structure state");
         if (possible.stream().noneMatch(h -> h.is(outposts))) throw new AssertionError("pillager_outposts missing");
         if (possible.size() != before - 1) throw new AssertionError(before + " sets before, " + possible.size() + " with villages off");
-        if (level.getChunkSource().getGeneratorState().possibleStructureSets().stream().noneMatch(h -> h.is(villages))) {
+        Set<net.minecraft.world.level.levelgen.structure.Structure> villageStructures = new java.util.HashSet<>();
+        sets.getOrThrow(villages).value().structures().forEach(e -> villageStructures.add(e.structure().value()));
+        if (level.getChunkSource().getGeneratorState().possibleStructureSets().stream().noneMatch(h -> h.value().structures().stream()
+                .anyMatch(e -> villageStructures.contains(e.structure().value())))) {
             throw new AssertionError("the live overworld lost villages");
         }
         return before + " sets in the overworld's state, " + possible.size() + " with minecraft:villages switched off";

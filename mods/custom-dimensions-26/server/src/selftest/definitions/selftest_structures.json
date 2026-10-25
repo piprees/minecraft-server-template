@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 2,
+  "description": "Self-test fixture: structure control. A forced igloo in plains, a mountain ruined portal forced within a radius, a wanted ruined portal, shunned villages and outposts, a replacement, a spacing override, a rejected set and an adaptation override.",
+  "seed": 71,
+  "spawn": [0, 64, 0],
+  "generator": {
+    "type": "noise",
+    "preset": "overworld"
+  },
+  "biomes": ["minecraft:plains", "minecraft:desert", "minecraft:taiga"],
+  "borders": {
+    "player": 2048
+  },
+  "structures": {
+    "force": [
+      {"structure": "minecraft:igloo", "x": 200, "z": -300},
+      {"structure": "minecraft:ruined_portal_mountain", "x": -500, "z": 500, "radius": 200}
+    ],
+    "wants": {"minecraft:ruined_portal": {"min": 100, "max": 400}},
+    "shuns": {"#minecraft:village": {}, "minecraft:pillager_outpost": {}},
+    "replace": {"minecraft:ruined_portal_desert": "minecraft:ruined_portal"},
+    "spacing": {"minecraft:desert_pyramids": {"spacing": 12, "separation": 4}},
+    "mode": "reject",
+    "list": ["minecraft:mineshafts"],
+    "exclude": ["minecraft:trail_ruins"],
+    "terrainAdaptation": {"minecraft:igloo": "bury"}
+  }
+}

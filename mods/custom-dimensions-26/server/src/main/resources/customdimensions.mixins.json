@@ -3,7 +3,7 @@
   "minVersion": "0.8",
   "package": "com.customdimensions.server.mixin",
   "compatibilityLevel": "JAVA_25",
-  "mixins": ["ChunkBlockChangedMixin", "ChunkGeneratorAccessor", "NoiseBasedChunkGeneratorAccessor", "StructureStateMixin"],
+  "mixins": ["ChunkBlockChangedMixin", "ChunkGeneratorAccessor", "NoiseBasedChunkGeneratorAccessor", "StructureStateMixin", "ChunkMapStructuresMixin", "StructureBiomeBypassMixin", "BeardifierAdaptationMixin"],
   "injectors": {
     "defaultRequire": 1
   }
