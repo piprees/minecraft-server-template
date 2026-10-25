@@ -1596,6 +1596,13 @@ A seed's map and its banked facts appear to contradict each other — the thumbn
   the same trap. Pin it against the Java, not against intuition —
   `scripts/e2e/portal-matrix-selftest.sh` is the worked example.
 
+<a id="t139"></a>
+### T139 — Essential Commands refuses a player target given from the console
+
+- **Symptom:** `heal <player>`, `feed <player>` and `extinguish <player>` over RCON answer "A player is required to run this command here" and do nothing; `fly <player> <bool>` and `invuln <player> <bool>` answer the same but apply. Measured on 1.21.1 (0.35.2-mc1.21) and 26.3 (0.42.0-mc26.3).
+- **Cause:** Essential Commands requires a player source even when the command names its target.
+- **Fix:** discord-sync sends `execute as <player> run <command>` (`ec_as_player`), with `@s <true|false>` for the toggles because `invuln` has no bare true/false form. `execute as` answers nothing for a missing player, so `rcon_as_online_player` probes `data get entity <player> Pos` first. Under `execute as`, permission checks run against the player, with the console's operator level as LuckPerms' fallback; an explicit deny on the player blocks the command.
+
 <a id="t138"></a>
 ### T138 — The 26.3 client cannot open a window on Xvfb's OpenGL
 
