@@ -1596,6 +1596,27 @@ A seed's map and its banked facts appear to contradict each other — the thumbn
   the same trap. Pin it against the Java, not against intuition —
   `scripts/e2e/portal-matrix-selftest.sh` is the worked example.
 
+<a id="t144"></a>
+### T144 — Level work continued from a worker thread corrupts the distance manager
+
+- **Symptom:** the server crashes with `java.lang.ArrayIndexOutOfBoundsException: Index 35 out of bounds for length 33` in `LongLinkedOpenHashSet.rehash` (the distance manager), then hangs on shutdown holding its heap.
+- **Cause:** `LevelManager.activate` or `deactivate` was called from a render, sampler or pool thread; ticket changes are server-thread only.
+- **Fix:** a task that continues on a worker or pool thread hops back before touching a level: `thenComposeAsync(..., server)` or `server.execute(...)`. `RenderJob` and the self-test sections do this.
+
+<a id="t143"></a>
+### T143 — A render's height differs from the generated world where later stages changed the column
+
+- **Symptom:** `/customdim render` or the Sampler gives a surface height a few blocks off what the generated chunk shows, while the biome matches.
+- **Cause:** the Sampler, like vanilla's `getBaseColumn`, sees only the noise stage. Trees, basalt columns, carvers, nether lava pockets and structures move the real surface afterwards; in a caves dimension vanilla's column path can also disagree with chunk fill inside an aquifer. Measured per 50 columns: overworld 5, nether 26–27, caves 3, End 0, floating islands 0; biomes 50 of 50 everywhere.
+- **Fix:** none needed. The render self-test classes each mismatch (`added`, `removed`, `flooded`, `filled`, `structure`) in `renders/<dimension>/accuracy.tsv` and fails only on an unexplained one; read that file before suspecting the Sampler.
+
+<a id="t142"></a>
+### T142 — "custom-dimensions refuses to start: N findings of another worldgen owner"
+
+- **Symptom:** the 26.3 server stops at start with that line, one indented line per finding (mod, what, where), writes a crash report and exits 0, so a restart loop repeats it.
+- **Cause:** the worldgen firewall found a mod that owns part of world generation: a dimension, dimension type, noise settings, biome source or chunk generator type in a foreign namespace; a mixin into a worldgen class from a mod not on the allow list (`core/.../firewall/AllowList`); or TerraBlender, Biolith or Lithostitched. "a bridge in … is malformed" names a bridge file and field instead.
+- **Fix:** remove the mod, or adopt what it adds in a bridge with `"reviewed": true` ([docs/design/rebuild-26/bridges.md](docs/design/rebuild-26/bridges.md)). Structure sets with no reviewed bridge do not stop the start; they are switched off and logged as `firewall: switched off <namespace> (<count>)`.
+
 <a id="t141"></a>
 ### T141 — Bedrock clients join only over NetherNet
 
