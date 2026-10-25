@@ -29,14 +29,15 @@ unloads every lazy dimension in turn, so it runs for a few minutes; it sets
 
 With `-PselfTest`, `runServer` reads a copy of `definitions/` with the fixture
 dimensions in `server/src/selftest/definitions/` added (a void death, a kept
-inventory, every win trigger), and each library terrain's `*_default.json` from
+inventory, every win trigger, dry and flooded aquifers, a palette and an ore set), and each library terrain's `*_default.json` from
 `server/src/selftest/gallery/`. The fixtures are never in the release jar.
-`-PselfTestOnly=exits` runs only the compiled-pack and exit sections; `-PselfTestOnly=commands` the compiled-pack and command sections; `-PselfTestOnly=terrain` the compiled-pack and terrain sections.
+`-PselfTestOnly=exits` runs only the compiled-pack and exit sections; `-PselfTestOnly=commands` the compiled-pack and command sections; `-PselfTestOnly=materials` the compiled-pack and materials sections; `-PselfTestOnly=render` the compiled-pack and render sections; `-PselfTestOnly=firewall` the compiled-pack and firewall sections; `-PselfTestOnly=terrain` the compiled-pack and terrain sections.
 
 `runServer` also loads Open Parties and Claims and its Forge Config API Port
 dependency from the Modrinth maven (`localRuntime`, versions in
 `gradle.properties`), so the aura claim veto is exercised; neither is a compile
-dependency or nested in the jar.
+dependency or nested in the jar. `-PfirewallProbe` adds The Lost Cities, a 26.3
+Fabric mod whose `lostcities:lostcity` dimension the firewall refuses.
 
 The persistence check takes two boots of the same world:
 
@@ -64,9 +65,12 @@ scripts/vanilla-boot-check.sh                 # boot that pack on vanilla, no mo
 | Output | Where |
 | --- | --- |
 | Dimension types | `data/adventure/dimension_type/<slug>.json` |
-| Noise settings (liquids, default block, `endIsland: false` or a terrain) | `data/adventure/worldgen/noise_settings/<slug>.json` |
+| Noise settings (liquids, default block, palette, veins, `endIsland: false` or a terrain) | `data/adventure/worldgen/noise_settings/<slug>.json` |
 | A definition's terrain from the library (`terrain.base`): height, offset, factor, jaggedness, depth, sloped cheese, final density, surface levels, the stretched climate | `data/adventure/worldgen/density_function/terrain/<slug>/*.json` |
 | The terrain library's own noises | `data/adventure/worldgen/noise/terrain/<noise>.json` |
+| Material rules (palettes, veins) | `data/adventure/worldgen/material_rule/<slug>.json` |
+| Added ores | `data/adventure/worldgen/{feature,placed_feature}/ores/<slug>/<id>.json` |
+| What the runtime applies to a level's generator (lava level, added ores, removed features) | `data/customdimensions/worldgen_runtime/<slug>.json` |
 | The End's terrain without its central island | `data/adventure/worldgen/density_function/end_without_central_island/{islands,sloped_cheese}.json` |
 | Fixed time of day | `data/adventure/timeline/fixed_time/<timeline>_<tick>.json` |
 | Base worlds, loaded at start | `data/minecraft/dimension/{overworld,the_nether,the_end}.json`, `data/adventure/dimension/the_aviary.json` |
@@ -82,9 +86,9 @@ the definition sets.
 
 | `generator` | Compiles to | Tuning |
 | --- | --- | --- |
-| `noise`, preset `overworld`, `large_biomes`, `amplified`, `caves`, `floating_islands`, `nether`, `end` | `minecraft:noise` with the preset's noise settings; the overworld family and the Nether filter vanilla's multi-noise list to the definition's `biomes`; the End keeps `minecraft:the_end` | `liquids.seaLevel` → `sea_level`, `liquids.defaultFluid` → `default_fluid`, `materials.defaultBlock` → `default_block` on 26.3 and the last entry of the material rule on 26.4; `endIsland: false` (End only) swaps vanilla's `end/islands` for a copy that keeps only `end_outer_islands` |
-| `checkerboard` | overworld noise, `minecraft:checkerboard` source | `cellScale` → `scale`: cells of 2^(cellScale+4) blocks |
-| `single_biome` | overworld noise, `minecraft:fixed` source | `biome` |
+| `noise`, preset `overworld`, `large_biomes`, `amplified`, `caves`, `floating_islands`, `nether`, `end` | `minecraft:noise` with the preset's noise settings; the overworld family and the Nether filter vanilla's multi-noise list to the definition's `biomes`; the End keeps `minecraft:the_end` | `liquids.seaLevel` → `sea_level`, `liquids.defaultFluid` → `default_fluid`, `liquids.aquifers` → the `aquifers` object kept (`on`), removed (`off`, `flooded`) or removed with air as the fluid (`dry`), `liquids.lavaLevel` → the runtime; `materials.defaultBlock` → `default_block` on 26.3 and the last entry of the material rule on 26.4; palettes (`top`, `filler`, `deep`, `cliffs`, `beaches`, `ceilings`, per-biome `biomes`) and `ores.veins` → the dimension's material rule; `ores.add` and `ores.remove` → placed features and the runtime; `endIsland: false` (End only) swaps vanilla's `end/islands` for a copy that keeps only `end_outer_islands`. Fields: [schema-v2.md](../../docs/design/rebuild-26/schema-v2.md#materials-liquids-and-ores) |
+| `checkerboard` | overworld noise, `minecraft:checkerboard` source | `cellScale` → `scale`: cells of 2^(cellScale+4) blocks; `liquids`, `materials` and `ores` as for `noise` |
+| `single_biome` | overworld noise, `minecraft:fixed` source | `biome`; `liquids`, `materials` and `ores` as for `noise` |
 | `flat` | `minecraft:flat`, no features or lakes | `layers`, `biome` |
 | `void` | `minecraft:flat` with no layers | its first vanilla biome, else `minecraft:the_void` |
 | `clone` | the generator of the definition `of` names, under the clone's own dimension type, seed and atmosphere | its own `liquids` and `materials` over the source's; its own `biomes` are reported unused |
@@ -127,6 +131,17 @@ gallery setting and renders each as a greyscale height PNG with an
 No shipped definition uses `single_biome`, so its
 line reads `SKIP` and `GeneratorVariantsTest` covers it.
 
+The materials section (`MaterialsSelfTest`) opens the fixtures
+`selftest_dry`, `selftest_flooded`, `selftest_palette` and `selftest_ores` and
+scans every block of a 64x64 area: no water below sea level in the dry one,
+lava below its lava level and none above, water in at least 95% of open cells
+below sea level in the flooded one, the palette's top and filler in at least
+95% of plains land columns and its deep block in at least 90% (ore veins
+and blobs take some), the desert's own top only in the desert, and the added
+ore present with the removed diamonds and the vein blocks absent, against the
+overworld's same area. `-PselfTestOnly=materials` runs the compiled-pack and
+materials sections only.
+
 ## Runtime levels
 
 `server/.../level/` opens the dimensions. The four base worlds load at start
@@ -137,6 +152,7 @@ from the pack; every lazy stem is opened through Fantasy as a persistent level
 | --- | --- |
 | `PackInstaller` | Compiles the definitions into `<world>/datapacks/customdimensions/` at mod initialisation, before the world loads ([below](#the-pack-at-start-up)) |
 | `LevelIndex` | At start, decodes every lazy stem from the server's resources and pairs it with its definition (seed, spawn, borders) |
+| `WorldgenRuntime` | Applies `worldgen_runtime/` to a level's generator before it generates: base worlds at server start, a lazy level as its stem is decoded. A lava level replaces the generator's fluid rule; added and removed placed features replace that generator's per-biome feature lists, leaving the shared biomes alone. Two accessor mixins reach the fields |
 | `LevelManager` | Activation queue, one at a time (K6); spawn chunk loaded through a ticket, never on the tick; unload and delete polled until the level leaves `levelKeys()`; idle unload after `idleUnloadMinutes` |
 
 `-Pdefinitions=<dir>` points `runServer` at another definitions folder. Definitions are read from `-Dcustomdimensions.definitions`, else from
@@ -179,8 +195,92 @@ files byte for byte.
 | `activate <dimension>`, `unload <dimension>` | Open or close a lazy level; a base world is always loaded |
 | `delete <dimension> [confirm]` | Without `confirm`, says which level folder would go; with it, `LevelManager.delete`. Base worlds are refused; the definition stays |
 | `create <slug> [template]` | Writes `<definitions>/<slug>.json` from the template (default `overworld`) with a fresh seed and one new portal colour, without the template's `spawn`, portal `anchor`s and `wins`; reads it back, compiles it with the other definitions in a temporary folder, and replies that it opens after the next restart (RB-34). The copy keeps the template's frame and igniter |
-| `audit` | Writes `<world>/customdimensions/audit.md`: definitions compiled afresh against the pack (stale, missing, in the pack with no definition), level folders with no definition, portal links to unknown dimensions, frame blocks and igniters the server lacks, Bedrock height warnings, skipped biomes and unsupported fields |
+| `audit` | Writes `<world>/customdimensions/audit.md`: definitions compiled afresh against the pack (stale, missing, in the pack with no definition), level folders with no definition, portal links to unknown dimensions, frame blocks and igniters the server lacks, Bedrock height warnings, skipped biomes and unsupported fields, and the firewall's allowed mods, unreviewed bridges, switched-off structure sets and biome removals |
 | `catalogue` | Writes `../.seed-rolling/catalogue/registries.json` beside the game directory for `scripts/extract-registries.py`: biomes, biome tags, structures, structure sets (placement as the game's codec writes it), blocks, items, features, placed features, entity types, and every tag of those registries with its members |
+| `render <dimension> [seed] [radius] [step]` | Draws the dimension top-down from the `Sampler` into `renders/<dimension>/` under the game directory, off the server thread, without generating chunks ([below](#rendering)). One render at a time |
+
+## Rendering
+
+`server/.../render/` draws a dimension from its generator alone; the
+image-making half (grid, palette, layers, PNG and sidecar) is game-free in
+`core/.../render/`.
+
+`/customdim render <dimension> [seed] [radius] [step]` renders a base world or
+a lazy dimension, open or not. Without a seed it takes the seed the level has
+or would have: a base world's level seed, a lazy definition's `seed` (else the
+world seed). Radius 16 to 4096 blocks round 0,0, default 1024; the step
+defaults to the smallest that keeps the image at 1024 pixels a side (2 at the
+default radius, 8 at 4096) and is refused below it. The command checks its
+arguments and starts the job on the server thread; building the sampler,
+sampling and writing run on `RenderJob`'s pool of low-priority daemon threads
+(`-Dcustomdimensions.render.threads`, default 2, fewer under 4 cores). It
+replies when it starts, at 25, 50 and 75 % and when it finishes, and refuses a
+second render while one runs. At the default radius a render samples 1,048,576 columns: about six minutes for the overworld, two for the End, 40 seconds for the Nether on two threads here.
+
+| File in `renders/<dimension>/` | What it holds |
+| --- | --- |
+| `<seed>-r<radius>-biome.png` | Each pixel in its surface biome's colour: a fixed colour per vanilla 26.3 biome (`BiomePalette`), any other id a colour from its hash |
+| `<seed>-r<radius>-height.png` | Surface height in grey (dark to light across the dry surface's 1st to 99th percentile, a darker line where a 16-block band changes, lit from the north-west); water blue, darker with depth; lava orange; a column with no solid block black |
+| `<seed>-r<radius>.json` | Seed and its source, radius, step, side, centre, the surface and biome-y rules, sea level, timings (prepare, sample, images, columns per second, threads), the biome legend with colours and pixel counts, and the height range |
+
+Pixel `(px, py)` is the column at the north-west corner of its step-by-step
+cell; north is up. A further image is a `RenderLayer` (core): zone outlines and
+structure starts join as layers.
+
+### The Sampler
+
+`Sampler` is the generator of one dimension under one seed, without a level:
+
+| Call | What it gives |
+| --- | --- |
+| `Sampler.forDimension(server, manager, slug, seed)` | The sampler for a base or lazy dimension; a null seed takes the dimension's own (`defaultSeed`) |
+| `Sampler.of(dimension, generator, minY, height, seed, seedSource, registries)` | The sampler for any `ChunkGenerator` |
+| `sample(x, z)` | `Column`: `height`, `roofed`, `fluid` (over the surface), `waterAtSeaLevel`, `biome` |
+| `biome(x, y, z)` | The generator's noise biome there, `y` clamped into the dimension |
+| `noiseColumn(x, z)` | Every block the noise stage fills in the column |
+| `surface(blockAt, top, minY)` | The surface rule, applied to any column (the self-test applies it to real chunks) |
+
+It builds its `RandomState` as the level does (`RandomState.create` with the
+generator's noise settings, or the flat-world form for a generator without
+them) and reads the generator's own `getBaseColumn`. The surface is the
+`OCEAN_FLOOR_WG` heightmap's: one above the top block that blocks motion, so
+water and lava lie over it. A column whose noise is solid at the noise's top
+has a roof (the Nether, caves); its surface is the first floor under the
+roof's underside, the ground a player walks on; a column solid from the roof down takes the roof's height. The biome is read at the
+surface height. Every call is thread-safe; each thread keeps its own biome
+resolver.
+
+The sampler sees the noise stage: what surface rules, carvers, features and
+structures change afterwards is not in it. The self-test's accuracy gate
+(`RenderSelfTest`) samples 50 columns within 256 blocks in the overworld, the
+Nether, the End, The Aviary and `the_underdark`, generates those chunks and
+compares; every mismatch is classed by diffing the chunk's column against the
+noise column (`removed`, `flooded`, `added`, `filled`, `structure`), and a
+column no class explains fails; each dimension's columns and classes are written
+to `renders/<dimension>/accuracy.tsv`. It also checks that the sampler's noise
+columns equal the live level generator's, renders the overworld at radius
+1024, step 8 while counting the server's ticks, and checks the refusals.
+
+## Firewall
+
+`server/.../firewall/` keeps every generator this mod's (worldgen.md §
+[Firewall and bridges](../../docs/design/rebuild-26/worldgen.md#firewall-and-bridges));
+the rules are game-free in `core/.../firewall/`.
+
+| Piece | What it does |
+| --- | --- |
+| `WorldgenFirewall` | At SERVER_STARTING, before any level exists: reads the mods, their mixin targets, the level stems, dimension types, noise settings, biome source and chunk generator types; refuses to start (logs the findings at ERROR and throws, so the server writes a crash report and exits 0) or logs the allowed mods and every switched-off structure set by namespace |
+| `MixinTargets` | Each mod's mixin configs from its `fabric.mod.json` and the targets of each `@Mixin` annotation, read with ASM; Mixin's own config registry is empty by then |
+| `StructureStateMixin` | Drops switched-off sets from `ChunkGeneratorStructureState.createForNormal`, for base and Fantasy levels alike |
+| Biome modification | Fabric's `POST_PROCESSING` phase: in each vanilla biome, removes placed features, and entries of the `natural_mob_spawns` attribute, that vanilla's biome file and the reviewed bridges lack |
+| `AllowList`, `WorldgenClasses`, `Firewall` (core) | The allow list, the worldgen class set and the verdict, in one place each |
+| `BridgeReader`, `BridgeGenerator` (core) | Bridges in `config/custom-dimensions/bridges/` (or `-Dcustomdimensions.bridges=<dir>`), [bridges.md](../../docs/design/rebuild-26/bridges.md); `:core:bridge -Pjar=… -Pout=…` writes a first one from a jar |
+
+A malformed bridge also refuses the start, naming the file and field. The
+self-test's firewall section checks the audit passed, that switching off
+`minecraft:villages` removes it from a fresh overworld structure state while
+`pillager_outposts` stays, and that every vanilla biome's features match
+vanilla's file.
 
 ## Difficulty
 

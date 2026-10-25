@@ -272,20 +272,53 @@
       }
     },
     "liquids": {
-      "description": "Sea level and the fluid below it.",
+      "description": "Sea level, the lava level, the fluid below sea level and the aquifer mode.",
       "type": "object",
       "additionalProperties": false,
       "properties": {
         "seaLevel": { "type": "integer" },
-        "defaultFluid": { "$ref": "#/$defs/id" }
+        "lavaLevel": { "type": "integer", "description": "Open cells below the lower of this and sea level are lava; the generator's own is -54." },
+        "defaultFluid": { "$ref": "#/$defs/id" },
+        "aquifers": {
+          "enum": ["on", "off", "dry", "flooded"],
+          "description": "on: the preset's aquifers; off and flooded: none, so open cells below sea level hold the default fluid; dry: none, air as the default fluid, and no water springs or dripstone clusters."
+        }
       }
     },
     "materials": {
-      "description": "The material layer: the fallback block, and palettes as W3 adds them.",
+      "description": "The material layer: the fallback block, a palette for the dimension and palettes per biome.",
       "type": "object",
-      "additionalProperties": true,
+      "additionalProperties": false,
       "properties": {
-        "defaultBlock": { "$ref": "#/$defs/id" }
+        "defaultBlock": { "$ref": "#/$defs/id" },
+        "top": { "$ref": "#/$defs/id" },
+        "filler": { "$ref": "#/$defs/id" },
+        "deep": { "$ref": "#/$defs/id" },
+        "cliffs": { "$ref": "#/$defs/id" },
+        "beaches": { "$ref": "#/$defs/id" },
+        "ceilings": { "$ref": "#/$defs/id" },
+        "biomes": {
+          "description": "A palette per biome id or #tag, over the dimension's.",
+          "type": "object",
+          "propertyNames": { "pattern": "^#?[a-z0-9_.-]+:[a-z0-9_./-]+$" },
+          "additionalProperties": { "$ref": "#/$defs/palette" }
+        }
+      }
+    },
+    "ores": {
+      "description": "Ore veins, ores added to the dimension and placed features removed from it.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "veins": {
+          "description": "true keeps the preset's veins, false removes them, a list replaces them.",
+          "oneOf": [
+            { "type": "boolean" },
+            { "type": "array", "items": { "$ref": "#/$defs/oreVein" } }
+          ]
+        },
+        "add": { "type": "array", "items": { "$ref": "#/$defs/ore" } },
+        "remove": { "type": "array", "items": { "$ref": "#/$defs/id" } }
       }
     },
     "zones": {
@@ -450,6 +483,46 @@
     }
   },
   "$defs": {
+    "palette": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "top": { "$ref": "#/$defs/id" },
+        "filler": { "$ref": "#/$defs/id" },
+        "deep": { "$ref": "#/$defs/id" },
+        "cliffs": { "$ref": "#/$defs/id" },
+        "beaches": { "$ref": "#/$defs/id" },
+        "ceilings": { "$ref": "#/$defs/id" }
+      }
+    },
+    "oreVein": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["like", "ore"],
+      "properties": {
+        "like": { "enum": ["copper", "iron"], "description": "The vanilla vein whose shape and heights it takes." },
+        "ore": { "$ref": "#/$defs/id" },
+        "rawOre": { "$ref": "#/$defs/id" },
+        "filler": { "$ref": "#/$defs/id" },
+        "rawOreChance": { "type": "number", "minimum": 0, "maximum": 1 }
+      }
+    },
+    "ore": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "block", "count", "minY", "maxY"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z0-9_]+$" },
+        "block": { "$ref": "#/$defs/id" },
+        "deepBlock": { "$ref": "#/$defs/id" },
+        "size": { "type": "integer", "minimum": 0, "maximum": 64 },
+        "count": { "type": "integer", "minimum": 0, "maximum": 256 },
+        "minY": { "type": "integer" },
+        "maxY": { "type": "integer" },
+        "shape": { "enum": ["uniform", "trapezoid"] },
+        "airExposure": { "type": "number", "minimum": 0, "maximum": 1 }
+      }
+    },
     "win": {
       "type": "object",
       "additionalProperties": false,

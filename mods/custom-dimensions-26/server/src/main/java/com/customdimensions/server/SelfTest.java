@@ -11,10 +11,12 @@ import com.customdimensions.server.exit.ExitSelfTest;
 import com.customdimensions.server.level.PackInstaller;
 import com.customdimensions.server.level.RuntimeVanilla;
 import com.customdimensions.server.level.GeneratorSelfTest;
+import com.customdimensions.server.level.MaterialsSelfTest;
 import com.customdimensions.server.level.TerrainSelfTest;
 import com.customdimensions.server.difficulty.DifficultySelfTest;
 import com.customdimensions.server.level.LevelSelfTest;
 import com.customdimensions.server.portal.PortalSelfTest;
+import com.customdimensions.server.render.RenderSelfTest;
 import com.customdimensions.server.companion.CompanionSelfTest;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
@@ -63,7 +65,8 @@ import net.minecraft.world.timeline.Timeline;
  * report and stops. CI boots the mod this way; a line starting {@code FAIL}
  * fails the build. The pack-install and pack-equivalence lines come first,
  * then the compiled-pack checks; the runtime-level checks ({@link LevelSelfTest}),
- * the generator checks ({@link GeneratorSelfTest}), the portal and exit checks,
+ * the generator checks ({@link GeneratorSelfTest}), the materials, liquids and ores scans
+ * ({@link MaterialsSelfTest}), the render checks ({@link RenderSelfTest}), the portal and exit checks,
  * {@link DifficultySelfTest} and {@link CommandSelfTest} run across ticks, so
  * the report is written when they finish. The compiled-pack checks read the
  * definitions from {@code -Dcustomdimensions.definitions} and vanilla's files
@@ -75,7 +78,7 @@ final class SelfTest {
     private static final String DEFINITIONS = "customdimensions.definitions";
     /** An extracted vanilla folder the runtime source is compared against; {@code -Dcustomdimensions.vanilla} also counts. */
     private static final String REFERENCE = "customdimensions.vanilla.reference";
-    /** {@code exits}, {@code commands} or {@code terrain} runs the compiled-pack section and that one only, for iterating on it. */
+    /** {@code exits}, {@code commands}, {@code materials}, {@code render}, {@code firewall} or {@code terrain} runs the compiled-pack section and that one only, for iterating on it. */
     private static final String ONLY = "customdimensions.selftest.only";
 
     private SelfTest() {}
@@ -92,10 +95,14 @@ final class SelfTest {
         lines.add(check("pack installed at start-up by the mod", SelfTest::packInstall));
         lines.add(equivalence());
         lines.addAll(compiledPack(server));
+        lines.addAll(com.customdimensions.server.firewall.FirewallSelfTest.run(server));
         String only = System.getProperty(ONLY, "");
+        boolean materialsOnly = "materials".equals(only);
+        boolean firewallOnly = "firewall".equals(only);
         boolean commandsOnly = "commands".equals(only);
+        boolean renderOnly = "render".equals(only);
         boolean terrainOnly = "terrain".equals(only);
-        boolean exitsOnly = "exits".equals(only) || commandsOnly || terrainOnly;
+        boolean exitsOnly = "exits".equals(only) || commandsOnly || materialsOnly || renderOnly || firewallOnly || terrainOnly;
         CompletableFuture<List<String>> levels;
         try {
             levels = exitsOnly ? CompletableFuture.completedFuture(List.of()) : LevelSelfTest.run(server);
@@ -125,6 +132,24 @@ final class SelfTest {
             return null;
         }).thenCompose(v -> {
             try {
+                return exitsOnly && !materialsOnly ? CompletableFuture.completedFuture(List.<String>of()) : MaterialsSelfTest.run(server);
+            } catch (Throwable t) {
+                return CompletableFuture.completedFuture(List.of("FAIL materials: " + t));
+            }
+        }).handle((more, error) -> {
+            lines.addAll(error == null ? more : List.of("FAIL materials: " + error));
+            return null;
+        }).thenCompose(v -> {
+            try {
+                return exitsOnly && !renderOnly ? CompletableFuture.completedFuture(List.<String>of()) : RenderSelfTest.run(server);
+            } catch (Throwable t) {
+                return CompletableFuture.completedFuture(List.of("FAIL render: " + t));
+            }
+        }).handle((more, error) -> {
+            lines.addAll(error == null ? more : List.of("FAIL render: " + error));
+            return null;
+        }).thenCompose(v -> {
+            try {
                 return exitsOnly ? CompletableFuture.completedFuture(List.<String>of()) : PortalSelfTest.run(server);
             } catch (Throwable t) {
                 return CompletableFuture.completedFuture(List.of("FAIL portals: " + t));
@@ -143,7 +168,7 @@ final class SelfTest {
             return null;
         }).thenCompose(v -> {
             try {
-                return commandsOnly || terrainOnly ? CompletableFuture.completedFuture(List.<String>of()) : ExitSelfTest.run(server);
+                return commandsOnly || materialsOnly || renderOnly || firewallOnly || terrainOnly ? CompletableFuture.completedFuture(List.<String>of()) : ExitSelfTest.run(server);
             } catch (Throwable t) {
                 return CompletableFuture.completedFuture(List.of("FAIL exits: " + t));
             }
@@ -161,7 +186,7 @@ final class SelfTest {
             return null;
         }).thenCompose(v -> {
             try {
-                return exitsOnly && !commandsOnly ? CompletableFuture.completedFuture(List.<String>of()) : CommandSelfTest.run(server);
+                return exitsOnly && !commandsOnly || firewallOnly ? CompletableFuture.completedFuture(List.<String>of()) : CommandSelfTest.run(server);
             } catch (Throwable t) {
                 return CompletableFuture.completedFuture(List.of("FAIL commands: " + t));
             }

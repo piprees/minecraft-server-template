@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # local-mods.sh - Build and gate the in-house mods the selected version ships.
 #
-# Context: template-only (CI: release.yml, mod-build.yml, smoke-test-26.yml).
+# Context: template-only (CI: release.yml, mod-build.yml, smoke-test-26.yml;
+# a consumer's ./dev link and ./dev pack call locate in the linked checkout).
 # The manifests are mods/local-mods[-<version>].manifest (server) and
 # mods/client-mods[-<version>].manifest (client), picked by
 # mc_local_mods_manifest / mc_client_mods_manifest in lib.sh, so
@@ -14,6 +15,7 @@
 #   scripts/local-mods.sh build  <server|client> <out-dir> [--mod-version V] [--skip-tests]
 #   scripts/local-mods.sh verify <server|client> <dir>
 #   scripts/local-mods.sh rows   <server|client>
+#   scripts/local-mods.sh locate <server|client>   # bundle_name|built jar path|refmap, no build
 #
 # Gotchas:
 #   - Gradle reports BUILD SUCCESSFUL for an empty or unremapped jar, which
@@ -25,6 +27,8 @@
 #     table's java column.
 #   - A missing client manifest means no client mods; a missing server
 #     manifest is an error.
+#   - locate skips, with a warning on stderr, a row whose project has no
+#     single built jar; it never builds.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -55,6 +59,29 @@ rows() {
     return 1
   fi
   grep -vE '^[[:space:]]*(#|$)' "$manifest" || true
+}
+
+# built_jars <bundle_name> <project> - every built jar of the row, relative to mods/<project>.
+built_jars() {
+  (cd "$ROOT/mods/$2" && find . -path '*/build/libs/*' -name "${1%.jar}-*.jar" \
+    ! -name '*-sources.jar' ! -name '*-dev.jar' | sort)
+}
+
+# locate <kind> - bundle_name|absolute jar path|refmap for each row already built.
+locate() {
+  local listing jar_name project refmap jars count
+  listing="$(rows "$1")" || return 1
+  [[ -n "$listing" ]] || return 0
+  while IFS='|' read -r jar_name project refmap; do
+    jars=""
+    [[ -d "$ROOT/mods/$project" ]] && jars="$(built_jars "$jar_name" "$project")"
+    count="$(printf '%s' "$jars" | grep -c . || true)"
+    if [[ "$count" -ne 1 ]]; then
+      echo "WARNING: $jar_name: expected one built jar in mods/$project, found $count; build it first" >&2
+      continue
+    fi
+    printf '%s|%s|%s\n' "$jar_name" "$ROOT/mods/$project/${jars#./}" "$refmap"
+  done <<< "$listing"
 }
 
 build() {
@@ -92,8 +119,7 @@ build() {
       [[ $skip_tests -eq 1 ]] && set -- "$@" -x test
       if [[ -x ./gradlew ]]; then ./gradlew "$@"; else gradle "$@"; fi
     )
-    jars="$(cd "$ROOT/mods/$project" && find . -path '*/build/libs/*' -name "${jar_name%.jar}-*.jar" \
-      ! -name '*-sources.jar' ! -name '*-dev.jar' | sort)"
+    jars="$(built_jars "$jar_name" "$project")"
     count="$(printf '%s' "$jars" | grep -c . || true)"
     [[ "$count" -eq 1 ]] || {
       echo "ERROR: $jar_name: expected one built jar in mods/$project, found $count" >&2
@@ -170,6 +196,11 @@ case "$cmd" in
   rows)
     [[ $# -eq 1 ]] || usage
     rows "$1"
+    ;;
+  locate)
+    [[ $# -eq 1 ]] || usage
+    manifest_for "$1" > /dev/null
+    locate "$1"
     ;;
   *) usage ;;
 esac

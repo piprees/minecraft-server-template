@@ -67,6 +67,18 @@ class DefinitionReaderTest {
     }
 
     @Test
+    void liquidsCarryLavaLevelAndAquifersAndOresStayJson() {
+        Definition d = read("{'schemaVersion': 2, 'generator': {'type': 'noise', 'preset': 'overworld'},"
+                + " 'liquids': {'seaLevel': 40, 'lavaLevel': -30, 'defaultFluid': 'minecraft:water', 'aquifers': 'dry'},"
+                + " 'ores': {'veins': false, 'remove': ['minecraft:ore_diamond']}}");
+        assertEquals(new Liquids(40, -30, "minecraft:water", "dry"), d.liquids());
+        assertFalse(d.ores().get("veins").getAsBoolean());
+        assertNull(read("{'schemaVersion': 2, 'generator': {'type': 'void'}}").ores());
+        String message = refused("{'schemaVersion': 2, 'generator': {'type': 'void'}, 'liquids': {'lavaLevl': 1}}").getMessage();
+        assertTrue(message.contains("lavaLevl"), message);
+    }
+
+    @Test
     void absentListsAreEmptyAndAbsentLayersNull() {
         Definition d = read("{'schemaVersion': 2, 'generator': {'type': 'void'}, 'seed': 'env'}");
         assertTrue(d.seed().fromEnv());

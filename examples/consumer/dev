@@ -436,30 +436,26 @@ case "$CMD" in
     mkdir -p "$FARM/local-mods" "$FARM/client-mods"
     JAR_COUNT=0
     CLIENT_JAR_COUNT=0
-    for j in "$PLATFORM"/mods/*/build/libs/*.jar; do
-      [[ -f "$j" ]] || continue
-      case "$j" in *-dev.jar | *-sources.jar) continue ;; esac
+    # The checkout's own manifests for its selected Minecraft version decide
+    # which jars ship (scripts/local-mods.sh locate), under their bundle names.
+    while IFS='|' read -r jar_name j refmap; do
       # grep without -q: -q exits at first match and the resulting SIGPIPE
       # into unzip reads as a pipeline failure under pipefail.
-      if ! unzip -l "$j" 2> /dev/null | grep "refmap" > /dev/null; then
-        echo "  WARNING: $(basename "$j") has no refmap — dev/unremapped jar skipped"
-        continue
-      fi
-      # Route by the jar's own declared environment, not its name: a client mod
-      # installed onto the server is refused at best and a boot break at worst.
-      if unzip -p "$j" fabric.mod.json 2> /dev/null |
-        tr -d ' \n' | grep '"environment":"client"' > /dev/null; then
-        # Copied, not symlinked: the pack build mounts this directory into a
-        # container, where a symlink to the checkout resolves to nothing.
-        # ./dev pack re-copies, so a rebuild still propagates.
-        cp -f "$j" "$FARM/client-mods/$(basename "$j")"
-        CLIENT_JAR_COUNT=$((CLIENT_JAR_COUNT + 1))
+      if [[ "$refmap" != "-" ]] && ! unzip -l "$j" 2> /dev/null | grep -F "$refmap" > /dev/null; then
+        echo "  WARNING: $(basename "$j") has no $refmap — unremapped jar skipped"
         continue
       fi
       # Symlinked like the rest of the farm, so a rebuild needs no re-link.
-      ln -sfn "$j" "$FARM/local-mods/$(basename "$j")"
+      ln -sfn "$j" "$FARM/local-mods/$jar_name"
       JAR_COUNT=$((JAR_COUNT + 1))
-    done
+    done < <("$PLATFORM/scripts/local-mods.sh" locate server)
+    while IFS='|' read -r jar_name j refmap; do
+      # Copied, not symlinked: the pack build mounts this directory into a
+      # container, where a symlink to the checkout resolves to nothing.
+      # ./dev pack re-copies, so a rebuild still propagates.
+      cp -f "$j" "$FARM/client-mods/$jar_name"
+      CLIENT_JAR_COUNT=$((CLIENT_JAR_COUNT + 1))
+    done < <("$PLATFORM/scripts/local-mods.sh" locate client)
     echo "dev" > "$FARM/VERSION"
     echo "$PLATFORM" > "$FARM/PLATFORM"
     ln -sfn dev "$CONSUMER_DIR/.stack/current"
@@ -617,14 +613,9 @@ case "$CMD" in
     FARM_CLIENT_MODS="$CONSUMER_DIR/.stack/current/stack/client-mods"
     if [[ -f "$CONSUMER_DIR/.stack/current/stack/PLATFORM" ]]; then
       PLATFORM_PATH="$(cat "$CONSUMER_DIR/.stack/current/stack/PLATFORM")"
-      for j in "$PLATFORM_PATH"/mods/*/build/libs/*.jar; do
-        [[ -f "$j" ]] || continue
-        case "$j" in *-dev.jar | *-sources.jar) continue ;; esac
-        if unzip -p "$j" fabric.mod.json 2> /dev/null |
-          tr -d ' \n' | grep '"environment":"client"' > /dev/null; then
-          cp -f "$j" "$FARM_CLIENT_MODS/$(basename "$j")"
-        fi
-      done
+      while IFS='|' read -r jar_name j _refmap; do
+        cp -f "$j" "$FARM_CLIENT_MODS/$jar_name"
+      done < <("$PLATFORM_PATH/scripts/local-mods.sh" locate client)
     fi
     CLIENT_MODS_ARGS=()
     [[ -d "$FARM_CLIENT_MODS" ]] &&
@@ -1341,21 +1332,16 @@ MERGE
     INST_DIR="$(resolve_client_instance || true)"
     if [[ -n "$INST_DIR" && -d "$INST_DIR/mods" ]]; then
       COPIED=0
-      for j in "$PLATFORM"/mods/*/build/libs/*.jar; do
-        [[ -f "$j" ]] || continue
-        case "$j" in *-dev.jar | *-sources.jar) continue ;; esac
-        if unzip -p "$j" fabric.mod.json 2> /dev/null |
-          tr -d ' \n' | grep '"environment":"client"' > /dev/null; then
-          # Drop older builds of the same mod or the loader sees duplicates.
-          MOD_ID="$(unzip -p "$j" fabric.mod.json 2> /dev/null |
-            tr -d ' \n' | sed -n 's/.*"id":"\([a-z0-9_-]*\)".*/\1/p' | head -1)"
-          if [[ -n "$MOD_ID" ]]; then
-            find "$INST_DIR/mods" -maxdepth 1 -name "${MOD_ID}*.jar" -delete 2> /dev/null || true
-          fi
-          cp -f "$j" "$INST_DIR/mods/"
-          COPIED=$((COPIED + 1))
+      while IFS='|' read -r _jar_name j _refmap; do
+        # Drop older builds of the same mod or the loader sees duplicates.
+        MOD_ID="$(unzip -p "$j" fabric.mod.json 2> /dev/null |
+          tr -d ' \n' | sed -n 's/.*"id":"\([a-z0-9_-]*\)".*/\1/p' | head -1)"
+        if [[ -n "$MOD_ID" ]]; then
+          find "$INST_DIR/mods" -maxdepth 1 -name "${MOD_ID}*.jar" -delete 2> /dev/null || true
         fi
-      done
+        cp -f "$j" "$INST_DIR/mods/"
+        COPIED=$((COPIED + 1))
+      done < <("$PLATFORM/scripts/local-mods.sh" locate client)
       echo "  client-mods: copied $COPIED jar(s) into $(basename "$(dirname "$INST_DIR")")"
     else
       echo "  no Prism instance found — client jar not refreshed"

@@ -374,7 +374,8 @@ sha256() {
 backup() {
   local stamp
   stamp="$(date +%Y%m%d-%H%M%S)"
-  [[ -f "$1" ]] && cp -p "$1" "$1.bak.$stamp" && echo "  backed up $1"
+  [[ -f "$1" ]] || return 0
+  cp -p "$1" "$1.bak.$stamp" && echo "  backed up $1"
 }
 
 # --- RCON helpers (require Docker) --------------------------------------------

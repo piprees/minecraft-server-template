@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 2,
+  "description": "Self-test fixture: plains with nether gold ore added, every diamond ore removed and no ore veins.",
+  "seed": 34,
+  "spawn": [0, 64, 0],
+  "generator": {
+    "type": "noise",
+    "preset": "overworld"
+  },
+  "biomes": ["minecraft:plains"],
+  "ores": {
+    "veins": false,
+    "add": [
+      {"id": "gilded", "block": "minecraft:nether_gold_ore", "size": 9, "count": 16, "minY": -48, "maxY": 48}
+    ],
+    "remove": ["minecraft:ore_diamond", "minecraft:ore_diamond_medium", "minecraft:ore_diamond_large", "minecraft:ore_diamond_buried"]
+  },
+  "borders": {
+    "player": 256
+  }
+}

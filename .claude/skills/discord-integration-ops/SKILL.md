@@ -72,7 +72,7 @@ Validation patterns worth knowing before you add a new command: player names aga
 
 ## Editing player-facing strings
 
-Every player/Discord-facing message template lives in `config/messages.json` - never hard-code one in a script. See `references/messages-and-webhooks.md` for the full key catalogue and the `discord-notify.sh --key` templating syntax.
+Every player/Discord-facing message template lives in `config/messages.json` - never hard-code one in a script. The bot reads the copy baked into its image, then the seeded config volume's (`/config-vol/messages.json`, which is a consumer's `overlay/config/messages.json` when it has one) with its keys winning, so a consumer's override needs a seed run and a `discord-sync` restart, not an image rebuild. See `references/messages-and-webhooks.md` for the full key catalogue and the `discord-notify.sh --key` templating syntax.
 
 ## Deploying a change to discord-sync.py
 
