@@ -371,6 +371,7 @@ def evaluate(pr, commits, files, comments, repo, policy, force=False, manifests=
         "state_comment_id": None,
         "previous_state": None,
         "needs_smoke": False,
+        "needs_join_26": False,
         "dockerfiles": [],
         "worldgen_paths": [],
         "files": names,
@@ -402,6 +403,7 @@ def evaluate(pr, commits, files, comments, repo, policy, force=False, manifests=
         state_comment_id=comment_id,
         previous_state=state,
         needs_smoke=source in MOD_SOURCES or source == PLATFORM or "docker/defaults-seed/Dockerfile" in names,
+        needs_join_26=any(n in JOIN_26_PATHS for n in names),
         dockerfiles=[n for n in names if n.endswith("/Dockerfile")],
         worldgen_paths=[n for n in names if prefixes and n.startswith(prefixes)],
     )
@@ -467,6 +469,11 @@ def load_dir_manifests(directory):
     return tuple(json.loads(p.read_text()) if p.exists() else None for p in paths)
 
 
+# A change to the 26.3 mod list or the version table boots the 26.3 stack and
+# joins it with the vanilla client (smoke-test-26.yml).
+JOIN_26_PATHS = ("config/modrinth-mods-26.3.txt", "scripts/minecraft-versions.tsv")
+
+
 def write_github_output(path, result):
     def flag(v):
         return "true" if v else "false"
@@ -478,6 +485,7 @@ def write_github_output(path, result):
         f.write(f"head_sha={result['head_sha'] or ''}\n")
         f.write(f"base_sha={result['base_sha'] or ''}\n")
         f.write(f"needs_smoke={flag(result['needs_smoke'])}\n")
+        f.write(f"needs_join_26={flag(result.get('needs_join_26'))}\n")
         f.write(f"dockerfiles={json.dumps(result['dockerfiles'], separators=(',', ':'))}\n")
 
 

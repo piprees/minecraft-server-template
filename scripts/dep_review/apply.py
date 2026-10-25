@@ -445,6 +445,8 @@ def merge_blockers(gate, tests, policy, final):
     required = [("quick", "Quick checks")]
     if gate.get("needs_smoke"):
         required.append(("smoke", "Smoke test"))
+    if gate.get("needs_join_26"):
+        required.append(("join26", "26.3 boot, vanilla join and admin parity"))
     if gate.get("dockerfiles"):
         required.append(("docker_build", "Docker build"))
     for field, label in required:

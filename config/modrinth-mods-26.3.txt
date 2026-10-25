@@ -59,7 +59,6 @@ polydecorations:sQwcggNm
 almanac:lYr0UQEP
 deimos:DqsrgsEE
 architectury-api:1pMaB6So
-bookshelf-lib:gXFicDKO
 # required by cristel-lib
 cloth-config:fg2uyxOW
 collective:SLDUG1Rg
@@ -74,6 +73,9 @@ polymer:G0fTdl8M
 
 # === variety ===
 farmers-delight-refabricated:W0KeKCgk
+# farmers-delight-polymer — the register's server-side patch: vanilla clients
+# see Farmer's Delight blocks and items as vanilla ones (Polymer, above)
+farmers-delight-polymer:ZqkEEPvU
 appleskin:PHjDtQay
 
 # === quality of life ===
@@ -136,6 +138,7 @@ lmd:soddf0iE
 # replaces macaws-bridges); each joins when its author ships one (RB-09)
 # =============================================================================
 # dcintegration                               # No 26
+# bookshelf-lib                                # Registers command argument types (bookshelf:*) that Fabric's registry sync refuses vanilla clients for; no 26.3 server mod depends on it
 # no-chat-reports                             # No 26
 # friends-and-foes                            # Kept server-side through the friends-and-foes-polymer patch once both have 26
 # borrow-their-arrows                         # No 26

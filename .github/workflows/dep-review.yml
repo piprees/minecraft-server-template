@@ -14,6 +14,9 @@ name: Dependency Review
 #   quick   unit tests, ShellCheck, JSON validity, Dockerfile builds (PR code,
 #           no secrets)
 #   smoke   smoke-test.yml against the PR head (mods and defaults-seed)
+#   join26  smoke-test-26.yml against the PR head when the 26.3 mod list or the
+#           version table changes: the 26.3 boot, the vanilla client join gate
+#           and the admin parity check
 #   review  collect.py bundles every changelog and flag; Claude judges the
 #           bundle with Read/Grep/Glob only (no shell, no network)
 #   apply   scripts/dep_review/apply.py enforces .github/dep-review/policy.json
@@ -68,6 +71,7 @@ jobs:
       head_sha: ${{ steps.gate.outputs.head_sha }}
       base_sha: ${{ steps.gate.outputs.base_sha }}
       needs_smoke: ${{ steps.gate.outputs.needs_smoke }}
+      needs_join_26: ${{ steps.gate.outputs.needs_join_26 }}
       dockerfiles: ${{ steps.gate.outputs.dockerfiles }}
     steps:
       - name: Refuse any ref but main
@@ -159,9 +163,19 @@ jobs:
     with:
       ref: ${{ needs.gate.outputs.head_sha }}
 
+  join26:
+    name: 26.3 boot, vanilla join and admin parity
+    needs: gate
+    if: needs.gate.outputs.ok == 'true' && needs.gate.outputs.skip != 'true' && needs.gate.outputs.needs_join_26 == 'true'
+    permissions:
+      contents: read
+    uses: ./.github/workflows/smoke-test-26.yml
+    with:
+      ref: ${{ needs.gate.outputs.head_sha }}
+
   review:
     name: Review
-    needs: [gate, quick, smoke]
+    needs: [gate, quick, smoke, join26]
     if: always() && needs.gate.outputs.ok == 'true' && needs.gate.outputs.skip != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 45
@@ -235,7 +249,7 @@ jobs:
 
   apply:
     name: Apply
-    needs: [gate, quick, smoke, review]
+    needs: [gate, quick, smoke, join26, review]
     if: always() && needs.gate.outputs.ok == 'true' && needs.gate.outputs.skip != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -274,6 +288,7 @@ jobs:
         env:
           QUICK: ${{ needs.quick.result }}
           SMOKE: ${{ needs.smoke.result }}
+          JOIN26: ${{ needs.join26.result }}
         run: |
           mkdir -p review
           [[ -s review/verdict.json ]] || : > review/verdict.json
@@ -289,8 +304,8 @@ jobs:
           gh api --paginate "repos/$GITHUB_REPOSITORY/commits/$HEAD_SHA/check-runs" \
             --jq '.check_runs[] | {name, status, conclusion}' | jq -s . > checks.json
           # quick builds the Dockerfiles, so its result covers docker_build.
-          jq -n --arg quick "$QUICK" --arg smoke "$SMOKE" --slurpfile checks checks.json \
-            '{quick: $quick, smoke: $smoke, docker_build: $quick, checks: $checks[0]}' > tests.json
+          jq -n --arg quick "$QUICK" --arg smoke "$SMOKE" --arg join26 "$JOIN26" --slurpfile checks checks.json \
+            '{quick: $quick, smoke: $smoke, join26: $join26, docker_build: $quick, checks: $checks[0]}' > tests.json
 
       - name: Decide
         run: |

@@ -8,8 +8,12 @@ LABEL org.opencontainers.image.source=${REPO_URL} \
 RUN apk upgrade --no-cache && apk add --no-cache bash rsync python3
 
 # The mod list follows .minecraft-version: modrinth-mods-<version>.txt when it
-# exists, else modrinth-mods.txt (mc_mod_list in scripts/lib.sh).
+# exists, else modrinth-mods.txt (mc_mod_list in scripts/lib.sh). The
+# MC_VERSION_OVERRIDE build argument replaces the file's version, as the
+# environment variable does in lib.sh; empty, it changes nothing.
+ARG MC_VERSION_OVERRIDE=
 COPY .minecraft-version /defaults/.minecraft-version
+RUN [ -z "$MC_VERSION_OVERRIDE" ] || echo "$MC_VERSION_OVERRIDE" > /defaults/.minecraft-version
 COPY config/modrinth-mods*.txt /tmp/mod-lists/
 RUN v="$(cat /defaults/.minecraft-version)" \
  && f="/tmp/mod-lists/modrinth-mods-$v.txt" \

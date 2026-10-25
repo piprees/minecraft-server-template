@@ -9,9 +9,11 @@ for bash (mc_version, mc_version_field, mc_mod_list, mc_manifest).
 Usage:
   python3 scripts/minecraft_version.py                 # the version
   python3 scripts/minecraft_version.py java|image|loader|accepted [--version V]
-  python3 scripts/minecraft_version.py mod-list|manifest [--root DIR]
+  python3 scripts/minecraft_version.py mod-list|manifest|local-mods|client-mods [--root DIR]
 
 Gotchas:
+  - MC_VERSION_OVERRIDE wins over the file: CI boots another version's stack
+    from the same checkout with it. Unset, it changes nothing.
   - The file wins over MC_VERSION in the environment; MC_VERSION is only the
     fallback when the file is missing (a container that ships scripts alone).
   - mod-list and manifest return the shared file when no
@@ -30,6 +32,9 @@ FIELDS = ("java", "image", "loader", "accepted")
 
 def current(version_file=VERSION_FILE):
     """The selected Minecraft version."""
+    override = os.environ.get("MC_VERSION_OVERRIDE", "").strip()
+    if override:
+        return override
     path = Path(version_file)
     if path.is_file():
         for line in path.read_text().splitlines():
@@ -69,9 +74,19 @@ def manifest(root=HERE.parent, version=None):
     return versioned_path(Path(root) / "modpack", "adventure", ".mrpack.json", version)
 
 
+def local_mods(root=HERE.parent, version=None):
+    """The in-house server mod manifest for the version."""
+    return versioned_path(Path(root) / "mods", "local-mods", ".manifest", version)
+
+
+def client_mods(root=HERE.parent, version=None):
+    """The in-house client mod manifest for the version."""
+    return versioned_path(Path(root) / "mods", "client-mods", ".manifest", version)
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    ap.add_argument("field", nargs="?", choices=FIELDS + ("mod-list", "manifest"))
+    ap.add_argument("field", nargs="?", choices=FIELDS + ("mod-list", "manifest", "local-mods", "client-mods"))
     ap.add_argument("--version")
     ap.add_argument("--root", default=str(HERE.parent))
     args = ap.parse_args(argv)
@@ -82,6 +97,10 @@ def main(argv=None):
         print(mod_list(args.root, version))
     elif args.field == "manifest":
         print(manifest(args.root, version))
+    elif args.field == "local-mods":
+        print(local_mods(args.root, version))
+    elif args.field == "client-mods":
+        print(client_mods(args.root, version))
     elif args.field == "accepted":
         print(",".join(info(version)["accepted"]))
     else:

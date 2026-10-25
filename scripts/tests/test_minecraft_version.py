@@ -19,6 +19,7 @@ TABLE = REPO / "scripts" / "minecraft-versions.tsv"
 def bash(snippet, **env):
     full = dict(os.environ, **env)
     full.pop("MC_VERSION", None) if "MC_VERSION" not in env else None
+    full.pop("MC_VERSION_OVERRIDE", None) if "MC_VERSION_OVERRIDE" not in env else None
     return subprocess.run(
         ["bash", "-c", f'source "{REPO}/scripts/lib.sh"; {snippet}'],
         capture_output=True, text=True, env=full)
@@ -57,6 +58,44 @@ def test_missing_file_falls_back_to_env(tmp_path, monkeypatch):
     monkeypatch.delenv("MC_VERSION")
     with pytest.raises(SystemExit):
         minecraft_version.current(tmp_path / "absent")
+
+
+def test_override_wins_over_the_file(tmp_path, monkeypatch):
+    f = tmp_path / ".minecraft-version"
+    f.write_text("1.21.1\n")
+    monkeypatch.setenv("MC_VERSION", "1.21")
+    monkeypatch.setenv("MC_VERSION_OVERRIDE", "26.3")
+    assert minecraft_version.current(f) == "26.3"
+    monkeypatch.setenv("MC_VERSION_OVERRIDE", "")
+    assert minecraft_version.current(f) == "1.21.1"
+    monkeypatch.delenv("MC_VERSION_OVERRIDE")
+    assert minecraft_version.current(f) == "1.21.1"
+
+
+def test_bash_override_wins_over_the_file(tmp_path):
+    f = tmp_path / ".minecraft-version"
+    f.write_text("1.21.1\n")
+    assert bash("mc_version", MC_VERSION_FILE=str(f), MC_VERSION_OVERRIDE="26.3").stdout.strip() == "26.3"
+    assert bash("mc_version", MC_VERSION_FILE=str(f), MC_VERSION_OVERRIDE="").stdout.strip() == "1.21.1"
+    assert bash("mc_version", MC_VERSION_FILE=str(f)).stdout.strip() == "1.21.1"
+    out = bash("export_mc_version; echo $MC_VERSION $MC_IMAGE_TAG $FABRIC_LOADER_VERSION",
+               MC_VERSION_FILE=str(f), MC_VERSION_OVERRIDE="26.3").stdout.split()
+    assert out == ["26.3", minecraft_version.info("26.3")["image"], minecraft_version.info("26.3")["loader"]]
+
+
+def test_local_mods_manifests_follow_the_version():
+    assert minecraft_version.local_mods(REPO, "1.21.1") == REPO / "mods" / "local-mods.manifest"
+    assert minecraft_version.client_mods(REPO, "1.21.1") == REPO / "mods" / "client-mods.manifest"
+    assert minecraft_version.local_mods(REPO, "26.3") == REPO / "mods" / "local-mods-26.3.manifest"
+    assert minecraft_version.client_mods(REPO, "26.3") == REPO / "mods" / "client-mods-26.3.manifest"
+    for v in ("1.21.1", "26.3"):
+        assert bash(f"mc_local_mods_manifest . {v}").stdout.strip() == "./" + str(
+            minecraft_version.local_mods(Path("."), v))
+    rows = [r for r in (REPO / "mods" / "local-mods-26.3.manifest").read_text().splitlines()
+            if r and not r.startswith("#")]
+    assert rows == ["customdimensions.jar|custom-dimensions-26|-"]
+    assert not [r for r in (REPO / "mods" / "client-mods-26.3.manifest").read_text().splitlines()
+                if r and not r.startswith("#")]
 
 
 def test_file_wins_over_env(tmp_path, monkeypatch):
@@ -323,6 +362,27 @@ RENAMED_26_3 = {
 }
 
 
+# Text overlays: (base file, mob categories ServerCore 26.3 cannot parse). Each
+# names an entity category of a mod the 26.3 list does not carry, and one
+# unknown category makes ServerCore discard the whole file.
+TEXT_OVERLAY_26_3 = {
+    "servercore/config.yml": ("servercore/config.yml", ("GLARES", "RASCALS", "WATERFOWL")),
+}
+
+
+def test_servercore_overlay_is_the_base_minus_mod_categories():
+    cfg = REPO / "config"
+    for rel, (base_rel, categories) in TEXT_OVERLAY_26_3.items():
+        base = (cfg / base_rel).read_text()
+        overlay = (cfg / "versions" / "26.3" / rel).read_text()
+        for cat in categories:
+            assert f"category: '{cat}'" in base and f"category: '{cat}'" not in overlay
+        kept = re.findall(r"category: '([A-Z_]+)'", overlay)
+        assert kept == [c for c in re.findall(r"category: '([A-Z_]+)'", base) if c not in categories]
+        strip = lambda t: re.sub(r"\n    - category: '(%s)'\n(?:      .*\n)+" % "|".join(categories), "\n", t)
+        assert re.sub(r"\n{3,}", "\n\n", strip(base)) == re.sub(r"\n{3,}", "\n\n", overlay)
+
+
 def _dusk_json(path):
     """A Serilum config as Collective reads it: comments and trailing commas tolerated."""
     text = re.sub(r"(?m)^\s*//.*$", "", path.read_text())
@@ -332,7 +392,7 @@ def _dusk_json(path):
 def test_repo_version_overlay_is_the_base_minus_documented_keys():
     cfg = REPO / "config"
     r = bash(f'cd "{cfg}" && version_config_files 26.3 | sort')
-    assert r.stdout.split() == sorted(f"./versions/26.3/{rel}" for rel in OVERLAY_26_3)
+    assert r.stdout.split() == sorted(f"./versions/26.3/{rel}" for rel in (*OVERLAY_26_3, *TEXT_OVERLAY_26_3))
     for rel, (base_rel, removed) in OVERLAY_26_3.items():
         base = _dusk_json(cfg / base_rel)
         assert removed <= set(base), (rel, removed - set(base))
@@ -365,3 +425,32 @@ def test_dep_review_gate_accepts_a_row_moving_image_and_loader():
     assert gate.check_platform_patch(ok) is None
     bad = {"filename": "scripts/minecraft-versions.tsv", "patch": f"@@ -1 +1 @@\n-{row}\n+{new.replace(target, '9.9', 1)}"}
     assert gate.check_platform_patch(bad) is not None
+
+
+def _deploy_game_rules():
+    text = (REPO / "scripts" / "deploy.sh").read_text()
+    return re.findall(r'rcon "gamerule \$\(mc_game_rule (\w+) (\w+)\)"', text)
+
+
+def test_game_rules_keep_their_1_21_1_names():
+    calls = _deploy_game_rules()
+    assert len(calls) == 22
+    for rule, value in calls:
+        assert bash(f"mc_game_rule {rule} {value} 1.21.1").stdout.strip() == f"{rule} {value}"
+
+
+def test_game_rules_take_the_26_3_ids():
+    want = {("doMobSpawning", "false"): "spawn_mobs false", ("randomTickSpeed", "0"): "random_tick_speed 0",
+            ("doFireTick", "true"): "fire_spread_radius_around_player 128",
+            ("doFireTick", "false"): "fire_spread_radius_around_player 0",
+            ("doInsomnia", "false"): "spawn_phantoms false", ("spawnRadius", "0"): "respawn_radius 0",
+            ("playersNetherPortalDefaultDelay", "0"): "players_nether_portal_default_delay 0"}
+    for (rule, value), out in want.items():
+        assert bash(f"mc_game_rule {rule} {value} 26.3").stdout.strip() == out
+    for rule, value in _deploy_game_rules():
+        out = bash(f"mc_game_rule {rule} {value} 26.3").stdout.split()
+        assert re.fullmatch(r"[a-z_]+", out[0]), (rule, out)
+    f = REPO / "scripts" / "game-rules.tsv"
+    assert bash("mc_game_rule keepInventory true", MC_VERSION_OVERRIDE="26.3").stdout.strip() == "keepInventory true"
+    assert bash("mc_game_rule doMobSpawning true", MC_VERSION_OVERRIDE="26.3").stdout.strip() == "spawn_mobs true"
+    assert f.is_file()

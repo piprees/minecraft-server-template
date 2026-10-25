@@ -99,6 +99,7 @@ Not covered: compose images, the Fabric loader, yarn, fabric-api and the build a
 
 - every update accepted, none riskier than `automerge_max_risk`;
 - the quick checks, smoke test and Docker builds green, and every other check on the PR head completed green;
+- for a change to `config/modrinth-mods-26.3.txt` or `scripts/minecraft-versions.tsv`, `smoke-test-26.yml` green: the 26.3 stack boots, the unmodded 26.3 client joins and stays 60 s, and the admin parity check passes (the `join26` job);
 - no `blocking_flags` flag: pre-release, major version, wrong Minecraft version or loader, a missing required dependency, released fewer than `min_age_days` ago, or worldgen;
 - no change under `never_automerge_paths`.
 - a release impact below major (`automerge_majors` is false): a major lands through the release train's monthly worldgen merge or a human, never as a side effect of a routine update.
@@ -157,8 +158,9 @@ Never take a version from training data. For every `image:` tag, `uses:` ref, Mo
 4. **Worldgen, structure or dimension mod?** Chunk-zero only, filed under a worldgen section header, shipped in a major ([Worldgen, structure and dimension mods](#worldgen-structure-and-dimension-mods)). Incendium is the only Nether overhaul.
 5. **Pin:** `./scripts/pin-mod-versions.sh --apply`. Put the reasoning (pairings, stripped mixins, why it is safe) in a comment block **above** the line, never trailing on it: a re-pin rewrites the line. That block is the `list_comment` the reviewer reads.
 6. **Client parity:** a mod the client also needs goes into `_clientMods` at the same versionId, or every player is kicked at join ([T80](TROUBLESHOOTING.md#t80)). `scripts/check-client-parity.py` gates lint.
-7. **Config:** the two-place rule in [AGENTS.md § Config sync](AGENTS.md#config-sync). Fetch the mod's docs for every key.
-8. **Test locally** ([Testing a dependency change locally](#testing-a-dependency-change-locally)), then release per the [versioning contract](#versioning-contract): a new mod is a minor, a worldgen mod a major.
+7. **26.3 list (`config/modrinth-mods-26.3.txt`): vanilla clients join (RB-02).** A mod that adds an entry to a synced registry (blocks, items, entity types, command argument types) makes Fabric's registry sync refuse every unmodded client; it needs a Polymer patch in the list beside it, or it waits. `smoke-test-26.yml`'s join gate names the offending namespaces, and a registry with one modded entry lists all its namespaces (the vanilla `brigadier` argument types appear whenever a mod adds one).
+8. **Config:** the two-place rule in [AGENTS.md § Config sync](AGENTS.md#config-sync). Fetch the mod's docs for every key.
+9. **Test locally** ([Testing a dependency change locally](#testing-a-dependency-change-locally)), then release per the [versioning contract](#versioning-contract): a new mod is a minor, a worldgen mod a major.
 
 Mods reach the server through the seed, never through the Modrinth API at boot ([T4](TROUBLESHOOTING.md#t4)).
 

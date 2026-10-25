@@ -7,8 +7,9 @@
 #
 # Provides: PROJECT_DIR, colour codes, log/warn/die, load_env (sources .env),
 # sed_i + sha256 (macOS/Linux portable), backup (file.bak.TIMESTAMP),
-# mc_version / mc_version_field / mc_mod_list / mc_manifest / export_mc_version
-# (.minecraft-version), rcon + get_player_count (bounded, via docker exec mc), detect_provider /
+# mc_version / mc_version_field / mc_mod_list / mc_manifest / mc_local_mods_manifest /
+# mc_client_mods_manifest / mc_game_rule / export_mc_version (.minecraft-version,
+# MC_VERSION_OVERRIDE), rcon + get_player_count (bounded, via docker exec mc), detect_provider /
 # require_provider_cli, acquire_deploy_lock (server-side mutual exclusion),
 # platform_config_files, dh_silence_warnings.
 #
@@ -29,11 +30,17 @@ PROJECT_DIR="${CONSUMER_DIR:-${PROJECT_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")
 # selects the Minecraft version; scripts/minecraft-versions.tsv maps it to the
 # Java release, the itzg image tag, the server's Fabric loader and the game
 # versions a pin may target. The file wins over an MC_VERSION in .env:
-# consumers move version by moving major.
+# consumers move version by moving major. MC_VERSION_OVERRIDE wins over the
+# file: CI boots another version's stack from the same checkout with it, and
+# unset it changes nothing.
 LIB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 mc_version() {
-  local file="${MC_VERSION_FILE:-$LIB_DIR/../.minecraft-version}" v=""
+  local file="${MC_VERSION_FILE:-$LIB_DIR/../.minecraft-version}" v="${MC_VERSION_OVERRIDE:-}"
+  [[ -n "$v" ]] && {
+    echo "$v"
+    return 0
+  }
   [[ -f "$file" ]] && v="$(grep -vE '^[[:space:]]*(#|$)' "$file" | head -1 | tr -d '[:space:]')"
   [[ -n "$v" ]] || v="${MC_VERSION:-}"
   [[ -n "$v" ]] || {
@@ -82,6 +89,34 @@ mc_mod_list() { mc_versioned_path "$1/config" modrinth-mods .txt "${2:-}"; }
 
 # mc_manifest <base-dir> [version] - the pack manifest for the version.
 mc_manifest() { mc_versioned_path "$1/modpack" adventure .mrpack.json "${2:-}"; }
+
+# mc_local_mods_manifest / mc_client_mods_manifest <base-dir> [version] - the
+# in-house server and client mod manifests for the version (mods/).
+mc_local_mods_manifest() { mc_versioned_path "$1/mods" local-mods .manifest "${2:-}"; }
+mc_client_mods_manifest() { mc_versioned_path "$1/mods" client-mods .manifest "${2:-}"; }
+
+# mc_game_rule <1.21.1-rule> <value> [version] - "<rule> <value>" as the
+# version's gamerule command takes them (scripts/game-rules.tsv). A rule the
+# table does not list for the version comes back unchanged.
+mc_game_rule() {
+  local rule="$1" value="$2" version="${3:-}"
+  [[ -n "$version" ]] || version="$(mc_version)" || return 1
+  awk -v v="$version" -v r="$rule" -v val="$value" '
+    !/^[[:space:]]*#/ && $1 == v && $2 == r {
+      out = val
+      if ($4 != "-") {
+        n = split($4, pairs, ",")
+        for (i = 1; i <= n; i++) {
+          split(pairs[i], kv, "=")
+          if (kv[1] == val) out = kv[2]
+        }
+      }
+      print $3 " " out
+      found = 1
+      exit
+    }
+    END { if (!found) print r " " val }' "${MC_GAME_RULES_TABLE:-$LIB_DIR/game-rules.tsv}"
+}
 
 # export_mc_version - MC_VERSION, MC_IMAGE_TAG and FABRIC_LOADER_VERSION for
 # compose and child scripts.

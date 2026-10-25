@@ -1,0 +1,4 @@
+# bundle_name|gradle_project|loom_refmap
+# Minecraft 26.3 ships no in-house client mod: the server needs none to join
+# (decisions.md RB-02, RB-03). An empty list keeps the 1.21.1 client out of a
+# 26.3 bundle.

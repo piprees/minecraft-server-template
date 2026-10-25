@@ -232,18 +232,18 @@ server_alive() {
 # Live game rules. Quiet boot writes the opposites at step 12 and they
 # persist in level.dat, so they outlive the deploy that set them.
 restore_game_rules() {
-  rcon "gamerule doMobSpawning true"
-  rcon "gamerule randomTickSpeed 3"
-  rcon "gamerule doDaylightCycle true"
-  rcon "gamerule doWeatherCycle true"
-  rcon "gamerule doFireTick true"
-  rcon "gamerule doInsomnia false"
-  rcon "gamerule playersSleepingPercentage 50"
-  rcon "gamerule spawnRadius 0"
-  rcon "gamerule forgiveDeadPlayers true"
-  rcon "gamerule universalAnger false"
-  rcon "gamerule mobGriefing true"
-  rcon "gamerule playersNetherPortalDefaultDelay 0"
+  rcon "gamerule $(mc_game_rule doMobSpawning true)"
+  rcon "gamerule $(mc_game_rule randomTickSpeed 3)"
+  rcon "gamerule $(mc_game_rule doDaylightCycle true)"
+  rcon "gamerule $(mc_game_rule doWeatherCycle true)"
+  rcon "gamerule $(mc_game_rule doFireTick true)"
+  rcon "gamerule $(mc_game_rule doInsomnia false)"
+  rcon "gamerule $(mc_game_rule playersSleepingPercentage 50)"
+  rcon "gamerule $(mc_game_rule spawnRadius 0)"
+  rcon "gamerule $(mc_game_rule forgiveDeadPlayers true)"
+  rcon "gamerule $(mc_game_rule universalAnger false)"
+  rcon "gamerule $(mc_game_rule mobGriefing true)"
+  rcon "gamerule $(mc_game_rule playersNetherPortalDefaultDelay 0)"
 }
 
 # Step 12 locks the server down — whitelist emptied, discord-sync stopped,
@@ -413,11 +413,11 @@ if server_alive; then
   # main thread). Restored by step 14's "Enforcing game rules" at the end.
   echo ""
   echo "==> Enabling quiet-boot mode (spawning/ticking off until deploy completes)..."
-  rcon "gamerule doMobSpawning false"
-  rcon "gamerule randomTickSpeed 0"
-  rcon "gamerule doDaylightCycle false"
-  rcon "gamerule doWeatherCycle false"
-  rcon "gamerule doFireTick false"
+  rcon "gamerule $(mc_game_rule doMobSpawning false)"
+  rcon "gamerule $(mc_game_rule randomTickSpeed 0)"
+  rcon "gamerule $(mc_game_rule doDaylightCycle false)"
+  rcon "gamerule $(mc_game_rule doWeatherCycle false)"
+  rcon "gamerule $(mc_game_rule doFireTick false)"
 
   echo ""
   echo "==> Saving world..."
@@ -781,11 +781,11 @@ fi
 # Re-assert quiet-boot mode: covers cold boots (mc wasn't alive before the
 # stop, so step 4's pre-stop gamerules never ran). Keeps spawning/ticking
 # off through dimension activation below; step 14 restores normal rules.
-rcon "gamerule doMobSpawning false"
-rcon "gamerule randomTickSpeed 0"
-rcon "gamerule doDaylightCycle false"
-rcon "gamerule doWeatherCycle false"
-rcon "gamerule doFireTick false"
+rcon "gamerule $(mc_game_rule doMobSpawning false)"
+rcon "gamerule $(mc_game_rule randomTickSpeed 0)"
+rcon "gamerule $(mc_game_rule doDaylightCycle false)"
+rcon "gamerule $(mc_game_rule doWeatherCycle false)"
+rcon "gamerule $(mc_game_rule doFireTick false)"
 echo "  Quiet-boot mode active (spawning/ticking off until deploy completes)"
 
 # Keep non-admins out for the rest of the deploy: the itzg image re-applies

@@ -181,7 +181,11 @@ Three categories, by where a script ends up and who runs it. Every script has a 
 | `client-defaults.sh` | Diff/sync shipped client defaults against the source Prism instance |
 | `test-scripts.sh` | shellcheck + py_compile + compose validation |
 | `e2e/` | End-to-end harness: drives a linked local consumer and the real client through ignition, traversal, idle unload and companion suppression ([`scripts/e2e/README.md`](scripts/e2e/README.md)) |
-| `build-stack-bundle.sh` | Assemble the release tarball |
+| `build-stack-bundle.sh` | Assemble the release tarball for the selected Minecraft version: its in-house mod manifests, and `MC_VERSION_OVERRIDE` written into the bundle's `.minecraft-version` |
+| `local-mods.sh` | Build and gate the in-house mods of the selected version's manifests (`mods/local-mods[-<version>].manifest`, `mods/client-mods[-<version>].manifest`) for release.yml, mod-build.yml, mod26.yml and the 26.3 smoke test; a refmap of `-` declares a non-remapping Loom build |
+| `smoke-26.sh` | Boot the real 26.3 stack from the checkout with `MC_VERSION_OVERRIDE` (seed image, java25 image, the 26.3 mod list, config overlay and in-house mod) and gate its boot log; `smoke-test-26.yml` runs it, and it runs the same way on a workstation |
+| `admin-parity-check.sh` | Every RCON command discord-sync and deploy.sh send, against a running server, with the version's game-rule ids ([`docs/design/rebuild-26/parity.md`](docs/design/rebuild-26/parity.md)) |
+| `e2e/vanilla-join.sh` | The vanilla-client join gate: Mojang's unmodded client (sha1-checked, cached by version) joins a server under Xvfb with Mesa and must stay connected; a disconnect fails with its reason |
 | `sync-mod-cache.sh` | Reconcile `mods-cache/` against the pinned mod lists (`--apply`) |
 | `export-seed-winners.py` | Copy rolled winner seeds/spawns from a consumer overlay into the platform dimension configs (`--dry-run` diffs) |
 | `extract-biomes.py` / `extract-blocks.py` / `extract-entities.py` | Catalogue every biome, block and entity in the installed mod JARs, for authoring and lint. Static scans — they cannot resolve a tag |

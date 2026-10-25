@@ -140,9 +140,9 @@ COMMAND_LOG_RE = re.compile(r"(\w+) issued server command: (.+)")
 # "]: <name> msg", never "]: [" immediately after the prefix. Rcon and
 # Server actors are excluded: /mc commands are already audited at the
 # source with the Discord admin's name (audit()), and relaying Rcon
-# would double-post.
+# would double-post. 26.x prefixes every system message with "System chat: ".
 ADMIN_ACTION_RE = re.compile(
-    r"^\[\d{2}:\d{2}:\d{2}\] \[Server thread/INFO\]: \[(\w{1,16}): (.+)\]\s*$"
+    r"^\[\d{2}:\d{2}:\d{2}\] \[Server thread/INFO\]: (?:System chat: )?\[(\w{1,16}): (.+)\]\s*$"
 )
 ADMIN_ACTION_EXCLUDE = {"Rcon", "Server"}
 
@@ -289,6 +289,20 @@ def parse_spark_health(text: str) -> dict[str, str]:
         used_gb = int(mem.group(1)) / 1024
         total_gb = int(mem.group(2)) / 1024
         info["memory"] = f"{used_gb:.1f}G/{total_gb:.1f}G"
+    return info
+
+
+def parse_tick_query(text: str) -> dict[str, str]:
+    """TPS and MSPT from vanilla `tick query`, for a spark whose replies never reach RCON."""
+    info: dict[str, str] = {}
+    if not text:
+        return info
+    rate = re.search(r"Target tick rate:\s*([\d.]+)", text)
+    mspt = re.search(r"Average time per tick:\s*([\d.]+)ms", text)
+    if mspt:
+        info["mspt"] = mspt.group(1)
+        if rate:
+            info["tps"] = f"{min(float(rate.group(1)), 1000 / max(float(mspt.group(1)), 0.001)):.1f}"
     return info
 
 
@@ -806,6 +820,10 @@ async def mc_status(interaction: discord.Interaction) -> None:
     chunky_raw = rcon_results.get("chunky progress")
 
     health = parse_spark_health(health_raw or "")
+    # spark on 26.3 answers asynchronously (its health report is an upload),
+    # so RCON gets nothing back; vanilla `tick query` answers in place.
+    if "tps" not in health:
+        health = {**parse_tick_query(await async_rcon("tick query") or ""), **health}
     tps = health.get("tps", "?")
     mspt = health.get("mspt", "?")
     memory = health.get("memory", "?")
