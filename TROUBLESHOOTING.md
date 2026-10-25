@@ -1596,6 +1596,20 @@ A seed's map and its banked facts appear to contradict each other — the thumbn
   the same trap. Pin it against the Java, not against intuition —
   `scripts/e2e/portal-matrix-selftest.sh` is the worked example.
 
+<a id="t141"></a>
+### T141 — Bedrock clients join only over NetherNet
+
+- **Symptom:** Geyser boots and answers a RakNet ping, but Bedrock clients cannot connect; the boot log warns "NetherNet support is NOT enabled".
+- **Cause:** Bedrock 26.60 drops RakNet. NetherNet is signalling over TCP and WebRTC over UDP, both on the Bedrock port.
+- **Fix:** `config/versions/26.3/Geyser-Fabric/config.yml` sets `bedrock.transport: nethernet`, and `BEDROCK_PORT` is open on TCP and UDP in docker-compose.yml, harden.sh and the Hetzner firewall. `scripts/e2e/bedrock-ping.py` probes the signalling status at `GET /v1/join`; a RakNet answer (`--raknet`) does not show that a client can join. Behind Docker's NAT, if a phone reaches signalling but not gameplay, set `bedrock.signaling.advertise-addresses` to the public `IP:19132`.
+
+<a id="t140"></a>
+### T140 — Floodgate's `fwhitelist add <gamertag>` fails silently
+
+- **Symptom:** a Bedrock player stays off the whitelist although role sync sent `fwhitelist add "<gamertag>"`, and RCON returned no error.
+- **Cause:** Floodgate looks the gamertag up in GeyserMC's global XUID cache. A gamertag the cache lacks logs "Unable to find user in our cache. Please try specifying their Floodgate UUID instead" to the server log, and RCON gets an empty reply.
+- **Fix:** discord-sync resolves the XUID at `/register` (`api.geysermc.org/v2/xbox/xuid/<gamertag>`) and whitelists by Floodgate UUID (`00000000-0000-0000-` followed by the XUID as 16 hex digits). A gamertag the cache lacks is refused at `/register` with a message to join once and register again.
+
 <a id="t139"></a>
 ### T139 — Essential Commands refuses a player target given from the console
 

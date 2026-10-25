@@ -26,6 +26,8 @@
 #   - `execute as <name> run ...` answers nothing whether or not the player
 #     is online, so the Essential Commands checks prove the parse; Essential
 #     Commands' own replies go to the player, not to RCON.
+#   - Floodgate's fwhitelist checks run when the version's list carries
+#     floodgate; Floodgate answers in the server log, not over RCON.
 #   - Every call is capped at 30 s (K6).
 set -euo pipefail
 
@@ -54,6 +56,8 @@ done
 OUT="${OUT:-admin-parity-$(mc_version).txt}"
 TARGET="${PLAYER:-ParityProbe}"
 ABSENT="ParityNobody"
+# A Floodgate UUID: 00000000-0000-0000- and an XUID as 16 hex digits.
+BEDROCK_UUID="00000000-0000-0000-0009-01f57c03bee1"
 FAILED=0
 : > "$OUT"
 
@@ -105,6 +109,10 @@ expect "role sync: whitelist add" "whitelist add $TARGET" "Added .* to the white
 expect "role sync: op" "op $TARGET" "Made .* a server operator|Nothing changed"
 expect "role sync: deop" "deop $TARGET" "no longer a server operator|Nothing changed"
 [[ -z "$PLAYER" ]] && expect "role sync: whitelist remove" "whitelist remove $TARGET" "Removed .* from the whitelist|not whitelisted"
+if grep -qE '^floodgate:' "$(mc_mod_list "$SCRIPT_DIR/.." "$(mc_version)")"; then
+  logged "role sync: Bedrock fwhitelist add" "fwhitelist add $BEDROCK_UUID" "$BEDROCK_UUID has been added to the whitelist"
+  logged "role sync: Bedrock fwhitelist remove" "fwhitelist remove $BEDROCK_UUID" "$BEDROCK_UUID has been removed from the whitelist"
+fi
 
 echo "## discord-sync: /mc status" >> "$OUT"
 expect "status: list" "list" "players online"

@@ -485,7 +485,7 @@ async def resolve_xuid(gamertag: str) -> str | None:
     """The gamertag's XUID from GeyserMC's cache, which learns a player once
     they have connected to any Geyser server."""
     try:
-        async with aiohttp.ClientSession() as session:
+        async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=10)) as session:
             async with session.get(f"{GEYSER_XUID_API}{quote(gamertag)}") as resp:
                 if resp.status == 200:
                     xuid = str((await resp.json()).get("xuid", ""))
