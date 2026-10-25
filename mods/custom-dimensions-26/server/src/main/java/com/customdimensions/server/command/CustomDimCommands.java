@@ -30,7 +30,7 @@ import net.minecraft.world.level.Level;
 /**
  * {@code /customdim}, permission level 4: {@code list}, {@code info},
  * {@code tp}, {@code activate}, {@code unload}, {@code delete},
- * {@code create}, {@code audit} and {@code catalogue}, one class per concern.
+ * {@code create}, {@code audit}, {@code catalogue} and {@code render}, one class per concern.
  * Every reply is a {@code customdim.*} template from {@code config/messages.json}.
  */
 public final class CustomDimCommands {
@@ -62,6 +62,7 @@ public final class CustomDimCommands {
         CreateCommand.attach(root);
         AuditCommand.attach(root);
         CatalogueCommand.attach(root);
+        RenderCommand.attach(root);
         dispatcher.register(root);
     }
 

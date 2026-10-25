@@ -14,6 +14,7 @@ import com.customdimensions.server.level.GeneratorSelfTest;
 import com.customdimensions.server.difficulty.DifficultySelfTest;
 import com.customdimensions.server.level.LevelSelfTest;
 import com.customdimensions.server.portal.PortalSelfTest;
+import com.customdimensions.server.render.RenderSelfTest;
 import com.customdimensions.server.companion.CompanionSelfTest;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
@@ -62,7 +63,7 @@ import net.minecraft.world.timeline.Timeline;
  * report and stops. CI boots the mod this way; a line starting {@code FAIL}
  * fails the build. The pack-install and pack-equivalence lines come first,
  * then the compiled-pack checks; the runtime-level checks ({@link LevelSelfTest}),
- * the generator checks ({@link GeneratorSelfTest}), the portal and exit checks,
+ * the generator checks ({@link GeneratorSelfTest}), the render checks ({@link RenderSelfTest}), the portal and exit checks,
  * {@link DifficultySelfTest} and {@link CommandSelfTest} run across ticks, so
  * the report is written when they finish. The compiled-pack checks read the
  * definitions from {@code -Dcustomdimensions.definitions} and vanilla's files
@@ -74,7 +75,7 @@ final class SelfTest {
     private static final String DEFINITIONS = "customdimensions.definitions";
     /** An extracted vanilla folder the runtime source is compared against; {@code -Dcustomdimensions.vanilla} also counts. */
     private static final String REFERENCE = "customdimensions.vanilla.reference";
-    /** {@code exits} or {@code commands} runs the compiled-pack section and that one only, for iterating on it. */
+    /** {@code exits}, {@code commands} or {@code render} runs the compiled-pack section and that one only, for iterating on it. */
     private static final String ONLY = "customdimensions.selftest.only";
 
     private SelfTest() {}
@@ -93,7 +94,8 @@ final class SelfTest {
         lines.addAll(compiledPack(server));
         String only = System.getProperty(ONLY, "");
         boolean commandsOnly = "commands".equals(only);
-        boolean exitsOnly = "exits".equals(only) || commandsOnly;
+        boolean renderOnly = "render".equals(only);
+        boolean exitsOnly = "exits".equals(only) || commandsOnly || renderOnly;
         CompletableFuture<List<String>> levels;
         try {
             levels = exitsOnly ? CompletableFuture.completedFuture(List.of()) : LevelSelfTest.run(server);
@@ -111,6 +113,15 @@ final class SelfTest {
             }
         }).handle((more, error) -> {
             lines.addAll(error == null ? more : List.of("FAIL generators: " + error));
+            return null;
+        }).thenCompose(v -> {
+            try {
+                return exitsOnly && !renderOnly ? CompletableFuture.completedFuture(List.<String>of()) : RenderSelfTest.run(server);
+            } catch (Throwable t) {
+                return CompletableFuture.completedFuture(List.of("FAIL render: " + t));
+            }
+        }).handle((more, error) -> {
+            lines.addAll(error == null ? more : List.of("FAIL render: " + error));
             return null;
         }).thenCompose(v -> {
             try {
@@ -132,7 +143,7 @@ final class SelfTest {
             return null;
         }).thenCompose(v -> {
             try {
-                return commandsOnly ? CompletableFuture.completedFuture(List.<String>of()) : ExitSelfTest.run(server);
+                return commandsOnly || renderOnly ? CompletableFuture.completedFuture(List.<String>of()) : ExitSelfTest.run(server);
             } catch (Throwable t) {
                 return CompletableFuture.completedFuture(List.of("FAIL exits: " + t));
             }

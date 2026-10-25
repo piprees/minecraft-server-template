@@ -6,7 +6,7 @@ Zones guarantee the layout ([worldgen.md](worldgen.md#zones)); rolling picks the
 
 | Command | What it does |
 | --- | --- |
-| `/customdim render <dimension> [seed] [radius]` | Draws a top-down map of biomes, height, zones and structure starts as a PNG under `data/renders/`, from the same sampler as the roller. Needs no chunks generated and takes seconds; it is what you look at when tuning a definition |
+| `/customdim render <dimension> [seed] [radius] [step]` | Draws top-down maps of surface biome and height (zones and structure starts join as layers) as PNGs with a JSON sidecar under `renders/<dimension>/` in the game directory, from the same sampler as the roller, off the server thread. Needs no chunks generated; a 256-pixel overworld render (radius 1024, step 8) takes about 20 s on two threads here, a 1024-pixel one about six minutes (the Nether's, with a 128-block column, about 40 s). It is what you look at when tuning a definition |
 | `/customdim roll <dimension> [count]` | Scores that many seeds in the background, keeps the best ten, renders each and writes a contact sheet |
 | `/customdim pick` | Writes the chosen seed into the definition |
 
@@ -31,10 +31,10 @@ The definition's `seedRoll` field is reshaped around what the new roller scores 
 
 ## Contact sheet
 
-`data/renders/<dimension>/index.html` shows the best ten renders and opens from disk.
+`renders/<dimension>/index.html` shows the best ten renders and opens from disk.
 
 ## Gates
 
-- **Agreement:** for three reference definitions, the sampler's biome and height at 50 random points match a generated world exactly. Rolls are blocked until it matches.
+- **Agreement:** for the reference definitions, the sampler's biome at 50 random points matches a generated world exactly, its noise columns equal the level generator's, and its height matches wherever no carver, feature or structure changed the column; every height mismatch falls in a class the self-test names (`removed`, `flooded`, `added`, `filled`, `structure`). Rolls are blocked until it holds.
 - **Render accuracy:** a render matches the same area walked in-game, zone edges included.
 - **Performance:** 100 seeds score in under ten minutes on the server, in the background, without dropping TPS below 19.
