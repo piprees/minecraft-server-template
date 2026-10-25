@@ -3,12 +3,33 @@
   "generator": {
     "type": "minecraft:noise",
     "biome_source": {
-      "type": "minecraft:checkerboard",
-      "biomes": [
-        "minecraft:end_midlands",
-        "minecraft:the_end"
-      ],
-      "scale": 3
+      "type": "customdimensions:zoned",
+      "base": {
+        "type": "minecraft:checkerboard",
+        "biomes": [
+          "minecraft:end_midlands",
+          "minecraft:the_end"
+        ],
+        "scale": 3
+      },
+      "zones": [
+        {
+          "biomes": [
+            {
+              "biome": "minecraft:basalt_deltas",
+              "parameters": {
+                "temperature": [-2.0, 2.0],
+                "humidity": [-2.0, 2.0],
+                "continentalness": [-2.0, 2.0],
+                "erosion": [-2.0, 2.0],
+                "weirdness": [-2.0, 2.0],
+                "depth": [-2.0, 2.0],
+                "offset": 0.0
+              }
+            }
+          ]
+        }
+      ]
     },
     "settings": "adventure:the_tiled_expanse"
   }

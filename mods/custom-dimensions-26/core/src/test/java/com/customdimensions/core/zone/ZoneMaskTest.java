@@ -55,7 +55,8 @@ class ZoneMaskTest {
         assertThrows(IllegalArgumentException.class, () -> new ZoneShape.Circle(0));
         assertThrows(IllegalArgumentException.class, () -> new ZoneShape.Ring(1200, 600));
         assertThrows(IllegalArgumentException.class, () -> new ZoneShape.Ring(-1, 600));
-        assertThrows(IllegalArgumentException.class, () -> new ZoneMask(0, 0, new ZoneShape.Circle(10), 0));
+        assertThrows(IllegalArgumentException.class, () -> new ZoneMask(0, 0, new ZoneShape.Circle(10), -1));
+        assertThrows(IllegalArgumentException.class, () -> new ZoneMask(0, 0, new ZoneShape.Circle(10), 8, -1));
         assertThrows(IllegalArgumentException.class, () -> new ZoneMask(0, 0, new ZoneShape.Ring(100, 600), 150));
         assertThrows(IllegalArgumentException.class, () -> new ZoneShape.Ring(Double.NaN, 600));
     }

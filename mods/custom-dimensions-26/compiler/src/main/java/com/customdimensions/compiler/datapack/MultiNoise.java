@@ -87,7 +87,8 @@ public final class MultiNoise {
         for (JsonElement e : entries) {
             out.add(e.getAsJsonObject());
         }
-        for (int guard = 0; guard < 64; guard++) {
+        int limit = 64 + 16 * out.size();
+        for (int guard = 0; guard < limit; guard++) {
             JsonArray current = new JsonArray();
             out.forEach(current::add);
             int[] pair = firstOverlap(current);
@@ -98,7 +99,7 @@ public final class MultiNoise {
             JsonObject later = out.remove(pair[1]);
             out.addAll(pair[1], subtract(later, earlier));
         }
-        throw new IllegalStateException("multi-noise entries still overlap after 64 carves");
+        throw new IllegalStateException("multi-noise entries still overlap after " + limit + " carves");
     }
 
     /** {@code b} minus {@code a}: up to two boxes per axis, none overlapping {@code a}. */

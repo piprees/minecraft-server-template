@@ -11,6 +11,8 @@ import java.util.List;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -250,8 +252,8 @@ class DatapackCompilerTest {
     @Test
     void biomesFilterTheVanillaOverworldEntries() {
         DatapackCompiler.Output out = Fixtures.compile("t", OVERWORLD
-                + ", \"biomes\": [\"minecraft:desert\", \"terralith:shield\", \"minecraft:basalt_deltas\", "
-                + "{\"id\": \"minecraft:cherry_grove\", \"climate\": {\"temperature\": [0, 1]}}]");
+                + ", \"biomes\": [\"minecraft:desert\", \"terralith:shield\", "
+                + "{\"id\": \"minecraft:cherry_grove\", \"climate\": {\"temperature\": [-1, 0]}}]");
         JsonObject source = biomeSource(out, "t");
         assertEquals(Set.of("minecraft:desert", "minecraft:cherry_grove"), biomesOf(source));
         long vanillaDesert = Fixtures.vanilla().biomeParameters("overworld").asList().stream()
@@ -259,10 +261,38 @@ class DatapackCompilerTest {
         long keptDesert = source.getAsJsonArray("biomes").asList().stream()
                 .filter(e -> e.getAsJsonObject().get("biome").getAsString().equals("minecraft:desert")).count();
         assertEquals(vanillaDesert, keptDesert);
-        CompileReport.Entry entry = out.report().entry("t");
-        assertEquals(List.of("`terralith:shield` (no vanilla biome)",
-                "`minecraft:basalt_deltas` (not in vanilla's overworld parameter list)"), entry.skippedBiomes());
-        assertTrue(entry.unsupported().stream().anyMatch(u -> u.startsWith("`biomes[minecraft:cherry_grove].climate`")));
+        JsonObject cherry = source.getAsJsonArray("biomes").get(0).getAsJsonObject();
+        assertEquals("minecraft:cherry_grove", cherry.get("biome").getAsString());
+        assertEquals("[-1.0,0.0]", cherry.getAsJsonObject("parameters").get("temperature").toString());
+        assertEquals("[-2.0,2.0]", cherry.getAsJsonObject("parameters").get("erosion").toString());
+        assertNull(MultiNoise.firstOverlap(source.getAsJsonArray("biomes")));
+        assertEquals(List.of("`terralith:shield` (no vanilla biome)"), out.report().entry("t").skippedBiomes());
+    }
+
+    @Test
+    void aBiomeWithNoVanillaEntryPutsTheListOnAGrid() {
+        DatapackCompiler.Output out = Fixtures.compile("t", OVERWORLD
+                + ", \"biomes\": [\"minecraft:desert\", \"minecraft:basalt_deltas\", \"minecraft:snowy_plains\"]");
+        JsonArray biomes = biomeSource(out, "t").getAsJsonArray("biomes");
+        assertEquals(List.of("minecraft:desert", "minecraft:basalt_deltas", "minecraft:snowy_plains"),
+                biomes.asList().stream().map(e -> e.getAsJsonObject().get("biome").getAsString()).toList());
+        assertEquals("[-2.0,0.0]", biomes.get(0).getAsJsonObject().getAsJsonObject("parameters").get("temperature").toString());
+        assertEquals("[0.0,2.0]", biomes.get(1).getAsJsonObject().getAsJsonObject("parameters").get("temperature").toString());
+        assertEquals("[-2.0,2.0]", biomes.get(2).getAsJsonObject().getAsJsonObject("parameters").get("temperature").toString());
+        assertEquals("[0.0,2.0]", biomes.get(2).getAsJsonObject().getAsJsonObject("parameters").get("humidity").toString());
+        assertNull(MultiNoise.firstOverlap(biomes));
+        assertTrue(out.report().entry("t").notes().stream().anyMatch(n -> n.contains("grid of 3")));
+    }
+
+    @Test
+    void aClimateBoxWinsOverlapsAndAnUnknownAxisIsRefused() {
+        JsonObject source = biomeSource(Fixtures.compile("t", OVERWORLD + ", \"biomes\": [\"minecraft:plains\", "
+                + "{\"id\": \"minecraft:desert\", \"climate\": {\"humidity\": [-2, 0]}}]"), "t");
+        JsonArray biomes = source.getAsJsonArray("biomes");
+        assertEquals("minecraft:desert", biomes.get(0).getAsJsonObject().get("biome").getAsString());
+        assertNull(MultiNoise.firstOverlap(biomes));
+        assertThrows(IllegalArgumentException.class, () -> Fixtures.compile("u", OVERWORLD
+                + ", \"biomes\": [{\"id\": \"minecraft:desert\", \"climate\": {\"heat\": 1}}]"));
     }
 
     @Test
@@ -284,25 +314,29 @@ class DatapackCompilerTest {
     }
 
     @Test
-    void endPresetUsesTheEndSourceAndReportsAList() {
+    void endPresetWithAListTakesTheOverworldClimate() {
         DatapackCompiler.Output out = Fixtures.compile("t", "\"generator\": {\"type\": \"noise\", \"preset\": \"end\"}, "
-                + "\"biomes\": [\"minecraft:end_highlands\"]");
-        assertEquals("minecraft:the_end", biomeSource(out, "t").get("type").getAsString());
-        assertEquals("minecraft:end", stem(out, "t").getAsJsonObject("generator").get("settings").getAsString());
-        List<String> unsupported = out.report().entry("t").unsupported();
-        assertTrue(unsupported.stream().anyMatch(u -> u.startsWith("`biomes`")));
+                + "\"biomes\": [\"minecraft:end_highlands\", \"minecraft:end_midlands\"]");
+        JsonObject source = biomeSource(out, "t");
+        assertEquals("minecraft:multi_noise", source.get("type").getAsString());
+        assertEquals(Set.of("minecraft:end_highlands", "minecraft:end_midlands"), biomesOf(source));
+        assertEquals("adventure:t", stem(out, "t").getAsJsonObject("generator").get("settings").getAsString());
+        JsonObject router = JsonParser.parseString(out.files().get("data/adventure/worldgen/noise_settings/t.json"))
+                .getAsJsonObject().getAsJsonObject("noise_router");
+        assertEquals("minecraft:overworld/temperature", router.get("temperature").getAsString());
+        assertEquals("minecraft:overworld/vegetation", router.get("vegetation").getAsString());
+        JsonObject plain = biomeSource(Fixtures.compile("u", "\"generator\": {\"type\": \"noise\", \"preset\": \"end\"}"), "u");
+        assertEquals("minecraft:the_end", plain.get("type").getAsString());
     }
 
     @Test
     void netherIslandsFilterTheNetherListInEndTerrain() {
         DatapackCompiler.Output out = Fixtures.compile("t", "\"generator\": {\"type\": \"noise\", \"preset\": \"end\"}, "
-                + "\"biomes\": [\"minecraft:basalt_deltas\", \"minecraft:end_highlands\", \"minecraft:warped_forest\"]");
+                + "\"biomes\": [\"minecraft:basalt_deltas\", \"minecraft:warped_forest\"]");
         JsonObject source = biomeSource(out, "t");
         assertEquals("minecraft:multi_noise", source.get("type").getAsString());
         assertEquals(Set.of("minecraft:basalt_deltas", "minecraft:warped_forest"), biomesOf(source));
-        assertTrue(out.report().entry("t").notes().stream().anyMatch(n -> n.contains("W2")));
-        assertTrue(out.report().entry("t").skippedBiomes().contains(
-                "`minecraft:end_highlands` (not in vanilla's nether parameter list)"));
+        assertTrue(out.report().entry("t").notes().stream().anyMatch(n -> n.contains("nether layout")));
     }
 
     @Test
@@ -388,9 +422,10 @@ class DatapackCompilerTest {
     @Test
     void runtimeAndLaterFieldsAreReported() {
         DatapackCompiler.Output out = Fixtures.compile("t", "\"seed\": 5, \"spawn\": [0, 64, 0], " + OVERWORLD
-                + ", \"borders\": {\"player\": 4096}, \"zones\": [{\"shape\": \"circle\"}]");
+                + ", \"borders\": {\"player\": 4096}, \"zones\": [{\"shape\": \"circle\", \"radius\": 10, "
+                + "\"structures\": {\"wants\": [\"minecraft:village_plains\"]}}]");
         List<String> unsupported = out.report().entry("t").unsupported();
-        for (String field : List.of("borders", "seed", "spawn", "zones")) {
+        for (String field : List.of("borders", "seed", "spawn", "zones[0].structures")) {
             assertTrue(unsupported.stream().anyMatch(u -> u.startsWith("`" + field + "`")), field + " in " + unsupported);
         }
     }
