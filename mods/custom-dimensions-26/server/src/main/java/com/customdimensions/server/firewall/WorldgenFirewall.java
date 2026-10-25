@@ -10,6 +10,10 @@ import com.customdimensions.core.firewall.Firewall;
 import com.customdimensions.server.CustomDimensions;
 import com.customdimensions.server.level.LevelIndex;
 import com.customdimensions.server.level.PackInstaller;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.mojang.serialization.JsonOps;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -37,6 +41,8 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.world.attribute.EnvironmentAttributes;
+import net.minecraft.world.level.biome.MobSpawnSettings;
 import net.minecraft.world.level.levelgen.GenerationStep;
 import net.minecraft.world.level.levelgen.placement.PlacedFeature;
 import net.minecraft.world.level.levelgen.structure.StructureSet;
@@ -200,12 +206,38 @@ public final class WorldgenFirewall {
                 removed.computeIfAbsent("placed feature " + addition.id() + " (" + step.getSerializedName() + ")", k -> ConcurrentHashMap.newKeySet()).add(biome);
             }
         }
+        stripSpawnAttribute(biome, base, context, adoptedSpawns);
         context.getMobSpawnSettings().removeSpawns((category, data) -> {
             String type = BuiltInRegistries.ENTITY_TYPE.getKey(data.type()).toString();
             if (!base.spawnAdded(category.getSerializedName(), type, adoptedSpawns)) return false;
             removed.computeIfAbsent("spawn " + type + " (" + category.getSerializedName() + ")", k -> ConcurrentHashMap.newKeySet()).add(biome);
             return true;
         });
+    }
+
+    /** Biome spawns live in the {@code natural_mob_spawns} attribute; entries vanilla's file and the bridges lack are dropped from it. */
+    private static void stripSpawnAttribute(String biome, BiomeBaseline base, BiomeModificationContext context, Set<String> adopted) {
+        BiomeModificationContext.AttributesContext attributes = context.getAttributes();
+        if (!attributes.contains(EnvironmentAttributes.NATURAL_MOB_SPAWNS)) return;
+        JsonObject json = MobSpawnSettings.CODEC.encodeStart(JsonOps.INSTANCE, attributes.getValue(EnvironmentAttributes.NATURAL_MOB_SPAWNS))
+                .getOrThrow().getAsJsonObject();
+        if (!json.has("spawns_by_category")) return;
+        boolean changed = false;
+        for (Map.Entry<String, JsonElement> category : json.getAsJsonObject("spawns_by_category").entrySet()) {
+            if (!category.getValue().isJsonArray()) continue;
+            JsonArray kept = new JsonArray();
+            for (JsonElement entry : category.getValue().getAsJsonArray()) {
+                String type = entry.getAsJsonObject().get("type").getAsString();
+                if (base.spawnAdded(category.getKey(), type, adopted)) {
+                    removed.computeIfAbsent("spawn " + type + " (" + category.getKey() + ")", k -> ConcurrentHashMap.newKeySet()).add(biome);
+                    changed = true;
+                } else {
+                    kept.add(entry);
+                }
+            }
+            category.setValue(kept);
+        }
+        if (changed) attributes.set(EnvironmentAttributes.NATURAL_MOB_SPAWNS, MobSpawnSettings.CODEC.parse(JsonOps.INSTANCE, json).getOrThrow());
     }
 
     static Set<String> adoptedFeatures() {

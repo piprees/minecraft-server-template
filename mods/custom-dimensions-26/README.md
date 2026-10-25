@@ -175,7 +175,7 @@ the rules are game-free in `core/.../firewall/`.
 | `WorldgenFirewall` | At SERVER_STARTING, before any level exists: reads the mods, their mixin targets, the level stems, dimension types, noise settings, biome source and chunk generator types; refuses to start (logs the findings at ERROR and throws, so the server writes a crash report and exits 0) or logs the allowed mods and every switched-off structure set by namespace |
 | `MixinTargets` | Each mod's mixin configs from its `fabric.mod.json` and the targets of each `@Mixin` annotation, read with ASM; Mixin's own config registry is empty by then |
 | `StructureStateMixin` | Drops switched-off sets from `ChunkGeneratorStructureState.createForNormal`, for base and Fantasy levels alike |
-| Biome modification | Fabric's `POST_PROCESSING` phase: in each vanilla biome, removes placed features and spawns that vanilla's biome file and the reviewed bridges lack |
+| Biome modification | Fabric's `POST_PROCESSING` phase: in each vanilla biome, removes placed features, and entries of the `natural_mob_spawns` attribute, that vanilla's biome file and the reviewed bridges lack |
 | `AllowList`, `WorldgenClasses`, `Firewall` (core) | The allow list, the worldgen class set and the verdict, in one place each |
 | `BridgeReader`, `BridgeGenerator` (core) | Bridges in `config/custom-dimensions/bridges/` (or `-Dcustomdimensions.bridges=<dir>`), [bridges.md](../../docs/design/rebuild-26/bridges.md); `:core:bridge -Pjar=… -Pout=…` writes a first one from a jar |
 
