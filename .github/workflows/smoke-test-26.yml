@@ -25,21 +25,11 @@ on:
         required: false
         type: string
         default: ''
+  # Pull requests don't trigger it, to save Actions minutes: dispatch it on the
+  # branch when a change needs the boot; dep-review's join26 calls it for mod lists.
   workflow_dispatch:
   push:
     branches: [main]
-    paths:
-      - 'config/modrinth-mods-26.3.txt'
-      - 'config/versions/26.3/**'
-      - 'scripts/minecraft-versions.tsv'
-      - 'scripts/game-rules.tsv'
-      - 'mods/custom-dimensions-26/**'
-      - 'mods/local-mods-26.3.manifest'
-      - 'scripts/smoke-26.sh'
-      - 'scripts/admin-parity-check.sh'
-      - 'scripts/e2e/vanilla-join.sh'
-      - '.github/workflows/smoke-test-26.yml'
-  pull_request:
     paths:
       - 'config/modrinth-mods-26.3.txt'
       - 'config/versions/26.3/**'

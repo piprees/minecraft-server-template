@@ -1,6 +1,6 @@
 # Admin and Discord parity on 26.3
 
-Every admin and Discord feature the stack runs on 1.21.1, how it is checked on 26.3, and the result (P6). `scripts/admin-parity-check.sh` runs the RCON half headless against the 26.3 smoke stack; `smoke-test-26.yml` runs it with no player online and again while the vanilla client is connected (`--player`). `scripts/smoke-26.sh check` is the boot half. Results below are from the local 26.3 stack (MC 26.3, Fabric Loader 0.20.1, the 26.3 list, custom-dimensions-26): 47 of 47 checks pass with no player online, 41 of 46 with the client connected (the five Essential Commands rows).
+Every admin and Discord feature the stack runs on 1.21.1, how it is checked on 26.3, and the result (P6). `scripts/admin-parity-check.sh` runs the RCON half headless against the 26.3 smoke stack; `smoke-test-26.yml` runs it with no player online and again while the vanilla client is connected (`--player`). `scripts/smoke-26.sh check` is the boot half. Results below are from the local 26.3 stack (MC 26.3, Fabric Loader 0.20.1, the 26.3 list, custom-dimensions-26): every check passes with no player online and with the client connected.
 
 | Feature | Source | How it is checked on 26.3 | Result |
 | --- | --- | --- | --- |
