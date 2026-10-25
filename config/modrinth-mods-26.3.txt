@@ -138,7 +138,6 @@ lmd:soddf0iE
 # replaces macaws-bridges); each joins when its author ships one (RB-09)
 # =============================================================================
 # dcintegration                               # No 26
-# bookshelf-lib                                # Registers command argument types (bookshelf:*) that Fabric's registry sync refuses vanilla clients for; no 26.3 server mod depends on it
 # no-chat-reports                             # No 26
 # friends-and-foes                            # Kept server-side through the friends-and-foes-polymer patch once both have 26
 # borrow-their-arrows                         # No 26
