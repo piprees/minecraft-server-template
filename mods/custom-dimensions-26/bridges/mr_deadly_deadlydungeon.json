@@ -1,0 +1,119 @@
+{
+  "mod": "mr_deadly_deadlydungeon",
+  "reviewed": true,
+  "structureSets": [
+    "ddd:dddtowers",
+    "ddd:dddungeons"
+  ],
+  "structures": [
+    {
+      "id": "ddd:major_dungeon_desert",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "ddd:major_dungeon_frozen",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "ddd:major_dungeon_plains",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "ddd:minor_dungeon_desert",
+      "set": "ddd:dddungeons",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "ddd:minor_dungeon_frozen",
+      "set": "ddd:dddungeons",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "ddd:minor_dungeon_plains",
+      "set": "ddd:dddungeons",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "ddd:monolithic_tower",
+      "set": "ddd:dddtowers",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "ddd:spider_lair",
+      "set": "ddd:dddungeons",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "ddd:wizard_tower",
+      "set": "ddd:dddtowers",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    }
+  ],
+  "features": [],
+  "spawns": [],
+  "mixins": [],
+  "registries": []
+}

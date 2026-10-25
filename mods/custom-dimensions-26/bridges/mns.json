@@ -1,0 +1,678 @@
+{
+  "mod": "mns",
+  "reviewed": true,
+  "structureSets": [
+    "mns:bridge_1",
+    "mns:bridge_2",
+    "mns:bridge_3",
+    "mns:bridge_4",
+    "mns:bridge_5",
+    "mns:bridge_6",
+    "mns:circle_blackstone",
+    "mns:circle_nether_brick",
+    "mns:copper_tower",
+    "mns:crimson_forge",
+    "mns:crimson_lava_well",
+    "mns:giant_skull",
+    "mns:grave_yard",
+    "mns:large_blackstone_pillars",
+    "mns:large_blackstone_walls",
+    "mns:large_house_1",
+    "mns:large_nether_brick",
+    "mns:lava_pool",
+    "mns:leafy_rubble",
+    "mns:medium_blackstone",
+    "mns:medium_crimson_fungus",
+    "mns:medium_crimson_well",
+    "mns:medium_house",
+    "mns:medium_house_2",
+    "mns:medium_warped_fungus",
+    "mns:medium_warped_well",
+    "mns:mega_arenas",
+    "mns:mega_fortress",
+    "mns:nether_tower",
+    "mns:nether_wart_farm",
+    "mns:ruined_portal",
+    "mns:sandy_skull",
+    "mns:shrine",
+    "mns:small_nether_brick",
+    "mns:soul_fire",
+    "mns:sword",
+    "mns:train",
+    "mns:very_small_blackstone",
+    "mns:very_small_nether_brick",
+    "mns:warped_dome",
+    "mns:warped_house",
+    "mns:warped_pool"
+  ],
+  "structures": [
+    {
+      "id": "mns:bridge_1",
+      "set": "mns:bridge_1",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mns:bridge_2",
+      "set": "mns:bridge_2",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mns:bridge_3",
+      "set": "mns:bridge_3",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mns:bridge_4",
+      "set": "mns:bridge_4",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mns:bridge_5",
+      "set": "mns:bridge_5",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mns:bridge_6",
+      "set": "mns:bridge_6",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mns:circle_blackstone",
+      "set": "mns:circle_blackstone",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mns:circle_nether_brick",
+      "set": "mns:circle_nether_brick",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mns:copper_tower",
+      "set": "mns:copper_tower",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mns:crimson_forge",
+      "set": "mns:crimson_forge",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mns:crimson_lava_well",
+      "set": "mns:crimson_lava_well",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mns:dragon_arena",
+      "set": "mns:mega_arenas",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mns:giant_skull",
+      "set": "mns:giant_skull",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mns:grave_yard",
+      "set": "mns:grave_yard",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mns:large_arena",
+      "set": "mns:mega_arenas",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mns:large_blackstone_pillars",
+      "set": "mns:large_blackstone_pillars",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mns:large_blackstone_walls",
+      "set": "mns:large_blackstone_walls",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mns:large_house_1",
+      "set": "mns:large_house_1",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mns:large_nether_brick",
+      "set": "mns:large_nether_brick",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mns:lava_pool",
+      "set": "mns:lava_pool",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mns:leafy_rubble",
+      "set": "mns:leafy_rubble",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mns:medium_blackstone",
+      "set": "mns:medium_blackstone",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mns:medium_crimson_fungus",
+      "set": "mns:medium_crimson_fungus",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mns:medium_crimson_fungus_2",
+      "set": "mns:medium_crimson_fungus",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mns:medium_crimson_well",
+      "set": "mns:medium_crimson_well",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mns:medium_house",
+      "set": "mns:medium_house",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mns:medium_house_2",
+      "set": "mns:medium_house_2",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mns:medium_warped_fungus",
+      "set": "mns:medium_warped_fungus",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mns:medium_warped_fungus_2",
+      "set": "mns:medium_warped_fungus",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mns:medium_warped_well",
+      "set": "mns:medium_warped_well",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mns:mega_fortress",
+      "set": "mns:mega_fortress",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mns:nether_tower",
+      "set": "mns:nether_tower",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mns:nether_wart_farm",
+      "set": "mns:nether_wart_farm",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mns:ruined_portal",
+      "set": "mns:ruined_portal",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mns:sandy_skull",
+      "set": "mns:sandy_skull",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mns:shrine",
+      "set": "mns:shrine",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mns:small_arena",
+      "set": "mns:mega_arenas",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mns:small_nether_brick",
+      "set": "mns:small_nether_brick",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mns:smoking_shrine",
+      "set": "mns:shrine",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mns:soul_fire",
+      "set": "mns:soul_fire",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mns:sword",
+      "set": "mns:sword",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mns:train",
+      "set": "mns:train",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mns:very_small_blackstone",
+      "set": "mns:very_small_blackstone",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mns:very_small_blackstone_2",
+      "set": "mns:very_small_blackstone",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mns:very_small_blackstone_3",
+      "set": "mns:very_small_blackstone",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mns:very_small_blackstone_4",
+      "set": "mns:very_small_blackstone",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mns:very_small_nether_brick",
+      "set": "mns:very_small_nether_brick",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mns:very_small_nether_brick_2",
+      "set": "mns:very_small_nether_brick",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mns:very_small_nether_brick_3",
+      "set": "mns:very_small_nether_brick",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mns:warped_dome",
+      "set": "mns:warped_dome",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mns:warped_house",
+      "set": "mns:warped_house",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mns:warped_pool",
+      "set": "mns:warped_pool",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    }
+  ],
+  "features": [],
+  "spawns": [],
+  "mixins": [],
+  "registries": []
+}

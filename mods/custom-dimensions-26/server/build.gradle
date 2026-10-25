@@ -84,6 +84,8 @@ loom {
 			// The mod compiles definitions/ into the world's pack at start-up from the running game's vanilla files,
 			// as in production. -Pdefinitions=<dir> runs against another definitions folder.
 			vmArg "-Dcustomdimensions.definitions=${project.findProperty('definitions') ?: (selfTestRun ? selfTestDefinitions.get().asFile.absolutePath : file('../definitions').canonicalPath)}"
+			// The firewall's bridges, as config/custom-dimensions/bridges/ holds them in production. -Pbridges=<dir> reads another folder.
+			vmArg "-Dcustomdimensions.bridges=${project.findProperty('bridges') ?: file('../bridges').canonicalPath}"
 			// The extracted vanilla files, only for the self-test's equivalence line against the running game.
 			vmArg "-Dcustomdimensions.vanilla.reference=${project(':compiler').layout.buildDirectory.dir("vanilla/${project.minecraft_version}").get().asFile.absolutePath}"
 		}

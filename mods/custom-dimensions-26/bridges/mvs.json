@@ -1,0 +1,1688 @@
+{
+  "mod": "mvs",
+  "reviewed": true,
+  "structureSets": [
+    "mvs:acacia_log_pile",
+    "mvs:acacia_tree",
+    "mvs:azelea_house",
+    "mvs:barn",
+    "mvs:beach_bar",
+    "mvs:bee_dome",
+    "mvs:bench",
+    "mvs:big_oak_tree",
+    "mvs:birch_log_pile",
+    "mvs:birch_tree",
+    "mvs:boulder",
+    "mvs:campsite",
+    "mvs:cart",
+    "mvs:cartographer_tower",
+    "mvs:castle_ruins",
+    "mvs:cathedral",
+    "mvs:cherry_tree",
+    "mvs:crimson_enchanting_table",
+    "mvs:crystal",
+    "mvs:dark_oak_log_pile",
+    "mvs:dark_oak_tree",
+    "mvs:dead_tree_acacia",
+    "mvs:dead_tree_birch",
+    "mvs:dead_tree_cherry",
+    "mvs:dead_tree_dark_oak",
+    "mvs:dead_tree_jungle",
+    "mvs:dead_tree_mangrove",
+    "mvs:dead_tree_oak",
+    "mvs:dead_tree_spruce",
+    "mvs:deepslate_house",
+    "mvs:desert_house",
+    "mvs:desert_pump",
+    "mvs:diorite_and_deepslate_house",
+    "mvs:diorite_tower",
+    "mvs:duck",
+    "mvs:fire_camp",
+    "mvs:floating_islands",
+    "mvs:flower_hole",
+    "mvs:fox_hut",
+    "mvs:gallows",
+    "mvs:haystack",
+    "mvs:horse_campsite",
+    "mvs:horse_pen",
+    "mvs:house",
+    "mvs:jungle_log_pile",
+    "mvs:jungle_palm_tree",
+    "mvs:jungle_tower",
+    "mvs:jungle_tree",
+    "mvs:lamp_chest",
+    "mvs:large_cart_1",
+    "mvs:large_cart_2",
+    "mvs:large_floating_island",
+    "mvs:large_mushroom",
+    "mvs:large_warped_tower",
+    "mvs:lecturn_garden",
+    "mvs:lil_house",
+    "mvs:log_ruin",
+    "mvs:medium_bamboo_cart",
+    "mvs:medium_igloo_1",
+    "mvs:medium_igloo_2",
+    "mvs:medium_oak_lantern",
+    "mvs:mine_with_campsite",
+    "mvs:mud_brick_house_1",
+    "mvs:mushroom_pond",
+    "mvs:mushroom_statue",
+    "mvs:mushroom_well",
+    "mvs:nether_devil",
+    "mvs:nether_well",
+    "mvs:oak_log_pile",
+    "mvs:oak_tree",
+    "mvs:ocean_tower",
+    "mvs:other_wells",
+    "mvs:out_house",
+    "mvs:paths",
+    "mvs:pile",
+    "mvs:prismarine_house_1",
+    "mvs:prismarine_house_2",
+    "mvs:railway",
+    "mvs:rare_well",
+    "mvs:red_tower",
+    "mvs:ruined_beacon",
+    "mvs:shed",
+    "mvs:small_acacia_lantern",
+    "mvs:small_bamboo_lantern",
+    "mvs:small_birch_lantern",
+    "mvs:small_campfire_lantern",
+    "mvs:small_cherry_lantern",
+    "mvs:small_dark_oak_lantern",
+    "mvs:small_igloo",
+    "mvs:small_jungle_lantern",
+    "mvs:small_mangrove_lantern",
+    "mvs:small_oak_lantern",
+    "mvs:small_oak_pond",
+    "mvs:small_pillager_tower",
+    "mvs:small_ruin",
+    "mvs:small_ship",
+    "mvs:small_spruce_lantern",
+    "mvs:small_swamp_house",
+    "mvs:small_tower_well",
+    "mvs:snowy_dog_hut",
+    "mvs:snowy_fossil",
+    "mvs:spruce_log_pile",
+    "mvs:spruce_tree",
+    "mvs:stalls",
+    "mvs:statue_ruins",
+    "mvs:stone_fountain",
+    "mvs:stone_pillars",
+    "mvs:stone_rock",
+    "mvs:sunzi_gate",
+    "mvs:tall_house",
+    "mvs:tree_monument",
+    "mvs:villager_statue",
+    "mvs:warped_house",
+    "mvs:wheat_grain_bin",
+    "mvs:windmill",
+    "mvs:wooden_wheat_farm"
+  ],
+  "structures": [
+    {
+      "id": "mvs:acacia_log_pile",
+      "set": "mvs:acacia_log_pile",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:acacia_tree",
+      "set": "mvs:acacia_tree",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:acacia_well",
+      "set": "mvs:other_wells",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:azelea_house",
+      "set": "mvs:azelea_house",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:barn",
+      "set": "mvs:barn",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:beach_bar",
+      "set": "mvs:beach_bar",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:bee_dome",
+      "set": "mvs:bee_dome",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:bench",
+      "set": "mvs:bench",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:big_oak_tree",
+      "set": "mvs:big_oak_tree",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:birch_log_pile",
+      "set": "mvs:birch_log_pile",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:birch_tree",
+      "set": "mvs:birch_tree",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:birch_well",
+      "set": "mvs:other_wells",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:blue_stall",
+      "set": "mvs:stalls",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:boulder",
+      "set": "mvs:boulder",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:campsite",
+      "set": "mvs:campsite",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:cart",
+      "set": "mvs:cart",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:cartographer_tower",
+      "set": "mvs:cartographer_tower",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:castle_ruins",
+      "set": "mvs:castle_ruins",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:cathedral",
+      "set": "mvs:cathedral",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:cherry_tree",
+      "set": "mvs:cherry_tree",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:crimson_enchanting_table",
+      "set": "mvs:crimson_enchanting_table",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:crystal",
+      "set": "mvs:crystal",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:dark_oak_log_pile",
+      "set": "mvs:dark_oak_log_pile",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:dark_oak_tree",
+      "set": "mvs:dark_oak_tree",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:dark_oak_well",
+      "set": "mvs:other_wells",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:dead_tree_acacia",
+      "set": "mvs:dead_tree_acacia",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:dead_tree_birch",
+      "set": "mvs:dead_tree_birch",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:dead_tree_cherry",
+      "set": "mvs:dead_tree_cherry",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:dead_tree_dark_oak",
+      "set": "mvs:dead_tree_dark_oak",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:dead_tree_jungle",
+      "set": "mvs:dead_tree_jungle",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:dead_tree_mangrove",
+      "set": "mvs:dead_tree_mangrove",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:dead_tree_oak",
+      "set": "mvs:dead_tree_oak",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:dead_tree_spruce",
+      "set": "mvs:dead_tree_spruce",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:deepslate_house",
+      "set": "mvs:deepslate_house",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:desert_house",
+      "set": "mvs:desert_house",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:desert_pump",
+      "set": "mvs:desert_pump",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:desert_well",
+      "set": "mvs:other_wells",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:diorite_and_deepslate_house",
+      "set": "mvs:diorite_and_deepslate_house",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:diorite_tower",
+      "set": "mvs:diorite_tower",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:duck",
+      "set": "mvs:duck",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:fire_camp",
+      "set": "mvs:fire_camp",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:floating_islands",
+      "set": "mvs:floating_islands",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:flower_hole",
+      "set": "mvs:flower_hole",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:fox_hut",
+      "set": "mvs:fox_hut",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:gallows",
+      "set": "mvs:gallows",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:haystack",
+      "set": "mvs:haystack",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:horse_campsite",
+      "set": "mvs:horse_campsite",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:horse_pen",
+      "set": "mvs:horse_pen",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:house",
+      "set": "mvs:house",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:jungle_log_pile",
+      "set": "mvs:jungle_log_pile",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:jungle_palm_tree",
+      "set": "mvs:jungle_palm_tree",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:jungle_tower",
+      "set": "mvs:jungle_tower",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:jungle_tree",
+      "set": "mvs:jungle_tree",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:jungle_well",
+      "set": "mvs:other_wells",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:lamp_chest",
+      "set": "mvs:lamp_chest",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:large_cart_1",
+      "set": "mvs:large_cart_1",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:large_cart_2",
+      "set": "mvs:large_cart_2",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:large_floating_island",
+      "set": "mvs:large_floating_island",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:large_mushroom",
+      "set": "mvs:large_mushroom",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:large_warped_tower",
+      "set": "mvs:large_warped_tower",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:lecturn_garden",
+      "set": "mvs:lecturn_garden",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:lil_house",
+      "set": "mvs:lil_house",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:log_ruin",
+      "set": "mvs:log_ruin",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:medium_bamboo_cart",
+      "set": "mvs:medium_bamboo_cart",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:medium_igloo_1",
+      "set": "mvs:medium_igloo_1",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:medium_igloo_2",
+      "set": "mvs:medium_igloo_2",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:medium_oak_lantern",
+      "set": "mvs:medium_oak_lantern",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:mine_with_campsite",
+      "set": "mvs:mine_with_campsite",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:mud_brick_house_1",
+      "set": "mvs:mud_brick_house_1",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:mushroom_pond",
+      "set": "mvs:mushroom_pond",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:mushroom_statue",
+      "set": "mvs:mushroom_statue",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:mushroom_well",
+      "set": "mvs:mushroom_well",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:nether_devil",
+      "set": "mvs:nether_devil",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:nether_well",
+      "set": "mvs:nether_well",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:oak_log_pile",
+      "set": "mvs:oak_log_pile",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:oak_tree",
+      "set": "mvs:oak_tree",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:oak_well",
+      "set": "mvs:other_wells",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:ocean_tower",
+      "set": "mvs:ocean_tower",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:orange_stall",
+      "set": "mvs:stalls",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:out_house",
+      "set": "mvs:out_house",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:paths",
+      "set": "mvs:paths",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:pile",
+      "set": "mvs:pile",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:pink_stall",
+      "set": "mvs:stalls",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:prismarine_house_1",
+      "set": "mvs:prismarine_house_1",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:prismarine_house_2",
+      "set": "mvs:prismarine_house_2",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:railway",
+      "set": "mvs:railway",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:rare_well",
+      "set": "mvs:other_wells",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:red_stall",
+      "set": "mvs:stalls",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:red_tower",
+      "set": "mvs:red_tower",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:rocky_well",
+      "set": "mvs:other_wells",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:ruined_beacon",
+      "set": "mvs:ruined_beacon",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:shed",
+      "set": "mvs:shed",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:small_acacia_lantern",
+      "set": "mvs:small_acacia_lantern",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:small_bamboo_lantern",
+      "set": "mvs:small_bamboo_lantern",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:small_birch_lantern",
+      "set": "mvs:small_birch_lantern",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:small_campfire_lantern",
+      "set": "mvs:small_campfire_lantern",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:small_cherry_lantern",
+      "set": "mvs:small_cherry_lantern",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:small_copper_well",
+      "set": "mvs:other_wells",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:small_dark_oak_lantern",
+      "set": "mvs:small_dark_oak_lantern",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:small_igloo",
+      "set": "mvs:small_igloo",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:small_jungle_lantern",
+      "set": "mvs:small_jungle_lantern",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:small_mangrove_lantern",
+      "set": "mvs:small_mangrove_lantern",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:small_oak_lantern",
+      "set": "mvs:small_oak_lantern",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:small_oak_pond",
+      "set": "mvs:small_oak_pond",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:small_pillager_tower",
+      "set": "mvs:small_pillager_tower",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:small_ruin",
+      "set": "mvs:small_ruin",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:small_ship",
+      "set": "mvs:small_ship",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:small_spruce_lantern",
+      "set": "mvs:small_spruce_lantern",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:small_swamp_house",
+      "set": "mvs:small_swamp_house",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:small_tower_well",
+      "set": "mvs:other_wells",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:small_well",
+      "set": "mvs:other_wells",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:snowy_dog_hut",
+      "set": "mvs:snowy_dog_hut",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:snowy_fossil",
+      "set": "mvs:snowy_fossil",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:snowy_well",
+      "set": "mvs:other_wells",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:spruce_log_pile",
+      "set": "mvs:spruce_log_pile",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:spruce_tree",
+      "set": "mvs:spruce_tree",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:spruce_well",
+      "set": "mvs:other_wells",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:statue_ruins",
+      "set": "mvs:statue_ruins",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:stone_fountain",
+      "set": "mvs:stone_fountain",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:stone_pillars",
+      "set": "mvs:stone_pillars",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:stone_rock",
+      "set": "mvs:stone_rock",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:sunzi_gate",
+      "set": "mvs:sunzi_gate",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:tall_house",
+      "set": "mvs:tall_house",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:tree_monument",
+      "set": "mvs:tree_monument",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:villager_statue",
+      "set": "mvs:villager_statue",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:warped_house",
+      "set": "mvs:warped_house",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:well",
+      "set": "mvs:other_wells",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:wheat_grain_bin",
+      "set": "mvs:wheat_grain_bin",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:windmill",
+      "set": "mvs:windmill",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mvs:wooden_wheat_farm",
+      "set": "mvs:wooden_wheat_farm",
+      "size": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    }
+  ],
+  "features": [],
+  "spawns": [],
+  "mixins": [],
+  "registries": []
+}
