@@ -30,7 +30,7 @@ unloads every lazy dimension in turn, so it runs for a few minutes; it sets
 With `-PselfTest`, `runServer` reads a copy of `definitions/` with the fixture
 dimensions in `server/src/selftest/definitions/` added (a void death, a kept
 inventory, every win trigger, dry and flooded aquifers, a palette and an ore set). The fixtures are never in the release jar.
-`-PselfTestOnly=exits` runs only the compiled-pack and exit sections; `-PselfTestOnly=commands` the compiled-pack and command sections; `-PselfTestOnly=materials` the compiled-pack and materials sections.
+`-PselfTestOnly=exits` runs only the compiled-pack and exit sections; `-PselfTestOnly=commands` the compiled-pack and command sections; `-PselfTestOnly=materials` the compiled-pack and materials sections; `-PselfTestOnly=render` the compiled-pack and render sections.
 
 `runServer` also loads Open Parties and Claims and its Forge Config API Port
 dependency from the Modrinth maven (`localRuntime`, versions in
@@ -177,6 +177,69 @@ files byte for byte.
 | `create <slug> [template]` | Writes `<definitions>/<slug>.json` from the template (default `overworld`) with a fresh seed and one new portal colour, without the template's `spawn`, portal `anchor`s and `wins`; reads it back, compiles it with the other definitions in a temporary folder, and replies that it opens after the next restart (RB-34). The copy keeps the template's frame and igniter |
 | `audit` | Writes `<world>/customdimensions/audit.md`: definitions compiled afresh against the pack (stale, missing, in the pack with no definition), level folders with no definition, portal links to unknown dimensions, frame blocks and igniters the server lacks, Bedrock height warnings, skipped biomes and unsupported fields |
 | `catalogue` | Writes `../.seed-rolling/catalogue/registries.json` beside the game directory for `scripts/extract-registries.py`: biomes, biome tags, structures, structure sets (placement as the game's codec writes it), blocks, items, features, placed features, entity types, and every tag of those registries with its members |
+| `render <dimension> [seed] [radius] [step]` | Draws the dimension top-down from the `Sampler` into `renders/<dimension>/` under the game directory, off the server thread, without generating chunks ([below](#rendering)). One render at a time |
+
+## Rendering
+
+`server/.../render/` draws a dimension from its generator alone; the
+image-making half (grid, palette, layers, PNG and sidecar) is game-free in
+`core/.../render/`.
+
+`/customdim render <dimension> [seed] [radius] [step]` renders a base world or
+a lazy dimension, open or not. Without a seed it takes the seed the level has
+or would have: a base world's level seed, a lazy definition's `seed` (else the
+world seed). Radius 16 to 4096 blocks round 0,0, default 1024; the step
+defaults to the smallest that keeps the image at 1024 pixels a side (2 at the
+default radius, 8 at 4096) and is refused below it. The command checks its
+arguments and starts the job on the server thread; building the sampler,
+sampling and writing run on `RenderJob`'s pool of low-priority daemon threads
+(`-Dcustomdimensions.render.threads`, default 2, fewer under 4 cores). It
+replies when it starts, at 25, 50 and 75 % and when it finishes, and refuses a
+second render while one runs. At the default radius a render samples 1,048,576 columns: about six minutes for the overworld, two for the End, 40 seconds for the Nether on two threads here.
+
+| File in `renders/<dimension>/` | What it holds |
+| --- | --- |
+| `<seed>-r<radius>-biome.png` | Each pixel in its surface biome's colour: a fixed colour per vanilla 26.3 biome (`BiomePalette`), any other id a colour from its hash |
+| `<seed>-r<radius>-height.png` | Surface height in grey (dark to light across the dry surface's 1st to 99th percentile, a darker line where a 16-block band changes, lit from the north-west); water blue, darker with depth; lava orange; a column with no solid block black |
+| `<seed>-r<radius>.json` | Seed and its source, radius, step, side, centre, the surface and biome-y rules, sea level, timings (prepare, sample, images, columns per second, threads), the biome legend with colours and pixel counts, and the height range |
+
+Pixel `(px, py)` is the column at the north-west corner of its step-by-step
+cell; north is up. A further image is a `RenderLayer` (core): zone outlines and
+structure starts join as layers.
+
+### The Sampler
+
+`Sampler` is the generator of one dimension under one seed, without a level:
+
+| Call | What it gives |
+| --- | --- |
+| `Sampler.forDimension(server, manager, slug, seed)` | The sampler for a base or lazy dimension; a null seed takes the dimension's own (`defaultSeed`) |
+| `Sampler.of(dimension, generator, minY, height, seed, seedSource, registries)` | The sampler for any `ChunkGenerator` |
+| `sample(x, z)` | `Column`: `height`, `roofed`, `fluid` (over the surface), `waterAtSeaLevel`, `biome` |
+| `biome(x, y, z)` | The generator's noise biome there, `y` clamped into the dimension |
+| `noiseColumn(x, z)` | Every block the noise stage fills in the column |
+| `surface(blockAt, top, minY)` | The surface rule, applied to any column (the self-test applies it to real chunks) |
+
+It builds its `RandomState` as the level does (`RandomState.create` with the
+generator's noise settings, or the flat-world form for a generator without
+them) and reads the generator's own `getBaseColumn`. The surface is the
+`OCEAN_FLOOR_WG` heightmap's: one above the top block that blocks motion, so
+water and lava lie over it. A column whose noise is solid at the noise's top
+has a roof (the Nether, caves); its surface is the first floor under the
+roof's underside, the ground a player walks on; a column solid from the roof down takes the roof's height. The biome is read at the
+surface height. Every call is thread-safe; each thread keeps its own biome
+resolver.
+
+The sampler sees the noise stage: what surface rules, carvers, features and
+structures change afterwards is not in it. The self-test's accuracy gate
+(`RenderSelfTest`) samples 50 columns within 256 blocks in the overworld, the
+Nether, the End, The Aviary and `the_underdark`, generates those chunks and
+compares; every mismatch is classed by diffing the chunk's column against the
+noise column (`removed`, `flooded`, `added`, `filled`, `structure`), and a
+column no class explains fails; each dimension's columns and classes are written
+to `renders/<dimension>/accuracy.tsv`. It also checks that the sampler's noise
+columns equal the live level generator's, renders the overworld at radius
+1024, step 8 while counting the server's ticks, and checks the refusals.
 
 ## Difficulty
 
