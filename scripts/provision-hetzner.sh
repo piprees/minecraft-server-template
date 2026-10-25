@@ -71,7 +71,9 @@ else
 [
   {"direction":"in","protocol":"tcp","port":"22","source_ips":["0.0.0.0/0","::/0"],"description":"SSH"},
   {"direction":"in","protocol":"tcp","port":"${SERVER_PORT:-25577}","source_ips":["0.0.0.0/0","::/0"],"description":"Minecraft game"},
-  {"direction":"in","protocol":"udp","port":"${VOICE_PORT:-24454}","source_ips":["0.0.0.0/0","::/0"],"description":"Voice chat"}
+  {"direction":"in","protocol":"udp","port":"${VOICE_PORT:-24454}","source_ips":["0.0.0.0/0","::/0"],"description":"Voice chat"},
+  {"direction":"in","protocol":"tcp","port":"${BEDROCK_PORT:-19132}","source_ips":["0.0.0.0/0","::/0"],"description":"Bedrock signaling (Geyser)"},
+  {"direction":"in","protocol":"udp","port":"${BEDROCK_PORT:-19132}","source_ips":["0.0.0.0/0","::/0"],"description":"Bedrock (Geyser)"}
 ]
 FWEOF
     hcloud firewall create --name "$FW_NAME" --rules-file "$FW_RULES_FILE"

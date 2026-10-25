@@ -69,6 +69,7 @@ A consumer's committed `.stack-version` names the release it runs; the weekly `U
                           └────────────────────────────────────────────────┘
    Discord ◄── dcintegration (chat bridge) + discord-sync (/mc, /register, role sync)
    Voice   ◄── Simple Voice Chat UDP 24454 ──► friends
+   Bedrock ◄── Geyser + Floodgate TCP+UDP 19132 (26.3, NetherNet) ──► friends
 ```
 
 ### Services (docker-compose.yml)
@@ -88,7 +89,7 @@ A consumer's committed `.stack-version` names the release it runs; the weekly `U
 | `unmined-render` | ghcr.io/.../unmined-render | both | Scheduled static uNmINeD map renders into `data/unmined-web/`, served at map.DOMAIN/unmined/ (off until `UNMINED_INTERVAL` is set) |
 | `discord-sync` | ghcr.io/.../discord-sync | both | Discord bot: `/register`, `/mc` admin commands, role→whitelist sync |
 
-**Ports:** game `25577/tcp` (host) → `25565` (container), voice `24454/udp`, RCON `25575` (Docker network only), Kuma `3001` and pack-web `8080` bound to localhost only. **Autopause:** the JVM freezes when the server has been empty for 10 minutes and RCON stops responding, so scripts and monitors treat "no RCON" as paused, not down — never add anything that pokes the game port on an interval, it wakes the server.
+**Ports:** game `25577/tcp` (host) → `25565` (container), voice `24454/udp`, Bedrock `19132/tcp+udp` (`BEDROCK_PORT`; Geyser listens only on the 26.3 list — [§ Bedrock](#bedrock)), RCON `25575` (Docker network only), Kuma `3001` and pack-web `8080` bound to localhost only. **Autopause:** the JVM freezes when the server has been empty for 10 minutes and RCON stops responding, so scripts and monitors treat "no RCON" as paused, not down — never add anything that pokes the game port on an interval, it wakes the server.
 
 ## Configuration
 
@@ -185,6 +186,7 @@ Three categories, by where a script ends up and who runs it. Every script has a 
 | `local-mods.sh` | Build and gate the in-house mods of the selected version's manifests (`mods/local-mods[-<version>].manifest`, `mods/client-mods[-<version>].manifest`) for release.yml, mod-build.yml, mod26.yml and the 26.3 smoke test; a refmap of `-` declares a non-remapping Loom build |
 | `smoke-26.sh` | Boot the real 26.3 stack from the checkout with `MC_VERSION_OVERRIDE` (seed image, java25 image, the 26.3 mod list, config overlay and in-house mod) and gate its boot log; `smoke-test-26.yml` runs it, and it runs the same way on a workstation |
 | `admin-parity-check.sh` | Every RCON command discord-sync and deploy.sh send, against a running server, with the version's game-rule ids ([`docs/design/rebuild-26/parity.md`](docs/design/rebuild-26/parity.md)) |
+| `e2e/bedrock-ping.py` | Whether Geyser answers on the Bedrock port, and with which MOTD: its NetherNet signaling status over TCP, or a RakNet ping (`--raknet`); `smoke-test-26.yml` runs it after the boot gate |
 | `e2e/vanilla-join.sh` | The vanilla-client join gate: Mojang's unmodded client (sha1-checked, cached by version) joins a server under Xvfb with Mesa and must stay connected; a disconnect fails with its reason |
 | `sync-mod-cache.sh` | Reconcile `mods-cache/` against the pinned mod lists (`--apply`) |
 | `export-seed-winners.py` | Copy rolled winner seeds/spawns from a consumer overlay into the platform dimension configs (`--dry-run` diffs) |
@@ -237,7 +239,16 @@ Automatic every **12h** by default via `mc-backup` (restic → Cloudflare R2), w
 
 ### Discord integration
 
-Two clients share **one bot token**: the **dcintegration** Fabric mod in the `mc` container owns the chat bridge only, and **discord-sync** owns every slash command (`/register`, `/unregister`, `/mc ...`), role→whitelist sync, and the audit log. The mod's command feature must stay off (`[commands] enabled = false` in the live `data/config/Discord-Integration.toml`) or it wipes the command registry on every mc boot; `deploy.sh` enforces this on every full deploy. Players self-serve: `/register <minecraft_username>` in Discord, an admin grants the `@Player` role, and the bot whitelists them via RCON within 60s (`@Admin` also grants op; removing a role reverses both). Manual RCON is the immediate fallback — [COMMANDS.md](COMMANDS.md#useful-admin-recipes). Missing commands, registry checks, and shipping a bot change: the `discord-integration-ops` skill.
+Two clients share **one bot token**: the **dcintegration** Fabric mod in the `mc` container owns the chat bridge only, and **discord-sync** owns every slash command (`/register`, `/unregister`, `/mc ...`), role→whitelist sync, and the audit log. The mod's command feature must stay off (`[commands] enabled = false` in the live `data/config/Discord-Integration.toml`) or it wipes the command registry on every mc boot; `deploy.sh` enforces this on every full deploy. Players self-serve: `/register <minecraft_username>` in Discord (`platform: Bedrock Edition` takes a gamertag — [§ Bedrock](#bedrock)), an admin grants the `@Player` role, and the bot whitelists them via RCON within 60s (`@Admin` also grants op; removing a role reverses both). Manual RCON is the immediate fallback — [COMMANDS.md](COMMANDS.md#useful-admin-recipes). Missing commands, registry checks, and shipping a bot change: the `discord-integration-ops` skill.
+
+### Bedrock
+
+On the 26.3 list, Bedrock players join with nothing installed: Geyser translates on `BEDROCK_PORT` (default `19132`) over NetherNet, Bedrock's only transport from 26.60: its built-in signaling answers on TCP and gameplay runs over WebRTC on UDP, both on that port. Floodgate admits them without a Java account (RB-21). They connect to `mc.DOMAIN` on that port. In game a Bedrock player is named `.` plus the gamertag with spaces as `_` (`.Major_Nelson`), so no name collides with a Java one.
+
+- **Whitelist:** `/register <gamertag> platform: Bedrock Edition`. discord-sync looks the gamertag's XUID up in GeyserMC's cache (`api.geysermc.org`), which knows a player once they have connected to any Geyser server, so a new player tries to join once first. Role sync then sends `fwhitelist add <Floodgate UUID>`: vanilla `whitelist add` asks Mojang, and Floodgate's own gamertag lookup fails silently for a gamertag the cache lacks.
+- **Key:** Floodgate's `key.pem` is the secret `FLOODGATE_KEY_B64` (base64 of the file), written to `data/config/floodgate/key.pem` by `deploy.sh` before mc starts. Unset, Floodgate generates one at first boot. To keep that one: `base64 < data/config/floodgate/key.pem | tr -d '\n'` into `.env`, then `./ops op-sync-env` and `./ops github-env-sync` (or `gh secret set FLOODGATE_KEY_B64 --env production`).
+- **Firewall:** `harden.sh` and the Hetzner firewall open the port at provisioning; a server provisioned earlier needs the steps in [cutover-removals.md § At the switch, also](docs/design/rebuild-26/cutover-removals.md#at-the-switch-also).
+- **Check:** `python3 scripts/e2e/bedrock-ping.py <host> [port]` prints the MOTD Geyser's signaling serves at `/v1/join` (`--raknet` pings the RakNet transport instead).
 
 ### Server access
 

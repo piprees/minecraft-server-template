@@ -55,6 +55,9 @@ on:
         required: false
       KUMA_PASSWORD:
         required: false
+      # Floodgate's key.pem, base64 (26.3); deploy.sh writes it when set.
+      FLOODGATE_KEY_B64:
+        required: false
       # Read access to this repository's releases (a fine-grained token with
       # Contents: read on piprees/minecraft-server-template). Required while
       # the template is private: the caller's own token can't see it.
@@ -336,6 +339,7 @@ jobs:
           S_DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
           S_KUMA_API_KEY: ${{ secrets.KUMA_API_KEY }}
           S_KUMA_PASSWORD: ${{ secrets.KUMA_PASSWORD }}
+          S_FLOODGATE_KEY_B64: ${{ secrets.FLOODGATE_KEY_B64 }}
           S_CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           S_CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           S_CLOUDFLARE_ZONE_ID: ${{ secrets.CLOUDFLARE_ZONE_ID }}
@@ -398,6 +402,7 @@ jobs:
             emit DISCORD_WEBHOOK_URL "$S_DISCORD_WEBHOOK_URL"
             emit KUMA_API_KEY "$S_KUMA_API_KEY"
             emit KUMA_PASSWORD "$S_KUMA_PASSWORD"
+            emit FLOODGATE_KEY_B64 "$S_FLOODGATE_KEY_B64"
             emit CLOUDFLARE_API_TOKEN "$S_CLOUDFLARE_API_TOKEN"
             emit CLOUDFLARE_ACCOUNT_ID "$S_CLOUDFLARE_ACCOUNT_ID"
             emit CLOUDFLARE_ZONE_ID "$S_CLOUDFLARE_ZONE_ID"

@@ -129,6 +129,10 @@ services:
       - "${SERVER_PORT:-25577}:25565"
       # Simple Voice Chat - UDP for proximity and group voice.
       - "${VOICE_PORT:-24454}:24454/udp"
+      # Geyser (26.3 list; nothing listens on 1.21.1): NetherNet signaling over
+      # TCP and WebRTC gameplay over UDP, both on one port.
+      - "${BEDROCK_PORT:-19132}:19132/tcp"
+      - "${BEDROCK_PORT:-19132}:19132/udp"
     environment:
       # --- Core server settings ---
       EULA: "TRUE"

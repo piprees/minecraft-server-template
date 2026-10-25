@@ -369,6 +369,8 @@ RENAMED_26_3 = {
 TEXT_OVERLAY_26_3 = {
     "servercore/config.yml": ("servercore/config.yml", ("GLARES", "RASCALS", "WATERFOWL")),
 }
+# Configs of mods only the 26.3 list carries: no base file to differ from.
+ONLY_26_3 = ("floodgate/config.yml", "Geyser-Fabric/config.yml")
 
 
 def test_servercore_overlay_is_the_base_minus_mod_categories():
@@ -393,7 +395,11 @@ def _dusk_json(path):
 def test_repo_version_overlay_is_the_base_minus_documented_keys():
     cfg = REPO / "config"
     r = bash(f'cd "{cfg}" && version_config_files 26.3 | sort')
-    assert r.stdout.split() == sorted(f"./versions/26.3/{rel}" for rel in (*OVERLAY_26_3, *TEXT_OVERLAY_26_3))
+    assert r.stdout.split() == sorted(
+        f"./versions/26.3/{rel}" for rel in (*OVERLAY_26_3, *TEXT_OVERLAY_26_3, *ONLY_26_3)
+    )
+    for rel in ONLY_26_3:
+        assert not (cfg / rel).exists(), rel
     for rel, (base_rel, removed) in OVERLAY_26_3.items():
         base = _dusk_json(cfg / base_rel)
         assert removed <= set(base), (rel, removed - set(base))

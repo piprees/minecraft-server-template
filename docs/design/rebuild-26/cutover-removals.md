@@ -56,3 +56,14 @@ No other kept config differs: fallingtree, essential-commands, servercore (both 
 - `smoke-test-26.yml` becomes the smoke test: its boot gate, vanilla join gate and admin parity check move into `smoke-test.yml` (or replace it), `MC_VERSION_OVERRIDE` goes, and dep-review's `join26` job folds into `smoke`.
 - discord-sync's `/mc border` runs `chunky border add`, which needs chunkyborder; chunkyborder has no 26.x build and the register replaces it with vanilla per-dimension borders our compiler sets. The `chunky border add` lines go.
 - discord-sync's `/mc status` sends `spark health`; on 26.3 spark answers by uploading a report to spark.lucko.me and RCON gets nothing back, so the status falls back to vanilla `tick query`. `spark health` leaves the batch, and with it the memory figure, which `tick query` does not give.
+
+## At the switch, also
+
+Not removals: steps an existing server needs once its list carries Geyser and Floodgate (RB-21). A server provisioned from this template after P5 has the firewall rules already.
+
+- Open `BEDROCK_PORT` (default `19132`) over TCP (NetherNet signaling) and UDP (gameplay). `harden.sh` runs only at provisioning and skips its rate-limit block when one is present, so on the host:
+  - `sudo ufw allow 19132/tcp comment "Geyser Bedrock signaling"` and `sudo ufw allow 19132/udp comment "Geyser Bedrock"`
+  - copy harden.sh's `mc-bedrock` line into the `RATE-LIMIT` block of `/etc/ufw/before.rules` and its `mc-bedrock6` line into that of `/etc/ufw/before6.rules` (back up both first), then `sudo ufw reload`
+  - on Hetzner, the cloud firewall too: `hcloud firewall add-rule <SERVER_NAME>-fw --direction in --protocol udp --port 19132 --source-ips 0.0.0.0/0 --source-ips ::/0 --description "Bedrock (Geyser)"`, and the same with `--protocol tcp`
+- Give the server a stable Floodgate key: `FLOODGATE_KEY_B64` in the GitHub `production` environment, `base64 < key.pem | tr -d '\n' | gh secret set FLOODGATE_KEY_B64 --env production` (README § Bedrock). Without it Floodgate generates its own key at first boot and keeps it in `data/config/floodgate/key.pem`.
+- The `v6.0.0` breaking-change note names the UDP port ([decisions.md](decisions.md), RB-05).
