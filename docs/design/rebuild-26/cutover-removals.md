@@ -42,7 +42,7 @@ No other kept config differs: fallingtree, essential-commands, servercore (both 
 
 - `.minecraft-version` reads `26.3`.
 - `config/modrinth-mods-26.3.txt` becomes `config/modrinth-mods.txt`, replacing the 1.21.1 list; `config/modrinth-resolve-cache.json` is regenerated from it (`scripts/gen-resolve-cache.py`), or the seed calls the Modrinth API for every 26.3 pin at first boot.
-- `modpack/adventure.mrpack.json` is rebuilt for the 26.3 client pack (P4) with its own `_holds`. `pin-mod-versions.sh --version 26.3` skips the client manifest and its holds until a 26.3 manifest exists.
+- `modpack/adventure-26.3.mrpack.json` replaces `modpack/adventure.mrpack.json`, and `modpack/versions/26.3/` folds into `modpack/overrides/` (its `options.txt` over the base one, the paths in `overrides-remove.txt` deleted).
 - The 1.21.1 fallbacks that sit where the version file cannot be read move to 26.3, the `2026.10.0-java25` image and Fabric Loader `0.20.1` (or the table's newer values):
   - the `${MC_VERSION:-1.21.1}`, `${MC_IMAGE_TAG:-…-java21}` and `${FABRIC_LOADER_VERSION:-0.19.5}` defaults in `docker-compose.yml`
   - `emit MC_VERSION "${V_MC_VERSION:-1.21.1}"` in `deploy-reusable.yml`; deploy.sh, dev-up.sh and infra-deploy.sh export the bundle's version over it, but kuma-init's direct compose call in that workflow reads `.env`
@@ -50,7 +50,7 @@ No other kept config differs: fallingtree, essential-commands, servercore (both 
 - The 1.21.1 row of `scripts/minecraft-versions.tsv` goes with the 1.21.1 mod list. `platform_updates.py` then bumps the 26.3 row's image tag and loader.
 - `mirror-images.yml` mirrors every image tag in the table, so the java25 image reaches the GHCR mirror on its next run, before any 26.3 stack pulls it.
 - Comments in `config/modrinth-mods.txt` that only explain 1.21.1 pins go with that file. The carpet mixin strip in `scripts/patch-mod-data.py` exists because of Supplementaries, which 26.3 does not run.
-- The in-house mod manifests: `mods/local-mods-26.3.manifest` replaces `mods/local-mods.manifest`, and `mods/client-mods-26.3.manifest` (no rows) replaces `mods/client-mods.manifest` until a 26.3 companion ships. `release.yml`, `mod-build.yml` and `build-stack-bundle.sh` already read them through `mc_local_mods_manifest` and `mc_client_mods_manifest`, and the release JDK through the table's java column.
+- The in-house mod manifests: `mods/local-mods-26.3.manifest` replaces `mods/local-mods.manifest`, and `mods/client-mods-26.3.manifest` (the companion, `mods/custom-dimensions-client-26`) replaces `mods/client-mods.manifest`. `release.yml`, `mod-build.yml` and `build-stack-bundle.sh` already read them through `mc_local_mods_manifest` and `mc_client_mods_manifest`, and the release JDK through the table's java column.
 - The v2 definitions in `mods/custom-dimensions-26/definitions/` replace `config/custom-dimensions/dimensions/` (schema-v2.md). `scripts/smoke-26.sh` makes the same replacement in `data/config/` for every 26.3 boot until then; it goes with that step.
 - `scripts/game-rules.tsv` keeps its 26.3 rows; `mc_game_rule` in deploy.sh's enforcement block then reads the 26.3 ids. The 1.21.1 names in the block stay as its keys until the block is rewritten with the ids.
 - `smoke-test-26.yml` becomes the smoke test: its boot gate, vanilla join gate and admin parity check move into `smoke-test.yml` (or replace it), `MC_VERSION_OVERRIDE` goes, and dep-review's `join26` job folds into `smoke`.

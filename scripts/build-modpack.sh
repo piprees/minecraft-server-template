@@ -1,10 +1,13 @@
 #!/usr/bin/env bash
 # build-modpack.sh - Build the client .mrpack + download page from the manifest.
 #
-# Reads modpack/adventure.mrpack.json (_clientMods required/optional,
-# _resourcePacks, _shaderPacks), resolves each slug's latest MC_VERSION Fabric
-# build from Modrinth, bakes in overrides/ (Configured Defaults, servers.dat
-# generated as real NBT), and writes modpack/dist/:
+# Reads the version's manifest (mc_manifest in lib.sh: modpack/adventure.mrpack.json,
+# or modpack/adventure-<MC_VERSION>.mrpack.json when it exists; _clientMods
+# required/optional, _resourcePacks, _shaderPacks), resolves each slug's latest
+# MC_VERSION Fabric build from Modrinth, bakes in overrides/ (Configured
+# Defaults, servers.dat generated as real NBT) with the version's
+# modpack/versions/<MC_VERSION>/ laid over it (pack_version_overrides in
+# lib.sh), and writes modpack/dist/:
 #   ${BRAND_SLUG}-<MC_VERSION>-v<gitsha>.mrpack  + ${BRAND_SLUG}-<MC_VERSION>-latest.mrpack
 #   index.html (the player-facing "how to join" download page)
 #
@@ -448,6 +451,7 @@ python3 "$SCRIPT_DIR/check-pack-coherence.py" "$MIRROR_DIR"
 OVERRIDES_SRC="$PROJECT_DIR/modpack/overrides"
 if [[ -d "$OVERRIDES_SRC" ]]; then
   cp -r "$OVERRIDES_SRC" "$WORK_DIR/overrides"
+  pack_version_overrides "$PROJECT_DIR/modpack/versions" "$WORK_DIR/overrides" "$MC_VERSION"
 
   python3 -c "
 import struct, io

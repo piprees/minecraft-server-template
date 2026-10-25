@@ -25,6 +25,12 @@ RUN v="$(cat /defaults/.minecraft-version)" \
  && cp "$f" /defaults/manifest.json \
  && rm -rf /tmp/manifests
 COPY modpack/overrides/            /defaults/overrides/
+# The version's pack overrides (modpack/versions/<version>/) lay over the base
+# ones here, before the consumer overlay does at run time (entrypoint.sh).
+COPY scripts/lib.sh                /app/lib.sh
+COPY modpack/versions/             /tmp/pack-versions/
+RUN bash -c '. /app/lib.sh && pack_version_overrides /tmp/pack-versions /defaults/overrides "$(cat /defaults/.minecraft-version)"' \
+ && rm -rf /tmp/pack-versions
 COPY modpack/template/             /defaults/template/
 COPY assets/                       /defaults/assets/
 
@@ -33,7 +39,6 @@ COPY scripts/check-pack-coherence.py /app/check-pack-coherence.py
 COPY scripts/check-client-parity.py /app/check-client-parity.py
 COPY scripts/modrinth-api.py       /app/modrinth-api.py
 COPY scripts/pack_files.py         /app/pack_files.py
-COPY scripts/lib.sh                /app/lib.sh
 COPY docker/modpack-builder/entrypoint.sh    /app/entrypoint.sh
 COPY docker/modpack-builder/merge-manifest.py /app/merge-manifest.py
 COPY docker/modpack-builder/strip-removed-mods.py /app/strip-removed-mods.py

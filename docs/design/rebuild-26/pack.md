@@ -51,4 +51,4 @@ Not in the register's counts; each is pinned to its 26.3 build in P2, or waits.
 
 ## The optional client pack
 
-The `.mrpack` through Prism carries the kept client mods, Distant Horizons, shaders and the companion (P4). Nothing in it is needed to join.
+The `.mrpack` through Prism carries the kept client mods, Distant Horizons, shaders and the companion (P4). Nothing in it is needed to join. `modpack/adventure-26.3.mrpack.json` lists 49 mods, the Complementary Reimagined shader and five resource packs, and `_waiting` names the 19 rows that join when their builds ship; bibliophilia is one, with no 26.3 build. How it is built and tested: [modpack/README.md](../../../modpack/README.md#the-263-pack).
