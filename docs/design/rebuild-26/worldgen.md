@@ -72,7 +72,9 @@ The allow list (`core/.../firewall/AllowList`):
 | `c2me*`, `lithium`, `servercore` | Performance; same output |
 | `fabric-*` | Fabric API; its hooks act only for mods that call them |
 | `customdimensions`, `fantasy` | This mod and its runtime-level library |
-| `distanthorizons`, `moogs_structures`, `carpet` | On the 26.3 server list; awaiting the owner's ruling |
+| `distanthorizons` | Its LOD hook reads terrain; it does not shape it |
+| `moogs_structures` | The library the Moog structure packs need; replaces vanilla structures its config names and adapts terrain around structures |
+| `carpet` | Admin tool and the self-tests' fake players; its worldgen hooks sit behind rules that are off by default |
 
 A structure set outside those namespaces and in no reviewed bridge is switched off: it never enters a level's structure state, so it places nothing and `/locate` cannot find it. Placed features and spawns that another mod adds to a vanilla biome, compared with vanilla's own biome file, are removed; each removal is logged once with its biome count. `/customdim audit` lists the allowed mods, unreviewed bridges, switched-off sets and removals.
 

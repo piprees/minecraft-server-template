@@ -49,8 +49,9 @@ class FirewallTest {
         assertTrue(AllowList.find("fabric-biome-api-v1").isPresent());
         assertFalse(AllowList.find("lithiumx").isPresent());
         assertFalse(AllowList.find("terrablender").isPresent());
-        assertTrue(AllowList.find("carpet").orElseThrow().owner(), "carpet awaits the owner");
-        assertFalse(AllowList.find("c2me").orElseThrow().owner());
+        assertTrue(AllowList.find("carpet").isPresent());
+        assertTrue(AllowList.find("moogs_structures").isPresent());
+        assertTrue(AllowList.find("distanthorizons").isPresent());
     }
 
     @Test
