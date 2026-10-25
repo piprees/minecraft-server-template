@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 2,
+  "description": "Terrain gallery: ridges, default setting.",
+  "seed": 20261025,
+  "spawn": [0, 64, 0],
+  "generator": {
+    "type": "noise",
+    "preset": "overworld"
+  },
+  "terrain": {
+    "base": "ridges"
+  },
+  "borders": {
+    "player": 2048
+  }
+}

@@ -11,6 +11,7 @@ import com.customdimensions.server.exit.ExitSelfTest;
 import com.customdimensions.server.level.PackInstaller;
 import com.customdimensions.server.level.RuntimeVanilla;
 import com.customdimensions.server.level.GeneratorSelfTest;
+import com.customdimensions.server.level.TerrainSelfTest;
 import com.customdimensions.server.difficulty.DifficultySelfTest;
 import com.customdimensions.server.level.LevelSelfTest;
 import com.customdimensions.server.portal.PortalSelfTest;
@@ -74,7 +75,7 @@ final class SelfTest {
     private static final String DEFINITIONS = "customdimensions.definitions";
     /** An extracted vanilla folder the runtime source is compared against; {@code -Dcustomdimensions.vanilla} also counts. */
     private static final String REFERENCE = "customdimensions.vanilla.reference";
-    /** {@code exits} or {@code commands} runs the compiled-pack section and that one only, for iterating on it. */
+    /** {@code exits}, {@code commands} or {@code terrain} runs the compiled-pack section and that one only, for iterating on it. */
     private static final String ONLY = "customdimensions.selftest.only";
 
     private SelfTest() {}
@@ -93,7 +94,8 @@ final class SelfTest {
         lines.addAll(compiledPack(server));
         String only = System.getProperty(ONLY, "");
         boolean commandsOnly = "commands".equals(only);
-        boolean exitsOnly = "exits".equals(only) || commandsOnly;
+        boolean terrainOnly = "terrain".equals(only);
+        boolean exitsOnly = "exits".equals(only) || commandsOnly || terrainOnly;
         CompletableFuture<List<String>> levels;
         try {
             levels = exitsOnly ? CompletableFuture.completedFuture(List.of()) : LevelSelfTest.run(server);
@@ -111,6 +113,15 @@ final class SelfTest {
             }
         }).handle((more, error) -> {
             lines.addAll(error == null ? more : List.of("FAIL generators: " + error));
+            return null;
+        }).thenCompose(v -> {
+            try {
+                return exitsOnly && !terrainOnly ? CompletableFuture.completedFuture(List.<String>of()) : TerrainSelfTest.run(server);
+            } catch (Throwable t) {
+                return CompletableFuture.completedFuture(List.of("FAIL terrain: " + t));
+            }
+        }).handle((more, error) -> {
+            lines.addAll(error == null ? more : List.of("FAIL terrain: " + error));
             return null;
         }).thenCompose(v -> {
             try {
@@ -132,7 +143,7 @@ final class SelfTest {
             return null;
         }).thenCompose(v -> {
             try {
-                return commandsOnly ? CompletableFuture.completedFuture(List.<String>of()) : ExitSelfTest.run(server);
+                return commandsOnly || terrainOnly ? CompletableFuture.completedFuture(List.<String>of()) : ExitSelfTest.run(server);
             } catch (Throwable t) {
                 return CompletableFuture.completedFuture(List.of("FAIL exits: " + t));
             }

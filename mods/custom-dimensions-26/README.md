@@ -29,8 +29,9 @@ unloads every lazy dimension in turn, so it runs for a few minutes; it sets
 
 With `-PselfTest`, `runServer` reads a copy of `definitions/` with the fixture
 dimensions in `server/src/selftest/definitions/` added (a void death, a kept
-inventory, every win trigger). The fixtures are never in the release jar.
-`-PselfTestOnly=exits` runs only the compiled-pack and exit sections; `-PselfTestOnly=commands` the compiled-pack and command sections.
+inventory, every win trigger), and each library terrain's `*_default.json` from
+`server/src/selftest/gallery/`. The fixtures are never in the release jar.
+`-PselfTestOnly=exits` runs only the compiled-pack and exit sections; `-PselfTestOnly=commands` the compiled-pack and command sections; `-PselfTestOnly=terrain` the compiled-pack and terrain sections.
 
 `runServer` also loads Open Parties and Claims and its Forge Config API Port
 dependency from the Modrinth maven (`localRuntime`, versions in
@@ -63,7 +64,9 @@ scripts/vanilla-boot-check.sh                 # boot that pack on vanilla, no mo
 | Output | Where |
 | --- | --- |
 | Dimension types | `data/adventure/dimension_type/<slug>.json` |
-| Noise settings (liquids, default block or `endIsland: false`) | `data/adventure/worldgen/noise_settings/<slug>.json` |
+| Noise settings (liquids, default block, `endIsland: false` or a terrain) | `data/adventure/worldgen/noise_settings/<slug>.json` |
+| A definition's terrain from the library (`terrain.base`): height, offset, factor, jaggedness, depth, sloped cheese, final density, surface levels, the stretched climate | `data/adventure/worldgen/density_function/terrain/<slug>/*.json` |
+| The terrain library's own noises | `data/adventure/worldgen/noise/terrain/<noise>.json` |
 | The End's terrain without its central island | `data/adventure/worldgen/density_function/end_without_central_island/{islands,sloped_cheese}.json` |
 | Fixed time of day | `data/adventure/timeline/fixed_time/<timeline>_<tick>.json` |
 | Base worlds, loaded at start | `data/minecraft/dimension/{overworld,the_nether,the_end}.json`, `data/adventure/dimension/the_aviary.json` |
@@ -86,6 +89,12 @@ the definition sets.
 | `void` | `minecraft:flat` with no layers | its first vanilla biome, else `minecraft:the_void` |
 | `clone` | the generator of the definition `of` names, under the clone's own dimension type, seed and atmosphere | its own `liquids` and `materials` over the source's; its own `biomes` are reported unused |
 
+`terrain` picks a terrain from the library for any noise generator but the
+`caves`, `nether` and `end` presets (`compiler/.../terrain/`, one enum constant
+per terrain with its parameters, ranges, defaults and `gentle`/`extreme`
+settings); the terrains and their parameters are in
+[worldgen.md § Terrain library](../../docs/design/rebuild-26/worldgen.md#terrain-library).
+
 A clone's `of` resolves to a slug: `paradise_lost:paradise_lost` to
 `the_aviary`, a base world's level stem (`minecraft:the_nether`) to its slug,
 and `<namespace>:<slug>` to that definition. A clone of a clone resolves
@@ -105,7 +114,17 @@ large biomes against the overworld, amplified heights, the caves ceiling,
 floating-island undersides, a clone against The Aviary, the Nether's roof and
 lava sea, the End's island and void ring, the flat layer stack, checkerboard
 cells, an empty void and the definition whose `liquids.seaLevel` departs
-furthest from its preset's. No shipped definition uses `single_biome`, so its
+furthest from its preset's. The terrain section (`TerrainSelfTest`, after it) opens each terrain's gallery
+fixture at its default setting, scans its base height off the server thread,
+force-loads real chunks where the terrain's feature is and measures it (land
+and ocean, basin floors, peak rise, terrace treads, canyon cut, river water,
+air under sky islands, open water around islands, a void column and its rim,
+cracks against continents, spire rise), checks every block lies inside
+Bedrock's overworld range, measures each library noise's spread and the cost
+per column against the overworld's. `-PterrainGallery=<dir>` adds every
+gallery setting and renders each as a greyscale height PNG with an
+`index.html`; `-PselfTestOnly=terrain` runs that section alone.
+No shipped definition uses `single_biome`, so its
 line reads `SKIP` and `GeneratorVariantsTest` covers it.
 
 ## Runtime levels

@@ -26,6 +26,11 @@ import java.util.TreeSet;
  */
 final class GoldenForm {
 
+    /** Terrain functions copied from vanilla with ids or scales changed: their golden form is a sha1. */
+    static final java.util.List<String> TERRAIN_VANILLA_COPIES = java.util.List.of("continents", "erosion", "ridges",
+            "temperature", "vegetation", "ridges_folded", "depth", "final_density", "preliminary_surface_level",
+            "chunk_surface_level");
+
     private static final Gson COMPACT = new GsonBuilder().disableHtmlEscaping().create();
 
     private GoldenForm() {
@@ -41,6 +46,10 @@ final class GoldenForm {
             Generator g = definition.generator();
             String base = Generator.NOISE.equals(g.type()) ? g.preset() : "overworld";
             form = diff("minecraft:" + base, json, vanilla.noiseSettings(base));
+        } else if (path.contains("/worldgen/density_function/terrain/")
+                && TERRAIN_VANILLA_COPIES.stream().anyMatch(name -> path.endsWith("/" + name + ".json"))) {
+            form = new JsonObject();
+            form.addProperty("vanilla_copy", sha1(json));
         } else if (path.contains("/dimension/") || path.contains("/lazy_dimension/")) {
             form = hashClimate(json);
         } else {

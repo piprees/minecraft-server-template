@@ -23,7 +23,7 @@ writes the v2 set. At the switch the v2 set moves to
   "seed": 12345,                       // or "env"
   "spawn": [0, 64, 0],
   "generator": { "type": "noise", "preset": "overworld" },
-  "terrain": { "base": null },         // W1 fills it; null = the preset's own terrain
+  "terrain": { "base": "canyons", "setting": "extreme", "params": { "depth": 80 }, "scale": 1.5 },  // null base = the preset's own
   "biomes": ["minecraft:plains", { "id": "…", "climate": { … } }],
   "liquids": { "seaLevel": 63, "defaultFluid": "minecraft:water" },
   "materials": { "defaultBlock": "minecraft:stone" },   // W3 adds palettes
@@ -49,7 +49,7 @@ writes the v2 set. At the switch the v2 set moves to
 | *(none)* | `schemaVersion: 2` | Required. A file without it is v1 and is refused by the 26.3 mod. |
 | `description`, `seed`, `spawn`, `borders`, `difficulty` | same | Unchanged. |
 | `type` | `generator` | See the type table below. |
-| `noiseSettings` | `terrain.base` | `adventure:wide` and `adventure:compressed` are built from Terralith and Tectonic data, so they convert to `null` and are reported for W8. `adventure:void` converts to `generator.type: "void"`. |
+| `noiseSettings` | `terrain.base` | `adventure:wide` and `adventure:compressed` are built from Terralith and Tectonic data, so they convert to `null` and are reported for W8. `adventure:void` converts to `generator.type: "void"`. `terrain` holds `base` (a library terrain, or null for the preset's own), `setting` (`gentle`, `default` or `extreme`), `params` (that terrain's parameters, each with a range) and `scale` and `heightMultiplier`; the library and its parameters are in [worldgen.md](worldgen.md#terrain-library). |
 | `biomes` | `biomes` | Object entries' `parameters` become `climate`. Ids from cut mods are kept and reported; W8 replaces them. |
 | `checkerboardScale` | `generator.cellScale` | `checkerboard` only. |
 | `layers`, `flatBiome` | `generator.layers`, `generator.biome` | `flat` only. |

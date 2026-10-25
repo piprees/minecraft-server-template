@@ -1,0 +1,43 @@
+{
+  "input": {
+    "alpha": {
+      "left": {
+        "input": {
+          "left": {
+            "left": "adventure:terrain/terrain_erosion/erosion",
+            "right": 0.05,
+            "type": "minecraft:add"
+          },
+          "right": 2.5,
+          "type": "minecraft:mul"
+        },
+        "max": 1.0,
+        "min": 0.0,
+        "type": "minecraft:clamp"
+      },
+      "right": {
+        "input": {
+          "left": {
+            "left": "adventure:terrain/terrain_erosion/continents",
+            "right": 0.15,
+            "type": "minecraft:add"
+          },
+          "right": 8.0,
+          "type": "minecraft:mul"
+        },
+        "max": 1.0,
+        "min": 0.0,
+        "type": "minecraft:clamp"
+      },
+      "type": "minecraft:mul"
+    },
+    "first": 7.0,
+    "second": {
+      "left": 7.0,
+      "right": 2.5,
+      "type": "minecraft:mul"
+    },
+    "type": "minecraft:lerp"
+  },
+  "type": "minecraft:cache"
+}

@@ -31,15 +31,227 @@
     },
     "generator": { "$ref": "#/$defs/generator" },
     "terrain": {
-      "description": "The terrain layer. base null keeps the preset's own terrain.",
+      "description": "The terrain layer: a library terrain, its setting and parameters. base null keeps the preset's own terrain.",
       "type": "object",
-      "additionalProperties": true,
+      "additionalProperties": false,
       "properties": {
         "base": {
-          "description": "The base terrain; null is the generator preset's own.",
-          "type": ["string", "object", "null"]
+          "description": "A library terrain; null is the generator preset's own.",
+          "enum": [null, "continents", "erosion", "ridges", "terraces", "canyons", "rivers", "floating_islands", "islands", "voids", "shattered", "spires"]
+        },
+        "setting": {
+          "description": "Starting values for the parameters: gentle (near vanilla), default, extreme.",
+          "enum": ["gentle", "default", "extreme"],
+          "default": "default"
+        },
+        "params": {
+          "description": "Parameters of the base terrain, over its setting; each terrain's are under $defs/terrain_<base>.",
+          "type": "object"
+        },
+        "scale": {
+          "description": "Horizontal stretch of every terrain noise and of the biome climate; 2 is twice as broad",
+          "type": "number",
+          "minimum": 0.25,
+          "maximum": 4,
+          "default": 1
+        },
+        "heightMultiplier": {
+          "description": "Multiplies every height above or below sea level",
+          "type": "number",
+          "minimum": 0.25,
+          "maximum": 3,
+          "default": 1
         }
-      }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "base": {
+                "const": "continents"
+              }
+            },
+            "required": ["base"]
+          },
+          "then": {
+            "properties": {
+              "params": {
+                "$ref": "#/$defs/terrain_continents"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "base": {
+                "const": "erosion"
+              }
+            },
+            "required": ["base"]
+          },
+          "then": {
+            "properties": {
+              "params": {
+                "$ref": "#/$defs/terrain_erosion"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "base": {
+                "const": "ridges"
+              }
+            },
+            "required": ["base"]
+          },
+          "then": {
+            "properties": {
+              "params": {
+                "$ref": "#/$defs/terrain_ridges"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "base": {
+                "const": "terraces"
+              }
+            },
+            "required": ["base"]
+          },
+          "then": {
+            "properties": {
+              "params": {
+                "$ref": "#/$defs/terrain_terraces"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "base": {
+                "const": "canyons"
+              }
+            },
+            "required": ["base"]
+          },
+          "then": {
+            "properties": {
+              "params": {
+                "$ref": "#/$defs/terrain_canyons"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "base": {
+                "const": "rivers"
+              }
+            },
+            "required": ["base"]
+          },
+          "then": {
+            "properties": {
+              "params": {
+                "$ref": "#/$defs/terrain_rivers"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "base": {
+                "const": "floating_islands"
+              }
+            },
+            "required": ["base"]
+          },
+          "then": {
+            "properties": {
+              "params": {
+                "$ref": "#/$defs/terrain_floating_islands"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "base": {
+                "const": "islands"
+              }
+            },
+            "required": ["base"]
+          },
+          "then": {
+            "properties": {
+              "params": {
+                "$ref": "#/$defs/terrain_islands"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "base": {
+                "const": "voids"
+              }
+            },
+            "required": ["base"]
+          },
+          "then": {
+            "properties": {
+              "params": {
+                "$ref": "#/$defs/terrain_voids"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "base": {
+                "const": "shattered"
+              }
+            },
+            "required": ["base"]
+          },
+          "then": {
+            "properties": {
+              "params": {
+                "$ref": "#/$defs/terrain_shattered"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "base": {
+                "const": "spires"
+              }
+            },
+            "required": ["base"]
+          },
+          "then": {
+            "properties": {
+              "params": {
+                "$ref": "#/$defs/terrain_spires"
+              }
+            }
+          }
+        }
+      ]
     },
     "biomes": {
       "description": "Biome ids, or {id, climate} entries placing a biome by multi-noise climate.",
@@ -577,6 +789,720 @@
           "type": ["boolean", "object"]
         },
         "immersive": false
+      }
+    },
+    "terrain_continents": {
+      "description": "Oceans and land masses from continentalness, with erosion hills.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "coast": {
+          "description": "Continentalness at the shoreline; higher is more ocean",
+          "type": "number",
+          "minimum": -0.6,
+          "maximum": 0.4,
+          "default": -0.15
+        },
+        "seaFloor": {
+          "description": "Height of the open ocean floor",
+          "type": "number",
+          "minimum": -40,
+          "maximum": 60,
+          "default": 36
+        },
+        "landHeight": {
+          "description": "Height of the land far inland",
+          "type": "number",
+          "minimum": 64,
+          "maximum": 200,
+          "default": 80
+        },
+        "relief": {
+          "description": "Blocks of hills where erosion is low",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 120,
+          "default": 24
+        },
+        "roughness": {
+          "description": "How far 3D noise breaks the surface; 0 smooth, 1 overhangs",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 0.5
+        }
+      }
+    },
+    "terrain_erosion": {
+      "description": "Broad worn basins where erosion is high, flat-floored and smooth.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "coast": {
+          "description": "Continentalness at the shoreline; higher is more ocean",
+          "type": "number",
+          "minimum": -0.6,
+          "maximum": 0.4,
+          "default": -0.15
+        },
+        "seaFloor": {
+          "description": "Height of the open ocean floor",
+          "type": "number",
+          "minimum": -40,
+          "maximum": 60,
+          "default": 36
+        },
+        "landHeight": {
+          "description": "Height of the land far inland",
+          "type": "number",
+          "minimum": 64,
+          "maximum": 200,
+          "default": 80
+        },
+        "relief": {
+          "description": "Blocks of hills where erosion is low",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 120,
+          "default": 40
+        },
+        "roughness": {
+          "description": "How far 3D noise breaks the surface; 0 smooth, 1 overhangs",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 0.5
+        },
+        "basinDepth": {
+          "description": "Blocks the most eroded land sinks, never below sea level + 2",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 80,
+          "default": 24
+        },
+        "basinWidth": {
+          "description": "Share of the erosion range that forms basins",
+          "type": "number",
+          "minimum": 0.05,
+          "maximum": 1,
+          "default": 0.4
+        }
+      }
+    },
+    "terrain_ridges": {
+      "description": "Mountain ranges along the ridges noise, with jagged peaks.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "coast": {
+          "description": "Continentalness at the shoreline; higher is more ocean",
+          "type": "number",
+          "minimum": -0.6,
+          "maximum": 0.4,
+          "default": -0.15
+        },
+        "seaFloor": {
+          "description": "Height of the open ocean floor",
+          "type": "number",
+          "minimum": -40,
+          "maximum": 60,
+          "default": 36
+        },
+        "landHeight": {
+          "description": "Height of the land far inland",
+          "type": "number",
+          "minimum": 64,
+          "maximum": 200,
+          "default": 80
+        },
+        "relief": {
+          "description": "Blocks of hills where erosion is low",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 120,
+          "default": 24
+        },
+        "roughness": {
+          "description": "How far 3D noise breaks the surface; 0 smooth, 1 overhangs",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 0.5
+        },
+        "peakHeight": {
+          "description": "Blocks a range rises above the land",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 200,
+          "default": 70
+        },
+        "jaggedness": {
+          "description": "Spikiness of the peaks (vanilla's jaggedness)",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1.5,
+          "default": 0.35
+        },
+        "rangeWidth": {
+          "description": "Share of the ridges range that is mountain",
+          "type": "number",
+          "minimum": 0.05,
+          "maximum": 1,
+          "default": 0.4
+        }
+      }
+    },
+    "terrain_terraces": {
+      "description": "Land stepped into flat terraces, capped by a plateau height.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "coast": {
+          "description": "Continentalness at the shoreline; higher is more ocean",
+          "type": "number",
+          "minimum": -0.6,
+          "maximum": 0.4,
+          "default": -0.15
+        },
+        "seaFloor": {
+          "description": "Height of the open ocean floor",
+          "type": "number",
+          "minimum": -40,
+          "maximum": 60,
+          "default": 36
+        },
+        "landHeight": {
+          "description": "Height of the land far inland",
+          "type": "number",
+          "minimum": 64,
+          "maximum": 200,
+          "default": 80
+        },
+        "relief": {
+          "description": "Blocks of hills where erosion is low",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 120,
+          "default": 50
+        },
+        "roughness": {
+          "description": "How far 3D noise breaks the surface; 0 smooth, 1 overhangs",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 0.15
+        },
+        "stepHeight": {
+          "description": "Blocks between terrace levels",
+          "type": "number",
+          "minimum": 3,
+          "maximum": 48,
+          "default": 10
+        },
+        "riser": {
+          "description": "Share of each step that is slope rather than flat",
+          "type": "number",
+          "minimum": 0.05,
+          "maximum": 0.95,
+          "default": 0.35
+        },
+        "plateauHeight": {
+          "description": "Height above which land is cut flat",
+          "type": "number",
+          "minimum": 64,
+          "maximum": 256,
+          "default": 256
+        }
+      }
+    },
+    "terrain_canyons": {
+      "description": "Deep meandering cuts through the land, flat-floored and steep-walled.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "coast": {
+          "description": "Continentalness at the shoreline; higher is more ocean",
+          "type": "number",
+          "minimum": -0.6,
+          "maximum": 0.4,
+          "default": -0.15
+        },
+        "seaFloor": {
+          "description": "Height of the open ocean floor",
+          "type": "number",
+          "minimum": -40,
+          "maximum": 60,
+          "default": 36
+        },
+        "landHeight": {
+          "description": "Height of the land far inland",
+          "type": "number",
+          "minimum": 64,
+          "maximum": 200,
+          "default": 96
+        },
+        "relief": {
+          "description": "Blocks of hills where erosion is low",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 120,
+          "default": 24
+        },
+        "roughness": {
+          "description": "How far 3D noise breaks the surface; 0 smooth, 1 overhangs",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 0.35
+        },
+        "depth": {
+          "description": "Blocks a canyon cuts below the land around it",
+          "type": "number",
+          "minimum": 8,
+          "maximum": 120,
+          "default": 40
+        },
+        "width": {
+          "description": "Canyon width, as a share of the channel noise",
+          "type": "number",
+          "minimum": 0.01,
+          "maximum": 0.3,
+          "default": 0.06
+        },
+        "frequency": {
+          "description": "How often canyons occur; higher is more and tighter",
+          "type": "number",
+          "minimum": 0.25,
+          "maximum": 4,
+          "default": 1
+        }
+      }
+    },
+    "terrain_rivers": {
+      "description": "Rivers cut to just below sea level across the land, with banks.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "coast": {
+          "description": "Continentalness at the shoreline; higher is more ocean",
+          "type": "number",
+          "minimum": -0.6,
+          "maximum": 0.4,
+          "default": -0.15
+        },
+        "seaFloor": {
+          "description": "Height of the open ocean floor",
+          "type": "number",
+          "minimum": -40,
+          "maximum": 60,
+          "default": 36
+        },
+        "landHeight": {
+          "description": "Height of the land far inland",
+          "type": "number",
+          "minimum": 64,
+          "maximum": 200,
+          "default": 80
+        },
+        "relief": {
+          "description": "Blocks of hills where erosion is low",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 120,
+          "default": 24
+        },
+        "roughness": {
+          "description": "How far 3D noise breaks the surface; 0 smooth, 1 overhangs",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 0.5
+        },
+        "width": {
+          "description": "River width, as a share of the channel noise",
+          "type": "number",
+          "minimum": 0.01,
+          "maximum": 0.25,
+          "default": 0.05
+        },
+        "depth": {
+          "description": "Blocks the river bed lies below sea level",
+          "type": "number",
+          "minimum": 1,
+          "maximum": 16,
+          "default": 4
+        },
+        "bankWidth": {
+          "description": "Width of the slope from river to land",
+          "type": "number",
+          "minimum": 0.01,
+          "maximum": 0.3,
+          "default": 0.08
+        },
+        "frequency": {
+          "description": "How often rivers occur",
+          "type": "number",
+          "minimum": 0.25,
+          "maximum": 4,
+          "default": 1
+        }
+      }
+    },
+    "terrain_floating_islands": {
+      "description": "Islands in the sky over a void: domed tops, tapering undersides.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "coast": {
+          "description": "Continentalness at the shoreline; higher is more ocean",
+          "type": "number",
+          "minimum": -0.6,
+          "maximum": 0.4,
+          "default": -0.15
+        },
+        "seaFloor": {
+          "description": "Height of the open ocean floor",
+          "type": "number",
+          "minimum": -40,
+          "maximum": 60,
+          "default": 36
+        },
+        "landHeight": {
+          "description": "Height of the land far inland",
+          "type": "number",
+          "minimum": 64,
+          "maximum": 200,
+          "default": 80
+        },
+        "relief": {
+          "description": "Blocks of hills where erosion is low",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 120,
+          "default": 24
+        },
+        "roughness": {
+          "description": "How far 3D noise breaks the surface; 0 smooth, 1 overhangs",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 0.5
+        },
+        "altitude": {
+          "description": "Height of the island layer",
+          "type": "number",
+          "minimum": 40,
+          "maximum": 240,
+          "default": 150
+        },
+        "thickness": {
+          "description": "Blocks an island's top rises above the layer",
+          "type": "number",
+          "minimum": 4,
+          "maximum": 64,
+          "default": 18
+        },
+        "underside": {
+          "description": "Blocks an island's underside hangs below the layer",
+          "type": "number",
+          "minimum": 4,
+          "maximum": 120,
+          "default": 40
+        },
+        "coverage": {
+          "description": "Share of the sky with islands",
+          "type": "number",
+          "minimum": 0.02,
+          "maximum": 0.8,
+          "default": 0.3
+        },
+        "size": {
+          "description": "Island size; higher is larger and fewer",
+          "type": "number",
+          "minimum": 0.25,
+          "maximum": 4,
+          "default": 1
+        },
+        "spread": {
+          "description": "Blocks island altitudes vary by",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 80,
+          "default": 24
+        }
+      }
+    },
+    "terrain_islands": {
+      "description": "An ocean of islands and archipelagos.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "coast": {
+          "description": "Continentalness at the shoreline; higher is more ocean",
+          "type": "number",
+          "minimum": -0.6,
+          "maximum": 0.4,
+          "default": -0.15
+        },
+        "seaFloor": {
+          "description": "Height of the open ocean floor",
+          "type": "number",
+          "minimum": -40,
+          "maximum": 60,
+          "default": 30
+        },
+        "landHeight": {
+          "description": "Height of the land far inland",
+          "type": "number",
+          "minimum": 64,
+          "maximum": 200,
+          "default": 80
+        },
+        "relief": {
+          "description": "Blocks of hills where erosion is low",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 120,
+          "default": 24
+        },
+        "roughness": {
+          "description": "How far 3D noise breaks the surface; 0 smooth, 1 overhangs",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 0.5
+        },
+        "coverage": {
+          "description": "Share of the map that is land",
+          "type": "number",
+          "minimum": 0.02,
+          "maximum": 0.7,
+          "default": 0.2
+        },
+        "size": {
+          "description": "Island size; higher is larger and fewer",
+          "type": "number",
+          "minimum": 0.25,
+          "maximum": 4,
+          "default": 1
+        },
+        "islandHeight": {
+          "description": "Blocks an island rises above sea level",
+          "type": "number",
+          "minimum": 4,
+          "maximum": 120,
+          "default": 28
+        },
+        "archipelago": {
+          "description": "How much islands break into clusters of smaller ones",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 0.4
+        }
+      }
+    },
+    "terrain_voids": {
+      "description": "Land broken by bottomless voids, each ringed by a raised rim.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "coast": {
+          "description": "Continentalness at the shoreline; higher is more ocean",
+          "type": "number",
+          "minimum": -0.6,
+          "maximum": 0.4,
+          "default": -0.6
+        },
+        "seaFloor": {
+          "description": "Height of the open ocean floor",
+          "type": "number",
+          "minimum": -40,
+          "maximum": 60,
+          "default": 56
+        },
+        "landHeight": {
+          "description": "Height of the land far inland",
+          "type": "number",
+          "minimum": 64,
+          "maximum": 200,
+          "default": 80
+        },
+        "relief": {
+          "description": "Blocks of hills where erosion is low",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 120,
+          "default": 24
+        },
+        "roughness": {
+          "description": "How far 3D noise breaks the surface; 0 smooth, 1 overhangs",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 0.5
+        },
+        "coverage": {
+          "description": "Share of the land that is void",
+          "type": "number",
+          "minimum": 0.02,
+          "maximum": 0.5,
+          "default": 0.1
+        },
+        "size": {
+          "description": "Void size; higher is larger and fewer",
+          "type": "number",
+          "minimum": 0.25,
+          "maximum": 4,
+          "default": 1
+        },
+        "rimHeight": {
+          "description": "Blocks a rim rises above the land",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 60,
+          "default": 14
+        },
+        "rimWidth": {
+          "description": "Rim width, as a share of the void noise",
+          "type": "number",
+          "minimum": 0.01,
+          "maximum": 0.3,
+          "default": 0.06
+        }
+      }
+    },
+    "terrain_shattered": {
+      "description": "Land split by 3D cracks, with overhangs and loose floating shards.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "coast": {
+          "description": "Continentalness at the shoreline; higher is more ocean",
+          "type": "number",
+          "minimum": -0.6,
+          "maximum": 0.4,
+          "default": -0.15
+        },
+        "seaFloor": {
+          "description": "Height of the open ocean floor",
+          "type": "number",
+          "minimum": -40,
+          "maximum": 60,
+          "default": 36
+        },
+        "landHeight": {
+          "description": "Height of the land far inland",
+          "type": "number",
+          "minimum": 64,
+          "maximum": 200,
+          "default": 80
+        },
+        "relief": {
+          "description": "Blocks of hills where erosion is low",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 120,
+          "default": 36
+        },
+        "roughness": {
+          "description": "How far 3D noise breaks the surface; 0 smooth, 1 overhangs",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 0.5
+        },
+        "crackWidth": {
+          "description": "Crack width, as a share of the crack noise",
+          "type": "number",
+          "minimum": 0.01,
+          "maximum": 0.3,
+          "default": 0.13
+        },
+        "crackScale": {
+          "description": "Crack spacing; higher is wider apart",
+          "type": "number",
+          "minimum": 0.25,
+          "maximum": 4,
+          "default": 1
+        },
+        "lift": {
+          "description": "How far the ground breaks into overhangs and shards",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 0.5
+        }
+      }
+    },
+    "terrain_spires": {
+      "description": "Tall stone columns rising from the land.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "coast": {
+          "description": "Continentalness at the shoreline; higher is more ocean",
+          "type": "number",
+          "minimum": -0.6,
+          "maximum": 0.4,
+          "default": -0.15
+        },
+        "seaFloor": {
+          "description": "Height of the open ocean floor",
+          "type": "number",
+          "minimum": -40,
+          "maximum": 60,
+          "default": 36
+        },
+        "landHeight": {
+          "description": "Height of the land far inland",
+          "type": "number",
+          "minimum": 64,
+          "maximum": 200,
+          "default": 80
+        },
+        "relief": {
+          "description": "Blocks of hills where erosion is low",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 120,
+          "default": 24
+        },
+        "roughness": {
+          "description": "How far 3D noise breaks the surface; 0 smooth, 1 overhangs",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 0.4
+        },
+        "spireHeight": {
+          "description": "Blocks a spire rises above the land",
+          "type": "number",
+          "minimum": 16,
+          "maximum": 200,
+          "default": 70
+        },
+        "coverage": {
+          "description": "Share of the land under spires",
+          "type": "number",
+          "minimum": 0.005,
+          "maximum": 0.3,
+          "default": 0.04
+        },
+        "thickness": {
+          "description": "Spire girth; higher is thicker",
+          "type": "number",
+          "minimum": 0.25,
+          "maximum": 4,
+          "default": 1
+        },
+        "taper": {
+          "description": "0 is straight-sided columns, 1 is cones",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 0.5
+        }
       }
     }
   }
