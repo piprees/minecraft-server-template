@@ -665,19 +665,35 @@ def same_player(a: tuple[str, str, str], b: tuple[str, str, str]) -> bool:
 # === End player links =========================================================
 
 
-MESSAGES_PATH = Path(os.environ.get("MESSAGES_PATH", "/app/messages.json"))
+# The image's own copy, then the seeded config volume (the consumer's overlay/config/messages.json
+# when it has one), whose keys win.
+MESSAGES_PATHS = (Path("/app/messages.json"), Path(os.environ.get("MESSAGES_PATH", "/config-vol/messages.json")))
 _messages: dict[str, str] | None = None
+
+
+def load_messages(paths: tuple[Path, ...]) -> dict[str, str]:
+    """Every key from each existing file in order, later files overriding earlier ones."""
+    merged: dict[str, str] = {}
+    for path in paths:
+        if not path.is_file():
+            continue
+        try:
+            data = json.loads(path.read_text())
+        except (OSError, json.JSONDecodeError, ValueError) as error:
+            log.error("Could not read %s: %s", path, error)
+            continue
+        if isinstance(data, dict):
+            merged.update(data)
+        else:
+            log.error("%s is not a JSON object", path)
+    return merged
 
 
 def message(key: str, **values: object) -> str:
     """A player-facing string from config/messages.json, formatted with values."""
     global _messages
     if _messages is None:
-        try:
-            _messages = json.loads(MESSAGES_PATH.read_text())
-        except (OSError, json.JSONDecodeError, ValueError) as error:
-            log.error("Could not read %s: %s", MESSAGES_PATH, error)
-            _messages = {}
+        _messages = load_messages(MESSAGES_PATHS)
     template = _messages.get(key)
     if not isinstance(template, str):
         log.error("messages.json has no %s", key)
