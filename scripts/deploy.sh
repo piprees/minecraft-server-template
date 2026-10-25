@@ -628,6 +628,31 @@ if [[ -f "$DH_TOML" ]]; then
 fi
 
 # =============================================================================
+# 8d. Floodgate key (while mc is stopped)
+# =============================================================================
+# Floodgate (26.3 list) decrypts what Geyser forwards with key.pem. A stable key
+# from FLOODGATE_KEY_B64 outlives a lost volume; unset, the key Floodgate
+# generated at first boot stays. Mode 600 for its owner: the deploy user, uid
+# 1000, which mc runs as.
+FLOODGATE_KEY="$SERVER_DIR/data/config/floodgate/key.pem"
+if [[ -n "${FLOODGATE_KEY_B64:-}" ]]; then
+  mkdir -p "$(dirname "$FLOODGATE_KEY")"
+  if ! (umask 077 && printf '%s' "$FLOODGATE_KEY_B64" | base64 -d > "$FLOODGATE_KEY.new" 2> /dev/null) \
+    || [[ ! -s "$FLOODGATE_KEY.new" ]]; then
+    rm -f "$FLOODGATE_KEY.new"
+    warn "FLOODGATE_KEY_B64 is not valid base64 - Floodgate keeps its current key"
+  elif [[ -f "$FLOODGATE_KEY" ]] && cmp -s "$FLOODGATE_KEY.new" "$FLOODGATE_KEY"; then
+    rm -f "$FLOODGATE_KEY.new"
+    chmod 600 "$FLOODGATE_KEY"
+  else
+    if [[ -f "$FLOODGATE_KEY" ]]; then backup "$FLOODGATE_KEY"; fi
+    chmod 600 "$FLOODGATE_KEY.new"
+    mv -f "$FLOODGATE_KEY.new" "$FLOODGATE_KEY"
+    echo "  Floodgate key written from FLOODGATE_KEY_B64"
+  fi
+fi
+
+# =============================================================================
 # 9. Enforce Discord integration config (invariant 3)
 # =============================================================================
 # The dcintegration mod must never register slash commands: it shares the bot

@@ -133,6 +133,12 @@ styled-chat:HQ91YnMY
 essential-commands:KANmt7ie
 lmd:soddf0iE
 
+# === bedrock ===
+# Bedrock clients join through Geyser (UDP BEDROCK_PORT) and authenticate
+# through Floodgate (RB-21); Geyser's 26.3 builds are Modrinth betas.
+geyser:Vx9RY5fp
+floodgate:m9eO07Zi
+
 # =============================================================================
 # Waiting for a 26.3 build (mod-register.csv "waiting", and abridged, which
 # replaces macaws-bridges); each joins when its author ships one (RB-09)

@@ -1,0 +1,4 @@
+# Geyser (26.3 list), on the same server as Floodgate: Bedrock players join
+# without a Java account, authenticated by Floodgate's key.pem.
+java:
+  auth-type: floodgate

@@ -42,3 +42,4 @@ jobs:
       STACK_READ_TOKEN: ${{ secrets.STACK_READ_TOKEN }}
       KUMA_API_KEY: ${{ secrets.KUMA_API_KEY }}
       KUMA_PASSWORD: ${{ secrets.KUMA_PASSWORD }}
+      FLOODGATE_KEY_B64: ${{ secrets.FLOODGATE_KEY_B64 }}

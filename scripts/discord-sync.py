@@ -501,7 +501,7 @@ def update_linked_players(discord_id: str, mc_uuid: str | None, remove: bool = F
 
 # === Persistence helpers ======================================================
 
-def load_mappings() -> dict[str, str]:
+def load_mappings() -> dict[str, object]:
     if DATA_PATH.exists():
         try:
             return json.loads(DATA_PATH.read_text())
@@ -511,8 +511,115 @@ def load_mappings() -> dict[str, str]:
     return {}
 
 
-def save_mappings(mappings: dict[str, str]) -> None:
+def save_mappings(mappings: dict[str, object]) -> None:
     atomic_write_json(DATA_PATH, mappings)
+
+
+# === Player links (Java and Bedrock) ==========================================
+# A link is a Java username (a bare string) or {"platform": "bedrock",
+# "name": <gamertag>}. Floodgate names a Bedrock player FLOODGATE_PREFIX plus
+# the gamertag with spaces as "_" (config/versions/26.3/floodgate/config.yml),
+# and whitelists a gamertag itself: vanilla `whitelist add` asks Mojang.
+
+FLOODGATE_PREFIX = "."
+# Classic gamertag, the form Minecraft shows: ASCII letters and digits, single
+# spaces between them, at most 15 characters.
+GAMERTAG_RE = re.compile(r"^[A-Za-z0-9]+( [A-Za-z0-9]+)*$")
+GAMERTAG_MAX = 15
+JAVA = "java"
+BEDROCK = "bedrock"
+
+
+def valid_gamertag(name: str) -> bool:
+    return len(name) <= GAMERTAG_MAX and bool(GAMERTAG_RE.match(name))
+
+
+def make_link(platform: str, name: str) -> object:
+    return name if platform == JAVA else {"platform": BEDROCK, "name": name}
+
+
+def parse_link(value: object) -> tuple[str, str] | None:
+    """(platform, name) of a stored link, or None when it fails validation."""
+    if isinstance(value, str):
+        return (JAVA, value) if MC_USERNAME_RE.match(value) else None
+    if isinstance(value, dict) and value.get("platform") == BEDROCK:
+        name = value.get("name")
+        if isinstance(name, str) and valid_gamertag(name):
+            return (BEDROCK, name)
+    return None
+
+
+def in_game_name(platform: str, name: str) -> str:
+    if platform == BEDROCK:
+        return FLOODGATE_PREFIX + name.replace(" ", "_")
+    return name
+
+
+def link_label(platform: str, name: str) -> str:
+    return f"{name} (Bedrock)" if platform == BEDROCK else name
+
+
+def whitelist_command(platform: str, name: str, add: bool) -> str:
+    verb = "add" if add else "remove"
+    if platform == BEDROCK:
+        # The gamertag is validated to letters, digits and single spaces, so the
+        # quotes are the whole escaping Floodgate's quoted-string argument needs.
+        if not valid_gamertag(name):
+            raise ValueError(f"not a gamertag: {name!r}")
+        return f'fwhitelist {verb} "{name}"'
+    if not MC_USERNAME_RE.match(name):
+        raise ValueError(f"not a Java username: {name!r}")
+    return f"whitelist {verb} {name}"
+
+
+def role_sync_commands(platform: str, name: str, has_player: bool, has_admin: bool) -> list[str]:
+    player = in_game_name(platform, name)
+    commands: list[str] = []
+    if has_player or has_admin:
+        commands.append(whitelist_command(platform, name, add=True))
+    if has_admin:
+        commands.append(f"op {player}")
+    if not has_player and not has_admin:
+        commands.append(whitelist_command(platform, name, add=False))
+        commands.append(f"deop {player}")
+    if has_player and not has_admin:
+        commands.append(f"deop {player}")
+    return commands
+
+
+def unregister_commands(platform: str, name: str) -> list[str]:
+    return [whitelist_command(platform, name, add=False), f"deop {in_game_name(platform, name)}"]
+
+
+def same_player(a: tuple[str, str], b: tuple[str, str]) -> bool:
+    return a[0] == b[0] and a[1].lower() == b[1].lower()
+
+# === End player links =========================================================
+
+
+MESSAGES_PATH = Path(os.environ.get("MESSAGES_PATH", "/app/messages.json"))
+_messages: dict[str, str] | None = None
+
+
+def message(key: str, **values: object) -> str:
+    """A player-facing string from config/messages.json, formatted with values."""
+    global _messages
+    if _messages is None:
+        try:
+            _messages = json.loads(MESSAGES_PATH.read_text())
+        except (OSError, json.JSONDecodeError, ValueError) as error:
+            log.error("Could not read %s: %s", MESSAGES_PATH, error)
+            _messages = {}
+    template = _messages.get(key)
+    if not isinstance(template, str):
+        log.error("messages.json has no %s", key)
+        return key
+    return template.format(**values)
+
+
+def floodgate_installed() -> bool:
+    mods = Path("/data/mods")
+    return mods.is_dir() and any(p.name.lower().startswith("floodgate") for p in mods.glob("*.jar"))
 
 
 def load_pending_actions() -> list[dict[str, object]]:
@@ -604,7 +711,7 @@ class SyncBot(discord.Client):
         super().__init__(intents=intents)
         self.tree = app_commands.CommandTree(self)
         self._sync_task: asyncio.Task | None = None
-        self._last_sync_state: dict[str, tuple[bool, bool]] = {}
+        self._last_sync_state: dict[str, tuple[bool, bool, tuple[str, str]]] = {}
 
     async def setup_hook(self) -> None:
         guild = discord.Object(id=GUILD_ID)
@@ -649,14 +756,15 @@ class SyncBot(discord.Client):
             return
 
         commands = []
-        new_state: dict[str, tuple[bool, bool]] = {}
+        new_state: dict[str, tuple[bool, bool, tuple[str, str]]] = {}
         # Which commands belong to which member, so a member whose RCON call
         # failed keeps its old state and is retried next cycle.
         member_commands: dict[str, list[str]] = {}
 
-        for discord_id, mc_name in list(mappings.items()):
-            if not MC_USERNAME_RE.match(mc_name):
-                log.warning("Skipping invalid username from mappings: %r", mc_name)
+        for discord_id, stored in list(mappings.items()):
+            link = parse_link(stored)
+            if link is None:
+                log.warning("Skipping invalid link from mappings: %r", stored)
                 continue
 
             member = guild.get_member(int(discord_id))
@@ -666,22 +774,14 @@ class SyncBot(discord.Client):
             roles = member_role_ids(member)
             has_player = PLAYER_ROLE_ID in roles
             has_admin = ADMIN_ROLE_ID in roles
-            current = (has_player, has_admin)
+            # The link is part of the state: a re-registered name is synced afresh.
+            current = (has_player, has_admin, link)
             previous = self._last_sync_state.get(discord_id)
 
             if current == previous:
                 continue
 
-            mine: list[str] = []
-            if has_player or has_admin:
-                mine.append(f"whitelist add {mc_name}")
-            if has_admin:
-                mine.append(f"op {mc_name}")
-            if not has_player and not has_admin:
-                mine.append(f"whitelist remove {mc_name}")
-                mine.append(f"deop {mc_name}")
-            if has_player and not has_admin:
-                mine.append(f"deop {mc_name}")
+            mine = role_sync_commands(*link, has_player, has_admin)
 
             commands.extend(mine)
             member_commands[discord_id] = mine
@@ -883,13 +983,16 @@ async def mc_status(interaction: discord.Interaction) -> None:
     mappings = load_mappings()
     guild = interaction.guild
     roster_lines = []
-    for discord_id, mc_name in sorted(mappings.items(), key=lambda x: x[1].lower()):
+    links = [(discord_id, parse_link(stored)) for discord_id, stored in mappings.items()]
+    for discord_id, link in sorted(
+        ((d, link) for d, link in links if link is not None), key=lambda x: x[1][1].lower()
+    ):
         member = guild.get_member(int(discord_id)) if guild else None
         discord_name = f"@{member.display_name}" if member else f"<{discord_id}>"
         roles = member_role_ids(member) if member else set()
         role = "Admin" if ADMIN_ROLE_ID in roles else "Player" if PLAYER_ROLE_ID in roles else "None"
-        status = "online" if mc_name in online else "offline"
-        roster_lines.append(f"  {mc_name}  <->  {discord_name}  {role}  {status}")
+        status = "online" if in_game_name(*link) in online else "offline"
+        roster_lines.append(f"  {link_label(*link)}  <->  {discord_name}  {role}  {status}")
 
     status_icon = "Online" if server_up else "Offline/Paused"
     parts = [
@@ -1465,70 +1568,95 @@ async def mc_border(interaction: discord.Interaction, radius: int | None = None)
 
 # === /register and /unregister (with audit notifications) =====================
 
-@bot.tree.command(name="register", description="Link your Discord account to a Minecraft username")
-@app_commands.describe(minecraft_username="Your Minecraft Java Edition username (3-16 characters)")
-async def register(interaction: discord.Interaction, minecraft_username: str) -> None:
-    if not MC_USERNAME_RE.match(minecraft_username):
-        await interaction.response.send_message(
-            "That doesn't look like a valid Minecraft username. "
-            "It should be 3-16 characters: letters, numbers, and underscores only.",
-            ephemeral=True,
-        )
+@bot.tree.command(name="register", description="Link your Discord account to your Minecraft name")
+@app_commands.describe(
+    minecraft_username="Java: your Java Edition username. Bedrock: your Xbox gamertag",
+    platform="Java Edition (default) or Bedrock Edition",
+)
+@app_commands.choices(platform=[
+    app_commands.Choice(name="Java Edition", value=JAVA),
+    app_commands.Choice(name="Bedrock Edition", value=BEDROCK),
+])
+async def register(
+    interaction: discord.Interaction,
+    minecraft_username: str,
+    platform: app_commands.Choice[str] | None = None,
+) -> None:
+    edition = platform.value if platform else JAVA
+    name = minecraft_username.strip()
+    if edition == BEDROCK:
+        problem = None
+        if not floodgate_installed():
+            problem = "discord.register.bedrock_unavailable"
+        elif "#" in name:
+            problem = "discord.register.gamertag_suffix"
+        elif not valid_gamertag(name):
+            problem = "discord.register.invalid_gamertag"
+    else:
+        problem = None if MC_USERNAME_RE.match(name) else "discord.register.invalid_username"
+    if problem:
+        await interaction.response.send_message(message(problem), ephemeral=True)
         return
 
+    link = (edition, name)
+    label = link_label(*link)
     discord_id = str(interaction.user.id)
     await interaction.response.defer(ephemeral=True)
 
     async with _state_lock:
         mappings = load_mappings()
-        existing_name = mappings.get(discord_id)
-        if existing_name and existing_name.lower() == minecraft_username.lower():
-            await interaction.followup.send(f"You're already registered as **{existing_name}**.")
-            return
-
-        for uid, name in mappings.items():
-            if name.lower() == minecraft_username.lower() and uid != discord_id:
-                await interaction.followup.send(
-                    f"**{minecraft_username}** is already registered to another Discord user."
-                )
-                return
-
-        mc_uuid = await resolve_mc_uuid(minecraft_username)
-        if mc_uuid is None:
+        existing = parse_link(mappings.get(discord_id))
+        if existing and same_player(existing, link):
             await interaction.followup.send(
-                f"**{minecraft_username}** wasn't found on Mojang's servers. "
-                "Check the spelling - it must be your Java Edition username."
+                message("discord.register.already_you", name=link_label(*existing))
             )
             return
 
-        mappings[discord_id] = minecraft_username
+        for uid, stored in mappings.items():
+            other = parse_link(stored)
+            if other and same_player(other, link) and uid != discord_id:
+                await interaction.followup.send(message("discord.register.taken", name=label))
+                return
+
+        mc_uuid = None
+        if edition == JAVA:
+            mc_uuid = await resolve_mc_uuid(name)
+            if mc_uuid is None:
+                await interaction.followup.send(message("discord.register.not_found", name=name))
+                return
+
+        mappings[discord_id] = make_link(*link)
         save_mappings(mappings)
+        replaced = existing
         try:
-            update_linked_players(discord_id, mc_uuid)
+            # dcintegration links Java UUIDs; a Bedrock link has none to give it.
+            update_linked_players(discord_id, mc_uuid, remove=mc_uuid is None)
         except RuntimeError as error:
-            await interaction.followup.send(f"Registration was not saved safely: {error}")
+            await interaction.followup.send(message("discord.register.not_saved", error=error))
             return
-    log.info("Registered: %s (%s) -> %s (UUID: %s)", interaction.user, discord_id, minecraft_username, mc_uuid)
+    if replaced:
+        for command in unregister_commands(*replaced):
+            await async_rcon(command)
+    log.info("Registered: %s (%s) -> %s (UUID: %s)", interaction.user, discord_id, label, mc_uuid)
 
     await interaction.followup.send(
-        f"Registered **{minecraft_username}** - you'll be whitelisted when you get the {PLAYER_ROLE} role.",
+        message("discord.register.done", name=label, player_role=PLAYER_ROLE)
     )
     await audit_msg(
-        f"**{interaction.user.display_name}** registered as **{minecraft_username}**"
+        f"**{interaction.user.display_name}** registered as **{label}**"
     )
 
 
-@bot.tree.command(name="unregister", description="Remove your Minecraft username link")
+@bot.tree.command(name="unregister", description="Remove your Minecraft name link")
 async def unregister(interaction: discord.Interaction) -> None:
     discord_id = str(interaction.user.id)
 
     async with _state_lock:
         mappings = load_mappings()
-        mc_name = mappings.pop(discord_id, None)
-        if mc_name is None:
+        stored = mappings.pop(discord_id, None)
+        if stored is None:
             await interaction.response.send_message(
-                "You don't have a Minecraft username registered.",
-                ephemeral=True,
+                message("discord.unregister.none"), ephemeral=True
             )
             return
         save_mappings(mappings)
@@ -1536,19 +1664,22 @@ async def unregister(interaction: discord.Interaction) -> None:
             update_linked_players(discord_id, mc_uuid=None, remove=True)
         except RuntimeError as error:
             await interaction.response.send_message(
-                f"Unregistration was not saved safely: {error}", ephemeral=True
+                message("discord.unregister.not_saved", error=error), ephemeral=True
             )
             return
-    await async_rcon(f"whitelist remove {mc_name}")
-    await async_rcon(f"deop {mc_name}")
-    log.info("Unregistered: %s (%s) was %s", interaction.user, discord_id, mc_name)
+    link = parse_link(stored)
+    label = link_label(*link) if link else str(stored)
+    if link:
+        for command in unregister_commands(*link):
+            await async_rcon(command)
+    log.info("Unregistered: %s (%s) was %s", interaction.user, discord_id, label)
 
     await interaction.response.send_message(
-        f"Unregistered **{mc_name}**. You've been removed from the whitelist.",
+        message("discord.unregister.done", name=label),
         ephemeral=True,
     )
     await audit_msg(
-        f"**{interaction.user.display_name}** unregistered (was **{mc_name}**)"
+        f"**{interaction.user.display_name}** unregistered (was **{label}**)"
     )
 
 

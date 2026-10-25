@@ -1,5 +1,5 @@
 {
-  "_comment": "Centralised message templates. Variables use {variable} syntax. Used by discord-notify.sh (--key), deploy.yml, deploy.sh and the custom-dimensions mod (portal.*, win.*, customdim.*).",
+  "_comment": "Centralised message templates. Variables use {variable} syntax. Used by discord-notify.sh (--key), deploy.yml, deploy.sh, discord-sync (discord.register.*, discord.unregister.*) and the custom-dimensions mod (portal.*, win.*, customdim.*).",
 
   "deploy.starting": "**Deploy starting** ({deploy_mode}): `{commit_sha}` {commit_msg}",
   "deploy.successful": "**Deploy successful** ({deploy_mode}): `{commit_sha}` {commit_msg}",
@@ -60,6 +60,19 @@
   "updates.available": "{admin_ping}**Mod updates available** ({count}):\n{mod_list}\nFull status on the mods page.",
 
   "setup.webhook_test": "**Setup wizard:** webhook connection verified. The bot is checking in!",
+
+  "discord.register.invalid_username": "That doesn't look like a valid Minecraft username. It should be 3-16 characters: letters, numbers and underscores only. On Bedrock? Run /register again with platform: Bedrock Edition.",
+  "discord.register.invalid_gamertag": "That doesn't look like a valid gamertag. It should be up to 15 characters: letters, numbers and single spaces.",
+  "discord.register.gamertag_suffix": "Enter your gamertag as Minecraft shows it on your profile, without the # part.",
+  "discord.register.bedrock_unavailable": "This server doesn't take Bedrock players yet. Register a Java Edition username instead.",
+  "discord.register.already_you": "You're already registered as **{name}**.",
+  "discord.register.taken": "**{name}** is already registered to another Discord user.",
+  "discord.register.not_found": "**{name}** wasn't found on Mojang's servers. Check the spelling - it must be your Java Edition username.",
+  "discord.register.not_saved": "Registration was not saved safely: {error}",
+  "discord.register.done": "Registered **{name}** - you'll be whitelisted when you get the {player_role} role.",
+  "discord.unregister.none": "You don't have a Minecraft name registered.",
+  "discord.unregister.not_saved": "Unregistration was not saved safely: {error}",
+  "discord.unregister.done": "Unregistered **{name}**. You've been removed from the whitelist.",
 
   "discord.welcome_pin": "**Welcome to the {brand_name}!**\n\n**:package: Get started**\n\nThis is a modded Minecraft 1.21.1 server with loads of mods focused on exploration and adventuring.\n\nHere's what to do:\n\n**1. Register your Minecraft username**\nIn the `Message #general` box, type out `/register` and then enter your Minecraft username. You can get this from the [Minecraft account](https://www.minecraft.net/en-us/msaprofile) page, just click on `Change Profile Name` and then it is displayed as `Current Java Profile Name`. Copy it exactly, it's case sensitive.\n\nYou can undo this with `/unregister`.\n\n**2. Get the Player role**\nAsk an {admin_role} to give you the {player_role} role and then you'll be added to the allow-list automatically.\n\n**3. Set up a client with our modpack and join the server**\nInstall [Prism Launcher](https://prismlauncher.org/) (free), then grab the **one-click instance** from the pack page - everything comes pre-configured, and the pack **updates itself automatically every time you play**, so you never need to redo this. Add your Microsoft account in Prism, double-click the instance, and it'll connect you straight to the server.\n\nFull instructions (and a manual setup option) are on the pack page.\n\n**Useful links**\n\n:map: [Map](https://map.{domain})\n:bar_chart: [Status](https://status.{domain})\n:fire: [Mods](https://mods.{domain})\n:arrow_down: [Instructions](https://pack.{domain})\n\nModpack updates happen automatically - if an admin announces new mods, just restart your game.\n\nSomething broken or got an idea? Ping an {admin_role}."
 }

@@ -129,6 +129,8 @@ services:
       - "${SERVER_PORT:-25577}:25565"
       # Simple Voice Chat - UDP for proximity and group voice.
       - "${VOICE_PORT:-24454}:24454/udp"
+      # Geyser - UDP for Bedrock clients (26.3 list; nothing listens on 1.21.1).
+      - "${BEDROCK_PORT:-19132}:19132/udp"
     environment:
       # --- Core server settings ---
       EULA: "TRUE"
