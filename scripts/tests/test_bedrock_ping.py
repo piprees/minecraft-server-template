@@ -4,6 +4,8 @@ import importlib.util
 import socket
 import struct
 import threading
+import http.server
+import json
 import unittest
 from pathlib import Path
 
@@ -62,6 +64,42 @@ class RoundTrip(unittest.TestCase):
         quiet.bind(("127.0.0.1", 0))
         self.addCleanup(quiet.close)
         self.assertIsNone(bp.ping("127.0.0.1", quiet.getsockname()[1], tries=1, timeout=0.2))
+
+
+class Signaling(unittest.TestCase):
+    def serve(self, body):
+        class Handler(http.server.BaseHTTPRequestHandler):
+            def do_GET(self):
+                code = 200 if self.path == "/v1/join" else 404
+                self.send_response(code)
+                self.end_headers()
+                if code == 200:
+                    self.wfile.write(body)
+
+            def log_message(self, *args):
+                pass
+
+        server = http.server.HTTPServer(("127.0.0.1", 0), Handler)
+        threading.Thread(target=server.serve_forever, daemon=True).start()
+        self.addCleanup(server.shutdown)
+        return server.server_address[1]
+
+    def test_the_join_status_is_read(self):
+        status = {"name": "CI smoke test 26.3", "version": "26.52", "protocol": 2193}
+        port = self.serve(json.dumps(status).encode())
+        self.assertEqual(bp.signaling_status("127.0.0.1", port, tries=1, timeout=2), status)
+
+    def test_a_non_status_answer_is_refused(self):
+        port = self.serve(b'["not", "a", "status"]')
+        with self.assertRaises(ValueError):
+            bp.signaling_status("127.0.0.1", port, tries=1, timeout=2)
+
+    def test_a_closed_port_is_none(self):
+        closed = socket.socket()
+        closed.bind(("127.0.0.1", 0))
+        port = closed.getsockname()[1]
+        closed.close()
+        self.assertIsNone(bp.signaling_status("127.0.0.1", port, tries=1, timeout=0.2))
 
 
 if __name__ == "__main__":

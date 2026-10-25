@@ -38,6 +38,7 @@ import json
 import logging
 import os
 import re
+from urllib.parse import quote
 import socket
 import subprocess
 import sys
@@ -448,6 +449,26 @@ async def resolve_mc_uuid(username: str) -> str | None:
         return None
 
 
+GEYSER_XUID_API = "https://api.geysermc.org/v2/xbox/xuid/"
+
+
+async def resolve_xuid(gamertag: str) -> str | None:
+    """The gamertag's XUID from GeyserMC's cache, which learns a player once
+    they have connected to any Geyser server."""
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.get(f"{GEYSER_XUID_API}{quote(gamertag)}") as resp:
+                if resp.status == 200:
+                    xuid = str((await resp.json()).get("xuid", ""))
+                    return xuid if XUID_RE.match(xuid) else None
+                if resp.status not in (400, 404):
+                    log.warning("GeyserMC API returned %d for %s", resp.status, gamertag)
+                return None
+    except Exception as e:
+        log.warning("GeyserMC API lookup failed for %s: %s", gamertag, e)
+        return None
+
+
 # === DCIntegration LinkedPlayers ==============================================
 
 def quarantine_corrupt_json(path: Path, error: Exception) -> None:
@@ -516,16 +537,20 @@ def save_mappings(mappings: dict[str, object]) -> None:
 
 
 # === Player links (Java and Bedrock) ==========================================
-# A link is a Java username (a bare string) or {"platform": "bedrock",
-# "name": <gamertag>}. Floodgate names a Bedrock player FLOODGATE_PREFIX plus
-# the gamertag with spaces as "_" (config/versions/26.3/floodgate/config.yml),
-# and whitelists a gamertag itself: vanilla `whitelist add` asks Mojang.
+# A link is a Java username (a bare string) or {"platform": "bedrock", "name":
+# <gamertag>, "xuid": <digits>}; parsed, it is (platform, name, whitelist id).
+# Floodgate names a Bedrock player FLOODGATE_PREFIX plus the gamertag with
+# spaces as "_" (config/versions/26.3/floodgate/config.yml). A Bedrock player is
+# whitelisted by Floodgate UUID: vanilla `whitelist add` asks Mojang, and
+# Floodgate's own gamertag lookup fails silently for a gamertag GeyserMC's
+# cache has not seen.
 
 FLOODGATE_PREFIX = "."
 # Classic gamertag, the form Minecraft shows: ASCII letters and digits, single
 # spaces between them, at most 15 characters.
 GAMERTAG_RE = re.compile(r"^[A-Za-z0-9]+( [A-Za-z0-9]+)*$")
 GAMERTAG_MAX = 15
+XUID_RE = re.compile(r"^[0-9]{1,19}$")
 JAVA = "java"
 BEDROCK = "bedrock"
 
@@ -534,64 +559,78 @@ def valid_gamertag(name: str) -> bool:
     return len(name) <= GAMERTAG_MAX and bool(GAMERTAG_RE.match(name))
 
 
-def make_link(platform: str, name: str) -> object:
-    return name if platform == JAVA else {"platform": BEDROCK, "name": name}
+def floodgate_uuid(xuid: str) -> str:
+    """Floodgate's UUID for an XUID: zeros, then the XUID as 16 hex digits."""
+    digits = f"{int(xuid):016x}"
+    if len(digits) != 16:
+        raise ValueError(f"XUID out of range: {xuid!r}")
+    return f"00000000-0000-0000-{digits[:4]}-{digits[4:]}"
 
 
-def parse_link(value: object) -> tuple[str, str] | None:
-    """(platform, name) of a stored link, or None when it fails validation."""
+def make_link(platform: str, name: str, xuid: str | None = None) -> object:
+    if platform == JAVA:
+        return name
+    return {"platform": BEDROCK, "name": name, "xuid": xuid}
+
+
+def parse_link(value: object) -> tuple[str, str, str] | None:
+    """(platform, name, whitelist id) of a stored link, or None when it fails validation."""
     if isinstance(value, str):
-        return (JAVA, value) if MC_USERNAME_RE.match(value) else None
+        return (JAVA, value, value) if MC_USERNAME_RE.match(value) else None
     if isinstance(value, dict) and value.get("platform") == BEDROCK:
-        name = value.get("name")
-        if isinstance(name, str) and valid_gamertag(name):
-            return (BEDROCK, name)
+        name, xuid = value.get("name"), value.get("xuid")
+        if isinstance(name, str) and valid_gamertag(name) and isinstance(xuid, str) and XUID_RE.match(xuid):
+            try:
+                return (BEDROCK, name, floodgate_uuid(xuid))
+            except ValueError:
+                return None
     return None
 
 
-def in_game_name(platform: str, name: str) -> str:
+def in_game_name(link: tuple[str, str, str]) -> str:
+    platform, name, _ = link
     if platform == BEDROCK:
         return FLOODGATE_PREFIX + name.replace(" ", "_")
     return name
 
 
-def link_label(platform: str, name: str) -> str:
-    return f"{name} (Bedrock)" if platform == BEDROCK else name
+def link_label(link: tuple[str, str, str]) -> str:
+    return f"{link[1]} (Bedrock)" if link[0] == BEDROCK else link[1]
 
 
-def whitelist_command(platform: str, name: str, add: bool) -> str:
+def whitelist_command(link: tuple[str, str, str], add: bool) -> str:
+    """Only parse_link's validated ids reach here; anything else raises."""
     verb = "add" if add else "remove"
+    platform, _, ident = link
     if platform == BEDROCK:
-        # The gamertag is validated to letters, digits and single spaces, so the
-        # quotes are the whole escaping Floodgate's quoted-string argument needs.
-        if not valid_gamertag(name):
-            raise ValueError(f"not a gamertag: {name!r}")
-        return f'fwhitelist {verb} "{name}"'
-    if not MC_USERNAME_RE.match(name):
-        raise ValueError(f"not a Java username: {name!r}")
-    return f"whitelist {verb} {name}"
+        if not re.fullmatch(r"00000000-0000-0000-[0-9a-f]{4}-[0-9a-f]{12}", ident):
+            raise ValueError(f"not a Floodgate UUID: {ident!r}")
+        return f"fwhitelist {verb} {ident}"
+    if not MC_USERNAME_RE.match(ident):
+        raise ValueError(f"not a Java username: {ident!r}")
+    return f"whitelist {verb} {ident}"
 
 
-def role_sync_commands(platform: str, name: str, has_player: bool, has_admin: bool) -> list[str]:
-    player = in_game_name(platform, name)
+def role_sync_commands(link: tuple[str, str, str], has_player: bool, has_admin: bool) -> list[str]:
+    player = in_game_name(link)
     commands: list[str] = []
     if has_player or has_admin:
-        commands.append(whitelist_command(platform, name, add=True))
+        commands.append(whitelist_command(link, add=True))
     if has_admin:
         commands.append(f"op {player}")
     if not has_player and not has_admin:
-        commands.append(whitelist_command(platform, name, add=False))
+        commands.append(whitelist_command(link, add=False))
         commands.append(f"deop {player}")
     if has_player and not has_admin:
         commands.append(f"deop {player}")
     return commands
 
 
-def unregister_commands(platform: str, name: str) -> list[str]:
-    return [whitelist_command(platform, name, add=False), f"deop {in_game_name(platform, name)}"]
+def unregister_commands(link: tuple[str, str, str]) -> list[str]:
+    return [whitelist_command(link, add=False), f"deop {in_game_name(link)}"]
 
 
-def same_player(a: tuple[str, str], b: tuple[str, str]) -> bool:
+def same_player(a: tuple[str, str, str], b: tuple[str, str, str]) -> bool:
     return a[0] == b[0] and a[1].lower() == b[1].lower()
 
 # === End player links =========================================================
@@ -711,7 +750,7 @@ class SyncBot(discord.Client):
         super().__init__(intents=intents)
         self.tree = app_commands.CommandTree(self)
         self._sync_task: asyncio.Task | None = None
-        self._last_sync_state: dict[str, tuple[bool, bool, tuple[str, str]]] = {}
+        self._last_sync_state: dict[str, tuple[bool, bool, tuple[str, str, str]]] = {}
 
     async def setup_hook(self) -> None:
         guild = discord.Object(id=GUILD_ID)
@@ -756,7 +795,7 @@ class SyncBot(discord.Client):
             return
 
         commands = []
-        new_state: dict[str, tuple[bool, bool, tuple[str, str]]] = {}
+        new_state: dict[str, tuple[bool, bool, tuple[str, str, str]]] = {}
         # Which commands belong to which member, so a member whose RCON call
         # failed keeps its old state and is retried next cycle.
         member_commands: dict[str, list[str]] = {}
@@ -781,7 +820,7 @@ class SyncBot(discord.Client):
             if current == previous:
                 continue
 
-            mine = role_sync_commands(*link, has_player, has_admin)
+            mine = role_sync_commands(link, has_player, has_admin)
 
             commands.extend(mine)
             member_commands[discord_id] = mine
@@ -991,8 +1030,8 @@ async def mc_status(interaction: discord.Interaction) -> None:
         discord_name = f"@{member.display_name}" if member else f"<{discord_id}>"
         roles = member_role_ids(member) if member else set()
         role = "Admin" if ADMIN_ROLE_ID in roles else "Player" if PLAYER_ROLE_ID in roles else "None"
-        status = "online" if in_game_name(*link) in online else "offline"
-        roster_lines.append(f"  {link_label(*link)}  <->  {discord_name}  {role}  {status}")
+        status = "online" if in_game_name(link) in online else "offline"
+        roster_lines.append(f"  {link_label(link)}  <->  {discord_name}  {role}  {status}")
 
     status_icon = "Online" if server_up else "Offline/Paused"
     parts = [
@@ -1598,8 +1637,8 @@ async def register(
         await interaction.response.send_message(message(problem), ephemeral=True)
         return
 
-    link = (edition, name)
-    label = link_label(*link)
+    link = (edition, name, name)
+    label = link_label(link)
     discord_id = str(interaction.user.id)
     await interaction.response.defer(ephemeral=True)
 
@@ -1608,7 +1647,7 @@ async def register(
         existing = parse_link(mappings.get(discord_id))
         if existing and same_player(existing, link):
             await interaction.followup.send(
-                message("discord.register.already_you", name=link_label(*existing))
+                message("discord.register.already_you", name=link_label(existing))
             )
             return
 
@@ -1618,14 +1657,21 @@ async def register(
                 await interaction.followup.send(message("discord.register.taken", name=label))
                 return
 
-        mc_uuid = None
+        mc_uuid = xuid = None
         if edition == JAVA:
             mc_uuid = await resolve_mc_uuid(name)
             if mc_uuid is None:
                 await interaction.followup.send(message("discord.register.not_found", name=name))
                 return
+        else:
+            xuid = await resolve_xuid(name)
+            if xuid is None:
+                await interaction.followup.send(
+                    message("discord.register.gamertag_not_found", name=name)
+                )
+                return
 
-        mappings[discord_id] = make_link(*link)
+        mappings[discord_id] = make_link(edition, name, xuid)
         save_mappings(mappings)
         replaced = existing
         try:
@@ -1635,7 +1681,7 @@ async def register(
             await interaction.followup.send(message("discord.register.not_saved", error=error))
             return
     if replaced:
-        for command in unregister_commands(*replaced):
+        for command in unregister_commands(replaced):
             await async_rcon(command)
     log.info("Registered: %s (%s) -> %s (UUID: %s)", interaction.user, discord_id, label, mc_uuid)
 
@@ -1668,9 +1714,9 @@ async def unregister(interaction: discord.Interaction) -> None:
             )
             return
     link = parse_link(stored)
-    label = link_label(*link) if link else str(stored)
+    label = link_label(link) if link else str(stored)
     if link:
-        for command in unregister_commands(*link):
+        for command in unregister_commands(link):
             await async_rcon(command)
     log.info("Unregistered: %s (%s) was %s", interaction.user, discord_id, label)
 

@@ -65,6 +65,7 @@
   "discord.register.invalid_gamertag": "That doesn't look like a valid gamertag. It should be up to 15 characters: letters, numbers and single spaces.",
   "discord.register.gamertag_suffix": "Enter your gamertag as Minecraft shows it on your profile, without the # part.",
   "discord.register.bedrock_unavailable": "This server doesn't take Bedrock players yet. Register a Java Edition username instead.",
+  "discord.register.gamertag_not_found": "**{name}** isn't known to Geyser yet. Open Minecraft on your Bedrock device, try to join the server once (it will turn you away), then run /register again.",
   "discord.register.already_you": "You're already registered as **{name}**.",
   "discord.register.taken": "**{name}** is already registered to another Discord user.",
   "discord.register.not_found": "**{name}** wasn't found on Mojang's servers. Check the spelling - it must be your Java Edition username.",

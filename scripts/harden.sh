@@ -7,7 +7,7 @@
 #   1. deploy user (passwordless sudo, root's keys + the GitHub deploy key)
 #   2. SSH: key-only, no root login (verify a new session BEFORE closing root!)
 #   3. UFW: deny inbound except SSH + SERVER_PORT/tcp + VOICE_PORT/udp +
-#      BEDROCK_PORT/udp (Geyser, 26.3)
+#      BEDROCK_PORT/tcp+udp (Geyser, 26.3)
 #   4. fail2ban: sshd only. The MC and nginx jails ship DISABLED - they cannot
 #      see a real client address (docker-proxy relays; cloudflared is outbound)
 #      and their unanchored filters let a crafted chat line or header ban an
@@ -422,10 +422,12 @@ VOICE_PORT="${VOICE_PORT:-24454}"
 ufw allow "${VOICE_PORT}/udp" comment "Simple Voice Chat"
 echo "  Allowed ${VOICE_PORT}/udp (voice)"
 
-# Bedrock clients through Geyser (UDP; the 26.3 list carries Geyser)
+# Bedrock clients through Geyser (the 26.3 list): NetherNet signaling over
+# TCP, gameplay over UDP. The SYN-flood limiter below covers the TCP side.
 BEDROCK_PORT="${BEDROCK_PORT:-19132}"
+ufw allow "${BEDROCK_PORT}/tcp" comment "Geyser Bedrock signaling"
 ufw allow "${BEDROCK_PORT}/udp" comment "Geyser Bedrock"
-echo "  Allowed ${BEDROCK_PORT}/udp (Bedrock)"
+echo "  Allowed ${BEDROCK_PORT}/tcp+udp (Bedrock)"
 
 # Enable UFW (non-interactive: auto-confirm)
 if ! echo "y" | ufw enable; then
@@ -984,7 +986,7 @@ echo ""
 echo " Root SSH and password login are now DISABLED."
 echo " Key-only access as '${NEWUSER}'."
 echo ""
-echo " Firewall allows: SSH, ${SERVER_PORT}/tcp (game), ${VOICE_PORT}/udp (voice), ${BEDROCK_PORT}/udp (Bedrock)"
+echo " Firewall allows: SSH, ${SERVER_PORT}/tcp (game), ${VOICE_PORT}/udp (voice), ${BEDROCK_PORT}/tcp+udp (Bedrock)"
 echo " Rate limiting: game port (6/min), voice and Bedrock (10/min), SYN flood (30/min)"
 echo " fail2ban: SSH only. MC and nginx jails ship disabled - see jail.local."
 echo " Docker: iptables=false (won't bypass UFW), log rotation enabled"

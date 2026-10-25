@@ -1,4 +1,8 @@
 # Geyser (26.3 list), on the same server as Floodgate: Bedrock players join
 # without a Java account, authenticated by Floodgate's key.pem.
+bedrock:
+  # Bedrock 26.60 and later join only over NetherNet: signaling over TCP and
+  # WebRTC over UDP, both on BEDROCK_PORT.
+  transport: nethernet
 java:
   auth-type: floodgate

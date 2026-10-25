@@ -9,8 +9,8 @@ name: Smoke Test (26.3)
 #   boot     scripts/smoke-26.sh check: Done, no mod-loading failure, the
 #            pack installed at start-up, the admin mods loaded; every WARN
 #            and ERROR line listed in the artifact for triage
-#   bedrock  scripts/e2e/bedrock-ping.py: Geyser answers a RakNet ping on
-#            19132/udp with the server's MOTD (P5)
+#   bedrock  scripts/e2e/bedrock-ping.py: Geyser's NetherNet signaling
+#            answers on 19132/tcp with the server's MOTD (P5)
 #   join     scripts/e2e/vanilla-join.sh: the unmodded 26.3 client joins and
 #            stays 60 s; a disconnect fails the job with its reason (P3)
 #   parity   scripts/admin-parity-check.sh, run while that client is online:
