@@ -10,7 +10,7 @@ Dependencies run one way. Only the runtime touches Minecraft's internals, and it
 | --- | --- | --- |
 | 1 · Definitions and core | No | The config model, validation, zone geometry, scoring, structure-noise maths, portal geometry and difficulty rules. Most of the 1.21.1 mod's tests live here and carry over nearly as they are. A lint rule fails any Minecraft import |
 | 2 · The compiler | No | Turns definitions into a datapack: dimension types with environment attributes, timelines and clocks, world borders, noise settings, material rules, biome layouts and structure-set overrides |
-| 3 · The runtime | Fabric, Mojang names | Only what data can't do: the roller's sampler, lazy levels through Fantasy, portals on vanilla's `Portal` interface, one biome source type for stamps and swaps, structure control, mob difficulty, deaths and exits, the firewall and the companion feed |
+| 3 · The runtime | Fabric, Mojang names | Only what data can't do: the roller's sampler, lazy levels through Fantasy, portals on vanilla's `Portal` interface, one biome source type for zones, stamps and swaps (`customdimensions:zoned`), one density-function type for the zone shapes vanilla's functions cannot draw (`customdimensions:zone_distance`, RB-27), structure control, mob difficulty, deaths and exits, the firewall and the companion feed |
 | 4 · The companion client | Optional | Renders previews through portals from the feed ([portals.md](portals.md)) |
 
 ## Packages

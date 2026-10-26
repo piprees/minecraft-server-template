@@ -82,7 +82,7 @@ loom {
 			programArg '--nogui'
 			// -PselfTest=<file> runs the start-up self-test, writes its report and stops the server.
 			vmArg "-Dcustomdimensions.selftest=${project.findProperty('selfTest') ?: ''}"
-			// -PselfTestOnly=exits|commands|materials|render|firewall|terrain: the compiled-pack section and that one only.
+			// -PselfTestOnly=exits|commands|materials|render|firewall|terrain|zones: the compiled-pack section and that one only.
 			vmArg "-Dcustomdimensions.selftest.only=${project.findProperty('selfTestOnly') ?: ''}"
 			vmArg "-Dcustomdimensions.selftest.gallery=${project.findProperty('terrainGallery') ?: ''}"
 			// -PselfTestPersist=write|verify: the two-boot persistence check, run with the self-test.

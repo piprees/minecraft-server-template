@@ -38,10 +38,14 @@ class ZonesCompilerTest {
     void aTerrainRingBlendsTheRouterAndCarriesItsBiomes() {
         DatapackCompiler.Output out = Fixtures.compile("t", OVERWORLD + ", \"zones\": [" + RING + "]");
         JsonObject router = settings(out, "t").getAsJsonObject("noise_router");
+        JsonObject cheese = file(out, "data/adventure/worldgen/density_function/zones/t/0/sloped_cheese.json");
+        assertEquals("minecraft:overworld/sloped_cheese", cheese.get("first").getAsString());
+        assertEquals("adventure:terrain/t/zone_0/sloped_cheese", cheese.get("second").getAsString());
+        assertTrue(router.getAsJsonObject("final_density").get("first").toString().contains("adventure:zones/t/0/sloped_cheese"));
         for (String key : new String[] {"final_density", "depth", "chunk_surface_level"}) {
             JsonObject lerp = router.getAsJsonObject(key);
             assertEquals("minecraft:lerp", lerp.get("type").getAsString(), key);
-            assertEquals("adventure:zones/t/0/mask", lerp.get("alpha").getAsString());
+            assertTrue(lerp.get("alpha").toString().contains("adventure:zones/t/0/mask"), key);
             assertEquals("adventure:terrain/t/zone_0/" + key, lerp.get("second").getAsString());
         }
         assertEquals("adventure:zones/t/temperature", router.get("temperature").getAsString());
@@ -98,8 +102,10 @@ class ZonesCompilerTest {
         assertEquals("adventure:zones/t/2/mask", channel.get("input").getAsString());
         assertEquals(3 * ZonesCompiler.CHANNEL, channel.getAsJsonObject("when_in_range").get("right").getAsDouble());
         JsonObject finalDensity = settings(out, "t").getAsJsonObject("noise_router").getAsJsonObject("final_density");
-        assertEquals("adventure:zones/t/3/mask", finalDensity.get("alpha").getAsString());
-        assertEquals("adventure:zones/t/0/mask", finalDensity.getAsJsonObject("first").get("alpha").getAsString());
+        assertTrue(finalDensity.get("alpha").toString().contains("adventure:zones/t/3/mask"));
+        JsonObject cheese = file(out, "data/adventure/worldgen/density_function/zones/t/3/sloped_cheese.json");
+        assertEquals("adventure:zones/t/0/sloped_cheese", cheese.get("first").getAsString());
+        assertEquals("adventure:terrain/t/zone_3/sloped_cheese", cheese.get("second").getAsString());
     }
 
     @Test

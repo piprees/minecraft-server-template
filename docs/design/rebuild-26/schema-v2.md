@@ -164,7 +164,7 @@ the v1 files.
 - Flagging scans object keys as well as string values (`structures.rarity` and `terrainAdaptation` key on ids).
 - `settingsOverrides.endIsland` is kept only with the `end` preset; elsewhere it is a no-op and is dropped and reported.
 - Shun distances are dropped and reported; list-form `roll.shuns` stays a list.
-- A zone converted from a biome patch is `{shape (default "circle"), centre: [x, z], radius, blend, biomes: [id]}`.
+- A zone converted from a biome patch is `{shape (default "circle"), centre: [x, z], radius, blend, biomes: [id]}`; every zone field is in [worldgen.md § Zones](worldgen.md#zones).
 - Output is deterministic: two-space indent, number and boolean arrays on one line, numbers keep their source text, stale files are deleted.
 
 ## Clones

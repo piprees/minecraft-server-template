@@ -2,7 +2,7 @@ package com.customdimensions.core.render;
 
 import java.util.List;
 
-/** The layers every render draws: surface biome and surface height. */
+/** The layers a render draws: surface biome and surface height, and zone outlines for a dimension with zones. */
 public final class RenderLayers {
     /** Pixels whose column holds no solid block. */
     public static final int EMPTY = 0x000000;
@@ -14,6 +14,64 @@ public final class RenderLayers {
 
     public static List<RenderLayer> standard() {
         return List.of(BIOME, HEIGHT);
+    }
+
+    /** The standard layers, and {@link #ZONES} when the samples carry zones. */
+    public static List<RenderLayer> forSamples(ColumnSamples samples) {
+        return samples.hasZones() ? List.of(BIOME, HEIGHT, ZONES) : standard();
+    }
+
+    /** Colours zones take in turn on {@link #ZONES}. */
+    static final int[] ZONE_COLOURS = {0xE8A33D, 0x4FB3D9, 0xC45AB3, 0x7BC043, 0xF25F5C, 0x9D8DF1};
+
+    /**
+     * The height layer tinted by each zone's colour in proportion to its mask,
+     * a white line where the mask crosses one half (where its biomes take over)
+     * and a black line where it reaches zero (the outer edge of its blend).
+     */
+    public static final RenderLayer ZONES = new RenderLayer() {
+        @Override
+        public String name() {
+            return "zones";
+        }
+
+        @Override
+        public int[] paint(ColumnSamples s) {
+            int side = s.grid().side();
+            int[] range = greyRange(s);
+            int span = Math.max(1, range[1] - range[0]);
+            int[] out = new int[side * side];
+            for (int py = 0; py < side; py++) {
+                for (int px = 0; px < side; px++) {
+                    int base = shade(s, px, py, range[0], span);
+                    int zone = s.zone(px, py);
+                    double w = s.zoneWeight(px, py);
+                    int colour = zone < 0 ? base : mix(base, ZONE_COLOURS[zone % ZONE_COLOURS.length], 0.55 * w);
+                    if (crosses(s, px, py, 0.5)) colour = 0xFFFFFF;
+                    else if (crosses(s, px, py, 0.0)) colour = 0x000000;
+                    out[py * side + px] = colour;
+                }
+            }
+            return out;
+        }
+    };
+
+    /** Whether the mask at a pixel is above {@code level} while a right or lower neighbour's is not, or the reverse. */
+    static boolean crosses(ColumnSamples s, int px, int py, double level) {
+        int side = s.grid().side();
+        boolean here = above(s, px, py, level);
+        return px + 1 < side && above(s, px + 1, py, level) != here || py + 1 < side && above(s, px, py + 1, level) != here;
+    }
+
+    private static boolean above(ColumnSamples s, int px, int py, double level) {
+        return s.zone(px, py) >= 0 && (level == 0 ? s.zoneWeight(px, py) > 0 : s.zoneWeight(px, py) >= level);
+    }
+
+    static int mix(int a, int b, double t) {
+        int r = (int) Math.round(((a >> 16) & 0xFF) * (1 - t) + ((b >> 16) & 0xFF) * t);
+        int g = (int) Math.round(((a >> 8) & 0xFF) * (1 - t) + ((b >> 8) & 0xFF) * t);
+        int bl = (int) Math.round((a & 0xFF) * (1 - t) + (b & 0xFF) * t);
+        return r << 16 | g << 8 | bl;
     }
 
     /** Each pixel in its surface biome's {@link BiomePalette} colour. */

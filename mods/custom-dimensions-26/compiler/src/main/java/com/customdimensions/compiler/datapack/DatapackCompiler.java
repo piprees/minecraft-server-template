@@ -574,7 +574,8 @@ public final class DatapackCompiler {
         }
         boolean changesZones = zones != null && zones.changesSettings();
         if (changesZones) {
-            settings = ZonesCompiler.apply(zones, settings, preset, liquids != null ? liquids.seaLevel() : null, vanilla, entry);
+            settings = ZonesCompiler.apply(zones, settings, preset, liquids != null ? liquids.seaLevel() : null, vanilla,
+                    this::densityFunction, entry);
         }
         int seaLevel = liquids != null && liquids.seaLevel() != null ? liquids.seaLevel() : settings.get("sea_level").getAsInt();
         JsonObject materialRule = MaterialsCompiler.compose(vanilla, settings.get("material_rule").getAsString(),
@@ -618,6 +619,13 @@ public final class DatapackCompiler {
         entry.note("Terrain `" + terrain.family().id() + "` (" + terrain.setting() + ") under `" + namespace + ":terrain/"
                 + slug + "/`" + (terrain.family().airborne() ? ", over a void with no aquifers" : ""));
         return compiled.settings();
+    }
+
+    /** A density function by id, from this pack or vanilla's; null when neither has it. */
+    private JsonObject densityFunction(String id) {
+        String own = files.get(dataPath(id, "worldgen/density_function"));
+        if (own != null) return com.google.gson.JsonParser.parseString(own).getAsJsonObject();
+        return id.startsWith("minecraft:") ? vanilla.densityFunction(id.substring("minecraft:".length())) : null;
     }
 
     /** The material rule, then {@code block} as the last entry of a sequence: what no earlier rule claims. */

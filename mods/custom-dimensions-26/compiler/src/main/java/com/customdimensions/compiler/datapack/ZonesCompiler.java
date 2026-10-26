@@ -20,7 +20,8 @@ import java.util.TreeMap;
 
 /**
  * A definition's {@code zones} as pack data. Each zone's mask is
- * {@code <ns>:zones/<slug>/<index>/mask} ({@link ZoneDensity}). In zone order:
+ * {@code <ns>:zones/<slug>/<index>/mask} ({@link ZoneDensity}); a global swap
+ * needs none. In zone order:
  *
  * <ul>
  *   <li><b>Terrain:</b> a zone's terrain compiles under {@code <ns>:terrain/<slug>/zone_<index>/}, and the router's
@@ -83,7 +84,7 @@ public final class ZonesCompiler {
 
     /** {@code settings} with every zone blended into its router and aquifers; the files go into the plan. */
     static JsonObject apply(Plan plan, JsonObject settings, String preset, Integer seaLevel, VanillaData vanilla,
-                            CompileReport.Entry entry) {
+                            java.util.function.Function<String, JsonObject> functions, CompileReport.Entry entry) {
         JsonObject out = settings.deepCopy();
         JsonObject router = out.getAsJsonObject("noise_router");
         JsonObject aquifers = out.has("aquifers") ? out.getAsJsonObject("aquifers") : null;
@@ -94,6 +95,7 @@ public final class ZonesCompiler {
         JsonElement baseTemperature = temperature.deepCopy();
         int channel = 0;
         for (ZoneSpec zone : plan.zones()) {
+            if (zone.globalSwap()) continue;
             String where = plan.slug() + ": zones[" + zone.index() + "]";
             JsonObject mask = ZoneDensity.mask(zone.mask(), jitter);
             jittered |= zone.mask().jitter() > 0;
@@ -113,7 +115,10 @@ public final class ZonesCompiler {
                 }
                 compiled.files().forEach(plan.files()::put);
                 JsonObject zoneRouter = compiled.settings().getAsJsonObject("noise_router");
-                for (String key : List.of("final_density", "depth", "chunk_surface_level")) {
+                String zoneCheese = plan.namespace() + ":terrain/" + name + "/sloped_cheese";
+                router.add("final_density", finalDensity(plan, zone, maskRef, router.get("final_density"),
+                        zoneRouter.get("final_density"), zoneCheese, functions));
+                for (String key : List.of("depth", "chunk_surface_level")) {
                     router.add(key, ZoneDensity.blend(maskRef, router.get(key), zoneRouter.get(key)));
                 }
                 if (aquifers != null) {
@@ -159,6 +164,66 @@ public final class ZonesCompiler {
             plan.files().put(DatapackCompiler.dataPath(jitter, "worldgen/noise"), jitterNoise());
         }
         return out;
+    }
+
+    /**
+     * The final density across a terrain zone. When the layers beneath are a
+     * vanilla-shaped final density over a {@code sloped_cheese}, that cheese is
+     * lerped to the zone's first: both surfaces are still unsqueezed there, so
+     * the ground moves from one height to the other across the blend instead
+     * of breaking off where the squeezed densities cross. Over the last
+     * quarter of the mask ({@link #FLOOR_SWITCH}), where the surfaces already
+     * agree, the result is lerped to the zone's own final density, which
+     * carries the zone's floor and slides. Anything else is lerped directly.
+     */
+    static JsonElement finalDensity(Plan plan, ZoneSpec zone, JsonPrimitive mask, JsonElement beneath, JsonElement inZone,
+                                    String zoneCheese, java.util.function.Function<String, JsonObject> functions) {
+        JsonObject body = beneath.isJsonPrimitive() ? functions.apply(beneath.getAsString()) : beneath.getAsJsonObject();
+        String cheese = body == null ? null : cheeseId(body);
+        if (cheese == null) return ZoneDensity.blend(mask, beneath, inZone);
+        String blendedId = plan.namespace() + ":zones/" + plan.slug() + "/" + zone.index() + "/sloped_cheese";
+        plan.files().put(DatapackCompiler.dataPath(blendedId, "worldgen/density_function"),
+                ZoneDensity.blend(mask, new JsonPrimitive(cheese), new JsonPrimitive(zoneCheese)));
+        JsonElement shaped = DatapackCompiler.replaceIds(body, Map.of(cheese, blendedId));
+        return ZoneDensity.blend(late(mask), shaped, inZone);
+    }
+
+    /** Where the zone's own final density takes over from the shaped one: the last quarter of the mask. */
+    static final double FLOOR_SWITCH = 0.75;
+
+    /** {@code clamp((mask - FLOOR_SWITCH) / (1 - FLOOR_SWITCH), 0, 1)}. */
+    static JsonObject late(JsonPrimitive mask) {
+        JsonObject shift = new JsonObject();
+        shift.addProperty("type", "minecraft:add");
+        shift.add("left", mask);
+        shift.addProperty("right", -FLOOR_SWITCH);
+        JsonObject scale = new JsonObject();
+        scale.addProperty("type", "minecraft:mul");
+        scale.add("left", shift);
+        scale.addProperty("right", 1 / (1 - FLOOR_SWITCH));
+        JsonObject clamp = new JsonObject();
+        clamp.addProperty("type", "minecraft:clamp");
+        clamp.add("input", scale);
+        clamp.addProperty("min", 0.0);
+        clamp.addProperty("max", 1.0);
+        return clamp;
+    }
+
+    /** The one {@code .../sloped_cheese} id a final density refers to, or null. */
+    static String cheeseId(JsonElement e) {
+        java.util.Set<String> found = new java.util.TreeSet<>();
+        collectCheese(e, found);
+        return found.size() == 1 ? found.iterator().next() : null;
+    }
+
+    private static void collectCheese(JsonElement e, java.util.Set<String> into) {
+        if (e.isJsonPrimitive() && e.getAsJsonPrimitive().isString() && e.getAsString().endsWith("/sloped_cheese")) {
+            into.add(e.getAsString());
+        } else if (e.isJsonObject()) {
+            e.getAsJsonObject().entrySet().forEach(kv -> collectCheese(kv.getValue(), into));
+        } else if (e.isJsonArray()) {
+            e.getAsJsonArray().forEach(v -> collectCheese(v, into));
+        }
     }
 
     /** {@code base} wrapped in our source with each channelled zone's layout and swaps, or {@code base} when no zone changes biomes. */

@@ -8,11 +8,11 @@ One owner: us. Vanilla's noise generator is fast, maintained by Mojang, and on 2
 | --- | --- | --- |
 | Terrain | Continents, erosion, ridges and peaks, plateaus and terraces, canyons, rivers, islands and archipelagos, floating islands, voids with rims, shattered land, spires, and scale and height multipliers | Our named density functions; 26.3's `distance_to_point`, `gradient`, `lerp` and `interval_select` cover islands, rims and bands in data |
 | Caves | Cheese, spaghetti and noodle mixes; cave networks; a solid or hollow underground | Density functions and carvers |
-| Biomes | A list of biomes with climate weights, or a hand-drawn layout; stamps by coordinates and radius; swaps | Multi-noise partitions the compiler builds without overlaps (26.4's rule); one biome source type of ours for stamps and swaps |
+| Biomes | A list of biomes with climate boxes; stamps by shape; swaps inside a zone or everywhere | Multi-noise layouts the compiler builds without overlaps (26.4's rule); our biome source `customdimensions:zoned` for zones and swaps |
 | Materials | `materials`: `top`, `filler`, `deep`, `cliffs`, `beaches`, `ceilings`, `defaultBlock`, and `biomes` (a palette per biome id or `#tag`) | The dimension's own `worldgen/material_rule`: the preset's bedrock and veins, each biome's palette under a `minecraft:biome` condition, the dimension's palette, then the preset's rule |
 | Liquids and aquifers | `liquids`: `seaLevel`, `lavaLevel`, `defaultFluid`, `aquifers` (`on`, `off`, `flooded`, `dry`) | Noise settings' `sea_level`, `default_fluid` and top-level `aquifers` object; `lavaLevel` has no data field (the generator's -54 is code), so the runtime replaces that level's fluid rule |
 | Ores | `ores`: `veins` (`true`, `false` or a list `like` copper or iron), `add` (ores as placed features), `remove` (placed feature ids) | Veins are `minecraft:ore_vein` material rules; added and removed placed features reach one dimension through the runtime's per-level biome feature lists, so no biome is copied |
-| Zones | Any layer above, replaced inside a shape | A mask density function per zone; biomes, materials and structures follow the mask through our biome source |
+| Zones | Terrain, biomes, aquifers and structure wants replaced inside a shape | A mask density function per zone; terrain and aquifers lerp in the router; biomes, materials and ores follow it through our biome source |
 | Atmosphere | Fog, sky, clouds, light, particles, music, day length, beds and anchors | Environment attributes, timelines and world clocks |
 | Structures | Wants and shuns, density, forced starts, replacements | Our structure control over every bridged structure set |
 
@@ -24,7 +24,7 @@ A definition picks one terrain in `terrain.base` and tunes it: `setting` (`gentl
 
 Each terrain is built from vanilla's overworld router (`compiler/.../terrain/`). It shapes a surface height in blocks and how closely the ground follows it, and replaces vanilla's `offset` (height / 128 − 1), `factor`, `jaggedness` and `sloped_cheese`; a terrain may add a 3D term that removes ground (voids, cracks) or adds it (sky islands). Caves, aquifers, ore veins and the slides stay vanilla's, so every surface lies between y −64 and 256, inside Bedrock's overworld range. The router's continentalness, erosion, ridges, temperature and vegetation are the preset's own, stretched by `scale`, and the shoreline sits where vanilla's biomes expect the coast, so biomes follow the land. The compiler writes `<namespace>:terrain/<slug>/` with `height`, `offset`, `factor`, `jaggedness`, `depth`, `sloped_cheese`, `final_density`, `preliminary_surface_level` and `chunk_surface_level`, the ids a zone blends between, and the library's noises as `<namespace>:terrain/<noise>`.
 
-`overworld`, `large_biomes`, `amplified` and `floating_islands` take a terrain; `checkerboard` and `single_biome` take one on overworld noise. `caves` and `nether` refuse it (their terrain is a cavern under a ceiling, not a surface), and so does `end` (its biome source reads the router's erosion as its island shape, so terrain there waits for our biome source, W2). An airborne terrain (`floating_islands`, `voids`) has no aquifers, no solid floor, and its sea level at the bottom of the world unless `liquids.seaLevel` sets one.
+`overworld`, `large_biomes`, `amplified` and `floating_islands` take a terrain; `checkerboard` and `single_biome` take one on overworld noise. `caves` and `nether` refuse it (their terrain is a cavern under a ceiling, not a surface), and so does `end` (`minecraft:the_end` reads the router's erosion as its island shape, which a terrain replaces). An airborne terrain (`floating_islands`, `voids`) has no aquifers, no solid floor, and its sea level at the bottom of the world unless `liquids.seaLevel` sets one.
 
 | Terrain | What it shapes | Its parameters (range, default) | Settings: what they look like, and what they set |
 | --- | --- | --- | --- |
@@ -54,28 +54,41 @@ v1's `adventure:wide` is `continents` with `scale` 2.5, `relief` 16 and `roughne
 
 ## Zones
 
-A zone replaces any layer inside a shape — circle, ring, box, sector or polygon — centred on spawn or a point, with a blend width and a jittered edge so borders read as landscape, not compass lines. Zones stack in order; outside them the base applies. They generalise the 1.21.1 `biomePatches`, which stamp biomes by shape with a blend, to every layer.
+A zone replaces layers inside a shape centred on spawn or a point, with a blend and a jittered edge so borders read as landscape, not compass lines. Zones apply in order, each over the ones before it; outside them the definition's own layers hold. A zone converted from a 1.21.1 biome patch is a circle that sets `biomes` only.
 
-- **Mask:** circles and rings use `distance_to_point` and `lerp`; the other shapes use one density-function type of ours, so the mask is exact and cheap.
-- **Blending:** terrain and aquifers through the noise router; biomes in our biome source; materials following biomes; ores through the zone's biomes; structure wants and shuns scoped to the zone.
-- **Liquids:** sea level stays one number per dimension; a zone goes dry or flooded through its aquifer settings and terrain height.
-- **Spawn-relative zones** resolve after spawn is chosen, and the definition chooses spawn ([T31](../../../TROUBLESHOOTING.md#t31)), so the ring is always where the definition says.
+| Field | Meaning |
+| --- | --- |
+| `shape` | `circle` (`radius`), `ring` (`inner`, `outer`), `square` (`radius`, half its side), `box` (`halfSize: [x, z]`), `sector` (`radius` or `outer`, `inner`, `angles: [from, to]` in degrees from east towards south), `polygon` (`points`, `[x, z]` corners relative to the centre), or `all`, the whole dimension, for swaps. Default `circle` |
+| `centre` | `[x, z]`, or `spawn`: the definition's `spawn` ([T31](../../../TROUBLESHOOTING.md#t31)), else 0, 0 |
+| `blend` | Blocks beyond the edge across which the zone fades out, linearly; 0 is a one-block hard edge. Default 32 |
+| `edgeJitter` | Blocks the edge wanders: noise added to the distance from the edge, two standard deviations of which are `edgeJitter`, in features of 128 blocks and finer. Default 0 |
+| `terrain` | A library terrain (its name, or an object as the definition's `terrain`) |
+| `biomes` | The zone's biome list, laid out as the definition's are |
+| `swap` | Biome to biome inside the zone; on shape `all`, everywhere and over every zone |
+| `liquids.aquifers` | `on` (the dimension's) or `dry`: no aquifer water or lava and no sea in the zone's open cells |
+| `structures` | `wants` and `shuns` scoped to the zone, for structure control |
 
-Normal worldgen everywhere, except a ring of shattered sky islands between 2,000 and 3,000 blocks from spawn. Field names are illustrative; F3 fixes the schema.
+An error names the slug and the zone (`the_x: zones[2]: outer is required for this shape`).
+
+- **Mask:** `<namespace>:zones/<slug>/<index>/mask` is `clamp(1 − (outside + jitter) / blend, 0, 1)`, where `outside` is the distance beyond the shape's edge. Circles, rings, boxes and `all` are vanilla functions (`gradient`, `square`, `sqrt`, `abs`, `max`); sectors and polygons use `customdimensions:zone_distance`, our one density-function type, which stays on the server. The jitter is the 2D noise `<namespace>:zone_jitter`.
+- **Terrain:** the zone's terrain compiles under `<namespace>:terrain/<slug>/zone_<index>/`. Across the blend its `sloped_cheese` is lerped to from the layers beneath, inside a copy of their final density, so the ground moves between the two surface heights before the densities are squeezed; over the mask's last quarter, where the surfaces agree, that is lerped to the zone's own final density, which carries its floor and slides. The router's `depth` and `chunk_surface_level` and the aquifers' `surface_level` lerp the same way, so materials and aquifers read the zone's surface.
+- **Aquifers:** `dry` lerps the aquifers' `exclusion` to 1 and their `surface_level` 64 blocks above the world, so no aquifer and no sea fills the zone. Sea level stays one number per dimension.
+- **Biomes:** our biome source, `customdimensions:zoned`, wraps the dimension's own. The router's temperature carries the zone whose biomes hold: where zone *c*'s mask reaches 0.5 it is the base temperature plus 16 *c*. The source reads the channel back, takes that zone's layout at the base temperature (or the base's, for a zone that only swaps), applies the zone's swaps, then the global ones. Materials and ores follow the biomes.
+- **Biome lists:** a biome with `climate` takes that box first; the others keep vanilla's entries in the preset's parameter list when every one of them has some, and otherwise share temperature by humidity as an even grid. Overlaps are carved away so earlier entries keep their space, which also meets 26.4's rule. The End keeps its own biome source unless it lists biomes; a list there takes the overworld's temperature and vegetation so the layout spreads across the islands.
+- **Query:** `core/.../zone/ZoneQuery` answers which zones cover a column, with each mask's still-edge weight; structure control scopes wants and shuns with it.
+
+Normal worldgen everywhere, except a ring of sky islands between 2,000 and 3,000 blocks from spawn (the self-test's `selftest_sky_ring`):
 
 ```json
-"worldgen": { "terrain": "adventure:continents", "biomes": "adventure:temperate" },
 "zones": [
-  { "shape": { "ring": { "centre": "spawn", "inner": 2000, "outer": 3000 } },
+  { "shape": "ring", "centre": "spawn", "inner": 2000, "outer": 3000,
     "blend": 200, "edgeJitter": 64,
-    "terrain": "adventure:floating_islands",
-    "biomes": ["adventure:cloud_meadow", "minecraft:cherry_grove"],
-    "liquids": { "aquifers": false },
-    "structures": { "wants": ["#adventure:sky_ruins"] } }
+    "terrain": { "base": "floating_islands" },
+    "biomes": ["minecraft:cherry_grove", "minecraft:meadow"],
+    "liquids": { "aquifers": "dry" },
+    "structures": { "wants": ["minecraft:ruined_portal"] } }
 ]
 ```
-
-If the F0 spike shows the blend cannot look natural in data alone, every shape uses our density-function type with a wider blend.
 
 ## Lessons the kit is built around
 

@@ -13,6 +13,7 @@ import com.customdimensions.server.level.RuntimeVanilla;
 import com.customdimensions.server.level.GeneratorSelfTest;
 import com.customdimensions.server.level.MaterialsSelfTest;
 import com.customdimensions.server.level.TerrainSelfTest;
+import com.customdimensions.server.zone.ZoneSelfTest;
 import com.customdimensions.server.difficulty.DifficultySelfTest;
 import com.customdimensions.server.level.LevelSelfTest;
 import com.customdimensions.server.portal.PortalSelfTest;
@@ -78,7 +79,7 @@ final class SelfTest {
     private static final String DEFINITIONS = "customdimensions.definitions";
     /** An extracted vanilla folder the runtime source is compared against; {@code -Dcustomdimensions.vanilla} also counts. */
     private static final String REFERENCE = "customdimensions.vanilla.reference";
-    /** {@code exits}, {@code commands}, {@code materials}, {@code render}, {@code firewall} or {@code terrain} runs the compiled-pack section and that one only, for iterating on it. */
+    /** {@code exits}, {@code commands}, {@code materials}, {@code render}, {@code firewall}, {@code terrain} or {@code zones} runs the compiled-pack section and that one only, for iterating on it. */
     private static final String ONLY = "customdimensions.selftest.only";
 
     private SelfTest() {}
@@ -102,7 +103,8 @@ final class SelfTest {
         boolean commandsOnly = "commands".equals(only);
         boolean renderOnly = "render".equals(only);
         boolean terrainOnly = "terrain".equals(only);
-        boolean exitsOnly = "exits".equals(only) || commandsOnly || materialsOnly || renderOnly || firewallOnly || terrainOnly;
+        boolean zonesOnly = "zones".equals(only);
+        boolean exitsOnly = "exits".equals(only) || commandsOnly || materialsOnly || renderOnly || firewallOnly || terrainOnly || zonesOnly;
         CompletableFuture<List<String>> levels;
         try {
             levels = exitsOnly ? CompletableFuture.completedFuture(List.of()) : LevelSelfTest.run(server);
@@ -129,6 +131,15 @@ final class SelfTest {
             }
         }).handle((more, error) -> {
             lines.addAll(error == null ? more : List.of("FAIL terrain: " + error));
+            return null;
+        }).thenCompose(v -> {
+            try {
+                return exitsOnly && !zonesOnly ? CompletableFuture.completedFuture(List.<String>of()) : ZoneSelfTest.run(server);
+            } catch (Throwable t) {
+                return CompletableFuture.completedFuture(List.of("FAIL zones: " + t));
+            }
+        }).handle((more, error) -> {
+            lines.addAll(error == null ? more : List.of("FAIL zones: " + error));
             return null;
         }).thenCompose(v -> {
             try {
@@ -168,7 +179,7 @@ final class SelfTest {
             return null;
         }).thenCompose(v -> {
             try {
-                return commandsOnly || materialsOnly || renderOnly || firewallOnly || terrainOnly ? CompletableFuture.completedFuture(List.<String>of()) : ExitSelfTest.run(server);
+                return commandsOnly || materialsOnly || renderOnly || firewallOnly || terrainOnly || zonesOnly ? CompletableFuture.completedFuture(List.<String>of()) : ExitSelfTest.run(server);
             } catch (Throwable t) {
                 return CompletableFuture.completedFuture(List.of("FAIL exits: " + t));
             }
