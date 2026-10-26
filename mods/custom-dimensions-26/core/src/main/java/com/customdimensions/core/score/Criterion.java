@@ -1,7 +1,5 @@
 package com.customdimensions.core.score;
 
-import com.customdimensions.core.config.DimensionConfig;
-import com.customdimensions.core.facts.SeedFacts;
 
 /**
  * One named, separately arguable judgement about a seed.
@@ -47,7 +45,7 @@ public interface Criterion {
     }
 
     /** What this criterion wants, in one sentence, for the report. */
-    String target(DimensionConfig def);
+    String target(RollTarget def);
 
     /**
      * Whether this criterion applies to this dimension, from config alone.
@@ -62,7 +60,7 @@ public interface Criterion {
      * <p>Consequence: a criterion that applies but whose input fact is absent
      * is NOT inapplicable. It scores zero and says the fact was not measured.
      */
-    default boolean applicable(DimensionConfig def) {
+    default boolean applicable(RollTarget def) {
         return true;
     }
 
@@ -92,12 +90,12 @@ public interface Criterion {
      * <p>A fraction, a density and a clustering figure have no radius. Leave
      * them null rather than inventing a plausible one.
      */
-    default double[] band(DimensionConfig def) {
+    default double[] band(RollTarget def) {
         return null;
     }
 
     /** Judge one seed. Must not throw: an error is an {@link Result.NotApplicable}. */
-    Result evaluate(SeedFacts facts, DimensionConfig def);
+    Result evaluate(RollFacts facts, RollTarget def);
 
     enum Group {
         THEME, INTEREST, CHALLENGE, APPROPRIATE, FUN

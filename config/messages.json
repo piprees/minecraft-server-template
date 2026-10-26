@@ -63,6 +63,17 @@
   "customdim.render.radius": "Radius {radius} is outside {min} to {max}.",
   "customdim.render.step": "Step {step} is too fine for radius {radius}: the smallest is {min}, which keeps the image at {side} pixels a side or fewer.",
   "customdim.render.failed": "Could not render {dimension}: {reason}",
+  "customdim.roll.started": "Rolling {count} seeds of {dimension}: a {side}x{side} disc of radius {radius} (step {step}) and structure starts out to {structureRadius} blocks, on {threads} threads.",
+  "customdim.roll.progress": "Rolling {dimension}: {percent}%.",
+  "customdim.roll.done": "Rolled {count} seeds of {dimension} in {seconds} s ({rate} columns/s); the best is seed {seed} at {score}. Contact sheet: {path}",
+  "customdim.roll.busy": "A render or roll of {dimension} is running ({percent}%); one runs at a time.",
+  "customdim.roll.count": "Count {count} is outside 1 to {max}.",
+  "customdim.roll.skip": "{dimension} sets roll.skip, so it is not rolled.",
+  "customdim.roll.has_chunks": "{dimension} already has generated chunks in {path}. A seed only applies before a dimension is first created (D2): reset it by deleting that folder with the server stopped, then roll or pick.",
+  "customdim.roll.failed": "Could not roll {dimension}: {reason}",
+  "customdim.pick.done": "Wrote seed {seed} into {path}; {dimension} uses it after the next restart.",
+  "customdim.pick.no_rank": "The last roll of {dimension} has no rank {rank}; roll it first.",
+  "customdim.pick.no_file": "{dimension} has no definition file at {path} to write the seed into.",
 
   "updates.available": "{admin_ping}**Mod updates available** ({count}):\n{mod_list}\nFull status on the mods page.",
 

@@ -105,7 +105,8 @@ final class SelfTest {
         boolean terrainOnly = "terrain".equals(only);
         boolean zonesOnly = "zones".equals(only);
         boolean structuresOnly = "structures".equals(only);
-        boolean exitsOnly = "exits".equals(only) || commandsOnly || materialsOnly || renderOnly || firewallOnly || terrainOnly || zonesOnly || structuresOnly;
+        boolean rollOnly = "roll".equals(only) || "rollperf".equals(only);
+        boolean exitsOnly = "exits".equals(only) || commandsOnly || materialsOnly || renderOnly || firewallOnly || terrainOnly || zonesOnly || structuresOnly || rollOnly;
         CompletableFuture<List<String>> levels;
         try {
             levels = exitsOnly ? CompletableFuture.completedFuture(List.of()) : LevelSelfTest.run(server);
@@ -172,6 +173,16 @@ final class SelfTest {
             return null;
         }).thenCompose(v -> {
             try {
+                return exitsOnly && !rollOnly ? CompletableFuture.completedFuture(List.<String>of())
+                        : com.customdimensions.server.render.RollSelfTest.run(server, "rollperf".equals(only));
+            } catch (Throwable t) {
+                return CompletableFuture.completedFuture(List.of("FAIL roll: " + t));
+            }
+        }).handle((more, error) -> {
+            lines.addAll(error == null ? more : List.of("FAIL roll: " + error));
+            return null;
+        }).thenCompose(v -> {
+            try {
                 return exitsOnly ? CompletableFuture.completedFuture(List.<String>of()) : PortalSelfTest.run(server);
             } catch (Throwable t) {
                 return CompletableFuture.completedFuture(List.of("FAIL portals: " + t));
@@ -190,7 +201,7 @@ final class SelfTest {
             return null;
         }).thenCompose(v -> {
             try {
-                return commandsOnly || materialsOnly || renderOnly || firewallOnly || terrainOnly || zonesOnly || structuresOnly ? CompletableFuture.completedFuture(List.<String>of()) : ExitSelfTest.run(server);
+                return commandsOnly || materialsOnly || renderOnly || firewallOnly || terrainOnly || zonesOnly || structuresOnly || rollOnly ? CompletableFuture.completedFuture(List.<String>of()) : ExitSelfTest.run(server);
             } catch (Throwable t) {
                 return CompletableFuture.completedFuture(List.of("FAIL exits: " + t));
             }

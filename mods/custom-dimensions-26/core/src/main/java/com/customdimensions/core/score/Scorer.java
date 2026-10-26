@@ -1,7 +1,5 @@
 package com.customdimensions.core.score;
 
-import com.customdimensions.core.config.DimensionConfig;
-import com.customdimensions.core.facts.SeedFacts;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -46,7 +44,7 @@ public final class Scorer {
     private Scorer() {
     }
 
-    public static Scorecard score(SeedFacts facts, DimensionConfig def,
+    public static Scorecard score(RollFacts facts, RollTarget def,
                                   List<Criterion> criteria) {
         List<Scorecard.Entry> entries = new ArrayList<>();
         double achieved = 0.0;
@@ -151,7 +149,7 @@ public final class Scorer {
             return new Scorecard(facts.dimension(), facts.seed(),
                     Scorecard.Verdict.INVALID_CONFIG,
                     "no criterion could be applied to this dimension — check "
-                    + "customdim lint before rolling it",
+                    + "its roll field before rolling it",
                     0.0, 0.0, entries);
         }
         if (graded == 0) {
@@ -165,7 +163,7 @@ public final class Scorer {
             return new Scorecard(facts.dimension(), facts.seed(),
                     Scorecard.Verdict.INVALID_CONFIG,
                     "every applicable criterion came back unmeasured — read the "
-                    + "facts artefact and customdim lint before rolling this",
+                    + "scorecard before rolling this",
                     0.0, configCeiling, entries);
         }
         return new Scorecard(facts.dimension(), facts.seed(),
@@ -177,7 +175,7 @@ public final class Scorer {
      * Computable without seed data and stable across runs: the scorer's own
      * ceiling must equal it for every seed, and a test asserts so.
      */
-    public static double ceiling(DimensionConfig def, List<Criterion> criteria) {
+    public static double ceiling(RollTarget def, List<Criterion> criteria) {
         double ceiling = 0.0;
         for (Criterion c : criteria) {
             if (!c.gate() && safeApplicable(c, def)) {
@@ -187,7 +185,7 @@ public final class Scorer {
         return ceiling;
     }
 
-    private static boolean safeApplicable(Criterion c, DimensionConfig def) {
+    private static boolean safeApplicable(Criterion c, RollTarget def) {
         try {
             return c.applicable(def);
         } catch (RuntimeException e) {
@@ -198,7 +196,7 @@ public final class Scorer {
     }
 
     /** A criterion that cannot state its band has none — never a guessed radius. */
-    private static double[] safeBand(Criterion c, DimensionConfig def) {
+    private static double[] safeBand(Criterion c, RollTarget def) {
         try {
             double[] b = c.band(def);
             return b != null && b.length == 2 ? b : null;
@@ -207,7 +205,7 @@ public final class Scorer {
         }
     }
 
-    private static String safeTarget(Criterion c, DimensionConfig def) {
+    private static String safeTarget(Criterion c, RollTarget def) {
         try {
             return c.target(def);
         } catch (RuntimeException e) {

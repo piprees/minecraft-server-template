@@ -132,7 +132,7 @@ public final class PackInstaller {
         return world.resolve("dimensions").resolve(id.substring(0, colon)).resolve(id.substring(colon + 1)).resolve("region");
     }
 
-    static boolean holdsChunks(Path region) {
+    public static boolean holdsChunks(Path region) {
         if (!Files.isDirectory(region)) return false;
         try (Stream<Path> files = Files.list(region)) {
             return files.anyMatch(f -> f.getFileName().toString().endsWith(".mca") && size(f) > REGION_HEADER);

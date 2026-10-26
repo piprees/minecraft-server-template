@@ -78,6 +78,9 @@ public final class RenderSelfTest {
     private final MinecraftServer server;
     private final LevelManager manager;
     private final List<String> lines = new ArrayList<>();
+    private String prefix = "render accuracy";
+    private int salt;
+    private String reportName = "accuracy.tsv";
     private final ExecutorService worker = Executors.newSingleThreadExecutor(r -> {
         Thread t = new Thread(r, "customdim-render-selftest");
         t.setDaemon(true);
@@ -94,6 +97,31 @@ public final class RenderSelfTest {
         if (manager == null) return CompletableFuture.completedFuture(List.of("FAIL render: the level manager did not start"));
         register();
         return new RenderSelfTest(server, manager).run();
+    }
+
+    /**
+     * The accuracy gate under another name, at another set of random columns
+     * ({@code salt}), reported to {@code reportName} in each dimension's
+     * render folder: the roll's agreement gate.
+     */
+    public static CompletableFuture<List<String>> agreement(MinecraftServer server, String prefix, int salt, String reportName,
+                                                            List<String[]> gate) {
+        LevelManager manager = LevelManager.get().orElse(null);
+        if (manager == null) return CompletableFuture.completedFuture(List.of("FAIL " + prefix + ": the level manager did not start"));
+        register();
+        RenderSelfTest test = new RenderSelfTest(server, manager);
+        test.prefix = prefix;
+        test.salt = salt;
+        test.reportName = reportName;
+        int pause = test.holdAwake();
+        CompletableFuture<Void> chain = CompletableFuture.completedFuture(null);
+        for (String[] g : gate) chain = chain.thenCompose(v -> test.accuracy(g[0], g[1]));
+        return chain.handle((v, error) -> {
+            if (error != null) test.lines.add("FAIL " + prefix + ": the check chain broke: " + cause(error));
+            test.restorePause(pause);
+            test.worker.shutdown();
+            return List.copyOf(test.lines);
+        });
     }
 
     private static synchronized void register() {
@@ -144,14 +172,14 @@ public final class RenderSelfTest {
     private record Compared(Sampler.Column sampled, int realHeight, String realBiome, String mismatch) {}
 
     private CompletableFuture<Void> accuracy(String variant, String slug) {
-        String name = "render accuracy " + variant + " (" + slug + ")";
+        String name = prefix + " " + variant + " (" + slug + ")";
         boolean lazy = manager.index().lazy().containsKey(slug);
         CompletableFuture<ServerLevel> open = lazy ? manager.activate(slug).thenApply(LevelManager.Activation::level)
                 : CompletableFuture.completedFuture(server.getLevel(manager.index().baseWorlds().stream()
                 .filter(w -> w.slug().equals(slug)).findFirst().orElseThrow().key()));
         return open.thenCompose(level -> CompletableFuture.supplyAsync(() -> {
             Sampler sampler = Sampler.forDimension(server, manager, slug, null);
-            Random random = new Random(slug.hashCode());
+            Random random = new Random(slug.hashCode() ^ salt);
             List<Sampled> columns = new ArrayList<>();
             while (columns.size() < COLUMNS) {
                 int x = random.nextInt(2 * RADIUS + 1) - RADIUS;
@@ -305,7 +333,7 @@ public final class RenderSelfTest {
     }
 
     private Path writeReport(String slug, Sampler sampler, List<Compared> compared) {
-        Path out = RenderJob.outputDir(slug).resolve("accuracy.tsv");
+        Path out = RenderJob.outputDir(slug).resolve(reportName);
         List<String> rows = new ArrayList<>();
         rows.add("# " + slug + " seed " + sampler.seed() + " (" + sampler.seedSource() + "), surface: " + RenderJob.SURFACE);
         rows.add("x\tz\tsampled\treal\troofed\tfluid\tsampledBiome\trealBiome\tmismatch");
@@ -318,7 +346,7 @@ public final class RenderSelfTest {
             Files.createDirectories(out.getParent());
             Files.write(out, rows);
         } catch (IOException e) {
-            lines.add("FAIL render accuracy report " + out + ": " + e);
+            lines.add("FAIL " + prefix + " report " + out + ": " + e);
         }
         return out;
     }

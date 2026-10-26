@@ -63,6 +63,7 @@ public final class CustomDimCommands {
         AuditCommand.attach(root);
         CatalogueCommand.attach(root);
         RenderCommand.attach(root);
+        RollCommand.attach(root);
         dispatcher.register(root);
     }
 

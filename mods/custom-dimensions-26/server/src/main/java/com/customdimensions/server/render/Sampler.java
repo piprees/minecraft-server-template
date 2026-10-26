@@ -22,6 +22,7 @@ import net.minecraft.world.level.biome.BiomeResolver;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.ChunkGenerator;
+import net.minecraft.world.level.chunk.ChunkGeneratorStructureState;
 import net.minecraft.world.level.dimension.LevelStem;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.levelgen.NoiseBasedChunkGenerator;
@@ -70,6 +71,7 @@ public final class Sampler {
     private final int noiseTop;
     private final ThreadLocal<BiomeResolver> resolvers;
     private final List<DensitySampler> zoneMasks;
+    private final RegistryAccess access;
 
     private Sampler(String dimension, ChunkGenerator generator, int minY, int height, long seed, String seedSource,
                     RegistryAccess access) {
@@ -78,6 +80,7 @@ public final class Sampler {
         this.heights = LevelHeightAccessor.create(minY, height);
         this.seed = seed;
         this.seedSource = seedSource;
+        this.access = access;
         var noises = access.lookupOrThrow(Registries.NOISE);
         if (generator instanceof NoiseBasedChunkGenerator noise) {
             this.random = RandomState.create(noises, seed, noise.generatorSettings().value());
@@ -182,6 +185,15 @@ public final class Sampler {
     }
 
     /** The noise biome at {@code (x, y, z)}, {@code y} clamped into the dimension. */
+    /** The generator's structure placement state for this seed, as a level with this generator builds it. */
+    public ChunkGeneratorStructureState structureState() {
+        return generator.createState(access.lookupOrThrow(Registries.STRUCTURE_SET), random, seed);
+    }
+
+    public RegistryAccess registryAccess() {
+        return access;
+    }
+
     public Holder<Biome> biome(int x, int y, int z) {
         int lowest = QuartPos.fromBlock(heights.getMinY());
         int highest = lowest + QuartPos.fromBlock(heights.getHeight()) - 1;

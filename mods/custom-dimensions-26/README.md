@@ -31,7 +31,7 @@ With `-PselfTest`, `runServer` reads a copy of `definitions/` with the fixture
 dimensions in `server/src/selftest/definitions/` added (a void death, a kept
 inventory, every win trigger, dry and flooded aquifers, a palette, an ore set, structure control and five structure densities), and each library terrain's `*_default.json` from
 `server/src/selftest/gallery/`. The fixtures are never in the release jar.
-`-PselfTestOnly=exits` runs only the compiled-pack and exit sections; `-PselfTestOnly=commands` the compiled-pack and command sections; `-PselfTestOnly=materials` the compiled-pack and materials sections; `-PselfTestOnly=render` the compiled-pack and render sections; `-PselfTestOnly=firewall` the compiled-pack and firewall sections; `-PselfTestOnly=terrain` the compiled-pack and terrain sections; `-PselfTestOnly=structures` the compiled-pack and structure sections.
+`-PselfTestOnly=exits` runs only the compiled-pack and exit sections; `-PselfTestOnly=commands` the compiled-pack and command sections; `-PselfTestOnly=materials` the compiled-pack and materials sections; `-PselfTestOnly=render` the compiled-pack and render sections; `-PselfTestOnly=firewall` the compiled-pack and firewall sections; `-PselfTestOnly=terrain` the compiled-pack and terrain sections; `-PselfTestOnly=zones` the compiled-pack and zone sections; `-PselfTestOnly=structures` the compiled-pack and structure sections; `-PselfTestOnly=roll` the compiled-pack and roll sections; `-PselfTestOnly=rollperf` those and the 100-seed roll timing, which no other run includes.
 
 `runServer` also loads Open Parties and Claims and its Forge Config API Port
 dependency from the Modrinth maven (`localRuntime`, versions in
@@ -209,6 +209,8 @@ files byte for byte.
 | `audit` | Writes `<world>/customdimensions/audit.md`: definitions compiled afresh against the pack (stale, missing, in the pack with no definition), level folders with no definition, portal links to unknown dimensions, frame blocks and igniters the server lacks, Bedrock height warnings, skipped biomes and unsupported fields, and the firewall's allowed mods, unreviewed bridges, switched-off structure sets and biome removals |
 | `catalogue` | Writes `../.seed-rolling/catalogue/registries.json` beside the game directory for `scripts/extract-registries.py`: biomes, biome tags, structures, structure sets (placement as the game's codec writes it), blocks, items, features, placed features, entity types, and every tag of those registries with its members |
 | `render <dimension> [seed] [radius] [step]` | Draws the dimension top-down from the `Sampler` into `renders/<dimension>/` under the game directory, off the server thread, without generating chunks ([below](#rendering)). One render at a time |
+| `roll <dimension> [count]` | Scores `count` seeds (default 100, at most 500) from the `Sampler` off the server thread, renders the best ten and writes the contact sheet `renders/<dimension>/index.html` ([below](#rolling)). Refused for a dimension whose region folder holds chunks. Shares the one render job |
+| `pick <dimension> <seed>`, `pick <dimension> rank <n>` | Writes the seed, or the last roll's rank `n`, into the dimension's definition file; it applies after the next restart. Refused for a dimension whose region folder holds chunks |
 
 ## Rendering
 
@@ -272,6 +274,49 @@ column no class explains fails; each dimension's columns and classes are written
 to `renders/<dimension>/accuracy.tsv`. It also checks that the sampler's noise
 columns equal the live level generator's, renders the overworld at radius
 1024, step 8 while counting the server's ticks, and checks the refusals.
+
+## Rolling
+
+`/customdim roll <dimension> [count]` picks the seed for everything zones do
+not fix (roller.md). For each seed `Roll` samples, on `RenderJob`'s pool, a
+disc of 128 columns a side round the definition's spawn covering the player
+border up to 2,048 blocks, and `FactsBuilder`'s spawn patch (radius 128, step
+8); reads the wanted, shunned and gate structures' starts from the generator's
+placement state (`StructureStarts`) out to the player border, up to 8,192
+blocks; turns both into `RollFacts` (core) and scores them with `Scorer` and
+`Criteria` against the definition's `roll` field (`RollSpec`). A definition
+with a fixed seed has it rolled first, so the sheet shows where it stands. The
+roll replies when it starts, at 25, 50 and 75 % and when it finishes; it is
+refused while a render or roll runs, for `count` outside 1 to 500, for
+`roll.skip`, and for a dimension whose region folder holds chunks (D2).
+
+| File in `renders/<dimension>/` | What it holds |
+| --- | --- |
+| `index.html` | The contact sheet: the best ten, best first, each with its three images, score, structure legend and scorecard table; relative paths only, so it opens from disk |
+| `roll.json` | The ranking `pick <dimension> rank <n>` reads: rank, seed, verdict, percentage, scorecard file, and the disc and structure radii |
+| `<seed>-r<radius>-structures.png` | The biome image at a third of its brightness with a white-rimmed square, one colour per structure, at each structure start in the disc |
+| `<seed>-r<radius>-scorecard.json` | The seed's `Scorecard`: verdict, tiers and every criterion's outcome, target and evidence |
+
+Biome and height images and the sidecar are the render's. A structure start
+is a chunk the set's placement picks, with the structure chosen as
+`ChunkGenerator.createStructures` chooses it (weighted, seeded by the chunk)
+and its biome checked at the chunk's middle on the sampled surface; checks a
+structure makes later (terrain, jigsaw fit) are not made, so a start is a
+candidate generation can still drop.
+
+`pick` replaces `seed` in the definition file through the converter's
+`JsonWriter`, keeping every other field and the key order, reads the result
+back and replies that it applies after the next restart.
+
+`RollSelfTest` runs the render accuracy gate at another 50 columns in the
+overworld, the Nether and The Aviary (`renders/<dimension>/agreement.tsv`);
+checks every structure-start candidate within 384 blocks of 0,0 in the
+overworld and the Nether against the starts those chunks record at
+`structure_starts` (a recorded start with no candidate fails, unless the
+structure's biomes exclude the chunk middle's: class `point`); rolls five
+seeds of the first lazy dimension with wants and no chunks and checks its
+sheet; picks by seed and by rank into a copy of that definition; and checks
+the refusals.
 
 ## Firewall
 

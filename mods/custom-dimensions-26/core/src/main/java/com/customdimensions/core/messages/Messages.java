@@ -63,7 +63,18 @@ public final class Messages {
             Map.entry("customdim.render.busy", "A render of {dimension} is running ({percent}%); one render runs at a time."),
             Map.entry("customdim.render.radius", "Radius {radius} is outside {min} to {max}."),
             Map.entry("customdim.render.step", "Step {step} is too fine for radius {radius}: the smallest is {min}, which keeps the image at {side} pixels a side or fewer."),
-            Map.entry("customdim.render.failed", "Could not render {dimension}: {reason}"));
+            Map.entry("customdim.render.failed", "Could not render {dimension}: {reason}"),
+            Map.entry("customdim.roll.started", "Rolling {count} seeds of {dimension}: a {side}x{side} disc of radius {radius} (step {step}) and structure starts out to {structureRadius} blocks, on {threads} threads."),
+            Map.entry("customdim.roll.progress", "Rolling {dimension}: {percent}%."),
+            Map.entry("customdim.roll.done", "Rolled {count} seeds of {dimension} in {seconds} s ({rate} columns/s); the best is seed {seed} at {score}. Contact sheet: {path}"),
+            Map.entry("customdim.roll.busy", "A render or roll of {dimension} is running ({percent}%); one runs at a time."),
+            Map.entry("customdim.roll.count", "Count {count} is outside 1 to {max}."),
+            Map.entry("customdim.roll.skip", "{dimension} sets roll.skip, so it is not rolled."),
+            Map.entry("customdim.roll.has_chunks", "{dimension} already has generated chunks in {path}. A seed only applies before a dimension is first created (D2): reset it by deleting that folder with the server stopped, then roll or pick."),
+            Map.entry("customdim.roll.failed", "Could not roll {dimension}: {reason}"),
+            Map.entry("customdim.pick.done", "Wrote seed {seed} into {path}; {dimension} uses it after the next restart."),
+            Map.entry("customdim.pick.no_rank", "The last roll of {dimension} has no rank {rank}; roll it first."),
+            Map.entry("customdim.pick.no_file", "{dimension} has no definition file at {path} to write the seed into."));
 
     private final Map<String, String> entries;
 
