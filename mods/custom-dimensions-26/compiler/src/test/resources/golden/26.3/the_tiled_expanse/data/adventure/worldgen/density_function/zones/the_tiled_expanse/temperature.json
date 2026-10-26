@@ -1,0 +1,12 @@
+{
+  "input": "adventure:zones/the_tiled_expanse/0/mask",
+  "max_exclusive": 2.0,
+  "min_inclusive": 0.5,
+  "type": "minecraft:range_choice",
+  "when_in_range": {
+    "left": "minecraft:overworld/temperature",
+    "right": 16.0,
+    "type": "minecraft:add"
+  },
+  "when_out_of_range": "minecraft:overworld/temperature"
+}

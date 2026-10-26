@@ -9,6 +9,7 @@ import com.customdimensions.server.level.LevelManager;
 import com.customdimensions.server.level.WorldgenRuntime;
 import com.customdimensions.server.level.PackInstaller;
 import com.customdimensions.server.portal.Portals;
+import com.customdimensions.server.zone.ZoneTypes;
 import net.fabricmc.api.ModInitializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,6 +21,7 @@ public final class CustomDimensions implements ModInitializer {
     @Override
     public void onInitialize() {
         WorldgenFirewall.register();
+        ZoneTypes.register();
         PackInstaller.install();
         LevelManager.register();
         WorldgenRuntime.register();

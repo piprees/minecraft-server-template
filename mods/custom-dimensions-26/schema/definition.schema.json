@@ -813,25 +813,154 @@
       ]
     },
     "zone": {
-      "description": "A shape around spawn or a point that replaces layers inside it.",
+      "description": "A shape around spawn or a point that replaces layers inside it. Zones apply in order, each over the ones before it; outside them the definition's own layers hold.",
       "type": "object",
-      "additionalProperties": true,
+      "additionalProperties": false,
       "properties": {
-        "shape": { "type": ["string", "object"] },
+        "shape": {
+          "description": "circle (radius), ring (inner, outer), square (radius: half its side), box (halfSize), sector (radius or outer, inner, angles) or polygon (points); all covers the whole dimension, for swaps.",
+          "enum": [
+            "circle",
+            "ring",
+            "square",
+            "box",
+            "sector",
+            "polygon",
+            "all"
+          ],
+          "default": "circle"
+        },
         "centre": {
+          "description": "[x, z], or spawn: the definition's spawn (0, 0 without one).",
           "oneOf": [
             {
               "type": "array",
-              "items": { "type": "number" },
+              "items": {
+                "type": "number"
+              },
               "minItems": 2,
               "maxItems": 2
             },
-            { "const": "spawn" }
+            {
+              "const": "spawn"
+            }
           ]
         },
-        "radius": { "type": "number", "exclusiveMinimum": 0 },
-        "blend": { "type": "number", "minimum": 0 },
-        "biomes": { "type": "array", "items": { "$ref": "#/$defs/id" } }
+        "radius": {
+          "description": "circle and square: blocks from the centre to the edge; sector: its outer radius.",
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "inner": {
+          "description": "ring and sector: the hole's radius.",
+          "type": "number",
+          "minimum": 0
+        },
+        "outer": {
+          "description": "ring and sector: the outer radius.",
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "halfSize": {
+          "description": "box: half its size along x and z.",
+          "type": "array",
+          "items": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "angles": {
+          "description": "sector: [from, to] in degrees from east (+x) towards south (+z).",
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "points": {
+          "description": "polygon: [x, z] corners relative to the centre, at least three.",
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            },
+            "minItems": 2,
+            "maxItems": 2
+          },
+          "minItems": 3
+        },
+        "blend": {
+          "description": "Blocks beyond the edge over which the zone fades out; 0 is a hard edge.",
+          "type": "number",
+          "minimum": 0,
+          "default": 32
+        },
+        "edgeJitter": {
+          "description": "Blocks the edge wanders by noise (two standard deviations), so it reads as landscape.",
+          "type": "number",
+          "minimum": 0,
+          "default": 0
+        },
+        "terrain": {
+          "description": "The zone's terrain: a library terrain's name, or a terrain object as the definition's.",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "$ref": "#/properties/terrain"
+            }
+          ]
+        },
+        "biomes": {
+          "description": "The zone's biomes, laid out as the definition's are; materials and ores follow them.",
+          "type": "array",
+          "items": {
+            "$ref": "#/properties/biomes/items"
+          }
+        },
+        "swap": {
+          "description": "Biome id to biome id, applied inside the zone; on shape all, everywhere.",
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/id"
+          }
+        },
+        "liquids": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "aquifers": {
+              "description": "on keeps the dimension's; dry: no aquifer or sea water in the zone.",
+              "enum": [
+                "on",
+                "dry"
+              ]
+            }
+          }
+        },
+        "structures": {
+          "description": "Structure wants and shuns scoped to the zone, applied by structure control.",
+          "type": "object",
+          "properties": {
+            "wants": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "shuns": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        }
       }
     },
     "portal": {

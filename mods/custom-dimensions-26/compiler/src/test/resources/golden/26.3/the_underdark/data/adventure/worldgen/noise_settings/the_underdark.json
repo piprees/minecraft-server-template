@@ -1,0 +1,6 @@
+{
+  "base": "minecraft:caves",
+  "changed": {
+    "noise_router": "sha1:fefa0d975b441898f59275a791527d8df95f5664"
+  }
+}

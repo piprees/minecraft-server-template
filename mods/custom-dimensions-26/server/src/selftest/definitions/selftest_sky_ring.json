@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 2,
+  "description": "Self-test fixture: normal overworld with a ring of floating islands 2,000 to 3,000 blocks from spawn, its own biomes, dry, with a wandering edge.",
+  "seed": 2026,
+  "spawn": [16, 80, 16],
+  "generator": {
+    "type": "noise",
+    "preset": "overworld"
+  },
+  "zones": [
+    {
+      "shape": "ring",
+      "centre": "spawn",
+      "inner": 2000,
+      "outer": 3000,
+      "blend": 200,
+      "edgeJitter": 64,
+      "terrain": { "base": "floating_islands" },
+      "biomes": ["minecraft:cherry_grove", "minecraft:meadow"],
+      "liquids": { "aquifers": "dry" },
+      "structures": { "wants": ["minecraft:ruined_portal"] }
+    }
+  ],
+  "borders": {
+    "player": 8192
+  }
+}

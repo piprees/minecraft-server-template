@@ -42,7 +42,7 @@ public final class TerrainLibrary {
     public static final Map<String, String> REFUSED = Map.of(
             "caves", "its terrain is a cave system under a solid ceiling, not a surface",
             "nether", "its terrain is a cavern between a floor and a ceiling, not a surface",
-            "end", "the End biome source reads the router's erosion as its island shape; terrain there waits for our biome source (W2)");
+            "end", "the End biome source reads the router's erosion as its island shape, which a terrain replaces");
 
     /** Router entries taken from the preset and stretched by {@code scale}. */
     static final List<String> CLIMATE = List.of("continents", "erosion", "ridges", "temperature", "vegetation");

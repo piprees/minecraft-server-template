@@ -21,6 +21,8 @@ public final class ColumnSamples {
     private final int[] height;
     private final byte[] fluid;
     private final int[] biome;
+    private byte[] zone;
+    private byte[] zoneWeight;
     private final Map<String, Integer> biomeIndex = new ConcurrentHashMap<>();
     private final List<String> biomeIds = new ArrayList<>();
 
@@ -41,6 +43,38 @@ public final class ColumnSamples {
         height[i] = surface;
         fluid[i] = (byte) over.ordinal();
         biome[i] = biomeIndex.computeIfAbsent(biomeId, this::intern);
+    }
+
+    /**
+     * The top zone covering a pixel ({@code index} in the definition's
+     * {@code zones}, -1 for none) and its mask there, 0 to 1.
+     */
+    public void setZone(int px, int py, int index, double weight) {
+        synchronized (this) {
+            if (zone == null) {
+                zone = new byte[height.length];
+                zoneWeight = new byte[height.length];
+                java.util.Arrays.fill(zone, (byte) -1);
+            }
+        }
+        int i = py * grid.side() + px;
+        zone[i] = (byte) index;
+        zoneWeight[i] = (byte) Math.round(Math.max(0, Math.min(1, weight)) * 255);
+    }
+
+    /** Whether any zone was sampled. */
+    public synchronized boolean hasZones() {
+        return zone != null;
+    }
+
+    /** The top zone's index at a pixel, or -1. */
+    public int zone(int px, int py) {
+        return zone == null ? -1 : zone[py * grid.side() + px];
+    }
+
+    /** The top zone's mask at a pixel, 0 to 1. */
+    public double zoneWeight(int px, int py) {
+        return zone == null ? 0 : (zoneWeight[py * grid.side() + px] & 0xFF) / 255.0;
     }
 
     private synchronized int intern(String id) {

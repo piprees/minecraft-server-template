@@ -3,1174 +3,139 @@
   "generator": {
     "type": "minecraft:noise",
     "biome_source": {
-      "type": "minecraft:multi_noise",
-      "biomes": [
-        {
-          "biome": "minecraft:mushroom_fields",
-          "parameters": "sha1:83ee1c296c6cab662c2a90708d2e208c1084a0eb"
-        },
-        {
-          "biome": "minecraft:mushroom_fields",
-          "parameters": "sha1:75e58ac736e7189cba5aa3e3c51d1120fac2e7fc"
-        },
-        {
-          "biome": "minecraft:swamp",
-          "parameters": "sha1:bb59f9a22fb5709fa51e99ec04b796d78f197fde"
-        },
-        {
-          "biome": "minecraft:swamp",
-          "parameters": "sha1:540c8732dfd5f69efc81789fb1fdea06c226d0e0"
-        },
-        {
-          "biome": "minecraft:old_growth_spruce_taiga",
-          "parameters": "sha1:1211ee9c2ef71acbc11151218cdf86a4847fa5c9"
-        },
-        {
-          "biome": "minecraft:old_growth_spruce_taiga",
-          "parameters": "sha1:63992b2d4793d539daccf782242e9eadd696d306"
-        },
-        {
-          "biome": "minecraft:old_growth_spruce_taiga",
-          "parameters": "sha1:994b67d5709df65c37473687e410f1d409eba116"
-        },
-        {
-          "biome": "minecraft:old_growth_spruce_taiga",
-          "parameters": "sha1:f04c642af6f01066508c9ea7868f6a10a92e0c06"
-        },
-        {
-          "biome": "minecraft:old_growth_spruce_taiga",
-          "parameters": "sha1:bb525241cebd223fbe7a0ffe486cb3d6a1984cf7"
-        },
-        {
-          "biome": "minecraft:old_growth_spruce_taiga",
-          "parameters": "sha1:3425267efe34b2daf7ca8eab443d76d774b69fbf"
-        },
-        {
-          "biome": "minecraft:old_growth_spruce_taiga",
-          "parameters": "sha1:8219202a00ed9f222887c92da09340bc44c4c58b"
-        },
-        {
-          "biome": "minecraft:old_growth_spruce_taiga",
-          "parameters": "sha1:76a5e2f5afead8dc50aabb202e54721dfb7a188f"
-        },
-        {
-          "biome": "minecraft:old_growth_spruce_taiga",
-          "parameters": "sha1:c06baefb3b708df40007d49a18d2613f3232c28d"
-        },
-        {
-          "biome": "minecraft:old_growth_spruce_taiga",
-          "parameters": "sha1:0a7ff7ffd3f292e858db6749f7d11a74ee928015"
-        },
-        {
-          "biome": "minecraft:old_growth_spruce_taiga",
-          "parameters": "sha1:a4ce4419e7c34a2a3b5ee8c2b893e2a1c2839a05"
-        },
-        {
-          "biome": "minecraft:old_growth_spruce_taiga",
-          "parameters": "sha1:3ec13d581b383ecc241eb1844490fdd608db9c86"
-        },
-        {
-          "biome": "minecraft:old_growth_spruce_taiga",
-          "parameters": "sha1:f5a5e8f6d69ba56aa9c970fcb9a328ddd81b5126"
-        },
-        {
-          "biome": "minecraft:old_growth_spruce_taiga",
-          "parameters": "sha1:83fc6532eac396bf2461eeb746e1f1844c665191"
-        },
-        {
-          "biome": "minecraft:old_growth_spruce_taiga",
-          "parameters": "sha1:f1c2a9dd58ff9163d84ed0d5d7d156e7fea4dc88"
-        },
-        {
-          "biome": "minecraft:old_growth_spruce_taiga",
-          "parameters": "sha1:80988cb73973bbc6cc9bb2a63c347fe67de482fd"
-        },
-        {
-          "biome": "minecraft:old_growth_spruce_taiga",
-          "parameters": "sha1:c8928f797d6b8a5ca9ca4f5d02b5959a1dcf88df"
-        },
-        {
-          "biome": "minecraft:old_growth_spruce_taiga",
-          "parameters": "sha1:b032af403367b9335c1a9e166dc1f43fb8ae9244"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:0fa226e08c210ba58b716c260723ce1963ca56b7"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:0b6c24e4b5706f2a303804c6cc625dd619b1c1ca"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:5bfe7c248d08a94d871b6e1ce7695c7b3d8d77c2"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:4ccc5aa6da8a58cf2eb0595b44a29fd1df451852"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:0b13ef20932177e69e7e8e20d92df813bc939a33"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:73a03bb998bf57b361ef68955d834cd0807dcfc6"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:4ecf9a2230b69c1fe752031fd41cc8308f4ffce7"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:5313f67579b443014d094d36a9de14973b1538ec"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:26c9d51555939b6a28b98c6798d61ba42b567bb2"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:8a3d1eceb5af480755c28254781ec372cc216b48"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:d31f3a69cd0a7525436c63895cafa1ba873609f0"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:8f808eafb02bc9b187ebcec81126577e90f98766"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:39f215bd534e931954ce09eb0b98c71c71310dd6"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:dc478cf220e5c5f4f480c5f2fec723db501c47c2"
-        },
-        {
-          "biome": "minecraft:old_growth_spruce_taiga",
-          "parameters": "sha1:ac033bfd06411c38cc723704a6e372bba0f8a284"
-        },
-        {
-          "biome": "minecraft:old_growth_spruce_taiga",
-          "parameters": "sha1:caccf770e388a186c54edde9a92c3f985d901120"
-        },
-        {
-          "biome": "minecraft:old_growth_spruce_taiga",
-          "parameters": "sha1:394f31f189f6a47310157801f20d50154784de23"
-        },
-        {
-          "biome": "minecraft:old_growth_spruce_taiga",
-          "parameters": "sha1:c23c06c447dbcdef13ab92168b891e48cdcb0d01"
-        },
-        {
-          "biome": "minecraft:old_growth_spruce_taiga",
-          "parameters": "sha1:20e83686274be608a5564ee65ba78348c526063f"
-        },
-        {
-          "biome": "minecraft:old_growth_spruce_taiga",
-          "parameters": "sha1:7ece988a1ff43cc379b533390bd2e87285687ffa"
-        },
-        {
-          "biome": "minecraft:old_growth_spruce_taiga",
-          "parameters": "sha1:24c0fb9b3a0a0a199d635eb76eb18049f72c51a8"
-        },
-        {
-          "biome": "minecraft:old_growth_spruce_taiga",
-          "parameters": "sha1:7fb9ace9dd2089083ac4ebf9247c28d34e650d6a"
-        },
-        {
-          "biome": "minecraft:old_growth_spruce_taiga",
-          "parameters": "sha1:63b3091a0b8bea5f52a0860ea863312b4c0a685d"
-        },
-        {
-          "biome": "minecraft:old_growth_spruce_taiga",
-          "parameters": "sha1:012f53bfcc30fe0906e9272caddc972c47a161c0"
-        },
-        {
-          "biome": "minecraft:old_growth_spruce_taiga",
-          "parameters": "sha1:9c6d7f0739c8601c17221e142ff94b9314e892ec"
-        },
-        {
-          "biome": "minecraft:old_growth_spruce_taiga",
-          "parameters": "sha1:738bdf4e04eb9c8fbe9b7f964295ecdc6438a9d5"
-        },
-        {
-          "biome": "minecraft:old_growth_spruce_taiga",
-          "parameters": "sha1:b3222ec855d22c239ae5106bf05220c4fbb66b0f"
-        },
-        {
-          "biome": "minecraft:old_growth_spruce_taiga",
-          "parameters": "sha1:e771d194dffc9ae2441251d948b7ef200015548c"
-        },
-        {
-          "biome": "minecraft:old_growth_spruce_taiga",
-          "parameters": "sha1:f2d5e4bb9430a041ffeff94dc6d0d625a9115d26"
-        },
-        {
-          "biome": "minecraft:old_growth_spruce_taiga",
-          "parameters": "sha1:b9870766cab01184a04b14c628e18e6363ebfacb"
-        },
-        {
-          "biome": "minecraft:old_growth_spruce_taiga",
-          "parameters": "sha1:8503408aadb0ed2e0e920ef7e8dc5db4bba75be3"
-        },
-        {
-          "biome": "minecraft:old_growth_spruce_taiga",
-          "parameters": "sha1:8e73bb1c5453b5e0505baab7e0dd4b4ce434dc8a"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:16fc457239fc3700928aa4e2a66e5c5e5109ad53"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:48bb5fe47bbff548761b05c43703ee8ec0880155"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:c2cd30b1fa074e66eb1c37489463c1634b6311cf"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:ed319655b81f9886248ef75de412a1481b996179"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:03ace18e9378ab1bba375aea8708ddd4113da13c"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:18011ddadfbd4cdfa89c3e9387df91e04aa9dbd8"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:c993820a151f7831c47cfdcc22dffd9f0e8d4fa2"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:b80d88d3dc9f8c1d0d1987ceecb29d1bba698adb"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:538e96144eb3919b0acd3ad173cd100d94da9d8b"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:d8292e40f5efce2283bb3b201ac33135594f3a27"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:be9f863c509609be7b3352d08c9fef8c6d8c0ca1"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:d3257f9a34b3ce5db457d28a8b0f34aa481bc2a5"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:929af203019ba6752426cdb75972ea416330791f"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:2c9b0b18cb01a1a8a4d3b772f6b9483864fd0e53"
-        },
-        {
-          "biome": "minecraft:old_growth_spruce_taiga",
-          "parameters": "sha1:a5766897d827207ac10fdfd5a943203bb98bfa54"
-        },
-        {
-          "biome": "minecraft:old_growth_spruce_taiga",
-          "parameters": "sha1:044013cc06ff0fc79b8f3393cfd8a0e7f161e8a4"
-        },
-        {
-          "biome": "minecraft:old_growth_spruce_taiga",
-          "parameters": "sha1:bb9b40d7329cd1cde5b339e24c5c77b1180eb0cb"
-        },
-        {
-          "biome": "minecraft:old_growth_spruce_taiga",
-          "parameters": "sha1:439a64832951439c8eb0a0138c1f77e174d459cb"
-        },
-        {
-          "biome": "minecraft:old_growth_spruce_taiga",
-          "parameters": "sha1:d2b68abf80af96fa979b388b8cfbd7cba5fe55ce"
-        },
-        {
-          "biome": "minecraft:old_growth_spruce_taiga",
-          "parameters": "sha1:b75d14456d29ddcbbdefc8280b28e82e0f92b0fe"
-        },
-        {
-          "biome": "minecraft:old_growth_spruce_taiga",
-          "parameters": "sha1:abebe6846403d892d06a4e3f240906f04133153d"
-        },
-        {
-          "biome": "minecraft:old_growth_spruce_taiga",
-          "parameters": "sha1:96552b690b20d4d14cb15f2d87a291479b00a425"
-        },
-        {
-          "biome": "minecraft:old_growth_spruce_taiga",
-          "parameters": "sha1:b5685534f8d68ca0ecabbac8cbf6c16f8272ef6e"
-        },
-        {
-          "biome": "minecraft:old_growth_spruce_taiga",
-          "parameters": "sha1:394b5e9b3727b29fdc238f522996ff65fafd787a"
-        },
-        {
-          "biome": "minecraft:old_growth_spruce_taiga",
-          "parameters": "sha1:732d4b95069996f8cdf763cda34aa9a1ccbc064e"
-        },
-        {
-          "biome": "minecraft:old_growth_spruce_taiga",
-          "parameters": "sha1:f9047139e40ee4ecfe1ecfb115c7a7e38a0ef6d8"
-        },
-        {
-          "biome": "minecraft:old_growth_spruce_taiga",
-          "parameters": "sha1:87f773c5ae16ef1f79f032f6d05e9e8f32062e27"
-        },
-        {
-          "biome": "minecraft:old_growth_spruce_taiga",
-          "parameters": "sha1:2a2faee7e73fedc4c11d59741f7b663e70778e36"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:68d322e029065dcdd8eb6d647ee280e922a30acb"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:fa7cf8984edf8e462b605606f94756469978c505"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:27bf0f61afb08609ee4ca9521e837cb52b4294c0"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:e551259ec1eb406f579994b20c70ae63869f88f5"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:15367948602bf39c6b4a291f98d43c7f2ee95dfb"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:b8d1d3ae1795f844781c37e696bda9c97ebb9c36"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:df3155f87b0398725c4ff952c1dff348b0be2ac9"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:0118bf43554da3d7c39a5b49000e1b533c4b6f1a"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:78d11b90d3f8b6a4b001f949331bf30eb1a06e0e"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:c9b4c100f11b0d73a40b565cbad1b62904c0ea2e"
-        },
-        {
-          "biome": "minecraft:old_growth_spruce_taiga",
-          "parameters": "sha1:0336f9f4c86c2f65f2e767fac63c3b557137bb00"
-        },
-        {
-          "biome": "minecraft:old_growth_spruce_taiga",
-          "parameters": "sha1:8db3151c084457900e85c4ae2e1151bd769ddf17"
-        },
-        {
-          "biome": "minecraft:old_growth_spruce_taiga",
-          "parameters": "sha1:13240b2a1b803375b801829b02bb100b5e870417"
-        },
-        {
-          "biome": "minecraft:old_growth_spruce_taiga",
-          "parameters": "sha1:dd897a923ce57e9c56883d9470a07759164ec982"
-        },
-        {
-          "biome": "minecraft:old_growth_spruce_taiga",
-          "parameters": "sha1:c8a7b66085acdf90f38dac58de861cfe2e021150"
-        },
-        {
-          "biome": "minecraft:old_growth_spruce_taiga",
-          "parameters": "sha1:22b219f2a527d18d24a7583612fc58d04ae38f97"
-        },
-        {
-          "biome": "minecraft:old_growth_spruce_taiga",
-          "parameters": "sha1:286fe404349fb964c28e2ed7ba821f291acc88b2"
-        },
-        {
-          "biome": "minecraft:old_growth_spruce_taiga",
-          "parameters": "sha1:850c7882f1bbec66157d2a095a435b1e4f8d7239"
-        },
-        {
-          "biome": "minecraft:old_growth_spruce_taiga",
-          "parameters": "sha1:f87007a7686dac880c06846236fccde24909d86b"
-        },
-        {
-          "biome": "minecraft:old_growth_spruce_taiga",
-          "parameters": "sha1:e504b813ba9d4fe3ecf07ae4ab8a16019f2b421c"
-        },
-        {
-          "biome": "minecraft:old_growth_spruce_taiga",
-          "parameters": "sha1:9d004e6b7d8784f514ef10b4af9f764f18ed1322"
-        },
-        {
-          "biome": "minecraft:old_growth_spruce_taiga",
-          "parameters": "sha1:46b0fe68373bdd49785bb65cbcb830307a6bdd65"
-        },
-        {
-          "biome": "minecraft:old_growth_spruce_taiga",
-          "parameters": "sha1:e9a72cfc378a3135d3ba8b6eea795154015e9e3b"
-        },
-        {
-          "biome": "minecraft:old_growth_spruce_taiga",
-          "parameters": "sha1:e3350b67f27f7166509b80d5ea8bbeaca36025be"
-        },
-        {
-          "biome": "minecraft:old_growth_spruce_taiga",
-          "parameters": "sha1:de8061ee8fe7f8a1af3315da05f5de6c710ba362"
-        },
-        {
-          "biome": "minecraft:old_growth_spruce_taiga",
-          "parameters": "sha1:e10ec9bc005cfbadbc6c2b2fe409f56146a903a6"
-        },
-        {
-          "biome": "minecraft:old_growth_spruce_taiga",
-          "parameters": "sha1:3c9eb912faff44e87f2ae6f9f57e6878a9908b34"
-        },
-        {
-          "biome": "minecraft:old_growth_spruce_taiga",
-          "parameters": "sha1:97cd6cb48dd0f4bb07207d8b621b7d7c4c350c8f"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:b39ceb9874714c5fe770d3adca679d1c443580a8"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:fbb7b97f75685eb941adc0eb6fa4ff304e558721"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:302c4247cbfae8006b1dca1bfd2c44d579f3d56b"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:493c307e1656c67e42346bf945492a66b3b25874"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:26b0614a7bb319d01c7be97bc0e1372f607f90f3"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:cd86d198488bfe6aa368bafd86a2cb0aa5aac6c5"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:0ce2c7e1bc521697839cdfe6799727e2f5060ed1"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:6b835c3a941b503dfc06ccd239cec9bc27f378e7"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:4e1460b7868b5b1d61c66a7f492e3f39330d9796"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:a45e2478fe4c9ab0ddccfbc6d571a9512a772e32"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:2d4a0763f4f98a0d54cc2d28cc4ff221758665bf"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:d1049fdb0c5bb21e88c44d7788cea404831d1122"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:503cb7fb37dfc16fc87c98c5bfa1d7d9fc7ffcbf"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:b942cc16dc957f08ae8745777fd90cb9c76952b6"
-        },
-        {
-          "biome": "minecraft:swamp",
-          "parameters": "sha1:220e84a183961984bff27e7a64b92586a88a92a2"
-        },
-        {
-          "biome": "minecraft:swamp",
-          "parameters": "sha1:c012583230ea0e57d2f97e0e532fa876ff1d4cea"
-        },
-        {
-          "biome": "minecraft:old_growth_spruce_taiga",
-          "parameters": "sha1:1fb1f5171b0d9c85e203f2bb558cbb0605ccd76f"
-        },
-        {
-          "biome": "minecraft:old_growth_spruce_taiga",
-          "parameters": "sha1:c2340905648d83bd9b8212d068e8b17caa41eccf"
-        },
-        {
-          "biome": "minecraft:old_growth_spruce_taiga",
-          "parameters": "sha1:f06c4bd51ba3c52ea927f4fdc1041e52f611344a"
-        },
-        {
-          "biome": "minecraft:old_growth_spruce_taiga",
-          "parameters": "sha1:7200f0f851ae8a3087764a5eba302440821514e6"
-        },
-        {
-          "biome": "minecraft:old_growth_spruce_taiga",
-          "parameters": "sha1:cbb102bc6e701692d3800e217e38b02140385031"
-        },
-        {
-          "biome": "minecraft:old_growth_spruce_taiga",
-          "parameters": "sha1:e0480091159e1b26116301b52d5fe6a3195c568c"
-        },
-        {
-          "biome": "minecraft:old_growth_spruce_taiga",
-          "parameters": "sha1:2ea6228c28001808d56069f0d399feb60f3e2a06"
-        },
-        {
-          "biome": "minecraft:old_growth_spruce_taiga",
-          "parameters": "sha1:5f3657886d09c241828e52df3d96c902def82a73"
-        },
-        {
-          "biome": "minecraft:old_growth_spruce_taiga",
-          "parameters": "sha1:01cc507dbf7d4ba2866b19eb35700523023beb9e"
-        },
-        {
-          "biome": "minecraft:old_growth_spruce_taiga",
-          "parameters": "sha1:06d2a5a927fe2c78e637869bc7f42268bbe4c15e"
-        },
-        {
-          "biome": "minecraft:old_growth_spruce_taiga",
-          "parameters": "sha1:efb01f78137eb24b95fbd68222b353410ff17b83"
-        },
-        {
-          "biome": "minecraft:old_growth_spruce_taiga",
-          "parameters": "sha1:2e22bb8b92f0ebb712af9ca8cc95bcb52fae4af0"
-        },
-        {
-          "biome": "minecraft:old_growth_spruce_taiga",
-          "parameters": "sha1:5100791b518c194962a79c5e9b95eb4aaefc4a86"
-        },
-        {
-          "biome": "minecraft:old_growth_spruce_taiga",
-          "parameters": "sha1:81b2d72c326e0f4e79692c69c002da3487724c66"
-        },
-        {
-          "biome": "minecraft:old_growth_spruce_taiga",
-          "parameters": "sha1:303f1641b5eb485984eadf5dd7e1c2135c3962fa"
-        },
-        {
-          "biome": "minecraft:old_growth_spruce_taiga",
-          "parameters": "sha1:b70ebecaa19e1a5205adb124d055a1ff9cea7d40"
-        },
-        {
-          "biome": "minecraft:old_growth_spruce_taiga",
-          "parameters": "sha1:a83eb8043101f0f1296fb5d90b0063fd81b855df"
-        },
-        {
-          "biome": "minecraft:old_growth_spruce_taiga",
-          "parameters": "sha1:d1eb03a6008869b4812e6a5b231ba1fe69ccc7a1"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:0b003419177bdc66e088852246f67eba13871316"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:989a09e6925f6ba71571ce1863ef69e3fda15f77"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:ee451f7ebbdf3d3bbf03c828f9ebccb42a7c4395"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:0fc5462d591cbc546c7c708b81d52589302fa4fa"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:72d83d276d5c99c04d836d8076fd2c8d24334c22"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:2676edd02a10faf99821341291fef1ef5c3df072"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:37f7a746bfe1b1a08bf0895f6cbeaec81592c376"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:ab4bda22ad3160da5ac2f526557935516910fbb0"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:c6d81cd6c8d99966ac844c53edab48e795fb7b49"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:bb7d77c269614b924f0f3b61e0a9102fb4f0390b"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:abf85f21630654b6c49a22ed9ea30aee9b9c51a9"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:59cba0854df609bbca6d750fbb33e97f62a53d60"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:d5ab98e544aad3f26a6459a265f2f60b5856cc1e"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:a60f6f92eaa82a13c01a7bd7c81f4389d47158d3"
-        },
-        {
-          "biome": "minecraft:swamp",
-          "parameters": "sha1:35a629136ebe1b10cc90eaa08f6c8c71c9dbdc3a"
-        },
-        {
-          "biome": "minecraft:swamp",
-          "parameters": "sha1:878edaf8964c23e882c923331282405c79dbdfb2"
-        },
-        {
-          "biome": "minecraft:old_growth_spruce_taiga",
-          "parameters": "sha1:4a1ac422956cc3ee932d04ff68ece4efe8301479"
-        },
-        {
-          "biome": "minecraft:old_growth_spruce_taiga",
-          "parameters": "sha1:6747ce5e095ed8f3d27d0ea7388531cc104bb0d3"
-        },
-        {
-          "biome": "minecraft:old_growth_spruce_taiga",
-          "parameters": "sha1:d8ee9ce2ff6bdbc4821f00b6887ceb59af362975"
-        },
-        {
-          "biome": "minecraft:old_growth_spruce_taiga",
-          "parameters": "sha1:bd9e34d834b28e617d12e0010310b8d72ff8e753"
-        },
-        {
-          "biome": "minecraft:old_growth_spruce_taiga",
-          "parameters": "sha1:7777fdd1eacd6e3f8264bda117ddca0858bbbe90"
-        },
-        {
-          "biome": "minecraft:old_growth_spruce_taiga",
-          "parameters": "sha1:50f81ccd0e4152b4862a13d2fd6e16e6ce06206a"
-        },
-        {
-          "biome": "minecraft:old_growth_spruce_taiga",
-          "parameters": "sha1:84c3e91023d38194411992d07b43ea1b8911cc38"
-        },
-        {
-          "biome": "minecraft:old_growth_spruce_taiga",
-          "parameters": "sha1:faff89f65aad54cb02fb7fa46d6044c63d56e9d2"
-        },
-        {
-          "biome": "minecraft:old_growth_spruce_taiga",
-          "parameters": "sha1:553af6ef85e42cd1783462772787051ea847a237"
-        },
-        {
-          "biome": "minecraft:old_growth_spruce_taiga",
-          "parameters": "sha1:bbb8155c3504a95d17741321dbe3e9394bec48a7"
-        },
-        {
-          "biome": "minecraft:old_growth_spruce_taiga",
-          "parameters": "sha1:4f88dcea1b37998f4bde08a4538dfde5a05c1aed"
-        },
-        {
-          "biome": "minecraft:old_growth_spruce_taiga",
-          "parameters": "sha1:26934a25df45b3377ab0ab6c8d2d89f8dbdcc6c2"
-        },
-        {
-          "biome": "minecraft:old_growth_spruce_taiga",
-          "parameters": "sha1:d1588a29dba324e5674dfbd465e9d1c3d2ff72d4"
-        },
-        {
-          "biome": "minecraft:old_growth_spruce_taiga",
-          "parameters": "sha1:22fdcdedf9b4f973ee9074128085dee24e6b81b0"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:97a4d62fd94e933ea9b4e07a5e9eef12f4b262c4"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:32d86899889f7c79ba977e6d2867b4524f0cca53"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:ca6dac9e08b902cb1e94af4231ff679afcdbca1a"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:a40f950923b02da7432070d44c6b11472abfc3f2"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:73110ed127e868b08864e2485bf5c544444dafa4"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:604f2502e1fbcd050537f44213e8d274e78a971a"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:f53088770dfd5fffecc598dda1037fb22b896dec"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:99356a72898a6c73944f664f3d9d4e8f923c4a8d"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:fd0a88afae492c55fd4c0ee6634e19cbbec52802"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:8d05362deb0a2832a65442333774c17fa9d383e5"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:92c1361ca5db25795cf0c8f602f62b9524dd8a61"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:2b6f818560bbb37353bc96f4a19ff909769c0259"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:0342b873033d8ff06dea4dc60c5959c2acc74d43"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:4602c26776bfa71d10157b31d00c94e463daec71"
-        },
-        {
-          "biome": "minecraft:swamp",
-          "parameters": "sha1:f0d8a7d3ceb2af89b884e54e9f2fc9cdd071138c"
-        },
-        {
-          "biome": "minecraft:swamp",
-          "parameters": "sha1:b5dfa7472aa2fcc213dd9a21f4b4bc5e95e88d74"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:af192ff8de751ae0d4c6802d500d454e84235923"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:8fe499c111ab39cab07da209a42ffd1fe876a97b"
-        },
-        {
-          "biome": "minecraft:swamp",
-          "parameters": "sha1:6d6496fbcb0328ab4306200b00b4a021f629e414"
-        },
-        {
-          "biome": "minecraft:swamp",
-          "parameters": "sha1:adda40b42ed60cad0ea359b5595f6d2fa2dc7306"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:9d7246d6ae1833b376d8eca5aa270b6a5fceeed2"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:3d2757cd0293eef652f86005452591110408d15b"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:406e19b8aa0c02838c056ad6f35bf624c2a830a9"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:4c01fe4d29bccc14541db9faac7be93073f72dff"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:74fb8d0053ca5ec8ae86b306e23e6b7c86687f54"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:7976ae4bd8d7320881ca268ab34d704c59c454fa"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:e4393f03df7ca4c402289de74596c7b0cbfedbea"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:c61d0838a691638b570ef32e9f5eeeec66b8336f"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:24f6157a178570563bc4036b5059d2d10c8116bb"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:c7660dfe6fa15a39be217e49f164c9375ca26558"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:3b54b73a5bcea83c1d96a3a1da782dec0269c39f"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:5a713def8e942415a85d67b8359469dc18d7f7cd"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:302eb20eb4e5520c8d8ebf58b45412726832c6f5"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:35a53f0a0b0f56c10fd5e959adbe5b3a3d58d23e"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:9d7b15422339f835638ba5aa1b92c372d01f07a0"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:8929b2f2e9c2283728adcbb7b059ff730a531bee"
-        },
-        {
-          "biome": "minecraft:swamp",
-          "parameters": "sha1:664556509c01604a7e2729a831616f11f827318d"
-        },
-        {
-          "biome": "minecraft:swamp",
-          "parameters": "sha1:0a71e6974e7de1c60dcba769ee66f62bceafeb26"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:0a5d57e49bb29d4e902199d34b43458b8d3adc1b"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:fb91de62c1d521875a0a0fc61f59486234d7ad7c"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:c74cdfed5c1438e1d22095705acd954aff07bd33"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:da904c775e99ffcebfaee8e88631c3586507cea8"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:d4037ec976a417c4bda122e0893c18d6aef55681"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:d6a603d927850ec42665ca87f67ea5bc7c23f618"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:3697234d3ef40f6d5f6c9b842842ba492edf6d96"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:eac1a3641e88059bf543c1c0b30171084c717c63"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:f0e4af9788f262f07a96f9ffd9e41cdb44efd9c6"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:d1261fce5dc2e49f9fc53ef3d9b736aebeecca08"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:66fdbbe60cde5c443057911dd166528f29da3ad3"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:ca7b14d9cc06912390ed943f24a3f9ab2c1e8b9a"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:80b759f67c305499bd2d9425f378a6f3f535c9db"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:51795d2008eb4b6dc0313aded888ab36fe4ada07"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:406ad468778f55a3421c8203e5f903e417a7da82"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:c899eb7e47c62a92e6af42c6d0e991435a8d5b63"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:cb5dd068224e2d447fd004d26cb5b1963f75dc02"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:5d38d0d909b5686738c1785d3811f2d6716ce966"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:50f16cb99a029eb62af2b0ae91983272a6f6cb9b"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:7c57f01c1ac5ac7a1ab212fa5c9a954fc59e1c74"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:d6745581ef74c5b247cfe0b868f1dd6c41565edc"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:322d14378f97e022ca46b89ebddf6cb661c47222"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:4b75fba6d171cf46c787598d7e3e14efc48cae4e"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:49791f36a6aef1ea27ceb00d5fad0ad7dc228349"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:4a215492fa3eb1a4cceda6eb5a4bffeefe527d4a"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:f0ad173ee611b3cbd26193e847369a1619c575e1"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:0c590c875a285c757d719733c4189677fb90dbf2"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:ed8e13b9bc6698f9aa5e24242b6bdb07c77237b1"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:bef5640168fd175b7004ca1dadfd8b0b55700f36"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:d33ba833ee94ade512a5ebc093fd01658a002e9c"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:a0dc28ad3da27c225e6d646ddec7401b5bd1ec7f"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:2cc88789b552d827e56ef476f02aa8ace0cf62c3"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:15d8717ade29eb3f330056b5ca7342f4a9cabacb"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:f0a0430bed819d72565002304409a5d0af3fb827"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:0158dcf2bcfc27dad9c869971aeaf2c1669f964d"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:0db905c263b04f0e83e357d4b3147e754efc1efa"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:94be337d82fde052486c3d16d234f0e6bdae2337"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:10878c5615e57141f83c06bdf4b588e06464dadf"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:0b4860f370c639af711a0b412daeb58ac6bdf72a"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:343e26abfdddfdf5c51bcfdb31081c595658b696"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:271490a3b2ff7dfe53f664fcc466ae22a8f817eb"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:7c54d5ca7cd74347e4ebd3268c9d2295571f0215"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:b46bf3a816cd46983ebbeca0d105d3dd1d8cee76"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:9f7c9f4d47b13e1a05029dd1288ac70027826f8e"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:4ba783eb92ecdf921f1f17b0f8f7cf797d554748"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:0a3ecdd0f4351e17d05f217f03d45d4761748edd"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:09a844680688fe2e5134d2237cd730fccf081eb0"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:415c93487792a2c9c7cefc39af9355142cd5578e"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:ca6a4b4cd8808efef7ec8cf19260d7138f4a546b"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:5d8e79dc369d2ce3219b83f6273ed0194128bb7e"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:5307c84ead2f60163dc36fbca55a204749e31bd6"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:912078ba6384efecbdd4d84ecbb36cf90c0bd27c"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:baa80a985736f76524aacb59ecfc3391a7597067"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:84d1f2062a2cea3e164f927242b04fec3abfc767"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:3da1b65d54edbc772027217b67f3bc4d07f48e51"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:559935299b5021611e0ee584cbc5d558c22b01a5"
-        },
-        {
-          "biome": "minecraft:swamp",
-          "parameters": "sha1:5984d279e23220661fffe7d0a32d3410a5638eb8"
-        },
-        {
-          "biome": "minecraft:swamp",
-          "parameters": "sha1:d32bd982c5cdff9b42b8c55177635ad923e34c35"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:63bb2950ed11f84058c5e3adbb40a98e2c9bacf7"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:9421d8007be7851e3e4e7ce664ecbbcc4ef3304d"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:f1c5cb488d4ed673b7d1f1713874e00ef2524061"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:46992cdbf4a920e32c40be6715b5ef03560120a0"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:6931712025683fa5582111563a8216f13a1f2ae6"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:b3fe5bcec4b82982c904609d4478b7162f674997"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:899bd0c3f388da9c0c0bc85f49564b6ffab4c8f8"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:533c026428e116ed59da5b4a18ba132efe8d2947"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:e63215b66adcbdd419284e7a90148571001ed006"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:1dbd3cae1ccee826d3e4b75b6b6309c922d97ad7"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:e58354394534a7c8363edf05e1706579dbd63806"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:bf22226834cb9083fc9befd29986c5a4754f3680"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:294d16ea0f266e1ca48f4e0d7fbf8ebfd207df61"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:b44f442eed380ad3a9e891e59e91266f471e7f28"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:870c087a14ed462ddf81d9147e77c3d664630c69"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:17927a55e0062c49f68f1a2ec3e70d652c14e618"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:620a7b8a14fc3be7f31bc51525f9f92e8a59b11d"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:203a330a52cf6ec43f2a7dc529ababcab6d733ff"
-        },
-        {
-          "biome": "minecraft:dripstone_caves",
-          "parameters": "sha1:56036419243699342162c60464565a0be781c8eb"
-        },
-        {
-          "biome": "minecraft:lush_caves",
-          "parameters": "sha1:a64a2e03ba9c945e31f23290683590fcb3809b2b"
-        },
-        {
-          "biome": "minecraft:deep_dark",
-          "parameters": "sha1:cd30f1179f7b50d7a54c6962ec8de2adcb98f6d6"
+      "type": "customdimensions:zoned",
+      "base": {
+        "type": "minecraft:multi_noise",
+        "biomes": [
+          {
+            "biome": "minecraft:deep_dark",
+            "parameters": {
+              "temperature": [-2.0, -0.3546],
+              "humidity": [-2.0, 2.0],
+              "continentalness": [-2.0, 2.0],
+              "erosion": [-2.0, 2.0],
+              "weirdness": [-2.0, 2.0],
+              "depth": [-2.0, 2.0],
+              "offset": 0.0
+            }
+          },
+          {
+            "biome": "minecraft:mushroom_fields",
+            "parameters": {
+              "temperature": [-0.3546, -0.2329],
+              "humidity": [-2.0, 2.0],
+              "continentalness": [-2.0, 2.0],
+              "erosion": [-2.0, 2.0],
+              "weirdness": [-2.0, 2.0],
+              "depth": [-2.0, 2.0],
+              "offset": 0.0
+            }
+          },
+          {
+            "biome": "minecraft:dark_forest",
+            "parameters": {
+              "temperature": [-0.1599, -0.0878],
+              "humidity": [-2.0, 2.0],
+              "continentalness": [-2.0, 2.0],
+              "erosion": [-2.0, 2.0],
+              "weirdness": [-2.0, 2.0],
+              "depth": [-2.0, 2.0],
+              "offset": 0.0
+            }
+          },
+          {
+            "biome": "minecraft:lush_caves",
+            "parameters": {
+              "temperature": [-0.0878, 0.0034],
+              "humidity": [-2.0, 2.0],
+              "continentalness": [-2.0, 2.0],
+              "erosion": [-2.0, 2.0],
+              "weirdness": [-2.0, 2.0],
+              "depth": [-2.0, 2.0],
+              "offset": 0.0
+            }
+          },
+          {
+            "biome": "minecraft:dripstone_caves",
+            "parameters": {
+              "temperature": [0.0481, 0.0673],
+              "humidity": [-2.0, 2.0],
+              "continentalness": [-2.0, 2.0],
+              "erosion": [-2.0, 2.0],
+              "weirdness": [-2.0, 2.0],
+              "depth": [-2.0, 2.0],
+              "offset": 0.0
+            }
+          },
+          {
+            "biome": "minecraft:old_growth_spruce_taiga",
+            "parameters": {
+              "temperature": [0.0673, 0.1027],
+              "humidity": [-2.0, 2.0],
+              "continentalness": [-2.0, 2.0],
+              "erosion": [-2.0, 2.0],
+              "weirdness": [-2.0, 2.0],
+              "depth": [-2.0, 2.0],
+              "offset": 0.0
+            }
+          },
+          {
+            "biome": "minecraft:warped_forest",
+            "parameters": {
+              "temperature": [0.1027, 0.1623],
+              "humidity": [-2.0, 2.0],
+              "continentalness": [-2.0, 2.0],
+              "erosion": [-2.0, 2.0],
+              "weirdness": [-2.0, 2.0],
+              "depth": [-2.0, 2.0],
+              "offset": 0.0
+            }
+          },
+          {
+            "biome": "minecraft:swamp",
+            "parameters": {
+              "temperature": [0.1623, 0.2099],
+              "humidity": [-2.0, 2.0],
+              "continentalness": [-2.0, 2.0],
+              "erosion": [-2.0, 2.0],
+              "weirdness": [-2.0, 2.0],
+              "depth": [-2.0, 2.0],
+              "offset": 0.0
+            }
+          },
+          {
+            "biome": "minecraft:crimson_forest",
+            "parameters": {
+              "temperature": [0.2605, 0.3345],
+              "humidity": [-2.0, 2.0],
+              "continentalness": [-2.0, 2.0],
+              "erosion": [-2.0, 2.0],
+              "weirdness": [-2.0, 2.0],
+              "depth": [-2.0, 2.0],
+              "offset": 0.0
+            }
+          }
+        ]
+      },
+      "zones": [
+        {
+          "biomes": [
+            {
+              "biome": "minecraft:deep_dark",
+              "parameters": {
+                "continentalness": [-1.0, 1.0],
+                "depth": 1.1,
+                "erosion": [-1.0, -0.375],
+                "humidity": [-1.0, 1.0],
+                "offset": 0.0,
+                "temperature": [-1.0, 1.0],
+                "weirdness": [-1.0, 1.0]
+              }
+            }
+          ]
         }
       ]
     },
-    "settings": "minecraft:caves"
+    "settings": "adventure:the_underdark"
   }
 }

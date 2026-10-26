@@ -536,10 +536,15 @@ public final class DatapackCompiler {
 
     private JsonObject noiseGenerator(String slug, Definition def, String preset, JsonObject biomeSource,
                                       CompileReport.Entry entry) {
+        ZonesCompiler.Plan zones = ZonesCompiler.plan(slug, namespace, def, vanilla, entry);
         JsonObject generator = new JsonObject();
         generator.addProperty("type", "minecraft:noise");
-        generator.add("biome_source", biomeSource);
-        generator.addProperty("settings", noiseSettings(slug, def, preset, entry));
+        generator.add("biome_source", zones == null ? biomeSource : ZonesCompiler.biomeSource(zones, biomeSource,
+                "nether".equals(preset) ? "nether" : "overworld", vanilla, version, entry));
+        generator.addProperty("settings", noiseSettings(slug, def, preset, zones, entry));
+        if (zones != null) {
+            zones.files().forEach((path, json) -> put(path, sorted(json), entry));
+        }
         return generator;
     }
 
@@ -549,7 +554,8 @@ public final class DatapackCompiler {
      * default block, the material palette or the ore veins change; a changed
      * material rule is written as {@code <ns>:<slug>} too.
      */
-    private String noiseSettings(String slug, Definition def, String preset, CompileReport.Entry entry) {
+    private String noiseSettings(String slug, Definition def, String preset, ZonesCompiler.Plan zones,
+                                 CompileReport.Entry entry) {
         Liquids liquids = def.liquids();
         String defaultBlock = defaultBlock(def);
         boolean changesLiquids = LiquidsCompiler.changesSettings(liquids);
@@ -559,11 +565,24 @@ public final class DatapackCompiler {
         if (terrain != null) {
             settings = terrain(slug, preset, terrain, settings, liquids, entry);
         }
+        boolean endClimate = "end".equals(preset) && !def.biomes().isEmpty();
+        if (endClimate) {
+            JsonObject router = settings.getAsJsonObject("noise_router");
+            JsonObject overworld = vanilla.noiseSettings("overworld").getAsJsonObject("noise_router");
+            router.add("temperature", overworld.get("temperature").deepCopy());
+            router.add("vegetation", overworld.get("vegetation").deepCopy());
+        }
+        boolean changesZones = zones != null && zones.changesSettings();
+        if (changesZones) {
+            settings = ZonesCompiler.apply(zones, settings, preset, liquids != null ? liquids.seaLevel() : null, vanilla,
+                    this::densityFunction, entry);
+        }
         int seaLevel = liquids != null && liquids.seaLevel() != null ? liquids.seaLevel() : settings.get("sea_level").getAsInt();
         JsonObject materialRule = MaterialsCompiler.compose(vanilla, settings.get("material_rule").getAsString(),
                 MaterialsCompiler.read(slug, def.materials()), OresCompiler.veins(OresCompiler.read(slug, def.ores()), vanilla),
                 seaLevel);
-        if (!changesLiquids && defaultBlock == null && !removesIsland && materialRule == null && terrain == null) {
+        if (!changesLiquids && defaultBlock == null && !removesIsland && materialRule == null && terrain == null
+                && !changesZones && !endClimate) {
             return "minecraft:" + preset;
         }
         if (removesIsland) {
@@ -600,6 +619,13 @@ public final class DatapackCompiler {
         entry.note("Terrain `" + terrain.family().id() + "` (" + terrain.setting() + ") under `" + namespace + ":terrain/"
                 + slug + "/`" + (terrain.family().airborne() ? ", over a void with no aquifers" : ""));
         return compiled.settings();
+    }
+
+    /** A density function by id, from this pack or vanilla's; null when neither has it. */
+    private JsonObject densityFunction(String id) {
+        String own = files.get(dataPath(id, "worldgen/density_function"));
+        if (own != null) return com.google.gson.JsonParser.parseString(own).getAsJsonObject();
+        return id.startsWith("minecraft:") ? vanilla.densityFunction(id.substring("minecraft:".length())) : null;
     }
 
     /** The material rule, then {@code block} as the last entry of a sequence: what no earlier rule claims. */
@@ -672,14 +698,11 @@ public final class DatapackCompiler {
         if ("nether".equals(preset)) {
             return biomes.isEmpty() ? multiNoisePreset("nether") : filtered("nether", biomes, entry);
         }
-        if (isNetherIslands(biomes)) {
-            entry.note("Nether biomes in End terrain (nether_islands): the Nether parameter list is kept, "
-                    + "but End terrain's climate does not spread them; that needs W2");
-            return filtered("nether", biomes, entry);
-        }
         if (!biomes.isEmpty()) {
-            entry.unsupported("biomes", "the `minecraft:the_end` biome source places the End's own biomes; "
-                    + "a list of " + biomes.size() + " needs W2");
+            String list = isNetherIslands(biomes) ? "nether" : "overworld";
+            entry.note("A biome list in End terrain: the router's temperature and vegetation are the overworld's, "
+                    + "so the " + list + " layout spreads them across the islands");
+            return filtered(list, biomes, entry);
         }
         JsonObject source = new JsonObject();
         source.addProperty("type", "minecraft:the_end");
@@ -707,53 +730,10 @@ public final class DatapackCompiler {
      * biome the definition names, in vanilla's order.
      */
     JsonObject filtered(String list, List<BiomeEntry> biomes, CompileReport.Entry entry) {
-        JsonArray parameters = vanilla.biomeParameters(list);
-        Set<String> inList = new LinkedHashSet<>();
-        for (JsonElement e : parameters) {
-            inList.add(e.getAsJsonObject().get("biome").getAsString());
-        }
-        Set<String> wanted = new LinkedHashSet<>();
-        for (BiomeEntry b : biomes) {
-            if (!vanilla.biomeIds().contains(b.id())) {
-                entry.skippedBiome(b.id(), "no vanilla biome");
-                continue;
-            }
-            if (!inList.contains(b.id())) {
-                entry.skippedBiome(b.id(), "not in vanilla's " + list + " parameter list");
-                continue;
-            }
-            wanted.add(b.id());
-            if (b.climate() != null) {
-                entry.unsupported("biomes[" + b.id() + "].climate", "vanilla's climate entries are kept; W2 partitions climate");
-            }
-        }
-        JsonArray kept = new JsonArray();
-        for (JsonElement e : parameters) {
-            if (wanted.contains(e.getAsJsonObject().get("biome").getAsString())) {
-                kept.add(e);
-            }
-        }
-        if (kept.isEmpty()) {
-            kept.add(MultiNoise.fullRange("minecraft:plains"));
-            entry.note(FALLBACK_NOTE + ": no listed biome has a vanilla " + list
-                    + " entry, so `minecraft:plains` covers all of climate space");
-        }
-        if (version.multiNoiseDisjoint()) {
-            JsonArray before = kept;
-            kept = MultiNoise.carve(before);
-            if (!kept.equals(before)) {
-                entry.note("Overlapping vanilla " + list + " entries carved apart for Minecraft " + version.id()
-                        + " (" + before.size() + " entries became " + kept.size() + "); earlier entries keep their space");
-            }
-            int[] pair = MultiNoise.firstOverlap(kept);
-            if (pair != null) {
-                throw new IllegalStateException("multi-noise entries " + pair[0] + " and " + pair[1]
-                        + " overlap, which Minecraft " + version.id() + " refuses");
-            }
-        }
         JsonObject source = new JsonObject();
         source.addProperty("type", "minecraft:multi_noise");
-        source.add("biomes", kept);
+        source.add("biomes", BiomeLayout.partition(biomes, list, vanilla.biomeParameters(list), vanilla.biomeIds(),
+                version.multiNoiseDisjoint(), version.id(), entry));
         return source;
     }
 
@@ -857,8 +837,9 @@ public final class DatapackCompiler {
         if (def.spawn() != null) {
             entry.unsupported("spawn", "spawn is placed by the runtime, M2");
         }
-        if (!def.zones().isEmpty()) {
-            entry.unsupported("zones", def.zones().size() + " zone(s); zones compile in W2b");
+        String generatorType = def.generator().type();
+        if (!def.zones().isEmpty() && (Generator.FLAT.equals(generatorType) || Generator.VOID.equals(generatorType))) {
+            entry.unsupported("zones", "a " + generatorType + " generator has no noise router or biome layout");
         }
         JsonObject terrain = def.terrain();
         String type = def.generator().type();

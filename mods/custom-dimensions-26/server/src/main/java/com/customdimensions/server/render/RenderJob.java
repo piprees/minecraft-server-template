@@ -130,6 +130,10 @@ public final class RenderJob {
                         for (int px = 0; px < grid.side(); px++) {
                             Sampler.Column c = sampler.sample(grid.x(px), grid.z(py));
                             samples.set(px, py, c.height(), c.fluid(), c.biomeId());
+                            if (sampler.hasZones()) {
+                                Sampler.ZoneHit zone = sampler.topZone(grid.x(px), grid.z(py));
+                                samples.setZone(px, py, zone.index(), zone.weight());
+                            }
                         }
                         done.addAndGet(grid.side());
                     }
@@ -148,7 +152,7 @@ public final class RenderJob {
                 timings.put("sample", sampleMs);
                 RenderFiles.Written files;
                 try {
-                    files = RenderFiles.write(request.outputDir(), samples, RenderLayers.standard(),
+                    files = RenderFiles.write(request.outputDir(), samples, RenderLayers.forSamples(samples),
                             new RenderFiles.Meta(sampler.dimension(), sampler.seed(), sampler.seedSource(), SURFACE, BIOME_Y,
                                     timings, threads));
                 } catch (java.io.IOException e) {

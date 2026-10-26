@@ -95,6 +95,9 @@ class ZoneDensityTest {
                 yield v * v;
             }
             case "minecraft:sqrt" -> (float) Math.sqrt(evaluate(f.get("input"), x, z));
+            case "minecraft:max" -> Math.max(evaluate(f.get("left"), x, z), evaluate(f.get("right"), x, z));
+            case "minecraft:abs" -> Math.abs(evaluate(f.get("input"), x, z));
+            case "minecraft:negate" -> -evaluate(f.get("input"), x, z);
             case "minecraft:clamp" -> Math.max(f.get("min").getAsFloat(),
                     Math.min(f.get("max").getAsFloat(), evaluate(f.get("input"), x, z)));
             default -> throw new IllegalArgumentException("unexpected " + f.get("type"));

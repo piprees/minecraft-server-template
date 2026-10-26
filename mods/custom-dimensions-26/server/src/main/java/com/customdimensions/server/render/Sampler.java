@@ -4,6 +4,7 @@ import com.customdimensions.core.render.ColumnSamples;
 import com.customdimensions.server.level.LevelIndex;
 import com.customdimensions.server.level.LevelManager;
 import com.customdimensions.server.level.LevelMaths;
+import java.util.List;
 import java.util.Optional;
 import java.util.function.IntFunction;
 import java.util.function.Predicate;
@@ -26,6 +27,9 @@ import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.levelgen.NoiseBasedChunkGenerator;
 import net.minecraft.world.level.levelgen.NoiseRouterData;
 import net.minecraft.world.level.levelgen.RandomState;
+import net.minecraft.world.level.levelgen.densityfunction.DensityFunction;
+import net.minecraft.world.level.levelgen.densityfunction.DensitySampler;
+import net.minecraft.world.level.levelgen.densityfunction.SamplerContext;
 import net.minecraft.world.level.material.FluidState;
 
 /**
@@ -51,6 +55,9 @@ public final class Sampler {
         }
     }
 
+    /** The last zone in order whose compiled mask is above zero at a column, or index -1. */
+    public record ZoneHit(int index, double weight) {}
+
     /** A surface found by {@link #surface}. */
     public record Surface(int height, boolean roofed) {}
 
@@ -62,6 +69,7 @@ public final class Sampler {
     private final String seedSource;
     private final int noiseTop;
     private final ThreadLocal<BiomeResolver> resolvers;
+    private final List<DensitySampler> zoneMasks;
 
     private Sampler(String dimension, ChunkGenerator generator, int minY, int height, long seed, String seedSource,
                     RegistryAccess access) {
@@ -80,6 +88,7 @@ public final class Sampler {
             this.noiseTop = minY + height - 1;
         }
         this.resolvers = ThreadLocal.withInitial(() -> generator.getBiomeSource().createUncachedResolver(random));
+        this.zoneMasks = zoneMasks(access, dimension).stream().map(random::getSampler).toList();
     }
 
     /** {@code generator} under {@code seed} in a dimension of {@code height} blocks from {@code minY}. */
@@ -122,6 +131,40 @@ public final class Sampler {
         }
         LevelIndex.Entry entry = manager.index().lazy(slug).orElseThrow(() -> new IllegalArgumentException("no dimension " + slug));
         return LevelMaths.resolveSeed(entry.definition() == null ? null : entry.definition().seed(), server.overworld().getSeed());
+    }
+
+    /**
+     * The compiled zone masks of {@code slug}, {@code <ns>:zones/<slug>/<index>/mask}, in zone order; empty when
+     * it has none.
+     */
+    static List<DensityFunction> zoneMasks(RegistryAccess access, String slug) {
+        java.util.TreeMap<Integer, DensityFunction> masks = new java.util.TreeMap<>();
+        java.util.regex.Pattern path = java.util.regex.Pattern.compile("zones/" + java.util.regex.Pattern.quote(slug) + "/(\\d+)/mask");
+        access.lookupOrThrow(Registries.DENSITY_FUNCTION).listElements().forEach(h -> {
+            var m = path.matcher(h.key().identifier().getPath());
+            if (m.matches()) masks.put(Integer.parseInt(m.group(1)), h.value());
+        });
+        return List.copyOf(masks.values());
+    }
+
+    public boolean hasZones() {
+        return !zoneMasks.isEmpty();
+    }
+
+    /** Each zone's compiled mask at {@code (x, z)}, in zone order. */
+    public double[] zoneWeights(int x, int z) {
+        double[] out = new double[zoneMasks.size()];
+        for (int i = 0; i < out.length; i++) out[i] = zoneMasks.get(i).sampleValue(SamplerContext.EMPTY_UNCACHED, x, 0, z);
+        return out;
+    }
+
+    /** The last zone whose mask is above zero at {@code (x, z)}. */
+    public ZoneHit topZone(int x, int z) {
+        double[] w = zoneWeights(x, z);
+        for (int i = w.length - 1; i >= 0; i--) {
+            if (w[i] > 0) return new ZoneHit(i, w[i]);
+        }
+        return new ZoneHit(-1, 0);
     }
 
     /** The generator's noise column at {@code (x, z)}: every block the noise stage fills, before surface rules, carvers and features. */

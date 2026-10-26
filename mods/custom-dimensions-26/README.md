@@ -86,12 +86,19 @@ the definition sets.
 
 | `generator` | Compiles to | Tuning |
 | --- | --- | --- |
-| `noise`, preset `overworld`, `large_biomes`, `amplified`, `caves`, `floating_islands`, `nether`, `end` | `minecraft:noise` with the preset's noise settings; the overworld family and the Nether filter vanilla's multi-noise list to the definition's `biomes`; the End keeps `minecraft:the_end` | `liquids.seaLevel` → `sea_level`, `liquids.defaultFluid` → `default_fluid`, `liquids.aquifers` → the `aquifers` object kept (`on`), removed (`off`, `flooded`) or removed with air as the fluid (`dry`), `liquids.lavaLevel` → the runtime; `materials.defaultBlock` → `default_block` on 26.3 and the last entry of the material rule on 26.4; palettes (`top`, `filler`, `deep`, `cliffs`, `beaches`, `ceilings`, per-biome `biomes`) and `ores.veins` → the dimension's material rule; `ores.add` and `ores.remove` → placed features and the runtime; `endIsland: false` (End only) swaps vanilla's `end/islands` for a copy that keeps only `end_outer_islands`. Fields: [schema-v2.md](../../docs/design/rebuild-26/schema-v2.md#materials-liquids-and-ores) |
+| `noise`, preset `overworld`, `large_biomes`, `amplified`, `caves`, `floating_islands`, `nether`, `end` | `minecraft:noise` with the preset's noise settings; a definition's `biomes` become a multi-noise layout with no overlaps (`BiomeLayout`: climate boxes first, then vanilla's entries, or a temperature-by-humidity grid when a listed biome has none); the End keeps `minecraft:the_end` unless it lists biomes, which then spread over the overworld's temperature and vegetation | `liquids.seaLevel` → `sea_level`, `liquids.defaultFluid` → `default_fluid`, `liquids.aquifers` → the `aquifers` object kept (`on`), removed (`off`, `flooded`) or removed with air as the fluid (`dry`), `liquids.lavaLevel` → the runtime; `materials.defaultBlock` → `default_block` on 26.3 and the last entry of the material rule on 26.4; palettes (`top`, `filler`, `deep`, `cliffs`, `beaches`, `ceilings`, per-biome `biomes`) and `ores.veins` → the dimension's material rule; `ores.add` and `ores.remove` → placed features and the runtime; `endIsland: false` (End only) swaps vanilla's `end/islands` for a copy that keeps only `end_outer_islands`. Fields: [schema-v2.md](../../docs/design/rebuild-26/schema-v2.md#materials-liquids-and-ores) |
 | `checkerboard` | overworld noise, `minecraft:checkerboard` source | `cellScale` → `scale`: cells of 2^(cellScale+4) blocks; `liquids`, `materials` and `ores` as for `noise` |
 | `single_biome` | overworld noise, `minecraft:fixed` source | `biome`; `liquids`, `materials` and `ores` as for `noise` |
 | `flat` | `minecraft:flat`, no features or lakes | `layers`, `biome` |
 | `void` | `minecraft:flat` with no layers | its first vanilla biome, else `minecraft:the_void` |
 | `clone` | the generator of the definition `of` names, under the clone's own dimension type, seed and atmosphere | its own `liquids` and `materials` over the source's; its own `biomes` are reported unused |
+
+`zones` lay shapes over any noise generator (`ZonesCompiler`, [worldgen.md § Zones](../../docs/design/rebuild-26/worldgen.md#zones)):
+each zone's mask is `<namespace>:zones/<slug>/<index>/mask`; a zone's terrain
+compiles under `<namespace>:terrain/<slug>/zone_<index>/` and is blended into
+the router; a zone that sets or swaps biomes wraps the biome source in
+`customdimensions:zoned`. A stamp of a biome the game lacks is a skipped biome
+in the report.
 
 `terrain` picks a terrain from the library for any noise generator but the
 `caves`, `nether` and `end` presets (`compiler/.../terrain/`, one enum constant
@@ -155,6 +162,7 @@ from the pack; every lazy stem is opened through Fantasy as a persistent level
 | `PackInstaller` | Compiles the definitions into `<world>/datapacks/customdimensions/` at mod initialisation, before the world loads ([below](#the-pack-at-start-up)) |
 | `LevelIndex` | At start, decodes every lazy stem from the server's resources and pairs it with its definition (seed, spawn, borders) |
 | `WorldgenRuntime` | Applies `worldgen_runtime/` to a level's generator before it generates: base worlds at server start, a lazy level as its stem is decoded. A lava level replaces the generator's fluid rule; added and removed placed features replace that generator's per-biome feature lists, leaving the shared biomes alone. Two accessor mixins reach the fields |
+| `ZonedBiomeSource` (`zone/`) | `customdimensions:zoned`: a base biome source with zone layouts and swaps over it. The router's temperature carries the zone whose biomes hold, as the base temperature plus 16 per channel; channel 0 is the base. Registered in `ZoneTypes` with `customdimensions:zone_distance`, the sector and polygon distance function. Neither type reaches a client |
 | `LevelManager` | Activation queue, one at a time (K6); spawn chunk loaded through a ticket, never on the tick; unload and delete polled until the level leaves `levelKeys()`; idle unload after `idleUnloadMinutes` |
 
 `-Pdefinitions=<dir>` points `runServer` at another definitions folder. Definitions are read from `-Dcustomdimensions.definitions`, else from
@@ -223,11 +231,12 @@ second render while one runs. At the default radius a render samples 1,048,576 c
 | --- | --- |
 | `<seed>-r<radius>-biome.png` | Each pixel in its surface biome's colour: a fixed colour per vanilla 26.3 biome (`BiomePalette`), any other id a colour from its hash |
 | `<seed>-r<radius>-height.png` | Surface height in grey (dark to light across the dry surface's 1st to 99th percentile, a darker line where a 16-block band changes, lit from the north-west); water blue, darker with depth; lava orange; a column with no solid block black |
+| `<seed>-r<radius>-zones.png` | Drawn for a dimension with zones, from the compiled masks: the height layer tinted by each zone's colour as far as its mask reaches, a white line where a mask crosses one half (where its biomes take over) and a black line at the outer edge of its blend |
 | `<seed>-r<radius>.json` | Seed and its source, radius, step, side, centre, the surface and biome-y rules, sea level, timings (prepare, sample, images, columns per second, threads), the biome legend with colours and pixel counts, and the height range |
 
 Pixel `(px, py)` is the column at the north-west corner of its step-by-step
-cell; north is up. A further image is a `RenderLayer` (core): zone outlines and
-structure starts join as layers.
+cell; north is up. Each image is a `RenderLayer` (core); structure starts join
+as a layer.
 
 ### The Sampler
 
