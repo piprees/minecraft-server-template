@@ -62,11 +62,12 @@ final class RollCommand {
         Optional<LevelManager> manager = CustomDimCommands.manager(source);
         if (manager.isEmpty()) return Optional.empty();
         Optional<CustomDimCommands.Dimension> dimension = CustomDimCommands.dimension(source, manager.get(), slug);
-        if (dimension.isEmpty() || refusedForChunks(source, manager.get(), dimension.get())) return Optional.empty();
+        if (dimension.isEmpty()) return Optional.empty();
         if (seeds == null && (count < 1 || count > Roll.MAX_COUNT)) {
             CustomDimCommands.fail(source, "customdim.roll.count", "count", String.valueOf(count), "max", String.valueOf(Roll.MAX_COUNT));
             return Optional.empty();
         }
+        if (refusedForChunks(source, manager.get(), dimension.get())) return Optional.empty();
         Definition def = dimension.get().definition();
         if (RollSpec.of(def).skip()) {
             CustomDimCommands.fail(source, "customdim.roll.skip", "dimension", slug);
