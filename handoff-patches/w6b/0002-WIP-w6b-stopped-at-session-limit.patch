@@ -1,0 +1,208 @@
+From 79e1e8604eac679b63b9bda64610a2618b618970 Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Mon, 26 Oct 2026 01:34:13 +0000
+Subject: [PATCH 2/2] WIP w6b (stopped at session limit)
+
+---
+ .../server/command/RollCommand.java           |  3 +-
+ .../server/command/RollCommandAccess.java     |  7 +-
+ .../server/render/RollSelfTest.java           | 81 ++++++++++++++-----
+ 3 files changed, 71 insertions(+), 20 deletions(-)
+
+diff --git a/mods/custom-dimensions-26/server/src/main/java/com/customdimensions/server/command/RollCommand.java b/mods/custom-dimensions-26/server/src/main/java/com/customdimensions/server/command/RollCommand.java
+index 0ab83a37..177051e0 100644
+--- a/mods/custom-dimensions-26/server/src/main/java/com/customdimensions/server/command/RollCommand.java
++++ b/mods/custom-dimensions-26/server/src/main/java/com/customdimensions/server/command/RollCommand.java
+@@ -62,11 +62,12 @@ final class RollCommand {
+         Optional<LevelManager> manager = CustomDimCommands.manager(source);
+         if (manager.isEmpty()) return Optional.empty();
+         Optional<CustomDimCommands.Dimension> dimension = CustomDimCommands.dimension(source, manager.get(), slug);
+-        if (dimension.isEmpty() || refusedForChunks(source, manager.get(), dimension.get())) return Optional.empty();
++        if (dimension.isEmpty()) return Optional.empty();
+         if (seeds == null && (count < 1 || count > Roll.MAX_COUNT)) {
+             CustomDimCommands.fail(source, "customdim.roll.count", "count", String.valueOf(count), "max", String.valueOf(Roll.MAX_COUNT));
+             return Optional.empty();
+         }
++        if (refusedForChunks(source, manager.get(), dimension.get())) return Optional.empty();
+         Definition def = dimension.get().definition();
+         if (RollSpec.of(def).skip()) {
+             CustomDimCommands.fail(source, "customdim.roll.skip", "dimension", slug);
+diff --git a/mods/custom-dimensions-26/server/src/main/java/com/customdimensions/server/command/RollCommandAccess.java b/mods/custom-dimensions-26/server/src/main/java/com/customdimensions/server/command/RollCommandAccess.java
+index ee685beb..01b9a761 100644
+--- a/mods/custom-dimensions-26/server/src/main/java/com/customdimensions/server/command/RollCommandAccess.java
++++ b/mods/custom-dimensions-26/server/src/main/java/com/customdimensions/server/command/RollCommandAccess.java
+@@ -2,7 +2,7 @@ package com.customdimensions.server.command;
+ 
+ import java.nio.file.Path;
+ 
+-/** The definitions folder {@code create} and {@code pick} write to, and the self-test's override of it. */
++/** The definitions folder {@code create} and {@code pick} write to, the self-test's override of it, and pick's writer. */
+ public final class RollCommandAccess {
+     private RollCommandAccess() {}
+ 
+@@ -10,6 +10,11 @@ public final class RollCommandAccess {
+         return CreateCommand.definitionsDir();
+     }
+ 
++    /** Writes {@code seed} into a definition file as {@code pick} does. */
++    public static void writeSeed(Path file, long seed) throws java.io.IOException {
++        RollCommand.writeSeed(file, seed);
++    }
++
+     public static void override(Path dir) {
+         CreateCommand.definitionsOverride = dir;
+     }
+diff --git a/mods/custom-dimensions-26/server/src/main/java/com/customdimensions/server/render/RollSelfTest.java b/mods/custom-dimensions-26/server/src/main/java/com/customdimensions/server/render/RollSelfTest.java
+index 411df5ae..a1265f9b 100644
+--- a/mods/custom-dimensions-26/server/src/main/java/com/customdimensions/server/render/RollSelfTest.java
++++ b/mods/custom-dimensions-26/server/src/main/java/com/customdimensions/server/render/RollSelfTest.java
+@@ -199,8 +199,7 @@ public final class RollSelfTest {
+     private void refusals() {
+         List<String> roll = command("customdim roll overworld 5");
+         List<String> pick = command("customdim pick overworld 1");
+-        String free = rollable();
+-        List<String> count = command("customdim roll " + (free == null ? "the_nether" : free) + " 0");
++        List<String> count = command("customdim roll the_nether 0");
+         List<String> unknown = command("customdim roll no_such_dimension");
+         boolean chunks = roll.size() == 1 && roll.getFirst().contains("already has generated chunks")
+                 && pick.size() == 1 && pick.getFirst().contains("already has generated chunks");
+@@ -209,16 +208,35 @@ public final class RollSelfTest {
+         lines.add((ok ? "PASS" : "FAIL") + " roll refusals: roll " + roll + ", pick " + pick + ", count " + count + ", unknown " + unknown);
+     }
+ 
++    /**
++     * Five seeds through {@code /customdim roll} on a lazy dimension with
++     * wants and no chunks; when the level section has opened every one, the
++     * same five through {@link Roll} on the render job, which is the command's
++     * path after its refusals.
++     */
+     private CompletableFuture<Void> smallRoll() {
+-        String slug = rollable();
++        String free = rollable();
++        String slug = free != null ? free : wanting();
+         if (slug == null) {
+-            lines.add("FAIL roll small: no lazy dimension without chunks to roll");
++            lines.add("FAIL roll small: no lazy dimension wants structures");
+             return CompletableFuture.completedFuture(null);
+         }
+         Capture capture = new Capture();
+-        CommandSourceStack source = server.createCommandSourceStack().withSource(capture);
+-        server.getCommands().performPrefixedCommand(source, "customdim roll " + slug + " " + SMALL_ROLL);
+-        RenderJob job = RenderJob.running().orElse(null);
++        RenderJob job;
++        if (free != null) {
++            server.getCommands().performPrefixedCommand(server.createCommandSourceStack().withSource(capture),
++                    "customdim roll " + slug + " " + SMALL_ROLL);
++            job = RenderJob.running().orElse(null);
++        } else {
++            var def = manager.index().lazy(slug).orElseThrow().definition();
++            List<Long> seeds = new ArrayList<>();
++            for (long i = 1; i <= SMALL_ROLL; i++) seeds.add(i * 7_919L);
++            Roll.Plan plan = new Roll.Plan(slug, def, def.spawn() == null ? 0 : def.spawn().x(), def.spawn() == null ? 0 : def.spawn().z(),
++                    seeds, RenderJob.outputDir(slug));
++            job = RenderJob.startWork(server, new RenderJob.Request(slug, null, null, plan.outputDir()), plan.units(),
++                    (self, pool) -> Roll.run(self, plan, seed -> Sampler.forDimension(server, manager, slug, seed), pool, p -> {}),
++                    outcome -> {}, error -> {}).orElse(null);
++        }
+         if (job == null) {
+             lines.add("FAIL roll small " + slug + ": the roll did not start: " + capture.lines);
+             return CompletableFuture.completedFuture(null);
+@@ -226,6 +244,7 @@ public final class RollSelfTest {
+         List<String> busy = command("customdim roll " + slug + " 3");
+         lines.add((busy.size() == 1 && busy.getFirst().contains("one runs at a time") ? "PASS" : "FAIL")
+                 + " roll refused while another runs: " + busy);
++        String how = free != null ? "command" : "direct, every lazy dimension holds chunks";
+         return job.finished().handleAsync((result, error) -> {
+             if (error != null) {
+                 lines.add("FAIL roll small " + slug + ": " + cause(error) + " " + capture.lines);
+@@ -233,18 +252,26 @@ public final class RollSelfTest {
+             }
+             Roll.Outcome outcome = (Roll.Outcome) result;
+             String problems = sheetProblems(outcome, SMALL_ROLL);
+-            boolean replied = capture.lines.stream().anyMatch(l -> l.startsWith("Rolling " + SMALL_ROLL + " seeds of " + slug))
++            boolean replied = free == null
++                    || capture.lines.stream().anyMatch(l -> l.startsWith("Rolling " + SMALL_ROLL + " seeds of " + slug))
+                     && capture.lines.stream().anyMatch(l -> l.startsWith("Rolled " + SMALL_ROLL + " seeds of " + slug));
+             Roll.Rolled top = outcome.best().getFirst();
+-            lines.add((problems.isEmpty() && replied ? "PASS" : "FAIL") + " roll small " + slug + ": " + outcome.rolled()
++            lines.add((problems.isEmpty() && replied ? "PASS" : "FAIL") + " roll small " + slug + " (" + how + "): " + outcome.rolled()
+                     + " seeds in " + outcome.millis() + " ms (" + outcome.columnsPerSecond() + " columns/s), best " + top.seed() + " "
+                     + top.card().verdict() + " " + fmt(top.card().percentage()) + " -> " + outcome.sheet()
+                     + (problems.isEmpty() ? "" : "; " + problems) + "; replies " + capture.lines);
+-            lines.add(pickRoundTrip(slug, outcome));
++            lines.add(pickRoundTrip(slug, outcome, free != null));
+             return null;
+         }, server);
+     }
+ 
++    /** The first lazy dimension, by slug, that wants structures. */
++    private String wanting() {
++        return manager.index().lazy().values().stream()
++                .filter(e -> e.definition() != null && !RollSpec.of(e.definition()).wants().isEmpty() && !RollSpec.of(e.definition()).skip())
++                .map(LevelIndex.Entry::slug).sorted().findFirst().orElse(null);
++    }
++
+     /** What is wrong with a finished roll's sheet, rankings and files, or empty. */
+     static String sheetProblems(Roll.Outcome outcome, int expected) {
+         List<String> problems = new ArrayList<>();
+@@ -271,8 +298,12 @@ public final class RollSelfTest {
+         return String.join("; ", problems);
+     }
+ 
+-    /** {@code pick} by seed and by rank into a copy of the definitions folder, then the file read back. */
+-    private String pickRoundTrip(String slug, Roll.Outcome outcome) {
++    /**
++     * {@code pick} by seed and by rank into a copy of the definitions folder,
++     * then the file read back; without {@code viaCommand}, pick's writer and
++     * the ranking file directly.
++     */
++    private String pickRoundTrip(String slug, Roll.Outcome outcome, boolean viaCommand) {
+         String name = "roll pick round trip " + slug;
+         Path copy = null;
+         try {
+@@ -283,22 +314,36 @@ public final class RollSelfTest {
+             JsonObject before = JsonParser.parseString(Files.readString(target)).getAsJsonObject();
+             RollCommandAccess.override(copy);
+             long seed = outcome.best().getLast().seed();
+-            List<String> bySeed = command("customdim pick " + slug + " " + seed);
+-            JsonObject afterSeed = JsonParser.parseString(Files.readString(target)).getAsJsonObject();
+-            List<String> byRank = command("customdim pick " + slug + " rank 1");
++            List<String> bySeed;
++            List<String> byRank;
++            List<String> noRank;
++            JsonObject afterSeed;
++            long top = outcome.best().getFirst().seed();
++            if (viaCommand) {
++                bySeed = command("customdim pick " + slug + " " + seed);
++                afterSeed = JsonParser.parseString(Files.readString(target)).getAsJsonObject();
++                byRank = command("customdim pick " + slug + " rank 1");
++                noRank = command("customdim pick " + slug + " rank " + Roll.KEEP);
++            } else {
++                RollCommandAccess.writeSeed(target, seed);
++                afterSeed = JsonParser.parseString(Files.readString(target)).getAsJsonObject();
++                long ranked = Roll.ranked(outcome.sheet().getParent(), 1).orElseThrow();
++                RollCommandAccess.writeSeed(target, ranked);
++                bySeed = List.of("written after the next restart");
++                byRank = List.of(String.valueOf(ranked));
++                noRank = Roll.ranked(outcome.sheet().getParent(), Roll.KEEP).isEmpty() ? List.of("no rank") : List.of("rank found");
++            }
+             JsonObject afterRank = JsonParser.parseString(Files.readString(target)).getAsJsonObject();
+-            List<String> noRank = command("customdim pick " + slug + " rank " + Roll.KEEP);
+             JsonObject rest = afterRank.deepCopy();
+             rest.remove("seed");
+             JsonObject was = before.deepCopy();
+             was.remove("seed");
+-            long top = outcome.best().getFirst().seed();
+             boolean ok = afterSeed.get("seed").getAsLong() == seed && afterRank.get("seed").getAsLong() == top && rest.equals(was)
+                     && bySeed.size() == 1 && bySeed.getFirst().contains("after the next restart")
+                     && byRank.size() == 1 && byRank.getFirst().contains(String.valueOf(top))
+                     && List.copyOf(before.keySet()).equals(List.copyOf(afterRank.keySet()))
+                     && (outcome.best().size() >= Roll.KEEP || noRank.size() == 1 && noRank.getFirst().contains("no rank"));
+-            return (ok ? "PASS " : "FAIL ") + name + ": seed " + seed + " then rank 1 = " + top + ", every other field unchanged "
++            return (ok ? "PASS " : "FAIL ") + name + (viaCommand ? " (command)" : " (direct)") + ": seed " + seed + " then rank 1 = " + top + ", every other field unchanged "
+                     + rest.equals(was) + ", key order kept " + List.copyOf(before.keySet()).equals(List.copyOf(afterRank.keySet()))
+                     + "; replies " + bySeed + " " + byRank + " " + noRank;
+         } catch (IOException | RuntimeException e) {
+-- 
+2.43.0
+
