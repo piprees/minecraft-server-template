@@ -1227,7 +1227,7 @@
           "type": "number",
           "minimum": 64,
           "maximum": 200,
-          "default": 96
+          "default": 112
         },
         "relief": {
           "description": "Blocks of hills where erosion is low",
@@ -1267,7 +1267,7 @@
       }
     },
     "terrain_canyons": {
-      "description": "Deep meandering cuts through the land, flat-floored and steep-walled.",
+      "description": "Dry steep-walled canyons whose flat floors step down in falls toward sea level, like old river beds.",
       "type": "object",
       "additionalProperties": false,
       "properties": {
@@ -1307,11 +1307,11 @@
           "default": 0.35
         },
         "depth": {
-          "description": "Blocks a canyon cuts below the land around it",
+          "description": "Blocks the floor lies below the land at a canyon's upper reaches",
           "type": "number",
           "minimum": 8,
           "maximum": 120,
-          "default": 40
+          "default": 24
         },
         "width": {
           "description": "Canyon width, as a share of the channel noise",
@@ -1326,6 +1326,27 @@
           "minimum": 0.25,
           "maximum": 4,
           "default": 1
+        },
+        "grade": {
+          "description": "How far floors descend from their upper reaches toward sea level; 0 keeps every floor depth below the land",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 1
+        },
+        "cascadeStep": {
+          "description": "Blocks between floor levels; each drop is a dry fall",
+          "type": "number",
+          "minimum": 2,
+          "maximum": 32,
+          "default": 8
+        },
+        "pools": {
+          "description": "Share of canyon floor sunk 4 blocks into hollows, which hold water at sea level",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 0.3,
+          "default": 0.05
         }
       }
     },

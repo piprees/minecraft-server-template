@@ -2,6 +2,9 @@ package com.customdimensions.compiler.terrain;
 
 import com.google.gson.JsonElement;
 
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -22,6 +25,7 @@ final class Ctx {
     private final int minY;
     private final int maxY;
     private final Set<String> noises = new TreeSet<>();
+    private final Map<String, JsonElement> named = new LinkedHashMap<>();
 
     Ctx(TerrainSpec spec, String namespace, String prefix, double sea, int minY, int maxY) {
         this.spec = spec;
@@ -54,6 +58,21 @@ final class Ctx {
 
     Set<String> noises() {
         return noises;
+    }
+
+    /**
+     * {@code function} written once as the terrain's {@code <prefix>/<key>} and
+     * referenced by id, so a term a shape reads several times is built once
+     * per column.
+     */
+    JsonElement named(String key, JsonElement function) {
+        named.put(key, Df.cache(function));
+        return ref(prefix + "/" + key);
+    }
+
+    /** The functions {@link #named} recorded, by key. */
+    Map<String, JsonElement> namedFunctions() {
+        return Collections.unmodifiableMap(named);
     }
 
     JsonElement continents() {

@@ -129,8 +129,8 @@ cells, an empty void and the definition whose `liquids.seaLevel` departs
 furthest from its preset's. The terrain section (`TerrainSelfTest`, after it) opens each terrain's gallery
 fixture at its default setting, scans its base height off the server thread,
 force-loads real chunks where the terrain's feature is and measures it (land
-and ocean, the share on one basin floor, peak rise, terrace treads, canyon cut,
-river water, air under sky islands, open water around islands, a void column
+and ocean, the share on one basin floor, peak rise, terrace treads, canyon cut and
+dry stepped canyon floors against the rivers fixture, river water, air under sky islands, open water around islands, a void column
 and its rim, cliff and chasm steps, spire rise). Each line also states the same
 measure on `terrain_continents_default`, loaded in the same kind of area as the
 control, and most thresholds require a margin over it. It checks every block lies inside

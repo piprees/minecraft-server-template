@@ -16,17 +16,18 @@ public final class Noises {
     private record Spec(int baseOctave, double[] amplitudes, double sigma) {}
 
     /** Base octave, octave amplitudes and the standard deviation of the sampled value. */
-    private static final Map<String, Spec> SPECS = new TreeMap<>(Map.of(
-            "altitude", new Spec(-8, new double[]{1, 0.5}, 0.274),
-            "channel", new Spec(-8, new double[]{1, 0.5, 0.25}, 0.248),
-            "detail", new Spec(-6, new double[]{1, 0.5, 0.25}, 0.248),
-            "gorge", new Spec(-8, new double[]{1, 0.5, 0.25}, 0.248),
-            "islands", new Spec(-7, new double[]{1, 1, 0.5, 0.25}, 0.293),
-            "plates", new Spec(-7, new double[]{1, 0.5}, 0.274),
-            "shatter", new Spec(-6, new double[]{1, 0.5, 0.25}, 0.251),
-            "spires", new Spec(-5, new double[]{1, 0.3}, 0.254),
-            "voids", new Spec(-7, new double[]{1, 0.5, 0.25}, 0.252),
-            "wear", new Spec(-8, new double[]{1, 0.5, 0.25}, 0.248)));
+    private static final Map<String, Spec> SPECS = new TreeMap<>(Map.ofEntries(
+            Map.entry("altitude", new Spec(-8, new double[]{1, 0.5}, 0.274)),
+            Map.entry("channel", new Spec(-8, new double[]{1, 0.5, 0.25}, 0.248)),
+            Map.entry("detail", new Spec(-6, new double[]{1, 0.5, 0.25}, 0.248)),
+            Map.entry("gorge", new Spec(-8, new double[]{1, 0.5, 0.25}, 0.248)),
+            Map.entry("grade", new Spec(-9, new double[]{1, 0.5}, 0.294)),
+            Map.entry("islands", new Spec(-7, new double[]{1, 1, 0.5, 0.25}, 0.293)),
+            Map.entry("plates", new Spec(-7, new double[]{1, 0.5}, 0.274)),
+            Map.entry("shatter", new Spec(-6, new double[]{1, 0.5, 0.25}, 0.251)),
+            Map.entry("spires", new Spec(-5, new double[]{1, 0.3}, 0.254)),
+            Map.entry("voids", new Spec(-7, new double[]{1, 0.5, 0.25}, 0.252)),
+            Map.entry("wear", new Spec(-8, new double[]{1, 0.5, 0.25}, 0.248))));
 
     private Noises() {
     }

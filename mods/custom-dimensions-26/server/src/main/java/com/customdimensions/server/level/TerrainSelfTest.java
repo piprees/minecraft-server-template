@@ -55,6 +55,10 @@ public final class TerrainSelfTest {
     static final int GALLERY_THREADS = 3;
     /** Erosion's residual hills: land this many blocks above the basin floor. */
     static final int HILL_RISE = 16;
+    /** Canyon floors: scanned every 8 blocks, 12+ below both points 24 blocks away on one axis, narrower than a lake. */
+    static final int FLOOR_STEP = 8;
+    static final int FLOOR_ACROSS = 24;
+    static final int FLOOR_CUT = 12;
     /** Single precision: two terrains also rendered block by block around 30,000, -30,000 to show any banding or seam. */
     static final int FAR = 30_000;
     static final List<String> FAR_RENDERS = List.of("terrain_terraces_default", "terrain_canyons_default");
@@ -89,6 +93,8 @@ public final class TerrainSelfTest {
     private final Map<String, Measure> controls = new TreeMap<>();
     private final Map<String, Function<Scan, Area>> pickers = new java.util.LinkedHashMap<>();
     private double overworldCost;
+    /** Canyon floors of the canyons fixture and of the rivers fixture, the wet control. */
+    private final Map<String, List<Floor>> floorScans = new TreeMap<>();
 
     private TerrainSelfTest(MinecraftServer server, LevelManager manager) {
         this.server = server;
@@ -128,6 +134,13 @@ public final class TerrainSelfTest {
         chain = family(chain, "erosion", this::erosion, "spaced");
         chain = family(chain, "ridges", this::ridges, "highest");
         chain = family(chain, "terraces", this::terraces, "spaced");
+        for (String fixture : List.of("terrain_canyons_default", "terrain_rivers_default")) {
+            chain = chain.thenCompose(v -> floorScan(fixture).handle((floors, error) -> {
+                if (error != null) lines.add("FAIL terrain canyons floor scan (" + fixture + "): " + cause(error));
+                else floorScans.put(fixture, floors);
+                return null;
+            }));
+        }
         chain = family(chain, "canyons", this::canyons, "spaced");
         chain = family(chain, "rivers", this::rivers, "riverBed");
         chain = family(chain, "floating_islands", this::floatingIslands, "spaced");
@@ -219,6 +232,28 @@ public final class TerrainSelfTest {
                 return null;
             });
         });
+    }
+
+    /**
+     * A fixture's canyon floors: a base-height scan every {@link #FLOOR_STEP}
+     * blocks, its {@link #floorPoints} and each one's ocean floor, which lies
+     * under the surface where water covers it. The fixture is open only for the scan.
+     */
+    private CompletableFuture<List<Floor>> floorScan(String slug) {
+        if (!manager.index().lazy().containsKey(slug)) {
+            return CompletableFuture.failedFuture(new IllegalStateException("no gallery fixture " + slug + " in the definitions"));
+        }
+        return manager.activate(slug).thenCompose(a -> CompletableFuture.supplyAsync(() -> {
+            ServerLevel level = a.level();
+            ChunkGenerator generator = level.getChunkSource().getGenerator();
+            RandomState random = level.getChunkSource().randomState();
+            List<Floor> out = new ArrayList<>();
+            for (int[] p : floorPoints(scan(level, SCAN_RADIUS, FLOOR_STEP), FLOOR_ACROSS / FLOOR_STEP)) {
+                int bed = generator.getBaseHeight(p[0], p[1], Heightmap.Types.OCEAN_FLOOR_WG, level, random);
+                out.add(new Floor(p[2], bed < p[2]));
+            }
+            return out;
+        }, worker)).thenComposeAsync(floors -> manager.deactivate(slug).thenApply(t -> floors), server);
     }
 
     /** Nine 2 by 2 chunk squares, 512 blocks apart over a 1,056-block square. */
@@ -347,7 +382,7 @@ public final class TerrainSelfTest {
     }
 
     static List<Integer> treadLevels(Scan scan) {
-        Map<Integer, Integer> count = new TreeMap<>();
+        TreeMap<Integer, Integer> count = new TreeMap<>();
         int land = 0;
         for (int[] row : scan.heights()) {
             for (int h : row) {
@@ -356,16 +391,28 @@ public final class TerrainSelfTest {
                 count.merge(h, 1, Integer::sum);
             }
         }
+        return levels(count, land, 0.005);
+    }
+
+    /**
+     * The levels of a height count: a level's 3-block window holds
+     * {@code minShare} of {@code total} and 2.5 times the mean of the windows
+     * 4 blocks below and above it, and is the highest within 3 blocks.
+     */
+    static List<Integer> levels(TreeMap<Integer, Integer> count, int total, double minShare) {
         java.util.function.IntUnaryOperator w = y -> count.getOrDefault(y - 1, 0) + count.getOrDefault(y, 0) + count.getOrDefault(y + 1, 0);
         List<Integer> out = new ArrayList<>();
-        for (int y : count.keySet()) {
+        if (count.isEmpty()) return out;
+        int first = count.firstKey() - 1;
+        int last = count.lastKey() + 1;
+        for (int y = first; y <= last; y++) {
             int here = w.applyAsInt(y);
             boolean highest = true;
             for (int d = -3; d <= 3; d++) {
                 if (d != 0 && (w.applyAsInt(y + d) > here || w.applyAsInt(y + d) == here && d < 0)) highest = false;
             }
             double side = (w.applyAsInt(y - 4) + w.applyAsInt(y + 4)) / 2.0;
-            if (highest && here >= 0.005 * land && here >= 2.5 * side) out.add(y);
+            if (highest && here >= minShare * total && here >= 2.5 * side) out.add(y);
         }
         return out;
     }
@@ -374,16 +421,76 @@ public final class TerrainSelfTest {
      * Canyons are a network: over the whole scan, points lying 20+ below both
      * points 48 blocks away on one axis, where continents has only an
      * occasional ravine or cave mouth; and the deepest cut in the loaded areas.
+     * Their floors are old river beds: of the canyon floor points in a scan
+     * every 8 blocks ({@link #floorScan}), water covers few, where it covers
+     * most of rivers'; the dry ones sit on distinct stepped levels; and the
+     * lowest reach sea level.
      */
     private String canyons(Measure m, Measure c) {
+        List<Floor> floors = floorScans.get("terrain_canyons_default");
+        List<Floor> riverFloors = floorScans.get("terrain_rivers_default");
+        if (floors == null || riverFloors == null) throw new IllegalStateException("no canyon floor scan");
         double share = trenchShare(m.area.scan());
         double controlShare = trenchShare(c.area.scan());
         int[] t = m.trench(12, 20);
         int[] control = c.trench(12, 20);
-        return verdict(t[2] >= 25 && share >= 0.01 && share >= 3 * controlShare, m.area() + ": over the scan " + pct(share)
+        double dry = dryShare(floors);
+        double riverDry = dryShare(riverFloors);
+        List<Integer> dryHeights = floors.stream().filter(f -> !f.wet()).map(Floor::surface).toList();
+        List<Integer> levels = floorLevels(dryHeights);
+        List<Integer> riverLevels = floorLevels(riverFloors.stream().filter(f -> !f.wet()).map(Floor::surface).toList());
+        int lowest = dryHeights.stream().mapToInt(Integer::intValue).min().orElse(Integer.MAX_VALUE);
+        boolean network = t[2] >= 25 && share >= 0.01 && share >= 3 * controlShare;
+        boolean beds = floors.size() >= 100 && dry >= 0.8 && dry >= riverDry + 0.5 && levels.size() >= 3
+                && levels.size() > riverLevels.size() && lowest <= m.sea + 2;
+        String line = m.area() + ": over the scan " + pct(share)
                 + " of points by land lie 20+ below both points 48 blocks away on one axis (needs 1% and three times continents' "
                 + pct(controlShare) + "); deepest cut below both columns 12 blocks away " + t[2] + " blocks (needs 25; continents "
-                + control[2] + ", a ravine)");
+                + control[2] + ", a ravine); " + floors.size() + " canyon floor points every " + FLOOR_STEP + " blocks, " + FLOOR_CUT
+                + "+ below both points " + FLOOR_ACROSS + " blocks away on one axis (needs 100; rivers " + riverFloors.size() + "), "
+                + pct(dry) + " dry (needs 80% and 50 percentage points more than rivers' " + pct(riverDry) + "), " + levels.size()
+                + " dry floor levels at y " + levels + " (needs 3 and more than rivers' " + riverLevels.size() + "), lowest dry floor y "
+                + (dryHeights.isEmpty() ? "none" : lowest) + " (needs " + (m.sea + 2) + " or lower, at sea level " + m.sea + ")";
+        return verdict(network && beds, beds ? line : line + "; dry floor heights " + histogram(dryHeights));
+    }
+
+    /** A canyon floor point's surface and whether water covers it. */
+    record Floor(int surface, boolean wet) {}
+
+    /** {@code {x, z, height}} of the scan points next to land lying {@link #FLOOR_CUT}+ below both points {@code off} steps away on one axis. */
+    static List<int[]> floorPoints(Scan scan, int off) {
+        int[][] h = scan.heights();
+        List<int[]> out = new ArrayList<>();
+        for (int i = off; i < scan.size() - off; i++) {
+            for (int j = off; j < scan.size() - off; j++) {
+                int p = h[i][j];
+                if (Math.max(Math.max(h[i - off][j], h[i + off][j]), Math.max(h[i][j - off], h[i][j + off])) < 63) continue;
+                boolean acrossX = h[i - off][j] - p >= FLOOR_CUT && h[i + off][j] - p >= FLOOR_CUT;
+                boolean acrossZ = h[i][j - off] - p >= FLOOR_CUT && h[i][j + off] - p >= FLOOR_CUT;
+                if (acrossX || acrossZ) out.add(new int[] {scan.x(i), scan.x(j), p});
+            }
+        }
+        return out;
+    }
+
+    static double dryShare(List<Floor> floors) {
+        return floors.isEmpty() ? 0 : floors.stream().filter(f -> !f.wet()).count() / (double) floors.size();
+    }
+
+    /** The floor heights' levels, each holding 3% of the floors (see {@link #levels}). */
+    static List<Integer> floorLevels(List<Integer> floors) {
+        TreeMap<Integer, Integer> count = new TreeMap<>();
+        floors.forEach(h -> count.merge(h, 1, Integer::sum));
+        return levels(count, floors.size(), 0.03);
+    }
+
+    /** {@code y:count} for each height, lowest first. */
+    static String histogram(List<Integer> heights) {
+        TreeMap<Integer, Integer> count = new TreeMap<>();
+        heights.forEach(h -> count.merge(h, 1, Integer::sum));
+        StringBuilder sb = new StringBuilder();
+        count.forEach((y, n) -> sb.append(sb.isEmpty() ? "" : " ").append(y).append(':').append(n));
+        return sb.toString();
     }
 
     /** Of the scan points next to land, those with both neighbours 48 blocks away on one axis 20+ above them: inside a trench. */

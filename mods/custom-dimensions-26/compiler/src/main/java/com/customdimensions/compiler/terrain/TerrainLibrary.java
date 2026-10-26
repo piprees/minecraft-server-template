@@ -98,6 +98,7 @@ public final class TerrainLibrary {
         if (!spec.family().airborne() && spec.heightMultiplier() != 1) {
             height = add(mul(add(height, -sea), spec.heightMultiplier()), sea);
         }
+        ctx.namedFunctions().forEach((key, f) -> functions.put(key, f.getAsJsonObject()));
         functions.put("height", cache(height));
         functions.put("offset", cache(add(mul(ref(prefix + "/height"), 1 / 128.0), -1)));
         functions.put("factor", cache(shape.factor()));

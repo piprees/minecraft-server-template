@@ -62,8 +62,9 @@ class TerrainWiringTest {
         defs.put("b", Fixtures.definition("\"generator\": {\"type\": \"clone\", \"of\": \"adventure:a\"}"));
         DatapackCompiler.Output out = DatapackCompiler.compileAll(Fixtures.NAMESPACE, defs, Fixtures.vanilla(), VersionTable.V26_3);
         assertTrue(out.files().containsKey("data/adventure/worldgen/density_function/terrain/b/height.json"));
-        assertEquals(out.files().get("data/adventure/worldgen/density_function/terrain/a/factor.json"),
-                out.files().get("data/adventure/worldgen/density_function/terrain/b/factor.json"));
+        assertEquals(out.files().get("data/adventure/worldgen/density_function/terrain/a/factor.json").toString()
+                        .replace("adventure:terrain/a/", "adventure:terrain/b/"),
+                out.files().get("data/adventure/worldgen/density_function/terrain/b/factor.json").toString());
     }
 
     @Test

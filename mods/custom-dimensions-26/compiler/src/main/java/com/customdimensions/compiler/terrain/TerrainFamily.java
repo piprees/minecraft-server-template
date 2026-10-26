@@ -68,13 +68,16 @@ public enum TerrainFamily {
             Map.of("stepHeight", 24.0, "riser", 0.1, "relief", 110.0, "plateauHeight", 190.0),
             false, TerrainFamily::terraces),
 
-    CANYONS("canyons", "Deep meandering cuts through the land, flat-floored and steep-walled.",
-            List.of(new TerrainParam("depth", 8, 120, 40, "Blocks a canyon cuts below the land around it"),
+    CANYONS("canyons", "Dry steep-walled canyons whose flat floors step down in falls toward sea level, like old river beds.",
+            List.of(new TerrainParam("depth", 8, 120, 24, "Blocks the floor lies below the land at a canyon's upper reaches"),
                     new TerrainParam("width", 0.01, 0.3, 0.06, "Canyon width, as a share of the channel noise"),
-                    new TerrainParam("frequency", 0.25, 4, 1, "How often canyons occur; higher is more and tighter")),
-            Map.of("landHeight", 96.0, "roughness", 0.35),
-            Map.of("depth", 14.0, "width", 0.04, "relief", 16.0),
-            Map.of("depth", 110.0, "width", 0.1, "landHeight", 150.0, "relief", 30.0),
+                    new TerrainParam("frequency", 0.25, 4, 1, "How often canyons occur; higher is more and tighter"),
+                    new TerrainParam("grade", 0, 1, 1, "How far floors descend from their upper reaches toward sea level; 0 keeps every floor depth below the land"),
+                    new TerrainParam("cascadeStep", 2, 32, 8, "Blocks between floor levels; each drop is a dry fall"),
+                    new TerrainParam("pools", 0, 0.3, 0.05, "Share of canyon floor sunk 4 blocks into hollows, which hold water at sea level")),
+            Map.of("landHeight", 112.0, "roughness", 0.35),
+            Map.of("depth", 14.0, "width", 0.04, "relief", 16.0, "landHeight", 96.0, "grade", 0.25, "cascadeStep", 4.0),
+            Map.of("depth", 36.0, "width", 0.1, "landHeight", 170.0, "relief", 30.0, "cascadeStep", 14.0),
             false, TerrainFamily::canyons),
 
     RIVERS("rivers", "Rivers cut to just below sea level across the land, with banks.",
@@ -272,24 +275,64 @@ public enum TerrainFamily {
 
     private static Shape terraces(Ctx ctx) {
         Shape land = ctx.land();
-        double step = ctx.p("stepHeight");
-        double riser = ctx.p("riser");
-        JsonElement above = mul(add(land.height(), -ctx.sea()), 1 / step);
-        JsonElement level = floor(above);
-        JsonElement frac = sub(above, level);
-        JsonElement rise = spline(frac, 0, 0, 1 - riser, 0, 1, 1);
-        JsonElement stepped = add(mul(add(level, rise), step), ctx.sea());
+        JsonElement stepped = steps(land.height(), ctx.sea(), ctx.p("stepHeight"), ctx.p("riser"));
         return new Shape(min(stepped, c(ctx.p("plateauHeight"))), land.factor(), land.jaggedness(), null, null,
                 land.continents(), 0.15);
     }
 
+    /**
+     * A height floored into levels {@code step} apart from {@code base}, each
+     * flat for {@code 1 - riser} of the step and rising over the rest; never
+     * above the height it steps.
+     */
+    static JsonElement steps(JsonElement height, double base, double step, double riser) {
+        JsonElement above = mul(add(height, -base), 1 / step);
+        JsonElement level = floor(above);
+        JsonElement frac = sub(above, level);
+        JsonElement rise = spline(frac, 0, 0, 1 - riser, 0, 1, 1);
+        return add(mul(add(level, rise), step), base);
+    }
+
+    /** Share of each cascade step that is the fall rather than the flat floor. */
+    static final double CASCADE_RISER = 0.05;
+    /** Vanilla's {@code factor} inside a canyon: steep enough that the 3D noise lifts a floor by a block at most. */
+    static final double CHANNEL_FACTOR = 64;
+    /** Blocks a pool sinks below its floor. */
+    static final double POOL_DEPTH = 4;
+
+    /**
+     * An old river bed cut into the land. Inside the channel the ground drops
+     * to a floor {@code depth} below the land at a canyon's upper reaches; the
+     * grade noise and the coast lower it toward sea level by {@code grade} of
+     * the way, and the floor is stepped {@code cascadeStep} apart into flat
+     * reaches with dry falls between them. Where the grade noise lies in its
+     * lowest {@code pools} share the floor sinks into a hollow, which holds
+     * water where the floor is at sea level. The ground follows the height
+     * closely inside the channel so floors stay flat and walls steep.
+     */
     private static Shape canyons(Ctx ctx) {
         Shape land = ctx.land();
+        double sea = ctx.sea();
         double w = ctx.p("width");
+        double pools = ctx.p("pools");
+        double sigma = Noises.sigma("grade");
+        JsonElement height = ctx.named("canyon_land", land.height());
         JsonElement channel = abs(ctx.noise("gorge", ctx.p("frequency"), 0));
-        JsonElement profile = spline(channel, 0, 1, w * 0.6, 1, w, 0.15, w * 1.6, 0);
         JsonElement onLand = ramp(ctx.continents(), ctx.p("coast"), ctx.p("coast") + 0.15);
-        return land.withHeight(sub(land.height(), mul(mul(profile, onLand), ctx.p("depth"))));
+        JsonElement profile = Df.cache(mul(spline(channel, 0, 1, w * 0.6, 1, w, 0.15, w * 1.6, 0), onLand));
+        JsonElement grade = ctx.named("canyon_grade", ctx.noise("grade", ctx.p("frequency"), 0));
+        double low = pools > 0 ? Noises.threshold(1 - pools, sigma) : -2.5 * sigma;
+        JsonElement inland = ramp(ctx.continents(), ctx.p("coast"), ctx.p("coast") + 0.4);
+        JsonElement upstream = mul(ramp(grade, low, low + 2.5 * sigma), inland);
+        JsonElement keep = sub(c(1), mul(sub(c(1), upstream), ctx.p("grade")));
+        JsonElement bed = ctx.named("canyon_bed", add(mul(max(add(height, -(sea + 1 + ctx.p("depth"))), c(0)), keep), sea + 1));
+        JsonElement floor = steps(bed, sea + 1, ctx.p("cascadeStep"), CASCADE_RISER);
+        if (pools > 0) {
+            floor = sub(floor, mul(ramp(grade, low, low - 0.1 * sigma), POOL_DEPTH));
+        }
+        JsonElement h = lerp(profile, height, min(height, floor));
+        JsonElement factor = lerp(profile, land.factor(), c(CHANNEL_FACTOR));
+        return new Shape(h, factor, land.jaggedness(), null, null, land.continents(), land.noise3d());
     }
 
     private static Shape rivers(Ctx ctx) {

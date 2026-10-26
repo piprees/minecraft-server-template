@@ -149,6 +149,45 @@ class TerrainLibraryTest {
     }
 
     @Test
+    void canyonFloorsStepDownTowardSeaLevelWithPoolsAtTheGradeNoisesLowestShare() {
+        TerrainLibrary.Compiled c = compile("{\"base\": \"canyons\", \"params\": {\"depth\": 20, \"cascadeStep\": 10, \"pools\": 0.1}}");
+        String h = text(c.files().get(P + "height.json"));
+        String bed = text(c.files().get(P + "canyon_bed.json"));
+        assertTrue(h.contains("adventure:terrain/gorge") && h.contains("adventure:terrain/t/canyon_bed")
+                && h.contains("adventure:terrain/t/canyon_land"), h);
+        assertTrue(text(c.files().get(P + "canyon_grade.json")).contains("adventure:terrain/grade"));
+        assertTrue(bed.contains("adventure:terrain/t/canyon_land") && bed.contains("adventure:terrain/t/canyon_grade"), bed);
+        assertTrue(h.contains("\"type\":\"minecraft:floor\""), "the floor is stepped");
+        assertTrue(h.contains("\"right\":0.1}"), "divides by cascadeStep");
+        assertTrue(bed.contains("\"right\":-84.0}"), "the upper reaches lie depth below the land, measured from just above sea level 63");
+        assertTrue(bed.contains("\"right\":64.0}") && h.contains("\"right\":64.0}"), "floors bottom out just above sea level 63");
+        double low = Noises.threshold(0.9, Noises.sigma("grade"));
+        assertTrue(low < 0 && h.contains("\"right\":" + Df.c(-low) + "}") && bed.contains("\"right\":" + Df.c(-low) + "}"),
+                "pools and the grade both start at the grade noise's lowest tenth: " + low);
+        assertTrue(h.contains("\"right\":4.0}"), "pools sink 4 blocks");
+        assertTrue(c.files().containsKey("data/adventure/worldgen/noise/terrain/grade.json"));
+        assertTrue(text(c.files().get(P + "factor.json")).contains("\"second\":64.0"), "the ground follows the height inside the channel");
+    }
+
+    @Test
+    void canyonsWithoutPoolsOrGradeKeepEveryFloorDepthBelowTheLand() {
+        String none = text(compile("{\"base\": \"canyons\", \"params\": {\"pools\": 0}}").files().get(P + "height.json"));
+        assertFalse(none.contains("\"right\":4.0}"), "no pool term without pools");
+        String flat = text(compile("{\"base\": \"canyons\", \"params\": {\"grade\": 0}}").files().get(P + "canyon_bed.json"));
+        assertTrue(flat.contains("\"right\":0.0}"), "grade 0 takes nothing off the upper floor");
+    }
+
+    @Test
+    void stepsFloorAHeightIntoFlatLevelsThatNeverRiseAboveIt() {
+        String s = TerrainFamily.steps(Df.c(70.5), 64, 4, 0.25).toString();
+        assertTrue(s.startsWith("{\"type\":\"minecraft:add\""), s);
+        assertTrue(s.contains("{\"type\":\"minecraft:floor\",\"input\":{\"type\":\"minecraft:mul\",\"left\":{\"type\":\"minecraft:add\","
+                + "\"left\":70.5,\"right\":-64.0},\"right\":0.25}}"), "levels count steps above the base");
+        assertTrue(s.contains("{\"derivative\":0.0,\"location\":0.75,\"value\":0.0}"), "flat for all but the riser");
+        assertTrue(s.endsWith("\"right\":4.0},\"right\":64.0}"), "back to blocks above the base: " + s);
+    }
+
+    @Test
     void erosionRaisesHillsAboveTheBasinShareQuantileOverARiseSetBySteepness() {
         double sigma = Noises.sigma("wear");
         String rolling = text(compile("{\"base\": \"erosion\", \"params\": {\"basinShare\": 0.5, \"steepness\": 0}}").files().get(P + "height.json"));
@@ -255,7 +294,7 @@ class TerrainLibraryTest {
     @Test
     void paramsOverrideTheSettingWhichOverridesTheDefault() {
         TerrainSpec s = spec("{\"base\": \"canyons\", \"setting\": \"extreme\", \"params\": {\"width\": 0.2}}");
-        assertEquals(110, s.param("depth"));
+        assertEquals(36, s.param("depth"));
         assertEquals(0.2, s.param("width"));
         assertEquals(1, s.param("frequency"));
         assertEquals(0.35, s.param("roughness"), "a terrain's own default for a shared parameter");
