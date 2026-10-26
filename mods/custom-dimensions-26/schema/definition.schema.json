@@ -394,28 +394,70 @@
       }
     },
     "structures": {
-      "description": "Structure density, wants, shuns and placement.",
+      "description": "Structure control (worldgen.md § Structure control). Structure ids or #tags for force, wants, shuns, replace and terrainAdaptation; structure set ids for list, exclude, include, rarity and spacing.",
       "type": "object",
-      "additionalProperties": true,
+      "additionalProperties": false,
       "properties": {
-        "density": { "enum": ["dense", "normal", "sparse", "none"] },
-        "wants": { "type": "object" },
+        "density": { "description": "Every noise group's profile, or theme factors on vanilla grids; none places no organic structure.", "enum": ["dense", "normal", "sparse", "none"] },
+        "wants": {
+          "description": "Structures guaranteed between min and max blocks of spawn, by id, #tag or short name.",
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": { "min": { "type": "integer", "minimum": 0 }, "max": { "type": "integer", "minimum": 1 } }
+          }
+        },
         "shuns": {
+          "description": "Structures that never place here, by id, #tag or short name.",
           "type": "object",
           "additionalProperties": { "type": "object", "maxProperties": 0 }
         },
-        "spacing": { "type": "object" },
-        "mode": { "enum": ["allow", "reject", "none"] },
+        "spacing": {
+          "description": "A random-spread set's own grid, kept outside the noise groups.",
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["spacing", "separation"],
+            "properties": { "spacing": { "type": "integer", "minimum": 1, "maximum": 4096 }, "separation": { "type": "integer", "minimum": 0 } }
+          }
+        },
+        "mode": { "description": "allow keeps only the sets in list, reject drops them, none drops every organic set.", "enum": ["allow", "reject", "none"] },
         "list": { "type": "array", "items": { "type": "string" } },
-        "force": { "type": "array", "items": { "type": "object" } },
-        "clearSpawnRadius": { "type": "integer", "minimum": 0 },
-        "terrainAdaptation": { "type": "object" },
-        "noise": { "type": ["string", "object", "boolean"] },
-        "radial": { "type": "object" },
-        "rarity": { "type": "object" },
+        "force": {
+          "description": "A structure at a block position, or in a chunk within radius blocks of it; exclusive (default true) removes its organic copies.",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["structure", "x", "z"],
+            "properties": {
+              "structure": { "type": "string", "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$" },
+              "x": { "type": "integer" },
+              "z": { "type": "integer" },
+              "y": { "type": ["integer", "null"] },
+              "radius": { "type": "integer", "minimum": 0 },
+              "exclusive": { "type": "boolean" }
+            }
+          }
+        },
+        "clearSpawnRadius": { "description": "Blocks round spawn where the dungeons and endgame groups place nothing.", "type": "integer", "minimum": 0 },
+        "terrainAdaptation": {
+          "description": "Terrain around a structure or a group's structures: a vanilla adjustment, or pedestal, platform_skirt and ground_blend as their vanilla counterparts.",
+          "type": "object",
+          "additionalProperties": { "enum": ["none", "beard_thin", "beard_box", "bury", "encapsulate", "pedestal", "platform_skirt", "ground_blend", "moat", "drain"] }
+        },
+        "noise": { "description": "A profile for every group, a map of group to profile, or false for vanilla grids.", "type": ["string", "object", "boolean"] },
+        "radial": {
+          "description": "A group's density from spawn to border, 10 points in 0-3.",
+          "type": "object",
+          "additionalProperties": { "type": "array", "minItems": 10, "maxItems": 10, "items": { "type": "number", "minimum": 0, "maximum": 3 } }
+        },
+        "rarity": { "type": "object", "additionalProperties": { "enum": ["common", "uncommon", "rare", "endgame"] } },
         "exclude": { "type": "array", "items": { "type": "string" } },
-        "include": { "type": "array", "items": { "type": "string" } },
-        "endgame": false
+        "include": { "description": "Sets placed although no biome here suits them, on their own grids with the biome check skipped.", "type": "array", "items": { "type": "string" } },
+        "replace": { "description": "Wherever the left structure would place, the right one does.", "type": "object", "additionalProperties": { "type": "string" } }
       }
     },
     "portals": {

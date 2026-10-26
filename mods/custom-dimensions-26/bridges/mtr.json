@@ -14,9 +14,9 @@
       "id": "mtr:badlands_temple",
       "set": "mtr:badlands_temple",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 66,
+        "y": 46,
+        "z": 58
       },
       "mood": [],
       "climate": [],
@@ -26,9 +26,9 @@
       "id": "mtr:desert_temple",
       "set": "mtr:desert_temple",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 77,
+        "y": 48,
+        "z": 71
       },
       "mood": [],
       "climate": [],
@@ -38,9 +38,9 @@
       "id": "mtr:jungle_temple",
       "set": "mtr:jungle_temple",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 84,
+        "y": 54,
+        "z": 65
       },
       "mood": [],
       "climate": [],
@@ -50,9 +50,9 @@
       "id": "mtr:nether_temple",
       "set": "mtr:nether_temple",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 66,
+        "y": 64,
+        "z": 75
       },
       "mood": [],
       "climate": [],
@@ -62,9 +62,9 @@
       "id": "mtr:ocean_temple",
       "set": "mtr:ocean_temple",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 43,
+        "y": 43,
+        "z": 48
       },
       "mood": [],
       "climate": [],
@@ -74,9 +74,9 @@
       "id": "mtr:stronghold",
       "set": "mtr:stronghold",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 173,
+        "y": 60,
+        "z": 172
       },
       "mood": [],
       "climate": [],

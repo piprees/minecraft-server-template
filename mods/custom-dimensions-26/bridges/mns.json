@@ -50,9 +50,9 @@
       "id": "mns:bridge_1",
       "set": "mns:bridge_1",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 5,
+        "y": 5,
+        "z": 9
       },
       "mood": [],
       "climate": [],
@@ -62,9 +62,9 @@
       "id": "mns:bridge_2",
       "set": "mns:bridge_2",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 17,
+        "y": 4,
+        "z": 5
       },
       "mood": [],
       "climate": [],
@@ -74,9 +74,9 @@
       "id": "mns:bridge_3",
       "set": "mns:bridge_3",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 5,
+        "y": 5,
+        "z": 9
       },
       "mood": [],
       "climate": [],
@@ -86,9 +86,9 @@
       "id": "mns:bridge_4",
       "set": "mns:bridge_4",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 5,
+        "y": 5,
+        "z": 13
       },
       "mood": [],
       "climate": [],
@@ -98,9 +98,9 @@
       "id": "mns:bridge_5",
       "set": "mns:bridge_5",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 9,
+        "y": 5,
+        "z": 13
       },
       "mood": [],
       "climate": [],
@@ -110,9 +110,9 @@
       "id": "mns:bridge_6",
       "set": "mns:bridge_6",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 5,
+        "y": 5,
+        "z": 5
       },
       "mood": [],
       "climate": [],
@@ -122,9 +122,9 @@
       "id": "mns:circle_blackstone",
       "set": "mns:circle_blackstone",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 39,
+        "y": 30,
+        "z": 42
       },
       "mood": [],
       "climate": [],
@@ -134,9 +134,9 @@
       "id": "mns:circle_nether_brick",
       "set": "mns:circle_nether_brick",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 41,
+        "y": 34,
+        "z": 41
       },
       "mood": [],
       "climate": [],
@@ -146,9 +146,9 @@
       "id": "mns:copper_tower",
       "set": "mns:copper_tower",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 37,
+        "y": 41,
+        "z": 42
       },
       "mood": [],
       "climate": [],
@@ -158,9 +158,9 @@
       "id": "mns:crimson_forge",
       "set": "mns:crimson_forge",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 43,
+        "y": 36,
+        "z": 40
       },
       "mood": [],
       "climate": [],
@@ -170,9 +170,9 @@
       "id": "mns:crimson_lava_well",
       "set": "mns:crimson_lava_well",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 31,
+        "y": 35,
+        "z": 31
       },
       "mood": [],
       "climate": [],
@@ -182,9 +182,9 @@
       "id": "mns:dragon_arena",
       "set": "mns:mega_arenas",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 129,
+        "y": 45,
+        "z": 120
       },
       "mood": [],
       "climate": [],
@@ -194,9 +194,9 @@
       "id": "mns:giant_skull",
       "set": "mns:giant_skull",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 59,
+        "y": 56,
+        "z": 71
       },
       "mood": [],
       "climate": [],
@@ -206,9 +206,9 @@
       "id": "mns:grave_yard",
       "set": "mns:grave_yard",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 42,
+        "y": 32,
+        "z": 34
       },
       "mood": [],
       "climate": [],
@@ -218,9 +218,9 @@
       "id": "mns:large_arena",
       "set": "mns:mega_arenas",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 62,
+        "y": 47,
+        "z": 99
       },
       "mood": [],
       "climate": [],
@@ -230,9 +230,9 @@
       "id": "mns:large_blackstone_pillars",
       "set": "mns:large_blackstone_pillars",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 37,
+        "y": 35,
+        "z": 37
       },
       "mood": [],
       "climate": [],
@@ -242,9 +242,9 @@
       "id": "mns:large_blackstone_walls",
       "set": "mns:large_blackstone_walls",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 44,
+        "y": 34,
+        "z": 29
       },
       "mood": [],
       "climate": [],
@@ -254,9 +254,9 @@
       "id": "mns:large_house_1",
       "set": "mns:large_house_1",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 71,
+        "y": 69,
+        "z": 45
       },
       "mood": [],
       "climate": [],
@@ -266,9 +266,9 @@
       "id": "mns:large_nether_brick",
       "set": "mns:large_nether_brick",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 46,
+        "y": 33,
+        "z": 34
       },
       "mood": [],
       "climate": [],
@@ -278,9 +278,9 @@
       "id": "mns:lava_pool",
       "set": "mns:lava_pool",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 47,
+        "y": 32,
+        "z": 46
       },
       "mood": [],
       "climate": [],
@@ -290,9 +290,9 @@
       "id": "mns:leafy_rubble",
       "set": "mns:leafy_rubble",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 32,
+        "y": 30,
+        "z": 33
       },
       "mood": [],
       "climate": [],
@@ -302,9 +302,9 @@
       "id": "mns:medium_blackstone",
       "set": "mns:medium_blackstone",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 34,
+        "y": 30,
+        "z": 32
       },
       "mood": [],
       "climate": [],
@@ -314,9 +314,9 @@
       "id": "mns:medium_crimson_fungus",
       "set": "mns:medium_crimson_fungus",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 35,
+        "y": 44,
+        "z": 35
       },
       "mood": [],
       "climate": [],
@@ -326,9 +326,9 @@
       "id": "mns:medium_crimson_fungus_2",
       "set": "mns:medium_crimson_fungus",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 36,
+        "y": 41,
+        "z": 34
       },
       "mood": [],
       "climate": [],
@@ -338,9 +338,9 @@
       "id": "mns:medium_crimson_well",
       "set": "mns:medium_crimson_well",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 33,
+        "y": 42,
+        "z": 33
       },
       "mood": [],
       "climate": [],
@@ -350,9 +350,9 @@
       "id": "mns:medium_house",
       "set": "mns:medium_house",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 43,
+        "y": 38,
+        "z": 35
       },
       "mood": [],
       "climate": [],
@@ -362,9 +362,9 @@
       "id": "mns:medium_house_2",
       "set": "mns:medium_house_2",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 43,
+        "y": 38,
+        "z": 35
       },
       "mood": [],
       "climate": [],
@@ -374,9 +374,9 @@
       "id": "mns:medium_warped_fungus",
       "set": "mns:medium_warped_fungus",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 33,
+        "y": 46,
+        "z": 33
       },
       "mood": [],
       "climate": [],
@@ -386,9 +386,9 @@
       "id": "mns:medium_warped_fungus_2",
       "set": "mns:medium_warped_fungus",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 37,
+        "y": 38,
+        "z": 32
       },
       "mood": [],
       "climate": [],
@@ -398,9 +398,9 @@
       "id": "mns:medium_warped_well",
       "set": "mns:medium_warped_well",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 33,
+        "y": 42,
+        "z": 33
       },
       "mood": [],
       "climate": [],
@@ -410,9 +410,9 @@
       "id": "mns:mega_fortress",
       "set": "mns:mega_fortress",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 299,
+        "y": 56,
+        "z": 256
       },
       "mood": [],
       "climate": [],
@@ -422,9 +422,9 @@
       "id": "mns:nether_tower",
       "set": "mns:nether_tower",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 47,
+        "y": 70,
+        "z": 47
       },
       "mood": [],
       "climate": [],
@@ -434,9 +434,9 @@
       "id": "mns:nether_wart_farm",
       "set": "mns:nether_wart_farm",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 42,
+        "y": 44,
+        "z": 39
       },
       "mood": [],
       "climate": [],
@@ -446,9 +446,9 @@
       "id": "mns:ruined_portal",
       "set": "mns:ruined_portal",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 37,
+        "y": 37,
+        "z": 42
       },
       "mood": [],
       "climate": [],
@@ -458,9 +458,9 @@
       "id": "mns:sandy_skull",
       "set": "mns:sandy_skull",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 38,
+        "y": 37,
+        "z": 43
       },
       "mood": [],
       "climate": [],
@@ -470,9 +470,9 @@
       "id": "mns:shrine",
       "set": "mns:shrine",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 29,
+        "y": 29,
+        "z": 33
       },
       "mood": [],
       "climate": [],
@@ -482,9 +482,9 @@
       "id": "mns:small_arena",
       "set": "mns:mega_arenas",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 80,
+        "y": 42,
+        "z": 117
       },
       "mood": [],
       "climate": [],
@@ -494,9 +494,9 @@
       "id": "mns:small_nether_brick",
       "set": "mns:small_nether_brick",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 34,
+        "y": 32,
+        "z": 35
       },
       "mood": [],
       "climate": [],
@@ -506,9 +506,9 @@
       "id": "mns:smoking_shrine",
       "set": "mns:shrine",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 37,
+        "y": 33,
+        "z": 37
       },
       "mood": [],
       "climate": [],
@@ -518,9 +518,9 @@
       "id": "mns:soul_fire",
       "set": "mns:soul_fire",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 34,
+        "y": 39,
+        "z": 33
       },
       "mood": [],
       "climate": [],
@@ -530,9 +530,9 @@
       "id": "mns:sword",
       "set": "mns:sword",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 39,
+        "y": 51,
+        "z": 56
       },
       "mood": [],
       "climate": [],
@@ -542,9 +542,9 @@
       "id": "mns:train",
       "set": "mns:train",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 61,
+        "y": 37,
+        "z": 42
       },
       "mood": [],
       "climate": [],
@@ -554,9 +554,9 @@
       "id": "mns:very_small_blackstone",
       "set": "mns:very_small_blackstone",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 27,
+        "y": 29,
+        "z": 26
       },
       "mood": [],
       "climate": [],
@@ -566,9 +566,9 @@
       "id": "mns:very_small_blackstone_2",
       "set": "mns:very_small_blackstone",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 26,
+        "y": 29,
+        "z": 28
       },
       "mood": [],
       "climate": [],
@@ -578,9 +578,9 @@
       "id": "mns:very_small_blackstone_3",
       "set": "mns:very_small_blackstone",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 26,
+        "y": 29,
+        "z": 27
       },
       "mood": [],
       "climate": [],
@@ -590,9 +590,9 @@
       "id": "mns:very_small_blackstone_4",
       "set": "mns:very_small_blackstone",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 26,
+        "y": 28,
+        "z": 25
       },
       "mood": [],
       "climate": [],
@@ -602,9 +602,9 @@
       "id": "mns:very_small_nether_brick",
       "set": "mns:very_small_nether_brick",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 27,
+        "y": 29,
+        "z": 26
       },
       "mood": [],
       "climate": [],
@@ -614,9 +614,9 @@
       "id": "mns:very_small_nether_brick_2",
       "set": "mns:very_small_nether_brick",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 26,
+        "y": 28,
+        "z": 26
       },
       "mood": [],
       "climate": [],
@@ -626,9 +626,9 @@
       "id": "mns:very_small_nether_brick_3",
       "set": "mns:very_small_nether_brick",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 26,
+        "y": 28,
+        "z": 26
       },
       "mood": [],
       "climate": [],
@@ -638,9 +638,9 @@
       "id": "mns:warped_dome",
       "set": "mns:warped_dome",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 46,
+        "y": 39,
+        "z": 50
       },
       "mood": [],
       "climate": [],
@@ -650,9 +650,9 @@
       "id": "mns:warped_house",
       "set": "mns:warped_house",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 42,
+        "y": 49,
+        "z": 39
       },
       "mood": [],
       "climate": [],
@@ -662,9 +662,9 @@
       "id": "mns:warped_pool",
       "set": "mns:warped_pool",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 39,
+        "y": 43,
+        "z": 39
       },
       "mood": [],
       "climate": [],

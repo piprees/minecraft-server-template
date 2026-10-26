@@ -123,8 +123,18 @@ class ShippedDefinitionsSchemaTest {
     void theSchemaAcceptsAMinimalDefinition() {
         assertTrue(valid("{'schemaVersion': 2, 'generator': {'type': 'void'}}"));
         assertTrue(valid("{'schemaVersion': 2, 'generator': {'type': 'noise', 'preset': 'end', 'endIsland': false}}"));
-        assertTrue(valid("{'schemaVersion': 2, 'generator': {'type': 'void'}, 'structures': {'laterField': 1},"
+        assertTrue(valid("{'schemaVersion': 2, 'generator': {'type': 'void'},"
                 + " 'portals': [{'laterField': 1, 'preview': {'previewDepth': 4}}], 'terrain': {'base': null}}"));
+        assertTrue(valid("{'schemaVersion': 2, 'generator': {'type': 'void'}, 'structures': {'replace': {'minecraft:igloo': 'minecraft:desert_pyramid'},"
+                + " 'force': [{'structure': 'minecraft:igloo', 'x': 1, 'z': 2, 'radius': 64}]}}"));
+    }
+
+    @Test
+    void theSchemaHoldsTheStructuresFields() {
+        assertFalse(valid("{'schemaVersion': 2, 'generator': {'type': 'void'}, 'structures': {'laterField': 1}}"));
+        assertFalse(valid("{'schemaVersion': 2, 'generator': {'type': 'void'}, 'structures': {'force': [{'structure': 'minecraft:igloo', 'x': 1}]}}"));
+        assertFalse(valid("{'schemaVersion': 2, 'generator': {'type': 'void'}, 'structures': {'radial': {'loot': [1, 2]}}}"));
+        assertFalse(valid("{'schemaVersion': 2, 'generator': {'type': 'void'}, 'structures': {'terrainAdaptation': {'loot': 'wobble'}}}"));
     }
 
     @ParameterizedTest

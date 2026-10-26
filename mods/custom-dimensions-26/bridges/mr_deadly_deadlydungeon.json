@@ -9,9 +9,9 @@
     {
       "id": "ddd:major_dungeon_desert",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 201,
+        "y": 111,
+        "z": 201
       },
       "mood": [],
       "climate": [],
@@ -20,9 +20,9 @@
     {
       "id": "ddd:major_dungeon_frozen",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 201,
+        "y": 111,
+        "z": 201
       },
       "mood": [],
       "climate": [],
@@ -31,9 +31,9 @@
     {
       "id": "ddd:major_dungeon_plains",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 201,
+        "y": 113,
+        "z": 201
       },
       "mood": [],
       "climate": [],
@@ -43,9 +43,9 @@
       "id": "ddd:minor_dungeon_desert",
       "set": "ddd:dddungeons",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 200,
+        "y": 111,
+        "z": 201
       },
       "mood": [],
       "climate": [],
@@ -55,9 +55,9 @@
       "id": "ddd:minor_dungeon_frozen",
       "set": "ddd:dddungeons",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 200,
+        "y": 110,
+        "z": 201
       },
       "mood": [],
       "climate": [],
@@ -67,9 +67,9 @@
       "id": "ddd:minor_dungeon_plains",
       "set": "ddd:dddungeons",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 201,
+        "y": 111,
+        "z": 201
       },
       "mood": [],
       "climate": [],
@@ -79,9 +79,9 @@
       "id": "ddd:monolithic_tower",
       "set": "ddd:dddtowers",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 45,
+        "y": 76,
+        "z": 45
       },
       "mood": [],
       "climate": [],
@@ -91,9 +91,9 @@
       "id": "ddd:spider_lair",
       "set": "ddd:dddungeons",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 199,
+        "y": 105,
+        "z": 183
       },
       "mood": [],
       "climate": [],
@@ -103,9 +103,9 @@
       "id": "ddd:wizard_tower",
       "set": "ddd:dddtowers",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 57,
+        "y": 137,
+        "z": 57
       },
       "mood": [],
       "climate": [],

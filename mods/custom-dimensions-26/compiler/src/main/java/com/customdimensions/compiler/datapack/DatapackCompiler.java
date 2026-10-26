@@ -96,6 +96,7 @@ public final class DatapackCompiler {
     private final CompileReport report;
     private final Map<String, Definition> definitions = new TreeMap<>();
     private final Map<String, Definition> compiled = new TreeMap<>();
+    private StructuresCompiler.Catalogue structureCatalogue;
 
     private DatapackCompiler(VanillaData vanilla, VersionTable.Version version, String namespace) {
         this.vanilla = vanilla;
@@ -113,7 +114,8 @@ public final class DatapackCompiler {
             String name = file.getFileName().toString();
             definitions.put(name.substring(0, name.length() - ".json".length()), DefinitionReader.read(file));
         }
-        Output output = compileAll(namespace, definitions, vanilla, version);
+        Output output = compileAll(namespace, definitions, vanilla, version,
+                StructuresCompiler.Catalogue.of(vanilla, StructuresCompiler.bridgesBeside(definitionsDir)));
         output.files().put("pack.mcmeta", JsonWriter.write(packMeta(version, output.report().entries().size())));
         return output;
     }
@@ -121,7 +123,13 @@ public final class DatapackCompiler {
     /** Compiles a set of definitions by slug, clones resolved against each other; no {@code pack.mcmeta}. */
     static Output compileAll(String namespace, Map<String, Definition> definitions, VanillaData vanilla,
                              VersionTable.Version version) {
+        return compileAll(namespace, definitions, vanilla, version, StructuresCompiler.Catalogue.of(vanilla, null));
+    }
+
+    private static Output compileAll(String namespace, Map<String, Definition> definitions, VanillaData vanilla,
+                                     VersionTable.Version version, StructuresCompiler.Catalogue catalogue) {
         DatapackCompiler compiler = new DatapackCompiler(vanilla, version, namespace);
+        compiler.structureCatalogue = catalogue;
         compiler.definitions.putAll(definitions);
         compiler.definitions.keySet().forEach(compiler::compile);
         return new Output(compiler.files, compiler.report, compiler.report.markdown(compiler.files), compiler.compiled);
@@ -230,6 +238,8 @@ public final class DatapackCompiler {
             RuntimeWorldgen.files(namespace, slug, levelId, def, vanilla).forEach((path, json) -> put(path, sorted(json), entry));
         }
 
+        String controlLevel = BASE_WORLDS.containsKey(slug) && !BASE_WORLDS.get(slug).isEmpty() ? BASE_WORLDS.get(slug) : typeId;
+        StructuresCompiler.files(slug, controlLevel, def, structureCatalogue, entry).forEach((path, json) -> put(path, json, entry));
         reportRuntimeFields(def, entry);
     }
 
@@ -846,9 +856,6 @@ public final class DatapackCompiler {
         if (terrain != null && terrain.has("base") && !terrain.get("base").isJsonNull()
                 && (Generator.FLAT.equals(type) || Generator.VOID.equals(type))) {
             entry.unsupported("terrain", "a " + type + " generator has no noise terrain");
-        }
-        if (def.structures() != null && !def.structures().isEmpty()) {
-            entry.unsupported("structures", "structure control is W4");
         }
     }
 

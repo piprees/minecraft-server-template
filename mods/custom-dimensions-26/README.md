@@ -29,9 +29,9 @@ unloads every lazy dimension in turn, so it runs for a few minutes; it sets
 
 With `-PselfTest`, `runServer` reads a copy of `definitions/` with the fixture
 dimensions in `server/src/selftest/definitions/` added (a void death, a kept
-inventory, every win trigger, dry and flooded aquifers, a palette and an ore set), and each library terrain's `*_default.json` from
+inventory, every win trigger, dry and flooded aquifers, a palette, an ore set, structure control and five structure densities), and each library terrain's `*_default.json` from
 `server/src/selftest/gallery/`. The fixtures are never in the release jar.
-`-PselfTestOnly=exits` runs only the compiled-pack and exit sections; `-PselfTestOnly=commands` the compiled-pack and command sections; `-PselfTestOnly=materials` the compiled-pack and materials sections; `-PselfTestOnly=render` the compiled-pack and render sections; `-PselfTestOnly=firewall` the compiled-pack and firewall sections; `-PselfTestOnly=terrain` the compiled-pack and terrain sections.
+`-PselfTestOnly=exits` runs only the compiled-pack and exit sections; `-PselfTestOnly=commands` the compiled-pack and command sections; `-PselfTestOnly=materials` the compiled-pack and materials sections; `-PselfTestOnly=render` the compiled-pack and render sections; `-PselfTestOnly=firewall` the compiled-pack and firewall sections; `-PselfTestOnly=terrain` the compiled-pack and terrain sections; `-PselfTestOnly=structures` the compiled-pack and structure sections.
 
 `runServer` also loads Open Parties and Claims and its Forge Config API Port
 dependency from the Modrinth maven (`localRuntime`, versions in
@@ -71,6 +71,7 @@ scripts/vanilla-boot-check.sh                 # boot that pack on vanilla, no mo
 | Material rules (palettes, veins) | `data/adventure/worldgen/material_rule/<slug>.json` |
 | Added ores | `data/adventure/worldgen/{feature,placed_feature}/ores/<slug>/<id>.json` |
 | What the runtime applies to a level's generator (lava level, added ores, removed features) | `data/customdimensions/worldgen_runtime/<slug>.json` |
+| Structure control, every dimension ([below](#structure-control)) | `data/customdimensions/structure_control/<slug>.json` |
 | The End's terrain without its central island | `data/adventure/worldgen/density_function/end_without_central_island/{islands,sloped_cheese}.json` |
 | Fixed time of day | `data/adventure/timeline/fixed_time/<timeline>_<tick>.json` |
 | Base worlds, loaded at start | `data/minecraft/dimension/{overworld,the_nether,the_end}.json`, `data/adventure/dimension/the_aviary.json` |
@@ -292,6 +293,49 @@ self-test's firewall section checks the audit passed, that switching off
 `minecraft:villages` removes it from a fresh overworld structure state while
 `pillager_outposts` stays, and that every vanilla biome's features match
 vanilla's file.
+
+## Structure control
+
+`server/.../structure/` applies each dimension's compiled `structure_control/`
+file (worldgen.md § [Structure control](../../docs/design/rebuild-26/worldgen.md#structure-control));
+the resolution is game-free in `core/.../structure/StructureSpec` and the
+compiler's `StructuresCompiler`, which writes the compile report's
+`Structures` and `Structure warnings` lists.
+
+| Piece | What it does |
+| --- | --- |
+| `StructureRuntime` | Loads the files at SERVER_STARTING; rebuilds a level's structure state from the one vanilla made: filters, shuns, replacements, spacing, density, noise groups (`NoiseFieldIndex`, built in parallel), forced starts and wants; keeps the per-level biome bypass and terrain adjustments |
+| `ChunkMapStructuresMixin` | Hands the state to `StructureRuntime` as `ChunkMap` builds it, so it composes with the firewall's `StructureStateMixin` |
+| `StructureBiomeBypassMixin` | A forced or wanted structure skips the biome check in its own chunk; an included set wherever its grid places it |
+| `BeardifierAdaptationMixin` | The Beardifier reads the dimension's terrain adjustment for each structure |
+| `StructurePlacements` | The runtime-only placements: one chunk, and a noise group's sites |
+| `StructureReflection` | The private members of the structure state, spreading placements and the structure manager it reads, resolved by name |
+| `StructureSizes` | `-PmeasureStructures=<file>`: generates every registered structure's start without a level (overworld, then Nether, then End, up to 24 chunks each, biome check off), writes the bounding-box spans and fills the bridges' `size` slots in `-Dcustomdimensions.bridges`, then stops |
+
+`server/src/main/resources/structure-sizes.json` holds the sizes measured on
+26.3 for vanilla's structures and every bridged one; the mod reads it from its
+own jar, since a measurement belongs to the game version, not to a server's
+config. Measure with the 26.3 list's structure mods loaded:
+
+```bash
+./gradlew :server:runServer -PstructureMods=/path/to/mod/jars -PmeasureStructures=src/main/resources/structure-sizes.json
+```
+
+`-PstructureMods=<dir>` adds the jars the committed bridges adopt (ATi, Epic
+Dungeons, Deadly Deadly Dungeon, Dungeons and Taverns, Towns and Towers, Moog's
+five packs and their libraries) to `runServer`. `ShippedBridgesTest` fails when
+a bridged structure has no size.
+
+The self-test's structure section opens `selftest_structures` and the five
+`selftest_density_*` fixtures. It reads the level's structure state over the
+100x100 chunks round spawn for the placement checks (no set places a shunned
+village or outpost, so no candidate chunk of 10,000 holds one; mineshafts
+rejected, trail ruins excluded, desert portals replaced, the pyramid set at its
+spacing), generates the forced igloo's chunk, a mountain ruined portal forced
+within 200 blocks, the wanted ruined portal 100–400 blocks out and 24 chunks
+where vanilla's village grid would start a village, and reads their starts; it
+checks the igloo's `bury` reached the Beardifier, and that dense, normal and
+sparse order the noise sites and normal and sparse the vanilla-grid candidates.
 
 ## Difficulty
 

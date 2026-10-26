@@ -1,0 +1,46 @@
+{
+  "level": "adventure:the_underdark",
+  "density": "dense",
+  "noise": true,
+  "radiusChunks": 256,
+  "spawnChunk": [-8, 0],
+  "groups": {
+    "deco": {
+      "profile": "dense",
+      "radial": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+      "exclusion": 5,
+      "clearSpawnChunks": 0
+    },
+    "dungeons": {
+      "profile": "dense",
+      "radial": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+      "exclusion": 13,
+      "clearSpawnChunks": 0
+    },
+    "loot": {
+      "profile": "dense",
+      "radial": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+      "exclusion": 6,
+      "clearSpawnChunks": 0
+    }
+  },
+  "mode": null,
+  "list": [],
+  "exclude": [],
+  "include": [],
+  "rarity": {},
+  "spacing": {},
+  "force": [
+    {
+      "structure": "minecraft:ancient_city",
+      "x": 900,
+      "z": -1500,
+      "radius": 0,
+      "exclusive": false
+    }
+  ],
+  "wants": [],
+  "shuns": [],
+  "replace": {},
+  "terrainAdaptation": {}
+}

@@ -14,7 +14,7 @@ One owner: us. Vanilla's noise generator is fast, maintained by Mojang, and on 2
 | Ores | `ores`: `veins` (`true`, `false` or a list `like` copper or iron), `add` (ores as placed features), `remove` (placed feature ids) | Veins are `minecraft:ore_vein` material rules; added and removed placed features reach one dimension through the runtime's per-level biome feature lists, so no biome is copied |
 | Zones | Terrain, biomes, aquifers and structure wants replaced inside a shape | A mask density function per zone; terrain and aquifers lerp in the router; biomes, materials and ores follow it through our biome source |
 | Atmosphere | Fog, sky, clouds, light, particles, music, day length, beds and anchors | Environment attributes, timelines and world clocks |
-| Structures | Wants and shuns, density, forced starts, replacements | Our structure control over every bridged structure set |
+| Structures | `structures`: density, noise groups, wants and shuns, forced starts, replacements, spacing, mode, terrain adaptation | The compiler's `structure_control/<slug>.json`, applied to the level's structure state over every set the firewall keeps ([below](#structure-control)) |
 
 Generator variants (M3) are starting points any definition tunes: normal, large biomes, amplified, caves, floating islands, Nether and End, plus flat with layers, checkerboard, void and single-biome. Heights are linted to Bedrock's limits.
 
@@ -89,6 +89,24 @@ Normal worldgen everywhere, except a ring of sky islands between 2,000 and 3,000
     "structures": { "wants": ["minecraft:ruined_portal"] } }
 ]
 ```
+
+## Structure control
+
+The compiler resolves each definition's `structures` block into `data/customdimensions/structure_control/<slug>.json`; every dimension gets one, because noise placement is the default. The runtime applies it to the level's structure state as the chunk map builds it, on top of the firewall's switch-off: base and Fantasy levels alike, never touching the shared registry. Fields: [schema-v2.md § Structures](schema-v2.md#structures).
+
+| Step | What happens |
+| --- | --- |
+| Filter | `density: none` and `mode: none` drop every organic set; `mode: allow`/`reject` keep or drop the sets in `list`; `exclude` drops sets |
+| Remove and swap | `shuns` (ids, `#tags` or short names) leave every set, so a shunned structure has no candidate chunk anywhere; an `exclusive` forced structure (the default) leaves too; `replace` puts one structure in another's place with its weight |
+| Spacing | A set named in `spacing` keeps its own random-spread grid with those values, salt and frequency kept |
+| Noise groups | Every other exact random-spread set joins its group (`deco`, `loot`, `settlements`, `maritime`, `dungeons`, `landmarks`, `endgame`; `structure_themes.json`, else inferred from spacing). A group places at the sites of one noise field (the profile's threshold, an exclusion radius scaled by the 10-point `radial` curve, a cleared spawn disc for `dungeons` and `endgame`), its exclusion widened until each structure stays under the repetition ceiling; at each site vanilla picks from the group's structures by weight (times the rarity share) among those whose biome is there. `density` sets every group's profile; `noise` sets one or each. The generator type enables the groups; a peaceful `mobMultiplier` (≤ 0.5) turns `dungeons` and `endgame` off, a hostile one (≥ 2) spreads them evenly. A set whose group the type does not place, concentric rings and other placement types stay as they are |
+| Vanilla grids | With `noise: false`, or a type with no groups, `density` scales random-spread sets by theme: dense tightens dungeon and loot spacing to 0.7 and landmark and maritime to 0.85, sparse halves dungeon, loot and landmark frequency and cuts settlement and maritime to 0.7 |
+| Forced starts | `force` adds a one-chunk set: the chunk of `x`, `z`, or with `radius` the first of up to 96 chunks within it, in a seeded order, whose biome near sea level suits the structure (else the first). The structure skips the biome check in that chunk only (T53); the structure's own terrain rules still apply, so a structure that needs dry land or a height declines a site without them |
+| Wants | Each want resolves to a structure (the first of a tag whose biome the dimension has) and lands as a forced start between `min` and `max` blocks of spawn |
+| Included sets | `include` re-admits a set no biome here suits, on its own grid with the biome check skipped |
+| Terrain adaptation | `terrainAdaptation` (a structure, a `#tag` or a group) replaces the adjustment the Beardifier uses round that structure in this dimension: `none`, `beard_thin`, `beard_box`, `bury`, `encapsulate`; the 1.21.1 kernels `pedestal` and `platform_skirt` apply as `beard_box`, `ground_blend` as `beard_thin`; `moat` and `drain` have no counterpart and are reported |
+
+Unknown structure and set ids, ids neither vanilla nor a bridge provides, are compile-report warnings; a malformed value stops the compile with the slug. Sizes are measured on 26.3 (`-PmeasureStructures`, [mod README](../../../mods/custom-dimensions-26/README.md#structure-control)): `structure-sizes.json` in the mod's resources for every structure, and each bridge's `size` slots.
 
 ## Lessons the kit is built around
 
