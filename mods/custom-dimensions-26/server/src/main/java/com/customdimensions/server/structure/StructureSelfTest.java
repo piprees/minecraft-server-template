@@ -120,13 +120,16 @@ public final class StructureSelfTest {
                         lines.add(guard("structures " + p.kind() + " " + p.structure(), () -> placedLine(level, p, byPos)));
                     }
                     lines.add(guard("structures shun generation", () -> shunGeneration(level, shunSample, byPos)));
-                    long overrides = StructureAdaptation.overridden() - beforeAdaptation;
                     Structure igloo = structure(level, "minecraft:igloo");
+                    applied.placed().stream().filter(p -> p.structure().equals("minecraft:igloo")).findFirst().ifPresent(p ->
+                            net.minecraft.world.level.levelgen.Beardifier.forStructuresInChunk(level.structureManager(),
+                                    new ChunkPos(p.chunkX(), p.chunkZ())));
+                    long overrides = StructureAdaptation.overridden() - beforeAdaptation;
                     boolean bury = StructureRuntime.adaptation(level.dimension(), igloo) == TerrainAdjustment.BURY
                             && StructureRuntime.adaptation(server.overworld().dimension(), igloo) == igloo.terrainAdaptation();
                     lines.add((bury && overrides > 0 ? "PASS" : "FAIL") + " structures terrain adaptation: the igloo takes bury here and "
                             + igloo.terrainAdaptation().getSerializedName() + " in the overworld; the Beardifier took " + overrides
-                            + " override(s) while the fixture's chunks generated");
+                            + " override(s) for the fixture's chunks and the igloo's");
                 }
                 all.forEach(c -> level.setChunkForced(c.x(), c.z(), false));
                 return null;
