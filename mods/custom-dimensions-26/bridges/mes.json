@@ -33,9 +33,9 @@
       "id": "mes:astral_hideaway",
       "set": "mes:astral_hideaway",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 31,
+        "y": 34,
+        "z": 34
       },
       "mood": [],
       "climate": [],
@@ -45,9 +45,9 @@
       "id": "mes:astral_meteorite",
       "set": "mes:astral_meteorite",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 48,
+        "y": 34,
+        "z": 37
       },
       "mood": [],
       "climate": [],
@@ -57,9 +57,9 @@
       "id": "mes:ender_spire",
       "set": "mes:ender_spire",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 31,
+        "y": 42,
+        "z": 31
       },
       "mood": [],
       "climate": [],
@@ -69,9 +69,9 @@
       "id": "mes:enderbloom_grove",
       "set": "mes:enderbloom_grove",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 33,
+        "y": 39,
+        "z": 34
       },
       "mood": [],
       "climate": [],
@@ -81,9 +81,9 @@
       "id": "mes:enderkeep_courtyard",
       "set": "mes:enderkeep_courtyard",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 67,
+        "y": 45,
+        "z": 60
       },
       "mood": [],
       "climate": [],
@@ -93,9 +93,9 @@
       "id": "mes:enderpin_spikes",
       "set": "mes:enderpin_spikes",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 5,
+        "y": 10,
+        "z": 5
       },
       "mood": [],
       "climate": [],
@@ -105,9 +105,9 @@
       "id": "mes:enderskog",
       "set": "mes:enderskog",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 38,
+        "y": 34,
+        "z": 37
       },
       "mood": [],
       "climate": [],
@@ -117,9 +117,9 @@
       "id": "mes:enderwatch_tower",
       "set": "mes:enderwatch_tower",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 41,
+        "y": 68,
+        "z": 41
       },
       "mood": [],
       "climate": [],
@@ -129,9 +129,9 @@
       "id": "mes:endscraps",
       "set": "mes:endscraps",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 33,
+        "y": 31,
+        "z": 33
       },
       "mood": [],
       "climate": [],
@@ -141,9 +141,9 @@
       "id": "mes:manuscript_shrine",
       "set": "mes:manuscript_shrine",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 39,
+        "y": 34,
+        "z": 38
       },
       "mood": [],
       "climate": [],
@@ -153,9 +153,9 @@
       "id": "mes:mega_ship",
       "set": "mes:mega_ship",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 51,
+        "y": 48,
+        "z": 96
       },
       "mood": [],
       "climate": [],
@@ -165,9 +165,9 @@
       "id": "mes:mega_ship_basic",
       "set": "mes:mega_ship_basic",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 51,
+        "y": 48,
+        "z": 96
       },
       "mood": [],
       "climate": [],
@@ -177,9 +177,9 @@
       "id": "mes:mega_ship_crashed",
       "set": "mes:mega_ship_crashed",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 54,
+        "y": 48,
+        "z": 96
       },
       "mood": [],
       "climate": [],
@@ -189,9 +189,9 @@
       "id": "mes:mega_ship_crashed_2",
       "set": "mes:mega_ship_crashed_2",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 54,
+        "y": 48,
+        "z": 96
       },
       "mood": [],
       "climate": [],
@@ -201,9 +201,9 @@
       "id": "mes:mega_ship_crashed_deepslate",
       "set": "mes:mega_ship_crashed_deepslate",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 61,
+        "y": 48,
+        "z": 96
       },
       "mood": [],
       "climate": [],
@@ -213,9 +213,9 @@
       "id": "mes:mega_ship_deepslate",
       "set": "mes:mega_ship_deepslate",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 56,
+        "y": 52,
+        "z": 99
       },
       "mood": [],
       "climate": [],
@@ -225,9 +225,9 @@
       "id": "mes:mega_ship_deepslate_2",
       "set": "mes:mega_ship_deepslate_2",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 75,
+        "y": 69,
+        "z": 96
       },
       "mood": [],
       "climate": [],
@@ -237,9 +237,9 @@
       "id": "mes:mega_ship_deepslate_3",
       "set": "mes:mega_ship_deepslate_3",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 67,
+        "y": 73,
+        "z": 99
       },
       "mood": [],
       "climate": [],
@@ -249,9 +249,9 @@
       "id": "mes:monolith",
       "set": "mes:monolith",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 35,
+        "y": 40,
+        "z": 35
       },
       "mood": [],
       "climate": [],
@@ -261,9 +261,9 @@
       "id": "mes:mystical_archway",
       "set": "mes:mystical_archway",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 52,
+        "y": 72,
+        "z": 65
       },
       "mood": [],
       "climate": [],
@@ -273,9 +273,9 @@
       "id": "mes:mythic_garden",
       "set": "mes:mythic_garden",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 43,
+        "y": 37,
+        "z": 43
       },
       "mood": [],
       "climate": [],
@@ -285,9 +285,9 @@
       "id": "mes:phantom_citadel",
       "set": "mes:phantom_citadel",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 35,
+        "y": 34,
+        "z": 34
       },
       "mood": [],
       "climate": [],
@@ -297,9 +297,9 @@
       "id": "mes:placid_prairie",
       "set": "mes:placid_prairie",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 11,
+        "y": 14,
+        "z": 11
       },
       "mood": [],
       "climate": [],
@@ -309,9 +309,9 @@
       "id": "mes:ruined_pillar",
       "set": "mes:ruined_pillar",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 27,
+        "y": 27,
+        "z": 31
       },
       "mood": [],
       "climate": [],
@@ -321,9 +321,9 @@
       "id": "mes:starlight_voyager",
       "set": "mes:starlight_voyager",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 16,
+        "y": 24,
+        "z": 32
       },
       "mood": [],
       "climate": [],

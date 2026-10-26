@@ -12,9 +12,9 @@
       "id": "epic:ice_obelisk",
       "set": "epic:large_dungeons_obelisks",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 32,
+        "y": 60,
+        "z": 32
       },
       "mood": [],
       "climate": [],
@@ -24,9 +24,9 @@
       "id": "epic:large_dungeon",
       "set": "epic:large_dungeons",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 161,
+        "y": 84,
+        "z": 161
       },
       "mood": [],
       "climate": [],
@@ -36,9 +36,9 @@
       "id": "epic:large_ice_dungeon",
       "set": "epic:large_dungeons",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 158,
+        "y": 77,
+        "z": 161
       },
       "mood": [],
       "climate": [],
@@ -48,9 +48,9 @@
       "id": "epic:large_sand_dungeon",
       "set": "epic:large_dungeons",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 161,
+        "y": 118,
+        "z": 161
       },
       "mood": [],
       "climate": [],
@@ -60,9 +60,9 @@
       "id": "epic:medium_ice_dungeon",
       "set": "epic:medium_dungeons",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 155,
+        "y": 90,
+        "z": 160
       },
       "mood": [],
       "climate": [],
@@ -72,9 +72,9 @@
       "id": "epic:medium_plains_dungeon",
       "set": "epic:medium_dungeons",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 123,
+        "y": 34,
+        "z": 159
       },
       "mood": [],
       "climate": [],
@@ -84,9 +84,9 @@
       "id": "epic:medium_sand_dungeon",
       "set": "epic:medium_dungeons",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 159,
+        "y": 35,
+        "z": 158
       },
       "mood": [],
       "climate": [],
@@ -96,9 +96,9 @@
       "id": "epic:plains_obelisk",
       "set": "epic:large_dungeons_obelisks",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 33,
+        "y": 57,
+        "z": 33
       },
       "mood": [],
       "climate": [],
@@ -108,9 +108,9 @@
       "id": "epic:sand_obelisk",
       "set": "epic:large_dungeons_obelisks",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 33,
+        "y": 58,
+        "z": 33
       },
       "mood": [],
       "climate": [],
@@ -120,9 +120,9 @@
       "id": "epic:small_ice_dungeon",
       "set": "epic:small_dungeons",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 48,
+        "y": 48,
+        "z": 48
       },
       "mood": [],
       "climate": [],
@@ -132,9 +132,9 @@
       "id": "epic:small_plains_dungeon",
       "set": "epic:small_dungeons",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 48,
+        "y": 44,
+        "z": 48
       },
       "mood": [],
       "climate": [],
@@ -144,9 +144,9 @@
       "id": "epic:small_sand_dungeon",
       "set": "epic:small_dungeons",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 47,
+        "y": 47,
+        "z": 47
       },
       "mood": [],
       "climate": [],

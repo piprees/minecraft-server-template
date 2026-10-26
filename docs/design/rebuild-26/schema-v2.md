@@ -62,7 +62,7 @@ writes the v2 set. At the switch the v2 set moves to
 | `environment.skyColor`, `fogColor`, `ambientLight`, `fixedTime`, `effects` | `atmosphere` | The compiler writes environment attributes and a timeline. |
 | `environment.bedWorks`, `respawnAnchorWorks`, `piglinSafe`, `ultraWarm`, `natural`, `hasRaids` | `rules` | Renamed to read as rules: `bedsWork`, `respawnAnchorsWork`, `piglinsZombify` (= not `piglinSafe`), `ultraWarm`, `natural`, `raids`. |
 | `structureDensity` | `structures.density` | |
-| `structures` | `structures` | Carried whole for W4: `wants`, `shuns`, `spacing`, `mode`, `list`, `force`, `clearSpawnRadius`, `terrainAdaptation`, `noise`, `radial`, `rarity`, `exclude`, `include`. `shuns` values are always `{}`. |
+| `structures` | `structures` | Carried whole; the fields are in [Structures](#structures). `shuns` values are always `{}`. |
 | `portal` (object or array) | `portals` (array) | Each entry unchanged except `immersive` → `preview` (companion tuning; the vanilla slab is gone). |
 | `exitPortal`, `exits`, `exitShrines` | same | Unchanged. |
 | *(none)* | `deaths` | `inventory` and `experience`, each `keep` or `drop`; absent, the `keepInventory` game rule decides (RB-31). |
@@ -73,6 +73,26 @@ writes the v2 set. At the switch the v2 set moves to
 `hostileSpawning`, top-level `scale`, `structures.endgame`, `shuns` distances,
 `seedRoll.spawnRadius`, `seedRoll.locateCap`, `seedRoll.allowEndgameNearSpawn`,
 `inputHash`. The converter reports each one it drops.
+
+## Structures
+
+What each field does at run time: [worldgen.md § Structure control](worldgen.md#structure-control). Structure ids or `#tags` for `force`, `wants`, `shuns`, `replace` and `terrainAdaptation` (which also takes a group); structure set ids for `list`, `exclude`, `include`, `rarity` and `spacing`. Any other key is refused.
+
+| Field | Meaning |
+| --- | --- |
+| `density` | `dense`, `normal` (default), `sparse` or `none` |
+| `noise` | A profile for every group (`natural`, `dense`, `packed`, `sparse`, `cluster`, `none`), a map of group to profile, or `false` for vanilla grids |
+| `radial` | Per group, 10 numbers in 0–3 from spawn to border |
+| `rarity` | Per set, `common`, `uncommon`, `rare` or `endgame`: its share of its group |
+| `clearSpawnRadius` | Blocks round spawn where `dungeons` and `endgame` place nothing |
+| `mode`, `list` | `allow` or `reject` the sets in `list`; `none` places no organic set |
+| `exclude`, `include` | Sets dropped; sets placed where no biome suits them |
+| `spacing` | Per set, `{spacing, separation}` in chunks for its own grid |
+| `force` | `{structure, x, z, radius?, exclusive?, y?}`: a start at that block's chunk, or within `radius` blocks; `exclusive` (default true) removes its organic copies; `y` is reported and not applied |
+| `wants` | Per id, tag or short name, `{min, max}` blocks from spawn where one start is guaranteed |
+| `shuns` | Per id, tag or short name, `{}`: never placed here |
+| `replace` | Per structure, the structure placed in its stead |
+| `terrainAdaptation` | Per structure, tag or group: `none`, `beard_thin`, `beard_box`, `bury`, `encapsulate`, or the kernels `pedestal`, `platform_skirt`, `ground_blend` (as vanilla), `moat`, `drain` (reported) |
 
 ## Materials, liquids and ores
 

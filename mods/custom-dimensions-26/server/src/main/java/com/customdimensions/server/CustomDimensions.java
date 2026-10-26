@@ -24,6 +24,7 @@ public final class CustomDimensions implements ModInitializer {
         LevelManager.register();
         WorldgenRuntime.register();
         com.customdimensions.server.structure.StructureRuntime.register();
+        com.customdimensions.server.structure.StructureSizes.register();
         CustomDimCommands.register();
         Portals.register();
         CompanionNetwork.register();

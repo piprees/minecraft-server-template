@@ -124,9 +124,9 @@
       "id": "mvs:acacia_log_pile",
       "set": "mvs:acacia_log_pile",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 31,
+        "y": 28,
+        "z": 29
       },
       "mood": [],
       "climate": [],
@@ -136,9 +136,9 @@
       "id": "mvs:acacia_tree",
       "set": "mvs:acacia_tree",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 39,
+        "y": 38,
+        "z": 37
       },
       "mood": [],
       "climate": [],
@@ -148,9 +148,9 @@
       "id": "mvs:acacia_well",
       "set": "mvs:other_wells",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 29,
+        "y": 31,
+        "z": 29
       },
       "mood": [],
       "climate": [],
@@ -160,9 +160,9 @@
       "id": "mvs:azelea_house",
       "set": "mvs:azelea_house",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 43,
+        "y": 44,
+        "z": 44
       },
       "mood": [],
       "climate": [],
@@ -172,9 +172,9 @@
       "id": "mvs:barn",
       "set": "mvs:barn",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 39,
+        "y": 34,
+        "z": 42
       },
       "mood": [],
       "climate": [],
@@ -184,9 +184,9 @@
       "id": "mvs:beach_bar",
       "set": "mvs:beach_bar",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 36,
+        "y": 30,
+        "z": 38
       },
       "mood": [],
       "climate": [],
@@ -196,9 +196,9 @@
       "id": "mvs:bee_dome",
       "set": "mvs:bee_dome",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 32,
+        "y": 31,
+        "z": 32
       },
       "mood": [],
       "climate": [],
@@ -208,9 +208,9 @@
       "id": "mvs:bench",
       "set": "mvs:bench",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 28,
+        "y": 27,
+        "z": 26
       },
       "mood": [],
       "climate": [],
@@ -220,9 +220,9 @@
       "id": "mvs:big_oak_tree",
       "set": "mvs:big_oak_tree",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 50,
+        "y": 46,
+        "z": 46
       },
       "mood": [],
       "climate": [],
@@ -232,9 +232,9 @@
       "id": "mvs:birch_log_pile",
       "set": "mvs:birch_log_pile",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 31,
+        "y": 28,
+        "z": 29
       },
       "mood": [],
       "climate": [],
@@ -244,9 +244,9 @@
       "id": "mvs:birch_tree",
       "set": "mvs:birch_tree",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 35,
+        "y": 37,
+        "z": 35
       },
       "mood": [],
       "climate": [],
@@ -256,9 +256,9 @@
       "id": "mvs:birch_well",
       "set": "mvs:other_wells",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 29,
+        "y": 31,
+        "z": 29
       },
       "mood": [],
       "climate": [],
@@ -268,9 +268,9 @@
       "id": "mvs:blue_stall",
       "set": "mvs:stalls",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 35,
+        "y": 34,
+        "z": 32
       },
       "mood": [],
       "climate": [],
@@ -280,9 +280,9 @@
       "id": "mvs:boulder",
       "set": "mvs:boulder",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 29,
+        "y": 29,
+        "z": 30
       },
       "mood": [],
       "climate": [],
@@ -292,9 +292,9 @@
       "id": "mvs:campsite",
       "set": "mvs:campsite",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 43,
+        "y": 32,
+        "z": 37
       },
       "mood": [],
       "climate": [],
@@ -304,9 +304,9 @@
       "id": "mvs:cart",
       "set": "mvs:cart",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 27,
+        "y": 28,
+        "z": 27
       },
       "mood": [],
       "climate": [],
@@ -316,9 +316,9 @@
       "id": "mvs:cartographer_tower",
       "set": "mvs:cartographer_tower",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 46,
+        "y": 82,
+        "z": 45
       },
       "mood": [],
       "climate": [],
@@ -328,9 +328,9 @@
       "id": "mvs:castle_ruins",
       "set": "mvs:castle_ruins",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 45,
+        "y": 46,
+        "z": 42
       },
       "mood": [],
       "climate": [],
@@ -340,9 +340,9 @@
       "id": "mvs:cathedral",
       "set": "mvs:cathedral",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 95,
+        "y": 124,
+        "z": 93
       },
       "mood": [],
       "climate": [],
@@ -352,9 +352,9 @@
       "id": "mvs:cherry_tree",
       "set": "mvs:cherry_tree",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 38,
+        "y": 38,
+        "z": 36
       },
       "mood": [],
       "climate": [],
@@ -364,9 +364,9 @@
       "id": "mvs:crimson_enchanting_table",
       "set": "mvs:crimson_enchanting_table",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 37,
+        "y": 27,
+        "z": 38
       },
       "mood": [],
       "climate": [],
@@ -376,9 +376,9 @@
       "id": "mvs:crystal",
       "set": "mvs:crystal",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 38,
+        "y": 55,
+        "z": 39
       },
       "mood": [],
       "climate": [],
@@ -388,9 +388,9 @@
       "id": "mvs:dark_oak_log_pile",
       "set": "mvs:dark_oak_log_pile",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 31,
+        "y": 28,
+        "z": 29
       },
       "mood": [],
       "climate": [],
@@ -400,9 +400,9 @@
       "id": "mvs:dark_oak_tree",
       "set": "mvs:dark_oak_tree",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 41,
+        "y": 44,
+        "z": 45
       },
       "mood": [],
       "climate": [],
@@ -412,9 +412,9 @@
       "id": "mvs:dark_oak_well",
       "set": "mvs:other_wells",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 29,
+        "y": 31,
+        "z": 29
       },
       "mood": [],
       "climate": [],
@@ -424,9 +424,9 @@
       "id": "mvs:dead_tree_acacia",
       "set": "mvs:dead_tree_acacia",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 26,
+        "y": 32,
+        "z": 27
       },
       "mood": [],
       "climate": [],
@@ -436,9 +436,9 @@
       "id": "mvs:dead_tree_birch",
       "set": "mvs:dead_tree_birch",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 25,
+        "y": 27,
+        "z": 25
       },
       "mood": [],
       "climate": [],
@@ -448,9 +448,9 @@
       "id": "mvs:dead_tree_cherry",
       "set": "mvs:dead_tree_cherry",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 25,
+        "y": 27,
+        "z": 28
       },
       "mood": [],
       "climate": [],
@@ -460,9 +460,9 @@
       "id": "mvs:dead_tree_dark_oak",
       "set": "mvs:dead_tree_dark_oak",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 27,
+        "y": 30,
+        "z": 27
       },
       "mood": [],
       "climate": [],
@@ -472,9 +472,9 @@
       "id": "mvs:dead_tree_jungle",
       "set": "mvs:dead_tree_jungle",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 27,
+        "y": 31,
+        "z": 28
       },
       "mood": [],
       "climate": [],
@@ -484,9 +484,9 @@
       "id": "mvs:dead_tree_mangrove",
       "set": "mvs:dead_tree_mangrove",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 27,
+        "y": 28,
+        "z": 26
       },
       "mood": [],
       "climate": [],
@@ -496,9 +496,9 @@
       "id": "mvs:dead_tree_oak",
       "set": "mvs:dead_tree_oak",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 25,
+        "y": 27,
+        "z": 26
       },
       "mood": [],
       "climate": [],
@@ -508,9 +508,9 @@
       "id": "mvs:dead_tree_spruce",
       "set": "mvs:dead_tree_spruce",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 25,
+        "y": 28,
+        "z": 26
       },
       "mood": [],
       "climate": [],
@@ -520,9 +520,9 @@
       "id": "mvs:deepslate_house",
       "set": "mvs:deepslate_house",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 46,
+        "y": 39,
+        "z": 45
       },
       "mood": [],
       "climate": [],
@@ -532,9 +532,9 @@
       "id": "mvs:desert_house",
       "set": "mvs:desert_house",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 34,
+        "y": 32,
+        "z": 36
       },
       "mood": [],
       "climate": [],
@@ -544,9 +544,9 @@
       "id": "mvs:desert_pump",
       "set": "mvs:desert_pump",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 29,
+        "y": 32,
+        "z": 27
       },
       "mood": [],
       "climate": [],
@@ -556,9 +556,9 @@
       "id": "mvs:desert_well",
       "set": "mvs:other_wells",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 29,
+        "y": 31,
+        "z": 29
       },
       "mood": [],
       "climate": [],
@@ -568,9 +568,9 @@
       "id": "mvs:diorite_and_deepslate_house",
       "set": "mvs:diorite_and_deepslate_house",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 43,
+        "y": 46,
+        "z": 40
       },
       "mood": [],
       "climate": [],
@@ -580,9 +580,9 @@
       "id": "mvs:diorite_tower",
       "set": "mvs:diorite_tower",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 43,
+        "y": 48,
+        "z": 43
       },
       "mood": [],
       "climate": [],
@@ -592,9 +592,9 @@
       "id": "mvs:duck",
       "set": "mvs:duck",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 33,
+        "y": 31,
+        "z": 32
       },
       "mood": [],
       "climate": [],
@@ -604,9 +604,9 @@
       "id": "mvs:fire_camp",
       "set": "mvs:fire_camp",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 31,
+        "y": 26,
+        "z": 32
       },
       "mood": [],
       "climate": [],
@@ -616,9 +616,9 @@
       "id": "mvs:floating_islands",
       "set": "mvs:floating_islands",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 26,
+        "y": 19,
+        "z": 30
       },
       "mood": [],
       "climate": [],
@@ -628,9 +628,9 @@
       "id": "mvs:flower_hole",
       "set": "mvs:flower_hole",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 51,
+        "y": 32,
+        "z": 49
       },
       "mood": [],
       "climate": [],
@@ -640,9 +640,9 @@
       "id": "mvs:fox_hut",
       "set": "mvs:fox_hut",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 29,
+        "y": 32,
+        "z": 28
       },
       "mood": [],
       "climate": [],
@@ -652,9 +652,9 @@
       "id": "mvs:gallows",
       "set": "mvs:gallows",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 32,
+        "y": 33,
+        "z": 35
       },
       "mood": [],
       "climate": [],
@@ -664,9 +664,9 @@
       "id": "mvs:haystack",
       "set": "mvs:haystack",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 28,
+        "y": 27,
+        "z": 27
       },
       "mood": [],
       "climate": [],
@@ -676,9 +676,9 @@
       "id": "mvs:horse_campsite",
       "set": "mvs:horse_campsite",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 33,
+        "y": 27,
+        "z": 30
       },
       "mood": [],
       "climate": [],
@@ -688,9 +688,9 @@
       "id": "mvs:horse_pen",
       "set": "mvs:horse_pen",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 31,
+        "y": 30,
+        "z": 31
       },
       "mood": [],
       "climate": [],
@@ -700,9 +700,9 @@
       "id": "mvs:house",
       "set": "mvs:house",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 44,
+        "y": 41,
+        "z": 44
       },
       "mood": [],
       "climate": [],
@@ -712,9 +712,9 @@
       "id": "mvs:jungle_log_pile",
       "set": "mvs:jungle_log_pile",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 31,
+        "y": 28,
+        "z": 29
       },
       "mood": [],
       "climate": [],
@@ -724,9 +724,9 @@
       "id": "mvs:jungle_palm_tree",
       "set": "mvs:jungle_palm_tree",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 40,
+        "y": 50,
+        "z": 40
       },
       "mood": [],
       "climate": [],
@@ -736,9 +736,9 @@
       "id": "mvs:jungle_tower",
       "set": "mvs:jungle_tower",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 71,
+        "y": 86,
+        "z": 67
       },
       "mood": [],
       "climate": [],
@@ -748,9 +748,9 @@
       "id": "mvs:jungle_tree",
       "set": "mvs:jungle_tree",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 42,
+        "y": 41,
+        "z": 41
       },
       "mood": [],
       "climate": [],
@@ -760,9 +760,9 @@
       "id": "mvs:jungle_well",
       "set": "mvs:other_wells",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 29,
+        "y": 31,
+        "z": 29
       },
       "mood": [],
       "climate": [],
@@ -772,9 +772,9 @@
       "id": "mvs:lamp_chest",
       "set": "mvs:lamp_chest",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 34,
+        "y": 30,
+        "z": 37
       },
       "mood": [],
       "climate": [],
@@ -784,9 +784,9 @@
       "id": "mvs:large_cart_1",
       "set": "mvs:large_cart_1",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 33,
+        "y": 32,
+        "z": 35
       },
       "mood": [],
       "climate": [],
@@ -796,9 +796,9 @@
       "id": "mvs:large_cart_2",
       "set": "mvs:large_cart_2",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 33,
+        "y": 32,
+        "z": 31
       },
       "mood": [],
       "climate": [],
@@ -808,9 +808,9 @@
       "id": "mvs:large_floating_island",
       "set": "mvs:large_floating_island",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 26,
+        "y": 28,
+        "z": 23
       },
       "mood": [],
       "climate": [],
@@ -820,9 +820,9 @@
       "id": "mvs:large_mushroom",
       "set": "mvs:large_mushroom",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 37,
+        "y": 36,
+        "z": 37
       },
       "mood": [],
       "climate": [],
@@ -832,9 +832,9 @@
       "id": "mvs:large_warped_tower",
       "set": "mvs:large_warped_tower",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 48,
+        "y": 77,
+        "z": 54
       },
       "mood": [],
       "climate": [],
@@ -844,9 +844,9 @@
       "id": "mvs:lecturn_garden",
       "set": "mvs:lecturn_garden",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 34,
+        "y": 27,
+        "z": 36
       },
       "mood": [],
       "climate": [],
@@ -856,9 +856,9 @@
       "id": "mvs:lil_house",
       "set": "mvs:lil_house",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 35,
+        "y": 40,
+        "z": 33
       },
       "mood": [],
       "climate": [],
@@ -868,9 +868,9 @@
       "id": "mvs:log_ruin",
       "set": "mvs:log_ruin",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 54,
+        "y": 37,
+        "z": 54
       },
       "mood": [],
       "climate": [],
@@ -880,9 +880,9 @@
       "id": "mvs:medium_bamboo_cart",
       "set": "mvs:medium_bamboo_cart",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 28,
+        "y": 28,
+        "z": 30
       },
       "mood": [],
       "climate": [],
@@ -892,9 +892,9 @@
       "id": "mvs:medium_igloo_1",
       "set": "mvs:medium_igloo_1",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 33,
+        "y": 31,
+        "z": 38
       },
       "mood": [],
       "climate": [],
@@ -904,9 +904,9 @@
       "id": "mvs:medium_igloo_2",
       "set": "mvs:medium_igloo_2",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 38,
+        "y": 34,
+        "z": 39
       },
       "mood": [],
       "climate": [],
@@ -916,9 +916,9 @@
       "id": "mvs:medium_oak_lantern",
       "set": "mvs:medium_oak_lantern",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 27,
+        "y": 30,
+        "z": 25
       },
       "mood": [],
       "climate": [],
@@ -928,9 +928,9 @@
       "id": "mvs:mine_with_campsite",
       "set": "mvs:mine_with_campsite",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 53,
+        "y": 51,
+        "z": 72
       },
       "mood": [],
       "climate": [],
@@ -940,9 +940,9 @@
       "id": "mvs:mud_brick_house_1",
       "set": "mvs:mud_brick_house_1",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 43,
+        "y": 48,
+        "z": 48
       },
       "mood": [],
       "climate": [],
@@ -952,9 +952,9 @@
       "id": "mvs:mushroom_pond",
       "set": "mvs:mushroom_pond",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 35,
+        "y": 33,
+        "z": 39
       },
       "mood": [],
       "climate": [],
@@ -964,9 +964,9 @@
       "id": "mvs:mushroom_statue",
       "set": "mvs:mushroom_statue",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 28,
+        "y": 34,
+        "z": 29
       },
       "mood": [],
       "climate": [],
@@ -976,9 +976,9 @@
       "id": "mvs:mushroom_well",
       "set": "mvs:mushroom_well",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 29,
+        "y": 31,
+        "z": 29
       },
       "mood": [],
       "climate": [],
@@ -988,9 +988,9 @@
       "id": "mvs:nether_devil",
       "set": "mvs:nether_devil",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 28,
+        "y": 38,
+        "z": 29
       },
       "mood": [],
       "climate": [],
@@ -1000,9 +1000,9 @@
       "id": "mvs:nether_well",
       "set": "mvs:nether_well",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 29,
+        "y": 31,
+        "z": 29
       },
       "mood": [],
       "climate": [],
@@ -1012,9 +1012,9 @@
       "id": "mvs:oak_log_pile",
       "set": "mvs:oak_log_pile",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 31,
+        "y": 28,
+        "z": 29
       },
       "mood": [],
       "climate": [],
@@ -1024,9 +1024,9 @@
       "id": "mvs:oak_tree",
       "set": "mvs:oak_tree",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 35,
+        "y": 36,
+        "z": 35
       },
       "mood": [],
       "climate": [],
@@ -1036,9 +1036,9 @@
       "id": "mvs:oak_well",
       "set": "mvs:other_wells",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 29,
+        "y": 31,
+        "z": 29
       },
       "mood": [],
       "climate": [],
@@ -1048,9 +1048,9 @@
       "id": "mvs:ocean_tower",
       "set": "mvs:ocean_tower",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 32,
+        "y": 44,
+        "z": 30
       },
       "mood": [],
       "climate": [],
@@ -1060,9 +1060,9 @@
       "id": "mvs:orange_stall",
       "set": "mvs:stalls",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 33,
+        "y": 33,
+        "z": 34
       },
       "mood": [],
       "climate": [],
@@ -1072,9 +1072,9 @@
       "id": "mvs:out_house",
       "set": "mvs:out_house",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 32,
+        "y": 32,
+        "z": 29
       },
       "mood": [],
       "climate": [],
@@ -1084,9 +1084,9 @@
       "id": "mvs:paths",
       "set": "mvs:paths",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 34,
+        "y": 28,
+        "z": 37
       },
       "mood": [],
       "climate": [],
@@ -1096,9 +1096,9 @@
       "id": "mvs:pile",
       "set": "mvs:pile",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 27,
+        "y": 27,
+        "z": 27
       },
       "mood": [],
       "climate": [],
@@ -1108,9 +1108,9 @@
       "id": "mvs:pink_stall",
       "set": "mvs:stalls",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 31,
+        "y": 33,
+        "z": 31
       },
       "mood": [],
       "climate": [],
@@ -1120,9 +1120,9 @@
       "id": "mvs:prismarine_house_1",
       "set": "mvs:prismarine_house_1",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 43,
+        "y": 46,
+        "z": 47
       },
       "mood": [],
       "climate": [],
@@ -1132,9 +1132,9 @@
       "id": "mvs:prismarine_house_2",
       "set": "mvs:prismarine_house_2",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 43,
+        "y": 45,
+        "z": 51
       },
       "mood": [],
       "climate": [],
@@ -1144,9 +1144,9 @@
       "id": "mvs:railway",
       "set": "mvs:railway",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 31,
+        "y": 29,
+        "z": 40
       },
       "mood": [],
       "climate": [],
@@ -1156,9 +1156,9 @@
       "id": "mvs:rare_well",
       "set": "mvs:other_wells",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 33,
+        "y": 35,
+        "z": 32
       },
       "mood": [],
       "climate": [],
@@ -1168,9 +1168,9 @@
       "id": "mvs:red_stall",
       "set": "mvs:stalls",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 31,
+        "y": 33,
+        "z": 31
       },
       "mood": [],
       "climate": [],
@@ -1180,9 +1180,9 @@
       "id": "mvs:red_tower",
       "set": "mvs:red_tower",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 65,
+        "y": 97,
+        "z": 65
       },
       "mood": [],
       "climate": [],
@@ -1192,9 +1192,9 @@
       "id": "mvs:rocky_well",
       "set": "mvs:other_wells",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 29,
+        "y": 31,
+        "z": 29
       },
       "mood": [],
       "climate": [],
@@ -1204,9 +1204,9 @@
       "id": "mvs:ruined_beacon",
       "set": "mvs:ruined_beacon",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 43,
+        "y": 33,
+        "z": 44
       },
       "mood": [],
       "climate": [],
@@ -1216,9 +1216,9 @@
       "id": "mvs:shed",
       "set": "mvs:shed",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 34,
+        "y": 30,
+        "z": 32
       },
       "mood": [],
       "climate": [],
@@ -1228,9 +1228,9 @@
       "id": "mvs:small_acacia_lantern",
       "set": "mvs:small_acacia_lantern",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 26,
+        "y": 29,
+        "z": 25
       },
       "mood": [],
       "climate": [],
@@ -1240,9 +1240,9 @@
       "id": "mvs:small_bamboo_lantern",
       "set": "mvs:small_bamboo_lantern",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 26,
+        "y": 29,
+        "z": 25
       },
       "mood": [],
       "climate": [],
@@ -1252,9 +1252,9 @@
       "id": "mvs:small_birch_lantern",
       "set": "mvs:small_birch_lantern",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 26,
+        "y": 29,
+        "z": 25
       },
       "mood": [],
       "climate": [],
@@ -1264,9 +1264,9 @@
       "id": "mvs:small_campfire_lantern",
       "set": "mvs:small_campfire_lantern",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 27,
+        "y": 31,
+        "z": 27
       },
       "mood": [],
       "climate": [],
@@ -1276,9 +1276,9 @@
       "id": "mvs:small_cherry_lantern",
       "set": "mvs:small_cherry_lantern",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 26,
+        "y": 29,
+        "z": 25
       },
       "mood": [],
       "climate": [],
@@ -1288,9 +1288,9 @@
       "id": "mvs:small_copper_well",
       "set": "mvs:other_wells",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 31,
+        "y": 29,
+        "z": 31
       },
       "mood": [],
       "climate": [],
@@ -1300,9 +1300,9 @@
       "id": "mvs:small_dark_oak_lantern",
       "set": "mvs:small_dark_oak_lantern",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 26,
+        "y": 29,
+        "z": 25
       },
       "mood": [],
       "climate": [],
@@ -1312,9 +1312,9 @@
       "id": "mvs:small_igloo",
       "set": "mvs:small_igloo",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 31,
+        "y": 30,
+        "z": 34
       },
       "mood": [],
       "climate": [],
@@ -1324,9 +1324,9 @@
       "id": "mvs:small_jungle_lantern",
       "set": "mvs:small_jungle_lantern",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 26,
+        "y": 29,
+        "z": 25
       },
       "mood": [],
       "climate": [],
@@ -1336,9 +1336,9 @@
       "id": "mvs:small_mangrove_lantern",
       "set": "mvs:small_mangrove_lantern",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 26,
+        "y": 29,
+        "z": 25
       },
       "mood": [],
       "climate": [],
@@ -1348,9 +1348,9 @@
       "id": "mvs:small_oak_lantern",
       "set": "mvs:small_oak_lantern",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 26,
+        "y": 29,
+        "z": 25
       },
       "mood": [],
       "climate": [],
@@ -1360,9 +1360,9 @@
       "id": "mvs:small_oak_pond",
       "set": "mvs:small_oak_pond",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 36,
+        "y": 34,
+        "z": 40
       },
       "mood": [],
       "climate": [],
@@ -1372,9 +1372,9 @@
       "id": "mvs:small_pillager_tower",
       "set": "mvs:small_pillager_tower",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 37,
+        "y": 51,
+        "z": 37
       },
       "mood": [],
       "climate": [],
@@ -1384,9 +1384,9 @@
       "id": "mvs:small_ruin",
       "set": "mvs:small_ruin",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 41,
+        "y": 38,
+        "z": 38
       },
       "mood": [],
       "climate": [],
@@ -1396,9 +1396,9 @@
       "id": "mvs:small_ship",
       "set": "mvs:small_ship",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 15,
+        "y": 10,
+        "z": 9
       },
       "mood": [],
       "climate": [],
@@ -1408,9 +1408,9 @@
       "id": "mvs:small_spruce_lantern",
       "set": "mvs:small_spruce_lantern",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 26,
+        "y": 29,
+        "z": 25
       },
       "mood": [],
       "climate": [],
@@ -1420,9 +1420,9 @@
       "id": "mvs:small_swamp_house",
       "set": "mvs:small_swamp_house",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 34,
+        "y": 35,
+        "z": 33
       },
       "mood": [],
       "climate": [],
@@ -1432,9 +1432,9 @@
       "id": "mvs:small_tower_well",
       "set": "mvs:other_wells",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 27,
+        "y": 31,
+        "z": 30
       },
       "mood": [],
       "climate": [],
@@ -1444,9 +1444,9 @@
       "id": "mvs:small_well",
       "set": "mvs:other_wells",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 32,
+        "y": 29,
+        "z": 30
       },
       "mood": [],
       "climate": [],
@@ -1456,9 +1456,9 @@
       "id": "mvs:snowy_dog_hut",
       "set": "mvs:snowy_dog_hut",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 29,
+        "y": 28,
+        "z": 30
       },
       "mood": [],
       "climate": [],
@@ -1468,9 +1468,9 @@
       "id": "mvs:snowy_fossil",
       "set": "mvs:snowy_fossil",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 35,
+        "y": 36,
+        "z": 36
       },
       "mood": [],
       "climate": [],
@@ -1480,9 +1480,9 @@
       "id": "mvs:snowy_well",
       "set": "mvs:other_wells",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 29,
+        "y": 31,
+        "z": 29
       },
       "mood": [],
       "climate": [],
@@ -1492,9 +1492,9 @@
       "id": "mvs:spruce_log_pile",
       "set": "mvs:spruce_log_pile",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 31,
+        "y": 28,
+        "z": 29
       },
       "mood": [],
       "climate": [],
@@ -1504,9 +1504,9 @@
       "id": "mvs:spruce_tree",
       "set": "mvs:spruce_tree",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 29,
+        "y": 34,
+        "z": 29
       },
       "mood": [],
       "climate": [],
@@ -1516,9 +1516,9 @@
       "id": "mvs:spruce_well",
       "set": "mvs:other_wells",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 29,
+        "y": 31,
+        "z": 29
       },
       "mood": [],
       "climate": [],
@@ -1528,9 +1528,9 @@
       "id": "mvs:statue_ruins",
       "set": "mvs:statue_ruins",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 33,
+        "y": 31,
+        "z": 33
       },
       "mood": [],
       "climate": [],
@@ -1540,9 +1540,9 @@
       "id": "mvs:stone_fountain",
       "set": "mvs:stone_fountain",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 31,
+        "y": 28,
+        "z": 32
       },
       "mood": [],
       "climate": [],
@@ -1552,9 +1552,9 @@
       "id": "mvs:stone_pillars",
       "set": "mvs:stone_pillars",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 39,
+        "y": 34,
+        "z": 40
       },
       "mood": [],
       "climate": [],
@@ -1564,9 +1564,9 @@
       "id": "mvs:stone_rock",
       "set": "mvs:stone_rock",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 29,
+        "y": 28,
+        "z": 29
       },
       "mood": [],
       "climate": [],
@@ -1576,9 +1576,9 @@
       "id": "mvs:sunzi_gate",
       "set": "mvs:sunzi_gate",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 35,
+        "y": 41,
+        "z": 41
       },
       "mood": [],
       "climate": [],
@@ -1588,9 +1588,9 @@
       "id": "mvs:tall_house",
       "set": "mvs:tall_house",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 43,
+        "y": 45,
+        "z": 50
       },
       "mood": [],
       "climate": [],
@@ -1600,9 +1600,9 @@
       "id": "mvs:tree_monument",
       "set": "mvs:tree_monument",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 61,
+        "y": 35,
+        "z": 61
       },
       "mood": [],
       "climate": [],
@@ -1612,9 +1612,9 @@
       "id": "mvs:villager_statue",
       "set": "mvs:villager_statue",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 30,
+        "y": 36,
+        "z": 29
       },
       "mood": [],
       "climate": [],
@@ -1624,9 +1624,9 @@
       "id": "mvs:warped_house",
       "set": "mvs:warped_house",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 43,
+        "y": 36,
+        "z": 41
       },
       "mood": [],
       "climate": [],
@@ -1636,9 +1636,9 @@
       "id": "mvs:well",
       "set": "mvs:other_wells",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 28,
+        "y": 33,
+        "z": 28
       },
       "mood": [],
       "climate": [],
@@ -1648,9 +1648,9 @@
       "id": "mvs:wheat_grain_bin",
       "set": "mvs:wheat_grain_bin",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 31,
+        "y": 37,
+        "z": 31
       },
       "mood": [],
       "climate": [],
@@ -1660,9 +1660,9 @@
       "id": "mvs:windmill",
       "set": "mvs:windmill",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 29,
+        "y": 32,
+        "z": 30
       },
       "mood": [],
       "climate": [],
@@ -1672,9 +1672,9 @@
       "id": "mvs:wooden_wheat_farm",
       "set": "mvs:wooden_wheat_farm",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 41,
+        "y": 29,
+        "z": 41
       },
       "mood": [],
       "climate": [],

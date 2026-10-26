@@ -9,6 +9,7 @@ import com.customdimensions.core.dimension.StructureNoise;
 import com.customdimensions.core.dimension.StructureThemes;
 import com.customdimensions.core.structure.StructureSites;
 import com.customdimensions.core.structure.StructureSpec;
+import com.customdimensions.core.structure.ZoneStructureRules;
 import com.customdimensions.server.CustomDimensions;
 import com.google.gson.JsonParser;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
@@ -65,6 +66,9 @@ public final class StructureRuntime {
                           Map<String, Integer> groupSites, List<Placed> placed, long millis) {}
 
     private static volatile Map<String, StructureSpec> specs = Map.of();
+    private static volatile Map<String, ZoneStructureRules> zoneRules = Map.of();
+    /** The zone query for a level id, or null; the zones work package provides it. */
+    private static volatile java.util.function.Function<String, ZoneStructureRules.ZoneQuery> zoneQueries = level -> null;
     private static final Map<String, Applied> APPLIED = new ConcurrentHashMap<>();
     private static final Map<String, Map<Long, Set<Structure>>> BYPASS = new ConcurrentHashMap<>();
     private static final Map<String, Set<Structure>> BYPASS_EVERYWHERE = new ConcurrentHashMap<>();
@@ -89,6 +93,26 @@ public final class StructureRuntime {
 
     public static Optional<Applied> applied(String level) {
         return Optional.ofNullable(APPLIED.get(level));
+    }
+
+    /** Sets the zone query per level id; until then zone-scoped wants and shuns are inert. */
+    public static void zoneQueries(java.util.function.Function<String, ZoneStructureRules.ZoneQuery> provider) {
+        zoneQueries = provider;
+    }
+
+    /** Whether a zone of this level shuns {@code structure} at the chunk's centre. */
+    public static boolean zoneShunned(ResourceKey<Level> level, Holder<Structure> structure, ChunkPos chunk) {
+        String id = level.identifier().toString();
+        ZoneStructureRules rules = zoneRules.get(id);
+        if (rules == null) return false;
+        ZoneStructureRules.ZoneQuery query = zoneQueries.apply(id);
+        return query != null && rules.shunned(name -> matches(structure, name), chunk.getMiddleBlockX(), chunk.getMiddleBlockZ(), query);
+    }
+
+    private static boolean matches(Holder<Structure> structure, String idOrTag) {
+        return idOrTag.startsWith("#")
+                ? structure.is(TagKey.create(Registries.STRUCTURE, Identifier.parse(idOrTag.substring(1))))
+                : structure.unwrapKey().map(k -> k.identifier().toString().equals(idOrTag)).orElse(false);
     }
 
     /** Whether {@code structure} may ignore its biomes at this chunk of this level. */
@@ -120,16 +144,22 @@ public final class StructureRuntime {
 
     static Map<String, StructureSpec> load(MinecraftServer server) {
         Map<String, StructureSpec> out = new HashMap<>();
+        Map<String, ZoneStructureRules> zones = new HashMap<>();
         Map<Identifier, Resource> files = server.getResourceManager().listResources(StructuresCompiler.FOLDER,
                 id -> id.getNamespace().equals(DatapackCompiler.RUNTIME_NAMESPACE) && id.getPath().endsWith(".json"));
         for (Map.Entry<Identifier, Resource> file : files.entrySet()) {
             try (Reader reader = file.getValue().openAsReader()) {
-                StructureSpec spec = StructureSpec.fromJson(JsonParser.parseReader(reader).getAsJsonObject());
+                com.google.gson.JsonObject json = JsonParser.parseReader(reader).getAsJsonObject();
+                StructureSpec spec = StructureSpec.fromJson(json);
                 out.put(spec.level(), spec);
+                if (json.has("zones")) {
+                    zones.put(spec.level(), ZoneStructureRules.fromJson(json.getAsJsonArray("zones")));
+                }
             } catch (Exception e) {
                 CustomDimensions.LOG.warn("structure control file {} is unreadable: {}", file.getKey(), e.toString());
             }
         }
+        zoneRules = Map.copyOf(zones);
         return Map.copyOf(out);
     }
 
@@ -304,9 +334,12 @@ public final class StructureRuntime {
                 continue;
             }
             Holder<Structure> pick = candidates.stream().filter(h -> hasBiomeIn(h.value(), biomes)).findFirst().orElse(candidates.getFirst());
+            ZoneStructureRules rules = zoneRules.getOrDefault(level, ZoneStructureRules.NONE);
+            ZoneStructureRules.ZoneQuery query = zoneQueries.apply(level);
             StructureSites.Site site = StructureSites.choose(StructureSites.seed(original.getLevelSeed(), "want:" + w.name()),
                     spec.spawnChunkX() * 16 + 8, spec.spawnChunkZ() * 16 + 8, w.min(), w.max(),
-                    (cx, cz) -> biomeAt(pick.value(), biomes, sampler, cx, cz, seaLevel));
+                    (cx, cz) -> (query == null || rules.wantAccepts(name -> matches(pick, name), cx * 16 + 8, cz * 16 + 8, query))
+                            && biomeAt(pick.value(), biomes, sampler, cx, cz, seaLevel));
             String id = pick.unwrapKey().map(k -> k.identifier().toString()).orElse(w.structure());
             fixed(out, bypass, placed, "want", id, pick, site);
         }

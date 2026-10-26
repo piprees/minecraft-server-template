@@ -11,9 +11,9 @@
       "id": "towns_and_towers:exclusives/pillager_outpost_classic",
       "set": "towns_and_towers:towers",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 47,
+        "y": 37,
+        "z": 47
       },
       "mood": [],
       "climate": [],
@@ -23,9 +23,9 @@
       "id": "towns_and_towers:exclusives/pillager_outpost_iberian",
       "set": "towns_and_towers:towers",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 53,
+        "y": 45,
+        "z": 52
       },
       "mood": [],
       "climate": [],
@@ -35,9 +35,9 @@
       "id": "towns_and_towers:exclusives/pillager_outpost_mediterranean",
       "set": "towns_and_towers:towers",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 67,
+        "y": 39,
+        "z": 48
       },
       "mood": [],
       "climate": [],
@@ -47,9 +47,9 @@
       "id": "towns_and_towers:exclusives/pillager_outpost_nilotic",
       "set": "towns_and_towers:towers",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 24,
+        "y": 31,
+        "z": 26
       },
       "mood": [],
       "climate": [],
@@ -59,9 +59,9 @@
       "id": "towns_and_towers:exclusives/pillager_outpost_oriental",
       "set": "towns_and_towers:towers",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 51,
+        "y": 68,
+        "z": 51
       },
       "mood": [],
       "climate": [],
@@ -71,9 +71,9 @@
       "id": "towns_and_towers:exclusives/pillager_outpost_rustic",
       "set": "towns_and_towers:towers",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 60,
+        "y": 45,
+        "z": 58
       },
       "mood": [],
       "climate": [],
@@ -83,9 +83,9 @@
       "id": "towns_and_towers:exclusives/pillager_outpost_swedish",
       "set": "towns_and_towers:towers",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 48,
+        "y": 61,
+        "z": 39
       },
       "mood": [],
       "climate": [],
@@ -95,9 +95,9 @@
       "id": "towns_and_towers:exclusives/pillager_outpost_tudor",
       "set": "towns_and_towers:towers",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 39,
+        "y": 63,
+        "z": 39
       },
       "mood": [],
       "climate": [],
@@ -107,9 +107,9 @@
       "id": "towns_and_towers:exclusives/village_classic",
       "set": "towns_and_towers:towns",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 143,
+        "y": 48,
+        "z": 112
       },
       "mood": [],
       "climate": [],
@@ -119,9 +119,9 @@
       "id": "towns_and_towers:exclusives/village_iberian",
       "set": "towns_and_towers:towns",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 141,
+        "y": 43,
+        "z": 173
       },
       "mood": [],
       "climate": [],
@@ -131,9 +131,9 @@
       "id": "towns_and_towers:exclusives/village_mediterranean",
       "set": "towns_and_towers:towns",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 105,
+        "y": 41,
+        "z": 119
       },
       "mood": [],
       "climate": [],
@@ -143,9 +143,9 @@
       "id": "towns_and_towers:exclusives/village_nilotic",
       "set": "towns_and_towers:towns",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 104,
+        "y": 34,
+        "z": 104
       },
       "mood": [],
       "climate": [],
@@ -155,9 +155,9 @@
       "id": "towns_and_towers:exclusives/village_piglin",
       "set": "towns_and_towers:towns",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 82,
+        "y": 51,
+        "z": 118
       },
       "mood": [],
       "climate": [],
@@ -167,9 +167,9 @@
       "id": "towns_and_towers:exclusives/village_rustic",
       "set": "towns_and_towers:towns",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 69,
+        "y": 41,
+        "z": 124
       },
       "mood": [],
       "climate": [],
@@ -179,9 +179,9 @@
       "id": "towns_and_towers:exclusives/village_swedish",
       "set": "towns_and_towers:towns",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 86,
+        "y": 47,
+        "z": 132
       },
       "mood": [],
       "climate": [],
@@ -191,9 +191,9 @@
       "id": "towns_and_towers:exclusives/village_tudor",
       "set": "towns_and_towers:towns",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 210,
+        "y": 42,
+        "z": 85
       },
       "mood": [],
       "climate": [],
@@ -203,9 +203,9 @@
       "id": "towns_and_towers:exclusives/village_wandering_trader_camp",
       "set": "towns_and_towers:towns",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 43,
+        "y": 33,
+        "z": 43
       },
       "mood": [],
       "climate": [],
@@ -215,9 +215,9 @@
       "id": "towns_and_towers:mimic_desert",
       "set": "towns_and_towers:other",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 40,
+        "y": 35,
+        "z": 21
       },
       "mood": [],
       "climate": [],
@@ -227,9 +227,9 @@
       "id": "towns_and_towers:pillager_outpost_badlands",
       "set": "towns_and_towers:towers",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 50,
+        "y": 47,
+        "z": 34
       },
       "mood": [],
       "climate": [],
@@ -239,9 +239,9 @@
       "id": "towns_and_towers:pillager_outpost_beach",
       "set": "towns_and_towers:towers",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 38,
+        "y": 36,
+        "z": 52
       },
       "mood": [],
       "climate": [],
@@ -251,9 +251,9 @@
       "id": "towns_and_towers:pillager_outpost_birch_forest",
       "set": "towns_and_towers:towers",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 45,
+        "y": 55,
+        "z": 45
       },
       "mood": [],
       "climate": [],
@@ -263,9 +263,9 @@
       "id": "towns_and_towers:pillager_outpost_desert",
       "set": "towns_and_towers:towers",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 59,
+        "y": 42,
+        "z": 54
       },
       "mood": [],
       "climate": [],
@@ -275,9 +275,9 @@
       "id": "towns_and_towers:pillager_outpost_flower_forest",
       "set": "towns_and_towers:towers",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 37,
+        "y": 58,
+        "z": 37
       },
       "mood": [],
       "climate": [],
@@ -287,9 +287,9 @@
       "id": "towns_and_towers:pillager_outpost_forest",
       "set": "towns_and_towers:towers",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 42,
+        "y": 62,
+        "z": 49
       },
       "mood": [],
       "climate": [],
@@ -299,9 +299,9 @@
       "id": "towns_and_towers:pillager_outpost_grove",
       "set": "towns_and_towers:towers",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 53,
+        "y": 41,
+        "z": 46
       },
       "mood": [],
       "climate": [],
@@ -311,9 +311,9 @@
       "id": "towns_and_towers:pillager_outpost_jungle",
       "set": "towns_and_towers:towers",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 55,
+        "y": 54,
+        "z": 55
       },
       "mood": [],
       "climate": [],
@@ -323,9 +323,9 @@
       "id": "towns_and_towers:pillager_outpost_meadow",
       "set": "towns_and_towers:towers",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 37,
+        "y": 61,
+        "z": 37
       },
       "mood": [],
       "climate": [],
@@ -335,9 +335,9 @@
       "id": "towns_and_towers:pillager_outpost_mushroom_fields",
       "set": "towns_and_towers:towers",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 44,
+        "y": 72,
+        "z": 43
       },
       "mood": [],
       "climate": [],
@@ -347,9 +347,9 @@
       "id": "towns_and_towers:pillager_outpost_ocean",
       "set": "towns_and_towers:towers",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 76,
+        "y": 65,
+        "z": 27
       },
       "mood": [],
       "climate": [],
@@ -359,9 +359,9 @@
       "id": "towns_and_towers:pillager_outpost_old_growth_taiga",
       "set": "towns_and_towers:towers",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 59,
+        "y": 41,
+        "z": 59
       },
       "mood": [],
       "climate": [],
@@ -371,9 +371,9 @@
       "id": "towns_and_towers:pillager_outpost_savanna",
       "set": "towns_and_towers:towers",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 37,
+        "y": 58,
+        "z": 37
       },
       "mood": [],
       "climate": [],
@@ -383,9 +383,9 @@
       "id": "towns_and_towers:pillager_outpost_savanna_plateau",
       "set": "towns_and_towers:towers",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 61,
+        "y": 46,
+        "z": 57
       },
       "mood": [],
       "climate": [],
@@ -395,9 +395,9 @@
       "id": "towns_and_towers:pillager_outpost_snowy_beach",
       "set": "towns_and_towers:towers",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 38,
+        "y": 36,
+        "z": 52
       },
       "mood": [],
       "climate": [],
@@ -407,9 +407,9 @@
       "id": "towns_and_towers:pillager_outpost_snowy_plains",
       "set": "towns_and_towers:towers",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 47,
+        "y": 62,
+        "z": 47
       },
       "mood": [],
       "climate": [],
@@ -419,9 +419,9 @@
       "id": "towns_and_towers:pillager_outpost_snowy_slopes",
       "set": "towns_and_towers:towers",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 53,
+        "y": 64,
+        "z": 41
       },
       "mood": [],
       "climate": [],
@@ -431,9 +431,9 @@
       "id": "towns_and_towers:pillager_outpost_snowy_taiga",
       "set": "towns_and_towers:towers",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 37,
+        "y": 59,
+        "z": 37
       },
       "mood": [],
       "climate": [],
@@ -443,9 +443,9 @@
       "id": "towns_and_towers:pillager_outpost_sparse_jungle",
       "set": "towns_and_towers:towers",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 55,
+        "y": 34,
+        "z": 55
       },
       "mood": [],
       "climate": [],
@@ -455,9 +455,9 @@
       "id": "towns_and_towers:pillager_outpost_sunflower_plains",
       "set": "towns_and_towers:towers",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 51,
+        "y": 59,
+        "z": 51
       },
       "mood": [],
       "climate": [],
@@ -467,9 +467,9 @@
       "id": "towns_and_towers:pillager_outpost_swamp",
       "set": "towns_and_towers:towers",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 43,
+        "y": 58,
+        "z": 43
       },
       "mood": [],
       "climate": [],
@@ -479,9 +479,9 @@
       "id": "towns_and_towers:pillager_outpost_taiga",
       "set": "towns_and_towers:towers",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 43,
+        "y": 58,
+        "z": 43
       },
       "mood": [],
       "climate": [],
@@ -491,9 +491,9 @@
       "id": "towns_and_towers:pillager_outpost_wooded_badlands",
       "set": "towns_and_towers:towers",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 57,
+        "y": 34,
+        "z": 57
       },
       "mood": [],
       "climate": [],
@@ -503,9 +503,9 @@
       "id": "towns_and_towers:village_badlands",
       "set": "towns_and_towers:towns",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 159,
+        "y": 44,
+        "z": 146
       },
       "mood": [],
       "climate": [],
@@ -515,9 +515,9 @@
       "id": "towns_and_towers:village_beach",
       "set": "towns_and_towers:towns",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 72,
+        "y": 59,
+        "z": 58
       },
       "mood": [],
       "climate": [],
@@ -527,9 +527,9 @@
       "id": "towns_and_towers:village_birch_forest",
       "set": "towns_and_towers:towns",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 202,
+        "y": 57,
+        "z": 197
       },
       "mood": [],
       "climate": [],
@@ -539,9 +539,9 @@
       "id": "towns_and_towers:village_flower_forest",
       "set": "towns_and_towers:towns",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 172,
+        "y": 48,
+        "z": 188
       },
       "mood": [],
       "climate": [],
@@ -551,9 +551,9 @@
       "id": "towns_and_towers:village_forest",
       "set": "towns_and_towers:towns",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 170,
+        "y": 41,
+        "z": 156
       },
       "mood": [],
       "climate": [],
@@ -563,9 +563,9 @@
       "id": "towns_and_towers:village_grove",
       "set": "towns_and_towers:towns",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 49,
+        "y": 39,
+        "z": 45
       },
       "mood": [],
       "climate": [],
@@ -575,9 +575,9 @@
       "id": "towns_and_towers:village_jungle",
       "set": "towns_and_towers:towns",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 151,
+        "y": 51,
+        "z": 146
       },
       "mood": [],
       "climate": [],
@@ -587,9 +587,9 @@
       "id": "towns_and_towers:village_meadow",
       "set": "towns_and_towers:towns",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 120,
+        "y": 40,
+        "z": 154
       },
       "mood": [],
       "climate": [],
@@ -599,9 +599,9 @@
       "id": "towns_and_towers:village_mushroom_fields",
       "set": "towns_and_towers:towns",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 132,
+        "y": 41,
+        "z": 115
       },
       "mood": [],
       "climate": [],
@@ -611,9 +611,9 @@
       "id": "towns_and_towers:village_ocean",
       "set": "towns_and_towers:towns",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 81,
+        "y": 41,
+        "z": 80
       },
       "mood": [],
       "climate": [],
@@ -623,9 +623,9 @@
       "id": "towns_and_towers:village_old_growth_taiga",
       "set": "towns_and_towers:towns",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 97,
+        "y": 35,
+        "z": 110
       },
       "mood": [],
       "climate": [],
@@ -635,9 +635,9 @@
       "id": "towns_and_towers:village_savanna_plateau",
       "set": "towns_and_towers:towns",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 41,
+        "y": 52,
+        "z": 44
       },
       "mood": [],
       "climate": [],
@@ -647,9 +647,9 @@
       "id": "towns_and_towers:village_snowy_slopes",
       "set": "towns_and_towers:towns",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 45,
+        "y": 36,
+        "z": 51
       },
       "mood": [],
       "climate": [],
@@ -659,9 +659,9 @@
       "id": "towns_and_towers:village_snowy_taiga",
       "set": "towns_and_towers:towns",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 151,
+        "y": 51,
+        "z": 173
       },
       "mood": [],
       "climate": [],
@@ -671,9 +671,9 @@
       "id": "towns_and_towers:village_sparse_jungle",
       "set": "towns_and_towers:towns",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 173,
+        "y": 42,
+        "z": 189
       },
       "mood": [],
       "climate": [],
@@ -683,9 +683,9 @@
       "id": "towns_and_towers:village_sunflower_plains",
       "set": "towns_and_towers:towns",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 80,
+        "y": 50,
+        "z": 91
       },
       "mood": [],
       "climate": [],
@@ -695,9 +695,9 @@
       "id": "towns_and_towers:village_swamp",
       "set": "towns_and_towers:towns",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 123,
+        "y": 39,
+        "z": 129
       },
       "mood": [],
       "climate": [],
@@ -707,9 +707,9 @@
       "id": "towns_and_towers:village_wooded_badlands",
       "set": "towns_and_towers:towns",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 46,
+        "y": 34,
+        "z": 45
       },
       "mood": [],
       "climate": [],
@@ -719,9 +719,9 @@
       "id": "towns_and_towers:wreckage_ocean",
       "set": "towns_and_towers:other",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 14,
+        "y": 3,
+        "z": 14
       },
       "mood": [],
       "climate": [],

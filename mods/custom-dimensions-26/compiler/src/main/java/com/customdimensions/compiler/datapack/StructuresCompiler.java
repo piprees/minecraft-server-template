@@ -81,7 +81,14 @@ public final class StructuresCompiler {
         result.applied().forEach(entry::structure);
         result.warnings().forEach(entry::structureWarning);
         unknownIds(result.spec(), catalogue).forEach(entry::structureWarning);
-        return Map.of(path(slug), result.spec().toJson());
+        JsonObject json = result.spec().toJson();
+        com.customdimensions.core.structure.ZoneStructureRules zones =
+                com.customdimensions.core.structure.ZoneStructureRules.read(slug, def.zones());
+        if (!zones.rules().isEmpty()) {
+            json.add("zones", zones.toJson());
+            zones.rules().forEach(r -> entry.structure("zone " + r.zone() + ": wants " + r.wants() + ", shuns " + r.shuns()));
+        }
+        return Map.of(path(slug), json);
     }
 
     static List<String> unknownIds(StructureSpec spec, Catalogue catalogue) {

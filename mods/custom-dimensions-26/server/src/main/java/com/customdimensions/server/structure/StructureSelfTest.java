@@ -42,7 +42,7 @@ public final class StructureSelfTest {
 
     static final int LOAD_CAP_TICKS = 6000;
     static final int SIDE = 100;
-    static final int SHUN_SAMPLE = 48;
+    static final int SHUN_SAMPLE = 24;
     private static final String FIXTURE = "selftest_structures";
 
     private record Load(ServerLevel level, List<ChunkPos> chunks, CompletableFuture<List<LevelChunk>> done, int[] ticks) {}

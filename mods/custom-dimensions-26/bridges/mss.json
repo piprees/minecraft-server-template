@@ -36,9 +36,9 @@
       "id": "mss:arena",
       "set": "mss:arena",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 137,
+        "y": 121,
+        "z": 162
       },
       "mood": [],
       "climate": [],
@@ -48,9 +48,9 @@
       "id": "mss:birch_river",
       "set": "mss:birch_river",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 35,
+        "y": 35,
+        "z": 33
       },
       "mood": [],
       "climate": [],
@@ -60,9 +60,9 @@
       "id": "mss:calcite_house",
       "set": "mss:calcite_house",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 25,
+        "y": 48,
+        "z": 24
       },
       "mood": [],
       "climate": [],
@@ -72,9 +72,9 @@
       "id": "mss:castle_ruin",
       "set": "mss:castle_ruin",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 40,
+        "y": 35,
+        "z": 43
       },
       "mood": [],
       "climate": [],
@@ -84,9 +84,9 @@
       "id": "mss:castle_tower",
       "set": "mss:castle_tower",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 29,
+        "y": 63,
+        "z": 31
       },
       "mood": [],
       "climate": [],
@@ -96,9 +96,9 @@
       "id": "mss:cherry_river",
       "set": "mss:cherry_river",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 31,
+        "y": 38,
+        "z": 31
       },
       "mood": [],
       "climate": [],
@@ -108,9 +108,9 @@
       "id": "mss:desert_pyramid",
       "set": "mss:desert_pyramid",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 48,
+        "y": 63,
+        "z": 53
       },
       "mood": [],
       "climate": [],
@@ -120,9 +120,9 @@
       "id": "mss:desert_well",
       "set": "mss:desert_well",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 26,
+        "y": 44,
+        "z": 26
       },
       "mood": [],
       "climate": [],
@@ -132,9 +132,9 @@
       "id": "mss:diorite_house",
       "set": "mss:diorite_house",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 58,
+        "y": 96,
+        "z": 60
       },
       "mood": [],
       "climate": [],
@@ -144,9 +144,9 @@
       "id": "mss:frozen_pond",
       "set": "mss:frozen_pond",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 36,
+        "y": 38,
+        "z": 35
       },
       "mood": [],
       "climate": [],
@@ -156,9 +156,9 @@
       "id": "mss:jungle",
       "set": "mss:jungle",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 73,
+        "y": 58,
+        "z": 78
       },
       "mood": [],
       "climate": [],
@@ -168,9 +168,9 @@
       "id": "mss:large_tower",
       "set": "mss:large_tower",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 59,
+        "y": 113,
+        "z": 68
       },
       "mood": [],
       "climate": [],
@@ -180,9 +180,9 @@
       "id": "mss:leaf_hollow",
       "set": "mss:leaf_hollow",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 73,
+        "y": 30,
+        "z": 86
       },
       "mood": [],
       "climate": [],
@@ -192,9 +192,9 @@
       "id": "mss:mangrove",
       "set": "mss:mangrove",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 32,
+        "y": 68,
+        "z": 40
       },
       "mood": [],
       "climate": [],
@@ -204,9 +204,9 @@
       "id": "mss:muddy_water_hole",
       "set": "mss:muddy_water_hole",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 63,
+        "y": 61,
+        "z": 56
       },
       "mood": [],
       "climate": [],
@@ -216,9 +216,9 @@
       "id": "mss:mushroom",
       "set": "mss:mushroom",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 35,
+        "y": 27,
+        "z": 30
       },
       "mood": [],
       "climate": [],
@@ -228,9 +228,9 @@
       "id": "mss:nether_portal",
       "set": "mss:nether_portal",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 35,
+        "y": 27,
+        "z": 25
       },
       "mood": [],
       "climate": [],
@@ -240,9 +240,9 @@
       "id": "mss:palm_island",
       "set": "mss:palm_island",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 14,
+        "y": 38,
+        "z": 13
       },
       "mood": [],
       "climate": [],
@@ -252,9 +252,9 @@
       "id": "mss:red_sand",
       "set": "mss:red_sand",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 48,
+        "y": 35,
+        "z": 63
       },
       "mood": [],
       "climate": [],
@@ -264,9 +264,9 @@
       "id": "mss:small_deepslate_house",
       "set": "mss:small_deepslate_house",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 32,
+        "y": 37,
+        "z": 34
       },
       "mood": [],
       "climate": [],
@@ -276,9 +276,9 @@
       "id": "mss:small_oak_house",
       "set": "mss:small_oak_house",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 29,
+        "y": 48,
+        "z": 35
       },
       "mood": [],
       "climate": [],
@@ -288,9 +288,9 @@
       "id": "mss:small_pond",
       "set": "mss:small_pond",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 20,
+        "y": 40,
+        "z": 20
       },
       "mood": [],
       "climate": [],
@@ -300,9 +300,9 @@
       "id": "mss:small_tower",
       "set": "mss:small_tower",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 33,
+        "y": 48,
+        "z": 38
       },
       "mood": [],
       "climate": [],
@@ -312,9 +312,9 @@
       "id": "mss:spruce_huts",
       "set": "mss:spruce_huts",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 32,
+        "y": 38,
+        "z": 31
       },
       "mood": [],
       "climate": [],
@@ -324,9 +324,9 @@
       "id": "mss:taiga",
       "set": "mss:taiga",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 45,
+        "y": 58,
+        "z": 42
       },
       "mood": [],
       "climate": [],
@@ -336,9 +336,9 @@
       "id": "mss:tree_1",
       "set": "mss:trees",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 13,
+        "y": 22,
+        "z": 13
       },
       "mood": [],
       "climate": [],
@@ -348,9 +348,9 @@
       "id": "mss:tree_2",
       "set": "mss:trees",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 17,
+        "y": 25,
+        "z": 17
       },
       "mood": [],
       "climate": [],
@@ -360,9 +360,9 @@
       "id": "mss:tree_3",
       "set": "mss:trees",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 20,
+        "y": 30,
+        "z": 21
       },
       "mood": [],
       "climate": [],
@@ -372,9 +372,9 @@
       "id": "mss:tree_4",
       "set": "mss:trees",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 21,
+        "y": 30,
+        "z": 20
       },
       "mood": [],
       "climate": [],
@@ -384,9 +384,9 @@
       "id": "mss:tree_5",
       "set": "mss:trees",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 25,
+        "y": 31,
+        "z": 20
       },
       "mood": [],
       "climate": [],
@@ -396,9 +396,9 @@
       "id": "mss:tree_6",
       "set": "mss:trees",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 20,
+        "y": 28,
+        "z": 20
       },
       "mood": [],
       "climate": [],
@@ -408,9 +408,9 @@
       "id": "mss:tree_7",
       "set": "mss:trees",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 20,
+        "y": 40,
+        "z": 20
       },
       "mood": [],
       "climate": [],
@@ -420,9 +420,9 @@
       "id": "mss:tree_8",
       "set": "mss:trees",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 20,
+        "y": 40,
+        "z": 20
       },
       "mood": [],
       "climate": [],
@@ -432,9 +432,9 @@
       "id": "mss:volcano",
       "set": "mss:volcano",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 98,
+        "y": 78,
+        "z": 93
       },
       "mood": [],
       "climate": [],
@@ -444,9 +444,9 @@
       "id": "mss:white_house",
       "set": "mss:white_house",
       "size": {
-        "x": null,
-        "y": null,
-        "z": null
+        "x": 63,
+        "y": 96,
+        "z": 58
       },
       "mood": [],
       "climate": [],

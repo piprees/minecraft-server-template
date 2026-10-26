@@ -89,6 +89,23 @@ class ShippedBridgesTest {
     }
 
     @Test
+    void everyBridgedStructureHasAMeasuredSize() {
+        List<String> missing = new java.util.ArrayList<>();
+        int measured = 0;
+        for (Bridge bridge : BridgeReader.readAll(BRIDGES).values()) {
+            for (Bridge.Structure s : bridge.structures()) {
+                if (s.size().x() == null || s.size().y() == null || s.size().z() == null
+                        || s.size().x() < 1 || s.size().y() < 1 || s.size().z() < 1) {
+                    missing.add(s.id());
+                } else {
+                    measured++;
+                }
+            }
+        }
+        assertTrue(missing.isEmpty(), measured + " measured; no size for " + missing.size() + ": " + missing);
+    }
+
+    @Test
     void theBridgesCoverEverythingTheFirewallTakesFromTheList() {
         Map<String, Bridge> bridges = BridgeReader.readAll(BRIDGES);
         assertEquals(Set.of("feature", "spawn", "structure_set"), unbridged.keySet());
