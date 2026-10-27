@@ -1227,7 +1227,7 @@
           "type": "number",
           "minimum": 64,
           "maximum": 200,
-          "default": 112
+          "default": 96
         },
         "relief": {
           "description": "Blocks of hills where erosion is low",
@@ -1290,7 +1290,7 @@
           "type": "number",
           "minimum": 64,
           "maximum": 200,
-          "default": 96
+          "default": 112
         },
         "relief": {
           "description": "Blocks of hills where erosion is low",
