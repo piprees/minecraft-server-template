@@ -84,6 +84,11 @@ public record RollSpec(boolean skip, String mood, List<String> spawnFilter, Stri
             this.high = high;
         }
 
+        /** The fraction of the radius beyond which a start scores as none: the band's far edge plus {@link #TOLERANCE}. */
+        public double reach() {
+            return high + TOLERANCE;
+        }
+
         public static Band of(String word) {
             for (Band b : values()) if (b.word.equals(word)) return b;
             return null;

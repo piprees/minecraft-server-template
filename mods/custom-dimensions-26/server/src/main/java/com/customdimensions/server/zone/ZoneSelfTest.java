@@ -311,6 +311,7 @@ public final class ZoneSelfTest {
         int[] water = new int[3];
         int[] lava = new int[3];
         int[] columns = new int[3];
+        List<String> where = new ArrayList<>();
         for (LevelChunk chunk : chunks) {
             for (int a = 0; a < 16; a++) for (int b = 0; b < 16; b++) {
                 int x = chunk.getPos().getMinBlockX() + a;
@@ -321,15 +322,19 @@ public final class ZoneSelfTest {
                 columns[w]++;
                 for (int y = f.level().getMinY(); y < f.level().getMaxY(); y++) {
                     var fluid = chunk.getFluidState(new BlockPos(x, y, z));
-                    if (fluid.is(FluidTags.WATER)) water[w]++;
+                    boolean isWater = fluid.is(FluidTags.WATER);
+                    if (isWater) water[w]++;
                     else if (fluid.is(FluidTags.LAVA)) lava[w]++;
+                    else continue;
+                    if (w < 2 && where.size() < 8) where.add((isWater ? "water " : "lava ") + x + "," + y + "," + z + " mask "
+                            + String.format(Locale.ROOT, "%.4f", compiled));
                 }
             }
         }
         return verdict(columns[1] > 0 && water[0] + water[1] + lava[0] + lava[1] == 0, "zones ring no spill: " + water[1] + " water and "
                 + lava[1] + " lava blocks in " + columns[1] + " generated columns of both blends (compiled mask above zero), " + water[0]
                 + " and " + lava[0] + " in " + columns[0] + " inside the zone; the base's own, where the compiled mask is zero: " + water[2]
-                + " and " + lava[2] + " in " + columns[2] + " columns; over " + chunks.size() + " chunks");
+                + " and " + lava[2] + " in " + columns[2] + " columns; over " + chunks.size() + " chunks" + (where.isEmpty() ? "" : "; at " + where));
     }
 
     private static String pct(double share) {
@@ -370,9 +375,10 @@ public final class ZoneSelfTest {
     /**
      * The height difference between neighbouring columns along a transect of
      * generated chunks (x for the ring, z for the belt), over the 16 rows of the
-     * strip, in three windows by the still-edge mask: inside the zone (more than
-     * two jitters within its edge), the blend (with its jitter) and outside it
-     * (beyond blend and jitter). A seam or cliff is a step in the blend larger
+     * strip, in three windows by the compiled (jittered) mask at both columns:
+     * inside the zone (1 at both), outside it (0 at both) and the blend (any
+     * other pair), so the zone's own terrain where the jitter pushes the edge
+     * out counts as the zone's, not the blend's. A seam or cliff is a step in the blend larger
      * than the steps on both sides: its 99th and 99.9th percentiles must not
      * exceed the rougher side's. The largest steps are reported, not judged:
      * the windows hold different numbers of pairs, and the largest of more
@@ -382,6 +388,7 @@ public final class ZoneSelfTest {
      */
     private String edge(String name, Fixture f, ZoneMask mask, List<LevelChunk> chunks, boolean alongX) {
         Map<Long, Integer> heights = new HashMap<>();
+        Map<Long, Double> weights = new HashMap<>();
         int lo = Integer.MAX_VALUE;
         int hi = Integer.MIN_VALUE;
         for (LevelChunk chunk : chunks) {
@@ -389,6 +396,7 @@ public final class ZoneSelfTest {
                 int x = chunk.getPos().getMinBlockX() + a;
                 int z = chunk.getPos().getMinBlockZ() + b;
                 heights.put(key(x, z), chunk.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, a, b));
+                weights.put(key(x, z), f.sampler().zoneWeights(x, z)[0]);
                 int along = alongX ? x : z;
                 lo = Math.min(lo, along);
                 hi = Math.max(hi, along);
@@ -399,6 +407,8 @@ public final class ZoneSelfTest {
         int across = alongX ? chunks.getFirst().getPos().getMinBlockZ() : chunks.getFirst().getPos().getMinBlockX();
         int[] largestAt = {0, 0, 0, -1, 0, 0};
         List<int[]> blendSteps = new ArrayList<>();
+        List<int[]> byWeight = new ArrayList<>();
+        int[] zoneNearEdge = new int[2];
         for (int along = lo; along < hi; along++) {
             for (int row = across; row < across + 16; row++) {
                 int x = alongX ? along : row;
@@ -407,9 +417,18 @@ public final class ZoneSelfTest {
                 Integer h1 = heights.get(alongX ? key(x + 1, z) : key(x, z + 1));
                 if (h0 == null || h1 == null) continue;
                 double outside = mask.shape().outside(x - mask.centreX(), z - mask.centreZ());
-                int w = outside < -margin ? 0 : outside > mask.rampWidth() + margin ? 2 : 1;
+                double m0 = weights.get(key(x, z));
+                double m1 = weights.get(alongX ? key(x + 1, z) : key(x, z + 1));
+                int w = m0 >= 1 && m1 >= 1 ? 0 : m0 <= 0 && m1 <= 0 ? 2 : 1;
                 steps.get(w).add(Math.abs(h1 - h0));
-                if (w == 1) blendSteps.add(new int[] {(int) Math.floor(outside), Math.abs(h1 - h0)});
+                if (w == 0 && outside >= -margin) {
+                    zoneNearEdge[1]++;
+                    if (Math.abs(h1 - h0) > 10) zoneNearEdge[0]++;
+                }
+                if (w == 1) {
+                    blendSteps.add(new int[] {(int) Math.floor(outside), Math.abs(h1 - h0)});
+                    byWeight.add(new int[] {(int) Math.floor(Math.min(m0, m1) * 80), Math.abs(h1 - h0)});
+                }
                 if (w == 1 && Math.abs(h1 - h0) > largestAt[3]) largestAt = new int[] {x, z, (int) Math.round(outside), Math.abs(h1 - h0), h0, h1};
             }
         }
@@ -435,8 +454,19 @@ public final class ZoneSelfTest {
                 + " generated chunks; mean surface inside " + fmt(meanHeight(heights, mask, -1e9, -margin)) + ", outside "
                 + fmt(meanHeight(heights, mask, mask.rampWidth() + margin, 1e9)) + "; largest blend step at " + largestAt[0] + ","
                 + largestAt[1] + ", " + largestAt[2] + " blocks beyond the still edge, " + largestAt[4] + " to " + largestAt[5]
+                + " (" + biomeAt(f, largestAt[0], largestAt[4], largestAt[1]) + ", mask " + fmt(weights.getOrDefault(key(largestAt[0], largestAt[1]), -1.0))
+                + " to " + biomeAt(f, alongX ? largestAt[0] + 1 : largestAt[0], largestAt[5], alongX ? largestAt[1] : largestAt[1] + 1) + ", mask "
+                + fmt(weights.getOrDefault(alongX ? key(largestAt[0] + 1, largestAt[1]) : key(largestAt[0], largestAt[1] + 1), -1.0))
+                + "; the noise alone: " + f.sampler().sample(largestAt[0], largestAt[1]).height() + " to "
+                + f.sampler().sample(alongX ? largestAt[0] + 1 : largestAt[0], alongX ? largestAt[1] : largestAt[1] + 1).height() + ")"
                 + "; blend steps over the rougher side's 99th percentile by 8-block band beyond the still edge (band:count/pairs) "
-                + bands(blendSteps, Math.max(p99[0], p99[2])));
+                + bands(blendSteps, Math.max(p99[0], p99[2])) + "; by the pair's lesser compiled mask (bin start x 80, 72 = 0.9 to 1; count/pairs) "
+                + bands(byWeight, Math.max(p99[0], p99[2])) + "; the zone's own steps over 10 within two jitters of the still edge "
+                + zoneNearEdge[0] + "/" + zoneNearEdge[1]);
+    }
+
+    private static String biomeAt(Fixture f, int x, int y, int z) {
+        return f.level().getBiome(new BlockPos(x, y - 1, z)).unwrapKey().map(k -> k.identifier().toString()).orElse("?");
     }
 
     private static String bands(List<int[]> steps, int over) {

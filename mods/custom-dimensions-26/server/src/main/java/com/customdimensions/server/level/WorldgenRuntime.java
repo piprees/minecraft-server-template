@@ -1,7 +1,8 @@
 package com.customdimensions.server.level;
 
 import com.customdimensions.compiler.datapack.RuntimeWorldgen;
-import com.customdimensions.core.zone.ZoneMask;
+import com.customdimensions.compiler.zone.ZoneDensity;
+import com.customdimensions.core.zone.ZoneSpec;
 import com.customdimensions.server.CustomDimensions;
 import com.customdimensions.server.mixin.ChunkGeneratorAccessor;
 import com.customdimensions.server.mixin.NoiseBasedChunkGeneratorAccessor;
@@ -14,6 +15,7 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderSet;
 import net.minecraft.core.Registry;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
@@ -31,7 +33,10 @@ import net.minecraft.world.level.levelgen.Aquifer;
 import net.minecraft.world.level.levelgen.GenerationStep;
 import net.minecraft.world.level.levelgen.NoiseBasedChunkGenerator;
 import net.minecraft.world.level.levelgen.NoiseGeneratorSettings;
+import net.minecraft.world.level.levelgen.RandomState;
+import net.minecraft.world.level.levelgen.densityfunction.DensityFunction;
 import net.minecraft.world.level.levelgen.placement.PlacedFeature;
+import net.minecraft.world.level.levelgen.synth.Noise;
 
 import java.io.Reader;
 import java.util.ArrayList;
@@ -48,7 +53,8 @@ import java.util.function.Supplier;
 /**
  * Applies the pack's {@code data/customdimensions/worldgen_runtime/} files to
  * level generators before they generate: a lava level in place of the
- * generator's -54, no sea or lava where a dry zone may reach, and per-biome feature lists with placed features removed
+ * generator's -54, no sea or lava where a dry zone's compiled mask reaches
+ * ({@link DryFluidPicker}), and per-biome feature lists with placed features removed
  * and added ores appended to the underground-ores step. Base worlds are
  * patched at server start, before their levels exist; a lazy level as the
  * {@link LevelManager} decodes its stem. Biomes stay shared; only this
@@ -75,46 +81,64 @@ public final class WorldgenRuntime {
 
     private static void start(MinecraftServer server) {
         specs = load(server);
+        long seed = server.getWorldGenSettings().options().seed();
         Registry<LevelStem> stems = server.registryAccess().lookupOrThrow(Registries.LEVEL_STEM);
         for (Map.Entry<ResourceKey<LevelStem>, LevelStem> stem : stems.entrySet()) {
-            apply(server, stem.getKey().identifier().toString(), stem.getValue().generator());
-        }
-    }
-
-    /** Applies the level's spec, if any, and its dry zones to a generator about to serve it. */
-    public static void apply(MinecraftServer server, ResourceKey<Level> level, ChunkGenerator generator) {
-        apply(server, level.identifier().toString(), generator);
-    }
-
-    private static void apply(MinecraftServer server, String levelId, ChunkGenerator generator) {
-        Spec spec = specs.get(levelId);
-        if (spec != null) {
-            apply(server, spec, generator);
-        }
-        List<ZoneMask> dry = LevelZones.dryMasks(levelId);
-        if (!dry.isEmpty() && generator instanceof NoiseBasedChunkGenerator noise) {
-            NoiseBasedChunkGeneratorAccessor accessor = (NoiseBasedChunkGeneratorAccessor) (Object) noise;
-            Supplier<Aquifer.FluidPicker> beneath = accessor.customdimensions$globalFluidPicker();
-            accessor.customdimensions$setGlobalFluidPicker(Suppliers.memoize(() -> dry(beneath.get(), dry)));
-            CustomDimensions.LOG.info("worldgen runtime applied to {}: no sea or lava where {} dry zone(s) may reach", levelId, dry.size());
+            apply(server, stem.getKey().identifier().toString(), stem.getValue().generator(), seed);
         }
     }
 
     /**
-     * {@code beneath} with no sea and no lava where a dry zone may reach: the
-     * generator places lava below its lava level before any aquifer is
-     * consulted, and an aquifer cell takes the sea from the cells round it, so
-     * a dry zone's aquifer data alone leaves both in the zone's blend.
+     * Applies the level's spec, if any, and its dry zones to a generator about to serve it under {@code seed}:
+     * the level's seed, or the one a sampler builds its own copy of the generator under.
      */
-    static Aquifer.FluidPicker dry(Aquifer.FluidPicker beneath, List<ZoneMask> dry) {
-        BlockState air = Blocks.AIR.defaultBlockState();
-        return (x, y, z) -> {
-            Aquifer.FluidStatus status = beneath.computeFluid(x, y, z);
-            for (ZoneMask mask : dry) {
-                if (mask.mayCover(x, z)) return new Aquifer.FluidStatus(status.fluidLevel(), air);
+    public static void apply(MinecraftServer server, ResourceKey<Level> level, ChunkGenerator generator, long seed) {
+        apply(server, level.identifier().toString(), generator, seed);
+    }
+
+    private static void apply(MinecraftServer server, String levelId, ChunkGenerator generator, long seed) {
+        Spec spec = specs.get(levelId);
+        if (spec != null) {
+            apply(server, spec, generator);
+        }
+        List<ZoneSpec> dry = LevelZones.dryZones(levelId);
+        if (!dry.isEmpty() && generator instanceof NoiseBasedChunkGenerator noise) {
+            NoiseBasedChunkGeneratorAccessor accessor = (NoiseBasedChunkGeneratorAccessor) (Object) noise;
+            Supplier<Aquifer.FluidPicker> beneath = accessor.customdimensions$globalFluidPicker();
+            RegistryAccess access = server.registryAccess();
+            String slug = LevelZones.slug(levelId);
+            NoiseGeneratorSettings settings = noise.generatorSettings().value();
+            accessor.customdimensions$setGlobalFluidPicker(Suppliers.memoize(
+                    () -> new DryFluidPicker(beneath.get(), dryZones(access, slug, dry, settings, seed))));
+            CustomDimensions.LOG.info("worldgen runtime applied to {}: no sea or lava where {} dry zone(s) reach", levelId, dry.size());
+        }
+    }
+
+    /** Each dry zone's still edge and, under {@code seed}, the jitter noise its compiled mask reads. */
+    static List<DryFluidPicker.Zone> dryZones(RegistryAccess access, String slug, List<ZoneSpec> dry,
+                                             NoiseGeneratorSettings settings, long seed) {
+        RandomState random = RandomState.create(access.lookupOrThrow(Registries.NOISE), seed, settings);
+        Map<Integer, DensityFunction> compiled = LevelZones.compiledMasks(access, slug);
+        List<DryFluidPicker.Zone> out = new ArrayList<>();
+        for (ZoneSpec zone : dry) {
+            if (!compiled.containsKey(zone.index())) {
+                throw new IllegalStateException(slug + ": zones[" + zone.index() + "] is dry but has no compiled mask");
             }
-            return status;
-        };
+            Noise jitter = null;
+            if (zone.mask().jitter() > 0) {
+                jitter = random.getOrCreateNoise(ResourceKey.create(Registries.NOISE, Identifier.parse(
+                        compiledNamespace(access, slug, zone.index()) + ":" + ZoneDensity.JITTER_NOISE)));
+            }
+            out.add(new DryFluidPicker.Zone(zone.mask(), jitter, zone.mask().jitter() / (2 * ZoneDensity.JITTER_SIGMA)));
+        }
+        return out;
+    }
+
+    private static String compiledNamespace(RegistryAccess access, String slug, int index) {
+        String path = "zones/" + slug + "/" + index + "/mask";
+        return access.lookupOrThrow(Registries.DENSITY_FUNCTION).listElements()
+                .filter(h -> h.key().identifier().getPath().equals(path)).findFirst()
+                .map(h -> h.key().identifier().getNamespace()).orElseThrow();
     }
 
     static Map<String, Spec> load(MinecraftServer server) {

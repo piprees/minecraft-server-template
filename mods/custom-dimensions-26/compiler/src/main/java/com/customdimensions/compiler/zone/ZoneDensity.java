@@ -28,6 +28,8 @@ public final class ZoneDensity {
     public static final int REACH = 1_000_000;
     /** Our density-function type: a sector's or polygon's distance beyond its edge. */
     public static final String DISTANCE_TYPE = "customdimensions:zone_distance";
+    /** The path of the edge jitter's noise, in the pack's namespace. */
+    public static final String JITTER_NOISE = "zone_jitter";
     /** Standard deviation of the jitter noise's value, so {@code edgeJitter} is two of them in blocks. */
     public static final double JITTER_SIGMA = 0.25;
 

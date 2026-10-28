@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.IntFunction;
 import java.util.function.Predicate;
+import com.customdimensions.server.level.WorldgenRuntime;
+import com.customdimensions.server.zone.LevelZones;
 import net.minecraft.core.Holder;
 import net.minecraft.core.QuartPos;
 import net.minecraft.core.RegistryAccess;
@@ -104,7 +106,7 @@ public final class Sampler {
             this.noiseTop = minY + height - 1;
         }
         this.resolvers = ThreadLocal.withInitial(() -> generator.getBiomeSource().createUncachedResolver(random));
-        this.zoneMasks = zoneMasks(access, dimension).stream().map(random::getSampler).toList();
+        this.zoneMasks = LevelZones.compiledMasks(access, dimension).values().stream().map(random::getSampler).toList();
     }
 
     /** {@code generator} under {@code seed} in a dimension of {@code height} blocks from {@code minY}. */
@@ -136,6 +138,7 @@ public final class Sampler {
         String source = seed != null ? "argument"
                 : entry.definition() != null && entry.definition().seed() != null && !entry.definition().seed().fromEnv()
                 ? "definition" : "world";
+        WorldgenRuntime.apply(server, entry.key(), stem.generator(), resolved);
         return new Sampler(slug, stem.generator(), type.minY(), type.height(), resolved, source, server.registryAccess(), entry.key(),
                 server.getStructureTemplateManager());
     }
@@ -149,20 +152,6 @@ public final class Sampler {
         }
         LevelIndex.Entry entry = manager.index().lazy(slug).orElseThrow(() -> new IllegalArgumentException("no dimension " + slug));
         return LevelMaths.resolveSeed(entry.definition() == null ? null : entry.definition().seed(), server.overworld().getSeed());
-    }
-
-    /**
-     * The compiled zone masks of {@code slug}, {@code <ns>:zones/<slug>/<index>/mask}, in zone order; empty when
-     * it has none.
-     */
-    static List<DensityFunction> zoneMasks(RegistryAccess access, String slug) {
-        java.util.TreeMap<Integer, DensityFunction> masks = new java.util.TreeMap<>();
-        java.util.regex.Pattern path = java.util.regex.Pattern.compile("zones/" + java.util.regex.Pattern.quote(slug) + "/(\\d+)/mask");
-        access.lookupOrThrow(Registries.DENSITY_FUNCTION).listElements().forEach(h -> {
-            var m = path.matcher(h.key().identifier().getPath());
-            if (m.matches()) masks.put(Integer.parseInt(m.group(1)), h.value());
-        });
-        return List.copyOf(masks.values());
     }
 
     public boolean hasZones() {

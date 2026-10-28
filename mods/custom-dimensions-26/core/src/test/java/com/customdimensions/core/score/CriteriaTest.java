@@ -194,6 +194,21 @@ class CriteriaTest {
     }
 
     @Test
+    void aWantIsLookedForOnlyAsFarAsAStartScoresAboveZero() {
+        RollTarget t = target("{\"wants\": {\"village\": \"near_spawn\"}}");
+        assertEquals(400, Criteria.wantRadius(RollSpec.Band.NEAR_SPAWN, t, 8192));
+        assertEquals(1000, Criteria.wantRadius(RollSpec.Band.SPREAD, t, 8192));
+        assertEquals(300, Criteria.wantRadius(RollSpec.Band.NEAR_BORDER, t, 300));
+        Criterion c = Criteria.forTarget(t, List.of()).stream().filter(x -> x.id().equals("wants:village")).findFirst().orElseThrow();
+        Map<String, List<String>> targets = Map.of("village", List.of("minecraft:village_plains"));
+        Set<String> pool = Set.of("minecraft:village_plains");
+        assertTrue(score(c.evaluate(withStructures(structures(pool, targets, List.of(start("minecraft:village_plains", 399)))), t)) > 0);
+        Criterion.Result beyond = c.evaluate(withStructures(structures(pool, targets, List.of(start("minecraft:village_plains", 401)))), t);
+        assertEquals(0.0, score(beyond));
+        assertTrue(beyond.toString().contains("within 400 blocks"), beyond.toString());
+    }
+
+    @Test
     void aWantIsUnmeasuredWhenUnknownOrOutOfThePool() {
         RollTarget t = target("{\"wants\": {\"village\": \"spread\"}}");
         Criterion c = Criteria.forTarget(t, List.of()).stream().filter(x -> x.id().equals("wants:village")).findFirst().orElseThrow();

@@ -443,10 +443,12 @@ public final class RollSelfTest {
             String summary = String.format(Locale.ROOT,
                     "%d seeds in %.1f s (limit %.0f s), %.2f s a seed, %d columns/s on %d threads, disc radius %d step %d, "
                             + "structures out to %d; %d ticks (%.2f a second), mean tick %.2f ms, TPS %.2f, longest tick %.1f ms; "
-                            + "best %d %s; best ten verdicts %s -> %s",
+                            + "time split: sampling %.1f s, scored structure starts %.1f s, sheet %.1f s; %d start confirmations "
+                            + "(%.1f s of worker time), longest %s; best %d %s; best ten verdicts %s -> %s",
                     outcome.rolled(), seconds, PERF_LIMIT_SECONDS, seconds / outcome.rolled(), outcome.columnsPerSecond(), outcome.threads(),
                     plan.disc().radius(), plan.disc().step(), plan.structureRadius(), m.count, ticksPerSecond, meanMillis, tps,
-                    m.longestNanos / 1e6, outcome.best().getFirst().seed(), fmt(outcome.best().getFirst().card().percentage()),
+                    m.longestNanos / 1e6, outcome.sampleMillis() / 1e3, outcome.structureMillis() / 1e3, outcome.sheetMillis() / 1e3,
+                    outcome.starts().count(), outcome.starts().nanos() / 1e9, outcome.starts().top(5), outcome.best().getFirst().seed(), fmt(outcome.best().getFirst().card().percentage()),
                     verdicts, outcome.sheet());
             boolean ok = seconds < PERF_LIMIT_SECONDS && tps >= 19 && ticksPerSecond >= 19 && problems.isEmpty();
             lines.add((ok ? "PASS" : "FAIL") + " roll performance: " + summary + (problems.isEmpty() ? "" : "; " + problems));

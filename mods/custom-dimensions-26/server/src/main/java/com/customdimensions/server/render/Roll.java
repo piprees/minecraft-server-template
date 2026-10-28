@@ -10,6 +10,7 @@ import com.customdimensions.core.render.RenderLayers;
 import com.customdimensions.core.render.StructureLayer;
 import com.customdimensions.core.score.ContactSheet;
 import com.customdimensions.core.score.Criteria;
+import com.customdimensions.core.score.RollSpec;
 import com.customdimensions.core.score.Criterion;
 import com.customdimensions.core.score.DefinitionZones;
 import com.customdimensions.core.score.FactsBuilder;
@@ -28,6 +29,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -89,8 +91,13 @@ public final class Roll {
     /** One scored seed; {@code disc} is kept for the best only. */
     public record Rolled(long seed, Scorecard card, ColumnSamples disc) {}
 
+    /**
+     * A finished roll. {@code sampleMillis}, {@code structureMillis} and {@code sheetMillis} split its time between
+     * sampling columns, finding the scored structure starts and writing the best seeds' sheet; {@code starts} tallies
+     * every start confirmation, the sheet's markers included.
+     */
     public record Outcome(String dimension, int rolled, List<Rolled> best, Path sheet, long millis, long columnsPerSecond,
-                          int threads) {}
+                          int threads, long sampleMillis, long structureMillis, long sheetMillis, StructureStarts.Tally starts) {}
 
     private Roll() {}
 
@@ -105,6 +112,8 @@ public final class Roll {
         List<Rolled> best = new ArrayList<>();
         long columns = 0;
         long sampleNanos = 0;
+        long structureNanos = 0;
+        StructureStarts.Tally tally = new StructureStarts.Tally();
         for (long seed : plan.seeds()) {
             Sampler sampler = samplers.apply(seed);
             long t0 = System.nanoTime();
@@ -112,19 +121,24 @@ public final class Roll {
             ColumnSamples patch = job.sample(sampler, FactsBuilder.patchGrid(plan.spawnX(), plan.spawnZ()), pool, progress);
             sampleNanos += System.nanoTime() - t0;
             columns += discColumns(plan.disc()) + patch.grid().columns();
-            RollFacts facts = FactsBuilder.build(target, seed, disc, patch, plan.structureRadius(),
-                    structures(sampler, target, plan, pool), zones);
+            long t1 = System.nanoTime();
+            RollFacts.Structures structures = structures(sampler, target, plan, pool, tally);
+            structureNanos += System.nanoTime() - t1;
+            RollFacts facts = FactsBuilder.build(target, seed, disc, patch, plan.structureRadius(), structures, zones);
             Scorecard card = Scorer.score(facts, target, criteria);
             best.add(new Rolled(seed, card, disc));
             best.sort((a, b) -> ContactSheet.RANKING.compare(a.card(), b.card()));
             if (best.size() > KEEP) best.removeLast();
         }
-        Path sheet = write(job, plan, best, samplers, zones, pool);
+        long t2 = System.nanoTime();
+        Path sheet = write(job, plan, best, samplers, zones, pool, tally);
+        long sheetMillis = (System.nanoTime() - t2) / 1_000_000;
         long millis = (System.nanoTime() - start) / 1_000_000;
         long rate = sampleNanos <= 0 ? 0 : columns * 1_000_000_000L / sampleNanos;
         CustomDimensions.LOG.info("rolled {} seeds of {} in {} ms ({} columns/s on {} threads); best {} -> {}", plan.seeds().size(),
                 plan.dimension(), millis, rate, job.threads(), best.isEmpty() ? "none" : best.getFirst().seed(), sheet);
-        return new Outcome(plan.dimension(), plan.seeds().size(), List.copyOf(best), sheet, millis, rate, job.threads());
+        return new Outcome(plan.dimension(), plan.seeds().size(), List.copyOf(best), sheet, millis, rate, job.threads(),
+                sampleNanos / 1_000_000, structureNanos / 1_000_000, sheetMillis, tally);
     }
 
     static long discColumns(RenderGrid grid) {
@@ -134,8 +148,13 @@ public final class Roll {
         return n;
     }
 
-    /** The structures a seed is scored on: the pool, and the starts of the wanted, shunned and gate structures. */
-    static RollFacts.Structures structures(Sampler sampler, RollTarget target, Plan plan, ExecutorService workers) {
+    /**
+     * The structures a seed is scored on: the pool, and the starts of the wanted, shunned and gate structures, each
+     * looked for as far as its score can read a start ({@link Criteria#wantRadius}; shuns and gates to the structure
+     * radius), nearest first, stopping at the first confirmed start (and {@link StructureStarts#CAP} end cities).
+     */
+    static RollFacts.Structures structures(Sampler sampler, RollTarget target, Plan plan, ExecutorService workers,
+                                           StructureStarts.Tally tally) {
         ChunkGeneratorStructureState state = sampler.structureState();
         Set<String> pool = StructureStarts.pool(state);
         Registry<Structure> registry = sampler.registryAccess().lookupOrThrow(Registries.STRUCTURE);
@@ -150,8 +169,15 @@ public final class Roll {
         targets.values().forEach(wanted::addAll);
         if (Criteria.NETHER.equals(target.dimension())) wanted.add("minecraft:fortress");
         if (Criteria.END.equals(target.dimension())) wanted.add("minecraft:end_city");
+        Map<String, Integer> reach = new HashMap<>();
+        for (Map.Entry<String, List<String>> e : targets.entrySet()) {
+            RollSpec.Band band = RollSpec.Band.of(target.spec().wants().getOrDefault(e.getKey(), ""));
+            int r = band == null ? plan.structureRadius() : Criteria.wantRadius(band, target, plan.structureRadius());
+            e.getValue().forEach(id -> reach.merge(id, r, Math::max));
+        }
         List<RollFacts.Start> starts = wanted.isEmpty() ? List.of()
-                : StructureStarts.find(sampler, state, wanted::contains, plan.spawnX(), plan.spawnZ(), plan.structureRadius(), workers, StructureStarts::scoringCap);
+                : StructureStarts.find(sampler, state, wanted::contains, plan.spawnX(), plan.spawnZ(), plan.structureRadius(), workers,
+                        StructureStarts::scoringCap, id -> reach.getOrDefault(id, plan.structureRadius()), tally);
         return new RollFacts.Structures(pool, targets, starts);
     }
 
@@ -180,7 +206,7 @@ public final class Roll {
     }
 
     private static Path write(RenderJob job, Plan plan, List<Rolled> best, LongFunction<Sampler> samplers, ZoneMap zones,
-                              ExecutorService pool) throws IOException {
+                              ExecutorService pool, StructureStarts.Tally tally) throws IOException {
         Files.createDirectories(plan.outputDir());
         List<ContactSheet.Entry> entries = new ArrayList<>();
         JsonArray ranking = new JsonArray();
@@ -193,7 +219,7 @@ public final class Roll {
             job.sample(sampler, grid, pool, p -> {}, (px, py) -> !inside.wanted(px, py), r.disc());
             List<StructureLayer.Marker> markers = new ArrayList<>();
             for (RollFacts.Start s : StructureStarts.find(sampler, sampler.structureState(), id -> true,
-                    grid.centreX(), grid.centreZ(), grid.radius(), pool, StructureStarts.CAP)) {
+                    grid.centreX(), grid.centreZ(), grid.radius(), pool, id -> StructureStarts.CAP, id -> grid.radius(), tally)) {
                 markers.add(new StructureLayer.Marker(s.structure(), s.x(), s.z()));
             }
             StructureLayer layer = new StructureLayer(markers);

@@ -90,7 +90,7 @@ public final class ZonesCompiler {
         JsonObject router = out.getAsJsonObject("noise_router");
         JsonObject aquifers = out.has("aquifers") ? out.getAsJsonObject("aquifers") : null;
         int top = out.getAsJsonObject("noise").get("min_y").getAsInt() + out.getAsJsonObject("noise").get("height").getAsInt();
-        String jitter = plan.namespace() + ":zone_jitter";
+        String jitter = plan.namespace() + ":" + ZoneDensity.JITTER_NOISE;
         boolean jittered = false;
         JsonElement temperature = router.get("temperature").deepCopy();
         JsonElement baseTemperature = temperature.deepCopy();

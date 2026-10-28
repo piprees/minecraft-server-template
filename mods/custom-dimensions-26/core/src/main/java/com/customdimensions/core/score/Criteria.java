@@ -510,6 +510,11 @@ public final class Criteria {
         }
     }
 
+    /** How far round spawn the roller looks for a want in {@code band}: as far as a start scores above zero, within {@code structureRadius}. */
+    public static int wantRadius(RollSpec.Band band, RollTarget def, int structureRadius) {
+        return WantedStructure.searched(band, def, structureRadius);
+    }
+
     static final class WantedStructure implements Criterion {
         private final String name;
         private final RollSpec.Band band;
@@ -539,6 +544,11 @@ public final class Criteria {
             return new double[] {band.low * def.playableRadius(), band.high * def.playableRadius()};
         }
 
+        /** How far round spawn a start of a {@code band} want is looked for: as far as one scores above zero, within {@code structureRadius}. */
+        static int searched(RollSpec.Band band, RollTarget def, int structureRadius) {
+            return (int) Math.min(structureRadius, Math.ceil(band.reach() * def.playableRadius()));
+        }
+
         public Result evaluate(RollFacts facts, RollTarget def) {
             List<String> ids = facts.structures().targets().get(name);
             if (ids == null) return new Result.Unmeasured("'" + name + "' is not a known structure name or id");
@@ -548,18 +558,19 @@ public final class Criteria {
             }
             double radius = def.playableRadius();
             double[] blocks = band(def);
+            int searched = searched(band, def, facts.structureRadius());
             RollFacts.Start best = facts.structures().nearest(inPool);
-            if (best == null) {
+            if (best == null || best.distance() > searched) {
                 if (facts.structureRadius() < blocks[1]) {
                     return new Result.Unmeasured("no " + name + " within the " + facts.structureRadius()
                             + " blocks searched; the band reaches " + (int) blocks[1]);
                 }
                 return new Result.Score(0.0, "in the pool, but this seed starts no " + name + " within "
-                        + facts.structureRadius() + " blocks", blocks);
+                        + searched + " blocks, where a start would score above zero", blocks);
             }
             double frac = best.distance() / radius;
             String ev = String.format(Locale.ROOT, "nearest %s %.0f blocks (%.1f%% of the border), searched to %d blocks",
-                    best.structure(), best.distance(), frac * 100.0, facts.structureRadius());
+                    best.structure(), best.distance(), frac * 100.0, searched);
             if (frac >= band.low && frac <= band.high) return new Result.Score(1.0, ev + " — inside the band", blocks);
             double miss = frac < band.low ? band.low - frac : frac - band.high;
             return new Result.Score(ramp(RollSpec.Band.TOLERANCE - miss, 0.0, RollSpec.Band.TOLERANCE),

@@ -72,19 +72,58 @@ public final class StructureStarts {
     public static List<RollFacts.Start> find(Sampler sampler, ChunkGeneratorStructureState state, Predicate<String> wanted,
                                              int cx, int cz, int radius, ExecutorService pool,
                                              java.util.function.ToIntFunction<String> capOf) {
-        int minChunk = Math.floorDiv(cx - radius, 16);
-        int maxChunk = Math.floorDiv(cx + radius, 16);
-        int minChunkZ = Math.floorDiv(cz - radius, 16);
-        int maxChunkZ = Math.floorDiv(cz + radius, 16);
+        return find(sampler, state, wanted, cx, cz, radius, pool, capOf, id -> radius, null);
+    }
+
+    /** Confirmations made and the time they took, by structure. Thread-safe. */
+    public static final class Tally {
+        private final Map<String, java.util.concurrent.atomic.LongAdder[]> by = new java.util.concurrent.ConcurrentHashMap<>();
+
+        void add(String id, long nanos) {
+            java.util.concurrent.atomic.LongAdder[] t = by.computeIfAbsent(id,
+                    k -> new java.util.concurrent.atomic.LongAdder[] {new java.util.concurrent.atomic.LongAdder(), new java.util.concurrent.atomic.LongAdder()});
+            t[0].increment();
+            t[1].add(nanos);
+        }
+
+        public long count() {
+            return by.values().stream().mapToLong(t -> t[0].sum()).sum();
+        }
+
+        public long nanos() {
+            return by.values().stream().mapToLong(t -> t[1].sum()).sum();
+        }
+
+        /** The {@code n} structures that took longest, as {@code id count/seconds}. */
+        public String top(int n) {
+            return by.entrySet().stream()
+                    .sorted((a, b) -> Long.compare(b.getValue()[1].sum(), a.getValue()[1].sum())).limit(n)
+                    .map(e -> String.format(java.util.Locale.ROOT, "%s %d/%.1fs", e.getKey(), e.getValue()[0].sum(), e.getValue()[1].sum() / 1e9))
+                    .toList().toString();
+        }
+    }
+
+    /**
+     * As above, looking for each structure only within {@code radiusOf.applyAsInt(id)} blocks (at most
+     * {@code radius}), and adding every confirmation to {@code tally} when given.
+     */
+    public static List<RollFacts.Start> find(Sampler sampler, ChunkGeneratorStructureState state, Predicate<String> wanted,
+                                             int cx, int cz, int radius, ExecutorService pool,
+                                             java.util.function.ToIntFunction<String> capOf,
+                                             java.util.function.ToIntFunction<String> radiusOf, Tally tally) {
+        Predicate<StructureSet.StructureSelectionEntry> sought = e -> wanted.test(id(e.structure()));
         long seed = state.getLevelSeed();
         record Site(List<StructureSet.StructureSelectionEntry> entries, ChunkPos chunk, double distance) {}
         List<Site> sites = new ArrayList<>();
         for (Holder<StructureSet> set : state.possibleStructureSets()) {
             List<StructureSet.StructureSelectionEntry> entries = set.value().structures();
-            if (entries.stream().noneMatch(e -> wanted.test(id(e.structure())))) continue;
-            for (ChunkPos chunk : candidates(state, set.value().placement(), seed, minChunk, maxChunk, minChunkZ, maxChunkZ)) {
+            int reach = entries.stream().filter(sought).mapToInt(e -> Math.min(radius, radiusOf.applyAsInt(id(e.structure())))).max().orElse(-1);
+            if (reach < 0) continue;
+            int lo = Math.floorDiv(cx - reach, 16), hi = Math.floorDiv(cx + reach, 16);
+            int loZ = Math.floorDiv(cz - reach, 16), hiZ = Math.floorDiv(cz + reach, 16);
+            for (ChunkPos chunk : candidates(state, set.value().placement(), seed, lo, hi, loZ, hiZ)) {
                 double distance = Math.hypot(chunk.getMiddleBlockX() - cx, chunk.getMiddleBlockZ() - cz);
-                if (distance <= radius) sites.add(new Site(entries, chunk, distance));
+                if (distance <= reach) sites.add(new Site(entries, chunk, distance));
             }
         }
         sites.sort(java.util.Comparator.comparingDouble(Site::distance));
@@ -95,22 +134,31 @@ public final class StructureStarts {
             List<Site> batch = new ArrayList<>();
             while (next < sites.size() && batch.size() < BATCH) {
                 Site site = sites.get(next++);
-                if (site.entries().stream().anyMatch(e -> wanted.test(id(e.structure())) && kept.getOrDefault(id(e.structure()), 0) < capOf.applyAsInt(id(e.structure())))) {
+                if (site.entries().stream().anyMatch(e -> sought.test(e) && site.distance() <= radiusOf.applyAsInt(id(e.structure()))
+                        && kept.getOrDefault(id(e.structure()), 0) < capOf.applyAsInt(id(e.structure())))) {
                     batch.add(site);
                 }
             }
             java.util.concurrent.atomic.AtomicReferenceArray<Holder<Structure>> chosen = new java.util.concurrent.atomic.AtomicReferenceArray<>(batch.size());
             run(batch.size(), pool, i -> chosen.set(i, choose(batch.get(i).entries(), seed, batch.get(i).chunk(),
-                    structure -> sampler.starts(structure, batch.get(i).chunk()))));
+                    structure -> confirm(sampler, structure, batch.get(i).chunk(), tally))));
             for (int i = 0; i < batch.size(); i++) {
                 Site site = batch.get(i);
                 Holder<Structure> picked = chosen.get(i);
-                if (picked == null || !wanted.test(id(picked))) continue;
+                if (picked == null || !wanted.test(id(picked)) || site.distance() > radiusOf.applyAsInt(id(picked))) continue;
                 int n = kept.merge(id(picked), 1, Integer::sum);
                 if (n <= capOf.applyAsInt(id(picked))) out.add(new RollFacts.Start(id(picked), site.chunk().getMiddleBlockX(), site.chunk().getMiddleBlockZ(), site.distance()));
             }
         }
         return out;
+    }
+
+    private static boolean confirm(Sampler sampler, Holder<Structure> structure, ChunkPos chunk, Tally tally) {
+        if (tally == null) return sampler.starts(structure, chunk);
+        long t0 = System.nanoTime();
+        boolean starts = sampler.starts(structure, chunk);
+        tally.add(id(structure), System.nanoTime() - t0);
+        return starts;
     }
 
     private static void run(int n, ExecutorService pool, java.util.function.IntConsumer task) {
