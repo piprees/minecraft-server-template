@@ -1596,6 +1596,34 @@ A seed's map and its banked facts appear to contradict each other — the thumbn
   the same trap. Pin it against the Java, not against intuition —
   `scripts/e2e/portal-matrix-selftest.sh` is the worked example.
 
+<a id="t148"></a>
+### T148 — A dry zone's edge needs a margin past its compiled mask
+
+- **Symptom:** water or lava where `/customdim render` shows a dry zone's mask above zero.
+- **Cause:** an aquifer block takes its fluid from neighbouring cells, so a sea ending exactly at the mask edge flows in; springs and lakes are placed after the noise and ignore aquifer rules.
+- **Fix:** `DryFluidPicker` treats the compiled mask plus 16 blocks (one aquifer cell, beyond water's 7-block spread) as dry; `NoiseBasedAquiferMixin` turns fluid in a covered column into air; `DryFluidFeatureMixin` skips springs and lakes touching it.
+
+<a id="t147"></a>
+### T147 — A structure template's palette is not thread-safe
+
+- **Symptom:** `ConcurrentModificationException` in `StructureTemplate$Palette.blocks` while rolls generate structure starts on several threads.
+- **Cause:** the palette's block cache is a plain `HashMap`.
+- **Fix:** a start that throws it is retried alone under a lock (`StructureStarts`).
+
+<a id="t146"></a>
+### T146 — A dry zone keeps a lava sheet below y −54
+
+- **Symptom:** lava under a dry or airborne zone and in its blend while water is gone.
+- **Cause:** the generator places lava below its lava level (`min(−54, sea level)`, hard-coded) before it consults any aquifer, so aquifer data cannot remove it.
+- **Fix:** the runtime fluid rule (`WorldgenRuntime.dry`, `DryFluidPicker`) places no sea or lava where a dry zone may reach.
+
+<a id="t145"></a>
+### T145 — Structure control moves vanilla sets into group sets
+
+- **Symptom:** a check like `possibleStructureSets().anyMatch(h -> h.is(villages))` fails on a level with noise placement although villages generate.
+- **Cause:** noise placement (the default for every dimension) puts vanilla's random-spread sets inside direct group sets that have no registry key.
+- **Fix:** check the structures inside each set, not the set's holder.
+
 <a id="t144"></a>
 ### T144 — Level work continued from a worker thread corrupts the distance manager
 
@@ -3199,6 +3227,30 @@ The rendered height disagrees with the facts on high-relief columns. The error i
 - **Symptom:** double-doors, fire-spread-tweaks, healing-campfire, name-tag-tweaks, nutritious-milk and your-items-are-safe behave as their jar defaults on the 1.21.1 server, whatever `config/<modid>/<modid>.json5` says.
 - **Cause:** Collective 1.21.1 (8.39) reads `config/<modid>.json5` only, and these configs sit in a subdirectory. fire-spread-tweaks also reads `MinRandomExtraBurnTicks`/`MaxRandomExtraBurnTicks`, while our file spells them with a lower-case first letter, so its -60/60 is ignored and -100/100 applies.
 - **Status:** kept as it is on 1.21.1 by the owner's choice; the 26.3 switch reads the intended values, since the version overlay seeds the read paths (T136).
+
+<a id="k13"></a>
+
+### K13 — Noise-group structure sites are built on the server thread
+
+- **Symptom:** "Can't keep up!" when the overworld starts (7–12 s) or a lazy level first opens (up to about 1.4 s).
+- **Cause:** opening a dimension builds every noise group's site index synchronously (`StructureRuntime`, `NoiseFieldIndex`).
+- **Status:** under the 60 s watchdog; to fix, build it off the server thread, lazily per region, or cached.
+
+<a id="k14"></a>
+
+### K14 — Rolling 100 seeds takes longer than ten minutes
+
+- **Symptom:** `roll performance` (`-PselfTestOnly=rollperf`) fails: 100 overworld seeds in 856.8 s against 600 s, TPS 20.
+- **Cause:** sampling 297 s; confirming scored structure starts 502 s (45,648 `Structure.generate` calls; trial chambers 69 ms each, failing about 19 times a seed; listing candidate sites to 8,192 blocks for every set); the contact sheet 57 s.
+- **Status:** open. Next: confirm without building pieces, find why trial chambers fail, list sites more cheaply.
+
+<a id="k15"></a>
+
+### K15 — The canyon belt's north edge has a seam
+
+- **Symptom:** `zones belt north edge` fails: blend step p99.9 24 against 18 inside the zone; one row of 16 column pairs at z 420→421 steps 28 blocks (119 → 91, badlands, mask 0.76 → 0.77).
+- **Cause:** not found. The step is in the noise column itself; it does not move with the final-density switch (0.5 or 0.75), a whole-cheese lerp or separate depth/factor/jaggedness lerps. Unchecked: an overhang edge between the shaped and zone final densities near mask 0.75, and the cheese `range_choice` at 1.5625 under the blended cheese.
+- **Status:** open; the self-test line reports the biome, mask and noise-only height at the largest blend step.
 
 ## Common symptoms
 
