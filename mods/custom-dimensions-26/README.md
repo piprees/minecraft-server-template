@@ -218,10 +218,11 @@ files byte for byte.
 image-making half (grid, palette, layers, PNG and sidecar) is game-free in
 `core/.../render/`.
 
-`/customdim render <dimension> [seed] [radius] [step]` renders a base world or
-a lazy dimension, open or not. Without a seed it takes the seed the level has
-or would have: a base world's level seed, a lazy definition's `seed` (else the
-world seed). Radius 16 to 4096 blocks round 0,0, default 1024; the step
+`/customdim render <dimension> [seed] [radius] [step] [centreX centreZ]` renders
+a base world or a lazy dimension, open or not. Without a seed it takes the seed
+the level has or would have: a base world's level seed, a lazy definition's
+`seed` (else the world seed). Radius 16 to 4096 blocks round 0,0, or round the
+centre given after the step (files `<seed>-r<radius>-at<x>_<z>-*`), default 1024; the step
 defaults to the smallest that keeps the image at 1024 pixels a side (2 at the
 default radius, 8 at 4096) and is refused below it. The command checks its
 arguments and starts the job on the server thread; building the sampler,

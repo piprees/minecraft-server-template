@@ -129,7 +129,8 @@ public final class RenderJob {
             Map<String, Long> timings = new LinkedHashMap<>();
             timings.put("prepare", (prepared - start) / 1_000_000);
             timings.put("sample", sampleMs);
-            RenderFiles.Written files = RenderFiles.write(request.outputDir(), samples, RenderLayers.standard(),
+            RenderFiles.Written files = RenderFiles.write(request.outputDir(), RenderFiles.baseName(sampler.seed(), grid), samples,
+                    RenderLayers.standard(),
                     new RenderFiles.Meta(sampler.dimension(), sampler.seed(), sampler.seedSource(), SURFACE, BIOME_Y,
                             timings, threads));
             long total = (System.nanoTime() - start) / 1_000_000;

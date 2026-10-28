@@ -4,7 +4,6 @@ import com.customdimensions.core.score.RollFacts;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -13,9 +12,7 @@ import java.util.Set;
 import java.util.function.Predicate;
 import net.minecraft.core.Holder;
 import net.minecraft.world.level.ChunkPos;
-import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.chunk.ChunkGeneratorStructureState;
-import net.minecraft.world.level.levelgen.GenerationStep;
 import net.minecraft.world.level.levelgen.LegacyRandomSource;
 import net.minecraft.world.level.levelgen.WorldgenRandom;
 import net.minecraft.world.level.levelgen.structure.Structure;
@@ -25,15 +22,13 @@ import net.minecraft.world.level.levelgen.structure.placement.RandomSpreadStruct
 import net.minecraft.world.level.levelgen.structure.placement.StructurePlacement;
 
 /**
- * Where a seed's structures would start, read from the generator's own
- * placement state ({@link Sampler#structureState()}) without generating a
- * chunk. A start is a chunk the placement picks, with the structure chosen
- * from its set as {@code ChunkGenerator.createStructures} chooses (weighted,
- * seeded by the chunk) and whose biome at the chunk's middle, on the sampled
- * surface or (for a structure placed below the surface step) in the column
- * under it, is one the structure allows. Checks the structure makes later — a
- * terrain height, a jigsaw that does not fit — are not made, so a start is a
- * candidate that generation can still drop.
+ * Where a seed's structures start, read from the level's placement state
+ * with its structure control ({@link Sampler#structureState()}) without
+ * generating a chunk. A start is a chunk the placement picks, with the
+ * structure chosen from its set as {@code ChunkGenerator.createStructures}
+ * chooses (weighted, seeded by the chunk, the next pick tried when one does
+ * not start) and confirmed as generation confirms it: the structure's own
+ * generation point, biome and terrain checks ({@link Sampler#starts}).
  */
 public final class StructureStarts {
 
@@ -54,20 +49,29 @@ public final class StructureStarts {
         return find(sampler, state, wanted, cx, cz, radius, null, Integer.MAX_VALUE);
     }
 
-    /** The most starts a roll keeps of each structure: every criterion reads the nearest, or (elytra) up to 60. */
+    /** The most starts kept of each structure for a contact sheet's markers, and of end cities for scoring. */
     public static final int CAP = 64;
-    /** Sites whose biomes are sampled together, nearest first. */
-    static final int BATCH = 256;
-
-    /** What the biome check reads at a chunk's middle: the surface and its biome. */
-    record Probe(int x, int z, int surface, Holder<Biome> biome) {}
+    /** Sites confirmed together, nearest first; small, so few are confirmed past a structure's cap. */
+    static final int BATCH = 32;
 
     /**
-     * As {@link #find(Sampler, ChunkGeneratorStructureState, Predicate, int, int, int)}, sampling biomes on
+     * As {@link #find(Sampler, ChunkGeneratorStructureState, Predicate, int, int, int)}, confirming starts on
      * {@code pool} when given, nearest sites first, keeping at most {@code cap} starts of each structure.
      */
     public static List<RollFacts.Start> find(Sampler sampler, ChunkGeneratorStructureState state, Predicate<String> wanted,
                                              int cx, int cz, int radius, ExecutorService pool, int cap) {
+        return find(sampler, state, wanted, cx, cz, radius, pool, id -> cap);
+    }
+
+    /** What a roll's scoring reads: the nearest start of each structure, and up to {@link #CAP} end cities, which it counts. */
+    public static int scoringCap(String id) {
+        return "minecraft:end_city".equals(id) ? CAP : 1;
+    }
+
+    /** As above, keeping at most {@code capOf.applyAsInt(id)} starts of each structure. */
+    public static List<RollFacts.Start> find(Sampler sampler, ChunkGeneratorStructureState state, Predicate<String> wanted,
+                                             int cx, int cz, int radius, ExecutorService pool,
+                                             java.util.function.ToIntFunction<String> capOf) {
         int minChunk = Math.floorDiv(cx - radius, 16);
         int maxChunk = Math.floorDiv(cx + radius, 16);
         int minChunkZ = Math.floorDiv(cz - radius, 16);
@@ -85,25 +89,25 @@ public final class StructureStarts {
         }
         sites.sort(java.util.Comparator.comparingDouble(Site::distance));
         Map<String, Integer> kept = new HashMap<>();
-        Map<Long, Probe> probes = new ConcurrentHashMap<>();
         List<RollFacts.Start> out = new ArrayList<>();
         int next = 0;
         while (next < sites.size()) {
             List<Site> batch = new ArrayList<>();
             while (next < sites.size() && batch.size() < BATCH) {
                 Site site = sites.get(next++);
-                if (site.entries().stream().anyMatch(e -> wanted.test(id(e.structure())) && kept.getOrDefault(id(e.structure()), 0) < cap)) {
+                if (site.entries().stream().anyMatch(e -> wanted.test(id(e.structure())) && kept.getOrDefault(id(e.structure()), 0) < capOf.applyAsInt(id(e.structure())))) {
                     batch.add(site);
                 }
             }
-            List<Long> todo = batch.stream().map(x -> x.chunk().pack()).distinct().filter(c -> !probes.containsKey(c)).toList();
-            run(todo.size(), pool, i -> probes.put(todo.get(i), probe(sampler, todo.get(i))));
-            for (Site site : batch) {
-                Probe probe = probes.get(site.chunk().pack());
-                Holder<Structure> chosen = choose(site.entries(), seed, site.chunk(), structure -> allowed(sampler, structure, probe));
-                if (chosen == null || !wanted.test(id(chosen))) continue;
-                int n = kept.merge(id(chosen), 1, Integer::sum);
-                if (n <= cap) out.add(new RollFacts.Start(id(chosen), probe.x(), probe.z(), site.distance()));
+            java.util.concurrent.atomic.AtomicReferenceArray<Holder<Structure>> chosen = new java.util.concurrent.atomic.AtomicReferenceArray<>(batch.size());
+            run(batch.size(), pool, i -> chosen.set(i, choose(batch.get(i).entries(), seed, batch.get(i).chunk(),
+                    structure -> sampler.starts(structure, batch.get(i).chunk()))));
+            for (int i = 0; i < batch.size(); i++) {
+                Site site = batch.get(i);
+                Holder<Structure> picked = chosen.get(i);
+                if (picked == null || !wanted.test(id(picked))) continue;
+                int n = kept.merge(id(picked), 1, Integer::sum);
+                if (n <= capOf.applyAsInt(id(picked))) out.add(new RollFacts.Start(id(picked), site.chunk().getMiddleBlockX(), site.chunk().getMiddleBlockZ(), site.distance()));
             }
         }
         return out;
@@ -125,26 +129,6 @@ public final class StructureStarts {
         CompletableFuture.allOf(futures.toArray(CompletableFuture[]::new)).join();
     }
 
-    private static Probe probe(Sampler sampler, long packed) {
-        ChunkPos chunk = ChunkPos.unpack(packed);
-        Sampler.Column c = sampler.sample(chunk.getMiddleBlockX(), chunk.getMiddleBlockZ());
-        return new Probe(c.x(), c.z(), c.height(), c.biome());
-    }
-
-    /**
-     * Whether a structure's biomes allow the chunk: the surface biome, or for
-     * a structure placed below the surface step, the biome anywhere in the
-     * column under the surface, at an 8-block step.
-     */
-    static boolean allowed(Sampler sampler, Holder<Structure> structure, Probe probe) {
-        var biomes = structure.value().biomes();
-        if (biomes.contains(probe.biome())) return true;
-        if (structure.value().step() == GenerationStep.Decoration.SURFACE_STRUCTURES) return false;
-        for (int y = probe.surface() - 8; y >= sampler.minY(); y -= 8) {
-            if (biomes.contains(sampler.biome(probe.x(), y, probe.z()))) return true;
-        }
-        return false;
-    }
 
     static List<ChunkPos> candidates(ChunkGeneratorStructureState state, StructurePlacement placement, long seed,
                                      int minX, int maxX, int minZ, int maxZ) {

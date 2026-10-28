@@ -13,8 +13,9 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 
 /**
- * {@code /customdim render <dimension> [seed] [radius] [step]}: a top-down
- * biome and height map of the dimension from the {@link Sampler}, drawn off
+ * {@code /customdim render <dimension> [seed] [radius] [step] [centreX centreZ]}:
+ * a top-down biome and height map of the dimension round 0, 0 or the given
+ * centre from the {@link Sampler}, drawn off
  * the server thread by {@link RenderJob} into
  * {@code <game dir>/renders/<dimension>/}. Radius 16 to
  * {@value RenderGrid#MAX_RADIUS} (default {@value RenderGrid#DEFAULT_RADIUS});
@@ -36,15 +37,27 @@ final class RenderCommand {
                                 .then(Commands.argument("step", IntegerArgumentType.integer())
                                         .executes(c -> render(c, LongArgumentType.getLong(c, "seed"),
                                                 IntegerArgumentType.getInteger(c, "radius"),
-                                                IntegerArgumentType.getInteger(c, "step"))))))));
+                                                IntegerArgumentType.getInteger(c, "step")))
+                                        .then(Commands.argument("centreX", IntegerArgumentType.integer())
+                                                .then(Commands.argument("centreZ", IntegerArgumentType.integer())
+                                                        .executes(c -> render(c.getSource(), c.getArgument("dimension", String.class),
+                                                                LongArgumentType.getLong(c, "seed"), IntegerArgumentType.getInteger(c, "radius"),
+                                                                IntegerArgumentType.getInteger(c, "step"), IntegerArgumentType.getInteger(c, "centreX"),
+                                                                IntegerArgumentType.getInteger(c, "centreZ")).isPresent() ? 1 : 0))))))));
     }
 
     private static int render(CommandContext<CommandSourceStack> context, Long seed, int radius, Integer step) {
         return render(context.getSource(), context.getArgument("dimension", String.class), seed, radius, step).isPresent() ? 1 : 0;
     }
 
-    /** Starts a render and replies; empty when it was refused. */
+    /** Starts a render centred on 0, 0 and replies; empty when it was refused. */
     static Optional<RenderJob> render(CommandSourceStack source, String slug, Long seed, int radius, Integer step) {
+        return render(source, slug, seed, radius, step, 0, 0);
+    }
+
+    /** Starts a render centred on {@code centreX, centreZ} and replies; empty when it was refused. */
+    static Optional<RenderJob> render(CommandSourceStack source, String slug, Long seed, int radius, Integer step,
+                                      int centreX, int centreZ) {
         Optional<LevelManager> manager = CustomDimCommands.manager(source);
         if (manager.isEmpty()) return Optional.empty();
         if (CustomDimCommands.dimension(source, manager.get(), slug).isEmpty()) return Optional.empty();
@@ -65,7 +78,7 @@ final class RenderCommand {
                     "percent", String.valueOf(busy.get().percent()));
             return Optional.empty();
         }
-        RenderGrid grid = RenderGrid.of(0, 0, radius, step);
+        RenderGrid grid = RenderGrid.of(centreX, centreZ, radius, step);
         var server = source.getServer();
         LevelManager levels = manager.get();
         RenderJob.Request request = new RenderJob.Request(slug, seed, grid, RenderJob.outputDir(slug));
@@ -98,7 +111,8 @@ final class RenderCommand {
             return Optional.empty();
         }
         CustomDimCommands.ok(source, "customdim.render.started", "dimension", slug,
-                "seed", String.valueOf(seed != null ? seed : Sampler.defaultSeed(server, levels, slug)), "radius", String.valueOf(radius),
+                "seed", String.valueOf(seed != null ? seed : Sampler.defaultSeed(server, levels, slug)), "centre", centreX + ", " + centreZ,
+                "radius", String.valueOf(radius),
                 "step", String.valueOf(grid.step()), "side", String.valueOf(grid.side()),
                 "threads", String.valueOf(job.get().threads()));
         return job;

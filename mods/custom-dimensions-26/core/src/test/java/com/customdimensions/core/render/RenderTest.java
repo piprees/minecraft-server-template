@@ -49,6 +49,12 @@ class RenderTest {
     }
 
     @Test
+    void aRenderCentredOffTheOriginNamesItsCentre() {
+        assertEquals("7-r64", RenderFiles.baseName(7, RenderGrid.of(0, 0, 64, 4)));
+        assertEquals("7-r64-at3000_-16", RenderFiles.baseName(7, RenderGrid.of(3000, -16, 64, 4)));
+    }
+
+    @Test
     void radiusAndStepOutsideTheLimitsAreRefused() {
         assertThrows(IllegalArgumentException.class, () -> RenderGrid.of(0, 0, RenderGrid.MAX_RADIUS + 1, null));
         assertThrows(IllegalArgumentException.class, () -> RenderGrid.of(0, 0, RenderGrid.MIN_RADIUS - 1, null));

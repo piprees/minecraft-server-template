@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "description": "Self-test fixture: structure control. A forced igloo in plains, a mountain ruined portal forced within a radius, a wanted ruined portal, shunned villages and outposts, a replacement, a spacing override, a rejected set and an adaptation override.",
+  "description": "Self-test fixture: structure control. A forced igloo in plains, a mountain ruined portal forced within a radius, a wanted ruined portal, shunned villages and outposts, a replacement, a spacing override, a rejected set, an adaptation override, and a zone that scopes the wanted ruined portal to its circle.",
   "seed": 71,
   "spawn": [0, 64, 0],
   "generator": {
@@ -11,6 +11,9 @@
   "borders": {
     "player": 2048
   },
+  "zones": [
+    {"shape": "circle", "centre": [250, 0], "radius": 80, "structures": {"wants": ["minecraft:ruined_portal"]}}
+  ],
   "structures": {
     "force": [
       {"structure": "minecraft:igloo", "x": 200, "z": -300},

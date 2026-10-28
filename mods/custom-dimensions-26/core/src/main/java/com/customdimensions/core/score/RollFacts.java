@@ -61,7 +61,7 @@ public record RollFacts(String dimension, long seed, int playableRadius, int sam
      *                empty list means the name resolves to nothing here, a missing key
      *                that the name is not known at all
      * @param starts  the candidate starts of the targeted structures within {@code structureRadius}, nearest first,
-     *                at most a fixed number of each structure (the roller keeps 64)
+     *                at most a fixed number of each structure (the roller keeps the nearest, and 64 end cities)
      */
     public record Structures(Set<String> pool, Map<String, List<String>> targets, List<Start> starts) {
 

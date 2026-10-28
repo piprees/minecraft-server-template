@@ -8,9 +8,12 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 
 import java.util.function.Supplier;
 
-/** A level's global fluid rule, replaced by {@link com.customdimensions.server.level.WorldgenRuntime} for its lava level. */
+/** A level's global fluid rule, replaced by {@link com.customdimensions.server.level.WorldgenRuntime} for its lava level and dry zones. */
 @Mixin(NoiseBasedChunkGenerator.class)
 public interface NoiseBasedChunkGeneratorAccessor {
+
+    @Accessor("globalFluidPicker")
+    Supplier<Aquifer.FluidPicker> customdimensions$globalFluidPicker();
 
     @Mutable
     @Accessor("globalFluidPicker")

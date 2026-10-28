@@ -132,13 +132,14 @@ public final class RollSelfTest {
     // ---- structure starts -----------------------------------------------------------------------
 
     /**
-     * Every candidate start within {@link #STARTS_RADIUS} of 0,0 against the
-     * starts the level records once those chunks reach {@code structure_starts}:
-     * a recorded start with no candidate fails the line unless the structure's
-     * biomes exclude the chunk middle's (class {@code point}: the structure
-     * picks its own point in the chunk); a candidate with no recorded start is
-     * generation dropping it (terrain or the structure's own checks) and is
-     * counted by structure.
+     * The starts the roller scores within {@link #STARTS_RADIUS} of 0,0
+     * ({@link StructureStarts#find}, each confirmed by the structure's own
+     * generation) against the starts the level records once those chunks
+     * reach {@code structure_starts}: they agree when every recorded start is
+     * scored and every scored start is recorded. A recorded start with no
+     * scored one is listed as missed ({@code point} when the structure's biomes
+     * exclude the chunk middle's: it picks its own point in the chunk); a scored
+     * start the level does not record is listed as dropped, by structure.
      */
     private CompletableFuture<Void> starts(String slug) {
         String name = "roll structure starts " + slug;
@@ -182,11 +183,13 @@ public final class RollSelfTest {
                     (middleAllowed ? missed : point).add(e.getKey());
                 }
                 int confirmed = candidate.size() - dropped.values().stream().mapToInt(Integer::intValue).sum();
-                String summary = candidate.size() + " candidates, " + recorded.size() + " recorded starts, " + confirmed + " confirmed"
-                        + (dropped.isEmpty() ? "" : ", dropped at generation " + dropped)
-                        + (point.isEmpty() ? "" : ", started off the chunk middle's biome (point) " + point)
-                        + (missed.isEmpty() ? "" : ", missed " + missed);
-                return (missed.isEmpty() && !recorded.isEmpty() ? "PASS " : "FAIL ") + name + ": " + summary;
+                String summary = candidate.size() + " scored starts, " + recorded.size() + " recorded by generation, " + confirmed
+                        + " in both (needs all of each)"
+                        + (dropped.isEmpty() ? "" : ", scored but not recorded " + dropped)
+                        + (point.isEmpty() ? "" : ", recorded off the chunk middle's biome (point) " + point)
+                        + (missed.isEmpty() ? "" : ", recorded but not scored " + missed);
+                boolean agree = missed.isEmpty() && point.isEmpty() && dropped.isEmpty() && !recorded.isEmpty();
+                return (agree ? "PASS " : "FAIL ") + name + ": " + summary;
             }, server);
         }, server).handle((line, error) -> {
             lines.add(error == null ? line : "FAIL " + name + ": " + cause(error));
@@ -241,9 +244,14 @@ public final class RollSelfTest {
             lines.add("FAIL roll small " + slug + ": the roll did not start: " + capture.lines);
             return CompletableFuture.completedFuture(null);
         }
-        List<String> busy = command("customdim roll " + slug + " 3");
-        lines.add((busy.size() == 1 && busy.getFirst().contains("one runs at a time") ? "PASS" : "FAIL")
-                + " roll refused while another runs: " + busy);
+        String idle = free != null ? free : chunkFree();
+        if (idle == null) {
+            lines.add("FAIL roll refused while another runs: every lazy dimension holds chunks, so the chunk refusal answers first");
+        } else {
+            List<String> busy = command("customdim roll " + idle + " 3");
+            lines.add((busy.size() == 1 && busy.getFirst().contains("one runs at a time") ? "PASS" : "FAIL")
+                    + " roll refused while another runs: roll " + idle + " (no chunks) while " + slug + " rolls: " + busy);
+        }
         String how = free != null ? "command" : "direct, every lazy dimension holds chunks";
         return job.finished().handleAsync((result, error) -> {
             if (error != null) {
@@ -358,6 +366,18 @@ public final class RollSelfTest {
                 }
             }
         }
+    }
+
+    /** The first lazy dimension, by slug, that a roll does not skip and whose region folder holds no chunks. */
+    private String chunkFree() {
+        List<String> candidates = new ArrayList<>();
+        for (LevelIndex.Entry e : manager.index().lazy().values()) {
+            if (e.definition() == null || RollSpec.of(e.definition()).skip()) continue;
+            if (PackInstaller.holdsChunks(manager.dimensionPath(e.key()).resolve("region"))) continue;
+            candidates.add(e.slug());
+        }
+        candidates.sort(null);
+        return candidates.isEmpty() ? null : candidates.getFirst();
     }
 
     /** The first lazy dimension, by slug, that wants structures and whose region folder holds no chunks. */

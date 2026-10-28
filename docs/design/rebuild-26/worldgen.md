@@ -67,17 +67,17 @@ A zone replaces layers inside a shape centred on spawn or a point, with a blend 
 | `terrain` | A library terrain (its name, or an object as the definition's `terrain`) |
 | `biomes` | The zone's biome list, laid out as the definition's are |
 | `swap` | Biome to biome inside the zone; on shape `all`, everywhere and over every zone |
-| `liquids.aquifers` | `on` (the dimension's) or `dry`: no aquifer water or lava and no sea in the zone's open cells |
-| `structures` | `wants` and `shuns` scoped to the zone, for structure control |
+| `liquids.aquifers` | `on` (the dimension's) or `dry`: no aquifer water or lava and no sea in the open cells of the zone and its blend |
+| `structures` | `wants` and `shuns` scoped to the zone, for structure control: a top-level want for a structure the zone wants lands where the zone's weight is at least 0.5, and a structure the zone shuns does not start there |
 
 An error names the slug and the zone (`the_x: zones[2]: outer is required for this shape`).
 
 - **Mask:** `<namespace>:zones/<slug>/<index>/mask` is `clamp(1 − (outside + jitter) / blend, 0, 1)`, where `outside` is the distance beyond the shape's edge. Circles, rings, boxes and `all` are vanilla functions (`gradient`, `square`, `sqrt`, `abs`, `max`); sectors and polygons use `customdimensions:zone_distance`, our one density-function type, which stays on the server. The jitter is the 2D noise `<namespace>:zone_jitter`.
 - **Terrain:** the zone's terrain compiles under `<namespace>:terrain/<slug>/zone_<index>/`. Across the blend its `sloped_cheese` is lerped to from the layers beneath, inside a copy of their final density, so the ground moves between the two surface heights before the densities are squeezed; over the mask's last quarter, where the surfaces agree, that is lerped to the zone's own final density, which carries its floor and slides. The router's `depth` and `chunk_surface_level` and the aquifers' `surface_level` lerp the same way, so materials and aquifers read the zone's surface.
-- **Aquifers:** `dry` lerps the aquifers' `exclusion` to 1 and their `surface_level` 64 blocks above the world, so no aquifer and no sea fills the zone. Sea level stays one number per dimension.
+- **Aquifers:** `dry` sets the aquifers' `exclusion` to 1 and their `surface_level` 64 blocks above the world wherever the mask is above zero, so no aquifer and no sea fills the zone or its blend. The generator places lava below its lava level (-54, or `lavaLevel`) before it consults any aquifer, and an aquifer cell takes the sea from the cells round it, so the runtime's fluid rule places no sea and no lava wherever a dry zone's jittered edge may reach (`ZoneMask.mayCover`); a base sea that meets that line stands at it. Sea level stays one number per dimension.
 - **Biomes:** our biome source, `customdimensions:zoned`, wraps the dimension's own. The router's temperature carries the zone whose biomes hold: where zone *c*'s mask reaches 0.5 it is the base temperature plus 16 *c*. The source reads the channel back, takes that zone's layout at the base temperature (or the base's, for a zone that only swaps), applies the zone's swaps, then the global ones. Materials and ores follow the biomes.
 - **Biome lists:** a biome with `climate` takes that box first; the others keep vanilla's entries in the preset's parameter list when every one of them has some, and otherwise share temperature by humidity as an even grid. Overlaps are carved away so earlier entries keep their space, which also meets 26.4's rule. The End keeps its own biome source unless it lists biomes; a list there takes the overworld's temperature and vegetation so the layout spreads across the islands.
-- **Query:** `core/.../zone/ZoneQuery` answers which zones cover a column, with each mask's still-edge weight; structure control scopes wants and shuns with it.
+- **Query:** `core/.../zone/ZoneQuery` answers which zones cover a column, with each mask's still-edge weight. At server start, before any level generates, `server/.../zone/LevelZones` reads every level's zones from the definitions; structure control scopes wants and shuns with their weights, and the fluid rule reads the dry zones' masks.
 
 Normal worldgen everywhere, except a ring of sky islands between 2,000 and 3,000 blocks from spawn (the self-test's `selftest_sky_ring`):
 

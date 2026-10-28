@@ -154,7 +154,7 @@ public final class RenderSelfTest {
         int pause = holdAwake();
         CompletableFuture<Void> chain = CompletableFuture.completedFuture(null);
         for (String[] gate : GATE) chain = chain.thenCompose(v -> accuracy(gate[0], gate[1]));
-        chain = chain.thenRun(this::refusals).thenCompose(v -> performance()).thenCompose(v -> otherSeed());
+        chain = chain.thenRun(this::refusals).thenCompose(v -> centred()).thenCompose(v -> performance()).thenCompose(v -> otherSeed());
         return chain.handle((v, error) -> {
             if (error != null) lines.add("FAIL render: the check chain broke: " + cause(error));
             restorePause(pause);
@@ -393,6 +393,35 @@ public final class RenderSelfTest {
                 && step.size() == 1 && step.get(0).contains("smallest is 2")
                 && unknown.size() == 1 && unknown.get(0).contains("no_such_dimension") && RenderJob.running().isEmpty();
         lines.add((ok ? "PASS" : "FAIL") + " render refusals: radius " + radius + ", step " + step + ", unknown " + unknown);
+    }
+
+    /** {@code /customdim render overworld <seed> 64 4 <x> <z>}: the image covers the given centre and its files name it. */
+    private CompletableFuture<Void> centred() {
+        long seed = server.overworld().getSeed();
+        int x = 3000;
+        int z = -1200;
+        Capture capture = new Capture();
+        server.getCommands().performPrefixedCommand(server.createCommandSourceStack().withSource(capture),
+                "customdim render overworld " + seed + " 64 4 " + x + " " + z);
+        RenderJob job = RenderJob.running().orElse(null);
+        if (job == null) {
+            lines.add("FAIL render centred: the render did not start: " + capture.lines);
+            return CompletableFuture.completedFuture(null);
+        }
+        return job.future().handleAsync((result, error) -> {
+            if (error != null) {
+                lines.add("FAIL render centred: " + cause(error));
+                return null;
+            }
+            RenderJob.Result r = (RenderJob.Result) result;
+            String name = r.files().sidecar().getFileName().toString();
+            boolean ok = r.grid().centreX() == x && r.grid().centreZ() == z && r.grid().x(0) == x - 64 && r.grid().z(0) == z - 64
+                    && name.equals(seed + "-r64-at" + x + "_" + z + ".json") && java.nio.file.Files.isRegularFile(r.files().sidecar())
+                    && capture.lines.stream().anyMatch(l -> l.contains("round " + x + ", " + z));
+            lines.add((ok ? "PASS" : "FAIL") + " render centred: grid centre " + r.grid().centreX() + "," + r.grid().centreZ()
+                    + ", north-west column " + r.grid().x(0) + "," + r.grid().z(0) + ", sidecar " + name + "; replies " + capture.lines);
+            return null;
+        }, server);
     }
 
     private CompletableFuture<Void> performance() {

@@ -1,5 +1,6 @@
 package com.customdimensions.server.structure;
 
+import com.customdimensions.core.structure.ZoneStructureRules;
 import com.customdimensions.core.structure.StructureSites;
 import com.customdimensions.server.level.LevelManager;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
@@ -229,10 +230,12 @@ public final class StructureSelfTest {
         String where = "chunk " + p.chunkX() + "," + p.chunkZ() + (p.matched() ? " (its biome)" : " (biome check bypassed)");
         String spot;
         if ("want".equals(p.kind())) {
-            var want = StructureRuntime.spec(level.dimension().identifier().toString()).orElseThrow().wants().getFirst();
+            String levelId = level.dimension().identifier().toString();
+            var want = StructureRuntime.spec(levelId).orElseThrow().wants().getFirst();
             double d = StructureSites.distance(new com.customdimensions.core.ChunkPos(p.chunkX(), p.chunkZ()), 8, 8);
             ok &= d >= want.min() - 12 && d <= want.max() + 12;
-            spot = String.format("%.0f blocks from spawn (wanted %d-%d)", d, want.min(), want.max());
+            spot = String.format("%.0f blocks from spawn (wanted %d-%d)", d, want.min(), want.max()) + zoneScope(levelId, p, want);
+            ok &= !spot.contains("OUTSIDE");
         } else {
             var force = StructureRuntime.spec(level.dimension().identifier().toString()).orElseThrow().force().stream()
                     .filter(f -> f.structure().equals(p.structure())).findFirst().orElseThrow();
@@ -243,6 +246,39 @@ public final class StructureSelfTest {
         }
         String box = start != null && start.isValid() ? ", bounding box " + start.getBoundingBox() : ", no start in the chunk";
         return (ok ? "PASS " : "FAIL ") + where + ", " + spot + box;
+    }
+
+    /**
+     * Where the fixture's zone wants the structure: the site's zone weight at
+     * the chunk middle, which must reach {@link ZoneStructureRules#INSIDE}, and
+     * the site the same want takes with the zone's scope left out, for
+     * comparison. Empty when no zone wants it.
+     */
+    private String zoneScope(String levelId, StructureRuntime.Placed p, com.customdimensions.core.structure.StructureSpec.Want want) {
+        var rules = com.customdimensions.server.zone.LevelZones.zones(levelId);
+        ZoneStructureRules.ZoneQuery query = com.customdimensions.server.zone.LevelZones.structureQuery(levelId);
+        if (rules.isEmpty() || query == null) return "";
+        int zone = -1;
+        for (var z : rules) {
+            if (z.structures() != null && z.structures().toString().contains(p.structure())) zone = z.index();
+        }
+        if (zone < 0) return "";
+        double w = query.weight(zone, p.chunkX() * 16 + 8, p.chunkZ() * 16 + 8);
+        var spec = StructureRuntime.spec(levelId).orElseThrow();
+        long seed = level(levelId).getChunkSource().getGeneratorState().getLevelSeed();
+        StructureSites.Site unscoped = StructureSites.choose(StructureSites.seed(seed, "want:" + want.name()),
+                spec.spawnChunkX() * 16 + 8, spec.spawnChunkZ() * 16 + 8, want.min(), want.max(), (cx, cz) -> true);
+        double uw = query.weight(zone, unscoped.chunk().x() * 16 + 8, unscoped.chunk().z() * 16 + 8);
+        return String.format("; zone %d wants it: weight %.2f at the site (needs %.1f)%s; unscoped, the first candidate is chunk %d,%d at weight %.2f",
+                zone, w, ZoneStructureRules.INSIDE, w >= ZoneStructureRules.INSIDE ? "" : " OUTSIDE", unscoped.chunk().x(),
+                unscoped.chunk().z(), uw);
+    }
+
+    private ServerLevel level(String levelId) {
+        for (ServerLevel l : server.getAllLevels()) {
+            if (l.dimension().identifier().toString().equals(levelId)) return l;
+        }
+        throw new IllegalStateException(levelId + " is not loaded");
     }
 
     // ---- density ---------------------------------------------------------------------------

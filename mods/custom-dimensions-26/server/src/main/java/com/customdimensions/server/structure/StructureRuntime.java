@@ -163,13 +163,47 @@ public final class StructureRuntime {
         return Map.copyOf(out);
     }
 
-    /** The level's structure state with its control applied; the state itself when the pack has none for it. */
+    /**
+     * A structure state with a level's control applied, and the biome bypass
+     * and adaptation that go with it; {@code applied} is null when the pack has
+     * no control for the level.
+     */
+    public record Controlled(ChunkGeneratorStructureState state, Map<Long, Set<Structure>> bypass, Set<Structure> everywhere,
+                             Map<Structure, TerrainAdjustment> adaptation, Applied applied, String summary) {
+        /** Whether {@code structure} may ignore its biomes at {@code chunk} under this control. */
+        public boolean bypasses(Structure structure, ChunkPos chunk) {
+            if (everywhere.contains(structure)) return true;
+            Set<Structure> here = bypass.get(chunk.pack());
+            return here != null && here.contains(structure);
+        }
+    }
+
+    /** The level's structure state with its control applied and recorded for the level; the state itself when the pack has none for it. */
     public static ChunkGeneratorStructureState apply(ResourceKey<Level> levelKey, net.minecraft.core.RegistryAccess registries,
                                                      ChunkGenerator generator, ChunkGeneratorStructureState original) {
+        Controlled c = control(levelKey, registries, generator, original);
+        if (c.applied() == null) {
+            return original;
+        }
+        String level = c.applied().level();
+        BYPASS.put(level, c.bypass());
+        BYPASS_EVERYWHERE.put(level, c.everywhere());
+        ADAPTATION.put(level, c.adaptation());
+        APPLIED.put(level, c.applied());
+        CustomDimensions.LOG.info("structure control applied to {}: {}", level, c.summary());
+        return c.state();
+    }
+
+    /**
+     * The level's control applied to {@code original}, recording nothing: the
+     * roller reads a seed's starts through it without touching the live level's.
+     */
+    public static Controlled control(ResourceKey<Level> levelKey, net.minecraft.core.RegistryAccess registries,
+                                     ChunkGenerator generator, ChunkGeneratorStructureState original) {
         String level = levelKey.identifier().toString();
         StructureSpec spec = specs.get(level);
         if (spec == null) {
-            return original;
+            return new Controlled(original, Map.of(), Set.of(), Map.of(), null, "");
         }
         long started = System.nanoTime();
         Registry<Structure> structures = registries.lookupOrThrow(Registries.STRUCTURE);
@@ -357,16 +391,12 @@ public final class StructureRuntime {
                 });
             }
         });
-        BYPASS.put(level, bypass);
-        BYPASS_EVERYWHERE.put(level, included);
-        ADAPTATION.put(level, adaptation);
         long millis = (System.nanoTime() - started) / 1_000_000;
         Applied applied = new Applied(level, out.size(), dropped, List.copyOf(droppedIds), replaced, groupSites, List.copyOf(placed), millis);
-        APPLIED.put(level, applied);
-        CustomDimensions.LOG.info("structure control applied to {}: density {}, {} set(s) kept, {} dropped {}, {} replaced, groups {}, {} fixed start(s), {} adaptation override(s), {} ms (sets {} ms, noise sites {} ms)",
-                level, spec.density(), out.size(), dropped, droppedIds, replaced, groupSites, placed.size(), adaptation.size(), millis,
-                (pooledAt - started) / 1_000_000, (indexedAt - pooledAt) / 1_000_000);
-        return StructureReflection.withSets(original, out);
+        String summary = String.format(Locale.ROOT, "density %s, %d set(s) kept, %d dropped %s, %d replaced, groups %s, %d fixed start(s), "
+                        + "%d adaptation override(s), %d ms (sets %d ms, noise sites %d ms)", spec.density(), out.size(), dropped, droppedIds,
+                replaced, groupSites, placed.size(), adaptation.size(), millis, (pooledAt - started) / 1_000_000, (indexedAt - pooledAt) / 1_000_000);
+        return new Controlled(StructureReflection.withSets(original, out), Map.copyOf(bypass), Set.copyOf(included), adaptation, applied, summary);
     }
 
     private static void fixed(List<Holder<StructureSet>> out, Map<Long, Set<Structure>> bypass, List<Placed> placed,

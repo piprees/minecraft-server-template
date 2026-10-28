@@ -1,9 +1,11 @@
 package com.customdimensions.server.level;
 
 import com.customdimensions.compiler.datapack.RuntimeWorldgen;
+import com.customdimensions.core.zone.ZoneMask;
 import com.customdimensions.server.CustomDimensions;
 import com.customdimensions.server.mixin.ChunkGeneratorAccessor;
 import com.customdimensions.server.mixin.NoiseBasedChunkGeneratorAccessor;
+import com.customdimensions.server.zone.LevelZones;
 import com.google.common.base.Suppliers;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -22,6 +24,7 @@ import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.biome.BiomeGenerationSettings;
 import net.minecraft.world.level.biome.FeatureSorter;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.ChunkGenerator;
 import net.minecraft.world.level.dimension.LevelStem;
 import net.minecraft.world.level.levelgen.Aquifer;
@@ -40,11 +43,12 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 /**
  * Applies the pack's {@code data/customdimensions/worldgen_runtime/} files to
  * level generators before they generate: a lava level in place of the
- * generator's -54, and per-biome feature lists with placed features removed
+ * generator's -54, no sea or lava where a dry zone may reach, and per-biome feature lists with placed features removed
  * and added ores appended to the underground-ores step. Base worlds are
  * patched at server start, before their levels exist; a lazy level as the
  * {@link LevelManager} decodes its stem. Biomes stay shared; only this
@@ -73,19 +77,44 @@ public final class WorldgenRuntime {
         specs = load(server);
         Registry<LevelStem> stems = server.registryAccess().lookupOrThrow(Registries.LEVEL_STEM);
         for (Map.Entry<ResourceKey<LevelStem>, LevelStem> stem : stems.entrySet()) {
-            Spec spec = specs.get(stem.getKey().identifier().toString());
-            if (spec != null) {
-                apply(server, spec, stem.getValue().generator());
-            }
+            apply(server, stem.getKey().identifier().toString(), stem.getValue().generator());
         }
     }
 
-    /** Applies the level's spec, if any, to a generator about to serve it. */
+    /** Applies the level's spec, if any, and its dry zones to a generator about to serve it. */
     public static void apply(MinecraftServer server, ResourceKey<Level> level, ChunkGenerator generator) {
-        Spec spec = specs.get(level.identifier().toString());
+        apply(server, level.identifier().toString(), generator);
+    }
+
+    private static void apply(MinecraftServer server, String levelId, ChunkGenerator generator) {
+        Spec spec = specs.get(levelId);
         if (spec != null) {
             apply(server, spec, generator);
         }
+        List<ZoneMask> dry = LevelZones.dryMasks(levelId);
+        if (!dry.isEmpty() && generator instanceof NoiseBasedChunkGenerator noise) {
+            NoiseBasedChunkGeneratorAccessor accessor = (NoiseBasedChunkGeneratorAccessor) (Object) noise;
+            Supplier<Aquifer.FluidPicker> beneath = accessor.customdimensions$globalFluidPicker();
+            accessor.customdimensions$setGlobalFluidPicker(Suppliers.memoize(() -> dry(beneath.get(), dry)));
+            CustomDimensions.LOG.info("worldgen runtime applied to {}: no sea or lava where {} dry zone(s) may reach", levelId, dry.size());
+        }
+    }
+
+    /**
+     * {@code beneath} with no sea and no lava where a dry zone may reach: the
+     * generator places lava below its lava level before any aquifer is
+     * consulted, and an aquifer cell takes the sea from the cells round it, so
+     * a dry zone's aquifer data alone leaves both in the zone's blend.
+     */
+    static Aquifer.FluidPicker dry(Aquifer.FluidPicker beneath, List<ZoneMask> dry) {
+        BlockState air = Blocks.AIR.defaultBlockState();
+        return (x, y, z) -> {
+            Aquifer.FluidStatus status = beneath.computeFluid(x, y, z);
+            for (ZoneMask mask : dry) {
+                if (mask.mayCover(x, z)) return new Aquifer.FluidStatus(status.fluidLevel(), air);
+            }
+            return status;
+        };
     }
 
     static Map<String, Spec> load(MinecraftServer server) {

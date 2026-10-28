@@ -27,8 +27,9 @@ import java.util.TreeMap;
  *   <li><b>Terrain:</b> a zone's terrain compiles under {@code <ns>:terrain/<slug>/zone_<index>/}, and the router's
  *       {@code final_density}, {@code depth} and {@code chunk_surface_level} and the aquifers' {@code surface_level}
  *       lerp from the layers beneath to it by the mask, so materials and aquifers read the zone's surface.</li>
- *   <li><b>Aquifers:</b> {@code dry} lerps the aquifers' {@code exclusion} to 1 and their {@code surface_level}
- *       above the world, so no aquifer and no sea fills the zone's open cells.</li>
+ *   <li><b>Aquifers:</b> {@code dry} sets the aquifers' {@code exclusion} to 1 and their {@code surface_level}
+ *       above the world wherever the mask is above zero, so no aquifer and no sea fills the open cells of the
+ *       zone or its blend; the runtime's fluid rule places no sea or lava where a dry zone may reach.</li>
  *   <li><b>Biomes:</b> the router's {@code temperature} carries the zone whose biomes hold: where zone
  *       {@code c}'s mask reaches {@link ZoneQuery#BIOME_THRESHOLD} it is the base temperature plus
  *       {@code CHANNEL * c}. The {@code customdimensions:zoned} biome source reads the channel back, takes that
@@ -71,7 +72,7 @@ public final class ZonesCompiler {
                 entry.note("zones[" + zone.index() + "] is centred on spawn, which the definition does not set: centred on 0, 0");
             }
             if (zone.structures() != null) {
-                entry.unsupported("zones[" + zone.index() + "].structures", "structure control is W4; the zone query is ready for it");
+                entry.unsupported("zones[" + zone.index() + "].structures", "zone-scoped wants and shuns are applied by the runtime's structure control");
             }
         }
         return new Plan(slug, namespace, zones, new TreeMap<>());
@@ -134,9 +135,9 @@ public final class ZonesCompiler {
                 if (aquifers == null) {
                     entry.note("zones[" + zone.index() + "]: liquids.aquifers dry has no effect: the dimension has no aquifers");
                 } else {
-                    aquifers.add("exclusion", ZoneDensity.blend(maskRef, aquifers.get("exclusion"), new JsonPrimitive(1.0)));
-                    aquifers.add("surface_level", ZoneDensity.blend(maskRef, aquifers.get("surface_level"),
-                            new JsonPrimitive((double) top + DRY_SURFACE_ABOVE)));
+                    aquifers.add("exclusion", anyWeight(maskRef, new JsonPrimitive(1.0), aquifers.get("exclusion")));
+                    aquifers.add("surface_level", anyWeight(maskRef, new JsonPrimitive((double) top + DRY_SURFACE_ABOVE),
+                            aquifers.get("surface_level")));
                 }
             }
             if (channelled(zone)) {
@@ -186,6 +187,21 @@ public final class ZonesCompiler {
                 ZoneDensity.blend(mask, new JsonPrimitive(cheese), new JsonPrimitive(zoneCheese)));
         JsonElement shaped = DatapackCompiler.replaceIds(body, Map.of(cheese, blendedId));
         return ZoneDensity.blend(late(mask), shaped, inZone);
+    }
+
+    /** The least mask a dry zone's aquifers count as inside: any weight above zero. */
+    static final double DRY_FROM = 1e-6;
+
+    /** {@code inZone} wherever the mask is above zero, else {@code beneath}: a dry zone's blend holds no aquifer and no sea. */
+    static JsonObject anyWeight(JsonPrimitive mask, JsonElement inZone, JsonElement beneath) {
+        JsonObject choice = new JsonObject();
+        choice.addProperty("type", "minecraft:range_choice");
+        choice.add("input", mask);
+        choice.addProperty("min_inclusive", DRY_FROM);
+        choice.addProperty("max_exclusive", 2.0);
+        choice.add("when_in_range", inZone);
+        choice.add("when_out_of_range", beneath);
+        return choice;
     }
 
     /** Where the zone's own final density takes over from the shaped one: the last quarter of the mask. */

@@ -2,7 +2,9 @@ package com.customdimensions.server.level;
 
 import com.customdimensions.core.definition.Definition;
 import com.customdimensions.core.definition.Generator;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.mojang.serialization.JsonOps;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
@@ -21,6 +23,8 @@ import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.chunk.LevelChunkSection;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.levelgen.NoiseBasedChunkGenerator;
+import net.minecraft.world.level.levelgen.NoiseGeneratorSettings;
+import net.minecraft.resources.RegistryOps;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -85,7 +89,7 @@ public final class GeneratorSelfTest {
         chain = step(chain, "nether", "the_nether", square(-4, -4, 8), this::nether);
         chain = step(chain, "end", "the_end", endArea(), this::end);
         chain = step(chain, "flat", "the_canvas", square(-2, -2, 4), this::flat);
-        chain = step(chain, "checkerboard", "the_tiled_expanse", square(-4, -4, 8), this::checkerboard);
+        chain = step(chain, "checkerboard", "the_tiled_expanse", clearOfZones("the_tiled_expanse", 8, 128), this::checkerboard);
         chain = step(chain, "void", "the_red_monument", square(-4, -4, 8), this::voidWorld);
         chain = chain.thenRun(() -> lines.add("SKIP generator single_biome: no shipped definition uses it; "
                 + "GeneratorVariantsTest.singleBiomeIsAFixedSourceOnOverworldTerrain covers its compile"));
@@ -232,24 +236,61 @@ public final class GeneratorSelfTest {
                 + pct(islands) + " carry an island; lowest island block y " + c.lowestIsland());
     }
 
+    /**
+     * A clone generates the original's terrain: its noise settings encode the
+     * same as the original's apart from the router's {@code temperature},
+     * which carries the clone's own zones' biome channels, and its biome
+     * source holds the same biomes. The seeds differ, so the island share over
+     * one area is reported, not compared.
+     */
     private String clone(Columns c) {
         if (aviary == null) return "FAIL no the_aviary sample to compare with";
         Definition def = manager.index().lazy(c.slug).map(LevelIndex.Entry::definition).orElse(null);
         String of = def == null ? "?" : def.generator().of();
         String ours = settingsKey(c.level.getChunkSource().getGenerator());
         String theirs = settingsKey(aviaryGenerator);
+        List<String> differ = terrainDifferences(c.level.getChunkSource().getGenerator(), aviaryGenerator);
         Set<String> ourBiomes = biomeKeys(c.level.getChunkSource().getGenerator());
         Set<String> theirBiomes = biomeKeys(aviaryGenerator);
         double open = c.openShare();
         double aviaryOpen = aviary.openShare();
-        boolean pass = ours.equals(theirs) && ourBiomes.equals(theirBiomes) && Math.abs(open - aviaryOpen) <= 0.25
+        boolean pass = differ.isEmpty() && ourBiomes.equals(theirBiomes) && Math.abs(open - aviaryOpen) <= 0.25
                 && c.share(col -> col.lowest != null) > 0;
-        return verdict(pass, "clones `" + of + "`; seeds differ (" + c.level.getSeed() + " vs " + aviary.level.getSeed()
-                + ", each definition's own), so shape is compared: settings " + ours + " vs " + theirs + ", biome source "
-                + ourBiomes.size() + " vs " + theirBiomes.size() + " biomes" + (ourBiomes.equals(theirBiomes) ? " (same)" : " (differ)")
-                + ", open columns " + pct(open) + " vs " + pct(aviaryOpen) + ", island columns "
-                + pct(c.share(col -> col.lowest != null)) + " vs " + pct(aviary.share(col -> col.lowest != null))
-                + " over the same " + c.area());
+        return verdict(pass, "clones `" + of + "`; settings " + ours + " vs " + theirs + ": "
+                + (differ.isEmpty() ? "the same apart from the router's temperature (the zones' biome channels)" : "differ in " + differ)
+                + "; biome source " + ourBiomes.size() + " vs " + theirBiomes.size() + " biomes" + (ourBiomes.equals(theirBiomes) ? " (same)" : " (differ)")
+                + "; seeds differ (" + c.level.getSeed() + " vs " + aviary.level.getSeed() + ", each definition's own), so over the same "
+                + c.area() + " open columns " + pct(open) + " vs " + pct(aviaryOpen) + " (within 25 points) and island columns "
+                + pct(c.share(col -> col.lowest != null)) + " vs " + pct(aviary.share(col -> col.lowest != null)) + " are each seed's own");
+    }
+
+    /** The noise settings' encoded fields that differ, the router's temperature left out; empty when the terrain is the same. */
+    private List<String> terrainDifferences(ChunkGenerator a, ChunkGenerator b) {
+        if (!(a instanceof NoiseBasedChunkGenerator na) || !(b instanceof NoiseBasedChunkGenerator nb)) {
+            return a.getClass() == b.getClass() ? List.of() : List.of("generator type");
+        }
+        RegistryOps<JsonElement> ops = RegistryOps.create(JsonOps.INSTANCE, server.registryAccess());
+        JsonObject ja = NoiseGeneratorSettings.DIRECT_CODEC.encodeStart(ops, na.generatorSettings().value()).getOrThrow().getAsJsonObject();
+        JsonObject jb = NoiseGeneratorSettings.DIRECT_CODEC.encodeStart(ops, nb.generatorSettings().value()).getOrThrow().getAsJsonObject();
+        List<String> out = new ArrayList<>();
+        for (String key : new TreeSet<>(union(ja.keySet(), jb.keySet()))) {
+            if (key.equals("noise_router") && ja.has(key) && jb.has(key)) {
+                JsonObject ra = ja.getAsJsonObject(key);
+                JsonObject rb = jb.getAsJsonObject(key);
+                for (String r : new TreeSet<>(union(ra.keySet(), rb.keySet()))) {
+                    if (!r.equals("temperature") && !java.util.Objects.equals(ra.get(r), rb.get(r))) out.add("noise_router." + r);
+                }
+            } else if (!java.util.Objects.equals(ja.get(key), jb.get(key))) {
+                out.add(key);
+            }
+        }
+        return out;
+    }
+
+    private static Set<String> union(Set<String> a, Set<String> b) {
+        Set<String> out = new HashSet<>(a);
+        out.addAll(b);
+        return out;
     }
 
     private String nether(Columns c) {
@@ -351,7 +392,8 @@ public final class GeneratorSelfTest {
                 if (!other.equals(e.getValue())) differing++;
             }
         }
-        return verdict(mixed == 0 && edges > 0 && differing == edges, c.area() + ", cellScale " + scale + " (" + cell + "-block cells): "
+        return verdict(mixed == 0 && edges > 0 && differing == edges, c.area() + " from " + c.minX() + "," + c.minZ()
+                + ", clear of the definition's " + def.zones().size() + " zones, cellScale " + scale + " (" + cell + "-block cells): "
                 + cells.size() + " cells, " + mixed + " with more than one biome; " + differing + "/" + edges
                 + " cell boundaries change biome; biomes " + c.biomes());
     }
@@ -407,6 +449,36 @@ public final class GeneratorSelfTest {
             }
         }
         return best;
+    }
+
+    /**
+     * The {@code n} by {@code n} chunk square nearest 0, 0, centred on a
+     * multiple of {@code grid} blocks, that none of the definition's zones may
+     * cover: where the generator's own biomes show. Centred on a checkerboard
+     * cell corner it crosses cell edges both ways.
+     */
+    private List<ChunkPos> clearOfZones(String slug, int n, int grid) {
+        Definition def = definition(slug);
+        List<com.customdimensions.core.zone.ZoneSpec> zones = def == null ? List.of()
+                : com.customdimensions.core.zone.ZoneQuery.of(slug, def).zones();
+        int half = n * 8;
+        for (int ring = 0; ring < 64; ring++) {
+            for (int i = -ring; i <= ring; i++) {
+                for (int j = -ring; j <= ring; j++) {
+                    if (Math.max(Math.abs(i), Math.abs(j)) != ring) continue;
+                    int cx = i * grid;
+                    int cz = j * grid;
+                    boolean clear = true;
+                    for (int x = cx - half; x <= cx + half && clear; x += 16) {
+                        for (int z = cz - half; z <= cz + half && clear; z += 16) {
+                            for (var zone : zones) if (zone.mask().mayCover(x, z)) clear = false;
+                        }
+                    }
+                    if (clear) return square((cx - half) >> 4, (cz - half) >> 4, n);
+                }
+            }
+        }
+        throw new IllegalStateException(slug + ": no " + n + "-chunk square clear of its zones within " + 64 * grid + " blocks");
     }
 
     /** The noise preset a definition generates with, through any clone chain; null for other generators. */
@@ -606,6 +678,14 @@ public final class GeneratorSelfTest {
         LevelChunk chunkAt(int x, int z) {
             return chunks.stream().filter(c -> c.getPos().x() == Math.floorDiv(x, 16) && c.getPos().z() == Math.floorDiv(z, 16))
                     .findFirst().orElseThrow(() -> new IllegalStateException("no loaded chunk at " + x + "," + z));
+        }
+
+        int minX() {
+            return chunks.stream().mapToInt(c -> c.getPos().getMinBlockX()).min().orElse(0);
+        }
+
+        int minZ() {
+            return chunks.stream().mapToInt(c -> c.getPos().getMinBlockZ()).min().orElse(0);
         }
 
         String area() {

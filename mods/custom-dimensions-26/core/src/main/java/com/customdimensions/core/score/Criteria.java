@@ -558,8 +558,8 @@ public final class Criteria {
                         + facts.structureRadius() + " blocks", blocks);
             }
             double frac = best.distance() / radius;
-            String ev = String.format(Locale.ROOT, "nearest %s %.0f blocks (%.1f%% of the border), %d within %d blocks",
-                    best.structure(), best.distance(), frac * 100.0, facts.structures().count(inPool), facts.structureRadius());
+            String ev = String.format(Locale.ROOT, "nearest %s %.0f blocks (%.1f%% of the border), searched to %d blocks",
+                    best.structure(), best.distance(), frac * 100.0, facts.structureRadius());
             if (frac >= band.low && frac <= band.high) return new Result.Score(1.0, ev + " — inside the band", blocks);
             double miss = frac < band.low ? band.low - frac : frac - band.high;
             return new Result.Score(ramp(RollSpec.Band.TOLERANCE - miss, 0.0, RollSpec.Band.TOLERANCE),

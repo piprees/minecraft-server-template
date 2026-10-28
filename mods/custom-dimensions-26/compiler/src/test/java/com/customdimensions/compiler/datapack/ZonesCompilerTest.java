@@ -50,11 +50,16 @@ class ZonesCompilerTest {
         }
         assertEquals("adventure:zones/t/temperature", router.get("temperature").getAsString());
         JsonObject aquifers = settings(out, "t").getAsJsonObject("aquifers");
-        assertEquals("minecraft:lerp", aquifers.getAsJsonObject("exclusion").get("type").getAsString());
-        assertEquals(1.0, aquifers.getAsJsonObject("exclusion").get("second").getAsDouble());
+        JsonObject exclusion = aquifers.getAsJsonObject("exclusion");
+        assertEquals("minecraft:range_choice", exclusion.get("type").getAsString());
+        assertEquals("adventure:zones/t/0/mask", exclusion.get("input").getAsString());
+        assertEquals(ZonesCompiler.DRY_FROM, exclusion.get("min_inclusive").getAsDouble());
+        assertEquals(1.0, exclusion.get("when_in_range").getAsDouble());
         JsonObject surface = aquifers.getAsJsonObject("surface_level");
-        assertEquals(320.0 + ZonesCompiler.DRY_SURFACE_ABOVE, surface.get("second").getAsDouble());
-        assertEquals("adventure:terrain/t/zone_0/preliminary_surface_level", surface.getAsJsonObject("first").get("second").getAsString());
+        assertEquals("minecraft:range_choice", surface.get("type").getAsString());
+        assertEquals(320.0 + ZonesCompiler.DRY_SURFACE_ABOVE, surface.get("when_in_range").getAsDouble());
+        assertEquals("adventure:terrain/t/zone_0/preliminary_surface_level",
+                surface.getAsJsonObject("when_out_of_range").get("second").getAsString());
 
         JsonObject mask = file(out, "data/adventure/worldgen/density_function/zones/t/0/mask.json");
         assertEquals("minecraft:cache", mask.get("type").getAsString());

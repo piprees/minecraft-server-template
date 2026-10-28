@@ -59,6 +59,7 @@ public final class ZoneSelfTest {
         if (manager == null) return CompletableFuture.completedFuture(List.of("FAIL zones: the level manager did not start"));
         ZoneSelfTest test = new ZoneSelfTest(server, manager);
         ServerTickEvents.END_SERVER_TICK.register(s -> test.tick());
+        int pause = holdAwake(server);
         CompletableFuture<Void> chain = CompletableFuture.completedFuture(null);
         chain = test.in(chain, "selftest_stamps", test::stamps);
         chain = test.in(chain, "selftest_sky_ring", test::ring);
@@ -66,8 +67,19 @@ public final class ZoneSelfTest {
         return chain.handle((v, error) -> {
             if (error != null) test.lines.add("FAIL zones: the check chain broke: " + error);
             test.worker.shutdown();
+            if (pause > 0 && server instanceof net.minecraft.server.dedicated.DedicatedServer dedicated) {
+                dedicated.setPauseWhenEmptySeconds(pause);
+            }
             return List.copyOf(test.lines);
         });
+    }
+
+    /** Keeps an empty server from pausing while the section runs; the setting it replaced, or -1. */
+    private static int holdAwake(MinecraftServer server) {
+        if (!(server instanceof net.minecraft.server.dedicated.DedicatedServer dedicated)) return -1;
+        int seconds = dedicated.pauseWhenEmptySeconds();
+        if (seconds > 0) dedicated.setPauseWhenEmptySeconds(0);
+        return seconds;
     }
 
     private record Fixture(String slug, ServerLevel level, ZoneQuery zones, Sampler sampler) {}
@@ -178,28 +190,150 @@ public final class ZoneSelfTest {
                         + insideBiomes));
             }
         }, worker);
+        double inner = ((com.customdimensions.core.zone.ZoneShape.Ring) mask.shape()).inner();
+        double outer = ((com.customdimensions.core.zone.ZoneShape.Ring) mask.shape()).outer();
+        CompletableFuture<Void> profiles = scan.thenRunAsync(() -> {
+            String in = landEdge("ring inner edge", f, mask, inner, -1);
+            String out = landEdge("ring outer edge", f, mask, outer, 1);
+            synchronized (lines) {
+                lines.add(in);
+                lines.add(out);
+            }
+        }, worker);
         int stripZ = cz >> 4;
         List<ChunkPos> strip = new ArrayList<>();
-        for (int x = cx + 2700; x <= cx + 3500; x += 16) strip.add(new ChunkPos(x >> 4, stripZ));
+        for (int x = cx + (int) inner - 400; x <= cx + (int) inner + 100; x += 16) strip.add(new ChunkPos(x >> 4, stripZ));
+        for (int x = cx + (int) outer - 100; x <= cx + (int) outer + 400; x += 16) strip.add(new ChunkPos(x >> 4, stripZ));
         ChunkPos dry = new ChunkPos((cx + 2500) >> 4, stripZ);
         if (!strip.contains(dry)) strip.add(dry);
-        return scan.thenCompose(v -> load(f.level(), strip)).thenAccept(loaded -> {
-            lines.add(edge("ring outer edge", f, mask, loaded, true));
+        return profiles.thenCompose(v -> load(f.level(), strip)).thenAccept(loaded -> {
+            lines.add(spills(f, mask, loaded));
             LevelChunk chunk = f.level().getChunk(dry.x(), dry.z());
             int water = 0;
+            int lava = 0;
             int floorBlocks = 0;
             int sea = f.level().getSeaLevel();
             for (int x = 0; x < 16; x++) for (int z = 0; z < 16; z++) {
                 for (int y = f.level().getMinY(); y < sea; y++) {
                     BlockPos pos = new BlockPos(chunk.getPos().getMinBlockX() + x, y, chunk.getPos().getMinBlockZ() + z);
                     if (chunk.getFluidState(pos).is(FluidTags.WATER)) water++;
+                    if (chunk.getFluidState(pos).is(FluidTags.LAVA)) lava++;
                 }
                 if (Sampler.solid(chunk.getBlockState(new BlockPos(chunk.getPos().getMinBlockX() + x, f.level().getMinY() + 8, chunk.getPos().getMinBlockZ() + z)))) floorBlocks++;
             }
-            lines.add(verdict(water == 0 && floorBlocks == 0, "zones ring dry: generated chunk " + dry + " inside the ring holds " + water
-                    + " water blocks below sea level " + sea + " and " + floorBlocks + " solid blocks at y " + (f.level().getMinY() + 8)));
+            lines.add(verdict(water == 0 && lava == 0 && floorBlocks == 0, "zones ring dry: generated chunk " + dry + " inside the ring holds "
+                    + water + " water and " + lava + " lava blocks below sea level " + sea + " and " + floorBlocks + " solid blocks at y "
+                    + (f.level().getMinY() + 8)));
             loaded.forEach(c -> f.level().setChunkForced(c.getPos().x(), c.getPos().z(), false));
         });
+    }
+
+    /** Band width, in blocks of still-edge distance, of the land-share profile across an airborne edge. */
+    static final int BAND = 16;
+    /** The most the land share may fall from one band to the next toward the zone; see {@link #landEdge}. */
+    static final double MAX_BAND_DROP = 0.25;
+
+    /**
+     * An airborne zone's edge breaks up gradually. Along transects every 2
+     * degrees across the edge at radius {@code edge}, a column has land when
+     * its noise column holds a solid block between four above the floor and
+     * {@link #OPEN_TOP}, the base's ground. In {@link #BAND}-block bands of
+     * still-edge distance, the land share falls from the base's (beyond the
+     * blend and two jitters) to the zone's (two jitters inside the edge) and
+     * no band falls more than {@link #MAX_BAND_DROP} below the one before it:
+     * a hard edge drops the whole share in one band. The edge wanders: the
+     * spread (10th to 90th percentile) of where each transect's ground ends is
+     * at least the mask's jitter. {@code side} is -1 where the base lies at
+     * smaller radii (the inner edge), 1 where it lies beyond.
+     */
+    private String landEdge(String name, Fixture f, ZoneMask mask, double edge, int side) {
+        double margin = 2 * mask.jitter();
+        int from = (int) (-margin - BAND * 2);
+        int to = (int) (mask.rampWidth() + margin + BAND * 2);
+        int bands = (to - from + BAND - 1) / BAND;
+        int[] land = new int[bands];
+        int[] total = new int[bands];
+        List<Integer> ends = new ArrayList<>();
+        int minY = f.sampler().minY();
+        for (int deg = 0; deg < 360; deg += 2) {
+            double cos = Math.cos(Math.toRadians(deg));
+            double sin = Math.sin(Math.toRadians(deg));
+            Integer end = null;
+            for (int d = to - 1; d >= from; d -= 8) {
+                double r = edge + side * d;
+                int x = (int) Math.round(mask.centreX() + r * cos);
+                int z = (int) Math.round(mask.centreZ() + r * sin);
+                boolean ground = !open(f.sampler().noiseColumn(x, z), minY);
+                int band = (d - from) / BAND;
+                total[band]++;
+                if (ground) land[band]++;
+                if (!ground && end == null) end = d;
+            }
+            ends.add(end == null ? from : end);
+        }
+        double[] share = new double[bands];
+        for (int b = 0; b < bands; b++) share[b] = total[b] == 0 ? 0 : land[b] / (double) total[b];
+        double worst = 0;
+        int worstBand = 0;
+        for (int b = bands - 1; b > 0; b--) {
+            double drop = share[b] - share[b - 1];
+            if (drop > worst) {
+                worst = drop;
+                worstBand = b - 1;
+            }
+        }
+        ends.sort(null);
+        int p10 = ends.get(ends.size() / 10);
+        int p90 = ends.get(ends.size() * 9 / 10);
+        double base = share[bands - 1];
+        double zone = share[0];
+        StringBuilder profile = new StringBuilder();
+        for (int b = bands - 1; b >= 0; b--) {
+            profile.append(profile.isEmpty() ? "" : " ").append(from + b * BAND).append(':').append(Math.round(share[b] * 100));
+        }
+        boolean pass = base >= 0.95 && zone <= 0.05 && worst <= MAX_BAND_DROP && p90 - p10 >= mask.jitter();
+        return verdict(pass, "zones " + name + " (" + f.slug() + ", radius " + (int) edge + "): land share from the base's " + pct(base)
+                + " to the zone's " + pct(zone) + " (needs 95% and 5%), largest fall between " + BAND + "-block bands " + pct(worst)
+                + " at " + (from + worstBand * BAND) + " blocks beyond the still edge (needs " + pct(MAX_BAND_DROP)
+                + " or less); where the ground ends wanders " + p10 + " to " + p90 + " blocks beyond the still edge, 10th to 90th percentile over "
+                + ends.size() + " transects (needs a spread of the jitter, " + (int) mask.jitter() + "); land % by band (blocks beyond the edge, base first) "
+                + profile);
+    }
+
+    /**
+     * Water and lava in generated chunks wherever the compiled (jittered) mask
+     * is above zero: inside the zone (two jitters within the still edge or
+     * deeper) and across its blends. Where the mask is zero the base's own
+     * seas and lava are counted apart, not judged.
+     */
+    private String spills(Fixture f, ZoneMask mask, List<LevelChunk> chunks) {
+        double margin = 2 * mask.jitter();
+        int[] water = new int[3];
+        int[] lava = new int[3];
+        int[] columns = new int[3];
+        for (LevelChunk chunk : chunks) {
+            for (int a = 0; a < 16; a++) for (int b = 0; b < 16; b++) {
+                int x = chunk.getPos().getMinBlockX() + a;
+                int z = chunk.getPos().getMinBlockZ() + b;
+                double outside = mask.shape().outside(x - mask.centreX(), z - mask.centreZ());
+                double compiled = f.sampler().zoneWeights(x, z)[0];
+                int w = compiled <= 0 ? 2 : outside < -margin ? 0 : 1;
+                columns[w]++;
+                for (int y = f.level().getMinY(); y < f.level().getMaxY(); y++) {
+                    var fluid = chunk.getFluidState(new BlockPos(x, y, z));
+                    if (fluid.is(FluidTags.WATER)) water[w]++;
+                    else if (fluid.is(FluidTags.LAVA)) lava[w]++;
+                }
+            }
+        }
+        return verdict(columns[1] > 0 && water[0] + water[1] + lava[0] + lava[1] == 0, "zones ring no spill: " + water[1] + " water and "
+                + lava[1] + " lava blocks in " + columns[1] + " generated columns of both blends (compiled mask above zero), " + water[0]
+                + " and " + lava[0] + " in " + columns[0] + " inside the zone; the base's own, where the compiled mask is zero: " + water[2]
+                + " and " + lava[2] + " in " + columns[2] + " columns; over " + chunks.size() + " chunks");
+    }
+
+    private static String pct(double share) {
+        return String.format(Locale.ROOT, "%.1f%%", share * 100);
     }
 
     // ---- the canyon belt ----------------------------------------------------------------------
@@ -239,9 +373,12 @@ public final class ZoneSelfTest {
      * strip, in three windows by the still-edge mask: inside the zone (more than
      * two jitters within its edge), the blend (with its jitter) and outside it
      * (beyond blend and jitter). A seam or cliff is a step in the blend larger
-     * than the steps on both sides: its 99th percentile and largest step must not
-     * exceed the larger side's. The mean includes the ramp between two surface
-     * heights, so it is reported, not judged. Surface: MOTION_BLOCKING_NO_LEAVES.
+     * than the steps on both sides: its 99th and 99.9th percentiles must not
+     * exceed the rougher side's. The largest steps are reported, not judged:
+     * the windows hold different numbers of pairs, and the largest of more
+     * pairs is larger for the same terrain. The mean includes the ramp between
+     * two surface heights, so it is reported, not judged. Surface:
+     * MOTION_BLOCKING_NO_LEAVES.
      */
     private String edge(String name, Fixture f, ZoneMask mask, List<LevelChunk> chunks, boolean alongX) {
         Map<Long, Integer> heights = new HashMap<>();
@@ -260,6 +397,8 @@ public final class ZoneSelfTest {
         double margin = 2 * mask.jitter();
         List<List<Integer>> steps = List.of(new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
         int across = alongX ? chunks.getFirst().getPos().getMinBlockZ() : chunks.getFirst().getPos().getMinBlockX();
+        int[] largestAt = {0, 0, 0, -1, 0, 0};
+        List<int[]> blendSteps = new ArrayList<>();
         for (int along = lo; along < hi; along++) {
             for (int row = across; row < across + 16; row++) {
                 int x = alongX ? along : row;
@@ -270,26 +409,46 @@ public final class ZoneSelfTest {
                 double outside = mask.shape().outside(x - mask.centreX(), z - mask.centreZ());
                 int w = outside < -margin ? 0 : outside > mask.rampWidth() + margin ? 2 : 1;
                 steps.get(w).add(Math.abs(h1 - h0));
+                if (w == 1) blendSteps.add(new int[] {(int) Math.floor(outside), Math.abs(h1 - h0)});
+                if (w == 1 && Math.abs(h1 - h0) > largestAt[3]) largestAt = new int[] {x, z, (int) Math.round(outside), Math.abs(h1 - h0), h0, h1};
             }
         }
         double[] mean = new double[3];
         int[] p99 = new int[3];
+        int[] p999 = new int[3];
         int[] max = new int[3];
         for (int w = 0; w < 3; w++) {
             List<Integer> s = steps.get(w);
             s.sort(null);
             mean[w] = s.stream().mapToInt(Integer::intValue).average().orElse(0);
             p99[w] = s.isEmpty() ? 0 : s.get((int) ((s.size() - 1) * 0.99));
+            p999[w] = s.isEmpty() ? 0 : s.get((int) ((s.size() - 1) * 0.999));
             max[w] = s.isEmpty() ? 0 : s.getLast();
         }
         boolean measured = !steps.get(0).isEmpty() && !steps.get(1).isEmpty() && !steps.get(2).isEmpty();
-        boolean noCliff = p99[1] <= Math.max(p99[0], p99[2]) && max[1] <= Math.max(max[0], max[2]);
+        boolean noCliff = p99[1] <= Math.max(p99[0], p99[2]) && p999[1] <= Math.max(p999[0], p999[2]);
         return verdict(measured && noCliff, "zones " + name + " (" + f.slug() + "): |surface step| between neighbouring columns, "
-                + "99th percentile / largest / mean: blend " + p99[1] + " / " + max[1] + " / " + fmt(mean[1])
-                + ", inside the zone " + p99[0] + " / " + max[0] + " / " + fmt(mean[0]) + ", outside " + p99[2] + " / " + max[2] + " / " + fmt(mean[2])
+                + "99th / 99.9th percentile / largest / mean: blend " + p99[1] + " / " + p999[1] + " / " + max[1] + " / " + fmt(mean[1])
+                + ", inside the zone " + p99[0] + " / " + p999[0] + " / " + max[0] + " / " + fmt(mean[0]) + ", outside " + p99[2] + " / "
+                + p999[2] + " / " + max[2] + " / " + fmt(mean[2])
                 + " blocks, over " + steps.get(1).size() + ", " + steps.get(0).size() + " and " + steps.get(2).size() + " pairs of " + chunks.size()
                 + " generated chunks; mean surface inside " + fmt(meanHeight(heights, mask, -1e9, -margin)) + ", outside "
-                + fmt(meanHeight(heights, mask, mask.rampWidth() + margin, 1e9)));
+                + fmt(meanHeight(heights, mask, mask.rampWidth() + margin, 1e9)) + "; largest blend step at " + largestAt[0] + ","
+                + largestAt[1] + ", " + largestAt[2] + " blocks beyond the still edge, " + largestAt[4] + " to " + largestAt[5]
+                + "; blend steps over the rougher side's 99th percentile by 8-block band beyond the still edge (band:count/pairs) "
+                + bands(blendSteps, Math.max(p99[0], p99[2])));
+    }
+
+    private static String bands(List<int[]> steps, int over) {
+        java.util.TreeMap<Integer, int[]> by = new java.util.TreeMap<>();
+        for (int[] st : steps) {
+            int[] c = by.computeIfAbsent(Math.floorDiv(st[0], 8) * 8, k -> new int[2]);
+            c[1]++;
+            if (st[1] > over) c[0]++;
+        }
+        StringBuilder sb = new StringBuilder();
+        by.forEach((b, c) -> sb.append(sb.isEmpty() ? "" : " ").append(b).append(':').append(c[0]).append('/').append(c[1]));
+        return sb.toString();
     }
 
     private static double meanHeight(Map<Long, Integer> heights, ZoneMask mask, double from, double to) {

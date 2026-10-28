@@ -4,6 +4,7 @@ import com.customdimensions.core.render.ColumnSamples;
 import com.customdimensions.server.level.LevelIndex;
 import com.customdimensions.server.level.LevelManager;
 import com.customdimensions.server.level.LevelMaths;
+import com.customdimensions.server.structure.StructureRuntime;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.IntFunction;
@@ -15,6 +16,9 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.FluidTags;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelHeightAccessor;
 import net.minecraft.world.level.NoiseColumn;
 import net.minecraft.world.level.biome.Biome;
@@ -32,6 +36,9 @@ import net.minecraft.world.level.levelgen.densityfunction.DensityFunction;
 import net.minecraft.world.level.levelgen.densityfunction.DensitySampler;
 import net.minecraft.world.level.levelgen.densityfunction.SamplerContext;
 import net.minecraft.world.level.material.FluidState;
+import net.minecraft.world.level.levelgen.structure.Structure;
+import net.minecraft.world.level.levelgen.structure.StructureStart;
+import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplateManager;
 
 /**
  * A dimension's generator under one seed, sampled column by column without a
@@ -72,9 +79,15 @@ public final class Sampler {
     private final ThreadLocal<BiomeResolver> resolvers;
     private final List<DensitySampler> zoneMasks;
     private final RegistryAccess access;
+    private final ResourceKey<Level> levelKey;
+    private final StructureTemplateManager templates;
+    private volatile StructureRuntime.Controlled control;
+    private static final Object STARTS = new Object();
 
     private Sampler(String dimension, ChunkGenerator generator, int minY, int height, long seed, String seedSource,
-                    RegistryAccess access) {
+                    RegistryAccess access, ResourceKey<Level> levelKey, StructureTemplateManager templates) {
+        this.levelKey = levelKey;
+        this.templates = templates;
         this.dimension = dimension;
         this.generator = generator;
         this.heights = LevelHeightAccessor.create(minY, height);
@@ -97,7 +110,7 @@ public final class Sampler {
     /** {@code generator} under {@code seed} in a dimension of {@code height} blocks from {@code minY}. */
     public static Sampler of(String dimension, ChunkGenerator generator, int minY, int height, long seed, String seedSource,
                              RegistryAccess access) {
-        return new Sampler(dimension, generator, minY, height, seed, seedSource, access);
+        return new Sampler(dimension, generator, minY, height, seed, seedSource, access, null, null);
     }
 
     /**
@@ -110,8 +123,9 @@ public final class Sampler {
             if (!base.slug().equals(slug)) continue;
             ServerLevel level = server.getLevel(base.key());
             if (level == null) throw new IllegalArgumentException(slug + " is not loaded");
-            return of(slug, level.getChunkSource().getGenerator(), level.getMinY(), level.getHeight(),
-                    seed == null ? level.getSeed() : seed, seed == null ? "level" : "argument", server.registryAccess());
+            return new Sampler(slug, level.getChunkSource().getGenerator(), level.getMinY(), level.getHeight(),
+                    seed == null ? level.getSeed() : seed, seed == null ? "level" : "argument", server.registryAccess(), base.key(),
+                    server.getStructureTemplateManager());
         }
         Optional<LevelIndex.Entry> lazy = manager.index().lazy(slug);
         if (lazy.isEmpty()) throw new IllegalArgumentException("no dimension " + slug);
@@ -122,7 +136,8 @@ public final class Sampler {
         String source = seed != null ? "argument"
                 : entry.definition() != null && entry.definition().seed() != null && !entry.definition().seed().fromEnv()
                 ? "definition" : "world";
-        return of(slug, stem.generator(), type.minY(), type.height(), resolved, source, server.registryAccess());
+        return new Sampler(slug, stem.generator(), type.minY(), type.height(), resolved, source, server.registryAccess(), entry.key(),
+                server.getStructureTemplateManager());
     }
 
     /** The seed {@code slug}'s level has or would have: the level's for a base world, the definition's (else the world's) for a lazy one. */
@@ -185,9 +200,50 @@ public final class Sampler {
     }
 
     /** The noise biome at {@code (x, y, z)}, {@code y} clamped into the dimension. */
-    /** The generator's structure placement state for this seed, as a level with this generator builds it. */
+    /** The generator's structure placement state for this seed, as the level builds it: with the dimension's structure control. */
     public ChunkGeneratorStructureState structureState() {
-        return generator.createState(access.lookupOrThrow(Registries.STRUCTURE_SET), random, seed);
+        return control().state();
+    }
+
+    /** The dimension's structure control under this seed, recorded nowhere. */
+    public StructureRuntime.Controlled control() {
+        StructureRuntime.Controlled c = control;
+        if (c == null) {
+            ChunkGeneratorStructureState raw = generator.createState(access.lookupOrThrow(Registries.STRUCTURE_SET), random, seed);
+            c = levelKey == null ? new StructureRuntime.Controlled(raw, java.util.Map.of(), java.util.Set.of(), java.util.Map.of(), null, "")
+                    : StructureRuntime.control(levelKey, access, generator, raw);
+            control = c;
+        }
+        return c;
+    }
+
+    /**
+     * Whether {@code structure} starts at {@code chunk} under this seed as the
+     * level's generation starts it: the structure's own generation point and
+     * checks, its biomes there unless the control bypasses them, and the
+     * dimension's zone shuns.
+     */
+    public boolean starts(Holder<Structure> structure, ChunkPos chunk) {
+        // A structure template's palette fills its block cache without synchronisation, as it does on vanilla's worldgen
+        // threads; a start that trips over it is generated again alone.
+        if (templates == null) throw new IllegalStateException(dimension + ": a sampler made without a server cannot generate starts");
+        if (StructureRuntime.zoneShunned(levelKey, structure, chunk)) return false;
+        StructureRuntime.Controlled c = control();
+        Predicate<Holder<Biome>> valid = c.bypasses(structure.value(), chunk) ? b -> true : structure.value().biomes()::contains;
+        try {
+            return generate(structure, chunk, c, valid);
+        } catch (java.util.ConcurrentModificationException e) {
+            synchronized (STARTS) {
+                return generate(structure, chunk, c, valid);
+            }
+        }
+    }
+
+    private boolean generate(Holder<Structure> structure, ChunkPos chunk, StructureRuntime.Controlled c, Predicate<Holder<Biome>> valid) {
+        StructureStart start = structure.value().generate(structure, levelKey, access, generator, generator.getBiomeSource(),
+                random.createClimateSampler(SamplerContext.builder().enableCaches().build()), random, templates,
+                c.state().getLevelSeed(), chunk, 0, heights, valid);
+        return start.isValid();
     }
 
     public RegistryAccess registryAccess() {

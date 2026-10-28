@@ -57,7 +57,7 @@ public final class Messages {
             Map.entry("customdim.create.done", "Wrote {path} from {template} with seed {seed} and portal colour {colour}. {slug} opens after the next restart."),
             Map.entry("customdim.audit.done", "Audit written to {path}: {stale} stale, {missing} missing, {removed} removed, {orphans} orphans, {links} broken portal links, {ids} unknown ids, {bedrock} Bedrock warnings, {warnings} compile warnings."),
             Map.entry("customdim.catalogue.done", "Catalogue written to {path}: {blocks} blocks, {items} items, {biomes} biomes, {structures} structures, {features} features, {entities} entity types, {tags} tags."),
-            Map.entry("customdim.render.started", "Rendering {dimension} with seed {seed}: radius {radius}, step {step}, {side}x{side} pixels on {threads} threads."),
+            Map.entry("customdim.render.started", "Rendering {dimension} with seed {seed} round {centre}: radius {radius}, step {step}, {side}x{side} pixels on {threads} threads."),
             Map.entry("customdim.render.progress", "Rendering {dimension}: {percent}%."),
             Map.entry("customdim.render.done", "Rendered {dimension} seed {seed} in {seconds} s ({rate} columns/s, {biomes} biomes) to {path}."),
             Map.entry("customdim.render.busy", "A render of {dimension} is running ({percent}%); one render runs at a time."),

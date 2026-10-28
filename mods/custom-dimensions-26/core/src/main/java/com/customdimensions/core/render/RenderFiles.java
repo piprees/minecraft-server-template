@@ -15,9 +15,10 @@ import java.util.Map;
 import javax.imageio.ImageIO;
 
 /**
- * Writes a render: {@code <dir>/<seed>-r<radius>-<layer>.png} for each layer
- * and the sidecar {@code <dir>/<seed>-r<radius>.json}, each through a
- * temporary file so a reader never sees half of one.
+ * Writes a render: {@code <dir>/<base>-<layer>.png} for each layer and the
+ * sidecar {@code <dir>/<base>.json}, each through a temporary file so a reader
+ * never sees half of one. The base is {@code <seed>-r<radius>}, with
+ * {@code -at<x>_<z>} after it for a render centred off 0, 0.
  */
 public final class RenderFiles {
     private RenderFiles() {}
@@ -32,10 +33,19 @@ public final class RenderFiles {
         return seed + "-r" + radius;
     }
 
+    /** {@link #baseName(long, int)}, with the centre after it when the grid is centred off 0, 0. */
+    public static String baseName(long seed, RenderGrid grid) {
+        String base = baseName(seed, grid.radius());
+        return grid.centreX() == 0 && grid.centreZ() == 0 ? base : base + "-at" + grid.centreX() + "_" + grid.centreZ();
+    }
+
     public static Written write(Path dir, ColumnSamples samples, List<RenderLayer> layers, Meta meta) throws IOException {
+        return write(dir, baseName(meta.seed(), samples.grid().radius()), samples, layers, meta);
+    }
+
+    public static Written write(Path dir, String base, ColumnSamples samples, List<RenderLayer> layers, Meta meta) throws IOException {
         Files.createDirectories(dir);
         RenderGrid grid = samples.grid();
-        String base = baseName(meta.seed(), grid.radius());
         long started = System.nanoTime();
         Map<String, Path> images = new LinkedHashMap<>();
         for (RenderLayer layer : layers) {

@@ -59,6 +59,7 @@ public final class TerrainSelfTest {
     static final int FLOOR_STEP = 8;
     static final int FLOOR_ACROSS = 24;
     static final int FLOOR_CUT = 12;
+    static final int CAVE_BELOW_SEA = 8;
     /** Single precision: two terrains also rendered block by block around 30,000, -30,000 to show any banding or seam. */
     static final int FAR = 30_000;
     static final List<String> FAR_RENDERS = List.of("terrain_terraces_default", "terrain_canyons_default");
@@ -422,9 +423,11 @@ public final class TerrainSelfTest {
      * points 48 blocks away on one axis, where continents has only an
      * occasional ravine or cave mouth; and the deepest cut in the loaded areas.
      * Their floors are old river beds: of the canyon floor points in a scan
-     * every 8 blocks ({@link #floorScan}), water covers few, where it covers
-     * most of rivers'; the dry ones sit on distinct stepped levels; and the
-     * lowest reach sea level.
+     * every 8 blocks ({@link #floorScan}), water covers at most a quarter of
+     * the share it covers of rivers'; the dry ones sit on distinct stepped
+     * levels; and the lowest reach sea level. A dry point more than
+     * {@link #CAVE_BELOW_SEA} blocks below sea level is a cave mouth opening
+     * off the floor, not the floor, and is left out of the lowest.
      */
     private String canyons(Measure m, Measure c) {
         List<Floor> floors = floorScans.get("terrain_canyons_default");
@@ -439,18 +442,24 @@ public final class TerrainSelfTest {
         List<Integer> dryHeights = floors.stream().filter(f -> !f.wet()).map(Floor::surface).toList();
         List<Integer> levels = floorLevels(dryHeights);
         List<Integer> riverLevels = floorLevels(riverFloors.stream().filter(f -> !f.wet()).map(Floor::surface).toList());
-        int lowest = dryHeights.stream().mapToInt(Integer::intValue).min().orElse(Integer.MAX_VALUE);
+        long caveMouths = dryHeights.stream().filter(h -> h < m.sea - CAVE_BELOW_SEA).count();
+        int lowest = dryHeights.stream().mapToInt(Integer::intValue).filter(h -> h >= m.sea - CAVE_BELOW_SEA)
+                .min().orElse(Integer.MAX_VALUE);
+        double wet = 1 - dry;
+        double riverWet = 1 - riverDry;
         boolean network = t[2] >= 25 && share >= 0.01 && share >= 3 * controlShare;
-        boolean beds = floors.size() >= 100 && dry >= 0.8 && dry >= riverDry + 0.5 && levels.size() >= 3
+        boolean beds = floors.size() >= 100 && dry >= 0.8 && wet <= riverWet / 4 && levels.size() >= 3
                 && levels.size() > riverLevels.size() && lowest <= m.sea + 2;
         String line = m.area() + ": over the scan " + pct(share)
                 + " of points by land lie 20+ below both points 48 blocks away on one axis (needs 1% and three times continents' "
                 + pct(controlShare) + "); deepest cut below both columns 12 blocks away " + t[2] + " blocks (needs 25; continents "
                 + control[2] + ", a ravine); " + floors.size() + " canyon floor points every " + FLOOR_STEP + " blocks, " + FLOOR_CUT
                 + "+ below both points " + FLOOR_ACROSS + " blocks away on one axis (needs 100; rivers " + riverFloors.size() + "), "
-                + pct(dry) + " dry (needs 80% and 50 percentage points more than rivers' " + pct(riverDry) + "), " + levels.size()
+                + pct(dry) + " dry (needs 80%), " + pct(wet) + " wet (needs a quarter of rivers' " + pct(riverWet) + " or less: "
+                + pct(riverWet / 4) + "), " + levels.size()
                 + " dry floor levels at y " + levels + " (needs 3 and more than rivers' " + riverLevels.size() + "), lowest dry floor y "
-                + (dryHeights.isEmpty() ? "none" : lowest) + " (needs " + (m.sea + 2) + " or lower, at sea level " + m.sea + ")";
+                + (lowest == Integer.MAX_VALUE ? "none" : lowest) + " (needs " + (m.sea + 2) + " or lower, at sea level " + m.sea
+                + "; " + caveMouths + " cave mouths more than " + CAVE_BELOW_SEA + " below sea level left out)";
         return verdict(network && beds, beds ? line : line + "; dry floor heights " + histogram(dryHeights));
     }
 

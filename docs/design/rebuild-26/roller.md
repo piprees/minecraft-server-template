@@ -6,7 +6,7 @@ Zones guarantee the layout ([worldgen.md](worldgen.md#zones)); rolling picks the
 
 | Command | What it does |
 | --- | --- |
-| `/customdim render <dimension> [seed] [radius] [step]` | Draws top-down maps of surface biome and height (zones and structure starts join as layers) as PNGs with a JSON sidecar under `renders/<dimension>/` in the game directory, from the same sampler as the roller, off the server thread. Needs no chunks generated; a 256-pixel overworld render (radius 1024, step 8) takes about 20 s on two threads here, a 1024-pixel one about six minutes (the Nether's, with a 128-block column, about 40 s). It is what you look at when tuning a definition |
+| `/customdim render <dimension> [seed] [radius] [step] [centreX centreZ]` | Draws top-down maps, round 0,0 or the given centre, of surface biome and height (zones and structure starts join as layers) as PNGs with a JSON sidecar under `renders/<dimension>/` in the game directory, from the same sampler as the roller, off the server thread. Needs no chunks generated; a 256-pixel overworld render (radius 1024, step 8) takes about 20 s on two threads here, a 1024-pixel one about six minutes (the Nether's, with a 128-block column, about 40 s). It is what you look at when tuning a definition |
 | `/customdim roll <dimension> [count]` | Scores `count` seeds (default 100, at most 500) in the background, keeps the best ten, renders each (biome, height, structure starts) beside its scorecard JSON, and writes the contact sheet `renders/<dimension>/index.html` and the ranking `roll.json` |
 | `/customdim pick <dimension> <seed>`, `/customdim pick <dimension> rank <n>` | Writes the seed, or the last roll's rank `n`, into the definition file; it applies after the next restart |
 
@@ -14,11 +14,11 @@ Both are refused for a dimension whose region folder holds chunks, since worldge
 
 ## The sampler
 
-For a candidate seed, the roller builds the real generator state — the noise router, the biome source and the structure placement state (`ChunkGenerator.createState`, so the firewall's filter applies) — on a worker thread, without a level and without generating chunks. It samples:
+For a candidate seed, the roller builds the real generator state — the noise router, the biome source and the structure placement state (`ChunkGenerator.createState`, so the firewall's filter applies, with the dimension's structure control applied as the level applies it, recorded nowhere) — on a worker thread, without a level and without generating chunks. It samples:
 
 - a disc of 128 columns a side round the definition's spawn, covering the player border up to 2,048 blocks: biome shares and variety, ground, surface water, the 2nd to 98th percentile and interquartile range of ground heights, and zones;
 - a spawn patch of radius 128 at an 8-block step: the spawn biome, the share of dry columns with no step over 3 blocks to a neighbour, and the biome edge density;
-- structure starts of the wanted, shunned and gate structures out to the player border, up to 8,192 blocks: each chunk the set's placement picks, the structure chosen as `ChunkGenerator.createStructures` chooses it (weighted, seeded by the chunk), kept when its biome at the chunk's middle allows it. Later checks (terrain, jigsaw fit) are not made, so a start is a candidate generation can still drop.
+- structure starts of the wanted, shunned and gate structures out to the player border, up to 8,192 blocks: each chunk the set's placement picks, the structure chosen as `ChunkGenerator.createStructures` chooses it (weighted, seeded by the chunk, the next pick tried when one does not start), and confirmed as generation confirms it: `Structure.generate` with the structure's own generation point, biome and terrain checks, the control's biome bypass for forced and wanted sites, and the zones' shuns. A scored start is one the level records. Scoring reads the nearest start of each structure (and counts end cities), so the roller confirms sites nearest first and stops at one of each, 64 end cities.
 
 Scoring needs the disc to reach the player border for biome and terrain shares (it stops at 2,048 blocks, so a larger border is scored on its inner disc), and structure starts to reach the border, since `near_border` wants sit at 55–100 % of it.
 
@@ -57,6 +57,6 @@ Not carried over, because they measured facts the sampler does not produce:
 
 ## Gates
 
-- **Agreement:** for the overworld, the Nether and The Aviary, the sampler's biome at 50 random points matches a generated world exactly, its noise columns equal the level generator's, and its height matches wherever no carver, feature or structure changed the column; every height mismatch falls in a class the self-test names (`removed`, `flooded`, `added`, `filled`, `structure`). Structure-start candidates within 384 blocks of 0,0 in the overworld and the Nether cover every start those chunks record, except one whose structure picks its own point in the chunk (class `point`). `RollSelfTest` checks both on every self-test run.
+- **Agreement:** for the overworld, the Nether and The Aviary, the sampler's biome at 50 random points matches a generated world exactly, its noise columns equal the level generator's, and its height matches wherever no carver, feature or structure changed the column; every height mismatch falls in a class the self-test names (`removed`, `flooded`, `added`, `filled`, `structure`). The structure starts the roller scores within 384 blocks of 0,0 in the overworld and the Nether are exactly the starts those chunks record: none scored that generation drops, none recorded that the roller misses. `RollSelfTest` checks both on every self-test run.
 - **Render accuracy:** a render matches the same area walked in-game, zone edges included.
 - **Performance:** 100 seeds score in under ten minutes on the server, in the background, without dropping TPS below 19.

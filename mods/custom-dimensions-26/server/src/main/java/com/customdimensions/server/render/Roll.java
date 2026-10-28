@@ -151,7 +151,7 @@ public final class Roll {
         if (Criteria.NETHER.equals(target.dimension())) wanted.add("minecraft:fortress");
         if (Criteria.END.equals(target.dimension())) wanted.add("minecraft:end_city");
         List<RollFacts.Start> starts = wanted.isEmpty() ? List.of()
-                : StructureStarts.find(sampler, state, wanted::contains, plan.spawnX(), plan.spawnZ(), plan.structureRadius(), workers, StructureStarts.CAP);
+                : StructureStarts.find(sampler, state, wanted::contains, plan.spawnX(), plan.spawnZ(), plan.structureRadius(), workers, StructureStarts::scoringCap);
         return new RollFacts.Structures(pool, targets, starts);
     }
 
