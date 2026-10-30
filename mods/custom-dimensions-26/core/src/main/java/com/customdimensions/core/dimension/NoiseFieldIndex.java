@@ -161,6 +161,14 @@ public final class NoiseFieldIndex {
     public NoiseFieldIndex(long noiseSeed, NoiseProfile profile, int exclusion,
                            double[] radial, int radiusChunks, int spawnChunkX, int spawnChunkZ,
                            int clearSpawnChunks, Footprints footprints, Occupants occupants) {
+        this(noiseSeed, profile, exclusion, radial, radiusChunks, spawnChunkX, spawnChunkZ, clearSpawnChunks,
+                footprints, occupants, null);
+    }
+
+    /** As above, thinning {@code given} when it is not null instead of sampling the field again. */
+    private NoiseFieldIndex(long noiseSeed, NoiseProfile profile, int exclusion,
+                            double[] radial, int radiusChunks, int spawnChunkX, int spawnChunkZ,
+                            int clearSpawnChunks, Footprints footprints, Occupants occupants, Field given) {
         int r = Math.min(Math.max(radiusChunks, 0), MAX_RADIUS_CHUNKS);
         int excl = Math.max(1, exclusion);
         // The locate cell has to be sized from the SMALLEST separation the
@@ -177,104 +185,24 @@ public final class NoiseFieldIndex {
         this.spawnChunkZ = spawnChunkZ;
         this.radial = radial == null ? null : radial.clone();
 
-        // Samplers are bound ONCE here rather than looked up per call.
-        // NoiseProfile.evaluate resolves its sampler through a map; that
-        // lookup runs once per chunk per group, ~1M times for a large
-        // dimension, so binding it up front instead of on every call keeps
-        // world load fast.
-        double scale = NoiseProfile.frequencyScale(r);
-        double frequency = profile.frequency() * scale;
-        double coarseFrequency = profile.coarseFrequency() * scale;
-        double coarseThreshold = profile.coarseThreshold();
-        boolean cluster = profile.isCluster();
-        StructureNoise primary = new StructureNoise(noiseSeed);
-        StructureNoise fine = cluster
-                ? new StructureNoise(noiseSeed ^ NoiseProfile.FINE_SALT) : null;
-
-        // One pass to mark eligibility over the bounding box, so the
-        // neighbourhood test below reads arrays instead of re-evaluating the
-        // noise ~excl^2 times per candidate.
         int side = r * 2 + 1;
-        boolean[] eligible = new boolean[side * side];
-        // Ranks are cached alongside eligibility. Every eligible chunk is read
-        // once as a candidate and up to `disc size` times as a neighbour, so
-        // recomputing the hash on each read would cost tens of millions of
-        // mix64 calls on a large dense dimension. Only eligible entries are
-        // ever read.
-        long[] ranks = new long[side * side];
-        // Per-site claimed radius, HALF a separation each so two median sites
-        // sum back to exactly the separation the uniform path would have used.
-        // Null when no footprints were supplied, which keeps the integer path
-        // and its byte-identical output.
-        float[] radii = footprints == null ? null : new float[side * side];
-        double maxRadius = 0.0;
-        double rSquared = (double) r * r;
-        double threshold = profile.threshold();
-        // structures.clearSpawnRadius. Everything strictly inside the disc is
-        // not a candidate at all, which is the difference between this and the
-        // scoring penalty it replaces: a penalty can only regret a dungeon on
-        // spawn after the fact, and every seed still has one.
-        int clear = Math.max(0, clearSpawnChunks);
-        double clearSquared = (double) clear * clear;
-        for (int dz = -r; dz <= r; dz++) {
-            for (int dx = -r; dx <= r; dx++) {
-                double distSq = (double) dx * dx + (double) dz * dz;
-                if (distSq > rSquared) {
-                    continue;   // outside the world, stays false
-                }
-                if (clear > 0 && distSq < clearSquared) {
-                    continue;   // inside the spawn-clearance disc
-                }
-                // Weight 0.0 is the author's explicit hard suppression, and the
-                // only reason the curve can rule a chunk out. Everything else
-                // is candidate material at the profile's own rate, and the
-                // weight decides the packing instead (see exclusionFor).
-                // Tested before the noise so a suppressed band costs no Perlin
-                // work; the samples are independent per chunk, so skipping one
-                // cannot change another.
-                double weight = radialWeight(radial, Math.sqrt(distSq), r);
-                if (weight <= 0.0) {
-                    continue;
-                }
-                int cx = spawnChunkX + dx;
-                int cz = spawnChunkZ + dz;
-                double noise;
-                if (cluster) {
-                    double coarse = primary.sampleChunk(cx, cz, coarseFrequency);
-                    noise = coarse <= coarseThreshold
-                            ? 0.0 : fine.sampleChunk(cx, cz, frequency);
-                } else {
-                    noise = primary.sampleChunk(cx, cz, frequency);
-                }
-                if (noise > threshold) {
-                    int idx = (dz + r) * side + (dx + r);
-                    eligible[idx] = true;
-                    ranks[idx] = priority(noiseSeed, cx, cz);
-                    if (radii != null) {
-                        // One call per ELIGIBLE chunk, never per neighbour
-                        // pair. Same reason ranks are cached here: a candidate
-                        // is read once as itself and up to a disc's worth of
-                        // times as somebody's neighbour, and resolving the
-                        // pool on each of those reads is tens of millions of
-                        // weighted draws on a large dimension.
-                        float rad = (float) radiusOf(exclusionFor(excl, weight),
-                                footprints.factorAt(cx, cz));
-                        radii[idx] = rad;
-                        if (rad > maxRadius) {
-                            maxRadius = rad;
-                        }
-                    }
-                }
-            }
-        }
+        Field field = given != null ? given
+                : Field.sample(noiseSeed, profile, excl, radial, r, spawnChunkX, spawnChunkZ, clearSpawnChunks, footprints);
+        boolean[] eligible = field.eligible();
+        long[] ranks = field.ranks();
+        float[] radii = field.radii();
+        double maxRadius = field.maxRadius();
 
-        // Single O(r^2) pass. Walking outward ring by ring for spawn-first
+        // Without footprints, outranking() visits candidates by rank. With
+        // them, a single O(r^2) pass. Walking outward ring by ring for spawn-first
         // ordering would scan each ring's whole square and skip its interior,
         // making it O(r^3) — 1.8e8 iterations at radius 512. Order is
         // restored by sorting afterwards instead, which is both cheaper and
         // a stronger guarantee — nearest-first rather than ring-first.
-        List<ChunkPos> orderedPositions = new ArrayList<>();
-        for (int dz = -r; dz <= r; dz++) {
+        List<ChunkPos> orderedPositions = radii == null
+                ? outranking(eligible, ranks, side, r, excl, radial, spawnChunkX, spawnChunkZ)
+                : new ArrayList<>();
+        for (int dz = -r; radii != null && dz <= r; dz++) {
             int row = (dz + r) * side;
             for (int dx = -r; dx <= r; dx++) {
                 if (!eligible[row + (dx + r)]) {
@@ -289,14 +217,7 @@ public final class NoiseFieldIndex {
                 // order-free — every decision reads only the eligibility and
                 // rank arrays, never another decision — so parity with the
                 // Python mirror is still a set comparison.
-                if (radii == null) {
-                    int candidateExcl = exclusionFor(excl,
-                            radialWeight(radial, Math.sqrt((double) dx * dx + (double) dz * dz), r));
-                    if (!outranksNeighbours(eligible, ranks, side, r, dx, dz, candidateExcl,
-                            cx, cz, spawnChunkX, spawnChunkZ)) {
-                        continue;
-                    }
-                } else if (!outranksSizedNeighbours(eligible, ranks, radii, side, r, dx, dz,
+                if (!outranksSizedNeighbours(eligible, ranks, radii, side, r, dx, dz,
                         maxRadius, cx, cz, spawnChunkX, spawnChunkZ)) {
                     continue;
                 }
@@ -334,6 +255,137 @@ public final class NoiseFieldIndex {
         this.byRegion = Collections.unmodifiableMap(regions);
     }
 
+    /**
+     * The sampled field a group is thinned from: which chunks are eligible,
+     * their ranks, and (with footprints) each site's claimed radius. Without
+     * footprints it does not depend on the exclusion, so widening the
+     * exclusion thins the same field again ({@link #withinBudget}).
+     */
+    private record Field(boolean[] eligible, long[] ranks, float[] radii, double maxRadius) {
+
+        static Field sample(long noiseSeed, NoiseProfile profile, int excl, double[] radial, int r,
+                            int spawnChunkX, int spawnChunkZ, int clearSpawnChunks, Footprints footprints) {
+            // Samplers are bound ONCE here rather than looked up per call.
+            // NoiseProfile.evaluate resolves its sampler through a map; that
+            // lookup runs once per chunk per group, ~1M times for a large
+            // dimension, so binding it up front instead of on every call keeps
+            // world load fast.
+            double scale = NoiseProfile.frequencyScale(r);
+            double frequency = profile.frequency() * scale;
+            double coarseFrequency = profile.coarseFrequency() * scale;
+            double coarseThreshold = profile.coarseThreshold();
+            boolean cluster = profile.isCluster();
+            StructureNoise primary = new StructureNoise(noiseSeed);
+            StructureNoise fine = cluster
+                    ? new StructureNoise(noiseSeed ^ NoiseProfile.FINE_SALT) : null;
+
+            // One pass to mark eligibility over the bounding box, so the
+            // neighbourhood tests read arrays instead of re-evaluating the
+            // noise ~excl^2 times per candidate.
+            int side = r * 2 + 1;
+            boolean[] eligible = new boolean[side * side];
+            // Ranks are cached alongside eligibility. Every eligible chunk is read
+            // once as a candidate and up to `disc size` times as a neighbour, so
+            // recomputing the hash on each read would cost tens of millions of
+            // mix64 calls on a large dense dimension. Only eligible entries are
+            // ever read.
+            long[] ranks = new long[side * side];
+            // Per-site claimed radius, HALF a separation each so two median sites
+            // sum back to exactly the separation the uniform path would have used.
+            // Null when no footprints were supplied, which keeps the integer path
+            // and its byte-identical output.
+            float[] radii = footprints == null ? null : new float[side * side];
+            double maxRadius = 0.0;
+            double rSquared = (double) r * r;
+            double threshold = profile.threshold();
+            // structures.clearSpawnRadius. Everything strictly inside the disc is
+            // not a candidate at all, which is the difference between this and the
+            // scoring penalty it replaces: a penalty can only regret a dungeon on
+            // spawn after the fact, and every seed still has one.
+            int clear = Math.max(0, clearSpawnChunks);
+            double clearSquared = (double) clear * clear;
+            for (int dz = -r; dz <= r; dz++) {
+                for (int dx = -r; dx <= r; dx++) {
+                    double distSq = (double) dx * dx + (double) dz * dz;
+                    if (distSq > rSquared) {
+                        continue;   // outside the world, stays false
+                    }
+                    if (clear > 0 && distSq < clearSquared) {
+                        continue;   // inside the spawn-clearance disc
+                    }
+                    // Weight 0.0 is the author's explicit hard suppression, and the
+                    // only reason the curve can rule a chunk out. Everything else
+                    // is candidate material at the profile's own rate, and the
+                    // weight decides the packing instead (see exclusionFor).
+                    // Tested before the noise so a suppressed band costs no Perlin
+                    // work; the samples are independent per chunk, so skipping one
+                    // cannot change another.
+                    double weight = radialWeight(radial, Math.sqrt(distSq), r);
+                    if (weight <= 0.0) {
+                        continue;
+                    }
+                    int cx = spawnChunkX + dx;
+                    int cz = spawnChunkZ + dz;
+                    double noise;
+                    if (cluster) {
+                        double coarse = primary.sampleChunk(cx, cz, coarseFrequency);
+                        noise = coarse <= coarseThreshold
+                                ? 0.0 : fine.sampleChunk(cx, cz, frequency);
+                    } else {
+                        noise = primary.sampleChunk(cx, cz, frequency);
+                    }
+                    if (noise > threshold) {
+                        int idx = (dz + r) * side + (dx + r);
+                        eligible[idx] = true;
+                        ranks[idx] = priority(noiseSeed, cx, cz);
+                        if (radii != null) {
+                            // One call per ELIGIBLE chunk, never per neighbour
+                            // pair. Same reason ranks are cached here: a candidate
+                            // is read once as itself and up to a disc's worth of
+                            // times as somebody's neighbour, and resolving the
+                            // pool on each of those reads is tens of millions of
+                            // weighted draws on a large dimension.
+                            float rad = (float) radiusOf(exclusionFor(excl, weight),
+                                    footprints.factorAt(cx, cz));
+                            radii[idx] = rad;
+                            if (rad > maxRadius) {
+                                maxRadius = rad;
+                            }
+                        }
+                    }
+                }
+            }
+            return new Field(eligible, ranks, radii, maxRadius);
+        }
+    }
+
+    /**
+     * The group's index with its exclusion widened, at most {@code passes}
+     * times, while it holds more than {@code target} sites: each pass widens
+     * by the square root of the excess. The field is sampled once and thinned
+     * again on each pass; a target of 0 or less keeps the first.
+     */
+    public static NoiseFieldIndex withinBudget(long noiseSeed, NoiseProfile profile, int exclusion, double[] radial,
+                                               int radiusChunks, int spawnChunkX, int spawnChunkZ, int clearSpawnChunks,
+                                               int target, int passes) {
+        int r = Math.min(Math.max(radiusChunks, 0), MAX_RADIUS_CHUNKS);
+        Field field = Field.sample(noiseSeed, profile, Math.max(1, exclusion), radial, r, spawnChunkX, spawnChunkZ,
+                clearSpawnChunks, null);
+        NoiseFieldIndex index = new NoiseFieldIndex(noiseSeed, profile, exclusion, radial, radiusChunks,
+                spawnChunkX, spawnChunkZ, clearSpawnChunks, null, null, field);
+        int excl = exclusion;
+        for (int pass = 0; target > 0 && pass < passes && index.size() > target; pass++) {
+            int widened = (int) Math.ceil(excl * Math.sqrt(index.size() / (double) target));
+            if (widened <= excl) {
+                break;
+            }
+            excl = widened;
+            index = new NoiseFieldIndex(noiseSeed, profile, excl, radial, radiusChunks,
+                    spawnChunkX, spawnChunkZ, clearSpawnChunks, null, null, field);
+        }
+        return index;
+    }
+
     private static long distSqFrom(ChunkPos pos, int spawnChunkX, int spawnChunkZ) {
         long dx = pos.x() - (long) spawnChunkX;
         long dz = pos.z() - (long) spawnChunkZ;
@@ -362,44 +414,95 @@ public final class NoiseFieldIndex {
         return StructureNoise.mix64(h);
     }
 
+    /** Grid cell, in chunks, that {@link #outranking} files the chunks it has visited under. */
+    private static final int OUTRANK_CELL = 8;
+
     /**
-     * True when no other eligible chunk within the exclusion disc outranks
-     * this one. Ties fall back to the chunk key so the relation is a strict
-     * total order and exactly one of a tied pair can win.
+     * Every eligible chunk that no other eligible chunk within its own
+     * exclusion disc outranks. Chunks are visited highest rank first (ties on
+     * the lower chunk key, as the rule breaks them), so a chunk is outranked
+     * exactly when a chunk visited before it lies within its disc; visited
+     * chunks are filed in a grid searched ring by ring outward from the
+     * chunk, which stops at the first one found. The result is the rule's
+     * set; the caller orders it.
      */
-    private static boolean outranksNeighbours(boolean[] eligible, long[] ranks, int side, int r,
-                                              int dx, int dz, int exclusion,
-                                              int cx, int cz, int spawnChunkX, int spawnChunkZ) {
-        long key = ChunkPos.toLong(cx, cz);
-        long rank = ranks[(dz + r) * side + (dx + r)];
-        int exclSq = exclusion * exclusion;
-        for (int oz = -exclusion; oz <= exclusion; oz++) {
-            for (int ox = -exclusion; ox <= exclusion; ox++) {
-                if (ox == 0 && oz == 0) {
+    private static List<ChunkPos> outranking(boolean[] eligible, long[] ranks, int side, int r, int excl,
+                                             double[] radial, int spawnChunkX, int spawnChunkZ) {
+        int n = 0;
+        for (boolean e : eligible) {
+            if (e) {
+                n++;
+            }
+        }
+        Integer[] order = new Integer[n];
+        n = 0;
+        for (int i = 0; i < eligible.length; i++) {
+            if (eligible[i]) {
+                order[n++] = i;
+            }
+        }
+        java.util.Arrays.sort(order, (a, b) -> {
+            int cmp = Long.compareUnsigned(ranks[b], ranks[a]);
+            if (cmp != 0) {
+                return cmp;
+            }
+            return Long.compare(ChunkPos.toLong(spawnChunkX + a % side - r, spawnChunkZ + a / side - r),
+                    ChunkPos.toLong(spawnChunkX + b % side - r, spawnChunkZ + b / side - r));
+        });
+        int cells = (side + OUTRANK_CELL - 1) / OUTRANK_CELL;
+        int[][] filed = new int[cells * cells][];
+        int[] count = new int[cells * cells];
+        List<ChunkPos> out = new ArrayList<>();
+        for (int idx : order) {
+            int dx = idx % side - r;
+            int dz = idx / side - r;
+            int e = exclusionFor(excl, radialWeight(radial, Math.sqrt((double) dx * dx + (double) dz * dz), r));
+            if (!visitedWithin(filed, count, cells, side, idx, e)) {
+                out.add(new ChunkPos(spawnChunkX + dx, spawnChunkZ + dz));
+            }
+            int cell = (idx / side / OUTRANK_CELL) * cells + (idx % side / OUTRANK_CELL);
+            if (filed[cell] == null) {
+                filed[cell] = new int[4];
+            } else if (count[cell] == filed[cell].length) {
+                filed[cell] = java.util.Arrays.copyOf(filed[cell], count[cell] * 2);
+            }
+            filed[cell][count[cell]++] = idx;
+        }
+        return out;
+    }
+
+    /** Whether a filed chunk lies within {@code exclusion} of {@code idx} ({@code ox^2 + oz^2 <= exclusion^2}). */
+    private static boolean visitedWithin(int[][] filed, int[] count, int cells, int side, int idx, int exclusion) {
+        int x = idx % side;
+        int z = idx / side;
+        int cellX = x / OUTRANK_CELL;
+        int cellZ = z / OUTRANK_CELL;
+        long exclSq = (long) exclusion * exclusion;
+        int rings = exclusion / OUTRANK_CELL + 1;
+        for (int k = 0; k <= rings; k++) {
+            for (int gz = cellZ - k; gz <= cellZ + k; gz++) {
+                if (gz < 0 || gz >= cells) {
                     continue;
                 }
-                if (ox * ox + oz * oz > exclSq) {
-                    continue;
-                }
-                int nx = dx + ox;
-                int nz = dz + oz;
-                if (nx < -r || nx > r || nz < -r || nz > r) {
-                    continue;   // outside the world: nothing can be there
-                }
-                int nIdx = (nz + r) * side + (nx + r);
-                if (!eligible[nIdx]) {
-                    continue;
-                }
-                int cmp = Long.compareUnsigned(ranks[nIdx], rank);
-                if (cmp > 0) {
-                    return false;
-                }
-                if (cmp == 0 && ChunkPos.toLong(spawnChunkX + nx, spawnChunkZ + nz) < key) {
-                    return false;
+                boolean edge = gz == cellZ - k || gz == cellZ + k;
+                for (int gx = cellX - k; gx <= cellX + k; gx += edge || k == 0 ? 1 : 2 * k) {
+                    if (gx < 0 || gx >= cells) {
+                        continue;
+                    }
+                    int cell = gz * cells + gx;
+                    int[] items = filed[cell];
+                    for (int j = 0; j < count[cell]; j++) {
+                        int other = items[j];
+                        long ox = other % side - x;
+                        long oz = other / side - z;
+                        if (ox * ox + oz * oz <= exclSq) {
+                            return true;
+                        }
+                    }
                 }
             }
         }
-        return true;
+        return false;
     }
 
     /**

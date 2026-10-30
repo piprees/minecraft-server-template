@@ -85,6 +85,8 @@ public final class Sampler {
     private final StructureTemplateManager templates;
     private volatile StructureRuntime.Controlled control;
     private static final Object STARTS = new Object();
+    /** Attempts under the lock before a start that keeps tripping over a template palette fails. */
+    private static final int START_RETRIES = 8;
 
     private Sampler(String dimension, ChunkGenerator generator, int minY, int height, long seed, String seedSource,
                     RegistryAccess access, ResourceKey<Level> levelKey, StructureTemplateManager templates) {
@@ -214,16 +216,23 @@ public final class Sampler {
      */
     public boolean starts(Holder<Structure> structure, ChunkPos chunk) {
         // A structure template's palette fills its block cache without synchronisation, as it does on vanilla's worldgen
-        // threads; a start that trips over it is generated again alone.
+        // threads; a start that trips over it is generated again under a lock, a few times, since other threads may
+        // still be filling the cache (T147).
         if (templates == null) throw new IllegalStateException(dimension + ": a sampler made without a server cannot generate starts");
         if (StructureRuntime.zoneShunned(levelKey, structure, chunk)) return false;
         StructureRuntime.Controlled c = control();
         Predicate<Holder<Biome>> valid = c.bypasses(structure.value(), chunk) ? b -> true : structure.value().biomes()::contains;
         try {
             return generate(structure, chunk, c, valid);
-        } catch (java.util.ConcurrentModificationException e) {
+        } catch (java.util.ConcurrentModificationException first) {
             synchronized (STARTS) {
-                return generate(structure, chunk, c, valid);
+                for (int attempt = 1; ; attempt++) {
+                    try {
+                        return generate(structure, chunk, c, valid);
+                    } catch (java.util.ConcurrentModificationException again) {
+                        if (attempt == START_RETRIES) throw again;
+                    }
+                }
             }
         }
     }

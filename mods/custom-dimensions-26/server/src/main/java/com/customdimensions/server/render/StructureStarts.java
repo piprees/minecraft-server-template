@@ -1,6 +1,7 @@
 package com.customdimensions.server.render;
 
 import com.customdimensions.core.score.RollFacts;
+import com.customdimensions.server.structure.StructurePlacements;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.concurrent.CompletableFuture;
@@ -75,9 +76,24 @@ public final class StructureStarts {
         return find(sampler, state, wanted, cx, cz, radius, pool, capOf, id -> radius, null);
     }
 
-    /** Confirmations made and the time they took, by structure. Thread-safe. */
+    /** Confirmations made and the time they took, by structure, and the time spent building states and listing sites. Thread-safe. */
     public static final class Tally {
         private final Map<String, java.util.concurrent.atomic.LongAdder[]> by = new java.util.concurrent.ConcurrentHashMap<>();
+        private final java.util.concurrent.atomic.LongAdder stateNanos = new java.util.concurrent.atomic.LongAdder();
+        private final java.util.concurrent.atomic.LongAdder listNanos = new java.util.concurrent.atomic.LongAdder();
+
+        /** Adds time spent waiting for a seed's structure state. */
+        public void addState(long nanos) {
+            stateNanos.add(nanos);
+        }
+
+        public long stateNanos() {
+            return stateNanos.sum();
+        }
+
+        public long listNanos() {
+            return listNanos.sum();
+        }
 
         void add(String id, long nanos) {
             java.util.concurrent.atomic.LongAdder[] t = by.computeIfAbsent(id,
@@ -115,6 +131,7 @@ public final class StructureStarts {
         long seed = state.getLevelSeed();
         record Site(List<StructureSet.StructureSelectionEntry> entries, ChunkPos chunk, double distance) {}
         List<Site> sites = new ArrayList<>();
+        long listed = System.nanoTime();
         for (Holder<StructureSet> set : state.possibleStructureSets()) {
             List<StructureSet.StructureSelectionEntry> entries = set.value().structures();
             int reach = entries.stream().filter(sought).mapToInt(e -> Math.min(radius, radiusOf.applyAsInt(id(e.structure())))).max().orElse(-1);
@@ -127,6 +144,7 @@ public final class StructureStarts {
             }
         }
         sites.sort(java.util.Comparator.comparingDouble(Site::distance));
+        if (tally != null) tally.listNanos.add(System.nanoTime() - listed);
         Map<String, Integer> kept = new HashMap<>();
         List<RollFacts.Start> out = new ArrayList<>();
         int next = 0;
@@ -189,6 +207,11 @@ public final class StructureStarts {
                     if (pos.x() < minX || pos.x() > maxX || pos.z() < minZ || pos.z() > maxZ) continue;
                     if (placement.isStructureChunk(state, pos.x(), pos.z())) out.add(pos);
                 }
+            }
+        } else if (placement instanceof StructurePlacements.Noise noise) {
+            for (com.customdimensions.core.ChunkPos pos : noise.index().positions()) {
+                if (pos.x() < minX || pos.x() > maxX || pos.z() < minZ || pos.z() > maxZ) continue;
+                if (placement.isStructureChunk(state, pos.x(), pos.z())) out.add(new ChunkPos(pos.x(), pos.z()));
             }
         } else if (placement instanceof ConcentricRingsStructurePlacement rings) {
             for (ChunkPos pos : state.getRingPositionsFor(rings)) {

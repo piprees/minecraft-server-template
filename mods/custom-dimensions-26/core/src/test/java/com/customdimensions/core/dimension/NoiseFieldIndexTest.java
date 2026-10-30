@@ -460,4 +460,27 @@ class NoiseFieldIndexTest {
         // number is the thing to actually look at.
         assertTrue(millis < 3000, "took " + millis + "ms, expected well under 3s");
     }
+
+    @Test
+    void widenedWithinBudgetPlacesAsRebuildingEachPassDoes() {
+        double[][] curves = {null, INNER, OUTER};
+        for (String name : new String[] {"natural", "sparse", "cluster"}) {
+            NoiseProfile profile = NoiseProfile.fromString(name);
+            for (double[] curve : curves) {
+                for (int target : new int[] {0, 40, 400}) {
+                    NoiseFieldIndex legacy = new NoiseFieldIndex(SEED, profile, 3, curve, 160, 5, -7, 2);
+                    int excl = 3;
+                    for (int pass = 0; target > 0 && pass < 4 && legacy.size() > target; pass++) {
+                        int widened = (int) Math.ceil(excl * Math.sqrt(legacy.size() / (double) target));
+                        if (widened <= excl) break;
+                        excl = widened;
+                        legacy = new NoiseFieldIndex(SEED, profile, excl, curve, 160, 5, -7, 2);
+                    }
+                    NoiseFieldIndex fast = NoiseFieldIndex.withinBudget(SEED, profile, 3, curve, 160, 5, -7, 2, target, 4);
+                    assertEquals(legacy.positions(), fast.positions(), name + " target " + target);
+                    assertEquals(legacy.exclusion(), fast.exclusion(), name + " target " + target);
+                }
+            }
+        }
+    }
 }

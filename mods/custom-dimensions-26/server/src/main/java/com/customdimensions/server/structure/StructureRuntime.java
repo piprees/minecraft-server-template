@@ -411,20 +411,8 @@ public final class StructureRuntime {
                                  StructureSpec spec, int distinct) {
         long seed = levelSeed ^ StructureNoise.saltOf(level) ^ StructureNoise.saltOf(groupName);
         NoiseProfile profile = NoiseProfile.fromString(group.profile());
-        NoiseFieldIndex index = new NoiseFieldIndex(seed, profile, group.exclusion(), group.radial(), spec.radiusChunks(),
-                spec.spawnChunkX(), spec.spawnChunkZ(), group.clearSpawnChunks());
-        int target = distinct * profile.repetitionBudget();
-        int exclusion = group.exclusion();
-        for (int pass = 0; target > 0 && pass < 4 && index.size() > target; pass++) {
-            int widened = (int) Math.ceil(exclusion * Math.sqrt(index.size() / (double) target));
-            if (widened <= exclusion) {
-                break;
-            }
-            exclusion = widened;
-            index = new NoiseFieldIndex(seed, profile, exclusion, group.radial(), spec.radiusChunks(),
-                    spec.spawnChunkX(), spec.spawnChunkZ(), group.clearSpawnChunks());
-        }
-        return index;
+        return NoiseFieldIndex.withinBudget(seed, profile, group.exclusion(), group.radial(), spec.radiusChunks(),
+                spec.spawnChunkX(), spec.spawnChunkZ(), group.clearSpawnChunks(), distinct * profile.repetitionBudget(), 4);
     }
 
     /** Spacing and frequency factors by theme for density on vanilla grids. */

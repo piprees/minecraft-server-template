@@ -130,7 +130,7 @@ A push to `main` in a consumer repo triggers the caller workflow, which invokes 
 
 All of it lives in [`TROUBLESHOOTING.md`](TROUBLESHOOTING.md) — architecture traps (T1–T149), macOS local-dev quirks (P1–P6), dimension lifecycle (D1–D9), open issues (K1–K15). Every entry has a permanent anchor; cite them precisely (`TROUBLESHOOTING.md#t14`). Start any diagnosis with `./ops doctor`; the forbidden-actions list is at the top of that file.
 
-**A retired id is never reused.** Retired: T15, T20, T21, T22, T23, T26, T28, T29, T81, T86, T89, T93, T94, T96; D1, D4, D5, D7; K3, K4, K8, K10, K11, K15. A new entry takes the next number above the prefix's highest, never a gap.
+**A retired id is never reused.** Retired: T15, T20, T21, T22, T23, T26, T28, T29, T81, T86, T89, T93, T94, T96; D1, D4, D5, D7; K3, K4, K8, K10, K11, K14, K15. A new entry takes the next number above the prefix's highest, never a gap.
 
 |  |  |
 | --- | --- |

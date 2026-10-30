@@ -36,6 +36,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.function.IntConsumer;
 import java.util.function.LongFunction;
@@ -114,8 +115,14 @@ public final class Roll {
         long sampleNanos = 0;
         long structureNanos = 0;
         StructureStarts.Tally tally = new StructureStarts.Tally();
-        for (long seed : plan.seeds()) {
-            Sampler sampler = samplers.apply(seed);
+        List<Long> seeds = List.copyOf(plan.seeds());
+        CompletableFuture<Sampler> next = seeds.isEmpty() ? null : prepared(samplers, seeds.getFirst());
+        for (int i = 0; i < seeds.size(); i++) {
+            long seed = seeds.get(i);
+            long waited = System.nanoTime();
+            Sampler sampler = joined(next);
+            tally.addState(System.nanoTime() - waited);
+            if (i + 1 < seeds.size()) next = prepared(samplers, seeds.get(i + 1));
             long t0 = System.nanoTime();
             ColumnSamples disc = job.sample(sampler, plan.disc(), pool, progress, inside(plan.disc()), null);
             ColumnSamples patch = job.sample(sampler, FactsBuilder.patchGrid(plan.spawnX(), plan.spawnZ()), pool, progress);
@@ -139,6 +146,24 @@ public final class Roll {
                 plan.dimension(), millis, rate, job.threads(), best.isEmpty() ? "none" : best.getFirst().seed(), sheet);
         return new Outcome(plan.dimension(), plan.seeds().size(), List.copyOf(best), sheet, millis, rate, job.threads(),
                 sampleNanos / 1_000_000, structureNanos / 1_000_000, sheetMillis, tally);
+    }
+
+    /** The sampler for {@code seed} with its structure state built, off the caller's thread, so it overlaps the seed before. */
+    static CompletableFuture<Sampler> prepared(LongFunction<Sampler> samplers, long seed) {
+        return CompletableFuture.supplyAsync(() -> {
+            Sampler sampler = samplers.apply(seed);
+            sampler.structureState();
+            return sampler;
+        });
+    }
+
+    private static Sampler joined(CompletableFuture<Sampler> future) {
+        try {
+            return future.join();
+        } catch (java.util.concurrent.CompletionException e) {
+            if (e.getCause() instanceof RuntimeException cause) throw cause;
+            throw e;
+        }
     }
 
     static long discColumns(RenderGrid grid) {

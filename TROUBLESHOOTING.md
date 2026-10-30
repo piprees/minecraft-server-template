@@ -1615,7 +1615,7 @@ A seed's map and its banked facts appear to contradict each other — the thumbn
 
 - **Symptom:** `ConcurrentModificationException` in `StructureTemplate$Palette.blocks` while rolls generate structure starts on several threads.
 - **Cause:** the palette's block cache is a plain `HashMap`.
-- **Fix:** a start that throws it is retried alone under a lock (`StructureStarts`).
+- **Fix:** a start that throws it is retried under a lock, up to eight times, since other threads may still be filling the cache (`Sampler.starts`).
 
 <a id="t146"></a>
 ### T146 — A dry zone keeps a lava sheet below y −54
@@ -3239,17 +3239,9 @@ The rendered height disagrees with the facts on high-relief columns. The error i
 
 ### K13 — Noise-group structure sites are built on the server thread
 
-- **Symptom:** "Can't keep up!" when the overworld starts (7–12 s) or a lazy level first opens (up to about 1.4 s).
-- **Cause:** opening a dimension builds every noise group's site index synchronously (`StructureRuntime`, `NoiseFieldIndex`).
-- **Status:** under the 60 s watchdog; to fix, build it off the server thread, lazily per region, or cached.
-
-<a id="k14"></a>
-
-### K14 — Rolling 100 seeds takes longer than ten minutes
-
-- **Symptom:** `roll performance` (`-PselfTestOnly=rollperf`) fails: 100 overworld seeds in 856.8 s against 600 s, TPS 20.
-- **Cause:** sampling 297 s; confirming scored structure starts 502 s (45,648 `Structure.generate` calls; trial chambers 69 ms each, failing about 19 times a seed; listing candidate sites to 8,192 blocks for every set); the contact sheet 57 s.
-- **Status:** open. Next: confirm without building pieces, find why trial chambers fail, list sites more cheaply.
+- **Symptom:** "Can't keep up!" when the overworld starts (about 6.6 s behind) or a lazy level first opens.
+- **Cause:** opening a dimension builds every noise group's site index synchronously (`StructureRuntime`, `NoiseFieldIndex`); the overworld's takes 570 ms, so most of the start-up stall is elsewhere and unmeasured.
+- **Status:** open. Next: time the overworld's start-up by stage, then build the indexes off the server thread if they still matter.
 
 ## Common symptoms
 
