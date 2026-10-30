@@ -1,4 +1,66 @@
 {
-  "input": 0.0,
+  "input": {
+    "alpha": {
+      "input": {
+        "left": {
+          "spline": {
+            "coordinate": {
+              "input": {
+                "noise": "adventure:terrain/gorge",
+                "shift_x": "minecraft:shift_x",
+                "shift_z": "minecraft:shift_z",
+                "type": "minecraft:noise",
+                "xz_scale": 1.0,
+                "y_scale": 0.0
+              },
+              "type": "minecraft:abs"
+            },
+            "points": [
+              {
+                "derivative": 0.0,
+                "location": 0.0,
+                "value": 1.0
+              },
+              {
+                "derivative": 0.0,
+                "location": 0.036,
+                "value": 1.0
+              },
+              {
+                "derivative": 0.0,
+                "location": 0.06,
+                "value": 0.15
+              },
+              {
+                "derivative": 0.0,
+                "location": 0.096,
+                "value": 0.0
+              }
+            ]
+          },
+          "type": "minecraft:spline"
+        },
+        "right": {
+          "input": {
+            "left": {
+              "left": "adventure:terrain/terrain_canyons/continents",
+              "right": 0.15,
+              "type": "minecraft:add"
+            },
+            "right": 6.66666667,
+            "type": "minecraft:mul"
+          },
+          "max": 1.0,
+          "min": 0.0,
+          "type": "minecraft:clamp"
+        },
+        "type": "minecraft:mul"
+      },
+      "type": "minecraft:cache"
+    },
+    "first": 0.0,
+    "second": 0.0,
+    "type": "minecraft:lerp"
+  },
   "type": "minecraft:cache"
 }

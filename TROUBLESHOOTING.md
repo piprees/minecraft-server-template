@@ -1596,6 +1596,13 @@ A seed's map and its banked facts appear to contradict each other — the thumbn
   the same trap. Pin it against the Java, not against intuition —
   `scripts/e2e/portal-matrix-selftest.sh` is the worked example.
 
+<a id="t149"></a>
+### T149 — A steep factor steps the ground at the noise-cell grid
+
+- **Symptom:** walls and floors drop by a cell (4 blocks across, 8 up) between neighbouring columns, every fourth row (z ≡ 1 mod 4 in `/customdim render`), and caverns open a block or two under a floor.
+- **Cause:** vanilla's final density caps the solid side near the surface at `min(cheese, 5 * entrances)` (about 1) and, once the cheese reaches 1.5625, takes its cavern branch, whose solid values are near 0.05. A factor far above the land's (canyons had 64) makes the cheese reach 1.5625 a block under the surface and its air side −5 to −12, so the cell's interpolation pulls every surface to its solid corner.
+- **Fix:** keep the land's factor and weaken vanilla's 3D noise where the ground must follow the height (`Shape.noiseWeight`; canyons use 1/16 inside the channel). Spires still use factor 24 over their columns.
+
 <a id="t148"></a>
 ### T148 — A dry zone's edge needs a margin past its compiled mask
 
@@ -3243,14 +3250,6 @@ The rendered height disagrees with the facts on high-relief columns. The error i
 - **Symptom:** `roll performance` (`-PselfTestOnly=rollperf`) fails: 100 overworld seeds in 856.8 s against 600 s, TPS 20.
 - **Cause:** sampling 297 s; confirming scored structure starts 502 s (45,648 `Structure.generate` calls; trial chambers 69 ms each, failing about 19 times a seed; listing candidate sites to 8,192 blocks for every set); the contact sheet 57 s.
 - **Status:** open. Next: confirm without building pieces, find why trial chambers fail, list sites more cheaply.
-
-<a id="k15"></a>
-
-### K15 — The canyon belt's north edge has a seam
-
-- **Symptom:** `zones belt north edge` fails: blend step p99.9 24 against 18 inside the zone; one row of 16 column pairs at z 420→421 steps 28 blocks (119 → 91, badlands, mask 0.76 → 0.77).
-- **Cause:** not found. The step is in the noise column itself; it does not move with the final-density switch (0.5 or 0.75), a whole-cheese lerp or separate depth/factor/jaggedness lerps. Unchecked: an overhang edge between the shaped and zone final densities near mask 0.75, and the cheese `range_choice` at 1.5625 under the blended cheese.
-- **Status:** open; the self-test line reports the biome, mask and noise-only height at the largest blend step.
 
 ## Common symptoms
 

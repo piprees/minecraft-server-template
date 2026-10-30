@@ -224,18 +224,24 @@ public enum TerrainFamily {
     /**
      * What a terrain contributes: surface height in blocks, vanilla's factor and
      * jaggedness, a 3D cut and a 3D addition (null: none), the router's
-     * continentalness as biomes should read it, and the weight of vanilla's
-     * 3D noise.
+     * continentalness as biomes should read it, the weight of vanilla's 3D
+     * noise, and a function that weighs it further where it varies (null:
+     * none).
      */
     record Shape(JsonElement height, JsonElement factor, JsonElement jaggedness, JsonElement cut, JsonElement plus,
-                 JsonElement continents, double noise3d) {
+                 JsonElement continents, double noise3d, JsonElement noiseWeight) {
+
+        Shape(JsonElement height, JsonElement factor, JsonElement jaggedness, JsonElement cut, JsonElement plus,
+              JsonElement continents, double noise3d) {
+            this(height, factor, jaggedness, cut, plus, continents, noise3d, null);
+        }
 
         Shape withHeight(JsonElement h) {
-            return new Shape(h, factor, jaggedness, cut, plus, continents, noise3d);
+            return new Shape(h, factor, jaggedness, cut, plus, continents, noise3d, noiseWeight);
         }
 
         Shape withFactor(JsonElement f) {
-            return new Shape(height, f, jaggedness, cut, plus, continents, noise3d);
+            return new Shape(height, f, jaggedness, cut, plus, continents, noise3d, noiseWeight);
         }
     }
 
@@ -295,8 +301,13 @@ public enum TerrainFamily {
 
     /** Share of each cascade step that is the fall rather than the flat floor. */
     static final double CASCADE_RISER = 0.05;
-    /** Vanilla's {@code factor} inside a canyon: steep enough that the 3D noise lifts a floor by a block at most. */
-    static final double CHANNEL_FACTOR = 64;
+    /**
+     * The weight of vanilla's 3D noise inside a canyon: small enough that it
+     * lifts a floor by a block at most under the land's own factor. The factor
+     * stays the land's, so caves start as deep below a canyon as below the land
+     * and a cell interpolates a wall between corners of like size (T149).
+     */
+    static final double CHANNEL_NOISE = 1 / 16.0;
     /** Blocks a pool sinks below its floor. */
     static final double POOL_DEPTH = 4;
 
@@ -307,8 +318,9 @@ public enum TerrainFamily {
      * the way, and the floor is stepped {@code cascadeStep} apart into flat
      * reaches with dry falls between them. Where the grade noise lies in its
      * lowest {@code pools} share the floor sinks into a hollow, which holds
-     * water where the floor is at sea level. The ground follows the height
-     * closely inside the channel so floors stay flat and walls steep.
+     * water where the floor is at sea level. Inside the channel the 3D noise
+     * and jaggedness fall away, so the ground follows the height: floors stay
+     * flat and walls steep.
      */
     private static Shape canyons(Ctx ctx) {
         Shape land = ctx.land();
@@ -331,8 +343,8 @@ public enum TerrainFamily {
             floor = sub(floor, mul(ramp(grade, low, low - 0.1 * sigma), POOL_DEPTH));
         }
         JsonElement h = lerp(profile, height, min(height, floor));
-        JsonElement factor = lerp(profile, land.factor(), c(CHANNEL_FACTOR));
-        return new Shape(h, factor, land.jaggedness(), null, null, land.continents(), land.noise3d());
+        return new Shape(h, land.factor(), lerp(profile, land.jaggedness(), c(0)), null, null, land.continents(), land.noise3d(),
+                lerp(profile, c(1), c(CHANNEL_NOISE)));
     }
 
     private static Shape rivers(Ctx ctx) {

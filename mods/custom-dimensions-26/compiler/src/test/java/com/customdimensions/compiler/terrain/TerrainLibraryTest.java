@@ -166,7 +166,10 @@ class TerrainLibraryTest {
                 "pools and the grade both start at the grade noise's lowest tenth: " + low);
         assertTrue(h.contains("\"right\":4.0}"), "pools sink 4 blocks");
         assertTrue(c.files().containsKey("data/adventure/worldgen/noise/terrain/grade.json"));
-        assertTrue(text(c.files().get(P + "factor.json")).contains("\"second\":64.0"), "the ground follows the height inside the channel");
+        String cheese = text(c.files().get(P + "sloped_cheese.json"));
+        assertTrue(cheese.contains("\"second\":" + TerrainFamily.CHANNEL_NOISE), "the 3D noise falls away inside the channel");
+        assertFalse(text(c.files().get(P + "factor.json")).contains("\"second\""), "the factor stays the land's");
+        assertTrue(text(c.files().get(P + "jaggedness.json")).contains("\"second\":0.0"), "no jagged peaks inside the channel");
     }
 
     @Test

@@ -343,6 +343,14 @@ public final class ZoneSelfTest {
 
     // ---- the canyon belt ----------------------------------------------------------------------
 
+    /**
+     * How many strips of generated chunks cross the belt's north edge, and
+     * how far apart: one canyon wall running along a single strip would
+     * decide its percentiles alone.
+     */
+    static final int BELT_STRIPS = 4;
+    static final int BELT_STRIP_SPACING = 640;
+
     private CompletableFuture<Void> belt(Fixture f) {
         ZoneMask mask = f.zones().zones().getFirst().mask();
         double margin = 2 * mask.jitter();
@@ -365,7 +373,9 @@ public final class ZoneSelfTest {
             }
         }, worker);
         List<ChunkPos> strip = new ArrayList<>();
-        for (int z = -160; z <= 720; z += 16) strip.add(new ChunkPos(0, z >> 4));
+        for (int x = 0; x < BELT_STRIPS * BELT_STRIP_SPACING; x += BELT_STRIP_SPACING) {
+            for (int z = -160; z <= 720; z += 16) strip.add(new ChunkPos(x >> 4, z >> 4));
+        }
         return scan.thenCompose(v -> load(f.level(), strip)).thenAccept(loaded -> {
             lines.add(edge("belt north edge", f, mask, loaded, false));
             loaded.forEach(c -> f.level().setChunkForced(c.getPos().x(), c.getPos().z(), false));
@@ -373,9 +383,9 @@ public final class ZoneSelfTest {
     }
 
     /**
-     * The height difference between neighbouring columns along a transect of
-     * generated chunks (x for the ring, z for the belt), over the 16 rows of the
-     * strip, in three windows by the compiled (jittered) mask at both columns:
+     * The height difference between neighbouring columns along transects of
+     * generated chunks (x for the ring, z for the belt), over every row of the
+     * strips, in three windows by the compiled (jittered) mask at both columns:
      * inside the zone (1 at both), outside it (0 at both) and the blend (any
      * other pair), so the zone's own terrain where the jitter pushes the edge
      * out counts as the zone's, not the blend's. A seam or cliff is a step in the blend larger
@@ -404,13 +414,17 @@ public final class ZoneSelfTest {
         }
         double margin = 2 * mask.jitter();
         List<List<Integer>> steps = List.of(new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
-        int across = alongX ? chunks.getFirst().getPos().getMinBlockZ() : chunks.getFirst().getPos().getMinBlockX();
+        java.util.SortedSet<Integer> rows = new java.util.TreeSet<>();
+        for (LevelChunk chunk : chunks) {
+            int first = alongX ? chunk.getPos().getMinBlockZ() : chunk.getPos().getMinBlockX();
+            for (int r = 0; r < 16; r++) rows.add(first + r);
+        }
         int[] largestAt = {0, 0, 0, -1, 0, 0};
         List<int[]> blendSteps = new ArrayList<>();
         List<int[]> byWeight = new ArrayList<>();
         int[] zoneNearEdge = new int[2];
         for (int along = lo; along < hi; along++) {
-            for (int row = across; row < across + 16; row++) {
+            for (int row : rows) {
                 int x = alongX ? along : row;
                 int z = alongX ? row : along;
                 Integer h0 = heights.get(key(x, z));

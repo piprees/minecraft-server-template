@@ -149,7 +149,7 @@ public final class TerrainLibrary {
 
     /**
      * {@code 4 * quarter_negative((depth + jaggedness * half_negative(jagged)) * factor)}
-     * plus vanilla's 3D noise, as vanilla's overworld writes it; then the
+     * plus vanilla's 3D noise (weighed by the shape's), as vanilla's overworld writes it; then the
      * terrain's cut (a minimum) and addition (a maximum).
      */
     private static JsonObject slopedCheese(String prefix, TerrainFamily.Shape shape, double scale) {
@@ -158,6 +158,9 @@ public final class TerrainLibrary {
         JsonElement surface = mul(unary("quarter_negative", mul(depth, ref(prefix + "/factor"))), 4);
         JsonElement noise3d = shape.noise3d() == 1 ? ref("minecraft:overworld/base_3d_noise")
                 : mul(ref("minecraft:overworld/base_3d_noise"), shape.noise3d());
+        if (shape.noiseWeight() != null) {
+            noise3d = mul(noise3d, shape.noiseWeight());
+        }
         JsonElement density = add(surface, noise3d);
         if (shape.cut() != null) {
             density = min(density, shape.cut());
