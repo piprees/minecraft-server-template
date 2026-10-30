@@ -1,0 +1,32 @@
+name: Dependency Review Relay
+
+# Hands a Dependabot PR to dep-review.yml. The relay runs the PR's copy of this
+# file with a token that can do nothing but dispatch, and dep-review.yml runs
+# main's definition and re-checks the PR from the API, so editing this file in
+# a PR gains nothing. Fork PRs get a read-only token and cannot dispatch.
+# synchronize re-dispatches on rebases; the gate skips those in seconds when
+# the version set is unchanged.
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions: {}
+
+jobs:
+  relay:
+    name: Dispatch dependency review
+    if: >-
+      github.actor == 'dependabot[bot]'
+      && github.event.pull_request.user.login == 'dependabot[bot]'
+      && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      actions: write
+    steps:
+      - name: Dispatch
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+        run: gh workflow run dep-review.yml --repo "$GITHUB_REPOSITORY" --ref main -f pr="$PR"

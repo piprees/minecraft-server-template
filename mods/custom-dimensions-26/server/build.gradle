@@ -1,0 +1,126 @@
+plugins {
+	id 'net.fabricmc.fabric-loom'
+}
+
+base {
+	archivesName = 'customdimensions'
+}
+
+repositories {
+	maven {
+		name = 'Nucleoid'
+		url = 'https://maven.nucleoid.xyz/'
+	}
+	maven {
+		name = 'Modrinth'
+		url = 'https://api.modrinth.com/maven'
+		content {
+			includeGroup 'maven.modrinth'
+		}
+	}
+}
+
+dependencies {
+	minecraft "com.mojang:minecraft:${project.minecraft_version}"
+	implementation "net.fabricmc:fabric-loader:${project.loader_version}"
+	implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+
+	// Runtime levels (decisions.md RB-10). LGPL, nested unmodified.
+	implementation "xyz.nucleoid:fantasy:${project.fantasy_version}"
+	include "xyz.nucleoid:fantasy:${project.fantasy_version}"
+
+	// The portal block (decisions.md RB-11, RB-26). Loom's include is not transitive, so each module is nested.
+	for (module in ['polymer-core', 'polymer-common', 'polymer-networking', 'polymer-reg-sync-manipulator']) {
+		implementation "eu.pb4:${module}:${project.polymer_version}"
+		include "eu.pb4:${module}:${project.polymer_version}"
+	}
+
+	// Open Parties and Claims, for the aura claim veto in runServer only; the mod reaches it by reflection.
+	localRuntime "maven.modrinth:open-parties-and-claims:${project.opac_version}"
+	localRuntime "maven.modrinth:forge-config-api-port:${project.forge_config_api_port_version}"
+	// -PfirewallProbe: The Lost Cities, a 26.3 Fabric mod adding the dimension lostcities:lostcity, so the firewall refuses to start.
+	if (project.hasProperty('firewallProbe')) {
+		localRuntime "maven.modrinth:the-lost-cities:${project.lostcities_version}"
+	}
+	// -PstructureMods=<dir>: the 26.3 list's structure mods (the jars the committed bridges adopt, their libraries), for measuring sizes.
+	if (project.hasProperty('structureMods')) {
+		def dir = file(project.property('structureMods'))
+		def wanted = ['ATi Structure', 'Epic Dungeons', 'deadly-deadly-dungeon', 'dungeons-and-taverns', 't_and_t-fabric',
+				'MoogsEndStructures', 'MoogsNetherStructures', 'MoogsSoaringStructures', 'MoogsTemplesReimagined',
+				'MoogsVoyagerStructures', 'MoogsStructureLib', 'cristellib']
+		localRuntime files(dir.listFiles().findAll { f -> f.name.endsWith('.jar') && wanted.any { f.name.startsWith(it) } }.sort())
+	}
+
+	implementation project(':core')
+	implementation project(':compiler')
+	include project(':core')
+	include project(':compiler')
+
+	testImplementation platform("org.junit:junit-bom:${project.junit_version}")
+	testImplementation 'org.junit.jupiter:junit-jupiter'
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+processResources {
+	def version = project.version
+	inputs.property 'version', version
+	filesMatching('fabric.mod.json') {
+		expand 'version': version
+	}
+}
+
+// -PselfTest adds the fixture dimensions in src/selftest/definitions to a copy of
+// definitions/; runServer reads that copy. The release jar never carries them.
+def selfTestRun = project.hasProperty('selfTest') && !project.hasProperty('definitions')
+def selfTestDefinitions = layout.buildDirectory.dir('selftest-definitions')
+// It also adds each library terrain's default from src/selftest/gallery; -PterrainGallery=<dir> adds every
+// gallery setting and renders them all into <dir>.
+tasks.register('selfTestDefinitions', Sync) {
+	from file('../definitions')
+	from file('src/selftest/definitions')
+	from(file('src/selftest/gallery')) {
+		if (!project.hasProperty('terrainGallery')) include '*_default.json'
+	}
+	into selfTestDefinitions
+}
+
+loom {
+	runs {
+		server {
+			programArg '--nogui'
+			// -PselfTest=<file> runs the start-up self-test, writes its report and stops the server.
+			vmArg "-Dcustomdimensions.selftest=${project.findProperty('selfTest') ?: ''}"
+			// -PselfTestOnly=exits|commands|materials|render|firewall|terrain|zones|structures: the compiled-pack section and that one only.
+			vmArg "-Dcustomdimensions.selftest.only=${project.findProperty('selfTestOnly') ?: ''}"
+			vmArg "-Dcustomdimensions.selftest.gallery=${project.findProperty('terrainGallery') ?: ''}"
+			// -PselfTestPersist=write|verify: the two-boot persistence check, run with the self-test.
+			vmArg "-Dcustomdimensions.selftest.persist=${project.findProperty('selfTestPersist') ?: ''}"
+			// -PmeasureStructures=<file>: measure every registered structure's start, write the sizes and the bridges' size slots, stop.
+			vmArg "-Dcustomdimensions.structuresizes=${project.findProperty('measureStructures') ?: ''}"
+			// The mod compiles definitions/ into the world's pack at start-up from the running game's vanilla files,
+			// as in production. -Pdefinitions=<dir> runs against another definitions folder.
+			vmArg "-Dcustomdimensions.definitions=${project.findProperty('definitions') ?: (selfTestRun ? selfTestDefinitions.get().asFile.absolutePath : file('../definitions').canonicalPath)}"
+			// The firewall's bridges, as config/custom-dimensions/bridges/ holds them in production. -Pbridges=<dir> reads another folder.
+			vmArg "-Dcustomdimensions.bridges=${project.findProperty('bridges') ?: file('../bridges').canonicalPath}"
+			// The extracted vanilla files, only for the self-test's equivalence line against the running game.
+			vmArg "-Dcustomdimensions.vanilla.reference=${project(':compiler').layout.buildDirectory.dir("vanilla/${project.minecraft_version}").get().asFile.absolutePath}"
+		}
+	}
+}
+
+tasks.matching { it.name == 'runServer' }.configureEach {
+	dependsOn ':compiler:vanillaData'
+	if (selfTestRun) {
+		dependsOn 'selfTestDefinitions'
+	}
+}
+
+tasks.named('test') {
+	dependsOn ':compiler:vanillaData'
+	systemProperty 'customdimensions.vanilla',
+			project(':compiler').layout.buildDirectory.dir("vanilla/${project.minecraft_version}").get().asFile.absolutePath
+	systemProperty 'customdimensions.definitions', file('../definitions').canonicalPath
+	// -PwriteFixtures rewrites the companion wire fixtures, which the companion client keeps a copy of.
+	systemProperty 'customdimensions.fixtures.write',
+			project.hasProperty('writeFixtures') ? file('src/test/resources/companion-fixtures').absolutePath : ''
+}

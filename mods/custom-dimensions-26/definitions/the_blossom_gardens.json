@@ -1,0 +1,162 @@
+{
+  "schemaVersion": 2,
+  "description": "Cherry-blossom gardens where the first villagers planted a life worth protecting. Villages and taverns grew among the petals, peaceful by decree. The portal at the centre is the oldest gate in the garden — everything was built around it.",
+  "seed": -1484124298185960397,
+  "spawn": [768, 92, 640],
+  "generator": {
+    "type": "noise",
+    "preset": "overworld"
+  },
+  "terrain": {
+    "base": null
+  },
+  "biomes": [
+    "minecraft:meadow",
+    "minecraft:flower_forest",
+    "minecraft:birch_forest",
+    "minecraft:old_growth_birch_forest",
+    "minecraft:sunflower_plains",
+    "minecraft:river",
+    "minecraft:beach",
+    "terralith:lavender_valley",
+    "terralith:blooming_valley",
+    "terralith:sakura_grove",
+    "terralith:moonlight_valley",
+    "terralith:moonlight_grove",
+    "terralith:blooming_plateau",
+    "terralith:lush_valley",
+    "terralith:temperate_highlands",
+    "minecraft:plains",
+    "minecraft:forest",
+    "terralith:sakura_valley",
+    {
+      "id": "natures_spirit:wisteria_forest",
+      "climate": {
+        "humidity": [-0.77, -0.68]
+      }
+    },
+    {
+      "id": "natures_spirit:carnation_fields",
+      "climate": {
+        "humidity": [-0.64, -0.55]
+      }
+    },
+    "terralith:lavender_forest",
+    {
+      "id": "regions_unexplored:poppy_fields",
+      "climate": {
+        "humidity": [-0.51, -0.42]
+      }
+    },
+    {
+      "id": "regions_unexplored:clover_plains",
+      "climate": {
+        "humidity": [-0.38, -0.29]
+      }
+    },
+    {
+      "id": "regions_unexplored:glistering_meadow",
+      "climate": {
+        "humidity": [-0.25, -0.16]
+      }
+    },
+    {
+      "id": "regions_unexplored:orchard",
+      "climate": {
+        "humidity": [-0.12, -0.03]
+      }
+    },
+    {
+      "id": "natures_spirit:lavender_fields",
+      "climate": {
+        "humidity": [0.02, 0.1]
+      }
+    },
+    {
+      "id": "natures_spirit:floral_ridges",
+      "climate": {
+        "humidity": [0.15, 0.23]
+      }
+    },
+    {
+      "id": "natures_spirit:marigold_meadows",
+      "climate": {
+        "humidity": [0.28, 0.37]
+      }
+    },
+    {
+      "id": "regions_unexplored:flower_fields",
+      "climate": {
+        "humidity": [0.41, 0.49]
+      }
+    },
+    "minecraft:cherry_grove"
+  ],
+  "borders": {
+    "player": 4096,
+    "generation": 2048
+  },
+  "difficulty": {
+    "mobMultiplier": 0.0,
+    "playerLuck": 3.0,
+    "hostileSpawning": false
+  },
+  "structures": {
+    "force": [
+      {
+        "structure": "dungeons_arise:mushroom_house",
+        "x": -1450,
+        "z": 980,
+        "exclusive": false
+      }
+    ]
+  },
+  "portals": [
+    {
+      "frameBlock": "minecraft:cherry_planks",
+      "igniterItem": "minecraft:cherry_sapling",
+      "color": "FFB7C5",
+      "lightLevel": 11,
+      "scale": 2.0,
+      "cooldown": 40,
+      "particleType": "minecraft:cherry_leaves",
+      "shape": "doorway",
+      "anchor": {
+        "pos": "spawn",
+        "exit": "bed"
+      },
+      "sounds": {
+        "ignite": "block.portal.trigger",
+        "enter": "block.portal.travel",
+        "exit": "block.portal.travel"
+      }
+    }
+  ],
+  "exitPortal": {
+    "enabled": true,
+    "pos": "spawn",
+    "target": "bed"
+  },
+  "roll": {
+    "mood": "serene",
+    "spawnFilter": [
+      "minecraft:cherry_grove"
+    ],
+    "wants": {
+      "village": "near_spawn",
+      "tavern": "spread",
+      "farmstead": "near_spawn",
+      "guide_post_warm": "near_spawn",
+      "abandoned_chapel": "spread",
+      "campsite": "near_spawn",
+      "lighthouse": "near_border"
+    },
+    "shuns": [
+      "ancient_city",
+      "trial_chambers",
+      "mansion",
+      "coliseum",
+      "monument"
+    ]
+  }
+}

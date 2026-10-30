@@ -1,0 +1,164 @@
+{
+  "schemaVersion": 2,
+  "description": "Deep old-growth forest with roots in everything. The witches' experiments took hold here — the forest grew around their work and made it its own. The roots go a long way down, and they did not stop at stone.",
+  "seed": -4466427064329235351,
+  "spawn": [256, 57, -64],
+  "generator": {
+    "type": "noise",
+    "preset": "overworld"
+  },
+  "biomes": [
+    {
+      "id": "natures_spirit:redwood_forest",
+      "climate": {
+        "weirdness": [-2.0, -0.19],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "minecraft:dark_forest",
+      "climate": {
+        "weirdness": [-0.19, -0.1486],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "terralith:shield",
+      "climate": {
+        "weirdness": [-0.1486, -0.1071],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "minecraft:old_growth_spruce_taiga",
+      "climate": {
+        "weirdness": [-0.1071, -0.0657],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "minecraft:forest",
+      "climate": {
+        "weirdness": [-0.0657, -0.0243],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "terralith:forested_highlands",
+      "climate": {
+        "weirdness": [-0.0243, 0.0171],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "regions_unexplored:old_growth_forest",
+      "climate": {
+        "weirdness": [0.0171, 0.0586],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "regions_unexplored:willow_forest",
+      "climate": {
+        "weirdness": [0.0586, 0.1],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "wilderwild:old_growth_dark_forest",
+      "climate": {
+        "weirdness": [0.1, 2.0],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "minecraft:lush_caves",
+      "climate": {
+        "weirdness": [-2.0, -0.045],
+        "depth": [0.1, 0.6]
+      }
+    },
+    {
+      "id": "terralith:cave/infested_caves",
+      "climate": {
+        "weirdness": [-0.045, 2.0],
+        "depth": [0.1, 0.6]
+      }
+    },
+    {
+      "id": "incendium:withered_forest",
+      "climate": {
+        "weirdness": [-2.0, 2.0],
+        "depth": [0.6, 2.0]
+      }
+    }
+  ],
+  "borders": {
+    "player": 1024,
+    "generation": 1024
+  },
+  "difficulty": {
+    "mobMultiplier": 1.2,
+    "playerLuck": 1.4,
+    "depthScaling": {
+      "enabled": true,
+      "startY": 40,
+      "endY": -60,
+      "minMultiplier": 1.2,
+      "maxMultiplier": 2.4
+    }
+  },
+  "structures": {
+    "radial": {
+      "dungeons": [0.0, 0.1, 0.3, 0.5, 0.8, 1.0, 1.3, 1.6, 1.8, 2.0]
+    },
+    "force": [
+      {
+        "structure": "nova_structures:creeping_crypt",
+        "x": 620,
+        "z": -580,
+        "exclusive": false
+      },
+      {
+        "structure": "ati_structures:wither_cavern",
+        "x": -540,
+        "z": 660
+      }
+    ]
+  },
+  "portals": [
+    {
+      "frameBlock": "minecraft:rooted_dirt",
+      "igniterItem": "minecraft:amethyst_shard",
+      "color": "7B5E3B",
+      "lightLevel": 11,
+      "scale": 8.0,
+      "cooldown": 40,
+      "sounds": {
+        "ignite": "block.portal.trigger",
+        "enter": "block.portal.travel",
+        "exit": "block.portal.travel"
+      }
+    }
+  ],
+  "roll": {
+    "mood": "adventurous",
+    "spawnFilter": [
+      "minecraft:forest"
+    ],
+    "wants": {
+      "forest_ruin": "spread",
+      "old_manor": "near_border",
+      "spider_dungeon": "spread",
+      "mansion": "near_border",
+      "lush_dungeon": "spread",
+      "creeping_crypt": "spread",
+      "infested_dungeon": "spread",
+      "mouldy_dungeon": "spread"
+    },
+    "shuns": [
+      "monument",
+      "coliseum"
+    ]
+  }
+}

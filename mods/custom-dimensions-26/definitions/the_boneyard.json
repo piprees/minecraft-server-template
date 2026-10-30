@@ -1,0 +1,172 @@
+{
+  "schemaVersion": 2,
+  "description": "The battlefield. Piglins met endermen here and neither side won. Bones of giants lie in soul sand, a crashed ship rusts in the distance, and the sculk that crept in wasn't either side's weapon — it fed on the war itself.",
+  "seed": 1361319130510927200,
+  "spawn": [-64, 53, 0],
+  "generator": {
+    "type": "noise",
+    "preset": "nether"
+  },
+  "biomes": [
+    {
+      "id": "minecraft:deep_dark",
+      "climate": {
+        "temperature": [-2.0, -0.8352]
+      }
+    },
+    {
+      "id": "betternether:bone_reef",
+      "climate": {
+        "temperature": [-0.8352, -0.6762]
+      }
+    },
+    {
+      "id": "minecraft:soul_sand_valley",
+      "climate": {
+        "temperature": [-0.6762, -0.1768]
+      }
+    },
+    {
+      "id": "betternether:soul_plain",
+      "climate": {
+        "temperature": [-0.1768, -0.1168]
+      }
+    },
+    {
+      "id": "betternether:sulfuric_bone_reef",
+      "climate": {
+        "temperature": [-0.1168, -0.0547]
+      }
+    },
+    {
+      "id": "incendium:ash_barrens",
+      "climate": {
+        "temperature": [-0.0547, 0.0512]
+      }
+    },
+    {
+      "id": "regions_unexplored:blackstone_basin",
+      "climate": {
+        "temperature": [0.0512, 0.0977]
+      }
+    },
+    {
+      "id": "minecraft:basalt_deltas",
+      "climate": {
+        "temperature": [0.0977, 0.1629]
+      }
+    },
+    {
+      "id": "regions_unexplored:ancient_delta",
+      "climate": {
+        "temperature": [0.1629, 0.2058]
+      }
+    },
+    {
+      "id": "incendium:toxic_heap",
+      "climate": {
+        "temperature": [0.2058, 0.3044]
+      }
+    },
+    {
+      "id": "incendium:withered_forest",
+      "climate": {
+        "temperature": [0.3044, 2.0]
+      }
+    }
+  ],
+  "atmosphere": {
+    "fogColor": "#D8C8A0",
+    "ambientLight": 0.08
+  },
+  "borders": {
+    "player": 1024,
+    "generation": 1024
+  },
+  "difficulty": {
+    "mobMultiplier": 1.8,
+    "playerLuck": 1.8
+  },
+  "structures": {
+    "density": "dense",
+    "force": [
+      {
+        "structure": "mns:giant_skull",
+        "x": 172,
+        "z": 38
+      },
+      {
+        "structure": "mns:giant_skull",
+        "x": -284,
+        "z": 193
+      },
+      {
+        "structure": "philipsruins:bone_dungeon",
+        "x": 47,
+        "z": -311
+      },
+      {
+        "structure": "betterdungeons:skeleton_dungeon",
+        "x": -218,
+        "z": -176
+      },
+      {
+        "structure": "nova_structures:skeleton_camp_soul",
+        "x": 335,
+        "z": 267
+      },
+      {
+        "structure": "mes:mega_ship_crashed",
+        "x": -412,
+        "z": -378
+      }
+    ]
+  },
+  "portals": [
+    {
+      "frameBlock": "minecraft:bone_block",
+      "igniterItem": "minecraft:flint_and_steel",
+      "color": "D8C8A0",
+      "lightLevel": 11,
+      "scale": 8.0,
+      "cooldown": 40,
+      "sounds": {
+        "ignite": "block.portal.trigger",
+        "enter": "block.portal.travel",
+        "exit": "block.portal.travel"
+      },
+      "aura": {
+        "subsume": "everything",
+        "palette": [
+          "minecraft:bone_block",
+          "minecraft:soul_soil",
+          "minecraft:soul_sand",
+          "minecraft:basalt",
+          "minecraft:sculk"
+        ],
+        "flora": [
+          "minecraft:dead_bush"
+        ],
+        "fireChance": 0.04
+      }
+    }
+  ],
+  "roll": {
+    "mood": "hard",
+    "spawnFilter": [
+      "minecraft:soul_sand_valley",
+      "incendium:ash_barrens"
+    ],
+    "wants": {
+      "nether_graveyard": "spread",
+      "nether_dungeon": "spread",
+      "infernal_altar": "spread"
+    },
+    "shuns": [
+      "piglin_village",
+      "crimson_fungus",
+      "crimson_forge",
+      "warped_outpost"
+    ]
+  }
+}

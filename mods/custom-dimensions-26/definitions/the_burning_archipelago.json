@@ -1,0 +1,149 @@
+{
+  "schemaVersion": 2,
+  "description": "Burning islands in a void sea — nether terrain on end-island bones. The piglins and endermen fought across these straits; the islands that survived still smoulder.",
+  "seed": -1914160344645756922,
+  "spawn": [256, 0, 448],
+  "generator": {
+    "type": "noise",
+    "preset": "end",
+    "endIsland": false
+  },
+  "biomes": [
+    "minecraft:crimson_forest",
+    "minecraft:warped_forest",
+    "minecraft:basalt_deltas",
+    "minecraft:nether_wastes",
+    "incendium:volcanic_deltas",
+    "incendium:ash_barrens",
+    "incendium:infernal_dunes",
+    "incendium:withered_forest",
+    "minecraft:soul_sand_valley",
+    "incendium:toxic_heap",
+    "incendium:weeping_valley",
+    {
+      "id": "nullscape:void_barrens",
+      "climate": {
+        "weirdness": [-2.0, -0.5]
+      }
+    },
+    {
+      "id": "regions_unexplored:inferno",
+      "climate": {
+        "weirdness": [-0.335, -0.19]
+      }
+    },
+    {
+      "id": "regions_unexplored:infernal_holt",
+      "climate": {
+        "weirdness": [-0.055, -0.005]
+      }
+    },
+    {
+      "id": "paradise_lost:calcite_craglands",
+      "climate": {
+        "weirdness": [0.19, 0.3]
+      }
+    },
+    {
+      "id": "terralith:volcanic_peaks",
+      "climate": {
+        "weirdness": [0.3, 2.0]
+      }
+    }
+  ],
+  "liquids": {
+    "seaLevel": -60,
+    "defaultFluid": "minecraft:lava"
+  },
+  "materials": {
+    "defaultBlock": "minecraft:netherrack"
+  },
+  "dimensionType": {
+    "hasCeiling": false
+  },
+  "atmosphere": {
+    "fogColor": "#3B2B4B",
+    "ambientLight": 0.1,
+    "effects": "minecraft:the_end"
+  },
+  "rules": {
+    "ultraWarm": true
+  },
+  "borders": {
+    "player": 4096,
+    "generation": 2048
+  },
+  "difficulty": {
+    "mobMultiplier": 2.0,
+    "playerLuck": 1.6
+  },
+  "structures": {
+    "force": [
+      {
+        "structure": "structory_towers:nether/warped_outpost",
+        "x": -40,
+        "z": 700,
+        "exclusive": false
+      },
+      {
+        "structure": "minecraft:bastion_remnant",
+        "x": 1400,
+        "z": -900,
+        "exclusive": false
+      }
+    ]
+  },
+  "portals": [
+    {
+      "frameBlock": "minecraft:crimson_planks",
+      "igniterItem": "minecraft:flint_and_steel",
+      "color": "DF4B2B",
+      "lightLevel": 11,
+      "scale": 2.0,
+      "cooldown": 40,
+      "sounds": {
+        "ignite": "block.portal.trigger",
+        "enter": "block.portal.travel",
+        "exit": "block.portal.travel"
+      },
+      "aura": {
+        "subsume": "everything",
+        "palette": [
+          "minecraft:netherrack",
+          "minecraft:magma_block",
+          "minecraft:basalt"
+        ],
+        "fluids": [
+          "minecraft:lava"
+        ],
+        "fireChance": 0.06
+      }
+    }
+  ],
+  "roll": {
+    "mood": "adventurous",
+    "allowHazardousSpawn": true,
+    "spawnFilter": [
+      "minecraft:crimson_forest",
+      "incendium:volcanic_deltas",
+      "minecraft:basalt_deltas",
+      "minecraft:nether_wastes",
+      "minecraft:warped_forest",
+      "incendium:ash_barrens",
+      "incendium:infernal_dunes"
+    ],
+    "terrain": "islands",
+    "wants": {
+      "bastion": "spread",
+      "fortress": "spread",
+      "giant_skull": "spread",
+      "nether_tower": "spread",
+      "crimson_forge": "spread",
+      "warped_outpost": "near_spawn",
+      "ruined_portal": "near_spawn"
+    },
+    "shuns": [
+      "piglin_village"
+    ]
+  }
+}

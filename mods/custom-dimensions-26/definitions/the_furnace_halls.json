@@ -1,0 +1,77 @@
+{
+  "schemaVersion": 2,
+  "description": "Classic nether halls — fortress corridors that defined piglin military power. A mega-fortress anchors the far end, built when the piglin empire was at its height. Brick and fire all the way down.",
+  "seed": 4702348154996830415,
+  "spawn": [128, 138, -128],
+  "generator": {
+    "type": "noise",
+    "preset": "nether"
+  },
+  "biomes": [
+    "minecraft:nether_wastes",
+    "minecraft:basalt_deltas",
+    "minecraft:crimson_forest",
+    "incendium:volcanic_deltas",
+    "minecraft:soul_sand_valley"
+  ],
+  "borders": {
+    "player": 1024,
+    "generation": 1024
+  },
+  "difficulty": {
+    "mobMultiplier": 1.8,
+    "playerLuck": 1.6
+  },
+  "structures": {
+    "terrainAdaptation": {
+      "mns:mega_fortress": "pedestal"
+    },
+    "force": [
+      {
+        "structure": "betterfortresses:fortress",
+        "x": 138,
+        "z": 57,
+        "exclusive": false
+      },
+      {
+        "structure": "mns:mega_fortress",
+        "x": -476,
+        "z": -83
+      }
+    ]
+  },
+  "portals": [
+    {
+      "frameBlock": "minecraft:chiseled_nether_bricks",
+      "igniterItem": "minecraft:flint_and_steel",
+      "color": "FF6B2B",
+      "lightLevel": 11,
+      "scale": 8.0,
+      "cooldown": 40,
+      "sounds": {
+        "ignite": "block.portal.trigger",
+        "enter": "block.portal.travel",
+        "exit": "block.portal.travel"
+      }
+    }
+  ],
+  "roll": {
+    "mood": "adventurous",
+    "spawnFilter": [
+      "minecraft:nether_wastes",
+      "minecraft:basalt_deltas"
+    ],
+    "wants": {
+      "fortress": "near_spawn",
+      "nether_brick_hall": "spread",
+      "nether_reactor": "near_border",
+      "copper_tower": "spread",
+      "pipeline": "spread",
+      "blackstone_walls": "spread"
+    },
+    "shuns": [
+      "piglin_village",
+      "warped_outpost"
+    ]
+  }
+}

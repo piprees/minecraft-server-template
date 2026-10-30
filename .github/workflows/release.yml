@@ -18,8 +18,31 @@ permissions:
   contents: write
 
 jobs:
+  # Consumers pinned to a major (STACK_VERSION=v5) take every release in it,
+  # so a breaking commit (`type!:` or a BREAKING CHANGE footer; the merged
+  # next-major worldgen PR is one) may only ship in a new major.
+  semver:
+    name: Version matches the changes
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+          persist-credentials: false
+
+      - name: Refuse a non-major release over breaking changes
+        env:
+          VERSION: ${{ inputs.version }}
+        run: ./scripts/check-release-version.sh "$VERSION"
+
   smoke-test:
     name: Smoke test
+    needs: semver
     uses: ./.github/workflows/smoke-test.yml
     permissions:
       contents: read
@@ -45,10 +68,18 @@ jobs:
             exit 1
           fi
 
+      - name: Read the Minecraft version
+        id: mc
+        # .minecraft-version through scripts/lib.sh: the JDK and the in-house
+        # mod manifests follow it.
+        run: |
+          source scripts/lib.sh
+          echo "java=$(mc_version_field java)" >> "$GITHUB_OUTPUT"
+
       - uses: actions/setup-java@v5
         with:
           distribution: temurin
-          java-version: '21'
+          java-version: ${{ steps.mc.outputs.java }}
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v6
@@ -56,7 +87,7 @@ jobs:
           gradle-version: '8.13'
 
       - name: Build in-house mods
-        # Ship the REMAPPED jar from build/libs/ — never the -dev jar from
+        # Ships the built jar from build/libs/ — never the -dev jar from
         # build/devlibs/. Dev jars use Yarn named mappings and carry no refmap,
         # so every mixin fails on a production server (intermediary names) and
         # the server crash-loops at boot.
@@ -64,72 +95,22 @@ jobs:
         # the jar reports the release that built it, so a checker can tell a
         # census from this stack from one an earlier stack left on disk.
         run: |
-          mkdir -p dist/local-mods
           MOD_VERSION="${{ inputs.version }}"
-          MOD_VERSION="${MOD_VERSION#v}"
-          while IFS='|' read -r JAR_NAME PROJECT REF_MAP; do
-            [[ -z "$JAR_NAME" || "$JAR_NAME" == \#* ]] && continue
-            (
-              cd "mods/$PROJECT"
-              gradle build -Pmod_version="$MOD_VERSION"
-              JAR=$(find build/libs -name '*.jar' ! -name '*-sources.jar' ! -name '*-dev.jar')
-              cp "$JAR" "../../dist/local-mods/$JAR_NAME"
-            )
-          done < mods/local-mods.manifest
+          ./scripts/local-mods.sh build server dist/local-mods --mod-version "${MOD_VERSION#v}"
           # Client-environment mods ship through the modpack, never to a server.
-          [[ -f mods/client-mods.manifest ]] || exit 0
-          mkdir -p dist/client-mods
-          while IFS='|' read -r JAR_NAME PROJECT REF_MAP; do
-            [[ -z "$JAR_NAME" || "$JAR_NAME" == \#* ]] && continue
-            (
-              cd "mods/$PROJECT"
-              gradle build -Pmod_version="$MOD_VERSION"
-              JAR=$(find build/libs -name '*.jar' ! -name '*-sources.jar' ! -name '*-dev.jar')
-              cp "$JAR" "../../dist/client-mods/$JAR_NAME"
-            )
-          done < mods/client-mods.manifest
+          ./scripts/local-mods.sh build client dist/client-mods --mod-version "${MOD_VERSION#v}"
 
-      - name: Verify mod JAR is remapped
-        # Guards against the empty/unremapped jar failure mode: the jar must
-        # contain compiled classes and the mixin refmap Loom generates during
-        # remapping. An unremapped or empty jar ships a production crash loop.
+      - name: Verify mod JARs
+        # Guards against the empty/unremapped jar failure mode: compiled
+        # classes, and the mixin refmap Loom generates while remapping unless
+        # the manifest row declares a non-remapping build. An unremapped or
+        # empty jar ships a production crash loop.
         run: |
-          while IFS='|' read -r JAR_NAME PROJECT REF_MAP; do
-            [[ -z "$JAR_NAME" || "$JAR_NAME" == \#* ]] && continue
-            JAR="dist/local-mods/$JAR_NAME"
-            if ! unzip -l "$JAR" | grep -q "$REF_MAP"; then
-              echo "::error::$JAR is missing $REF_MAP — remapJar produced an unremapped or empty jar"
-              exit 1
-            fi
-            CLASSES=$(unzip -l "$JAR" | grep -c '\.class$' || true)
-            if [[ "$CLASSES" -lt 10 ]]; then
-              echo "::error::$JAR contains only $CLASSES classes — remapJar output looks empty"
-              exit 1
-            fi
-          done < mods/local-mods.manifest
-          [[ -f mods/client-mods.manifest ]] || exit 0
-          while IFS='|' read -r JAR_NAME PROJECT REF_MAP; do
-            [[ -z "$JAR_NAME" || "$JAR_NAME" == \#* ]] && continue
-            JAR="dist/client-mods/$JAR_NAME"
-            if ! unzip -l "$JAR" | grep -q "$REF_MAP"; then
-              echo "::error::$JAR is missing $REF_MAP — remapJar produced an unremapped or empty jar"
-              exit 1
-            fi
-            CLASSES=$(unzip -l "$JAR" | grep -c '\.class$' || true)
-            if [[ "$CLASSES" -lt 1 ]]; then
-              echo "::error::$JAR contains no classes — remapJar output is empty"
-              exit 1
-            fi
-            # grep without -q: -q exits at the first match and the resulting
-            # SIGPIPE upstream reads as a pipeline failure under pipefail.
-            if ! unzip -p "$JAR" fabric.mod.json | tr -d ' \n' | grep '"environment":"client"' > /dev/null; then
-              echo "::error::$JAR is in client-mods.manifest but does not declare environment client"
-              exit 1
-            fi
-          done < mods/client-mods.manifest
+          ./scripts/local-mods.sh verify server dist/local-mods
+          ./scripts/local-mods.sh verify client dist/client-mods
 
       - name: Stamp version defaults
-        # BEFORE the bundle: both .env.example files are in its MANIFEST, so
+        # BEFORE the bundle: every stamped file is in its MANIFEST, so
         # stamping here means the tarball ships a correct pin even when the
         # commit-back below loses its race and no-ops.
         run: ./scripts/stamp-version-defaults.sh "${{ inputs.version }}"
@@ -140,22 +121,26 @@ jobs:
       - name: Verify declared local mods are in the bundle
         run: |
           BUNDLE="dist/stack-${{ inputs.version }}.tar.gz"
-          while IFS='|' read -r JAR_NAME PROJECT REF_MAP; do
-            [[ -z "$JAR_NAME" || "$JAR_NAME" == \#* ]] && continue
-            tar -tzf "$BUNDLE" | grep -qx "stack/local-mods/$JAR_NAME" \
+          tar -tzf "$BUNDLE" > "$RUNNER_TEMP/bundle.txt"
+          while IFS='|' read -r JAR_NAME _; do
+            grep -qx "stack/local-mods/$JAR_NAME" "$RUNNER_TEMP/bundle.txt" \
               || { echo "::error::Bundle is missing $JAR_NAME"; exit 1; }
-          done < mods/local-mods.manifest
-          [[ -f mods/client-mods.manifest ]] || exit 0
-          while IFS='|' read -r JAR_NAME PROJECT REF_MAP; do
-            [[ -z "$JAR_NAME" || "$JAR_NAME" == \#* ]] && continue
-            tar -tzf "$BUNDLE" | grep -qx "stack/client-mods/$JAR_NAME" \
+          done < <(./scripts/local-mods.sh rows server)
+          while IFS='|' read -r JAR_NAME _; do
+            grep -qx "stack/client-mods/$JAR_NAME" "$RUNNER_TEMP/bundle.txt" \
               || { echo "::error::Bundle is missing client mod $JAR_NAME"; exit 1; }
-          done < mods/client-mods.manifest
+          done < <(./scripts/local-mods.sh rows client)
+
+      # One pin for release.yml and release-train.yml, kept in a plain file so
+      # platform-updates.yml can bump it (GITHUB_TOKEN cannot push workflows).
+      - name: Read the git-cliff version
+        id: cliff
+        run: echo "version=v$(tr -d '[:space:]' < .github/git-cliff-version)" >> "$GITHUB_OUTPUT"
 
       - name: Generate release notes
         uses: orhun/git-cliff-action@v4.8.0
         with:
-          version: v2.13.1
+          version: ${{ steps.cliff.outputs.version }}
           # --unreleased --tag, not --latest: this runs BEFORE the release
           # is created, so the version being cut has no tag yet and --latest
           # resolves to the PREVIOUS release (v4.3.1 shipped v4.3.0's notes).
@@ -172,53 +157,38 @@ jobs:
         # in a run step fails with exit 127 (broke the first v3.1.0 cut).
         uses: orhun/git-cliff-action@v4.8.0
         with:
-          version: v2.13.1
+          version: ${{ steps.cliff.outputs.version }}
           # --tag for the same reason: without it the version being released
           # lands under an "Unreleased" heading in CHANGELOG.md.
           args: --tag ${{ inputs.version }} -o CHANGELOG.md
 
-      - name: Create draft release with assets, then publish
+      - name: Create the draft release with its assets
+        # Stays a draft until the images job has built every version-tagged
+        # image: consumers resolve pins through the releases API, which
+        # never lists drafts, so no consumer can pick up a bundle whose
+        # images do not exist yet.
         run: |
           gh release create "${{ inputs.version }}" \
             dist/stack-*.tar.gz dist/stack-*.sha256 \
             --draft --notes-file dist/RELEASE_NOTES.md --target "${GITHUB_SHA}" \
             --title "${{ inputs.version }}"
-          gh release edit "${{ inputs.version }}" --draft=false
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Commit CHANGELOG.md and version defaults
-        # Best-effort AFTER the release is published: main can move during a
-        # release (another merge landing mid-run made this push non-fast-
-        # forward and failed the whole job — v3.1.0, 2026-07-22 — which
-        # skipped the images job and shipped a release with no version-tagged
-        # images). Rebase-and-retry, and never fail the job over a changelog.
-        continue-on-error: true
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add CHANGELOG.md .env.example examples/consumer/.env.example
-          if ! git diff --cached --quiet; then
-            git commit -m "chore: update CHANGELOG.md and version defaults for ${{ inputs.version }}"
-            for attempt in 1 2 3; do
-              git push origin HEAD:main && break
-              echo "push rejected (attempt $attempt) — rebasing onto moved main"
-              git pull --rebase origin main
-            done
-          fi
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Advance major tag
-        # Also best-effort: consumers resolve symbolic pins via the releases
-        # API, not this tag — it must never block the images job.
-        continue-on-error: true
-        run: |
-          MAJOR=$(echo "${{ inputs.version }}" | grep -oE '^v[0-9]+')
-          if [[ -n "$MAJOR" ]]; then
-            git tag -f "$MAJOR" "${GITHUB_SHA}"
-            git push origin "$MAJOR" --force
-          fi
+      - name: Keep the changelog and version defaults for the publish job
+        uses: actions/upload-artifact@v7
+        with:
+          name: release-files
+          path: |
+            CHANGELOG.md
+            .env.example
+            examples/consumer/.env.example
+            examples/consumer/.stack-version
+            examples/consumer/.github/workflows/deploy.yml
+          # Every version default is a dotfile or under .github; without this
+          # the artefact carries CHANGELOG.md alone.
+          include-hidden-files: true
+          retention-days: 7
 
   # Rebuild all container images from this exact commit. publish.yml is
   # reusable (workflow_call); calling it here means the release run won't
@@ -235,3 +205,59 @@ jobs:
     permissions:
       contents: read
       packages: write
+
+  publish:
+    name: Publish the release
+    needs: [bundle, images]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Publish the draft
+        run: gh release edit "${{ inputs.version }}" --draft=false
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Restore the changelog and version defaults
+        uses: actions/download-artifact@v8
+        with:
+          name: release-files
+
+      - name: Commit CHANGELOG.md and version defaults
+        # Best-effort after publishing: main can move during a release, so
+        # rebase-and-retry and never fail the release over a changelog.
+        continue-on-error: true
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add CHANGELOG.md .env.example examples/consumer/.env.example \
+            examples/consumer/.stack-version examples/consumer/.github/workflows/deploy.yml
+          if ! git diff --cached --quiet; then
+            git commit -m "chore: update CHANGELOG.md and version defaults for ${{ inputs.version }}"
+            for attempt in 1 2 3; do
+              git push origin HEAD:main && break
+              echo "push rejected (attempt $attempt) — rebasing onto moved main"
+              git pull --rebase origin main
+            done
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Advance major tag
+        # Best-effort: consumers resolve symbolic pins via the releases API,
+        # not this tag.
+        continue-on-error: true
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          MAJOR=$(echo "$VERSION" | grep -oE '^v[0-9]+')
+          if [[ -n "$MAJOR" ]]; then
+            git tag -f "$MAJOR" "${GITHUB_SHA}"
+            git push origin "$MAJOR" --force
+          fi

@@ -1,0 +1,111 @@
+{
+  "schemaVersion": 2,
+  "description": "Serene oasis pools glowing at dusk. A hermit's paradise — desert shrines mark where travellers stopped to rest, but nobody built a town. The pools are older than the shrines.",
+  "seed": -1377572764665618126,
+  "spawn": [320, 66, 64],
+  "generator": {
+    "type": "noise",
+    "preset": "overworld"
+  },
+  "biomes": [
+    "terralith:desert_oasis",
+    "terralith:warm_river",
+    "terralith:lush_valley",
+    "terralith:orchid_swamp",
+    "minecraft:warm_ocean",
+    "minecraft:mangrove_swamp",
+    "minecraft:jungle",
+    "minecraft:sparse_jungle",
+    "minecraft:lush_caves",
+    "terralith:cave/tuff_caves",
+    {
+      "id": "regions_unexplored:glistering_meadow",
+      "climate": {
+        "humidity": [-0.25, -0.11]
+      }
+    },
+    {
+      "id": "regions_unexplored:tropics",
+      "climate": {
+        "humidity": [0.02, 0.16]
+      }
+    },
+    {
+      "id": "wilderwild:oasis",
+      "climate": {
+        "humidity": [0.29, 0.43]
+      }
+    }
+  ],
+  "borders": {
+    "player": 1024,
+    "generation": 1024
+  },
+  "difficulty": {
+    "mobMultiplier": 0.6,
+    "playerLuck": 1.8
+  },
+  "structures": {
+    "density": "sparse",
+    "force": [
+      {
+        "structure": "explorify:campsite",
+        "x": -176,
+        "z": -240
+      },
+      {
+        "structure": "philipsruins:ancient_ruins",
+        "x": -224,
+        "z": -272
+      }
+    ]
+  },
+  "portals": [
+    {
+      "frameBlock": "minecraft:sea_lantern",
+      "igniterItem": "minecraft:nautilus_shell",
+      "color": "4BCFCF",
+      "lightLevel": 11,
+      "scale": 8.0,
+      "cooldown": 40,
+      "shape": "door",
+      "anchor": {
+        "pos": [-286, 64, 143],
+        "exit": "bed"
+      },
+      "sounds": {
+        "ignite": "block.portal.trigger",
+        "enter": "block.portal.travel",
+        "exit": "block.portal.travel"
+      }
+    }
+  ],
+  "exitPortal": {
+    "enabled": true,
+    "pos": "spawn",
+    "target": "bed"
+  },
+  "roll": {
+    "mood": "serene",
+    "spawnFilter": [
+      "wilderwild:oasis",
+      "terralith:warm_river"
+    ],
+    "water": "high",
+    "wants": {
+      "desert_shrine": "spread",
+      "mirage_outpost": "spread",
+      "guide_post_warm": "near_spawn",
+      "abandoned_chapel": "spread"
+    },
+    "shuns": [
+      "village",
+      "tavern",
+      "mansion",
+      "monument",
+      "coliseum",
+      "ancient_city",
+      "trial_chambers"
+    ]
+  }
+}

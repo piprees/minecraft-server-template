@@ -1,0 +1,64 @@
+{
+  "level": "adventure:the_abyssal_shrine",
+  "density": "dense",
+  "noise": true,
+  "radiusChunks": 32,
+  "spawnChunk": [4, -12],
+  "groups": {
+    "deco": {
+      "profile": "dense",
+      "radial": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+      "exclusion": 5,
+      "clearSpawnChunks": 0
+    },
+    "settlements": {
+      "profile": "dense",
+      "radial": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+      "exclusion": 10,
+      "clearSpawnChunks": 0
+    },
+    "landmarks": {
+      "profile": "dense",
+      "radial": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+      "exclusion": 19,
+      "clearSpawnChunks": 0
+    },
+    "loot": {
+      "profile": "dense",
+      "radial": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+      "exclusion": 6,
+      "clearSpawnChunks": 0
+    },
+    "dungeons": {
+      "profile": "dense",
+      "radial": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+      "exclusion": 13,
+      "clearSpawnChunks": 0
+    },
+    "maritime": {
+      "profile": "dense",
+      "radial": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+      "exclusion": 10,
+      "clearSpawnChunks": 0
+    }
+  },
+  "mode": null,
+  "list": [],
+  "exclude": [],
+  "include": [],
+  "rarity": {},
+  "spacing": {},
+  "force": [
+    {
+      "structure": "paradise_lost:vault",
+      "x": 180,
+      "z": -140,
+      "radius": 0,
+      "exclusive": true
+    }
+  ],
+  "wants": [],
+  "shuns": [],
+  "replace": {},
+  "terrainAdaptation": {}
+}

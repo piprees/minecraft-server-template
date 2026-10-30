@@ -1,0 +1,6 @@
+{
+  "base": "minecraft:floating_islands",
+  "changed": {
+    "noise_router": "sha1:eb68def9d18d2e8ad0e643a4890063374814f5c2"
+  }
+}

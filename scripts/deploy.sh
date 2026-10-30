@@ -62,7 +62,7 @@ COMPOSE_FILE="$STACK_DIR/docker-compose.yml"
 
 # --- deploy banner ----------------------------------------------------------
 BUNDLE_VERSION="v$(cat "$STACK_DIR/VERSION" 2> /dev/null || echo '?')"
-show_banner "deploy" "stack ${BUNDLE_VERSION} | mc ${MC_VERSION:-1.21.1} | $(date '+%Y-%m-%d %H:%M %Z')${DEPLOY_COMMIT:+ | commit ${DEPLOY_COMMIT}}"
+show_banner "deploy" "stack ${BUNDLE_VERSION} | mc $(mc_version) | $(date '+%Y-%m-%d %H:%M %Z')${DEPLOY_COMMIT:+ | commit ${DEPLOY_COMMIT}}"
 
 # --- timestamped output ---------------------------------------------------
 # Deploys are long and the captured log is the primary forensic artefact:
@@ -81,6 +81,7 @@ if [[ -f .env ]]; then
   source .env
   set +a
 fi
+export_mc_version
 
 # --- flags --------------------------------------------------------------------
 export NON_INTERACTIVE=0
@@ -231,18 +232,18 @@ server_alive() {
 # Live game rules. Quiet boot writes the opposites at step 12 and they
 # persist in level.dat, so they outlive the deploy that set them.
 restore_game_rules() {
-  rcon "gamerule doMobSpawning true"
-  rcon "gamerule randomTickSpeed 3"
-  rcon "gamerule doDaylightCycle true"
-  rcon "gamerule doWeatherCycle true"
-  rcon "gamerule doFireTick true"
-  rcon "gamerule doInsomnia false"
-  rcon "gamerule playersSleepingPercentage 50"
-  rcon "gamerule spawnRadius 0"
-  rcon "gamerule forgiveDeadPlayers true"
-  rcon "gamerule universalAnger false"
-  rcon "gamerule mobGriefing true"
-  rcon "gamerule playersNetherPortalDefaultDelay 0"
+  rcon "gamerule $(mc_game_rule doMobSpawning true)"
+  rcon "gamerule $(mc_game_rule randomTickSpeed 3)"
+  rcon "gamerule $(mc_game_rule doDaylightCycle true)"
+  rcon "gamerule $(mc_game_rule doWeatherCycle true)"
+  rcon "gamerule $(mc_game_rule doFireTick true)"
+  rcon "gamerule $(mc_game_rule doInsomnia false)"
+  rcon "gamerule $(mc_game_rule playersSleepingPercentage 50)"
+  rcon "gamerule $(mc_game_rule spawnRadius 0)"
+  rcon "gamerule $(mc_game_rule forgiveDeadPlayers true)"
+  rcon "gamerule $(mc_game_rule universalAnger false)"
+  rcon "gamerule $(mc_game_rule mobGriefing true)"
+  rcon "gamerule $(mc_game_rule playersNetherPortalDefaultDelay 0)"
 }
 
 # Step 12 locks the server down — whitelist emptied, discord-sync stopped,
@@ -412,11 +413,11 @@ if server_alive; then
   # main thread). Restored by step 14's "Enforcing game rules" at the end.
   echo ""
   echo "==> Enabling quiet-boot mode (spawning/ticking off until deploy completes)..."
-  rcon "gamerule doMobSpawning false"
-  rcon "gamerule randomTickSpeed 0"
-  rcon "gamerule doDaylightCycle false"
-  rcon "gamerule doWeatherCycle false"
-  rcon "gamerule doFireTick false"
+  rcon "gamerule $(mc_game_rule doMobSpawning false)"
+  rcon "gamerule $(mc_game_rule randomTickSpeed 0)"
+  rcon "gamerule $(mc_game_rule doDaylightCycle false)"
+  rcon "gamerule $(mc_game_rule doWeatherCycle false)"
+  rcon "gamerule $(mc_game_rule doFireTick false)"
 
   echo ""
   echo "==> Saving world..."
@@ -468,9 +469,11 @@ docker compose --project-directory "$SERVER_DIR" -f "$COMPOSE_FILE" \
 # =============================================================================
 # Platform defaults always overwrite — consumers customise via the overlay,
 # not by editing defaults in data/config/. Force-copy ensures every deploy
-# gets the latest bundle configs (starter kits, mod settings, etc.).
-# This MUST run before mc starts — mods that auto-generate config on first
-# boot would otherwise create defaults that block the bundle's version.
+# gets the latest bundle configs (starter kits, mod settings, etc.). The
+# selected version's overlay (config/versions/<version>/) then replaces the
+# paths it carries. This MUST run before mc starts — mods that auto-generate
+# config on first boot would otherwise create defaults that block the
+# bundle's version.
 echo ""
 echo "==> Seeding default mod configs into data/config/..."
 BUNDLE_CONFIG="$STACK_DIR/config"
@@ -480,6 +483,11 @@ if [[ -d "$BUNDLE_CONFIG" ]]; then
   cd "$BUNDLE_CONFIG"
   platform_config_files | while IFS= read -r f; do
     dest="$local_data_cfg/${f#./}"
+    mkdir -p "$(dirname "$dest")"
+    cp "$f" "$dest"
+  done
+  version_config_files "$MC_VERSION" | while IFS= read -r f; do
+    dest="$local_data_cfg/${f#./versions/"$MC_VERSION"/}"
     mkdir -p "$(dirname "$dest")"
     cp "$f" "$dest"
   done
@@ -563,7 +571,7 @@ fi
 # covered too; only packs carrying an ownership.json are touched.
 if [[ -d "$SERVER_DIR/data/world/datapacks" ]]; then
   python3 "$SCRIPT_DIR/filter-datapacks.py" "$SERVER_DIR/data/world/datapacks" \
-    "$STACK_DIR/config/modrinth-mods.txt" "$SERVER_DIR/overlay" || true
+    "$(mc_mod_list "$STACK_DIR")" "$SERVER_DIR/overlay" || true
 fi
 
 # =============================================================================
@@ -617,6 +625,31 @@ if [[ -f "$DH_TOML" ]]; then
   # Production-only: generation is off for the deploy and restored at the end.
   sed_i 's/enableDistantGeneration = true/enableDistantGeneration = false/' "$DH_TOML"
   echo "  DH distant generation disabled (restored at deploy end)"
+fi
+
+# =============================================================================
+# 8d. Floodgate key (while mc is stopped)
+# =============================================================================
+# Floodgate (26.3 list) decrypts what Geyser forwards with key.pem. A stable key
+# from FLOODGATE_KEY_B64 outlives a lost volume; unset, the key Floodgate
+# generated at first boot stays. Mode 600 for its owner: the deploy user, uid
+# 1000, which mc runs as.
+FLOODGATE_KEY="$SERVER_DIR/data/config/floodgate/key.pem"
+if [[ -n "${FLOODGATE_KEY_B64:-}" ]]; then
+  mkdir -p "$(dirname "$FLOODGATE_KEY")"
+  if ! (umask 077 && printf '%s' "$FLOODGATE_KEY_B64" | base64 -d > "$FLOODGATE_KEY.new" 2> /dev/null) \
+    || [[ ! -s "$FLOODGATE_KEY.new" ]]; then
+    rm -f "$FLOODGATE_KEY.new"
+    warn "FLOODGATE_KEY_B64 is not valid base64 - Floodgate keeps its current key"
+  elif [[ -f "$FLOODGATE_KEY" ]] && cmp -s "$FLOODGATE_KEY.new" "$FLOODGATE_KEY"; then
+    rm -f "$FLOODGATE_KEY.new"
+    chmod 600 "$FLOODGATE_KEY"
+  else
+    if [[ -f "$FLOODGATE_KEY" ]]; then backup "$FLOODGATE_KEY"; fi
+    chmod 600 "$FLOODGATE_KEY.new"
+    mv -f "$FLOODGATE_KEY.new" "$FLOODGATE_KEY"
+    echo "  Floodgate key written from FLOODGATE_KEY_B64"
+  fi
 fi
 
 # =============================================================================
@@ -773,11 +806,11 @@ fi
 # Re-assert quiet-boot mode: covers cold boots (mc wasn't alive before the
 # stop, so step 4's pre-stop gamerules never ran). Keeps spawning/ticking
 # off through dimension activation below; step 14 restores normal rules.
-rcon "gamerule doMobSpawning false"
-rcon "gamerule randomTickSpeed 0"
-rcon "gamerule doDaylightCycle false"
-rcon "gamerule doWeatherCycle false"
-rcon "gamerule doFireTick false"
+rcon "gamerule $(mc_game_rule doMobSpawning false)"
+rcon "gamerule $(mc_game_rule randomTickSpeed 0)"
+rcon "gamerule $(mc_game_rule doDaylightCycle false)"
+rcon "gamerule $(mc_game_rule doWeatherCycle false)"
+rcon "gamerule $(mc_game_rule doFireTick false)"
 echo "  Quiet-boot mode active (spawning/ticking off until deploy completes)"
 
 # Keep non-admins out for the rest of the deploy: the itzg image re-applies

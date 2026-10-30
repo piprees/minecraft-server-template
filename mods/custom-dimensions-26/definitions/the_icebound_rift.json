@@ -1,0 +1,159 @@
+{
+  "schemaVersion": 2,
+  "description": "A void where a frozen world used to be. The biomes remain — their cold, their fog, their sounds — but the ground does not. The disintegration finished here. Whatever broke this world left only the memory of ice.",
+  "seed": -7779457580041241280,
+  "spawn": [-448, -64, 64],
+  "generator": {
+    "type": "void"
+  },
+  "biomes": [
+    {
+      "id": "yungscavebiomes:frosted_caves",
+      "climate": {
+        "weirdness": [-2.0, -0.2126]
+      }
+    },
+    {
+      "id": "minecraft:deep_dark",
+      "climate": {
+        "weirdness": [-0.2126, -0.0636]
+      }
+    },
+    {
+      "id": "nullscape:void_barrens",
+      "climate": {
+        "weirdness": [-0.0636, 0.1067]
+      }
+    },
+    {
+      "id": "minecraft:frozen_ocean",
+      "climate": {
+        "weirdness": [0.1067, 0.2327]
+      }
+    },
+    {
+      "id": "wilderwild:mesoglea_caves",
+      "climate": {
+        "weirdness": [0.2327, 0.2707]
+      }
+    },
+    {
+      "id": "minecraft:ice_spikes",
+      "climate": {
+        "weirdness": [0.2707, 0.2802]
+      }
+    },
+    {
+      "id": "terralith:glacial_chasm",
+      "climate": {
+        "weirdness": [0.2802, 0.3526]
+      }
+    },
+    {
+      "id": "terralith:frozen_cliffs",
+      "climate": {
+        "weirdness": [0.3526, 0.3808]
+      }
+    },
+    {
+      "id": "terralith:cave/frostfire_caves",
+      "climate": {
+        "weirdness": [0.3808, 0.4078]
+      }
+    },
+    {
+      "id": "terralith:alpha_islands_winter",
+      "climate": {
+        "weirdness": [0.4078, 0.4804]
+      }
+    },
+    {
+      "id": "undergroundworlds:underground_tundra",
+      "climate": {
+        "weirdness": [0.4804, 0.6075]
+      }
+    },
+    {
+      "id": "wilderwild:frozen_caves",
+      "climate": {
+        "weirdness": [0.6075, 2.0]
+      }
+    }
+  ],
+  "atmosphere": {
+    "skyColor": "#1B2B3B",
+    "fogColor": "#A8D8E8",
+    "ambientLight": 0.2,
+    "effects": "minecraft:the_end"
+  },
+  "rules": {
+    "bedsWork": false,
+    "natural": false
+  },
+  "borders": {
+    "player": 512,
+    "generation": 512
+  },
+  "difficulty": {
+    "mobMultiplier": 2.5,
+    "playerLuck": 2.2
+  },
+  "structures": {
+    "density": "none",
+    "mode": "none",
+    "terrainAdaptation": {
+      "friendsandfoes:citadel": "none"
+    },
+    "force": [
+      {
+        "structure": "friendsandfoes:citadel",
+        "x": 240,
+        "y": 0,
+        "z": -300
+      }
+    ]
+  },
+  "portals": [
+    {
+      "frameBlock": "minecraft:blue_ice",
+      "igniterItem": "minecraft:netherite_scrap",
+      "color": "5BE0F0",
+      "lightLevel": 11,
+      "scale": 16.0,
+      "cooldown": 40,
+      "particleType": "minecraft:snowflake",
+      "sounds": {
+        "ignite": "block.portal.trigger",
+        "enter": "block.portal.travel",
+        "exit": "block.portal.travel"
+      },
+      "aura": {
+        "subsume": "everything",
+        "palette": [
+          "minecraft:blue_ice",
+          "minecraft:packed_ice",
+          "minecraft:snow_block"
+        ]
+      }
+    }
+  ],
+  "exits": {
+    "void": {
+      "action": "teleport",
+      "target": {
+        "dimension": "adventure:the_glacial_drift",
+        "arrival": "spawn"
+      }
+    }
+  },
+  "roll": {
+    "mood": "desolate",
+    "allowHazardousSpawn": true,
+    "spawnFilter": [
+      "minecraft:frozen_ocean",
+      "terralith:glacial_chasm",
+      "terralith:alpha_islands_winter"
+    ],
+    "terrain": "void"
+  }
+}

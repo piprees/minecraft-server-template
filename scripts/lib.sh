@@ -7,7 +7,9 @@
 #
 # Provides: PROJECT_DIR, colour codes, log/warn/die, load_env (sources .env),
 # sed_i + sha256 (macOS/Linux portable), backup (file.bak.TIMESTAMP),
-# rcon + get_player_count (bounded, via docker exec mc), detect_provider /
+# mc_version / mc_version_field / mc_mod_list / mc_manifest / mc_local_mods_manifest /
+# mc_client_mods_manifest / mc_game_rule / export_mc_version (.minecraft-version,
+# MC_VERSION_OVERRIDE), rcon + get_player_count (bounded, via docker exec mc), detect_provider /
 # require_provider_cli, acquire_deploy_lock (server-side mutual exclusion),
 # platform_config_files, dh_silence_warnings.
 #
@@ -22,6 +24,108 @@
 # Precedence: CONSUMER_DIR (ops/dev wrappers) > pre-set PROJECT_DIR (container
 # entrypoints export it) > derived from lib.sh location.
 PROJECT_DIR="${CONSUMER_DIR:-${PROJECT_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}}"
+
+# --- Minecraft version ----------------------------------------------------------
+# .minecraft-version (one line, beside scripts/ in the template and the bundle)
+# selects the Minecraft version; scripts/minecraft-versions.tsv maps it to the
+# Java release, the itzg image tag, the server's Fabric loader and the game
+# versions a pin may target. The file wins over an MC_VERSION in .env:
+# consumers move version by moving major. MC_VERSION_OVERRIDE wins over the
+# file: CI boots another version's stack from the same checkout with it, and
+# unset it changes nothing.
+LIB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+mc_version() {
+  local file="${MC_VERSION_FILE:-$LIB_DIR/../.minecraft-version}" v="${MC_VERSION_OVERRIDE:-}"
+  [[ -n "$v" ]] && {
+    echo "$v"
+    return 0
+  }
+  [[ -f "$file" ]] && v="$(grep -vE '^[[:space:]]*(#|$)' "$file" | head -1 | tr -d '[:space:]')"
+  [[ -n "$v" ]] || v="${MC_VERSION:-}"
+  [[ -n "$v" ]] || {
+    echo "ERROR: no Minecraft version: $file is missing and MC_VERSION is unset" >&2
+    return 1
+  }
+  echo "$v"
+}
+
+# mc_version_field <java|image|loader|accepted> [version] - one column of the table.
+mc_version_field() {
+  local field="$1" version="${2:-}" col
+  [[ -n "$version" ]] || version="$(mc_version)" || return 1
+  case "$field" in
+    java) col=2 ;;
+    image) col=3 ;;
+    loader) col=4 ;;
+    accepted) col=5 ;;
+    *)
+      echo "ERROR: mc_version_field: unknown field '$field'" >&2
+      return 1
+      ;;
+  esac
+  awk -v v="$version" -v c="$col" '!/^[[:space:]]*#/ && $1 == v { print $c; found = 1; exit } END { exit !found }' \
+    "${MC_VERSIONS_TABLE:-$LIB_DIR/minecraft-versions.tsv}" || {
+    echo "ERROR: Minecraft $version has no row in minecraft-versions.tsv" >&2
+    return 1
+  }
+}
+
+# mc_versioned_path <base-dir> <stem> <ext> [version] - <stem>-<version><ext>
+# when that file exists under base-dir, else <stem><ext>. The mod list and
+# the pack manifest follow the version this way.
+mc_versioned_path() {
+  local base="$1" stem="$2" ext="$3" version="${4:-}"
+  [[ -n "$version" ]] || version="$(mc_version)" || return 1
+  if [[ -f "$base/$stem-$version$ext" ]]; then
+    echo "$base/$stem-$version$ext"
+  else
+    echo "$base/$stem$ext"
+  fi
+}
+
+# mc_mod_list <base-dir> [version] - the server mod list for the version.
+mc_mod_list() { mc_versioned_path "$1/config" modrinth-mods .txt "${2:-}"; }
+
+# mc_manifest <base-dir> [version] - the pack manifest for the version.
+mc_manifest() { mc_versioned_path "$1/modpack" adventure .mrpack.json "${2:-}"; }
+
+# mc_local_mods_manifest / mc_client_mods_manifest <base-dir> [version] - the
+# in-house server and client mod manifests for the version (mods/).
+mc_local_mods_manifest() { mc_versioned_path "$1/mods" local-mods .manifest "${2:-}"; }
+mc_client_mods_manifest() { mc_versioned_path "$1/mods" client-mods .manifest "${2:-}"; }
+
+# mc_game_rule <1.21.1-rule> <value> [version] - "<rule> <value>" as the
+# version's gamerule command takes them (scripts/game-rules.tsv). A rule the
+# table does not list for the version comes back unchanged.
+mc_game_rule() {
+  local rule="$1" value="$2" version="${3:-}"
+  [[ -n "$version" ]] || version="$(mc_version)" || return 1
+  awk -v v="$version" -v r="$rule" -v val="$value" '
+    !/^[[:space:]]*#/ && $1 == v && $2 == r {
+      out = val
+      if ($4 != "-") {
+        n = split($4, pairs, ",")
+        for (i = 1; i <= n; i++) {
+          split(pairs[i], kv, "=")
+          if (kv[1] == val) out = kv[2]
+        }
+      }
+      print $3 " " out
+      found = 1
+      exit
+    }
+    END { if (!found) print r " " val }' "${MC_GAME_RULES_TABLE:-$LIB_DIR/game-rules.tsv}"
+}
+
+# export_mc_version - MC_VERSION, MC_IMAGE_TAG and FABRIC_LOADER_VERSION for
+# compose and child scripts.
+export_mc_version() {
+  MC_VERSION="$(mc_version)" || return 1
+  MC_IMAGE_TAG="$(mc_version_field image "$MC_VERSION")" || return 1
+  FABRIC_LOADER_VERSION="$(mc_version_field loader "$MC_VERSION")" || return 1
+  export MC_VERSION MC_IMAGE_TAG FABRIC_LOADER_VERSION
+}
 
 # --- Colours (safe for piped output) -----------------------------------------
 # shellcheck disable=SC2034
@@ -179,9 +283,11 @@ acquire_deploy_lock() {
 # templates are bind-mounted, datapacks go through the seed container, kuma
 # and cloudflare configs are applied by their own scripts, the extractor and
 # candidate trees are generated, and the mod lists and messages.json are read
-# from the bundle directly. deploy.sh and dev-up.sh (twice) all consume this.
+# from the bundle directly. versions/ holds the per-version overlay that
+# version_config_files lists. deploy.sh and dev-up.sh (twice) all consume both.
 platform_config_files() {
   find . -type f \
+    -not -path './versions/*' \
     -not -path './nginx/*' \
     -not -path './datapacks/*' \
     -not -path './datapack-presets/*' \
@@ -191,9 +297,52 @@ platform_config_files() {
     -not -path './custom-dimensions/extractors/*' \
     -not -path './custom-dimensions/candidates/*' \
     -not -name 'modrinth-mods.txt' \
-    -not -name 'modrinth-mods.pinned.txt' \
+    -not -name 'modrinth-mods-*.txt' \
+    -not -name 'modrinth-mods*.pinned.txt' \
     -not -name 'messages.json' \
     -not -name '1password.env'
+}
+
+# version_config_files [version] - the selected version's config overlay,
+# relative to config/ (cd there first): each versions/<version>/<path>
+# replaces <path> from platform_config_files. The destination is the path
+# with "./versions/<version>/" stripped.
+version_config_files() {
+  local version="${1:-}"
+  [[ -n "$version" ]] || version="$(mc_version)" || return 1
+  [[ -d "./versions/$version" ]] || return 0
+  find "./versions/$version" -type f
+}
+
+# pack_version_overrides <versions-dir> <overrides-dir> [version] - lay the
+# version's client pack overrides over a copied overrides tree. Each path in
+# <versions-dir>/<version>/overrides-remove.txt (relative to overrides/, one
+# per line, # comments) is left out, then each
+# <versions-dir>/<version>/overrides/<path> replaces or adds <path>. A version
+# without a directory changes nothing.
+pack_version_overrides() {
+  local versions="$1" dest="$2" version="${3:-}" src line
+  [[ -n "$version" ]] || version="$(mc_version)" || return 1
+  src="$versions/$version"
+  if [[ -f "$src/overrides-remove.txt" ]]; then
+    while IFS= read -r line || [[ -n "$line" ]]; do
+      line="${line%%#*}"
+      line="${line#"${line%%[![:space:]]*}"}"
+      line="${line%"${line##*[![:space:]]}"}"
+      [[ -n "$line" ]] || continue
+      case "$line" in
+        /* | *..*)
+          echo "ERROR: $src/overrides-remove.txt: '$line' is not a path inside overrides/" >&2
+          return 1
+          ;;
+      esac
+      rm -rf "${dest:?}/$line"
+    done < "$src/overrides-remove.txt"
+  fi
+  if [[ -d "$src/overrides" ]]; then
+    cp -R "$src/overrides/." "$dest/"
+  fi
+  return 0
 }
 
 # --- Distant Horizons -----------------------------------------------------
@@ -225,7 +374,8 @@ sha256() {
 backup() {
   local stamp
   stamp="$(date +%Y%m%d-%H%M%S)"
-  [[ -f "$1" ]] && cp -p "$1" "$1.bak.$stamp" && echo "  backed up $1"
+  [[ -f "$1" ]] || return 0
+  cp -p "$1" "$1.bak.$stamp" && echo "  backed up $1"
 }
 
 # --- RCON helpers (require Docker) --------------------------------------------

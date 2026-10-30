@@ -14,6 +14,7 @@ Referenced from [`AGENTS.md`](../AGENTS.md).
 | **CI smoke test** | Modrinth CDN (mod JARs on cache miss), Carpet mod JAR | Mod JARs cached by `actions/cache` keyed on the `modrinth-mods.txt` hash; Carpet JAR cached by version |
 | **First consumer boot** | GitHub API (version resolution), GitHub Releases (bundle download), Modrinth CDN (mod JARs on first seed) | `stack-pull.sh` retry + cache fallback; mod JARs cached in the `stack-mods` volume after first resolution (version IDs are immutable) |
 | **Modpack build** | Modrinth API (version resolution for resource/shader packs) | `modrinth-resolve-cache.json` committed in the repo — zero API calls on a cache hit for known pins |
+| **Bedrock `/register`** | GeyserMC's XUID API (`api.geysermc.org/v2/xbox/xuid/<gamertag>`), once per Bedrock registration | 10 s timeout; a failure answers the player with a retry message and stores nothing, so Java registration and role sync never wait on it |
 | **Discord webhooks** | Discord API | Every webhook call ends `\|\| true` — a Discord outage never blocks a deploy or boot |
 
 ## Operations that are fully offline

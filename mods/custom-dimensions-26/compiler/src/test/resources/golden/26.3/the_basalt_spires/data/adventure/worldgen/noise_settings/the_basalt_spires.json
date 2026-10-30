@@ -1,0 +1,8 @@
+{
+  "base": "minecraft:overworld",
+  "changed": {
+    "default_block": "minecraft:blackstone",
+    "default_fluid": "minecraft:lava",
+    "sea_level": 40
+  }
+}

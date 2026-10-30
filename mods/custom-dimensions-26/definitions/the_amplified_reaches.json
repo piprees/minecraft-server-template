@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 2,
+  "description": "The human frontier pushed vertical. Cliffs beyond reason, keeps on the peaks — engineers and explorers who refused to stop climbing. The deeper valleys hide what they left behind.",
+  "seed": 4053263509055014237,
+  "spawn": [0, 43, -512],
+  "generator": {
+    "type": "noise",
+    "preset": "amplified"
+  },
+  "borders": {
+    "player": 4096,
+    "generation": 2048
+  },
+  "difficulty": {
+    "mobMultiplier": 1.2,
+    "playerLuck": 1.3,
+    "depthScaling": {
+      "enabled": true,
+      "startY": 200,
+      "endY": -64,
+      "minMultiplier": 0.8,
+      "maxMultiplier": 1.8
+    }
+  },
+  "structures": {
+    "terrainAdaptation": {
+      "landmarks": "pedestal",
+      "endgame": "pedestal"
+    }
+  },
+  "portals": [
+    {
+      "frameBlock": "minecraft:cracked_deepslate_bricks",
+      "igniterItem": "minecraft:amethyst_shard",
+      "color": "5B6B7B",
+      "lightLevel": 11,
+      "preview": {
+        "particleDensity": 0
+      },
+      "scale": 2.0,
+      "cooldown": 40,
+      "sounds": {
+        "ignite": "block.portal.trigger",
+        "enter": "block.portal.travel",
+        "exit": "block.portal.travel"
+      }
+    }
+  ],
+  "roll": {
+    "mood": "dramatic",
+    "wants": {
+      "firetower": "near_spawn",
+      "engineer_tower": "spread",
+      "wizard_tower": "spread",
+      "ancient_temple": "spread",
+      "keep_kayra": "spread",
+      "nomad_outpost": "spread",
+      "campsite": "spread"
+    },
+    "shuns": [
+      "monument"
+    ]
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "base": "minecraft:overworld",
+  "changed": {
+    "sea_level": 66
+  }
+}

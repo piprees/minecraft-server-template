@@ -1,0 +1,56 @@
+{
+  "level": "adventure:the_wuthering_wisteria",
+  "density": "none",
+  "noise": false,
+  "suppressedReason": "density none",
+  "radiusChunks": 32,
+  "spawnChunk": [-16, -24],
+  "groups": {},
+  "mode": "allow",
+  "list": [],
+  "exclude": [],
+  "include": [],
+  "rarity": {},
+  "spacing": {},
+  "force": [
+    {
+      "structure": "explorify:campsite",
+      "x": 24,
+      "z": 18,
+      "radius": 0,
+      "exclusive": true
+    },
+    {
+      "structure": "structory:ruin_grassy",
+      "x": -40,
+      "z": 32,
+      "radius": 0,
+      "exclusive": true
+    },
+    {
+      "structure": "towns_and_towers:village_flower_forest",
+      "x": 140,
+      "z": -100,
+      "radius": 0,
+      "exclusive": true
+    },
+    {
+      "structure": "towns_and_towers:exclusives/pillager_outpost_oriental",
+      "x": -140,
+      "z": 120,
+      "radius": 0,
+      "exclusive": true
+    },
+    {
+      "structure": "paradise_lost:vault",
+      "x": 0,
+      "z": 0,
+      "radius": 0,
+      "exclusive": true
+    }
+  ],
+  "wants": [],
+  "shuns": [],
+  "replace": {},
+  "terrainAdaptation": {}
+}

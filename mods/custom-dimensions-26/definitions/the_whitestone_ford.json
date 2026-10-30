@@ -1,0 +1,145 @@
+{
+  "schemaVersion": 2,
+  "description": "Wide river country crossed at white cliffs — the ford where the villager trade routes converged. Lighthouses and farms along the water, built where the crossing was easy and the fish were good.",
+  "seed": 3516393557588921874,
+  "spawn": [128, 81, -576],
+  "generator": {
+    "type": "noise",
+    "preset": "overworld"
+  },
+  "terrain": {
+    "base": null
+  },
+  "biomes": [
+    {
+      "id": "terralith:white_cliffs",
+      "climate": {
+        "continentalness": [-0.6, -0.05],
+        "weirdness": [-2.0, -0.19],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "natures_spirit:white_cliffs",
+      "climate": {
+        "continentalness": [-0.6, -0.05],
+        "weirdness": [-0.19, -0.1417],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "terralith:warm_river",
+      "climate": {
+        "weirdness": [-0.1417, -0.0933],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "minecraft:river",
+      "climate": {
+        "weirdness": [-0.0933, -0.045],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "minecraft:plains",
+      "climate": {
+        "weirdness": [-0.045, 0.0033],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "minecraft:meadow",
+      "climate": {
+        "weirdness": [0.0033, 0.0517],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "regions_unexplored:cold_river",
+      "climate": {
+        "weirdness": [0.0517, 0.1],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "wilderwild:warm_river",
+      "climate": {
+        "weirdness": [0.1, 2.0],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "terralith:cave/tuff_caves",
+      "climate": {
+        "weirdness": [-2.0, -0.045],
+        "depth": [0.1, 2.0]
+      }
+    },
+    {
+      "id": "minecraft:lush_caves",
+      "climate": {
+        "weirdness": [-0.045, 2.0],
+        "depth": [0.1, 2.0]
+      }
+    }
+  ],
+  "borders": {
+    "player": 1024,
+    "generation": 1024
+  },
+  "difficulty": {
+    "mobMultiplier": 0.8,
+    "playerLuck": 1.3
+  },
+  "structures": {
+    "terrainAdaptation": {
+      "landmarks": "moat"
+    }
+  },
+  "portals": [
+    {
+      "frameBlock": "minecraft:polished_diorite",
+      "igniterItem": "minecraft:amethyst_shard",
+      "color": "D4CFC8",
+      "lightLevel": 11,
+      "scale": 8.0,
+      "cooldown": 40,
+      "anchor": {
+        "pos": [-493, 64, 278],
+        "exit": "bed"
+      },
+      "sounds": {
+        "ignite": "block.portal.trigger",
+        "enter": "block.portal.travel",
+        "exit": "block.portal.travel"
+      },
+      "orientation": "horizontal"
+    }
+  ],
+  "exitPortal": {
+    "enabled": true,
+    "pos": "spawn",
+    "target": "bed"
+  },
+  "roll": {
+    "mood": "pastoral",
+    "spawnFilter": [
+      "minecraft:meadow"
+    ],
+    "water": "high",
+    "wants": {
+      "village": "near_spawn",
+      "farmstead": "near_spawn",
+      "lighthouse": "spread",
+      "watchtower": "spread",
+      "guide_post_warm": "near_spawn",
+      "campsite": "near_spawn",
+      "tavern": "spread"
+    },
+    "shuns": [
+      "coliseum",
+      "ancient_city"
+    ]
+  }
+}

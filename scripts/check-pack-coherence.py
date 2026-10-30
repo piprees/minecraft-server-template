@@ -108,9 +108,16 @@ def main():
     constraints = [] # (from_jar, kind, target_id, predicate)
 
     unreadable = []
+    datapacks = 0
     for jar in sorted(mods_dir.glob("*.jar")):
         try:
             with zipfile.ZipFile(jar) as z:
+                names = z.namelist()
+                # The mirror holds the server list's datapack: entries under
+                # the same .jar naming; a datapack declares no Fabric constraints.
+                if "fabric.mod.json" not in names and "pack.mcmeta" in names:
+                    datapacks += 1
+                    continue
                 raw = z.read("fabric.mod.json").decode("utf-8", "replace")
             # Mods ship JSON Fabric accepts and json.loads does not: trailing
             # commas, and raw newlines inside description strings.
@@ -161,7 +168,8 @@ def main():
         elif kind == "breaks" and result:
             conflicts.append(f"{src} breaks with {target} {pred!r} and {version} is present")
 
-    print(f"{len(installed)} mods, {len(constraints)} constraints checked, {skipped} unparseable (skipped)")
+    print(f"{len(installed)} mods, {len(constraints)} constraints checked, {skipped} unparseable (skipped), "
+          f"{datapacks} datapack(s) without constraints")
     # A jar we cannot read is a jar whose breaks we cannot evaluate, so a clean
     # report over one is a false pass — this is how sodium/betterend shipped.
     if unreadable:

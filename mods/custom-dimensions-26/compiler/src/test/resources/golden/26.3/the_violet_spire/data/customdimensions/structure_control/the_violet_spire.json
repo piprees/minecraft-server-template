@@ -1,0 +1,66 @@
+{
+  "level": "adventure:the_violet_spire",
+  "density": "normal",
+  "noise": true,
+  "radiusChunks": 42,
+  "spawnChunk": [0, -3],
+  "groups": {
+    "deco": {
+      "profile": "natural",
+      "radial": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+      "exclusion": 6,
+      "clearSpawnChunks": 0
+    },
+    "settlements": {
+      "profile": "natural",
+      "radial": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+      "exclusion": 12,
+      "clearSpawnChunks": 0
+    },
+    "landmarks": {
+      "profile": "dense",
+      "radial": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+      "exclusion": 19,
+      "clearSpawnChunks": 0
+    },
+    "loot": {
+      "profile": "natural",
+      "radial": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+      "exclusion": 8,
+      "clearSpawnChunks": 0
+    }
+  },
+  "mode": null,
+  "list": [],
+  "exclude": [],
+  "include": [],
+  "rarity": {
+    "paradise_lost:birdcage": "common",
+    "paradise_lost:aurel_tower": "common",
+    "structory_towers:rare_towers": "common",
+    "mes:mystical_archway": "common"
+  },
+  "spacing": {},
+  "force": [
+    {
+      "structure": "paradise_lost:aurel_tower",
+      "x": 60,
+      "z": 60,
+      "radius": 0,
+      "exclusive": false
+    },
+    {
+      "structure": "mes:mystical_archway",
+      "x": -300,
+      "z": 180,
+      "radius": 0,
+      "exclusive": false
+    }
+  ],
+  "wants": [],
+  "shuns": [],
+  "replace": {},
+  "terrainAdaptation": {
+    "paradise_lost:aurel_tower": "beard_box"
+  }
+}

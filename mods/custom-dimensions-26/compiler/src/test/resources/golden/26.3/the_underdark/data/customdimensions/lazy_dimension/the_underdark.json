@@ -1,0 +1,141 @@
+{
+  "type": "adventure:the_underdark",
+  "generator": {
+    "type": "minecraft:noise",
+    "biome_source": {
+      "type": "customdimensions:zoned",
+      "base": {
+        "type": "minecraft:multi_noise",
+        "biomes": [
+          {
+            "biome": "minecraft:deep_dark",
+            "parameters": {
+              "temperature": [-2.0, -0.3546],
+              "humidity": [-2.0, 2.0],
+              "continentalness": [-2.0, 2.0],
+              "erosion": [-2.0, 2.0],
+              "weirdness": [-2.0, 2.0],
+              "depth": [-2.0, 2.0],
+              "offset": 0.0
+            }
+          },
+          {
+            "biome": "minecraft:mushroom_fields",
+            "parameters": {
+              "temperature": [-0.3546, -0.2329],
+              "humidity": [-2.0, 2.0],
+              "continentalness": [-2.0, 2.0],
+              "erosion": [-2.0, 2.0],
+              "weirdness": [-2.0, 2.0],
+              "depth": [-2.0, 2.0],
+              "offset": 0.0
+            }
+          },
+          {
+            "biome": "minecraft:dark_forest",
+            "parameters": {
+              "temperature": [-0.1599, -0.0878],
+              "humidity": [-2.0, 2.0],
+              "continentalness": [-2.0, 2.0],
+              "erosion": [-2.0, 2.0],
+              "weirdness": [-2.0, 2.0],
+              "depth": [-2.0, 2.0],
+              "offset": 0.0
+            }
+          },
+          {
+            "biome": "minecraft:lush_caves",
+            "parameters": {
+              "temperature": [-0.0878, 0.0034],
+              "humidity": [-2.0, 2.0],
+              "continentalness": [-2.0, 2.0],
+              "erosion": [-2.0, 2.0],
+              "weirdness": [-2.0, 2.0],
+              "depth": [-2.0, 2.0],
+              "offset": 0.0
+            }
+          },
+          {
+            "biome": "minecraft:dripstone_caves",
+            "parameters": {
+              "temperature": [0.0481, 0.0673],
+              "humidity": [-2.0, 2.0],
+              "continentalness": [-2.0, 2.0],
+              "erosion": [-2.0, 2.0],
+              "weirdness": [-2.0, 2.0],
+              "depth": [-2.0, 2.0],
+              "offset": 0.0
+            }
+          },
+          {
+            "biome": "minecraft:old_growth_spruce_taiga",
+            "parameters": {
+              "temperature": [0.0673, 0.1027],
+              "humidity": [-2.0, 2.0],
+              "continentalness": [-2.0, 2.0],
+              "erosion": [-2.0, 2.0],
+              "weirdness": [-2.0, 2.0],
+              "depth": [-2.0, 2.0],
+              "offset": 0.0
+            }
+          },
+          {
+            "biome": "minecraft:warped_forest",
+            "parameters": {
+              "temperature": [0.1027, 0.1623],
+              "humidity": [-2.0, 2.0],
+              "continentalness": [-2.0, 2.0],
+              "erosion": [-2.0, 2.0],
+              "weirdness": [-2.0, 2.0],
+              "depth": [-2.0, 2.0],
+              "offset": 0.0
+            }
+          },
+          {
+            "biome": "minecraft:swamp",
+            "parameters": {
+              "temperature": [0.1623, 0.2099],
+              "humidity": [-2.0, 2.0],
+              "continentalness": [-2.0, 2.0],
+              "erosion": [-2.0, 2.0],
+              "weirdness": [-2.0, 2.0],
+              "depth": [-2.0, 2.0],
+              "offset": 0.0
+            }
+          },
+          {
+            "biome": "minecraft:crimson_forest",
+            "parameters": {
+              "temperature": [0.2605, 0.3345],
+              "humidity": [-2.0, 2.0],
+              "continentalness": [-2.0, 2.0],
+              "erosion": [-2.0, 2.0],
+              "weirdness": [-2.0, 2.0],
+              "depth": [-2.0, 2.0],
+              "offset": 0.0
+            }
+          }
+        ]
+      },
+      "zones": [
+        {
+          "biomes": [
+            {
+              "biome": "minecraft:deep_dark",
+              "parameters": {
+                "continentalness": [-1.0, 1.0],
+                "depth": 1.1,
+                "erosion": [-1.0, -0.375],
+                "humidity": [-1.0, 1.0],
+                "offset": 0.0,
+                "temperature": [-1.0, 1.0],
+                "weirdness": [-1.0, 1.0]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "settings": "adventure:the_underdark"
+  }
+}

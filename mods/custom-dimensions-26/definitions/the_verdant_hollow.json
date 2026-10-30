@@ -1,0 +1,176 @@
+{
+  "schemaVersion": 2,
+  "description": "Broad green valleys with hamlets in the folds. Villager country at its gentlest — pastoral, generous, a little whimsical. The giant mushrooms and campsites suggest people who enjoyed living here, not just surviving.",
+  "seed": -1241382185067546216,
+  "spawn": [192, 66, -192],
+  "generator": {
+    "type": "noise",
+    "preset": "overworld"
+  },
+  "terrain": {
+    "base": null
+  },
+  "biomes": [
+    {
+      "id": "terralith:lush_valley",
+      "climate": {
+        "weirdness": [-2.0, -0.19],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "minecraft:meadow",
+      "climate": {
+        "weirdness": [-0.19, -0.1636],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "minecraft:plains",
+      "climate": {
+        "weirdness": [-0.1636, -0.1373],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "minecraft:flower_forest",
+      "climate": {
+        "weirdness": [-0.1373, -0.1109],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "terralith:lavender_valley",
+      "climate": {
+        "weirdness": [-0.1109, -0.0845],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "terralith:temperate_highlands",
+      "climate": {
+        "weirdness": [-0.0845, -0.0582],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "minecraft:birch_forest",
+      "climate": {
+        "weirdness": [-0.0582, -0.0318],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "regions_unexplored:glistering_meadow",
+      "climate": {
+        "weirdness": [-0.0318, -0.0055],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "regions_unexplored:clover_plains",
+      "climate": {
+        "weirdness": [-0.0055, 0.0209],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "regions_unexplored:orchard",
+      "climate": {
+        "weirdness": [0.0209, 0.0473],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "regions_unexplored:temperate_grove",
+      "climate": {
+        "weirdness": [0.0473, 0.0736],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "regions_unexplored:rocky_meadow",
+      "climate": {
+        "weirdness": [0.0736, 0.1],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "regions_unexplored:flower_fields",
+      "climate": {
+        "weirdness": [0.1, 2.0],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "minecraft:lush_caves",
+      "climate": {
+        "weirdness": [-2.0, -0.045],
+        "depth": [0.1, 2.0]
+      }
+    },
+    {
+      "id": "terralith:cave/fungal_caves",
+      "climate": {
+        "weirdness": [-0.045, 2.0],
+        "depth": [0.1, 2.0]
+      }
+    }
+  ],
+  "liquids": {
+    "seaLevel": 34
+  },
+  "borders": {
+    "player": 1024,
+    "generation": 1024
+  },
+  "difficulty": {
+    "mobMultiplier": 0.8,
+    "playerLuck": 1.4
+  },
+  "portals": [
+    {
+      "frameBlock": "minecraft:moss_block",
+      "igniterItem": "minecraft:amethyst_shard",
+      "color": "3DAF6B",
+      "lightLevel": 11,
+      "scale": 8.0,
+      "cooldown": 40,
+      "anchor": {
+        "pos": "spawn",
+        "exit": "bed"
+      },
+      "particleType": "minecraft:spore_blossom_air",
+      "sounds": {
+        "ignite": "block.portal.trigger",
+        "enter": "block.portal.travel",
+        "exit": "block.portal.travel"
+      },
+      "orientation": "horizontal"
+    }
+  ],
+  "exitPortal": {
+    "enabled": true,
+    "pos": "spawn",
+    "target": "bed"
+  },
+  "roll": {
+    "mood": "pastoral",
+    "spawnFilter": [
+      "terralith:lush_valley"
+    ],
+    "wants": {
+      "village": "near_spawn",
+      "farmstead": "near_spawn",
+      "tavern": "spread",
+      "giant_mushroom": "spread",
+      "campsite": "near_spawn",
+      "abandoned_chapel": "spread",
+      "guide_post_warm": "near_spawn"
+    },
+    "shuns": [
+      "ancient_city",
+      "coliseum"
+    ]
+  }
+}

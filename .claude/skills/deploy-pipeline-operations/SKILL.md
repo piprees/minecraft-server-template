@@ -1,9 +1,9 @@
 ---
 name: deploy-pipeline-operations
 description: |
-  Triggers, monitors, and recovers deploys of the Adventure Server platform (piprees/minecraft-server-template) through .github/workflows/deploy-reusable.yml. Covers the two-stage tier detection that picks full/infra/pull (STACK_VERSION resolved against `readlink .stack/current`, then FULL_PATTERNS diffing consumer files against the last deployed commit), the pre-push and post-push checklists, resolving a CI run by commit sha, the deploy.sh 17-step server-side sequence, manual dispatch, and recovering a deploy that dies mid-run.
+  Triggers, monitors, and recovers deploys of the Adventure Server platform (piprees/minecraft-server-template) through .github/workflows/deploy-reusable.yml. Covers the two-stage tier detection that picks full/infra/pull (the stack pin, normally `.stack-version`, resolved against `readlink .stack/current`, then FULL_PATTERNS diffing consumer files against the last deployed commit), the pre-push and post-push checklists, resolving a CI run by commit sha, the deploy.sh 17-step server-side sequence, manual dispatch and rollback, and recovering a deploy that dies mid-run.
 
-  Use when: told to "deploy this", push to main and check whether CI is deploying, decide which tier a change will trigger, resolve a `gh run` after pushing, recover from a failed or stuck deploy, or force a full deploy via manual dispatch or `./ops update`. Also use when troubleshooting "client_loop: send disconnect: Broken pipe", "Server failed to respond to RCON after deploy", or "No platform release matches STACK_VERSION=" during a deploy.
+  Use when: told to "deploy this", push to main and check whether CI is deploying, decide which tier a change will trigger, resolve a `gh run` after pushing, recover from a failed or stuck deploy, or force a full deploy via manual dispatch or `./ops update`. Also use when troubleshooting "client_loop: send disconnect: Broken pipe", "Server failed to respond to RCON after deploy", "No platform release matches stack pin", or "but this deploy runs deploy-reusable.yml@vN" during a deploy.
 ---
 
 # Deploy pipeline operations
@@ -16,11 +16,24 @@ Deploying is the highest-consequence routine action in this repo. The rules for 
 
 | Tier | Trigger | What happens |
 | --- | --- | --- |
-| **Full** | A new platform release matching `STACK_VERSION` (resolved tag ≠ the bundle the server actually runs), `overlay/config/`, `overlay/mods-extra.txt`, `overlay/mods-remove.txt` changed, manual dispatch, or a `release` event | `.env` regenerated → overlay rsynced → stack bundle pulled to the resolved tag → `deploy.sh`: countdown → kick → whitelist cleared → save → stop mc → pull images → re-seed → config sync → mc restart → RCON health wait → dimensions/gamerules/permissions → whitelist restored |
+| **Full** | The resolved stack pin (resolved tag ≠ the bundle the server actually runs), `overlay/config/`, `overlay/mods-extra.txt`, `overlay/mods-remove.txt` changed, manual dispatch, or a `release` event | `.env` regenerated → overlay rsynced → stack bundle pulled to the resolved tag → `deploy.sh`: countdown → kick → whitelist cleared → save → stop mc → pull images → re-seed → config sync → mc restart → RCON health wait → dimensions/gamerules/permissions → whitelist restored |
 | **Infra** | Other `overlay/` changes (assets, branding) with no stack-version change | `infra-deploy.sh`: re-run seed → `compose up --no-recreate` (mc untouched) → force-recreate sidecars |
 | **Pull** | Docs, CI, anything else, with no stack-version change | Nothing touches the server |
 
-**Read this twice**: most full deploys are NOT triggered by consumer file diffs — they're triggered by the resolved-tag comparison. A docs-only push made after a platform release has landed is a **full** deploy, because it's the push that rolls that release out. Predicting "pull tier" for a docs push right after a release is the single most common wrong answer here. See `references/tier-detection.md` for the full two-stage algorithm and worked examples.
+**Read this twice**: most full deploys are NOT triggered by consumer file diffs — they're triggered by the resolved-tag comparison. The push that moves `.stack-version` is a **full** deploy even if nothing else changed, and so is any push while the server runs a bundle other than the resolved one. Predicting "pull tier" from the file diff alone is the single most common wrong answer here.
+
+## Which release a deploy installs
+
+The `Resolve stack version` step of `deploy-reusable.yml` takes the pin, first match wins:
+
+1. `stack_version_override` — the consumer `deploy.yml` passes its manual-dispatch `stack_version` input here, for one run.
+2. `.stack-version` at the consumer root — the committed exact `vX.Y.Z`.
+3. `stack_version` — deprecated: older scaffolds pass the `STACK_VERSION` repository variable. With `.stack-version` present it is ignored, with a warning to delete the variable when it names another release.
+4. `latest`.
+
+A symbolic pin (`vN`, `vN.M`, `latest`) resolves to the highest stable `vX.Y.Z` release matching it; `latest` stays inside the workflow's own major.
+
+**The major guard.** The resolved major must equal the major of the tag the workflow runs from (`deploy-reusable.yml@vN`). A mismatch fails the step before any deploy command reaches the server, naming the `@vN` to set: update `.github/workflows/deploy.yml`, run `./dev update`, push both. A branch or sha ref (template testing) skips the guard with a notice. See `references/tier-detection.md` for the full two-stage algorithm and worked examples.
 
 ## Pre-push checklist
 
@@ -65,8 +78,11 @@ Full detail (all 17 numbered sections) is in `references/deploy-sequence.md`. Th
 Manual dispatch of the caller workflow (consumer repo) **always** deploys full — it skips tier detection entirely:
 
 ```bash
-gh workflow run deploy.yml   # run from the consumer repo; workflow_dispatch has no inputs
+gh workflow run deploy.yml                            # run from the consumer repo; deploys .stack-version
+gh workflow run deploy.yml -f stack_version=v5.6.1    # one-off deploy of another release, e.g. a rollback
 ```
+
+The override lasts one run: the next push deploys `.stack-version` again, so commit the older version there to stay on it.
 
 Direct manual deploy on the server, bypassing CI (there is no `~/server/scripts/` — `deploy.sh` ships inside the bundle):
 

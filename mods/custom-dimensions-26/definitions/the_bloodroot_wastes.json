@@ -1,0 +1,94 @@
+{
+  "schemaVersion": 2,
+  "description": "Crimson root-country — the piglins who survived the war retreated here. Forges and fungus in the red haze, a shadow of their former industry. They kept working, but the grandeur is gone.",
+  "seed": 3644296771794424049,
+  "spawn": [-64, 46, 0],
+  "generator": {
+    "type": "noise",
+    "preset": "nether"
+  },
+  "biomes": [
+    {
+      "id": "minecraft:crimson_forest",
+      "climate": {
+        "temperature": [-2.0, -0.328]
+      }
+    },
+    {
+      "id": "incendium:weeping_valley",
+      "climate": {
+        "temperature": [-0.328, -0.136]
+      }
+    },
+    {
+      "id": "incendium:inverted_forest",
+      "climate": {
+        "temperature": [-0.136, 0.003]
+      }
+    },
+    {
+      "id": "minecraft:nether_wastes",
+      "climate": {
+        "temperature": [0.003, 0.164]
+      }
+    },
+    {
+      "id": "minecraft:basalt_deltas",
+      "climate": {
+        "temperature": [0.164, 0.345]
+      }
+    },
+    {
+      "id": "regions_unexplored:infernal_holt",
+      "climate": {
+        "temperature": [0.345, 2.0]
+      }
+    }
+  ],
+  "atmosphere": {
+    "fogColor": "#5B1B1B"
+  },
+  "borders": {
+    "player": 1024,
+    "generation": 1024
+  },
+  "difficulty": {
+    "mobMultiplier": 1.5,
+    "playerLuck": 1.4
+  },
+  "portals": [
+    {
+      "frameBlock": "minecraft:crimson_nylium",
+      "igniterItem": "minecraft:flint_and_steel",
+      "color": "C83B3B",
+      "lightLevel": 11,
+      "scale": 8.0,
+      "cooldown": 40,
+      "particleType": "minecraft:crimson_spore",
+      "sounds": {
+        "ignite": "block.portal.trigger",
+        "enter": "block.portal.travel",
+        "exit": "block.portal.travel"
+      }
+    }
+  ],
+  "roll": {
+    "mood": "adventurous",
+    "spawnFilter": [
+      "minecraft:crimson_forest",
+      "incendium:weeping_valley"
+    ],
+    "wants": {
+      "crimson_fungus": "near_spawn",
+      "crimson_forge": "spread",
+      "fortress": "spread",
+      "crimson_well": "near_spawn",
+      "pipeline": "near_border",
+      "ruined_lab": "spread"
+    },
+    "shuns": [
+      "warped_outpost",
+      "warped_greatsword"
+    ]
+  }
+}

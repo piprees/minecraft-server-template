@@ -1,0 +1,98 @@
+{
+  "schemaVersion": 2,
+  "description": "Industrial lava flats — piglin pipelines and reactors built over the melt. The infrastructure still runs, still pumps, still processes. The workers are gone. The machines don't care.",
+  "seed": -5196338349562891726,
+  "spawn": [128, 99, 0],
+  "generator": {
+    "type": "noise",
+    "preset": "nether"
+  },
+  "biomes": [
+    {
+      "id": "incendium:ash_barrens",
+      "climate": {
+        "temperature": [-2.0, -0.495]
+      }
+    },
+    {
+      "id": "minecraft:nether_wastes",
+      "climate": {
+        "temperature": [-0.495, -0.234]
+      }
+    },
+    {
+      "id": "minecraft:basalt_deltas",
+      "climate": {
+        "temperature": [-0.234, -0.046]
+      }
+    },
+    {
+      "id": "incendium:infernal_dunes",
+      "climate": {
+        "temperature": [-0.046, 0.098]
+      }
+    },
+    {
+      "id": "regions_unexplored:inferno",
+      "climate": {
+        "temperature": [0.098, 0.297]
+      }
+    },
+    {
+      "id": "incendium:volcanic_deltas",
+      "climate": {
+        "temperature": [0.297, 2.0]
+      }
+    }
+  ],
+  "borders": {
+    "player": 1024,
+    "generation": 1024
+  },
+  "difficulty": {
+    "mobMultiplier": 1.5,
+    "playerLuck": 1.4
+  },
+  "structures": {
+    "terrainAdaptation": {
+      "incendium:nether_reactor": "platform_skirt",
+      "incendium:pipeline": "platform_skirt"
+    }
+  },
+  "portals": [
+    {
+      "frameBlock": "minecraft:smooth_basalt",
+      "igniterItem": "minecraft:flint_and_steel",
+      "color": "FF8B2B",
+      "lightLevel": 11,
+      "scale": 8.0,
+      "cooldown": 40,
+      "sounds": {
+        "ignite": "block.portal.trigger",
+        "enter": "block.portal.travel",
+        "exit": "block.portal.travel"
+      }
+    }
+  ],
+  "roll": {
+    "mood": "adventurous",
+    "spawnFilter": [
+      "minecraft:nether_wastes",
+      "incendium:infernal_dunes",
+      "incendium:volcanic_deltas"
+    ],
+    "wants": {
+      "pipeline": "spread",
+      "nether_reactor": "near_border",
+      "fortress": "spread",
+      "crimson_well": "near_spawn",
+      "ruined_lab": "spread",
+      "nether_tower": "near_border",
+      "copper_tower": "spread"
+    },
+    "shuns": [
+      "piglin_village",
+      "warped_outpost"
+    ]
+  }
+}

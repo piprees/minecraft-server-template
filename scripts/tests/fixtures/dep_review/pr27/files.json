@@ -1,0 +1,38 @@
+[
+ {
+  "sha": "2c779d3a986544b6f67c8a7e5211880dca533abd",
+  "filename": ".github/workflows/mod-build.yml",
+  "status": "modified",
+  "additions": 1,
+  "deletions": 1,
+  "changes": 2,
+  "patch": "@@ -17,7 +17,7 @@ jobs:\n     steps:\n       - uses: actions/checkout@v7\n \n-      - uses: actions/setup-java@v5\n+      - uses: actions/setup-java@v6\n         with:\n           distribution: temurin\n           java-version: '21'"
+ },
+ {
+  "sha": "61643fe459309a32272d780317c05e0c865eb6eb",
+  "filename": ".github/workflows/mod-updates.yml",
+  "status": "modified",
+  "additions": 1,
+  "deletions": 1,
+  "changes": 2,
+  "patch": "@@ -96,7 +96,7 @@ jobs:\n         # case it exists to catch. Build with the pinned toolchain\n         # (mods/mise.toml uses Java 21), same setup as mod-build.yml, or the\n         # runner's default JDK produces a broken jar.\n-        uses: actions/setup-java@v5\n+        uses: actions/setup-java@v6\n         with:\n           distribution: temurin\n           java-version: '21'"
+ },
+ {
+  "sha": "d2a0deecdab36b5635537f8942db34ab20f811e1",
+  "filename": ".github/workflows/release.yml",
+  "status": "modified",
+  "additions": 1,
+  "deletions": 1,
+  "changes": 2,
+  "patch": "@@ -45,7 +45,7 @@ jobs:\n             exit 1\n           fi\n \n-      - uses: actions/setup-java@v5\n+      - uses: actions/setup-java@v6\n         with:\n           distribution: temurin\n           java-version: '21'"
+ },
+ {
+  "sha": "78ac4a106587575b8af98234d68e3c2ffb8dd8ba",
+  "filename": ".github/workflows/smoke-test.yml",
+  "status": "modified",
+  "additions": 1,
+  "deletions": 1,
+  "changes": 2,
+  "patch": "@@ -120,7 +120,7 @@ jobs:\n           mkdir -p data/mods data/config modpack-dist overlay backups .seed-rolling\n           chmod 777 .seed-rolling\n \n-      - uses: actions/setup-java@v5\n+      - uses: actions/setup-java@v6\n         with:\n           distribution: temurin\n           java-version: '21'"
+ }
+]

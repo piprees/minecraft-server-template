@@ -1,0 +1,12 @@
+{
+  "input": {
+    "left": {
+      "left": "adventure:terrain/terrain_ridges/height",
+      "right": 0.0078125,
+      "type": "minecraft:mul"
+    },
+    "right": -1.0,
+    "type": "minecraft:add"
+  },
+  "type": "minecraft:cache"
+}

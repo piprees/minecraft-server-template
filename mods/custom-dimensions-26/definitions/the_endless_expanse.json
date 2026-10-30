@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 2,
+  "description": "The endless expanse — what humans and villagers built when they had room. Large biomes, big civilisation, a coliseum and a mansion at the far edge. The scale is the point.",
+  "seed": -6125640993941775125,
+  "spawn": [256, 66, 256],
+  "generator": {
+    "type": "noise",
+    "preset": "large_biomes"
+  },
+  "borders": {
+    "player": 4096,
+    "generation": 2048
+  },
+  "difficulty": {
+    "mobMultiplier": 1.0,
+    "playerLuck": 1.3
+  },
+  "structures": {
+    "radial": {
+      "dungeons": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+    }
+  },
+  "portals": [
+    {
+      "frameBlock": "minecraft:raw_iron_block",
+      "igniterItem": "minecraft:amethyst_shard",
+      "color": "9B9BAF",
+      "lightLevel": 11,
+      "scale": 2.0,
+      "cooldown": 40,
+      "shape": "doorway",
+      "sounds": {
+        "ignite": "block.portal.trigger",
+        "enter": "block.portal.travel",
+        "exit": "block.portal.travel"
+      }
+    }
+  ],
+  "roll": {
+    "mood": "adventurous",
+    "spawnFilter": [
+      "minecraft:plains",
+      "minecraft:forest",
+      "terralith:steppe",
+      "minecraft:sunflower_plains",
+      "minecraft:meadow",
+      "terralith:brushland",
+      "minecraft:savanna"
+    ],
+    "wants": {
+      "village": "near_spawn",
+      "tavern": "spread",
+      "farmstead": "near_spawn",
+      "mineshaft": "near_spawn",
+      "pillager_outpost": "spread",
+      "mansion": "near_border",
+      "coliseum": "near_border",
+      "watchtower": "spread",
+      "ancient_city": "near_border",
+      "desert_pyramid": "spread",
+      "ruined_portal": "near_spawn"
+    }
+  }
+}

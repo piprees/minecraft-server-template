@@ -1,0 +1,112 @@
+{
+  "schemaVersion": 2,
+  "description": "The warm hearth in a frozen world. Snowy villages and taigas where villagers adapted to the cold — igloos, outposts, campsites. The dungeons out in the ice are older than the settlements.",
+  "seed": -7832561563439705203,
+  "spawn": [-128, 64, 0],
+  "generator": {
+    "type": "noise",
+    "preset": "overworld"
+  },
+  "terrain": {
+    "base": null
+  },
+  "biomes": [
+    "minecraft:snowy_plains",
+    "minecraft:snowy_taiga",
+    "minecraft:grove",
+    "minecraft:frozen_river",
+    "minecraft:ice_spikes",
+    "minecraft:snowy_slopes",
+    "minecraft:frozen_peaks",
+    "minecraft:jagged_peaks",
+    "minecraft:old_growth_spruce_taiga",
+    "minecraft:taiga",
+    "minecraft:stony_shore",
+    "minecraft:river",
+    "terralith:birch_taiga",
+    "terralith:rocky_mountains",
+    "terralith:wintry_forest",
+    "terralith:alpine_grove",
+    {
+      "id": "natures_spirit:tundra",
+      "climate": {
+        "humidity": [-0.61, -0.47]
+      }
+    },
+    {
+      "id": "regions_unexplored:frozen_pine_taiga",
+      "climate": {
+        "humidity": [-0.4, -0.26]
+      }
+    },
+    {
+      "id": "wilderwild:snowy_old_growth_pine_taiga",
+      "climate": {
+        "humidity": [-0.19, -0.05]
+      }
+    },
+    {
+      "id": "regions_unexplored:cold_boreal_taiga",
+      "climate": {
+        "humidity": [0.02, 0.16]
+      }
+    },
+    {
+      "id": "natures_spirit:snowy_fir_forest",
+      "climate": {
+        "humidity": [0.23, 0.37]
+      }
+    },
+    {
+      "id": "regions_unexplored:golden_boreal_taiga",
+      "climate": {
+        "humidity": [0.44, 0.58]
+      }
+    }
+  ],
+  "borders": {
+    "player": 4096,
+    "generation": 2048
+  },
+  "difficulty": {
+    "mobMultiplier": 1.3,
+    "playerLuck": 1.3
+  },
+  "portals": [
+    {
+      "frameBlock": "minecraft:lapis_block",
+      "igniterItem": "minecraft:amethyst_shard",
+      "color": "6B9BD0",
+      "lightLevel": 11,
+      "scale": 2.0,
+      "cooldown": 40,
+      "sounds": {
+        "ignite": "block.portal.trigger",
+        "enter": "block.portal.travel",
+        "exit": "block.portal.travel"
+      }
+    }
+  ],
+  "roll": {
+    "mood": "pastoral",
+    "spawnFilter": [
+      "minecraft:snowy_plains",
+      "minecraft:taiga"
+    ],
+    "wants": {
+      "village": "near_spawn",
+      "igloo": "near_spawn",
+      "taiga_outpost": "spread",
+      "cold_dungeon": "spread",
+      "ice_dungeon_l": "near_border",
+      "frozen_dungeon": "near_border",
+      "campsite": "near_spawn",
+      "guide_post_cold": "near_spawn",
+      "firetower": "spread"
+    },
+    "shuns": [
+      "monument",
+      "coliseum"
+    ]
+  }
+}

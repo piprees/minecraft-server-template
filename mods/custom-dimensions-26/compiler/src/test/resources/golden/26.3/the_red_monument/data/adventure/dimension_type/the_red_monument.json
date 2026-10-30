@@ -1,0 +1,28 @@
+{
+  "base": "minecraft:overworld",
+  "changed": {
+    "ambient_light": 0.2,
+    "attributes": {
+      "changed": {
+        "minecraft:gameplay/bed_rule": "sha1:805c9174fdff922f257feb155a1664e6124463bf",
+        "minecraft:gameplay/nether_portal_spawns_piglin": false,
+        "minecraft:gameplay/straw_bed_rule": "sha1:805c9174fdff922f257feb155a1664e6124463bf",
+        "minecraft:visual/fog_color": "#120404",
+        "minecraft:visual/sky_color": "#5c0f0f"
+      },
+      "removed": [
+        "minecraft:visual/cloud_color",
+        "minecraft:visual/cloud_height"
+      ]
+    },
+    "has_fixed_time": true,
+    "monster_spawn_light_level": 0,
+    "skybox": "end",
+    "timelines": [
+      "adventure:fixed_time/villager_schedule_18000",
+      "adventure:fixed_time/day_18000",
+      "adventure:fixed_time/moon_18000",
+      "minecraft:early_game"
+    ]
+  }
+}

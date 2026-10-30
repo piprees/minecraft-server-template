@@ -1,6 +1,6 @@
 ---
 title: Resource Packs
-description: How resource packs are declared, resolved, enabled, and the filename-pinning system that catches silent breakage on version bumps
+description: How resource packs are declared, resolved, enabled, and how enabled filenames follow version bumps without silent breakage
 tags: [resource-packs, modpack, options.txt, modrinth, filename-pinning]
 ---
 
@@ -27,7 +27,7 @@ Downloading a pack doesn't enable it (Dramatic Skys ships download-only, for pla
 ### Two rules
 
 1. **Order is priority**: the last entry in the array sits on top and overrides everything below it.
-2. **Filenames are pinned**: when a pack updates on Modrinth its filename usually changes, and the build **fails with a filename-drift error** until you refresh the `options.txt` entry. This is deliberate — the alternative is a pack that silently stops applying.
+2. **Filenames follow the pin**: a pack's filename carries its version, so a re-pin renames it. The build (`scripts/pack_files.py`) rewrites each absent `options.txt` entry to the one downloaded file with the same name minus version tokens, and **fails** when there is none or more than one — a pack that silently stops applying is never shipped. A re-pin stays on the pinned style variant, so `(Short and Fluffy)` never turns into `(Tall)`.
 
 ## Worked example
 
@@ -39,6 +39,6 @@ Any of the author's other micropacks can be added the same way: an extra `files`
 
 | Symptom | Cause |
 | --- | --- |
-| Build fails with filename-drift error | A pack updated on Modrinth and its filename changed. Update the `options.txt` entry to match the new filename. |
+| Build fails: `options.txt enables '<file>' but ...` | The enabled pack has no download with the same name minus version tokens: it left `_resourcePacks`, or its new filename differs by more than a version. Update the `options.txt` entry to the downloaded filename. |
 | Pack downloaded but not applying | Not listed in `options.txt`. Download ≠ enable. |
 | Pack applying but wrong priority | Order in the `resourcePacks:` array — last wins. |

@@ -1,0 +1,159 @@
+{
+  "input": {
+    "alpha": {
+      "input": {
+        "left": {
+          "spline": {
+            "coordinate": {
+              "input": {
+                "noise": "adventure:terrain/gorge",
+                "shift_x": "minecraft:shift_x",
+                "shift_z": "minecraft:shift_z",
+                "type": "minecraft:noise",
+                "xz_scale": 1.0,
+                "y_scale": 0.0
+              },
+              "type": "minecraft:abs"
+            },
+            "points": [
+              {
+                "derivative": 0.0,
+                "location": 0.0,
+                "value": 1.0
+              },
+              {
+                "derivative": 0.0,
+                "location": 0.036,
+                "value": 1.0
+              },
+              {
+                "derivative": 0.0,
+                "location": 0.06,
+                "value": 0.15
+              },
+              {
+                "derivative": 0.0,
+                "location": 0.096,
+                "value": 0.0
+              }
+            ]
+          },
+          "type": "minecraft:spline"
+        },
+        "right": {
+          "input": {
+            "left": {
+              "left": "adventure:terrain/terrain_canyons/continents",
+              "right": 0.15,
+              "type": "minecraft:add"
+            },
+            "right": 6.66666667,
+            "type": "minecraft:mul"
+          },
+          "max": 1.0,
+          "min": 0.0,
+          "type": "minecraft:clamp"
+        },
+        "type": "minecraft:mul"
+      },
+      "type": "minecraft:cache"
+    },
+    "first": "adventure:terrain/terrain_canyons/canyon_land",
+    "second": {
+      "left": "adventure:terrain/terrain_canyons/canyon_land",
+      "right": {
+        "left": {
+          "left": {
+            "left": {
+              "left": {
+                "input": {
+                  "left": {
+                    "left": "adventure:terrain/terrain_canyons/canyon_bed",
+                    "right": -64.0,
+                    "type": "minecraft:add"
+                  },
+                  "right": 0.125,
+                  "type": "minecraft:mul"
+                },
+                "type": "minecraft:floor"
+              },
+              "right": {
+                "spline": {
+                  "coordinate": {
+                    "left": {
+                      "left": {
+                        "left": "adventure:terrain/terrain_canyons/canyon_bed",
+                        "right": -64.0,
+                        "type": "minecraft:add"
+                      },
+                      "right": 0.125,
+                      "type": "minecraft:mul"
+                    },
+                    "right": {
+                      "input": {
+                        "left": {
+                          "left": "adventure:terrain/terrain_canyons/canyon_bed",
+                          "right": -64.0,
+                          "type": "minecraft:add"
+                        },
+                        "right": 0.125,
+                        "type": "minecraft:mul"
+                      },
+                      "type": "minecraft:floor"
+                    },
+                    "type": "minecraft:sub"
+                  },
+                  "points": [
+                    {
+                      "derivative": 0.0,
+                      "location": 0.0,
+                      "value": 0.0
+                    },
+                    {
+                      "derivative": 0.0,
+                      "location": 0.95,
+                      "value": 0.0
+                    },
+                    {
+                      "derivative": 0.0,
+                      "location": 1.0,
+                      "value": 1.0
+                    }
+                  ]
+                },
+                "type": "minecraft:spline"
+              },
+              "type": "minecraft:add"
+            },
+            "right": 8.0,
+            "type": "minecraft:mul"
+          },
+          "right": 64.0,
+          "type": "minecraft:add"
+        },
+        "right": {
+          "left": {
+            "input": {
+              "left": {
+                "left": "adventure:terrain/terrain_canyons/canyon_grade",
+                "right": 0.483586966,
+                "type": "minecraft:add"
+              },
+              "right": -34.0136054,
+              "type": "minecraft:mul"
+            },
+            "max": 1.0,
+            "min": 0.0,
+            "type": "minecraft:clamp"
+          },
+          "right": 4.0,
+          "type": "minecraft:mul"
+        },
+        "type": "minecraft:sub"
+      },
+      "type": "minecraft:min"
+    },
+    "type": "minecraft:lerp"
+  },
+  "type": "minecraft:cache"
+}

@@ -23,6 +23,7 @@ if [[ "$SCRIPT_DIR" == *"/.stack/"* ]]; then
 fi
 cd "$PROJECT_DIR"
 load_env
+export_mc_version
 
 mkdir -p "$PROJECT_DIR/modpack-dist" "$PROJECT_DIR/overlay"
 
@@ -55,7 +56,7 @@ docker run --rm \
   -e "DOMAIN=${DOMAIN:-localhost}" \
   -e "BRAND_NAME=${BRAND_NAME:-My Server}" \
   -e "BRAND_SLUG=${BRAND_SLUG:-myserver}" \
-  -e "MC_VERSION=${MC_VERSION:-1.21.1}" \
+  -e "MC_VERSION=${MC_VERSION}" \
   -e "SERVER_PORT=${SERVER_PORT:-25577}" \
   -e "GIT_SHA=${GIT_SHA}" \
   -e "DISCORD_INVITE_URL=${DISCORD_INVITE_URL:-}" \

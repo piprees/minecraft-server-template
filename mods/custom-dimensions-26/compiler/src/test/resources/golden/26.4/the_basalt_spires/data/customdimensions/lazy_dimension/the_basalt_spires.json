@@ -1,0 +1,24 @@
+{
+  "type": "adventure:the_basalt_spires",
+  "generator": {
+    "type": "minecraft:noise",
+    "biome_source": {
+      "type": "minecraft:multi_noise",
+      "biomes": [
+        {
+          "biome": "minecraft:basalt_deltas",
+          "parameters": "sha1:5507dde7a37de44824a0ecad95510ee68caae2f8"
+        },
+        {
+          "biome": "minecraft:nether_wastes",
+          "parameters": "sha1:5a54e094cf79e57ca91bc6c596a6569ef35e8169"
+        },
+        {
+          "biome": "minecraft:soul_sand_valley",
+          "parameters": "sha1:1f26eb0e6913707a3ec04e1476654d57ab2cad75"
+        }
+      ]
+    },
+    "settings": "adventure:the_basalt_spires"
+  }
+}

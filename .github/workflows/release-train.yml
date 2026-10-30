@@ -1,0 +1,190 @@
+name: Release Train
+
+# Cuts the week's release from what landed on main, versioned by the
+# commits themselves (cliff.toml [bump], per DEPENDENCIES.md):
+#
+#   worldgen  on the first train of each month, squash-merges the reviewed
+#             `mod-updates/next-major` PR (label dep-review:ready-for-major)
+#             with dep-review's commit title and BREAKING CHANGE body
+#   plan      git-cliff --bumped-version; nothing releasable (only CI, docs,
+#             tests, style or chores) means no release
+#   release   patch or minor: dispatches release.yml
+#   major     waits in the `release-major` environment for a required
+#             reviewer's approval, then dispatches release.yml
+#
+# Gotchas:
+#   - The `release-major` environment must have required reviewers. The
+#     major job checks and refuses to release if it has none, because a
+#     missing environment is created on first use with no protection.
+#   - Wednesday keeps it clear of the Monday bots (dependabot.yml,
+#     mod-updates.yml) that push to main while release.yml commits its
+#     changelog back.
+#   - A GITHUB_TOKEN merge triggers no push workflows; the release builds
+#     its own images.
+
+on:
+  schedule:
+    - cron: '0 6 * * 3' # Wednesday 06:00 UTC
+  workflow_dispatch:
+    inputs:
+      merge_worldgen:
+        description: "Merge a ready next-major PR even if this isn't the month's first train"
+        required: false
+        type: boolean
+        default: false
+
+permissions: {}
+
+concurrency:
+  group: release-train
+  cancel-in-progress: false
+
+jobs:
+  worldgen:
+    name: Merge the monthly worldgen batch
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      pull-requests: write
+      checks: read
+    steps:
+      - name: Refuse any ref but main
+        if: github.ref != 'refs/heads/main'
+        run: |
+          echo "::error::the release train runs from main only (got $GITHUB_REF)"
+          exit 1
+
+      - name: Checkout main
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Merge the ready next-major PR
+        env:
+          GH_TOKEN: ${{ github.token }}
+          FORCE: ${{ inputs.merge_worldgen }}
+        run: |
+          if [[ "$FORCE" != "true" && "$(date -u +%-d)" -gt 7 ]]; then
+            echo "Not the month's first train; worldgen waits."
+            exit 0
+          fi
+          PR=$(gh pr list --head mod-updates/next-major --state open --json number --jq '.[0].number // empty')
+          [[ -n "$PR" ]] || { echo "No next-major PR open."; exit 0; }
+          gh api "repos/$GITHUB_REPOSITORY/pulls/$PR" > pr.json
+          gh api --paginate "repos/$GITHUB_REPOSITORY/issues/$PR/comments" | jq -s 'add' > comments.json
+          python3 - <<'EOF' > merge.env
+          import json, shlex, sys
+          sys.path.insert(0, "scripts/dep_review")
+          import common
+          pr = json.load(open("pr.json"))
+          _, state = common.latest_state(json.load(open("comments.json")))
+          labels = {l["name"] for l in pr.get("labels", [])}
+          commit = (state or {}).get("commit") or {}
+          problems = []
+          if "dep-review:ready-for-major" not in labels:
+              problems.append("not labelled dep-review:ready-for-major")
+          if not state or state.get("head_sha") != pr["head"]["sha"]:
+              problems.append("the last review is not for the current head")
+          if not str(commit.get("title", "")).startswith("feat(deps)!:"):
+              problems.append("no reviewed major commit title in the review state")
+          if "BREAKING CHANGE: " not in str(commit.get("body", "")):
+              problems.append("no BREAKING CHANGE note in the review state")
+          print(f"PROBLEMS={shlex.quote('; '.join(problems))}")
+          print(f"HEAD_SHA={shlex.quote(pr['head']['sha'])}")
+          print(f"TITLE={shlex.quote(commit.get('title', ''))}")
+          print(f"BODY={shlex.quote(commit.get('body', ''))}")
+          EOF
+          # shellcheck disable=SC1091
+          source merge.env
+          if [[ -n "$PROBLEMS" ]]; then
+            echo "::warning::next-major PR #$PR not merged: $PROBLEMS"
+            exit 0
+          fi
+          gh pr merge "$PR" --squash --match-head-commit "$HEAD_SHA" --subject "$TITLE" --body "$BODY"
+          echo "Merged next-major PR #$PR: $TITLE" >> "$GITHUB_STEP_SUMMARY"
+
+  plan:
+    name: Work out the version
+    needs: worldgen
+    if: always() && needs.worldgen.result != 'cancelled'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      releasable: ${{ steps.version.outputs.releasable }}
+      major: ${{ steps.version.outputs.major }}
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v7
+        with:
+          ref: main
+          fetch-depth: 0
+          fetch-tags: true
+          persist-credentials: false
+
+      - name: Install git-cliff
+        run: pip install --quiet "git-cliff==$(tr -d '[:space:]' < .github/git-cliff-version)"
+
+      - name: Compute the next version
+        id: version
+        run: |
+          PREVIOUS=$(git tag --merged HEAD --list 'v*' | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -1)
+          NEXT=$(git-cliff --bumped-version)
+          echo "Previous $PREVIOUS, next $NEXT" >> "$GITHUB_STEP_SUMMARY"
+          if [[ "$NEXT" == "$PREVIOUS" ]]; then
+            echo "releasable=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          ./scripts/check-release-version.sh "$NEXT"
+          PREV_MAJOR="${PREVIOUS#v}"; PREV_MAJOR="${PREV_MAJOR%%.*}"
+          NEXT_MAJOR="${NEXT#v}"; NEXT_MAJOR="${NEXT_MAJOR%%.*}"
+          {
+            echo "version=$NEXT"
+            echo "releasable=true"
+            echo "major=$([[ "$NEXT_MAJOR" -gt "$PREV_MAJOR" ]] && echo true || echo false)"
+          } >> "$GITHUB_OUTPUT"
+
+  release:
+    name: Release ${{ needs.plan.outputs.version }}
+    needs: plan
+    if: needs.plan.outputs.releasable == 'true' && needs.plan.outputs.major != 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      actions: write
+    steps:
+      - name: Dispatch release.yml
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ needs.plan.outputs.version }}
+        run: gh workflow run release.yml --repo "$GITHUB_REPOSITORY" --ref main -f version="$VERSION"
+
+  major:
+    name: Release major ${{ needs.plan.outputs.version }}
+    needs: plan
+    if: needs.plan.outputs.releasable == 'true' && needs.plan.outputs.major == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    environment: release-major
+    permissions:
+      actions: write
+    steps:
+      - name: Refuse without a required reviewer
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          REVIEWERS=$(gh api "repos/$GITHUB_REPOSITORY/environments/release-major" \
+            --jq '[.protection_rules[]? | select(.type == "required_reviewers")] | length')
+          if [[ "${REVIEWERS:-0}" -eq 0 ]]; then
+            echo "::error::the release-major environment has no required reviewers; add one before majors can release"
+            exit 1
+          fi
+
+      - name: Dispatch release.yml
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ needs.plan.outputs.version }}
+        run: gh workflow run release.yml --repo "$GITHUB_REPOSITORY" --ref main -f version="$VERSION"

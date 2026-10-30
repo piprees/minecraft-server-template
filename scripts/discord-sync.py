@@ -38,6 +38,7 @@ import json
 import logging
 import os
 import re
+from urllib.parse import quote
 import socket
 import subprocess
 import sys
@@ -140,9 +141,9 @@ COMMAND_LOG_RE = re.compile(r"(\w+) issued server command: (.+)")
 # "]: <name> msg", never "]: [" immediately after the prefix. Rcon and
 # Server actors are excluded: /mc commands are already audited at the
 # source with the Discord admin's name (audit()), and relaying Rcon
-# would double-post.
+# would double-post. 26.x prefixes every system message with "System chat: ".
 ADMIN_ACTION_RE = re.compile(
-    r"^\[\d{2}:\d{2}:\d{2}\] \[Server thread/INFO\]: \[(\w{1,16}): (.+)\]\s*$"
+    r"^\[\d{2}:\d{2}:\d{2}\] \[Server thread/INFO\]: (?:System chat: )?\[(\w{1,16}): (.+)\]\s*$"
 )
 ADMIN_ACTION_EXCLUDE = {"Rcon", "Server"}
 
@@ -151,6 +152,23 @@ def validate_player(name: str) -> str | None:
     if MC_USERNAME_RE.match(name):
         return name
     return None
+
+
+def ec_as_player(command: str, player: str, toggle: str | None = None) -> str:
+    """An Essential Commands admin command run as the player.
+
+    Essential Commands answers its `<command> <player>` forms from a console
+    source with "A player is required to run this command here", so the
+    player is the source; `@s <true|false>` sets a toggle explicitly, since
+    `invuln` has no bare true/false form.
+    """
+    suffix = f" @s {toggle}" if toggle is not None else ""
+    return f"execute as {player} run {command}{suffix}"
+
+
+def player_offline(reply: str | None) -> bool:
+    """A command that names a player who is not online answers with one of these."""
+    return reply is not None and ("No entity was found" in reply or "No player was found" in reply)
 
 
 def validate_identifier(raw: str) -> str | None:
@@ -264,6 +282,18 @@ async def get_online_players() -> list[str]:
     return [p.strip() for p in match.group(1).split(",") if p.strip()]
 
 
+async def rcon_as_online_player(player: str, cmd: str) -> bool:
+    """Send cmd if player is online; False when they are not.
+
+    `execute as <player>` answers nothing for a missing player, so the check
+    is a probe that names the player directly.
+    """
+    if player_offline(await async_rcon(f"data get entity {player} Pos")):
+        return False
+    await async_rcon(cmd)
+    return True
+
+
 async def get_player_pos(player: str) -> tuple[int, int, int] | None:
     result = await async_rcon(f"data get entity {player} Pos")
     if not result:
@@ -289,6 +319,20 @@ def parse_spark_health(text: str) -> dict[str, str]:
         used_gb = int(mem.group(1)) / 1024
         total_gb = int(mem.group(2)) / 1024
         info["memory"] = f"{used_gb:.1f}G/{total_gb:.1f}G"
+    return info
+
+
+def parse_tick_query(text: str) -> dict[str, str]:
+    """TPS and MSPT from vanilla `tick query`, for a spark whose replies never reach RCON."""
+    info: dict[str, str] = {}
+    if not text:
+        return info
+    rate = re.search(r"Target tick rate:\s*([\d.]+)", text)
+    mspt = re.search(r"Average time per tick:\s*([\d.]+)ms", text)
+    if mspt:
+        info["mspt"] = mspt.group(1)
+        if rate:
+            info["tps"] = f"{min(float(rate.group(1)), 1000 / max(float(mspt.group(1)), 0.001)):.1f}"
     return info
 
 
@@ -434,6 +478,26 @@ async def resolve_mc_uuid(username: str) -> str | None:
         return None
 
 
+GEYSER_XUID_API = "https://api.geysermc.org/v2/xbox/xuid/"
+
+
+async def resolve_xuid(gamertag: str) -> str | None:
+    """The gamertag's XUID from GeyserMC's cache, which learns a player once
+    they have connected to any Geyser server."""
+    try:
+        async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=10)) as session:
+            async with session.get(f"{GEYSER_XUID_API}{quote(gamertag)}") as resp:
+                if resp.status == 200:
+                    xuid = str((await resp.json()).get("xuid", ""))
+                    return xuid if XUID_RE.match(xuid) else None
+                if resp.status not in (400, 404):
+                    log.warning("GeyserMC API returned %d for %s", resp.status, gamertag)
+                return None
+    except Exception as e:
+        log.warning("GeyserMC API lookup failed for %s: %s", gamertag, e)
+        return None
+
+
 # === DCIntegration LinkedPlayers ==============================================
 
 def quarantine_corrupt_json(path: Path, error: Exception) -> None:
@@ -487,7 +551,7 @@ def update_linked_players(discord_id: str, mc_uuid: str | None, remove: bool = F
 
 # === Persistence helpers ======================================================
 
-def load_mappings() -> dict[str, str]:
+def load_mappings() -> dict[str, object]:
     if DATA_PATH.exists():
         try:
             return json.loads(DATA_PATH.read_text())
@@ -497,8 +561,149 @@ def load_mappings() -> dict[str, str]:
     return {}
 
 
-def save_mappings(mappings: dict[str, str]) -> None:
+def save_mappings(mappings: dict[str, object]) -> None:
     atomic_write_json(DATA_PATH, mappings)
+
+
+# === Player links (Java and Bedrock) ==========================================
+# A link is a Java username (a bare string) or {"platform": "bedrock", "name":
+# <gamertag>, "xuid": <digits>}; parsed, it is (platform, name, whitelist id).
+# Floodgate names a Bedrock player FLOODGATE_PREFIX plus the gamertag with
+# spaces as "_" (config/versions/26.3/floodgate/config.yml). A Bedrock player is
+# whitelisted by Floodgate UUID: vanilla `whitelist add` asks Mojang, and
+# Floodgate's own gamertag lookup fails silently for a gamertag GeyserMC's
+# cache has not seen.
+
+FLOODGATE_PREFIX = "."
+# Classic gamertag, the form Minecraft shows: ASCII letters and digits, single
+# spaces between them, at most 15 characters.
+GAMERTAG_RE = re.compile(r"^[A-Za-z0-9]+( [A-Za-z0-9]+)*$")
+GAMERTAG_MAX = 15
+XUID_RE = re.compile(r"^[0-9]{1,19}$")
+JAVA = "java"
+BEDROCK = "bedrock"
+
+
+def valid_gamertag(name: str) -> bool:
+    return len(name) <= GAMERTAG_MAX and bool(GAMERTAG_RE.match(name))
+
+
+def floodgate_uuid(xuid: str) -> str:
+    """Floodgate's UUID for an XUID: zeros, then the XUID as 16 hex digits."""
+    digits = f"{int(xuid):016x}"
+    if len(digits) != 16:
+        raise ValueError(f"XUID out of range: {xuid!r}")
+    return f"00000000-0000-0000-{digits[:4]}-{digits[4:]}"
+
+
+def make_link(platform: str, name: str, xuid: str | None = None) -> object:
+    if platform == JAVA:
+        return name
+    return {"platform": BEDROCK, "name": name, "xuid": xuid}
+
+
+def parse_link(value: object) -> tuple[str, str, str] | None:
+    """(platform, name, whitelist id) of a stored link, or None when it fails validation."""
+    if isinstance(value, str):
+        return (JAVA, value, value) if MC_USERNAME_RE.match(value) else None
+    if isinstance(value, dict) and value.get("platform") == BEDROCK:
+        name, xuid = value.get("name"), value.get("xuid")
+        if isinstance(name, str) and valid_gamertag(name) and isinstance(xuid, str) and XUID_RE.match(xuid):
+            try:
+                return (BEDROCK, name, floodgate_uuid(xuid))
+            except ValueError:
+                return None
+    return None
+
+
+def in_game_name(link: tuple[str, str, str]) -> str:
+    platform, name, _ = link
+    if platform == BEDROCK:
+        return FLOODGATE_PREFIX + name.replace(" ", "_")
+    return name
+
+
+def link_label(link: tuple[str, str, str]) -> str:
+    return f"{link[1]} (Bedrock)" if link[0] == BEDROCK else link[1]
+
+
+def whitelist_command(link: tuple[str, str, str], add: bool) -> str:
+    """Only parse_link's validated ids reach here; anything else raises."""
+    verb = "add" if add else "remove"
+    platform, _, ident = link
+    if platform == BEDROCK:
+        if not re.fullmatch(r"00000000-0000-0000-[0-9a-f]{4}-[0-9a-f]{12}", ident):
+            raise ValueError(f"not a Floodgate UUID: {ident!r}")
+        return f"fwhitelist {verb} {ident}"
+    if not MC_USERNAME_RE.match(ident):
+        raise ValueError(f"not a Java username: {ident!r}")
+    return f"whitelist {verb} {ident}"
+
+
+def role_sync_commands(link: tuple[str, str, str], has_player: bool, has_admin: bool) -> list[str]:
+    player = in_game_name(link)
+    commands: list[str] = []
+    if has_player or has_admin:
+        commands.append(whitelist_command(link, add=True))
+    if has_admin:
+        commands.append(f"op {player}")
+    if not has_player and not has_admin:
+        commands.append(whitelist_command(link, add=False))
+        commands.append(f"deop {player}")
+    if has_player and not has_admin:
+        commands.append(f"deop {player}")
+    return commands
+
+
+def unregister_commands(link: tuple[str, str, str]) -> list[str]:
+    return [whitelist_command(link, add=False), f"deop {in_game_name(link)}"]
+
+
+def same_player(a: tuple[str, str, str], b: tuple[str, str, str]) -> bool:
+    return a[0] == b[0] and a[1].lower() == b[1].lower()
+
+# === End player links =========================================================
+
+
+# The image's own copy, then the seeded config volume (the consumer's overlay/config/messages.json
+# when it has one), whose keys win.
+MESSAGES_PATHS = (Path("/app/messages.json"), Path(os.environ.get("MESSAGES_PATH", "/config-vol/messages.json")))
+_messages: dict[str, str] | None = None
+
+
+def load_messages(paths: tuple[Path, ...]) -> dict[str, str]:
+    """Every key from each existing file in order, later files overriding earlier ones."""
+    merged: dict[str, str] = {}
+    for path in paths:
+        if not path.is_file():
+            continue
+        try:
+            data = json.loads(path.read_text())
+        except (OSError, json.JSONDecodeError, ValueError) as error:
+            log.error("Could not read %s: %s", path, error)
+            continue
+        if isinstance(data, dict):
+            merged.update(data)
+        else:
+            log.error("%s is not a JSON object", path)
+    return merged
+
+
+def message(key: str, **values: object) -> str:
+    """A player-facing string from config/messages.json, formatted with values."""
+    global _messages
+    if _messages is None:
+        _messages = load_messages(MESSAGES_PATHS)
+    template = _messages.get(key)
+    if not isinstance(template, str):
+        log.error("messages.json has no %s", key)
+        return key
+    return template.format(**values)
+
+
+def floodgate_installed() -> bool:
+    mods = Path("/data/mods")
+    return mods.is_dir() and any(p.name.lower().startswith("floodgate") for p in mods.glob("*.jar"))
 
 
 def load_pending_actions() -> list[dict[str, object]]:
@@ -590,7 +795,7 @@ class SyncBot(discord.Client):
         super().__init__(intents=intents)
         self.tree = app_commands.CommandTree(self)
         self._sync_task: asyncio.Task | None = None
-        self._last_sync_state: dict[str, tuple[bool, bool]] = {}
+        self._last_sync_state: dict[str, tuple[bool, bool, tuple[str, str, str]]] = {}
 
     async def setup_hook(self) -> None:
         guild = discord.Object(id=GUILD_ID)
@@ -635,14 +840,15 @@ class SyncBot(discord.Client):
             return
 
         commands = []
-        new_state: dict[str, tuple[bool, bool]] = {}
+        new_state: dict[str, tuple[bool, bool, tuple[str, str, str]]] = {}
         # Which commands belong to which member, so a member whose RCON call
         # failed keeps its old state and is retried next cycle.
         member_commands: dict[str, list[str]] = {}
 
-        for discord_id, mc_name in list(mappings.items()):
-            if not MC_USERNAME_RE.match(mc_name):
-                log.warning("Skipping invalid username from mappings: %r", mc_name)
+        for discord_id, stored in list(mappings.items()):
+            link = parse_link(stored)
+            if link is None:
+                log.warning("Skipping invalid link from mappings: %r", stored)
                 continue
 
             member = guild.get_member(int(discord_id))
@@ -652,22 +858,14 @@ class SyncBot(discord.Client):
             roles = member_role_ids(member)
             has_player = PLAYER_ROLE_ID in roles
             has_admin = ADMIN_ROLE_ID in roles
-            current = (has_player, has_admin)
+            # The link is part of the state: a re-registered name is synced afresh.
+            current = (has_player, has_admin, link)
             previous = self._last_sync_state.get(discord_id)
 
             if current == previous:
                 continue
 
-            mine: list[str] = []
-            if has_player or has_admin:
-                mine.append(f"whitelist add {mc_name}")
-            if has_admin:
-                mine.append(f"op {mc_name}")
-            if not has_player and not has_admin:
-                mine.append(f"whitelist remove {mc_name}")
-                mine.append(f"deop {mc_name}")
-            if has_player and not has_admin:
-                mine.append(f"deop {mc_name}")
+            mine = role_sync_commands(link, has_player, has_admin)
 
             commands.extend(mine)
             member_commands[discord_id] = mine
@@ -806,6 +1004,10 @@ async def mc_status(interaction: discord.Interaction) -> None:
     chunky_raw = rcon_results.get("chunky progress")
 
     health = parse_spark_health(health_raw or "")
+    # spark on 26.3 answers asynchronously (its health report is an upload),
+    # so RCON gets nothing back; vanilla `tick query` answers in place.
+    if "tps" not in health:
+        health = {**parse_tick_query(await async_rcon("tick query") or ""), **health}
     tps = health.get("tps", "?")
     mspt = health.get("mspt", "?")
     memory = health.get("memory", "?")
@@ -865,13 +1067,16 @@ async def mc_status(interaction: discord.Interaction) -> None:
     mappings = load_mappings()
     guild = interaction.guild
     roster_lines = []
-    for discord_id, mc_name in sorted(mappings.items(), key=lambda x: x[1].lower()):
+    links = [(discord_id, parse_link(stored)) for discord_id, stored in mappings.items()]
+    for discord_id, link in sorted(
+        ((d, link) for d, link in links if link is not None), key=lambda x: x[1][1].lower()
+    ):
         member = guild.get_member(int(discord_id)) if guild else None
         discord_name = f"@{member.display_name}" if member else f"<{discord_id}>"
         roles = member_role_ids(member) if member else set()
         role = "Admin" if ADMIN_ROLE_ID in roles else "Player" if PLAYER_ROLE_ID in roles else "None"
-        status = "online" if mc_name in online else "offline"
-        roster_lines.append(f"  {mc_name}  <->  {discord_name}  {role}  {status}")
+        status = "online" if in_game_name(link) in online else "offline"
+        roster_lines.append(f"  {link_label(link)}  <->  {discord_name}  {role}  {status}")
 
     status_icon = "Online" if server_up else "Offline/Paused"
     parts = [
@@ -927,7 +1132,7 @@ async def mc_whisper(interaction: discord.Interaction, player: str, message: str
         await interaction.response.send_message("Message is empty after sanitisation.", ephemeral=True)
         return
     result = await async_rcon(f"msg {player} [{interaction.user.display_name}] {clean}")
-    if result is not None and "No entity was found" in result:
+    if player_offline(result):
         await interaction.response.send_message(f"**{player}** is not online.", ephemeral=True)
         return
     await interaction.response.send_message(f"Whispered to **{player}**: {clean}", ephemeral=True)
@@ -1105,8 +1310,7 @@ async def mc_heal(interaction: discord.Interaction, player: str) -> None:
     if not validate_player(player):
         await interaction.response.send_message("Invalid player name.", ephemeral=True)
         return
-    result = await async_rcon(f"heal {player}")
-    if result is not None and "No entity was found" in result:
+    if not await rcon_as_online_player(player, ec_as_player("heal", player)):
         await interaction.response.send_message(f"**{player}** is not online.", ephemeral=True)
         return
     await interaction.response.send_message(f"Healed **{player}**.", ephemeral=True)
@@ -1122,8 +1326,7 @@ async def mc_feed(interaction: discord.Interaction, player: str) -> None:
     if not validate_player(player):
         await interaction.response.send_message("Invalid player name.", ephemeral=True)
         return
-    result = await async_rcon(f"feed {player}")
-    if result is not None and "No entity was found" in result:
+    if not await rcon_as_online_player(player, ec_as_player("feed", player)):
         await interaction.response.send_message(f"**{player}** is not online.", ephemeral=True)
         return
     await interaction.response.send_message(f"Fed **{player}**.", ephemeral=True)
@@ -1143,7 +1346,9 @@ async def mc_fly(interaction: discord.Interaction, player: str, toggle: app_comm
     if not validate_player(player):
         await interaction.response.send_message("Invalid player name.", ephemeral=True)
         return
-    await async_rcon(f"fly {player} {toggle.value}")
+    if not await rcon_as_online_player(player, ec_as_player("fly", player, toggle.value)):
+        await interaction.response.send_message(f"**{player}** is not online.", ephemeral=True)
+        return
     state = "on" if toggle.value == "true" else "off"
     await interaction.response.send_message(f"Flight **{state}** for **{player}**.", ephemeral=True)
     await audit(interaction, f"set flight **{state}** for **{player}**")
@@ -1162,7 +1367,9 @@ async def mc_invuln(interaction: discord.Interaction, player: str, toggle: app_c
     if not validate_player(player):
         await interaction.response.send_message("Invalid player name.", ephemeral=True)
         return
-    await async_rcon(f"invuln {player} {toggle.value}")
+    if not await rcon_as_online_player(player, ec_as_player("invuln", player, toggle.value)):
+        await interaction.response.send_message(f"**{player}** is not online.", ephemeral=True)
+        return
     state = "on" if toggle.value == "true" else "off"
     await interaction.response.send_message(f"Invulnerability **{state}** for **{player}**.", ephemeral=True)
     await audit(interaction, f"set invulnerability **{state}** for **{player}**")
@@ -1177,7 +1384,9 @@ async def mc_extinguish(interaction: discord.Interaction, player: str) -> None:
     if not validate_player(player):
         await interaction.response.send_message("Invalid player name.", ephemeral=True)
         return
-    await async_rcon(f"extinguish {player}")
+    if not await rcon_as_online_player(player, ec_as_player("extinguish", player)):
+        await interaction.response.send_message(f"**{player}** is not online.", ephemeral=True)
+        return
     await interaction.response.send_message(f"Extinguished **{player}**.", ephemeral=True)
     await audit(interaction, f"extinguished **{player}**")
 
@@ -1224,7 +1433,7 @@ async def mc_give(interaction: discord.Interaction, player: str, item: str, coun
         return
     count = max(1, min(64, count))
     result = await async_rcon(f"give {player} {item_id} {count}")
-    if result is not None and "No entity was found" in result:
+    if player_offline(result):
         await interaction.response.send_message(f"**{player}** is not online.", ephemeral=True)
         return
     await interaction.response.send_message(
@@ -1259,7 +1468,7 @@ async def mc_effect(
     seconds = max(1, min(3600, seconds))
     amplifier = max(0, min(5, amplifier))
     result = await async_rcon(f"effect give {player} {effect_id} {seconds} {amplifier}")
-    if result is not None and "No entity was found" in result:
+    if player_offline(result):
         await interaction.response.send_message(f"**{player}** is not online.", ephemeral=True)
         return
     await interaction.response.send_message(
@@ -1292,8 +1501,7 @@ async def mc_enchant(interaction: discord.Interaction, player: str, enchantment:
         )
         return
     level = max(1, min(255, level))
-    result = await async_rcon(f"execute as {player} run ec enchant {ench_id} {level}")
-    if result is not None and "No entity was found" in result:
+    if not await rcon_as_online_player(player, f"execute as {player} run ec enchant {ench_id} {level}"):
         await interaction.response.send_message(f"**{player}** is not online.", ephemeral=True)
         return
     await interaction.response.send_message(
@@ -1328,7 +1536,7 @@ async def mc_gamemode(
         return
 
     result = await async_rcon(f"gamemode {mode.value} {player}")
-    if result is not None and "No entity was found" in result:
+    if player_offline(result):
         await interaction.response.send_message(f"**{player}** is not online.", ephemeral=True)
         return
 
@@ -1371,7 +1579,7 @@ async def mc_xp(interaction: discord.Interaction, player: str, amount: int) -> N
         return
     amount = max(1, min(100, amount))
     result = await async_rcon(f"experience add {player} {amount} levels")
-    if result is not None and "No entity was found" in result:
+    if player_offline(result):
         await interaction.response.send_message(f"**{player}** is not online.", ephemeral=True)
         return
     await interaction.response.send_message(
@@ -1447,70 +1655,102 @@ async def mc_border(interaction: discord.Interaction, radius: int | None = None)
 
 # === /register and /unregister (with audit notifications) =====================
 
-@bot.tree.command(name="register", description="Link your Discord account to a Minecraft username")
-@app_commands.describe(minecraft_username="Your Minecraft Java Edition username (3-16 characters)")
-async def register(interaction: discord.Interaction, minecraft_username: str) -> None:
-    if not MC_USERNAME_RE.match(minecraft_username):
-        await interaction.response.send_message(
-            "That doesn't look like a valid Minecraft username. "
-            "It should be 3-16 characters: letters, numbers, and underscores only.",
-            ephemeral=True,
-        )
+@bot.tree.command(name="register", description="Link your Discord account to your Minecraft name")
+@app_commands.describe(
+    minecraft_username="Java: your Java Edition username. Bedrock: your Xbox gamertag",
+    platform="Java Edition (default) or Bedrock Edition",
+)
+@app_commands.choices(platform=[
+    app_commands.Choice(name="Java Edition", value=JAVA),
+    app_commands.Choice(name="Bedrock Edition", value=BEDROCK),
+])
+async def register(
+    interaction: discord.Interaction,
+    minecraft_username: str,
+    platform: app_commands.Choice[str] | None = None,
+) -> None:
+    edition = platform.value if platform else JAVA
+    name = minecraft_username.strip()
+    if edition == BEDROCK:
+        problem = None
+        if not floodgate_installed():
+            problem = "discord.register.bedrock_unavailable"
+        elif "#" in name:
+            problem = "discord.register.gamertag_suffix"
+        elif not valid_gamertag(name):
+            problem = "discord.register.invalid_gamertag"
+    else:
+        problem = None if MC_USERNAME_RE.match(name) else "discord.register.invalid_username"
+    if problem:
+        await interaction.response.send_message(message(problem), ephemeral=True)
         return
 
+    link = (edition, name, name)
+    label = link_label(link)
     discord_id = str(interaction.user.id)
     await interaction.response.defer(ephemeral=True)
 
     async with _state_lock:
         mappings = load_mappings()
-        existing_name = mappings.get(discord_id)
-        if existing_name and existing_name.lower() == minecraft_username.lower():
-            await interaction.followup.send(f"You're already registered as **{existing_name}**.")
-            return
-
-        for uid, name in mappings.items():
-            if name.lower() == minecraft_username.lower() and uid != discord_id:
-                await interaction.followup.send(
-                    f"**{minecraft_username}** is already registered to another Discord user."
-                )
-                return
-
-        mc_uuid = await resolve_mc_uuid(minecraft_username)
-        if mc_uuid is None:
+        existing = parse_link(mappings.get(discord_id))
+        if existing and same_player(existing, link):
             await interaction.followup.send(
-                f"**{minecraft_username}** wasn't found on Mojang's servers. "
-                "Check the spelling - it must be your Java Edition username."
+                message("discord.register.already_you", name=link_label(existing))
             )
             return
 
-        mappings[discord_id] = minecraft_username
+        for uid, stored in mappings.items():
+            other = parse_link(stored)
+            if other and same_player(other, link) and uid != discord_id:
+                await interaction.followup.send(message("discord.register.taken", name=label))
+                return
+
+        mc_uuid = xuid = None
+        if edition == JAVA:
+            mc_uuid = await resolve_mc_uuid(name)
+            if mc_uuid is None:
+                await interaction.followup.send(message("discord.register.not_found", name=name))
+                return
+        else:
+            xuid = await resolve_xuid(name)
+            if xuid is None:
+                await interaction.followup.send(
+                    message("discord.register.gamertag_not_found", name=name)
+                )
+                return
+
+        mappings[discord_id] = make_link(edition, name, xuid)
         save_mappings(mappings)
+        replaced = existing
         try:
-            update_linked_players(discord_id, mc_uuid)
+            # dcintegration links Java UUIDs; a Bedrock link has none to give it.
+            update_linked_players(discord_id, mc_uuid, remove=mc_uuid is None)
         except RuntimeError as error:
-            await interaction.followup.send(f"Registration was not saved safely: {error}")
+            await interaction.followup.send(message("discord.register.not_saved", error=error))
             return
-    log.info("Registered: %s (%s) -> %s (UUID: %s)", interaction.user, discord_id, minecraft_username, mc_uuid)
+    if replaced:
+        for command in unregister_commands(replaced):
+            await async_rcon(command)
+    log.info("Registered: %s (%s) -> %s (UUID: %s)", interaction.user, discord_id, label, mc_uuid)
 
     await interaction.followup.send(
-        f"Registered **{minecraft_username}** - you'll be whitelisted when you get the {PLAYER_ROLE} role.",
+        message("discord.register.done", name=label, player_role=PLAYER_ROLE)
     )
     await audit_msg(
-        f"**{interaction.user.display_name}** registered as **{minecraft_username}**"
+        f"**{interaction.user.display_name}** registered as **{label}**"
     )
 
 
-@bot.tree.command(name="unregister", description="Remove your Minecraft username link")
+@bot.tree.command(name="unregister", description="Remove your Minecraft name link")
 async def unregister(interaction: discord.Interaction) -> None:
     discord_id = str(interaction.user.id)
 
     async with _state_lock:
         mappings = load_mappings()
-        mc_name = mappings.pop(discord_id, None)
-        if mc_name is None:
+        stored = mappings.pop(discord_id, None)
+        if stored is None:
             await interaction.response.send_message(
-                "You don't have a Minecraft username registered.",
-                ephemeral=True,
+                message("discord.unregister.none"), ephemeral=True
             )
             return
         save_mappings(mappings)
@@ -1518,19 +1758,22 @@ async def unregister(interaction: discord.Interaction) -> None:
             update_linked_players(discord_id, mc_uuid=None, remove=True)
         except RuntimeError as error:
             await interaction.response.send_message(
-                f"Unregistration was not saved safely: {error}", ephemeral=True
+                message("discord.unregister.not_saved", error=error), ephemeral=True
             )
             return
-    await async_rcon(f"whitelist remove {mc_name}")
-    await async_rcon(f"deop {mc_name}")
-    log.info("Unregistered: %s (%s) was %s", interaction.user, discord_id, mc_name)
+    link = parse_link(stored)
+    label = link_label(link) if link else str(stored)
+    if link:
+        for command in unregister_commands(link):
+            await async_rcon(command)
+    log.info("Unregistered: %s (%s) was %s", interaction.user, discord_id, label)
 
     await interaction.response.send_message(
-        f"Unregistered **{mc_name}**. You've been removed from the whitelist.",
+        message("discord.unregister.done", name=label),
         ephemeral=True,
     )
     await audit_msg(
-        f"**{interaction.user.display_name}** unregistered (was **{mc_name}**)"
+        f"**{interaction.user.display_name}** unregistered (was **{label}**)"
     )
 
 

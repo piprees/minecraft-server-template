@@ -110,6 +110,9 @@ sync_field "R2_ACCESS_KEY_ID" "${R2_ACCESS_KEY_ID:-}"
 sync_field "R2_SECRET_ACCESS_KEY" "${R2_SECRET_ACCESS_KEY:-}"
 sync_field "RESTIC_PASSWORD" "${RESTIC_PASSWORD:-}"
 
+# --- Floodgate (Bedrock) ---
+sync_field "FLOODGATE_KEY_B64" "${FLOODGATE_KEY_B64:-}"
+
 # --- Per-environment secrets (stored in "local" section) ---
 sync_field "local.RCON_PASSWORD" "${RCON_PASSWORD:-}"
 sync_field "local.KUMA_PASSWORD" "${KUMA_PASSWORD:-}"

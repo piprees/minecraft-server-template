@@ -1,0 +1,50 @@
+{
+  "level": "minecraft:the_nether",
+  "density": "normal",
+  "noise": true,
+  "radiusChunks": 64,
+  "spawnChunk": [0, -4],
+  "groups": {
+    "deco": {
+      "profile": "natural",
+      "radial": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+      "exclusion": 6,
+      "clearSpawnChunks": 0
+    },
+    "settlements": {
+      "profile": "natural",
+      "radial": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+      "exclusion": 12,
+      "clearSpawnChunks": 0
+    },
+    "dungeons": {
+      "profile": "natural",
+      "radial": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+      "exclusion": 16,
+      "clearSpawnChunks": 0
+    },
+    "landmarks": {
+      "profile": "sparse",
+      "radial": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+      "exclusion": 31,
+      "clearSpawnChunks": 0
+    },
+    "endgame": {
+      "profile": "sparse",
+      "radial": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+      "exclusion": 52,
+      "clearSpawnChunks": 0
+    }
+  },
+  "mode": null,
+  "list": [],
+  "exclude": [],
+  "include": [],
+  "rarity": {},
+  "spacing": {},
+  "force": [],
+  "wants": [],
+  "shuns": [],
+  "replace": {},
+  "terrainAdaptation": {}
+}

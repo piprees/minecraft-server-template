@@ -29,6 +29,10 @@ logs/
 *.log
 *.lock
 
+# === pin-mod-versions.sh review output ===
+config/modrinth-mods*.pinned.txt
+modpack/adventure*.pinned.json
+
 # === Seed-rolling artefacts ===
 /.seed-rolling/
 
@@ -54,6 +58,8 @@ mods/*/build/
 mods/*/.gradle/
 mods/*/run/
 mods/*/.fabric/
+mods/*/*/build/
+mods/*/*/run/
 
 # === Built mod JARs (produced by CI, never committed) ===
 dist/local-mods/

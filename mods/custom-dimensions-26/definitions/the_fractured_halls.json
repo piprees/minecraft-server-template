@@ -1,0 +1,123 @@
+{
+  "schemaVersion": 2,
+  "description": "Fractured halls — endermen gate fortresses and enderkeeps in broken crystal country. No cities survived whatever happened here; only the military architecture endured, and moonlight groves have taken the sheltered ground between the ridges. The keeps are still building. What stands beside the portal becomes part of the wall.",
+  "seed": -4455515362433992200,
+  "spawn": [-204, 42, -204],
+  "generator": {
+    "type": "noise",
+    "preset": "end",
+    "endIsland": false
+  },
+  "biomes": [
+    {
+      "id": "nullscape:shadowlands",
+      "climate": {
+        "continentalness": [-2.0, -0.308]
+      }
+    },
+    {
+      "id": "minecraft:small_end_islands",
+      "climate": {
+        "continentalness": [-0.308, -0.1567]
+      }
+    },
+    {
+      "id": "terralith:moonlight_valley",
+      "climate": {
+        "continentalness": [-0.1567, -0.082]
+      }
+    },
+    {
+      "id": "terralith:moonlight_grove",
+      "climate": {
+        "continentalness": [-0.082, 0.022]
+      }
+    },
+    {
+      "id": "terralith:amethyst_canyon",
+      "climate": {
+        "continentalness": [0.022, 0.0877]
+      }
+    },
+    {
+      "id": "minecraft:deep_dark",
+      "climate": {
+        "continentalness": [0.0877, 0.198]
+      }
+    },
+    {
+      "id": "minecraft:end_midlands",
+      "climate": {
+        "continentalness": [0.198, 0.2927]
+      }
+    },
+    {
+      "id": "minecraft:end_highlands",
+      "climate": {
+        "continentalness": [0.2927, 0.5027]
+      }
+    },
+    {
+      "id": "nullscape:crystal_peaks",
+      "climate": {
+        "continentalness": [0.5027, 2.0]
+      }
+    }
+  ],
+  "borders": {
+    "player": 4096,
+    "generation": 2048
+  },
+  "difficulty": {
+    "mobMultiplier": 1.8,
+    "playerLuck": 1.8
+  },
+  "structures": {
+    "density": "normal",
+    "noise": {
+      "settlements": "dense"
+    }
+  },
+  "portals": [
+    {
+      "frameBlock": "minecraft:cracked_stone_bricks",
+      "igniterItem": "minecraft:ender_eye",
+      "color": "8B8B7B",
+      "lightLevel": 11,
+      "scale": 2.0,
+      "cooldown": 40,
+      "particleType": "minecraft:end_rod",
+      "shape": "doorway",
+      "sounds": {
+        "ignite": "block.portal.trigger",
+        "enter": "block.portal.travel",
+        "exit": "block.portal.travel"
+      },
+      "aura": {
+        "subsume": "everything"
+      }
+    }
+  ],
+  "roll": {
+    "mood": "hard",
+    "allowHazardousSpawn": true,
+    "spawnFilter": [
+      "minecraft:end_highlands"
+    ],
+    "wants": {
+      "end_gate_fortress": "near_spawn",
+      "enderkeep": "spread",
+      "astral_hideaway": "near_spawn",
+      "ender_spire": "spread",
+      "mega_ship_crashed": "near_border",
+      "end_ruins": "spread",
+      "end_tower": "near_border"
+    },
+    "shuns": [
+      "end_city",
+      "phantom_citadel",
+      "monolith"
+    ],
+    "terrain": "islands"
+  }
+}

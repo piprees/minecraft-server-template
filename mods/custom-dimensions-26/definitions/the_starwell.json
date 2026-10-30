@@ -1,0 +1,116 @@
+{
+  "schemaVersion": 2,
+  "description": "A well of night sky — a few silvered islands adrift around a monolith. The endermen's last gift: a pocket of void where nothing hunts, falling sends you home, and the stars are close enough to touch.",
+  "seed": -5512302369006894874,
+  "spawn": [0, 58, 0],
+  "generator": {
+    "type": "noise",
+    "preset": "floating_islands"
+  },
+  "biomes": [
+    "terralith:mirage_isles",
+    "terralith:skylands_winter",
+    "terralith:alpha_islands",
+    "terralith:alpha_islands_winter"
+  ],
+  "liquids": {
+    "seaLevel": -64
+  },
+  "materials": {
+    "defaultBlock": "minecraft:deepslate"
+  },
+  "zones": [
+    {
+      "shape": "circle",
+      "centre": [168, -140],
+      "radius": 72,
+      "blend": 20,
+      "biomes": [
+        "nullscape:shadowlands"
+      ]
+    }
+  ],
+  "atmosphere": {
+    "skyColor": "#0B0E2E",
+    "fogColor": "#05060F",
+    "ambientLight": 0.15,
+    "fixedTime": 18000,
+    "effects": "minecraft:the_end"
+  },
+  "borders": {
+    "player": 256,
+    "generation": 512
+  },
+  "difficulty": {
+    "mobMultiplier": 0.5,
+    "playerLuck": 2.0
+  },
+  "structures": {
+    "terrainAdaptation": {
+      "mes:mystical_archway": "pedestal"
+    },
+    "wants": {
+      "monolith": {
+        "min": 0,
+        "max": 256
+      },
+      "ruined_pillar": {
+        "min": 0,
+        "max": 256
+      }
+    },
+    "shuns": {},
+    "force": [
+      {
+        "structure": "mes:mystical_archway",
+        "x": 200,
+        "z": 68,
+        "exclusive": false
+      }
+    ]
+  },
+  "portals": [
+    {
+      "frameBlock": "minecraft:tinted_glass",
+      "igniterItem": "minecraft:ender_eye",
+      "color": "9B7BD8",
+      "lightLevel": 13,
+      "scale": 16.0,
+      "cooldown": 40,
+      "particleType": "minecraft:end_rod",
+      "shape": "door",
+      "anchor": {
+        "pos": "spawn",
+        "exit": "bed"
+      },
+      "sounds": {
+        "ignite": "block.respawn_anchor.charge",
+        "enter": "entity.enderman.teleport",
+        "exit": "entity.enderman.teleport"
+      },
+      "aura": {
+        "subsume": "none"
+      }
+    }
+  ],
+  "exitPortal": {
+    "enabled": true,
+    "pos": "spawn",
+    "target": "bed"
+  },
+  "exits": {
+    "void": {
+      "target": "origin",
+      "action": "teleport"
+    }
+  },
+  "roll": {
+    "mood": "scenic",
+    "terrain": "islands",
+    "spawnFilter": [
+      "terralith:mirage_isles",
+      "terralith:skylands_winter",
+      "terralith:alpha_islands"
+    ]
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 2,
+  "description": "Self-test fixture: a belt of extreme canyons with desert and badlands biomes cutting east to west across normal overworld.",
+  "seed": 4242,
+  "spawn": [0, 80, 0],
+  "generator": {
+    "type": "noise",
+    "preset": "overworld"
+  },
+  "zones": [
+    {
+      "shape": "box",
+      "centre": [0, 700],
+      "halfSize": [2600, 280],
+      "blend": 160,
+      "edgeJitter": 48,
+      "terrain": { "base": "canyons", "setting": "extreme" },
+      "biomes": ["minecraft:badlands", "minecraft:eroded_badlands", "minecraft:wooded_badlands", "minecraft:desert"]
+    }
+  ],
+  "borders": {
+    "player": 8192
+  }
+}

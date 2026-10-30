@@ -1,0 +1,24 @@
+{
+  "type": "adventure:the_wuthering_wisteria",
+  "generator": {
+    "type": "minecraft:noise",
+    "biome_source": {
+      "type": "minecraft:multi_noise",
+      "biomes": [
+        {
+          "biome": "minecraft:cherry_grove",
+          "parameters": "sha1:382cdc698e56e4b4494b2f68699fa238fd4afdb3"
+        },
+        {
+          "biome": "minecraft:meadow",
+          "parameters": "sha1:a201ff6da9d74517997a3ef28914f9e9123978f8"
+        },
+        {
+          "biome": "minecraft:lush_caves",
+          "parameters": "sha1:eef93637afa53bf33f8022a0b51a433be0a33f03"
+        }
+      ]
+    },
+    "settings": "adventure:the_wuthering_wisteria"
+  }
+}

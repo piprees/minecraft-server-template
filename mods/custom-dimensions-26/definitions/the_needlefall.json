@@ -1,0 +1,143 @@
+{
+  "schemaVersion": 2,
+  "description": "Steep pine cliffs and fire towers. Human frontier country where the dramatic terrain punishes a careless step. The outposts here were built by people who respected the mountain; the dungeons were here before them.",
+  "seed": -1058300076831425796,
+  "spawn": [-128, 67, -64],
+  "generator": {
+    "type": "noise",
+    "preset": "overworld"
+  },
+  "terrain": {
+    "base": null
+  },
+  "biomes": [
+    {
+      "id": "natures_spirit:fir_forest",
+      "climate": {
+        "weirdness": [-2.0, -0.19],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "terralith:siberian_taiga",
+      "climate": {
+        "weirdness": [-0.19, -0.1417],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "natures_spirit:coniferous_covert",
+      "climate": {
+        "weirdness": [-0.1417, -0.0933],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "minecraft:old_growth_pine_taiga",
+      "climate": {
+        "weirdness": [-0.0933, -0.045],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "minecraft:taiga",
+      "climate": {
+        "weirdness": [-0.045, 0.0033],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "minecraft:snowy_taiga",
+      "climate": {
+        "weirdness": [0.0033, 0.0517],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "regions_unexplored:pine_taiga",
+      "climate": {
+        "weirdness": [0.0517, 0.1],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "regions_unexplored:boreal_taiga",
+      "climate": {
+        "weirdness": [0.1, 2.0],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "terralith:cave/frostfire_caves",
+      "climate": {
+        "weirdness": [-2.0, -0.045],
+        "depth": [0.1, 2.0]
+      }
+    },
+    {
+      "id": "terralith:cave/tuff_caves",
+      "climate": {
+        "weirdness": [-0.045, 2.0],
+        "depth": [0.1, 2.0]
+      }
+    }
+  ],
+  "atmosphere": {
+    "fogColor": "#5B6B4B"
+  },
+  "borders": {
+    "player": 1024,
+    "generation": 1024
+  },
+  "difficulty": {
+    "mobMultiplier": 1.3,
+    "playerLuck": 1.4,
+    "depthScaling": {
+      "enabled": true,
+      "startY": 128,
+      "endY": 0,
+      "minMultiplier": 0.8,
+      "maxMultiplier": 1.6
+    }
+  },
+  "structures": {
+    "terrainAdaptation": {
+      "structory:firetower": "pedestal"
+    }
+  },
+  "portals": [
+    {
+      "frameBlock": "minecraft:podzol",
+      "igniterItem": "minecraft:amethyst_shard",
+      "color": "8B6B3D",
+      "lightLevel": 11,
+      "scale": 8.0,
+      "cooldown": 40,
+      "sounds": {
+        "ignite": "block.portal.trigger",
+        "enter": "block.portal.travel",
+        "exit": "block.portal.travel"
+      }
+    }
+  ],
+  "roll": {
+    "mood": "dramatic",
+    "spawnFilter": [
+      "minecraft:taiga"
+    ],
+    "wants": {
+      "firetower": "near_spawn",
+      "taiga_outpost": "spread",
+      "taiga_ruin": "spread",
+      "cold_dungeon": "near_border",
+      "stray_fort": "near_border",
+      "foraging_outpost": "near_spawn",
+      "campsite": "near_spawn",
+      "northern_ruin": "spread"
+    },
+    "shuns": [
+      "monument",
+      "coliseum"
+    ]
+  }
+}
