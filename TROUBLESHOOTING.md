@@ -3235,14 +3235,6 @@ The rendered height disagrees with the facts on high-relief columns. The error i
 - **Cause:** Collective 1.21.1 (8.39) reads `config/<modid>.json5` only, and these configs sit in a subdirectory. fire-spread-tweaks also reads `MinRandomExtraBurnTicks`/`MaxRandomExtraBurnTicks`, while our file spells them with a lower-case first letter, so its -60/60 is ignored and -100/100 applies.
 - **Status:** kept as it is on 1.21.1 by the owner's choice; the 26.3 switch reads the intended values, since the version overlay seeds the read paths (T136).
 
-<a id="k13"></a>
-
-### K13 — Noise-group structure sites are built on the server thread
-
-- **Symptom:** "Can't keep up!" when the overworld starts (about 6.6 s behind) or a lazy level first opens.
-- **Cause:** opening a dimension builds every noise group's site index synchronously (`StructureRuntime`, `NoiseFieldIndex`); the overworld's takes 570 ms, so most of the start-up stall is elsewhere and unmeasured.
-- **Status:** open. Next: time the overworld's start-up by stage, then build the indexes off the server thread if they still matter.
-
 ## Common symptoms
 
 **Server won't start:**
