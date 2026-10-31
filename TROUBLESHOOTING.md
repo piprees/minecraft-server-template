@@ -1596,6 +1596,13 @@ A seed's map and its banked facts appear to contradict each other — the thumbn
   the same trap. Pin it against the Java, not against intuition —
   `scripts/e2e/portal-matrix-selftest.sh` is the worked example.
 
+<a id="t150"></a>
+### T150 — 26.3 keeps configured features in `worldgen/feature`
+
+- **Symptom:** a library biome fails validation with `is not a vanilla feature type`, or its features are missing from the pack.
+- **Cause:** 26.3 stores configured features under `worldgen/feature`, not `worldgen/configured_feature`, and has no `random_patch` feature type.
+- **Fix:** write configured features to `worldgen/feature`; build a patch as a placed feature with `count` and `offset` placements over `simple_block`.
+
 <a id="t149"></a>
 ### T149 — A steep factor steps the ground at the noise-cell grid
 
