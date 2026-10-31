@@ -25,7 +25,8 @@ import net.minecraft.world.level.levelgen.Heightmap;
  * a JSON array of {@code {dimension, x, y, z, yaw, pitch, name}} or, with {@code at: [x, y, z]}
  * in place of yaw and pitch, a camera turned to face that block. {@code y} is a number,
  * {@code "surface[+N]"} (N blocks over the motion-blocking height at x, z) or
- * {@code "ground[+N]"} (over the ground under any trees and plants). As the operator, in spectator mode with the HUD hidden, at noon in
+ * {@code "ground[+N]"} (over the ground under any trees and plants); {@code nightVision: true} lights a shot in a cavern
+ * with night vision, which every other shot clears. As the operator, in spectator mode with the HUD hidden, at noon in
  * clear weather, it takes each entry in turn: {@code /customdim tp} into the dimension
  * when it is not already there, a teleport high over the spot, the surface read from
  * the client's own heightmap once that chunk arrives, the teleport to the shot, a wait
@@ -41,7 +42,7 @@ public final class BiomeShots {
     /** Ticks after the final teleport before the renderer's state is trusted. */
     static final int SETTLE = 80;
 
-    private record Shot(String dimension, double x, String y, double z, float yaw, float pitch, double[] at, String name) {
+    private record Shot(String dimension, double x, String y, double z, float yaw, float pitch, double[] at, String name, boolean nightVision) {
     }
 
     private enum Phase { START, ENTER, HIGH, PLACE, WAIT, SHOOT, NEXT, DONE }
@@ -89,7 +90,7 @@ public final class BiomeShots {
             }
             out.add(new Shot(o.get("dimension").getAsString(), o.get("x").getAsDouble(), o.get("y").getAsString(),
                     o.get("z").getAsDouble(), o.has("yaw") ? o.get("yaw").getAsFloat() : 0, o.has("pitch") ? o.get("pitch").getAsFloat() : 0,
-                    at, o.get("name").getAsString()));
+                    at, o.get("name").getAsString(), o.has("nightVision") && o.get("nightVision").getAsBoolean()));
         }
         return out;
     }
@@ -162,6 +163,7 @@ public final class BiomeShots {
                     yaw = (float) Math.toDegrees(Math.atan2(-dx, dz));
                     pitch = (float) -Math.toDegrees(Math.atan2(dy, Math.sqrt(dx * dx + dz * dz)));
                 }
+                command(mc, shot.nightVision() ? "effect give @s minecraft:night_vision infinite 0 true" : "effect clear @s minecraft:night_vision");
                 command(mc, String.format(Locale.ROOT, "execute in %s run tp @s %.2f %.2f %.2f %.1f %.1f", shot.dimension(), shot.x(), y,
                         shot.z(), yaw, pitch));
                 CompanionClient.LOG.info("rig: {} at {} {} {} yaw {} pitch {}", shot.name(), shot.x(), y, shot.z(), yaw, pitch);

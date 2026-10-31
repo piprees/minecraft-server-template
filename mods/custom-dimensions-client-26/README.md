@@ -91,11 +91,16 @@ scripts/rig.sh biomes shots.json   # the biome-shots mode
 
 `biomes <shot list>` boots the server on the self-test definitions, whose
 showcase levels `selftest_biome_<id>` each hold one library biome on
-overworld terrain, and runs one client with the companion off through
-`dev/BiomeShots.java` (active only with `-Prig` and `-PrigBiomes`). The list
-is a JSON array of `{dimension, x, y, z, yaw, pitch, name}`, `y` a number,
-`"surface"` or `"surface+N"` (N blocks over the client's motion-blocking
-height there). In spectator mode with the HUD hidden, at noon in clear
+overworld terrain (Nether terrain for a Nether biome), and runs one client with
+the companion off through `dev/BiomeShots.java` (active only with `-Prig` and
+`-PrigBiomes`). The list is a JSON array of `{dimension, x, y, z, yaw, pitch,
+name}`, `y` a number, `"surface"` or `"surface+N"` (N blocks over the
+client's motion-blocking height there) or `"ground"` or `"ground+N"` (over
+the ground under trees and plants); `at: [x, y, z]` in place of `yaw` and
+`pitch` faces that block. A cavern or Nether shot gives `y` as a number, since
+the motion-blocking height there is the surface or the roof, and
+`nightVision: true` lights it with night vision, which every other shot
+clears. In spectator mode with the HUD hidden, at noon in clear
 weather, the client enters each dimension with `/customdim tp`, teleports
 over the spot, reads the surface once that chunk arrives, teleports to the
 shot, waits until every chunk within six of the camera is loaded and every

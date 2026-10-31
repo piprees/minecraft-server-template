@@ -18,7 +18,8 @@
 #   <variant>-far.png, or as <name>.png per shot-list entry; each client log is DIR/<variant>.log (DIR/biomes.log),
 #   the server log DIR/server.log.
 #   Shot list: a JSON array of {"dimension": "adventure:selftest_biome_<id>", "x": 0, "y": "surface+30", "z": 0,
-#   "yaw": 0, "pitch": 20, "name": "<id>-wide"}; y is a number, "surface" or "surface+N".
+#   "yaw": 0, "pitch": 20, "name": "<id>-wide"}; y is a number, "surface[+N]" or "ground[+N]"; "at": [x, y, z] faces
+#   a block in place of yaw and pitch; "nightVision": true lights a cavern or Nether shot (give y as a number there).
 #
 # Gotchas:
 #   - Xvfb's GLX offers no sRGB-capable visual and the 26.3 client asks SDL for one, so the GL backend fails with
