@@ -62,7 +62,8 @@ processResources {
 }
 
 // The rig (scripts/rig.sh): -Prig=<server port> joins that server on start-up as the offline player Rig and runs
-// the dev script; -Pcompanion=off keeps the hello unsent, which is what an unmodded client sees.
+// the dev script; -Pcompanion=off keeps the hello unsent, which is what an unmodded client sees; -PrigBiomes=<shot list>
+// runs the biome-shots mode (dev/BiomeShots.java) instead of the portal script.
 loom {
 	runs {
 		client {
@@ -70,6 +71,7 @@ loom {
 				programArgs '--username', 'Rig', '--quickPlayMultiplayer', "localhost:${project.rig}", '--width', '1280', '--height', '720'
 				vmArg "-Dcustomdimensions.rig.shots=${project.findProperty('rigShots') ?: ''}"
 				vmArg "-Dcustomdimensions.rig.label=${project.findProperty('rigLabel') ?: 'shot'}"
+				vmArg "-Dcustomdimensions.rig.biomes=${project.findProperty('rigBiomes') ?: ''}"
 				vmArg "-Dcustomdimensions.companion=${project.findProperty('companion') ?: 'on'}"
 				// Xvfb offers no sRGB-capable GLX visual; the rig's GL shim (rig/srgbshim.c) stands in for libGL.
 				if (project.hasProperty('rigGl')) {

@@ -8,10 +8,17 @@
 #   stands in front of it, screenshots it near and far, logs the feed counts and quits.
 #   Variants: a = companion off (what an unmodded client sees), b = companion on, c = companion with Iris and the
 #   Complementary Reimagined shader pack, d = companion with Distant Horizons.
+#   Biome shots: `biomes <shot list>` boots the server on the self-test definitions (the showcase levels
+#   selftest_biome_<id>) and runs one client (companion off) through dev/BiomeShots.java, which teleports to each
+#   entry of the list, waits for the chunks to load and draw, and screenshots it.
 #
 # Usage: scripts/rig.sh [--port N] [--out DIR] [--non-interactive] [variant ...]   (default variants: a b c d)
-#   Screenshots land in DIR (default /tmp/claude-0/m8-screens) as <variant>-near.png and <variant>-far.png;
-#   each client log is DIR/<variant>.log, the server log DIR/server.log.
+#        scripts/rig.sh [--port N] [--out DIR] biomes <shot list>
+#   Screenshots land in DIR/screenshots (default DIR /tmp/claude-0/m8-screens) as <variant>-near.png and
+#   <variant>-far.png, or as <name>.png per shot-list entry; each client log is DIR/<variant>.log (DIR/biomes.log),
+#   the server log DIR/server.log.
+#   Shot list: a JSON array of {"dimension": "adventure:selftest_biome_<id>", "x": 0, "y": "surface+30", "z": 0,
+#   "yaw": 0, "pitch": 20, "name": "<id>-wide"}; y is a number, "surface" or "surface+N".
 #
 # Gotchas:
 #   - Xvfb's GLX offers no sRGB-capable visual and the 26.3 client asks SDL for one, so the GL backend fails with
@@ -21,6 +28,8 @@
 #   - The shader pack is fetched from Modrinth for local testing only and never committed (its licence allows
 #     personal use, not redistribution).
 #   - Idempotent: re-running relights the frame (the fill breaks the previous portal) and overwrites the shots.
+#   - Biome shots need a server with the showcase levels: a server already listening on the port without them leaves
+#     every shot unentered (the client log says so). Stop it, or let the script start its own.
 set -euo pipefail
 
 HERE="$(cd "$(dirname "$0")/.." && pwd)"
@@ -30,6 +39,7 @@ PORT=25665
 OUT=/tmp/claude-0/m8-screens
 VARIANTS=""
 SHADER_VERSION=Bqen1mJX
+BIOMES=""
 
 while [ $# -gt 0 ]; do
 	case "$1" in
@@ -37,6 +47,8 @@ while [ $# -gt 0 ]; do
 		--out) OUT="$2"; shift 2 ;;
 		--non-interactive) shift ;;
 		a|b|c|d) VARIANTS="$VARIANTS $1"; shift ;;
+		biomes) BIOMES="$(cd "$(dirname "$2")" && pwd)/$(basename "$2")"; [ -f "$BIOMES" ] || { echo "no shot list: $2" >&2; exit 2; }
+			VARIANTS="biomes"; shift 2 ;;
 		*) echo "unknown argument: $1" >&2; exit 2 ;;
 	esac
 done
@@ -59,7 +71,7 @@ if [ ! -f "$SHIM" ] || [ "$HERE/rig/srgbshim.c" -nt "$SHIM" ]; then
 	gcc -shared -fPIC -O2 "$HERE/rig/srgbshim.c" -o "$SHIM" -Wl,--no-as-needed /usr/lib/x86_64-linux-gnu/libGL.so.1 -ldl
 fi
 
-SERVER_PGID=""
+CONSOLE=""
 if ! port_open; then
 	mkdir -p "$SERVER_RUN"
 	backup_if_changed "$SERVER_RUN/eula.txt" "eula=true"
@@ -74,10 +86,19 @@ pause-when-empty-seconds=0
 motd=customdimensions rig"
 	# The offline UUID of the player Rig: UUID v3 of "OfflinePlayer:Rig".
 	backup_if_changed "$SERVER_RUN/ops.json" '[{"uuid":"b4b49ac1-eec7-3c0f-a8fc-f6d9f5bb5548","name":"Rig","level":4,"bypassesPlayerLimit":false}]'
+	DEFINITIONS=""
+	if [ -n "$BIOMES" ]; then
+		(cd "$SERVER_PROJECT" && ./gradlew --offline -q :server:selfTestDefinitions)
+		DEFINITIONS="-Pdefinitions=$SERVER_PROJECT/server/build/selftest-definitions"
+	fi
 	log "starting the dev server on $PORT"
-	(cd "$SERVER_PROJECT" && setsid ./gradlew :server:runServer --offline > "$OUT/server.log" 2>&1 &)
-	sleep 2
-	SERVER_PGID="$(pgrep -f 'gradlew :server:runServer' | head -1 || true)"
+	# The server reads its console from a FIFO held open here, so the script can stop it with `stop`.
+	CONSOLE="$OUT/console.fifo"
+	rm -f "$CONSOLE"
+	mkfifo "$CONSOLE"
+	exec 3<>"$CONSOLE"
+	# shellcheck disable=SC2086
+	(cd "$SERVER_PROJECT" && setsid ./gradlew :server:runServer --offline $DEFINITIONS <&3 > "$OUT/server.log" 2>&1 &)
 	i=0
 	while [ $i -lt 90 ] && ! grep -q 'Done (' "$OUT/server.log"; do sleep 5; i=$((i + 1)); done
 	grep -q 'Done (' "$OUT/server.log" || { log "the server did not start; see $OUT/server.log"; exit 1; }
@@ -111,6 +132,7 @@ for v in $VARIANTS; do
 			backup_if_changed "$RUN/config/iris.properties" "enableShaders=true
 shaderPack=$name" ;;
 		d) label=d-dh; extra="-Pdh" ;;
+		biomes) label=biomes; extra="-Pcompanion=off -PrigBiomes=$BIOMES" ;;
 	esac
 	if [ "$v" != c ] && [ -f "$RUN/config/iris.properties" ]; then
 		backup_if_changed "$RUN/config/iris.properties" "enableShaders=false"
@@ -118,7 +140,7 @@ shaderPack=$name" ;;
 	log "variant $label"
 	# shellcheck disable=SC2086
 	(cd "$HERE" && LIBGL_ALWAYS_SOFTWARE=1 GALLIUM_DRIVER=llvmpipe XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:-/tmp}" \
-		timeout 900 xvfb-run -a -s "-screen 0 1280x720x24" ./gradlew runClient -Prig="$PORT" \
+		timeout "$([ "$v" = biomes ] && echo 5400 || echo 900)" xvfb-run -a -s "-screen 0 1280x720x24" ./gradlew runClient -Prig="$PORT" \
 		-PrigGl="$SHIM" -PrigShots="$OUT" -PrigLabel="$label" $extra > "$OUT/$v.log" 2>&1) || true
 	if grep -q 'rig: done' "$OUT/$v.log"; then
 		log "$(grep -o "done.*" "$OUT/$v.log" | tail -1)"
@@ -128,8 +150,12 @@ shaderPack=$name" ;;
 	fi
 done
 
-if [ -n "$SERVER_PGID" ]; then
+if [ -n "$CONSOLE" ]; then
 	log "stopping the dev server"
-	kill -- "-$SERVER_PGID" 2>/dev/null || kill "$SERVER_PGID" 2>/dev/null || true
+	echo stop >&3
+	i=0
+	while [ $i -lt 60 ] && port_open; do sleep 2; i=$((i + 1)); done
+	exec 3>&-
+	rm -f "$CONSOLE"
 fi
 ls -1 "$OUT/screenshots"

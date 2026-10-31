@@ -73,7 +73,8 @@ scripts/rig.sh            # variants a b c d; or name some: scripts/rig.sh b d
 ```
 
 It boots the server mod's `runServer` on port 25665 (offline, level-seed
-20261022) unless something already listens there, then runs `runClient` under
+20261022) unless something already listens there, feeding its console from a
+FIFO so it can send `stop` once the shots are taken, then runs `runClient` under
 `xvfb-run` with Mesa llvmpipe once per variant. The client's rig hook
 (`dev/Rig.java`, active only with `-Prig`) joins as the operator `Rig`, builds
 a basalt frame on a platform at y 180, lights it with flint and steel through
@@ -83,6 +84,23 @@ an unmodded client sees), `b` companion on, `c` with Iris and Complementary
 Reimagined, `d` with Distant Horizons. Iris, its Sodium and Distant Horizons
 come from the Modrinth maven by version id (`gradle.properties`); the shader
 pack is downloaded into `run/shaderpacks/` and never committed.
+
+```bash
+scripts/rig.sh biomes shots.json   # the biome-shots mode
+```
+
+`biomes <shot list>` boots the server on the self-test definitions, whose
+showcase levels `selftest_biome_<id>` each hold one library biome on
+overworld terrain, and runs one client with the companion off through
+`dev/BiomeShots.java` (active only with `-Prig` and `-PrigBiomes`). The list
+is a JSON array of `{dimension, x, y, z, yaw, pitch, name}`, `y` a number,
+`"surface"` or `"surface+N"` (N blocks over the client's motion-blocking
+height there). In spectator mode with the HUD hidden, at noon in clear
+weather, the client enters each dimension with `/customdim tp`, teleports
+over the spot, reads the surface once that chunk arrives, teleports to the
+shot, waits until every chunk within six of the camera is loaded and every
+visible section is drawn (at most a minute), screenshots
+`<out>/screenshots/<name>.png` and quits after the last.
 
 Xvfb's GLX offers no sRGB-capable visual, which the 26.3 client asks SDL for;
 `rig/srgbshim.c` stands in for libGL and drops that attribute, so every

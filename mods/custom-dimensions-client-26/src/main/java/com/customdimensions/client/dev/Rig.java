@@ -21,7 +21,8 @@ import net.minecraft.world.phys.Vec3;
  * the first click did not light it), stands in front of it,
  * waits for the feed, screenshots two distances into
  * {@code <shots>/screenshots/<label>-near.png} and {@code -far.png}, logs the
- * feed counts and quits.
+ * feed counts and quits. With {@code -Dcustomdimensions.rig.biomes} it runs
+ * {@link BiomeShots} instead.
  */
 public final class Rig {
     static final int X = 8;
@@ -36,6 +37,9 @@ public final class Rig {
     public static void register() {
         String shots = System.getProperty("customdimensions.rig.shots", "");
         if (shots.isEmpty()) {
+            return;
+        }
+        if (BiomeShots.register(new File(shots))) {
             return;
         }
         String label = System.getProperty("customdimensions.rig.label", "shot");
