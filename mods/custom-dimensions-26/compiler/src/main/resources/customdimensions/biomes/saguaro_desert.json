@@ -1,0 +1,957 @@
+{
+  "$schema": "../../../../../../schema/biome.schema.json",
+  "realm": "overworld",
+  "inspiredBy": "Regions Unexplored's saguaro desert: a red-sand desert of tall branching cacti.",
+  "differs": "A vanilla desert is yellow with single-column cacti; this is red sand over red sandstone under an orange horizon, with tall saguaros whose arms branch out and up, cactus flowers, dead bushes and armadillos.",
+  "climate": {
+    "temperature": [
+      0.55,
+      1.0
+    ],
+    "humidity": [
+      -1.0,
+      -0.35
+    ],
+    "continentalness": [
+      -0.11,
+      1.0
+    ],
+    "depth": [
+      -2.0,
+      0.2
+    ]
+  },
+  "palette": {
+    "top": "minecraft:red_sand",
+    "filler": "minecraft:red_sandstone"
+  },
+  "biome": {
+    "attributes": {
+      "minecraft:audio/background_music": {
+        "default": {
+          "max_delay": 24000,
+          "min_delay": 12000,
+          "sound": "minecraft:music.overworld.desert"
+        }
+      },
+      "minecraft:gameplay/natural_mob_spawns": {
+        "argument": {
+          "spawn_costs": {},
+          "spawns_by_category": {
+            "ambient": [
+              {
+                "type": "minecraft:bat",
+                "count": 8,
+                "weight": 10
+              }
+            ],
+            "creature": [
+              {
+                "type": "minecraft:rabbit",
+                "count": {
+                  "type": "minecraft:uniform",
+                  "max_inclusive": 3,
+                  "min_inclusive": 2
+                },
+                "weight": 12
+              },
+              {
+                "type": "minecraft:camel",
+                "count": 1,
+                "weight": 1
+              },
+              {
+                "type": "minecraft:armadillo",
+                "count": {
+                  "type": "minecraft:uniform",
+                  "max_inclusive": 2,
+                  "min_inclusive": 1
+                },
+                "weight": 8
+              }
+            ],
+            "monster": [
+              {
+                "type": "minecraft:spider",
+                "count": 4,
+                "weight": 100
+              },
+              {
+                "type": "minecraft:zombie",
+                "count": 4,
+                "weight": 19
+              },
+              {
+                "type": "minecraft:zombie_villager",
+                "count": 1,
+                "weight": 1
+              },
+              {
+                "type": "minecraft:skeleton",
+                "count": 4,
+                "weight": 50
+              },
+              {
+                "type": "minecraft:creeper",
+                "count": 4,
+                "weight": 100
+              },
+              {
+                "type": "minecraft:slime",
+                "count": 4,
+                "weight": 100
+              },
+              {
+                "type": "minecraft:enderman",
+                "count": {
+                  "type": "minecraft:uniform",
+                  "max_inclusive": 4,
+                  "min_inclusive": 1
+                },
+                "weight": 10
+              },
+              {
+                "type": "minecraft:witch",
+                "count": 1,
+                "weight": 5
+              },
+              {
+                "type": "minecraft:husk",
+                "count": 4,
+                "weight": 80
+              },
+              {
+                "type": "minecraft:parched",
+                "count": 4,
+                "weight": 50
+              }
+            ],
+            "underground_water_creature": [
+              {
+                "type": "minecraft:glow_squid",
+                "count": {
+                  "type": "minecraft:uniform",
+                  "max_inclusive": 6,
+                  "min_inclusive": 4
+                },
+                "weight": 10
+              }
+            ]
+          }
+        },
+        "modifier": "overlay"
+      },
+      "minecraft:gameplay/snow_golem_melts": true,
+      "minecraft:visual/fog_color": "#f0a868",
+      "minecraft:visual/sky_color": "#83b4e6"
+    },
+    "carvers": [
+      "minecraft:cave",
+      "minecraft:cave_extra_underground",
+      "minecraft:canyon"
+    ],
+    "downfall": 0.0,
+    "effects": {
+      "grass_color": "#bfb755",
+      "foliage_color": "#aea42a",
+      "water_color": "#32a598"
+    },
+    "features": [
+      [],
+      [
+        "minecraft:lake_lava_underground",
+        "minecraft:lake_lava_surface"
+      ],
+      [
+        "minecraft:amethyst_geode"
+      ],
+      [
+        "minecraft:fossil_upper",
+        "minecraft:fossil_lower",
+        "minecraft:monster_room",
+        "minecraft:monster_room_deep"
+      ],
+      [],
+      [],
+      [
+        "minecraft:ore_dirt",
+        "minecraft:ore_gravel",
+        "minecraft:ore_granite_upper",
+        "minecraft:ore_granite_lower",
+        "minecraft:ore_diorite_upper",
+        "minecraft:ore_diorite_lower",
+        "minecraft:ore_andesite_upper",
+        "minecraft:ore_andesite_lower",
+        "minecraft:ore_tuff",
+        "minecraft:ore_coal_upper",
+        "minecraft:ore_coal_lower",
+        "minecraft:ore_iron_upper",
+        "minecraft:ore_iron_middle",
+        "minecraft:ore_iron_small",
+        "minecraft:ore_gold",
+        "minecraft:ore_gold_lower",
+        "minecraft:ore_redstone",
+        "minecraft:ore_redstone_lower",
+        "minecraft:ore_diamond",
+        "minecraft:ore_diamond_medium",
+        "minecraft:ore_diamond_large",
+        "minecraft:ore_diamond_buried",
+        "minecraft:ore_lapis",
+        "minecraft:ore_lapis_buried",
+        "minecraft:ore_copper",
+        "minecraft:underwater_magma",
+        "minecraft:disk_sand",
+        "minecraft:disk_clay",
+        "minecraft:disk_gravel"
+      ],
+      [],
+      [
+        "minecraft:spring_water",
+        "minecraft:spring_lava"
+      ],
+      [
+        "minecraft:glow_lichen",
+        "~saguaros",
+        "~dead_bushes",
+        "minecraft:patch_dry_grass_desert"
+      ],
+      [
+        "minecraft:freeze_top_layer"
+      ]
+    ],
+    "has_precipitation": false,
+    "temperature": 2.0
+  },
+  "features": {
+    "saguaros": {
+      "feature": {
+        "type": "minecraft:weighted_random_selector",
+        "features": [
+          {
+            "data": "~saguaro_tall",
+            "weight": 3
+          },
+          {
+            "data": "~saguaro_branched",
+            "weight": 3
+          },
+          {
+            "data": "~saguaro_young",
+            "weight": 2
+          }
+        ]
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": {
+            "type": "minecraft:weighted_list",
+            "distribution": [
+              {
+                "data": 0,
+                "weight": 1
+              },
+              {
+                "data": 1,
+                "weight": 2
+              },
+              {
+                "data": 2,
+                "weight": 1
+              }
+            ]
+          }
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:heightmap",
+          "heightmap": "MOTION_BLOCKING"
+        },
+        {
+          "type": "minecraft:biome"
+        },
+        {
+          "type": "minecraft:block_predicate_filter",
+          "predicate": {
+            "type": "minecraft:all_of",
+            "predicates": [
+              {
+                "type": "minecraft:matching_block_tag",
+                "tag": "minecraft:air"
+              },
+              {
+                "type": "minecraft:would_survive",
+                "state": "minecraft:cactus"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "saguaro_tall": {
+      "feature": {
+        "type": "minecraft:sequence",
+        "features": [
+          {
+            "feature": {
+              "type": "minecraft:block_column",
+              "allowed_placement": {
+                "type": "minecraft:matching_block_tag",
+                "tag": "minecraft:air"
+              },
+              "direction": "up",
+              "layers": [
+                {
+                  "height": 8,
+                  "provider": {
+                    "id": "minecraft:cactus",
+                    "properties": {
+                      "age": "0"
+                    }
+                  }
+                },
+                {
+                  "height": {
+                    "type": "minecraft:weighted_list",
+                    "distribution": [
+                      {
+                        "data": 0,
+                        "weight": 1
+                      },
+                      {
+                        "data": 1,
+                        "weight": 1
+                      }
+                    ]
+                  },
+                  "provider": {
+                    "id": "minecraft:cactus_flower"
+                  }
+                }
+              ],
+              "prioritize_tip": false
+            },
+            "placement": []
+          },
+          {
+            "feature": {
+              "type": "minecraft:block_column",
+              "allowed_placement": {
+                "type": "minecraft:matching_block_tag",
+                "tag": "minecraft:air"
+              },
+              "direction": "east",
+              "layers": [
+                {
+                  "height": 2,
+                  "provider": {
+                    "id": "minecraft:cactus",
+                    "properties": {
+                      "age": "0"
+                    }
+                  }
+                }
+              ],
+              "prioritize_tip": false
+            },
+            "placement": [
+              {
+                "type": "minecraft:offset",
+                "x": 1,
+                "y": 3,
+                "z": 0
+              }
+            ]
+          },
+          {
+            "feature": {
+              "type": "minecraft:block_column",
+              "allowed_placement": {
+                "type": "minecraft:matching_block_tag",
+                "tag": "minecraft:air"
+              },
+              "direction": "up",
+              "layers": [
+                {
+                  "height": 3,
+                  "provider": {
+                    "id": "minecraft:cactus",
+                    "properties": {
+                      "age": "0"
+                    }
+                  }
+                },
+                {
+                  "height": {
+                    "type": "minecraft:weighted_list",
+                    "distribution": [
+                      {
+                        "data": 0,
+                        "weight": 1
+                      },
+                      {
+                        "data": 1,
+                        "weight": 1
+                      }
+                    ]
+                  },
+                  "provider": {
+                    "id": "minecraft:cactus_flower"
+                  }
+                }
+              ],
+              "prioritize_tip": false
+            },
+            "placement": [
+              {
+                "type": "minecraft:offset",
+                "x": 2,
+                "y": 4,
+                "z": 0
+              }
+            ]
+          },
+          {
+            "feature": {
+              "type": "minecraft:block_column",
+              "allowed_placement": {
+                "type": "minecraft:matching_block_tag",
+                "tag": "minecraft:air"
+              },
+              "direction": "west",
+              "layers": [
+                {
+                  "height": 2,
+                  "provider": {
+                    "id": "minecraft:cactus",
+                    "properties": {
+                      "age": "0"
+                    }
+                  }
+                }
+              ],
+              "prioritize_tip": false
+            },
+            "placement": [
+              {
+                "type": "minecraft:offset",
+                "x": -1,
+                "y": 4,
+                "z": 0
+              }
+            ]
+          },
+          {
+            "feature": {
+              "type": "minecraft:block_column",
+              "allowed_placement": {
+                "type": "minecraft:matching_block_tag",
+                "tag": "minecraft:air"
+              },
+              "direction": "up",
+              "layers": [
+                {
+                  "height": 2,
+                  "provider": {
+                    "id": "minecraft:cactus",
+                    "properties": {
+                      "age": "0"
+                    }
+                  }
+                },
+                {
+                  "height": {
+                    "type": "minecraft:weighted_list",
+                    "distribution": [
+                      {
+                        "data": 0,
+                        "weight": 1
+                      },
+                      {
+                        "data": 1,
+                        "weight": 1
+                      }
+                    ]
+                  },
+                  "provider": {
+                    "id": "minecraft:cactus_flower"
+                  }
+                }
+              ],
+              "prioritize_tip": false
+            },
+            "placement": [
+              {
+                "type": "minecraft:offset",
+                "x": -2,
+                "y": 5,
+                "z": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "saguaro_branched": {
+      "feature": {
+        "type": "minecraft:sequence",
+        "features": [
+          {
+            "feature": {
+              "type": "minecraft:block_column",
+              "allowed_placement": {
+                "type": "minecraft:matching_block_tag",
+                "tag": "minecraft:air"
+              },
+              "direction": "up",
+              "layers": [
+                {
+                  "height": 7,
+                  "provider": {
+                    "id": "minecraft:cactus",
+                    "properties": {
+                      "age": "0"
+                    }
+                  }
+                },
+                {
+                  "height": {
+                    "type": "minecraft:weighted_list",
+                    "distribution": [
+                      {
+                        "data": 0,
+                        "weight": 1
+                      },
+                      {
+                        "data": 1,
+                        "weight": 1
+                      }
+                    ]
+                  },
+                  "provider": {
+                    "id": "minecraft:cactus_flower"
+                  }
+                }
+              ],
+              "prioritize_tip": false
+            },
+            "placement": []
+          },
+          {
+            "feature": {
+              "type": "minecraft:block_column",
+              "allowed_placement": {
+                "type": "minecraft:matching_block_tag",
+                "tag": "minecraft:air"
+              },
+              "direction": "south",
+              "layers": [
+                {
+                  "height": 2,
+                  "provider": {
+                    "id": "minecraft:cactus",
+                    "properties": {
+                      "age": "0"
+                    }
+                  }
+                }
+              ],
+              "prioritize_tip": false
+            },
+            "placement": [
+              {
+                "type": "minecraft:offset",
+                "x": 0,
+                "y": 2,
+                "z": 1
+              }
+            ]
+          },
+          {
+            "feature": {
+              "type": "minecraft:block_column",
+              "allowed_placement": {
+                "type": "minecraft:matching_block_tag",
+                "tag": "minecraft:air"
+              },
+              "direction": "up",
+              "layers": [
+                {
+                  "height": 3,
+                  "provider": {
+                    "id": "minecraft:cactus",
+                    "properties": {
+                      "age": "0"
+                    }
+                  }
+                },
+                {
+                  "height": {
+                    "type": "minecraft:weighted_list",
+                    "distribution": [
+                      {
+                        "data": 0,
+                        "weight": 1
+                      },
+                      {
+                        "data": 1,
+                        "weight": 1
+                      }
+                    ]
+                  },
+                  "provider": {
+                    "id": "minecraft:cactus_flower"
+                  }
+                }
+              ],
+              "prioritize_tip": false
+            },
+            "placement": [
+              {
+                "type": "minecraft:offset",
+                "x": 0,
+                "y": 3,
+                "z": 2
+              }
+            ]
+          },
+          {
+            "feature": {
+              "type": "minecraft:block_column",
+              "allowed_placement": {
+                "type": "minecraft:matching_block_tag",
+                "tag": "minecraft:air"
+              },
+              "direction": "north",
+              "layers": [
+                {
+                  "height": 2,
+                  "provider": {
+                    "id": "minecraft:cactus",
+                    "properties": {
+                      "age": "0"
+                    }
+                  }
+                }
+              ],
+              "prioritize_tip": false
+            },
+            "placement": [
+              {
+                "type": "minecraft:offset",
+                "x": 0,
+                "y": 3,
+                "z": -1
+              }
+            ]
+          },
+          {
+            "feature": {
+              "type": "minecraft:block_column",
+              "allowed_placement": {
+                "type": "minecraft:matching_block_tag",
+                "tag": "minecraft:air"
+              },
+              "direction": "up",
+              "layers": [
+                {
+                  "height": 2,
+                  "provider": {
+                    "id": "minecraft:cactus",
+                    "properties": {
+                      "age": "0"
+                    }
+                  }
+                },
+                {
+                  "height": {
+                    "type": "minecraft:weighted_list",
+                    "distribution": [
+                      {
+                        "data": 0,
+                        "weight": 1
+                      },
+                      {
+                        "data": 1,
+                        "weight": 1
+                      }
+                    ]
+                  },
+                  "provider": {
+                    "id": "minecraft:cactus_flower"
+                  }
+                }
+              ],
+              "prioritize_tip": false
+            },
+            "placement": [
+              {
+                "type": "minecraft:offset",
+                "x": 0,
+                "y": 4,
+                "z": -2
+              }
+            ]
+          },
+          {
+            "feature": {
+              "type": "minecraft:block_column",
+              "allowed_placement": {
+                "type": "minecraft:matching_block_tag",
+                "tag": "minecraft:air"
+              },
+              "direction": "east",
+              "layers": [
+                {
+                  "height": 2,
+                  "provider": {
+                    "id": "minecraft:cactus",
+                    "properties": {
+                      "age": "0"
+                    }
+                  }
+                }
+              ],
+              "prioritize_tip": false
+            },
+            "placement": [
+              {
+                "type": "minecraft:offset",
+                "x": 1,
+                "y": 4,
+                "z": 0
+              }
+            ]
+          },
+          {
+            "feature": {
+              "type": "minecraft:block_column",
+              "allowed_placement": {
+                "type": "minecraft:matching_block_tag",
+                "tag": "minecraft:air"
+              },
+              "direction": "up",
+              "layers": [
+                {
+                  "height": 2,
+                  "provider": {
+                    "id": "minecraft:cactus",
+                    "properties": {
+                      "age": "0"
+                    }
+                  }
+                },
+                {
+                  "height": {
+                    "type": "minecraft:weighted_list",
+                    "distribution": [
+                      {
+                        "data": 0,
+                        "weight": 1
+                      },
+                      {
+                        "data": 1,
+                        "weight": 1
+                      }
+                    ]
+                  },
+                  "provider": {
+                    "id": "minecraft:cactus_flower"
+                  }
+                }
+              ],
+              "prioritize_tip": false
+            },
+            "placement": [
+              {
+                "type": "minecraft:offset",
+                "x": 2,
+                "y": 5,
+                "z": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "saguaro_young": {
+      "feature": {
+        "type": "minecraft:sequence",
+        "features": [
+          {
+            "feature": {
+              "type": "minecraft:block_column",
+              "allowed_placement": {
+                "type": "minecraft:matching_block_tag",
+                "tag": "minecraft:air"
+              },
+              "direction": "up",
+              "layers": [
+                {
+                  "height": 5,
+                  "provider": {
+                    "id": "minecraft:cactus",
+                    "properties": {
+                      "age": "0"
+                    }
+                  }
+                },
+                {
+                  "height": {
+                    "type": "minecraft:weighted_list",
+                    "distribution": [
+                      {
+                        "data": 0,
+                        "weight": 1
+                      },
+                      {
+                        "data": 1,
+                        "weight": 1
+                      }
+                    ]
+                  },
+                  "provider": {
+                    "id": "minecraft:cactus_flower"
+                  }
+                }
+              ],
+              "prioritize_tip": false
+            },
+            "placement": []
+          },
+          {
+            "feature": {
+              "type": "minecraft:block_column",
+              "allowed_placement": {
+                "type": "minecraft:matching_block_tag",
+                "tag": "minecraft:air"
+              },
+              "direction": "west",
+              "layers": [
+                {
+                  "height": 2,
+                  "provider": {
+                    "id": "minecraft:cactus",
+                    "properties": {
+                      "age": "0"
+                    }
+                  }
+                }
+              ],
+              "prioritize_tip": false
+            },
+            "placement": [
+              {
+                "type": "minecraft:offset",
+                "x": -1,
+                "y": 2,
+                "z": 0
+              }
+            ]
+          },
+          {
+            "feature": {
+              "type": "minecraft:block_column",
+              "allowed_placement": {
+                "type": "minecraft:matching_block_tag",
+                "tag": "minecraft:air"
+              },
+              "direction": "up",
+              "layers": [
+                {
+                  "height": 2,
+                  "provider": {
+                    "id": "minecraft:cactus",
+                    "properties": {
+                      "age": "0"
+                    }
+                  }
+                },
+                {
+                  "height": {
+                    "type": "minecraft:weighted_list",
+                    "distribution": [
+                      {
+                        "data": 0,
+                        "weight": 1
+                      },
+                      {
+                        "data": 1,
+                        "weight": 1
+                      }
+                    ]
+                  },
+                  "provider": {
+                    "id": "minecraft:cactus_flower"
+                  }
+                }
+              ],
+              "prioritize_tip": false
+            },
+            "placement": [
+              {
+                "type": "minecraft:offset",
+                "x": -2,
+                "y": 3,
+                "z": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "dead_bushes": {
+      "feature": "minecraft:dead_bush",
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 2
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:heightmap",
+          "heightmap": "MOTION_BLOCKING"
+        },
+        {
+          "type": "minecraft:biome"
+        },
+        {
+          "type": "minecraft:count",
+          "count": 6
+        },
+        {
+          "type": "minecraft:offset",
+          "x": {
+            "type": "minecraft:trapezoid",
+            "max": 7,
+            "min": -7,
+            "plateau": 0
+          },
+          "y": {
+            "type": "minecraft:trapezoid",
+            "max": 3,
+            "min": -3,
+            "plateau": 0
+          },
+          "z": {
+            "type": "minecraft:trapezoid",
+            "max": 7,
+            "min": -7,
+            "plateau": 0
+          }
+        },
+        {
+          "type": "minecraft:block_predicate_filter",
+          "predicate": {
+            "type": "minecraft:matching_block_tag",
+            "tag": "minecraft:air"
+          }
+        }
+      ]
+    }
+  }
+}

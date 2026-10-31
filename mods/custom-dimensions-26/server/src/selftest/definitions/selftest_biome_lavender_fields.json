@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 2,
+  "description": "Self-test fixture and showcase: the biome library's lavender fields filling a whole level on overworld terrain, for the biomes section's per-biome checks, renders and screenshots.",
+  "seed": 9,
+  "spawn": [
+    0,
+    64,
+    0
+  ],
+  "generator": {
+    "type": "single_biome",
+    "biome": "adventure:lavender_fields"
+  },
+  "borders": {
+    "player": 512
+  }
+}

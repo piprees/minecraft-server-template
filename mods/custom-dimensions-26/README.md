@@ -99,6 +99,17 @@ on generated chunks.
 | Biome | Realm | What it is |
 | --- | --- | --- |
 | `ashen_woodland` | overworld | Burnt birch wood: bare and stripped birch trunks with a few leaves, fallen stripped logs, dead bushes, coarse dirt with gravel and podzol patches, white ash and a grey haze |
+| `chalk_cliffs` | overworld | Calcite on every steep face seamed with diorite, pale turf, gravel coves, calcite boulders, wind-bent oaks, sea pickles in bright shallows |
+| `maple_woodland` | overworld | Crimson domed oaks and orange-crowned birch trunks over green turf, red leaf litter, podzol, pumpkins, firefly bushes, drifting red leaves |
+| `redwood_grove` | overworld | Two-by-two spruce giants of 32 to 45 blocks with bare lower trunks, young spruces, mossy fallen trunks, ferns, moss on podzol, dim green fog |
+| `lavender_fields` | overworld | Open meadow carpeted in alliums and lilacs, birches with bee nests, lilac-tinted grass and sky |
+| `cypress_wetland` | overworld | Clay-bottomed shallows in grass over mud, flat-crowned mangrove-log cypresses standing in the water, lily pads, cane, dripleaf, fireflies, green mist |
+| `prairie` | overworld | Knee-high tall and dry grass under golden grass colour, wildflowers, sunflowers, lone fancy oaks, horses |
+| `highland_fells` | overworld | Treeless brown-green moor, pink-petal and allium heather, dry tussocks, coarse dirt, mossy cobblestone outcrops, sheep |
+| `saguaro_desert` | overworld | Red sand over red sandstone, branched cactus saguaros with flowers, dead bushes, armadillos, orange horizon |
+| `tropical_shores` | overworld | Sand over sandstone, leaning jungle-log palms with cocoa, melons, parrots, coral and sea pickles in turquoise water |
+| `parched_forest` | overworld | Small olive-yellow oaks and bare snags on yellowed grass, coarse dirt and packed mud, packed-mud termite mounds, bushes, dry grass |
+| `aspen_forest` | overworld | Dense tall birch trunks under narrow gold crowns, ferns, golden leaf litter, drifting yellow leaves |
 | `crystal_hollows` | caves | Calcite and smooth basalt walls, open geodes in every chunk, budding amethyst seams, cluster-covered floor and ceiling patches, glow lichen, purple motes and amethyst chimes |
 
 ### Generators
@@ -184,7 +195,17 @@ ashen woodland's land columns are topped with its palette's coarse dirt and
 90% with its ground blocks, its trunk feature stood birch and stripped birch
 logs upright, and the crystal hollows hold clusters and budding amethyst at
 over twice any other biome's density per column (geodes and patches reach
-across the 16-block cells). `-PselfTestOnly=biomes` runs the compiled-pack and biomes sections only.
+across the 16-block cells). Then it opens each library biome's showcase,
+`selftest_biome_<id>` (the biome alone on overworld terrain, a `single_biome`
+level with spawn at 0, 0), one at a time, and over the same 96x96 columns
+checks the biome is at the surface of every column, its palette's top block
+tops at least 50% of the land columns where the palette has one, and each of
+its own features left its main block there: the first block under
+`trunk_provider`, `to_place`, `state`, `state_provider`, `ground_state`,
+`provider` or `block`, with the features it names expanded and its tests and
+replacement targets skipped. One line per biome carries the counts, and the
+server log names the standing column of each main block nearest spawn.
+`-PselfTestOnly=biomes` runs the compiled-pack and biomes sections only.
 
 ## Runtime levels
 

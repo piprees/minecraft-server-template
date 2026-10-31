@@ -31,10 +31,13 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.levelgen.Heightmap;
+import net.minecraft.world.level.levelgen.feature.Feature;
 import net.minecraft.world.level.levelgen.placement.PlacedFeature;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Optional;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
@@ -50,11 +53,22 @@ import java.util.function.Function;
  * as compiled, that the level's ore edits reach plains and not them, and, over
  * 96x96 generated columns round 0,0, that both appear, the ashen woodland is
  * topped from its palette and carries its birch trunks, and the crystal hollows
- * hold amethyst clusters. Each line carries its counts.
+ * hold amethyst clusters. Then, for every library biome, over its showcase
+ * {@code selftest_biome_<id>} (the biome alone on overworld terrain) and the
+ * same 96x96 columns: the biome is at the surface of every column, its
+ * palette's top block tops at least half the land columns where the palette
+ * has one, and each of its own features left its main block there
+ * ({@link #mainBlock}). Each line carries its counts.
  */
 public final class BiomeLibrarySelfTest {
 
     static final String SLUG = "selftest_biome_library";
+    static final String SHOWCASE = "selftest_biome_";
+    /** Keys whose value is the block a feature is made of, in the order they are looked for. */
+    static final List<String> MAIN_KEYS = List.of("trunk_provider", "to_place", "state", "state_provider", "ground_state", "provider", "block");
+    /** Subtrees that name blocks a feature tests or replaces rather than places. */
+    static final Set<String> NOT_PLACED = Set.of("placement", "predicate", "target", "can_place_on", "allowed_placement", "replaceable",
+            "below_trunk_provider", "decorators", "can_be_placed_on", "can_be_placed_in", "can_replace", "invalid_blocks");
     static final String ASHEN = "ashen_woodland";
     static final String CRYSTAL = "crystal_hollows";
     static final int LOAD_CAP_TICKS = 6000;
@@ -110,6 +124,7 @@ public final class BiomeLibrarySelfTest {
                     return null;
                 })
                 .thenCompose(v -> manager.deactivate(SLUG).handle((t, e) -> null))
+                .thenCompose(v -> showcases())
                 .thenApply(v -> {
                     restorePause(pause);
                     return List.copyOf(lines);
@@ -136,7 +151,7 @@ public final class BiomeLibrarySelfTest {
         Map<String, JsonObject> files = BiomeLibrary.shipped().files(namespace);
         RegistryOps<JsonElement> ops = RegistryOps.create(JsonOps.INSTANCE, server.registryAccess());
         List<String> found = new ArrayList<>();
-        for (String id : List.of(ASHEN, CRYSTAL)) {
+        for (String id : BiomeLibrary.shipped().entries().keySet()) {
             String full = namespace + ":" + id;
             Holder<Biome> holder = biomes.get(ResourceKey.create(Registries.BIOME, Identifier.parse(full)))
                     .orElseThrow(() -> new AssertionError(full + " is not in the biome registry"));
@@ -161,7 +176,7 @@ public final class BiomeLibrarySelfTest {
             found.add(full + " (" + haveKeys.size() + " attributes, fog " + fog + ", " + count(features) + " placed features in "
                     + features.size() + " steps)");
         }
-        return "PASS " + String.join("; ", found) + "; the firewall stripped nothing";
+        return "PASS " + found.size() + " library biomes: " + String.join("; ", found) + "; the firewall stripped nothing";
     }
 
     /** The level's generator lists plains without diamonds and with the added ore; each library biome keeps its own list. */
@@ -271,6 +286,255 @@ public final class BiomeLibrarySelfTest {
         boolean ok = crystal[1] > 0 && crystal[2] > 0 && densest;
         return (ok ? "PASS " : "FAIL ") + String.join("; ", parts)
                 + "; want clusters and budding amethyst in the crystal hollows, its clusters per column over twice any other biome's";
+    }
+
+    // ---- showcases ------------------------------------------------------------------------------
+
+    /** Each library biome's showcase level in turn, one at a time. */
+    private CompletableFuture<Void> showcases() {
+        CompletableFuture<Void> chain = CompletableFuture.completedFuture(null);
+        for (String id : BiomeLibrary.shipped().entries().keySet()) {
+            chain = chain.thenCompose(v -> showcase(id));
+        }
+        return chain;
+    }
+
+    private CompletableFuture<Void> showcase(String id) {
+        String slug = SHOWCASE + id;
+        String name = "biomes library " + id + " (" + slug + ")";
+        level = null;
+        return manager.activate(slug).thenApply(LevelManager.Activation::level)
+                .thenCompose(l -> {
+                    level = l;
+                    return load(area());
+                })
+                .thenAccept(chunks -> lines.add(line(name, () -> showcaseChecks(id, chunks))))
+                .handle((v, error) -> {
+                    if (error != null) lines.add("FAIL " + name + ": " + cause(error));
+                    if (level != null) area().forEach(c -> level.setChunkForced(c.x(), c.z(), false));
+                    return null;
+                })
+                .thenCompose(v -> manager.deactivate(slug).handle((t, e) -> null));
+    }
+
+    /** The biome tops every column, its palette's top block at least half the land, and each own feature its main block. */
+    private String showcaseChecks(String id, List<LevelChunk> chunks) {
+        BiomeLibrary.Entry entry = BiomeLibrary.shipped().entries().get(id);
+        List<String> failures = new ArrayList<>();
+        int[] surface = new int[2];
+        forColumns(chunks, (chunk, x, z, biome) -> {
+            surface[0]++;
+            if (biome.equals(full(id))) surface[1]++;
+        });
+        if (surface[1] != surface[0]) failures.add("surface");
+        String text = "surface " + surface[1] + "/" + surface[0] + " columns";
+
+        String topId = entry.palette().blocks().get("top");
+        if (topId != null) {
+            Block top = BuiltInRegistries.BLOCK.getValue(Identifier.parse(topId));
+            int[] counts = new int[2];
+            Map<String, Integer> tops = new TreeMap<>();
+            forColumns(chunks, (chunk, x, z, biome) -> {
+                BlockPos pos = land(chunk, x, z);
+                if (pos == null) return;
+                counts[0]++;
+                BlockState state = chunk.getBlockState(pos);
+                if (state.is(top)) counts[1]++;
+                tops.merge(BuiltInRegistries.BLOCK.getKey(state.getBlock()).getPath(), 1, Integer::sum);
+            });
+            double share = share(counts[1], counts[0]);
+            if (counts[0] == 0 || share < TOP_SHARE) failures.add("palette top");
+            tops.values().removeIf(n -> n < counts[0] / 100);
+            text += "; palette top " + Identifier.parse(topId).getPath() + " " + counts[1] + "/" + counts[0] + " land columns (" + pct(share)
+                    + ", want " + pct(TOP_SHARE) + "; tops over 1% " + tops + ")";
+        }
+
+        Map<String, String> mains = new LinkedHashMap<>();
+        for (String feature : entry.features().keySet()) {
+            mains.put(feature, mainBlock(entry, entry.features().get(feature).get("feature")).orElse(null));
+        }
+        Map<Block, Long> found = new LinkedHashMap<>();
+        for (String block : mains.values()) {
+            if (block != null) found.put(BuiltInRegistries.BLOCK.getValue(Identifier.parse(block)), 0L);
+        }
+        Map<Block, BlockPos> nearest = new LinkedHashMap<>();
+        BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
+        forColumns(chunks, (chunk, x, z, biome) -> {
+            int top = chunk.getHeight(Heightmap.Types.WORLD_SURFACE, x, z);
+            int floor = chunk.getHeight(Heightmap.Types.OCEAN_FLOOR, x, z) - 2;
+            for (int y = chunk.getMinY(); y <= top; y++) {
+                pos.set(chunk.getPos().getMinBlockX() + x, y, chunk.getPos().getMinBlockZ() + z);
+                Block block = chunk.getBlockState(pos).getBlock();
+                Long n = found.get(block);
+                if (n == null) continue;
+                found.put(block, n + 1);
+                BlockPos best = nearest.get(block);
+                if (y >= floor && standsClear(chunk, pos) && (best == null || pos.distSqr(BlockPos.ZERO.atY(y)) < best.distSqr(BlockPos.ZERO.atY(best.getY())))) {
+                    nearest.put(block, pos.immutable());
+                }
+            }
+        });
+        nearest.forEach((block, at) -> com.customdimensions.server.CustomDimensions.LOG.info("biomes showcase {}: {} tops a standing column nearest spawn at {} {} {}",
+                id, BuiltInRegistries.BLOCK.getKey(block).getPath(), at.getX(), at.getY(), at.getZ()));
+        List<String> parts = new ArrayList<>();
+        mains.forEach((feature, block) -> {
+            if (block == null) {
+                failures.add(feature);
+                parts.add(feature + " has no main block");
+                return;
+            }
+            long n = found.get(BuiltInRegistries.BLOCK.getValue(Identifier.parse(block)));
+            if (n == 0) failures.add(feature);
+            parts.add(feature + " " + Identifier.parse(block).getPath() + " " + n);
+        });
+        text += "; features (main block, count over the columns): " + String.join(", ", parts);
+        return failures.isEmpty() ? "PASS " + text : "FAIL " + text + "; failed: " + String.join(", ", failures);
+    }
+
+    /**
+     * True where the block tops a column of its own kind with open air above and beside it:
+     * it stands above the ground rather than lying flush in it or lining a hollow.
+     */
+    private static boolean standsClear(LevelChunk chunk, BlockPos pos) {
+        var level = chunk.getLevel();
+        BlockState here = level.getBlockState(pos);
+        if (!level.getBlockState(pos.above()).isAir() || !level.getBlockState(pos.below()).is(here.getBlock())) return false;
+        for (Direction d : Direction.Plane.HORIZONTAL) {
+            if (level.getBlockState(pos.relative(d)).isAir()) return true;
+        }
+        return false;
+    }
+
+    /**
+     * The block a feature mostly places, with the features it names expanded (its own
+     * {@code ~name}s and vanilla ids) and what it only tests or replaces skipped: the
+     * shallowest value under one of {@link #MAIN_KEYS}, the earlier key first at the same
+     * depth, else the first block anywhere; a weighted provider gives its heaviest entry.
+     * Air is never a main block.
+     */
+    Optional<String> mainBlock(BiomeLibrary.Entry entry, JsonElement feature) {
+        List<JsonElement> level = List.of(expand(entry, feature, 0));
+        while (!level.isEmpty()) {
+            for (String key : MAIN_KEYS) {
+                for (JsonElement e : level) {
+                    if (e.isJsonObject() && e.getAsJsonObject().has(key)) {
+                        Optional<String> block = blockOf(e.getAsJsonObject().get(key));
+                        if (block.isPresent()) return block;
+                    }
+                }
+            }
+            List<JsonElement> next = new ArrayList<>();
+            for (JsonElement e : level) {
+                if (e.isJsonArray()) e.getAsJsonArray().forEach(next::add);
+                else if (e.isJsonObject()) e.getAsJsonObject().entrySet().stream()
+                        .filter(kv -> !NOT_PLACED.contains(kv.getKey())).forEach(kv -> next.add(kv.getValue()));
+            }
+            level = next;
+        }
+        return anyBlock(expand(entry, feature, 0));
+    }
+
+    private JsonElement expand(BiomeLibrary.Entry entry, JsonElement e, int depth) {
+        if (depth > 8) return e;
+        if (e.isJsonPrimitive()) {
+            JsonElement resolved = resolve(entry, e.getAsString());
+            return resolved == null ? e : expand(entry, resolved, depth + 1);
+        }
+        if (e.isJsonArray()) {
+            JsonArray out = new JsonArray();
+            e.getAsJsonArray().forEach(x -> out.add(x.isJsonPrimitive() ? x : expand(entry, x, depth)));
+            return out;
+        }
+        if (!e.isJsonObject()) return e;
+        JsonObject out = new JsonObject();
+        for (Map.Entry<String, JsonElement> kv : e.getAsJsonObject().entrySet()) {
+            JsonElement v = kv.getValue();
+            boolean names = kv.getKey().equals("feature") || kv.getKey().equals("default") || kv.getKey().equals("features");
+            if (kv.getKey().equals("features") && v.isJsonArray()) {
+                JsonArray list = new JsonArray();
+                for (JsonElement item : v.getAsJsonArray()) {
+                    if (item.isJsonObject() && item.getAsJsonObject().has("data")) {
+                        JsonObject copy = item.getAsJsonObject().deepCopy();
+                        copy.add("data", expand(entry, copy.get("data"), depth + 1));
+                        list.add(copy);
+                    } else {
+                        list.add(expand(entry, item, depth + 1));
+                    }
+                }
+                out.add(kv.getKey(), list);
+            } else if (names && v.isJsonPrimitive()) {
+                out.add(kv.getKey(), expand(entry, v, depth + 1));
+            } else if (v.isJsonObject() || v.isJsonArray()) {
+                out.add(kv.getKey(), NOT_PLACED.contains(kv.getKey()) ? v : expand(entry, v, depth));
+            } else {
+                out.add(kv.getKey(), v);
+            }
+        }
+        return out;
+    }
+
+    /** A feature name as JSON: one of the biome's own ({@code ~name}), else a configured or placed feature in the registries. */
+    private JsonElement resolve(BiomeLibrary.Entry entry, String name) {
+        if (name.startsWith("~")) {
+            JsonObject own = entry.features().get(name.substring(1));
+            return own == null ? null : own.get("feature");
+        }
+        Identifier id = Identifier.tryParse(name);
+        if (id == null) return null;
+        RegistryOps<JsonElement> ops = RegistryOps.create(JsonOps.INSTANCE, server.registryAccess());
+        Optional<Holder.Reference<Feature>> configured =
+                server.registryAccess().lookupOrThrow(Registries.FEATURE).get(ResourceKey.create(Registries.FEATURE, id));
+        if (configured.isPresent()) return Feature.DIRECT_CODEC.encodeStart(ops, configured.get().value()).result().orElse(null);
+        Optional<Holder.Reference<PlacedFeature>> placed =
+                server.registryAccess().lookupOrThrow(Registries.PLACED_FEATURE).get(ResourceKey.create(Registries.PLACED_FEATURE, id));
+        return placed.flatMap(p -> PlacedFeature.DIRECT_CODEC.encodeStart(ops, p.value()).result()).orElse(null);
+    }
+
+    /** The first block anywhere, depth first, outside the subtrees that are not placed. */
+    private static Optional<String> anyBlock(JsonElement e) {
+        if (e.isJsonArray()) {
+            for (JsonElement x : e.getAsJsonArray()) {
+                Optional<String> b = anyBlock(x);
+                if (b.isPresent()) return b;
+            }
+        } else if (e.isJsonObject()) {
+            Optional<String> own = blockOf(e);
+            if (own.isPresent()) return own;
+            for (Map.Entry<String, JsonElement> kv : e.getAsJsonObject().entrySet()) {
+                if (NOT_PLACED.contains(kv.getKey())) continue;
+                Optional<String> b = kv.getValue().isJsonPrimitive() ? blockOf(kv.getValue()) : anyBlock(kv.getValue());
+                if (b.isPresent()) return b;
+            }
+        }
+        return Optional.empty();
+    }
+
+    /** A block id from a block, a block state or a state provider; a weighted provider gives its heaviest entry. */
+    private static Optional<String> blockOf(JsonElement e) {
+        if (e.isJsonPrimitive()) {
+            Identifier id = Identifier.tryParse(e.getAsString());
+            return id != null && BuiltInRegistries.BLOCK.containsKey(id) && !BuiltInRegistries.BLOCK.getValue(id).defaultBlockState().isAir()
+                    ? Optional.of(id.toString()) : Optional.empty();
+        }
+        if (!e.isJsonObject()) return Optional.empty();
+        JsonObject o = e.getAsJsonObject();
+        if (o.has("id") && o.get("id").isJsonPrimitive()) return blockOf(o.get("id"));
+        if (o.has("state")) return blockOf(o.get("state"));
+        if (o.has("source")) return blockOf(o.get("source"));
+        if (o.has("entries") && o.get("entries").isJsonArray()) {
+            JsonElement best = null;
+            int weight = -1;
+            for (JsonElement x : o.getAsJsonArray("entries")) {
+                JsonObject entry = x.getAsJsonObject();
+                int w = entry.has("weight") ? entry.get("weight").getAsInt() : 1;
+                if (w > weight && blockOf(entry.get("data")).isPresent()) {
+                    best = entry.get("data");
+                    weight = w;
+                }
+            }
+            return best == null ? Optional.empty() : blockOf(best);
+        }
+        return Optional.empty();
     }
 
     // ---- scanning -------------------------------------------------------------------------------

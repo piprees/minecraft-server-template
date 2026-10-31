@@ -110,11 +110,22 @@ The compile refuses the library, naming the biome and the field, when a required
 
 At run time a library biome is ours: the firewall compares only `minecraft:` biomes with vanilla's files, so it strips nothing from a library biome, and a definition's `ores.add` and `ores.remove` change the level's vanilla biomes and leave each library biome's feature list as the library wrote it.
 
-The samples, each shown on generated chunks by the self-test's biomes section:
+The library, each biome shown on generated chunks by the self-test's biomes section, alone on overworld terrain in its showcase level `selftest_biome_<id>`:
 
 | Biome | Realm | Inspired by | What it is |
 | --- | --- | --- | --- |
 | `ashen_woodland` | overworld | Regions Unexplored's ashen woodland | A birch wood after a wildfire: birch and stripped birch trunks with one foliage spot in seven leafed, fallen stripped logs, dead bushes, coarse dirt with gravel and podzol patches and gravel shores, white ash in the air, grey fog and sky, muted grass and foliage |
+| `chalk_cliffs` | overworld | Regions Unexplored's chalk cliffs | White sea cliffs: calcite on every steep face with diorite seams, short pale turf on top, gravel coves, calcite boulders, low wind-bent oaks, sea pickles in bright blue shallows, pale sky |
+| `maple_woodland` | overworld | Regions Unexplored's and Nature's Spirit's maple forests | Autumn broadleaf wood: domed fancy oaks in crimson foliage and birch-trunked trees in orange poplar leaves over green turf, red leaf-litter carpets, podzol patches, pumpkins, firefly bushes, drifting red leaves |
+| `redwood_grove` | overworld | Regions Unexplored's and Nature's Spirit's redwoods | Two-by-two spruce giants of 32 to 45 blocks with bare lower trunks and high narrow crowns, young spruces, fallen mossy trunks, ferns, moss and coarse dirt on podzol, dim green fog |
+| `lavender_fields` | overworld | Nature's Spirit's lavender fields | Open meadow carpeted in alliums and lilacs, a few birches with bee nests, lilac-tinted grass and sky |
+| `cypress_wetland` | overworld | Wilder Wild's and Nature's Spirit's cypress swamps | Shallow clay-bottomed pools in grass over mud, tall straight mangrove-log cypresses with flat crowns standing in the water, lily pads, cane, dripleaf, firefly bushes and motes, green water and mist |
+| `prairie` | overworld | Regions Unexplored's prairie | Knee-high tall grass and dry grass to the horizon under golden grass colour, wildflowers, sunflowers, a lone fancy oak every few chunks, horses, rustling grass |
+| `highland_fells` | overworld | Regions Unexplored's highland fields | Treeless brown-green moor: heather of pink petals and alliums, dry tussocks and bushes, coarse dirt patches, mossy cobblestone outcrops, sheep, grey-blue sky |
+| `saguaro_desert` | overworld | Regions Unexplored's saguaro desert | Red sand over red sandstone, saguaros of cactus with arms branching out and up and cactus flowers, dead bushes, dry grass, armadillos, orange horizon |
+| `tropical_shores` | overworld | Nature's Spirit's tropical shores and Regions Unexplored's tropics | A whole coast of sand over sandstone, leaning jungle-log palms with small crowns and cocoa, melons, parrots, coral, sea pickles and seagrass in turquoise water |
+| `parched_forest` | overworld | Wilder Wild's parched forest | Dry oak wood: small olive-yellow oaks and bare snags over yellowed grass, coarse dirt and packed mud patches, termite mounds of packed mud, bushes, dead bushes, dry grass |
+| `aspen_forest` | overworld | Nature's Spirit's aspen forest | Dense stand of tall birch trunks under narrow crowns of gold-tinted oak leaves, ferns, golden leaf litter, drifting yellow leaves |
 | `crystal_hollows` | caves | Galosphere's crystal canyons | Calcite ceilings, calcite and smooth basalt walls, a geode in every chunk below y 30, budding amethyst seams, floor and ceiling patches of calcite, amethyst and budding amethyst carrying clusters and buds, glow lichen, purple motes and amethyst chimes |
 
 ## Structure control
