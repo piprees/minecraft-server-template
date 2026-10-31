@@ -78,7 +78,7 @@ class BiomeLibraryTest {
         assertFalse(out.files().containsKey("data/adventure/worldgen/feature/biome/crystal_hollows/open_geodes.json"));
         out.files().forEach((path, text) -> assertFalse(text.contains("\"~"), path + " keeps an unresolved ~name"));
         assertEquals(library.entries().size(), out.report().totals(out.files()).get("Library biomes"));
-        assertTrue(library.entries().size() >= 13, library.entries().keySet().toString());
+        assertTrue(library.entries().size() >= 22, library.entries().keySet().toString());
     }
 
     @Test

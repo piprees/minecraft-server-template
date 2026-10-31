@@ -1,6 +1,7 @@
 package com.customdimensions.compiler.datapack;
 
 import com.customdimensions.core.definition.Definition;
+import com.customdimensions.core.definition.Generator;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -147,6 +148,20 @@ class GeneratorVariantsTest {
                         + "{\"type\": \"minecraft:fixed\", \"biome\": \"minecraft:badlands\"}, \"settings\": \"minecraft:overworld\"}}"),
                 golden("t", "\"generator\": {\"type\": \"single_biome\", \"biome\": \"minecraft:badlands\"}",
                         "data/customdimensions/lazy_dimension/t.json", VersionTable.V26_3));
+    }
+
+    @Test
+    void singleBiomeOnTheNetherPresetIsAFixedSourceOnNetherTerrain() {
+        assertEquals(json("{\"type\": \"adventure:t\", \"generator\": {\"type\": \"minecraft:noise\", \"biome_source\": "
+                        + "{\"type\": \"minecraft:fixed\", \"biome\": \"minecraft:basalt_deltas\"}, \"settings\": \"minecraft:nether\"}}"),
+                golden("t", "\"generator\": {\"type\": \"single_biome\", \"preset\": \"nether\", \"biome\": \"minecraft:basalt_deltas\"}",
+                        "data/customdimensions/lazy_dimension/t.json", VersionTable.V26_3));
+        assertEquals("the_nether", DatapackCompiler.baseDimensionType(
+                new Generator(Generator.SINGLE_BIOME, "nether", null, null, "minecraft:basalt_deltas", null, null)));
+        assertEquals("overworld_caves", DatapackCompiler.baseDimensionType(
+                new Generator(Generator.SINGLE_BIOME, "caves", null, null, "minecraft:lush_caves", null, null)));
+        assertEquals("overworld", DatapackCompiler.baseDimensionType(
+                new Generator(Generator.SINGLE_BIOME, null, null, null, "minecraft:plains", null, null)));
     }
 
     // ---- clones --------------------------------------------------------------------------------

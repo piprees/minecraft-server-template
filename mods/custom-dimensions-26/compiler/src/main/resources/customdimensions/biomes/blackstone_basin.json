@@ -1,0 +1,309 @@
+{
+  "$schema": "../../../../../../schema/biome.schema.json",
+  "realm": "nether",
+  "inspiredBy": "Regions Unexplored's blackstone basin: black stone terraces round a lava lake.",
+  "differs": "Bastions are built of blackstone and basalt deltas scatter it in blobs, but no biome is made of it; here every surface is blackstone, steep faces step down in polished blackstone terraces, gilded blackstone glints in the rock, blackstone column clusters stand round lava lakes, and black smoke hangs low.",
+  "climate": {
+    "temperature": [
+      -1.0,
+      -0.65
+    ],
+    "humidity": [
+      -0.25,
+      0.3
+    ]
+  },
+  "palette": {
+    "top": "minecraft:blackstone",
+    "cliffs": "minecraft:polished_blackstone",
+    "deep": "minecraft:blackstone"
+  },
+  "biome": {
+    "attributes": {
+      "minecraft:audio/ambient_sounds": {
+        "additions": {
+          "sound": "minecraft:ambient.basalt_deltas.additions",
+          "tick_chance": 0.0111
+        },
+        "loop": "minecraft:ambient.basalt_deltas.loop",
+        "mood": {
+          "block_search_extent": 8,
+          "offset": 2.0,
+          "sound": "minecraft:ambient.basalt_deltas.mood",
+          "tick_delay": 6000
+        }
+      },
+      "minecraft:audio/background_music": {
+        "default": {
+          "max_delay": 24000,
+          "min_delay": 12000,
+          "sound": "minecraft:music.nether.basalt_deltas"
+        }
+      },
+      "minecraft:gameplay/natural_mob_spawns": {
+        "argument": {
+          "spawn_costs": {},
+          "spawns_by_category": {
+            "creature": [
+              {
+                "type": "minecraft:strider",
+                "count": {
+                  "type": "minecraft:uniform",
+                  "max_inclusive": 2,
+                  "min_inclusive": 1
+                },
+                "weight": 60
+              }
+            ],
+            "monster": [
+              {
+                "type": "minecraft:piglin",
+                "count": {
+                  "type": "minecraft:uniform",
+                  "max_inclusive": 4,
+                  "min_inclusive": 2
+                },
+                "weight": 40
+              },
+              {
+                "type": "minecraft:magma_cube",
+                "count": {
+                  "type": "minecraft:uniform",
+                  "max_inclusive": 4,
+                  "min_inclusive": 2
+                },
+                "weight": 100
+              },
+              {
+                "type": "minecraft:ghast",
+                "count": 1,
+                "weight": 30
+              }
+            ]
+          }
+        },
+        "modifier": "overlay"
+      },
+      "minecraft:visual/ambient_particles": {
+        "argument": [
+          {
+            "particle": {
+              "type": "minecraft:large_smoke"
+            },
+            "probability": 0.0015
+          },
+          {
+            "particle": {
+              "type": "minecraft:smoke"
+            },
+            "probability": 0.004
+          }
+        ],
+        "modifier": "append"
+      },
+      "minecraft:visual/fog_color": "#2e2622"
+    },
+    "carvers": "minecraft:nether_cave",
+    "downfall": 0.0,
+    "effects": {
+      "water_color": "#3f76e4"
+    },
+    "features": [
+      [],
+      [],
+      [],
+      [],
+      [
+        "~lava_lakes",
+        "~blackstone_columns"
+      ],
+      [],
+      [],
+      [
+        "minecraft:spring_open",
+        "minecraft:glowstone_extra",
+        "minecraft:glowstone",
+        "minecraft:spring_closed",
+        "~gilded_seams",
+        "~gold_veins",
+        "minecraft:ore_ancient_debris_large",
+        "minecraft:ore_debris_small"
+      ],
+      [],
+      [
+        "minecraft:spring_lava"
+      ]
+    ],
+    "has_precipitation": false,
+    "temperature": 2.0
+  },
+  "features": {
+    "lava_lakes": {
+      "feature": {
+        "type": "minecraft:delta_feature",
+        "rim": "minecraft:polished_blackstone",
+        "contents": "minecraft:lava",
+        "rim_size": {
+          "type": "minecraft:uniform",
+          "max_inclusive": 2,
+          "min_inclusive": 0
+        },
+        "size": {
+          "type": "minecraft:uniform",
+          "max_inclusive": 8,
+          "min_inclusive": 4
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count_on_every_layer",
+          "count": 16
+        },
+        {
+          "type": "minecraft:biome"
+        }
+      ]
+    },
+    "blackstone_columns": {
+      "feature": {
+        "type": "minecraft:stepped_column_cluster",
+        "block": {
+          "id": "minecraft:blackstone"
+        },
+        "can_replace": {
+          "type": "minecraft:any_of",
+          "predicates": [
+            {
+              "type": "minecraft:matching_block_tag",
+              "tag": "minecraft:air"
+            },
+            {
+              "type": "minecraft:all_of",
+              "predicates": [
+                {
+                  "type": "minecraft:matching_blocks",
+                  "blocks": "minecraft:lava"
+                },
+                {
+                  "type": "minecraft:height_range",
+                  "max_inclusive": {
+                    "relative_to_sea_level": 0
+                  },
+                  "min_inclusive": {
+                    "above_bottom": 0
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "cannot_place_on": "#minecraft:cannot_place_basalt_pillar_on",
+        "cluster_reach": 5,
+        "column_count": 40,
+        "column_reach": {
+          "type": "minecraft:uniform",
+          "max_inclusive": 2,
+          "min_inclusive": 1
+        },
+        "continue_through": {
+          "type": "minecraft:matching_blocks",
+          "blocks": "minecraft:blackstone"
+        },
+        "height": {
+          "type": "minecraft:uniform",
+          "max_inclusive": 9,
+          "min_inclusive": 3
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count_on_every_layer",
+          "count": 2
+        },
+        {
+          "type": "minecraft:biome"
+        }
+      ]
+    },
+    "gilded_seams": {
+      "feature": {
+        "type": "minecraft:ore",
+        "discard_chance_on_air_exposure": 0.0,
+        "size": 10,
+        "targets": [
+          {
+            "state": "minecraft:gilded_blackstone",
+            "target": {
+              "predicate_type": "minecraft:block_match",
+              "block": "minecraft:blackstone"
+            }
+          }
+        ]
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 24
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:height_range",
+          "height": {
+            "type": "minecraft:uniform",
+            "max_inclusive": {
+              "below_top": 10
+            },
+            "min_inclusive": {
+              "above_bottom": 10
+            }
+          }
+        },
+        {
+          "type": "minecraft:biome"
+        }
+      ]
+    },
+    "gold_veins": {
+      "feature": {
+        "type": "minecraft:ore",
+        "discard_chance_on_air_exposure": 0.0,
+        "size": 8,
+        "targets": [
+          {
+            "state": "minecraft:nether_gold_ore",
+            "target": {
+              "predicate_type": "minecraft:block_match",
+              "block": "minecraft:blackstone"
+            }
+          }
+        ]
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 12
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:height_range",
+          "height": {
+            "type": "minecraft:uniform",
+            "max_inclusive": {
+              "below_top": 10
+            },
+            "min_inclusive": {
+              "above_bottom": 10
+            }
+          }
+        },
+        {
+          "type": "minecraft:biome"
+        }
+      ]
+    }
+  }
+}

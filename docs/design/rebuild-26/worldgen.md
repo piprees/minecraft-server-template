@@ -24,7 +24,7 @@ A definition picks one terrain in `terrain.base` and tunes it: `setting` (`gentl
 
 Each terrain is built from vanilla's overworld router (`compiler/.../terrain/`). It shapes a surface height in blocks and how closely the ground follows it, and replaces vanilla's `offset` (height / 128 − 1), `factor`, `jaggedness` and `sloped_cheese`; a terrain may add a 3D term that removes ground (voids, cracks) or adds it (sky islands). Caves, aquifers, ore veins and the slides stay vanilla's, so every surface lies between y −64 and 256, inside Bedrock's overworld range. The router's continentalness, erosion, ridges, temperature and vegetation are the preset's own, stretched by `scale`, and the shoreline sits where vanilla's biomes expect the coast, so biomes follow the land. The compiler writes `<namespace>:terrain/<slug>/` with `height`, `offset`, `factor`, `jaggedness`, `depth`, `sloped_cheese`, `final_density`, `preliminary_surface_level` and `chunk_surface_level`, the ids a zone blends between, and the library's noises as `<namespace>:terrain/<noise>`.
 
-`overworld`, `large_biomes`, `amplified` and `floating_islands` take a terrain; `checkerboard` and `single_biome` take one on overworld noise. `caves` and `nether` refuse it (their terrain is a cavern under a ceiling, not a surface), and so does `end` (`minecraft:the_end` reads the router's erosion as its island shape, which a terrain replaces). An airborne terrain (`floating_islands`, `voids`) has no aquifers, no solid floor, and its sea level at the bottom of the world unless `liquids.seaLevel` sets one.
+`overworld`, `large_biomes`, `amplified` and `floating_islands` take a terrain; `checkerboard` takes one on overworld noise, and `single_biome` on its `preset` (overworld unless it names one). `caves` and `nether` refuse it (their terrain is a cavern under a ceiling, not a surface), and so does `end` (`minecraft:the_end` reads the router's erosion as its island shape, which a terrain replaces). An airborne terrain (`floating_islands`, `voids`) has no aquifers, no solid floor, and its sea level at the bottom of the world unless `liquids.seaLevel` sets one.
 
 | Terrain | What it shapes | Its parameters (range, default) | Settings: what they look like, and what they set |
 | --- | --- | --- | --- |
@@ -110,7 +110,7 @@ The compile refuses the library, naming the biome and the field, when a required
 
 At run time a library biome is ours: the firewall compares only `minecraft:` biomes with vanilla's files, so it strips nothing from a library biome, and a definition's `ores.add` and `ores.remove` change the level's vanilla biomes and leave each library biome's feature list as the library wrote it.
 
-The library, each biome shown on generated chunks by the self-test's biomes section, alone on overworld terrain in its showcase level `selftest_biome_<id>`:
+The library, each biome shown on generated chunks by the self-test's biomes section, alone in its showcase level `selftest_biome_<id>`: on overworld terrain, where a cave biome fills the caverns too, and on Nether terrain for a Nether biome:
 
 | Biome | Realm | Inspired by | What it is |
 | --- | --- | --- | --- |
@@ -127,6 +127,15 @@ The library, each biome shown on generated chunks by the self-test's biomes sect
 | `parched_forest` | overworld | Wilder Wild's parched forest | Dry oak wood: small olive-yellow oaks and bare snags over yellowed grass, coarse dirt and packed mud patches, termite mounds of packed mud, bushes, dead bushes, dry grass |
 | `aspen_forest` | overworld | Nature's Spirit's aspen forest | Dense stand of tall birch trunks under narrow crowns of gold-tinted oak leaves, ferns, golden leaf litter, drifting yellow leaves |
 | `crystal_hollows` | caves | Galosphere's crystal canyons | Calcite ceilings, calcite and smooth basalt walls, a geode in every chunk below y 30, budding amethyst seams, floor and ceiling patches of calcite, amethyst and budding amethyst carrying clusters and buds, glow lichen, purple motes and amethyst chimes |
+| `lichen_caves` | caves | Galosphere's lichen caves | Dim damp caverns: tuff ceilings and tuff walls seamed with mossy cobblestone, floor patches of moss, mossy cobblestone and tuff under moss carpet, tuff and moss ceiling patches fringed with hanging roots, moss-bottomed pools with dripleaf, dense glow lichen, grey-green fog and drifting motes |
+| `bioshroom_caves` | caves | Regions Unexplored's bioshroom caves | Giant red and brown mushrooms grown in caverns, their caps speckled with shroomlight and ochre, verdant and pearlescent froglights, mycelium and mud floors with small mushrooms, mud seams, glow lichen, rising spores in blue-green fog |
+| `magmatic_caves` | caves | Wilder Wild's magmatic caves | Deep volcanic caverns: basalt ceilings, blackstone and basalt walls with magma seams, floor crusts of magma, blackstone and basalt with a little fire, lava pools rimmed with obsidian, lava falls from the walls, smoke and embers in red fog |
+| `cinnabar_veins` | caves | Galosphere's pink salt caves and Regions Unexplored's redstone caves | Red mineral caverns: cinnabar ceilings and cinnabar walls over tuff, polished cinnabar columns from ceiling to floor, cinnabar and polished cinnabar floor patches with resin clumps, extra redstone ore, red motes |
+| `nether_grasslands` | nether | BetterNether's grasslands and Regions Unexplored's glistering meadow | Open netherrack plains under patches of crimson and warped nylium thick with sprouts, roots and small fungi, low glowstone mounds on the ground, sparse ash, orange haze |
+| `magma_land` | nether | BetterNether's magma land | Magma floors over netherrack, cracked with netherrack seams, lava pools rimmed in obsidian, fire on the magma, popping lava, smoke and a heavy red haze |
+| `gravel_desert` | nether | BetterNether's gravel desert | Gravel floors and gravel under them, bone blocks buried in the gravel and netherrack and standing as ribs, coarse dirt hollows with dead bushes, skeletons, pale dust and fog |
+| `upside_down_forest` | nether | BetterNether's upside down forest | A canopy of nether wart lining every roof, crimson stems hanging from it with shroomlight lanterns at their tips, shroomlight clusters, dense curtains of weeping vines over a bare floor, falling crimson spores |
+| `blackstone_basin` | nether | Regions Unexplored's blackstone basin | Blackstone throughout, polished blackstone on every steep face, gilded blackstone and nether gold seams, blackstone column clusters, lava lakes rimmed in polished blackstone, black smoke |
 
 ## Structure control
 

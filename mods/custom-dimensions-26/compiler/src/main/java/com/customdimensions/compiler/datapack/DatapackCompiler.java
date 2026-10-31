@@ -416,10 +416,10 @@ public final class DatapackCompiler {
 
     /** The vanilla dimension type a definition starts from. */
     static String baseDimensionType(Generator generator) {
-        if (!Generator.NOISE.equals(generator.type())) {
+        if (!Generator.NOISE.equals(generator.type()) && !Generator.SINGLE_BIOME.equals(generator.type())) {
             return "overworld";
         }
-        return switch (generator.preset()) {
+        return switch (generator.noisePreset()) {
             case "caves" -> "overworld_caves";
             case "nether" -> "the_nether";
             case "end" -> "the_end";
@@ -551,7 +551,7 @@ public final class DatapackCompiler {
         return switch (g.type()) {
             case Generator.NOISE -> noiseGenerator(slug, def, g.preset(), noiseBiomeSource(def, entry), entry);
             case Generator.CHECKERBOARD -> noiseGenerator(slug, def, "overworld", checkerboard(def, entry), entry);
-            case Generator.SINGLE_BIOME -> noiseGenerator(slug, def, "overworld", fixed(g.biome(), entry), entry);
+            case Generator.SINGLE_BIOME -> noiseGenerator(slug, def, g.noisePreset(), fixed(g.biome(), entry), entry);
             case Generator.FLAT -> flat(flatBiome(g.biome(), "minecraft:plains", entry), layers(g.layers()), def, entry);
             case Generator.VOID -> flat(voidBiome(def, entry), new JsonArray(), def, entry);
             default -> throw new IllegalStateException("generator type " + g.type());

@@ -7,7 +7,8 @@ import java.util.Set;
 
 /**
  * What builds the dimension's chunks. {@code preset} names the noise settings
- * for {@code noise}; {@code of} names the dimension a {@code clone} copies;
+ * for {@code noise}, and for {@code single_biome}, where null is the overworld's;
+ * {@code of} names the dimension a {@code clone} copies;
  * {@code cellScale} sizes {@code checkerboard} cells; {@code layers} and
  * {@code biome} describe a {@code flat} world, and {@code biome} alone a
  * {@code single_biome} one; {@code endIsland} applies to the {@code end} preset.
@@ -29,6 +30,11 @@ public record Generator(String type, String preset, String of, Integer cellScale
 
     public Generator {
         layers = layers == null ? null : List.copyOf(layers);
+    }
+
+    /** The noise settings a noise-built generator uses: {@code preset}, else the overworld's. */
+    public String noisePreset() {
+        return preset == null ? "overworld" : preset;
     }
 
     public static Generator noise(String preset) {

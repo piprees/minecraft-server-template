@@ -111,6 +111,15 @@ on generated chunks.
 | `parched_forest` | overworld | Small olive-yellow oaks and bare snags on yellowed grass, coarse dirt and packed mud, packed-mud termite mounds, bushes, dry grass |
 | `aspen_forest` | overworld | Dense tall birch trunks under narrow gold crowns, ferns, golden leaf litter, drifting yellow leaves |
 | `crystal_hollows` | caves | Calcite and smooth basalt walls, open geodes in every chunk, budding amethyst seams, cluster-covered floor and ceiling patches, glow lichen, purple motes and amethyst chimes |
+| `lichen_caves` | caves | Tuff ceilings and walls, moss and mossy cobblestone floors, hanging roots, dripleaf pools, dense glow lichen, grey-green fog |
+| `bioshroom_caves` | caves | Giant mushrooms with shroomlight and froglight-speckled caps on mycelium and mud, small mushrooms, spores in blue-green fog |
+| `magmatic_caves` | caves | Basalt ceilings, blackstone and basalt walls, magma floors, obsidian-rimmed lava pools, lava falls, smoke and embers in red fog |
+| `cinnabar_veins` | caves | Cinnabar ceilings and walls over tuff, polished cinnabar columns, resin clumps, extra redstone ore, red motes |
+| `nether_grasslands` | nether | Netherrack plains under crimson and warped nylium patches, sprouts, roots, small fungi, glowstone mounds, orange haze |
+| `magma_land` | nether | Magma floors cracked with netherrack, obsidian-rimmed lava pools, fire, heavy red haze |
+| `gravel_desert` | nether | Gravel floors, buried and standing bone blocks, dead bushes in coarse dirt hollows, skeletons, pale dust |
+| `upside_down_forest` | nether | Nether wart canopy on every roof, hanging crimson stems tipped with shroomlight, weeping-vine curtains, falling spores |
+| `blackstone_basin` | nether | Blackstone throughout, polished blackstone terraces, gilded seams, blackstone column clusters, lava lakes, black smoke |
 
 ### Generators
 
@@ -121,7 +130,7 @@ the definition sets.
 | --- | --- | --- |
 | `noise`, preset `overworld`, `large_biomes`, `amplified`, `caves`, `floating_islands`, `nether`, `end` | `minecraft:noise` with the preset's noise settings; a definition's `biomes` become a multi-noise layout with no overlaps (`BiomeLayout`: climate boxes first, then vanilla's entries, or a temperature-by-humidity grid when a listed biome has none); the End keeps `minecraft:the_end` unless it lists biomes, which then spread over the overworld's temperature and vegetation | `liquids.seaLevel` → `sea_level`, `liquids.defaultFluid` → `default_fluid`, `liquids.aquifers` → the `aquifers` object kept (`on`), removed (`off`, `flooded`) or removed with air as the fluid (`dry`), `liquids.lavaLevel` → the runtime; `materials.defaultBlock` → `default_block` on 26.3 and the last entry of the material rule on 26.4; palettes (`top`, `filler`, `deep`, `cliffs`, `beaches`, `ceilings`, per-biome `biomes`) and `ores.veins` → the dimension's material rule; `ores.add` and `ores.remove` → placed features and the runtime; `endIsland: false` (End only) swaps vanilla's `end/islands` for a copy that keeps only `end_outer_islands`. Fields: [schema-v2.md](../../docs/design/rebuild-26/schema-v2.md#materials-liquids-and-ores) |
 | `checkerboard` | overworld noise, `minecraft:checkerboard` source | `cellScale` → `scale`: cells of 2^(cellScale+4) blocks; `liquids`, `materials` and `ores` as for `noise` |
-| `single_biome` | overworld noise, `minecraft:fixed` source | `biome`; `liquids`, `materials` and `ores` as for `noise` |
+| `single_biome` | the noise of its `preset` (overworld unless it names one, with that preset's dimension type), `minecraft:fixed` source | `biome`, `preset`; `liquids`, `materials` and `ores` as for `noise` |
 | `flat` | `minecraft:flat`, no features or lakes | `layers`, `biome` |
 | `void` | `minecraft:flat` with no layers | its first vanilla biome, else `minecraft:the_void` |
 | `clone` | the generator of the definition `of` names, under the clone's own dimension type, seed and atmosphere | its own `liquids` and `materials` over the source's; its own `biomes` are reported unused |
@@ -196,15 +205,17 @@ ashen woodland's land columns are topped with its palette's coarse dirt and
 logs upright, and the crystal hollows hold clusters and budding amethyst at
 over twice any other biome's density per column (geodes and patches reach
 across the 16-block cells). Then it opens each library biome's showcase,
-`selftest_biome_<id>` (the biome alone on overworld terrain, a `single_biome`
-level with spawn at 0, 0), one at a time, and over the same 96x96 columns
+`selftest_biome_<id>` (the biome alone on overworld terrain, or on Nether
+terrain for a Nether biome, a `single_biome` level with spawn at 0, 0), one at a time, and over the same 96x96 columns
 checks the biome is at the surface of every column, its palette's top block
-tops at least 50% of the land columns where the palette has one, and each of
+tops at least 50% of the land columns where the palette has one (under a
+roof, the floor of the highest open space), and each of
 its own features left its main block there: the first block under
 `trunk_provider`, `to_place`, `state`, `state_provider`, `ground_state`,
 `provider` or `block`, with the features it names expanded and its tests and
 replacement targets skipped. One line per biome carries the counts, and the
-server log names the standing column of each main block nearest spawn.
+server log names the standing column of each main block nearest spawn (at any
+height for a cave or Nether biome, else on the surface).
 `-PselfTestOnly=biomes` runs the compiled-pack and biomes sections only.
 
 ## Runtime levels

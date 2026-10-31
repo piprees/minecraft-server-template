@@ -130,6 +130,20 @@ class DefinitionReaderTest {
     }
 
     @Test
+    void aSingleBiomeTakesAnOptionalPreset() {
+        Generator nether = read("{'schemaVersion': 2, 'generator': {'type': 'single_biome', 'preset': 'nether',"
+                + " 'biome': 'minecraft:basalt_deltas'}}").generator();
+        assertEquals("nether", nether.preset());
+        assertEquals("nether", nether.noisePreset());
+        Generator plain = read("{'schemaVersion': 2, 'generator': {'type': 'single_biome', 'biome': 'minecraft:plains'}}")
+                .generator();
+        assertNull(plain.preset());
+        assertEquals("overworld", plain.noisePreset());
+        refused("{'schemaVersion': 2, 'generator': {'type': 'single_biome', 'preset': 'tall', 'biome': 'minecraft:plains'}}");
+        refused("{'schemaVersion': 2, 'generator': {'type': 'checkerboard', 'preset': 'nether'}}");
+    }
+
+    @Test
     void wrongValueTypesNameTheField() {
         assertTrue(refused("{'schemaVersion': 2, 'generator': {'type': 'void'}, 'spawn': [0, 64]}")
                 .getMessage().contains("spawn"));

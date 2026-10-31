@@ -54,10 +54,11 @@ import java.util.function.Function;
  * 96x96 generated columns round 0,0, that both appear, the ashen woodland is
  * topped from its palette and carries its birch trunks, and the crystal hollows
  * hold amethyst clusters. Then, for every library biome, over its showcase
- * {@code selftest_biome_<id>} (the biome alone on overworld terrain) and the
- * same 96x96 columns: the biome is at the surface of every column, its
- * palette's top block tops at least half the land columns where the palette
- * has one, and each of its own features left its main block there
+ * {@code selftest_biome_<id>} (the biome alone on overworld terrain, or on
+ * Nether terrain for a Nether biome) and the same 96x96 columns: the biome is
+ * at the surface of every column, its palette's top block tops at least half
+ * the land columns where the palette has one (under a roof, the floor of the
+ * highest open space), and each of its own features left its main block there
  * ({@link #mainBlock}). Each line carries its counts.
  */
 public final class BiomeLibrarySelfTest {
@@ -69,6 +70,8 @@ public final class BiomeLibrarySelfTest {
     /** Subtrees that name blocks a feature tests or replaces rather than places. */
     static final Set<String> NOT_PLACED = Set.of("placement", "predicate", "target", "can_place_on", "allowed_placement", "replaceable",
             "below_trunk_provider", "decorators", "can_be_placed_on", "can_be_placed_in", "can_replace", "invalid_blocks");
+    /** Realms whose features stand in caverns or under a roof: the nearest-spawn log reads every height, not only the surface. */
+    static final Set<String> UNDERGROUND_REALMS = Set.of("caves", "nether");
     static final String ASHEN = "ashen_woodland";
     static final String CRYSTAL = "crystal_hollows";
     static final int LOAD_CAP_TICKS = 6000;
@@ -359,9 +362,10 @@ public final class BiomeLibrarySelfTest {
         }
         Map<Block, BlockPos> nearest = new LinkedHashMap<>();
         BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
+        boolean underground = UNDERGROUND_REALMS.contains(entry.realm());
         forColumns(chunks, (chunk, x, z, biome) -> {
             int top = chunk.getHeight(Heightmap.Types.WORLD_SURFACE, x, z);
-            int floor = chunk.getHeight(Heightmap.Types.OCEAN_FLOOR, x, z) - 2;
+            int floor = underground ? chunk.getMinY() : chunk.getHeight(Heightmap.Types.OCEAN_FLOOR, x, z) - 2;
             for (int y = chunk.getMinY(); y <= top; y++) {
                 pos.set(chunk.getPos().getMinBlockX() + x, y, chunk.getPos().getMinBlockZ() + z);
                 Block block = chunk.getBlockState(pos).getBlock();
@@ -555,13 +559,21 @@ public final class BiomeLibrarySelfTest {
         }
     }
 
-    /** The column's highest solid block past plants, leaves and logs, or null where water lies on it. */
+    /**
+     * The column's highest solid block past plants, leaves and logs, under the roof where the level
+     * has one (the floor of its highest open space), or null where a fluid lies on it.
+     */
     private static BlockPos land(LevelChunk chunk, int x, int z) {
         int y = chunk.getHeight(Heightmap.Types.WORLD_SURFACE, x, z);
         BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos(chunk.getPos().getMinBlockX() + x, y, chunk.getPos().getMinBlockZ() + z);
+        boolean underRoof = chunk.getLevel().dimensionType().hasCeiling();
         for (; y > chunk.getMinY(); y--) {
             pos.setY(y);
             BlockState s = chunk.getBlockState(pos);
+            if (underRoof) {
+                underRoof = !s.isAir();
+                continue;
+            }
             if (!s.getFluidState().isEmpty()) return null;
             if (s.isAir() || s.is(BlockTags.LEAVES) || s.is(BlockTags.LOGS) || !s.isSolid()) continue;
             return pos.immutable();

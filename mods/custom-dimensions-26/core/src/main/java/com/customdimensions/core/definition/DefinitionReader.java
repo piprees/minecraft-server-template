@@ -285,12 +285,12 @@ public final class DefinitionReader {
             throw ctx.fail("generator.type", "must be one of " + sorted(Generator.TYPES) + ", got " + type);
         }
         String preset = ctx.string(o, "preset");
-        if (Generator.NOISE.equals(type)) {
+        if (Generator.NOISE.equals(type) || Generator.SINGLE_BIOME.equals(type) && preset != null) {
             if (preset == null || !Generator.PRESETS.contains(preset)) {
                 throw ctx.fail("generator.preset", "must be one of " + sorted(Generator.PRESETS) + ", got " + preset);
             }
         } else if (preset != null) {
-            throw ctx.fail("generator.preset", "applies to the noise type only");
+            throw ctx.fail("generator.preset", "applies to the noise and single_biome types only");
         }
         String of = ctx.string(o, "of");
         if (Generator.CLONE.equals(type) != (of != null)) {

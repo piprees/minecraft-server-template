@@ -786,7 +786,7 @@
       "properties": {
         "type": { "enum": ["noise", "void", "flat", "checkerboard", "single_biome", "clone"] },
         "preset": {
-          "description": "The noise settings, for type noise.",
+          "description": "The noise settings, for type noise, and for type single_biome (default overworld).",
           "enum": ["overworld", "large_biomes", "amplified", "caves", "floating_islands", "nether", "end"]
         },
         "of": {
@@ -824,7 +824,10 @@
       "allOf": [
         {
           "if": { "properties": { "type": { "const": "noise" } } },
-          "then": { "required": ["preset"] },
+          "then": { "required": ["preset"] }
+        },
+        {
+          "if": { "properties": { "type": { "enum": ["noise", "single_biome"] } } },
           "else": { "properties": { "preset": false } }
         },
         {
