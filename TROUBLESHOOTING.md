@@ -1596,6 +1596,13 @@ A seed's map and its banked facts appear to contradict each other — the thumbn
   the same trap. Pin it against the Java, not against intuition —
   `scripts/e2e/portal-matrix-selftest.sh` is the worked example.
 
+<a id="t153"></a>
+### T153 — A bare string in a block state provider field names a provider, not a block
+
+- **Symptom:** the server stops at registry load with `Unbound values in registry ... worldgen/block_state_provider: [minecraft:<block>]`.
+- **Cause:** 26.3 reads a plain string in `to_place`, `provider`, `ground_state` and the other provider fields as a `worldgen/block_state_provider` id, such as `minecraft:cave_vines_body`.
+- **Fix:** write a block as `{"id": "minecraft:<block>"}`; a weighted entry's `data` may stay a plain id. The biome library refuses the bare form at compile time.
+
 <a id="t152"></a>
 ### T152 — Birch and spruce leaves ignore the biome's foliage colour
 
