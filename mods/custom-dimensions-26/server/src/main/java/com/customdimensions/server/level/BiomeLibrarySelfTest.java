@@ -54,12 +54,13 @@ import java.util.function.Function;
  * 96x96 generated columns round 0,0, that both appear, the ashen woodland is
  * topped from its palette and carries its birch trunks, and the crystal hollows
  * hold amethyst clusters. Then, for every library biome, over its showcase
- * {@code selftest_biome_<id>} (the biome alone on overworld terrain, or on
- * Nether terrain for a Nether biome) and the same 96x96 columns: the biome is
- * at the surface of every column, its palette's top block tops at least half
- * the land columns where the palette has one (under a roof, the floor of the
- * highest open space), and each of its own features left its main block there
- * ({@link #mainBlock}). Each line carries its counts.
+ * {@code selftest_biome_<id>} (the biome alone on overworld, Nether or End
+ * terrain or over floating islands) and the 96x96 columns round its spawn,
+ * which an End showcase puts on the outer islands: the biome is at the surface
+ * of every column, its palette's top block tops at least half the land columns
+ * where the palette has one (under a roof, the floor of the highest open
+ * space), and each of its own features left a block only it, or only it and
+ * the siblings named, places ({@link #ownBlock}). Each line carries its counts.
  */
 public final class BiomeLibrarySelfTest {
 
@@ -72,6 +73,19 @@ public final class BiomeLibrarySelfTest {
             "below_trunk_provider", "decorators", "can_be_placed_on", "can_be_placed_in", "can_replace", "invalid_blocks");
     /** Realms whose features stand in caverns or under a roof: the nearest-spawn log reads every height, not only the surface. */
     static final Set<String> UNDERGROUND_REALMS = Set.of("caves", "nether");
+    /** Keys whose subtree is what a feature grows on the blocks it lays, read before its main block for a block of its own. */
+    static final Set<String> GROWTH_KEYS = Set.of("vegetation_feature");
+    /** Blocks the level's terrain and surface rules lay down, which no feature can claim. */
+    static final Set<String> TERRAIN = Set.of("minecraft:stone", "minecraft:deepslate", "minecraft:netherrack", "minecraft:end_stone",
+            "minecraft:bedrock", "minecraft:grass_block", "minecraft:dirt", "minecraft:sand", "minecraft:sandstone", "minecraft:gravel",
+            "minecraft:water", "minecraft:lava");
+    /** Feature types that place blocks named by no field of their configuration. */
+    static final Map<String, List<String>> IMPLIED = Map.of(
+            "minecraft:chorus_plant", List.of("minecraft:chorus_plant", "minecraft:chorus_flower"),
+            "minecraft:end_gateway", List.of("minecraft:end_gateway", "minecraft:bedrock"),
+            "minecraft:end_island", List.of("minecraft:end_stone"),
+            "minecraft:freeze_top_layer", List.of("minecraft:snow", "minecraft:ice"),
+            "minecraft:monster_room", List.of("minecraft:cobblestone", "minecraft:mossy_cobblestone", "minecraft:spawner", "minecraft:chest"));
     static final String ASHEN = "ashen_woodland";
     static final String CRYSTAL = "crystal_hollows";
     static final int LOAD_CAP_TICKS = 6000;
@@ -113,7 +127,7 @@ public final class BiomeLibrarySelfTest {
                 .thenCompose(l -> {
                     level = l;
                     lines.add(line("biomes runtime edits (" + SLUG + ")", this::runtimeEdits));
-                    return load(area());
+                    return load(area(ChunkPos.ZERO));
                 })
                 .thenAccept(chunks -> {
                     lines.add(line("biomes present (" + SLUG + ")", () -> present(chunks)));
@@ -123,7 +137,7 @@ public final class BiomeLibrarySelfTest {
                 })
                 .handle((v, error) -> {
                     if (error != null) lines.add("FAIL biomes: " + cause(error));
-                    if (level != null) area().forEach(c -> level.setChunkForced(c.x(), c.z(), false));
+                    if (level != null) area(ChunkPos.ZERO).forEach(c -> level.setChunkForced(c.x(), c.z(), false));
                     return null;
                 })
                 .thenCompose(v -> manager.deactivate(SLUG).handle((t, e) -> null))
@@ -306,22 +320,24 @@ public final class BiomeLibrarySelfTest {
         String slug = SHOWCASE + id;
         String name = "biomes library " + id + " (" + slug + ")";
         level = null;
+        BlockPos spawn = manager.spawn(slug).map(p -> new BlockPos(p.x(), p.y(), p.z())).orElse(BlockPos.ZERO);
+        ChunkPos centre = ChunkPos.containing(spawn);
         return manager.activate(slug).thenApply(LevelManager.Activation::level)
                 .thenCompose(l -> {
                     level = l;
-                    return load(area());
+                    return load(area(centre));
                 })
-                .thenAccept(chunks -> lines.add(line(name, () -> showcaseChecks(id, chunks))))
+                .thenAccept(chunks -> lines.add(line(name, () -> showcaseChecks(id, chunks, spawn))))
                 .handle((v, error) -> {
                     if (error != null) lines.add("FAIL " + name + ": " + cause(error));
-                    if (level != null) area().forEach(c -> level.setChunkForced(c.x(), c.z(), false));
+                    if (level != null) area(centre).forEach(c -> level.setChunkForced(c.x(), c.z(), false));
                     return null;
                 })
                 .thenCompose(v -> manager.deactivate(slug).handle((t, e) -> null));
     }
 
-    /** The biome tops every column, its palette's top block at least half the land, and each own feature its main block. */
-    private String showcaseChecks(String id, List<LevelChunk> chunks) {
+    /** The biome tops every column, its palette's top block at least half the land, and each own feature a block only it places. */
+    private String showcaseChecks(String id, List<LevelChunk> chunks, BlockPos spawn) {
         BiomeLibrary.Entry entry = BiomeLibrary.shipped().entries().get(id);
         List<String> failures = new ArrayList<>();
         int[] surface = new int[2];
@@ -352,13 +368,11 @@ public final class BiomeLibrarySelfTest {
                     + ", want " + pct(TOP_SHARE) + "; tops over 1% " + tops + ")";
         }
 
-        Map<String, String> mains = new LinkedHashMap<>();
-        for (String feature : entry.features().keySet()) {
-            mains.put(feature, mainBlock(entry, entry.features().get(feature).get("feature")).orElse(null));
-        }
+        Map<String, Own> owns = new LinkedHashMap<>();
+        for (String feature : entry.features().keySet()) owns.put(feature, ownBlock(entry, feature));
         Map<Block, Long> found = new LinkedHashMap<>();
-        for (String block : mains.values()) {
-            if (block != null) found.put(BuiltInRegistries.BLOCK.getValue(Identifier.parse(block)), 0L);
+        for (Own own : owns.values()) {
+            if (own.block() != null) found.put(BuiltInRegistries.BLOCK.getValue(Identifier.parse(own.block())), 0L);
         }
         Map<Block, BlockPos> nearest = new LinkedHashMap<>();
         BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
@@ -373,7 +387,7 @@ public final class BiomeLibrarySelfTest {
                 if (n == null) continue;
                 found.put(block, n + 1);
                 BlockPos best = nearest.get(block);
-                if (y >= floor && standsClear(chunk, pos) && (best == null || pos.distSqr(BlockPos.ZERO.atY(y)) < best.distSqr(BlockPos.ZERO.atY(best.getY())))) {
+                if (y >= floor && standsClear(chunk, pos) && (best == null || pos.distSqr(spawn.atY(y)) < best.distSqr(spawn.atY(best.getY())))) {
                     nearest.put(block, pos.immutable());
                 }
             }
@@ -381,17 +395,16 @@ public final class BiomeLibrarySelfTest {
         nearest.forEach((block, at) -> com.customdimensions.server.CustomDimensions.LOG.info("biomes showcase {}: {} tops a standing column nearest spawn at {} {} {}",
                 id, BuiltInRegistries.BLOCK.getKey(block).getPath(), at.getX(), at.getY(), at.getZ()));
         List<String> parts = new ArrayList<>();
-        mains.forEach((feature, block) -> {
-            if (block == null) {
-                failures.add(feature);
-                parts.add(feature + " has no main block");
+        owns.forEach((feature, own) -> {
+            if (own.block() == null) {
+                parts.add(feature + " places no block of its own (" + own.shared() + "), not counted");
                 return;
             }
-            long n = found.get(BuiltInRegistries.BLOCK.getValue(Identifier.parse(block)));
+            long n = found.get(BuiltInRegistries.BLOCK.getValue(Identifier.parse(own.block())));
             if (n == 0) failures.add(feature);
-            parts.add(feature + " " + Identifier.parse(block).getPath() + " " + n);
+            parts.add(feature + " " + Identifier.parse(own.block()).getPath() + (own.with().isEmpty() ? "" : " (with " + String.join(", ", own.with()) + ")") + " " + n);
         });
-        text += "; features (main block, count over the columns): " + String.join(", ", parts);
+        text += "; features (a block only it, or it and the siblings named, places; count over the columns): " + String.join(", ", parts);
         return failures.isEmpty() ? "PASS " + text : "FAIL " + text + "; failed: " + String.join(", ", failures);
     }
 
@@ -407,6 +420,98 @@ public final class BiomeLibrarySelfTest {
             if (level.getBlockState(pos.relative(d)).isAir()) return true;
         }
         return false;
+    }
+
+    /** A feature's block of its own, the sibling features that place it too, or null with what it shares instead. */
+    record Own(String block, List<String> with, String shared) {}
+
+    /**
+     * The first block a feature places that nothing else in its showcase does: what it grows
+     * ({@link #GROWTH_KEYS}) or tops a column with, then its {@link #mainBlock}, then any other
+     * block it places. Nothing else means the level's {@link #TERRAIN}, the palette, the vanilla
+     * features the biome lists and its other own features; failing that, the first block only
+     * it and some of its sibling features place, counted for them together.
+     */
+    Own ownBlock(BiomeLibrary.Entry entry, String name) {
+        JsonElement feature = expand(entry, entry.features().get(name).get("feature"), 0);
+        Set<String> outside = new java.util.HashSet<>(TERRAIN);
+        outside.addAll(entry.palette().blocks().values());
+        for (JsonElement step : entry.biome().getAsJsonArray("features")) {
+            for (JsonElement id : step.getAsJsonArray()) {
+                if (id.getAsString().startsWith("~")) continue;
+                JsonElement vanilla = resolve(entry, id.getAsString());
+                if (vanilla != null) placed(expand(entry, vanilla, 0), outside);
+            }
+        }
+        Map<String, List<String>> siblings = new java.util.HashMap<>();
+        for (String other : entry.features().keySet()) {
+            if (other.equals(name)) continue;
+            Set<String> theirs = new java.util.HashSet<>();
+            placed(expand(entry, entry.features().get(other).get("feature"), 0), theirs);
+            theirs.forEach(block -> siblings.computeIfAbsent(block, k -> new ArrayList<>()).add(other));
+        }
+        Set<String> candidates = new java.util.LinkedHashSet<>();
+        growth(feature, candidates);
+        mainBlock(entry, entry.features().get(name).get("feature")).ifPresent(candidates::add);
+        placed(feature, candidates);
+        for (String block : candidates) {
+            if (!outside.contains(block) && !siblings.containsKey(block)) return new Own(block, List.of(), null);
+        }
+        for (String block : candidates) {
+            if (!outside.contains(block)) return new Own(block, siblings.get(block), null);
+        }
+        List<String> mine = candidates.stream().map(b -> Identifier.parse(b).getPath()).toList();
+        return new Own(null, List.of(), mine.isEmpty() ? "it names no block" : String.join(", ", mine) + " shared with the terrain, palette or vanilla features");
+    }
+
+    /** The blocks under {@link #GROWTH_KEYS} and the tip layer of each block column, heaviest first. */
+    private static void growth(JsonElement e, Set<String> out) {
+        if (e.isJsonArray()) {
+            e.getAsJsonArray().forEach(x -> growth(x, out));
+        } else if (e.isJsonObject()) {
+            JsonObject o = e.getAsJsonObject();
+            for (Map.Entry<String, JsonElement> kv : o.entrySet()) {
+                if (GROWTH_KEYS.contains(kv.getKey())) placed(kv.getValue(), out);
+            }
+            if (o.has("layers") && o.get("layers").isJsonArray() && !o.getAsJsonArray("layers").isEmpty()) {
+                JsonArray layers = o.getAsJsonArray("layers");
+                placed(layers.get(layers.size() - 1), out);
+            }
+            for (Map.Entry<String, JsonElement> kv : o.entrySet()) {
+                if (!GROWTH_KEYS.contains(kv.getKey()) && !NOT_PLACED.contains(kv.getKey())) growth(kv.getValue(), out);
+            }
+        }
+    }
+
+    /** Every block a feature places, depth first and heaviest entry first, outside what it only tests or replaces. */
+    static void placed(JsonElement e, Set<String> out) {
+        if (e.isJsonArray()) {
+            e.getAsJsonArray().forEach(x -> placed(x, out));
+            return;
+        }
+        if (e.isJsonPrimitive()) {
+            blockOf(e).ifPresent(out::add);
+            return;
+        }
+        if (!e.isJsonObject()) return;
+        JsonObject o = e.getAsJsonObject();
+        if (o.has("type") && o.get("type").isJsonPrimitive()) {
+            IMPLIED.getOrDefault(o.get("type").getAsString(), List.of()).forEach(out::add);
+        }
+        for (String key : List.of("id", "Name")) {
+            if (o.has(key) && o.get(key).isJsonPrimitive()) blockOf(o.get(key)).ifPresent(out::add);
+        }
+        if (o.has("entries") && o.get("entries").isJsonArray()) {
+            List<JsonObject> entries = new ArrayList<>();
+            o.getAsJsonArray("entries").forEach(x -> entries.add(x.getAsJsonObject()));
+            entries.sort(java.util.Comparator.comparingInt((JsonObject x) -> x.has("weight") ? x.get("weight").getAsInt() : 1).reversed());
+            entries.forEach(x -> placed(x.get("data"), out));
+        }
+        for (Map.Entry<String, JsonElement> kv : o.entrySet()) {
+            String key = kv.getKey();
+            if (NOT_PLACED.contains(key) || key.equals("type") || key.equals("id") || key.equals("Name") || key.equals("entries")) continue;
+            placed(kv.getValue(), out);
+        }
     }
 
     /**
@@ -601,9 +706,10 @@ public final class BiomeLibrarySelfTest {
         return namespace + ":" + id;
     }
 
-    private static List<ChunkPos> area() {
+    /** 6x6 chunks, 96x96 columns, round {@code centre}. */
+    private static List<ChunkPos> area(ChunkPos centre) {
         List<ChunkPos> out = new ArrayList<>();
-        for (int x = -3; x < 3; x++) for (int z = -3; z < 3; z++) out.add(new ChunkPos(x, z));
+        for (int x = -3; x < 3; x++) for (int z = -3; z < 3; z++) out.add(new ChunkPos(centre.x() + x, centre.z() + z));
         return out;
     }
 

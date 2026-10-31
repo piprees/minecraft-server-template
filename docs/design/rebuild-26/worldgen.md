@@ -110,7 +110,7 @@ The compile refuses the library, naming the biome and the field, when a required
 
 At run time a library biome is ours: the firewall compares only `minecraft:` biomes with vanilla's files, so it strips nothing from a library biome, and a definition's `ores.add` and `ores.remove` change the level's vanilla biomes and leave each library biome's feature list as the library wrote it.
 
-The library, each biome shown on generated chunks by the self-test's biomes section, alone in its showcase level `selftest_biome_<id>`: on overworld terrain, where a cave biome fills the caverns too, and on Nether terrain for a Nether biome:
+The library, each biome shown on generated chunks by the self-test's biomes section, alone in its showcase level `selftest_biome_<id>`: on overworld terrain, where a cave biome fills the caverns too, on Nether terrain for a Nether biome, on the End's outer islands for an End biome and over floating islands for a sky biome:
 
 | Biome | Realm | Inspired by | What it is |
 | --- | --- | --- | --- |
@@ -136,6 +136,13 @@ The library, each biome shown on generated chunks by the self-test's biomes sect
 | `gravel_desert` | nether | BetterNether's gravel desert | Gravel floors and gravel under them, bone blocks buried in the gravel and netherrack and standing as ribs, coarse dirt hollows with dead bushes, skeletons, pale dust and fog |
 | `upside_down_forest` | nether | BetterNether's upside down forest | A canopy of nether wart lining every roof, crimson stems hanging from it with shroomlight lanterns at their tips, shroomlight clusters, dense curtains of weeping vines over a bare floor, falling crimson spores |
 | `blackstone_basin` | nether | Regions Unexplored's blackstone basin | Blackstone throughout, polished blackstone on every steep face, gilded blackstone and nether gold seams, blackstone column clusters, lava lakes rimmed in polished blackstone, black smoke |
+| `chorus_forest` | end | BetterEnd's chorus forest | End islands grown over with branching chorus close enough to be a forest, tall straight chorus stalks tipped with glowing end rods, budding chorus flowers on the ground, purple fog and portal sparks |
+| `dust_wastelands` | end | BetterEnd's dust wastelands | A desert in the void: sand over sandstone heaped into dunes, end stone breaking through in half-buried boulders, dead bushes and dry grass, drifting dust in a yellow-grey haze |
+| `amber_land` | end | BetterEnd's amber land | End stone crusted with resin and resin bricks, resin spires, resin clumps on the crusts, ochre froglights glowing among them, warm orange fog and amber sparks |
+| `crystal_mountains` | end | BetterEnd's crystal mountains | The bright End: islands capped in calcite, calcite spires, amethyst crusts with clusters and buds in the open, cold white fog and amethyst chimes |
+| `sky_highlands` | sky | Paradise Lost's highlands | Pale grass over dirt and calcite cliffs, white quartz outcrops, small round oaks with pale foliage, white and pale-blue flowers, sheep, a white sky and light blue fog |
+| `golden_skygrove` | sky | Paradise Lost's autumn forest | Floating groves of gold-tinted round oaks with bee nests and gold poplars on golden grass and podzol, leaf litter, golden dandelions, drifting gold leaves, warm gold fog and sky |
+| `windswept_isles` | sky | Paradise Lost's highland edges | Bare stone islands with calcite cliffs, spruces bent by the wind, cobblestone boulders, deep drifts of loose snow, snowflakes and a constant wind |
 
 ## Structure control
 

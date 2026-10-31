@@ -1,0 +1,244 @@
+{
+  "$schema": "../../../../../../schema/biome.schema.json",
+  "realm": "end",
+  "inspiredBy": "BetterEnd's crystal mountains: white peaks on the outer islands, crusted with crystal.",
+  "differs": "The only bright End biome: calcite caps the islands in white, calcite spires rise from them, amethyst crusts break through the white with clusters and buds growing in the open, and a cold white fog rings with amethyst chimes.",
+  "climate": {
+    "temperature": [
+      -1.0,
+      -0.3
+    ]
+  },
+  "palette": {
+    "top": "minecraft:calcite",
+    "filler": "minecraft:calcite"
+  },
+  "biome": {
+    "attributes": {
+      "minecraft:audio/ambient_sounds": {
+        "additions": {
+          "sound": "minecraft:block.amethyst_block.chime",
+          "tick_chance": 0.015
+        },
+        "mood": {
+          "block_search_extent": 8,
+          "offset": 2.0,
+          "sound": "minecraft:ambient.cave",
+          "tick_delay": 6000
+        }
+      },
+      "minecraft:audio/background_music": {
+        "default": {
+          "max_delay": 24000,
+          "min_delay": 6000,
+          "replace_current_music": true,
+          "sound": "minecraft:music.end"
+        }
+      },
+      "minecraft:gameplay/natural_mob_spawns": {
+        "argument": {
+          "spawn_costs": {},
+          "spawns_by_category": {
+            "monster": [
+              {
+                "type": "minecraft:enderman",
+                "count": 4,
+                "weight": 10
+              }
+            ]
+          }
+        },
+        "modifier": "overlay"
+      },
+      "minecraft:visual/ambient_particles": {
+        "argument": [
+          {
+            "particle": {
+              "type": "minecraft:end_rod"
+            },
+            "probability": 0.004
+          }
+        ],
+        "modifier": "append"
+      },
+      "minecraft:visual/fog_color": "#d8dde6",
+      "minecraft:visual/sky_color": "#aab2c2"
+    },
+    "carvers": [],
+    "downfall": 0.5,
+    "effects": {
+      "water_color": "#c8d8f0"
+    },
+    "features": [
+      [],
+      [],
+      [],
+      [],
+      [
+        "minecraft:end_gateway_return",
+        "~calcite_spires"
+      ],
+      [],
+      [],
+      [],
+      [],
+      [
+        "~amethyst_crusts"
+      ],
+      []
+    ],
+    "has_precipitation": false,
+    "temperature": 0.0
+  },
+  "features": {
+    "calcite_spires": {
+      "feature": {
+        "type": "minecraft:spike",
+        "can_place_on": {
+          "type": "minecraft:matching_blocks",
+          "blocks": [
+            "minecraft:calcite",
+            "minecraft:end_stone"
+          ]
+        },
+        "can_replace": {
+          "type": "minecraft:matching_block_tag",
+          "tag": "minecraft:air"
+        },
+        "state": {
+          "id": "minecraft:calcite"
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": {
+            "type": "minecraft:uniform",
+            "max_inclusive": 2,
+            "min_inclusive": 1
+          }
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:heightmap",
+          "heightmap": "MOTION_BLOCKING"
+        },
+        {
+          "type": "minecraft:biome"
+        }
+      ]
+    },
+    "amethyst_crusts": {
+      "feature": {
+        "type": "minecraft:vegetation_patch",
+        "depth": {
+          "type": "minecraft:uniform",
+          "max_inclusive": 2,
+          "min_inclusive": 1
+        },
+        "extra_bottom_block_chance": 0.0,
+        "extra_edge_column_chance": 0.3,
+        "ground_state": {
+          "type": "minecraft:weighted",
+          "entries": [
+            {
+              "data": {
+                "id": "minecraft:amethyst_block"
+              },
+              "weight": 3
+            },
+            {
+              "data": {
+                "id": "minecraft:budding_amethyst"
+              },
+              "weight": 1
+            }
+          ]
+        },
+        "replaceable": "#minecraft:sculk_replaceable",
+        "surface": "floor",
+        "vegetation_chance": 0.5,
+        "vegetation_feature": {
+          "feature": {
+            "type": "minecraft:simple_block",
+            "to_place": {
+              "type": "minecraft:weighted",
+              "entries": [
+                {
+                  "data": {
+                    "id": "minecraft:amethyst_cluster",
+                    "properties": {
+                      "facing": "up",
+                      "waterlogged": "false"
+                    }
+                  },
+                  "weight": 4
+                },
+                {
+                  "data": {
+                    "id": "minecraft:large_amethyst_bud",
+                    "properties": {
+                      "facing": "up",
+                      "waterlogged": "false"
+                    }
+                  },
+                  "weight": 2
+                },
+                {
+                  "data": {
+                    "id": "minecraft:medium_amethyst_bud",
+                    "properties": {
+                      "facing": "up",
+                      "waterlogged": "false"
+                    }
+                  },
+                  "weight": 1
+                }
+              ]
+            }
+          },
+          "placement": []
+        },
+        "vertical_range": 5,
+        "xz_radius": {
+          "type": "minecraft:uniform",
+          "max_inclusive": 4,
+          "min_inclusive": 2
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 2
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:heightmap",
+          "heightmap": "MOTION_BLOCKING"
+        },
+        {
+          "type": "minecraft:biome"
+        },
+        {
+          "type": "minecraft:block_predicate_filter",
+          "predicate": {
+            "type": "minecraft:matching_blocks",
+            "blocks": [
+              "minecraft:calcite",
+              "minecraft:end_stone"
+            ],
+            "offset": [
+              0,
+              -1,
+              0
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

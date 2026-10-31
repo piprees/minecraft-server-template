@@ -91,7 +91,8 @@ scripts/rig.sh biomes shots.json   # the biome-shots mode
 
 `biomes <shot list>` boots the server on the self-test definitions, whose
 showcase levels `selftest_biome_<id>` each hold one library biome on
-overworld terrain (Nether terrain for a Nether biome), and runs one client with
+overworld terrain (Nether terrain for a Nether biome, the End's outer islands
+round 1408, 0 for an End biome, floating islands for a sky biome), and runs one client with
 the companion off through `dev/BiomeShots.java` (active only with `-Prig` and
 `-PrigBiomes`). The list is a JSON array of `{dimension, x, y, z, yaw, pitch,
 name}`, `y` a number, `"surface"` or `"surface+N"` (N blocks over the

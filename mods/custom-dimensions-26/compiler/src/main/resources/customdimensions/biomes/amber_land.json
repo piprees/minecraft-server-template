@@ -1,0 +1,309 @@
+{
+  "$schema": "../../../../../../schema/biome.schema.json",
+  "realm": "end",
+  "inspiredBy": "BetterEnd's amber land: End islands studded with glowing amber.",
+  "differs": "No End biome is warm: here the end stone is crusted with resin and resin bricks, resin spires stand over it, resin clumps lie on every crust, ochre froglights glow among them like lit amber, and an orange fog hangs over the islands.",
+  "climate": {
+    "temperature": [
+      0.4,
+      1.0
+    ],
+    "humidity": [
+      -0.3,
+      0.3
+    ]
+  },
+  "biome": {
+    "attributes": {
+      "minecraft:audio/ambient_sounds": {
+        "additions": {
+          "sound": "minecraft:block.resin.place",
+          "tick_chance": 0.004
+        },
+        "mood": {
+          "block_search_extent": 8,
+          "offset": 2.0,
+          "sound": "minecraft:ambient.cave",
+          "tick_delay": 6000
+        }
+      },
+      "minecraft:audio/background_music": {
+        "default": {
+          "max_delay": 24000,
+          "min_delay": 6000,
+          "replace_current_music": true,
+          "sound": "minecraft:music.end"
+        }
+      },
+      "minecraft:gameplay/natural_mob_spawns": {
+        "argument": {
+          "spawn_costs": {},
+          "spawns_by_category": {
+            "monster": [
+              {
+                "type": "minecraft:enderman",
+                "count": 4,
+                "weight": 10
+              }
+            ]
+          }
+        },
+        "modifier": "overlay"
+      },
+      "minecraft:visual/ambient_particles": {
+        "argument": [
+          {
+            "particle": {
+              "type": "minecraft:wax_on"
+            },
+            "probability": 0.006
+          }
+        ],
+        "modifier": "append"
+      },
+      "minecraft:visual/fog_color": "#9a5216",
+      "minecraft:visual/sky_color": "#4a2608"
+    },
+    "carvers": [],
+    "downfall": 0.5,
+    "effects": {
+      "water_color": "#e08a2a"
+    },
+    "features": [
+      [],
+      [],
+      [],
+      [],
+      [
+        "minecraft:end_gateway_return",
+        "~resin_spires"
+      ],
+      [],
+      [],
+      [],
+      [],
+      [
+        "~resin_crusts",
+        "~froglights"
+      ],
+      []
+    ],
+    "has_precipitation": false,
+    "temperature": 1.0
+  },
+  "features": {
+    "resin_spires": {
+      "feature": {
+        "type": "minecraft:spike",
+        "can_place_on": {
+          "type": "minecraft:matching_blocks",
+          "blocks": [
+            "minecraft:end_stone",
+            "minecraft:resin_block",
+            "minecraft:resin_bricks"
+          ]
+        },
+        "can_replace": {
+          "type": "minecraft:matching_block_tag",
+          "tag": "minecraft:air"
+        },
+        "state": {
+          "id": "minecraft:resin_block"
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:rarity_filter",
+          "chance": 2
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:heightmap",
+          "heightmap": "MOTION_BLOCKING"
+        },
+        {
+          "type": "minecraft:biome"
+        },
+        {
+          "type": "minecraft:block_predicate_filter",
+          "predicate": {
+            "type": "minecraft:matching_blocks",
+            "blocks": [
+              "minecraft:end_stone"
+            ],
+            "offset": [
+              0,
+              -1,
+              0
+            ]
+          }
+        }
+      ]
+    },
+    "resin_crusts": {
+      "feature": {
+        "type": "minecraft:vegetation_patch",
+        "depth": {
+          "type": "minecraft:uniform",
+          "max_inclusive": 2,
+          "min_inclusive": 1
+        },
+        "extra_bottom_block_chance": 0.0,
+        "extra_edge_column_chance": 0.3,
+        "ground_state": {
+          "type": "minecraft:weighted",
+          "entries": [
+            {
+              "data": {
+                "id": "minecraft:resin_bricks"
+              },
+              "weight": 3
+            },
+            {
+              "data": {
+                "id": "minecraft:resin_block"
+              },
+              "weight": 2
+            }
+          ]
+        },
+        "replaceable": "#minecraft:sculk_replaceable",
+        "surface": "floor",
+        "vegetation_chance": 0.45,
+        "vegetation_feature": {
+          "feature": {
+            "type": "minecraft:simple_block",
+            "to_place": {
+              "id": "minecraft:resin_clump",
+              "properties": {
+                "down": "true",
+                "east": "false",
+                "north": "false",
+                "south": "false",
+                "up": "false",
+                "waterlogged": "false",
+                "west": "false"
+              }
+            }
+          },
+          "placement": []
+        },
+        "vertical_range": 5,
+        "xz_radius": {
+          "type": "minecraft:uniform",
+          "max_inclusive": 4,
+          "min_inclusive": 2
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 3
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:heightmap",
+          "heightmap": "MOTION_BLOCKING"
+        },
+        {
+          "type": "minecraft:biome"
+        },
+        {
+          "type": "minecraft:block_predicate_filter",
+          "predicate": {
+            "type": "minecraft:matching_blocks",
+            "blocks": [
+              "minecraft:end_stone"
+            ],
+            "offset": [
+              0,
+              -1,
+              0
+            ]
+          }
+        }
+      ]
+    },
+    "froglights": {
+      "feature": {
+        "type": "minecraft:simple_block",
+        "to_place": {
+          "id": "minecraft:ochre_froglight",
+          "properties": {
+            "axis": "y"
+          }
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 2
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:heightmap",
+          "heightmap": "MOTION_BLOCKING"
+        },
+        {
+          "type": "minecraft:biome"
+        },
+        {
+          "type": "minecraft:count",
+          "count": 6
+        },
+        {
+          "type": "minecraft:offset",
+          "x": {
+            "type": "minecraft:trapezoid",
+            "max": 4,
+            "min": -4,
+            "plateau": 0
+          },
+          "y": {
+            "type": "minecraft:trapezoid",
+            "max": 1,
+            "min": -1,
+            "plateau": 0
+          },
+          "z": {
+            "type": "minecraft:trapezoid",
+            "max": 4,
+            "min": -4,
+            "plateau": 0
+          }
+        },
+        {
+          "type": "minecraft:block_predicate_filter",
+          "predicate": {
+            "type": "minecraft:all_of",
+            "predicates": [
+              {
+                "type": "minecraft:matching_block_tag",
+                "tag": "minecraft:air"
+              },
+              {
+                "type": "minecraft:matching_blocks",
+                "blocks": [
+                  "minecraft:end_stone",
+                  "minecraft:resin_block",
+                  "minecraft:resin_bricks"
+                ],
+                "offset": [
+                  0,
+                  -1,
+                  0
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

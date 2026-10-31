@@ -120,6 +120,13 @@ on generated chunks.
 | `gravel_desert` | nether | Gravel floors, buried and standing bone blocks, dead bushes in coarse dirt hollows, skeletons, pale dust |
 | `upside_down_forest` | nether | Nether wart canopy on every roof, hanging crimson stems tipped with shroomlight, weeping-vine curtains, falling spores |
 | `blackstone_basin` | nether | Blackstone throughout, polished blackstone terraces, gilded seams, blackstone column clusters, lava lakes, black smoke |
+| `chorus_forest` | end | Branching chorus close enough to be a forest, tall chorus stalks tipped with end rods, budding chorus flowers, purple fog and portal sparks |
+| `dust_wastelands` | end | Sand over sandstone heaped into dunes, half-buried end stone boulders, dead bushes and dry grass, yellow-grey dust haze |
+| `amber_land` | end | Resin and resin-brick crusts on end stone, resin spires, resin clumps, ochre froglights, warm orange fog |
+| `crystal_mountains` | end | Calcite-capped islands, calcite spires, amethyst crusts with open clusters and buds, cold white fog, chimes |
+| `sky_highlands` | sky | Pale grass over calcite cliffs, quartz outcrops, small round pale oaks, white and pale-blue flowers, sheep, white sky |
+| `golden_skygrove` | sky | Gold-tinted round oaks with bee nests and gold poplars on golden grass and podzol, leaf litter, golden dandelions, drifting gold leaves, gold light |
+| `windswept_isles` | sky | Bare stone with calcite cliffs, wind-bent spruces, cobblestone boulders, deep drifts of loose snow, snowflakes and wind |
 
 ### Generators
 
@@ -205,16 +212,26 @@ ashen woodland's land columns are topped with its palette's coarse dirt and
 logs upright, and the crystal hollows hold clusters and budding amethyst at
 over twice any other biome's density per column (geodes and patches reach
 across the 16-block cells). Then it opens each library biome's showcase,
-`selftest_biome_<id>` (the biome alone on overworld terrain, or on Nether
-terrain for a Nether biome, a `single_biome` level with spawn at 0, 0), one at a time, and over the same 96x96 columns
+`selftest_biome_<id>` (a `single_biome` level holding the biome alone: on
+overworld terrain with spawn at 0, 0, where a cave biome fills the caverns
+too; on Nether terrain for a Nether biome; on End terrain with spawn at 1408,
+0 on the outer islands for an End biome, since the central island and the void
+round it fill the first thousand blocks; over floating islands for a sky
+biome), one at a time, and over the 96x96 columns round its spawn
 checks the biome is at the surface of every column, its palette's top block
 tops at least 50% of the land columns where the palette has one (under a
 roof, the floor of the highest open space), and each of
-its own features left its main block there: the first block under
-`trunk_provider`, `to_place`, `state`, `state_provider`, `ground_state`,
-`provider` or `block`, with the features it names expanded and its tests and
-replacement targets skipped. One line per biome carries the counts, and the
-server log names the standing column of each main block nearest spawn (at any
+its own features left a block only it places: the first of what it grows
+(`vegetation_feature`) or tops a block column with, its main block (the first
+block under `trunk_provider`, `to_place`, `state`, `state_provider`,
+`ground_state`, `provider` or `block`), then any other block it places, that
+neither the level's terrain blocks, the palette, the vanilla features the biome
+lists nor its other own features place, with the features it names expanded
+and its tests and replacement targets skipped. Failing that, a block only it
+and some of its sibling features place is counted for them together; a feature
+with neither is named in the line as placing no block of its own and is not
+counted. One line per biome carries the counts, and the
+server log names the standing column of each counted block nearest spawn (at any
 height for a cave or Nether biome, else on the surface).
 `-PselfTestOnly=biomes` runs the compiled-pack and biomes sections only.
 
