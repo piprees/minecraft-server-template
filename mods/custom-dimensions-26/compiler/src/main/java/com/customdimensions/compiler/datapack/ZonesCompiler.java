@@ -60,11 +60,11 @@ public final class ZonesCompiler {
     }
 
     /** The plan, or null when the definition has no zones. */
-    static Plan plan(String slug, String namespace, Definition def, VanillaData vanilla, CompileReport.Entry entry) {
+    static Plan plan(String slug, String namespace, Definition def, BiomeLibrary.Known known, CompileReport.Entry entry) {
         if (def.zones().isEmpty()) return null;
         List<ZoneSpec> zones = new ArrayList<>();
         for (ZoneSpec read : ZoneSpec.all(slug, def)) {
-            zones.add(known(read, vanilla, entry));
+            zones.add(known(read, known, entry));
         }
         for (ZoneSpec zone : zones) {
             if (def.spawn() == null && def.zones().get(zone.index()).has("centre")
@@ -243,8 +243,8 @@ public final class ZonesCompiler {
     }
 
     /** {@code base} wrapped in our source with each channelled zone's layout and swaps, or {@code base} when no zone changes biomes. */
-    static JsonObject biomeSource(Plan plan, JsonObject base, String list, VanillaData vanilla, VersionTable.Version version,
-                                  CompileReport.Entry entry) {
+    static JsonObject biomeSource(Plan plan, JsonObject base, String list, VanillaData vanilla, BiomeLibrary.Known known,
+                                  VersionTable.Version version, CompileReport.Entry entry) {
         JsonArray zones = new JsonArray();
         Map<String, String> global = new LinkedHashMap<>();
         for (ZoneSpec zone : plan.zones()) {
@@ -255,7 +255,7 @@ public final class ZonesCompiler {
             if (!channelled(zone)) continue;
             JsonObject z = new JsonObject();
             if (!zone.biomes().isEmpty()) {
-                z.add("biomes", BiomeLayout.partition(zone.biomes(), list, vanilla.biomeParameters(list), vanilla.biomeIds(),
+                z.add("biomes", BiomeLayout.partition(zone.biomes(), list, vanilla.biomeParameters(list), known,
                         version.multiNoiseDisjoint(), version.id(), entry));
             }
             Map<String, String> swaps = zone.swap();
@@ -275,25 +275,25 @@ public final class ZonesCompiler {
     }
 
     /** {@code zone} with only the biomes and swaps the game has; the rest are reported. */
-    static ZoneSpec known(ZoneSpec zone, VanillaData vanilla, CompileReport.Entry entry) {
+    static ZoneSpec known(ZoneSpec zone, BiomeLibrary.Known known, CompileReport.Entry entry) {
         List<BiomeEntry> biomes = new ArrayList<>();
         for (BiomeEntry b : zone.biomes()) {
-            if (vanilla.biomeIds().contains(b.id())) {
+            if (known.contains(b.id())) {
                 biomes.add(b);
             } else {
                 entry.skippedBiome(b.id(), "zones[" + zone.index() + "] stamps a biome the game does not have; the zone keeps the biomes beneath it");
             }
         }
-        return new ZoneSpec(zone.index(), zone.shapeName(), zone.mask(), zone.terrain(), biomes, knownSwaps(zone, vanilla, entry),
+        return new ZoneSpec(zone.index(), zone.shapeName(), zone.mask(), zone.terrain(), biomes, knownSwaps(zone, known, entry),
                 zone.aquifers(), zone.structures());
     }
 
-    private static Map<String, String> knownSwaps(ZoneSpec zone, VanillaData vanilla, CompileReport.Entry entry) {
+    private static Map<String, String> knownSwaps(ZoneSpec zone, BiomeLibrary.Known known, CompileReport.Entry entry) {
         Map<String, String> out = new LinkedHashMap<>();
         zone.swap().forEach((from, to) -> {
-            if (!vanilla.biomeIds().contains(from)) {
+            if (!known.contains(from)) {
                 entry.skippedBiome(from, "zones[" + zone.index() + "] swaps a biome the game does not have");
-            } else if (!vanilla.biomeIds().contains(to)) {
+            } else if (!known.contains(to)) {
                 entry.skippedBiome(to, "zones[" + zone.index() + "] swaps to a biome the game does not have");
             } else {
                 out.put(from, to);

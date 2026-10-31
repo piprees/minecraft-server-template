@@ -14,7 +14,8 @@ import java.util.Set;
  * A biome list partitioned into multi-noise entries that never overlap.
  *
  * <ol>
- *   <li>A biome with {@code climate} takes that box first, in list order.</li>
+ *   <li>A biome with {@code climate} takes that box first, in list order; a
+ *       library biome listed without one takes the library's default box.</li>
  *   <li>The other biomes share what is left. When every one of them has
  *       entries in the preset's vanilla parameter list, they keep those
  *       entries in vanilla's order. Otherwise they split temperature by
@@ -24,7 +25,7 @@ import java.util.Set;
  *       ({@link MultiNoise#carve}), so a climate box always wins.</li>
  * </ol>
  *
- * A biome the game does not have is reported and left out; an empty result is
+ * A biome neither vanilla nor the biome library has is reported and left out; an empty result is
  * {@code minecraft:plains} over all of climate space.
  */
 public final class BiomeLayout {
@@ -36,7 +37,7 @@ public final class BiomeLayout {
     }
 
     /** The disjoint entries for {@code biomes} over the preset's {@code list} ({@code parameters}). */
-    static JsonArray partition(List<BiomeEntry> biomes, String list, JsonArray parameters, Set<String> known,
+    static JsonArray partition(List<BiomeEntry> biomes, String list, JsonArray parameters, BiomeLibrary.Known known,
                                boolean alwaysDisjoint, String versionId, CompileReport.Entry entry) {
         Set<String> inList = new LinkedHashSet<>();
         for (JsonElement e : parameters) {
@@ -46,11 +47,12 @@ public final class BiomeLayout {
         List<String> rest = new ArrayList<>();
         for (BiomeEntry b : biomes) {
             if (!known.contains(b.id())) {
-                entry.skippedBiome(b.id(), "no vanilla biome");
+                entry.skippedBiome(b.id(), DatapackCompiler.UNKNOWN_BIOME);
                 continue;
             }
-            if (b.climate() != null) {
-                explicit.add(entry(b.id(), climate(b.id(), b.climate())));
+            JsonObject climate = b.climate() != null ? b.climate() : known.climate(b.id());
+            if (climate != null) {
+                explicit.add(entry(b.id(), climate(b.id(), climate)));
             } else if (!rest.contains(b.id())) {
                 rest.add(b.id());
             }

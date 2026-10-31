@@ -106,8 +106,8 @@ What each field does at run time: [worldgen.md § Structure control](worldgen.md
 | `materials.top`, `filler`, `deep`, `cliffs`, `beaches`, `ceilings` | Blocks for the floor block not under water, the surface depth below a floor, every other solid block, steep floors, floors from sea level − 4 to + 2, and the blocks over an open space. Floor fields are gated on `minecraft:above_preliminary_surface` where the preset's rule is, so cave floors keep vanilla's. |
 | `materials.biomes` | A palette per biome id or `#tag`, checked before the dimension's palette; a field it leaves unset falls through to the dimension's palette, then vanilla. |
 | `ores.veins` | `true` or absent keeps the preset's copper and iron veins, `false` removes them, a list replaces them: `like` (`copper` or `iron`, whose shape and heights it takes), `ore`, `rawOre` (default `ore`), `filler`, `rawOreChance`. |
-| `ores.add` | `id`, `block`, `deepBlock` (on deepslate; default `block`), `size` (default 8), `count` per chunk, `minY`, `maxY`, `shape` (`uniform` or `trapezoid`), `airExposure` (default 0). Each becomes `<ns>:ores/<slug>/<id>`, replacing stone and deepslate ore replaceables and the palette's own blocks, added to every biome's underground-ores step in that dimension only. |
-| `ores.remove` | Placed feature ids taken out of every biome in that dimension only; an unknown `minecraft:` id is a compile error. |
+| `ores.add` | `id`, `block`, `deepBlock` (on deepslate; default `block`), `size` (default 8), `count` per chunk, `minY`, `maxY`, `shape` (`uniform` or `trapezoid`), `airExposure` (default 0). Each becomes `<ns>:ores/<slug>/<id>`, replacing stone and deepslate ore replaceables and the palette's own blocks, added to every vanilla biome's underground-ores step in that dimension only; a [library biome](worldgen.md#biome-library) keeps its own list. |
+| `ores.remove` | Placed feature ids taken out of every vanilla biome in that dimension only; an unknown `minecraft:` id is a compile error. |
 
 Errors name the slug and the field (`the_x: ores.add[1].id: ...`). A flat or
 void generator reports palettes and ores as unsupported.

@@ -1,0 +1,130 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:custom-dimensions:biome:1",
+  "title": "Library biome",
+  "description": "One of our own biomes, built from vanilla 26.3 blocks and feature types: compiler/src/main/resources/customdimensions/biomes/<id>.json. Every compile writes it into the pack as <namespace>:<id>, its features as <namespace>:biome/<id>/<name>. Rules: docs/design/rebuild-26/worldgen.md#biome-library.",
+  "type": "object",
+  "required": ["realm", "inspiredBy", "differs", "biome"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string" },
+    "realm": {
+      "description": "Where the biome belongs.",
+      "enum": ["overworld", "caves", "nether", "end", "sky"]
+    },
+    "inspiredBy": {
+      "description": "One sentence naming what inspired the biome.",
+      "type": "string",
+      "minLength": 1
+    },
+    "differs": {
+      "description": "One sentence on how it differs from vanilla, in look and behaviour.",
+      "type": "string",
+      "minLength": 1
+    },
+    "biome": {
+      "description": "A 26.3 biome file, shaped as vanilla's data/minecraft/worldgen/biome/*.json. In features, \"~<name>\" names one of this biome's own features.",
+      "type": "object",
+      "required": ["attributes", "carvers", "downfall", "effects", "features", "has_precipitation", "temperature"],
+      "additionalProperties": false,
+      "properties": {
+        "attributes": {
+          "description": "Environment attributes by id: music, ambient sounds, particles, fog and sky colours, mob spawns.",
+          "type": "object"
+        },
+        "carvers": {
+          "description": "A vanilla carver id, or a list of them.",
+          "oneOf": [{ "$ref": "#/$defs/id" }, { "type": "array", "items": { "$ref": "#/$defs/id" } }]
+        },
+        "downfall": { "type": "number" },
+        "effects": {
+          "description": "water_color, and optionally grass_color, foliage_color, dry_foliage_color and grass_color_modifier.",
+          "type": "object",
+          "required": ["water_color"]
+        },
+        "features": {
+          "description": "Placed features by generation step, at most 11 steps: vanilla placed feature ids or ~<name>.",
+          "type": "array",
+          "maxItems": 11,
+          "items": { "type": "array", "items": { "$ref": "#/$defs/featureRef" } }
+        },
+        "has_precipitation": { "type": "boolean" },
+        "temperature": { "type": "number" },
+        "temperature_modifier": { "enum": ["none", "frozen"] }
+      }
+    },
+    "features": {
+      "description": "The biome's own features by name: a configured feature (or a vanilla configured feature id) and its placement.",
+      "type": "object",
+      "propertyNames": { "pattern": "^[a-z0-9_]+$" },
+      "additionalProperties": {
+        "type": "object",
+        "required": ["feature"],
+        "additionalProperties": false,
+        "properties": {
+          "feature": {
+            "oneOf": [
+              { "type": "object", "required": ["type"], "description": "A 26.3 configured feature, shaped as vanilla's worldgen/feature/*.json." },
+              { "$ref": "#/$defs/featureRef" }
+            ]
+          },
+          "placement": {
+            "description": "Placement modifiers, as in vanilla's worldgen/placed_feature/*.json.",
+            "type": "array",
+            "items": { "type": "object", "required": ["type"] }
+          }
+        }
+      }
+    },
+    "palette": {
+      "description": "The surface palette, applied under a minecraft:biome condition in every dimension whose biomes include this one; the definition's own materials.biomes entry for it wins.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "top": { "$ref": "#/$defs/block" },
+        "filler": { "$ref": "#/$defs/block" },
+        "deep": { "$ref": "#/$defs/block" },
+        "cliffs": { "$ref": "#/$defs/block" },
+        "beaches": { "$ref": "#/$defs/block" },
+        "ceilings": { "$ref": "#/$defs/block" }
+      }
+    },
+    "climate": {
+      "description": "The multi-noise box a definition's layout uses when it lists the biome without one: a point or [min, max] per axis, absent axes everything.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "temperature": { "$ref": "#/$defs/climateValue" },
+        "humidity": { "$ref": "#/$defs/climateValue" },
+        "continentalness": { "$ref": "#/$defs/climateValue" },
+        "erosion": { "$ref": "#/$defs/climateValue" },
+        "depth": { "$ref": "#/$defs/climateValue" },
+        "weirdness": { "$ref": "#/$defs/climateValue" },
+        "offset": { "type": "number" }
+      }
+    }
+  },
+  "$defs": {
+    "id": {
+      "description": "A namespaced id, or a #tag.",
+      "type": "string",
+      "pattern": "^#?[a-z0-9_.-]+:[a-z0-9_./-]+$"
+    },
+    "block": {
+      "description": "A vanilla block id.",
+      "type": "string",
+      "pattern": "^minecraft:[a-z0-9_./-]+$"
+    },
+    "featureRef": {
+      "description": "A vanilla id, or ~<name> for one of this biome's own features.",
+      "type": "string",
+      "pattern": "^(~[a-z0-9_]+|minecraft:[a-z0-9_./-]+)$"
+    },
+    "climateValue": {
+      "oneOf": [
+        { "type": "number" },
+        { "type": "array", "items": { "type": "number" }, "minItems": 2, "maxItems": 2 }
+      ]
+    }
+  }
+}

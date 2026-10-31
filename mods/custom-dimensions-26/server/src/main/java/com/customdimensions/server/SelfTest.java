@@ -11,6 +11,7 @@ import com.customdimensions.server.exit.ExitSelfTest;
 import com.customdimensions.server.level.PackInstaller;
 import com.customdimensions.server.level.RuntimeVanilla;
 import com.customdimensions.server.level.GeneratorSelfTest;
+import com.customdimensions.server.level.BiomeLibrarySelfTest;
 import com.customdimensions.server.level.MaterialsSelfTest;
 import com.customdimensions.server.level.TerrainSelfTest;
 import com.customdimensions.server.zone.ZoneSelfTest;
@@ -67,7 +68,7 @@ import net.minecraft.world.timeline.Timeline;
  * fails the build. The pack-install and pack-equivalence lines come first,
  * then the compiled-pack checks; the runtime-level checks ({@link LevelSelfTest}),
  * the generator checks ({@link GeneratorSelfTest}), the materials, liquids and ores scans
- * ({@link MaterialsSelfTest}), the render checks ({@link RenderSelfTest}), the portal and exit checks,
+ * ({@link MaterialsSelfTest}), the biome library checks ({@link BiomeLibrarySelfTest}), the render checks ({@link RenderSelfTest}), the portal and exit checks,
  * {@link DifficultySelfTest} and {@link CommandSelfTest} run across ticks, so
  * the report is written when they finish. The compiled-pack checks read the
  * definitions from {@code -Dcustomdimensions.definitions} and vanilla's files
@@ -79,7 +80,7 @@ final class SelfTest {
     private static final String DEFINITIONS = "customdimensions.definitions";
     /** An extracted vanilla folder the runtime source is compared against; {@code -Dcustomdimensions.vanilla} also counts. */
     private static final String REFERENCE = "customdimensions.vanilla.reference";
-    /** {@code exits}, {@code commands}, {@code materials}, {@code render}, {@code firewall}, {@code terrain}, {@code zones}, {@code structures}, {@code roll} or {@code rollperf} runs the compiled-pack section and that one only, for iterating on it. */
+    /** {@code exits}, {@code commands}, {@code materials}, {@code biomes}, {@code render}, {@code firewall}, {@code terrain}, {@code zones}, {@code structures}, {@code roll} or {@code rollperf} runs the compiled-pack section and that one only, for iterating on it. */
     private static final String ONLY = "customdimensions.selftest.only";
 
     private SelfTest() {}
@@ -99,6 +100,7 @@ final class SelfTest {
         lines.addAll(com.customdimensions.server.firewall.FirewallSelfTest.run(server));
         String only = System.getProperty(ONLY, "");
         boolean materialsOnly = "materials".equals(only);
+        boolean biomesOnly = "biomes".equals(only);
         boolean firewallOnly = "firewall".equals(only);
         boolean commandsOnly = "commands".equals(only);
         boolean renderOnly = "render".equals(only);
@@ -106,7 +108,7 @@ final class SelfTest {
         boolean zonesOnly = "zones".equals(only);
         boolean structuresOnly = "structures".equals(only);
         boolean rollOnly = "roll".equals(only) || "rollperf".equals(only);
-        boolean exitsOnly = "exits".equals(only) || commandsOnly || materialsOnly || renderOnly || firewallOnly || terrainOnly || zonesOnly || structuresOnly || rollOnly;
+        boolean exitsOnly = "exits".equals(only) || commandsOnly || materialsOnly || biomesOnly || renderOnly || firewallOnly || terrainOnly || zonesOnly || structuresOnly || rollOnly;
         CompletableFuture<List<String>> levels;
         try {
             levels = exitsOnly ? CompletableFuture.completedFuture(List.of()) : LevelSelfTest.run(server);
@@ -151,6 +153,15 @@ final class SelfTest {
             }
         }).handle((more, error) -> {
             lines.addAll(error == null ? more : List.of("FAIL materials: " + error));
+            return null;
+        }).thenCompose(v -> {
+            try {
+                return exitsOnly && !biomesOnly ? CompletableFuture.completedFuture(List.<String>of()) : BiomeLibrarySelfTest.run(server);
+            } catch (Throwable t) {
+                return CompletableFuture.completedFuture(List.of("FAIL biomes: " + t));
+            }
+        }).handle((more, error) -> {
+            lines.addAll(error == null ? more : List.of("FAIL biomes: " + error));
             return null;
         }).thenCompose(v -> {
             try {
@@ -201,7 +212,7 @@ final class SelfTest {
             return null;
         }).thenCompose(v -> {
             try {
-                return commandsOnly || materialsOnly || renderOnly || firewallOnly || terrainOnly || zonesOnly || structuresOnly || rollOnly ? CompletableFuture.completedFuture(List.<String>of()) : ExitSelfTest.run(server);
+                return commandsOnly || materialsOnly || biomesOnly || renderOnly || firewallOnly || terrainOnly || zonesOnly || structuresOnly || rollOnly ? CompletableFuture.completedFuture(List.<String>of()) : ExitSelfTest.run(server);
             } catch (Throwable t) {
                 return CompletableFuture.completedFuture(List.of("FAIL exits: " + t));
             }

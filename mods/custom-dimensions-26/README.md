@@ -31,7 +31,7 @@ With `-PselfTest`, `runServer` reads a copy of `definitions/` with the fixture
 dimensions in `server/src/selftest/definitions/` added (a void death, a kept
 inventory, every win trigger, dry and flooded aquifers, a palette, an ore set, structure control and five structure densities), and each library terrain's `*_default.json` from
 `server/src/selftest/gallery/`. The fixtures are never in the release jar.
-`-PselfTestOnly=exits` runs only the compiled-pack and exit sections; `-PselfTestOnly=commands` the compiled-pack and command sections; `-PselfTestOnly=materials` the compiled-pack and materials sections; `-PselfTestOnly=render` the compiled-pack and render sections; `-PselfTestOnly=firewall` the compiled-pack and firewall sections; `-PselfTestOnly=terrain` the compiled-pack and terrain sections; `-PselfTestOnly=zones` the compiled-pack and zone sections; `-PselfTestOnly=structures` the compiled-pack and structure sections; `-PselfTestOnly=roll` the compiled-pack and roll sections; `-PselfTestOnly=rollperf` those and the 100-seed roll timing, which no other run includes.
+`-PselfTestOnly=exits` runs only the compiled-pack and exit sections; `-PselfTestOnly=commands` the compiled-pack and command sections; `-PselfTestOnly=materials` the compiled-pack and materials sections; `-PselfTestOnly=biomes` the compiled-pack and biome library sections; `-PselfTestOnly=render` the compiled-pack and render sections; `-PselfTestOnly=firewall` the compiled-pack and firewall sections; `-PselfTestOnly=terrain` the compiled-pack and terrain sections; `-PselfTestOnly=zones` the compiled-pack and zone sections; `-PselfTestOnly=structures` the compiled-pack and structure sections; `-PselfTestOnly=roll` the compiled-pack and roll sections; `-PselfTestOnly=rollperf` those and the 100-seed roll timing, which no other run includes.
 
 `runServer` also loads Open Parties and Claims and its Forge Config API Port
 dependency from the Modrinth maven (`localRuntime`, versions in
@@ -70,6 +70,7 @@ scripts/vanilla-boot-check.sh                 # boot that pack on vanilla, no mo
 | The terrain library's own noises | `data/adventure/worldgen/noise/terrain/<noise>.json` |
 | Material rules (palettes, veins) | `data/adventure/worldgen/material_rule/<slug>.json` |
 | Added ores | `data/adventure/worldgen/{feature,placed_feature}/ores/<slug>/<id>.json` |
+| The biome library, every biome in every compile ([below](#biome-library)) | `data/adventure/worldgen/biome/<id>.json`, `data/adventure/worldgen/{feature,placed_feature}/biome/<id>/<name>.json` |
 | What the runtime applies to a level's generator (lava level, added ores, removed features) | `data/customdimensions/worldgen_runtime/<slug>.json` |
 | Structure control, every dimension ([below](#structure-control)) | `data/customdimensions/structure_control/<slug>.json` |
 | The End's terrain without its central island | `data/adventure/worldgen/density_function/end_without_central_island/{islands,sloped_cheese}.json` |
@@ -79,6 +80,26 @@ scripts/vanilla-boot-check.sh                 # boot that pack on vanilla, no mo
 
 Per-release format differences live in `VersionTable`; the self-test decodes
 every emitted file with the game's own codecs.
+
+### Biome library
+
+Our own biomes, built from vanilla 26.3 blocks and feature types, one file per
+biome in `compiler/src/main/resources/customdimensions/biomes/<id>.json`
+(format: `schema/biome.schema.json`; rules: [worldgen.md](../../docs/design/rebuild-26/worldgen.md#biome-library)).
+`:compiler:biomeLibraryIndex` lists the files in `index.txt` beside them, so
+the library reads the same from the class path in tests, in dev and from the
+nested jar. Every compile validates the library (`BiomeLibrary.validate`) and
+writes each biome as `<namespace>:<id>` with its features as
+`<namespace>:biome/<id>/<name>`; a definition lists it in `biomes`, a zone's
+`biomes` or a `swap` target exactly as it lists a vanilla biome. A new biome
+is a new file: `BiomeLibraryTest` validates every shipped biome against the
+schema and vanilla's registries, and the self-test's biomes section shows it
+on generated chunks.
+
+| Biome | Realm | What it is |
+| --- | --- | --- |
+| `ashen_woodland` | overworld | Burnt birch wood: bare and stripped birch trunks with a few leaves, fallen stripped logs, dead bushes, coarse dirt with gravel and podzol patches, white ash and a grey haze |
+| `crystal_hollows` | caves | Calcite and smooth basalt walls, open geodes in every chunk, budding amethyst seams, cluster-covered floor and ceiling patches, glow lichen, purple motes and amethyst chimes |
 
 ### Generators
 
@@ -151,6 +172,19 @@ and blobs take some), the desert's own top only in the desert, and the added
 ore present with the removed diamonds and the vein blocks absent, against the
 overworld's same area. `-PselfTestOnly=materials` runs the compiled-pack and
 materials sections only.
+
+The biomes section (`BiomeLibrarySelfTest`) opens `selftest_biome_library`:
+the library's ashen woodland and crystal hollows beside plains in 16-block
+cells, with diamonds removed and an ore added for the level. It checks both
+library biomes are in the registry with the compiled file's attributes,
+climate and feature lists (the firewall strips nothing from them), that the
+level's ore edits reach plains and leave both library biomes' lists as they
+are, and, over 96x96 generated columns, that both appear, at least 50% of the
+ashen woodland's land columns are topped with its palette's coarse dirt and
+90% with its ground blocks, its trunk feature stood birch and stripped birch
+logs upright, and the crystal hollows hold clusters and budding amethyst at
+over twice any other biome's density per column (geodes and patches reach
+across the 16-block cells). `-PselfTestOnly=biomes` runs the compiled-pack and biomes sections only.
 
 ## Runtime levels
 

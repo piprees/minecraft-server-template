@@ -23,10 +23,22 @@ public final class VanillaData {
 
     private static final String PROBE = "data/minecraft/dimension_type/overworld.json";
     private static final String PROBE_REPORT = "reports/biome_parameters/minecraft/overworld.json";
+    /** The data generator's registry report: every built-in registry with its entries. */
+    public static final String REGISTRIES_REPORT = "reports/registries.json";
+    /** Datapack folders under {@code data/minecraft/} whose file names are ids. */
+    static final List<String> DATA_FOLDERS = List.of("dimension_type", "timeline", "worldgen/biome",
+            "worldgen/block_state_provider", "worldgen/carver", "worldgen/density_function", "worldgen/feature",
+            "worldgen/material_condition", "worldgen/material_rule", "worldgen/noise", "worldgen/noise_settings",
+            "worldgen/placed_feature", "worldgen/processor_list", "worldgen/structure", "worldgen/structure_set",
+            "worldgen/template_pool");
+    /** Tag folders under {@code data/minecraft/tags/} a worldgen file can name. */
+    static final List<String> TAG_FOLDERS = List.of("block", "fluid", "item", "entity_type", "game_event",
+            "worldgen/biome", "worldgen/structure");
 
     private final VanillaSource source;
     private final Map<String, JsonElement> cache = new HashMap<>();
     private Set<String> biomeIds;
+    private Map<String, Set<String>> registries;
 
     /** The files {@code :compiler:vanillaData} extracted into {@code root}. */
     public VanillaData(Path root) {
@@ -86,6 +98,47 @@ public final class VanillaData {
             biomeIds = Set.copyOf(ids);
         }
         return biomeIds;
+    }
+
+    /**
+     * The ids in the built-in registry {@code registry} ({@code minecraft:block},
+     * {@code minecraft:particle_type}, {@code minecraft:worldgen/feature_type}),
+     * from {@link #REGISTRIES_REPORT}; empty when vanilla has no such registry.
+     */
+    public Set<String> registry(String registry) {
+        return registries().getOrDefault(registry, Set.of());
+    }
+
+    private Map<String, Set<String>> registries() {
+        if (registries == null) {
+            Map<String, Set<String>> out = new HashMap<>();
+            for (Map.Entry<String, JsonElement> e : object(REGISTRIES_REPORT).entrySet()) {
+                out.put(e.getKey(), Set.copyOf(e.getValue().getAsJsonObject().getAsJsonObject("entries").keySet()));
+            }
+            registries = Map.copyOf(out);
+        }
+        return registries;
+    }
+
+    /** Whether vanilla has a {@code data/minecraft/<folder>/<path>.json} for the {@code minecraft:} id. */
+    public boolean hasFile(String folder, String id) {
+        return id.startsWith("minecraft:") && source.read("data/minecraft/" + folder + "/" + path(id) + ".json").isPresent();
+    }
+
+    /**
+     * Whether a {@code minecraft:} reference names something vanilla has: a
+     * built-in registry entry, a datapack file in {@link #DATA_FOLDERS}, or a
+     * tag (with or without its {@code #}) in {@link #TAG_FOLDERS}.
+     */
+    public boolean knows(String ref) {
+        boolean tag = ref.startsWith("#");
+        String id = tag ? ref.substring(1) : ref;
+        if (!id.startsWith("minecraft:")) return false;
+        if (!tag) {
+            if (registries().values().stream().anyMatch(ids -> ids.contains(id))) return true;
+            if (DATA_FOLDERS.stream().anyMatch(folder -> hasFile(folder, id))) return true;
+        }
+        return TAG_FOLDERS.stream().anyMatch(folder -> hasFile("tags/" + folder, id));
     }
 
     /** A vanilla timeline by id ({@code minecraft:day}). */

@@ -266,7 +266,7 @@ class DatapackCompilerTest {
         assertEquals("[-1.0,0.0]", cherry.getAsJsonObject("parameters").get("temperature").toString());
         assertEquals("[-2.0,2.0]", cherry.getAsJsonObject("parameters").get("erosion").toString());
         assertNull(MultiNoise.firstOverlap(source.getAsJsonArray("biomes")));
-        assertEquals(List.of("`terralith:shield` (no vanilla biome)"), out.report().entry("t").skippedBiomes());
+        assertEquals(List.of("`terralith:shield` (" + DatapackCompiler.UNKNOWN_BIOME + ")"), out.report().entry("t").skippedBiomes());
     }
 
     @Test
@@ -414,7 +414,8 @@ class DatapackCompilerTest {
     @Test
     void aCloneOfAnUnprovidedDimensionIsReportedNotCompiled() {
         DatapackCompiler.Output out = Fixtures.compile("t", "\"generator\": {\"type\": \"clone\", \"of\": \"paradise_lost:paradise_lost\"}");
-        assertTrue(out.files().isEmpty());
+        assertTrue(out.files().keySet().stream().allMatch(p -> p.contains("/worldgen/biome/") || p.contains("/" + BiomeLibrary.FEATURE_FOLDER + "/")),
+                "only the biome library: " + out.files().keySet());
         assertEquals(CompileReport.Kind.CLONE, out.report().entry("t").kind());
         assertTrue(out.reportText().contains("`paradise_lost:paradise_lost`"));
     }

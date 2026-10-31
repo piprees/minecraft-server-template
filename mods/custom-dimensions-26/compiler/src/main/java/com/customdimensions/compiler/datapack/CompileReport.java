@@ -149,6 +149,8 @@ public final class CompileReport {
         totals.put("Dimension types", countFiles(files, "/dimension_type/"));
         totals.put("Noise settings", countFiles(files, "/worldgen/noise_settings/"));
         totals.put("Timelines", countFiles(files, "/timeline/"));
+        totals.put("Library biomes", countFiles(files, "/worldgen/biome/"));
+        totals.put("Library features", countFiles(files, "/worldgen/placed_feature/" + BiomeLibrary.FEATURE_FOLDER + "/"));
         totals.put("Biome references skipped", entries.values().stream().mapToInt(e -> e.skippedBiomes.size()).sum());
         totals.put("Fallback biome sources", (int) entries.values().stream()
                 .filter(e -> e.notes.stream().anyMatch(n -> n.startsWith(DatapackCompiler.FALLBACK_NOTE))).count());

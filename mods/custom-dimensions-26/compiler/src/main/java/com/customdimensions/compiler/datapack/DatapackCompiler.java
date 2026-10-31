@@ -50,6 +50,7 @@ public final class DatapackCompiler {
     public static final String LAZY_FOLDER = "lazy_dimension";
     public static final String REPORT_FILE = "compile-report.md";
     static final String FALLBACK_NOTE = "Fallback biome source";
+    static final String UNKNOWN_BIOME = "neither vanilla nor the biome library has it";
 
     /** Base worlds by slug: the level stem id vanilla loads at start (empty: the pack's namespace and the slug). */
     static final Map<String, String> BASE_WORLDS = Map.of(
@@ -97,6 +98,8 @@ public final class DatapackCompiler {
     private final Map<String, Definition> definitions = new TreeMap<>();
     private final Map<String, Definition> compiled = new TreeMap<>();
     private StructuresCompiler.Catalogue structureCatalogue;
+    private BiomeLibrary.Known known;
+    private BiomeLibrary library;
 
     private DatapackCompiler(VanillaData vanilla, VersionTable.Version version, String namespace) {
         this.vanilla = vanilla;
@@ -115,7 +118,7 @@ public final class DatapackCompiler {
             definitions.put(name.substring(0, name.length() - ".json".length()), DefinitionReader.read(file));
         }
         Output output = compileAll(namespace, definitions, vanilla, version,
-                StructuresCompiler.Catalogue.of(vanilla, StructuresCompiler.bridgesBeside(definitionsDir)));
+                StructuresCompiler.Catalogue.of(vanilla, StructuresCompiler.bridgesBeside(definitionsDir)), BiomeLibrary.shipped());
         output.files().put("pack.mcmeta", JsonWriter.write(packMeta(version, output.report().entries().size())));
         return output;
     }
@@ -123,13 +126,24 @@ public final class DatapackCompiler {
     /** Compiles a set of definitions by slug, clones resolved against each other; no {@code pack.mcmeta}. */
     static Output compileAll(String namespace, Map<String, Definition> definitions, VanillaData vanilla,
                              VersionTable.Version version) {
-        return compileAll(namespace, definitions, vanilla, version, StructuresCompiler.Catalogue.of(vanilla, null));
+        return compileAll(namespace, definitions, vanilla, version, BiomeLibrary.shipped());
+    }
+
+    /** As {@link #compileAll(String, Map, VanillaData, VersionTable.Version)} over the given biome library. */
+    static Output compileAll(String namespace, Map<String, Definition> definitions, VanillaData vanilla,
+                             VersionTable.Version version, BiomeLibrary library) {
+        return compileAll(namespace, definitions, vanilla, version, StructuresCompiler.Catalogue.of(vanilla, null), library);
     }
 
     private static Output compileAll(String namespace, Map<String, Definition> definitions, VanillaData vanilla,
-                                     VersionTable.Version version, StructuresCompiler.Catalogue catalogue) {
+                                     VersionTable.Version version, StructuresCompiler.Catalogue catalogue,
+                                     BiomeLibrary library) {
         DatapackCompiler compiler = new DatapackCompiler(vanilla, version, namespace);
         compiler.structureCatalogue = catalogue;
+        library.validate(vanilla, namespace);
+        compiler.library = library;
+        compiler.known = library.known(vanilla, namespace);
+        library.files(namespace).forEach((path, json) -> compiler.putShared(path, json));
         compiler.definitions.putAll(definitions);
         compiler.definitions.keySet().forEach(compiler::compile);
         return new Output(compiler.files, compiler.report, compiler.report.markdown(compiler.files), compiler.compiled);
@@ -546,16 +560,45 @@ public final class DatapackCompiler {
 
     private JsonObject noiseGenerator(String slug, Definition def, String preset, JsonObject biomeSource,
                                       CompileReport.Entry entry) {
-        ZonesCompiler.Plan zones = ZonesCompiler.plan(slug, namespace, def, vanilla, entry);
+        ZonesCompiler.Plan zones = ZonesCompiler.plan(slug, namespace, def, known, entry);
         JsonObject generator = new JsonObject();
         generator.addProperty("type", "minecraft:noise");
         generator.add("biome_source", zones == null ? biomeSource : ZonesCompiler.biomeSource(zones, biomeSource,
-                "nether".equals(preset) ? "nether" : "overworld", vanilla, version, entry));
+                "nether".equals(preset) ? "nether" : "overworld", vanilla, known, version, entry));
         generator.addProperty("settings", noiseSettings(slug, def, preset, zones, entry));
         if (zones != null) {
             zones.files().forEach((path, json) -> put(path, sorted(json), entry));
         }
         return generator;
+    }
+
+    /**
+     * {@code spec} with the palette of each library biome the dimension lists,
+     * stamps or swaps to, after the definition's own per-biome palettes; a
+     * definition's own entry for that biome wins.
+     */
+    private MaterialsCompiler.Spec withLibraryPalettes(MaterialsCompiler.Spec spec, Definition def, ZonesCompiler.Plan zones,
+                                                      CompileReport.Entry entry) {
+        List<String> listed = new ArrayList<>();
+        def.biomes().forEach(b -> listed.add(b.id()));
+        if (def.generator().biome() != null) listed.add(def.generator().biome());
+        if (zones != null) {
+            for (com.customdimensions.core.zone.ZoneSpec zone : zones.zones()) {
+                zone.biomes().forEach(b -> listed.add(b.id()));
+                listed.addAll(zone.swap().values());
+            }
+        }
+        Map<String, MaterialsCompiler.Palette> biomes = new java.util.LinkedHashMap<>(spec.biomes());
+        List<String> applied = new ArrayList<>();
+        for (String id : library.named(namespace, listed)) {
+            MaterialsCompiler.Palette palette = library.get(namespace, id).orElseThrow().palette();
+            if (palette.isEmpty() || biomes.containsKey(id)) continue;
+            biomes.put(id, palette);
+            applied.add("`" + id + "`");
+        }
+        if (applied.isEmpty()) return spec;
+        entry.note("Library palette(s) for " + String.join(", ", applied));
+        return new MaterialsCompiler.Spec(spec.dimension(), biomes);
     }
 
     /**
@@ -589,7 +632,7 @@ public final class DatapackCompiler {
         }
         int seaLevel = liquids != null && liquids.seaLevel() != null ? liquids.seaLevel() : settings.get("sea_level").getAsInt();
         JsonObject materialRule = MaterialsCompiler.compose(vanilla, settings.get("material_rule").getAsString(),
-                MaterialsCompiler.read(slug, def.materials()), OresCompiler.veins(OresCompiler.read(slug, def.ores()), vanilla),
+                withLibraryPalettes(MaterialsCompiler.read(slug, def.materials()), def, zones, entry), OresCompiler.veins(OresCompiler.read(slug, def.ores()), vanilla),
                 seaLevel);
         if (!changesLiquids && defaultBlock == null && !removesIsland && materialRule == null && terrain == null
                 && !changesZones && !endClimate) {
@@ -742,7 +785,7 @@ public final class DatapackCompiler {
     JsonObject filtered(String list, List<BiomeEntry> biomes, CompileReport.Entry entry) {
         JsonObject source = new JsonObject();
         source.addProperty("type", "minecraft:multi_noise");
-        source.add("biomes", BiomeLayout.partition(biomes, list, vanilla.biomeParameters(list), vanilla.biomeIds(),
+        source.add("biomes", BiomeLayout.partition(biomes, list, vanilla.biomeParameters(list), known,
                 version.multiNoiseDisjoint(), version.id(), entry));
         return source;
     }
@@ -751,8 +794,8 @@ public final class DatapackCompiler {
         JsonArray biomes = new JsonArray();
         Set<String> seen = new LinkedHashSet<>();
         for (BiomeEntry b : def.biomes()) {
-            if (!vanilla.biomeIds().contains(b.id())) {
-                entry.skippedBiome(b.id(), "no vanilla biome");
+            if (!known.contains(b.id())) {
+                entry.skippedBiome(b.id(), UNKNOWN_BIOME);
             } else if (seen.add(b.id())) {
                 biomes.add(b.id());
             }
@@ -780,8 +823,8 @@ public final class DatapackCompiler {
         if (biome == null) {
             return fallback;
         }
-        if (!vanilla.biomeIds().contains(biome)) {
-            entry.skippedBiome(biome, "no vanilla biome");
+        if (!known.contains(biome)) {
+            entry.skippedBiome(biome, UNKNOWN_BIOME);
             entry.note(FALLBACK_NOTE + ": `" + fallback + "` replaces `" + biome + "`");
             return fallback;
         }
@@ -792,8 +835,8 @@ public final class DatapackCompiler {
     private String voidBiome(Definition def, CompileReport.Entry entry) {
         String chosen = null;
         for (BiomeEntry b : def.biomes()) {
-            if (!vanilla.biomeIds().contains(b.id())) {
-                entry.skippedBiome(b.id(), "no vanilla biome");
+            if (!known.contains(b.id())) {
+                entry.skippedBiome(b.id(), UNKNOWN_BIOME);
             } else if (chosen == null) {
                 chosen = b.id();
             } else if (!chosen.equals(b.id())) {
@@ -861,6 +904,11 @@ public final class DatapackCompiler {
 
     // ---- helpers ----------------------------------------------------------------------------
 
+    /** A file no one definition owns: the biome library's. */
+    private void putShared(String path, JsonObject json) {
+        files.put(path, JsonWriter.write(json));
+    }
+
     private void put(String path, JsonObject json, CompileReport.Entry entry) {
         String text = JsonWriter.write(json);
         String existing = files.putIfAbsent(path, text);
@@ -871,7 +919,7 @@ public final class DatapackCompiler {
     }
 
     /** {@code ns:path} in {@code folder} to {@code data/ns/folder/path.json}. */
-    static String dataPath(String id, String folder) {
+    public static String dataPath(String id, String folder) {
         int colon = id.indexOf(':');
         return "data/" + id.substring(0, colon) + "/" + folder + "/" + id.substring(colon + 1) + ".json";
     }

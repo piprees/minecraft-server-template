@@ -13,6 +13,22 @@ dependencies {
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
+// The biome library's index: the file names under customdimensions/biomes/, so the
+// library reads the same from a directory, a jar and a nested jar.
+def biomeLibrary = file('src/main/resources/customdimensions/biomes')
+def biomeIndex = tasks.register('biomeLibraryIndex') {
+	def out = layout.buildDirectory.dir('generated/biome-library')
+	inputs.files(fileTree(biomeLibrary) { include '*.json' })
+	outputs.dir out
+	doLast {
+		def index = out.get().file('customdimensions/biomes/index.txt').asFile
+		index.parentFile.mkdirs()
+		index.text = (biomeLibrary.listFiles()?.findAll { it.name.endsWith('.json') }?.collect { it.name }?.sort() ?: [])
+				.collect { it + '\n' }.join('')
+	}
+}
+sourceSets.main.resources.srcDir(biomeIndex)
+
 // The compiler stays free of Minecraft and Fabric, as core does; only server touches the game.
 def noMinecraft = tasks.register('checkNoMinecraftImports') {
 	def sources = fileTree('src') { include '**/*.java' }

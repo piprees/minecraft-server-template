@@ -1,6 +1,8 @@
 package com.customdimensions.server.level;
 
+import com.customdimensions.compiler.datapack.VanillaData;
 import com.customdimensions.compiler.datapack.VanillaSource;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonElement;
 import com.google.gson.stream.JsonWriter;
 import com.mojang.serialization.Codec;
@@ -15,7 +17,10 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.TreeMap;
 import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.Identifier;
 import net.minecraft.data.DataProvider;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.util.GsonHelper;
@@ -39,6 +44,7 @@ public final class RuntimeVanilla implements VanillaSource {
 
     private final Path root;
     private final Map<String, String> reports = new TreeMap<>();
+    private String registries;
 
     private RuntimeVanilla(Path root) {
         this.root = root;
@@ -68,6 +74,27 @@ public final class RuntimeVanilla implements VanillaSource {
         throw new IllegalStateException("no root of the minecraft mod holds " + PROBE + ": " + roots);
     }
 
+    /**
+     * {@link VanillaData#REGISTRIES_REPORT} as the data generator writes it, from
+     * the game's built-in registries, {@code minecraft} entries only: each
+     * registry's {@code entries} by id.
+     */
+    private synchronized String registries() {
+        if (registries == null) {
+            JsonObject out = new JsonObject();
+            for (Registry<?> registry : BuiltInRegistries.REGISTRY) {
+                JsonObject entries = new JsonObject();
+                registry.keySet().stream().filter(id -> id.getNamespace().equals("minecraft")).map(Identifier::toString).sorted()
+                        .forEach(id -> entries.add(id, new JsonObject()));
+                JsonObject r = new JsonObject();
+                r.add("entries", entries);
+                out.add(registry.key().identifier().toString(), r);
+            }
+            registries = out.toString();
+        }
+        return registries;
+    }
+
     /** The report paths this source encodes, sorted. */
     public List<String> reportPaths() {
         return List.copyOf(reports.keySet());
@@ -75,6 +102,7 @@ public final class RuntimeVanilla implements VanillaSource {
 
     @Override
     public Optional<String> read(String path) {
+        if (path.equals(VanillaData.REGISTRIES_REPORT)) return Optional.of(registries());
         if (path.startsWith(REPORTS)) return Optional.ofNullable(reports.get(path));
         Path file = root.resolve(path);
         if (!Files.isRegularFile(file)) return Optional.empty();

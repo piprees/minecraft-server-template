@@ -1,5 +1,6 @@
 package com.customdimensions.server.level;
 
+import com.customdimensions.compiler.datapack.BiomeLibrary;
 import com.customdimensions.compiler.datapack.RuntimeWorldgen;
 import com.customdimensions.compiler.zone.ZoneDensity;
 import com.customdimensions.core.zone.ZoneSpec;
@@ -181,14 +182,28 @@ public final class WorldgenRuntime {
             ChunkGeneratorAccessor accessor = (ChunkGeneratorAccessor) (Object) generator;
             Function<Holder<Biome>, BiomeGenerationSettings> original = accessor.customdimensions$generationSettingsGetter();
             Map<Holder<Biome>, BiomeGenerationSettings> cache = new ConcurrentHashMap<>();
-            Function<Holder<Biome>, BiomeGenerationSettings> getter =
-                    biome -> cache.computeIfAbsent(biome, b -> filtered(original.apply(b), spec.removeFeatures(), added));
+            Set<String> library = libraryBiomes();
+            Function<Holder<Biome>, BiomeGenerationSettings> getter = biome -> cache.computeIfAbsent(biome, b -> library.contains(id(b))
+                    ? original.apply(b) : filtered(original.apply(b), spec.removeFeatures(), added));
             accessor.customdimensions$setGenerationSettingsGetter(getter);
             accessor.customdimensions$setFeaturesPerStep(Suppliers.memoize(() -> FeatureSorter.buildFeaturesPerStep(
                     List.copyOf(generator.getBiomeSource().possibleBiomes()), b -> getter.apply(b).features(), true)));
         }
         CustomDimensions.LOG.info("worldgen runtime applied to {}: lava level {}, {} ore(s) added, {} feature(s) removed",
                 spec.level(), spec.lavaLevel(), spec.addUndergroundOres().size(), spec.removeFeatures().size());
+    }
+
+    /**
+     * The biome library's ids in the pack's namespace. A library biome keeps its
+     * own feature list in every level: per-level ore edits change vanilla's biomes only.
+     */
+    public static Set<String> libraryBiomes() {
+        String namespace = LevelIndex.definitionsDir().map(PackInstaller::namespace).orElse(LevelIndex.DEFAULT_NAMESPACE);
+        return BiomeLibrary.shipped().ids(namespace);
+    }
+
+    private static String id(Holder<Biome> biome) {
+        return biome.unwrapKey().map(k -> k.identifier().toString()).orElse("");
     }
 
     /** Vanilla's global fluid rule with {@code lavaLevel} in place of -54. */
