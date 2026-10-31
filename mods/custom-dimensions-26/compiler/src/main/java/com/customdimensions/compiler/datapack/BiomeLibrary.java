@@ -349,6 +349,12 @@ public final class BiomeLibrary {
                         String s = v.getAsString();
                         switch (key) {
                             case "id" -> need(at, s, "minecraft:block", "block");
+                            case "to_place", "provider", "block_provider", "below_trunk_provider", "trunk_provider", "foliage_provider",
+                                 "state_provider", "ground_state", "cap_provider", "stem_provider" -> {
+                                if (!vanilla.hasFile("worldgen/block_state_provider", s)) {
+                                    fail(at + ": `" + s + "` is not a vanilla block state provider; a block is {\"id\": \"" + s + "\"}");
+                                }
+                            }
                             case "sound", "loop" -> need(at, s, "minecraft:sound_event", "sound");
                             default -> reference(at, s);
                         }

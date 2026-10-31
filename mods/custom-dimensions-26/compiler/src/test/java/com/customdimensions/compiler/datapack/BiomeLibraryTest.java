@@ -212,6 +212,15 @@ class BiomeLibraryTest {
     }
 
     @Test
+    void aBareBlockIdWhereAProviderGoesIsRefused() {
+        String message = refusal(ashenWith(o -> feature(o, "dead_bushes").addProperty("to_place", "minecraft:dead_bush")));
+        assertTrue(message.contains("dead_bushes") && message.contains("not a vanilla block state provider"), message);
+        BiomeLibrary named = ashenWith(o -> feature(o, "dead_bushes").addProperty("to_place", "minecraft:flower_plain"));
+        DatapackCompiler.Output out = compile("a", "\"generator\": {\"type\": \"single_biome\", \"biome\": \"" + ASHEN + "\"}", named);
+        assertTrue(out.files().containsKey("data/adventure/worldgen/feature/biome/ashen_woodland/dead_bushes.json"), out.files().keySet().toString());
+    }
+
+    @Test
     void anUnknownPaletteBlockIsRefused() {
         String message = refusal(ashenWith(o -> o.getAsJsonObject("palette").addProperty("top", "minecraft:ash")));
         assertTrue(message.contains("ashen_woodland") && message.contains("palette.top"), message);
