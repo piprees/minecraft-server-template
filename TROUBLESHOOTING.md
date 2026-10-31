@@ -1596,6 +1596,20 @@ A seed's map and its banked facts appear to contradict each other — the thumbn
   the same trap. Pin it against the Java, not against intuition —
   `scripts/e2e/portal-matrix-selftest.sh` is the worked example.
 
+<a id="t152"></a>
+### T152 — Birch and spruce leaves ignore the biome's foliage colour
+
+- **Symptom:** a library biome's `foliage_color` tints its oak crowns but leaves birch and spruce crowns their usual colour.
+- **Cause:** 26.3 gives birch and spruce leaves a fixed tint; `foliage_color` tints oak, jungle, acacia, dark oak and mangrove leaves and vines, and `dry_foliage_color` tints leaf litter.
+- **Fix:** build a tinted crown from a tinted leaf block on any trunk, or use a fixed-colour leaf such as poplar.
+
+<a id="t151"></a>
+### T151 — A waterlogged vegetation patch leaves its ground dry on stepped terrain
+
+- **Symptom:** a library biome's pools show as bare patches of their ground block with little water.
+- **Cause:** water replaces a surface block only where every horizontal neighbour is sturdy; on one-block terrain steps a neighbour is air.
+- **Fix:** give such a biome a flat, low climate (high erosion), and follow the pools with a dry `vegetation_patch` over the same replaceable tag, which touches only floors with air above.
+
 <a id="t150"></a>
 ### T150 — 26.3 keeps configured features in `worldgen/feature`
 
