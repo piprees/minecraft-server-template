@@ -4,6 +4,9 @@ import com.mojang.serialization.JsonOps;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.QuartPos;
+import net.minecraft.core.Direction;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.Identifier;
 import net.minecraft.resources.RegistryOps;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.dedicated.DedicatedServer;
@@ -17,6 +20,7 @@ import net.minecraft.world.level.chunk.ChunkGenerator;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.levelgen.densityfunction.DensityFunction;
 import net.minecraft.world.level.levelgen.Heightmap;
+import net.minecraft.world.level.levelgen.NoiseBasedChunkGenerator;
 import net.minecraft.world.level.levelgen.RandomState;
 
 import javax.imageio.ImageIO;
@@ -521,16 +525,28 @@ public final class TerrainSelfTest {
         return land == 0 ? 0 : (double) trench / land;
     }
 
+    /**
+     * Channels at sea level through land, with the sea as the water table:
+     * no air cell open to the sky at or below the water line beside water
+     * (a hole), and no aquifer sample, one per 4 by 4 columns, that reads the
+     * surface within 8 blocks of sea level and would leave local water instead
+     * of the sea; the terrain's preliminary surface, read alone, does (T161).
+     */
     private String rivers(Measure m, Measure c) {
         double water = m.share(col -> col.water && col.surface == m.sea - 1);
         double land = m.share(col -> col.surface >= m.sea);
         int floor = m.centreSurface(8);
         double controlWater = c.share(col -> col.water && col.surface == c.sea - 1);
         double controlLand = c.share(col -> col.surface >= c.sea);
-        return verdict(water >= 0.01 && land >= 0.2 && floor < m.sea, "5x5 chunks at " + m.centre() + ": water at sea level on "
+        int[] dry = m.dryCells();
+        int[] table = m.aboveWaterTable("terrain_rivers_default");
+        return verdict(water >= 0.01 && land >= 0.2 && floor < m.sea && dry[1] == 0 && table[1] == 0 && table[0] > 0,
+                "5x5 chunks at " + m.centre() + ": water at sea level on "
                 + pct(water) + " of columns (needs 1%; continents " + pct(controlWater) + "), land on " + pct(land)
                 + " (needs 20%; continents " + pct(controlLand) + "), lowest centre surface y " + floor
-                + " (needs below sea level " + m.sea + "; continents y " + c.centreSurface(8) + ")");
+                + " (needs below sea level " + m.sea + "; continents y " + c.centreSurface(8) + "); open cells at or below the water line "
+                + dry[0] + ", holes beside water " + dry[1] + " (want 0); aquifer samples reading the surface within 8 of sea level "
+                + table[1] + " of " + table[2] + " (want 0; the preliminary surface alone " + table[0] + ", wants more than 0)");
     }
 
     private String floatingIslands(Measure m, Measure c) {
@@ -944,6 +960,56 @@ public final class TerrainSelfTest {
         int landMedian() {
             int[] s = columns.stream().filter(c -> c.lowest != null).mapToInt(c -> c.surface).sorted().toArray();
             return s.length == 0 ? minY : s[s.length / 2];
+        }
+
+        /**
+         * {@code {open, holes}}: air cells open to the sky from a column's top
+         * block up to the water line, a block under sea level, and of them
+         * those with water beside them, which the water spills through.
+         */
+        int[] dryCells() {
+            java.util.Set<Long> inside = new java.util.HashSet<>();
+            columns.forEach(col -> inside.add(BlockPos.asLong(col.x, 0, col.z)));
+            int[] n = new int[2];
+            BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
+            for (Column col : columns) {
+                for (int y = col.surface + 1; y < sea; y++) {
+                    n[0]++;
+                    for (Direction d : Direction.Plane.HORIZONTAL) {
+                        pos.set(col.x + d.getStepX(), y, col.z + d.getStepZ());
+                        if (inside.contains(BlockPos.asLong(pos.getX(), 0, pos.getZ()))
+                                && level.getBlockState(pos).getFluidState().is(FluidTags.WATER)) {
+                            n[1]++;
+                            break;
+                        }
+                    }
+                }
+            }
+            return n;
+        }
+
+        /**
+         * {@code {preliminary, aquifers, samples}}: of the area's aquifer
+         * samples, one per 4 by 4 columns, those where the fixture's
+         * preliminary surface and the aquifers' surface level lie within 8
+         * blocks of sea level, where an aquifer keeps local water.
+         */
+        int[] aboveWaterTable(String slug) {
+            var settings = ((NoiseBasedChunkGenerator) level.getChunkSource().getGenerator()).generatorSettings().value();
+            DensityFunction aquifers = settings.aquifers().orElseThrow(() -> new IllegalStateException("no aquifers")).surfaceLevel();
+            String namespace = LevelIndex.definitionsDir().map(PackInstaller::namespace).orElse(LevelIndex.DEFAULT_NAMESPACE);
+            DensityFunction preliminary = level.registryAccess().lookupOrThrow(Registries.DENSITY_FUNCTION)
+                    .getValue(Identifier.parse(namespace + ":terrain/" + slug + "/preliminary_surface_level"));
+            if (preliminary == null) throw new IllegalStateException("no preliminary surface level for " + slug);
+            RandomState random = level.getChunkSource().randomState();
+            int[] n = new int[3];
+            for (Column col : columns) {
+                if ((col.x & 3) != 0 || (col.z & 3) != 0) continue;
+                n[2]++;
+                if (random.sampleBlockValueUncached(preliminary, col.x, 0, col.z) + 8 >= sea) n[0]++;
+                if (random.sampleBlockValueUncached(aquifers, col.x, 0, col.z) + 8 >= sea) n[1]++;
+            }
+            return n;
         }
 
         /** The lowest surface within {@code blocks} of the area's centre on both axes. */

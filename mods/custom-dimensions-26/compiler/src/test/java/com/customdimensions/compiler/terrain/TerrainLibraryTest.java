@@ -101,6 +101,22 @@ class TerrainLibraryTest {
     }
 
     @Test
+    void riversAquifersReadTheSurfaceNineBelowSeaLevelAtMost() {
+        TerrainLibrary.Compiled rivers = compile("{\"base\": \"rivers\"}");
+        assertEquals("adventure:terrain/t/aquifer_surface_level",
+                rivers.settings().getAsJsonObject("aquifers").get("surface_level").getAsString());
+        assertEquals("{\"type\":\"minecraft:cache\",\"input\":{\"type\":\"minecraft:min\",\"left\":\"adventure:terrain/t/preliminary_surface_level\",\"right\":54.0}}",
+                text(rivers.files().get(P + "aquifer_surface_level.json")));
+        String sea40 = text(compile(spec("{\"base\": \"rivers\"}"), "overworld", 40).files().get(P + "aquifer_surface_level.json"));
+        assertTrue(sea40.contains("\"right\":31.0"), sea40);
+        TerrainLibrary.Compiled continents = compile("{\"base\": \"continents\"}");
+        assertFalse(continents.files().containsKey(P + "aquifer_surface_level.json"));
+        TerrainLibrary.Compiled flooded = compile(spec("{\"base\": \"rivers\"}"), "floating_islands", null);
+        assertFalse(flooded.settings().has("aquifers"));
+        assertFalse(flooded.files().containsKey(P + "aquifer_surface_level.json"));
+    }
+
+    @Test
     void routerContinentsPutTheShoreWhereBiomesExpectIt() {
         JsonObject router = compile("{\"base\": \"continents\", \"params\": {\"coast\": -0.3}}").settings().getAsJsonObject("noise_router");
         assertEquals("{\"type\":\"minecraft:add\",\"left\":\"adventure:terrain/t/continents\",\"right\":0.19}",

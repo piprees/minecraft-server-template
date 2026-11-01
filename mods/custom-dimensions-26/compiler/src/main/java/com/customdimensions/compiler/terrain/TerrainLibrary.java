@@ -116,6 +116,10 @@ public final class TerrainLibrary {
         functions.put("chunk_surface_level", replace(vanilla.densityFunction("overworld/chunk_surface_level"), ids));
 
         JsonObject out = replace(settings, ids);
+        if (shape.aquiferCeiling() != null && out.has("aquifers")) {
+            functions.put("aquifer_surface_level", cache(min(ref(prefix + "/preliminary_surface_level"), shape.aquiferCeiling())));
+            out.getAsJsonObject("aquifers").addProperty("surface_level", prefix + "/aquifer_surface_level");
+        }
         JsonObject outRouter = out.getAsJsonObject("noise_router");
         outRouter.add("continents", shape.continents());
         for (String key : List.of("erosion", "ridges", "temperature", "vegetation", "depth", "final_density",

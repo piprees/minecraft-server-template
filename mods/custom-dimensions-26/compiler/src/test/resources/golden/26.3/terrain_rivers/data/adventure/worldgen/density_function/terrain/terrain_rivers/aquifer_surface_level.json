@@ -1,0 +1,8 @@
+{
+  "input": {
+    "left": "adventure:terrain/terrain_rivers/preliminary_surface_level",
+    "right": 54.0,
+    "type": "minecraft:min"
+  },
+  "type": "minecraft:cache"
+}

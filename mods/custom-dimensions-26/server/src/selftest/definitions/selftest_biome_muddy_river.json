@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "description": "Self-test fixture and showcase: the biome library's muddy river filling a whole level on the rivers terrain, low land cut by river channels just below sea level, with aquifers off so every channel holds water to sea level, so its brown water, mud banks and reeds line a channel, for the biomes section's per-biome checks, renders and screenshots.",
+  "description": "Self-test fixture and showcase: the biome library's muddy river filling a whole level on the rivers terrain, low land cut by river channels just below sea level, each holding water to sea level, so its brown water, mud banks and reeds line a channel, for the biomes section's per-biome checks, renders and screenshots.",
   "seed": 5,
   "spawn": [
     0,
@@ -22,9 +22,6 @@
       "relief": 2,
       "roughness": 0.15
     }
-  },
-  "liquids": {
-    "aquifers": "off"
   },
   "borders": {
     "player": 512

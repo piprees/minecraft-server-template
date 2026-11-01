@@ -1596,6 +1596,13 @@ A seed's map and its banked facts appear to contradict each other — the thumbn
   the same trap. Pin it against the Java, not against intuition —
   `scripts/e2e/portal-matrix-selftest.sh` is the worked example.
 
+<a id="t161"></a>
+### T161 — A cave opening below sea level beside a river stays dry when aquifers are on
+
+- **Symptom:** in a level of low land cut by channels at sea level, pits beside a channel are air down to below the water line, walled off from the river by stone or open to it at a hole the water spills through.
+- **Cause:** the aquifer reads the surface level (`aquifers.surface_level`) at the cell and 12 points 16 blocks apart around it, and takes the sea only where one of them, plus 8, lies under sea level. A noise cave that opens into the land beside a channel reads the land's surface at every point, so the aquifer gives it a local fluid level or air.
+- **Fix:** a terrain whose land holds the sea as its water table caps the aquifers' surface level at 9 below sea level. The library's `rivers` terrain does (`<terrain>/aquifer_surface_level`).
+
 <a id="t160"></a>
 ### T160 — End light tints block colours
 
@@ -3303,14 +3310,6 @@ The rendered height disagrees with the facts on high-relief columns. The error i
   takes about five seconds to make one.
 - **Narrow is not empty, and small is not a defect.** The target is that no
   listed biome is ignored, never that shares are equal.
-
-<a id="k16"></a>
-
-### K16 — A `rivers` terrain channel can run dry beside a wet one
-
-- **Symptom:** in a level on the library's `rivers` terrain, a stretch of channel is air at y 61–63 next to water at y 62.
-- **Cause:** not established; the aquifer may decide those cells because the preliminary surface level does not follow the channel cut. Removing the canyon carver does not change it.
-- **Status:** open; the muddy_river showcase sets `liquids.aquifers: off` to show the biome.
 
 <a id="k12"></a>
 

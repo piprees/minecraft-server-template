@@ -225,23 +225,32 @@ public enum TerrainFamily {
      * What a terrain contributes: surface height in blocks, vanilla's factor and
      * jaggedness, a 3D cut and a 3D addition (null: none), the router's
      * continentalness as biomes should read it, the weight of vanilla's 3D
-     * noise, and a function that weighs it further where it varies (null:
-     * none).
+     * noise, a function that weighs it further where it varies (null:
+     * none), and a ceiling on the surface level the aquifers read (null: none).
      */
     record Shape(JsonElement height, JsonElement factor, JsonElement jaggedness, JsonElement cut, JsonElement plus,
-                 JsonElement continents, double noise3d, JsonElement noiseWeight) {
+                 JsonElement continents, double noise3d, JsonElement noiseWeight, JsonElement aquiferCeiling) {
+
+        Shape(JsonElement height, JsonElement factor, JsonElement jaggedness, JsonElement cut, JsonElement plus,
+              JsonElement continents, double noise3d, JsonElement noiseWeight) {
+            this(height, factor, jaggedness, cut, plus, continents, noise3d, noiseWeight, null);
+        }
 
         Shape(JsonElement height, JsonElement factor, JsonElement jaggedness, JsonElement cut, JsonElement plus,
               JsonElement continents, double noise3d) {
-            this(height, factor, jaggedness, cut, plus, continents, noise3d, null);
+            this(height, factor, jaggedness, cut, plus, continents, noise3d, null, null);
         }
 
         Shape withHeight(JsonElement h) {
-            return new Shape(h, factor, jaggedness, cut, plus, continents, noise3d, noiseWeight);
+            return new Shape(h, factor, jaggedness, cut, plus, continents, noise3d, noiseWeight, aquiferCeiling);
         }
 
         Shape withFactor(JsonElement f) {
-            return new Shape(height, f, jaggedness, cut, plus, continents, noise3d, noiseWeight);
+            return new Shape(height, f, jaggedness, cut, plus, continents, noise3d, noiseWeight, aquiferCeiling);
+        }
+
+        Shape withAquiferCeiling(JsonElement ceiling) {
+            return new Shape(height, factor, jaggedness, cut, plus, continents, noise3d, noiseWeight, ceiling);
         }
     }
 
@@ -347,13 +356,26 @@ public enum TerrainFamily {
                 lerp(profile, c(1), c(CHANNEL_NOISE)));
     }
 
+    /**
+     * Blocks under sea level the aquifers read the surface: an aquifer adds 8
+     * to each surface sample and takes the sea where that lies under sea level.
+     */
+    static final double RIVER_WATER_TABLE = 9;
+
+    /**
+     * Channels cut {@code depth} below sea level through the land, rising to
+     * it over {@code bankWidth}. The sea is the level's water table: the
+     * aquifers read the surface no higher than {@link #RIVER_WATER_TABLE}
+     * under sea level, so open cells just under sea level hold the sea and a
+     * cave opening beside a channel fills from it (T161).
+     */
     private static Shape rivers(Ctx ctx) {
         Shape land = ctx.land();
         double w = ctx.p("width");
         JsonElement channel = abs(ctx.noise("channel", ctx.p("frequency"), 0));
         JsonElement profile = spline(channel, 0, 1, w, 1, w + ctx.p("bankWidth"), 0);
         JsonElement bed = lerp(profile, land.height(), c(ctx.sea() - ctx.p("depth")));
-        return land.withHeight(min(land.height(), bed));
+        return land.withHeight(min(land.height(), bed)).withAquiferCeiling(c(ctx.sea() - RIVER_WATER_TABLE));
     }
 
     private static Shape floatingIslands(Ctx ctx) {
