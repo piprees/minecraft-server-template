@@ -528,8 +528,8 @@
       },
       "placement": [
         {
-          "type": "minecraft:count",
-          "count": 1
+          "type": "minecraft:rarity_filter",
+          "chance": 2
         },
         {
           "type": "minecraft:in_square"
@@ -598,7 +598,7 @@
       "placement": [
         {
           "type": "minecraft:count",
-          "count": 4
+          "count": 2
         },
         {
           "type": "minecraft:in_square"
@@ -658,8 +658,8 @@
       },
       "placement": [
         {
-          "type": "minecraft:count",
-          "count": 1
+          "type": "minecraft:rarity_filter",
+          "chance": 2
         },
         {
           "type": "minecraft:in_square"
@@ -732,8 +732,8 @@
       },
       "placement": [
         {
-          "type": "minecraft:count",
-          "count": 1
+          "type": "minecraft:rarity_filter",
+          "chance": 4
         },
         {
           "type": "minecraft:in_square"
@@ -795,8 +795,8 @@
       },
       "placement": [
         {
-          "type": "minecraft:count",
-          "count": 1
+          "type": "minecraft:rarity_filter",
+          "chance": 4
         },
         {
           "type": "minecraft:in_square"
@@ -842,7 +842,7 @@
       "placement": [
         {
           "type": "minecraft:count",
-          "count": 2
+          "count": 1
         },
         {
           "type": "minecraft:in_square"
@@ -891,7 +891,7 @@
       "placement": [
         {
           "type": "minecraft:count",
-          "count": 6
+          "count": 4
         },
         {
           "type": "minecraft:in_square"
