@@ -129,3 +129,10 @@ Rejected: compiling from `deploy.sh` and `dev-up.sh` with the Gradle-extracted v
 
 **RB-34 — `/customdim create` writes a definition; the dimension opens after the next restart.**
 Dimension types are a synced registry frozen once the world loads, so a new dimension's type cannot be added to a running server. `create` writes the definition from a template with a fresh seed, compiles it to prove it, and says it opens after a restart.
+
+**RB-35 — The 1.21.1 dimension definitions are frozen until the switch; W8 edits the v2 set directly.**
+`config/custom-dimensions/dimensions/` keeps running production unchanged, so the converter's output stays what W8 starts from, and W8 re-authors `mods/custom-dimensions-26/definitions/` by hand. `:compiler:convertDefinitions` writes to the compiler's build folder, never over the hand-edited set.
+Rejected: regenerating v2 from v1 with W8's edits as patches on top, which adds machinery for changes nobody plans to make.
+
+**RB-36 — Cut biome and structure ids are replaced through one reviewed mapping table.**
+Each of the 313 distinct ids from a cut or rebuilt mod maps to a vanilla 26.3 biome, one of our library biomes, a bridged or vanilla structure, or removal; the owner reviews the table once and W8 applies it to every definition.

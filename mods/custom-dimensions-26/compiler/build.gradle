@@ -48,7 +48,7 @@ tasks.named('check') { dependsOn noMinecraft }
 // definitions in config/custom-dimensions/. The repository root is three levels up.
 tasks.register('convertDefinitions', JavaExec) {
 	group = 'custom-dimensions'
-	description = 'Converts config/custom-dimensions/ into the schema v2 set in definitions/.'
+	description = 'Converts config/custom-dimensions/ to schema v2 in build/converted-definitions/, beside the hand-edited set (RB-35).'
 	classpath = sourceSets.main.runtimeClasspath
 	mainClass = 'com.customdimensions.compiler.convert.ConvertDefinitions'
 	def repoRoot = file('../../..').canonicalFile
@@ -56,7 +56,7 @@ tasks.register('convertDefinitions', JavaExec) {
 	args '--config', new File(repoRoot, 'config/custom-dimensions').path,
 			'--register', new File(design, 'mod-register.csv').path,
 			'--namespaces', new File(design, 'namespaces.csv').path,
-			'--out', file('../definitions').canonicalPath
+			'--out', layout.buildDirectory.dir('converted-definitions').get().asFile.path
 }
 
 // Mojang's data files are inputs, never committed: this fetches the server jar

@@ -57,8 +57,8 @@ public final class ConversionReport {
         StringBuilder md = new StringBuilder();
         md.append("# Conversion report\n\n");
         md.append("`./gradlew :compiler:convertDefinitions` writes this file and the schema v2 definitions beside it\n");
-        md.append("from the 1.21.1 definitions in `config/custom-dimensions/`. Every run rewrites both; edit the v1\n");
-        md.append("files, not these. The mapping is `docs/design/rebuild-26/schema-v2.md`.\n\n");
+        md.append("from the 1.21.1 definitions in `config/custom-dimensions/`, which are frozen until the switch. The\n");
+        md.append("hand-edited set in `definitions/` started from it (RB-35). The mapping is `docs/design/rebuild-26/schema-v2.md`.\n\n");
         md.append("An id is flagged when no mod owning its namespace is kept (`mod-register.csv`, `namespaces.csv`);\n");
         md.append("`minecraft` and `adventure` never are. \"Where\" is the path in the v1 file, and \"(key)\" marks an\n");
         md.append("id used as an object key. Flagged ids are carried unchanged; W8 replaces them.\n\n");

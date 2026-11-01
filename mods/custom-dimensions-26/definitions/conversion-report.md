@@ -1,8 +1,8 @@
 # Conversion report
 
 `./gradlew :compiler:convertDefinitions` writes this file and the schema v2 definitions beside it
-from the 1.21.1 definitions in `config/custom-dimensions/`. Every run rewrites both; edit the v1
-files, not these. The mapping is `docs/design/rebuild-26/schema-v2.md`.
+from the 1.21.1 definitions in `config/custom-dimensions/`, which are frozen until the switch. The
+hand-edited set in `definitions/` started from it (RB-35). The mapping is `docs/design/rebuild-26/schema-v2.md`.
 
 An id is flagged when no mod owning its namespace is kept (`mod-register.csv`, `namespaces.csv`);
 `minecraft` and `adventure` never are. "Where" is the path in the v1 file, and "(key)" marks an

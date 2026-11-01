@@ -8,9 +8,9 @@ and ores) without renaming these.
 ## Where definitions live
 
 Until the switch: `mods/custom-dimensions-26/definitions/<slug>.json`, plus
-`settings.json` beside them. The 1.21.1 files in `config/custom-dimensions/`
-stay untouched and keep running production; the converter reads them and
-writes the v2 set. At the switch the v2 set moves to
+`settings.json` beside them, edited by hand (W8). The 1.21.1 files in
+`config/custom-dimensions/` keep running production and are frozen until the
+switch (RB-35). At the switch the v2 set moves to
 `config/custom-dimensions/dimensions/`. The roller's `<slug>_thumb.json` and
 `.png` files are not definitions and are not converted.
 
@@ -166,9 +166,10 @@ converts to `the_aviary.json` (`adventure:the_aviary`), preset
 ## The converter
 
 A Gradle task in the compiler module, `./gradlew :compiler:convertDefinitions`:
-it reads every v1 definition through the carried v1 loader and writes the v2
-set and `conversion-report.md` beside it. It is repeatable: the 1.21.1 files
-keep changing until the switch, and each run rewrites the v2 set from them.
+it reads every v1 definition through the carried v1 loader and writes a v2 set
+and `conversion-report.md` to `compiler/build/converted-definitions/`. The
+hand-edited set in `definitions/` started from its output; the task writes
+beside it, never over it.
 
 The report lists, per file: every id whose namespace belongs to a mod the
 register cuts, waits on or rebuilds (from `mod-register.csv` and the jar
