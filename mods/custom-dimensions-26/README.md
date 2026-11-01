@@ -98,12 +98,12 @@ on generated chunks.
 
 | Biome | Realm | What it is |
 | --- | --- | --- |
-| `ashen_woodland` | overworld | Burnt birch wood: bare and stripped birch trunks with a few leaves, fallen stripped logs, dead bushes, coarse dirt with gravel and podzol patches, white ash and a grey haze |
+| `ashen_woodland` | overworld | Burnt birch wood, burnt many times: bare and stripped birch trunks with a few leaves, charred coal-block trunks and stubs, fallen and sunk coal-block logs, fallen stripped logs, dead bushes, coarse dirt with gravel and podzol patches over gravel seamed with coal, white ash and a grey haze |
 | `chalk_cliffs` | overworld | Calcite on every steep face seamed with diorite, pale turf, gravel coves, calcite boulders, wind-bent oaks, sea pickles in bright shallows |
 | `maple_woodland` | overworld | Crimson domed oaks and orange-crowned birch trunks over green turf, red leaf litter, podzol, pumpkins, firefly bushes, drifting red leaves |
 | `redwood_grove` | overworld | Two-by-two spruce giants of 32 to 45 blocks with bare lower trunks, young spruces, mossy fallen trunks, ferns, moss on podzol, dim green fog |
 | `lavender_fields` | overworld | Open meadow carpeted in alliums and lilacs, birches with bee nests, lilac-tinted grass and sky |
-| `cypress_wetland` | overworld | Clay-bottomed shallows in grass over mud, flat-crowned mangrove-log cypresses standing in the water, lily pads, cane, dripleaf, fireflies, green mist |
+| `cypress_wetland` | overworld | Clay-bottomed shallows in grass over mud on level ground, flat-crowned mangrove-log cypresses standing in the water, lily pads on the water, cane, dripleaf, fireflies, green mist |
 | `prairie` | overworld | Knee-high tall and dry grass under golden grass colour, wildflowers, sunflowers, lone fancy oaks, horses |
 | `highland_fells` | overworld | Treeless brown-green moor, pink-petal and allium heather, dry tussocks, coarse dirt, mossy cobblestone outcrops, sheep |
 | `saguaro_desert` | overworld | Red sand over red sandstone, branched cactus saguaros with flowers, dead bushes, armadillos, orange horizon |
@@ -230,7 +230,13 @@ lists nor its other own features place, with the features it names expanded
 and its tests and replacement targets skipped. Failing that, a block only it
 and some of its sibling features place is counted for them together; a feature
 with neither is named in the line as placing no block of its own and is not
-counted. One line per biome carries the counts, and the
+counted. The ashen woodland's line also counts its coal blocks on or above
+the ground and its coal blocks and coal ore in the six blocks under it (both
+must be there), and the cypress wetland's its lily pads with no water under
+them (must be none), its pool cells open on a side to neither water nor a
+solid block, its dirt, grass, mud or clay cells with water on all four sides,
+and the share of pool columns whose water runs unbroken to a solid floor.
+One line per biome carries the counts, and the
 server log names the standing column of each counted block nearest spawn (at any
 height for a cave or Nether biome, else on the surface).
 `-PselfTestOnly=biomes` runs the compiled-pack and biomes sections only.

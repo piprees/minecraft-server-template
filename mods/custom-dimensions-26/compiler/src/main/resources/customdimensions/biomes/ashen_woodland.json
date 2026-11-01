@@ -280,10 +280,6 @@
                 }
               },
               "weight": 2
-            },
-            {
-              "data": "minecraft:coal_block",
-              "weight": 1
             }
           ]
         }

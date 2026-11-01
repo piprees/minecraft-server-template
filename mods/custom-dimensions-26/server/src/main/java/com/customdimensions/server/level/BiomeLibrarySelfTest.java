@@ -450,7 +450,7 @@ public final class BiomeLibrarySelfTest {
     /**
      * The cypress wetland's water: lily pads with no water under them (want none); pool cells, the
      * top water of a column, with a side open to neither water nor a solid block (holes it spills
-     * through); solid ground cells at a pool's level with water on all four sides (islets); and the
+     * through); dirt, grass, mud or clay at a pool's level with water on all four sides (islets); and the
      * share of pool columns whose water has no hole and runs unbroken down to a solid floor.
      */
     private String cypressWater(List<LevelChunk> chunks, List<String> failures) {
@@ -471,7 +471,7 @@ public final class BiomeLibrarySelfTest {
                 break;
             }
             if (!s.getFluidState().is(FluidTags.WATER)) {
-                if (!s.isSolid()) return;
+                if (!s.is(BlockTags.DIRT) && !s.is(Blocks.CLAY)) return;
                 for (Direction d : Direction.Plane.HORIZONTAL) {
                     if (!level.getBlockState(pos.relative(d)).getFluidState().is(FluidTags.WATER)) return;
                 }
