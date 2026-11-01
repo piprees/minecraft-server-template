@@ -1601,7 +1601,7 @@ A seed's map and its banked facts appear to contradict each other — the thumbn
 
 - **Symptom:** in a level of low land cut by channels at sea level, pits beside a channel are air down to below the water line, walled off from the river by stone or open to it at a hole the water spills through.
 - **Cause:** the aquifer reads the surface level (`aquifers.surface_level`) at the cell and 12 points 16 blocks apart around it, and takes the sea only where one of them, plus 8, lies under sea level. A noise cave that opens into the land beside a channel reads the land's surface at every point, so the aquifer gives it a local fluid level or air.
-- **Fix:** a terrain whose land holds the sea as its water table caps the aquifers' surface level at 9 below sea level. The library's `rivers` terrain does (`<terrain>/aquifer_surface_level`).
+- **Fix:** cap the aquifers' surface level at 9 below sea level where a river sets the water table. The library's `rivers` terrain caps it across its channels, banks and about 16 blocks beyond (`<terrain>/aquifer_surface_level`); a pit further out stays dry, as on any land.
 
 <a id="t160"></a>
 ### T160 — End light tints block colours

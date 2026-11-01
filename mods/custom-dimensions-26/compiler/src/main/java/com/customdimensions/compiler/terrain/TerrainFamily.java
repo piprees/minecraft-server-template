@@ -357,25 +357,37 @@ public enum TerrainFamily {
     }
 
     /**
-     * Blocks under sea level the aquifers read the surface: an aquifer adds 8
-     * to each surface sample and takes the sea where that lies under sea level.
+     * Blocks under sea level the aquifers read the surface near a river: an
+     * aquifer adds 8 to each surface sample and takes the sea where that lies
+     * under sea level.
      */
     static final double RIVER_WATER_TABLE = 9;
+    /**
+     * How far past its banks a river holds the water table, in the channel
+     * noise's units as {@code width} and {@code bankWidth} are: about the 16
+     * blocks between an aquifer's surface samples, so a cave that opens into
+     * the banks has a sample on the river.
+     */
+    static final double RIVER_WATER_REACH = 0.1;
 
     /**
      * Channels cut {@code depth} below sea level through the land, rising to
-     * it over {@code bankWidth}. The sea is the level's water table: the
-     * aquifers read the surface no higher than {@link #RIVER_WATER_TABLE}
-     * under sea level, so open cells just under sea level hold the sea and a
-     * cave opening beside a channel fills from it (T161).
+     * it over {@code bankWidth}. Within {@link #RIVER_WATER_REACH} of the
+     * banks the river is the water table: the aquifers read the surface no
+     * higher than {@link #RIVER_WATER_TABLE} under sea level, so a cave that
+     * opens beside a channel below sea level fills from it (T161).
      */
     private static Shape rivers(Ctx ctx) {
         Shape land = ctx.land();
         double w = ctx.p("width");
+        double banks = w + ctx.p("bankWidth");
         JsonElement channel = abs(ctx.noise("channel", ctx.p("frequency"), 0));
-        JsonElement profile = spline(channel, 0, 1, w, 1, w + ctx.p("bankWidth"), 0);
+        JsonElement profile = spline(channel, 0, 1, w, 1, banks, 0);
         JsonElement bed = lerp(profile, land.height(), c(ctx.sea() - ctx.p("depth")));
-        return land.withHeight(min(land.height(), bed)).withAquiferCeiling(c(ctx.sea() - RIVER_WATER_TABLE));
+        double table = ctx.sea() - RIVER_WATER_TABLE;
+        double reach = banks + RIVER_WATER_REACH;
+        JsonElement ceiling = spline(channel, 0, table, reach, table, reach + 0.01, ctx.maxY());
+        return land.withHeight(min(land.height(), bed)).withAquiferCeiling(ceiling);
     }
 
     private static Shape floatingIslands(Ctx ctx) {

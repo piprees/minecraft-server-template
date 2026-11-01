@@ -467,6 +467,37 @@ public final class TerrainSelfTest {
         return verdict(network && beds, beds ? line : line + "; dry floor heights " + histogram(dryHeights));
     }
 
+    /** The most of the open cells under a rivers level's dry land near sea level that may hold water. */
+    static final double UNDER_LAND_WATER = 0.95;
+    /** The lowest cell {@link #underLand} counts. */
+    static final int UNDER_LAND_FLOOR = 50;
+    /** Blocks under the ground a cell lies at least for {@link #underLand} to count it. */
+    static final int UNDER_LAND_DEPTH = 3;
+
+    /**
+     * Adds to {@code n = {land columns, water, air}}: where the column's ground,
+     * its highest solid block past plants, leaves and logs with no fluid above,
+     * lies at or above sea level, its water and air cells from
+     * {@link #UNDER_LAND_FLOOR} up to sea level and {@link #UNDER_LAND_DEPTH}
+     * or more under the ground.
+     */
+    static void underLand(net.minecraft.world.level.Level level, int x, int z, int sea, int[] n) {
+        BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos(x, level.getHeight(Heightmap.Types.WORLD_SURFACE, x, z) - 1, z);
+        for (; pos.getY() > level.getMinY(); pos.move(net.minecraft.core.Direction.DOWN)) {
+            BlockState s = level.getBlockState(pos);
+            if (!s.getFluidState().isEmpty()) return;
+            if (s.isSolid() && !s.is(BlockTags.LEAVES) && !s.is(BlockTags.LOGS)) break;
+        }
+        int ground = pos.getY();
+        if (ground < sea) return;
+        n[0]++;
+        for (int y = UNDER_LAND_FLOOR; y <= Math.min(sea, ground - UNDER_LAND_DEPTH); y++) {
+            BlockState s = level.getBlockState(pos.setY(y));
+            if (s.getFluidState().is(FluidTags.WATER)) n[1]++;
+            else if (s.isAir()) n[2]++;
+        }
+    }
+
     /** A canyon floor point's surface and whether water covers it. */
     record Floor(int surface, boolean wet) {}
 
@@ -526,11 +557,13 @@ public final class TerrainSelfTest {
     }
 
     /**
-     * Channels at sea level through land, with the sea as the water table:
-     * no air cell open to the sky at or below the water line beside water
-     * (a hole), and no aquifer sample, one per 4 by 4 columns, that reads the
-     * surface within 8 blocks of sea level and would leave local water instead
-     * of the sea; the terrain's preliminary surface, read alone, does (T161).
+     * Channels at sea level through land, with the river as the water table
+     * near it: no air cell open to the sky at or below the water line beside
+     * water (a hole); fewer aquifer samples, one per 4 by 4 columns, reading
+     * the surface within 8 blocks of sea level, where an aquifer keeps local
+     * water instead of the sea, than the terrain's preliminary surface alone
+     * gives; and under dry land, water in at most {@link #UNDER_LAND_WATER} of
+     * the open cells near sea level, where aquifers off fill all of them (T161).
      */
     private String rivers(Measure m, Measure c) {
         double water = m.share(col -> col.water && col.surface == m.sea - 1);
@@ -540,13 +573,19 @@ public final class TerrainSelfTest {
         double controlLand = c.share(col -> col.surface >= c.sea);
         int[] dry = m.dryCells();
         int[] table = m.aboveWaterTable("terrain_rivers_default");
-        return verdict(water >= 0.01 && land >= 0.2 && floor < m.sea && dry[1] == 0 && table[1] == 0 && table[0] > 0,
+        int[] under = m.underLand();
+        double flooded = under[1] + under[2] == 0 ? 0 : under[1] / (double) (under[1] + under[2]);
+        return verdict(water >= 0.01 && land >= 0.2 && floor < m.sea && dry[1] == 0 && table[1] < table[0]
+                        && flooded <= UNDER_LAND_WATER,
                 "5x5 chunks at " + m.centre() + ": water at sea level on "
                 + pct(water) + " of columns (needs 1%; continents " + pct(controlWater) + "), land on " + pct(land)
                 + " (needs 20%; continents " + pct(controlLand) + "), lowest centre surface y " + floor
                 + " (needs below sea level " + m.sea + "; continents y " + c.centreSurface(8) + "); open cells at or below the water line "
                 + dry[0] + ", holes beside water " + dry[1] + " (want 0); aquifer samples reading the surface within 8 of sea level "
-                + table[1] + " of " + table[2] + " (want 0; the preliminary surface alone " + table[0] + ", wants more than 0)");
+                + table[1] + " of " + table[2] + " (needs fewer than the preliminary surface alone, " + table[0] + "); under "
+                + under[0] + " dry land columns, y " + UNDER_LAND_FLOOR + " to " + m.sea + " and " + UNDER_LAND_DEPTH
+                + "+ under the ground: water " + under[1] + ", air " + under[2] + ", " + pct(flooded) + " water (needs "
+                + pct(UNDER_LAND_WATER) + " or less)");
     }
 
     private String floatingIslands(Measure m, Measure c) {
@@ -1009,6 +1048,13 @@ public final class TerrainSelfTest {
                 if (random.sampleBlockValueUncached(preliminary, col.x, 0, col.z) + 8 >= sea) n[0]++;
                 if (random.sampleBlockValueUncached(aquifers, col.x, 0, col.z) + 8 >= sea) n[1]++;
             }
+            return n;
+        }
+
+        /** {@code {land columns, water, air}} of {@link #underLand(net.minecraft.world.level.Level, int, int, int, int[])} over the area. */
+        int[] underLand() {
+            int[] n = new int[3];
+            columns.forEach(col -> TerrainSelfTest.underLand(level, col.x, col.z, sea, n));
             return n;
         }
 

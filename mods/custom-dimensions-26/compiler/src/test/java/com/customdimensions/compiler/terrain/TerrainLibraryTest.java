@@ -101,19 +101,25 @@ class TerrainLibraryTest {
     }
 
     @Test
-    void riversAquifersReadTheSurfaceNineBelowSeaLevelAtMost() {
+    void riversAquifersReadTheSurfaceNineBelowSeaLevelWithinReachOfTheBanks() {
         TerrainLibrary.Compiled rivers = compile("{\"base\": \"rivers\"}");
         assertEquals("adventure:terrain/t/aquifer_surface_level",
                 rivers.settings().getAsJsonObject("aquifers").get("surface_level").getAsString());
-        assertEquals("{\"type\":\"minecraft:cache\",\"input\":{\"type\":\"minecraft:min\",\"left\":\"adventure:terrain/t/preliminary_surface_level\",\"right\":54.0}}",
-                text(rivers.files().get(P + "aquifer_surface_level.json")));
+        JsonObject surface = rivers.files().get(P + "aquifer_surface_level.json").getAsJsonObject("input");
+        assertEquals("minecraft:min", surface.get("type").getAsString());
+        assertEquals("adventure:terrain/t/preliminary_surface_level", surface.get("left").getAsString());
+        String ceiling = text(surface.get("right"));
+        assertTrue(ceiling.contains("\"noise\":\"adventure:terrain/channel\""), ceiling);
+        assertTrue(ceiling.contains("{\"derivative\":0.0,\"location\":0.0,\"value\":54.0}"), ceiling);
+        assertTrue(ceiling.contains("{\"derivative\":0.0,\"location\":0.23,\"value\":54.0}"), "banks 0.13 plus the reach 0.1: " + ceiling);
+        assertTrue(ceiling.contains("{\"derivative\":0.0,\"location\":0.24,\"value\":320.0}"), "the preliminary surface beyond: " + ceiling);
         String sea40 = text(compile(spec("{\"base\": \"rivers\"}"), "overworld", 40).files().get(P + "aquifer_surface_level.json"));
-        assertTrue(sea40.contains("\"right\":31.0"), sea40);
+        assertTrue(sea40.contains("\"value\":31.0"), sea40);
         TerrainLibrary.Compiled continents = compile("{\"base\": \"continents\"}");
         assertFalse(continents.files().containsKey(P + "aquifer_surface_level.json"));
-        TerrainLibrary.Compiled flooded = compile(spec("{\"base\": \"rivers\"}"), "floating_islands", null);
-        assertFalse(flooded.settings().has("aquifers"));
-        assertFalse(flooded.files().containsKey(P + "aquifer_surface_level.json"));
+        TerrainLibrary.Compiled noAquifers = compile(spec("{\"base\": \"rivers\"}"), "floating_islands", null);
+        assertFalse(noAquifers.settings().has("aquifers"));
+        assertFalse(noAquifers.files().containsKey(P + "aquifer_surface_level.json"));
     }
 
     @Test
