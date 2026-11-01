@@ -70,7 +70,10 @@ public final class BiomeLibrarySelfTest {
     static final List<String> MAIN_KEYS = List.of("trunk_provider", "to_place", "state", "state_provider", "ground_state", "provider", "block");
     /** Subtrees that name blocks a feature tests or replaces rather than places. */
     static final Set<String> NOT_PLACED = Set.of("placement", "predicate", "target", "can_place_on", "allowed_placement", "replaceable",
-            "below_trunk_provider", "decorators", "can_be_placed_on", "can_be_placed_in", "can_replace", "invalid_blocks");
+            "below_trunk_provider", "decorators", "can_be_placed_on", "can_be_placed_in", "can_replace", "invalid_blocks",
+            "accepted_neighbors", "allowed_search_condition", "allowed_tree_position", "can_grow_through", "cannot_place_on",
+            "cannot_replace", "continue_through", "input_predicate", "location_predicate", "muddy_roots_in", "project_through",
+            "replaceable_blocks", "root_replaceable", "target_condition", "valid_base_block", "valid_blocks");
     /** Realms whose features stand in caverns or under a roof: the nearest-spawn log reads every height, not only the surface. */
     static final Set<String> UNDERGROUND_REALMS = Set.of("caves", "nether");
     /** Keys whose subtree is what a feature grows on the blocks it lays, read before its main block for a block of its own. */
