@@ -1596,6 +1596,20 @@ A seed's map and its banked facts appear to contradict each other — the thumbn
   the same trap. Pin it against the Java, not against intuition —
   `scripts/e2e/portal-matrix-selftest.sh` is the worked example.
 
+<a id="t160"></a>
+### T160 — End light tints block colours
+
+- **Symptom:** in the End, end stone renders pink, sand pinkish and yellow sulfur orange-brown in screenshots.
+- **Cause:** the End's lighting colours every block it lights.
+- **Fix:** choose an End palette from how the blocks look in End light, not from their usual colours.
+
+<a id="t159"></a>
+### T159 — Scattered End placements at random heights land in the void
+
+- **Symptom:** a library End biome's glow lichen or spore blossoms count near 0.
+- **Cause:** `multiface_growth` and an upward `environment_scan` tried over y 0–256 rarely meet a surface on sparse islands.
+- **Fix:** start from the surface heightmap with a vertical offset, or limit the height range to the island band (about 40–120).
+
 <a id="t158"></a>
 ### T158 — No vanilla leaf reads white
 
