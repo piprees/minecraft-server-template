@@ -1596,6 +1596,27 @@ A seed's map and its banked facts appear to contradict each other — the thumbn
   the same trap. Pin it against the Java, not against intuition —
   `scripts/e2e/portal-matrix-selftest.sh` is the worked example.
 
+<a id="t156"></a>
+### T156 — Clouds cut through floating islands
+
+- **Symptom:** sky-island screenshots show a white slab through the treetops.
+- **Cause:** the overworld dimension type puts clouds at y 192.33, inside the floating islands' top layer (130–190).
+- **Fix:** a sky biome sets `minecraft:visual/cloud_height` below the islands (the library's sky biomes use 88).
+
+<a id="t155"></a>
+### T155 — An End showcase at 0,0 shows only the central island
+
+- **Symptom:** a `single_biome` End level shows one island and then void.
+- **Cause:** the central island reaches about 100 blocks from 0,0 and the outer islands start past about 1,024.
+- **Fix:** spawn the showcase on the outer islands (1408, 0) with a border that reaches them.
+
+<a id="t154"></a>
+### T154 — A surface patch on end stone or calcite places nothing
+
+- **Symptom:** a library biome's crust or vegetation-patch feature counts 0 on End or calcite ground.
+- **Cause:** `#minecraft:base_stone_overworld` holds neither end stone nor calcite, so the patch replaces nothing.
+- **Fix:** use `#minecraft:sculk_replaceable`, which holds both.
+
 <a id="t153"></a>
 ### T153 — A bare string in a block state provider field names a provider, not a block
 
