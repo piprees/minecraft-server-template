@@ -2,7 +2,7 @@
   "$schema": "../../../../../../schema/biome.schema.json",
   "realm": "overworld",
   "inspiredBy": "Regions Unexplored's ashen woodland: a birch wood the morning after a wildfire.",
-  "differs": "No vanilla forest is dead: here bare and stripped birch trunks stand over coarse dirt, gravel and podzol among fallen logs and dead bushes, under a grey haze of drifting white ash.",
+  "differs": "No vanilla forest is dead, nor burnt again and again: bare and stripped birch stand among charred coal-block trunks and generations of stubs, coal-block logs lie half sunk in coarse dirt and gravel seamed with coal, under a grey haze of drifting white ash.",
   "climate": {
     "temperature": [
       0.2,
@@ -23,7 +23,7 @@
   },
   "palette": {
     "top": "minecraft:coarse_dirt",
-    "filler": "minecraft:dirt",
+    "filler": "minecraft:gravel",
     "beaches": "minecraft:gravel"
   },
   "biome": {
@@ -190,7 +190,9 @@
         "minecraft:disk_clay",
         "minecraft:disk_gravel",
         "~ash_gravel",
-        "~ash_podzol"
+        "~ash_podzol",
+        "~charred_horizon",
+        "~coal_seams"
       ],
       [],
       [
@@ -201,6 +203,11 @@
         "minecraft:glow_lichen",
         "~burnt_birch",
         "~fallen_birch",
+        "~fallen_coal_logs",
+        "~sunk_coal_logs_east",
+        "~sunk_coal_logs_south",
+        "~charred_trunks",
+        "~charred_stubs",
         "~dead_bushes",
         "minecraft:brown_mushroom_normal"
       ],
@@ -273,6 +280,10 @@
                 }
               },
               "weight": 2
+            },
+            {
+              "data": "minecraft:coal_block",
+              "weight": 1
             }
           ]
         }
@@ -491,6 +502,417 @@
         {
           "type": "minecraft:heightmap",
           "heightmap": "WORLD_SURFACE_WG"
+        },
+        {
+          "type": "minecraft:biome"
+        }
+      ]
+    },
+    "charred_trunks": {
+      "feature": {
+        "type": "minecraft:block_column",
+        "allowed_placement": {
+          "type": "minecraft:matching_block_tag",
+          "tag": "minecraft:air"
+        },
+        "direction": "up",
+        "layers": [
+          {
+            "height": {
+              "type": "minecraft:uniform",
+              "min_inclusive": 3,
+              "max_inclusive": 6
+            },
+            "provider": {
+              "id": "minecraft:coal_block"
+            }
+          }
+        ],
+        "prioritize_tip": false
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 1
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:surface_water_depth_filter",
+          "max_water_depth": 0
+        },
+        {
+          "type": "minecraft:heightmap",
+          "heightmap": "WORLD_SURFACE_WG"
+        },
+        {
+          "type": "minecraft:biome"
+        },
+        {
+          "type": "minecraft:block_predicate_filter",
+          "predicate": {
+            "type": "minecraft:all_of",
+            "predicates": [
+              {
+                "type": "minecraft:matching_block_tag",
+                "tag": "minecraft:air"
+              },
+              {
+                "type": "minecraft:matching_blocks",
+                "offset": [
+                  0,
+                  -1,
+                  0
+                ],
+                "blocks": [
+                  "minecraft:coarse_dirt",
+                  "minecraft:gravel",
+                  "minecraft:podzol",
+                  "minecraft:dirt"
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "charred_stubs": {
+      "feature": {
+        "type": "minecraft:block_column",
+        "allowed_placement": {
+          "type": "minecraft:matching_block_tag",
+          "tag": "minecraft:air"
+        },
+        "direction": "up",
+        "layers": [
+          {
+            "height": {
+              "type": "minecraft:uniform",
+              "min_inclusive": 1,
+              "max_inclusive": 2
+            },
+            "provider": {
+              "id": "minecraft:coal_block"
+            }
+          }
+        ],
+        "prioritize_tip": false
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 4
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:surface_water_depth_filter",
+          "max_water_depth": 0
+        },
+        {
+          "type": "minecraft:heightmap",
+          "heightmap": "WORLD_SURFACE_WG"
+        },
+        {
+          "type": "minecraft:biome"
+        },
+        {
+          "type": "minecraft:block_predicate_filter",
+          "predicate": {
+            "type": "minecraft:all_of",
+            "predicates": [
+              {
+                "type": "minecraft:matching_block_tag",
+                "tag": "minecraft:air"
+              },
+              {
+                "type": "minecraft:matching_blocks",
+                "offset": [
+                  0,
+                  -1,
+                  0
+                ],
+                "blocks": [
+                  "minecraft:coarse_dirt",
+                  "minecraft:gravel",
+                  "minecraft:podzol",
+                  "minecraft:dirt"
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "fallen_coal_logs": {
+      "feature": {
+        "type": "minecraft:fallen_tree",
+        "log_decorators": [],
+        "log_length": {
+          "type": "minecraft:uniform",
+          "min_inclusive": 3,
+          "max_inclusive": 6
+        },
+        "stump_decorators": [],
+        "trunk_provider": {
+          "id": "minecraft:coal_block"
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 1
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:surface_water_depth_filter",
+          "max_water_depth": 0
+        },
+        {
+          "type": "minecraft:heightmap",
+          "heightmap": "OCEAN_FLOOR"
+        },
+        {
+          "type": "minecraft:biome"
+        },
+        {
+          "type": "minecraft:block_predicate_filter",
+          "predicate": {
+            "type": "minecraft:matching_blocks",
+            "offset": [
+              0,
+              -1,
+              0
+            ],
+            "blocks": [
+              "minecraft:coarse_dirt",
+              "minecraft:gravel",
+              "minecraft:podzol",
+              "minecraft:dirt"
+            ]
+          }
+        }
+      ]
+    },
+    "sunk_coal_logs_east": {
+      "feature": {
+        "type": "minecraft:block_column",
+        "allowed_placement": {
+          "type": "minecraft:any_of",
+          "predicates": [
+            {
+              "type": "minecraft:matching_block_tag",
+              "tag": "minecraft:air"
+            },
+            {
+              "type": "minecraft:matching_blocks",
+              "blocks": [
+                "minecraft:coarse_dirt",
+                "minecraft:gravel",
+                "minecraft:podzol",
+                "minecraft:dirt"
+              ]
+            }
+          ]
+        },
+        "direction": "east",
+        "layers": [
+          {
+            "height": {
+              "type": "minecraft:uniform",
+              "min_inclusive": 3,
+              "max_inclusive": 7
+            },
+            "provider": {
+              "id": "minecraft:coal_block"
+            }
+          }
+        ],
+        "prioritize_tip": false
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 1
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:surface_water_depth_filter",
+          "max_water_depth": 0
+        },
+        {
+          "type": "minecraft:heightmap",
+          "heightmap": "WORLD_SURFACE_WG"
+        },
+        {
+          "type": "minecraft:biome"
+        },
+        {
+          "type": "minecraft:offset",
+          "x": 0,
+          "y": -1,
+          "z": 0
+        }
+      ]
+    },
+    "sunk_coal_logs_south": {
+      "feature": {
+        "type": "minecraft:block_column",
+        "allowed_placement": {
+          "type": "minecraft:any_of",
+          "predicates": [
+            {
+              "type": "minecraft:matching_block_tag",
+              "tag": "minecraft:air"
+            },
+            {
+              "type": "minecraft:matching_blocks",
+              "blocks": [
+                "minecraft:coarse_dirt",
+                "minecraft:gravel",
+                "minecraft:podzol",
+                "minecraft:dirt"
+              ]
+            }
+          ]
+        },
+        "direction": "south",
+        "layers": [
+          {
+            "height": {
+              "type": "minecraft:uniform",
+              "min_inclusive": 3,
+              "max_inclusive": 7
+            },
+            "provider": {
+              "id": "minecraft:coal_block"
+            }
+          }
+        ],
+        "prioritize_tip": false
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 1
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:surface_water_depth_filter",
+          "max_water_depth": 0
+        },
+        {
+          "type": "minecraft:heightmap",
+          "heightmap": "WORLD_SURFACE_WG"
+        },
+        {
+          "type": "minecraft:biome"
+        },
+        {
+          "type": "minecraft:offset",
+          "x": 0,
+          "y": -1,
+          "z": 0
+        }
+      ]
+    },
+    "charred_horizon": {
+      "feature": {
+        "type": "minecraft:disk",
+        "half_height": 0,
+        "radius": {
+          "type": "minecraft:uniform",
+          "min_inclusive": 2,
+          "max_inclusive": 5
+        },
+        "state_provider": {
+          "id": "minecraft:coal_block"
+        },
+        "target": {
+          "type": "minecraft:matching_blocks",
+          "blocks": [
+            "minecraft:gravel"
+          ]
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 2
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:heightmap",
+          "heightmap": "WORLD_SURFACE_WG"
+        },
+        {
+          "type": "minecraft:offset",
+          "x": 0,
+          "y": {
+            "type": "minecraft:uniform",
+            "min_inclusive": -3,
+            "max_inclusive": -2
+          },
+          "z": 0
+        },
+        {
+          "type": "minecraft:biome"
+        }
+      ]
+    },
+    "coal_seams": {
+      "feature": {
+        "type": "minecraft:ore",
+        "discard_chance_on_air_exposure": 0.0,
+        "size": 14,
+        "targets": [
+          {
+            "state": "minecraft:coal_block",
+            "target": {
+              "predicate_type": "minecraft:block_match",
+              "block": "minecraft:gravel"
+            }
+          },
+          {
+            "state": "minecraft:coal_ore",
+            "target": {
+              "predicate_type": "minecraft:tag_match",
+              "tag": "minecraft:stone_ore_replaceables"
+            }
+          }
+        ]
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 6
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:heightmap",
+          "heightmap": "WORLD_SURFACE_WG"
+        },
+        {
+          "type": "minecraft:offset",
+          "x": 0,
+          "y": {
+            "type": "minecraft:uniform",
+            "min_inclusive": -5,
+            "max_inclusive": -1
+          },
+          "z": 0
         },
         {
           "type": "minecraft:biome"

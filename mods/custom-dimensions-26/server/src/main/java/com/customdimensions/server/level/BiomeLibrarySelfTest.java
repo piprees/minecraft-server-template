@@ -22,6 +22,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.dedicated.DedicatedServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.BlockTags;
+import net.minecraft.tags.FluidTags;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.biome.BiomeGenerationSettings;
@@ -60,7 +61,10 @@ import java.util.function.Function;
  * of every column, its palette's top block tops at least half the land columns
  * where the palette has one (under a roof, the floor of the highest open
  * space), and each of its own features left a block only it, or only it and
- * the siblings named, places ({@link #ownBlock}). Each line carries its counts.
+ * the siblings named, places ({@link #ownBlock}); the ashen woodland's line also
+ * counts its coal on and in the ground ({@link #ashenCoal}), and the cypress
+ * wetland's its lily pads and pool water ({@link #cypressWater}). Each line
+ * carries its counts.
  */
 public final class BiomeLibrarySelfTest {
 
@@ -91,12 +95,15 @@ public final class BiomeLibrarySelfTest {
             "minecraft:monster_room", List.of("minecraft:cobblestone", "minecraft:mossy_cobblestone", "minecraft:spawner", "minecraft:chest"));
     static final String ASHEN = "ashen_woodland";
     static final String CRYSTAL = "crystal_hollows";
+    static final String CYPRESS = "cypress_wetland";
     static final int LOAD_CAP_TICKS = 6000;
     /** Share of ashen land columns topped with the palette's top block; gravel and podzol disks take most of the rest. */
     static final double TOP_SHARE = 0.5;
-    /** Share topped with any of its ground blocks: the palette's, the disks' and the dirt trunks stand on. */
+    /** Share topped with any of its ground blocks: the palette's, the disks', the dirt trunks stand on and its coal. */
     static final double GROUND_SHARE = 0.9;
-    static final List<Block> GROUND = List.of(Blocks.COARSE_DIRT, Blocks.GRAVEL, Blocks.PODZOL, Blocks.DIRT);
+    static final List<Block> GROUND = List.of(Blocks.COARSE_DIRT, Blocks.GRAVEL, Blocks.PODZOL, Blocks.DIRT, Blocks.COAL_BLOCK);
+    /** How deep under the ashen ground its coal seams and charred horizons are counted. */
+    static final int SEAM_DEPTH = 6;
     static final List<Block> CRYSTALS = List.of(Blocks.AMETHYST_CLUSTER, Blocks.LARGE_AMETHYST_BUD,
             Blocks.MEDIUM_AMETHYST_BUD, Blocks.SMALL_AMETHYST_BUD);
 
@@ -408,7 +415,82 @@ public final class BiomeLibrarySelfTest {
             parts.add(feature + " " + Identifier.parse(own.block()).getPath() + (own.with().isEmpty() ? "" : " (with " + String.join(", ", own.with()) + ")") + " " + n);
         });
         text += "; features (a block only it, or it and the siblings named, places; count over the columns): " + String.join(", ", parts);
+        if (id.equals(ASHEN)) text += "; " + ashenCoal(chunks, failures);
+        if (id.equals(CYPRESS)) text += "; " + cypressWater(chunks, failures);
         return failures.isEmpty() ? "PASS " + text : "FAIL " + text + "; failed: " + String.join(", ", failures);
+    }
+
+    /**
+     * Coal blocks on or above the ashen ground (its charred trunks, stubs and coal logs), and coal
+     * blocks and coal ore in the {@link #SEAM_DEPTH} blocks under it (its seams and charred horizons).
+     * The ground is a column's highest block of its ground other than coal.
+     */
+    private String ashenCoal(List<LevelChunk> chunks, List<String> failures) {
+        long[] n = new long[3];
+        forColumns(chunks, (chunk, x, z, biome) -> {
+            BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos(chunk.getPos().getMinBlockX() + x, 0, chunk.getPos().getMinBlockZ() + z);
+            int y = chunk.getHeight(Heightmap.Types.WORLD_SURFACE, x, z);
+            for (; y > chunk.getMinY(); y--) {
+                BlockState s = chunk.getBlockState(pos.setY(y));
+                if (s.is(Blocks.COAL_BLOCK)) n[0]++;
+                else if (GROUND.stream().anyMatch(s::is) || s.is(Blocks.STONE)) break;
+            }
+            for (int d = 1; d <= SEAM_DEPTH; d++) {
+                BlockState s = chunk.getBlockState(pos.setY(y - d));
+                if (s.is(Blocks.COAL_BLOCK)) n[1]++;
+                else if (s.is(Blocks.COAL_ORE)) n[2]++;
+            }
+        });
+        if (n[0] == 0) failures.add("coal on the ground");
+        if (n[1] == 0) failures.add("coal in the ground");
+        return "coal blocks on or above the ground " + n[0] + ", in the " + SEAM_DEPTH + " blocks under it coal blocks " + n[1]
+                + " and coal ore " + n[2] + " (want coal blocks in both)";
+    }
+
+    /**
+     * The cypress wetland's water: lily pads with no water under them (want none); pool cells, the
+     * top water of a column, with a side open to neither water nor a solid block (holes it spills
+     * through); solid ground cells at a pool's level with water on all four sides (islets); and the
+     * share of pool columns whose water has no hole and runs unbroken down to a solid floor.
+     */
+    private String cypressWater(List<LevelChunk> chunks, List<String> failures) {
+        long[] n = new long[6];
+        forColumns(chunks, (chunk, x, z, biome) -> {
+            var level = chunk.getLevel();
+            BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos(chunk.getPos().getMinBlockX() + x, 0, chunk.getPos().getMinBlockZ() + z);
+            int y = chunk.getHeight(Heightmap.Types.WORLD_SURFACE, x, z);
+            BlockState s = Blocks.AIR.defaultBlockState();
+            for (; y > chunk.getMinY(); y--) {
+                s = chunk.getBlockState(pos.setY(y));
+                if (s.is(Blocks.LILY_PAD)) {
+                    n[0]++;
+                    if (!chunk.getBlockState(pos.below()).getFluidState().is(FluidTags.WATER)) n[1]++;
+                    continue;
+                }
+                if (s.isAir() || s.is(BlockTags.LEAVES) || s.is(BlockTags.LOGS) || s.getFluidState().isEmpty() && !s.isSolid()) continue;
+                break;
+            }
+            if (!s.getFluidState().is(FluidTags.WATER)) {
+                if (!s.isSolid()) return;
+                for (Direction d : Direction.Plane.HORIZONTAL) {
+                    if (!level.getBlockState(pos.relative(d)).getFluidState().is(FluidTags.WATER)) return;
+                }
+                n[4]++;
+                return;
+            }
+            n[2]++;
+            boolean hole = false;
+            for (Direction d : Direction.Plane.HORIZONTAL) {
+                BlockState side = level.getBlockState(pos.relative(d));
+                if (!side.getFluidState().is(FluidTags.WATER) && !side.isSolid()) hole = true;
+            }
+            if (hole) n[3]++;
+            while (chunk.getBlockState(pos).getFluidState().is(FluidTags.WATER)) pos.move(Direction.DOWN);
+            if (!hole && chunk.getBlockState(pos).isSolid()) n[5]++;
+        });
+        if (n[1] > 0) failures.add("lily pads off water");
+        return "lily pads " + n[0] + ", with no water under them " + n[1] + " (want 0); pool columns " + n[2] + ", holes " + n[3]
+                + ", islets " + n[4] + ", unbroken " + n[5] + " (" + pct(share(n[5], n[2])) + ")";
     }
 
     /**

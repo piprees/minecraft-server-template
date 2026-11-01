@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "description": "Self-test fixture and showcase: the biome library's cypress wetland filling a whole level on overworld terrain, for the biomes section's per-biome checks, renders and screenshots.",
+  "description": "Self-test fixture and showcase: the biome library's cypress wetland filling a whole level on flat basin terrain just above sea level, the ground its flat, wet climate gives it, for the biomes section's per-biome checks, renders and screenshots.",
   "seed": 5,
   "spawn": [
     0,
@@ -10,6 +10,17 @@
   "generator": {
     "type": "single_biome",
     "biome": "adventure:cypress_wetland"
+  },
+  "terrain": {
+    "base": "erosion",
+    "params": {
+      "basinShare": 0.9,
+      "hillHeight": 4,
+      "steepness": 0,
+      "landHeight": 64,
+      "roughness": 0,
+      "relief": 0
+    }
   },
   "borders": {
     "player": 512
