@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 2,
+  "description": "Self-test fixture and showcase: the biome library's alpine scree filling a whole level on the ridges terrain's high, steep ranges, the mountain slopes its scree lies on, for the biomes section's per-biome checks, renders and screenshots.",
+  "seed": 8,
+  "spawn": [
+    0,
+    64,
+    0
+  ],
+  "generator": {
+    "type": "single_biome",
+    "biome": "adventure:alpine_scree"
+  },
+  "terrain": {
+    "base": "ridges",
+    "params": {
+      "peakHeight": 150,
+      "jaggedness": 0.7,
+      "rangeWidth": 0.55
+    }
+  },
+  "borders": {
+    "player": 512
+  }
+}

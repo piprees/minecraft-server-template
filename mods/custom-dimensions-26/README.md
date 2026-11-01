@@ -110,11 +110,24 @@ on generated chunks.
 | `tropical_shores` | overworld | Sand over sandstone, leaning jungle-log palms with cocoa, melons, parrots, coral and sea pickles in turquoise water |
 | `parched_forest` | overworld | Small olive-yellow oaks and bare snags on yellowed grass, coarse dirt and packed mud, packed-mud termite mounds, bushes, dry grass |
 | `aspen_forest` | overworld | Dense tall birch trunks under narrow gold crowns, ferns, golden leaf litter, drifting yellow leaves |
+| `desert_oasis` | overworld | Grass-ringed turquoise pools on level ground in sand over sandstone, sand and mud rims, palms on the grass, sugar cane, lily pads on the water, ferns, cactus, camels |
+| `dry_steppe` | overworld | Short pale-olive turf with gravel and coarse dirt scars, short and tall dry grass, lone bushes, andesite stones, horses |
+| `barley_fields` | overworld | Drifts of ripe wheat on dry farmland under gold grass, hay bales, poppies, lone fancy oaks |
+| `wisteria_grove` | overworld | Oaks with purple crowns and long purple vine curtains, moss, lilacs, alliums, drifting petals |
+| `magnolia_woodland` | overworld | Short cherry-trunked trees in white (pale oak leaves flecked with cherry) and pink blossom, pink petals, lily of the valley, pale fog |
+| `carnation_fields` | overworld | Open drifts of poppies, red and pink tulips, peonies and rose bushes, low oaks with bee nests |
+| `alpine_scree` | overworld | Gravel slopes over andesite, gravel and cobblestone fans, tuff boulders, grass tufts, goats |
+| `alpine_meadow` | overworld | Steep turf with stone cliffs, blue orchids, cornflowers and alliums among andesite boulders, low spruces, snow patches from about y 140 |
+| `cloud_forest` | overworld | Vine-hung, moss-topped jungle trees and giants, moss and mud floors, ferns, big dripleaf, parrots, close white mist, rain |
+| `orchid_marsh` | overworld | Treeless clay-bottomed pools on level ground, sugar cane reeds, blue orchids, lily pads on the water, frogs |
+| `muddy_river` | overworld | Brown water over clay and mud beds, mud banks, packed mud and mangrove roots at the edge, reeds |
 | `crystal_hollows` | caves | Calcite and smooth basalt walls, open geodes in every chunk, budding amethyst seams, cluster-covered floor and ceiling patches, glow lichen, purple motes and amethyst chimes |
 | `lichen_caves` | caves | Tuff ceilings and walls, moss and mossy cobblestone floors, hanging roots, dripleaf pools, dense glow lichen, grey-green fog |
 | `bioshroom_caves` | caves | Giant mushrooms with shroomlight and froglight-speckled caps on mycelium and mud, small mushrooms, spores in blue-green fog |
 | `magmatic_caves` | caves | Basalt ceilings, blackstone and basalt walls, magma floors, obsidian-rimmed lava pools, lava falls, smoke and embers in red fog |
 | `cinnabar_veins` | caves | Cinnabar ceilings and walls over tuff, polished cinnabar columns, resin clumps, extra redstone ore, red motes |
+| `mineral_strata` | caves | Walls banded in five-block layers of granite, diorite, andesite, tuff and calcite, ore seams, granite and diorite boulders, glow lichen, white dust |
+| `buried_dunes` | caves | Sandstone roofs and walls, sand drifts with dead bushes, cut-sandstone pillars, husks, falling sand dust |
 | `nether_grasslands` | nether | Netherrack plains under crimson and warped nylium patches, sprouts, roots, small fungi, glowstone mounds, orange haze |
 | `magma_land` | nether | Magma floors cracked with netherrack, obsidian-rimmed lava pools, fire, heavy red haze |
 | `gravel_desert` | nether | Gravel floors, buried and standing bone blocks, dead bushes in coarse dirt hollows, skeletons, pale dust |
@@ -232,10 +245,11 @@ and some of its sibling features place is counted for them together; a feature
 with neither is named in the line as placing no block of its own and is not
 counted. The ashen woodland's line also counts its coal blocks on or above
 the ground and its coal blocks and coal ore in the six blocks under it (both
-must be there), and the cypress wetland's its lily pads with no water under
-them (must be none), its pool cells open on a side to neither water nor a
-solid block, its dirt, grass, mud or clay cells with water on all four sides,
-and the share of pool columns whose water runs unbroken to a solid floor.
+must be there), and each water biome's (cypress wetland, desert oasis, orchid
+marsh, muddy river) its lily pads with no water under them (must be none), its
+pool cells open on a side to neither water nor a solid block (must be none,
+with some pool water), its dirt, grass, mud or clay cells with water on all
+four sides, and the share of pool columns whose water runs unbroken to a solid floor.
 One line per biome carries the counts, and the
 server log names the standing column of each counted block nearest spawn (at any
 height for a cave or Nether biome, else on the surface).

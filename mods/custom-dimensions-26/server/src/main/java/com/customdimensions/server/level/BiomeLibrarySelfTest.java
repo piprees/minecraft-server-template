@@ -62,8 +62,8 @@ import java.util.function.Function;
  * where the palette has one (under a roof, the floor of the highest open
  * space), and each of its own features left a block only it, or only it and
  * the siblings named, places ({@link #ownBlock}); the ashen woodland's line also
- * counts its coal on and in the ground ({@link #ashenCoal}), and the cypress
- * wetland's its lily pads and pool water ({@link #cypressWater}). Each line
+ * counts its coal on and in the ground ({@link #ashenCoal}), and each water
+ * biome's ({@link #WATER}) its lily pads and pool water ({@link #poolWater}). Each line
  * carries its counts.
  */
 public final class BiomeLibrarySelfTest {
@@ -95,7 +95,8 @@ public final class BiomeLibrarySelfTest {
             "minecraft:monster_room", List.of("minecraft:cobblestone", "minecraft:mossy_cobblestone", "minecraft:spawner", "minecraft:chest"));
     static final String ASHEN = "ashen_woodland";
     static final String CRYSTAL = "crystal_hollows";
-    static final String CYPRESS = "cypress_wetland";
+    /** Biomes whose pools, marsh water or river channel must hold unbroken water, with lily pads only on it. */
+    static final Set<String> WATER = Set.of("cypress_wetland", "desert_oasis", "orchid_marsh", "muddy_river");
     static final int LOAD_CAP_TICKS = 6000;
     /** Share of ashen land columns topped with the palette's top block; gravel and podzol disks take most of the rest. */
     static final double TOP_SHARE = 0.5;
@@ -416,7 +417,7 @@ public final class BiomeLibrarySelfTest {
         });
         text += "; features (a block only it, or it and the siblings named, places; count over the columns): " + String.join(", ", parts);
         if (id.equals(ASHEN)) text += "; " + ashenCoal(chunks, failures);
-        if (id.equals(CYPRESS)) text += "; " + cypressWater(chunks, failures);
+        if (WATER.contains(id)) text += "; " + poolWater(chunks, failures);
         return failures.isEmpty() ? "PASS " + text : "FAIL " + text + "; failed: " + String.join(", ", failures);
     }
 
@@ -448,12 +449,12 @@ public final class BiomeLibrarySelfTest {
     }
 
     /**
-     * The cypress wetland's water: lily pads with no water under them (want none); pool cells, the
-     * top water of a column, with a side open to neither water nor a solid block (holes it spills
-     * through); dirt, grass, mud or clay at a pool's level with water on all four sides (islets); and the
+     * A water biome's water: lily pads with no water under them (want none); pool cells, the top
+     * water of a column, with a side open to neither water nor a solid block (holes it spills
+     * through, want none); dirt, grass, mud or clay at a pool's level with water on all four sides (islets); and the
      * share of pool columns whose water has no hole and runs unbroken down to a solid floor.
      */
-    private String cypressWater(List<LevelChunk> chunks, List<String> failures) {
+    private String poolWater(List<LevelChunk> chunks, List<String> failures) {
         long[] n = new long[6];
         forColumns(chunks, (chunk, x, z, biome) -> {
             var level = chunk.getLevel();
@@ -489,7 +490,9 @@ public final class BiomeLibrarySelfTest {
             if (!hole && chunk.getBlockState(pos).isSolid()) n[5]++;
         });
         if (n[1] > 0) failures.add("lily pads off water");
-        return "lily pads " + n[0] + ", with no water under them " + n[1] + " (want 0); pool columns " + n[2] + ", holes " + n[3]
+        if (n[2] == 0) failures.add("no pool water");
+        if (n[3] > 0) failures.add("holes");
+        return "lily pads " + n[0] + ", with no water under them " + n[1] + " (want 0); pool columns " + n[2] + ", holes " + n[3] + " (want 0)"
                 + ", islets " + n[4] + ", unbroken " + n[5] + " (" + pct(share(n[5], n[2])) + ")";
     }
 
