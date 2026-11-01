@@ -1596,6 +1596,20 @@ A seed's map and its banked facts appear to contradict each other — the thumbn
   the same trap. Pin it against the Java, not against intuition —
   `scripts/e2e/portal-matrix-selftest.sh` is the worked example.
 
+<a id="t158"></a>
+### T158 — No vanilla leaf reads white
+
+- **Symptom:** a library biome's "white" crowns render mid-grey.
+- **Cause:** a near-white `foliage_color` darkens tinted oak leaves to grey; no untinted leaf block is white.
+- **Fix:** use pale oak leaves, the palest leaf, and expect pale grey-green.
+
+<a id="t157"></a>
+### T157 — A `vegetation_patch` with farmland ground places almost nothing
+
+- **Symptom:** a crop biome shows a handful of farmland and wheat blocks (10 and 9 over 96×96 columns).
+- **Cause:** not established; wheat survives only on farmland (`supports_crops`) and `simple_block` also checks light.
+- **Fix:** lay farmland with a `disk`, then place wheat as a `block_column` patch filtered to farmland.
+
 <a id="t156"></a>
 ### T156 — Clouds cut through floating islands
 
@@ -3275,6 +3289,14 @@ The rendered height disagrees with the facts on high-relief columns. The error i
   takes about five seconds to make one.
 - **Narrow is not empty, and small is not a defect.** The target is that no
   listed biome is ignored, never that shares are equal.
+
+<a id="k16"></a>
+
+### K16 — A `rivers` terrain channel can run dry beside a wet one
+
+- **Symptom:** in a level on the library's `rivers` terrain, a stretch of channel is air at y 61–63 next to water at y 62.
+- **Cause:** not established; the aquifer may decide those cells because the preliminary surface level does not follow the channel cut. Removing the canyon carver does not change it.
+- **Status:** open; the muddy_river showcase sets `liquids.aquifers: off` to show the biome.
 
 <a id="k12"></a>
 
