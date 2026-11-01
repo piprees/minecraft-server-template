@@ -133,10 +133,18 @@ on generated chunks.
 | `gravel_desert` | nether | Gravel floors, buried and standing bone blocks, dead bushes in coarse dirt hollows, skeletons, pale dust |
 | `upside_down_forest` | nether | Nether wart canopy on every roof, hanging crimson stems tipped with shroomlight, weeping-vine curtains, falling spores |
 | `blackstone_basin` | nether | Blackstone throughout, polished blackstone terraces, gilded seams, blackstone column clusters, lava lakes, black smoke |
+| `ash_barrens` | nether | Tuff over smooth basalt, tuff and soul soil heaps, basalt stumps, lying and buried bone, thick white ash, grey fog |
+| `withered_forest` | nether | Capless stripped crimson and warped stems on soul soil, fallen stems, wither roses, soul fire, blue-grey fog |
+| `quartz_flats` | nether | Quartz-paved plains, quartz ore seams, glowstone-capped quartz pillars, loose quartz slabs, roof glowstone, pale fog |
+| `crimson_pinewood` | nether | Tall crimson stems under tiered, pointed wart crowns with shroomlights, roots and small fungi, crimson spores |
 | `chorus_forest` | end | Branching chorus close enough to be a forest, tall chorus stalks tipped with end rods, budding chorus flowers, purple fog and portal sparks |
 | `dust_wastelands` | end | Sand over sandstone heaped into dunes, half-buried end stone boulders, dead bushes and dry grass, yellow-grey dust haze |
-| `amber_land` | end | Resin and resin-brick crusts on end stone, resin spires, resin clumps, ochre froglights, warm orange fog |
-| `crystal_mountains` | end | Calcite-capped islands, calcite spires, amethyst crusts with open clusters and buds, cold white fog, chimes |
+| `umbral_wastes` | end | Blackstone islands, obsidian spikes, crying obsidian seeps, soul fire on soul soil, drifting ash |
+| `foggy_mushroomland` | end | Mycelium and moss, giant mushrooms capped with moss and pearlescent froglights, spore blossoms under the caps, mooshrooms, close fog |
+| `glowing_grasslands` | end | Moss meadows over end stone, moss carpets, small dripleaf, verdant froglight clusters, glow lichen |
+| `sulphur_springs` | end | Water pools ringed with sulfur over wet potent sulfur and magma beds, sulfur crusts and spiked vents, steam |
+| `lantern_woods` | end | Pale oaks on pale moss hung with soul lanterns and pale moss, pale moss carpets, soul motes |
+| `megalake` | end | Broad shallow lakes on level ground, clay and sand beds with sea pickles, sand shores, deep blue water |
 | `sky_highlands` | sky | Pale grass over calcite cliffs, quartz outcrops, small round pale oaks, white and pale-blue flowers, sheep, white sky |
 | `golden_skygrove` | sky | Gold-tinted round oaks with bee nests and gold poplars on golden grass and podzol, leaf litter, golden dandelions, drifting gold leaves, gold light |
 | `windswept_isles` | sky | Bare stone with calcite cliffs, wind-bent spruces, cobblestone boulders, deep drifts of loose snow, snowflakes and wind |
@@ -246,7 +254,7 @@ with neither is named in the line as placing no block of its own and is not
 counted. The ashen woodland's line also counts its coal blocks on or above
 the ground and its coal blocks and coal ore in the six blocks under it (both
 must be there), and each water biome's (cypress wetland, desert oasis, orchid
-marsh, muddy river) its lily pads with no water under them (must be none), its
+marsh, muddy river, megalake, sulphur springs) its lily pads with no water under them (must be none), its
 pool cells open on a side to neither water nor a solid block (must be none,
 with some pool water), its dirt, grass, mud or clay cells with water on all
 four sides, and the share of pool columns whose water runs unbroken to a solid floor.

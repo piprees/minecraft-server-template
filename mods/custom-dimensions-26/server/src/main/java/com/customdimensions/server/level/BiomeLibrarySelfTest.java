@@ -96,7 +96,7 @@ public final class BiomeLibrarySelfTest {
     static final String ASHEN = "ashen_woodland";
     static final String CRYSTAL = "crystal_hollows";
     /** Biomes whose pools, marsh water or river channel must hold unbroken water, with lily pads only on it. */
-    static final Set<String> WATER = Set.of("cypress_wetland", "desert_oasis", "orchid_marsh", "muddy_river");
+    static final Set<String> WATER = Set.of("cypress_wetland", "desert_oasis", "orchid_marsh", "muddy_river", "megalake", "sulphur_springs");
     static final int LOAD_CAP_TICKS = 6000;
     /** Share of ashen land columns topped with the palette's top block; gravel and podzol disks take most of the rest. */
     static final double TOP_SHARE = 0.5;

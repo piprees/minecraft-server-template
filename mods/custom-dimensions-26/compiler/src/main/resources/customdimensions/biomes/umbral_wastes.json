@@ -1,25 +1,30 @@
 {
   "$schema": "../../../../../../schema/biome.schema.json",
   "realm": "end",
-  "inspiredBy": "BetterEnd's crystal mountains: white peaks on the outer islands, crusted with crystal.",
-  "differs": "The only bright End biome: calcite caps the islands in white, calcite spires rise from them, amethyst crusts break through the white with clusters and buds growing in the open, and a cold white fog rings with amethyst chimes.",
+  "inspiredBy": "BetterEnd's shadow forest, for its darkness.",
+  "differs": "The only dark End biome, dark in its blocks since the End's sky ignores fog: black islands of blackstone where every other End biome is pale end stone, obsidian spikes standing over them, seeps of crying obsidian weeping purple tears, soul fire burning blue on patches of soul soil, and dark ash drifting in the air.",
   "climate": {
     "temperature": [
+      -1.0,
+      -0.4
+    ],
+    "humidity": [
       -1.0,
       -0.3
     ]
   },
   "palette": {
-    "top": "minecraft:calcite",
-    "filler": "minecraft:calcite"
+    "top": "minecraft:blackstone",
+    "filler": "minecraft:blackstone"
   },
   "biome": {
     "attributes": {
       "minecraft:audio/ambient_sounds": {
         "additions": {
-          "sound": "minecraft:block.amethyst_block.chime",
-          "tick_chance": 0.015
+          "sound": "minecraft:block.respawn_anchor.ambient",
+          "tick_chance": 0.004
         },
+        "loop": "minecraft:ambient.soul_sand_valley.loop",
         "mood": {
           "block_search_extent": 8,
           "offset": 2.0,
@@ -54,20 +59,26 @@
         "argument": [
           {
             "particle": {
-              "type": "minecraft:end_rod"
+              "type": "minecraft:ash"
             },
-            "probability": 0.004
+            "probability": 0.04
+          },
+          {
+            "particle": {
+              "type": "minecraft:smoke"
+            },
+            "probability": 0.002
           }
         ],
         "modifier": "append"
       },
-      "minecraft:visual/fog_color": "#d8dde6",
-      "minecraft:visual/sky_color": "#aab2c2"
+      "minecraft:visual/fog_color": "#141018",
+      "minecraft:visual/sky_color": "#08060a"
     },
     "carvers": [],
     "downfall": 0.5,
     "effects": {
-      "water_color": "#c8d8f0"
+      "water_color": "#3a2a4a"
     },
     "features": [
       [],
@@ -76,28 +87,29 @@
       [],
       [
         "minecraft:end_gateway_return",
-        "~calcite_spires"
+        "~obsidian_spikes"
       ],
       [],
       [],
       [],
       [],
       [
-        "~amethyst_crusts"
+        "~crying_seeps",
+        "~soul_fires"
       ],
       []
     ],
     "has_precipitation": false,
-    "temperature": 0.0
+    "temperature": 0.5
   },
   "features": {
-    "calcite_spires": {
+    "obsidian_spikes": {
       "feature": {
         "type": "minecraft:spike",
         "can_place_on": {
           "type": "minecraft:matching_blocks",
           "blocks": [
-            "minecraft:calcite",
+            "minecraft:blackstone",
             "minecraft:end_stone"
           ]
         },
@@ -105,9 +117,7 @@
           "type": "minecraft:matching_block_tag",
           "tag": "minecraft:air"
         },
-        "state": {
-          "id": "minecraft:calcite"
-        }
+        "state": "minecraft:obsidian"
       },
       "placement": [
         {
@@ -130,73 +140,60 @@
         }
       ]
     },
-    "amethyst_crusts": {
+    "crying_seeps": {
       "feature": {
-        "type": "minecraft:vegetation_patch",
-        "depth": {
+        "type": "minecraft:disk",
+        "half_height": 1,
+        "radius": {
           "type": "minecraft:uniform",
-          "max_inclusive": 2,
+          "max_inclusive": 3,
           "min_inclusive": 1
         },
+        "state_provider": {
+          "id": "minecraft:crying_obsidian"
+        },
+        "target": {
+          "type": "minecraft:matching_blocks",
+          "blocks": [
+            "minecraft:blackstone",
+            "minecraft:end_stone"
+          ]
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 3
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:heightmap",
+          "heightmap": "WORLD_SURFACE_WG"
+        },
+        {
+          "type": "minecraft:biome"
+        }
+      ]
+    },
+    "soul_fires": {
+      "feature": {
+        "type": "minecraft:vegetation_patch",
+        "depth": 1,
         "extra_bottom_block_chance": 0.0,
         "extra_edge_column_chance": 0.3,
         "ground_state": {
-          "type": "minecraft:weighted",
-          "entries": [
-            {
-              "data": {
-                "id": "minecraft:amethyst_block"
-              },
-              "weight": 3
-            },
-            {
-              "data": {
-                "id": "minecraft:budding_amethyst"
-              },
-              "weight": 1
-            }
-          ]
+          "id": "minecraft:soul_soil"
         },
         "replaceable": "#minecraft:sculk_replaceable",
         "surface": "floor",
-        "vegetation_chance": 0.5,
+        "vegetation_chance": 0.6,
         "vegetation_feature": {
           "feature": {
             "type": "minecraft:simple_block",
             "to_place": {
-              "type": "minecraft:weighted",
-              "entries": [
-                {
-                  "data": {
-                    "id": "minecraft:amethyst_cluster",
-                    "properties": {
-                      "facing": "up",
-                      "waterlogged": "false"
-                    }
-                  },
-                  "weight": 4
-                },
-                {
-                  "data": {
-                    "id": "minecraft:large_amethyst_bud",
-                    "properties": {
-                      "facing": "up",
-                      "waterlogged": "false"
-                    }
-                  },
-                  "weight": 2
-                },
-                {
-                  "data": {
-                    "id": "minecraft:medium_amethyst_bud",
-                    "properties": {
-                      "facing": "up",
-                      "waterlogged": "false"
-                    }
-                  },
-                  "weight": 1
-                }
-              ]
+              "id": "minecraft:soul_fire"
             }
           },
           "placement": []
@@ -204,8 +201,8 @@
         "vertical_range": 5,
         "xz_radius": {
           "type": "minecraft:uniform",
-          "max_inclusive": 4,
-          "min_inclusive": 2
+          "max_inclusive": 2,
+          "min_inclusive": 1
         }
       },
       "placement": [
@@ -228,8 +225,7 @@
           "predicate": {
             "type": "minecraft:matching_blocks",
             "blocks": [
-              "minecraft:calcite",
-              "minecraft:end_stone"
+              "minecraft:blackstone"
             ],
             "offset": [
               0,

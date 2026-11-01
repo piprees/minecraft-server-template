@@ -1,0 +1,516 @@
+{
+  "$schema": "../../../../../../schema/biome.schema.json",
+  "realm": "nether",
+  "inspiredBy": "BetterNether's old fungiwoods, and our Nether dimensions' need for a dead forest.",
+  "differs": "Nether forests are alive; this one is dead: bare stripped crimson and warped stems stand capless over soul soil, fallen stems lie among them, wither roses grow in their shade, soul fire flickers blue on the ground, and ash drifts through a blue-grey fog.",
+  "climate": {
+    "temperature": [
+      -0.6,
+      0.0
+    ],
+    "humidity": [
+      0.35,
+      1.0
+    ]
+  },
+  "palette": {
+    "top": "minecraft:soul_soil"
+  },
+  "biome": {
+    "attributes": {
+      "minecraft:audio/ambient_sounds": {
+        "additions": {
+          "sound": "minecraft:ambient.soul_sand_valley.additions",
+          "tick_chance": 0.0111
+        },
+        "loop": "minecraft:ambient.soul_sand_valley.loop",
+        "mood": {
+          "block_search_extent": 8,
+          "offset": 2.0,
+          "sound": "minecraft:ambient.soul_sand_valley.mood",
+          "tick_delay": 6000
+        }
+      },
+      "minecraft:audio/background_music": {
+        "default": {
+          "max_delay": 24000,
+          "min_delay": 12000,
+          "sound": "minecraft:music.nether.soul_sand_valley"
+        }
+      },
+      "minecraft:gameplay/natural_mob_spawns": {
+        "argument": {
+          "spawn_costs": {
+            "minecraft:enderman": {
+              "charge": 0.7,
+              "energy_budget": 0.15
+            },
+            "minecraft:ghast": {
+              "charge": 0.7,
+              "energy_budget": 0.15
+            },
+            "minecraft:skeleton": {
+              "charge": 0.7,
+              "energy_budget": 0.15
+            },
+            "minecraft:strider": {
+              "charge": 0.7,
+              "energy_budget": 0.15
+            }
+          },
+          "spawns_by_category": {
+            "creature": [
+              {
+                "type": "minecraft:strider",
+                "count": {
+                  "type": "minecraft:uniform",
+                  "max_inclusive": 2,
+                  "min_inclusive": 1
+                },
+                "weight": 60
+              }
+            ],
+            "monster": [
+              {
+                "type": "minecraft:skeleton",
+                "count": 5,
+                "weight": 20
+              },
+              {
+                "type": "minecraft:ghast",
+                "count": 4,
+                "weight": 50
+              },
+              {
+                "type": "minecraft:enderman",
+                "count": 4,
+                "weight": 1
+              }
+            ]
+          }
+        },
+        "modifier": "overlay"
+      },
+      "minecraft:visual/ambient_particles": {
+        "argument": [
+          {
+            "particle": {
+              "type": "minecraft:ash"
+            },
+            "probability": 0.03
+          },
+          {
+            "particle": {
+              "type": "minecraft:soul"
+            },
+            "probability": 0.0015
+          }
+        ],
+        "modifier": "append"
+      },
+      "minecraft:visual/fog_color": "#4c5866"
+    },
+    "carvers": "minecraft:nether_cave",
+    "downfall": 0.0,
+    "effects": {
+      "water_color": "#3f76e4"
+    },
+    "features": [
+      [],
+      [],
+      [],
+      [],
+      [],
+      [],
+      [],
+      [
+        "minecraft:spring_open",
+        "minecraft:patch_fire",
+        "minecraft:glowstone_extra",
+        "minecraft:glowstone",
+        "minecraft:ore_magma",
+        "minecraft:spring_closed",
+        "minecraft:ore_gravel_nether",
+        "minecraft:ore_blackstone",
+        "minecraft:ore_gold_nether",
+        "minecraft:ore_quartz_nether",
+        "minecraft:ore_ancient_debris_large",
+        "minecraft:ore_debris_small"
+      ],
+      [],
+      [
+        "minecraft:spring_lava",
+        "~crimson_snags",
+        "~warped_snags",
+        "~fallen_stems",
+        "~wither_roses",
+        "~soul_fires"
+      ]
+    ],
+    "has_precipitation": false,
+    "temperature": 2.0
+  },
+  "features": {
+    "crimson_snags": {
+      "feature": {
+        "type": "minecraft:huge_fungus",
+        "decor_state": "minecraft:air",
+        "hat_state": "minecraft:air",
+        "replaceable_blocks": {
+          "type": "minecraft:matching_blocks",
+          "blocks": [
+            "minecraft:oak_sapling",
+            "minecraft:spruce_sapling",
+            "minecraft:birch_sapling",
+            "minecraft:jungle_sapling",
+            "minecraft:acacia_sapling",
+            "minecraft:cherry_sapling",
+            "minecraft:dark_oak_sapling",
+            "minecraft:pale_oak_sapling",
+            "minecraft:mangrove_propagule",
+            "minecraft:dandelion",
+            "minecraft:torchflower",
+            "minecraft:poppy",
+            "minecraft:blue_orchid",
+            "minecraft:allium",
+            "minecraft:azure_bluet",
+            "minecraft:red_tulip",
+            "minecraft:orange_tulip",
+            "minecraft:white_tulip",
+            "minecraft:pink_tulip",
+            "minecraft:oxeye_daisy",
+            "minecraft:cornflower",
+            "minecraft:wither_rose",
+            "minecraft:lily_of_the_valley",
+            "minecraft:brown_mushroom",
+            "minecraft:red_mushroom",
+            "minecraft:wheat",
+            "minecraft:sugar_cane",
+            "minecraft:attached_pumpkin_stem",
+            "minecraft:attached_melon_stem",
+            "minecraft:pumpkin_stem",
+            "minecraft:melon_stem",
+            "minecraft:lily_pad",
+            "minecraft:nether_wart",
+            "minecraft:cocoa",
+            "minecraft:carrots",
+            "minecraft:potatoes",
+            "minecraft:chorus_plant",
+            "minecraft:chorus_flower",
+            "minecraft:torchflower_crop",
+            "minecraft:pitcher_crop",
+            "minecraft:beetroots",
+            "minecraft:sweet_berry_bush",
+            "minecraft:warped_fungus",
+            "minecraft:crimson_fungus",
+            "minecraft:weeping_vines",
+            "minecraft:weeping_vines_plant",
+            "minecraft:twisting_vines",
+            "minecraft:twisting_vines_plant",
+            "minecraft:cave_vines",
+            "minecraft:cave_vines_plant",
+            "minecraft:spore_blossom",
+            "minecraft:azalea",
+            "minecraft:flowering_azalea",
+            "minecraft:moss_carpet",
+            "minecraft:pink_petals",
+            "minecraft:wildflowers",
+            "minecraft:big_dripleaf",
+            "minecraft:big_dripleaf_stem",
+            "minecraft:small_dripleaf"
+          ]
+        },
+        "stem_state": "minecraft:stripped_crimson_stem",
+        "valid_base_block": "minecraft:soul_soil"
+      },
+      "placement": [
+        {
+          "type": "minecraft:count_on_every_layer",
+          "count": 5
+        },
+        {
+          "type": "minecraft:biome"
+        }
+      ]
+    },
+    "warped_snags": {
+      "feature": {
+        "type": "minecraft:huge_fungus",
+        "decor_state": "minecraft:air",
+        "hat_state": "minecraft:air",
+        "replaceable_blocks": {
+          "type": "minecraft:matching_blocks",
+          "blocks": [
+            "minecraft:oak_sapling",
+            "minecraft:spruce_sapling",
+            "minecraft:birch_sapling",
+            "minecraft:jungle_sapling",
+            "minecraft:acacia_sapling",
+            "minecraft:cherry_sapling",
+            "minecraft:dark_oak_sapling",
+            "minecraft:pale_oak_sapling",
+            "minecraft:mangrove_propagule",
+            "minecraft:dandelion",
+            "minecraft:torchflower",
+            "minecraft:poppy",
+            "minecraft:blue_orchid",
+            "minecraft:allium",
+            "minecraft:azure_bluet",
+            "minecraft:red_tulip",
+            "minecraft:orange_tulip",
+            "minecraft:white_tulip",
+            "minecraft:pink_tulip",
+            "minecraft:oxeye_daisy",
+            "minecraft:cornflower",
+            "minecraft:wither_rose",
+            "minecraft:lily_of_the_valley",
+            "minecraft:brown_mushroom",
+            "minecraft:red_mushroom",
+            "minecraft:wheat",
+            "minecraft:sugar_cane",
+            "minecraft:attached_pumpkin_stem",
+            "minecraft:attached_melon_stem",
+            "minecraft:pumpkin_stem",
+            "minecraft:melon_stem",
+            "minecraft:lily_pad",
+            "minecraft:nether_wart",
+            "minecraft:cocoa",
+            "minecraft:carrots",
+            "minecraft:potatoes",
+            "minecraft:chorus_plant",
+            "minecraft:chorus_flower",
+            "minecraft:torchflower_crop",
+            "minecraft:pitcher_crop",
+            "minecraft:beetroots",
+            "minecraft:sweet_berry_bush",
+            "minecraft:warped_fungus",
+            "minecraft:crimson_fungus",
+            "minecraft:weeping_vines",
+            "minecraft:weeping_vines_plant",
+            "minecraft:twisting_vines",
+            "minecraft:twisting_vines_plant",
+            "minecraft:cave_vines",
+            "minecraft:cave_vines_plant",
+            "minecraft:spore_blossom",
+            "minecraft:azalea",
+            "minecraft:flowering_azalea",
+            "minecraft:moss_carpet",
+            "minecraft:pink_petals",
+            "minecraft:wildflowers",
+            "minecraft:big_dripleaf",
+            "minecraft:big_dripleaf_stem",
+            "minecraft:small_dripleaf"
+          ]
+        },
+        "stem_state": "minecraft:stripped_warped_stem",
+        "valid_base_block": "minecraft:soul_soil"
+      },
+      "placement": [
+        {
+          "type": "minecraft:count_on_every_layer",
+          "count": 2
+        },
+        {
+          "type": "minecraft:biome"
+        }
+      ]
+    },
+    "fallen_stems": {
+      "feature": {
+        "type": "minecraft:fallen_tree",
+        "log_decorators": [],
+        "log_length": {
+          "type": "minecraft:uniform",
+          "max_inclusive": 7,
+          "min_inclusive": 4
+        },
+        "stump_decorators": [],
+        "trunk_provider": {
+          "type": "minecraft:weighted",
+          "entries": [
+            {
+              "data": {
+                "id": "minecraft:stripped_crimson_hyphae",
+                "properties": {
+                  "axis": "y"
+                }
+              },
+              "weight": 1
+            },
+            {
+              "data": {
+                "id": "minecraft:stripped_warped_hyphae",
+                "properties": {
+                  "axis": "y"
+                }
+              },
+              "weight": 1
+            }
+          ]
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count_on_every_layer",
+          "count": 2
+        },
+        {
+          "type": "minecraft:biome"
+        },
+        {
+          "type": "minecraft:block_predicate_filter",
+          "predicate": {
+            "type": "minecraft:all_of",
+            "predicates": [
+              {
+                "type": "minecraft:matching_block_tag",
+                "tag": "minecraft:air"
+              },
+              {
+                "type": "minecraft:matching_blocks",
+                "blocks": [
+                  "minecraft:soul_soil"
+                ],
+                "offset": [
+                  0,
+                  -1,
+                  0
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "wither_roses": {
+      "feature": {
+        "type": "minecraft:simple_block",
+        "to_place": {
+          "id": "minecraft:wither_rose"
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count_on_every_layer",
+          "count": 2
+        },
+        {
+          "type": "minecraft:biome"
+        },
+        {
+          "type": "minecraft:count",
+          "count": 24
+        },
+        {
+          "type": "minecraft:offset",
+          "x": {
+            "type": "minecraft:trapezoid",
+            "max": 6,
+            "min": -6,
+            "plateau": 0
+          },
+          "y": {
+            "type": "minecraft:trapezoid",
+            "max": 2,
+            "min": -2,
+            "plateau": 0
+          },
+          "z": {
+            "type": "minecraft:trapezoid",
+            "max": 6,
+            "min": -6,
+            "plateau": 0
+          }
+        },
+        {
+          "type": "minecraft:block_predicate_filter",
+          "predicate": {
+            "type": "minecraft:all_of",
+            "predicates": [
+              {
+                "type": "minecraft:matching_block_tag",
+                "tag": "minecraft:air"
+              },
+              {
+                "type": "minecraft:matching_blocks",
+                "blocks": [
+                  "minecraft:soul_soil"
+                ],
+                "offset": [
+                  0,
+                  -1,
+                  0
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "soul_fires": {
+      "feature": {
+        "type": "minecraft:simple_block",
+        "to_place": {
+          "id": "minecraft:soul_fire"
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count_on_every_layer",
+          "count": 1
+        },
+        {
+          "type": "minecraft:biome"
+        },
+        {
+          "type": "minecraft:count",
+          "count": 10
+        },
+        {
+          "type": "minecraft:offset",
+          "x": {
+            "type": "minecraft:trapezoid",
+            "max": 5,
+            "min": -5,
+            "plateau": 0
+          },
+          "y": {
+            "type": "minecraft:trapezoid",
+            "max": 2,
+            "min": -2,
+            "plateau": 0
+          },
+          "z": {
+            "type": "minecraft:trapezoid",
+            "max": 5,
+            "min": -5,
+            "plateau": 0
+          }
+        },
+        {
+          "type": "minecraft:block_predicate_filter",
+          "predicate": {
+            "type": "minecraft:all_of",
+            "predicates": [
+              {
+                "type": "minecraft:matching_block_tag",
+                "tag": "minecraft:air"
+              },
+              {
+                "type": "minecraft:matching_blocks",
+                "blocks": [
+                  "minecraft:soul_soil"
+                ],
+                "offset": [
+                  0,
+                  -1,
+                  0
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

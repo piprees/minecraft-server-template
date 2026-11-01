@@ -1,0 +1,479 @@
+{
+  "$schema": "../../../../../../schema/biome.schema.json",
+  "realm": "end",
+  "inspiredBy": "BetterEnd's megalake.",
+  "differs": "Water in the End, where vanilla has none: broad, still, shallow lakes spread across the islands on every stretch of level ground, their beds of clay and sand lit by sea pickles, sand shores with dry grass round them, deep blue water, and calm.",
+  "climate": {
+    "temperature": [
+      -1.0,
+      -0.3
+    ],
+    "humidity": [
+      -0.3,
+      0.3
+    ]
+  },
+  "biome": {
+    "attributes": {
+      "minecraft:audio/ambient_sounds": {
+        "additions": {
+          "sound": "minecraft:block.water.ambient",
+          "tick_chance": 0.004
+        },
+        "mood": {
+          "block_search_extent": 8,
+          "offset": 2.0,
+          "sound": "minecraft:ambient.cave",
+          "tick_delay": 6000
+        }
+      },
+      "minecraft:audio/background_music": {
+        "default": {
+          "max_delay": 24000,
+          "min_delay": 6000,
+          "replace_current_music": true,
+          "sound": "minecraft:music.end"
+        }
+      },
+      "minecraft:gameplay/natural_mob_spawns": {
+        "argument": {
+          "spawn_costs": {},
+          "spawns_by_category": {
+            "monster": [
+              {
+                "type": "minecraft:enderman",
+                "count": 4,
+                "weight": 10
+              }
+            ]
+          }
+        },
+        "modifier": "overlay"
+      },
+      "minecraft:visual/ambient_particles": {
+        "argument": [
+          {
+            "particle": {
+              "type": "minecraft:underwater"
+            },
+            "probability": 0.002
+          }
+        ],
+        "modifier": "append"
+      },
+      "minecraft:visual/fog_color": "#2a3a5a",
+      "minecraft:visual/sky_color": "#101828"
+    },
+    "carvers": [],
+    "downfall": 0.5,
+    "effects": {
+      "water_color": "#2f6fbf"
+    },
+    "features": [
+      [],
+      [
+        "~shores",
+        "~lakes",
+        "~pool_fill"
+      ],
+      [],
+      [],
+      [
+        "minecraft:end_gateway_return"
+      ],
+      [],
+      [],
+      [],
+      [],
+      [],
+      []
+    ],
+    "has_precipitation": false,
+    "temperature": 0.5
+  },
+  "features": {
+    "shores": {
+      "feature": {
+        "type": "minecraft:vegetation_patch",
+        "depth": 1,
+        "extra_bottom_block_chance": 0.0,
+        "extra_edge_column_chance": 0.5,
+        "ground_state": {
+          "id": "minecraft:sand"
+        },
+        "replaceable": "#minecraft:sculk_replaceable",
+        "surface": "floor",
+        "vegetation_chance": 0.06,
+        "vegetation_feature": {
+          "feature": {
+            "type": "minecraft:simple_block",
+            "to_place": {
+              "id": "minecraft:short_dry_grass"
+            }
+          },
+          "placement": []
+        },
+        "vertical_range": 5,
+        "xz_radius": {
+          "type": "minecraft:uniform",
+          "max_inclusive": 10,
+          "min_inclusive": 7
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 3
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:heightmap",
+          "heightmap": "WORLD_SURFACE_WG"
+        },
+        {
+          "type": "minecraft:biome"
+        },
+        {
+          "type": "minecraft:block_predicate_filter",
+          "predicate": {
+            "type": "minecraft:all_of",
+            "predicates": [
+              {
+                "type": "minecraft:solid",
+                "offset": [
+                  4,
+                  -1,
+                  0
+                ]
+              },
+              {
+                "type": "minecraft:matching_block_tag",
+                "offset": [
+                  4,
+                  0,
+                  0
+                ],
+                "tag": "minecraft:air"
+              },
+              {
+                "type": "minecraft:solid",
+                "offset": [
+                  -4,
+                  -1,
+                  0
+                ]
+              },
+              {
+                "type": "minecraft:matching_block_tag",
+                "offset": [
+                  -4,
+                  0,
+                  0
+                ],
+                "tag": "minecraft:air"
+              },
+              {
+                "type": "minecraft:solid",
+                "offset": [
+                  0,
+                  -1,
+                  4
+                ]
+              },
+              {
+                "type": "minecraft:matching_block_tag",
+                "offset": [
+                  0,
+                  0,
+                  4
+                ],
+                "tag": "minecraft:air"
+              },
+              {
+                "type": "minecraft:solid",
+                "offset": [
+                  0,
+                  -1,
+                  -4
+                ]
+              },
+              {
+                "type": "minecraft:matching_block_tag",
+                "offset": [
+                  0,
+                  0,
+                  -4
+                ],
+                "tag": "minecraft:air"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "lakes": {
+      "feature": {
+        "type": "minecraft:waterlogged_vegetation_patch",
+        "depth": 2,
+        "extra_bottom_block_chance": 0.5,
+        "extra_edge_column_chance": 0.1,
+        "ground_state": {
+          "type": "minecraft:weighted",
+          "entries": [
+            {
+              "data": {
+                "id": "minecraft:clay"
+              },
+              "weight": 3
+            },
+            {
+              "data": {
+                "id": "minecraft:sand"
+              },
+              "weight": 2
+            }
+          ]
+        },
+        "replaceable": "#minecraft:sculk_replaceable",
+        "surface": "floor",
+        "vegetation_chance": 0.08,
+        "vegetation_feature": {
+          "feature": {
+            "type": "minecraft:simple_block",
+            "to_place": {
+              "type": "minecraft:randomized_int",
+              "property": "pickles",
+              "source": {
+                "id": "minecraft:sea_pickle",
+                "properties": {
+                  "pickles": "1",
+                  "waterlogged": "true"
+                }
+              },
+              "values": {
+                "type": "minecraft:uniform",
+                "max_inclusive": 4,
+                "min_inclusive": 1
+              }
+            }
+          },
+          "placement": []
+        },
+        "vertical_range": 4,
+        "xz_radius": {
+          "type": "minecraft:uniform",
+          "max_inclusive": 7,
+          "min_inclusive": 4
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 8
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:heightmap",
+          "heightmap": "WORLD_SURFACE_WG"
+        },
+        {
+          "type": "minecraft:biome"
+        },
+        {
+          "type": "minecraft:block_predicate_filter",
+          "predicate": {
+            "type": "minecraft:all_of",
+            "predicates": [
+              {
+                "type": "minecraft:solid",
+                "offset": [
+                  3,
+                  -1,
+                  0
+                ]
+              },
+              {
+                "type": "minecraft:matching_block_tag",
+                "offset": [
+                  3,
+                  0,
+                  0
+                ],
+                "tag": "minecraft:air"
+              },
+              {
+                "type": "minecraft:solid",
+                "offset": [
+                  -3,
+                  -1,
+                  0
+                ]
+              },
+              {
+                "type": "minecraft:matching_block_tag",
+                "offset": [
+                  -3,
+                  0,
+                  0
+                ],
+                "tag": "minecraft:air"
+              },
+              {
+                "type": "minecraft:solid",
+                "offset": [
+                  0,
+                  -1,
+                  3
+                ]
+              },
+              {
+                "type": "minecraft:matching_block_tag",
+                "offset": [
+                  0,
+                  0,
+                  3
+                ],
+                "tag": "minecraft:air"
+              },
+              {
+                "type": "minecraft:solid",
+                "offset": [
+                  0,
+                  -1,
+                  -3
+                ]
+              },
+              {
+                "type": "minecraft:matching_block_tag",
+                "offset": [
+                  0,
+                  0,
+                  -3
+                ],
+                "tag": "minecraft:air"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "pool_fill": {
+      "feature": {
+        "type": "minecraft:block_column",
+        "allowed_placement": {
+          "type": "minecraft:true"
+        },
+        "direction": "down",
+        "layers": [
+          {
+            "height": 1,
+            "provider": {
+              "id": "minecraft:air"
+            }
+          },
+          {
+            "height": 1,
+            "provider": {
+              "id": "minecraft:water",
+              "properties": {
+                "level": "0"
+              }
+            }
+          }
+        ],
+        "prioritize_tip": false
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 1024
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:offset",
+          "x": {
+            "type": "minecraft:uniform",
+            "max_inclusive": 8,
+            "min_inclusive": -8
+          },
+          "y": 0,
+          "z": {
+            "type": "minecraft:uniform",
+            "max_inclusive": 8,
+            "min_inclusive": -8
+          }
+        },
+        {
+          "type": "minecraft:heightmap",
+          "heightmap": "MOTION_BLOCKING"
+        },
+        {
+          "type": "minecraft:biome"
+        },
+        {
+          "type": "minecraft:block_predicate_filter",
+          "predicate": {
+            "type": "minecraft:all_of",
+            "predicates": [
+              {
+                "type": "minecraft:matching_blocks",
+                "offset": [
+                  0,
+                  -1,
+                  0
+                ],
+                "blocks": [
+                  "minecraft:sand",
+                  "minecraft:clay",
+                  "minecraft:end_stone"
+                ]
+              },
+              {
+                "type": "minecraft:matching_fluids",
+                "offset": [
+                  1,
+                  -1,
+                  0
+                ],
+                "fluids": "minecraft:water"
+              },
+              {
+                "type": "minecraft:matching_fluids",
+                "offset": [
+                  -1,
+                  -1,
+                  0
+                ],
+                "fluids": "minecraft:water"
+              },
+              {
+                "type": "minecraft:matching_fluids",
+                "offset": [
+                  0,
+                  -1,
+                  1
+                ],
+                "fluids": "minecraft:water"
+              },
+              {
+                "type": "minecraft:matching_fluids",
+                "offset": [
+                  0,
+                  -1,
+                  -1
+                ],
+                "fluids": "minecraft:water"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}
