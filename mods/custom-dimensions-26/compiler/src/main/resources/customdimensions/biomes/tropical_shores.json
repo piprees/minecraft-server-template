@@ -209,8 +209,8 @@
         "~palms",
         "~melons",
         "minecraft:warm_ocean_vegetation",
-        "minecraft:sea_pickle",
-        "minecraft:seagrass_warm"
+        "minecraft:seagrass_warm",
+        "minecraft:sea_pickle"
       ],
       [
         "minecraft:freeze_top_layer"

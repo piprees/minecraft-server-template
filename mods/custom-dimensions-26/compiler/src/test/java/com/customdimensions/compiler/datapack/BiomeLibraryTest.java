@@ -16,6 +16,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 class BiomeLibraryTest {
 
@@ -317,5 +318,64 @@ class BiomeLibraryTest {
             schema.validate(shippedText(id), com.networknt.schema.InputFormat.JSON).forEach(error -> failures.add(id + ": " + error));
         }
         assertEquals(java.util.List.of(), failures);
+    }
+
+    /**
+     * Any library biome can share a dimension with any vanilla or library biome, so all of them
+     * together keep one feature order per step: Minecraft's FeatureSorter throws on a cycle.
+     */
+    @Test
+    void everyBiomeTogetherKeepsOneFeatureOrder() {
+        Map<String, JsonArray> biomes = new java.util.TreeMap<>();
+        VanillaSource source = Fixtures.vanilla().source();
+        for (String name : source.list("data/minecraft/worldgen/biome")) {
+            if (!name.endsWith(".json")) continue;
+            String text = source.read("data/minecraft/worldgen/biome/" + name).orElseThrow();
+            biomes.put("minecraft:" + name, JsonParser.parseString(text).getAsJsonObject().getAsJsonArray("features"));
+        }
+        BiomeLibrary.shipped().files(Fixtures.NAMESPACE).forEach((path, json) -> {
+            if (path.contains("/worldgen/biome/")) biomes.put(path, json.getAsJsonArray("features"));
+        });
+        Map<String, java.util.Set<String>> next = new java.util.HashMap<>();
+        Map<String, java.util.Set<String>> from = new java.util.HashMap<>();
+        biomes.forEach((biome, steps) -> {
+            String previous = null;
+            for (int step = 0; step < steps.size(); step++) {
+                for (var feature : steps.get(step).getAsJsonArray()) {
+                    String node = feature.getAsString() + " @" + step;
+                    if (previous != null) {
+                        next.computeIfAbsent(previous, k -> new java.util.TreeSet<>()).add(node);
+                        from.computeIfAbsent(previous + " -> " + node, k -> new java.util.TreeSet<>()).add(biome);
+                    }
+                    previous = node;
+                }
+            }
+        });
+        Map<String, Integer> state = new java.util.HashMap<>();
+        for (String start : new java.util.TreeSet<>(next.keySet())) {
+            java.util.Deque<String> path = new java.util.ArrayDeque<>();
+            java.util.Deque<java.util.Iterator<String>> todo = new java.util.ArrayDeque<>();
+            if (state.containsKey(start)) continue;
+            state.put(start, 1);
+            path.push(start);
+            todo.push(next.getOrDefault(start, java.util.Set.of()).iterator());
+            while (!todo.isEmpty()) {
+                if (!todo.peek().hasNext()) {
+                    state.put(path.pop(), 2);
+                    todo.pop();
+                    continue;
+                }
+                String node = todo.peek().next();
+                Integer seen = state.get(node);
+                if (seen == null) {
+                    state.put(node, 1);
+                    path.push(node);
+                    todo.push(next.getOrDefault(node, java.util.Set.of()).iterator());
+                } else if (seen == 1) {
+                    fail("feature order cycle through " + node + ", edge from " + path.peek() + " in " + from.get(path.peek() + " -> " + node));
+                }
+            }
+        }
+        assertTrue(biomes.size() > 60);
     }
 }

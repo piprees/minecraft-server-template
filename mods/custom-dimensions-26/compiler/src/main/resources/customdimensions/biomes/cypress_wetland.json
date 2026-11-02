@@ -239,11 +239,11 @@
         "minecraft:glow_lichen",
         "~cypresses",
         "~lily_pads",
+        "minecraft:patch_grass_normal",
+        "minecraft:brown_mushroom_swamp",
         "minecraft:patch_sugar_cane_swamp",
         "minecraft:patch_firefly_bush_swamp",
-        "minecraft:patch_grass_normal",
-        "minecraft:seagrass_swamp",
-        "minecraft:brown_mushroom_swamp"
+        "minecraft:seagrass_swamp"
       ],
       [
         "minecraft:freeze_top_layer"

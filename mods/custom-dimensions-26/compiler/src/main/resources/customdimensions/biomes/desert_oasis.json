@@ -219,9 +219,9 @@
         "~reeds",
         "~ferns",
         "~lily_pads",
+        "minecraft:patch_dry_grass_desert",
         "minecraft:patch_dead_bush_2",
-        "minecraft:patch_cactus_desert",
-        "minecraft:patch_dry_grass_desert"
+        "minecraft:patch_cactus_desert"
       ],
       [
         "minecraft:freeze_top_layer"
