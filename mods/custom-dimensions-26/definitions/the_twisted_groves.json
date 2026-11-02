@@ -97,6 +97,9 @@
     }
   ],
   "dimensionType": {
+    "minY": 0,
+    "height": 320,
+    "logicalHeight": 320,
     "hasSkylight": false
   },
   "atmosphere": {

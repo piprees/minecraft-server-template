@@ -17,6 +17,9 @@
     },
     "cardinal_light": "nether",
     "has_skylight": false,
+    "height": 320,
+    "logical_height": 320,
+    "min_y": 0,
     "skybox": "none"
   }
 }

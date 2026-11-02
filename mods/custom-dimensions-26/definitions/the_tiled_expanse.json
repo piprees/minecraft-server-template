@@ -69,6 +69,11 @@
       ]
     }
   ],
+  "dimensionType": {
+    "minY": 0,
+    "height": 256,
+    "logicalHeight": 256
+  },
   "atmosphere": {
     "skyColor": "#8B9BAF",
     "fogColor": "#8B9BAF",

@@ -2,7 +2,7 @@
   "schemaVersion": 2,
   "description": "A basalt-and-soul void, and nothing else — no floor, no horizon, no lava left to reflect a sky. Whatever was here, the void consumed it completely. The piglins' word for this place translates roughly as 'the mouth that swallowed', and it does not kill what it swallows: it puts it down in the capital.",
   "seed": -5323308325963958712,
-  "spawn": [-64, -64, -128],
+  "spawn": [-64, 0, -128],
   "generator": {
     "type": "void"
   },
@@ -52,6 +52,11 @@
   ],
   "liquids": {
     "defaultFluid": "minecraft:lava"
+  },
+  "dimensionType": {
+    "minY": 0,
+    "height": 320,
+    "logicalHeight": 320
   },
   "atmosphere": {
     "skyColor": "#1B0B0B",

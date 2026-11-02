@@ -2,7 +2,7 @@
   "schemaVersion": 2,
   "description": "The red monument — a single monolith hanging in nothing, bleeding scarlet into the void. The endermen's temple, their holiest site. Manuscript shrines and a mythic garden ring it at a fixed distance; there is no other ground in the world, and nothing here hunts you. The monument does not kill trespassers. It declines them.",
   "seed": -2955426531544457761,
-  "spawn": [384, -64, -192],
+  "spawn": [384, 0, -192],
   "generator": {
     "type": "void"
   },
@@ -57,6 +57,9 @@
     }
   ],
   "dimensionType": {
+    "minY": 0,
+    "height": 256,
+    "logicalHeight": 256,
     "monsterSpawnLightLevel": 0
   },
   "atmosphere": {

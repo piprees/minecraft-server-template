@@ -16,6 +16,9 @@
       ]
     },
     "has_fixed_time": true,
+    "height": 256,
+    "logical_height": 256,
+    "min_y": 0,
     "monster_spawn_light_level": 0,
     "skybox": "end",
     "timelines": [

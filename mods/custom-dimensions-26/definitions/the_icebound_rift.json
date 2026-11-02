@@ -2,7 +2,7 @@
   "schemaVersion": 2,
   "description": "A void where a frozen world used to be. The biomes remain — their cold, their fog, their sounds — but the ground does not. The disintegration finished here. Whatever broke this world left only the memory of ice.",
   "seed": -7779457580041241280,
-  "spawn": [-448, -64, 64],
+  "spawn": [-448, 0, 64],
   "generator": {
     "type": "void"
   },
@@ -80,6 +80,11 @@
       }
     }
   ],
+  "dimensionType": {
+    "minY": 0,
+    "height": 256,
+    "logicalHeight": 256
+  },
   "atmosphere": {
     "skyColor": "#1B2B3B",
     "fogColor": "#A8D8E8",
