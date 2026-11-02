@@ -150,13 +150,7 @@ public final class DatapackCompiler {
         compiler.known = library.known(vanilla, namespace);
         library.files(namespace).forEach((path, json) -> compiler.putShared(path, json));
         compiler.definitions.putAll(definitions);
-        for (String slug : compiler.definitions.keySet()) {
-            try {
-                compiler.compile(slug);
-            } catch (IllegalStateException e) {
-                throw new IllegalStateException(slug + ": " + e.getMessage(), e);
-            }
-        }
+        compiler.definitions.keySet().forEach(compiler::compile);
         return new Output(compiler.files, compiler.report, compiler.report.markdown(compiler.files), compiler.compiled);
     }
 
@@ -256,7 +250,11 @@ public final class DatapackCompiler {
 
         JsonObject stem = new JsonObject();
         stem.addProperty("type", typeId);
-        stem.add("generator", generator(slug, def, entry));
+        try {
+            stem.add("generator", generator(slug, def, entry));
+        } catch (IllegalStateException e) {
+            throw new IllegalStateException(slug + ": " + e.getMessage(), e);
+        }
         put(stemPath, stem, entry);
         if (noiseBased) {
             String levelId = BASE_WORLDS.containsKey(slug) && !BASE_WORLDS.get(slug).isEmpty() ? BASE_WORLDS.get(slug) : typeId;
