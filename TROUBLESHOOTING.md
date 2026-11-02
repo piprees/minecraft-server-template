@@ -1596,6 +1596,13 @@ A seed's map and its banked facts appear to contradict each other — the thumbn
   the same trap. Pin it against the Java, not against intuition —
   `scripts/e2e/portal-matrix-selftest.sh` is the worked example.
 
+<a id="t167"></a>
+### T167 — A spore blossom cannot hang from leaves
+
+- **Symptom:** a library biome's spore blossoms under a tree's crown count 0.
+- **Cause:** leaves have an empty support shape, and a spore blossom survives only under a block that can support its centre, so `simple_block` refuses every spot under leaves.
+- **Fix:** hang pale hanging moss (`block_column` downwards, `tip` on the last layer) or vines, which attach to a full collision face.
+
 <a id="t166"></a>
 ### T166 — `NaturalSpawner.SPAWN_DISTANCE_BLOCK` is the outer reach, not the minimum spawn distance
 
