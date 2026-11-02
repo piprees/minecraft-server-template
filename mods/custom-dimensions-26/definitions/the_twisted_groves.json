@@ -158,7 +158,7 @@
       "sanctum"
     ],
     "terrain": "hilly",
-    "heightRange": [-40, 260],
+    "heightRange": [0, 260],
     "water": "none"
   }
 }

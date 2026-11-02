@@ -165,6 +165,6 @@
       "enderkeep"
     ],
     "terrain": "flat",
-    "heightRange": [-32, 112]
+    "heightRange": [0, 112]
   }
 }
