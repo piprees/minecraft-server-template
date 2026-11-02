@@ -8,17 +8,17 @@
     "preset": "overworld"
   },
   "biomes": [
-    "terralith:ashen_savanna",
+    "adventure:ashen_woodland",
     "minecraft:eroded_badlands",
-    "terralith:gravel_desert",
-    "terralith:volcanic_crater",
+    "minecraft:windswept_gravelly_hills",
+    "adventure:blackstone_basin",
     "minecraft:badlands",
-    "terralith:basalt_cliffs",
-    "terralith:moonlight_grove",
+    "minecraft:basalt_deltas",
+    "minecraft:pale_garden",
     "minecraft:deep_dark",
-    "terralith:white_cliffs",
+    "adventure:chalk_cliffs",
     {
-      "id": "nullscape:shadowlands",
+      "id": "adventure:umbral_wastes",
       "climate": {
         "weirdness": [-2.0, -0.7]
       }
@@ -30,13 +30,13 @@
       }
     },
     {
-      "id": "incendium:ash_barrens",
+      "id": "adventure:ash_barrens",
       "climate": {
         "weirdness": [-0.475, -0.42]
       }
     },
     {
-      "id": "regions_unexplored:redstone_abyss",
+      "id": "adventure:redstone_abyss",
       "climate": {
         "weirdness": [-0.42, -0.37]
       }
@@ -48,7 +48,7 @@
       }
     },
     {
-      "id": "incendium:toxic_heap",
+      "id": "adventure:mycotoxic_undergrowth",
       "climate": {
         "weirdness": [-0.115, -0.075]
       }
@@ -60,36 +60,35 @@
       }
     },
     {
-      "id": "incendium:infernal_dunes",
+      "id": "adventure:gravel_desert",
       "climate": {
         "weirdness": [-0.035, 0.045]
       }
     },
     {
-      "id": "incendium:volcanic_deltas",
+      "id": "adventure:magma_land",
       "climate": {
         "weirdness": [0.2, 0.3]
       }
     },
     {
-      "id": "regions_unexplored:mycotoxic_undergrowth",
+      "id": "adventure:mycotoxic_undergrowth",
       "climate": {
         "weirdness": [0.3, 0.55]
       }
     },
     {
-      "id": "regions_unexplored:redstone_caves",
+      "id": "adventure:cinnabar_veins",
       "climate": {
         "weirdness": [0.55, 0.85]
       }
     },
     {
-      "id": "regions_unexplored:prismachasm",
+      "id": "adventure:crystal_hollows",
       "climate": {
         "weirdness": [0.85, 2.0]
       }
-    },
-    "wilderwild:dying_mixed_forest"
+    }
   ],
   "zones": [
     {
@@ -164,20 +163,20 @@
   "roll": {
     "mood": "desolate",
     "spawnFilter": [
-      "terralith:ashen_savanna",
+      "adventure:ashen_woodland",
       "minecraft:eroded_badlands",
-      "terralith:volcanic_crater",
+      "adventure:blackstone_basin",
       "minecraft:deep_dark",
       "minecraft:soul_sand_valley"
     ],
     "wants": {
-      "graveyard": "near_spawn",
-      "mausoleum": "spread",
-      "dusty_tomb": "spread",
-      "black_spiral": "near_border",
-      "scorched_tomb": "spread",
-      "ancient_ruins": "near_border",
-      "ruins_standard": "spread"
+      "nova_structures:remnant_graveyard": "near_spawn",
+      "nova_structures:remnant_shrine_sentinel_mass_grave": "spread",
+      "epic:small_sand_dungeon": "spread",
+      "ati_structures:dark_tower": "near_border",
+      "nova_structures:surface_dungeon_desert": "spread",
+      "minecraft:trail_ruins": "near_border",
+      "nova_structures:wild_ruin": "spread"
     },
     "shuns": [
       "village"

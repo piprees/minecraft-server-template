@@ -13,39 +13,39 @@
     "minecraft:warped_forest",
     "minecraft:basalt_deltas",
     "minecraft:nether_wastes",
-    "incendium:volcanic_deltas",
-    "incendium:ash_barrens",
-    "incendium:infernal_dunes",
-    "incendium:withered_forest",
+    "adventure:magma_land",
+    "adventure:ash_barrens",
+    "adventure:gravel_desert",
+    "adventure:withered_forest",
     "minecraft:soul_sand_valley",
-    "incendium:toxic_heap",
-    "incendium:weeping_valley",
+    "adventure:mycotoxic_undergrowth",
+    "adventure:nether_jungle",
     {
-      "id": "nullscape:void_barrens",
+      "id": "minecraft:end_barrens",
       "climate": {
         "weirdness": [-2.0, -0.5]
       }
     },
     {
-      "id": "regions_unexplored:inferno",
+      "id": "adventure:magma_land",
       "climate": {
         "weirdness": [-0.335, -0.19]
       }
     },
     {
-      "id": "regions_unexplored:infernal_holt",
+      "id": "minecraft:crimson_forest",
       "climate": {
         "weirdness": [-0.055, -0.005]
       }
     },
     {
-      "id": "paradise_lost:calcite_craglands",
+      "id": "adventure:windswept_isles",
       "climate": {
         "weirdness": [0.19, 0.3]
       }
     },
     {
-      "id": "terralith:volcanic_peaks",
+      "id": "adventure:magma_land",
       "climate": {
         "weirdness": [0.3, 2.0]
       }
@@ -80,7 +80,7 @@
   "structures": {
     "force": [
       {
-        "structure": "structory_towers:nether/warped_outpost",
+        "structure": "mvs:large_warped_tower",
         "x": -40,
         "z": 700,
         "exclusive": false
@@ -125,25 +125,25 @@
     "allowHazardousSpawn": true,
     "spawnFilter": [
       "minecraft:crimson_forest",
-      "incendium:volcanic_deltas",
+      "adventure:magma_land",
       "minecraft:basalt_deltas",
       "minecraft:nether_wastes",
       "minecraft:warped_forest",
-      "incendium:ash_barrens",
-      "incendium:infernal_dunes"
+      "adventure:ash_barrens",
+      "adventure:gravel_desert"
     ],
     "terrain": "islands",
     "wants": {
       "bastion": "spread",
-      "fortress": "spread",
+      "mns:mega_fortress": "spread",
       "giant_skull": "spread",
-      "nether_tower": "spread",
+      "mns:nether_tower": "spread",
       "crimson_forge": "spread",
-      "warped_outpost": "near_spawn",
+      "mvs:large_warped_tower": "near_spawn",
       "ruined_portal": "near_spawn"
     },
     "shuns": [
-      "piglin_village"
+      "towns_and_towers:exclusives/village_piglin"
     ]
   }
 }

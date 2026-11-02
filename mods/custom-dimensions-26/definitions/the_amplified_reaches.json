@@ -49,13 +49,13 @@
   "roll": {
     "mood": "dramatic",
     "wants": {
-      "firetower": "near_spawn",
-      "engineer_tower": "spread",
-      "wizard_tower": "spread",
-      "ancient_temple": "spread",
-      "keep_kayra": "spread",
-      "nomad_outpost": "spread",
-      "campsite": "spread"
+      "nova_structures:firewatch_tower_taiga": "near_spawn",
+      "ati_structures:steam_house": "spread",
+      "ddd:wizard_tower": "spread",
+      "ati_structures:ancient_temple": "spread",
+      "ati_structures:dark_keep": "spread",
+      "ati_structures:nomadic_camp": "spread",
+      "mvs:campsite": "spread"
     },
     "shuns": [
       "monument"

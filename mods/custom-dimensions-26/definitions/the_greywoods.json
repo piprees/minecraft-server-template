@@ -9,7 +9,7 @@
   },
   "biomes": [
     {
-      "id": "natures_spirit:cedar_thicket",
+      "id": "adventure:sugi_forest",
       "climate": {
         "weirdness": [-2.0, -0.19],
         "depth": [-2.0, 0.1]
@@ -23,21 +23,21 @@
       }
     },
     {
-      "id": "terralith:birch_taiga",
+      "id": "minecraft:birch_forest",
       "climate": {
         "weirdness": [-0.1486, -0.1071],
         "depth": [-2.0, 0.1]
       }
     },
     {
-      "id": "natures_spirit:fir_forest",
+      "id": "minecraft:old_growth_spruce_taiga",
       "climate": {
         "weirdness": [-0.1071, -0.0657],
         "depth": [-2.0, 0.1]
       }
     },
     {
-      "id": "terralith:moonlight_grove",
+      "id": "minecraft:pale_garden",
       "climate": {
         "weirdness": [-0.0657, -0.0243],
         "depth": [-2.0, 0.1]
@@ -51,21 +51,21 @@
       }
     },
     {
-      "id": "regions_unexplored:fungal_fen",
+      "id": "adventure:fungal_fen",
       "climate": {
         "weirdness": [0.0171, 0.0586],
         "depth": [-2.0, 0.1]
       }
     },
     {
-      "id": "wilderwild:dying_forest",
+      "id": "adventure:dying_forest",
       "climate": {
         "weirdness": [0.0586, 0.1],
         "depth": [-2.0, 0.1]
       }
     },
     {
-      "id": "wilderwild:dark_birch_forest",
+      "id": "minecraft:dark_forest",
       "climate": {
         "weirdness": [0.1, 2.0],
         "depth": [-2.0, 0.1]
@@ -79,7 +79,7 @@
       }
     },
     {
-      "id": "terralith:cave/infested_caves",
+      "id": "adventure:lichen_caves",
       "climate": {
         "weirdness": [-0.045, 2.0],
         "depth": [0.1, 2.0]
@@ -116,21 +116,21 @@
   "roll": {
     "mood": "adventurous",
     "spawnFilter": [
-      "terralith:birch_taiga"
+      "minecraft:birch_forest"
     ],
     "wants": {
-      "graveyard": "near_spawn",
-      "abandoned_chapel": "spread",
-      "zombie_dungeon": "spread",
-      "old_manor": "near_border",
-      "skeleton_dungeon": "near_border",
-      "dark_settlement": "spread",
-      "mausoleum": "near_border",
-      "swamp_ruin": "spread"
+      "nova_structures:remnant_graveyard": "near_spawn",
+      "ati_structures:haunted_ruin": "spread",
+      "epic:small_plains_dungeon": "spread",
+      "ati_structures:manor": "near_border",
+      "nova_structures:small_undead_crypt": "near_border",
+      "nova_structures:hamlet": "spread",
+      "nova_structures:remnant_shrine_sentinel_mass_grave": "near_border",
+      "mvs:small_swamp_house": "spread"
     },
     "shuns": [
       "monument",
-      "coliseum"
+      "mss:arena"
     ]
   }
 }

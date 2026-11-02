@@ -12,7 +12,7 @@
   },
   "biomes": [
     {
-      "id": "terralith:lush_valley",
+      "id": "minecraft:plains",
       "climate": {
         "weirdness": [-2.0, -0.19],
         "depth": [-2.0, 0.1]
@@ -40,14 +40,14 @@
       }
     },
     {
-      "id": "terralith:lavender_valley",
+      "id": "adventure:lavender_fields",
       "climate": {
         "weirdness": [-0.1109, -0.0845],
         "depth": [-2.0, 0.1]
       }
     },
     {
-      "id": "terralith:temperate_highlands",
+      "id": "minecraft:windswept_hills",
       "climate": {
         "weirdness": [-0.0845, -0.0582],
         "depth": [-2.0, 0.1]
@@ -61,42 +61,42 @@
       }
     },
     {
-      "id": "regions_unexplored:glistering_meadow",
+      "id": "adventure:nether_grasslands",
       "climate": {
         "weirdness": [-0.0318, -0.0055],
         "depth": [-2.0, 0.1]
       }
     },
     {
-      "id": "regions_unexplored:clover_plains",
+      "id": "minecraft:plains",
       "climate": {
         "weirdness": [-0.0055, 0.0209],
         "depth": [-2.0, 0.1]
       }
     },
     {
-      "id": "regions_unexplored:orchard",
+      "id": "adventure:magnolia_woodland",
       "climate": {
         "weirdness": [0.0209, 0.0473],
         "depth": [-2.0, 0.1]
       }
     },
     {
-      "id": "regions_unexplored:temperate_grove",
+      "id": "minecraft:birch_forest",
       "climate": {
         "weirdness": [0.0473, 0.0736],
         "depth": [-2.0, 0.1]
       }
     },
     {
-      "id": "regions_unexplored:rocky_meadow",
+      "id": "adventure:alpine_meadow",
       "climate": {
         "weirdness": [0.0736, 0.1],
         "depth": [-2.0, 0.1]
       }
     },
     {
-      "id": "regions_unexplored:flower_fields",
+      "id": "minecraft:flower_forest",
       "climate": {
         "weirdness": [0.1, 2.0],
         "depth": [-2.0, 0.1]
@@ -110,7 +110,7 @@
       }
     },
     {
-      "id": "terralith:cave/fungal_caves",
+      "id": "adventure:bioshroom_caves",
       "climate": {
         "weirdness": [-0.045, 2.0],
         "depth": [0.1, 2.0]
@@ -157,20 +157,20 @@
   "roll": {
     "mood": "pastoral",
     "spawnFilter": [
-      "terralith:lush_valley"
+      "minecraft:plains"
     ],
     "wants": {
       "village": "near_spawn",
-      "farmstead": "near_spawn",
+      "nova_structures:remnant_ruin_farmer": "near_spawn",
       "tavern": "spread",
-      "giant_mushroom": "spread",
-      "campsite": "near_spawn",
-      "abandoned_chapel": "spread",
-      "guide_post_warm": "near_spawn"
+      "mvs:large_mushroom": "spread",
+      "mvs:campsite": "near_spawn",
+      "ati_structures:haunted_ruin": "spread",
+      "mvs:small_oak_lantern": "near_spawn"
     },
     "shuns": [
       "ancient_city",
-      "coliseum"
+      "mss:arena"
     ]
   }
 }

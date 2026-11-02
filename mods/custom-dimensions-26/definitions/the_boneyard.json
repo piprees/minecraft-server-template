@@ -15,7 +15,7 @@
       }
     },
     {
-      "id": "betternether:bone_reef",
+      "id": "adventure:gravel_desert",
       "climate": {
         "temperature": [-0.8352, -0.6762]
       }
@@ -27,25 +27,25 @@
       }
     },
     {
-      "id": "betternether:soul_plain",
+      "id": "minecraft:soul_sand_valley",
       "climate": {
         "temperature": [-0.1768, -0.1168]
       }
     },
     {
-      "id": "betternether:sulfuric_bone_reef",
+      "id": "adventure:quartz_flats",
       "climate": {
         "temperature": [-0.1168, -0.0547]
       }
     },
     {
-      "id": "incendium:ash_barrens",
+      "id": "adventure:ash_barrens",
       "climate": {
         "temperature": [-0.0547, 0.0512]
       }
     },
     {
-      "id": "regions_unexplored:blackstone_basin",
+      "id": "adventure:blackstone_basin",
       "climate": {
         "temperature": [0.0512, 0.0977]
       }
@@ -57,19 +57,19 @@
       }
     },
     {
-      "id": "regions_unexplored:ancient_delta",
+      "id": "adventure:ash_barrens",
       "climate": {
         "temperature": [0.1629, 0.2058]
       }
     },
     {
-      "id": "incendium:toxic_heap",
+      "id": "adventure:mycotoxic_undergrowth",
       "climate": {
         "temperature": [0.2058, 0.3044]
       }
     },
     {
-      "id": "incendium:withered_forest",
+      "id": "adventure:withered_forest",
       "climate": {
         "temperature": [0.3044, 2.0]
       }
@@ -101,12 +101,12 @@
         "z": 193
       },
       {
-        "structure": "philipsruins:bone_dungeon",
+        "structure": "nova_structures:catacomb",
         "x": 47,
         "z": -311
       },
       {
-        "structure": "betterdungeons:skeleton_dungeon",
+        "structure": "nova_structures:small_undead_crypt",
         "x": -218,
         "z": -176
       },
@@ -155,18 +155,18 @@
     "mood": "hard",
     "spawnFilter": [
       "minecraft:soul_sand_valley",
-      "incendium:ash_barrens"
+      "adventure:ash_barrens"
     ],
     "wants": {
       "nether_graveyard": "spread",
-      "nether_dungeon": "spread",
-      "infernal_altar": "spread"
+      "mns:small_nether_brick": "spread",
+      "mns:smoking_shrine": "spread"
     },
     "shuns": [
-      "piglin_village",
+      "towns_and_towers:exclusives/village_piglin",
       "crimson_fungus",
       "crimson_forge",
-      "warped_outpost"
+      "mvs:large_warped_tower"
     ]
   }
 }

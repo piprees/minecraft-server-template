@@ -12,7 +12,7 @@
   },
   "biomes": [
     {
-      "id": "terralith:moonlight_grove",
+      "id": "minecraft:pale_garden",
       "climate": {
         "weirdness": [-2.0, -0.3],
         "depth": [-2.0, 0.1]
@@ -26,7 +26,7 @@
       }
     },
     {
-      "id": "natures_spirit:snowy_fir_forest",
+      "id": "minecraft:snowy_taiga",
       "climate": {
         "weirdness": [-0.27, -0.24],
         "depth": [-2.0, 0.1]
@@ -40,14 +40,14 @@
       }
     },
     {
-      "id": "wilderwild:old_growth_dark_forest",
+      "id": "minecraft:dark_forest",
       "climate": {
         "weirdness": [-0.17, -0.1],
         "depth": [-2.0, 0.1]
       }
     },
     {
-      "id": "wilderwild:dark_birch_forest",
+      "id": "minecraft:dark_forest",
       "climate": {
         "weirdness": [-0.1, -0.05],
         "depth": [-2.0, 0.1]
@@ -61,7 +61,7 @@
       }
     },
     {
-      "id": "natures_spirit:fir_forest",
+      "id": "minecraft:old_growth_spruce_taiga",
       "climate": {
         "weirdness": [-0.02, 0.01],
         "depth": [-2.0, 0.1]
@@ -75,21 +75,21 @@
       }
     },
     {
-      "id": "terralith:birch_taiga",
+      "id": "minecraft:birch_forest",
       "climate": {
         "weirdness": [0.04, 0.07],
         "depth": [-2.0, 0.1]
       }
     },
     {
-      "id": "regions_unexplored:blackwood_taiga",
+      "id": "minecraft:old_growth_pine_taiga",
       "climate": {
         "weirdness": [0.07, 0.1],
         "depth": [-2.0, 0.1]
       }
     },
     {
-      "id": "wilderwild:dark_taiga",
+      "id": "minecraft:taiga",
       "climate": {
         "weirdness": [0.1, 2.0],
         "depth": [-2.0, 0.1]
@@ -103,7 +103,7 @@
       }
     },
     {
-      "id": "terralith:cave/deep_caves",
+      "id": "minecraft:dripstone_caves",
       "climate": {
         "weirdness": [-0.045, 2.0],
         "depth": [0.1, 2.0]
@@ -147,7 +147,7 @@
       "radius": 130,
       "blend": 24,
       "biomes": [
-        "terralith:moonlight_valley"
+        "minecraft:old_growth_birch_forest"
       ]
     },
     {
@@ -156,7 +156,7 @@
       "radius": 120,
       "blend": 24,
       "biomes": [
-        "terralith:moonlight_valley"
+        "minecraft:old_growth_birch_forest"
       ]
     }
   ],
@@ -178,9 +178,8 @@
       "dungeons": "natural"
     },
     "rarity": {
-      "explorify:dark_forest_settlements": "common",
-      "betterdungeons:zombie_dungeons": "common",
-      "nova_structures:creeping_crypt": "common"
+      "epic:small_dungeons": "common",
+      "nova_structures:crypts": "common"
     }
   },
   "portals": [
@@ -218,23 +217,23 @@
   "roll": {
     "mood": "adventurous",
     "spawnFilter": [
-      "wilderwild:dark_taiga",
-      "terralith:moonlight_grove",
+      "minecraft:taiga",
+      "minecraft:pale_garden",
       "minecraft:dark_forest"
     ],
     "wants": {
-      "graveyard": "near_spawn",
-      "old_manor": "spread",
-      "zombie_dungeon": "spread",
+      "nova_structures:remnant_graveyard": "near_spawn",
+      "ati_structures:manor": "spread",
+      "epic:small_plains_dungeon": "spread",
       "mansion": "near_border",
-      "dark_settlement": "spread",
+      "nova_structures:hamlet": "spread",
       "creeping_crypt": "near_border",
-      "spider_dungeon": "spread",
+      "ati_structures:spider_nest": "spread",
       "undead_crypt": "near_border"
     },
     "shuns": [
       "monument",
-      "coliseum"
+      "mss:arena"
     ]
   }
 }

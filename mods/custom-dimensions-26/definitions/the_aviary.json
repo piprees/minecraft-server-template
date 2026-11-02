@@ -39,17 +39,17 @@
   "roll": {
     "mood": "scenic",
     "spawnFilter": [
-      "paradise_lost:highlands",
-      "paradise_lost:highlands_forest",
-      "paradise_lost:wisteria_woods",
-      "paradise_lost:tradewinds"
+      "adventure:sky_highlands",
+      "minecraft:forest",
+      "adventure:wisteria_grove",
+      "minecraft:meadow"
     ],
     "wants": {
-      "para_remains": "near_spawn",
-      "birdcage": "near_spawn",
-      "aurel_tower": "spread",
-      "para_vault": "spread",
-      "para_palace": "near_border"
+      "mvs:statue_ruins": "near_spawn",
+      "mss:small_tower": "near_spawn",
+      "mss:large_tower": "spread",
+      "nova_structures:trial_dungeon": "spread",
+      "mss:castle_ruin": "near_border"
     },
     "shuns": []
   }

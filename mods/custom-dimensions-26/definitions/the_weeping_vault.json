@@ -9,7 +9,7 @@
   },
   "biomes": [
     {
-      "id": "incendium:weeping_valley",
+      "id": "adventure:nether_jungle",
       "climate": {
         "temperature": [-0.6, -0.3]
       }
@@ -33,7 +33,7 @@
       }
     },
     {
-      "id": "incendium:withered_forest",
+      "id": "adventure:withered_forest",
       "climate": {
         "temperature": [0.6, 0.9]
       }
@@ -64,21 +64,21 @@
   "structures": {
     "density": "dense",
     "terrainAdaptation": {
-      "incendium:forbidden_castle": "pedestal",
-      "incendium:abandoned_tower": "pedestal"
+      "nova_structures:nether_keep": "pedestal",
+      "mns:nether_tower": "pedestal"
     },
     "noise": {
       "endgame": "none"
     },
     "force": [
       {
-        "structure": "incendium:forbidden_castle",
+        "structure": "nova_structures:nether_keep",
         "x": 0,
         "z": 0,
         "exclusive": false
       },
       {
-        "structure": "incendium:sanctum",
+        "structure": "nova_structures:sealing_halls",
         "x": -560,
         "z": 380
       }
@@ -87,7 +87,7 @@
       "dungeons": [0.3, 0.5, 0.9, 1.3, 1.7, 2.0, 2.2, 2.2, 2.0, 1.7]
     },
     "wants": {
-      "nether_dungeon": {
+      "mns:small_nether_brick": {
         "min": 0,
         "max": 102
       },
@@ -134,20 +134,20 @@
     "mood": "hard",
     "allowHazardousSpawn": true,
     "spawnFilter": [
-      "incendium:weeping_valley",
+      "adventure:nether_jungle",
       "minecraft:crimson_forest"
     ],
     "wants": {
-      "forbidden_castle": "spread",
-      "nether_dungeon": "near_spawn",
+      "nova_structures:nether_keep": "spread",
+      "mns:small_nether_brick": "near_spawn",
       "bastion": "spread",
-      "infernal_altar": "spread",
-      "nether_tower": "near_border"
+      "mns:smoking_shrine": "spread",
+      "mns:nether_tower": "near_border"
     },
     "shuns": [
-      "piglin_village",
+      "towns_and_towers:exclusives/village_piglin",
       "crimson_fungus",
-      "warped_outpost"
+      "mvs:large_warped_tower"
     ],
     "heightRange": [-40, 70]
   }

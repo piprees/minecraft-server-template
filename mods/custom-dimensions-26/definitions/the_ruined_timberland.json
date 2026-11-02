@@ -9,14 +9,14 @@
   },
   "biomes": [
     {
-      "id": "natures_spirit:aspen_forest",
+      "id": "adventure:aspen_forest",
       "climate": {
         "weirdness": [-2.0, -0.19],
         "depth": [-2.0, 0.1]
       }
     },
     {
-      "id": "natures_spirit:maple_woodlands",
+      "id": "adventure:maple_woodland",
       "climate": {
         "weirdness": [-0.19, -0.1417],
         "depth": [-2.0, 0.1]
@@ -37,7 +37,7 @@
       }
     },
     {
-      "id": "terralith:moonlight_grove",
+      "id": "minecraft:pale_garden",
       "climate": {
         "weirdness": [-0.045, 0.0033],
         "depth": [-2.0, 0.1]
@@ -51,21 +51,21 @@
       }
     },
     {
-      "id": "regions_unexplored:autumnal_maple_forest",
+      "id": "minecraft:dappled_forest",
       "climate": {
         "weirdness": [0.0517, 0.1],
         "depth": [-2.0, 0.1]
       }
     },
     {
-      "id": "wilderwild:maple_forest",
+      "id": "adventure:maple_woodland",
       "climate": {
         "weirdness": [0.1, 2.0],
         "depth": [-2.0, 0.1]
       }
     },
     {
-      "id": "terralith:cave/deep_caves",
+      "id": "minecraft:dripstone_caves",
       "climate": {
         "weirdness": [-2.0, -0.045],
         "depth": [0.1, 2.0]
@@ -117,15 +117,15 @@
       "minecraft:forest"
     ],
     "wants": {
-      "ruins_standard": "spread",
-      "forest_ruin": "near_spawn",
-      "old_manor": "spread",
-      "abandoned_temple": "spread",
-      "skeleton_dungeon": "spread",
-      "pumpkin_ruins": "near_spawn",
-      "ancient_crypt": "near_border",
-      "graveyard": "spread",
-      "mausoleum": "near_border"
+      "nova_structures:wild_ruin": "spread",
+      "mvs:log_ruin": "near_spawn",
+      "ati_structures:manor": "spread",
+      "ati_structures:rotting_temple": "spread",
+      "nova_structures:small_undead_crypt": "spread",
+      "nova_structures:remnant_ruin_farmer": "near_spawn",
+      "nova_structures:undead_crypt": "near_border",
+      "nova_structures:remnant_graveyard": "spread",
+      "nova_structures:remnant_shrine_sentinel_mass_grave": "near_border"
     },
     "shuns": [
       "village",

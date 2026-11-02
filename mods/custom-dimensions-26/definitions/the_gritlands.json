@@ -12,35 +12,35 @@
   },
   "biomes": [
     {
-      "id": "regions_unexplored:outback",
+      "id": "adventure:saguaro_desert",
       "climate": {
         "weirdness": [-2.0, -0.5963],
         "depth": [-2.0, 0.1]
       }
     },
     {
-      "id": "terralith:gravel_desert",
+      "id": "minecraft:windswept_gravelly_hills",
       "climate": {
         "weirdness": [-0.5963, -0.499],
         "depth": [-2.0, 0.1]
       }
     },
     {
-      "id": "terralith:basalt_cliffs",
+      "id": "minecraft:basalt_deltas",
       "climate": {
         "weirdness": [-0.499, -0.478],
         "depth": [-2.0, 0.1]
       }
     },
     {
-      "id": "terralith:ashen_savanna",
+      "id": "adventure:ashen_woodland",
       "climate": {
         "weirdness": [-0.478, -0.468],
         "depth": [-2.0, 0.1]
       }
     },
     {
-      "id": "terralith:volcanic_peaks",
+      "id": "adventure:magma_land",
       "climate": {
         "weirdness": [-0.468, -0.4237],
         "depth": [-2.0, 0.1]
@@ -61,35 +61,35 @@
       }
     },
     {
-      "id": "terralith:rocky_shrubland",
+      "id": "minecraft:windswept_hills",
       "climate": {
         "weirdness": [-0.0915, 0.0068],
         "depth": [-2.0, 0.1]
       }
     },
     {
-      "id": "terralith:cold_shrubland",
+      "id": "minecraft:snowy_plains",
       "climate": {
         "weirdness": [0.0068, 0.1964],
         "depth": [-2.0, 0.1]
       }
     },
     {
-      "id": "regions_unexplored:mauve_hills",
+      "id": "adventure:lavender_fields",
       "climate": {
         "weirdness": [0.1964, 0.499],
         "depth": [-2.0, 0.1]
       }
     },
     {
-      "id": "regions_unexplored:chalk_cliffs",
+      "id": "adventure:chalk_cliffs",
       "climate": {
         "weirdness": [0.499, 2.0],
         "depth": [-2.0, 0.1]
       }
     },
     {
-      "id": "terralith:cave/andesite_caves",
+      "id": "adventure:mineral_strata",
       "climate": {
         "weirdness": [-2.0, -0.334],
         "depth": [0.1, 2.0]
@@ -138,7 +138,7 @@
         "z": -412
       },
       {
-        "structure": "philipsruins:field_stone_ruins",
+        "structure": "nova_structures:wild_ruin",
         "x": -592,
         "z": 701
       },
@@ -148,7 +148,7 @@
         "z": -389
       },
       {
-        "structure": "betterdungeons:zombie_dungeon",
+        "structure": "epic:small_plains_dungeon",
         "x": 678,
         "z": -412
       }
@@ -174,8 +174,7 @@
     "mood": "desolate",
     "spawnFilter": [
       "minecraft:windswept_gravelly_hills",
-      "terralith:gravel_desert",
-      "terralith:volcanic_peaks"
+      "adventure:magma_land"
     ],
     "water": "none",
     "shuns": [
@@ -185,7 +184,7 @@
       "ancient_city",
       "mansion",
       "monument",
-      "coliseum"
+      "mss:arena"
     ]
   }
 }

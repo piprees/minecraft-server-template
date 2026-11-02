@@ -12,7 +12,7 @@
   },
   "biomes": [
     {
-      "id": "terralith:rocky_mountains",
+      "id": "adventure:alpine_scree",
       "climate": {
         "weirdness": [-2.0, -0.19],
         "depth": [-2.0, 0.1]
@@ -47,70 +47,70 @@
       }
     },
     {
-      "id": "terralith:basalt_cliffs",
+      "id": "minecraft:basalt_deltas",
       "climate": {
         "weirdness": [-0.0845, -0.0582],
         "depth": [-2.0, 0.1]
       }
     },
     {
-      "id": "terralith:scarlet_mountains",
+      "id": "adventure:maple_woodland",
       "climate": {
         "weirdness": [-0.0582, -0.0318],
         "depth": [-2.0, 0.1]
       }
     },
     {
-      "id": "terralith:volcanic_peaks",
+      "id": "adventure:magma_land",
       "climate": {
         "weirdness": [-0.0318, -0.0055],
         "depth": [-2.0, 0.1]
       }
     },
     {
-      "id": "regions_unexplored:towering_cliffs",
+      "id": "minecraft:stony_peaks",
       "climate": {
         "weirdness": [-0.0055, 0.0209],
         "depth": [-2.0, 0.1]
       }
     },
     {
-      "id": "regions_unexplored:spires",
+      "id": "minecraft:jagged_peaks",
       "climate": {
         "weirdness": [0.0209, 0.0473],
         "depth": [-2.0, 0.1]
       }
     },
     {
-      "id": "regions_unexplored:mountains",
+      "id": "adventure:alpine_scree",
       "climate": {
         "weirdness": [0.0473, 0.0736],
         "depth": [-2.0, 0.1]
       }
     },
     {
-      "id": "regions_unexplored:pine_slopes",
+      "id": "minecraft:windswept_forest",
       "climate": {
         "weirdness": [0.0736, 0.1],
         "depth": [-2.0, 0.1]
       }
     },
     {
-      "id": "regions_unexplored:mauve_hills",
+      "id": "adventure:lavender_fields",
       "climate": {
         "weirdness": [0.1, 2.0],
         "depth": [-2.0, 0.1]
       }
     },
     {
-      "id": "terralith:cave/granite_caves",
+      "id": "adventure:mineral_strata",
       "climate": {
         "weirdness": [-2.0, -0.045],
         "depth": [0.1, 2.0]
       }
     },
     {
-      "id": "terralith:cave/deep_caves",
+      "id": "minecraft:dripstone_caves",
       "climate": {
         "weirdness": [-0.045, 2.0],
         "depth": [0.1, 2.0]
@@ -161,18 +161,18 @@
   "roll": {
     "mood": "dramatic",
     "spawnFilter": [
-      "terralith:rocky_mountains",
-      "terralith:cave/granite_caves"
+      "adventure:alpine_scree",
+      "adventure:mineral_strata"
     ],
     "water": "none",
     "wants": {
       "mineshaft": "near_spawn",
-      "quarter_outpost": "spread",
-      "engineer_tower": "spread",
-      "ancient_temple": "near_border",
-      "firetower": "spread",
-      "scorched_mines": "near_border",
-      "coldlair": "near_border"
+      "ati_structures:small_keep": "spread",
+      "ati_structures:steam_house": "spread",
+      "ati_structures:ancient_temple": "near_border",
+      "nova_structures:firewatch_tower_taiga": "spread",
+      "nova_structures:badlands_miner_outpost": "near_border",
+      "epic:small_ice_dungeon": "near_border"
     },
     "shuns": [
       "village",

@@ -9,7 +9,7 @@
   },
   "biomes": [
     {
-      "id": "incendium:quartz_flats",
+      "id": "adventure:quartz_flats",
       "climate": {
         "temperature": [-2.0, -0.6683]
       }
@@ -21,13 +21,13 @@
       }
     },
     {
-      "id": "betternether:crimson_pinewood",
+      "id": "adventure:crimson_pinewood",
       "climate": {
         "temperature": [-0.5841, -0.5424]
       }
     },
     {
-      "id": "betternether:crimson_glowing_woods",
+      "id": "minecraft:crimson_forest",
       "climate": {
         "temperature": [-0.5424, -0.5064]
       }
@@ -39,19 +39,19 @@
       }
     },
     {
-      "id": "betternether:magma_land",
+      "id": "adventure:magma_land",
       "climate": {
         "temperature": [-0.3832, -0.3125]
       }
     },
     {
-      "id": "incendium:volcanic_deltas",
+      "id": "adventure:magma_land",
       "climate": {
         "temperature": [-0.3125, -0.1988]
       }
     },
     {
-      "id": "regions_unexplored:inferno",
+      "id": "adventure:magma_land",
       "climate": {
         "temperature": [-0.1988, 2.0]
       }
@@ -112,20 +112,20 @@
     "allowHazardousSpawn": true,
     "spawnFilter": [
       "minecraft:basalt_deltas",
-      "incendium:volcanic_deltas",
-      "incendium:quartz_flats"
+      "adventure:magma_land",
+      "adventure:quartz_flats"
     ],
     "wants": {
       "crimson_forge": "near_spawn",
-      "nether_reactor": "spread",
+      "mns:crimson_forge": "spread",
       "bastion": "spread",
-      "fortress": "spread",
-      "ruined_lab": "spread"
+      "mns:mega_fortress": "spread",
+      "mns:copper_tower": "spread"
     },
     "shuns": [
-      "piglin_village",
+      "towns_and_towers:exclusives/village_piglin",
       "crimson_fungus",
-      "warped_outpost"
+      "mvs:large_warped_tower"
     ]
   }
 }

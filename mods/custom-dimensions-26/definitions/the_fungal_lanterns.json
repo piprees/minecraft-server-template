@@ -21,25 +21,25 @@
       }
     },
     {
-      "id": "incendium:inverted_forest",
+      "id": "adventure:upside_down_forest",
       "climate": {
         "temperature": [-0.3581, -0.1161]
       }
     },
     {
-      "id": "terralith:cave/fungal_caves",
+      "id": "adventure:bioshroom_caves",
       "climate": {
         "temperature": [-0.1161, 0.4161]
       }
     },
     {
-      "id": "incendium:quartz_flats",
+      "id": "adventure:quartz_flats",
       "climate": {
         "temperature": [0.4161, 0.6581]
       }
     },
     {
-      "id": "regions_unexplored:infernal_holt",
+      "id": "minecraft:crimson_forest",
       "climate": {
         "temperature": [0.6581, 0.9]
       }
@@ -114,19 +114,19 @@
     "spawnFilter": [
       "minecraft:crimson_forest",
       "minecraft:warped_forest",
-      "incendium:inverted_forest"
+      "adventure:upside_down_forest"
     ],
     "wants": {
       "crimson_fungus": "near_spawn",
-      "warped_outpost": "spread",
-      "warped_greatsword": "spread",
-      "strange_outpost": "near_border",
+      "mvs:large_warped_tower": "spread",
+      "mns:sword": "spread",
+      "mns:warped_dome": "near_border",
       "nether_bridge": "near_border"
     },
     "shuns": [
-      "fortress",
+      "mns:mega_fortress",
       "bastion",
-      "sanctum"
+      "nova_structures:sealing_halls"
     ],
     "heightRange": [-64, 110]
   }

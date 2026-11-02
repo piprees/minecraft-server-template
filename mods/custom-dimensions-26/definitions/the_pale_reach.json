@@ -9,25 +9,25 @@
   },
   "biomes": [
     {
-      "id": "terralith:skylands_winter",
+      "id": "adventure:windswept_isles",
       "climate": {
         "weirdness": [-2.0, -0.5082]
       }
     },
     {
-      "id": "terralith:frozen_cliffs",
+      "id": "minecraft:jagged_peaks",
       "climate": {
         "weirdness": [-0.5082, -0.4877]
       }
     },
     {
-      "id": "terralith:wintry_lowlands",
+      "id": "minecraft:snowy_plains",
       "climate": {
         "weirdness": [-0.4877, -0.3996]
       }
     },
     {
-      "id": "nullscape:void_barrens",
+      "id": "minecraft:end_barrens",
       "climate": {
         "weirdness": [-0.3996, -0.3089]
       }
@@ -39,13 +39,13 @@
       }
     },
     {
-      "id": "terralith:white_cliffs",
+      "id": "adventure:chalk_cliffs",
       "climate": {
         "weirdness": [-0.243, -0.2023]
       }
     },
     {
-      "id": "paradise_lost:calcite_craglands",
+      "id": "adventure:windswept_isles",
       "climate": {
         "weirdness": [-0.2023, -0.1272]
       }
@@ -77,7 +77,7 @@
       "radius": 110,
       "blend": 28,
       "biomes": [
-        "palegardenbackport:pale_garden"
+        "minecraft:pale_garden"
       ]
     }
   ],
@@ -102,11 +102,11 @@
       "dungeons": "sparse"
     },
     "terrainAdaptation": {
-      "paradise_lost:vault": "pedestal"
+      "nova_structures:trial_dungeon": "pedestal"
     },
     "force": [
       {
-        "structure": "paradise_lost:vault",
+        "structure": "nova_structures:trial_dungeon",
         "x": -460,
         "z": 420
       }
@@ -137,10 +137,10 @@
       "minecraft:snowy_slopes"
     ],
     "wants": {
-      "para_remains": "spread",
-      "birdcage": "spread",
-      "frozen_dungeon": "near_border",
-      "aurel_tower": "spread"
+      "mvs:statue_ruins": "spread",
+      "mss:small_tower": "spread",
+      "epic:small_ice_dungeon": "near_border",
+      "mss:large_tower": "spread"
     },
     "shuns": [
       "village",

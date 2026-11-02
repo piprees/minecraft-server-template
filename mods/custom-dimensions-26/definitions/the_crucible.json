@@ -54,61 +54,61 @@
       }
     },
     {
-      "id": "terralith:orchid_swamp",
+      "id": "minecraft:mangrove_swamp",
       "climate": {
         "weirdness": [-0.4141, -0.3909]
       }
     },
     {
-      "id": "terralith:moonlight_grove",
+      "id": "minecraft:pale_garden",
       "climate": {
         "weirdness": [-0.3909, -0.3677]
       }
     },
     {
-      "id": "terralith:mirage_isles",
+      "id": "adventure:desert_oasis",
       "climate": {
         "weirdness": [-0.3677, -0.3445]
       }
     },
     {
-      "id": "terralith:moonlight_valley",
+      "id": "minecraft:old_growth_birch_forest",
       "climate": {
         "weirdness": [-0.3445, -0.3213]
       }
     },
     {
-      "id": "terralith:rocky_jungle",
+      "id": "minecraft:sparse_jungle",
       "climate": {
         "weirdness": [-0.3213, -0.2976]
       }
     },
     {
-      "id": "terralith:cave/underground_jungle",
+      "id": "minecraft:lush_caves",
       "climate": {
         "weirdness": [-0.2976, -0.2735]
       }
     },
     {
-      "id": "wilderwild:rainforest",
+      "id": "minecraft:old_growth_birch_forest",
       "climate": {
         "weirdness": [-0.2735, -0.2495]
       }
     },
     {
-      "id": "wilderwild:birch_jungle",
+      "id": "minecraft:old_growth_birch_forest",
       "climate": {
         "weirdness": [-0.2495, -0.2144]
       }
     },
     {
-      "id": "regions_unexplored:tropical_river",
+      "id": "adventure:muddy_river",
       "climate": {
         "weirdness": [-0.2144, -0.1758]
       }
     },
     {
-      "id": "regions_unexplored:sparse_rainforest",
+      "id": "minecraft:sparse_jungle",
       "climate": {
         "weirdness": [-0.1758, -0.1371]
       }
@@ -126,37 +126,37 @@
       }
     },
     {
-      "id": "terralith:cloud_forest",
+      "id": "adventure:cloud_forest",
       "climate": {
         "weirdness": [0.2096, 0.2876]
       }
     },
     {
-      "id": "undergroundworlds:underground_jungle",
+      "id": "adventure:root_hollows",
       "climate": {
         "weirdness": [0.2876, 0.3356]
       }
     },
     {
-      "id": "wilderwild:sparse_birch_jungle",
+      "id": "minecraft:birch_forest",
       "climate": {
         "weirdness": [0.3356, 0.3818]
       }
     },
     {
-      "id": "incendium:inverted_forest",
+      "id": "adventure:upside_down_forest",
       "climate": {
         "weirdness": [0.3818, 0.4433]
       }
     },
     {
-      "id": "terralith:tropical_jungle",
+      "id": "minecraft:jungle",
       "climate": {
         "weirdness": [0.4433, 0.4785]
       }
     },
     {
-      "id": "regions_unexplored:tropics",
+      "id": "adventure:tropical_shores",
       "climate": {
         "weirdness": [0.4785, 2.0]
       }
@@ -186,7 +186,7 @@
     "density": "dense",
     "force": [
       {
-        "structure": "dungeons_arise:jungle_tree_house",
+        "structure": "nova_structures:illager_treehouse",
         "x": 180,
         "z": -70,
         "exclusive": false
@@ -237,23 +237,22 @@
     "spawnFilter": [
       "minecraft:jungle",
       "minecraft:bamboo_jungle",
-      "terralith:cloud_forest",
-      "terralith:tropical_jungle"
+      "adventure:cloud_forest"
     ],
     "wants": {
-      "jungle_ruin": "near_spawn",
-      "jungle_tree_house": "near_spawn",
-      "infested_temple": "spread",
-      "webbed_dungeon": "spread",
+      "nova_structures:jungle_ruins": "near_spawn",
+      "nova_structures:illager_treehouse": "near_spawn",
+      "mtr:jungle_temple": "spread",
+      "ati_structures:arachnid_dwelling": "spread",
       "trial_chambers": "spread",
-      "murkydungeon": "spread",
-      "lush_dungeon": "spread",
-      "underground_camp": "near_spawn"
+      "nova_structures:small_creeping_crypt": "spread",
+      "ati_structures:jungle_grotto": "spread",
+      "nova_structures:deepslate_camp": "near_spawn"
     },
     "shuns": [
       "village",
       "tavern",
-      "farmstead"
+      "nova_structures:remnant_ruin_farmer"
     ]
   }
 }

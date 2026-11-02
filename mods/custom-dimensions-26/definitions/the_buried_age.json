@@ -15,25 +15,25 @@
       }
     },
     {
-      "id": "betternether:old_swampland",
+      "id": "minecraft:soul_sand_valley",
       "climate": {
         "temperature": [-0.4483, -0.3616]
       }
     },
     {
-      "id": "betternether:flooded_deltas",
+      "id": "minecraft:basalt_deltas",
       "climate": {
         "temperature": [-0.3616, -0.073]
       }
     },
     {
-      "id": "betternether:upside_down_forest",
+      "id": "adventure:upside_down_forest",
       "climate": {
         "temperature": [-0.073, -0.0436]
       }
     },
     {
-      "id": "betternether:upside_down_forest_cleared",
+      "id": "minecraft:crimson_forest",
       "climate": {
         "temperature": [-0.0436, -0.0195]
       }
@@ -45,7 +45,7 @@
       }
     },
     {
-      "id": "regions_unexplored:ancient_delta",
+      "id": "adventure:ash_barrens",
       "climate": {
         "temperature": [0.0181, 0.0727]
       }
@@ -57,7 +57,7 @@
       }
     },
     {
-      "id": "incendium:quartz_flats",
+      "id": "adventure:quartz_flats",
       "climate": {
         "temperature": [0.3368, 2.0]
       }
@@ -124,19 +124,19 @@
     "allowHazardousSpawn": true,
     "spawnFilter": [
       "minecraft:nether_wastes",
-      "incendium:quartz_flats"
+      "adventure:quartz_flats"
     ],
     "wants": {
-      "start_nether_ruin": "near_spawn",
-      "nether_lava_ruins": "spread",
-      "nether_tower": "spread",
-      "pipeline": "spread",
+      "mns:ruined_portal": "near_spawn",
+      "mns:large_nether_brick": "spread",
+      "mns:nether_tower": "spread",
+      "mns:bridge_1": "spread",
       "copper_tower": "near_border"
     },
     "shuns": [
-      "piglin_village",
+      "towns_and_towers:exclusives/village_piglin",
       "crimson_fungus",
-      "warped_outpost",
+      "mvs:large_warped_tower",
       "bastion"
     ],
     "water": "sea",

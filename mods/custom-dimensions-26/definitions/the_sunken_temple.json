@@ -9,13 +9,13 @@
   },
   "biomes": [
     {
-      "id": "paradise_lost:tradewinds",
+      "id": "minecraft:meadow",
       "climate": {
         "continentalness": [-2.0, -0.159]
       }
     },
     {
-      "id": "paradise_lost:highlands",
+      "id": "adventure:sky_highlands",
       "climate": {
         "continentalness": [0.1028, 0.1501]
       }
@@ -27,7 +27,7 @@
       }
     },
     {
-      "id": "terralith:deep_warm_ocean",
+      "id": "minecraft:deep_lukewarm_ocean",
       "climate": {
         "continentalness": [-0.1125, -0.0674]
       }
@@ -39,13 +39,13 @@
       }
     },
     {
-      "id": "terralith:skylands_summer",
+      "id": "adventure:hanging_gardens",
       "climate": {
         "continentalness": [-0.0674, -0.0241]
       }
     },
     {
-      "id": "terralith:mirage_isles",
+      "id": "adventure:desert_oasis",
       "climate": {
         "continentalness": [-0.0241, 0.0144]
       }
@@ -99,18 +99,18 @@
   "roll": {
     "mood": "adventurous",
     "spawnFilter": [
-      "paradise_lost:highlands"
+      "adventure:sky_highlands"
     ],
     "water": "sea",
     "wants": {
-      "para_vault": "spread",
-      "para_palace": "near_border",
+      "nova_structures:trial_dungeon": "spread",
+      "mss:castle_ruin": "near_border",
       "monument": "spread",
-      "deepwater_dungeon": "spread",
-      "para_remains": "near_spawn",
-      "ocean_fortress": "near_border",
-      "birdcage": "spread",
-      "aurel_tower": "near_spawn"
+      "ati_structures:underwater_dungeon": "spread",
+      "mvs:statue_ruins": "near_spawn",
+      "mtr:ocean_temple": "near_border",
+      "mss:small_tower": "spread",
+      "mss:large_tower": "near_spawn"
     },
     "shuns": [],
     "terrain": "islands"

@@ -9,21 +9,21 @@
   },
   "biomes": [
     {
-      "id": "terralith:ancient_sands",
+      "id": "minecraft:desert",
       "climate": {
         "weirdness": [-2.0, -0.19],
         "depth": [-2.0, 0.1]
       }
     },
     {
-      "id": "natures_spirit:wooded_drylands",
+      "id": "adventure:parched_forest",
       "climate": {
         "weirdness": [-0.19, -0.161],
         "depth": [-2.0, 0.1]
       }
     },
     {
-      "id": "terralith:steppe",
+      "id": "adventure:prairie",
       "climate": {
         "weirdness": [-0.161, -0.132],
         "depth": [-2.0, 0.1]
@@ -44,7 +44,7 @@
       }
     },
     {
-      "id": "terralith:arid_highlands",
+      "id": "minecraft:savanna_plateau",
       "climate": {
         "weirdness": [-0.074, -0.045],
         "depth": [-2.0, 0.1]
@@ -58,42 +58,42 @@
       }
     },
     {
-      "id": "terralith:hot_shrubland",
+      "id": "adventure:dry_steppe",
       "climate": {
         "weirdness": [-0.016, 0.013],
         "depth": [-2.0, 0.1]
       }
     },
     {
-      "id": "natures_spirit:xeric_plains",
+      "id": "adventure:joshua_desert",
       "climate": {
         "weirdness": [0.013, 0.042],
         "depth": [-2.0, 0.1]
       }
     },
     {
-      "id": "regions_unexplored:dry_bushland",
+      "id": "minecraft:savanna",
       "climate": {
         "weirdness": [0.042, 0.071],
         "depth": [-2.0, 0.1]
       }
     },
     {
-      "id": "regions_unexplored:outback",
+      "id": "adventure:saguaro_desert",
       "climate": {
         "weirdness": [0.071, 0.1],
         "depth": [-2.0, 0.1]
       }
     },
     {
-      "id": "regions_unexplored:steppe",
+      "id": "adventure:dry_steppe",
       "climate": {
         "weirdness": [0.1, 2.0],
         "depth": [-2.0, 0.1]
       }
     },
     {
-      "id": "terralith:cave/andesite_caves",
+      "id": "adventure:mineral_strata",
       "climate": {
         "weirdness": [-2.0, -0.045],
         "depth": [0.1, 2.0]
@@ -122,12 +122,12 @@
     "density": "none",
     "force": [
       {
-        "structure": "explorify:farmstead",
+        "structure": "nova_structures:remnant_ruin_farmer",
         "x": -87,
         "z": -312
       },
       {
-        "structure": "dungeons_plus:dusty_tomb",
+        "structure": "epic:small_sand_dungeon",
         "x": -87,
         "z": -312
       }
@@ -152,7 +152,7 @@
   "roll": {
     "mood": "desolate",
     "spawnFilter": [
-      "terralith:steppe"
+      "adventure:prairie"
     ],
     "water": "none",
     "shuns": [
@@ -160,7 +160,7 @@
       "tavern",
       "monument",
       "mansion",
-      "coliseum",
+      "mss:arena",
       "ancient_city",
       "trial_chambers"
     ]

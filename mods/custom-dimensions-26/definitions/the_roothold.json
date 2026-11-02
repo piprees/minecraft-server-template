@@ -9,7 +9,7 @@
   },
   "biomes": [
     {
-      "id": "natures_spirit:redwood_forest",
+      "id": "adventure:redwood_grove",
       "climate": {
         "weirdness": [-2.0, -0.19],
         "depth": [-2.0, 0.1]
@@ -23,7 +23,7 @@
       }
     },
     {
-      "id": "terralith:shield",
+      "id": "minecraft:taiga",
       "climate": {
         "weirdness": [-0.1486, -0.1071],
         "depth": [-2.0, 0.1]
@@ -44,28 +44,28 @@
       }
     },
     {
-      "id": "terralith:forested_highlands",
+      "id": "minecraft:windswept_forest",
       "climate": {
         "weirdness": [-0.0243, 0.0171],
         "depth": [-2.0, 0.1]
       }
     },
     {
-      "id": "regions_unexplored:old_growth_forest",
+      "id": "minecraft:dark_forest",
       "climate": {
         "weirdness": [0.0171, 0.0586],
         "depth": [-2.0, 0.1]
       }
     },
     {
-      "id": "regions_unexplored:willow_forest",
+      "id": "minecraft:swamp",
       "climate": {
         "weirdness": [0.0586, 0.1],
         "depth": [-2.0, 0.1]
       }
     },
     {
-      "id": "wilderwild:old_growth_dark_forest",
+      "id": "minecraft:dark_forest",
       "climate": {
         "weirdness": [0.1, 2.0],
         "depth": [-2.0, 0.1]
@@ -79,14 +79,14 @@
       }
     },
     {
-      "id": "terralith:cave/infested_caves",
+      "id": "adventure:lichen_caves",
       "climate": {
         "weirdness": [-0.045, 2.0],
         "depth": [0.1, 0.6]
       }
     },
     {
-      "id": "incendium:withered_forest",
+      "id": "adventure:withered_forest",
       "climate": {
         "weirdness": [-2.0, 2.0],
         "depth": [0.6, 2.0]
@@ -147,18 +147,18 @@
       "minecraft:forest"
     ],
     "wants": {
-      "forest_ruin": "spread",
-      "old_manor": "near_border",
-      "spider_dungeon": "spread",
+      "mvs:log_ruin": "spread",
+      "ati_structures:manor": "near_border",
+      "ati_structures:spider_nest": "spread",
       "mansion": "near_border",
-      "lush_dungeon": "spread",
+      "ati_structures:jungle_grotto": "spread",
       "creeping_crypt": "spread",
-      "infested_dungeon": "spread",
-      "mouldy_dungeon": "spread"
+      "ati_structures:silverfish_nest": "spread",
+      "ati_structures:rotting_temple_underground": "spread"
     },
     "shuns": [
       "monument",
-      "coliseum"
+      "mss:arena"
     ]
   }
 }

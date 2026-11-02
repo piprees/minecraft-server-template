@@ -13,12 +13,12 @@
   "biomes": [
     "minecraft:basalt_deltas",
     "minecraft:soul_sand_valley",
-    "incendium:toxic_heap",
-    "incendium:withered_forest",
+    "adventure:mycotoxic_undergrowth",
+    "adventure:withered_forest",
     "minecraft:nether_wastes",
-    "incendium:ash_barrens",
+    "adventure:ash_barrens",
     {
-      "id": "nullscape:shadowlands",
+      "id": "adventure:umbral_wastes",
       "climate": {
         "weirdness": [-2.0, -0.435]
       }
@@ -30,7 +30,7 @@
       }
     },
     {
-      "id": "terralith:moonlight_valley",
+      "id": "minecraft:old_growth_birch_forest",
       "climate": {
         "weirdness": [-0.02, 0.12]
       }
@@ -48,7 +48,7 @@
       }
     },
     {
-      "id": "terralith:moonlight_grove",
+      "id": "minecraft:pale_garden",
       "climate": {
         "weirdness": [0.495, 0.53]
       }
@@ -66,13 +66,13 @@
       }
     },
     {
-      "id": "terralith:volcanic_crater",
+      "id": "adventure:blackstone_basin",
       "climate": {
         "weirdness": [0.7, 0.79]
       }
     },
     {
-      "id": "terralith:caldera",
+      "id": "minecraft:stony_peaks",
       "climate": {
         "weirdness": [0.79, 2.0]
       }
@@ -110,13 +110,13 @@
     "density": "dense",
     "force": [
       {
-        "structure": "philipsruins:sculk_dungeon",
+        "structure": "ati_structures:warden_monument",
         "x": 140,
         "z": 96,
         "exclusive": false
       },
       {
-        "structure": "incendium:nether_reactor",
+        "structure": "mns:crimson_forge",
         "x": 1180,
         "z": -860,
         "exclusive": false
@@ -165,22 +165,22 @@
     "spawnFilter": [
       "minecraft:basalt_deltas",
       "minecraft:soul_sand_valley",
-      "incendium:toxic_heap",
-      "incendium:withered_forest",
-      "nullscape:shadowlands",
+      "adventure:mycotoxic_undergrowth",
+      "adventure:withered_forest",
+      "adventure:umbral_wastes",
       "minecraft:deep_dark"
     ],
     "wants": {
-      "sculk_dungeon": "near_spawn",
-      "nether_reactor": "spread",
+      "ati_structures:warden_monument": "near_spawn",
+      "mns:crimson_forge": "spread",
       "bastion": "spread",
-      "fortress": "near_border",
-      "ruined_lab": "spread"
+      "mns:mega_fortress": "near_border",
+      "mns:copper_tower": "spread"
     },
     "shuns": [
-      "piglin_village",
+      "towns_and_towers:exclusives/village_piglin",
       "crimson_fungus",
-      "warped_outpost"
+      "mvs:large_warped_tower"
     ]
   }
 }

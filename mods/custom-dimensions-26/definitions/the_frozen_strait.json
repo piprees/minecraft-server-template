@@ -36,19 +36,19 @@
       }
     },
     {
-      "id": "terralith:ice_marsh",
+      "id": "minecraft:frozen_river",
       "climate": {
         "continentalness": [-0.5245, -0.5152]
       }
     },
     {
-      "id": "regions_unexplored:frozen_tundra",
+      "id": "minecraft:snowy_plains",
       "climate": {
         "continentalness": [-0.5152, -0.4452]
       }
     },
     {
-      "id": "wilderwild:tundra",
+      "id": "adventure:highland_fells",
       "climate": {
         "continentalness": [-0.4452, -0.433]
       }
@@ -66,19 +66,19 @@
       }
     },
     {
-      "id": "regions_unexplored:icy_heights",
+      "id": "minecraft:frozen_peaks",
       "climate": {
         "continentalness": [-0.3467, -0.2376]
       }
     },
     {
-      "id": "terralith:frozen_cliffs",
+      "id": "minecraft:jagged_peaks",
       "climate": {
         "continentalness": [-0.2376, -0.1639]
       }
     },
     {
-      "id": "terralith:cave/frostfire_caves",
+      "id": "adventure:magmatic_caves",
       "climate": {
         "continentalness": [-0.1639, -0.1333]
       }
@@ -144,23 +144,23 @@
     "allowHazardousSpawn": true,
     "spawnFilter": [
       "minecraft:frozen_ocean",
-      "regions_unexplored:frozen_tundra"
+      "minecraft:snowy_plains"
     ],
     "water": "sea",
     "wants": {
       "igloo": "near_spawn",
-      "guide_post_cold": "near_spawn",
+      "mvs:small_spruce_lantern": "near_spawn",
       "ice_dungeon_m": "spread",
-      "frozen_dungeon": "spread",
+      "epic:small_ice_dungeon": "spread",
       "shipwreck": "spread",
       "buried_treasure": "near_border",
-      "ocean_ruins": "spread",
-      "lighthouse": "near_border"
+      "minecraft:ocean_ruin_warm": "spread",
+      "ati_structures:lighthouse": "near_border"
     },
     "shuns": [
       "village",
       "mansion",
-      "coliseum"
+      "mss:arena"
     ]
   }
 }

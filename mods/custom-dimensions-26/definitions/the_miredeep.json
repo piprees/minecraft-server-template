@@ -9,7 +9,7 @@
   },
   "biomes": [
     {
-      "id": "terralith:orchid_swamp",
+      "id": "minecraft:mangrove_swamp",
       "climate": {
         "weirdness": [-2.0, -0.19],
         "depth": [-2.0, 0.1]
@@ -23,7 +23,7 @@
       }
     },
     {
-      "id": "natures_spirit:marsh",
+      "id": "adventure:orchid_marsh",
       "climate": {
         "weirdness": [-0.1537, -0.1175],
         "depth": [-2.0, 0.1]
@@ -59,28 +59,28 @@
       }
     },
     {
-      "id": "terralith:moonlight_valley",
+      "id": "minecraft:old_growth_birch_forest",
       "climate": {
         "weirdness": [0.0275, 0.0638],
         "depth": [-2.0, 0.1]
       }
     },
     {
-      "id": "regions_unexplored:bayou",
+      "id": "adventure:cypress_wetland",
       "climate": {
         "weirdness": [0.0638, 0.1],
         "depth": [-2.0, 0.1]
       }
     },
     {
-      "id": "regions_unexplored:old_growth_bayou",
+      "id": "minecraft:mangrove_swamp",
       "climate": {
         "weirdness": [0.1, 2.0],
         "depth": [-2.0, 0.1]
       }
     },
     {
-      "id": "terralith:cave/fungal_caves",
+      "id": "adventure:bioshroom_caves",
       "climate": {
         "weirdness": [-2.0, -0.045],
         "depth": [0.1, 2.0]
@@ -114,7 +114,7 @@
     "clearSpawnRadius": 80,
     "force": [
       {
-        "structure": "structory:old_manor",
+        "structure": "ati_structures:manor",
         "x": -690,
         "z": 730
       }
@@ -138,16 +138,16 @@
   "roll": {
     "mood": "desolate",
     "spawnFilter": [
-      "natures_spirit:marsh"
+      "adventure:orchid_marsh"
     ],
     "water": "high",
     "wants": {
-      "swamp_ruin": "spread",
-      "muddy_dungeon": "near_border",
-      "mausoleum": "spread",
-      "graveyard": "spread",
-      "abandoned_camp": "spread",
-      "mangrove_hut": "near_spawn"
+      "mvs:small_swamp_house": "spread",
+      "nova_structures:surface_dungeon_swamp": "near_border",
+      "nova_structures:remnant_shrine_sentinel_mass_grave": "spread",
+      "nova_structures:remnant_graveyard": "spread",
+      "minecraft:abandoned_camp_forest": "spread",
+      "nova_structures:mangrove_witch_hut": "near_spawn"
     },
     "shuns": [
       "village",
@@ -155,7 +155,7 @@
       "mansion",
       "trial_chambers",
       "monument",
-      "coliseum"
+      "mss:arena"
     ]
   }
 }

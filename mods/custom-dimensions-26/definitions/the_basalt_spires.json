@@ -18,13 +18,13 @@
       }
     },
     {
-      "id": "incendium:volcanic_deltas",
+      "id": "adventure:magma_land",
       "climate": {
         "temperature": [-0.4125, -0.225]
       }
     },
     {
-      "id": "incendium:ash_barrens",
+      "id": "adventure:ash_barrens",
       "climate": {
         "temperature": [-0.225, -0.0375]
       }
@@ -42,19 +42,19 @@
       }
     },
     {
-      "id": "incendium:quartz_flats",
+      "id": "adventure:quartz_flats",
       "climate": {
         "temperature": [0.3375, 0.525]
       }
     },
     {
-      "id": "regions_unexplored:blackstone_basin",
+      "id": "adventure:blackstone_basin",
       "climate": {
         "temperature": [0.525, 0.7125]
       }
     },
     {
-      "id": "regions_unexplored:ancient_delta",
+      "id": "adventure:ash_barrens",
       "climate": {
         "temperature": [0.7125, 0.9]
       }
@@ -92,7 +92,7 @@
   "structures": {
     "density": "normal",
     "terrainAdaptation": {
-      "structory_towers:warped_greatsword": "pedestal",
+      "mns:sword": "pedestal",
       "minecraft:bastion_remnant": "pedestal"
     },
     "force": [
@@ -123,17 +123,17 @@
     "mood": "dramatic",
     "spawnFilter": [
       "minecraft:basalt_deltas",
-      "incendium:volcanic_deltas"
+      "adventure:magma_land"
     ],
     "wants": {
       "blackstone_pillars": "spread",
-      "warped_greatsword": "spread",
+      "mns:sword": "spread",
       "crimson_forge": "near_border",
-      "nether_tower": "spread",
-      "pipeline": "spread"
+      "mns:nether_tower": "spread",
+      "mns:bridge_1": "spread"
     },
     "shuns": [
-      "piglin_village"
+      "towns_and_towers:exclusives/village_piglin"
     ],
     "terrain": "extreme",
     "heightRange": [40, 250],

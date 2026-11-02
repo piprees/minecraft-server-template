@@ -20,57 +20,53 @@
     "minecraft:grove",
     "minecraft:river",
     "minecraft:deep_dark",
-    "terralith:rocky_mountains",
-    "terralith:caldera",
-    "terralith:basalt_cliffs",
-    "terralith:haze_mountain",
-    "terralith:granite_cliffs",
-    "terralith:white_cliffs",
-    "terralith:scarlet_mountains",
+    "adventure:alpine_scree",
+    "minecraft:basalt_deltas",
+    "adventure:chalk_cliffs",
+    "adventure:maple_woodland",
     "minecraft:eroded_badlands",
-    "terralith:windswept_spires",
     {
-      "id": "nullscape:crystal_peaks",
+      "id": "adventure:ice_starfield",
       "climate": {
         "weirdness": [-0.4765, -0.4609]
       }
     },
     {
-      "id": "regions_unexplored:towering_cliffs",
+      "id": "minecraft:stony_peaks",
       "climate": {
         "weirdness": [-0.4259, -0.3342]
       }
     },
     {
-      "id": "incendium:ash_barrens",
+      "id": "adventure:ash_barrens",
       "climate": {
         "weirdness": [-0.1814, -0.0382]
       }
     },
     {
-      "id": "regions_unexplored:spires",
+      "id": "minecraft:jagged_peaks",
       "climate": {
         "weirdness": [0.2239, 0.4285]
       }
     },
     {
-      "id": "regions_unexplored:icy_heights",
+      "id": "minecraft:frozen_peaks",
       "climate": {
         "weirdness": [0.5241, 0.6912]
       }
     },
     {
-      "id": "natures_spirit:snowcapped_red_peaks",
+      "id": "minecraft:jagged_peaks",
       "climate": {
         "weirdness": [0.6912, 0.9886]
       }
     },
-    "undergroundworlds:underground_desert",
-    "wilderwild:dying_mixed_forest",
-    "wilderwild:snowy_dying_forest",
-    "wilderwild:snowy_dying_mixed_forest",
+    "adventure:buried_dunes",
+    "adventure:ashen_woodland",
+    "adventure:dying_forest",
+    "minecraft:snowy_taiga",
     {
-      "id": "terralith:desert_spires",
+      "id": "minecraft:eroded_badlands",
       "climate": {
         "weirdness": [-0.33, -0.26]
       }
@@ -83,7 +79,7 @@
       "radius": 260,
       "blend": 32,
       "biomes": [
-        "terralith:desert_spires"
+        "minecraft:eroded_badlands"
       ]
     }
   ],
@@ -120,7 +116,7 @@
   "structures": {
     "density": "dense",
     "terrainAdaptation": {
-      "dungeons_arise:keep_kayra": "pedestal",
+      "ati_structures:dark_keep": "pedestal",
       "nova_structures:lone_citadel": "pedestal"
     },
     "rarity": {
@@ -129,7 +125,7 @@
     },
     "force": [
       {
-        "structure": "dungeons_arise:scorched_mines",
+        "structure": "nova_structures:badlands_miner_outpost",
         "x": 880,
         "z": -640,
         "exclusive": false
@@ -172,27 +168,26 @@
       "minecraft:jagged_peaks",
       "minecraft:frozen_peaks",
       "minecraft:stony_peaks",
-      "terralith:caldera",
       "minecraft:windswept_hills",
       "minecraft:windswept_gravelly_hills",
-      "terralith:rocky_mountains",
-      "terralith:basalt_cliffs",
+      "adventure:alpine_scree",
+      "minecraft:basalt_deltas",
       "minecraft:grove"
     ],
     "wants": {
-      "wizard_tower": "near_spawn",
+      "ddd:wizard_tower": "near_spawn",
       "ancient_city": "spread",
       "trial_chambers": "spread",
       "ice_dungeon_l": "spread",
-      "keep_kayra": "near_border",
-      "coliseum": "near_border",
-      "scorched_mines": "spread",
+      "ati_structures:dark_keep": "near_border",
+      "mss:arena": "near_border",
+      "nova_structures:badlands_miner_outpost": "spread",
       "lone_citadel": "near_border"
     },
     "shuns": [
       "village",
       "tavern",
-      "farmstead"
+      "nova_structures:remnant_ruin_farmer"
     ]
   }
 }

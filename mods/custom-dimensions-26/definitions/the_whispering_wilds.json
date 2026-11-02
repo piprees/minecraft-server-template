@@ -18,57 +18,55 @@
     "minecraft:sparse_jungle",
     "minecraft:mushroom_fields",
     "minecraft:river",
-    "terralith:moonlight_valley",
-    "terralith:orchid_swamp",
-    "terralith:shield",
-    "terralith:birch_taiga",
-    "terralith:moonlight_grove",
-    "terralith:cloud_forest",
-    "terralith:shield_clearing",
+    "minecraft:old_growth_birch_forest",
+    "minecraft:birch_forest",
+    "minecraft:pale_garden",
+    "adventure:cloud_forest",
+    "minecraft:meadow",
     {
-      "id": "natures_spirit:cedar_thicket",
+      "id": "adventure:sugi_forest",
       "climate": {
         "humidity": [-0.7, -0.58]
       }
     },
     {
-      "id": "regions_unexplored:redwoods",
+      "id": "adventure:redwood_grove",
       "climate": {
         "humidity": [-0.53, -0.41]
       }
     },
     {
-      "id": "regions_unexplored:old_growth_forest",
+      "id": "minecraft:dark_forest",
       "climate": {
         "humidity": [-0.35, -0.24]
       }
     },
     {
-      "id": "regions_unexplored:silver_birch_forest",
+      "id": "minecraft:old_growth_birch_forest",
       "climate": {
         "humidity": [-0.18, -0.07]
       }
     },
     {
-      "id": "regions_unexplored:sparse_redwoods",
+      "id": "minecraft:old_growth_spruce_taiga",
       "climate": {
         "humidity": [-0.01, 0.11]
       }
     },
     {
-      "id": "regions_unexplored:alpha_grove",
+      "id": "adventure:alpha_grove",
       "climate": {
         "humidity": [0.16, 0.28]
       }
     },
     {
-      "id": "natures_spirit:aspen_forest",
+      "id": "adventure:aspen_forest",
       "climate": {
         "humidity": [0.33, 0.45]
       }
     },
     {
-      "id": "natures_spirit:redwood_forest",
+      "id": "adventure:redwood_grove",
       "climate": {
         "humidity": [0.51, 0.62]
       }
@@ -89,18 +87,18 @@
     "density": "sparse",
     "clearSpawnRadius": 96,
     "terrainAdaptation": {
-      "structory:dense_forest_ruin": "bury",
-      "structory:northern_ruin": "bury",
-      "structory:taiga_ruin_surface": "bury"
+      "mvs:log_ruin": "bury",
+      "mvs:small_ruin": "bury",
+      "nova_structures:remnant_taiga_castle": "bury"
     },
     "force": [
       {
-        "structure": "structory:old_manor",
+        "structure": "ati_structures:manor",
         "x": 2800,
         "z": -1200
       },
       {
-        "structure": "philipsruins:sculk_dungeon",
+        "structure": "ati_structures:warden_monument",
         "x": 2800,
         "z": -1200
       }
@@ -124,22 +122,22 @@
   "roll": {
     "mood": "desolate",
     "spawnFilter": [
-      "natures_spirit:redwood_forest"
+      "adventure:redwood_grove"
     ],
     "wants": {
-      "abandoned_camp": "near_spawn",
-      "forest_ruin": "spread",
-      "firetower": "spread",
-      "campsite": "near_spawn",
-      "northern_ruin": "spread",
-      "taiga_ruin": "spread",
-      "foraging_outpost": "near_spawn"
+      "minecraft:abandoned_camp_forest": "near_spawn",
+      "mvs:log_ruin": "spread",
+      "nova_structures:firewatch_tower_taiga": "spread",
+      "mvs:campsite": "near_spawn",
+      "mvs:small_ruin": "spread",
+      "nova_structures:remnant_taiga_castle": "spread",
+      "ati_structures:overgrown_outpost": "near_spawn"
     },
     "shuns": [
       "village",
       "tavern",
       "mansion",
-      "coliseum"
+      "mss:arena"
     ]
   }
 }

@@ -9,7 +9,7 @@
   },
   "biomes": [
     {
-      "id": "incendium:ash_barrens",
+      "id": "adventure:ash_barrens",
       "climate": {
         "temperature": [-2.0, -0.495]
       }
@@ -27,19 +27,19 @@
       }
     },
     {
-      "id": "incendium:infernal_dunes",
+      "id": "adventure:gravel_desert",
       "climate": {
         "temperature": [-0.046, 0.098]
       }
     },
     {
-      "id": "regions_unexplored:inferno",
+      "id": "adventure:magma_land",
       "climate": {
         "temperature": [0.098, 0.297]
       }
     },
     {
-      "id": "incendium:volcanic_deltas",
+      "id": "adventure:magma_land",
       "climate": {
         "temperature": [0.297, 2.0]
       }
@@ -55,8 +55,8 @@
   },
   "structures": {
     "terrainAdaptation": {
-      "incendium:nether_reactor": "platform_skirt",
-      "incendium:pipeline": "platform_skirt"
+      "mns:crimson_forge": "platform_skirt",
+      "mns:bridge_1": "platform_skirt"
     }
   },
   "portals": [
@@ -78,21 +78,21 @@
     "mood": "adventurous",
     "spawnFilter": [
       "minecraft:nether_wastes",
-      "incendium:infernal_dunes",
-      "incendium:volcanic_deltas"
+      "adventure:gravel_desert",
+      "adventure:magma_land"
     ],
     "wants": {
-      "pipeline": "spread",
-      "nether_reactor": "near_border",
-      "fortress": "spread",
+      "mns:bridge_1": "spread",
+      "mns:crimson_forge": "near_border",
+      "mns:mega_fortress": "spread",
       "crimson_well": "near_spawn",
-      "ruined_lab": "spread",
-      "nether_tower": "near_border",
+      "mns:copper_tower": "spread",
+      "mns:nether_tower": "near_border",
       "copper_tower": "spread"
     },
     "shuns": [
-      "piglin_village",
-      "warped_outpost"
+      "towns_and_towers:exclusives/village_piglin",
+      "mvs:large_warped_tower"
     ]
   }
 }

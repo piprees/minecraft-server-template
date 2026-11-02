@@ -12,28 +12,28 @@
   },
   "biomes": [
     {
-      "id": "terralith:rocky_jungle",
+      "id": "minecraft:sparse_jungle",
       "climate": {
         "weirdness": [-2.0, -0.19],
         "depth": [-2.0, 0.1]
       }
     },
     {
-      "id": "terralith:jungle_mountains",
+      "id": "minecraft:jungle",
       "climate": {
         "weirdness": [-0.19, -0.1537],
         "depth": [-2.0, 0.1]
       }
     },
     {
-      "id": "natures_spirit:tropical_basin",
+      "id": "minecraft:jungle",
       "climate": {
         "weirdness": [-0.1537, -0.1175],
         "depth": [-2.0, 0.1]
       }
     },
     {
-      "id": "terralith:cloud_forest",
+      "id": "adventure:cloud_forest",
       "climate": {
         "weirdness": [-0.1175, -0.0812],
         "depth": [-2.0, 0.1]
@@ -68,28 +68,28 @@
       }
     },
     {
-      "id": "regions_unexplored:rainforest",
+      "id": "adventure:cloud_forest",
       "climate": {
         "weirdness": [0.0638, 0.1],
         "depth": [-2.0, 0.1]
       }
     },
     {
-      "id": "wilderwild:rainforest",
+      "id": "minecraft:old_growth_birch_forest",
       "climate": {
         "weirdness": [0.1, 2.0],
         "depth": [-2.0, 0.1]
       }
     },
     {
-      "id": "terralith:cave/underground_jungle",
+      "id": "minecraft:lush_caves",
       "climate": {
         "weirdness": [-2.0, -0.045],
         "depth": [0.1, 2.0]
       }
     },
     {
-      "id": "terralith:cave/infested_caves",
+      "id": "adventure:lichen_caves",
       "climate": {
         "weirdness": [-0.045, 2.0],
         "depth": [0.1, 2.0]
@@ -146,14 +146,14 @@
       "minecraft:sparse_jungle"
     ],
     "wants": {
-      "jungle_ruin": "near_spawn",
-      "infested_temple": "spread",
-      "webbed_dungeon": "near_border",
-      "lush_dungeon": "spread",
-      "jungle_tree_house": "spread",
-      "murkydungeon": "spread",
-      "giant_mushroom": "spread",
-      "abandoned_camp": "near_spawn"
+      "nova_structures:jungle_ruins": "near_spawn",
+      "mtr:jungle_temple": "spread",
+      "ati_structures:arachnid_dwelling": "near_border",
+      "ati_structures:jungle_grotto": "spread",
+      "nova_structures:illager_treehouse": "spread",
+      "nova_structures:small_creeping_crypt": "spread",
+      "mvs:large_mushroom": "spread",
+      "minecraft:abandoned_camp_forest": "near_spawn"
     },
     "shuns": [
       "village",

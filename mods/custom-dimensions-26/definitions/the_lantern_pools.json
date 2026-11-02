@@ -8,30 +8,29 @@
     "preset": "overworld"
   },
   "biomes": [
-    "terralith:desert_oasis",
-    "terralith:warm_river",
-    "terralith:lush_valley",
-    "terralith:orchid_swamp",
-    "minecraft:warm_ocean",
+    "adventure:desert_oasis",
+    "adventure:muddy_river",
+    "minecraft:plains",
     "minecraft:mangrove_swamp",
+    "minecraft:warm_ocean",
     "minecraft:jungle",
     "minecraft:sparse_jungle",
     "minecraft:lush_caves",
-    "terralith:cave/tuff_caves",
+    "adventure:lichen_caves",
     {
-      "id": "regions_unexplored:glistering_meadow",
+      "id": "adventure:nether_grasslands",
       "climate": {
         "humidity": [-0.25, -0.11]
       }
     },
     {
-      "id": "regions_unexplored:tropics",
+      "id": "adventure:tropical_shores",
       "climate": {
         "humidity": [0.02, 0.16]
       }
     },
     {
-      "id": "wilderwild:oasis",
+      "id": "adventure:desert_oasis",
       "climate": {
         "humidity": [0.29, 0.43]
       }
@@ -49,12 +48,12 @@
     "density": "sparse",
     "force": [
       {
-        "structure": "explorify:campsite",
+        "structure": "mvs:campsite",
         "x": -176,
         "z": -240
       },
       {
-        "structure": "philipsruins:ancient_ruins",
+        "structure": "minecraft:trail_ruins",
         "x": -224,
         "z": -272
       }
@@ -88,22 +87,22 @@
   "roll": {
     "mood": "serene",
     "spawnFilter": [
-      "wilderwild:oasis",
-      "terralith:warm_river"
+      "adventure:desert_oasis",
+      "adventure:muddy_river"
     ],
     "water": "high",
     "wants": {
-      "desert_shrine": "spread",
-      "mirage_outpost": "spread",
-      "guide_post_warm": "near_spawn",
-      "abandoned_chapel": "spread"
+      "epic:sand_obelisk": "spread",
+      "ati_structures:desert_outpost": "spread",
+      "mvs:small_oak_lantern": "near_spawn",
+      "ati_structures:haunted_ruin": "spread"
     },
     "shuns": [
       "village",
       "tavern",
       "mansion",
       "monument",
-      "coliseum",
+      "mss:arena",
       "ancient_city",
       "trial_chambers"
     ]

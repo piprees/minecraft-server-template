@@ -15,7 +15,7 @@
       }
     },
     {
-      "id": "incendium:ash_barrens",
+      "id": "adventure:ash_barrens",
       "climate": {
         "temperature": [-0.3, 0.0]
       }
@@ -27,13 +27,13 @@
       }
     },
     {
-      "id": "incendium:weeping_valley",
+      "id": "adventure:nether_jungle",
       "climate": {
         "temperature": [0.3, 0.6]
       }
     },
     {
-      "id": "incendium:withered_forest",
+      "id": "adventure:withered_forest",
       "climate": {
         "temperature": [0.6, 0.9]
       }
@@ -97,18 +97,18 @@
     "water": "none",
     "spawnFilter": [
       "minecraft:soul_sand_valley",
-      "incendium:ash_barrens"
+      "adventure:ash_barrens"
     ],
     "wants": {
       "nether_graveyard": "near_spawn",
       "giant_skull": "spread",
-      "lost_soul_dungeon": "spread",
-      "bone_dungeon": "spread"
+      "nova_structures:nether_skeleton_tower_soul": "spread",
+      "nova_structures:catacomb": "spread"
     },
     "shuns": [
-      "piglin_village",
+      "towns_and_towers:exclusives/village_piglin",
       "crimson_fungus",
-      "warped_outpost",
+      "mvs:large_warped_tower",
       "bastion"
     ],
     "terrain": "flat"

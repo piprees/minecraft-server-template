@@ -9,55 +9,55 @@
   },
   "biomes": [
     {
-      "id": "betternether:nether_grasslands",
+      "id": "adventure:nether_grasslands",
       "climate": {
         "temperature": [-2.0, -0.5106]
       }
     },
     {
-      "id": "betternether:poor_nether_grasslands",
+      "id": "minecraft:nether_wastes",
       "climate": {
         "temperature": [-0.5106, -0.4514]
       }
     },
     {
-      "id": "regions_unexplored:glistering_meadow",
+      "id": "adventure:nether_grasslands",
       "climate": {
         "temperature": [-0.4514, -0.2045]
       }
     },
     {
-      "id": "betternether:wart_forest_edge",
+      "id": "adventure:crimson_pinewood",
       "climate": {
         "temperature": [-0.2045, -0.1908]
       }
     },
     {
-      "id": "betternether:nether_mushroom_forest",
+      "id": "adventure:mycotoxic_undergrowth",
       "climate": {
         "temperature": [-0.1908, -0.1715]
       }
     },
     {
-      "id": "betterend:sulphur_springs",
+      "id": "adventure:sulphur_springs",
       "climate": {
         "temperature": [-0.1715, -0.1036]
       }
     },
     {
-      "id": "terralith:yellowstone",
+      "id": "minecraft:sulfur_caves",
       "climate": {
         "temperature": [-0.1036, -0.0304]
       }
     },
     {
-      "id": "incendium:quartz_flats",
+      "id": "adventure:quartz_flats",
       "climate": {
         "temperature": [-0.0304, 0.0059]
       }
     },
     {
-      "id": "incendium:weeping_valley",
+      "id": "adventure:nether_jungle",
       "climate": {
         "temperature": [0.0059, 0.0354]
       }
@@ -75,13 +75,13 @@
       }
     },
     {
-      "id": "incendium:infernal_dunes",
+      "id": "adventure:gravel_desert",
       "climate": {
         "temperature": [0.1586, 0.2916]
       }
     },
     {
-      "id": "incendium:volcanic_deltas",
+      "id": "adventure:magma_land",
       "climate": {
         "temperature": [0.2916, 2.0]
       }
@@ -104,11 +104,11 @@
   },
   "structures": {
     "terrainAdaptation": {
-      "betterfortresses:fortress": "pedestal"
+      "mns:mega_fortress": "pedestal"
     },
     "force": [
       {
-        "structure": "incendium:piglin_village",
+        "structure": "towns_and_towers:exclusives/village_piglin",
         "x": 256,
         "z": 120,
         "exclusive": false
@@ -136,20 +136,20 @@
     "water": "none",
     "spawnFilter": [
       "minecraft:crimson_forest",
-      "incendium:infernal_dunes",
-      "incendium:volcanic_deltas"
+      "adventure:gravel_desert",
+      "adventure:magma_land"
     ],
     "wants": {
-      "piglin_village": "spread",
+      "towns_and_towers:exclusives/village_piglin": "spread",
       "crimson_well": "near_spawn",
-      "fortress": "near_border",
+      "mns:mega_fortress": "near_border",
       "nether_bridge": "spread",
-      "infernal_altar": "near_border",
+      "mns:smoking_shrine": "near_border",
       "crimson_fungus": "near_spawn"
     },
     "shuns": [
-      "sanctum",
-      "forbidden_castle"
+      "nova_structures:sealing_halls",
+      "nova_structures:nether_keep"
     ]
   }
 }

@@ -14,19 +14,14 @@
     "minecraft:meadow",
     "minecraft:flower_forest",
     "minecraft:cherry_grove",
-    "terralith:blooming_valley",
-    "terralith:sakura_valley",
-    "terralith:sakura_grove",
-    "terralith:alpine_grove",
-    "terralith:lush_valley",
-    "terralith:lavender_valley",
-    "terralith:blooming_plateau",
-    "terralith:shrubland",
-    "terralith:skylands_spring",
-    "terralith:skylands_autumn",
-    "terralith:skylands_summer",
-    "terralith:skylands_winter",
-    "terralith:mirage_isles",
+    "minecraft:snowy_slopes",
+    "adventure:lavender_fields",
+    "adventure:alpine_meadow",
+    "adventure:sky_highlands",
+    "adventure:golden_skygrove",
+    "adventure:hanging_gardens",
+    "adventure:windswept_isles",
+    "adventure:desert_oasis",
     "minecraft:sunflower_plains"
   ],
   "liquids": {
@@ -73,14 +68,11 @@
     "spawnFilter": [
       "minecraft:cherry_grove",
       "minecraft:flower_forest",
-      "terralith:skylands_spring",
-      "terralith:blooming_valley",
+      "adventure:sky_highlands",
       "minecraft:plains",
       "minecraft:meadow",
       "minecraft:forest",
-      "minecraft:birch_forest",
-      "terralith:sakura_grove",
-      "terralith:lush_valley"
+      "minecraft:birch_forest"
     ],
     "wants": {
       "sky_house": "near_spawn",
@@ -88,15 +80,15 @@
       "sky_arena": "spread",
       "sky_volcano": "near_border",
       "sky_castle_tower": "near_border",
-      "guide_post_warm": "near_spawn",
-      "abandoned_camp": "near_spawn"
+      "mvs:small_oak_lantern": "near_spawn",
+      "minecraft:abandoned_camp_forest": "near_spawn"
     },
     "shuns": [
       "ancient_city",
       "trial_chambers",
       "mansion",
       "monument",
-      "coliseum"
+      "mss:arena"
     ],
     "terrain": "islands"
   }

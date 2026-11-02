@@ -12,7 +12,7 @@
   },
   "biomes": [
     {
-      "id": "regions_unexplored:clover_plains",
+      "id": "minecraft:plains",
       "climate": {
         "weirdness": [-2.0, -0.19],
         "depth": [-2.0, 0.1]
@@ -40,14 +40,14 @@
       }
     },
     {
-      "id": "terralith:brushland",
+      "id": "minecraft:savanna",
       "climate": {
         "weirdness": [-0.1175, -0.0933],
         "depth": [-2.0, 0.1]
       }
     },
     {
-      "id": "terralith:steppe",
+      "id": "adventure:prairie",
       "climate": {
         "weirdness": [-0.0933, -0.0692],
         "depth": [-2.0, 0.1]
@@ -61,49 +61,49 @@
       }
     },
     {
-      "id": "terralith:shield_clearing",
+      "id": "minecraft:meadow",
       "climate": {
         "weirdness": [-0.045, -0.0208],
         "depth": [-2.0, 0.1]
       }
     },
     {
-      "id": "terralith:highlands",
+      "id": "adventure:highland_fells",
       "climate": {
         "weirdness": [-0.0208, 0.0033],
         "depth": [-2.0, 0.1]
       }
     },
     {
-      "id": "regions_unexplored:barley_fields",
+      "id": "adventure:barley_fields",
       "climate": {
         "weirdness": [0.0033, 0.0275],
         "depth": [-2.0, 0.1]
       }
     },
     {
-      "id": "regions_unexplored:poppy_fields",
+      "id": "adventure:carnation_fields",
       "climate": {
         "weirdness": [0.0275, 0.0517],
         "depth": [-2.0, 0.1]
       }
     },
     {
-      "id": "regions_unexplored:prairie",
+      "id": "adventure:prairie",
       "climate": {
         "weirdness": [0.0517, 0.0758],
         "depth": [-2.0, 0.1]
       }
     },
     {
-      "id": "regions_unexplored:grassland",
+      "id": "minecraft:plains",
       "climate": {
         "weirdness": [0.0758, 0.1],
         "depth": [-2.0, 0.1]
       }
     },
     {
-      "id": "regions_unexplored:pumpkin_fields",
+      "id": "adventure:pumpkin_fields",
       "climate": {
         "weirdness": [0.1, 2.0],
         "depth": [-2.0, 0.1]
@@ -117,7 +117,7 @@
       }
     },
     {
-      "id": "terralith:cave/tuff_caves",
+      "id": "adventure:lichen_caves",
       "climate": {
         "weirdness": [-0.045, 2.0],
         "depth": [0.1, 2.0]
@@ -163,22 +163,22 @@
   "roll": {
     "mood": "pastoral",
     "spawnFilter": [
-      "regions_unexplored:clover_plains",
+      "minecraft:plains",
       "minecraft:sunflower_plains"
     ],
     "wants": {
       "village": "near_spawn",
       "tavern": "near_spawn",
-      "farmstead": "near_spawn",
-      "watchtower": "spread",
+      "nova_structures:remnant_ruin_farmer": "near_spawn",
+      "nova_structures:firewatch_tower_forest": "spread",
       "mineshaft": "spread",
-      "guide_post_warm": "near_spawn",
-      "campsite": "near_spawn",
-      "lighthouse": "near_border"
+      "mvs:small_oak_lantern": "near_spawn",
+      "mvs:campsite": "near_spawn",
+      "ati_structures:lighthouse": "near_border"
     },
     "shuns": [
       "ancient_city",
-      "coliseum",
+      "mss:arena",
       "mansion"
     ]
   }

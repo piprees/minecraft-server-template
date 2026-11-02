@@ -9,7 +9,7 @@
   },
   "biomes": [
     {
-      "id": "regions_unexplored:redstone_abyss",
+      "id": "adventure:redstone_abyss",
       "climate": {
         "temperature": [-2.0, -0.2012]
       }
@@ -21,61 +21,61 @@
       }
     },
     {
-      "id": "terralith:cave/infested_caves",
+      "id": "adventure:lichen_caves",
       "climate": {
         "temperature": [-0.1339, -0.0822]
       }
     },
     {
-      "id": "terralith:cave/mantle_caves",
+      "id": "adventure:magmatic_caves",
       "climate": {
         "temperature": [-0.0822, -0.0743]
       }
     },
     {
-      "id": "nullscape:shadowlands",
+      "id": "adventure:umbral_wastes",
       "climate": {
         "temperature": [-0.0743, -0.0676]
       }
     },
     {
-      "id": "terralith:cave/fungal_caves",
+      "id": "adventure:bioshroom_caves",
       "climate": {
         "temperature": [-0.0676, -0.0523]
       }
     },
     {
-      "id": "terralith:cave/tuff_caves",
+      "id": "adventure:lichen_caves",
       "climate": {
         "temperature": [-0.0523, -0.0104]
       }
     },
     {
-      "id": "terralith:cave/deep_caves",
+      "id": "minecraft:dripstone_caves",
       "climate": {
         "temperature": [-0.0104, 0.0633]
       }
     },
     {
-      "id": "incendium:withered_forest",
+      "id": "adventure:withered_forest",
       "climate": {
         "temperature": [0.0633, 0.0674]
       }
     },
     {
-      "id": "regions_unexplored:mycotoxic_undergrowth",
+      "id": "adventure:mycotoxic_undergrowth",
       "climate": {
         "temperature": [0.0674, 0.0723]
       }
     },
     {
-      "id": "regions_unexplored:bioshroom_caves",
+      "id": "adventure:bioshroom_caves",
       "climate": {
         "temperature": [0.0723, 0.0857]
       }
     },
     {
-      "id": "undergroundworlds:spider_cave",
+      "id": "minecraft:dripstone_caves",
       "climate": {
         "temperature": [0.0857, 2.0]
       }
@@ -108,7 +108,7 @@
   "structures": {
     "force": [
       {
-        "structure": "philipsruins:sculk_dungeon",
+        "structure": "ati_structures:warden_monument",
         "x": 176,
         "z": 64,
         "exclusive": false
@@ -162,20 +162,20 @@
     "allowHazardousSpawn": true,
     "spawnFilter": [
       "minecraft:deep_dark",
-      "terralith:cave/infested_caves"
+      "adventure:lichen_caves"
     ],
     "wants": {
-      "sculk_dungeon": "near_spawn",
+      "ati_structures:warden_monument": "near_spawn",
       "trial_chambers": "spread",
       "ancient_city": "near_border",
-      "bone_dungeon": "spread",
-      "underground_camp": "near_spawn"
+      "nova_structures:catacomb": "spread",
+      "nova_structures:deepslate_camp": "near_spawn"
     },
     "shuns": [
       "village",
       "tavern",
-      "farmstead",
-      "piglin_village"
+      "nova_structures:remnant_ruin_farmer",
+      "towns_and_towers:exclusives/village_piglin"
     ]
   }
 }

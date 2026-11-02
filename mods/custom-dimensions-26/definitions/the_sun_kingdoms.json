@@ -14,67 +14,58 @@
     "minecraft:savanna",
     "minecraft:savanna_plateau",
     "minecraft:wooded_badlands",
-    "terralith:arid_highlands",
-    "terralith:hot_shrubland",
-    "terralith:fractured_savanna",
-    "terralith:savanna_badlands",
-    "terralith:brushland",
-    "terralith:steppe",
-    "terralith:shrubland",
+    "adventure:dry_steppe",
+    "minecraft:windswept_savanna",
+    "adventure:prairie",
+    "minecraft:plains",
     "minecraft:badlands",
     "minecraft:eroded_badlands",
-    "terralith:lush_desert",
-    "terralith:desert_oasis",
-    "terralith:desert_canyon",
-    "terralith:red_oasis",
-    "terralith:savanna_slopes",
+    "adventure:saguaro_desert",
+    "adventure:desert_oasis",
     {
-      "id": "natures_spirit:stratified_desert",
+      "id": "minecraft:badlands",
       "climate": {
         "humidity": [-0.67, -0.51],
         "erosion": [-2.0, 0.2]
       }
     },
     {
-      "id": "natures_spirit:oak_savanna",
+      "id": "adventure:parched_forest",
       "climate": {
         "humidity": [-0.43, -0.27]
       }
     },
-    "terralith:ancient_sands",
+    "minecraft:desert",
     {
-      "id": "wilderwild:oasis",
+      "id": "adventure:desert_oasis",
       "climate": {
         "humidity": [-0.19, -0.03]
       }
     },
     {
-      "id": "wilderwild:parched_forest",
+      "id": "adventure:parched_forest",
       "climate": {
         "humidity": [0.04, 0.2]
       }
     },
     {
-      "id": "regions_unexplored:baobab_savanna",
+      "id": "adventure:baobab_savanna",
       "climate": {
         "humidity": [0.28, 0.44]
       }
     },
-    "minecraft:plains",
     {
-      "id": "regions_unexplored:joshua_desert",
+      "id": "adventure:joshua_desert",
       "climate": {
         "humidity": [0.52, 0.68]
       }
     },
-    "terralith:desert_spires",
     {
-      "id": "natures_spirit:scorched_dunes",
+      "id": "minecraft:desert",
       "climate": {
         "humidity": [0.76, 0.92]
       }
-    },
-    "minecraft:desert"
+    }
   ],
   "borders": {
     "player": 4096,
@@ -86,7 +77,7 @@
   },
   "structures": {
     "terrainAdaptation": {
-      "dungeons_arise:keep_kayra": "pedestal"
+      "ati_structures:dark_keep": "pedestal"
     }
   },
   "portals": [
@@ -113,15 +104,15 @@
     "water": "none",
     "wants": {
       "village": "near_spawn",
-      "desert_shrine": "near_spawn",
-      "bandit_village": "spread",
+      "epic:sand_obelisk": "near_spawn",
+      "nova_structures:illager_barracks": "spread",
       "sand_dungeon_l": "spread",
-      "keep_kayra": "near_border",
+      "ati_structures:dark_keep": "near_border",
       "desert_pyramid": "spread",
-      "dusty_tomb": "near_border",
-      "watchtower": "spread",
-      "nomad_outpost": "spread",
-      "mirage_outpost": "spread"
+      "epic:small_sand_dungeon": "near_border",
+      "nova_structures:firewatch_tower_forest": "spread",
+      "ati_structures:nomadic_camp": "spread",
+      "ati_structures:desert_outpost": "spread"
     },
     "shuns": [
       "monument"

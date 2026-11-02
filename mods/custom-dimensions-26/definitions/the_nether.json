@@ -37,13 +37,13 @@
     "spawnFilter": [
       "minecraft:nether_wastes",
       "minecraft:warped_forest",
-      "incendium:quartz_flats"
+      "adventure:quartz_flats"
     ],
     "wants": {
-      "fortress": "spread",
+      "mns:mega_fortress": "spread",
       "bastion": "spread",
-      "piglin_village": "spread",
-      "sanctum": "near_border",
+      "towns_and_towers:exclusives/village_piglin": "spread",
+      "nova_structures:sealing_halls": "near_border",
       "nether_bridge": "spread"
     },
     "shuns": []

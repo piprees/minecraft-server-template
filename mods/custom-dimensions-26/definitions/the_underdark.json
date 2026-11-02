@@ -21,7 +21,7 @@
       }
     },
     {
-      "id": "terralith:moonlight_grove",
+      "id": "minecraft:pale_garden",
       "climate": {
         "temperature": [-0.2329, -0.1599]
       }
@@ -39,7 +39,7 @@
       }
     },
     {
-      "id": "incendium:withered_forest",
+      "id": "adventure:withered_forest",
       "climate": {
         "temperature": [0.0034, 0.0481]
       }
@@ -69,7 +69,7 @@
       }
     },
     {
-      "id": "regions_unexplored:fungal_fen",
+      "id": "adventure:fungal_fen",
       "climate": {
         "temperature": [0.2099, 0.2605]
       }
@@ -81,13 +81,13 @@
       }
     },
     {
-      "id": "terralith:cave/underground_jungle",
+      "id": "minecraft:lush_caves",
       "climate": {
         "temperature": [0.3345, 0.4379]
       }
     },
     {
-      "id": "undergroundworlds:spider_cave",
+      "id": "minecraft:dripstone_caves",
       "climate": {
         "temperature": [0.4379, 2.0]
       }
@@ -170,7 +170,7 @@
     "spawnFilter": [
       "minecraft:deep_dark",
       "minecraft:mushroom_fields",
-      "terralith:moonlight_grove",
+      "minecraft:pale_garden",
       "minecraft:dark_forest",
       "minecraft:lush_caves",
       "minecraft:dripstone_caves",
@@ -179,19 +179,19 @@
     ],
     "wants": {
       "ancient_city": "spread",
-      "sculk_dungeon": "near_spawn",
+      "ati_structures:warden_monument": "near_spawn",
       "trial_chambers": "spread",
-      "underground_camp": "near_spawn",
+      "nova_structures:deepslate_camp": "near_spawn",
       "mineshaft": "near_spawn",
-      "infested_dungeon": "spread",
-      "bone_dungeon": "spread",
-      "coldlair": "spread",
-      "murkydungeon": "spread"
+      "ati_structures:silverfish_nest": "spread",
+      "nova_structures:catacomb": "spread",
+      "epic:small_ice_dungeon": "spread",
+      "nova_structures:small_creeping_crypt": "spread"
     },
     "shuns": [
       "village",
       "tavern",
-      "farmstead"
+      "nova_structures:remnant_ruin_farmer"
     ]
   }
 }

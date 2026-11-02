@@ -9,14 +9,14 @@
   },
   "biomes": [
     {
-      "id": "terralith:siberian_taiga",
+      "id": "minecraft:snowy_taiga",
       "climate": {
         "weirdness": [-2.0, -0.19],
         "depth": [-2.0, 0.1]
       }
     },
     {
-      "id": "natures_spirit:boreal_taiga",
+      "id": "minecraft:taiga",
       "climate": {
         "weirdness": [-0.19, -0.1417],
         "depth": [-2.0, 0.1]
@@ -44,21 +44,21 @@
       }
     },
     {
-      "id": "natures_spirit:fir_forest",
+      "id": "minecraft:old_growth_spruce_taiga",
       "climate": {
         "weirdness": [0.0033, 0.0517],
         "depth": [-2.0, 0.1]
       }
     },
     {
-      "id": "regions_unexplored:pine_slopes",
+      "id": "minecraft:windswept_forest",
       "climate": {
         "weirdness": [0.0517, 0.1],
         "depth": [-2.0, 0.1]
       }
     },
     {
-      "id": "wilderwild:temperate_rainforest",
+      "id": "adventure:redwood_grove",
       "climate": {
         "weirdness": [0.1, 2.0],
         "depth": [-2.0, 0.1]
@@ -72,7 +72,7 @@
       }
     },
     {
-      "id": "terralith:cave/tuff_caves",
+      "id": "adventure:lichen_caves",
       "climate": {
         "weirdness": [-0.045, 2.0],
         "depth": [0.1, 2.0]
@@ -111,16 +111,16 @@
       "minecraft:taiga"
     ],
     "wants": {
-      "foraging_outpost": "near_spawn",
-      "taiga_ruin_deep": "spread",
-      "mouldy_dungeon": "spread",
-      "abandoned_camp": "spread",
-      "northern_ruin": "spread",
-      "coldlair": "near_border"
+      "ati_structures:overgrown_outpost": "near_spawn",
+      "nova_structures:underground_house": "spread",
+      "ati_structures:rotting_temple_underground": "spread",
+      "minecraft:abandoned_camp_forest": "spread",
+      "mvs:small_ruin": "spread",
+      "epic:small_ice_dungeon": "near_border"
     },
     "shuns": [
       "monument",
-      "coliseum"
+      "mss:arena"
     ]
   }
 }

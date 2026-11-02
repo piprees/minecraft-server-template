@@ -10,7 +10,7 @@
   },
   "biomes": [
     {
-      "id": "nullscape:shadowlands",
+      "id": "adventure:umbral_wastes",
       "climate": {
         "continentalness": [-2.0, -0.308]
       }
@@ -22,19 +22,19 @@
       }
     },
     {
-      "id": "terralith:moonlight_valley",
+      "id": "minecraft:old_growth_birch_forest",
       "climate": {
         "continentalness": [-0.1567, -0.082]
       }
     },
     {
-      "id": "terralith:moonlight_grove",
+      "id": "minecraft:pale_garden",
       "climate": {
         "continentalness": [-0.082, 0.022]
       }
     },
     {
-      "id": "terralith:amethyst_canyon",
+      "id": "adventure:crystal_hollows",
       "climate": {
         "continentalness": [0.022, 0.0877]
       }
@@ -58,7 +58,7 @@
       }
     },
     {
-      "id": "nullscape:crystal_peaks",
+      "id": "adventure:ice_starfield",
       "climate": {
         "continentalness": [0.5027, 2.0]
       }
@@ -105,13 +105,13 @@
       "minecraft:end_highlands"
     ],
     "wants": {
-      "end_gate_fortress": "near_spawn",
+      "mes:enderkeep_courtyard": "near_spawn",
       "enderkeep": "spread",
       "astral_hideaway": "near_spawn",
       "ender_spire": "spread",
       "mega_ship_crashed": "near_border",
-      "end_ruins": "spread",
-      "end_tower": "near_border"
+      "mes:endscraps": "spread",
+      "mes:ender_spire": "near_border"
     },
     "shuns": [
       "end_city",

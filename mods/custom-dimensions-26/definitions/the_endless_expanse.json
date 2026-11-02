@@ -41,21 +41,20 @@
     "spawnFilter": [
       "minecraft:plains",
       "minecraft:forest",
-      "terralith:steppe",
+      "adventure:prairie",
       "minecraft:sunflower_plains",
       "minecraft:meadow",
-      "terralith:brushland",
       "minecraft:savanna"
     ],
     "wants": {
       "village": "near_spawn",
       "tavern": "spread",
-      "farmstead": "near_spawn",
+      "nova_structures:remnant_ruin_farmer": "near_spawn",
       "mineshaft": "near_spawn",
       "pillager_outpost": "spread",
       "mansion": "near_border",
-      "coliseum": "near_border",
-      "watchtower": "spread",
+      "mss:arena": "near_border",
+      "nova_structures:firewatch_tower_forest": "spread",
       "ancient_city": "near_border",
       "desert_pyramid": "spread",
       "ruined_portal": "near_spawn"

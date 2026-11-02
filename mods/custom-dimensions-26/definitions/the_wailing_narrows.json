@@ -10,7 +10,7 @@
   "biomes": [
     "minecraft:soul_sand_valley",
     "minecraft:basalt_deltas",
-    "incendium:quartz_flats"
+    "adventure:quartz_flats"
   ],
   "atmosphere": {
     "fogColor": "#2B1B3B",
@@ -80,12 +80,12 @@
     ],
     "wants": {
       "nether_bridge": "near_spawn",
-      "fortress": "spread",
+      "mns:mega_fortress": "spread",
       "giant_skull": "spread",
       "blackstone_pillars": "near_border"
     },
     "shuns": [
-      "piglin_village",
+      "towns_and_towers:exclusives/village_piglin",
       "crimson_fungus",
       "bastion"
     ]

@@ -9,28 +9,28 @@
   },
   "biomes": [
     {
-      "id": "regions_unexplored:saguaro_desert",
+      "id": "adventure:saguaro_desert",
       "climate": {
         "depth": [-2.0, 0.1],
         "humidity": [-2.0, -0.5657]
       }
     },
     {
-      "id": "terralith:ashen_savanna",
+      "id": "adventure:ashen_woodland",
       "climate": {
         "depth": [-2.0, 0.1],
         "humidity": [-0.5657, -0.3514]
       }
     },
     {
-      "id": "terralith:volcanic_peaks",
+      "id": "adventure:magma_land",
       "climate": {
         "depth": [-2.0, 0.1],
         "humidity": [-0.3514, -0.1936]
       }
     },
     {
-      "id": "terralith:volcanic_crater",
+      "id": "adventure:blackstone_basin",
       "climate": {
         "depth": [-2.0, 0.1],
         "humidity": [-0.1936, -0.088]
@@ -44,7 +44,7 @@
       }
     },
     {
-      "id": "terralith:savanna_badlands",
+      "id": "minecraft:wooded_badlands",
       "climate": {
         "depth": [-2.0, 0.1],
         "humidity": [-0.0531, -0.0237]
@@ -65,42 +65,42 @@
       }
     },
     {
-      "id": "terralith:basalt_cliffs",
+      "id": "minecraft:basalt_deltas",
       "climate": {
         "depth": [-2.0, 0.1],
         "humidity": [0.0223, 0.0687]
       }
     },
     {
-      "id": "regions_unexplored:joshua_desert",
+      "id": "adventure:joshua_desert",
       "climate": {
         "depth": [-2.0, 0.1],
         "humidity": [0.0687, 0.104]
       }
     },
     {
-      "id": "regions_unexplored:dry_bushland",
+      "id": "minecraft:savanna",
       "climate": {
         "depth": [-2.0, 0.1],
         "humidity": [0.104, 0.1711]
       }
     },
     {
-      "id": "regions_unexplored:arid_mountains",
+      "id": "minecraft:windswept_savanna",
       "climate": {
         "depth": [-2.0, 0.1],
         "humidity": [0.1711, 0.2069]
       }
     },
     {
-      "id": "regions_unexplored:ashen_woodland",
+      "id": "adventure:ashen_woodland",
       "climate": {
         "depth": [-2.0, 0.1],
         "humidity": [0.2069, 0.2999]
       }
     },
     {
-      "id": "wilderwild:arid_savanna",
+      "id": "adventure:baobab_savanna",
       "climate": {
         "depth": [-2.0, 0.1],
         "humidity": [0.2999, 2.0]
@@ -114,7 +114,7 @@
       }
     },
     {
-      "id": "terralith:cave/andesite_caves",
+      "id": "adventure:mineral_strata",
       "climate": {
         "depth": [0.1, 2.0],
         "humidity": [0.004, 2.0]
@@ -138,13 +138,13 @@
     "clearSpawnRadius": 96,
     "force": [
       {
-        "structure": "structory:graveyard",
+        "structure": "nova_structures:remnant_graveyard",
         "x": 150,
         "z": 90,
         "exclusive": false
       },
       {
-        "structure": "structory:abandoned_chapel",
+        "structure": "ati_structures:haunted_ruin",
         "x": 540,
         "z": -610
       }
@@ -169,17 +169,16 @@
   "roll": {
     "mood": "desolate",
     "spawnFilter": [
-      "regions_unexplored:ashen_woodland",
-      "terralith:ashen_savanna"
+      "adventure:ashen_woodland"
     ],
     "wants": {
-      "abandoned_camp": "near_spawn",
-      "graveyard": "spread",
-      "scorched_tomb": "near_border",
-      "ruin_grassy": "spread",
-      "pumpkin_ruins": "spread",
-      "field_ruins": "spread",
-      "dusty_tomb": "near_border"
+      "minecraft:abandoned_camp_forest": "near_spawn",
+      "nova_structures:remnant_graveyard": "spread",
+      "nova_structures:surface_dungeon_desert": "near_border",
+      "mvs:small_ruin": "spread",
+      "nova_structures:remnant_ruin_farmer": "spread",
+      "nova_structures:wild_ruin": "spread",
+      "epic:small_sand_dungeon": "near_border"
     },
     "shuns": [
       "village",

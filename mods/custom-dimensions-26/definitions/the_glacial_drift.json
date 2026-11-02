@@ -9,43 +9,43 @@
   },
   "biomes": [
     {
-      "id": "terralith:glacial_chasm",
+      "id": "minecraft:frozen_peaks",
       "climate": {
         "weirdness": [-2.0, -0.3454]
       }
     },
     {
-      "id": "terralith:skylands_winter",
+      "id": "adventure:windswept_isles",
       "climate": {
         "weirdness": [-0.3454, -0.2911]
       }
     },
     {
-      "id": "nullscape:void_barrens",
+      "id": "minecraft:end_barrens",
       "climate": {
         "weirdness": [-0.2911, -0.2044]
       }
     },
     {
-      "id": "natures_spirit:tundra",
+      "id": "adventure:highland_fells",
       "climate": {
         "weirdness": [-0.2044, 0.0705]
       }
     },
     {
-      "id": "terralith:frozen_cliffs",
+      "id": "minecraft:jagged_peaks",
       "climate": {
         "weirdness": [0.0705, 0.1276]
       }
     },
     {
-      "id": "paradise_lost:autumnal_tundra",
+      "id": "adventure:golden_skygrove",
       "climate": {
         "weirdness": [0.1276, 0.2559]
       }
     },
     {
-      "id": "terralith:snowy_shield",
+      "id": "minecraft:snowy_taiga",
       "climate": {
         "weirdness": [0.2559, 0.3535]
       }
@@ -57,7 +57,7 @@
       }
     },
     {
-      "id": "paradise_lost:calcite_craglands",
+      "id": "adventure:windswept_isles",
       "climate": {
         "weirdness": [0.3699, 0.3947]
       }
@@ -69,7 +69,7 @@
       }
     },
     {
-      "id": "natures_spirit:sleeted_slopes",
+      "id": "minecraft:snowy_slopes",
       "climate": {
         "weirdness": [0.4222, 0.4506]
       }
@@ -107,11 +107,11 @@
       "dungeons": "sparse"
     },
     "terrainAdaptation": {
-      "paradise_lost:palace": "pedestal"
+      "mss:castle_ruin": "pedestal"
     },
     "force": [
       {
-        "structure": "paradise_lost:palace",
+        "structure": "mss:castle_ruin",
         "x": -3400,
         "z": 2900
       }
@@ -142,14 +142,14 @@
   "roll": {
     "mood": "desolate",
     "spawnFilter": [
-      "natures_spirit:tundra"
+      "adventure:highland_fells"
     ],
     "wants": {
-      "para_remains": "near_spawn",
-      "aurel_tower": "spread",
+      "mvs:statue_ruins": "near_spawn",
+      "mss:large_tower": "spread",
       "igloo": "near_spawn",
-      "para_vault": "near_border",
-      "birdcage": "spread"
+      "nova_structures:trial_dungeon": "near_border",
+      "mss:small_tower": "spread"
     },
     "shuns": [],
     "terrain": "islands"

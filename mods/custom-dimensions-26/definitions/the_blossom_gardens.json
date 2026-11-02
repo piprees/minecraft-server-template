@@ -18,79 +18,73 @@
     "minecraft:sunflower_plains",
     "minecraft:river",
     "minecraft:beach",
-    "terralith:lavender_valley",
-    "terralith:blooming_valley",
-    "terralith:sakura_grove",
-    "terralith:moonlight_valley",
-    "terralith:moonlight_grove",
-    "terralith:blooming_plateau",
-    "terralith:lush_valley",
-    "terralith:temperate_highlands",
+    "adventure:lavender_fields",
+    "minecraft:cherry_grove",
+    "minecraft:pale_garden",
+    "adventure:alpine_meadow",
     "minecraft:plains",
+    "minecraft:windswept_hills",
     "minecraft:forest",
-    "terralith:sakura_valley",
     {
-      "id": "natures_spirit:wisteria_forest",
+      "id": "adventure:wisteria_grove",
       "climate": {
         "humidity": [-0.77, -0.68]
       }
     },
     {
-      "id": "natures_spirit:carnation_fields",
+      "id": "adventure:carnation_fields",
       "climate": {
         "humidity": [-0.64, -0.55]
       }
     },
-    "terralith:lavender_forest",
     {
-      "id": "regions_unexplored:poppy_fields",
+      "id": "adventure:carnation_fields",
       "climate": {
         "humidity": [-0.51, -0.42]
       }
     },
     {
-      "id": "regions_unexplored:clover_plains",
+      "id": "minecraft:plains",
       "climate": {
         "humidity": [-0.38, -0.29]
       }
     },
     {
-      "id": "regions_unexplored:glistering_meadow",
+      "id": "adventure:nether_grasslands",
       "climate": {
         "humidity": [-0.25, -0.16]
       }
     },
     {
-      "id": "regions_unexplored:orchard",
+      "id": "adventure:magnolia_woodland",
       "climate": {
         "humidity": [-0.12, -0.03]
       }
     },
     {
-      "id": "natures_spirit:lavender_fields",
+      "id": "adventure:lavender_fields",
       "climate": {
         "humidity": [0.02, 0.1]
       }
     },
     {
-      "id": "natures_spirit:floral_ridges",
+      "id": "minecraft:flower_forest",
       "climate": {
         "humidity": [0.15, 0.23]
       }
     },
     {
-      "id": "natures_spirit:marigold_meadows",
+      "id": "minecraft:sunflower_plains",
       "climate": {
         "humidity": [0.28, 0.37]
       }
     },
     {
-      "id": "regions_unexplored:flower_fields",
+      "id": "minecraft:flower_forest",
       "climate": {
         "humidity": [0.41, 0.49]
       }
-    },
-    "minecraft:cherry_grove"
+    }
   ],
   "borders": {
     "player": 4096,
@@ -104,7 +98,7 @@
   "structures": {
     "force": [
       {
-        "structure": "dungeons_arise:mushroom_house",
+        "structure": "mvs:large_mushroom",
         "x": -1450,
         "z": 980,
         "exclusive": false
@@ -145,17 +139,17 @@
     "wants": {
       "village": "near_spawn",
       "tavern": "spread",
-      "farmstead": "near_spawn",
-      "guide_post_warm": "near_spawn",
-      "abandoned_chapel": "spread",
-      "campsite": "near_spawn",
-      "lighthouse": "near_border"
+      "nova_structures:remnant_ruin_farmer": "near_spawn",
+      "mvs:small_oak_lantern": "near_spawn",
+      "ati_structures:haunted_ruin": "spread",
+      "mvs:campsite": "near_spawn",
+      "ati_structures:lighthouse": "near_border"
     },
     "shuns": [
       "ancient_city",
       "trial_chambers",
       "mansion",
-      "coliseum",
+      "mss:arena",
       "monument"
     ]
   }

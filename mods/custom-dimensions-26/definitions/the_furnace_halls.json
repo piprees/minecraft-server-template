@@ -11,7 +11,7 @@
     "minecraft:nether_wastes",
     "minecraft:basalt_deltas",
     "minecraft:crimson_forest",
-    "incendium:volcanic_deltas",
+    "adventure:magma_land",
     "minecraft:soul_sand_valley"
   ],
   "borders": {
@@ -28,7 +28,7 @@
     },
     "force": [
       {
-        "structure": "betterfortresses:fortress",
+        "structure": "mns:mega_fortress",
         "x": 138,
         "z": 57,
         "exclusive": false
@@ -62,16 +62,16 @@
       "minecraft:basalt_deltas"
     ],
     "wants": {
-      "fortress": "near_spawn",
+      "mns:mega_fortress": "near_spawn",
       "nether_brick_hall": "spread",
-      "nether_reactor": "near_border",
+      "mns:crimson_forge": "near_border",
       "copper_tower": "spread",
-      "pipeline": "spread",
+      "mns:bridge_1": "spread",
       "blackstone_walls": "spread"
     },
     "shuns": [
-      "piglin_village",
-      "warped_outpost"
+      "towns_and_towers:exclusives/village_piglin",
+      "mvs:large_warped_tower"
     ]
   }
 }

@@ -10,7 +10,7 @@
   "biomes": [
     "minecraft:soul_sand_valley",
     "minecraft:nether_wastes",
-    "incendium:withered_forest",
+    "adventure:withered_forest",
     "minecraft:basalt_deltas"
   ],
   "atmosphere": {
@@ -31,7 +31,7 @@
   },
   "portals": [
     {
-      "frameBlock": "chipped:runic_carved_obsidian",
+      "frameBlock": "minecraft:chiseled_polished_blackstone",
       "igniterItem": "minecraft:netherite_ingot",
       "color": "4B2B6B",
       "lightLevel": 11,
@@ -52,16 +52,16 @@
       "minecraft:nether_wastes"
     ],
     "wants": {
-      "sanctum": "near_spawn",
-      "infernal_altar": "near_spawn",
-      "forbidden_castle": "near_border",
+      "nova_structures:sealing_halls": "near_spawn",
+      "mns:smoking_shrine": "near_spawn",
+      "nova_structures:nether_keep": "near_border",
       "nether_temple": "spread"
     },
     "shuns": [
-      "piglin_village",
+      "towns_and_towers:exclusives/village_piglin",
       "crimson_fungus",
       "crimson_forge",
-      "warped_outpost",
+      "mvs:large_warped_tower",
       "bastion"
     ]
   }

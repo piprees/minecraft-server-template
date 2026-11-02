@@ -9,7 +9,7 @@
   },
   "biomes": [
     {
-      "id": "regions_unexplored:rocky_reef",
+      "id": "minecraft:warm_ocean",
       "climate": {
         "weirdness": [-2.0, -0.6496],
         "depth": [-2.0, 0.1]
@@ -30,14 +30,14 @@
       }
     },
     {
-      "id": "terralith:granite_cliffs",
+      "id": "minecraft:windswept_gravelly_hills",
       "climate": {
         "weirdness": [-0.358, -0.1741],
         "depth": [-2.0, 0.1]
       }
     },
     {
-      "id": "regions_unexplored:gravel_beach",
+      "id": "minecraft:stony_shore",
       "climate": {
         "weirdness": [-0.1741, 0.023],
         "depth": [-2.0, 0.1]
@@ -51,7 +51,7 @@
       }
     },
     {
-      "id": "regions_unexplored:grassy_beach",
+      "id": "minecraft:beach",
       "climate": {
         "weirdness": [0.2443, 2.0],
         "depth": [-2.0, 0.1]
@@ -65,7 +65,7 @@
       }
     },
     {
-      "id": "terralith:cave/tuff_caves",
+      "id": "adventure:lichen_caves",
       "climate": {
         "weirdness": [-0.279, 2.0],
         "depth": [0.1, 2.0]
@@ -83,7 +83,7 @@
   },
   "structures": {
     "terrainAdaptation": {
-      "structory_towers:ocean_pillar": "bury"
+      "mvs:ocean_tower": "bury"
     },
     "wants": {
       "shipwreck": {
@@ -101,13 +101,13 @@
     },
     "force": [
       {
-        "structure": "philipsruins:ocean_ruins",
+        "structure": "minecraft:ocean_ruin_warm",
         "x": 200,
         "z": 74,
         "exclusive": false
       },
       {
-        "structure": "structory_towers:ocean_pillar",
+        "structure": "mvs:ocean_tower",
         "x": -126,
         "z": -200,
         "exclusive": false

@@ -12,7 +12,7 @@
   },
   "biomes": [
     {
-      "id": "terralith:white_cliffs",
+      "id": "adventure:chalk_cliffs",
       "climate": {
         "continentalness": [-0.6, -0.05],
         "weirdness": [-2.0, -0.19],
@@ -20,7 +20,7 @@
       }
     },
     {
-      "id": "natures_spirit:white_cliffs",
+      "id": "adventure:chalk_cliffs",
       "climate": {
         "continentalness": [-0.6, -0.05],
         "weirdness": [-0.19, -0.1417],
@@ -28,7 +28,7 @@
       }
     },
     {
-      "id": "terralith:warm_river",
+      "id": "adventure:muddy_river",
       "climate": {
         "weirdness": [-0.1417, -0.0933],
         "depth": [-2.0, 0.1]
@@ -56,21 +56,21 @@
       }
     },
     {
-      "id": "regions_unexplored:cold_river",
+      "id": "minecraft:river",
       "climate": {
         "weirdness": [0.0517, 0.1],
         "depth": [-2.0, 0.1]
       }
     },
     {
-      "id": "wilderwild:warm_river",
+      "id": "adventure:muddy_river",
       "climate": {
         "weirdness": [0.1, 2.0],
         "depth": [-2.0, 0.1]
       }
     },
     {
-      "id": "terralith:cave/tuff_caves",
+      "id": "adventure:lichen_caves",
       "climate": {
         "weirdness": [-2.0, -0.045],
         "depth": [0.1, 2.0]
@@ -130,15 +130,15 @@
     "water": "high",
     "wants": {
       "village": "near_spawn",
-      "farmstead": "near_spawn",
-      "lighthouse": "spread",
-      "watchtower": "spread",
-      "guide_post_warm": "near_spawn",
-      "campsite": "near_spawn",
+      "nova_structures:remnant_ruin_farmer": "near_spawn",
+      "ati_structures:lighthouse": "spread",
+      "nova_structures:firewatch_tower_forest": "spread",
+      "mvs:small_oak_lantern": "near_spawn",
+      "mvs:campsite": "near_spawn",
       "tavern": "spread"
     },
     "shuns": [
-      "coliseum",
+      "mss:arena",
       "ancient_city"
     ]
   }

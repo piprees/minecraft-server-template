@@ -9,21 +9,21 @@
   },
   "biomes": [
     {
-      "id": "natures_spirit:heather_fields",
+      "id": "adventure:highland_fells",
       "climate": {
         "weirdness": [-2.0, -0.19],
         "depth": [-2.0, 0.1]
       }
     },
     {
-      "id": "natures_spirit:carnation_fields",
+      "id": "adventure:carnation_fields",
       "climate": {
         "weirdness": [-0.19, -0.1537],
         "depth": [-2.0, 0.1]
       }
     },
     {
-      "id": "terralith:blooming_plateau",
+      "id": "adventure:alpine_meadow",
       "climate": {
         "weirdness": [-0.1537, -0.1175],
         "depth": [-2.0, 0.1]
@@ -58,21 +58,21 @@
       }
     },
     {
-      "id": "natures_spirit:lavender_fields",
+      "id": "adventure:lavender_fields",
       "climate": {
         "weirdness": [0.0275, 0.0638],
         "depth": [-2.0, 0.1]
       }
     },
     {
-      "id": "regions_unexplored:chalk_cliffs",
+      "id": "adventure:chalk_cliffs",
       "climate": {
         "weirdness": [0.0638, 0.1],
         "depth": [-2.0, 0.1]
       }
     },
     {
-      "id": "regions_unexplored:clover_plains",
+      "id": "minecraft:plains",
       "climate": {
         "weirdness": [0.1, 2.0],
         "depth": [-2.0, 0.1]
@@ -86,7 +86,7 @@
       }
     },
     {
-      "id": "terralith:cave/tuff_caves",
+      "id": "adventure:lichen_caves",
       "climate": {
         "weirdness": [-0.045, 2.0],
         "depth": [0.1, 2.0]
@@ -138,16 +138,16 @@
     ],
     "wants": {
       "village": "near_spawn",
-      "farmstead": "near_spawn",
-      "guide_post_warm": "near_spawn",
+      "nova_structures:remnant_ruin_farmer": "near_spawn",
+      "mvs:small_oak_lantern": "near_spawn",
       "tavern": "spread",
-      "campsite": "near_spawn",
-      "abandoned_chapel": "spread"
+      "mvs:campsite": "near_spawn",
+      "ati_structures:haunted_ruin": "spread"
     },
     "shuns": [
       "ancient_city",
       "mansion",
-      "coliseum"
+      "mss:arena"
     ]
   }
 }

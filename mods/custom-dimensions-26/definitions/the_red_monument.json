@@ -8,7 +8,7 @@
   },
   "biomes": [
     {
-      "id": "nullscape:shadowlands",
+      "id": "adventure:umbral_wastes",
       "climate": {
         "continentalness": [-2.0, -0.22]
       }
@@ -20,7 +20,7 @@
       }
     },
     {
-      "id": "terralith:scarlet_mountains",
+      "id": "adventure:maple_woodland",
       "climate": {
         "continentalness": [-0.115, -0.035]
       }
@@ -32,7 +32,7 @@
       }
     },
     {
-      "id": "terralith:red_oasis",
+      "id": "adventure:saguaro_desert",
       "climate": {
         "continentalness": [0.1, 0.155]
       }
@@ -50,7 +50,7 @@
       }
     },
     {
-      "id": "nullscape:crystal_peaks",
+      "id": "adventure:ice_starfield",
       "climate": {
         "continentalness": [0.29, 2.0]
       }
@@ -166,9 +166,9 @@
       "minecraft:end_highlands"
     ],
     "shuns": [
-      "dragon_skeleton",
+      "mns:giant_skull",
       "ruined_pillar",
-      "end_ruins"
+      "mes:endscraps"
     ]
   }
 }

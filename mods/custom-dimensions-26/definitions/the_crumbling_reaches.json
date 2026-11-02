@@ -10,7 +10,7 @@
   },
   "biomes": [
     {
-      "id": "nullscape:shadowlands",
+      "id": "adventure:umbral_wastes",
       "climate": {
         "continentalness": [-2.0, -0.185]
       }
@@ -40,25 +40,25 @@
       }
     },
     {
-      "id": "nullscape:void_barrens",
+      "id": "minecraft:end_barrens",
       "climate": {
         "continentalness": [0.401, 0.453]
       }
     },
     {
-      "id": "terralith:basalt_cliffs",
+      "id": "minecraft:basalt_deltas",
       "climate": {
         "continentalness": [0.453, 0.5165]
       }
     },
     {
-      "id": "terralith:stony_spires",
+      "id": "minecraft:stony_peaks",
       "climate": {
         "continentalness": [0.5165, 0.5485]
       }
     },
     {
-      "id": "nullscape:crystal_peaks",
+      "id": "adventure:ice_starfield",
       "climate": {
         "continentalness": [0.5485, 2.0]
       }
@@ -94,7 +94,7 @@
         "z": -1010
       },
       {
-        "structure": "nullscape:dragon_skeleton",
+        "structure": "mns:giant_skull",
         "x": -100,
         "z": -900,
         "exclusive": false
@@ -136,8 +136,8 @@
       "mega_ship_deepslate": "near_spawn",
       "mega_ship_crashed": "spread",
       "ruined_pillar": "spread",
-      "dragon_skeleton": "near_spawn",
-      "end_ruins": "spread"
+      "mns:giant_skull": "near_spawn",
+      "mes:endscraps": "spread"
     },
     "shuns": [
       "end_city",

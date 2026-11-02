@@ -8,16 +8,15 @@
     "cellScale": 3
   },
   "biomes": [
-    "incendium:quartz_flats",
-    "nullscape:void_barrens",
-    "nullscape:crystal_peaks",
-    "nullscape:shadowlands",
+    "adventure:quartz_flats",
+    "minecraft:end_barrens",
+    "adventure:ice_starfield",
+    "adventure:umbral_wastes",
     "minecraft:end_midlands",
     "minecraft:the_end",
-    "betterend:chorus_forest",
-    "betterend:dragon_graveyards",
-    "betterend:dust_wastelands",
-    "betterend:neon_oasis"
+    "adventure:chorus_forest",
+    "adventure:dust_wastelands",
+    "adventure:neon_oasis"
   ],
   "liquids": {
     "seaLevel": -64
@@ -38,7 +37,7 @@
       "radius": 400,
       "blend": 0,
       "biomes": [
-        "incendium:quartz_flats"
+        "adventure:quartz_flats"
       ]
     },
     {
@@ -47,7 +46,7 @@
       "radius": 400,
       "blend": 0,
       "biomes": [
-        "incendium:quartz_flats"
+        "adventure:quartz_flats"
       ]
     },
     {
@@ -56,7 +55,7 @@
       "radius": 400,
       "blend": 0,
       "biomes": [
-        "incendium:quartz_flats"
+        "adventure:quartz_flats"
       ]
     },
     {
@@ -65,7 +64,7 @@
       "radius": 400,
       "blend": 0,
       "biomes": [
-        "incendium:quartz_flats"
+        "adventure:quartz_flats"
       ]
     }
   ],
@@ -148,8 +147,8 @@
     "mood": "desolate",
     "allowHazardousSpawn": true,
     "spawnFilter": [
-      "incendium:quartz_flats",
-      "nullscape:void_barrens",
+      "adventure:quartz_flats",
+      "minecraft:end_barrens",
       "minecraft:end_midlands"
     ],
     "wants": {

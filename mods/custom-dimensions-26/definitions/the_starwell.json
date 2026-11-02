@@ -8,10 +8,10 @@
     "preset": "floating_islands"
   },
   "biomes": [
-    "terralith:mirage_isles",
-    "terralith:skylands_winter",
-    "terralith:alpha_islands",
-    "terralith:alpha_islands_winter"
+    "adventure:desert_oasis",
+    "adventure:windswept_isles",
+    "adventure:alpha_grove",
+    "minecraft:snowy_plains"
   ],
   "liquids": {
     "seaLevel": -64
@@ -26,7 +26,7 @@
       "radius": 72,
       "blend": 20,
       "biomes": [
-        "nullscape:shadowlands"
+        "adventure:umbral_wastes"
       ]
     }
   ],
@@ -113,9 +113,9 @@
     "mood": "scenic",
     "terrain": "islands",
     "spawnFilter": [
-      "terralith:mirage_isles",
-      "terralith:skylands_winter",
-      "terralith:alpha_islands"
+      "adventure:desert_oasis",
+      "adventure:windswept_isles",
+      "adventure:alpha_grove"
     ]
   }
 }

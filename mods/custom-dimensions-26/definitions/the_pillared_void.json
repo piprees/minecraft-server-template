@@ -10,7 +10,7 @@
   },
   "biomes": [
     {
-      "id": "nullscape:void_barrens",
+      "id": "minecraft:end_barrens",
       "climate": {
         "continentalness": [0.177, 0.3015]
       }
@@ -40,7 +40,7 @@
       }
     },
     {
-      "id": "nullscape:crystal_peaks",
+      "id": "adventure:ice_starfield",
       "climate": {
         "continentalness": [0.3015, 2.0]
       }
@@ -72,7 +72,7 @@
     },
     "force": [
       {
-        "structure": "nullscape:dragon_skeleton",
+        "structure": "mns:giant_skull",
         "x": 2300,
         "z": -3100
       },

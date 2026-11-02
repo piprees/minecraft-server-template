@@ -9,13 +9,13 @@
   },
   "biomes": [
     {
-      "id": "paradise_lost:autumnal_tundra",
+      "id": "adventure:golden_skygrove",
       "climate": {
         "continentalness": [-0.0441, -0.0169]
       }
     },
     {
-      "id": "paradise_lost:highlands_shield",
+      "id": "adventure:windswept_isles",
       "climate": {
         "continentalness": [-0.1063, -0.0785]
       }
@@ -27,25 +27,25 @@
       }
     },
     {
-      "id": "natures_spirit:snowy_fir_forest",
+      "id": "minecraft:snowy_taiga",
       "climate": {
         "continentalness": [0.0142, 0.0449]
       }
     },
     {
-      "id": "terralith:snowy_cherry_grove",
+      "id": "minecraft:cherry_grove",
       "climate": {
         "continentalness": [0.0779, 0.1066]
       }
     },
     {
-      "id": "terralith:skylands_winter",
+      "id": "adventure:windswept_isles",
       "climate": {
         "continentalness": [-2.0, -0.1063]
       }
     },
     {
-      "id": "terralith:frozen_cliffs",
+      "id": "minecraft:jagged_peaks",
       "climate": {
         "continentalness": [-0.0785, -0.0441]
       }
@@ -73,7 +73,7 @@
   },
   "structures": {
     "terrainAdaptation": {
-      "paradise_lost:aurel_tower": "pedestal"
+      "mss:large_tower": "pedestal"
     },
     "noise": {
       "dungeons": "sparse"
@@ -101,13 +101,13 @@
     ],
     "water": "high",
     "wants": {
-      "para_remains": "near_spawn",
-      "aurel_tower": "spread",
-      "cold_dungeon": "spread",
-      "birdcage": "near_border",
+      "mvs:statue_ruins": "near_spawn",
+      "mss:large_tower": "spread",
+      "nova_structures:surface_dungeon_snowy": "spread",
+      "mss:small_tower": "near_border",
       "igloo": "near_spawn",
-      "frozen_dungeon": "near_border",
-      "guide_post_cold": "near_spawn"
+      "epic:small_ice_dungeon": "near_border",
+      "mvs:small_spruce_lantern": "near_spawn"
     },
     "shuns": [],
     "terrain": "islands"

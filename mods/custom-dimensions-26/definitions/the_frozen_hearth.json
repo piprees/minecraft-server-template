@@ -23,42 +23,40 @@
     "minecraft:taiga",
     "minecraft:stony_shore",
     "minecraft:river",
-    "terralith:birch_taiga",
-    "terralith:rocky_mountains",
-    "terralith:wintry_forest",
-    "terralith:alpine_grove",
+    "minecraft:birch_forest",
+    "adventure:alpine_scree",
     {
-      "id": "natures_spirit:tundra",
+      "id": "adventure:highland_fells",
       "climate": {
         "humidity": [-0.61, -0.47]
       }
     },
     {
-      "id": "regions_unexplored:frozen_pine_taiga",
+      "id": "minecraft:grove",
       "climate": {
         "humidity": [-0.4, -0.26]
       }
     },
     {
-      "id": "wilderwild:snowy_old_growth_pine_taiga",
+      "id": "minecraft:old_growth_pine_taiga",
       "climate": {
         "humidity": [-0.19, -0.05]
       }
     },
     {
-      "id": "regions_unexplored:cold_boreal_taiga",
+      "id": "minecraft:taiga",
       "climate": {
         "humidity": [0.02, 0.16]
       }
     },
     {
-      "id": "natures_spirit:snowy_fir_forest",
+      "id": "minecraft:snowy_taiga",
       "climate": {
         "humidity": [0.23, 0.37]
       }
     },
     {
-      "id": "regions_unexplored:golden_boreal_taiga",
+      "id": "adventure:aspen_forest",
       "climate": {
         "humidity": [0.44, 0.58]
       }
@@ -96,17 +94,17 @@
     "wants": {
       "village": "near_spawn",
       "igloo": "near_spawn",
-      "taiga_outpost": "spread",
-      "cold_dungeon": "spread",
+      "towns_and_towers:pillager_outpost_taiga": "spread",
+      "nova_structures:surface_dungeon_snowy": "spread",
       "ice_dungeon_l": "near_border",
-      "frozen_dungeon": "near_border",
-      "campsite": "near_spawn",
-      "guide_post_cold": "near_spawn",
-      "firetower": "spread"
+      "epic:small_ice_dungeon": "near_border",
+      "mvs:campsite": "near_spawn",
+      "mvs:small_spruce_lantern": "near_spawn",
+      "nova_structures:firewatch_tower_taiga": "spread"
     },
     "shuns": [
       "monument",
-      "coliseum"
+      "mss:arena"
     ]
   }
 }

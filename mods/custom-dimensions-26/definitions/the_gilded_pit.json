@@ -9,13 +9,13 @@
   },
   "biomes": [
     {
-      "id": "betternether:gravel_desert",
+      "id": "adventure:gravel_desert",
       "climate": {
         "temperature": [-2.0, -0.4798]
       }
     },
     {
-      "id": "betternether:poor_nether_grasslands",
+      "id": "minecraft:nether_wastes",
       "climate": {
         "temperature": [-0.4798, -0.3511]
       }
@@ -39,7 +39,7 @@
       }
     },
     {
-      "id": "regions_unexplored:inferno",
+      "id": "adventure:magma_land",
       "climate": {
         "temperature": [0.5234, 2.0]
       }
@@ -63,9 +63,9 @@
   "structures": {
     "density": "dense",
     "terrainAdaptation": {
-      "dungeons_arise:shiraz_palace": "pedestal",
-      "incendium:forbidden_castle": "pedestal",
-      "dungeons_arise:keep_kayra": "platform_skirt"
+      "nova_structures:piglin_donjon": "pedestal",
+      "nova_structures:nether_keep": "pedestal",
+      "ati_structures:dark_keep": "platform_skirt"
     },
     "force": [
       {
@@ -74,12 +74,12 @@
         "z": 31
       },
       {
-        "structure": "betterfortresses:fortress",
+        "structure": "mns:mega_fortress",
         "x": -291,
         "z": -47
       },
       {
-        "structure": "incendium:forbidden_castle",
+        "structure": "nova_structures:nether_keep",
         "x": 52,
         "z": 326
       },
@@ -94,22 +94,22 @@
         "z": 218
       },
       {
-        "structure": "dungeons_arise:shiraz_palace",
+        "structure": "nova_structures:piglin_donjon",
         "x": -263,
         "z": 229
       },
       {
-        "structure": "dungeons_arise:foundry",
+        "structure": "mns:crimson_forge",
         "x": 241,
         "z": -234
       },
       {
-        "structure": "dungeons_arise:keep_kayra",
+        "structure": "ati_structures:dark_keep",
         "x": 372,
         "z": 411
       },
       {
-        "structure": "philipsruins:antiquus_crypta",
+        "structure": "nova_structures:undead_crypt",
         "x": -389,
         "z": 358
       }
@@ -157,9 +157,9 @@
       "minecraft:basalt_deltas"
     ],
     "wants": {
-      "sanctum": "near_border",
+      "nova_structures:sealing_halls": "near_border",
       "blackstone_walls": "near_border",
-      "nether_tower": "near_border"
+      "mns:nether_tower": "near_border"
     }
   }
 }

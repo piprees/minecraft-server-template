@@ -8,10 +8,10 @@
     "preset": "end"
   },
   "biomes": [
-    "incendium:toxic_heap",
+    "adventure:mycotoxic_undergrowth",
     "minecraft:soul_sand_valley",
-    "incendium:withered_forest",
-    "incendium:ash_barrens",
+    "adventure:withered_forest",
+    "adventure:ash_barrens",
     "minecraft:nether_wastes"
   ],
   "liquids": {
@@ -43,17 +43,17 @@
   "structures": {
     "density": "dense",
     "terrainAdaptation": {
-      "incendium:nether_reactor": "platform_skirt"
+      "mns:crimson_forge": "platform_skirt"
     },
     "force": [
       {
-        "structure": "incendium:nether_reactor",
+        "structure": "mns:crimson_forge",
         "x": -380,
         "z": 290,
         "exclusive": false
       },
       {
-        "structure": "philipsruins:sculk_dungeon",
+        "structure": "ati_structures:warden_monument",
         "x": -364,
         "z": 274
       }
@@ -86,21 +86,21 @@
   "roll": {
     "mood": "hard",
     "spawnFilter": [
-      "incendium:toxic_heap",
+      "adventure:mycotoxic_undergrowth",
       "minecraft:soul_sand_valley",
-      "incendium:withered_forest"
+      "adventure:withered_forest"
     ],
     "wants": {
-      "ruined_lab": "near_spawn",
-      "nether_reactor": "spread",
+      "mns:copper_tower": "near_spawn",
+      "mns:crimson_forge": "spread",
       "bastion": "spread",
-      "fortress": "spread",
-      "pipeline": "spread"
+      "mns:mega_fortress": "spread",
+      "mns:bridge_1": "spread"
     },
     "shuns": [
-      "piglin_village",
+      "towns_and_towers:exclusives/village_piglin",
       "crimson_fungus",
-      "warped_outpost"
+      "mvs:large_warped_tower"
     ],
     "terrain": "islands",
     "water": "none"

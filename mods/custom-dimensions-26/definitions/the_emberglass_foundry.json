@@ -9,25 +9,25 @@
   },
   "biomes": [
     {
-      "id": "galosphere:crystal_canyons",
+      "id": "adventure:crystal_hollows",
       "climate": {
         "temperature": [-2.0, -0.9045]
       }
     },
     {
-      "id": "incendium:quartz_flats",
+      "id": "adventure:quartz_flats",
       "climate": {
         "temperature": [-0.9045, -0.3274]
       }
     },
     {
-      "id": "regions_unexplored:blackstone_basin",
+      "id": "adventure:blackstone_basin",
       "climate": {
         "temperature": [-0.3274, -0.1385]
       }
     },
     {
-      "id": "regions_unexplored:scorching_caves",
+      "id": "adventure:magmatic_caves",
       "climate": {
         "temperature": [-0.1385, 0.099]
       }
@@ -39,7 +39,7 @@
       }
     },
     {
-      "id": "terralith:cave/thermal_caves",
+      "id": "minecraft:sulfur_caves",
       "climate": {
         "temperature": [0.2719, 2.0]
       }
@@ -64,7 +64,7 @@
   },
   "structures": {
     "wants": {
-      "mining_complex": {
+      "ati_structures:quarry": {
         "min": 0,
         "max": 256
       }
@@ -74,7 +74,7 @@
     },
     "force": [
       {
-        "structure": "dungeons_arise:foundry",
+        "structure": "mns:crimson_forge",
         "x": -60,
         "z": -40
       }
@@ -124,8 +124,8 @@
   "roll": {
     "mood": "adventurous",
     "spawnFilter": [
-      "terralith:cave/thermal_caves",
-      "regions_unexplored:scorching_caves"
+      "minecraft:sulfur_caves",
+      "adventure:magmatic_caves"
     ]
   }
 }

@@ -9,55 +9,55 @@
   },
   "biomes": [
     {
-      "id": "terralith:amethyst_canyon",
+      "id": "adventure:crystal_hollows",
       "climate": {
         "continentalness": [-2.0, -0.12]
       }
     },
     {
-      "id": "terralith:windswept_spires",
+      "id": "minecraft:jagged_peaks",
       "climate": {
         "continentalness": [-0.12, -0.0983]
       }
     },
     {
-      "id": "nullscape:crystal_peaks",
+      "id": "adventure:ice_starfield",
       "climate": {
         "continentalness": [-0.0983, -0.0767]
       }
     },
     {
-      "id": "terralith:haze_mountain",
+      "id": "minecraft:stony_peaks",
       "climate": {
         "continentalness": [-0.0767, -0.055]
       }
     },
     {
-      "id": "terralith:skylands_spring",
+      "id": "adventure:sky_highlands",
       "climate": {
         "continentalness": [-0.055, -0.0333]
       }
     },
     {
-      "id": "paradise_lost:highlands",
+      "id": "adventure:sky_highlands",
       "climate": {
         "continentalness": [-0.0333, -0.0117]
       }
     },
     {
-      "id": "paradise_lost:highlands_thicket",
+      "id": "minecraft:dark_forest",
       "climate": {
         "continentalness": [-0.0117, 0.01]
       }
     },
     {
-      "id": "paradise_lost:wisteria_woods",
+      "id": "adventure:wisteria_grove",
       "climate": {
         "continentalness": [0.01, 0.0317]
       }
     },
     {
-      "id": "paradise_lost:highlands_forest",
+      "id": "minecraft:forest",
       "climate": {
         "continentalness": [0.0317, 0.0533]
       }
@@ -69,7 +69,7 @@
       }
     },
     {
-      "id": "natures_spirit:lavender_fields",
+      "id": "adventure:lavender_fields",
       "climate": {
         "continentalness": [0.075, 2.0]
       }
@@ -82,7 +82,7 @@
       "radius": 110,
       "blend": 32,
       "biomes": [
-        "nullscape:crystal_peaks"
+        "adventure:ice_starfield"
       ]
     },
     {
@@ -111,7 +111,7 @@
   "structures": {
     "force": [
       {
-        "structure": "paradise_lost:aurel_tower",
+        "structure": "mss:large_tower",
         "x": 60,
         "z": 60,
         "exclusive": false
@@ -124,12 +124,12 @@
       }
     ],
     "terrainAdaptation": {
-      "paradise_lost:aurel_tower": "pedestal"
+      "mss:large_tower": "pedestal"
     },
     "rarity": {
-      "paradise_lost:birdcage": "common",
-      "paradise_lost:aurel_tower": "common",
-      "structory_towers:rare_towers": "common",
+      "mss:small_tower": "common",
+      "mss:large_tower": "common",
+      "mes:enderwatch_tower": "common",
       "mes:mystical_archway": "common"
     },
     "noise": {
@@ -142,7 +142,7 @@
         "minecraft:purpur_block",
         "minecraft:purpur_pillar"
       ],
-      "igniterItem": "regions_unexplored:lavender_wisteria_sapling",
+      "igniterItem": "minecraft:lilac",
       "color": "9B5BB0",
       "lightLevel": 11,
       "scale": 12.0,
@@ -173,15 +173,15 @@
   "roll": {
     "mood": "dramatic",
     "spawnFilter": [
-      "natures_spirit:lavender_fields",
-      "terralith:amethyst_canyon"
+      "adventure:lavender_fields",
+      "adventure:crystal_hollows"
     ],
     "wants": {
-      "aurel_tower": "near_spawn",
-      "birdcage": "spread",
-      "wizard_tower": "spread",
-      "para_palace": "near_border",
-      "relic_temple": "near_border",
+      "mss:large_tower": "near_spawn",
+      "mss:small_tower": "spread",
+      "ddd:wizard_tower": "spread",
+      "mss:castle_ruin": "near_border",
+      "ati_structures:fortified_temple": "near_border",
       "shrine_tower": "spread",
       "mystical_archway": "spread"
     },

@@ -12,23 +12,22 @@
   },
   "biomes": [
     {
-      "id": "terralith:warped_mesa",
+      "id": "minecraft:warped_forest",
       "climate": {
         "weirdness": [0.07, 0.12]
       }
     },
-    "terralith:scarlet_mountains",
-    "terralith:volcanic_crater",
-    "terralith:volcanic_peaks",
-    "terralith:basalt_cliffs",
-    "terralith:ashen_savanna",
+    "adventure:maple_woodland",
+    "adventure:blackstone_basin",
+    "adventure:magma_land",
+    "minecraft:basalt_deltas",
+    "adventure:ashen_woodland",
     "minecraft:eroded_badlands",
     "minecraft:badlands",
-    "terralith:yellowstone",
-    "terralith:cave/thermal_caves",
-    "terralith:cave/mantle_caves",
+    "minecraft:sulfur_caves",
+    "adventure:magmatic_caves",
     {
-      "id": "incendium:inverted_forest",
+      "id": "adventure:upside_down_forest",
       "climate": {
         "weirdness": [-2.0, -0.61]
       }
@@ -46,19 +45,19 @@
       }
     },
     {
-      "id": "incendium:withered_forest",
+      "id": "adventure:withered_forest",
       "climate": {
         "weirdness": [-0.075, -0.03]
       }
     },
     {
-      "id": "incendium:volcanic_deltas",
+      "id": "adventure:magma_land",
       "climate": {
         "weirdness": [-0.03, 0.01]
       }
     },
     {
-      "id": "regions_unexplored:redstone_abyss",
+      "id": "adventure:redstone_abyss",
       "climate": {
         "weirdness": [0.01, 0.05]
       }
@@ -70,25 +69,25 @@
       }
     },
     {
-      "id": "incendium:weeping_valley",
+      "id": "adventure:nether_jungle",
       "climate": {
         "weirdness": [0.18, 0.26]
       }
     },
     {
-      "id": "incendium:quartz_flats",
+      "id": "adventure:quartz_flats",
       "climate": {
         "weirdness": [0.4, 0.501]
       }
     },
     {
-      "id": "regions_unexplored:arid_mountains",
+      "id": "minecraft:windswept_savanna",
       "climate": {
         "weirdness": [0.501, 0.595]
       }
     },
     {
-      "id": "regions_unexplored:outback",
+      "id": "adventure:saguaro_desert",
       "climate": {
         "weirdness": [0.595, 2.0]
       }
@@ -113,7 +112,7 @@
       "radius": 96,
       "blend": 24,
       "biomes": [
-        "incendium:quartz_flats"
+        "adventure:quartz_flats"
       ]
     }
   ],
@@ -196,17 +195,17 @@
   "roll": {
     "mood": "adventurous",
     "spawnFilter": [
-      "terralith:warped_mesa",
-      "terralith:scarlet_mountains",
-      "terralith:volcanic_crater",
+      "minecraft:warped_forest",
+      "adventure:maple_woodland",
+      "adventure:blackstone_basin",
       "minecraft:crimson_forest"
     ],
     "wants": {
-      "wizard_tower": "spread",
-      "ancient_temple": "spread",
-      "keep_kayra": "near_border",
-      "scorched_mines": "spread",
-      "bandit_towers": "near_border"
+      "ddd:wizard_tower": "spread",
+      "ati_structures:ancient_temple": "spread",
+      "ati_structures:dark_keep": "near_border",
+      "nova_structures:badlands_miner_outpost": "spread",
+      "ati_structures:illager_tower": "near_border"
     },
     "shuns": [
       "village",

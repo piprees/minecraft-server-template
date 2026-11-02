@@ -16,7 +16,7 @@
       }
     },
     {
-      "id": "nullscape:crystal_peaks",
+      "id": "adventure:ice_starfield",
       "climate": {
         "continentalness": [0.3204, 2.0]
       }
@@ -40,7 +40,7 @@
       }
     },
     {
-      "id": "nullscape:void_barrens",
+      "id": "minecraft:end_barrens",
       "climate": {
         "continentalness": [0.2115, 0.3204]
       }
@@ -117,13 +117,13 @@
       "end_city": "near_spawn",
       "phantom_citadel": "spread",
       "enderwatch_tower": "near_spawn",
-      "end_tower": "spread",
+      "mes:ender_spire": "spread",
       "monolith": "spread"
     },
     "shuns": [
-      "dragon_skeleton",
+      "mns:giant_skull",
       "ruined_pillar",
-      "end_ruins"
+      "mes:endscraps"
     ]
   }
 }

@@ -54,49 +54,49 @@
       }
     },
     {
-      "id": "terralith:highlands",
+      "id": "adventure:highland_fells",
       "climate": {
         "weirdness": [-0.488, -0.484]
       }
     },
     {
-      "id": "terralith:temperate_highlands",
+      "id": "minecraft:windswept_hills",
       "climate": {
         "weirdness": [-0.484, -0.4658]
       }
     },
     {
-      "id": "terralith:forested_highlands",
+      "id": "minecraft:windswept_forest",
       "climate": {
         "weirdness": [-0.4658, -0.4426]
       }
     },
     {
-      "id": "terralith:rocky_mountains",
+      "id": "adventure:alpine_scree",
       "climate": {
         "weirdness": [-0.4426, -0.3914]
       }
     },
     {
-      "id": "terralith:haze_mountain",
+      "id": "minecraft:stony_peaks",
       "climate": {
         "weirdness": [-0.3914, -0.3297]
       }
     },
     {
-      "id": "terralith:white_cliffs",
+      "id": "adventure:chalk_cliffs",
       "climate": {
         "weirdness": [-0.3297, -0.2213]
       }
     },
     {
-      "id": "terralith:caldera",
+      "id": "minecraft:stony_peaks",
       "climate": {
         "weirdness": [-0.2213, -0.1716]
       }
     },
     {
-      "id": "terralith:blooming_plateau",
+      "id": "adventure:alpine_meadow",
       "climate": {
         "weirdness": [-0.1716, -0.1155]
       }
@@ -109,14 +109,14 @@
       }
     },
     {
-      "id": "terralith:granite_cliffs",
+      "id": "minecraft:windswept_gravelly_hills",
       "climate": {
         "temperature": [0.2, 1.0],
         "weirdness": [-0.0865, -0.0378]
       }
     },
     {
-      "id": "terralith:basalt_cliffs",
+      "id": "minecraft:basalt_deltas",
       "climate": {
         "temperature": [0.2, 0.55],
         "humidity": [-1.0, 0.565],
@@ -124,7 +124,7 @@
       }
     },
     {
-      "id": "natures_spirit:red_peaks",
+      "id": "minecraft:eroded_badlands",
       "climate": {
         "temperature": [0.2, 1.0],
         "humidity": [-1.0, -0.1],
@@ -132,7 +132,7 @@
       }
     },
     {
-      "id": "terralith:yosemite_cliffs",
+      "id": "minecraft:stony_peaks",
       "climate": {
         "temperature": [-0.45, 0.2],
         "humidity": [-1.0, -0.35],
@@ -140,56 +140,56 @@
       }
     },
     {
-      "id": "terralith:windswept_spires",
+      "id": "minecraft:jagged_peaks",
       "climate": {
         "temperature": [-0.45, -0.155],
         "weirdness": [0.1034, 0.2289]
       }
     },
     {
-      "id": "regions_unexplored:pine_slopes",
+      "id": "minecraft:windswept_forest",
       "climate": {
         "weirdness": [0.2289, 0.3355]
       }
     },
     {
-      "id": "regions_unexplored:mauve_hills",
+      "id": "adventure:lavender_fields",
       "climate": {
         "weirdness": [0.3355, 0.4374]
       }
     },
     {
-      "id": "regions_unexplored:mountains",
+      "id": "adventure:alpine_scree",
       "climate": {
         "weirdness": [0.4374, 0.4735]
       }
     },
     {
-      "id": "regions_unexplored:towering_cliffs",
+      "id": "minecraft:stony_peaks",
       "climate": {
         "weirdness": [0.4735, 0.501]
       }
     },
     {
-      "id": "regions_unexplored:highland_fields",
+      "id": "adventure:highland_fells",
       "climate": {
         "weirdness": [0.501, 0.504]
       }
     },
     {
-      "id": "regions_unexplored:spires",
+      "id": "minecraft:jagged_peaks",
       "climate": {
         "weirdness": [0.504, 0.508]
       }
     },
     {
-      "id": "regions_unexplored:fen",
+      "id": "minecraft:swamp",
       "climate": {
         "weirdness": [0.508, 0.512]
       }
     },
     {
-      "id": "natures_spirit:heather_fields",
+      "id": "adventure:highland_fells",
       "climate": {
         "weirdness": [0.512, 0.5337]
       }
@@ -249,19 +249,19 @@
     "spawnFilter": [
       "minecraft:windswept_hills",
       "minecraft:windswept_gravelly_hills",
-      "regions_unexplored:fen",
-      "natures_spirit:heather_fields"
+      "minecraft:swamp",
+      "adventure:highland_fells"
     ],
     "wants": {
-      "guide_post_cold": "near_spawn",
-      "taiga_outpost": "near_spawn",
-      "firetower": "spread",
-      "engineer_tower": "spread",
-      "keep_kayra": "near_border",
-      "nomad_outpost": "spread",
-      "campsite": "near_spawn",
-      "watchtower": "spread",
-      "lighthouse": "near_border"
+      "mvs:small_spruce_lantern": "near_spawn",
+      "towns_and_towers:pillager_outpost_taiga": "near_spawn",
+      "nova_structures:firewatch_tower_taiga": "spread",
+      "ati_structures:steam_house": "spread",
+      "ati_structures:dark_keep": "near_border",
+      "ati_structures:nomadic_camp": "spread",
+      "mvs:campsite": "near_spawn",
+      "nova_structures:firewatch_tower_forest": "spread",
+      "ati_structures:lighthouse": "near_border"
     },
     "shuns": [
       "monument"

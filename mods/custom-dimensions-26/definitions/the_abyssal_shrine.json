@@ -9,7 +9,7 @@
   },
   "biomes": [
     {
-      "id": "nullscape:shadowlands",
+      "id": "adventure:umbral_wastes",
       "climate": {
         "continentalness": [-2.0, -0.0918]
       }
@@ -27,13 +27,13 @@
       }
     },
     {
-      "id": "paradise_lost:continental_plateau",
+      "id": "adventure:sky_highlands",
       "climate": {
         "continentalness": [-0.0525, 0.0045]
       }
     },
     {
-      "id": "paradise_lost:highlands_grand_glade",
+      "id": "adventure:golden_skygrove",
       "climate": {
         "continentalness": [0.0045, 0.1027]
       }
@@ -51,13 +51,13 @@
       }
     },
     {
-      "id": "paradise_lost:highlands_thicket",
+      "id": "minecraft:dark_forest",
       "climate": {
         "continentalness": [0.1902, 0.1946]
       }
     },
     {
-      "id": "paradise_lost:calcite_craglands",
+      "id": "adventure:windswept_isles",
       "climate": {
         "continentalness": [0.1946, 2.0]
       }
@@ -87,7 +87,7 @@
     },
     "force": [
       {
-        "structure": "paradise_lost:vault",
+        "structure": "nova_structures:trial_dungeon",
         "x": 180,
         "z": -140
       }
@@ -112,16 +112,16 @@
   "roll": {
     "mood": "adventurous",
     "spawnFilter": [
-      "paradise_lost:calcite_craglands",
-      "paradise_lost:continental_plateau",
-      "paradise_lost:highlands_grand_glade"
+      "adventure:windswept_isles",
+      "adventure:sky_highlands",
+      "adventure:golden_skygrove"
     ],
     "water": "sea",
     "wants": {
       "monument": "spread",
-      "para_palace": "spread",
-      "deepwater_dungeon": "spread",
-      "sculk_dungeon": "near_border"
+      "mss:castle_ruin": "spread",
+      "ati_structures:underwater_dungeon": "spread",
+      "ati_structures:warden_monument": "near_border"
     },
     "shuns": [
       "village",

@@ -16,7 +16,7 @@
       }
     },
     {
-      "id": "terralith:warped_mesa",
+      "id": "minecraft:warped_forest",
       "climate": {
         "weirdness": [-0.501, -0.463],
         "depth": [-2.0, 0.1]
@@ -37,7 +37,7 @@
       }
     },
     {
-      "id": "incendium:inverted_forest",
+      "id": "adventure:upside_down_forest",
       "climate": {
         "weirdness": [-0.0803, 0.0357],
         "depth": [-2.0, 0.1]
@@ -51,21 +51,21 @@
       }
     },
     {
-      "id": "terralith:scarlet_mountains",
+      "id": "adventure:maple_woodland",
       "climate": {
         "weirdness": [0.193, 0.3823],
         "depth": [-2.0, 0.1]
       }
     },
     {
-      "id": "terralith:ashen_savanna",
+      "id": "adventure:ashen_woodland",
       "climate": {
         "weirdness": [0.3823, 0.501],
         "depth": [-2.0, 0.1]
       }
     },
     {
-      "id": "terralith:volcanic_crater",
+      "id": "adventure:blackstone_basin",
       "climate": {
         "weirdness": [0.501, 2.0],
         "depth": [-2.0, 0.1]
@@ -79,14 +79,14 @@
       }
     },
     {
-      "id": "terralith:cave/thermal_caves",
+      "id": "minecraft:sulfur_caves",
       "climate": {
         "weirdness": [-0.255, 0.193],
         "depth": [0.1, 2.0]
       }
     },
     {
-      "id": "terralith:cave/infested_caves",
+      "id": "adventure:lichen_caves",
       "climate": {
         "weirdness": [0.193, 2.0],
         "depth": [0.1, 2.0]
@@ -126,12 +126,12 @@
     "density": "normal",
     "force": [
       {
-        "structure": "incendium:piglin_village",
+        "structure": "towns_and_towers:exclusives/village_piglin",
         "x": 40,
         "z": -70
       },
       {
-        "structure": "structory_towers:nether/warped_outpost",
+        "structure": "mvs:large_warped_tower",
         "x": -395,
         "z": 245
       }
@@ -160,17 +160,17 @@
     "spawnFilter": [
       "minecraft:badlands",
       "minecraft:eroded_badlands",
-      "terralith:warped_mesa"
+      "minecraft:warped_forest"
     ],
     "wants": {
-      "warped_greatsword": "spread",
+      "mns:sword": "spread",
       "bastion": "spread",
       "crimson_forge": "spread",
       "nether_bridge": "spread",
-      "strange_outpost": "spread"
+      "mns:warped_dome": "spread"
     },
     "shuns": [
-      "piglin_village"
+      "towns_and_towers:exclusives/village_piglin"
     ],
     "water": "none"
   }

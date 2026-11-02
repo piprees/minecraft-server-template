@@ -9,14 +9,14 @@
   },
   "biomes": [
     {
-      "id": "natures_spirit:wisteria_forest",
+      "id": "adventure:wisteria_grove",
       "climate": {
         "weirdness": [-2.0, -0.19],
         "depth": [-2.0, 0.1]
       }
     },
     {
-      "id": "terralith:sakura_grove",
+      "id": "minecraft:cherry_grove",
       "climate": {
         "weirdness": [-0.19, -0.1578],
         "depth": [-2.0, 0.1]
@@ -30,14 +30,14 @@
       }
     },
     {
-      "id": "terralith:lavender_forest",
+      "id": "adventure:lavender_fields",
       "climate": {
         "weirdness": [-0.1256, -0.0933],
         "depth": [-2.0, 0.1]
       }
     },
     {
-      "id": "terralith:white_cliffs",
+      "id": "adventure:chalk_cliffs",
       "climate": {
         "continentalness": [-0.6, -0.05],
         "weirdness": [-0.0933, -0.0611],
@@ -59,7 +59,7 @@
       }
     },
     {
-      "id": "terralith:blooming_valley",
+      "id": "minecraft:flower_forest",
       "climate": {
         "weirdness": [0.0033, 0.0356],
         "depth": [-2.0, 0.1]
@@ -73,14 +73,14 @@
       }
     },
     {
-      "id": "regions_unexplored:wisteria_grove",
+      "id": "adventure:wisteria_grove",
       "climate": {
         "weirdness": [0.0678, 0.1],
         "depth": [-2.0, 0.1]
       }
     },
     {
-      "id": "regions_unexplored:magnolia_woodland",
+      "id": "adventure:magnolia_woodland",
       "climate": {
         "weirdness": [0.1, 2.0],
         "depth": [-2.0, 0.1]
@@ -94,7 +94,7 @@
       }
     },
     {
-      "id": "terralith:cave/diorite_caves",
+      "id": "adventure:mineral_strata",
       "climate": {
         "weirdness": [-0.045, 2.0],
         "depth": [0.1, 2.0]
@@ -133,8 +133,8 @@
       "minecraft:meadow"
     ],
     "wants": {
-      "abandoned_chapel": "spread",
-      "guide_post_warm": "near_spawn",
+      "ati_structures:haunted_ruin": "spread",
+      "mvs:small_oak_lantern": "near_spawn",
       "village": "near_border",
       "shrine_tower": "spread"
     },
@@ -142,7 +142,7 @@
       "mansion",
       "monument",
       "ancient_city",
-      "coliseum"
+      "mss:arena"
     ]
   }
 }

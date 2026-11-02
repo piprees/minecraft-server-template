@@ -20,19 +20,19 @@
       }
     },
     {
-      "id": "incendium:quartz_flats",
+      "id": "adventure:quartz_flats",
       "climate": {
         "weirdness": [-0.5271, -0.508]
       }
     },
     {
-      "id": "incendium:toxic_heap",
+      "id": "adventure:mycotoxic_undergrowth",
       "climate": {
         "weirdness": [-0.508, -0.4792]
       }
     },
     {
-      "id": "nullscape:void_barrens",
+      "id": "minecraft:end_barrens",
       "climate": {
         "weirdness": [-0.4792, -0.3709]
       }
@@ -44,7 +44,7 @@
       }
     },
     {
-      "id": "nullscape:shadowlands",
+      "id": "adventure:umbral_wastes",
       "climate": {
         "weirdness": [-0.2942, 2.0]
       }

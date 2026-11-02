@@ -15,13 +15,13 @@
       }
     },
     {
-      "id": "incendium:weeping_valley",
+      "id": "adventure:nether_jungle",
       "climate": {
         "temperature": [-0.328, -0.136]
       }
     },
     {
-      "id": "incendium:inverted_forest",
+      "id": "adventure:upside_down_forest",
       "climate": {
         "temperature": [-0.136, 0.003]
       }
@@ -39,7 +39,7 @@
       }
     },
     {
-      "id": "regions_unexplored:infernal_holt",
+      "id": "minecraft:crimson_forest",
       "climate": {
         "temperature": [0.345, 2.0]
       }
@@ -76,19 +76,19 @@
     "mood": "adventurous",
     "spawnFilter": [
       "minecraft:crimson_forest",
-      "incendium:weeping_valley"
+      "adventure:nether_jungle"
     ],
     "wants": {
       "crimson_fungus": "near_spawn",
       "crimson_forge": "spread",
-      "fortress": "spread",
+      "mns:mega_fortress": "spread",
       "crimson_well": "near_spawn",
-      "pipeline": "near_border",
-      "ruined_lab": "spread"
+      "mns:bridge_1": "near_border",
+      "mns:copper_tower": "spread"
     },
     "shuns": [
-      "warped_outpost",
-      "warped_greatsword"
+      "mvs:large_warped_tower",
+      "mns:sword"
     ]
   }
 }
