@@ -1596,6 +1596,13 @@ A seed's map and its banked facts appear to contradict each other — the thumbn
   the same trap. Pin it against the Java, not against intuition —
   `scripts/e2e/portal-matrix-selftest.sh` is the worked example.
 
+<a id="t165"></a>
+### T165 — A library biome's vanilla features must keep vanilla's order
+
+- **Symptom:** chunk generation crashes with `Feature order cycle found: minecraft:<biome>, adventure:<biome>` in a dimension that lists both biomes; every compile test passes.
+- **Cause:** Minecraft builds one feature order per generator from every biome it holds, and throws at the first decoration step when two biomes list shared features in opposite orders.
+- **Fix:** keep the vanilla ids in a library biome's `biome.features` in vanilla's relative order; its own `~features` may sit anywhere. `BiomeLibraryTest.everyBiomeTogetherKeepsOneFeatureOrder` checks every vanilla and library biome together.
+
 <a id="t164"></a>
 ### T164 — Raising a noise dimension's floor re-rolls its caves and decorations
 
