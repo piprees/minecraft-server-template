@@ -121,6 +121,13 @@ on generated chunks.
 | `cloud_forest` | overworld | Vine-hung, moss-topped jungle trees and giants, moss and mud floors, ferns, big dripleaf, parrots, close white mist, rain |
 | `orchid_marsh` | overworld | Treeless clay-bottomed pools on level ground, sugar cane reeds, blue orchids, lily pads on the water, frogs |
 | `muddy_river` | overworld | Brown water over clay and mud beds, mud banks, packed mud and mangrove roots at the edge, reeds |
+| `alpha_grove` | overworld | Saturated green grass and foliage, plain blob oaks and nothing else on the ground, gravel beaches, the old pale sky blue |
+| `pumpkin_fields` | overworld | Dull orange turf, dense pumpkin patches, carved pumpkins and jack o'lanterns facing every way, hay, gnarled dark oaks, orange fog |
+| `joshua_desert` | overworld | Sand and coarse dirt, Joshua trees forked two or three times with spiky needle crowns, dead bushes, cactus flowers, white-hot sky |
+| `baobab_savanna` | overworld | Dry yellow grass, lone baobabs: 3x3 bark trunks swelling to 5x5, short boughs, small flat crowns; red sand patches |
+| `fungal_fen` | overworld | Giant mushrooms standing in broad shallow pools of dark water on level ground, mycelium and mud, muddy roots, shelf fungi on fallen logs, lily pads on the water |
+| `dying_forest` | overworld | Spruces thinning, browning or bare, snapped trunks, fallen spruce logs, podzol and coarse dirt under snow, grey sky |
+| `sugi_forest` | overworld | Very tall straight red-barked trunks with flat stacked needle tiers, moss floors, ferns, mossy boulders, green mist |
 | `crystal_hollows` | caves | Calcite and smooth basalt walls, open geodes in every chunk, budding amethyst seams, cluster-covered floor and ceiling patches, glow lichen, purple motes and amethyst chimes |
 | `lichen_caves` | caves | Tuff ceilings and walls, moss and mossy cobblestone floors, hanging roots, dripleaf pools, dense glow lichen, grey-green fog |
 | `bioshroom_caves` | caves | Giant mushrooms with shroomlight and froglight-speckled caps on mycelium and mud, small mushrooms, spores in blue-green fog |
@@ -128,6 +135,8 @@ on generated chunks.
 | `cinnabar_veins` | caves | Cinnabar ceilings and walls over tuff, polished cinnabar columns, resin clumps, extra redstone ore, red motes |
 | `mineral_strata` | caves | Walls banded in five-block layers of granite, diorite, andesite, tuff and calcite, ore seams, granite and diorite boulders, glow lichen, white dust |
 | `buried_dunes` | caves | Sandstone roofs and walls, sand drifts with dead bushes, cut-sandstone pillars, husks, falling sand dust |
+| `gelatinous_caves` | caves | Glass pillars round froglight cores floor to roof, slime and honey drips from calcite ceilings, glass-inlaid floors, sea-pickle pools |
+| `root_hollows` | caves | Mangrove-root strands floor to roof and wall to wall, rooted dirt and mud floors, hanging roots, glow berries, dripstone |
 | `nether_grasslands` | nether | Netherrack plains under crimson and warped nylium patches, sprouts, roots, small fungi, glowstone mounds, orange haze |
 | `magma_land` | nether | Magma floors cracked with netherrack, obsidian-rimmed lava pools, fire, heavy red haze |
 | `gravel_desert` | nether | Gravel floors, buried and standing bone blocks, dead bushes in coarse dirt hollows, skeletons, pale dust |

@@ -1,0 +1,1121 @@
+{
+  "$schema": "../../../../../../schema/biome.schema.json",
+  "realm": "overworld",
+  "inspiredBy": "Nature's Spirit, Sugi Forest.",
+  "differs": "No vanilla tree grows in tiers like this: very tall straight red-barked cedars carry their dark needles in flat round tiers stacked up their upper half like a pagoda, over a moss floor with podzol, ferns, moss carpets and mossy boulders, in a soft green mist.",
+  "climate": {
+    "temperature": [
+      -0.15,
+      0.2
+    ],
+    "humidity": [
+      0.3,
+      1.0
+    ],
+    "continentalness": [
+      -0.11,
+      1.0
+    ],
+    "weirdness": [
+      0.4,
+      1.0
+    ],
+    "depth": [
+      -2.0,
+      0.2
+    ]
+  },
+  "palette": {
+    "top": "minecraft:moss_block",
+    "filler": "minecraft:dirt"
+  },
+  "biome": {
+    "attributes": {
+      "minecraft:audio/background_music": {
+        "default": {
+          "max_delay": 24000,
+          "min_delay": 12000,
+          "sound": "minecraft:music.overworld.old_growth_taiga"
+        }
+      },
+      "minecraft:gameplay/natural_mob_spawns": {
+        "argument": {
+          "spawn_costs": {},
+          "spawns_by_category": {
+            "ambient": [
+              {
+                "type": "minecraft:bat",
+                "count": 8,
+                "weight": 10
+              }
+            ],
+            "creature": [
+              {
+                "type": "minecraft:sheep",
+                "count": 4,
+                "weight": 12
+              },
+              {
+                "type": "minecraft:pig",
+                "count": 4,
+                "weight": 10
+              },
+              {
+                "type": "minecraft:chicken",
+                "count": 4,
+                "weight": 10
+              },
+              {
+                "type": "minecraft:cow",
+                "count": 4,
+                "weight": 8
+              },
+              {
+                "type": "minecraft:wolf",
+                "count": 4,
+                "weight": 8
+              },
+              {
+                "type": "minecraft:rabbit",
+                "count": {
+                  "type": "minecraft:uniform",
+                  "max_inclusive": 3,
+                  "min_inclusive": 2
+                },
+                "weight": 4
+              },
+              {
+                "type": "minecraft:fox",
+                "count": {
+                  "type": "minecraft:uniform",
+                  "max_inclusive": 4,
+                  "min_inclusive": 2
+                },
+                "weight": 8
+              }
+            ],
+            "monster": [
+              {
+                "type": "minecraft:spider",
+                "count": 4,
+                "weight": 100
+              },
+              {
+                "type": "minecraft:zombie",
+                "count": 4,
+                "weight": 95
+              },
+              {
+                "type": "minecraft:zombie_villager",
+                "count": 1,
+                "weight": 5
+              },
+              {
+                "type": "minecraft:skeleton",
+                "count": 4,
+                "weight": 100
+              },
+              {
+                "type": "minecraft:creeper",
+                "count": 4,
+                "weight": 100
+              },
+              {
+                "type": "minecraft:slime",
+                "count": 4,
+                "weight": 100
+              },
+              {
+                "type": "minecraft:enderman",
+                "count": {
+                  "type": "minecraft:uniform",
+                  "max_inclusive": 4,
+                  "min_inclusive": 1
+                },
+                "weight": 10
+              },
+              {
+                "type": "minecraft:witch",
+                "count": 1,
+                "weight": 5
+              }
+            ],
+            "underground_water_creature": [
+              {
+                "type": "minecraft:glow_squid",
+                "count": {
+                  "type": "minecraft:uniform",
+                  "max_inclusive": 6,
+                  "min_inclusive": 4
+                },
+                "weight": 10
+              }
+            ]
+          }
+        },
+        "modifier": "overlay"
+      },
+      "minecraft:visual/ambient_particles": {
+        "argument": [
+          {
+            "particle": {
+              "type": "minecraft:spore_blossom_air"
+            },
+            "probability": 0.004
+          }
+        ],
+        "modifier": "append"
+      },
+      "minecraft:visual/fog_color": "#a9c8a6",
+      "minecraft:visual/sky_color": "#9dbfb0"
+    },
+    "carvers": [
+      "minecraft:cave",
+      "minecraft:cave_extra_underground",
+      "minecraft:canyon"
+    ],
+    "downfall": 0.8,
+    "effects": {
+      "grass_color": "#5f8f3a",
+      "foliage_color": "#3f6f2a",
+      "water_color": "#3f76e4"
+    },
+    "features": [
+      [],
+      [
+        "minecraft:lake_lava_underground",
+        "minecraft:lake_lava_surface"
+      ],
+      [
+        "minecraft:amethyst_geode",
+        "minecraft:forest_rock"
+      ],
+      [
+        "minecraft:monster_room",
+        "minecraft:monster_room_deep"
+      ],
+      [],
+      [],
+      [
+        "minecraft:ore_dirt",
+        "minecraft:ore_gravel",
+        "minecraft:ore_granite_upper",
+        "minecraft:ore_granite_lower",
+        "minecraft:ore_diorite_upper",
+        "minecraft:ore_diorite_lower",
+        "minecraft:ore_andesite_upper",
+        "minecraft:ore_andesite_lower",
+        "minecraft:ore_tuff",
+        "minecraft:ore_coal_upper",
+        "minecraft:ore_coal_lower",
+        "minecraft:ore_iron_upper",
+        "minecraft:ore_iron_middle",
+        "minecraft:ore_iron_small",
+        "minecraft:ore_gold",
+        "minecraft:ore_gold_lower",
+        "minecraft:ore_redstone",
+        "minecraft:ore_redstone_lower",
+        "minecraft:ore_diamond",
+        "minecraft:ore_diamond_medium",
+        "minecraft:ore_diamond_large",
+        "minecraft:ore_diamond_buried",
+        "minecraft:ore_lapis",
+        "minecraft:ore_lapis_buried",
+        "minecraft:ore_copper",
+        "minecraft:underwater_magma",
+        "minecraft:disk_sand",
+        "minecraft:disk_clay",
+        "minecraft:disk_gravel",
+        "~podzol_patches"
+      ],
+      [],
+      [
+        "minecraft:spring_water",
+        "minecraft:spring_lava"
+      ],
+      [
+        "~sugis",
+        "~ferns",
+        "~moss_carpets"
+      ],
+      [
+        "minecraft:freeze_top_layer"
+      ]
+    ],
+    "has_precipitation": true,
+    "temperature": 0.4
+  },
+  "features": {
+    "sugis": {
+      "feature": {
+        "type": "minecraft:weighted_random_selector",
+        "features": [
+          {
+            "data": {
+              "feature": {
+                "type": "minecraft:overlay",
+                "features": [
+                  {
+                    "feature": {
+                      "type": "minecraft:block_column",
+                      "allowed_placement": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      },
+                      "direction": "up",
+                      "layers": [
+                        {
+                          "height": 20,
+                          "provider": {
+                            "id": "minecraft:mangrove_log",
+                            "properties": {
+                              "axis": "y"
+                            }
+                          }
+                        }
+                      ],
+                      "prioritize_tip": false
+                    },
+                    "placement": []
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:disk",
+                      "half_height": 0,
+                      "radius": {
+                        "type": "minecraft:uniform",
+                        "max_inclusive": 4,
+                        "min_inclusive": 3
+                      },
+                      "state_provider": {
+                        "id": "minecraft:spruce_leaves",
+                        "properties": {
+                          "distance": "7",
+                          "persistent": "true",
+                          "waterlogged": "false"
+                        }
+                      },
+                      "target": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      }
+                    },
+                    "placement": [
+                      {
+                        "type": "minecraft:offset",
+                        "x": 0,
+                        "y": 11,
+                        "z": 0
+                      }
+                    ]
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:disk",
+                      "half_height": 0,
+                      "radius": {
+                        "type": "minecraft:uniform",
+                        "max_inclusive": 3,
+                        "min_inclusive": 2
+                      },
+                      "state_provider": {
+                        "id": "minecraft:spruce_leaves",
+                        "properties": {
+                          "distance": "7",
+                          "persistent": "true",
+                          "waterlogged": "false"
+                        }
+                      },
+                      "target": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      }
+                    },
+                    "placement": [
+                      {
+                        "type": "minecraft:offset",
+                        "x": 0,
+                        "y": 14,
+                        "z": 0
+                      }
+                    ]
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:disk",
+                      "half_height": 0,
+                      "radius": {
+                        "type": "minecraft:uniform",
+                        "max_inclusive": 2,
+                        "min_inclusive": 2
+                      },
+                      "state_provider": {
+                        "id": "minecraft:spruce_leaves",
+                        "properties": {
+                          "distance": "7",
+                          "persistent": "true",
+                          "waterlogged": "false"
+                        }
+                      },
+                      "target": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      }
+                    },
+                    "placement": [
+                      {
+                        "type": "minecraft:offset",
+                        "x": 0,
+                        "y": 16,
+                        "z": 0
+                      },
+                      {
+                        "type": "minecraft:offset",
+                        "x": 0,
+                        "y": 1,
+                        "z": 0
+                      }
+                    ]
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:disk",
+                      "half_height": 0,
+                      "radius": {
+                        "type": "minecraft:uniform",
+                        "max_inclusive": 1,
+                        "min_inclusive": 1
+                      },
+                      "state_provider": {
+                        "id": "minecraft:spruce_leaves",
+                        "properties": {
+                          "distance": "7",
+                          "persistent": "true",
+                          "waterlogged": "false"
+                        }
+                      },
+                      "target": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      }
+                    },
+                    "placement": [
+                      {
+                        "type": "minecraft:offset",
+                        "x": 0,
+                        "y": 16,
+                        "z": 0
+                      },
+                      {
+                        "type": "minecraft:offset",
+                        "x": 0,
+                        "y": 4,
+                        "z": 0
+                      }
+                    ]
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:block_column",
+                      "allowed_placement": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      },
+                      "direction": "up",
+                      "layers": [
+                        {
+                          "height": 1,
+                          "provider": {
+                            "id": "minecraft:spruce_leaves",
+                            "properties": {
+                              "distance": "7",
+                              "persistent": "true",
+                              "waterlogged": "false"
+                            }
+                          }
+                        }
+                      ],
+                      "prioritize_tip": false
+                    },
+                    "placement": [
+                      {
+                        "type": "minecraft:offset",
+                        "x": 0,
+                        "y": 16,
+                        "z": 0
+                      },
+                      {
+                        "type": "minecraft:offset",
+                        "x": 0,
+                        "y": 5,
+                        "z": 0
+                      }
+                    ]
+                  }
+                ]
+              },
+              "placement": []
+            },
+            "weight": 2
+          },
+          {
+            "data": {
+              "feature": {
+                "type": "minecraft:overlay",
+                "features": [
+                  {
+                    "feature": {
+                      "type": "minecraft:block_column",
+                      "allowed_placement": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      },
+                      "direction": "up",
+                      "layers": [
+                        {
+                          "height": 24,
+                          "provider": {
+                            "id": "minecraft:mangrove_log",
+                            "properties": {
+                              "axis": "y"
+                            }
+                          }
+                        }
+                      ],
+                      "prioritize_tip": false
+                    },
+                    "placement": []
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:disk",
+                      "half_height": 0,
+                      "radius": {
+                        "type": "minecraft:uniform",
+                        "max_inclusive": 4,
+                        "min_inclusive": 3
+                      },
+                      "state_provider": {
+                        "id": "minecraft:spruce_leaves",
+                        "properties": {
+                          "distance": "7",
+                          "persistent": "true",
+                          "waterlogged": "false"
+                        }
+                      },
+                      "target": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      }
+                    },
+                    "placement": [
+                      {
+                        "type": "minecraft:offset",
+                        "x": 0,
+                        "y": 15,
+                        "z": 0
+                      }
+                    ]
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:disk",
+                      "half_height": 0,
+                      "radius": {
+                        "type": "minecraft:uniform",
+                        "max_inclusive": 3,
+                        "min_inclusive": 2
+                      },
+                      "state_provider": {
+                        "id": "minecraft:spruce_leaves",
+                        "properties": {
+                          "distance": "7",
+                          "persistent": "true",
+                          "waterlogged": "false"
+                        }
+                      },
+                      "target": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      }
+                    },
+                    "placement": [
+                      {
+                        "type": "minecraft:offset",
+                        "x": 0,
+                        "y": 16,
+                        "z": 0
+                      },
+                      {
+                        "type": "minecraft:offset",
+                        "x": 0,
+                        "y": 2,
+                        "z": 0
+                      }
+                    ]
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:disk",
+                      "half_height": 0,
+                      "radius": {
+                        "type": "minecraft:uniform",
+                        "max_inclusive": 2,
+                        "min_inclusive": 2
+                      },
+                      "state_provider": {
+                        "id": "minecraft:spruce_leaves",
+                        "properties": {
+                          "distance": "7",
+                          "persistent": "true",
+                          "waterlogged": "false"
+                        }
+                      },
+                      "target": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      }
+                    },
+                    "placement": [
+                      {
+                        "type": "minecraft:offset",
+                        "x": 0,
+                        "y": 16,
+                        "z": 0
+                      },
+                      {
+                        "type": "minecraft:offset",
+                        "x": 0,
+                        "y": 5,
+                        "z": 0
+                      }
+                    ]
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:disk",
+                      "half_height": 0,
+                      "radius": {
+                        "type": "minecraft:uniform",
+                        "max_inclusive": 1,
+                        "min_inclusive": 1
+                      },
+                      "state_provider": {
+                        "id": "minecraft:spruce_leaves",
+                        "properties": {
+                          "distance": "7",
+                          "persistent": "true",
+                          "waterlogged": "false"
+                        }
+                      },
+                      "target": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      }
+                    },
+                    "placement": [
+                      {
+                        "type": "minecraft:offset",
+                        "x": 0,
+                        "y": 16,
+                        "z": 0
+                      },
+                      {
+                        "type": "minecraft:offset",
+                        "x": 0,
+                        "y": 8,
+                        "z": 0
+                      }
+                    ]
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:block_column",
+                      "allowed_placement": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      },
+                      "direction": "up",
+                      "layers": [
+                        {
+                          "height": 1,
+                          "provider": {
+                            "id": "minecraft:spruce_leaves",
+                            "properties": {
+                              "distance": "7",
+                              "persistent": "true",
+                              "waterlogged": "false"
+                            }
+                          }
+                        }
+                      ],
+                      "prioritize_tip": false
+                    },
+                    "placement": [
+                      {
+                        "type": "minecraft:offset",
+                        "x": 0,
+                        "y": 16,
+                        "z": 0
+                      },
+                      {
+                        "type": "minecraft:offset",
+                        "x": 0,
+                        "y": 9,
+                        "z": 0
+                      }
+                    ]
+                  }
+                ]
+              },
+              "placement": []
+            },
+            "weight": 2
+          },
+          {
+            "data": {
+              "feature": {
+                "type": "minecraft:overlay",
+                "features": [
+                  {
+                    "feature": {
+                      "type": "minecraft:block_column",
+                      "allowed_placement": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      },
+                      "direction": "up",
+                      "layers": [
+                        {
+                          "height": 28,
+                          "provider": {
+                            "id": "minecraft:mangrove_log",
+                            "properties": {
+                              "axis": "y"
+                            }
+                          }
+                        }
+                      ],
+                      "prioritize_tip": false
+                    },
+                    "placement": []
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:disk",
+                      "half_height": 0,
+                      "radius": {
+                        "type": "minecraft:uniform",
+                        "max_inclusive": 4,
+                        "min_inclusive": 3
+                      },
+                      "state_provider": {
+                        "id": "minecraft:spruce_leaves",
+                        "properties": {
+                          "distance": "7",
+                          "persistent": "true",
+                          "waterlogged": "false"
+                        }
+                      },
+                      "target": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      }
+                    },
+                    "placement": [
+                      {
+                        "type": "minecraft:offset",
+                        "x": 0,
+                        "y": 16,
+                        "z": 0
+                      },
+                      {
+                        "type": "minecraft:offset",
+                        "x": 0,
+                        "y": 3,
+                        "z": 0
+                      }
+                    ]
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:disk",
+                      "half_height": 0,
+                      "radius": {
+                        "type": "minecraft:uniform",
+                        "max_inclusive": 3,
+                        "min_inclusive": 2
+                      },
+                      "state_provider": {
+                        "id": "minecraft:spruce_leaves",
+                        "properties": {
+                          "distance": "7",
+                          "persistent": "true",
+                          "waterlogged": "false"
+                        }
+                      },
+                      "target": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      }
+                    },
+                    "placement": [
+                      {
+                        "type": "minecraft:offset",
+                        "x": 0,
+                        "y": 16,
+                        "z": 0
+                      },
+                      {
+                        "type": "minecraft:offset",
+                        "x": 0,
+                        "y": 6,
+                        "z": 0
+                      }
+                    ]
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:disk",
+                      "half_height": 0,
+                      "radius": {
+                        "type": "minecraft:uniform",
+                        "max_inclusive": 2,
+                        "min_inclusive": 2
+                      },
+                      "state_provider": {
+                        "id": "minecraft:spruce_leaves",
+                        "properties": {
+                          "distance": "7",
+                          "persistent": "true",
+                          "waterlogged": "false"
+                        }
+                      },
+                      "target": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      }
+                    },
+                    "placement": [
+                      {
+                        "type": "minecraft:offset",
+                        "x": 0,
+                        "y": 16,
+                        "z": 0
+                      },
+                      {
+                        "type": "minecraft:offset",
+                        "x": 0,
+                        "y": 9,
+                        "z": 0
+                      }
+                    ]
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:disk",
+                      "half_height": 0,
+                      "radius": {
+                        "type": "minecraft:uniform",
+                        "max_inclusive": 1,
+                        "min_inclusive": 1
+                      },
+                      "state_provider": {
+                        "id": "minecraft:spruce_leaves",
+                        "properties": {
+                          "distance": "7",
+                          "persistent": "true",
+                          "waterlogged": "false"
+                        }
+                      },
+                      "target": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      }
+                    },
+                    "placement": [
+                      {
+                        "type": "minecraft:offset",
+                        "x": 0,
+                        "y": 16,
+                        "z": 0
+                      },
+                      {
+                        "type": "minecraft:offset",
+                        "x": 0,
+                        "y": 12,
+                        "z": 0
+                      }
+                    ]
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:block_column",
+                      "allowed_placement": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      },
+                      "direction": "up",
+                      "layers": [
+                        {
+                          "height": 1,
+                          "provider": {
+                            "id": "minecraft:spruce_leaves",
+                            "properties": {
+                              "distance": "7",
+                              "persistent": "true",
+                              "waterlogged": "false"
+                            }
+                          }
+                        }
+                      ],
+                      "prioritize_tip": false
+                    },
+                    "placement": [
+                      {
+                        "type": "minecraft:offset",
+                        "x": 0,
+                        "y": 16,
+                        "z": 0
+                      },
+                      {
+                        "type": "minecraft:offset",
+                        "x": 0,
+                        "y": 13,
+                        "z": 0
+                      }
+                    ]
+                  }
+                ]
+              },
+              "placement": []
+            },
+            "weight": 1
+          }
+        ]
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": {
+            "type": "minecraft:weighted_list",
+            "distribution": [
+              {
+                "data": 2,
+                "weight": 2
+              },
+              {
+                "data": 3,
+                "weight": 1
+              }
+            ]
+          }
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:surface_water_depth_filter",
+          "max_water_depth": 0
+        },
+        {
+          "type": "minecraft:heightmap",
+          "heightmap": "OCEAN_FLOOR"
+        },
+        {
+          "type": "minecraft:biome"
+        },
+        {
+          "type": "minecraft:block_predicate_filter",
+          "predicate": {
+            "type": "minecraft:would_survive",
+            "state": "minecraft:spruce_sapling"
+          }
+        }
+      ]
+    },
+    "ferns": {
+      "feature": {
+        "type": "minecraft:simple_block",
+        "to_place": {
+          "type": "minecraft:weighted",
+          "entries": [
+            {
+              "data": "minecraft:fern",
+              "weight": 3
+            },
+            {
+              "data": {
+                "id": "minecraft:large_fern",
+                "properties": {
+                  "half": "lower"
+                }
+              },
+              "weight": 1
+            }
+          ]
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 3
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:heightmap",
+          "heightmap": "MOTION_BLOCKING"
+        },
+        {
+          "type": "minecraft:biome"
+        },
+        {
+          "type": "minecraft:count",
+          "count": 32
+        },
+        {
+          "type": "minecraft:offset",
+          "x": {
+            "type": "minecraft:trapezoid",
+            "max": 7,
+            "min": -7,
+            "plateau": 0
+          },
+          "y": {
+            "type": "minecraft:trapezoid",
+            "max": 3,
+            "min": -3,
+            "plateau": 0
+          },
+          "z": {
+            "type": "minecraft:trapezoid",
+            "max": 7,
+            "min": -7,
+            "plateau": 0
+          }
+        },
+        {
+          "type": "minecraft:block_predicate_filter",
+          "predicate": {
+            "type": "minecraft:matching_block_tag",
+            "tag": "minecraft:air"
+          }
+        }
+      ]
+    },
+    "moss_carpets": {
+      "feature": {
+        "type": "minecraft:simple_block",
+        "to_place": {
+          "id": "minecraft:moss_carpet"
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 2
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:heightmap",
+          "heightmap": "MOTION_BLOCKING"
+        },
+        {
+          "type": "minecraft:biome"
+        },
+        {
+          "type": "minecraft:count",
+          "count": 24
+        },
+        {
+          "type": "minecraft:offset",
+          "x": {
+            "type": "minecraft:trapezoid",
+            "max": 7,
+            "min": -7,
+            "plateau": 0
+          },
+          "y": {
+            "type": "minecraft:trapezoid",
+            "max": 3,
+            "min": -3,
+            "plateau": 0
+          },
+          "z": {
+            "type": "minecraft:trapezoid",
+            "max": 7,
+            "min": -7,
+            "plateau": 0
+          }
+        },
+        {
+          "type": "minecraft:block_predicate_filter",
+          "predicate": {
+            "type": "minecraft:all_of",
+            "predicates": [
+              {
+                "type": "minecraft:matching_block_tag",
+                "tag": "minecraft:air"
+              },
+              {
+                "type": "minecraft:matching_blocks",
+                "blocks": [
+                  "minecraft:moss_block"
+                ],
+                "offset": [
+                  0,
+                  -1,
+                  0
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "podzol_patches": {
+      "feature": {
+        "type": "minecraft:disk",
+        "half_height": 1,
+        "radius": {
+          "type": "minecraft:uniform",
+          "max_inclusive": 4,
+          "min_inclusive": 2
+        },
+        "state_provider": {
+          "id": "minecraft:podzol",
+          "properties": {
+            "snowy": "false"
+          }
+        },
+        "target": {
+          "type": "minecraft:matching_blocks",
+          "blocks": [
+            "minecraft:moss_block",
+            "minecraft:dirt"
+          ]
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 2
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:heightmap",
+          "heightmap": "WORLD_SURFACE_WG"
+        },
+        {
+          "type": "minecraft:biome"
+        }
+      ]
+    }
+  }
+}

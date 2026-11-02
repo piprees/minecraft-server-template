@@ -1,0 +1,618 @@
+{
+  "$schema": "../../../../../../schema/biome.schema.json",
+  "realm": "overworld",
+  "inspiredBy": "Regions Unexplored, Joshua Desert.",
+  "differs": "Saguaros are cacti; these are trees, angular and strange: over pale sand and coarse dirt stand Joshua trees whose trunks fork two or three times into crooked arms, each tipped with a spiky crown of dark needles, among dead bushes, dry grass and cactus flowers lying on the sand, under a white-hot sky.",
+  "climate": {
+    "temperature": [
+      0.55,
+      1.0
+    ],
+    "humidity": [
+      -1.0,
+      -0.35
+    ],
+    "continentalness": [
+      -0.11,
+      1.0
+    ],
+    "weirdness": [
+      0.4,
+      1.0
+    ],
+    "depth": [
+      -2.0,
+      0.2
+    ]
+  },
+  "palette": {
+    "top": "minecraft:sand",
+    "filler": "minecraft:sand",
+    "deep": "minecraft:sandstone"
+  },
+  "biome": {
+    "attributes": {
+      "minecraft:audio/background_music": {
+        "default": {
+          "max_delay": 24000,
+          "min_delay": 12000,
+          "sound": "minecraft:music.overworld.desert"
+        }
+      },
+      "minecraft:gameplay/natural_mob_spawns": {
+        "argument": {
+          "spawn_costs": {},
+          "spawns_by_category": {
+            "ambient": [
+              {
+                "type": "minecraft:bat",
+                "count": 8,
+                "weight": 10
+              }
+            ],
+            "creature": [
+              {
+                "type": "minecraft:rabbit",
+                "count": {
+                  "type": "minecraft:uniform",
+                  "max_inclusive": 3,
+                  "min_inclusive": 2
+                },
+                "weight": 12
+              },
+              {
+                "type": "minecraft:camel",
+                "count": 1,
+                "weight": 1
+              }
+            ],
+            "monster": [
+              {
+                "type": "minecraft:spider",
+                "count": 4,
+                "weight": 100
+              },
+              {
+                "type": "minecraft:zombie",
+                "count": 4,
+                "weight": 19
+              },
+              {
+                "type": "minecraft:zombie_villager",
+                "count": 1,
+                "weight": 1
+              },
+              {
+                "type": "minecraft:skeleton",
+                "count": 4,
+                "weight": 50
+              },
+              {
+                "type": "minecraft:creeper",
+                "count": 4,
+                "weight": 100
+              },
+              {
+                "type": "minecraft:slime",
+                "count": 4,
+                "weight": 100
+              },
+              {
+                "type": "minecraft:enderman",
+                "count": {
+                  "type": "minecraft:uniform",
+                  "max_inclusive": 4,
+                  "min_inclusive": 1
+                },
+                "weight": 10
+              },
+              {
+                "type": "minecraft:witch",
+                "count": 1,
+                "weight": 5
+              },
+              {
+                "type": "minecraft:husk",
+                "count": 4,
+                "weight": 80
+              },
+              {
+                "type": "minecraft:parched",
+                "count": 4,
+                "weight": 50
+              }
+            ],
+            "underground_water_creature": [
+              {
+                "type": "minecraft:glow_squid",
+                "count": {
+                  "type": "minecraft:uniform",
+                  "max_inclusive": 6,
+                  "min_inclusive": 4
+                },
+                "weight": 10
+              }
+            ]
+          }
+        },
+        "modifier": "overlay"
+      },
+      "minecraft:audio/ambient_sounds": {
+        "additions": {
+          "sound": "minecraft:block.dry_grass.ambient",
+          "tick_chance": 0.004
+        }
+      },
+      "minecraft:gameplay/snow_golem_melts": true,
+      "minecraft:visual/fog_color": "#f6efe0",
+      "minecraft:visual/sky_color": "#dfe9f5"
+    },
+    "carvers": [
+      "minecraft:cave",
+      "minecraft:cave_extra_underground",
+      "minecraft:canyon"
+    ],
+    "downfall": 0.0,
+    "effects": {
+      "grass_color": "#bfb75a",
+      "foliage_color": "#aea74a",
+      "dry_foliage_color": "#a08a50",
+      "water_color": "#32a598"
+    },
+    "features": [
+      [],
+      [
+        "minecraft:lake_lava_underground",
+        "minecraft:lake_lava_surface"
+      ],
+      [
+        "minecraft:amethyst_geode"
+      ],
+      [
+        "minecraft:fossil_upper",
+        "minecraft:fossil_lower",
+        "minecraft:monster_room",
+        "minecraft:monster_room_deep"
+      ],
+      [
+        "minecraft:desert_well"
+      ],
+      [],
+      [
+        "minecraft:ore_dirt",
+        "minecraft:ore_gravel",
+        "minecraft:ore_granite_upper",
+        "minecraft:ore_granite_lower",
+        "minecraft:ore_diorite_upper",
+        "minecraft:ore_diorite_lower",
+        "minecraft:ore_andesite_upper",
+        "minecraft:ore_andesite_lower",
+        "minecraft:ore_tuff",
+        "minecraft:ore_coal_upper",
+        "minecraft:ore_coal_lower",
+        "minecraft:ore_iron_upper",
+        "minecraft:ore_iron_middle",
+        "minecraft:ore_iron_small",
+        "minecraft:ore_gold",
+        "minecraft:ore_gold_lower",
+        "minecraft:ore_redstone",
+        "minecraft:ore_redstone_lower",
+        "minecraft:ore_diamond",
+        "minecraft:ore_diamond_medium",
+        "minecraft:ore_diamond_large",
+        "minecraft:ore_diamond_buried",
+        "minecraft:ore_lapis",
+        "minecraft:ore_lapis_buried",
+        "minecraft:ore_copper",
+        "minecraft:underwater_magma",
+        "minecraft:disk_sand",
+        "minecraft:disk_clay",
+        "minecraft:disk_gravel",
+        "~coarse_flats"
+      ],
+      [],
+      [
+        "minecraft:spring_water",
+        "minecraft:spring_lava"
+      ],
+      [
+        "~joshua_trees",
+        "~dead_bushes",
+        "~cactus_flowers",
+        "~dry_grass"
+      ],
+      [
+        "minecraft:freeze_top_layer"
+      ]
+    ],
+    "has_precipitation": false,
+    "temperature": 2.0
+  },
+  "features": {
+    "joshua_trees": {
+      "feature": {
+        "type": "minecraft:tree",
+        "below_trunk_provider": {
+          "type": "minecraft:rule_based",
+          "rules": []
+        },
+        "decorators": [],
+        "foliage_placer": {
+          "type": "minecraft:random_spread_foliage_placer",
+          "foliage_height": 3,
+          "leaf_placement_attempts": 24,
+          "offset": 1,
+          "radius": 1
+        },
+        "foliage_provider": {
+          "id": "minecraft:spruce_leaves",
+          "properties": {
+            "distance": "7",
+            "persistent": "false",
+            "waterlogged": "false"
+          }
+        },
+        "ignore_vines": true,
+        "minimum_size": {
+          "type": "minecraft:two_layers_feature_size",
+          "upper_size": 2
+        },
+        "trunk_placer": {
+          "type": "minecraft:cherry_trunk_placer",
+          "base_height": 5,
+          "branch_count": {
+            "type": "minecraft:weighted_list",
+            "distribution": [
+              {
+                "data": 2,
+                "weight": 1
+              },
+              {
+                "data": 3,
+                "weight": 1
+              }
+            ]
+          },
+          "branch_end_offset_from_top": {
+            "type": "minecraft:uniform",
+            "max_inclusive": 1,
+            "min_inclusive": 0
+          },
+          "branch_horizontal_length": {
+            "type": "minecraft:uniform",
+            "max_inclusive": 3,
+            "min_inclusive": 2
+          },
+          "branch_start_offset_from_top": {
+            "max_inclusive": -2,
+            "min_inclusive": -3
+          },
+          "height_rand_a": 2,
+          "height_rand_b": 0
+        },
+        "trunk_provider": {
+          "id": "minecraft:jungle_log",
+          "properties": {
+            "axis": "y"
+          }
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": {
+            "type": "minecraft:weighted_list",
+            "distribution": [
+              {
+                "data": 1,
+                "weight": 3
+              },
+              {
+                "data": 2,
+                "weight": 1
+              }
+            ]
+          }
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:surface_water_depth_filter",
+          "max_water_depth": 0
+        },
+        {
+          "type": "minecraft:heightmap",
+          "heightmap": "OCEAN_FLOOR"
+        },
+        {
+          "type": "minecraft:biome"
+        },
+        {
+          "type": "minecraft:block_predicate_filter",
+          "predicate": {
+            "type": "minecraft:all_of",
+            "predicates": [
+              {
+                "type": "minecraft:matching_block_tag",
+                "tag": "minecraft:air"
+              },
+              {
+                "type": "minecraft:matching_blocks",
+                "blocks": [
+                  "minecraft:sand",
+                  "minecraft:coarse_dirt",
+                  "minecraft:sandstone"
+                ],
+                "offset": [
+                  0,
+                  -1,
+                  0
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "dead_bushes": {
+      "feature": {
+        "type": "minecraft:simple_block",
+        "to_place": {
+          "id": "minecraft:dead_bush"
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 2
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:heightmap",
+          "heightmap": "MOTION_BLOCKING"
+        },
+        {
+          "type": "minecraft:biome"
+        },
+        {
+          "type": "minecraft:count",
+          "count": 6
+        },
+        {
+          "type": "minecraft:offset",
+          "x": {
+            "type": "minecraft:trapezoid",
+            "max": 7,
+            "min": -7,
+            "plateau": 0
+          },
+          "y": {
+            "type": "minecraft:trapezoid",
+            "max": 3,
+            "min": -3,
+            "plateau": 0
+          },
+          "z": {
+            "type": "minecraft:trapezoid",
+            "max": 7,
+            "min": -7,
+            "plateau": 0
+          }
+        },
+        {
+          "type": "minecraft:block_predicate_filter",
+          "predicate": {
+            "type": "minecraft:all_of",
+            "predicates": [
+              {
+                "type": "minecraft:matching_block_tag",
+                "tag": "minecraft:air"
+              },
+              {
+                "type": "minecraft:matching_blocks",
+                "blocks": [
+                  "minecraft:sand",
+                  "minecraft:coarse_dirt",
+                  "minecraft:sandstone"
+                ],
+                "offset": [
+                  0,
+                  -1,
+                  0
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "cactus_flowers": {
+      "feature": {
+        "type": "minecraft:simple_block",
+        "to_place": {
+          "id": "minecraft:cactus_flower"
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 2
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:heightmap",
+          "heightmap": "MOTION_BLOCKING"
+        },
+        {
+          "type": "minecraft:biome"
+        },
+        {
+          "type": "minecraft:count",
+          "count": 10
+        },
+        {
+          "type": "minecraft:offset",
+          "x": {
+            "type": "minecraft:trapezoid",
+            "max": 4,
+            "min": -4,
+            "plateau": 0
+          },
+          "y": {
+            "type": "minecraft:trapezoid",
+            "max": 2,
+            "min": -2,
+            "plateau": 0
+          },
+          "z": {
+            "type": "minecraft:trapezoid",
+            "max": 4,
+            "min": -4,
+            "plateau": 0
+          }
+        },
+        {
+          "type": "minecraft:block_predicate_filter",
+          "predicate": {
+            "type": "minecraft:all_of",
+            "predicates": [
+              {
+                "type": "minecraft:matching_block_tag",
+                "tag": "minecraft:air"
+              },
+              {
+                "type": "minecraft:would_survive",
+                "state": "minecraft:cactus_flower"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "dry_grass": {
+      "feature": {
+        "type": "minecraft:simple_block",
+        "to_place": {
+          "type": "minecraft:weighted",
+          "entries": [
+            {
+              "data": "minecraft:short_dry_grass",
+              "weight": 3
+            },
+            {
+              "data": "minecraft:tall_dry_grass",
+              "weight": 1
+            }
+          ]
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 2
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:heightmap",
+          "heightmap": "MOTION_BLOCKING"
+        },
+        {
+          "type": "minecraft:biome"
+        },
+        {
+          "type": "minecraft:count",
+          "count": 12
+        },
+        {
+          "type": "minecraft:offset",
+          "x": {
+            "type": "minecraft:trapezoid",
+            "max": 7,
+            "min": -7,
+            "plateau": 0
+          },
+          "y": {
+            "type": "minecraft:trapezoid",
+            "max": 3,
+            "min": -3,
+            "plateau": 0
+          },
+          "z": {
+            "type": "minecraft:trapezoid",
+            "max": 7,
+            "min": -7,
+            "plateau": 0
+          }
+        },
+        {
+          "type": "minecraft:block_predicate_filter",
+          "predicate": {
+            "type": "minecraft:all_of",
+            "predicates": [
+              {
+                "type": "minecraft:matching_block_tag",
+                "tag": "minecraft:air"
+              },
+              {
+                "type": "minecraft:matching_blocks",
+                "blocks": [
+                  "minecraft:sand",
+                  "minecraft:coarse_dirt",
+                  "minecraft:sandstone"
+                ],
+                "offset": [
+                  0,
+                  -1,
+                  0
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "coarse_flats": {
+      "feature": {
+        "type": "minecraft:disk",
+        "half_height": 1,
+        "radius": {
+          "type": "minecraft:uniform",
+          "max_inclusive": 5,
+          "min_inclusive": 2
+        },
+        "state_provider": {
+          "id": "minecraft:coarse_dirt"
+        },
+        "target": {
+          "type": "minecraft:matching_blocks",
+          "blocks": [
+            "minecraft:sand"
+          ]
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 2
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:heightmap",
+          "heightmap": "WORLD_SURFACE_WG"
+        },
+        {
+          "type": "minecraft:biome"
+        }
+      ]
+    }
+  }
+}
