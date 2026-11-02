@@ -1596,6 +1596,13 @@ A seed's map and its banked facts appear to contradict each other — the thumbn
   the same trap. Pin it against the Java, not against intuition —
   `scripts/e2e/portal-matrix-selftest.sh` is the worked example.
 
+<a id="t164"></a>
+### T164 — Raising a noise dimension's floor re-rolls its caves and decorations
+
+- **Symptom:** after `dimensionType.minY` goes up (−64 to 0 to fit Bedrock), the biome and height renders are unchanged but a third or more of surface columns differ by a few blocks, and caves sit elsewhere.
+- **Cause:** the generator measures from the higher of the noise floor and the dimension floor. Carver heights (`above_bottom`), the bedrock floor and decorations that scan layers or use `above_bottom` heights move with it; density functions use absolute y, so the terrain shape stays.
+- **Fix:** none needed. Compare blocks, not renders, and expect the change in any world already generated.
+
 <a id="t163"></a>
 ### T163 — The biome self-test cannot count a block a vanilla feature also places
 
@@ -1832,7 +1839,7 @@ A seed's map and its banked facts appear to contradict each other — the thumbn
 
 - **Symptom:** Bedrock players see nothing below y 0 (or above y 256) in a dimension that Java players see in full.
 - **Cause:** Geyser maps a Java dimension to a Bedrock one by the dimension type's `skybox`: `none` to the Nether (y 0–128), `end` to the End (y 0–256), anything else to the Overworld (y −64–320). A definition whose `atmosphere.effects` borrows the Nether's or End's sky takes that range.
-- **Fix:** the compile report flags every definition outside its Bedrock range (`BedrockHeights`, a warning). Seven are flagged: the_icebound_rift, the_red_monument, the_starwell, the_tiled_expanse (End range), the_basalt_spires, the_slatemouth, the_twisted_groves (Nether range). Re-authoring them is W8; P5 checks the result on a Bedrock client.
+- **Fix:** keep every definition inside the Bedrock range its sky selects: the compile report flags one outside it (`BedrockHeights`, a warning). A definition with the End's sky runs y 0–256, one with the Nether's sky starts at y 0 (`dimensionType.minY`, `height`, `logicalHeight`). P5 checks the result on a Bedrock client.
 
 <a id="t129"></a>
 ### T129 — On 26.3 the caves preset stops its terrain at y 127
