@@ -1607,7 +1607,7 @@ A seed's map and its banked facts appear to contradict each other — the thumbn
 ### T162 — A configured feature's value ranges are checked only when the pack loads
 
 - **Symptom:** the compiler and the build pass, then the server refuses to start while loading the datapack.
-- **Cause:** 26.3 validates the ranges inside a configured or placed feature only at pack load. Seen: an `offset` placement modifier reaches at most ±16 blocks per axis; the cherry trunk placer's `branch_horizontal_length` is at least 2; an environment scan takes at most 32 steps.
+- **Cause:** 26.3 validates the ranges inside a configured or placed feature only at pack load. Seen: an `offset` placement modifier reaches at most ±16 blocks per axis; the cherry trunk placer's `branch_horizontal_length` is at least 2; an `environment_scan` takes at most 32 `max_steps`; a `disk` `radius` is at most 8.
 - **Fix:** stack `offset` modifiers for a larger reach, keep values inside the codec's range, and validate a new feature by booting the pack, not just compiling it.
 
 <a id="t161"></a>
