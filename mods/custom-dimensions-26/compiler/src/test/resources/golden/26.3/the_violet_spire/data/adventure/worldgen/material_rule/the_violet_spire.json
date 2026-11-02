@@ -1,0 +1,30 @@
+{
+  "sequence": [
+    "minecraft:overworld/copper_ore_vein",
+    "minecraft:overworld/iron_ore_vein",
+    {
+      "if_true": {
+        "biome_is": [
+          "adventure:ice_starfield"
+        ],
+        "type": "minecraft:biome"
+      },
+      "then_run": {
+        "if_true": "minecraft:on_floor",
+        "then_run": {
+          "if_true": "minecraft:not_underwater",
+          "then_run": {
+            "result_state": "minecraft:snow_block",
+            "type": "minecraft:block"
+          },
+          "type": "minecraft:condition"
+        },
+        "type": "minecraft:condition"
+      },
+      "type": "minecraft:condition"
+    },
+    "minecraft:overworld/surface",
+    "minecraft:overworld/underground"
+  ],
+  "type": "minecraft:sequence"
+}
