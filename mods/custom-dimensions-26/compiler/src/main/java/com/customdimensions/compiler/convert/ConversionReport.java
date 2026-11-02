@@ -61,7 +61,7 @@ public final class ConversionReport {
         md.append("hand-edited set in `definitions/` started from it (RB-35). The mapping is `docs/design/rebuild-26/schema-v2.md`.\n\n");
         md.append("An id is flagged when no mod owning its namespace is kept (`mod-register.csv`, `namespaces.csv`);\n");
         md.append("`minecraft` and `adventure` never are. \"Where\" is the path in the v1 file, and \"(key)\" marks an\n");
-        md.append("id used as an object key. Flagged ids are carried unchanged; W8 replaces them.\n\n");
+        md.append("id used as an object key. Flagged ids are carried unchanged; `definitions/id-mapping.csv` replaces them.\n\n");
 
         md.append("## Totals\n\n");
         md.append("- Files: ").append(definitions.size()).append(" definitions and settings.json\n");

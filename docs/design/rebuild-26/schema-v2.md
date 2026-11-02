@@ -51,7 +51,7 @@ switch (RB-35). At the switch the v2 set moves to
 | `description`, `seed`, `spawn`, `borders`, `difficulty` | same | Unchanged. |
 | `type` | `generator` | See the type table below. |
 | `noiseSettings` | `terrain.base` | `adventure:wide` and `adventure:compressed` are built from Terralith and Tectonic data, so they convert to `null` and are reported for W8. `adventure:void` converts to `generator.type: "void"`. `terrain` holds `base` (a library terrain, or null for the preset's own), `setting` (`gentle`, `default` or `extreme`), `params` (that terrain's parameters, each with a range) and `scale` and `heightMultiplier`; the library and its parameters are in [worldgen.md](worldgen.md#terrain-library). |
-| `biomes` | `biomes` | Object entries' `parameters` become `climate`. Ids from cut mods are kept and reported; W8 replaces them. |
+| `biomes` | `biomes` | Object entries' `parameters` become `climate`. Ids from cut mods are kept and reported; `definitions/id-mapping.csv` replaces them (§ Applying the id mapping). |
 | `checkerboardScale` | `generator.cellScale` | `checkerboard` only. |
 | `layers`, `flatBiome` | `generator.layers`, `generator.biome` | `flat` only. |
 | `settingsOverrides.seaLevel`, `.defaultFluid` | `liquids.seaLevel`, `liquids.defaultFluid` | `liquids.lavaLevel` and `liquids.aquifers` have no v1 source; see [Materials, liquids and ores](#materials-liquids-and-ores). |

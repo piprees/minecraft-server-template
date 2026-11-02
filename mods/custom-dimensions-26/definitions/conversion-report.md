@@ -6,7 +6,7 @@ hand-edited set in `definitions/` started from it (RB-35). The mapping is `docs/
 
 An id is flagged when no mod owning its namespace is kept (`mod-register.csv`, `namespaces.csv`);
 `minecraft` and `adventure` never are. "Where" is the path in the v1 file, and "(key)" marks an
-id used as an object key. Flagged ids are carried unchanged; W8 replaces them.
+id used as an object key. Flagged ids are carried unchanged; `definitions/id-mapping.csv` replaces them.
 
 ## Totals
 
