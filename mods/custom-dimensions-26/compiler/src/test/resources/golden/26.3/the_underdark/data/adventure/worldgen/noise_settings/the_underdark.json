@@ -1,6 +1,7 @@
 {
   "base": "minecraft:caves",
   "changed": {
+    "material_rule": "adventure:the_underdark",
     "noise_router": "sha1:fefa0d975b441898f59275a791527d8df95f5664"
   }
 }

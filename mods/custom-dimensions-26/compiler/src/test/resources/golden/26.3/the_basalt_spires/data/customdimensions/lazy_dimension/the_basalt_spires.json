@@ -10,12 +10,32 @@
           "parameters": "sha1:5507dde7a37de44824a0ecad95510ee68caae2f8"
         },
         {
+          "biome": "adventure:magma_land",
+          "parameters": "sha1:d989a6d612ee8e52552070d9e9a3e3bd67838ecf"
+        },
+        {
+          "biome": "adventure:ash_barrens",
+          "parameters": "sha1:b70670df95e41eb2a8a4a087a98d7edba9f5473e"
+        },
+        {
           "biome": "minecraft:nether_wastes",
           "parameters": "sha1:5a54e094cf79e57ca91bc6c596a6569ef35e8169"
         },
         {
           "biome": "minecraft:soul_sand_valley",
           "parameters": "sha1:1f26eb0e6913707a3ec04e1476654d57ab2cad75"
+        },
+        {
+          "biome": "adventure:quartz_flats",
+          "parameters": "sha1:87cbff30f61aaeb8aa43333acc3f117e08697cbb"
+        },
+        {
+          "biome": "adventure:blackstone_basin",
+          "parameters": "sha1:c8c68a1385b710e5e7eb3917997110d2495e1bee"
+        },
+        {
+          "biome": "adventure:ash_barrens",
+          "parameters": "sha1:2199ae7c0ce7f430a8a1fc0f36bd6aec984e1fb9"
         }
       ]
     },

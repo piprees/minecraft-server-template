@@ -1,6 +1,7 @@
 {
   "base": "minecraft:overworld",
   "changed": {
+    "material_rule": "adventure:the_wuthering_wisteria",
     "sea_level": 66
   }
 }

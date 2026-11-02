@@ -12,6 +12,22 @@
         {
           "biomes": [
             {
+              "biome": "adventure:ice_starfield",
+              "parameters": {
+                "temperature": [-1.0, -0.4],
+                "humidity": [-0.3, 0.3],
+                "continentalness": [-2.0, 2.0],
+                "erosion": [-2.0, 2.0],
+                "weirdness": [-2.0, 2.0],
+                "depth": [-2.0, 2.0],
+                "offset": 0.0
+              }
+            }
+          ]
+        },
+        {
+          "biomes": [
+            {
               "biome": "minecraft:sparse_jungle",
               "parameters": {
                 "continentalness": [0.03, 1.0],

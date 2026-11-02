@@ -32,6 +32,18 @@
             }
           },
           {
+            "biome": "minecraft:pale_garden",
+            "parameters": {
+              "temperature": [-0.2329, -0.1599],
+              "humidity": [-2.0, 2.0],
+              "continentalness": [-2.0, 2.0],
+              "erosion": [-2.0, 2.0],
+              "weirdness": [-2.0, 2.0],
+              "depth": [-2.0, 2.0],
+              "offset": 0.0
+            }
+          },
+          {
             "biome": "minecraft:dark_forest",
             "parameters": {
               "temperature": [-0.1599, -0.0878],
@@ -47,6 +59,18 @@
             "biome": "minecraft:lush_caves",
             "parameters": {
               "temperature": [-0.0878, 0.0034],
+              "humidity": [-2.0, 2.0],
+              "continentalness": [-2.0, 2.0],
+              "erosion": [-2.0, 2.0],
+              "weirdness": [-2.0, 2.0],
+              "depth": [-2.0, 2.0],
+              "offset": 0.0
+            }
+          },
+          {
+            "biome": "adventure:withered_forest",
+            "parameters": {
+              "temperature": [0.0034, 0.0481],
               "humidity": [-2.0, 2.0],
               "continentalness": [-2.0, 2.0],
               "erosion": [-2.0, 2.0],
@@ -104,9 +128,45 @@
             }
           },
           {
+            "biome": "adventure:fungal_fen",
+            "parameters": {
+              "temperature": [0.2099, 0.2605],
+              "humidity": [-2.0, 2.0],
+              "continentalness": [-2.0, 2.0],
+              "erosion": [-2.0, 2.0],
+              "weirdness": [-2.0, 2.0],
+              "depth": [-2.0, 2.0],
+              "offset": 0.0
+            }
+          },
+          {
             "biome": "minecraft:crimson_forest",
             "parameters": {
               "temperature": [0.2605, 0.3345],
+              "humidity": [-2.0, 2.0],
+              "continentalness": [-2.0, 2.0],
+              "erosion": [-2.0, 2.0],
+              "weirdness": [-2.0, 2.0],
+              "depth": [-2.0, 2.0],
+              "offset": 0.0
+            }
+          },
+          {
+            "biome": "minecraft:lush_caves",
+            "parameters": {
+              "temperature": [0.3345, 0.4379],
+              "humidity": [-2.0, 2.0],
+              "continentalness": [-2.0, 2.0],
+              "erosion": [-2.0, 2.0],
+              "weirdness": [-2.0, 2.0],
+              "depth": [-2.0, 2.0],
+              "offset": 0.0
+            }
+          },
+          {
+            "biome": "minecraft:dripstone_caves",
+            "parameters": {
+              "temperature": [0.4379, 2.0],
               "humidity": [-2.0, 2.0],
               "continentalness": [-2.0, 2.0],
               "erosion": [-2.0, 2.0],

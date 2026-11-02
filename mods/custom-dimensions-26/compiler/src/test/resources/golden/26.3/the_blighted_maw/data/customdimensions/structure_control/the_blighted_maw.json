@@ -44,14 +44,14 @@
   "spacing": {},
   "force": [
     {
-      "structure": "incendium:nether_reactor",
+      "structure": "mns:crimson_forge",
       "x": -380,
       "z": 290,
       "radius": 0,
       "exclusive": false
     },
     {
-      "structure": "philipsruins:sculk_dungeon",
+      "structure": "ati_structures:warden_monument",
       "x": -364,
       "z": 274,
       "radius": 0,
@@ -62,6 +62,6 @@
   "shuns": [],
   "replace": {},
   "terrainAdaptation": {
-    "incendium:nether_reactor": "beard_box"
+    "mns:crimson_forge": "beard_box"
   }
 }

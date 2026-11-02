@@ -67,7 +67,7 @@
   "shuns": [],
   "replace": {},
   "terrainAdaptation": {
-    "structory_towers:warped_greatsword": "beard_box",
+    "mns:sword": "beard_box",
     "minecraft:bastion_remnant": "beard_box"
   }
 }

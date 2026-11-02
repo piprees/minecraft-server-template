@@ -1,12 +1,56 @@
 {
-  "input": "adventure:zones/the_tiled_expanse/0/mask",
+  "input": "adventure:zones/the_tiled_expanse/4/mask",
   "max_exclusive": 2.0,
   "min_inclusive": 0.5,
   "type": "minecraft:range_choice",
   "when_in_range": {
     "left": "minecraft:overworld/temperature",
-    "right": 16.0,
+    "right": 80.0,
     "type": "minecraft:add"
   },
-  "when_out_of_range": "minecraft:overworld/temperature"
+  "when_out_of_range": {
+    "input": "adventure:zones/the_tiled_expanse/3/mask",
+    "max_exclusive": 2.0,
+    "min_inclusive": 0.5,
+    "type": "minecraft:range_choice",
+    "when_in_range": {
+      "left": "minecraft:overworld/temperature",
+      "right": 64.0,
+      "type": "minecraft:add"
+    },
+    "when_out_of_range": {
+      "input": "adventure:zones/the_tiled_expanse/2/mask",
+      "max_exclusive": 2.0,
+      "min_inclusive": 0.5,
+      "type": "minecraft:range_choice",
+      "when_in_range": {
+        "left": "minecraft:overworld/temperature",
+        "right": 48.0,
+        "type": "minecraft:add"
+      },
+      "when_out_of_range": {
+        "input": "adventure:zones/the_tiled_expanse/1/mask",
+        "max_exclusive": 2.0,
+        "min_inclusive": 0.5,
+        "type": "minecraft:range_choice",
+        "when_in_range": {
+          "left": "minecraft:overworld/temperature",
+          "right": 32.0,
+          "type": "minecraft:add"
+        },
+        "when_out_of_range": {
+          "input": "adventure:zones/the_tiled_expanse/0/mask",
+          "max_exclusive": 2.0,
+          "min_inclusive": 0.5,
+          "type": "minecraft:range_choice",
+          "when_in_range": {
+            "left": "minecraft:overworld/temperature",
+            "right": 16.0,
+            "type": "minecraft:add"
+          },
+          "when_out_of_range": "minecraft:overworld/temperature"
+        }
+      }
+    }
+  }
 }

@@ -6,6 +6,22 @@
       "type": "minecraft:multi_noise",
       "biomes": [
         {
+          "biome": "adventure:mycotoxic_undergrowth",
+          "parameters": "sha1:0ec9ed69cf9ba152f93ab93e08b5f73ca1ecfafd"
+        },
+        {
+          "biome": "adventure:withered_forest",
+          "parameters": "sha1:050454ee0b631ac73e40abac83fd4e379368ddf0"
+        },
+        {
+          "biome": "adventure:withered_forest",
+          "parameters": "sha1:6e20b5a5d51762371cb15b12f87457c2cb46b574"
+        },
+        {
+          "biome": "adventure:ash_barrens",
+          "parameters": "sha1:af4b59c77647fa4f65c010c4ef25314f7c444040"
+        },
+        {
           "biome": "minecraft:nether_wastes",
           "parameters": "sha1:42d0c5c070a37a4b8c9214d3054fa246a46a6fa9"
         },

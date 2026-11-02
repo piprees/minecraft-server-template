@@ -6,16 +6,40 @@
       "type": "minecraft:multi_noise",
       "biomes": [
         {
+          "biome": "adventure:wisteria_grove",
+          "parameters": "sha1:c66d447c5e91547e1853cc3ce884d7a425009cb5"
+        },
+        {
+          "biome": "minecraft:old_growth_birch_forest",
+          "parameters": "sha1:c45360b9c85e41632b65262711a4eb2bedc32e94"
+        },
+        {
+          "biome": "minecraft:cherry_grove",
+          "parameters": "sha1:2b73ed765bb45ce2c0ce9b030035dd6fad973868"
+        },
+        {
           "biome": "minecraft:cherry_grove",
           "parameters": "sha1:382cdc698e56e4b4494b2f68699fa238fd4afdb3"
+        },
+        {
+          "biome": "minecraft:cherry_grove",
+          "parameters": "sha1:605381ae11087ac7ee44d0ba300142a147a5f713"
         },
         {
           "biome": "minecraft:meadow",
           "parameters": "sha1:a201ff6da9d74517997a3ef28914f9e9123978f8"
         },
         {
+          "biome": "adventure:wisteria_grove",
+          "parameters": "sha1:9a2e70e56f4be3051a923aa5a072fb54ff023f00"
+        },
+        {
           "biome": "minecraft:lush_caves",
           "parameters": "sha1:eef93637afa53bf33f8022a0b51a433be0a33f03"
+        },
+        {
+          "biome": "adventure:magmatic_caves",
+          "parameters": "sha1:7cdb1286d143d753946d41fa07891863809cbc8b"
         }
       ]
     },

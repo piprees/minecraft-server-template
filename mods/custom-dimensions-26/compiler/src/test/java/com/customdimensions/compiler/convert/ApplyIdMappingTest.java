@@ -21,8 +21,6 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -59,31 +57,25 @@ class ApplyIdMappingTest {
     }
 
     @Test
-    void totalsMatchTheCollapseCount() {
+    void theCommittedSetCarriesTheWholeTable() {
         int withBiomes = 0;
-        int before = 0;
-        int after = 0;
-        Set<String> flagged = new TreeSet<>();
+        int distinct = 0;
         for (IdMappingApplier.Result r : run.results()) {
+            assertFalse(r.changed(), r.file());
             if (r.biomesBefore() == 0) continue;
             withBiomes++;
-            before += r.biomesBefore();
-            after += r.biomesAfter();
-            if (r.biomesBefore() - r.biomesAfter() > r.biomesBefore() / 3.0) flagged.add(r.file());
+            distinct += r.biomesAfter();
         }
         assertEquals(75, withBiomes);
-        assertEquals(927, before);
-        assertEquals(745, after);
-        assertEquals(Set.of("the_blossom_gardens.json", "the_highland_crossing.json", "the_sun_kingdoms.json"), flagged);
-        assertTrue(readReport().contains(": 927 → 745\n"));
+        assertEquals(745, distinct);
+        assertTrue(readReport().contains(": 745 → 745\n"));
     }
 
     @Test
-    void onlyTheTwoRarityKeysAreNotAppliedAndNoRowIsMissing() {
+    void noRowIsLeftToApplyAndNoneIsMissing() {
         List<String> notApplied = new ArrayList<>();
         run.results().forEach(r -> r.notApplied().forEach(n -> notApplied.add(r.file() + " " + n.id())));
-        assertEquals(List.of("the_darkpine_depths.json explorify:dark_forest_settlements",
-                "the_darkpine_depths.json betterdungeons:zombie_dungeons"), notApplied);
+        assertEquals(List.of(), notApplied);
         List<String> missing = new ArrayList<>();
         run.results().forEach(r -> r.missing().forEach(m -> missing.add(r.file() + " " + m.id())));
         assertEquals(List.of(), missing);

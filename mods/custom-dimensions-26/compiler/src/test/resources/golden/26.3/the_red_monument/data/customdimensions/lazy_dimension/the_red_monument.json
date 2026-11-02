@@ -3,7 +3,7 @@
   "generator": {
     "type": "minecraft:flat",
     "settings": {
-      "biome": "minecraft:small_end_islands",
+      "biome": "adventure:umbral_wastes",
       "features": false,
       "lakes": false,
       "layers": [],

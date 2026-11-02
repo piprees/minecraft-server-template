@@ -3,6 +3,7 @@
   "changed": {
     "default_block": "minecraft:blackstone",
     "default_fluid": "minecraft:lava",
+    "material_rule": "adventure:the_basalt_spires",
     "sea_level": 40
   }
 }

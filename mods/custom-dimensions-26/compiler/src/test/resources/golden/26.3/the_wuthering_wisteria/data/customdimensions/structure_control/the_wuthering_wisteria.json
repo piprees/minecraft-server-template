@@ -14,14 +14,14 @@
   "spacing": {},
   "force": [
     {
-      "structure": "explorify:campsite",
+      "structure": "mvs:campsite",
       "x": 24,
       "z": 18,
       "radius": 0,
       "exclusive": true
     },
     {
-      "structure": "structory:ruin_grassy",
+      "structure": "mvs:small_ruin",
       "x": -40,
       "z": 32,
       "radius": 0,
@@ -42,7 +42,7 @@
       "exclusive": true
     },
     {
-      "structure": "paradise_lost:vault",
+      "structure": "nova_structures:trial_dungeon",
       "x": 0,
       "z": 0,
       "radius": 0,

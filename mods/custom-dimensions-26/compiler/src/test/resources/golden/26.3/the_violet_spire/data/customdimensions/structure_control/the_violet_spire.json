@@ -35,15 +35,15 @@
   "exclude": [],
   "include": [],
   "rarity": {
-    "paradise_lost:birdcage": "common",
-    "paradise_lost:aurel_tower": "common",
-    "structory_towers:rare_towers": "common",
+    "mss:small_tower": "common",
+    "mss:large_tower": "common",
+    "mes:enderwatch_tower": "common",
     "mes:mystical_archway": "common"
   },
   "spacing": {},
   "force": [
     {
-      "structure": "paradise_lost:aurel_tower",
+      "structure": "mss:large_tower",
       "x": 60,
       "z": 60,
       "radius": 0,
@@ -61,6 +61,6 @@
   "shuns": [],
   "replace": {},
   "terrainAdaptation": {
-    "paradise_lost:aurel_tower": "beard_box"
+    "mss:large_tower": "beard_box"
   }
 }

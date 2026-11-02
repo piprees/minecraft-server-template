@@ -50,7 +50,7 @@
   "spacing": {},
   "force": [
     {
-      "structure": "paradise_lost:vault",
+      "structure": "nova_structures:trial_dungeon",
       "x": 180,
       "z": -140,
       "radius": 0,
