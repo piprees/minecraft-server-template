@@ -146,6 +146,9 @@ on generated chunks.
 | `withered_forest` | nether | Capless stripped crimson and warped stems on soul soil, fallen stems, wither roses, soul fire, blue-grey fog |
 | `quartz_flats` | nether | Quartz-paved plains, quartz ore seams, glowstone-capped quartz pillars, loose quartz slabs, roof glowstone, pale fog |
 | `crimson_pinewood` | nether | Tall crimson stems under tiered, pointed wart crowns with shroomlights, roots and small fungi, crimson spores |
+| `redstone_abyss` | nether | Redstone ore and blackstone seams, redstone-block crystal clusters and spires, floor pits lit by powered redstone lamps, electric sparks, scarlet fog |
+| `mycotoxic_undergrowth` | nether | Moss floors, giant fungi with slime-block caps and verdant froglights, twisting vines, hanging green cave vines, poisonous green haze |
+| `nether_jungle` | nether | Tall stripped crimson and warped stems under wart canopies, dense weeping-vine lianas, twisting vines, nylium patches, red-green fog |
 | `chorus_forest` | end | Branching chorus close enough to be a forest, tall chorus stalks tipped with end rods, budding chorus flowers, purple fog and portal sparks |
 | `dust_wastelands` | end | Sand over sandstone heaped into dunes, half-buried end stone boulders, dead bushes and dry grass, yellow-grey dust haze |
 | `umbral_wastes` | end | Blackstone islands, obsidian spikes, crying obsidian seeps, soul fire on soul soil, drifting ash |
@@ -154,9 +157,15 @@ on generated chunks.
 | `sulphur_springs` | end | Water pools ringed with sulfur over wet potent sulfur and magma beds, sulfur crusts and spiked vents, steam |
 | `lantern_woods` | end | Pale oaks on pale moss hung with soul lanterns and pale moss, pale moss carpets, soul motes |
 | `megalake` | end | Broad shallow lakes on level ground, clay and sand beds with sea pickles, sand shores, deep blue water |
+| `umbrella_jungle` | end | Tall purpur stalks under drooping purple and magenta glass domes hung with end rods, moss on the end stone, purple motes |
+| `neon_oasis` | end | Cyan pools on level ground lit from below by sea lanterns, sea pickles, sand shores, cyan and magenta glass cacti, glow lichen |
+| `ice_starfield` | end | Snow-covered islands, packed-ice spikes, blue-ice shards, packed-ice sheets, snow drifts, white sparks and snowflakes |
+| `painted_mountains` | end | Islands banded in orange, white, pink and purple terracotta by height, stepped banded terracotta peaks, banded end-stone spires |
 | `sky_highlands` | sky | Pale grass over calcite cliffs, quartz outcrops, small round pale oaks, white and pale-blue flowers, sheep, white sky |
 | `golden_skygrove` | sky | Gold-tinted round oaks with bee nests and gold poplars on golden grass and podzol, leaf litter, golden dandelions, drifting gold leaves, gold light |
 | `windswept_isles` | sky | Bare stone with calcite cliffs, wind-bent spruces, cobblestone boulders, deep drifts of loose snow, snowflakes and wind |
+| `cloud_reef` | sky | Wool cloud islands with snow puffs and calcite cliffs, tube and brain coral heads kept alive on sealed water cells, glowing sea pickles |
+| `hanging_gardens` | sky | Undersides hung with moss, long glow-berry cave vines and hanging roots, flowery grass tops with azaleas, green-gold light |
 
 ### Generators
 
@@ -263,7 +272,7 @@ with neither is named in the line as placing no block of its own and is not
 counted. The ashen woodland's line also counts its coal blocks on or above
 the ground and its coal blocks and coal ore in the six blocks under it (both
 must be there), and each water biome's (cypress wetland, desert oasis, orchid
-marsh, muddy river, megalake, sulphur springs) its lily pads with no water under them (must be none), its
+marsh, muddy river, megalake, sulphur springs, fungal fen, neon oasis) its lily pads with no water under them (must be none), its
 pool cells open on a side to neither water nor a solid block (must be none,
 with some pool water), its dirt, grass, mud or clay cells with water on all
 four sides, and the share of pool columns whose water runs unbroken to a solid floor.
