@@ -80,7 +80,7 @@ final class SelfTest {
     private static final String DEFINITIONS = "customdimensions.definitions";
     /** An extracted vanilla folder the runtime source is compared against; {@code -Dcustomdimensions.vanilla} also counts. */
     private static final String REFERENCE = "customdimensions.vanilla.reference";
-    /** {@code exits}, {@code commands}, {@code materials}, {@code biomes}, {@code render}, {@code firewall}, {@code terrain}, {@code zones}, {@code structures}, {@code roll} or {@code rollperf} runs the compiled-pack section and that one only, for iterating on it. */
+    /** {@code exits}, {@code commands}, {@code materials}, {@code biomes}, {@code render}, {@code firewall}, {@code terrain}, {@code zones}, {@code structures}, {@code roll}, {@code rollperf}, {@code generators} or {@code difficulty} runs the compiled-pack section and that one only, for iterating on it. */
     private static final String ONLY = "customdimensions.selftest.only";
 
     private SelfTest() {}
@@ -108,7 +108,10 @@ final class SelfTest {
         boolean zonesOnly = "zones".equals(only);
         boolean structuresOnly = "structures".equals(only);
         boolean rollOnly = "roll".equals(only) || "rollperf".equals(only);
-        boolean exitsOnly = "exits".equals(only) || commandsOnly || materialsOnly || biomesOnly || renderOnly || firewallOnly || terrainOnly || zonesOnly || structuresOnly || rollOnly;
+        boolean generatorsOnly = "generators".equals(only);
+        boolean difficultyOnly = "difficulty".equals(only);
+        boolean exitsOnly = "exits".equals(only) || commandsOnly || materialsOnly || biomesOnly || renderOnly || firewallOnly || terrainOnly || zonesOnly || structuresOnly || rollOnly
+                || generatorsOnly || difficultyOnly;
         CompletableFuture<List<String>> levels;
         try {
             levels = exitsOnly ? CompletableFuture.completedFuture(List.of()) : LevelSelfTest.run(server);
@@ -120,7 +123,7 @@ final class SelfTest {
             return null;
         }).thenCompose(v -> {
             try {
-                return exitsOnly ? CompletableFuture.completedFuture(List.<String>of()) : GeneratorSelfTest.run(server);
+                return exitsOnly && !generatorsOnly ? CompletableFuture.completedFuture(List.<String>of()) : GeneratorSelfTest.run(server);
             } catch (Throwable t) {
                 return CompletableFuture.completedFuture(List.of("FAIL generators: " + t));
             }
@@ -212,7 +215,8 @@ final class SelfTest {
             return null;
         }).thenCompose(v -> {
             try {
-                return commandsOnly || materialsOnly || biomesOnly || renderOnly || firewallOnly || terrainOnly || zonesOnly || structuresOnly || rollOnly ? CompletableFuture.completedFuture(List.<String>of()) : ExitSelfTest.run(server);
+                return commandsOnly || materialsOnly || biomesOnly || renderOnly || firewallOnly || terrainOnly || zonesOnly || structuresOnly || rollOnly
+                        || generatorsOnly || difficultyOnly ? CompletableFuture.completedFuture(List.<String>of()) : ExitSelfTest.run(server);
             } catch (Throwable t) {
                 return CompletableFuture.completedFuture(List.of("FAIL exits: " + t));
             }
@@ -221,7 +225,7 @@ final class SelfTest {
             return null;
         }).thenCompose(v -> {
             try {
-                return exitsOnly ? CompletableFuture.completedFuture(List.<String>of()) : DifficultySelfTest.run(server);
+                return exitsOnly && !difficultyOnly ? CompletableFuture.completedFuture(List.<String>of()) : DifficultySelfTest.run(server);
             } catch (Throwable t) {
                 return CompletableFuture.completedFuture(List.of("FAIL difficulty: " + t));
             }
@@ -230,7 +234,7 @@ final class SelfTest {
             return null;
         }).thenCompose(v -> {
             try {
-                return exitsOnly && !commandsOnly || firewallOnly ? CompletableFuture.completedFuture(List.<String>of()) : CommandSelfTest.run(server);
+                return exitsOnly && !commandsOnly || firewallOnly || generatorsOnly || difficultyOnly ? CompletableFuture.completedFuture(List.<String>of()) : CommandSelfTest.run(server);
             } catch (Throwable t) {
                 return CompletableFuture.completedFuture(List.of("FAIL commands: " + t));
             }

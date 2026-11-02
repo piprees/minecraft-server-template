@@ -19,19 +19,24 @@ import net.fabricmc.fabric.api.entity.FakePlayer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.dedicated.DedicatedServer;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.random.Weighted;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.MobCategory;
+import net.minecraft.world.entity.SpawnPlacements;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.monster.zombie.Zombie;
+import net.minecraft.world.level.biome.MobSpawnSettings;
+import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.portal.TeleportTransition;
 import net.minecraft.world.phys.Vec3;
 
@@ -48,6 +53,12 @@ public final class DifficultySelfTest {
     static final int SETTLE_TICKS = 100;
     static final int RELOAD_CAP_TICKS = 20 * 60;
     static final String PREFERRED_PEACEFUL = "the_luminous_caverns";
+    /** Chunks out from spawn that the peaceful check searches for an area both halves can measure. */
+    static final int AREA_SEARCH_CHUNKS = 8;
+    /** Columns apart that the area search samples. */
+    static final int AREA_SEARCH_STEP = 4;
+    /** Vanilla's {@code NaturalSpawner.MIN_SPAWN_DISTANCE}: no natural spawn this close to a player. */
+    static final int MIN_SPAWN_DISTANCE = 24;
 
     private final MinecraftServer server;
     private final List<String> lines = new ArrayList<>();
@@ -196,14 +207,14 @@ public final class DifficultySelfTest {
             lines.add("FAIL difficulty: peaceful dimension: no lazy definition has hostileSpawning false");
             return CompletableFuture.completedFuture(null);
         }
-        LevelIndex.Entry entry = peaceful.stream().filter(e -> e.slug().equals(PREFERRED_PEACEFUL)).findFirst()
-                .orElse(peaceful.getFirst());
-        Difficulty d = DimensionDifficulty.of(entry.key());
-        return manager.activate(entry.slug()).thenCompose(a -> {
-            ServerLevel level = a.level();
-            com.customdimensions.core.BlockPos spawn = manager.spawn(entry.slug())
-                    .orElse(new com.customdimensions.core.BlockPos(0, 64, 0));
-            BlockPos at = new BlockPos(spawn.x(), Math.clamp(spawn.y(), level.getMinY() + 2, level.getMaxY() - 3), spawn.z());
+        List<LevelIndex.Entry> candidates = new ArrayList<>(peaceful);
+        candidates.sort(Comparator.comparing((LevelIndex.Entry e) -> !e.slug().equals(PREFERRED_PEACEFUL)));
+        return pick(manager, candidates, 0, new ArrayList<>()).thenCompose(picked -> {
+            LevelIndex.Entry entry = picked.entry();
+            Difficulty d = DimensionDifficulty.of(entry.key());
+            ServerLevel level = picked.level();
+            SpawnArea area = picked.area();
+            BlockPos at = area.centre();
             FakePlayer player = FakePlayer.get(server.overworld(),
                     new GameProfile(UUID.nameUUIDFromBytes("customdimensions:difficulty".getBytes()), "cd-difficulty"));
             DimensionDifficulty.applyLuck(player);
@@ -261,12 +272,15 @@ public final class DifficultySelfTest {
                     long kept = saved.stream().filter(m -> !m.isRemoved()).count();
                     if (kept > 0) throw new AssertionError(kept + " of " + saved.size() + " saved hostile mobs were not discarded");
                     if (counts[0] != 0) throw new AssertionError(counts[0] + " hostile mobs loaded");
-                    if (counts[1] == 0) throw new AssertionError("no passive mob spawned either; nothing was measured");
+                    if (!area.found()) throw new AssertionError(area.describe() + "; tried " + picked.tried());
+                    if (counts[1] == 0) {
+                        throw new AssertionError("no passive mob spawned either; nothing was measured; " + area.describe());
+                    }
                     if (counts[2] == 0) {
                         throw new AssertionError("the control run with the rule lifted spawned no hostile mob in "
-                                + CONTROL_CYCLES + " ticks, so the check cannot see one");
+                                + CONTROL_CYCLES + " ticks, so the check cannot see one; " + area.describe());
                     }
-                    return "0 hostile, " + counts[1] + " passive; with the rule lifted " + counts[2] + " hostile and "
+                    return area.describe() + (picked.tried().isEmpty() ? "" : " (passed over " + picked.tried() + ")") + ": 0 hostile, " + counts[1] + " passive; with the rule lifted " + counts[2] + " hostile and "
                             + counts[3] + " passive in " + CONTROL_CYCLES + " ticks (" + clearedMonsters + " cleared); "
                             + counts[4] + " saved hostile mobs loaded and discarded in the " + SETTLE_TICKS + "-tick settle, "
                             + freed[0] + " passive mobs cleared before counting";
@@ -307,7 +321,109 @@ public final class DifficultySelfTest {
         });
     }
 
+    /** The peaceful dimension the check measures in, active, with its area; {@code tried} were passed over. */
+    private record Picked(LevelIndex.Entry entry, ServerLevel level, SpawnArea area, List<String> tried) {}
+
+    /**
+     * The first of {@code candidates} from {@code i} whose spawn has a {@link #spawnArea}, left active; the
+     * others are activated, searched and deactivated in turn. With none, the last is kept active with its
+     * search result, so the check fails naming every dimension tried.
+     */
+    private CompletableFuture<Picked> pick(LevelManager manager, List<LevelIndex.Entry> candidates, int i, List<String> tried) {
+        LevelIndex.Entry entry = candidates.get(i);
+        return manager.activate(entry.slug()).thenCompose(a -> {
+            ServerLevel level = a.level();
+            com.customdimensions.core.BlockPos spawn = manager.spawn(entry.slug())
+                    .orElse(new com.customdimensions.core.BlockPos(0, 64, 0));
+            BlockPos origin = new BlockPos(spawn.x(), Math.clamp(spawn.y(), level.getMinY() + 2, level.getMaxY() - 3), spawn.z());
+            SpawnArea area = spawnArea(level, origin);
+            if (area.found() || i == candidates.size() - 1) {
+                return CompletableFuture.completedFuture(new Picked(entry, level, area, tried));
+            }
+            tried.add(entry.slug() + ": " + area.describe());
+            return manager.deactivate(entry.slug()).thenCompose(x -> pick(manager, candidates, i + 1, tried));
+        });
+    }
+
     // --- Measurements ------------------------------------------------------------------------------
+
+    /**
+     * The 3x3-chunk area the peaceful check forces and counts in, centred on
+     * {@code centre}, with the first spot found for a passive and a hostile
+     * natural spawn; {@code searched} areas were tried.
+     */
+    record SpawnArea(BlockPos centre, String passive, String hostile, int searched) {
+        boolean found() {
+            return passive != null && hostile != null;
+        }
+
+        String describe() {
+            return found() ? "area " + centre.toShortString() + " (" + searched + " searched): a passive can spawn ("
+                    + passive + ") and a hostile (" + hostile + ")"
+                    : "no 3x3-chunk area within " + AREA_SEARCH_CHUNKS + " chunks of spawn has spots for both a passive and a hostile"
+                    + " natural spawn (" + searched + " searched; closest had passive " + passive + ", hostile " + hostile + ")";
+        }
+    }
+
+    /**
+     * The first 3x3-chunk area, spiralling out from {@code origin}'s chunk, that
+     * holds a spot where the natural spawner can place a non-monster and one
+     * where it can place a monster: a position the spawner tries (below the
+     * column's top, at least {@link #MIN_SPAWN_DISTANCE} blocks from
+     * the counting player at the centre) whose spawn list names that mob and
+     * whose placement and spawn rules pass there.
+     */
+    static SpawnArea spawnArea(ServerLevel level, BlockPos origin) {
+        int cx = origin.getX() >> 4;
+        int cz = origin.getZ() >> 4;
+        SpawnArea best = new SpawnArea(origin, null, null, 0);
+        int searched = 0;
+        for (int ring = 0; ring <= AREA_SEARCH_CHUNKS; ring++) {
+            for (int dx = -ring; dx <= ring; dx++) {
+                for (int dz = -ring; dz <= ring; dz++) {
+                    if (Math.max(Math.abs(dx), Math.abs(dz)) != ring) continue;
+                    searched++;
+                    BlockPos centre = new BlockPos(((cx + dx) << 4) + 8, origin.getY(), ((cz + dz) << 4) + 8);
+                    String passive = spot(level, centre, false);
+                    String hostile = spot(level, centre, true);
+                    SpawnArea area = new SpawnArea(centre, passive, hostile, searched);
+                    if (area.found()) return area;
+                    if (best.passive() == null && best.hostile() == null && (passive != null || hostile != null)) best = area;
+                }
+            }
+        }
+        return new SpawnArea(best.centre(), best.passive(), best.hostile(), searched);
+    }
+
+    /** A spot in the 3x3 chunks around {@code centre} where a monster (or a non-monster) can spawn naturally, described; else null. */
+    private static String spot(ServerLevel level, BlockPos centre, boolean monster) {
+        double minDistance = MIN_SPAWN_DISTANCE * MIN_SPAWN_DISTANCE;
+        for (int dx = -16; dx < 32; dx += AREA_SEARCH_STEP) {
+            for (int dz = -16; dz < 32; dz += AREA_SEARCH_STEP) {
+                int x = ((centre.getX() >> 4) << 4) + dx;
+                int z = ((centre.getZ() >> 4) << 4) + dz;
+                level.getChunk(x >> 4, z >> 4);
+                int top = level.getHeight(Heightmap.Types.WORLD_SURFACE, x, z) + 1;
+                for (int y = level.getMinY(); y <= top; y++) {
+                    BlockPos pos = new BlockPos(x, y, z);
+                    if (pos.distToCenterSqr(centre.getX() + 0.5, centre.getY(), centre.getZ() + 0.5) < minDistance) continue;
+                    for (MobCategory category : MobCategory.values()) {
+                        if (category == MobCategory.MISC || (category == MobCategory.MONSTER) != monster) continue;
+                        for (Weighted<MobSpawnSettings.SpawnerData> weighted : level.getChunkSource().getGenerator()
+                                .getMobsAt(level, level.structureManager(), category, pos).unwrap()) {
+                            MobSpawnSettings.SpawnerData data = weighted.value();
+                            if (SpawnPlacements.isSpawnPositionOk(data.type(), level, pos)
+                                    && SpawnPlacements.checkSpawnRules(data.type(), level, EntitySpawnReason.NATURAL, pos, level.getRandom())) {
+                                return BuiltInRegistries.ENTITY_TYPE.getKey(data.type()) + " at " + pos.toShortString() + " in "
+                                        + level.getBiome(pos).unwrapKey().map(k -> k.identifier().toString()).orElse("?");
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return null;
+    }
 
     private static String attributes(Mob mob, Difficulty d, double factor) {
         List<String> out = new ArrayList<>();
