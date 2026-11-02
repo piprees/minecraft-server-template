@@ -48,7 +48,7 @@ public final class StructuresCompiler {
             return new Catalogue(Set.copyOf(structures), Set.copyOf(sets), Set.copyOf(tags));
         }
 
-        boolean knowsStructure(String id) {
+        public boolean knowsStructure(String id) {
             return id.startsWith("#") ? tags.contains(id) || !id.startsWith("#minecraft:") : structures.contains(id);
         }
 

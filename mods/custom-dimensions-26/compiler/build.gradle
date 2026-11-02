@@ -59,6 +59,27 @@ tasks.register('convertDefinitions', JavaExec) {
 			'--out', layout.buildDirectory.dir('converted-definitions').get().asFile.path
 }
 
+// Applies definitions/id-mapping.csv (RB-36): the rewritten set, its compile report and report.md go to
+// build/id-mapping/; -PwriteDefinitions=true also writes the changed files over definitions/.
+tasks.register('applyIdMapping', JavaExec) {
+	group = 'custom-dimensions'
+	description = 'Applies definitions/id-mapping.csv to definitions/ into build/id-mapping/ (-PwriteDefinitions=true writes in place).'
+	dependsOn 'vanillaData'
+	classpath = sourceSets.main.runtimeClasspath
+	mainClass = 'com.customdimensions.compiler.convert.ApplyIdMapping'
+	def repoRoot = file('../../..').canonicalFile
+	def design = new File(repoRoot, 'docs/design/rebuild-26')
+	def definitions = file('../definitions').canonicalFile
+	args '--definitions', definitions.path,
+			'--mapping', new File(definitions, 'id-mapping.csv').path,
+			'--register', new File(design, 'mod-register.csv').path,
+			'--namespaces', new File(design, 'namespaces.csv').path,
+			'--vanilla', layout.buildDirectory.dir("vanilla/${project.minecraft_version}").get().asFile.path,
+			'--bridges', file('../bridges').canonicalPath,
+			'--out', layout.buildDirectory.dir('id-mapping').get().asFile.path,
+			'--write', (project.findProperty('writeDefinitions') ?: 'false').toString()
+}
+
 // Mojang's data files are inputs, never committed: this fetches the server jar
 // for minecraft_version, checks its sha1, extracts data/minecraft/** and runs
 // the report generator (biome parameter lists, registries) beside it.

@@ -87,7 +87,8 @@ public final class MultiNoise {
         for (JsonElement e : entries) {
             out.add(e.getAsJsonObject());
         }
-        int limit = 64 + 16 * out.size();
+        // A guard against a carve that never ends: each later box may be cut by every earlier one, and its pieces again.
+        int limit = 64 + 16 * out.size() * out.size();
         for (int guard = 0; guard < limit; guard++) {
             JsonArray current = new JsonArray();
             out.forEach(current::add);

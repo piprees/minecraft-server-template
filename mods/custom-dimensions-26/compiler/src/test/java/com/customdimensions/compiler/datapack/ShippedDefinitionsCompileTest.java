@@ -81,7 +81,8 @@ class ShippedDefinitionsCompileTest {
                     }
                 }
                 for (String biome : biomes(generator)) {
-                    assertTrue(Fixtures.vanilla().biomeIds().contains(biome), path + " names " + biome);
+                    assertTrue(Fixtures.vanilla().biomeIds().contains(biome)
+                            || files.containsKey(DatapackCompiler.dataPath(biome, "worldgen/biome")), path + " names " + biome);
                 }
             }
             if (path.contains("/dimension_type/")) {

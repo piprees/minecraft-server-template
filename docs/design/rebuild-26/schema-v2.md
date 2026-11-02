@@ -188,6 +188,28 @@ the v1 files.
 - A zone converted from a biome patch is `{shape (default "circle"), centre: [x, z], radius, blend, biomes: [id]}`; every zone field is in [worldgen.md § Zones](worldgen.md#zones).
 - Output is deterministic: two-space indent, number and boolean arrays on one line, numbers keep their source text, stale files are deleted.
 
+## Applying the id mapping
+
+`definitions/id-mapping.csv` maps each id from a cut or rebuilt mod to its
+26.3 replacement (RB-36): `id`, `kind` (`biome`, `structure`, `portal`,
+`type`), `namespace`, `decision`, `files`, `uses`, `replacement`, `reason`,
+`changed`. `./gradlew :compiler:applyIdMapping` rewrites every file in
+`definitions/` into `compiler/build/id-mapping/definitions/`, compiles that
+set as `compileDatapack` compiles `definitions/`, and writes
+`compile-report.md` and `report.md` beside it: per file the ids replaced,
+removed and not applied, the distinct biome count before and after, and the
+definitions losing over a third of theirs. `-PwriteDefinitions=true` then
+writes the changed files over `definitions/`; it refuses while a row is
+missing or the rewritten set does not compile.
+
+- Every string value and object key that is a mapped id is replaced, wherever it sits: `biomes`, zone `biomes` and swaps, `roll.spawnFilter`, `materials.biomes`, `structures` (`force`, keys of `rarity` and `terrainAdaptation`, …), `portals` frame blocks and igniter items, `generator.of`.
+- A short name in `wants` or `shuns` (`structures` and `roll`) is read through the structure alias table; a name that resolves to a mapped id becomes the row's target id.
+- A replacement applies only where the compiler knows its target: a vanilla or library biome, a vanilla or bridged structure, a structure set for set fields (`list`, `exclude`, `include`, keys of `rarity` and `spacing`), a vanilla block or item for portals, a definition for `generator.of`. Otherwise the id stays and is listed under "Not applied".
+- An empty replacement removes the list entry holding the id (the whole `{id, climate}` or `force` entry), or the object key; in any other field it is not applied.
+- Collapse: a list entry that a replacement leaves equal to an earlier one is dropped and the first kept, so a biome listed twice with different `climate` keeps both points. A checkerboard's or void world's `biomes` and `roll.spawnFilter` are sets of ids, so there a repeated id is dropped whatever its climate, as the compiler drops it. An object key that lands on one already present is dropped, the first kept.
+- An id in a namespace no kept mod owns, with no row, is listed under "Missing rows": the table must be complete.
+- Output is in the converter's form, so a diff shows only the ids; a second run changes nothing.
+
 ## Clones
 
 A clone takes the generator, biome list and terrain of the definition its

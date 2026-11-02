@@ -110,6 +110,11 @@ public final class DatapackCompiler {
 
     /** Compiles every definition in {@code definitionsDir} (with its {@code settings.json}). */
     public static Output compile(Path definitionsDir, VanillaData vanilla, VersionTable.Version version) {
+        return compile(definitionsDir, StructuresCompiler.bridgesBeside(definitionsDir), vanilla, version);
+    }
+
+    /** As {@link #compile(Path, VanillaData, VersionTable.Version)} with the bridges read from {@code bridgesDir}. */
+    public static Output compile(Path definitionsDir, Path bridgesDir, VanillaData vanilla, VersionTable.Version version) {
         DefinitionSettings settings = DefinitionReader.readSettings(definitionsDir.resolve("settings.json"));
         String namespace = settings.namespace() != null ? settings.namespace() : "adventure";
         Map<String, Definition> definitions = new TreeMap<>();
@@ -118,7 +123,7 @@ public final class DatapackCompiler {
             definitions.put(name.substring(0, name.length() - ".json".length()), DefinitionReader.read(file));
         }
         Output output = compileAll(namespace, definitions, vanilla, version,
-                StructuresCompiler.Catalogue.of(vanilla, StructuresCompiler.bridgesBeside(definitionsDir)), BiomeLibrary.shipped());
+                StructuresCompiler.Catalogue.of(vanilla, bridgesDir), BiomeLibrary.shipped());
         output.files().put("pack.mcmeta", JsonWriter.write(packMeta(version, output.report().entries().size())));
         return output;
     }
@@ -145,7 +150,13 @@ public final class DatapackCompiler {
         compiler.known = library.known(vanilla, namespace);
         library.files(namespace).forEach((path, json) -> compiler.putShared(path, json));
         compiler.definitions.putAll(definitions);
-        compiler.definitions.keySet().forEach(compiler::compile);
+        for (String slug : compiler.definitions.keySet()) {
+            try {
+                compiler.compile(slug);
+            } catch (IllegalStateException e) {
+                throw new IllegalStateException(slug + ": " + e.getMessage(), e);
+            }
+        }
         return new Output(compiler.files, compiler.report, compiler.report.markdown(compiler.files), compiler.compiled);
     }
 

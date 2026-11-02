@@ -58,6 +58,7 @@ inputs, never committed: `:compiler:vanillaData` downloads the server jar for
 
 ```bash
 ./gradlew :compiler:compileDatapack           # build/datapack/customdimensions/ + compile-report.md
+./gradlew :compiler:applyIdMapping            # definitions/id-mapping.csv applied into compiler/build/id-mapping/ (-PwriteDefinitions=true: in place)
 scripts/vanilla-boot-check.sh                 # boot that pack on vanilla, no mods
 ./gradlew :compiler:test -PupdateGolden=true  # rewrite the golden files after an intended change
 ```
