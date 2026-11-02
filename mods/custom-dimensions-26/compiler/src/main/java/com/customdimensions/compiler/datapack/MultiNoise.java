@@ -43,10 +43,12 @@ public final class MultiNoise {
      * or two points are equal.
      */
     public static boolean overlap(JsonObject a, JsonObject b) {
-        JsonObject pa = a.getAsJsonObject("parameters");
-        JsonObject pb = b.getAsJsonObject("parameters");
-        for (String axis : AXES) {
-            if (!overlapAxis(bounds(pa.get(axis)), bounds(pb.get(axis)))) {
+        return overlap(bounds(a), bounds(b));
+    }
+
+    private static boolean overlap(double[][] a, double[][] b) {
+        for (int k = 0; k < AXES.size(); k++) {
+            if (!overlapAxis(a[k], b[k])) {
                 return false;
             }
         }
@@ -56,22 +58,15 @@ public final class MultiNoise {
     /** The first overlapping pair's indices, or null when the entries are disjoint. */
     public static int[] firstOverlap(JsonArray entries) {
         int n = entries.size();
-        double[][][] b = new double[n][AXES.size()][];
+        double[][][] b = new double[n][][];
         for (int i = 0; i < n; i++) {
-            JsonObject p = entries.get(i).getAsJsonObject().getAsJsonObject("parameters");
-            for (int k = 0; k < AXES.size(); k++) {
-                b[i][k] = bounds(p.get(AXES.get(k)));
-            }
+            b[i] = bounds(entries.get(i).getAsJsonObject());
         }
         for (int i = 0; i < n; i++) {
-            next:
             for (int j = i + 1; j < n; j++) {
-                for (int k = 0; k < AXES.size(); k++) {
-                    if (!overlapAxis(b[i][k], b[j][k])) {
-                        continue next;
-                    }
+                if (overlap(b[i], b[j])) {
+                    return new int[] {i, j};
                 }
-                return new int[] {i, j};
             }
         }
         return null;
@@ -84,36 +79,39 @@ public final class MultiNoise {
      */
     public static JsonArray carve(JsonArray entries) {
         List<JsonObject> out = new ArrayList<>();
+        List<double[][]> boxes = new ArrayList<>();
         for (JsonElement e : entries) {
             out.add(e.getAsJsonObject());
+            boxes.add(bounds(e.getAsJsonObject()));
         }
-        // A guard against a carve that never ends: each later box may be cut by every earlier one, and its pieces again.
-        int limit = 64 + 16 * out.size() * out.size();
-        for (int guard = 0; guard < limit; guard++) {
-            JsonArray current = new JsonArray();
-            out.forEach(current::add);
-            int[] pair = firstOverlap(current);
-            if (pair == null) {
-                return current;
+        // Each pair is cut in the order a rescan from the start would find it: entries before i overlap
+        // nothing after them, since a piece only overlaps what its whole box did.
+        for (int i = 0; i < out.size(); i++) {
+            double[][] earlier = boxes.get(i);
+            // A piece lies outside the earlier box on one axis, so j passes it and the scan ends.
+            for (int j = i + 1; j < out.size(); ) {
+                if (!overlap(earlier, boxes.get(j))) {
+                    j++;
+                    continue;
+                }
+                List<JsonObject> pieces = subtract(out.remove(j), boxes.remove(j), earlier);
+                out.addAll(j, pieces);
+                for (int p = 0; p < pieces.size(); p++) {
+                    boxes.add(j + p, bounds(pieces.get(p)));
+                }
             }
-            JsonObject earlier = out.get(pair[0]);
-            JsonObject later = out.remove(pair[1]);
-            out.addAll(pair[1], subtract(later, earlier));
         }
-        throw new IllegalStateException("multi-noise entries still overlap after " + limit + " carves");
+        JsonArray carved = new JsonArray();
+        out.forEach(carved::add);
+        return carved;
     }
 
-    /** {@code b} minus {@code a}: up to two boxes per axis, none overlapping {@code a}. */
-    static List<JsonObject> subtract(JsonObject b, JsonObject a) {
-        JsonObject pa = a.getAsJsonObject("parameters");
-        JsonObject pb = b.getAsJsonObject("parameters");
-        double[][] rest = new double[AXES.size()][];
-        for (int k = 0; k < AXES.size(); k++) {
-            rest[k] = bounds(pb.get(AXES.get(k)));
-        }
+    /** {@code b} (bounds {@code bb}) minus the box {@code cuts}: up to two boxes per axis, none overlapping it. */
+    static List<JsonObject> subtract(JsonObject b, double[][] bb, double[][] cuts) {
+        double[][] rest = bb.clone();
         List<JsonObject> pieces = new ArrayList<>();
         for (int k = 0; k < AXES.size(); k++) {
-            double[] cut = bounds(pa.get(AXES.get(k)));
+            double[] cut = cuts[k];
             double[] r = rest[k];
             if (r[0] < cut[0]) {
                 pieces.add(box(b, rest, k, new double[] {r[0], cut[0]}));
@@ -160,6 +158,16 @@ public final class MultiNoise {
             return a[0] < b[0] && b[0] < a[1];
         }
         return Math.max(a[0], b[0]) < Math.min(a[1], b[1]);
+    }
+
+    /** An entry's bounds on each of {@link #AXES}, in that order. */
+    private static double[][] bounds(JsonObject entry) {
+        JsonObject p = entry.getAsJsonObject("parameters");
+        double[][] b = new double[AXES.size()][];
+        for (int k = 0; k < AXES.size(); k++) {
+            b[k] = bounds(p.get(AXES.get(k)));
+        }
+        return b;
     }
 
     private static double[] bounds(JsonElement value) {

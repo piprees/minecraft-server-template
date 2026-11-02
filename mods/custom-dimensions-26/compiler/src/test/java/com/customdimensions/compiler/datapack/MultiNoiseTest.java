@@ -96,6 +96,65 @@ class MultiNoiseTest {
         assertEquals(list, MultiNoise.carve(list));
     }
 
+    /** Grid boxes with points, shared endpoints and a missing axis carve exactly as cutting the first overlap of a rescan does. */
+    @Test
+    void carvingMatchesRepeatedlyCuttingTheFirstOverlap() {
+        java.util.Random random = new java.util.Random(26_3);
+        double[] grid = {-2.0, -1.0, -0.5, 0.0, 0.25, 0.5, 1.0, 2.0};
+        for (int round = 0; round < 400; round++) {
+            JsonArray list = new JsonArray();
+            int n = 2 + random.nextInt(24);
+            for (int i = 0; i < n; i++) {
+                JsonObject p = new JsonObject();
+                for (String axis : MultiNoise.AXES) {
+                    if (axis.equals("depth") && random.nextInt(8) == 0) {
+                        continue;
+                    }
+                    double a = grid[random.nextInt(grid.length)];
+                    double b = grid[random.nextInt(grid.length)];
+                    if (a == b || random.nextInt(4) == 0) {
+                        p.addProperty(axis, a);
+                    } else {
+                        JsonArray r = new JsonArray();
+                        r.add(Math.min(a, b));
+                        r.add(Math.max(a, b));
+                        p.add(axis, r);
+                    }
+                }
+                p.addProperty("offset", 0.0);
+                JsonObject e = new JsonObject();
+                e.addProperty("biome", "minecraft:b" + i);
+                e.add("parameters", p);
+                list.add(e);
+            }
+            JsonArray expected = rescanCarve(list);
+            JsonArray carved = MultiNoise.carve(list);
+            assertEquals(expected.toString(), carved.toString(), "round " + round);
+            assertNull(MultiNoise.firstOverlap(carved), "round " + round);
+        }
+    }
+
+    private static JsonArray rescanCarve(JsonArray entries) {
+        java.util.List<JsonObject> out = new java.util.ArrayList<>();
+        entries.forEach(e -> out.add(e.getAsJsonObject()));
+        while (true) {
+            JsonArray current = new JsonArray();
+            out.forEach(current::add);
+            int[] pair = MultiNoise.firstOverlap(current);
+            if (pair == null) {
+                return current;
+            }
+            JsonObject later = out.remove(pair[1]);
+            JsonArray two = new JsonArray();
+            two.add(out.get(pair[0]));
+            two.add(later);
+            JsonArray cut = MultiNoise.carve(two);
+            for (int i = cut.size() - 1; i >= 1; i--) {
+                out.add(pair[1], cut.get(i).getAsJsonObject());
+            }
+        }
+    }
+
     private static java.util.Set<String> biomes(JsonArray entries) {
         java.util.Set<String> out = new java.util.TreeSet<>();
         entries.forEach(e -> out.add(e.getAsJsonObject().get("biome").getAsString()));
