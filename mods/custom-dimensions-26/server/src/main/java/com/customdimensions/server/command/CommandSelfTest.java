@@ -33,9 +33,8 @@ import net.minecraft.server.level.ServerLevel;
  * definitions folder, audit's unknown ids and catalogue's file.
  */
 public final class CommandSelfTest {
-    /** The ids the shipped definitions name that a server without the pack's mods lacks. */
-    static final Set<String> EXPECTED_UNKNOWN = Set.of("block chipped:runic_carved_obsidian",
-            "item regions_unexplored:lavender_wisteria_sapling");
+    /** The ids the shipped definitions name that a server without the pack's mods lacks: none. */
+    static final Set<String> EXPECTED_UNKNOWN = Set.of();
 
     private CommandSelfTest() {}
 
