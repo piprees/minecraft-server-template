@@ -135,27 +135,40 @@ public final class MaterialsCompiler {
                 rest.add(e);
             }
         }
-        boolean gate = rest.stream().anyMatch(MaterialsCompiler::isSurfaceGate);
+        boolean gate = gated(rest);
         JsonArray sequence = new JsonArray();
         bedrock.forEach(sequence::add);
         (veins == null ? presetVeins : veins).forEach(sequence::add);
         for (Map.Entry<String, Palette> e : spec.biomes().entrySet()) {
-            JsonObject condition = new JsonObject();
-            condition.addProperty("type", "minecraft:biome");
-            if (e.getKey().startsWith("#")) {
-                condition.addProperty("biome_is", e.getKey());
-            } else {
-                JsonArray ids = new JsonArray();
-                ids.add(e.getKey());
-                condition.add("biome_is", ids);
-            }
-            sequence.add(when(condition, paletteRule(e.getValue(), gate, seaLevel)));
+            sequence.add(biomeRule(e.getKey(), e.getValue(), gate, seaLevel));
         }
         if (!spec.dimension().isEmpty()) {
             sequence.add(paletteRule(spec.dimension(), gate, seaLevel));
         }
         rest.forEach(sequence::add);
         return sequenceOf(sequence);
+    }
+
+    /** Whether a preset rule's entries gate their surface rules on {@code minecraft:above_preliminary_surface}. */
+    public static boolean gated(Iterable<JsonElement> entries) {
+        for (JsonElement e : entries) {
+            if (isSurfaceGate(e)) return true;
+        }
+        return false;
+    }
+
+    /** The palette of {@code biome} (an id or {@code #tag}) as a rule that holds only in that biome. */
+    public static JsonObject biomeRule(String biome, Palette palette, boolean gate, int seaLevel) {
+        JsonObject condition = new JsonObject();
+        condition.addProperty("type", "minecraft:biome");
+        if (biome.startsWith("#")) {
+            condition.addProperty("biome_is", biome);
+        } else {
+            JsonArray ids = new JsonArray();
+            ids.add(biome);
+            condition.add("biome_is", ids);
+        }
+        return when(condition, paletteRule(palette, gate, seaLevel));
     }
 
     /** One palette as a sequence: ceilings, then the floor fields (gated when the preset gates), then deep. */

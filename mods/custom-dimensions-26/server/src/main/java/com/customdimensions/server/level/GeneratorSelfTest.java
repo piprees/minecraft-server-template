@@ -1,7 +1,10 @@
 package com.customdimensions.server.level;
 
+import com.customdimensions.compiler.datapack.BiomeLibrary;
+import com.customdimensions.compiler.datapack.MaterialsCompiler;
 import com.customdimensions.core.definition.Definition;
 import com.customdimensions.core.definition.Generator;
+import com.customdimensions.core.zone.ZoneSpec;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.mojang.serialization.JsonOps;
@@ -24,6 +27,7 @@ import net.minecraft.world.level.chunk.LevelChunkSection;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.levelgen.NoiseBasedChunkGenerator;
 import net.minecraft.world.level.levelgen.NoiseGeneratorSettings;
+import net.minecraft.world.level.levelgen.material.rule.MaterialRule;
 import net.minecraft.resources.RegistryOps;
 
 import java.util.ArrayList;
@@ -238,58 +242,77 @@ public final class GeneratorSelfTest {
 
     /**
      * A clone generates the original's terrain: its noise settings encode the
-     * same as the original's apart from the router's {@code temperature},
-     * which carries the clone's own zones' biome channels, and its biome
-     * source holds the same biomes. The seeds differ, so the island share over
-     * one area is reported, not compared.
+     * same as the original's apart from what its own zones bring
+     * ({@link CloneSettings}), and its biome source holds the original's
+     * biomes plus its zones' biomes. The seeds differ, so the island share
+     * over one area is reported, not compared.
      */
     private String clone(Columns c) {
         if (aviary == null) return "FAIL no the_aviary sample to compare with";
         Definition def = manager.index().lazy(c.slug).map(LevelIndex.Entry::definition).orElse(null);
-        String of = def == null ? "?" : def.generator().of();
-        String ours = settingsKey(c.level.getChunkSource().getGenerator());
-        String theirs = settingsKey(aviaryGenerator);
-        List<String> differ = terrainDifferences(c.level.getChunkSource().getGenerator(), aviaryGenerator);
-        Set<String> ourBiomes = biomeKeys(c.level.getChunkSource().getGenerator());
+        if (def == null) return "FAIL no definition for " + c.slug;
+        String of = def.generator().of();
+        ChunkGenerator ours = c.level.getChunkSource().getGenerator();
+        Set<String> zoneBiomes = new TreeSet<>();
+        for (ZoneSpec zone : ZoneSpec.all(c.slug, def)) {
+            zone.biomes().forEach(b -> zoneBiomes.add(b.id()));
+            zoneBiomes.addAll(zone.swap().values());
+        }
+        String namespace = c.level.dimension().identifier().getNamespace();
+        List<String> palettes = new ArrayList<>();
+        List<String> differ = cloneDifferences(ours, aviaryGenerator, zoneBiomes, namespace, palettes);
+        Set<String> ourBiomes = biomeKeys(ours);
         Set<String> theirBiomes = biomeKeys(aviaryGenerator);
+        Set<String> expected = new TreeSet<>(theirBiomes);
+        expected.addAll(zoneBiomes);
+        Set<String> added = new TreeSet<>(ourBiomes);
+        added.removeAll(theirBiomes);
         double open = c.openShare();
         double aviaryOpen = aviary.openShare();
-        boolean pass = differ.isEmpty() && ourBiomes.equals(theirBiomes) && Math.abs(open - aviaryOpen) <= 0.25
+        boolean pass = differ.isEmpty() && ourBiomes.equals(expected) && Math.abs(open - aviaryOpen) <= 0.25
                 && c.share(col -> col.lowest != null) > 0;
-        return verdict(pass, "clones `" + of + "`; settings " + ours + " vs " + theirs + ": "
-                + (differ.isEmpty() ? "the same apart from the router's temperature (the zones' biome channels)" : "differ in " + differ)
-                + "; biome source " + ourBiomes.size() + " vs " + theirBiomes.size() + " biomes" + (ourBiomes.equals(theirBiomes) ? " (same)" : " (differ)")
+        return verdict(pass, "clones `" + of + "`; settings " + settingsKey(ours) + " vs " + settingsKey(aviaryGenerator) + ": "
+                + (differ.isEmpty() ? "the same apart from the router's temperature (the zones' biome channels) and the zone biomes' palettes "
+                        + palettes : "differ in " + differ)
+                + "; biome source " + ourBiomes.size() + " vs " + theirBiomes.size() + " biomes, adds " + added
+                + (ourBiomes.equals(expected) ? " (the original's plus the zones' " + zoneBiomes + ")" : " (expected the original's plus the zones' "
+                        + zoneBiomes + ": " + expected.size() + ")")
                 + "; seeds differ (" + c.level.getSeed() + " vs " + aviary.level.getSeed() + ", each definition's own), so over the same "
                 + c.area() + " open columns " + pct(open) + " vs " + pct(aviaryOpen) + " (within 25 points) and island columns "
                 + pct(c.share(col -> col.lowest != null)) + " vs " + pct(aviary.share(col -> col.lowest != null)) + " are each seed's own");
     }
 
-    /** The noise settings' encoded fields that differ, the router's temperature left out; empty when the terrain is the same. */
-    private List<String> terrainDifferences(ChunkGenerator a, ChunkGenerator b) {
+    /**
+     * {@link CloneSettings#differences} over the two generators' encoded
+     * settings, each material rule resolved; the expected zone rules are the
+     * library palettes of {@code zoneBiomes}, compiled as the compiler does
+     * and round-tripped through the codec. Their biome ids go into {@code palettes}.
+     */
+    private List<String> cloneDifferences(ChunkGenerator a, ChunkGenerator b, Set<String> zoneBiomes, String namespace,
+                                          List<String> palettes) {
         if (!(a instanceof NoiseBasedChunkGenerator na) || !(b instanceof NoiseBasedChunkGenerator nb)) {
             return a.getClass() == b.getClass() ? List.of() : List.of("generator type");
         }
         RegistryOps<JsonElement> ops = RegistryOps.create(JsonOps.INSTANCE, server.registryAccess());
-        JsonObject ja = NoiseGeneratorSettings.DIRECT_CODEC.encodeStart(ops, na.generatorSettings().value()).getOrThrow().getAsJsonObject();
-        JsonObject jb = NoiseGeneratorSettings.DIRECT_CODEC.encodeStart(ops, nb.generatorSettings().value()).getOrThrow().getAsJsonObject();
-        List<String> out = new ArrayList<>();
-        for (String key : new TreeSet<>(union(ja.keySet(), jb.keySet()))) {
-            if (key.equals("noise_router") && ja.has(key) && jb.has(key)) {
-                JsonObject ra = ja.getAsJsonObject(key);
-                JsonObject rb = jb.getAsJsonObject(key);
-                for (String r : new TreeSet<>(union(ra.keySet(), rb.keySet()))) {
-                    if (!r.equals("temperature") && !java.util.Objects.equals(ra.get(r), rb.get(r))) out.add("noise_router." + r);
-                }
-            } else if (!java.util.Objects.equals(ja.get(key), jb.get(key))) {
-                out.add(key);
-            }
+        JsonObject ja = encoded(ops, na.generatorSettings().value());
+        JsonObject jb = encoded(ops, nb.generatorSettings().value());
+        boolean gate = MaterialsCompiler.gated(CloneSettings.entries(jb.getAsJsonObject("material_rule")));
+        int seaLevel = na.generatorSettings().value().seaLevel();
+        List<JsonElement> zoneRules = new ArrayList<>();
+        for (String id : zoneBiomes) {
+            MaterialsCompiler.Palette palette = BiomeLibrary.shipped().get(namespace, id).map(BiomeLibrary.Entry::palette).orElse(null);
+            if (palette == null || palette.isEmpty()) continue;
+            MaterialRule rule = MaterialRule.DIRECT_CODEC.parse(ops, MaterialsCompiler.biomeRule(id, palette, gate, seaLevel)).getOrThrow();
+            zoneRules.add(MaterialRule.DIRECT_CODEC.encodeStart(ops, rule).getOrThrow());
+            palettes.add(id);
         }
-        return out;
+        return CloneSettings.differences(ja, jb, zoneRules);
     }
 
-    private static Set<String> union(Set<String> a, Set<String> b) {
-        Set<String> out = new HashSet<>(a);
-        out.addAll(b);
+    /** The settings encoded, with the material rule resolved to the rule itself. */
+    private static JsonObject encoded(RegistryOps<JsonElement> ops, NoiseGeneratorSettings settings) {
+        JsonObject out = NoiseGeneratorSettings.DIRECT_CODEC.encodeStart(ops, settings).getOrThrow().getAsJsonObject();
+        out.add("material_rule", MaterialRule.DIRECT_CODEC.encodeStart(ops, settings.materialRule().value()).getOrThrow());
         return out;
     }
 
