@@ -2,7 +2,7 @@
   "$schema": "../../../../../../schema/biome.schema.json",
   "realm": "end",
   "inspiredBy": "BetterEnd's umbrella jungle.",
-  "differs": "A jungle in the End, where vanilla's islands are bare: tall thin purpur stalks crowded together, each under a drooping dome of purple and magenta stained glass, end rods hanging point-down from the cap rims and undersides, moss patches and carpets on the end stone between them, and purple motes and a purple glow in the air.",
+  "differs": "A jungle in the End, where vanilla's islands are bare: tall thin purpur stalks crowded together, each under a drooping dome of pink cherry blossom leaves flecked with flowering azalea, pale moss hanging in strands from the cap undersides, moss patches and carpets on the end stone between them, and purple motes and a purple glow in the air.",
   "climate": {
     "temperature": [
       0.3,
@@ -89,7 +89,8 @@
       [],
       [],
       [
-        "~umbrella_stalks"
+        "~umbrella_stalks",
+        "~hanging_moss"
       ],
       []
     ],
@@ -163,24 +164,7 @@
           "type": "minecraft:rule_based",
           "rules": []
         },
-        "decorators": [
-          {
-            "type": "minecraft:attached_to_leaves",
-            "block_provider": {
-              "id": "minecraft:end_rod",
-              "properties": {
-                "facing": "down"
-              }
-            },
-            "directions": [
-              "down"
-            ],
-            "exclusion_radius_xz": 1,
-            "exclusion_radius_y": 0,
-            "probability": 0.3,
-            "required_empty_blocks": 1
-          }
-        ],
+        "decorators": [],
         "foliage_placer": {
           "type": "minecraft:cherry_foliage_placer",
           "corner_hole_chance": 0.2,
@@ -196,13 +180,19 @@
           "entries": [
             {
               "data": {
-                "id": "minecraft:purple_stained_glass"
+                "id": "minecraft:cherry_leaves",
+                "properties": {
+                  "persistent": "true"
+                }
               },
-              "weight": 4
+              "weight": 3
             },
             {
               "data": {
-                "id": "minecraft:magenta_stained_glass"
+                "id": "minecraft:flowering_azalea_leaves",
+                "properties": {
+                  "persistent": "true"
+                }
               },
               "weight": 1
             }
@@ -278,6 +268,80 @@
                   -1,
                   0
                 ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "hanging_moss": {
+      "feature": {
+        "type": "minecraft:block_column",
+        "allowed_placement": {
+          "type": "minecraft:matching_block_tag",
+          "tag": "minecraft:air"
+        },
+        "direction": "down",
+        "layers": [
+          {
+            "height": {
+              "type": "minecraft:uniform",
+              "max_inclusive": 2,
+              "min_inclusive": 0
+            },
+            "provider": {
+              "id": "minecraft:pale_hanging_moss",
+              "properties": {
+                "tip": "false"
+              }
+            }
+          },
+          {
+            "height": 1,
+            "provider": {
+              "id": "minecraft:pale_hanging_moss",
+              "properties": {
+                "tip": "true"
+              }
+            }
+          }
+        ],
+        "prioritize_tip": true
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 24
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:heightmap",
+          "heightmap": "MOTION_BLOCKING"
+        },
+        {
+          "type": "minecraft:biome"
+        },
+        {
+          "type": "minecraft:environment_scan",
+          "direction_of_search": "down",
+          "max_steps": 24,
+          "target_condition": {
+            "type": "minecraft:all_of",
+            "predicates": [
+              {
+                "type": "minecraft:matching_block_tag",
+                "tag": "minecraft:air"
+              },
+              {
+                "type": "minecraft:matching_block_tag",
+                "offset": [
+                  0,
+                  1,
+                  0
+                ],
+                "tag": "minecraft:leaves"
               }
             ]
           }

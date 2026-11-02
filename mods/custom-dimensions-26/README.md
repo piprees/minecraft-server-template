@@ -158,8 +158,8 @@ on generated chunks.
 | `sulphur_springs` | end | Water pools ringed with sulfur over wet potent sulfur and magma beds, sulfur crusts and spiked vents, steam |
 | `lantern_woods` | end | Pale oaks on pale moss hung with soul lanterns and pale moss, pale moss carpets, soul motes |
 | `megalake` | end | Broad shallow lakes on level ground, clay and sand beds with sea pickles, sand shores, deep blue water |
-| `umbrella_jungle` | end | Tall purpur stalks under drooping purple and magenta glass domes hung with end rods, moss on the end stone, purple motes |
-| `neon_oasis` | end | Cyan pools on level ground lit from below by sea lanterns, sea pickles, sand shores, cyan and magenta glass cacti, glow lichen |
+| `umbrella_jungle` | end | Tall purpur stalks under drooping domes of cherry blossom and flowering azalea leaves hung with strands of pale moss, moss on the end stone, purple motes |
+| `neon_oasis` | end | Cyan pools on level ground lit from below by sea lanterns, coral reefs in the pools and coral rims at the water's edge, sea-lantern-crowned dark prismarine pillars, sand shores, glow lichen |
 | `ice_starfield` | end | Snow-covered islands, packed-ice spikes, blue-ice shards, packed-ice sheets, snow drifts, white sparks and snowflakes |
 | `painted_mountains` | end | Islands banded in orange, white, pink and purple terracotta by height, stepped banded terracotta peaks, banded end-stone spires |
 | `sky_highlands` | sky | Pale grass over calcite cliffs, quartz outcrops, small round pale oaks, white and pale-blue flowers, sheep, white sky |
