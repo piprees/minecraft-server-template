@@ -135,4 +135,4 @@ Dimension types are a synced registry frozen once the world loads, so a new dime
 Rejected: regenerating v2 from v1 with W8's edits as patches on top, which adds machinery for changes nobody plans to make.
 
 **RB-36 — Cut biome and structure ids are replaced through one reviewed mapping table.**
-Each of the 313 distinct ids from a cut or rebuilt mod maps to a vanilla 26.3 biome, one of our library biomes, a bridged or vanilla structure, or removal; the owner reviews the table once and W8 applies it to every definition.
+Each of the 371 distinct ids from a cut or rebuilt mod (313 written as ids, 58 reached only through a structure short name in `wants` or `shuns`) maps to a vanilla 26.3 biome, one of our library biomes, a bridged or vanilla structure, or removal; the owner reviews the table once and W8 applies it to every definition.

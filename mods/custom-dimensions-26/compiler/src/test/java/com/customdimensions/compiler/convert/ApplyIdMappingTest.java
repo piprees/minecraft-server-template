@@ -73,23 +73,20 @@ class ApplyIdMappingTest {
         }
         assertEquals(75, withBiomes);
         assertEquals(927, before);
-        assertEquals(727, after);
+        assertEquals(745, after);
         assertEquals(Set.of("the_blossom_gardens.json", "the_highland_crossing.json", "the_sun_kingdoms.json"), flagged);
-        assertTrue(readReport().contains(": 927 → 727\n"));
+        assertTrue(readReport().contains(": 927 → 745\n"));
     }
 
     @Test
-    void onlyTheTwoRarityKeysAreNotAppliedAndEveryMissingRowIsAnAlias() {
+    void onlyTheTwoRarityKeysAreNotAppliedAndNoRowIsMissing() {
         List<String> notApplied = new ArrayList<>();
         run.results().forEach(r -> r.notApplied().forEach(n -> notApplied.add(r.file() + " " + n.id())));
         assertEquals(List.of("the_darkpine_depths.json explorify:dark_forest_settlements",
                 "the_darkpine_depths.json betterdungeons:zombie_dungeons"), notApplied);
-        Set<String> missing = new TreeSet<>();
-        run.results().forEach(r -> r.missing().forEach(m -> {
-            assertTrue(m.where().contains("(alias `"), m.where());
-            missing.add(m.id());
-        }));
-        assertEquals(58, missing.size());
+        List<String> missing = new ArrayList<>();
+        run.results().forEach(r -> r.missing().forEach(m -> missing.add(r.file() + " " + m.id())));
+        assertEquals(List.of(), missing);
     }
 
     @Test
