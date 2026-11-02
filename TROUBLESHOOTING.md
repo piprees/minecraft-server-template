@@ -1596,6 +1596,20 @@ A seed's map and its banked facts appear to contradict each other — the thumbn
   the same trap. Pin it against the Java, not against intuition —
   `scripts/e2e/portal-matrix-selftest.sh` is the worked example.
 
+<a id="t163"></a>
+### T163 — The biome self-test cannot count a block a vanilla feature also places
+
+- **Symptom:** a library biome's self-test count is not meaningful, or never matches its feature: the block also comes from a vanilla feature in the same level (mossy cobblestone from monster rooms).
+- **Cause:** `BiomeLibrarySelfTest` counts blocks, not features; any vanilla feature that places the same block adds to the count.
+- **Fix:** count a block only the library feature places. Where the look needs a shared block, use the vanilla feature itself (`forest_rock` for mossy boulders) and count something else.
+
+<a id="t162"></a>
+### T162 — A configured feature's value ranges are checked only when the pack loads
+
+- **Symptom:** the compiler and the build pass, then the server refuses to start while loading the datapack.
+- **Cause:** 26.3 validates the ranges inside a configured or placed feature only at pack load. Seen: an `offset` placement modifier reaches at most ±16 blocks per axis; the cherry trunk placer's `branch_horizontal_length` is at least 2; an environment scan takes at most 32 steps.
+- **Fix:** stack `offset` modifiers for a larger reach, keep values inside the codec's range, and validate a new feature by booting the pack, not just compiling it.
+
 <a id="t161"></a>
 ### T161 — A cave opening below sea level beside a river stays dry when aquifers are on
 
