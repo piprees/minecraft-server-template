@@ -1596,6 +1596,13 @@ A seed's map and its banked facts appear to contradict each other — the thumbn
   the same trap. Pin it against the Java, not against intuition —
   `scripts/e2e/portal-matrix-selftest.sh` is the worked example.
 
+<a id="t166"></a>
+### T166 — `NaturalSpawner.SPAWN_DISTANCE_BLOCK` is the outer reach, not the minimum spawn distance
+
+- **Symptom:** a search for spots where a mob can spawn naturally finds almost none and reports that nothing can spawn.
+- **Cause:** in 26.3 the public `SPAWN_DISTANCE_BLOCK` is 128, the outer reach; the 24-block minimum distance from a player is the private `MIN_SPAWN_DISTANCE`.
+- **Fix:** use 24 as the minimum (`DifficultySelfTest.MIN_SPAWN_DISTANCE`).
+
 <a id="t165"></a>
 ### T165 — A library biome's vanilla features must keep vanilla's order
 
