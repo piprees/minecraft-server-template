@@ -28,8 +28,8 @@
     {
       "id": "minecraft:eroded_badlands",
       "climate": {
-        "continentalness": [0.03, 2.0],
-        "erosion": [-2.0, -0.45]
+        "continentalness": [-0.11, 2.0],
+        "erosion": [-2.0, -0.3]
       }
     },
     {
@@ -43,14 +43,14 @@
     {
       "id": "adventure:dry_steppe",
       "climate": {
-        "temperature": [-2.0, -0.35],
+        "temperature": [-2.0, -0.3],
         "humidity": [-2.0, -0.3]
       }
     },
     {
       "id": "adventure:joshua_desert",
       "climate": {
-        "temperature": [-0.35, -0.2],
+        "temperature": [-0.3, -0.2],
         "humidity": [-2.0, -0.3]
       }
     },
@@ -78,14 +78,14 @@
     {
       "id": "adventure:prairie",
       "climate": {
-        "temperature": [-2.0, -0.35],
+        "temperature": [-2.0, -0.3],
         "humidity": [-0.3, -0.15]
       }
     },
     {
       "id": "minecraft:badlands",
       "climate": {
-        "temperature": [-0.35, -0.2],
+        "temperature": [-0.3, -0.2],
         "humidity": [-0.3, -0.15]
       }
     },
@@ -113,14 +113,14 @@
     {
       "id": "minecraft:savanna_plateau",
       "climate": {
-        "temperature": [-2.0, -0.35],
+        "temperature": [-2.0, -0.3],
         "humidity": [-0.15, 0.0]
       }
     },
     {
       "id": "minecraft:savanna",
       "climate": {
-        "temperature": [-0.35, -0.2],
+        "temperature": [-0.3, -0.2],
         "humidity": [-0.15, 0.0]
       }
     },
@@ -148,14 +148,14 @@
     {
       "id": "minecraft:plains",
       "climate": {
-        "temperature": [-2.0, -0.35],
+        "temperature": [-2.0, -0.3],
         "humidity": [0.0, 0.15]
       }
     },
     {
       "id": "adventure:barley_fields",
       "climate": {
-        "temperature": [-0.35, -0.2],
+        "temperature": [-0.3, -0.2],
         "humidity": [0.0, 0.15]
       }
     },
@@ -183,14 +183,14 @@
     {
       "id": "minecraft:sunflower_plains",
       "climate": {
-        "temperature": [-2.0, -0.35],
+        "temperature": [-2.0, -0.3],
         "humidity": [0.15, 2.0]
       }
     },
     {
       "id": "adventure:lavender_fields",
       "climate": {
-        "temperature": [-0.35, -0.2],
+        "temperature": [-0.3, -0.2],
         "humidity": [0.15, 2.0]
       }
     },

@@ -12,200 +12,223 @@
   },
   "biomes": [
     {
-      "id": "minecraft:windswept_hills",
+      "id": "minecraft:river",
       "climate": {
-        "weirdness": [-2.0, -0.999]
-      }
-    },
-    {
-      "id": "minecraft:windswept_forest",
-      "climate": {
-        "weirdness": [-0.999, -0.9263]
-      }
-    },
-    {
-      "id": "minecraft:windswept_gravelly_hills",
-      "climate": {
-        "weirdness": [-0.9263, -0.5959]
-      }
-    },
-    {
-      "id": "minecraft:stony_peaks",
-      "climate": {
-        "weirdness": [-0.5959, -0.499]
-      }
-    },
-    {
-      "id": "minecraft:meadow",
-      "climate": {
-        "weirdness": [-0.499, -0.496]
-      }
-    },
-    {
-      "id": "minecraft:plains",
-      "climate": {
-        "weirdness": [-0.496, -0.492]
+        "continentalness": [-0.11, 2.0],
+        "erosion": [0.05, 2.0],
+        "weirdness": [-0.05, 0.05]
       }
     },
     {
       "id": "minecraft:stony_shore",
       "climate": {
-        "weirdness": [-0.492, -0.488]
-      }
-    },
-    {
-      "id": "adventure:highland_fells",
-      "climate": {
-        "weirdness": [-0.488, -0.484]
-      }
-    },
-    {
-      "id": "minecraft:windswept_hills",
-      "climate": {
-        "weirdness": [-0.484, -0.4658]
-      }
-    },
-    {
-      "id": "minecraft:windswept_forest",
-      "climate": {
-        "weirdness": [-0.4658, -0.4426]
-      }
-    },
-    {
-      "id": "adventure:alpine_scree",
-      "climate": {
-        "weirdness": [-0.4426, -0.3914]
-      }
-    },
-    {
-      "id": "minecraft:stony_peaks",
-      "climate": {
-        "weirdness": [-0.3914, -0.3297]
+        "continentalness": [-0.2, -0.11],
+        "erosion": [-2.0, 0.05]
       }
     },
     {
       "id": "adventure:chalk_cliffs",
       "climate": {
-        "weirdness": [-0.3297, -0.2213]
+        "continentalness": [-0.2, -0.11],
+        "erosion": [0.05, 2.0]
       }
     },
     {
-      "id": "minecraft:stony_peaks",
+      "id": "minecraft:frozen_peaks",
       "climate": {
-        "weirdness": [-0.2213, -0.1716]
-      }
-    },
-    {
-      "id": "adventure:alpine_meadow",
-      "climate": {
-        "weirdness": [-0.1716, -0.1155]
-      }
-    },
-    {
-      "id": "minecraft:river",
-      "climate": {
-        "temperature": [-0.45, 0.55],
-        "weirdness": [-0.1155, -0.0865]
-      }
-    },
-    {
-      "id": "minecraft:windswept_gravelly_hills",
-      "climate": {
-        "temperature": [0.2, 1.0],
-        "weirdness": [-0.0865, -0.0378]
-      }
-    },
-    {
-      "id": "minecraft:basalt_deltas",
-      "climate": {
-        "temperature": [0.2, 0.55],
-        "humidity": [-1.0, 0.565],
-        "weirdness": [-0.0378, 0.0155]
-      }
-    },
-    {
-      "id": "minecraft:eroded_badlands",
-      "climate": {
-        "temperature": [0.2, 1.0],
-        "humidity": [-1.0, -0.1],
-        "weirdness": [0.0155, 0.0637]
-      }
-    },
-    {
-      "id": "minecraft:stony_peaks",
-      "climate": {
-        "temperature": [-0.45, 0.2],
-        "humidity": [-1.0, -0.35],
-        "weirdness": [0.0637, 0.1034]
+        "temperature": [-2.0, 0.2],
+        "continentalness": [0.03, 2.0],
+        "erosion": [-2.0, -0.55]
       }
     },
     {
       "id": "minecraft:jagged_peaks",
       "climate": {
-        "temperature": [-0.45, -0.155],
-        "weirdness": [0.1034, 0.2289]
+        "temperature": [-2.0, 0.2],
+        "continentalness": [0.03, 2.0],
+        "erosion": [-2.0, -0.375]
       }
     },
     {
-      "id": "minecraft:windswept_forest",
+      "id": "minecraft:stony_peaks",
       "climate": {
-        "weirdness": [0.2289, 0.3355]
+        "temperature": [0.2, 2.0],
+        "continentalness": [0.03, 2.0],
+        "erosion": [-2.0, -0.375]
       }
     },
     {
-      "id": "adventure:lavender_fields",
+      "id": "minecraft:snowy_slopes",
       "climate": {
-        "weirdness": [0.3355, 0.4374]
+        "temperature": [-2.0, -0.3],
+        "continentalness": [0.03, 2.0],
+        "erosion": [-0.375, -0.2225]
+      }
+    },
+    {
+      "id": "minecraft:grove",
+      "climate": {
+        "temperature": [-0.3, 0.0],
+        "continentalness": [0.03, 2.0],
+        "erosion": [-0.375, -0.2225]
       }
     },
     {
       "id": "adventure:alpine_scree",
       "climate": {
-        "weirdness": [0.4374, 0.4735]
+        "temperature": [0.0, 2.0],
+        "humidity": [-2.0, 0.0],
+        "continentalness": [0.03, 2.0],
+        "erosion": [-0.375, -0.2225]
       }
     },
     {
-      "id": "minecraft:stony_peaks",
+      "id": "adventure:alpine_meadow",
       "climate": {
-        "weirdness": [0.4735, 0.501]
+        "temperature": [0.0, 2.0],
+        "humidity": [0.0, 2.0],
+        "continentalness": [0.03, 2.0],
+        "erosion": [-0.375, -0.2225]
       }
     },
     {
-      "id": "adventure:highland_fells",
+      "id": "minecraft:windswept_gravelly_hills",
       "climate": {
-        "weirdness": [0.501, 0.504]
-      }
-    },
-    {
-      "id": "minecraft:jagged_peaks",
-      "climate": {
-        "weirdness": [0.504, 0.508]
-      }
-    },
-    {
-      "id": "minecraft:swamp",
-      "climate": {
-        "weirdness": [0.508, 0.512]
+        "temperature": [-2.0, -0.42],
+        "humidity": [-2.0, -0.2]
       }
     },
     {
       "id": "adventure:highland_fells",
       "climate": {
-        "weirdness": [0.512, 0.5337]
-      }
-    },
-    {
-      "id": "minecraft:forest",
-      "climate": {
-        "temperature": [-0.45, 0.55],
-        "humidity": [-0.1, 0.1],
-        "weirdness": [0.5337, 0.7775]
+        "temperature": [-0.42, -0.28],
+        "humidity": [-2.0, -0.2]
       }
     },
     {
       "id": "minecraft:windswept_hills",
       "climate": {
-        "weirdness": [0.7775, 2.0]
+        "temperature": [-0.28, 0.0],
+        "humidity": [-2.0, -0.2]
+      }
+    },
+    {
+      "id": "minecraft:windswept_gravelly_hills",
+      "climate": {
+        "temperature": [0.0, 0.4],
+        "humidity": [-2.0, -0.2]
+      }
+    },
+    {
+      "id": "minecraft:eroded_badlands",
+      "climate": {
+        "temperature": [0.4, 2.0],
+        "humidity": [-2.0, -0.2]
+      }
+    },
+    {
+      "id": "adventure:dying_forest",
+      "climate": {
+        "temperature": [-2.0, -0.42],
+        "humidity": [-0.2, 0.0]
+      }
+    },
+    {
+      "id": "adventure:highland_fells",
+      "climate": {
+        "temperature": [-0.42, -0.28],
+        "humidity": [-0.2, 0.0]
+      }
+    },
+    {
+      "id": "minecraft:meadow",
+      "climate": {
+        "temperature": [-0.28, 0.0],
+        "humidity": [-0.2, 0.0]
+      }
+    },
+    {
+      "id": "minecraft:plains",
+      "climate": {
+        "temperature": [0.0, 0.4],
+        "humidity": [-0.2, 0.0]
+      }
+    },
+    {
+      "id": "adventure:lavender_fields",
+      "climate": {
+        "temperature": [0.4, 2.0],
+        "humidity": [-0.2, 0.0]
+      }
+    },
+    {
+      "id": "minecraft:old_growth_spruce_taiga",
+      "climate": {
+        "temperature": [-2.0, -0.42],
+        "humidity": [0.0, 0.2]
+      }
+    },
+    {
+      "id": "minecraft:windswept_forest",
+      "climate": {
+        "temperature": [-0.42, -0.28],
+        "humidity": [0.0, 0.2]
+      }
+    },
+    {
+      "id": "adventure:aspen_forest",
+      "climate": {
+        "temperature": [-0.28, 0.0],
+        "humidity": [0.0, 0.2]
+      }
+    },
+    {
+      "id": "minecraft:forest",
+      "climate": {
+        "temperature": [0.0, 0.4],
+        "humidity": [0.0, 0.2]
+      }
+    },
+    {
+      "id": "minecraft:windswept_hills",
+      "climate": {
+        "temperature": [0.4, 2.0],
+        "humidity": [0.0, 0.2]
+      }
+    },
+    {
+      "id": "minecraft:taiga",
+      "climate": {
+        "temperature": [-2.0, -0.42],
+        "humidity": [0.2, 2.0]
+      }
+    },
+    {
+      "id": "adventure:redwood_grove",
+      "climate": {
+        "temperature": [-0.42, -0.28],
+        "humidity": [0.2, 2.0]
+      }
+    },
+    {
+      "id": "minecraft:windswept_forest",
+      "climate": {
+        "temperature": [-0.28, 0.0],
+        "humidity": [0.2, 2.0]
+      }
+    },
+    {
+      "id": "minecraft:swamp",
+      "climate": {
+        "temperature": [0.0, 0.4],
+        "humidity": [0.2, 2.0]
+      }
+    },
+    {
+      "id": "minecraft:forest",
+      "climate": {
+        "temperature": [0.4, 2.0],
+        "humidity": [0.2, 2.0]
       }
     }
   ],
