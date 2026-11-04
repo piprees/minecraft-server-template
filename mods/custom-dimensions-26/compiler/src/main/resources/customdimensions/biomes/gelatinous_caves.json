@@ -2,7 +2,7 @@
   "$schema": "../../../../../../schema/biome.schema.json",
   "realm": "caves",
   "inspiredBy": "Wilder Wild, Jellyfish Caves (mesoglea).",
-  "differs": "Nothing in vanilla is a cave of jelly: pillars of pink and light blue stained glass run floor to roof round glowing froglight cores, slime and honey drip from calcite and honey ceilings, slime stays up there and on the pillars rather than on the floor, glass inlays the calcite floors, sea pickles light still pools where glow squid swim, and the air glows pink and blue with bubbling.",
+  "differs": "Nothing in vanilla is a cave of jelly: pillars run floor to roof, each a skin of translucent slime or amber honey round a glowing froglight core, pearlescent, verdant or ochre, so every pillar glows its own colour through the jelly; slime and honey drip from calcite and honey ceilings, slime stays up there and in the pillars rather than on the floor, the calcite floors carry crusts of dried honeycomb, sea pickles light still pools where glow squid swim, and the air glows with bubbling.",
   "climate": {
     "humidity": [
       0.7,
@@ -197,7 +197,7 @@
       [
         "~jelly_pillars",
         "~jelly_ceilings",
-        "~glass_floors",
+        "~honeycomb_crusts",
         "~glow_pools"
       ],
       [
@@ -210,211 +210,572 @@
   "features": {
     "jelly_pillars": {
       "feature": {
-        "type": "minecraft:overlay",
+        "type": "minecraft:random_selector",
+        "default": {
+          "feature": {
+            "type": "minecraft:overlay",
+            "features": [
+              {
+                "feature": {
+                  "type": "minecraft:block_column",
+                  "allowed_placement": {
+                    "type": "minecraft:matching_block_tag",
+                    "tag": "minecraft:air"
+                  },
+                  "direction": "up",
+                  "layers": [
+                    {
+                      "height": 48,
+                      "provider": {
+                        "id": "minecraft:pearlescent_froglight",
+                        "properties": {
+                          "axis": "y"
+                        }
+                      }
+                    }
+                  ],
+                  "prioritize_tip": false
+                },
+                "placement": []
+              },
+              {
+                "feature": {
+                  "type": "minecraft:block_column",
+                  "allowed_placement": {
+                    "type": "minecraft:matching_block_tag",
+                    "tag": "minecraft:air"
+                  },
+                  "direction": "up",
+                  "layers": [
+                    {
+                      "height": 48,
+                      "provider": {
+                        "id": "minecraft:slime_block"
+                      }
+                    }
+                  ],
+                  "prioritize_tip": false
+                },
+                "placement": [
+                  {
+                    "type": "minecraft:offset",
+                    "x": 1,
+                    "y": 0,
+                    "z": 0
+                  }
+                ]
+              },
+              {
+                "feature": {
+                  "type": "minecraft:block_column",
+                  "allowed_placement": {
+                    "type": "minecraft:matching_block_tag",
+                    "tag": "minecraft:air"
+                  },
+                  "direction": "up",
+                  "layers": [
+                    {
+                      "height": 48,
+                      "provider": {
+                        "id": "minecraft:slime_block"
+                      }
+                    }
+                  ],
+                  "prioritize_tip": false
+                },
+                "placement": [
+                  {
+                    "type": "minecraft:offset",
+                    "x": -1,
+                    "y": 0,
+                    "z": 0
+                  }
+                ]
+              },
+              {
+                "feature": {
+                  "type": "minecraft:block_column",
+                  "allowed_placement": {
+                    "type": "minecraft:matching_block_tag",
+                    "tag": "minecraft:air"
+                  },
+                  "direction": "up",
+                  "layers": [
+                    {
+                      "height": 48,
+                      "provider": {
+                        "id": "minecraft:slime_block"
+                      }
+                    }
+                  ],
+                  "prioritize_tip": false
+                },
+                "placement": [
+                  {
+                    "type": "minecraft:offset",
+                    "x": 0,
+                    "y": 0,
+                    "z": 1
+                  }
+                ]
+              },
+              {
+                "feature": {
+                  "type": "minecraft:block_column",
+                  "allowed_placement": {
+                    "type": "minecraft:matching_block_tag",
+                    "tag": "minecraft:air"
+                  },
+                  "direction": "up",
+                  "layers": [
+                    {
+                      "height": 48,
+                      "provider": {
+                        "id": "minecraft:slime_block"
+                      }
+                    }
+                  ],
+                  "prioritize_tip": false
+                },
+                "placement": [
+                  {
+                    "type": "minecraft:offset",
+                    "x": 0,
+                    "y": 0,
+                    "z": -1
+                  }
+                ]
+              }
+            ]
+          },
+          "placement": []
+        },
         "features": [
           {
+            "chance": 0.3,
             "feature": {
-              "type": "minecraft:block_column",
-              "allowed_placement": {
-                "type": "minecraft:matching_block_tag",
-                "tag": "minecraft:air"
-              },
-              "direction": "up",
-              "layers": [
-                {
-                  "height": 48,
-                  "provider": {
-                    "type": "minecraft:weighted",
-                    "entries": [
-                      {
-                        "data": {
-                          "id": "minecraft:pearlescent_froglight",
-                          "properties": {
-                            "axis": "y"
+              "feature": {
+                "type": "minecraft:overlay",
+                "features": [
+                  {
+                    "feature": {
+                      "type": "minecraft:block_column",
+                      "allowed_placement": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      },
+                      "direction": "up",
+                      "layers": [
+                        {
+                          "height": 48,
+                          "provider": {
+                            "id": "minecraft:verdant_froglight",
+                            "properties": {
+                              "axis": "y"
+                            }
                           }
-                        },
-                        "weight": 3
+                        }
+                      ],
+                      "prioritize_tip": false
+                    },
+                    "placement": []
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:block_column",
+                      "allowed_placement": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
                       },
-                      {
-                        "data": {
-                          "id": "minecraft:verdant_froglight",
-                          "properties": {
-                            "axis": "y"
+                      "direction": "up",
+                      "layers": [
+                        {
+                          "height": 48,
+                          "provider": {
+                            "id": "minecraft:slime_block"
                           }
-                        },
-                        "weight": 1
+                        }
+                      ],
+                      "prioritize_tip": false
+                    },
+                    "placement": [
+                      {
+                        "type": "minecraft:offset",
+                        "x": 1,
+                        "y": 0,
+                        "z": 0
+                      }
+                    ]
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:block_column",
+                      "allowed_placement": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      },
+                      "direction": "up",
+                      "layers": [
+                        {
+                          "height": 48,
+                          "provider": {
+                            "id": "minecraft:slime_block"
+                          }
+                        }
+                      ],
+                      "prioritize_tip": false
+                    },
+                    "placement": [
+                      {
+                        "type": "minecraft:offset",
+                        "x": -1,
+                        "y": 0,
+                        "z": 0
+                      }
+                    ]
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:block_column",
+                      "allowed_placement": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      },
+                      "direction": "up",
+                      "layers": [
+                        {
+                          "height": 48,
+                          "provider": {
+                            "id": "minecraft:slime_block"
+                          }
+                        }
+                      ],
+                      "prioritize_tip": false
+                    },
+                    "placement": [
+                      {
+                        "type": "minecraft:offset",
+                        "x": 0,
+                        "y": 0,
+                        "z": 1
+                      }
+                    ]
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:block_column",
+                      "allowed_placement": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      },
+                      "direction": "up",
+                      "layers": [
+                        {
+                          "height": 48,
+                          "provider": {
+                            "id": "minecraft:slime_block"
+                          }
+                        }
+                      ],
+                      "prioritize_tip": false
+                    },
+                    "placement": [
+                      {
+                        "type": "minecraft:offset",
+                        "x": 0,
+                        "y": 0,
+                        "z": -1
                       }
                     ]
                   }
-                }
-              ],
-              "prioritize_tip": false
-            },
-            "placement": []
+                ]
+              },
+              "placement": []
+            }
           },
           {
+            "chance": 0.35,
             "feature": {
-              "type": "minecraft:block_column",
-              "allowed_placement": {
-                "type": "minecraft:matching_block_tag",
-                "tag": "minecraft:air"
-              },
-              "direction": "up",
-              "layers": [
-                {
-                  "height": 48,
-                  "provider": {
-                    "type": "minecraft:weighted",
-                    "entries": [
-                      {
-                        "data": {
-                          "id": "minecraft:pink_stained_glass"
-                        },
-                        "weight": 3
+              "feature": {
+                "type": "minecraft:overlay",
+                "features": [
+                  {
+                    "feature": {
+                      "type": "minecraft:block_column",
+                      "allowed_placement": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
                       },
+                      "direction": "up",
+                      "layers": [
+                        {
+                          "height": 48,
+                          "provider": {
+                            "id": "minecraft:ochre_froglight",
+                            "properties": {
+                              "axis": "y"
+                            }
+                          }
+                        }
+                      ],
+                      "prioritize_tip": false
+                    },
+                    "placement": []
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:block_column",
+                      "allowed_placement": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      },
+                      "direction": "up",
+                      "layers": [
+                        {
+                          "height": 48,
+                          "provider": {
+                            "id": "minecraft:honey_block"
+                          }
+                        }
+                      ],
+                      "prioritize_tip": false
+                    },
+                    "placement": [
                       {
-                        "data": {
-                          "id": "minecraft:light_blue_stained_glass"
-                        },
-                        "weight": 3
+                        "type": "minecraft:offset",
+                        "x": 1,
+                        "y": 0,
+                        "z": 0
+                      }
+                    ]
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:block_column",
+                      "allowed_placement": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      },
+                      "direction": "up",
+                      "layers": [
+                        {
+                          "height": 48,
+                          "provider": {
+                            "id": "minecraft:honey_block"
+                          }
+                        }
+                      ],
+                      "prioritize_tip": false
+                    },
+                    "placement": [
+                      {
+                        "type": "minecraft:offset",
+                        "x": -1,
+                        "y": 0,
+                        "z": 0
+                      }
+                    ]
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:block_column",
+                      "allowed_placement": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      },
+                      "direction": "up",
+                      "layers": [
+                        {
+                          "height": 48,
+                          "provider": {
+                            "id": "minecraft:honey_block"
+                          }
+                        }
+                      ],
+                      "prioritize_tip": false
+                    },
+                    "placement": [
+                      {
+                        "type": "minecraft:offset",
+                        "x": 0,
+                        "y": 0,
+                        "z": 1
+                      }
+                    ]
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:block_column",
+                      "allowed_placement": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      },
+                      "direction": "up",
+                      "layers": [
+                        {
+                          "height": 48,
+                          "provider": {
+                            "id": "minecraft:honey_block"
+                          }
+                        }
+                      ],
+                      "prioritize_tip": false
+                    },
+                    "placement": [
+                      {
+                        "type": "minecraft:offset",
+                        "x": 0,
+                        "y": 0,
+                        "z": -1
                       }
                     ]
                   }
-                }
-              ],
-              "prioritize_tip": false
-            },
-            "placement": [
-              {
-                "type": "minecraft:offset",
-                "x": 1,
-                "y": 0,
-                "z": 0
-              }
-            ]
+                ]
+              },
+              "placement": []
+            }
           },
           {
+            "chance": 0.25,
             "feature": {
-              "type": "minecraft:block_column",
-              "allowed_placement": {
-                "type": "minecraft:matching_block_tag",
-                "tag": "minecraft:air"
-              },
-              "direction": "up",
-              "layers": [
-                {
-                  "height": 48,
-                  "provider": {
-                    "type": "minecraft:weighted",
-                    "entries": [
-                      {
-                        "data": {
-                          "id": "minecraft:pink_stained_glass"
-                        },
-                        "weight": 3
+              "feature": {
+                "type": "minecraft:overlay",
+                "features": [
+                  {
+                    "feature": {
+                      "type": "minecraft:block_column",
+                      "allowed_placement": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
                       },
+                      "direction": "up",
+                      "layers": [
+                        {
+                          "height": 48,
+                          "provider": {
+                            "id": "minecraft:pearlescent_froglight",
+                            "properties": {
+                              "axis": "y"
+                            }
+                          }
+                        }
+                      ],
+                      "prioritize_tip": false
+                    },
+                    "placement": []
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:block_column",
+                      "allowed_placement": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      },
+                      "direction": "up",
+                      "layers": [
+                        {
+                          "height": 48,
+                          "provider": {
+                            "id": "minecraft:honey_block"
+                          }
+                        }
+                      ],
+                      "prioritize_tip": false
+                    },
+                    "placement": [
                       {
-                        "data": {
-                          "id": "minecraft:light_blue_stained_glass"
-                        },
-                        "weight": 3
+                        "type": "minecraft:offset",
+                        "x": 1,
+                        "y": 0,
+                        "z": 0
+                      }
+                    ]
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:block_column",
+                      "allowed_placement": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      },
+                      "direction": "up",
+                      "layers": [
+                        {
+                          "height": 48,
+                          "provider": {
+                            "id": "minecraft:honey_block"
+                          }
+                        }
+                      ],
+                      "prioritize_tip": false
+                    },
+                    "placement": [
+                      {
+                        "type": "minecraft:offset",
+                        "x": -1,
+                        "y": 0,
+                        "z": 0
+                      }
+                    ]
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:block_column",
+                      "allowed_placement": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      },
+                      "direction": "up",
+                      "layers": [
+                        {
+                          "height": 48,
+                          "provider": {
+                            "id": "minecraft:honey_block"
+                          }
+                        }
+                      ],
+                      "prioritize_tip": false
+                    },
+                    "placement": [
+                      {
+                        "type": "minecraft:offset",
+                        "x": 0,
+                        "y": 0,
+                        "z": 1
+                      }
+                    ]
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:block_column",
+                      "allowed_placement": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      },
+                      "direction": "up",
+                      "layers": [
+                        {
+                          "height": 48,
+                          "provider": {
+                            "id": "minecraft:honey_block"
+                          }
+                        }
+                      ],
+                      "prioritize_tip": false
+                    },
+                    "placement": [
+                      {
+                        "type": "minecraft:offset",
+                        "x": 0,
+                        "y": 0,
+                        "z": -1
                       }
                     ]
                   }
-                }
-              ],
-              "prioritize_tip": false
-            },
-            "placement": [
-              {
-                "type": "minecraft:offset",
-                "x": -1,
-                "y": 0,
-                "z": 0
-              }
-            ]
-          },
-          {
-            "feature": {
-              "type": "minecraft:block_column",
-              "allowed_placement": {
-                "type": "minecraft:matching_block_tag",
-                "tag": "minecraft:air"
+                ]
               },
-              "direction": "up",
-              "layers": [
-                {
-                  "height": 48,
-                  "provider": {
-                    "type": "minecraft:weighted",
-                    "entries": [
-                      {
-                        "data": {
-                          "id": "minecraft:pink_stained_glass"
-                        },
-                        "weight": 3
-                      },
-                      {
-                        "data": {
-                          "id": "minecraft:light_blue_stained_glass"
-                        },
-                        "weight": 3
-                      }
-                    ]
-                  }
-                }
-              ],
-              "prioritize_tip": false
-            },
-            "placement": [
-              {
-                "type": "minecraft:offset",
-                "x": 0,
-                "y": 0,
-                "z": 1
-              }
-            ]
-          },
-          {
-            "feature": {
-              "type": "minecraft:block_column",
-              "allowed_placement": {
-                "type": "minecraft:matching_block_tag",
-                "tag": "minecraft:air"
-              },
-              "direction": "up",
-              "layers": [
-                {
-                  "height": 48,
-                  "provider": {
-                    "type": "minecraft:weighted",
-                    "entries": [
-                      {
-                        "data": {
-                          "id": "minecraft:pink_stained_glass"
-                        },
-                        "weight": 3
-                      },
-                      {
-                        "data": {
-                          "id": "minecraft:light_blue_stained_glass"
-                        },
-                        "weight": 3
-                      }
-                    ]
-                  }
-                }
-              ],
-              "prioritize_tip": false
-            },
-            "placement": [
-              {
-                "type": "minecraft:offset",
-                "x": 0,
-                "y": 0,
-                "z": -1
-              }
-            ]
+              "placement": []
+            }
           }
         ]
       },
@@ -577,48 +938,43 @@
         }
       ]
     },
-    "glass_floors": {
+    "glow_pools": {
       "feature": {
-        "type": "minecraft:vegetation_patch",
-        "depth": 1,
-        "extra_bottom_block_chance": 0.0,
-        "extra_edge_column_chance": 0.3,
+        "type": "minecraft:waterlogged_vegetation_patch",
+        "depth": 2,
+        "extra_bottom_block_chance": 0.8,
+        "extra_edge_column_chance": 0.5,
         "ground_state": {
           "type": "minecraft:weighted",
           "entries": [
             {
               "data": "minecraft:calcite",
-              "weight": 5
+              "weight": 3
             },
             {
-              "data": "minecraft:purple_stained_glass",
-              "weight": 2
+              "data": "minecraft:clay",
+              "weight": 1
             }
           ]
         },
         "replaceable": "#minecraft:base_stone_overworld",
         "surface": "floor",
-        "vegetation_chance": 0.0,
+        "vegetation_chance": 0.2,
         "vegetation_feature": {
-          "feature": {
-            "type": "minecraft:simple_block",
-            "to_place": {
-              "id": "minecraft:air"
-            }
-          },
+          "feature": "minecraft:sea_pickle",
           "placement": []
         },
         "vertical_range": 5,
         "xz_radius": {
           "type": "minecraft:uniform",
-          "max_inclusive": 6,
+          "max_inclusive": 5,
           "min_inclusive": 3
         }
       },
       "placement": [
         {
           "type": "minecraft:count",
-          "count": 90
+          "count": 30
         },
         {
           "type": "minecraft:in_square"
@@ -663,37 +1019,32 @@
         }
       ]
     },
-    "glow_pools": {
+    "honeycomb_crusts": {
       "feature": {
-        "type": "minecraft:waterlogged_vegetation_patch",
-        "depth": 2,
-        "extra_bottom_block_chance": 0.8,
-        "extra_edge_column_chance": 0.5,
+        "type": "minecraft:vegetation_patch",
+        "depth": 1,
+        "extra_bottom_block_chance": 0.0,
+        "extra_edge_column_chance": 0.3,
         "ground_state": {
-          "type": "minecraft:weighted",
-          "entries": [
-            {
-              "data": "minecraft:calcite",
-              "weight": 3
-            },
-            {
-              "data": "minecraft:clay",
-              "weight": 1
-            }
-          ]
+          "id": "minecraft:honeycomb_block"
         },
         "replaceable": "#minecraft:base_stone_overworld",
         "surface": "floor",
-        "vegetation_chance": 0.2,
+        "vegetation_chance": 0.0,
         "vegetation_feature": {
-          "feature": "minecraft:sea_pickle",
+          "feature": {
+            "type": "minecraft:simple_block",
+            "to_place": {
+              "id": "minecraft:air"
+            }
+          },
           "placement": []
         },
         "vertical_range": 5,
         "xz_radius": {
           "type": "minecraft:uniform",
-          "max_inclusive": 5,
-          "min_inclusive": 3
+          "max_inclusive": 3,
+          "min_inclusive": 1
         }
       },
       "placement": [

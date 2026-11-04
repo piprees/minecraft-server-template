@@ -2,7 +2,7 @@
   "$schema": "../../../../../../schema/biome.schema.json",
   "realm": "overworld",
   "inspiredBy": "Regions Unexplored, Fungal Fen.",
-  "differs": "Mushroom fields are dry islands; this is a swamp of them: giant red and brown mushrooms stand in broad, level, shallow pools of dark water over mud and clay, on mycelium and mud ground fringed with muddy mangrove roots, fallen dark oak logs carry shelf fungi, glow lichen climbs the stems, lily pads float on the water, and spores drift in the gloom.",
+  "differs": "Mushroom fields are dry islands; this is a swamp of them: giant red and brown mushrooms stand in broad, level, shallow pools of dark water over mud and clay, on mycelium and mud ground broken by grassy tussocks of short grass and ferns, tall grass and large ferns crowd the pool edges with sugar cane reeds in the shallows' margins, muddy mangrove roots fringe the ground, fallen dark oak logs carry shelf fungi, glow lichen climbs the stems, lily pads float on the water, and spores drift in the gloom.",
   "climate": {
     "temperature": [
       0.2,
@@ -171,6 +171,9 @@
         "~fen_lichen",
         "~fallen_logs",
         "~small_mushrooms",
+        "~tussocks",
+        "~sedges",
+        "~reeds",
         "~lily_pads"
       ],
       [
@@ -1116,6 +1119,343 @@
         },
         {
           "type": "minecraft:biome"
+        }
+      ]
+    },
+    "tussocks": {
+      "feature": {
+        "type": "minecraft:vegetation_patch",
+        "depth": 1,
+        "extra_bottom_block_chance": 0.0,
+        "extra_edge_column_chance": 0.4,
+        "ground_state": {
+          "id": "minecraft:grass_block"
+        },
+        "replaceable": "#minecraft:grass_blocks",
+        "surface": "floor",
+        "vegetation_chance": 0.7,
+        "vegetation_feature": {
+          "feature": {
+            "type": "minecraft:simple_block",
+            "to_place": {
+              "type": "minecraft:weighted",
+              "entries": [
+                {
+                  "data": "minecraft:short_grass",
+                  "weight": 5
+                },
+                {
+                  "data": "minecraft:fern",
+                  "weight": 3
+                }
+              ]
+            }
+          },
+          "placement": []
+        },
+        "vertical_range": 2,
+        "xz_radius": {
+          "type": "minecraft:uniform",
+          "max_inclusive": 3,
+          "min_inclusive": 2
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 1
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:heightmap",
+          "heightmap": "WORLD_SURFACE_WG"
+        },
+        {
+          "type": "minecraft:biome"
+        },
+        {
+          "type": "minecraft:block_predicate_filter",
+          "predicate": {
+            "type": "minecraft:all_of",
+            "predicates": [
+              {
+                "type": "minecraft:matching_block_tag",
+                "tag": "minecraft:air"
+              },
+              {
+                "type": "minecraft:matching_blocks",
+                "blocks": [
+                  "minecraft:mycelium"
+                ],
+                "offset": [
+                  0,
+                  -1,
+                  0
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "sedges": {
+      "feature": {
+        "type": "minecraft:simple_block",
+        "to_place": {
+          "type": "minecraft:weighted",
+          "entries": [
+            {
+              "data": {
+                "id": "minecraft:tall_grass",
+                "properties": {
+                  "half": "lower"
+                }
+              },
+              "weight": 3
+            },
+            {
+              "data": {
+                "id": "minecraft:large_fern",
+                "properties": {
+                  "half": "lower"
+                }
+              },
+              "weight": 2
+            }
+          ]
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 3
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:heightmap",
+          "heightmap": "MOTION_BLOCKING"
+        },
+        {
+          "type": "minecraft:biome"
+        },
+        {
+          "type": "minecraft:count",
+          "count": 32
+        },
+        {
+          "type": "minecraft:offset",
+          "x": {
+            "type": "minecraft:trapezoid",
+            "max": 6,
+            "min": -6,
+            "plateau": 0
+          },
+          "y": {
+            "type": "minecraft:trapezoid",
+            "max": 1,
+            "min": -1,
+            "plateau": 0
+          },
+          "z": {
+            "type": "minecraft:trapezoid",
+            "max": 6,
+            "min": -6,
+            "plateau": 0
+          }
+        },
+        {
+          "type": "minecraft:block_predicate_filter",
+          "predicate": {
+            "type": "minecraft:all_of",
+            "predicates": [
+              {
+                "type": "minecraft:matching_block_tag",
+                "tag": "minecraft:air"
+              },
+              {
+                "type": "minecraft:matching_blocks",
+                "blocks": [
+                  "minecraft:mycelium",
+                  "minecraft:mud",
+                  "minecraft:grass_block"
+                ],
+                "offset": [
+                  0,
+                  -1,
+                  0
+                ]
+              },
+              {
+                "type": "minecraft:any_of",
+                "predicates": [
+                  {
+                    "type": "minecraft:matching_fluids",
+                    "offset": [
+                      1,
+                      -1,
+                      0
+                    ],
+                    "fluids": "minecraft:water"
+                  },
+                  {
+                    "type": "minecraft:matching_fluids",
+                    "offset": [
+                      -1,
+                      -1,
+                      0
+                    ],
+                    "fluids": "minecraft:water"
+                  },
+                  {
+                    "type": "minecraft:matching_fluids",
+                    "offset": [
+                      0,
+                      -1,
+                      1
+                    ],
+                    "fluids": "minecraft:water"
+                  },
+                  {
+                    "type": "minecraft:matching_fluids",
+                    "offset": [
+                      0,
+                      -1,
+                      -1
+                    ],
+                    "fluids": "minecraft:water"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "reeds": {
+      "feature": {
+        "type": "minecraft:block_column",
+        "allowed_placement": {
+          "type": "minecraft:matching_block_tag",
+          "tag": "minecraft:air"
+        },
+        "direction": "up",
+        "layers": [
+          {
+            "height": {
+              "type": "minecraft:biased_to_bottom",
+              "max_inclusive": 4,
+              "min_inclusive": 2
+            },
+            "provider": {
+              "id": "minecraft:sugar_cane",
+              "properties": {
+                "age": "0"
+              }
+            }
+          }
+        ],
+        "prioritize_tip": false
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 2
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:heightmap",
+          "heightmap": "MOTION_BLOCKING"
+        },
+        {
+          "type": "minecraft:biome"
+        },
+        {
+          "type": "minecraft:count",
+          "count": 20
+        },
+        {
+          "type": "minecraft:offset",
+          "x": {
+            "type": "minecraft:trapezoid",
+            "max": 5,
+            "min": -5,
+            "plateau": 0
+          },
+          "y": {
+            "type": "minecraft:trapezoid",
+            "max": 0,
+            "min": 0,
+            "plateau": 0
+          },
+          "z": {
+            "type": "minecraft:trapezoid",
+            "max": 5,
+            "min": -5,
+            "plateau": 0
+          }
+        },
+        {
+          "type": "minecraft:block_predicate_filter",
+          "predicate": {
+            "type": "minecraft:all_of",
+            "predicates": [
+              {
+                "type": "minecraft:matching_block_tag",
+                "tag": "minecraft:air"
+              },
+              {
+                "type": "minecraft:would_survive",
+                "state": "minecraft:sugar_cane"
+              },
+              {
+                "type": "minecraft:any_of",
+                "predicates": [
+                  {
+                    "type": "minecraft:matching_fluids",
+                    "offset": [
+                      1,
+                      -1,
+                      0
+                    ],
+                    "fluids": "minecraft:water"
+                  },
+                  {
+                    "type": "minecraft:matching_fluids",
+                    "offset": [
+                      -1,
+                      -1,
+                      0
+                    ],
+                    "fluids": "minecraft:water"
+                  },
+                  {
+                    "type": "minecraft:matching_fluids",
+                    "offset": [
+                      0,
+                      -1,
+                      1
+                    ],
+                    "fluids": "minecraft:water"
+                  },
+                  {
+                    "type": "minecraft:matching_fluids",
+                    "offset": [
+                      0,
+                      -1,
+                      -1
+                    ],
+                    "fluids": "minecraft:water"
+                  }
+                ]
+              }
+            ]
+          }
         }
       ]
     }

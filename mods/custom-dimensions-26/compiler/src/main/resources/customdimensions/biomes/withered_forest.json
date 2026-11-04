@@ -2,7 +2,7 @@
   "$schema": "../../../../../../schema/biome.schema.json",
   "realm": "nether",
   "inspiredBy": "BetterNether's old fungiwoods, and our Nether dimensions' need for a dead forest.",
-  "differs": "Nether forests are alive; this one is dead: bare stripped crimson and warped stems stand capless over soul soil, fallen stems lie among them, wither roses grow in their shade, soul fire flickers blue on the ground, and ash drifts through a blue-grey fog.",
+  "differs": "Nether forests are alive; this one is dead: short stripped crimson and warped trunks stand bare over soul soil, the branches that fell from them lie round their feet as sparse dead bushes on patches of dry dirt, fallen stems lie among them, wither roses grow in their shade, soul fire flickers blue on the ground, and ash drifts through a thick blue-grey fog.",
   "climate": {
     "temperature": [
       -0.6,
@@ -97,7 +97,7 @@
             "particle": {
               "type": "minecraft:ash"
             },
-            "probability": 0.03
+            "probability": 0.05
           },
           {
             "particle": {
@@ -108,7 +108,15 @@
         ],
         "modifier": "append"
       },
-      "minecraft:visual/fog_color": "#4c5866"
+      "minecraft:visual/fog_color": "#55606c",
+      "minecraft:visual/fog_start_distance": {
+        "argument": 0.0,
+        "modifier": "multiply"
+      },
+      "minecraft:visual/fog_end_distance": {
+        "argument": 0.45,
+        "modifier": "multiply"
+      }
     },
     "carvers": "minecraft:nether_cave",
     "downfall": 0.0,
@@ -142,6 +150,7 @@
         "minecraft:spring_lava",
         "~crimson_snags",
         "~warped_snags",
+        "~dead_bushes",
         "~fallen_stems",
         "~wither_roses",
         "~soul_fires"
@@ -153,75 +162,37 @@
   "features": {
     "crimson_snags": {
       "feature": {
-        "type": "minecraft:huge_fungus",
-        "decor_state": "minecraft:air",
-        "hat_state": "minecraft:air",
-        "replaceable_blocks": {
-          "type": "minecraft:matching_blocks",
-          "blocks": [
-            "minecraft:oak_sapling",
-            "minecraft:spruce_sapling",
-            "minecraft:birch_sapling",
-            "minecraft:jungle_sapling",
-            "minecraft:acacia_sapling",
-            "minecraft:cherry_sapling",
-            "minecraft:dark_oak_sapling",
-            "minecraft:pale_oak_sapling",
-            "minecraft:mangrove_propagule",
-            "minecraft:dandelion",
-            "minecraft:torchflower",
-            "minecraft:poppy",
-            "minecraft:blue_orchid",
-            "minecraft:allium",
-            "minecraft:azure_bluet",
-            "minecraft:red_tulip",
-            "minecraft:orange_tulip",
-            "minecraft:white_tulip",
-            "minecraft:pink_tulip",
-            "minecraft:oxeye_daisy",
-            "minecraft:cornflower",
-            "minecraft:wither_rose",
-            "minecraft:lily_of_the_valley",
-            "minecraft:brown_mushroom",
-            "minecraft:red_mushroom",
-            "minecraft:wheat",
-            "minecraft:sugar_cane",
-            "minecraft:attached_pumpkin_stem",
-            "minecraft:attached_melon_stem",
-            "minecraft:pumpkin_stem",
-            "minecraft:melon_stem",
-            "minecraft:lily_pad",
-            "minecraft:nether_wart",
-            "minecraft:cocoa",
-            "minecraft:carrots",
-            "minecraft:potatoes",
-            "minecraft:chorus_plant",
-            "minecraft:chorus_flower",
-            "minecraft:torchflower_crop",
-            "minecraft:pitcher_crop",
-            "minecraft:beetroots",
-            "minecraft:sweet_berry_bush",
-            "minecraft:warped_fungus",
-            "minecraft:crimson_fungus",
-            "minecraft:weeping_vines",
-            "minecraft:weeping_vines_plant",
-            "minecraft:twisting_vines",
-            "minecraft:twisting_vines_plant",
-            "minecraft:cave_vines",
-            "minecraft:cave_vines_plant",
-            "minecraft:spore_blossom",
-            "minecraft:azalea",
-            "minecraft:flowering_azalea",
-            "minecraft:moss_carpet",
-            "minecraft:pink_petals",
-            "minecraft:wildflowers",
-            "minecraft:big_dripleaf",
-            "minecraft:big_dripleaf_stem",
-            "minecraft:small_dripleaf"
-          ]
+        "type": "minecraft:tree",
+        "below_trunk_provider": {
+          "type": "minecraft:rule_based",
+          "rules": []
         },
-        "stem_state": "minecraft:stripped_crimson_stem",
-        "valid_base_block": "minecraft:soul_soil"
+        "decorators": [],
+        "foliage_placer": {
+          "type": "minecraft:blob_foliage_placer",
+          "height": 1,
+          "offset": 0,
+          "radius": 0
+        },
+        "foliage_provider": {
+          "id": "minecraft:air"
+        },
+        "ignore_vines": true,
+        "minimum_size": {
+          "type": "minecraft:two_layers_feature_size"
+        },
+        "trunk_placer": {
+          "type": "minecraft:straight_trunk_placer",
+          "base_height": 3,
+          "height_rand_a": 1,
+          "height_rand_b": 1
+        },
+        "trunk_provider": {
+          "id": "minecraft:stripped_crimson_stem",
+          "properties": {
+            "axis": "y"
+          }
+        }
       },
       "placement": [
         {
@@ -230,80 +201,65 @@
         },
         {
           "type": "minecraft:biome"
+        },
+        {
+          "type": "minecraft:block_predicate_filter",
+          "predicate": {
+            "type": "minecraft:all_of",
+            "predicates": [
+              {
+                "type": "minecraft:matching_block_tag",
+                "tag": "minecraft:air"
+              },
+              {
+                "type": "minecraft:matching_blocks",
+                "blocks": [
+                  "minecraft:soul_soil"
+                ],
+                "offset": [
+                  0,
+                  -1,
+                  0
+                ]
+              }
+            ]
+          }
         }
       ]
     },
     "warped_snags": {
       "feature": {
-        "type": "minecraft:huge_fungus",
-        "decor_state": "minecraft:air",
-        "hat_state": "minecraft:air",
-        "replaceable_blocks": {
-          "type": "minecraft:matching_blocks",
-          "blocks": [
-            "minecraft:oak_sapling",
-            "minecraft:spruce_sapling",
-            "minecraft:birch_sapling",
-            "minecraft:jungle_sapling",
-            "minecraft:acacia_sapling",
-            "minecraft:cherry_sapling",
-            "minecraft:dark_oak_sapling",
-            "minecraft:pale_oak_sapling",
-            "minecraft:mangrove_propagule",
-            "minecraft:dandelion",
-            "minecraft:torchflower",
-            "minecraft:poppy",
-            "minecraft:blue_orchid",
-            "minecraft:allium",
-            "minecraft:azure_bluet",
-            "minecraft:red_tulip",
-            "minecraft:orange_tulip",
-            "minecraft:white_tulip",
-            "minecraft:pink_tulip",
-            "minecraft:oxeye_daisy",
-            "minecraft:cornflower",
-            "minecraft:wither_rose",
-            "minecraft:lily_of_the_valley",
-            "minecraft:brown_mushroom",
-            "minecraft:red_mushroom",
-            "minecraft:wheat",
-            "minecraft:sugar_cane",
-            "minecraft:attached_pumpkin_stem",
-            "minecraft:attached_melon_stem",
-            "minecraft:pumpkin_stem",
-            "minecraft:melon_stem",
-            "minecraft:lily_pad",
-            "minecraft:nether_wart",
-            "minecraft:cocoa",
-            "minecraft:carrots",
-            "minecraft:potatoes",
-            "minecraft:chorus_plant",
-            "minecraft:chorus_flower",
-            "minecraft:torchflower_crop",
-            "minecraft:pitcher_crop",
-            "minecraft:beetroots",
-            "minecraft:sweet_berry_bush",
-            "minecraft:warped_fungus",
-            "minecraft:crimson_fungus",
-            "minecraft:weeping_vines",
-            "minecraft:weeping_vines_plant",
-            "minecraft:twisting_vines",
-            "minecraft:twisting_vines_plant",
-            "minecraft:cave_vines",
-            "minecraft:cave_vines_plant",
-            "minecraft:spore_blossom",
-            "minecraft:azalea",
-            "minecraft:flowering_azalea",
-            "minecraft:moss_carpet",
-            "minecraft:pink_petals",
-            "minecraft:wildflowers",
-            "minecraft:big_dripleaf",
-            "minecraft:big_dripleaf_stem",
-            "minecraft:small_dripleaf"
-          ]
+        "type": "minecraft:tree",
+        "below_trunk_provider": {
+          "type": "minecraft:rule_based",
+          "rules": []
         },
-        "stem_state": "minecraft:stripped_warped_stem",
-        "valid_base_block": "minecraft:soul_soil"
+        "decorators": [],
+        "foliage_placer": {
+          "type": "minecraft:blob_foliage_placer",
+          "height": 1,
+          "offset": 0,
+          "radius": 0
+        },
+        "foliage_provider": {
+          "id": "minecraft:air"
+        },
+        "ignore_vines": true,
+        "minimum_size": {
+          "type": "minecraft:two_layers_feature_size"
+        },
+        "trunk_placer": {
+          "type": "minecraft:straight_trunk_placer",
+          "base_height": 3,
+          "height_rand_a": 1,
+          "height_rand_b": 1
+        },
+        "trunk_provider": {
+          "id": "minecraft:stripped_warped_stem",
+          "properties": {
+            "axis": "y"
+          }
+        }
       },
       "placement": [
         {
@@ -312,6 +268,29 @@
         },
         {
           "type": "minecraft:biome"
+        },
+        {
+          "type": "minecraft:block_predicate_filter",
+          "predicate": {
+            "type": "minecraft:all_of",
+            "predicates": [
+              {
+                "type": "minecraft:matching_block_tag",
+                "tag": "minecraft:air"
+              },
+              {
+                "type": "minecraft:matching_blocks",
+                "blocks": [
+                  "minecraft:soul_soil"
+                ],
+                "offset": [
+                  0,
+                  -1,
+                  0
+                ]
+              }
+            ]
+          }
         }
       ]
     },
@@ -509,6 +488,395 @@
               }
             ]
           }
+        }
+      ]
+    },
+    "dead_bushes": {
+      "feature": {
+        "type": "minecraft:block_column",
+        "allowed_placement": {
+          "type": "minecraft:matching_blocks",
+          "blocks": [
+            "minecraft:soul_soil",
+            "minecraft:air"
+          ]
+        },
+        "direction": "up",
+        "prioritize_tip": true,
+        "layers": [
+          {
+            "height": 1,
+            "provider": {
+              "id": "minecraft:coarse_dirt"
+            }
+          },
+          {
+            "height": 1,
+            "provider": {
+              "id": "minecraft:dead_bush"
+            }
+          }
+        ]
+      },
+      "placement": [
+        {
+          "type": "minecraft:count_on_every_layer",
+          "count": 4
+        },
+        {
+          "type": "minecraft:biome"
+        },
+        {
+          "type": "minecraft:count",
+          "count": 20
+        },
+        {
+          "type": "minecraft:offset",
+          "x": {
+            "type": "minecraft:trapezoid",
+            "max": 4,
+            "min": -4,
+            "plateau": 0
+          },
+          "y": {
+            "type": "minecraft:trapezoid",
+            "max": 1,
+            "min": -1,
+            "plateau": 0
+          },
+          "z": {
+            "type": "minecraft:trapezoid",
+            "max": 4,
+            "min": -4,
+            "plateau": 0
+          }
+        },
+        {
+          "type": "minecraft:block_predicate_filter",
+          "predicate": {
+            "type": "minecraft:all_of",
+            "predicates": [
+              {
+                "type": "minecraft:all_of",
+                "predicates": [
+                  {
+                    "type": "minecraft:matching_block_tag",
+                    "tag": "minecraft:air"
+                  },
+                  {
+                    "type": "minecraft:matching_blocks",
+                    "blocks": [
+                      "minecraft:soul_soil"
+                    ],
+                    "offset": [
+                      0,
+                      -1,
+                      0
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "minecraft:any_of",
+                "predicates": [
+                  {
+                    "type": "minecraft:matching_blocks",
+                    "offset": [
+                      -2,
+                      0,
+                      -2
+                    ],
+                    "blocks": [
+                      "minecraft:stripped_crimson_stem",
+                      "minecraft:stripped_warped_stem"
+                    ]
+                  },
+                  {
+                    "type": "minecraft:matching_blocks",
+                    "offset": [
+                      -2,
+                      0,
+                      -1
+                    ],
+                    "blocks": [
+                      "minecraft:stripped_crimson_stem",
+                      "minecraft:stripped_warped_stem"
+                    ]
+                  },
+                  {
+                    "type": "minecraft:matching_blocks",
+                    "offset": [
+                      -2,
+                      0,
+                      0
+                    ],
+                    "blocks": [
+                      "minecraft:stripped_crimson_stem",
+                      "minecraft:stripped_warped_stem"
+                    ]
+                  },
+                  {
+                    "type": "minecraft:matching_blocks",
+                    "offset": [
+                      -2,
+                      0,
+                      1
+                    ],
+                    "blocks": [
+                      "minecraft:stripped_crimson_stem",
+                      "minecraft:stripped_warped_stem"
+                    ]
+                  },
+                  {
+                    "type": "minecraft:matching_blocks",
+                    "offset": [
+                      -2,
+                      0,
+                      2
+                    ],
+                    "blocks": [
+                      "minecraft:stripped_crimson_stem",
+                      "minecraft:stripped_warped_stem"
+                    ]
+                  },
+                  {
+                    "type": "minecraft:matching_blocks",
+                    "offset": [
+                      -1,
+                      0,
+                      -2
+                    ],
+                    "blocks": [
+                      "minecraft:stripped_crimson_stem",
+                      "minecraft:stripped_warped_stem"
+                    ]
+                  },
+                  {
+                    "type": "minecraft:matching_blocks",
+                    "offset": [
+                      -1,
+                      0,
+                      -1
+                    ],
+                    "blocks": [
+                      "minecraft:stripped_crimson_stem",
+                      "minecraft:stripped_warped_stem"
+                    ]
+                  },
+                  {
+                    "type": "minecraft:matching_blocks",
+                    "offset": [
+                      -1,
+                      0,
+                      0
+                    ],
+                    "blocks": [
+                      "minecraft:stripped_crimson_stem",
+                      "minecraft:stripped_warped_stem"
+                    ]
+                  },
+                  {
+                    "type": "minecraft:matching_blocks",
+                    "offset": [
+                      -1,
+                      0,
+                      1
+                    ],
+                    "blocks": [
+                      "minecraft:stripped_crimson_stem",
+                      "minecraft:stripped_warped_stem"
+                    ]
+                  },
+                  {
+                    "type": "minecraft:matching_blocks",
+                    "offset": [
+                      -1,
+                      0,
+                      2
+                    ],
+                    "blocks": [
+                      "minecraft:stripped_crimson_stem",
+                      "minecraft:stripped_warped_stem"
+                    ]
+                  },
+                  {
+                    "type": "minecraft:matching_blocks",
+                    "offset": [
+                      0,
+                      0,
+                      -2
+                    ],
+                    "blocks": [
+                      "minecraft:stripped_crimson_stem",
+                      "minecraft:stripped_warped_stem"
+                    ]
+                  },
+                  {
+                    "type": "minecraft:matching_blocks",
+                    "offset": [
+                      0,
+                      0,
+                      -1
+                    ],
+                    "blocks": [
+                      "minecraft:stripped_crimson_stem",
+                      "minecraft:stripped_warped_stem"
+                    ]
+                  },
+                  {
+                    "type": "minecraft:matching_blocks",
+                    "offset": [
+                      0,
+                      0,
+                      1
+                    ],
+                    "blocks": [
+                      "minecraft:stripped_crimson_stem",
+                      "minecraft:stripped_warped_stem"
+                    ]
+                  },
+                  {
+                    "type": "minecraft:matching_blocks",
+                    "offset": [
+                      0,
+                      0,
+                      2
+                    ],
+                    "blocks": [
+                      "minecraft:stripped_crimson_stem",
+                      "minecraft:stripped_warped_stem"
+                    ]
+                  },
+                  {
+                    "type": "minecraft:matching_blocks",
+                    "offset": [
+                      1,
+                      0,
+                      -2
+                    ],
+                    "blocks": [
+                      "minecraft:stripped_crimson_stem",
+                      "minecraft:stripped_warped_stem"
+                    ]
+                  },
+                  {
+                    "type": "minecraft:matching_blocks",
+                    "offset": [
+                      1,
+                      0,
+                      -1
+                    ],
+                    "blocks": [
+                      "minecraft:stripped_crimson_stem",
+                      "minecraft:stripped_warped_stem"
+                    ]
+                  },
+                  {
+                    "type": "minecraft:matching_blocks",
+                    "offset": [
+                      1,
+                      0,
+                      0
+                    ],
+                    "blocks": [
+                      "minecraft:stripped_crimson_stem",
+                      "minecraft:stripped_warped_stem"
+                    ]
+                  },
+                  {
+                    "type": "minecraft:matching_blocks",
+                    "offset": [
+                      1,
+                      0,
+                      1
+                    ],
+                    "blocks": [
+                      "minecraft:stripped_crimson_stem",
+                      "minecraft:stripped_warped_stem"
+                    ]
+                  },
+                  {
+                    "type": "minecraft:matching_blocks",
+                    "offset": [
+                      1,
+                      0,
+                      2
+                    ],
+                    "blocks": [
+                      "minecraft:stripped_crimson_stem",
+                      "minecraft:stripped_warped_stem"
+                    ]
+                  },
+                  {
+                    "type": "minecraft:matching_blocks",
+                    "offset": [
+                      2,
+                      0,
+                      -2
+                    ],
+                    "blocks": [
+                      "minecraft:stripped_crimson_stem",
+                      "minecraft:stripped_warped_stem"
+                    ]
+                  },
+                  {
+                    "type": "minecraft:matching_blocks",
+                    "offset": [
+                      2,
+                      0,
+                      -1
+                    ],
+                    "blocks": [
+                      "minecraft:stripped_crimson_stem",
+                      "minecraft:stripped_warped_stem"
+                    ]
+                  },
+                  {
+                    "type": "minecraft:matching_blocks",
+                    "offset": [
+                      2,
+                      0,
+                      0
+                    ],
+                    "blocks": [
+                      "minecraft:stripped_crimson_stem",
+                      "minecraft:stripped_warped_stem"
+                    ]
+                  },
+                  {
+                    "type": "minecraft:matching_blocks",
+                    "offset": [
+                      2,
+                      0,
+                      1
+                    ],
+                    "blocks": [
+                      "minecraft:stripped_crimson_stem",
+                      "minecraft:stripped_warped_stem"
+                    ]
+                  },
+                  {
+                    "type": "minecraft:matching_blocks",
+                    "offset": [
+                      2,
+                      0,
+                      2
+                    ],
+                    "blocks": [
+                      "minecraft:stripped_crimson_stem",
+                      "minecraft:stripped_warped_stem"
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "type": "minecraft:offset",
+          "x": 0,
+          "y": -1,
+          "z": 0
         }
       ]
     }

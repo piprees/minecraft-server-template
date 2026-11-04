@@ -2,7 +2,7 @@
   "$schema": "../../../../../../schema/biome.schema.json",
   "realm": "nether",
   "inspiredBy": "Our Nether dimensions' need for a white land.",
-  "differs": "The only white Nether biome: plains paved in quartz over netherrack seamed with quartz ore, quartz pillars standing alone and capped with glowstone, smooth quartz slabs lying loose on the ground, glowstone clustered under the roof so the white reads white, and a pale fog.",
+  "differs": "The only white Nether biome: plains paved in quartz over netherrack seamed with quartz ore, quartz pillars standing alone and capped with glowstone, smooth quartz slabs lying loose on the ground, glowstone clustered under the roof so the white reads white, and a pale fog; very rarely, a single block of still water lies at the bottom of a small pit, ringed by the broken stumps of a white ruin of quartz bricks, chiselled quartz and smooth quartz stairs, as if another world leaked in once.",
   "climate": {
     "temperature": [
       0.0,
@@ -126,7 +126,8 @@
       [
         "minecraft:spring_lava",
         "~quartz_pillars",
-        "~quartz_slabs"
+        "~quartz_slabs",
+        "~leaked_pit"
       ]
     ],
     "has_precipitation": false,
@@ -406,6 +407,316 @@
               }
             ]
           }
+        }
+      ]
+    },
+    "leaked_pit": {
+      "feature": {
+        "type": "minecraft:sequence",
+        "features": [
+          {
+            "feature": {
+              "type": "minecraft:block_column",
+              "allowed_placement": {
+                "type": "minecraft:matching_blocks",
+                "blocks": [
+                  "minecraft:quartz_block",
+                  "minecraft:netherrack",
+                  "minecraft:nether_quartz_ore"
+                ]
+              },
+              "direction": "down",
+              "prioritize_tip": false,
+              "layers": [
+                {
+                  "height": 1,
+                  "provider": {
+                    "id": "minecraft:air"
+                  }
+                },
+                {
+                  "height": 1,
+                  "provider": {
+                    "id": "minecraft:water",
+                    "properties": {
+                      "level": "0"
+                    }
+                  }
+                },
+                {
+                  "height": 1,
+                  "provider": {
+                    "id": "minecraft:clay"
+                  }
+                }
+              ]
+            },
+            "placement": []
+          },
+          {
+            "feature": {
+              "type": "minecraft:block_column",
+              "allowed_placement": {
+                "type": "minecraft:matching_block_tag",
+                "tag": "minecraft:air"
+              },
+              "direction": "up",
+              "prioritize_tip": true,
+              "layers": [
+                {
+                  "height": {
+                    "type": "minecraft:uniform",
+                    "max_inclusive": 2,
+                    "min_inclusive": 0
+                  },
+                  "provider": {
+                    "id": "minecraft:quartz_bricks"
+                  }
+                },
+                {
+                  "height": 1,
+                  "provider": {
+                    "type": "minecraft:weighted",
+                    "entries": [
+                      {
+                        "data": {
+                          "id": "minecraft:quartz_bricks"
+                        },
+                        "weight": 3
+                      },
+                      {
+                        "data": {
+                          "id": "minecraft:chiseled_quartz_block"
+                        },
+                        "weight": 1
+                      },
+                      {
+                        "data": {
+                          "id": "minecraft:smooth_quartz_stairs",
+                          "properties": {
+                            "facing": "north",
+                            "half": "bottom",
+                            "shape": "straight",
+                            "waterlogged": "false"
+                          }
+                        },
+                        "weight": 1
+                      },
+                      {
+                        "data": {
+                          "id": "minecraft:smooth_quartz_stairs",
+                          "properties": {
+                            "facing": "east",
+                            "half": "bottom",
+                            "shape": "straight",
+                            "waterlogged": "false"
+                          }
+                        },
+                        "weight": 1
+                      },
+                      {
+                        "data": {
+                          "id": "minecraft:smooth_quartz_stairs",
+                          "properties": {
+                            "facing": "south",
+                            "half": "bottom",
+                            "shape": "straight",
+                            "waterlogged": "false"
+                          }
+                        },
+                        "weight": 1
+                      },
+                      {
+                        "data": {
+                          "id": "minecraft:smooth_quartz_stairs",
+                          "properties": {
+                            "facing": "west",
+                            "half": "bottom",
+                            "shape": "straight",
+                            "waterlogged": "false"
+                          }
+                        },
+                        "weight": 1
+                      },
+                      {
+                        "data": {
+                          "id": "minecraft:smooth_quartz_slab",
+                          "properties": {
+                            "type": "bottom",
+                            "waterlogged": "false"
+                          }
+                        },
+                        "weight": 2
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            "placement": [
+              {
+                "type": "minecraft:count",
+                "count": 14
+              },
+              {
+                "type": "minecraft:offset",
+                "x": {
+                  "type": "minecraft:trapezoid",
+                  "max": 3,
+                  "min": -3,
+                  "plateau": 0
+                },
+                "y": 1,
+                "z": {
+                  "type": "minecraft:trapezoid",
+                  "max": 3,
+                  "min": -3,
+                  "plateau": 0
+                }
+              },
+              {
+                "type": "minecraft:block_predicate_filter",
+                "predicate": {
+                  "type": "minecraft:all_of",
+                  "predicates": [
+                    {
+                      "type": "minecraft:matching_block_tag",
+                      "tag": "minecraft:air"
+                    },
+                    {
+                      "type": "minecraft:matching_blocks",
+                      "blocks": [
+                        "minecraft:quartz_block",
+                        "minecraft:netherrack",
+                        "minecraft:nether_quartz_ore"
+                      ],
+                      "offset": [
+                        0,
+                        -1,
+                        0
+                      ]
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "placement": [
+        {
+          "type": "minecraft:rarity_filter",
+          "chance": 40
+        },
+        {
+          "type": "minecraft:count_on_every_layer",
+          "count": 1
+        },
+        {
+          "type": "minecraft:biome"
+        },
+        {
+          "type": "minecraft:block_predicate_filter",
+          "predicate": {
+            "type": "minecraft:all_of",
+            "predicates": [
+              {
+                "type": "minecraft:matching_block_tag",
+                "tag": "minecraft:air"
+              },
+              {
+                "type": "minecraft:matching_blocks",
+                "blocks": [
+                  "minecraft:quartz_block",
+                  "minecraft:netherrack",
+                  "minecraft:nether_quartz_ore"
+                ],
+                "offset": [
+                  0,
+                  -1,
+                  0
+                ]
+              },
+              {
+                "type": "minecraft:solid",
+                "offset": [
+                  1,
+                  -1,
+                  0
+                ]
+              },
+              {
+                "type": "minecraft:solid",
+                "offset": [
+                  -1,
+                  -1,
+                  0
+                ]
+              },
+              {
+                "type": "minecraft:solid",
+                "offset": [
+                  0,
+                  -1,
+                  1
+                ]
+              },
+              {
+                "type": "minecraft:solid",
+                "offset": [
+                  0,
+                  -1,
+                  -1
+                ]
+              },
+              {
+                "type": "minecraft:solid",
+                "offset": [
+                  1,
+                  -2,
+                  0
+                ]
+              },
+              {
+                "type": "minecraft:solid",
+                "offset": [
+                  -1,
+                  -2,
+                  0
+                ]
+              },
+              {
+                "type": "minecraft:solid",
+                "offset": [
+                  0,
+                  -2,
+                  1
+                ]
+              },
+              {
+                "type": "minecraft:solid",
+                "offset": [
+                  0,
+                  -2,
+                  -1
+                ]
+              },
+              {
+                "type": "minecraft:solid",
+                "offset": [
+                  0,
+                  -3,
+                  0
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "type": "minecraft:offset",
+          "x": 0,
+          "y": -1,
+          "z": 0
         }
       ]
     }

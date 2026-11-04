@@ -2,7 +2,7 @@
   "$schema": "../../../../../../schema/biome.schema.json",
   "realm": "nether",
   "inspiredBy": "Regions Unexplored's redstone abyss.",
-  "differs": "The only Nether biome made of redstone: netherrack shot through with thick seams of redstone ore that glow when touched, blackstone seams beside them, clusters of redstone-block crystals on the roof and spires of them on the floor, pits in the floor each lit by a redstone lamp powered by the redstone block under it, electric sparks and red motes in a scarlet fog, and an electric hum.",
+  "differs": "The only Nether biome made of redstone: netherrack shot through with thick seams of redstone ore that glow when touched, breaking out in broad outcrops across the floors, banded with seams of red cinnabar and black blackstone, lit only by the Nether's own glowstone, fire and lava, electric sparks and red motes in a scarlet fog, and an electric hum.",
   "climate": {
     "temperature": [
       0.4,
@@ -128,13 +128,12 @@
         "minecraft:ore_debris_small",
         "~redstone_seams",
         "~blackstone_seams",
-        "~crystal_clusters"
+        "~cinnabar_seams"
       ],
       [],
       [
         "minecraft:spring_lava",
-        "~crystal_spires",
-        "~lamp_pits"
+        "~ore_outcrops"
       ]
     ],
     "has_precipitation": false,
@@ -160,13 +159,20 @@
               "predicate_type": "minecraft:block_match",
               "block": "minecraft:blackstone"
             }
+          },
+          {
+            "state": "minecraft:redstone_ore",
+            "target": {
+              "predicate_type": "minecraft:block_match",
+              "block": "minecraft:cinnabar"
+            }
           }
         ]
       },
       "placement": [
         {
           "type": "minecraft:count",
-          "count": 14
+          "count": 18
         },
         {
           "type": "minecraft:in_square"
@@ -228,39 +234,25 @@
         }
       ]
     },
-    "crystal_clusters": {
+    "cinnabar_seams": {
       "feature": {
-        "type": "minecraft:random_neighbor_spread",
-        "accepted_neighbors": [
-          "minecraft:netherrack",
-          "minecraft:redstone_ore",
-          "minecraft:redstone_block",
-          "minecraft:blackstone"
-        ],
-        "attempts": 70,
-        "block": {
-          "id": "minecraft:redstone_block"
-        },
-        "can_replace": {
-          "type": "minecraft:matching_block_tag",
-          "tag": "minecraft:air"
-        },
-        "xz_offset": {
-          "type": "minecraft:trapezoid",
-          "max": 2,
-          "min": -2,
-          "plateau": 0
-        },
-        "y_offset": {
-          "type": "minecraft:uniform",
-          "max_inclusive": 0,
-          "min_inclusive": -4
-        }
+        "type": "minecraft:ore",
+        "discard_chance_on_air_exposure": 0.0,
+        "size": 40,
+        "targets": [
+          {
+            "state": "minecraft:cinnabar",
+            "target": {
+              "predicate_type": "minecraft:block_match",
+              "block": "minecraft:netherrack"
+            }
+          }
+        ]
       },
       "placement": [
         {
           "type": "minecraft:count",
-          "count": 20
+          "count": 6
         },
         {
           "type": "minecraft:in_square"
@@ -279,164 +271,51 @@
         },
         {
           "type": "minecraft:biome"
-        },
-        {
-          "type": "minecraft:block_predicate_filter",
-          "predicate": {
-            "type": "minecraft:matching_block_tag",
-            "tag": "minecraft:air"
-          }
-        },
-        {
-          "type": "minecraft:environment_scan",
-          "allowed_search_condition": {
-            "type": "minecraft:matching_block_tag",
-            "tag": "minecraft:air"
-          },
-          "direction_of_search": "up",
-          "max_steps": 24,
-          "target_condition": {
-            "type": "minecraft:solid"
-          }
-        },
-        {
-          "type": "minecraft:offset",
-          "x": 0,
-          "y": -1,
-          "z": 0
         }
       ]
     },
-    "crystal_spires": {
+    "ore_outcrops": {
       "feature": {
-        "type": "minecraft:block_column",
-        "allowed_placement": {
-          "type": "minecraft:matching_block_tag",
-          "tag": "minecraft:air"
+        "type": "minecraft:disk",
+        "half_height": 1,
+        "radius": {
+          "type": "minecraft:uniform",
+          "max_inclusive": 4,
+          "min_inclusive": 2
         },
-        "direction": "up",
-        "layers": [
-          {
-            "height": {
-              "type": "minecraft:uniform",
-              "max_inclusive": 6,
-              "min_inclusive": 2
+        "state_provider": {
+          "type": "minecraft:weighted",
+          "entries": [
+            {
+              "data": "minecraft:redstone_ore",
+              "weight": 3
             },
-            "provider": {
-              "id": "minecraft:redstone_block"
+            {
+              "data": "minecraft:cinnabar",
+              "weight": 1
             }
-          }
-        ],
-        "prioritize_tip": false
-      },
-      "placement": [
-        {
-          "type": "minecraft:count_on_every_layer",
-          "count": 3
+          ]
         },
-        {
-          "type": "minecraft:biome"
-        },
-        {
-          "type": "minecraft:count",
-          "count": 5
-        },
-        {
-          "type": "minecraft:offset",
-          "x": {
-            "type": "minecraft:trapezoid",
-            "max": 3,
-            "min": -3,
-            "plateau": 0
-          },
-          "y": {
-            "type": "minecraft:trapezoid",
-            "max": 1,
-            "min": -1,
-            "plateau": 0
-          },
-          "z": {
-            "type": "minecraft:trapezoid",
-            "max": 3,
-            "min": -3,
-            "plateau": 0
-          }
-        },
-        {
-          "type": "minecraft:block_predicate_filter",
-          "predicate": {
-            "type": "minecraft:all_of",
-            "predicates": [
-              {
-                "type": "minecraft:matching_block_tag",
-                "tag": "minecraft:air"
-              },
-              {
-                "type": "minecraft:matching_blocks",
-                "blocks": [
-                  "minecraft:netherrack",
-                  "minecraft:redstone_ore",
-                  "minecraft:blackstone"
-                ],
-                "offset": [
-                  0,
-                  -1,
-                  0
-                ]
-              }
-            ]
-          }
-        }
-      ]
-    },
-    "lamp_pits": {
-      "feature": {
-        "type": "minecraft:block_column",
-        "allowed_placement": {
+        "target": {
           "type": "minecraft:matching_blocks",
           "blocks": [
             "minecraft:netherrack",
-            "minecraft:redstone_ore",
-            "minecraft:blackstone"
+            "minecraft:blackstone",
+            "minecraft:cinnabar"
           ]
-        },
-        "direction": "down",
-        "layers": [
-          {
-            "height": 1,
-            "provider": {
-              "id": "minecraft:air"
-            }
-          },
-          {
-            "height": 1,
-            "provider": {
-              "id": "minecraft:redstone_lamp",
-              "properties": {
-                "lit": "true"
-              }
-            }
-          },
-          {
-            "height": 1,
-            "provider": {
-              "id": "minecraft:redstone_block"
-            }
-          }
-        ],
-        "prioritize_tip": false
+        }
       },
       "placement": [
         {
           "type": "minecraft:count_on_every_layer",
-          "count": 3
+          "count": 2
         },
         {
           "type": "minecraft:biome"
         },
         {
           "type": "minecraft:count",
-          "count": 6
+          "count": 3
         },
         {
           "type": "minecraft:offset",
@@ -472,8 +351,8 @@
                 "type": "minecraft:matching_blocks",
                 "blocks": [
                   "minecraft:netherrack",
-                  "minecraft:redstone_ore",
-                  "minecraft:blackstone"
+                  "minecraft:blackstone",
+                  "minecraft:cinnabar"
                 ],
                 "offset": [
                   0,
@@ -489,62 +368,6 @@
           "x": 0,
           "y": -1,
           "z": 0
-        },
-        {
-          "type": "minecraft:block_predicate_filter",
-          "predicate": {
-            "type": "minecraft:all_of",
-            "predicates": [
-              {
-                "type": "minecraft:solid",
-                "offset": [
-                  1,
-                  0,
-                  0
-                ]
-              },
-              {
-                "type": "minecraft:solid",
-                "offset": [
-                  -1,
-                  0,
-                  0
-                ]
-              },
-              {
-                "type": "minecraft:solid",
-                "offset": [
-                  0,
-                  0,
-                  1
-                ]
-              },
-              {
-                "type": "minecraft:solid",
-                "offset": [
-                  0,
-                  0,
-                  -1
-                ]
-              },
-              {
-                "type": "minecraft:solid",
-                "offset": [
-                  0,
-                  -1,
-                  0
-                ]
-              },
-              {
-                "type": "minecraft:solid",
-                "offset": [
-                  0,
-                  -2,
-                  0
-                ]
-              }
-            ]
-          }
         }
       ]
     }

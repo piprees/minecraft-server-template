@@ -123,10 +123,10 @@ on generated chunks.
 | `orchid_marsh` | overworld | Treeless clay-bottomed pools on level ground, sugar cane reeds, blue orchids, lily pads on the water, frogs |
 | `muddy_river` | overworld | Brown water over clay and mud beds, mud banks, packed mud and mangrove roots at the edge, reeds |
 | `alpha_grove` | overworld | Saturated green grass and foliage, plain blob oaks and nothing else on the ground, gravel beaches, the old pale sky blue |
-| `pumpkin_fields` | overworld | Dull orange turf, dense pumpkin patches, carved pumpkins and jack o'lanterns facing every way, hay, gnarled dark oaks, orange fog |
+| `pumpkin_fields` | overworld | Long dull orange grass, loose pumpkin patches, rare carved pumpkins and jack o'lanterns, hay, coarse dirt, gnarled dark oaks with leaf litter, orange fog |
 | `joshua_desert` | overworld | Sand and coarse dirt, Joshua trees forked two or three times with spiky needle crowns, dead bushes, cactus flowers, white-hot sky |
 | `baobab_savanna` | overworld | Dry yellow grass, lone baobabs: 3x3 bark trunks swelling to 5x5, short boughs, small flat crowns; red sand patches |
-| `fungal_fen` | overworld | Giant mushrooms standing in broad shallow pools of dark water on level ground, mycelium and mud, muddy roots, shelf fungi on fallen logs, lily pads on the water |
+| `fungal_fen` | overworld | Giant mushrooms standing in broad shallow pools of dark water on level ground, mycelium and mud with grassy tussocks, tall grass, large ferns and sugar cane at the pool edges, muddy roots, shelf fungi on fallen logs, lily pads on the water |
 | `dying_forest` | overworld | Spruces thinning, browning or bare, snapped trunks, fallen spruce logs, podzol and coarse dirt under snow, grey sky |
 | `sugi_forest` | overworld | Very tall straight red-barked trunks with flat stacked needle tiers, moss floors, ferns, mossy boulders, green mist |
 | `crystal_hollows` | caves | Calcite and smooth basalt walls, open geodes in every chunk, budding amethyst seams, cluster-covered floor and ceiling patches, glow lichen, purple motes and amethyst chimes |
@@ -136,7 +136,7 @@ on generated chunks.
 | `cinnabar_veins` | caves | Cinnabar ceilings and walls over tuff, polished cinnabar columns, resin clumps, extra redstone ore, red motes |
 | `mineral_strata` | caves | Walls banded in five-block layers of granite, diorite, andesite, tuff and calcite, ore seams, granite and diorite boulders, glow lichen, white dust |
 | `buried_dunes` | caves | Sandstone roofs and walls, sand drifts with dead bushes, cut-sandstone pillars, husks, falling sand dust |
-| `gelatinous_caves` | caves | Glass pillars round froglight cores floor to roof, slime and honey drips from calcite ceilings, glass-inlaid floors, sea-pickle pools |
+| `gelatinous_caves` | caves | Slime and honey pillars round coloured froglight cores floor to roof, slime and honey drips from calcite ceilings, honeycomb floor crusts, sea-pickle pools |
 | `root_hollows` | caves | Mangrove-root strands floor to roof and wall to wall, rooted dirt and mud floors, hanging roots, glow berries, dripstone |
 | `nether_grasslands` | nether | Netherrack plains under crimson and warped nylium patches, sprouts, roots, small fungi, glowstone mounds, orange haze |
 | `magma_land` | nether | Magma floors cracked with netherrack, obsidian-rimmed lava pools, fire, heavy red haze |
@@ -144,10 +144,10 @@ on generated chunks.
 | `upside_down_forest` | nether | Nether wart canopy on every roof, hanging crimson stems tipped with shroomlight, weeping-vine curtains, falling spores |
 | `blackstone_basin` | nether | Blackstone throughout, polished blackstone terraces, gilded seams, blackstone column clusters, lava lakes, black smoke |
 | `ash_barrens` | nether | Tuff over smooth basalt, tuff and soul soil heaps, basalt stumps, lying and buried bone, thick white ash, grey fog |
-| `withered_forest` | nether | Capless stripped crimson and warped stems on soul soil, fallen stems, wither roses, soul fire, blue-grey fog |
-| `quartz_flats` | nether | Quartz-paved plains, quartz ore seams, glowstone-capped quartz pillars, loose quartz slabs, roof glowstone, pale fog |
+| `withered_forest` | nether | Short stripped crimson and warped trunks on soul soil, sparse dead bushes round them, fallen stems, wither roses, soul fire, thick blue-grey fog |
+| `quartz_flats` | nether | Quartz-paved plains, quartz ore seams, glowstone-capped quartz pillars, loose quartz slabs, roof glowstone, pale fog, an ultra-rare 1x1 water pit in a broken quartz-brick ruin |
 | `crimson_pinewood` | nether | Tall crimson stems under tiered, pointed wart crowns with shroomlights, roots and small fungi, crimson spores |
-| `redstone_abyss` | nether | Redstone ore and blackstone seams, redstone-block crystal clusters and spires, floor pits lit by powered redstone lamps, electric sparks, scarlet fog |
+| `redstone_abyss` | nether | Redstone ore, cinnabar and blackstone seams, redstone ore and cinnabar outcrops on the floors, natural Nether light only, electric sparks, scarlet fog |
 | `mycotoxic_undergrowth` | nether | Moss floors, giant fungi with slime-block caps and verdant froglights, twisting vines, hanging green cave vines, poisonous green haze |
 | `nether_jungle` | nether | Tall stripped crimson and warped stems under wart canopies, dense weeping-vine lianas, twisting vines, nylium patches, red-green fog |
 | `chorus_forest` | end | Branching chorus close enough to be a forest, tall chorus stalks tipped with end rods, budding chorus flowers, purple fog and portal sparks |
