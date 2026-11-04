@@ -1596,6 +1596,13 @@ A seed's map and its banked facts appear to contradict each other — the thumbn
   the same trap. Pin it against the Java, not against intuition —
   `scripts/e2e/portal-matrix-selftest.sh` is the worked example.
 
+<a id="t168"></a>
+### T168 — A climate box on one or two axes takes the whole map
+
+- **Symptom:** listed biomes, spawn-filter biomes included, generate at 0% while one or two biomes cover most of the level.
+- **Cause:** an axis a v2 `climate` box does not name covers −2 to 2, so the one- and two-axis stripes converted from 1.21.1 `parameters` take space before every vanilla string entry and win most points outside every box. A library biome listed without a climate uses its default box, which assumes the normal overworld range a seed's core may never reach.
+- **Fix:** measure the seed's climate with one-axis probe definitions rendered with that seed, give every entry an explicit box cut at those quantiles with outer edges at ±2, and verify the shares with `/customdim render`, never by counting the list.
+
 <a id="t167"></a>
 ### T167 — A spore blossom cannot hang from leaves
 
