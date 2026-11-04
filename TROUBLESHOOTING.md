@@ -1596,6 +1596,13 @@ A seed's map and its banked facts appear to contradict each other — the thumbn
   the same trap. Pin it against the Java, not against intuition —
   `scripts/e2e/portal-matrix-selftest.sh` is the worked example.
 
+<a id="t169"></a>
+### T169 — Dry plants placed by `place_on_ground` float on soul soil
+
+- **Symptom:** dead bushes scattered round a tree on soul soil float, then pop off at the first neighbour update.
+- **Cause:** dead bushes and other dry plants survive only on `supports_dry_vegetation` blocks, which exclude soul soil, and 26.3's `place_on_ground` tree decorator places without a survival check.
+- **Fix:** put a supporting block (coarse dirt) under each plant with a two-layer `block_column`, or place the plant with `simple_block`, which checks survival.
+
 <a id="t168"></a>
 ### T168 — A climate box on one or two axes takes the whole map
 
