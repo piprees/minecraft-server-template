@@ -152,12 +152,12 @@ on generated chunks.
 | `nether_jungle` | nether | Tall stripped crimson and warped stems under wart canopies, dense weeping-vine lianas, twisting vines, nylium patches, red-green fog |
 | `chorus_forest` | end | Branching chorus close enough to be a forest, tall chorus stalks tipped with end rods, budding chorus flowers, purple fog and portal sparks |
 | `dust_wastelands` | end | Sand over sandstone heaped into dunes, half-buried end stone boulders, dead bushes and dry grass, yellow-grey dust haze |
-| `umbral_wastes` | end | Blackstone islands, obsidian spikes, crying obsidian seeps, soul fire on soul soil, drifting ash |
+| `umbral_wastes` | end | Blackstone islands, obsidian spikes, long thin kinked cracks of crying obsidian through the ground, soul fire on soul soil, drifting ash |
 | `foggy_mushroomland` | end | Mycelium and moss, giant mushrooms capped with moss and pearlescent froglights, spore blossoms under the caps, mooshrooms, close fog |
 | `glowing_grasslands` | end | Moss meadows over end stone, moss carpets, small dripleaf, verdant froglight clusters, glow lichen |
 | `sulphur_springs` | end | Water pools ringed with sulfur over wet potent sulfur and magma beds, sulfur crusts and spiked vents, steam |
 | `lantern_woods` | end | Pale oaks on pale moss hung with soul lanterns and pale moss, pale moss carpets, soul motes |
-| `megalake` | end | Broad shallow lakes on level ground, clay and sand beds with sea pickles, sand shores, deep blue water |
+| `megalake` | end | Broad shallow lakes running together over the level ground, held in by sand shores, springs pouring from higher ground into them, a few springs at island edges falling into the void, clay and sand beds with sea pickles, deep blue water |
 | `umbrella_jungle` | end | Tall purpur stalks under drooping domes of cherry blossom and flowering azalea leaves hung with strands of pale moss, moss on the end stone, purple motes |
 | `neon_oasis` | end | Cyan pools on level ground lit from below by sea lanterns, coral reefs in the pools and coral rims at the water's edge, sea-lantern-crowned dark prismarine pillars, sand shores, glow lichen |
 | `ice_starfield` | end | Snow-covered islands, packed-ice spikes, blue-ice shards, packed-ice sheets, snow drifts, white sparks and snowflakes |
@@ -165,7 +165,7 @@ on generated chunks.
 | `sky_highlands` | sky | Pale grass over calcite cliffs, quartz outcrops, small round pale oaks, white and pale-blue flowers, sheep, white sky |
 | `golden_skygrove` | sky | Gold-tinted round oaks with bee nests and gold poplars on golden grass and podzol, leaf litter, golden dandelions, drifting gold leaves, gold light |
 | `windswept_isles` | sky | Bare stone with calcite cliffs, wind-bent spruces, cobblestone boulders, deep drifts of loose snow, snowflakes and wind |
-| `cloud_reef` | sky | Wool cloud islands with snow puffs and calcite cliffs, tube and brain coral heads kept alive on sealed water cells, glowing sea pickles |
+| `cloud_reef` | sky | Snow and calcite cloud islands with soft snow drifts, a bleached reef of dead grey coral and bone-block trees, claws and mushrooms hung with dead fans, a few end rods, close pale mist with drifting motes |
 | `hanging_gardens` | sky | Undersides hung with moss, long glow-berry cave vines and hanging roots, flowery grass tops with azaleas, green-gold light |
 
 ### Generators
@@ -274,9 +274,15 @@ counted. The ashen woodland's line also counts its coal blocks on or above
 the ground and its coal blocks and coal ore in the six blocks under it (both
 must be there), and each water biome's (cypress wetland, desert oasis, orchid
 marsh, muddy river, megalake, sulphur springs, fungal fen, neon oasis) its lily pads with no water under them (must be none), its
-pool cells open on a side to neither water nor a solid block (must be none,
-with some pool water), its dirt, grass, mud or clay cells with water on all
-four sides, and the share of pool columns whose water runs unbroken to a solid floor.
+pool cells (source water topping a column) open on a side to neither water nor
+a solid block (must be none, with some pool water), its dirt, grass, mud or clay
+cells with water on all four sides, the share of pool columns whose water runs
+unbroken to a solid floor, the share of the level's columns pools cover, its
+columns topped by flowing water (streams, never counted as holes), and its
+springs: a water source in a cliff face under the surface, open on one side,
+counted as pouring into a lake when its fall lands within 24 blocks and four
+blocks across of source water, and as falling into the void when nothing solid
+lies under the open side.
 One line per biome carries the counts, and the
 server log names the standing column of each counted block nearest spawn (at any
 height for a cave or Nether biome, else on the surface).

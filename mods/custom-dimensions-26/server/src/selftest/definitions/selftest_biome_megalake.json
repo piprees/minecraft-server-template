@@ -1,11 +1,11 @@
 {
   "schemaVersion": 2,
-  "description": "Self-test fixture and showcase: the biome library's megalake filling a whole level on End terrain, spawn on the outer islands, for the biomes section's per-biome checks, renders and screenshots.",
+  "description": "Self-test fixture and showcase: the biome library's megalake filling a whole level on End terrain, spawn by the western edge of an outer island so the showcase holds both lakes and the void, for the biomes section's per-biome checks, renders and screenshots.",
   "seed": 7,
   "spawn": [
-    1408,
+    1320,
     64,
-    0
+    -60
   ],
   "generator": {
     "type": "single_biome",

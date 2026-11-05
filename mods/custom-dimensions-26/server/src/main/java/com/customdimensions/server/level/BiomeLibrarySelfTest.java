@@ -504,6 +504,14 @@ public final class BiomeLibrarySelfTest {
                 + " of the columns; stream columns " + n[6] + ", springs pouring into a lake " + n[7] + ", falling into the void " + n[8];
     }
 
+    /** True where source water lies within four blocks across of where a spring's fall lands, at that level or one above. */
+    private static boolean lakeNear(net.minecraft.world.level.Level level, BlockPos landing) {
+        for (BlockPos c : BlockPos.betweenClosed(landing.offset(-4, 0, -4), landing.offset(4, 1, 4))) {
+            if (level.getFluidState(c).isSource() && level.getFluidState(c).is(FluidTags.WATER)) return true;
+        }
+        return false;
+    }
+
     /** Counts a spring in the cliff face under a column's surface: a water source under solid ground, open on exactly one side. */
     private static void spring(net.minecraft.world.level.Level level, BlockPos top, long[] n) {
         for (BlockPos p = top; p.getY() > top.getY() - 6; p = p.below()) {
@@ -521,7 +529,7 @@ public final class BiomeLibrarySelfTest {
             BlockPos q = open.below();
             while (q.getY() >= level.getMinY() && !level.getBlockState(q).isSolid() && !level.getFluidState(q).isSource()) q = q.below();
             if (q.getY() < level.getMinY()) n[8]++;
-            else if (level.getFluidState(q).isSource() && open.getY() - q.getY() <= 24) n[7]++;
+            else if (open.getY() - q.getY() <= 24 && lakeNear(level, q)) n[7]++;
             return;
         }
     }

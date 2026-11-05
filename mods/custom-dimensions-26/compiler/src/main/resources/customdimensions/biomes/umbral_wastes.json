@@ -232,7 +232,7 @@
                                   "height": {
                                     "type": "minecraft:uniform",
                                     "max_inclusive": 3,
-                                    "min_inclusive": 1
+                                    "min_inclusive": 2
                                   },
                                   "provider": {
                                     "id": "minecraft:crying_obsidian"
@@ -260,7 +260,7 @@
                                   "height": {
                                     "type": "minecraft:uniform",
                                     "max_inclusive": 3,
-                                    "min_inclusive": 1
+                                    "min_inclusive": 2
                                   },
                                   "provider": {
                                     "id": "minecraft:crying_obsidian"
@@ -276,7 +276,7 @@
                                   "distribution": [
                                     {
                                       "data": 1,
-                                      "weight": 4
+                                      "weight": 9
                                     },
                                     {
                                       "data": 0,
@@ -287,7 +287,7 @@
                               },
                               {
                                 "type": "minecraft:offset",
-                                "x": 2,
+                                "x": 3,
                                 "y": 0,
                                 "z": {
                                   "type": "minecraft:uniform",
@@ -360,7 +360,7 @@
                                   "height": {
                                     "type": "minecraft:uniform",
                                     "max_inclusive": 3,
-                                    "min_inclusive": 1
+                                    "min_inclusive": 2
                                   },
                                   "provider": {
                                     "id": "minecraft:crying_obsidian"
@@ -388,7 +388,7 @@
                                   "height": {
                                     "type": "minecraft:uniform",
                                     "max_inclusive": 3,
-                                    "min_inclusive": 1
+                                    "min_inclusive": 2
                                   },
                                   "provider": {
                                     "id": "minecraft:crying_obsidian"
@@ -404,7 +404,7 @@
                                   "distribution": [
                                     {
                                       "data": 1,
-                                      "weight": 4
+                                      "weight": 9
                                     },
                                     {
                                       "data": 0,
@@ -415,7 +415,7 @@
                               },
                               {
                                 "type": "minecraft:offset",
-                                "x": 2,
+                                "x": 3,
                                 "y": 0,
                                 "z": {
                                   "type": "minecraft:uniform",
@@ -472,7 +472,7 @@
                             "distribution": [
                               {
                                 "data": 1,
-                                "weight": 4
+                                "weight": 9
                               },
                               {
                                 "data": 0,
@@ -483,7 +483,7 @@
                         },
                         {
                           "type": "minecraft:offset",
-                          "x": 4,
+                          "x": 6,
                           "y": 0,
                           "z": {
                             "type": "minecraft:uniform",
@@ -560,7 +560,7 @@
                                   "height": {
                                     "type": "minecraft:uniform",
                                     "max_inclusive": 3,
-                                    "min_inclusive": 1
+                                    "min_inclusive": 2
                                   },
                                   "provider": {
                                     "id": "minecraft:crying_obsidian"
@@ -588,7 +588,7 @@
                                   "height": {
                                     "type": "minecraft:uniform",
                                     "max_inclusive": 3,
-                                    "min_inclusive": 1
+                                    "min_inclusive": 2
                                   },
                                   "provider": {
                                     "id": "minecraft:crying_obsidian"
@@ -604,7 +604,7 @@
                                   "distribution": [
                                     {
                                       "data": 1,
-                                      "weight": 4
+                                      "weight": 9
                                     },
                                     {
                                       "data": 0,
@@ -615,7 +615,7 @@
                               },
                               {
                                 "type": "minecraft:offset",
-                                "x": 2,
+                                "x": 3,
                                 "y": 0,
                                 "z": {
                                   "type": "minecraft:uniform",
@@ -688,7 +688,7 @@
                                   "height": {
                                     "type": "minecraft:uniform",
                                     "max_inclusive": 3,
-                                    "min_inclusive": 1
+                                    "min_inclusive": 2
                                   },
                                   "provider": {
                                     "id": "minecraft:crying_obsidian"
@@ -716,7 +716,7 @@
                                   "height": {
                                     "type": "minecraft:uniform",
                                     "max_inclusive": 3,
-                                    "min_inclusive": 1
+                                    "min_inclusive": 2
                                   },
                                   "provider": {
                                     "id": "minecraft:crying_obsidian"
@@ -732,7 +732,7 @@
                                   "distribution": [
                                     {
                                       "data": 1,
-                                      "weight": 4
+                                      "weight": 9
                                     },
                                     {
                                       "data": 0,
@@ -743,7 +743,7 @@
                               },
                               {
                                 "type": "minecraft:offset",
-                                "x": 2,
+                                "x": 3,
                                 "y": 0,
                                 "z": {
                                   "type": "minecraft:uniform",
@@ -800,7 +800,7 @@
                             "distribution": [
                               {
                                 "data": 1,
-                                "weight": 4
+                                "weight": 9
                               },
                               {
                                 "data": 0,
@@ -811,7 +811,7 @@
                         },
                         {
                           "type": "minecraft:offset",
-                          "x": 4,
+                          "x": 6,
                           "y": 0,
                           "z": {
                             "type": "minecraft:uniform",
@@ -868,7 +868,7 @@
                       "distribution": [
                         {
                           "data": 1,
-                          "weight": 4
+                          "weight": 9
                         },
                         {
                           "data": 0,
@@ -879,7 +879,7 @@
                   },
                   {
                     "type": "minecraft:offset",
-                    "x": 8,
+                    "x": 12,
                     "y": 0,
                     "z": {
                       "type": "minecraft:uniform",
@@ -928,7 +928,51 @@
               }
             ]
           },
-          "placement": []
+          "placement": [
+            {
+              "type": "minecraft:offset",
+              "x": -12,
+              "y": 0,
+              "z": 0
+            },
+            {
+              "type": "minecraft:heightmap",
+              "heightmap": "WORLD_SURFACE_WG"
+            },
+            {
+              "type": "minecraft:offset",
+              "x": 0,
+              "y": -1,
+              "z": 0
+            },
+            {
+              "type": "minecraft:block_predicate_filter",
+              "predicate": {
+                "type": "minecraft:all_of",
+                "predicates": [
+                  {
+                    "type": "minecraft:matching_blocks",
+                    "blocks": [
+                      "minecraft:blackstone",
+                      "minecraft:end_stone",
+                      "minecraft:crying_obsidian"
+                    ]
+                  },
+                  {
+                    "type": "minecraft:matching_blocks",
+                    "blocks": [
+                      "minecraft:air"
+                    ],
+                    "offset": [
+                      0,
+                      1,
+                      0
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
         },
         "features": [
           {
@@ -963,7 +1007,7 @@
                                       "height": {
                                         "type": "minecraft:uniform",
                                         "max_inclusive": 3,
-                                        "min_inclusive": 1
+                                        "min_inclusive": 2
                                       },
                                       "provider": {
                                         "id": "minecraft:crying_obsidian"
@@ -991,7 +1035,7 @@
                                       "height": {
                                         "type": "minecraft:uniform",
                                         "max_inclusive": 3,
-                                        "min_inclusive": 1
+                                        "min_inclusive": 2
                                       },
                                       "provider": {
                                         "id": "minecraft:crying_obsidian"
@@ -1007,7 +1051,7 @@
                                       "distribution": [
                                         {
                                           "data": 1,
-                                          "weight": 4
+                                          "weight": 9
                                         },
                                         {
                                           "data": 0,
@@ -1024,7 +1068,7 @@
                                       "min_inclusive": 0
                                     },
                                     "y": 0,
-                                    "z": 2
+                                    "z": 3
                                   },
                                   {
                                     "type": "minecraft:heightmap",
@@ -1091,7 +1135,7 @@
                                       "height": {
                                         "type": "minecraft:uniform",
                                         "max_inclusive": 3,
-                                        "min_inclusive": 1
+                                        "min_inclusive": 2
                                       },
                                       "provider": {
                                         "id": "minecraft:crying_obsidian"
@@ -1119,7 +1163,7 @@
                                       "height": {
                                         "type": "minecraft:uniform",
                                         "max_inclusive": 3,
-                                        "min_inclusive": 1
+                                        "min_inclusive": 2
                                       },
                                       "provider": {
                                         "id": "minecraft:crying_obsidian"
@@ -1135,7 +1179,7 @@
                                       "distribution": [
                                         {
                                           "data": 1,
-                                          "weight": 4
+                                          "weight": 9
                                         },
                                         {
                                           "data": 0,
@@ -1152,7 +1196,7 @@
                                       "min_inclusive": 0
                                     },
                                     "y": 0,
-                                    "z": 2
+                                    "z": 3
                                   },
                                   {
                                     "type": "minecraft:heightmap",
@@ -1203,7 +1247,7 @@
                                 "distribution": [
                                   {
                                     "data": 1,
-                                    "weight": 4
+                                    "weight": 9
                                   },
                                   {
                                     "data": 0,
@@ -1220,7 +1264,7 @@
                                 "min_inclusive": -1
                               },
                               "y": 0,
-                              "z": 4
+                              "z": 6
                             },
                             {
                               "type": "minecraft:heightmap",
@@ -1291,7 +1335,7 @@
                                       "height": {
                                         "type": "minecraft:uniform",
                                         "max_inclusive": 3,
-                                        "min_inclusive": 1
+                                        "min_inclusive": 2
                                       },
                                       "provider": {
                                         "id": "minecraft:crying_obsidian"
@@ -1319,7 +1363,7 @@
                                       "height": {
                                         "type": "minecraft:uniform",
                                         "max_inclusive": 3,
-                                        "min_inclusive": 1
+                                        "min_inclusive": 2
                                       },
                                       "provider": {
                                         "id": "minecraft:crying_obsidian"
@@ -1335,7 +1379,7 @@
                                       "distribution": [
                                         {
                                           "data": 1,
-                                          "weight": 4
+                                          "weight": 9
                                         },
                                         {
                                           "data": 0,
@@ -1352,7 +1396,7 @@
                                       "min_inclusive": 0
                                     },
                                     "y": 0,
-                                    "z": 2
+                                    "z": 3
                                   },
                                   {
                                     "type": "minecraft:heightmap",
@@ -1419,7 +1463,7 @@
                                       "height": {
                                         "type": "minecraft:uniform",
                                         "max_inclusive": 3,
-                                        "min_inclusive": 1
+                                        "min_inclusive": 2
                                       },
                                       "provider": {
                                         "id": "minecraft:crying_obsidian"
@@ -1447,7 +1491,7 @@
                                       "height": {
                                         "type": "minecraft:uniform",
                                         "max_inclusive": 3,
-                                        "min_inclusive": 1
+                                        "min_inclusive": 2
                                       },
                                       "provider": {
                                         "id": "minecraft:crying_obsidian"
@@ -1463,7 +1507,7 @@
                                       "distribution": [
                                         {
                                           "data": 1,
-                                          "weight": 4
+                                          "weight": 9
                                         },
                                         {
                                           "data": 0,
@@ -1480,7 +1524,7 @@
                                       "min_inclusive": 0
                                     },
                                     "y": 0,
-                                    "z": 2
+                                    "z": 3
                                   },
                                   {
                                     "type": "minecraft:heightmap",
@@ -1531,7 +1575,7 @@
                                 "distribution": [
                                   {
                                     "data": 1,
-                                    "weight": 4
+                                    "weight": 9
                                   },
                                   {
                                     "data": 0,
@@ -1548,7 +1592,7 @@
                                 "min_inclusive": -1
                               },
                               "y": 0,
-                              "z": 4
+                              "z": 6
                             },
                             {
                               "type": "minecraft:heightmap",
@@ -1599,7 +1643,7 @@
                           "distribution": [
                             {
                               "data": 1,
-                              "weight": 4
+                              "weight": 9
                             },
                             {
                               "data": 0,
@@ -1616,7 +1660,7 @@
                           "min_inclusive": -1
                         },
                         "y": 0,
-                        "z": 8
+                        "z": 12
                       },
                       {
                         "type": "minecraft:heightmap",
@@ -1659,7 +1703,51 @@
                   }
                 ]
               },
-              "placement": []
+              "placement": [
+                {
+                  "type": "minecraft:offset",
+                  "x": 0,
+                  "y": 0,
+                  "z": -12
+                },
+                {
+                  "type": "minecraft:heightmap",
+                  "heightmap": "WORLD_SURFACE_WG"
+                },
+                {
+                  "type": "minecraft:offset",
+                  "x": 0,
+                  "y": -1,
+                  "z": 0
+                },
+                {
+                  "type": "minecraft:block_predicate_filter",
+                  "predicate": {
+                    "type": "minecraft:all_of",
+                    "predicates": [
+                      {
+                        "type": "minecraft:matching_blocks",
+                        "blocks": [
+                          "minecraft:blackstone",
+                          "minecraft:end_stone",
+                          "minecraft:crying_obsidian"
+                        ]
+                      },
+                      {
+                        "type": "minecraft:matching_blocks",
+                        "blocks": [
+                          "minecraft:air"
+                        ],
+                        "offset": [
+                          0,
+                          1,
+                          0
+                        ]
+                      }
+                    ]
+                  }
+                }
+              ]
             }
           },
           {
@@ -1694,7 +1782,7 @@
                                       "height": {
                                         "type": "minecraft:uniform",
                                         "max_inclusive": 3,
-                                        "min_inclusive": 1
+                                        "min_inclusive": 2
                                       },
                                       "provider": {
                                         "id": "minecraft:crying_obsidian"
@@ -1722,7 +1810,7 @@
                                       "height": {
                                         "type": "minecraft:uniform",
                                         "max_inclusive": 3,
-                                        "min_inclusive": 1
+                                        "min_inclusive": 2
                                       },
                                       "provider": {
                                         "id": "minecraft:crying_obsidian"
@@ -1738,7 +1826,7 @@
                                       "distribution": [
                                         {
                                           "data": 1,
-                                          "weight": 4
+                                          "weight": 9
                                         },
                                         {
                                           "data": 0,
@@ -1749,7 +1837,7 @@
                                   },
                                   {
                                     "type": "minecraft:offset",
-                                    "x": 2,
+                                    "x": 3,
                                     "y": 0,
                                     "z": {
                                       "type": "minecraft:uniform",
@@ -1822,7 +1910,7 @@
                                       "height": {
                                         "type": "minecraft:uniform",
                                         "max_inclusive": 3,
-                                        "min_inclusive": 1
+                                        "min_inclusive": 2
                                       },
                                       "provider": {
                                         "id": "minecraft:crying_obsidian"
@@ -1850,7 +1938,7 @@
                                       "height": {
                                         "type": "minecraft:uniform",
                                         "max_inclusive": 3,
-                                        "min_inclusive": 1
+                                        "min_inclusive": 2
                                       },
                                       "provider": {
                                         "id": "minecraft:crying_obsidian"
@@ -1866,7 +1954,7 @@
                                       "distribution": [
                                         {
                                           "data": 1,
-                                          "weight": 4
+                                          "weight": 9
                                         },
                                         {
                                           "data": 0,
@@ -1877,7 +1965,7 @@
                                   },
                                   {
                                     "type": "minecraft:offset",
-                                    "x": 2,
+                                    "x": 3,
                                     "y": 0,
                                     "z": {
                                       "type": "minecraft:uniform",
@@ -1934,7 +2022,7 @@
                                 "distribution": [
                                   {
                                     "data": 1,
-                                    "weight": 4
+                                    "weight": 9
                                   },
                                   {
                                     "data": 0,
@@ -1945,7 +2033,7 @@
                             },
                             {
                               "type": "minecraft:offset",
-                              "x": 4,
+                              "x": 6,
                               "y": 0,
                               "z": {
                                 "type": "minecraft:uniform",
@@ -2022,7 +2110,7 @@
                                       "height": {
                                         "type": "minecraft:uniform",
                                         "max_inclusive": 3,
-                                        "min_inclusive": 1
+                                        "min_inclusive": 2
                                       },
                                       "provider": {
                                         "id": "minecraft:crying_obsidian"
@@ -2050,7 +2138,7 @@
                                       "height": {
                                         "type": "minecraft:uniform",
                                         "max_inclusive": 3,
-                                        "min_inclusive": 1
+                                        "min_inclusive": 2
                                       },
                                       "provider": {
                                         "id": "minecraft:crying_obsidian"
@@ -2066,7 +2154,7 @@
                                       "distribution": [
                                         {
                                           "data": 1,
-                                          "weight": 4
+                                          "weight": 9
                                         },
                                         {
                                           "data": 0,
@@ -2077,7 +2165,7 @@
                                   },
                                   {
                                     "type": "minecraft:offset",
-                                    "x": 2,
+                                    "x": 3,
                                     "y": 0,
                                     "z": {
                                       "type": "minecraft:uniform",
@@ -2150,7 +2238,7 @@
                                       "height": {
                                         "type": "minecraft:uniform",
                                         "max_inclusive": 3,
-                                        "min_inclusive": 1
+                                        "min_inclusive": 2
                                       },
                                       "provider": {
                                         "id": "minecraft:crying_obsidian"
@@ -2178,7 +2266,7 @@
                                       "height": {
                                         "type": "minecraft:uniform",
                                         "max_inclusive": 3,
-                                        "min_inclusive": 1
+                                        "min_inclusive": 2
                                       },
                                       "provider": {
                                         "id": "minecraft:crying_obsidian"
@@ -2194,7 +2282,7 @@
                                       "distribution": [
                                         {
                                           "data": 1,
-                                          "weight": 4
+                                          "weight": 9
                                         },
                                         {
                                           "data": 0,
@@ -2205,7 +2293,7 @@
                                   },
                                   {
                                     "type": "minecraft:offset",
-                                    "x": 2,
+                                    "x": 3,
                                     "y": 0,
                                     "z": {
                                       "type": "minecraft:uniform",
@@ -2262,7 +2350,7 @@
                                 "distribution": [
                                   {
                                     "data": 1,
-                                    "weight": 4
+                                    "weight": 9
                                   },
                                   {
                                     "data": 0,
@@ -2273,7 +2361,7 @@
                             },
                             {
                               "type": "minecraft:offset",
-                              "x": 4,
+                              "x": 6,
                               "y": 0,
                               "z": {
                                 "type": "minecraft:uniform",
@@ -2330,7 +2418,7 @@
                           "distribution": [
                             {
                               "data": 1,
-                              "weight": 4
+                              "weight": 9
                             },
                             {
                               "data": 0,
@@ -2341,7 +2429,7 @@
                       },
                       {
                         "type": "minecraft:offset",
-                        "x": 8,
+                        "x": 12,
                         "y": 0,
                         "z": {
                           "type": "minecraft:uniform",
@@ -2390,7 +2478,51 @@
                   }
                 ]
               },
-              "placement": []
+              "placement": [
+                {
+                  "type": "minecraft:offset",
+                  "x": -12,
+                  "y": 0,
+                  "z": 0
+                },
+                {
+                  "type": "minecraft:heightmap",
+                  "heightmap": "WORLD_SURFACE_WG"
+                },
+                {
+                  "type": "minecraft:offset",
+                  "x": 0,
+                  "y": -1,
+                  "z": 0
+                },
+                {
+                  "type": "minecraft:block_predicate_filter",
+                  "predicate": {
+                    "type": "minecraft:all_of",
+                    "predicates": [
+                      {
+                        "type": "minecraft:matching_blocks",
+                        "blocks": [
+                          "minecraft:blackstone",
+                          "minecraft:end_stone",
+                          "minecraft:crying_obsidian"
+                        ]
+                      },
+                      {
+                        "type": "minecraft:matching_blocks",
+                        "blocks": [
+                          "minecraft:air"
+                        ],
+                        "offset": [
+                          0,
+                          1,
+                          0
+                        ]
+                      }
+                    ]
+                  }
+                }
+              ]
             }
           },
           {
@@ -2425,7 +2557,7 @@
                                       "height": {
                                         "type": "minecraft:uniform",
                                         "max_inclusive": 3,
-                                        "min_inclusive": 1
+                                        "min_inclusive": 2
                                       },
                                       "provider": {
                                         "id": "minecraft:crying_obsidian"
@@ -2453,7 +2585,7 @@
                                       "height": {
                                         "type": "minecraft:uniform",
                                         "max_inclusive": 3,
-                                        "min_inclusive": 1
+                                        "min_inclusive": 2
                                       },
                                       "provider": {
                                         "id": "minecraft:crying_obsidian"
@@ -2469,7 +2601,7 @@
                                       "distribution": [
                                         {
                                           "data": 1,
-                                          "weight": 4
+                                          "weight": 9
                                         },
                                         {
                                           "data": 0,
@@ -2480,7 +2612,7 @@
                                   },
                                   {
                                     "type": "minecraft:offset",
-                                    "x": 2,
+                                    "x": 3,
                                     "y": 0,
                                     "z": {
                                       "type": "minecraft:uniform",
@@ -2553,7 +2685,7 @@
                                       "height": {
                                         "type": "minecraft:uniform",
                                         "max_inclusive": 3,
-                                        "min_inclusive": 1
+                                        "min_inclusive": 2
                                       },
                                       "provider": {
                                         "id": "minecraft:crying_obsidian"
@@ -2581,7 +2713,7 @@
                                       "height": {
                                         "type": "minecraft:uniform",
                                         "max_inclusive": 3,
-                                        "min_inclusive": 1
+                                        "min_inclusive": 2
                                       },
                                       "provider": {
                                         "id": "minecraft:crying_obsidian"
@@ -2597,7 +2729,7 @@
                                       "distribution": [
                                         {
                                           "data": 1,
-                                          "weight": 4
+                                          "weight": 9
                                         },
                                         {
                                           "data": 0,
@@ -2608,7 +2740,7 @@
                                   },
                                   {
                                     "type": "minecraft:offset",
-                                    "x": 2,
+                                    "x": 3,
                                     "y": 0,
                                     "z": {
                                       "type": "minecraft:uniform",
@@ -2665,7 +2797,7 @@
                                 "distribution": [
                                   {
                                     "data": 1,
-                                    "weight": 4
+                                    "weight": 9
                                   },
                                   {
                                     "data": 0,
@@ -2676,7 +2808,7 @@
                             },
                             {
                               "type": "minecraft:offset",
-                              "x": 4,
+                              "x": 6,
                               "y": 0,
                               "z": {
                                 "type": "minecraft:uniform",
@@ -2753,7 +2885,7 @@
                                       "height": {
                                         "type": "minecraft:uniform",
                                         "max_inclusive": 3,
-                                        "min_inclusive": 1
+                                        "min_inclusive": 2
                                       },
                                       "provider": {
                                         "id": "minecraft:crying_obsidian"
@@ -2781,7 +2913,7 @@
                                       "height": {
                                         "type": "minecraft:uniform",
                                         "max_inclusive": 3,
-                                        "min_inclusive": 1
+                                        "min_inclusive": 2
                                       },
                                       "provider": {
                                         "id": "minecraft:crying_obsidian"
@@ -2797,7 +2929,7 @@
                                       "distribution": [
                                         {
                                           "data": 1,
-                                          "weight": 4
+                                          "weight": 9
                                         },
                                         {
                                           "data": 0,
@@ -2808,7 +2940,7 @@
                                   },
                                   {
                                     "type": "minecraft:offset",
-                                    "x": 2,
+                                    "x": 3,
                                     "y": 0,
                                     "z": {
                                       "type": "minecraft:uniform",
@@ -2881,7 +3013,7 @@
                                       "height": {
                                         "type": "minecraft:uniform",
                                         "max_inclusive": 3,
-                                        "min_inclusive": 1
+                                        "min_inclusive": 2
                                       },
                                       "provider": {
                                         "id": "minecraft:crying_obsidian"
@@ -2909,7 +3041,7 @@
                                       "height": {
                                         "type": "minecraft:uniform",
                                         "max_inclusive": 3,
-                                        "min_inclusive": 1
+                                        "min_inclusive": 2
                                       },
                                       "provider": {
                                         "id": "minecraft:crying_obsidian"
@@ -2925,7 +3057,7 @@
                                       "distribution": [
                                         {
                                           "data": 1,
-                                          "weight": 4
+                                          "weight": 9
                                         },
                                         {
                                           "data": 0,
@@ -2936,7 +3068,7 @@
                                   },
                                   {
                                     "type": "minecraft:offset",
-                                    "x": 2,
+                                    "x": 3,
                                     "y": 0,
                                     "z": {
                                       "type": "minecraft:uniform",
@@ -2993,7 +3125,7 @@
                                 "distribution": [
                                   {
                                     "data": 1,
-                                    "weight": 4
+                                    "weight": 9
                                   },
                                   {
                                     "data": 0,
@@ -3004,7 +3136,7 @@
                             },
                             {
                               "type": "minecraft:offset",
-                              "x": 4,
+                              "x": 6,
                               "y": 0,
                               "z": {
                                 "type": "minecraft:uniform",
@@ -3061,7 +3193,7 @@
                           "distribution": [
                             {
                               "data": 1,
-                              "weight": 4
+                              "weight": 9
                             },
                             {
                               "data": 0,
@@ -3072,7 +3204,7 @@
                       },
                       {
                         "type": "minecraft:offset",
-                        "x": 8,
+                        "x": 12,
                         "y": 0,
                         "z": {
                           "type": "minecraft:uniform",
@@ -3121,7 +3253,51 @@
                   }
                 ]
               },
-              "placement": []
+              "placement": [
+                {
+                  "type": "minecraft:offset",
+                  "x": -12,
+                  "y": 0,
+                  "z": 0
+                },
+                {
+                  "type": "minecraft:heightmap",
+                  "heightmap": "WORLD_SURFACE_WG"
+                },
+                {
+                  "type": "minecraft:offset",
+                  "x": 0,
+                  "y": -1,
+                  "z": 0
+                },
+                {
+                  "type": "minecraft:block_predicate_filter",
+                  "predicate": {
+                    "type": "minecraft:all_of",
+                    "predicates": [
+                      {
+                        "type": "minecraft:matching_blocks",
+                        "blocks": [
+                          "minecraft:blackstone",
+                          "minecraft:end_stone",
+                          "minecraft:crying_obsidian"
+                        ]
+                      },
+                      {
+                        "type": "minecraft:matching_blocks",
+                        "blocks": [
+                          "minecraft:air"
+                        ],
+                        "offset": [
+                          0,
+                          1,
+                          0
+                        ]
+                      }
+                    ]
+                  }
+                }
+              ]
             }
           }
         ]
@@ -3133,16 +3309,12 @@
             "type": "minecraft:weighted_list",
             "distribution": [
               {
-                "data": 0,
-                "weight": 1
-              },
-              {
                 "data": 1,
                 "weight": 2
               },
               {
                 "data": 2,
-                "weight": 1
+                "weight": 2
               }
             ]
           }
@@ -3152,43 +3324,6 @@
         },
         {
           "type": "minecraft:biome"
-        },
-        {
-          "type": "minecraft:heightmap",
-          "heightmap": "WORLD_SURFACE_WG"
-        },
-        {
-          "type": "minecraft:offset",
-          "x": 0,
-          "y": -1,
-          "z": 0
-        },
-        {
-          "type": "minecraft:block_predicate_filter",
-          "predicate": {
-            "type": "minecraft:all_of",
-            "predicates": [
-              {
-                "type": "minecraft:matching_blocks",
-                "blocks": [
-                  "minecraft:blackstone",
-                  "minecraft:end_stone",
-                  "minecraft:crying_obsidian"
-                ]
-              },
-              {
-                "type": "minecraft:matching_blocks",
-                "blocks": [
-                  "minecraft:air"
-                ],
-                "offset": [
-                  0,
-                  1,
-                  0
-                ]
-              }
-            ]
-          }
         }
       ]
     }
