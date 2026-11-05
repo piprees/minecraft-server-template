@@ -452,14 +452,17 @@ public final class BiomeLibrarySelfTest {
      * A water biome's water: lily pads with no water under them (want none); pool cells, the top
      * water of a column, with a side open to neither water nor a solid block (holes it spills
      * through, want none); dirt, grass, mud or clay at a pool's level with water on all four sides (islets); and the
-     * share of pool columns whose water has no hole and runs unbroken down to a solid floor.
+     * share of pool columns whose water has no hole and runs unbroken down to a solid floor. Flowing
+     * water is a stream, not a pool; a source in a cliff face just under the surface, open on one
+     * side, is a spring, which pours into a lake below it or falls into the void.
      */
     private String poolWater(List<LevelChunk> chunks, List<String> failures) {
-        long[] n = new long[6];
+        long[] n = new long[9];
         forColumns(chunks, (chunk, x, z, biome) -> {
             var level = chunk.getLevel();
             BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos(chunk.getPos().getMinBlockX() + x, 0, chunk.getPos().getMinBlockZ() + z);
             int y = chunk.getHeight(Heightmap.Types.WORLD_SURFACE, x, z);
+            spring(level, pos.immutable().atY(y), n);
             BlockState s = Blocks.AIR.defaultBlockState();
             for (; y > chunk.getMinY(); y--) {
                 s = chunk.getBlockState(pos.setY(y));
@@ -470,6 +473,10 @@ public final class BiomeLibrarySelfTest {
                 }
                 if (s.isAir() || s.is(BlockTags.LEAVES) || s.is(BlockTags.LOGS) || s.getFluidState().isEmpty() && !s.isSolid()) continue;
                 break;
+            }
+            if (s.getFluidState().is(FluidTags.WATER) && !s.getFluidState().isSource()) {
+                n[6]++;
+                return;
             }
             if (!s.getFluidState().is(FluidTags.WATER)) {
                 if (!s.is(BlockTags.DIRT) && !s.is(Blocks.CLAY)) return;
@@ -493,7 +500,30 @@ public final class BiomeLibrarySelfTest {
         if (n[2] == 0) failures.add("no pool water");
         if (n[3] > 0) failures.add("holes");
         return "lily pads " + n[0] + ", with no water under them " + n[1] + " (want 0); pool columns " + n[2] + ", holes " + n[3] + " (want 0)"
-                + ", islets " + n[4] + ", unbroken " + n[5] + " (" + pct(share(n[5], n[2])) + ")";
+                + ", islets " + n[4] + ", unbroken " + n[5] + " (" + pct(share(n[5], n[2])) + "); pools cover " + pct(share(n[2], chunks.size() * 256L))
+                + " of the columns; stream columns " + n[6] + ", springs pouring into a lake " + n[7] + ", falling into the void " + n[8];
+    }
+
+    /** Counts a spring in the cliff face under a column's surface: a water source under solid ground, open on exactly one side. */
+    private static void spring(net.minecraft.world.level.Level level, BlockPos top, long[] n) {
+        for (BlockPos p = top; p.getY() > top.getY() - 6; p = p.below()) {
+            if (!level.getFluidState(p).isSource() || !level.getFluidState(p).is(FluidTags.WATER) || !level.getBlockState(p.above()).isSolid()) continue;
+            BlockPos open = null;
+            int sides = 0;
+            for (Direction d : Direction.Plane.HORIZONTAL) {
+                BlockPos q = p.relative(d);
+                if (!level.getBlockState(q).isSolid() && !level.getFluidState(q).isSource()) {
+                    open = q;
+                    sides++;
+                }
+            }
+            if (sides != 1) continue;
+            BlockPos q = open.below();
+            while (q.getY() >= level.getMinY() && !level.getBlockState(q).isSolid() && !level.getFluidState(q).isSource()) q = q.below();
+            if (q.getY() < level.getMinY()) n[8]++;
+            else if (level.getFluidState(q).isSource() && open.getY() - q.getY() <= 24) n[7]++;
+            return;
+        }
     }
 
     /**
