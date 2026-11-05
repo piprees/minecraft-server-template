@@ -11,44 +11,90 @@
     "base": null
   },
   "biomes": [
-    "minecraft:jungle",
-    "adventure:crystal_hollows",
-    "minecraft:windswept_hills",
-    "minecraft:grove",
-    "minecraft:meadow",
-    "minecraft:pale_garden",
     {
-      "id": "adventure:alpha_grove",
+      "id": "minecraft:deep_lukewarm_ocean",
       "climate": {
-        "humidity": [-0.48, -0.33]
+        "temperature": [-2.0, 2.0],
+        "continentalness": [-2.0, -0.19]
+      }
+    },
+    {
+      "id": "adventure:mineral_strata",
+      "climate": {
+        "humidity": [-2.0, 0.097],
+        "depth": [0.2, 2.0]
+      }
+    },
+    {
+      "id": "minecraft:lush_caves",
+      "climate": {
+        "humidity": [0.097, 2.0],
+        "depth": [0.2, 2.0]
+      }
+    },
+    {
+      "id": "minecraft:windswept_hills",
+      "climate": {
+        "temperature": [-2.0, -0.076],
+        "humidity": [-2.0, -0.006]
       }
     },
     {
       "id": "adventure:alpine_meadow",
       "climate": {
-        "humidity": [-0.25, -0.1]
+        "temperature": [-2.0, -0.076],
+        "humidity": [-0.006, 0.207]
       }
     },
     {
-      "id": "minecraft:birch_forest",
+      "id": "minecraft:grove",
       "climate": {
-        "humidity": [-0.02, 0.13]
+        "temperature": [-2.0, -0.076],
+        "humidity": [0.207, 2.0]
       }
     },
     {
       "id": "adventure:crystal_hollows",
       "climate": {
-        "humidity": [0.21, 0.36]
+        "temperature": [-0.076, 0.122],
+        "humidity": [-2.0, 0.053]
       }
     },
     {
-      "id": "minecraft:deep_lukewarm_ocean",
+      "id": "minecraft:meadow",
       "climate": {
-        "humidity": [0.44, 0.59]
+        "temperature": [-0.076, 0.122],
+        "humidity": [0.053, 0.242]
       }
     },
-    "minecraft:lush_caves",
-    "adventure:mineral_strata"
+    {
+      "id": "minecraft:pale_garden",
+      "climate": {
+        "temperature": [-0.076, 0.122],
+        "humidity": [0.242, 2.0]
+      }
+    },
+    {
+      "id": "minecraft:birch_forest",
+      "climate": {
+        "temperature": [0.122, 2.0],
+        "humidity": [-2.0, -0.043]
+      }
+    },
+    {
+      "id": "adventure:alpha_grove",
+      "climate": {
+        "temperature": [0.122, 2.0],
+        "humidity": [-0.043, 0.143]
+      }
+    },
+    {
+      "id": "minecraft:jungle",
+      "climate": {
+        "temperature": [0.122, 2.0],
+        "humidity": [0.143, 2.0]
+      }
+    }
   ],
   "zones": [
     {

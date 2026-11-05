@@ -9,87 +9,66 @@
   },
   "biomes": [
     {
-      "id": "adventure:redwood_grove",
+      "id": "adventure:lichen_caves",
       "climate": {
-        "weirdness": [-2.0, -0.19],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "minecraft:dark_forest",
-      "climate": {
-        "weirdness": [-0.19, -0.1486],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "minecraft:taiga",
-      "climate": {
-        "weirdness": [-0.1486, -0.1071],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "minecraft:old_growth_spruce_taiga",
-      "climate": {
-        "weirdness": [-0.1071, -0.0657],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "minecraft:forest",
-      "climate": {
-        "weirdness": [-0.0657, -0.0243],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "minecraft:windswept_forest",
-      "climate": {
-        "weirdness": [-0.0243, 0.0171],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "minecraft:dark_forest",
-      "climate": {
-        "weirdness": [0.0171, 0.0586],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "minecraft:swamp",
-      "climate": {
-        "weirdness": [0.0586, 0.1],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "minecraft:dark_forest",
-      "climate": {
-        "weirdness": [0.1, 2.0],
-        "depth": [-2.0, 0.1]
+        "humidity": [-2.0, 0.01],
+        "depth": [0.2, 2.0]
       }
     },
     {
       "id": "minecraft:lush_caves",
       "climate": {
-        "weirdness": [-2.0, -0.045],
-        "depth": [0.1, 0.6]
+        "humidity": [0.01, 2.0],
+        "depth": [0.2, 2.0]
       }
     },
     {
-      "id": "adventure:lichen_caves",
+      "id": "minecraft:taiga",
       "climate": {
-        "weirdness": [-0.045, 2.0],
-        "depth": [0.1, 0.6]
+        "temperature": [-2.0, 0.071],
+        "humidity": [-2.0, -0.126]
       }
     },
     {
-      "id": "adventure:withered_forest",
+      "id": "minecraft:windswept_forest",
       "climate": {
-        "weirdness": [-2.0, 2.0],
-        "depth": [0.6, 2.0]
+        "temperature": [-2.0, 0.071],
+        "humidity": [-0.126, 0.139]
+      }
+    },
+    {
+      "id": "adventure:redwood_grove",
+      "climate": {
+        "temperature": [-2.0, 0.071],
+        "humidity": [0.139, 2.0]
+      }
+    },
+    {
+      "id": "minecraft:forest",
+      "climate": {
+        "temperature": [0.071, 0.256],
+        "humidity": [-2.0, 0.088]
+      }
+    },
+    {
+      "id": "minecraft:old_growth_spruce_taiga",
+      "climate": {
+        "temperature": [0.071, 0.256],
+        "humidity": [0.088, 2.0]
+      }
+    },
+    {
+      "id": "minecraft:dark_forest",
+      "climate": {
+        "temperature": [0.256, 2.0],
+        "humidity": [-2.0, 0.01]
+      }
+    },
+    {
+      "id": "minecraft:swamp",
+      "climate": {
+        "temperature": [0.256, 2.0],
+        "humidity": [0.01, 2.0]
       }
     }
   ],

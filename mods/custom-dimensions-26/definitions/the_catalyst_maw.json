@@ -11,70 +11,116 @@
     "base": null
   },
   "biomes": [
-    "minecraft:basalt_deltas",
-    "minecraft:soul_sand_valley",
-    "adventure:mycotoxic_undergrowth",
-    "adventure:withered_forest",
-    "minecraft:nether_wastes",
-    "adventure:ash_barrens",
     {
       "id": "adventure:umbral_wastes",
       "climate": {
-        "weirdness": [-2.0, -0.435]
+        "temperature": [-2.0, -0.09],
+        "humidity": [-2.0, -0.177]
       }
     },
     {
-      "id": "minecraft:deep_dark",
+      "id": "adventure:ash_barrens",
       "climate": {
-        "weirdness": [-0.435, -0.3]
+        "temperature": [-2.0, -0.09],
+        "humidity": [-0.177, -0.004]
       }
     },
     {
-      "id": "minecraft:old_growth_birch_forest",
+      "id": "minecraft:soul_sand_valley",
       "climate": {
-        "weirdness": [-0.02, 0.12]
-      }
-    },
-    {
-      "id": "minecraft:mangrove_swamp",
-      "climate": {
-        "weirdness": [0.345, 0.39]
-      }
-    },
-    {
-      "id": "minecraft:dark_forest",
-      "climate": {
-        "weirdness": [0.39, 0.42]
-      }
-    },
-    {
-      "id": "minecraft:pale_garden",
-      "climate": {
-        "weirdness": [0.495, 0.53]
-      }
-    },
-    {
-      "id": "minecraft:end_midlands",
-      "climate": {
-        "weirdness": [0.53, 0.6]
-      }
-    },
-    {
-      "id": "minecraft:end_highlands",
-      "climate": {
-        "weirdness": [0.6, 0.7]
+        "temperature": [-2.0, -0.09],
+        "humidity": [-0.004, 0.223]
       }
     },
     {
       "id": "adventure:blackstone_basin",
       "climate": {
-        "weirdness": [0.7, 0.79]
+        "temperature": [-2.0, -0.09],
+        "humidity": [0.223, 2.0]
+      }
+    },
+    {
+      "id": "minecraft:deep_dark",
+      "climate": {
+        "temperature": [-0.09, 0.135],
+        "humidity": [-2.0, -0.202]
+      }
+    },
+    {
+      "id": "minecraft:pale_garden",
+      "climate": {
+        "temperature": [-0.09, 0.135],
+        "humidity": [-0.202, -0.041]
+      }
+    },
+    {
+      "id": "adventure:withered_forest",
+      "climate": {
+        "temperature": [-0.09, 0.135],
+        "humidity": [-0.041, 0.167]
+      }
+    },
+    {
+      "id": "adventure:mycotoxic_undergrowth",
+      "climate": {
+        "temperature": [-0.09, 0.135],
+        "humidity": [0.167, 2.0]
+      }
+    },
+    {
+      "id": "minecraft:nether_wastes",
+      "climate": {
+        "temperature": [0.135, 0.277],
+        "humidity": [-2.0, -0.222]
+      }
+    },
+    {
+      "id": "minecraft:end_midlands",
+      "climate": {
+        "temperature": [0.135, 0.277],
+        "humidity": [-0.222, -0.004]
+      }
+    },
+    {
+      "id": "minecraft:old_growth_birch_forest",
+      "climate": {
+        "temperature": [0.135, 0.277],
+        "humidity": [-0.004, 0.184]
+      }
+    },
+    {
+      "id": "minecraft:end_highlands",
+      "climate": {
+        "temperature": [0.135, 0.277],
+        "humidity": [0.184, 2.0]
+      }
+    },
+    {
+      "id": "minecraft:basalt_deltas",
+      "climate": {
+        "temperature": [0.277, 2.0],
+        "humidity": [-2.0, -0.145]
       }
     },
     {
       "id": "minecraft:stony_peaks",
       "climate": {
-        "weirdness": [0.79, 2.0]
+        "temperature": [0.277, 2.0],
+        "humidity": [-0.145, 0.039]
+      }
+    },
+    {
+      "id": "minecraft:dark_forest",
+      "climate": {
+        "temperature": [0.277, 2.0],
+        "humidity": [0.039, 0.204]
+      }
+    },
+    {
+      "id": "minecraft:mangrove_swamp",
+      "climate": {
+        "temperature": [0.277, 2.0],
+        "humidity": [0.204, 2.0]
       }
     }
   ],

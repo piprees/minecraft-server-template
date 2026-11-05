@@ -11,54 +11,129 @@
     "base": null
   },
   "biomes": [
-    "minecraft:snowy_plains",
-    "minecraft:snowy_taiga",
-    "minecraft:grove",
-    "minecraft:frozen_river",
-    "minecraft:ice_spikes",
-    "minecraft:snowy_slopes",
-    "minecraft:frozen_peaks",
-    "minecraft:jagged_peaks",
-    "minecraft:old_growth_spruce_taiga",
-    "minecraft:taiga",
-    "minecraft:stony_shore",
-    "minecraft:river",
-    "minecraft:birch_forest",
-    "adventure:alpine_scree",
     {
-      "id": "adventure:highland_fells",
+      "id": "minecraft:frozen_river",
       "climate": {
-        "humidity": [-0.61, -0.47]
+        "temperature": [-2.0, -0.334],
+        "continentalness": [-0.11, 2.0],
+        "erosion": [0.05, 2.0],
+        "weirdness": [-0.05, 0.05]
       }
     },
     {
-      "id": "minecraft:grove",
+      "id": "minecraft:river",
       "climate": {
-        "humidity": [-0.4, -0.26]
+        "temperature": [-0.334, 2.0],
+        "continentalness": [-0.11, 2.0],
+        "erosion": [0.05, 2.0],
+        "weirdness": [-0.05, 0.05]
       }
     },
     {
-      "id": "minecraft:old_growth_pine_taiga",
+      "id": "minecraft:stony_shore",
       "climate": {
-        "humidity": [-0.19, -0.05]
+        "temperature": [-2.0, 2.0],
+        "continentalness": [-0.19, -0.11]
       }
     },
     {
-      "id": "minecraft:taiga",
+      "id": "minecraft:frozen_peaks",
       "climate": {
-        "humidity": [0.02, 0.16]
+        "temperature": [-2.0, -0.334],
+        "continentalness": [0.03, 2.0],
+        "erosion": [-2.0, -0.375]
+      }
+    },
+    {
+      "id": "minecraft:jagged_peaks",
+      "climate": {
+        "temperature": [-0.334, 2.0],
+        "continentalness": [0.03, 2.0],
+        "erosion": [-2.0, -0.375]
+      }
+    },
+    {
+      "id": "minecraft:ice_spikes",
+      "climate": {
+        "temperature": [-2.0, -0.428],
+        "humidity": [-2.0, -0.167]
+      }
+    },
+    {
+      "id": "minecraft:snowy_plains",
+      "climate": {
+        "temperature": [-2.0, -0.428],
+        "humidity": [-0.167, 0.046]
+      }
+    },
+    {
+      "id": "minecraft:snowy_slopes",
+      "climate": {
+        "temperature": [-2.0, -0.428],
+        "humidity": [0.046, 0.183]
       }
     },
     {
       "id": "minecraft:snowy_taiga",
       "climate": {
-        "humidity": [0.23, 0.37]
+        "temperature": [-2.0, -0.428],
+        "humidity": [0.183, 2.0]
+      }
+    },
+    {
+      "id": "adventure:alpine_scree",
+      "climate": {
+        "temperature": [-0.428, -0.212],
+        "humidity": [-2.0, -0.144]
+      }
+    },
+    {
+      "id": "adventure:highland_fells",
+      "climate": {
+        "temperature": [-0.428, -0.212],
+        "humidity": [-0.144, 0.012]
       }
     },
     {
       "id": "adventure:aspen_forest",
       "climate": {
-        "humidity": [0.44, 0.58]
+        "temperature": [-0.428, -0.212],
+        "humidity": [0.012, 0.166]
+      }
+    },
+    {
+      "id": "minecraft:grove",
+      "climate": {
+        "temperature": [-0.428, -0.212],
+        "humidity": [0.166, 2.0]
+      }
+    },
+    {
+      "id": "minecraft:birch_forest",
+      "climate": {
+        "temperature": [-0.212, 2.0],
+        "humidity": [-2.0, -0.167]
+      }
+    },
+    {
+      "id": "minecraft:taiga",
+      "climate": {
+        "temperature": [-0.212, 2.0],
+        "humidity": [-0.167, 0.046]
+      }
+    },
+    {
+      "id": "minecraft:old_growth_spruce_taiga",
+      "climate": {
+        "temperature": [-0.212, 2.0],
+        "humidity": [0.046, 0.183]
+      }
+    },
+    {
+      "id": "minecraft:old_growth_pine_taiga",
+      "climate": {
+        "temperature": [-0.212, 2.0],
+        "humidity": [0.183, 2.0]
       }
     }
   ],

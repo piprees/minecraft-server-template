@@ -12,37 +12,36 @@
     {
       "id": "minecraft:end_barrens",
       "climate": {
-        "continentalness": [0.177, 0.3015]
-      }
-    },
-    {
-      "id": "minecraft:end_barrens",
-      "climate": {
-        "continentalness": [-0.1771, -0.0546]
-      }
-    },
-    {
-      "id": "minecraft:the_end",
-      "climate": {
-        "continentalness": [-0.0546, 0.0636]
+        "temperature": [-2.0, 0.523],
+        "humidity": [-2.0, -0.135]
       }
     },
     {
       "id": "minecraft:small_end_islands",
       "climate": {
-        "continentalness": [-2.0, -0.1771]
-      }
-    },
-    {
-      "id": "minecraft:end_highlands",
-      "climate": {
-        "continentalness": [0.0636, 0.177]
+        "temperature": [-2.0, 0.523],
+        "humidity": [-0.135, 0.051]
       }
     },
     {
       "id": "adventure:ice_starfield",
       "climate": {
-        "continentalness": [0.3015, 2.0]
+        "temperature": [-2.0, 0.523],
+        "humidity": [0.051, 2.0]
+      }
+    },
+    {
+      "id": "minecraft:the_end",
+      "climate": {
+        "temperature": [0.523, 2.0],
+        "humidity": [-2.0, -0.094]
+      }
+    },
+    {
+      "id": "minecraft:end_highlands",
+      "climate": {
+        "temperature": [0.523, 2.0],
+        "humidity": [-0.094, 2.0]
       }
     }
   ],

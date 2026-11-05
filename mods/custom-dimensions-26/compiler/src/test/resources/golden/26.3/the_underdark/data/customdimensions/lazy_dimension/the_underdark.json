@@ -10,92 +10,8 @@
           {
             "biome": "minecraft:deep_dark",
             "parameters": {
-              "temperature": [-2.0, -0.3546],
-              "humidity": [-2.0, 2.0],
-              "continentalness": [-2.0, 2.0],
-              "erosion": [-2.0, 2.0],
-              "weirdness": [-2.0, 2.0],
-              "depth": [-2.0, 2.0],
-              "offset": 0.0
-            }
-          },
-          {
-            "biome": "minecraft:mushroom_fields",
-            "parameters": {
-              "temperature": [-0.3546, -0.2329],
-              "humidity": [-2.0, 2.0],
-              "continentalness": [-2.0, 2.0],
-              "erosion": [-2.0, 2.0],
-              "weirdness": [-2.0, 2.0],
-              "depth": [-2.0, 2.0],
-              "offset": 0.0
-            }
-          },
-          {
-            "biome": "minecraft:pale_garden",
-            "parameters": {
-              "temperature": [-0.2329, -0.1599],
-              "humidity": [-2.0, 2.0],
-              "continentalness": [-2.0, 2.0],
-              "erosion": [-2.0, 2.0],
-              "weirdness": [-2.0, 2.0],
-              "depth": [-2.0, 2.0],
-              "offset": 0.0
-            }
-          },
-          {
-            "biome": "minecraft:dark_forest",
-            "parameters": {
-              "temperature": [-0.1599, -0.0878],
-              "humidity": [-2.0, 2.0],
-              "continentalness": [-2.0, 2.0],
-              "erosion": [-2.0, 2.0],
-              "weirdness": [-2.0, 2.0],
-              "depth": [-2.0, 2.0],
-              "offset": 0.0
-            }
-          },
-          {
-            "biome": "minecraft:lush_caves",
-            "parameters": {
-              "temperature": [-0.0878, 0.0034],
-              "humidity": [-2.0, 2.0],
-              "continentalness": [-2.0, 2.0],
-              "erosion": [-2.0, 2.0],
-              "weirdness": [-2.0, 2.0],
-              "depth": [-2.0, 2.0],
-              "offset": 0.0
-            }
-          },
-          {
-            "biome": "adventure:withered_forest",
-            "parameters": {
-              "temperature": [0.0034, 0.0481],
-              "humidity": [-2.0, 2.0],
-              "continentalness": [-2.0, 2.0],
-              "erosion": [-2.0, 2.0],
-              "weirdness": [-2.0, 2.0],
-              "depth": [-2.0, 2.0],
-              "offset": 0.0
-            }
-          },
-          {
-            "biome": "minecraft:dripstone_caves",
-            "parameters": {
-              "temperature": [0.0481, 0.0673],
-              "humidity": [-2.0, 2.0],
-              "continentalness": [-2.0, 2.0],
-              "erosion": [-2.0, 2.0],
-              "weirdness": [-2.0, 2.0],
-              "depth": [-2.0, 2.0],
-              "offset": 0.0
-            }
-          },
-          {
-            "biome": "minecraft:old_growth_spruce_taiga",
-            "parameters": {
-              "temperature": [0.0673, 0.1027],
-              "humidity": [-2.0, 2.0],
+              "temperature": [-2.0, 0.711],
+              "humidity": [-2.0, -0.093],
               "continentalness": [-2.0, 2.0],
               "erosion": [-2.0, 2.0],
               "weirdness": [-2.0, 2.0],
@@ -106,8 +22,8 @@
           {
             "biome": "minecraft:warped_forest",
             "parameters": {
-              "temperature": [0.1027, 0.1623],
-              "humidity": [-2.0, 2.0],
+              "temperature": [-2.0, 0.711],
+              "humidity": [-0.093, -0.001],
               "continentalness": [-2.0, 2.0],
               "erosion": [-2.0, 2.0],
               "weirdness": [-2.0, 2.0],
@@ -116,10 +32,10 @@
             }
           },
           {
-            "biome": "minecraft:swamp",
+            "biome": "minecraft:pale_garden",
             "parameters": {
-              "temperature": [0.1623, 0.2099],
-              "humidity": [-2.0, 2.0],
+              "temperature": [-2.0, 0.711],
+              "humidity": [-0.001, 0.106],
               "continentalness": [-2.0, 2.0],
               "erosion": [-2.0, 2.0],
               "weirdness": [-2.0, 2.0],
@@ -128,34 +44,10 @@
             }
           },
           {
-            "biome": "adventure:fungal_fen",
+            "biome": "minecraft:old_growth_spruce_taiga",
             "parameters": {
-              "temperature": [0.2099, 0.2605],
-              "humidity": [-2.0, 2.0],
-              "continentalness": [-2.0, 2.0],
-              "erosion": [-2.0, 2.0],
-              "weirdness": [-2.0, 2.0],
-              "depth": [-2.0, 2.0],
-              "offset": 0.0
-            }
-          },
-          {
-            "biome": "minecraft:crimson_forest",
-            "parameters": {
-              "temperature": [0.2605, 0.3345],
-              "humidity": [-2.0, 2.0],
-              "continentalness": [-2.0, 2.0],
-              "erosion": [-2.0, 2.0],
-              "weirdness": [-2.0, 2.0],
-              "depth": [-2.0, 2.0],
-              "offset": 0.0
-            }
-          },
-          {
-            "biome": "minecraft:lush_caves",
-            "parameters": {
-              "temperature": [0.3345, 0.4379],
-              "humidity": [-2.0, 2.0],
+              "temperature": [-2.0, 0.711],
+              "humidity": [0.106, 2.0],
               "continentalness": [-2.0, 2.0],
               "erosion": [-2.0, 2.0],
               "weirdness": [-2.0, 2.0],
@@ -166,8 +58,92 @@
           {
             "biome": "minecraft:dripstone_caves",
             "parameters": {
-              "temperature": [0.4379, 2.0],
-              "humidity": [-2.0, 2.0],
+              "temperature": [0.711, 0.923],
+              "humidity": [-2.0, -0.093],
+              "continentalness": [-2.0, 2.0],
+              "erosion": [-2.0, 2.0],
+              "weirdness": [-2.0, 2.0],
+              "depth": [-2.0, 2.0],
+              "offset": 0.0
+            }
+          },
+          {
+            "biome": "minecraft:mushroom_fields",
+            "parameters": {
+              "temperature": [0.711, 0.923],
+              "humidity": [-0.093, 0.034],
+              "continentalness": [-2.0, 2.0],
+              "erosion": [-2.0, 2.0],
+              "weirdness": [-2.0, 2.0],
+              "depth": [-2.0, 2.0],
+              "offset": 0.0
+            }
+          },
+          {
+            "biome": "minecraft:dark_forest",
+            "parameters": {
+              "temperature": [0.711, 0.923],
+              "humidity": [0.034, 0.169],
+              "continentalness": [-2.0, 2.0],
+              "erosion": [-2.0, 2.0],
+              "weirdness": [-2.0, 2.0],
+              "depth": [-2.0, 2.0],
+              "offset": 0.0
+            }
+          },
+          {
+            "biome": "adventure:withered_forest",
+            "parameters": {
+              "temperature": [0.711, 0.923],
+              "humidity": [0.169, 2.0],
+              "continentalness": [-2.0, 2.0],
+              "erosion": [-2.0, 2.0],
+              "weirdness": [-2.0, 2.0],
+              "depth": [-2.0, 2.0],
+              "offset": 0.0
+            }
+          },
+          {
+            "biome": "minecraft:crimson_forest",
+            "parameters": {
+              "temperature": [0.923, 2.0],
+              "humidity": [-2.0, -0.147],
+              "continentalness": [-2.0, 2.0],
+              "erosion": [-2.0, 2.0],
+              "weirdness": [-2.0, 2.0],
+              "depth": [-2.0, 2.0],
+              "offset": 0.0
+            }
+          },
+          {
+            "biome": "minecraft:lush_caves",
+            "parameters": {
+              "temperature": [0.923, 2.0],
+              "humidity": [-0.147, 0.016],
+              "continentalness": [-2.0, 2.0],
+              "erosion": [-2.0, 2.0],
+              "weirdness": [-2.0, 2.0],
+              "depth": [-2.0, 2.0],
+              "offset": 0.0
+            }
+          },
+          {
+            "biome": "minecraft:swamp",
+            "parameters": {
+              "temperature": [0.923, 2.0],
+              "humidity": [0.016, 0.156],
+              "continentalness": [-2.0, 2.0],
+              "erosion": [-2.0, 2.0],
+              "weirdness": [-2.0, 2.0],
+              "depth": [-2.0, 2.0],
+              "offset": 0.0
+            }
+          },
+          {
+            "biome": "adventure:fungal_fen",
+            "parameters": {
+              "temperature": [0.923, 2.0],
+              "humidity": [0.156, 2.0],
               "continentalness": [-2.0, 2.0],
               "erosion": [-2.0, 2.0],
               "weirdness": [-2.0, 2.0],

@@ -12,73 +12,52 @@
   },
   "biomes": [
     {
-      "id": "minecraft:old_growth_spruce_taiga",
-      "climate": {
-        "weirdness": [-2.0, -0.19],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "minecraft:snowy_taiga",
-      "climate": {
-        "weirdness": [-0.19, -0.1417],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "minecraft:windswept_forest",
-      "climate": {
-        "weirdness": [-0.1417, -0.0933],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "minecraft:old_growth_pine_taiga",
-      "climate": {
-        "weirdness": [-0.0933, -0.045],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "minecraft:taiga",
-      "climate": {
-        "weirdness": [-0.045, 0.0033],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "minecraft:snowy_taiga",
-      "climate": {
-        "weirdness": [0.0033, 0.0517],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "minecraft:old_growth_pine_taiga",
-      "climate": {
-        "weirdness": [0.0517, 0.1],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "minecraft:taiga",
-      "climate": {
-        "weirdness": [0.1, 2.0],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
       "id": "adventure:magmatic_caves",
       "climate": {
-        "weirdness": [-2.0, -0.045],
-        "depth": [0.1, 2.0]
+        "humidity": [-2.0, 0.027],
+        "depth": [0.2, 2.0]
       }
     },
     {
       "id": "adventure:lichen_caves",
       "climate": {
-        "weirdness": [-0.045, 2.0],
-        "depth": [0.1, 2.0]
+        "humidity": [0.027, 2.0],
+        "depth": [0.2, 2.0]
+      }
+    },
+    {
+      "id": "minecraft:snowy_taiga",
+      "climate": {
+        "temperature": [-2.0, -0.012],
+        "humidity": [-2.0, -0.106]
+      }
+    },
+    {
+      "id": "minecraft:windswept_forest",
+      "climate": {
+        "temperature": [-2.0, -0.012],
+        "humidity": [-0.106, 0.068]
+      }
+    },
+    {
+      "id": "minecraft:taiga",
+      "climate": {
+        "temperature": [-2.0, -0.012],
+        "humidity": [0.068, 2.0]
+      }
+    },
+    {
+      "id": "minecraft:old_growth_spruce_taiga",
+      "climate": {
+        "temperature": [-0.012, 2.0],
+        "humidity": [-2.0, 0.027]
+      }
+    },
+    {
+      "id": "minecraft:old_growth_pine_taiga",
+      "climate": {
+        "temperature": [-0.012, 2.0],
+        "humidity": [0.027, 2.0]
       }
     }
   ],

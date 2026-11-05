@@ -8,11 +8,41 @@
     "preset": "end"
   },
   "biomes": [
-    "adventure:mycotoxic_undergrowth",
-    "minecraft:soul_sand_valley",
-    "adventure:withered_forest",
-    "adventure:ash_barrens",
-    "minecraft:nether_wastes"
+    {
+      "id": "adventure:ash_barrens",
+      "climate": {
+        "temperature": [-2.0, 0.443],
+        "humidity": [-2.0, -0.145]
+      }
+    },
+    {
+      "id": "minecraft:soul_sand_valley",
+      "climate": {
+        "temperature": [-2.0, 0.443],
+        "humidity": [-0.145, 0.089]
+      }
+    },
+    {
+      "id": "adventure:withered_forest",
+      "climate": {
+        "temperature": [-2.0, 0.443],
+        "humidity": [0.089, 2.0]
+      }
+    },
+    {
+      "id": "minecraft:nether_wastes",
+      "climate": {
+        "temperature": [0.443, 2.0],
+        "humidity": [-2.0, -0.051]
+      }
+    },
+    {
+      "id": "adventure:mycotoxic_undergrowth",
+      "climate": {
+        "temperature": [0.443, 2.0],
+        "humidity": [-0.051, 2.0]
+      }
+    }
   ],
   "liquids": {
     "seaLevel": -60,

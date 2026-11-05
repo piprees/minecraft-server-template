@@ -12,81 +12,84 @@
   },
   "biomes": [
     {
-      "id": "minecraft:deep_frozen_ocean",
-      "climate": {
-        "continentalness": [-2.0, -0.9061]
-      }
-    },
-    {
-      "id": "minecraft:frozen_ocean",
-      "climate": {
-        "continentalness": [-0.9061, -0.5407]
-      }
-    },
-    {
       "id": "minecraft:frozen_river",
       "climate": {
-        "continentalness": [-0.5407, -0.5333]
+        "temperature": [-2.0, 2.0],
+        "continentalness": [-0.11, 2.0],
+        "erosion": [0.05, 2.0],
+        "weirdness": [-0.05, 0.05]
       }
     },
     {
       "id": "minecraft:snowy_beach",
       "climate": {
-        "continentalness": [-0.5333, -0.5245]
+        "temperature": [-2.0, 2.0],
+        "continentalness": [-0.19, -0.11]
       }
     },
     {
-      "id": "minecraft:frozen_river",
+      "id": "minecraft:deep_frozen_ocean",
       "climate": {
-        "continentalness": [-0.5245, -0.5152]
+        "temperature": [-2.0, 2.0],
+        "continentalness": [-2.0, -0.455]
       }
     },
     {
-      "id": "minecraft:snowy_plains",
+      "id": "minecraft:frozen_ocean",
       "climate": {
-        "continentalness": [-0.5152, -0.4452]
-      }
-    },
-    {
-      "id": "adventure:highland_fells",
-      "climate": {
-        "continentalness": [-0.4452, -0.433]
-      }
-    },
-    {
-      "id": "minecraft:snowy_plains",
-      "climate": {
-        "continentalness": [-0.433, -0.3654]
-      }
-    },
-    {
-      "id": "minecraft:snowy_taiga",
-      "climate": {
-        "continentalness": [-0.3654, -0.3467]
+        "temperature": [-2.0, 2.0],
+        "continentalness": [-0.455, -0.19]
       }
     },
     {
       "id": "minecraft:frozen_peaks",
       "climate": {
-        "continentalness": [-0.3467, -0.2376]
+        "temperature": [-2.0, 0.545],
+        "continentalness": [0.03, 2.0],
+        "erosion": [-2.0, -0.375]
       }
     },
     {
       "id": "minecraft:jagged_peaks",
       "climate": {
-        "continentalness": [-0.2376, -0.1639]
-      }
-    },
-    {
-      "id": "adventure:magmatic_caves",
-      "climate": {
-        "continentalness": [-0.1639, -0.1333]
+        "temperature": [0.545, 2.0],
+        "continentalness": [0.03, 2.0],
+        "erosion": [-2.0, -0.375]
       }
     },
     {
       "id": "minecraft:dripstone_caves",
       "climate": {
-        "continentalness": [-0.1333, 2.0]
+        "humidity": [-2.0, 0.017],
+        "depth": [0.2, 2.0]
+      }
+    },
+    {
+      "id": "adventure:magmatic_caves",
+      "climate": {
+        "humidity": [0.017, 2.0],
+        "depth": [0.2, 2.0]
+      }
+    },
+    {
+      "id": "minecraft:snowy_plains",
+      "climate": {
+        "temperature": [-2.0, 0.721],
+        "humidity": [-2.0, 0.091]
+      }
+    },
+    {
+      "id": "minecraft:snowy_taiga",
+      "climate": {
+        "temperature": [-2.0, 0.721],
+        "humidity": [0.091, 2.0]
+      }
+    },
+    {
+      "id": "adventure:highland_fells",
+      "climate": {
+        "temperature": [0.721, 2.0],
+        "humidity": [-2.0, 2.0]
       }
     }
   ],

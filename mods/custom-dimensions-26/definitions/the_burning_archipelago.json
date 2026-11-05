@@ -9,45 +9,95 @@
     "endIsland": false
   },
   "biomes": [
-    "minecraft:crimson_forest",
-    "minecraft:warped_forest",
-    "minecraft:basalt_deltas",
-    "minecraft:nether_wastes",
-    "adventure:magma_land",
-    "adventure:ash_barrens",
-    "adventure:gravel_desert",
-    "adventure:withered_forest",
-    "minecraft:soul_sand_valley",
-    "adventure:mycotoxic_undergrowth",
-    "adventure:nether_jungle",
     {
-      "id": "minecraft:end_barrens",
+      "id": "adventure:gravel_desert",
       "climate": {
-        "weirdness": [-2.0, -0.5]
+        "temperature": [-2.0, -0.12],
+        "humidity": [-2.0, -0.101]
       }
     },
     {
-      "id": "adventure:magma_land",
+      "id": "adventure:ash_barrens",
       "climate": {
-        "weirdness": [-0.335, -0.19]
-      }
-    },
-    {
-      "id": "minecraft:crimson_forest",
-      "climate": {
-        "weirdness": [-0.055, -0.005]
+        "temperature": [-2.0, -0.12],
+        "humidity": [-0.101, 0.077]
       }
     },
     {
       "id": "adventure:windswept_isles",
       "climate": {
-        "weirdness": [0.19, 0.3]
+        "temperature": [-2.0, -0.12],
+        "humidity": [0.077, 0.217]
+      }
+    },
+    {
+      "id": "minecraft:soul_sand_valley",
+      "climate": {
+        "temperature": [-2.0, -0.12],
+        "humidity": [0.217, 2.0]
+      }
+    },
+    {
+      "id": "minecraft:warped_forest",
+      "climate": {
+        "temperature": [-0.12, -0.027],
+        "humidity": [-2.0, -0.028]
+      }
+    },
+    {
+      "id": "adventure:withered_forest",
+      "climate": {
+        "temperature": [-0.12, -0.027],
+        "humidity": [-0.028, 0.154]
+      }
+    },
+    {
+      "id": "adventure:mycotoxic_undergrowth",
+      "climate": {
+        "temperature": [-0.12, -0.027],
+        "humidity": [0.154, 2.0]
+      }
+    },
+    {
+      "id": "minecraft:end_barrens",
+      "climate": {
+        "temperature": [-0.027, 0.195],
+        "humidity": [-2.0, -0.139]
+      }
+    },
+    {
+      "id": "minecraft:nether_wastes",
+      "climate": {
+        "temperature": [-0.027, 0.195],
+        "humidity": [-0.139, 0.092]
+      }
+    },
+    {
+      "id": "minecraft:crimson_forest",
+      "climate": {
+        "temperature": [-0.027, 0.195],
+        "humidity": [0.092, 2.0]
       }
     },
     {
       "id": "adventure:magma_land",
       "climate": {
-        "weirdness": [0.3, 2.0]
+        "temperature": [0.195, 2.0],
+        "humidity": [-2.0, -0.058]
+      }
+    },
+    {
+      "id": "minecraft:basalt_deltas",
+      "climate": {
+        "temperature": [0.195, 2.0],
+        "humidity": [-0.058, 0.179]
+      }
+    },
+    {
+      "id": "adventure:nether_jungle",
+      "climate": {
+        "temperature": [0.195, 2.0],
+        "humidity": [0.179, 2.0]
       }
     }
   ],

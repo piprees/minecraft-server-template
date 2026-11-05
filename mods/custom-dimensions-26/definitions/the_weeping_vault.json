@@ -9,33 +9,38 @@
   },
   "biomes": [
     {
-      "id": "adventure:nether_jungle",
+      "id": "minecraft:soul_sand_valley",
       "climate": {
-        "temperature": [-0.6, -0.3]
+        "temperature": [-2.0, -0.085],
+        "humidity": [-2.0, -0.107]
       }
     },
     {
       "id": "minecraft:crimson_forest",
       "climate": {
-        "temperature": [-0.3, 0.0]
-      }
-    },
-    {
-      "id": "minecraft:basalt_deltas",
-      "climate": {
-        "temperature": [0.0, 0.3]
-      }
-    },
-    {
-      "id": "minecraft:soul_sand_valley",
-      "climate": {
-        "temperature": [0.3, 0.6]
+        "temperature": [-2.0, -0.085],
+        "humidity": [-0.107, 0.176]
       }
     },
     {
       "id": "adventure:withered_forest",
       "climate": {
-        "temperature": [0.6, 0.9]
+        "temperature": [-2.0, -0.085],
+        "humidity": [0.176, 2.0]
+      }
+    },
+    {
+      "id": "minecraft:basalt_deltas",
+      "climate": {
+        "temperature": [-0.085, 2.0],
+        "humidity": [-2.0, -0.025]
+      }
+    },
+    {
+      "id": "adventure:nether_jungle",
+      "climate": {
+        "temperature": [-0.085, 2.0],
+        "humidity": [-0.025, 2.0]
       }
     }
   ],

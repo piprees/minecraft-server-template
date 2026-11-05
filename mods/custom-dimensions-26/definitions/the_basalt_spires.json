@@ -12,51 +12,52 @@
   },
   "biomes": [
     {
-      "id": "minecraft:basalt_deltas",
-      "climate": {
-        "temperature": [-0.6, -0.4125]
-      }
-    },
-    {
-      "id": "adventure:magma_land",
-      "climate": {
-        "temperature": [-0.4125, -0.225]
-      }
-    },
-    {
       "id": "adventure:ash_barrens",
       "climate": {
-        "temperature": [-0.225, -0.0375]
-      }
-    },
-    {
-      "id": "minecraft:nether_wastes",
-      "climate": {
-        "temperature": [-0.0375, 0.15]
+        "temperature": [-2.0, -0.434],
+        "humidity": [-2.0, -0.083]
       }
     },
     {
       "id": "minecraft:soul_sand_valley",
       "climate": {
-        "temperature": [0.15, 0.3375]
-      }
-    },
-    {
-      "id": "adventure:quartz_flats",
-      "climate": {
-        "temperature": [0.3375, 0.525]
+        "temperature": [-2.0, -0.434],
+        "humidity": [-0.083, 0.139]
       }
     },
     {
       "id": "adventure:blackstone_basin",
       "climate": {
-        "temperature": [0.525, 0.7125]
+        "temperature": [-2.0, -0.434],
+        "humidity": [0.139, 2.0]
       }
     },
     {
-      "id": "adventure:ash_barrens",
+      "id": "adventure:quartz_flats",
       "climate": {
-        "temperature": [0.7125, 0.9]
+        "temperature": [-0.434, -0.33],
+        "humidity": [-2.0, 0.027]
+      }
+    },
+    {
+      "id": "minecraft:nether_wastes",
+      "climate": {
+        "temperature": [-0.434, -0.33],
+        "humidity": [0.027, 2.0]
+      }
+    },
+    {
+      "id": "adventure:magma_land",
+      "climate": {
+        "temperature": [-0.33, 2.0],
+        "humidity": [-2.0, 0.027]
+      }
+    },
+    {
+      "id": "minecraft:basalt_deltas",
+      "climate": {
+        "temperature": [-0.33, 2.0],
+        "humidity": [0.027, 2.0]
       }
     }
   ],

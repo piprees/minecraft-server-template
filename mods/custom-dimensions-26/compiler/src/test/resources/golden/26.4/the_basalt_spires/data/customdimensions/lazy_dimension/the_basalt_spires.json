@@ -6,36 +6,32 @@
       "type": "minecraft:multi_noise",
       "biomes": [
         {
-          "biome": "minecraft:basalt_deltas",
-          "parameters": "sha1:5507dde7a37de44824a0ecad95510ee68caae2f8"
-        },
-        {
-          "biome": "adventure:magma_land",
-          "parameters": "sha1:d989a6d612ee8e52552070d9e9a3e3bd67838ecf"
-        },
-        {
           "biome": "adventure:ash_barrens",
-          "parameters": "sha1:b70670df95e41eb2a8a4a087a98d7edba9f5473e"
-        },
-        {
-          "biome": "minecraft:nether_wastes",
-          "parameters": "sha1:5a54e094cf79e57ca91bc6c596a6569ef35e8169"
+          "parameters": "sha1:2b1126e38df5242f5e7285ad6a7f34f929760ac7"
         },
         {
           "biome": "minecraft:soul_sand_valley",
-          "parameters": "sha1:1f26eb0e6913707a3ec04e1476654d57ab2cad75"
-        },
-        {
-          "biome": "adventure:quartz_flats",
-          "parameters": "sha1:87cbff30f61aaeb8aa43333acc3f117e08697cbb"
+          "parameters": "sha1:9ad100b9be9c3d10ff40152386ff0948889fe988"
         },
         {
           "biome": "adventure:blackstone_basin",
-          "parameters": "sha1:c8c68a1385b710e5e7eb3917997110d2495e1bee"
+          "parameters": "sha1:e4e404bc30876c0bf714a1f4c72575e3353d57af"
         },
         {
-          "biome": "adventure:ash_barrens",
-          "parameters": "sha1:2199ae7c0ce7f430a8a1fc0f36bd6aec984e1fb9"
+          "biome": "adventure:quartz_flats",
+          "parameters": "sha1:3108cc566c4dd6f462de75a64373d5128bfba1d7"
+        },
+        {
+          "biome": "minecraft:nether_wastes",
+          "parameters": "sha1:170b9d5c37370804f0fced59fd5e2082af02aba6"
+        },
+        {
+          "biome": "adventure:magma_land",
+          "parameters": "sha1:8a2ce22a6cf5b7020290f4a5f5b3c40d3f2c1fcf"
+        },
+        {
+          "biome": "minecraft:basalt_deltas",
+          "parameters": "sha1:cec16fa912c96f9e0879af456f6999ed20d51170"
         }
       ]
     },

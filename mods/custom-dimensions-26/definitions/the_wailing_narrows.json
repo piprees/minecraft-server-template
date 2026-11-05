@@ -8,9 +8,27 @@
     "preset": "nether"
   },
   "biomes": [
-    "minecraft:soul_sand_valley",
-    "minecraft:basalt_deltas",
-    "adventure:quartz_flats"
+    {
+      "id": "adventure:quartz_flats",
+      "climate": {
+        "temperature": [-2.0, 0.146],
+        "humidity": [-2.0, -0.122]
+      }
+    },
+    {
+      "id": "minecraft:soul_sand_valley",
+      "climate": {
+        "temperature": [-2.0, 0.146],
+        "humidity": [-0.122, 2.0]
+      }
+    },
+    {
+      "id": "minecraft:basalt_deltas",
+      "climate": {
+        "temperature": [0.146, 2.0],
+        "humidity": [-2.0, 2.0]
+      }
+    }
   ],
   "atmosphere": {
     "fogColor": "#2B1B3B",

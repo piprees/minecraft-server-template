@@ -11,49 +11,43 @@
     {
       "id": "adventure:quartz_flats",
       "climate": {
-        "temperature": [-2.0, -0.6683]
+        "temperature": [-2.0, -0.033],
+        "humidity": [-2.0, -0.045]
       }
     },
     {
       "id": "minecraft:nether_wastes",
       "climate": {
-        "temperature": [-0.6683, -0.5841]
+        "temperature": [-2.0, -0.033],
+        "humidity": [-0.045, 0.19]
       }
     },
     {
       "id": "adventure:crimson_pinewood",
       "climate": {
-        "temperature": [-0.5841, -0.5424]
+        "temperature": [-2.0, -0.033],
+        "humidity": [0.19, 2.0]
       }
     },
     {
-      "id": "minecraft:crimson_forest",
+      "id": "adventure:magma_land",
       "climate": {
-        "temperature": [-0.5424, -0.5064]
+        "temperature": [-0.033, 2.0],
+        "humidity": [-2.0, -0.092]
       }
     },
     {
       "id": "minecraft:basalt_deltas",
       "climate": {
-        "temperature": [-0.5064, -0.3832]
+        "temperature": [-0.033, 2.0],
+        "humidity": [-0.092, 0.224]
       }
     },
     {
-      "id": "adventure:magma_land",
+      "id": "minecraft:crimson_forest",
       "climate": {
-        "temperature": [-0.3832, -0.3125]
-      }
-    },
-    {
-      "id": "adventure:magma_land",
-      "climate": {
-        "temperature": [-0.3125, -0.1988]
-      }
-    },
-    {
-      "id": "adventure:magma_land",
-      "climate": {
-        "temperature": [-0.1988, 2.0]
+        "temperature": [-0.033, 2.0],
+        "humidity": [0.224, 2.0]
       }
     }
   ],

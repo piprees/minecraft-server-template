@@ -8,67 +8,139 @@
     "preset": "overworld"
   },
   "biomes": [
-    "minecraft:dark_forest",
-    "minecraft:old_growth_spruce_taiga",
-    "minecraft:old_growth_pine_taiga",
-    "minecraft:swamp",
-    "minecraft:mangrove_swamp",
-    "minecraft:taiga",
-    "minecraft:jungle",
-    "minecraft:sparse_jungle",
-    "minecraft:mushroom_fields",
-    "minecraft:river",
-    "minecraft:old_growth_birch_forest",
-    "minecraft:birch_forest",
-    "minecraft:pale_garden",
-    "adventure:cloud_forest",
-    "minecraft:meadow",
     {
-      "id": "adventure:sugi_forest",
+      "id": "minecraft:river",
       "climate": {
-        "humidity": [-0.7, -0.58]
-      }
-    },
-    {
-      "id": "adventure:redwood_grove",
-      "climate": {
-        "humidity": [-0.53, -0.41]
-      }
-    },
-    {
-      "id": "minecraft:dark_forest",
-      "climate": {
-        "humidity": [-0.35, -0.24]
-      }
-    },
-    {
-      "id": "minecraft:old_growth_birch_forest",
-      "climate": {
-        "humidity": [-0.18, -0.07]
-      }
-    },
-    {
-      "id": "minecraft:old_growth_spruce_taiga",
-      "climate": {
-        "humidity": [-0.01, 0.11]
-      }
-    },
-    {
-      "id": "adventure:alpha_grove",
-      "climate": {
-        "humidity": [0.16, 0.28]
+        "temperature": [-2.0, 2.0],
+        "continentalness": [-0.11, 2.0],
+        "erosion": [0.05, 2.0],
+        "weirdness": [-0.05, 0.05]
       }
     },
     {
       "id": "adventure:aspen_forest",
       "climate": {
-        "humidity": [0.33, 0.45]
+        "temperature": [-2.0, -0.452],
+        "humidity": [-2.0, -0.249]
+      }
+    },
+    {
+      "id": "minecraft:taiga",
+      "climate": {
+        "temperature": [-2.0, -0.452],
+        "humidity": [-0.249, -0.129]
       }
     },
     {
       "id": "adventure:redwood_grove",
       "climate": {
-        "humidity": [0.51, 0.62]
+        "temperature": [-2.0, -0.452],
+        "humidity": [-0.129, 0.034]
+      }
+    },
+    {
+      "id": "minecraft:old_growth_spruce_taiga",
+      "climate": {
+        "temperature": [-2.0, -0.452],
+        "humidity": [0.034, 0.18]
+      }
+    },
+    {
+      "id": "minecraft:old_growth_pine_taiga",
+      "climate": {
+        "temperature": [-2.0, -0.452],
+        "humidity": [0.18, 2.0]
+      }
+    },
+    {
+      "id": "minecraft:birch_forest",
+      "climate": {
+        "temperature": [-0.452, -0.318],
+        "humidity": [-2.0, -0.235]
+      }
+    },
+    {
+      "id": "minecraft:meadow",
+      "climate": {
+        "temperature": [-0.452, -0.318],
+        "humidity": [-0.235, -0.107]
+      }
+    },
+    {
+      "id": "minecraft:mushroom_fields",
+      "climate": {
+        "temperature": [-0.452, -0.318],
+        "humidity": [-0.107, 0.008]
+      }
+    },
+    {
+      "id": "minecraft:old_growth_birch_forest",
+      "climate": {
+        "temperature": [-0.452, -0.318],
+        "humidity": [0.008, 0.164]
+      }
+    },
+    {
+      "id": "minecraft:pale_garden",
+      "climate": {
+        "temperature": [-0.452, -0.318],
+        "humidity": [0.164, 2.0]
+      }
+    },
+    {
+      "id": "adventure:alpha_grove",
+      "climate": {
+        "temperature": [-0.318, -0.167],
+        "humidity": [-2.0, -0.198]
+      }
+    },
+    {
+      "id": "minecraft:dark_forest",
+      "climate": {
+        "temperature": [-0.318, -0.167],
+        "humidity": [-0.198, -0.05]
+      }
+    },
+    {
+      "id": "adventure:cloud_forest",
+      "climate": {
+        "temperature": [-0.318, -0.167],
+        "humidity": [-0.05, 0.119]
+      }
+    },
+    {
+      "id": "adventure:sugi_forest",
+      "climate": {
+        "temperature": [-0.318, -0.167],
+        "humidity": [0.119, 2.0]
+      }
+    },
+    {
+      "id": "minecraft:sparse_jungle",
+      "climate": {
+        "temperature": [-0.167, 2.0],
+        "humidity": [-2.0, -0.198]
+      }
+    },
+    {
+      "id": "minecraft:swamp",
+      "climate": {
+        "temperature": [-0.167, 2.0],
+        "humidity": [-0.198, -0.05]
+      }
+    },
+    {
+      "id": "minecraft:mangrove_swamp",
+      "climate": {
+        "temperature": [-0.167, 2.0],
+        "humidity": [-0.05, 0.119]
+      }
+    },
+    {
+      "id": "minecraft:jungle",
+      "climate": {
+        "temperature": [-0.167, 2.0],
+        "humidity": [0.119, 2.0]
       }
     }
   ],

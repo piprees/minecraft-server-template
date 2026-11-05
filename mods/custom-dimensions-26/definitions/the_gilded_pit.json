@@ -11,37 +11,36 @@
     {
       "id": "adventure:gravel_desert",
       "climate": {
-        "temperature": [-2.0, -0.4798]
+        "temperature": [-2.0, 0.056],
+        "humidity": [-2.0, -0.188]
       }
     },
     {
       "id": "minecraft:nether_wastes",
       "climate": {
-        "temperature": [-0.4798, -0.3511]
-      }
-    },
-    {
-      "id": "minecraft:nether_wastes",
-      "climate": {
-        "temperature": [-0.3511, 0.0781]
-      }
-    },
-    {
-      "id": "minecraft:basalt_deltas",
-      "climate": {
-        "temperature": [0.0781, 0.3411]
+        "temperature": [-2.0, 0.056],
+        "humidity": [-0.188, 0.204]
       }
     },
     {
       "id": "minecraft:crimson_forest",
       "climate": {
-        "temperature": [0.3411, 0.5234]
+        "temperature": [-2.0, 0.056],
+        "humidity": [0.204, 2.0]
       }
     },
     {
       "id": "adventure:magma_land",
       "climate": {
-        "temperature": [0.5234, 2.0]
+        "temperature": [0.056, 2.0],
+        "humidity": [-2.0, -0.079]
+      }
+    },
+    {
+      "id": "minecraft:basalt_deltas",
+      "climate": {
+        "temperature": [0.056, 2.0],
+        "humidity": [-0.079, 2.0]
       }
     }
   ],
