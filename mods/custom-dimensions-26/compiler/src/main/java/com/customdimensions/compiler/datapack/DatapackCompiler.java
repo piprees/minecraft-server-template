@@ -59,6 +59,8 @@ public final class DatapackCompiler {
             "the_end", "minecraft:the_end",
             "the_aviary", "");
 
+    /** Presets whose router holds temperature and vegetation constant; a biome list borrows the overworld's. */
+    static final Set<String> CONSTANT_CLIMATE = Set.of("end", "caves", "floating_islands");
     static final Set<String> OVERWORLD_FAMILY = Set.of("overworld", "large_biomes", "amplified", "caves", "floating_islands");
 
     /** {@code atmosphere.effects} to the vanilla dimension type whose sky it names. */
@@ -627,12 +629,16 @@ public final class DatapackCompiler {
         if (terrain != null) {
             settings = terrain(slug, preset, terrain, settings, liquids, entry);
         }
-        boolean endClimate = "end".equals(preset) && !def.biomes().isEmpty();
-        if (endClimate) {
+        boolean borrowsClimate = false;
+        if (!def.biomes().isEmpty() && CONSTANT_CLIMATE.contains(preset)) {
             JsonObject router = settings.getAsJsonObject("noise_router");
             JsonObject overworld = vanilla.noiseSettings("overworld").getAsJsonObject("noise_router");
-            router.add("temperature", overworld.get("temperature").deepCopy());
-            router.add("vegetation", overworld.get("vegetation").deepCopy());
+            for (String key : List.of("temperature", "vegetation")) {
+                if (router.get(key).isJsonPrimitive() && router.get(key).getAsJsonPrimitive().isNumber()) {
+                    router.add(key, overworld.get(key).deepCopy());
+                    borrowsClimate = true;
+                }
+            }
         }
         boolean changesZones = zones != null && zones.changesSettings();
         if (changesZones) {
@@ -644,7 +650,7 @@ public final class DatapackCompiler {
                 withLibraryPalettes(MaterialsCompiler.read(slug, def.materials()), def, zones, entry), OresCompiler.veins(OresCompiler.read(slug, def.ores()), vanilla),
                 seaLevel);
         if (!changesLiquids && defaultBlock == null && !removesIsland && materialRule == null && terrain == null
-                && !changesZones && !endClimate) {
+                && !changesZones && !borrowsClimate) {
             return "minecraft:" + preset;
         }
         if (removesIsland) {

@@ -330,6 +330,21 @@ class DatapackCompilerTest {
     }
 
     @Test
+    void cavesAndFloatingIslandsWithAListTakeTheOverworldClimate() {
+        for (String preset : List.of("caves", "floating_islands")) {
+            DatapackCompiler.Output out = Fixtures.compile("t", "\"generator\": {\"type\": \"noise\", \"preset\": \"" + preset + "\"}, "
+                    + "\"biomes\": [\"minecraft:lush_caves\", \"minecraft:dripstone_caves\"]");
+            assertEquals("adventure:t", stem(out, "t").getAsJsonObject("generator").get("settings").getAsString(), preset);
+            JsonObject router = JsonParser.parseString(out.files().get("data/adventure/worldgen/noise_settings/t.json"))
+                    .getAsJsonObject().getAsJsonObject("noise_router");
+            assertEquals("minecraft:overworld/temperature", router.get("temperature").getAsString(), preset);
+            assertEquals("minecraft:overworld/vegetation", router.get("vegetation").getAsString(), preset);
+            DatapackCompiler.Output plain = Fixtures.compile("u", "\"generator\": {\"type\": \"noise\", \"preset\": \"" + preset + "\"}");
+            assertEquals("minecraft:" + preset, stem(plain, "u").getAsJsonObject("generator").get("settings").getAsString(), preset);
+        }
+    }
+
+    @Test
     void netherIslandsFilterTheNetherListInEndTerrain() {
         DatapackCompiler.Output out = Fixtures.compile("t", "\"generator\": {\"type\": \"noise\", \"preset\": \"end\"}, "
                 + "\"biomes\": [\"minecraft:basalt_deltas\", \"minecraft:warped_forest\"]");

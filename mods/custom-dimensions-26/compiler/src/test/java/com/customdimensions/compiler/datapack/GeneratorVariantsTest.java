@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -171,7 +172,9 @@ class GeneratorVariantsTest {
         DatapackCompiler.Output out = compileAll(Map.of("the_aviary", AVIARY, "c", PL_CLONE + ", \"seed\": 7"));
         JsonObject aviary = JsonParser.parseString(out.files().get("data/adventure/dimension/the_aviary.json")).getAsJsonObject();
         JsonObject clone = JsonParser.parseString(out.files().get("data/customdimensions/lazy_dimension/c.json")).getAsJsonObject();
-        assertEquals(aviary.get("generator"), clone.get("generator"));
+        assertEquals(aviary.getAsJsonObject("generator").get("biome_source"), clone.getAsJsonObject("generator").get("biome_source"));
+        assertEquals(JsonParser.parseString(out.files().get("data/adventure/worldgen/noise_settings/the_aviary.json")),
+                JsonParser.parseString(out.files().get("data/adventure/worldgen/noise_settings/c.json")));
         assertEquals("adventure:c", clone.get("type").getAsString());
         assertEquals(CompileReport.Kind.LAZY, out.report().entry("c").kind());
         assertEquals("adventure:the_aviary", out.report().entry("c").cloneOf());
@@ -184,8 +187,10 @@ class GeneratorVariantsTest {
     void aClonesOwnLiquidsTuneItsSourcesGeneratorAndItsBiomesAreReported() {
         DatapackCompiler.Output out = compileAll(Map.of("the_aviary", AVIARY,
                 "c", PL_CLONE + ", \"liquids\": {\"seaLevel\": 90}, \"biomes\": [\"minecraft:jungle\"]"));
-        assertEquals(json("{\"base\": \"minecraft:floating_islands\", \"changed\": {\"sea_level\": 90}}"),
-                golden(out, "c", "data/adventure/worldgen/noise_settings/c.json"));
+        JsonObject changed = golden(out, "c", "data/adventure/worldgen/noise_settings/c.json").getAsJsonObject()
+                .getAsJsonObject("changed");
+        assertEquals(Set.of("noise_router", "sea_level"), changed.keySet());
+        assertEquals(90, changed.get("sea_level").getAsInt());
         assertTrue(out.report().entry("c").unsupported().stream().anyMatch(u -> u.startsWith("`biomes`") && u.contains("1 biome")));
     }
 
