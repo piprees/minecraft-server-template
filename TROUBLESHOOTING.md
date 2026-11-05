@@ -1596,6 +1596,13 @@ A seed's map and its banked facts appear to contradict each other — the thumbn
   the same trap. Pin it against the Java, not against intuition —
   `scripts/e2e/portal-matrix-selftest.sh` is the worked example.
 
+<a id="t170"></a>
+### T170 — A feature placed on another feature's blocks by `WORLD_SURFACE_WG` places nothing
+
+- **Symptom:** a library feature meant to stand on blocks an earlier feature placed counts 0 (end rods on a coral reef).
+- **Cause:** the `WORLD_SURFACE_WG` heightmap follows the generated ground and does not see blocks earlier features placed, so the placement finds no air above them.
+- **Fix:** place it with `MOTION_BLOCKING`, which reflects placed blocks; keep `WORLD_SURFACE_WG` for anything that follows the generated ground.
+
 <a id="t169"></a>
 ### T169 — Dry plants placed by `place_on_ground` float on soul soil
 
