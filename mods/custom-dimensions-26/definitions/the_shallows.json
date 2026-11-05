@@ -12,80 +12,68 @@
   },
   "biomes": [
     {
-      "id": "adventure:desert_oasis",
+      "id": "adventure:muddy_river",
       "climate": {
-        "weirdness": [-2.0, -0.19],
-        "depth": [-2.0, 0.1]
+        "temperature": [-2.0, 2.0],
+        "continentalness": [-0.11, 2.0],
+        "erosion": [0.05, 2.0],
+        "weirdness": [-0.05, 0.05]
       }
     },
     {
-      "id": "minecraft:warm_ocean",
+      "id": "minecraft:beach",
       "climate": {
-        "weirdness": [-0.19, -0.1486],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "minecraft:lukewarm_ocean",
-      "climate": {
-        "weirdness": [-0.1486, -0.1071],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "adventure:tropical_shores",
-      "climate": {
-        "weirdness": [-0.1071, -0.0657],
-        "depth": [-2.0, 0.1]
+        "temperature": [-2.0, 2.0],
+        "continentalness": [-0.19, -0.11]
       }
     },
     {
       "id": "minecraft:deep_lukewarm_ocean",
       "climate": {
-        "weirdness": [-0.0657, -0.0243],
-        "depth": [-2.0, 0.1]
+        "temperature": [-2.0, 2.0],
+        "continentalness": [-2.0, -0.455]
       }
     },
     {
-      "id": "minecraft:beach",
+      "id": "minecraft:lukewarm_ocean",
       "climate": {
-        "weirdness": [-0.0243, 0.0171],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "adventure:muddy_river",
-      "climate": {
-        "weirdness": [0.0171, 0.0586],
-        "depth": [-2.0, 0.1]
+        "temperature": [-2.0, 0.191],
+        "continentalness": [-0.455, -0.19]
       }
     },
     {
       "id": "minecraft:warm_ocean",
       "climate": {
-        "weirdness": [0.0586, 0.1],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "minecraft:beach",
-      "climate": {
-        "weirdness": [0.1, 2.0],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "minecraft:lush_caves",
-      "climate": {
-        "weirdness": [-2.0, -0.045],
-        "depth": [0.1, 2.0]
+        "temperature": [0.191, 2.0],
+        "continentalness": [-0.455, -0.19]
       }
     },
     {
       "id": "adventure:lichen_caves",
       "climate": {
-        "weirdness": [-0.045, 2.0],
-        "depth": [0.1, 2.0]
+        "humidity": [-2.0, 0.024],
+        "depth": [0.2, 2.0]
+      }
+    },
+    {
+      "id": "minecraft:lush_caves",
+      "climate": {
+        "humidity": [0.024, 2.0],
+        "depth": [0.2, 2.0]
+      }
+    },
+    {
+      "id": "adventure:desert_oasis",
+      "climate": {
+        "temperature": [-2.0, 2.0],
+        "humidity": [-2.0, 0.024]
+      }
+    },
+    {
+      "id": "adventure:tropical_shores",
+      "climate": {
+        "temperature": [-2.0, 2.0],
+        "humidity": [0.024, 2.0]
       }
     }
   ],

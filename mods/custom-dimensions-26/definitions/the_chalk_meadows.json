@@ -9,87 +9,80 @@
   },
   "biomes": [
     {
-      "id": "adventure:highland_fells",
+      "id": "adventure:lichen_caves",
       "climate": {
-        "weirdness": [-2.0, -0.19],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "adventure:carnation_fields",
-      "climate": {
-        "weirdness": [-0.19, -0.1537],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "adventure:alpine_meadow",
-      "climate": {
-        "weirdness": [-0.1537, -0.1175],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "minecraft:meadow",
-      "climate": {
-        "weirdness": [-0.1175, -0.0812],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "minecraft:plains",
-      "climate": {
-        "weirdness": [-0.0812, -0.045],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "minecraft:sunflower_plains",
-      "climate": {
-        "weirdness": [-0.045, -0.0087],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "minecraft:flower_forest",
-      "climate": {
-        "weirdness": [-0.0087, 0.0275],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "adventure:lavender_fields",
-      "climate": {
-        "weirdness": [0.0275, 0.0638],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "adventure:chalk_cliffs",
-      "climate": {
-        "weirdness": [0.0638, 0.1],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "minecraft:plains",
-      "climate": {
-        "weirdness": [0.1, 2.0],
-        "depth": [-2.0, 0.1]
+        "humidity": [-2.0, -0.031],
+        "depth": [0.2, 2.0]
       }
     },
     {
       "id": "minecraft:lush_caves",
       "climate": {
-        "weirdness": [-2.0, -0.045],
-        "depth": [0.1, 2.0]
+        "humidity": [-0.031, 2.0],
+        "depth": [0.2, 2.0]
       }
     },
     {
-      "id": "adventure:lichen_caves",
+      "id": "minecraft:sunflower_plains",
       "climate": {
-        "weirdness": [-0.045, 2.0],
-        "depth": [0.1, 2.0]
+        "temperature": [-2.0, -0.595],
+        "humidity": [-2.0, -0.14]
+      }
+    },
+    {
+      "id": "adventure:highland_fells",
+      "climate": {
+        "temperature": [-2.0, -0.595],
+        "humidity": [-0.14, 0.081]
+      }
+    },
+    {
+      "id": "adventure:alpine_meadow",
+      "climate": {
+        "temperature": [-2.0, -0.595],
+        "humidity": [0.081, 2.0]
+      }
+    },
+    {
+      "id": "minecraft:flower_forest",
+      "climate": {
+        "temperature": [-0.595, -0.029],
+        "humidity": [-2.0, -0.17]
+      }
+    },
+    {
+      "id": "minecraft:plains",
+      "climate": {
+        "temperature": [-0.595, -0.029],
+        "humidity": [-0.17, 0.017]
+      }
+    },
+    {
+      "id": "minecraft:meadow",
+      "climate": {
+        "temperature": [-0.595, -0.029],
+        "humidity": [0.017, 2.0]
+      }
+    },
+    {
+      "id": "adventure:lavender_fields",
+      "climate": {
+        "temperature": [-0.029, 2.0],
+        "humidity": [-2.0, -0.14]
+      }
+    },
+    {
+      "id": "adventure:chalk_cliffs",
+      "climate": {
+        "temperature": [-0.029, 2.0],
+        "humidity": [-0.14, 0.081]
+      }
+    },
+    {
+      "id": "adventure:carnation_fields",
+      "climate": {
+        "temperature": [-0.029, 2.0],
+        "humidity": [0.081, 2.0]
       }
     }
   ],

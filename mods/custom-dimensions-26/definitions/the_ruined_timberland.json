@@ -9,73 +9,66 @@
   },
   "biomes": [
     {
-      "id": "adventure:aspen_forest",
-      "climate": {
-        "weirdness": [-2.0, -0.19],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "adventure:maple_woodland",
-      "climate": {
-        "weirdness": [-0.19, -0.1417],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "minecraft:dark_forest",
-      "climate": {
-        "weirdness": [-0.1417, -0.0933],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "minecraft:forest",
-      "climate": {
-        "weirdness": [-0.0933, -0.045],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "minecraft:pale_garden",
-      "climate": {
-        "weirdness": [-0.045, 0.0033],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "minecraft:birch_forest",
-      "climate": {
-        "weirdness": [0.0033, 0.0517],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "minecraft:dappled_forest",
-      "climate": {
-        "weirdness": [0.0517, 0.1],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "adventure:maple_woodland",
-      "climate": {
-        "weirdness": [0.1, 2.0],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
       "id": "minecraft:dripstone_caves",
       "climate": {
-        "weirdness": [-2.0, -0.045],
-        "depth": [0.1, 2.0]
+        "humidity": [-2.0, 0.005],
+        "depth": [0.2, 2.0]
       }
     },
     {
       "id": "minecraft:deep_dark",
       "climate": {
-        "weirdness": [-0.045, 2.0],
-        "depth": [0.1, 2.0]
+        "humidity": [0.005, 2.0],
+        "depth": [0.2, 2.0]
+      }
+    },
+    {
+      "id": "adventure:aspen_forest",
+      "climate": {
+        "temperature": [-2.0, 0.179],
+        "humidity": [-2.0, -0.104]
+      }
+    },
+    {
+      "id": "minecraft:dappled_forest",
+      "climate": {
+        "temperature": [-2.0, 0.179],
+        "humidity": [-0.104, 0.099]
+      }
+    },
+    {
+      "id": "minecraft:pale_garden",
+      "climate": {
+        "temperature": [-2.0, 0.179],
+        "humidity": [0.099, 2.0]
+      }
+    },
+    {
+      "id": "minecraft:forest",
+      "climate": {
+        "temperature": [0.179, 0.369],
+        "humidity": [-2.0, 0.061]
+      }
+    },
+    {
+      "id": "minecraft:birch_forest",
+      "climate": {
+        "temperature": [0.179, 0.369],
+        "humidity": [0.061, 2.0]
+      }
+    },
+    {
+      "id": "adventure:maple_woodland",
+      "climate": {
+        "temperature": [0.369, 2.0],
+        "humidity": [-2.0, 0.005]
+      }
+    },
+    {
+      "id": "minecraft:dark_forest",
+      "climate": {
+        "temperature": [0.369, 2.0],
+        "humidity": [0.005, 2.0]
       }
     }
   ],

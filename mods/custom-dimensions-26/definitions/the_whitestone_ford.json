@@ -12,75 +12,56 @@
   },
   "biomes": [
     {
-      "id": "adventure:chalk_cliffs",
+      "id": "minecraft:river",
       "climate": {
-        "continentalness": [-0.6, -0.05],
-        "weirdness": [-2.0, -0.19],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "adventure:chalk_cliffs",
-      "climate": {
-        "continentalness": [-0.6, -0.05],
-        "weirdness": [-0.19, -0.1417],
-        "depth": [-2.0, 0.1]
+        "temperature": [-2.0, 0.544],
+        "continentalness": [-0.11, 2.0],
+        "erosion": [0.05, 2.0],
+        "weirdness": [-0.05, 0.05]
       }
     },
     {
       "id": "adventure:muddy_river",
       "climate": {
-        "weirdness": [-0.1417, -0.0933],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "minecraft:river",
-      "climate": {
-        "weirdness": [-0.0933, -0.045],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "minecraft:plains",
-      "climate": {
-        "weirdness": [-0.045, 0.0033],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "minecraft:meadow",
-      "climate": {
-        "weirdness": [0.0033, 0.0517],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "minecraft:river",
-      "climate": {
-        "weirdness": [0.0517, 0.1],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "adventure:muddy_river",
-      "climate": {
-        "weirdness": [0.1, 2.0],
-        "depth": [-2.0, 0.1]
+        "temperature": [0.544, 2.0],
+        "continentalness": [-0.11, 2.0],
+        "erosion": [0.05, 2.0],
+        "weirdness": [-0.05, 0.05]
       }
     },
     {
       "id": "adventure:lichen_caves",
       "climate": {
-        "weirdness": [-2.0, -0.045],
-        "depth": [0.1, 2.0]
+        "humidity": [-2.0, -0.004],
+        "depth": [0.2, 2.0]
       }
     },
     {
       "id": "minecraft:lush_caves",
       "climate": {
-        "weirdness": [-0.045, 2.0],
-        "depth": [0.1, 2.0]
+        "humidity": [-0.004, 2.0],
+        "depth": [0.2, 2.0]
+      }
+    },
+    {
+      "id": "minecraft:plains",
+      "climate": {
+        "temperature": [-2.0, 0.701],
+        "humidity": [-2.0, -0.004]
+      }
+    },
+    {
+      "id": "minecraft:meadow",
+      "climate": {
+        "temperature": [-2.0, 0.701],
+        "humidity": [-0.004, 2.0]
+      }
+    },
+    {
+      "id": "adventure:chalk_cliffs",
+      "climate": {
+        "temperature": [0.701, 2.0],
+        "humidity": [-2.0, 2.0]
       }
     }
   ],

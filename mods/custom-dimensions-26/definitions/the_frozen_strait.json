@@ -44,17 +44,17 @@
     {
       "id": "minecraft:frozen_peaks",
       "climate": {
-        "temperature": [-2.0, 0.545],
         "continentalness": [0.03, 2.0],
-        "erosion": [-2.0, -0.375]
+        "erosion": [-2.0, -0.375],
+        "weirdness": [-2.0, -0.021]
       }
     },
     {
       "id": "minecraft:jagged_peaks",
       "climate": {
-        "temperature": [0.545, 2.0],
         "continentalness": [0.03, 2.0],
-        "erosion": [-2.0, -0.375]
+        "erosion": [-2.0, -0.375],
+        "weirdness": [-0.021, 2.0]
       }
     },
     {
