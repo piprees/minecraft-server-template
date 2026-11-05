@@ -11,85 +11,43 @@
     {
       "id": "minecraft:deep_dark",
       "climate": {
-        "temperature": [-2.0, 0.711],
-        "humidity": [-2.0, -0.093]
+        "temperature": [-2.0, 0.823],
+        "humidity": [-2.0, -0.015]
       }
     },
     {
       "id": "minecraft:warped_forest",
       "climate": {
-        "temperature": [-2.0, 0.711],
-        "humidity": [-0.093, -0.001]
-      }
-    },
-    {
-      "id": "minecraft:pale_garden",
-      "climate": {
-        "temperature": [-2.0, 0.711],
-        "humidity": [-0.001, 0.106]
-      }
-    },
-    {
-      "id": "minecraft:old_growth_spruce_taiga",
-      "climate": {
-        "temperature": [-2.0, 0.711],
-        "humidity": [0.106, 2.0]
-      }
-    },
-    {
-      "id": "minecraft:dripstone_caves",
-      "climate": {
-        "temperature": [0.711, 0.923],
-        "humidity": [-2.0, -0.093]
-      }
-    },
-    {
-      "id": "minecraft:mushroom_fields",
-      "climate": {
-        "temperature": [0.711, 0.923],
-        "humidity": [-0.093, 0.034]
-      }
-    },
-    {
-      "id": "minecraft:dark_forest",
-      "climate": {
-        "temperature": [0.711, 0.923],
-        "humidity": [0.034, 0.169]
+        "temperature": [-2.0, 0.823],
+        "humidity": [-0.015, 0.098]
       }
     },
     {
       "id": "adventure:withered_forest",
       "climate": {
-        "temperature": [0.711, 0.923],
-        "humidity": [0.169, 2.0]
+        "temperature": [-2.0, 0.823],
+        "humidity": [0.098, 2.0]
+      }
+    },
+    {
+      "id": "minecraft:dripstone_caves",
+      "climate": {
+        "temperature": [0.823, 2.0],
+        "humidity": [-2.0, -0.041]
       }
     },
     {
       "id": "minecraft:crimson_forest",
       "climate": {
-        "temperature": [0.923, 2.0],
-        "humidity": [-2.0, -0.147]
+        "temperature": [0.823, 2.0],
+        "humidity": [-0.041, 0.064]
       }
     },
     {
       "id": "minecraft:lush_caves",
       "climate": {
-        "temperature": [0.923, 2.0],
-        "humidity": [-0.147, 0.016]
-      }
-    },
-    {
-      "id": "minecraft:swamp",
-      "climate": {
-        "temperature": [0.923, 2.0],
-        "humidity": [0.016, 0.156]
-      }
-    },
-    {
-      "id": "adventure:fungal_fen",
-      "climate": {
-        "temperature": [0.923, 2.0],
-        "humidity": [0.156, 2.0]
+        "temperature": [0.823, 2.0],
+        "humidity": [0.064, 2.0]
       }
     }
   ],
@@ -169,13 +127,8 @@
     "mood": "hard",
     "spawnFilter": [
       "minecraft:deep_dark",
-      "minecraft:mushroom_fields",
-      "minecraft:pale_garden",
-      "minecraft:dark_forest",
       "minecraft:lush_caves",
-      "minecraft:dripstone_caves",
-      "minecraft:old_growth_spruce_taiga",
-      "minecraft:swamp"
+      "minecraft:dripstone_caves"
     ],
     "wants": {
       "ancient_city": "spread",
