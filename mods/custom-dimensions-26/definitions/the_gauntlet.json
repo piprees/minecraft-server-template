@@ -11,64 +11,149 @@
     "base": null
   },
   "biomes": [
-    "minecraft:windswept_hills",
-    "minecraft:windswept_gravelly_hills",
-    "minecraft:stony_peaks",
-    "minecraft:jagged_peaks",
-    "minecraft:frozen_peaks",
-    "minecraft:snowy_slopes",
-    "minecraft:grove",
-    "minecraft:river",
-    "minecraft:deep_dark",
-    "adventure:alpine_scree",
-    "minecraft:basalt_deltas",
-    "adventure:chalk_cliffs",
-    "adventure:maple_woodland",
-    "minecraft:eroded_badlands",
     {
-      "id": "adventure:ice_starfield",
+      "id": "minecraft:river",
       "climate": {
-        "weirdness": [-0.4765, -0.4609]
-      }
-    },
-    {
-      "id": "minecraft:stony_peaks",
-      "climate": {
-        "weirdness": [-0.4259, -0.3342]
-      }
-    },
-    {
-      "id": "adventure:ash_barrens",
-      "climate": {
-        "weirdness": [-0.1814, -0.0382]
-      }
-    },
-    {
-      "id": "minecraft:jagged_peaks",
-      "climate": {
-        "weirdness": [0.2239, 0.4285]
+        "temperature": [-2.0, 2.0],
+        "continentalness": [-0.11, 2.0],
+        "erosion": [0.05, 2.0],
+        "weirdness": [-0.05, 0.05]
       }
     },
     {
       "id": "minecraft:frozen_peaks",
       "climate": {
-        "weirdness": [0.5241, 0.6912]
+        "continentalness": [0.03, 2.0],
+        "erosion": [-2.0, -0.2225],
+        "weirdness": [-2.0, -0.143]
       }
     },
     {
       "id": "minecraft:jagged_peaks",
       "climate": {
-        "weirdness": [0.6912, 0.9886]
+        "continentalness": [0.03, 2.0],
+        "erosion": [-2.0, -0.2225],
+        "weirdness": [-0.143, 0.141]
       }
     },
-    "adventure:buried_dunes",
-    "adventure:ashen_woodland",
-    "adventure:dying_forest",
-    "minecraft:snowy_taiga",
+    {
+      "id": "minecraft:stony_peaks",
+      "climate": {
+        "continentalness": [0.03, 2.0],
+        "erosion": [-2.0, -0.2225],
+        "weirdness": [0.141, 2.0]
+      }
+    },
+    {
+      "id": "adventure:buried_dunes",
+      "climate": {
+        "humidity": [-2.0, -0.008],
+        "depth": [0.2, 2.0]
+      }
+    },
+    {
+      "id": "minecraft:deep_dark",
+      "climate": {
+        "humidity": [-0.008, 2.0],
+        "depth": [0.2, 2.0]
+      }
+    },
+    {
+      "id": "minecraft:windswept_gravelly_hills",
+      "climate": {
+        "temperature": [-2.0, -0.324],
+        "humidity": [-2.0, -0.117]
+      }
+    },
+    {
+      "id": "adventure:dying_forest",
+      "climate": {
+        "temperature": [-2.0, -0.324],
+        "humidity": [-0.117, 0.028]
+      }
+    },
+    {
+      "id": "minecraft:snowy_slopes",
+      "climate": {
+        "temperature": [-2.0, -0.324],
+        "humidity": [0.028, 0.184]
+      }
+    },
+    {
+      "id": "adventure:ice_starfield",
+      "climate": {
+        "temperature": [-2.0, -0.324],
+        "humidity": [0.184, 2.0]
+      }
+    },
+    {
+      "id": "adventure:ash_barrens",
+      "climate": {
+        "temperature": [-0.324, 0.165],
+        "humidity": [-2.0, -0.212]
+      }
+    },
+    {
+      "id": "adventure:alpine_scree",
+      "climate": {
+        "temperature": [-0.324, 0.165],
+        "humidity": [-0.212, -0.008]
+      }
+    },
+    {
+      "id": "minecraft:windswept_hills",
+      "climate": {
+        "temperature": [-0.324, 0.165],
+        "humidity": [-0.008, 0.202]
+      }
+    },
+    {
+      "id": "minecraft:snowy_taiga",
+      "climate": {
+        "temperature": [-0.324, 0.165],
+        "humidity": [0.202, 2.0]
+      }
+    },
+    {
+      "id": "adventure:chalk_cliffs",
+      "climate": {
+        "temperature": [0.165, 0.334],
+        "humidity": [-2.0, -0.15]
+      }
+    },
+    {
+      "id": "minecraft:grove",
+      "climate": {
+        "temperature": [0.165, 0.334],
+        "humidity": [-0.15, 0.137]
+      }
+    },
+    {
+      "id": "adventure:maple_woodland",
+      "climate": {
+        "temperature": [0.165, 0.334],
+        "humidity": [0.137, 2.0]
+      }
+    },
     {
       "id": "minecraft:eroded_badlands",
       "climate": {
-        "weirdness": [-0.33, -0.26]
+        "temperature": [0.334, 2.0],
+        "humidity": [-2.0, -0.15]
+      }
+    },
+    {
+      "id": "adventure:ashen_woodland",
+      "climate": {
+        "temperature": [0.334, 2.0],
+        "humidity": [-0.15, 0.038]
+      }
+    },
+    {
+      "id": "minecraft:basalt_deltas",
+      "climate": {
+        "temperature": [0.334, 2.0],
+        "humidity": [0.038, 2.0]
       }
     }
   ],

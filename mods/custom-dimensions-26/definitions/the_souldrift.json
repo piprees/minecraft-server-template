@@ -8,85 +8,137 @@
     "preset": "overworld"
   },
   "biomes": [
-    "adventure:ashen_woodland",
-    "minecraft:eroded_badlands",
-    "minecraft:windswept_gravelly_hills",
-    "adventure:blackstone_basin",
-    "minecraft:badlands",
-    "minecraft:basalt_deltas",
-    "minecraft:pale_garden",
-    "minecraft:deep_dark",
-    "adventure:chalk_cliffs",
     {
-      "id": "adventure:umbral_wastes",
+      "id": "adventure:crystal_hollows",
       "climate": {
-        "weirdness": [-2.0, -0.7]
-      }
-    },
-    {
-      "id": "minecraft:soul_sand_valley",
-      "climate": {
-        "weirdness": [-0.56, -0.475]
-      }
-    },
-    {
-      "id": "adventure:ash_barrens",
-      "climate": {
-        "weirdness": [-0.475, -0.42]
-      }
-    },
-    {
-      "id": "adventure:redstone_abyss",
-      "climate": {
-        "weirdness": [-0.42, -0.37]
-      }
-    },
-    {
-      "id": "minecraft:basalt_deltas",
-      "climate": {
-        "weirdness": [-0.155, -0.115]
-      }
-    },
-    {
-      "id": "adventure:mycotoxic_undergrowth",
-      "climate": {
-        "weirdness": [-0.115, -0.075]
-      }
-    },
-    {
-      "id": "minecraft:nether_wastes",
-      "climate": {
-        "weirdness": [-0.075, -0.035]
-      }
-    },
-    {
-      "id": "adventure:gravel_desert",
-      "climate": {
-        "weirdness": [-0.035, 0.045]
-      }
-    },
-    {
-      "id": "adventure:magma_land",
-      "climate": {
-        "weirdness": [0.2, 0.3]
-      }
-    },
-    {
-      "id": "adventure:mycotoxic_undergrowth",
-      "climate": {
-        "weirdness": [0.3, 0.55]
+        "humidity": [-2.0, 0.01],
+        "depth": [0.2, 2.0]
       }
     },
     {
       "id": "adventure:cinnabar_veins",
       "climate": {
-        "weirdness": [0.55, 0.85]
+        "humidity": [0.01, 2.0],
+        "depth": [0.2, 2.0]
       }
     },
     {
-      "id": "adventure:crystal_hollows",
+      "id": "adventure:gravel_desert",
       "climate": {
-        "weirdness": [0.85, 2.0]
+        "temperature": [-2.0, -0.329],
+        "humidity": [-2.0, -0.194]
+      }
+    },
+    {
+      "id": "adventure:umbral_wastes",
+      "climate": {
+        "temperature": [-2.0, -0.329],
+        "humidity": [-0.194, -0.066]
+      }
+    },
+    {
+      "id": "adventure:ash_barrens",
+      "climate": {
+        "temperature": [-2.0, -0.329],
+        "humidity": [-0.066, 0.034]
+      }
+    },
+    {
+      "id": "minecraft:windswept_gravelly_hills",
+      "climate": {
+        "temperature": [-2.0, -0.329],
+        "humidity": [0.034, 0.143]
+      }
+    },
+    {
+      "id": "adventure:blackstone_basin",
+      "climate": {
+        "temperature": [-2.0, -0.329],
+        "humidity": [0.143, 2.0]
+      }
+    },
+    {
+      "id": "minecraft:soul_sand_valley",
+      "climate": {
+        "temperature": [-0.329, -0.127],
+        "humidity": [-2.0, -0.103]
+      }
+    },
+    {
+      "id": "minecraft:deep_dark",
+      "climate": {
+        "temperature": [-0.329, -0.127],
+        "humidity": [-0.103, 0.063]
+      }
+    },
+    {
+      "id": "minecraft:pale_garden",
+      "climate": {
+        "temperature": [-0.329, -0.127],
+        "humidity": [0.063, 0.198]
+      }
+    },
+    {
+      "id": "adventure:mycotoxic_undergrowth",
+      "climate": {
+        "temperature": [-0.329, -0.127],
+        "humidity": [0.198, 2.0]
+      }
+    },
+    {
+      "id": "adventure:ashen_woodland",
+      "climate": {
+        "temperature": [-0.127, 0.005],
+        "humidity": [-2.0, -0.083]
+      }
+    },
+    {
+      "id": "adventure:chalk_cliffs",
+      "climate": {
+        "temperature": [-0.127, 0.005],
+        "humidity": [-0.083, 0.039]
+      }
+    },
+    {
+      "id": "minecraft:nether_wastes",
+      "climate": {
+        "temperature": [-0.127, 0.005],
+        "humidity": [0.039, 0.181]
+      }
+    },
+    {
+      "id": "adventure:redstone_abyss",
+      "climate": {
+        "temperature": [-0.127, 0.005],
+        "humidity": [0.181, 2.0]
+      }
+    },
+    {
+      "id": "minecraft:eroded_badlands",
+      "climate": {
+        "temperature": [0.005, 2.0],
+        "humidity": [-2.0, -0.083]
+      }
+    },
+    {
+      "id": "adventure:magma_land",
+      "climate": {
+        "temperature": [0.005, 2.0],
+        "humidity": [-0.083, 0.039]
+      }
+    },
+    {
+      "id": "minecraft:badlands",
+      "climate": {
+        "temperature": [0.005, 2.0],
+        "humidity": [0.039, 0.181]
+      }
+    },
+    {
+      "id": "minecraft:basalt_deltas",
+      "climate": {
+        "temperature": [0.005, 2.0],
+        "humidity": [0.181, 2.0]
       }
     }
   ],
