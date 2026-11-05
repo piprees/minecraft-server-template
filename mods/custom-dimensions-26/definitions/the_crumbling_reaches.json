@@ -12,55 +12,57 @@
     {
       "id": "adventure:umbral_wastes",
       "climate": {
-        "continentalness": [-2.0, -0.185]
-      }
-    },
-    {
-      "id": "minecraft:small_end_islands",
-      "climate": {
-        "continentalness": [-0.185, 0.023]
+        "temperature": [-2.0, -0.414],
+        "humidity": [-2.0, -0.04]
       }
     },
     {
       "id": "minecraft:end_barrens",
       "climate": {
-        "continentalness": [0.023, 0.035]
-      }
-    },
-    {
-      "id": "minecraft:end_midlands",
-      "climate": {
-        "continentalness": [0.035, 0.299]
-      }
-    },
-    {
-      "id": "minecraft:end_highlands",
-      "climate": {
-        "continentalness": [0.299, 0.401]
-      }
-    },
-    {
-      "id": "minecraft:end_barrens",
-      "climate": {
-        "continentalness": [0.401, 0.453]
-      }
-    },
-    {
-      "id": "minecraft:basalt_deltas",
-      "climate": {
-        "continentalness": [0.453, 0.5165]
-      }
-    },
-    {
-      "id": "minecraft:stony_peaks",
-      "climate": {
-        "continentalness": [0.5165, 0.5485]
+        "temperature": [-2.0, -0.414],
+        "humidity": [-0.04, 0.128]
       }
     },
     {
       "id": "adventure:ice_starfield",
       "climate": {
-        "continentalness": [0.5485, 2.0]
+        "temperature": [-2.0, -0.414],
+        "humidity": [0.128, 2.0]
+      }
+    },
+    {
+      "id": "minecraft:small_end_islands",
+      "climate": {
+        "temperature": [-0.414, 0.226],
+        "humidity": [-2.0, -0.068]
+      }
+    },
+    {
+      "id": "minecraft:end_midlands",
+      "climate": {
+        "temperature": [-0.414, 0.226],
+        "humidity": [-0.068, 0.079]
+      }
+    },
+    {
+      "id": "minecraft:end_highlands",
+      "climate": {
+        "temperature": [-0.414, 0.226],
+        "humidity": [0.079, 2.0]
+      }
+    },
+    {
+      "id": "minecraft:basalt_deltas",
+      "climate": {
+        "temperature": [0.226, 2.0],
+        "humidity": [-2.0, 0.046]
+      }
+    },
+    {
+      "id": "minecraft:stony_peaks",
+      "climate": {
+        "temperature": [0.226, 2.0],
+        "humidity": [0.046, 2.0]
       }
     }
   ],

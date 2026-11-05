@@ -9,75 +9,66 @@
   },
   "biomes": [
     {
-      "id": "adventure:redstone_abyss",
+      "id": "adventure:umbral_wastes",
       "climate": {
-        "temperature": [-2.0, -0.2012]
+        "temperature": [-2.0, -0.078],
+        "humidity": [-2.0, -0.081]
       }
     },
     {
       "id": "minecraft:deep_dark",
       "climate": {
-        "temperature": [-0.2012, -0.1339]
-      }
-    },
-    {
-      "id": "adventure:lichen_caves",
-      "climate": {
-        "temperature": [-0.1339, -0.0822]
-      }
-    },
-    {
-      "id": "adventure:magmatic_caves",
-      "climate": {
-        "temperature": [-0.0822, -0.0743]
-      }
-    },
-    {
-      "id": "adventure:umbral_wastes",
-      "climate": {
-        "temperature": [-0.0743, -0.0676]
-      }
-    },
-    {
-      "id": "adventure:bioshroom_caves",
-      "climate": {
-        "temperature": [-0.0676, -0.0523]
-      }
-    },
-    {
-      "id": "adventure:lichen_caves",
-      "climate": {
-        "temperature": [-0.0523, -0.0104]
-      }
-    },
-    {
-      "id": "minecraft:dripstone_caves",
-      "climate": {
-        "temperature": [-0.0104, 0.0633]
+        "temperature": [-2.0, -0.078],
+        "humidity": [-0.081, 0.168]
       }
     },
     {
       "id": "adventure:withered_forest",
       "climate": {
-        "temperature": [0.0633, 0.0674]
-      }
-    },
-    {
-      "id": "adventure:mycotoxic_undergrowth",
-      "climate": {
-        "temperature": [0.0674, 0.0723]
-      }
-    },
-    {
-      "id": "adventure:bioshroom_caves",
-      "climate": {
-        "temperature": [0.0723, 0.0857]
+        "temperature": [-2.0, -0.078],
+        "humidity": [0.168, 2.0]
       }
     },
     {
       "id": "minecraft:dripstone_caves",
       "climate": {
-        "temperature": [0.0857, 2.0]
+        "temperature": [-0.078, 0.169],
+        "humidity": [-2.0, -0.081]
+      }
+    },
+    {
+      "id": "adventure:lichen_caves",
+      "climate": {
+        "temperature": [-0.078, 0.169],
+        "humidity": [-0.081, 0.168]
+      }
+    },
+    {
+      "id": "adventure:mycotoxic_undergrowth",
+      "climate": {
+        "temperature": [-0.078, 0.169],
+        "humidity": [0.168, 2.0]
+      }
+    },
+    {
+      "id": "adventure:bioshroom_caves",
+      "climate": {
+        "temperature": [0.169, 2.0],
+        "humidity": [-2.0, -0.048]
+      }
+    },
+    {
+      "id": "adventure:magmatic_caves",
+      "climate": {
+        "temperature": [0.169, 2.0],
+        "humidity": [-0.048, 0.141]
+      }
+    },
+    {
+      "id": "adventure:redstone_abyss",
+      "climate": {
+        "temperature": [0.169, 2.0],
+        "humidity": [0.141, 2.0]
       }
     }
   ],

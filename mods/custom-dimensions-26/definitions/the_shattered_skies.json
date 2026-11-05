@@ -8,21 +8,111 @@
     "preset": "floating_islands"
   },
   "biomes": [
-    "minecraft:plains",
-    "minecraft:forest",
-    "minecraft:birch_forest",
-    "minecraft:meadow",
-    "minecraft:flower_forest",
-    "minecraft:cherry_grove",
-    "minecraft:snowy_slopes",
-    "adventure:lavender_fields",
-    "adventure:alpine_meadow",
-    "adventure:sky_highlands",
-    "adventure:golden_skygrove",
-    "adventure:hanging_gardens",
-    "adventure:windswept_isles",
-    "adventure:desert_oasis",
-    "minecraft:sunflower_plains"
+    {
+      "id": "minecraft:flower_forest",
+      "climate": {
+        "temperature": [-2.0, -0.499],
+        "humidity": [-2.0, -0.1]
+      }
+    },
+    {
+      "id": "adventure:windswept_isles",
+      "climate": {
+        "temperature": [-2.0, -0.499],
+        "humidity": [-0.1, 0.092]
+      }
+    },
+    {
+      "id": "minecraft:snowy_slopes",
+      "climate": {
+        "temperature": [-2.0, -0.499],
+        "humidity": [0.092, 0.281]
+      }
+    },
+    {
+      "id": "adventure:alpine_meadow",
+      "climate": {
+        "temperature": [-2.0, -0.499],
+        "humidity": [0.281, 2.0]
+      }
+    },
+    {
+      "id": "minecraft:sunflower_plains",
+      "climate": {
+        "temperature": [-0.499, -0.294],
+        "humidity": [-2.0, -0.252]
+      }
+    },
+    {
+      "id": "minecraft:plains",
+      "climate": {
+        "temperature": [-0.499, -0.294],
+        "humidity": [-0.252, 0.015]
+      }
+    },
+    {
+      "id": "minecraft:forest",
+      "climate": {
+        "temperature": [-0.499, -0.294],
+        "humidity": [0.015, 0.231]
+      }
+    },
+    {
+      "id": "minecraft:birch_forest",
+      "climate": {
+        "temperature": [-0.499, -0.294],
+        "humidity": [0.231, 2.0]
+      }
+    },
+    {
+      "id": "adventure:lavender_fields",
+      "climate": {
+        "temperature": [-0.294, 0.012],
+        "humidity": [-2.0, -0.252]
+      }
+    },
+    {
+      "id": "adventure:sky_highlands",
+      "climate": {
+        "temperature": [-0.294, 0.012],
+        "humidity": [-0.252, 0.015]
+      }
+    },
+    {
+      "id": "minecraft:meadow",
+      "climate": {
+        "temperature": [-0.294, 0.012],
+        "humidity": [0.015, 0.231]
+      }
+    },
+    {
+      "id": "minecraft:cherry_grove",
+      "climate": {
+        "temperature": [-0.294, 0.012],
+        "humidity": [0.231, 2.0]
+      }
+    },
+    {
+      "id": "adventure:desert_oasis",
+      "climate": {
+        "temperature": [0.012, 2.0],
+        "humidity": [-2.0, -0.1]
+      }
+    },
+    {
+      "id": "adventure:golden_skygrove",
+      "climate": {
+        "temperature": [0.012, 2.0],
+        "humidity": [-0.1, 0.177]
+      }
+    },
+    {
+      "id": "adventure:hanging_gardens",
+      "climate": {
+        "temperature": [0.012, 2.0],
+        "humidity": [0.177, 2.0]
+      }
+    }
   ],
   "liquids": {
     "seaLevel": -64,

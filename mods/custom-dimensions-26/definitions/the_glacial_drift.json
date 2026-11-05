@@ -9,75 +9,66 @@
   },
   "biomes": [
     {
-      "id": "minecraft:frozen_peaks",
+      "id": "minecraft:ice_spikes",
       "climate": {
-        "weirdness": [-2.0, -0.3454]
+        "temperature": [-2.0, -0.001],
+        "humidity": [-2.0, -0.188]
       }
     },
     {
       "id": "adventure:windswept_isles",
       "climate": {
-        "weirdness": [-0.3454, -0.2911]
+        "temperature": [-2.0, -0.001],
+        "humidity": [-0.188, 0.03]
       }
     },
     {
-      "id": "minecraft:end_barrens",
+      "id": "minecraft:frozen_peaks",
       "climate": {
-        "weirdness": [-0.2911, -0.2044]
-      }
-    },
-    {
-      "id": "adventure:highland_fells",
-      "climate": {
-        "weirdness": [-0.2044, 0.0705]
+        "temperature": [-2.0, -0.001],
+        "humidity": [0.03, 2.0]
       }
     },
     {
       "id": "minecraft:jagged_peaks",
       "climate": {
-        "weirdness": [0.0705, 0.1276]
+        "temperature": [-0.001, 0.24],
+        "humidity": [-2.0, -0.188]
       }
     },
     {
-      "id": "adventure:golden_skygrove",
+      "id": "minecraft:snowy_slopes",
       "climate": {
-        "weirdness": [0.1276, 0.2559]
+        "temperature": [-0.001, 0.24],
+        "humidity": [-0.188, 0.03]
       }
     },
     {
       "id": "minecraft:snowy_taiga",
       "climate": {
-        "weirdness": [0.2559, 0.3535]
+        "temperature": [-0.001, 0.24],
+        "humidity": [0.03, 2.0]
       }
     },
     {
-      "id": "minecraft:ice_spikes",
+      "id": "minecraft:end_barrens",
       "climate": {
-        "weirdness": [0.3535, 0.3699]
+        "temperature": [0.24, 2.0],
+        "humidity": [-2.0, -0.219]
       }
     },
     {
-      "id": "adventure:windswept_isles",
+      "id": "adventure:highland_fells",
       "climate": {
-        "weirdness": [0.3699, 0.3947]
+        "temperature": [0.24, 2.0],
+        "humidity": [-0.219, 0.07]
       }
     },
     {
-      "id": "minecraft:frozen_peaks",
+      "id": "adventure:golden_skygrove",
       "climate": {
-        "weirdness": [0.3947, 0.4222]
-      }
-    },
-    {
-      "id": "minecraft:snowy_slopes",
-      "climate": {
-        "weirdness": [0.4222, 0.4506]
-      }
-    },
-    {
-      "id": "minecraft:snowy_slopes",
-      "climate": {
-        "weirdness": [0.4506, 2.0]
+        "temperature": [0.24, 2.0],
+        "humidity": [0.07, 2.0]
       }
     }
   ],

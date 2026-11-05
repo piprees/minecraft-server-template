@@ -11,37 +11,43 @@
     {
       "id": "adventure:crystal_hollows",
       "climate": {
-        "temperature": [-2.0, -0.9045]
-      }
-    },
-    {
-      "id": "adventure:quartz_flats",
-      "climate": {
-        "temperature": [-0.9045, -0.3274]
-      }
-    },
-    {
-      "id": "adventure:blackstone_basin",
-      "climate": {
-        "temperature": [-0.3274, -0.1385]
-      }
-    },
-    {
-      "id": "adventure:magmatic_caves",
-      "climate": {
-        "temperature": [-0.1385, 0.099]
-      }
-    },
-    {
-      "id": "minecraft:basalt_deltas",
-      "climate": {
-        "temperature": [0.099, 0.2719]
+        "temperature": [-2.0, -0.121],
+        "humidity": [-2.0, -0.156]
       }
     },
     {
       "id": "minecraft:sulfur_caves",
       "climate": {
-        "temperature": [0.2719, 2.0]
+        "temperature": [-2.0, -0.121],
+        "humidity": [-0.156, 0.153]
+      }
+    },
+    {
+      "id": "adventure:blackstone_basin",
+      "climate": {
+        "temperature": [-2.0, -0.121],
+        "humidity": [0.153, 2.0]
+      }
+    },
+    {
+      "id": "adventure:quartz_flats",
+      "climate": {
+        "temperature": [-0.121, 2.0],
+        "humidity": [-2.0, -0.156]
+      }
+    },
+    {
+      "id": "minecraft:basalt_deltas",
+      "climate": {
+        "temperature": [-0.121, 2.0],
+        "humidity": [-0.156, 0.042]
+      }
+    },
+    {
+      "id": "adventure:magmatic_caves",
+      "climate": {
+        "temperature": [-0.121, 2.0],
+        "humidity": [0.042, 2.0]
       }
     }
   ],

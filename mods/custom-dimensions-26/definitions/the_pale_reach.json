@@ -9,57 +9,59 @@
   },
   "biomes": [
     {
-      "id": "adventure:windswept_isles",
+      "id": "minecraft:ice_spikes",
       "climate": {
-        "weirdness": [-2.0, -0.5082]
+        "temperature": [-2.0, 0.304],
+        "humidity": [-2.0, -0.155]
       }
     },
     {
-      "id": "minecraft:jagged_peaks",
+      "id": "adventure:windswept_isles",
       "climate": {
-        "weirdness": [-0.5082, -0.4877]
+        "temperature": [-2.0, 0.304],
+        "humidity": [-0.155, 0.083]
       }
     },
     {
       "id": "minecraft:snowy_plains",
       "climate": {
-        "weirdness": [-0.4877, -0.3996]
-      }
-    },
-    {
-      "id": "minecraft:end_barrens",
-      "climate": {
-        "weirdness": [-0.3996, -0.3089]
-      }
-    },
-    {
-      "id": "minecraft:ice_spikes",
-      "climate": {
-        "weirdness": [-0.3089, -0.243]
-      }
-    },
-    {
-      "id": "adventure:chalk_cliffs",
-      "climate": {
-        "weirdness": [-0.243, -0.2023]
-      }
-    },
-    {
-      "id": "adventure:windswept_isles",
-      "climate": {
-        "weirdness": [-0.2023, -0.1272]
-      }
-    },
-    {
-      "id": "minecraft:snowy_slopes",
-      "climate": {
-        "weirdness": [-0.1272, 0.0066]
+        "temperature": [-2.0, 0.304],
+        "humidity": [0.083, 2.0]
       }
     },
     {
       "id": "minecraft:frozen_peaks",
       "climate": {
-        "weirdness": [0.0066, 2.0]
+        "temperature": [0.304, 0.747],
+        "humidity": [-2.0, -0.185]
+      }
+    },
+    {
+      "id": "minecraft:jagged_peaks",
+      "climate": {
+        "temperature": [0.304, 0.747],
+        "humidity": [-0.185, 0.011]
+      }
+    },
+    {
+      "id": "minecraft:snowy_slopes",
+      "climate": {
+        "temperature": [0.304, 0.747],
+        "humidity": [0.011, 2.0]
+      }
+    },
+    {
+      "id": "minecraft:end_barrens",
+      "climate": {
+        "temperature": [0.747, 2.0],
+        "humidity": [-2.0, -0.042]
+      }
+    },
+    {
+      "id": "adventure:chalk_cliffs",
+      "climate": {
+        "temperature": [0.747, 2.0],
+        "humidity": [-0.042, 2.0]
       }
     }
   ],

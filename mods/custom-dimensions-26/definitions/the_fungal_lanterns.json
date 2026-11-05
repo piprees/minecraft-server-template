@@ -9,45 +9,45 @@
   },
   "biomes": [
     {
-      "id": "minecraft:crimson_forest",
+      "id": "minecraft:nether_wastes",
       "climate": {
-        "temperature": [-2.0, -0.6]
+        "temperature": [-2.0, 0.195],
+        "humidity": [-2.0, -0.17]
       }
     },
     {
       "id": "minecraft:warped_forest",
       "climate": {
-        "temperature": [-0.6, -0.3581]
+        "temperature": [-2.0, 0.195],
+        "humidity": [-0.17, 0.08]
       }
     },
     {
       "id": "adventure:upside_down_forest",
       "climate": {
-        "temperature": [-0.3581, -0.1161]
-      }
-    },
-    {
-      "id": "adventure:bioshroom_caves",
-      "climate": {
-        "temperature": [-0.1161, 0.4161]
+        "temperature": [-2.0, 0.195],
+        "humidity": [0.08, 2.0]
       }
     },
     {
       "id": "adventure:quartz_flats",
       "climate": {
-        "temperature": [0.4161, 0.6581]
+        "temperature": [0.195, 2.0],
+        "humidity": [-2.0, -0.146]
+      }
+    },
+    {
+      "id": "adventure:bioshroom_caves",
+      "climate": {
+        "temperature": [0.195, 2.0],
+        "humidity": [-0.146, 0.042]
       }
     },
     {
       "id": "minecraft:crimson_forest",
       "climate": {
-        "temperature": [0.6581, 0.9]
-      }
-    },
-    {
-      "id": "minecraft:nether_wastes",
-      "climate": {
-        "temperature": [0.9, 2.0]
+        "temperature": [0.195, 2.0],
+        "humidity": [0.042, 2.0]
       }
     }
   ],
