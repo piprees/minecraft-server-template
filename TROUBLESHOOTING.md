@@ -1604,11 +1604,11 @@ A seed's map and its banked facts appear to contradict each other — the thumbn
 - **Fix:** re-render after any scale change, and keep scale near 1 or re-fit the boxes at that scale.
 
 <a id="t173"></a>
-### T173 — A terrain holds its shore at sea level, so a dry sea level trenches every coast
+### T173 — A terrain built from a dry sea level trenches every coast
 
-- **Symptom:** a "dry" dimension with `liquids.seaLevel` far below its land (−55, −60) shows a band of ground near the world floor along every coastline, with lava where it passes the lava level; with vanilla terrain the same definition has none.
-- **Cause:** the library's land spline places the shore at sea level just below `coast`, and `canyons` with `grade` above 0 lowers its floors to sea level.
-- **Fix:** open; until then push `coast` to −0.6 and set canyons `grade` 0 in such a definition.
+- **Symptom:** a "dry" dimension, its `liquids.seaLevel` far below its land (−55, −60), shows a band of ground near the world floor along every coastline, with lava where it passes the lava level.
+- **Cause:** the library's land spline places the shore and every sea-relative height at sea level.
+- **Fix:** every sea-relative height builds from `Ctx.shore()`: the sea level, or the sea floor where the sea lies more than `BASIN_DEPTH` (20) below it and can hold no water. Never clamp a sea that holds water: a sea a few blocks under the sea floor (30, 34) still fills its basins.
 
 <a id="t172"></a>
 ### T172 — An airborne terrain's water stands still, and a sea level floods the void
