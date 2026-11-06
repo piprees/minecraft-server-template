@@ -1596,6 +1596,13 @@ A seed's map and its banked facts appear to contradict each other — the thumbn
   the same trap. Pin it against the Java, not against intuition —
   `scripts/e2e/portal-matrix-selftest.sh` is the worked example.
 
+<a id="t175"></a>
+### T175 — On 26.3 an unlisted accessor mixin hangs the boot
+
+- **Symptom:** the server never finishes preparing the spawn area and ignores SIGTERM; the self-test never runs.
+- **Cause:** a mixin that casts to an accessor missing from `customdimensions.mixins.json` throws `IllegalClassLoadError` ("Illegal classload request for accessor mixin") on a chunk-generation thread, which stalls spawn generation instead of crashing the server.
+- **Fix:** list every mixin and accessor in the config. To diagnose, read the log (`IllegalClassLoadError`, `Mixin transformation of`), not the self-test report, and stop the server with `kill -9` by pid. A renamed target crashes the boot cleanly (`InvalidAccessorException`, `InvalidInjectionException`) because `defaultRequire` is 1.
+
 <a id="t174"></a>
 ### T174 — A terrain's `scale` stretches the climate the biome boxes were fitted on
 
