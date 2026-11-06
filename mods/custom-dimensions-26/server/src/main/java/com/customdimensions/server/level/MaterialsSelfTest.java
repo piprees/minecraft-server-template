@@ -119,18 +119,6 @@ public final class MaterialsSelfTest {
                 if (y < sea) cells++;
             }
         }
-        if (level.getChunkSource().getGenerator() instanceof net.minecraft.world.level.levelgen.NoiseBasedChunkGenerator noise
-                && ((com.customdimensions.server.mixin.NoiseBasedChunkGeneratorAccessor) (Object) noise).customdimensions$globalFluidPicker().get()
-                instanceof DryFluidPicker picker) {
-            long dried = picker.driedCount();
-            long refused = picker.refusedCount();
-            lines.add((dried > 0 ? "PASS" : "FAIL") + " materials mixin NoiseBasedAquiferMixin (selftest_dry): " + dried
-                    + " aquifer cell(s) of fluid turned to air in the dry zone (want more than 0)");
-            lines.add((refused > 0 ? "PASS" : "FAIL") + " materials mixin DryFluidFeatureMixin (selftest_dry): " + refused
-                    + " spring(s) and lake(s) left out in the dry zone (want more than 0)");
-        } else {
-            lines.add("FAIL materials mixins NoiseBasedAquiferMixin and DryFluidFeatureMixin (selftest_dry): the level's fluid rule is not a DryFluidPicker");
-        }
         String counts = below + " water block(s) below sea level " + sea + " in " + cells + " cells of 64x64 columns; "
                 + above + " at or above it" + (kinds.isEmpty() ? "" : "; " + kinds.keySet().stream().limit(12).toList());
         return below == 0 ? "PASS " + counts : "FAIL " + counts;

@@ -224,6 +224,7 @@ public final class ZoneSelfTest {
             lines.add(verdict(water == 0 && lava == 0 && floorBlocks == 0, "zones ring dry: generated chunk " + dry + " inside the ring holds "
                     + water + " water and " + lava + " lava blocks below sea level " + sea + " and " + floorBlocks + " solid blocks at y "
                     + (f.level().getMinY() + 8)));
+            lines.addAll(dryMixins(f.level()));
             loaded.forEach(c -> f.level().setChunkForced(c.getPos().x(), c.getPos().z(), false));
         });
     }
@@ -569,6 +570,20 @@ public final class ZoneSelfTest {
                 l.done.completeExceptionally(new IllegalStateException(got.size() + "/" + l.chunks.size() + " chunks loaded after " + LOAD_CAP_TICKS + " ticks"));
             }
         }
+    }
+
+    /** The dry ring's fluid rule counts what each dry-zone mixin left out while the ring's chunks generated. */
+    private static List<String> dryMixins(net.minecraft.server.level.ServerLevel level) {
+        if (!(level.getChunkSource().getGenerator() instanceof net.minecraft.world.level.levelgen.NoiseBasedChunkGenerator noise)
+                || !(((com.customdimensions.server.mixin.NoiseBasedChunkGeneratorAccessor) (Object) noise).customdimensions$globalFluidPicker().get()
+                instanceof com.customdimensions.server.level.DryFluidPicker picker)) {
+            return List.of("FAIL zones mixins NoiseBasedAquiferMixin and DryFluidFeatureMixin: the ring level's fluid rule is not a DryFluidPicker");
+        }
+        long dried = picker.driedCount();
+        long refused = picker.refusedCount();
+        return List.of(
+                verdict(dried > 0, "zones mixin NoiseBasedAquiferMixin: " + dried + " aquifer cell(s) of fluid turned to air in the dry ring (want more than 0)"),
+                verdict(refused > 0, "zones mixin DryFluidFeatureMixin: " + refused + " spring(s) and lake(s) left out in the dry ring (want more than 0)"));
     }
 
     private static String verdict(boolean pass, String detail) {
