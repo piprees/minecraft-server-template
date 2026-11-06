@@ -1647,8 +1647,15 @@
           "description": "Share of the rim cut below the water line, where a basin spills into the void",
           "type": "number",
           "minimum": 0,
-          "maximum": 0.3,
-          "default": 0.15
+          "maximum": 0.5,
+          "default": 0.35
+        },
+        "islandShare": {
+          "description": "Share of a lake mass's basin with islands, smaller and more of them than outside",
+          "type": "number",
+          "minimum": 0.02,
+          "maximum": 0.8,
+          "default": 0.3
         },
         "islandRise": {
           "description": "Blocks of cliff the islands inside a lake mass rise by out of the water",

@@ -536,8 +536,11 @@ public final class BiomeLibrarySelfTest {
      * masses are the basin function's four-way components above {@link #RIM_OUTSIDE}, sampled
      * every {@link #MASS_STEP} blocks; a gap is an eight-way cluster of crest samples (basin
      * within {@link #CREST} of 0) whose floor lies under the water line, spanning the crest from
-     * its outer half to its inner; each mass wholly inside the scan counts its gaps, and
-     * the median wants 1 to 3.
+     * its outer half to its inner; each mass wholly inside the scan and {@link #LAKE_SPAN} or
+     * more across, a lake rather than a pond, counts its gaps, every
+     * mass wants one, the median 1 to 2 and none more than 3. Its islands are the eight-way
+     * components of base heights over the water line inside its shore (basin 1 and over),
+     * sampled every second census point; the median mass wants 3.
      */
     private String basinChecks(List<LevelChunk> chunks, BlockPos spawn) {
         var gen = level.getChunkSource().getGenerator();
@@ -658,15 +661,17 @@ public final class BiomeLibrarySelfTest {
         if (islands < 3) failures.add("islands joined");
         if (leaks > 0) failures.add("leaks into the void");
         if (n[7] < 2) failures.add("pours");
-        if (mass[0] == 0 || mass[3] < 1 || mass[3] > 3) failures.add("gaps per mass");
+        if (mass[0] == 0 || mass[2] < 1 || mass[3] > 2 || mass[4] > 3) failures.add("gaps per mass");
+        if (mass[8] < 3) failures.add("islands per mass");
         String text = side + "x" + side + " columns round " + spawn.getX() + ", " + spawn.getZ() + ": pools cover " + pct(poolShare) + " (want 60%) in "
                 + bodies + " bodies, the largest " + biggestSize + " columns spanning " + biggestExtent + " blocks (want " + LAKE_SPAN
                 + ") and joining " + islands + " islands (land of " + ISLAND_COLUMNS + "+ columns at or above the water line y " + line
                 + " touching it and not the void; want 3); water open to the void " + openColumns + " columns in " + falls
                 + " falls off the edge and " + leaks + " leaks through a floor (want 0); springs pouring into a lake " + n[7]
                 + " (want 2), falling into the void " + n[8] + "; masses within " + MASS_RADIUS + " blocks (every " + MASS_STEP + "): "
-                + mass[0] + " whole, rim gaps per mass min " + mass[2] + " median " + mass[3] + " max " + mass[4] + " (want 1 to 3), "
-                + mass[1] + " masses with 1 to 3; nearest gap " + mass[5] + ", " + mass[6];
+                + mass[0] + " whole of " + LAKE_SPAN + "+ blocks, rim gaps per mass min " + mass[2] + " median " + mass[3] + " max " + mass[4]
+                + " (want every mass 1 or more, median 1 to 2, none over 3), " + mass[1] + " masses with 1 to 3; islands per mass (land over the water line inside the shore, every "
+                + 2 * MASS_STEP + " blocks) min " + mass[7] + " median " + mass[8] + " max " + mass[9] + " (median wants 3); nearest gap " + mass[5] + ", " + mass[6];
         return failures.isEmpty() ? "PASS " + text : "FAIL " + text + "; failed: " + String.join(", ", failures);
     }
 
@@ -799,7 +804,7 @@ public final class BiomeLibrarySelfTest {
      * The terrain's masses round spawn, from the basin function: {whole masses, those with 1 to 3
      * rim gaps, the fewest gaps, the median, the most, and the nearest gap's x and z}.
      */
-    private static int[] masses(BasinFluidPicker basins, BlockPos spawn, int line) {
+    private int[] masses(BasinFluidPicker basins, BlockPos spawn, int line) {
         int side = 2 * MASS_RADIUS / MASS_STEP;
         byte[] inside = new byte[side * side];
         byte[] gap = new byte[side * side];
@@ -842,11 +847,36 @@ public final class BiomeLibrarySelfTest {
             }
             g++;
         }
+        int coarse = side / 2;
+        byte[] land = new byte[coarse * coarse];
+        var generator = level.getChunkSource().getGenerator();
+        var random = level.getChunkSource().randomState();
+        for (int i = 0; i < coarse; i++) for (int j = 0; j < coarse; j++) {
+            int k = 2 * i * side + 2 * j;
+            if (at[k] < 1) continue;
+            int x = spawn.getX() - MASS_RADIUS + 2 * i * MASS_STEP, z = spawn.getZ() - MASS_RADIUS + 2 * j * MASS_STEP;
+            if (generator.getBaseHeight(x, z, Heightmap.Types.OCEAN_FLOOR_WG, level, random) > line) land[i * coarse + j] = 1;
+        }
+        int[] islandId = new int[land.length];
+        java.util.Arrays.fill(islandId, -1);
+        int[] islands = new int[count];
+        int n = 0;
+        for (int i = 0; i < land.length; i++) {
+            if (land[i] != 1 || islandId[i] >= 0) continue;
+            flood(land, islandId, i, coarse, (byte) 1, n++, true, new int[] {coarse, -1, coarse, -1});
+            islands[mass[2 * (i / coarse) * side + 2 * (i % coarse)]]++;
+        }
         List<Integer> whole = new ArrayList<>();
+        List<Integer> wholeIslands = new ArrayList<>();
         for (int m = 0; m < count; m++) {
             int[] b = boxes.get(m);
-            if (b[0] > 0 && b[2] > 0 && b[1] < side - 1 && b[3] < side - 1 && (b[1] - b[0]) * MASS_STEP >= 64) whole.add(gaps[m]);
+            if (b[0] > 0 && b[2] > 0 && b[1] < side - 1 && b[3] < side - 1
+                    && Math.max(b[1] - b[0], b[3] - b[2]) * MASS_STEP >= LAKE_SPAN) {
+                whole.add(gaps[m]);
+                wholeIslands.add(islands[m]);
+            }
         }
+        java.util.Collections.sort(wholeIslands);
         byte[] kind = new byte[inside.length];
         for (int i : breaches) kind[i] = 2;
         java.util.Collections.sort(whole);
@@ -863,8 +893,9 @@ public final class BiomeLibrarySelfTest {
         }
         int gx = nearest < 0 ? 0 : spawn.getX() - MASS_RADIUS + nearest / side * MASS_STEP;
         int gz = nearest < 0 ? 0 : spawn.getZ() - MASS_RADIUS + nearest % side * MASS_STEP;
-        return whole.isEmpty() ? new int[] {0, 0, 0, 0, 0, gx, gz}
-                : new int[] {whole.size(), ok, whole.get(0), whole.get(whole.size() / 2), whole.get(whole.size() - 1), gx, gz};
+        return whole.isEmpty() ? new int[] {0, 0, 0, 0, 0, gx, gz, 0, 0, 0}
+                : new int[] {whole.size(), ok, whole.get(0), whole.get(whole.size() / 2), whole.get(whole.size() - 1), gx, gz,
+                        wholeIslands.get(0), wholeIslands.get(wholeIslands.size() / 2), wholeIslands.get(wholeIslands.size() - 1)};
     }
 
     /** True where source water lies within four blocks across of where a spring's fall lands, at that level or one above. */

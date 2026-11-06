@@ -173,6 +173,10 @@ class TerrainLibraryTest {
         assertEquals("t: terrain.params.rimHeight = 0 is outside [1, 16]",
                 assertThrows(IllegalArgumentException.class, () -> spec("{\"base\": \"basin_islands\", \"params\": {\"rimHeight\": 0}}")).getMessage());
         assertEquals(24.0, spec("{\"base\": \"basin_islands\", \"setting\": \"extreme\"}").param("basinDepth"));
+        assertEquals("t: terrain.params.islandShare = 0.9 is outside [0.02, 0.8]",
+                assertThrows(IllegalArgumentException.class, () -> spec("{\"base\": \"basin_islands\", \"params\": {\"islandShare\": 0.9}}")).getMessage());
+        assertEquals(0.6, spec("{\"base\": \"basin_islands\", \"setting\": \"extreme\"}").param("islandShare"));
+        assertEquals(0.3, spec("{\"base\": \"basin_islands\"}").param("islandShare"));
     }
 
     @Test

@@ -113,11 +113,13 @@ public enum TerrainFamily {
                     new TerrainParam("lakeSize", 0.25, 4, 1, "Lake mass size; higher is larger and fewer"),
                     new TerrainParam("basinDepth", 2, 40, 8, "Blocks the basin floor lies below the water line at a mass's heart"),
                     new TerrainParam("rimHeight", 1, 16, 4, "Blocks the rim round a mass stands above the water line"),
-                    new TerrainParam("gaps", 0, 0.3, 0.15, "Share of the rim cut below the water line, where a basin spills into the void"),
+                    new TerrainParam("gaps", 0, 0.5, 0.35, "Share of the rim cut below the water line, where a basin spills into the void"),
+                    new TerrainParam("islandShare", 0.02, 0.8, 0.3, "Share of a lake mass's basin with islands, smaller and more of them than outside"),
                     new TerrainParam("islandRise", 0, 60, 8, "Blocks of cliff the islands inside a lake mass rise by out of the water")),
             Map.of(),
-            Map.of("lakeShare", 0.25, "basinDepth", 4.0, "rimHeight", 2.0, "gaps", 0.06, "islandRise", 4.0, "spread", 10.0),
-            Map.of("lakeShare", 0.6, "lakeSize", 2.0, "basinDepth", 24.0, "rimHeight", 10.0, "gaps", 0.3, "islandRise", 40.0,
+            Map.of("lakeShare", 0.25, "basinDepth", 4.0, "rimHeight", 2.0, "gaps", 0.15, "islandRise", 4.0, "spread", 10.0,
+                    "islandShare", 0.3),
+            Map.of("lakeShare", 0.6, "lakeSize", 2.0, "basinDepth", 24.0, "rimHeight", 10.0, "gaps", 0.45, "islandRise", 40.0, "islandShare", 0.6,
                     "spread", 60.0, "thickness", 30.0, "underside", 80.0),
             true, TerrainFamily::basinIslands),
 
@@ -448,10 +450,14 @@ public enum TerrainFamily {
     /** The island noise's {@code core} over which an island inside a lake mass climbs its cliff: about two blocks. */
     static final double ISLAND_CLIFF_FROM = 0.02;
     static final double ISLAND_CLIFF_TO = 0.1;
+    /** The island noise's frequency inside a lake mass against outside: smaller islands, more of them. */
+    static final double INNER_ISLANDS = 1.5;
+    /** The share of {@code thickness} an island inside a lake mass domes by over its cliff: a flat top. */
+    static final double INNER_DOME = 0.3;
     /** Blocks under the water line a rim gap's crest is cut to; its lip falls a rim's height further to the edge. */
     static final double GAP_DROP = 5;
     /** The gap noise's frequency against the detail noise's: blobs broad enough to breach a rim's whole width. */
-    static final double GAP_FREQUENCY = 0.4;
+    static final double GAP_FREQUENCY = 0.25;
     /** Blocks over a gap an island's top is held from, outside the gap: no island stands in it. */
     static final double GAP_CLEAR = 512;
 
@@ -462,9 +468,11 @@ public enum TerrainFamily {
      * climbs from under the water line to a rim {@code rimHeight} above it, holds
      * a crest, falls back to a shore just under the water and dishes to
      * {@code basinDepth} below it. The islands inside a mass sit on the water
-     * line and climb a cliff {@code islandRise} high a block or two in from their shore,
-     * so their domes stand out of the lake over cliff faces that drop into it; outside,
-     * they keep the layer's spread.
+     * line, read from the island noise at {@link #INNER_ISLANDS} times its frequency over
+     * {@code islandShare} of the basin inside the shore; no island stands on the rim, so open
+     * water rings every island. A block or two in from its shore each climbs a cliff
+     * {@code islandRise} high that drops into the lake, to a top domed by only
+     * {@link #INNER_DOME} of {@code thickness}; outside, islands keep the layer's spread.
      * Where the {@code detail} noise lies in its highest {@code gaps} share the
      * rim is cut to {@link #GAP_DROP} under the water line, its outer lip lower still
      * to the edge, and no island stands in the cut, so the basin spills off the edge. The basin and its floor
@@ -476,7 +484,6 @@ public enum TerrainFamily {
         double a = ctx.p("altitude");
         double sigma = Noises.sigma("islands");
         double t = Noises.threshold(ctx.p("coverage"), sigma);
-        JsonElement core = Df.cache(ramp(ctx.noise("islands", 1 / ctx.p("size"), 0), t, t + sigma));
         double sl = Noises.sigma("lakes");
         double tl = Noises.threshold(ctx.p("lakeShare"), sl);
         JsonElement lakes = ctx.named("lakes", ctx.noise("lakes", 1 / ctx.p("lakeSize"), 0));
@@ -486,6 +493,12 @@ public enum TerrainFamily {
         double crestEnd = tl + 0.2 * sl;
         double shore = tl + 0.32 * sl;
         double heart = tl + 0.8 * sl;
+        double ti = Noises.threshold(ctx.p("islandShare"), sigma);
+        JsonElement outerCore = mul(ramp(ctx.noise("islands", 1 / ctx.p("size"), 0), t, t + sigma),
+                ramp(lakes, edge, edge - 0.1 * sl));
+        JsonElement basin = Df.cache(ramp(lakes, shore, shore + 0.12 * sl));
+        JsonElement innerCore = mul(ramp(ctx.noise("islands", INNER_ISLANDS / ctx.p("size"), 0), ti, ti + sigma), basin);
+        JsonElement core = Df.cache(add(outerCore, innerCore));
         double rim = ctx.p("rimHeight");
         double depth = ctx.p("basinDepth");
         JsonElement massTop = spline(lakes, edge - 0.01, a - 6, edge, a - 4, risen, a + rim, crestEnd, a + rim,
@@ -505,7 +518,8 @@ public enum TerrainFamily {
         JsonElement spread = add(mul(ctx.noise("altitude", 1, 0), ctx.p("spread") * m / Noises.sigma("altitude")), a);
         JsonElement layer = lerp(inMass, spread, c(a));
         JsonElement cliff = ramp(core, ISLAND_CLIFF_FROM, ISLAND_CLIFF_TO);
-        JsonElement rise = add(mul(sqrt(core), ctx.p("thickness") * m), mul(mul(cliff, inMass), ctx.p("islandRise") * m));
+        JsonElement dome = mul(sub(c(1), mul(basin, 1 - INNER_DOME)), ctx.p("thickness") * m);
+        JsonElement rise = add(mul(sqrt(core), dome), mul(mul(cliff, inMass), ctx.p("islandRise") * m));
         JsonElement top = add(add(layer, rise), -2);
         if (cut != null) {
             top = min(top, add(mul(sub(c(1), cut), GAP_CLEAR), a - GAP_DROP));
