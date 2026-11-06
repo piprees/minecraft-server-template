@@ -269,6 +269,27 @@ if [[ -d "$CONSUMER_DIR/overlay/config/custom-dimensions" ]]; then
   echo "  Dimension overlay staged at data/config/custom-dimensions/overlay/"
 fi
 
+# A checkout linked at a version the 26.x rebuild serves stages its v2 set as
+# smoke-26.sh does (cutover-removals.md): the mod refuses a dimensions/ file
+# without "schemaVersion", and the base config seeds the 1.21.1 set and its
+# thumbnails there. A v2 file the consumer added stays.
+V2_SOURCE=""
+[[ -f "$STACK_DIR/PLATFORM" ]] && V2_SOURCE="$(cat "$STACK_DIR/PLATFORM")/mods/custom-dimensions-26"
+if [[ "$MC_VERSION" != 1.* && -n "$V2_SOURCE" && -d "$V2_SOURCE/definitions" ]]; then
+  v2_dims="$CONSUMER_DIR/data/config/custom-dimensions/dimensions"
+  v2_bridges="$CONSUMER_DIR/data/config/custom-dimensions/bridges"
+  mkdir -p "$v2_dims"
+  cp "$V2_SOURCE"/definitions/*.json "$v2_dims/"
+  for f in "$v2_dims"/*; do
+    [[ -f "$f" && "$f" == *.json ]] && grep -q '"schemaVersion"' "$f" && continue
+    rm -f "$f"
+  done
+  rm -rf "$v2_bridges"
+  mkdir -p "$v2_bridges"
+  cp "$V2_SOURCE"/bridges/*.json "$v2_bridges/"
+  echo "  v2 definitions staged: $(find "$v2_dims" -name '*.json' | wc -l | tr -d ' ') files, $(find "$v2_bridges" -name '*.json' | wc -l | tr -d ' ') bridges"
+fi
+
 # --- Sync platform datapacks into the world -----------------------------------
 # Mirrors deploy.sh: bundle config/datapacks/<pack>/ -> data/world/datapacks/,
 # then overlay packs of the same name replace the platform copy. Without this
@@ -575,6 +596,10 @@ compose_up() {
     --profile local up -d "$@"
 }
 
+# itzg chowns /data only when /data itself is foreign, so a root host's later
+# writes under an already-chowned data/ stay root's and the server cannot
+# write its own config (as smoke-26.sh).
+if [[ "$(id -u)" -eq 0 ]]; then chown -R 1000:1000 "$CONSUMER_DIR/data"; fi
 compose_up seed
 SEED_EXIT=$(docker wait "${CONTAINER_PREFIX:-}seed")
 if [[ "$SEED_EXIT" != "0" ]]; then
