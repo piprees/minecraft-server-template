@@ -49,7 +49,7 @@ say "=== bot FIRST, in the overworld: an empty 26.x server stops ticking after"
 say "    pause-when-empty-seconds, so an activation would stay queued, and a fill"
 say "    into a chunk nothing tickets answers 'That position is not loaded' ==="
 rc "carpet commandPlayer true" >/dev/null
-rc "player RigBot spawn at 0 200 0 in minecraft:overworld" | head -c 70; echo
+rc "player RigBot spawn at 0 200 0 facing 0 0 in minecraft:overworld" | head -c 70; echo
 sleep 4
 rc "gamemode creative RigBot" >/dev/null
 
