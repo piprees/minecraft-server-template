@@ -13,13 +13,17 @@
 #   entry of the list, waits for the chunks to load and draw, and screenshots it.
 #
 # Usage: scripts/rig.sh [--port N] [--out DIR] [--non-interactive] [variant ...]   (default variants: a b c d)
-#        scripts/rig.sh [--port N] [--out DIR] biomes <shot list>
+#        scripts/rig.sh [--port N] [--out DIR] [--definitions DIR] [--render-distance N] [--dh] biomes <shot list>
+#   --definitions runs the server on that folder instead of the self-test definitions; --render-distance sets the
+#   client's render distance and the started server's view distance (default 8); --dh adds Distant Horizons to the
+#   biome-shots client and the server (runServer -Pdh), which generates the LODs the client requests.
 #   Screenshots land in DIR/screenshots (default DIR /tmp/claude-0/m8-screens) as <variant>-near.png and
 #   <variant>-far.png, or as <name>.png per shot-list entry; each client log is DIR/<variant>.log (DIR/biomes.log),
 #   the server log DIR/server.log.
 #   Shot list: a JSON array of {"dimension": "adventure:selftest_biome_<id>", "x": 0, "y": "surface+30", "z": 0,
 #   "yaw": 0, "pitch": 20, "name": "<id>-wide"}; y is a number, "surface[+N]" or "ground[+N]"; "at": [x, y, z] faces
-#   a block in place of yaw and pitch; "nightVision": true lights a cavern or Nether shot (give y as a number there).
+#   a block in place of yaw and pitch; "nightVision": true lights a cavern or Nether shot (give y as a number there);
+#   "radius": N chunks must be loaded first (default 6) and "hold": S seconds waits after the shot is drawn.
 #
 # Gotchas:
 #   - Xvfb's GLX offers no sRGB-capable visual and the 26.3 client asks SDL for one, so the GL backend fails with
@@ -41,12 +45,18 @@ OUT=/tmp/claude-0/m8-screens
 VARIANTS=""
 SHADER_VERSION=Bqen1mJX
 BIOMES=""
+DISTANCE=8
+DH=""
+DEFINITIONS_DIR=""
 
 while [ $# -gt 0 ]; do
 	case "$1" in
 		--port) PORT="$2"; shift 2 ;;
 		--out) OUT="$2"; shift 2 ;;
 		--non-interactive) shift ;;
+		--render-distance) DISTANCE="$2"; shift 2 ;;
+		--dh) DH=1; shift ;;
+		--definitions) DEFINITIONS_DIR="$(cd "$2" && pwd)"; shift 2 ;;
 		a|b|c|d) VARIANTS="$VARIANTS $1"; shift ;;
 		biomes) BIOMES="$(cd "$(dirname "$2")" && pwd)/$(basename "$2")"; [ -f "$BIOMES" ] || { echo "no shot list: $2" >&2; exit 2; }
 			VARIANTS="biomes"; shift 2 ;;
@@ -81,14 +91,16 @@ online-mode=false
 enforce-secure-profile=false
 level-seed=20261022
 spawn-protection=0
-view-distance=8
+view-distance=$DISTANCE
 simulation-distance=6
 pause-when-empty-seconds=0
 motd=customdimensions rig"
 	# The offline UUID of the player Rig: UUID v3 of "OfflinePlayer:Rig".
 	backup_if_changed "$SERVER_RUN/ops.json" '[{"uuid":"b4b49ac1-eec7-3c0f-a8fc-f6d9f5bb5548","name":"Rig","level":4,"bypassesPlayerLimit":false}]'
 	DEFINITIONS=""
-	if [ -n "$BIOMES" ]; then
+	if [ -n "$DEFINITIONS_DIR" ]; then
+		DEFINITIONS="-Pdefinitions=$DEFINITIONS_DIR"
+	elif [ -n "$BIOMES" ]; then
 		(cd "$SERVER_PROJECT" && ./gradlew --offline -q :server:selfTestDefinitions)
 		DEFINITIONS="-Pdefinitions=$SERVER_PROJECT/server/build/selftest-definitions"
 	fi
@@ -99,7 +111,7 @@ motd=customdimensions rig"
 	mkfifo "$CONSOLE"
 	exec 3<>"$CONSOLE"
 	# shellcheck disable=SC2086
-	(cd "$SERVER_PROJECT" && setsid ./gradlew :server:runServer --offline $DEFINITIONS <&3 > "$OUT/server.log" 2>&1 &)
+	(cd "$SERVER_PROJECT" && setsid ./gradlew :server:runServer --offline $DEFINITIONS ${DH:+-Pdh} <&3 > "$OUT/server.log" 2>&1 &)
 	i=0
 	while [ $i -lt 90 ] && ! grep -q 'Done (' "$OUT/server.log"; do sleep 5; i=$((i + 1)); done
 	grep -q 'Done (' "$OUT/server.log" || { log "the server did not start; see $OUT/server.log"; exit 1; }
@@ -108,12 +120,12 @@ fi
 RUN="$HERE/run"
 mkdir -p "$RUN/config" "$RUN/shaderpacks"
 if [ -f "$RUN/options.txt" ]; then
-	sed -i.bak -e 's/^renderDistance:.*/renderDistance:8/' -e 's/^onboardAccessibility:.*/onboardAccessibility:false/' \
+	sed -i.bak -e "s/^renderDistance:.*/renderDistance:$DISTANCE/" -e 's/^onboardAccessibility:.*/onboardAccessibility:false/' \
 		-e 's/^skipMultiplayerWarning:.*/skipMultiplayerWarning:true/' -e 's/^joinedFirstServer:.*/joinedFirstServer:true/' \
 		-e 's/^tutorialStep:.*/tutorialStep:none/' -e 's/^menuBackgroundBlurriness:.*/menuBackgroundBlurriness:0/' \
 		-e 's/^pauseOnLostFocus:.*/pauseOnLostFocus:false/' "$RUN/options.txt"
 else
-	printf '%s\n' 'renderDistance:8' 'onboardAccessibility:false' 'skipMultiplayerWarning:true' 'joinedFirstServer:true' \
+	printf '%s\n' "renderDistance:$DISTANCE" 'onboardAccessibility:false' 'skipMultiplayerWarning:true' 'joinedFirstServer:true' \
 		'tutorialStep:none' 'menuBackgroundBlurriness:0' 'pauseOnLostFocus:false' > "$RUN/options.txt"
 fi
 
@@ -133,7 +145,7 @@ for v in $VARIANTS; do
 			backup_if_changed "$RUN/config/iris.properties" "enableShaders=true
 shaderPack=$name" ;;
 		d) label=d-dh; extra="-Pdh" ;;
-		biomes) label=biomes; extra="-Pcompanion=off -PrigBiomes=$BIOMES" ;;
+		biomes) label=biomes; extra="-Pcompanion=off -PrigBiomes=$BIOMES${DH:+ -Pdh}" ;;
 	esac
 	if [ "$v" != c ] && [ -f "$RUN/config/iris.properties" ]; then
 		backup_if_changed "$RUN/config/iris.properties" "enableShaders=false"

@@ -42,6 +42,10 @@ dependencies {
 	if (project.hasProperty('firewallProbe')) {
 		localRuntime "maven.modrinth:the-lost-cities:${project.lostcities_version}"
 	}
+	// -Pdh: Distant Horizons on the server, so a rig client with it is sent LODs the server generates (the rig's --dh).
+	if (project.hasProperty('dh')) {
+		localRuntime "maven.modrinth:distanthorizons:${project.distant_horizons_version}"
+	}
 	// -PstructureMods=<dir>: the 26.3 list's structure mods (the jars the committed bridges adopt, their libraries), for measuring sizes.
 	if (project.hasProperty('structureMods')) {
 		def dir = file(project.property('structureMods'))

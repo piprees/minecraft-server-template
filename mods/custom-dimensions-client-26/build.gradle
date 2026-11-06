@@ -73,6 +73,10 @@ loom {
 				vmArg "-Dcustomdimensions.rig.label=${project.findProperty('rigLabel') ?: 'shot'}"
 				vmArg "-Dcustomdimensions.rig.biomes=${project.findProperty('rigBiomes') ?: ''}"
 				vmArg "-Dcustomdimensions.companion=${project.findProperty('companion') ?: 'on'}"
+				// Distant Horizons warns of low memory under 4 GB and keeps fewer LODs.
+				if (project.hasProperty('dh')) {
+					vmArg '-Xmx4G'
+				}
 				// Xvfb offers no sRGB-capable GLX visual; the rig's GL shim (rig/srgbshim.c) stands in for libGL.
 				if (project.hasProperty('rigGl')) {
 					vmArg "-Dorg.lwjgl.opengl.libname=${project.rigGl}"

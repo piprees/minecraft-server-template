@@ -26,7 +26,8 @@ import net.minecraft.world.level.levelgen.Heightmap;
  * in place of yaw and pitch, a camera turned to face that block. {@code y} is a number,
  * {@code "surface[+N]"} (N blocks over the motion-blocking height at x, z) or
  * {@code "ground[+N]"} (over the ground under any trees and plants); {@code nightVision: true} lights a shot in a cavern
- * with night vision, which every other shot clears. As the operator, in spectator mode with the HUD hidden, at noon in
+ * with night vision, which every other shot clears; {@code radius} (chunks, default {@link #RADIUS}) widens the ring that
+ * must be loaded and {@code hold} (seconds) waits that long after it is drawn, for far views and Distant Horizons LODs. As the operator, in spectator mode with the HUD hidden, at noon in
  * clear weather, it takes each entry in turn: {@code /customdim tp} into the dimension
  * when it is not already there, a teleport high over the spot, the surface read from
  * the client's own heightmap once that chunk arrives, the teleport to the shot, a wait
@@ -42,7 +43,8 @@ public final class BiomeShots {
     /** Ticks after the final teleport before the renderer's state is trusted. */
     static final int SETTLE = 80;
 
-    private record Shot(String dimension, double x, String y, double z, float yaw, float pitch, double[] at, String name, boolean nightVision) {
+    private record Shot(String dimension, double x, String y, double z, float yaw, float pitch, double[] at, String name, boolean nightVision,
+            int radius, int hold) {
     }
 
     private enum Phase { START, ENTER, HIGH, PLACE, WAIT, SHOOT, NEXT, DONE }
@@ -53,6 +55,7 @@ public final class BiomeShots {
     private Phase phase = Phase.START;
     private int wait;
     private int tick;
+    private int readyAt = -1;
 
     private BiomeShots(List<Shot> shots, File out) {
         this.shots = shots;
@@ -90,7 +93,8 @@ public final class BiomeShots {
             }
             out.add(new Shot(o.get("dimension").getAsString(), o.get("x").getAsDouble(), o.get("y").getAsString(),
                     o.get("z").getAsDouble(), o.has("yaw") ? o.get("yaw").getAsFloat() : 0, o.has("pitch") ? o.get("pitch").getAsFloat() : 0,
-                    at, o.get("name").getAsString(), o.has("nightVision") && o.get("nightVision").getAsBoolean()));
+                    at, o.get("name").getAsString(), o.has("nightVision") && o.get("nightVision").getAsBoolean(),
+                    o.has("radius") ? o.get("radius").getAsInt() : RADIUS, o.has("hold") ? o.get("hold").getAsInt() : 0));
         }
         return out;
     }
@@ -163,6 +167,9 @@ public final class BiomeShots {
                     yaw = (float) Math.toDegrees(Math.atan2(-dx, dz));
                     pitch = (float) -Math.toDegrees(Math.atan2(dy, Math.sqrt(dx * dx + dz * dz)));
                 }
+                // Each dimension keeps its own clock: noon and clear weather are set where the shot is taken.
+                command(mc, "execute in " + shot.dimension() + " run time set 6000");
+                command(mc, "execute in " + shot.dimension() + " run weather clear");
                 command(mc, shot.nightVision() ? "effect give @s minecraft:night_vision infinite 0 true" : "effect clear @s minecraft:night_vision");
                 command(mc, String.format(Locale.ROOT, "execute in %s run tp @s %.2f %.2f %.2f %.1f %.1f", shot.dimension(), shot.x(), y,
                         shot.z(), yaw, pitch));
@@ -173,11 +180,19 @@ public final class BiomeShots {
                 if (wait < SETTLE) {
                     return;
                 }
-                boolean ready = loaded(mc) && mc.levelRenderer.hasRenderedAllSections();
-                if (ready || wait > CAP) {
-                    if (!ready) {
-                        CompanionClient.LOG.warn("rig: {} shot before every section was drawn", shots.get(index).name());
+                Shot shot = shots.get(index);
+                if (readyAt < 0) {
+                    boolean ready = loaded(mc, shot.radius()) && mc.levelRenderer.hasRenderedAllSections();
+                    if (ready || wait > CAP + shot.hold() * 20) {
+                        if (!ready) {
+                            CompanionClient.LOG.warn("rig: {} shot before every section was drawn", shot.name());
+                        }
+                        readyAt = wait;
                     }
+                    return;
+                }
+                if (wait - readyAt >= shot.hold() * 20) {
+                    CompanionClient.LOG.info("rig: {} ready after {} s, held {} s", shot.name(), readyAt / 20, shot.hold());
                     go(Phase.SHOOT);
                 }
             }
@@ -215,6 +230,7 @@ public final class BiomeShots {
     private void go(Phase next) {
         phase = next;
         wait = 0;
+        readyAt = -1;
     }
 
     private static boolean here(Minecraft mc, Shot shot) {
@@ -254,11 +270,11 @@ public final class BiomeShots {
         return surface + above;
     }
 
-    private static boolean loaded(Minecraft mc) {
+    private static boolean loaded(Minecraft mc, int radius) {
         int cx = mc.player.chunkPosition().x();
         int cz = mc.player.chunkPosition().z();
-        for (int dx = -RADIUS; dx <= RADIUS; dx++) {
-            for (int dz = -RADIUS; dz <= RADIUS; dz++) {
+        for (int dx = -radius; dx <= radius; dx++) {
+            for (int dz = -radius; dz <= radius; dz++) {
                 if (!mc.level.getChunkSource().hasChunk(cx + dx, cz + dz)) {
                     return false;
                 }

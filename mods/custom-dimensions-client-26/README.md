@@ -106,7 +106,25 @@ weather, the client enters each dimension with `/customdim tp`, teleports
 over the spot, reads the surface once that chunk arrives, teleports to the
 shot, waits until every chunk within six of the camera is loaded and every
 visible section is drawn (at most a minute), screenshots
-`<out>/screenshots/<name>.png` and quits after the last.
+`<out>/screenshots/<name>.png` and quits after the last. A shot's `radius`
+(chunks, default six) widens the ring that must be loaded first and `hold`
+(seconds) waits that long after it is drawn, for far views.
+
+```bash
+scripts/rig.sh --definitions ../custom-dimensions-26/definitions --dh --render-distance 12 biomes shots.json
+```
+
+`--definitions <dir>` runs the server on that folder instead of the self-test
+definitions, so a shot list can name any dimension in it.
+`--render-distance N` sets the client's render distance and the server's view
+distance it starts with. `--dh` adds Distant Horizons to the biome-shots client
+and to the server (`runServer -Pdh`), which generates the LODs the client asks
+for; the client's quality defaults are the Medium preset (vertical and
+horizontal quality MEDIUM) and it runs with 4 GB. Under Mesa llvmpipe on four
+cores the LODs do not reach past the vanilla render distance within five
+minutes, so the far views there use `--render-distance 32` instead. Each
+dimension keeps its own clock, so every shot sets noon and clear weather in
+its own dimension.
 
 Xvfb's GLX offers no sRGB-capable visual, which the 26.3 client asks SDL for;
 `rig/srgbshim.c` stands in for libGL and drops that attribute, so every
