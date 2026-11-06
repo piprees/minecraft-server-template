@@ -1596,6 +1596,20 @@ A seed's map and its banked facts appear to contradict each other — the thumbn
   the same trap. Pin it against the Java, not against intuition —
   `scripts/e2e/portal-matrix-selftest.sh` is the worked example.
 
+<a id="t174"></a>
+### T174 — A terrain's `scale` stretches the climate the biome boxes were fitted on
+
+- **Symptom:** after `terrain.scale` goes above about 1.5, rare listed biomes fall to 0% on the render although their boxes are unchanged.
+- **Cause:** `scale` stretches the router's climate as well as the land, so boxes cut at the seed's quantiles (T168) sample fewer climate cells in the same window.
+- **Fix:** re-render after any scale change, and keep scale near 1 or re-fit the boxes at that scale.
+
+<a id="t173"></a>
+### T173 — A terrain holds its shore at sea level, so a dry sea level trenches every coast
+
+- **Symptom:** a "dry" dimension with `liquids.seaLevel` far below its land (−55, −60) shows a band of ground near the world floor along every coastline, with lava where it passes the lava level; with vanilla terrain the same definition has none.
+- **Cause:** the library's land spline places the shore at sea level just below `coast`, and `canyons` with `grade` above 0 lowers its floors to sea level.
+- **Fix:** open; until then push `coast` to −0.6 and set canyons `grade` 0 in such a definition.
+
 <a id="t172"></a>
 ### T172 — An airborne terrain's water stands still, and a sea level floods the void
 
