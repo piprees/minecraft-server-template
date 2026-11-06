@@ -60,7 +60,7 @@ for d in e2e_one e2e_two; do
   say "  $d: $(printf '%s' "$reply" | head -c 70)"
 done
 # Levels open one at a time (K6); bounded wait for both to answer `execute in`.
-for i in $(seq 1 24); do
+for _ in $(seq 1 24); do
   case "$(rc "execute in $NS:e2e_two run time query gametime")" in *nknown*) sleep 5 ;; *) break ;; esac
 done
 

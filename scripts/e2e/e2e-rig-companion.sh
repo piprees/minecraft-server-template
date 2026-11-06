@@ -60,7 +60,7 @@ links="$(docker exec mc sh -c 'cat /data/world/data/customdimensions/portal_link
   check "1 the link exists" fail "no e2e_two in portal_links.json: run build-e2e-portal.sh"
 
 start="" n=""
-for i in $(seq 1 $((FEED_WAIT / 5))); do
+for _ in $(seq 1 $((FEED_WAIT / 5))); do
   start="$(slog | grep -E "companion-feed:start player=$PLAYER .*-> $NS:e2e_two" | tail -1)"
   n="$(received)"
   [[ -n "$start" && "${n:-0}" -ge "$MIN_CHUNKS" ]] && break
@@ -74,7 +74,7 @@ done
 echo "== step into the opening"
 rc "execute in $NS:e2e_one run tp $PLAYER 4.5 -59 4.5 0 0" | head -c 120; echo
 dim=""
-for i in $(seq 1 24); do
+for _ in $(seq 1 24); do
   dim="$(dimension)"
   [[ "$dim" == "$NS:e2e_two" ]] && break
   sleep 5

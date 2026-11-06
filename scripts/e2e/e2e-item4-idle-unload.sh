@@ -40,7 +40,7 @@ rc "carpet commandPlayer true" > /dev/null
 rc "player IdleBot spawn at 0 200 0 facing 0 0 in minecraft:overworld" > /dev/null
 sleep 4
 rc "customdim activate e2e_two" > /dev/null
-for i in $(seq 1 24); do [[ "$(state)" == active ]] && break; sleep 5; done
+for _ in $(seq 1 24); do [[ "$(state)" == active ]] && break; sleep 5; done
 rc "execute in $NS:e2e_two run tp IdleBot 4.5 -60 8.5" | head -c 100; echo
 [[ "$(state)" == active ]] && check "e2e_two is open" ok "customdim list: active" ||
   check "e2e_two is open" fail "customdim list: $(state)"
@@ -54,7 +54,7 @@ s="$(state)"
 echo "== walk away: the bot to the overworld"
 rc "execute in minecraft:overworld run tp IdleBot 0 200 0" | head -c 100; echo
 line="" s=""
-for i in $(seq 1 $(((STAY + 120) / 10))); do
+for _ in $(seq 1 $(((STAY + 120) / 10))); do
   line="$(unload_line)"
   s="$(state)"
   [[ -n "$line" && "$s" == lazy ]] && break
