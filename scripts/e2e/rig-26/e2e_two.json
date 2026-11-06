@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 2,
+  "description": "E2E rig e2e_two: a flat minecraft:magenta_concrete floor at y -61 for the end-to-end harness.",
+  "seed": 2202,
+  "spawn": [
+    4,
+    -60,
+    1
+  ],
+  "generator": {
+    "type": "flat",
+    "biome": "minecraft:the_void",
+    "layers": [
+      {
+        "block": "minecraft:bedrock",
+        "height": 1
+      },
+      {
+        "block": "minecraft:stone",
+        "height": 2
+      },
+      {
+        "block": "minecraft:magenta_concrete",
+        "height": 1
+      }
+    ]
+  },
+  "atmosphere": {
+    "ambientLight": 0.0,
+    "fixedTime": 6000
+  },
+  "rules": {
+    "natural": false
+  },
+  "borders": {
+    "player": 512,
+    "generation": 512
+  },
+  "structures": {
+    "density": "sparse",
+    "clearSpawnRadius": 512
+  },
+  "portals": [
+    {
+      "frameBlock": "minecraft:magenta_concrete",
+      "igniterItem": "minecraft:amethyst_shard",
+      "color": "B24CD8",
+      "lightLevel": 11,
+      "scale": 1.0,
+      "cooldown": 40,
+      "orientation": "vertical"
+    }
+  ]
+}

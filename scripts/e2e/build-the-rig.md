@@ -12,6 +12,11 @@ broken instrument.
 ./scripts/e2e/rig-ready.sh                 # refuse to measure until it is
 ```
 
+On 26.x the pair are `adventure:e2e_one` and `adventure:e2e_two`, v2 definitions
+in [`rig-26/`](rig-26/), the same coordinates, and the three-way verification
+below is `e2e-rig-companion.sh` reading logs instead of the bridge
+([README § On 26.x](README.md#on-26x)).
+
 ## What the rig is
 
 | part | what it is | built by |
