@@ -2,6 +2,6 @@
   "base": "minecraft:floating_islands",
   "changed": {
     "material_rule": "adventure:the_violet_spire",
-    "noise_router": "sha1:eb68def9d18d2e8ad0e643a4890063374814f5c2"
+    "noise_router": "sha1:0c8622999c6bf86626accab859ed87a78075b90c"
   }
 }

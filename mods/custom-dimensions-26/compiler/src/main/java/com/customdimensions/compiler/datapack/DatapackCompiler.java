@@ -217,7 +217,7 @@ public final class DatapackCompiler {
                 return;
             }
             String of = def.generator().of();
-            def = cloned(def, definitions.get(last), entry);
+            def = cloned(def, definitions.get(last));
             entry.cloneOf(namespace + ":" + last);
             cloneNote = ", clone of `" + namespace + ":" + last + "`"
                     + (CLONE_ALIASES.containsKey(of) ? ", which stands in for `" + of + "`" : "")
@@ -385,15 +385,13 @@ public final class DatapackCompiler {
     }
 
     /**
-     * The clone with its source's generator, biome list and terrain; its own
-     * seed, dimension type, atmosphere and rules; its own liquids and default
-     * block over the source's, field by field.
+     * The clone with its source's generator and terrain; its own biome list
+     * when it has one, else its source's; its own seed, dimension type,
+     * atmosphere and rules; its own liquids and default block over the
+     * source's, field by field.
      */
-    private static Definition cloned(Definition clone, Definition source, CompileReport.Entry entry) {
-        if (!clone.biomes().isEmpty()) {
-            entry.unsupported("biomes", "a clone takes its source's biome source; its own " + clone.biomes().size()
-                    + " biome(s) are not used");
-        }
+    private static Definition cloned(Definition clone, Definition source) {
+        List<BiomeEntry> biomes = clone.biomes().isEmpty() ? source.biomes() : clone.biomes();
         Liquids own = clone.liquids();
         Liquids theirs = source.liquids();
         Liquids liquids = own == null ? theirs : theirs == null ? own : new Liquids(
@@ -404,7 +402,7 @@ public final class DatapackCompiler {
         JsonObject materials = overlay(source.materials(), clone.materials());
         JsonObject ores = overlay(source.ores(), clone.ores());
         return new Definition(clone.schemaVersion(), clone.description(), clone.seed(), clone.spawn(), source.generator(),
-                source.terrain(), source.biomes(), liquids, materials, ores, clone.zones(), clone.dimensionType(),
+                source.terrain(), biomes, liquids, materials, ores, clone.zones(), clone.dimensionType(),
                 clone.atmosphere(), clone.rules(), clone.borders(), clone.difficulty(), clone.structures(), clone.portals(),
                 clone.exitPortal(), clone.exits(), clone.exitShrines(), clone.deaths(), clone.wins(), clone.roll());
     }

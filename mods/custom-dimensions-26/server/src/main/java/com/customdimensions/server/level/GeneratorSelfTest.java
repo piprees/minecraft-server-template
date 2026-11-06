@@ -33,6 +33,7 @@ import net.minecraft.resources.RegistryOps;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -242,15 +243,18 @@ public final class GeneratorSelfTest {
 
     /**
      * A clone generates the original's terrain: its noise settings encode the
-     * same as the original's apart from what its own zones bring
-     * ({@link CloneSettings}), and its biome source holds the original's
-     * biomes plus its zones' biomes. The seeds differ, so the island share
-     * over one area is reported, not compared.
+     * same as the original's apart from what its biomes bring
+     * ({@link CloneSettings}), and its biome source holds its own listed
+     * biomes when it lists any, else the original's, plus its zones' biomes.
+     * The seeds differ, so the island share over one area is reported, not
+     * compared.
      */
     private String clone(Columns c) {
         if (aviary == null) return "FAIL no the_aviary sample to compare with";
         Definition def = manager.index().lazy(c.slug).map(LevelIndex.Entry::definition).orElse(null);
         if (def == null) return "FAIL no definition for " + c.slug;
+        Definition source = definition(aviary.slug);
+        if (source == null) return "FAIL no definition for " + aviary.slug;
         String of = def.generator().of();
         ChunkGenerator ours = c.level.getChunkSource().getGenerator();
         Set<String> zoneBiomes = new TreeSet<>();
@@ -258,25 +262,33 @@ public final class GeneratorSelfTest {
             zone.biomes().forEach(b -> zoneBiomes.add(b.id()));
             zoneBiomes.addAll(zone.swap().values());
         }
+        Set<String> sourceListed = new LinkedHashSet<>();
+        source.biomes().forEach(b -> sourceListed.add(b.id()));
+        Set<String> ownListed = new LinkedHashSet<>();
+        def.biomes().forEach(b -> ownListed.add(b.id()));
+        Set<String> listed = ownListed.isEmpty() ? sourceListed : ownListed;
+        Set<String> ourPaletteBiomes = new LinkedHashSet<>(listed);
+        ourPaletteBiomes.addAll(zoneBiomes);
         String namespace = c.level.dimension().identifier().getNamespace();
         List<String> palettes = new ArrayList<>();
-        List<String> differ = cloneDifferences(ours, aviaryGenerator, zoneBiomes, namespace, palettes);
+        List<String> differ = cloneDifferences(ours, aviaryGenerator, ourPaletteBiomes, sourceListed, namespace, palettes);
         Set<String> ourBiomes = biomeKeys(ours);
         Set<String> theirBiomes = biomeKeys(aviaryGenerator);
-        Set<String> expected = new TreeSet<>(theirBiomes);
+        Set<String> expected = new TreeSet<>(ownListed.isEmpty() ? theirBiomes : ownListed);
         expected.addAll(zoneBiomes);
         Set<String> added = new TreeSet<>(ourBiomes);
         added.removeAll(theirBiomes);
+        String base = ownListed.isEmpty() ? "the original's" : "its own " + ownListed.size() + " listed";
         double open = c.openShare();
         double aviaryOpen = aviary.openShare();
         boolean pass = differ.isEmpty() && ourBiomes.equals(expected) && Math.abs(open - aviaryOpen) <= 0.25
                 && c.share(col -> col.lowest != null) > 0;
         return verdict(pass, "clones `" + of + "`; settings " + settingsKey(ours) + " vs " + settingsKey(aviaryGenerator) + ": "
-                + (differ.isEmpty() ? "the same apart from the router's temperature (the zones' biome channels) and the zone biomes' palettes "
+                + (differ.isEmpty() ? "the same apart from the router's temperature (the zones' biome channels) and the listed and zone biomes' palettes "
                         + palettes : "differ in " + differ)
                 + "; biome source " + ourBiomes.size() + " vs " + theirBiomes.size() + " biomes, adds " + added
-                + (ourBiomes.equals(expected) ? " (the original's plus the zones' " + zoneBiomes + ")" : " (expected the original's plus the zones' "
-                        + zoneBiomes + ": " + expected.size() + ")")
+                + (ourBiomes.equals(expected) ? " (" + base + " plus the zones' " + zoneBiomes + ")" : " (expected " + base
+                        + " plus the zones' " + zoneBiomes + ": " + expected.size() + ")")
                 + "; seeds differ (" + c.level.getSeed() + " vs " + aviary.level.getSeed() + ", each definition's own), so over the same "
                 + c.area() + " open columns " + pct(open) + " vs " + pct(aviaryOpen) + " (within 25 points) and island columns "
                 + pct(c.share(col -> col.lowest != null)) + " vs " + pct(aviary.share(col -> col.lowest != null)) + " are each seed's own");
@@ -284,12 +296,14 @@ public final class GeneratorSelfTest {
 
     /**
      * {@link CloneSettings#differences} over the two generators' encoded
-     * settings, each material rule resolved; the expected zone rules are the
-     * library palettes of {@code zoneBiomes}, compiled as the compiler does
-     * and round-tripped through the codec. Their biome ids go into {@code palettes}.
+     * settings, each material rule resolved; the expected palette rules are
+     * the library palettes of {@code ourBiomes} (the clone's listed and zone
+     * biomes) and of {@code theirBiomes} (the source's listed biomes),
+     * compiled as the compiler does and round-tripped through the codec. The
+     * clone's palette biome ids go into {@code palettes}.
      */
-    private List<String> cloneDifferences(ChunkGenerator a, ChunkGenerator b, Set<String> zoneBiomes, String namespace,
-                                          List<String> palettes) {
+    private List<String> cloneDifferences(ChunkGenerator a, ChunkGenerator b, Set<String> ourBiomes, Set<String> theirBiomes,
+                                          String namespace, List<String> palettes) {
         if (!(a instanceof NoiseBasedChunkGenerator na) || !(b instanceof NoiseBasedChunkGenerator nb)) {
             return a.getClass() == b.getClass() ? List.of() : List.of("generator type");
         }
@@ -297,16 +311,24 @@ public final class GeneratorSelfTest {
         JsonObject ja = encoded(ops, na.generatorSettings().value());
         JsonObject jb = encoded(ops, nb.generatorSettings().value());
         boolean gate = MaterialsCompiler.gated(CloneSettings.entries(jb.getAsJsonObject("material_rule")));
-        int seaLevel = na.generatorSettings().value().seaLevel();
-        List<JsonElement> zoneRules = new ArrayList<>();
-        for (String id : zoneBiomes) {
+        List<JsonElement> ourRules = paletteRules(ops, ourBiomes, namespace, gate, na.generatorSettings().value().seaLevel(), palettes);
+        List<JsonElement> theirRules = paletteRules(ops, theirBiomes, namespace, gate, nb.generatorSettings().value().seaLevel(),
+                new ArrayList<>());
+        return CloneSettings.differences(ja, jb, ourRules, theirRules);
+    }
+
+    /** The encoded library palette rule of each of {@code biomes} that has one; their ids go into {@code ids}. */
+    private List<JsonElement> paletteRules(RegistryOps<JsonElement> ops, Set<String> biomes, String namespace, boolean gate,
+                                           int seaLevel, List<String> ids) {
+        List<JsonElement> out = new ArrayList<>();
+        for (String id : biomes) {
             MaterialsCompiler.Palette palette = BiomeLibrary.shipped().get(namespace, id).map(BiomeLibrary.Entry::palette).orElse(null);
             if (palette == null || palette.isEmpty()) continue;
             MaterialRule rule = MaterialRule.DIRECT_CODEC.parse(ops, MaterialsCompiler.biomeRule(id, palette, gate, seaLevel)).getOrThrow();
-            zoneRules.add(MaterialRule.DIRECT_CODEC.encodeStart(ops, rule).getOrThrow());
-            palettes.add(id);
+            out.add(MaterialRule.DIRECT_CODEC.encodeStart(ops, rule).getOrThrow());
+            ids.add(id);
         }
-        return CloneSettings.differences(ja, jb, zoneRules);
+        return out;
     }
 
     /** The settings encoded, with the material rule resolved to the rule itself. */

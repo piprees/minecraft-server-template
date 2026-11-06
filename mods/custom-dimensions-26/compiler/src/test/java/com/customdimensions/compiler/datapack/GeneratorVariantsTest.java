@@ -8,6 +8,7 @@ import com.google.gson.JsonParser;
 import org.junit.jupiter.api.Test;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -184,14 +185,43 @@ class GeneratorVariantsTest {
     }
 
     @Test
-    void aClonesOwnLiquidsTuneItsSourcesGeneratorAndItsBiomesAreReported() {
+    void aClonesOwnLiquidsTuneItsSourcesGenerator() {
         DatapackCompiler.Output out = compileAll(Map.of("the_aviary", AVIARY,
-                "c", PL_CLONE + ", \"liquids\": {\"seaLevel\": 90}, \"biomes\": [\"minecraft:jungle\"]"));
+                "c", PL_CLONE + ", \"liquids\": {\"seaLevel\": 90}"));
         JsonObject changed = golden(out, "c", "data/adventure/worldgen/noise_settings/c.json").getAsJsonObject()
                 .getAsJsonObject("changed");
         assertEquals(Set.of("noise_router", "sea_level"), changed.keySet());
         assertEquals(90, changed.get("sea_level").getAsInt());
-        assertTrue(out.report().entry("c").unsupported().stream().anyMatch(u -> u.startsWith("`biomes`") && u.contains("1 biome")));
+    }
+
+    @Test
+    void aCloneWithItsOwnBiomesUsesThemOnItsSourcesGenerator() {
+        DatapackCompiler.Output out = compileAll(Map.of("the_aviary", AVIARY,
+                "c", PL_CLONE + ", \"seed\": 7, \"biomes\": [\"minecraft:jungle\", \"minecraft:desert\"]"));
+        JsonObject aviary = JsonParser.parseString(out.files().get("data/adventure/dimension/the_aviary.json")).getAsJsonObject();
+        JsonObject clone = JsonParser.parseString(out.files().get("data/customdimensions/lazy_dimension/c.json")).getAsJsonObject();
+        assertEquals(Set.of("minecraft:jungle", "minecraft:desert"), biomeIds(clone));
+        assertEquals(Set.of("minecraft:cherry_grove", "minecraft:meadow"), biomeIds(aviary));
+        assertEquals(JsonParser.parseString(out.files().get("data/adventure/worldgen/noise_settings/the_aviary.json")),
+                JsonParser.parseString(out.files().get("data/adventure/worldgen/noise_settings/c.json")));
+        assertTrue(out.report().entry("c").unsupported().stream().noneMatch(u -> u.startsWith("`biomes`")));
+        assertEquals(List.of("minecraft:jungle", "minecraft:desert"),
+                out.compiled().get("c").biomes().stream().map(b -> b.id()).toList());
+    }
+
+    @Test
+    void aCloneWithoutBiomesKeepsItsSourcesBiomeSource() {
+        DatapackCompiler.Output out = compileAll(Map.of("the_aviary", AVIARY, "c", PL_CLONE + ", \"seed\": 7"));
+        JsonObject clone = JsonParser.parseString(out.files().get("data/customdimensions/lazy_dimension/c.json")).getAsJsonObject();
+        assertEquals(Set.of("minecraft:cherry_grove", "minecraft:meadow"), biomeIds(clone));
+    }
+
+    /** The biome ids a stem's multi-noise biome source lists. */
+    private static Set<String> biomeIds(JsonObject stem) {
+        Set<String> out = new java.util.TreeSet<>();
+        stem.getAsJsonObject("generator").getAsJsonObject("biome_source").getAsJsonArray("biomes")
+                .forEach(e -> out.add(e.getAsJsonObject().get("biome").getAsString()));
+        return out;
     }
 
     @Test

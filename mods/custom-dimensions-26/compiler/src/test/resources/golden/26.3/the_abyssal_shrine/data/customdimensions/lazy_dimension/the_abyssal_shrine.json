@@ -4,7 +4,44 @@
     "type": "minecraft:noise",
     "biome_source": {
       "type": "minecraft:multi_noise",
-      "preset": "minecraft:overworld"
+      "biomes": [
+        {
+          "biome": "adventure:umbral_wastes",
+          "parameters": "sha1:2f0b52b8e1ebe3b86a265d883963643c4a532899"
+        },
+        {
+          "biome": "minecraft:deep_ocean",
+          "parameters": "sha1:1598aee42398c98bccfd1aea00965e36113d49ce"
+        },
+        {
+          "biome": "minecraft:deep_cold_ocean",
+          "parameters": "sha1:8440bddb99a32ba71ec22d792f2933916018a91e"
+        },
+        {
+          "biome": "adventure:sky_highlands",
+          "parameters": "sha1:38135e8d94dfa35de3bfed9f723a1ed71b6a0315"
+        },
+        {
+          "biome": "adventure:golden_skygrove",
+          "parameters": "sha1:6b688d5c38aae87f88b8e56f9d86d9dc8fc834c0"
+        },
+        {
+          "biome": "minecraft:deep_dark",
+          "parameters": "sha1:a4e671bbcad884dc132c05105b2a1232e463fcaf"
+        },
+        {
+          "biome": "minecraft:dripstone_caves",
+          "parameters": "sha1:fc839b1dbee580c32125183ddd84f7f4bddcea00"
+        },
+        {
+          "biome": "minecraft:dark_forest",
+          "parameters": "sha1:8ffc9906ae584d02b764e78b002a34468c78bbdd"
+        },
+        {
+          "biome": "adventure:windswept_isles",
+          "parameters": "sha1:689ec8e820f7ecae3d3b5e9eeaea840c1416ffbb"
+        }
+      ]
     },
     "settings": "adventure:the_abyssal_shrine"
   }

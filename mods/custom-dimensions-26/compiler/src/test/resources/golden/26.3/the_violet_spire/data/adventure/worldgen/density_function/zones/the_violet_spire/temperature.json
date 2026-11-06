@@ -4,7 +4,7 @@
   "min_inclusive": 0.5,
   "type": "minecraft:range_choice",
   "when_in_range": {
-    "left": 0.0,
+    "left": "minecraft:overworld/temperature",
     "right": 32.0,
     "type": "minecraft:add"
   },
@@ -14,10 +14,10 @@
     "min_inclusive": 0.5,
     "type": "minecraft:range_choice",
     "when_in_range": {
-      "left": 0.0,
+      "left": "minecraft:overworld/temperature",
       "right": 16.0,
       "type": "minecraft:add"
     },
-    "when_out_of_range": 0.0
+    "when_out_of_range": "minecraft:overworld/temperature"
   }
 }

@@ -212,11 +212,12 @@ missing or the rewritten set does not compile.
 
 ## Clones
 
-A clone takes the generator, biome list and terrain of the definition its
-`of` names, and keeps its own seed, spawn, dimension type, atmosphere, rules
-and everything else. Its own `liquids` and `materials` apply over the
-source's, field by field; its own `biomes` are not used, and the compile
-report says so. The compiler resolves `of` to a slug: `paradise_lost:paradise_lost`
+A clone takes the generator and terrain of the definition its `of` names,
+and keeps its own seed, spawn, dimension type, atmosphere, rules and
+everything else. Its own `biomes` list, when it has one, replaces the
+source's on the source's generator, noise settings and router; a clone with
+no list takes the source's biome source. Its own `liquids` and `materials`
+apply over the source's, field by field. The compiler resolves `of` to a slug: `paradise_lost:paradise_lost`
 to `the_aviary`, a base world's level stem (`minecraft:overworld`,
 `minecraft:the_nether`, `minecraft:the_end`) to its slug, and
 `<namespace>:<slug>` to that definition. A clone of a clone follows the chain;
