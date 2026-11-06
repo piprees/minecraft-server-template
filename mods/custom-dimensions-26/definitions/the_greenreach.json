@@ -8,7 +8,9 @@
     "preset": "overworld"
   },
   "terrain": {
-    "base": null
+    "base": "continents",
+    "setting": "gentle",
+    "scale": 2.5
   },
   "biomes": [
     {
