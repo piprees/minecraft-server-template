@@ -8,7 +8,9 @@
     "preset": "overworld"
   },
   "terrain": {
-    "base": null
+    "base": "rivers",
+    "setting": "extreme",
+    "scale": 1.5
   },
   "biomes": [
     {

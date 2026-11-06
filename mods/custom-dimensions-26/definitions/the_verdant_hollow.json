@@ -8,7 +8,9 @@
     "preset": "overworld"
   },
   "terrain": {
-    "base": null
+    "base": "erosion",
+    "setting": "default",
+    "scale": 1.5
   },
   "biomes": [
     {

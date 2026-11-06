@@ -8,7 +8,12 @@
     "preset": "overworld"
   },
   "terrain": {
-    "base": null
+    "base": "continents",
+    "setting": "extreme",
+    "params": {
+      "roughness": 0.8
+    },
+    "scale": 0.6
   },
   "biomes": [
     {

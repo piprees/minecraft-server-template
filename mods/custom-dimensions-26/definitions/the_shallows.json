@@ -8,7 +8,11 @@
     "preset": "overworld"
   },
   "terrain": {
-    "base": null
+    "base": "islands",
+    "setting": "gentle",
+    "params": {
+      "seaFloor": 52
+    }
   },
   "biomes": [
     {

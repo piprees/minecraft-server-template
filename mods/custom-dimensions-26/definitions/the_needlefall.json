@@ -8,7 +8,11 @@
     "preset": "overworld"
   },
   "terrain": {
-    "base": null
+    "base": "shattered",
+    "setting": "default",
+    "params": {
+      "faultHeight": 28
+    }
   },
   "biomes": [
     {
