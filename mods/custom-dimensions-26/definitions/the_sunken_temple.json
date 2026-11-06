@@ -9,57 +9,66 @@
   },
   "biomes": [
     {
-      "id": "minecraft:meadow",
-      "climate": {
-        "continentalness": [-2.0, -0.159]
-      }
-    },
-    {
       "id": "adventure:sky_highlands",
       "climate": {
-        "continentalness": [0.1028, 0.1501]
+        "temperature": [-2.0, -0.503],
+        "humidity": [-2.0, -0.085]
       }
     },
     {
-      "id": "minecraft:warm_ocean",
+      "id": "minecraft:meadow",
       "climate": {
-        "continentalness": [-0.159, -0.1125]
-      }
-    },
-    {
-      "id": "minecraft:deep_lukewarm_ocean",
-      "climate": {
-        "continentalness": [-0.1125, -0.0674]
-      }
-    },
-    {
-      "id": "minecraft:jungle",
-      "climate": {
-        "continentalness": [0.1501, 2.0]
-      }
-    },
-    {
-      "id": "adventure:hanging_gardens",
-      "climate": {
-        "continentalness": [-0.0674, -0.0241]
-      }
-    },
-    {
-      "id": "adventure:desert_oasis",
-      "climate": {
-        "continentalness": [-0.0241, 0.0144]
-      }
-    },
-    {
-      "id": "minecraft:lukewarm_ocean",
-      "climate": {
-        "continentalness": [0.0144, 0.0546]
+        "temperature": [-2.0, -0.503],
+        "humidity": [-0.085, 0.089]
       }
     },
     {
       "id": "minecraft:beach",
       "climate": {
-        "continentalness": [0.0546, 0.1028]
+        "temperature": [-2.0, -0.503],
+        "humidity": [0.089, 2.0]
+      }
+    },
+    {
+      "id": "minecraft:deep_lukewarm_ocean",
+      "climate": {
+        "temperature": [-0.503, -0.006],
+        "humidity": [-2.0, -0.149]
+      }
+    },
+    {
+      "id": "minecraft:lukewarm_ocean",
+      "climate": {
+        "temperature": [-0.503, -0.006],
+        "humidity": [-0.149, 0.061]
+      }
+    },
+    {
+      "id": "adventure:hanging_gardens",
+      "climate": {
+        "temperature": [-0.503, -0.006],
+        "humidity": [0.061, 2.0]
+      }
+    },
+    {
+      "id": "minecraft:warm_ocean",
+      "climate": {
+        "temperature": [-0.006, 2.0],
+        "humidity": [-2.0, -0.149]
+      }
+    },
+    {
+      "id": "adventure:desert_oasis",
+      "climate": {
+        "temperature": [-0.006, 2.0],
+        "humidity": [-0.149, 0.061]
+      }
+    },
+    {
+      "id": "minecraft:jungle",
+      "climate": {
+        "temperature": [-0.006, 2.0],
+        "humidity": [0.061, 2.0]
       }
     }
   ],

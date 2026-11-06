@@ -11,67 +11,71 @@
     {
       "id": "adventure:crystal_hollows",
       "climate": {
-        "continentalness": [-2.0, -0.12]
+        "temperature": [-2.0, -0.147],
+        "humidity": [-2.0, -0.079]
       }
     },
     {
       "id": "minecraft:jagged_peaks",
       "climate": {
-        "continentalness": [-0.12, -0.0983]
+        "temperature": [-2.0, -0.147],
+        "humidity": [-0.079, 0.048]
       }
     },
     {
       "id": "adventure:ice_starfield",
       "climate": {
-        "continentalness": [-0.0983, -0.0767]
-      }
-    },
-    {
-      "id": "minecraft:stony_peaks",
-      "climate": {
-        "continentalness": [-0.0767, -0.055]
-      }
-    },
-    {
-      "id": "adventure:sky_highlands",
-      "climate": {
-        "continentalness": [-0.055, -0.0333]
-      }
-    },
-    {
-      "id": "adventure:sky_highlands",
-      "climate": {
-        "continentalness": [-0.0333, -0.0117]
-      }
-    },
-    {
-      "id": "minecraft:dark_forest",
-      "climate": {
-        "continentalness": [-0.0117, 0.01]
-      }
-    },
-    {
-      "id": "adventure:wisteria_grove",
-      "climate": {
-        "continentalness": [0.01, 0.0317]
+        "temperature": [-2.0, -0.147],
+        "humidity": [0.048, 0.172]
       }
     },
     {
       "id": "minecraft:forest",
       "climate": {
-        "continentalness": [0.0317, 0.0533]
+        "temperature": [-2.0, -0.147],
+        "humidity": [0.172, 2.0]
+      }
+    },
+    {
+      "id": "adventure:sky_highlands",
+      "climate": {
+        "temperature": [-0.147, -0.015],
+        "humidity": [-2.0, -0.079]
       }
     },
     {
       "id": "minecraft:cherry_grove",
       "climate": {
-        "continentalness": [0.0533, 0.075]
+        "temperature": [-0.147, -0.015],
+        "humidity": [-0.079, 0.107]
+      }
+    },
+    {
+      "id": "minecraft:dark_forest",
+      "climate": {
+        "temperature": [-0.147, -0.015],
+        "humidity": [0.107, 2.0]
       }
     },
     {
       "id": "adventure:lavender_fields",
       "climate": {
-        "continentalness": [0.075, 2.0]
+        "temperature": [-0.015, 2.0],
+        "humidity": [-2.0, -0.021]
+      }
+    },
+    {
+      "id": "minecraft:stony_peaks",
+      "climate": {
+        "temperature": [-0.015, 2.0],
+        "humidity": [-0.021, 0.135]
+      }
+    },
+    {
+      "id": "adventure:wisteria_grove",
+      "climate": {
+        "temperature": [-0.015, 2.0],
+        "humidity": [0.135, 2.0]
       }
     }
   ],

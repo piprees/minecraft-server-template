@@ -7,6 +7,106 @@
     "type": "noise",
     "preset": "floating_islands"
   },
+  "biomes": [
+    {
+      "id": "minecraft:flower_forest",
+      "climate": {
+        "temperature": [-2.0, -0.459],
+        "humidity": [-2.0, -0.222]
+      }
+    },
+    {
+      "id": "adventure:windswept_isles",
+      "climate": {
+        "temperature": [-2.0, -0.459],
+        "humidity": [-0.222, -0.028]
+      }
+    },
+    {
+      "id": "minecraft:plains",
+      "climate": {
+        "temperature": [-2.0, -0.459],
+        "humidity": [-0.028, 0.131]
+      }
+    },
+    {
+      "id": "minecraft:snowy_slopes",
+      "climate": {
+        "temperature": [-2.0, -0.459],
+        "humidity": [0.131, 2.0]
+      }
+    },
+    {
+      "id": "minecraft:forest",
+      "climate": {
+        "temperature": [-0.459, -0.099],
+        "humidity": [-2.0, -0.179]
+      }
+    },
+    {
+      "id": "minecraft:meadow",
+      "climate": {
+        "temperature": [-0.459, -0.099],
+        "humidity": [-0.179, 0.034]
+      }
+    },
+    {
+      "id": "minecraft:birch_forest",
+      "climate": {
+        "temperature": [-0.459, -0.099],
+        "humidity": [0.034, 0.178]
+      }
+    },
+    {
+      "id": "minecraft:cherry_grove",
+      "climate": {
+        "temperature": [-0.459, -0.099],
+        "humidity": [0.178, 2.0]
+      }
+    },
+    {
+      "id": "adventure:sky_highlands",
+      "climate": {
+        "temperature": [-0.099, 0.226],
+        "humidity": [-2.0, -0.067]
+      }
+    },
+    {
+      "id": "adventure:wisteria_grove",
+      "climate": {
+        "temperature": [-0.099, 0.226],
+        "humidity": [-0.067, 0.157]
+      }
+    },
+    {
+      "id": "minecraft:dark_forest",
+      "climate": {
+        "temperature": [-0.099, 0.226],
+        "humidity": [0.157, 2.0]
+      }
+    },
+    {
+      "id": "adventure:golden_skygrove",
+      "climate": {
+        "temperature": [0.226, 2.0],
+        "humidity": [-2.0, -0.151]
+      }
+    },
+    {
+      "id": "adventure:cloud_reef",
+      "climate": {
+        "temperature": [0.226, 2.0],
+        "humidity": [-0.151, 0.072]
+      }
+    },
+    {
+      "id": "adventure:hanging_gardens",
+      "climate": {
+        "temperature": [0.226, 2.0],
+        "humidity": [0.072, 2.0]
+      }
+    }
+  ],
   "borders": {
     "player": 4096,
     "generation": 2048

@@ -9,57 +9,52 @@
   },
   "biomes": [
     {
-      "id": "adventure:golden_skygrove",
-      "climate": {
-        "continentalness": [-0.0441, -0.0169]
-      }
-    },
-    {
       "id": "adventure:windswept_isles",
       "climate": {
-        "continentalness": [-0.1063, -0.0785]
-      }
-    },
-    {
-      "id": "minecraft:snowy_taiga",
-      "climate": {
-        "continentalness": [-0.0169, 0.0142]
-      }
-    },
-    {
-      "id": "minecraft:snowy_taiga",
-      "climate": {
-        "continentalness": [0.0142, 0.0449]
-      }
-    },
-    {
-      "id": "minecraft:cherry_grove",
-      "climate": {
-        "continentalness": [0.0779, 0.1066]
-      }
-    },
-    {
-      "id": "adventure:windswept_isles",
-      "climate": {
-        "continentalness": [-2.0, -0.1063]
-      }
-    },
-    {
-      "id": "minecraft:jagged_peaks",
-      "climate": {
-        "continentalness": [-0.0785, -0.0441]
+        "temperature": [-2.0, 0.175],
+        "humidity": [-2.0, -0.133]
       }
     },
     {
       "id": "minecraft:snowy_plains",
       "climate": {
-        "continentalness": [0.0449, 0.0779]
+        "temperature": [-2.0, 0.175],
+        "humidity": [-0.133, 0.128]
+      }
+    },
+    {
+      "id": "minecraft:jagged_peaks",
+      "climate": {
+        "temperature": [-2.0, 0.175],
+        "humidity": [0.128, 2.0]
       }
     },
     {
       "id": "minecraft:snowy_slopes",
       "climate": {
-        "continentalness": [0.1066, 2.0]
+        "temperature": [0.175, 0.414],
+        "humidity": [-2.0, -0.013]
+      }
+    },
+    {
+      "id": "minecraft:snowy_taiga",
+      "climate": {
+        "temperature": [0.175, 0.414],
+        "humidity": [-0.013, 2.0]
+      }
+    },
+    {
+      "id": "minecraft:cherry_grove",
+      "climate": {
+        "temperature": [0.414, 2.0],
+        "humidity": [-2.0, -0.013]
+      }
+    },
+    {
+      "id": "adventure:golden_skygrove",
+      "climate": {
+        "temperature": [0.414, 2.0],
+        "humidity": [-0.013, 2.0]
       }
     }
   ],

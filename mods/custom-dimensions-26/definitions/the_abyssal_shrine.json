@@ -11,55 +11,64 @@
     {
       "id": "adventure:umbral_wastes",
       "climate": {
-        "continentalness": [-2.0, -0.0918]
-      }
-    },
-    {
-      "id": "minecraft:deep_ocean",
-      "climate": {
-        "continentalness": [-0.0918, -0.0806]
-      }
-    },
-    {
-      "id": "minecraft:deep_cold_ocean",
-      "climate": {
-        "continentalness": [-0.0806, -0.0525]
-      }
-    },
-    {
-      "id": "adventure:sky_highlands",
-      "climate": {
-        "continentalness": [-0.0525, 0.0045]
-      }
-    },
-    {
-      "id": "adventure:golden_skygrove",
-      "climate": {
-        "continentalness": [0.0045, 0.1027]
-      }
-    },
-    {
-      "id": "minecraft:deep_dark",
-      "climate": {
-        "continentalness": [0.1027, 0.1675]
-      }
-    },
-    {
-      "id": "minecraft:dripstone_caves",
-      "climate": {
-        "continentalness": [0.1675, 0.1902]
-      }
-    },
-    {
-      "id": "minecraft:dark_forest",
-      "climate": {
-        "continentalness": [0.1902, 0.1946]
+        "temperature": [-2.0, -0.209],
+        "humidity": [-2.0, -0.192]
       }
     },
     {
       "id": "adventure:windswept_isles",
       "climate": {
-        "continentalness": [0.1946, 2.0]
+        "temperature": [-2.0, -0.209],
+        "humidity": [-0.192, 0.113]
+      }
+    },
+    {
+      "id": "minecraft:deep_cold_ocean",
+      "climate": {
+        "temperature": [-2.0, -0.209],
+        "humidity": [0.113, 2.0]
+      }
+    },
+    {
+      "id": "minecraft:dripstone_caves",
+      "climate": {
+        "temperature": [-0.209, 0.012],
+        "humidity": [-2.0, -0.153]
+      }
+    },
+    {
+      "id": "minecraft:deep_dark",
+      "climate": {
+        "temperature": [-0.209, 0.012],
+        "humidity": [-0.153, 0.078]
+      }
+    },
+    {
+      "id": "minecraft:deep_ocean",
+      "climate": {
+        "temperature": [-0.209, 0.012],
+        "humidity": [0.078, 2.0]
+      }
+    },
+    {
+      "id": "adventure:sky_highlands",
+      "climate": {
+        "temperature": [0.012, 2.0],
+        "humidity": [-2.0, -0.118]
+      }
+    },
+    {
+      "id": "adventure:golden_skygrove",
+      "climate": {
+        "temperature": [0.012, 2.0],
+        "humidity": [-0.118, 0.144]
+      }
+    },
+    {
+      "id": "minecraft:dark_forest",
+      "climate": {
+        "temperature": [0.012, 2.0],
+        "humidity": [0.144, 2.0]
       }
     }
   ],
