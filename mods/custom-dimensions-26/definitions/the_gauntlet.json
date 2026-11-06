@@ -8,7 +8,13 @@
     "preset": "overworld"
   },
   "terrain": {
-    "base": null
+    "base": "ridges",
+    "setting": "extreme",
+    "params": {
+      "coast": -0.4,
+      "rangeWidth": 0.8,
+      "peakHeight": 170
+    }
   },
   "biomes": [
     {

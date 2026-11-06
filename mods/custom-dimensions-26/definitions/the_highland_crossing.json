@@ -8,7 +8,12 @@
     "preset": "overworld"
   },
   "terrain": {
-    "base": null
+    "base": "ridges",
+    "setting": "default",
+    "params": {
+      "landHeight": 120,
+      "peakHeight": 90
+    }
   },
   "biomes": [
     {

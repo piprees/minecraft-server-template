@@ -8,7 +8,12 @@
     "preset": "overworld"
   },
   "terrain": {
-    "base": null
+    "base": "canyons",
+    "setting": "extreme",
+    "params": {
+      "grade": 0,
+      "coast": -0.6
+    }
   },
   "biomes": [
     {
