@@ -253,22 +253,22 @@ class TerrainLibraryTest {
     }
 
     @ParameterizedTest
-    @ValueSource(ints = {-64, -60, -55, 0, 20, 30, 34})
-    void aSeaBelowTheSeaFloorNeverTrenchesTheLandBelowTheBasins(int sea) {
+    @ValueSource(ints = {-64, -60, -55, 0, 15})
+    void aDrySeaNeverTrenchesTheLandBelowTheBasins(int sea) {
         for (String params : List.of("{}", "{\"coast\": -0.6}", "{\"coast\": 0.4, \"seaFloor\": 60}", "{\"seaFloor\": -40}")) {
             String terrain = "{\"base\": \"continents\", \"setting\": \"extreme\", \"params\": " + params + "}";
             double floor = spec(terrain).param("seaFloor");
-            if (sea < floor) {
+            if (sea < floor - Ctx.BASIN_DEPTH) {
                 assertTrue(lowestLand(terrain, sea) >= floor - 20 - 1e-6, terrain + " at sea " + sea + ": " + lowestLand(terrain, sea));
             }
         }
     }
 
     @Test
-    void theShoreSitsAtSeaLevelWhenTheSeaLiesAboveTheSeaFloorAndAtTheSeaFloorBelowIt() {
+    void theShoreSitsAtSeaLevelOverAnyBasinThatHoldsWaterAndAtTheSeaFloorWhenTheSeaIsDry() {
         String terrain = "{\"base\": \"continents\"}";
         double coast = spec(terrain).param("coast");
-        for (int sea : new int[] {36, 40, 63}) {
+        for (int sea : new int[] {16, 30, 34, 36, 40, 63}) {
             JsonElement h = new Ctx(spec(terrain), "adventure", "adventure:terrain/t", sea, -64, 320).land().height();
             assertEquals(sea - 5, landAt(h, coast - 0.04, 1, 0), 1e-4, "just offshore at sea " + sea);
             assertEquals(sea, landAt(h, coast, 1, 0), 1e-4, "the shoreline at sea " + sea);

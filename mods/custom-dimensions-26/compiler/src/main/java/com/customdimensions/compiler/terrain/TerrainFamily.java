@@ -304,7 +304,7 @@ public enum TerrainFamily {
         double rise = sigma * (0.1 + 2.4 * (1 - ctx.p("steepness")));
         JsonElement n = ctx.noise("wear", 1, 0);
         JsonElement hill = spline(n, -1.5, 0, floorAt, 0, floorAt + rise, 1, 1.5, 1);
-        JsonElement floorLevel = spline(ctx.continents(), -1.5, ctx.p("seaFloor") - 20, coast - 0.25, ctx.p("seaFloor"),
+        JsonElement floorLevel = spline(ctx.continents(), -1.5, ctx.p("seaFloor") - Ctx.BASIN_DEPTH, coast - 0.25, ctx.p("seaFloor"),
                 coast - 0.04, sea - 5, coast, sea, coast + 0.06, sea + 3, coast + 0.2, ctx.p("landHeight"), 1.5, ctx.p("landHeight"));
         JsonElement land = ctx.landMask();
         JsonElement h = add(add(floorLevel, mul(mul(hill, land), ctx.p("hillHeight"))),
