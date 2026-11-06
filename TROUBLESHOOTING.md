@@ -1596,6 +1596,27 @@ A seed's map and its banked facts appear to contradict each other — the thumbn
   the same trap. Pin it against the Java, not against intuition —
   `scripts/e2e/portal-matrix-selftest.sh` is the worked example.
 
+<a id="t178"></a>
+### T178 — A linked 26.x consumer refuses the 1.21.1 dimension files
+
+- **Symptom:** a consumer linked to a 26.x checkout fails to boot with `DefinitionFormatException … overworld_thumb.json: no "schemaVersion"`.
+- **Cause:** the 1.21.1 dimensions folder, thumbnails included, is seeded skip-if-exists, and the 26.x mod refuses any `dimensions/*.json` that is not schema v2.
+- **Fix:** `dev-up.sh` stages the v2 set and bridges for a checkout linked at 26.x and removes files without `schemaVersion`, as `smoke-26.sh` does; `deploy.sh` needs the same at the switch (cutover-removals.md).
+
+<a id="t177"></a>
+### T177 — A linked consumer reads the checkout's `.minecraft-version`
+
+- **Symptom:** a consumer linked to the checkout runs the checkout's Minecraft version whatever its own `.minecraft-version` says.
+- **Cause:** `lib.sh` opens `$LIB_DIR/../.minecraft-version`, and `..` resolves through the `scripts` symlink into the checkout.
+- **Fix:** set `MC_VERSION_OVERRIDE` in the consumer's `.env`, and pass it to `./dev link` too (`local-mods.sh locate` runs from the checkout).
+
+<a id="t176"></a>
+### T176 — On 26.x, vanilla's empty-server pause stops every tick
+
+- **Symptom:** with nobody online, `customdim activate` stays `queued` and a Carpet `player … spawn` never completes, while RCON still answers.
+- **Cause:** 26.x's `pause-when-empty-seconds` (default 60) stops the tick loop on an empty server.
+- **Fix:** the compose default `PAUSE_WHEN_EMPTY_SECONDS=0` turns it off; itzg's autopause owns idling. `runServer` sets 0 in `run/server.properties`, so the in-game self-test never meets it.
+
 <a id="t175"></a>
 ### T175 — On 26.3 an unlisted accessor mixin hangs the boot
 
@@ -3416,6 +3437,12 @@ The rendered height disagrees with the facts on high-relief columns. The error i
 - **Symptom:** double-doors, fire-spread-tweaks, healing-campfire, name-tag-tweaks, nutritious-milk and your-items-are-safe behave as their jar defaults on the 1.21.1 server, whatever `config/<modid>/<modid>.json5` says.
 - **Cause:** Collective 1.21.1 (8.39) reads `config/<modid>.json5` only, and these configs sit in a subdirectory. fire-spread-tweaks also reads `MinRandomExtraBurnTicks`/`MaxRandomExtraBurnTicks`, while our file spells them with a lower-case first letter, so its -60/60 is ignored and -100/100 applies.
 - **Status:** kept as it is on 1.21.1 by the owner's choice; the 26.3 switch reads the intended values, since the version overlay seeds the read paths (T136).
+
+<a id="k17"></a>
+### K17 — Floodgate's `fwhitelist` probe fails on a repeated admin-parity run (26.3)
+
+- **Symptom:** `admin-parity-check.sh` on a 26.3 consumer passes 49/49 on the first run; later runs fail `fwhitelist add` and `fwhitelist remove` with no log line within 60 s. The container reaches the Geyser API (HTTP 200).
+- **Status:** cause not established; next step is a repeat run with Floodgate's debug logging and a fresh Floodgate data folder to tell server state from the probe.
 
 ## Common symptoms
 
