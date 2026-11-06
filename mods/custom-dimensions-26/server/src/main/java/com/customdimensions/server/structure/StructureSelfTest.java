@@ -129,9 +129,13 @@ public final class StructureSelfTest {
                     long overrides = StructureAdaptation.overridden() - beforeAdaptation;
                     boolean bury = StructureRuntime.adaptation(level.dimension(), igloo) == TerrainAdjustment.BURY
                             && StructureRuntime.adaptation(server.overworld().dimension(), igloo) == igloo.terrainAdaptation();
+                    boolean iglooStarted = applied.placed().stream().filter(p -> p.structure().equals("minecraft:igloo")).anyMatch(p -> {
+                        StructureStart start = byPos.get(ChunkPos.pack(p.chunkX(), p.chunkZ())).getStartForStructure(igloo);
+                        return start != null && start.isValid();
+                    });
                     lines.add((bury && overrides > 0 ? "PASS" : "FAIL") + " structures mixin BeardifierAdaptationMixin terrain adaptation: the igloo takes bury here and "
                             + igloo.terrainAdaptation().getSerializedName() + " in the overworld; the Beardifier took " + overrides
-                            + " override(s) for the fixture's chunks and the igloo's");
+                            + " override(s) for the fixture's chunks and the igloo's" + (iglooStarted ? "" : "; the igloo has no start, so the Beardifier had nothing to adapt"));
                 }
                 all.forEach(c -> level.setChunkForced(c.x(), c.z(), false));
                 return null;
