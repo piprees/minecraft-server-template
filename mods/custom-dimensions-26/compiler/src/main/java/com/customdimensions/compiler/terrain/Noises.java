@@ -23,6 +23,7 @@ public final class Noises {
             Map.entry("gorge", new Spec(-8, new double[]{1, 0.5, 0.25}, 0.248)),
             Map.entry("grade", new Spec(-9, new double[]{1, 0.5}, 0.294)),
             Map.entry("islands", new Spec(-7, new double[]{1, 1, 0.5, 0.25}, 0.293)),
+            Map.entry("lakes", new Spec(-9, new double[]{1, 0.5}, 0.294)),
             Map.entry("plates", new Spec(-7, new double[]{1, 0.5}, 0.274)),
             Map.entry("shatter", new Spec(-6, new double[]{1, 0.5, 0.25}, 0.251)),
             Map.entry("spires", new Spec(-5, new double[]{1, 0.3}, 0.254)),

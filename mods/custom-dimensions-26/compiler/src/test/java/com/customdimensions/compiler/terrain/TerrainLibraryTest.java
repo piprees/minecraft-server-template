@@ -73,7 +73,7 @@ class TerrainLibraryTest {
                         + "\"left\":\"adventure:terrain/t/height\",\"right\":0.0078125},\"right\":-1.0}}",
                 text(c.files().get(P + "offset.json")));
         assertFalse(c.settings().has("debug_functions"));
-        for (String noise : Set.of("altitude", "channel", "detail", "gorge", "islands", "plates", "shatter", "spires", "voids", "wear")) {
+        for (String noise : Set.of("altitude", "channel", "detail", "gorge", "islands", "lakes", "plates", "shatter", "spires", "voids", "wear")) {
             String file = "data/adventure/worldgen/noise/terrain/" + noise + ".json";
             assertEquals(all.contains("\"adventure:terrain/" + noise + "\""), c.files().containsKey(file), file);
         }
@@ -143,6 +143,36 @@ class TerrainLibraryTest {
     void largeBiomesTakesItsOwnClimateNoises() {
         TerrainLibrary.Compiled c = compile(spec("{\"base\": \"continents\"}"), "large_biomes", null);
         assertTrue(text(c.files().get(P + "continents.json")).contains("minecraft:continentalness_large"));
+    }
+
+    @Test
+    void basinIslandsWritesItsBasinAndFloorOverAVoid() {
+        TerrainLibrary.Compiled c = compile("{\"base\": \"basin_islands\"}");
+        for (String name : List.of("basin", "basin_floor", "lakes")) {
+            assertTrue(c.files().containsKey(P + name + ".json"), name);
+        }
+        assertTrue(c.files().containsKey("data/adventure/worldgen/noise/terrain/lakes.json"));
+        assertTrue(c.files().containsKey("data/adventure/worldgen/noise/terrain/detail.json"), "the rim gaps read the detail noise");
+        assertFalse(c.settings().has("aquifers"));
+        assertEquals(-64, c.settings().get("sea_level").getAsInt());
+        String floor = text(c.files().get(P + "basin_floor.json"));
+        assertTrue(floor.contains("\"value\":154.0"), "the rim stands 4 above the water line at 150: " + floor);
+        assertTrue(floor.contains("\"value\":142.0"), "the basin floor lies 8 below it: " + floor);
+        assertTrue(text(c.files().get(P + "sloped_cheese.json")).contains("adventure:terrain/t/basin_floor"));
+        assertTrue(TerrainFamily.BASIN_ISLANDS.airborne());
+        assertTrue(TerrainFamily.BASIN_ISLANDS.shapesBasins());
+        assertFalse(TerrainFamily.FLOATING_ISLANDS.shapesBasins());
+    }
+
+    @Test
+    void basinIslandsWithoutGapsReadsNoGapNoiseAndRefusesParametersOutOfRange() {
+        TerrainLibrary.Compiled c = compile("{\"base\": \"basin_islands\", \"params\": {\"gaps\": 0}}");
+        assertFalse(c.files().containsKey("data/adventure/worldgen/noise/terrain/detail.json"));
+        assertEquals("t: terrain.params.lakeShare = 0.9 is outside [0.05, 0.8]",
+                assertThrows(IllegalArgumentException.class, () -> spec("{\"base\": \"basin_islands\", \"params\": {\"lakeShare\": 0.9}}")).getMessage());
+        assertEquals("t: terrain.params.rimHeight = 0 is outside [1, 16]",
+                assertThrows(IllegalArgumentException.class, () -> spec("{\"base\": \"basin_islands\", \"params\": {\"rimHeight\": 0}}")).getMessage());
+        assertEquals(24.0, spec("{\"base\": \"basin_islands\", \"setting\": \"extreme\"}").param("basinDepth"));
     }
 
     @Test
@@ -300,7 +330,7 @@ class TerrainLibraryTest {
     @Test
     void badTerrainsAreErrorsNamingTheDefinition() {
         assertEquals("t: terrain.base \"mountains\" is not a library terrain; one of continents, erosion, ridges, terraces, "
-                + "canyons, rivers, floating_islands, islands, voids, shattered, spires", error("{\"base\": \"mountains\"}"));
+                + "canyons, rivers, floating_islands, basin_islands, islands, voids, shattered, spires", error("{\"base\": \"mountains\"}"));
         assertTrue(error("{\"base\": 3}").startsWith("t: terrain.base 3 is not a library terrain"));
         assertEquals("t: terrain.params.depth = 200 is outside [8, 120]", error("{\"base\": \"canyons\", \"params\": {\"depth\": 200}}"));
         assertEquals("t: terrain.params.depth = 1 is outside [8, 120]", error("{\"base\": \"canyons\", \"params\": {\"depth\": 1}}"));

@@ -1,0 +1,100 @@
+{
+  "input": {
+    "left": {
+      "spline": {
+        "coordinate": "adventure:terrain/terrain_basin_islands/lakes",
+        "points": [
+          {
+            "derivative": 0.0,
+            "location": 0.064484045,
+            "value": 144.0
+          },
+          {
+            "derivative": 0.0,
+            "location": 0.07448405,
+            "value": 146.0
+          },
+          {
+            "derivative": 0.0,
+            "location": 0.09800405,
+            "value": 154.0
+          },
+          {
+            "derivative": 0.0,
+            "location": 0.13328405,
+            "value": 154.0
+          },
+          {
+            "derivative": 0.0,
+            "location": 0.16856405,
+            "value": 148.0
+          },
+          {
+            "derivative": 0.0,
+            "location": 0.30968404,
+            "value": 142.0
+          }
+        ]
+      },
+      "type": "minecraft:spline"
+    },
+    "right": {
+      "left": {
+        "left": {
+          "input": {
+            "left": {
+              "left": {
+                "noise": "adventure:terrain/detail",
+                "shift_x": "minecraft:shift_x",
+                "shift_z": "minecraft:shift_z",
+                "type": "minecraft:noise",
+                "xz_scale": 1.0,
+                "y_scale": 0.0
+              },
+              "right": -0.466436814,
+              "type": "minecraft:add"
+            },
+            "right": 13.4408602,
+            "type": "minecraft:mul"
+          },
+          "max": 1.0,
+          "min": 0.0,
+          "type": "minecraft:clamp"
+        },
+        "right": {
+          "spline": {
+            "coordinate": "adventure:terrain/terrain_basin_islands/lakes",
+            "points": [
+              {
+                "derivative": 0.0,
+                "location": 0.07448405,
+                "value": 0.0
+              },
+              {
+                "derivative": 0.0,
+                "location": 0.09800405,
+                "value": 1.0
+              },
+              {
+                "derivative": 0.0,
+                "location": 0.13328405,
+                "value": 1.0
+              },
+              {
+                "derivative": 0.0,
+                "location": 0.16856405,
+                "value": 0.0
+              }
+            ]
+          },
+          "type": "minecraft:spline"
+        },
+        "type": "minecraft:mul"
+      },
+      "right": 7.0,
+      "type": "minecraft:mul"
+    },
+    "type": "minecraft:sub"
+  },
+  "type": "minecraft:cache"
+}

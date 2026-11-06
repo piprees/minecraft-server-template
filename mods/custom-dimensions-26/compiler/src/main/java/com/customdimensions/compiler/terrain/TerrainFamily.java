@@ -102,6 +102,25 @@ public enum TerrainFamily {
             Map.of("coverage", 0.5, "thickness", 40.0, "underside", 100.0, "spread", 60.0, "size", 2.0),
             true, TerrainFamily::floatingIslands),
 
+    BASIN_ISLANDS("basin_islands", "Sky islands joined into lake masses: a dished basin held by a rim at the water line, with gaps where it spills into the void.",
+            List.of(new TerrainParam("altitude", 40, 240, 150, "Height of the island layer and of the basins' water line"),
+                    new TerrainParam("thickness", 4, 64, 18, "Blocks an island's top rises above the layer"),
+                    new TerrainParam("underside", 4, 120, 40, "Blocks an island's underside hangs below the layer"),
+                    new TerrainParam("coverage", 0.02, 0.8, 0.3, "Share of the sky with islands"),
+                    new TerrainParam("size", 0.25, 4, 1, "Island size; higher is larger and fewer"),
+                    new TerrainParam("spread", 0, 80, 24, "Blocks the altitudes of islands outside a lake mass vary by"),
+                    new TerrainParam("lakeShare", 0.05, 0.8, 0.4, "Share of the sky joined into lake masses"),
+                    new TerrainParam("lakeSize", 0.25, 4, 1, "Lake mass size; higher is larger and fewer"),
+                    new TerrainParam("basinDepth", 2, 40, 8, "Blocks the basin floor lies below the water line at a mass's heart"),
+                    new TerrainParam("rimHeight", 1, 16, 4, "Blocks the rim round a mass stands above the water line"),
+                    new TerrainParam("gaps", 0, 0.3, 0.03, "Share of the rim cut below the water line, where a basin spills into the void"),
+                    new TerrainParam("islandRise", 0, 60, 12, "Extra blocks the islands inside a lake mass rise above the water")),
+            Map.of(),
+            Map.of("lakeShare", 0.25, "basinDepth", 4.0, "rimHeight", 2.0, "gaps", 0.01, "islandRise", 4.0, "spread", 10.0),
+            Map.of("lakeShare", 0.6, "lakeSize", 2.0, "basinDepth", 24.0, "rimHeight", 10.0, "gaps", 0.08, "islandRise", 40.0,
+                    "spread", 60.0, "thickness", 30.0, "underside", 80.0),
+            true, TerrainFamily::basinIslands),
+
     ISLANDS("islands", "An ocean of islands and archipelagos.",
             List.of(new TerrainParam("coverage", 0.02, 0.7, 0.2, "Share of the map that is land"),
                     new TerrainParam("size", 0.25, 4, 1, "Island size; higher is larger and fewer"),
@@ -204,6 +223,11 @@ public enum TerrainFamily {
      */
     public boolean airborne() {
         return airborne;
+    }
+
+    /** Whether the terrain shapes basins that {@code liquids.basins} can fill. */
+    public boolean shapesBasins() {
+        return this == BASIN_ISLANDS;
     }
 
     public static TerrainFamily byId(String id) {
@@ -404,6 +428,69 @@ public enum TerrainFamily {
         JsonElement plus = mul(inside, 1 / 8.0);
         Shape shape = new Shape(c(ctx.minY() - 64.0), ctx.factor(), c(0), null, plus, c(0.3), 0.1 + 0.6 * ctx.p("roughness"));
         return shape;
+    }
+
+    /** Where a basin's water may stand: above 0, and below 1 within reach of the rim, where its fluid is scheduled to flow. */
+    public static final String BASIN = "basin";
+    /** The basin floor's height in blocks: water stands no lower than {@link #BASIN_FLOOR_REACH} under it. */
+    public static final String BASIN_FLOOR = "basin_floor";
+    public static final int BASIN_FLOOR_REACH = 3;
+    /** Blocks under the water line a rim gap is cut to. */
+    static final double GAP_DROP = 3;
+
+    /**
+     * Floating islands with lake masses: where the {@code lakes} noise lies in its
+     * highest {@code lakeShare}, a mass joins the islands at {@code altitude}. Across
+     * the mass's edge (in the lakes noise's units, from its threshold) the top
+     * climbs from under the water line to a rim {@code rimHeight} above it, holds
+     * a crest, falls back to a shore just under the water and dishes to
+     * {@code basinDepth} below it. The islands inside a mass sit on the water
+     * line, rising {@code islandRise} higher, so their domes stand out of the lake
+     * and their cliff faces drop into it; outside, they keep the layer's spread.
+     * Where the {@code detail} noise lies in its highest {@code gaps} share the
+     * rim is cut to {@link #GAP_DROP} under the water line. The basin and its floor
+     * are written as {@link #BASIN} and {@link #BASIN_FLOOR} for {@code liquids.basins}.
+     */
+    private static Shape basinIslands(Ctx ctx) {
+        double m = ctx.heightMultiplier();
+        double a = ctx.p("altitude");
+        double sigma = Noises.sigma("islands");
+        double t = Noises.threshold(ctx.p("coverage"), sigma);
+        JsonElement core = Df.cache(ramp(ctx.noise("islands", 1 / ctx.p("size"), 0), t, t + sigma));
+        double sl = Noises.sigma("lakes");
+        double tl = Noises.threshold(ctx.p("lakeShare"), sl);
+        JsonElement lakes = ctx.named("lakes", ctx.noise("lakes", 1 / ctx.p("lakeSize"), 0));
+        double edge = tl;
+        double risen = tl + 0.08 * sl;
+        double crest = tl + 0.14 * sl;
+        double crestEnd = tl + 0.2 * sl;
+        double shore = tl + 0.32 * sl;
+        double heart = tl + 0.8 * sl;
+        double rim = ctx.p("rimHeight");
+        double depth = ctx.p("basinDepth");
+        JsonElement massTop = spline(lakes, edge - 0.01, a - 6, edge, a - 4, risen, a + rim, crestEnd, a + rim,
+                shore, a - 2, heart, a - depth);
+        if (ctx.p("gaps") > 0) {
+            double sd = Noises.sigma("detail");
+            double tg = Noises.threshold(ctx.p("gaps"), sd);
+            JsonElement gap = ramp(ctx.noise("detail", 1, 0), tg, tg + 0.3 * sd);
+            JsonElement bump = spline(lakes, edge, 0, risen, 1, crestEnd, 1, shore, 0);
+            massTop = sub(massTop, mul(mul(gap, bump), rim + GAP_DROP));
+        }
+        JsonElement floor = ctx.named(BASIN_FLOOR, massTop);
+        JsonElement massBottom = spline(lakes, edge, a - 2, crestEnd, a - depth - 4, heart, a - depth - 4 - 0.5 * ctx.p("underside") * m);
+        JsonElement inMass = ramp(lakes, edge - 0.1 * sl, edge);
+        JsonElement spread = add(mul(ctx.noise("altitude", 1, 0), ctx.p("spread") * m / Noises.sigma("altitude")), a);
+        JsonElement layer = lerp(inMass, spread, c(a));
+        JsonElement rise = add(mul(sqrt(core), ctx.p("thickness") * m), mul(mul(core, inMass), ctx.p("islandRise") * m));
+        JsonElement top = add(add(layer, rise), -2);
+        JsonElement bottom = add(sub(layer, mul(core, ctx.p("underside") * m)), 2);
+        JsonElement y = negY(ctx.minY(), ctx.maxY());
+        JsonElement island = min(add(top, y), sub(c(0), add(bottom, y)));
+        JsonElement mass = min(add(floor, y), sub(c(0), add(massBottom, y)));
+        ctx.named(BASIN, mul(add(lakes, -crest), 1 / (shore - crest)));
+        JsonElement plus = mul(max(island, mass), 1 / 8.0);
+        return new Shape(c(ctx.minY() - 64.0), ctx.factor(), c(0), null, plus, c(0.3), 0.1 + 0.6 * ctx.p("roughness"));
     }
 
     private static Shape islands(Ctx ctx) {

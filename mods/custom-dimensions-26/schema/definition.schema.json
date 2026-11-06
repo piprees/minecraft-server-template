@@ -37,7 +37,7 @@
       "properties": {
         "base": {
           "description": "A library terrain; null is the generator preset's own.",
-          "enum": [null, "continents", "erosion", "ridges", "terraces", "canyons", "rivers", "floating_islands", "islands", "voids", "shattered", "spires"]
+          "enum": [null, "continents", "erosion", "ridges", "terraces", "canyons", "rivers", "floating_islands", "basin_islands", "islands", "voids", "shattered", "spires"]
         },
         "setting": {
           "description": "Starting values for the parameters: gentle (near vanilla), default, extreme.",
@@ -179,6 +179,23 @@
             "properties": {
               "params": {
                 "$ref": "#/$defs/terrain_floating_islands"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "base": {
+                "const": "basin_islands"
+              }
+            },
+            "required": ["base"]
+          },
+          "then": {
+            "properties": {
+              "params": {
+                "$ref": "#/$defs/terrain_basin_islands"
               }
             }
           }
@@ -1504,6 +1521,132 @@
           "minimum": 0,
           "maximum": 80,
           "default": 24
+        }
+      }
+    },
+    "terrain_basin_islands": {
+      "description": "Sky islands joined into lake masses: a dished basin held by a rim at the water line, with gaps where it spills into the void.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "coast": {
+          "description": "Continentalness at the shoreline; higher is more ocean",
+          "type": "number",
+          "minimum": -0.6,
+          "maximum": 0.4,
+          "default": -0.15
+        },
+        "seaFloor": {
+          "description": "Height of the open ocean floor",
+          "type": "number",
+          "minimum": -40,
+          "maximum": 60,
+          "default": 36
+        },
+        "landHeight": {
+          "description": "Height of the land far inland",
+          "type": "number",
+          "minimum": 64,
+          "maximum": 200,
+          "default": 80
+        },
+        "relief": {
+          "description": "Blocks of hills where erosion is low",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 120,
+          "default": 24
+        },
+        "roughness": {
+          "description": "How far 3D noise breaks the surface; 0 smooth, 1 overhangs",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 0.5
+        },
+        "altitude": {
+          "description": "Height of the island layer and of the basins' water line",
+          "type": "number",
+          "minimum": 40,
+          "maximum": 240,
+          "default": 150
+        },
+        "thickness": {
+          "description": "Blocks an island's top rises above the layer",
+          "type": "number",
+          "minimum": 4,
+          "maximum": 64,
+          "default": 18
+        },
+        "underside": {
+          "description": "Blocks an island's underside hangs below the layer",
+          "type": "number",
+          "minimum": 4,
+          "maximum": 120,
+          "default": 40
+        },
+        "coverage": {
+          "description": "Share of the sky with islands",
+          "type": "number",
+          "minimum": 0.02,
+          "maximum": 0.8,
+          "default": 0.3
+        },
+        "size": {
+          "description": "Island size; higher is larger and fewer",
+          "type": "number",
+          "minimum": 0.25,
+          "maximum": 4,
+          "default": 1
+        },
+        "spread": {
+          "description": "Blocks the altitudes of islands outside a lake mass vary by",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 80,
+          "default": 24
+        },
+        "lakeShare": {
+          "description": "Share of the sky joined into lake masses",
+          "type": "number",
+          "minimum": 0.05,
+          "maximum": 0.8,
+          "default": 0.4
+        },
+        "lakeSize": {
+          "description": "Lake mass size; higher is larger and fewer",
+          "type": "number",
+          "minimum": 0.25,
+          "maximum": 4,
+          "default": 1
+        },
+        "basinDepth": {
+          "description": "Blocks the basin floor lies below the water line at a mass's heart",
+          "type": "number",
+          "minimum": 2,
+          "maximum": 40,
+          "default": 8
+        },
+        "rimHeight": {
+          "description": "Blocks the rim round a mass stands above the water line",
+          "type": "number",
+          "minimum": 1,
+          "maximum": 16,
+          "default": 4
+        },
+        "gaps": {
+          "description": "Share of the rim cut below the water line, where a basin spills into the void",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 0.3,
+          "default": 0.03
+        },
+        "islandRise": {
+          "description": "Extra blocks the islands inside a lake mass rise above the water",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 60,
+          "default": 12
         }
       }
     },

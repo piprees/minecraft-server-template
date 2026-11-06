@@ -1,5 +1,6 @@
 package com.customdimensions.server.level;
 
+import com.customdimensions.compiler.terrain.TerrainFamily;
 import com.mojang.serialization.JsonOps;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.minecraft.core.BlockPos;
@@ -73,7 +74,7 @@ public final class TerrainSelfTest {
     /** How far a library noise's measured spread may sit from the one the compiler's coverage maths uses. */
     static final double SIGMA_TOLERANCE = 0.15;
     static final List<String> FAMILIES = List.of("continents", "erosion", "ridges", "terraces", "canyons", "rivers",
-            "floating_islands", "islands", "voids", "shattered", "spires");
+            "floating_islands", "basin_islands", "islands", "voids", "shattered", "spires");
 
     private record Load(ServerLevel level, List<ChunkPos> chunks, CompletableFuture<List<LevelChunk>> done, int[] ticks) {}
 
@@ -149,6 +150,7 @@ public final class TerrainSelfTest {
         chain = family(chain, "canyons", this::canyons, "spaced");
         chain = family(chain, "rivers", this::rivers, "riverBed");
         chain = family(chain, "floating_islands", this::floatingIslands, "spaced");
+        chain = family(chain, "basin_islands", this::basinIslands, "spaced");
         chain = family(chain, "islands", this::islands, "spaced");
         chain = family(chain, "voids", this::voids, "firstVoid");
         chain = family(chain, "shattered", this::shattered, "spaced");
@@ -596,6 +598,25 @@ public final class TerrainSelfTest {
                 + " of those have only air below the island down to y " + (m.minY + 8) + " (needs 90%; continents "
                 + pct(control[1]) + "); " + pct(here[2]) + " are empty to the bottom (needs 30%; continents " + pct(control[2])
                 + "); lowest block y " + m.columns.stream().filter(col -> col.lowest != null).mapToInt(col -> col.lowest).min().orElse(m.minY));
+    }
+
+    /**
+     * Hanging land as floating islands have it, and a share of it topping out in the lake masses'
+     * band, from the basin floor to the rim at the default setting's water line.
+     */
+    private String basinIslands(Measure m, Measure c) {
+        TerrainFamily f = TerrainFamily.BASIN_ISLANDS;
+        int line = (int) f.param("altitude").defaultValue();
+        int low = line - (int) f.param("basinDepth").defaultValue() - 1;
+        int high = line + (int) f.param("rimHeight").defaultValue() + 1;
+        double[] here = m.hanging();
+        long land = m.columns.stream().filter(col -> col.lowest != null).count();
+        long band = m.columns.stream().filter(col -> col.lowest != null && col.surface - 1 >= low && col.surface - 1 <= high).count();
+        double inBand = land == 0 ? 0 : (double) band / land;
+        return verdict(here[0] >= 0.05 && here[1] >= 0.9 && here[2] >= 0.15 && inBand >= 0.1, m.area() + ": " + pct(here[0])
+                + " of columns carry land (needs 5%); " + pct(here[1]) + " of those have only air below the island down to y "
+                + (m.minY + 8) + " (needs 90%); " + pct(here[2]) + " are empty to the bottom (needs 15%); " + pct(inBand)
+                + " of the land tops out in the lake masses' band, y " + low + " to " + high + " (needs 10%)");
     }
 
     private String islands(Measure m, Measure c) {
