@@ -1596,6 +1596,13 @@ A seed's map and its banked facts appear to contradict each other — the thumbn
   the same trap. Pin it against the Java, not against intuition —
   `scripts/e2e/portal-matrix-selftest.sh` is the worked example.
 
+<a id="t172"></a>
+### T172 — An airborne terrain's water stands still, and a sea level floods the void
+
+- **Symptom:** on a floating-islands level, a sea level fills the sky below the islands with water; basin water at a rim gap stands as a wall instead of falling.
+- **Cause:** every open cell below sea level holds the default fluid, the void included; without aquifers, `Aquifer.createDisabled` places fluid but never schedules it to flow.
+- **Fix:** use `liquids.basins` with the `basin_islands` terrain, which fills only open cells inside a basin (`BasinFluidPicker`); `DisabledAquiferMixin` schedules the water near the rim to flow so a gap spills. A gap spills only when it breaches the whole crest with no island in it, so count breaches, not cut samples; a fall into the void takes about 400 ticks in a fresh world, so measure or shoot after that.
+
 <a id="t171"></a>
 ### T171 — A floating_islands or caves dimension varies only in temperature and humidity
 
