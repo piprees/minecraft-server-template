@@ -297,7 +297,7 @@ public enum TerrainFamily {
      * with a flat mesa top (steepness 1).
      */
     private static Shape erosion(Ctx ctx) {
-        double sea = ctx.sea();
+        double sea = ctx.shore();
         double coast = ctx.p("coast");
         double sigma = Noises.sigma("wear");
         double floorAt = Noises.threshold(1 - ctx.p("basinShare"), sigma);
@@ -326,7 +326,7 @@ public enum TerrainFamily {
 
     private static Shape terraces(Ctx ctx) {
         Shape land = ctx.land();
-        JsonElement stepped = steps(land.height(), ctx.sea(), ctx.p("stepHeight"), ctx.p("riser"));
+        JsonElement stepped = steps(land.height(), ctx.shore(), ctx.p("stepHeight"), ctx.p("riser"));
         return new Shape(min(stepped, c(ctx.p("plateauHeight"))), land.factor(), land.jaggedness(), null, null,
                 land.continents(), 0.15);
     }
@@ -369,7 +369,7 @@ public enum TerrainFamily {
      */
     private static Shape canyons(Ctx ctx) {
         Shape land = ctx.land();
-        double sea = ctx.sea();
+        double sea = ctx.shore();
         double w = ctx.p("width");
         double pools = ctx.p("pools");
         double sigma = Noises.sigma("grade");
@@ -419,7 +419,7 @@ public enum TerrainFamily {
         double banks = w + ctx.p("bankWidth");
         JsonElement channel = abs(ctx.noise("channel", ctx.p("frequency"), 0));
         JsonElement profile = spline(channel, 0, 1, w, 1, banks, 0);
-        JsonElement bed = lerp(profile, land.height(), c(ctx.sea() - ctx.p("depth")));
+        JsonElement bed = lerp(profile, land.height(), c(ctx.shore() - ctx.p("depth")));
         double table = ctx.sea() - RIVER_WATER_TABLE;
         double reach = banks + RIVER_WATER_REACH;
         JsonElement ceiling = spline(channel, 0, table, reach, table, reach + 0.01, ctx.maxY());
@@ -544,7 +544,7 @@ public enum TerrainFamily {
         double sigma = Math.sqrt((1 - a) * (1 - a) + a * a);
         double t = Noises.threshold(ctx.p("coverage"), sigma);
         double s = sigma;
-        double sea = ctx.sea();
+        double sea = ctx.shore();
         double peak = ctx.p("islandHeight");
         JsonElement nc = Df.cache(clamp(n, -4, 4));
         JsonElement h = spline(nc, -4.5, ctx.p("seaFloor") - 10, t - 0.6 * s, ctx.p("seaFloor"), t - 0.06 * s, sea - 3,
@@ -583,7 +583,7 @@ public enum TerrainFamily {
         double xz = 1 / ctx.p("crackScale");
         JsonElement crack = abs(ctx.noise("shatter", xz, 0.25 * xz));
         JsonElement chasm = mul(add(crack, -ctx.p("crackWidth") * sigma / 0.3), 12 / sigma);
-        JsonElement floorBelow = mul(add(negY(ctx.minY(), ctx.maxY()), ctx.sea() - ctx.p("chasmDepth")), 0.2);
+        JsonElement floorBelow = mul(add(negY(ctx.minY(), ctx.maxY()), ctx.shore() - ctx.p("chasmDepth")), 0.2);
         JsonElement offshore = mul(sub(c(1), ctx.landMask()), 10);
         JsonElement cut = max(max(chasm, floorBelow), offshore);
         JsonElement factor = lerp(c(lift), land.factor(), c(1.2));

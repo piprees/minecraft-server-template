@@ -7,6 +7,7 @@ import com.google.gson.JsonParser;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -194,6 +195,88 @@ class TerrainLibraryTest {
         assertTrue(h.endsWith("\"right\":-63.0},\"right\":2.0},\"right\":63.0}}"), h);
         String sea = text(compile(spec("{\"base\": \"continents\", \"heightMultiplier\": 2}"), "overworld", 40).files().get(P + "height.json"));
         assertTrue(sea.endsWith("\"right\":-40.0},\"right\":2.0},\"right\":40.0}}"), sea);
+    }
+
+    /** The land's height at a column whose continentalness, erosion and peaks-and-valleys are given. */
+    private static double landAt(JsonElement f, double continents, double erosion, double pv) {
+        if (f.isJsonPrimitive() && f.getAsJsonPrimitive().isNumber()) {
+            return f.getAsDouble();
+        }
+        if (f.isJsonPrimitive()) {
+            String id = f.getAsString();
+            if (id.endsWith("/continents")) return continents;
+            if (id.endsWith("/erosion")) return erosion;
+            if (id.endsWith("/ridges_folded")) return pv;
+            throw new IllegalArgumentException(id);
+        }
+        JsonObject o = f.getAsJsonObject();
+        return switch (o.get("type").getAsString()) {
+            case "minecraft:add" -> landAt(o.get("left"), continents, erosion, pv) + landAt(o.get("right"), continents, erosion, pv);
+            case "minecraft:mul" -> landAt(o.get("left"), continents, erosion, pv) * landAt(o.get("right"), continents, erosion, pv);
+            case "minecraft:clamp" -> Math.max(o.get("min").getAsDouble(),
+                    Math.min(o.get("max").getAsDouble(), landAt(o.get("input"), continents, erosion, pv)));
+            case "minecraft:cache" -> landAt(o.get("input"), continents, erosion, pv);
+            case "minecraft:spline" -> {
+                JsonObject spline = o.getAsJsonObject("spline");
+                double x = landAt(spline.get("coordinate"), continents, erosion, pv);
+                List<JsonObject> points = new ArrayList<>();
+                spline.getAsJsonArray("points").forEach(p -> points.add(p.getAsJsonObject()));
+                double result = points.get(points.size() - 1).get("value").getAsDouble();
+                if (x <= points.get(0).get("location").getAsDouble()) {
+                    result = points.get(0).get("value").getAsDouble();
+                }
+                for (int i = 0; i + 1 < points.size(); i++) {
+                    double l0 = points.get(i).get("location").getAsDouble(), l1 = points.get(i + 1).get("location").getAsDouble();
+                    if (x > l0 && x <= l1) {
+                        double t = (x - l0) / (l1 - l0), v0 = points.get(i).get("value").getAsDouble();
+                        result = v0 + (points.get(i + 1).get("value").getAsDouble() - v0) * t * t * (3 - 2 * t);
+                    }
+                }
+                yield result;
+            }
+            default -> throw new IllegalArgumentException("unexpected " + o.get("type"));
+        };
+    }
+
+    private static double lowestLand(String terrain, double sea) {
+        Ctx ctx = new Ctx(spec(terrain), "adventure", "adventure:terrain/t", sea, -64, 320);
+        JsonElement h = ctx.land().height();
+        double lowest = Double.MAX_VALUE;
+        for (double c = -1.6; c <= 1.6; c += 0.005) {
+            for (double e = -1; e <= 1; e += 0.25) {
+                for (double pv = -1; pv <= 1; pv += 0.5) {
+                    lowest = Math.min(lowest, landAt(h, c, e, pv));
+                }
+            }
+        }
+        return lowest;
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = {-64, -60, -55, 0, 20, 30, 34})
+    void aSeaBelowTheSeaFloorNeverTrenchesTheLandBelowTheBasins(int sea) {
+        for (String params : List.of("{}", "{\"coast\": -0.6}", "{\"coast\": 0.4, \"seaFloor\": 60}", "{\"seaFloor\": -40}")) {
+            String terrain = "{\"base\": \"continents\", \"setting\": \"extreme\", \"params\": " + params + "}";
+            double floor = spec(terrain).param("seaFloor");
+            if (sea < floor) {
+                assertTrue(lowestLand(terrain, sea) >= floor - 20 - 1e-6, terrain + " at sea " + sea + ": " + lowestLand(terrain, sea));
+            }
+        }
+    }
+
+    @Test
+    void theShoreSitsAtSeaLevelWhenTheSeaLiesAboveTheSeaFloorAndAtTheSeaFloorBelowIt() {
+        String terrain = "{\"base\": \"continents\"}";
+        double coast = spec(terrain).param("coast");
+        for (int sea : new int[] {36, 40, 63}) {
+            JsonElement h = new Ctx(spec(terrain), "adventure", "adventure:terrain/t", sea, -64, 320).land().height();
+            assertEquals(sea - 5, landAt(h, coast - 0.04, 1, 0), 1e-4, "just offshore at sea " + sea);
+            assertEquals(sea, landAt(h, coast, 1, 0), 1e-4, "the shoreline at sea " + sea);
+            assertEquals(sea + 4, landAt(h, coast + 0.06, 1, 0), 1e-4, "just inland at sea " + sea);
+        }
+        JsonElement dry = new Ctx(spec(terrain), "adventure", "adventure:terrain/t", -60, -64, 320).land().height();
+        assertEquals(36, landAt(dry, coast, 1, 0), 1e-4, "a dry shoreline sits at the sea floor");
+        assertEquals(16, landAt(dry, -1.5, 1, 0), 1e-4, "a dry ocean is a basin 20 below the sea floor");
     }
 
     @Test

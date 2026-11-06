@@ -44,6 +44,16 @@ final class Ctx {
         return sea;
     }
 
+    /**
+     * The height the shore and every sea-relative height build from: sea
+     * level, or the sea floor where the sea lies below it, so a dry
+     * dimension's lowlands sit at the sea floor instead of trenching down to
+     * its sea (T173).
+     */
+    double shore() {
+        return Math.max(sea, p("seaFloor"));
+    }
+
     int minY() {
         return minY;
     }
@@ -116,6 +126,7 @@ final class Ctx {
         double coast = p("coast");
         double floor = p("seaFloor");
         double inland = p("landHeight");
+        double sea = shore();
         JsonElement base = spline(continents(), -1.5, floor - 20, coast - 0.25, floor, coast - 0.04, sea - 5,
                 coast, sea, coast + 0.06, sea + 4, coast + 0.3, (sea + 4 + inland) / 2, 1.5, inland);
         JsonElement h = add(base, mul(mul(landMask(), hills()), p("relief")));

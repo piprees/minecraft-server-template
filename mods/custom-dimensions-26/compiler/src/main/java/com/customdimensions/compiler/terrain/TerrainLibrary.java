@@ -96,7 +96,7 @@ public final class TerrainLibrary {
         TerrainFamily.Shape shape = spec.family().build(ctx);
         JsonElement height = shape.height();
         if (!spec.family().airborne() && spec.heightMultiplier() != 1) {
-            height = add(mul(add(height, -sea), spec.heightMultiplier()), sea);
+            height = add(mul(add(height, -ctx.shore()), spec.heightMultiplier()), ctx.shore());
         }
         ctx.namedFunctions().forEach((key, f) -> functions.put(key, f.getAsJsonObject()));
         functions.put("height", cache(height));
