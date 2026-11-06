@@ -8,7 +8,12 @@
     "preset": "overworld"
   },
   "terrain": {
-    "base": null
+    "base": "spires",
+    "setting": "extreme",
+    "params": {
+      "coast": 0.1,
+      "landHeight": 64
+    }
   },
   "biomes": [
     {
