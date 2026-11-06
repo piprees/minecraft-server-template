@@ -511,19 +511,25 @@ public final class BiomeLibrarySelfTest {
                 + " of the columns; stream columns " + n[6] + ", springs pouring into a lake " + n[7] + ", falling into the void " + n[8];
     }
 
-    /** The 16 by 16 chunks round a basin showcase's spawn: 256 by 256 columns. */
+    /** Columns on a side of the area round a basin showcase's spawn, and the span its largest lake must reach. */
+    static final int BASIN_SIDE = 256;
+    static final int LAKE_SPAN = 256;
+
+    /** The chunks round a basin showcase's spawn, {@link #BASIN_SIDE} columns on a side. */
     private static List<ChunkPos> basinArea(ChunkPos centre) {
         List<ChunkPos> out = new ArrayList<>();
-        for (int x = -8; x < 8; x++) for (int z = -8; z < 8; z++) out.add(new ChunkPos(centre.x() + x, centre.z() + z));
+        int half = BASIN_SIDE / 32;
+        for (int x = -half; x < half; x++) for (int z = -half; z < half; z++) out.add(new ChunkPos(centre.x() + x, centre.z() + z));
         return out;
     }
 
     /**
-     * A basin showcase's lake over 256 by 256 columns, and its terrain's masses over
+     * A basin showcase's lake over {@link #BASIN_SIDE} columns square, and its terrain's masses over
      * {@link #MASS_RADIUS} blocks round spawn. Pool columns are topped by still water; the
      * largest body joins them four-ways, its extent is the longer side it spans, and the
      * islands it joins are the land components of {@link #ISLAND_COLUMNS} or more, topped at or
-     * above the water line, that touch it and no void column (the rim touches the void). A void
+     * above the water line (by ground, or by an island's own pond or spring), that touch it and
+     * no void column (the rim touches the void). A void
      * column holds no block; a column whose water has nothing solid under it is open to the void,
      * and each eight-way cluster of them must touch a void column, a fall off the edge rather
      * than a leak through a floor. Springs are counted as {@link #poolWater} counts them. The
@@ -543,7 +549,7 @@ public final class BiomeLibrarySelfTest {
         int line = basins.level();
         int minX = chunks.stream().mapToInt(c -> c.getPos().getMinBlockX()).min().orElse(0);
         int minZ = chunks.stream().mapToInt(c -> c.getPos().getMinBlockZ()).min().orElse(0);
-        int side = 256;
+        int side = BASIN_SIDE;
         byte[] kind = new byte[side * side];
         long[] n = new long[9];
         int minY = level.getMinY();
@@ -580,8 +586,8 @@ public final class BiomeLibrarySelfTest {
                     }
                 }
                 if (!groundBelow) kind[i] = OPEN_WATER;
-                else if (s.getFluidState().is(FluidTags.WATER) && s.getFluidState().isSource()) kind[i] = POOL;
-                else if (s.isSolid() && y >= line) kind[i] = LAND;
+                else if (s.getFluidState().is(FluidTags.WATER) && s.getFluidState().isSource() && y < line) kind[i] = POOL;
+                else if (y >= line && (s.isSolid() || s.getFluidState().is(FluidTags.WATER))) kind[i] = LAND;
                 else kind[i] = OTHER;
             }
         }
@@ -648,13 +654,13 @@ public final class BiomeLibrarySelfTest {
         gapAt = mass[0] == 0 && mass[5] == 0 && mass[6] == 0 ? null : new BlockPos(mass[5], line, mass[6]);
         List<String> failures = new ArrayList<>();
         if (poolShare < 0.6) failures.add("pool share");
-        if (biggestExtent < side) failures.add("lake extent");
+        if (biggestExtent < LAKE_SPAN) failures.add("lake extent");
         if (islands < 3) failures.add("islands joined");
         if (leaks > 0) failures.add("leaks into the void");
         if (n[7] < 2) failures.add("pours");
         if (mass[0] == 0 || mass[3] < 1 || mass[3] > 3) failures.add("gaps per mass");
-        String text = "256x256 columns round " + spawn.getX() + ", " + spawn.getZ() + ": pools cover " + pct(poolShare) + " (want 60%) in "
-                + bodies + " bodies, the largest " + biggestSize + " columns spanning " + biggestExtent + " blocks (want " + side
+        String text = side + "x" + side + " columns round " + spawn.getX() + ", " + spawn.getZ() + ": pools cover " + pct(poolShare) + " (want 60%) in "
+                + bodies + " bodies, the largest " + biggestSize + " columns spanning " + biggestExtent + " blocks (want " + LAKE_SPAN
                 + ") and joining " + islands + " islands (land of " + ISLAND_COLUMNS + "+ columns at or above the water line y " + line
                 + " touching it and not the void; want 3); water open to the void " + openColumns + " columns in " + falls
                 + " falls off the edge and " + leaks + " leaks through a floor (want 0); springs pouring into a lake " + n[7]
