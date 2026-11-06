@@ -1596,6 +1596,13 @@ A seed's map and its banked facts appear to contradict each other — the thumbn
   the same trap. Pin it against the Java, not against intuition —
   `scripts/e2e/portal-matrix-selftest.sh` is the worked example.
 
+<a id="t171"></a>
+### T171 — A floating_islands or caves dimension varies only in temperature and humidity
+
+- **Symptom:** one biome takes 99.5–100% of a floating_islands or caves dimension although its list holds several, each in its own climate box.
+- **Cause:** those routers hold continentalness, erosion, weirdness and depth constant; temperature and vegetation are borrowed from the overworld only when the definition lists biomes. A box cut on any other axis puts every column in whichever box contains the constant.
+- **Fix:** cut the boxes on temperature × humidity at the seed's measured quantiles, after probing the seed.
+
 <a id="t170"></a>
 ### T170 — A feature placed on another feature's blocks by `WORLD_SURFACE_WG` places nothing
 
