@@ -198,6 +198,10 @@ services:
       # log lines/hour of pure chatter. 60s keeps pause/resume latency
       # fine-grained enough (knocks resume instantly regardless).
       AUTOPAUSE_PERIOD: "60"
+      # Vanilla's own empty-server pause (26.x, pause-when-empty-seconds)
+      # stops every tick, so a queued `customdim activate` and a Carpet spawn
+      # never complete with nobody online; autopause above owns idling.
+      PAUSE_WHEN_EMPTY_SECONDS: "${PAUSE_WHEN_EMPTY_SECONDS:-0}"
       # Vanilla's watchdog, in ms. It is the only thing that preempts a
       # stalled tick, and it dumps every thread's stack before exiting —
       # the one diagnostic that names a wedge instead of leaving silence
