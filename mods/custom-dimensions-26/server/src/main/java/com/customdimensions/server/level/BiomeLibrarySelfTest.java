@@ -707,6 +707,7 @@ public final class BiomeLibrarySelfTest {
         int minY = level.getMinY();
         java.util.Set<Long> open = new java.util.HashSet<>();
         int lowest = Integer.MAX_VALUE;
+        BlockPos deepest = null;
         for (LevelChunk chunk : chunks) {
             for (int x = 0; x < 16; x++) for (int z = 0; z < 16; z++) {
                 BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos(chunk.getPos().getMinBlockX() + x, 0, chunk.getPos().getMinBlockZ() + z);
@@ -720,7 +721,10 @@ public final class BiomeLibrarySelfTest {
                 for (int y = water - 1; y > minY && !ground; y--) ground = chunk.getBlockState(pos.setY(y)).isSolid();
                 if (!ground) {
                     open.add(BlockPos.asLong(pos.getX(), 0, pos.getZ()));
-                    lowest = Math.min(lowest, water);
+                    if (water < lowest) {
+                        lowest = water;
+                        deepest = new BlockPos(pos.getX(), water, pos.getZ());
+                    }
                 }
             }
         }
@@ -756,8 +760,8 @@ public final class BiomeLibrarySelfTest {
                 instanceof BasinFluidPicker b ? b.scheduledCount() : -1;
         String text = "source water " + fluid[0] + ", flowing " + fluid[1] + ", basin cells scheduled to flow so far " + scheduled
                 + "; the gap column from y " + (gap.getY() + 6) + " down: " + profile + "; 64x64 columns round the gap at " + gap.getX() + ", " + gap.getZ() + ": " + open.size()
-                + " columns of water with nothing under them in " + clusters + " falls (want 1 to 3), the lowest water y "
-                + (open.isEmpty() ? "none" : String.valueOf(lowest));
+                + " columns of water with nothing under them in " + clusters + " falls (want 1 to 3), the lowest water "
+                + (deepest == null ? "none" : "at " + deepest.getX() + ", " + deepest.getY() + ", " + deepest.getZ());
         return (clusters >= 1 && clusters <= 3 ? "PASS " : "FAIL ") + text;
     }
 
