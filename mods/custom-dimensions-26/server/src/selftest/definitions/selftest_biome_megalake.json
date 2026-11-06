@@ -1,16 +1,27 @@
 {
   "schemaVersion": 2,
-  "description": "Self-test fixture and showcase: the biome library's megalake filling a whole level on End terrain, spawn by the western edge of an outer island so the showcase holds both lakes and the void, for the biomes section's per-biome checks, renders and screenshots.",
+  "description": "Self-test fixture and showcase: the biome library's megalake filling a whole level of End-stone basin islands, its water held in the basins of joined lake masses, spawn inside a mass so the showcase holds a lake joining islands, the rim and its edge over the void, for the biomes section's per-biome checks, renders and screenshots.",
   "seed": 7,
   "spawn": [
-    1320,
-    64,
-    -60
+    -384,
+    160,
+    -880
   ],
   "generator": {
     "type": "single_biome",
-    "preset": "end",
+    "preset": "floating_islands",
     "biome": "adventure:megalake"
+  },
+  "terrain": {
+    "base": "basin_islands"
+  },
+  "materials": {
+    "defaultBlock": "minecraft:end_stone",
+    "top": "minecraft:end_stone",
+    "filler": "minecraft:end_stone"
+  },
+  "liquids": {
+    "basins": {}
   },
   "borders": {
     "player": 2048

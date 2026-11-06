@@ -15,8 +15,10 @@ import java.util.Set;
  * The worldgen a datapack cannot express for one dimension, written to
  * {@code data/customdimensions/worldgen_runtime/<slug>.json} for the runtime
  * to apply to that level's generator before it generates a chunk: the lava
- * level in place of the generator's -54, ores added to every biome's
- * underground-ores step, and placed features removed from every biome.
+ * level in place of the generator's -54, the fluid of the terrain's basins
+ * ({@code level}, {@code fluid}, and the {@code basin} and {@code floor}
+ * functions), ores added to every biome's underground-ores step, and placed
+ * features removed from every biome.
  * Vanilla ignores the folder, so the pack still loads without the mod.
  */
 public final class RuntimeWorldgen {
@@ -26,6 +28,7 @@ public final class RuntimeWorldgen {
     public static final String LAVA_LEVEL = "lava_level";
     public static final String ADD_UNDERGROUND_ORES = "add_underground_ores";
     public static final String REMOVE_FEATURES = "remove_features";
+    public static final String BASINS = "basins";
 
     private RuntimeWorldgen() {
     }
@@ -56,13 +59,23 @@ public final class RuntimeWorldgen {
         ores.add().forEach(o -> add.add(OresCompiler.featureId(namespace, slug, o)));
         Set<String> remove = new LinkedHashSet<>(LiquidsCompiler.removedFeatures(def.liquids()));
         remove.addAll(ores.remove());
-        if (lava == null && add.isEmpty() && remove.isEmpty()) {
+        LiquidsCompiler.Basins basins = LiquidsCompiler.basins(slug, def.liquids(),
+                com.customdimensions.compiler.terrain.TerrainSpec.parse(slug, def.terrain()), namespace + ":terrain/" + slug);
+        if (lava == null && basins == null && add.isEmpty() && remove.isEmpty()) {
             return out;
         }
         JsonObject file = new JsonObject();
         file.addProperty(LEVEL, levelId);
         if (lava != null) {
             file.addProperty(LAVA_LEVEL, lava);
+        }
+        if (basins != null) {
+            JsonObject b = new JsonObject();
+            b.addProperty("level", basins.level());
+            b.addProperty("fluid", basins.fluid());
+            b.addProperty("basin", basins.basin());
+            b.addProperty("floor", basins.floor());
+            file.add(BASINS, b);
         }
         if (!add.isEmpty()) {
             file.add(ADD_UNDERGROUND_ORES, array(add));

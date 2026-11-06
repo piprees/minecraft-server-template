@@ -339,6 +339,13 @@ public final class BiomeLibrarySelfTest {
                     return load(area(centre));
                 })
                 .thenAccept(chunks -> lines.add(line(name, () -> showcaseChecks(id, chunks, spawn))))
+                .thenCompose(v -> !BASIN_SHOWCASES.contains(id) ? CompletableFuture.<Void>completedFuture(null)
+                        : load(basinArea(centre)).thenAccept(chunks -> lines.add(line(name + " basins", () -> basinChecks(chunks, spawn))))
+                        .whenComplete((v2, e) -> basinArea(centre).forEach(c -> level.setChunkForced(c.x(), c.z(), false)))
+                        .thenCompose(v2 -> gapAt == null ? CompletableFuture.<Void>completedFuture(null) : load(gapArea(gapAt))
+                                .thenCompose(chunks -> after(GAP_FLOW_TICKS).thenApply(t -> chunks))
+                                .thenAccept(chunks -> lines.add(line(name + " rim gap", () -> gapFall(chunks, gapAt))))
+                                .whenComplete((v3, e) -> gapArea(gapAt).forEach(c -> level.setChunkForced(c.x(), c.z(), false)))))
                 .handle((v, error) -> {
                     if (error != null) lines.add("FAIL " + name + ": " + cause(error));
                     if (level != null) area(centre).forEach(c -> level.setChunkForced(c.x(), c.z(), false));
@@ -502,6 +509,356 @@ public final class BiomeLibrarySelfTest {
         return "lily pads " + n[0] + ", with no water under them " + n[1] + " (want 0); pool columns " + n[2] + ", holes " + n[3] + " (want 0)"
                 + ", islets " + n[4] + ", unbroken " + n[5] + " (" + pct(share(n[5], n[2])) + "); pools cover " + pct(share(n[2], chunks.size() * 256L))
                 + " of the columns; stream columns " + n[6] + ", springs pouring into a lake " + n[7] + ", falling into the void " + n[8];
+    }
+
+    /** The 16 by 16 chunks round a basin showcase's spawn: 256 by 256 columns. */
+    private static List<ChunkPos> basinArea(ChunkPos centre) {
+        List<ChunkPos> out = new ArrayList<>();
+        for (int x = -8; x < 8; x++) for (int z = -8; z < 8; z++) out.add(new ChunkPos(centre.x() + x, centre.z() + z));
+        return out;
+    }
+
+    /**
+     * A basin showcase's lake over 256 by 256 columns, and its terrain's masses over
+     * {@link #MASS_RADIUS} blocks round spawn. Pool columns are topped by still water; the
+     * largest body joins them four-ways, its extent is the longer side it spans, and the
+     * islands it joins are the land components of {@link #ISLAND_COLUMNS} or more, topped at or
+     * above the water line, that touch it and no void column (the rim touches the void). A void
+     * column holds no block; a column whose water has nothing solid under it is open to the void,
+     * and each eight-way cluster of them must touch a void column, a fall off the edge rather
+     * than a leak through a floor. Springs are counted as {@link #poolWater} counts them. The
+     * masses are the basin function's four-way components above {@link #RIM_OUTSIDE}, sampled
+     * every {@link #MASS_STEP} blocks; a gap is an eight-way cluster of crest samples (basin
+     * within {@link #CREST} of 0) whose floor lies under the water line, spanning the crest from
+     * its outer half to its inner; each mass wholly inside the scan counts its gaps, and
+     * the median wants 1 to 3.
+     */
+    private String basinChecks(List<LevelChunk> chunks, BlockPos spawn) {
+        var gen = level.getChunkSource().getGenerator();
+        if (!(gen instanceof net.minecraft.world.level.levelgen.NoiseBasedChunkGenerator noise)
+                || !(((com.customdimensions.server.mixin.NoiseBasedChunkGeneratorAccessor) (Object) noise).customdimensions$globalFluidPicker().get()
+                        instanceof BasinFluidPicker basins)) {
+            return "FAIL the level's fluid rule fills no basins (liquids.basins did not reach the generator)";
+        }
+        int line = basins.level();
+        int minX = chunks.stream().mapToInt(c -> c.getPos().getMinBlockX()).min().orElse(0);
+        int minZ = chunks.stream().mapToInt(c -> c.getPos().getMinBlockZ()).min().orElse(0);
+        int side = 256;
+        byte[] kind = new byte[side * side];
+        long[] n = new long[9];
+        int minY = level.getMinY();
+        for (LevelChunk chunk : chunks) {
+            for (int x = 0; x < 16; x++) for (int z = 0; z < 16; z++) {
+                int bx = chunk.getPos().getMinBlockX() + x, bz = chunk.getPos().getMinBlockZ() + z;
+                int i = (bx - minX) * side + (bz - minZ);
+                BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos(bx, 0, bz);
+                int y = chunk.getHeight(Heightmap.Types.WORLD_SURFACE, x, z);
+                spring(level, pos.immutable().atY(y), n);
+                BlockState s = Blocks.AIR.defaultBlockState();
+                for (; y > minY; y--) {
+                    s = chunk.getBlockState(pos.setY(y));
+                    if (s.isAir() || s.is(Blocks.LILY_PAD) || s.is(BlockTags.LEAVES) || s.is(BlockTags.LOGS) || s.getFluidState().isEmpty() && !s.isSolid()) continue;
+                    break;
+                }
+                if (y <= minY) {
+                    kind[i] = VOID;
+                    continue;
+                }
+                int lowestWater = Integer.MAX_VALUE;
+                for (int wy = y; wy > minY; wy--) {
+                    BlockState w = chunk.getBlockState(pos.setY(wy));
+                    if (w.getFluidState().is(FluidTags.WATER)) lowestWater = wy;
+                }
+                boolean groundBelow = true;
+                if (lowestWater != Integer.MAX_VALUE) {
+                    groundBelow = false;
+                    for (int gy = lowestWater - 1; gy > minY; gy--) {
+                        if (chunk.getBlockState(pos.setY(gy)).isSolid()) {
+                            groundBelow = true;
+                            break;
+                        }
+                    }
+                }
+                if (!groundBelow) kind[i] = OPEN_WATER;
+                else if (s.getFluidState().is(FluidTags.WATER) && s.getFluidState().isSource()) kind[i] = POOL;
+                else if (s.isSolid() && y >= line) kind[i] = LAND;
+                else kind[i] = OTHER;
+            }
+        }
+        long pools = 0;
+        for (byte k : kind) if (k == POOL) pools++;
+        double poolShare = share(pools, kind.length);
+        int[] body = new int[kind.length];
+        java.util.Arrays.fill(body, -1);
+        int biggest = -1, biggestSize = 0, biggestExtent = 0, bodies = 0;
+        for (int i = 0; i < kind.length; i++) {
+            if (kind[i] != POOL || body[i] >= 0) continue;
+            int[] box = {side, -1, side, -1};
+            int size = flood(kind, body, i, side, POOL, bodies, false, box);
+            int extent = Math.max(box[1] - box[0], box[3] - box[2]) + 1;
+            if (size > biggestSize) {
+                biggest = bodies;
+                biggestSize = size;
+                biggestExtent = extent;
+            }
+            bodies++;
+        }
+        int[] land = new int[kind.length];
+        java.util.Arrays.fill(land, -1);
+        int islands = 0, components = 0;
+        for (int i = 0; i < kind.length; i++) {
+            if (kind[i] != LAND || land[i] >= 0) continue;
+            int size = flood(kind, land, i, side, LAND, components, false, new int[] {side, -1, side, -1});
+            boolean touchesBody = false, touchesVoid = false;
+            for (int j = 0; j < kind.length; j++) {
+                if (land[j] != components) continue;
+                int jx = j / side, jz = j % side;
+                for (int[] d : NEIGHBOURS_8) {
+                    int qx = jx + d[0], qz = jz + d[1];
+                    if (qx < 0 || qz < 0 || qx >= side || qz >= side) continue;
+                    int q = qx * side + qz;
+                    if (kind[q] == VOID) touchesVoid = true;
+                    if (body[q] == biggest && biggest >= 0) touchesBody = true;
+                }
+            }
+            if (touchesBody && !touchesVoid && size >= ISLAND_COLUMNS) islands++;
+            components++;
+        }
+        int[] open = new int[kind.length];
+        java.util.Arrays.fill(open, -1);
+        int falls = 0, leaks = 0;
+        long openColumns = 0;
+        for (int i = 0; i < kind.length; i++) {
+            if (kind[i] != OPEN_WATER || open[i] >= 0) continue;
+            openColumns += flood(kind, open, i, side, OPEN_WATER, falls + leaks, true, new int[] {side, -1, side, -1});
+            int id = falls + leaks;
+            boolean edge = false;
+            for (int j = 0; j < kind.length && !edge; j++) {
+                if (open[j] != id) continue;
+                int jx = j / side, jz = j % side;
+                for (int[] d : NEIGHBOURS_8) {
+                    int qx = jx + d[0], qz = jz + d[1];
+                    if (qx >= 0 && qz >= 0 && qx < side && qz < side && kind[qx * side + qz] == VOID) edge = true;
+                }
+            }
+            if (edge) falls++;
+            else leaks++;
+        }
+        int[] mass = masses(basins, spawn, line);
+        gapAt = mass[0] == 0 && mass[5] == 0 && mass[6] == 0 ? null : new BlockPos(mass[5], line, mass[6]);
+        List<String> failures = new ArrayList<>();
+        if (poolShare < 0.6) failures.add("pool share");
+        if (biggestExtent < side) failures.add("lake extent");
+        if (islands < 3) failures.add("islands joined");
+        if (leaks > 0) failures.add("leaks into the void");
+        if (n[7] < 2) failures.add("pours");
+        if (mass[0] == 0 || mass[3] < 1 || mass[3] > 3) failures.add("gaps per mass");
+        String text = "256x256 columns round " + spawn.getX() + ", " + spawn.getZ() + ": pools cover " + pct(poolShare) + " (want 60%) in "
+                + bodies + " bodies, the largest " + biggestSize + " columns spanning " + biggestExtent + " blocks (want " + side
+                + ") and joining " + islands + " islands (land of " + ISLAND_COLUMNS + "+ columns at or above the water line y " + line
+                + " touching it and not the void; want 3); water open to the void " + openColumns + " columns in " + falls
+                + " falls off the edge and " + leaks + " leaks through a floor (want 0); springs pouring into a lake " + n[7]
+                + " (want 2), falling into the void " + n[8] + "; masses within " + MASS_RADIUS + " blocks (every " + MASS_STEP + "): "
+                + mass[0] + " whole, rim gaps per mass min " + mass[2] + " median " + mass[3] + " max " + mass[4] + " (want 1 to 3), "
+                + mass[1] + " masses with 1 to 3; nearest gap " + mass[5] + ", " + mass[6];
+        return failures.isEmpty() ? "PASS " + text : "FAIL " + text + "; failed: " + String.join(", ", failures);
+    }
+
+    /** The rim gap nearest a basin showcase's spawn, found by {@link #basinChecks}; null when it found none. */
+    private BlockPos gapAt;
+
+    /** Ticks the water at a rim gap is given to spill before it is counted: a fall runs a block every five. */
+    static final int GAP_FLOW_TICKS = 400;
+    private CompletableFuture<Void> delay;
+    private int delayTicks;
+
+    /** Completes on the server thread {@code ticks} ticks from now. */
+    private CompletableFuture<Void> after(int ticks) {
+        delayTicks = ticks;
+        delay = new CompletableFuture<>();
+        return delay;
+    }
+
+    /** The 4 by 4 chunks round a rim gap. */
+    private static List<ChunkPos> gapArea(BlockPos gap) {
+        ChunkPos c = ChunkPos.containing(gap);
+        List<ChunkPos> out = new ArrayList<>();
+        for (int x = -2; x < 2; x++) for (int z = -2; z < 2; z++) out.add(new ChunkPos(c.x() + x, c.z() + z));
+        return out;
+    }
+
+    /**
+     * Water spilling through a rim gap, {@link #GAP_FLOW_TICKS} ticks after its chunks load:
+     * columns round the gap whose water has nothing solid under it, in eight-way clusters, and the lowest water block among them, which a fall
+     * reaches as it runs down toward the bottom of the world.
+     */
+    private String gapFall(List<LevelChunk> chunks, BlockPos gap) {
+        int minY = level.getMinY();
+        java.util.Set<Long> open = new java.util.HashSet<>();
+        int lowest = Integer.MAX_VALUE;
+        for (LevelChunk chunk : chunks) {
+            for (int x = 0; x < 16; x++) for (int z = 0; z < 16; z++) {
+                BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos(chunk.getPos().getMinBlockX() + x, 0, chunk.getPos().getMinBlockZ() + z);
+                int top = chunk.getHeight(Heightmap.Types.WORLD_SURFACE, x, z);
+                int water = Integer.MAX_VALUE;
+                for (int y = top; y > minY; y--) {
+                    if (chunk.getBlockState(pos.setY(y)).getFluidState().is(FluidTags.WATER)) water = y;
+                }
+                if (water == Integer.MAX_VALUE) continue;
+                boolean ground = false;
+                for (int y = water - 1; y > minY && !ground; y--) ground = chunk.getBlockState(pos.setY(y)).isSolid();
+                if (!ground) {
+                    open.add(BlockPos.asLong(pos.getX(), 0, pos.getZ()));
+                    lowest = Math.min(lowest, water);
+                }
+            }
+        }
+        int clusters = 0;
+        java.util.Set<Long> seen = new java.util.HashSet<>();
+        for (long start : open) {
+            if (!seen.add(start)) continue;
+            clusters++;
+            java.util.ArrayDeque<Long> stack = new java.util.ArrayDeque<>(List.of(start));
+            while (!stack.isEmpty()) {
+                BlockPos p = BlockPos.of(stack.pop());
+                for (int[] d : NEIGHBOURS_8) {
+                    long q = BlockPos.asLong(p.getX() + d[0], 0, p.getZ() + d[1]);
+                    if (open.contains(q) && seen.add(q)) stack.push(q);
+                }
+            }
+        }
+        long[] fluid = new long[2];
+        for (LevelChunk chunk : chunks) {
+            for (int x = 0; x < 16; x++) for (int z = 0; z < 16; z++) for (int y = minY; y < level.getMaxY(); y++) {
+                var f = chunk.getFluidState(chunk.getPos().getMinBlockX() + x, y, chunk.getPos().getMinBlockZ() + z);
+                if (f.is(FluidTags.WATER)) fluid[f.isSource() ? 0 : 1]++;
+            }
+        }
+        StringBuilder profile = new StringBuilder();
+        for (int y = gap.getY() + 6; y >= gap.getY() - 8; y--) {
+            profile.append(BuiltInRegistries.BLOCK.getKey(level.getBlockState(new BlockPos(gap.getX(), y, gap.getZ())).getBlock()).getPath().replace("minecraft:", ""))
+                    .append(y == gap.getY() - 8 ? "" : " ");
+        }
+        var gen = level.getChunkSource().getGenerator();
+        long scheduled = gen instanceof net.minecraft.world.level.levelgen.NoiseBasedChunkGenerator noise
+                && ((com.customdimensions.server.mixin.NoiseBasedChunkGeneratorAccessor) (Object) noise).customdimensions$globalFluidPicker().get()
+                instanceof BasinFluidPicker b ? b.scheduledCount() : -1;
+        String text = "source water " + fluid[0] + ", flowing " + fluid[1] + ", basin cells scheduled to flow so far " + scheduled
+                + "; the gap column from y " + (gap.getY() + 6) + " down: " + profile + "; 64x64 columns round the gap at " + gap.getX() + ", " + gap.getZ() + ": " + open.size()
+                + " columns of water with nothing under them in " + clusters + " falls (want 1 to 3), the lowest water y "
+                + (open.isEmpty() ? "none" : String.valueOf(lowest));
+        return (clusters >= 1 && clusters <= 3 ? "PASS " : "FAIL ") + text;
+    }
+
+    static final Set<String> BASIN_SHOWCASES = Set.of("megalake");
+    static final int ISLAND_COLUMNS = 16;
+    static final int MASS_RADIUS = 2048;
+    static final int MASS_STEP = 4;
+    /** The basin value at a mass's outer lip, past which no rim stands: the lakes threshold, in the basin's units. */
+    static final double RIM_OUTSIDE = -0.7;
+    /** The rim's crest, from its outer to its inner shoulder, in the basin's units: -0.33 to 0.33. */
+    static final double CREST = 0.33;
+    private static final byte VOID = 1, POOL = 2, LAND = 3, OPEN_WATER = 4, OTHER = 5;
+    private static final int[][] NEIGHBOURS_4 = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
+    private static final int[][] NEIGHBOURS_8 = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}, {1, 1}, {1, -1}, {-1, 1}, {-1, -1}};
+
+    /** Labels the component of {@code want} cells holding {@code start} with {@code id}; its size, and its bounding box in {@code box}. */
+    private static int flood(byte[] kind, int[] label, int start, int side, byte want, int id, boolean eight, int[] box) {
+        java.util.ArrayDeque<Integer> stack = new java.util.ArrayDeque<>();
+        stack.push(start);
+        label[start] = id;
+        int size = 0;
+        while (!stack.isEmpty()) {
+            int c = stack.pop();
+            size++;
+            int cx = c / side, cz = c % side;
+            box[0] = Math.min(box[0], cx);
+            box[1] = Math.max(box[1], cx);
+            box[2] = Math.min(box[2], cz);
+            box[3] = Math.max(box[3], cz);
+            for (int[] d : eight ? NEIGHBOURS_8 : NEIGHBOURS_4) {
+                int qx = cx + d[0], qz = cz + d[1];
+                if (qx < 0 || qz < 0 || qx >= side || qz >= side) continue;
+                int q = qx * side + qz;
+                if (kind[q] == want && label[q] < 0) {
+                    label[q] = id;
+                    stack.push(q);
+                }
+            }
+        }
+        return size;
+    }
+
+    /**
+     * The terrain's masses round spawn, from the basin function: {whole masses, those with 1 to 3
+     * rim gaps, the fewest gaps, the median, the most, and the nearest gap's x and z}.
+     */
+    private static int[] masses(BasinFluidPicker basins, BlockPos spawn, int line) {
+        int side = 2 * MASS_RADIUS / MASS_STEP;
+        byte[] inside = new byte[side * side];
+        byte[] gap = new byte[side * side];
+        float[] at = new float[side * side];
+        for (int i = 0; i < side; i++) for (int j = 0; j < side; j++) {
+            int x = spawn.getX() - MASS_RADIUS + i * MASS_STEP, z = spawn.getZ() - MASS_RADIUS + j * MASS_STEP;
+            double b = basins.basin(x, z);
+            int k = i * side + j;
+            at[k] = (float) b;
+            inside[k] = b > RIM_OUTSIDE ? (byte) 1 : 0;
+            gap[k] = b > -CREST && b < CREST && basins.floorAnywhere(x, z) < line - 1 ? (byte) 1 : 0;
+        }
+        int[] mass = new int[inside.length];
+        java.util.Arrays.fill(mass, -1);
+        int count = 0;
+        List<int[]> boxes = new ArrayList<>();
+        for (int i = 0; i < inside.length; i++) {
+            if (inside[i] != 1 || mass[i] >= 0) continue;
+            int[] box = {side, -1, side, -1};
+            flood(inside, mass, i, side, (byte) 1, count++, false, box);
+            boxes.add(box);
+        }
+        int[] gapId = new int[inside.length];
+        java.util.Arrays.fill(gapId, -1);
+        int[] gaps = new int[count];
+        List<Integer> breaches = new ArrayList<>();
+        int g = 0;
+        for (int i = 0; i < inside.length; i++) {
+            if (gap[i] != 1 || gapId[i] >= 0) continue;
+            flood(gap, gapId, i, side, (byte) 1, g, true, new int[] {side, -1, side, -1});
+            float lo = Float.MAX_VALUE, hi = -Float.MAX_VALUE;
+            for (int j = 0; j < inside.length; j++) {
+                if (gapId[j] != g) continue;
+                lo = Math.min(lo, at[j]);
+                hi = Math.max(hi, at[j]);
+            }
+            if (lo < -CREST / 2 && hi > CREST / 2) {
+                gaps[mass[i]]++;
+                breaches.add(i);
+            }
+            g++;
+        }
+        List<Integer> whole = new ArrayList<>();
+        for (int m = 0; m < count; m++) {
+            int[] b = boxes.get(m);
+            if (b[0] > 0 && b[2] > 0 && b[1] < side - 1 && b[3] < side - 1 && (b[1] - b[0]) * MASS_STEP >= 64) whole.add(gaps[m]);
+        }
+        byte[] kind = new byte[inside.length];
+        for (int i : breaches) kind[i] = 2;
+        java.util.Collections.sort(whole);
+        int ok = (int) whole.stream().filter(v -> v >= 1 && v <= 3).count();
+        int nearest = -1;
+        long best = Long.MAX_VALUE;
+        for (int i = 0; i < kind.length; i++) {
+            if (kind[i] != 2) continue;
+            long dx = i / side - side / 2, dz = i % side - side / 2;
+            if (dx * dx + dz * dz < best) {
+                best = dx * dx + dz * dz;
+                nearest = i;
+            }
+        }
+        int gx = nearest < 0 ? 0 : spawn.getX() - MASS_RADIUS + nearest / side * MASS_STEP;
+        int gz = nearest < 0 ? 0 : spawn.getZ() - MASS_RADIUS + nearest % side * MASS_STEP;
+        return whole.isEmpty() ? new int[] {0, 0, 0, 0, 0, gx, gz}
+                : new int[] {whole.size(), ok, whole.get(0), whole.get(whole.size() / 2), whole.get(whole.size() - 1), gx, gz};
     }
 
     /** True where source water lies within four blocks across of where a spring's fall lands, at that level or one above. */
@@ -848,6 +1205,7 @@ public final class BiomeLibrarySelfTest {
     }
 
     private void tick() {
+        if (delay != null && !delay.isDone() && --delayTicks <= 0) delay.complete(null);
         if (loaded == null || loaded.isDone()) return;
         List<LevelChunk> got = new ArrayList<>();
         for (ChunkPos c : waiting) {

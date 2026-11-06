@@ -398,7 +398,8 @@ public final class DatapackCompiler {
                 own.seaLevel() != null ? own.seaLevel() : theirs.seaLevel(),
                 own.lavaLevel() != null ? own.lavaLevel() : theirs.lavaLevel(),
                 own.defaultFluid() != null ? own.defaultFluid() : theirs.defaultFluid(),
-                own.aquifers() != null ? own.aquifers() : theirs.aquifers());
+                own.aquifers() != null ? own.aquifers() : theirs.aquifers(),
+                own.basins() != null ? own.basins() : theirs.basins());
         JsonObject materials = overlay(source.materials(), clone.materials());
         JsonObject ores = overlay(source.ores(), clone.ores());
         return new Definition(clone.schemaVersion(), clone.description(), clone.seed(), clone.spawn(), source.generator(),

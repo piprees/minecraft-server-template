@@ -54,7 +54,8 @@ import java.util.function.Supplier;
 /**
  * Applies the pack's {@code data/customdimensions/worldgen_runtime/} files to
  * level generators before they generate: a lava level in place of the
- * generator's -54, no sea or lava where a dry zone's compiled mask reaches
+ * generator's -54, a fluid in a terrain's basins ({@link BasinFluidPicker}),
+ * no sea or lava where a dry zone's compiled mask reaches
  * ({@link DryFluidPicker}), and per-biome feature lists with placed features removed
  * and added ores appended to the underground-ores step. Base worlds are
  * patched at server start, before their levels exist; a lazy level as the
@@ -64,7 +65,10 @@ import java.util.function.Supplier;
 public final class WorldgenRuntime {
 
     /** One level's runtime worldgen. */
-    public record Spec(String level, Integer lavaLevel, List<String> addUndergroundOres, Set<String> removeFeatures) {}
+    public record Spec(String level, Integer lavaLevel, Basins basins, List<String> addUndergroundOres, Set<String> removeFeatures) {}
+
+    /** The fluid of a terrain's basins: its level, its block and the terrain's basin and floor functions by id. */
+    public record Basins(int level, String fluid, String basin, String floor) {}
 
     private static volatile Map<String, Spec> specs = Map.of();
 
@@ -100,7 +104,7 @@ public final class WorldgenRuntime {
     private static void apply(MinecraftServer server, String levelId, ChunkGenerator generator, long seed) {
         Spec spec = specs.get(levelId);
         if (spec != null) {
-            apply(server, spec, generator);
+            apply(server, spec, generator, seed);
         }
         List<ZoneSpec> dry = LevelZones.dryZones(levelId);
         if (!dry.isEmpty() && generator instanceof NoiseBasedChunkGenerator noise) {
@@ -152,6 +156,7 @@ public final class WorldgenRuntime {
                 JsonObject json = JsonParser.parseReader(reader).getAsJsonObject();
                 Spec spec = new Spec(json.get(RuntimeWorldgen.LEVEL).getAsString(),
                         json.has(RuntimeWorldgen.LAVA_LEVEL) ? json.get(RuntimeWorldgen.LAVA_LEVEL).getAsInt() : null,
+                        json.has(RuntimeWorldgen.BASINS) ? basins(json.getAsJsonObject(RuntimeWorldgen.BASINS)) : null,
                         strings(json, RuntimeWorldgen.ADD_UNDERGROUND_ORES),
                         new LinkedHashSet<>(strings(json, RuntimeWorldgen.REMOVE_FEATURES)));
                 out.put(spec.level(), spec);
@@ -162,11 +167,27 @@ public final class WorldgenRuntime {
         return Map.copyOf(out);
     }
 
-    private static void apply(MinecraftServer server, Spec spec, ChunkGenerator generator) {
+    private static Basins basins(JsonObject o) {
+        return new Basins(o.get("level").getAsInt(), o.get("fluid").getAsString(), o.get("basin").getAsString(), o.get("floor").getAsString());
+    }
+
+    private static void apply(MinecraftServer server, Spec spec, ChunkGenerator generator, long seed) {
         if (spec.lavaLevel() != null && generator instanceof NoiseBasedChunkGenerator noise) {
             NoiseGeneratorSettings settings = noise.generatorSettings().value();
             ((NoiseBasedChunkGeneratorAccessor) (Object) noise).customdimensions$setGlobalFluidPicker(
                     Suppliers.memoize(() -> fluidPicker(settings, spec.lavaLevel())));
+        }
+        if (spec.basins() != null && generator instanceof NoiseBasedChunkGenerator noise) {
+            NoiseBasedChunkGeneratorAccessor accessor = (NoiseBasedChunkGeneratorAccessor) (Object) noise;
+            Supplier<Aquifer.FluidPicker> beneath = accessor.customdimensions$globalFluidPicker();
+            RegistryAccess access = server.registryAccess();
+            NoiseGeneratorSettings settings = noise.generatorSettings().value();
+            Basins b = spec.basins();
+            accessor.customdimensions$setGlobalFluidPicker(Suppliers.memoize(() -> new BasinFluidPicker(beneath.get(),
+                    RandomState.create(access.lookupOrThrow(Registries.NOISE), seed, settings),
+                    densityFunction(access, b.basin()), densityFunction(access, b.floor()), b.level(),
+                    access.lookupOrThrow(Registries.BLOCK).getValue(Identifier.parse(b.fluid())).defaultBlockState())));
+            CustomDimensions.LOG.info("worldgen runtime applied to {}: {} fills its basins up to y {}", spec.level(), b.fluid(), b.level());
         }
         if (!spec.addUndergroundOres().isEmpty() || !spec.removeFeatures().isEmpty()) {
             Registry<PlacedFeature> placed = server.registryAccess().lookupOrThrow(Registries.PLACED_FEATURE);
@@ -204,6 +225,10 @@ public final class WorldgenRuntime {
 
     private static String id(Holder<Biome> biome) {
         return biome.unwrapKey().map(k -> k.identifier().toString()).orElse("");
+    }
+
+    private static DensityFunction densityFunction(RegistryAccess access, String id) {
+        return access.lookupOrThrow(Registries.DENSITY_FUNCTION).getValue(ResourceKey.create(Registries.DENSITY_FUNCTION, Identifier.parse(id)));
     }
 
     /** Vanilla's global fluid rule with {@code lavaLevel} in place of -54. */

@@ -106,6 +106,42 @@ class WorldgenLayersTest {
                 .getAsJsonObject("generator").get("settings").getAsString());
     }
 
+    private static final String BASIN_SKY = "\"generator\": {\"type\": \"single_biome\", \"preset\": \"floating_islands\", "
+            + "\"biome\": \"minecraft:plains\"}, \"terrain\": {\"base\": \"basin_islands\"}";
+
+    @Test
+    void basinsGoToTheRuntimeFileAtTheTerrainsWaterLine() {
+        DatapackCompiler.Output out = compile(BASIN_SKY + ", \"liquids\": {\"basins\": {}}");
+        JsonObject b = file(out, RUNTIME).getAsJsonObject("basins");
+        assertEquals(150, b.get("level").getAsInt());
+        assertEquals("minecraft:water", b.get("fluid").getAsString());
+        assertEquals("adventure:terrain/t/basin", b.get("basin").getAsString());
+        assertEquals("adventure:terrain/t/basin_floor", b.get("floor").getAsString());
+        assertTrue(out.files().containsKey("data/adventure/worldgen/density_function/terrain/t/basin.json"));
+        assertFalse(file(out, SETTINGS).has("aquifers"));
+        JsonObject lava = file(compile(BASIN_SKY + ", \"liquids\": {\"basins\": {\"level\": 152, \"fluid\": \"minecraft:lava\"}}"), RUNTIME)
+                .getAsJsonObject("basins");
+        assertEquals(152, lava.get("level").getAsInt());
+        assertEquals("minecraft:lava", lava.get("fluid").getAsString());
+    }
+
+    @Test
+    void basinsNeedATerrainOverAVoidThatShapesThem() {
+        assertEquals("t: liquids.basins: `continents` lies on the ground, where sea level and the aquifers hold the water; "
+                + "basins are for a terrain over a void (`basin_islands`)",
+                failure(OVERWORLD + ", \"terrain\": {\"base\": \"continents\"}, \"liquids\": {\"basins\": {}}"));
+        assertEquals("t: liquids.basins: `floating_islands` is over a void but shapes no basins; use `basin_islands`",
+                failure(OVERWORLD + ", \"terrain\": {\"base\": \"floating_islands\"}, \"liquids\": {\"basins\": {}}"));
+        assertEquals("t: liquids.basins: needs a terrain that shapes basins (`basin_islands`); the definition has no `terrain.base`",
+                failure("\"generator\": {\"type\": \"noise\", \"preset\": \"end\"}, \"liquids\": {\"basins\": {}}"));
+        assertEquals("t: liquids.basins.level: 160 is outside the basins of `basin_islands`, from the floor at y 143 to the rim at y 154",
+                failure(BASIN_SKY + ", \"liquids\": {\"basins\": {\"level\": 160}}"));
+        assertEquals("t: liquids.basins.fluid: air fills nothing",
+                failure(BASIN_SKY + ", \"liquids\": {\"basins\": {\"fluid\": \"minecraft:air\"}}"));
+        assertTrue(assertThrows(RuntimeException.class, () -> compile(BASIN_SKY + ", \"liquids\": {\"basins\": {\"depth\": 3}}"))
+                .getMessage().contains("liquids.basins.depth"));
+    }
+
     @Test
     void aBaseWorldsRuntimeFileNamesItsStem() {
         DatapackCompiler.Output out = Fixtures.compile("overworld", OVERWORLD + ", \"liquids\": {\"lavaLevel\": -40}");

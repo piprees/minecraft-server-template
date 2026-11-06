@@ -113,11 +113,11 @@ public enum TerrainFamily {
                     new TerrainParam("lakeSize", 0.25, 4, 1, "Lake mass size; higher is larger and fewer"),
                     new TerrainParam("basinDepth", 2, 40, 8, "Blocks the basin floor lies below the water line at a mass's heart"),
                     new TerrainParam("rimHeight", 1, 16, 4, "Blocks the rim round a mass stands above the water line"),
-                    new TerrainParam("gaps", 0, 0.3, 0.03, "Share of the rim cut below the water line, where a basin spills into the void"),
-                    new TerrainParam("islandRise", 0, 60, 12, "Extra blocks the islands inside a lake mass rise above the water")),
+                    new TerrainParam("gaps", 0, 0.3, 0.15, "Share of the rim cut below the water line, where a basin spills into the void"),
+                    new TerrainParam("islandRise", 0, 60, 8, "Blocks of cliff the islands inside a lake mass rise by out of the water")),
             Map.of(),
-            Map.of("lakeShare", 0.25, "basinDepth", 4.0, "rimHeight", 2.0, "gaps", 0.01, "islandRise", 4.0, "spread", 10.0),
-            Map.of("lakeShare", 0.6, "lakeSize", 2.0, "basinDepth", 24.0, "rimHeight", 10.0, "gaps", 0.08, "islandRise", 40.0,
+            Map.of("lakeShare", 0.25, "basinDepth", 4.0, "rimHeight", 2.0, "gaps", 0.06, "islandRise", 4.0, "spread", 10.0),
+            Map.of("lakeShare", 0.6, "lakeSize", 2.0, "basinDepth", 24.0, "rimHeight", 10.0, "gaps", 0.3, "islandRise", 40.0,
                     "spread", 60.0, "thickness", 30.0, "underside", 80.0),
             true, TerrainFamily::basinIslands),
 
@@ -250,31 +250,41 @@ public enum TerrainFamily {
      * jaggedness, a 3D cut and a 3D addition (null: none), the router's
      * continentalness as biomes should read it, the weight of vanilla's 3D
      * noise, a function that weighs it further where it varies (null:
-     * none), and a ceiling on the surface level the aquifers read (null: none).
+     * none), a ceiling on the surface level the aquifers read (null: none), and ground no cave
+     * cuts, added to the final density as a maximum (null: none).
      */
     record Shape(JsonElement height, JsonElement factor, JsonElement jaggedness, JsonElement cut, JsonElement plus,
-                 JsonElement continents, double noise3d, JsonElement noiseWeight, JsonElement aquiferCeiling) {
+                 JsonElement continents, double noise3d, JsonElement noiseWeight, JsonElement aquiferCeiling, JsonElement solid) {
+
+        Shape(JsonElement height, JsonElement factor, JsonElement jaggedness, JsonElement cut, JsonElement plus,
+              JsonElement continents, double noise3d, JsonElement noiseWeight, JsonElement aquiferCeiling) {
+            this(height, factor, jaggedness, cut, plus, continents, noise3d, noiseWeight, aquiferCeiling, null);
+        }
 
         Shape(JsonElement height, JsonElement factor, JsonElement jaggedness, JsonElement cut, JsonElement plus,
               JsonElement continents, double noise3d, JsonElement noiseWeight) {
-            this(height, factor, jaggedness, cut, plus, continents, noise3d, noiseWeight, null);
+            this(height, factor, jaggedness, cut, plus, continents, noise3d, noiseWeight, null, null);
         }
 
         Shape(JsonElement height, JsonElement factor, JsonElement jaggedness, JsonElement cut, JsonElement plus,
               JsonElement continents, double noise3d) {
-            this(height, factor, jaggedness, cut, plus, continents, noise3d, null, null);
+            this(height, factor, jaggedness, cut, plus, continents, noise3d, null, null, null);
         }
 
         Shape withHeight(JsonElement h) {
-            return new Shape(h, factor, jaggedness, cut, plus, continents, noise3d, noiseWeight, aquiferCeiling);
+            return new Shape(h, factor, jaggedness, cut, plus, continents, noise3d, noiseWeight, aquiferCeiling, solid);
         }
 
         Shape withFactor(JsonElement f) {
-            return new Shape(height, f, jaggedness, cut, plus, continents, noise3d, noiseWeight, aquiferCeiling);
+            return new Shape(height, f, jaggedness, cut, plus, continents, noise3d, noiseWeight, aquiferCeiling, solid);
         }
 
         Shape withAquiferCeiling(JsonElement ceiling) {
-            return new Shape(height, factor, jaggedness, cut, plus, continents, noise3d, noiseWeight, ceiling);
+            return new Shape(height, factor, jaggedness, cut, plus, continents, noise3d, noiseWeight, ceiling, solid);
+        }
+
+        Shape withSolid(JsonElement s) {
+            return new Shape(height, factor, jaggedness, cut, plus, continents, noise3d, noiseWeight, aquiferCeiling, s);
         }
     }
 
@@ -435,8 +445,15 @@ public enum TerrainFamily {
     /** The basin floor's height in blocks: water stands no lower than {@link #BASIN_FLOOR_REACH} under it. */
     public static final String BASIN_FLOOR = "basin_floor";
     public static final int BASIN_FLOOR_REACH = 3;
-    /** Blocks under the water line a rim gap is cut to. */
-    static final double GAP_DROP = 3;
+    /** The island noise's {@code core} over which an island inside a lake mass climbs its cliff: about two blocks. */
+    static final double ISLAND_CLIFF_FROM = 0.02;
+    static final double ISLAND_CLIFF_TO = 0.1;
+    /** Blocks under the water line a rim gap's crest is cut to; its lip falls a rim's height further to the edge. */
+    static final double GAP_DROP = 5;
+    /** The gap noise's frequency against the detail noise's: blobs broad enough to breach a rim's whole width. */
+    static final double GAP_FREQUENCY = 0.4;
+    /** Blocks over a gap an island's top is held from, outside the gap: no island stands in it. */
+    static final double GAP_CLEAR = 512;
 
     /**
      * Floating islands with lake masses: where the {@code lakes} noise lies in its
@@ -445,11 +462,14 @@ public enum TerrainFamily {
      * climbs from under the water line to a rim {@code rimHeight} above it, holds
      * a crest, falls back to a shore just under the water and dishes to
      * {@code basinDepth} below it. The islands inside a mass sit on the water
-     * line, rising {@code islandRise} higher, so their domes stand out of the lake
-     * and their cliff faces drop into it; outside, they keep the layer's spread.
+     * line and climb a cliff {@code islandRise} high a block or two in from their shore,
+     * so their domes stand out of the lake over cliff faces that drop into it; outside,
+     * they keep the layer's spread.
      * Where the {@code detail} noise lies in its highest {@code gaps} share the
-     * rim is cut to {@link #GAP_DROP} under the water line. The basin and its floor
-     * are written as {@link #BASIN} and {@link #BASIN_FLOOR} for {@code liquids.basins}.
+     * rim is cut to {@link #GAP_DROP} under the water line, its outer lip lower still
+     * to the edge, and no island stands in the cut, so the basin spills off the edge. The basin and its floor
+     * are written as {@link #BASIN} and {@link #BASIN_FLOOR} for {@code liquids.basins}; the mass up
+     * to a block under its floor is ground no cave cuts, so a basin holds its water.
      */
     private static Shape basinIslands(Ctx ctx) {
         double m = ctx.heightMultiplier();
@@ -470,27 +490,35 @@ public enum TerrainFamily {
         double depth = ctx.p("basinDepth");
         JsonElement massTop = spline(lakes, edge - 0.01, a - 6, edge, a - 4, risen, a + rim, crestEnd, a + rim,
                 shore, a - 2, heart, a - depth);
+        JsonElement cut = null;
         if (ctx.p("gaps") > 0) {
             double sd = Noises.sigma("detail");
             double tg = Noises.threshold(ctx.p("gaps"), sd);
-            JsonElement gap = ramp(ctx.noise("detail", 1, 0), tg, tg + 0.3 * sd);
-            JsonElement bump = spline(lakes, edge, 0, risen, 1, crestEnd, 1, shore, 0);
-            massTop = sub(massTop, mul(mul(gap, bump), rim + GAP_DROP));
+            JsonElement gap = ramp(ctx.noise("detail", GAP_FREQUENCY / ctx.p("lakeSize"), 0), tg, tg + 0.3 * sd);
+            JsonElement band = spline(lakes, edge - 0.1 * sl, 0, edge - 0.08 * sl, 1, crestEnd, 1, shore, 0);
+            cut = ctx.named("gap", mul(gap, band));
+            massTop = sub(massTop, mul(cut, rim + GAP_DROP));
         }
         JsonElement floor = ctx.named(BASIN_FLOOR, massTop);
         JsonElement massBottom = spline(lakes, edge, a - 2, crestEnd, a - depth - 4, heart, a - depth - 4 - 0.5 * ctx.p("underside") * m);
         JsonElement inMass = ramp(lakes, edge - 0.1 * sl, edge);
         JsonElement spread = add(mul(ctx.noise("altitude", 1, 0), ctx.p("spread") * m / Noises.sigma("altitude")), a);
         JsonElement layer = lerp(inMass, spread, c(a));
-        JsonElement rise = add(mul(sqrt(core), ctx.p("thickness") * m), mul(mul(core, inMass), ctx.p("islandRise") * m));
+        JsonElement cliff = ramp(core, ISLAND_CLIFF_FROM, ISLAND_CLIFF_TO);
+        JsonElement rise = add(mul(sqrt(core), ctx.p("thickness") * m), mul(mul(cliff, inMass), ctx.p("islandRise") * m));
         JsonElement top = add(add(layer, rise), -2);
+        if (cut != null) {
+            top = min(top, add(mul(sub(c(1), cut), GAP_CLEAR), a - GAP_DROP));
+        }
         JsonElement bottom = add(sub(layer, mul(core, ctx.p("underside") * m)), 2);
         JsonElement y = negY(ctx.minY(), ctx.maxY());
         JsonElement island = min(add(top, y), sub(c(0), add(bottom, y)));
         JsonElement mass = min(add(floor, y), sub(c(0), add(massBottom, y)));
         ctx.named(BASIN, mul(add(lakes, -crest), 1 / (shore - crest)));
         JsonElement plus = mul(max(island, mass), 1 / 8.0);
-        return new Shape(c(ctx.minY() - 64.0), ctx.factor(), c(0), null, plus, c(0.3), 0.1 + 0.6 * ctx.p("roughness"));
+        JsonElement sealed = mul(min(add(add(floor, -1), y), sub(c(0), add(massBottom, y))), 1 / 8.0);
+        return new Shape(c(ctx.minY() - 64.0), ctx.factor(), c(0), null, plus, c(0.3), 0.1 + 0.6 * ctx.p("roughness"))
+                .withSolid(sealed);
     }
 
     private static Shape islands(Ctx ctx) {

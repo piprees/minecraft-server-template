@@ -111,7 +111,7 @@ public final class TerrainLibrary {
             openFloor(finalDensity);
             openFloor(preliminary);
         }
-        functions.put("final_density", finalDensity);
+        functions.put("final_density", shape.solid() == null ? finalDensity : max(finalDensity, shape.solid()));
         functions.put("preliminary_surface_level", preliminary);
         functions.put("chunk_surface_level", replace(vanilla.densityFunction("overworld/chunk_surface_level"), ids));
 

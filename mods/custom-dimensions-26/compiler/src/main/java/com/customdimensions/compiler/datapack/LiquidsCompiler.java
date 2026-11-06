@@ -1,5 +1,7 @@
 package com.customdimensions.compiler.datapack;
 
+import com.customdimensions.compiler.terrain.TerrainFamily;
+import com.customdimensions.compiler.terrain.TerrainSpec;
 import com.customdimensions.core.definition.Liquids;
 import com.google.gson.JsonObject;
 
@@ -21,7 +23,9 @@ import java.util.List;
  * </ul>
  *
  * {@code lavaLevel} has no 26.3 data field: the runtime puts it in place of
- * the generator's -54 ({@link RuntimeWorldgen}).
+ * the generator's -54 ({@link RuntimeWorldgen}). Nor has {@code basins}: the
+ * runtime's fluid rule answers its fluid inside the terrain's basins, above
+ * the basin floor and below its level, and the global rule everywhere else.
  */
 public final class LiquidsCompiler {
 
@@ -103,6 +107,50 @@ public final class LiquidsCompiler {
             }
             default -> throw error(slug, "aquifers", "`" + mode + "` is not one of " + String.join(", ", Liquids.AQUIFER_MODES));
         }
+    }
+
+    public static final String WATER = "minecraft:water";
+
+    /** {@code liquids.basins} resolved against the terrain: its level, its fluid and the terrain's basin and floor functions. */
+    public record Basins(int level, String fluid, String basin, String floor) {}
+
+    /**
+     * {@code liquids.basins} against the definition's terrain, or null when it has none. Basins
+     * need a terrain over a void that shapes them ({@link TerrainFamily#shapesBasins}): a terrain
+     * on the ground holds its water with sea level and aquifers, and a terrain with no basins has
+     * nothing to fill. The level lies above the basin floor and no higher than the rim.
+     *
+     * @param prefix the terrain's function prefix, {@code <namespace>:terrain/<slug>}
+     */
+    static Basins basins(String slug, Liquids liquids, TerrainSpec terrain, String prefix) {
+        if (liquids == null || liquids.basins() == null) {
+            return null;
+        }
+        if (terrain == null) {
+            throw error(slug, "basins", "needs a terrain that shapes basins (`basin_islands`); the definition has no `terrain.base`");
+        }
+        TerrainFamily family = terrain.family();
+        if (!family.airborne()) {
+            throw error(slug, "basins", "`" + family.id() + "` lies on the ground, where sea level and the aquifers hold the water; "
+                    + "basins are for a terrain over a void (`basin_islands`)");
+        }
+        if (!family.shapesBasins()) {
+            throw error(slug, "basins", "`" + family.id() + "` is over a void but shapes no basins; use `basin_islands`");
+        }
+        double line = terrain.param("altitude");
+        int floor = (int) Math.floor(line - terrain.param("basinDepth")) + 1;
+        int rim = (int) Math.floor(line + terrain.param("rimHeight"));
+        Integer asked = liquids.basins().level();
+        int level = asked != null ? asked : (int) Math.round(line);
+        if (level < floor || level > rim) {
+            throw error(slug, "basins.level", level + " is outside the basins of `" + family.id() + "`, from the floor at y " + floor
+                    + " to the rim at y " + rim);
+        }
+        String fluid = liquids.basins().fluid() != null ? liquids.basins().fluid() : WATER;
+        if (AIR.equals(fluid)) {
+            throw error(slug, "basins.fluid", "air fills nothing");
+        }
+        return new Basins(level, fluid, prefix + "/" + TerrainFamily.BASIN, prefix + "/" + TerrainFamily.BASIN_FLOOR);
     }
 
     /** The runtime lava level: the definition's, or null to keep the generator's. */
