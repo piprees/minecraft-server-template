@@ -7,39 +7,39 @@
       "biomes": [
         {
           "biome": "adventure:umbral_wastes",
-          "parameters": "sha1:2f0b52b8e1ebe3b86a265d883963643c4a532899"
-        },
-        {
-          "biome": "minecraft:deep_ocean",
-          "parameters": "sha1:1598aee42398c98bccfd1aea00965e36113d49ce"
-        },
-        {
-          "biome": "minecraft:deep_cold_ocean",
-          "parameters": "sha1:8440bddb99a32ba71ec22d792f2933916018a91e"
-        },
-        {
-          "biome": "adventure:sky_highlands",
-          "parameters": "sha1:38135e8d94dfa35de3bfed9f723a1ed71b6a0315"
-        },
-        {
-          "biome": "adventure:golden_skygrove",
-          "parameters": "sha1:6b688d5c38aae87f88b8e56f9d86d9dc8fc834c0"
-        },
-        {
-          "biome": "minecraft:deep_dark",
-          "parameters": "sha1:a4e671bbcad884dc132c05105b2a1232e463fcaf"
-        },
-        {
-          "biome": "minecraft:dripstone_caves",
-          "parameters": "sha1:fc839b1dbee580c32125183ddd84f7f4bddcea00"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:8ffc9906ae584d02b764e78b002a34468c78bbdd"
+          "parameters": "sha1:080dc08ded6e599dc439ea422b6694fe089b88bd"
         },
         {
           "biome": "adventure:windswept_isles",
-          "parameters": "sha1:689ec8e820f7ecae3d3b5e9eeaea840c1416ffbb"
+          "parameters": "sha1:a699578538344ed9422160a45794bb6988aa5b35"
+        },
+        {
+          "biome": "minecraft:deep_cold_ocean",
+          "parameters": "sha1:2844daab672b0445365a048f4b24a6bd7612be72"
+        },
+        {
+          "biome": "minecraft:dripstone_caves",
+          "parameters": "sha1:c5e937968f2f97df73c4e9e973fa1a73b97c9f39"
+        },
+        {
+          "biome": "minecraft:deep_dark",
+          "parameters": "sha1:9ff77ea73ff685bba04dcccc76258c98650e4971"
+        },
+        {
+          "biome": "minecraft:deep_ocean",
+          "parameters": "sha1:4054e3269fc6091590e8559469c4256000a8dcb6"
+        },
+        {
+          "biome": "adventure:sky_highlands",
+          "parameters": "sha1:1e195fd9dad3ca9bff53aac6ea3bea15ea51fe88"
+        },
+        {
+          "biome": "adventure:golden_skygrove",
+          "parameters": "sha1:ac0d9d2a2a480747729da389d297ac6da3b967c3"
+        },
+        {
+          "biome": "minecraft:dark_forest",
+          "parameters": "sha1:77fabf787bf511715c009343b56b8ecf922d9cd5"
         }
       ]
     },

@@ -1,0 +1,7 @@
+{
+  "base": "minecraft:floating_islands",
+  "changed": {
+    "material_rule": "adventure:the_aviary",
+    "noise_router": "sha1:521586f85edb8a6713a7e2de766c2cac1bda1c06"
+  }
+}
