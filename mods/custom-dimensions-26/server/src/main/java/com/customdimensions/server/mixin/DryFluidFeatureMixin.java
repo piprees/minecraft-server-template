@@ -22,6 +22,7 @@ abstract class DryFluidFeatureMixin {
         if (generator instanceof NoiseBasedChunkGenerator noise
                 && ((NoiseBasedChunkGeneratorAccessor) (Object) noise).customdimensions$globalFluidPicker().get() instanceof DryFluidPicker dry
                 && dry.coversAny(origin.getX(), origin.getZ(), (Object) this instanceof LakeFeature ? 8 : 0)) {
+            dry.refused();
             cir.setReturnValue(false);
         }
     }

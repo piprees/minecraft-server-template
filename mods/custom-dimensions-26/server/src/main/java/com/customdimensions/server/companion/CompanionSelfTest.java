@@ -118,6 +118,17 @@ public final class CompanionSelfTest {
         this.server = server;
     }
 
+    /** A block change in a loaded chunk of the overworld reaches the feed's invalidation, which only {@code ChunkBlockChangedMixin} calls. */
+    public static String blockChangedProbe(MinecraftServer server) {
+        net.minecraft.server.level.ServerLevel level = server.overworld();
+        net.minecraft.core.BlockPos pos = level.getRespawnData().pos();
+        long before = CompanionFeed.invalidations();
+        level.getChunkSource().blockChanged(pos);
+        long reported = CompanionFeed.invalidations() - before;
+        if (reported < 1) throw new AssertionError("ServerChunkCache.blockChanged at " + pos + " reported 0 changes to the feed");
+        return "ServerChunkCache.blockChanged at " + pos.toShortString() + " reported " + reported + " change(s) to the feed";
+    }
+
     public static CompletableFuture<List<String>> run(MinecraftServer server) {
         CompanionSelfTest test = new CompanionSelfTest(server);
         ServerTickEvents.END_SERVER_TICK.register(s -> test.poll());

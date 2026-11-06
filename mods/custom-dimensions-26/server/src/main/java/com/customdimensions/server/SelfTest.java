@@ -80,7 +80,7 @@ final class SelfTest {
     private static final String DEFINITIONS = "customdimensions.definitions";
     /** An extracted vanilla folder the runtime source is compared against; {@code -Dcustomdimensions.vanilla} also counts. */
     private static final String REFERENCE = "customdimensions.vanilla.reference";
-    /** {@code exits}, {@code commands}, {@code materials}, {@code biomes}, {@code render}, {@code firewall}, {@code terrain}, {@code zones}, {@code structures}, {@code roll}, {@code rollperf}, {@code generators} or {@code difficulty} runs the compiled-pack section and that one only, for iterating on it. */
+    /** {@code exits}, {@code commands}, {@code materials}, {@code biomes}, {@code render}, {@code firewall}, {@code terrain}, {@code zones}, {@code structures}, {@code roll}, {@code rollperf}, {@code generators}, {@code difficulty} or {@code mixins} runs the compiled-pack section and that one only, for iterating on it. */
     private static final String ONLY = "customdimensions.selftest.only";
 
     private SelfTest() {}
@@ -98,6 +98,7 @@ final class SelfTest {
         lines.add(equivalence());
         lines.addAll(compiledPack(server));
         lines.addAll(com.customdimensions.server.firewall.FirewallSelfTest.run(server));
+        lines.addAll(MixinSelfTest.run(server));
         String only = System.getProperty(ONLY, "");
         boolean materialsOnly = "materials".equals(only);
         boolean biomesOnly = "biomes".equals(only);
@@ -110,7 +111,8 @@ final class SelfTest {
         boolean rollOnly = "roll".equals(only) || "rollperf".equals(only);
         boolean generatorsOnly = "generators".equals(only);
         boolean difficultyOnly = "difficulty".equals(only);
-        boolean exitsOnly = "exits".equals(only) || commandsOnly || materialsOnly || biomesOnly || renderOnly || firewallOnly || terrainOnly || zonesOnly || structuresOnly || rollOnly
+        boolean mixinsOnly = "mixins".equals(only);
+        boolean exitsOnly = "exits".equals(only) || mixinsOnly || commandsOnly || materialsOnly || biomesOnly || renderOnly || firewallOnly || terrainOnly || zonesOnly || structuresOnly || rollOnly
                 || generatorsOnly || difficultyOnly;
         CompletableFuture<List<String>> levels;
         try {
@@ -215,7 +217,7 @@ final class SelfTest {
             return null;
         }).thenCompose(v -> {
             try {
-                return commandsOnly || materialsOnly || biomesOnly || renderOnly || firewallOnly || terrainOnly || zonesOnly || structuresOnly || rollOnly
+                return mixinsOnly || commandsOnly || materialsOnly || biomesOnly || renderOnly || firewallOnly || terrainOnly || zonesOnly || structuresOnly || rollOnly
                         || generatorsOnly || difficultyOnly ? CompletableFuture.completedFuture(List.<String>of()) : ExitSelfTest.run(server);
             } catch (Throwable t) {
                 return CompletableFuture.completedFuture(List.of("FAIL exits: " + t));

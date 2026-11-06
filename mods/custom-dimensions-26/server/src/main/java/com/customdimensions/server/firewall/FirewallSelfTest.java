@@ -37,7 +37,7 @@ public final class FirewallSelfTest {
         return lines;
     }
 
-    private static String structureState(MinecraftServer server) {
+    public static String structureState(MinecraftServer server) {
         ServerLevel level = server.overworld();
         Registry<StructureSet> sets = server.registryAccess().lookupOrThrow(Registries.STRUCTURE_SET);
         ResourceKey<StructureSet> villages = ResourceKey.create(Registries.STRUCTURE_SET, Identifier.withDefaultNamespace("villages"));

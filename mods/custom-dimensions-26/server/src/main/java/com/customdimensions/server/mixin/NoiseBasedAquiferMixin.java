@@ -22,6 +22,7 @@ abstract class NoiseBasedAquiferMixin {
         BlockState state = cir.getReturnValue();
         if (state != null && !state.getFluidState().isEmpty() && globalFluidPicker instanceof DryFluidPicker dry && dry.covers(x, z)) {
             shouldScheduleFluidUpdate = false;
+            dry.dried();
             cir.setReturnValue(Blocks.AIR.defaultBlockState());
         }
     }

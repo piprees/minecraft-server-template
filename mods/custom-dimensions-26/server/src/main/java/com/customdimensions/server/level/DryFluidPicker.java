@@ -43,11 +43,33 @@ public final class DryFluidPicker implements Aquifer.FluidPicker {
     private final Aquifer.FluidPicker beneath;
     private final List<Zone> zones;
     private final double[] reach;
+    private final java.util.concurrent.atomic.AtomicLong dried = new java.util.concurrent.atomic.AtomicLong();
+    private final java.util.concurrent.atomic.AtomicLong refused = new java.util.concurrent.atomic.AtomicLong();
 
     public DryFluidPicker(Aquifer.FluidPicker beneath, List<Zone> zones) {
         this.beneath = beneath;
         this.zones = List.copyOf(zones);
         this.reach = this.zones.stream().mapToDouble(Zone::reach).toArray();
+    }
+
+    /** Counts an aquifer cell of fluid turned to air ({@code NoiseBasedAquiferMixin}). */
+    public void dried() {
+        dried.incrementAndGet();
+    }
+
+    /** Aquifer cells of fluid turned to air so far. */
+    public long driedCount() {
+        return dried.get();
+    }
+
+    /** Counts a spring or lake left out ({@code DryFluidFeatureMixin}). */
+    public void refused() {
+        refused.incrementAndGet();
+    }
+
+    /** Springs and lakes left out so far. */
+    public long refusedCount() {
+        return refused.get();
     }
 
     /** Whether the column lies under a dry zone's compiled mask or within {@link #MARGIN} blocks of it. */

@@ -90,6 +90,7 @@ public final class CompanionFeed {
     }
 
     private static final Map<UUID, Viewer> VIEWERS = new ConcurrentHashMap<>();
+    private static final java.util.concurrent.atomic.AtomicLong INVALIDATIONS = new java.util.concurrent.atomic.AtomicLong();
     private static long handovers;
 
     private CompanionFeed() {
@@ -466,6 +467,7 @@ public final class CompanionFeed {
 
     /** A block changed: every viewer is sent that chunk again on its next pass. */
     public static void invalidate(ResourceKey<Level> level, int chunkX, int chunkZ) {
+        INVALIDATIONS.incrementAndGet();
         if (VIEWERS.isEmpty()) {
             return;
         }
@@ -476,6 +478,11 @@ public final class CompanionFeed {
                 sent.remove(key);
             }
         }
+    }
+
+    /** Block changes reported so far ({@code ChunkBlockChangedMixin}). */
+    static long invalidations() {
+        return INVALIDATIONS.get();
     }
 
     /** A non-player crossed into a destination a viewer is drawing: name the new id at once. */

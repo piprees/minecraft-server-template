@@ -121,6 +121,7 @@ public final class StructureSelfTest {
                         lines.add(guard("structures " + p.kind() + " " + p.structure(), () -> placedLine(level, p, byPos)));
                     }
                     lines.add(guard("structures shun generation", () -> shunGeneration(level, shunSample, byPos)));
+                    lines.add(guard("structures mixin StructureBiomeBypassMixin", () -> bypassLine(level, applied, byPos)));
                     Structure igloo = structure(level, "minecraft:igloo");
                     applied.placed().stream().filter(p -> p.structure().equals("minecraft:igloo")).findFirst().ifPresent(p ->
                             net.minecraft.world.level.levelgen.Beardifier.forStructuresInChunk(level.structureManager(),
@@ -128,7 +129,7 @@ public final class StructureSelfTest {
                     long overrides = StructureAdaptation.overridden() - beforeAdaptation;
                     boolean bury = StructureRuntime.adaptation(level.dimension(), igloo) == TerrainAdjustment.BURY
                             && StructureRuntime.adaptation(server.overworld().dimension(), igloo) == igloo.terrainAdaptation();
-                    lines.add((bury && overrides > 0 ? "PASS" : "FAIL") + " structures terrain adaptation: the igloo takes bury here and "
+                    lines.add((bury && overrides > 0 ? "PASS" : "FAIL") + " structures mixin BeardifierAdaptationMixin terrain adaptation: the igloo takes bury here and "
                             + igloo.terrainAdaptation().getSerializedName() + " in the overworld; the Beardifier took " + overrides
                             + " override(s) for the fixture's chunks and the igloo's");
                 }
@@ -220,6 +221,21 @@ public final class StructureSelfTest {
         String detail = sample.size() + " chunks where vanilla's village grid starts a village generated, " + withStarts + " hold a start " + kinds
                 + ", " + shunnedStarts + " shunned";
         return shunnedStarts == 0 ? "PASS " + detail : "FAIL " + detail;
+    }
+
+    /** Every start placed where its chunk's biome refuses the structure generated there, which only the biome bypass allows. */
+    private String bypassLine(ServerLevel level, StructureRuntime.Applied applied, Map<Long, LevelChunk> chunks) {
+        List<String> refused = new ArrayList<>();
+        List<String> missing = new ArrayList<>();
+        for (StructureRuntime.Placed p : applied.placed()) {
+            if (p.matched()) continue;
+            refused.add(p.structure());
+            StructureStart start = chunks.get(ChunkPos.pack(p.chunkX(), p.chunkZ())).getStartForStructure(structure(level, p.structure()));
+            if (start == null || !start.isValid()) missing.add(p.structure() + " at " + p.chunkX() + "," + p.chunkZ());
+        }
+        String detail = (refused.size() - missing.size()) + " of " + refused.size() + " start(s) placed where the chunk's biome refuses the structure generated "
+                + refused + (missing.isEmpty() ? "" : "; missing " + missing);
+        return !refused.isEmpty() && missing.isEmpty() ? "PASS " + detail : "FAIL " + detail;
     }
 
     private String placedLine(ServerLevel level, StructureRuntime.Placed p, Map<Long, LevelChunk> chunks) {
