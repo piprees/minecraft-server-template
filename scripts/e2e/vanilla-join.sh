@@ -52,6 +52,9 @@
 #   - Bounded throughout: every download has a timeout and every wait a limit.
 #   - --mrpack runs on OpenGL through mods/custom-dimensions-client-26/rig/srgbshim.c
 #     (built here with gcc; T138): Sodium and Iris need the GL backend.
+#   - GL_SHIM=1 puts the unmodded client on the same shimmed OpenGL: where
+#     Mesa's Vulkan has no VK_KHR_surface, the vanilla client has no other
+#     backend under Xvfb.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -258,6 +261,8 @@ PY
   CP="$FABRIC_CP:$CP"
   MAIN="$(sed -n 's/^MAIN //p' "$VDIR/fabric-$LOADER.txt")"
   while IFS= read -r arg; do JVM_EXTRA+=("$arg"); done < <(sed -n 's/^JVM //p' "$VDIR/fabric-$LOADER.txt")
+fi
+if [[ -n "$MRPACK" || -n "${GL_SHIM:-}" ]]; then
   SHIM_SRC="$SCRIPT_DIR/../../mods/custom-dimensions-client-26/rig/srgbshim.c"
   SHIM="$CACHE/libsrgbshim.so"
   if [[ ! -f "$SHIM" || "$SHIM_SRC" -nt "$SHIM" ]]; then
