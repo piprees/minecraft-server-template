@@ -1596,6 +1596,13 @@ A seed's map and its banked facts appear to contradict each other — the thumbn
   the same trap. Pin it against the Java, not against intuition —
   `scripts/e2e/portal-matrix-selftest.sh` is the worked example.
 
+<a id="t182"></a>
+### T182 — A spectator camera inside terrain shows the inside of the ground
+
+- **Symptom:** a rig screenshot shows a cave or the underside of the land with no rock in front of it, as if it were open air.
+- **Cause:** a spectator camera passes through blocks and draws whatever is behind them, with nothing on screen to say so. A numeric `y` read off a height render can be inside the ground, and `ground+N` under trees often lands in leaves.
+- **Fix:** `BiomeShots` checks the 3×3×3 box round the eye block (collision shapes; fluids count as clear), lifts the camera up to 8 blocks, and otherwise skips the shot with `camera inside terrain`. Audit an old shot list with `"check": true` entries before trusting its cameras.
+
 <a id="t181"></a>
 ### T181 — Editing a bash script while it runs breaks the run
 
