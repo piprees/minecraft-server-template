@@ -1,0 +1,217 @@
+{
+  "$schema": "../../../../../../schema/biome.schema.json",
+  "realm": "end",
+  "inspiredBy": "BetterEnd's chorus forest: End islands grown over with a forest of chorus.",
+  "differs": "Vanilla's End highlands scatter a few chorus plants over bare end stone; here branching chorus stands close enough to be a forest, tall straight chorus stalks carry glowing end rods above it, and the air is thick with purple fog and portal sparks.",
+  "climate": {
+    "humidity": [
+      0.3,
+      1.0
+    ]
+  },
+  "biome": {
+    "attributes": {
+      "minecraft:audio/ambient_sounds": {
+        "additions": {
+          "sound": "minecraft:block.chorus_flower.grow",
+          "tick_chance": 0.006
+        },
+        "mood": {
+          "block_search_extent": 8,
+          "offset": 2.0,
+          "sound": "minecraft:ambient.cave",
+          "tick_delay": 6000
+        }
+      },
+      "minecraft:audio/background_music": {
+        "default": {
+          "max_delay": 24000,
+          "min_delay": 6000,
+          "replace_current_music": true,
+          "sound": "minecraft:music.end"
+        }
+      },
+      "minecraft:gameplay/natural_mob_spawns": {
+        "argument": {
+          "spawn_costs": {},
+          "spawns_by_category": {
+            "monster": [
+              {
+                "type": "minecraft:enderman",
+                "count": 4,
+                "weight": 10
+              }
+            ]
+          }
+        },
+        "modifier": "overlay"
+      },
+      "minecraft:visual/ambient_particles": {
+        "argument": [
+          {
+            "particle": {
+              "type": "minecraft:portal"
+            },
+            "probability": 0.02
+          },
+          {
+            "particle": {
+              "type": "minecraft:reverse_portal"
+            },
+            "probability": 0.004
+          }
+        ],
+        "modifier": "append"
+      },
+      "minecraft:visual/fog_color": "#4a2a63",
+      "minecraft:visual/sky_color": "#2a1638"
+    },
+    "carvers": [],
+    "downfall": 0.5,
+    "effects": {
+      "water_color": "#8a5cc4"
+    },
+    "features": [
+      [],
+      [],
+      [],
+      [],
+      [
+        "minecraft:end_gateway_return"
+      ],
+      [],
+      [],
+      [],
+      [],
+      [
+        "~groves",
+        "~lamp_stalks"
+      ],
+      []
+    ],
+    "has_precipitation": false,
+    "temperature": 0.5
+  },
+  "features": {
+    "groves": {
+      "feature": "minecraft:chorus_plant",
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": {
+            "type": "minecraft:uniform",
+            "max_inclusive": 10,
+            "min_inclusive": 6
+          }
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:heightmap",
+          "heightmap": "MOTION_BLOCKING"
+        },
+        {
+          "type": "minecraft:biome"
+        },
+        {
+          "type": "minecraft:block_predicate_filter",
+          "predicate": {
+            "type": "minecraft:matching_blocks",
+            "blocks": [
+              "minecraft:end_stone"
+            ],
+            "offset": [
+              0,
+              -1,
+              0
+            ]
+          }
+        }
+      ]
+    },
+    "lamp_stalks": {
+      "feature": {
+        "type": "minecraft:block_column",
+        "allowed_placement": {
+          "type": "minecraft:matching_block_tag",
+          "tag": "minecraft:air"
+        },
+        "direction": "up",
+        "layers": [
+          {
+            "height": {
+              "type": "minecraft:uniform",
+              "max_inclusive": 15,
+              "min_inclusive": 7
+            },
+            "provider": {
+              "id": "minecraft:chorus_plant",
+              "properties": {
+                "down": "true",
+                "east": "false",
+                "north": "false",
+                "south": "false",
+                "up": "true",
+                "west": "false"
+              }
+            }
+          },
+          {
+            "height": 1,
+            "provider": {
+              "id": "minecraft:end_rod",
+              "properties": {
+                "facing": "up"
+              }
+            }
+          }
+        ],
+        "prioritize_tip": true
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": {
+            "type": "minecraft:uniform",
+            "max_inclusive": 4,
+            "min_inclusive": 2
+          }
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:heightmap",
+          "heightmap": "MOTION_BLOCKING"
+        },
+        {
+          "type": "minecraft:biome"
+        },
+        {
+          "type": "minecraft:block_predicate_filter",
+          "predicate": {
+            "type": "minecraft:all_of",
+            "predicates": [
+              {
+                "type": "minecraft:matching_block_tag",
+                "tag": "minecraft:air"
+              },
+              {
+                "type": "minecraft:matching_blocks",
+                "blocks": [
+                  "minecraft:end_stone"
+                ],
+                "offset": [
+                  0,
+                  -1,
+                  0
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

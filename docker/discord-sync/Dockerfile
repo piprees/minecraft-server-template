@@ -12,6 +12,7 @@ RUN pip install --no-cache-dir --upgrade pip setuptools \
  && pip install --no-cache-dir -r /app/requirements-discord-sync.txt
 
 COPY scripts/discord-sync.py /app/
+COPY config/messages.json /app/messages.json
 
 WORKDIR /app
 CMD ["python3", "/app/discord-sync.py"]

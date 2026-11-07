@@ -1,0 +1,295 @@
+{
+  "schemaVersion": 2,
+  "description": "Cherry-blossom gardens where the first villagers planted a life worth protecting. Villages and taverns grew among the petals, peaceful by decree. The portal at the centre is the oldest gate in the garden — everything was built around it.",
+  "seed": -1484124298185960397,
+  "spawn": [768, 92, 640],
+  "generator": {
+    "type": "noise",
+    "preset": "overworld"
+  },
+  "terrain": {
+    "base": "terraces",
+    "setting": "gentle"
+  },
+  "biomes": [
+    {
+      "id": "minecraft:river",
+      "climate": {
+        "continentalness": [-0.11, 2.0],
+        "erosion": [0.05, 2.0],
+        "weirdness": [-0.05, 0.05]
+      }
+    },
+    {
+      "id": "minecraft:beach",
+      "climate": {
+        "continentalness": [-0.19, -0.11],
+        "erosion": [0.1, 2.0]
+      }
+    },
+    {
+      "id": "adventure:alpine_meadow",
+      "climate": {
+        "continentalness": [0.1, 2.0],
+        "erosion": [-2.0, -0.25]
+      }
+    },
+    {
+      "id": "minecraft:windswept_hills",
+      "climate": {
+        "continentalness": [-0.11, 0.1],
+        "erosion": [-2.0, -0.25]
+      }
+    },
+    {
+      "id": "adventure:orchid_marsh",
+      "climate": {
+        "humidity": [0.0, 2.0],
+        "continentalness": [-0.11, 0.2],
+        "erosion": [0.35, 2.0]
+      }
+    },
+    {
+      "id": "adventure:aspen_forest",
+      "climate": {
+        "temperature": [-2.0, -0.1],
+        "humidity": [-2.0, -0.15]
+      }
+    },
+    {
+      "id": "minecraft:birch_forest",
+      "climate": {
+        "temperature": [-0.1, 0.1],
+        "humidity": [-2.0, -0.15]
+      }
+    },
+    {
+      "id": "minecraft:meadow",
+      "climate": {
+        "temperature": [0.1, 0.3],
+        "humidity": [-2.0, -0.15]
+      }
+    },
+    {
+      "id": "adventure:lavender_fields",
+      "climate": {
+        "temperature": [0.3, 0.5],
+        "humidity": [-2.0, -0.15]
+      }
+    },
+    {
+      "id": "adventure:carnation_fields",
+      "climate": {
+        "temperature": [0.5, 2.0],
+        "humidity": [-2.0, -0.15]
+      }
+    },
+    {
+      "id": "adventure:alpha_grove",
+      "climate": {
+        "temperature": [-2.0, -0.1],
+        "humidity": [-0.15, 0.0]
+      }
+    },
+    {
+      "id": "minecraft:old_growth_birch_forest",
+      "climate": {
+        "temperature": [-0.1, 0.1],
+        "humidity": [-0.15, 0.0]
+      }
+    },
+    {
+      "id": "minecraft:plains",
+      "climate": {
+        "temperature": [0.1, 0.3],
+        "humidity": [-0.15, 0.0]
+      }
+    },
+    {
+      "id": "minecraft:sunflower_plains",
+      "climate": {
+        "temperature": [0.3, 0.5],
+        "humidity": [-0.15, 0.0]
+      }
+    },
+    {
+      "id": "adventure:barley_fields",
+      "climate": {
+        "temperature": [0.5, 2.0],
+        "humidity": [-0.15, 0.0]
+      }
+    },
+    {
+      "id": "adventure:maple_woodland",
+      "climate": {
+        "temperature": [-2.0, -0.1],
+        "humidity": [0.0, 0.1]
+      }
+    },
+    {
+      "id": "minecraft:forest",
+      "climate": {
+        "temperature": [-0.1, 0.1],
+        "humidity": [0.0, 0.1]
+      }
+    },
+    {
+      "id": "minecraft:cherry_grove",
+      "climate": {
+        "temperature": [0.1, 0.3],
+        "humidity": [0.0, 0.1]
+      }
+    },
+    {
+      "id": "minecraft:flower_forest",
+      "climate": {
+        "temperature": [0.3, 0.5],
+        "humidity": [0.0, 0.1]
+      }
+    },
+    {
+      "id": "adventure:magnolia_woodland",
+      "climate": {
+        "temperature": [0.5, 2.0],
+        "humidity": [0.0, 0.1]
+      }
+    },
+    {
+      "id": "adventure:sugi_forest",
+      "climate": {
+        "temperature": [-2.0, -0.1],
+        "humidity": [0.1, 0.25]
+      }
+    },
+    {
+      "id": "adventure:sugi_forest",
+      "climate": {
+        "temperature": [-0.1, 0.1],
+        "humidity": [0.1, 0.25]
+      }
+    },
+    {
+      "id": "minecraft:flower_forest",
+      "climate": {
+        "temperature": [0.1, 0.3],
+        "humidity": [0.1, 0.25]
+      }
+    },
+    {
+      "id": "adventure:wisteria_grove",
+      "climate": {
+        "temperature": [0.3, 0.5],
+        "humidity": [0.1, 0.25]
+      }
+    },
+    {
+      "id": "adventure:magnolia_woodland",
+      "climate": {
+        "temperature": [0.5, 2.0],
+        "humidity": [0.1, 0.25]
+      }
+    },
+    {
+      "id": "adventure:sugi_forest",
+      "climate": {
+        "temperature": [-2.0, -0.1],
+        "humidity": [0.25, 2.0]
+      }
+    },
+    {
+      "id": "minecraft:pale_garden",
+      "climate": {
+        "temperature": [-0.1, 0.1],
+        "humidity": [0.25, 2.0]
+      }
+    },
+    {
+      "id": "minecraft:cherry_grove",
+      "climate": {
+        "temperature": [0.1, 0.3],
+        "humidity": [0.25, 2.0]
+      }
+    },
+    {
+      "id": "minecraft:flower_forest",
+      "climate": {
+        "temperature": [0.3, 0.5],
+        "humidity": [0.25, 2.0]
+      }
+    },
+    {
+      "id": "adventure:carnation_fields",
+      "climate": {
+        "temperature": [0.5, 2.0],
+        "humidity": [0.25, 2.0]
+      }
+    }
+  ],
+  "borders": {
+    "player": 4096,
+    "generation": 2048
+  },
+  "difficulty": {
+    "mobMultiplier": 0.0,
+    "playerLuck": 3.0,
+    "hostileSpawning": false
+  },
+  "structures": {
+    "force": [
+      {
+        "structure": "mvs:large_mushroom",
+        "x": -1450,
+        "z": 980,
+        "exclusive": false
+      }
+    ]
+  },
+  "portals": [
+    {
+      "frameBlock": "minecraft:cherry_planks",
+      "igniterItem": "minecraft:cherry_sapling",
+      "color": "FFB7C5",
+      "lightLevel": 11,
+      "scale": 2.0,
+      "cooldown": 40,
+      "particleType": "minecraft:cherry_leaves",
+      "shape": "doorway",
+      "anchor": {
+        "pos": "spawn",
+        "exit": "bed"
+      },
+      "sounds": {
+        "ignite": "block.portal.trigger",
+        "enter": "block.portal.travel",
+        "exit": "block.portal.travel"
+      }
+    }
+  ],
+  "exitPortal": {
+    "enabled": true,
+    "pos": "spawn",
+    "target": "bed"
+  },
+  "roll": {
+    "mood": "serene",
+    "spawnFilter": [
+      "minecraft:cherry_grove"
+    ],
+    "wants": {
+      "village": "near_spawn",
+      "tavern": "spread",
+      "nova_structures:remnant_ruin_farmer": "near_spawn",
+      "mvs:small_oak_lantern": "near_spawn",
+      "ati_structures:haunted_ruin": "spread",
+      "mvs:campsite": "near_spawn",
+      "ati_structures:lighthouse": "near_border"
+    },
+    "shuns": [
+      "ancient_city",
+      "trial_chambers",
+      "mansion",
+      "mss:arena",
+      "monument"
+    ]
+  }
+}

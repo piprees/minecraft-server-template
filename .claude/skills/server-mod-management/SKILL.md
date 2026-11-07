@@ -1,11 +1,11 @@
 ---
 name: server-mod-management
-description: Add, remove, pin, hold, or troubleshoot server-side Fabric mods and datapacks for the Adventure Server platform (config/modrinth-mods.txt) or a consumer repo (overlay/mods-extra.txt, overlay/mods-remove.txt). Covers the mandatory Modrinth dependency checklist, the never-optional library list (fabric-api, yungs-api, moonlight, lithostitched, fabric-language-kotlin), the two-place rule for config-bearing mods (config/<modname>/ plus a COPY line in docker/defaults-seed/Dockerfile), version holds in modpack/adventure.mrpack.json, and the offline-boot delivery model (seed resolves pins once, sync-mods.sh fetches only what's missing, mc makes zero Modrinth calls at boot). Use when: adding a mod to either mod list, removing a default mod, running ./scripts/pin-mod-versions.sh, resolving "Mixin apply ... failed" or a Fabric "FormattedException" listing missing dependencies, diagnosing a Modrinth "429 Too Many Requests" crash-loop in the seed container, or a mod's config never reaching a consumer server.
+description: Add, remove, pin, hold, or troubleshoot server-side Fabric mods and datapacks for the Adventure Server platform (config/modrinth-mods.txt) or a consumer repo (overlay/mods-extra.txt, overlay/mods-remove.txt). Covers the Modrinth dependency-checklist recipes, the two-place rule for config-bearing mods (config/<modname>/ plus a COPY line in docker/defaults-seed/Dockerfile), version holds in modpack/adventure.mrpack.json, and the offline-boot delivery model (seed resolves pins once, sync-mods.sh fetches only what's missing, mc makes zero Modrinth calls at boot). Use when: adding a mod to either mod list, removing a default mod, running ./scripts/pin-mod-versions.sh, resolving "Mixin apply ... failed" or a Fabric "FormattedException" listing missing dependencies, diagnosing a Modrinth "429 Too Many Requests" crash-loop in the seed container, or a mod's config never reaching a consumer server.
 ---
 
 # Server Mod Management
 
-This is CONTRIBUTING.md's own warning: _"the most common type of change and the one most likely to break things."_ The knowledge is scattered across `AGENTS.md`, `CONTRIBUTING.md`, `README.md`, and four scripts — this skill collects it into one path so you don't ship a mod whose config never reaches consumers, or bump a pin that's meant to be held.
+The commands for changing a mod list. The rules, their reasons and the versioning contract are in [`DEPENDENCIES.md`](../../../DEPENDENCIES.md); read [§ Adding a mod](../../../DEPENDENCIES.md#adding-a-mod) before adding anything.
 
 **Out of scope**: client mods, resource/shader packs (client-side only, `modpack/adventure.mrpack.json` `_clientMods`/`_resourcePacks`/`_shaderPacks`), in-house Fabric mods under `mods/` (see `mods/AGENTS.md`), and which deploy tier a change triggers (see the deploy-pipeline skill — this skill only tells you what to edit).
 
@@ -19,7 +19,7 @@ This is CONTRIBUTING.md's own warning: _"the most common type of change and the 
 | Re-pin | `./scripts/pin-mod-versions.sh --apply` | `./dev pin` (wraps `pin-mod-versions.sh --file overlay/mods-extra.txt`) |
 | Ship it | Push to `main` (builds images) **then cut a release** (`gh workflow run release.yml -f version=vX.Y.Z`) — a bare push never reaches a running consumer server | Push to `main` — `overlay/mods-extra.txt`/`mods-remove.txt` match `FULL_PATTERNS` in `deploy-reusable.yml`, so it's a full deploy immediately |
 
-**The trap this table exists to prevent**: pushing a platform mod-list change to `main` builds Docker images but changes nothing on any running server. Consumers pin `STACK_VERSION` to a release tag (`v4`, `v5`, ...); the mod only reaches them once you cut the next release. Contrast this with a consumer repo, where the same kind of edit deploys on the next push.
+**The trap this table exists to prevent**: pushing a platform mod-list change to `main` builds Docker images but changes nothing on any running server. Consumers pin `STACK_VERSION` to a release tag (`v4`, `v5`, ...); the mod only reaches them once you cut the next release, versioned per [DEPENDENCIES.md § Versioning contract](../../../DEPENDENCIES.md#versioning-contract). Contrast this with a consumer repo, where the same kind of edit deploys on the next push.
 
 ## Step 1: the dependency checklist (mandatory, every time)
 
@@ -35,11 +35,9 @@ curl -s "https://api.modrinth.com/v2/project/{project_id}" \
   | python3 -c "import sys,json; d=json.load(sys.stdin); print(d['slug'], d['title'])"
 ```
 
-Every `required` dependency must already be in the pack or be added alongside it. **Never mark these libraries optional** — they're relied on across dozens of mods: `fabric-api`, `yungs-api`, `moonlight`, `lithostitched`, `fabric-language-kotlin`.
+Every `required` dependency must already be in the pack or be added alongside it. Libraries are never optional; the list is [DEPENDENCIES.md § Libraries](../../../DEPENDENCIES.md#libraries).
 
-`AGENTS.md`/`CONTRIBUTING.md` also list `balm` in that never-optional set, but check `config/modrinth-mods.txt` before assuming it's there: it's currently commented out (_"removed: only dep was waystones+netherportalfix (both removed)"_) — there is no live `balm` pin to protect. Only re-add it if a new mod actually needs it.
-
-Verify the resolved version genuinely targets 1.21.1 — Modrinth metadata isn't always honest (`extra_enchantments` claimed 1.21.1 support but shipped 1.21.2 registry keys; it's disabled in the mod list for exactly this reason).
+Verify the resolved version genuinely targets 1.21.1: Modrinth's `game_versions` metadata can be wrong, so check the version detail and the jar.
 
 Full worked recipes and the `check-modrinth-compat.sh` / `pin-mod-versions.sh` flag reference: `references/dependency-resolution.md`.
 
@@ -54,7 +52,7 @@ Pinning writes `slug:versionId` — never `slug:latest`. **Inline comments on a 
 
 ## The delivery model (the mental model you already have is wrong here)
 
-The instinct is "the server downloads mods at boot." It doesn't, and assuming it does is what causes a Modrinth `429 Too Many Requests` crash-loop the moment a mod list changes:
+The server never downloads mods from the Modrinth API at boot ([T4](../../../TROUBLESHOOTING.md#t4)):
 
 1. `config/modrinth-mods.txt` (defaults) merges with the consumer's `overlay/mods-remove.txt` and `overlay/mods-extra.txt` inside the `defaults-seed` container (`docker/defaults-seed/seed.sh`).
 2. `resolve-mods.py` resolves every `slug:versionId` pin to a direct CDN URL **once** — version IDs are immutable on Modrinth, so the result is cached forever (`.resolve-cache.json`, plus a repo-committed `config/modrinth-resolve-cache.json` baked into the image). A warm cache makes this zero API calls.
@@ -65,28 +63,13 @@ A failed **required** resolution fails the seed and blocks the boot loudly — t
 
 Full per-environment mechanics (local `./dev up`, production `deploy.sh`, CI): `references/mod-delivery-pipeline.md`.
 
-## The two-place rule for config-bearing mods
+## Config-bearing mods
 
-If a mod reads its own config file, you must touch **two places** or consumers get the mod's own auto-generated defaults forever, with no error:
-
-1. Config file(s) in `config/<modname>/` (usually a directory; some mods read a bare path — e.g. Tectonic reads `config/tectonic.json` directly, verify against the mod's own docs/jar, don't guess).
-2. A matching `COPY` line in `docker/defaults-seed/Dockerfile` (e.g. `COPY config/tectonic.json /defaults/config/tectonic.json`). Without this line the file never reaches the seed image, so it never reaches any consumer.
-
-This is a **silent failure** — nothing crashes, no warning, the mod just runs on its own generated defaults on every consumer server indefinitely.
+A mod that reads its own config needs the file in `config/<modname>/` **and** a `COPY` line in `docker/defaults-seed/Dockerfile`, or every consumer silently runs the mod's own defaults: [AGENTS.md § Config sync](../../../AGENTS.md#config-sync). Flat-path exceptions: `references/mod-list-formats.md`.
 
 ## Version holds
 
-Holds live in `modpack/adventure.mrpack.json` → `_holds` (keyed by slug, value is the reason). Both of `pin-mod-versions.sh`'s re-pin loops read that one map — the server list and the client manifest alike — and so does the weekly `mod-updates.yml`. It sits at the manifest's top level rather than inside `_clientMods` because a hold is a statement about a mod, not about a distribution channel. Current holds:
-
-| Slug | Held at | Why |
-| --- | --- | --- |
-| `critters-and-companions` | `1.21.1-2.4.1` (`YuM4Jtu5`) | `2.6.x` claims 1.21.1 but needs a newer Architectury than the newest 1.21.1 build provides — `AbstractMethodError` at boot |
-
-A hold covers server-only mods too — a slug that lives in `config/modrinth-mods.txt` and not in `_clientMods.required`/`.optional` is exactly why both loops read the same map: `./scripts/pin-mod-versions.sh --apply`, and the Monday `mod-updates.yml` that runs it unattended, leave a held slug on its pin and print `<slug> - HELD`.
-
-Never bump a held slug manually; remove the hold only once its stated blocker clears. Read the live table from `modpack/adventure.mrpack.json` rather than trusting this copy — holds come and go.
-
-**Era-pairs**: Xaero's minimap and world map share code and must be bumped together, whether or not either is held.
+Rules: [DEPENDENCIES.md § Holds](../../../DEPENDENCIES.md#holds). Holds live in `modpack/adventure.mrpack.json` → `_holds` (slug → reason). Both of `pin-mod-versions.sh`'s re-pin loops read that map, so a held slug keeps its pin in `config/modrinth-mods.txt` and in the client manifest alike, and the run logs it as `HELD`. Read the live object for the current holds.
 
 ## Removal is not symmetric with addition
 
@@ -99,15 +82,14 @@ Either way, **stale jars are pruned automatically**: `deploy.sh` (production) an
 ## Traps (read before you touch a mod list)
 
 1. **Hand-added jars in `data/mods/` are pruned.** See "Removal" above. Ship via `overlay/mods-extra.txt` or `local-mods/`.
-2. **Modrinth metadata lies.** `extra_enchantments` claimed 1.21.1 and shipped 1.21.2 registry keys — verify the resolved version's actual target, don't trust the tag.
+2. **Modrinth metadata can be wrong.** A mod can claim 1.21.1 and ship another version's registry keys — verify the resolved version's actual target, don't trust the tag.
 3. **`pin-mod-versions.sh` destroys inline comments on re-pin**; comment-only lines survive. Comment above the mod, never trailing on its line.
-4. **Worldgen/dimension mods must be present from chunk zero.** Adding one to an existing world causes visible chunk borders — Terralith, Incendium, and Nullscape all generate custom terrain.
-5. **`MODRINTH_PROJECTS` must never come back.** It made itzg re-resolve ~160 versions through the live API on every sync-enabled boot and 429-crash-looped `mc` whenever the mod list changed — this is exactly why the seed/resolve-cache/sync-mods pipeline exists.
+4. **Worldgen/dimension mods must be present from chunk zero** ([DEPENDENCIES.md § Worldgen, structure and dimension mods](../../../DEPENDENCIES.md#worldgen-structure-and-dimension-mods)).
+5. **`MODRINTH_PROJECTS` must never come back** ([T4](../../../TROUBLESHOOTING.md#t4)).
 6. **A failed required resolution fails the seed and blocks the boot — loudly, on purpose.** Booting without a worldgen mod corrupts chunks; don't try to make this fail softer.
-7. **The mod mirror and packwiz index are build output.** `modpack/dist/mods/` and `modpack/dist/packwiz/` are generated and pruned by `build-modpack.sh` — never hand-edit them.
-8. **Holds don't protect the server mod list**, only the client manifest re-pin. See "Version holds" above — a held server-only mod depends entirely on human review of the weekly PR diff.
-9. **macOS BSD tools trip on this workflow in two specific ways**: `grep -P` doesn't exist (use `grep -oE`), and BSD `grep -E` doesn't support `\s` either — `[[:space:]]` or a POSIX character class is what actually works cross-platform. Verified directly while auditing `config/modrinth-mods.txt`: a `\s`-based count silently returned the wrong number with no error.
-10. **CONTRIBUTING.md's config-sync section is stale**: it names `MC_PATTERNS` in `.github/workflows/deploy.yml`. The real trigger list is `FULL_PATTERNS` in `.github/workflows/deploy-reusable.yml` (currently `^overlay/config/|^overlay/mods-extra\.txt$|^overlay/mods-remove\.txt$`). Go by the workflow file, not the doc, if they ever disagree again.
+7. **The mod mirror and packwiz index are build output** ([T16](../../../TROUBLESHOOTING.md#t16)).
+8. **Holds cover both lists.** A held slug stays on its pin in `config/modrinth-mods.txt` and the client manifest; only a hand edit moves it, and that edit is forbidden.
+9. **macOS BSD tools:** no `grep -P` ([P3](../../../TROUBLESHOOTING.md#p3)), and BSD `grep -E` has no `\s` — use `[[:space:]]`. A `\s`-based count returns the wrong number with no error.
 
 ## Validation
 

@@ -1,0 +1,109 @@
+name: Mod build (26.3)
+
+on:
+  pull_request:
+    paths:
+      - 'mods/custom-dimensions-26/**'
+      - 'mods/custom-dimensions-client-26/**'
+      - 'mods/local-mods-26.3.manifest'
+      - 'scripts/local-mods.sh'
+      - '.github/workflows/mod26.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'mods/custom-dimensions-26/**'
+      - 'mods/custom-dimensions-client-26/**'
+      - 'mods/local-mods-26.3.manifest'
+      - 'scripts/local-mods.sh'
+      - '.github/workflows/mod26.yml'
+
+jobs:
+  companion:
+    name: Companion client build and tests on 26.3
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: mods/custom-dimensions-client-26
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '25'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v6
+
+      # The wire fixtures are a copy of the server mod's; a drift between the two copies fails here or in its suite.
+      - name: Fixtures match the server mod's
+        run: diff -r src/test/resources/companion-fixtures ../custom-dimensions-26/server/src/test/resources/companion-fixtures
+
+      - name: Build and unit tests
+        run: ./gradlew build
+
+  build:
+    name: Build, test and self-test on 26.3
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    defaults:
+      run:
+        working-directory: mods/custom-dimensions-26
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '25'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v6
+
+      # The compiler's vanilla input (server jar, its data and reports) is
+      # ~50 MB per Minecraft version; download it once per version.
+      - name: Cache vanilla data
+        uses: actions/cache@v6
+        with:
+          path: mods/custom-dimensions-26/compiler/build/vanilla
+          key: vanilla-${{ hashFiles('mods/custom-dimensions-26/gradle.properties') }}
+
+      - name: Build and unit tests
+        run: ./gradlew build
+
+      # The jar the 26.3 bundle ships, through release.yml's gate: no refmap
+      # (Loom's non-remapping plugin), compiled classes, a server mod.
+      - name: Verify the shipped jar
+        working-directory: .
+        env:
+          MC_VERSION_OVERRIDE: '26.3'
+        run: |
+          ./scripts/local-mods.sh build server "$RUNNER_TEMP/local-mods" --skip-tests
+          ./scripts/local-mods.sh verify server "$RUNNER_TEMP/local-mods"
+
+      # The compiled pack must load on an unmodded server.
+      - name: Vanilla boot check
+        run: |
+          ./gradlew :compiler:compileDatapack
+          scripts/vanilla-boot-check.sh
+
+      # Boots a real 26.3 server with the mod, runs SelfTest and stops.
+      # A missing report means the server never reached SERVER_STARTED.
+      - name: Self-test on a 26.3 server
+        run: |
+          mkdir -p server/run
+          echo 'eula=true' > server/run/eula.txt
+          # A fixed seed keeps the variant checks comparing the same terrain every run.
+          printf 'online-mode=false\nmax-tick-time=-1\nview-distance=4\nsimulation-distance=4\nlevel-seed=20261022\n' > server/run/server.properties
+          report="$RUNNER_TEMP/selftest.txt"
+          ./gradlew :server:runServer -PselfTest="$report"
+          if [[ ! -s "$report" ]]; then
+            echo "::error::self-test wrote no report"
+            exit 1
+          fi
+          cat "$report"
+          if grep -q '^FAIL' "$report"; then
+            echo "::error::self-test failed"
+            exit 1
+          fi

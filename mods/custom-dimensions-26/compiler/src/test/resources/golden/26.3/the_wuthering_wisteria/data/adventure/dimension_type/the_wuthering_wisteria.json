@@ -1,0 +1,17 @@
+{
+  "base": "minecraft:overworld",
+  "changed": {
+    "attributes": {
+      "changed": {
+        "minecraft:visual/fog_color": "#f0d8e8"
+      }
+    },
+    "has_fixed_time": true,
+    "timelines": [
+      "adventure:fixed_time/villager_schedule_12000",
+      "adventure:fixed_time/day_12000",
+      "adventure:fixed_time/moon_12000",
+      "minecraft:early_game"
+    ]
+  }
+}

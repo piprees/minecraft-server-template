@@ -1,0 +1,172 @@
+{
+  "schemaVersion": 2,
+  "description": "Sculk-eaten caverns. The deep dark outlived the world it consumed and tunnelled on — this is where the underground sculk broke through from the ancient cities. The humans who explored too deep triggered this, and the infection never stopped. It does not stop at the portal either: what stands near the frame is what it eats next.",
+  "seed": 5300382733225892811,
+  "spawn": [128, 16, 128],
+  "generator": {
+    "type": "noise",
+    "preset": "caves"
+  },
+  "biomes": [
+    {
+      "id": "adventure:umbral_wastes",
+      "climate": {
+        "temperature": [-2.0, -0.078],
+        "humidity": [-2.0, -0.081]
+      }
+    },
+    {
+      "id": "minecraft:deep_dark",
+      "climate": {
+        "temperature": [-2.0, -0.078],
+        "humidity": [-0.081, 0.168]
+      }
+    },
+    {
+      "id": "adventure:withered_forest",
+      "climate": {
+        "temperature": [-2.0, -0.078],
+        "humidity": [0.168, 2.0]
+      }
+    },
+    {
+      "id": "minecraft:dripstone_caves",
+      "climate": {
+        "temperature": [-0.078, 0.169],
+        "humidity": [-2.0, -0.081]
+      }
+    },
+    {
+      "id": "adventure:lichen_caves",
+      "climate": {
+        "temperature": [-0.078, 0.169],
+        "humidity": [-0.081, 0.168]
+      }
+    },
+    {
+      "id": "adventure:mycotoxic_undergrowth",
+      "climate": {
+        "temperature": [-0.078, 0.169],
+        "humidity": [0.168, 2.0]
+      }
+    },
+    {
+      "id": "adventure:bioshroom_caves",
+      "climate": {
+        "temperature": [0.169, 2.0],
+        "humidity": [-2.0, -0.048]
+      }
+    },
+    {
+      "id": "adventure:magmatic_caves",
+      "climate": {
+        "temperature": [0.169, 2.0],
+        "humidity": [-0.048, 0.141]
+      }
+    },
+    {
+      "id": "adventure:redstone_abyss",
+      "climate": {
+        "temperature": [0.169, 2.0],
+        "humidity": [0.141, 2.0]
+      }
+    }
+  ],
+  "dimensionType": {
+    "hasSkylight": false,
+    "hasCeiling": true,
+    "monsterSpawnLightLevel": 15
+  },
+  "atmosphere": {
+    "fogColor": "#0B2B3B",
+    "ambientLight": 0.03
+  },
+  "borders": {
+    "player": 512,
+    "generation": 512
+  },
+  "difficulty": {
+    "mobMultiplier": 3.0,
+    "playerLuck": 2.5,
+    "depthScaling": {
+      "enabled": true,
+      "startY": 64,
+      "endY": -64,
+      "minMultiplier": 1.5,
+      "maxMultiplier": 2.5
+    }
+  },
+  "structures": {
+    "force": [
+      {
+        "structure": "ati_structures:warden_monument",
+        "x": 176,
+        "z": 64,
+        "exclusive": false
+      },
+      {
+        "structure": "minecraft:ancient_city",
+        "x": -256,
+        "z": 384,
+        "exclusive": false
+      }
+    ]
+  },
+  "portals": [
+    {
+      "frameBlock": "minecraft:sculk",
+      "igniterItem": "minecraft:netherite_scrap",
+      "color": "0B4B5B",
+      "lightLevel": 11,
+      "scale": 16.0,
+      "cooldown": 40,
+      "particleType": "minecraft:sculk_soul",
+      "sounds": {
+        "ignite": "block.portal.trigger",
+        "enter": "block.portal.travel",
+        "exit": "block.portal.travel"
+      },
+      "aura": {
+        "subsume": "everything",
+        "palette": [
+          "minecraft:sculk",
+          "minecraft:sculk_vein",
+          "minecraft:deepslate"
+        ],
+        "flora": [
+          "minecraft:sculk_vein"
+        ]
+      }
+    }
+  ],
+  "exits": {
+    "death": {
+      "action": "respawnAt",
+      "target": {
+        "dimension": "adventure:the_underdark",
+        "arrival": "spawn"
+      }
+    }
+  },
+  "roll": {
+    "mood": "hard",
+    "allowHazardousSpawn": true,
+    "spawnFilter": [
+      "minecraft:deep_dark",
+      "adventure:lichen_caves"
+    ],
+    "wants": {
+      "ati_structures:warden_monument": "near_spawn",
+      "trial_chambers": "spread",
+      "ancient_city": "near_border",
+      "nova_structures:catacomb": "spread",
+      "nova_structures:deepslate_camp": "near_spawn"
+    },
+    "shuns": [
+      "village",
+      "tavern",
+      "nova_structures:remnant_ruin_farmer",
+      "towns_and_towers:exclusives/village_piglin"
+    ]
+  }
+}

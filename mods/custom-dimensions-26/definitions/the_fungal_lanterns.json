@@ -1,0 +1,133 @@
+{
+  "schemaVersion": 2,
+  "description": "Shroomlight groves on ledges above a lava sea, under a stone ceiling — the nether's gentlest rooms, lit orange from below and teal from above. Even the piglins left these alone. The lava here does not kill you; it puts you back where you came from.",
+  "seed": 2829190404799105844,
+  "spawn": [-384, 66, 320],
+  "generator": {
+    "type": "noise",
+    "preset": "caves"
+  },
+  "biomes": [
+    {
+      "id": "minecraft:nether_wastes",
+      "climate": {
+        "temperature": [-2.0, 0.195],
+        "humidity": [-2.0, -0.17]
+      }
+    },
+    {
+      "id": "minecraft:warped_forest",
+      "climate": {
+        "temperature": [-2.0, 0.195],
+        "humidity": [-0.17, 0.08]
+      }
+    },
+    {
+      "id": "adventure:upside_down_forest",
+      "climate": {
+        "temperature": [-2.0, 0.195],
+        "humidity": [0.08, 2.0]
+      }
+    },
+    {
+      "id": "adventure:quartz_flats",
+      "climate": {
+        "temperature": [0.195, 2.0],
+        "humidity": [-2.0, -0.146]
+      }
+    },
+    {
+      "id": "adventure:bioshroom_caves",
+      "climate": {
+        "temperature": [0.195, 2.0],
+        "humidity": [-0.146, 0.042]
+      }
+    },
+    {
+      "id": "minecraft:crimson_forest",
+      "climate": {
+        "temperature": [0.195, 2.0],
+        "humidity": [0.042, 2.0]
+      }
+    }
+  ],
+  "liquids": {
+    "seaLevel": 34,
+    "defaultFluid": "minecraft:lava"
+  },
+  "dimensionType": {
+    "hasCeiling": true
+  },
+  "atmosphere": {
+    "fogColor": "#2B1B14",
+    "ambientLight": 0.35
+  },
+  "borders": {
+    "player": 1024,
+    "generation": 1024
+  },
+  "difficulty": {
+    "mobMultiplier": 0.5,
+    "playerLuck": 2.0
+  },
+  "structures": {
+    "density": "sparse",
+    "wants": {
+      "crimson_fungus": {
+        "min": 0,
+        "max": 154
+      }
+    }
+  },
+  "portals": [
+    {
+      "frameBlock": "minecraft:shroomlight",
+      "igniterItem": "minecraft:flint_and_steel",
+      "color": "DFA040",
+      "lightLevel": 11,
+      "scale": 8.0,
+      "cooldown": 40,
+      "particleType": "minecraft:mycelium",
+      "sounds": {
+        "ignite": "block.portal.trigger",
+        "enter": "block.portal.travel",
+        "exit": "block.portal.travel"
+      }
+    }
+  ],
+  "exits": {
+    "death:lava": {
+      "action": "teleport",
+      "target": "origin"
+    },
+    "death:on_fire": {
+      "action": "teleport",
+      "target": "origin"
+    },
+    "death:in_fire": {
+      "action": "teleport",
+      "target": "origin"
+    }
+  },
+  "roll": {
+    "mood": "serene",
+    "spawnFilter": [
+      "minecraft:crimson_forest",
+      "minecraft:warped_forest",
+      "adventure:upside_down_forest"
+    ],
+    "wants": {
+      "crimson_fungus": "near_spawn",
+      "mvs:large_warped_tower": "spread",
+      "mns:sword": "spread",
+      "mns:warped_dome": "near_border",
+      "nether_bridge": "near_border"
+    },
+    "shuns": [
+      "mns:mega_fortress",
+      "bastion",
+      "nova_structures:sealing_halls"
+    ],
+    "heightRange": [-64, 110]
+  }
+}

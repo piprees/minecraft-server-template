@@ -1,0 +1,40 @@
+{
+  "type": "adventure:the_basalt_spires",
+  "generator": {
+    "type": "minecraft:noise",
+    "biome_source": {
+      "type": "minecraft:multi_noise",
+      "biomes": [
+        {
+          "biome": "adventure:ash_barrens",
+          "parameters": "sha1:2b1126e38df5242f5e7285ad6a7f34f929760ac7"
+        },
+        {
+          "biome": "minecraft:soul_sand_valley",
+          "parameters": "sha1:9ad100b9be9c3d10ff40152386ff0948889fe988"
+        },
+        {
+          "biome": "adventure:blackstone_basin",
+          "parameters": "sha1:e4e404bc30876c0bf714a1f4c72575e3353d57af"
+        },
+        {
+          "biome": "adventure:quartz_flats",
+          "parameters": "sha1:3108cc566c4dd6f462de75a64373d5128bfba1d7"
+        },
+        {
+          "biome": "minecraft:nether_wastes",
+          "parameters": "sha1:170b9d5c37370804f0fced59fd5e2082af02aba6"
+        },
+        {
+          "biome": "adventure:magma_land",
+          "parameters": "sha1:8a2ce22a6cf5b7020290f4a5f5b3c40d3f2c1fcf"
+        },
+        {
+          "biome": "minecraft:basalt_deltas",
+          "parameters": "sha1:cec16fa912c96f9e0879af456f6999ed20d51170"
+        }
+      ]
+    },
+    "settings": "adventure:the_basalt_spires"
+  }
+}

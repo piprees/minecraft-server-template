@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 2,
+  "description": "Self-test fixture and showcase: the biome library's alpine meadow filling a whole level on the ridges terrain raised to high, rounded ranges, so its meadows climb past the snowline round y 140, for the biomes section's per-biome checks, renders and screenshots.",
+  "seed": 8,
+  "spawn": [
+    0,
+    64,
+    0
+  ],
+  "generator": {
+    "type": "single_biome",
+    "biome": "adventure:alpine_meadow"
+  },
+  "terrain": {
+    "base": "ridges",
+    "params": {
+      "peakHeight": 120,
+      "jaggedness": 0.35,
+      "rangeWidth": 0.5
+    }
+  },
+  "borders": {
+    "player": 512
+  }
+}

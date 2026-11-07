@@ -1,0 +1,236 @@
+slug,name,group,side,decision,why,replaced_by,gave_us,build_26_3,build_26_2,licence
+carpet,Carpet,admin,server,kept,Server-side only.,—,,26.3,26.2,MIT
+dcintegration,Discord Integration,admin,server,waiting,No 26.3 build yet; joins when its author ships one.,Joins through dep-review,,,3.2.1-26.2,MIT
+essential-commands,Essential Commands,admin,server,kept,Server-side only.,—,,0.42.0-mc26.3,0.41.0-mc26.2,MIT
+hide-invis-msgs,Hide Invis Msgs,admin,server,kept,Server-side only.,—,,1.4+26.2,1.4+26.2,LicenseRef-All-Rights-Reserved
+ledger,Ledger,admin,server,kept,Server-side only.,—,,1.3.24,1.3.23,LGPL-3.0-only
+luckperms,LuckPerms,admin,server,kept,Server-side only.,—,,v5.5.85-fabric,v5.5.85-fabric,MIT
+no-chat-reports,No Chat Reports,admin,optional,waiting,No 26.3 build yet; joins when its author ships one.,Joins through dep-review,,,Fabric-26.2-v2.20.2,WTFPL
+open-parties-and-claims,Open Parties and Claims,admin,optional,kept,Works for vanilla clients; the client copy adds extras.,—,,fabric-26.3-0.31.6,fabric-26.2-0.31.6,LGPL-3.0-only
+spark,spark,admin,server,kept,Server-side only.,—,,1.10.187-fabric,1.10.187-fabric,GPL-3.0-only
+starter-kit,Starter Kit,admin,server,kept,Server-side only.,—,,26.3.0-8.2-fabric+forge+neo,26.2.0-8.1-fabric+forge+neo,LicenseRef-All-Rights-Reserved
+styled-chat,Styled Chat,admin,server,kept,Server-side only.,—,,2.14.0+26.3,2.13.0+26.2,LGPL-3.0-only
+fancy-crops,(Bee's) Fancy Crops,client,client,waiting,No 26.3 build yet; joins when its author ships one.,Joins through dep-review,,,1.3,LicenseRef-All-Rights-Reserved
+3dskinlayers,3D Skin Layers,client,client,kept,Client-side only; in the optional pack.,—,,1.11.3,1.11.3,LicenseRef-tr7zw-Protective-License
+entity-model-features,[EMF] Entity Model Features,client,client,kept,Client-side only; in the optional pack.,—,,3.3.8-fabric-26.3,3.3.8-fabric-26.2,LGPL-3.0-only
+entitytexturefeatures,[ETF] Entity Texture Features,client,client,kept,Client-side only; in the optional pack.,—,,7.2.4-fabric-26.3,7.2.4-fabric-26.2,LGPL-3.0-only
+ambientsounds,AmbientSounds,client,client,kept,Client-side only; in the optional pack.,—,,6.3.6,6.3.6,LGPL-3.0-only
+areas,Areas,client,client,kept,Client-side only; in the optional pack.,—,,26.3.0-6.4-fabric+forge+neo,26.2.0-6.4-fabric+forge+neo,LicenseRef-All-Rights-Reserved
+better-advancements,Better Advancements,client,client,waiting,No 26.3 build yet; joins when its author ships one.,Joins through dep-review,,,0.6.0.72,LicenseRef-Dont-Be-a-Jerk
+betterf3,BetterF3,client,client,waiting,No 26.3 build yet; joins when its author ships one.,Joins through dep-review,,,19.0.0,MIT
+cave-dust,Cave Dust,client,client,waiting,No 26.3 build yet; joins when its author ships one.,Joins through dep-review,,,,MPL-2.0
+complementary-reimagined,Complementary Shaders - Reimagined,client,client,kept,Client-side only; in the optional pack.,—,,r5.9.3,r5.9.3,LicenseRef-Custom
+consumableoptimizer,Consumable Optimizer,client,client,waiting,No 26.3 build yet; joins when its author ships one.,Joins through dep-review,,,2.2.2-26.2,MIT
+continuity,Continuity,client,client,kept,Client-side only; in the optional pack.,—,,3.0.1+26.3,3.0.1+26.2,LGPL-3.0-only
+controlify,Controlify (Controller support),client,client,kept,Client-side only; in the optional pack.,—,,3.5.3+mc26.3,3.5.3+mc26.2,LGPL-3.0-or-later
+creativecore,CreativeCore,client,client,kept,Client-side only; in the optional pack.,—,,2.14.16,2.14.16,LGPL-3.0-only
+cubes-without-borders,Cubes Without Borders,client,client,waiting,No 26.3 build yet; joins when its author ships one.,Joins through dep-review,,,4.1.0+26.2,MIT
+custom-splash-screen,Custom Splash Screen,client,client,waiting,No 26.3 build yet; joins when its author ships one.,Joins through dep-review,,,,MIT
+dark-graph,Dark Graph,client,client,waiting,No 26.3 build yet; joins when its author ships one.,Joins through dep-review,,,,BSD-3-Clause
+dark-window-bar,Dark Window Bar,client,client,waiting,No 26.3 build yet; joins when its author ships one.,Joins through dep-review,,,,LGPL-3.0-only
+dramatic-skys,Dramatic Skys,client,client,kept,Client-side only; in the optional pack.,—,,1.5.3.36.6,1.5.3.36.6,LicenseRef-All-Rights-Reserved
+emi,EMI,client,client,replaced,A client recipe viewer vanilla and Bedrock players can't use.,polydex: recipes for every client,,,,MIT
+enchantment-descriptions,Enchantment Descriptions,client,client,kept,Client-side only; in the optional pack.,—,,26.3.0.1,26.2.0.2,LGPL-2.1-only
+enchantment-level-cap-indicator,Enchantment Level Cap Indicator,client,client,kept,Client-side only; in the optional pack.,—,,26.3.0-1.2-fabric+forge+neo,26.2.0-1.2-fabric+forge+neo,LicenseRef-All-Rights-Reserved
+entityculling,Entity Culling,client,client,kept,Client-side only; in the optional pack.,—,,1.11.2,1.11.2,LicenseRef-tr7zw-Protective-License
+euphoria-patches,Euphoria Patches,client,client,kept,Client-side only; in the optional pack.,—,,1.10.5-r5.9.3-fabric,1.10.5-r5.9.3-fabric,MPL-2.0
+fabric-seasons-terralith-compat,Fabric Seasons: Terralith Compat,client,client,cut,Goes with Fabric Seasons and Terralith.,Nothing,,,,MPL-2.0
+first-person-model,First-person Model,client,client,kept,Client-side only; in the optional pack.,—,,2.7.3,2.7.3,MIT
+freecam,Freecam,client,client,kept,Client-side only; in the optional pack.,—,,1.5.0-alpha.2,1.5.0-alpha.2,MIT
+fresh-animations,Fresh Animations,client,client,kept,Client-side only; in the optional pack.,—,,1.10.5,1.10.5,LicenseRef-See-Terms-of-Use-in-Description
+gui-effect-timer,GUI Effect Timer,client,client,kept,Client-side only; in the optional pack.,—,,26.3.0-1.1-fabric+forge+neo,26.2.0-1.1-fabric+forge+neo,LicenseRef-All-Rights-Reserved
+human-era-villagers-illagers,Human Era: Villagers & Illagers X Fresh Animations,client,client,kept,Client-side only; in the optional pack.,—,,hevi_3.91.6_full_content,hevi_3.91.6_full_content,CC-BY-SA-4.0
+iris,Iris Shaders,client,client,kept,Client-side only; in the optional pack.,—,,1.11.6+26.3-fabric,1.11.4+26.2-fabric,LGPL-3.0-only
+jade,Jade,client,client,kept,Client-side only; in the optional pack.,—,,26.3.2+fabric,26.2.11+fabric,CC-BY-NC-SA-4.0
+low-on-fire,Low On Fire,client,client,kept,Client-side only; in the optional pack.,—,,26.3,26.3,LicenseRef-All-Rights-Reserved
+mindful-darkness,Mindful Darkness,client,client,waiting,No 26.3 build yet; joins when its author ships one.,Joins through dep-review,,,26.2.0,MPL-2.0
+modmenu,Mod Menu,client,client,kept,Client-side only; in the optional pack.,—,,21.0.0,20.0.3,MIT
+better-leaves,Motschen's Better Leaves,client,client,waiting,No 26.3 build yet; joins when its author ships one.,Joins through dep-review,,,9.6,MIT
+os-colorful-grasses,Os' Colorful Grasses,client,client,kept,Client-side only; in the optional pack.,—,,Tall-26.3,Tall-26.3,LicenseRef-All-Rights-Reserved
+particle-effects,Particle Effects,client,client,kept,Client-side only; in the optional pack.,—,,1.6.0+26.3+fabric,1.6.0+26.2+fabric,CC-BY-ND-4.0
+particle-rain,Particle Rain,client,client,waiting,No 26.3 build yet; joins when its author ships one.,Joins through dep-review,,,v4-beta.11+26.2-fabric,MIT
+pick-up-notifier,Pick Up Notifier,client,client,kept,Client-side only; in the optional pack.,—,,26.3.0,26.2.0,MPL-2.0
+presence-footsteps,Presence Footsteps,client,client,kept,Client-side only; in the optional pack.,—,,1.14.0+26.3,1.13.3+26.2,LicenseRef-Polyform-Shield-1.0
+quiks-human-guard-villagers,Quik's Human Guard Villagers,client,client,cut,Resource pack for Guard Villagers.,Nothing,,,,CC-BY-4.0
+satin-free-wakes,Satin Free Wakes,client,client,waiting,No 26.3 build yet; joins when its author ships one.,Joins through dep-review,,,,GPL-3.0-only
+complete-shield-fixes,Shield Fixes,client,client,waiting,No 26.3 build yet; joins when its author ships one.,Joins through dep-review,,,2.0.4+26.2,MIT
+simple-grass-flowers,Simple Grass Flowers,client,client,waiting,No 26.3 build yet; joins when its author ships one.,Joins through dep-review,,,2.0.0,LicenseRef-All-Rights-Reserved
+sodium,Sodium,client,client,kept,Client-side only; in the optional pack.,—,,mc26.3-0.9.3-alpha.1-fabric,mc26.2-0.9.2-fabric,LicenseRef-Polyform-Shield-1.0.0
+sound-physics-remastered,Sound Physics Remastered,client,client,kept,Client-side only; in the optional pack.,—,reverb and occlusion,fabric-1.5.1+26.3,fabric-1.5.1+26.2,GPL-3.0-only
+travelers-titles,Traveler's Titles,client,client,waiting,No 26.3 build yet; joins when its author ships one.,Joins through dep-review,,,,LGPL-3.0-only
+visuality,Visuality,client,client,kept,Client-side only; in the optional pack.,—,,0.7.15+26.3,0.7.15+26.3,MIT
+walksylib,WalksyLib,client,client,waiting,No 26.3 build yet; joins when its author ships one.,Joins through dep-review,,,1.0.12+26.2,MIT
+wavey-capes,Wavey Capes,client,client,kept,Client-side only; in the optional pack.,—,,1.11.2,1.11.2,LicenseRef-tr7zw-Protective-License
+xaeros-minimap,Xaero's Minimap,client,client,kept,Client-side only; in the optional pack.,—,,fabric-26.3-26.5.3,fabric-26.2-26.5.1,LicenseRef-All-Rights-Reserved
+xaeros-world-map,Xaero's World Map,client,client,kept,Client-side only; in the optional pack.,—,,fabric-26.3-1.46.4,fabric-26.2-1.46.1,LicenseRef-All-Rights-Reserved
+weaponmaster,YDM's Weapon Master,client,client,kept,Client-side only; in the optional pack.,—,,fabric-26.3-4.4.4,fabric-26.2-4.4.4,CC0-1.0
+zoomify,Zoomify (Zoom),client,client,kept,Client-side only; in the optional pack.,—,,2.16.3+26.3,2.16.3+26.2,LGPL-3.0-only
+3d-placeable-food,3D Placeable Food,content,required,cut,Needs its client; all rights reserved.,Nothing at launch; placeable food is a candidate for our blocks (C2),placeable vanilla meals,,,LicenseRef-All-Rights-Reserved
+lets-do-vinery,[Let's Do] Vinery,content,required,rebuilt by us,Needs its client.,"Our content later: a wine chain is a candidate for C2 (grapes, press, barrel)",grapes → press → ferment → aged wine,,,LicenseRef-custom
+amendments,Amendments,content,required,cut,Needs its client and Moonlight; wall lanterns are its only use to us.,Nothing,wall lanterns,,,LicenseRef-Supplementaries-Team-License-1.1
+animal_feeding_trough,Animal Feeding Trough,content,required,rebuilt by us,Needs its client; no 26.x build.,Our content later (C2): a trough block,auto-feeds and breeds animals from a trough,,1.2.1+26.2,MIT
+artifacts,Artifacts,content,required,rebuilt by us,Needs its client and Trinkets.,Our content later: exploration loot with passive powers via item components (C2),rare exploration loot with passive powers,,,MIT
+beautiful-enchanted-books-mod-edition,Beautiful Enchanted Books [MOD EDITION],content,required,replaced,Needs its client.,bibliophilia resource pack in the client pack,distinct cover per enchantment,,6.0.0,LicenseRef-All-Rights-Reserved
+better-combat,Better Combat,content,required,cut,Client-driven combat; never Bedrock-friendly.,Nothing; vanilla combat,weapon-specific swing animations,3.2.2+26.3-fabric,3.2.2+26.2-fabric,LicenseRef-All-Rights-Reserved
+bountiful,Bountiful,content,required,rebuilt by us,Needs its client.,Our content later: bounty boards as a 26.x dialog on a Polymer block (C2),"village bounty boards, decrees",,,LGPL-3.0-only
+charm-of-undying,Charm of Undying,content,required,replaced,Needs its client and Trinkets.,inventory-totem: a totem works from anywhere in the inventory,totem works from an accessory slot,,,LGPL-3.0-or-later
+chipped,Chipped,content,required,cut,"Needs its client; about 7,000 block variants is the opposite of a small surface.",Nothing,"~7,000 decorative block variants via workbenches",,,LicenseRef-All-Rights-Reserved
+comforts,Comforts,content,required,replaced,Needs its client.,Vanilla 26.x,sleeping bag (sleep without resetting spawn),,16.0.0+26.2,LGPL-3.0-or-later
+creeper-overhaul,Creeper Overhaul,content,required,cut,Needs its client (GeckoLib).,Nothing; vanilla mob variants cover some of it,biome creeper variants,,,LicenseRef-All-Rights-Reserved
+critters-and-companions,Critters and Companions,content,required,rebuilt by us,Needs its client (GeckoLib).,Our creatures later (C3),"otters, ferrets, koi etc.",,,LicenseRef-All-Rights-Reserved
+dramatic-doors,Dramatic Doors,content,required,replaced,Needs its client.,gm4-double-doors (datapack),3-block-tall doors in every wood,,,MIT
+dungeonsreborn,Dungeons Reborn,content,required,cut,Needs its client.,Nothing,Dungeons weapons/artefacts,,,CC0-1.0
+elytra-slot,Elytra Slot,content,required,replaced,Needs its client and Trinkets.,"elytra-armor: armour and elytra together, server-side",wear elytra and chestplate together,,,LGPL-3.0-or-later
+explorers-compass,Explorer's Compass,content,required,rebuilt by us,Needs its client.,Our mod later: a compass item using a 26.x dialog and the lodestone tracker (C2),point a compass at any chosen structure type,26.3-2.5.2-fabric,26.2-2.5.1-fabric,CC-BY-NC-SA-4.0
+fabric-seasons-extras,Fabric Seasons: Extras,content,required,cut,Fabric Seasons is dead (no build since 2024).,Nothing,season calendar,,,MPL-2.0
+farmers-delight-refabricated,Farmer's Delight Refabricated,content,required,kept,Kept server-side through the farmers-delight-polymer patch.,"Cooking pot and skillet meals, as now",cooking pot and skillet meals,26.3-3.6.27,26.2-3.6.26,MIT
+friends-and-foes,Friends&Foes (Fabric/Quilt),content,required,waiting,Kept server-side through the friends-and-foes-polymer patch once both have 26.3 builds.,"Mob-vote mobs and their structures, as now","mob-vote mobs, 4 structures",,fabric-4.0.27+mc26.2,CC-BY-NC-ND-4.0
+guard-villagers-(fabricquilt),Guard Villagers (Fabric/Quilt),content,required,cut,Needs its client.,Nothing; iron golems,armed guards defend villages,,2.1.3-26.2,MIT
+handcrafted,Handcrafted,content,required,replaced,Needs its client.,polydecorations and vanilla shelves,chairs/tables/couches,,,LicenseRef-Terrarium-Licence
+immersive-armors,Immersive Armors,content,required,rebuilt by us,Needs its client.,Our content later: themed armour sets through equippable components (C2),~13 themed armour sets with set effects,,1.8.2+26.2,GPL-3.0-only
+inmis,Inmis,content,required,replaced,Needs its client.,"Vanilla bundles, native on Bedrock too",tiered backpacks,,,MIT
+lootr,Lootr,content,required,replaced,Needs its client.,"slashloot: per-player structure loot, server-side",per-player loot in structure chests,1.25.42.124,1.24.41.123,MIT
+macaws-bridges,Macaw's Bridges,content,required,replaced,Needs its client.,abridged adds bridges to the world,rope/stone bridges and piers,,3.1.2,LicenseRef-All-Rights-Reserved
+macaws-doors,Macaw's Doors,content,required,replaced,Needs its client.,gm4-double-doors,many extra door/trapdoor styles,,1.1.5,MIT
+macaws-furniture,Macaw's Furniture,content,required,replaced,Needs its client.,polydecorations,chairs you can sit on,,3.4.1,LicenseRef-All-Rights-Reserved
+macaws-roofs,Macaw's Roofs,content,required,cut,Needs its client.,Nothing; vanilla stairs and slabs,"roof shapes (peaks, attics, gutters)",,2.3.2,LicenseRef-All-Rights-Reserved
+more-villagers-re-employed,More Villagers: Re-employed,content,required,rebuilt by us,Needs its client; drags in VillagerAPI.,Our content later: professions through 26.1 data-driven villager trades (C2),"new professions (e.g. florist, miner, netherian)",1.26.9.3,1.26.7.1,LicenseRef-Custom
+natures-compass,Nature's Compass,content,required,rebuilt by us,Needs its client.,"The same compass, for biomes (C2)",point a compass at any chosen biome,26.3-2.5.1-fabric,26.2-2.5.1-fabric,CC-BY-NC-SA-4.0
+universal-sawmill,Sawmill,content,required,cut,Needs its client and Moonlight.,Nothing; vanilla stonecutter-style recipes if wanted,one station crafts every wooden block,,,LicenseRef-All-Rights-Reserved
+supplementaries,Supplementaries,content,required,replaced,Needs its client and Moonlight.,polydecorations and vanilla shelves,jars/cages,,,LicenseRef-Supplementaries-Team-License
+untitled-duck-mod,Untitled Duck Mod,content,required,replaced,Needs its client (GeckoLib).,"clucking-ducks, server-side",ducks and geese,1.8.0+fabric,1.6.0+fabric,MIT
+almanac,Almanac,gameplay,server,kept,Server-side only.,—,,1.26.9.1,1.26.9.1,LGPL-3.0-only
+appleskin,AppleSkin,gameplay,optional,kept,Works for vanilla clients; the client copy adds extras.,—,,3.0.10+mc26.3,3.0.10+mc26.2,Unlicense
+attributefix,AttributeFix,gameplay,optional,kept,Works for vanilla clients; the client copy adds extras.,—,,26.3.0.1,26.2.0.1,LGPL-2.1-only
+betterdays,Better Days,gameplay,optional,replaced,Longer days are data in 26.1 world clocks.,"Vanilla 26.x world clocks, set per dimension by our compiler",longer days,,26.2-4.1.1.7-FABRIC,LGPL-3.0-or-later
+boring-default-game-rules,Boring Default Game Rules,gameplay,server,replaced,No 26.x build.,deploy.sh already enforces every game rule over RCON,,,,MIT
+borrow-their-arrows,Borrow Their Arrows!,gameplay,server,waiting,No 26.3 build yet; joins when its author ships one.,Joins through dep-review,,,,LicenseRef-All-Rights-Reserved
+bouncier-beds,Bouncier Beds,gameplay,server,kept,Server-side only.,—,,26.3.0-2.5-fabric+forge+neo,26.2.0-2.5-fabric+forge+neo,LicenseRef-All-Rights-Reserved
+carry-on,Carry On,gameplay,optional,kept,Works for vanilla clients; the client copy adds extras.,—,pick up full chests and furnaces with contents,2.12.0,2.11.2,LGPL-3.0-only
+cave-spider-spawn,Cave Spider Spawn,gameplay,server,kept,Server-side only.,—,,26.3.0-1.2-fabric+forge+neo,26.2.0-1.2-fabric+forge+neo,LicenseRef-All-Rights-Reserved
+chunkyborder,Chunky Border,gameplay,server,replaced,No 26.x build.,"Vanilla per-dimension world borders (1.21.9), set by our compiler",,,,GPL-3.0-only
+configured-defaults,Configured Defaults,gameplay,optional,kept,Works for vanilla clients; the client copy adds extras.,—,,26.3.0,26.2.0,MPL-2.0
+deimos,Deimos,gameplay,server,kept,Server-side only.,—,,26.3-fabric-2.7.1,26.2-fabric-2.7,MIT
+double-doors,Double Doors,gameplay,server,kept,Server-side only.,—,,26.3.0-7.2-fabric+forge+neo,26.2.0-7.2-fabric+forge+neo,LicenseRef-All-Rights-Reserved
+easy-elytra-takeoff,Easy Elytra Takeoff,gameplay,server,kept,Server-side only.,—,,26.3.0-4.5-fabric+forge+neo,26.2.0-4.5-fabric+forge+neo,LicenseRef-All-Rights-Reserved
+enchanting-commands,Enchanting Commands,gameplay,server,kept,Server-side only.,—,,26.3.0-3.6-fabric+forge+neo,26.2.0-3.6-fabric+forge+neo,LicenseRef-All-Rights-Reserved
+ender-dragon-destroys-end-island,Ender Dragon Destroys End Island,gameplay,server,waiting,No 26.3 build yet; joins when its author ships one.,Joins through dep-review,,,2.2.2+mc26.2-fabric,LicenseRef-All-Rights-Reserved
+expanded-bow-enchanting,Expanded Bow Enchanting,gameplay,server,waiting,No 26.3 build yet; joins when its author ships one.,Joins through dep-review,,,1.1.15,Apache-2.0
+fabric-seasons,Fabric Seasons,gameplay,optional,cut,Dead: no build since 2024.,Nothing,seasonal crop growth,,,MPL-2.0
+fabric-seasons-delight-compat,Fabric Seasons: Delight Compat,gameplay,server,cut,Goes with Fabric Seasons.,Nothing,,,,MPL-2.0
+fallingtree,FallingTree,gameplay,server,kept,Server-side only.,—,,26.3-26.3.0.2,26.2-26.2.0.3,LGPL-3.0-only
+fire-arrows-ignite-fire,Fire Arrows Ignite Fire,gameplay,server,kept,Server-side only.,—,,fabric-26.3-13.4,fabric-26.2-13.4,MIT
+fire-spread-tweaks,Fire Spread Tweaks,gameplay,server,kept,Server-side only.,—,,26.3.0-2.8-fabric+forge+neo,26.2.0-2.8-fabric+forge+neo,LicenseRef-All-Rights-Reserved
+grabby-mobs,Grabby Mobs,gameplay,server,kept,Server-side only.,—,,26.3.0-1.7-fabric+forge+neo,26.2.0-1.7-fabric+forge+neo,LicenseRef-All-Rights-Reserved
+ground-clear,Ground Clear,gameplay,server,waiting,No 26.3 build yet; joins when its author ships one.,Joins through dep-review,,,1.0.0,LicenseRef-All-Rights-Reserved
+healing-campfire,Healing Campfire,gameplay,server,kept,Server-side only.,—,,26.3.0-6.3-fabric+forge+neo,26.2.0-6.3-fabric+forge+neo,LicenseRef-All-Rights-Reserved
+lmd,Let Me Despawn,gameplay,server,kept,Server-side only.,—,,1.26.9.2,1.26.9.1,LGPL-3.0-only
+name-tag-tweaks,Name Tag Tweaks,gameplay,server,kept,Server-side only.,—,,26.3.0-4.1-fabric+forge+neo,26.2.0-4.1-fabric+forge+neo,LicenseRef-All-Rights-Reserved
+no-animal-tempt-delay,No Animal Tempt Delay,gameplay,server,kept,Server-side only.,—,,26.3.0-1.2-fabric+forge+neo,26.2.0-1.2-fabric+forge+neo,LicenseRef-All-Rights-Reserved
+nutritious-milk,Nutritious Milk,gameplay,server,kept,Server-side only.,—,,26.3.0-3.5-fabric+forge+neo,26.2.0-3.5-fabric+forge+neo,LicenseRef-All-Rights-Reserved
+overstacked-enchantments,Overstacked Enchantments,gameplay,server,waiting,No 26.3 build yet; joins when its author ships one.,Joins through dep-review,,,,LicenseRef-All-Rights-Reserved
+pause-day-cycle,Pause Day Cycle,gameplay,server,waiting,No 26.3 build yet; joins when its author ships one.,Joins through dep-review,,,,MIT
+simple-voice-chat,Simple Voice Chat,gameplay,optional,kept,Works for vanilla clients; the client copy adds extras.,—,proximity voice,fabric-2.6.24+26.3,fabric-2.6.24+26.2,LicenseRef-All-Rights-Reserved
+sit!,Sit!,gameplay,server,waiting,No 26.3 build yet; joins when its author ships one.,Joins through dep-review,,,1.2.6.3+26.2,LGPL-3.0-only
+smarter-farmers-farmers-replant,Smarter Farmers (farmers replant),gameplay,server,cut,"Needs Moonlight, which turns vanilla clients away.",Vanilla farmers already replant what they harvest,,,,LicenseRef-All-Rights-Reserved
+softer-hay-bales,Softer Hay Bales,gameplay,server,kept,Server-side only.,—,,26.3.0-3.5-fabric+forge+neo,26.2.0-3.5-fabric+forge+neo,LicenseRef-All-Rights-Reserved
+stack-refill,Stack Refill,gameplay,optional,kept,Works for vanilla clients; the client copy adds extras.,—,hotbar stack/tool refills itself,26.3.0-5.0-fabric+forge+neo,26.2.0-5.0-fabric+forge+neo,LicenseRef-All-Rights-Reserved
+underground-beacons,Underground Beacons,gameplay,server,kept,Server-side only.,—,,26.3.0-1.1-fabric+forge+neo,26.2.0-1.1-fabric+forge+neo,LicenseRef-All-Rights-Reserved
+villager-names-serilum,Villager Names,gameplay,server,kept,Server-side only.,—,,26.3.0-8.6-fabric+forge+neo,26.2.0-8.6-fabric+forge+neo,LicenseRef-All-Rights-Reserved
+your-items-are-safe,Your Items Are Safe,gameplay,server,kept,Server-side only.,—,,26.3.0-4.7-fabric+forge+neo,26.2.0-4.7-fabric+forge+neo,LicenseRef-All-Rights-Reserved
+architectury-api,Architectury API,library,library,kept,"Library for hellish-trials, simply-houses, sky-villages.",—,,22.0.3+fabric,21.1.11+fabric,LGPL-3.0-only
+athena-ctm,Athena,library,library,cut,Library only for projects we cut.,Nothing needed,,,,MIT
+bclib,BCLib,library,required,cut,Library only for projects we cut.,Nothing needed,nothing (library),,26.201.2,MIT
+bookshelf-lib,Bookshelf,library,library,cut,"Registers the command argument type bookshelf:font, which makes the server refuse vanilla clients; no 26.3 server mod needs it.",Nothing,,26.3.0.3,26.2.0.4,LGPL-2.1-only
+cloth-config,Cloth Config API,library,library,kept,"Library for betterf3, expanded-bow-enchanting, stoneholm, travelers-titles and 12 more.",—,,26.3.159+fabric,26.2.155+fabric,LGPL-3.0-only
+collective,Collective,library,library,kept,"Library for areas, bouncier-beds, cave-spider-spawn, double-doors and 16 more.",—,,26.3.0-8.40-fabric+forge+neo,26.2.0-8.40-fabric+forge+neo,LicenseRef-All-Rights-Reserved
+cristel-lib,Cristel Lib,library,server,kept,Library for towns-and-towers.,—,,fabric-26.3-3.1.13,fabric-26.2-3.1.13,CC-BY-NC-ND-4.0
+deltaboxlib,Deltabox Lib,library,library,cut,Library only for projects we cut.,Nothing needed,,,,MIT
+fabric-api,Fabric API,library,library,kept,Library for everything.,—,,0.161.0+26.3,0.161.0+26.2,Apache-2.0
+fabric-language-kotlin,Fabric Language Kotlin,library,library,kept,"Library for expanded-bow-enchanting, ledger, zoomify.",—,,1.14.1+kotlin.2.4.20,1.14.1+kotlin.2.4.20,Apache-2.0
+forge-config-api-port,Forge Config API Port,library,library,kept,"Library for mindful-darkness, open-parties-and-claims, pick-up-notifier.",—,,26.3.1,26.2.1,MPL-2.0
+frozenlib,FrozenLib,library,library,cut,Library only for projects we cut.,Nothing needed,nothing (library),3.0-mc26.3-fabric,3.0-mc26.2-fabric,GPL-3.0-only
+geckolib,Geckolib,library,library,cut,Library only for projects we cut.,Nothing needed,,5.5.7,5.5.5,MIT
+kambrik,Kambrik,library,library,cut,Library only for projects we cut.,Nothing needed,,,,MPL-2.0
+lithostitched,Lithostitched,library,library,cut,Library only for projects we cut.,Nothing needed,,2.0.4-fabric-26.3,1.8.0-fabric-26.2,MIT
+moogs-structure-lib,Moog's Structure Lib (moogs_structures),library,server,kept,"Library for mes-moogs-end-structures, mns-moogs-nether-structures, moogs-voyager-structures, mss-moogs-soaring-structures and 1 more.",—,,3.3.0,3.3.0,LGPL-3.0-only
+moonlight,Moonlight Lib,library,required,cut,Library only for projects we cut.,Nothing needed,"library for supplementaries, amendments, universal-sawmill",,,LicenseRef-LGPL-with-additional-dependency-clause
+otterlib,OtterLib,library,library,waiting,Library for sit!.,—,,,0.4.0.0+26.2,MIT
+playeranimator,playerAnimator,library,library,cut,Library only for projects we cut.,Nothing needed,,,,MIT
+prickle,Prickle,library,library,kept,"Library for attributefix, enchantment-descriptions.",—,,26.3.0.2,26.2.0.3,LGPL-2.1-only
+puzzles-lib,Puzzles Lib,library,library,kept,"Library for mindful-darkness, pick-up-notifier.",—,,26.3.6,26.2.4,MPL-2.0
+resourceful-config,Resourceful Config,library,library,cut,Library only for projects we cut.,Nothing needed,,6.0.1,5.0.0,MIT
+resourceful-lib,Resourceful Lib,library,library,kept,Library for friends-and-foes.,—,,6.0.1,5.0.4,MIT
+terrablender,TerraBlender,library,library,cut,Library only for projects we cut.,Nothing needed,,26.3.0.0.7,26.2.0.0.2,LGPL-3.0-only
+trinkets,Trinkets,library,library,cut,Library only for projects we cut.,Nothing needed,library: accessory slots,,,MIT
+villagerapi,Villager API,library,library,cut,Library only for projects we cut.,Nothing needed,,1.26.9.5,1.26.7.1,LGPL-3.0-only
+worldweaver,World Weaver,library,library,cut,Library only for projects we cut.,Nothing needed,nothing (library),,26.201.2,MIT
+yacl,YetAnotherConfigLib (YACL),library,library,kept,"Library for controlify, zoomify.",—,,3.9.7+26.3-fabric,3.9.7+26.2-fabric,LGPL-3.0-or-later
+yungs-api,YUNG's API,library,library,waiting,"Library for travelers-titles, yungs-better-desert-temples, yungs-better-dungeons, yungs-better-end-island and 8 more.",—,,,,LGPL-3.0-only
+chunky,Chunky,perf,server,kept,Server-side only.,—,,1.5.3,1.5.3,GPL-3.0-only
+clumps,Clumps,perf,server,kept,Server-side only.,—,,26.3.2,26.2.1,MIT
+c2me-fabric,Concurrent Chunk Management Engine (Fabric),perf,server,kept,Server-side only.,—,,0.4.2-alpha.0.88+26.3,0.4.2-alpha.0.52+26.2,MIT
+distanthorizons,Distant Horizons,perf,optional,kept,Works for vanilla clients; the client copy adds extras.,—,far LOD terrain,3.3.2-26.3,3.3.2-26.2,LGPL-3.0-only
+ferrite-core,FerriteCore,perf,optional,kept,Works for vanilla clients; the client copy adds extras.,—,,9.0.0-fabric,9.0.0-fabric,MIT
+krypton,Krypton,perf,server,waiting,No 26.3 build yet; joins when its author ships one.,Joins through dep-review,,,0.3.1,LGPL-3.0-only
+lithium,Lithium,perf,optional,kept,Works for vanilla clients; the client copy adds extras.,—,,mc26.3-0.26.1-fabric,mc26.2-0.25.3-fabric,LGPL-3.0-only
+modernfix,ModernFix,perf,server,waiting,No 26.3 build yet; joins when its author ships one.,Joins through dep-review,,,,LGPL-3.0-only
+packet-fixer,Packet Fixer,perf,server,kept,Server-side only.,—,,3.3.6,3.3.6,MIT
+servercore,ServerCore,perf,server,kept,Server-side only.,—,,1.5.20+26.3,1.5.19+26.2,MIT
+adventure-dungeons,Adventure Dungeons,structures,server,waiting,"Vanilla blocks only, so it is welcome; no 26.3 build yet, and we don't run overrides or trials.",Joins through dep-review when its author ships 26.3,,,,LicenseRef-All-Rights-Reserved
+ati-structures-fabricforge,ATi Structures,structures,server,kept,"Vanilla blocks only. Its structures are placed by our structure control, not its own structure sets.",—,,1.4.7,1.4.7,LicenseRef-All-Rights-Reserved
+deadly-deadly-dungeon,Deadly Deadly Dungeon,structures,optional,kept,"Vanilla blocks only. Its structures are placed by our structure control, not its own structure sets.",—,multi-level mega-dungeons,1.0.6+mod,1.0.6+mod,LicenseRef-Custom-License-Limited-Rights-Granted
+dungeons-and-taverns,Dungeons and Taverns,structures,optional,kept,"Vanilla blocks only. Its structures are placed by our structure control, not its own structure sets.",—,,6.0.1+mod,5.3.2+mod,LicenseRef-All-Rights-Reserved
+dungeons+,dungeons+,structures,server,waiting,"Vanilla blocks only, so it is welcome; no 26.3 build yet, and we don't run overrides or trials.",Joins through dep-review when its author ships 26.3,,,,unknown
+epic-structures-dungeons,Epic Structures: Dungeons,structures,server,kept,"Vanilla blocks only. Its structures are placed by our structure control, not its own structure sets.",—,,1.2.6,1.2.5+mod,LicenseRef-All-Rights-Reserved
+explorify,Explorify,structures,server,waiting,"Vanilla blocks only, so it is welcome; no 26.3 build yet, and we don't run overrides or trials.",Joins through dep-review when its author ships 26.3,,,v1.6.5,LicenseRef-All-Rights-Reserved
+hellish-trials,Hellish Trials,structures,server,waiting,"Vanilla blocks only, so it is welcome; no 26.3 build yet, and we don't run overrides or trials.",Joins through dep-review when its author ships 26.3,,,,LicenseRef-All-Rights-Reserved
+medieval-buildings-end-edition,Medieval Buildings [End Edition],structures,server,waiting,"Vanilla blocks only, so it is welcome; no 26.3 build yet, and we don't run overrides or trials.",Joins through dep-review when its author ships 26.3,,,,LicenseRef-All-Rights-Reserved
+mes-moogs-end-structures,MES - Moog's End Structures,structures,server,kept,"Vanilla blocks only. Its structures are placed by our structure control, not its own structure sets.",—,,2.1.1,2.1.1,LGPL-3.0-only
+mns-moogs-nether-structures,MNS - Moog's Nether Structures,structures,server,kept,"Vanilla blocks only. Its structures are placed by our structure control, not its own structure sets.",—,,3.1.1,3.1.1,LGPL-3.0-only
+mss-moogs-soaring-structures,MSS - Moog's Soaring Structures,structures,server,kept,"Vanilla blocks only. Its structures are placed by our structure control, not its own structure sets.",—,,2.2.0,2.2.0,GPL-3.0-only
+mtr-moogs-temples-reimagined,MTR - Moog's Temples Reimagined,structures,server,kept,"Vanilla blocks only. Its structures are placed by our structure control, not its own structure sets.",—,,2.0.4,2.0.4,LGPL-3.0-only
+moogs-voyager-structures,MVS - Moog's Voyager Structures,structures,server,kept,"Vanilla blocks only. Its structures are placed by our structure control, not its own structure sets.",—,,5.1.3,5.1.3,MIT
+simply-houses,Simply Houses,structures,server,waiting,"Vanilla blocks only, so it is welcome; no 26.3 build yet, and we don't run overrides or trials.",Joins through dep-review when its author ships 26.3,,,,LicenseRef-All-Rights-Reserved
+sky-villages,Sky Villages,structures,server,waiting,"Vanilla blocks only, so it is welcome; no 26.3 build yet, and we don't run overrides or trials.",Joins through dep-review when its author ships 26.3,,,,LicenseRef-All-Rights-Reserved
+stoneholm,Stoneholm,structures,server,waiting,"Vanilla blocks only, so it is welcome; no 26.3 build yet, and we don't run overrides or trials.",Joins through dep-review when its author ships 26.3,,,,MIT
+structory,Structory,structures,server,cut,"Stardust Labs licence: it bars using their work with AI systems, and this project is built with agents.","The other structure mods in the pack, placed by our structure control",,1.3.18+26.3,1.3.17,LicenseRef-Stardust-Labs-License
+structory-towers,Structory: Towers,structures,server,cut,"Stardust Labs licence: it bars using their work with AI systems, and this project is built with agents.","The other structure mods in the pack, placed by our structure control",,1.0.19+26.3,1.0.17,LicenseRef-Stardust-Labs-License
+subsurface,Subsurface,structures,server,waiting,"Vanilla blocks only, so it is welcome; no 26.3 build yet, and we don't run overrides or trials.",Joins through dep-review when its author ships 26.3,,,1.0.5+mod,Apache-2.0
+towns-and-towers,Towns and Towers,structures,server,kept,"Vanilla blocks only. Its structures are placed by our structure control, not its own structure sets.",—,,1.13.12,1.13.11,CC-BY-NC-SA-4.0
+true-ending,True Ending - Ender Dragon Overhaul,structures,optional,waiting,"Vanilla blocks only, so it is welcome; no 26.3 build yet, and we don't run overrides or trials.",Joins through dep-review when its author ships 26.3,,,,LicenseRef-Custom
+underground-bunkers,Underground Bunkers,structures,server,waiting,"Vanilla blocks only, so it is welcome; no 26.3 build yet, and we don't run overrides or trials.",Joins through dep-review when its author ships 26.3,,,,LicenseRef-All-Rights-Reserved
+when-dungeons-arise,When Dungeons Arise,structures,server,waiting,"Vanilla blocks only, so it is welcome; no 26.3 build yet, and we don't run overrides or trials.",Joins through dep-review when its author ships 26.3,,,,LicenseRef-All-Rights-Reserved
+when-dungeons-arise-seven-seas,When Dungeons Arise: Seven Seas,structures,server,waiting,"Vanilla blocks only, so it is welcome; no 26.3 build yet, and we don't run overrides or trials.",Joins through dep-review when its author ships 26.3,,,,LicenseRef-All-Rights-Reserved
+yungs-better-desert-temples,YUNG's Better Desert Temples,structures,server,waiting,"Vanilla blocks only, so it is welcome; no 26.3 build yet, and we don't run overrides or trials.",Joins through dep-review when its author ships 26.3,,,,LGPL-3.0-only
+yungs-better-dungeons,YUNG's Better Dungeons,structures,server,waiting,"Vanilla blocks only, so it is welcome; no 26.3 build yet, and we don't run overrides or trials.",Joins through dep-review when its author ships 26.3,,,,LGPL-3.0-only
+yungs-better-end-island,YUNG's Better End Island,structures,server,waiting,"Vanilla blocks only, so it is welcome; no 26.3 build yet, and we don't run overrides or trials.",Joins through dep-review when its author ships 26.3,,,,LGPL-3.0-only
+yungs-better-jungle-temples,YUNG's Better Jungle Temples,structures,server,waiting,"Vanilla blocks only, so it is welcome; no 26.3 build yet, and we don't run overrides or trials.",Joins through dep-review when its author ships 26.3,,,,LGPL-3.0-only
+yungs-better-mineshafts,YUNG's Better Mineshafts,structures,server,waiting,"Vanilla blocks only, so it is welcome; no 26.3 build yet, and we don't run overrides or trials.",Joins through dep-review when its author ships 26.3,,,,LGPL-3.0-only
+yungs-better-nether-fortresses,YUNG's Better Nether Fortresses,structures,server,waiting,"Vanilla blocks only, so it is welcome; no 26.3 build yet, and we don't run overrides or trials.",Joins through dep-review when its author ships 26.3,,,,LGPL-3.0-only
+yungs-better-ocean-monuments,YUNG's Better Ocean Monuments,structures,server,waiting,"Vanilla blocks only, so it is welcome; no 26.3 build yet, and we don't run overrides or trials.",Joins through dep-review when its author ships 26.3,,,,LGPL-3.0-only
+yungs-better-strongholds,YUNG's Better Strongholds,structures,server,waiting,"Vanilla blocks only, so it is welcome; no 26.3 build yet, and we don't run overrides or trials.",Joins through dep-review when its author ships 26.3,,,,LGPL-3.0-only
+yungs-better-witch-huts,YUNG's Better Witch Huts,structures,server,waiting,"Vanilla blocks only, so it is welcome; no 26.3 build yet, and we don't run overrides or trials.",Joins through dep-review when its author ships 26.3,,,,LGPL-3.0-only
+yungs-bridges,YUNG's Bridges,structures,server,waiting,"Vanilla blocks only, so it is welcome; no 26.3 build yet, and we don't run overrides or trials.",Joins through dep-review when its author ships 26.3,,,,LGPL-3.0-only
+yungs-extras,YUNG's Extras,structures,server,waiting,"Vanilla blocks only, so it is welcome; no 26.3 build yet, and we don't run overrides or trials.",Joins through dep-review when its author ships 26.3,,,,LGPL-3.0-only
+betterspawn,Better Spawn,worldgen,server,rebuilt by us,"Picks the spawn point, which our configs own (T31).",Our mod: each dimension's spawn field,,,,LicenseRef-All-Rights-Reserved
+betterend,BetterEnd,worldgen,required,rebuilt by us,Needs its client (686 blocks); BCLib rotates the feature seed in every dimension and can only join at chunk zero; the pack's biggest headache.,"Our worldgen kit: End biomes rebuilt from vanilla End, deep dark and nether palettes (W7)","25 End biomes, End terrain, 686 blocks",,26.201.2,MIT
+betternether,BetterNether,worldgen,required,rebuilt by us,Needs its client; same BCLib problem as BetterEnd.,Our worldgen kit: our Nether biomes (W7),"22 Nether biomes, Nether City",,26.201.2,MIT
+galosphere,Galosphere,worldgen,required,rebuilt by us,"Needs its client for crystals, salt and lichen.","Our worldgen kit: crystal and lichen caves with amethyst, calcite and sculk palettes (W7), then our blocks (C2)",3 crystal/salt/lichen caves,,,LicenseRef-All-Rights-Reserved
+geophilic,Geophilic,worldgen,server,rebuilt by us,A vanilla-biome overhaul (all rights reserved); our biomes own that layer now.,Our worldgen kit: our own biome definitions (W7),,3.7,3.7,LicenseRef-All-Rights-Reserved
+incendium,Incendium Legacy,worldgen,server,rebuilt by us,Stardust licence (AI clause); it is the Nether's worldgen today.,Our worldgen kit: our own Nether biomes (W7); Nether structures from the structure mods,,5.5.2+26.3,5.5.1,LicenseRef-Stardust-Labs-License
+natures-spirit,Nature's Spirit,worldgen,required,rebuilt by us,New woods and plants need its client; it also sets the overworld spawn filter today.,Our worldgen kit: inspiration list for W7; its woods return as our blocks (C2),"51 biomes, new woods, 4 villages",,,LicenseRef-Natures-Spirit-License-
+noisium,Noisium,worldgen,server,rebuilt by us,Patches noise sampling our generators own; no 26.x build.,Nothing needed; C2ME stays for chunk speed,,,,LGPL-3.0-only
+nullscape,Nullscape,worldgen,server,rebuilt by us,Stardust licence (AI clause); it supplies the End's surface rule today.,"Our worldgen kit: End terrain and materials (W1, W3)",,2.0.0+26.3,1.2.20,LicenseRef-Stardust-Labs-License
+pale-garden-backport,Pale Garden Backport: The Garden Awakens,worldgen,required,replaced,Backport of a vanilla biome.,Vanilla since 1.21.4,pale garden,,,MIT
+paradise-lost,Paradise Lost,worldgen,required,rebuilt by us,No 26.x build and needs its client; the fourth base world depends on it today.,"Our worldgen kit: the fourth base world becomes The Aviary, our own sky world (W8); its blocks inspire C2","Skylands dimension, 10 biomes, dungeons",,,MIT
+philips-ruins,Philips Ruins,worldgen,required,rebuilt by us,"Registers its own content, so vanilla clients are turned away; all rights reserved; no 26.x build.",The other structure mods; ruins are a candidate for our own structure set later,"29 ruin sets, 190+ variants",,,LicenseRef-All-Rights-Reserved
+regions-unexplored,Regions Unexplored,worldgen,required,rebuilt by us,"Its biomes lean on its own blocks, so vanilla clients are turned away; a big dependency chain (TerraBlender, Lithostitched).","Our worldgen kit: its best biomes are on the inspiration list for W7, rebuilt with vanilla palettes, then our blocks (C2)",78 biomes incl. caves + Nether,,,MIT
+tectonic,Tectonic,worldgen,server,rebuilt by us,A second owner of terrain shape is exactly what the rebuild removes; it also dropped Terralith support on 26.3.,"Our worldgen kit: continents, ranges, rivers and canyons as our own density functions (W1)",,3.0.29-fabric-26.3,3.0.28-fabric-26.2,MIT
+terralith,Terralith,worldgen,server,rebuilt by us,Stardust licence forbids copying any part into our mod and bars using its work with AI systems; no 26.3 build.,Our worldgen kit: terrain (W1) and our own biomes (W7). Nothing of Terralith is read or copied.,,,2.6.4,LicenseRef-Stardust-Labs-License
+terralith-restoned,Terralith: ReStoned,worldgen,server,cut,A patch for Terralith; goes with it.,Nothing needed,,,1.3.1,MIT
+underground-worlds,Underground Worlds,worldgen,required,rebuilt by us,Needs its client.,Our worldgen kit: underground biomes (W7); its dungeons have no server-side route,"4 underground biomes, 9 dungeons",,3.2.1-26.2,CC-BY-NC-ND-4.0
+wilder-wild,Wilder Wild,worldgen,required,rebuilt by us,Needs its client; changes vanilla blocks and mobs; licence rules out adapting it.,"Our worldgen kit: its moods (swamps, dunes, fireflies) inspire W7; fireflies as particles in biome ambience","30 biomes, fireflies, decor tweaks",4.3-mc26.3-fabric,4.3-mc26.2-fabric,LicenseRef-FrozenBlock-Modding-Oasis-License
+wwoo,William Wythers' Overhauled Overworld,worldgen,server,rebuilt by us,"Rewrites every vanilla biome's features; CC-BY-NC-ND, so we can't adapt it.","Our worldgen kit: per-biome feature sets (W4, W7)",,3.0.1,2.7.1,CC-BY-NC-ND-4.0
+yungs-better-caves,YUNG's Better Caves,worldgen,server,rebuilt by us,"Replaces vanilla carvers, so it is worldgen; no 26.x build.",Our worldgen kit: cave networks per dimension (W1),,,,LGPL-3.0-only
+yungs-cave-biomes,YUNG's Cave Biomes,worldgen,required,rebuilt by us,Needs its client for frosted and lost caves; no 26.x build.,Our worldgen kit: frosted and overgrown cave biomes (W7),frosted + lost caves,,,LicenseRef-All-Rights-Reserved

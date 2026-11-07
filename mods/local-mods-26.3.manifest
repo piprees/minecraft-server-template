@@ -1,0 +1,7 @@
+# bundle_name|gradle_project|loom_refmap
+# Minecraft 26.3's in-house server mods, selected like the mod list
+# (mc_local_mods_manifest in scripts/lib.sh). "-" in the refmap column: the
+# project builds with Loom's non-remapping plugin, so the jar carries no
+# refmap and the gate checks its classes alone. gradle_project is the Gradle
+# root; the jar is the one named <bundle_name stem>-*.jar under any build/libs.
+customdimensions.jar|custom-dimensions-26|-

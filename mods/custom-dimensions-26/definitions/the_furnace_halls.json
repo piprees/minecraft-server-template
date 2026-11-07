@@ -1,0 +1,107 @@
+{
+  "schemaVersion": 2,
+  "description": "Classic nether halls — fortress corridors that defined piglin military power. A mega-fortress anchors the far end, built when the piglin empire was at its height. Brick and fire all the way down.",
+  "seed": 4702348154996830415,
+  "spawn": [128, 138, -128],
+  "generator": {
+    "type": "noise",
+    "preset": "nether"
+  },
+  "biomes": [
+    {
+      "id": "minecraft:soul_sand_valley",
+      "climate": {
+        "temperature": [-2.0, 0.031],
+        "humidity": [-2.0, -0.175]
+      }
+    },
+    {
+      "id": "minecraft:nether_wastes",
+      "climate": {
+        "temperature": [-2.0, 0.031],
+        "humidity": [-0.175, 0.194]
+      }
+    },
+    {
+      "id": "minecraft:crimson_forest",
+      "climate": {
+        "temperature": [-2.0, 0.031],
+        "humidity": [0.194, 2.0]
+      }
+    },
+    {
+      "id": "adventure:magma_land",
+      "climate": {
+        "temperature": [0.031, 2.0],
+        "humidity": [-2.0, -0.065]
+      }
+    },
+    {
+      "id": "minecraft:basalt_deltas",
+      "climate": {
+        "temperature": [0.031, 2.0],
+        "humidity": [-0.065, 2.0]
+      }
+    }
+  ],
+  "borders": {
+    "player": 1024,
+    "generation": 1024
+  },
+  "difficulty": {
+    "mobMultiplier": 1.8,
+    "playerLuck": 1.6
+  },
+  "structures": {
+    "terrainAdaptation": {
+      "mns:mega_fortress": "pedestal"
+    },
+    "force": [
+      {
+        "structure": "mns:mega_fortress",
+        "x": 138,
+        "z": 57,
+        "exclusive": false
+      },
+      {
+        "structure": "mns:mega_fortress",
+        "x": -476,
+        "z": -83
+      }
+    ]
+  },
+  "portals": [
+    {
+      "frameBlock": "minecraft:chiseled_nether_bricks",
+      "igniterItem": "minecraft:flint_and_steel",
+      "color": "FF6B2B",
+      "lightLevel": 11,
+      "scale": 8.0,
+      "cooldown": 40,
+      "sounds": {
+        "ignite": "block.portal.trigger",
+        "enter": "block.portal.travel",
+        "exit": "block.portal.travel"
+      }
+    }
+  ],
+  "roll": {
+    "mood": "adventurous",
+    "spawnFilter": [
+      "minecraft:nether_wastes",
+      "minecraft:basalt_deltas"
+    ],
+    "wants": {
+      "mns:mega_fortress": "near_spawn",
+      "nether_brick_hall": "spread",
+      "mns:crimson_forge": "near_border",
+      "copper_tower": "spread",
+      "mns:bridge_1": "spread",
+      "blackstone_walls": "spread"
+    },
+    "shuns": [
+      "towns_and_towers:exclusives/village_piglin",
+      "mvs:large_warped_tower"
+    ]
+  }
+}

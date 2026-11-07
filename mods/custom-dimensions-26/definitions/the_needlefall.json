@@ -1,0 +1,126 @@
+{
+  "schemaVersion": 2,
+  "description": "Steep pine cliffs and fire towers. Human frontier country where the dramatic terrain punishes a careless step. The outposts here were built by people who respected the mountain; the dungeons were here before them.",
+  "seed": -1058300076831425796,
+  "spawn": [-128, 67, -64],
+  "generator": {
+    "type": "noise",
+    "preset": "overworld"
+  },
+  "terrain": {
+    "base": "shattered",
+    "setting": "default",
+    "params": {
+      "faultHeight": 28
+    }
+  },
+  "biomes": [
+    {
+      "id": "adventure:magmatic_caves",
+      "climate": {
+        "humidity": [-2.0, 0.027],
+        "depth": [0.2, 2.0]
+      }
+    },
+    {
+      "id": "adventure:lichen_caves",
+      "climate": {
+        "humidity": [0.027, 2.0],
+        "depth": [0.2, 2.0]
+      }
+    },
+    {
+      "id": "minecraft:snowy_taiga",
+      "climate": {
+        "temperature": [-2.0, -0.012],
+        "humidity": [-2.0, -0.106]
+      }
+    },
+    {
+      "id": "minecraft:windswept_forest",
+      "climate": {
+        "temperature": [-2.0, -0.012],
+        "humidity": [-0.106, 0.068]
+      }
+    },
+    {
+      "id": "minecraft:taiga",
+      "climate": {
+        "temperature": [-2.0, -0.012],
+        "humidity": [0.068, 2.0]
+      }
+    },
+    {
+      "id": "minecraft:old_growth_spruce_taiga",
+      "climate": {
+        "temperature": [-0.012, 2.0],
+        "humidity": [-2.0, 0.027]
+      }
+    },
+    {
+      "id": "minecraft:old_growth_pine_taiga",
+      "climate": {
+        "temperature": [-0.012, 2.0],
+        "humidity": [0.027, 2.0]
+      }
+    }
+  ],
+  "atmosphere": {
+    "fogColor": "#5B6B4B"
+  },
+  "borders": {
+    "player": 1024,
+    "generation": 1024
+  },
+  "difficulty": {
+    "mobMultiplier": 1.3,
+    "playerLuck": 1.4,
+    "depthScaling": {
+      "enabled": true,
+      "startY": 128,
+      "endY": 0,
+      "minMultiplier": 0.8,
+      "maxMultiplier": 1.6
+    }
+  },
+  "structures": {
+    "terrainAdaptation": {
+      "nova_structures:firewatch_tower_taiga": "pedestal"
+    }
+  },
+  "portals": [
+    {
+      "frameBlock": "minecraft:podzol",
+      "igniterItem": "minecraft:amethyst_shard",
+      "color": "8B6B3D",
+      "lightLevel": 11,
+      "scale": 8.0,
+      "cooldown": 40,
+      "sounds": {
+        "ignite": "block.portal.trigger",
+        "enter": "block.portal.travel",
+        "exit": "block.portal.travel"
+      }
+    }
+  ],
+  "roll": {
+    "mood": "dramatic",
+    "spawnFilter": [
+      "minecraft:taiga"
+    ],
+    "wants": {
+      "nova_structures:firewatch_tower_taiga": "near_spawn",
+      "towns_and_towers:pillager_outpost_taiga": "spread",
+      "nova_structures:remnant_taiga_castle": "spread",
+      "nova_structures:surface_dungeon_snowy": "near_border",
+      "stray_fort": "near_border",
+      "ati_structures:overgrown_outpost": "near_spawn",
+      "mvs:campsite": "near_spawn",
+      "mvs:small_ruin": "spread"
+    },
+    "shuns": [
+      "monument",
+      "mss:arena"
+    ]
+  }
+}

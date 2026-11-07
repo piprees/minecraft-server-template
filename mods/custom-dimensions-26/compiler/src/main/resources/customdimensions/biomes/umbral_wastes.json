@@ -1,0 +1,3331 @@
+{
+  "$schema": "../../../../../../schema/biome.schema.json",
+  "realm": "end",
+  "inspiredBy": "BetterEnd's shadow forest, for its darkness.",
+  "differs": "The only dark End biome, dark in its blocks since the End's sky ignores fog: black islands of blackstone where every other End biome is pale end stone, obsidian spikes standing over them, long thin cracks of crying obsidian running through the ground and weeping purple tears, soul fire burning blue on patches of soul soil, and dark ash drifting in the air.",
+  "climate": {
+    "temperature": [
+      -1.0,
+      -0.4
+    ],
+    "humidity": [
+      -1.0,
+      -0.3
+    ]
+  },
+  "palette": {
+    "top": "minecraft:blackstone",
+    "filler": "minecraft:blackstone"
+  },
+  "biome": {
+    "attributes": {
+      "minecraft:audio/ambient_sounds": {
+        "additions": {
+          "sound": "minecraft:block.respawn_anchor.ambient",
+          "tick_chance": 0.004
+        },
+        "loop": "minecraft:ambient.soul_sand_valley.loop",
+        "mood": {
+          "block_search_extent": 8,
+          "offset": 2.0,
+          "sound": "minecraft:ambient.cave",
+          "tick_delay": 6000
+        }
+      },
+      "minecraft:audio/background_music": {
+        "default": {
+          "max_delay": 24000,
+          "min_delay": 6000,
+          "replace_current_music": true,
+          "sound": "minecraft:music.end"
+        }
+      },
+      "minecraft:gameplay/natural_mob_spawns": {
+        "argument": {
+          "spawn_costs": {},
+          "spawns_by_category": {
+            "monster": [
+              {
+                "type": "minecraft:enderman",
+                "count": 4,
+                "weight": 10
+              }
+            ]
+          }
+        },
+        "modifier": "overlay"
+      },
+      "minecraft:visual/ambient_particles": {
+        "argument": [
+          {
+            "particle": {
+              "type": "minecraft:ash"
+            },
+            "probability": 0.04
+          },
+          {
+            "particle": {
+              "type": "minecraft:smoke"
+            },
+            "probability": 0.002
+          }
+        ],
+        "modifier": "append"
+      },
+      "minecraft:visual/fog_color": "#141018",
+      "minecraft:visual/sky_color": "#08060a"
+    },
+    "carvers": [],
+    "downfall": 0.5,
+    "effects": {
+      "water_color": "#3a2a4a"
+    },
+    "features": [
+      [],
+      [],
+      [],
+      [],
+      [
+        "minecraft:end_gateway_return",
+        "~obsidian_spikes"
+      ],
+      [],
+      [],
+      [],
+      [],
+      [
+        "~crying_cracks",
+        "~soul_fires"
+      ],
+      []
+    ],
+    "has_precipitation": false,
+    "temperature": 0.5
+  },
+  "features": {
+    "obsidian_spikes": {
+      "feature": {
+        "type": "minecraft:spike",
+        "can_place_on": {
+          "type": "minecraft:matching_blocks",
+          "blocks": [
+            "minecraft:blackstone",
+            "minecraft:end_stone"
+          ]
+        },
+        "can_replace": {
+          "type": "minecraft:matching_block_tag",
+          "tag": "minecraft:air"
+        },
+        "state": "minecraft:obsidian"
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": {
+            "type": "minecraft:uniform",
+            "max_inclusive": 2,
+            "min_inclusive": 1
+          }
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:heightmap",
+          "heightmap": "MOTION_BLOCKING"
+        },
+        {
+          "type": "minecraft:biome"
+        }
+      ]
+    },
+    "soul_fires": {
+      "feature": {
+        "type": "minecraft:vegetation_patch",
+        "depth": 1,
+        "extra_bottom_block_chance": 0.0,
+        "extra_edge_column_chance": 0.3,
+        "ground_state": {
+          "id": "minecraft:soul_soil"
+        },
+        "replaceable": "#minecraft:sculk_replaceable",
+        "surface": "floor",
+        "vegetation_chance": 0.6,
+        "vegetation_feature": {
+          "feature": {
+            "type": "minecraft:simple_block",
+            "to_place": {
+              "id": "minecraft:soul_fire"
+            }
+          },
+          "placement": []
+        },
+        "vertical_range": 5,
+        "xz_radius": {
+          "type": "minecraft:uniform",
+          "max_inclusive": 2,
+          "min_inclusive": 1
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 2
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:heightmap",
+          "heightmap": "MOTION_BLOCKING"
+        },
+        {
+          "type": "minecraft:biome"
+        },
+        {
+          "type": "minecraft:block_predicate_filter",
+          "predicate": {
+            "type": "minecraft:matching_blocks",
+            "blocks": [
+              "minecraft:blackstone"
+            ],
+            "offset": [
+              0,
+              -1,
+              0
+            ]
+          }
+        }
+      ]
+    },
+    "crying_cracks": {
+      "feature": {
+        "type": "minecraft:random_selector",
+        "default": {
+          "feature": {
+            "type": "minecraft:overlay",
+            "features": [
+              {
+                "feature": {
+                  "type": "minecraft:overlay",
+                  "features": [
+                    {
+                      "feature": {
+                        "type": "minecraft:overlay",
+                        "features": [
+                          {
+                            "feature": {
+                              "type": "minecraft:block_column",
+                              "allowed_placement": {
+                                "type": "minecraft:matching_blocks",
+                                "blocks": [
+                                  "minecraft:blackstone",
+                                  "minecraft:end_stone",
+                                  "minecraft:crying_obsidian"
+                                ]
+                              },
+                              "direction": "east",
+                              "prioritize_tip": false,
+                              "layers": [
+                                {
+                                  "height": {
+                                    "type": "minecraft:uniform",
+                                    "max_inclusive": 3,
+                                    "min_inclusive": 2
+                                  },
+                                  "provider": {
+                                    "id": "minecraft:crying_obsidian"
+                                  }
+                                }
+                              ]
+                            },
+                            "placement": []
+                          },
+                          {
+                            "feature": {
+                              "type": "minecraft:block_column",
+                              "allowed_placement": {
+                                "type": "minecraft:matching_blocks",
+                                "blocks": [
+                                  "minecraft:blackstone",
+                                  "minecraft:end_stone",
+                                  "minecraft:crying_obsidian"
+                                ]
+                              },
+                              "direction": "east",
+                              "prioritize_tip": false,
+                              "layers": [
+                                {
+                                  "height": {
+                                    "type": "minecraft:uniform",
+                                    "max_inclusive": 3,
+                                    "min_inclusive": 2
+                                  },
+                                  "provider": {
+                                    "id": "minecraft:crying_obsidian"
+                                  }
+                                }
+                              ]
+                            },
+                            "placement": [
+                              {
+                                "type": "minecraft:count",
+                                "count": {
+                                  "type": "minecraft:weighted_list",
+                                  "distribution": [
+                                    {
+                                      "data": 1,
+                                      "weight": 9
+                                    },
+                                    {
+                                      "data": 0,
+                                      "weight": 1
+                                    }
+                                  ]
+                                }
+                              },
+                              {
+                                "type": "minecraft:offset",
+                                "x": 3,
+                                "y": 0,
+                                "z": {
+                                  "type": "minecraft:uniform",
+                                  "max_inclusive": 0,
+                                  "min_inclusive": 0
+                                }
+                              },
+                              {
+                                "type": "minecraft:heightmap",
+                                "heightmap": "WORLD_SURFACE_WG"
+                              },
+                              {
+                                "type": "minecraft:offset",
+                                "x": 0,
+                                "y": -1,
+                                "z": 0
+                              },
+                              {
+                                "type": "minecraft:block_predicate_filter",
+                                "predicate": {
+                                  "type": "minecraft:all_of",
+                                  "predicates": [
+                                    {
+                                      "type": "minecraft:matching_blocks",
+                                      "blocks": [
+                                        "minecraft:blackstone",
+                                        "minecraft:end_stone",
+                                        "minecraft:crying_obsidian"
+                                      ]
+                                    },
+                                    {
+                                      "type": "minecraft:matching_blocks",
+                                      "blocks": [
+                                        "minecraft:air"
+                                      ],
+                                      "offset": [
+                                        0,
+                                        1,
+                                        0
+                                      ]
+                                    }
+                                  ]
+                                }
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      "placement": []
+                    },
+                    {
+                      "feature": {
+                        "type": "minecraft:overlay",
+                        "features": [
+                          {
+                            "feature": {
+                              "type": "minecraft:block_column",
+                              "allowed_placement": {
+                                "type": "minecraft:matching_blocks",
+                                "blocks": [
+                                  "minecraft:blackstone",
+                                  "minecraft:end_stone",
+                                  "minecraft:crying_obsidian"
+                                ]
+                              },
+                              "direction": "east",
+                              "prioritize_tip": false,
+                              "layers": [
+                                {
+                                  "height": {
+                                    "type": "minecraft:uniform",
+                                    "max_inclusive": 3,
+                                    "min_inclusive": 2
+                                  },
+                                  "provider": {
+                                    "id": "minecraft:crying_obsidian"
+                                  }
+                                }
+                              ]
+                            },
+                            "placement": []
+                          },
+                          {
+                            "feature": {
+                              "type": "minecraft:block_column",
+                              "allowed_placement": {
+                                "type": "minecraft:matching_blocks",
+                                "blocks": [
+                                  "minecraft:blackstone",
+                                  "minecraft:end_stone",
+                                  "minecraft:crying_obsidian"
+                                ]
+                              },
+                              "direction": "east",
+                              "prioritize_tip": false,
+                              "layers": [
+                                {
+                                  "height": {
+                                    "type": "minecraft:uniform",
+                                    "max_inclusive": 3,
+                                    "min_inclusive": 2
+                                  },
+                                  "provider": {
+                                    "id": "minecraft:crying_obsidian"
+                                  }
+                                }
+                              ]
+                            },
+                            "placement": [
+                              {
+                                "type": "minecraft:count",
+                                "count": {
+                                  "type": "minecraft:weighted_list",
+                                  "distribution": [
+                                    {
+                                      "data": 1,
+                                      "weight": 9
+                                    },
+                                    {
+                                      "data": 0,
+                                      "weight": 1
+                                    }
+                                  ]
+                                }
+                              },
+                              {
+                                "type": "minecraft:offset",
+                                "x": 3,
+                                "y": 0,
+                                "z": {
+                                  "type": "minecraft:uniform",
+                                  "max_inclusive": 0,
+                                  "min_inclusive": 0
+                                }
+                              },
+                              {
+                                "type": "minecraft:heightmap",
+                                "heightmap": "WORLD_SURFACE_WG"
+                              },
+                              {
+                                "type": "minecraft:offset",
+                                "x": 0,
+                                "y": -1,
+                                "z": 0
+                              },
+                              {
+                                "type": "minecraft:block_predicate_filter",
+                                "predicate": {
+                                  "type": "minecraft:all_of",
+                                  "predicates": [
+                                    {
+                                      "type": "minecraft:matching_blocks",
+                                      "blocks": [
+                                        "minecraft:blackstone",
+                                        "minecraft:end_stone",
+                                        "minecraft:crying_obsidian"
+                                      ]
+                                    },
+                                    {
+                                      "type": "minecraft:matching_blocks",
+                                      "blocks": [
+                                        "minecraft:air"
+                                      ],
+                                      "offset": [
+                                        0,
+                                        1,
+                                        0
+                                      ]
+                                    }
+                                  ]
+                                }
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      "placement": [
+                        {
+                          "type": "minecraft:count",
+                          "count": {
+                            "type": "minecraft:weighted_list",
+                            "distribution": [
+                              {
+                                "data": 1,
+                                "weight": 9
+                              },
+                              {
+                                "data": 0,
+                                "weight": 1
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "type": "minecraft:offset",
+                          "x": 6,
+                          "y": 0,
+                          "z": {
+                            "type": "minecraft:uniform",
+                            "max_inclusive": 1,
+                            "min_inclusive": -1
+                          }
+                        },
+                        {
+                          "type": "minecraft:heightmap",
+                          "heightmap": "WORLD_SURFACE_WG"
+                        },
+                        {
+                          "type": "minecraft:offset",
+                          "x": 0,
+                          "y": -1,
+                          "z": 0
+                        },
+                        {
+                          "type": "minecraft:block_predicate_filter",
+                          "predicate": {
+                            "type": "minecraft:all_of",
+                            "predicates": [
+                              {
+                                "type": "minecraft:matching_blocks",
+                                "blocks": [
+                                  "minecraft:blackstone",
+                                  "minecraft:end_stone",
+                                  "minecraft:crying_obsidian"
+                                ]
+                              },
+                              {
+                                "type": "minecraft:matching_blocks",
+                                "blocks": [
+                                  "minecraft:air"
+                                ],
+                                "offset": [
+                                  0,
+                                  1,
+                                  0
+                                ]
+                              }
+                            ]
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "placement": []
+              },
+              {
+                "feature": {
+                  "type": "minecraft:overlay",
+                  "features": [
+                    {
+                      "feature": {
+                        "type": "minecraft:overlay",
+                        "features": [
+                          {
+                            "feature": {
+                              "type": "minecraft:block_column",
+                              "allowed_placement": {
+                                "type": "minecraft:matching_blocks",
+                                "blocks": [
+                                  "minecraft:blackstone",
+                                  "minecraft:end_stone",
+                                  "minecraft:crying_obsidian"
+                                ]
+                              },
+                              "direction": "east",
+                              "prioritize_tip": false,
+                              "layers": [
+                                {
+                                  "height": {
+                                    "type": "minecraft:uniform",
+                                    "max_inclusive": 3,
+                                    "min_inclusive": 2
+                                  },
+                                  "provider": {
+                                    "id": "minecraft:crying_obsidian"
+                                  }
+                                }
+                              ]
+                            },
+                            "placement": []
+                          },
+                          {
+                            "feature": {
+                              "type": "minecraft:block_column",
+                              "allowed_placement": {
+                                "type": "minecraft:matching_blocks",
+                                "blocks": [
+                                  "minecraft:blackstone",
+                                  "minecraft:end_stone",
+                                  "minecraft:crying_obsidian"
+                                ]
+                              },
+                              "direction": "east",
+                              "prioritize_tip": false,
+                              "layers": [
+                                {
+                                  "height": {
+                                    "type": "minecraft:uniform",
+                                    "max_inclusive": 3,
+                                    "min_inclusive": 2
+                                  },
+                                  "provider": {
+                                    "id": "minecraft:crying_obsidian"
+                                  }
+                                }
+                              ]
+                            },
+                            "placement": [
+                              {
+                                "type": "minecraft:count",
+                                "count": {
+                                  "type": "minecraft:weighted_list",
+                                  "distribution": [
+                                    {
+                                      "data": 1,
+                                      "weight": 9
+                                    },
+                                    {
+                                      "data": 0,
+                                      "weight": 1
+                                    }
+                                  ]
+                                }
+                              },
+                              {
+                                "type": "minecraft:offset",
+                                "x": 3,
+                                "y": 0,
+                                "z": {
+                                  "type": "minecraft:uniform",
+                                  "max_inclusive": 0,
+                                  "min_inclusive": 0
+                                }
+                              },
+                              {
+                                "type": "minecraft:heightmap",
+                                "heightmap": "WORLD_SURFACE_WG"
+                              },
+                              {
+                                "type": "minecraft:offset",
+                                "x": 0,
+                                "y": -1,
+                                "z": 0
+                              },
+                              {
+                                "type": "minecraft:block_predicate_filter",
+                                "predicate": {
+                                  "type": "minecraft:all_of",
+                                  "predicates": [
+                                    {
+                                      "type": "minecraft:matching_blocks",
+                                      "blocks": [
+                                        "minecraft:blackstone",
+                                        "minecraft:end_stone",
+                                        "minecraft:crying_obsidian"
+                                      ]
+                                    },
+                                    {
+                                      "type": "minecraft:matching_blocks",
+                                      "blocks": [
+                                        "minecraft:air"
+                                      ],
+                                      "offset": [
+                                        0,
+                                        1,
+                                        0
+                                      ]
+                                    }
+                                  ]
+                                }
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      "placement": []
+                    },
+                    {
+                      "feature": {
+                        "type": "minecraft:overlay",
+                        "features": [
+                          {
+                            "feature": {
+                              "type": "minecraft:block_column",
+                              "allowed_placement": {
+                                "type": "minecraft:matching_blocks",
+                                "blocks": [
+                                  "minecraft:blackstone",
+                                  "minecraft:end_stone",
+                                  "minecraft:crying_obsidian"
+                                ]
+                              },
+                              "direction": "east",
+                              "prioritize_tip": false,
+                              "layers": [
+                                {
+                                  "height": {
+                                    "type": "minecraft:uniform",
+                                    "max_inclusive": 3,
+                                    "min_inclusive": 2
+                                  },
+                                  "provider": {
+                                    "id": "minecraft:crying_obsidian"
+                                  }
+                                }
+                              ]
+                            },
+                            "placement": []
+                          },
+                          {
+                            "feature": {
+                              "type": "minecraft:block_column",
+                              "allowed_placement": {
+                                "type": "minecraft:matching_blocks",
+                                "blocks": [
+                                  "minecraft:blackstone",
+                                  "minecraft:end_stone",
+                                  "minecraft:crying_obsidian"
+                                ]
+                              },
+                              "direction": "east",
+                              "prioritize_tip": false,
+                              "layers": [
+                                {
+                                  "height": {
+                                    "type": "minecraft:uniform",
+                                    "max_inclusive": 3,
+                                    "min_inclusive": 2
+                                  },
+                                  "provider": {
+                                    "id": "minecraft:crying_obsidian"
+                                  }
+                                }
+                              ]
+                            },
+                            "placement": [
+                              {
+                                "type": "minecraft:count",
+                                "count": {
+                                  "type": "minecraft:weighted_list",
+                                  "distribution": [
+                                    {
+                                      "data": 1,
+                                      "weight": 9
+                                    },
+                                    {
+                                      "data": 0,
+                                      "weight": 1
+                                    }
+                                  ]
+                                }
+                              },
+                              {
+                                "type": "minecraft:offset",
+                                "x": 3,
+                                "y": 0,
+                                "z": {
+                                  "type": "minecraft:uniform",
+                                  "max_inclusive": 0,
+                                  "min_inclusive": 0
+                                }
+                              },
+                              {
+                                "type": "minecraft:heightmap",
+                                "heightmap": "WORLD_SURFACE_WG"
+                              },
+                              {
+                                "type": "minecraft:offset",
+                                "x": 0,
+                                "y": -1,
+                                "z": 0
+                              },
+                              {
+                                "type": "minecraft:block_predicate_filter",
+                                "predicate": {
+                                  "type": "minecraft:all_of",
+                                  "predicates": [
+                                    {
+                                      "type": "minecraft:matching_blocks",
+                                      "blocks": [
+                                        "minecraft:blackstone",
+                                        "minecraft:end_stone",
+                                        "minecraft:crying_obsidian"
+                                      ]
+                                    },
+                                    {
+                                      "type": "minecraft:matching_blocks",
+                                      "blocks": [
+                                        "minecraft:air"
+                                      ],
+                                      "offset": [
+                                        0,
+                                        1,
+                                        0
+                                      ]
+                                    }
+                                  ]
+                                }
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      "placement": [
+                        {
+                          "type": "minecraft:count",
+                          "count": {
+                            "type": "minecraft:weighted_list",
+                            "distribution": [
+                              {
+                                "data": 1,
+                                "weight": 9
+                              },
+                              {
+                                "data": 0,
+                                "weight": 1
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "type": "minecraft:offset",
+                          "x": 6,
+                          "y": 0,
+                          "z": {
+                            "type": "minecraft:uniform",
+                            "max_inclusive": 1,
+                            "min_inclusive": -1
+                          }
+                        },
+                        {
+                          "type": "minecraft:heightmap",
+                          "heightmap": "WORLD_SURFACE_WG"
+                        },
+                        {
+                          "type": "minecraft:offset",
+                          "x": 0,
+                          "y": -1,
+                          "z": 0
+                        },
+                        {
+                          "type": "minecraft:block_predicate_filter",
+                          "predicate": {
+                            "type": "minecraft:all_of",
+                            "predicates": [
+                              {
+                                "type": "minecraft:matching_blocks",
+                                "blocks": [
+                                  "minecraft:blackstone",
+                                  "minecraft:end_stone",
+                                  "minecraft:crying_obsidian"
+                                ]
+                              },
+                              {
+                                "type": "minecraft:matching_blocks",
+                                "blocks": [
+                                  "minecraft:air"
+                                ],
+                                "offset": [
+                                  0,
+                                  1,
+                                  0
+                                ]
+                              }
+                            ]
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "placement": [
+                  {
+                    "type": "minecraft:count",
+                    "count": {
+                      "type": "minecraft:weighted_list",
+                      "distribution": [
+                        {
+                          "data": 1,
+                          "weight": 9
+                        },
+                        {
+                          "data": 0,
+                          "weight": 1
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "type": "minecraft:offset",
+                    "x": 12,
+                    "y": 0,
+                    "z": {
+                      "type": "minecraft:uniform",
+                      "max_inclusive": 1,
+                      "min_inclusive": -1
+                    }
+                  },
+                  {
+                    "type": "minecraft:heightmap",
+                    "heightmap": "WORLD_SURFACE_WG"
+                  },
+                  {
+                    "type": "minecraft:offset",
+                    "x": 0,
+                    "y": -1,
+                    "z": 0
+                  },
+                  {
+                    "type": "minecraft:block_predicate_filter",
+                    "predicate": {
+                      "type": "minecraft:all_of",
+                      "predicates": [
+                        {
+                          "type": "minecraft:matching_blocks",
+                          "blocks": [
+                            "minecraft:blackstone",
+                            "minecraft:end_stone",
+                            "minecraft:crying_obsidian"
+                          ]
+                        },
+                        {
+                          "type": "minecraft:matching_blocks",
+                          "blocks": [
+                            "minecraft:air"
+                          ],
+                          "offset": [
+                            0,
+                            1,
+                            0
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          "placement": [
+            {
+              "type": "minecraft:offset",
+              "x": -12,
+              "y": 0,
+              "z": 0
+            },
+            {
+              "type": "minecraft:heightmap",
+              "heightmap": "WORLD_SURFACE_WG"
+            },
+            {
+              "type": "minecraft:offset",
+              "x": 0,
+              "y": -1,
+              "z": 0
+            },
+            {
+              "type": "minecraft:block_predicate_filter",
+              "predicate": {
+                "type": "minecraft:all_of",
+                "predicates": [
+                  {
+                    "type": "minecraft:matching_blocks",
+                    "blocks": [
+                      "minecraft:blackstone",
+                      "minecraft:end_stone",
+                      "minecraft:crying_obsidian"
+                    ]
+                  },
+                  {
+                    "type": "minecraft:matching_blocks",
+                    "blocks": [
+                      "minecraft:air"
+                    ],
+                    "offset": [
+                      0,
+                      1,
+                      0
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "features": [
+          {
+            "chance": 0.25,
+            "feature": {
+              "feature": {
+                "type": "minecraft:overlay",
+                "features": [
+                  {
+                    "feature": {
+                      "type": "minecraft:overlay",
+                      "features": [
+                        {
+                          "feature": {
+                            "type": "minecraft:overlay",
+                            "features": [
+                              {
+                                "feature": {
+                                  "type": "minecraft:block_column",
+                                  "allowed_placement": {
+                                    "type": "minecraft:matching_blocks",
+                                    "blocks": [
+                                      "minecraft:blackstone",
+                                      "minecraft:end_stone",
+                                      "minecraft:crying_obsidian"
+                                    ]
+                                  },
+                                  "direction": "south",
+                                  "prioritize_tip": false,
+                                  "layers": [
+                                    {
+                                      "height": {
+                                        "type": "minecraft:uniform",
+                                        "max_inclusive": 3,
+                                        "min_inclusive": 2
+                                      },
+                                      "provider": {
+                                        "id": "minecraft:crying_obsidian"
+                                      }
+                                    }
+                                  ]
+                                },
+                                "placement": []
+                              },
+                              {
+                                "feature": {
+                                  "type": "minecraft:block_column",
+                                  "allowed_placement": {
+                                    "type": "minecraft:matching_blocks",
+                                    "blocks": [
+                                      "minecraft:blackstone",
+                                      "minecraft:end_stone",
+                                      "minecraft:crying_obsidian"
+                                    ]
+                                  },
+                                  "direction": "south",
+                                  "prioritize_tip": false,
+                                  "layers": [
+                                    {
+                                      "height": {
+                                        "type": "minecraft:uniform",
+                                        "max_inclusive": 3,
+                                        "min_inclusive": 2
+                                      },
+                                      "provider": {
+                                        "id": "minecraft:crying_obsidian"
+                                      }
+                                    }
+                                  ]
+                                },
+                                "placement": [
+                                  {
+                                    "type": "minecraft:count",
+                                    "count": {
+                                      "type": "minecraft:weighted_list",
+                                      "distribution": [
+                                        {
+                                          "data": 1,
+                                          "weight": 9
+                                        },
+                                        {
+                                          "data": 0,
+                                          "weight": 1
+                                        }
+                                      ]
+                                    }
+                                  },
+                                  {
+                                    "type": "minecraft:offset",
+                                    "x": {
+                                      "type": "minecraft:uniform",
+                                      "max_inclusive": 0,
+                                      "min_inclusive": 0
+                                    },
+                                    "y": 0,
+                                    "z": 3
+                                  },
+                                  {
+                                    "type": "minecraft:heightmap",
+                                    "heightmap": "WORLD_SURFACE_WG"
+                                  },
+                                  {
+                                    "type": "minecraft:offset",
+                                    "x": 0,
+                                    "y": -1,
+                                    "z": 0
+                                  },
+                                  {
+                                    "type": "minecraft:block_predicate_filter",
+                                    "predicate": {
+                                      "type": "minecraft:all_of",
+                                      "predicates": [
+                                        {
+                                          "type": "minecraft:matching_blocks",
+                                          "blocks": [
+                                            "minecraft:blackstone",
+                                            "minecraft:end_stone",
+                                            "minecraft:crying_obsidian"
+                                          ]
+                                        },
+                                        {
+                                          "type": "minecraft:matching_blocks",
+                                          "blocks": [
+                                            "minecraft:air"
+                                          ],
+                                          "offset": [
+                                            0,
+                                            1,
+                                            0
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          "placement": []
+                        },
+                        {
+                          "feature": {
+                            "type": "minecraft:overlay",
+                            "features": [
+                              {
+                                "feature": {
+                                  "type": "minecraft:block_column",
+                                  "allowed_placement": {
+                                    "type": "minecraft:matching_blocks",
+                                    "blocks": [
+                                      "minecraft:blackstone",
+                                      "minecraft:end_stone",
+                                      "minecraft:crying_obsidian"
+                                    ]
+                                  },
+                                  "direction": "south",
+                                  "prioritize_tip": false,
+                                  "layers": [
+                                    {
+                                      "height": {
+                                        "type": "minecraft:uniform",
+                                        "max_inclusive": 3,
+                                        "min_inclusive": 2
+                                      },
+                                      "provider": {
+                                        "id": "minecraft:crying_obsidian"
+                                      }
+                                    }
+                                  ]
+                                },
+                                "placement": []
+                              },
+                              {
+                                "feature": {
+                                  "type": "minecraft:block_column",
+                                  "allowed_placement": {
+                                    "type": "minecraft:matching_blocks",
+                                    "blocks": [
+                                      "minecraft:blackstone",
+                                      "minecraft:end_stone",
+                                      "minecraft:crying_obsidian"
+                                    ]
+                                  },
+                                  "direction": "south",
+                                  "prioritize_tip": false,
+                                  "layers": [
+                                    {
+                                      "height": {
+                                        "type": "minecraft:uniform",
+                                        "max_inclusive": 3,
+                                        "min_inclusive": 2
+                                      },
+                                      "provider": {
+                                        "id": "minecraft:crying_obsidian"
+                                      }
+                                    }
+                                  ]
+                                },
+                                "placement": [
+                                  {
+                                    "type": "minecraft:count",
+                                    "count": {
+                                      "type": "minecraft:weighted_list",
+                                      "distribution": [
+                                        {
+                                          "data": 1,
+                                          "weight": 9
+                                        },
+                                        {
+                                          "data": 0,
+                                          "weight": 1
+                                        }
+                                      ]
+                                    }
+                                  },
+                                  {
+                                    "type": "minecraft:offset",
+                                    "x": {
+                                      "type": "minecraft:uniform",
+                                      "max_inclusive": 0,
+                                      "min_inclusive": 0
+                                    },
+                                    "y": 0,
+                                    "z": 3
+                                  },
+                                  {
+                                    "type": "minecraft:heightmap",
+                                    "heightmap": "WORLD_SURFACE_WG"
+                                  },
+                                  {
+                                    "type": "minecraft:offset",
+                                    "x": 0,
+                                    "y": -1,
+                                    "z": 0
+                                  },
+                                  {
+                                    "type": "minecraft:block_predicate_filter",
+                                    "predicate": {
+                                      "type": "minecraft:all_of",
+                                      "predicates": [
+                                        {
+                                          "type": "minecraft:matching_blocks",
+                                          "blocks": [
+                                            "minecraft:blackstone",
+                                            "minecraft:end_stone",
+                                            "minecraft:crying_obsidian"
+                                          ]
+                                        },
+                                        {
+                                          "type": "minecraft:matching_blocks",
+                                          "blocks": [
+                                            "minecraft:air"
+                                          ],
+                                          "offset": [
+                                            0,
+                                            1,
+                                            0
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          "placement": [
+                            {
+                              "type": "minecraft:count",
+                              "count": {
+                                "type": "minecraft:weighted_list",
+                                "distribution": [
+                                  {
+                                    "data": 1,
+                                    "weight": 9
+                                  },
+                                  {
+                                    "data": 0,
+                                    "weight": 1
+                                  }
+                                ]
+                              }
+                            },
+                            {
+                              "type": "minecraft:offset",
+                              "x": {
+                                "type": "minecraft:uniform",
+                                "max_inclusive": 1,
+                                "min_inclusive": -1
+                              },
+                              "y": 0,
+                              "z": 6
+                            },
+                            {
+                              "type": "minecraft:heightmap",
+                              "heightmap": "WORLD_SURFACE_WG"
+                            },
+                            {
+                              "type": "minecraft:offset",
+                              "x": 0,
+                              "y": -1,
+                              "z": 0
+                            },
+                            {
+                              "type": "minecraft:block_predicate_filter",
+                              "predicate": {
+                                "type": "minecraft:all_of",
+                                "predicates": [
+                                  {
+                                    "type": "minecraft:matching_blocks",
+                                    "blocks": [
+                                      "minecraft:blackstone",
+                                      "minecraft:end_stone",
+                                      "minecraft:crying_obsidian"
+                                    ]
+                                  },
+                                  {
+                                    "type": "minecraft:matching_blocks",
+                                    "blocks": [
+                                      "minecraft:air"
+                                    ],
+                                    "offset": [
+                                      0,
+                                      1,
+                                      0
+                                    ]
+                                  }
+                                ]
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    "placement": []
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:overlay",
+                      "features": [
+                        {
+                          "feature": {
+                            "type": "minecraft:overlay",
+                            "features": [
+                              {
+                                "feature": {
+                                  "type": "minecraft:block_column",
+                                  "allowed_placement": {
+                                    "type": "minecraft:matching_blocks",
+                                    "blocks": [
+                                      "minecraft:blackstone",
+                                      "minecraft:end_stone",
+                                      "minecraft:crying_obsidian"
+                                    ]
+                                  },
+                                  "direction": "south",
+                                  "prioritize_tip": false,
+                                  "layers": [
+                                    {
+                                      "height": {
+                                        "type": "minecraft:uniform",
+                                        "max_inclusive": 3,
+                                        "min_inclusive": 2
+                                      },
+                                      "provider": {
+                                        "id": "minecraft:crying_obsidian"
+                                      }
+                                    }
+                                  ]
+                                },
+                                "placement": []
+                              },
+                              {
+                                "feature": {
+                                  "type": "minecraft:block_column",
+                                  "allowed_placement": {
+                                    "type": "minecraft:matching_blocks",
+                                    "blocks": [
+                                      "minecraft:blackstone",
+                                      "minecraft:end_stone",
+                                      "minecraft:crying_obsidian"
+                                    ]
+                                  },
+                                  "direction": "south",
+                                  "prioritize_tip": false,
+                                  "layers": [
+                                    {
+                                      "height": {
+                                        "type": "minecraft:uniform",
+                                        "max_inclusive": 3,
+                                        "min_inclusive": 2
+                                      },
+                                      "provider": {
+                                        "id": "minecraft:crying_obsidian"
+                                      }
+                                    }
+                                  ]
+                                },
+                                "placement": [
+                                  {
+                                    "type": "minecraft:count",
+                                    "count": {
+                                      "type": "minecraft:weighted_list",
+                                      "distribution": [
+                                        {
+                                          "data": 1,
+                                          "weight": 9
+                                        },
+                                        {
+                                          "data": 0,
+                                          "weight": 1
+                                        }
+                                      ]
+                                    }
+                                  },
+                                  {
+                                    "type": "minecraft:offset",
+                                    "x": {
+                                      "type": "minecraft:uniform",
+                                      "max_inclusive": 0,
+                                      "min_inclusive": 0
+                                    },
+                                    "y": 0,
+                                    "z": 3
+                                  },
+                                  {
+                                    "type": "minecraft:heightmap",
+                                    "heightmap": "WORLD_SURFACE_WG"
+                                  },
+                                  {
+                                    "type": "minecraft:offset",
+                                    "x": 0,
+                                    "y": -1,
+                                    "z": 0
+                                  },
+                                  {
+                                    "type": "minecraft:block_predicate_filter",
+                                    "predicate": {
+                                      "type": "minecraft:all_of",
+                                      "predicates": [
+                                        {
+                                          "type": "minecraft:matching_blocks",
+                                          "blocks": [
+                                            "minecraft:blackstone",
+                                            "minecraft:end_stone",
+                                            "minecraft:crying_obsidian"
+                                          ]
+                                        },
+                                        {
+                                          "type": "minecraft:matching_blocks",
+                                          "blocks": [
+                                            "minecraft:air"
+                                          ],
+                                          "offset": [
+                                            0,
+                                            1,
+                                            0
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          "placement": []
+                        },
+                        {
+                          "feature": {
+                            "type": "minecraft:overlay",
+                            "features": [
+                              {
+                                "feature": {
+                                  "type": "minecraft:block_column",
+                                  "allowed_placement": {
+                                    "type": "minecraft:matching_blocks",
+                                    "blocks": [
+                                      "minecraft:blackstone",
+                                      "minecraft:end_stone",
+                                      "minecraft:crying_obsidian"
+                                    ]
+                                  },
+                                  "direction": "south",
+                                  "prioritize_tip": false,
+                                  "layers": [
+                                    {
+                                      "height": {
+                                        "type": "minecraft:uniform",
+                                        "max_inclusive": 3,
+                                        "min_inclusive": 2
+                                      },
+                                      "provider": {
+                                        "id": "minecraft:crying_obsidian"
+                                      }
+                                    }
+                                  ]
+                                },
+                                "placement": []
+                              },
+                              {
+                                "feature": {
+                                  "type": "minecraft:block_column",
+                                  "allowed_placement": {
+                                    "type": "minecraft:matching_blocks",
+                                    "blocks": [
+                                      "minecraft:blackstone",
+                                      "minecraft:end_stone",
+                                      "minecraft:crying_obsidian"
+                                    ]
+                                  },
+                                  "direction": "south",
+                                  "prioritize_tip": false,
+                                  "layers": [
+                                    {
+                                      "height": {
+                                        "type": "minecraft:uniform",
+                                        "max_inclusive": 3,
+                                        "min_inclusive": 2
+                                      },
+                                      "provider": {
+                                        "id": "minecraft:crying_obsidian"
+                                      }
+                                    }
+                                  ]
+                                },
+                                "placement": [
+                                  {
+                                    "type": "minecraft:count",
+                                    "count": {
+                                      "type": "minecraft:weighted_list",
+                                      "distribution": [
+                                        {
+                                          "data": 1,
+                                          "weight": 9
+                                        },
+                                        {
+                                          "data": 0,
+                                          "weight": 1
+                                        }
+                                      ]
+                                    }
+                                  },
+                                  {
+                                    "type": "minecraft:offset",
+                                    "x": {
+                                      "type": "minecraft:uniform",
+                                      "max_inclusive": 0,
+                                      "min_inclusive": 0
+                                    },
+                                    "y": 0,
+                                    "z": 3
+                                  },
+                                  {
+                                    "type": "minecraft:heightmap",
+                                    "heightmap": "WORLD_SURFACE_WG"
+                                  },
+                                  {
+                                    "type": "minecraft:offset",
+                                    "x": 0,
+                                    "y": -1,
+                                    "z": 0
+                                  },
+                                  {
+                                    "type": "minecraft:block_predicate_filter",
+                                    "predicate": {
+                                      "type": "minecraft:all_of",
+                                      "predicates": [
+                                        {
+                                          "type": "minecraft:matching_blocks",
+                                          "blocks": [
+                                            "minecraft:blackstone",
+                                            "minecraft:end_stone",
+                                            "minecraft:crying_obsidian"
+                                          ]
+                                        },
+                                        {
+                                          "type": "minecraft:matching_blocks",
+                                          "blocks": [
+                                            "minecraft:air"
+                                          ],
+                                          "offset": [
+                                            0,
+                                            1,
+                                            0
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          "placement": [
+                            {
+                              "type": "minecraft:count",
+                              "count": {
+                                "type": "minecraft:weighted_list",
+                                "distribution": [
+                                  {
+                                    "data": 1,
+                                    "weight": 9
+                                  },
+                                  {
+                                    "data": 0,
+                                    "weight": 1
+                                  }
+                                ]
+                              }
+                            },
+                            {
+                              "type": "minecraft:offset",
+                              "x": {
+                                "type": "minecraft:uniform",
+                                "max_inclusive": 1,
+                                "min_inclusive": -1
+                              },
+                              "y": 0,
+                              "z": 6
+                            },
+                            {
+                              "type": "minecraft:heightmap",
+                              "heightmap": "WORLD_SURFACE_WG"
+                            },
+                            {
+                              "type": "minecraft:offset",
+                              "x": 0,
+                              "y": -1,
+                              "z": 0
+                            },
+                            {
+                              "type": "minecraft:block_predicate_filter",
+                              "predicate": {
+                                "type": "minecraft:all_of",
+                                "predicates": [
+                                  {
+                                    "type": "minecraft:matching_blocks",
+                                    "blocks": [
+                                      "minecraft:blackstone",
+                                      "minecraft:end_stone",
+                                      "minecraft:crying_obsidian"
+                                    ]
+                                  },
+                                  {
+                                    "type": "minecraft:matching_blocks",
+                                    "blocks": [
+                                      "minecraft:air"
+                                    ],
+                                    "offset": [
+                                      0,
+                                      1,
+                                      0
+                                    ]
+                                  }
+                                ]
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    "placement": [
+                      {
+                        "type": "minecraft:count",
+                        "count": {
+                          "type": "minecraft:weighted_list",
+                          "distribution": [
+                            {
+                              "data": 1,
+                              "weight": 9
+                            },
+                            {
+                              "data": 0,
+                              "weight": 1
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "type": "minecraft:offset",
+                        "x": {
+                          "type": "minecraft:uniform",
+                          "max_inclusive": 1,
+                          "min_inclusive": -1
+                        },
+                        "y": 0,
+                        "z": 12
+                      },
+                      {
+                        "type": "minecraft:heightmap",
+                        "heightmap": "WORLD_SURFACE_WG"
+                      },
+                      {
+                        "type": "minecraft:offset",
+                        "x": 0,
+                        "y": -1,
+                        "z": 0
+                      },
+                      {
+                        "type": "minecraft:block_predicate_filter",
+                        "predicate": {
+                          "type": "minecraft:all_of",
+                          "predicates": [
+                            {
+                              "type": "minecraft:matching_blocks",
+                              "blocks": [
+                                "minecraft:blackstone",
+                                "minecraft:end_stone",
+                                "minecraft:crying_obsidian"
+                              ]
+                            },
+                            {
+                              "type": "minecraft:matching_blocks",
+                              "blocks": [
+                                "minecraft:air"
+                              ],
+                              "offset": [
+                                0,
+                                1,
+                                0
+                              ]
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                ]
+              },
+              "placement": [
+                {
+                  "type": "minecraft:offset",
+                  "x": 0,
+                  "y": 0,
+                  "z": -12
+                },
+                {
+                  "type": "minecraft:heightmap",
+                  "heightmap": "WORLD_SURFACE_WG"
+                },
+                {
+                  "type": "minecraft:offset",
+                  "x": 0,
+                  "y": -1,
+                  "z": 0
+                },
+                {
+                  "type": "minecraft:block_predicate_filter",
+                  "predicate": {
+                    "type": "minecraft:all_of",
+                    "predicates": [
+                      {
+                        "type": "minecraft:matching_blocks",
+                        "blocks": [
+                          "minecraft:blackstone",
+                          "minecraft:end_stone",
+                          "minecraft:crying_obsidian"
+                        ]
+                      },
+                      {
+                        "type": "minecraft:matching_blocks",
+                        "blocks": [
+                          "minecraft:air"
+                        ],
+                        "offset": [
+                          0,
+                          1,
+                          0
+                        ]
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "chance": 0.3333333333333333,
+            "feature": {
+              "feature": {
+                "type": "minecraft:overlay",
+                "features": [
+                  {
+                    "feature": {
+                      "type": "minecraft:overlay",
+                      "features": [
+                        {
+                          "feature": {
+                            "type": "minecraft:overlay",
+                            "features": [
+                              {
+                                "feature": {
+                                  "type": "minecraft:block_column",
+                                  "allowed_placement": {
+                                    "type": "minecraft:matching_blocks",
+                                    "blocks": [
+                                      "minecraft:blackstone",
+                                      "minecraft:end_stone",
+                                      "minecraft:crying_obsidian"
+                                    ]
+                                  },
+                                  "direction": "east",
+                                  "prioritize_tip": false,
+                                  "layers": [
+                                    {
+                                      "height": {
+                                        "type": "minecraft:uniform",
+                                        "max_inclusive": 3,
+                                        "min_inclusive": 2
+                                      },
+                                      "provider": {
+                                        "id": "minecraft:crying_obsidian"
+                                      }
+                                    }
+                                  ]
+                                },
+                                "placement": []
+                              },
+                              {
+                                "feature": {
+                                  "type": "minecraft:block_column",
+                                  "allowed_placement": {
+                                    "type": "minecraft:matching_blocks",
+                                    "blocks": [
+                                      "minecraft:blackstone",
+                                      "minecraft:end_stone",
+                                      "minecraft:crying_obsidian"
+                                    ]
+                                  },
+                                  "direction": "east",
+                                  "prioritize_tip": false,
+                                  "layers": [
+                                    {
+                                      "height": {
+                                        "type": "minecraft:uniform",
+                                        "max_inclusive": 3,
+                                        "min_inclusive": 2
+                                      },
+                                      "provider": {
+                                        "id": "minecraft:crying_obsidian"
+                                      }
+                                    }
+                                  ]
+                                },
+                                "placement": [
+                                  {
+                                    "type": "minecraft:count",
+                                    "count": {
+                                      "type": "minecraft:weighted_list",
+                                      "distribution": [
+                                        {
+                                          "data": 1,
+                                          "weight": 9
+                                        },
+                                        {
+                                          "data": 0,
+                                          "weight": 1
+                                        }
+                                      ]
+                                    }
+                                  },
+                                  {
+                                    "type": "minecraft:offset",
+                                    "x": 3,
+                                    "y": 0,
+                                    "z": {
+                                      "type": "minecraft:uniform",
+                                      "max_inclusive": 1,
+                                      "min_inclusive": 0
+                                    }
+                                  },
+                                  {
+                                    "type": "minecraft:heightmap",
+                                    "heightmap": "WORLD_SURFACE_WG"
+                                  },
+                                  {
+                                    "type": "minecraft:offset",
+                                    "x": 0,
+                                    "y": -1,
+                                    "z": 0
+                                  },
+                                  {
+                                    "type": "minecraft:block_predicate_filter",
+                                    "predicate": {
+                                      "type": "minecraft:all_of",
+                                      "predicates": [
+                                        {
+                                          "type": "minecraft:matching_blocks",
+                                          "blocks": [
+                                            "minecraft:blackstone",
+                                            "minecraft:end_stone",
+                                            "minecraft:crying_obsidian"
+                                          ]
+                                        },
+                                        {
+                                          "type": "minecraft:matching_blocks",
+                                          "blocks": [
+                                            "minecraft:air"
+                                          ],
+                                          "offset": [
+                                            0,
+                                            1,
+                                            0
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          "placement": []
+                        },
+                        {
+                          "feature": {
+                            "type": "minecraft:overlay",
+                            "features": [
+                              {
+                                "feature": {
+                                  "type": "minecraft:block_column",
+                                  "allowed_placement": {
+                                    "type": "minecraft:matching_blocks",
+                                    "blocks": [
+                                      "minecraft:blackstone",
+                                      "minecraft:end_stone",
+                                      "minecraft:crying_obsidian"
+                                    ]
+                                  },
+                                  "direction": "east",
+                                  "prioritize_tip": false,
+                                  "layers": [
+                                    {
+                                      "height": {
+                                        "type": "minecraft:uniform",
+                                        "max_inclusive": 3,
+                                        "min_inclusive": 2
+                                      },
+                                      "provider": {
+                                        "id": "minecraft:crying_obsidian"
+                                      }
+                                    }
+                                  ]
+                                },
+                                "placement": []
+                              },
+                              {
+                                "feature": {
+                                  "type": "minecraft:block_column",
+                                  "allowed_placement": {
+                                    "type": "minecraft:matching_blocks",
+                                    "blocks": [
+                                      "minecraft:blackstone",
+                                      "minecraft:end_stone",
+                                      "minecraft:crying_obsidian"
+                                    ]
+                                  },
+                                  "direction": "east",
+                                  "prioritize_tip": false,
+                                  "layers": [
+                                    {
+                                      "height": {
+                                        "type": "minecraft:uniform",
+                                        "max_inclusive": 3,
+                                        "min_inclusive": 2
+                                      },
+                                      "provider": {
+                                        "id": "minecraft:crying_obsidian"
+                                      }
+                                    }
+                                  ]
+                                },
+                                "placement": [
+                                  {
+                                    "type": "minecraft:count",
+                                    "count": {
+                                      "type": "minecraft:weighted_list",
+                                      "distribution": [
+                                        {
+                                          "data": 1,
+                                          "weight": 9
+                                        },
+                                        {
+                                          "data": 0,
+                                          "weight": 1
+                                        }
+                                      ]
+                                    }
+                                  },
+                                  {
+                                    "type": "minecraft:offset",
+                                    "x": 3,
+                                    "y": 0,
+                                    "z": {
+                                      "type": "minecraft:uniform",
+                                      "max_inclusive": 1,
+                                      "min_inclusive": 0
+                                    }
+                                  },
+                                  {
+                                    "type": "minecraft:heightmap",
+                                    "heightmap": "WORLD_SURFACE_WG"
+                                  },
+                                  {
+                                    "type": "minecraft:offset",
+                                    "x": 0,
+                                    "y": -1,
+                                    "z": 0
+                                  },
+                                  {
+                                    "type": "minecraft:block_predicate_filter",
+                                    "predicate": {
+                                      "type": "minecraft:all_of",
+                                      "predicates": [
+                                        {
+                                          "type": "minecraft:matching_blocks",
+                                          "blocks": [
+                                            "minecraft:blackstone",
+                                            "minecraft:end_stone",
+                                            "minecraft:crying_obsidian"
+                                          ]
+                                        },
+                                        {
+                                          "type": "minecraft:matching_blocks",
+                                          "blocks": [
+                                            "minecraft:air"
+                                          ],
+                                          "offset": [
+                                            0,
+                                            1,
+                                            0
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          "placement": [
+                            {
+                              "type": "minecraft:count",
+                              "count": {
+                                "type": "minecraft:weighted_list",
+                                "distribution": [
+                                  {
+                                    "data": 1,
+                                    "weight": 9
+                                  },
+                                  {
+                                    "data": 0,
+                                    "weight": 1
+                                  }
+                                ]
+                              }
+                            },
+                            {
+                              "type": "minecraft:offset",
+                              "x": 6,
+                              "y": 0,
+                              "z": {
+                                "type": "minecraft:uniform",
+                                "max_inclusive": 3,
+                                "min_inclusive": -1
+                              }
+                            },
+                            {
+                              "type": "minecraft:heightmap",
+                              "heightmap": "WORLD_SURFACE_WG"
+                            },
+                            {
+                              "type": "minecraft:offset",
+                              "x": 0,
+                              "y": -1,
+                              "z": 0
+                            },
+                            {
+                              "type": "minecraft:block_predicate_filter",
+                              "predicate": {
+                                "type": "minecraft:all_of",
+                                "predicates": [
+                                  {
+                                    "type": "minecraft:matching_blocks",
+                                    "blocks": [
+                                      "minecraft:blackstone",
+                                      "minecraft:end_stone",
+                                      "minecraft:crying_obsidian"
+                                    ]
+                                  },
+                                  {
+                                    "type": "minecraft:matching_blocks",
+                                    "blocks": [
+                                      "minecraft:air"
+                                    ],
+                                    "offset": [
+                                      0,
+                                      1,
+                                      0
+                                    ]
+                                  }
+                                ]
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    "placement": []
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:overlay",
+                      "features": [
+                        {
+                          "feature": {
+                            "type": "minecraft:overlay",
+                            "features": [
+                              {
+                                "feature": {
+                                  "type": "minecraft:block_column",
+                                  "allowed_placement": {
+                                    "type": "minecraft:matching_blocks",
+                                    "blocks": [
+                                      "minecraft:blackstone",
+                                      "minecraft:end_stone",
+                                      "minecraft:crying_obsidian"
+                                    ]
+                                  },
+                                  "direction": "east",
+                                  "prioritize_tip": false,
+                                  "layers": [
+                                    {
+                                      "height": {
+                                        "type": "minecraft:uniform",
+                                        "max_inclusive": 3,
+                                        "min_inclusive": 2
+                                      },
+                                      "provider": {
+                                        "id": "minecraft:crying_obsidian"
+                                      }
+                                    }
+                                  ]
+                                },
+                                "placement": []
+                              },
+                              {
+                                "feature": {
+                                  "type": "minecraft:block_column",
+                                  "allowed_placement": {
+                                    "type": "minecraft:matching_blocks",
+                                    "blocks": [
+                                      "minecraft:blackstone",
+                                      "minecraft:end_stone",
+                                      "minecraft:crying_obsidian"
+                                    ]
+                                  },
+                                  "direction": "east",
+                                  "prioritize_tip": false,
+                                  "layers": [
+                                    {
+                                      "height": {
+                                        "type": "minecraft:uniform",
+                                        "max_inclusive": 3,
+                                        "min_inclusive": 2
+                                      },
+                                      "provider": {
+                                        "id": "minecraft:crying_obsidian"
+                                      }
+                                    }
+                                  ]
+                                },
+                                "placement": [
+                                  {
+                                    "type": "minecraft:count",
+                                    "count": {
+                                      "type": "minecraft:weighted_list",
+                                      "distribution": [
+                                        {
+                                          "data": 1,
+                                          "weight": 9
+                                        },
+                                        {
+                                          "data": 0,
+                                          "weight": 1
+                                        }
+                                      ]
+                                    }
+                                  },
+                                  {
+                                    "type": "minecraft:offset",
+                                    "x": 3,
+                                    "y": 0,
+                                    "z": {
+                                      "type": "minecraft:uniform",
+                                      "max_inclusive": 1,
+                                      "min_inclusive": 0
+                                    }
+                                  },
+                                  {
+                                    "type": "minecraft:heightmap",
+                                    "heightmap": "WORLD_SURFACE_WG"
+                                  },
+                                  {
+                                    "type": "minecraft:offset",
+                                    "x": 0,
+                                    "y": -1,
+                                    "z": 0
+                                  },
+                                  {
+                                    "type": "minecraft:block_predicate_filter",
+                                    "predicate": {
+                                      "type": "minecraft:all_of",
+                                      "predicates": [
+                                        {
+                                          "type": "minecraft:matching_blocks",
+                                          "blocks": [
+                                            "minecraft:blackstone",
+                                            "minecraft:end_stone",
+                                            "minecraft:crying_obsidian"
+                                          ]
+                                        },
+                                        {
+                                          "type": "minecraft:matching_blocks",
+                                          "blocks": [
+                                            "minecraft:air"
+                                          ],
+                                          "offset": [
+                                            0,
+                                            1,
+                                            0
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          "placement": []
+                        },
+                        {
+                          "feature": {
+                            "type": "minecraft:overlay",
+                            "features": [
+                              {
+                                "feature": {
+                                  "type": "minecraft:block_column",
+                                  "allowed_placement": {
+                                    "type": "minecraft:matching_blocks",
+                                    "blocks": [
+                                      "minecraft:blackstone",
+                                      "minecraft:end_stone",
+                                      "minecraft:crying_obsidian"
+                                    ]
+                                  },
+                                  "direction": "east",
+                                  "prioritize_tip": false,
+                                  "layers": [
+                                    {
+                                      "height": {
+                                        "type": "minecraft:uniform",
+                                        "max_inclusive": 3,
+                                        "min_inclusive": 2
+                                      },
+                                      "provider": {
+                                        "id": "minecraft:crying_obsidian"
+                                      }
+                                    }
+                                  ]
+                                },
+                                "placement": []
+                              },
+                              {
+                                "feature": {
+                                  "type": "minecraft:block_column",
+                                  "allowed_placement": {
+                                    "type": "minecraft:matching_blocks",
+                                    "blocks": [
+                                      "minecraft:blackstone",
+                                      "minecraft:end_stone",
+                                      "minecraft:crying_obsidian"
+                                    ]
+                                  },
+                                  "direction": "east",
+                                  "prioritize_tip": false,
+                                  "layers": [
+                                    {
+                                      "height": {
+                                        "type": "minecraft:uniform",
+                                        "max_inclusive": 3,
+                                        "min_inclusive": 2
+                                      },
+                                      "provider": {
+                                        "id": "minecraft:crying_obsidian"
+                                      }
+                                    }
+                                  ]
+                                },
+                                "placement": [
+                                  {
+                                    "type": "minecraft:count",
+                                    "count": {
+                                      "type": "minecraft:weighted_list",
+                                      "distribution": [
+                                        {
+                                          "data": 1,
+                                          "weight": 9
+                                        },
+                                        {
+                                          "data": 0,
+                                          "weight": 1
+                                        }
+                                      ]
+                                    }
+                                  },
+                                  {
+                                    "type": "minecraft:offset",
+                                    "x": 3,
+                                    "y": 0,
+                                    "z": {
+                                      "type": "minecraft:uniform",
+                                      "max_inclusive": 1,
+                                      "min_inclusive": 0
+                                    }
+                                  },
+                                  {
+                                    "type": "minecraft:heightmap",
+                                    "heightmap": "WORLD_SURFACE_WG"
+                                  },
+                                  {
+                                    "type": "minecraft:offset",
+                                    "x": 0,
+                                    "y": -1,
+                                    "z": 0
+                                  },
+                                  {
+                                    "type": "minecraft:block_predicate_filter",
+                                    "predicate": {
+                                      "type": "minecraft:all_of",
+                                      "predicates": [
+                                        {
+                                          "type": "minecraft:matching_blocks",
+                                          "blocks": [
+                                            "minecraft:blackstone",
+                                            "minecraft:end_stone",
+                                            "minecraft:crying_obsidian"
+                                          ]
+                                        },
+                                        {
+                                          "type": "minecraft:matching_blocks",
+                                          "blocks": [
+                                            "minecraft:air"
+                                          ],
+                                          "offset": [
+                                            0,
+                                            1,
+                                            0
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          "placement": [
+                            {
+                              "type": "minecraft:count",
+                              "count": {
+                                "type": "minecraft:weighted_list",
+                                "distribution": [
+                                  {
+                                    "data": 1,
+                                    "weight": 9
+                                  },
+                                  {
+                                    "data": 0,
+                                    "weight": 1
+                                  }
+                                ]
+                              }
+                            },
+                            {
+                              "type": "minecraft:offset",
+                              "x": 6,
+                              "y": 0,
+                              "z": {
+                                "type": "minecraft:uniform",
+                                "max_inclusive": 3,
+                                "min_inclusive": -1
+                              }
+                            },
+                            {
+                              "type": "minecraft:heightmap",
+                              "heightmap": "WORLD_SURFACE_WG"
+                            },
+                            {
+                              "type": "minecraft:offset",
+                              "x": 0,
+                              "y": -1,
+                              "z": 0
+                            },
+                            {
+                              "type": "minecraft:block_predicate_filter",
+                              "predicate": {
+                                "type": "minecraft:all_of",
+                                "predicates": [
+                                  {
+                                    "type": "minecraft:matching_blocks",
+                                    "blocks": [
+                                      "minecraft:blackstone",
+                                      "minecraft:end_stone",
+                                      "minecraft:crying_obsidian"
+                                    ]
+                                  },
+                                  {
+                                    "type": "minecraft:matching_blocks",
+                                    "blocks": [
+                                      "minecraft:air"
+                                    ],
+                                    "offset": [
+                                      0,
+                                      1,
+                                      0
+                                    ]
+                                  }
+                                ]
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    "placement": [
+                      {
+                        "type": "minecraft:count",
+                        "count": {
+                          "type": "minecraft:weighted_list",
+                          "distribution": [
+                            {
+                              "data": 1,
+                              "weight": 9
+                            },
+                            {
+                              "data": 0,
+                              "weight": 1
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "type": "minecraft:offset",
+                        "x": 12,
+                        "y": 0,
+                        "z": {
+                          "type": "minecraft:uniform",
+                          "max_inclusive": 4,
+                          "min_inclusive": -1
+                        }
+                      },
+                      {
+                        "type": "minecraft:heightmap",
+                        "heightmap": "WORLD_SURFACE_WG"
+                      },
+                      {
+                        "type": "minecraft:offset",
+                        "x": 0,
+                        "y": -1,
+                        "z": 0
+                      },
+                      {
+                        "type": "minecraft:block_predicate_filter",
+                        "predicate": {
+                          "type": "minecraft:all_of",
+                          "predicates": [
+                            {
+                              "type": "minecraft:matching_blocks",
+                              "blocks": [
+                                "minecraft:blackstone",
+                                "minecraft:end_stone",
+                                "minecraft:crying_obsidian"
+                              ]
+                            },
+                            {
+                              "type": "minecraft:matching_blocks",
+                              "blocks": [
+                                "minecraft:air"
+                              ],
+                              "offset": [
+                                0,
+                                1,
+                                0
+                              ]
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                ]
+              },
+              "placement": [
+                {
+                  "type": "minecraft:offset",
+                  "x": -12,
+                  "y": 0,
+                  "z": 0
+                },
+                {
+                  "type": "minecraft:heightmap",
+                  "heightmap": "WORLD_SURFACE_WG"
+                },
+                {
+                  "type": "minecraft:offset",
+                  "x": 0,
+                  "y": -1,
+                  "z": 0
+                },
+                {
+                  "type": "minecraft:block_predicate_filter",
+                  "predicate": {
+                    "type": "minecraft:all_of",
+                    "predicates": [
+                      {
+                        "type": "minecraft:matching_blocks",
+                        "blocks": [
+                          "minecraft:blackstone",
+                          "minecraft:end_stone",
+                          "minecraft:crying_obsidian"
+                        ]
+                      },
+                      {
+                        "type": "minecraft:matching_blocks",
+                        "blocks": [
+                          "minecraft:air"
+                        ],
+                        "offset": [
+                          0,
+                          1,
+                          0
+                        ]
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "chance": 0.5,
+            "feature": {
+              "feature": {
+                "type": "minecraft:overlay",
+                "features": [
+                  {
+                    "feature": {
+                      "type": "minecraft:overlay",
+                      "features": [
+                        {
+                          "feature": {
+                            "type": "minecraft:overlay",
+                            "features": [
+                              {
+                                "feature": {
+                                  "type": "minecraft:block_column",
+                                  "allowed_placement": {
+                                    "type": "minecraft:matching_blocks",
+                                    "blocks": [
+                                      "minecraft:blackstone",
+                                      "minecraft:end_stone",
+                                      "minecraft:crying_obsidian"
+                                    ]
+                                  },
+                                  "direction": "east",
+                                  "prioritize_tip": false,
+                                  "layers": [
+                                    {
+                                      "height": {
+                                        "type": "minecraft:uniform",
+                                        "max_inclusive": 3,
+                                        "min_inclusive": 2
+                                      },
+                                      "provider": {
+                                        "id": "minecraft:crying_obsidian"
+                                      }
+                                    }
+                                  ]
+                                },
+                                "placement": []
+                              },
+                              {
+                                "feature": {
+                                  "type": "minecraft:block_column",
+                                  "allowed_placement": {
+                                    "type": "minecraft:matching_blocks",
+                                    "blocks": [
+                                      "minecraft:blackstone",
+                                      "minecraft:end_stone",
+                                      "minecraft:crying_obsidian"
+                                    ]
+                                  },
+                                  "direction": "east",
+                                  "prioritize_tip": false,
+                                  "layers": [
+                                    {
+                                      "height": {
+                                        "type": "minecraft:uniform",
+                                        "max_inclusive": 3,
+                                        "min_inclusive": 2
+                                      },
+                                      "provider": {
+                                        "id": "minecraft:crying_obsidian"
+                                      }
+                                    }
+                                  ]
+                                },
+                                "placement": [
+                                  {
+                                    "type": "minecraft:count",
+                                    "count": {
+                                      "type": "minecraft:weighted_list",
+                                      "distribution": [
+                                        {
+                                          "data": 1,
+                                          "weight": 9
+                                        },
+                                        {
+                                          "data": 0,
+                                          "weight": 1
+                                        }
+                                      ]
+                                    }
+                                  },
+                                  {
+                                    "type": "minecraft:offset",
+                                    "x": 3,
+                                    "y": 0,
+                                    "z": {
+                                      "type": "minecraft:uniform",
+                                      "max_inclusive": 0,
+                                      "min_inclusive": -1
+                                    }
+                                  },
+                                  {
+                                    "type": "minecraft:heightmap",
+                                    "heightmap": "WORLD_SURFACE_WG"
+                                  },
+                                  {
+                                    "type": "minecraft:offset",
+                                    "x": 0,
+                                    "y": -1,
+                                    "z": 0
+                                  },
+                                  {
+                                    "type": "minecraft:block_predicate_filter",
+                                    "predicate": {
+                                      "type": "minecraft:all_of",
+                                      "predicates": [
+                                        {
+                                          "type": "minecraft:matching_blocks",
+                                          "blocks": [
+                                            "minecraft:blackstone",
+                                            "minecraft:end_stone",
+                                            "minecraft:crying_obsidian"
+                                          ]
+                                        },
+                                        {
+                                          "type": "minecraft:matching_blocks",
+                                          "blocks": [
+                                            "minecraft:air"
+                                          ],
+                                          "offset": [
+                                            0,
+                                            1,
+                                            0
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          "placement": []
+                        },
+                        {
+                          "feature": {
+                            "type": "minecraft:overlay",
+                            "features": [
+                              {
+                                "feature": {
+                                  "type": "minecraft:block_column",
+                                  "allowed_placement": {
+                                    "type": "minecraft:matching_blocks",
+                                    "blocks": [
+                                      "minecraft:blackstone",
+                                      "minecraft:end_stone",
+                                      "minecraft:crying_obsidian"
+                                    ]
+                                  },
+                                  "direction": "east",
+                                  "prioritize_tip": false,
+                                  "layers": [
+                                    {
+                                      "height": {
+                                        "type": "minecraft:uniform",
+                                        "max_inclusive": 3,
+                                        "min_inclusive": 2
+                                      },
+                                      "provider": {
+                                        "id": "minecraft:crying_obsidian"
+                                      }
+                                    }
+                                  ]
+                                },
+                                "placement": []
+                              },
+                              {
+                                "feature": {
+                                  "type": "minecraft:block_column",
+                                  "allowed_placement": {
+                                    "type": "minecraft:matching_blocks",
+                                    "blocks": [
+                                      "minecraft:blackstone",
+                                      "minecraft:end_stone",
+                                      "minecraft:crying_obsidian"
+                                    ]
+                                  },
+                                  "direction": "east",
+                                  "prioritize_tip": false,
+                                  "layers": [
+                                    {
+                                      "height": {
+                                        "type": "minecraft:uniform",
+                                        "max_inclusive": 3,
+                                        "min_inclusive": 2
+                                      },
+                                      "provider": {
+                                        "id": "minecraft:crying_obsidian"
+                                      }
+                                    }
+                                  ]
+                                },
+                                "placement": [
+                                  {
+                                    "type": "minecraft:count",
+                                    "count": {
+                                      "type": "minecraft:weighted_list",
+                                      "distribution": [
+                                        {
+                                          "data": 1,
+                                          "weight": 9
+                                        },
+                                        {
+                                          "data": 0,
+                                          "weight": 1
+                                        }
+                                      ]
+                                    }
+                                  },
+                                  {
+                                    "type": "minecraft:offset",
+                                    "x": 3,
+                                    "y": 0,
+                                    "z": {
+                                      "type": "minecraft:uniform",
+                                      "max_inclusive": 0,
+                                      "min_inclusive": -1
+                                    }
+                                  },
+                                  {
+                                    "type": "minecraft:heightmap",
+                                    "heightmap": "WORLD_SURFACE_WG"
+                                  },
+                                  {
+                                    "type": "minecraft:offset",
+                                    "x": 0,
+                                    "y": -1,
+                                    "z": 0
+                                  },
+                                  {
+                                    "type": "minecraft:block_predicate_filter",
+                                    "predicate": {
+                                      "type": "minecraft:all_of",
+                                      "predicates": [
+                                        {
+                                          "type": "minecraft:matching_blocks",
+                                          "blocks": [
+                                            "minecraft:blackstone",
+                                            "minecraft:end_stone",
+                                            "minecraft:crying_obsidian"
+                                          ]
+                                        },
+                                        {
+                                          "type": "minecraft:matching_blocks",
+                                          "blocks": [
+                                            "minecraft:air"
+                                          ],
+                                          "offset": [
+                                            0,
+                                            1,
+                                            0
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          "placement": [
+                            {
+                              "type": "minecraft:count",
+                              "count": {
+                                "type": "minecraft:weighted_list",
+                                "distribution": [
+                                  {
+                                    "data": 1,
+                                    "weight": 9
+                                  },
+                                  {
+                                    "data": 0,
+                                    "weight": 1
+                                  }
+                                ]
+                              }
+                            },
+                            {
+                              "type": "minecraft:offset",
+                              "x": 6,
+                              "y": 0,
+                              "z": {
+                                "type": "minecraft:uniform",
+                                "max_inclusive": 1,
+                                "min_inclusive": -3
+                              }
+                            },
+                            {
+                              "type": "minecraft:heightmap",
+                              "heightmap": "WORLD_SURFACE_WG"
+                            },
+                            {
+                              "type": "minecraft:offset",
+                              "x": 0,
+                              "y": -1,
+                              "z": 0
+                            },
+                            {
+                              "type": "minecraft:block_predicate_filter",
+                              "predicate": {
+                                "type": "minecraft:all_of",
+                                "predicates": [
+                                  {
+                                    "type": "minecraft:matching_blocks",
+                                    "blocks": [
+                                      "minecraft:blackstone",
+                                      "minecraft:end_stone",
+                                      "minecraft:crying_obsidian"
+                                    ]
+                                  },
+                                  {
+                                    "type": "minecraft:matching_blocks",
+                                    "blocks": [
+                                      "minecraft:air"
+                                    ],
+                                    "offset": [
+                                      0,
+                                      1,
+                                      0
+                                    ]
+                                  }
+                                ]
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    "placement": []
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:overlay",
+                      "features": [
+                        {
+                          "feature": {
+                            "type": "minecraft:overlay",
+                            "features": [
+                              {
+                                "feature": {
+                                  "type": "minecraft:block_column",
+                                  "allowed_placement": {
+                                    "type": "minecraft:matching_blocks",
+                                    "blocks": [
+                                      "minecraft:blackstone",
+                                      "minecraft:end_stone",
+                                      "minecraft:crying_obsidian"
+                                    ]
+                                  },
+                                  "direction": "east",
+                                  "prioritize_tip": false,
+                                  "layers": [
+                                    {
+                                      "height": {
+                                        "type": "minecraft:uniform",
+                                        "max_inclusive": 3,
+                                        "min_inclusive": 2
+                                      },
+                                      "provider": {
+                                        "id": "minecraft:crying_obsidian"
+                                      }
+                                    }
+                                  ]
+                                },
+                                "placement": []
+                              },
+                              {
+                                "feature": {
+                                  "type": "minecraft:block_column",
+                                  "allowed_placement": {
+                                    "type": "minecraft:matching_blocks",
+                                    "blocks": [
+                                      "minecraft:blackstone",
+                                      "minecraft:end_stone",
+                                      "minecraft:crying_obsidian"
+                                    ]
+                                  },
+                                  "direction": "east",
+                                  "prioritize_tip": false,
+                                  "layers": [
+                                    {
+                                      "height": {
+                                        "type": "minecraft:uniform",
+                                        "max_inclusive": 3,
+                                        "min_inclusive": 2
+                                      },
+                                      "provider": {
+                                        "id": "minecraft:crying_obsidian"
+                                      }
+                                    }
+                                  ]
+                                },
+                                "placement": [
+                                  {
+                                    "type": "minecraft:count",
+                                    "count": {
+                                      "type": "minecraft:weighted_list",
+                                      "distribution": [
+                                        {
+                                          "data": 1,
+                                          "weight": 9
+                                        },
+                                        {
+                                          "data": 0,
+                                          "weight": 1
+                                        }
+                                      ]
+                                    }
+                                  },
+                                  {
+                                    "type": "minecraft:offset",
+                                    "x": 3,
+                                    "y": 0,
+                                    "z": {
+                                      "type": "minecraft:uniform",
+                                      "max_inclusive": 0,
+                                      "min_inclusive": -1
+                                    }
+                                  },
+                                  {
+                                    "type": "minecraft:heightmap",
+                                    "heightmap": "WORLD_SURFACE_WG"
+                                  },
+                                  {
+                                    "type": "minecraft:offset",
+                                    "x": 0,
+                                    "y": -1,
+                                    "z": 0
+                                  },
+                                  {
+                                    "type": "minecraft:block_predicate_filter",
+                                    "predicate": {
+                                      "type": "minecraft:all_of",
+                                      "predicates": [
+                                        {
+                                          "type": "minecraft:matching_blocks",
+                                          "blocks": [
+                                            "minecraft:blackstone",
+                                            "minecraft:end_stone",
+                                            "minecraft:crying_obsidian"
+                                          ]
+                                        },
+                                        {
+                                          "type": "minecraft:matching_blocks",
+                                          "blocks": [
+                                            "minecraft:air"
+                                          ],
+                                          "offset": [
+                                            0,
+                                            1,
+                                            0
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          "placement": []
+                        },
+                        {
+                          "feature": {
+                            "type": "minecraft:overlay",
+                            "features": [
+                              {
+                                "feature": {
+                                  "type": "minecraft:block_column",
+                                  "allowed_placement": {
+                                    "type": "minecraft:matching_blocks",
+                                    "blocks": [
+                                      "minecraft:blackstone",
+                                      "minecraft:end_stone",
+                                      "minecraft:crying_obsidian"
+                                    ]
+                                  },
+                                  "direction": "east",
+                                  "prioritize_tip": false,
+                                  "layers": [
+                                    {
+                                      "height": {
+                                        "type": "minecraft:uniform",
+                                        "max_inclusive": 3,
+                                        "min_inclusive": 2
+                                      },
+                                      "provider": {
+                                        "id": "minecraft:crying_obsidian"
+                                      }
+                                    }
+                                  ]
+                                },
+                                "placement": []
+                              },
+                              {
+                                "feature": {
+                                  "type": "minecraft:block_column",
+                                  "allowed_placement": {
+                                    "type": "minecraft:matching_blocks",
+                                    "blocks": [
+                                      "minecraft:blackstone",
+                                      "minecraft:end_stone",
+                                      "minecraft:crying_obsidian"
+                                    ]
+                                  },
+                                  "direction": "east",
+                                  "prioritize_tip": false,
+                                  "layers": [
+                                    {
+                                      "height": {
+                                        "type": "minecraft:uniform",
+                                        "max_inclusive": 3,
+                                        "min_inclusive": 2
+                                      },
+                                      "provider": {
+                                        "id": "minecraft:crying_obsidian"
+                                      }
+                                    }
+                                  ]
+                                },
+                                "placement": [
+                                  {
+                                    "type": "minecraft:count",
+                                    "count": {
+                                      "type": "minecraft:weighted_list",
+                                      "distribution": [
+                                        {
+                                          "data": 1,
+                                          "weight": 9
+                                        },
+                                        {
+                                          "data": 0,
+                                          "weight": 1
+                                        }
+                                      ]
+                                    }
+                                  },
+                                  {
+                                    "type": "minecraft:offset",
+                                    "x": 3,
+                                    "y": 0,
+                                    "z": {
+                                      "type": "minecraft:uniform",
+                                      "max_inclusive": 0,
+                                      "min_inclusive": -1
+                                    }
+                                  },
+                                  {
+                                    "type": "minecraft:heightmap",
+                                    "heightmap": "WORLD_SURFACE_WG"
+                                  },
+                                  {
+                                    "type": "minecraft:offset",
+                                    "x": 0,
+                                    "y": -1,
+                                    "z": 0
+                                  },
+                                  {
+                                    "type": "minecraft:block_predicate_filter",
+                                    "predicate": {
+                                      "type": "minecraft:all_of",
+                                      "predicates": [
+                                        {
+                                          "type": "minecraft:matching_blocks",
+                                          "blocks": [
+                                            "minecraft:blackstone",
+                                            "minecraft:end_stone",
+                                            "minecraft:crying_obsidian"
+                                          ]
+                                        },
+                                        {
+                                          "type": "minecraft:matching_blocks",
+                                          "blocks": [
+                                            "minecraft:air"
+                                          ],
+                                          "offset": [
+                                            0,
+                                            1,
+                                            0
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          "placement": [
+                            {
+                              "type": "minecraft:count",
+                              "count": {
+                                "type": "minecraft:weighted_list",
+                                "distribution": [
+                                  {
+                                    "data": 1,
+                                    "weight": 9
+                                  },
+                                  {
+                                    "data": 0,
+                                    "weight": 1
+                                  }
+                                ]
+                              }
+                            },
+                            {
+                              "type": "minecraft:offset",
+                              "x": 6,
+                              "y": 0,
+                              "z": {
+                                "type": "minecraft:uniform",
+                                "max_inclusive": 1,
+                                "min_inclusive": -3
+                              }
+                            },
+                            {
+                              "type": "minecraft:heightmap",
+                              "heightmap": "WORLD_SURFACE_WG"
+                            },
+                            {
+                              "type": "minecraft:offset",
+                              "x": 0,
+                              "y": -1,
+                              "z": 0
+                            },
+                            {
+                              "type": "minecraft:block_predicate_filter",
+                              "predicate": {
+                                "type": "minecraft:all_of",
+                                "predicates": [
+                                  {
+                                    "type": "minecraft:matching_blocks",
+                                    "blocks": [
+                                      "minecraft:blackstone",
+                                      "minecraft:end_stone",
+                                      "minecraft:crying_obsidian"
+                                    ]
+                                  },
+                                  {
+                                    "type": "minecraft:matching_blocks",
+                                    "blocks": [
+                                      "minecraft:air"
+                                    ],
+                                    "offset": [
+                                      0,
+                                      1,
+                                      0
+                                    ]
+                                  }
+                                ]
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    "placement": [
+                      {
+                        "type": "minecraft:count",
+                        "count": {
+                          "type": "minecraft:weighted_list",
+                          "distribution": [
+                            {
+                              "data": 1,
+                              "weight": 9
+                            },
+                            {
+                              "data": 0,
+                              "weight": 1
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "type": "minecraft:offset",
+                        "x": 12,
+                        "y": 0,
+                        "z": {
+                          "type": "minecraft:uniform",
+                          "max_inclusive": 1,
+                          "min_inclusive": -4
+                        }
+                      },
+                      {
+                        "type": "minecraft:heightmap",
+                        "heightmap": "WORLD_SURFACE_WG"
+                      },
+                      {
+                        "type": "minecraft:offset",
+                        "x": 0,
+                        "y": -1,
+                        "z": 0
+                      },
+                      {
+                        "type": "minecraft:block_predicate_filter",
+                        "predicate": {
+                          "type": "minecraft:all_of",
+                          "predicates": [
+                            {
+                              "type": "minecraft:matching_blocks",
+                              "blocks": [
+                                "minecraft:blackstone",
+                                "minecraft:end_stone",
+                                "minecraft:crying_obsidian"
+                              ]
+                            },
+                            {
+                              "type": "minecraft:matching_blocks",
+                              "blocks": [
+                                "minecraft:air"
+                              ],
+                              "offset": [
+                                0,
+                                1,
+                                0
+                              ]
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                ]
+              },
+              "placement": [
+                {
+                  "type": "minecraft:offset",
+                  "x": -12,
+                  "y": 0,
+                  "z": 0
+                },
+                {
+                  "type": "minecraft:heightmap",
+                  "heightmap": "WORLD_SURFACE_WG"
+                },
+                {
+                  "type": "minecraft:offset",
+                  "x": 0,
+                  "y": -1,
+                  "z": 0
+                },
+                {
+                  "type": "minecraft:block_predicate_filter",
+                  "predicate": {
+                    "type": "minecraft:all_of",
+                    "predicates": [
+                      {
+                        "type": "minecraft:matching_blocks",
+                        "blocks": [
+                          "minecraft:blackstone",
+                          "minecraft:end_stone",
+                          "minecraft:crying_obsidian"
+                        ]
+                      },
+                      {
+                        "type": "minecraft:matching_blocks",
+                        "blocks": [
+                          "minecraft:air"
+                        ],
+                        "offset": [
+                          0,
+                          1,
+                          0
+                        ]
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": {
+            "type": "minecraft:weighted_list",
+            "distribution": [
+              {
+                "data": 1,
+                "weight": 2
+              },
+              {
+                "data": 2,
+                "weight": 2
+              }
+            ]
+          }
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:biome"
+        }
+      ]
+    }
+  }
+}

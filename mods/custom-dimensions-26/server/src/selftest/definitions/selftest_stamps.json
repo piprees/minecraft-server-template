@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 2,
+  "description": "Self-test fixture: biome stamps in a circle, a sector and a polygon, a clipped swap, and plains swapped for sunflower plains everywhere.",
+  "seed": 77,
+  "spawn": [0, 80, 0],
+  "generator": {
+    "type": "noise",
+    "preset": "overworld"
+  },
+  "zones": [
+    { "shape": "circle", "centre": [400, 0], "radius": 128, "blend": 24, "biomes": ["minecraft:mushroom_fields"] },
+    { "shape": "sector", "centre": [0, 0], "inner": 600, "outer": 900, "angles": [90, 180], "blend": 32, "edgeJitter": 16, "biomes": ["minecraft:ice_spikes"] },
+    { "shape": "polygon", "centre": [-500, -500], "points": [[0, 0], [240, 0], [120, 220]], "blend": 16, "biomes": ["minecraft:bamboo_jungle"] },
+    { "shape": "circle", "centre": [0, -900], "radius": 200, "blend": 0, "swap": { "minecraft:forest": "minecraft:flower_forest", "minecraft:sunflower_plains": "minecraft:meadow" } },
+    { "shape": "all", "swap": { "minecraft:plains": "minecraft:sunflower_plains" } }
+  ],
+  "borders": {
+    "player": 4096
+  }
+}

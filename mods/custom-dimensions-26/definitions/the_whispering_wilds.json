@@ -1,0 +1,215 @@
+{
+  "schemaVersion": 2,
+  "description": "Untouched wilds that whisper. Redwoods, moon groves, abandoned camps of those who didn't stay — the forest was here before anyone arrived and it'll be here after everyone leaves. The whisper is the wind in old growth that's never been cut.",
+  "seed": 631749786967184250,
+  "spawn": [704, 114, 64],
+  "generator": {
+    "type": "noise",
+    "preset": "overworld"
+  },
+  "biomes": [
+    {
+      "id": "minecraft:river",
+      "climate": {
+        "temperature": [-2.0, 2.0],
+        "continentalness": [-0.11, 2.0],
+        "erosion": [0.05, 2.0],
+        "weirdness": [-0.05, 0.05]
+      }
+    },
+    {
+      "id": "adventure:aspen_forest",
+      "climate": {
+        "temperature": [-2.0, -0.452],
+        "humidity": [-2.0, -0.249]
+      }
+    },
+    {
+      "id": "minecraft:taiga",
+      "climate": {
+        "temperature": [-2.0, -0.452],
+        "humidity": [-0.249, -0.129]
+      }
+    },
+    {
+      "id": "adventure:redwood_grove",
+      "climate": {
+        "temperature": [-2.0, -0.452],
+        "humidity": [-0.129, 0.034]
+      }
+    },
+    {
+      "id": "minecraft:old_growth_spruce_taiga",
+      "climate": {
+        "temperature": [-2.0, -0.452],
+        "humidity": [0.034, 0.18]
+      }
+    },
+    {
+      "id": "minecraft:old_growth_pine_taiga",
+      "climate": {
+        "temperature": [-2.0, -0.452],
+        "humidity": [0.18, 2.0]
+      }
+    },
+    {
+      "id": "minecraft:birch_forest",
+      "climate": {
+        "temperature": [-0.452, -0.318],
+        "humidity": [-2.0, -0.235]
+      }
+    },
+    {
+      "id": "minecraft:meadow",
+      "climate": {
+        "temperature": [-0.452, -0.318],
+        "humidity": [-0.235, -0.107]
+      }
+    },
+    {
+      "id": "minecraft:mushroom_fields",
+      "climate": {
+        "temperature": [-0.452, -0.318],
+        "humidity": [-0.107, 0.008]
+      }
+    },
+    {
+      "id": "minecraft:old_growth_birch_forest",
+      "climate": {
+        "temperature": [-0.452, -0.318],
+        "humidity": [0.008, 0.164]
+      }
+    },
+    {
+      "id": "minecraft:pale_garden",
+      "climate": {
+        "temperature": [-0.452, -0.318],
+        "humidity": [0.164, 2.0]
+      }
+    },
+    {
+      "id": "adventure:alpha_grove",
+      "climate": {
+        "temperature": [-0.318, -0.167],
+        "humidity": [-2.0, -0.198]
+      }
+    },
+    {
+      "id": "minecraft:dark_forest",
+      "climate": {
+        "temperature": [-0.318, -0.167],
+        "humidity": [-0.198, -0.05]
+      }
+    },
+    {
+      "id": "adventure:cloud_forest",
+      "climate": {
+        "temperature": [-0.318, -0.167],
+        "humidity": [-0.05, 0.119]
+      }
+    },
+    {
+      "id": "adventure:sugi_forest",
+      "climate": {
+        "temperature": [-0.318, -0.167],
+        "humidity": [0.119, 2.0]
+      }
+    },
+    {
+      "id": "minecraft:sparse_jungle",
+      "climate": {
+        "temperature": [-0.167, 2.0],
+        "humidity": [-2.0, -0.198]
+      }
+    },
+    {
+      "id": "minecraft:swamp",
+      "climate": {
+        "temperature": [-0.167, 2.0],
+        "humidity": [-0.198, -0.05]
+      }
+    },
+    {
+      "id": "minecraft:mangrove_swamp",
+      "climate": {
+        "temperature": [-0.167, 2.0],
+        "humidity": [-0.05, 0.119]
+      }
+    },
+    {
+      "id": "minecraft:jungle",
+      "climate": {
+        "temperature": [-0.167, 2.0],
+        "humidity": [0.119, 2.0]
+      }
+    }
+  ],
+  "atmosphere": {
+    "fogColor": "#2B4B2B"
+  },
+  "borders": {
+    "player": 4096,
+    "generation": 2048
+  },
+  "difficulty": {
+    "mobMultiplier": 1.2,
+    "playerLuck": 1.5
+  },
+  "structures": {
+    "density": "sparse",
+    "clearSpawnRadius": 96,
+    "terrainAdaptation": {
+      "mvs:log_ruin": "bury",
+      "mvs:small_ruin": "bury",
+      "nova_structures:remnant_taiga_castle": "bury"
+    },
+    "force": [
+      {
+        "structure": "ati_structures:manor",
+        "x": 2800,
+        "z": -1200
+      },
+      {
+        "structure": "ati_structures:warden_monument",
+        "x": 2800,
+        "z": -1200
+      }
+    ]
+  },
+  "portals": [
+    {
+      "frameBlock": "minecraft:dark_oak_planks",
+      "igniterItem": "minecraft:amethyst_shard",
+      "color": "2B4B2B",
+      "lightLevel": 11,
+      "scale": 2.0,
+      "cooldown": 40,
+      "sounds": {
+        "ignite": "block.portal.trigger",
+        "enter": "block.portal.travel",
+        "exit": "block.portal.travel"
+      }
+    }
+  ],
+  "roll": {
+    "mood": "desolate",
+    "spawnFilter": [
+      "adventure:redwood_grove"
+    ],
+    "wants": {
+      "minecraft:abandoned_camp_forest": "near_spawn",
+      "mvs:log_ruin": "spread",
+      "nova_structures:firewatch_tower_taiga": "spread",
+      "mvs:campsite": "near_spawn",
+      "mvs:small_ruin": "spread",
+      "nova_structures:remnant_taiga_castle": "spread",
+      "ati_structures:overgrown_outpost": "near_spawn"
+    },
+    "shuns": [
+      "village",
+      "tavern",
+      "mansion",
+      "mss:arena"
+    ]
+  }
+}

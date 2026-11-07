@@ -1,0 +1,573 @@
+{
+  "$schema": "../../../../../../schema/biome.schema.json",
+  "realm": "nether",
+  "inspiredBy": "Regions Unexplored's mycotoxic undergrowth.",
+  "differs": "Warped forest is teal and calm; this is lurid green and wet: moss floors with warped nylium patches, giant fungi on warped stems whose caps are translucent slime blocks studded with verdant froglights (slime only in the caps, never on the ground), twisting vines rising from the moss, bare green vines hanging from every roof, slime droplets in a poisonous green haze, and squelching.",
+  "climate": {
+    "temperature": [
+      -0.3,
+      0.3
+    ],
+    "humidity": [
+      0.6,
+      1.0
+    ]
+  },
+  "palette": {
+    "top": "minecraft:moss_block"
+  },
+  "biome": {
+    "attributes": {
+      "minecraft:audio/ambient_sounds": {
+        "additions": {
+          "sound": "minecraft:entity.slime.squish",
+          "tick_chance": 0.004
+        },
+        "loop": "minecraft:ambient.warped_forest.loop",
+        "mood": {
+          "block_search_extent": 8,
+          "offset": 2.0,
+          "sound": "minecraft:ambient.warped_forest.mood",
+          "tick_delay": 6000
+        }
+      },
+      "minecraft:audio/background_music": {
+        "default": {
+          "max_delay": 24000,
+          "min_delay": 12000,
+          "sound": "minecraft:music.nether.warped_forest"
+        }
+      },
+      "minecraft:gameplay/natural_mob_spawns": {
+        "argument": {
+          "spawn_costs": {
+            "minecraft:enderman": {
+              "charge": 1.0,
+              "energy_budget": 0.12
+            }
+          },
+          "spawns_by_category": {
+            "creature": [
+              {
+                "type": "minecraft:strider",
+                "count": {
+                  "type": "minecraft:uniform",
+                  "max_inclusive": 2,
+                  "min_inclusive": 1
+                },
+                "weight": 60
+              }
+            ],
+            "monster": [
+              {
+                "type": "minecraft:enderman",
+                "count": 4,
+                "weight": 1
+              }
+            ]
+          }
+        },
+        "modifier": "overlay"
+      },
+      "minecraft:visual/ambient_particles": {
+        "argument": [
+          {
+            "particle": {
+              "type": "minecraft:item_slime"
+            },
+            "probability": 0.012
+          },
+          {
+            "particle": {
+              "type": "minecraft:spore_blossom_air"
+            },
+            "probability": 0.004
+          }
+        ],
+        "modifier": "append"
+      },
+      "minecraft:visual/fog_color": "#5c9a14"
+    },
+    "carvers": "minecraft:nether_cave",
+    "downfall": 0.0,
+    "effects": {
+      "water_color": "#3f76e4"
+    },
+    "features": [
+      [],
+      [],
+      [],
+      [],
+      [],
+      [],
+      [],
+      [
+        "minecraft:spring_open",
+        "minecraft:glowstone_extra",
+        "minecraft:glowstone",
+        "minecraft:ore_magma",
+        "minecraft:spring_closed",
+        "minecraft:ore_gravel_nether",
+        "minecraft:ore_blackstone",
+        "minecraft:ore_gold_nether",
+        "minecraft:ore_quartz_nether",
+        "minecraft:ore_ancient_debris_large",
+        "minecraft:ore_debris_small"
+      ],
+      [],
+      [
+        "~nylium_patches",
+        "~slime_fungi",
+        "~rising_vines",
+        "~hanging_vines",
+        "~moss_carpets"
+      ]
+    ],
+    "has_precipitation": false,
+    "temperature": 2.0
+  },
+  "features": {
+    "nylium_patches": {
+      "feature": {
+        "type": "minecraft:disk",
+        "half_height": 0,
+        "radius": {
+          "type": "minecraft:uniform",
+          "max_inclusive": 4,
+          "min_inclusive": 2
+        },
+        "state_provider": {
+          "id": "minecraft:warped_nylium"
+        },
+        "target": {
+          "type": "minecraft:matching_blocks",
+          "blocks": [
+            "minecraft:netherrack"
+          ]
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count_on_every_layer",
+          "count": 1
+        },
+        {
+          "type": "minecraft:biome"
+        },
+        {
+          "type": "minecraft:count",
+          "count": 2
+        },
+        {
+          "type": "minecraft:offset",
+          "x": {
+            "type": "minecraft:trapezoid",
+            "max": 4,
+            "min": -4,
+            "plateau": 0
+          },
+          "y": {
+            "type": "minecraft:trapezoid",
+            "max": 1,
+            "min": -1,
+            "plateau": 0
+          },
+          "z": {
+            "type": "minecraft:trapezoid",
+            "max": 4,
+            "min": -4,
+            "plateau": 0
+          }
+        },
+        {
+          "type": "minecraft:block_predicate_filter",
+          "predicate": {
+            "type": "minecraft:all_of",
+            "predicates": [
+              {
+                "type": "minecraft:matching_block_tag",
+                "tag": "minecraft:air"
+              },
+              {
+                "type": "minecraft:matching_blocks",
+                "blocks": [
+                  "minecraft:netherrack"
+                ],
+                "offset": [
+                  0,
+                  -1,
+                  0
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "type": "minecraft:offset",
+          "x": 0,
+          "y": -1,
+          "z": 0
+        }
+      ]
+    },
+    "slime_fungi": {
+      "feature": {
+        "type": "minecraft:huge_fungus",
+        "decor_state": "minecraft:verdant_froglight",
+        "hat_state": "minecraft:slime_block",
+        "replaceable_blocks": {
+          "type": "minecraft:matching_blocks",
+          "blocks": [
+            "minecraft:oak_sapling",
+            "minecraft:spruce_sapling",
+            "minecraft:birch_sapling",
+            "minecraft:jungle_sapling",
+            "minecraft:acacia_sapling",
+            "minecraft:cherry_sapling",
+            "minecraft:dark_oak_sapling",
+            "minecraft:pale_oak_sapling",
+            "minecraft:mangrove_propagule",
+            "minecraft:dandelion",
+            "minecraft:torchflower",
+            "minecraft:poppy",
+            "minecraft:blue_orchid",
+            "minecraft:allium",
+            "minecraft:azure_bluet",
+            "minecraft:red_tulip",
+            "minecraft:orange_tulip",
+            "minecraft:white_tulip",
+            "minecraft:pink_tulip",
+            "minecraft:oxeye_daisy",
+            "minecraft:cornflower",
+            "minecraft:wither_rose",
+            "minecraft:lily_of_the_valley",
+            "minecraft:brown_mushroom",
+            "minecraft:red_mushroom",
+            "minecraft:wheat",
+            "minecraft:sugar_cane",
+            "minecraft:attached_pumpkin_stem",
+            "minecraft:attached_melon_stem",
+            "minecraft:pumpkin_stem",
+            "minecraft:melon_stem",
+            "minecraft:lily_pad",
+            "minecraft:nether_wart",
+            "minecraft:cocoa",
+            "minecraft:carrots",
+            "minecraft:potatoes",
+            "minecraft:chorus_plant",
+            "minecraft:chorus_flower",
+            "minecraft:torchflower_crop",
+            "minecraft:pitcher_crop",
+            "minecraft:beetroots",
+            "minecraft:sweet_berry_bush",
+            "minecraft:warped_fungus",
+            "minecraft:crimson_fungus",
+            "minecraft:weeping_vines",
+            "minecraft:weeping_vines_plant",
+            "minecraft:twisting_vines",
+            "minecraft:twisting_vines_plant",
+            "minecraft:cave_vines",
+            "minecraft:cave_vines_plant",
+            "minecraft:spore_blossom",
+            "minecraft:azalea",
+            "minecraft:flowering_azalea",
+            "minecraft:moss_carpet",
+            "minecraft:pink_petals",
+            "minecraft:wildflowers",
+            "minecraft:big_dripleaf",
+            "minecraft:big_dripleaf_stem",
+            "minecraft:small_dripleaf"
+          ]
+        },
+        "stem_state": "minecraft:warped_stem",
+        "valid_base_block": "minecraft:moss_block"
+      },
+      "placement": [
+        {
+          "type": "minecraft:count_on_every_layer",
+          "count": 6
+        },
+        {
+          "type": "minecraft:biome"
+        }
+      ]
+    },
+    "rising_vines": {
+      "feature": {
+        "type": "minecraft:block_column",
+        "allowed_placement": {
+          "type": "minecraft:matching_block_tag",
+          "tag": "minecraft:air"
+        },
+        "direction": "up",
+        "layers": [
+          {
+            "height": {
+              "type": "minecraft:weighted_list",
+              "distribution": [
+                {
+                  "data": {
+                    "type": "minecraft:uniform",
+                    "max_inclusive": 7,
+                    "min_inclusive": 0
+                  },
+                  "weight": 10
+                },
+                {
+                  "data": {
+                    "type": "minecraft:uniform",
+                    "max_inclusive": 15,
+                    "min_inclusive": 1
+                  },
+                  "weight": 2
+                },
+                {
+                  "data": 0,
+                  "weight": 3
+                }
+              ]
+            },
+            "provider": {
+              "id": "minecraft:twisting_vines_plant"
+            }
+          },
+          {
+            "height": 1,
+            "provider": {
+              "type": "minecraft:randomized_int",
+              "property": "age",
+              "source": {
+                "id": "minecraft:twisting_vines",
+                "properties": {
+                  "age": "0"
+                }
+              },
+              "values": {
+                "type": "minecraft:uniform",
+                "max_inclusive": 25,
+                "min_inclusive": 17
+              }
+            }
+          }
+        ],
+        "prioritize_tip": true
+      },
+      "placement": [
+        {
+          "type": "minecraft:count_on_every_layer",
+          "count": 3
+        },
+        {
+          "type": "minecraft:biome"
+        },
+        {
+          "type": "minecraft:count",
+          "count": 8
+        },
+        {
+          "type": "minecraft:offset",
+          "x": {
+            "type": "minecraft:trapezoid",
+            "max": 4,
+            "min": -4,
+            "plateau": 0
+          },
+          "y": {
+            "type": "minecraft:trapezoid",
+            "max": 2,
+            "min": -2,
+            "plateau": 0
+          },
+          "z": {
+            "type": "minecraft:trapezoid",
+            "max": 4,
+            "min": -4,
+            "plateau": 0
+          }
+        },
+        {
+          "type": "minecraft:block_predicate_filter",
+          "predicate": {
+            "type": "minecraft:all_of",
+            "predicates": [
+              {
+                "type": "minecraft:matching_block_tag",
+                "tag": "minecraft:air"
+              },
+              {
+                "type": "minecraft:matching_blocks",
+                "blocks": [
+                  "minecraft:moss_block",
+                  "minecraft:warped_nylium"
+                ],
+                "offset": [
+                  0,
+                  -1,
+                  0
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "hanging_vines": {
+      "feature": {
+        "type": "minecraft:block_column",
+        "allowed_placement": {
+          "type": "minecraft:matching_block_tag",
+          "tag": "minecraft:air"
+        },
+        "direction": "down",
+        "layers": [
+          {
+            "height": {
+              "type": "minecraft:uniform",
+              "max_inclusive": 12,
+              "min_inclusive": 3
+            },
+            "provider": {
+              "type": "minecraft:weighted",
+              "entries": [
+                {
+                  "data": {
+                    "id": "minecraft:cave_vines_plant",
+                    "properties": {
+                      "berries": "false"
+                    }
+                  },
+                  "weight": 1
+                }
+              ]
+            }
+          },
+          {
+            "height": 1,
+            "provider": {
+              "id": "minecraft:cave_vines",
+              "properties": {
+                "age": "25",
+                "berries": "false"
+              }
+            }
+          }
+        ],
+        "prioritize_tip": true
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 90
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:height_range",
+          "height": {
+            "type": "minecraft:uniform",
+            "max_inclusive": {
+              "below_top": 0
+            },
+            "min_inclusive": {
+              "above_bottom": 0
+            }
+          }
+        },
+        {
+          "type": "minecraft:biome"
+        },
+        {
+          "type": "minecraft:block_predicate_filter",
+          "predicate": {
+            "type": "minecraft:matching_block_tag",
+            "tag": "minecraft:air"
+          }
+        },
+        {
+          "type": "minecraft:environment_scan",
+          "allowed_search_condition": {
+            "type": "minecraft:matching_block_tag",
+            "tag": "minecraft:air"
+          },
+          "direction_of_search": "up",
+          "max_steps": 24,
+          "target_condition": {
+            "type": "minecraft:solid"
+          }
+        },
+        {
+          "type": "minecraft:offset",
+          "x": 0,
+          "y": -1,
+          "z": 0
+        }
+      ]
+    },
+    "moss_carpets": {
+      "feature": {
+        "type": "minecraft:simple_block",
+        "to_place": {
+          "id": "minecraft:moss_carpet"
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count_on_every_layer",
+          "count": 2
+        },
+        {
+          "type": "minecraft:biome"
+        },
+        {
+          "type": "minecraft:count",
+          "count": 12
+        },
+        {
+          "type": "minecraft:offset",
+          "x": {
+            "type": "minecraft:trapezoid",
+            "max": 5,
+            "min": -5,
+            "plateau": 0
+          },
+          "y": {
+            "type": "minecraft:trapezoid",
+            "max": 2,
+            "min": -2,
+            "plateau": 0
+          },
+          "z": {
+            "type": "minecraft:trapezoid",
+            "max": 5,
+            "min": -5,
+            "plateau": 0
+          }
+        },
+        {
+          "type": "minecraft:block_predicate_filter",
+          "predicate": {
+            "type": "minecraft:all_of",
+            "predicates": [
+              {
+                "type": "minecraft:matching_block_tag",
+                "tag": "minecraft:air"
+              },
+              {
+                "type": "minecraft:matching_blocks",
+                "blocks": [
+                  "minecraft:moss_block"
+                ],
+                "offset": [
+                  0,
+                  -1,
+                  0
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

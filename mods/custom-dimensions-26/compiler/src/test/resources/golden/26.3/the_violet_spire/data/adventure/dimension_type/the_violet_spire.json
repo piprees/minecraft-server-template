@@ -1,0 +1,12 @@
+{
+  "base": "minecraft:overworld",
+  "changed": {
+    "ambient_light": 0.25,
+    "attributes": {
+      "changed": {
+        "minecraft:visual/fog_color": "#3a2352",
+        "minecraft:visual/sky_color": "#6b4b9b"
+      }
+    }
+  }
+}

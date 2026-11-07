@@ -47,7 +47,7 @@ Then push to `main` — `.github/workflows/deploy.yml` calls the reusable workfl
 
 ## Upgrading
 
-Bump `STACK_VERSION` in `.env` (or leave it as `v5` to track the latest v5.x.y), then `./dev update && ./dev up`. Each release `vX.Y.Z` tags every GHCR image (`X.Y.Z`, `X.Y`, `X`, `latest`) and attaches a **stack bundle** tarball: compose files, all host-side operational scripts, default configs, and the in-house mod JARs (`local-mods/`, CI-built and remap-verified, installed into `data/mods/` by `deploy.sh` and `./dev up`). **Compatibility:** a major bump is breaking (`.env` keys, overlay contract, compose structure) and ships a migration guide; `v5.1` → `v5.2` adds features, default mods, and config, backwards-compatible; `v5.1.0` → `v5.1.1` is drop-in. Pinning `STACK_VERSION=v5` picks up minors and patches automatically. Cutting a release: the `platform-release-management` skill.
+A consumer's committed `.stack-version` names the release it runs; the weekly `Updates` workflow opens a PR moving it to the newest release, and merges a patch or minor itself ([DEPENDENCIES.md § For consumers](DEPENDENCIES.md#for-consumers)). Locally, `./dev update && ./dev up`. Each release `vX.Y.Z` tags every GHCR image (`X.Y.Z`, `X.Y`, `X`, `latest`) and attaches a **stack bundle** tarball: compose files, all host-side operational scripts, default configs, and the in-house mod JARs (`local-mods/`, CI-built and remap-verified, installed into `data/mods/` by `deploy.sh` and `./dev up`). What each bump class may contain: [DEPENDENCIES.md § Versioning contract](DEPENDENCIES.md#versioning-contract). Cutting a release: the `platform-release-management` skill.
 
 ## Architecture
 
@@ -69,6 +69,7 @@ Bump `STACK_VERSION` in `.env` (or leave it as `v5` to track the latest v5.x.y),
                           └────────────────────────────────────────────────┘
    Discord ◄── dcintegration (chat bridge) + discord-sync (/mc, /register, role sync)
    Voice   ◄── Simple Voice Chat UDP 24454 ──► friends
+   Bedrock ◄── Geyser + Floodgate TCP+UDP 19132 (26.3, NetherNet) ──► friends
 ```
 
 ### Services (docker-compose.yml)
@@ -88,7 +89,7 @@ Bump `STACK_VERSION` in `.env` (or leave it as `v5` to track the latest v5.x.y),
 | `unmined-render` | ghcr.io/.../unmined-render | both | Scheduled static uNmINeD map renders into `data/unmined-web/`, served at map.DOMAIN/unmined/ (off until `UNMINED_INTERVAL` is set) |
 | `discord-sync` | ghcr.io/.../discord-sync | both | Discord bot: `/register`, `/mc` admin commands, role→whitelist sync |
 
-**Ports:** game `25577/tcp` (host) → `25565` (container), voice `24454/udp`, RCON `25575` (Docker network only), Kuma `3001` and pack-web `8080` bound to localhost only. **Autopause:** the JVM freezes when the server has been empty for 10 minutes and RCON stops responding, so scripts and monitors treat "no RCON" as paused, not down — never add anything that pokes the game port on an interval, it wakes the server.
+**Ports:** game `25577/tcp` (host) → `25565` (container), voice `24454/udp`, Bedrock `19132/tcp+udp` (`BEDROCK_PORT`; Geyser listens only on the 26.3 list — [§ Bedrock](#bedrock)), RCON `25575` (Docker network only), Kuma `3001` and pack-web `8080` bound to localhost only. **Autopause:** the JVM freezes when the server has been empty for 10 minutes and RCON stops responding, so scripts and monitors treat "no RCON" as paused, not down — never add anything that pokes the game port on an interval, it wakes the server.
 
 ## Configuration
 
@@ -154,6 +155,7 @@ Three categories, by where a script ends up and who runs it. Every script has a 
 | `map-render.sh` | Mac | Drive the unmined-render sidecar: status, force a render pass |
 | `force-toml-key.py` | server, Mac | Force one key in a mod's TOML to a value, re-applied every deploy because mods rewrite their own config |
 | `lib.sh` | (sourced) | Shared utilities: env loading, bounded RCON, the deploy lock, provider detection |
+| `stack_update.py` | CI (consumer) | The `Updates` workflow's stack job: picks the highest stable release, sizes the bump, writes the PR body, checks every image exists at the target version |
 
 ### Image scripts (baked into GHCR images, not run directly)
 
@@ -174,10 +176,18 @@ Three categories, by where a script ends up and who runs it. Every script has a 
 | `pin-mod-versions.sh` | Re-pin every mod to its latest build (used by mod-updates.yml) |
 | `check-modrinth-compat.sh` | Check the mod list against a target MC version/loader |
 | `build-mod-update-report.py` | Build the mod-update PR body with changelogs |
+| `dep_review/` | The deterministic halves of `dep-review.yml`: `gate.py` admits a bot PR, `collect.py` bundles its changelogs and flags, `apply.py` enforces the merge policy, `carry_holds.py` keeps review holds across the weekly re-pin, `partition.py` splits the weekly mod update into the regular PR and the next-major worldgen PR ([`docs/dependency-review.md`](docs/dependency-review.md)) |
+| `platform_updates.py` | Resolve and apply the weekly platform updates (compose images, Fabric loader, yarn, fabric-api, build and release tools) for `platform-updates.yml`; its tables are the list `gate.py` admits |
+| `check-release-version.sh` | First job of release.yml: refuses a release that keeps the major version when a commit since the last release is breaking (`type!:` or a `BREAKING CHANGE:` footer) |
 | `client-defaults.sh` | Diff/sync shipped client defaults against the source Prism instance |
 | `test-scripts.sh` | shellcheck + py_compile + compose validation |
 | `e2e/` | End-to-end harness: drives a linked local consumer and the real client through ignition, traversal, idle unload and companion suppression ([`scripts/e2e/README.md`](scripts/e2e/README.md)) |
-| `build-stack-bundle.sh` | Assemble the release tarball |
+| `build-stack-bundle.sh` | Assemble the release tarball for the selected Minecraft version: its in-house mod manifests, and `MC_VERSION_OVERRIDE` written into the bundle's `.minecraft-version` |
+| `local-mods.sh` | Build and gate the in-house mods of the selected version's manifests (`mods/local-mods[-<version>].manifest`, `mods/client-mods[-<version>].manifest`) for release.yml, mod-build.yml, mod26.yml and the 26.3 smoke test; a refmap of `-` declares a non-remapping Loom build |
+| `smoke-26.sh` | Boot the real 26.3 stack from the checkout with `MC_VERSION_OVERRIDE` (seed image, java25 image, the 26.3 mod list, config overlay and in-house mod) and gate its boot log; `smoke-test-26.yml` runs it, and it runs the same way on a workstation |
+| `admin-parity-check.sh` | Every RCON command discord-sync and deploy.sh send, against a running server, with the version's game-rule ids ([`docs/design/rebuild-26/parity.md`](docs/design/rebuild-26/parity.md)) |
+| `e2e/bedrock-ping.py` | Whether Geyser answers on the Bedrock port, and with which MOTD: its NetherNet signaling status over TCP, or a RakNet ping (`--raknet`); `smoke-test-26.yml` runs it after the boot gate |
+| `e2e/vanilla-join.sh` | The vanilla-client join gate: Mojang's unmodded client (sha1-checked, cached by version) joins a server under Xvfb with Mesa and must stay connected; a disconnect fails with its reason |
 | `sync-mod-cache.sh` | Reconcile `mods-cache/` against the pinned mod lists (`--apply`) |
 | `export-seed-winners.py` | Copy rolled winner seeds/spawns from a consumer overlay into the platform dimension configs (`--dry-run` diffs) |
 | `extract-biomes.py` / `extract-blocks.py` / `extract-entities.py` | Catalogue every biome, block and entity in the installed mod JARs, for authoring and lint. Static scans — they cannot resolve a tag |
@@ -203,23 +213,23 @@ Task → file → command lookup: [`docs/common-tasks.md`](docs/common-tasks.md)
 
 ### Add or remove mods
 
-Server mods go in `overlay/mods-extra.txt` (consumer) or `config/modrinth-mods.txt` (platform), removals in `overlay/mods-remove.txt`, client mods in `modpack/adventure.mrpack.json`. Everything must target **Fabric for 1.21.1**, and resolving a mod's dependencies before adding it is mandatory — that checklist, version holds, and the offline delivery model are in the `server-mod-management` skill. Clients auto-update via **packwiz**: the build generates `dist/packwiz/` (pack.toml + per-mod metafiles pointing at the mirror) and the one-click Prism instance zip runs `packwiz-installer` as a pre-launch task, so every launch hash-syncs mods and pack configs from the CDN.
+Adding, removing, pinning or holding a mod: [`DEPENDENCIES.md`](DEPENDENCIES.md). Clients auto-update via **packwiz**: the build generates `dist/packwiz/` (pack.toml + per-mod metafiles pointing at the mirror) and the one-click Prism instance zip runs `packwiz-installer` as a pre-launch task, so every launch hash-syncs mods and pack configs from the CDN.
 
 ### Update Minecraft version
 
-A big job — all ~150 server mods and ~110 client mods must support the target first. Procedure: [`docs/minecraft-version-upgrade.md`](docs/minecraft-version-upgrade.md).
+Minecraft 1.21.1 is a fixed decision. Changing it: [DEPENDENCIES.md § Changing the Minecraft version](DEPENDENCIES.md#changing-the-minecraft-version).
 
 ### Deploy to production
 
-Pushing to `main` in a consumer repo triggers the caller workflow, which invokes the reusable `deploy-reusable.yml` from this platform repo. It resolves the symbolic `STACK_VERSION` pin (`v5`, `latest`) to a concrete release tag, compares it against the bundle the server is actually running (`readlink .stack/current`), then diffs consumer files against the server's deployed commit and picks a tier:
+Pushing to `main` in a consumer repo triggers the caller workflow, which invokes the reusable `deploy-reusable.yml` from this platform repo. It resolves the stack pin (the consumer's `.stack-version`, or a manual dispatch's `stack_version`) to a concrete release tag, refuses one from another major than its own `@vN`, compares it against the bundle the server is actually running (`readlink .stack/current`), then diffs consumer files against the server's deployed commit and picks a tier:
 
 | Mode | Trigger | What happens |
 | --- | --- | --- |
-| **Full** | A new platform release matching the pin (resolved tag ≠ running bundle), `overlay/config/`, `overlay/mods-extra.txt`, `overlay/mods-remove.txt`, manual dispatch, releases | Secrets uploaded → stack bundle pinned to the resolved tag → deploy.sh: countdown → kick → whitelist-block → save → restart → regenerate .env → config sync → permissions → whitelist restore → Discord notify |
+| **Full** | The resolved pin differs from the running bundle, `overlay/config/`, `overlay/mods-extra.txt`, `overlay/mods-remove.txt`, manual dispatch, releases | Secrets uploaded → stack bundle pinned to the resolved tag → deploy.sh: countdown → kick → whitelist-block → save → restart → regenerate .env → config sync → permissions → whitelist restore → Discord notify |
 | **Infra** | Other `overlay/` changes (assets, branding) | Image pull + compose up (mc untouched) + force-recreate sidecars |
 | **Pull** | Docs, CI, everything else — and no stack change | Nothing touches the server |
 
-Consumer repos have almost no deployable files of their own, so **most full deploys are driven by the resolved-tag comparison**, not by consumer file diffs: a consumer push made after a platform release lands is what rolls it out. CI rebuilds the `.mrpack` + download page after every full deploy. Monitoring and recovery: the `deploy-pipeline-operations` skill.
+Consumer repos have almost no deployable files of their own, so **most full deploys are driven by the resolved-tag comparison**, not by consumer file diffs: the push (or the dispatched deploy) that moves `.stack-version` is what rolls a release out. CI rebuilds the `.mrpack` + download page after every full deploy. Monitoring and recovery: the `deploy-pipeline-operations` skill.
 
 ### Backups
 
@@ -229,7 +239,16 @@ Automatic every **12h** by default via `mc-backup` (restic → Cloudflare R2), w
 
 ### Discord integration
 
-Two clients share **one bot token**: the **dcintegration** Fabric mod in the `mc` container owns the chat bridge only, and **discord-sync** owns every slash command (`/register`, `/unregister`, `/mc ...`), role→whitelist sync, and the audit log. The mod's command feature must stay off (`[commands] enabled = false` in the live `data/config/Discord-Integration.toml`) or it wipes the command registry on every mc boot; `deploy.sh` enforces this on every full deploy. Players self-serve: `/register <minecraft_username>` in Discord, an admin grants the `@Player` role, and the bot whitelists them via RCON within 60s (`@Admin` also grants op; removing a role reverses both). Manual RCON is the immediate fallback — [COMMANDS.md](COMMANDS.md#useful-admin-recipes). Missing commands, registry checks, and shipping a bot change: the `discord-integration-ops` skill.
+Two clients share **one bot token**: the **dcintegration** Fabric mod in the `mc` container owns the chat bridge only, and **discord-sync** owns every slash command (`/register`, `/unregister`, `/mc ...`), role→whitelist sync, and the audit log. The mod's command feature must stay off (`[commands] enabled = false` in the live `data/config/Discord-Integration.toml`) or it wipes the command registry on every mc boot; `deploy.sh` enforces this on every full deploy. Players self-serve: `/register <minecraft_username>` in Discord (`platform: Bedrock Edition` takes a gamertag — [§ Bedrock](#bedrock)), an admin grants the `@Player` role, and the bot whitelists them via RCON within 60s (`@Admin` also grants op; removing a role reverses both). Manual RCON is the immediate fallback — [COMMANDS.md](COMMANDS.md#useful-admin-recipes). Missing commands, registry checks, and shipping a bot change: the `discord-integration-ops` skill.
+
+### Bedrock
+
+On the 26.3 list, Bedrock players join with nothing installed: Geyser translates on `BEDROCK_PORT` (default `19132`) over NetherNet, Bedrock's only transport from 26.60: its built-in signaling answers on TCP and gameplay runs over WebRTC on UDP, both on that port. Floodgate admits them without a Java account (RB-21). They connect to `mc.DOMAIN` on that port. In game a Bedrock player is named `.` plus the gamertag with spaces as `_` (`.Major_Nelson`), so no name collides with a Java one.
+
+- **Whitelist:** `/register <gamertag> platform: Bedrock Edition`. discord-sync looks the gamertag's XUID up in GeyserMC's cache (`api.geysermc.org`), which knows a player once they have connected to any Geyser server, so a new player tries to join once first. Role sync then sends `fwhitelist add <Floodgate UUID>`: vanilla `whitelist add` asks Mojang, and Floodgate's own gamertag lookup fails silently for a gamertag the cache lacks.
+- **Key:** Floodgate's `key.pem` is the secret `FLOODGATE_KEY_B64` (base64 of the file), written to `data/config/floodgate/key.pem` by `deploy.sh` before mc starts. Unset, Floodgate generates one at first boot. To keep that one: `base64 < data/config/floodgate/key.pem | tr -d '\n'` into `.env`, then `./ops op-sync-env` and `./ops github-env-sync` (or `gh secret set FLOODGATE_KEY_B64 --env production`).
+- **Firewall:** `harden.sh` and the Hetzner firewall open the port at provisioning; a server provisioned earlier needs the steps in [cutover-removals.md § At the switch, also](docs/design/rebuild-26/cutover-removals.md#at-the-switch-also).
+- **Check:** `python3 scripts/e2e/bedrock-ping.py <host> [port]` prints the MOTD Geyser's signaling serves at `/v1/join` (`--raknet` pings the RakNet transport instead).
 
 ### Server access
 

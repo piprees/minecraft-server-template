@@ -1,0 +1,50 @@
+{
+  "level": "minecraft:the_end",
+  "density": "normal",
+  "noise": true,
+  "radiusChunks": 256,
+  "spawnChunk": [0, 0],
+  "groups": {
+    "deco": {
+      "profile": "natural",
+      "radial": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+      "exclusion": 6,
+      "clearSpawnChunks": 0
+    },
+    "dungeons": {
+      "profile": "sparse",
+      "radial": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+      "exclusion": 21,
+      "clearSpawnChunks": 0
+    },
+    "landmarks": {
+      "profile": "sparse",
+      "radial": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+      "exclusion": 31,
+      "clearSpawnChunks": 0
+    },
+    "maritime": {
+      "profile": "natural",
+      "radial": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+      "exclusion": 12,
+      "clearSpawnChunks": 0
+    },
+    "endgame": {
+      "profile": "natural",
+      "radial": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+      "exclusion": 40,
+      "clearSpawnChunks": 0
+    }
+  },
+  "mode": null,
+  "list": [],
+  "exclude": [],
+  "include": [],
+  "rarity": {},
+  "spacing": {},
+  "force": [],
+  "wants": [],
+  "shuns": [],
+  "replace": {},
+  "terrainAdaptation": {}
+}

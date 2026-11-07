@@ -1,0 +1,107 @@
+{
+  "type": "adventure:the_tiled_expanse",
+  "generator": {
+    "type": "minecraft:noise",
+    "biome_source": {
+      "type": "customdimensions:zoned",
+      "base": {
+        "type": "minecraft:checkerboard",
+        "biomes": [
+          "adventure:quartz_flats",
+          "minecraft:end_barrens",
+          "adventure:ice_starfield",
+          "adventure:umbral_wastes",
+          "minecraft:end_midlands",
+          "minecraft:the_end",
+          "adventure:chorus_forest",
+          "adventure:dust_wastelands",
+          "adventure:neon_oasis"
+        ],
+        "scale": 3
+      },
+      "zones": [
+        {
+          "biomes": [
+            {
+              "biome": "minecraft:basalt_deltas",
+              "parameters": {
+                "temperature": [-2.0, 2.0],
+                "humidity": [-2.0, 2.0],
+                "continentalness": [-2.0, 2.0],
+                "erosion": [-2.0, 2.0],
+                "weirdness": [-2.0, 2.0],
+                "depth": [-2.0, 2.0],
+                "offset": 0.0
+              }
+            }
+          ]
+        },
+        {
+          "biomes": [
+            {
+              "biome": "adventure:quartz_flats",
+              "parameters": {
+                "temperature": [0.0, 0.6],
+                "humidity": [-1.0, -0.3],
+                "continentalness": [-2.0, 2.0],
+                "erosion": [-2.0, 2.0],
+                "weirdness": [-2.0, 2.0],
+                "depth": [-2.0, 2.0],
+                "offset": 0.0
+              }
+            }
+          ]
+        },
+        {
+          "biomes": [
+            {
+              "biome": "adventure:quartz_flats",
+              "parameters": {
+                "temperature": [0.0, 0.6],
+                "humidity": [-1.0, -0.3],
+                "continentalness": [-2.0, 2.0],
+                "erosion": [-2.0, 2.0],
+                "weirdness": [-2.0, 2.0],
+                "depth": [-2.0, 2.0],
+                "offset": 0.0
+              }
+            }
+          ]
+        },
+        {
+          "biomes": [
+            {
+              "biome": "adventure:quartz_flats",
+              "parameters": {
+                "temperature": [0.0, 0.6],
+                "humidity": [-1.0, -0.3],
+                "continentalness": [-2.0, 2.0],
+                "erosion": [-2.0, 2.0],
+                "weirdness": [-2.0, 2.0],
+                "depth": [-2.0, 2.0],
+                "offset": 0.0
+              }
+            }
+          ]
+        },
+        {
+          "biomes": [
+            {
+              "biome": "adventure:quartz_flats",
+              "parameters": {
+                "temperature": [0.0, 0.6],
+                "humidity": [-1.0, -0.3],
+                "continentalness": [-2.0, 2.0],
+                "erosion": [-2.0, 2.0],
+                "weirdness": [-2.0, 2.0],
+                "depth": [-2.0, 2.0],
+                "offset": 0.0
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "settings": "adventure:the_tiled_expanse"
+  }
+}

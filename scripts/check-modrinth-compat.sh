@@ -8,18 +8,13 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="${CONSUMER_DIR:-$(cd "$SCRIPT_DIR/.." && pwd)}"
-MOD_FILE="$PROJECT_DIR/config/modrinth-mods.txt"
-SERVER_ENV="$PROJECT_DIR/.env.example"
+# shellcheck source=lib.sh
+source "$SCRIPT_DIR/lib.sh"
+MOD_FILE="$(mc_mod_list "$PROJECT_DIR")"
 API="https://api.modrinth.com/v2"
 
 # --- defaults from server.env ------------------------------------------------
-DEFAULT_VERSION=""
-if [[ -f "$SERVER_ENV" ]]; then
-  # MC_VERSION ships commented out, so the grep finding nothing is the normal
-  # case, not an error — without `|| true` set -e ends the script right here.
-  DEFAULT_VERSION=$(grep -E '^MC_VERSION=' "$SERVER_ENV" | head -1 | cut -d= -f2 | tr -d "'" | tr -d '"' || true)
-fi
-DEFAULT_VERSION="${DEFAULT_VERSION:-1.21.1}"
+DEFAULT_VERSION="$(mc_version)"
 
 TARGET_VERSION="$DEFAULT_VERSION"
 LOADER="fabric"

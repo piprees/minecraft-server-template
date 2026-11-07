@@ -471,6 +471,8 @@ still required or a mob that wanders out of the box stands there forever.
 
 ## Two paths, and the fallback must never regress
 
+This section governs the 1.21.1 mod. The 26.3 rebuild has the companion path only ([rebuild-26 RB-03](rebuild-26/decisions.md)).
+
 | | Companion client | Vanilla client |
 | --- | --- | --- |
 | Renders | The destination world, from a camera, masked into the aperture | A block slab streamed from the server |

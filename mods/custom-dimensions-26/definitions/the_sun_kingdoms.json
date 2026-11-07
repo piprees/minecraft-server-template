@@ -1,0 +1,271 @@
+{
+  "schemaVersion": 2,
+  "description": "Vast desert kingdoms — what humans and villagers built together at their peak. Walled villages, sand dungeons, desert shrines, and a keep on the horizon. The civilisation here still stands; the bandits at its edges are the only threat.",
+  "seed": -6262147993359831425,
+  "spawn": [640, 42, -768],
+  "generator": {
+    "type": "noise",
+    "preset": "overworld"
+  },
+  "terrain": {
+    "base": "erosion",
+    "setting": "extreme"
+  },
+  "biomes": [
+    {
+      "id": "adventure:muddy_river",
+      "climate": {
+        "continentalness": [-0.11, 2.0],
+        "erosion": [0.05, 2.0],
+        "weirdness": [-0.05, 0.05]
+      }
+    },
+    {
+      "id": "adventure:tropical_shores",
+      "climate": {
+        "continentalness": [-0.2, -0.11]
+      }
+    },
+    {
+      "id": "minecraft:eroded_badlands",
+      "climate": {
+        "continentalness": [-0.11, 2.0],
+        "erosion": [-2.0, -0.3]
+      }
+    },
+    {
+      "id": "adventure:desert_oasis",
+      "climate": {
+        "humidity": [-2.0, -0.1],
+        "continentalness": [-0.11, 2.0],
+        "weirdness": [-0.12, 0.12]
+      }
+    },
+    {
+      "id": "adventure:dry_steppe",
+      "climate": {
+        "temperature": [-2.0, -0.3],
+        "humidity": [-2.0, -0.3]
+      }
+    },
+    {
+      "id": "adventure:joshua_desert",
+      "climate": {
+        "temperature": [-0.3, -0.2],
+        "humidity": [-2.0, -0.3]
+      }
+    },
+    {
+      "id": "minecraft:desert",
+      "climate": {
+        "temperature": [-0.2, -0.1],
+        "humidity": [-2.0, -0.3]
+      }
+    },
+    {
+      "id": "adventure:saguaro_desert",
+      "climate": {
+        "temperature": [-0.1, 0.02],
+        "humidity": [-2.0, -0.3]
+      }
+    },
+    {
+      "id": "minecraft:desert",
+      "climate": {
+        "temperature": [0.02, 2.0],
+        "humidity": [-2.0, -0.3]
+      }
+    },
+    {
+      "id": "adventure:prairie",
+      "climate": {
+        "temperature": [-2.0, -0.3],
+        "humidity": [-0.3, -0.15]
+      }
+    },
+    {
+      "id": "minecraft:badlands",
+      "climate": {
+        "temperature": [-0.3, -0.2],
+        "humidity": [-0.3, -0.15]
+      }
+    },
+    {
+      "id": "minecraft:desert",
+      "climate": {
+        "temperature": [-0.2, -0.1],
+        "humidity": [-0.3, -0.15]
+      }
+    },
+    {
+      "id": "minecraft:wooded_badlands",
+      "climate": {
+        "temperature": [-0.1, 0.02],
+        "humidity": [-0.3, -0.15]
+      }
+    },
+    {
+      "id": "adventure:saguaro_desert",
+      "climate": {
+        "temperature": [0.02, 2.0],
+        "humidity": [-0.3, -0.15]
+      }
+    },
+    {
+      "id": "minecraft:savanna_plateau",
+      "climate": {
+        "temperature": [-2.0, -0.3],
+        "humidity": [-0.15, 0.0]
+      }
+    },
+    {
+      "id": "minecraft:savanna",
+      "climate": {
+        "temperature": [-0.3, -0.2],
+        "humidity": [-0.15, 0.0]
+      }
+    },
+    {
+      "id": "minecraft:windswept_savanna",
+      "climate": {
+        "temperature": [-0.2, -0.1],
+        "humidity": [-0.15, 0.0]
+      }
+    },
+    {
+      "id": "minecraft:badlands",
+      "climate": {
+        "temperature": [-0.1, 0.02],
+        "humidity": [-0.15, 0.0]
+      }
+    },
+    {
+      "id": "minecraft:desert",
+      "climate": {
+        "temperature": [0.02, 2.0],
+        "humidity": [-0.15, 0.0]
+      }
+    },
+    {
+      "id": "minecraft:plains",
+      "climate": {
+        "temperature": [-2.0, -0.3],
+        "humidity": [0.0, 0.15]
+      }
+    },
+    {
+      "id": "adventure:barley_fields",
+      "climate": {
+        "temperature": [-0.3, -0.2],
+        "humidity": [0.0, 0.15]
+      }
+    },
+    {
+      "id": "minecraft:savanna",
+      "climate": {
+        "temperature": [-0.2, -0.1],
+        "humidity": [0.0, 0.15]
+      }
+    },
+    {
+      "id": "adventure:baobab_savanna",
+      "climate": {
+        "temperature": [-0.1, 0.02],
+        "humidity": [0.0, 0.15]
+      }
+    },
+    {
+      "id": "adventure:parched_forest",
+      "climate": {
+        "temperature": [0.02, 2.0],
+        "humidity": [0.0, 0.15]
+      }
+    },
+    {
+      "id": "minecraft:sunflower_plains",
+      "climate": {
+        "temperature": [-2.0, -0.3],
+        "humidity": [0.15, 2.0]
+      }
+    },
+    {
+      "id": "adventure:lavender_fields",
+      "climate": {
+        "temperature": [-0.3, -0.2],
+        "humidity": [0.15, 2.0]
+      }
+    },
+    {
+      "id": "adventure:ashen_woodland",
+      "climate": {
+        "temperature": [-0.2, -0.1],
+        "humidity": [0.15, 2.0]
+      }
+    },
+    {
+      "id": "adventure:carnation_fields",
+      "climate": {
+        "temperature": [-0.1, 0.02],
+        "humidity": [0.15, 2.0]
+      }
+    },
+    {
+      "id": "adventure:parched_forest",
+      "climate": {
+        "temperature": [0.02, 2.0],
+        "humidity": [0.15, 2.0]
+      }
+    }
+  ],
+  "borders": {
+    "player": 4096,
+    "generation": 2048
+  },
+  "difficulty": {
+    "mobMultiplier": 1.0,
+    "playerLuck": 1.3
+  },
+  "structures": {
+    "terrainAdaptation": {
+      "ati_structures:dark_keep": "pedestal"
+    }
+  },
+  "portals": [
+    {
+      "frameBlock": "minecraft:sandstone",
+      "igniterItem": "minecraft:amethyst_shard",
+      "color": "D4B050",
+      "lightLevel": 11,
+      "scale": 2.0,
+      "cooldown": 40,
+      "shape": "doorway",
+      "sounds": {
+        "ignite": "block.portal.trigger",
+        "enter": "block.portal.travel",
+        "exit": "block.portal.travel"
+      }
+    }
+  ],
+  "roll": {
+    "mood": "adventurous",
+    "spawnFilter": [
+      "minecraft:desert"
+    ],
+    "water": "none",
+    "wants": {
+      "village": "near_spawn",
+      "epic:sand_obelisk": "near_spawn",
+      "nova_structures:illager_barracks": "spread",
+      "sand_dungeon_l": "spread",
+      "ati_structures:dark_keep": "near_border",
+      "desert_pyramid": "spread",
+      "epic:small_sand_dungeon": "near_border",
+      "nova_structures:firewatch_tower_forest": "spread",
+      "ati_structures:nomadic_camp": "spread",
+      "ati_structures:desert_outpost": "spread"
+    },
+    "shuns": [
+      "monument"
+    ]
+  }
+}

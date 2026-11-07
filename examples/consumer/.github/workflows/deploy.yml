@@ -3,21 +3,24 @@ name: Deploy
 on:
   push:
     branches: [main]
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      stack_version:
+        description: >-
+          Deploy this release instead of .stack-version for one run (e.g. a
+          rollback to v5.6.1). Empty = .stack-version.
+        required: false
+        type: string
+        default: ''
 
 jobs:
   deploy:
     uses: piprees/minecraft-server-template/.github/workflows/deploy-reusable.yml@v5
+    # The stack release comes from .stack-version at the repo root (an exact
+    # vX.Y.Z; the weekly Updates workflow proposes bumps). The @vN major here
+    # must match it - the deploy refuses a stack from another major.
     with:
-      # Set the STACK_VERSION variable to pin a release line (v5) or an exact
-      # version (v5.6.1); unset = latest release.
-      #
-      # Must be a REPOSITORY variable — this job declares no `environment:`,
-      # so `vars.` only resolves repository variables. An environment
-      # variable of the same name is invisible here and is silently
-      # ignored, which pins the deploy to the wrong line while every
-      # later deploy still reports success.
-      stack_version: ${{ vars.STACK_VERSION || 'latest' }}
+      stack_version_override: ${{ inputs.stack_version || '' }}
     secrets:
       DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
       RCON_PASSWORD: ${{ secrets.RCON_PASSWORD }}
@@ -35,5 +38,8 @@ jobs:
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
       CLOUDFLARE_ZONE_ID: ${{ secrets.CLOUDFLARE_ZONE_ID }}
       CLOUDFLARE_TUNNEL_ID: ${{ secrets.CLOUDFLARE_TUNNEL_ID }}
+      # Read access to the platform repo while it is private.
+      STACK_READ_TOKEN: ${{ secrets.STACK_READ_TOKEN }}
       KUMA_API_KEY: ${{ secrets.KUMA_API_KEY }}
       KUMA_PASSWORD: ${{ secrets.KUMA_PASSWORD }}
+      FLOODGATE_KEY_B64: ${{ secrets.FLOODGATE_KEY_B64 }}

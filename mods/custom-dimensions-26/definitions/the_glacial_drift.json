@@ -1,0 +1,148 @@
+{
+  "schemaVersion": 2,
+  "description": "A glacial drift among the skylands — frozen paradise islands calving into the void. The oldest animals shelter here in tundra that predates every civilisation. Nothing was ever built; nothing needs to be.",
+  "seed": -5306884761838161928,
+  "spawn": [0, 55, -204],
+  "generator": {
+    "type": "noise",
+    "preset": "floating_islands"
+  },
+  "biomes": [
+    {
+      "id": "minecraft:ice_spikes",
+      "climate": {
+        "temperature": [-2.0, -0.001],
+        "humidity": [-2.0, -0.188]
+      }
+    },
+    {
+      "id": "adventure:windswept_isles",
+      "climate": {
+        "temperature": [-2.0, -0.001],
+        "humidity": [-0.188, 0.03]
+      }
+    },
+    {
+      "id": "minecraft:frozen_peaks",
+      "climate": {
+        "temperature": [-2.0, -0.001],
+        "humidity": [0.03, 2.0]
+      }
+    },
+    {
+      "id": "minecraft:jagged_peaks",
+      "climate": {
+        "temperature": [-0.001, 0.24],
+        "humidity": [-2.0, -0.188]
+      }
+    },
+    {
+      "id": "minecraft:snowy_slopes",
+      "climate": {
+        "temperature": [-0.001, 0.24],
+        "humidity": [-0.188, 0.03]
+      }
+    },
+    {
+      "id": "minecraft:snowy_taiga",
+      "climate": {
+        "temperature": [-0.001, 0.24],
+        "humidity": [0.03, 2.0]
+      }
+    },
+    {
+      "id": "minecraft:end_barrens",
+      "climate": {
+        "temperature": [0.24, 2.0],
+        "humidity": [-2.0, -0.219]
+      }
+    },
+    {
+      "id": "adventure:highland_fells",
+      "climate": {
+        "temperature": [0.24, 2.0],
+        "humidity": [-0.219, 0.07]
+      }
+    },
+    {
+      "id": "adventure:golden_skygrove",
+      "climate": {
+        "temperature": [0.24, 2.0],
+        "humidity": [0.07, 2.0]
+      }
+    }
+  ],
+  "liquids": {
+    "seaLevel": -64,
+    "defaultFluid": "minecraft:water"
+  },
+  "materials": {
+    "defaultBlock": "minecraft:stone"
+  },
+  "atmosphere": {
+    "skyColor": "#BFD8E8",
+    "fogColor": "#D8E8F0",
+    "ambientLight": 0.3
+  },
+  "borders": {
+    "player": 4096,
+    "generation": 2048
+  },
+  "difficulty": {
+    "mobMultiplier": 0.8,
+    "playerLuck": 1.6
+  },
+  "structures": {
+    "density": "sparse",
+    "noise": {
+      "dungeons": "sparse"
+    },
+    "terrainAdaptation": {
+      "mss:castle_ruin": "pedestal"
+    },
+    "force": [
+      {
+        "structure": "mss:castle_ruin",
+        "x": -3400,
+        "z": 2900
+      }
+    ]
+  },
+  "portals": [
+    {
+      "frameBlock": "minecraft:ice",
+      "igniterItem": "minecraft:gold_ingot",
+      "color": "90C8E8",
+      "lightLevel": 11,
+      "scale": 2.0,
+      "cooldown": 40,
+      "particleType": "minecraft:snowflake",
+      "sounds": {
+        "ignite": "block.portal.trigger",
+        "enter": "block.portal.travel",
+        "exit": "block.portal.travel"
+      }
+    }
+  ],
+  "exits": {
+    "void": {
+      "action": "teleport",
+      "target": "origin"
+    }
+  },
+  "roll": {
+    "mood": "desolate",
+    "spawnFilter": [
+      "adventure:highland_fells"
+    ],
+    "wants": {
+      "mvs:statue_ruins": "near_spawn",
+      "mss:large_tower": "spread",
+      "igloo": "near_spawn",
+      "nova_structures:trial_dungeon": "near_border",
+      "mss:small_tower": "spread"
+    },
+    "shuns": [],
+    "terrain": "islands"
+  }
+}

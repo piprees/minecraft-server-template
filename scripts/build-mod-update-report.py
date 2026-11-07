@@ -16,6 +16,7 @@ import argparse
 import json
 import os
 import re
+import sys
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -70,7 +71,9 @@ def read_mc_version(server_env_path):
                         return line.strip().split("=", 1)[1]
         except FileNotFoundError:
             pass
-    return "1.21.1"
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    import minecraft_version
+    return minecraft_version.current()
 
 
 def chunked(seq, size):

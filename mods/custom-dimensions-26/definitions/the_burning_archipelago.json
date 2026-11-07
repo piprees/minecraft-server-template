@@ -1,0 +1,199 @@
+{
+  "schemaVersion": 2,
+  "description": "Burning islands in a void sea — nether terrain on end-island bones. The piglins and endermen fought across these straits; the islands that survived still smoulder.",
+  "seed": -1914160344645756922,
+  "spawn": [256, 0, 448],
+  "generator": {
+    "type": "noise",
+    "preset": "end",
+    "endIsland": false
+  },
+  "biomes": [
+    {
+      "id": "adventure:gravel_desert",
+      "climate": {
+        "temperature": [-2.0, -0.12],
+        "humidity": [-2.0, -0.101]
+      }
+    },
+    {
+      "id": "adventure:ash_barrens",
+      "climate": {
+        "temperature": [-2.0, -0.12],
+        "humidity": [-0.101, 0.077]
+      }
+    },
+    {
+      "id": "adventure:windswept_isles",
+      "climate": {
+        "temperature": [-2.0, -0.12],
+        "humidity": [0.077, 0.217]
+      }
+    },
+    {
+      "id": "minecraft:soul_sand_valley",
+      "climate": {
+        "temperature": [-2.0, -0.12],
+        "humidity": [0.217, 2.0]
+      }
+    },
+    {
+      "id": "minecraft:warped_forest",
+      "climate": {
+        "temperature": [-0.12, -0.027],
+        "humidity": [-2.0, -0.028]
+      }
+    },
+    {
+      "id": "adventure:withered_forest",
+      "climate": {
+        "temperature": [-0.12, -0.027],
+        "humidity": [-0.028, 0.154]
+      }
+    },
+    {
+      "id": "adventure:mycotoxic_undergrowth",
+      "climate": {
+        "temperature": [-0.12, -0.027],
+        "humidity": [0.154, 2.0]
+      }
+    },
+    {
+      "id": "minecraft:end_barrens",
+      "climate": {
+        "temperature": [-0.027, 0.195],
+        "humidity": [-2.0, -0.139]
+      }
+    },
+    {
+      "id": "minecraft:nether_wastes",
+      "climate": {
+        "temperature": [-0.027, 0.195],
+        "humidity": [-0.139, 0.092]
+      }
+    },
+    {
+      "id": "minecraft:crimson_forest",
+      "climate": {
+        "temperature": [-0.027, 0.195],
+        "humidity": [0.092, 2.0]
+      }
+    },
+    {
+      "id": "adventure:magma_land",
+      "climate": {
+        "temperature": [0.195, 2.0],
+        "humidity": [-2.0, -0.058]
+      }
+    },
+    {
+      "id": "minecraft:basalt_deltas",
+      "climate": {
+        "temperature": [0.195, 2.0],
+        "humidity": [-0.058, 0.179]
+      }
+    },
+    {
+      "id": "adventure:nether_jungle",
+      "climate": {
+        "temperature": [0.195, 2.0],
+        "humidity": [0.179, 2.0]
+      }
+    }
+  ],
+  "liquids": {
+    "seaLevel": -60,
+    "defaultFluid": "minecraft:lava"
+  },
+  "materials": {
+    "defaultBlock": "minecraft:netherrack"
+  },
+  "dimensionType": {
+    "hasCeiling": false
+  },
+  "atmosphere": {
+    "fogColor": "#3B2B4B",
+    "ambientLight": 0.1,
+    "effects": "minecraft:the_end"
+  },
+  "rules": {
+    "ultraWarm": true
+  },
+  "borders": {
+    "player": 4096,
+    "generation": 2048
+  },
+  "difficulty": {
+    "mobMultiplier": 2.0,
+    "playerLuck": 1.6
+  },
+  "structures": {
+    "force": [
+      {
+        "structure": "mvs:large_warped_tower",
+        "x": -40,
+        "z": 700,
+        "exclusive": false
+      },
+      {
+        "structure": "minecraft:bastion_remnant",
+        "x": 1400,
+        "z": -900,
+        "exclusive": false
+      }
+    ]
+  },
+  "portals": [
+    {
+      "frameBlock": "minecraft:crimson_planks",
+      "igniterItem": "minecraft:flint_and_steel",
+      "color": "DF4B2B",
+      "lightLevel": 11,
+      "scale": 2.0,
+      "cooldown": 40,
+      "sounds": {
+        "ignite": "block.portal.trigger",
+        "enter": "block.portal.travel",
+        "exit": "block.portal.travel"
+      },
+      "aura": {
+        "subsume": "everything",
+        "palette": [
+          "minecraft:netherrack",
+          "minecraft:magma_block",
+          "minecraft:basalt"
+        ],
+        "fluids": [
+          "minecraft:lava"
+        ],
+        "fireChance": 0.06
+      }
+    }
+  ],
+  "roll": {
+    "mood": "adventurous",
+    "allowHazardousSpawn": true,
+    "spawnFilter": [
+      "minecraft:crimson_forest",
+      "adventure:magma_land",
+      "minecraft:basalt_deltas",
+      "minecraft:nether_wastes",
+      "minecraft:warped_forest",
+      "adventure:ash_barrens",
+      "adventure:gravel_desert"
+    ],
+    "terrain": "islands",
+    "wants": {
+      "bastion": "spread",
+      "mns:mega_fortress": "spread",
+      "giant_skull": "spread",
+      "mns:nether_tower": "spread",
+      "crimson_forge": "spread",
+      "mvs:large_warped_tower": "near_spawn",
+      "ruined_portal": "near_spawn"
+    },
+    "shuns": [
+      "towns_and_towers:exclusives/village_piglin"
+    ]
+  }
+}

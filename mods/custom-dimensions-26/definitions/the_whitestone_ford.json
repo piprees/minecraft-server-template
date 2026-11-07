@@ -1,0 +1,128 @@
+{
+  "schemaVersion": 2,
+  "description": "Wide river country crossed at white cliffs — the ford where the villager trade routes converged. Lighthouses and farms along the water, built where the crossing was easy and the fish were good.",
+  "seed": 3516393557588921874,
+  "spawn": [128, 81, -576],
+  "generator": {
+    "type": "noise",
+    "preset": "overworld"
+  },
+  "terrain": {
+    "base": "rivers",
+    "setting": "extreme",
+    "scale": 1.5
+  },
+  "biomes": [
+    {
+      "id": "minecraft:river",
+      "climate": {
+        "temperature": [-2.0, 0.544],
+        "continentalness": [-0.11, 2.0],
+        "erosion": [0.05, 2.0],
+        "weirdness": [-0.05, 0.05]
+      }
+    },
+    {
+      "id": "adventure:muddy_river",
+      "climate": {
+        "temperature": [0.544, 2.0],
+        "continentalness": [-0.11, 2.0],
+        "erosion": [0.05, 2.0],
+        "weirdness": [-0.05, 0.05]
+      }
+    },
+    {
+      "id": "adventure:lichen_caves",
+      "climate": {
+        "humidity": [-2.0, -0.004],
+        "depth": [0.2, 2.0]
+      }
+    },
+    {
+      "id": "minecraft:lush_caves",
+      "climate": {
+        "humidity": [-0.004, 2.0],
+        "depth": [0.2, 2.0]
+      }
+    },
+    {
+      "id": "minecraft:plains",
+      "climate": {
+        "temperature": [-2.0, 0.701],
+        "humidity": [-2.0, -0.004]
+      }
+    },
+    {
+      "id": "minecraft:meadow",
+      "climate": {
+        "temperature": [-2.0, 0.701],
+        "humidity": [-0.004, 2.0]
+      }
+    },
+    {
+      "id": "adventure:chalk_cliffs",
+      "climate": {
+        "temperature": [0.701, 2.0],
+        "humidity": [-2.0, 2.0]
+      }
+    }
+  ],
+  "borders": {
+    "player": 1024,
+    "generation": 1024
+  },
+  "difficulty": {
+    "mobMultiplier": 0.8,
+    "playerLuck": 1.3
+  },
+  "structures": {
+    "terrainAdaptation": {
+      "landmarks": "moat"
+    }
+  },
+  "portals": [
+    {
+      "frameBlock": "minecraft:polished_diorite",
+      "igniterItem": "minecraft:amethyst_shard",
+      "color": "D4CFC8",
+      "lightLevel": 11,
+      "scale": 8.0,
+      "cooldown": 40,
+      "anchor": {
+        "pos": [-493, 64, 278],
+        "exit": "bed"
+      },
+      "sounds": {
+        "ignite": "block.portal.trigger",
+        "enter": "block.portal.travel",
+        "exit": "block.portal.travel"
+      },
+      "orientation": "horizontal"
+    }
+  ],
+  "exitPortal": {
+    "enabled": true,
+    "pos": "spawn",
+    "target": "bed"
+  },
+  "roll": {
+    "mood": "pastoral",
+    "spawnFilter": [
+      "minecraft:meadow"
+    ],
+    "water": "high",
+    "wants": {
+      "village": "near_spawn",
+      "nova_structures:remnant_ruin_farmer": "near_spawn",
+      "ati_structures:lighthouse": "spread",
+      "nova_structures:firewatch_tower_forest": "spread",
+      "mvs:small_oak_lantern": "near_spawn",
+      "mvs:campsite": "near_spawn",
+      "tavern": "spread"
+    },
+    "shuns": [
+      "mss:arena",
+      "ancient_city"
+    ]
+  }
+}

@@ -6,11 +6,15 @@ it, cached on disk so repeat runs don't re-download.
 """
 
 import json
+import sys
 import urllib.request
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
-MODS_TXT = REPO / "config/modrinth-mods.txt"
+sys.path.insert(0, str(REPO / "scripts"))
+import minecraft_version  # noqa: E402
+
+MODS_TXT = minecraft_version.mod_list(REPO)
 
 
 def pins():

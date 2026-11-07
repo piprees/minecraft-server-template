@@ -1,0 +1,676 @@
+{
+  "$schema": "../../../../../../schema/biome.schema.json",
+  "realm": "caves",
+  "inspiredBy": "Galosphere's crystal canyons: caves where the crystals have broken out of their geodes.",
+  "differs": "Vanilla seals amethyst inside rare geodes; here whole caverns are walled in calcite and smooth basalt, budding amethyst and clusters grow openly on floors and ceilings among glow lichen, and the air glitters purple and chimes.",
+  "climate": {
+    "humidity": [
+      -1.0,
+      -0.35
+    ],
+    "depth": [
+      0.2,
+      0.9
+    ]
+  },
+  "palette": {
+    "ceilings": "minecraft:calcite"
+  },
+  "biome": {
+    "attributes": {
+      "minecraft:audio/ambient_sounds": {
+        "additions": {
+          "sound": "minecraft:block.amethyst_block.chime",
+          "tick_chance": 0.012
+        },
+        "mood": {
+          "block_search_extent": 8,
+          "offset": 2.0,
+          "sound": "minecraft:ambient.cave",
+          "tick_delay": 6000
+        }
+      },
+      "minecraft:audio/background_music": {
+        "default": {
+          "max_delay": 24000,
+          "min_delay": 12000,
+          "sound": "minecraft:music.overworld.lush_caves"
+        }
+      },
+      "minecraft:gameplay/natural_mob_spawns": {
+        "argument": {
+          "spawn_costs": {},
+          "spawns_by_category": {
+            "ambient": [
+              {
+                "type": "minecraft:bat",
+                "count": 8,
+                "weight": 10
+              }
+            ],
+            "monster": [
+              {
+                "type": "minecraft:spider",
+                "count": 4,
+                "weight": 100
+              },
+              {
+                "type": "minecraft:zombie",
+                "count": 4,
+                "weight": 95
+              },
+              {
+                "type": "minecraft:zombie_villager",
+                "count": 1,
+                "weight": 5
+              },
+              {
+                "type": "minecraft:skeleton",
+                "count": 4,
+                "weight": 100
+              },
+              {
+                "type": "minecraft:creeper",
+                "count": 4,
+                "weight": 100
+              },
+              {
+                "type": "minecraft:slime",
+                "count": 4,
+                "weight": 100
+              },
+              {
+                "type": "minecraft:enderman",
+                "count": {
+                  "type": "minecraft:uniform",
+                  "max_inclusive": 4,
+                  "min_inclusive": 1
+                },
+                "weight": 10
+              },
+              {
+                "type": "minecraft:witch",
+                "count": 1,
+                "weight": 5
+              },
+              {
+                "type": "minecraft:drowned",
+                "count": 4,
+                "weight": 95
+              }
+            ],
+            "underground_water_creature": [
+              {
+                "type": "minecraft:glow_squid",
+                "count": {
+                  "type": "minecraft:uniform",
+                  "max_inclusive": 6,
+                  "min_inclusive": 4
+                },
+                "weight": 10
+              }
+            ]
+          }
+        },
+        "modifier": "overlay"
+      },
+      "minecraft:visual/ambient_particles": {
+        "argument": [
+          {
+            "particle": {
+              "type": "minecraft:reverse_portal"
+            },
+            "probability": 0.006
+          }
+        ],
+        "modifier": "append"
+      },
+      "minecraft:visual/fog_color": "#6e5a91",
+      "minecraft:visual/sky_color": "#78a7ff",
+      "minecraft:visual/water_fog_color": "#3d2f5c"
+    },
+    "carvers": [
+      "minecraft:cave",
+      "minecraft:cave_extra_underground",
+      "minecraft:canyon"
+    ],
+    "downfall": 0.4,
+    "effects": {
+      "water_color": "#7d64b8"
+    },
+    "features": [
+      [],
+      [
+        "minecraft:lake_lava_underground"
+      ],
+      [
+        "minecraft:amethyst_geode",
+        "~open_geodes"
+      ],
+      [
+        "minecraft:monster_room",
+        "minecraft:monster_room_deep"
+      ],
+      [],
+      [],
+      [
+        "minecraft:ore_dirt",
+        "minecraft:ore_gravel",
+        "minecraft:ore_granite_upper",
+        "minecraft:ore_granite_lower",
+        "minecraft:ore_diorite_upper",
+        "minecraft:ore_diorite_lower",
+        "minecraft:ore_andesite_upper",
+        "minecraft:ore_andesite_lower",
+        "minecraft:ore_tuff",
+        "minecraft:ore_coal_upper",
+        "minecraft:ore_coal_lower",
+        "minecraft:ore_iron_upper",
+        "minecraft:ore_iron_middle",
+        "minecraft:ore_iron_small",
+        "minecraft:ore_gold",
+        "minecraft:ore_gold_lower",
+        "minecraft:ore_redstone",
+        "minecraft:ore_redstone_lower",
+        "minecraft:ore_diamond",
+        "minecraft:ore_diamond_medium",
+        "minecraft:ore_diamond_large",
+        "minecraft:ore_diamond_buried",
+        "minecraft:ore_lapis",
+        "minecraft:ore_lapis_buried",
+        "minecraft:ore_copper_large",
+        "~calcite_walls",
+        "~basalt_walls",
+        "~budding_seams"
+      ],
+      [],
+      [
+        "minecraft:spring_water",
+        "minecraft:spring_lava"
+      ],
+      [
+        "~crystal_floors",
+        "~crystal_ceilings",
+        "~lichen"
+      ],
+      [
+        "minecraft:freeze_top_layer"
+      ]
+    ],
+    "has_precipitation": true,
+    "temperature": 0.5
+  },
+  "features": {
+    "open_geodes": {
+      "feature": "minecraft:amethyst_geode",
+      "placement": [
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:height_range",
+          "height": {
+            "type": "minecraft:uniform",
+            "max_inclusive": {
+              "absolute": 30
+            },
+            "min_inclusive": {
+              "above_bottom": 6
+            }
+          }
+        },
+        {
+          "type": "minecraft:biome"
+        }
+      ]
+    },
+    "calcite_walls": {
+      "feature": {
+        "type": "minecraft:ore",
+        "discard_chance_on_air_exposure": 0.0,
+        "size": 56,
+        "targets": [
+          {
+            "state": {
+              "id": "minecraft:calcite"
+            },
+            "target": {
+              "predicate_type": "minecraft:tag_match",
+              "tag": "minecraft:base_stone_overworld"
+            }
+          }
+        ]
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 10
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:height_range",
+          "height": {
+            "type": "minecraft:uniform",
+            "max_inclusive": {
+              "absolute": 80
+            },
+            "min_inclusive": {
+              "above_bottom": 0
+            }
+          }
+        },
+        {
+          "type": "minecraft:biome"
+        }
+      ]
+    },
+    "basalt_walls": {
+      "feature": {
+        "type": "minecraft:ore",
+        "discard_chance_on_air_exposure": 0.0,
+        "size": 48,
+        "targets": [
+          {
+            "state": {
+              "id": "minecraft:smooth_basalt"
+            },
+            "target": {
+              "predicate_type": "minecraft:tag_match",
+              "tag": "minecraft:base_stone_overworld"
+            }
+          }
+        ]
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 8
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:height_range",
+          "height": {
+            "type": "minecraft:uniform",
+            "max_inclusive": {
+              "absolute": 80
+            },
+            "min_inclusive": {
+              "above_bottom": 0
+            }
+          }
+        },
+        {
+          "type": "minecraft:biome"
+        }
+      ]
+    },
+    "budding_seams": {
+      "feature": {
+        "type": "minecraft:ore",
+        "discard_chance_on_air_exposure": 0.0,
+        "size": 5,
+        "targets": [
+          {
+            "state": {
+              "id": "minecraft:budding_amethyst"
+            },
+            "target": {
+              "predicate_type": "minecraft:tag_match",
+              "tag": "minecraft:base_stone_overworld"
+            }
+          }
+        ]
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 24
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:height_range",
+          "height": {
+            "type": "minecraft:uniform",
+            "max_inclusive": {
+              "absolute": 80
+            },
+            "min_inclusive": {
+              "above_bottom": 0
+            }
+          }
+        },
+        {
+          "type": "minecraft:biome"
+        }
+      ]
+    },
+    "crystal_floors": {
+      "feature": {
+        "type": "minecraft:vegetation_patch",
+        "depth": {
+          "type": "minecraft:uniform",
+          "max_inclusive": 2,
+          "min_inclusive": 1
+        },
+        "extra_bottom_block_chance": 0.0,
+        "extra_edge_column_chance": 0.3,
+        "ground_state": {
+          "type": "minecraft:weighted",
+          "entries": [
+            {
+              "data": "minecraft:calcite",
+              "weight": 6
+            },
+            {
+              "data": "minecraft:amethyst_block",
+              "weight": 3
+            },
+            {
+              "data": "minecraft:budding_amethyst",
+              "weight": 2
+            }
+          ]
+        },
+        "replaceable": "#minecraft:base_stone_overworld",
+        "surface": "floor",
+        "vegetation_chance": 0.5,
+        "vegetation_feature": {
+          "feature": {
+            "type": "minecraft:simple_block",
+            "to_place": {
+              "type": "minecraft:weighted",
+              "entries": [
+                {
+                  "data": {
+                    "id": "minecraft:amethyst_cluster",
+                    "properties": {
+                      "facing": "up",
+                      "waterlogged": "false"
+                    }
+                  },
+                  "weight": 5
+                },
+                {
+                  "data": {
+                    "id": "minecraft:large_amethyst_bud",
+                    "properties": {
+                      "facing": "up",
+                      "waterlogged": "false"
+                    }
+                  },
+                  "weight": 3
+                },
+                {
+                  "data": {
+                    "id": "minecraft:medium_amethyst_bud",
+                    "properties": {
+                      "facing": "up",
+                      "waterlogged": "false"
+                    }
+                  },
+                  "weight": 2
+                },
+                {
+                  "data": {
+                    "id": "minecraft:small_amethyst_bud",
+                    "properties": {
+                      "facing": "up",
+                      "waterlogged": "false"
+                    }
+                  },
+                  "weight": 2
+                }
+              ]
+            }
+          },
+          "placement": []
+        },
+        "vertical_range": 5,
+        "xz_radius": {
+          "type": "minecraft:uniform",
+          "max_inclusive": 6,
+          "min_inclusive": 3
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 160
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:height_range",
+          "height": {
+            "type": "minecraft:uniform",
+            "max_inclusive": {
+              "absolute": 60
+            },
+            "min_inclusive": {
+              "above_bottom": 0
+            }
+          }
+        },
+        {
+          "type": "minecraft:surface_relative_threshold_filter",
+          "heightmap": "OCEAN_FLOOR_WG",
+          "max_inclusive": -13
+        },
+        {
+          "type": "minecraft:environment_scan",
+          "allowed_search_condition": {
+            "type": "minecraft:matching_block_tag",
+            "tag": "minecraft:air"
+          },
+          "direction_of_search": "down",
+          "max_steps": 12,
+          "target_condition": {
+            "type": "minecraft:solid"
+          }
+        },
+        {
+          "type": "minecraft:offset",
+          "x": 0,
+          "y": 1,
+          "z": 0
+        },
+        {
+          "type": "minecraft:biome"
+        }
+      ]
+    },
+    "crystal_ceilings": {
+      "feature": {
+        "type": "minecraft:vegetation_patch",
+        "depth": {
+          "type": "minecraft:uniform",
+          "max_inclusive": 2,
+          "min_inclusive": 1
+        },
+        "extra_bottom_block_chance": 0.0,
+        "extra_edge_column_chance": 0.3,
+        "ground_state": {
+          "type": "minecraft:weighted",
+          "entries": [
+            {
+              "data": "minecraft:smooth_basalt",
+              "weight": 4
+            },
+            {
+              "data": "minecraft:calcite",
+              "weight": 3
+            },
+            {
+              "data": "minecraft:budding_amethyst",
+              "weight": 1
+            }
+          ]
+        },
+        "replaceable": "#minecraft:base_stone_overworld",
+        "surface": "ceiling",
+        "vegetation_chance": 0.4,
+        "vegetation_feature": {
+          "feature": {
+            "type": "minecraft:simple_block",
+            "to_place": {
+              "type": "minecraft:weighted",
+              "entries": [
+                {
+                  "data": {
+                    "id": "minecraft:amethyst_cluster",
+                    "properties": {
+                      "facing": "down",
+                      "waterlogged": "false"
+                    }
+                  },
+                  "weight": 5
+                },
+                {
+                  "data": {
+                    "id": "minecraft:large_amethyst_bud",
+                    "properties": {
+                      "facing": "down",
+                      "waterlogged": "false"
+                    }
+                  },
+                  "weight": 3
+                },
+                {
+                  "data": {
+                    "id": "minecraft:medium_amethyst_bud",
+                    "properties": {
+                      "facing": "down",
+                      "waterlogged": "false"
+                    }
+                  },
+                  "weight": 2
+                },
+                {
+                  "data": {
+                    "id": "minecraft:small_amethyst_bud",
+                    "properties": {
+                      "facing": "down",
+                      "waterlogged": "false"
+                    }
+                  },
+                  "weight": 2
+                }
+              ]
+            }
+          },
+          "placement": []
+        },
+        "vertical_range": 5,
+        "xz_radius": {
+          "type": "minecraft:uniform",
+          "max_inclusive": 6,
+          "min_inclusive": 3
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 120
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:height_range",
+          "height": {
+            "type": "minecraft:uniform",
+            "max_inclusive": {
+              "absolute": 60
+            },
+            "min_inclusive": {
+              "above_bottom": 0
+            }
+          }
+        },
+        {
+          "type": "minecraft:surface_relative_threshold_filter",
+          "heightmap": "OCEAN_FLOOR_WG",
+          "max_inclusive": -13
+        },
+        {
+          "type": "minecraft:environment_scan",
+          "allowed_search_condition": {
+            "type": "minecraft:matching_block_tag",
+            "tag": "minecraft:air"
+          },
+          "direction_of_search": "up",
+          "max_steps": 12,
+          "target_condition": {
+            "type": "minecraft:solid"
+          }
+        },
+        {
+          "type": "minecraft:offset",
+          "x": 0,
+          "y": -1,
+          "z": 0
+        },
+        {
+          "type": "minecraft:biome"
+        }
+      ]
+    },
+    "lichen": {
+      "feature": {
+        "type": "minecraft:multiface_growth",
+        "block": "minecraft:glow_lichen",
+        "can_be_placed_on": [
+          "minecraft:stone",
+          "minecraft:deepslate",
+          "minecraft:tuff",
+          "minecraft:calcite",
+          "minecraft:smooth_basalt",
+          "minecraft:amethyst_block"
+        ],
+        "can_place_on_ceiling": true,
+        "can_place_on_wall": true,
+        "search_range": 20
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": {
+            "type": "minecraft:uniform",
+            "max_inclusive": 120,
+            "min_inclusive": 80
+          }
+        },
+        {
+          "type": "minecraft:height_range",
+          "height": {
+            "type": "minecraft:uniform",
+            "max_inclusive": {
+              "absolute": 256
+            },
+            "min_inclusive": {
+              "above_bottom": 0
+            }
+          }
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:surface_relative_threshold_filter",
+          "heightmap": "OCEAN_FLOOR_WG",
+          "max_inclusive": -13
+        },
+        {
+          "type": "minecraft:biome"
+        }
+      ]
+    }
+  }
+}

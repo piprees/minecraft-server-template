@@ -1,0 +1,13 @@
+{
+  "type": "adventure:the_red_monument",
+  "generator": {
+    "type": "minecraft:flat",
+    "settings": {
+      "biome": "adventure:umbral_wastes",
+      "features": false,
+      "lakes": false,
+      "layers": [],
+      "structure_overrides": []
+    }
+  }
+}

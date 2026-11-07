@@ -1,0 +1,44 @@
+{
+  "type": "adventure:the_wuthering_wisteria",
+  "generator": {
+    "type": "minecraft:noise",
+    "biome_source": {
+      "type": "minecraft:multi_noise",
+      "biomes": [
+        {
+          "biome": "adventure:magmatic_caves",
+          "parameters": "sha1:1e675525c0703330a07bcb2bd7d1dda6153e0e93"
+        },
+        {
+          "biome": "minecraft:lush_caves",
+          "parameters": "sha1:c64050ab8b55cd18e0f2be734268505e1c15f1a2"
+        },
+        {
+          "biome": "minecraft:meadow",
+          "parameters": "sha1:f713281b1c7c0f7286e2b0979a5289b6bbd55db6"
+        },
+        {
+          "biome": "minecraft:meadow",
+          "parameters": "sha1:ba57886e6de572176a641c8a43d35f07082e96af"
+        },
+        {
+          "biome": "minecraft:old_growth_birch_forest",
+          "parameters": "sha1:31d347a1a9ff0826c7e48727d2378d93260c42bf"
+        },
+        {
+          "biome": "minecraft:cherry_grove",
+          "parameters": "sha1:a45d9effbc058ad5e7d363a5610101cf06cac115"
+        },
+        {
+          "biome": "adventure:wisteria_grove",
+          "parameters": "sha1:bc0303ca3f7d64172c554ddf38dc6b3749baab81"
+        },
+        {
+          "biome": "adventure:wisteria_grove",
+          "parameters": "sha1:12e2d9d22e5befa4e671b2d0e8871a7b3fc52738"
+        }
+      ]
+    },
+    "settings": "adventure:the_wuthering_wisteria"
+  }
+}

@@ -1,0 +1,23 @@
+{
+ "number": 26,
+ "title": "chore: update 28 mod version(s)",
+ "state": "open",
+ "draft": false,
+ "user": {
+  "login": "github-actions[bot]"
+ },
+ "base": {
+  "ref": "main",
+  "sha": "67e2d6d2bb47a5b136c91caab8607f4dcd3754fc",
+  "repo": {
+   "full_name": "piprees/minecraft-server-template"
+  }
+ },
+ "head": {
+  "ref": "mod-updates/auto",
+  "sha": "8b30829074bc19001e6917eacfa4226e599aac59",
+  "repo": {
+   "full_name": "piprees/minecraft-server-template"
+  }
+ }
+}

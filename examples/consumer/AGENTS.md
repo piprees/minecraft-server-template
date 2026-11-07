@@ -20,15 +20,15 @@ curl -sL https://raw.githubusercontent.com/piprees/minecraft-server-template/mai
 
 ## Keeping up to date
 
-`STACK_VERSION` in `.env` (usually `v5`) resolves to the latest matching release.
+`.stack-version` (committed, an exact `vX.Y.Z`) is the platform release: deploys and `./dev` both read it; `.env` does not pick it. The weekly `Updates` workflow opens a `chore(stack): bump template to vX.Y.Z` PR (branch `updates/stack`). A patch or minor with every image present and no workflow change merges itself and dispatches a deploy; a major or a workflow change waits for a human: run `./dev update` locally, commit `.github/workflows`, and for a major merge Dependabot's `deploy-reusable.yml@vN` bump with it. A deploy whose release major differs from `deploy.yml`'s `@vN` fails before touching the server. Roll production back with a manual `Deploy` dispatch (`-f stack_version=vX.Y.Z`, one run only) or by committing the older version to `.stack-version`.
 
 | Command | Does |
 | --- | --- |
-| `./dev update` | local: pull bundle + images, refresh platform-owned scaffold files |
+| `./dev update` | local: pull bundle + images, refresh platform-owned scaffold files (`--scaffold-only`: files only, for CI) |
 | `./ops sync` | local down → update → env sync to GitHub → server update → local up |
 | `./ops update` | production only: pull bundle + images, full redeploy |
 
-`./dev update` overwrites `dev`, `ops`, `.env.example`, `.gitignore`, this `AGENTS.md`, `commands.json`, and `.github/workflows/{deploy,update,server-power}.yml` — platform-owned, don't customise them. `README.md` (copied only when missing) and `overlay/` are yours. The puller ships in the bundle (`.stack/current/stack/scripts/stack-pull.sh`); a top-level `stack-pull.sh` is old scaffold, and `./dev update` deletes it.
+`./dev update` overwrites `dev`, `ops`, `.env.example`, `.gitignore`, this `AGENTS.md`, `commands.json`, `.github/workflows/{deploy,update,server-power}.yml` and `.github/dependabot.yml` — platform-owned, don't customise them. `README.md` (copied only when missing) and `overlay/` are yours. The puller ships in the bundle (`.stack/current/stack/scripts/stack-pull.sh`); a top-level `stack-pull.sh` is old scaffold, and `./dev update` deletes it.
 
 ## Config changes need `./dev refresh-config`
 
@@ -48,7 +48,7 @@ against config that is not the config under test.
 
 ## What you change here
 
-- **Server mods:** `overlay/mods-extra.txt` (`slug:versionId` per line), removals in `overlay/mods-remove.txt`. Run the mandatory dependency checklist in the [template AGENTS.md § Mods](https://github.com/piprees/minecraft-server-template/blob/main/AGENTS.md#mods) first. All worldgen/dimension mods must be present from chunk zero. `./dev up` or push.
+- **Server mods:** `overlay/mods-extra.txt` (`slug:versionId` per line), removals in `overlay/mods-remove.txt`. Run the mandatory dependency checklist in the [template DEPENDENCIES.md § Adding a mod](https://github.com/piprees/minecraft-server-template/blob/main/DEPENDENCIES.md#adding-a-mod) first. All worldgen/dimension mods must be present from chunk zero. `./dev up` or push.
 - **Client mods:** `overlay/modpack/manifest.json` (`add.required` / `add.optional` / `remove`), existing catalogue slugs only — a mod new to the ecosystem needs a template PR first. Patch schema: [`overlay/modpack/README.md`](overlay/modpack/README.md).
 - **Never hand-place or delete anything in `data/mods/`.** `./dev up` and the deploy install the bundle's `stack/local-mods/` jars and prune what they can't account for.
 - **Config overrides:** `overlay/config/<path>` mirrors the platform's `config/` path and replaces that file. **Branding:** `.env` (`BRAND_NAME`, `MOTD`, …) plus `overlay/assets/`.
@@ -80,7 +80,7 @@ A RestartCount above 0 is an unexplained crash; local tick-loop crashes land in 
 ## Environment and CI
 
 - `.env` is git-ignored. Source of truth: the GitHub `production` environment + 1Password. Every full deploy regenerates the server's `.env`; hand-edits don't survive. A new secret goes in four places: `.env.example`, 1Password, the GitHub environment, the reusable workflow's secrets list.
-- Pushing to `main` picks a tier: `STACK_VERSION` resolving to a release newer than the running bundle → full; `overlay/config/` or mod lists → full; other `overlay/` → infra; everything else → pull. **Any push after a platform release lands rolls that release out**, even a docs-only one. [Tier table](https://github.com/piprees/minecraft-server-template#deploy-to-production).
+- Pushing to `main` picks a tier: `.stack-version` naming a release other than the running bundle → full; `overlay/config/` or mod lists → full; other `overlay/` → infra; everything else → pull. **The push that moves `.stack-version` rolls that release out**, as does any later push while the server still runs another bundle; an auto-merged stack PR dispatches its own deploy. [Tier table](https://github.com/piprees/minecraft-server-template#deploy-to-production).
 - Before pushing: check no CI run is in progress (`gh run list --limit 3`), check players online if it's a full deploy, batch related changes.
 
 ## Safety rules

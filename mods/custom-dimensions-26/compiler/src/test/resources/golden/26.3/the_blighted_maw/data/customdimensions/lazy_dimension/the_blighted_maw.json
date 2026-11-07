@@ -1,0 +1,32 @@
+{
+  "type": "adventure:the_blighted_maw",
+  "generator": {
+    "type": "minecraft:noise",
+    "biome_source": {
+      "type": "minecraft:multi_noise",
+      "biomes": [
+        {
+          "biome": "adventure:ash_barrens",
+          "parameters": "sha1:7b3cc9f75af0cb08311eecb7498c6b04b7aa58cb"
+        },
+        {
+          "biome": "minecraft:soul_sand_valley",
+          "parameters": "sha1:19adb360e2f4faa9c1d5e2073d0ba5192f949d8f"
+        },
+        {
+          "biome": "adventure:withered_forest",
+          "parameters": "sha1:8b9cb0688fd002b834356cd5010a899bf28c418b"
+        },
+        {
+          "biome": "minecraft:nether_wastes",
+          "parameters": "sha1:c8d1c6d93ba6f59f3e7a21f037739368ffbce7e5"
+        },
+        {
+          "biome": "adventure:mycotoxic_undergrowth",
+          "parameters": "sha1:61c191635334214e1885cda5e1226fcf03e072c0"
+        }
+      ]
+    },
+    "settings": "adventure:the_blighted_maw"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 2,
+  "description": "Self-test fixture and showcase: the biome library's highland fells filling a whole level on overworld terrain, for the biomes section's per-biome checks, renders and screenshots.",
+  "seed": 8,
+  "spawn": [
+    0,
+    64,
+    0
+  ],
+  "generator": {
+    "type": "single_biome",
+    "biome": "adventure:highland_fells"
+  },
+  "borders": {
+    "player": 512
+  }
+}

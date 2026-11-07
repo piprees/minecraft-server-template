@@ -1,0 +1,337 @@
+{
+  "mod": "mes",
+  "reviewed": true,
+  "structureSets": [
+    "mes:astral_hideaway",
+    "mes:astral_meteorite",
+    "mes:ender_spire",
+    "mes:enderbloom_grove",
+    "mes:enderkeep_courtyard",
+    "mes:enderpin_spikes",
+    "mes:enderskog",
+    "mes:enderwatch_tower",
+    "mes:endscraps",
+    "mes:manuscript_shrine",
+    "mes:mega_ship",
+    "mes:mega_ship_basic",
+    "mes:mega_ship_crashed",
+    "mes:mega_ship_crashed_2",
+    "mes:mega_ship_crashed_deepslate",
+    "mes:mega_ship_deepslate",
+    "mes:mega_ship_deepslate_2",
+    "mes:mega_ship_deepslate_3",
+    "mes:monolith",
+    "mes:mystical_archway",
+    "mes:mythic_garden",
+    "mes:phantom_citadel",
+    "mes:placid_prairie",
+    "mes:ruined_pillar",
+    "mes:starlight_voyager"
+  ],
+  "structures": [
+    {
+      "id": "mes:astral_hideaway",
+      "set": "mes:astral_hideaway",
+      "size": {
+        "x": 31,
+        "y": 34,
+        "z": 34
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mes:astral_meteorite",
+      "set": "mes:astral_meteorite",
+      "size": {
+        "x": 48,
+        "y": 34,
+        "z": 37
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mes:ender_spire",
+      "set": "mes:ender_spire",
+      "size": {
+        "x": 31,
+        "y": 42,
+        "z": 31
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mes:enderbloom_grove",
+      "set": "mes:enderbloom_grove",
+      "size": {
+        "x": 33,
+        "y": 39,
+        "z": 34
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mes:enderkeep_courtyard",
+      "set": "mes:enderkeep_courtyard",
+      "size": {
+        "x": 67,
+        "y": 45,
+        "z": 60
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mes:enderpin_spikes",
+      "set": "mes:enderpin_spikes",
+      "size": {
+        "x": 5,
+        "y": 10,
+        "z": 5
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mes:enderskog",
+      "set": "mes:enderskog",
+      "size": {
+        "x": 38,
+        "y": 34,
+        "z": 37
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mes:enderwatch_tower",
+      "set": "mes:enderwatch_tower",
+      "size": {
+        "x": 41,
+        "y": 68,
+        "z": 41
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mes:endscraps",
+      "set": "mes:endscraps",
+      "size": {
+        "x": 33,
+        "y": 31,
+        "z": 33
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mes:manuscript_shrine",
+      "set": "mes:manuscript_shrine",
+      "size": {
+        "x": 39,
+        "y": 34,
+        "z": 38
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mes:mega_ship",
+      "set": "mes:mega_ship",
+      "size": {
+        "x": 51,
+        "y": 48,
+        "z": 96
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mes:mega_ship_basic",
+      "set": "mes:mega_ship_basic",
+      "size": {
+        "x": 51,
+        "y": 48,
+        "z": 96
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mes:mega_ship_crashed",
+      "set": "mes:mega_ship_crashed",
+      "size": {
+        "x": 54,
+        "y": 48,
+        "z": 96
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mes:mega_ship_crashed_2",
+      "set": "mes:mega_ship_crashed_2",
+      "size": {
+        "x": 54,
+        "y": 48,
+        "z": 96
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mes:mega_ship_crashed_deepslate",
+      "set": "mes:mega_ship_crashed_deepslate",
+      "size": {
+        "x": 61,
+        "y": 48,
+        "z": 96
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mes:mega_ship_deepslate",
+      "set": "mes:mega_ship_deepslate",
+      "size": {
+        "x": 56,
+        "y": 52,
+        "z": 99
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mes:mega_ship_deepslate_2",
+      "set": "mes:mega_ship_deepslate_2",
+      "size": {
+        "x": 75,
+        "y": 69,
+        "z": 96
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mes:mega_ship_deepslate_3",
+      "set": "mes:mega_ship_deepslate_3",
+      "size": {
+        "x": 67,
+        "y": 73,
+        "z": 99
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mes:monolith",
+      "set": "mes:monolith",
+      "size": {
+        "x": 35,
+        "y": 40,
+        "z": 35
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mes:mystical_archway",
+      "set": "mes:mystical_archway",
+      "size": {
+        "x": 52,
+        "y": 72,
+        "z": 65
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mes:mythic_garden",
+      "set": "mes:mythic_garden",
+      "size": {
+        "x": 43,
+        "y": 37,
+        "z": 43
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mes:phantom_citadel",
+      "set": "mes:phantom_citadel",
+      "size": {
+        "x": 35,
+        "y": 34,
+        "z": 34
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mes:placid_prairie",
+      "set": "mes:placid_prairie",
+      "size": {
+        "x": 11,
+        "y": 14,
+        "z": 11
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mes:ruined_pillar",
+      "set": "mes:ruined_pillar",
+      "size": {
+        "x": 27,
+        "y": 27,
+        "z": 31
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mes:starlight_voyager",
+      "set": "mes:starlight_voyager",
+      "size": {
+        "x": 16,
+        "y": 24,
+        "z": 32
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    }
+  ],
+  "features": [],
+  "spawns": [],
+  "mixins": [],
+  "registries": []
+}

@@ -168,6 +168,28 @@ def ensure_docker_host(api):
         return None
 
 
+def add_monitor(api, **kwargs):
+    """api.add_monitor, plus the `conditions` list Kuma 2.x requires on every
+    monitor: uptime-kuma-api 1.2.1 predates it, and Kuma rejects the insert
+    (NOT NULL constraint failed: monitor.conditions) without it."""
+    from uptime_kuma_api.api import Event, _check_arguments_monitor, _convert_monitor_input
+    data = api._build_monitor_data(**kwargs)
+    _convert_monitor_input(data)
+    _check_arguments_monitor(data)
+    data.setdefault("conditions", [])
+    with api.wait_for_event(Event.MONITOR_LIST):
+        return api._call("add", data)
+
+
+def save_status_page(api, slug, public_groups, **changes):
+    """api.save_status_page for Kuma 2.x: the library reads Kuma 1.x's
+    `incident` key (2.x sends `incidents`) and drops config fields it doesn't
+    know, so this saves the server's own config with `changes` applied."""
+    config = api._call("getStatusPage", slug)["config"]
+    config.update(changes)
+    return api._call("saveStatusPage", (slug, config, config.get("icon") or "/icon.svg", public_groups))
+
+
 def get_monitor_type(type_str):
     """Map config type string to MonitorType enum."""
     from uptime_kuma_api import MonitorType
@@ -237,7 +259,8 @@ def ensure_monitors(api, config, docker_host_id, notification_id):
         else:
             from uptime_kuma_api import MonitorType
             try:
-                result = api.add_monitor(
+                result = add_monitor(
+                    api,
                     type=MonitorType.GROUP,
                     name=group_name,
                     interval=group_cfg.get("interval", 60),
@@ -297,7 +320,7 @@ def ensure_monitors(api, config, docker_host_id, notification_id):
                 kwargs["notificationIDList"] = notif_list
 
             try:
-                result = api.add_monitor(**kwargs)
+                result = add_monitor(api, **kwargs)
                 mid = result["monitorID"]
                 child_ids.append(mid)
                 print(f"  Added monitor: {name} (id={mid})")
@@ -370,10 +393,8 @@ def ensure_status_page(api, config, group_monitor_ids):
     if public_groups:
         try:
             save_kwargs = {
-                "slug": slug,
                 "title": title,
                 "description": sp.get("description", ""),
-                "publicGroupList": public_groups,
                 "showPoweredBy": sp.get("showPoweredBy", False),
             }
             if sp.get("footerText"):
@@ -381,7 +402,7 @@ def ensure_status_page(api, config, group_monitor_ids):
             if sp.get("customCSS"):
                 save_kwargs["customCSS"] = sp["customCSS"]
 
-            api.save_status_page(**save_kwargs)
+            save_status_page(api, slug, public_groups, **save_kwargs)
             print("  Status page configured with all monitors")
         except Exception as e:
             print(f"  Warning: Could not configure status page: {e}")
@@ -430,10 +451,11 @@ def connect_and_login(api_class, kuma_url, api_key, username, password):
 
     assert api is not None
 
-    try:
-        fresh = api.need_setup()
-    except Exception:
-        fresh = False
+    fresh = retry(api.need_setup, label="first-run check")
+    if fresh is None:
+        print("ERROR: Could not ask Kuma whether it needs first-run setup.")
+        api.disconnect()
+        sys.exit(1)
 
     if fresh:
         if not password:

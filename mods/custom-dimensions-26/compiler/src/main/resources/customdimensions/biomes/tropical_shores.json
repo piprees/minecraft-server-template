@@ -1,0 +1,399 @@
+{
+  "$schema": "../../../../../../schema/biome.schema.json",
+  "realm": "overworld",
+  "inspiredBy": "Nature's Spirit's tropical shores and Regions Unexplored's tropics: wide white beaches under leaning palms.",
+  "differs": "A vanilla beach is a strip of sand; this is a whole coast of sand and sandstone running into turquoise shallows, with leaning palms bearing cocoa, melons, parrots, coral and sea pickles at the water's edge.",
+  "climate": {
+    "temperature": [
+      0.55,
+      1.0
+    ],
+    "humidity": [
+      0.1,
+      1.0
+    ],
+    "continentalness": [
+      -0.19,
+      -0.11
+    ],
+    "depth": [
+      -2.0,
+      0.2
+    ]
+  },
+  "palette": {
+    "top": "minecraft:sand",
+    "filler": "minecraft:sandstone",
+    "beaches": "minecraft:sand"
+  },
+  "biome": {
+    "attributes": {
+      "minecraft:audio/background_music": {
+        "default": {
+          "max_delay": 24000,
+          "min_delay": 12000,
+          "sound": "minecraft:music.overworld.sparse_jungle"
+        }
+      },
+      "minecraft:gameplay/natural_mob_spawns": {
+        "argument": {
+          "spawn_costs": {},
+          "spawns_by_category": {
+            "ambient": [
+              {
+                "type": "minecraft:bat",
+                "count": 8,
+                "weight": 10
+              }
+            ],
+            "creature": [
+              {
+                "type": "minecraft:turtle",
+                "count": {
+                  "type": "minecraft:uniform",
+                  "max_inclusive": 5,
+                  "min_inclusive": 2
+                },
+                "weight": 5
+              },
+              {
+                "type": "minecraft:parrot",
+                "count": {
+                  "type": "minecraft:uniform",
+                  "max_inclusive": 2,
+                  "min_inclusive": 1
+                },
+                "weight": 20
+              }
+            ],
+            "monster": [
+              {
+                "type": "minecraft:spider",
+                "count": 4,
+                "weight": 100
+              },
+              {
+                "type": "minecraft:zombie",
+                "count": 4,
+                "weight": 95
+              },
+              {
+                "type": "minecraft:zombie_villager",
+                "count": 1,
+                "weight": 5
+              },
+              {
+                "type": "minecraft:skeleton",
+                "count": 4,
+                "weight": 100
+              },
+              {
+                "type": "minecraft:creeper",
+                "count": 4,
+                "weight": 100
+              },
+              {
+                "type": "minecraft:slime",
+                "count": 4,
+                "weight": 100
+              },
+              {
+                "type": "minecraft:enderman",
+                "count": {
+                  "type": "minecraft:uniform",
+                  "max_inclusive": 4,
+                  "min_inclusive": 1
+                },
+                "weight": 10
+              },
+              {
+                "type": "minecraft:witch",
+                "count": 1,
+                "weight": 5
+              }
+            ],
+            "underground_water_creature": [
+              {
+                "type": "minecraft:glow_squid",
+                "count": {
+                  "type": "minecraft:uniform",
+                  "max_inclusive": 6,
+                  "min_inclusive": 4
+                },
+                "weight": 10
+              }
+            ],
+            "water_ambient": [
+              {
+                "type": "minecraft:tropical_fish",
+                "count": {
+                  "type": "minecraft:uniform",
+                  "max_inclusive": 8,
+                  "min_inclusive": 8
+                },
+                "weight": 25
+              }
+            ]
+          }
+        },
+        "modifier": "overlay"
+      },
+      "minecraft:visual/fog_color": "#d2f1ff",
+      "minecraft:visual/sky_color": "#6fa6ff",
+      "minecraft:visual/water_fog_color": "#0fa3c4"
+    },
+    "carvers": [
+      "minecraft:cave",
+      "minecraft:cave_extra_underground",
+      "minecraft:canyon"
+    ],
+    "downfall": 0.9,
+    "effects": {
+      "grass_color": "#59c93c",
+      "foliage_color": "#30bb0b",
+      "water_color": "#3ddbe6"
+    },
+    "features": [
+      [],
+      [
+        "minecraft:lake_lava_underground",
+        "minecraft:lake_lava_surface"
+      ],
+      [
+        "minecraft:amethyst_geode"
+      ],
+      [
+        "minecraft:monster_room",
+        "minecraft:monster_room_deep"
+      ],
+      [],
+      [],
+      [
+        "minecraft:ore_dirt",
+        "minecraft:ore_gravel",
+        "minecraft:ore_granite_upper",
+        "minecraft:ore_granite_lower",
+        "minecraft:ore_diorite_upper",
+        "minecraft:ore_diorite_lower",
+        "minecraft:ore_andesite_upper",
+        "minecraft:ore_andesite_lower",
+        "minecraft:ore_tuff",
+        "minecraft:ore_coal_upper",
+        "minecraft:ore_coal_lower",
+        "minecraft:ore_iron_upper",
+        "minecraft:ore_iron_middle",
+        "minecraft:ore_iron_small",
+        "minecraft:ore_gold",
+        "minecraft:ore_gold_lower",
+        "minecraft:ore_redstone",
+        "minecraft:ore_redstone_lower",
+        "minecraft:ore_diamond",
+        "minecraft:ore_diamond_medium",
+        "minecraft:ore_diamond_large",
+        "minecraft:ore_diamond_buried",
+        "minecraft:ore_lapis",
+        "minecraft:ore_lapis_buried",
+        "minecraft:ore_copper",
+        "minecraft:underwater_magma",
+        "minecraft:disk_sand",
+        "minecraft:disk_clay",
+        "minecraft:disk_gravel"
+      ],
+      [],
+      [
+        "minecraft:spring_water",
+        "minecraft:spring_lava"
+      ],
+      [
+        "minecraft:glow_lichen",
+        "~palms",
+        "~melons",
+        "minecraft:warm_ocean_vegetation",
+        "minecraft:seagrass_warm",
+        "minecraft:sea_pickle"
+      ],
+      [
+        "minecraft:freeze_top_layer"
+      ]
+    ],
+    "has_precipitation": true,
+    "temperature": 0.95
+  },
+  "features": {
+    "palms": {
+      "feature": {
+        "type": "minecraft:tree",
+        "below_trunk_provider": "minecraft:soil_beneath_tree",
+        "decorators": [
+          {
+            "type": "minecraft:cocoa",
+            "probability": 0.3
+          }
+        ],
+        "foliage_placer": {
+          "type": "minecraft:acacia_foliage_placer",
+          "offset": 0,
+          "radius": 2
+        },
+        "foliage_provider": {
+          "id": "minecraft:jungle_leaves",
+          "properties": {
+            "distance": "7",
+            "persistent": "false",
+            "waterlogged": "false"
+          }
+        },
+        "ignore_vines": true,
+        "minimum_size": {
+          "type": "minecraft:two_layers_feature_size"
+        },
+        "trunk_placer": {
+          "type": "minecraft:bending_trunk_placer",
+          "base_height": 5,
+          "bend_length": {
+            "type": "minecraft:uniform",
+            "max_inclusive": 4,
+            "min_inclusive": 2
+          },
+          "height_rand_a": 2,
+          "height_rand_b": 0,
+          "min_height_for_leaves": 4
+        },
+        "trunk_provider": {
+          "id": "minecraft:jungle_log",
+          "properties": {
+            "axis": "y"
+          }
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": {
+            "type": "minecraft:weighted_list",
+            "distribution": [
+              {
+                "data": 1,
+                "weight": 2
+              },
+              {
+                "data": 2,
+                "weight": 2
+              },
+              {
+                "data": 3,
+                "weight": 1
+              }
+            ]
+          }
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:surface_water_depth_filter",
+          "max_water_depth": 0
+        },
+        {
+          "type": "minecraft:heightmap",
+          "heightmap": "OCEAN_FLOOR"
+        },
+        {
+          "type": "minecraft:biome"
+        },
+        {
+          "type": "minecraft:block_predicate_filter",
+          "predicate": {
+            "type": "minecraft:all_of",
+            "predicates": [
+              {
+                "type": "minecraft:matching_block_tag",
+                "tag": "minecraft:air"
+              },
+              {
+                "type": "minecraft:matching_blocks",
+                "blocks": [
+                  "minecraft:sand",
+                  "minecraft:grass_block"
+                ],
+                "offset": [
+                  0,
+                  -1,
+                  0
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "melons": {
+      "feature": "minecraft:melon",
+      "placement": [
+        {
+          "type": "minecraft:rarity_filter",
+          "chance": 4
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:heightmap",
+          "heightmap": "MOTION_BLOCKING"
+        },
+        {
+          "type": "minecraft:biome"
+        },
+        {
+          "type": "minecraft:count",
+          "count": 24
+        },
+        {
+          "type": "minecraft:offset",
+          "x": {
+            "type": "minecraft:trapezoid",
+            "max": 7,
+            "min": -7,
+            "plateau": 0
+          },
+          "y": {
+            "type": "minecraft:trapezoid",
+            "max": 3,
+            "min": -3,
+            "plateau": 0
+          },
+          "z": {
+            "type": "minecraft:trapezoid",
+            "max": 7,
+            "min": -7,
+            "plateau": 0
+          }
+        },
+        {
+          "type": "minecraft:block_predicate_filter",
+          "predicate": {
+            "type": "minecraft:all_of",
+            "predicates": [
+              {
+                "type": "minecraft:matching_block_tag",
+                "tag": "minecraft:air"
+              },
+              {
+                "type": "minecraft:matching_blocks",
+                "blocks": [
+                  "minecraft:sand",
+                  "minecraft:grass_block"
+                ],
+                "offset": [
+                  0,
+                  -1,
+                  0
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

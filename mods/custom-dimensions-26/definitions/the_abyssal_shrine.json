@@ -1,0 +1,141 @@
+{
+  "schemaVersion": 2,
+  "description": "A shrine over the abyss — plateau islands ringing deep drowned hollows. Something is worshipped here, or was. Guardians circle below; the sky above is indifferent.",
+  "seed": -2851350029895099402,
+  "spawn": [64, 131, -192],
+  "generator": {
+    "type": "clone",
+    "of": "adventure:the_aviary"
+  },
+  "biomes": [
+    {
+      "id": "adventure:umbral_wastes",
+      "climate": {
+        "temperature": [-2.0, -0.209],
+        "humidity": [-2.0, -0.192]
+      }
+    },
+    {
+      "id": "adventure:windswept_isles",
+      "climate": {
+        "temperature": [-2.0, -0.209],
+        "humidity": [-0.192, 0.113]
+      }
+    },
+    {
+      "id": "minecraft:deep_cold_ocean",
+      "climate": {
+        "temperature": [-2.0, -0.209],
+        "humidity": [0.113, 2.0]
+      }
+    },
+    {
+      "id": "minecraft:dripstone_caves",
+      "climate": {
+        "temperature": [-0.209, 0.012],
+        "humidity": [-2.0, -0.153]
+      }
+    },
+    {
+      "id": "minecraft:deep_dark",
+      "climate": {
+        "temperature": [-0.209, 0.012],
+        "humidity": [-0.153, 0.078]
+      }
+    },
+    {
+      "id": "minecraft:deep_ocean",
+      "climate": {
+        "temperature": [-0.209, 0.012],
+        "humidity": [0.078, 2.0]
+      }
+    },
+    {
+      "id": "adventure:sky_highlands",
+      "climate": {
+        "temperature": [0.012, 2.0],
+        "humidity": [-2.0, -0.118]
+      }
+    },
+    {
+      "id": "adventure:golden_skygrove",
+      "climate": {
+        "temperature": [0.012, 2.0],
+        "humidity": [-0.118, 0.144]
+      }
+    },
+    {
+      "id": "minecraft:dark_forest",
+      "climate": {
+        "temperature": [0.012, 2.0],
+        "humidity": [0.144, 2.0]
+      }
+    }
+  ],
+  "liquids": {
+    "seaLevel": 90
+  },
+  "atmosphere": {
+    "skyColor": "#1B3B6B",
+    "fogColor": "#0E2A44",
+    "ambientLight": 0.15
+  },
+  "borders": {
+    "player": 512,
+    "generation": 512
+  },
+  "difficulty": {
+    "mobMultiplier": 1.0,
+    "playerLuck": 1.5
+  },
+  "structures": {
+    "density": "dense",
+    "noise": {
+      "dungeons": "dense",
+      "maritime": "dense"
+    },
+    "force": [
+      {
+        "structure": "nova_structures:trial_dungeon",
+        "x": 180,
+        "z": -140
+      }
+    ]
+  },
+  "portals": [
+    {
+      "frameBlock": "minecraft:dark_prismarine",
+      "igniterItem": "minecraft:gold_ingot",
+      "color": "1B3B6B",
+      "lightLevel": 11,
+      "scale": 16.0,
+      "cooldown": 40,
+      "shape": "end_exit",
+      "sounds": {
+        "ignite": "block.portal.trigger",
+        "enter": "block.portal.travel",
+        "exit": "block.portal.travel"
+      }
+    }
+  ],
+  "roll": {
+    "mood": "adventurous",
+    "spawnFilter": [
+      "adventure:windswept_isles",
+      "adventure:sky_highlands",
+      "adventure:golden_skygrove"
+    ],
+    "water": "sea",
+    "wants": {
+      "monument": "spread",
+      "mss:castle_ruin": "spread",
+      "ati_structures:underwater_dungeon": "spread",
+      "ati_structures:warden_monument": "near_border"
+    },
+    "shuns": [
+      "village",
+      "tavern"
+    ],
+    "terrain": "islands"
+  }
+}

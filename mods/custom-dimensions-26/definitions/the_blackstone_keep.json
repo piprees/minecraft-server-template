@@ -1,0 +1,136 @@
+{
+  "schemaVersion": 2,
+  "description": "The piglin military frontier. Bastions and blackstone walls from spawn, fortified against something that came from below. The deeper you dig, the harder it fights back — as if the keep itself remembers the threat.",
+  "seed": -7287939919542866926,
+  "spawn": [0, 90, 0],
+  "generator": {
+    "type": "noise",
+    "preset": "nether"
+  },
+  "biomes": [
+    {
+      "id": "adventure:ash_barrens",
+      "climate": {
+        "temperature": [-2.0, -0.139],
+        "humidity": [-2.0, -0.109]
+      }
+    },
+    {
+      "id": "adventure:blackstone_basin",
+      "climate": {
+        "temperature": [-2.0, -0.139],
+        "humidity": [-0.109, 0.186]
+      }
+    },
+    {
+      "id": "adventure:upside_down_forest",
+      "climate": {
+        "temperature": [-2.0, -0.139],
+        "humidity": [0.186, 2.0]
+      }
+    },
+    {
+      "id": "minecraft:soul_sand_valley",
+      "climate": {
+        "temperature": [-0.139, 0.234],
+        "humidity": [-2.0, -0.15]
+      }
+    },
+    {
+      "id": "minecraft:nether_wastes",
+      "climate": {
+        "temperature": [-0.139, 0.234],
+        "humidity": [-0.15, 0.232]
+      }
+    },
+    {
+      "id": "adventure:crimson_pinewood",
+      "climate": {
+        "temperature": [-0.139, 0.234],
+        "humidity": [0.232, 2.0]
+      }
+    },
+    {
+      "id": "minecraft:basalt_deltas",
+      "climate": {
+        "temperature": [0.234, 2.0],
+        "humidity": [-2.0, 0.125]
+      }
+    },
+    {
+      "id": "minecraft:crimson_forest",
+      "climate": {
+        "temperature": [0.234, 2.0],
+        "humidity": [0.125, 2.0]
+      }
+    }
+  ],
+  "atmosphere": {
+    "fogColor": "#1B1B2B",
+    "ambientLight": 0.08
+  },
+  "borders": {
+    "player": 1024,
+    "generation": 1024
+  },
+  "difficulty": {
+    "mobMultiplier": 1.8,
+    "playerLuck": 1.8,
+    "depthScaling": {
+      "enabled": true,
+      "startY": 80,
+      "endY": 20,
+      "minMultiplier": 1.0,
+      "maxMultiplier": 2.5
+    }
+  },
+  "structures": {
+    "density": "dense",
+    "terrainAdaptation": {
+      "minecraft:bastion_remnant": "pedestal"
+    },
+    "force": [
+      {
+        "structure": "minecraft:bastion_remnant",
+        "x": 185,
+        "z": 42,
+        "exclusive": false
+      }
+    ]
+  },
+  "portals": [
+    {
+      "frameBlock": "minecraft:blackstone",
+      "igniterItem": "minecraft:flint_and_steel",
+      "color": "3B3B4B",
+      "lightLevel": 11,
+      "scale": 8.0,
+      "cooldown": 40,
+      "sounds": {
+        "ignite": "block.portal.trigger",
+        "enter": "block.portal.travel",
+        "exit": "block.portal.travel"
+      }
+    }
+  ],
+  "roll": {
+    "mood": "hard",
+    "spawnFilter": [
+      "minecraft:basalt_deltas",
+      "minecraft:nether_wastes"
+    ],
+    "wants": {
+      "bastion": "near_spawn",
+      "blackstone_walls": "spread",
+      "blackstone_pillars": "spread",
+      "nova_structures:nether_keep": "spread",
+      "mns:nether_tower": "spread",
+      "copper_tower": "spread"
+    },
+    "shuns": [
+      "towns_and_towers:exclusives/village_piglin",
+      "crimson_fungus",
+      "mvs:large_warped_tower"
+    ]
+  }
+}

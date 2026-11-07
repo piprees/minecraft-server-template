@@ -1,0 +1,178 @@
+{
+  "schemaVersion": 2,
+  "description": "Broad green valleys with hamlets in the folds. Villager country at its gentlest — pastoral, generous, a little whimsical. The giant mushrooms and campsites suggest people who enjoyed living here, not just surviving.",
+  "seed": -1241382185067546216,
+  "spawn": [192, 66, -192],
+  "generator": {
+    "type": "noise",
+    "preset": "overworld"
+  },
+  "terrain": {
+    "base": "erosion",
+    "setting": "default",
+    "scale": 1.5
+  },
+  "biomes": [
+    {
+      "id": "minecraft:plains",
+      "climate": {
+        "weirdness": [-2.0, -0.19],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "minecraft:meadow",
+      "climate": {
+        "weirdness": [-0.19, -0.1636],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "minecraft:plains",
+      "climate": {
+        "weirdness": [-0.1636, -0.1373],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "minecraft:flower_forest",
+      "climate": {
+        "weirdness": [-0.1373, -0.1109],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "adventure:lavender_fields",
+      "climate": {
+        "weirdness": [-0.1109, -0.0845],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "minecraft:windswept_hills",
+      "climate": {
+        "weirdness": [-0.0845, -0.0582],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "minecraft:birch_forest",
+      "climate": {
+        "weirdness": [-0.0582, -0.0318],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "adventure:nether_grasslands",
+      "climate": {
+        "weirdness": [-0.0318, -0.0055],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "minecraft:plains",
+      "climate": {
+        "weirdness": [-0.0055, 0.0209],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "adventure:magnolia_woodland",
+      "climate": {
+        "weirdness": [0.0209, 0.0473],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "minecraft:birch_forest",
+      "climate": {
+        "weirdness": [0.0473, 0.0736],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "adventure:alpine_meadow",
+      "climate": {
+        "weirdness": [0.0736, 0.1],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "minecraft:flower_forest",
+      "climate": {
+        "weirdness": [0.1, 2.0],
+        "depth": [-2.0, 0.1]
+      }
+    },
+    {
+      "id": "minecraft:lush_caves",
+      "climate": {
+        "weirdness": [-2.0, -0.045],
+        "depth": [0.1, 2.0]
+      }
+    },
+    {
+      "id": "adventure:bioshroom_caves",
+      "climate": {
+        "weirdness": [-0.045, 2.0],
+        "depth": [0.1, 2.0]
+      }
+    }
+  ],
+  "liquids": {
+    "seaLevel": 34
+  },
+  "borders": {
+    "player": 1024,
+    "generation": 1024
+  },
+  "difficulty": {
+    "mobMultiplier": 0.8,
+    "playerLuck": 1.4
+  },
+  "portals": [
+    {
+      "frameBlock": "minecraft:moss_block",
+      "igniterItem": "minecraft:amethyst_shard",
+      "color": "3DAF6B",
+      "lightLevel": 11,
+      "scale": 8.0,
+      "cooldown": 40,
+      "anchor": {
+        "pos": "spawn",
+        "exit": "bed"
+      },
+      "particleType": "minecraft:spore_blossom_air",
+      "sounds": {
+        "ignite": "block.portal.trigger",
+        "enter": "block.portal.travel",
+        "exit": "block.portal.travel"
+      },
+      "orientation": "horizontal"
+    }
+  ],
+  "exitPortal": {
+    "enabled": true,
+    "pos": "spawn",
+    "target": "bed"
+  },
+  "roll": {
+    "mood": "pastoral",
+    "spawnFilter": [
+      "minecraft:plains"
+    ],
+    "wants": {
+      "village": "near_spawn",
+      "nova_structures:remnant_ruin_farmer": "near_spawn",
+      "tavern": "spread",
+      "mvs:large_mushroom": "spread",
+      "mvs:campsite": "near_spawn",
+      "ati_structures:haunted_ruin": "spread",
+      "mvs:small_oak_lantern": "near_spawn"
+    },
+    "shuns": [
+      "ancient_city",
+      "mss:arena"
+    ]
+  }
+}

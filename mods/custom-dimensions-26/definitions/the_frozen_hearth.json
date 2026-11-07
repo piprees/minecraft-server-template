@@ -1,0 +1,186 @@
+{
+  "schemaVersion": 2,
+  "description": "The warm hearth in a frozen world. Snowy villages and taigas where villagers adapted to the cold — igloos, outposts, campsites. The dungeons out in the ice are older than the settlements.",
+  "seed": -7832561563439705203,
+  "spawn": [-128, 64, 0],
+  "generator": {
+    "type": "noise",
+    "preset": "overworld"
+  },
+  "terrain": {
+    "base": "erosion",
+    "setting": "gentle"
+  },
+  "biomes": [
+    {
+      "id": "minecraft:frozen_river",
+      "climate": {
+        "temperature": [-2.0, -0.334],
+        "continentalness": [-0.11, 2.0],
+        "erosion": [0.05, 2.0],
+        "weirdness": [-0.05, 0.05]
+      }
+    },
+    {
+      "id": "minecraft:river",
+      "climate": {
+        "temperature": [-0.334, 2.0],
+        "continentalness": [-0.11, 2.0],
+        "erosion": [0.05, 2.0],
+        "weirdness": [-0.05, 0.05]
+      }
+    },
+    {
+      "id": "minecraft:stony_shore",
+      "climate": {
+        "temperature": [-2.0, 2.0],
+        "continentalness": [-0.19, -0.11]
+      }
+    },
+    {
+      "id": "minecraft:frozen_peaks",
+      "climate": {
+        "temperature": [-2.0, -0.334],
+        "continentalness": [0.03, 2.0],
+        "erosion": [-2.0, -0.375]
+      }
+    },
+    {
+      "id": "minecraft:jagged_peaks",
+      "climate": {
+        "temperature": [-0.334, 2.0],
+        "continentalness": [0.03, 2.0],
+        "erosion": [-2.0, -0.375]
+      }
+    },
+    {
+      "id": "minecraft:ice_spikes",
+      "climate": {
+        "temperature": [-2.0, -0.428],
+        "humidity": [-2.0, -0.167]
+      }
+    },
+    {
+      "id": "minecraft:snowy_plains",
+      "climate": {
+        "temperature": [-2.0, -0.428],
+        "humidity": [-0.167, 0.046]
+      }
+    },
+    {
+      "id": "minecraft:snowy_slopes",
+      "climate": {
+        "temperature": [-2.0, -0.428],
+        "humidity": [0.046, 0.183]
+      }
+    },
+    {
+      "id": "minecraft:snowy_taiga",
+      "climate": {
+        "temperature": [-2.0, -0.428],
+        "humidity": [0.183, 2.0]
+      }
+    },
+    {
+      "id": "adventure:alpine_scree",
+      "climate": {
+        "temperature": [-0.428, -0.212],
+        "humidity": [-2.0, -0.144]
+      }
+    },
+    {
+      "id": "adventure:highland_fells",
+      "climate": {
+        "temperature": [-0.428, -0.212],
+        "humidity": [-0.144, 0.012]
+      }
+    },
+    {
+      "id": "adventure:aspen_forest",
+      "climate": {
+        "temperature": [-0.428, -0.212],
+        "humidity": [0.012, 0.166]
+      }
+    },
+    {
+      "id": "minecraft:grove",
+      "climate": {
+        "temperature": [-0.428, -0.212],
+        "humidity": [0.166, 2.0]
+      }
+    },
+    {
+      "id": "minecraft:birch_forest",
+      "climate": {
+        "temperature": [-0.212, 2.0],
+        "humidity": [-2.0, -0.167]
+      }
+    },
+    {
+      "id": "minecraft:taiga",
+      "climate": {
+        "temperature": [-0.212, 2.0],
+        "humidity": [-0.167, 0.046]
+      }
+    },
+    {
+      "id": "minecraft:old_growth_spruce_taiga",
+      "climate": {
+        "temperature": [-0.212, 2.0],
+        "humidity": [0.046, 0.183]
+      }
+    },
+    {
+      "id": "minecraft:old_growth_pine_taiga",
+      "climate": {
+        "temperature": [-0.212, 2.0],
+        "humidity": [0.183, 2.0]
+      }
+    }
+  ],
+  "borders": {
+    "player": 4096,
+    "generation": 2048
+  },
+  "difficulty": {
+    "mobMultiplier": 1.3,
+    "playerLuck": 1.3
+  },
+  "portals": [
+    {
+      "frameBlock": "minecraft:lapis_block",
+      "igniterItem": "minecraft:amethyst_shard",
+      "color": "6B9BD0",
+      "lightLevel": 11,
+      "scale": 2.0,
+      "cooldown": 40,
+      "sounds": {
+        "ignite": "block.portal.trigger",
+        "enter": "block.portal.travel",
+        "exit": "block.portal.travel"
+      }
+    }
+  ],
+  "roll": {
+    "mood": "pastoral",
+    "spawnFilter": [
+      "minecraft:snowy_plains",
+      "minecraft:taiga"
+    ],
+    "wants": {
+      "village": "near_spawn",
+      "igloo": "near_spawn",
+      "towns_and_towers:pillager_outpost_taiga": "spread",
+      "nova_structures:surface_dungeon_snowy": "spread",
+      "ice_dungeon_l": "near_border",
+      "epic:small_ice_dungeon": "near_border",
+      "mvs:campsite": "near_spawn",
+      "mvs:small_spruce_lantern": "near_spawn",
+      "nova_structures:firewatch_tower_taiga": "spread"
+    },
+    "shuns": [
+      "monument",
+      "mss:arena"
+    ]
+  }
+}

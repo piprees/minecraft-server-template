@@ -1,0 +1,11 @@
+{
+  "base": "minecraft:the_end",
+  "changed": {
+    "ambient_light": 0.08,
+    "attributes": {
+      "changed": {
+        "minecraft:visual/fog_color": "#3b1b1b"
+      }
+    }
+  }
+}

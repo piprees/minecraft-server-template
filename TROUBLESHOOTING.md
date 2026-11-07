@@ -1596,6 +1596,468 @@ A seed's map and its banked facts appear to contradict each other — the thumbn
   the same trap. Pin it against the Java, not against intuition —
   `scripts/e2e/portal-matrix-selftest.sh` is the worked example.
 
+<a id="t182"></a>
+### T182 — A spectator camera inside terrain shows the inside of the ground
+
+- **Symptom:** a rig screenshot shows a cave or the underside of the land with no rock in front of it, as if it were open air.
+- **Cause:** a spectator camera passes through blocks and draws whatever is behind them, with nothing on screen to say so. A numeric `y` read off a height render can be inside the ground, and `ground+N` under trees often lands in leaves.
+- **Fix:** `BiomeShots` checks the 3×3×3 box round the eye block (collision shapes; fluids count as clear), lifts the camera up to 8 blocks, and otherwise skips the shot with `camera inside terrain`. Audit an old shot list with `"check": true` entries before trusting its cameras.
+
+<a id="t181"></a>
+### T181 — Editing a bash script while it runs breaks the run
+
+- **Symptom:** a running `rig.sh` dies with `stop: command not found` (exit 127) and leaves its server running.
+- **Cause:** bash reads a script as it executes, so a rewrite mid-run makes it execute stray text from the new file.
+- **Fix:** never edit a script that is running; edit a copy or wait. Stop the orphaned server by its pid with SIGTERM, never `pkill -f`.
+
+<a id="t180"></a>
+### T180 — Nether-effect dimensions are fog-bound at any render distance
+
+- **Symptom:** a far view of a dimension with `effects: minecraft:the_nether` ends in a fog wall about 100–150 blocks out, whatever the render distance; night vision turns that fog into a bright white or red wall.
+- **Cause:** the Nether's fog is drawn at a fixed short distance, not the render distance.
+- **Fix:** expect no far view in those dimensions, and never light their screenshots with night vision. If a dimension needs vistas, give it overworld effects.
+
+<a id="t179"></a>
+### T179 — Each dimension keeps its own clock on 26.x
+
+- **Symptom:** a screenshot taken after `time set noon` shows dawn, dusk or night in a custom dimension.
+- **Cause:** on 26.x a bare `time set` changes only the dimension the command runs in.
+- **Fix:** run `execute in <dim> run time set …` (and `weather clear`) in the dimension being shot; the rig's `BiomeShots` does this per shot.
+
+<a id="t178"></a>
+### T178 — A linked 26.x consumer refuses the 1.21.1 dimension files
+
+- **Symptom:** a consumer linked to a 26.x checkout fails to boot with `DefinitionFormatException … overworld_thumb.json: no "schemaVersion"`.
+- **Cause:** the 1.21.1 dimensions folder, thumbnails included, is seeded skip-if-exists, and the 26.x mod refuses any `dimensions/*.json` that is not schema v2.
+- **Fix:** `dev-up.sh` stages the v2 set and bridges for a checkout linked at 26.x and removes files without `schemaVersion`, as `smoke-26.sh` does; `deploy.sh` needs the same at the switch (cutover-removals.md).
+
+<a id="t177"></a>
+### T177 — A linked consumer reads the checkout's `.minecraft-version`
+
+- **Symptom:** a consumer linked to the checkout runs the checkout's Minecraft version whatever its own `.minecraft-version` says.
+- **Cause:** `lib.sh` opens `$LIB_DIR/../.minecraft-version`, and `..` resolves through the `scripts` symlink into the checkout.
+- **Fix:** set `MC_VERSION_OVERRIDE` in the consumer's `.env`, and pass it to `./dev link` too (`local-mods.sh locate` runs from the checkout).
+
+<a id="t176"></a>
+### T176 — On 26.x, vanilla's empty-server pause stops every tick
+
+- **Symptom:** with nobody online, `customdim activate` stays `queued` and a Carpet `player … spawn` never completes, while RCON still answers.
+- **Cause:** 26.x's `pause-when-empty-seconds` (default 60) stops the tick loop on an empty server.
+- **Fix:** the compose default `PAUSE_WHEN_EMPTY_SECONDS=0` turns it off; itzg's autopause owns idling. `runServer` sets 0 in `run/server.properties`, so the in-game self-test never meets it.
+
+<a id="t175"></a>
+### T175 — On 26.3 an unlisted accessor mixin hangs the boot
+
+- **Symptom:** the server never finishes preparing the spawn area and ignores SIGTERM; the self-test never runs.
+- **Cause:** a mixin that casts to an accessor missing from `customdimensions.mixins.json` throws `IllegalClassLoadError` ("Illegal classload request for accessor mixin") on a chunk-generation thread, which stalls spawn generation instead of crashing the server.
+- **Fix:** list every mixin and accessor in the config. To diagnose, read the log (`IllegalClassLoadError`, `Mixin transformation of`), not the self-test report, and stop the server with `kill -9` by pid. A renamed target crashes the boot cleanly (`InvalidAccessorException`, `InvalidInjectionException`) because `defaultRequire` is 1.
+
+<a id="t174"></a>
+### T174 — A terrain's `scale` stretches the climate the biome boxes were fitted on
+
+- **Symptom:** after `terrain.scale` goes above about 1.5, rare listed biomes fall to 0% on the render although their boxes are unchanged.
+- **Cause:** `scale` stretches the router's climate as well as the land, so boxes cut at the seed's quantiles (T168) sample fewer climate cells in the same window.
+- **Fix:** re-render after any scale change, and keep scale near 1 or re-fit the boxes at that scale.
+
+<a id="t173"></a>
+### T173 — A terrain built from a dry sea level trenches every coast
+
+- **Symptom:** a "dry" dimension, its `liquids.seaLevel` far below its land (−55, −60), shows a band of ground near the world floor along every coastline, with lava where it passes the lava level.
+- **Cause:** the library's land spline places the shore and every sea-relative height at sea level.
+- **Fix:** every sea-relative height builds from `Ctx.shore()`: the sea level, or the sea floor where the sea lies more than `BASIN_DEPTH` (20) below it and can hold no water. Never clamp a sea that holds water: a sea a few blocks under the sea floor (30, 34) still fills its basins.
+
+<a id="t172"></a>
+### T172 — An airborne terrain's water stands still, and a sea level floods the void
+
+- **Symptom:** on a floating-islands level, a sea level fills the sky below the islands with water; basin water at a rim gap stands as a wall instead of falling.
+- **Cause:** every open cell below sea level holds the default fluid, the void included; without aquifers, `Aquifer.createDisabled` places fluid but never schedules it to flow.
+- **Fix:** use `liquids.basins` with the `basin_islands` terrain, which fills only open cells inside a basin (`BasinFluidPicker`); `DisabledAquiferMixin` schedules the water near the rim to flow so a gap spills. A gap spills only when it breaches the whole crest with no island in it, so count breaches, not cut samples; a fall into the void takes about 400 ticks in a fresh world, so measure or shoot after that.
+
+<a id="t171"></a>
+### T171 — A floating_islands or caves dimension varies only in temperature and humidity
+
+- **Symptom:** one biome takes 99.5–100% of a floating_islands or caves dimension although its list holds several, each in its own climate box.
+- **Cause:** those routers hold continentalness, erosion, weirdness and depth constant; temperature and vegetation are borrowed from the overworld only when the definition lists biomes. A box cut on any other axis puts every column in whichever box contains the constant.
+- **Fix:** cut the boxes on temperature × humidity at the seed's measured quantiles, after probing the seed.
+
+<a id="t170"></a>
+### T170 — A feature placed on another feature's blocks by `WORLD_SURFACE_WG` places nothing
+
+- **Symptom:** a library feature meant to stand on blocks an earlier feature placed counts 0 (end rods on a coral reef).
+- **Cause:** the `WORLD_SURFACE_WG` heightmap follows the generated ground and does not see blocks earlier features placed, so the placement finds no air above them.
+- **Fix:** place it with `MOTION_BLOCKING`, which reflects placed blocks; keep `WORLD_SURFACE_WG` for anything that follows the generated ground.
+
+<a id="t169"></a>
+### T169 — Dry plants placed by `place_on_ground` float on soul soil
+
+- **Symptom:** dead bushes scattered round a tree on soul soil float, then pop off at the first neighbour update.
+- **Cause:** dead bushes and other dry plants survive only on `supports_dry_vegetation` blocks, which exclude soul soil, and 26.3's `place_on_ground` tree decorator places without a survival check.
+- **Fix:** put a supporting block (coarse dirt) under each plant with a two-layer `block_column`, or place the plant with `simple_block`, which checks survival.
+
+<a id="t168"></a>
+### T168 — A climate box on one or two axes takes the whole map
+
+- **Symptom:** listed biomes, spawn-filter biomes included, generate at 0% while one or two biomes cover most of the level.
+- **Cause:** an axis a v2 `climate` box does not name covers −2 to 2, so the one- and two-axis stripes converted from 1.21.1 `parameters` take space before every vanilla string entry and win most points outside every box. A library biome listed without a climate uses its default box, which assumes the normal overworld range a seed's core may never reach.
+- **Fix:** measure the seed's climate with one-axis probe definitions rendered with that seed, give every entry an explicit box cut at those quantiles with outer edges at ±2, and verify the shares with `/customdim render`, never by counting the list.
+
+<a id="t167"></a>
+### T167 — A spore blossom cannot hang from leaves
+
+- **Symptom:** a library biome's spore blossoms under a tree's crown count 0.
+- **Cause:** leaves have an empty support shape, and a spore blossom survives only under a block that can support its centre, so `simple_block` refuses every spot under leaves.
+- **Fix:** hang pale hanging moss (`block_column` downwards, `tip` on the last layer) or vines, which attach to a full collision face.
+
+<a id="t166"></a>
+### T166 — `NaturalSpawner.SPAWN_DISTANCE_BLOCK` is the outer reach, not the minimum spawn distance
+
+- **Symptom:** a search for spots where a mob can spawn naturally finds almost none and reports that nothing can spawn.
+- **Cause:** in 26.3 the public `SPAWN_DISTANCE_BLOCK` is 128, the outer reach; the 24-block minimum distance from a player is the private `MIN_SPAWN_DISTANCE`.
+- **Fix:** use 24 as the minimum (`DifficultySelfTest.MIN_SPAWN_DISTANCE`).
+
+<a id="t165"></a>
+### T165 — A library biome's vanilla features must keep vanilla's order
+
+- **Symptom:** chunk generation crashes with `Feature order cycle found: minecraft:<biome>, adventure:<biome>` in a dimension that lists both biomes; every compile test passes.
+- **Cause:** Minecraft builds one feature order per generator from every biome it holds, and throws at the first decoration step when two biomes list shared features in opposite orders.
+- **Fix:** keep the vanilla ids in a library biome's `biome.features` in vanilla's relative order; its own `~features` may sit anywhere. `BiomeLibraryTest.everyBiomeTogetherKeepsOneFeatureOrder` checks every vanilla and library biome together.
+
+<a id="t164"></a>
+### T164 — Raising a noise dimension's floor re-rolls its caves and decorations
+
+- **Symptom:** after `dimensionType.minY` goes up (−64 to 0 to fit Bedrock), the biome and height renders are unchanged but a third or more of surface columns differ by a few blocks, and caves sit elsewhere.
+- **Cause:** the generator measures from the higher of the noise floor and the dimension floor. Carver heights (`above_bottom`), the bedrock floor and decorations that scan layers or use `above_bottom` heights move with it; density functions use absolute y, so the terrain shape stays.
+- **Fix:** none needed. Compare blocks, not renders, and expect the change in any world already generated.
+
+<a id="t163"></a>
+### T163 — The biome self-test cannot count a block a vanilla feature also places
+
+- **Symptom:** a library biome's self-test count is not meaningful, or never matches its feature: the block also comes from a vanilla feature in the same level (mossy cobblestone from monster rooms).
+- **Cause:** `BiomeLibrarySelfTest` counts blocks, not features; any vanilla feature that places the same block adds to the count.
+- **Fix:** count a block only the library feature places. Where the look needs a shared block, use the vanilla feature itself (`forest_rock` for mossy boulders) and count something else.
+
+<a id="t162"></a>
+### T162 — A configured feature's value ranges are checked only when the pack loads
+
+- **Symptom:** the compiler and the build pass, then the server refuses to start while loading the datapack.
+- **Cause:** 26.3 validates the ranges inside a configured or placed feature only at pack load. Seen: an `offset` placement modifier reaches at most ±16 blocks per axis; the cherry trunk placer's `branch_horizontal_length` is at least 2; an `environment_scan` takes at most 32 `max_steps`; a `disk` `radius` is at most 8.
+- **Fix:** stack `offset` modifiers for a larger reach, keep values inside the codec's range, and validate a new feature by booting the pack, not just compiling it.
+
+<a id="t161"></a>
+### T161 — A cave opening below sea level beside a river stays dry when aquifers are on
+
+- **Symptom:** in a level of low land cut by channels at sea level, pits beside a channel are air down to below the water line, walled off from the river by stone or open to it at a hole the water spills through.
+- **Cause:** the aquifer reads the surface level (`aquifers.surface_level`) at the cell and 12 points 16 blocks apart around it, and takes the sea only where one of them, plus 8, lies under sea level. A noise cave that opens into the land beside a channel reads the land's surface at every point, so the aquifer gives it a local fluid level or air.
+- **Fix:** cap the aquifers' surface level at 9 below sea level where a river sets the water table. The library's `rivers` terrain caps it across its channels, banks and about 16 blocks beyond (`<terrain>/aquifer_surface_level`); a pit further out stays dry, as on any land.
+
+<a id="t160"></a>
+### T160 — End light tints block colours
+
+- **Symptom:** in the End, end stone renders pink, sand pinkish and yellow sulfur orange-brown in screenshots.
+- **Cause:** the End's lighting colours every block it lights.
+- **Fix:** choose an End palette from how the blocks look in End light, not from their usual colours.
+
+<a id="t159"></a>
+### T159 — Scattered End placements at random heights land in the void
+
+- **Symptom:** a library End biome's glow lichen or spore blossoms count near 0.
+- **Cause:** `multiface_growth` and an upward `environment_scan` tried over y 0–256 rarely meet a surface on sparse islands.
+- **Fix:** start from the surface heightmap with a vertical offset, or limit the height range to the island band (about 40–120).
+
+<a id="t158"></a>
+### T158 — No vanilla leaf reads white
+
+- **Symptom:** a library biome's "white" crowns render mid-grey.
+- **Cause:** a near-white `foliage_color` darkens tinted oak leaves to grey; no untinted leaf block is white.
+- **Fix:** use pale oak leaves, the palest leaf, and expect pale grey-green.
+
+<a id="t157"></a>
+### T157 — A `vegetation_patch` with farmland ground places almost nothing
+
+- **Symptom:** a crop biome shows a handful of farmland and wheat blocks (10 and 9 over 96×96 columns).
+- **Cause:** not established; wheat survives only on farmland (`supports_crops`) and `simple_block` also checks light.
+- **Fix:** lay farmland with a `disk`, then place wheat as a `block_column` patch filtered to farmland.
+
+<a id="t156"></a>
+### T156 — Clouds cut through floating islands
+
+- **Symptom:** sky-island screenshots show a white slab through the treetops.
+- **Cause:** the overworld dimension type puts clouds at y 192.33, inside the floating islands' top layer (130–190).
+- **Fix:** a sky biome sets `minecraft:visual/cloud_height` below the islands (the library's sky biomes use 88).
+
+<a id="t155"></a>
+### T155 — An End showcase at 0,0 shows only the central island
+
+- **Symptom:** a `single_biome` End level shows one island and then void.
+- **Cause:** the central island reaches about 100 blocks from 0,0 and the outer islands start past about 1,024.
+- **Fix:** spawn the showcase on the outer islands (1408, 0) with a border that reaches them.
+
+<a id="t154"></a>
+### T154 — A surface patch on end stone or calcite places nothing
+
+- **Symptom:** a library biome's crust or vegetation-patch feature counts 0 on End or calcite ground.
+- **Cause:** `#minecraft:base_stone_overworld` holds neither end stone nor calcite, so the patch replaces nothing.
+- **Fix:** use `#minecraft:sculk_replaceable`, which holds both.
+
+<a id="t153"></a>
+### T153 — A bare string in a block state provider field names a provider, not a block
+
+- **Symptom:** the server stops at registry load with `Unbound values in registry ... worldgen/block_state_provider: [minecraft:<block>]`.
+- **Cause:** 26.3 reads a plain string in `to_place`, `provider`, `ground_state` and the other provider fields as a `worldgen/block_state_provider` id, such as `minecraft:cave_vines_body`.
+- **Fix:** write a block as `{"id": "minecraft:<block>"}`; a weighted entry's `data` may stay a plain id. The biome library refuses the bare form at compile time.
+
+<a id="t152"></a>
+### T152 — Birch and spruce leaves ignore the biome's foliage colour
+
+- **Symptom:** a library biome's `foliage_color` tints its oak crowns but leaves birch and spruce crowns their usual colour.
+- **Cause:** 26.3 gives birch and spruce leaves a fixed tint; `foliage_color` tints oak, jungle, acacia, dark oak and mangrove leaves and vines, and `dry_foliage_color` tints leaf litter.
+- **Fix:** build a tinted crown from a tinted leaf block on any trunk, or use a fixed-colour leaf such as poplar.
+
+<a id="t151"></a>
+### T151 — A waterlogged vegetation patch leaves its ground dry on stepped terrain
+
+- **Symptom:** a library biome's pools show as bare patches of their ground block with little water.
+- **Cause:** water replaces a surface block only where every horizontal neighbour is sturdy; on one-block terrain steps a neighbour is air.
+- **Fix:** give such a biome a flat, low climate (high erosion), and follow the pools with a dry `vegetation_patch` over the same replaceable tag, which touches only floors with air above.
+
+<a id="t150"></a>
+### T150 — 26.3 keeps configured features in `worldgen/feature`
+
+- **Symptom:** a library biome fails validation with `is not a vanilla feature type`, or its features are missing from the pack.
+- **Cause:** 26.3 stores configured features under `worldgen/feature`, not `worldgen/configured_feature`, and has no `random_patch` feature type.
+- **Fix:** write configured features to `worldgen/feature`; build a patch as a placed feature with `count` and `offset` placements over `simple_block`.
+
+<a id="t149"></a>
+### T149 — A steep factor steps the ground at the noise-cell grid
+
+- **Symptom:** walls and floors drop by a cell (4 blocks across, 8 up) between neighbouring columns, every fourth row (z ≡ 1 mod 4 in `/customdim render`), and caverns open a block or two under a floor.
+- **Cause:** vanilla's final density caps the solid side near the surface at `min(cheese, 5 * entrances)` (about 1) and, once the cheese reaches 1.5625, takes its cavern branch, whose solid values are near 0.05. A factor far above the land's (canyons had 64) makes the cheese reach 1.5625 a block under the surface and its air side −5 to −12, so the cell's interpolation pulls every surface to its solid corner.
+- **Fix:** keep the land's factor and weaken vanilla's 3D noise where the ground must follow the height (`Shape.noiseWeight`; canyons use 1/16 inside the channel). Spires still use factor 24 over their columns.
+
+<a id="t148"></a>
+### T148 — A dry zone's edge needs a margin past its compiled mask
+
+- **Symptom:** water or lava where `/customdim render` shows a dry zone's mask above zero.
+- **Cause:** an aquifer block takes its fluid from neighbouring cells, so a sea ending exactly at the mask edge flows in; springs and lakes are placed after the noise and ignore aquifer rules.
+- **Fix:** `DryFluidPicker` treats the compiled mask plus 16 blocks (one aquifer cell, beyond water's 7-block spread) as dry; `NoiseBasedAquiferMixin` turns fluid in a covered column into air; `DryFluidFeatureMixin` skips springs and lakes touching it.
+
+<a id="t147"></a>
+### T147 — A structure template's palette is not thread-safe
+
+- **Symptom:** `ConcurrentModificationException` in `StructureTemplate$Palette.blocks` while rolls generate structure starts on several threads.
+- **Cause:** the palette's block cache is a plain `HashMap`.
+- **Fix:** a start that throws it is retried under a lock, up to eight times, since other threads may still be filling the cache (`Sampler.starts`).
+
+<a id="t146"></a>
+### T146 — A dry zone keeps a lava sheet below y −54
+
+- **Symptom:** lava under a dry or airborne zone and in its blend while water is gone.
+- **Cause:** the generator places lava below its lava level (`min(−54, sea level)`, hard-coded) before it consults any aquifer, so aquifer data cannot remove it.
+- **Fix:** the runtime fluid rule (`WorldgenRuntime.dry`, `DryFluidPicker`) places no sea or lava where a dry zone may reach.
+
+<a id="t145"></a>
+### T145 — Structure control moves vanilla sets into group sets
+
+- **Symptom:** a check like `possibleStructureSets().anyMatch(h -> h.is(villages))` fails on a level with noise placement although villages generate.
+- **Cause:** noise placement (the default for every dimension) puts vanilla's random-spread sets inside direct group sets that have no registry key.
+- **Fix:** check the structures inside each set, not the set's holder.
+
+<a id="t144"></a>
+### T144 — Level work continued from a worker thread corrupts the distance manager
+
+- **Symptom:** the server crashes with `java.lang.ArrayIndexOutOfBoundsException: Index 35 out of bounds for length 33` in `LongLinkedOpenHashSet.rehash` (the distance manager), then hangs on shutdown holding its heap.
+- **Cause:** `LevelManager.activate` or `deactivate` was called from a render, sampler or pool thread; ticket changes are server-thread only.
+- **Fix:** a task that continues on a worker or pool thread hops back before touching a level: `thenComposeAsync(..., server)` or `server.execute(...)`. `RenderJob` and the self-test sections do this.
+
+<a id="t143"></a>
+### T143 — A render's height differs from the generated world where later stages changed the column
+
+- **Symptom:** `/customdim render` or the Sampler gives a surface height a few blocks off what the generated chunk shows, while the biome matches.
+- **Cause:** the Sampler, like vanilla's `getBaseColumn`, sees only the noise stage. Trees, basalt columns, carvers, nether lava pockets and structures move the real surface afterwards; in a caves dimension vanilla's column path can also disagree with chunk fill inside an aquifer. Measured per 50 columns: overworld 5, nether 26–27, caves 3, End 0, floating islands 0; biomes 50 of 50 everywhere.
+- **Fix:** none needed. The render self-test classes each mismatch (`added`, `removed`, `flooded`, `filled`, `structure`) in `renders/<dimension>/accuracy.tsv` and fails only on an unexplained one; read that file before suspecting the Sampler.
+
+<a id="t142"></a>
+### T142 — "custom-dimensions refuses to start: N findings of another worldgen owner"
+
+- **Symptom:** the 26.3 server stops at start with that line, one indented line per finding (mod, what, where), writes a crash report and exits 0, so a restart loop repeats it.
+- **Cause:** the worldgen firewall found a mod that owns part of world generation: a dimension, dimension type, noise settings, biome source or chunk generator type in a foreign namespace; a mixin into a worldgen class from a mod not on the allow list (`core/.../firewall/AllowList`); or TerraBlender, Biolith or Lithostitched. "a bridge in … is malformed" names a bridge file and field instead.
+- **Fix:** remove the mod, or adopt what it adds in a bridge with `"reviewed": true` ([docs/design/rebuild-26/bridges.md](docs/design/rebuild-26/bridges.md)). Structure sets with no reviewed bridge do not stop the start; they are switched off and logged as `firewall: switched off <namespace> (<count>)`.
+
+<a id="t141"></a>
+### T141 — Bedrock clients join only over NetherNet
+
+- **Symptom:** Geyser boots and answers a RakNet ping, but Bedrock clients cannot connect; the boot log warns "NetherNet support is NOT enabled".
+- **Cause:** Bedrock 26.60 drops RakNet. NetherNet is signalling over TCP and WebRTC over UDP, both on the Bedrock port.
+- **Fix:** `config/versions/26.3/Geyser-Fabric/config.yml` sets `bedrock.transport: nethernet`, and `BEDROCK_PORT` is open on TCP and UDP in docker-compose.yml, harden.sh and the Hetzner firewall. `scripts/e2e/bedrock-ping.py` probes the signalling status at `GET /v1/join`; a RakNet answer (`--raknet`) does not show that a client can join. Behind Docker's NAT, if a phone reaches signalling but not gameplay, set `bedrock.signaling.advertise-addresses` to the public `IP:19132`.
+
+<a id="t140"></a>
+### T140 — Floodgate's `fwhitelist add <gamertag>` fails silently
+
+- **Symptom:** a Bedrock player stays off the whitelist although role sync sent `fwhitelist add "<gamertag>"`, and RCON returned no error.
+- **Cause:** Floodgate looks the gamertag up in GeyserMC's global XUID cache. A gamertag the cache lacks logs "Unable to find user in our cache. Please try specifying their Floodgate UUID instead" to the server log, and RCON gets an empty reply.
+- **Fix:** discord-sync resolves the XUID at `/register` (`api.geysermc.org/v2/xbox/xuid/<gamertag>`) and whitelists by Floodgate UUID (`00000000-0000-0000-` followed by the XUID as 16 hex digits). A gamertag the cache lacks is refused at `/register` with a message to join once and register again.
+
+<a id="t139"></a>
+### T139 — Essential Commands refuses a player target given from the console
+
+- **Symptom:** `heal <player>`, `feed <player>` and `extinguish <player>` over RCON answer "A player is required to run this command here" and do nothing; `fly <player> <bool>` and `invuln <player> <bool>` answer the same but apply. Measured on 1.21.1 (0.35.2-mc1.21) and 26.3 (0.42.0-mc26.3).
+- **Cause:** Essential Commands requires a player source even when the command names its target.
+- **Fix:** discord-sync sends `execute as <player> run <command>` (`ec_as_player`), with `@s <true|false>` for the toggles because `invuln` has no bare true/false form. `execute as` answers nothing for a missing player, so `rcon_as_online_player` probes `data get entity <player> Pos` first. Under `execute as`, permission checks run against the player, with the console's operator level as LuckPerms' fallback; an explicit deny on the player blocks the command.
+
+<a id="t138"></a>
+### T138 — The 26.3 client cannot open a window on Xvfb's OpenGL
+
+- **Symptom:** a 26.3 client under Xvfb with Mesa exits at start-up when it creates its window on the OpenGL backend.
+- **Cause:** the client asks SDL for an sRGB-capable framebuffer, and Xvfb's GLX offers no visual with that attribute.
+- **Fix:** `mods/custom-dimensions-client-26/rig/srgbshim.c` is preloaded in front of libGL and drops the sRGB attribute from the visual request (`scripts/rig.sh` builds and loads it). The Vulkan backend on lavapipe runs without it, but Iris needs OpenGL.
+
+<a id="t137"></a>
+### T137 — One command argument type from a mod makes a 26.3 server refuse vanilla clients
+
+- **Symptom:** an unmodded 26.3 client is disconnected while joining, and the message lists every namespace of the command argument type registry, the vanilla `brigadier` types included.
+- **Cause:** Fabric's registry sync checks the argument type registry against the client's. A mod that registers its own type (Bookshelf's `bookshelf:font`) puts a namespace in it that a vanilla client lacks, and the server refuses the client whole.
+- **Fix:** no server mod in the 26.3 list registers an argument type: Bookshelf is cut (`mod-register.csv`), and `scripts/e2e/vanilla-join.sh` (smoke-test-26.yml) fails on any mod that adds one. Before adding a mod, check its jar for a call to Fabric's `ArgumentTypeRegistry.registerArgumentType`.
+
+<a id="t136"></a>
+### T136 — On 26.3, Collective moves every Serilum mod's config under `config/serilum/`
+
+- **Symptom:** a Serilum mod (double-doors, healing-campfire, fire-spread-tweaks and the rest) runs on its jar defaults on 26.3 although its config is seeded.
+- **Cause:** Collective 26.3 reads `config/serilum/<modid>.json` and on every boot moves `config/<modid>.json`, `.json5`, `-common.toml` and the whole `config/<modid>/` directory into `config/serilum/`, replacing what is there, then moves `serilum/<modid>.json5` onto `serilum/<modid>.json`. A config kept in a subdirectory ends up at `config/serilum/<modid>/<modid>.json5`, which nothing reads.
+- **Fix:** the 26.3 version overlay seeds each Serilum config at its read path, `config/versions/26.3/serilum/<modid>.json`, with keys the 26.3 jars no longer read removed and fire-spread-tweaks' keys under the jar's spelling (`scripts/tests/test_minecraft_version.py` checks each against its base). A two-boot 26.3 run read the seeded values back on both boots.
+
+<a id="t135"></a>
+### T135 — Recording what a 26.x server sends a test player needs a listener of our own
+
+- **Symptom:** a self-test cannot see which custom payloads reached a test player, or the server tick throws when one is added.
+- **Cause:** Fabric's `FakePlayerPacketListener` is final and drops everything; a plain `ServerPlayer` needs a game packet listener before anything is sent to it.
+- **Fix:** subclass `ServerGamePacketListenerImpl` over `new Connection(PacketFlow.SERVERBOUND)`, implement `UntrackedPacketListener`, and record in `send` (`CompanionSelfTest`). Fabric API 0.164 registers payloads through `PayloadTypeRegistry.serverboundPlay()` and `clientboundPlay()`.
+
+<a id="t134"></a>
+### T134 — Vanilla's data-generator reports sort their keys; a codec does not
+
+- **Symptom:** the pack the 26.3 mod compiles from the running game differs byte for byte from the one compiled from `:compiler:vanillaData`, first in a multi-noise level stem.
+- **Cause:** the data generator writes reports through `DataProvider.KEY_COMPARATOR`, so `reports/biome_parameters/*.json` has sorted keys; encoding the same parameter list with its codec keeps the codec's field order.
+- **Fix:** `RuntimeVanilla` writes the lists through `GsonHelper.writeValue` with `DataProvider.KEY_COMPARATOR`. The self-test's pack-equivalence line compares the two sources on every run.
+
+<a id="t133"></a>
+### T133 — 26.x merges experience orbs of one value into a single orb with a count
+
+- **Symptom:** adding up `ExperienceOrb.getValue` over the orbs a death dropped comes out short at random (69 of 70).
+- **Cause:** `ExperienceOrb.award` merges a new orb into a nearby orb of the same value at random (`tryMergeToExisting`), raising that orb's private `count`, which has no getter.
+- **Fix:** count an orb as value × count (`ExitSelfTest.experience` reads the field by name; 26.x is not obfuscated).
+
+<a id="t132"></a>
+### T132 — Fabric's entity-load event fires for mobs read back from disk, and a fresh spawn is untracked for a few ticks
+
+- **Symptom:** a check that counts spawns in a dimension finds monsters the spawner never made, or reports a just-spawned mob missing.
+- **Cause:** `ServerEntityEvents.ENTITY_LOAD` fires for every entity that joins a level, including those a chunk load reads back from disk; a mob added to a chunk that was only just force-loaded is not returned by `level.getEntity(uuid)` until it is tracked, a few ticks later.
+- **Fix:** anything run once per mob marks it (the `customdimensions:difficulty_scaled` attachment). A count waits out a settle window after its chunks load, and a check reads a mob once it is tracked, not one tick after spawning it (`DifficultySelfTest`).
+
+<a id="t131"></a>
+### T131 — On 26.3 a level's monster spawning is reset every tick
+
+- **Symptom:** a peaceful dimension in the 26.3 mod spawns monsters again a tick after its spawning was turned off.
+- **Cause:** spawn settings live on `ServerChunkCache.setSpawnSettings`, not on `ServerLevel`, and `MinecraftServer.updateMobSpawningFlags` writes them for every level from the difficulty and game rules each tick.
+- **Fix:** `DimensionDifficulty` turns monster spawning off on each peaceful level every level tick, and discards any monster that enters before it ticks.
+
+<a id="t130"></a>
+### T130 — Geyser picks a dimension's Bedrock heights from its sky
+
+- **Symptom:** Bedrock players see nothing below y 0 (or above y 256) in a dimension that Java players see in full.
+- **Cause:** Geyser maps a Java dimension to a Bedrock one by the dimension type's `skybox`: `none` to the Nether (y 0–128), `end` to the End (y 0–256), anything else to the Overworld (y −64–320). A definition whose `atmosphere.effects` borrows the Nether's or End's sky takes that range.
+- **Fix:** keep every definition inside the Bedrock range its sky selects: the compile report flags one outside it (`BedrockHeights`, a warning). A definition with the End's sky runs y 0–256, one with the Nether's sky starts at y 0 (`dimensionType.minY`, `height`, `logicalHeight`). P5 checks the result on a Bedrock client.
+
+<a id="t129"></a>
+### T129 — On 26.3 the caves preset stops its terrain at y 127
+
+- **Symptom:** a `caves` dimension has a bedrock roof at y 127 and empty air above it, although its dimension type runs to y 319.
+- **Cause:** vanilla's `caves` noise settings generate from y −64 to 127 with a bedrock roof, and the dimension type the preset starts from keeps the full height.
+- **Fix:** read a caves dimension's top from its noise settings, not its dimension type (`GeneratorSelfTest`). A definition that wants the space above the roof sets `dimensionType.height` to match.
+
+<a id="t128"></a>
+### T128 — Fabric's after-death event fires after a player's drops
+
+- **Symptom:** a per-dimension keep-inventory rule in the 26.3 mod hands nothing back, because the items are already on the ground.
+- **Cause:** `ServerLivingEntityEvents.AFTER_DEATH` runs at the end of `ServerPlayer.die`, after `dropAllDeathLoot`.
+- **Fix:** keep or drop rules act in a late phase of `ALLOW_DEATH`, which runs before the totem check and the drops, take nothing when a totem will save the player, and hand back through `ServerPlayerEvents.COPY_FROM` (`DeathRules`).
+
+<a id="t127"></a>
+### T127 — Fabric's FakePlayer cannot stand in for a real player everywhere
+
+- **Symptom:** a self-test that drives deaths, respawns or advancements with `net.fabricmc.fabric.api.entity.FakePlayer` never earns the advancement, never dies, or crashes the server tick.
+- **Cause:** Fabric's `PlayerAdvancementsMixin` refuses `award` and `setPlayer` for any FakePlayer; `FakePlayer.isInvulnerableTo` returns true and it never ticks, so spawn invulnerability never runs out; a FakePlayer added to the `PlayerList` without a login (as `PlayerList.respawn` does) throws an NPE in Open Parties and Claims' `ServerSpreadoutTaskHandler`.
+- **Fix:** `ExitSelfTest` uses a FakePlayer subclass with damage that bypasses invulnerability for deaths, a plain `ServerPlayer` on Fabric's no-op packet listener for advancements, and replays respawn (`restoreFrom` and the after-respawn event) instead of calling `PlayerList.respawn`.
+
+<a id="t126"></a>
+### T126 — On 26.x, `ServerLevel.getBlockState` loads the chunk it reads
+
+- **Symptom:** a pass that only means to look (a portal aura, a frame check) loads chunks far from any player, and a lazy level never goes idle.
+- **Cause:** `ServerLevel.getBlockState` goes through `getChunk`, which loads or generates a missing chunk.
+- **Fix:** code that must not load chunks reads through `getChunkSource().getChunkNow(x >> 4, z >> 4)` and the chunk's own `getBlockState`, treating a missing chunk as unreadable (`LevelAuraWorld`), and checks residency again before every write.
+
+<a id="t125"></a>
+### T125 — The Modrinth maven resolves a shared version number to another loader's jar
+
+- **Symptom:** a dev-only runtime mod from `maven.modrinth` fails to load with `HARD_DEP_NO_CANDIDATE ... forgeconfigapiport`, although the dependency is declared.
+- **Cause:** when Fabric, Forge and NeoForge files share a version number (`forge-config-api-port` `26.3.1`), the maven serves one of them, not necessarily the Fabric file.
+- **Fix:** pin such a dependency by its Modrinth version id (`forge_config_api_port_version=JpKvrr9J` in `mods/custom-dimensions-26/gradle.properties`), looked up from the project's version list filtered to `fabric`.
+
+<a id="t124"></a>
+### T124 — A lit nylium or grass portal frame decays under its own blocks
+
+- **Symptom:** in the 26.3 mod, a portal framed in warped or crimson nylium, grass or mycelium goes dark at both ends a few minutes after lighting, with `portal broken` in the log and nobody near it.
+- **Cause:** a frame block covered by another frame block decays on a random tick (nylium to netherrack, grass and mycelium to dirt), so the frame no longer matches its definition.
+- **Fix:** a lit frame is checked with `FrameForms.keepsStanding`, which also accepts the covered-decay form; ignition stays strict. Any other block in the ring still breaks the portal. Checked by the self-test line "a lit frame survives covered decay".
+
+<a id="t123"></a>
+### T123 — On 26.x, finding a player's respawn point can spend a respawn anchor charge
+
+- **Symptom:** a `bed` exit portal on 26.x drains a charge from the player's respawn anchor on every crossing.
+- **Cause:** `ServerPlayer.findRespawnPositionAndUseSpawnBlock(boolean, …)` spends the anchor's charge when its first argument is `true`; vanilla's respawn passes `!keepAllPlayerData`.
+- **Fix:** `PortalTravel` passes `false`. Any new caller that only needs the position passes `false` too.
+
+<a id="t122"></a>
+### T122 — A 26.x portal that answers "not yet" locks the entity out
+
+- **Symptom:** an entity stands in one of our portals and never crosses, even after the destination level has opened.
+- **Cause:** `Entity.handlePortal` sets the portal cooldown before it calls `Portal.getPortalDestination`, and `setAsInsidePortal` keeps the cooldown pinned while the entity stays inside. A `null` answer leaves the cooldown running, so the next attempt never comes.
+- **Fix:** a destination that is not ready clears the cooldown (`entity.setPortalCooldown(0)`) before returning `null` (`PortalTravel.hold`), so the next tick asks again.
+
+<a id="t121"></a>
+### T121 — On 26.x a radius-1 chunk ticket loads a chunk but never ticks its entities
+
+- **Symptom:** an item or mob sent to an arrival site in the 26.3 mod freezes in mid-air; the chunk is loaded, but nothing in it moves.
+- **Cause:** `addTicketAndLoadWithRadius(type, pos, 1)` brings the centre chunk to block-ticking level, not entity-ticking.
+- **Fix:** tickets that must tick entities use radius 2 (`PortalTickets.RADIUS`). A radius-1 ticket only holds blocks (`LevelManager.TICKET_RADIUS`, a lazy level's spawn chunk).
+
+<a id="t120"></a>
+### T120 — On 26.x a server-thread task longer than 60 seconds kills the server
+
+- **Symptom:** a render, roll or self-test started from a server event runs for a minute, then the log reads `A single server tick took 60.00 seconds` and the server shuts itself down with a crash report.
+- **Cause:** vanilla's watchdog (`max-tick-time`, default 60000 ms) counts any work done on the server thread, and a whole-area sample (160,000 columns at 370–474 µs each) is far longer than that.
+- **Fix:** rendering and rolling run off the server thread (rebuild RB-28). A test boot that must do long work on the thread sets `max-tick-time=-1` in its own `server.properties`; production never does.
+
+<a id="t119"></a>
+### T119 — On an empty 26.x server, tick-driven work stops
+
+- **Symptom:** in the 26.3 mod, a queued dimension activation never finishes, a lazy level never unloads, or an idle timer never fires, but only when nobody is online.
+- **Cause:** `pause-when-empty-seconds` (default 60) stops `tickServer` before `END_SERVER_TICK` and before any level ticks, so every tick-driven callback freezes until a player joins.
+- **Fix:** nothing in production: with nobody online there is nothing to activate or unload. A self-test that drives activations without players sets the pause to 0 through `DedicatedServer.setPauseWhenEmptySeconds` and restores it afterwards (`LevelSelfTest`).
+
+<a id="t118"></a>
+### T118 — A Fantasy level held by our ticket never unloads
+
+- **Symptom:** in the 26.3 mod, `RuntimeLevelHandle.unload()` returns but the level stays in `server.levelKeys()` indefinitely; or the tick that unloads a freshly generated level takes most of a second.
+- **Cause:** Fantasy finishes an unload only once the level has no loaded chunks and its chunk map is idle, so the spawn ticket (`customdimensions:lazy_spawn`) keeps it alive. Its unload also saves with flush on the tick, which held one tick for 720 ms after a first-time generation.
+- **Fix:** `LevelManager` removes its ticket, saves without flushing 20 ticks ahead, then calls `unload()` and polls `levelKeys()` with a cap; it never assumes the unload happened. Measured: 21 ticks to leave, longest tick 93 ms.
+
+<a id="t117"></a>
+### T117 — 26.x has no always-loaded spawn chunks
+
+- **Symptom:** on 26.3, an entity placed near 0,0 after start-up never moves or ticks. Its removal reason is `UNLOADED_TO_CHUNK`: it was saved to disk with its chunk.
+- **Cause:** spawn chunks are not kept loaded on 26.x, so nothing near spawn ticks without a player or a ticket.
+- **Fix:** anything that must keep ticking (a portal under test, a lazy level's spawn, an arrival site) holds an explicit ticket: `setChunkForced`, `TeleportTransition.PLACE_PORTAL_TICKET`, or a ticket type of ours through `ServerChunkCache.addTicketAndLoadWithRadius`.
+
 <a id="t116"></a>
 ### T116 — A projection figure that names no portal is the sum of all of them
 
@@ -2995,6 +3457,20 @@ The rendered height disagrees with the facts on high-relief columns. The error i
   takes about five seconds to make one.
 - **Narrow is not empty, and small is not a defect.** The target is that no
   listed biome is ignored, never that shares are equal.
+
+<a id="k12"></a>
+
+### K12 — Six Serilum configs and two fire-spread-tweaks keys are not read on 1.21.1
+
+- **Symptom:** double-doors, fire-spread-tweaks, healing-campfire, name-tag-tweaks, nutritious-milk and your-items-are-safe behave as their jar defaults on the 1.21.1 server, whatever `config/<modid>/<modid>.json5` says.
+- **Cause:** Collective 1.21.1 (8.39) reads `config/<modid>.json5` only, and these configs sit in a subdirectory. fire-spread-tweaks also reads `MinRandomExtraBurnTicks`/`MaxRandomExtraBurnTicks`, while our file spells them with a lower-case first letter, so its -60/60 is ignored and -100/100 applies.
+- **Status:** kept as it is on 1.21.1 by the owner's choice; the 26.3 switch reads the intended values, since the version overlay seeds the read paths (T136).
+
+<a id="k17"></a>
+### K17 — Floodgate's `fwhitelist` probe fails on a repeated admin-parity run (26.3)
+
+- **Symptom:** `admin-parity-check.sh` on a 26.3 consumer passes 49/49 on the first run; later runs fail `fwhitelist add` and `fwhitelist remove` with no log line within 60 s. The container reaches the Geyser API (HTTP 200).
+- **Status:** cause not established; next step is a repeat run with Floodgate's debug logging and a fresh Floodgate data folder to tell server state from the probe.
 
 ## Common symptoms
 

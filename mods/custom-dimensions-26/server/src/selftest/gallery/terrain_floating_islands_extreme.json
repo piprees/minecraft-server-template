@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 2,
+  "description": "Terrain gallery: floating islands, extreme setting.",
+  "seed": 20261025,
+  "spawn": [0, 64, 0],
+  "generator": {
+    "type": "noise",
+    "preset": "overworld"
+  },
+  "terrain": {
+    "base": "floating_islands",
+    "setting": "extreme"
+  },
+  "borders": {
+    "player": 2048
+  }
+}

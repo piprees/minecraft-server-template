@@ -1,0 +1,314 @@
+{
+  "$schema": "../../../../../../schema/biome.schema.json",
+  "realm": "nether",
+  "inspiredBy": "BetterNether's grasslands and Regions Unexplored's glistering meadow: open Nether plains overgrown with roots and sprouts.",
+  "differs": "Crimson and warped forests are crowded under huge fungi; here open netherrack plains are carpeted with patches of both nyliums, knee-high with sprouts, crimson and warped roots and small fungi, with low glowstone mounds on the ground, sparse ash and an orange haze.",
+  "climate": {
+    "temperature": [
+      0.4,
+      1.0
+    ],
+    "humidity": [
+      0.3,
+      1.0
+    ]
+  },
+  "biome": {
+    "attributes": {
+      "minecraft:audio/ambient_sounds": {
+        "additions": {
+          "sound": "minecraft:ambient.crimson_forest.additions",
+          "tick_chance": 0.0111
+        },
+        "loop": "minecraft:ambient.crimson_forest.loop",
+        "mood": {
+          "block_search_extent": 8,
+          "offset": 2.0,
+          "sound": "minecraft:ambient.crimson_forest.mood",
+          "tick_delay": 6000
+        }
+      },
+      "minecraft:audio/background_music": {
+        "default": {
+          "max_delay": 24000,
+          "min_delay": 12000,
+          "sound": "minecraft:music.nether.nether_wastes"
+        }
+      },
+      "minecraft:gameplay/natural_mob_spawns": {
+        "argument": {
+          "spawn_costs": {},
+          "spawns_by_category": {
+            "creature": [
+              {
+                "type": "minecraft:strider",
+                "count": {
+                  "type": "minecraft:uniform",
+                  "max_inclusive": 2,
+                  "min_inclusive": 1
+                },
+                "weight": 60
+              }
+            ],
+            "monster": [
+              {
+                "type": "minecraft:ghast",
+                "count": 4,
+                "weight": 50
+              },
+              {
+                "type": "minecraft:zombified_piglin",
+                "count": 4,
+                "weight": 100
+              },
+              {
+                "type": "minecraft:magma_cube",
+                "count": 4,
+                "weight": 2
+              },
+              {
+                "type": "minecraft:enderman",
+                "count": 4,
+                "weight": 1
+              },
+              {
+                "type": "minecraft:piglin",
+                "count": 4,
+                "weight": 15
+              }
+            ]
+          }
+        },
+        "modifier": "overlay"
+      },
+      "minecraft:visual/ambient_particles": {
+        "argument": [
+          {
+            "particle": {
+              "type": "minecraft:white_ash"
+            },
+            "probability": 0.006
+          }
+        ],
+        "modifier": "append"
+      },
+      "minecraft:visual/fog_color": "#8a3a10"
+    },
+    "carvers": "minecraft:nether_cave",
+    "downfall": 0.0,
+    "effects": {
+      "water_color": "#3f76e4"
+    },
+    "features": [
+      [],
+      [],
+      [],
+      [],
+      [],
+      [],
+      [],
+      [
+        "minecraft:spring_open",
+        "minecraft:patch_fire",
+        "minecraft:glowstone_extra",
+        "minecraft:glowstone",
+        "minecraft:ore_magma",
+        "minecraft:spring_closed",
+        "minecraft:ore_gravel_nether",
+        "minecraft:ore_blackstone",
+        "minecraft:ore_gold_nether",
+        "minecraft:ore_quartz_nether",
+        "minecraft:ore_ancient_debris_large",
+        "minecraft:ore_debris_small"
+      ],
+      [],
+      [
+        "minecraft:spring_lava",
+        "~nylium_meadows",
+        "~sprouts",
+        "~glowstone_mounds"
+      ]
+    ],
+    "has_precipitation": false,
+    "temperature": 2.0
+  },
+  "features": {
+    "nylium_meadows": {
+      "feature": {
+        "type": "minecraft:vegetation_patch",
+        "depth": 1,
+        "extra_bottom_block_chance": 0.0,
+        "extra_edge_column_chance": 0.3,
+        "ground_state": {
+          "type": "minecraft:weighted",
+          "entries": [
+            {
+              "data": "minecraft:crimson_nylium",
+              "weight": 3
+            },
+            {
+              "data": "minecraft:warped_nylium",
+              "weight": 2
+            },
+            {
+              "data": "minecraft:netherrack",
+              "weight": 1
+            }
+          ]
+        },
+        "replaceable": "#minecraft:base_stone_nether",
+        "surface": "floor",
+        "vegetation_chance": 0.7,
+        "vegetation_feature": {
+          "feature": {
+            "type": "minecraft:simple_block",
+            "to_place": {
+              "type": "minecraft:weighted",
+              "entries": [
+                {
+                  "data": "minecraft:nether_sprouts",
+                  "weight": 6
+                },
+                {
+                  "data": "minecraft:crimson_roots",
+                  "weight": 4
+                },
+                {
+                  "data": "minecraft:warped_roots",
+                  "weight": 3
+                },
+                {
+                  "data": "minecraft:crimson_fungus",
+                  "weight": 1
+                },
+                {
+                  "data": "minecraft:warped_fungus",
+                  "weight": 1
+                }
+              ]
+            }
+          },
+          "placement": []
+        },
+        "vertical_range": 5,
+        "xz_radius": {
+          "type": "minecraft:uniform",
+          "max_inclusive": 8,
+          "min_inclusive": 4
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count_on_every_layer",
+          "count": 10
+        },
+        {
+          "type": "minecraft:biome"
+        }
+      ]
+    },
+    "sprouts": {
+      "feature": {
+        "type": "minecraft:simple_block",
+        "to_place": {
+          "type": "minecraft:weighted",
+          "entries": [
+            {
+              "data": "minecraft:nether_sprouts",
+              "weight": 3
+            },
+            {
+              "data": "minecraft:crimson_roots",
+              "weight": 2
+            },
+            {
+              "data": "minecraft:warped_roots",
+              "weight": 2
+            }
+          ]
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count_on_every_layer",
+          "count": 6
+        },
+        {
+          "type": "minecraft:biome"
+        },
+        {
+          "type": "minecraft:count",
+          "count": 48
+        },
+        {
+          "type": "minecraft:offset",
+          "x": {
+            "type": "minecraft:trapezoid",
+            "max": 7,
+            "min": -7,
+            "plateau": 0
+          },
+          "y": {
+            "type": "minecraft:trapezoid",
+            "max": 3,
+            "min": -3,
+            "plateau": 0
+          },
+          "z": {
+            "type": "minecraft:trapezoid",
+            "max": 7,
+            "min": -7,
+            "plateau": 0
+          }
+        },
+        {
+          "type": "minecraft:block_predicate_filter",
+          "predicate": {
+            "type": "minecraft:all_of",
+            "predicates": [
+              {
+                "type": "minecraft:matching_block_tag",
+                "tag": "minecraft:air"
+              },
+              {
+                "type": "minecraft:matching_blocks",
+                "blocks": [
+                  "minecraft:crimson_nylium",
+                  "minecraft:warped_nylium"
+                ],
+                "offset": [
+                  0,
+                  -1,
+                  0
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "glowstone_mounds": {
+      "feature": {
+        "type": "minecraft:block_blob",
+        "can_place_on": {
+          "type": "minecraft:matching_blocks",
+          "blocks": [
+            "minecraft:netherrack",
+            "minecraft:crimson_nylium",
+            "minecraft:warped_nylium"
+          ]
+        },
+        "state": "minecraft:glowstone"
+      },
+      "placement": [
+        {
+          "type": "minecraft:count_on_every_layer",
+          "count": 2
+        },
+        {
+          "type": "minecraft:biome"
+        }
+      ]
+    }
+  }
+}

@@ -20,8 +20,9 @@ same format as the base manifest's own `_clientMods` lists:
 }
 ```
 
-`add.required`/`add.optional` append slugs (duplicates are skipped);
-`remove` drops slugs from both `required` and `optional`. Only slugs
+`add.required`/`add.optional` add entries, replacing any already listed
+under the same slug; `remove` drops slugs from both `required` and
+`optional`. Entries match by slug, so `"sodium"` removes `sodium:QV48eyCs`. Only slugs
 already in the platform's mod catalogue can be added this way — a mod
 that's genuinely new needs a PR to the template repo first.
 

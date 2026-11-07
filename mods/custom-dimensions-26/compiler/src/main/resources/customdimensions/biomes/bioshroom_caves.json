@@ -1,0 +1,737 @@
+{
+  "$schema": "../../../../../../schema/biome.schema.json",
+  "realm": "caves",
+  "inspiredBy": "Regions Unexplored's bioshroom caves: caverns lit by giant glowing mushrooms.",
+  "differs": "Mushroom fields are a surface island whose mushrooms do not glow; here giant red and brown mushrooms grow in caverns on mycelium and mud, their caps speckled with shroomlight and froglights that light the dark, with small mushrooms underfoot, drifting spores and blue-green fog.",
+  "climate": {
+    "humidity": [
+      -0.35,
+      0.35
+    ],
+    "temperature": [
+      -0.45,
+      0.55
+    ],
+    "weirdness": [
+      0.5,
+      1.0
+    ],
+    "depth": [
+      0.2,
+      0.9
+    ]
+  },
+  "biome": {
+    "attributes": {
+      "minecraft:audio/ambient_sounds": {
+        "additions": {
+          "sound": "minecraft:block.cave_vines.fall",
+          "tick_chance": 0.003
+        },
+        "mood": {
+          "block_search_extent": 8,
+          "offset": 2.0,
+          "sound": "minecraft:ambient.cave",
+          "tick_delay": 6000
+        }
+      },
+      "minecraft:audio/background_music": {
+        "default": {
+          "max_delay": 24000,
+          "min_delay": 12000,
+          "sound": "minecraft:music.overworld.lush_caves"
+        }
+      },
+      "minecraft:gameplay/natural_mob_spawns": {
+        "argument": {
+          "spawn_costs": {},
+          "spawns_by_category": {
+            "ambient": [
+              {
+                "type": "minecraft:bat",
+                "count": 8,
+                "weight": 10
+              }
+            ],
+            "monster": [
+              {
+                "type": "minecraft:spider",
+                "count": 4,
+                "weight": 100
+              },
+              {
+                "type": "minecraft:zombie",
+                "count": 4,
+                "weight": 95
+              },
+              {
+                "type": "minecraft:zombie_villager",
+                "count": 1,
+                "weight": 5
+              },
+              {
+                "type": "minecraft:skeleton",
+                "count": 4,
+                "weight": 100
+              },
+              {
+                "type": "minecraft:creeper",
+                "count": 4,
+                "weight": 100
+              },
+              {
+                "type": "minecraft:slime",
+                "count": 4,
+                "weight": 100
+              },
+              {
+                "type": "minecraft:enderman",
+                "count": {
+                  "type": "minecraft:uniform",
+                  "max_inclusive": 4,
+                  "min_inclusive": 1
+                },
+                "weight": 10
+              },
+              {
+                "type": "minecraft:witch",
+                "count": 1,
+                "weight": 5
+              },
+              {
+                "type": "minecraft:drowned",
+                "count": 4,
+                "weight": 95
+              }
+            ],
+            "underground_water_creature": [
+              {
+                "type": "minecraft:glow_squid",
+                "count": {
+                  "type": "minecraft:uniform",
+                  "max_inclusive": 6,
+                  "min_inclusive": 4
+                },
+                "weight": 10
+              }
+            ]
+          }
+        },
+        "modifier": "overlay"
+      },
+      "minecraft:visual/ambient_particles": {
+        "argument": [
+          {
+            "particle": {
+              "type": "minecraft:warped_spore"
+            },
+            "probability": 0.008
+          }
+        ],
+        "modifier": "append"
+      },
+      "minecraft:visual/fog_color": "#3f8a86",
+      "minecraft:visual/sky_color": "#78a7ff",
+      "minecraft:visual/water_fog_color": "#1d4a52"
+    },
+    "carvers": [
+      "minecraft:cave",
+      "minecraft:cave_extra_underground",
+      "minecraft:canyon"
+    ],
+    "downfall": 0.9,
+    "effects": {
+      "water_color": "#3fa0a0"
+    },
+    "features": [
+      [],
+      [
+        "minecraft:lake_lava_underground"
+      ],
+      [
+        "minecraft:amethyst_geode"
+      ],
+      [
+        "minecraft:monster_room",
+        "minecraft:monster_room_deep"
+      ],
+      [],
+      [],
+      [
+        "minecraft:ore_dirt",
+        "minecraft:ore_gravel",
+        "minecraft:ore_granite_upper",
+        "minecraft:ore_granite_lower",
+        "minecraft:ore_diorite_upper",
+        "minecraft:ore_diorite_lower",
+        "minecraft:ore_andesite_upper",
+        "minecraft:ore_andesite_lower",
+        "minecraft:ore_tuff",
+        "minecraft:ore_coal_upper",
+        "minecraft:ore_coal_lower",
+        "minecraft:ore_iron_upper",
+        "minecraft:ore_iron_middle",
+        "minecraft:ore_iron_small",
+        "minecraft:ore_gold",
+        "minecraft:ore_gold_lower",
+        "minecraft:ore_redstone",
+        "minecraft:ore_redstone_lower",
+        "minecraft:ore_diamond",
+        "minecraft:ore_diamond_medium",
+        "minecraft:ore_diamond_large",
+        "minecraft:ore_diamond_buried",
+        "minecraft:ore_lapis",
+        "minecraft:ore_lapis_buried",
+        "minecraft:ore_copper",
+        "~mud_seams"
+      ],
+      [],
+      [
+        "minecraft:spring_water",
+        "minecraft:spring_lava"
+      ],
+      [
+        "~mycelium_floors",
+        "~giant_red",
+        "~giant_brown",
+        "~small_mushrooms",
+        "~lichen"
+      ],
+      [
+        "minecraft:freeze_top_layer"
+      ]
+    ],
+    "has_precipitation": true,
+    "temperature": 0.6
+  },
+  "features": {
+    "mud_seams": {
+      "feature": {
+        "type": "minecraft:ore",
+        "discard_chance_on_air_exposure": 0.0,
+        "size": 32,
+        "targets": [
+          {
+            "state": {
+              "id": "minecraft:mud"
+            },
+            "target": {
+              "predicate_type": "minecraft:tag_match",
+              "tag": "minecraft:base_stone_overworld"
+            }
+          }
+        ]
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 8
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:height_range",
+          "height": {
+            "type": "minecraft:uniform",
+            "max_inclusive": {
+              "absolute": 80
+            },
+            "min_inclusive": {
+              "above_bottom": 0
+            }
+          }
+        },
+        {
+          "type": "minecraft:biome"
+        }
+      ]
+    },
+    "mycelium_floors": {
+      "feature": {
+        "type": "minecraft:vegetation_patch",
+        "depth": {
+          "type": "minecraft:uniform",
+          "max_inclusive": 2,
+          "min_inclusive": 1
+        },
+        "extra_bottom_block_chance": 0.0,
+        "extra_edge_column_chance": 0.3,
+        "ground_state": {
+          "type": "minecraft:weighted",
+          "entries": [
+            {
+              "data": {
+                "id": "minecraft:mycelium",
+                "properties": {
+                  "snowy": "false"
+                }
+              },
+              "weight": 5
+            },
+            {
+              "data": "minecraft:mud",
+              "weight": 2
+            }
+          ]
+        },
+        "replaceable": "#minecraft:moss_replaceable",
+        "surface": "floor",
+        "vegetation_chance": 0.12,
+        "vegetation_feature": {
+          "feature": {
+            "type": "minecraft:simple_block",
+            "to_place": {
+              "type": "minecraft:weighted",
+              "entries": [
+                {
+                  "data": "minecraft:brown_mushroom",
+                  "weight": 2
+                },
+                {
+                  "data": "minecraft:red_mushroom",
+                  "weight": 1
+                }
+              ]
+            }
+          },
+          "placement": []
+        },
+        "vertical_range": 5,
+        "xz_radius": {
+          "type": "minecraft:uniform",
+          "max_inclusive": 8,
+          "min_inclusive": 5
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 160
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:height_range",
+          "height": {
+            "type": "minecraft:uniform",
+            "max_inclusive": {
+              "absolute": 256
+            },
+            "min_inclusive": {
+              "above_bottom": 0
+            }
+          }
+        },
+        {
+          "type": "minecraft:surface_relative_threshold_filter",
+          "heightmap": "OCEAN_FLOOR_WG",
+          "max_inclusive": -13
+        },
+        {
+          "type": "minecraft:environment_scan",
+          "allowed_search_condition": {
+            "type": "minecraft:matching_block_tag",
+            "tag": "minecraft:air"
+          },
+          "direction_of_search": "down",
+          "max_steps": 12,
+          "target_condition": {
+            "type": "minecraft:solid"
+          }
+        },
+        {
+          "type": "minecraft:offset",
+          "x": 0,
+          "y": 1,
+          "z": 0
+        },
+        {
+          "type": "minecraft:biome"
+        }
+      ]
+    },
+    "giant_red": {
+      "feature": {
+        "type": "minecraft:huge_red_mushroom",
+        "can_place_on": {
+          "type": "minecraft:matching_blocks",
+          "blocks": [
+            "minecraft:mycelium",
+            "minecraft:mud",
+            "minecraft:stone",
+            "minecraft:deepslate",
+            "minecraft:tuff"
+          ]
+        },
+        "cap_provider": {
+          "type": "minecraft:weighted",
+          "entries": [
+            {
+              "data": {
+                "id": "minecraft:red_mushroom_block",
+                "properties": {
+                  "down": "false",
+                  "east": "true",
+                  "north": "true",
+                  "south": "true",
+                  "up": "true",
+                  "west": "true"
+                }
+              },
+              "weight": 6
+            },
+            {
+              "data": {
+                "id": "minecraft:shroomlight"
+              },
+              "weight": 2
+            },
+            {
+              "data": {
+                "id": "minecraft:ochre_froglight",
+                "properties": {
+                  "axis": "y"
+                }
+              },
+              "weight": 1
+            }
+          ]
+        },
+        "stem_provider": {
+          "id": "minecraft:mushroom_stem",
+          "properties": {
+            "down": "false",
+            "east": "true",
+            "north": "true",
+            "south": "true",
+            "up": "false",
+            "west": "true"
+          }
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 90
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:height_range",
+          "height": {
+            "type": "minecraft:uniform",
+            "max_inclusive": {
+              "absolute": 256
+            },
+            "min_inclusive": {
+              "above_bottom": 0
+            }
+          }
+        },
+        {
+          "type": "minecraft:surface_relative_threshold_filter",
+          "heightmap": "OCEAN_FLOOR_WG",
+          "max_inclusive": -13
+        },
+        {
+          "type": "minecraft:environment_scan",
+          "allowed_search_condition": {
+            "type": "minecraft:matching_block_tag",
+            "tag": "minecraft:air"
+          },
+          "direction_of_search": "down",
+          "max_steps": 12,
+          "target_condition": {
+            "type": "minecraft:solid"
+          }
+        },
+        {
+          "type": "minecraft:offset",
+          "x": 0,
+          "y": 1,
+          "z": 0
+        },
+        {
+          "type": "minecraft:biome"
+        }
+      ]
+    },
+    "giant_brown": {
+      "feature": {
+        "type": "minecraft:huge_brown_mushroom",
+        "can_place_on": {
+          "type": "minecraft:matching_blocks",
+          "blocks": [
+            "minecraft:mycelium",
+            "minecraft:mud",
+            "minecraft:stone",
+            "minecraft:deepslate",
+            "minecraft:tuff"
+          ]
+        },
+        "cap_provider": {
+          "type": "minecraft:weighted",
+          "entries": [
+            {
+              "data": {
+                "id": "minecraft:brown_mushroom_block",
+                "properties": {
+                  "down": "false",
+                  "east": "true",
+                  "north": "true",
+                  "south": "true",
+                  "up": "true",
+                  "west": "true"
+                }
+              },
+              "weight": 6
+            },
+            {
+              "data": {
+                "id": "minecraft:verdant_froglight",
+                "properties": {
+                  "axis": "y"
+                }
+              },
+              "weight": 2
+            },
+            {
+              "data": {
+                "id": "minecraft:pearlescent_froglight",
+                "properties": {
+                  "axis": "y"
+                }
+              },
+              "weight": 1
+            }
+          ]
+        },
+        "foliage_radius": 3,
+        "stem_provider": {
+          "id": "minecraft:mushroom_stem",
+          "properties": {
+            "down": "false",
+            "east": "true",
+            "north": "true",
+            "south": "true",
+            "up": "false",
+            "west": "true"
+          }
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 60
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:height_range",
+          "height": {
+            "type": "minecraft:uniform",
+            "max_inclusive": {
+              "absolute": 256
+            },
+            "min_inclusive": {
+              "above_bottom": 0
+            }
+          }
+        },
+        {
+          "type": "minecraft:surface_relative_threshold_filter",
+          "heightmap": "OCEAN_FLOOR_WG",
+          "max_inclusive": -13
+        },
+        {
+          "type": "minecraft:environment_scan",
+          "allowed_search_condition": {
+            "type": "minecraft:matching_block_tag",
+            "tag": "minecraft:air"
+          },
+          "direction_of_search": "down",
+          "max_steps": 12,
+          "target_condition": {
+            "type": "minecraft:solid"
+          }
+        },
+        {
+          "type": "minecraft:offset",
+          "x": 0,
+          "y": 1,
+          "z": 0
+        },
+        {
+          "type": "minecraft:biome"
+        }
+      ]
+    },
+    "small_mushrooms": {
+      "feature": {
+        "type": "minecraft:simple_block",
+        "to_place": {
+          "type": "minecraft:weighted",
+          "entries": [
+            {
+              "data": "minecraft:brown_mushroom",
+              "weight": 2
+            },
+            {
+              "data": "minecraft:red_mushroom",
+              "weight": 1
+            }
+          ]
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 24
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:height_range",
+          "height": {
+            "type": "minecraft:uniform",
+            "max_inclusive": {
+              "absolute": 256
+            },
+            "min_inclusive": {
+              "above_bottom": 0
+            }
+          }
+        },
+        {
+          "type": "minecraft:surface_relative_threshold_filter",
+          "heightmap": "OCEAN_FLOOR_WG",
+          "max_inclusive": -13
+        },
+        {
+          "type": "minecraft:environment_scan",
+          "allowed_search_condition": {
+            "type": "minecraft:matching_block_tag",
+            "tag": "minecraft:air"
+          },
+          "direction_of_search": "down",
+          "max_steps": 12,
+          "target_condition": {
+            "type": "minecraft:solid"
+          }
+        },
+        {
+          "type": "minecraft:offset",
+          "x": 0,
+          "y": 1,
+          "z": 0
+        },
+        {
+          "type": "minecraft:biome"
+        },
+        {
+          "type": "minecraft:count",
+          "count": 16
+        },
+        {
+          "type": "minecraft:offset",
+          "x": {
+            "type": "minecraft:trapezoid",
+            "max": 5,
+            "min": -5,
+            "plateau": 0
+          },
+          "y": {
+            "type": "minecraft:trapezoid",
+            "max": 2,
+            "min": -2,
+            "plateau": 0
+          },
+          "z": {
+            "type": "minecraft:trapezoid",
+            "max": 5,
+            "min": -5,
+            "plateau": 0
+          }
+        },
+        {
+          "type": "minecraft:block_predicate_filter",
+          "predicate": {
+            "type": "minecraft:all_of",
+            "predicates": [
+              {
+                "type": "minecraft:matching_block_tag",
+                "tag": "minecraft:air"
+              },
+              {
+                "type": "minecraft:matching_blocks",
+                "blocks": [
+                  "minecraft:mycelium",
+                  "minecraft:mud"
+                ],
+                "offset": [
+                  0,
+                  -1,
+                  0
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "lichen": {
+      "feature": {
+        "type": "minecraft:multiface_growth",
+        "block": "minecraft:glow_lichen",
+        "can_be_placed_on": [
+          "minecraft:stone",
+          "minecraft:deepslate",
+          "minecraft:tuff",
+          "minecraft:mud",
+          "minecraft:mushroom_stem"
+        ],
+        "can_place_on_ceiling": true,
+        "can_place_on_wall": true,
+        "search_range": 20
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": {
+            "type": "minecraft:uniform",
+            "max_inclusive": 220,
+            "min_inclusive": 160
+          }
+        },
+        {
+          "type": "minecraft:height_range",
+          "height": {
+            "type": "minecraft:uniform",
+            "max_inclusive": {
+              "absolute": 256
+            },
+            "min_inclusive": {
+              "above_bottom": 0
+            }
+          }
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:surface_relative_threshold_filter",
+          "heightmap": "OCEAN_FLOOR_WG",
+          "max_inclusive": -13
+        },
+        {
+          "type": "minecraft:biome"
+        }
+      ]
+    }
+  }
+}

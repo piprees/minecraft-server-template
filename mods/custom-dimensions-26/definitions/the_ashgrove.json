@@ -1,0 +1,190 @@
+{
+  "schemaVersion": 2,
+  "description": "Ash-grey savanna under a volcanic sky. A settlement burned here once — abandoned camps and scorched tombs are all that remain. The grove remembers the fire, but not who set it.",
+  "seed": 4161223450669985569,
+  "spawn": [-64, 53, 128],
+  "generator": {
+    "type": "noise",
+    "preset": "overworld"
+  },
+  "biomes": [
+    {
+      "id": "adventure:saguaro_desert",
+      "climate": {
+        "depth": [-2.0, 0.1],
+        "humidity": [-2.0, -0.5657]
+      }
+    },
+    {
+      "id": "adventure:ashen_woodland",
+      "climate": {
+        "depth": [-2.0, 0.1],
+        "humidity": [-0.5657, -0.3514]
+      }
+    },
+    {
+      "id": "adventure:magma_land",
+      "climate": {
+        "depth": [-2.0, 0.1],
+        "humidity": [-0.3514, -0.1936]
+      }
+    },
+    {
+      "id": "adventure:blackstone_basin",
+      "climate": {
+        "depth": [-2.0, 0.1],
+        "humidity": [-0.1936, -0.088]
+      }
+    },
+    {
+      "id": "minecraft:savanna",
+      "climate": {
+        "depth": [-2.0, 0.1],
+        "humidity": [-0.088, -0.0531]
+      }
+    },
+    {
+      "id": "minecraft:wooded_badlands",
+      "climate": {
+        "depth": [-2.0, 0.1],
+        "humidity": [-0.0531, -0.0237]
+      }
+    },
+    {
+      "id": "minecraft:badlands",
+      "climate": {
+        "depth": [-2.0, 0.1],
+        "humidity": [-0.0237, 0.004]
+      }
+    },
+    {
+      "id": "minecraft:eroded_badlands",
+      "climate": {
+        "depth": [-2.0, 0.1],
+        "humidity": [0.004, 0.0223]
+      }
+    },
+    {
+      "id": "minecraft:basalt_deltas",
+      "climate": {
+        "depth": [-2.0, 0.1],
+        "humidity": [0.0223, 0.0687]
+      }
+    },
+    {
+      "id": "adventure:joshua_desert",
+      "climate": {
+        "depth": [-2.0, 0.1],
+        "humidity": [0.0687, 0.104]
+      }
+    },
+    {
+      "id": "minecraft:savanna",
+      "climate": {
+        "depth": [-2.0, 0.1],
+        "humidity": [0.104, 0.1711]
+      }
+    },
+    {
+      "id": "minecraft:windswept_savanna",
+      "climate": {
+        "depth": [-2.0, 0.1],
+        "humidity": [0.1711, 0.2069]
+      }
+    },
+    {
+      "id": "adventure:ashen_woodland",
+      "climate": {
+        "depth": [-2.0, 0.1],
+        "humidity": [0.2069, 0.2999]
+      }
+    },
+    {
+      "id": "adventure:baobab_savanna",
+      "climate": {
+        "depth": [-2.0, 0.1],
+        "humidity": [0.2999, 2.0]
+      }
+    },
+    {
+      "id": "minecraft:dripstone_caves",
+      "climate": {
+        "depth": [0.1, 2.0],
+        "humidity": [-2.0, 0.004]
+      }
+    },
+    {
+      "id": "adventure:mineral_strata",
+      "climate": {
+        "depth": [0.1, 2.0],
+        "humidity": [0.004, 2.0]
+      }
+    }
+  ],
+  "atmosphere": {
+    "fogColor": "#7B6B5B",
+    "ambientLight": 0.2
+  },
+  "borders": {
+    "player": 1024,
+    "generation": 1024
+  },
+  "difficulty": {
+    "mobMultiplier": 0.7,
+    "playerLuck": 1.5
+  },
+  "structures": {
+    "density": "sparse",
+    "clearSpawnRadius": 96,
+    "force": [
+      {
+        "structure": "nova_structures:remnant_graveyard",
+        "x": 150,
+        "z": 90,
+        "exclusive": false
+      },
+      {
+        "structure": "ati_structures:haunted_ruin",
+        "x": 540,
+        "z": -610
+      }
+    ]
+  },
+  "portals": [
+    {
+      "frameBlock": "minecraft:tuff",
+      "igniterItem": "minecraft:amethyst_shard",
+      "color": "7B8B6B",
+      "lightLevel": 11,
+      "scale": 8.0,
+      "cooldown": 40,
+      "particleType": "minecraft:ash",
+      "sounds": {
+        "ignite": "block.portal.trigger",
+        "enter": "block.portal.travel",
+        "exit": "block.portal.travel"
+      }
+    }
+  ],
+  "roll": {
+    "mood": "desolate",
+    "spawnFilter": [
+      "adventure:ashen_woodland"
+    ],
+    "wants": {
+      "minecraft:abandoned_camp_forest": "near_spawn",
+      "nova_structures:remnant_graveyard": "spread",
+      "nova_structures:surface_dungeon_desert": "near_border",
+      "mvs:small_ruin": "spread",
+      "nova_structures:remnant_ruin_farmer": "spread",
+      "nova_structures:wild_ruin": "spread",
+      "epic:small_sand_dungeon": "near_border"
+    },
+    "shuns": [
+      "village",
+      "tavern",
+      "monument"
+    ],
+    "water": "none"
+  }
+}

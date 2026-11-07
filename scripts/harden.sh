@@ -6,15 +6,16 @@
 # What it sets up:
 #   1. deploy user (passwordless sudo, root's keys + the GitHub deploy key)
 #   2. SSH: key-only, no root login (verify a new session BEFORE closing root!)
-#   3. UFW: deny inbound except SSH + SERVER_PORT/tcp + VOICE_PORT/udp
+#   3. UFW: deny inbound except SSH + SERVER_PORT/tcp + VOICE_PORT/udp +
+#      BEDROCK_PORT/tcp+udp (Geyser, 26.3)
 #   4. fail2ban: sshd only. The MC and nginx jails ship DISABLED - they cannot
 #      see a real client address (docker-proxy relays; cloudflared is outbound)
 #      and their unanchored filters let a crafted chat line or header ban an
 #      arbitrary IP. Rate limiting at ufw-before-input does that job instead.
 #   5. unattended upgrades, 2G swap (swappiness 10), journald capped at 200MB
 #   6. Docker with iptables=false (can't bypass UFW) + NAT/rate-limit rules in
-#      before.rules AND before6.rules (game 6 conn/min, voice 10 pkt/min, SYN
-#      30/min). The trusted-source ACCEPT is scoped to the bridge interfaces;
+#      before.rules AND before6.rules (game 6 conn/min, voice and Bedrock 10
+#      new flows/min, SYN 30/min). The trusted-source ACCEPT is scoped to the bridge interfaces;
 #      unscoped it admits anything claiming a 172.16/12 source.
 #   7. restic + zip for on-demand backups
 #
@@ -88,7 +89,7 @@ if [[ "${1:-}" == "--remote" ]]; then
   # executes the file, so a $(...) in any .env value would run on this machine,
   # and `set -a` would export the whole secret set into every child process.
   if [[ -f "$PROJECT_DIR/.env" ]]; then
-    for _k in DEPLOY_USER SERVER_PORT VOICE_PORT BRAND_SLUG; do
+    for _k in DEPLOY_USER SERVER_PORT VOICE_PORT BEDROCK_PORT BRAND_SLUG; do
       _v=$(grep -E "^${_k}=" "$PROJECT_DIR/.env" | head -1 | cut -d= -f2- | tr -d '\042\047' | tr -d '\n')
       [[ -n "$_v" ]] && eval "${_k}=\$_v"
     done
@@ -154,6 +155,7 @@ if [[ "${1:-}" == "--remote" ]]; then
           DEPLOY_USER=\\\"${DEPLOY_USER_VAL}\\\" \
           SERVER_PORT=\\\"${SERVER_PORT:-25577}\\\" \
           VOICE_PORT=\\\"${VOICE_PORT:-24454}\\\" \
+          BEDROCK_PORT=\\\"${BEDROCK_PORT:-19132}\\\" \
           CALLER_IP=\\\"${CALLER_IP:-}\\\" \
           /root/harden.sh --non-interactive > /root/harden.log 2>&1 \
           && touch /root/.harden-done \
@@ -420,6 +422,13 @@ VOICE_PORT="${VOICE_PORT:-24454}"
 ufw allow "${VOICE_PORT}/udp" comment "Simple Voice Chat"
 echo "  Allowed ${VOICE_PORT}/udp (voice)"
 
+# Bedrock clients through Geyser (the 26.3 list): NetherNet signaling over
+# TCP, gameplay over UDP. The SYN-flood limiter below covers the TCP side.
+BEDROCK_PORT="${BEDROCK_PORT:-19132}"
+ufw allow "${BEDROCK_PORT}/tcp" comment "Geyser Bedrock signaling"
+ufw allow "${BEDROCK_PORT}/udp" comment "Geyser Bedrock"
+echo "  Allowed ${BEDROCK_PORT}/tcp+udp (Bedrock)"
+
 # Enable UFW (non-interactive: auto-confirm)
 if ! echo "y" | ufw enable; then
   echo "ERROR: ufw enable failed. With iptables=false there is no filter behind" >&2
@@ -536,6 +545,7 @@ if ! grep -q 'RATE-LIMIT' "$UFW_BEFORE" 2> /dev/null; then
 -A ufw-before-input -i br+ -s 172.16.0.0/12 -j ACCEPT
 -A ufw-before-input -p tcp --dport ${SERVER_PORT:-25577} -m state --state NEW -m hashlimit --hashlimit-above 6/minute --hashlimit-burst 6 --hashlimit-mode srcip --hashlimit-name mc-game --hashlimit-htable-expire 30000 -j DROP
 -A ufw-before-input -p udp --dport ${VOICE_PORT:-24454} -m hashlimit --hashlimit-above 10/minute --hashlimit-burst 10 --hashlimit-mode srcip --hashlimit-name mc-voice --hashlimit-htable-expire 30000 -j DROP
+-A ufw-before-input -p udp --dport ${BEDROCK_PORT:-19132} -m hashlimit --hashlimit-above 10/minute --hashlimit-burst 10 --hashlimit-mode srcip --hashlimit-name mc-bedrock --hashlimit-htable-expire 30000 -j DROP
 -A ufw-before-input -p tcp --syn -m hashlimit --hashlimit-above 30/minute --hashlimit-burst 15 --hashlimit-mode srcip --hashlimit-name syn-flood --hashlimit-htable-expire 60000 -j DROP
 # END RATE-LIMIT
 RATELIMIT
@@ -566,6 +576,7 @@ if [[ -f "$UFW_BEFORE6" ]] && ! grep -q 'RATE-LIMIT' "$UFW_BEFORE6" 2> /dev/null
 # Rate limiting for game and voice ports over IPv6 (mirrors before.rules)
 -A ufw6-before-input -p tcp --dport ${SERVER_PORT:-25577} -m state --state NEW -m hashlimit --hashlimit-above 6/minute --hashlimit-burst 6 --hashlimit-mode srcip --hashlimit-name mc-game6 --hashlimit-htable-expire 30000 -j DROP
 -A ufw6-before-input -p udp --dport ${VOICE_PORT:-24454} -m hashlimit --hashlimit-above 10/minute --hashlimit-burst 10 --hashlimit-mode srcip --hashlimit-name mc-voice6 --hashlimit-htable-expire 30000 -j DROP
+-A ufw6-before-input -p udp --dport ${BEDROCK_PORT:-19132} -m hashlimit --hashlimit-above 10/minute --hashlimit-burst 10 --hashlimit-mode srcip --hashlimit-name mc-bedrock6 --hashlimit-htable-expire 30000 -j DROP
 -A ufw6-before-input -p tcp --syn -m hashlimit --hashlimit-above 30/minute --hashlimit-burst 15 --hashlimit-mode srcip --hashlimit-name syn-flood6 --hashlimit-htable-expire 60000 -j DROP
 # END RATE-LIMIT
 RATELIMIT6
@@ -975,8 +986,8 @@ echo ""
 echo " Root SSH and password login are now DISABLED."
 echo " Key-only access as '${NEWUSER}'."
 echo ""
-echo " Firewall allows: SSH, ${SERVER_PORT}/tcp (game), ${VOICE_PORT}/udp (voice)"
-echo " Rate limiting: game port (6/min), voice (10/min), SYN flood (30/min)"
+echo " Firewall allows: SSH, ${SERVER_PORT}/tcp (game), ${VOICE_PORT}/udp (voice), ${BEDROCK_PORT}/tcp+udp (Bedrock)"
+echo " Rate limiting: game port (6/min), voice and Bedrock (10/min), SYN flood (30/min)"
 echo " fail2ban: SSH only. MC and nginx jails ship disabled - see jail.local."
 echo " Docker: iptables=false (won't bypass UFW), log rotation enabled"
 echo " Swap: 2G safety net (swappiness=10)"

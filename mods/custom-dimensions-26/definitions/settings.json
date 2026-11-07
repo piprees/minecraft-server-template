@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 2,
+  "namespace": "adventure",
+  "idleUnloadMinutes": 5,
+  "frames": {
+    "overworld": "minecraft:mossy_stone_bricks",
+    "nether": "minecraft:obsidian",
+    "end": "minecraft:end_stone_bricks"
+  },
+  "defaults": {
+    "frameBlock": "minecraft:mossy_stone_bricks",
+    "borders": {
+      "player": 8192,
+      "generation": 2048
+    },
+    "difficulty": {
+      "mobMultiplier": 1.0,
+      "attributes": {
+        "health": true,
+        "damage": true,
+        "armor": true,
+        "speed": false,
+        "knockback": false
+      },
+      "playerLuck": 1.0
+    }
+  }
+}

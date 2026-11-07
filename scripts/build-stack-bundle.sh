@@ -8,6 +8,11 @@
 # Output: dist/stack-v1.2.3.tar.gz + dist/stack-v1.2.3.tar.gz.sha256
 #
 # Template-maintenance script — not shipped in the bundle itself.
+#
+# The bundle targets one Minecraft version: mc_version (lib.sh), so
+# MC_VERSION_OVERRIDE selects another version's in-house mod manifests
+# (mc_local_mods_manifest / mc_client_mods_manifest) and is written into the
+# bundle's .minecraft-version. Unset, the bundle carries the checkout's file.
 set -euo pipefail
 
 VERSION="${1:-${VERSION:-}}"
@@ -24,11 +29,19 @@ PROJECT_DIR="${CONSUMER_DIR:-$(cd "$SCRIPT_DIR/.." && pwd)}"
 DIST_DIR="$PROJECT_DIR/dist"
 STAGING_DIR="$DIST_DIR/.bundle-staging"
 BUNDLE_NAME="stack-v${VERSION}"
+# shellcheck source=scripts/lib.sh
+source "$SCRIPT_DIR/lib.sh"
 
 MANIFEST=(
   docker-compose.yml
   docker-compose.local.yml
   .env.example
+  # The Minecraft version and its facts: lib.sh's mc_version reads them
+  # beside scripts/, and minecraft_version.py is the Python reader.
+  .minecraft-version
+  scripts/minecraft-versions.tsv
+  scripts/game-rules.tsv
+  scripts/minecraft_version.py
   scripts/lib.sh
   scripts/force-toml-key.py
   scripts/deploy.sh
@@ -72,6 +85,7 @@ MANIFEST=(
   scripts/modrinth-api.py
   # Resolves stack/VERSION for every artefact stamp and cache key.
   scripts/stack_version.py
+  scripts/stack_update.py
   scripts/gen-suppress-catalogue.py
   scripts/server-power.sh
   scripts/discord-notify.sh
@@ -91,6 +105,7 @@ MANIFEST=(
   # bundle — its copy loops are guarded by [[ -f "$src" ]] and silently
   # skip missing sources.
   examples/consumer/.env.example
+  examples/consumer/.stack-version
   examples/consumer/.gitignore
   examples/consumer/AGENTS.md
   examples/consumer/commands.json
@@ -98,6 +113,7 @@ MANIFEST=(
   examples/consumer/.github/workflows/deploy.yml
   examples/consumer/.github/workflows/update.yml
   examples/consumer/.github/workflows/server-power.yml
+  examples/consumer/.github/dependabot.yml
 )
 
 echo "Building stack bundle v${VERSION}..."
@@ -124,13 +140,16 @@ for file in "${MANIFEST[@]}"; do
   mkdir -p "$(dirname "$dest")"
   cp "$PROJECT_DIR/$file" "$dest"
 done
+if [[ -n "${MC_VERSION_OVERRIDE:-}" ]]; then
+  echo "$MC_VERSION_OVERRIDE" > "$STAGING_DIR/stack/.minecraft-version"
+fi
 
 # Bundle the entire config/ directory (mod configs, messages, nginx, etc.)
 # Excludes 1password.env (secrets), pinned mod lists and the climate grids
 # (platform-internal: 2.3 MB that only check-band-share.py reads).
 rsync -a \
   --exclude='1password.env' \
-  --exclude='modrinth-mods.pinned.txt' \
+  --exclude='modrinth-mods*.pinned.txt' \
   --exclude='grids-41' \
   "$PROJECT_DIR/config/" "$STAGING_DIR/stack/config/"
 
@@ -138,7 +157,7 @@ rsync -a \
 # The manifest is the single source of truth for release delivery; a bundle
 # missing a platform mod must fail before it can reach a consumer.
 LOCAL_MODS="$DIST_DIR/local-mods"
-LOCAL_MODS_MANIFEST="$PROJECT_DIR/mods/local-mods.manifest"
+LOCAL_MODS_MANIFEST="$(mc_local_mods_manifest "$PROJECT_DIR")"
 [[ -f "$LOCAL_MODS_MANIFEST" ]] || {
   echo "ERROR: missing local mods manifest" >&2
   exit 1
@@ -187,9 +206,10 @@ echo "  Included $expected_count declared in-house mod JAR(s)"
 # server-install path (deploy.sh, dev-up.sh) reads local-mods and must keep
 # reading only that.
 CLIENT_MODS="$DIST_DIR/client-mods"
-CLIENT_MODS_MANIFEST="$PROJECT_DIR/mods/client-mods.manifest"
+CLIENT_MODS_MANIFEST="$(mc_client_mods_manifest "$PROJECT_DIR")"
 client_count=0
-if [[ -f "$CLIENT_MODS_MANIFEST" ]]; then
+# A manifest with no rows declares no client mods for the version.
+if [[ -f "$CLIENT_MODS_MANIFEST" ]] && grep -vqE '^[[:space:]]*(#|$)' "$CLIENT_MODS_MANIFEST"; then
   [[ -d "$CLIENT_MODS" ]] || {
     echo "ERROR: missing built client mods directory: $CLIENT_MODS" >&2
     exit 1

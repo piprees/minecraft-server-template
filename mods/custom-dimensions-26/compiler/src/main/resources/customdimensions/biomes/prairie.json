@@ -1,0 +1,490 @@
+{
+  "$schema": "../../../../../../schema/biome.schema.json",
+  "realm": "overworld",
+  "inspiredBy": "Regions Unexplored's prairie: a sea of tall grass under a big sky.",
+  "differs": "Plains are short green grass; this is knee-high golden grass and dry grass to the horizon, studded with wildflowers and sunflowers, with a lone oak every few hundred blocks and horses grazing.",
+  "climate": {
+    "temperature": [
+      0.2,
+      0.55
+    ],
+    "humidity": [
+      -1.0,
+      -0.35
+    ],
+    "continentalness": [
+      -0.11,
+      1.0
+    ],
+    "erosion": [
+      -0.2225,
+      1.0
+    ],
+    "depth": [
+      -2.0,
+      0.2
+    ]
+  },
+  "biome": {
+    "attributes": {
+      "minecraft:audio/background_music": {
+        "default": {
+          "max_delay": 24000,
+          "min_delay": 12000,
+          "sound": "minecraft:music.overworld.meadow"
+        }
+      },
+      "minecraft:gameplay/natural_mob_spawns": {
+        "argument": {
+          "spawn_costs": {},
+          "spawns_by_category": {
+            "ambient": [
+              {
+                "type": "minecraft:bat",
+                "count": 8,
+                "weight": 10
+              }
+            ],
+            "creature": [
+              {
+                "type": "minecraft:sheep",
+                "count": 4,
+                "weight": 12
+              },
+              {
+                "type": "minecraft:pig",
+                "count": 4,
+                "weight": 10
+              },
+              {
+                "type": "minecraft:chicken",
+                "count": 4,
+                "weight": 10
+              },
+              {
+                "type": "minecraft:cow",
+                "count": 4,
+                "weight": 8
+              },
+              {
+                "type": "minecraft:horse",
+                "count": {
+                  "type": "minecraft:uniform",
+                  "max_inclusive": 6,
+                  "min_inclusive": 2
+                },
+                "weight": 5
+              },
+              {
+                "type": "minecraft:donkey",
+                "count": {
+                  "type": "minecraft:uniform",
+                  "max_inclusive": 3,
+                  "min_inclusive": 1
+                },
+                "weight": 1
+              },
+              {
+                "type": "minecraft:horse",
+                "count": {
+                  "type": "minecraft:uniform",
+                  "max_inclusive": 6,
+                  "min_inclusive": 2
+                },
+                "weight": 6
+              }
+            ],
+            "monster": [
+              {
+                "type": "minecraft:spider",
+                "count": 4,
+                "weight": 100
+              },
+              {
+                "type": "minecraft:zombie",
+                "count": 4,
+                "weight": 90
+              },
+              {
+                "type": "minecraft:zombie_villager",
+                "count": 1,
+                "weight": 5
+              },
+              {
+                "type": "minecraft:zombie_horse",
+                "count": 1,
+                "weight": 5
+              },
+              {
+                "type": "minecraft:skeleton",
+                "count": 4,
+                "weight": 100
+              },
+              {
+                "type": "minecraft:creeper",
+                "count": 4,
+                "weight": 100
+              },
+              {
+                "type": "minecraft:slime",
+                "count": 4,
+                "weight": 100
+              },
+              {
+                "type": "minecraft:enderman",
+                "count": {
+                  "type": "minecraft:uniform",
+                  "max_inclusive": 4,
+                  "min_inclusive": 1
+                },
+                "weight": 10
+              },
+              {
+                "type": "minecraft:witch",
+                "count": 1,
+                "weight": 5
+              }
+            ],
+            "underground_water_creature": [
+              {
+                "type": "minecraft:glow_squid",
+                "count": {
+                  "type": "minecraft:uniform",
+                  "max_inclusive": 6,
+                  "min_inclusive": 4
+                },
+                "weight": 10
+              }
+            ]
+          }
+        },
+        "modifier": "overlay"
+      },
+      "minecraft:audio/ambient_sounds": {
+        "additions": {
+          "sound": "minecraft:block.dry_grass.ambient",
+          "tick_chance": 0.006
+        }
+      },
+      "minecraft:visual/fog_color": "#efe3b8",
+      "minecraft:visual/sky_color": "#74a4ff"
+    },
+    "carvers": [
+      "minecraft:cave",
+      "minecraft:cave_extra_underground",
+      "minecraft:canyon"
+    ],
+    "downfall": 0.3,
+    "effects": {
+      "grass_color": "#bfb35a",
+      "foliage_color": "#9da34a",
+      "water_color": "#3f76e4"
+    },
+    "features": [
+      [],
+      [
+        "minecraft:lake_lava_underground",
+        "minecraft:lake_lava_surface"
+      ],
+      [
+        "minecraft:amethyst_geode"
+      ],
+      [
+        "minecraft:monster_room",
+        "minecraft:monster_room_deep"
+      ],
+      [],
+      [],
+      [
+        "minecraft:ore_dirt",
+        "minecraft:ore_gravel",
+        "minecraft:ore_granite_upper",
+        "minecraft:ore_granite_lower",
+        "minecraft:ore_diorite_upper",
+        "minecraft:ore_diorite_lower",
+        "minecraft:ore_andesite_upper",
+        "minecraft:ore_andesite_lower",
+        "minecraft:ore_tuff",
+        "minecraft:ore_coal_upper",
+        "minecraft:ore_coal_lower",
+        "minecraft:ore_iron_upper",
+        "minecraft:ore_iron_middle",
+        "minecraft:ore_iron_small",
+        "minecraft:ore_gold",
+        "minecraft:ore_gold_lower",
+        "minecraft:ore_redstone",
+        "minecraft:ore_redstone_lower",
+        "minecraft:ore_diamond",
+        "minecraft:ore_diamond_medium",
+        "minecraft:ore_diamond_large",
+        "minecraft:ore_diamond_buried",
+        "minecraft:ore_lapis",
+        "minecraft:ore_lapis_buried",
+        "minecraft:ore_copper",
+        "minecraft:underwater_magma",
+        "minecraft:disk_sand",
+        "minecraft:disk_clay",
+        "minecraft:disk_gravel"
+      ],
+      [],
+      [
+        "minecraft:spring_water",
+        "minecraft:spring_lava"
+      ],
+      [
+        "minecraft:glow_lichen",
+        "~lone_oaks",
+        "~tall_grass",
+        "~wildflowers",
+        "~sunflowers",
+        "minecraft:patch_grass_plain"
+      ],
+      [
+        "minecraft:freeze_top_layer"
+      ]
+    ],
+    "has_precipitation": true,
+    "temperature": 0.8
+  },
+  "features": {
+    "tall_grass": {
+      "feature": {
+        "type": "minecraft:simple_block",
+        "to_place": {
+          "type": "minecraft:weighted",
+          "entries": [
+            {
+              "data": {
+                "id": "minecraft:tall_grass",
+                "properties": {
+                  "half": "lower"
+                }
+              },
+              "weight": 4
+            },
+            {
+              "data": "minecraft:tall_dry_grass",
+              "weight": 2
+            },
+            {
+              "data": "minecraft:short_dry_grass",
+              "weight": 1
+            }
+          ]
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 6
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:heightmap",
+          "heightmap": "MOTION_BLOCKING"
+        },
+        {
+          "type": "minecraft:biome"
+        },
+        {
+          "type": "minecraft:count",
+          "count": 64
+        },
+        {
+          "type": "minecraft:offset",
+          "x": {
+            "type": "minecraft:trapezoid",
+            "max": 7,
+            "min": -7,
+            "plateau": 0
+          },
+          "y": {
+            "type": "minecraft:trapezoid",
+            "max": 3,
+            "min": -3,
+            "plateau": 0
+          },
+          "z": {
+            "type": "minecraft:trapezoid",
+            "max": 7,
+            "min": -7,
+            "plateau": 0
+          }
+        },
+        {
+          "type": "minecraft:block_predicate_filter",
+          "predicate": {
+            "type": "minecraft:all_of",
+            "predicates": [
+              {
+                "type": "minecraft:matching_block_tag",
+                "tag": "minecraft:air"
+              },
+              {
+                "type": "minecraft:matching_blocks",
+                "blocks": [
+                  "minecraft:grass_block"
+                ],
+                "offset": [
+                  0,
+                  -1,
+                  0
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "wildflowers": {
+      "feature": "minecraft:wildflower",
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 2
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:heightmap",
+          "heightmap": "MOTION_BLOCKING"
+        },
+        {
+          "type": "minecraft:biome"
+        },
+        {
+          "type": "minecraft:count",
+          "count": 32
+        },
+        {
+          "type": "minecraft:offset",
+          "x": {
+            "type": "minecraft:trapezoid",
+            "max": 7,
+            "min": -7,
+            "plateau": 0
+          },
+          "y": {
+            "type": "minecraft:trapezoid",
+            "max": 3,
+            "min": -3,
+            "plateau": 0
+          },
+          "z": {
+            "type": "minecraft:trapezoid",
+            "max": 7,
+            "min": -7,
+            "plateau": 0
+          }
+        },
+        {
+          "type": "minecraft:block_predicate_filter",
+          "predicate": {
+            "type": "minecraft:matching_block_tag",
+            "tag": "minecraft:air"
+          }
+        }
+      ]
+    },
+    "sunflowers": {
+      "feature": "minecraft:sunflower",
+      "placement": [
+        {
+          "type": "minecraft:rarity_filter",
+          "chance": 2
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:heightmap",
+          "heightmap": "MOTION_BLOCKING"
+        },
+        {
+          "type": "minecraft:biome"
+        },
+        {
+          "type": "minecraft:count",
+          "count": 24
+        },
+        {
+          "type": "minecraft:offset",
+          "x": {
+            "type": "minecraft:trapezoid",
+            "max": 7,
+            "min": -7,
+            "plateau": 0
+          },
+          "y": {
+            "type": "minecraft:trapezoid",
+            "max": 3,
+            "min": -3,
+            "plateau": 0
+          },
+          "z": {
+            "type": "minecraft:trapezoid",
+            "max": 7,
+            "min": -7,
+            "plateau": 0
+          }
+        },
+        {
+          "type": "minecraft:block_predicate_filter",
+          "predicate": {
+            "type": "minecraft:all_of",
+            "predicates": [
+              {
+                "type": "minecraft:matching_block_tag",
+                "tag": "minecraft:air"
+              },
+              {
+                "type": "minecraft:matching_blocks",
+                "blocks": [
+                  "minecraft:grass_block"
+                ],
+                "offset": [
+                  0,
+                  -1,
+                  0
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "lone_oaks": {
+      "feature": "minecraft:fancy_oak",
+      "placement": [
+        {
+          "type": "minecraft:rarity_filter",
+          "chance": 6
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:surface_water_depth_filter",
+          "max_water_depth": 0
+        },
+        {
+          "type": "minecraft:heightmap",
+          "heightmap": "OCEAN_FLOOR"
+        },
+        {
+          "type": "minecraft:biome"
+        },
+        {
+          "type": "minecraft:block_predicate_filter",
+          "predicate": {
+            "type": "minecraft:would_survive",
+            "state": "minecraft:oak_sapling"
+          }
+        }
+      ]
+    }
+  }
+}

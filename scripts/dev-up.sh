@@ -101,6 +101,13 @@ case "$ACTION" in
       cp "$f" "$dest"
       printf '  platform: %s\n' "${f#./}"
     done
+    mc_v="$(mc_version)"
+    version_config_files "$mc_v" | while IFS= read -r f; do
+      rel="${f#./versions/"$mc_v"/}"
+      mkdir -p "$(dirname "$local_data_cfg/$rel")"
+      cp "$f" "$local_data_cfg/$rel"
+      printf '  platform (%s): %s\n' "$mc_v" "$rel"
+    done
     cd "$CONSUMER_DIR"
 
     # The staged dimension overlay is DERIVED from overlay/config/custom-dimensions,
@@ -154,6 +161,12 @@ if [[ -f "$CONSUMER_DIR/.env" ]]; then
   source "$CONSUMER_DIR/.env"
   set +a
 fi
+export_mc_version
+# The tracked pin file beats a deprecated STACK_VERSION in .env, as in `dev`.
+if [[ -f "$CONSUMER_DIR/.stack-version" ]]; then
+  STACK_PIN_FILE=$(grep -vE '^[[:space:]]*(#|$)' "$CONSUMER_DIR/.stack-version" | head -1 | tr -d '[:space:]') || true
+  [[ -z "$STACK_PIN_FILE" ]] || export STACK_VERSION="$STACK_PIN_FILE"
+fi
 
 # --- Resolve variables --------------------------------------------------------
 # Pin images to the stack version so local dev uses the same images as
@@ -205,7 +218,7 @@ fi
 # --- Print /etc/hosts lines --------------------------------------------------
 echo ""
 echo "Starting Minecraft server (local profile, project: ${COMPOSE_PROJECT_NAME})..."
-echo "  Version:  ${MC_VERSION:-1.21.1}"
+echo "  Version:  ${MC_VERSION}"
 echo "  Game:     mc.${LOCAL_DOMAIN}:${GAME_PORT}"
 echo "  Voice:    mc.${LOCAL_DOMAIN}:${VOICE_PORT} (UDP)"
 echo "  Web:      http://${LOCAL_DOMAIN}:${WEB_PORT}"
@@ -226,6 +239,14 @@ if [[ -d "$BUNDLE_CONFIG" ]]; then
   local_data_cfg="$CONSUMER_DIR/data/config"
   mkdir -p "$local_data_cfg"
   cd "$BUNDLE_CONFIG"
+  # The version overlay goes first: a path it seeds is then skipped by the base.
+  version_config_files "$MC_VERSION" | while IFS= read -r f; do
+    dest="$local_data_cfg/${f#./versions/"$MC_VERSION"/}"
+    if [[ ! -f "$dest" ]]; then
+      mkdir -p "$(dirname "$dest")"
+      cp "$f" "$dest"
+    fi
+  done
   platform_config_files | while IFS= read -r f; do
     dest="$local_data_cfg/${f#./}"
     if [[ ! -f "$dest" ]]; then
@@ -246,6 +267,27 @@ if [[ -d "$CONSUMER_DIR/overlay/config/custom-dimensions" ]]; then
   cp -R "$CONSUMER_DIR/overlay/config/custom-dimensions/." \
     "$CONSUMER_DIR/data/config/custom-dimensions/overlay/"
   echo "  Dimension overlay staged at data/config/custom-dimensions/overlay/"
+fi
+
+# A checkout linked at a version the 26.x rebuild serves stages its v2 set as
+# smoke-26.sh does (cutover-removals.md): the mod refuses a dimensions/ file
+# without "schemaVersion", and the base config seeds the 1.21.1 set and its
+# thumbnails there. A v2 file the consumer added stays.
+V2_SOURCE=""
+[[ -f "$STACK_DIR/PLATFORM" ]] && V2_SOURCE="$(cat "$STACK_DIR/PLATFORM")/mods/custom-dimensions-26"
+if [[ "$MC_VERSION" != 1.* && -n "$V2_SOURCE" && -d "$V2_SOURCE/definitions" ]]; then
+  v2_dims="$CONSUMER_DIR/data/config/custom-dimensions/dimensions"
+  v2_bridges="$CONSUMER_DIR/data/config/custom-dimensions/bridges"
+  mkdir -p "$v2_dims"
+  cp "$V2_SOURCE"/definitions/*.json "$v2_dims/"
+  for f in "$v2_dims"/*; do
+    [[ -f "$f" && "$f" == *.json ]] && grep -q '"schemaVersion"' "$f" && continue
+    rm -f "$f"
+  done
+  rm -rf "$v2_bridges"
+  mkdir -p "$v2_bridges"
+  cp "$V2_SOURCE"/bridges/*.json "$v2_bridges/"
+  echo "  v2 definitions staged: $(find "$v2_dims" -name '*.json' | wc -l | tr -d ' ') files, $(find "$v2_bridges" -name '*.json' | wc -l | tr -d ' ') bridges"
 fi
 
 # --- Sync platform datapacks into the world -----------------------------------
@@ -282,7 +324,7 @@ fi
 # deploy.sh.
 if [[ -d "$dp_dir" ]]; then
   python3 "$SCRIPT_DIR/filter-datapacks.py" "$dp_dir" \
-    "$STACK_DIR/config/modrinth-mods.txt" "$CONSUMER_DIR/overlay" || true
+    "$(mc_mod_list "$STACK_DIR")" "$CONSUMER_DIR/overlay" || true
 fi
 
 # --- Enforce c2me density-function-compiler OFF -------------------------------
@@ -330,9 +372,7 @@ fi
 # The tag comes from the compose file rather than a second copy here: a
 # duplicated pin silently stops matching when the compose one moves, and the
 # only symptom is the SQLITE_CANTOPEN crash this exists to prevent.
-MC_IMAGE="$(sed -n 's|.*image: .*/\(itzg/minecraft-server:[^ ]*\).*|\1|p' \
-  "$STACK_DIR/docker-compose.yml" | head -1)"
-MC_IMAGE="${MIRROR_REGISTRY:-ghcr.io/piprees/mirrors}/${MC_IMAGE:-itzg/minecraft-server:latest}"
+MC_IMAGE="${MIRROR_REGISTRY:-ghcr.io/piprees/mirrors}/itzg/minecraft-server:${MC_IMAGE_TAG}"
 
 # $1 = volume suffix, $2 = mount path, $3 = what breaks if the chown fails.
 chown_sqlite_volume() {
@@ -556,6 +596,10 @@ compose_up() {
     --profile local up -d "$@"
 }
 
+# itzg chowns /data only when /data itself is foreign, so a root host's later
+# writes under an already-chowned data/ stay root's and the server cannot
+# write its own config (as smoke-26.sh).
+if [[ "$(id -u)" -eq 0 ]]; then chown -R 1000:1000 "$CONSUMER_DIR/data"; fi
 compose_up seed
 SEED_EXIT=$(docker wait "${CONTAINER_PREFIX:-}seed")
 if [[ "$SEED_EXIT" != "0" ]]; then
@@ -692,7 +736,7 @@ if [[ "$HAVE_MRPACK" == "false" || "$CURRENT_INPUTS" != "$PREV_INPUTS" ]]; then
     -e "DOMAIN=${LOCAL_DOMAIN:-${DOMAIN:-localhost}}" \
     -e "BRAND_NAME=${BRAND_NAME:-My Server}" \
     -e "BRAND_SLUG=${BRAND_SLUG:-myserver}" \
-    -e "MC_VERSION=${MC_VERSION:-1.21.1}" \
+    -e "MC_VERSION=${MC_VERSION}" \
     -e "SERVER_PORT=${SERVER_PORT:-25577}" \
     -e "LOCAL_DOMAIN=${LOCAL_DOMAIN:-localhost}" \
     -e "GIT_SHA=${GIT_SHA:-local}" \

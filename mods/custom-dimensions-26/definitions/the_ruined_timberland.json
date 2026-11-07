@@ -1,0 +1,128 @@
+{
+  "schemaVersion": 2,
+  "description": "Autumn woods strewn with ruins. Every clearing has bones of something older — temples, crypts, pumpkin ruins from a harvest festival that was never finished. Rich pickings, no living towns. Whoever these people were, they left in a hurry.",
+  "seed": 4061554075528553580,
+  "spawn": [-64, 77, 512],
+  "generator": {
+    "type": "noise",
+    "preset": "overworld"
+  },
+  "biomes": [
+    {
+      "id": "minecraft:dripstone_caves",
+      "climate": {
+        "humidity": [-2.0, 0.005],
+        "depth": [0.2, 2.0]
+      }
+    },
+    {
+      "id": "minecraft:deep_dark",
+      "climate": {
+        "humidity": [0.005, 2.0],
+        "depth": [0.2, 2.0]
+      }
+    },
+    {
+      "id": "adventure:aspen_forest",
+      "climate": {
+        "temperature": [-2.0, 0.179],
+        "humidity": [-2.0, -0.104]
+      }
+    },
+    {
+      "id": "minecraft:dappled_forest",
+      "climate": {
+        "temperature": [-2.0, 0.179],
+        "humidity": [-0.104, 0.099]
+      }
+    },
+    {
+      "id": "minecraft:pale_garden",
+      "climate": {
+        "temperature": [-2.0, 0.179],
+        "humidity": [0.099, 2.0]
+      }
+    },
+    {
+      "id": "minecraft:forest",
+      "climate": {
+        "temperature": [0.179, 0.369],
+        "humidity": [-2.0, 0.061]
+      }
+    },
+    {
+      "id": "minecraft:birch_forest",
+      "climate": {
+        "temperature": [0.179, 0.369],
+        "humidity": [0.061, 2.0]
+      }
+    },
+    {
+      "id": "adventure:maple_woodland",
+      "climate": {
+        "temperature": [0.369, 2.0],
+        "humidity": [-2.0, 0.005]
+      }
+    },
+    {
+      "id": "minecraft:dark_forest",
+      "climate": {
+        "temperature": [0.369, 2.0],
+        "humidity": [0.005, 2.0]
+      }
+    }
+  ],
+  "liquids": {
+    "seaLevel": 44
+  },
+  "borders": {
+    "player": 1024,
+    "generation": 1024
+  },
+  "difficulty": {
+    "mobMultiplier": 1.3,
+    "playerLuck": 1.6
+  },
+  "structures": {
+    "density": "dense",
+    "radial": {
+      "dungeons": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+    }
+  },
+  "portals": [
+    {
+      "frameBlock": "minecraft:chiseled_stone_bricks",
+      "igniterItem": "minecraft:amethyst_shard",
+      "color": "8B7B5B",
+      "lightLevel": 11,
+      "scale": 8.0,
+      "cooldown": 40,
+      "sounds": {
+        "ignite": "block.portal.trigger",
+        "enter": "block.portal.travel",
+        "exit": "block.portal.travel"
+      }
+    }
+  ],
+  "roll": {
+    "mood": "adventurous",
+    "spawnFilter": [
+      "minecraft:forest"
+    ],
+    "wants": {
+      "nova_structures:wild_ruin": "spread",
+      "mvs:log_ruin": "near_spawn",
+      "ati_structures:manor": "spread",
+      "ati_structures:rotting_temple": "spread",
+      "nova_structures:small_undead_crypt": "spread",
+      "nova_structures:remnant_ruin_farmer": "near_spawn",
+      "nova_structures:undead_crypt": "near_border",
+      "nova_structures:remnant_graveyard": "spread",
+      "nova_structures:remnant_shrine_sentinel_mass_grave": "near_border"
+    },
+    "shuns": [
+      "village",
+      "tavern"
+    ]
+  }
+}

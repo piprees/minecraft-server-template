@@ -1,0 +1,185 @@
+{
+  "schemaVersion": 2,
+  "description": "Floating garden islands — sakura and skylands adrift in a void slowly winning. The animals' paradise, where nothing was ever built to last and nothing needs to. Sky houses and castle ruins dot the islands like driftwood.",
+  "seed": -2068817936672598070,
+  "spawn": [0, 42, 0],
+  "generator": {
+    "type": "noise",
+    "preset": "floating_islands"
+  },
+  "biomes": [
+    {
+      "id": "minecraft:flower_forest",
+      "climate": {
+        "temperature": [-2.0, -0.499],
+        "humidity": [-2.0, -0.1]
+      }
+    },
+    {
+      "id": "adventure:windswept_isles",
+      "climate": {
+        "temperature": [-2.0, -0.499],
+        "humidity": [-0.1, 0.092]
+      }
+    },
+    {
+      "id": "minecraft:snowy_slopes",
+      "climate": {
+        "temperature": [-2.0, -0.499],
+        "humidity": [0.092, 0.281]
+      }
+    },
+    {
+      "id": "adventure:alpine_meadow",
+      "climate": {
+        "temperature": [-2.0, -0.499],
+        "humidity": [0.281, 2.0]
+      }
+    },
+    {
+      "id": "minecraft:sunflower_plains",
+      "climate": {
+        "temperature": [-0.499, -0.294],
+        "humidity": [-2.0, -0.252]
+      }
+    },
+    {
+      "id": "minecraft:plains",
+      "climate": {
+        "temperature": [-0.499, -0.294],
+        "humidity": [-0.252, 0.015]
+      }
+    },
+    {
+      "id": "minecraft:forest",
+      "climate": {
+        "temperature": [-0.499, -0.294],
+        "humidity": [0.015, 0.231]
+      }
+    },
+    {
+      "id": "minecraft:birch_forest",
+      "climate": {
+        "temperature": [-0.499, -0.294],
+        "humidity": [0.231, 2.0]
+      }
+    },
+    {
+      "id": "adventure:lavender_fields",
+      "climate": {
+        "temperature": [-0.294, 0.012],
+        "humidity": [-2.0, -0.252]
+      }
+    },
+    {
+      "id": "adventure:sky_highlands",
+      "climate": {
+        "temperature": [-0.294, 0.012],
+        "humidity": [-0.252, 0.015]
+      }
+    },
+    {
+      "id": "minecraft:meadow",
+      "climate": {
+        "temperature": [-0.294, 0.012],
+        "humidity": [0.015, 0.231]
+      }
+    },
+    {
+      "id": "minecraft:cherry_grove",
+      "climate": {
+        "temperature": [-0.294, 0.012],
+        "humidity": [0.231, 2.0]
+      }
+    },
+    {
+      "id": "adventure:desert_oasis",
+      "climate": {
+        "temperature": [0.012, 2.0],
+        "humidity": [-2.0, -0.1]
+      }
+    },
+    {
+      "id": "adventure:golden_skygrove",
+      "climate": {
+        "temperature": [0.012, 2.0],
+        "humidity": [-0.1, 0.177]
+      }
+    },
+    {
+      "id": "adventure:hanging_gardens",
+      "climate": {
+        "temperature": [0.012, 2.0],
+        "humidity": [0.177, 2.0]
+      }
+    }
+  ],
+  "liquids": {
+    "seaLevel": -64,
+    "defaultFluid": "minecraft:water"
+  },
+  "materials": {
+    "defaultBlock": "minecraft:stone"
+  },
+  "borders": {
+    "player": 4096,
+    "generation": 2048
+  },
+  "difficulty": {
+    "mobMultiplier": 1.5,
+    "playerLuck": 1.5
+  },
+  "structures": {
+    "noise": {
+      "endgame": "sparse"
+    }
+  },
+  "portals": [
+    {
+      "frameBlock": "minecraft:quartz_block",
+      "igniterItem": "minecraft:amethyst_shard",
+      "color": "B0D8F0",
+      "lightLevel": 11,
+      "scale": 2.0,
+      "cooldown": 40,
+      "particleType": "minecraft:end_rod",
+      "sounds": {
+        "ignite": "block.portal.trigger",
+        "enter": "block.portal.travel",
+        "exit": "block.portal.travel"
+      },
+      "aura": {
+        "subsume": "natural"
+      }
+    }
+  ],
+  "roll": {
+    "mood": "scenic",
+    "spawnFilter": [
+      "minecraft:cherry_grove",
+      "minecraft:flower_forest",
+      "adventure:sky_highlands",
+      "minecraft:plains",
+      "minecraft:meadow",
+      "minecraft:forest",
+      "minecraft:birch_forest"
+    ],
+    "wants": {
+      "sky_house": "near_spawn",
+      "sky_castle_ruin": "spread",
+      "sky_arena": "spread",
+      "sky_volcano": "near_border",
+      "sky_castle_tower": "near_border",
+      "mvs:small_oak_lantern": "near_spawn",
+      "minecraft:abandoned_camp_forest": "near_spawn"
+    },
+    "shuns": [
+      "ancient_city",
+      "trial_chambers",
+      "mansion",
+      "monument",
+      "mss:arena"
+    ],
+    "terrain": "islands"
+  }
+}

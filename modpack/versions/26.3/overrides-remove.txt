@@ -1,0 +1,14 @@
+# Paths under modpack/overrides/ the 26.3 pack leaves out (pack_version_overrides
+# in scripts/lib.sh): settings of mods the register cuts, replaces or rebuilds
+# (docs/design/rebuild-26/mod-register.csv). A waiting mod's settings stay, so
+# they apply when its 26.3 build joins the pack.
+config/fabric_loader_dependencies.json
+config/betterend
+configureddefaults/config/amendments-client.json
+configureddefaults/config/betterdays-client.toml
+configureddefaults/config/bettercombat
+configureddefaults/config/bountiful
+configureddefaults/config/crepperoverhaul-client.jsonc
+configureddefaults/config/dramaticdoors-startup.toml
+configureddefaults/config/emi.css
+configureddefaults/config/supplementaries-client.json

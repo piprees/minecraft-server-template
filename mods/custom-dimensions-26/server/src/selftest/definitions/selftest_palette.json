@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 2,
+  "description": "Self-test fixture: plains and desert in 16-block cells, a moss, packed mud and smooth basalt palette, and red sand on top in the desert.",
+  "seed": 33,
+  "spawn": [0, 64, 0],
+  "generator": {
+    "type": "checkerboard",
+    "cellScale": 0
+  },
+  "biomes": ["minecraft:plains", "minecraft:desert"],
+  "materials": {
+    "top": "minecraft:moss_block",
+    "filler": "minecraft:packed_mud",
+    "deep": "minecraft:smooth_basalt",
+    "biomes": {
+      "minecraft:desert": {
+        "top": "minecraft:red_sand"
+      }
+    }
+  },
+  "borders": {
+    "player": 256
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "base": "minecraft:overworld",
+  "changed": {
+    "aquifers": "sha1:32e953441693292e25fdb8d4d220336f71283fcf",
+    "default_fluid": "minecraft:lava",
+    "material_rule": "sha1:68a07595b933d1204deb00c97bff65615d11e05b",
+    "noise_router": "sha1:dedec619d73bce7b1c6e0b75aeafd1345a3e3e45",
+    "sea_level": 40
+  },
+  "removed": [
+    "debug_functions",
+    "default_block"
+  ]
+}

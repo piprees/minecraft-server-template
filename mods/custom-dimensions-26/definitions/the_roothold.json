@@ -1,0 +1,143 @@
+{
+  "schemaVersion": 2,
+  "description": "Deep old-growth forest with roots in everything. The witches' experiments took hold here — the forest grew around their work and made it its own. The roots go a long way down, and they did not stop at stone.",
+  "seed": -4466427064329235351,
+  "spawn": [256, 57, -64],
+  "generator": {
+    "type": "noise",
+    "preset": "overworld"
+  },
+  "biomes": [
+    {
+      "id": "adventure:lichen_caves",
+      "climate": {
+        "humidity": [-2.0, 0.01],
+        "depth": [0.2, 2.0]
+      }
+    },
+    {
+      "id": "minecraft:lush_caves",
+      "climate": {
+        "humidity": [0.01, 2.0],
+        "depth": [0.2, 2.0]
+      }
+    },
+    {
+      "id": "minecraft:taiga",
+      "climate": {
+        "temperature": [-2.0, 0.071],
+        "humidity": [-2.0, -0.126]
+      }
+    },
+    {
+      "id": "minecraft:windswept_forest",
+      "climate": {
+        "temperature": [-2.0, 0.071],
+        "humidity": [-0.126, 0.139]
+      }
+    },
+    {
+      "id": "adventure:redwood_grove",
+      "climate": {
+        "temperature": [-2.0, 0.071],
+        "humidity": [0.139, 2.0]
+      }
+    },
+    {
+      "id": "minecraft:forest",
+      "climate": {
+        "temperature": [0.071, 0.256],
+        "humidity": [-2.0, 0.088]
+      }
+    },
+    {
+      "id": "minecraft:old_growth_spruce_taiga",
+      "climate": {
+        "temperature": [0.071, 0.256],
+        "humidity": [0.088, 2.0]
+      }
+    },
+    {
+      "id": "minecraft:dark_forest",
+      "climate": {
+        "temperature": [0.256, 2.0],
+        "humidity": [-2.0, 0.01]
+      }
+    },
+    {
+      "id": "minecraft:swamp",
+      "climate": {
+        "temperature": [0.256, 2.0],
+        "humidity": [0.01, 2.0]
+      }
+    }
+  ],
+  "borders": {
+    "player": 1024,
+    "generation": 1024
+  },
+  "difficulty": {
+    "mobMultiplier": 1.2,
+    "playerLuck": 1.4,
+    "depthScaling": {
+      "enabled": true,
+      "startY": 40,
+      "endY": -60,
+      "minMultiplier": 1.2,
+      "maxMultiplier": 2.4
+    }
+  },
+  "structures": {
+    "radial": {
+      "dungeons": [0.0, 0.1, 0.3, 0.5, 0.8, 1.0, 1.3, 1.6, 1.8, 2.0]
+    },
+    "force": [
+      {
+        "structure": "nova_structures:creeping_crypt",
+        "x": 620,
+        "z": -580,
+        "exclusive": false
+      },
+      {
+        "structure": "ati_structures:wither_cavern",
+        "x": -540,
+        "z": 660
+      }
+    ]
+  },
+  "portals": [
+    {
+      "frameBlock": "minecraft:rooted_dirt",
+      "igniterItem": "minecraft:amethyst_shard",
+      "color": "7B5E3B",
+      "lightLevel": 11,
+      "scale": 8.0,
+      "cooldown": 40,
+      "sounds": {
+        "ignite": "block.portal.trigger",
+        "enter": "block.portal.travel",
+        "exit": "block.portal.travel"
+      }
+    }
+  ],
+  "roll": {
+    "mood": "adventurous",
+    "spawnFilter": [
+      "minecraft:forest"
+    ],
+    "wants": {
+      "mvs:log_ruin": "spread",
+      "ati_structures:manor": "near_border",
+      "ati_structures:spider_nest": "spread",
+      "mansion": "near_border",
+      "ati_structures:jungle_grotto": "spread",
+      "creeping_crypt": "spread",
+      "ati_structures:silverfish_nest": "spread",
+      "ati_structures:rotting_temple_underground": "spread"
+    },
+    "shuns": [
+      "monument",
+      "mss:arena"
+    ]
+  }
+}

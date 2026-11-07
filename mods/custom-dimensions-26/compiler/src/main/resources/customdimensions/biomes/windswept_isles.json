@@ -1,0 +1,423 @@
+{
+  "$schema": "../../../../../../schema/biome.schema.json",
+  "realm": "sky",
+  "inspiredBy": "Paradise Lost's highland edges: the bare, wind-scoured rims of the sky islands.",
+  "differs": "The harsh sky biome, for island edges and heights, unlike the wooded windswept hills: bare stone islands with calcite cliffs, spruces bent flat by the wind, cobblestone boulders, drifts of loose snow layered deep against them, snowflakes in the air, a constant wind, and the clouds below.",
+  "climate": {
+    "temperature": [
+      -1.0,
+      -0.45
+    ],
+    "humidity": [
+      -1.0,
+      0.3
+    ]
+  },
+  "palette": {
+    "top": "minecraft:stone",
+    "filler": "minecraft:stone",
+    "cliffs": "minecraft:calcite"
+  },
+  "biome": {
+    "attributes": {
+      "minecraft:audio/ambient_sounds": {
+        "loop": "minecraft:ambient.soul_sand_valley.loop",
+        "mood": {
+          "block_search_extent": 8,
+          "offset": 2.0,
+          "sound": "minecraft:ambient.cave",
+          "tick_delay": 6000
+        }
+      },
+      "minecraft:audio/background_music": {
+        "default": {
+          "max_delay": 24000,
+          "min_delay": 12000,
+          "sound": "minecraft:music.overworld.snowy_slopes"
+        }
+      },
+      "minecraft:gameplay/natural_mob_spawns": {
+        "argument": {
+          "spawn_costs": {},
+          "spawns_by_category": {
+            "ambient": [
+              {
+                "type": "minecraft:bat",
+                "count": 8,
+                "weight": 10
+              }
+            ],
+            "creature": [
+              {
+                "type": "minecraft:rabbit",
+                "count": {
+                  "type": "minecraft:uniform",
+                  "max_inclusive": 3,
+                  "min_inclusive": 2
+                },
+                "weight": 4
+              },
+              {
+                "type": "minecraft:goat",
+                "count": {
+                  "type": "minecraft:uniform",
+                  "max_inclusive": 3,
+                  "min_inclusive": 1
+                },
+                "weight": 5
+              }
+            ],
+            "monster": [
+              {
+                "type": "minecraft:spider",
+                "count": 4,
+                "weight": 100
+              },
+              {
+                "type": "minecraft:zombie",
+                "count": 4,
+                "weight": 95
+              },
+              {
+                "type": "minecraft:zombie_villager",
+                "count": 1,
+                "weight": 5
+              },
+              {
+                "type": "minecraft:skeleton",
+                "count": 4,
+                "weight": 100
+              },
+              {
+                "type": "minecraft:creeper",
+                "count": 4,
+                "weight": 100
+              },
+              {
+                "type": "minecraft:slime",
+                "count": 4,
+                "weight": 100
+              },
+              {
+                "type": "minecraft:enderman",
+                "count": {
+                  "type": "minecraft:uniform",
+                  "max_inclusive": 4,
+                  "min_inclusive": 1
+                },
+                "weight": 10
+              },
+              {
+                "type": "minecraft:witch",
+                "count": 1,
+                "weight": 5
+              }
+            ],
+            "underground_water_creature": [
+              {
+                "type": "minecraft:glow_squid",
+                "count": {
+                  "type": "minecraft:uniform",
+                  "max_inclusive": 6,
+                  "min_inclusive": 4
+                },
+                "weight": 10
+              }
+            ]
+          }
+        },
+        "modifier": "overlay"
+      },
+      "minecraft:visual/ambient_particles": {
+        "argument": [
+          {
+            "particle": {
+              "type": "minecraft:snowflake"
+            },
+            "probability": 0.02
+          }
+        ],
+        "modifier": "append"
+      },
+      "minecraft:visual/cloud_height": 88.0,
+      "minecraft:visual/fog_color": "#c4ced8",
+      "minecraft:visual/sky_color": "#a9b9c9"
+    },
+    "carvers": [],
+    "downfall": 0.4,
+    "effects": {
+      "grass_color": "#80b497",
+      "foliage_color": "#60a17b",
+      "water_color": "#3d57d6"
+    },
+    "features": [
+      [],
+      [],
+      [],
+      [
+        "~boulders"
+      ],
+      [],
+      [],
+      [
+        "minecraft:ore_coal_upper",
+        "minecraft:ore_iron_upper"
+      ],
+      [],
+      [],
+      [
+        "~bent_spruces",
+        "~snow_drifts"
+      ],
+      []
+    ],
+    "has_precipitation": true,
+    "temperature": -0.7
+  },
+  "features": {
+    "bent_spruces": {
+      "feature": {
+        "type": "minecraft:tree",
+        "below_trunk_provider": "minecraft:soil_beneath_tree",
+        "decorators": [],
+        "foliage_placer": {
+          "type": "minecraft:spruce_foliage_placer",
+          "offset": {
+            "type": "minecraft:uniform",
+            "max_inclusive": 1,
+            "min_inclusive": 0
+          },
+          "radius": {
+            "type": "minecraft:uniform",
+            "max_inclusive": 2,
+            "min_inclusive": 1
+          },
+          "trunk_height": {
+            "type": "minecraft:uniform",
+            "max_inclusive": 1,
+            "min_inclusive": 0
+          }
+        },
+        "foliage_provider": {
+          "id": "minecraft:spruce_leaves",
+          "properties": {
+            "distance": "7",
+            "persistent": "false",
+            "waterlogged": "false"
+          }
+        },
+        "ignore_vines": true,
+        "minimum_size": {
+          "type": "minecraft:two_layers_feature_size"
+        },
+        "trunk_placer": {
+          "type": "minecraft:bending_trunk_placer",
+          "base_height": 3,
+          "bend_length": {
+            "type": "minecraft:uniform",
+            "max_inclusive": 4,
+            "min_inclusive": 2
+          },
+          "height_rand_a": 2,
+          "height_rand_b": 0,
+          "min_height_for_leaves": 3
+        },
+        "trunk_provider": {
+          "id": "minecraft:spruce_log",
+          "properties": {
+            "axis": "y"
+          }
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:rarity_filter",
+          "chance": 2
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:surface_water_depth_filter",
+          "max_water_depth": 0
+        },
+        {
+          "type": "minecraft:heightmap",
+          "heightmap": "OCEAN_FLOOR"
+        },
+        {
+          "type": "minecraft:biome"
+        },
+        {
+          "type": "minecraft:block_predicate_filter",
+          "predicate": {
+            "type": "minecraft:all_of",
+            "predicates": [
+              {
+                "type": "minecraft:matching_block_tag",
+                "tag": "minecraft:air"
+              },
+              {
+                "type": "minecraft:matching_blocks",
+                "blocks": [
+                  "minecraft:stone",
+                  "minecraft:calcite",
+                  "minecraft:dirt",
+                  "minecraft:grass_block"
+                ],
+                "offset": [
+                  0,
+                  -1,
+                  0
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "boulders": {
+      "feature": {
+        "type": "minecraft:block_blob",
+        "can_place_on": {
+          "type": "minecraft:matching_blocks",
+          "blocks": [
+            "minecraft:stone",
+            "minecraft:calcite"
+          ]
+        },
+        "state": {
+          "id": "minecraft:cobblestone"
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:rarity_filter",
+          "chance": 2
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:heightmap",
+          "heightmap": "MOTION_BLOCKING"
+        },
+        {
+          "type": "minecraft:biome"
+        }
+      ]
+    },
+    "snow_drifts": {
+      "feature": {
+        "type": "minecraft:simple_block",
+        "to_place": {
+          "type": "minecraft:weighted",
+          "entries": [
+            {
+              "data": {
+                "id": "minecraft:snow",
+                "properties": {
+                  "layers": "1"
+                }
+              },
+              "weight": 3
+            },
+            {
+              "data": {
+                "id": "minecraft:snow",
+                "properties": {
+                  "layers": "2"
+                }
+              },
+              "weight": 3
+            },
+            {
+              "data": {
+                "id": "minecraft:snow",
+                "properties": {
+                  "layers": "3"
+                }
+              },
+              "weight": 2
+            },
+            {
+              "data": {
+                "id": "minecraft:snow",
+                "properties": {
+                  "layers": "5"
+                }
+              },
+              "weight": 1
+            }
+          ]
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 3
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:heightmap",
+          "heightmap": "MOTION_BLOCKING"
+        },
+        {
+          "type": "minecraft:biome"
+        },
+        {
+          "type": "minecraft:count",
+          "count": 40
+        },
+        {
+          "type": "minecraft:offset",
+          "x": {
+            "type": "minecraft:trapezoid",
+            "max": 5,
+            "min": -5,
+            "plateau": 0
+          },
+          "y": {
+            "type": "minecraft:trapezoid",
+            "max": 2,
+            "min": -2,
+            "plateau": 0
+          },
+          "z": {
+            "type": "minecraft:trapezoid",
+            "max": 5,
+            "min": -5,
+            "plateau": 0
+          }
+        },
+        {
+          "type": "minecraft:block_predicate_filter",
+          "predicate": {
+            "type": "minecraft:all_of",
+            "predicates": [
+              {
+                "type": "minecraft:matching_block_tag",
+                "tag": "minecraft:air"
+              },
+              {
+                "type": "minecraft:matching_blocks",
+                "blocks": [
+                  "minecraft:stone",
+                  "minecraft:calcite",
+                  "minecraft:cobblestone"
+                ],
+                "offset": [
+                  0,
+                  -1,
+                  0
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

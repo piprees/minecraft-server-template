@@ -1,0 +1,409 @@
+{
+  "input": {
+    "left": {
+      "left": {
+        "left": {
+          "left": {
+            "input": {
+              "left": {
+                "left": {
+                  "left": {
+                    "spline": {
+                      "coordinate": "adventure:terrain/terrain_terraces/continents",
+                      "points": [
+                        {
+                          "derivative": 0.0,
+                          "location": -1.5,
+                          "value": 16.0
+                        },
+                        {
+                          "derivative": 0.0,
+                          "location": -0.4,
+                          "value": 36.0
+                        },
+                        {
+                          "derivative": 0.0,
+                          "location": -0.19,
+                          "value": 58.0
+                        },
+                        {
+                          "derivative": 0.0,
+                          "location": -0.15,
+                          "value": 63.0
+                        },
+                        {
+                          "derivative": 0.0,
+                          "location": -0.09,
+                          "value": 67.0
+                        },
+                        {
+                          "derivative": 0.0,
+                          "location": 0.15,
+                          "value": 81.5
+                        },
+                        {
+                          "derivative": 0.0,
+                          "location": 1.5,
+                          "value": 96.0
+                        }
+                      ]
+                    },
+                    "type": "minecraft:spline"
+                  },
+                  "right": {
+                    "left": {
+                      "left": {
+                        "input": {
+                          "left": {
+                            "left": "adventure:terrain/terrain_terraces/continents",
+                            "right": 0.15,
+                            "type": "minecraft:add"
+                          },
+                          "right": 8.0,
+                          "type": "minecraft:mul"
+                        },
+                        "max": 1.0,
+                        "min": 0.0,
+                        "type": "minecraft:clamp"
+                      },
+                      "right": {
+                        "left": {
+                          "spline": {
+                            "coordinate": "adventure:terrain/terrain_terraces/erosion",
+                            "points": [
+                              {
+                                "derivative": 0.0,
+                                "location": -1.0,
+                                "value": 1.0
+                              },
+                              {
+                                "derivative": 0.0,
+                                "location": -0.4,
+                                "value": 0.7
+                              },
+                              {
+                                "derivative": 0.0,
+                                "location": 0.0,
+                                "value": 0.35
+                              },
+                              {
+                                "derivative": 0.0,
+                                "location": 0.5,
+                                "value": 0.1
+                              },
+                              {
+                                "derivative": 0.0,
+                                "location": 1.0,
+                                "value": 0.0
+                              }
+                            ]
+                          },
+                          "type": "minecraft:spline"
+                        },
+                        "right": {
+                          "left": {
+                            "left": "adventure:terrain/terrain_terraces/ridges_folded",
+                            "right": 0.4,
+                            "type": "minecraft:mul"
+                          },
+                          "right": 0.6,
+                          "type": "minecraft:add"
+                        },
+                        "type": "minecraft:mul"
+                      },
+                      "type": "minecraft:mul"
+                    },
+                    "right": 72.0,
+                    "type": "minecraft:mul"
+                  },
+                  "type": "minecraft:add"
+                },
+                "right": -63.0,
+                "type": "minecraft:add"
+              },
+              "right": 0.125,
+              "type": "minecraft:mul"
+            },
+            "type": "minecraft:floor"
+          },
+          "right": {
+            "spline": {
+              "coordinate": {
+                "left": {
+                  "left": {
+                    "left": {
+                      "left": {
+                        "spline": {
+                          "coordinate": "adventure:terrain/terrain_terraces/continents",
+                          "points": [
+                            {
+                              "derivative": 0.0,
+                              "location": -1.5,
+                              "value": 16.0
+                            },
+                            {
+                              "derivative": 0.0,
+                              "location": -0.4,
+                              "value": 36.0
+                            },
+                            {
+                              "derivative": 0.0,
+                              "location": -0.19,
+                              "value": 58.0
+                            },
+                            {
+                              "derivative": 0.0,
+                              "location": -0.15,
+                              "value": 63.0
+                            },
+                            {
+                              "derivative": 0.0,
+                              "location": -0.09,
+                              "value": 67.0
+                            },
+                            {
+                              "derivative": 0.0,
+                              "location": 0.15,
+                              "value": 81.5
+                            },
+                            {
+                              "derivative": 0.0,
+                              "location": 1.5,
+                              "value": 96.0
+                            }
+                          ]
+                        },
+                        "type": "minecraft:spline"
+                      },
+                      "right": {
+                        "left": {
+                          "left": {
+                            "input": {
+                              "left": {
+                                "left": "adventure:terrain/terrain_terraces/continents",
+                                "right": 0.15,
+                                "type": "minecraft:add"
+                              },
+                              "right": 8.0,
+                              "type": "minecraft:mul"
+                            },
+                            "max": 1.0,
+                            "min": 0.0,
+                            "type": "minecraft:clamp"
+                          },
+                          "right": {
+                            "left": {
+                              "spline": {
+                                "coordinate": "adventure:terrain/terrain_terraces/erosion",
+                                "points": [
+                                  {
+                                    "derivative": 0.0,
+                                    "location": -1.0,
+                                    "value": 1.0
+                                  },
+                                  {
+                                    "derivative": 0.0,
+                                    "location": -0.4,
+                                    "value": 0.7
+                                  },
+                                  {
+                                    "derivative": 0.0,
+                                    "location": 0.0,
+                                    "value": 0.35
+                                  },
+                                  {
+                                    "derivative": 0.0,
+                                    "location": 0.5,
+                                    "value": 0.1
+                                  },
+                                  {
+                                    "derivative": 0.0,
+                                    "location": 1.0,
+                                    "value": 0.0
+                                  }
+                                ]
+                              },
+                              "type": "minecraft:spline"
+                            },
+                            "right": {
+                              "left": {
+                                "left": "adventure:terrain/terrain_terraces/ridges_folded",
+                                "right": 0.4,
+                                "type": "minecraft:mul"
+                              },
+                              "right": 0.6,
+                              "type": "minecraft:add"
+                            },
+                            "type": "minecraft:mul"
+                          },
+                          "type": "minecraft:mul"
+                        },
+                        "right": 72.0,
+                        "type": "minecraft:mul"
+                      },
+                      "type": "minecraft:add"
+                    },
+                    "right": -63.0,
+                    "type": "minecraft:add"
+                  },
+                  "right": 0.125,
+                  "type": "minecraft:mul"
+                },
+                "right": {
+                  "input": {
+                    "left": {
+                      "left": {
+                        "left": {
+                          "spline": {
+                            "coordinate": "adventure:terrain/terrain_terraces/continents",
+                            "points": [
+                              {
+                                "derivative": 0.0,
+                                "location": -1.5,
+                                "value": 16.0
+                              },
+                              {
+                                "derivative": 0.0,
+                                "location": -0.4,
+                                "value": 36.0
+                              },
+                              {
+                                "derivative": 0.0,
+                                "location": -0.19,
+                                "value": 58.0
+                              },
+                              {
+                                "derivative": 0.0,
+                                "location": -0.15,
+                                "value": 63.0
+                              },
+                              {
+                                "derivative": 0.0,
+                                "location": -0.09,
+                                "value": 67.0
+                              },
+                              {
+                                "derivative": 0.0,
+                                "location": 0.15,
+                                "value": 81.5
+                              },
+                              {
+                                "derivative": 0.0,
+                                "location": 1.5,
+                                "value": 96.0
+                              }
+                            ]
+                          },
+                          "type": "minecraft:spline"
+                        },
+                        "right": {
+                          "left": {
+                            "left": {
+                              "input": {
+                                "left": {
+                                  "left": "adventure:terrain/terrain_terraces/continents",
+                                  "right": 0.15,
+                                  "type": "minecraft:add"
+                                },
+                                "right": 8.0,
+                                "type": "minecraft:mul"
+                              },
+                              "max": 1.0,
+                              "min": 0.0,
+                              "type": "minecraft:clamp"
+                            },
+                            "right": {
+                              "left": {
+                                "spline": {
+                                  "coordinate": "adventure:terrain/terrain_terraces/erosion",
+                                  "points": [
+                                    {
+                                      "derivative": 0.0,
+                                      "location": -1.0,
+                                      "value": 1.0
+                                    },
+                                    {
+                                      "derivative": 0.0,
+                                      "location": -0.4,
+                                      "value": 0.7
+                                    },
+                                    {
+                                      "derivative": 0.0,
+                                      "location": 0.0,
+                                      "value": 0.35
+                                    },
+                                    {
+                                      "derivative": 0.0,
+                                      "location": 0.5,
+                                      "value": 0.1
+                                    },
+                                    {
+                                      "derivative": 0.0,
+                                      "location": 1.0,
+                                      "value": 0.0
+                                    }
+                                  ]
+                                },
+                                "type": "minecraft:spline"
+                              },
+                              "right": {
+                                "left": {
+                                  "left": "adventure:terrain/terrain_terraces/ridges_folded",
+                                  "right": 0.4,
+                                  "type": "minecraft:mul"
+                                },
+                                "right": 0.6,
+                                "type": "minecraft:add"
+                              },
+                              "type": "minecraft:mul"
+                            },
+                            "type": "minecraft:mul"
+                          },
+                          "right": 72.0,
+                          "type": "minecraft:mul"
+                        },
+                        "type": "minecraft:add"
+                      },
+                      "right": -63.0,
+                      "type": "minecraft:add"
+                    },
+                    "right": 0.125,
+                    "type": "minecraft:mul"
+                  },
+                  "type": "minecraft:floor"
+                },
+                "type": "minecraft:sub"
+              },
+              "points": [
+                {
+                  "derivative": 0.0,
+                  "location": 0.0,
+                  "value": 0.0
+                },
+                {
+                  "derivative": 0.0,
+                  "location": 0.8,
+                  "value": 0.0
+                },
+                {
+                  "derivative": 0.0,
+                  "location": 1.0,
+                  "value": 1.0
+                }
+              ]
+            },
+            "type": "minecraft:spline"
+          },
+          "type": "minecraft:add"
+        },
+        "right": 8.0,
+        "type": "minecraft:mul"
+      },
+      "right": 63.0,
+      "type": "minecraft:add"
+    },
+    "right": 256.0,
+    "type": "minecraft:min"
+  },
+  "type": "minecraft:cache"
+}

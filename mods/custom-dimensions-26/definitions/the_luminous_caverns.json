@@ -1,0 +1,164 @@
+{
+  "schemaVersion": 2,
+  "description": "Serene glowing caverns — lush moss and quartz light under a bedrock roof. No armies ever found this place. The copper towers and strange outposts were built by someone who came for the light and stayed.",
+  "seed": -2911567766574036977,
+  "spawn": [0, 102, -448],
+  "generator": {
+    "type": "noise",
+    "preset": "caves"
+  },
+  "biomes": [
+    {
+      "id": "adventure:mineral_strata",
+      "climate": {
+        "temperature": [-2.0, 0.137],
+        "humidity": [-2.0, -0.158]
+      }
+    },
+    {
+      "id": "adventure:crystal_hollows",
+      "climate": {
+        "temperature": [-2.0, 0.137],
+        "humidity": [-0.158, 0.003]
+      }
+    },
+    {
+      "id": "adventure:cinnabar_veins",
+      "climate": {
+        "temperature": [-2.0, 0.137],
+        "humidity": [0.003, 0.133]
+      }
+    },
+    {
+      "id": "minecraft:sulfur_caves",
+      "climate": {
+        "temperature": [-2.0, 0.137],
+        "humidity": [0.133, 2.0]
+      }
+    },
+    {
+      "id": "minecraft:dripstone_caves",
+      "climate": {
+        "temperature": [0.137, 0.255],
+        "humidity": [-2.0, -0.098]
+      }
+    },
+    {
+      "id": "adventure:lichen_caves",
+      "climate": {
+        "temperature": [0.137, 0.255],
+        "humidity": [-0.098, 0.076]
+      }
+    },
+    {
+      "id": "minecraft:lush_caves",
+      "climate": {
+        "temperature": [0.137, 0.255],
+        "humidity": [0.076, 2.0]
+      }
+    },
+    {
+      "id": "adventure:quartz_flats",
+      "climate": {
+        "temperature": [0.255, 2.0],
+        "humidity": [-2.0, -0.068]
+      }
+    },
+    {
+      "id": "adventure:buried_dunes",
+      "climate": {
+        "temperature": [0.255, 2.0],
+        "humidity": [-0.068, 0.133]
+      }
+    },
+    {
+      "id": "minecraft:crimson_forest",
+      "climate": {
+        "temperature": [0.255, 2.0],
+        "humidity": [0.133, 2.0]
+      }
+    }
+  ],
+  "dimensionType": {
+    "hasSkylight": false,
+    "hasCeiling": true
+  },
+  "atmosphere": {
+    "fogColor": "#4B3B1B",
+    "ambientLight": 0.4
+  },
+  "borders": {
+    "player": 1024,
+    "generation": 1024
+  },
+  "difficulty": {
+    "mobMultiplier": 0.0,
+    "playerLuck": 2.2,
+    "hostileSpawning": false
+  },
+  "structures": {
+    "density": "sparse",
+    "noise": {
+      "dungeons": "sparse",
+      "landmarks": "sparse"
+    },
+    "force": [
+      {
+        "structure": "nova_structures:deepslate_camp",
+        "x": 80,
+        "z": 80
+      },
+      {
+        "structure": "mns:copper_tower",
+        "x": 120,
+        "z": -380,
+        "exclusive": false
+      },
+      {
+        "structure": "minecraft:ancient_city",
+        "x": -780,
+        "z": 640
+      }
+    ],
+    "terrainAdaptation": {
+      "nova_structures:deepslate_camp": "pedestal"
+    }
+  },
+  "portals": [
+    {
+      "frameBlock": "minecraft:ochre_froglight",
+      "igniterItem": "minecraft:flint_and_steel",
+      "color": "FFD850",
+      "lightLevel": 11,
+      "scale": 8.0,
+      "cooldown": 40,
+      "sounds": {
+        "ignite": "block.portal.trigger",
+        "enter": "block.portal.travel",
+        "exit": "block.portal.travel"
+      },
+      "aura": {
+        "subsume": "none"
+      }
+    }
+  ],
+  "roll": {
+    "mood": "serene",
+    "spawnFilter": [
+      "minecraft:lush_caves",
+      "minecraft:sulfur_caves"
+    ],
+    "wants": {
+      "copper_tower": "spread",
+      "mns:warped_dome": "spread",
+      "ati_structures:jungle_grotto": "near_spawn",
+      "ati_structures:warden_monument": "spread",
+      "mineshaft": "spread"
+    },
+    "shuns": [
+      "mns:mega_fortress",
+      "bastion",
+      "nova_structures:sealing_halls"
+    ]
+  }
+}

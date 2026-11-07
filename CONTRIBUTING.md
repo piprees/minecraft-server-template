@@ -38,7 +38,7 @@ mise run deps                  # template-only Python packages
 cp .env.example .env               # set CONSUMER_DIR to your consumer checkout
 ```
 
-Python is pinned to 3.13 deliberately: 3.14 has thin wheel coverage. Java
+Python is pinned to 3.13 deliberately: 3.14 has thin wheel coverage. Bumping any dependency: [DEPENDENCIES.md](DEPENDENCIES.md). Java
 stays in `mods/mise.toml` (temurin-21), scoped to the Gradle builds.
 
 Tasks: `mise run gate` (the pre-push gate), `scan` (what generated in the
@@ -66,26 +66,7 @@ ShellCheck (severity: warning) on all scripts, Docker entrypoints, and consumer 
 
 ## Adding or removing mods
 
-The most common change, and the one most likely to break things. Resolving a mod's dependencies before you add it is **mandatory**:
-
-```bash
-# 1. List dependencies for 1.21.1 Fabric
-curl -s "https://api.modrinth.com/v2/project/{slug}/version?game_versions=%5B%221.21.1%22%5D&loaders=%5B%22fabric%22%5D" \
-  | python3 -c "import sys,json; [print(f'  {d[\"project_id\"]} ({d[\"dependency_type\"]})') for v in json.load(sys.stdin)[:1] for d in v.get('dependencies',[])]"
-# 2. Resolve each project_id to a slug
-curl -s "https://api.modrinth.com/v2/project/{project_id}" \
-  | python3 -c "import sys,json; d=json.load(sys.stdin); print(d['slug'], d['title'])"
-```
-
-Every required dependency must already be in the pack or be added alongside; libraries (`fabric-api`, `yungs-api`, `moonlight`, `balm`, `lithostitched`, `fabric-language-kotlin`) go in required, never optional. Verify the resolved version really targets 1.21.1 — Modrinth metadata is sometimes wrong — then pin with `./scripts/pin-mod-versions.sh --apply`. All worldgen/dimension mods must be present from chunk zero. Version holds and pack manifests: [AGENTS.md § Mods](AGENTS.md#mods).
-
-| What | Edit | Then |
-| --- | --- | --- |
-| Server mod | `config/modrinth-mods.txt` (`slug:versionId`, `?` suffix = optional) | Push (full deploy) |
-| Client mod | `modpack/adventure.mrpack.json` (`_clientMods.required` / `.optional`) | Push (CI rebuilds `.mrpack`) |
-| Datapack | `config/modrinth-mods.txt` with `datapack:` prefix, or `config/datapacks/` | Push (full deploy) |
-
-A mod with server-side config needs **two** places: the files in `config/<modname>/`, and a `COPY` line in `docker/defaults-seed/Dockerfile` — without it the config never reaches a consumer. Seeding itself is automatic; see [AGENTS.md § Config sync](AGENTS.md#config-sync).
+The most common change, and the one most likely to break things. Follow [DEPENDENCIES.md § Adding a mod](DEPENDENCIES.md#adding-a-mod) — the dependency checklist is mandatory. A platform mod change reaches servers only in a release: push builds images, then a release is cut per the [versioning contract](DEPENDENCIES.md#versioning-contract).
 
 ## Pull requests
 
@@ -96,6 +77,6 @@ A mod with server-side config needs **two** places: the files in `config/<modnam
 
 ## Good first contributions
 
-Documentation fixes (typos, clarifications, dead links), adding a mod to `config/modrinth-mods.txt` (checklist above), ShellCheck fixes, issue-template improvements. Look for issues labelled `good first issue` or `help wanted`.
+Documentation fixes (typos, clarifications, dead links), adding a mod to `config/modrinth-mods.txt` ([checklist](DEPENDENCIES.md#adding-a-mod)), ShellCheck fixes, issue-template improvements. Look for issues labelled `good first issue` or `help wanted`.
 
 Report problems with the issue templates: **bug report** (something is broken), **config / setup help** (stuck getting the server running), **mod request**. This project follows the [Contributor Covenant 2.1](CODE_OF_CONDUCT.md) — be kind.

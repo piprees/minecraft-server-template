@@ -53,6 +53,44 @@ treat rebuilding as routine rather than as evidence something is wrong.
 reading.** A frame photographed through a portal that does not exist is not a
 measurement of anything.
 
+## On 26.x
+
+The 26.x server has no `customdim e2e-state` and the 26.x companion no dev
+bridge, so on 26.x every fact is a log line, a file or a player's own NBT, and
+the real client is `vanilla-join.sh` running a pack of the companion and Fabric
+API alone. From a scaffold consumer (`examples/consumer/`) linked to this
+checkout:
+
+```bash
+# once: the consumer selects 26.3 and holds the rig pair
+echo "MC_VERSION_OVERRIDE='26.3'" >> .env
+MC_VERSION_OVERRIDE=26.3 ./dev link <checkout>
+mkdir -p data/config/custom-dimensions/dimensions
+cp <checkout>/scripts/e2e/rig-26/e2e_*.json data/config/custom-dimensions/dimensions/
+./dev up                                   # stages the v2 set beside them
+# the rig, then the client
+CONSUMER_DIR=$PWD <checkout>/scripts/e2e/build-e2e-portal.sh        # PORTAL-BUILT
+MC_VERSION_OVERRIDE=26.3 <checkout>/scripts/e2e/companion-pack.sh /tmp/companion.mrpack
+MC_VERSION_OVERRIDE=26.3 <checkout>/scripts/e2e/vanilla-join.sh --name Rig \
+  --mrpack /tmp/companion.mrpack --out /tmp/rig --hold 30 \
+  --during "CLIENT_LOG=/tmp/rig/game/logs/latest.log <checkout>/scripts/e2e/e2e-rig-companion.sh"
+<checkout>/scripts/e2e/e2e-item4-idle-unload.sh                     # no client
+```
+
+`MC_VERSION_OVERRIDE` in the consumer's `.env` is the switch: a linked farm's
+scripts resolve `lib.sh`'s `../.minecraft-version` through the `scripts`
+symlink, so they read the checkout's file. Java 25 for the client comes from
+`JAVA_HOME`.
+
+| Script | Proves on 26.x |
+| --- | --- |
+| `build-e2e-portal.sh` | The rig portal: the link in `world/data/customdimensions/portal_links.json` and `customdimensions:portal` in all six opening cells |
+| `e2e-rig-companion.sh` | The three-way rig check (link, `companion-feed:start` to `e2e_two`, the client's `received chunks` at 20 or more), then the crossing: `companion-send:preloaded-transfer`, the client's `companion-feed: preloaded`, and arrival in `e2e_two` that holds ten seconds |
+| `e2e-item4-idle-unload.sh` | A player in `e2e_two` keeps it open past `idleUnloadMinutes`; after the last one leaves, LevelManager's unload line and `customdim list` reading it lazy |
+| `companion-pack.sh` | Builds the companion-only client pack |
+
+Every other script reads `e2e-state` or the bridge and runs on 1.21.1 only.
+
 ## The two instruments
 
 Every assertion reads one of these. Nothing parses an RCON reply for data, and

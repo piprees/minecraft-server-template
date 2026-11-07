@@ -1,0 +1,10 @@
+{
+	// Radius in blocks around the campfire where healing applies.
+	"healingRadius": 10,
+
+	// Regeneration level (1 = Regeneration I, 2 = Regeneration II).
+	"regenerationLevel": 1,
+
+	// Whether passive mobs (animals) also receive healing.
+	"healPassiveMobs": true
+}

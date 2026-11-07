@@ -1,0 +1,154 @@
+{
+  "schemaVersion": 2,
+  "description": "The pale desolate reach — calcite crags floating in white silence. The skylands' frozen edge, where even the animal kingdoms thin out. Remains and birdcages drift in the whiteness, built by hands that left no other trace.",
+  "seed": -1788836604001161885,
+  "spawn": [0, 54, -136],
+  "generator": {
+    "type": "noise",
+    "preset": "floating_islands"
+  },
+  "biomes": [
+    {
+      "id": "minecraft:ice_spikes",
+      "climate": {
+        "temperature": [-2.0, 0.304],
+        "humidity": [-2.0, -0.155]
+      }
+    },
+    {
+      "id": "adventure:windswept_isles",
+      "climate": {
+        "temperature": [-2.0, 0.304],
+        "humidity": [-0.155, 0.083]
+      }
+    },
+    {
+      "id": "minecraft:snowy_plains",
+      "climate": {
+        "temperature": [-2.0, 0.304],
+        "humidity": [0.083, 2.0]
+      }
+    },
+    {
+      "id": "minecraft:frozen_peaks",
+      "climate": {
+        "temperature": [0.304, 0.747],
+        "humidity": [-2.0, -0.185]
+      }
+    },
+    {
+      "id": "minecraft:jagged_peaks",
+      "climate": {
+        "temperature": [0.304, 0.747],
+        "humidity": [-0.185, 0.011]
+      }
+    },
+    {
+      "id": "minecraft:snowy_slopes",
+      "climate": {
+        "temperature": [0.304, 0.747],
+        "humidity": [0.011, 2.0]
+      }
+    },
+    {
+      "id": "minecraft:end_barrens",
+      "climate": {
+        "temperature": [0.747, 2.0],
+        "humidity": [-2.0, -0.042]
+      }
+    },
+    {
+      "id": "adventure:chalk_cliffs",
+      "climate": {
+        "temperature": [0.747, 2.0],
+        "humidity": [-0.042, 2.0]
+      }
+    }
+  ],
+  "liquids": {
+    "seaLevel": -64,
+    "defaultFluid": "minecraft:water"
+  },
+  "materials": {
+    "defaultBlock": "minecraft:stone"
+  },
+  "zones": [
+    {
+      "shape": "circle",
+      "centre": [520, -480],
+      "radius": 110,
+      "blend": 28,
+      "biomes": [
+        "minecraft:pale_garden"
+      ]
+    }
+  ],
+  "atmosphere": {
+    "skyColor": "#E8F0F5",
+    "fogColor": "#E8F0F5",
+    "ambientLight": 0.3,
+    "fixedTime": 6000
+  },
+  "borders": {
+    "player": 683,
+    "generation": 683
+  },
+  "difficulty": {
+    "mobMultiplier": 1.0,
+    "playerLuck": 1.6
+  },
+  "structures": {
+    "density": "sparse",
+    "clearSpawnRadius": 96,
+    "noise": {
+      "dungeons": "sparse"
+    },
+    "terrainAdaptation": {
+      "nova_structures:trial_dungeon": "pedestal"
+    },
+    "force": [
+      {
+        "structure": "nova_structures:trial_dungeon",
+        "x": -460,
+        "z": 420
+      }
+    ]
+  },
+  "portals": [
+    {
+      "frameBlock": "minecraft:end_stone",
+      "igniterItem": "minecraft:gold_ingot",
+      "color": "E0D8C0",
+      "lightLevel": 11,
+      "scale": 12.0,
+      "cooldown": 40,
+      "anchor": {
+        "pos": [520, 37, -480],
+        "exit": "origin"
+      },
+      "sounds": {
+        "ignite": "block.portal.trigger",
+        "enter": "block.portal.travel",
+        "exit": "block.portal.travel"
+      }
+    }
+  ],
+  "roll": {
+    "mood": "desolate",
+    "spawnFilter": [
+      "minecraft:snowy_slopes"
+    ],
+    "wants": {
+      "mvs:statue_ruins": "spread",
+      "mss:small_tower": "spread",
+      "epic:small_ice_dungeon": "near_border",
+      "mss:large_tower": "spread"
+    },
+    "shuns": [
+      "village",
+      "tavern",
+      "monument"
+    ],
+    "terrain": "islands"
+  }
+}

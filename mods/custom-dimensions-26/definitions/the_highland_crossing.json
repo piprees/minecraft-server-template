@@ -1,0 +1,298 @@
+{
+  "schemaVersion": 2,
+  "description": "The mountain crossing — guide posts and fire towers marking passes between dramatic highlands. The human-villager trade route, built to connect the sun kingdoms to the frozen hearth. The keeps at the border guarded the passes.",
+  "seed": -5138543198715489891,
+  "spawn": [-384, 67, 256],
+  "generator": {
+    "type": "noise",
+    "preset": "overworld"
+  },
+  "terrain": {
+    "base": "ridges",
+    "setting": "default",
+    "params": {
+      "landHeight": 120,
+      "peakHeight": 90
+    }
+  },
+  "biomes": [
+    {
+      "id": "minecraft:river",
+      "climate": {
+        "continentalness": [-0.11, 2.0],
+        "erosion": [0.05, 2.0],
+        "weirdness": [-0.05, 0.05]
+      }
+    },
+    {
+      "id": "minecraft:stony_shore",
+      "climate": {
+        "continentalness": [-0.2, -0.11],
+        "erosion": [-2.0, 0.05]
+      }
+    },
+    {
+      "id": "adventure:chalk_cliffs",
+      "climate": {
+        "continentalness": [-0.2, -0.11],
+        "erosion": [0.05, 2.0]
+      }
+    },
+    {
+      "id": "minecraft:frozen_peaks",
+      "climate": {
+        "temperature": [-2.0, 0.2],
+        "continentalness": [0.03, 2.0],
+        "erosion": [-2.0, -0.55]
+      }
+    },
+    {
+      "id": "minecraft:jagged_peaks",
+      "climate": {
+        "temperature": [-2.0, 0.2],
+        "continentalness": [0.03, 2.0],
+        "erosion": [-2.0, -0.375]
+      }
+    },
+    {
+      "id": "minecraft:stony_peaks",
+      "climate": {
+        "temperature": [0.2, 2.0],
+        "continentalness": [0.03, 2.0],
+        "erosion": [-2.0, -0.375]
+      }
+    },
+    {
+      "id": "minecraft:snowy_slopes",
+      "climate": {
+        "temperature": [-2.0, -0.3],
+        "continentalness": [0.03, 2.0],
+        "erosion": [-0.375, -0.2225]
+      }
+    },
+    {
+      "id": "minecraft:grove",
+      "climate": {
+        "temperature": [-0.3, 0.0],
+        "continentalness": [0.03, 2.0],
+        "erosion": [-0.375, -0.2225]
+      }
+    },
+    {
+      "id": "adventure:alpine_scree",
+      "climate": {
+        "temperature": [0.0, 2.0],
+        "humidity": [-2.0, 0.0],
+        "continentalness": [0.03, 2.0],
+        "erosion": [-0.375, -0.2225]
+      }
+    },
+    {
+      "id": "adventure:alpine_meadow",
+      "climate": {
+        "temperature": [0.0, 2.0],
+        "humidity": [0.0, 2.0],
+        "continentalness": [0.03, 2.0],
+        "erosion": [-0.375, -0.2225]
+      }
+    },
+    {
+      "id": "minecraft:windswept_gravelly_hills",
+      "climate": {
+        "temperature": [-2.0, -0.42],
+        "humidity": [-2.0, -0.2]
+      }
+    },
+    {
+      "id": "adventure:highland_fells",
+      "climate": {
+        "temperature": [-0.42, -0.28],
+        "humidity": [-2.0, -0.2]
+      }
+    },
+    {
+      "id": "minecraft:windswept_hills",
+      "climate": {
+        "temperature": [-0.28, 0.0],
+        "humidity": [-2.0, -0.2]
+      }
+    },
+    {
+      "id": "minecraft:windswept_gravelly_hills",
+      "climate": {
+        "temperature": [0.0, 0.4],
+        "humidity": [-2.0, -0.2]
+      }
+    },
+    {
+      "id": "minecraft:eroded_badlands",
+      "climate": {
+        "temperature": [0.4, 2.0],
+        "humidity": [-2.0, -0.2]
+      }
+    },
+    {
+      "id": "adventure:dying_forest",
+      "climate": {
+        "temperature": [-2.0, -0.42],
+        "humidity": [-0.2, 0.0]
+      }
+    },
+    {
+      "id": "adventure:highland_fells",
+      "climate": {
+        "temperature": [-0.42, -0.28],
+        "humidity": [-0.2, 0.0]
+      }
+    },
+    {
+      "id": "minecraft:meadow",
+      "climate": {
+        "temperature": [-0.28, 0.0],
+        "humidity": [-0.2, 0.0]
+      }
+    },
+    {
+      "id": "minecraft:plains",
+      "climate": {
+        "temperature": [0.0, 0.4],
+        "humidity": [-0.2, 0.0]
+      }
+    },
+    {
+      "id": "adventure:lavender_fields",
+      "climate": {
+        "temperature": [0.4, 2.0],
+        "humidity": [-0.2, 0.0]
+      }
+    },
+    {
+      "id": "minecraft:old_growth_spruce_taiga",
+      "climate": {
+        "temperature": [-2.0, -0.42],
+        "humidity": [0.0, 0.2]
+      }
+    },
+    {
+      "id": "minecraft:windswept_forest",
+      "climate": {
+        "temperature": [-0.42, -0.28],
+        "humidity": [0.0, 0.2]
+      }
+    },
+    {
+      "id": "adventure:aspen_forest",
+      "climate": {
+        "temperature": [-0.28, 0.0],
+        "humidity": [0.0, 0.2]
+      }
+    },
+    {
+      "id": "minecraft:forest",
+      "climate": {
+        "temperature": [0.0, 0.4],
+        "humidity": [0.0, 0.2]
+      }
+    },
+    {
+      "id": "minecraft:windswept_hills",
+      "climate": {
+        "temperature": [0.4, 2.0],
+        "humidity": [0.0, 0.2]
+      }
+    },
+    {
+      "id": "minecraft:taiga",
+      "climate": {
+        "temperature": [-2.0, -0.42],
+        "humidity": [0.2, 2.0]
+      }
+    },
+    {
+      "id": "adventure:redwood_grove",
+      "climate": {
+        "temperature": [-0.42, -0.28],
+        "humidity": [0.2, 2.0]
+      }
+    },
+    {
+      "id": "minecraft:windswept_forest",
+      "climate": {
+        "temperature": [-0.28, 0.0],
+        "humidity": [0.2, 2.0]
+      }
+    },
+    {
+      "id": "minecraft:swamp",
+      "climate": {
+        "temperature": [0.0, 0.4],
+        "humidity": [0.2, 2.0]
+      }
+    },
+    {
+      "id": "minecraft:forest",
+      "climate": {
+        "temperature": [0.4, 2.0],
+        "humidity": [0.2, 2.0]
+      }
+    }
+  ],
+  "borders": {
+    "player": 4096,
+    "generation": 2048
+  },
+  "difficulty": {
+    "mobMultiplier": 1.5,
+    "playerLuck": 1.6,
+    "depthScaling": {
+      "enabled": true,
+      "startY": 128,
+      "endY": 0,
+      "minMultiplier": 0.8,
+      "maxMultiplier": 1.5
+    }
+  },
+  "structures": {
+    "terrainAdaptation": {
+      "landmarks": "platform_skirt"
+    }
+  },
+  "portals": [
+    {
+      "frameBlock": "minecraft:raw_copper_block",
+      "igniterItem": "minecraft:amethyst_shard",
+      "color": "B08B5B",
+      "lightLevel": 11,
+      "scale": 2.0,
+      "cooldown": 40,
+      "sounds": {
+        "ignite": "block.portal.trigger",
+        "enter": "block.portal.travel",
+        "exit": "block.portal.travel"
+      }
+    }
+  ],
+  "roll": {
+    "mood": "dramatic",
+    "spawnFilter": [
+      "minecraft:windswept_hills",
+      "minecraft:windswept_gravelly_hills",
+      "minecraft:swamp",
+      "adventure:highland_fells"
+    ],
+    "wants": {
+      "mvs:small_spruce_lantern": "near_spawn",
+      "towns_and_towers:pillager_outpost_taiga": "near_spawn",
+      "nova_structures:firewatch_tower_taiga": "spread",
+      "ati_structures:steam_house": "spread",
+      "ati_structures:dark_keep": "near_border",
+      "ati_structures:nomadic_camp": "spread",
+      "mvs:campsite": "near_spawn",
+      "nova_structures:firewatch_tower_forest": "spread",
+      "ati_structures:lighthouse": "near_border"
+    },
+    "shuns": [
+      "monument"
+    ]
+  }
+}

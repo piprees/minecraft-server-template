@@ -1,0 +1,110 @@
+{
+  "schemaVersion": 2,
+  "description": "A snowbound island adrift in the sky. Fir forests and drifts on floating ground — animal country where the cold keeps everything honest. The towers and vaults here grew naturally, like the trees.",
+  "seed": -3334909585477669424,
+  "spawn": [0, 126, 51],
+  "generator": {
+    "type": "clone",
+    "of": "adventure:the_aviary"
+  },
+  "biomes": [
+    {
+      "id": "adventure:windswept_isles",
+      "climate": {
+        "temperature": [-2.0, 0.175],
+        "humidity": [-2.0, -0.133]
+      }
+    },
+    {
+      "id": "minecraft:snowy_plains",
+      "climate": {
+        "temperature": [-2.0, 0.175],
+        "humidity": [-0.133, 0.128]
+      }
+    },
+    {
+      "id": "minecraft:jagged_peaks",
+      "climate": {
+        "temperature": [-2.0, 0.175],
+        "humidity": [0.128, 2.0]
+      }
+    },
+    {
+      "id": "minecraft:snowy_slopes",
+      "climate": {
+        "temperature": [0.175, 0.414],
+        "humidity": [-2.0, -0.013]
+      }
+    },
+    {
+      "id": "minecraft:snowy_taiga",
+      "climate": {
+        "temperature": [0.175, 0.414],
+        "humidity": [-0.013, 2.0]
+      }
+    },
+    {
+      "id": "minecraft:cherry_grove",
+      "climate": {
+        "temperature": [0.414, 2.0],
+        "humidity": [-2.0, -0.013]
+      }
+    },
+    {
+      "id": "adventure:golden_skygrove",
+      "climate": {
+        "temperature": [0.414, 2.0],
+        "humidity": [-0.013, 2.0]
+      }
+    }
+  ],
+  "borders": {
+    "player": 1024,
+    "generation": 1024
+  },
+  "difficulty": {
+    "mobMultiplier": 0.8,
+    "playerLuck": 1.6
+  },
+  "structures": {
+    "terrainAdaptation": {
+      "mss:large_tower": "pedestal"
+    },
+    "noise": {
+      "dungeons": "sparse"
+    }
+  },
+  "portals": [
+    {
+      "frameBlock": "minecraft:snow_block",
+      "igniterItem": "minecraft:gold_ingot",
+      "color": "C8E0F0",
+      "lightLevel": 11,
+      "scale": 8.0,
+      "cooldown": 40,
+      "sounds": {
+        "ignite": "block.portal.trigger",
+        "enter": "block.portal.travel",
+        "exit": "block.portal.travel"
+      }
+    }
+  ],
+  "roll": {
+    "mood": "scenic",
+    "spawnFilter": [
+      "minecraft:snowy_plains"
+    ],
+    "water": "high",
+    "wants": {
+      "mvs:statue_ruins": "near_spawn",
+      "mss:large_tower": "spread",
+      "nova_structures:surface_dungeon_snowy": "spread",
+      "mss:small_tower": "near_border",
+      "igloo": "near_spawn",
+      "epic:small_ice_dungeon": "near_border",
+      "mvs:small_spruce_lantern": "near_spawn"
+    },
+    "shuns": [],
+    "terrain": "islands"
+  }
+}

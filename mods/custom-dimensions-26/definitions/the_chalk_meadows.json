@@ -1,0 +1,146 @@
+{
+  "schemaVersion": 2,
+  "description": "Rolling chalk downs in heather and carnation. Villager country — settlements in the hollows, nothing sinister for miles. The people here never went looking for ancient cities, and the ancient cities never found them.",
+  "seed": 2066632607198100573,
+  "spawn": [-192, 65, 320],
+  "generator": {
+    "type": "noise",
+    "preset": "overworld"
+  },
+  "biomes": [
+    {
+      "id": "adventure:lichen_caves",
+      "climate": {
+        "humidity": [-2.0, -0.031],
+        "depth": [0.2, 2.0]
+      }
+    },
+    {
+      "id": "minecraft:lush_caves",
+      "climate": {
+        "humidity": [-0.031, 2.0],
+        "depth": [0.2, 2.0]
+      }
+    },
+    {
+      "id": "minecraft:sunflower_plains",
+      "climate": {
+        "temperature": [-2.0, -0.595],
+        "humidity": [-2.0, -0.14]
+      }
+    },
+    {
+      "id": "adventure:highland_fells",
+      "climate": {
+        "temperature": [-2.0, -0.595],
+        "humidity": [-0.14, 0.081]
+      }
+    },
+    {
+      "id": "adventure:alpine_meadow",
+      "climate": {
+        "temperature": [-2.0, -0.595],
+        "humidity": [0.081, 2.0]
+      }
+    },
+    {
+      "id": "minecraft:flower_forest",
+      "climate": {
+        "temperature": [-0.595, -0.029],
+        "humidity": [-2.0, -0.17]
+      }
+    },
+    {
+      "id": "minecraft:plains",
+      "climate": {
+        "temperature": [-0.595, -0.029],
+        "humidity": [-0.17, 0.017]
+      }
+    },
+    {
+      "id": "minecraft:meadow",
+      "climate": {
+        "temperature": [-0.595, -0.029],
+        "humidity": [0.017, 2.0]
+      }
+    },
+    {
+      "id": "adventure:lavender_fields",
+      "climate": {
+        "temperature": [-0.029, 2.0],
+        "humidity": [-2.0, -0.14]
+      }
+    },
+    {
+      "id": "adventure:chalk_cliffs",
+      "climate": {
+        "temperature": [-0.029, 2.0],
+        "humidity": [-0.14, 0.081]
+      }
+    },
+    {
+      "id": "adventure:carnation_fields",
+      "climate": {
+        "temperature": [-0.029, 2.0],
+        "humidity": [0.081, 2.0]
+      }
+    }
+  ],
+  "borders": {
+    "player": 1024,
+    "generation": 1024
+  },
+  "difficulty": {
+    "mobMultiplier": 1.0,
+    "playerLuck": 1.2
+  },
+  "structures": {
+    "terrainAdaptation": {
+      "landmarks": "moat"
+    }
+  },
+  "portals": [
+    {
+      "frameBlock": "minecraft:calcite",
+      "igniterItem": "minecraft:amethyst_shard",
+      "color": "C8D8C0",
+      "lightLevel": 11,
+      "scale": 8.0,
+      "cooldown": 40,
+      "anchor": {
+        "pos": [571, 64, -314],
+        "exit": "bed"
+      },
+      "sounds": {
+        "ignite": "block.portal.trigger",
+        "enter": "block.portal.travel",
+        "exit": "block.portal.travel"
+      },
+      "orientation": "horizontal"
+    }
+  ],
+  "exitPortal": {
+    "enabled": true,
+    "pos": "spawn",
+    "target": "bed"
+  },
+  "roll": {
+    "mood": "pastoral",
+    "spawnFilter": [
+      "minecraft:meadow"
+    ],
+    "wants": {
+      "village": "near_spawn",
+      "nova_structures:remnant_ruin_farmer": "near_spawn",
+      "mvs:small_oak_lantern": "near_spawn",
+      "tavern": "spread",
+      "mvs:campsite": "near_spawn",
+      "ati_structures:haunted_ruin": "spread"
+    },
+    "shuns": [
+      "ancient_city",
+      "mansion",
+      "mss:arena"
+    ]
+  }
+}
