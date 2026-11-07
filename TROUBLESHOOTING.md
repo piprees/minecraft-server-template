@@ -1596,6 +1596,27 @@ A seed's map and its banked facts appear to contradict each other — the thumbn
   the same trap. Pin it against the Java, not against intuition —
   `scripts/e2e/portal-matrix-selftest.sh` is the worked example.
 
+<a id="t181"></a>
+### T181 — Editing a bash script while it runs breaks the run
+
+- **Symptom:** a running `rig.sh` dies with `stop: command not found` (exit 127) and leaves its server running.
+- **Cause:** bash reads a script as it executes, so a rewrite mid-run makes it execute stray text from the new file.
+- **Fix:** never edit a script that is running; edit a copy or wait. Stop the orphaned server by its pid with SIGTERM, never `pkill -f`.
+
+<a id="t180"></a>
+### T180 — Nether-effect dimensions are fog-bound at any render distance
+
+- **Symptom:** a far view of a dimension with `effects: minecraft:the_nether` ends in a fog wall about 100–150 blocks out, whatever the render distance; night vision turns that fog into a bright white or red wall.
+- **Cause:** the Nether's fog is drawn at a fixed short distance, not the render distance.
+- **Fix:** expect no far view in those dimensions, and never light their screenshots with night vision. If a dimension needs vistas, give it overworld effects.
+
+<a id="t179"></a>
+### T179 — Each dimension keeps its own clock on 26.x
+
+- **Symptom:** a screenshot taken after `time set noon` shows dawn, dusk or night in a custom dimension.
+- **Cause:** on 26.x a bare `time set` changes only the dimension the command runs in.
+- **Fix:** run `execute in <dim> run time set …` (and `weather clear`) in the dimension being shot; the rig's `BiomeShots` does this per shot.
+
 <a id="t178"></a>
 ### T178 — A linked 26.x consumer refuses the 1.21.1 dimension files
 
