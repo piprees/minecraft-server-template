@@ -110,6 +110,16 @@ visible section is drawn (at most a minute), screenshots
 (chunks, default six) widens the ring that must be loaded first and `hold`
 (seconds) waits that long after it is drawn, for far views.
 
+Spectator mode draws through solid blocks, so the camera must be clear before
+a screenshot: every block in the 3×3×3 box round the eye block has an empty
+collision shape (water and lava are clear). A camera that is not is lifted a
+block at a time, up to eight, with `rig: <name> camera lifted N` in the client
+log at each step; one still not clear is skipped with `rig: <name> camera
+inside terrain at x y z`, and the batch goes on. `check: true` on an entry
+audits the camera without a screenshot: it waits only for the chunks next to
+the camera and logs `rig: <name> camera clear`, `camera clear after lift N`,
+or the inside-terrain line.
+
 ```bash
 scripts/rig.sh --definitions ../custom-dimensions-26/definitions --dh --render-distance 12 biomes shots.json
 ```

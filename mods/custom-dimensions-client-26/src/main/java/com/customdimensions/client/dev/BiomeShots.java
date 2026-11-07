@@ -34,6 +34,13 @@ import net.minecraft.world.level.levelgen.Heightmap;
  * until every chunk within {@link #RADIUS} is loaded and the renderer has compiled every
  * visible section (or {@link #CAP} ticks), then a screenshot to
  * {@code <shots>/screenshots/<name>.png}. It quits after the last.
+ *
+ * <p>Spectator mode draws through solid blocks, so before each screenshot the camera must be clear: every block in the
+ * 3×3×3 box round the eye block has an empty collision shape (fluids are clear). A camera that is not is lifted a block
+ * at a time, up to {@link #LIFT}, logging {@code rig: <name> camera lifted N} at each step; one still not clear is
+ * skipped with {@code rig: <name> camera inside terrain at x y z}. {@code check: true} on an entry only teleports,
+ * waits for the chunks round the camera, logs {@code rig: <name> camera clear}, {@code camera clear after lift N} or the inside-terrain line, and takes no
+ * screenshot.
  */
 public final class BiomeShots {
     /** Chunks round the camera that must be on the client before a shot. */
@@ -42,9 +49,11 @@ public final class BiomeShots {
     static final int CAP = 1200;
     /** Ticks after the final teleport before the renderer's state is trusted. */
     static final int SETTLE = 80;
+    /** Blocks the camera may be lifted out of terrain before the shot is skipped. */
+    static final int LIFT = 8;
 
     private record Shot(String dimension, double x, String y, double z, float yaw, float pitch, double[] at, String name, boolean nightVision,
-            int radius, int hold) {
+            int radius, int hold, boolean check) {
     }
 
     private enum Phase { START, ENTER, HIGH, PLACE, WAIT, SHOOT, NEXT, DONE }
@@ -56,6 +65,9 @@ public final class BiomeShots {
     private int wait;
     private int tick;
     private int readyAt = -1;
+    private double feet;
+    private float yaw;
+    private float pitch;
 
     private BiomeShots(List<Shot> shots, File out) {
         this.shots = shots;
@@ -94,7 +106,8 @@ public final class BiomeShots {
             out.add(new Shot(o.get("dimension").getAsString(), o.get("x").getAsDouble(), o.get("y").getAsString(),
                     o.get("z").getAsDouble(), o.has("yaw") ? o.get("yaw").getAsFloat() : 0, o.has("pitch") ? o.get("pitch").getAsFloat() : 0,
                     at, o.get("name").getAsString(), o.has("nightVision") && o.get("nightVision").getAsBoolean(),
-                    o.has("radius") ? o.get("radius").getAsInt() : RADIUS, o.has("hold") ? o.get("hold").getAsInt() : 0));
+                    o.has("radius") ? o.get("radius").getAsInt() : RADIUS, o.has("hold") ? o.get("hold").getAsInt() : 0,
+                    o.has("check") && o.get("check").getAsBoolean()));
         }
         return out;
     }
@@ -171,9 +184,10 @@ public final class BiomeShots {
                 command(mc, "execute in " + shot.dimension() + " run time set 6000");
                 command(mc, "execute in " + shot.dimension() + " run weather clear");
                 command(mc, shot.nightVision() ? "effect give @s minecraft:night_vision infinite 0 true" : "effect clear @s minecraft:night_vision");
-                command(mc, String.format(Locale.ROOT, "execute in %s run tp @s %.2f %.2f %.2f %.1f %.1f", shot.dimension(), shot.x(), y,
-                        shot.z(), yaw, pitch));
-                CompanionClient.LOG.info("rig: {} at {} {} {} yaw {} pitch {}", shot.name(), shot.x(), y, shot.z(), yaw, pitch);
+                this.feet = y;
+                this.yaw = yaw;
+                this.pitch = pitch;
+                place(mc, shot);
                 go(Phase.WAIT);
             }
             case WAIT -> {
@@ -182,10 +196,30 @@ public final class BiomeShots {
                 }
                 Shot shot = shots.get(index);
                 if (readyAt < 0) {
-                    boolean ready = loaded(mc, shot.radius()) && mc.levelRenderer.hasRenderedAllSections();
+                    boolean ready = shot.check() ? loaded(mc, 1) : loaded(mc, shot.radius()) && mc.levelRenderer.hasRenderedAllSections();
                     if (ready || wait > CAP + shot.hold() * 20) {
                         if (!ready) {
                             CompanionClient.LOG.warn("rig: {} shot before every section was drawn", shot.name());
+                        }
+                        int lift = lift(mc, shot);
+                        if (lift == 0 && shot.check()) {
+                            CompanionClient.LOG.info("rig: {} camera clear", shot.name());
+                        }
+                        if (lift > 0 && shot.check()) {
+                            CompanionClient.LOG.info("rig: {} camera clear after lift {}", shot.name(), lift);
+                        }
+                        if (lift < 0) {
+                            CompanionClient.LOG.warn("rig: {} camera inside terrain at {} {} {}", shot.name(), shot.x(), feet, shot.z());
+                        }
+                        if (lift != 0 || shot.check()) {
+                            if (lift > 0 && !shot.check()) {
+                                feet += lift;
+                                place(mc, shot);
+                                go(Phase.WAIT);
+                            } else {
+                                go(Phase.NEXT);
+                            }
+                            return;
                         }
                         readyAt = wait;
                     }
@@ -219,6 +253,34 @@ public final class BiomeShots {
             default -> {
             }
         }
+    }
+
+    private void place(Minecraft mc, Shot shot) {
+        command(mc, String.format(Locale.ROOT, "execute in %s run tp @s %.2f %.2f %.2f %.1f %.1f", shot.dimension(), shot.x(), feet,
+                shot.z(), yaw, pitch));
+        CompanionClient.LOG.info("rig: {} at {} {} {} yaw {} pitch {}", shot.name(), shot.x(), feet, shot.z(), yaw, pitch);
+    }
+
+    /** Blocks the camera must rise to be clear: 0 when it already is, -1 when {@link #LIFT} is not enough. */
+    private int lift(Minecraft mc, Shot shot) {
+        for (int n = 0; n <= LIFT; n++) {
+            if (n > 0) {
+                CompanionClient.LOG.info("rig: {} camera lifted {}", shot.name(), n);
+            }
+            if (clear(mc, BlockPos.containing(shot.x(), feet + n + mc.player.getEyeHeight(), shot.z()))) {
+                return n;
+            }
+        }
+        return -1;
+    }
+
+    private static boolean clear(Minecraft mc, BlockPos eye) {
+        for (BlockPos pos : BlockPos.betweenClosed(eye.offset(-1, -1, -1), eye.offset(1, 1, 1))) {
+            if (!mc.level.getBlockState(pos).getCollisionShape(mc.level, pos).isEmpty()) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private void finish(Minecraft mc) {
