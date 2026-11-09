@@ -63,6 +63,7 @@ public final class Placeness {
         o.addProperty("note", "over the coarse map (" + step + "-block cells, " + side + " a side); regions are 4-connected cells of one "
                 + "surface biome or one landform class; edge cells lie within " + EDGE_BLOCKS + " blocks of a region boundary; correlation "
                 + "length is the semivariogram range (" + Math.round(SILL_SHARE * 100) + "% of the variance) along x and z");
+        o.add("biomesPercent", shares(biomes, biomeName));
         o.add("biomeRegions", regionJson(b, biomes));
         o.add("landformRegions", regionJson(l, landforms));
         JsonObject corr = new JsonObject();
@@ -86,6 +87,16 @@ public final class Placeness {
         at.add("centre", pointJson(0, 0, b, l, biomeName, landformName, edge));
         if (spawn != null) at.add("spawn", pointJson(spawn[0], spawn[1], b, l, biomeName, landformName, edge));
         o.add("at", at);
+        return o;
+    }
+
+    /** Every label's share of the grid, largest first, one decimal (at least 0.1 for a label present at all). */
+    JsonObject shares(int[] labels, IntFunction<String> name) {
+        java.util.Map<Integer, Integer> counts = new java.util.HashMap<>();
+        for (int l : labels) if (l >= 0) counts.merge(l, 1, Integer::sum);
+        JsonObject o = new JsonObject();
+        counts.entrySet().stream().sorted((a, b) -> Integer.compare(b.getValue(), a.getValue()))
+                .forEach(e -> o.addProperty(name.apply(e.getKey()), Math.max(0.1, Stats.percent(e.getValue(), labels.length))));
         return o;
     }
 

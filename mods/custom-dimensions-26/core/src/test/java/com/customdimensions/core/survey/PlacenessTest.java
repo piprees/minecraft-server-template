@@ -52,6 +52,11 @@ class PlacenessTest {
         JsonObject b = json(halves, halves, null, null, null).getAsJsonObject("biomeRegions");
         assertEquals(2, b.get("count").getAsInt());
         assertEquals(2, b.get("major").getAsInt());
+        JsonObject shares = json(halves, halves, null, null, null).getAsJsonObject("biomesPercent");
+        assertEquals(50.0, shares.get("b0").getAsDouble());
+        assertEquals(50.0, shares.get("b1").getAsDouble());
+        int[] one = fill((x, z) -> x == 0 && z == 0 ? 1 : 0);
+        assertEquals(0.1, json(one, one, null, null, null).getAsJsonObject("biomesPercent").get("b1").getAsDouble(), "present is never 0");
         assertEquals(50.0, b.get("largestPercent").getAsDouble());
         assertEquals(100.0, b.get("top3Percent").getAsDouble());
         // one boundary SIDE cells long over a SIDE x SIDE grid: 1024 blocks over 1.048576 km^2
