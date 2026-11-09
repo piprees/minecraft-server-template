@@ -18,7 +18,9 @@ Usage: review-packet.py <slug> <dossier.json> <shot list.json> <screenshots dir>
   --facts also writes the facts table and scorecard as JSON.
 Gotchas: run from anywhere; the repository root is found from this file's location. A shot whose png is missing is
 listed as not taken, with its census if one exists. A 1.21.1 vanilla id with no mapping row maps to itself. A base
-world (overworld, the_nether, the_end) has no 1.21.1 biome list, so scorecard a and b are n/a there.
+world (overworld, the_nether, the_end) has no 1.21.1 biome list, so scorecard a and b are n/a there; a is also n/a
+where no column has ground. The survey files the lowest mass as the surface, so for the sky layer a type implies,
+islands over void (void 20%+ of columns, ground on 5%+) count as present.
 """
 import csv
 import json
@@ -45,6 +47,7 @@ TYPE_LAYERS = {
     'paradise_lost:paradise_lost': ('sky',), 'overworld': ('surface', 'underground'), 'void': (),
 }
 LAYER_PRESENT_PERCENT = 5.0
+ISLAND_VOID_PERCENT = 20.0
 
 
 def load(path):
@@ -107,7 +110,8 @@ def facts(slug, old, new, dossier, mapping):
             e = expr[v2]
             extra.append({'row': f'V{len(extra) + 1}', 'v2': v2, 'surfacePercent': shares.get(v2, 0.0),
                           'columns': e.get('columns', 0), 'state': e.get('state', 'placed'), 'flagReason': ', '.join(e.get('flags', []))})
-    traceable = round(sum(shares.get(v, 0.0) for v in traced), 1)
+    land = sum(shares.values())
+    traceable = round(100.0 * sum(shares.get(v, 0.0) for v in traced) / land, 1) if land else None
     terrain = dossier.get('terrain', {})
     fluid = surface.get('fluidCoverPercent', {})
     layers = dossier.get('vertical', {}).get('layerColumnsPercent', {})
@@ -122,11 +126,18 @@ def facts(slug, old, new, dossier, mapping):
     old_type = old.get('type') or slug
     intent = {'type': old_type, 'noiseSettings': old.get('noiseSettings'),
               'settingsOverrides': old.get('settingsOverrides'), 'environment': old.get('environment')}
-    implied = {layer: {'percent': layers.get(layer, 0.0), 'present': layers.get(layer, 0.0) >= LAYER_PRESENT_PERCENT}
-               for layer in TYPE_LAYERS.get(old_type, ('surface',))}
+    implied = {}
+    for layer in TYPE_LAYERS.get(old_type, ('surface',)):
+        share = layers.get(layer, 0.0)
+        present = share >= LAYER_PRESENT_PERCENT
+        if layer == 'sky' and not present:
+            # The survey files the lowest mass as surface, so islands over void count as the sky layer.
+            share = round(min(layers.get('surface', 0.0), surface.get('voidPercent') or 0.0), 1)
+            present = (surface.get('voidPercent') or 0.0) >= ISLAND_VOID_PERCENT and layers.get('surface', 0.0) >= LAYER_PRESENT_PERCENT
+        implied[layer] = {'percent': share, 'present': present}
     expressed = sum(1 for r in rows if r['state'] == 'expressed')
     scorecard = {
-        'a': traceable if old_ids else None,
+        'a': traceable if old_ids and land else None,
         'b': round(100.0 * expressed / len(rows), 1) if rows else None,
         'c': sum(1 for e in expr.values() if e.get('state') == 'placed, not expressed'),
         'd': implied,
@@ -164,7 +175,7 @@ def facts_section(f):
           f"| M:layers | {json.dumps(m['layerColumnsPercent'])} (`vertical.layerColumnsPercent`) | environment `{json.dumps(i['environment'])}` |",
           f"| M:classes | {json.dumps(m['columnClassPercent'])} (`vertical.columnClassPercent`); ceiling {m['ceiling']}, skylight {m['hasSkyLight']} | |",
           '', '### Scorecard (S rows)', '',
-          f"- S:a — surface traceable to the 1.21.1 biomes: {pct(f['scorecard']['a'])}",
+          f"- S:a — surface traceable to the 1.21.1 biomes (of the columns that have ground): {pct(f['scorecard']['a'])}",
           f"- S:b — 1.21.1 biomes expressed: {pct(f['scorecard']['b'])}",
           f"- S:c — v2 biomes placed but not expressed: {f['scorecard']['c']}",
           '- S:d — layers the 1.21.1 type implies: ' + (', '.join(

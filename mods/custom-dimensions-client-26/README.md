@@ -163,10 +163,10 @@ not judged (`--facts FILE` also writes it as JSON):
 - **M rows**, the dossier's top surface biomes, snow, water, lava, void,
   canopy, relief, layer and column-class numbers beside the 1.21.1 type,
   `noiseSettings`, `settingsOverrides` and `environment`;
-- **the scorecard**: S:a the share of the surface whose biome traces to the
+- **the scorecard**: S:a the share of the ground columns whose biome traces to the
   1.21.1 list, S:b the share of the 1.21.1 biomes expressed, S:c the number of
   v2 biomes placed but not expressed, S:d each layer the 1.21.1 type implies
-  (`sky_islands`, `nether_islands` and `end` a sky layer; `nether` a surface
+  (`sky_islands`, `nether_islands` and `end` a sky layer, which islands over void satisfy, since the survey files the lowest mass as the surface: void on 20% or more of the columns and ground on 5% or more; `nether` a surface
   and a roof; `cave` underground and a roof; the rest a surface and
   underground) and whether it is present (5% of columns or more). A base world
   has no 1.21.1 biome list, so S:a and S:b are n/a there.

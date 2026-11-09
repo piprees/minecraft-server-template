@@ -64,13 +64,20 @@ class FactsTest(unittest.TestCase):
     def test_scorecard(self):
         s = self.f['scorecard']
         self.assertEqual(s['a'], 50.0)
+        holed = dict(DOSSIER, surface=dict(DOSSIER['surface'], biomesPercent={'minecraft:desert': 10.0, 'minecraft:snowy_plains': 30.0}, voidPercent=60.0))
+        self.assertEqual(rp.facts('the_test', OLD, NEW, holed, MAPPING)['scorecard']['a'], 75.0)
+        empty = dict(DOSSIER, surface=dict(DOSSIER['surface'], biomesPercent={}, voidPercent=100.0))
+        self.assertIsNone(rp.facts('the_test', OLD, NEW, empty, MAPPING)['scorecard']['a'])
         self.assertEqual(s['b'], round(100 / 6, 1))
         self.assertEqual(s['c'], 2)
         self.assertEqual(s['d'], {'surface': {'percent': 100.0, 'present': True}, 'underground': {'percent': 99.0, 'present': True}})
 
     def test_type_layers_mark_a_missing_layer_absent(self):
         f = rp.facts('the_isles', dict(OLD, type='sky_islands'), NEW, DOSSIER, MAPPING)
-        self.assertEqual(f['scorecard']['d'], {'sky': {'percent': 0.2, 'present': False}})
+        self.assertEqual(f['scorecard']['d'], {'sky': {'percent': 0.0, 'present': False}})
+        isles = dict(DOSSIER, surface=dict(DOSSIER['surface'], voidPercent=50.0),
+                     vertical={'layerColumnsPercent': {'sky': 0.3, 'surface': 50.0, 'underground': 45.0, 'roof': 0.0}})
+        self.assertEqual(rp.facts('the_isles', dict(OLD, type='end'), NEW, isles, MAPPING)['scorecard']['d'], {'sky': {'percent': 50.0, 'present': True}})
         base = rp.facts('the_nether', {}, NEW, DOSSIER, MAPPING)
         self.assertEqual(sorted(base['scorecard']['d']), ['roof', 'surface'])
         self.assertIsNone(base['scorecard']['a'])
