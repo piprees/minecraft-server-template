@@ -114,8 +114,8 @@ Spectator mode draws through solid blocks, so the camera must be clear before
 a screenshot: every block in the 3×3×3 box round the eye block has an empty
 collision shape (water and lava are clear). A camera that is not is lifted a
 block at a time, up to eight, with `rig: <name> camera lifted N` in the client
-log at each step; one still not clear is skipped with `rig: <name> camera
-inside terrain at x y z`, and the batch goes on. `check: true` on an entry
+log at each step; one still not clear is rejected with `rig: <name> camera
+inside terrain at x y z` and the next alternate is tried (below). `check: true` on an entry
 audits the camera without a screenshot: it waits for the chunks within its
 `radius`, logs `rig: <name> camera clear`, `camera clear after lift N` (and
 re-places the camera there) or the inside-terrain line, and takes the frame
@@ -125,12 +125,44 @@ Every screenshot and every `check` entry writes a frame census,
 `<out>/screenshots/<name>.frame.json`: a 64×36 grid of rays from the eye
 across the view (the options' field of view, the window's aspect), clipped
 against block outlines and any fluid out to the render distance. Each hit
-records its block, the biome there and its distance; a miss is sky, or
-`unloaded` when the ray passed a chunk the client does not hold below the
-skyline (the highest motion-blocking height of the loaded chunks). It gives
-shares by block, by biome (of the rays that hit) and by distance band (under
-32, 32–128, over 128 blocks), and a one-line `caption` built only from those
-shares, which the client log repeats as `rig: <name> census <caption>`.
+records its block, the biome there and its distance; a miss is sky, `void`
+when it left the bottom of the world, or `unloaded` when the ray passed a
+chunk the client does not hold below the skyline (the highest motion-blocking
+height of the loaded chunks). It gives shares by block, by biome (of the rays
+that hit) and by distance band (under 32, 32–128, over 128 blocks), and a
+one-line `caption` built only from those shares, which the client log repeats
+as `rig: <name> census <caption>`. It also records the gate's ray measures:
+`medianDistance` (a miss counts as the render distance), `nearBlock` and
+`nearBlockPercent` (the block covering most rays within 4 blocks, as a share
+of all rays), `borderPercent` (rays that reach the world border before any
+block) and `fogColor` (the `minecraft:visual/fog_color` the camera's attribute
+probe gives, biome included).
+
+### Frame-quality gate
+
+`dev/FrameGate.java` judges every screenshot before it is saved, from the
+census and the image (sampled on a 160×90 grid). A frame is rejected when:
+
+| Rule | Rejected when |
+| --- | --- |
+| dark | mean Rec. 709 luma under 30 (0–255) |
+| occluded | median ray distance under 4 blocks, or one block covers over 45% of all rays within 4 blocks (cobweb, a wall, leaves on the lens) |
+| empty | sky, void and unloaded rays over 75% together, unless the entry says `empty: true` (a shot meant to show sky or void) |
+| fog wall | over 60% of pixels within RGB distance 24 of the camera's fog colour |
+| border | over 2% of rays reach the world border before any block, within the render distance |
+
+The luma line sits between the darkest readable frames (luma 37 and up: lit
+caves, dark-oak floors) and the unreadable ones (7–25: unlit forests, a red
+fog wall at night, a cave in shadow). The passing frame carries a `gate`
+block in its census (`try`, `luma`, `fogPercent`, `reasons`). A rejected try
+keeps `<name>.try<N>.frame.json` and `<name>.try<N>.rejected.png`, logs
+`rig: <name> rejected <reason>, trying alt N`, and the entry's next
+`alternates` element replaces its `x y z yaw pitch at nightVision` for
+another try. When every try fails, `<name>.rejected.json` lists the reasons
+and no `<name>.png` is written. `pick-shots.py` writes two or three
+alternates per shot: other cells of the place type or other places of the
+cluster, then the camera turned 90, 180 and 270 degrees; the far view's face
+inward, towards the border centre, then 90 degrees either side.
 
 Three scripts turn the census and the server's survey into a review:
 

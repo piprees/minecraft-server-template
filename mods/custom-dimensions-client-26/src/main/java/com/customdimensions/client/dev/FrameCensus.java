@@ -14,7 +14,9 @@ import java.util.Map;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.world.attribute.EnvironmentAttributes;
 import net.minecraft.world.level.ClipContext;
+import net.minecraft.world.level.border.WorldBorder;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
@@ -26,8 +28,11 @@ import net.minecraft.world.phys.Vec3;
  * options, the window's aspect), each clipped against block outlines and any
  * fluid out to the render distance. A ray that hits records its block, the
  * biome there and its distance; one that misses is sky, or {@code unloaded}
- * when it passed a chunk the client does not hold below the loaded chunks' skyline. Shares are of all rays,
- * except biome shares, which are of the rays that hit.
+ * when it passed a chunk the client does not hold below the loaded chunks' skyline, or {@code void} when it left the
+ * bottom of the world. Shares are of all rays, except biome shares, which are of the rays that hit. It also gives
+ * {@link FrameGate} its ray measures: the median ray distance (a miss counts as the render distance), the block covering
+ * most rays within {@link FrameGate#NEAR} blocks, the share of rays that reach the world border before any block, and
+ * the fog colour at the camera.
  */
 final class FrameCensus {
     static final int COLUMNS = 64;
@@ -37,8 +42,28 @@ final class FrameCensus {
 
     private FrameCensus() {}
 
+    /** A frame's census: the frame.json body, its caption, the gate's ray measures (image measures zero) and the fog colour. */
+    record Census(JsonObject json, String caption, FrameGate.Measures rays, int fogRgb) {
+        FrameGate.Measures with(double[] image) {
+            return new FrameGate.Measures(rays.medianDistance(), rays.nearBlock(), rays.nearBlockPercent(), rays.skyPercent(),
+                    rays.voidPercent(), rays.unloadedPercent(), rays.borderPercent(), image[0], image[1]);
+        }
+    }
+
     /** Casts the rays and writes {@code <dir>/<name>.frame.json}; returns the caption. */
     static String write(Minecraft mc, File dir, String name, String dimension) throws IOException {
+        Census census = measure(mc, name, dimension);
+        write(dir, name, census.json());
+        return census.caption();
+    }
+
+    static void write(File dir, String name, JsonObject json) throws IOException {
+        Files.createDirectories(dir.toPath());
+        Files.writeString(new File(dir, name + ".frame.json").toPath(), new GsonBuilder().setPrettyPrinting().create().toJson(json));
+    }
+
+    /** Casts the rays; writes nothing. */
+    static Census measure(Minecraft mc, String name, String dimension) {
         Vec3 eye = mc.player.getEyePosition();
         float yaw = mc.player.getYRot(), pitch = mc.player.getXRot();
         double fov = mc.options.fov().get();
@@ -51,16 +76,28 @@ final class FrameCensus {
         Map<String, Integer> blocks = new HashMap<>(), biomes = new HashMap<>();
         List<Map<String, Integer>> bands = List.of(new HashMap<>(), new HashMap<>(), new HashMap<>());
         int[] bandRays = new int[3];
-        int sky = 0, unloaded = 0, hits = 0, rays = COLUMNS * ROWS;
+        int sky = 0, unloaded = 0, voided = 0, border = 0, hits = 0, rays = COLUMNS * ROWS;
         int skyline = skyline(mc, max);
+        double[] distances = new double[rays];
+        Map<String, Integer> near = new HashMap<>();
+        WorldBorder wb = mc.level.getWorldBorder();
+        double half = wb.getSize() / 2;
         for (int r = 0; r < ROWS; r++) {
             for (int c = 0; c < COLUMNS; c++) {
                 double u = ((c + 0.5) / COLUMNS * 2 - 1) * tx, v = (1 - (r + 0.5) / ROWS * 2) * ty;
                 Vec3 ray = forward.add(right.scale(u)).add(up.scale(v)).normalize();
                 Vec3 to = eye.add(ray.scale(max));
                 BlockHitResult hit = mc.level.clip(new ClipContext(eye, to, ClipContext.Block.OUTLINE, ClipContext.Fluid.ANY, mc.player));
+                double reach = hit.getType() == HitResult.Type.MISS ? max : hit.getLocation().distanceTo(eye);
+                distances[r * COLUMNS + c] = reach;
+                double horizontal = Math.sqrt(ray.x * ray.x + ray.z * ray.z);
+                if (horizontal > 1e-6 && FrameGate.borderDistance(eye.x, eye.z, ray.x / horizontal, ray.z / horizontal, wb.getCenterX(),
+                        wb.getCenterZ(), half) / horizontal < reach) {
+                    border++;
+                }
                 if (hit.getType() == HitResult.Type.MISS) {
-                    if (passesUnloaded(mc, eye, ray, max, skyline)) unloaded++;
+                    if (ray.y < 0 && eye.y + ray.y * max < mc.level.getMinY()) voided++;
+                    else if (passesUnloaded(mc, eye, ray, max, skyline)) unloaded++;
                     else sky++;
                     continue;
                 }
@@ -69,7 +106,8 @@ final class FrameCensus {
                 BlockState state = mc.level.getBlockState(pos);
                 String id = BuiltInRegistries.BLOCK.getKey(state.getBlock()).toString();
                 String biome = mc.level.getBiome(pos).unwrapKey().map(k -> k.identifier().toString()).orElse("unregistered");
-                double distance = hit.getLocation().distanceTo(eye);
+                double distance = reach;
+                if (distance < FrameGate.NEAR) near.merge(id, 1, Integer::sum);
                 int band = distance < NEAR ? 0 : distance <= FAR ? 1 : 2;
                 blocks.merge(id, 1, Integer::sum);
                 biomes.merge(biome, 1, Integer::sum);
@@ -94,6 +132,17 @@ final class FrameCensus {
         o.addProperty("rays", rays);
         o.addProperty("skyPercent", percent(sky, rays));
         o.addProperty("unloadedPercent", percent(unloaded, rays));
+        o.addProperty("voidPercent", percent(voided, rays));
+        o.addProperty("borderPercent", percent(border, rays));
+        java.util.Arrays.sort(distances);
+        double median = (distances[rays / 2 - 1] + distances[rays / 2]) / 2;
+        o.addProperty("medianDistance", Math.round(median * 10) / 10.0);
+        Map.Entry<String, Integer> nearTop = near.entrySet().stream().max(Map.Entry.comparingByValue()).orElse(Map.entry("none", 0));
+        o.addProperty("nearBlock", nearTop.getKey());
+        o.addProperty("nearBlockPercent", percent(nearTop.getValue(), rays));
+        org.joml.Vector3fc fog = mc.gameRenderer.mainCamera().attributeProbe().getValue(EnvironmentAttributes.FOG_COLOR, 1f);
+        int fogRgb = (Math.round(fog.x() * 255) & 0xFF) << 16 | (Math.round(fog.y() * 255) & 0xFF) << 8 | Math.round(fog.z() * 255) & 0xFF;
+        o.addProperty("fogColor", String.format(Locale.ROOT, "#%06x", fogRgb));
         o.add("blocksPercent", shares(blocks, rays, 30));
         o.add("biomesPercentOfHits", shares(biomes, hits, 20));
         JsonObject b = new JsonObject();
@@ -108,9 +157,9 @@ final class FrameCensus {
         o.addProperty("bandLimits", "near under " + (int) NEAR + ", mid " + (int) NEAR + "-" + (int) FAR + ", far over " + (int) FAR + " blocks");
         String caption = caption(percent(sky, rays), percent(unloaded, rays), bands, rays, biomes, hits);
         o.addProperty("caption", caption);
-        Files.createDirectories(dir.toPath());
-        Files.writeString(new File(dir, name + ".frame.json").toPath(), new GsonBuilder().setPrettyPrinting().create().toJson(o));
-        return caption;
+        FrameGate.Measures measures = new FrameGate.Measures(median, nearTop.getKey(), percent(nearTop.getValue(), rays), percent(sky, rays),
+                percent(voided, rays), percent(unloaded, rays), percent(border, rays), 0, 0);
+        return new Census(o, caption, measures, fogRgb);
     }
 
     /**
