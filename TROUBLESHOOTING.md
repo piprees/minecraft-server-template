@@ -1596,6 +1596,27 @@ A seed's map and its banked facts appear to contradict each other — the thumbn
   the same trap. Pin it against the Java, not against intuition —
   `scripts/e2e/portal-matrix-selftest.sh` is the worked example.
 
+<a id="t200"></a>
+### T200 — Carvers are a small share of steep slopes
+
+- **Symptom:** turning ravines off barely moves a dimension's over-45° share (the_greenreach 9.1% → 8.3%, 7.5% with every carver off; target 5).
+- **Cause:** the steep cells come from the terrain noise, not from carvers.
+- **Fix:** tune the terrain before reaching for `carvers`.
+
+<a id="t199"></a>
+### T199 — A void wider than the render distance reads as sky
+
+- **Symptom:** from its rim, the_gritlands' hole is a flat band of fog colour, not a pit.
+- **Cause:** the far lip of a hole wider than the render distance (512 blocks at 32 chunks) is never drawn; its 1,039-block hole and a ring zone ~140 blocks over the plain mean no camera on the plain sees the hole and its lip together.
+- **Fix:** shoot it from above the ring, looking down and across; judge its shape on the height render.
+
+<a id="t198"></a>
+### T198 — A clear camera is not a usable frame
+
+- **Symptom:** a rig shot passes the clear-camera guard yet shows a cobweb, a wall a block away, a void, clouds or the world border.
+- **Cause:** the guard only proves the eye is not inside a block.
+- **Fix:** `FrameGate` (`mods/custom-dimensions-client-26/.../dev/FrameGate.java`) rejects dark, occluded, empty, fog-wall and border frames and tries the entry's `alternates`; grep the client log for `rig: <name> rejected`. A shot with no passing try writes `<name>.rejected.json` and no png.
+
 <a id="t197"></a>
 ### T197 — The survey's coarse map beads thin ranges
 
