@@ -8,103 +8,190 @@
     "preset": "overworld"
   },
   "terrain": {
-    "base": "shattered",
-    "setting": "default"
+    "base": "canyons",
+    "setting": "default",
+    "params": {
+      "coast": -0.6,
+      "seaFloor": -10,
+      "landHeight": 140,
+      "depth": 120,
+      "width": 0.03,
+      "grade": 0,
+      "cascadeStep": 2,
+      "pools": 0,
+      "roughness": 0.5
+    }
   },
   "biomes": [
     {
-      "id": "minecraft:warped_forest",
+      "id": "minecraft:badlands",
       "climate": {
-        "weirdness": [0.07, 0.12]
-      }
-    },
-    "adventure:maple_woodland",
-    "adventure:blackstone_basin",
-    "adventure:magma_land",
-    "minecraft:basalt_deltas",
-    "adventure:ashen_woodland",
-    "minecraft:eroded_badlands",
-    "minecraft:badlands",
-    "minecraft:sulfur_caves",
-    "adventure:magmatic_caves",
-    {
-      "id": "adventure:upside_down_forest",
-      "climate": {
-        "weirdness": [-2.0, -0.61]
-      }
-    },
-    {
-      "id": "minecraft:nether_wastes",
-      "climate": {
-        "weirdness": [-0.455, -0.345]
+        "weirdness": [-2.0, -0.3203],
+        "depth": [-2.0, 0.2]
       }
     },
     {
       "id": "minecraft:crimson_forest",
       "climate": {
-        "weirdness": [-0.345, -0.265]
+        "weirdness": [-0.3203, -0.1857],
+        "depth": [-2.0, 0.2]
       }
     },
     {
-      "id": "adventure:withered_forest",
+      "id": "minecraft:nether_wastes",
       "climate": {
-        "weirdness": [-0.075, -0.03]
+        "weirdness": [-0.1857, -0.0962],
+        "depth": [-2.0, 0.2]
       }
     },
     {
-      "id": "adventure:magma_land",
+      "id": "minecraft:eroded_badlands",
       "climate": {
-        "weirdness": [-0.03, 0.01]
-      }
-    },
-    {
-      "id": "adventure:redstone_abyss",
-      "climate": {
-        "weirdness": [0.01, 0.05]
+        "weirdness": [-0.0962, 0.0187],
+        "depth": [-2.0, 0.2]
       }
     },
     {
       "id": "minecraft:warped_forest",
       "climate": {
-        "weirdness": [0.12, 0.18]
+        "weirdness": [0.0187, 0.0834],
+        "depth": [-2.0, 0.2]
       }
     },
     {
-      "id": "adventure:nether_jungle",
+      "id": "adventure:blackstone_basin",
       "climate": {
-        "weirdness": [0.18, 0.26]
+        "weirdness": [0.0834, 0.1352],
+        "depth": [-2.0, 0.2]
       }
     },
     {
       "id": "adventure:quartz_flats",
       "climate": {
-        "weirdness": [0.4, 0.501]
+        "weirdness": [0.1352, 0.1887],
+        "depth": [-2.0, 0.2]
       }
     },
     {
-      "id": "minecraft:windswept_savanna",
+      "id": "adventure:nether_grasslands",
       "climate": {
-        "weirdness": [0.501, 0.595]
+        "weirdness": [0.1887, 0.2729],
+        "depth": [-2.0, 0.2]
       }
     },
     {
-      "id": "adventure:saguaro_desert",
+      "id": "adventure:withered_forest",
       "climate": {
-        "weirdness": [0.595, 2.0]
+        "weirdness": [0.2729, 0.3478],
+        "depth": [-2.0, 0.2]
+      }
+    },
+    {
+      "id": "adventure:nether_jungle",
+      "climate": {
+        "weirdness": [0.3478, 0.425],
+        "depth": [-2.0, 0.2]
+      }
+    },
+    {
+      "id": "adventure:redstone_abyss",
+      "climate": {
+        "weirdness": [0.425, 0.5538],
+        "depth": [-2.0, 0.2]
+      }
+    },
+    {
+      "id": "adventure:crimson_pinewood",
+      "climate": {
+        "weirdness": [0.5538, 2.0],
+        "depth": [-2.0, 0.2]
+      }
+    },
+    {
+      "id": "adventure:magmatic_caves",
+      "climate": {
+        "weirdness": [-2.0, 0.0025],
+        "depth": [0.2, 2.0]
+      }
+    },
+    {
+      "id": "minecraft:sulfur_caves",
+      "climate": {
+        "weirdness": [0.0025, 2.0],
+        "depth": [0.2, 2.0]
       }
     }
   ],
   "liquids": {
-    "defaultFluid": "minecraft:lava"
+    "seaLevel": -60,
+    "lavaLevel": -64,
+    "aquifers": "dry"
+  },
+  "materials": {
+    "top": "minecraft:netherrack",
+    "filler": "minecraft:netherrack",
+    "cliffs": "minecraft:blackstone",
+    "biomes": {
+      "minecraft:crimson_forest": {
+        "top": "minecraft:crimson_nylium"
+      },
+      "minecraft:warped_forest": {
+        "top": "minecraft:warped_nylium"
+      },
+      "minecraft:badlands": {
+        "top": "minecraft:red_sand",
+        "filler": "minecraft:red_sandstone"
+      },
+      "minecraft:eroded_badlands": {
+        "top": "minecraft:mud",
+        "filler": "minecraft:packed_mud"
+      }
+    }
   },
   "zones": [
     {
       "shape": "circle",
       "centre": [287, -64],
       "radius": 160,
-      "blend": 32,
+      "blend": 48,
+      "edgeJitter": 16,
+      "terrain": {
+        "base": "spires",
+        "params": {
+          "coast": -0.6,
+          "seaFloor": -40,
+          "landHeight": 45,
+          "relief": 0,
+          "roughness": 0.2,
+          "coverage": 0.02,
+          "spireHeight": 170,
+          "thickness": 1.5,
+          "taper": 0.2
+        }
+      },
       "biomes": [
         "minecraft:crimson_forest"
+      ],
+      "liquids": {
+        "aquifers": "dry"
+      }
+    },
+    {
+      "shape": "circle",
+      "centre": [287, -64],
+      "radius": 9,
+      "blend": 3,
+      "terrain": {
+        "base": "continents",
+        "params": {
+          "coast": -0.6,
+          "landHeight": 200,
+          "relief": 0,
+          "roughness": 0.1
+        }
+      },
+      "biomes": [
+        "adventure:blackstone_basin"
       ]
     },
     {
@@ -196,10 +283,9 @@
   "roll": {
     "mood": "adventurous",
     "spawnFilter": [
-      "minecraft:warped_forest",
-      "adventure:maple_woodland",
-      "adventure:blackstone_basin",
-      "minecraft:crimson_forest"
+      "minecraft:badlands",
+      "minecraft:crimson_forest",
+      "minecraft:nether_wastes"
     ],
     "wants": {
       "ddd:wizard_tower": "spread",

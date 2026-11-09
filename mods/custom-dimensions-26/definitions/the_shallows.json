@@ -11,76 +11,76 @@
     "base": "islands",
     "setting": "gentle",
     "params": {
-      "seaFloor": 52
+      "seaFloor": 60,
+      "trench": 0,
+      "islandHeight": 4,
+      "coverage": 0.25,
+      "relief": 0,
+      "roughness": 0
     }
   },
   "biomes": [
     {
-      "id": "adventure:muddy_river",
+      "id": "minecraft:warm_ocean",
       "climate": {
-        "temperature": [-2.0, 2.0],
-        "continentalness": [-0.11, 2.0],
-        "erosion": [0.05, 2.0],
-        "weirdness": [-0.05, 0.05]
+        "weirdness": [-2.0, -0.1634],
+        "depth": [-2.0, 0.2]
       }
     },
     {
       "id": "minecraft:beach",
       "climate": {
-        "temperature": [-2.0, 2.0],
-        "continentalness": [-0.19, -0.11]
-      }
-    },
-    {
-      "id": "minecraft:deep_lukewarm_ocean",
-      "climate": {
-        "temperature": [-2.0, 2.0],
-        "continentalness": [-2.0, -0.455]
-      }
-    },
-    {
-      "id": "minecraft:lukewarm_ocean",
-      "climate": {
-        "temperature": [-2.0, 0.191],
-        "continentalness": [-0.455, -0.19]
-      }
-    },
-    {
-      "id": "minecraft:warm_ocean",
-      "climate": {
-        "temperature": [0.191, 2.0],
-        "continentalness": [-0.455, -0.19]
-      }
-    },
-    {
-      "id": "adventure:lichen_caves",
-      "climate": {
-        "humidity": [-2.0, 0.024],
-        "depth": [0.2, 2.0]
-      }
-    },
-    {
-      "id": "minecraft:lush_caves",
-      "climate": {
-        "humidity": [0.024, 2.0],
-        "depth": [0.2, 2.0]
-      }
-    },
-    {
-      "id": "adventure:desert_oasis",
-      "climate": {
-        "temperature": [-2.0, 2.0],
-        "humidity": [-2.0, 0.024]
+        "weirdness": [-0.1634, 0.0276],
+        "depth": [-2.0, 0.2]
       }
     },
     {
       "id": "adventure:tropical_shores",
       "climate": {
-        "temperature": [-2.0, 2.0],
-        "humidity": [0.024, 2.0]
+        "weirdness": [0.0276, 0.1936],
+        "depth": [-2.0, 0.2]
+      }
+    },
+    {
+      "id": "minecraft:lukewarm_ocean",
+      "climate": {
+        "weirdness": [0.1936, 0.39],
+        "depth": [-2.0, 0.2]
+      }
+    },
+    {
+      "id": "adventure:desert_oasis",
+      "climate": {
+        "weirdness": [0.39, 0.517],
+        "depth": [-2.0, 0.2]
+      }
+    },
+    {
+      "id": "minecraft:warm_ocean",
+      "climate": {
+        "weirdness": [0.517, 2.0],
+        "depth": [-2.0, 0.2]
+      }
+    },
+    {
+      "id": "minecraft:lush_caves",
+      "climate": {
+        "weirdness": [-2.0, -0.0099],
+        "depth": [0.2, 2.0]
+      }
+    },
+    {
+      "id": "adventure:lichen_caves",
+      "climate": {
+        "weirdness": [-0.0099, 2.0],
+        "depth": [0.2, 2.0]
       }
     }
   ],
+  "liquids": {
+    "seaLevel": 61,
+    "aquifers": "off"
+  },
   "borders": {
     "player": 512,
     "generation": 512
@@ -117,7 +117,8 @@
   "roll": {
     "mood": "serene",
     "spawnFilter": [
-      "minecraft:beach"
+      "minecraft:beach",
+      "adventure:tropical_shores"
     ],
     "water": "sea",
     "wants": {

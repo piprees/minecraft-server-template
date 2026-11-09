@@ -8,111 +8,111 @@
     "preset": "overworld"
   },
   "terrain": {
-    "base": "voids",
-    "setting": "default"
+    "base": "continents",
+    "setting": "gentle",
+    "params": {
+      "coast": -0.6,
+      "relief": 16,
+      "roughness": 0.3
+    }
   },
   "biomes": [
     {
-      "id": "adventure:saguaro_desert",
+      "id": "adventure:ash_barrens",
       "climate": {
-        "weirdness": [-2.0, -0.5963],
-        "depth": [-2.0, 0.1]
+        "weirdness": [-2.0, -0.2264],
+        "depth": [-2.0, 0.2]
       }
     },
     {
-      "id": "minecraft:windswept_gravelly_hills",
+      "id": "adventure:gravel_desert",
       "climate": {
-        "weirdness": [-0.5963, -0.499],
-        "depth": [-2.0, 0.1]
+        "weirdness": [-0.2264, -0.0286],
+        "depth": [-2.0, 0.2]
+      }
+    },
+    {
+      "id": "adventure:ash_barrens",
+      "climate": {
+        "weirdness": [-0.0286, 0.2317],
+        "depth": [-2.0, 0.2]
       }
     },
     {
       "id": "minecraft:basalt_deltas",
       "climate": {
-        "weirdness": [-0.499, -0.478],
-        "depth": [-2.0, 0.1]
+        "weirdness": [0.2317, 0.3082],
+        "depth": [-2.0, 0.2]
       }
     },
     {
-      "id": "adventure:ashen_woodland",
+      "id": "adventure:gravel_desert",
       "climate": {
-        "weirdness": [-0.478, -0.468],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "adventure:magma_land",
-      "climate": {
-        "weirdness": [-0.468, -0.4237],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "minecraft:windswept_gravelly_hills",
-      "climate": {
-        "weirdness": [-0.4237, -0.2017],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "minecraft:stony_shore",
-      "climate": {
-        "weirdness": [-0.2017, -0.0915],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "minecraft:windswept_hills",
-      "climate": {
-        "weirdness": [-0.0915, 0.0068],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "minecraft:snowy_plains",
-      "climate": {
-        "weirdness": [0.0068, 0.1964],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "adventure:lavender_fields",
-      "climate": {
-        "weirdness": [0.1964, 0.499],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "adventure:chalk_cliffs",
-      "climate": {
-        "weirdness": [0.499, 2.0],
-        "depth": [-2.0, 0.1]
+        "weirdness": [0.3082, 2.0],
+        "depth": [-2.0, 0.2]
       }
     },
     {
       "id": "adventure:mineral_strata",
       "climate": {
-        "weirdness": [-2.0, -0.334],
-        "depth": [0.1, 2.0]
+        "weirdness": [-2.0, -0.1069],
+        "depth": [0.2, 2.0]
       }
     },
     {
       "id": "minecraft:dripstone_caves",
       "climate": {
-        "weirdness": [-0.334, 2.0],
-        "depth": [0.1, 2.0]
+        "weirdness": [-0.1069, 2.0],
+        "depth": [0.2, 2.0]
       }
     }
   ],
   "zones": [
     {
-      "shape": "circle",
-      "centre": [678, -412],
-      "radius": 96,
-      "blend": 24,
+      "shape": "ring",
+      "centre": [-440, -440],
+      "inner": 500,
+      "outer": 560,
+      "blend": 160,
+      "edgeJitter": 16,
+      "terrain": {
+        "base": "ridges",
+        "params": {
+          "coast": -0.6,
+          "landHeight": 150,
+          "peakHeight": 50,
+          "jaggedness": 1.5,
+          "rangeWidth": 1,
+          "roughness": 0.8
+        }
+      },
       "biomes": [
-        "minecraft:eroded_badlands"
-      ]
+        "adventure:magma_land",
+        "adventure:blackstone_basin"
+      ],
+      "liquids": {
+        "aquifers": "dry"
+      }
+    },
+    {
+      "shape": "circle",
+      "centre": [-440, -440],
+      "radius": 520,
+      "blend": 6,
+      "edgeJitter": 12,
+      "terrain": {
+        "base": "floating_islands",
+        "setting": "gentle",
+        "params": {
+          "coverage": 0.02
+        }
+      },
+      "biomes": [
+        "adventure:ash_barrens"
+      ],
+      "liquids": {
+        "aquifers": "dry"
+      }
     }
   ],
   "atmosphere": {
@@ -174,8 +174,8 @@
   "roll": {
     "mood": "desolate",
     "spawnFilter": [
-      "minecraft:windswept_gravelly_hills",
-      "adventure:magma_land"
+      "adventure:ash_barrens",
+      "adventure:gravel_desert"
     ],
     "water": "none",
     "shuns": [
@@ -187,5 +187,9 @@
       "monument",
       "mss:arena"
     ]
+  },
+  "liquids": {
+    "seaLevel": -60,
+    "aquifers": "dry"
   }
 }

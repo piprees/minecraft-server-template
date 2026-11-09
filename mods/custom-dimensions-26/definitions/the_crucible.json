@@ -8,11 +8,15 @@
     "preset": "overworld"
   },
   "terrain": {
-    "base": "ridges",
-    "setting": "default",
+    "base": "shattered",
+    "setting": "extreme",
     "params": {
-      "jaggedness": 0.6,
-      "roughness": 0.7
+      "coast": -0.6,
+      "landHeight": 110,
+      "relief": 80,
+      "faultHeight": 48,
+      "lift": 1,
+      "roughness": 0.9
     },
     "scale": 0.6
   },
@@ -20,154 +24,71 @@
     {
       "id": "minecraft:dark_forest",
       "climate": {
-        "weirdness": [-2.0, -0.5887]
-      }
-    },
-    {
-      "id": "minecraft:mangrove_swamp",
-      "climate": {
-        "weirdness": [-0.5887, -0.5463]
-      }
-    },
-    {
-      "id": "minecraft:swamp",
-      "climate": {
-        "weirdness": [-0.5463, -0.5068]
-      }
-    },
-    {
-      "id": "minecraft:sparse_jungle",
-      "climate": {
-        "weirdness": [-0.5068, -0.4837]
-      }
-    },
-    {
-      "id": "minecraft:river",
-      "climate": {
-        "weirdness": [-0.4837, -0.4605]
-      }
-    },
-    {
-      "id": "minecraft:beach",
-      "climate": {
-        "weirdness": [-0.4605, -0.4373]
-      }
-    },
-    {
-      "id": "minecraft:lush_caves",
-      "climate": {
-        "weirdness": [-0.4373, -0.4141]
-      }
-    },
-    {
-      "id": "minecraft:mangrove_swamp",
-      "climate": {
-        "weirdness": [-0.4141, -0.3909]
-      }
-    },
-    {
-      "id": "minecraft:pale_garden",
-      "climate": {
-        "weirdness": [-0.3909, -0.3677]
-      }
-    },
-    {
-      "id": "adventure:desert_oasis",
-      "climate": {
-        "weirdness": [-0.3677, -0.3445]
-      }
-    },
-    {
-      "id": "minecraft:old_growth_birch_forest",
-      "climate": {
-        "weirdness": [-0.3445, -0.3213]
-      }
-    },
-    {
-      "id": "minecraft:sparse_jungle",
-      "climate": {
-        "weirdness": [-0.3213, -0.2976]
-      }
-    },
-    {
-      "id": "minecraft:lush_caves",
-      "climate": {
-        "weirdness": [-0.2976, -0.2735]
-      }
-    },
-    {
-      "id": "minecraft:old_growth_birch_forest",
-      "climate": {
-        "weirdness": [-0.2735, -0.2495]
-      }
-    },
-    {
-      "id": "minecraft:old_growth_birch_forest",
-      "climate": {
-        "weirdness": [-0.2495, -0.2144]
-      }
-    },
-    {
-      "id": "adventure:muddy_river",
-      "climate": {
-        "weirdness": [-0.2144, -0.1758]
-      }
-    },
-    {
-      "id": "minecraft:sparse_jungle",
-      "climate": {
-        "weirdness": [-0.1758, -0.1371]
+        "weirdness": [-2.0, -0.6549],
+        "depth": [-2.0, 0.2]
       }
     },
     {
       "id": "minecraft:jungle",
       "climate": {
-        "weirdness": [-0.1371, 0.0589]
-      }
-    },
-    {
-      "id": "minecraft:bamboo_jungle",
-      "climate": {
-        "weirdness": [0.0589, 0.2096]
+        "weirdness": [-0.6549, -0.0332],
+        "depth": [-2.0, 0.2]
       }
     },
     {
       "id": "adventure:cloud_forest",
       "climate": {
-        "weirdness": [0.2096, 0.2876]
+        "weirdness": [-0.0332, -0.0155],
+        "depth": [-2.0, 0.2]
       }
     },
     {
-      "id": "adventure:root_hollows",
+      "id": "minecraft:bamboo_jungle",
       "climate": {
-        "weirdness": [0.2876, 0.3356]
-      }
-    },
-    {
-      "id": "minecraft:birch_forest",
-      "climate": {
-        "weirdness": [0.3356, 0.3818]
-      }
-    },
-    {
-      "id": "adventure:upside_down_forest",
-      "climate": {
-        "weirdness": [0.3818, 0.4433]
+        "weirdness": [-0.0155, 0.0022],
+        "depth": [-2.0, 0.2]
       }
     },
     {
       "id": "minecraft:jungle",
       "climate": {
-        "weirdness": [0.4433, 0.4785]
+        "weirdness": [0.0022, 0.6346],
+        "depth": [-2.0, 0.2]
       }
     },
     {
-      "id": "adventure:tropical_shores",
+      "id": "adventure:upside_down_forest",
       "climate": {
-        "weirdness": [0.4785, 2.0]
+        "weirdness": [0.6346, 0.778],
+        "depth": [-2.0, 0.2]
+      }
+    },
+    {
+      "id": "minecraft:mangrove_swamp",
+      "climate": {
+        "weirdness": [0.778, 2.0],
+        "depth": [-2.0, 0.2]
+      }
+    },
+    {
+      "id": "minecraft:lush_caves",
+      "climate": {
+        "weirdness": [-2.0, -0.0155],
+        "depth": [0.2, 2.0]
+      }
+    },
+    {
+      "id": "adventure:root_hollows",
+      "climate": {
+        "weirdness": [-0.0155, 2.0],
+        "depth": [0.2, 2.0]
       }
     }
   ],
+  "liquids": {
+    "seaLevel": 30,
+    "aquifers": "dry"
+  },
   "atmosphere": {
     "skyColor": "#1E3A1E",
     "fogColor": "#2B4B2B",

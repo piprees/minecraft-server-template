@@ -10,119 +10,82 @@
   "terrain": {
     "base": "continents",
     "setting": "gentle",
+    "params": {
+      "coast": -0.6,
+      "relief": 5,
+      "roughness": 0
+    },
     "scale": 2.5
   },
   "biomes": [
     {
+      "id": "adventure:highland_fells",
+      "climate": {
+        "weirdness": [-2.0, -0.4636],
+        "depth": [-2.0, 0.2]
+      }
+    },
+    {
+      "id": "minecraft:meadow",
+      "climate": {
+        "weirdness": [-0.4636, -0.3487],
+        "depth": [-2.0, 0.2]
+      }
+    },
+    {
       "id": "minecraft:plains",
       "climate": {
-        "weirdness": [-2.0, -0.19],
-        "depth": [-2.0, 0.1]
+        "weirdness": [-0.3487, -0.2563],
+        "depth": [-2.0, 0.2]
+      }
+    },
+    {
+      "id": "adventure:prairie",
+      "climate": {
+        "weirdness": [-0.2563, 0.2046],
+        "depth": [-2.0, 0.2]
       }
     },
     {
       "id": "minecraft:sunflower_plains",
       "climate": {
-        "weirdness": [-0.19, -0.1658],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "minecraft:meadow",
-      "climate": {
-        "weirdness": [-0.1658, -0.1417],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "minecraft:plains",
-      "climate": {
-        "weirdness": [-0.1417, -0.1175],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "minecraft:savanna",
-      "climate": {
-        "weirdness": [-0.1175, -0.0933],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "adventure:prairie",
-      "climate": {
-        "weirdness": [-0.0933, -0.0692],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "minecraft:savanna",
-      "climate": {
-        "weirdness": [-0.0692, -0.045],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "minecraft:meadow",
-      "climate": {
-        "weirdness": [-0.045, -0.0208],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "adventure:highland_fells",
-      "climate": {
-        "weirdness": [-0.0208, 0.0033],
-        "depth": [-2.0, 0.1]
+        "weirdness": [0.2046, 0.2717],
+        "depth": [-2.0, 0.2]
       }
     },
     {
       "id": "adventure:barley_fields",
       "climate": {
-        "weirdness": [0.0033, 0.0275],
-        "depth": [-2.0, 0.1]
+        "weirdness": [0.2717, 0.4864],
+        "depth": [-2.0, 0.2]
       }
     },
     {
       "id": "adventure:carnation_fields",
       "climate": {
-        "weirdness": [0.0275, 0.0517],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "adventure:prairie",
-      "climate": {
-        "weirdness": [0.0517, 0.0758],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "minecraft:plains",
-      "climate": {
-        "weirdness": [0.0758, 0.1],
-        "depth": [-2.0, 0.1]
+        "weirdness": [0.4864, 0.5904],
+        "depth": [-2.0, 0.2]
       }
     },
     {
       "id": "adventure:pumpkin_fields",
       "climate": {
-        "weirdness": [0.1, 2.0],
-        "depth": [-2.0, 0.1]
+        "weirdness": [0.5904, 2.0],
+        "depth": [-2.0, 0.2]
       }
     },
     {
       "id": "minecraft:lush_caves",
       "climate": {
-        "weirdness": [-2.0, -0.045],
-        "depth": [0.1, 2.0]
+        "weirdness": [-2.0, 0.0145],
+        "depth": [0.2, 2.0]
       }
     },
     {
       "id": "adventure:lichen_caves",
       "climate": {
-        "weirdness": [-0.045, 2.0],
-        "depth": [0.1, 2.0]
+        "weirdness": [0.0145, 2.0],
+        "depth": [0.2, 2.0]
       }
     }
   ],

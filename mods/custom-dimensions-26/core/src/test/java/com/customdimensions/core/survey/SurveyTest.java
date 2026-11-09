@@ -208,6 +208,7 @@ class SurveyTest {
         com.google.gson.JsonObject upper = new Landforms(side, 8, 0, 0, cones, kind).highGroundJson().getAsJsonObject("upperHalf");
         assertEquals(120.0, upper.get("thresholdY").getAsDouble(), upper.toString());
         assertEquals(64, upper.get("count").getAsInt(), upper.toString());
+        assertEquals(80.0, new Landforms(side, 8, 0, 0, cones, kind).highGroundJson().getAsJsonObject("upperThreeQuarters").get("thresholdY").getAsDouble());
     }
 
     @Test

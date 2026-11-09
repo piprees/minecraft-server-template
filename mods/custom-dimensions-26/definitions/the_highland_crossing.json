@@ -9,10 +9,19 @@
   },
   "terrain": {
     "base": "ridges",
-    "setting": "default",
+    "setting": "extreme",
     "params": {
-      "landHeight": 120,
-      "peakHeight": 90
+      "coast": -0.6,
+      "seaFloor": 8,
+      "landHeight": 16,
+      "peakHeight": 240,
+      "rangeWidth": 0.1,
+      "crest": 0.4,
+      "web": 1,
+      "erosionFalloff": 0,
+      "jaggedness": 0.9,
+      "relief": 0,
+      "roughness": 0.3
     }
   },
   "biomes": [
@@ -237,6 +246,10 @@
       }
     }
   ],
+  "liquids": {
+    "seaLevel": -60,
+    "aquifers": "dry"
+  },
   "borders": {
     "player": 4096,
     "generation": 2048

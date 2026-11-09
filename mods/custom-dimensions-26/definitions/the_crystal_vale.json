@@ -9,94 +9,101 @@
   },
   "terrain": {
     "base": "ridges",
-    "setting": "default"
+    "setting": "default",
+    "params": {
+      "coast": -0.6,
+      "peakHeight": 110
+    }
   },
   "biomes": [
     {
-      "id": "minecraft:deep_lukewarm_ocean",
+      "id": "adventure:wisteria_grove",
       "climate": {
-        "temperature": [-2.0, 2.0],
-        "continentalness": [-2.0, -0.19]
+        "weirdness": [-2.0, -0.3721],
+        "depth": [-2.0, 0.2]
       }
     },
     {
-      "id": "adventure:mineral_strata",
+      "id": "adventure:lavender_fields",
       "climate": {
-        "humidity": [-2.0, 0.097],
+        "weirdness": [-0.3721, -0.214],
+        "depth": [-2.0, 0.2]
+      }
+    },
+    {
+      "id": "adventure:glowing_grasslands",
+      "climate": {
+        "weirdness": [-0.214, -0.0979],
+        "depth": [-2.0, 0.2]
+      }
+    },
+    {
+      "id": "minecraft:jungle",
+      "climate": {
+        "weirdness": [-0.0979, 0.0199],
+        "depth": [-2.0, 0.2]
+      }
+    },
+    {
+      "id": "minecraft:meadow",
+      "climate": {
+        "weirdness": [0.0199, 0.1162],
+        "depth": [-2.0, 0.2]
+      }
+    },
+    {
+      "id": "minecraft:birch_forest",
+      "climate": {
+        "weirdness": [0.1162, 0.1989],
+        "depth": [-2.0, 0.2]
+      }
+    },
+    {
+      "id": "adventure:alpine_meadow",
+      "climate": {
+        "weirdness": [0.1989, 0.3345],
+        "depth": [-2.0, 0.2]
+      }
+    },
+    {
+      "id": "minecraft:windswept_hills",
+      "climate": {
+        "weirdness": [0.3345, 0.43],
+        "depth": [-2.0, 0.2]
+      }
+    },
+    {
+      "id": "minecraft:pale_garden",
+      "climate": {
+        "weirdness": [0.43, 2.0],
+        "depth": [-2.0, 0.2]
+      }
+    },
+    {
+      "id": "adventure:crystal_hollows",
+      "climate": {
+        "weirdness": [-2.0, -0.2301],
         "depth": [0.2, 2.0]
       }
     },
     {
       "id": "minecraft:lush_caves",
       "climate": {
-        "humidity": [0.097, 2.0],
+        "weirdness": [-0.2301, 0.0927],
         "depth": [0.2, 2.0]
       }
     },
     {
-      "id": "minecraft:windswept_hills",
+      "id": "adventure:mineral_strata",
       "climate": {
-        "temperature": [-2.0, -0.076],
-        "humidity": [-2.0, -0.006]
-      }
-    },
-    {
-      "id": "adventure:alpine_meadow",
-      "climate": {
-        "temperature": [-2.0, -0.076],
-        "humidity": [-0.006, 0.207]
-      }
-    },
-    {
-      "id": "minecraft:grove",
-      "climate": {
-        "temperature": [-2.0, -0.076],
-        "humidity": [0.207, 2.0]
-      }
-    },
-    {
-      "id": "adventure:crystal_hollows",
-      "climate": {
-        "temperature": [-0.076, 0.122],
-        "humidity": [-2.0, 0.053]
-      }
-    },
-    {
-      "id": "minecraft:meadow",
-      "climate": {
-        "temperature": [-0.076, 0.122],
-        "humidity": [0.053, 0.242]
-      }
-    },
-    {
-      "id": "minecraft:pale_garden",
-      "climate": {
-        "temperature": [-0.076, 0.122],
-        "humidity": [0.242, 2.0]
-      }
-    },
-    {
-      "id": "minecraft:birch_forest",
-      "climate": {
-        "temperature": [0.122, 2.0],
-        "humidity": [-2.0, -0.043]
-      }
-    },
-    {
-      "id": "adventure:alpha_grove",
-      "climate": {
-        "temperature": [0.122, 2.0],
-        "humidity": [-0.043, 0.143]
-      }
-    },
-    {
-      "id": "minecraft:jungle",
-      "climate": {
-        "temperature": [0.122, 2.0],
-        "humidity": [0.143, 2.0]
+        "weirdness": [0.0927, 2.0],
+        "depth": [0.2, 2.0]
       }
     }
   ],
+  "materials": {
+    "cliffs": "minecraft:amethyst_block"
+  },
   "zones": [
     {
       "shape": "circle",
@@ -110,7 +117,8 @@
   ],
   "atmosphere": {
     "skyColor": "#C9A8E8",
-    "ambientLight": 0.15
+    "ambientLight": 0.25,
+    "fixedTime": 18000
   },
   "borders": {
     "player": 1024,
@@ -153,8 +161,8 @@
   "roll": {
     "mood": "scenic",
     "spawnFilter": [
-      "minecraft:jungle",
-      "adventure:crystal_hollows"
+      "adventure:wisteria_grove",
+      "adventure:lavender_fields"
     ],
     "wants": {
       "ddd:wizard_tower": "spread",

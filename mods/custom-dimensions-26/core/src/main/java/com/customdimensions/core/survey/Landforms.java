@@ -279,19 +279,20 @@ public final class Landforms {
     }
 
     /**
-     * The land at or above the land's 75th and 90th height percentiles, and above the middle of its median and 99th
-     * percentile (the upper half of its relief, for ranges too thin to fill a tenth of the land): for each, its
-     * 8-connected regions and the largest's share.
+     * The land at or above the land's 75th and 90th height percentiles, and above the upper half and the upper three
+     * quarters of its relief between its median and 99th percentile (for ranges too thin to fill a tenth of the land):
+     * for each, its 8-connected regions and the largest's share.
      */
     public JsonObject highGroundJson() {
         JsonObject o = new JsonObject();
         o.add("p75", highGroundJson(75));
         o.add("p90", highGroundJson(90));
         o.add("upperHalf", highGroundJson(-1));
+        o.add("upperThreeQuarters", highGroundJson(-2));
         return o;
     }
 
-    /** High ground above the land's {@code percentile} height, or above the upper half of its relief for -1. */
+    /** High ground above the land's {@code percentile} height; for -1 the upper half of its relief, for -2 the upper three quarters. */
     JsonObject highGroundJson(double percentile) {
         List<Double> land = new ArrayList<>();
         for (int i = 0; i < kind.length; i++) if (kind[i] == 0) land.add((double) heights[i]);
@@ -302,8 +303,8 @@ public final class Landforms {
             o.addProperty("top3Percent", 0.0);
             return o;
         }
-        double threshold = percentile >= 0 ? Stats.percentile(arr(land), percentile)
-                : (Stats.percentile(arr(land), 50) + Stats.percentile(arr(land), 99)) / 2;
+        double p50 = Stats.percentile(arr(land), 50), p99 = Stats.percentile(arr(land), 99);
+        double threshold = percentile >= 0 ? Stats.percentile(arr(land), percentile) : p50 + (p99 - p50) * (percentile == -1 ? 0.5 : 0.25);
         boolean[] seen = new boolean[side * side];
         List<Integer> sizes = new ArrayList<>();
         for (int start = 0; start < side * side; start++) {
