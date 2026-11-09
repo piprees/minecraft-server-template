@@ -75,28 +75,18 @@
         "depth": [0.2, 2.0]
       }
     },
-    {
-      "id": "minecraft:snowy_plains",
-      "climate": {
-        "temperature": [-2.0, 0.721],
-        "humidity": [-2.0, 0.091]
-      }
-    },
-    {
-      "id": "minecraft:snowy_taiga",
-      "climate": {
-        "temperature": [-2.0, 0.721],
-        "humidity": [0.091, 2.0]
-      }
-    },
-    {
-      "id": "adventure:highland_fells",
-      "climate": {
-        "temperature": [0.721, 2.0],
-        "humidity": [-2.0, 2.0]
-      }
-    }
+    "minecraft:snowy_plains",
+    "minecraft:snowy_taiga",
+    "adventure:highland_fells"
   ],
+  "biomeLayout": {
+    "mode": "regions",
+    "weights": {
+      "minecraft:snowy_plains": 7.8,
+      "minecraft:snowy_taiga": 31.9,
+      "adventure:highland_fells": 1.8
+    }
+  },
   "liquids": {
     "seaLevel": 72
   },

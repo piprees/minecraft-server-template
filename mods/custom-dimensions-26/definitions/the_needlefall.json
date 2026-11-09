@@ -29,42 +29,22 @@
         "depth": [0.2, 2.0]
       }
     },
-    {
-      "id": "minecraft:snowy_taiga",
-      "climate": {
-        "temperature": [-2.0, -0.012],
-        "humidity": [-2.0, -0.106]
-      }
-    },
-    {
-      "id": "minecraft:windswept_forest",
-      "climate": {
-        "temperature": [-2.0, -0.012],
-        "humidity": [-0.106, 0.068]
-      }
-    },
-    {
-      "id": "minecraft:taiga",
-      "climate": {
-        "temperature": [-2.0, -0.012],
-        "humidity": [0.068, 2.0]
-      }
-    },
-    {
-      "id": "minecraft:old_growth_spruce_taiga",
-      "climate": {
-        "temperature": [-0.012, 2.0],
-        "humidity": [-2.0, 0.027]
-      }
-    },
-    {
-      "id": "minecraft:old_growth_pine_taiga",
-      "climate": {
-        "temperature": [-0.012, 2.0],
-        "humidity": [0.027, 2.0]
-      }
-    }
+    "minecraft:snowy_taiga",
+    "minecraft:windswept_forest",
+    "minecraft:taiga",
+    "minecraft:old_growth_spruce_taiga",
+    "minecraft:old_growth_pine_taiga"
   ],
+  "biomeLayout": {
+    "mode": "regions",
+    "weights": {
+      "minecraft:snowy_taiga": 15.2,
+      "minecraft:windswept_forest": 21,
+      "minecraft:taiga": 28.9,
+      "minecraft:old_growth_spruce_taiga": 8.4,
+      "minecraft:old_growth_pine_taiga": 22.7
+    }
+  },
   "atmosphere": {
     "fogColor": "#5B6B4B"
   },

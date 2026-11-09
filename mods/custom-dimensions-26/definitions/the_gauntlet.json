@@ -14,6 +14,9 @@
       "coast": -0.4,
       "rangeWidth": 0.8,
       "peakHeight": 170
+    },
+    "scales": {
+      "climate": 2.0
     }
   },
   "biomes": [
@@ -64,105 +67,40 @@
         "depth": [0.2, 2.0]
       }
     },
-    {
-      "id": "minecraft:windswept_gravelly_hills",
-      "climate": {
-        "temperature": [-2.0, -0.324],
-        "humidity": [-2.0, -0.117]
-      }
-    },
-    {
-      "id": "adventure:dying_forest",
-      "climate": {
-        "temperature": [-2.0, -0.324],
-        "humidity": [-0.117, 0.028]
-      }
-    },
-    {
-      "id": "minecraft:snowy_slopes",
-      "climate": {
-        "temperature": [-2.0, -0.324],
-        "humidity": [0.028, 0.184]
-      }
-    },
-    {
-      "id": "adventure:ice_starfield",
-      "climate": {
-        "temperature": [-2.0, -0.324],
-        "humidity": [0.184, 2.0]
-      }
-    },
-    {
-      "id": "adventure:ash_barrens",
-      "climate": {
-        "temperature": [-0.324, 0.165],
-        "humidity": [-2.0, -0.212]
-      }
-    },
-    {
-      "id": "adventure:alpine_scree",
-      "climate": {
-        "temperature": [-0.324, 0.165],
-        "humidity": [-0.212, -0.008]
-      }
-    },
-    {
-      "id": "minecraft:windswept_hills",
-      "climate": {
-        "temperature": [-0.324, 0.165],
-        "humidity": [-0.008, 0.202]
-      }
-    },
-    {
-      "id": "minecraft:snowy_taiga",
-      "climate": {
-        "temperature": [-0.324, 0.165],
-        "humidity": [0.202, 2.0]
-      }
-    },
-    {
-      "id": "adventure:chalk_cliffs",
-      "climate": {
-        "temperature": [0.165, 0.334],
-        "humidity": [-2.0, -0.15]
-      }
-    },
-    {
-      "id": "minecraft:grove",
-      "climate": {
-        "temperature": [0.165, 0.334],
-        "humidity": [-0.15, 0.137]
-      }
-    },
-    {
-      "id": "adventure:maple_woodland",
-      "climate": {
-        "temperature": [0.165, 0.334],
-        "humidity": [0.137, 2.0]
-      }
-    },
-    {
-      "id": "minecraft:eroded_badlands",
-      "climate": {
-        "temperature": [0.334, 2.0],
-        "humidity": [-2.0, -0.15]
-      }
-    },
-    {
-      "id": "adventure:ashen_woodland",
-      "climate": {
-        "temperature": [0.334, 2.0],
-        "humidity": [-0.15, 0.038]
-      }
-    },
-    {
-      "id": "minecraft:basalt_deltas",
-      "climate": {
-        "temperature": [0.334, 2.0],
-        "humidity": [0.038, 2.0]
-      }
-    }
+    "minecraft:windswept_gravelly_hills",
+    "adventure:dying_forest",
+    "minecraft:snowy_slopes",
+    "adventure:ice_starfield",
+    "adventure:ash_barrens",
+    "adventure:alpine_scree",
+    "minecraft:windswept_hills",
+    "minecraft:snowy_taiga",
+    "adventure:chalk_cliffs",
+    "minecraft:grove",
+    "adventure:maple_woodland",
+    "minecraft:eroded_badlands",
+    "adventure:ashen_woodland",
+    "minecraft:basalt_deltas"
   ],
+  "biomeLayout": {
+    "mode": "regions",
+    "weights": {
+      "minecraft:windswept_gravelly_hills": 8.9,
+      "adventure:dying_forest": 2.9,
+      "minecraft:snowy_slopes": 3.5,
+      "adventure:ice_starfield": 4.3,
+      "adventure:ash_barrens": 3.8,
+      "adventure:alpine_scree": 8.6,
+      "minecraft:windswept_hills": 9,
+      "minecraft:snowy_taiga": 3.3,
+      "adventure:chalk_cliffs": 5.1,
+      "minecraft:grove": 9,
+      "adventure:maple_woodland": 5.2,
+      "minecraft:eroded_badlands": 3.9,
+      "adventure:ashen_woodland": 4.2,
+      "minecraft:basalt_deltas": 10.5
+    }
+  },
   "zones": [
     {
       "shape": "circle",

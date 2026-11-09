@@ -20,59 +20,36 @@
       "radius": 500,
       "falloff": 900,
       "strength": 0.3
+    },
+    "scales": {
+      "climate": 2.0
     }
   },
   "biomes": [
-    {
-      "id": "adventure:ash_barrens",
-      "climate": {
-        "temperature": [-2.0, -0.434],
-        "humidity": [-2.0, -0.083]
-      }
-    },
-    {
-      "id": "minecraft:soul_sand_valley",
-      "climate": {
-        "temperature": [-2.0, -0.434],
-        "humidity": [-0.083, 0.139]
-      }
-    },
-    {
-      "id": "adventure:blackstone_basin",
-      "climate": {
-        "temperature": [-2.0, -0.434],
-        "humidity": [0.139, 2.0]
-      }
-    },
-    {
-      "id": "adventure:quartz_flats",
-      "climate": {
-        "temperature": [-0.434, -0.33],
-        "humidity": [-2.0, 0.027]
-      }
-    },
-    {
-      "id": "minecraft:nether_wastes",
-      "climate": {
-        "temperature": [-0.434, -0.33],
-        "humidity": [0.027, 2.0]
-      }
-    },
-    {
-      "id": "adventure:magma_land",
-      "climate": {
-        "temperature": [-0.33, 2.0],
-        "humidity": [-2.0, 0.027]
-      }
-    },
-    {
-      "id": "minecraft:basalt_deltas",
-      "climate": {
-        "temperature": [-0.33, 2.0],
-        "humidity": [0.027, 2.0]
-      }
-    }
+    "minecraft:basalt_deltas",
+    "adventure:magma_land",
+    "minecraft:nether_wastes",
+    "minecraft:soul_sand_valley",
+    "adventure:quartz_flats",
+    "adventure:blackstone_basin",
+    "adventure:ash_barrens"
   ],
+  "biomeLayout": {
+    "mode": "regions",
+    "axes": [
+      "continentalness",
+      "temperature"
+    ],
+    "weights": {
+      "minecraft:basalt_deltas": 19.1,
+      "adventure:magma_land": 17.6,
+      "minecraft:nether_wastes": 16.1,
+      "minecraft:soul_sand_valley": 10.8,
+      "adventure:quartz_flats": 11.1,
+      "adventure:blackstone_basin": 9.5,
+      "adventure:ash_barrens": 15.5
+    }
+  },
   "liquids": {
     "seaLevel": 40,
     "defaultFluid": "minecraft:lava"

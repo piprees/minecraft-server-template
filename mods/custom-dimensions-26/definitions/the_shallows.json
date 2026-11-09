@@ -20,48 +20,11 @@
     }
   },
   "biomes": [
-    {
-      "id": "minecraft:warm_ocean",
-      "climate": {
-        "weirdness": [-2.0, -0.1634],
-        "depth": [-2.0, 0.2]
-      }
-    },
-    {
-      "id": "minecraft:beach",
-      "climate": {
-        "weirdness": [-0.1634, 0.0276],
-        "depth": [-2.0, 0.2]
-      }
-    },
-    {
-      "id": "adventure:tropical_shores",
-      "climate": {
-        "weirdness": [0.0276, 0.1936],
-        "depth": [-2.0, 0.2]
-      }
-    },
-    {
-      "id": "minecraft:lukewarm_ocean",
-      "climate": {
-        "weirdness": [0.1936, 0.39],
-        "depth": [-2.0, 0.2]
-      }
-    },
-    {
-      "id": "adventure:desert_oasis",
-      "climate": {
-        "weirdness": [0.39, 0.517],
-        "depth": [-2.0, 0.2]
-      }
-    },
-    {
-      "id": "minecraft:warm_ocean",
-      "climate": {
-        "weirdness": [0.517, 2.0],
-        "depth": [-2.0, 0.2]
-      }
-    },
+    "minecraft:warm_ocean",
+    "minecraft:beach",
+    "adventure:tropical_shores",
+    "minecraft:lukewarm_ocean",
+    "adventure:desert_oasis",
     {
       "id": "minecraft:lush_caves",
       "climate": {
@@ -77,6 +40,16 @@
       }
     }
   ],
+  "biomeLayout": {
+    "mode": "regions",
+    "weights": {
+      "minecraft:warm_ocean": 40.6,
+      "minecraft:beach": 24.3,
+      "adventure:tropical_shores": 17.3,
+      "minecraft:lukewarm_ocean": 11.2,
+      "adventure:desert_oasis": 5.3
+    }
+  },
   "liquids": {
     "seaLevel": 61,
     "aquifers": "off"

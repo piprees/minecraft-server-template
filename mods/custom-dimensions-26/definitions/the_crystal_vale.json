@@ -19,69 +19,15 @@
     }
   },
   "biomes": [
-    {
-      "id": "adventure:wisteria_grove",
-      "climate": {
-        "weirdness": [-2.0, -0.3721],
-        "depth": [-2.0, 0.2]
-      }
-    },
-    {
-      "id": "adventure:lavender_fields",
-      "climate": {
-        "weirdness": [-0.3721, -0.214],
-        "depth": [-2.0, 0.2]
-      }
-    },
-    {
-      "id": "adventure:glowing_grasslands",
-      "climate": {
-        "weirdness": [-0.214, -0.0979],
-        "depth": [-2.0, 0.2]
-      }
-    },
-    {
-      "id": "minecraft:jungle",
-      "climate": {
-        "weirdness": [-0.0979, 0.0199],
-        "depth": [-2.0, 0.2]
-      }
-    },
-    {
-      "id": "minecraft:meadow",
-      "climate": {
-        "weirdness": [0.0199, 0.1162],
-        "depth": [-2.0, 0.2]
-      }
-    },
-    {
-      "id": "minecraft:birch_forest",
-      "climate": {
-        "weirdness": [0.1162, 0.1989],
-        "depth": [-2.0, 0.2]
-      }
-    },
-    {
-      "id": "adventure:alpine_meadow",
-      "climate": {
-        "weirdness": [0.1989, 0.3345],
-        "depth": [-2.0, 0.2]
-      }
-    },
-    {
-      "id": "minecraft:windswept_hills",
-      "climate": {
-        "weirdness": [0.3345, 0.43],
-        "depth": [-2.0, 0.2]
-      }
-    },
-    {
-      "id": "minecraft:pale_garden",
-      "climate": {
-        "weirdness": [0.43, 2.0],
-        "depth": [-2.0, 0.2]
-      }
-    },
+    "adventure:wisteria_grove",
+    "adventure:lavender_fields",
+    "adventure:glowing_grasslands",
+    "minecraft:jungle",
+    "minecraft:meadow",
+    "minecraft:birch_forest",
+    "adventure:alpine_meadow",
+    "minecraft:windswept_hills",
+    "minecraft:pale_garden",
     {
       "id": "adventure:crystal_hollows",
       "climate": {
@@ -104,6 +50,20 @@
       }
     }
   ],
+  "biomeLayout": {
+    "mode": "regions",
+    "weights": {
+      "adventure:wisteria_grove": 16.9,
+      "adventure:lavender_fields": 15.8,
+      "adventure:glowing_grasslands": 14,
+      "minecraft:jungle": 12.1,
+      "minecraft:meadow": 8.9,
+      "minecraft:birch_forest": 7.8,
+      "adventure:alpine_meadow": 10.2,
+      "minecraft:windswept_hills": 5.1,
+      "minecraft:pale_garden": 8.7
+    }
+  },
   "materials": {
     "cliffs": "minecraft:amethyst_block"
   },

@@ -16,6 +16,9 @@
       "radius": 900,
       "falloff": 1200,
       "strength": 0.3
+    },
+    "scales": {
+      "climate": 3.0
     }
   },
   "biomes": [
@@ -48,182 +51,48 @@
         "weirdness": [-0.12, 0.12]
       }
     },
-    {
-      "id": "adventure:dry_steppe",
-      "climate": {
-        "temperature": [-2.0, -0.3],
-        "humidity": [-2.0, -0.3]
-      }
-    },
-    {
-      "id": "adventure:joshua_desert",
-      "climate": {
-        "temperature": [-0.3, -0.2],
-        "humidity": [-2.0, -0.3]
-      }
-    },
-    {
-      "id": "minecraft:desert",
-      "climate": {
-        "temperature": [-0.2, -0.1],
-        "humidity": [-2.0, -0.3]
-      }
-    },
-    {
-      "id": "adventure:saguaro_desert",
-      "climate": {
-        "temperature": [-0.1, 0.02],
-        "humidity": [-2.0, -0.3]
-      }
-    },
-    {
-      "id": "minecraft:desert",
-      "climate": {
-        "temperature": [0.02, 2.0],
-        "humidity": [-2.0, -0.3]
-      }
-    },
-    {
-      "id": "adventure:prairie",
-      "climate": {
-        "temperature": [-2.0, -0.3],
-        "humidity": [-0.3, -0.15]
-      }
-    },
-    {
-      "id": "minecraft:badlands",
-      "climate": {
-        "temperature": [-0.3, -0.2],
-        "humidity": [-0.3, -0.15]
-      }
-    },
-    {
-      "id": "minecraft:desert",
-      "climate": {
-        "temperature": [-0.2, -0.1],
-        "humidity": [-0.3, -0.15]
-      }
-    },
-    {
-      "id": "minecraft:wooded_badlands",
-      "climate": {
-        "temperature": [-0.1, 0.02],
-        "humidity": [-0.3, -0.15]
-      }
-    },
-    {
-      "id": "adventure:saguaro_desert",
-      "climate": {
-        "temperature": [0.02, 2.0],
-        "humidity": [-0.3, -0.15]
-      }
-    },
-    {
-      "id": "minecraft:savanna_plateau",
-      "climate": {
-        "temperature": [-2.0, -0.3],
-        "humidity": [-0.15, 0.0]
-      }
-    },
-    {
-      "id": "minecraft:savanna",
-      "climate": {
-        "temperature": [-0.3, -0.2],
-        "humidity": [-0.15, 0.0]
-      }
-    },
-    {
-      "id": "minecraft:windswept_savanna",
-      "climate": {
-        "temperature": [-0.2, -0.1],
-        "humidity": [-0.15, 0.0]
-      }
-    },
-    {
-      "id": "minecraft:badlands",
-      "climate": {
-        "temperature": [-0.1, 0.02],
-        "humidity": [-0.15, 0.0]
-      }
-    },
-    {
-      "id": "minecraft:desert",
-      "climate": {
-        "temperature": [0.02, 2.0],
-        "humidity": [-0.15, 0.0]
-      }
-    },
-    {
-      "id": "minecraft:plains",
-      "climate": {
-        "temperature": [-2.0, -0.3],
-        "humidity": [0.0, 0.15]
-      }
-    },
-    {
-      "id": "adventure:barley_fields",
-      "climate": {
-        "temperature": [-0.3, -0.2],
-        "humidity": [0.0, 0.15]
-      }
-    },
-    {
-      "id": "minecraft:savanna",
-      "climate": {
-        "temperature": [-0.2, -0.1],
-        "humidity": [0.0, 0.15]
-      }
-    },
-    {
-      "id": "adventure:baobab_savanna",
-      "climate": {
-        "temperature": [-0.1, 0.02],
-        "humidity": [0.0, 0.15]
-      }
-    },
-    {
-      "id": "adventure:parched_forest",
-      "climate": {
-        "temperature": [0.02, 2.0],
-        "humidity": [0.0, 0.15]
-      }
-    },
-    {
-      "id": "minecraft:sunflower_plains",
-      "climate": {
-        "temperature": [-2.0, -0.3],
-        "humidity": [0.15, 2.0]
-      }
-    },
-    {
-      "id": "adventure:lavender_fields",
-      "climate": {
-        "temperature": [-0.3, -0.2],
-        "humidity": [0.15, 2.0]
-      }
-    },
-    {
-      "id": "adventure:ashen_woodland",
-      "climate": {
-        "temperature": [-0.2, -0.1],
-        "humidity": [0.15, 2.0]
-      }
-    },
-    {
-      "id": "adventure:carnation_fields",
-      "climate": {
-        "temperature": [-0.1, 0.02],
-        "humidity": [0.15, 2.0]
-      }
-    },
-    {
-      "id": "adventure:parched_forest",
-      "climate": {
-        "temperature": [0.02, 2.0],
-        "humidity": [0.15, 2.0]
-      }
-    }
+    "adventure:dry_steppe",
+    "adventure:joshua_desert",
+    "minecraft:desert",
+    "adventure:saguaro_desert",
+    "adventure:prairie",
+    "minecraft:badlands",
+    "minecraft:wooded_badlands",
+    "minecraft:savanna_plateau",
+    "minecraft:savanna",
+    "minecraft:windswept_savanna",
+    "minecraft:plains",
+    "adventure:barley_fields",
+    "adventure:baobab_savanna",
+    "adventure:parched_forest",
+    "minecraft:sunflower_plains",
+    "adventure:lavender_fields",
+    "adventure:ashen_woodland",
+    "adventure:carnation_fields"
   ],
+  "biomeLayout": {
+    "mode": "regions",
+    "weights": {
+      "adventure:dry_steppe": 2.3,
+      "adventure:joshua_desert": 1,
+      "minecraft:desert": 15.6,
+      "adventure:saguaro_desert": 6.8,
+      "adventure:prairie": 2.1,
+      "minecraft:badlands": 3.6,
+      "minecraft:wooded_badlands": 1.4,
+      "minecraft:savanna_plateau": 3,
+      "minecraft:savanna": 4.4,
+      "minecraft:windswept_savanna": 3.5,
+      "minecraft:plains": 3.4,
+      "adventure:barley_fields": 1.1,
+      "adventure:baobab_savanna": 2.9,
+      "adventure:parched_forest": 20.2,
+      "minecraft:sunflower_plains": 5.5,
+      "adventure:lavender_fields": 1.4,
+      "adventure:ashen_woodland": 2.6,
+      "adventure:carnation_fields": 2.8
+    }
+  },
   "borders": {
     "player": 4096,
     "generation": 2048

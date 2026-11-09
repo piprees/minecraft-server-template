@@ -17,97 +17,15 @@
     }
   },
   "biomes": [
-    {
-      "id": "minecraft:plains",
-      "climate": {
-        "weirdness": [-2.0, -0.19],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "minecraft:meadow",
-      "climate": {
-        "weirdness": [-0.19, -0.1636],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "minecraft:plains",
-      "climate": {
-        "weirdness": [-0.1636, -0.1373],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "minecraft:flower_forest",
-      "climate": {
-        "weirdness": [-0.1373, -0.1109],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "adventure:lavender_fields",
-      "climate": {
-        "weirdness": [-0.1109, -0.0845],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "minecraft:windswept_hills",
-      "climate": {
-        "weirdness": [-0.0845, -0.0582],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "minecraft:birch_forest",
-      "climate": {
-        "weirdness": [-0.0582, -0.0318],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "adventure:nether_grasslands",
-      "climate": {
-        "weirdness": [-0.0318, -0.0055],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "minecraft:plains",
-      "climate": {
-        "weirdness": [-0.0055, 0.0209],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "adventure:magnolia_woodland",
-      "climate": {
-        "weirdness": [0.0209, 0.0473],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "minecraft:birch_forest",
-      "climate": {
-        "weirdness": [0.0473, 0.0736],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "adventure:alpine_meadow",
-      "climate": {
-        "weirdness": [0.0736, 0.1],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "minecraft:flower_forest",
-      "climate": {
-        "weirdness": [0.1, 2.0],
-        "depth": [-2.0, 0.1]
-      }
-    },
+    "minecraft:plains",
+    "minecraft:meadow",
+    "minecraft:flower_forest",
+    "adventure:lavender_fields",
+    "minecraft:windswept_hills",
+    "minecraft:birch_forest",
+    "adventure:nether_grasslands",
+    "adventure:magnolia_woodland",
+    "adventure:alpine_meadow",
     {
       "id": "minecraft:lush_caves",
       "climate": {
@@ -123,6 +41,20 @@
       }
     }
   ],
+  "biomeLayout": {
+    "mode": "regions",
+    "weights": {
+      "minecraft:plains": 33.9,
+      "minecraft:meadow": 3.2,
+      "minecraft:flower_forest": 34.4,
+      "adventure:lavender_fields": 4,
+      "minecraft:windswept_hills": 4.2,
+      "minecraft:birch_forest": 7.5,
+      "adventure:nether_grasslands": 4.3,
+      "adventure:magnolia_woodland": 3.8,
+      "adventure:alpine_meadow": 3.2
+    }
+  },
   "liquids": {
     "seaLevel": 34
   },

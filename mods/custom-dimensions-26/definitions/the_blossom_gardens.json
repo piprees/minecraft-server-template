@@ -14,7 +14,7 @@
       "continents": 1.3,
       "erosion": 2.0,
       "ridges": 1.4,
-      "climate": 1.5
+      "climate": 3.0
     },
     "layout": {
       "type": "radial",
@@ -62,182 +62,48 @@
         "erosion": [0.35, 2.0]
       }
     },
-    {
-      "id": "adventure:aspen_forest",
-      "climate": {
-        "temperature": [-2.0, -0.1],
-        "humidity": [-2.0, -0.15]
-      }
-    },
-    {
-      "id": "minecraft:birch_forest",
-      "climate": {
-        "temperature": [-0.1, 0.1],
-        "humidity": [-2.0, -0.15]
-      }
-    },
-    {
-      "id": "minecraft:meadow",
-      "climate": {
-        "temperature": [0.1, 0.3],
-        "humidity": [-2.0, -0.15]
-      }
-    },
-    {
-      "id": "adventure:lavender_fields",
-      "climate": {
-        "temperature": [0.3, 0.5],
-        "humidity": [-2.0, -0.15]
-      }
-    },
-    {
-      "id": "adventure:carnation_fields",
-      "climate": {
-        "temperature": [0.5, 2.0],
-        "humidity": [-2.0, -0.15]
-      }
-    },
-    {
-      "id": "adventure:alpha_grove",
-      "climate": {
-        "temperature": [-2.0, -0.1],
-        "humidity": [-0.15, 0.0]
-      }
-    },
-    {
-      "id": "minecraft:old_growth_birch_forest",
-      "climate": {
-        "temperature": [-0.1, 0.1],
-        "humidity": [-0.15, 0.0]
-      }
-    },
-    {
-      "id": "minecraft:plains",
-      "climate": {
-        "temperature": [0.1, 0.3],
-        "humidity": [-0.15, 0.0]
-      }
-    },
-    {
-      "id": "minecraft:sunflower_plains",
-      "climate": {
-        "temperature": [0.3, 0.5],
-        "humidity": [-0.15, 0.0]
-      }
-    },
-    {
-      "id": "adventure:barley_fields",
-      "climate": {
-        "temperature": [0.5, 2.0],
-        "humidity": [-0.15, 0.0]
-      }
-    },
-    {
-      "id": "adventure:maple_woodland",
-      "climate": {
-        "temperature": [-2.0, -0.1],
-        "humidity": [0.0, 0.1]
-      }
-    },
-    {
-      "id": "minecraft:forest",
-      "climate": {
-        "temperature": [-0.1, 0.1],
-        "humidity": [0.0, 0.1]
-      }
-    },
-    {
-      "id": "minecraft:cherry_grove",
-      "climate": {
-        "temperature": [0.1, 0.3],
-        "humidity": [0.0, 0.1]
-      }
-    },
-    {
-      "id": "minecraft:flower_forest",
-      "climate": {
-        "temperature": [0.3, 0.5],
-        "humidity": [0.0, 0.1]
-      }
-    },
-    {
-      "id": "adventure:magnolia_woodland",
-      "climate": {
-        "temperature": [0.5, 2.0],
-        "humidity": [0.0, 0.1]
-      }
-    },
-    {
-      "id": "adventure:sugi_forest",
-      "climate": {
-        "temperature": [-2.0, -0.1],
-        "humidity": [0.1, 0.25]
-      }
-    },
-    {
-      "id": "adventure:sugi_forest",
-      "climate": {
-        "temperature": [-0.1, 0.1],
-        "humidity": [0.1, 0.25]
-      }
-    },
-    {
-      "id": "minecraft:flower_forest",
-      "climate": {
-        "temperature": [0.1, 0.3],
-        "humidity": [0.1, 0.25]
-      }
-    },
-    {
-      "id": "adventure:wisteria_grove",
-      "climate": {
-        "temperature": [0.3, 0.5],
-        "humidity": [0.1, 0.25]
-      }
-    },
-    {
-      "id": "adventure:magnolia_woodland",
-      "climate": {
-        "temperature": [0.5, 2.0],
-        "humidity": [0.1, 0.25]
-      }
-    },
-    {
-      "id": "adventure:sugi_forest",
-      "climate": {
-        "temperature": [-2.0, -0.1],
-        "humidity": [0.25, 2.0]
-      }
-    },
-    {
-      "id": "minecraft:pale_garden",
-      "climate": {
-        "temperature": [-0.1, 0.1],
-        "humidity": [0.25, 2.0]
-      }
-    },
-    {
-      "id": "minecraft:cherry_grove",
-      "climate": {
-        "temperature": [0.1, 0.3],
-        "humidity": [0.25, 2.0]
-      }
-    },
-    {
-      "id": "minecraft:flower_forest",
-      "climate": {
-        "temperature": [0.3, 0.5],
-        "humidity": [0.25, 2.0]
-      }
-    },
-    {
-      "id": "adventure:carnation_fields",
-      "climate": {
-        "temperature": [0.5, 2.0],
-        "humidity": [0.25, 2.0]
-      }
-    }
+    "adventure:aspen_forest",
+    "minecraft:birch_forest",
+    "minecraft:meadow",
+    "adventure:lavender_fields",
+    "adventure:carnation_fields",
+    "adventure:alpha_grove",
+    "minecraft:old_growth_birch_forest",
+    "minecraft:plains",
+    "minecraft:sunflower_plains",
+    "adventure:barley_fields",
+    "adventure:maple_woodland",
+    "minecraft:forest",
+    "minecraft:cherry_grove",
+    "minecraft:flower_forest",
+    "adventure:magnolia_woodland",
+    "adventure:sugi_forest",
+    "adventure:wisteria_grove",
+    "minecraft:pale_garden"
   ],
+  "biomeLayout": {
+    "mode": "regions",
+    "weights": {
+      "adventure:aspen_forest": 4.7,
+      "minecraft:birch_forest": 2,
+      "minecraft:meadow": 4,
+      "adventure:lavender_fields": 1,
+      "adventure:carnation_fields": 5.2,
+      "adventure:alpha_grove": 5.4,
+      "minecraft:old_growth_birch_forest": 3.6,
+      "minecraft:plains": 6.6,
+      "minecraft:sunflower_plains": 3.7,
+      "adventure:barley_fields": 2.3,
+      "adventure:maple_woodland": 2.8,
+      "minecraft:forest": 3.2,
+      "minecraft:cherry_grove": 10.1,
+      "minecraft:flower_forest": 13.4,
+      "adventure:magnolia_woodland": 5.8,
+      "adventure:sugi_forest": 6.7,
+      "adventure:wisteria_grove": 5.5,
+      "minecraft:pale_garden": 4.5
+    }
+  },
   "borders": {
     "player": 4096,
     "generation": 2048

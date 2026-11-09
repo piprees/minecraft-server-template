@@ -17,41 +17,9 @@
     }
   },
   "biomes": [
-    {
-      "id": "adventure:ash_barrens",
-      "climate": {
-        "weirdness": [-2.0, -0.2264],
-        "depth": [-2.0, 0.2]
-      }
-    },
-    {
-      "id": "adventure:gravel_desert",
-      "climate": {
-        "weirdness": [-0.2264, -0.0286],
-        "depth": [-2.0, 0.2]
-      }
-    },
-    {
-      "id": "adventure:ash_barrens",
-      "climate": {
-        "weirdness": [-0.0286, 0.2317],
-        "depth": [-2.0, 0.2]
-      }
-    },
-    {
-      "id": "minecraft:basalt_deltas",
-      "climate": {
-        "weirdness": [0.2317, 0.3082],
-        "depth": [-2.0, 0.2]
-      }
-    },
-    {
-      "id": "adventure:gravel_desert",
-      "climate": {
-        "weirdness": [0.3082, 2.0],
-        "depth": [-2.0, 0.2]
-      }
-    },
+    "adventure:ash_barrens",
+    "adventure:gravel_desert",
+    "minecraft:basalt_deltas",
     {
       "id": "adventure:mineral_strata",
       "climate": {
@@ -67,6 +35,14 @@
       }
     }
   ],
+  "biomeLayout": {
+    "mode": "regions",
+    "weights": {
+      "adventure:ash_barrens": 37.9,
+      "adventure:gravel_desert": 27.3,
+      "minecraft:basalt_deltas": 5
+    }
+  },
   "zones": [
     {
       "shape": "ring",

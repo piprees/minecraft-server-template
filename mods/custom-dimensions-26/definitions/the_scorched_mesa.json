@@ -18,41 +18,10 @@
     }
   },
   "biomes": [
-    {
-      "id": "minecraft:desert",
-      "climate": {
-        "weirdness": [-2.0, -0.5063],
-        "depth": [-2.0, 0.2]
-      }
-    },
-    {
-      "id": "minecraft:badlands",
-      "climate": {
-        "weirdness": [-0.5063, -0.0514],
-        "depth": [-2.0, 0.2]
-      }
-    },
-    {
-      "id": "minecraft:eroded_badlands",
-      "climate": {
-        "weirdness": [-0.0514, 0.1912],
-        "depth": [-2.0, 0.2]
-      }
-    },
-    {
-      "id": "adventure:saguaro_desert",
-      "climate": {
-        "weirdness": [0.1912, 0.3581],
-        "depth": [-2.0, 0.2]
-      }
-    },
-    {
-      "id": "minecraft:badlands",
-      "climate": {
-        "weirdness": [0.3581, 2.0],
-        "depth": [-2.0, 0.2]
-      }
-    },
+    "minecraft:desert",
+    "minecraft:badlands",
+    "minecraft:eroded_badlands",
+    "adventure:saguaro_desert",
     {
       "id": "minecraft:dripstone_caves",
       "climate": {
@@ -68,6 +37,15 @@
       }
     }
   ],
+  "biomeLayout": {
+    "mode": "regions",
+    "weights": {
+      "minecraft:desert": 16.7,
+      "minecraft:badlands": 46.4,
+      "minecraft:eroded_badlands": 24.9,
+      "adventure:saguaro_desert": 10.8
+    }
+  },
   "liquids": {
     "seaLevel": -55,
     "aquifers": "dry"

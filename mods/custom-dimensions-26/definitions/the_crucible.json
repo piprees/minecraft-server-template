@@ -18,58 +18,18 @@
       "lift": 1,
       "roughness": 0.9
     },
-    "scale": 0.6
+    "scale": 0.6,
+    "scales": {
+      "climate": 2.0
+    }
   },
   "biomes": [
-    {
-      "id": "minecraft:dark_forest",
-      "climate": {
-        "weirdness": [-2.0, -0.6549],
-        "depth": [-2.0, 0.2]
-      }
-    },
-    {
-      "id": "minecraft:jungle",
-      "climate": {
-        "weirdness": [-0.6549, -0.0332],
-        "depth": [-2.0, 0.2]
-      }
-    },
-    {
-      "id": "adventure:cloud_forest",
-      "climate": {
-        "weirdness": [-0.0332, -0.0155],
-        "depth": [-2.0, 0.2]
-      }
-    },
-    {
-      "id": "minecraft:bamboo_jungle",
-      "climate": {
-        "weirdness": [-0.0155, 0.0022],
-        "depth": [-2.0, 0.2]
-      }
-    },
-    {
-      "id": "minecraft:jungle",
-      "climate": {
-        "weirdness": [0.0022, 0.6346],
-        "depth": [-2.0, 0.2]
-      }
-    },
-    {
-      "id": "adventure:upside_down_forest",
-      "climate": {
-        "weirdness": [0.6346, 0.778],
-        "depth": [-2.0, 0.2]
-      }
-    },
-    {
-      "id": "minecraft:mangrove_swamp",
-      "climate": {
-        "weirdness": [0.778, 2.0],
-        "depth": [-2.0, 0.2]
-      }
-    },
+    "minecraft:dark_forest",
+    "minecraft:jungle",
+    "adventure:cloud_forest",
+    "minecraft:bamboo_jungle",
+    "adventure:upside_down_forest",
+    "minecraft:mangrove_swamp",
     {
       "id": "minecraft:lush_caves",
       "climate": {
@@ -85,6 +45,17 @@
       }
     }
   ],
+  "biomeLayout": {
+    "mode": "regions",
+    "weights": {
+      "minecraft:dark_forest": 1.9,
+      "minecraft:jungle": 63.5,
+      "adventure:cloud_forest": 1.4,
+      "minecraft:bamboo_jungle": 1.5,
+      "adventure:upside_down_forest": 1.5,
+      "minecraft:mangrove_swamp": 1
+    }
+  },
   "liquids": {
     "seaLevel": 30,
     "aquifers": "dry"

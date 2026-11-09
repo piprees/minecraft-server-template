@@ -45,28 +45,18 @@
         "depth": [0.2, 2.0]
       }
     },
-    {
-      "id": "minecraft:plains",
-      "climate": {
-        "temperature": [-2.0, 0.701],
-        "humidity": [-2.0, -0.004]
-      }
-    },
-    {
-      "id": "minecraft:meadow",
-      "climate": {
-        "temperature": [-2.0, 0.701],
-        "humidity": [-0.004, 2.0]
-      }
-    },
-    {
-      "id": "adventure:chalk_cliffs",
-      "climate": {
-        "temperature": [0.701, 2.0],
-        "humidity": [-2.0, 2.0]
-      }
-    }
+    "minecraft:plains",
+    "minecraft:meadow",
+    "adventure:chalk_cliffs"
   ],
+  "biomeLayout": {
+    "mode": "regions",
+    "weights": {
+      "minecraft:plains": 23.1,
+      "minecraft:meadow": 16.2,
+      "adventure:chalk_cliffs": 60.1
+    }
+  },
   "borders": {
     "player": 1024,
     "generation": 1024

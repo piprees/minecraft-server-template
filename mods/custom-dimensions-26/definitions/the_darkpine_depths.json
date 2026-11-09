@@ -19,90 +19,13 @@
     }
   },
   "biomes": [
-    {
-      "id": "minecraft:pale_garden",
-      "climate": {
-        "weirdness": [-2.0, -0.3],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "minecraft:old_growth_spruce_taiga",
-      "climate": {
-        "weirdness": [-0.3, -0.27],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "minecraft:snowy_taiga",
-      "climate": {
-        "weirdness": [-0.27, -0.24],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "minecraft:dark_forest",
-      "climate": {
-        "weirdness": [-0.24, -0.17],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "minecraft:dark_forest",
-      "climate": {
-        "weirdness": [-0.17, -0.1],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "minecraft:dark_forest",
-      "climate": {
-        "weirdness": [-0.1, -0.05],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "minecraft:taiga",
-      "climate": {
-        "weirdness": [-0.05, -0.02],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "minecraft:old_growth_spruce_taiga",
-      "climate": {
-        "weirdness": [-0.02, 0.01],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "minecraft:old_growth_pine_taiga",
-      "climate": {
-        "weirdness": [0.01, 0.04],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "minecraft:birch_forest",
-      "climate": {
-        "weirdness": [0.04, 0.07],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "minecraft:old_growth_pine_taiga",
-      "climate": {
-        "weirdness": [0.07, 0.1],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "minecraft:taiga",
-      "climate": {
-        "weirdness": [0.1, 2.0],
-        "depth": [-2.0, 0.1]
-      }
-    },
+    "minecraft:pale_garden",
+    "minecraft:old_growth_spruce_taiga",
+    "minecraft:snowy_taiga",
+    "minecraft:dark_forest",
+    "minecraft:taiga",
+    "minecraft:old_growth_pine_taiga",
+    "minecraft:birch_forest",
     {
       "id": "minecraft:deep_dark",
       "climate": {
@@ -118,6 +41,18 @@
       }
     }
   ],
+  "biomeLayout": {
+    "mode": "regions",
+    "weights": {
+      "minecraft:pale_garden": 9.6,
+      "minecraft:old_growth_spruce_taiga": 5.2,
+      "minecraft:snowy_taiga": 1.9,
+      "minecraft:dark_forest": 21.6,
+      "minecraft:taiga": 45.2,
+      "minecraft:old_growth_pine_taiga": 6.2,
+      "minecraft:birch_forest": 3.2
+    }
+  },
   "liquids": {
     "seaLevel": 30
   },

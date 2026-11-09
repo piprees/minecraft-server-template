@@ -15,97 +15,17 @@
     }
   },
   "biomes": [
-    {
-      "id": "adventure:alpine_scree",
-      "climate": {
-        "weirdness": [-2.0, -0.19],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "minecraft:stony_peaks",
-      "climate": {
-        "weirdness": [-0.19, -0.1636],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "minecraft:windswept_hills",
-      "climate": {
-        "weirdness": [-0.1636, -0.1373],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "minecraft:stony_shore",
-      "climate": {
-        "weirdness": [-0.1373, -0.1109],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "minecraft:windswept_gravelly_hills",
-      "climate": {
-        "weirdness": [-0.1109, -0.0845],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "minecraft:basalt_deltas",
-      "climate": {
-        "weirdness": [-0.0845, -0.0582],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "adventure:maple_woodland",
-      "climate": {
-        "weirdness": [-0.0582, -0.0318],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "adventure:magma_land",
-      "climate": {
-        "weirdness": [-0.0318, -0.0055],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "minecraft:stony_peaks",
-      "climate": {
-        "weirdness": [-0.0055, 0.0209],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "minecraft:jagged_peaks",
-      "climate": {
-        "weirdness": [0.0209, 0.0473],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "adventure:alpine_scree",
-      "climate": {
-        "weirdness": [0.0473, 0.0736],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "minecraft:windswept_forest",
-      "climate": {
-        "weirdness": [0.0736, 0.1],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "adventure:lavender_fields",
-      "climate": {
-        "weirdness": [0.1, 2.0],
-        "depth": [-2.0, 0.1]
-      }
-    },
+    "adventure:alpine_scree",
+    "minecraft:stony_peaks",
+    "minecraft:windswept_hills",
+    "minecraft:stony_shore",
+    "minecraft:windswept_gravelly_hills",
+    "minecraft:basalt_deltas",
+    "adventure:maple_woodland",
+    "adventure:magma_land",
+    "minecraft:jagged_peaks",
+    "minecraft:windswept_forest",
+    "adventure:lavender_fields",
     {
       "id": "adventure:mineral_strata",
       "climate": {
@@ -121,6 +41,22 @@
       }
     }
   ],
+  "biomeLayout": {
+    "mode": "regions",
+    "weights": {
+      "adventure:alpine_scree": 31.1,
+      "minecraft:stony_peaks": 5.4,
+      "minecraft:windswept_hills": 2.5,
+      "minecraft:stony_shore": 2.7,
+      "minecraft:windswept_gravelly_hills": 2.9,
+      "minecraft:basalt_deltas": 2.9,
+      "adventure:maple_woodland": 3.2,
+      "adventure:magma_land": 3.3,
+      "minecraft:jagged_peaks": 2.8,
+      "minecraft:windswept_forest": 3.5,
+      "adventure:lavender_fields": 37.8
+    }
+  },
   "atmosphere": {
     "fogColor": "#7B7B8B"
   },
