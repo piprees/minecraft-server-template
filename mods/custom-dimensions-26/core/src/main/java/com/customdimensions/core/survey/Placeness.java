@@ -10,7 +10,8 @@ import java.util.function.IntFunction;
 /**
  * Whether the bordered area reads as a place or as a sample of a noise field,
  * from the coarse map: connected regions of one surface biome and of one
- * landform class (4-neighbour), the boundary length between them, the
+ * landform class (4-neighbour; regions under {@link #SPECK_HA} are specks,
+ * left out of the density and the edge distances), the boundary length between them, the
  * correlation length of surface height and continentalness (the semivariogram
  * range), and where spawn and the centre sit.
  *
@@ -21,6 +22,8 @@ import java.util.function.IntFunction;
 public final class Placeness {
     /** Blocks from a region boundary within which a cell counts as near an edge. */
     public static final int EDGE_BLOCKS = 64;
+    /** A region under this many hectares is a speck: it counts in {@code count} but not in the density or the edges. */
+    public static final double SPECK_HA = 1.0;
     /** A region at least this share of the grid counts as major. */
     public static final double MAJOR_PERCENT = 1.0;
     /** The semivariogram reaches its range at this share of the sill (the field's variance). */
@@ -128,15 +131,19 @@ public final class Placeness {
         double cellHa = (double) step * step / 10_000.0;
         double gridKm2 = (double) side * side * step * step / 1_000_000.0;
         int cells = side * side;
-        o.addProperty("count", r.count());
-        o.addProperty("perKm2", Stats.round1(r.count() / gridKm2));
-        int major = 0;
-        long sumSq = 0, labelled = 0;
+        int speckCells = speckCells();
+        int major = 0, regions = 0;
+        long sumSq = 0, labelled = 0, specks = 0;
         for (int a : r.areas) {
+            if (a < speckCells) specks += a;
+            else regions++;
             if (Stats.percent(a, cells) >= MAJOR_PERCENT) major++;
             sumSq += (long) a * a;
             labelled += a;
         }
+        o.addProperty("count", r.count());
+        o.addProperty("perKm2", Stats.round1(regions / gridKm2));
+        o.addProperty("specksPercent", Stats.percent(specks, cells));
         o.addProperty("major", major);
         int[] sorted = r.areas.clone();
         Arrays.sort(sorted);
@@ -177,11 +184,17 @@ public final class Placeness {
         return Arrays.stream(ids).mapToInt(Integer::intValue).toArray();
     }
 
+    /** The fewest cells a region of {@link #SPECK_HA} or more covers. */
+    int speckCells() {
+        return (int) Math.ceil(SPECK_HA * 10_000.0 / ((double) step * step));
+    }
+
     /**
      * Each cell's distance in blocks (chessboard, in whole cells) to the nearest
-     * cell of another region; the grid's own edge is no boundary.
+     * boundary between two regions that are not specks; the grid's own edge is no boundary.
      */
     int[] edgeDistance(Regions r) {
+        int minCells = speckCells();
         int n = side * side;
         int[] d = new int[n];
         Arrays.fill(d, Integer.MAX_VALUE);
@@ -193,7 +206,8 @@ public final class Placeness {
                 for (int dx = -1; dx <= 1; dx++) {
                     int nx = x + dx, nz = z + dz;
                     if (nx < 0 || nz < 0 || nx >= side || nz >= side) continue;
-                    if (r.region[nz * side + nx] != r.region[i]) {
+                    int a = r.region[i], b = r.region[nz * side + nx];
+                    if (a != b && a >= 0 && b >= 0 && r.areas[a] >= minCells && r.areas[b] >= minCells) {
                         boundary = true;
                         break;
                     }

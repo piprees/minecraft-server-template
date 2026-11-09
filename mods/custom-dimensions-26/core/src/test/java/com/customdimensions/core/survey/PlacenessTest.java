@@ -67,8 +67,21 @@ class PlacenessTest {
         assertEquals(SIDE * SIDE / 4, b.get("count").getAsInt(), "2x2 blocks touch only at corners");
         assertEquals(0, b.get("major").getAsInt());
         assertTrue(b.get("largestPercent").getAsDouble() < 1);
-        assertEquals(100.0, b.get("nearEdgePercent").getAsDouble());
+        assertEquals(100.0, b.get("specksPercent").getAsDouble(), "0.1 ha regions are specks");
+        assertEquals(0.0, b.get("perKm2").getAsDouble());
+        assertEquals(0.0, b.get("nearEdgePercent").getAsDouble(), "specks draw no edges");
         assertEquals(Math.round(4 * STEP * STEP / 10_000.0 * 100) / 100.0, b.get("medianHa").getAsDouble());
+    }
+
+    @Test
+    void specksInAPlaceLeaveItWhole() {
+        int[] specked = fill((x, z) -> x % 16 == 3 && z % 16 == 3 ? 1 : 0);
+        JsonObject b = json(specked, specked, null, null, null).getAsJsonObject("biomeRegions");
+        assertEquals(17, b.get("count").getAsInt());
+        assertEquals(1, b.get("major").getAsInt());
+        assertEquals(Math.round(1 / 1.048576 * 10) / 10.0, b.get("perKm2").getAsDouble(), "one region of a hectare or more over 1.05 km2");
+        assertEquals(0.0, b.get("nearEdgePercent").getAsDouble());
+        assertEquals(Stats.percent(16, SIDE * SIDE), b.get("specksPercent").getAsDouble());
     }
 
     @Test
