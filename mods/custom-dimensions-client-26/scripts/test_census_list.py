@@ -41,6 +41,13 @@ class EntriesTest(unittest.TestCase):
                                           'shots': [{'kind': 'detail', 'shows': 'c', 'png': 'p', 'camera': {'x': 1, 'y': 'surface+2', 'z': 3, 'yaw': 4, 'pitch': 5}}]}]}
         e = cl.entries(recs, None, 8)[0]
         self.assertEqual((e['name'], e['dimension'], e['y'], e['radius']), ('chalk-detail1-census', 'adventure:selftest_biome_chalk', 'surface+2', 8))
+        self.assertEqual((e['yaw'], e['pitch']), (4, 5))
+        shot_level = {'root': '/r', 'biomes': [{'biome': 'adventure:chalk', 'showcase': 'adventure:selftest_biome_chalk', 'shots': [
+            {'kind': 'wide', 'shows': 'w', 'camera': {'x': 1, 'y': 'surface+30', 'z': 3}, 'yaw': 90, 'pitch': 25},
+            {'kind': 'eye', 'shows': 'e', 'camera': {'x': 1, 'y': 'ground+1.6', 'z': 3}, 'lookingAt': [9, 70, 9]}]}]}
+        wide, eye = cl.entries(shot_level, None, 8)
+        self.assertEqual((wide['yaw'], wide['pitch'], wide['radius']), (90, 25, 24))
+        self.assertEqual(eye['at'], [9, 70, 9])
 
     def test_only_filters_by_slug(self):
         recs = [{'slug': 'a', 'shots': [{'kind': 'ground', 'camera': {'x': 0, 'y': 1, 'z': 0, 'yaw': 0, 'pitch': 0}}]},

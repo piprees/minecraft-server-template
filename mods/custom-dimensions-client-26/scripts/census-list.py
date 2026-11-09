@@ -35,15 +35,17 @@ def entries(records, only, radius):
             cam = shot.get('camera')
             dim = shot.get('dimension') or rec.get('dimension')
             if isinstance(cam, dict):
-                e.update(dimension=dim or f"adventure:{slug}", x=cam['x'], y=str(cam['y']), z=cam['z'], yaw=cam['yaw'], pitch=cam['pitch'])
+                e.update(dimension=dim or f"adventure:{slug}", x=cam['x'], y=str(cam['y']), z=cam['z'])
+                face = cam
             elif isinstance(cam, list):
                 e.update(dimension=dim or f"adventure:selftest_biome_{slug}", x=cam[0], y=str(cam[1]), z=cam[2])
-                if shot.get('at') or shot.get('lookingAt'):
-                    e['at'] = shot.get('at') or shot.get('lookingAt')
-                else:
-                    e.update(yaw=shot.get('yaw', 0), pitch=shot.get('pitch', 0))
+                face = {}
             else:
                 continue
+            if shot.get('at') or shot.get('lookingAt'):
+                e['at'] = shot.get('at') or shot.get('lookingAt')
+            else:
+                e.update(yaw=face.get('yaw', shot.get('yaw', 0)), pitch=face.get('pitch', shot.get('pitch', 0)))
             out.append(e)
     return out
 
