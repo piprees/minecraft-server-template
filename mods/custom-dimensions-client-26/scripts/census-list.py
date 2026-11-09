@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 """census-list.py — turn accepted shot records into census-only rig shot lists.
 
-Context: template-only rig tooling for mods/custom-dimensions-client-26 (stdlib only). Reads either record format:
+Context: template-only rig tooling for mods/custom-dimensions-client-26 (stdlib only). Reads any record format:
   the terrain picks (a list of {slug, shots: [{kind, file, shows, camera: {x, y, z, yaw, pitch}, nightVision}]}, camera y = feet)
-  the biome gallery (a list of {biome, shots: [{kind, png, what, dimension, camera: [x, y, z], at, nightVision}]})
+  the biome gallery (a list of {biome, dimension?, shots: [{kind, png, what|shows, dimension?, camera: [x, y, z],
+    at|lookingAt|yaw+pitch, nightVision}]}; a shot without a dimension takes its record's, else selftest_biome_<biome>)
+  the gallery's first batch ({root, biomes: [{biome, showcase, shots: [{kind, png, shows, camera: {x, y, z, yaw, pitch}}]}]})
 and writes a rig list of `check: true` entries at the same cameras, so `scripts/rig.sh biomes` re-censuses them
 (<name>.frame.json, no screenshot). Each entry keeps the old caption under `caption` and the image under `image`.
 
@@ -16,6 +18,8 @@ import sys
 
 def entries(records, only, radius):
     out = []
+    if isinstance(records, dict):
+        records = [dict(r, biome=r['biome'].split(':')[-1], dimension=r.get('showcase')) for r in records.get('biomes', [])]
     for rec in records:
         slug = rec.get('slug') or rec.get('biome')
         if only and slug not in only:
@@ -29,12 +33,13 @@ def entries(records, only, radius):
                  'radius': 24 if kind in ('far', 'wide') else radius,
                  'caption': shot.get('shows') or shot.get('what') or '', 'image': shot.get('file') or shot.get('png')}
             cam = shot.get('camera')
+            dim = shot.get('dimension') or rec.get('dimension')
             if isinstance(cam, dict):
-                e.update(dimension=f"adventure:{slug}", x=cam['x'], y=str(cam['y']), z=cam['z'], yaw=cam['yaw'], pitch=cam['pitch'])
+                e.update(dimension=dim or f"adventure:{slug}", x=cam['x'], y=str(cam['y']), z=cam['z'], yaw=cam['yaw'], pitch=cam['pitch'])
             elif isinstance(cam, list):
-                e.update(dimension=shot['dimension'], x=cam[0], y=str(cam[1]), z=cam[2])
-                if shot.get('at'):
-                    e['at'] = shot['at']
+                e.update(dimension=dim or f"adventure:selftest_biome_{slug}", x=cam[0], y=str(cam[1]), z=cam[2])
+                if shot.get('at') or shot.get('lookingAt'):
+                    e['at'] = shot.get('at') or shot.get('lookingAt')
                 else:
                     e.update(yaw=shot.get('yaw', 0), pitch=shot.get('pitch', 0))
             else:
