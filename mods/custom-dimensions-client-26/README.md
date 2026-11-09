@@ -116,9 +116,47 @@ collision shape (water and lava are clear). A camera that is not is lifted a
 block at a time, up to eight, with `rig: <name> camera lifted N` in the client
 log at each step; one still not clear is skipped with `rig: <name> camera
 inside terrain at x y z`, and the batch goes on. `check: true` on an entry
-audits the camera without a screenshot: it waits only for the chunks next to
-the camera and logs `rig: <name> camera clear`, `camera clear after lift N`,
-or the inside-terrain line.
+audits the camera without a screenshot: it waits for the chunks within its
+`radius`, logs `rig: <name> camera clear`, `camera clear after lift N` (and
+re-places the camera there) or the inside-terrain line, and takes the frame
+census below.
+
+Every screenshot and every `check` entry writes a frame census,
+`<out>/screenshots/<name>.frame.json`: a 64×36 grid of rays from the eye
+across the view (the options' field of view, the window's aspect), clipped
+against block outlines and any fluid out to the render distance. Each hit
+records its block, the biome there and its distance; a miss is sky, or
+`unloaded` when the ray passed a chunk the client does not hold. It gives
+shares by block, by biome (of the rays that hit) and by distance band (under
+32, 32–128, over 128 blocks), and a one-line `caption` built only from those
+shares, which the client log repeats as `rig: <name> census <caption>`.
+
+Three scripts turn the census and the server's survey into a review:
+
+```bash
+scripts/census-list.py /tmp/w8m/shots.json census.json --only the_greenreach   # accepted shots -> check entries
+scripts/pick-shots.py <run>/customdim-survey/<slug>/dossier.json shots.json     # a survey -> a shot list
+scripts/review-packet.py <slug> dossier.json shots.json <out>/screenshots review.md [--notes notes.md]
+```
+
+`census-list.py` reads either accepted-shot record (the terrain picks'
+`{slug, shots: [{camera: {x, y, z, yaw, pitch}, shows}]}` or the biome
+gallery's `{biome, shots: [{dimension, camera: [x, y, z], at, what}]}`) and
+writes `check` entries at the same cameras, the old caption kept beside each.
+`pick-shots.py` reads the dossier of `/customdim survey <slug>` and writes a
+far view from the coarse map's summit, one shot for every place type of each
+layer (surface, sky islands, underground, roof) at its representative camera,
+every landmark, and one shot per notable cluster type, rarest first.
+`review-packet.py` sets the 1.21.1 definition (read only), the v2
+definition, optional owner notes, the dossier's summary and every shot with
+its census caption side by side in `review.md`, ending with the review
+questions, which the reviewer answers:
+
+1. Taken together, do the shots show the world's dominant character as the dossier measures it?
+2. Is every claim in the captions and descriptions supported by the frame census or the dossier? List the unsupported ones.
+3. Which elements of the 1.21.1 description or biome list are absent from the dossier?
+4. Which measured elements contradict the intent (for example, snow expected but snow cover under 5%)?
+5. Fidelity to the 1.21.1 intent, 0–5, with one line why.
 
 ```bash
 scripts/rig.sh --definitions ../custom-dimensions-26/definitions --dh --render-distance 12 biomes shots.json
