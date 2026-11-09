@@ -19,6 +19,7 @@ The plan for rebuilding the `custom-dimensions` mod on Minecraft 26.3 and the pa
 | [decisions.md](decisions.md) | Every decision with its reason and the alternatives rejected |
 | [architecture.md](architecture.md) | The four parts, package fates, mixins, dependencies, the compiler and levels |
 | [worldgen.md](worldgen.md) | The layer table, zones, the lessons it is built around, clean-room rule, firewall and bridges |
+| [placeness.md](placeness.md) | Places, not perlin: the placeness metrics, `terrain.scales` and `terrain.layout`, and each dimension's choice |
 | [roller.md](roller.md) | `customdim render`, `roll` and `pick`: the sampler, scoring and the agreement gate |
 | [portals.md](portals.md) | Frames, orientations, shapes, the portal block, travel, auras and previews |
 | [schema-v2.md](schema-v2.md) | The v2 definition format, the field map from v1, and the F3 converter |
