@@ -136,7 +136,8 @@ class RegionLayoutTest {
                 assertTrue(p.getAsJsonArray("depth").get(1).getAsDouble() <= 0.2, id + " reaches the caves");
             }
         }
-        assertEquals(2048, source.getAsJsonObject("regions").get("radius").getAsInt());
+        assertEquals(4096, source.getAsJsonObject("regions").get("radius").getAsInt());
+        assertEquals(2048, RegionLayout.radius(new com.customdimensions.core.definition.Borders(null, 2048)));
     }
 
     @Test

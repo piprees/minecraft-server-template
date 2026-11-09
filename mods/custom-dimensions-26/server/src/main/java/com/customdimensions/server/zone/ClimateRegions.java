@@ -20,8 +20,8 @@ import java.util.function.LongUnaryOperator;
  * {@code regions} on {@code customdimensions:zoned}: the region axes mapped to
  * rank space before the base layout is looked up, so the compiler's region
  * cells (the compiler's {@code RegionLayout}) take their share of the
- * generation border whatever the seed. A level's climate is sampled once on a
- * {@link #GRID}-square grid over the border ({@code radius} round the origin);
+ * border whatever the seed. A level's climate is sampled once on a
+ * {@link #GRID}-square grid over the world border ({@code radius} round the origin);
  * a value maps to its interpolated rank among the samples, from −1 to 1. With
  * {@code columns}, the second axis is ranked among the samples in the same
  * column of the first, so every cell holds its share exactly.

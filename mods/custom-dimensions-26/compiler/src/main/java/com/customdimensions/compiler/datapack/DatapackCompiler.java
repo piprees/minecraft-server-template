@@ -567,8 +567,7 @@ public final class DatapackCompiler {
         return switch (g.type()) {
             case Generator.NOISE -> {
                 RegionLayout.Plan regions = def.biomeLayout() == null ? null : RegionLayout.plan(slug, def.biomes(), def.biomeLayout(),
-                        def.borders() != null && def.borders().generation() != null ? def.borders().generation() : RegionLayout.DEFAULT_RADIUS,
-                        known, entry);
+                        RegionLayout.radius(def.borders()), known, entry);
                 yield noiseGenerator(slug, def, g.preset(), regions == null ? noiseBiomeSource(def, entry) : multiNoise(regions.entries()),
                         regions, entry);
             }

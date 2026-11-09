@@ -338,7 +338,7 @@
       }
     },
     "biomeLayout": {
-      "description": "How a noise generator lays out the biome list. regions: every listed biome without a climate takes one large region on the region axes, a share of the generation border equal to its weight over the sum, whatever the seed; consecutive biomes in the list share a border. A listed biome with a climate is bound to the land: it keeps its box, which wins over every region (oceans on continentalness, caves on depth, peaks on erosion). The axes are in rank space: -1 is the lowest value the seed reaches inside the generation border, 1 the highest; a bound box on a region axis reads it the same way. Stretch the region axes with terrain.scales (climate for temperature and humidity) for fewer, larger regions.",
+      "description": "How a noise generator lays out the biome list. regions: every listed biome without a climate takes one large region on the region axes, a share of the world border equal to its weight over the sum, whatever the seed; consecutive biomes in the list share a border. A listed biome with a climate is bound to the land: it keeps its box, which wins over every region (oceans on continentalness, caves on depth, peaks on erosion). The axes are in rank space: -1 is the lowest value the seed reaches inside the world border (borders.player, else borders.generation), 1 the highest; a bound box on a region axis reads it the same way. Stretch the region axes with terrain.scales (climate for temperature and humidity) for fewer, larger regions.",
       "type": "object",
       "required": ["mode"],
       "additionalProperties": false,

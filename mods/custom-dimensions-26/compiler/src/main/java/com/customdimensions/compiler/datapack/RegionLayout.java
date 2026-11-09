@@ -20,11 +20,11 @@ import java.util.Map;
  *       on depth, a peak on erosion).</li>
  *   <li>Every other listed biome is <em>regional</em>: it takes a cell of the
  *       region axes in rank space, where −1 is the lowest value the seed's
- *       climate reaches inside the generation border and 1 the highest
+ *       climate reaches inside the world border and 1 the highest
  *       ({@code customdimensions:zoned}'s {@code regions} maps the sampled
  *       climate there). A cell's share of rank space is the biome's
  *       {@code weights} entry over their sum (1 when absent), so its share of
- *       the border is that weight for any seed and any {@code terrain.scales}.</li>
+ *       the border is that weight over the sum for any seed and any {@code terrain.scales}.</li>
  *   <li>With two axes the regional biomes fill columns along the first axis
  *       in list order and rows along the second, the direction alternating by
  *       column, so consecutive biomes in the list share a border.</li>
@@ -36,13 +36,20 @@ public final class RegionLayout {
     /** Axes a region may be cut on; depth varies down a column, so it stays with bound biomes. */
     public static final List<String> REGION_AXES = List.of("temperature", "humidity", "continentalness", "erosion", "weirdness");
     public static final List<String> DEFAULT_AXES = List.of("temperature", "humidity");
-    /** The generation radius regions are measured over when a definition gives none. */
+    /** The radius regions are measured over when a definition gives no border. */
     public static final int DEFAULT_RADIUS = 1024;
 
     /** The multi-noise entries, and the runtime's {@code regions} object for {@code customdimensions:zoned}. */
     public record Plan(JsonArray entries, JsonObject regions) {}
 
     private RegionLayout() {
+    }
+
+    /** The radius players see: the player border, else the generation border, else {@link #DEFAULT_RADIUS}. */
+    static int radius(com.customdimensions.core.definition.Borders borders) {
+        if (borders != null && borders.player() != null) return borders.player();
+        if (borders != null && borders.generation() != null) return borders.generation();
+        return DEFAULT_RADIUS;
     }
 
     /** Throws when {@code layout} is malformed; {@code slug} names the definition. */
@@ -92,7 +99,7 @@ public final class RegionLayout {
 
     /**
      * The entries for {@code biomes} under {@code layout}: bound boxes first, then the regional cells, carved
-     * disjoint. {@code radius} is the generation border the runtime measures the climate over.
+     * disjoint. {@code radius} is the border the runtime measures the climate over.
      */
     static Plan plan(String slug, List<BiomeEntry> biomes, JsonObject layout, int radius, BiomeLibrary.Known known,
                      CompileReport.Entry entry) {
