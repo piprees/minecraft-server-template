@@ -121,11 +121,22 @@
                 "left": {
                   "input": {
                     "left": {
-                      "left": "adventure:terrain/terrain_ridges_thin/ridges_folded",
-                      "right": -0.6,
+                      "left": {
+                        "left": {
+                          "left": {
+                            "input": "adventure:terrain/terrain_ridges_thin/ridges",
+                            "type": "minecraft:abs"
+                          },
+                          "right": -3.0,
+                          "type": "minecraft:mul"
+                        },
+                        "right": 1.0,
+                        "type": "minecraft:add"
+                      },
+                      "right": -0.8,
                       "type": "minecraft:add"
                     },
-                    "right": 2.5,
+                    "right": 5.0,
                     "type": "minecraft:mul"
                   },
                   "max": 1.0,

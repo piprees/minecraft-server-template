@@ -55,7 +55,8 @@ public enum TerrainFamily {
                     new TerrainParam("jaggedness", 0, 1.5, 0.35, "Spikiness of the peaks (vanilla's jaggedness)"),
                     new TerrainParam("rangeWidth", 0.05, 1, 0.4, "Share of the ridges range that is mountain"),
                     new TerrainParam("crest", 0.25, 1, 1, "Profile of a range: 1 rises evenly from foot to crest; lower lifts the flanks so the range stands tall from a steep foot"),
-                    new TerrainParam("erosionFalloff", 0, 1, 1, "How far high erosion lowers the ranges: 1 to a quarter, 0 not at all")),
+                    new TerrainParam("erosionFalloff", 0, 1, 1, "How far high erosion lowers the ranges: 1 to a quarter, 0 not at all"),
+                    new TerrainParam("web", 0, 1, 0, "Where ranges run: 0 on vanilla's peaks, rings round the weirdness noise's extremes; 1 along its zero line, one web across the map")),
             Map.of(),
             Map.of("peakHeight", 45.0, "jaggedness", 0.15, "rangeWidth", 0.35),
             Map.of("peakHeight", 150.0, "jaggedness", 1.2, "rangeWidth", 0.55),
@@ -129,7 +130,8 @@ public enum TerrainFamily {
             List.of(new TerrainParam("coverage", 0.02, 0.7, 0.2, "Share of the map that is land"),
                     new TerrainParam("size", 0.25, 4, 1, "Island size; higher is larger and fewer"),
                     new TerrainParam("islandHeight", 4, 120, 28, "Blocks an island rises above sea level"),
-                    new TerrainParam("archipelago", 0, 1, 0.4, "How much islands break into clusters of smaller ones")),
+                    new TerrainParam("archipelago", 0, 1, 0.4, "How much islands break into clusters of smaller ones"),
+                    new TerrainParam("trench", 0, 40, 10, "Blocks the sea floor falls below seaFloor far from any island; 0 keeps it flat")),
             Map.of("seaFloor", 30.0),
             Map.of("coverage", 0.35, "islandHeight", 10.0, "archipelago", 0.1),
             Map.of("coverage", 0.12, "islandHeight", 90.0, "archipelago", 0.5, "size", 1.5),
@@ -317,8 +319,11 @@ public enum TerrainFamily {
 
     private static Shape ridges(Ctx ctx) {
         Shape land = ctx.land();
-        double w = ctx.p("rangeWidth");
-        JsonElement onRidge = ramp(ctx.peaksValleys(), 1 - 2 * w, 1);
+        double w = ctx.p("rangeWidth"), web = ctx.p("web");
+        JsonElement zeroLine = add(mul(Df.abs(ctx.weirdness()), -3), 1);
+        JsonElement line = web <= 0 ? ctx.peaksValleys() : web >= 1 ? zeroLine
+                : add(mul(ctx.peaksValleys(), 1 - web), mul(zeroLine, web));
+        JsonElement onRidge = ramp(line, 1 - 2 * w, 1);
         JsonElement inland = ramp(ctx.continents(), ctx.p("coast") + 0.05, ctx.p("coast") + 0.3);
         double f = ctx.p("erosionFalloff");
         JsonElement rugged = f >= 1 ? spline(ctx.erosion(), -1, 1, 0, 0.8, 0.5, 0.45, 1, 0.25)
@@ -558,7 +563,7 @@ public enum TerrainFamily {
         double sea = ctx.shore();
         double peak = ctx.p("islandHeight");
         JsonElement nc = Df.cache(clamp(n, -4, 4));
-        JsonElement h = spline(nc, -4.5, ctx.p("seaFloor") - 10, t - 0.6 * s, ctx.p("seaFloor"), t - 0.06 * s, sea - 3,
+        JsonElement h = spline(nc, -4.5, ctx.p("seaFloor") - ctx.p("trench"), t - 0.6 * s, ctx.p("seaFloor"), t - 0.06 * s, sea - 3,
                 t, sea + 1, t + 0.3 * s, sea + peak * 0.4, t + 1.2 * s, sea + peak, 4.5, sea + peak * 1.1);
         JsonElement hills = mul(mul(ramp(nc, t, t + 0.5 * s), ctx.hills()), ctx.p("relief"));
         JsonElement continents = spline(nc, -4.5, -0.8, t - 0.6 * s, -0.6, t - 0.2 * s, -0.3, t, -0.15,

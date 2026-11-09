@@ -32,7 +32,7 @@ class TerrainGoldenTest {
     @Test
     void variantsMatchTheCommittedOutput() throws IOException {
         matches("terrain_ridges_thin", "{\"base\": \"ridges\", \"params\": {\"coast\": -0.6, \"seaFloor\": 8, \"landHeight\": 16, "
-                + "\"peakHeight\": 240, \"rangeWidth\": 0.2, \"crest\": 0.5, \"erosionFalloff\": 0}}");
+                + "\"peakHeight\": 240, \"rangeWidth\": 0.1, \"crest\": 0.5, \"erosionFalloff\": 0, \"web\": 1}}");
     }
 
     private static void matches(String slug, String terrain) throws IOException {

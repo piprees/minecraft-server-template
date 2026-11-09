@@ -1243,6 +1243,13 @@
           "minimum": 0,
           "maximum": 1,
           "default": 1
+        },
+        "web": {
+          "description": "Where ranges run: 0 on vanilla's peaks, rings round the weirdness noise's extremes; 1 along its zero line, one web across the map",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 0
         }
       }
     },
@@ -1747,6 +1754,13 @@
           "minimum": 0,
           "maximum": 1,
           "default": 0.4
+        },
+        "trench": {
+          "description": "Blocks the sea floor falls below seaFloor far from any island; 0 keeps it flat",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 40,
+          "default": 10
         }
       }
     },

@@ -299,6 +299,24 @@ class TerrainLibraryTest {
                 text(compile("{\"base\": \"ridges\", \"params\": {\"crest\": 1, \"erosionFalloff\": 1}}").files().get(P + "height.json")));
     }
 
+    @Test
+    void ridgesWebRunsTheRangesAlongTheWeirdnessZeroLine() {
+        String peaks = text(compile("{\"base\": \"ridges\"}").files().get(P + "height.json"));
+        assertFalse(peaks.contains("adventure:terrain/t/ridges\""), "default ranges read only the folded peaks");
+        String web = text(compile("{\"base\": \"ridges\", \"params\": {\"web\": 1}}").files().get(P + "height.json"));
+        assertTrue(web.contains("{\"type\":\"minecraft:abs\",\"input\":\"adventure:terrain/t/ridges\"}"), web);
+        assertFalse(web.contains("ridges_folded\",\"right\":0.0"), "a full web drops the peaks term");
+        assertEquals(peaks, text(compile("{\"base\": \"ridges\", \"params\": {\"web\": 0}}").files().get(P + "height.json")));
+    }
+
+    @Test
+    void islandsTrenchSetsHowFarTheOpenSeaFloorFalls() {
+        String deep = text(compile("{\"base\": \"islands\", \"params\": {\"seaFloor\": 30}}").files().get(P + "height.json"));
+        assertTrue(deep.contains("\"location\":-4.5,\"value\":20.0"), deep);
+        String flat = text(compile("{\"base\": \"islands\", \"params\": {\"seaFloor\": 30, \"trench\": 0}}").files().get(P + "height.json"));
+        assertTrue(flat.contains("\"location\":-4.5,\"value\":30.0"), flat);
+    }
+
     private static JsonElement ridgesHeight(String params) {
         Ctx ctx = new Ctx(spec("{\"base\": \"ridges\", \"params\": " + params + "}"), "adventure", "adventure:terrain/t", 63, -64, 320);
         return spec("{\"base\": \"ridges\", \"params\": " + params + "}").family().build(ctx).height();

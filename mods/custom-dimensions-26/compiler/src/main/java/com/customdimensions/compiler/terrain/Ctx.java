@@ -97,6 +97,11 @@ final class Ctx {
     }
 
     /** Vanilla's peaks-and-valleys fold of the ridges noise: 1 on a ridge line, -1 in a valley. */
+    /** The router's weirdness (vanilla's {@code ridges}): its zero line is a web that runs across the whole map. */
+    JsonElement weirdness() {
+        return ref(prefix + "/ridges");
+    }
+
     JsonElement peaksValleys() {
         return ref(prefix + "/ridges_folded");
     }
