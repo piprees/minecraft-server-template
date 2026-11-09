@@ -83,7 +83,8 @@
   },
   "carvers": {
     "canyon": false,
-    "cave": false
+    "cave": false,
+    "cave_extra_underground": false
   },
   "borders": {
     "player": 512,
