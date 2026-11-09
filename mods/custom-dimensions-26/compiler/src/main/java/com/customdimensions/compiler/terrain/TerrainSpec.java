@@ -12,28 +12,25 @@ import java.util.stream.Collectors;
 /**
  * A definition's {@code terrain} object, checked against the library: the
  * terrain, its parameters (defaults, then the named {@code setting}, then
- * {@code params}), and the horizontal {@code scale} and vertical
- * {@code heightMultiplier}.
+ * {@code params}), the horizontal {@code scale} and vertical
+ * {@code heightMultiplier}, and the large-scale {@link TerrainShaping}
+ * ({@code scales}, {@code layout}).
  */
 public record TerrainSpec(TerrainFamily family, String setting, Map<String, Double> params, double scale,
-                          double heightMultiplier) {
+                          double heightMultiplier, TerrainShaping shaping) {
 
     public static final TerrainParam SCALE = new TerrainParam("scale", 0.25, 4, 1,
-            "Horizontal stretch of every terrain noise and of the biome climate; 2 is twice as broad");
+            "Horizontal stretch of every terrain noise and of the biome climate; 2 is twice as broad. scales multiply it per router noise");
     public static final TerrainParam HEIGHT_MULTIPLIER = new TerrainParam("heightMultiplier", 0.25, 3, 1,
             "Multiplies every height above or below sea level");
-    static final Set<String> KEYS = Set.of("base", "setting", "params", "scale", "heightMultiplier");
+    static final Set<String> KEYS = Set.of("base", "setting", "params", "scale", "heightMultiplier", "scales", "layout");
+    /** Fields that shape a preset's own terrain, without a {@code base}. */
+    static final Set<String> PRESET_KEYS = Set.of("base", "scale", "scales", "layout");
 
     /** The terrain a definition asks for, or null when it keeps the preset's own ({@code base} absent or null). */
     public static TerrainSpec parse(String slug, JsonObject terrain) {
         if (terrain == null || !terrain.has("base") || terrain.get("base").isJsonNull()) {
-            if (terrain != null) {
-                for (String key : terrain.keySet()) {
-                    if (!"base".equals(key)) {
-                        throw error(slug, "terrain." + key + " needs a terrain.base");
-                    }
-                }
-            }
+            presetShaping(slug, terrain);
             return null;
         }
         for (String key : terrain.keySet()) {
@@ -76,7 +73,26 @@ public record TerrainSpec(TerrainFamily family, String setting, Map<String, Doub
         double scale = terrain.has("scale") ? number(slug, "terrain.scale", terrain.get("scale"), SCALE) : 1;
         double height = terrain.has("heightMultiplier")
                 ? number(slug, "terrain.heightMultiplier", terrain.get("heightMultiplier"), HEIGHT_MULTIPLIER) : 1;
-        return new TerrainSpec(family, setting, Map.copyOf(values), scale, height);
+        return new TerrainSpec(family, setting, Map.copyOf(values), scale, height, TerrainShaping.parse(slug, terrain, scale));
+    }
+
+    /**
+     * The shaping of a preset's own terrain ({@code base} absent or null): its
+     * {@code scale}, {@code scales} and {@code layout}; null when there is no
+     * {@code terrain}, a {@code base} is set, or the shaping changes nothing.
+     */
+    public static TerrainShaping presetShaping(String slug, JsonObject terrain) {
+        if (terrain == null || terrain.has("base") && !terrain.get("base").isJsonNull()) {
+            return null;
+        }
+        for (String key : terrain.keySet()) {
+            if (!PRESET_KEYS.contains(key)) {
+                throw error(slug, "terrain." + key + " needs a terrain.base");
+            }
+        }
+        double scale = terrain.has("scale") ? number(slug, "terrain.scale", terrain.get("scale"), SCALE) : 1;
+        TerrainShaping shaping = TerrainShaping.parse(slug, terrain, scale);
+        return shaping.isNone() ? null : shaping;
     }
 
     private static double number(String slug, String field, JsonElement e, TerrainParam range) {

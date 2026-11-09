@@ -49,7 +49,7 @@
           "type": "object"
         },
         "scale": {
-          "description": "Horizontal stretch of every terrain noise and of the biome climate; 2 is twice as broad",
+          "description": "Horizontal stretch of every terrain noise and of the biome climate; 2 is twice as broad. scales multiply it per router noise",
           "type": "number",
           "minimum": 0.25,
           "maximum": 4,
@@ -61,6 +61,55 @@
           "minimum": 0.25,
           "maximum": 3,
           "default": 1
+        },
+        "scales": {
+          "description": "Per-noise horizontal stretch, each multiplied with scale and applied to the router noise it names: continents (continentalness: continent and ocean size), erosion (range and valley width), ridges (weirdness: ridge, river and peak spacing), climate (temperature and vegetation: biome region size). Larger is broader. Library noises follow scale only. Biome climate boxes keep their bounds, so check every listed biome on a render after a change (T174). Without a base it shapes the overworld, large_biomes and amplified presets' own terrain.",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "continents": { "description": "Horizontal stretch of one router noise, multiplied with scale; 2 is twice as broad", "type": "number", "minimum": 0.25, "maximum": 4, "default": 1 },
+            "erosion": { "description": "Horizontal stretch of one router noise, multiplied with scale; 2 is twice as broad", "type": "number", "minimum": 0.25, "maximum": 4, "default": 1 },
+            "ridges": { "description": "Horizontal stretch of one router noise, multiplied with scale; 2 is twice as broad", "type": "number", "minimum": 0.25, "maximum": 4, "default": 1 },
+            "climate": { "description": "Horizontal stretch of one router noise, multiplied with scale; 2 is twice as broad", "type": "number", "minimum": 0.25, "maximum": 4, "default": 1 }
+          }
+        },
+        "layout": {
+          "description": "A large-scale shape added to continentalness (land and biomes both read it) so the bordered area composes as one place: radial is a continent (1 within radius, falling to -1 over falloff), ring is a crest at radius round a low centre, linear is a coast rising towards direction. The shape times strength adds to the noise, never replaces it. Without a base it shapes the overworld, large_biomes and amplified presets' own terrain.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type"],
+          "properties": {
+            "type": { "enum": ["radial", "ring", "linear", "none"] },
+            "centre": {
+              "description": "Block x, z of the shape's centre, or a point on a linear coast; default the border's centre, 0, 0",
+              "type": "array",
+              "items": { "type": "number" },
+              "minItems": 2,
+              "maxItems": 2
+            },
+            "radius": {
+            "description": "Blocks from the centre to where a radial shape starts to fall, or to a ring's crest",
+            "type": "number",
+            "minimum": 0,
+            "maximum": 8192,
+            "default": 512
+          },
+            "direction": { "description": "Degrees towards which a linear layout rises: 0 east, 90 south", "type": "number" },
+            "falloff": {
+            "description": "Blocks over which the shape goes from land (1) to sea (-1)",
+            "type": "number",
+            "minimum": 16,
+            "maximum": 8192,
+            "default": 256
+          },
+            "strength": {
+            "description": "How far the layout moves continentalness: 1 adds the whole shape (-1 to 1), 0 none",
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "default": 0.5
+          }
+          }
         }
       },
       "allOf": [

@@ -83,8 +83,9 @@ public final class TerrainLibrary {
             if (!source.isJsonPrimitive() || !source.getAsJsonPrimitive().isString()) {
                 source = overworldRouter.get(key);
             }
-            functions.put(key, scaled(vanilla.densityFunction(path(source.getAsString())), spec.scale()));
+            functions.put(key, scaled(vanilla.densityFunction(path(source.getAsString())), spec.shaping().stretch(key)));
         }
+        functions.put("continents", layout(functions.get("continents"), spec.shaping()));
         Map<String, String> ids = ids(prefix);
         functions.put("ridges_folded", replace(vanilla.densityFunction("overworld/ridges_folded"), ids));
 
@@ -138,6 +139,51 @@ public final class TerrainLibrary {
             files.put(dataPath(namespace + ":terrain/" + noise, "worldgen/noise"), Noises.json(noise));
         }
         return new Compiled(out, files);
+    }
+
+    /** The presets whose own terrain {@code scales} and {@code layout} can shape, and the vanilla prefix of each one's functions. */
+    public static final Map<String, String> SHAPED_PRESETS = Map.of("overworld", "overworld", "large_biomes", "overworld_large_biomes",
+            "amplified", "overworld_amplified");
+    /** Vanilla functions a shaped preset copies from its own prefix, reading the stretched climate. */
+    static final List<String> PRESET_SHAPE = List.of("offset", "factor", "jaggedness", "depth", "sloped_cheese", "final_density",
+            "preliminary_surface_level", "chunk_surface_level");
+
+    /**
+     * {@code settings} (a copy of the preset's vanilla noise settings) with the
+     * preset's own land read from stretched router noises and the layout:
+     * vanilla's functions copied under {@code <namespace>:terrain/<name>/},
+     * each referring to the terrain's climate instead of vanilla's.
+     */
+    public static Compiled shapePreset(String slug, String namespace, String name, TerrainShaping shaping, String preset,
+                                       JsonObject settings, VanillaData vanilla) {
+        String own = SHAPED_PRESETS.get(preset);
+        if (own == null) {
+            throw new IllegalArgumentException(slug + ": terrain.scales and terrain.layout shape the presets "
+                    + String.join(", ", new java.util.TreeSet<>(SHAPED_PRESETS.keySet())) + " without a terrain.base, not " + preset);
+        }
+        String prefix = namespace + ":terrain/" + name;
+        Map<String, String> ids = ids(prefix);
+        Map<String, JsonObject> functions = new LinkedHashMap<>();
+        JsonObject router = settings.getAsJsonObject("noise_router");
+        for (String key : CLIMATE) {
+            functions.put(key, scaled(vanilla.densityFunction(path(router.get(key).getAsString())), shaping.stretch(key)));
+        }
+        functions.put("continents", layout(functions.get("continents"), shaping));
+        functions.put("ridges_folded", replace(vanilla.densityFunction("overworld/ridges_folded"), ids));
+        for (String n : PRESET_SHAPE) {
+            JsonObject f = replace(vanilla.densityFunction(own + "/" + n), ids);
+            functions.put(n, "sloped_cheese".equals(n) ? scaled(f, shaping.scale()) : f);
+        }
+        JsonObject out = replace(settings, ids);
+        out.remove("debug_functions");
+        Map<String, JsonObject> files = new TreeMap<>();
+        functions.forEach((key, json) -> files.put(dataPath(prefix + "/" + key, "worldgen/density_function"), json));
+        return new Compiled(out, files);
+    }
+
+    /** {@code continents} with the shaping's layout added (cached), or unchanged without one. */
+    static JsonObject layout(JsonObject continents, TerrainShaping shaping) {
+        return shaping.layout() == null ? continents : cache(shaping.withLayout(continents));
     }
 
     /** Vanilla's overworld-family function ids to the terrain's. */

@@ -129,11 +129,13 @@ public final class ZoneDensity {
         return f;
     }
 
-    private static JsonObject distance(long cx, long cz) {
+    /** Horizontal distance in blocks from {@code (cx, cz)}, exact within {@link #REACH}. */
+    public static JsonObject distance(long cx, long cz) {
         return unary("sqrt", binary("add", unary("square", gradient("x", cx)), unary("square", gradient("z", cz))));
     }
 
-    private static JsonObject gradient(String axis, long centre) {
+    /** The coordinate along {@code axis} minus {@code centre}, exact within {@link #REACH} and clamped beyond. */
+    public static JsonObject gradient(String axis, long centre) {
         JsonObject gradient = type("gradient");
         gradient.addProperty("axis", axis);
         gradient.addProperty("tiling", "clamp_to_edge");

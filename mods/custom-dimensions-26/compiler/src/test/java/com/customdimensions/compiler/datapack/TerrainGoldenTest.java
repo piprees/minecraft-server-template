@@ -33,6 +33,9 @@ class TerrainGoldenTest {
     void variantsMatchTheCommittedOutput() throws IOException {
         matches("terrain_ridges_thin", "{\"base\": \"ridges\", \"params\": {\"coast\": -0.6, \"seaFloor\": 8, \"landHeight\": 16, "
                 + "\"peakHeight\": 240, \"rangeWidth\": 0.1, \"crest\": 0.5, \"erosionFalloff\": 0, \"web\": 1}}");
+        matches("terrain_continents_shaped", "{\"base\": \"continents\", \"scales\": {\"continents\": 1.3, \"erosion\": 2, "
+                + "\"ridges\": 1.4, \"climate\": 1.5}, \"layout\": {\"type\": \"radial\", \"radius\": 400, \"falloff\": 500, \"strength\": 0.6}}");
+        matches("terrain_overworld_shaped", "{\"scales\": {\"continents\": 1.3, \"erosion\": 2.08, \"ridges\": 1.39, \"climate\": 1.67}}");
     }
 
     private static void matches(String slug, String terrain) throws IOException {

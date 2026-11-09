@@ -626,8 +626,14 @@ public final class DatapackCompiler {
         boolean removesIsland = "end".equals(preset) && Boolean.FALSE.equals(def.generator().endIsland());
         TerrainSpec terrain = TerrainSpec.parse(slug, def.terrain());
         JsonObject settings = vanilla.noiseSettings(preset);
+        com.customdimensions.compiler.terrain.TerrainShaping shaping = TerrainSpec.presetShaping(slug, def.terrain());
         if (terrain != null) {
             settings = terrain(slug, preset, terrain, settings, liquids, entry);
+        } else if (shaping != null) {
+            TerrainLibrary.Compiled compiled = TerrainLibrary.shapePreset(slug, namespace, slug, shaping, preset, settings, vanilla);
+            compiled.files().forEach((path, json) -> put(path, sorted(json), entry));
+            entry.note("Preset `" + preset + "` terrain shaped (scales, layout) under `" + namespace + ":terrain/" + slug + "/`");
+            settings = compiled.settings();
         }
         boolean borrowsClimate = false;
         if (!def.biomes().isEmpty() && CONSTANT_CLIMATE.contains(preset)) {
@@ -649,7 +655,7 @@ public final class DatapackCompiler {
         JsonObject materialRule = MaterialsCompiler.compose(vanilla, settings.get("material_rule").getAsString(),
                 withLibraryPalettes(MaterialsCompiler.read(slug, def.materials()), def, zones, entry), OresCompiler.veins(OresCompiler.read(slug, def.ores()), vanilla),
                 seaLevel);
-        if (!changesLiquids && defaultBlock == null && !removesIsland && materialRule == null && terrain == null
+        if (!changesLiquids && defaultBlock == null && !removesIsland && materialRule == null && terrain == null && shaping == null
                 && !changesZones && !borrowsClimate) {
             return "minecraft:" + preset;
         }

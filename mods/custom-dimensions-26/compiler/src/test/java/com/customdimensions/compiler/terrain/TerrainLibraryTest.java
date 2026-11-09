@@ -471,7 +471,7 @@ class TerrainLibraryTest {
         assertEquals("t: terrain.heightMultiplier = 0 is outside [0.25, 3]", error("{\"base\": \"canyons\", \"heightMultiplier\": 0}"));
         assertEquals("t: terrain.setting \"wild\" is not one of gentle, default, extreme", error("{\"base\": \"canyons\", \"setting\": \"wild\"}"));
         assertEquals("t: terrain.params needs a terrain.base", error("{\"base\": null, \"params\": {\"depth\": 20}}"));
-        assertEquals("t: terrain.roughness is not a terrain field; fields: base, heightMultiplier, params, scale, setting",
+        assertEquals("t: terrain.roughness is not a terrain field; fields: base, heightMultiplier, layout, params, scale, scales, setting",
                 error("{\"base\": \"canyons\", \"roughness\": 1}"));
         assertEquals("t: terrain.params must be an object", error("{\"base\": \"canyons\", \"params\": 3}"));
     }
@@ -525,6 +525,19 @@ class TerrainLibraryTest {
         assertEquals(expected, names);
         assertEquals(TerrainLibrary.numberSchema(TerrainSpec.SCALE), terrain.get("scale"));
         assertEquals(TerrainLibrary.numberSchema(TerrainSpec.HEIGHT_MULTIPLIER), terrain.get("heightMultiplier"));
+        JsonObject scales = terrain.getAsJsonObject("scales").getAsJsonObject("properties");
+        assertEquals(new TreeSet<>(TerrainShaping.SCALE_KEYS), new TreeSet<>(scales.keySet()));
+        for (String k : TerrainShaping.SCALE_KEYS) {
+            assertEquals(TerrainShaping.SCALE_RANGE.min(), scales.getAsJsonObject(k).get("minimum").getAsDouble(), k);
+            assertEquals(TerrainShaping.SCALE_RANGE.max(), scales.getAsJsonObject(k).get("maximum").getAsDouble(), k);
+        }
+        JsonObject layout = terrain.getAsJsonObject("layout").getAsJsonObject("properties");
+        List<String> types = new ArrayList<>();
+        layout.getAsJsonObject("type").getAsJsonArray("enum").forEach(e -> types.add(e.getAsString()));
+        assertEquals(TerrainShaping.LAYOUT_TYPES, types);
+        assertEquals(TerrainLibrary.numberSchema(TerrainShaping.STRENGTH), layout.get("strength"));
+        assertEquals(TerrainLibrary.numberSchema(TerrainShaping.FALLOFF), layout.get("falloff"));
+        assertEquals(TerrainLibrary.numberSchema(TerrainShaping.RADIUS), layout.get("radius"));
     }
 
     private static double xzScale(JsonObject f) {
