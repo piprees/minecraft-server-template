@@ -1596,6 +1596,41 @@ A seed's map and its banked facts appear to contradict each other — the thumbn
   the same trap. Pin it against the Java, not against intuition —
   `scripts/e2e/portal-matrix-selftest.sh` is the worked example.
 
+<a id="t191"></a>
+### T191 — Gallery shot records come in three shapes
+
+- **Symptom:** a census of old gallery shots faces yaw 0, or the converter crashes.
+- **Cause:** w7b records are a dict with yaw and pitch on the shot; w7f/h/k use `lookingAt`; w7d/e put the dimension on the record.
+- **Fix:** `census-list.py` reads all three shapes.
+
+<a id="t190"></a>
+### T190 — Survey surface shares include void columns
+
+- **Symptom:** a dimension with much void scores low on biome traceability (the_blighted_maw read 28% with 72% void).
+- **Cause:** dossier surface shares are of all columns, void included, and islands over void are filed as the surface.
+- **Fix:** the scorecard divides by the summed biome shares (ground only) and checks an implied sky layer against void plus ground.
+
+<a id="t189"></a>
+### T189 — A 26.x dimension's Nether fog is read from `fog_end_distance`
+
+- **Symptom:** the picker lights a fog-bound dimension with night vision and the shots turn into a bright wall.
+- **Cause:** no visual attribute names the Nether; a nether-effects definition registers `minecraft:visual/fog_end_distance` (96 on the_basalt_spires).
+- **Fix:** treat a fixed `fog_end_distance` or definition `effects` of `the_nether` as fog-bound (extends T184).
+
+<a id="t188"></a>
+### T188 — A dimension held at night shoots black
+
+- **Symptom:** every shot of the_darkpine_depths is black at noon.
+- **Cause:** a definition `fixedTime` of 13000–23000 keeps the dimension at night whatever `time set` says.
+- **Fix:** the picker counts such a dimension as dark and uses night vision.
+
+<a id="t187"></a>
+### T187 — Far views from a summit sit above the clouds
+
+- **Symptom:** cloud slabs cross a far view.
+- **Cause:** coarse-map summits reach y 187–256 and the cloud layer is at 192.33, so a camera at `surface+40` is in or over it.
+- **Fix:** set `renderClouds:"false"` in the rig client's `run/options.txt` for far views.
+
 <a id="t186"></a>
 ### T186 — A biome "listed, not found" by the survey may still generate
 
